@@ -22,7 +22,10 @@ module.exports = async function handler(req, res) {
 
     const payload = {
       contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: 1400 },
+      generationConfig: {
+        maxOutputTokens: 1400,
+        responseMimeType: "application/json",
+      },
     };
 
     // Descubre modelos compatibles con generateContent para evitar fallos por nombres no disponibles.
@@ -101,6 +104,14 @@ module.exports = async function handler(req, res) {
 
     // Normalizar respuesta al formato que espera App.js
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+
+    try {
+      const parsed = JSON.parse(text);
+      return res.status(200).json({ parsed });
+    } catch {
+      // Si no viene JSON perfecto, el frontend aplica parsing tolerante.
+    }
+
     return res.status(200).json({
       content: [{ type: "text", text }],
     });

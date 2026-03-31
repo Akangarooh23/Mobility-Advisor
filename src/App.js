@@ -2,6 +2,61 @@ import { useState, useRef } from "react";
 
 const ANALYZE_API_ENDPOINT = "/api/analyze";
 
+function sanitizeJsonStringContent(input) {
+  let result = "";
+  let inString = false;
+  let escaped = false;
+
+  for (const ch of input) {
+    if (escaped) {
+      result += ch;
+      escaped = false;
+      continue;
+    }
+
+    if (ch === "\\") {
+      result += ch;
+      escaped = true;
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = !inString;
+      result += ch;
+      continue;
+    }
+
+    if (inString && (ch === "\n" || ch === "\r")) {
+      result += "\\n";
+      continue;
+    }
+
+    result += ch;
+  }
+
+  return result;
+}
+
+function parseAdvisorJson(rawText) {
+  const text = String(rawText || "").replace(/```json|```/gi, "").trim();
+
+  const firstBrace = text.indexOf("{");
+  const lastBrace = text.lastIndexOf("}");
+  const jsonSlice =
+    firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace
+      ? text.slice(firstBrace, lastBrace + 1)
+      : text;
+
+  const normalized = sanitizeJsonStringContent(
+    jsonSlice
+      .replace(/[\u201C\u201D]/g, '"')
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/,\s*([}\]])/g, "$1")
+  );
+
+  return JSON.parse(normalized);
+}
+
 // ─────────────────────────────────────────
 // STEPS — todas las preguntas del marco
 // ─────────────────────────────────────────
@@ -665,9 +720,15 @@ ${answersSummary}`;
         throw new Error(data.error?.message || data.error || "Error desconocido");
       }
 
+      if (data.parsed && typeof data.parsed === "object") {
+        setResult(data.parsed);
+        setLoading(false);
+        setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+        return;
+      }
+
       const text = data.content?.map((i) => i.text || "").join("") || "";
-      const clean = text.replace(/```json|```/g, "").trim();
-      const parsed = JSON.parse(clean);
+      const parsed = parseAdvisorJson(text);
       setResult(parsed);
       setLoading(false);
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth" }), 100);

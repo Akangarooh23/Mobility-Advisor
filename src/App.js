@@ -662,7 +662,7 @@ ${answersSummary}`;
           setLoading(false);
           return;
         }
-        throw new Error(data.error?.message || "Error desconocido");
+        throw new Error(data.error?.message || data.error || "Error desconocido");
       }
 
       const text = data.content?.map((i) => i.text || "").join("") || "";

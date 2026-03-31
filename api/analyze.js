@@ -25,22 +25,67 @@ module.exports = async function handler(req, res) {
       generationConfig: { maxOutputTokens: 1400 },
     };
 
-    // 1.5 Flash suele estar disponible en cuentas gratuitas donde 2.0 puede tener cuota 0.
-    let response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      }
+    // Descubre modelos compatibles con generateContent para evitar fallos por nombres no disponibles.
+    const modelsResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
     );
+    const modelsData = await modelsResponse.json();
 
-    let data = await response.json();
+    const availableModelNames = (modelsData?.models || [])
+      .filter((model) => Array.isArray(model?.supportedGenerationMethods))
+      .filter((model) => model.supportedGenerationMethods.includes("generateContent"))
+      .map((model) => model.name)
+      .filter(Boolean);
 
-    if (!response.ok) {
-      const errorMessage = data?.error?.message || "";
+    const preferredModels = [
+      "models/gemini-2.0-flash",
+      "models/gemini-2.0-flash-lite",
+      "models/gemini-1.5-flash",
+      "models/gemini-1.5-pro",
+    ];
+
+    const orderedModels = [
+      ...preferredModels.filter((name) => availableModelNames.includes(name)),
+      ...availableModelNames.filter((name) => !preferredModels.includes(name) && name.includes("gemini")),
+      ...availableModelNames.filter((name) => !name.includes("gemini")),
+    ];
+
+    if (orderedModels.length === 0) {
+      return res.status(400).json({
+        code: "MODEL_NOT_AVAILABLE",
+        error: "Tu API key no tiene modelos compatibles con generateContent en v1beta.",
+      });
+    }
+
+    let response;
+    let data;
+    let lastErrorStatus = 500;
+    let lastErrorData = { error: "No se pudo completar la solicitud" };
+
+    for (const modelName of orderedModels) {
+      response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/${modelName}:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      data = await response.json();
+
+      if (response.ok) {
+        break;
+      }
+
+      lastErrorStatus = response.status;
+      lastErrorData = data;
+    }
+
+    if (!response || !response.ok) {
+      const errorMessage = lastErrorData?.error?.message || "";
       const isQuotaExceeded =
-        response.status === 429 ||
+        lastErrorStatus === 429 ||
         /quota exceeded|rate limit|exceeded your current quota/i.test(errorMessage);
 
       if (isQuotaExceeded) {
@@ -51,7 +96,7 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      return res.status(response.status).json(data);
+      return res.status(lastErrorStatus).json(lastErrorData);
     }
 
     // Normalizar respuesta al formato que espera App.js

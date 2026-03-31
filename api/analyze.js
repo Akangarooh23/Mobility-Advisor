@@ -159,6 +159,269 @@ function isCompleteAdvisorResult(value) {
   );
 }
 
+function asArray(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+function includesAnswer(value, expected) {
+  return asArray(value).includes(expected);
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function getVehicleProfile(answers) {
+  if (answers.ocupantes === "7") {
+    return "un familiar grande o un monovolumen";
+  }
+
+  if (answers.carroceria === "suv_crossover") {
+    return "un SUV compacto racional";
+  }
+
+  if (answers.carroceria === "berlina_familiar") {
+    return "una berlina o un familiar eficiente";
+  }
+
+  return "un compacto equilibrado";
+}
+
+function getViablePropulsions(answers) {
+  const propulsions = [];
+  const noGarage = answers.garaje === "sin_garaje";
+  const ownCharger = answers.garaje === "garaje_cargador";
+  const highwayUse = answers.entorno_uso === "autopista";
+  const highZbe = answers.zbe_impacto === "alta";
+
+  if (ownCharger && !highwayUse) {
+    propulsions.push("electrico", "PHEV", "hibrido");
+  } else if (ownCharger) {
+    propulsions.push("PHEV", "hibrido", "gasolina eficiente");
+  } else if (noGarage) {
+    propulsions.push("hibrido", highZbe ? "PHEV" : "gasolina eficiente");
+  } else {
+    propulsions.push("hibrido", "PHEV", "gasolina eficiente");
+  }
+
+  if (answers.propulsion_preferida === "electrico" && ownCharger && !propulsions.includes("electrico")) {
+    propulsions.unshift("electrico");
+  }
+
+  if (answers.propulsion_preferida === "gasolina" && !propulsions.includes("gasolina eficiente")) {
+    propulsions.push("gasolina eficiente");
+  }
+
+  return [...new Set(propulsions)].slice(0, 3);
+}
+
+function getPrimaryType(answers) {
+  const flexibility = answers.flexibilidad;
+  const lowKm = answers.km_anuales === "menos_10k";
+  const cityUse = answers.entorno_uso === "ciudad";
+  const dailyCommute = includesAnswer(answers.uso_principal, "trabajo_diario");
+
+  if (flexibility === "propiedad_contado") {
+    return "compra_contado";
+  }
+
+  if (flexibility === "propiedad_financiada") {
+    return "compra_financiada";
+  }
+
+  if (flexibility === "renting") {
+    return "renting_largo";
+  }
+
+  if (flexibility === "flexible") {
+    if (lowKm && cityUse && !dailyCommute) {
+      return "carsharing";
+    }
+
+    return "renting_corto";
+  }
+
+  if (lowKm && cityUse && !dailyCommute) {
+    return "transporte_publico";
+  }
+
+  return answers.cuota_mensual === "menos_200" ? "compra_contado" : "compra_financiada";
+}
+
+function getCompaniesForType(type) {
+  const companiesByType = {
+    compra_contado: ["Coches.net", "Autohero", "Spoticar"],
+    compra_financiada: ["Coches.net", "Flexicar", "Concesionario oficial"],
+    renting_largo: ["Ayvens", "Arval", "Alphabet"],
+    renting_corto: ["Northgate", "Free2move", "OK Mobility"],
+    rent_a_car: ["Enterprise", "Sixt", "OK Mobility"],
+    carsharing: ["Free2move", "Zity", "Wible"],
+    carpooling: ["BlaBlaCar", "Hoop Carpool", "Amovens"],
+    transporte_publico: ["Renfe Cercanias", "EMT", "TMB"],
+    micromovilidad: ["Acciona", "Lime", "Bolt"],
+  };
+
+  return companiesByType[type] || ["Coches.net", "Autohero", "Ayvens"];
+}
+
+function getCostEstimate(type, answers) {
+  const bands = {
+    menos_10k: [120, 260],
+    "10k_20k": [260, 430],
+    mas_20k: [430, 700],
+  };
+  const [minBand, maxBand] = bands[answers.km_anuales] || [250, 420];
+
+  const offsets = {
+    compra_contado: [80, 120],
+    compra_financiada: [220, 320],
+    renting_largo: [200, 280],
+    renting_corto: [260, 360],
+    rent_a_car: [320, 420],
+    carsharing: [-40, 30],
+    carpooling: [-90, -20],
+    transporte_publico: [-120, -40],
+    micromovilidad: [-140, -60],
+  };
+
+  const [minOffset, maxOffset] = offsets[type] || [0, 0];
+  const min = Math.max(40, minBand + minOffset);
+  const max = Math.max(min + 40, maxBand + maxOffset);
+
+  return `${min} - ${max} EUR/mes`;
+}
+
+function getDgtLabel(propulsions) {
+  if (propulsions.includes("electrico") || propulsions.includes("PHEV")) {
+    return "CERO";
+  }
+
+  if (propulsions.includes("hibrido")) {
+    return "ECO";
+  }
+
+  return "C";
+}
+
+function getTensionPrincipal(answers, primaryType) {
+  if (answers.propulsion_preferida === "electrico" && answers.garaje === "sin_garaje") {
+    return "Quieres electrificacion total, pero sin punto de carga propio el uso diario depende demasiado de la infraestructura publica.";
+  }
+
+  if (answers.marca_preferencia === "premium" && (answers.cuota_mensual === "menos_200" || answers.capital_propio === "menos_5k")) {
+    return "Hay una tension clara entre aspiracion de marca premium y margen financiero disponible para asumir compra, seguro y mantenimiento sin estrecharte.";
+  }
+
+  if (answers.zbe_impacto === "alta" && answers.propulsion_preferida === "gasolina") {
+    return "Te afectan mucho las ZBE y, aun asi, priorizas gasolina; eso reduce margen de maniobra regulatoria a medio plazo.";
+  }
+
+  if (primaryType === "renting_corto" && answers.horizonte === "mas_7") {
+    return "Buscas flexibilidad alta, pero a largo plazo suele salir mas caro que una compra bien elegida.";
+  }
+
+  return "Tu caso exige equilibrar coste mensual, uso real y riesgo futuro sin sobredimensionar coche ni motorizacion.";
+}
+
+function buildAlternatives(primaryType, answers) {
+  const profile = getVehicleProfile(answers);
+  const alternativesByType = {
+    compra_contado: [
+      { tipo: "compra_financiada", score: 76, titulo: `Compra financiada de ${profile}`, razon: "Tiene sentido si prefieres preservar liquidez y mantienes una cuota por debajo de tu limite comodo." },
+      { tipo: "renting_largo", score: 68, titulo: "Renting con cuota cerrada", razon: "Buena opcion si priorizas previsibilidad de gasto y no quieres asumir depreciacion ni venta futura." },
+    ],
+    compra_financiada: [
+      { tipo: "renting_largo", score: 79, titulo: "Renting a largo plazo", razon: "Reduce riesgo operativo y fija gasto si valoras tranquilidad mas que propiedad." },
+      { tipo: "compra_contado", score: 66, titulo: `Compra al contado de ${profile}`, razon: "Interesa si puedes aumentar entrada y evitar coste financiero en una unidad fiable." },
+    ],
+    renting_largo: [
+      { tipo: "compra_financiada", score: 74, titulo: `Compra financiada de ${profile}`, razon: "Puede ser mas rentable si vas a mantener el vehiculo varios anos y eliges una version liquida." },
+      { tipo: "renting_corto", score: 64, titulo: "Renting flexible", razon: "Solo compensa si preves cambios de vida cercanos y quieres posponer la decision final." },
+    ],
+    renting_corto: [
+      { tipo: "carsharing", score: 72, titulo: "Carsharing + transporte publico", razon: "Muy competitivo si haces pocos kilometros y la mayor parte del uso es urbano y puntual." },
+      { tipo: "renting_largo", score: 67, titulo: "Renting a largo plazo", razon: "Mejora coste total si tu patron de uso ya esta bastante definido." },
+    ],
+    carsharing: [
+      { tipo: "transporte_publico", score: 77, titulo: "Transporte publico como base", razon: "Reduce aun mas el coste fijo si puedes cubrir el dia a dia sin coche propio." },
+      { tipo: "renting_corto", score: 63, titulo: `Renting corto de ${profile}`, razon: "Solo merece la pena si tu uso puntual empieza a crecer y necesitas mas disponibilidad." },
+    ],
+    transporte_publico: [
+      { tipo: "carsharing", score: 73, titulo: "Carsharing para fines de semana", razon: "Complementa bien desplazamientos ocasionales sin asumir cuota mensual fija alta." },
+      { tipo: "micromovilidad", score: 61, titulo: "Micromovilidad urbana", razon: "Encaja si la mayoria de trayectos son cortos y dentro de ciudad." },
+    ],
+  };
+
+  return alternativesByType[primaryType] || [
+    { tipo: "compra_financiada", score: 70, titulo: `Compra financiada de ${profile}`, razon: "Mantiene equilibrio entre control mensual, disponibilidad total y valor residual." },
+    { tipo: "renting_largo", score: 65, titulo: "Renting con servicios incluidos", razon: "Interesa si priorizas simplificar gestion y fijar coste total." },
+  ];
+}
+
+function buildFallbackAdvisorResult(answers = {}) {
+  const primaryType = getPrimaryType(answers);
+  const propulsions = getViablePropulsions(answers);
+  const dgtLabel = getDgtLabel(propulsions);
+  const vehicleProfile = getVehicleProfile(answers);
+  const highRiskControl = answers.gestion_riesgo === "alto";
+  const highZbe = answers.zbe_impacto === "alta";
+  const scoreBase = 78
+    + (highRiskControl ? 4 : 0)
+    + (highZbe && dgtLabel !== "C" ? 4 : 0)
+    - (answers.propulsion_preferida === "electrico" && answers.garaje === "sin_garaje" ? 8 : 0)
+    - (answers.marca_preferencia === "premium" && answers.cuota_mensual === "menos_200" ? 5 : 0);
+  const score = clamp(scoreBase, 68, 92);
+  const companies = getCompaniesForType(primaryType);
+  const cost = getCostEstimate(primaryType, answers);
+  const tension = getTensionPrincipal(answers, primaryType);
+
+  const titles = {
+    compra_contado: `Compra al contado de ${vehicleProfile}`,
+    compra_financiada: `Compra financiada de ${vehicleProfile}`,
+    renting_largo: `Renting a largo plazo de ${vehicleProfile}`,
+    renting_corto: `Solucion flexible a corto plazo para ${vehicleProfile}`,
+    carsharing: "Carsharing combinado con transporte publico",
+    transporte_publico: "Transporte publico como base de movilidad",
+    micromovilidad: "Micromovilidad urbana con apoyo ocasional",
+    rent_a_car: "Alquiler por uso para demanda puntual",
+    carpooling: "Carpooling como solucion principal de ahorro",
+  };
+
+  const summary = `Por tu patron de uso ${answers.entorno_uso || "mixto"}, tu horizonte ${answers.horizonte || "medio"} y tu nivel de riesgo ${answers.gestion_riesgo || "medio"}, encaja mejor ${titles[primaryType] || "una solucion equilibrada"}. Esta opcion reduce friccion operativa, mantiene el coste en una zona razonable y evita sobredimensionar motorizacion o formato.`;
+
+  return normalizeAdvisorResult({
+    alineacion_pct: score,
+    solucion_principal: {
+      tipo: primaryType,
+      score,
+      titulo: titles[primaryType] || `Solucion prioritaria para ${vehicleProfile}`,
+      resumen: summary,
+      ventajas: [
+        `Se adapta mejor a un uso ${answers.entorno_uso || "mixto"} con ${answers.km_anuales || "kilometraje medio"} sin disparar el coste total.`,
+        `Encaja con tu horizonte ${answers.horizonte || "de uso"} y te deja una salida mas limpia si cambian tus necesidades.`,
+        `Permite priorizar ${vehicleProfile} con etiqueta ${dgtLabel} y una oferta realista en el mercado espanol actual.`,
+      ],
+      inconvenientes: [
+        "Requiere comparar varias ofertas y no aceptar la primera propuesta comercial sin revisar coste total.",
+        highRiskControl
+          ? "Conviene exigir trazabilidad, garantia o condiciones cerradas para no introducir riesgo evitable."
+          : "Si cambian tus habitos de uso, puede hacer falta reajustar formato o modalidad antes de lo previsto.",
+      ],
+      coste_estimado: cost,
+      empresas_recomendadas: companies,
+      etiqueta_dgt: dgtLabel,
+      tension_principal: tension,
+    },
+    alternativas: buildAlternatives(primaryType, answers),
+    tco_aviso: `Tu coste real no deberia medirse solo por cuota o precio de compra: con tu perfil pesan tambien seguro, mantenimiento, combustible/energia y depreciacion, especialmente si eliges un coche mayor o mas premium de lo necesario.`,
+    consejo_experto: highZbe
+      ? "Si entras a ZBE con frecuencia, prioriza versiones con etiqueta ECO o CERO y confirma por VIN o ficha tecnica la etiqueta exacta antes de cerrar nada."
+      : "Pide siempre oferta desglosada con precio final, comision, vinculaciones y coste total a 36-72 meses; ahi es donde suelen esconderse las peores decisiones.",
+    siguiente_paso: `Esta semana compara 3 ofertas de ${companies.slice(0, 2).join(" y ")} para ${vehicleProfile} y descarta cualquier opcion cuyo coste total se aleje de ${cost} o no encaje con ${propulsions.join(", ")}.`,
+    propulsiones_viables: propulsions,
+  });
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -176,6 +439,7 @@ module.exports = async function handler(req, res) {
   try {
     const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
     const prompt = body?.prompt;
+    const answers = body?.answers && typeof body.answers === "object" ? body.answers : {};
 
     if (!prompt || typeof prompt !== "string") {
       return res.status(400).json({ error: "Missing prompt" });
@@ -297,10 +561,11 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    return res.status(502).json({
-      code: "AI_INVALID_RESPONSE",
-      error:
-        "Gemini ha devuelto una respuesta no interpretable despues de varios intentos. Repite el analisis.",
+    return res.status(200).json({
+      parsed: buildFallbackAdvisorResult(answers),
+      meta: {
+        source: "fallback",
+      },
     });
   } catch (error) {
     return res.status(500).json({

@@ -793,6 +793,7 @@ ${answersSummary}`;
         },
         body: JSON.stringify({
           prompt,
+          answers: finalAnswers,
         }),
       });
 

@@ -1,3 +1,5 @@
+const JSON5 = require("json5");
+
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -106,7 +108,7 @@ module.exports = async function handler(req, res) {
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
     try {
-      const parsed = JSON.parse(text);
+      const parsed = JSON5.parse(text);
       return res.status(200).json({ parsed });
     } catch {
       // Si no viene JSON perfecto, el frontend aplica parsing tolerante.

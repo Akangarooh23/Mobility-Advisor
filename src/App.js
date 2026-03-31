@@ -805,6 +805,7 @@ ${answersSummary}`;
           setLoading(false);
           return;
         }
+
         throw new Error(data.error?.message || data.error || "Error desconocido");
       }
 

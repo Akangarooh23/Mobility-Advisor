@@ -1,17 +1,86 @@
 const JSON5 = require("json5");
 const { jsonrepair } = require("jsonrepair");
 
+function sanitizeJsonStringContent(input) {
+  let result = "";
+  let inString = false;
+  let escaped = false;
+
+  for (const ch of input) {
+    if (escaped) {
+      result += ch;
+      escaped = false;
+      continue;
+    }
+
+    if (ch === "\\") {
+      result += ch;
+      escaped = true;
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = !inString;
+      result += ch;
+      continue;
+    }
+
+    if (inString && (ch === "\n" || ch === "\r")) {
+      result += "\\n";
+      continue;
+    }
+
+    result += ch;
+  }
+
+  return result;
+}
+
+function extractJsonCandidate(rawText) {
+  const text = String(rawText || "")
+    .replace(/```json|```/gi, "")
+    .trim();
+
+  const firstBrace = text.indexOf("{");
+  const lastBrace = text.lastIndexOf("}");
+
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    return text.slice(firstBrace, lastBrace + 1);
+  }
+
+  return text;
+}
+
 function parseGeminiJson(text) {
+  const candidate = sanitizeJsonStringContent(
+    extractJsonCandidate(text)
+      .replace(/[\u201C\u201D]/g, '"')
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/,\s*([}\]])/g, "$1")
+  );
+
   try {
-    return JSON.parse(text);
+    return JSON.parse(candidate);
   } catch {}
 
   try {
-    return JSON5.parse(text);
+    return JSON5.parse(candidate);
   } catch {}
 
   try {
-    const repaired = jsonrepair(text);
+    const repaired = jsonrepair(candidate);
+    return JSON.parse(repaired);
+  } catch {}
+
+  try {
+    const singleQuotedKeys = candidate.replace(/([{,]\s*)'([^'\\]+?)'\s*:/g, '$1"$2":');
+    return JSON.parse(singleQuotedKeys);
+  } catch {}
+
+  try {
+    const repaired = candidate
+      .replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_-]*)\s*:/g, '$1"$2":')
+      .replace(/'([^'\\]*(?:\\.[^'\\]*)*)'/g, '"$1"');
     return JSON.parse(repaired);
   } catch {}
 
@@ -228,8 +297,10 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    return res.status(200).json({
-      content: [{ type: "text", text }],
+    return res.status(502).json({
+      code: "AI_INVALID_RESPONSE",
+      error:
+        "Gemini ha devuelto una respuesta no interpretable despues de varios intentos. Repite el analisis.",
     });
   } catch (error) {
     return res.status(500).json({

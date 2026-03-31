@@ -75,7 +75,7 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
 2. Entra en [https://vercel.com](https://vercel.com) y conecta tu cuenta de GitHub.
 3. Crea un proyecto nuevo desde el repositorio.
 4. En `Settings -> Environment Variables`, crea:
-	- `ANTHROPIC_API_KEY` = tu clave de Anthropic.
+	- `GEMINI_API_KEY` = tu clave de Gemini.
 5. Haz `Deploy`.
 
 La app usa una función serverless en `api/analyze.js` para que la API key no quede expuesta en el frontend.

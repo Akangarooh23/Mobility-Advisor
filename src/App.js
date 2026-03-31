@@ -1982,7 +1982,7 @@ ${answersSummary}`;
             🔑
           </div>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 10, letterSpacing: "-0.5px" }}>
-            Falta la API Key de Anthropic
+            Falta la API Key de Gemini
           </h2>
           <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.7, maxWidth: 420, margin: "0 auto 28px" }}>
             El análisis de IA está listo pero necesita tu clave de API para funcionar. Hemos procesado
@@ -2008,9 +2008,9 @@ ${answersSummary}`;
               📋 CÓMO CONFIGURARLO
             </div>
             {[
-              { step: "1", text: "Ve a console.anthropic.com y genera una API Key" },
+              { step: "1", text: "Ve a aistudio.google.com/apikey y crea una API Key" },
               { step: "2", text: "En Vercel, entra en Settings -> Environment Variables" },
-              { step: "3", text: 'Crea ANTHROPIC_API_KEY con tu clave: "sk-ant-..."' },
+              { step: "3", text: 'Crea GEMINI_API_KEY con tu clave: "AIza..."' },
               { step: "4", text: "Haz redeploy y vuelve a intentarlo" },
             ].map(({ step: n, text }) => (
               <div
@@ -2060,9 +2060,9 @@ ${answersSummary}`;
           >
             <span style={{ color: "#475569" }}>{"Variable en Vercel"}</span>
             <br />
-            <span style={{ color: "#e2e8f0" }}>ANTHROPIC_API_KEY</span>{" "}
+            <span style={{ color: "#e2e8f0" }}>GEMINI_API_KEY</span>{" "}
             <span style={{ color: "#60a5fa" }}>= </span>
-            <span style={{ color: "#34d399" }}>"sk-ant-api03-..."</span>
+            <span style={{ color: "#34d399" }}>"AIza..."</span>
           </div>
 
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
@@ -2075,7 +2075,7 @@ ${answersSummary}`;
               🔄 Repetir el análisis
             </button>
             <a
-              href="https://console.anthropic.com"
+              href="https://aistudio.google.com/apikey"
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -2092,7 +2092,7 @@ ${answersSummary}`;
                 gap: 6,
               }}
             >
-              🔑 Obtener API Key
+              🔑 Obtener API Key de Gemini
             </a>
           </div>
 

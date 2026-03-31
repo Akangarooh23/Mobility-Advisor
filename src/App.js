@@ -47,14 +47,30 @@ function parseAdvisorJson(rawText) {
       ? text.slice(firstBrace, lastBrace + 1)
       : text;
 
-  const normalized = sanitizeJsonStringContent(
+  const base = sanitizeJsonStringContent(
     jsonSlice
       .replace(/[\u201C\u201D]/g, '"')
       .replace(/[\u2018\u2019]/g, "'")
       .replace(/,\s*([}\]])/g, "$1")
   );
 
-  return JSON.parse(normalized);
+  // Intento 1: JSON estricto
+  try {
+    return JSON.parse(base);
+  } catch {}
+
+  // Intento 2: convertir claves con comillas simples a dobles
+  const singleQuotedKeys = base.replace(/([{,]\s*)'([^'\\]+?)'\s*:/g, '$1"$2":');
+  try {
+    return JSON.parse(singleQuotedKeys);
+  } catch {}
+
+  // Intento 3: comillar claves sin comillas y normalizar strings con comillas simples
+  const repaired = singleQuotedKeys
+    .replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_-]*)\s*:/g, '$1"$2":')
+    .replace(/'([^'\\]*(?:\\.[^'\\]*)*)'/g, '"$1"');
+
+  return JSON.parse(repaired);
 }
 
 // ─────────────────────────────────────────

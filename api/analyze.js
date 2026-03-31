@@ -1,4 +1,5 @@
 const JSON5 = require("json5");
+const { jsonrepair } = require("jsonrepair");
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
@@ -108,10 +109,21 @@ module.exports = async function handler(req, res) {
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
     try {
+      const parsed = JSON.parse(text);
+      return res.status(200).json({ parsed });
+    } catch {}
+
+    try {
       const parsed = JSON5.parse(text);
       return res.status(200).json({ parsed });
+    } catch {}
+
+    try {
+      const repaired = jsonrepair(text);
+      const parsed = JSON.parse(repaired);
+      return res.status(200).json({ parsed });
     } catch {
-      // Si no viene JSON perfecto, el frontend aplica parsing tolerante.
+      // Si no viene JSON reparable, el frontend aplica parsing tolerante.
     }
 
     return res.status(200).json({

@@ -73,6 +73,78 @@ function parseAdvisorJson(rawText) {
   return JSON.parse(repaired);
 }
 
+function normalizeText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeStringArray(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item) => normalizeText(item))
+    .filter(Boolean);
+}
+
+function normalizeAlternative(item) {
+  return {
+    tipo: normalizeText(item?.tipo),
+    score: Number.isFinite(Number(item?.score)) ? Number(item.score) : 0,
+    titulo: normalizeText(item?.titulo),
+    razon: normalizeText(item?.razon),
+  };
+}
+
+function normalizeAdvisorResult(value) {
+  const main = value?.solucion_principal || {};
+
+  return {
+    alineacion_pct: Number.isFinite(Number(value?.alineacion_pct)) ? Number(value.alineacion_pct) : 0,
+    solucion_principal: {
+      tipo: normalizeText(main.tipo),
+      score: Number.isFinite(Number(main.score)) ? Number(main.score) : 0,
+      titulo: normalizeText(main.titulo),
+      resumen: normalizeText(main.resumen),
+      ventajas: normalizeStringArray(main.ventajas),
+      inconvenientes: normalizeStringArray(main.inconvenientes),
+      coste_estimado: normalizeText(main.coste_estimado),
+      empresas_recomendadas: normalizeStringArray(main.empresas_recomendadas),
+      etiqueta_dgt: normalizeText(main.etiqueta_dgt),
+      tension_principal: normalizeText(main.tension_principal),
+    },
+    alternativas: Array.isArray(value?.alternativas)
+      ? value.alternativas.map(normalizeAlternative).filter((item) => item.titulo || item.razon)
+      : [],
+    tco_aviso: normalizeText(value?.tco_aviso),
+    consejo_experto: normalizeText(value?.consejo_experto),
+    siguiente_paso: normalizeText(value?.siguiente_paso),
+    propulsiones_viables: normalizeStringArray(value?.propulsiones_viables),
+  };
+}
+
+function isCompleteAdvisorResult(value) {
+  const normalized = normalizeAdvisorResult(value);
+  const main = normalized.solucion_principal;
+
+  return Boolean(
+    normalized.alineacion_pct > 0 &&
+      main.tipo &&
+      main.score > 0 &&
+      main.titulo &&
+      main.resumen &&
+      main.ventajas.length >= 2 &&
+      main.inconvenientes.length >= 1 &&
+      main.coste_estimado &&
+      main.empresas_recomendadas.length >= 1 &&
+      normalized.alternativas.length >= 1 &&
+      normalized.tco_aviso &&
+      normalized.consejo_experto &&
+      normalized.siguiente_paso &&
+      normalized.propulsiones_viables.length >= 1
+  );
+}
+
 // ─────────────────────────────────────────
 // STEPS — todas las preguntas del marco
 // ─────────────────────────────────────────
@@ -737,14 +809,25 @@ ${answersSummary}`;
       }
 
       if (data.parsed && typeof data.parsed === "object") {
-        setResult(data.parsed);
+        const normalizedResult = normalizeAdvisorResult(data.parsed);
+
+        if (!isCompleteAdvisorResult(normalizedResult)) {
+          throw new Error("La IA ha devuelto un analisis incompleto. Intentalo de nuevo.");
+        }
+
+        setResult(normalizedResult);
         setLoading(false);
         setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
         return;
       }
 
       const text = data.content?.map((i) => i.text || "").join("") || "";
-      const parsed = parseAdvisorJson(text);
+      const parsed = normalizeAdvisorResult(parseAdvisorJson(text));
+
+      if (!isCompleteAdvisorResult(parsed)) {
+        throw new Error("La IA ha devuelto un analisis incompleto. Intentalo de nuevo.");
+      }
+
       setResult(parsed);
       setLoading(false);
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth" }), 100);

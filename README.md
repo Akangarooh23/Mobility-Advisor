@@ -68,3 +68,14 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+## Deploy En Vercel
+
+1. Sube este proyecto a GitHub.
+2. Entra en [https://vercel.com](https://vercel.com) y conecta tu cuenta de GitHub.
+3. Crea un proyecto nuevo desde el repositorio.
+4. En `Settings -> Environment Variables`, crea:
+	- `ANTHROPIC_API_KEY` = tu clave de Anthropic.
+5. Haz `Deploy`.
+
+La app usa una función serverless en `api/analyze.js` para que la API key no quede expuesta en el frontend.

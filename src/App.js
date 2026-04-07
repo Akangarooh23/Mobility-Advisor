@@ -3417,7 +3417,7 @@ ${answersSummary}`;
                   <p style={{ margin: 0, fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
                     {listingResult
                       ? `${listingResult.title}${listingResult.price ? ` · ${listingResult.price}` : ""}`
-                      : "Selecciona arriba una plataforma y, si aplica, tu franja de cuota para traerte una unica opcion real publicada en la web."}
+                      : "Indica tu cuota objetivo y lanza la búsqueda para que la IA revise automáticamente varios portales y te traiga una única opción real."}
                   </p>
                 </div>
               </div>

@@ -131,6 +131,13 @@ const BUDGET_HINTS = {
   mas_700: "mas de 700 euros mes",
 };
 
+const BUDGET_RANGES = {
+  hasta_200: { min: 0, max: 200 },
+  "200_400": { min: 200, max: 400 },
+  "400_700": { min: 400, max: 700 },
+  mas_700: { min: 700, max: Number.POSITIVE_INFINITY },
+};
+
 const INCOME_HINTS = {
   fijos_estables: "ingresos fijos y estables",
   fijos_variable: "ingresos fijos con variable",
@@ -179,6 +186,17 @@ function decodeHtmlEntities(text) {
 
 function stripHtml(text) {
   return normalizeText(decodeHtmlEntities(String(text || "").replace(/<[^>]*>/g, " ")));
+}
+
+function cleanListingText(text) {
+  return normalizeText(
+    decodeHtmlEntities(String(text || ""))
+      .replace(/\[[^\]]*\]/g, " ")
+      .replace(/\{[^}]*\}/g, " ")
+      .replace(/url\([^)]*\)/gi, " ")
+      .replace(/imgi?\s*[:=][^\s]+/gi, " ")
+      .replace(/\s{2,}/g, " ")
+  );
 }
 
 function removeAccents(text) {
@@ -262,13 +280,50 @@ function getMetaContent(html, key) {
   return "";
 }
 
-function parsePrice(text) {
-  const source = stripHtml(text);
-  const match =
-    source.match(/(\d{1,3}(?:[.\s]\d{3})+(?:,\d{2})?)\s*€/i) ||
-    source.match(/€\s*(\d{1,3}(?:[.\s]\d{3})+(?:,\d{2})?)/i);
+function parseEuroAmount(value) {
+  const normalized = String(value || "")
+    .replace(/[^\d,.-]/g, "")
+    .replace(/\.(?=\d{3}(\D|$))/g, "")
+    .replace(/,(?=\d{2}$)/, ".");
 
-  return match?.[1] ? `${match[1].replace(/\s+/g, "") } €` : "";
+  const amount = Number.parseFloat(normalized);
+  return Number.isFinite(amount) ? amount : null;
+}
+
+function parsePrice(text) {
+  const source = cleanListingText(stripHtml(text));
+  const matches = [
+    ...source.matchAll(/(?:desde\s+)?(\d{2,4}(?:[.\s]\d{3})*(?:,\d{2})?)\s*(?:€|eur)(?:\s*\/?\s*mes|\s*mes)?/gi),
+  ];
+
+  if (!matches.length) {
+    return "";
+  }
+
+  const bestMatch = matches
+    .map((match) => ({
+      raw: match[1],
+      amount: parseEuroAmount(match[1]),
+    }))
+    .filter((item) => Number.isFinite(item.amount) && item.amount > 0)
+    .sort((a, b) => a.amount - b.amount)[0];
+
+  return bestMatch ? `${Math.round(bestMatch.amount)} €` : "";
+}
+
+function isPriceWithinBudget(priceText, budgetKey) {
+  const range = BUDGET_RANGES[budgetKey];
+
+  if (!range) {
+    return true;
+  }
+
+  const amount = parseEuroAmount(priceText);
+  if (!Number.isFinite(amount)) {
+    return false;
+  }
+
+  return amount >= range.min && amount <= range.max;
 }
 
 async function searchDuckDuckGo(query) {
@@ -423,6 +478,7 @@ function scoreListingForProfile(listing, { result, answers, filters, company, mo
   const vehicleOfferSignal = looksLikeVehicleOffer(rawText);
   const genericNonVehicle = looksLikeGenericNonVehiclePage(rawText);
   const brandHits = countTokenHits(haystack, preferredBrands);
+  const matchesBudget = desiredType !== "renting" || !filters?.budget || isPriceWithinBudget(listing?.price, filters?.budget);
 
   let score = 0;
   let exactModelMatches = 0;
@@ -504,6 +560,10 @@ function scoreListingForProfile(listing, { result, answers, filters, company, mo
     score += 5;
   }
 
+  if (desiredType === "renting" && filters?.budget) {
+    score += matchesBudget ? 8 : -18;
+  }
+
   if (vehicleOfferSignal) {
     score += 2;
   }
@@ -537,6 +597,7 @@ function isRelevantListingForProfile(listing, context) {
 
     return acc + (tokens.some((token) => haystack.includes(token)) ? 1 : 0);
   }, 0);
+  const matchesBudget = context.desiredType !== "renting" || !context.filters?.budget || isPriceWithinBudget(listing?.price, context.filters?.budget);
 
   if (looksLikeGenericNonVehiclePage(rawText)) {
     return false;
@@ -544,6 +605,7 @@ function isRelevantListingForProfile(listing, context) {
 
   if (context.desiredType === "renting") {
     return (
+      matchesBudget &&
       score >= 12 &&
       looksLikeVehicleOffer(rawText) &&
       (hasMonthlyPriceSignal(rawText) || brandHits > 0 || modelHits > 0)
@@ -632,13 +694,14 @@ async function fetchListingDetails(candidate, context) {
       bodyPreview ||
       candidate.title;
     const price = parsePrice(`${html.slice(0, 60000)} ${title} ${description}`);
+    const cleanedDescription = cleanListingText(description || bodyPreview || candidate.title).slice(0, 220);
 
     const listing = decorateListing(
       {
         title: normalizeText(title),
         url: response.url || candidate.url,
         source: getDomain(response.url || candidate.url),
-        description: normalizeText(description).slice(0, 220),
+        description: cleanedDescription,
         price,
       },
       context

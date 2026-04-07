@@ -1,4 +1,5 @@
 const analyzeHandler = require("../api/analyze");
+const findListingHandler = require("../api/find-listing");
 
 function readRequestBody(req) {
   return new Promise((resolve, reject) => {
@@ -22,14 +23,19 @@ function readRequestBody(req) {
 }
 
 module.exports = function setupProxy(app) {
-  app.post("/api/analyze", async (req, res) => {
-    try {
-      req.body = await readRequestBody(req);
-      await analyzeHandler(req, res);
-    } catch (error) {
-      res.status(500).json({
-        error: error?.message || "Local API proxy error",
-      });
-    }
+  [
+    ["/api/analyze", analyzeHandler],
+    ["/api/find-listing", findListingHandler],
+  ].forEach(([route, handler]) => {
+    app.post(route, async (req, res) => {
+      try {
+        req.body = await readRequestBody(req);
+        await handler(req, res);
+      } catch (error) {
+        res.status(500).json({
+          error: error?.message || "Local API proxy error",
+        });
+      }
+    });
   });
 };

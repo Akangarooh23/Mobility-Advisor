@@ -15,6 +15,7 @@ import {
 } from "react-icons/si";
 
 const ANALYZE_API_ENDPOINT = "/api/analyze";
+const LISTING_API_ENDPOINT = "/api/find-listing";
 
 function countAnsweredSteps(answers) {
   return STEPS.reduce((acc, stepConfig) => {
@@ -524,6 +525,12 @@ const MONTHLY_BUDGET_OPTIONS = [
   { value: "mas_700", label: "Más de 700 €/mes" },
 ];
 
+const INCOME_STABILITY_OPTIONS = [
+  { value: "fijos_estables", label: "Fijos y estables" },
+  { value: "fijos_variable", label: "Fijos + variable" },
+  { value: "variables_autonomo", label: "Variables / autónomo" },
+];
+
 const FINANCE_AMOUNT_OPTIONS = [
   { value: "hasta_10000", label: "Hasta 10.000 €", amount: 10000 },
   { value: "10000_15000", label: "10.000 - 15.000 €", amount: 15000 },
@@ -713,6 +720,14 @@ export default function App() {
     fuel: "Gasolina",
     sellerType: "particular",
   });
+  const [listingFilters, setListingFilters] = useState({
+    company: "",
+    budget: "",
+    income: "",
+  });
+  const [listingResult, setListingResult] = useState(null);
+  const [listingLoading, setListingLoading] = useState(false);
+  const [listingError, setListingError] = useState(null);
   const resultRef = useRef(null);
 
   const currentStep = STEPS[step];
@@ -733,6 +748,28 @@ export default function App() {
 
     setMultiSelected([]);
   }, [entryMode, step, totalSteps, answers]);
+
+  useEffect(() => {
+    if (!result) {
+      return;
+    }
+
+    setListingFilters({
+      company: result.solucion_principal?.empresas_recomendadas?.[0] || "",
+      budget: "",
+      income: "",
+    });
+    setListingResult(null);
+    setListingError(null);
+    setListingLoading(false);
+  }, [result]);
+
+  const resetListingDiscovery = () => {
+    setListingFilters({ company: "", budget: "", income: "" });
+    setListingResult(null);
+    setListingError(null);
+    setListingLoading(false);
+  };
 
   const handleSingle = (value) => {
     const newAnswers = { ...answers, [currentStep.id]: value };
@@ -771,6 +808,7 @@ export default function App() {
     setError(null);
     setApiKeyMissing(false);
     setLoading(false);
+    resetListingDiscovery();
   };
 
   const handleTellMeNow = () => {
@@ -796,11 +834,77 @@ export default function App() {
     analyzeWithAI(draftAnswers);
   };
 
+  const searchRealListing = async (nextFilters = listingFilters) => {
+    if (!result) {
+      return;
+    }
+
+    const requiresBudget = ["renting_largo", "renting_corto"].includes(
+      result.solucion_principal?.tipo
+    );
+
+    if (!nextFilters.company || (requiresBudget && !nextFilters.budget)) {
+      return;
+    }
+
+    setListingLoading(true);
+    setListingError(null);
+    setListingResult(null);
+
+    try {
+      const response = await fetch(LISTING_API_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          result,
+          answers,
+          filters: nextFilters,
+        }),
+      });
+
+      const data = await readApiResponse(response);
+
+      if (!response.ok) {
+        throw new Error(data?.error || "No se pudo encontrar un anuncio real ahora mismo.");
+      }
+
+      setListingResult(data.listing || null);
+    } catch (err) {
+      setListingError(err.message || "No se pudo encontrar un anuncio real ahora mismo.");
+    } finally {
+      setListingLoading(false);
+    }
+  };
+
+  const updateListingFilter = (key, value) => {
+    const nextFilters = {
+      ...listingFilters,
+      [key]: value,
+    };
+
+    setListingFilters(nextFilters);
+    setListingError(null);
+
+    const requiresBudget = ["renting_largo", "renting_corto"].includes(
+      result?.solucion_principal?.tipo
+    );
+
+    if (nextFilters.company && (!requiresBudget || nextFilters.budget)) {
+      void searchRealListing(nextFilters);
+      return;
+    }
+
+    setListingResult(null);
+  };
+
   const analyzeWithAI = async (finalAnswers) => {
     setStep(99);
     setLoading(true);
     setError(null);
     setApiKeyMissing(false);
+    resetListingDiscovery();
 
     // Simulate thinking phases for UX
     const phases = [
@@ -928,6 +1032,7 @@ ${answersSummary}`;
     setError(null);
     setApiKeyMissing(false);
     setLoading(false);
+    resetListingDiscovery();
     setDecisionAnswers({
       operation: "",
       acquisition: "",
@@ -2507,6 +2612,9 @@ ${answersSummary}`;
           const isRentingOutcome = ["renting_largo", "renting_corto"].includes(
             result.solucion_principal?.tipo
           );
+          const canSearchListing = Boolean(
+            listingFilters.company && (!isRentingOutcome || listingFilters.budget)
+          );
           return (
             <div ref={resultRef} style={s.center}>
               {/* Header */}
@@ -2916,51 +3024,260 @@ ${answersSummary}`;
                     ¿Cuanto puedes destinar al vehiculo al mes?
                   </p>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                    {MONTHLY_BUDGET_OPTIONS.map((option) => (
-                      <span
-                        key={option.value}
-                        style={{
-                          background: "rgba(5,150,105,0.15)",
-                          border: "1px solid rgba(5,150,105,0.28)",
-                          padding: "3px 9px",
-                          borderRadius: 100,
-                          fontSize: 11,
-                          color: "#d1fae5",
-                        }}
-                      >
-                        {option.label}
-                      </span>
-                    ))}
+                    {MONTHLY_BUDGET_OPTIONS.map((option) => {
+                      const selected = listingFilters.budget === option.value;
+
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => updateListingFilter("budget", option.value)}
+                          style={{
+                            background: selected ? "rgba(16,185,129,0.28)" : "rgba(5,150,105,0.15)",
+                            border: selected
+                              ? "1px solid rgba(110,231,183,0.55)"
+                              : "1px solid rgba(5,150,105,0.28)",
+                            padding: "4px 10px",
+                            borderRadius: 100,
+                            fontSize: 11,
+                            color: "#d1fae5",
+                            cursor: "pointer",
+                            fontWeight: selected ? 700 : 500,
+                          }}
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
                   </div>
                   <p style={{ margin: "10px 0 6px", fontSize: 12, color: "#a7f3d0", lineHeight: 1.5 }}>
                     ¿Como es la estabilidad de tus ingresos?
                   </p>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                    {[
-                      "Fijos y estables",
-                      "Fijos + variable",
-                      "Variables / autonomo",
-                    ].map((item) => (
-                      <span
-                        key={item}
-                        style={{
-                          background: "rgba(5,150,105,0.15)",
-                          border: "1px solid rgba(5,150,105,0.28)",
-                          padding: "3px 9px",
-                          borderRadius: 100,
-                          fontSize: 11,
-                          color: "#d1fae5",
-                        }}
-                      >
-                        {item}
-                      </span>
-                    ))}
+                    {INCOME_STABILITY_OPTIONS.map((option) => {
+                      const selected = listingFilters.income === option.value;
+
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => updateListingFilter("income", option.value)}
+                          style={{
+                            background: selected ? "rgba(16,185,129,0.28)" : "rgba(5,150,105,0.15)",
+                            border: selected
+                              ? "1px solid rgba(110,231,183,0.55)"
+                              : "1px solid rgba(5,150,105,0.28)",
+                            padding: "4px 10px",
+                            borderRadius: 100,
+                            fontSize: 11,
+                            color: "#d1fae5",
+                            cursor: "pointer",
+                            fontWeight: selected ? 700 : 500,
+                          }}
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
                   </div>
                   <p style={{ margin: "10px 0 0", fontSize: 12, color: "#6ee7b7", lineHeight: 1.5 }}>
-                    Esta validacion se hace al final solo si sale renting como mejor via, para no sesgar la recomendacion inicial.
+                    Al pinchar en las opciones lanzamos una busqueda para localizar una oferta real alineada con tu resultado.
                   </p>
                 </div>
               )}
+
+              <div
+                style={{
+                  background: "linear-gradient(135deg,rgba(14,165,233,0.16),rgba(37,99,235,0.08))",
+                  border: "1px solid rgba(96,165,250,0.32)",
+                  borderRadius: 16,
+                  padding: 18,
+                  marginBottom: 14,
+                  boxShadow: "0 18px 45px rgba(37,99,235,0.08)",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 10,
+                    color: "#7dd3fc",
+                    marginBottom: 8,
+                    fontWeight: 700,
+                    letterSpacing: "0.7px",
+                  }}
+                >
+                  🚀 SIGUIENTE PASO ACCIONABLE · CLICA Y TE TRAIGO UN ANUNCIO REAL
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "#f8fafc", marginBottom: 8 }}>
+                  {result.siguiente_paso}
+                </div>
+                <p style={{ margin: "0 0 12px", fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
+                  Selecciona la plataforma recomendada {isRentingOutcome ? "y tu franja de cuota" : ""}.
+                  En cuanto pinches, buscamos una unica opcion real publicada en la web.
+                </p>
+
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ fontSize: 11, color: "#bfdbfe", marginBottom: 8, letterSpacing: "0.5px" }}>
+                    PLATAFORMA RECOMENDADA
+                  </div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {(result.solucion_principal?.empresas_recomendadas || []).map((company) => {
+                      const selected = listingFilters.company === company;
+
+                      return (
+                        <button
+                          key={company}
+                          type="button"
+                          onClick={() => updateListingFilter("company", company)}
+                          style={{
+                            background: selected ? "rgba(59,130,246,0.24)" : "rgba(15,23,42,0.35)",
+                            border: selected
+                              ? "1px solid rgba(147,197,253,0.7)"
+                              : "1px solid rgba(148,163,184,0.22)",
+                            color: selected ? "#eff6ff" : "#cbd5e1",
+                            padding: "7px 12px",
+                            borderRadius: 999,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            cursor: "pointer",
+                          }}
+                        >
+                          {company}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+                  <button
+                    type="button"
+                    onClick={() => searchRealListing(listingFilters)}
+                    disabled={!canSearchListing || listingLoading}
+                    style={{
+                      background: canSearchListing && !listingLoading
+                        ? "linear-gradient(135deg,#0ea5e9,#2563eb)"
+                        : "rgba(148,163,184,0.2)",
+                      border: "none",
+                      color: "white",
+                      padding: "10px 14px",
+                      borderRadius: 10,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: canSearchListing && !listingLoading ? "pointer" : "not-allowed",
+                      opacity: canSearchListing && !listingLoading ? 1 : 0.6,
+                    }}
+                  >
+                    {listingLoading ? "Buscando anuncio real..." : "🔎 Buscar anuncio real ahora"}
+                  </button>
+                  {!canSearchListing && (
+                    <span style={{ fontSize: 11, color: "#bfdbfe", alignSelf: "center" }}>
+                      {isRentingOutcome
+                        ? "Elige plataforma y cuota para activar la búsqueda."
+                        : "Elige una plataforma para activar la búsqueda."}
+                    </span>
+                  )}
+                </div>
+
+                {listingError && (
+                  <div
+                    style={{
+                      background: "rgba(239,68,68,0.08)",
+                      border: "1px solid rgba(239,68,68,0.2)",
+                      borderRadius: 12,
+                      padding: 12,
+                      marginBottom: 10,
+                      fontSize: 12,
+                      color: "#fecaca",
+                    }}
+                  >
+                    {listingError}
+                  </div>
+                )}
+
+                {listingResult && (
+                  <div
+                    style={{
+                      background: "rgba(2,6,23,0.42)",
+                      border: "1px solid rgba(96,165,250,0.22)",
+                      borderRadius: 14,
+                      padding: 14,
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 10,
+                        color: "#67e8f9",
+                        marginBottom: 6,
+                        fontWeight: 700,
+                        letterSpacing: "0.6px",
+                      }}
+                    >
+                      🚗 ANUNCIO REAL LOCALIZADO · {listingResult.source || "Web externa"}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: 12,
+                        flexWrap: "wrap",
+                        marginBottom: 8,
+                      }}
+                    >
+                      <div style={{ flex: 1, minWidth: 220 }}>
+                        <div style={{ fontSize: 16, fontWeight: 700, color: "#f8fafc", marginBottom: 6 }}>
+                          {listingResult.title}
+                        </div>
+                        <p style={{ margin: 0, fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
+                          {listingResult.description || "Hemos seleccionado esta opcion por encaje con tu resultado y disponibilidad actual en la web."}
+                        </p>
+                      </div>
+                      {listingResult.price && (
+                        <div style={{ fontSize: 18, fontWeight: 800, color: "#34d399" }}>
+                          {listingResult.price}
+                        </div>
+                      )}
+                    </div>
+                    {listingResult.matchReason && (
+                      <p style={{ margin: "0 0 10px", fontSize: 11, color: "#93c5fd", lineHeight: 1.5 }}>
+                        Encaje detectado: {listingResult.matchReason}
+                      </p>
+                    )}
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <a
+                        href={listingResult.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          background: "linear-gradient(135deg,#10b981,#059669)",
+                          color: "white",
+                          textDecoration: "none",
+                          padding: "9px 13px",
+                          borderRadius: 10,
+                          fontSize: 12,
+                          fontWeight: 700,
+                        }}
+                      >
+                        Abrir anuncio ↗
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => searchRealListing(listingFilters)}
+                        style={{
+                          background: "rgba(255,255,255,0.06)",
+                          border: "1px solid rgba(255,255,255,0.12)",
+                          color: "#cbd5e1",
+                          padding: "9px 13px",
+                          borderRadius: 10,
+                          fontSize: 12,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Buscar otra opcion
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Alternatives */}
               <div
@@ -3008,7 +3325,7 @@ ${answersSummary}`;
                 })}
               </div>
 
-              {/* Expert + Next step */}
+              {/* Expert + listing follow-up */}
               <div
                 style={{
                   display: "grid",
@@ -3042,8 +3359,8 @@ ${answersSummary}`;
                 </div>
                 <div
                   style={{
-                    background: "rgba(37,99,235,0.07)",
-                    border: "1px solid rgba(37,99,235,0.18)",
+                    background: "rgba(16,185,129,0.07)",
+                    border: "1px solid rgba(16,185,129,0.18)",
                     borderRadius: 12,
                     padding: 16,
                   }}
@@ -3051,16 +3368,18 @@ ${answersSummary}`;
                   <div
                     style={{
                       fontSize: 10,
-                      color: "#60a5fa",
+                      color: "#34d399",
                       marginBottom: 7,
                       fontWeight: 600,
                       letterSpacing: "0.6px",
                     }}
                   >
-                    🎯 SIGUIENTE PASO
+                    {listingResult ? "✅ OFERTA REAL PRESELECCIONADA" : "🧭 BÚSQUEDA DE OFERTA REAL"}
                   </div>
                   <p style={{ margin: 0, fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                    {result.siguiente_paso}
+                    {listingResult
+                      ? `${listingResult.title}${listingResult.price ? ` · ${listingResult.price}` : ""}`
+                      : "Selecciona arriba una plataforma y, si aplica, tu franja de cuota para traerte una unica opcion real publicada en la web."}
                   </p>
                 </div>
               </div>

@@ -103,6 +103,13 @@ const INCOME_HINTS = {
 
 const RENTING_DOMAINS = ["ayvens.com", "arval.es", "alphabet.es", "northgate.es", "free2move.com", "okmobility.com"];
 const PURCHASE_DOMAINS = ["coches.net", "flexicar.es", "autohero.com", "spoticar.es"];
+const BRAND_PREFERENCE_KEYWORDS = {
+  generalista_europea: ["volkswagen", "seat", "renault", "skoda", "peugeot", "citroen", "dacia"],
+  asiatica_fiable: ["toyota", "kia", "hyundai", "nissan", "lexus", "mazda", "honda", "byd", "mg", "xpeng"],
+  premium_alemana: ["bmw", "audi", "mercedes"],
+  premium_escandinava: ["volvo"],
+  nueva_china: ["byd", "mg", "xpeng", "omoda", "jaecoo"],
+};
 
 function normalizeText(value) {
   return typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
@@ -332,11 +339,55 @@ function buildWhyMatches({ result, answers, filters, company, listing, desiredTy
   return uniq(reasons).slice(0, 6);
 }
 
-function scoreListingForProfile(listing, { result, answers, filters, company, models = [] }) {
-  const haystack = removeAccents(
-    `${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""}`
+function getProfileBrandKeywords(answers, models = []) {
+  const fromPreference = BRAND_PREFERENCE_KEYWORDS[answers?.marca_preferencia] || [];
+  const knownBrands = [
+    "volkswagen", "seat", "renault", "skoda", "toyota", "kia", "hyundai", "nissan",
+    "bmw", "audi", "mercedes", "volvo", "byd", "mg", "xpeng", "peugeot", "citroen", "dacia",
+  ];
+  const fromModels = models
+    .map((model) => {
+      const normalized = removeAccents(model).toLowerCase();
+      return knownBrands.find((brand) => normalized.startsWith(brand)) || "";
+    })
+    .filter(Boolean);
+
+  return uniq([...fromPreference, ...fromModels]);
+}
+
+function countTokenHits(haystack, tokens) {
+  return uniq(tokens).reduce((acc, token) => acc + (haystack.includes(token) ? 1 : 0), 0);
+}
+
+function looksLikeGenericNonVehiclePage(text) {
+  const haystack = removeAccents(String(text || "")).toLowerCase();
+  return /(punto de recarga|recarga electrica|wallbox|cargador|grandes empresas|gestion de flotas|movilidad empresarial|consultoria|telemetria|sobre nosotros|blog|noticias|actualidad|contacto|preguntas frecuentes|faq|ventajas fiscales|ventajas del renting|soluciones de movilidad|movilidad para empresas)/.test(haystack);
+}
+
+function hasMonthlyPriceSignal(text) {
+  return /(?:\b\d{2,4}\s*(?:€|eur)\s*(?:\/?\s*mes|mes)|desde\s+\d{2,4}\s*(?:€|eur))/i.test(String(text || ""));
+}
+
+function looksLikeVehicleOffer(text) {
+  const haystack = removeAccents(String(text || "")).toLowerCase();
+  return /(coche|vehiculo|turismo|compacto|suv|berlina|utilitario|todoterreno|furgoneta|electrico|hibrid|gasolina|diesel|km\/ano|km ano)/.test(haystack);
+}
+
+function scoreListingForProfile(listing, { result, answers, filters, company, models = [], desiredType }) {
+  const rawText = `${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""} ${listing?.price || ""}`;
+  const haystack = removeAccents(rawText).toLowerCase();
+  const preferredBrands = getProfileBrandKeywords(answers, models);
+  const preferredFuel = removeAccents(answers?.propulsion_preferida || "").toLowerCase();
+  const viableFuel = removeAccents(
+    Array.isArray(result?.propulsiones_viables) ? result.propulsiones_viables.join(" ") : ""
   ).toLowerCase();
+  const monthlyPriceSignal = hasMonthlyPriceSignal(rawText);
+  const vehicleOfferSignal = looksLikeVehicleOffer(rawText);
+  const genericNonVehicle = looksLikeGenericNonVehiclePage(rawText);
+  const brandHits = countTokenHits(haystack, preferredBrands);
+
   let score = 0;
+  let exactModelMatches = 0;
 
   if (company && haystack.includes(removeAccents(company).toLowerCase())) {
     score += 6;
@@ -350,23 +401,24 @@ function scoreListingForProfile(listing, { result, answers, filters, company, mo
     const hits = tokens.reduce((acc, token) => acc + (haystack.includes(token) ? 1 : 0), 0);
 
     if (hits === tokens.length && hits > 0) {
-      score += 9;
+      exactModelMatches += 1;
+      score += 12;
       continue;
     }
 
-    score += hits;
+    score += hits * 2;
   }
 
-  const preferredFuel = removeAccents(answers?.propulsion_preferida || "").toLowerCase();
-  const viableFuel = removeAccents(
-    Array.isArray(result?.propulsiones_viables) ? result.propulsiones_viables.join(" ") : ""
-  ).toLowerCase();
+  score += brandHits * 4;
 
-  if ((preferredFuel.includes("electrico") || viableFuel.includes("electrico")) && /(electric|electrico|bev)/.test(haystack)) {
-    score += 4;
+  if ((preferredFuel.includes("electrico") || viableFuel.includes("electrico")) && /(electric|electrico|bev|ev |cero emisiones)/.test(haystack)) {
+    score += 6;
+  } else if (preferredFuel.includes("electrico")) {
+    score -= 6;
   }
+
   if ((preferredFuel.includes("hibrido") || viableFuel.includes("hibrid") || viableFuel.includes("phev")) && /(hybrid|hibrid|phev)/.test(haystack)) {
-    score += 4;
+    score += 5;
   }
   if (preferredFuel.includes("diesel") && /diesel/.test(haystack)) {
     score += 4;
@@ -375,17 +427,21 @@ function scoreListingForProfile(listing, { result, answers, filters, company, mo
     score += 3;
   }
 
+  if (answers?.marca_preferencia && answers.marca_preferencia !== "sin_preferencia" && brandHits === 0) {
+    score -= 5;
+  }
+
   if (answers?.ocupantes === "7_plazas_maletero_grande" && /(kodiaq|sorento|santa fe|x-trail|5008|tourneo)/.test(haystack)) {
     score += 4;
   }
-  if (answers?.ocupantes === "5_plazas_maletero_medio" && /(corolla|leon|captur|qashqai|tucson|sportage|octavia|kona|niro)/.test(haystack)) {
+  if (answers?.ocupantes === "5_plazas_maletero_medio" && /(corolla|leon|captur|qashqai|tucson|sportage|octavia|kona|niro|dolphin|mg4|ev3)/.test(haystack)) {
     score += 4;
   }
   if (answers?.ocupantes === "2_plazas_maletero_pequeno" && /(yaris|clio|ibiza|polo|208|i20|micra)/.test(haystack)) {
     score += 4;
   }
 
-  if (answers?.entorno_uso === "ciudad" && /(yaris|clio|ibiza|polo|208|i20|mg4|dolphin|kona|niro)/.test(haystack)) {
+  if (answers?.entorno_uso === "ciudad" && /(yaris|clio|ibiza|polo|208|i20|mg4|dolphin|kona|niro|ev3)/.test(haystack)) {
     score += 3;
   }
   if (answers?.entorno_uso === "autopista" && /(octavia|tucson|tiguan|qashqai|a3|serie 3|xc60)/.test(haystack)) {
@@ -396,7 +452,7 @@ function scoreListingForProfile(listing, { result, answers, filters, company, mo
   }
 
   const usage = Array.isArray(answers?.uso_principal) ? answers.uso_principal : [];
-  if (usage.includes("familia") && /(corolla|captur|sportage|tucson|qashqai|kodiaq|sorento)/.test(haystack)) {
+  if (usage.includes("familia") && /(corolla|captur|sportage|tucson|qashqai|kodiaq|sorento|kona|niro)/.test(haystack)) {
     score += 3;
   }
   if (usage.includes("visitas_clientes") && /(a3|serie 3|xc40|golf|leon)/.test(haystack)) {
@@ -406,11 +462,57 @@ function scoreListingForProfile(listing, { result, answers, filters, company, mo
     score += 3;
   }
 
+  if (desiredType === "renting" && monthlyPriceSignal) {
+    score += 5;
+  }
+
+  if (vehicleOfferSignal) {
+    score += 2;
+  }
+
+  if (genericNonVehicle) {
+    score -= 14;
+  }
+
+  if (desiredType === "renting" && exactModelMatches === 0 && brandHits === 0) {
+    score -= 4;
+  }
+
   if (filters?.budget) {
     score += 1;
   }
 
   return score;
+}
+
+function isRelevantListingForProfile(listing, context) {
+  const rawText = `${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""} ${listing?.price || ""}`;
+  const haystack = removeAccents(rawText).toLowerCase();
+  const score = Number(listing?.profileScore || 0);
+  const preferredBrands = getProfileBrandKeywords(context.answers, context.models || []);
+  const brandHits = countTokenHits(haystack, preferredBrands);
+  const modelHits = (context.models || []).reduce((acc, model) => {
+    const tokens = removeAccents(model)
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((token) => token.length > 2);
+
+    return acc + (tokens.some((token) => haystack.includes(token)) ? 1 : 0);
+  }, 0);
+
+  if (looksLikeGenericNonVehiclePage(rawText)) {
+    return false;
+  }
+
+  if (context.desiredType === "renting") {
+    return (
+      score >= 12 &&
+      looksLikeVehicleOffer(rawText) &&
+      (hasMonthlyPriceSignal(rawText) || brandHits > 0 || modelHits > 0)
+    );
+  }
+
+  return score >= 8;
 }
 
 function getDesiredListingType(result) {
@@ -485,9 +587,11 @@ async function fetchListingDetails(candidate, context) {
       getMetaContent(html, "twitter:title") ||
       stripHtml(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]) ||
       candidate.title;
+    const bodyPreview = stripHtml(html).slice(0, 320);
     const description =
       getMetaContent(html, "og:description") ||
       getMetaContent(html, "description") ||
+      bodyPreview ||
       candidate.title;
     const price = parsePrice(`${html.slice(0, 60000)} ${title} ${description}`);
 
@@ -502,7 +606,9 @@ async function fetchListingDetails(candidate, context) {
       context
     );
 
-    return matchesDesiredListingType(listing, context.desiredType) ? listing : null;
+    return matchesDesiredListingType(listing, context.desiredType) && isRelevantListingForProfile(listing, context)
+      ? listing
+      : null;
   } catch {
     const listing = decorateListing(
       {
@@ -515,7 +621,9 @@ async function fetchListingDetails(candidate, context) {
       context
     );
 
-    return matchesDesiredListingType(listing, context.desiredType) ? listing : null;
+    return matchesDesiredListingType(listing, context.desiredType) && isRelevantListingForProfile(listing, context)
+      ? listing
+      : null;
   }
 }
 
@@ -663,6 +771,7 @@ async function searchCompanySiteListings(models, context) {
           .filter(Boolean)
       );
 
+      const preferredBrands = getProfileBrandKeywords(context.answers, models);
       const rankedLinks = rawLinks
         .filter((link) => isUsefulProviderLink(link) && isLikelyListing(link, context.desiredType))
         .map((link) => {
@@ -675,8 +784,9 @@ async function searchCompanySiteListings(models, context) {
 
             return acc + tokens.reduce((sum, token) => sum + (haystack.includes(token) ? 1 : 0), 0);
           }, 0);
+          const brandScore = countTokenHits(haystack, preferredBrands) * 4;
           const typeScore = context.desiredType === "renting"
-            ? ["renting", "ofertas", "detalle", "particulares", "empresas", "vehiculos"].reduce(
+            ? ["renting", "ofertas", "detalle", "particulares", "vehiculos", "electrico", "hibrido"].reduce(
                 (acc, token) => acc + (haystack.includes(token) ? 1 : 0),
                 0
               )
@@ -684,9 +794,12 @@ async function searchCompanySiteListings(models, context) {
                 (acc, token) => acc + (haystack.includes(token) ? 1 : 0),
                 0
               );
+          const detailBonus = /\/detalle\/|\/ofertas\//.test(haystack) ? 5 : 0;
+          const genericPenalty = looksLikeGenericNonVehiclePage(haystack) ? 10 : 0;
 
-          return { link, score: modelScore + typeScore };
+          return { link, score: modelScore * 3 + brandScore + typeScore + detailBonus - genericPenalty };
         })
+        .filter((item) => item.score > 0)
         .sort((a, b) => b.score - a.score);
 
       for (const item of rankedLinks.slice(0, 8)) {
@@ -793,14 +906,18 @@ async function findListing({ result, answers, filters }) {
   const matches = [];
 
   for (const query of queries) {
-    const candidates = await searchDuckDuckGo(query);
-    const usefulCandidates = candidates.filter((candidate) => isLikelyListing(candidate.url, desiredType));
+    try {
+      const candidates = await searchDuckDuckGo(query);
+      const usefulCandidates = candidates.filter((candidate) => isLikelyListing(candidate.url, desiredType));
 
-    for (const candidate of usefulCandidates.slice(0, 3)) {
-      const listing = await fetchListingDetails(candidate, context);
-      if (listing?.url && listing?.title) {
-        matches.push(listing);
+      for (const candidate of usefulCandidates.slice(0, 3)) {
+        const listing = await fetchListingDetails(candidate, context);
+        if (listing?.url && listing?.title) {
+          matches.push(listing);
+        }
       }
+    } catch {
+      // If the external search engine blocks the request, keep the provider-only results and show a friendly final message.
     }
   }
 
@@ -811,7 +928,7 @@ async function findListing({ result, answers, filters }) {
 
   throw new Error(
     desiredType === "renting"
-      ? "No he podido localizar una oferta real de renting con esas opciones. Prueba otra plataforma o franja de cuota."
+      ? "No he encontrado una oferta real de renting que encaje bien con la marca y motorizacion que has marcado. Prueba otra plataforma o amplia la cuota objetivo."
       : "No he podido localizar un anuncio real de compra con esas opciones. Prueba otra plataforma o filtro."
   );
 }

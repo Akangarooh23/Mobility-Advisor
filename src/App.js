@@ -228,6 +228,75 @@ function sanitizeResultForDisplay(value) {
   };
 }
 
+function normalizeDecisionAiResult(value) {
+  const top = value?.oferta_top || value?.recomendacion_principal || {};
+
+  return {
+    resumen: normalizeText(value?.resumen),
+    criterio_principal: normalizeText(value?.criterio_principal || value?.criterio || value?.enfoque),
+    oferta_top: {
+      titulo: normalizeText(top?.titulo),
+      precio_objetivo: normalizeText(top?.precio_objetivo || top?.precio || top?.rango_precio),
+      cuota_estimada: normalizeText(top?.cuota_estimada || top?.cuota || top?.mensualidad),
+      razon: normalizeText(top?.razon || top?.resumen),
+      riesgo: normalizeText(top?.riesgo),
+    },
+    alternativas: Array.isArray(value?.alternativas)
+      ? value.alternativas
+          .map((item) => ({
+            titulo: normalizeText(item?.titulo),
+            precio: normalizeText(item?.precio || item?.precio_objetivo),
+            razon: normalizeText(item?.razon),
+          }))
+          .filter((item) => item.titulo || item.razon)
+      : [],
+    alertas: normalizeStringArray(value?.alertas || value?.puntos_a_revisar),
+    siguiente_paso: normalizeText(value?.siguiente_paso),
+  };
+}
+
+function isCompleteDecisionAiResult(value) {
+  const normalized = normalizeDecisionAiResult(value);
+
+  return Boolean(
+    normalized.resumen &&
+      normalized.criterio_principal &&
+      normalized.oferta_top?.titulo &&
+      normalized.oferta_top?.razon &&
+      normalized.siguiente_paso
+  );
+}
+
+function normalizeSellAiResult(value) {
+  const range = value?.rango_publicacion || {};
+
+  return {
+    precio_objetivo: normalizeText(value?.precio_objetivo || value?.targetPrice),
+    rango_publicacion: {
+      min: normalizeText(range?.min || value?.precio_min || value?.lowPrice),
+      max: normalizeText(range?.max || value?.precio_max || value?.highPrice),
+    },
+    nivel_demanda: normalizeText(value?.nivel_demanda || value?.demanda),
+    tiempo_estimado_venta: normalizeText(value?.tiempo_estimado_venta || value?.tiempo_venta),
+    resumen: normalizeText(value?.resumen || value?.explicacion),
+    argumentos_clave: normalizeStringArray(value?.argumentos_clave || value?.puntos_fuertes),
+    alertas: normalizeStringArray(value?.alertas || value?.puntos_a_revisar),
+    estrategia_publicacion: normalizeText(value?.estrategia_publicacion || value?.siguiente_paso),
+  };
+}
+
+function isCompleteSellAiResult(value) {
+  const normalized = normalizeSellAiResult(value);
+
+  return Boolean(
+    normalized.precio_objetivo &&
+      normalized.rango_publicacion?.min &&
+      normalized.rango_publicacion?.max &&
+      normalized.resumen &&
+      normalized.estrategia_publicacion
+  );
+}
+
 async function readApiResponse(response) {
   const contentType = (response.headers.get("content-type") || "").toLowerCase();
 
@@ -652,6 +721,10 @@ function getOptionAmount(options, value) {
   return options.find((option) => option.value === value)?.amount || 0;
 }
 
+function getOptionLabel(options, value, fallback = "No indicado") {
+  return options.find((option) => option.value === value)?.label || normalizeText(value) || fallback;
+}
+
 function estimateMonthlyPayment(amount, months = 72, annualRate = 0.0899) {
   if (!amount) {
     return 0;
@@ -784,6 +857,12 @@ export default function App() {
   const [listingResult, setListingResult] = useState(null);
   const [listingLoading, setListingLoading] = useState(false);
   const [listingError, setListingError] = useState(null);
+  const [decisionAiResult, setDecisionAiResult] = useState(null);
+  const [decisionLoading, setDecisionLoading] = useState(false);
+  const [decisionError, setDecisionError] = useState(null);
+  const [sellAiResult, setSellAiResult] = useState(null);
+  const [sellLoading, setSellLoading] = useState(false);
+  const [sellError, setSellError] = useState(null);
   const resultRef = useRef(null);
 
   const currentStep = STEPS[step];
@@ -819,6 +898,16 @@ export default function App() {
     setListingError(null);
     setListingLoading(false);
   }, [result]);
+
+  useEffect(() => {
+    setDecisionAiResult(null);
+    setDecisionError(null);
+  }, [decisionAnswers]);
+
+  useEffect(() => {
+    setSellAiResult(null);
+    setSellError(null);
+  }, [sellAnswers]);
 
   const resetListingDiscovery = () => {
     setListingFilters({ company: "", budget: "", income: "" });
@@ -953,6 +1042,152 @@ export default function App() {
     }
 
     setListingResult(null);
+  };
+
+  const requestAiJson = async (prompt, extraPayload = {}) => {
+    const response = await fetch(ANALYZE_API_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt,
+        ...extraPayload,
+      }),
+    });
+
+    const data = await readApiResponse(response);
+
+    if (!response.ok) {
+      if (data.code === "API_KEY_MISSING") {
+        setApiKeyMissing(true);
+      }
+
+      throw new Error(data.error?.message || data.error || "Error desconocido");
+    }
+
+    if (data.parsed && typeof data.parsed === "object") {
+      return data.parsed;
+    }
+
+    const text = data.content?.map((item) => item.text || "").join("") || "";
+    return parseAdvisorJson(text);
+  };
+
+  const analyzeDecisionWithAI = async () => {
+    if (!decisionFlowReady) {
+      return;
+    }
+
+    setDecisionLoading(true);
+    setDecisionError(null);
+    setApiKeyMissing(false);
+
+    try {
+      const prompt = `Eres un asesor experto en compra y renting de coches en Espana. Analiza este caso y responde SOLO con JSON valido, sin markdown.
+
+Devuelve exactamente esta estructura:
+{
+  "resumen": "2-3 frases con la lectura global del caso",
+  "criterio_principal": "el criterio clave que manda la decision",
+  "oferta_top": {
+    "titulo": "nombre de la opcion mas sensata",
+    "precio_objetivo": "precio objetivo o rango total en EUR",
+    "cuota_estimada": "cuota estimada si aplica; si no aplica indica no aplica",
+    "razon": "explicacion concreta y accionable",
+    "riesgo": "bajo|medio|alto"
+  },
+  "alternativas": [
+    { "titulo": "alternativa 1", "precio": "precio o cuota", "razon": "por que puede tener sentido" },
+    { "titulo": "alternativa 2", "precio": "precio o cuota", "razon": "por que puede tener sentido" }
+  ],
+  "alertas": ["alerta 1", "alerta 2"],
+  "siguiente_paso": "que deberia hacer ahora"
+}
+
+Criterios:
+- Prioriza valor real en el mercado espanol, coste total, riesgo y facilidad de cierre.
+- Si es renting, habla en terminos de cuota realista y condiciones.
+- Si es compra, habla en terminos de precio objetivo, financiacion y riesgo de depreciacion.
+- No inventes enlaces ni empresas concretas.
+
+Perfil:
+- Operacion: ${decisionAnswers.operation === "renting" ? "Renting" : "Compra"}
+- Modalidad: ${normalizeText(decisionAnswers.acquisition) || "No indicada"}
+- Marca/modelo definidos: ${decisionAnswers.hasBrand === "si" ? `${decisionAnswers.brand} ${decisionAnswers.model}` : "No"}
+- Estado deseado: ${normalizeText(decisionAnswers.condition) || "No indicado"}
+- Cuota objetivo: ${getOptionLabel(MONTHLY_BUDGET_OPTIONS, decisionAnswers.monthlyBudget)}
+- Presupuesto total: ${getOptionLabel(TOTAL_PURCHASE_OPTIONS, decisionAnswers.cashBudget)}
+- Importe a financiar: ${getOptionLabel(FINANCE_AMOUNT_OPTIONS, decisionAnswers.financeAmount)}
+- Entrada: ${getOptionLabel(ENTRY_AMOUNT_OPTIONS, decisionAnswers.entryAmount)}
+- Antiguedad maxima: ${getOptionLabel(AGE_FILTER_OPTIONS, decisionAnswers.ageFilter)}
+- Kilometraje maximo: ${getOptionLabel(MILEAGE_FILTER_OPTIONS, decisionAnswers.mileageFilter)}`;
+
+      const raw = await requestAiJson(prompt, { decisionAnswers });
+      const normalized = normalizeDecisionAiResult(raw);
+
+      if (!isCompleteDecisionAiResult(normalized)) {
+        throw new Error("La IA no ha devuelto un analisis suficiente para esta operacion.");
+      }
+
+      setDecisionAiResult(normalized);
+    } catch (err) {
+      setDecisionError(err.message || "No se pudo analizar esta operacion con IA.");
+    } finally {
+      setDecisionLoading(false);
+    }
+  };
+
+  const analyzeSellWithAI = async () => {
+    if (!(sellAnswers.brand && sellAnswers.model && sellAnswers.year && sellAnswers.mileage)) {
+      return;
+    }
+
+    setSellLoading(true);
+    setSellError(null);
+    setApiKeyMissing(false);
+
+    try {
+      const prompt = `Eres un experto en mercado VO en Espana. Valora este coche y responde SOLO con JSON valido, sin markdown.
+
+Devuelve exactamente esta estructura:
+{
+  "precio_objetivo": "precio recomendado de salida en EUR",
+  "rango_publicacion": { "min": "min EUR", "max": "max EUR" },
+  "nivel_demanda": "alta|media|baja",
+  "tiempo_estimado_venta": "estimacion razonable",
+  "resumen": "2-3 frases justificando la valoracion",
+  "argumentos_clave": ["argumento 1", "argumento 2", "argumento 3"],
+  "alertas": ["alerta 1", "alerta 2"],
+  "estrategia_publicacion": "como deberia publicar y defender el precio"
+}
+
+Criterios:
+- Ajusta la valoracion al mercado espanol.
+- Ten en cuenta edad, kilometraje, combustible y canal de venta.
+- No inventes anuncios concretos; da una recomendacion profesional y monetizable.
+
+Vehiculo:
+- Marca: ${sellAnswers.brand}
+- Modelo: ${sellAnswers.model}
+- Ano: ${sellAnswers.year}
+- Kilometraje: ${Number(sellAnswers.mileage || 0).toLocaleString("es-ES")} km
+- Combustible: ${sellAnswers.fuel}
+- Canal de venta: ${sellAnswers.sellerType}`;
+
+      const raw = await requestAiJson(prompt, { sellAnswers });
+      const normalized = normalizeSellAiResult(raw);
+
+      if (!isCompleteSellAiResult(normalized)) {
+        throw new Error("La IA no ha devuelto una valoracion suficiente para este coche.");
+      }
+
+      setSellAiResult(normalized);
+    } catch (err) {
+      setSellError(err.message || "No se pudo valorar este coche con IA.");
+    } finally {
+      setSellLoading(false);
+    }
   };
 
   const analyzeWithAI = async (finalAnswers) => {
@@ -1111,6 +1346,12 @@ ${answersSummary}`;
       fuel: "Gasolina",
       sellerType: "particular",
     });
+    setDecisionAiResult(null);
+    setDecisionError(null);
+    setDecisionLoading(false);
+    setSellAiResult(null);
+    setSellError(null);
+    setSellLoading(false);
   };
 
   const updateDecisionAnswer = (key, value) => {
@@ -1453,8 +1694,8 @@ ${answersSummary}`;
                   Tengo claro qué marca y modelo quiero, ayúdame a encontrar la mejor oferta
                 </div>
                 <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
-                  Filtra por marca, modelo, antigüedad y kilometraje para ordenar las ofertas del mercado
-                  actual de mejor a peor según valor, riesgo y coste final.
+                  Filtra por marca, modelo, antigüedad y kilometraje para que la IA ordene las ofertas del mercado
+                  actual según valor, riesgo y coste final.
                 </div>
               </div>
             </button>
@@ -1477,7 +1718,7 @@ ${answersSummary}`;
                   Quiero vender mi coche, ayúdame a saber el precio al que debo ofertarlo
                 </div>
                 <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
-                  Estimamos rango de precio, tendencia histórica, volumen de unidades similares y el informe
+                  La IA estima rango de precio, tendencia histórica, volumen de unidades similares y un informe
                   entregable que luego se puede monetizar como servicio premium.
                 </div>
               </div>
@@ -1919,9 +2160,26 @@ ${answersSummary}`;
                   : "Comparar las mejores opciones del mercado para tu operación"}
               </div>
               <p style={{ margin: 0, color: "#94a3b8", fontSize: 13, lineHeight: 1.6 }}>
-                Con esto ya podemos pasar a un ranking de ofertas, aplicar filtros como financiación,
-                estado, antigüedad o kilometraje y priorizar las opciones con mejor relación valor/precio.
+                Con esto ya podemos pedir a la IA que priorice las opciones con mejor relación valor/precio,
+                riesgo y encaje con tu modalidad de compra o renting.
               </p>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
+                <button
+                  onClick={analyzeDecisionWithAI}
+                  disabled={decisionLoading}
+                  style={{
+                    ...s.btn,
+                    padding: "10px 16px",
+                    fontSize: 13,
+                    opacity: decisionLoading ? 0.7 : 1,
+                  }}
+                >
+                  {decisionLoading ? "Analizando con IA..." : "🤖 Analizar operación con IA"}
+                </button>
+                <span style={{ fontSize: 12, color: "#bfdbfe", alignSelf: "center" }}>
+                  La IA te devolverá recomendación, alternativas, alertas y siguiente paso.
+                </span>
+              </div>
             </div>
           ) : (
             <p style={{ color: "#64748b", fontSize: 13, marginBottom: 18 }}>
@@ -1929,10 +2187,115 @@ ${answersSummary}`;
             </p>
           )}
 
-          {rankedOffers.length > 0 && (
+          {decisionError && (
+            <div
+              style={{
+                background: "rgba(239,68,68,0.08)",
+                border: "1px solid rgba(239,68,68,0.18)",
+                borderRadius: 12,
+                padding: 14,
+                marginBottom: 18,
+                color: "#fecaca",
+                fontSize: 12,
+              }}
+            >
+              {decisionError}
+            </div>
+          )}
+
+          {decisionLoading && (
+            <div style={{ ...s.panel, marginBottom: 18 }}>
+              <div style={{ fontSize: 11, color: "#60a5fa", marginBottom: 6, letterSpacing: "0.6px" }}>
+                IA ANALIZANDO LA OPERACIÓN
+              </div>
+              <div style={{ fontSize: 13, color: "#cbd5e1" }}>
+                Cruzando modalidad, presupuesto, estado, financiación y riesgo para devolverte la mejor recomendación.
+              </div>
+            </div>
+          )}
+
+          {decisionAiResult && (
+            <div style={{ display: "grid", gap: 12, marginBottom: 24 }}>
+              <div style={s.panel}>
+                <div style={{ fontSize: 11, color: "#60a5fa", marginBottom: 6, letterSpacing: "0.6px" }}>
+                  RECOMENDACIÓN IA PARA ESTA OPERACIÓN
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: "#f1f5f9", marginBottom: 8 }}>
+                  {decisionAiResult.oferta_top.titulo}
+                </div>
+                <p style={{ margin: "0 0 12px", fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
+                  {decisionAiResult.resumen}
+                </p>
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 10 }}>
+                  {decisionAiResult.oferta_top.precio_objetivo && (
+                    <span style={{ background: "rgba(37,99,235,0.14)", border: "1px solid rgba(96,165,250,0.22)", color: "#dbeafe", padding: "5px 10px", borderRadius: 999, fontSize: 11, fontWeight: 700 }}>
+                      Precio objetivo: {decisionAiResult.oferta_top.precio_objetivo}
+                    </span>
+                  )}
+                  {decisionAiResult.oferta_top.cuota_estimada && (
+                    <span style={{ background: "rgba(5,150,105,0.14)", border: "1px solid rgba(52,211,153,0.22)", color: "#d1fae5", padding: "5px 10px", borderRadius: 999, fontSize: 11, fontWeight: 700 }}>
+                      Cuota estimada: {decisionAiResult.oferta_top.cuota_estimada}
+                    </span>
+                  )}
+                  {decisionAiResult.oferta_top.riesgo && (
+                    <span style={{ background: "rgba(245,158,11,0.14)", border: "1px solid rgba(251,191,36,0.22)", color: "#fde68a", padding: "5px 10px", borderRadius: 999, fontSize: 11, fontWeight: 700 }}>
+                      Riesgo: {decisionAiResult.oferta_top.riesgo}
+                    </span>
+                  )}
+                </div>
+                <p style={{ margin: "0 0 8px", fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
+                  <strong>Criterio principal:</strong> {decisionAiResult.criterio_principal}
+                </p>
+                <p style={{ margin: 0, fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
+                  {decisionAiResult.oferta_top.razon}
+                </p>
+              </div>
+
+              {decisionAiResult.alternativas.length > 0 && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 12 }}>
+                  {decisionAiResult.alternativas.map((item, index) => (
+                    <div key={`${item.titulo}-${index}`} style={s.panel}>
+                      <div style={{ fontSize: 11, color: "#93c5fd", marginBottom: 6 }}>ALTERNATIVA {index + 1}</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: "#f1f5f9", marginBottom: 6 }}>
+                        {item.titulo}
+                      </div>
+                      {item.precio && (
+                        <div style={{ fontSize: 12, color: "#60a5fa", marginBottom: 6 }}>{item.precio}</div>
+                      )}
+                      <p style={{ margin: 0, fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>{item.razon}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {(decisionAiResult.alertas.length > 0 || decisionAiResult.siguiente_paso) && (
+                <div style={s.panel}>
+                  {decisionAiResult.alertas.length > 0 && (
+                    <>
+                      <div style={{ fontSize: 11, color: "#fbbf24", marginBottom: 6, letterSpacing: "0.6px" }}>
+                        ALERTAS A REVISAR
+                      </div>
+                      <div style={{ display: "grid", gap: 5, marginBottom: 10 }}>
+                        {decisionAiResult.alertas.map((alerta) => (
+                          <div key={alerta} style={{ fontSize: 12, color: "#fde68a", lineHeight: 1.5 }}>• {alerta}</div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  {decisionAiResult.siguiente_paso && (
+                    <div style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
+                      <strong>Siguiente paso:</strong> {decisionAiResult.siguiente_paso}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {!decisionAiResult && rankedOffers.length > 0 && (
             <div style={{ marginBottom: 24 }}>
               <div style={{ fontSize: 11, color: "#60a5fa", letterSpacing: "0.6px", marginBottom: 10 }}>
-                RANKING DE OFERTAS DETECTADAS
+                VISTA RÁPIDA DE MERCADO
               </div>
               <div style={{ display: "grid", gap: 12 }}>
                 {rankedOffers.map((offer, index) => (
@@ -2110,42 +2473,123 @@ ${answersSummary}`;
             </div>
           </div>
 
-          {sellEstimate && (
+          {sellAnswers.brand && sellAnswers.model && sellAnswers.year && sellAnswers.mileage && (
+            <div
+              style={{
+                background: "rgba(37,99,235,0.08)",
+                border: "1px solid rgba(37,99,235,0.18)",
+                borderRadius: 14,
+                padding: 16,
+                marginBottom: 18,
+              }}
+            >
+              <div style={{ fontSize: 11, color: "#60a5fa", letterSpacing: "0.6px", marginBottom: 8 }}>
+                VALORACIÓN CON IA
+              </div>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <button
+                  onClick={analyzeSellWithAI}
+                  disabled={sellLoading}
+                  style={{
+                    ...s.btn,
+                    padding: "10px 16px",
+                    fontSize: 13,
+                    opacity: sellLoading ? 0.7 : 1,
+                  }}
+                >
+                  {sellLoading ? "Valorando con IA..." : "🤖 Valorar coche con IA"}
+                </button>
+                <span style={{ fontSize: 12, color: "#bfdbfe", alignSelf: "center" }}>
+                  La IA te devolverá precio objetivo, rango, demanda y estrategia de publicación.
+                </span>
+              </div>
+            </div>
+          )}
+
+          {sellError && (
+            <div
+              style={{
+                background: "rgba(239,68,68,0.08)",
+                border: "1px solid rgba(239,68,68,0.18)",
+                borderRadius: 12,
+                padding: 14,
+                marginBottom: 18,
+                color: "#fecaca",
+                fontSize: 12,
+              }}
+            >
+              {sellError}
+            </div>
+          )}
+
+          {sellAiResult && (
             <div style={{ display: "grid", gap: 12, marginBottom: 24 }}>
               <div style={s.panel}>
                 <div style={{ fontSize: 11, color: "#f59e0b", marginBottom: 6, letterSpacing: "0.6px" }}>
-                  PRECIO OBJETIVO DE SALIDA
+                  PRECIO OBJETIVO IA
                 </div>
                 <div style={{ fontSize: 28, fontWeight: 800, color: "#f1f5f9", marginBottom: 8 }}>
-                  {formatCurrency(sellEstimate.targetPrice)}
+                  {sellAiResult.precio_objetivo}
                 </div>
                 <p style={{ margin: 0, fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
-                  Rango razonable de publicación entre {formatCurrency(sellEstimate.lowPrice)} y {formatCurrency(sellEstimate.highPrice)}.
+                  Rango razonable entre {sellAiResult.rango_publicacion.min} y {sellAiResult.rango_publicacion.max}.
                 </p>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 12 }}>
                 <div style={s.panel}>
                   <div style={{ fontSize: 11, color: "#60a5fa", marginBottom: 6, letterSpacing: "0.6px" }}>
-                    COCHES SIMILARES ACTIVOS
+                    DEMANDA ESTIMADA
                   </div>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: "#f1f5f9" }}>{sellEstimate.similarUnits}</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#f1f5f9" }}>{sellAiResult.nivel_demanda || "Media"}</div>
                 </div>
                 <div style={s.panel}>
                   <div style={{ fontSize: 11, color: "#60a5fa", marginBottom: 6, letterSpacing: "0.6px" }}>
-                    TENDENCIA DE MERCADO
+                    TIEMPO ESTIMADO DE VENTA
                   </div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#f1f5f9" }}>{sellEstimate.trend}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#f1f5f9" }}>{sellAiResult.tiempo_estimado_venta || "Depende del precio y la demanda"}</div>
                 </div>
               </div>
 
               <div style={s.panel}>
                 <div style={{ fontSize: 11, color: "#34d399", marginBottom: 6, letterSpacing: "0.6px" }}>
-                  RESUMEN DEL INFORME ENTREGABLE
+                  RESUMEN DEL INFORME IA
                 </div>
-                <p style={{ margin: 0, fontSize: 13, color: "#94a3b8", lineHeight: 1.7 }}>
-                  {sellEstimate.report} Aquí podemos monetizar una versión premium con benchmark histórico,
-                  días en mercado, comparables y recomendación de estrategia comercial.
+                <p style={{ margin: "0 0 10px", fontSize: 13, color: "#94a3b8", lineHeight: 1.7 }}>
+                  {sellAiResult.resumen}
+                </p>
+                {sellAiResult.argumentos_clave.length > 0 && (
+                  <div style={{ display: "grid", gap: 5, marginBottom: 10 }}>
+                    {sellAiResult.argumentos_clave.map((item) => (
+                      <div key={item} style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.5 }}>• {item}</div>
+                    ))}
+                  </div>
+                )}
+                {sellAiResult.alertas.length > 0 && (
+                  <div style={{ display: "grid", gap: 5, marginBottom: 10 }}>
+                    {sellAiResult.alertas.map((item) => (
+                      <div key={item} style={{ fontSize: 12, color: "#fde68a", lineHeight: 1.5 }}>• {item}</div>
+                    ))}
+                  </div>
+                )}
+                <p style={{ margin: 0, fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
+                  <strong>Estrategia:</strong> {sellAiResult.estrategia_publicacion}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {!sellAiResult && sellEstimate && (
+            <div style={{ display: "grid", gap: 12, marginBottom: 24 }}>
+              <div style={s.panel}>
+                <div style={{ fontSize: 11, color: "#f59e0b", marginBottom: 6, letterSpacing: "0.6px" }}>
+                  PREVIEW LOCAL DE PRECIO
+                </div>
+                <div style={{ fontSize: 28, fontWeight: 800, color: "#f1f5f9", marginBottom: 8 }}>
+                  {formatCurrency(sellEstimate.targetPrice)}
+                </div>
+                <p style={{ margin: 0, fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
+                  Rango orientativo entre {formatCurrency(sellEstimate.lowPrice)} y {formatCurrency(sellEstimate.highPrice)} mientras lanzas la valoración con IA.
                 </p>
               </div>
             </div>

@@ -3112,7 +3112,7 @@ ${answersSummary}`;
                 </div>
                 <p style={{ margin: "0 0 12px", fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
                   Selecciona la plataforma recomendada {isRentingOutcome ? "y tu franja de cuota" : ""}.
-                  En cuanto pinches, buscamos una unica opcion real publicada en la web.
+                  En cuanto pinches, buscamos una unica {isRentingOutcome ? "oferta real de renting" : "opcion real de compra"} publicada en la web.
                 </p>
 
                 <div style={{ marginBottom: 12 }}>
@@ -3212,7 +3212,10 @@ ${answersSummary}`;
                         letterSpacing: "0.6px",
                       }}
                     >
-                      🚗 ANUNCIO REAL LOCALIZADO · {listingResult.source || "Web externa"}
+                      {listingResult.listingType === "renting" ? "📅 OFERTA REAL DE RENTING" : "🚗 ANUNCIO REAL DE COMPRA"} · {listingResult.source || "Web externa"}
+                      {Number.isFinite(Number(listingResult.profileScore))
+                        ? ` · ENCAJE ${listingResult.profileScore}/100`
+                        : ""}
                     </div>
                     <div
                       style={{
@@ -3241,6 +3244,39 @@ ${answersSummary}`;
                       <p style={{ margin: "0 0 10px", fontSize: 11, color: "#93c5fd", lineHeight: 1.5 }}>
                         Encaje detectado: {listingResult.matchReason}
                       </p>
+                    )}
+                    {Array.isArray(listingResult.whyMatches) && listingResult.whyMatches.length > 0 && (
+                      <div
+                        style={{
+                          background: "rgba(37,99,235,0.1)",
+                          border: "1px solid rgba(147,197,253,0.25)",
+                          borderRadius: 12,
+                          padding: 12,
+                          marginBottom: 10,
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: 10,
+                            color: "#bfdbfe",
+                            marginBottom: 7,
+                            fontWeight: 700,
+                            letterSpacing: "0.6px",
+                          }}
+                        >
+                          🧠 POR QUE SE HA ELEGIDO ESTE COCHE
+                        </div>
+                        <div style={{ display: "grid", gap: 5 }}>
+                          {listingResult.whyMatches.map((reason, index) => (
+                            <div
+                              key={`${listingResult.url || "listing"}-why-${index}`}
+                              style={{ fontSize: 11, color: "#dbeafe", lineHeight: 1.5 }}
+                            >
+                              • {reason}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     )}
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       <a

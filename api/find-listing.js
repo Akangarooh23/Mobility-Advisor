@@ -464,6 +464,57 @@ function looksLikeVehicleOffer(text) {
   return /(coche|vehiculo|turismo|compacto|suv|berlina|utilitario|todoterreno|furgoneta|electrico|hibrid|gasolina|diesel|km\/ano|km ano)/.test(haystack);
 }
 
+function scorePreferredFuel(haystack, preferredFuel, viableFuel) {
+  let score = 0;
+
+  if ((preferredFuel.includes("electrico") || viableFuel.includes("electrico")) && /(electric|electrico|bev|ev |cero emisiones)/.test(haystack)) {
+    score += preferredFuel.includes("electrico") ? 18 : 10;
+  } else if (preferredFuel.includes("electrico")) {
+    score -= 6;
+  }
+
+  if ((preferredFuel.includes("hibrido") || preferredFuel.includes("phev") || viableFuel.includes("hibrid") || viableFuel.includes("phev")) && /(hybrid|hibrid|phev)/.test(haystack)) {
+    score += preferredFuel.includes("hibrido") || preferredFuel.includes("phev") ? 14 : 8;
+  }
+
+  if (preferredFuel.includes("microhibrido") && /(mhev|microhibrid)/.test(haystack)) {
+    score += 10;
+  }
+
+  if (preferredFuel.includes("diesel") && /diesel/.test(haystack)) {
+    score += 12;
+  }
+
+  if (preferredFuel.includes("gasolina") && /gasolina/.test(haystack)) {
+    score += 10;
+  }
+
+  return score;
+}
+
+function getBudgetPriorityScore(priceText, budgetKey, desiredType) {
+  const amount = parseEuroAmount(priceText);
+
+  if (!Number.isFinite(amount)) {
+    return desiredType === "renting" ? -12 : 0;
+  }
+
+  if (budgetKey && BUDGET_RANGES[budgetKey]) {
+    const range = BUDGET_RANGES[budgetKey];
+
+    if (amount >= range.min && amount <= range.max) {
+      return 60;
+    }
+
+    const distance = amount < range.min ? range.min - amount : amount - range.max;
+    return Math.max(0, 48 - distance / 12);
+  }
+
+  return desiredType === "renting"
+    ? Math.max(0, 42 - amount / 20)
+    : Math.max(0, 36 - amount / 1000);
+}
+
 function scoreListingForProfile(listing, { result, answers, filters, company, models = [], desiredType }) {
   const rawText = `${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""} ${listing?.price || ""}`;
   const haystack = removeAccents(rawText).toLowerCase();
@@ -502,22 +553,7 @@ function scoreListingForProfile(listing, { result, answers, filters, company, mo
   }
 
   score += brandHits * 4;
-
-  if ((preferredFuel.includes("electrico") || viableFuel.includes("electrico")) && /(electric|electrico|bev|ev |cero emisiones)/.test(haystack)) {
-    score += 6;
-  } else if (preferredFuel.includes("electrico")) {
-    score -= 6;
-  }
-
-  if ((preferredFuel.includes("hibrido") || viableFuel.includes("hibrid") || viableFuel.includes("phev")) && /(hybrid|hibrid|phev)/.test(haystack)) {
-    score += 5;
-  }
-  if (preferredFuel.includes("diesel") && /diesel/.test(haystack)) {
-    score += 4;
-  }
-  if (preferredFuel.includes("gasolina") && /gasolina/.test(haystack)) {
-    score += 3;
-  }
+  score += scorePreferredFuel(haystack, preferredFuel, viableFuel);
 
   if (answers?.marca_preferencia && answers.marca_preferencia !== "sin_preferencia" && brandHits === 0) {
     score -= 5;
@@ -581,6 +617,56 @@ function scoreListingForProfile(listing, { result, answers, filters, company, mo
   return score;
 }
 
+function scoreFallbackListing(listing, context) {
+  const rawText = `${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""} ${listing?.price || ""}`;
+  const haystack = removeAccents(rawText).toLowerCase();
+  const preferredBrands = getProfileBrandKeywords(context.answers, context.models || []);
+  const preferredFuel = removeAccents(context.answers?.propulsion_preferida || "").toLowerCase();
+  const viableFuel = removeAccents(
+    Array.isArray(context.result?.propulsiones_viables) ? context.result.propulsiones_viables.join(" ") : ""
+  ).toLowerCase();
+  const usage = Array.isArray(context.answers?.uso_principal) ? context.answers.uso_principal : [];
+  const brandHits = countTokenHits(haystack, preferredBrands);
+  const modelHits = (context.models || []).reduce((acc, model) => {
+    const tokens = removeAccents(model)
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((token) => token.length > 2);
+
+    return acc + tokens.reduce((sum, token) => sum + (haystack.includes(token) ? 1 : 0), 0);
+  }, 0);
+
+  let score = 0;
+
+  score += getBudgetPriorityScore(listing?.price, context.filters?.budget, context.desiredType);
+  score += scorePreferredFuel(haystack, preferredFuel, viableFuel);
+  score += brandHits * 4;
+  score += Math.min(modelHits, 4) * 2;
+  score += Math.max(0, Number(listing?.profileScore || 0)) * 1.2;
+
+  if (matchesDesiredListingType(listing, context.desiredType)) {
+    score += 8;
+  }
+
+  if (looksLikeVehicleOffer(rawText)) {
+    score += 6;
+  }
+
+  if (hasMonthlyPriceSignal(rawText) || Number.isFinite(parseEuroAmount(listing?.price))) {
+    score += 6;
+  }
+
+  if (/(furgoneta|industrial|cargo|comercial|van\b)/.test(haystack) && !usage.includes("remolque") && context.answers?.ocupantes !== "7_plazas_maletero_grande") {
+    score -= 18;
+  }
+
+  if (looksLikeGenericNonVehiclePage(rawText)) {
+    score -= 30;
+  }
+
+  return score;
+}
+
 function isRelevantListingForProfile(listing, context) {
   const rawText = `${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""} ${listing?.price || ""}`;
   const haystack = removeAccents(rawText).toLowerCase();
@@ -611,6 +697,48 @@ function isRelevantListingForProfile(listing, context) {
   }
 
   return score >= 8;
+}
+
+function isFallbackListingCandidate(listing, context) {
+  const rawText = `${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""} ${listing?.price || ""}`;
+
+  if (!matchesDesiredListingType(listing, context.desiredType)) {
+    return false;
+  }
+
+  if (looksLikeGenericNonVehiclePage(rawText) || !looksLikeVehicleOffer(rawText)) {
+    return false;
+  }
+
+  if (context.desiredType === "renting" && !hasMonthlyPriceSignal(rawText) && !Number.isFinite(parseEuroAmount(listing?.price))) {
+    return false;
+  }
+
+  return scoreFallbackListing(listing, context) >= 18;
+}
+
+function sortListingsByPriority(a, b) {
+  const relevantDiff = Number(Boolean(b?.isRelevantMatch)) - Number(Boolean(a?.isRelevantMatch));
+  if (relevantDiff) {
+    return relevantDiff;
+  }
+
+  if (a?.isRelevantMatch || b?.isRelevantMatch) {
+    return Number(b?.profileScore || 0) - Number(a?.profileScore || 0);
+  }
+
+  const fallbackDiff = Number(b?.fallbackScore || 0) - Number(a?.fallbackScore || 0);
+  if (fallbackDiff) {
+    return fallbackDiff;
+  }
+
+  const priceA = parseEuroAmount(a?.price);
+  const priceB = parseEuroAmount(b?.price);
+  if (Number.isFinite(priceA) || Number.isFinite(priceB)) {
+    return (Number.isFinite(priceA) ? priceA : Number.POSITIVE_INFINITY) - (Number.isFinite(priceB) ? priceB : Number.POSITIVE_INFINITY);
+  }
+
+  return Number(b?.profileScore || 0) - Number(a?.profileScore || 0);
 }
 
 function getDesiredListingType(result) {
@@ -655,11 +783,20 @@ function matchesDesiredListingType(listing, desiredType) {
 function decorateListing(listing, context) {
   const whyMatches = buildWhyMatches({ ...context, listing });
   const profileScore = scoreListingForProfile(listing, context);
-
-  return {
+  const fallbackScore = scoreFallbackListing(listing, context);
+  const baseListing = {
     ...listing,
     listingType: context.desiredType,
     profileScore,
+    fallbackScore,
+  };
+  const isRelevantMatch = isRelevantListingForProfile(baseListing, context);
+  const isFallbackMatch = isFallbackListingCandidate(baseListing, context);
+
+  return {
+    ...baseListing,
+    isRelevantMatch,
+    isFallbackMatch,
     whyMatches,
     matchReason:
       whyMatches[1] ||
@@ -705,9 +842,7 @@ async function fetchListingDetails(candidate, context) {
       context
     );
 
-    return matchesDesiredListingType(listing, context.desiredType) && isRelevantListingForProfile(listing, context)
-      ? listing
-      : null;
+    return listing.isRelevantMatch || listing.isFallbackMatch ? listing : null;
   } catch {
     const listing = decorateListing(
       {
@@ -720,9 +855,7 @@ async function fetchListingDetails(candidate, context) {
       context
     );
 
-    return matchesDesiredListingType(listing, context.desiredType) && isRelevantListingForProfile(listing, context)
-      ? listing
-      : null;
+    return listing.isRelevantMatch || listing.isFallbackMatch ? listing : null;
   }
 }
 
@@ -938,12 +1071,12 @@ async function searchCompanySiteListings(models, context) {
     }
   }
 
-  return matches.sort((a, b) => (b.profileScore || 0) - (a.profileScore || 0))[0] || null;
+  return matches.sort(sortListingsByPriority);
 }
 
 async function searchFlexicarListings(models, context) {
   if (context.desiredType !== "compra") {
-    return null;
+    return [];
   }
 
   const matches = [];
@@ -997,7 +1130,7 @@ async function searchFlexicarListings(models, context) {
     }
   }
 
-  return matches.sort((a, b) => (b.profileScore || 0) - (a.profileScore || 0))[0] || null;
+  return matches.sort(sortListingsByPriority);
 }
 
 async function findListing({ result, answers, filters }) {
@@ -1018,17 +1151,10 @@ async function findListing({ result, answers, filters }) {
     desiredType,
   };
 
-  const providerListing = await searchCompanySiteListings(models, context);
-  if (providerListing) {
-    return providerListing;
-  }
-
-  const directListing = await searchFlexicarListings(models, context);
-  if (directListing) {
-    return directListing;
-  }
-
-  const matches = [];
+  const matches = [
+    ...(await searchCompanySiteListings(models, context)),
+    ...(await searchFlexicarListings(models, context)),
+  ];
 
   for (const query of queries) {
     try {
@@ -1046,9 +1172,26 @@ async function findListing({ result, answers, filters }) {
     }
   }
 
-  const bestMatch = matches.sort((a, b) => (b.profileScore || 0) - (a.profileScore || 0))[0];
-  if (bestMatch) {
-    return bestMatch;
+  const bestExactMatch = matches
+    .filter((listing) => listing?.isRelevantMatch)
+    .sort(sortListingsByPriority)[0];
+  if (bestExactMatch) {
+    return bestExactMatch;
+  }
+
+  const bestFallbackMatch = matches
+    .filter((listing) => listing?.isFallbackMatch)
+    .sort(sortListingsByPriority)[0];
+  if (bestFallbackMatch) {
+    return {
+      ...bestFallbackMatch,
+      whyMatches: uniq([
+        "No habia una coincidencia exacta con todos tus filtros, asi que he elegido la alternativa real mas sensata priorizando primero precio, luego combustible y finalmente marca.",
+        ...(bestFallbackMatch.whyMatches || []),
+      ]).slice(0, 6),
+      matchReason:
+        "No habia una coincidencia exacta; te muestro la alternativa real con mejor equilibrio entre precio, combustible y preferencia de marca.",
+    };
   }
 
   throw new Error(

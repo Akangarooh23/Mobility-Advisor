@@ -1,6 +1,18 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 
 const ANALYZE_API_ENDPOINT = "/api/analyze";
+
+function countAnsweredSteps(answers) {
+  return STEPS.reduce((acc, stepConfig) => {
+    const value = answers?.[stepConfig.id];
+
+    if (Array.isArray(value)) {
+      return acc + (value.length > 0 ? 1 : 0);
+    }
+
+    return acc + (value ? 1 : 0);
+  }, 0);
+}
 
 function sanitizeJsonStringContent(input) {
   let result = "";
@@ -696,6 +708,22 @@ export default function App() {
   const currentStep = STEPS[step];
   const totalSteps = STEPS.length;
 
+  useEffect(() => {
+    if (entryMode !== "consejo" || step < 0 || step >= totalSteps) {
+      setMultiSelected([]);
+      return;
+    }
+
+    const stepConfig = STEPS[step];
+    if (stepConfig.type === "multi") {
+      const saved = answers[stepConfig.id];
+      setMultiSelected(Array.isArray(saved) ? saved : []);
+      return;
+    }
+
+    setMultiSelected([]);
+  }, [entryMode, step, totalSteps, answers]);
+
   const handleSingle = (value) => {
     const newAnswers = { ...answers, [currentStep.id]: value };
     setAnswers(newAnswers);
@@ -717,6 +745,31 @@ export default function App() {
     setMultiSelected([]);
     if (step < totalSteps - 1) setStep(step + 1);
     else analyzeWithAI(newAnswers);
+  };
+
+  const goToPreviousStep = () => {
+    if (step > 0) {
+      setStep(step - 1);
+    }
+  };
+
+  const restartQuestionnaire = () => {
+    setStep(0);
+    setAnswers({});
+    setMultiSelected([]);
+    setResult(null);
+    setError(null);
+    setApiKeyMissing(false);
+    setLoading(false);
+  };
+
+  const handleTellMeNow = () => {
+    const draftAnswers =
+      currentStep?.type === "multi"
+        ? { ...answers, [currentStep.id]: multiSelected }
+        : { ...answers };
+
+    analyzeWithAI(draftAnswers);
   };
 
   const analyzeWithAI = async (finalAnswers) => {
@@ -965,6 +1018,14 @@ ${answersSummary}`;
     "Generando recomendación personalizada...",
   ];
 
+  const draftAnswers =
+    entryMode === "consejo" && currentStep?.type === "multi"
+      ? { ...answers, [currentStep.id]: multiSelected }
+      : answers;
+  const answeredSteps = countAnsweredSteps(draftAnswers);
+  const remainingQuestions = Math.max(totalSteps - answeredSteps, 0);
+  const completionPct = Math.min(100, Math.round((answeredSteps / totalSteps) * 100));
+
   // ─── STYLES ───────────────────────────────
   const s = {
     page: {
@@ -1098,7 +1159,7 @@ ${answersSummary}`;
                 fontSize: 12,
               }}
             >
-              ← Reiniciar
+              ← Volver al home
             </button>
           )}
         </div>
@@ -1960,6 +2021,72 @@ ${answersSummary}`;
             {currentStep.subtitle}
           </p>
 
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: 10,
+              marginBottom: 12,
+              flexWrap: "wrap",
+            }}
+          >
+            {answeredSteps >= 3 && (
+              <button
+                onClick={handleTellMeNow}
+                style={{
+                  background: "linear-gradient(135deg,#0ea5e9,#2563eb)",
+                  border: "none",
+                  color: "white",
+                  padding: "8px 14px",
+                  borderRadius: 9,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                ⚡ ¡Dímelo ya!
+              </button>
+            )}
+          </div>
+
+          <div
+            style={{
+              background: "rgba(14,165,233,0.08)",
+              border: "1px solid rgba(14,165,233,0.2)",
+              borderRadius: 12,
+              padding: 12,
+              marginBottom: 18,
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+              <div style={{ fontSize: 12, color: "#bae6fd", fontWeight: 600 }}>
+                ✅ Te quedan {remainingQuestions} pregunta{remainingQuestions === 1 ? "" : "s"}
+              </div>
+              <div style={{ fontSize: 12, color: "#7dd3fc" }}>
+                {completionPct}% completado
+              </div>
+            </div>
+            <div
+              style={{
+                marginTop: 8,
+                height: 4,
+                borderRadius: 4,
+                background: "rgba(255,255,255,0.1)",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  width: `${completionPct}%`,
+                  height: "100%",
+                  background: "linear-gradient(90deg,#22d3ee,#2563eb)",
+                  transition: "width 0.35s ease",
+                }}
+              />
+            </div>
+          </div>
+
           {currentStep.options.map((opt) => {
             const selected =
               currentStep.type === "multi"
@@ -2027,6 +2154,47 @@ ${answersSummary}`;
                 : `Continuar (${multiSelected.length} seleccionada${multiSelected.length > 1 ? "s" : ""}) →`}
             </button>
           )}
+
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              marginTop: 14,
+              flexWrap: "wrap",
+            }}
+          >
+            <button
+              onClick={goToPreviousStep}
+              disabled={step === 0}
+              style={{
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                color: "#cbd5e1",
+                padding: "9px 14px",
+                borderRadius: 9,
+                fontSize: 12,
+                cursor: step === 0 ? "not-allowed" : "pointer",
+                opacity: step === 0 ? 0.45 : 1,
+              }}
+            >
+              ← Volver a la pregunta anterior
+            </button>
+
+            <button
+              onClick={restartQuestionnaire}
+              style={{
+                background: "rgba(239,68,68,0.1)",
+                border: "1px solid rgba(239,68,68,0.25)",
+                color: "#fecaca",
+                padding: "9px 14px",
+                borderRadius: 9,
+                fontSize: 12,
+                cursor: "pointer",
+              }}
+            >
+              ↺ Reiniciar preguntas
+            </button>
+          </div>
         </div>
       )}
 

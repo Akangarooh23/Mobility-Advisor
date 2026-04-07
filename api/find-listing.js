@@ -14,6 +14,9 @@ const COMPANY_SITE_HINTS = {
   "Northgate": "northgate.es",
   "Free2move": "free2move.com",
   "OK Mobility": "okmobility.com",
+  "Swipcar": "swipcar.com",
+  "Vamos": "vamos.es",
+  "Yoyomove": "yoyomove.com",
 };
 
 const COMPANY_DIRECT_URLS = {
@@ -41,6 +44,39 @@ const COMPANY_DIRECT_URLS = {
     renting: ["https://www.alphabet.es/"],
     compra: [],
   },
+  "Swipcar": {
+    renting: ["https://swipcar.com/es/es/renting"],
+    compra: [],
+  },
+  "Vamos": {
+    renting: ["https://vamos.es/renting"],
+    compra: [],
+  },
+  "Yoyomove": {
+    renting: ["https://www.yoyomove.com/"],
+    compra: [],
+  },
+  "Flexicar": {
+    renting: [],
+    compra: ["https://www.flexicar.es/coches-segunda-mano/"],
+  },
+  "Autohero": {
+    renting: [],
+    compra: ["https://www.autohero.com/es/search/"],
+  },
+  "Spoticar": {
+    renting: [],
+    compra: ["https://www.spoticar.es/coches-ocasion"],
+  },
+  "Coches.net": {
+    renting: [],
+    compra: ["https://www.coches.net/segunda-mano/"],
+  },
+};
+
+const DEFAULT_PLATFORM_GROUPS = {
+  renting: ["Ayvens", "Arval", "Northgate", "OK Mobility", "Free2move", "Alphabet", "Swipcar", "Vamos", "Yoyomove"],
+  compra: ["Flexicar", "Autohero", "Spoticar", "Coches.net"],
 };
 
 const BRAND_MODEL_MAP = {
@@ -101,7 +137,7 @@ const INCOME_HINTS = {
   variables_autonomo: "ingresos variables autonomo",
 };
 
-const RENTING_DOMAINS = ["ayvens.com", "arval.es", "alphabet.es", "northgate.es", "free2move.com", "okmobility.com"];
+const RENTING_DOMAINS = ["ayvens.com", "arval.es", "alphabet.es", "northgate.es", "free2move.com", "okmobility.com", "swipcar.com", "vamos.es", "yoyomove.com"];
 const PURCHASE_DOMAINS = ["coches.net", "flexicar.es", "autohero.com", "spoticar.es"];
 const BRAND_PREFERENCE_KEYWORDS = {
   generalista_europea: ["volkswagen", "seat", "renault", "skoda", "peugeot", "citroen", "dacia"],
@@ -325,7 +361,9 @@ function buildWhyMatches({ result, answers, filters, company, listing, desiredTy
   }
 
   if (company) {
-    reasons.push(`He intentado priorizar stock real de ${company} y, si no era accesible, una alternativa equivalente.`);
+    reasons.push(`He intentado priorizar stock real de ${company} y, si no era accesible, he seguido buscando entre otras plataformas.`);
+  } else if (Array.isArray(filters?.companies) && filters.companies.length > 1) {
+    reasons.push(`He rastreado varias plataformas de ${desiredType}, no solo una web concreta.`);
   }
 
   if (filters?.budget && BUDGET_HINTS[filters.budget]) {
@@ -663,35 +701,46 @@ function buildVehicleCandidates({ result, answers }) {
   return uniq([...preferred, ...dynamic]).slice(0, 8);
 }
 
-function buildQueries({ result, answers, filters }) {
-  const company = normalizeText(filters?.company) || result?.solucion_principal?.empresas_recomendadas?.[0] || "";
-  const companySite = COMPANY_SITE_HINTS[company] || "";
+function getSearchCompanies({ result, filters, desiredType }) {
+  const selected = normalizeText(filters?.company);
+  const recommended = Array.isArray(result?.solucion_principal?.empresas_recomendadas)
+    ? result.solucion_principal.empresas_recomendadas.map((company) => normalizeText(company))
+    : [];
+  const defaults = DEFAULT_PLATFORM_GROUPS[desiredType] || [];
+
+  return uniq([selected, ...recommended, ...defaults]);
+}
+
+function buildQueries({ result, answers, filters, companies = [], desiredType = getDesiredListingType(result) }) {
   const models = buildVehicleCandidates({ result, answers });
   const budgetHint = BUDGET_HINTS[filters?.budget] || "";
   const incomeHint = INCOME_HINTS[filters?.income] || "";
-  const desiredType = getDesiredListingType(result);
+  const platformList = companies.length ? companies : getSearchCompanies({ result, filters, desiredType });
   const operationHint = desiredType === "renting"
-    ? "renting coche cuota mensual oferta"
-    : "coche ocasion compra anuncio";
+    ? "renting coche oferta cuota mensual particulares"
+    : "coche ocasion compra anuncio stock";
   const fuelHint = (Array.isArray(result?.propulsiones_viables) ? result.propulsiones_viables : [])
     .slice(0, 2)
     .join(" ");
 
   const queries = [];
 
-  for (const model of models) {
-    queries.push(`${company} ${model} ${operationHint} España ${budgetHint}`.trim());
-    if (companySite) {
-      queries.push(`site:${companySite} ${model} ${operationHint} ${budgetHint}`.trim());
+  for (const model of models.slice(0, 5)) {
+    queries.push(`${model} ${operationHint} España ${fuelHint} ${budgetHint}`.trim());
+
+    for (const company of platformList.slice(0, 6)) {
+      const companySite = COMPANY_SITE_HINTS[company] || "";
+      queries.push(`${company} ${model} ${operationHint} España ${budgetHint}`.trim());
+
+      if (companySite) {
+        queries.push(`site:${companySite} ${model} ${operationHint} ${budgetHint}`.trim());
+      }
     }
-    queries.push(`${model} ${operationHint} España ${fuelHint}`.trim());
   }
 
-  if (!queries.length) {
-    queries.push(`${company} ${operationHint} España ${budgetHint} ${incomeHint}`.trim());
-  }
+  queries.push(`${operationHint} España ${fuelHint} ${budgetHint} ${incomeHint}`.trim());
 
-  return uniq(queries).slice(0, 10);
+  return uniq(queries).slice(0, 18);
 }
 
 function isLikelyListing(url, desiredType = "compra") {
@@ -748,76 +797,83 @@ function isUsefulProviderLink(link) {
 }
 
 async function searchCompanySiteListings(models, context) {
-  const directUrls = getDirectSourceUrls(context.company, context.desiredType);
-  if (!directUrls.length) {
-    return null;
-  }
-
+  const companies = Array.isArray(context.companies) && context.companies.length
+    ? context.companies
+    : [context.company].filter(Boolean);
   const matches = [];
 
-  for (const pageUrl of directUrls.slice(0, 3)) {
-    try {
-      const response = await fetch(pageUrl, {
-        headers: {
-          "user-agent": USER_AGENT,
-          "accept-language": "es-ES,es;q=0.9,en;q=0.8",
-        },
-        redirect: "follow",
-      });
-      const html = await response.text();
-      const rawLinks = uniq(
-        [...html.matchAll(/href=["']([^"'#]+)["']/gi)]
-          .map((match) => absolutizeUrl(response.url || pageUrl, decodeHtmlEntities(match[1])))
-          .filter(Boolean)
-      );
+  for (const company of companies.slice(0, context.desiredType === "renting" ? 8 : 5)) {
+    const directUrls = getDirectSourceUrls(company, context.desiredType);
+    if (!directUrls.length) {
+      continue;
+    }
 
-      const preferredBrands = getProfileBrandKeywords(context.answers, models);
-      const rankedLinks = rawLinks
-        .filter((link) => isUsefulProviderLink(link) && isLikelyListing(link, context.desiredType))
-        .map((link) => {
-          const haystack = removeAccents(link).toLowerCase();
-          const modelScore = models.reduce((acc, model) => {
-            const tokens = removeAccents(model)
-              .toLowerCase()
-              .split(/\s+/)
-              .filter((token) => token.length > 2);
+    const providerContext = { ...context, company };
 
-            return acc + tokens.reduce((sum, token) => sum + (haystack.includes(token) ? 1 : 0), 0);
-          }, 0);
-          const brandScore = countTokenHits(haystack, preferredBrands) * 4;
-          const typeScore = context.desiredType === "renting"
-            ? ["renting", "ofertas", "detalle", "particulares", "vehiculos", "electrico", "hibrido"].reduce(
-                (acc, token) => acc + (haystack.includes(token) ? 1 : 0),
-                0
-              )
-            : ["ocasion", "segunda-mano", "stock", "catalogo", "usados"].reduce(
-                (acc, token) => acc + (haystack.includes(token) ? 1 : 0),
-                0
-              );
-          const detailBonus = /\/detalle\/|\/ofertas\//.test(haystack) ? 5 : 0;
-          const genericPenalty = looksLikeGenericNonVehiclePage(haystack) ? 10 : 0;
-
-          return { link, score: modelScore * 3 + brandScore + typeScore + detailBonus - genericPenalty };
-        })
-        .filter((item) => item.score > 0)
-        .sort((a, b) => b.score - a.score);
-
-      for (const item of rankedLinks.slice(0, 8)) {
-        const listing = await fetchListingDetails(
-          {
-            title: `${context.company || "Proveedor"} · ${context.desiredType}`,
-            url: item.link,
-            source: getDomain(item.link),
+    for (const pageUrl of directUrls.slice(0, 3)) {
+      try {
+        const response = await fetch(pageUrl, {
+          headers: {
+            "user-agent": USER_AGENT,
+            "accept-language": "es-ES,es;q=0.9,en;q=0.8",
           },
-          context
+          redirect: "follow",
+        });
+        const html = await response.text();
+        const rawLinks = uniq(
+          [...html.matchAll(/href=["']([^"'#]+)["']/gi)]
+            .map((match) => absolutizeUrl(response.url || pageUrl, decodeHtmlEntities(match[1])))
+            .filter(Boolean)
         );
 
-        if (listing?.url && listing?.title) {
-          matches.push(listing);
+        const preferredBrands = getProfileBrandKeywords(providerContext.answers, models);
+        const rankedLinks = rawLinks
+          .filter((link) => isUsefulProviderLink(link) && isLikelyListing(link, providerContext.desiredType))
+          .map((link) => {
+            const haystack = removeAccents(link).toLowerCase();
+            const modelScore = models.reduce((acc, model) => {
+              const tokens = removeAccents(model)
+                .toLowerCase()
+                .split(/\s+/)
+                .filter((token) => token.length > 2);
+
+              return acc + tokens.reduce((sum, token) => sum + (haystack.includes(token) ? 1 : 0), 0);
+            }, 0);
+            const brandScore = countTokenHits(haystack, preferredBrands) * 4;
+            const typeScore = providerContext.desiredType === "renting"
+              ? ["renting", "ofertas", "detalle", "particulares", "vehiculos", "electrico", "hibrido"].reduce(
+                  (acc, token) => acc + (haystack.includes(token) ? 1 : 0),
+                  0
+                )
+              : ["ocasion", "segunda-mano", "stock", "catalogo", "usados"].reduce(
+                  (acc, token) => acc + (haystack.includes(token) ? 1 : 0),
+                  0
+                );
+            const detailBonus = /\/detalle\/|\/ofertas\//.test(haystack) ? 5 : 0;
+            const genericPenalty = looksLikeGenericNonVehiclePage(haystack) ? 10 : 0;
+
+            return { link, score: modelScore * 3 + brandScore + typeScore + detailBonus - genericPenalty };
+          })
+          .filter((item) => item.score > 0)
+          .sort((a, b) => b.score - a.score);
+
+        for (const item of rankedLinks.slice(0, 8)) {
+          const listing = await fetchListingDetails(
+            {
+              title: `${company || "Proveedor"} · ${providerContext.desiredType}`,
+              url: item.link,
+              source: getDomain(item.link),
+            },
+            providerContext
+          );
+
+          if (listing?.url && listing?.title) {
+            matches.push(listing);
+          }
         }
+      } catch {
+        // Continue with the next provider page or search fallback.
       }
-    } catch {
-      // Continue with the next provider page or search fallback.
     }
   }
 
@@ -884,18 +940,26 @@ async function searchFlexicarListings(models, context) {
 }
 
 async function findListing({ result, answers, filters }) {
-  const queries = buildQueries({ result, answers, filters });
   const models = buildVehicleCandidates({ result, answers });
-  const company = normalizeText(filters?.company) || result?.solucion_principal?.empresas_recomendadas?.[0] || "";
   const desiredType = getDesiredListingType(result);
-  const matchReason = `Encaja con ${result?.solucion_principal?.titulo || "tu recomendacion"}${company ? `; he priorizado ${company} y, si su stock publico no era accesible, te muestro una alternativa real equivalente.` : "."}`;
-  const context = { result, answers, filters, company, models, matchReason, desiredType };
+  const companies = getSearchCompanies({ result, filters, desiredType });
+  const queries = buildQueries({ result, answers, filters, companies, desiredType });
+  const company = normalizeText(filters?.company) || companies[0] || "";
+  const matchReason = `Encaja con ${result?.solucion_principal?.titulo || "tu recomendacion"}; he rastreado varias plataformas de ${desiredType} para devolverte la mejor coincidencia real.`;
+  const context = {
+    result,
+    answers,
+    filters: { ...filters, companies },
+    company,
+    companies,
+    models,
+    matchReason,
+    desiredType,
+  };
 
-  if (desiredType === "renting") {
-    const companyListing = await searchCompanySiteListings(models, context);
-    if (companyListing) {
-      return companyListing;
-    }
+  const providerListing = await searchCompanySiteListings(models, context);
+  if (providerListing) {
+    return providerListing;
   }
 
   const directListing = await searchFlexicarListings(models, context);
@@ -928,8 +992,8 @@ async function findListing({ result, answers, filters }) {
 
   throw new Error(
     desiredType === "renting"
-      ? "No he encontrado una oferta real de renting que encaje bien con la marca y motorizacion que has marcado. Prueba otra plataforma o amplia la cuota objetivo."
-      : "No he podido localizar un anuncio real de compra con esas opciones. Prueba otra plataforma o filtro."
+      ? "No he encontrado una oferta real de renting que encaje bien tras buscar en varias plataformas. Prueba a ampliar la cuota objetivo o flexibilizar marca y motorizacion."
+      : "No he podido localizar un anuncio real de compra que encaje bien tras revisar varios portales. Prueba a ampliar filtros o relajar marca/modelo."
   );
 }
 

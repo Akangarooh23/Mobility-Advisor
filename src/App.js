@@ -843,7 +843,7 @@ export default function App() {
       result.solucion_principal?.tipo
     );
 
-    if (!nextFilters.company || (requiresBudget && !nextFilters.budget)) {
+    if (requiresBudget && !nextFilters.budget) {
       return;
     }
 
@@ -891,7 +891,7 @@ export default function App() {
       result?.solucion_principal?.tipo
     );
 
-    if (nextFilters.company && (!requiresBudget || nextFilters.budget)) {
+    if (!requiresBudget || nextFilters.budget) {
       void searchRealListing(nextFilters);
       return;
     }
@@ -2612,9 +2612,7 @@ ${answersSummary}`;
           const isRentingOutcome = ["renting_largo", "renting_corto"].includes(
             result.solucion_principal?.tipo
           );
-          const canSearchListing = Boolean(
-            listingFilters.company && (!isRentingOutcome || listingFilters.budget)
-          );
+          const canSearchListing = Boolean(!isRentingOutcome || listingFilters.budget);
           return (
             <div ref={resultRef} style={s.center}>
               {/* Header */}
@@ -3111,40 +3109,44 @@ ${answersSummary}`;
                   {result.siguiente_paso}
                 </div>
                 <p style={{ margin: "0 0 12px", fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
-                  Selecciona la plataforma recomendada {isRentingOutcome ? "y tu franja de cuota" : ""}.
-                  En cuanto pinches, buscamos una unica {isRentingOutcome ? "oferta real de renting" : "opcion real de compra"} publicada en la web.
+                  Ya no hace falta que el cliente elija la plataforma. La IA rastrea automaticamente varias webs de
+                  {isRentingOutcome ? " renting" : " compra"} y devuelve la mejor coincidencia real publicada.
                 </p>
 
                 <div style={{ marginBottom: 12 }}>
                   <div style={{ fontSize: 11, color: "#bfdbfe", marginBottom: 8, letterSpacing: "0.5px" }}>
-                    PLATAFORMA RECOMENDADA
+                    BÚSQUEDA AUTOMÁTICA EN PLATAFORMAS
                   </div>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    {(result.solucion_principal?.empresas_recomendadas || []).map((company) => {
-                      const selected = listingFilters.company === company;
-
-                      return (
-                        <button
-                          key={company}
-                          type="button"
-                          onClick={() => updateListingFilter("company", company)}
-                          style={{
-                            background: selected ? "rgba(59,130,246,0.24)" : "rgba(15,23,42,0.35)",
-                            border: selected
-                              ? "1px solid rgba(147,197,253,0.7)"
-                              : "1px solid rgba(148,163,184,0.22)",
-                            color: selected ? "#eff6ff" : "#cbd5e1",
-                            padding: "7px 12px",
-                            borderRadius: 999,
-                            fontSize: 11,
-                            fontWeight: 700,
-                            cursor: "pointer",
-                          }}
-                        >
-                          {company}
-                        </button>
-                      );
-                    })}
+                    {(result.solucion_principal?.empresas_recomendadas || []).map((company) => (
+                      <span
+                        key={company}
+                        style={{
+                          background: "rgba(15,23,42,0.35)",
+                          border: "1px solid rgba(148,163,184,0.22)",
+                          color: "#cbd5e1",
+                          padding: "7px 12px",
+                          borderRadius: 999,
+                          fontSize: 11,
+                          fontWeight: 700,
+                        }}
+                      >
+                        {company}
+                      </span>
+                    ))}
+                    <span
+                      style={{
+                        background: "rgba(59,130,246,0.16)",
+                        border: "1px solid rgba(147,197,253,0.28)",
+                        color: "#dbeafe",
+                        padding: "7px 12px",
+                        borderRadius: 999,
+                        fontSize: 11,
+                        fontWeight: 700,
+                      }}
+                    >
+                      + otras plataformas
+                    </span>
                   </div>
                 </div>
 
@@ -3172,8 +3174,8 @@ ${answersSummary}`;
                   {!canSearchListing && (
                     <span style={{ fontSize: 11, color: "#bfdbfe", alignSelf: "center" }}>
                       {isRentingOutcome
-                        ? "Elige plataforma y cuota para activar la búsqueda."
-                        : "Elige una plataforma para activar la búsqueda."}
+                        ? "Elige tu franja de cuota para activar la búsqueda automática."
+                        : "Pulsa el botón y la IA revisará automáticamente varios portales."}
                     </span>
                   )}
                 </div>

@@ -415,10 +415,8 @@ function buildWhyMatches({ result, answers, filters, company, listing, desiredTy
     reasons.push(`He cruzado las propulsiones viables detectadas: ${viablePropulsions.slice(0, 2).join(", ")}.`);
   }
 
-  if (company) {
-    reasons.push(`He intentado priorizar stock real de ${company} y, si no era accesible, he seguido buscando entre otras plataformas.`);
-  } else if (Array.isArray(filters?.companies) && filters.companies.length > 1) {
-    reasons.push(`He rastreado varias plataformas de ${desiredType}, no solo una web concreta.`);
+  if (company || (Array.isArray(filters?.companies) && filters.companies.length > 1)) {
+    reasons.push("He rastreado varias plataformas y solo te muestro la coincidencia real que mejor encaja con tu perfil.");
   }
 
   if (filters?.budget && BUDGET_HINTS[filters.budget]) {

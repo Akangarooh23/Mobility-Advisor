@@ -172,6 +172,62 @@ function isCompleteAdvisorResult(value) {
   );
 }
 
+function escapeRegExp(value) {
+  return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function redactCompanyMentions(value, companyNames = [], replacement = "plataformas especializadas") {
+  const text = normalizeText(value);
+
+  if (!text || !Array.isArray(companyNames) || companyNames.length === 0) {
+    return text;
+  }
+
+  const escapedNames = companyNames.map((name) => escapeRegExp(name)).filter(Boolean);
+  if (!escapedNames.length) {
+    return text;
+  }
+
+  return text
+    .replace(new RegExp(`\\b(?:${escapedNames.join("|")})\\b`, "gi"), "__PLATFORM__")
+    .replace(/(?:__PLATFORM__(?:\s*(?:,|y|e)\s*)?)+/gi, replacement)
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s+([,.])/g, "$1")
+    .trim();
+}
+
+function sanitizeResultForDisplay(value) {
+  const companyNames = Array.isArray(value?.solucion_principal?.empresas_recomendadas)
+    ? value.solucion_principal.empresas_recomendadas
+    : [];
+
+  return {
+    ...value,
+    solucion_principal: {
+      ...value?.solucion_principal,
+      resumen: redactCompanyMentions(value?.solucion_principal?.resumen, companyNames),
+      ventajas: (value?.solucion_principal?.ventajas || []).map((item) =>
+        redactCompanyMentions(item, companyNames)
+      ),
+      inconvenientes: (value?.solucion_principal?.inconvenientes || []).map((item) =>
+        redactCompanyMentions(item, companyNames)
+      ),
+      tension_principal: redactCompanyMentions(value?.solucion_principal?.tension_principal, companyNames),
+      empresas_recomendadas: [],
+    },
+    alternativas: Array.isArray(value?.alternativas)
+      ? value.alternativas.map((item) => ({
+          ...item,
+          titulo: redactCompanyMentions(item?.titulo, companyNames),
+          razon: redactCompanyMentions(item?.razon, companyNames),
+        }))
+      : [],
+    tco_aviso: redactCompanyMentions(value?.tco_aviso, companyNames),
+    consejo_experto: redactCompanyMentions(value?.consejo_experto, companyNames),
+    siguiente_paso: redactCompanyMentions(value?.siguiente_paso, companyNames, "plataformas de confianza"),
+  };
+}
+
 async function readApiResponse(response) {
   const contentType = (response.headers.get("content-type") || "").toLowerCase();
 
@@ -755,7 +811,7 @@ export default function App() {
     }
 
     setListingFilters({
-      company: result.solucion_principal?.empresas_recomendadas?.[0] || "",
+      company: "",
       budget: "",
       income: "",
     });
@@ -2597,6 +2653,7 @@ ${answersSummary}`;
       {/* ── RESULT ── */}
       {result &&
         (() => {
+          const displayResult = sanitizeResultForDisplay(result);
           const mt =
             MOBILITY_TYPES[result.solucion_principal?.tipo] || {
               label: "Movilidad",
@@ -2688,12 +2745,12 @@ ${answersSummary}`;
                     <h3
                       style={{ margin: "0 0 6px", fontSize: 18, fontWeight: 700, color: "#f1f5f9" }}
                     >
-                      {result.solucion_principal?.titulo}
+                      {displayResult.solucion_principal?.titulo}
                     </h3>
                     <p
                       style={{ margin: 0, color: "#94a3b8", fontSize: 13, lineHeight: 1.6 }}
                     >
-                      {result.solucion_principal?.resumen}
+                      {displayResult.solucion_principal?.resumen}
                     </p>
                   </div>
                 </div>
@@ -2739,7 +2796,7 @@ ${answersSummary}`;
                     >
                       ✅ VENTAJAS
                     </div>
-                    {(result.solucion_principal?.ventajas || []).map((v, i) => (
+                    {(displayResult.solucion_principal?.ventajas || []).map((v, i) => (
                       <div
                         key={i}
                         style={{ fontSize: 12, color: "#94a3b8", marginBottom: 5, lineHeight: 1.4 }}
@@ -2760,7 +2817,7 @@ ${answersSummary}`;
                     >
                       ⚠️ A TENER EN CUENTA
                     </div>
-                    {(result.solucion_principal?.inconvenientes || []).map((v, i) => (
+                    {(displayResult.solucion_principal?.inconvenientes || []).map((v, i) => (
                       <div
                         key={i}
                         style={{ fontSize: 12, color: "#94a3b8", marginBottom: 5, lineHeight: 1.4 }}
@@ -2839,24 +2896,10 @@ ${answersSummary}`;
                       letterSpacing: "0.6px",
                     }}
                   >
-                    PLATAFORMAS EN ESPAÑA
+                    BÚSQUEDA DE MERCADO
                   </div>
-                  <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
-                    {(result.solucion_principal?.empresas_recomendadas || []).map((e) => (
-                      <span
-                        key={e}
-                        style={{
-                          background: `${mt.color}18`,
-                          border: `1px solid ${mt.color}28`,
-                          padding: "2px 9px",
-                          borderRadius: 100,
-                          fontSize: 11,
-                          color: "#cbd5e1",
-                        }}
-                      >
-                        {e}
-                      </span>
-                    ))}
+                  <div style={{ fontSize: 11, color: "#cbd5e1", lineHeight: 1.6 }}>
+                    Contrastamos stock público y solo mostramos la mejor opción final encontrada por la IA.
                   </div>
                 </div>
               </div>
@@ -2886,7 +2929,7 @@ ${answersSummary}`;
                   <p
                     style={{ margin: 0, fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}
                   >
-                    {result.solucion_principal.tension_principal}
+                    {displayResult.solucion_principal.tension_principal}
                   </p>
                 </div>
               )}
@@ -2914,7 +2957,7 @@ ${answersSummary}`;
                     📊 AVISO TCO — COSTE REAL ESTIMADO
                   </div>
                   <p style={{ margin: 0, fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                    {result.tco_aviso}
+                    {displayResult.tco_aviso}
                   </p>
                 </div>
               )}
@@ -3106,47 +3149,27 @@ ${answersSummary}`;
                   🚀 SIGUIENTE PASO ACCIONABLE · CLICA Y TE TRAIGO UN ANUNCIO REAL
                 </div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: "#f8fafc", marginBottom: 8 }}>
-                  {result.siguiente_paso}
+                  {displayResult.siguiente_paso}
                 </div>
                 <p style={{ margin: "0 0 12px", fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
                   Ya no hace falta que el cliente elija la plataforma. La IA rastrea automaticamente varias webs de
                   {isRentingOutcome ? " renting" : " compra"} y devuelve la mejor coincidencia real publicada.
                 </p>
 
-                <div style={{ marginBottom: 12 }}>
-                  <div style={{ fontSize: 11, color: "#bfdbfe", marginBottom: 8, letterSpacing: "0.5px" }}>
-                    BÚSQUEDA AUTOMÁTICA EN PLATAFORMAS
+                <div
+                  style={{
+                    marginBottom: 12,
+                    background: "rgba(15,23,42,0.24)",
+                    border: "1px solid rgba(148,163,184,0.16)",
+                    borderRadius: 12,
+                    padding: 12,
+                  }}
+                >
+                  <div style={{ fontSize: 11, color: "#bfdbfe", marginBottom: 6, letterSpacing: "0.5px" }}>
+                    BÚSQUEDA AUTOMÁTICA
                   </div>
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    {(result.solucion_principal?.empresas_recomendadas || []).map((company) => (
-                      <span
-                        key={company}
-                        style={{
-                          background: "rgba(15,23,42,0.35)",
-                          border: "1px solid rgba(148,163,184,0.22)",
-                          color: "#cbd5e1",
-                          padding: "7px 12px",
-                          borderRadius: 999,
-                          fontSize: 11,
-                          fontWeight: 700,
-                        }}
-                      >
-                        {company}
-                      </span>
-                    ))}
-                    <span
-                      style={{
-                        background: "rgba(59,130,246,0.16)",
-                        border: "1px solid rgba(147,197,253,0.28)",
-                        color: "#dbeafe",
-                        padding: "7px 12px",
-                        borderRadius: 999,
-                        fontSize: 11,
-                        fontWeight: 700,
-                      }}
-                    >
-                      + otras plataformas
-                    </span>
+                  <div style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
+                    No mostramos empresas intermedias: la IA revisa varios portales y solo enseña la mejor opción final localizada.
                   </div>
                 </div>
 
@@ -3326,7 +3349,7 @@ ${answersSummary}`;
                   marginBottom: 12,
                 }}
               >
-                {(result.alternativas || []).map((alt, i) => {
+                {(displayResult.alternativas || []).map((alt, i) => {
                   const mt2 = MOBILITY_TYPES[alt.tipo] || {
                     label: alt.tipo,
                     icon: "🚗",
@@ -3392,7 +3415,7 @@ ${answersSummary}`;
                     💡 CONSEJO DE EXPERTO
                   </div>
                   <p style={{ margin: 0, fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                    {result.consejo_experto}
+                    {displayResult.consejo_experto}
                   </p>
                 </div>
                 <div

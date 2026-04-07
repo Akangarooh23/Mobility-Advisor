@@ -171,6 +171,35 @@ function isCompleteAdvisorResult(value) {
   );
 }
 
+async function readApiResponse(response) {
+  const contentType = (response.headers.get("content-type") || "").toLowerCase();
+
+  if (contentType.includes("application/json")) {
+    return response.json();
+  }
+
+  const rawText = await response.text();
+  const trimmed = rawText.trim();
+
+  if (trimmed.startsWith("<!doctype") || trimmed.startsWith("<html") || trimmed.startsWith("<")) {
+    const error = new Error(
+      typeof window !== "undefined" && ["localhost", "127.0.0.1"].includes(window.location.hostname)
+        ? "El endpoint /api/analyze no estaba respondiendo como API en local. Reinicia el servidor y vuelve a probar el test."
+        : "El endpoint /api/analyze ha devuelto HTML en lugar de JSON. Revisa el despliegue y la configuracion de la API."
+    );
+    error.code = "NON_JSON_API_RESPONSE";
+    throw error;
+  }
+
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    const error = new Error("La respuesta del analisis no tiene un JSON valido.");
+    error.code = "INVALID_API_RESPONSE";
+    throw error;
+  }
+}
+
 function MercedesLogo({ size = 14 }) {
   return (
     <svg viewBox="0 0 24 24" width={size} height={size} fill="none" aria-hidden="true">
@@ -846,7 +875,7 @@ ${answersSummary}`;
         }),
       });
 
-      const data = await response.json();
+      const data = await readApiResponse(response);
       clearInterval(phaseInterval);
 
       if (!response.ok) {

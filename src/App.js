@@ -176,16 +176,52 @@ const STEPS = [
     ],
   },
   {
-    id: "ubicacion",
-    block: "Perfil",
-    blockIcon: "📍",
-    question: "¿Dónde vives principalmente?",
-    subtitle: "La ciudad condiciona las ZBE, etiqueta DGT y opciones disponibles",
+    id: "flexibilidad",
+    block: "Vinculación",
+    blockIcon: "🤝",
+    question: "¿Qué relación prefieres con el vehículo?",
+    subtitle: "Cada modelo tiene implicaciones financieras y de riesgo muy distintas",
     type: "cards",
     options: [
-      { value: "gran_ciudad", label: "Gran ciudad", icon: "🌆", desc: "Madrid, Barcelona, Valencia..." },
-      { value: "ciudad_media", label: "Ciudad media", icon: "🏙️", desc: "Sevilla, Bilbao, Zaragoza..." },
-      { value: "pueblo", label: "Pueblo o zona rural", icon: "🌾", desc: "Menos de 50.000 hab." },
+      { value: "propiedad_contado", label: "Comprar al contado", icon: "💶", desc: "Mayor poder negociador, capital inmovilizado" },
+      { value: "propiedad_financiada", label: "Comprar financiado", icon: "📝", desc: "Pago a plazos, coche mío al final" },
+      { value: "renting", label: "Renting (cuota fija)", icon: "📅", desc: "Todo incluido, sin propiedad" },
+      { value: "flexible", label: "Lo más flexible posible", icon: "⚡", desc: "Pagar solo cuando uso o suscripción" },
+    ],
+  },
+  // BLOQUE 0 — DIMENSIÓN ENERGÉTICA (muy determinante)
+  {
+    id: "propulsion_preferida",
+    block: "Energía",
+    blockIcon: "⚡",
+    question: "¿Qué motorización prefieres?",
+    subtitle: "Es una decisión clave porque condiciona coste total, etiqueta DGT, ZBE y uso real",
+    type: "cards",
+    options: [
+      { value: "electrico_puro", label: "Eléctrico puro (BEV)", icon: "⚡", desc: "Etiqueta CERO — recarga 100% eléctrica" },
+      { value: "hibrido_no_enchufable", label: "Híbrido no enchufable (HEV)", icon: "🔋", desc: "Etiqueta ECO — sin enchufe, muy eficiente en ciudad" },
+      { value: "hibrido_enchufable", label: "Híbrido enchufable (PHEV)", icon: "🔌", desc: "Etiqueta CERO/ECO según autonomía — requiere hábito de carga" },
+      { value: "microhibrido", label: "Microhíbrido (MHEV)", icon: "⚙️", desc: "Etiqueta ECO — apoyo eléctrico ligero al motor térmico" },
+      { value: "gasolina", label: "Gasolina", icon: "⛽", desc: "Suele encajar en kilometrajes medios o bajos" },
+      { value: "diesel", label: "Diésel", icon: "🛢️", desc: "Más interesante con kilometrajes altos y trayectos largos" },
+      { value: "glp_gnc", label: "GLP / GNC", icon: "🟢", desc: "Alternativa de menor coste por km donde hay infraestructura" },
+      { value: "indiferente_motor", label: "Sin preferencia", icon: "🤷", desc: "Priorizo que el análisis elija lo óptimo" },
+    ],
+  },
+  {
+    id: "horizonte",
+    block: "Capacidad",
+    blockIcon: "📅",
+    question: "¿Cuánto tiempo piensas quedarte con el vehículo?",
+    subtitle: "Condiciona qué riesgos son más relevantes para ti",
+    type: "cards",
+    options: [
+      { value: "menos_2", label: "Menos de 2 años", icon: "⚡", desc: "Maxima flexibilidad, depreciación muy relevante" },
+      { value: "2_3", label: "2 - 3 años", icon: "🚗", desc: "Plazo corto con foco en valor de reventa" },
+      { value: "3_5", label: "3 - 5 años", icon: "📊", desc: "Equilibrio entre cuota, uso y riesgo" },
+      { value: "5_7", label: "5 - 7 años", icon: "🛠️", desc: "Empieza a pesar más el mantenimiento" },
+      { value: "mas_7", label: "Mas de 7 años", icon: "🏠", desc: "Propiedad larga: fiabilidad y costes futuros clave" },
+      { value: "no_claro", label: "Aun no lo tengo claro", icon: "🤔", desc: "Necesito una opcion flexible mientras decido" },
     ],
   },
 
@@ -208,7 +244,7 @@ const STEPS = [
     block: "Uso real",
     blockIcon: "🗺️",
     question: "¿Cuál es tu entorno de conducción dominante?",
-    subtitle: "Afecta al consumo real, tamaño óptimo y tipo de cambio",
+    subtitle: "Incluye tu contexto de ciudad/zona (ZBE), consumo real y tipo de uso",
     type: "cards",
     options: [
       { value: "ciudad", label: "Ciudad principalmente", icon: "🏙️", desc: "Tráfico, atascos, aparcamiento" },
@@ -239,57 +275,16 @@ const STEPS = [
     id: "ocupantes",
     block: "Capacidad",
     blockIcon: "💺",
-    question: "¿Cuántas plazas necesitas de forma habitual?",
-    subtitle: "Diferencia entre lo habitual y lo ocasional",
+    question: "¿Qué combinación de plazas y maletero necesitas habitualmente?",
+    subtitle: "Así recogemos en una sola respuesta el espacio para personas y carga diaria",
     type: "cards",
     options: [
-      { value: "2", label: "1 – 2 personas", icon: "👤", desc: "Solo o en pareja habitualmente" },
-      { value: "5", label: "3 – 5 personas", icon: "👨‍👩‍👧", desc: "Familia estándar" },
-      { value: "7", label: "6 – 7 personas", icon: "👨‍👩‍👧‍👦", desc: "Familia numerosa o furgón" },
+      { value: "2_plazas_maletero_pequeno", label: "1-2 plazas + maletero pequeño", icon: "👤", desc: "Uso individual o pareja" },
+      { value: "5_plazas_maletero_medio", label: "3-5 plazas + maletero medio", icon: "👨‍👩‍👧", desc: "Uso familiar equilibrado" },
+      { value: "7_plazas_maletero_grande", label: "6-7 plazas + maletero grande", icon: "🚐", desc: "Familia numerosa o mucho equipaje" },
     ],
   },
-  {
-    id: "maletero",
-    block: "Capacidad",
-    blockIcon: "🧳",
-    question: "¿Cuánto maletero necesitas habitualmente?",
-    subtitle: "Para uso diario, no para el viaje más extremo del año",
-    type: "cards",
-    options: [
-      { value: "pequeno", label: "Pequeño (bolsas, mochila)", icon: "🎒", desc: "Menos de 300 l" },
-      { value: "medio", label: "Medio (maletas, compra)", icon: "🧳", desc: "300 – 500 l" },
-      { value: "grande", label: "Grande (familia, equipaje)", icon: "📦", desc: "Más de 500 l" },
-    ],
-  },
-  {
-    id: "horizonte",
-    block: "Capacidad",
-    blockIcon: "📅",
-    question: "¿Cuánto tiempo piensas quedarte con el vehículo?",
-    subtitle: "Condiciona qué riesgos son más relevantes para ti",
-    type: "cards",
-    options: [
-      { value: "menos_3", label: "Menos de 3 años", icon: "⚡", desc: "Depreciación: riesgo crítico" },
-      { value: "3_5", label: "3 – 5 años", icon: "📊", desc: "Equilibrio riesgo/coste" },
-      { value: "mas_7", label: "7 años o más", icon: "🏠", desc: "Mantenimiento: riesgo principal" },
-    ],
-  },
-
   // BLOQUE 4 — PREFERENCIAS DE PRODUCTO
-  {
-    id: "carroceria",
-    block: "Preferencias",
-    blockIcon: "🚗",
-    question: "¿Qué tipo de carrocería te interesa?",
-    subtitle: "Los SUV tienen hoy una prima de precio del 15–25% sobre berlinas equivalentes",
-    type: "cards",
-    options: [
-      { value: "utilitario", label: "Utilitario / compacto", icon: "🚗", desc: "Fácil en ciudad, económico" },
-      { value: "berlina_familiar", label: "Berlina o familiar", icon: "🚙", desc: "Equilibrio precio/espacio" },
-      { value: "suv_crossover", label: "SUV / Crossover", icon: "🏔️", desc: "Tendencia de mercado (+precio)" },
-      { value: "indiferente", label: "Me da igual", icon: "🔄", desc: "Priorizo otros factores" },
-    ],
-  },
   {
     id: "marca_preferencia",
     block: "Preferencias",
@@ -298,112 +293,65 @@ const STEPS = [
     subtitle: "Las gamas de entrada premium suelen ofrecer peor relación valor/precio",
     type: "cards",
     options: [
-      { value: "generalista", label: "Marca generalista", icon: "🔧", desc: "VW, Toyota, Seat, Renault..." },
-      { value: "premium", label: "Marca premium", icon: "⭐", desc: "BMW, Mercedes, Audi, Volvo..." },
-      { value: "nueva_china", label: "Marca nueva / china", icon: "🆕", desc: "BYD, MG, Xpeng..." },
-      { value: "sin_preferencia", label: "Sin preferencia", icon: "🤷", desc: "La fiabilidad decide" },
-    ],
-  },
-
-  // BLOQUE 5 — DIMENSIÓN ENERGÉTICA
-  {
-    id: "garaje",
-    block: "Energía",
-    blockIcon: "🔌",
-    question: "¿Tienes plaza de garaje propia con posibilidad de cargador?",
-    subtitle: "Sin garaje propio, el eléctrico puro no es viable para usuarios urbanos",
-    type: "cards",
-    options: [
-      { value: "garaje_cargador", label: "Sí, tengo garaje", icon: "✅", desc: "Puedo instalar cargador" },
-      { value: "garaje_sin_cargador", label: "Garaje comunitario", icon: "🏘️", desc: "Sin acceso a cargador propio" },
-      { value: "sin_garaje", label: "No tengo garaje", icon: "❌", desc: "Solo carga pública disponible" },
-    ],
-  },
-  {
-    id: "propulsion_preferida",
-    block: "Energía",
-    blockIcon: "⚡",
-    question: "¿Tienes preferencia de motorización?",
-    subtitle: "La etiqueta DGT y las ZBE condicionan la circulación en 149 municipios de España",
-    type: "cards",
-    options: [
-      { value: "electrico", label: "Eléctrico puro", icon: "⚡", desc: "Etiqueta CERO — máxima restricción ZBE" },
-      { value: "hibrido", label: "Híbrido / PHEV", icon: "🔋", desc: "Etiqueta ECO — sin restricciones actuales" },
-      { value: "gasolina", label: "Gasolina (Euro 6)", icon: "⛽", desc: "Etiqueta C — sin restricciones actuales" },
-      { value: "indiferente_motor", label: "Me da igual", icon: "🤷", desc: "El análisis elegirá lo óptimo" },
-    ],
-  },
-
-  // BLOQUE 6 — CAPACIDAD FINANCIERA
-  {
-    id: "capital_propio",
-    block: "Financiero",
-    blockIcon: "💰",
-    question: "¿Cuánto capital propio tienes disponible para el vehículo?",
-    subtitle: "Sin comprometer tu fondo de emergencia (mín. 3–6 meses de gastos)",
-    type: "cards",
-    options: [
-      { value: "menos_5k", label: "Menos de 5.000 €", icon: "💚", desc: "Entrada baja o vehículo de ocasión" },
-      { value: "5k_15k", label: "5.000 – 15.000 €", icon: "💛", desc: "Rango de acceso a nuevo" },
-      { value: "15k_30k", label: "15.000 – 30.000 €", icon: "🧡", desc: "Segmento medio amplio" },
-      { value: "mas_30k", label: "Más de 30.000 €", icon: "💎", desc: "Gama alta o sin limitación" },
-    ],
-  },
-  {
-    id: "cuota_mensual",
-    block: "Financiero",
-    blockIcon: "📆",
-    question: "¿Cuánto puedes destinar al vehículo al mes como máximo?",
-    subtitle: "Regla clave: la cuota nunca debería superar el 15% de tus ingresos netos mensuales",
-    type: "cards",
-    options: [
-      { value: "menos_200", label: "Hasta 200 €/mes", icon: "💚", desc: "Muy ajustado" },
-      { value: "200_400", label: "200 – 400 €/mes", icon: "💛", desc: "Rango habitual" },
-      { value: "400_700", label: "400 – 700 €/mes", icon: "🧡", desc: "Cómodo" },
-      { value: "mas_700", label: "Más de 700 €/mes", icon: "💎", desc: "Sin restricción relevante" },
-    ],
-  },
-  {
-    id: "ingresos_estabilidad",
-    block: "Financiero",
-    blockIcon: "📊",
-    question: "¿Cómo es la estabilidad de tus ingresos?",
-    subtitle: "Condiciona la cuota mensual que puedes asumir con seguridad",
-    type: "cards",
-    options: [
-      { value: "fijo_estable", label: "Fijo y estable", icon: "🏛️", desc: "Nómina fija, funcionario..." },
-      { value: "fijo_variable", label: "Fijo + variable", icon: "📈", desc: "Base fija con comisiones/bonus" },
-      { value: "variable_autonomo", label: "Variable / autónomo", icon: "📉", desc: "Ingresos fluctuantes" },
-    ],
-  },
-
-  // BLOQUE 7 — RESTRICCIONES Y CONTEXTO
-  {
-    id: "zbe_impacto",
-    block: "Restricciones",
-    blockIcon: "🚫",
-    question: "¿Las Zonas de Bajas Emisiones te afectan en tu día a día?",
-    subtitle: "149 municipios >50k hab. deben establecer ZBE — la etiqueta determina si circulas libremente",
-    type: "cards",
-    options: [
-      { value: "alta", label: "Sí, circulo dentro a diario", icon: "🚨", desc: "Impacto crítico en mi decisión" },
-      { value: "media", label: "A veces entro", icon: "⚠️", desc: "Impacto relevante pero no crítico" },
-      { value: "baja", label: "No me afectan", icon: "✅", desc: "Vivo fuera de ZBE" },
-    ],
-  },
-  {
-    id: "cambios_vitales",
-    block: "Restricciones",
-    blockIcon: "🔮",
-    question: "¿Esperas cambios vitales en los próximos 3–5 años?",
-    subtitle: "Mudanza, hijos, trabajo remoto... pueden cambiar completamente tus necesidades",
-    type: "multi",
-    options: [
-      { value: "hijos", label: "Tener o ampliar familia", icon: "👶" },
-      { value: "mudanza", label: "Posible mudanza", icon: "🏠" },
-      { value: "trabajo_remoto", label: "Más teletrabajo", icon: "💻" },
-      { value: "mas_viajes", label: "Más viajes laborales", icon: "✈️" },
-      { value: "ninguno", label: "Sin cambios previstos", icon: "✅" },
+      {
+        value: "generalista_europea",
+        label: "Generalista europea",
+        icon: "🔧",
+        desc: "Precio equilibrado y red de talleres amplia",
+        brandChips: [
+          { short: "VW", tone: "#1d4ed8", label: "Volkswagen" },
+          { short: "SE", tone: "#0f172a", label: "Seat" },
+          { short: "RE", tone: "#f59e0b", label: "Renault" },
+          { short: "SK", tone: "#16a34a", label: "Skoda" },
+        ],
+      },
+      {
+        value: "asiatica_fiable",
+        label: "Asiática enfocada en fiabilidad",
+        icon: "🛡️",
+        desc: "Muy buena reputación en consumo y durabilidad",
+        brandChips: [
+          { short: "TY", tone: "#ef4444", label: "Toyota" },
+          { short: "HY", tone: "#0ea5e9", label: "Hyundai" },
+          { short: "KI", tone: "#dc2626", label: "Kia" },
+          { short: "NS", tone: "#64748b", label: "Nissan" },
+        ],
+      },
+      {
+        value: "premium_alemana",
+        label: "Premium alemana",
+        icon: "⭐",
+        desc: "Imagen, tecnología y coste superior de mantenimiento",
+        brandChips: [
+          { short: "BM", tone: "#2563eb", label: "BMW" },
+          { short: "MB", tone: "#111827", label: "Mercedes" },
+          { short: "AU", tone: "#6b7280", label: "Audi" },
+        ],
+      },
+      {
+        value: "premium_escandinava",
+        label: "Premium escandinava",
+        icon: "❄️",
+        desc: "Seguridad y confort como prioridad",
+        brandChips: [{ short: "VO", tone: "#0284c7", label: "Volvo" }],
+      },
+      {
+        value: "nueva_china",
+        label: "Marca emergente (china)",
+        icon: "🆕",
+        desc: "Equipamiento alto por precio y fuerte enfoque electrificado",
+        brandChips: [
+          { short: "BY", tone: "#dc2626", label: "BYD" },
+          { short: "MG", tone: "#ef4444", label: "MG" },
+          { short: "XP", tone: "#111827", label: "XPeng" },
+        ],
+      },
+      {
+        value: "sin_preferencia",
+        label: "Sin preferencia de marca",
+        icon: "🤷",
+        desc: "Priorizo coste total, fiabilidad y uso real",
+      },
     ],
   },
   {
@@ -417,35 +365,6 @@ const STEPS = [
       { value: "si_entrego", label: "Sí, lo entrego al comprar", icon: "🔄", desc: "Reduce el diferencial a financiar" },
       { value: "si_vendo", label: "Sí, lo vendo aparte", icon: "💶", desc: "Más control sobre el precio" },
       { value: "no", label: "No tengo vehículo actual", icon: "0️⃣", desc: "Primera compra o ya vendido" },
-    ],
-  },
-
-  // BLOQUE 8 — FORMA DE PAGO Y VINCULACIÓN
-  {
-    id: "flexibilidad",
-    block: "Vinculación",
-    blockIcon: "🤝",
-    question: "¿Qué relación prefieres con el vehículo?",
-    subtitle: "Cada modelo tiene implicaciones financieras y de riesgo muy distintas",
-    type: "cards",
-    options: [
-      { value: "propiedad_contado", label: "Comprar al contado", icon: "💶", desc: "Mayor poder negociador, capital inmovilizado" },
-      { value: "propiedad_financiada", label: "Comprar financiado", icon: "📝", desc: "Pago a plazos, coche mío al final" },
-      { value: "renting", label: "Renting (cuota fija)", icon: "📅", desc: "Todo incluido, sin propiedad" },
-      { value: "flexible", label: "Lo más flexible posible", icon: "⚡", desc: "Pagar solo cuando uso o suscripción" },
-    ],
-  },
-  {
-    id: "gestion_riesgo",
-    block: "Riesgo",
-    blockIcon: "🛡️",
-    question: "¿Cómo valoras la gestión del riesgo en tu decisión?",
-    subtitle: "A más años de propiedad, el mantenimiento pesa más; a menos, la depreciación inicial",
-    type: "cards",
-    options: [
-      { value: "bajo", label: "No me preocupa mucho", icon: "😎", desc: "Acepto sorpresas" },
-      { value: "medio", label: "Me importa moderadamente", icon: "🤔", desc: "Prefiero algo predecible" },
-      { value: "alto", label: "Es un factor clave", icon: "🛡️", desc: "Evito riesgos a toda costa" },
     ],
   },
 ];
@@ -846,9 +765,10 @@ Debes devolver exactamente esta estructura:
 Criterios de analisis:
 - Considera financiacion, TCO, restricciones ZBE, viabilidad de electrificacion, depreciacion y riesgo.
 - Prioriza opciones realistas en Espana para el perfil dado.
-- Si falta garaje propio, penaliza electrico puro salvo casos muy concretos.
-- Ten en cuenta que la cuota mensual no deberia superar el 15% de ingresos netos.
-- Valora flexibilidad vs propiedad, horizonte temporal y estabilidad de ingresos.
+- Si recomiendas electrico puro, explicita claramente los requisitos de carga y validalos en el siguiente paso.
+- Si recomiendas compra financiada, indica que la validacion de capacidad financiera y scoring se hara en el siguiente paso sobre el shortlist de coches.
+- Si recomiendas renting, indica que la validacion de cuota mensual objetivo y estabilidad de ingresos se hara al final como siguiente paso.
+- Valora flexibilidad vs propiedad y horizonte temporal.
 
 Perfil del usuario:
 ${answersSummary}`;
@@ -1186,7 +1106,7 @@ ${answersSummary}`;
 
       {/* ── LANDING ── */}
       {step === -1 && !entryMode && (
-        <div style={{ ...s.center, textAlign: "center" }}>
+        <div style={{ ...s.center, maxWidth: 1120, textAlign: "center" }}>
           <div
             style={{
               display: "inline-flex",
@@ -1233,7 +1153,7 @@ ${answersSummary}`;
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))",
+              gridTemplateColumns: "repeat(3,minmax(0,1fr))",
               gap: 16,
               marginTop: 28,
               textAlign: "left",
@@ -1241,7 +1161,7 @@ ${answersSummary}`;
           >
             <button
               onClick={() => {
-                setEntryMode("decision");
+                setEntryMode("consejo");
                 setStep(-1);
               }}
               style={{
@@ -1257,8 +1177,8 @@ ${answersSummary}`;
                   Quiero que me ayudes a encontrar el coche con mejor relación calidad-precio
                 </div>
                 <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
-                  Inicia el flujo de decisión para cruzar necesidades, capacidad financiera, TCO,
-                  restricciones, garantías y valor futuro antes de recomendar una solución.
+                  Te hacemos las preguntas del marco completo y te devolvemos una recomendación
+                  personalizada con análisis de uso real, coste total, riesgo y siguiente paso.
                 </div>
               </div>
             </button>
@@ -1311,29 +1231,6 @@ ${answersSummary}`;
               </div>
             </button>
 
-            <button
-              onClick={() => {
-                setEntryMode("consejo");
-                setStep(-1);
-              }}
-              style={{
-                ...s.card(false),
-                padding: 22,
-                background: "rgba(14,165,233,0.08)",
-                border: "1px solid rgba(14,165,233,0.22)",
-              }}
-            >
-              <span style={{ fontSize: 28, minWidth: 40 }}>🧠</span>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 17, color: "#f1f5f9", marginBottom: 6 }}>
-                  Quiero que me guíes con el test para decidir bien
-                </div>
-                <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
-                  Te hacemos las preguntas del marco completo y te devolvemos una recomendación
-                  personalizada con análisis de uso real, coste total, riesgo y siguiente paso.
-                </div>
-              </div>
-            </button>
           </div>
           <p style={{ marginTop: 18, fontSize: 12, color: "#334155" }}>
             Sin registro · Sin tarjeta · ~5 minutos
@@ -1351,7 +1248,7 @@ ${answersSummary}`;
             }}
           >
             {[
-              ["18", "Preguntas del marco"],
+              [String(totalSteps), "Preguntas del marco"],
               ["9+", "Opciones de movilidad"],
               ["IA", "Análisis personalizado"],
             ].map(([n, l]) => (
@@ -2101,6 +1998,32 @@ ${answersSummary}`;
                   {opt.desc && (
                     <div style={{ fontSize: 12, color: "#475569", marginTop: 2 }}>{opt.desc}</div>
                   )}
+                  {Array.isArray(opt.brandChips) && opt.brandChips.length > 0 && (
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
+                      {opt.brandChips.map((chip) => (
+                        <span
+                          key={`${opt.value}-${chip.short}`}
+                          title={chip.label || chip.short}
+                          style={{
+                            width: 26,
+                            height: 26,
+                            borderRadius: "50%",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            letterSpacing: "0.2px",
+                            color: "#f8fafc",
+                            background: chip.tone || "#334155",
+                            border: "1px solid rgba(255,255,255,0.18)",
+                          }}
+                        >
+                          {chip.short}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 {selected && (
                   <span
@@ -2479,6 +2402,15 @@ ${answersSummary}`;
               icon: "🚗",
               color: "#2563EB",
             };
+          const isElectricOutcome =
+            result.solucion_principal?.etiqueta_dgt === "CERO" ||
+            (result.propulsiones_viables || []).some((p) => /electric/i.test(String(p)));
+          const isBuyOrFinanceOutcome = ["compra_contado", "compra_financiada"].includes(
+            result.solucion_principal?.tipo
+          );
+          const isRentingOutcome = ["renting_largo", "renting_corto"].includes(
+            result.solucion_principal?.tipo
+          );
           return (
             <div ref={resultRef} style={s.center}>
               {/* Header */}
@@ -2781,6 +2713,155 @@ ${answersSummary}`;
                   </div>
                   <p style={{ margin: 0, fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
                     {result.tco_aviso}
+                  </p>
+                </div>
+              )}
+
+              {isElectricOutcome && (
+                <div
+                  style={{
+                    background: "rgba(14,165,233,0.08)",
+                    border: "1px solid rgba(14,165,233,0.22)",
+                    borderRadius: 12,
+                    padding: 14,
+                    marginBottom: 12,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 10,
+                      color: "#67e8f9",
+                      marginBottom: 8,
+                      fontWeight: 600,
+                      letterSpacing: "0.6px",
+                    }}
+                  >
+                    🔌 VALIDACION RAPIDA DE CARGA (SI VAS A ELECTRICO)
+                  </div>
+                  <div style={{ display: "grid", gap: 6 }}>
+                    {[
+                      "¿Puedes cargar en casa o en tu plaza al menos 2-3 veces por semana?",
+                      "¿Tienes un punto publico fiable cerca de casa o trabajo?",
+                      "¿Tus viajes largos encajan con paradas de recarga cada 2-3 horas?",
+                    ].map((item) => (
+                      <div key={item} style={{ fontSize: 12, color: "#bae6fd", lineHeight: 1.5 }}>
+                        □ {item}
+                      </div>
+                    ))}
+                  </div>
+                  <p style={{ margin: "10px 0 0", fontSize: 12, color: "#7dd3fc", lineHeight: 1.5 }}>
+                    Si marcas menos de 2 puntos, conviene priorizar hibrido HEV/PHEV antes que electrico puro.
+                  </p>
+                </div>
+              )}
+
+              {isBuyOrFinanceOutcome && (
+                <div
+                  style={{
+                    background: "rgba(37,99,235,0.08)",
+                    border: "1px solid rgba(37,99,235,0.22)",
+                    borderRadius: 12,
+                    padding: 14,
+                    marginBottom: 12,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 10,
+                      color: "#93c5fd",
+                      marginBottom: 8,
+                      fontWeight: 600,
+                      letterSpacing: "0.6px",
+                    }}
+                  >
+                    🧾 SIGUIENTE PASO: VALIDACION FINANCIERA (SOLO SI COMPRAS / FINANCIAS)
+                  </div>
+                  <div style={{ display: "grid", gap: 6 }}>
+                    {[
+                      "Capital inicial disponible para entrada (si aplica)",
+                      "Cuota maxima comoda segun ingresos netos reales",
+                      "Estabilidad de ingresos y endeudamiento mensual actual",
+                      "Pre-scoring financiero antes de cerrar modelo/version",
+                    ].map((item) => (
+                      <div key={item} style={{ fontSize: 12, color: "#bfdbfe", lineHeight: 1.5 }}>
+                        □ {item}
+                      </div>
+                    ))}
+                  </div>
+                  <p style={{ margin: "10px 0 0", fontSize: 12, color: "#93c5fd", lineHeight: 1.5 }}>
+                    Este bloque se hace despues de tener shortlist de coches, para evitar pedir datos financieros
+                    demasiado pronto si finalmente la mejor via no es compra/financiacion.
+                  </p>
+                </div>
+              )}
+
+              {isRentingOutcome && (
+                <div
+                  style={{
+                    background: "rgba(5,150,105,0.08)",
+                    border: "1px solid rgba(5,150,105,0.22)",
+                    borderRadius: 12,
+                    padding: 14,
+                    marginBottom: 12,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 10,
+                      color: "#6ee7b7",
+                      marginBottom: 8,
+                      fontWeight: 600,
+                      letterSpacing: "0.6px",
+                    }}
+                  >
+                    📅 SIGUIENTE PASO: VALIDACION DE CUOTA (SOLO SI RENTING)
+                  </div>
+                  <p style={{ margin: "0 0 8px", fontSize: 12, color: "#a7f3d0", lineHeight: 1.5 }}>
+                    ¿Cuanto puedes destinar al vehiculo al mes?
+                  </p>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {MONTHLY_BUDGET_OPTIONS.map((option) => (
+                      <span
+                        key={option.value}
+                        style={{
+                          background: "rgba(5,150,105,0.15)",
+                          border: "1px solid rgba(5,150,105,0.28)",
+                          padding: "3px 9px",
+                          borderRadius: 100,
+                          fontSize: 11,
+                          color: "#d1fae5",
+                        }}
+                      >
+                        {option.label}
+                      </span>
+                    ))}
+                  </div>
+                  <p style={{ margin: "10px 0 6px", fontSize: 12, color: "#a7f3d0", lineHeight: 1.5 }}>
+                    ¿Como es la estabilidad de tus ingresos?
+                  </p>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {[
+                      "Fijos y estables",
+                      "Fijos + variable",
+                      "Variables / autonomo",
+                    ].map((item) => (
+                      <span
+                        key={item}
+                        style={{
+                          background: "rgba(5,150,105,0.15)",
+                          border: "1px solid rgba(5,150,105,0.28)",
+                          padding: "3px 9px",
+                          borderRadius: 100,
+                          fontSize: 11,
+                          color: "#d1fae5",
+                        }}
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                  <p style={{ margin: "10px 0 0", fontSize: 12, color: "#6ee7b7", lineHeight: 1.5 }}>
+                    Esta validacion se hace al final solo si sale renting como mejor via, para no sesgar la recomendacion inicial.
                   </p>
                 </div>
               )}

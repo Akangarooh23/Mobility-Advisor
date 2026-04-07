@@ -764,6 +764,20 @@ export default function App() {
   };
 
   const handleTellMeNow = () => {
+    if (answeredSteps === 0) {
+      return;
+    }
+
+    if (answeredSteps < totalSteps) {
+      const proceed = window.confirm(
+        "Todavia no has completado todo el formulario. Podemos darte una recomendacion util ahora, pero sera una estimacion menos precisa que si respondes todas las preguntas. ¿Quieres continuar de todos modos?"
+      );
+
+      if (!proceed) {
+        return;
+      }
+    }
+
     const draftAnswers =
       currentStep?.type === "multi"
         ? { ...answers, [currentStep.id]: multiSelected }
@@ -2023,35 +2037,6 @@ ${answersSummary}`;
 
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-end",
-              gap: 10,
-              marginBottom: 12,
-              flexWrap: "wrap",
-            }}
-          >
-            {answeredSteps >= 3 && (
-              <button
-                onClick={handleTellMeNow}
-                style={{
-                  background: "linear-gradient(135deg,#0ea5e9,#2563eb)",
-                  border: "none",
-                  color: "white",
-                  padding: "8px 14px",
-                  borderRadius: 9,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                ⚡ ¡Dímelo ya!
-              </button>
-            )}
-          </div>
-
-          <div
-            style={{
               background: "rgba(14,165,233,0.08)",
               border: "1px solid rgba(14,165,233,0.2)",
               borderRadius: 12,
@@ -2193,6 +2178,24 @@ ${answersSummary}`;
               }}
             >
               ↺ Reiniciar preguntas
+            </button>
+
+            <button
+              onClick={handleTellMeNow}
+              disabled={answeredSteps === 0}
+              style={{
+                background: "linear-gradient(135deg,#0ea5e9,#2563eb)",
+                border: "none",
+                color: "white",
+                padding: "9px 14px",
+                borderRadius: 9,
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: answeredSteps === 0 ? "not-allowed" : "pointer",
+                opacity: answeredSteps === 0 ? 0.45 : 1,
+              }}
+            >
+              ⚡ ¡Dímelo ya!
             </button>
           </div>
         </div>

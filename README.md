@@ -69,13 +69,24 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
 
-## Deploy En Vercel
+## Uso local sin Vercel
 
-1. Sube este proyecto a GitHub.
-2. Entra en [https://vercel.com](https://vercel.com) y conecta tu cuenta de GitHub.
-3. Crea un proyecto nuevo desde el repositorio.
-4. En `Settings -> Environment Variables`, crea:
-	- `GEMINI_API_KEY` = tu clave de Gemini.
-5. Haz `Deploy`.
+Ya no hace falta depender de Vercel para probar la app en local.
 
-La app usa una función serverless en `api/analyze.js` para que la API key no quede expuesta en el frontend.
+1. Crea un archivo `.env.local` en la raíz con:
+   - `GEMINI_API_KEY=tu_clave_de_gemini`
+2. Arranca el proyecto con:
+   - `npm start`
+3. Si quieres cambiar el puerto del frontend:
+   - PowerShell: `$env:PORT=3002; npm start`
+
+`npm start` levanta:
+- el frontend de React
+- una API local en `http://localhost:3001`
+
+La app sigue usando `api/analyze.js` y `api/find-listing.js`, pero ahora servidos desde un servidor local, sin depender de Vercel.
+
+## Deploy en hosting opcional
+
+Si más adelante quieres desplegarlo en Vercel u otro hosting, sigue necesitando la variable:
+- `GEMINI_API_KEY=tu_clave_de_gemini`

@@ -1,0 +1,32 @@
+SUBIDA DE IMÁGENES VO
+
+Cómo nombrar la foto:
+- Nombre recomendado: foto-principal.jpg
+- También funcionan: foto-principal.jpeg, foto-principal.png, foto-principal.webp
+
+Dónde subirla:
+- Mete UNA imagen dentro de la carpeta correspondiente a cada coche.
+- Ruta base: public/vo-images/
+
+Carpetas disponibles:
+- toyota-corolla-120h-active-tech
+- kia-niro-hev-drive
+- volkswagen-golf-life-1-5-etsi
+- byd-dolphin-comfort
+- seat-leon-1-5-etsi-fr
+- bmw-x1-sdrive18d
+- renault-captur-tce-intens
+- skoda-octavia-2-0-tdi-dsg
+- hyundai-kona-electric-maxx
+- audi-a3-sportback-s-line
+- mg4-luxury-extended-range
+- peugeot-3008-bluehdi-allure
+- volvo-xc40-b3-core
+- nissan-qashqai-dig-t-n-connecta
+- mercedes-clase-a-200-progressive
+- dacia-duster-eco-g-journey
+
+Ejemplo:
+public/vo-images/audi-a3-sportback-s-line/foto-principal.jpg
+
+Cuando subas una foto con ese nombre, la app la mostrará automáticamente en la card del coche.

@@ -504,6 +504,20 @@ function runSecurityMaintenance() {
 }
 
 let mssqlPoolPromise = null;
+let _pgSql = null;
+
+function getPgSql() {
+  if (!_pgSql) {
+    try {
+      _pgSql = require("@vercel/postgres").sql;
+    } catch {
+      throw new Error(
+        "El paquete @vercel/postgres no está instalado. Ejecuta: npm install @vercel/postgres"
+      );
+    }
+  }
+  return _pgSql;
+}
 
 function getAuthProvider() {
   const provider = normalizeText(process.env.AUTH_PROVIDER).toLowerCase();
@@ -514,6 +528,14 @@ function getAuthProvider() {
 
   if (["sqlcmd-windows", "windows", "mssql-windows"].includes(provider)) {
     return "sqlcmd-windows";
+  }
+
+  if (["postgres", "postgresql", "neon", "vercel-postgres"].includes(provider)) {
+    return "postgres";
+  }
+
+  if (normalizeText(process.env.POSTGRES_URL) || normalizeText(process.env.DATABASE_URL)) {
+    return "postgres";
   }
 
   if (normalizeText(process.env.MSSQL_SERVER)) {
@@ -529,6 +551,10 @@ function shouldUseMssql() {
 
 function shouldUseSqlcmdWindows() {
   return getAuthProvider() === "sqlcmd-windows";
+}
+
+function shouldUsePostgres() {
+  return getAuthProvider() === "postgres";
 }
 
 function getMssqlConfig() {
@@ -969,6 +995,174 @@ function deleteExpiredSessionsSqlcmd() {
   `);
 }
 
+// ─── PostgreSQL (Neon / Vercel Postgres) ─────────────────────────────────────
+
+async function ensurePostgresSchema() {
+  const sql = getPgSql();
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS moveadvisor_users (
+      id          VARCHAR(64)  PRIMARY KEY,
+      name        VARCHAR(120) NOT NULL,
+      email       VARCHAR(255) NOT NULL UNIQUE,
+      password_salt VARCHAR(64)  NOT NULL,
+      password_hash VARCHAR(200) NOT NULL,
+      created_at  TIMESTAMPTZ  NOT NULL,
+      last_login_at TIMESTAMPTZ NOT NULL
+    )
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS moveadvisor_sessions (
+      id           VARCHAR(64)  PRIMARY KEY,
+      user_id      VARCHAR(64)  NOT NULL,
+      token_hash   VARCHAR(200) NOT NULL,
+      created_at   TIMESTAMPTZ  NOT NULL,
+      expires_at   TIMESTAMPTZ  NOT NULL,
+      last_seen_at TIMESTAMPTZ  NOT NULL,
+      user_agent   VARCHAR(255)
+    )
+  `;
+}
+
+async function findUserByEmailPostgres(email) {
+  await ensurePostgresSchema();
+  const sql = getPgSql();
+  const { rows } = await sql`
+    SELECT id, name, email, password_salt AS "passwordSalt", password_hash AS "passwordHash",
+           created_at AS "createdAt", last_login_at AS "lastLoginAt"
+    FROM moveadvisor_users
+    WHERE email = ${email}
+    LIMIT 1
+  `;
+
+  return rows[0] || null;
+}
+
+async function createUserPostgres(user) {
+  await ensurePostgresSchema();
+  const sql = getPgSql();
+
+  await sql`
+    INSERT INTO moveadvisor_users (id, name, email, password_salt, password_hash, created_at, last_login_at)
+    VALUES (${user.id}, ${user.name}, ${user.email}, ${user.passwordSalt}, ${user.passwordHash},
+            ${user.createdAt}, ${user.lastLoginAt})
+  `;
+
+  return findUserByEmailPostgres(user.email);
+}
+
+async function findUserByIdPostgres(id) {
+  await ensurePostgresSchema();
+  const sql = getPgSql();
+  const { rows } = await sql`
+    SELECT id, name, email, password_salt AS "passwordSalt", password_hash AS "passwordHash",
+           created_at AS "createdAt", last_login_at AS "lastLoginAt"
+    FROM moveadvisor_users
+    WHERE id = ${id}
+    LIMIT 1
+  `;
+
+  return rows[0] || null;
+}
+
+async function updateLastLoginPostgres(id) {
+  await ensurePostgresSchema();
+  const sql = getPgSql();
+  const now = new Date().toISOString();
+
+  await sql`
+    UPDATE moveadvisor_users
+    SET last_login_at = ${now}
+    WHERE id = ${id}
+  `;
+
+  return now;
+}
+
+async function createSessionPostgres(session) {
+  await ensurePostgresSchema();
+  const sql = getPgSql();
+
+  await sql`
+    INSERT INTO moveadvisor_sessions (id, user_id, token_hash, created_at, expires_at, last_seen_at, user_agent)
+    VALUES (${session.id}, ${session.userId}, ${session.tokenHash}, ${session.createdAt},
+            ${session.expiresAt}, ${session.lastSeenAt}, ${session.userAgent || null})
+  `;
+}
+
+async function findSessionByIdPostgres(id) {
+  await ensurePostgresSchema();
+  const sql = getPgSql();
+  const { rows } = await sql`
+    SELECT id, user_id AS "userId", token_hash AS "tokenHash",
+           created_at AS "createdAt", expires_at AS "expiresAt",
+           last_seen_at AS "lastSeenAt", user_agent AS "userAgent"
+    FROM moveadvisor_sessions
+    WHERE id = ${id}
+    LIMIT 1
+  `;
+
+  return rows[0] || null;
+}
+
+async function updateSessionLastSeenPostgres(id) {
+  await ensurePostgresSchema();
+  const sql = getPgSql();
+
+  await sql`
+    UPDATE moveadvisor_sessions
+    SET last_seen_at = ${new Date().toISOString()}
+    WHERE id = ${id}
+  `;
+}
+
+async function deleteSessionByIdPostgres(id) {
+  await ensurePostgresSchema();
+  const sql = getPgSql();
+
+  await sql`DELETE FROM moveadvisor_sessions WHERE id = ${id}`;
+}
+
+async function deleteExpiredSessionsPostgres() {
+  await ensurePostgresSchema();
+  const sql = getPgSql();
+
+  await sql`DELETE FROM moveadvisor_sessions WHERE expires_at <= NOW()`;
+}
+
+async function findValidResetPostgres({ userId, tokenHash }) {
+  await ensurePostgresSchema();
+  const sql = getPgSql();
+  const { rows } = await sql`
+    SELECT id
+    FROM moveadvisor_sessions
+    WHERE user_id  = ${userId}
+      AND token_hash = ${tokenHash}
+      AND user_agent = 'RESET'
+      AND expires_at > NOW()
+    ORDER BY created_at DESC
+    LIMIT 1
+  `;
+
+  return normalizeText(rows[0]?.id);
+}
+
+async function updateUserPasswordPostgres({ userId, passwordSalt, passwordHash }) {
+  await ensurePostgresSchema();
+  const sql = getPgSql();
+
+  await sql`
+    UPDATE moveadvisor_users
+    SET password_salt  = ${passwordSalt},
+        password_hash  = ${passwordHash},
+        last_login_at  = ${new Date().toISOString()}
+    WHERE id = ${userId}
+  `;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 function createSessionLocal(session) {
   const db = readSessionsDb();
   db.sessions = [session, ...db.sessions.filter((item) => item.id !== session.id)].slice(0, 200);
@@ -1197,7 +1391,7 @@ function updateUserPasswordLocal({ userId, passwordSalt, passwordHash }) {
   }
 }
 
-async function createSessionForUser({ req, res, user, useMssql, useSqlcmdWindows }) {
+async function createSessionForUser({ req, res, user, useMssql, useSqlcmdWindows, usePostgres }) {
   const previousSession = parseSessionCookieFromRequest(req);
 
   if (previousSession?.sessionId) {
@@ -1205,6 +1399,8 @@ async function createSessionForUser({ req, res, user, useMssql, useSqlcmdWindows
       await deleteSessionByIdMssql(previousSession.sessionId);
     } else if (useSqlcmdWindows) {
       deleteSessionByIdSqlcmd(previousSession.sessionId);
+    } else if (usePostgres) {
+      await deleteSessionByIdPostgres(previousSession.sessionId);
     } else {
       deleteSessionByIdLocal(previousSession.sessionId);
     }
@@ -1228,6 +1424,8 @@ async function createSessionForUser({ req, res, user, useMssql, useSqlcmdWindows
     await createSessionMssql(session);
   } else if (useSqlcmdWindows) {
     createSessionSqlcmd(session);
+  } else if (usePostgres) {
+    await createSessionPostgres(session);
   } else {
     createSessionLocal(session);
   }
@@ -1239,7 +1437,7 @@ async function createSessionForUser({ req, res, user, useMssql, useSqlcmdWindows
   return { sessionId, expiresAt };
 }
 
-async function resolveSessionUser({ req, useMssql, useSqlcmdWindows }) {
+async function resolveSessionUser({ req, useMssql, useSqlcmdWindows, usePostgres }) {
   const parsedSession = parseSessionCookieFromRequest(req);
 
   if (!parsedSession) {
@@ -1250,6 +1448,8 @@ async function resolveSessionUser({ req, useMssql, useSqlcmdWindows }) {
     ? await findSessionByIdMssql(parsedSession.sessionId)
     : useSqlcmdWindows
     ? findSessionByIdSqlcmd(parsedSession.sessionId)
+    : usePostgres
+    ? await findSessionByIdPostgres(parsedSession.sessionId)
     : findSessionByIdLocal(parsedSession.sessionId);
 
   if (!sessionRecord) {
@@ -1271,6 +1471,8 @@ async function resolveSessionUser({ req, useMssql, useSqlcmdWindows }) {
       await deleteSessionByIdMssql(session.id);
     } else if (useSqlcmdWindows) {
       deleteSessionByIdSqlcmd(session.id);
+    } else if (usePostgres) {
+      await deleteSessionByIdPostgres(session.id);
     } else {
       deleteSessionByIdLocal(session.id);
     }
@@ -1285,6 +1487,8 @@ async function resolveSessionUser({ req, useMssql, useSqlcmdWindows }) {
     ? await findUserByIdMssql(session.userId)
     : useSqlcmdWindows
     ? findUserByIdSqlcmd(session.userId)
+    : usePostgres
+    ? await findUserByIdPostgres(session.userId)
     : findUserByIdLocal(session.userId);
 
   if (!foundUser) {
@@ -1295,6 +1499,8 @@ async function resolveSessionUser({ req, useMssql, useSqlcmdWindows }) {
     await updateSessionLastSeenMssql(session.id);
   } else if (useSqlcmdWindows) {
     updateSessionLastSeenSqlcmd(session.id);
+  } else if (usePostgres) {
+    await updateSessionLastSeenPostgres(session.id);
   } else {
     updateSessionLastSeenLocal(session.id);
   }
@@ -1305,7 +1511,7 @@ async function resolveSessionUser({ req, useMssql, useSqlcmdWindows }) {
   };
 }
 
-async function cleanupExpiredSessions({ useMssql, useSqlcmdWindows }) {
+async function cleanupExpiredSessions({ useMssql, useSqlcmdWindows, usePostgres }) {
   if (!shouldRunSessionCleanup()) {
     return;
   }
@@ -1320,16 +1526,545 @@ async function cleanupExpiredSessions({ useMssql, useSqlcmdWindows }) {
     return;
   }
 
+  if (usePostgres) {
+    await deleteExpiredSessionsPostgres();
+    return;
+  }
+
   deleteExpiredSessionsLocal();
 }
 
 async function authHandler(req, res) {
   const useMssql = shouldUseMssql();
   const useSqlcmdWindows = shouldUseSqlcmdWindows();
-  const db = useMssql || useSqlcmdWindows ? null : readUsersDb();
+  const usePostgres = shouldUsePostgres();
+  const db = useMssql || useSqlcmdWindows || usePostgres ? null : readUsersDb();
 
   runSecurityMaintenance();
-  await cleanupExpiredSessions({ useMssql, useSqlcmdWindows });
+  await cleanupExpiredSessions({ useMssql, useSqlcmdWindows, usePostgres });
+
+  if (req.method === "GET") {
+    if (AUTH_SECURITY_STATUS_ENABLED && normalizeText(req?.query?.security) === "1") {
+      return res.status(200).json({
+        ok: true,
+        security: buildSecurityStatusSnapshot(),
+      });
+    }
+
+    const sessionPayload = await resolveSessionUser({ req, useMssql, useSqlcmdWindows, usePostgres });
+
+    if (!sessionPayload?.user) {
+      clearSessionCookie(res);
+      return res.status(200).json({ ok: true, authenticated: false });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      authenticated: true,
+      user: sanitizeUser(sessionPayload.user),
+      session: {
+        id: sessionPayload.session.id,
+        expiresAt: sessionPayload.session.expiresAt,
+      },
+    });
+  }
+
+  if (req.method && req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const body = parseBody(req.body);
+  const action = normalizeText(body.action).toLowerCase();
+  const email = normalizeText(body.email).toLowerCase();
+  const password = normalizeText(body.password);
+  const name = normalizeText(body.name);
+  const clientIp = getClientIp(req);
+
+  if (!action) {
+    return res.status(400).json({ error: "Debes indicar la acción de auth." });
+  }
+
+  if (action === "logout") {
+    const parsedSession = parseSessionCookieFromRequest(req);
+
+    if (parsedSession?.sessionId) {
+      if (useMssql) {
+        await deleteSessionByIdMssql(parsedSession.sessionId);
+      } else if (useSqlcmdWindows) {
+        deleteSessionByIdSqlcmd(parsedSession.sessionId);
+      } else if (usePostgres) {
+        await deleteSessionByIdPostgres(parsedSession.sessionId);
+      } else {
+        deleteSessionByIdLocal(parsedSession.sessionId);
+      }
+    }
+
+    clearSessionCookie(res);
+    return res.status(200).json({ ok: true, message: "Sesión cerrada." });
+  }
+
+  if (action === "change_password") {
+    const currentPassword = String(body.currentPassword || "");
+    const newPassword = String(body.newPassword || body.password || "");
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "Debes indicar contraseña actual y nueva contraseña." });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: "La nueva contraseña debe tener al menos 6 caracteres." });
+    }
+
+    if (currentPassword === newPassword) {
+      return res.status(400).json({ error: "La nueva contraseña no puede ser igual a la anterior." });
+    }
+
+    const sessionPayload = await resolveSessionUser({ req, useMssql, useSqlcmdWindows, usePostgres });
+    if (!sessionPayload?.user?.id) {
+      clearSessionCookie(res);
+      return res.status(401).json({ error: "Tu sesión ha caducado. Inicia sesión de nuevo." });
+    }
+
+    const sessionUser = mapDbUser(sessionPayload.user);
+    const expectedCurrentHash = hashPassword(currentPassword, sessionUser.passwordSalt || "");
+
+    if (expectedCurrentHash !== sessionUser.passwordHash) {
+      return res.status(401).json({ error: "La contraseña actual no es correcta." });
+    }
+
+    const newSalt = crypto.randomBytes(16).toString("hex");
+    const newHash = hashPassword(newPassword, newSalt);
+
+    if (useMssql) {
+      await updateUserPasswordMssql({ userId: sessionUser.id, passwordSalt: newSalt, passwordHash: newHash });
+    } else if (useSqlcmdWindows) {
+      updateUserPasswordSqlcmd({ userId: sessionUser.id, passwordSalt: newSalt, passwordHash: newHash });
+    } else if (usePostgres) {
+      await updateUserPasswordPostgres({ userId: sessionUser.id, passwordSalt: newSalt, passwordHash: newHash });
+    } else {
+      updateUserPasswordLocal({ userId: sessionUser.id, passwordSalt: newSalt, passwordHash: newHash });
+    }
+
+    const refreshedUser = useMssql
+      ? await findUserByIdMssql(sessionUser.id)
+      : useSqlcmdWindows
+      ? findUserByIdSqlcmd(sessionUser.id)
+      : usePostgres
+      ? await findUserByIdPostgres(sessionUser.id)
+      : findUserByIdLocal(sessionUser.id);
+    const normalizedUser = mapDbUser(refreshedUser || sessionUser);
+
+    const createdSession = await createSessionForUser({
+      req,
+      res,
+      user: normalizedUser,
+      useMssql,
+      useSqlcmdWindows,
+      usePostgres,
+    });
+
+    return res.status(200).json({
+      ok: true,
+      user: sanitizeUser(normalizedUser),
+      message: "Contraseña actualizada correctamente.",
+      session: createdSession,
+    });
+  }
+
+  if (action === "request_password_reset") {
+    const requestIpBackoff = readBackoff(resetRequestIpBackoff, clientIp);
+    const requestEmailBackoff = readBackoff(resetRequestEmailBackoff, email);
+
+    if (requestIpBackoff.blocked || requestEmailBackoff.blocked) {
+      const retryAfterSeconds = Math.max(requestIpBackoff.retryAfterSeconds, requestEmailBackoff.retryAfterSeconds);
+      logAuthSecurity("password_reset_request_backoff_blocked", {
+        retryAfterSeconds,
+        email: maskEmail(email),
+        ip: maskIp(clientIp),
+      });
+      res.setHeader("Retry-After", String(retryAfterSeconds));
+      return res.status(429).json({
+        error: "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.",
+      });
+    }
+
+    const ipRate = consumeRateLimit(
+      resetRequestIpLimiter,
+      clientIp,
+      RESET_REQUEST_MAX_PER_IP,
+      RESET_REQUEST_WINDOW_MS
+    );
+
+    if (!ipRate.allowed) {
+      const backoff = registerBackoffViolation(resetRequestIpBackoff, clientIp);
+      logAuthSecurity("password_reset_request_rate_limited_ip", {
+        retryAfterSeconds: Math.max(ipRate.retryAfterSeconds, backoff.retryAfterSeconds),
+        ip: maskIp(clientIp),
+      });
+      res.setHeader("Retry-After", String(Math.max(ipRate.retryAfterSeconds, backoff.retryAfterSeconds)));
+      return res.status(429).json({
+        error: "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.",
+      });
+    }
+
+    const emailRate = consumeRateLimit(
+      resetRequestEmailLimiter,
+      email,
+      RESET_REQUEST_MAX_PER_EMAIL,
+      RESET_REQUEST_WINDOW_MS
+    );
+
+    if (!emailRate.allowed) {
+      const backoff = registerBackoffViolation(resetRequestEmailBackoff, email);
+      logAuthSecurity("password_reset_request_rate_limited_email", {
+        retryAfterSeconds: Math.max(emailRate.retryAfterSeconds, backoff.retryAfterSeconds),
+        email: maskEmail(email),
+      });
+      res.setHeader("Retry-After", String(Math.max(emailRate.retryAfterSeconds, backoff.retryAfterSeconds)));
+      return res.status(429).json({
+        error: "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.",
+      });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(200).json({
+        ok: true,
+        message: "Si el correo existe, recibirás instrucciones para recuperar tu contraseña.",
+      });
+    }
+
+    const foundUser = useMssql
+      ? await findUserByEmailMssql(email)
+      : useSqlcmdWindows
+      ? findUserByEmailSqlcmd(email)
+      : usePostgres
+      ? await findUserByEmailPostgres(email)
+      : db.users.find((item) => normalizeText(item?.email).toLowerCase() === email);
+
+    if (foundUser) {
+      const user = mapDbUser(foundUser);
+      const resetCode = crypto.randomBytes(4).toString("hex").toUpperCase();
+      const resetTokenHash = hashSessionToken(resetCode);
+      const resetSession = buildPasswordResetSession({ userId: user.id, tokenHash: resetTokenHash });
+
+      if (useMssql) {
+        await createSessionMssql(resetSession);
+      } else if (useSqlcmdWindows) {
+        createSessionSqlcmd(resetSession);
+      } else if (usePostgres) {
+        await createSessionPostgres(resetSession);
+      } else {
+        createSessionLocal(resetSession);
+      }
+
+      await sendPasswordResetEmail({ email: user.email, code: resetCode });
+
+      return res.status(200).json({
+        ok: true,
+        message: "Si el correo existe, recibirás instrucciones para recuperar tu contraseña.",
+        ...(String(process.env.AUTH_EXPOSE_RESET_CODE || "false").toLowerCase() === "true"
+          ? { debugResetCode: resetCode }
+          : {}),
+      });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      message: "Si el correo existe, recibirás instrucciones para recuperar tu contraseña.",
+    });
+  }
+
+  if (action === "reset_password") {
+    const resetCode = normalizeText(body.resetCode).toUpperCase();
+    const newPassword = String(body.newPassword || body.password || "");
+
+    const confirmIpBackoff = readBackoff(resetConfirmIpBackoff, clientIp);
+    const confirmEmailBackoff = readBackoff(resetConfirmEmailBackoff, email);
+
+    if (confirmIpBackoff.blocked || confirmEmailBackoff.blocked) {
+      const retryAfterSeconds = Math.max(confirmIpBackoff.retryAfterSeconds, confirmEmailBackoff.retryAfterSeconds);
+      logAuthSecurity("password_reset_confirm_backoff_blocked", {
+        retryAfterSeconds,
+        email: maskEmail(email),
+        ip: maskIp(clientIp),
+      });
+      res.setHeader("Retry-After", String(retryAfterSeconds));
+      return res.status(429).json({
+        error: "Demasiados intentos de recuperación. Espera un momento e inténtalo de nuevo.",
+      });
+    }
+
+    const resetIpRate = consumeRateLimit(
+      resetConfirmIpLimiter,
+      clientIp,
+      RESET_CONFIRM_MAX_PER_IP,
+      RESET_CONFIRM_WINDOW_MS
+    );
+
+    if (!resetIpRate.allowed) {
+      const backoff = registerBackoffViolation(resetConfirmIpBackoff, clientIp);
+      logAuthSecurity("password_reset_confirm_rate_limited_ip", {
+        retryAfterSeconds: Math.max(resetIpRate.retryAfterSeconds, backoff.retryAfterSeconds),
+        ip: maskIp(clientIp),
+      });
+      res.setHeader("Retry-After", String(Math.max(resetIpRate.retryAfterSeconds, backoff.retryAfterSeconds)));
+      return res.status(429).json({
+        error: "Demasiados intentos de recuperación. Espera un momento e inténtalo de nuevo.",
+      });
+    }
+
+    const resetEmailRate = consumeRateLimit(
+      resetConfirmEmailLimiter,
+      email,
+      RESET_CONFIRM_MAX_PER_EMAIL,
+      RESET_CONFIRM_WINDOW_MS
+    );
+
+    if (!resetEmailRate.allowed) {
+      const backoff = registerBackoffViolation(resetConfirmEmailBackoff, email);
+      logAuthSecurity("password_reset_confirm_rate_limited_email", {
+        retryAfterSeconds: Math.max(resetEmailRate.retryAfterSeconds, backoff.retryAfterSeconds),
+        email: maskEmail(email),
+      });
+      res.setHeader("Retry-After", String(Math.max(resetEmailRate.retryAfterSeconds, backoff.retryAfterSeconds)));
+      return res.status(429).json({
+        error: "Demasiados intentos de recuperación. Espera un momento e inténtalo de nuevo.",
+      });
+    }
+
+    if (!isValidEmail(email) || !resetCode) {
+      return res.status(400).json({ error: "Debes indicar correo y código de recuperación." });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: "La nueva contraseña debe tener al menos 6 caracteres." });
+    }
+
+    const foundUser = useMssql
+      ? await findUserByEmailMssql(email)
+      : useSqlcmdWindows
+      ? findUserByEmailSqlcmd(email)
+      : usePostgres
+      ? await findUserByEmailPostgres(email)
+      : db.users.find((item) => normalizeText(item?.email).toLowerCase() === email);
+
+    if (!foundUser) {
+      registerBackoffViolation(resetConfirmEmailBackoff, email);
+      registerBackoffViolation(resetConfirmIpBackoff, clientIp);
+      logAuthSecurity("password_reset_confirm_invalid_user", {
+        email: maskEmail(email),
+        ip: maskIp(clientIp),
+      });
+      return res.status(400).json({ error: "Código o correo no válidos." });
+    }
+
+    const user = mapDbUser(foundUser);
+    const resetTokenHash = hashSessionToken(resetCode);
+    const resetSessionId = useMssql
+      ? await findValidResetMssql({ userId: user.id, tokenHash: resetTokenHash })
+      : useSqlcmdWindows
+      ? findValidResetSqlcmd({ userId: user.id, tokenHash: resetTokenHash })
+      : usePostgres
+      ? await findValidResetPostgres({ userId: user.id, tokenHash: resetTokenHash })
+      : findValidResetLocal({ userId: user.id, tokenHash: resetTokenHash });
+
+    if (!resetSessionId) {
+      registerBackoffViolation(resetConfirmEmailBackoff, email);
+      registerBackoffViolation(resetConfirmIpBackoff, clientIp);
+      logAuthSecurity("password_reset_confirm_invalid_code", {
+        email: maskEmail(email),
+        ip: maskIp(clientIp),
+      });
+      return res.status(400).json({ error: "Código o correo no válidos." });
+    }
+
+    const newSalt = crypto.randomBytes(16).toString("hex");
+    const newHash = hashPassword(newPassword, newSalt);
+
+    if (useMssql) {
+      await updateUserPasswordMssql({ userId: user.id, passwordSalt: newSalt, passwordHash: newHash });
+      await deleteSessionByIdMssql(resetSessionId);
+    } else if (useSqlcmdWindows) {
+      updateUserPasswordSqlcmd({ userId: user.id, passwordSalt: newSalt, passwordHash: newHash });
+      deleteSessionByIdSqlcmd(resetSessionId);
+    } else if (usePostgres) {
+      await updateUserPasswordPostgres({ userId: user.id, passwordSalt: newSalt, passwordHash: newHash });
+      await deleteSessionByIdPostgres(resetSessionId);
+    } else {
+      updateUserPasswordLocal({ userId: user.id, passwordSalt: newSalt, passwordHash: newHash });
+      deleteSessionByIdLocal(resetSessionId);
+    }
+
+    const refreshedUser = useMssql
+      ? await findUserByIdMssql(user.id)
+      : useSqlcmdWindows
+      ? findUserByIdSqlcmd(user.id)
+      : usePostgres
+      ? await findUserByIdPostgres(user.id)
+      : findUserByIdLocal(user.id);
+    const normalizedUser = mapDbUser(refreshedUser || user);
+
+    const createdSession = await createSessionForUser({
+      req,
+      res,
+      user: normalizedUser,
+      useMssql,
+      useSqlcmdWindows,
+      usePostgres,
+    });
+
+    clearRateLimitKey(resetConfirmEmailLimiter, email);
+    clearRateLimitKey(resetConfirmIpLimiter, clientIp);
+    clearBackoff(resetConfirmEmailBackoff, email);
+    clearBackoff(resetConfirmIpBackoff, clientIp);
+    logAuthSecurity("password_reset_confirm_success", {
+      email: maskEmail(email),
+      ip: maskIp(clientIp),
+    });
+
+    return res.status(200).json({
+      ok: true,
+      user: sanitizeUser(normalizedUser),
+      message: "Contraseña actualizada correctamente.",
+      session: createdSession,
+    });
+  }
+
+  if (action === "register") {
+    if (!name) {
+      return res.status(400).json({ error: "Indica tu nombre para crear la cuenta." });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ error: "Introduce un correo electrónico válido." });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: "La contraseña debe tener al menos 6 caracteres." });
+    }
+
+    const existingUser = useMssql
+      ? await findUserByEmailMssql(email)
+      : useSqlcmdWindows
+      ? findUserByEmailSqlcmd(email)
+      : usePostgres
+      ? await findUserByEmailPostgres(email)
+      : db.users.find((item) => normalizeText(item?.email).toLowerCase() === email);
+    if (existingUser) {
+      return res.status(409).json({ error: "Ya existe una cuenta con ese correo." });
+    }
+
+    const now = new Date().toISOString();
+    const salt = crypto.randomBytes(16).toString("hex");
+    const user = {
+      id: typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `user-${Date.now()}`,
+      name,
+      email,
+      passwordSalt: salt,
+      passwordHash: hashPassword(password, salt),
+      createdAt: now,
+      lastLoginAt: now,
+    };
+
+    const savedUser = useMssql
+      ? await createUserMssql(user)
+      : useSqlcmdWindows
+      ? createUserSqlcmd(user)
+      : usePostgres
+      ? await createUserPostgres(user)
+      : (() => {
+          db.users.unshift(user);
+          writeUsersDb(db);
+          return user;
+        })();
+    const normalizedSavedUser = mapDbUser(savedUser);
+
+    const createdSession = await createSessionForUser({
+      req,
+      res,
+      user: normalizedSavedUser,
+      useMssql,
+      useSqlcmdWindows,
+      usePostgres,
+    });
+
+    return res.status(200).json({
+      ok: true,
+      user: sanitizeUser(normalizedSavedUser),
+      message: `Cuenta creada para ${email}.`,
+      session: createdSession,
+    });
+  }
+
+  if (action === "login") {
+    if (!isValidEmail(email) || !password) {
+      return res.status(400).json({ error: "Introduce tu correo y tu contraseña." });
+    }
+
+    const foundUser = useMssql
+      ? await findUserByEmailMssql(email)
+      : useSqlcmdWindows
+      ? findUserByEmailSqlcmd(email)
+      : usePostgres
+      ? await findUserByEmailPostgres(email)
+      : db.users.find((item) => normalizeText(item?.email).toLowerCase() === email);
+
+    if (!foundUser) {
+      return res.status(404).json({ error: "No existe ninguna cuenta con ese correo." });
+    }
+
+    const user = mapDbUser(foundUser);
+    const expectedHash = hashPassword(password, user.passwordSalt);
+
+    if (expectedHash !== user.passwordHash) {
+      return res.status(401).json({ error: "La contraseña no es correcta." });
+    }
+
+    const now = useMssql
+      ? await updateLastLoginMssql(user.id)
+      : useSqlcmdWindows
+      ? updateLastLoginSqlcmd(user.id)
+      : usePostgres
+      ? await updateLastLoginPostgres(user.id)
+      : (() => {
+          const nowValue = new Date().toISOString();
+          const userIndex = db.users.findIndex((item) => normalizeText(item?.email).toLowerCase() === email);
+
+          if (userIndex >= 0) {
+            db.users[userIndex] = {
+              ...db.users[userIndex],
+              lastLoginAt: nowValue,
+            };
+            writeUsersDb(db);
+          }
+
+          return nowValue;
+        })();
+
+    const loggedUser = {
+      ...user,
+      lastLoginAt: now,
+    };
+
+    const createdSession = await createSessionForUser({
+      req,
+      res,
+      user: loggedUser,
+      useMssql,
+      useSqlcmdWindows,
+      usePostgres,
+    });
+
+    return res.status(200).json({
+      ok: true,
+      user: sanitizeUser(loggedUser),
+      message: `Sesión iniciada para ${email}.`,
+      session: createdSession,
+    });
+  }
+
+  return res.status(400).json({ error: "Acción de auth no soportada." });
+}
 
   if (req.method === "GET") {
     if (AUTH_SECURITY_STATUS_ENABLED && normalizeText(req?.query?.security) === "1") {

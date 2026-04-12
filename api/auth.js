@@ -2,7 +2,11 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const { execFileSync } = require("child_process");
-const sql = require("mssql");
+
+// mssql is only needed when AUTH_PROVIDER=mssql; lazy-load to avoid crashing on Vercel
+function getMssqlModule() {
+  return require("mssql");
+}
 
 // Neon injects DATABASE_URL; @vercel/postgres needs POSTGRES_URL — map it early
 if (!process.env.POSTGRES_URL && process.env.DATABASE_URL) {
@@ -601,6 +605,7 @@ function getMssqlConfig() {
 
 async function getMssqlPool() {
   if (!mssqlPoolPromise) {
+    const sql = getMssqlModule();
     mssqlPoolPromise = sql.connect(getMssqlConfig());
   }
 
@@ -646,6 +651,7 @@ async function ensureMssqlSchema() {
 
 async function findUserByEmailMssql(email) {
   await ensureMssqlSchema();
+  const sql = getMssqlModule();
   const pool = await getMssqlPool();
   const result = await pool
     .request()
@@ -661,6 +667,7 @@ async function findUserByEmailMssql(email) {
 
 async function createUserMssql(user) {
   await ensureMssqlSchema();
+  const sql = getMssqlModule();
   const pool = await getMssqlPool();
 
   await pool
@@ -682,6 +689,7 @@ async function createUserMssql(user) {
 
 async function findUserByIdMssql(id) {
   await ensureMssqlSchema();
+  const sql = getMssqlModule();
   const pool = await getMssqlPool();
   const result = await pool
     .request()
@@ -697,6 +705,7 @@ async function findUserByIdMssql(id) {
 
 async function updateLastLoginMssql(id) {
   await ensureMssqlSchema();
+  const sql = getMssqlModule();
   const pool = await getMssqlPool();
   const now = new Date();
 
@@ -715,6 +724,7 @@ async function updateLastLoginMssql(id) {
 
 async function createSessionMssql(session) {
   await ensureMssqlSchema();
+  const sql = getMssqlModule();
   const pool = await getMssqlPool();
 
   await pool
@@ -734,6 +744,7 @@ async function createSessionMssql(session) {
 
 async function findSessionByIdMssql(id) {
   await ensureMssqlSchema();
+  const sql = getMssqlModule();
   const pool = await getMssqlPool();
   const result = await pool
     .request()
@@ -749,6 +760,7 @@ async function findSessionByIdMssql(id) {
 
 async function updateSessionLastSeenMssql(id) {
   await ensureMssqlSchema();
+  const sql = getMssqlModule();
   const pool = await getMssqlPool();
   const now = new Date();
 
@@ -765,6 +777,7 @@ async function updateSessionLastSeenMssql(id) {
 
 async function deleteSessionByIdMssql(id) {
   await ensureMssqlSchema();
+  const sql = getMssqlModule();
   const pool = await getMssqlPool();
 
   await pool
@@ -1302,6 +1315,7 @@ function buildPasswordResetSession({ userId, tokenHash }) {
 
 async function findValidResetMssql({ userId, tokenHash }) {
   await ensureMssqlSchema();
+  const sql = getMssqlModule();
   const pool = await getMssqlPool();
   const result = await pool
     .request()
@@ -1357,6 +1371,7 @@ function findValidResetLocal({ userId, tokenHash }) {
 
 async function updateUserPasswordMssql({ userId, passwordSalt, passwordHash }) {
   await ensureMssqlSchema();
+  const sql = getMssqlModule();
   const pool = await getMssqlPool();
 
   await pool

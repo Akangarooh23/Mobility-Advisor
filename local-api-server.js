@@ -2,10 +2,6 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 
-const analyzeHandler = require("./api/analyze");
-const findListingHandler = require("./api/find-listing");
-const offerImageHandler = require("./api/offer-image");
-
 function loadEnvFile(fileName) {
   const filePath = path.join(__dirname, fileName);
 
@@ -39,12 +35,26 @@ function loadEnvFile(fileName) {
 loadEnvFile(".env.local");
 loadEnvFile(".env");
 
+const analyzeHandler = require("./api/analyze");
+const findListingHandler = require("./api/find-listing");
+const offerImageHandler = require("./api/offer-image");
+const sendAlertEmailHandler = require("./api/send-alert-email");
+const authHandler = require("./api/auth");
+const authStatusHandler = require("./api/auth-status");
+const vehicleCatalogHandler = require("./api/vehicle-catalog");
+const vehicleCatalogAdminHandler = require("./api/vehicle-catalog-admin");
+
 const API_PORT = Number(process.env.API_PORT || 3001);
 
 const handlers = {
   "/api/analyze": analyzeHandler,
   "/api/find-listing": findListingHandler,
   "/api/offer-image": offerImageHandler,
+  "/api/send-alert-email": sendAlertEmailHandler,
+  "/api/auth": authHandler,
+  "/api/auth-status": authStatusHandler,
+  "/api/vehicle-catalog": vehicleCatalogHandler,
+  "/api/vehicle-catalog-admin": vehicleCatalogAdminHandler,
 };
 
 function sendJson(res, statusCode, payload) {
@@ -95,6 +105,7 @@ const server = http.createServer(async (req, res) => {
       ok: true,
       apiPort: API_PORT,
       hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
+      hasEmailConfig: Boolean(process.env.RESEND_API_KEY),
     });
     return;
   }
@@ -149,6 +160,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(API_PORT, () => {
   console.log(`✅ Local API disponible en http://localhost:${API_PORT}`);
   console.log(`🔑 GEMINI_API_KEY ${process.env.GEMINI_API_KEY ? "detectada" : "no configurada"}`);
+  console.log(`📧 RESEND_API_KEY ${process.env.RESEND_API_KEY ? "detectada" : "no configurada (modo local/simulado)"}`);
 });
 
 function shutdown() {

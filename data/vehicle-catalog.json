@@ -1,0 +1,98 @@
+{
+  "Toyota": [
+    "C-HR",
+    "Corolla",
+    "RAV4",
+    "Yaris"
+  ],
+  "Renault": [
+    "Austral",
+    "Captur",
+    "Clio",
+    "Megane"
+  ],
+  "Seat": [
+    "Arona",
+    "Ateca",
+    "Ibiza",
+    "Leon"
+  ],
+  "Volkswagen": [
+    "Golf",
+    "Polo",
+    "T-Roc",
+    "Tiguan"
+  ],
+  "Peugeot": [
+    "2008",
+    "208",
+    "3008",
+    "308"
+  ],
+  "BMW": [
+    "Serie 1",
+    "Serie 3",
+    "X1",
+    "X3"
+  ],
+  "Audi": [
+    "A1",
+    "A3",
+    "Q2",
+    "Q3"
+  ],
+  "Mercedes": [
+    "Clase A",
+    "Clase C",
+    "GLA",
+    "GLC"
+  ],
+  "Volvo": [
+    "S60",
+    "V60",
+    "XC40",
+    "XC60"
+  ],
+  "Kia": [
+    "Ceed",
+    "EV6",
+    "Niro",
+    "Sportage"
+  ],
+  "Hyundai": [
+    "i20",
+    "i30",
+    "Kona",
+    "Tucson"
+  ],
+  "Nissan": [
+    "Juke",
+    "Micra",
+    "Qashqai",
+    "X-Trail"
+  ],
+  "Skoda": [
+    "Fabia",
+    "Kamiq",
+    "Kodiaq",
+    "Octavia"
+  ],
+  "Citroen": [
+    "Berlingo",
+    "C3",
+    "C4",
+    "C5 Aircross"
+  ],
+  "Dacia": [
+    "Duster",
+    "Jogger",
+    "Sandero",
+    "Spring"
+  ],
+  "MG": [
+    "HS",
+    "Marvel R",
+    "MG4",
+    "ZS"
+  ]
+}

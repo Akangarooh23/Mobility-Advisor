@@ -1,5 +1,8 @@
 const analyzeHandler = require("../api/analyze");
 const findListingHandler = require("../api/find-listing");
+const sendAlertEmailHandler = require("../api/send-alert-email");
+const authHandler = require("../api/auth");
+const authStatusHandler = require("../api/auth-status");
 
 function readRequestBody(req) {
   return new Promise((resolve, reject) => {
@@ -26,6 +29,8 @@ module.exports = function setupProxy(app) {
   [
     ["/api/analyze", analyzeHandler],
     ["/api/find-listing", findListingHandler],
+    ["/api/send-alert-email", sendAlertEmailHandler],
+    ["/api/auth", authHandler],
   ].forEach(([route, handler]) => {
     app.post(route, async (req, res) => {
       try {
@@ -37,5 +42,25 @@ module.exports = function setupProxy(app) {
         });
       }
     });
+  });
+
+  app.get("/api/auth-status", async (req, res) => {
+    try {
+      await authStatusHandler(req, res);
+    } catch (error) {
+      res.status(500).json({
+        error: error?.message || "Local API proxy error",
+      });
+    }
+  });
+
+  app.get("/api/auth", async (req, res) => {
+    try {
+      await authHandler(req, res);
+    } catch (error) {
+      res.status(500).json({
+        error: error?.message || "Local API proxy error",
+      });
+    }
   });
 };

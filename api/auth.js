@@ -4,6 +4,11 @@ const crypto = require("crypto");
 const { execFileSync } = require("child_process");
 const sql = require("mssql");
 
+// Neon injects DATABASE_URL; @vercel/postgres needs POSTGRES_URL — map it early
+if (!process.env.POSTGRES_URL && process.env.DATABASE_URL) {
+  process.env.POSTGRES_URL = process.env.DATABASE_URL;
+}
+
 const USERS_DB_PATH = path.join(__dirname, "..", "data", "local-users.json");
 const SESSIONS_DB_PATH = path.join(__dirname, "..", "data", "local-sessions.json");
 const SESSION_COOKIE_NAME = "moveadvisor_session";
@@ -1540,6 +1545,15 @@ async function cleanupExpiredSessions({ useMssql, useSqlcmdWindows, usePostgres 
 }
 
 async function authHandler(req, res) {
+  try {
+  return await _authHandlerInner(req, res);
+  } catch (err) {
+    console.error("[MoveAdvisor] authHandler uncaught error:", err);
+    return res.status(500).json({ error: "Error interno del servidor. Inténtalo de nuevo." });
+  }
+}
+
+async function _authHandlerInner(req, res) {
   const useMssql = shouldUseMssql();
   const useSqlcmdWindows = shouldUseSqlcmdWindows();
   const usePostgres = shouldUsePostgres();

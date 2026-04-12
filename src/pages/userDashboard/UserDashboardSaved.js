@@ -859,7 +859,13 @@ export default function UserDashboardSaved({
                                 <div>
                                   <div style={{ fontSize: 12, fontWeight: 700, color: "#f8fafc" }}>{offer.title}</div>
                                   <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>
-                                    {formatCurrency(offer.price)} · {offer.location} · {Number(offer.mileage || 0).toLocaleString("es-ES")} km
+                                    {alert.mode === "renting" && Number(offer.rentingMonthly || 0) > 0
+                                      ? `${formatCurrency(offer.rentingMonthly)}/mes`
+                                      : formatCurrency(offer.price)}
+                                    {offer.location ? ` · ${offer.location}` : ""}
+                                    {Number(offer.mileage || 0) > 0
+                                      ? ` · ${Number(offer.mileage || 0).toLocaleString("es-ES")} km`
+                                      : ""}
                                   </div>
                                 </div>
                                 <button

@@ -21,7 +21,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(230px,1fr))",
+          gridTemplateColumns: "repeat(3, 1fr)",
           gap: 12,
           marginBottom: 28,
         }}

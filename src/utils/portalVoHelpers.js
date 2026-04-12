@@ -96,10 +96,8 @@ function includesNormalizedValue(sourceValue, targetValue) {
 
 function offerMatchesAlert(offer = {}, alert = {}) {
   const alertMode = normalizeText(alert?.mode).toLowerCase();
-
-  if (alertMode === "renting") {
-    return false;
-  }
+  const rentingMonthly = Number(offer?.rentingMonthly || offer?.renting?.monthly || 0);
+  const supportsRenting = Boolean(offer?.rentingAvailable || offer?.renting?.available || rentingMonthly > 0);
 
   const searchText = normalizeText(
     `${offer.title} ${offer.brand} ${offer.model} ${offer.location} ${offer.color} ${offer.fuel}`
@@ -115,8 +113,21 @@ function offerMatchesAlert(offer = {}, alert = {}) {
   const matchesFuel = !fuelQuery || includesNormalizedValue(offer.fuel, fuelQuery);
   const matchesLocation = !locationQuery || includesNormalizedValue(offer.location, locationQuery);
   const matchesColor = !colorQuery || includesNormalizedValue(offer.color, colorQuery);
-  const matchesPrice = !alert?.maxPrice || Number(offer.price || 0) <= Number(alert.maxPrice);
+  const maxBudget = Number(alert?.maxPrice || 0);
+  const matchesPrice =
+    !maxBudget ||
+    (alertMode === "renting"
+      ? rentingMonthly > 0 && rentingMonthly <= maxBudget
+      : Number(offer.price || 0) <= maxBudget);
   const matchesMileage = !alert?.maxMileage || Number(offer.mileage || 0) <= Number(alert.maxMileage);
+
+  if (alertMode === "renting" && !supportsRenting) {
+    return false;
+  }
+
+  if (alertMode === "compra" && !Number(offer.price || 0)) {
+    return false;
+  }
 
   return matchesBrand && matchesModel && matchesFuel && matchesLocation && matchesColor && matchesPrice && matchesMileage;
 }

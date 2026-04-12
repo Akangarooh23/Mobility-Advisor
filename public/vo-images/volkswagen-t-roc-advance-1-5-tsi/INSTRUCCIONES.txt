@@ -1,0 +1,9 @@
+Sube aqui la imagen principal del T-Roc.
+
+Nombre recomendado:
+- foto-principal.jpg
+
+Tambien acepta:
+- foto-principal.jpeg
+- foto-principal.png
+- foto-principal.webp

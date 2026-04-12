@@ -12,6 +12,7 @@ Carpetas disponibles:
 - toyota-corolla-120h-active-tech
 - kia-niro-hev-drive
 - volkswagen-golf-life-1-5-etsi
+- volkswagen-t-roc-advance-1-5-tsi
 - byd-dolphin-comfort
 - seat-leon-1-5-etsi-fr
 - bmw-x1-sdrive18d

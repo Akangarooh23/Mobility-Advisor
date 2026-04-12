@@ -40,6 +40,7 @@ function normalizeNotifications(value) {
               title: normalizeText(match?.title),
               location: normalizeText(match?.location),
               price: Number(match?.price || 0),
+              rentingMonthly: Number(match?.rentingMonthly || match?.renting?.monthly || 0),
             }))
             .filter((match) => match.title)
         : [],
@@ -59,6 +60,14 @@ function formatCurrency(value) {
     currency: "EUR",
     maximumFractionDigits: 0,
   }).format(amount);
+}
+
+function formatMatchBudget(match = {}) {
+  if (Number(match?.rentingMonthly || 0) > 0) {
+    return `${formatCurrency(match.rentingMonthly)}/mes`;
+  }
+
+  return formatCurrency(match?.price);
 }
 
 function buildDigestPayload(body = {}) {
@@ -83,7 +92,7 @@ function buildDigestPayload(body = {}) {
 
       item.matches.forEach((match) => {
         lines.push(
-          `  - ${match.title}${match.location ? ` · ${match.location}` : ""}${match.price ? ` · ${formatCurrency(match.price)}` : ""}`
+          `  - ${match.title}${match.location ? ` · ${match.location}` : ""}${formatMatchBudget(match) ? ` · ${formatMatchBudget(match)}` : ""}`
         );
       });
 
@@ -113,7 +122,7 @@ function buildDigestPayload(body = {}) {
                           .map(
                             (match) => `<li>${escapeHtml(match.title)}${
                               match.location ? ` · ${escapeHtml(match.location)}` : ""
-                            }${match.price ? ` · ${escapeHtml(formatCurrency(match.price))}` : ""}</li>`
+                            }${formatMatchBudget(match) ? ` · ${escapeHtml(formatMatchBudget(match))}` : ""}</li>`
                           )
                           .join("")}
                       </ul>`

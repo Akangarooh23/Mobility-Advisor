@@ -862,11 +862,16 @@ export default function App() {
     setAuthError("");
 
     try {
-      const { data } = await postAuthJson(payload);
+      const { response, data } = await postAuthJson(payload);
+
+      if (!response.ok || data?.ok === false) {
+        throw new Error(data?.details || data?.error || "No se pudo completar el acceso.");
+      }
+
       const nextUser = data?.user;
 
       if (!nextUser?.email) {
-        throw new Error("No se pudo recuperar el usuario autenticado.");
+        throw new Error(data?.details || data?.error || "No se pudo recuperar el usuario autenticado.");
       }
 
       writeAuthUser(nextUser);

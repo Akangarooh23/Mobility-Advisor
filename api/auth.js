@@ -1070,7 +1070,12 @@ async function authHandler(req, res) {
   return await _authHandlerInner(req, res);
   } catch (err) {
     console.error("[MoveAdvisor] authHandler uncaught error:", err);
-    return res.status(500).json({ error: "Error interno del servidor. Int├®ntalo de nuevo." });
+    return res.status(500).json({
+      ok: false,
+      error: "Error interno del servidor. Intentalo de nuevo.",
+      details: normalizeText(err?.message) || "Unexpected auth handler error",
+      provider: getAuthProvider(),
+    });
   }
 }
 

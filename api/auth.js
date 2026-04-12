@@ -507,6 +507,11 @@ let mssqlPoolPromise = null;
 let _pgSql = null;
 
 function getPgSql() {
+  // @vercel/postgres requires POSTGRES_URL; fall back to DATABASE_URL (Neon integration default)
+  if (!process.env.POSTGRES_URL && process.env.DATABASE_URL) {
+    process.env.POSTGRES_URL = process.env.DATABASE_URL;
+  }
+
   if (!_pgSql) {
     try {
       _pgSql = require("@vercel/postgres").sql;

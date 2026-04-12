@@ -513,24 +513,18 @@ function runSecurityMaintenance() {
 }
 
 let mssqlPoolPromise = null;
-let _pgSql = null;
+let _pgPool = null;
 
-function getPgSql() {
-  // @vercel/postgres requires POSTGRES_URL; fall back to DATABASE_URL (Neon integration default)
-  if (!process.env.POSTGRES_URL && process.env.DATABASE_URL) {
-    process.env.POSTGRES_URL = process.env.DATABASE_URL;
-  }
-
-  if (!_pgSql) {
-    try {
-      _pgSql = require("@vercel/postgres").sql;
-    } catch {
-      throw new Error(
-        "El paquete @vercel/postgres no está instalado. Ejecuta: npm install @vercel/postgres"
-      );
+function getPgPool() {
+  if (!_pgPool) {
+    const { Pool } = require("pg");
+    const connString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+    if (!connString) {
+      throw new Error("No DATABASE_URL or POSTGRES_URL env var found for PostgreSQL connection");
     }
+    _pgPool = new Pool({ connectionString: connString, ssl: { rejectUnauthorized: false } });
   }
-  return _pgSql;
+  return _pgPool;
 }
 
 function getAuthProvider() {
@@ -1020,22 +1014,23 @@ function deleteExpiredSessionsSqlcmd() {
 
 // ─── PostgreSQL (Neon / Vercel Postgres) ─────────────────────────────────────
 
-async function ensurePostgresSchema() {
-  const sql = getPgSql();
+let _pgSchemaEnsured = false;
 
-  await sql`
+async function ensurePostgresSchema() {
+  if (_pgSchemaEnsured) return;
+  const pool = getPgPool();
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS moveadvisor_users (
-      id          VARCHAR(64)  PRIMARY KEY,
-      name        VARCHAR(120) NOT NULL,
-      email       VARCHAR(255) NOT NULL UNIQUE,
+      id            VARCHAR(64)  PRIMARY KEY,
+      name          VARCHAR(120) NOT NULL,
+      email         VARCHAR(255) NOT NULL UNIQUE,
       password_salt VARCHAR(64)  NOT NULL,
       password_hash VARCHAR(200) NOT NULL,
-      created_at  TIMESTAMPTZ  NOT NULL,
-      last_login_at TIMESTAMPTZ NOT NULL
+      created_at    TIMESTAMPTZ  NOT NULL,
+      last_login_at TIMESTAMPTZ  NOT NULL
     )
-  `;
-
-  await sql`
+  `);
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS moveadvisor_sessions (
       id           VARCHAR(64)  PRIMARY KEY,
       user_id      VARCHAR(64)  NOT NULL,
@@ -1045,143 +1040,113 @@ async function ensurePostgresSchema() {
       last_seen_at TIMESTAMPTZ  NOT NULL,
       user_agent   VARCHAR(255)
     )
-  `;
+  `);
+  _pgSchemaEnsured = true;
 }
 
 async function findUserByEmailPostgres(email) {
   await ensurePostgresSchema();
-  const sql = getPgSql();
-  const { rows } = await sql`
-    SELECT id, name, email, password_salt AS "passwordSalt", password_hash AS "passwordHash",
-           created_at AS "createdAt", last_login_at AS "lastLoginAt"
-    FROM moveadvisor_users
-    WHERE email = ${email}
-    LIMIT 1
-  `;
-
+  const pool = getPgPool();
+  const { rows } = await pool.query(
+    `SELECT id, name, email, password_salt AS "passwordSalt", password_hash AS "passwordHash",
+            created_at AS "createdAt", last_login_at AS "lastLoginAt"
+     FROM moveadvisor_users WHERE email = $1 LIMIT 1`,
+    [email]
+  );
   return rows[0] || null;
 }
 
 async function createUserPostgres(user) {
   await ensurePostgresSchema();
-  const sql = getPgSql();
-
-  await sql`
-    INSERT INTO moveadvisor_users (id, name, email, password_salt, password_hash, created_at, last_login_at)
-    VALUES (${user.id}, ${user.name}, ${user.email}, ${user.passwordSalt}, ${user.passwordHash},
-            ${user.createdAt}, ${user.lastLoginAt})
-  `;
-
+  const pool = getPgPool();
+  await pool.query(
+    `INSERT INTO moveadvisor_users (id, name, email, password_salt, password_hash, created_at, last_login_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [user.id, user.name, user.email, user.passwordSalt, user.passwordHash, user.createdAt, user.lastLoginAt]
+  );
   return findUserByEmailPostgres(user.email);
 }
 
 async function findUserByIdPostgres(id) {
   await ensurePostgresSchema();
-  const sql = getPgSql();
-  const { rows } = await sql`
-    SELECT id, name, email, password_salt AS "passwordSalt", password_hash AS "passwordHash",
-           created_at AS "createdAt", last_login_at AS "lastLoginAt"
-    FROM moveadvisor_users
-    WHERE id = ${id}
-    LIMIT 1
-  `;
-
+  const pool = getPgPool();
+  const { rows } = await pool.query(
+    `SELECT id, name, email, password_salt AS "passwordSalt", password_hash AS "passwordHash",
+            created_at AS "createdAt", last_login_at AS "lastLoginAt"
+     FROM moveadvisor_users WHERE id = $1 LIMIT 1`,
+    [id]
+  );
   return rows[0] || null;
 }
 
 async function updateLastLoginPostgres(id) {
   await ensurePostgresSchema();
-  const sql = getPgSql();
+  const pool = getPgPool();
   const now = new Date().toISOString();
-
-  await sql`
-    UPDATE moveadvisor_users
-    SET last_login_at = ${now}
-    WHERE id = ${id}
-  `;
-
+  await pool.query(`UPDATE moveadvisor_users SET last_login_at = $1 WHERE id = $2`, [now, id]);
   return now;
 }
 
 async function createSessionPostgres(session) {
   await ensurePostgresSchema();
-  const sql = getPgSql();
-
-  await sql`
-    INSERT INTO moveadvisor_sessions (id, user_id, token_hash, created_at, expires_at, last_seen_at, user_agent)
-    VALUES (${session.id}, ${session.userId}, ${session.tokenHash}, ${session.createdAt},
-            ${session.expiresAt}, ${session.lastSeenAt}, ${session.userAgent || null})
-  `;
+  const pool = getPgPool();
+  await pool.query(
+    `INSERT INTO moveadvisor_sessions (id, user_id, token_hash, created_at, expires_at, last_seen_at, user_agent)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [session.id, session.userId, session.tokenHash, session.createdAt, session.expiresAt, session.lastSeenAt, session.userAgent || null]
+  );
 }
 
 async function findSessionByIdPostgres(id) {
   await ensurePostgresSchema();
-  const sql = getPgSql();
-  const { rows } = await sql`
-    SELECT id, user_id AS "userId", token_hash AS "tokenHash",
-           created_at AS "createdAt", expires_at AS "expiresAt",
-           last_seen_at AS "lastSeenAt", user_agent AS "userAgent"
-    FROM moveadvisor_sessions
-    WHERE id = ${id}
-    LIMIT 1
-  `;
-
+  const pool = getPgPool();
+  const { rows } = await pool.query(
+    `SELECT id, user_id AS "userId", token_hash AS "tokenHash",
+            created_at AS "createdAt", expires_at AS "expiresAt",
+            last_seen_at AS "lastSeenAt", user_agent AS "userAgent"
+     FROM moveadvisor_sessions WHERE id = $1 LIMIT 1`,
+    [id]
+  );
   return rows[0] || null;
 }
 
 async function updateSessionLastSeenPostgres(id) {
   await ensurePostgresSchema();
-  const sql = getPgSql();
-
-  await sql`
-    UPDATE moveadvisor_sessions
-    SET last_seen_at = ${new Date().toISOString()}
-    WHERE id = ${id}
-  `;
+  const pool = getPgPool();
+  await pool.query(`UPDATE moveadvisor_sessions SET last_seen_at = $1 WHERE id = $2`, [new Date().toISOString(), id]);
 }
 
 async function deleteSessionByIdPostgres(id) {
   await ensurePostgresSchema();
-  const sql = getPgSql();
-
-  await sql`DELETE FROM moveadvisor_sessions WHERE id = ${id}`;
+  const pool = getPgPool();
+  await pool.query(`DELETE FROM moveadvisor_sessions WHERE id = $1`, [id]);
 }
 
 async function deleteExpiredSessionsPostgres() {
   await ensurePostgresSchema();
-  const sql = getPgSql();
-
-  await sql`DELETE FROM moveadvisor_sessions WHERE expires_at <= NOW()`;
+  const pool = getPgPool();
+  await pool.query(`DELETE FROM moveadvisor_sessions WHERE expires_at <= NOW()`);
 }
 
 async function findValidResetPostgres({ userId, tokenHash }) {
   await ensurePostgresSchema();
-  const sql = getPgSql();
-  const { rows } = await sql`
-    SELECT id
-    FROM moveadvisor_sessions
-    WHERE user_id  = ${userId}
-      AND token_hash = ${tokenHash}
-      AND user_agent = 'RESET'
-      AND expires_at > NOW()
-    ORDER BY created_at DESC
-    LIMIT 1
-  `;
-
+  const pool = getPgPool();
+  const { rows } = await pool.query(
+    `SELECT id FROM moveadvisor_sessions
+     WHERE user_id = $1 AND token_hash = $2 AND user_agent = 'RESET' AND expires_at > NOW()
+     ORDER BY created_at DESC LIMIT 1`,
+    [userId, tokenHash]
+  );
   return normalizeText(rows[0]?.id);
 }
 
 async function updateUserPasswordPostgres({ userId, passwordSalt, passwordHash }) {
   await ensurePostgresSchema();
-  const sql = getPgSql();
-
-  await sql`
-    UPDATE moveadvisor_users
-    SET password_salt  = ${passwordSalt},
-        password_hash  = ${passwordHash},
-        last_login_at  = ${new Date().toISOString()}
-    WHERE id = ${userId}
-  `;
+  const pool = getPgPool();
+  await pool.query(
+    `UPDATE moveadvisor_users SET password_salt = $1, password_hash = $2, last_login_at = $3 WHERE id = $4`,
+    [passwordSalt, passwordHash, new Date().toISOString(), userId]
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

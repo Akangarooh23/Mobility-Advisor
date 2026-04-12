@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { PLAN_COMPARISON_ROWS, PRICING_SECTION_COPY, SERVICE_PLANS } from "../data/servicePlans";
 
 export default function LandingPage({
@@ -11,11 +12,33 @@ export default function LandingPage({
   onSelectSell,
   onSelectPortalVo,
 }) {
+  const [isMobileView, setIsMobileView] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+    return window.innerWidth < 768;
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth < 768);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const draftAnsweredSteps = Number(questionnaireDraft?.answeredSteps || 0);
   const draftTotalSteps = Number(questionnaireDraft?.totalSteps || totalSteps || 0);
   const hasDraftAnswers = Object.keys(questionnaireDraft?.answers || {}).length > 0;
   const showResumeAdvice = (draftAnsweredSteps > 0 || hasDraftAnswers) && typeof onResumeAdvice === "function";
   const comparisonGridTemplate = `1.3fr repeat(${SERVICE_PLANS.length},1fr)`;
+  const planCardBasis = `calc((100% - ${(SERVICE_PLANS.length - 1) * 12}px) / ${SERVICE_PLANS.length})`;
 
   return (
     <div style={{ ...styles.center, maxWidth: 1280, textAlign: "center" }}>
@@ -212,7 +235,7 @@ export default function LandingPage({
         style={{
           marginTop: 42,
           textAlign: "left",
-          padding: "24px 18px",
+          padding: isMobileView ? "18px 12px" : "24px 18px",
           borderRadius: 20,
           background: "linear-gradient(135deg,rgba(15,23,42,0.72),rgba(2,6,23,0.72))",
           border: "1px solid rgba(148,163,184,0.2)",
@@ -236,29 +259,33 @@ export default function LandingPage({
           >
             {PRICING_SECTION_COPY.pill}
           </div>
-          <h2 style={{ margin: "12px 0 8px", fontSize: "clamp(24px,4vw,34px)", color: "#f8fafc", letterSpacing: "-0.8px" }}>
+          <h2 style={{ margin: "12px 0 8px", fontSize: isMobileView ? "30px" : "clamp(24px,4vw,34px)", color: "#f8fafc", letterSpacing: "-0.8px", lineHeight: 1.15 }}>
             {PRICING_SECTION_COPY.title}
           </h2>
-          <p style={{ margin: 0, color: "#94a3b8", fontSize: 14 }}>
+          <p style={{ margin: 0, color: "#94a3b8", fontSize: isMobileView ? 13 : 14, padding: isMobileView ? "0 6px" : 0 }}>
             {PRICING_SECTION_COPY.description}
           </p>
         </div>
 
         <div
           style={{
-            display: "flex",
-            flexWrap: "nowrap",
+            display: isMobileView ? "grid" : "flex",
+            gridTemplateColumns: isMobileView ? "1fr" : undefined,
+            flexWrap: isMobileView ? "wrap" : "nowrap",
             gap: 12,
-            overflowX: "auto",
+            overflowX: isMobileView ? "visible" : "auto",
             paddingBottom: 6,
+            scrollSnapType: isMobileView ? "none" : "x mandatory",
           }}
         >
           {SERVICE_PLANS.map((plan) => (
             <article
               key={plan.id}
               style={{
-                flex: `0 0 calc((100% - ${(SERVICE_PLANS.length - 1) * 12}px) / ${SERVICE_PLANS.length})`,
-                minWidth: 210,
+                flex: isMobileView ? undefined : `0 0 ${planCardBasis}`,
+                minWidth: isMobileView ? "100%" : 210,
+                maxWidth: isMobileView ? "100%" : "none",
+                scrollSnapAlign: isMobileView ? "none" : "start",
                 borderRadius: 16,
                 background: plan.background,
                 border: `1px solid ${plan.border}`,
@@ -332,6 +359,7 @@ export default function LandingPage({
             borderRadius: 14,
             overflow: "hidden",
             border: "1px solid rgba(148,163,184,0.22)",
+            overflowX: isMobileView ? "auto" : "hidden",
           }}
         >
           <div
@@ -339,6 +367,7 @@ export default function LandingPage({
               display: "grid",
               gridTemplateColumns: comparisonGridTemplate,
               background: "rgba(15,23,42,0.85)",
+              minWidth: isMobileView ? 820 : "auto",
             }}
           >
             <div style={{ padding: "10px 12px", fontSize: 12, fontWeight: 700, color: "#93c5fd" }}>{PRICING_SECTION_COPY.comparisonTitle}</div>
@@ -357,6 +386,7 @@ export default function LandingPage({
                 gridTemplateColumns: comparisonGridTemplate,
                 background: rowIndex % 2 === 0 ? "rgba(15,23,42,0.35)" : "rgba(15,23,42,0.2)",
                 borderTop: "1px solid rgba(148,163,184,0.14)",
+                minWidth: isMobileView ? 820 : "auto",
               }}
             >
               <div style={{ padding: "9px 12px", fontSize: 12, color: "#cbd5e1", fontWeight: 700 }}>{row.label}</div>

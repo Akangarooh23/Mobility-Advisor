@@ -4,6 +4,8 @@ const QUESTIONNAIRE_DRAFT_KEY = "movilidad-advisor.questionnaireDraft.v1";
 const MARKET_ALERTS_KEY = "movilidad-advisor.marketAlerts.v1";
 const MARKET_ALERT_STATUS_KEY = "movilidad-advisor.marketAlertStatus.v1";
 const AUTH_USER_KEY = "movilidad-advisor.authUser.v1";
+const USER_BILLING_PROFILE_KEY = "movilidad-advisor.userBillingProfile.v1";
+const USER_BILLING_STATE_KEY = "movilidad-advisor.userBillingState.v1";
 
 function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -200,5 +202,144 @@ export function clearAuthUser() {
 
   try {
     window.localStorage.removeItem(AUTH_USER_KEY);
+  } catch {}
+}
+
+export function readUserBillingProfile() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(USER_BILLING_PROFILE_KEY);
+    const parsed = JSON.parse(raw || "null");
+
+    if (!parsed || typeof parsed !== "object") {
+      return null;
+    }
+
+    return {
+      fullName: normalizeText(parsed.fullName),
+      email: normalizeText(parsed.email).toLowerCase(),
+      phone: normalizeText(parsed.phone),
+      companyName: normalizeText(parsed.companyName),
+      taxId: normalizeText(parsed.taxId),
+      billingAddress: normalizeText(parsed.billingAddress),
+      iban: normalizeText(parsed.iban),
+      updatedAt: normalizeText(parsed.updatedAt),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function writeUserBillingProfile(profile = null) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    if (!profile || typeof profile !== "object") {
+      window.localStorage.removeItem(USER_BILLING_PROFILE_KEY);
+      return;
+    }
+
+    window.localStorage.setItem(
+      USER_BILLING_PROFILE_KEY,
+      JSON.stringify({
+        fullName: normalizeText(profile.fullName),
+        email: normalizeText(profile.email).toLowerCase(),
+        phone: normalizeText(profile.phone),
+        companyName: normalizeText(profile.companyName),
+        taxId: normalizeText(profile.taxId),
+        billingAddress: normalizeText(profile.billingAddress),
+        iban: normalizeText(profile.iban),
+        updatedAt: normalizeText(profile.updatedAt),
+      })
+    );
+  } catch {}
+}
+
+function getDefaultBillingState() {
+  return {
+    planId: "gratis",
+    planLabel: "Plan Gratis",
+    status: "inactivo",
+    nextBillingDate: "",
+    stripeCustomerId: "",
+    invoices: [
+      {
+        id: "demo-invoice-001",
+        number: "MA-2026-001",
+        date: "2026-04-01",
+        amount: 0,
+        status: "Pagada",
+        pdfUrl: "",
+      },
+    ],
+  };
+}
+
+export function readUserBillingState() {
+  if (typeof window === "undefined") {
+    return getDefaultBillingState();
+  }
+
+  try {
+    const raw = window.localStorage.getItem(USER_BILLING_STATE_KEY);
+    const parsed = JSON.parse(raw || "null");
+
+    if (!parsed || typeof parsed !== "object") {
+      return getDefaultBillingState();
+    }
+
+    const safeInvoices = Array.isArray(parsed.invoices)
+      ? parsed.invoices
+          .map((invoice) => ({
+            id: normalizeText(invoice?.id),
+            number: normalizeText(invoice?.number),
+            date: normalizeText(invoice?.date),
+            amount: Number(invoice?.amount || 0),
+            status: normalizeText(invoice?.status),
+            pdfUrl: normalizeText(invoice?.pdfUrl),
+          }))
+          .filter((invoice) => invoice.id || invoice.number)
+      : [];
+
+    return {
+      planId: normalizeText(parsed.planId) || "gratis",
+      planLabel: normalizeText(parsed.planLabel) || "Plan Gratis",
+      status: normalizeText(parsed.status) || "inactivo",
+      nextBillingDate: normalizeText(parsed.nextBillingDate),
+      stripeCustomerId: normalizeText(parsed.stripeCustomerId),
+      invoices: safeInvoices.length > 0 ? safeInvoices : getDefaultBillingState().invoices,
+    };
+  } catch {
+    return getDefaultBillingState();
+  }
+}
+
+export function writeUserBillingState(state = {}) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    const safeState = {
+      ...getDefaultBillingState(),
+      ...(state && typeof state === "object" ? state : {}),
+    };
+
+    window.localStorage.setItem(
+      USER_BILLING_STATE_KEY,
+      JSON.stringify({
+        planId: normalizeText(safeState.planId) || "gratis",
+        planLabel: normalizeText(safeState.planLabel) || "Plan Gratis",
+        status: normalizeText(safeState.status) || "inactivo",
+        nextBillingDate: normalizeText(safeState.nextBillingDate),
+        stripeCustomerId: normalizeText(safeState.stripeCustomerId),
+        invoices: Array.isArray(safeState.invoices) ? safeState.invoices.slice(0, 24) : getDefaultBillingState().invoices,
+      })
+    );
   } catch {}
 }

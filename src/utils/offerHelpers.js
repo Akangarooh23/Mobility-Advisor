@@ -3,6 +3,7 @@ export const USER_DASHBOARD_ROUTE_MAP = {
   saved: "/panel/guardadas",
   appointments: "/panel/citas",
   valuations: "/panel/tasaciones",
+  billing: "/panel/cuenta",
   vehicles: "/panel/vehiculos",
 };
 

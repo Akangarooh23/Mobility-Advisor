@@ -43,6 +43,10 @@ const authHandler = require("./api/auth");
 const authStatusHandler = require("./api/auth-status");
 const vehicleCatalogHandler = require("./api/vehicle-catalog");
 const vehicleCatalogAdminHandler = require("./api/vehicle-catalog-admin");
+const billingCheckoutHandler = require("./api/billing-checkout");
+const billingPortalHandler = require("./api/billing-portal");
+const billingAccountHandler = require("./api/billing-account");
+const billingWebhookHandler = require("./api/billing-webhook");
 
 const API_PORT = Number(process.env.API_PORT || 3001);
 
@@ -55,6 +59,10 @@ const handlers = {
   "/api/auth-status": authStatusHandler,
   "/api/vehicle-catalog": vehicleCatalogHandler,
   "/api/vehicle-catalog-admin": vehicleCatalogAdminHandler,
+  "/api/billing-checkout": billingCheckoutHandler,
+  "/api/billing-portal": billingPortalHandler,
+  "/api/billing-account": billingAccountHandler,
+  "/api/billing-webhook": billingWebhookHandler,
 };
 
 function sendJson(res, statusCode, payload) {
@@ -139,6 +147,7 @@ const server = http.createServer(async (req, res) => {
       method: req.method,
       headers: req.headers,
       body: parsedBody,
+      rawBody,
       query: Object.fromEntries(url.searchParams.entries()),
       url: req.url,
     };

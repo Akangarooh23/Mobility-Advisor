@@ -2095,4 +2095,12 @@ authHandler.isSecurityStatusEnabled = function isSecurityStatusEnabled() {
   return AUTH_SECURITY_STATUS_ENABLED;
 };
 
+authHandler.getSessionUserFromRequest = async function getSessionUserFromRequest(req) {
+  const useMssql = shouldUseMssql();
+  const useSqlcmdWindows = shouldUseSqlcmdWindows();
+  const usePostgres = shouldUsePostgres();
+
+  return resolveSessionUser({ req, useMssql, useSqlcmdWindows, usePostgres });
+};
+
 module.exports = authHandler;

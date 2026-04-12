@@ -1,4 +1,5 @@
 import UserDashboardAppointments from "./UserDashboardAppointments";
+import UserDashboardBilling from "./UserDashboardBilling";
 import UserDashboardHome from "./UserDashboardHome";
 import UserDashboardSaved from "./UserDashboardSaved";
 import UserDashboardValuations from "./UserDashboardValuations";
@@ -38,6 +39,14 @@ function buildSections(counts, newAlertMatchesCount = 0) {
       count: counts.valuations,
       title: "Tasaciones e informes",
       description: "Revisa las valoraciones guardadas y el estado de tus informes de venta.",
+    },
+    {
+      key: "billing",
+      label: "Cuenta",
+      icon: "💳",
+      count: null,
+      title: "Mi cuenta y facturacion",
+      description: "Gestiona tus datos personales, suscripcion activa, facturas y metodo de pago desde un unico lugar.",
     },
     {
       key: "vehicles",
@@ -336,6 +345,13 @@ export default function UserDashboardPage({
           dashboardVehicleCount={dashboardVehicleCount}
           panelStyle={panelStyle}
           getOfferBadgeStyle={getOfferBadgeStyle}
+        />
+      )}
+
+      {userDashboardPage === "billing" && (
+        <UserDashboardBilling
+          panelStyle={panelStyle}
+          currentUser={currentUser}
         />
       )}
     </div>

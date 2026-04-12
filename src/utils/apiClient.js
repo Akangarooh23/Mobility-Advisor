@@ -4,6 +4,9 @@ export const ALERT_EMAIL_API_ENDPOINT = "/api/send-alert-email";
 export const AUTH_API_ENDPOINT = "/api/auth";
 export const VEHICLE_CATALOG_API_ENDPOINT = "/api/vehicle-catalog";
 export const VEHICLE_CATALOG_ADMIN_API_ENDPOINT = "/api/vehicle-catalog-admin";
+export const BILLING_CHECKOUT_API_ENDPOINT = "/api/billing-checkout";
+export const BILLING_PORTAL_API_ENDPOINT = "/api/billing-portal";
+export const BILLING_ACCOUNT_API_ENDPOINT = "/api/billing-account";
 
 export async function readApiResponse(response, { endpointLabel = "analyze" } = {}) {
   const contentType = (response.headers.get("content-type") || "").toLowerCase();
@@ -107,6 +110,36 @@ export function getVehicleCatalogJson(options = {}) {
 export function postVehicleCatalogAdminJson(payload, options = {}) {
   return postJson(VEHICLE_CATALOG_ADMIN_API_ENDPOINT, payload, {
     endpointLabel: "vehicle-catalog-admin",
+    ...options,
+  });
+}
+
+export function postBillingCheckoutJson(payload, options = {}) {
+  return postJson(BILLING_CHECKOUT_API_ENDPOINT, payload, {
+    endpointLabel: "billing-checkout",
+    ...options,
+  });
+}
+
+export function postBillingPortalJson(payload, options = {}) {
+  return postJson(BILLING_PORTAL_API_ENDPOINT, payload, {
+    endpointLabel: "billing-portal",
+    ...options,
+  });
+}
+
+export function getBillingAccountJson(email, options = {}) {
+  const query = new URLSearchParams({ email: String(email || "") });
+
+  return getJson(`${BILLING_ACCOUNT_API_ENDPOINT}?${query.toString()}`, {
+    endpointLabel: "billing-account",
+    ...options,
+  });
+}
+
+export function postBillingAccountJson(payload, options = {}) {
+  return postJson(BILLING_ACCOUNT_API_ENDPOINT, payload, {
+    endpointLabel: "billing-account",
     ...options,
   });
 }

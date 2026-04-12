@@ -98,6 +98,45 @@ La app sigue usando `api/analyze.js` y `api/find-listing.js`, pero ahora servido
 - Con `RESEND_API_KEY`, el backend usa `api/send-alert-email.js` para intentar el envío real.
 - Si cambias el `.env.local`, reinicia `npm start` para que la API recargue la configuración.
 
+### Cuenta, suscripcion y facturas (Stripe)
+
+- El panel privado incluye una seccion `Cuenta` con:
+   - datos personales y fiscales
+   - estado de suscripcion
+   - listado de facturas
+   - accesos a checkout y portal de cliente
+- Endpoints disponibles:
+   - `GET /api/billing-account?email=...`
+   - `POST /api/billing-account` (`update_profile`, `update_billing_state`)
+   - `POST /api/billing-checkout`
+   - `POST /api/billing-portal`
+   - `POST /api/billing-webhook`
+
+#### Variables Stripe (produccion)
+
+En `.env.local` o en tu hosting configura:
+
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_CHECKOUT_SUCCESS_URL`
+- `STRIPE_CHECKOUT_CANCEL_URL`
+- `STRIPE_PORTAL_RETURN_URL`
+- `STRIPE_PRICE_BRONCE`
+- `STRIPE_PRICE_PLATA`
+- `STRIPE_PRICE_ORO`
+- `STRIPE_PRICE_PLATINO`
+
+Opcional (si quieres mapear plan gratuito tambien):
+
+- `STRIPE_PRICE_GRATIS`
+
+Notas:
+
+- Si faltan claves/precios, checkout y portal funcionan en modo simulado para pruebas.
+- El webhook sincroniza suscripcion/facturas cuando Stripe envia eventos reales.
+- Por seguridad, billing usa el usuario autenticado por cookie de sesion (`AUTH_BILLING_REQUIRE_SESSION=true`).
+   Solo desactiva esto en entornos de prueba controlados.
+
 ### Registro y login persistentes
 
 - La app ya incluye registro e inicio de sesión reales en local mediante `api/auth.js`.

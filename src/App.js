@@ -1033,9 +1033,30 @@ export default function App() {
     const digestNotifications = pendingAlertNotifications.filter(
       (notice) => notice.notifyByEmail && notice.email
     );
+    const fallbackNotifications = marketAlerts
+      .map((alert) => {
+        const alertEmail = resolveAlertRecipientEmail(alert, currentUserEmail);
+        const matchInfo = marketAlertMatches?.[alert.id] || { count: 0, matches: [] };
+
+        if (!alert.notifyByEmail || !alertEmail || Number(matchInfo.count || 0) <= 0) {
+          return null;
+        }
+
+        return {
+          id: alert.id,
+          title: alert.title,
+          newMatchesCount: Number(matchInfo.count || 0),
+          summary: `${matchInfo.count} ${matchInfo.count === 1 ? "coincidencia actual" : "coincidencias actuales"} en el marketplace`,
+          matches: Array.isArray(matchInfo.matches) ? matchInfo.matches.slice(0, 2) : [],
+          notifyByEmail: true,
+          email: alertEmail,
+        };
+      })
+      .filter(Boolean);
+    const notificationsToSend = digestNotifications.length > 0 ? digestNotifications : fallbackNotifications;
     const emailTargets = Array.from(
       new Set(
-        digestNotifications.map((notice) => notice.email)
+        notificationsToSend.map((notice) => notice.email)
       )
     );
 
@@ -1046,7 +1067,7 @@ export default function App() {
     }
 
     if (emailTargets.length === 0) {
-      setEmailDigestFeedback("No hay novedades pendientes para enviar por email en este momento.");
+      setEmailDigestFeedback("No hay coincidencias para enviar por email en este momento.");
       window.setTimeout(() => setEmailDigestFeedback(""), 2200);
       return;
     }
@@ -1060,14 +1081,14 @@ export default function App() {
           emailTargets.length === 1
             ? "MoveAdvisor · Tu resumen de alertas"
             : `MoveAdvisor · ${emailTargets.length} resúmenes de alertas`,
-        notifications: digestNotifications,
+        notifications: notificationsToSend,
       });
 
       setMarketAlertStatus((prev) => {
         const now = new Date().toISOString();
         const nextStatus = { ...prev };
 
-        digestNotifications.forEach((notice) => {
+        notificationsToSend.forEach((notice) => {
           if (!notice.notifyByEmail || !notice.email) {
             return;
           }

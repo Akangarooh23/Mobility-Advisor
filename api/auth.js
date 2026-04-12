@@ -8,7 +8,7 @@ function getMssqlModule() {
   return require("mssql");
 }
 
-// Neon injects DATABASE_URL; @vercel/postgres needs POSTGRES_URL ÔÇö map it early
+// Neon injects DATABASE_URL; @vercel/postgres needs POSTGRES_URL â€” map it early
 if (!process.env.POSTGRES_URL && process.env.DATABASE_URL) {
   process.env.POSTGRES_URL = process.env.DATABASE_URL;
 }
@@ -46,6 +46,497 @@ function normalizeText(value) {
 function ensureUsersDb() {
   const dirPath = path.dirname(USERS_DB_PATH);
 
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+
+  if (!fs.existsSync(USERS_DB_PATH)) {
+    fs.writeFileSync(USERS_DB_PATH, JSON.stringify({ users: [] }, null, 2), "utf8");
+  }
+}
+
+function readUsersDb() {
+  ensureUsersDb();
+
+  try {
+    const raw = fs.readFileSync(USERS_DB_PATH, "utf8");
+    const parsed = JSON.parse(raw || "{}");
+    return Array.isArray(parsed?.users) ? parsed : { users: [] };
+  } catch {
+    return { users: [] };
+  }
+}
+
+function writeUsersDb(db = { users: [] }) {
+  ensureUsersDb();
+  const safeDb = {
+    users: Array.isArray(db?.users) ? db.users : [],
+  };
+  fs.writeFileSync(USERS_DB_PATH, JSON.stringify(safeDb, null, 2), "utf8");
+}
+
+function ensureSessionsDb() {
+  const dirPath = path.dirname(SESSIONS_DB_PATH);
+
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+
+  if (!fs.existsSync(SESSIONS_DB_PATH)) {
+    fs.writeFileSync(SESSIONS_DB_PATH, JSON.stringify({ sessions: [] }, null, 2), "utf8");
+  }
+}
+
+function readSessionsDb() {
+  ensureSessionsDb();
+
+  try {
+    const raw = fs.readFileSync(SESSIONS_DB_PATH, "utf8");
+    const parsed = JSON.parse(raw || "{}");
+    return Array.isArray(parsed?.sessions) ? parsed : { sessions: [] };
+  } catch {
+    return { sessions: [] };
+  }
+}
+
+function writeSessionsDb(db = { sessions: [] }) {
+  ensureSessionsDb();
+  const safeDb = {
+    sessions: Array.isArray(db?.sessions) ? db.sessions : [],
+  };
+  fs.writeFileSync(SESSIONS_DB_PATH, JSON.stringify(safeDb, null, 2), "utf8");
+}
+
+function sanitizeUser(user = {}) {
+  const email = normalizeText(user.email).toLowerCase();
+
+  return {
+    id: normalizeText(user.id) || `user:${email}`,
+    name: normalizeText(user.name) || email.split("@")[0] || "Usuario",
+    email,
+    createdAt: normalizeText(user.createdAt),
+    lastLoginAt: normalizeText(user.lastLoginAt),
+  };
+}
+
+function hashPassword(password, salt) {
+  return crypto.scryptSync(String(password || ""), String(salt || ""), 64).toString("hex");
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function parseBody(body) {
+  if (body && typeof body === "object") {
+    return body;
+  }
+
+  try {
+    return JSON.parse(String(body || "{}"));
+  } catch {
+    return {};
+  }
+}
+
+function hashSessionToken(token) {
+  return crypto
+    .createHash("sha256")
+    .update(`${String(token || "")}|${SESSION_SECRET}`)
+    .digest("hex");
+}
+
+function getSessionExpiryIso(hours = SESSION_TTL_HOURS) {
+  return new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+}
+
+function parseCookies(cookieHeader = "") {
+  return String(cookieHeader || "")
+    .split(";")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .reduce((acc, pair) => {
+      const separatorIndex = pair.indexOf("=");
+      if (separatorIndex <= 0) {
+        return acc;
+      }
+
+      const key = pair.slice(0, separatorIndex).trim();
+      const value = pair.slice(separatorIndex + 1).trim();
+
+      if (!key) {
+        return acc;
+      }
+
+      acc[key] = decodeURIComponent(value);
+      return acc;
+    }, {});
+}
+
+function buildSessionCookie(value, { maxAgeSeconds } = {}) {
+  const shouldUseSecure = String(process.env.AUTH_COOKIE_SECURE || "false").toLowerCase() === "true";
+  const parts = [
+    `${SESSION_COOKIE_NAME}=${encodeURIComponent(value || "")}`,
+    "Path=/",
+    "HttpOnly",
+    "SameSite=Lax",
+  ];
+
+  if (Number.isFinite(maxAgeSeconds)) {
+    parts.push(`Max-Age=${Math.max(0, Math.floor(maxAgeSeconds))}`);
+  }
+
+  if (shouldUseSecure) {
+    parts.push("Secure");
+  }
+
+  return parts.join("; ");
+}
+
+function setSessionCookie(res, cookieValue, { maxAgeSeconds } = {}) {
+  res.setHeader("Set-Cookie", buildSessionCookie(cookieValue, { maxAgeSeconds }));
+}
+
+function clearSessionCookie(res) {
+  setSessionCookie(res, "", { maxAgeSeconds: 0 });
+}
+
+function parseSessionCookieFromRequest(req) {
+  const cookies = parseCookies(req?.headers?.cookie || "");
+  const rawValue = normalizeText(cookies[SESSION_COOKIE_NAME]);
+
+  if (!rawValue || !rawValue.includes(".")) {
+    return null;
+  }
+
+  const [sessionId, token] = rawValue.split(".");
+  if (!sessionId || !token) {
+    return null;
+  }
+
+  return {
+    sessionId: normalizeText(sessionId),
+    token: normalizeText(token),
+  };
+}
+
+function shouldRunSessionCleanup() {
+  if (SESSION_CLEANUP_PROBABILITY <= 0) {
+    return false;
+  }
+
+  if (SESSION_CLEANUP_PROBABILITY >= 1) {
+    return true;
+  }
+
+  return Math.random() < SESSION_CLEANUP_PROBABILITY;
+}
+
+function getClientIp(req) {
+  const forwardedFor = normalizeText(req?.headers?.["x-forwarded-for"] || req?.headers?.["X-Forwarded-For"]);
+  if (forwardedFor) {
+    return normalizeText(forwardedFor.split(",")[0]);
+  }
+
+  return normalizeText(req?.socket?.remoteAddress || req?.connection?.remoteAddress || "");
+}
+
+function consumeRateLimit(bucket, key, maxAttempts, windowMs) {
+  const safeKey = normalizeText(key);
+
+  if (!safeKey) {
+    return { allowed: true, retryAfterSeconds: 0 };
+  }
+
+  const now = Date.now();
+  const windowStart = now - windowMs;
+  const previous = Array.isArray(bucket.get(safeKey)) ? bucket.get(safeKey) : [];
+  const recent = previous.filter((timestamp) => Number(timestamp) >= windowStart);
+
+  if (recent.length >= maxAttempts) {
+    const oldestRecent = recent[0];
+    const retryAfterMs = Math.max(0, windowMs - (now - oldestRecent));
+    bucket.set(safeKey, recent);
+    return {
+      allowed: false,
+      retryAfterSeconds: Math.max(1, Math.ceil(retryAfterMs / 1000)),
+    };
+  }
+
+  recent.push(now);
+  bucket.set(safeKey, recent);
+  return { allowed: true, retryAfterSeconds: 0 };
+}
+
+function clearRateLimitKey(bucket, key) {
+  const safeKey = normalizeText(key);
+  if (!safeKey) {
+    return;
+  }
+
+  bucket.delete(safeKey);
+}
+
+function readBackoff(backoffBucket, key) {
+  const safeKey = normalizeText(key);
+
+  if (!safeKey) {
+    return { blocked: false, retryAfterSeconds: 0 };
+  }
+
+  const current = backoffBucket.get(safeKey);
+  if (!current || typeof current !== "object") {
+    return { blocked: false, retryAfterSeconds: 0 };
+  }
+
+  const blockedUntil = Number(current.blockedUntil || 0);
+  const now = Date.now();
+
+  if (blockedUntil <= now) {
+    return { blocked: false, retryAfterSeconds: 0 };
+  }
+
+  const retryAfterSeconds = Math.max(1, Math.ceil((blockedUntil - now) / 1000));
+  return { blocked: true, retryAfterSeconds };
+}
+
+function registerBackoffViolation(backoffBucket, key) {
+  const safeKey = normalizeText(key);
+
+  if (!safeKey) {
+    return { retryAfterSeconds: 0 };
+  }
+
+  const now = Date.now();
+  const current = backoffBucket.get(safeKey);
+  const previousLevel = Number(current?.level || 0);
+  const previousUntil = Number(current?.blockedUntil || 0);
+
+  // If enough time passed since last block, start from level 1 again.
+  const level = previousUntil > 0 && now > previousUntil + RESET_BACKOFF_MAX_MS ? 1 : previousLevel + 1;
+  const safeLevel = Math.max(1, Math.min(level, 12));
+  const penaltyMs = Math.min(RESET_BACKOFF_MAX_MS, RESET_BACKOFF_BASE_MS * 2 ** (safeLevel - 1));
+  const blockedUntil = now + penaltyMs;
+
+  backoffBucket.set(safeKey, {
+    level: safeLevel,
+    blockedUntil,
+  });
+
+  return {
+    retryAfterSeconds: Math.max(1, Math.ceil(penaltyMs / 1000)),
+  };
+}
+
+function clearBackoff(backoffBucket, key) {
+  const safeKey = normalizeText(key);
+  if (!safeKey) {
+    return;
+  }
+
+  backoffBucket.delete(safeKey);
+}
+
+function maskEmail(email) {
+  const normalized = normalizeText(email).toLowerCase();
+  if (!normalized || !normalized.includes("@")) {
+    return "";
+  }
+
+  const [localPart, domain] = normalized.split("@");
+  if (!localPart || !domain) {
+    return "";
+  }
+
+  if (localPart.length <= 2) {
+    return `${localPart[0] || "*"}*@${domain}`;
+  }
+
+  return `${localPart[0]}***${localPart.slice(-1)}@${domain}`;
+}
+
+function maskIp(ip) {
+  const normalized = normalizeText(ip);
+  if (!normalized) {
+    return "";
+  }
+
+  if (normalized.includes(":")) {
+    const chunks = normalized.split(":").filter(Boolean);
+    if (!chunks.length) {
+      return "***";
+    }
+    return `${chunks.slice(0, 2).join(":")}:***`;
+  }
+
+  if (normalized.includes(".")) {
+    const chunks = normalized.split(".");
+    if (chunks.length < 4) {
+      return "***";
+    }
+    return `${chunks[0]}.${chunks[1]}.*.*`;
+  }
+
+  return "***";
+}
+
+function logAuthSecurity(event, details = {}) {
+  if (!AUTH_SECURITY_LOG_ENABLED) {
+    return;
+  }
+
+  const payload = {
+    ts: new Date().toISOString(),
+    area: "auth",
+    event: normalizeText(event) || "unknown",
+    ...details,
+  };
+
+  try {
+    console.warn(`[MoveAdvisor][security] ${JSON.stringify(payload)}`);
+  } catch {
+    console.warn("[MoveAdvisor][security]", payload);
+  }
+}
+
+function summarizeBackoffBucket(backoffBucket) {
+  const now = Date.now();
+  let activeBlocks = 0;
+
+  for (const state of backoffBucket.values()) {
+    if (Number(state?.blockedUntil || 0) > now) {
+      activeBlocks += 1;
+    }
+  }
+
+  return {
+    trackedKeys: backoffBucket.size,
+    activeBlocks,
+  };
+}
+
+function summarizeLimiterBucket(limiterBucket, windowMs) {
+  const now = Date.now();
+  const windowStart = now - windowMs;
+  let keysWithRecentActivity = 0;
+  let totalRecentAttempts = 0;
+
+  for (const timestamps of limiterBucket.values()) {
+    if (!Array.isArray(timestamps)) {
+      continue;
+    }
+
+    const recentCount = timestamps.filter((timestamp) => Number(timestamp) >= windowStart).length;
+    if (recentCount > 0) {
+      keysWithRecentActivity += 1;
+      totalRecentAttempts += recentCount;
+    }
+  }
+
+  return {
+    trackedKeys: limiterBucket.size,
+    keysWithRecentActivity,
+    totalRecentAttempts,
+  };
+}
+
+function buildSecurityStatusSnapshot() {
+  return {
+    enabled: AUTH_SECURITY_STATUS_ENABLED,
+    config: {
+      resetRequestWindowMs: RESET_REQUEST_WINDOW_MS,
+      resetRequestMaxPerEmail: RESET_REQUEST_MAX_PER_EMAIL,
+      resetRequestMaxPerIp: RESET_REQUEST_MAX_PER_IP,
+      resetConfirmWindowMs: RESET_CONFIRM_WINDOW_MS,
+      resetConfirmMaxPerEmail: RESET_CONFIRM_MAX_PER_EMAIL,
+      resetConfirmMaxPerIp: RESET_CONFIRM_MAX_PER_IP,
+      resetBackoffBaseMs: RESET_BACKOFF_BASE_MS,
+      resetBackoffMaxMs: RESET_BACKOFF_MAX_MS,
+      authSecurityLogEnabled: AUTH_SECURITY_LOG_ENABLED,
+    },
+    request: {
+      limiterByEmail: summarizeLimiterBucket(resetRequestEmailLimiter, RESET_REQUEST_WINDOW_MS),
+      limiterByIp: summarizeLimiterBucket(resetRequestIpLimiter, RESET_REQUEST_WINDOW_MS),
+      backoffByEmail: summarizeBackoffBucket(resetRequestEmailBackoff),
+      backoffByIp: summarizeBackoffBucket(resetRequestIpBackoff),
+    },
+    confirm: {
+      limiterByEmail: summarizeLimiterBucket(resetConfirmEmailLimiter, RESET_CONFIRM_WINDOW_MS),
+      limiterByIp: summarizeLimiterBucket(resetConfirmIpLimiter, RESET_CONFIRM_WINDOW_MS),
+      backoffByEmail: summarizeBackoffBucket(resetConfirmEmailBackoff),
+      backoffByIp: summarizeBackoffBucket(resetConfirmIpBackoff),
+    },
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+function cleanupLimiterBucket(limiterBucket, windowMs) {
+  const now = Date.now();
+  const windowStart = now - windowMs;
+
+  for (const [key, timestamps] of limiterBucket.entries()) {
+    if (!Array.isArray(timestamps)) {
+      limiterBucket.delete(key);
+      continue;
+    }
+
+    const recent = timestamps.filter((timestamp) => Number(timestamp) >= windowStart);
+    if (!recent.length) {
+      limiterBucket.delete(key);
+      continue;
+    }
+
+    limiterBucket.set(key, recent);
+  }
+}
+
+function cleanupBackoffBucket(backoffBucket) {
+  const now = Date.now();
+
+  for (const [key, state] of backoffBucket.entries()) {
+    const blockedUntil = Number(state?.blockedUntil || 0);
+    if (!blockedUntil || now > blockedUntil + RESET_BACKOFF_MAX_MS) {
+      backoffBucket.delete(key);
+    }
+  }
+}
+
+function runSecurityMaintenance() {
+  cleanupLimiterBucket(resetRequestEmailLimiter, RESET_REQUEST_WINDOW_MS);
+  cleanupLimiterBucket(resetRequestIpLimiter, RESET_REQUEST_WINDOW_MS);
+  cleanupLimiterBucket(resetConfirmEmailLimiter, RESET_CONFIRM_WINDOW_MS);
+  cleanupLimiterBucket(resetConfirmIpLimiter, RESET_CONFIRM_WINDOW_MS);
+  cleanupBackoffBucket(resetRequestEmailBackoff);
+  cleanupBackoffBucket(resetRequestIpBackoff);
+  cleanupBackoffBucket(resetConfirmEmailBackoff);
+  cleanupBackoffBucket(resetConfirmIpBackoff);
+}
+
+let mssqlPoolPromise = null;
+let _pgPool = null;
+
+function getPgPool() {
+  if (!_pgPool) {
+    const { Pool } = require("pg");
+    const connString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+    if (!connString) {
+      throw new Error("No DATABASE_URL or POSTGRES_URL env var found for PostgreSQL connection");
+    }
+    _pgPool = new Pool({ connectionString: connString, ssl: { rejectUnauthorized: false } });
+  }
+  return _pgPool;
+}
+
+function getAuthProvider() {
+  const provider = normalizeText(process.env.AUTH_PROVIDER).toLowerCase();
+
+  if (["mssql", "sqlserver"].includes(provider)) {
+    return "mssql";
+  }
+
+  if (["sqlcmd-windows", "windows", "mssql-windows"].includes(provider)) {
+    return "sqlcmd-windows";
+  }
 
   if (["postgres", "postgresql", "neon", "vercel-postgres"].includes(provider)) {
     return "postgres";
@@ -322,7 +813,7 @@ function runSqlcmd(query, { database } = {}) {
   } catch (error) {
     const stderr = normalizeText(error?.stderr || "");
     const stdout = normalizeText(error?.stdout || "");
-    throw new Error(stderr || stdout || "Error ejecutando sqlcmd con autenticaci├│n de Windows.");
+    throw new Error(stderr || stdout || "Error ejecutando sqlcmd con autenticaciÃ³n de Windows.");
   }
 }
 
@@ -521,23 +1012,24 @@ function deleteExpiredSessionsSqlcmd() {
   `);
 }
 
-// ÔöÇÔöÇÔöÇ PostgreSQL (Neon / Vercel Postgres) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+// â”€â”€â”€ PostgreSQL (Neon / Vercel Postgres) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+let _pgSchemaEnsured = false;
 
 async function ensurePostgresSchema() {
+  if (_pgSchemaEnsured) return;
   const pool = getPgPool();
-
   await pool.query(`
     CREATE TABLE IF NOT EXISTS moveadvisor_users (
-      id          VARCHAR(64)  PRIMARY KEY,
-      name        VARCHAR(120) NOT NULL,
-      email       VARCHAR(255) NOT NULL UNIQUE,
+      id            VARCHAR(64)  PRIMARY KEY,
+      name          VARCHAR(120) NOT NULL,
+      email         VARCHAR(255) NOT NULL UNIQUE,
       password_salt VARCHAR(64)  NOT NULL,
       password_hash VARCHAR(200) NOT NULL,
-      created_at  TIMESTAMPTZ  NOT NULL,
-      last_login_at TIMESTAMPTZ NOT NULL
+      created_at    TIMESTAMPTZ  NOT NULL,
+      last_login_at TIMESTAMPTZ  NOT NULL
     )
   `);
-
   await pool.query(`
     CREATE TABLE IF NOT EXISTS moveadvisor_sessions (
       id           VARCHAR(64)  PRIMARY KEY,
@@ -549,6 +1041,7 @@ async function ensurePostgresSchema() {
       user_agent   VARCHAR(255)
     )
   `);
+  _pgSchemaEnsured = true;
 }
 
 async function findUserByEmailPostgres(email) {
@@ -557,25 +1050,20 @@ async function findUserByEmailPostgres(email) {
   const { rows } = await pool.query(
     `SELECT id, name, email, password_salt AS "passwordSalt", password_hash AS "passwordHash",
             created_at AS "createdAt", last_login_at AS "lastLoginAt"
-     FROM moveadvisor_users
-     WHERE email = $1
-     LIMIT 1`,
+     FROM moveadvisor_users WHERE email = $1 LIMIT 1`,
     [email]
   );
-
   return rows[0] || null;
 }
 
 async function createUserPostgres(user) {
   await ensurePostgresSchema();
   const pool = getPgPool();
-
   await pool.query(
     `INSERT INTO moveadvisor_users (id, name, email, password_salt, password_hash, created_at, last_login_at)
      VALUES ($1, $2, $3, $4, $5, $6, $7)`,
     [user.id, user.name, user.email, user.passwordSalt, user.passwordHash, user.createdAt, user.lastLoginAt]
   );
-
   return findUserByEmailPostgres(user.email);
 }
 
@@ -585,12 +1073,9 @@ async function findUserByIdPostgres(id) {
   const { rows } = await pool.query(
     `SELECT id, name, email, password_salt AS "passwordSalt", password_hash AS "passwordHash",
             created_at AS "createdAt", last_login_at AS "lastLoginAt"
-     FROM moveadvisor_users
-     WHERE id = $1
-     LIMIT 1`,
+     FROM moveadvisor_users WHERE id = $1 LIMIT 1`,
     [id]
   );
-
   return rows[0] || null;
 }
 
@@ -598,19 +1083,13 @@ async function updateLastLoginPostgres(id) {
   await ensurePostgresSchema();
   const pool = getPgPool();
   const now = new Date().toISOString();
-
-  await pool.query(
-    `UPDATE moveadvisor_users SET last_login_at = $1 WHERE id = $2`,
-    [now, id]
-  );
-
+  await pool.query(`UPDATE moveadvisor_users SET last_login_at = $1 WHERE id = $2`, [now, id]);
   return now;
 }
 
 async function createSessionPostgres(session) {
   await ensurePostgresSchema();
   const pool = getPgPool();
-
   await pool.query(
     `INSERT INTO moveadvisor_sessions (id, user_id, token_hash, created_at, expires_at, last_seen_at, user_agent)
      VALUES ($1, $2, $3, $4, $5, $6, $7)`,
@@ -625,36 +1104,27 @@ async function findSessionByIdPostgres(id) {
     `SELECT id, user_id AS "userId", token_hash AS "tokenHash",
             created_at AS "createdAt", expires_at AS "expiresAt",
             last_seen_at AS "lastSeenAt", user_agent AS "userAgent"
-     FROM moveadvisor_sessions
-     WHERE id = $1
-     LIMIT 1`,
+     FROM moveadvisor_sessions WHERE id = $1 LIMIT 1`,
     [id]
   );
-
   return rows[0] || null;
 }
 
 async function updateSessionLastSeenPostgres(id) {
   await ensurePostgresSchema();
   const pool = getPgPool();
-
-  await pool.query(
-    `UPDATE moveadvisor_sessions SET last_seen_at = $1 WHERE id = $2`,
-    [new Date().toISOString(), id]
-  );
+  await pool.query(`UPDATE moveadvisor_sessions SET last_seen_at = $1 WHERE id = $2`, [new Date().toISOString(), id]);
 }
 
 async function deleteSessionByIdPostgres(id) {
   await ensurePostgresSchema();
   const pool = getPgPool();
-
   await pool.query(`DELETE FROM moveadvisor_sessions WHERE id = $1`, [id]);
 }
 
 async function deleteExpiredSessionsPostgres() {
   await ensurePostgresSchema();
   const pool = getPgPool();
-
   await pool.query(`DELETE FROM moveadvisor_sessions WHERE expires_at <= NOW()`);
 }
 
@@ -662,35 +1132,24 @@ async function findValidResetPostgres({ userId, tokenHash }) {
   await ensurePostgresSchema();
   const pool = getPgPool();
   const { rows } = await pool.query(
-    `SELECT id
-     FROM moveadvisor_sessions
-     WHERE user_id = $1
-       AND token_hash = $2
-       AND user_agent = 'RESET'
-       AND expires_at > NOW()
-     ORDER BY created_at DESC
-     LIMIT 1`,
+    `SELECT id FROM moveadvisor_sessions
+     WHERE user_id = $1 AND token_hash = $2 AND user_agent = 'RESET' AND expires_at > NOW()
+     ORDER BY created_at DESC LIMIT 1`,
     [userId, tokenHash]
   );
-
   return normalizeText(rows[0]?.id);
 }
 
 async function updateUserPasswordPostgres({ userId, passwordSalt, passwordHash }) {
   await ensurePostgresSchema();
   const pool = getPgPool();
-
   await pool.query(
-    `UPDATE moveadvisor_users
-     SET password_salt = $1,
-         password_hash = $2,
-         last_login_at = $3
-     WHERE id = $4`,
+    `UPDATE moveadvisor_users SET password_salt = $1, password_hash = $2, last_login_at = $3 WHERE id = $4`,
     [passwordSalt, passwordHash, new Date().toISOString(), userId]
   );
 }
 
-// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function createSessionLocal(session) {
   const db = readSessionsDb();
@@ -760,13 +1219,13 @@ async function sendPasswordResetEmail({ email, code }) {
     normalizeText(process.env.RESEND_FROM_EMAIL) ||
     "MoveAdvisor <onboarding@resend.dev>";
 
-  const subject = "MoveAdvisor ┬À C├│digo para recuperar tu contrase├▒a";
+  const subject = "MoveAdvisor Â· CÃ³digo para recuperar tu contraseÃ±a";
   const text = [
     "Hola,",
     "",
-    "Has solicitado recuperar tu contrase├▒a.",
-    `Tu c├│digo de recuperaci├│n es: ${code}`,
-    "Este c├│digo caduca en 15 minutos.",
+    "Has solicitado recuperar tu contraseÃ±a.",
+    `Tu cÃ³digo de recuperaciÃ³n es: ${code}`,
+    "Este cÃ³digo caduca en 15 minutos.",
     "",
     "Si no has solicitado este cambio, ignora este mensaje.",
   ].join("\n");
@@ -789,7 +1248,7 @@ async function sendPasswordResetEmail({ email, code }) {
 
       if (!response.ok) {
         const payload = await response.text().catch(() => "");
-        throw new Error(payload || "No se pudo enviar el email de recuperaci├│n.");
+        throw new Error(payload || "No se pudo enviar el email de recuperaciÃ³n.");
       }
 
       return;
@@ -798,11 +1257,11 @@ async function sendPasswordResetEmail({ email, code }) {
         throw error;
       }
 
-      console.warn("ÔÜá´©Å [MoveAdvisor] Fall├│ env├¡o con Resend. Se usa fallback local para recuperaci├│n.");
+      console.warn("âš ï¸ [MoveAdvisor] FallÃ³ envÃ­o con Resend. Se usa fallback local para recuperaciÃ³n.");
     }
   }
 
-  console.log("­ƒöÉ [MoveAdvisor] C├│digo de recuperaci├│n (modo local)");
+  console.log("ðŸ” [MoveAdvisor] CÃ³digo de recuperaciÃ³n (modo local)");
   console.log(JSON.stringify({ email, code }, null, 2));
 }
 
@@ -1067,7 +1526,7 @@ async function cleanupExpiredSessions({ useMssql, useSqlcmdWindows, usePostgres 
 
 async function authHandler(req, res) {
   try {
-  return await _authHandlerInner(req, res);
+    return await _authHandlerInner(req, res);
   } catch (err) {
     console.error("[MoveAdvisor] authHandler uncaught error:", err);
     return res.status(500).json({
@@ -1086,7 +1545,12 @@ async function _authHandlerInner(req, res) {
   const db = useMssql || useSqlcmdWindows || usePostgres ? null : readUsersDb();
 
   runSecurityMaintenance();
-  await cleanupExpiredSessions({ useMssql, useSqlcmdWindows, usePostgres });
+  try {
+    await cleanupExpiredSessions({ useMssql, useSqlcmdWindows, usePostgres });
+  } catch (err) {
+    // Non-blocking maintenance: do not fail auth bootstrap when cleanup cannot run.
+    console.error("[MoveAdvisor] session cleanup failed:", err);
+  }
 
   if (req.method === "GET") {
     if (AUTH_SECURITY_STATUS_ENABLED && normalizeText(req?.query?.security) === "1") {
@@ -1096,7 +1560,14 @@ async function _authHandlerInner(req, res) {
       });
     }
 
-    const sessionPayload = await resolveSessionUser({ req, useMssql, useSqlcmdWindows, usePostgres });
+    let sessionPayload = null;
+    try {
+      sessionPayload = await resolveSessionUser({ req, useMssql, useSqlcmdWindows, usePostgres });
+    } catch (err) {
+      console.error("[MoveAdvisor] resolveSessionUser failed:", err);
+      clearSessionCookie(res);
+      return res.status(200).json({ ok: true, authenticated: false });
+    }
 
     if (!sessionPayload?.user) {
       clearSessionCookie(res);
@@ -1126,7 +1597,7 @@ async function _authHandlerInner(req, res) {
   const clientIp = getClientIp(req);
 
   if (!action) {
-    return res.status(400).json({ error: "Debes indicar la acci├│n de auth." });
+    return res.status(400).json({ error: "Debes indicar la acciÃ³n de auth." });
   }
 
   if (action === "logout") {
@@ -1145,7 +1616,7 @@ async function _authHandlerInner(req, res) {
     }
 
     clearSessionCookie(res);
-    return res.status(200).json({ ok: true, message: "Sesi├│n cerrada." });
+    return res.status(200).json({ ok: true, message: "SesiÃ³n cerrada." });
   }
 
   if (action === "change_password") {
@@ -1153,28 +1624,28 @@ async function _authHandlerInner(req, res) {
     const newPassword = String(body.newPassword || body.password || "");
 
     if (!currentPassword || !newPassword) {
-      return res.status(400).json({ error: "Debes indicar contrase├▒a actual y nueva contrase├▒a." });
+      return res.status(400).json({ error: "Debes indicar contraseÃ±a actual y nueva contraseÃ±a." });
     }
 
     if (newPassword.length < 6) {
-      return res.status(400).json({ error: "La nueva contrase├▒a debe tener al menos 6 caracteres." });
+      return res.status(400).json({ error: "La nueva contraseÃ±a debe tener al menos 6 caracteres." });
     }
 
     if (currentPassword === newPassword) {
-      return res.status(400).json({ error: "La nueva contrase├▒a no puede ser igual a la anterior." });
+      return res.status(400).json({ error: "La nueva contraseÃ±a no puede ser igual a la anterior." });
     }
 
     const sessionPayload = await resolveSessionUser({ req, useMssql, useSqlcmdWindows, usePostgres });
     if (!sessionPayload?.user?.id) {
       clearSessionCookie(res);
-      return res.status(401).json({ error: "Tu sesi├│n ha caducado. Inicia sesi├│n de nuevo." });
+      return res.status(401).json({ error: "Tu sesiÃ³n ha caducado. Inicia sesiÃ³n de nuevo." });
     }
 
     const sessionUser = mapDbUser(sessionPayload.user);
     const expectedCurrentHash = hashPassword(currentPassword, sessionUser.passwordSalt || "");
 
     if (expectedCurrentHash !== sessionUser.passwordHash) {
-      return res.status(401).json({ error: "La contrase├▒a actual no es correcta." });
+      return res.status(401).json({ error: "La contraseÃ±a actual no es correcta." });
     }
 
     const newSalt = crypto.randomBytes(16).toString("hex");
@@ -1211,7 +1682,7 @@ async function _authHandlerInner(req, res) {
     return res.status(200).json({
       ok: true,
       user: sanitizeUser(normalizedUser),
-      message: "Contrase├▒a actualizada correctamente.",
+      message: "ContraseÃ±a actualizada correctamente.",
       session: createdSession,
     });
   }
@@ -1229,7 +1700,7 @@ async function _authHandlerInner(req, res) {
       });
       res.setHeader("Retry-After", String(retryAfterSeconds));
       return res.status(429).json({
-        error: "Demasiadas solicitudes. Espera un momento e int├®ntalo de nuevo.",
+        error: "Demasiadas solicitudes. Espera un momento e intÃ©ntalo de nuevo.",
       });
     }
 
@@ -1248,7 +1719,7 @@ async function _authHandlerInner(req, res) {
       });
       res.setHeader("Retry-After", String(Math.max(ipRate.retryAfterSeconds, backoff.retryAfterSeconds)));
       return res.status(429).json({
-        error: "Demasiadas solicitudes. Espera un momento e int├®ntalo de nuevo.",
+        error: "Demasiadas solicitudes. Espera un momento e intÃ©ntalo de nuevo.",
       });
     }
 
@@ -1267,14 +1738,14 @@ async function _authHandlerInner(req, res) {
       });
       res.setHeader("Retry-After", String(Math.max(emailRate.retryAfterSeconds, backoff.retryAfterSeconds)));
       return res.status(429).json({
-        error: "Demasiadas solicitudes. Espera un momento e int├®ntalo de nuevo.",
+        error: "Demasiadas solicitudes. Espera un momento e intÃ©ntalo de nuevo.",
       });
     }
 
     if (!isValidEmail(email)) {
       return res.status(200).json({
         ok: true,
-        message: "Si el correo existe, recibir├ís instrucciones para recuperar tu contrase├▒a.",
+        message: "Si el correo existe, recibirÃ¡s instrucciones para recuperar tu contraseÃ±a.",
       });
     }
 
@@ -1306,7 +1777,7 @@ async function _authHandlerInner(req, res) {
 
       return res.status(200).json({
         ok: true,
-        message: "Si el correo existe, recibir├ís instrucciones para recuperar tu contrase├▒a.",
+        message: "Si el correo existe, recibirÃ¡s instrucciones para recuperar tu contraseÃ±a.",
         ...(String(process.env.AUTH_EXPOSE_RESET_CODE || "false").toLowerCase() === "true"
           ? { debugResetCode: resetCode }
           : {}),
@@ -1315,7 +1786,7 @@ async function _authHandlerInner(req, res) {
 
     return res.status(200).json({
       ok: true,
-      message: "Si el correo existe, recibir├ís instrucciones para recuperar tu contrase├▒a.",
+      message: "Si el correo existe, recibirÃ¡s instrucciones para recuperar tu contraseÃ±a.",
     });
   }
 
@@ -1335,7 +1806,7 @@ async function _authHandlerInner(req, res) {
       });
       res.setHeader("Retry-After", String(retryAfterSeconds));
       return res.status(429).json({
-        error: "Demasiados intentos de recuperaci├│n. Espera un momento e int├®ntalo de nuevo.",
+        error: "Demasiados intentos de recuperaciÃ³n. Espera un momento e intÃ©ntalo de nuevo.",
       });
     }
 
@@ -1354,7 +1825,7 @@ async function _authHandlerInner(req, res) {
       });
       res.setHeader("Retry-After", String(Math.max(resetIpRate.retryAfterSeconds, backoff.retryAfterSeconds)));
       return res.status(429).json({
-        error: "Demasiados intentos de recuperaci├│n. Espera un momento e int├®ntalo de nuevo.",
+        error: "Demasiados intentos de recuperaciÃ³n. Espera un momento e intÃ©ntalo de nuevo.",
       });
     }
 
@@ -1373,16 +1844,16 @@ async function _authHandlerInner(req, res) {
       });
       res.setHeader("Retry-After", String(Math.max(resetEmailRate.retryAfterSeconds, backoff.retryAfterSeconds)));
       return res.status(429).json({
-        error: "Demasiados intentos de recuperaci├│n. Espera un momento e int├®ntalo de nuevo.",
+        error: "Demasiados intentos de recuperaciÃ³n. Espera un momento e intÃ©ntalo de nuevo.",
       });
     }
 
     if (!isValidEmail(email) || !resetCode) {
-      return res.status(400).json({ error: "Debes indicar correo y c├│digo de recuperaci├│n." });
+      return res.status(400).json({ error: "Debes indicar correo y cÃ³digo de recuperaciÃ³n." });
     }
 
     if (newPassword.length < 6) {
-      return res.status(400).json({ error: "La nueva contrase├▒a debe tener al menos 6 caracteres." });
+      return res.status(400).json({ error: "La nueva contraseÃ±a debe tener al menos 6 caracteres." });
     }
 
     const foundUser = useMssql
@@ -1400,7 +1871,7 @@ async function _authHandlerInner(req, res) {
         email: maskEmail(email),
         ip: maskIp(clientIp),
       });
-      return res.status(400).json({ error: "C├│digo o correo no v├ílidos." });
+      return res.status(400).json({ error: "CÃ³digo o correo no vÃ¡lidos." });
     }
 
     const user = mapDbUser(foundUser);
@@ -1420,7 +1891,7 @@ async function _authHandlerInner(req, res) {
         email: maskEmail(email),
         ip: maskIp(clientIp),
       });
-      return res.status(400).json({ error: "C├│digo o correo no v├ílidos." });
+      return res.status(400).json({ error: "CÃ³digo o correo no vÃ¡lidos." });
     }
 
     const newSalt = crypto.randomBytes(16).toString("hex");
@@ -1470,7 +1941,7 @@ async function _authHandlerInner(req, res) {
     return res.status(200).json({
       ok: true,
       user: sanitizeUser(normalizedUser),
-      message: "Contrase├▒a actualizada correctamente.",
+      message: "ContraseÃ±a actualizada correctamente.",
       session: createdSession,
     });
   }
@@ -1481,11 +1952,11 @@ async function _authHandlerInner(req, res) {
     }
 
     if (!isValidEmail(email)) {
-      return res.status(400).json({ error: "Introduce un correo electr├│nico v├ílido." });
+      return res.status(400).json({ error: "Introduce un correo electrÃ³nico vÃ¡lido." });
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ error: "La contrase├▒a debe tener al menos 6 caracteres." });
+      return res.status(400).json({ error: "La contraseÃ±a debe tener al menos 6 caracteres." });
     }
 
     const existingUser = useMssql
@@ -1543,7 +2014,7 @@ async function _authHandlerInner(req, res) {
 
   if (action === "login") {
     if (!isValidEmail(email) || !password) {
-      return res.status(400).json({ error: "Introduce tu correo y tu contrase├▒a." });
+      return res.status(400).json({ error: "Introduce tu correo y tu contraseÃ±a." });
     }
 
     const foundUser = useMssql
@@ -1562,7 +2033,7 @@ async function _authHandlerInner(req, res) {
     const expectedHash = hashPassword(password, user.passwordSalt);
 
     if (expectedHash !== user.passwordHash) {
-      return res.status(401).json({ error: "La contrase├▒a no es correcta." });
+      return res.status(401).json({ error: "La contraseÃ±a no es correcta." });
     }
 
     const now = useMssql
@@ -1603,12 +2074,12 @@ async function _authHandlerInner(req, res) {
     return res.status(200).json({
       ok: true,
       user: sanitizeUser(loggedUser),
-      message: `Sesi├│n iniciada para ${email}.`,
+      message: `SesiÃ³n iniciada para ${email}.`,
       session: createdSession,
     });
   }
 
-  return res.status(400).json({ error: "Acci├│n de auth no soportada." });
+  return res.status(400).json({ error: "AcciÃ³n de auth no soportada." });
 }
 
 authHandler.getSecurityStatusSnapshot = function getSecurityStatusSnapshot() {
@@ -1625,5 +2096,3 @@ authHandler.isSecurityStatusEnabled = function isSecurityStatusEnabled() {
 };
 
 module.exports = authHandler;
-
-

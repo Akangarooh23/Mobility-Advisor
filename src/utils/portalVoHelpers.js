@@ -84,14 +84,30 @@ function decoratePortalVoOffer(offer = {}) {
 }
 
 function includesNormalizedValue(sourceValue, targetValue) {
-  const source = normalizeText(sourceValue).toLowerCase();
-  const target = normalizeText(targetValue).toLowerCase();
+  const source = normalizeText(sourceValue)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const target = normalizeText(targetValue)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 
   if (!target) {
     return true;
   }
 
-  return source.includes(target);
+  if (target === "cualquiera") {
+    return true;
+  }
+
+  return source.includes(target) || target.includes(source);
 }
 
 function offerMatchesAlert(offer = {}, alert = {}) {
@@ -108,8 +124,8 @@ function offerMatchesAlert(offer = {}, alert = {}) {
   const locationQuery = normalizeText(alert?.location).toLowerCase();
   const colorQuery = normalizeText(alert?.color).toLowerCase();
 
-  const matchesBrand = !brandQuery || searchText.includes(brandQuery);
-  const matchesModel = !modelQuery || searchText.includes(modelQuery);
+  const matchesBrand = !brandQuery || includesNormalizedValue(searchText, brandQuery);
+  const matchesModel = !modelQuery || includesNormalizedValue(searchText, modelQuery);
   const matchesFuel = !fuelQuery || includesNormalizedValue(offer.fuel, fuelQuery);
   const matchesLocation = !locationQuery || includesNormalizedValue(offer.location, locationQuery);
   const matchesColor = !colorQuery || includesNormalizedValue(offer.color, colorQuery);

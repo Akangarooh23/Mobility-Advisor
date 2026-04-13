@@ -6,6 +6,7 @@ const MARKET_ALERT_STATUS_KEY = "movilidad-advisor.marketAlertStatus.v1";
 const AUTH_USER_KEY = "movilidad-advisor.authUser.v1";
 const USER_BILLING_PROFILE_KEY = "movilidad-advisor.userBillingProfile.v1";
 const USER_BILLING_STATE_KEY = "movilidad-advisor.userBillingState.v1";
+const COOKIE_CONSENT_KEY = "movilidad-advisor.cookieConsent.v1";
 
 function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -339,6 +340,81 @@ export function writeUserBillingState(state = {}) {
         nextBillingDate: normalizeText(safeState.nextBillingDate),
         stripeCustomerId: normalizeText(safeState.stripeCustomerId),
         invoices: Array.isArray(safeState.invoices) ? safeState.invoices.slice(0, 24) : getDefaultBillingState().invoices,
+      })
+    );
+  } catch {}
+}
+
+export function readCookieConsent() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(COOKIE_CONSENT_KEY);
+    const parsed = JSON.parse(raw || "null");
+
+    if (!parsed || typeof parsed !== "object") {
+      return null;
+    }
+
+    const status = normalizeText(parsed.status).toLowerCase();
+
+    if (!["all", "necessary", "custom", "rejected"].includes(status)) {
+      return null;
+    }
+
+    const rawPreferences =
+      parsed.preferences && typeof parsed.preferences === "object"
+        ? parsed.preferences
+        : {};
+
+    return {
+      status,
+      acceptedAt: normalizeText(parsed.acceptedAt),
+      version: normalizeText(parsed.version) || "v1",
+      preferences: {
+        necessary: true,
+        analytics: Boolean(rawPreferences.analytics),
+        personalization: Boolean(rawPreferences.personalization),
+        marketing: Boolean(rawPreferences.marketing),
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function writeCookieConsent(status = "all", meta = {}) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    const normalizedStatus = normalizeText(status).toLowerCase();
+
+    if (!["all", "necessary", "custom", "rejected"].includes(normalizedStatus)) {
+      window.localStorage.removeItem(COOKIE_CONSENT_KEY);
+      return;
+    }
+
+    const rawPreferences =
+      meta?.preferences && typeof meta.preferences === "object"
+        ? meta.preferences
+        : {};
+
+    window.localStorage.setItem(
+      COOKIE_CONSENT_KEY,
+      JSON.stringify({
+        status: normalizedStatus,
+        acceptedAt: normalizeText(meta.acceptedAt) || new Date().toISOString(),
+        version: normalizeText(meta.version) || "v1",
+        preferences: {
+          necessary: true,
+          analytics: Boolean(rawPreferences.analytics),
+          personalization: Boolean(rawPreferences.personalization),
+          marketing: Boolean(rawPreferences.marketing),
+        },
       })
     );
   } catch {}

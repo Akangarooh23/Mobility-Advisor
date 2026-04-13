@@ -19,6 +19,7 @@ import ServiceOptionsPage from "./pages/ServiceOptionsPage";
 import ServiceInsurancePage from "./pages/ServiceInsurancePage";
 import ServiceMaintenancePage from "./pages/ServiceMaintenancePage";
 import ServiceAutogestorPage from "./pages/ServiceAutogestorPage";
+import LegalPolicyPage from "./pages/LegalPolicyPage";
 import ResolvedOfferImage from "./components/offers/ResolvedOfferImage";
 import {
   createInitialDecisionAnswers,
@@ -96,12 +97,14 @@ import {
   clearAuthUser,
   clearQuestionnaireDraft,
   readAuthUser,
+  readCookieConsent,
   readMarketAlerts,
   readMarketAlertStatus,
   readQuestionnaireDraft,
   readSavedComparisons,
   readUserAppointments,
   writeAuthUser,
+  writeCookieConsent,
   writeMarketAlerts,
   writeMarketAlertStatus,
   writeQuestionnaireDraft,
@@ -168,9 +171,199 @@ function resolveAlertRecipientEmail(alert = {}, fallbackEmail = "") {
   return directEmail || fallback;
 }
 
-// ─────────────────────────────────────────
+const LEGAL_DOCUMENTS = {
+  legalNotice: {
+    title: "Aviso legal",
+    summary:
+      "InformaciÃ³n general de titularidad, alcance del servicio, propiedad intelectual y responsabilidades del uso de la plataforma.",
+    updatedAt: "13/04/2026",
+    sections: [
+      {
+        heading: "Datos identificativos",
+        paragraphs: [
+          "CarAdvisor es una plataforma digital orientada al asesoramiento y operativa de movilidad en EspaÃ±a.",
+          "A efectos de contacto general, soporte y gestiÃ³n de incidencias puedes dirigirte a soporte@caradvisor.es.",
+        ],
+      },
+      {
+        heading: "Objeto del sitio web",
+        paragraphs: [
+          "El presente sitio facilita herramientas de recomendaciÃ³n, comparaciÃ³n y gestiÃ³n de servicios de movilidad, asÃ­ como funcionalidades de apoyo para usuarios registrados.",
+          "La informaciÃ³n mostrada tiene carÃ¡cter informativo y de apoyo a la decisiÃ³n, sin constituir asesoramiento financiero, jurÃ­dico o fiscal vinculante.",
+        ],
+      },
+      {
+        heading: "Uso permitido y prohibiciones",
+        bullets: [
+          "El usuario se compromete a utilizar la plataforma conforme a la ley, la buena fe y el orden pÃºblico.",
+          "Queda prohibido el uso fraudulento, la extracciÃ³n automatizada no autorizada de datos y cualquier intento de alterar el funcionamiento del servicio.",
+          "CarAdvisor puede actualizar, mejorar o retirar funcionalidades para mantener seguridad, rendimiento y calidad de servicio.",
+        ],
+      },
+      {
+        heading: "Propiedad intelectual",
+        paragraphs: [
+          "La marca CarAdvisor, el diseÃ±o de la plataforma, su arquitectura funcional, contenidos, cÃ³digo y elementos grÃ¡ficos son titularidad de sus propietarios o licenciantes.",
+          "No se autoriza su reproducciÃ³n, distribuciÃ³n o transformaciÃ³n sin autorizaciÃ³n expresa salvo en los casos legalmente permitidos.",
+        ],
+      },
+      {
+        heading: "Responsabilidad",
+        paragraphs: [
+          "CarAdvisor no garantiza la disponibilidad permanente e ininterrumpida del servicio, aunque aplica medidas razonables para mantener su continuidad.",
+          "Las decisiones finales de contrataciÃ³n o compra/venta corresponden al usuario y, en su caso, al tercero proveedor con quien formalice la operaciÃ³n.",
+        ],
+      },
+    ],
+  },
+  privacyPolicy: {
+    title: "PolÃ­tica de privacidad",
+    summary:
+      "InformaciÃ³n sobre tratamiento de datos personales conforme al RGPD (UE 2016/679) y la LOPDGDD (Ley OrgÃ¡nica 3/2018).",
+    updatedAt: "13/04/2026",
+    sections: [
+      {
+        heading: "CategorÃ­as de datos tratados",
+        bullets: [
+          "Datos identificativos y de cuenta: nombre, correo electrÃ³nico, identificadores de usuario y sesiÃ³n.",
+          "Datos de uso y navegaciÃ³n: interacciones con el asesor, preferencias, filtros, actividad y eventos funcionales.",
+          "Datos operativos aportados voluntariamente: solicitudes de servicio, alertas, datos de contacto y datos asociados a trÃ¡mites dentro de la plataforma.",
+        ],
+      },
+      {
+        heading: "Finalidades del tratamiento",
+        bullets: [
+          "Gestionar el alta, autenticaciÃ³n y mantenimiento de cuentas de usuario.",
+          "Prestar funcionalidades de recomendaciÃ³n, comparaciÃ³n y gestiÃ³n de movilidad.",
+          "Mantener la seguridad, prevenir abusos y optimizar el rendimiento del servicio.",
+          "Enviar comunicaciones operativas imprescindibles para la prestaciÃ³n del servicio.",
+        ],
+      },
+      {
+        heading: "Bases jurÃ­dicas",
+        bullets: [
+          "EjecuciÃ³n de la relaciÃ³n contractual o precontractual cuando el usuario solicita funcionalidades del servicio.",
+          "Cumplimiento de obligaciones legales aplicables.",
+          "InterÃ©s legÃ­timo en seguridad, continuidad del servicio y mejora de la plataforma.",
+          "Consentimiento cuando resulte exigible para determinadas finalidades (por ejemplo, determinadas cookies o comunicaciones).",
+        ],
+      },
+      {
+        heading: "ConservaciÃ³n de datos",
+        paragraphs: [
+          "Los datos se conservan durante el tiempo necesario para cumplir la finalidad para la que fueron recabados y, posteriormente, durante los plazos legalmente exigibles.",
+          "Cuando proceda, los datos serÃ¡n bloqueados y tratados exclusivamente para atender posibles responsabilidades legales.",
+        ],
+      },
+      {
+        heading: "Destinatarios y transferencias",
+        paragraphs: [
+          "Con carÃ¡cter general no se ceden datos a terceros salvo obligaciÃ³n legal o cuando sea necesario para la prestaciÃ³n de servicios tecnolÃ³gicos vinculados a la plataforma.",
+          "En caso de proveedores fuera del Espacio EconÃ³mico Europeo, se aplicarÃ¡n garantÃ­as adecuadas conforme al RGPD.",
+        ],
+      },
+      {
+        heading: "Derechos de las personas usuarias",
+        paragraphs: [
+          "Puedes ejercer los derechos de acceso, rectificaciÃ³n, supresiÃ³n, oposiciÃ³n, limitaciÃ³n del tratamiento y portabilidad escribiendo a soporte@caradvisor.es.",
+          "Si consideras que tus derechos no han sido atendidos correctamente, puedes presentar reclamaciÃ³n ante la Agencia EspaÃ±ola de ProtecciÃ³n de Datos (AEPD).",
+        ],
+      },
+    ],
+  },
+  cookiePolicy: {
+    title: "PolÃ­tica de cookies",
+    summary:
+      "InformaciÃ³n sobre el uso de cookies y tecnologÃ­as similares, su finalidad y cÃ³mo gestionar el consentimiento.",
+    updatedAt: "13/04/2026",
+    sections: [
+      {
+        heading: "QuÃ© son las cookies",
+        paragraphs: [
+          "Las cookies son ficheros que se almacenan en el dispositivo del usuario y permiten reconocer su navegaciÃ³n, recordar preferencias y mejorar la experiencia.",
+        ],
+      },
+      {
+        heading: "Tipos de cookies utilizadas",
+        bullets: [
+          "Cookies tÃ©cnicas o necesarias: esenciales para el acceso, autenticaciÃ³n y funcionamiento base del servicio.",
+          "Cookies de preferencias: conservan configuraciones y elecciones del usuario para personalizar la experiencia.",
+          "Cookies analÃ­ticas: permiten evaluar el uso del servicio y mejorar funcionalidades.",
+        ],
+      },
+      {
+        heading: "Base legal y consentimiento",
+        paragraphs: [
+          "Las cookies necesarias se utilizan para asegurar el funcionamiento de la plataforma. El resto se gestionan conforme al consentimiento del usuario cuando sea exigible.",
+          "Al primer acceso se solicita aceptaciÃ³n para habilitar la experiencia completa y registrar la preferencia de consentimiento.",
+        ],
+      },
+      {
+        heading: "CÃ³mo revocar o modificar el consentimiento",
+        paragraphs: [
+          "Puedes modificar la configuraciÃ³n de cookies desde los ajustes del navegador y, en su caso, desde los mecanismos que habilite la plataforma.",
+          "La desactivaciÃ³n de determinadas cookies puede afectar a la disponibilidad de algunas funcionalidades.",
+        ],
+      },
+    ],
+  },
+  termsConditions: {
+    title: "TÃ©rminos y condiciones",
+    summary:
+      "Condiciones generales de uso del servicio, obligaciones de las partes y lÃ­mites de responsabilidad.",
+    updatedAt: "13/04/2026",
+    sections: [
+      {
+        heading: "AceptaciÃ³n de tÃ©rminos",
+        paragraphs: [
+          "El acceso y uso de CarAdvisor implica la aceptaciÃ³n de estos tÃ©rminos y condiciones.",
+          "Si no estÃ¡s de acuerdo con los tÃ©rminos, debes abstenerte de utilizar la plataforma.",
+        ],
+      },
+      {
+        heading: "Alcance y naturaleza del servicio",
+        paragraphs: [
+          "CarAdvisor proporciona recomendaciones y herramientas de apoyo para decisiones de movilidad, compra, venta y servicios asociados.",
+          "La plataforma no sustituye la revisiÃ³n contractual o tÃ©cnica que el usuario deba realizar antes de cerrar operaciones con terceros.",
+        ],
+      },
+      {
+        heading: "Cuenta de usuario y seguridad",
+        bullets: [
+          "El usuario es responsable de custodiar sus credenciales y de la actividad realizada en su cuenta.",
+          "Debe notificarse cualquier uso no autorizado o incidencia de seguridad en cuanto se detecte.",
+        ],
+      },
+      {
+        heading: "Obligaciones de uso",
+        bullets: [
+          "Utilizar el servicio de forma lÃ­cita, diligente y conforme a los presentes tÃ©rminos.",
+          "No manipular, interferir ni realizar acciones que comprometan seguridad, estabilidad o integridad del sistema.",
+          "No emplear el servicio para fines ilÃ­citos o contrarios a derechos de terceros.",
+        ],
+      },
+      {
+        heading: "LimitaciÃ³n de responsabilidad",
+        paragraphs: [
+          "CarAdvisor no garantiza resultados econÃ³micos concretos ni asume responsabilidad por decisiones finales adoptadas por el usuario.",
+          "Las relaciones contractuales con terceros proveedores son responsabilidad directa de las partes intervinientes.",
+        ],
+      },
+      {
+        heading: "Modificaciones y vigencia",
+        paragraphs: [
+          "CarAdvisor puede actualizar estos tÃ©rminos para adaptarlos a cambios normativos, tÃ©cnicos o de servicio.",
+          "La versiÃ³n vigente estarÃ¡ siempre disponible en el apartado legal de la plataforma.",
+        ],
+      },
+    ],
+  },
+};
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // APP
-// ─────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
 export default function App() {
   const [entryMode, setEntryMode] = useState(null);
   const [advisorContext, setAdvisorContext] = useState(null); // null | "buy" | "renting"
@@ -247,6 +440,14 @@ export default function App() {
   const [changePasswordError, setChangePasswordError] = useState("");
   const [changePasswordSuccess, setChangePasswordSuccess] = useState("");
   const [userDashboardPage, setUserDashboardPage] = useState("home");
+  const [showCookieGate, setShowCookieGate] = useState(false);
+  const [showCookieSettings, setShowCookieSettings] = useState(false);
+  const [cookiePreferences, setCookiePreferences] = useState({
+    necessary: true,
+    analytics: true,
+    personalization: true,
+    marketing: false,
+  });
   const quickValidationRef = useRef({});
   const listingOptionsRef = useRef([]);
   const listingSeenRef = useRef({ urls: [], titles: [] });
@@ -300,10 +501,43 @@ export default function App() {
     navigateToUserDashboardPage(routePage || "home");
   }, [navigateToUserDashboardPage]);
 
+  const openLegalDocument = useCallback((docKey = "legalNotice") => {
+    if (!LEGAL_DOCUMENTS[docKey]) {
+      return;
+    }
+
+    setEntryMode(docKey);
+    setStep(-1);
+
+    if (typeof window !== "undefined") {
+      window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
+    }
+  }, []);
+
+  const saveCookieConsent = useCallback((mode = "all") => {
+    const normalizedMode = ["all", "necessary", "custom"].includes(mode)
+      ? mode
+      : "all";
+    const preferences =
+      normalizedMode === "all"
+        ? { necessary: true, analytics: true, personalization: true, marketing: true }
+        : normalizedMode === "necessary"
+        ? { necessary: true, analytics: false, personalization: false, marketing: false }
+        : { ...cookiePreferences, necessary: true };
+
+    writeCookieConsent(normalizedMode, {
+      version: "2026-04",
+      preferences,
+    });
+
+    setShowCookieGate(false);
+    setShowCookieSettings(false);
+  }, [cookiePreferences]);
+
   const activeSteps = useMemo(() => {
     const steps = getQuestionnaireSteps(advancedMode);
     if (advisorContext === "renting") {
-      // Skip the flexibilidad question — renting is already pre-selected
+      // Skip the flexibilidad question â€” renting is already pre-selected
       return steps.filter((s) => s.id !== "flexibilidad");
     }
     if (advisorContext === "buy") {
@@ -427,8 +661,17 @@ export default function App() {
     setMarketAlerts(readMarketAlerts());
     setMarketAlertStatus(readMarketAlertStatus());
     setQuestionnaireDraft(readQuestionnaireDraft());
+    const storedConsent = readCookieConsent();
     setCurrentUser(savedAuthUser);
     setIsUserLoggedIn(Boolean(savedAuthUser?.email));
+    if (storedConsent?.preferences) {
+      setCookiePreferences((prev) => ({
+        ...prev,
+        ...storedConsent.preferences,
+        necessary: true,
+      }));
+    }
+    setShowCookieGate(!storedConsent?.status);
 
     void (async () => {
       try {
@@ -635,7 +878,7 @@ export default function App() {
     setSavedComparisons(next);
     setSaveFeedback(
       selectedOffer
-        ? "Recomendación guardada en Recomendaciones guardadas."
+        ? "RecomendaciÃ³n guardada en Recomendaciones guardadas."
         : "Comparativa guardada en este navegador."
     );
     window.setTimeout(() => setSaveFeedback(""), 2200);
@@ -671,7 +914,7 @@ export default function App() {
       const next = savedComparisons.filter((item) => item.id !== snapshot.id);
       writeSavedComparisons(next);
       setSavedComparisons(next);
-      setSaveFeedback("Recomendación quitada de guardadas.");
+      setSaveFeedback("RecomendaciÃ³n quitada de guardadas.");
       window.setTimeout(() => setSaveFeedback(""), 2200);
       return;
     }
@@ -728,7 +971,7 @@ export default function App() {
 
     if (!shouldSkipAuthGate && !isUserLoggedIn) {
       setPendingPlanCheckoutId(normalizedPlanId);
-      setPlanCheckoutFeedback("Inicia sesión para continuar con la suscripción.");
+      setPlanCheckoutFeedback("Inicia sesiÃ³n para continuar con la suscripciÃ³n.");
       openAuthDialog("login", { routePage: "home" });
       return;
     }
@@ -792,22 +1035,22 @@ export default function App() {
     const confirmPassword = String(changePasswordForm.confirmPassword || "");
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setChangePasswordError("Completa los tres campos de contraseña.");
+      setChangePasswordError("Completa los tres campos de contraseÃ±a.");
       return;
     }
 
     if (newPassword.length < 6) {
-      setChangePasswordError("La nueva contraseña debe tener al menos 6 caracteres.");
+      setChangePasswordError("La nueva contraseÃ±a debe tener al menos 6 caracteres.");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setChangePasswordError("La confirmación no coincide con la nueva contraseña.");
+      setChangePasswordError("La confirmaciÃ³n no coincide con la nueva contraseÃ±a.");
       return;
     }
 
     if (newPassword === currentPassword) {
-      setChangePasswordError("La nueva contraseña no puede ser igual a la actual.");
+      setChangePasswordError("La nueva contraseÃ±a no puede ser igual a la actual.");
       return;
     }
 
@@ -829,12 +1072,12 @@ export default function App() {
 
       setChangePasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
       setShowChangePasswordForm(false);
-      setChangePasswordSuccess(data?.message || "Contraseña actualizada correctamente.");
+      setChangePasswordSuccess(data?.message || "ContraseÃ±a actualizada correctamente.");
       if (typeof window !== "undefined") {
         window.setTimeout(() => setChangePasswordSuccess(""), 2600);
       }
     } catch (error) {
-      setChangePasswordError(error?.message || "No se pudo actualizar la contraseña.");
+      setChangePasswordError(error?.message || "No se pudo actualizar la contraseÃ±a.");
     } finally {
       setChangePasswordLoading(false);
     }
@@ -847,7 +1090,7 @@ export default function App() {
       const recoveryEmail = normalizeText(authForm.email).toLowerCase();
 
       if (!recoveryEmail) {
-        setAuthError("Indica el correo de tu cuenta para recuperar contraseña.");
+        setAuthError("Indica el correo de tu cuenta para recuperar contraseÃ±a.");
         return;
       }
 
@@ -862,9 +1105,9 @@ export default function App() {
         });
 
         setAuthRecoveryMode("confirm");
-        setAuthRecoveryFeedback(data?.message || "Revisa tu correo y escribe el código de recuperación.");
+        setAuthRecoveryFeedback(data?.message || "Revisa tu correo y escribe el cÃ³digo de recuperaciÃ³n.");
       } catch (error) {
-        setAuthError(error?.message || "No se pudo solicitar la recuperación de contraseña.");
+        setAuthError(error?.message || "No se pudo solicitar la recuperaciÃ³n de contraseÃ±a.");
       } finally {
         setAuthLoading(false);
       }
@@ -878,7 +1121,7 @@ export default function App() {
       const newPassword = String(authForm.password || "");
 
       if (!recoveryEmail || !recoveryCode || !newPassword) {
-        setAuthError("Completa correo, código y nueva contraseña.");
+        setAuthError("Completa correo, cÃ³digo y nueva contraseÃ±a.");
         return;
       }
 
@@ -897,7 +1140,7 @@ export default function App() {
         const nextTargetEntryMode = normalizeText(authTargetEntryMode);
 
         if (!nextUser?.email) {
-          throw new Error("No se pudo completar el cambio de contraseña.");
+          throw new Error("No se pudo completar el cambio de contraseÃ±a.");
         }
 
         writeAuthUser(nextUser);
@@ -914,7 +1157,7 @@ export default function App() {
         }
         setShowAuthMenu(false);
         setShowUserPanel(false);
-        setSaveFeedback(data?.message || "Contraseña actualizada y sesión iniciada.");
+        setSaveFeedback(data?.message || "ContraseÃ±a actualizada y sesiÃ³n iniciada.");
         setAuthDialogMode("");
         setAuthRecoveryMode("none");
         setAuthRecoveryCode("");
@@ -944,7 +1187,7 @@ export default function App() {
           window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
         }
       } catch (error) {
-        setAuthError(error?.message || "No se pudo restablecer la contraseña.");
+        setAuthError(error?.message || "No se pudo restablecer la contraseÃ±a.");
       } finally {
         setAuthLoading(false);
       }
@@ -966,12 +1209,12 @@ export default function App() {
     }
 
     if (!payload.email) {
-      setAuthError("Indica tu correo electrónico.");
+      setAuthError("Indica tu correo electrÃ³nico.");
       return;
     }
 
     if (!payload.password) {
-      setAuthError("Indica tu contraseña.");
+      setAuthError("Indica tu contraseÃ±a.");
       return;
     }
 
@@ -1010,7 +1253,7 @@ export default function App() {
         data?.message ||
           (mode === "register"
             ? `Cuenta creada para ${nextUser.email}.`
-            : `Sesión iniciada para ${nextUser.email}.`)
+            : `SesiÃ³n iniciada para ${nextUser.email}.`)
       );
       setAuthDialogMode("");
           setAuthTargetEntryMode("");
@@ -1107,7 +1350,7 @@ export default function App() {
       id: alertId ? `alert:${alertId}` : `alert:${Date.now()}`,
       ...normalizedAlert,
       modeLabel,
-      title: titleParts.length > 0 ? `Alerta ${titleParts.join(" · ")}` : "Alerta general de mercado",
+      title: titleParts.length > 0 ? `Alerta ${titleParts.join(" Â· ")}` : "Alerta general de mercado",
       status: "Vigilando mercado",
       createdAt: new Date().toLocaleString("es-ES", {
         day: "2-digit",
@@ -1213,7 +1456,7 @@ export default function App() {
     );
 
     if (configuredEmailTargets.length === 0) {
-      setEmailDigestFeedback("No hay un correo configurado todavía para estas alertas.");
+      setEmailDigestFeedback("No hay un correo configurado todavÃ­a para estas alertas.");
       window.setTimeout(() => setEmailDigestFeedback(""), 2200);
       return;
     }
@@ -1231,8 +1474,8 @@ export default function App() {
         to: emailTargets,
         subject:
           emailTargets.length === 1
-            ? "CarAdvisor · Tu resumen de alertas"
-            : `CarAdvisor · ${emailTargets.length} resúmenes de alertas`,
+            ? "CarAdvisor Â· Tu resumen de alertas"
+            : `CarAdvisor Â· ${emailTargets.length} resÃºmenes de alertas`,
         notifications: notificationsToSend,
       });
 
@@ -1355,18 +1598,18 @@ export default function App() {
     const appointmentCatalog = {
       workshop: {
         title: "Cita de taller",
-        meta: "Diagnóstico, revisión o reparación del vehículo",
+        meta: "DiagnÃ³stico, revisiÃ³n o reparaciÃ³n del vehÃ­culo",
         status: "Solicitud enviada",
       },
       maintenance: {
         title: "Cita de mantenimiento",
-        meta: "Mantenimiento preventivo y revisión de servicio",
-        status: "Pendiente de confirmación",
+        meta: "Mantenimiento preventivo y revisiÃ³n de servicio",
+        status: "Pendiente de confirmaciÃ³n",
       },
       certification: {
-        title: "Garantía / certificación de calidad",
-        meta: "Revisión para garantía extendida o certificación de calidad",
-        status: "En validación",
+        title: "GarantÃ­a / certificaciÃ³n de calidad",
+        meta: "RevisiÃ³n para garantÃ­a extendida o certificaciÃ³n de calidad",
+        status: "En validaciÃ³n",
       },
     };
 
@@ -1415,7 +1658,7 @@ export default function App() {
 
     if (answeredSteps < totalSteps) {
       const proceed = window.confirm(
-        "Todavia no has completado todo el formulario. Podemos darte una recomendacion util ahora, pero sera una estimacion menos precisa que si respondes todas las preguntas. ¿Quieres continuar de todos modos?"
+        "Todavia no has completado todo el formulario. Podemos darte una recomendacion util ahora, pero sera una estimacion menos precisa que si respondes todas las preguntas. Â¿Quieres continuar de todos modos?"
       );
 
       if (!proceed) {
@@ -1570,7 +1813,7 @@ export default function App() {
 
       setDecisionListingResult(listing);
     } catch (err) {
-      setDecisionListingError(err.message || "No se pudo localizar un anuncio real para esta operación.");
+      setDecisionListingError(err.message || "No se pudo localizar un anuncio real para esta operaciÃ³n.");
     } finally {
       setDecisionListingLoading(false);
     }
@@ -1868,10 +2111,10 @@ export default function App() {
   const remainingQuestions = Math.max(totalSteps - answeredSteps, 0);
   const completionPct = Math.min(100, Math.round((answeredSteps / totalSteps) * 100));
 
-  // ─── STYLES ───────────────────────────────
+  // â”€â”€â”€ STYLES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const s = useMemo(() => createAppStyles(progress), [progress]);
 
-  // ─── RENDER ───────────────────────────────
+  // â”€â”€â”€ RENDER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   return (
     <div style={s.page}>
       {/* HEADER */}
@@ -1904,7 +2147,7 @@ export default function App() {
               fontSize: 16,
             }}
           >
-            🚗
+            {"\uD83D\uDE97"}
           </div>
           <div>
             <div style={{ fontWeight: 700, fontSize: 14, color: "#f1f5f9" }}>CarAdvisor</div>
@@ -1932,7 +2175,7 @@ export default function App() {
                 fontSize: 12,
               }}
             >
-              ← Volver al home
+              {"\u2190"} Volver al home
             </button>
           )}
 
@@ -1968,7 +2211,7 @@ export default function App() {
                 fontSize: 13,
               }}
             >
-              👤
+              {"\uD83D\uDC64"}
             </span>
             <span>{isUserLoggedIn ? "Mi panel" : "Acceder"}</span>
           </button>
@@ -1989,7 +2232,7 @@ export default function App() {
               }}
             >
               <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 8 }}>
-                Área de usuario
+                Ãrea de usuario
               </div>
               <button
                 type="button"
@@ -2007,7 +2250,7 @@ export default function App() {
                   marginBottom: 8,
                 }}
               >
-                Iniciar sesión
+                Iniciar sesiÃ³n
               </button>
               <button
                 type="button"
@@ -2054,7 +2297,7 @@ export default function App() {
                   </div>
                   {currentUser?.email && (
                     <div style={{ fontSize: 11, color: "#bfdbfe", marginTop: 4 }}>
-                      {currentUser.name || "Usuario"} · {currentUser.email}
+                      {currentUser.name || "Usuario"} Â· {currentUser.email}
                     </div>
                   )}
                 </div>
@@ -2073,7 +2316,7 @@ export default function App() {
                       fontWeight: 800,
                     }}
                   >
-                    Ver detalle →
+                    Ver detalle {"\u2192"}
                   </button>
                   <button
                     type="button"
@@ -2088,7 +2331,7 @@ export default function App() {
                       fontSize: 11,
                     }}
                   >
-                    Cerrar sesión
+                    Cerrar sesiÃ³n
                   </button>
                 </div>
               </div>
@@ -2115,7 +2358,7 @@ export default function App() {
                         cursor: "pointer",
                       }}
                     >
-                      {showChangePasswordForm ? "Cancelar" : "Cambiar contraseña"}
+                      {showChangePasswordForm ? "Cancelar" : "Cambiar contraseÃ±a"}
                     </button>
                   </div>
 
@@ -2131,21 +2374,21 @@ export default function App() {
                         type="password"
                         value={changePasswordForm.currentPassword}
                         onChange={(event) => setChangePasswordForm((prev) => ({ ...prev, currentPassword: event.target.value }))}
-                        placeholder="Contraseña actual"
+                        placeholder="ContraseÃ±a actual"
                         style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
                       />
                       <input
                         type="password"
                         value={changePasswordForm.newPassword}
                         onChange={(event) => setChangePasswordForm((prev) => ({ ...prev, newPassword: event.target.value }))}
-                        placeholder="Nueva contraseña (mínimo 6 caracteres)"
+                        placeholder="Nueva contraseÃ±a (mÃ­nimo 6 caracteres)"
                         style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
                       />
                       <input
                         type="password"
                         value={changePasswordForm.confirmPassword}
                         onChange={(event) => setChangePasswordForm((prev) => ({ ...prev, confirmPassword: event.target.value }))}
-                        placeholder="Confirmar nueva contraseña"
+                        placeholder="Confirmar nueva contraseÃ±a"
                         style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
                       />
 
@@ -2171,12 +2414,12 @@ export default function App() {
                           opacity: changePasswordLoading ? 0.78 : 1,
                         }}
                       >
-                        {changePasswordLoading ? "Guardando..." : "Guardar contraseña"}
+                        {changePasswordLoading ? "Guardando..." : "Guardar contraseÃ±a"}
                       </button>
                     </form>
                   ) : (
                     <div style={{ fontSize: 11, color: "#94a3b8" }}>
-                      Puedes actualizar tu contraseña sin cerrar sesión.
+                      Puedes actualizar tu contraseÃ±a sin cerrar sesiÃ³n.
                     </div>
                   )}
                 </div>
@@ -2232,7 +2475,7 @@ export default function App() {
                           </button>
                         </div>
                         <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>
-                          {item.typeLabel} · {item.savedAt}
+                          {item.typeLabel} {"\u00B7"} {item.savedAt}
                         </div>
                         <div style={{ fontSize: 11, color: "#cbd5e1", marginTop: 2 }}>
                           {item.monthlyTotal > 0 ? `${formatCurrency(item.monthlyTotal)}/mes` : item.budgetLabel || "Sin cuota definida"}
@@ -2240,19 +2483,19 @@ export default function App() {
                         {(item.sourceLabel || item.listingPrice) && (
                           <div style={{ fontSize: 11, color: "#bfdbfe", marginTop: 2 }}>
                             {item.sourceLabel || "Oferta guardada"}
-                            {item.listingPrice ? ` · ${item.listingPrice}` : ""}
+                            {item.listingPrice ? ` ${"\u00B7"} ${item.listingPrice}` : ""}
                           </div>
                         )}
                         {savedOfferHref && (
                           <div style={{ fontSize: 11, color: "#7dd3fc", marginTop: 4, fontWeight: 700 }}>
-                            Abrir oferta ↗
+                            Abrir oferta {"\u2197"}
                           </div>
                         )}
                       </div>
                     );})
                   ) : (
                     <div style={{ fontSize: 11, color: "#94a3b8" }}>
-                      Cuando guardes una comparativa aparecerá aquí automáticamente.
+                      Cuando guardes una comparativa aparecerÃ¡ aquÃ­ automÃ¡ticamente.
                     </div>
                   )}
                 </div>
@@ -2265,9 +2508,9 @@ export default function App() {
 
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
                     {[
-                      { key: "workshop", label: "🛠️ Taller" },
-                      { key: "maintenance", label: "🔧 Mantenimiento" },
-                      { key: "certification", label: "✅ Garantía / calidad" },
+                      { key: "workshop", label: "\uD83D\uDEE0\uFE0F Taller" },
+                      { key: "maintenance", label: "\uD83D\uDD27 Mantenimiento" },
+                      { key: "certification", label: "\u2705 Garantia / calidad" },
                     ].map((option) => (
                       <button
                         key={option.key}
@@ -2296,13 +2539,13 @@ export default function App() {
                         <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{item.meta}</div>
                         <div style={{ fontSize: 11, color: "#fbbf24", marginTop: 2 }}>
                           {item.status}
-                          {item.requestedAt ? ` · ${item.requestedAt}` : ""}
+                          {item.requestedAt ? ` ${"\u00B7"} ${item.requestedAt}` : ""}
                         </div>
                       </div>
                     ))
                   ) : (
                     <div style={{ fontSize: 11, color: "#94a3b8" }}>
-                      Aún no tienes citas programadas. Cuando reserves una, se verá aquí.
+                      AÃºn no tienes citas programadas. Cuando reserves una, se verÃ¡ aquÃ­.
                     </div>
                   )}
                 </div>
@@ -2322,14 +2565,14 @@ export default function App() {
                     ))
                   ) : (
                     <div style={{ fontSize: 11, color: "#94a3b8" }}>
-                      Cuando hagas una tasación de tu coche, la verás aquí guardada.
+                      Cuando hagas una tasaciÃ³n de tu coche, la verÃ¡s aquÃ­ guardada.
                     </div>
                   )}
                 </div>
 
                 <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 12 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#f8fafc", marginBottom: 8 }}>
-                    Mis vehículos
+                    Mis vehÃ­culos
                   </div>
                   <div style={{ display: "grid", gap: 8 }}>
                     {userVehicleSections.map((section) => (
@@ -2371,7 +2614,7 @@ export default function App() {
         <div
           role="dialog"
           aria-modal="true"
-          aria-label={authDialogMode === "register" ? "Crear tu cuenta" : "Iniciar sesión"}
+          aria-label={authDialogMode === "register" ? "Crear tu cuenta" : "Iniciar sesiÃ³n"}
           style={{
             position: "fixed",
             inset: 0,
@@ -2399,7 +2642,7 @@ export default function App() {
               <div>
                 <div style={{ fontSize: 11, color: authDialogMode === "register" ? "#6ee7b7" : "#93c5fd", letterSpacing: "0.6px" }}>
                   {authRecoveryMode === "request"
-                    ? "RECUPERACIÓN"
+                    ? "RECUPERACIÃ“N"
                     : authRecoveryMode === "confirm"
                     ? "RESETEO"
                     : authDialogMode === "register"
@@ -2408,17 +2651,17 @@ export default function App() {
                 </div>
                 <div style={{ fontSize: 22, fontWeight: 800, color: "#f8fafc" }}>
                   {authRecoveryMode === "request"
-                    ? "Recuperar contraseña"
+                    ? "Recuperar contraseÃ±a"
                     : authRecoveryMode === "confirm"
-                    ? "Introduce tu código"
+                    ? "Introduce tu cÃ³digo"
                     : authDialogMode === "register"
                     ? "Crear tu cuenta"
-                    : "Iniciar sesión"}
+                    : "Iniciar sesiÃ³n"}
                 </div>
                 <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>
                   {authRecoveryMode === "none"
-                    ? "Tu email de acceso será el destinatario por defecto de los avisos y resúmenes."
-                    : "Te enviaremos un código temporal para actualizar la contraseña de forma segura."}
+                    ? "Tu email de acceso serÃ¡ el destinatario por defecto de los avisos y resÃºmenes."
+                    : "Te enviaremos un cÃ³digo temporal para actualizar la contraseÃ±a de forma segura."}
                 </div>
               </div>
               <button
@@ -2432,7 +2675,7 @@ export default function App() {
                   cursor: "pointer",
                 }}
               >
-                ×
+                Ã—
               </button>
             </div>
 
@@ -2451,7 +2694,7 @@ export default function App() {
               )}
 
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
-                Correo electrónico
+                Correo electrÃ³nico
                 <input
                   type="email"
                   value={authForm.email}
@@ -2462,19 +2705,19 @@ export default function App() {
               </label>
 
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
-                {authRecoveryMode === "confirm" ? "Nueva contraseña" : "Contraseña"}
+                {authRecoveryMode === "confirm" ? "Nueva contraseÃ±a" : "ContraseÃ±a"}
                 <input
                   type="password"
                   value={authForm.password}
                   onChange={(event) => setAuthForm((prev) => ({ ...prev, password: event.target.value }))}
-                  placeholder={authRecoveryMode === "confirm" ? "Nueva contraseña (mínimo 6 caracteres)" : "Mínimo 6 caracteres"}
+                  placeholder={authRecoveryMode === "confirm" ? "Nueva contraseÃ±a (mÃ­nimo 6 caracteres)" : "MÃ­nimo 6 caracteres"}
                   style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
                 />
               </label>
 
               {authRecoveryMode === "confirm" && (
                 <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
-                  Código de recuperación
+                  CÃ³digo de recuperaciÃ³n
                   <input
                     type="text"
                     value={authRecoveryCode}
@@ -2548,7 +2791,7 @@ export default function App() {
                       fontWeight: 700,
                     }}
                   >
-                    He olvidado mi contraseña
+                    He olvidado mi contraseÃ±a
                   </button>
                 )}
                 <button
@@ -2572,17 +2815,252 @@ export default function App() {
                   }}
                 >
                   {authLoading
-                    ? "Procesando…"
+                    ? "Procesandoâ€¦"
                     : authRecoveryMode === "request"
-                    ? "Enviar código"
+                    ? "Enviar cÃ³digo"
                     : authRecoveryMode === "confirm"
-                    ? "Actualizar contraseña"
+                    ? "Actualizar contraseÃ±a"
                     : authDialogMode === "register"
                     ? "Crear cuenta"
                     : "Entrar"}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showCookieGate && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Consentimiento de cookies"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(2,6,23,0.8)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+            zIndex: 170,
+          }}
+        >
+          <div
+            style={{
+              width: "min(680px, 100%)",
+              maxHeight: "min(92vh, 820px)",
+              background: "rgba(8,15,30,0.98)",
+              border: "1px solid rgba(103,232,249,0.28)",
+              borderRadius: 18,
+              boxShadow: "0 24px 60px rgba(2,6,23,0.45)",
+              padding: 18,
+              textAlign: "left",
+              overflowY: "auto",
+            }}
+          >
+            <div style={{ fontSize: 11, color: "#67e8f9", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 8 }}>
+              CONFIGURACION INICIAL
+            </div>
+            <h3 style={{ margin: "0 0 8px", fontSize: "clamp(22px,4vw,28px)", color: "#f8fafc" }}>
+              Antes de entrar, acepta nuestra polÃ­tica de cookies
+            </h3>
+            <p style={{ margin: "0 0 8px", color: "#cbd5e1", fontSize: 13, lineHeight: 1.65 }}>
+              Utilizamos cookies necesarias para el funcionamiento y, si tÃº quieres, cookies analÃ­ticas,
+              de personalizaciÃ³n y marketing para mejorar tu experiencia.
+            </p>
+            <p style={{ margin: "0 0 14px", color: "#94a3b8", fontSize: 12, lineHeight: 1.6 }}>
+              Puedes aceptar todas, rechazar las opcionales o configurar tus preferencias por categorÃ­a.
+            </p>
+
+            <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>
+              {[
+                {
+                  key: "necessary",
+                  title: "Cookies necesarias",
+                  description: "Imprescindibles para acceder, mantener sesiÃ³n y navegar correctamente.",
+                  locked: true,
+                },
+                {
+                  key: "analytics",
+                  title: "Cookies analÃ­ticas",
+                  description: "Nos ayudan a medir uso y rendimiento para mejorar la plataforma.",
+                },
+                {
+                  key: "personalization",
+                  title: "Cookies de personalizaciÃ³n",
+                  description: "Guardan preferencias para adaptar contenido y experiencia.",
+                },
+                {
+                  key: "marketing",
+                  title: "Cookies de marketing",
+                  description: "Permiten comunicaciones y campaÃ±as mÃ¡s relevantes.",
+                },
+              ].map((item) => {
+                const enabled = cookiePreferences[item.key];
+                return (
+                  <div
+                    key={item.key}
+                    style={{
+                      border: "1px solid rgba(148,163,184,0.24)",
+                      borderRadius: 12,
+                      background: "rgba(15,23,42,0.5)",
+                      padding: "10px 12px",
+                      display: "flex",
+                      gap: 10,
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 13, color: "#f8fafc", fontWeight: 700 }}>{item.title}</div>
+                      <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2, lineHeight: 1.5 }}>
+                        {item.description}
+                      </div>
+                    </div>
+
+                    {item.locked ? (
+                      <span
+                        style={{
+                          borderRadius: 999,
+                          padding: "5px 9px",
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: "#86efac",
+                          border: "1px solid rgba(110,231,183,0.35)",
+                          background: "rgba(16,185,129,0.14)",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Siempre activas
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        aria-pressed={Boolean(enabled)}
+                        onClick={() =>
+                          setCookiePreferences((prev) => ({
+                            ...prev,
+                            [item.key]: !prev[item.key],
+                          }))
+                        }
+                        style={{
+                          borderRadius: 999,
+                          border: enabled
+                            ? "1px solid rgba(110,231,183,0.35)"
+                            : "1px solid rgba(148,163,184,0.3)",
+                          background: enabled
+                            ? "rgba(16,185,129,0.14)"
+                            : "rgba(15,23,42,0.7)",
+                          color: enabled ? "#86efac" : "#cbd5e1",
+                          padding: "6px 10px",
+                          fontSize: 11,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {enabled ? "Activadas" : "Desactivadas"}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {showCookieSettings && (
+              <div
+                style={{
+                  marginBottom: 12,
+                  border: "1px solid rgba(125,211,252,0.24)",
+                  background: "rgba(2,132,199,0.1)",
+                  borderRadius: 10,
+                  padding: "9px 11px",
+                  fontSize: 12,
+                  color: "#bae6fd",
+                }}
+              >
+                ConfiguraciÃ³n avanzada activa. Cuando termines, pulsa Guardar selecciÃ³n.
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={() => saveCookieConsent("all")}
+                style={{
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  background: "linear-gradient(135deg,#2563eb,#0ea5e9)",
+                  color: "#ffffff",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                Aceptar todas
+              </button>
+
+              <button
+                type="button"
+                onClick={() => saveCookieConsent("necessary")}
+                style={{
+                  border: "1px solid rgba(148,163,184,0.34)",
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  background: "rgba(15,23,42,0.72)",
+                  color: "#e2e8f0",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Solo necesarias
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCookieSettings(true);
+                  saveCookieConsent("custom");
+                }}
+                style={{
+                  border: "1px solid rgba(110,231,183,0.34)",
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  background: "rgba(16,185,129,0.12)",
+                  color: "#bbf7d0",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Guardar selecciÃ³n
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowCookieSettings((prev) => !prev)}
+                style={{
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  background: "transparent",
+                  color: "#93c5fd",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                }}
+              >
+                {showCookieSettings ? "Ocultar configuraciÃ³n" : "Configurar cookies"}
+              </button>
+            </div>
+
+            <div style={{ marginTop: 10, fontSize: 12, color: "#94a3b8" }}>
+              Puedes revisar los detalles en la polÃ­tica de cookies desde el footer.
+            </div>
           </div>
         </div>
       )}
@@ -2714,7 +3192,7 @@ export default function App() {
         <div style={s.progressFill} />
       </div>
 
-      {/* ── LANDING ── */}
+      {/* â”€â”€ LANDING â”€â”€ */}
       {step === -1 && !entryMode && (
         <LandingPage
           styles={s}
@@ -2739,7 +3217,7 @@ export default function App() {
           }}
           onSelectSell={() => {
             if (!isUserLoggedIn) {
-              setPlanCheckoutFeedback("Inicia sesión o regístrate para sincronizar este flujo con tu portal.");
+              setPlanCheckoutFeedback("Inicia sesiÃ³n o regÃ­strate para sincronizar este flujo con tu portal.");
               openAuthDialog("login", { entryMode: "sellOptions", routePage: "home" });
               return;
             }
@@ -2749,7 +3227,7 @@ export default function App() {
           }}
           onSelectService={() => {
             if (!isUserLoggedIn) {
-              setPlanCheckoutFeedback("Inicia sesión o regístrate para sincronizar este flujo con tu portal.");
+              setPlanCheckoutFeedback("Inicia sesiÃ³n o regÃ­strate para sincronizar este flujo con tu portal.");
               openAuthDialog("login", { entryMode: "serviceOptions", routePage: "home" });
               return;
             }
@@ -2915,10 +3393,22 @@ export default function App() {
         />
       )}
 
+      {step === -1 && LEGAL_DOCUMENTS[entryMode] && (
+        <LegalPolicyPage
+          styles={s}
+          title={LEGAL_DOCUMENTS[entryMode].title}
+          summary={LEGAL_DOCUMENTS[entryMode].summary}
+          updatedAt={LEGAL_DOCUMENTS[entryMode].updatedAt}
+          sections={LEGAL_DOCUMENTS[entryMode].sections}
+          onGoBack={restart}
+          onGoHome={restart}
+        />
+      )}
+
       {step === -1 && entryMode === "userDashboard" && isUserLoggedIn && (
         <UserDashboardPage
           centerStyle={s.center}
-          blockBadgeStyle={s.blockBadge("Vinculación")}
+          blockBadgeStyle={s.blockBadge("VinculaciÃ³n")}
           panelStyle={s.panel}
           userDashboardPage={userDashboardPage}
           savedComparisons={savedComparisons}
@@ -3072,7 +3562,7 @@ export default function App() {
         />
       )}
 
-      {/* ── QUESTIONS ── */}
+      {/* â”€â”€ QUESTIONS â”€â”€ */}
       {entryMode === "consejo" && step >= 0 && step < totalSteps && currentStep && (
         <QuestionnairePage
           styles={s}
@@ -3096,7 +3586,7 @@ export default function App() {
         />
       )}
 
-      {/* ── LOADING ── */}
+      {/* â”€â”€ LOADING â”€â”€ */}
       {step === 99 && loading && (
         <LoadingAnalysisPage
           styles={s}
@@ -3105,7 +3595,7 @@ export default function App() {
         />
       )}
 
-      {/* ── API KEY MISSING ── */}
+      {/* â”€â”€ API KEY MISSING â”€â”€ */}
       {apiKeyMissing && (
         <ApiKeyMissingPage
           styles={s}
@@ -3117,7 +3607,7 @@ export default function App() {
       )}
 
       {/* -- RESULT -- */}
-      {result && (
+      {result && !LEGAL_DOCUMENTS[entryMode] && (
         <AdviceResultsPage
           result={result}
           resultRef={resultRef}
@@ -3166,8 +3656,165 @@ export default function App() {
         />
       )}
 
-      {/* ── ERROR ── */}
+      {/* â”€â”€ ERROR â”€â”€ */}
       {error && <ErrorStatePage error={error} onRetry={() => analyzeWithAI(answers)} />}
+
+      <footer
+        style={{
+          marginTop: 40,
+          borderTop: "1px solid rgba(148,163,184,0.22)",
+          background:
+            "radial-gradient(120% 100% at 8% 0%, rgba(56,189,248,0.1), rgba(56,189,248,0) 45%), linear-gradient(180deg, rgba(2,6,23,0.9), rgba(2,6,23,0.98))",
+        }}
+      >
+        <div
+          style={{
+            ...s.center,
+            paddingTop: 30,
+            paddingBottom: 30,
+            display: "grid",
+            gap: 18,
+          }}
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))",
+              gap: 14,
+              textAlign: "left",
+            }}
+          >
+            <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <div
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: 8,
+                    background: "linear-gradient(135deg,#2563EB,#10b981)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 14,
+                  }}
+                >
+                  {"\uD83D\uDE97"}
+                </div>
+                <div style={{ fontWeight: 800, fontSize: 14, color: "#f8fafc" }}>CarAdvisor</div>
+              </div>
+              <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
+                Plataforma de movilidad para comprar mejor, vender mejor y reducir el coste total de tu vehÃ­culo.
+              </div>
+            </div>
+
+            <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
+              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>CONTACTO</div>
+              <div style={{ display: "grid", gap: 6, fontSize: 12 }}>
+                <a href="mailto:soporte@caradvisor.es" style={{ color: "#e2e8f0", textDecoration: "none" }}>soporte@caradvisor.es</a>
+                <a href="tel:+34910000000" style={{ color: "#e2e8f0", textDecoration: "none" }}>+34 910 000 000</a>
+                <div style={{ color: "#94a3b8" }}>L-V 09:00 a 18:00 (EspaÃ±a)</div>
+              </div>
+            </div>
+
+            <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
+              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>ENLACES UTILES</div>
+              <div style={{ display: "grid", gap: 7, fontSize: 12 }}>
+                <button type="button" onClick={restart} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Inicio</button>
+                <button type="button" onClick={() => { setEntryMode("portalVo"); setStep(-1); setPortalVoFilters({ ...INITIAL_PORTAL_VO_FILTERS }); }} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Marketplace VO</button>
+                <button type="button" onClick={() => { setEntryMode("vehicleOptions"); setStep(-1); }} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Asesor de vehÃ­culo</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!isUserLoggedIn) {
+                      setPlanCheckoutFeedback("Inicia sesiÃ³n o regÃ­strate para sincronizar este flujo con tu portal.");
+                      openAuthDialog("login", { entryMode: "serviceOptions", routePage: "home" });
+                      return;
+                    }
+                    setEntryMode("serviceOptions");
+                    setStep(-1);
+                  }}
+                  style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}
+                >
+                  Servicios
+                </button>
+              </div>
+            </div>
+
+            <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
+              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>REDES SOCIALES</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {[
+                  ["LinkedIn", "https://www.linkedin.com"],
+                  ["Instagram", "https://www.instagram.com"],
+                  ["X", "https://x.com"],
+                  ["YouTube", "https://www.youtube.com"],
+                ].map(([label, href]) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="ma-card-soft"
+                    style={{
+                      border: "1px solid rgba(148,163,184,0.24)",
+                      borderRadius: 999,
+                      padding: "6px 10px",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: "#e2e8f0",
+                      textDecoration: "none",
+                      background: "rgba(15,23,42,0.55)",
+                    }}
+                  >
+                    {label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+              gap: 10,
+              borderTop: "1px solid rgba(148,163,184,0.2)",
+              paddingTop: 12,
+              fontSize: 11,
+              color: "#94a3b8",
+              textAlign: "left",
+            }}
+          >
+            <div>Â© {new Date().getFullYear()} CarAdvisor. Todos los derechos reservados.</div>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              {[
+                ["Aviso legal", "legalNotice"],
+                ["Privacidad", "privacyPolicy"],
+                ["Cookies", "cookiePolicy"],
+                ["TÃ©rminos", "termsConditions"],
+              ].map(([label, key]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => openLegalDocument(key)}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "#cbd5e1",
+                    textDecoration: "none",
+                    padding: 0,
+                    cursor: "pointer",
+                    fontSize: 11,
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </footer>
 
       {/* GLOBAL STYLES */}
       <style>{`
@@ -3212,3 +3859,5 @@ export default function App() {
     </div>
   );
 }
+
+

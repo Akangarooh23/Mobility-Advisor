@@ -53,28 +53,28 @@ export default function LandingPage({
     {
       id: "discover",
       stage: "FASE 1",
-      title: "DiagnÃ³stico inicial de movilidad",
-      description: "Definimos tu contexto: presupuesto, uso real, tipo de operaciÃ³n y objetivos personales.",
+      title: "Diagnóstico inicial de movilidad",
+      description: "Definimos tu contexto: presupuesto, uso real, tipo de operación y objetivos personales.",
       highlights: [
         "Cuestionario guiado en pocos minutos",
-        "Lectura de seÃ±ales clave para compra o renting",
+        "Lectura de señales clave para compra o renting",
         "Sin dependencia de formularios complejos",
       ],
       metric: "~5 min",
-      metricLabel: "Tiempo medio para tener un perfil Ãºtil",
+      metricLabel: "Tiempo medio para tener un perfil útil",
       actionKey: "advice",
-      actionLabel: "Iniciar diagnÃ³stico",
+      actionLabel: "Iniciar diagnóstico",
       accent: "#38bdf8",
     },
     {
       id: "market",
       stage: "FASE 2",
-      title: "AnÃ¡lisis y filtrado inteligente",
+      title: "Análisis y filtrado inteligente",
       description: "Combinamos IA + reglas de negocio para quedarnos con opciones realistas y rentables.",
       highlights: [
         "Descarta configuraciones con mal encaje financiero",
         "Prioriza equilibrio entre coste, fiabilidad y uso",
-        "VisiÃ³n comparativa clara para decidir con confianza",
+        "Visión comparativa clara para decidir con confianza",
       ],
       metric: "9+",
       metricLabel: "Variables de movilidad evaluadas",
@@ -85,14 +85,14 @@ export default function LandingPage({
     {
       id: "execution",
       stage: "FASE 3",
-      title: "ActivaciÃ³n de servicios y operativa",
+      title: "Activación de servicios y operativa",
       description: "Desde vender mejor tu coche hasta negociar seguro y mantenimiento con enfoque colectivo.",
       highlights: [
         "Flujos de venta con informe o certificado",
-        "Servicios de ahorro y gestiÃ³n del vehÃ­culo",
+        "Servicios de ahorro y gestión del vehículo",
         "Panel privado con seguimiento centralizado",
       ],
-      metric: "360Â°",
+      metric: "360°",
       metricLabel: "Cobertura integral del ciclo de movilidad",
       actionKey: "services",
       actionLabel: "Ver servicios",
@@ -131,7 +131,7 @@ export default function LandingPage({
           letterSpacing: "0.6px",
         }}
       >
-        âœ¨ ASESOR INTELIGENTE DE MOVILIDAD Â· ESPAÃ‘A
+        🧠 ASESOR INTELIGENTE DE MOVILIDAD · ESPAÑA
       </div>
       <h1
         style={{
@@ -145,7 +145,7 @@ export default function LandingPage({
           lineHeight: 1.1,
         }}
       >
-        Â¿CuÃ¡l es tu mejor<br />opciÃ³n de movilidad?
+        ¿Cuál es tu mejor<br />opción de movilidad?
       </h1>
       <p
         style={{
@@ -156,7 +156,7 @@ export default function LandingPage({
           margin: "0 auto 36px",
         }}
       >
-        Te ayudamos a encontrar el coche usado con mejor relaciÃ³n calidad precio y que el proceso
+        Te ayudamos a encontrar el coche usado con mejor relación calidad precio y que el proceso
         de compra y venta sea fiable, transparente y rentable.
       </p>
 
@@ -232,13 +232,13 @@ export default function LandingPage({
             animationDelay: "40ms",
           }}
         >
-          <span style={{ fontSize: 28, minWidth: 40 }}>ðŸŽ¯</span>
+          <span style={{ fontSize: 28, minWidth: 40 }}>🚗</span>
           <div>
             <div style={{ fontWeight: 700, fontSize: 17, color: "#f1f5f9", marginBottom: 6 }}>
-              Quiero un vehÃ­culo
+              Quiero un vehículo
             </div>
             <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
-              Ãndicanos si quieres comprar, alquilar o quieres que te guiemos en la mejor soluciÃ³n
+              Índicanos si quieres comprar, alquilar o quieres que te guiemos en la mejor solución
               para ti.
             </div>
           </div>
@@ -255,14 +255,14 @@ export default function LandingPage({
             animationDelay: "120ms",
           }}
         >
-          <span style={{ fontSize: 28, minWidth: 40 }}>ðŸ§­</span>
+          <span style={{ fontSize: 28, minWidth: 40 }}>💶</span>
           <div>
             <div style={{ fontWeight: 700, fontSize: 17, color: "#f1f5f9", marginBottom: 6 }}>
               Quiero vender mi coche
             </div>
             <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
-              Â¿Cansado de que los concesionarios te ofrezcan mucho menos de lo que vale tu coche?
-              Te ayudamos a que ganes mÃ¡s.
+              ¿Cansado de que los concesionarios te ofrezcan mucho menos de lo que vale tu coche?
+              Te ayudamos a que ganes más.
             </div>
           </div>
         </button>
@@ -278,14 +278,14 @@ export default function LandingPage({
             animationDelay: "200ms",
           }}
         >
-          <span style={{ fontSize: 28, minWidth: 40 }}>ðŸ’¶</span>
+          <span style={{ fontSize: 28, minWidth: 40 }}>🛠️</span>
           <div>
             <div style={{ fontWeight: 700, fontSize: 17, color: "#f1f5f9", marginBottom: 6 }}>
               Quiero contratar un Servicio
             </div>
             <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
-              Ãšnete a una nueva era en la automociÃ³n y aprovecha las economÃ­as de escala de una empresa
-              en la uniÃ³n de los particulares.
+              Únete a una nueva era en la automoción y aprovecha las economías de escala de una empresa
+              en la unión de los particulares.
             </div>
           </div>
         </button>
@@ -311,12 +311,12 @@ export default function LandingPage({
             animationDelay: "260ms",
           }}
         >
-          ðŸª Ofertas VO Ãºnicas de nuestro portal
+          ✨ Ofertas VO únicas de nuestro portal
         </button>
       </div>
 
       <p style={{ marginTop: 20, fontSize: 12, color: "#334155" }}>
-        Sin registro Â· Sin tarjeta Â· ~5 minutos
+        Sin registro · Sin tarjeta · ~5 minutos
       </p>
 
       <section
@@ -359,10 +359,10 @@ export default function LandingPage({
               lineHeight: 1.1,
             }}
           >
-            QuÃ© te ofrecemos y quÃ© puedes conseguir
+            Qué te ofrecemos y qué puedes conseguir
           </h2>
           <p style={{ margin: 0, color: "#94a3b8", fontSize: isMobileView ? 13 : 14, lineHeight: 1.7 }}>
-            No es solo un comparador: es una plataforma de decisiÃ³n y ejecuciÃ³n para optimizar todo tu ciclo de movilidad.
+            No es solo un comparador: es una plataforma de decisión y ejecución para optimizar todo tu ciclo de movilidad.
           </p>
         </div>
 
@@ -474,7 +474,7 @@ export default function LandingPage({
                     lineHeight: 1.5,
                   }}
                 >
-                  <span style={{ color: activeExperience.accent, marginRight: 8 }}>â—†</span>
+                  <span style={{ color: activeExperience.accent, marginRight: 8 }}>✓</span>
                   {item}
                 </div>
               ))}
@@ -603,14 +603,14 @@ export default function LandingPage({
               </div>
 
               <div style={{ marginTop: 10, marginBottom: 12 }}>
-                <span style={{ color: "#f8fafc", fontWeight: 800, fontSize: 26 }}>{plan.monthlyPrice}â‚¬</span>
+                <span style={{ color: "#f8fafc", fontWeight: 800, fontSize: 26 }}>{plan.monthlyPrice}€</span>
                 <span style={{ color: "#94a3b8", marginLeft: 6, fontSize: 13 }}>/mes</span>
               </div>
 
               <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 7 }}>
                 {plan.highlights.map((item) => (
                   <li key={item} style={{ color: "#cbd5e1", fontSize: 13, lineHeight: 1.45 }}>
-                    <span style={{ color: plan.accent, marginRight: 7 }}>â—</span>
+                    <span style={{ color: plan.accent, marginRight: 7 }}>✓</span>
                     {item}
                   </li>
                 ))}
@@ -731,7 +731,7 @@ export default function LandingPage({
         {[
           [String(totalSteps), "Preguntas del marco"],
           ["9+", "Opciones de movilidad"],
-          ["IA", "AnÃ¡lisis personalizado"],
+          ["IA", "Análisis personalizado"],
         ].map(([n, l]) => (
           <div key={l}>
             <div style={{ fontSize: 26, fontWeight: 800, color: "#2563EB" }}>{n}</div>

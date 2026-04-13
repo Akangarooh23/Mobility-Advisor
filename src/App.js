@@ -175,156 +175,156 @@ const LEGAL_DOCUMENTS = {
   legalNotice: {
     title: "Aviso legal",
     summary:
-      "InformaciÃ³n general de titularidad, alcance del servicio, propiedad intelectual y responsabilidades del uso de la plataforma.",
+      "Información general de titularidad, alcance del servicio, propiedad intelectual y responsabilidades del uso de la plataforma.",
     updatedAt: "13/04/2026",
     sections: [
       {
         heading: "Datos identificativos",
         paragraphs: [
-          "CarAdvisor es una plataforma digital orientada al asesoramiento y operativa de movilidad en EspaÃ±a.",
-          "A efectos de contacto general, soporte y gestiÃ³n de incidencias puedes dirigirte a soporte@caradvisor.es.",
+          "CarAdvisor es una plataforma digital orientada al asesoramiento y operativa de movilidad en España.",
+          "A efectos de contacto general, soporte y gestión de incidencias puedes dirigirte a soporte@caradvisor.es.",
         ],
       },
       {
         heading: "Objeto del sitio web",
         paragraphs: [
-          "El presente sitio facilita herramientas de recomendaciÃ³n, comparaciÃ³n y gestiÃ³n de servicios de movilidad, asÃ­ como funcionalidades de apoyo para usuarios registrados.",
-          "La informaciÃ³n mostrada tiene carÃ¡cter informativo y de apoyo a la decisiÃ³n, sin constituir asesoramiento financiero, jurÃ­dico o fiscal vinculante.",
+          "El presente sitio facilita herramientas de recomendación, comparación y gestión de servicios de movilidad, así como funcionalidades de apoyo para usuarios registrados.",
+          "La información mostrada tiene carácter informativo y de apoyo a la decisión, sin constituir asesoramiento financiero, jurídico o fiscal vinculante.",
         ],
       },
       {
         heading: "Uso permitido y prohibiciones",
         bullets: [
-          "El usuario se compromete a utilizar la plataforma conforme a la ley, la buena fe y el orden pÃºblico.",
-          "Queda prohibido el uso fraudulento, la extracciÃ³n automatizada no autorizada de datos y cualquier intento de alterar el funcionamiento del servicio.",
+          "El usuario se compromete a utilizar la plataforma conforme a la ley, la buena fe y el orden público.",
+          "Queda prohibido el uso fraudulento, la extracción automatizada no autorizada de datos y cualquier intento de alterar el funcionamiento del servicio.",
           "CarAdvisor puede actualizar, mejorar o retirar funcionalidades para mantener seguridad, rendimiento y calidad de servicio.",
         ],
       },
       {
         heading: "Propiedad intelectual",
         paragraphs: [
-          "La marca CarAdvisor, el diseÃ±o de la plataforma, su arquitectura funcional, contenidos, cÃ³digo y elementos grÃ¡ficos son titularidad de sus propietarios o licenciantes.",
-          "No se autoriza su reproducciÃ³n, distribuciÃ³n o transformaciÃ³n sin autorizaciÃ³n expresa salvo en los casos legalmente permitidos.",
+          "La marca CarAdvisor, el diseño de la plataforma, su arquitectura funcional, contenidos, código y elementos gráficos son titularidad de sus propietarios o licenciantes.",
+          "No se autoriza su reproducción, distribución o transformación sin autorización expresa salvo en los casos legalmente permitidos.",
         ],
       },
       {
         heading: "Responsabilidad",
         paragraphs: [
           "CarAdvisor no garantiza la disponibilidad permanente e ininterrumpida del servicio, aunque aplica medidas razonables para mantener su continuidad.",
-          "Las decisiones finales de contrataciÃ³n o compra/venta corresponden al usuario y, en su caso, al tercero proveedor con quien formalice la operaciÃ³n.",
+          "Las decisiones finales de contratación o compra/venta corresponden al usuario y, en su caso, al tercero proveedor con quien formalice la operación.",
         ],
       },
     ],
   },
   privacyPolicy: {
-    title: "PolÃ­tica de privacidad",
+    title: "Política de privacidad",
     summary:
-      "InformaciÃ³n sobre tratamiento de datos personales conforme al RGPD (UE 2016/679) y la LOPDGDD (Ley OrgÃ¡nica 3/2018).",
+      "Información sobre tratamiento de datos personales conforme al RGPD (UE 2016/679) y la LOPDGDD (Ley Orgánica 3/2018).",
     updatedAt: "13/04/2026",
     sections: [
       {
-        heading: "CategorÃ­as de datos tratados",
+        heading: "Categorías de datos tratados",
         bullets: [
-          "Datos identificativos y de cuenta: nombre, correo electrÃ³nico, identificadores de usuario y sesiÃ³n.",
-          "Datos de uso y navegaciÃ³n: interacciones con el asesor, preferencias, filtros, actividad y eventos funcionales.",
-          "Datos operativos aportados voluntariamente: solicitudes de servicio, alertas, datos de contacto y datos asociados a trÃ¡mites dentro de la plataforma.",
+          "Datos identificativos y de cuenta: nombre, correo electrónico, identificadores de usuario y sesión.",
+          "Datos de uso y navegación: interacciones con el asesor, preferencias, filtros, actividad y eventos funcionales.",
+          "Datos operativos aportados voluntariamente: solicitudes de servicio, alertas, datos de contacto y datos asociados a trámites dentro de la plataforma.",
         ],
       },
       {
         heading: "Finalidades del tratamiento",
         bullets: [
-          "Gestionar el alta, autenticaciÃ³n y mantenimiento de cuentas de usuario.",
-          "Prestar funcionalidades de recomendaciÃ³n, comparaciÃ³n y gestiÃ³n de movilidad.",
+          "Gestionar el alta, autenticación y mantenimiento de cuentas de usuario.",
+          "Prestar funcionalidades de recomendación, comparación y gestión de movilidad.",
           "Mantener la seguridad, prevenir abusos y optimizar el rendimiento del servicio.",
-          "Enviar comunicaciones operativas imprescindibles para la prestaciÃ³n del servicio.",
+          "Enviar comunicaciones operativas imprescindibles para la prestación del servicio.",
         ],
       },
       {
-        heading: "Bases jurÃ­dicas",
+        heading: "Bases jurídicas",
         bullets: [
-          "EjecuciÃ³n de la relaciÃ³n contractual o precontractual cuando el usuario solicita funcionalidades del servicio.",
+          "Ejecución de la relación contractual o precontractual cuando el usuario solicita funcionalidades del servicio.",
           "Cumplimiento de obligaciones legales aplicables.",
-          "InterÃ©s legÃ­timo en seguridad, continuidad del servicio y mejora de la plataforma.",
+          "Interés legítimo en seguridad, continuidad del servicio y mejora de la plataforma.",
           "Consentimiento cuando resulte exigible para determinadas finalidades (por ejemplo, determinadas cookies o comunicaciones).",
         ],
       },
       {
-        heading: "ConservaciÃ³n de datos",
+        heading: "Conservación de datos",
         paragraphs: [
           "Los datos se conservan durante el tiempo necesario para cumplir la finalidad para la que fueron recabados y, posteriormente, durante los plazos legalmente exigibles.",
-          "Cuando proceda, los datos serÃ¡n bloqueados y tratados exclusivamente para atender posibles responsabilidades legales.",
+          "Cuando proceda, los datos serán bloqueados y tratados exclusivamente para atender posibles responsabilidades legales.",
         ],
       },
       {
         heading: "Destinatarios y transferencias",
         paragraphs: [
-          "Con carÃ¡cter general no se ceden datos a terceros salvo obligaciÃ³n legal o cuando sea necesario para la prestaciÃ³n de servicios tecnolÃ³gicos vinculados a la plataforma.",
-          "En caso de proveedores fuera del Espacio EconÃ³mico Europeo, se aplicarÃ¡n garantÃ­as adecuadas conforme al RGPD.",
+          "Con carácter general no se ceden datos a terceros salvo obligación legal o cuando sea necesario para la prestación de servicios tecnológicos vinculados a la plataforma.",
+          "En caso de proveedores fuera del Espacio Económico Europeo, se aplicarán garantías adecuadas conforme al RGPD.",
         ],
       },
       {
         heading: "Derechos de las personas usuarias",
         paragraphs: [
-          "Puedes ejercer los derechos de acceso, rectificaciÃ³n, supresiÃ³n, oposiciÃ³n, limitaciÃ³n del tratamiento y portabilidad escribiendo a soporte@caradvisor.es.",
-          "Si consideras que tus derechos no han sido atendidos correctamente, puedes presentar reclamaciÃ³n ante la Agencia EspaÃ±ola de ProtecciÃ³n de Datos (AEPD).",
+          "Puedes ejercer los derechos de acceso, rectificación, supresión, oposición, limitación del tratamiento y portabilidad escribiendo a soporte@caradvisor.es.",
+          "Si consideras que tus derechos no han sido atendidos correctamente, puedes presentar reclamación ante la Agencia Española de Protección de Datos (AEPD).",
         ],
       },
     ],
   },
   cookiePolicy: {
-    title: "PolÃ­tica de cookies",
+    title: "Política de cookies",
     summary:
-      "InformaciÃ³n sobre el uso de cookies y tecnologÃ­as similares, su finalidad y cÃ³mo gestionar el consentimiento.",
+      "Información sobre el uso de cookies y tecnologías similares, su finalidad y cómo gestionar el consentimiento.",
     updatedAt: "13/04/2026",
     sections: [
       {
-        heading: "QuÃ© son las cookies",
+        heading: "Qué son las cookies",
         paragraphs: [
-          "Las cookies son ficheros que se almacenan en el dispositivo del usuario y permiten reconocer su navegaciÃ³n, recordar preferencias y mejorar la experiencia.",
+          "Las cookies son ficheros que se almacenan en el dispositivo del usuario y permiten reconocer su navegación, recordar preferencias y mejorar la experiencia.",
         ],
       },
       {
         heading: "Tipos de cookies utilizadas",
         bullets: [
-          "Cookies tÃ©cnicas o necesarias: esenciales para el acceso, autenticaciÃ³n y funcionamiento base del servicio.",
+          "Cookies técnicas o necesarias: esenciales para el acceso, autenticación y funcionamiento base del servicio.",
           "Cookies de preferencias: conservan configuraciones y elecciones del usuario para personalizar la experiencia.",
-          "Cookies analÃ­ticas: permiten evaluar el uso del servicio y mejorar funcionalidades.",
+          "Cookies analíticas: permiten evaluar el uso del servicio y mejorar funcionalidades.",
         ],
       },
       {
         heading: "Base legal y consentimiento",
         paragraphs: [
           "Las cookies necesarias se utilizan para asegurar el funcionamiento de la plataforma. El resto se gestionan conforme al consentimiento del usuario cuando sea exigible.",
-          "Al primer acceso se solicita aceptaciÃ³n para habilitar la experiencia completa y registrar la preferencia de consentimiento.",
+          "Al primer acceso se solicita aceptación para habilitar la experiencia completa y registrar la preferencia de consentimiento.",
         ],
       },
       {
-        heading: "CÃ³mo revocar o modificar el consentimiento",
+        heading: "Cómo revocar o modificar el consentimiento",
         paragraphs: [
-          "Puedes modificar la configuraciÃ³n de cookies desde los ajustes del navegador y, en su caso, desde los mecanismos que habilite la plataforma.",
-          "La desactivaciÃ³n de determinadas cookies puede afectar a la disponibilidad de algunas funcionalidades.",
+          "Puedes modificar la configuración de cookies desde los ajustes del navegador y, en su caso, desde los mecanismos que habilite la plataforma.",
+          "La desactivación de determinadas cookies puede afectar a la disponibilidad de algunas funcionalidades.",
         ],
       },
     ],
   },
   termsConditions: {
-    title: "TÃ©rminos y condiciones",
+    title: "Términos y condiciones",
     summary:
-      "Condiciones generales de uso del servicio, obligaciones de las partes y lÃ­mites de responsabilidad.",
+      "Condiciones generales de uso del servicio, obligaciones de las partes y límites de responsabilidad.",
     updatedAt: "13/04/2026",
     sections: [
       {
-        heading: "AceptaciÃ³n de tÃ©rminos",
+        heading: "Aceptación de términos",
         paragraphs: [
-          "El acceso y uso de CarAdvisor implica la aceptaciÃ³n de estos tÃ©rminos y condiciones.",
-          "Si no estÃ¡s de acuerdo con los tÃ©rminos, debes abstenerte de utilizar la plataforma.",
+          "El acceso y uso de CarAdvisor implica la aceptación de estos términos y condiciones.",
+          "Si no estás de acuerdo con los términos, debes abstenerte de utilizar la plataforma.",
         ],
       },
       {
         heading: "Alcance y naturaleza del servicio",
         paragraphs: [
           "CarAdvisor proporciona recomendaciones y herramientas de apoyo para decisiones de movilidad, compra, venta y servicios asociados.",
-          "La plataforma no sustituye la revisiÃ³n contractual o tÃ©cnica que el usuario deba realizar antes de cerrar operaciones con terceros.",
+          "La plataforma no sustituye la revisión contractual o técnica que el usuario deba realizar antes de cerrar operaciones con terceros.",
         ],
       },
       {
@@ -337,32 +337,32 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "Obligaciones de uso",
         bullets: [
-          "Utilizar el servicio de forma lÃ­cita, diligente y conforme a los presentes tÃ©rminos.",
+          "Utilizar el servicio de forma lícita, diligente y conforme a los presentes términos.",
           "No manipular, interferir ni realizar acciones que comprometan seguridad, estabilidad o integridad del sistema.",
-          "No emplear el servicio para fines ilÃ­citos o contrarios a derechos de terceros.",
+          "No emplear el servicio para fines ilícitos o contrarios a derechos de terceros.",
         ],
       },
       {
-        heading: "LimitaciÃ³n de responsabilidad",
+        heading: "Limitación de responsabilidad",
         paragraphs: [
-          "CarAdvisor no garantiza resultados econÃ³micos concretos ni asume responsabilidad por decisiones finales adoptadas por el usuario.",
+          "CarAdvisor no garantiza resultados económicos concretos ni asume responsabilidad por decisiones finales adoptadas por el usuario.",
           "Las relaciones contractuales con terceros proveedores son responsabilidad directa de las partes intervinientes.",
         ],
       },
       {
         heading: "Modificaciones y vigencia",
         paragraphs: [
-          "CarAdvisor puede actualizar estos tÃ©rminos para adaptarlos a cambios normativos, tÃ©cnicos o de servicio.",
-          "La versiÃ³n vigente estarÃ¡ siempre disponible en el apartado legal de la plataforma.",
+          "CarAdvisor puede actualizar estos términos para adaptarlos a cambios normativos, técnicos o de servicio.",
+          "La versión vigente estará siempre disponible en el apartado legal de la plataforma.",
         ],
       },
     ],
   },
 };
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ------------------------------------------------------------
 // APP
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ------------------------------------------------------------
 
 export default function App() {
   const [entryMode, setEntryMode] = useState(null);
@@ -537,7 +537,7 @@ export default function App() {
   const activeSteps = useMemo(() => {
     const steps = getQuestionnaireSteps(advancedMode);
     if (advisorContext === "renting") {
-      // Skip the flexibilidad question â€” renting is already pre-selected
+      // Skip the flexibilidad question: renting is already pre-selected
       return steps.filter((s) => s.id !== "flexibilidad");
     }
     if (advisorContext === "buy") {
@@ -878,7 +878,7 @@ export default function App() {
     setSavedComparisons(next);
     setSaveFeedback(
       selectedOffer
-        ? "RecomendaciÃ³n guardada en Recomendaciones guardadas."
+        ? "Recomendación guardada en Recomendaciones guardadas."
         : "Comparativa guardada en este navegador."
     );
     window.setTimeout(() => setSaveFeedback(""), 2200);
@@ -914,7 +914,7 @@ export default function App() {
       const next = savedComparisons.filter((item) => item.id !== snapshot.id);
       writeSavedComparisons(next);
       setSavedComparisons(next);
-      setSaveFeedback("RecomendaciÃ³n quitada de guardadas.");
+      setSaveFeedback("Recomendación quitada de guardadas.");
       window.setTimeout(() => setSaveFeedback(""), 2200);
       return;
     }
@@ -971,7 +971,7 @@ export default function App() {
 
     if (!shouldSkipAuthGate && !isUserLoggedIn) {
       setPendingPlanCheckoutId(normalizedPlanId);
-      setPlanCheckoutFeedback("Inicia sesiÃ³n para continuar con la suscripciÃ³n.");
+      setPlanCheckoutFeedback("Inicia sesión para continuar con la suscripción.");
       openAuthDialog("login", { routePage: "home" });
       return;
     }
@@ -1035,22 +1035,22 @@ export default function App() {
     const confirmPassword = String(changePasswordForm.confirmPassword || "");
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setChangePasswordError("Completa los tres campos de contraseÃ±a.");
+      setChangePasswordError("Completa los tres campos de contraseña.");
       return;
     }
 
     if (newPassword.length < 6) {
-      setChangePasswordError("La nueva contraseÃ±a debe tener al menos 6 caracteres.");
+      setChangePasswordError("La nueva contraseña debe tener al menos 6 caracteres.");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setChangePasswordError("La confirmaciÃ³n no coincide con la nueva contraseÃ±a.");
+      setChangePasswordError("La confirmación no coincide con la nueva contraseña.");
       return;
     }
 
     if (newPassword === currentPassword) {
-      setChangePasswordError("La nueva contraseÃ±a no puede ser igual a la actual.");
+      setChangePasswordError("La nueva contraseña no puede ser igual a la actual.");
       return;
     }
 
@@ -1072,12 +1072,12 @@ export default function App() {
 
       setChangePasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
       setShowChangePasswordForm(false);
-      setChangePasswordSuccess(data?.message || "ContraseÃ±a actualizada correctamente.");
+      setChangePasswordSuccess(data?.message || "Contraseña actualizada correctamente.");
       if (typeof window !== "undefined") {
         window.setTimeout(() => setChangePasswordSuccess(""), 2600);
       }
     } catch (error) {
-      setChangePasswordError(error?.message || "No se pudo actualizar la contraseÃ±a.");
+      setChangePasswordError(error?.message || "No se pudo actualizar la contraseña.");
     } finally {
       setChangePasswordLoading(false);
     }
@@ -1090,7 +1090,7 @@ export default function App() {
       const recoveryEmail = normalizeText(authForm.email).toLowerCase();
 
       if (!recoveryEmail) {
-        setAuthError("Indica el correo de tu cuenta para recuperar contraseÃ±a.");
+        setAuthError("Indica el correo de tu cuenta para recuperar contraseña.");
         return;
       }
 
@@ -1105,9 +1105,9 @@ export default function App() {
         });
 
         setAuthRecoveryMode("confirm");
-        setAuthRecoveryFeedback(data?.message || "Revisa tu correo y escribe el cÃ³digo de recuperaciÃ³n.");
+        setAuthRecoveryFeedback(data?.message || "Revisa tu correo y escribe el código de recuperación.");
       } catch (error) {
-        setAuthError(error?.message || "No se pudo solicitar la recuperaciÃ³n de contraseÃ±a.");
+        setAuthError(error?.message || "No se pudo solicitar la recuperación de contraseña.");
       } finally {
         setAuthLoading(false);
       }
@@ -1121,7 +1121,7 @@ export default function App() {
       const newPassword = String(authForm.password || "");
 
       if (!recoveryEmail || !recoveryCode || !newPassword) {
-        setAuthError("Completa correo, cÃ³digo y nueva contraseÃ±a.");
+        setAuthError("Completa correo, código y nueva contraseña.");
         return;
       }
 
@@ -1140,7 +1140,7 @@ export default function App() {
         const nextTargetEntryMode = normalizeText(authTargetEntryMode);
 
         if (!nextUser?.email) {
-          throw new Error("No se pudo completar el cambio de contraseÃ±a.");
+          throw new Error("No se pudo completar el cambio de contraseña.");
         }
 
         writeAuthUser(nextUser);
@@ -1157,7 +1157,7 @@ export default function App() {
         }
         setShowAuthMenu(false);
         setShowUserPanel(false);
-        setSaveFeedback(data?.message || "ContraseÃ±a actualizada y sesiÃ³n iniciada.");
+        setSaveFeedback(data?.message || "Contraseña actualizada y sesión iniciada.");
         setAuthDialogMode("");
         setAuthRecoveryMode("none");
         setAuthRecoveryCode("");
@@ -1187,7 +1187,7 @@ export default function App() {
           window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
         }
       } catch (error) {
-        setAuthError(error?.message || "No se pudo restablecer la contraseÃ±a.");
+        setAuthError(error?.message || "No se pudo restablecer la contraseña.");
       } finally {
         setAuthLoading(false);
       }
@@ -1209,12 +1209,12 @@ export default function App() {
     }
 
     if (!payload.email) {
-      setAuthError("Indica tu correo electrÃ³nico.");
+      setAuthError("Indica tu correo electrónico.");
       return;
     }
 
     if (!payload.password) {
-      setAuthError("Indica tu contraseÃ±a.");
+      setAuthError("Indica tu contraseña.");
       return;
     }
 
@@ -1253,7 +1253,7 @@ export default function App() {
         data?.message ||
           (mode === "register"
             ? `Cuenta creada para ${nextUser.email}.`
-            : `SesiÃ³n iniciada para ${nextUser.email}.`)
+            : `Sesión iniciada para ${nextUser.email}.`)
       );
       setAuthDialogMode("");
           setAuthTargetEntryMode("");
@@ -1350,7 +1350,7 @@ export default function App() {
       id: alertId ? `alert:${alertId}` : `alert:${Date.now()}`,
       ...normalizedAlert,
       modeLabel,
-      title: titleParts.length > 0 ? `Alerta ${titleParts.join(" Â· ")}` : "Alerta general de mercado",
+      title: titleParts.length > 0 ? `Alerta ${titleParts.join(" · ")}` : "Alerta general de mercado",
       status: "Vigilando mercado",
       createdAt: new Date().toLocaleString("es-ES", {
         day: "2-digit",
@@ -1456,7 +1456,7 @@ export default function App() {
     );
 
     if (configuredEmailTargets.length === 0) {
-      setEmailDigestFeedback("No hay un correo configurado todavÃ­a para estas alertas.");
+      setEmailDigestFeedback("No hay un correo configurado todavía para estas alertas.");
       window.setTimeout(() => setEmailDigestFeedback(""), 2200);
       return;
     }
@@ -1474,8 +1474,8 @@ export default function App() {
         to: emailTargets,
         subject:
           emailTargets.length === 1
-            ? "CarAdvisor Â· Tu resumen de alertas"
-            : `CarAdvisor Â· ${emailTargets.length} resÃºmenes de alertas`,
+            ? "CarAdvisor · Tu resumen de alertas"
+            : `CarAdvisor · ${emailTargets.length} resúmenes de alertas`,
         notifications: notificationsToSend,
       });
 
@@ -1598,18 +1598,18 @@ export default function App() {
     const appointmentCatalog = {
       workshop: {
         title: "Cita de taller",
-        meta: "DiagnÃ³stico, revisiÃ³n o reparaciÃ³n del vehÃ­culo",
+        meta: "Diagnóstico, revisión o reparación del vehículo",
         status: "Solicitud enviada",
       },
       maintenance: {
         title: "Cita de mantenimiento",
-        meta: "Mantenimiento preventivo y revisiÃ³n de servicio",
-        status: "Pendiente de confirmaciÃ³n",
+        meta: "Mantenimiento preventivo y revisión de servicio",
+        status: "Pendiente de confirmación",
       },
       certification: {
-        title: "GarantÃ­a / certificaciÃ³n de calidad",
-        meta: "RevisiÃ³n para garantÃ­a extendida o certificaciÃ³n de calidad",
-        status: "En validaciÃ³n",
+        title: "Garantía / certificación de calidad",
+        meta: "Revisión para garantía extendida o certificación de calidad",
+        status: "En validación",
       },
     };
 
@@ -1658,7 +1658,7 @@ export default function App() {
 
     if (answeredSteps < totalSteps) {
       const proceed = window.confirm(
-        "Todavia no has completado todo el formulario. Podemos darte una recomendacion util ahora, pero sera una estimacion menos precisa que si respondes todas las preguntas. Â¿Quieres continuar de todos modos?"
+        "Todavia no has completado todo el formulario. Podemos darte una recomendacion util ahora, pero sera una estimacion menos precisa que si respondes todas las preguntas. ¿Quieres continuar de todos modos?"
       );
 
       if (!proceed) {
@@ -1813,7 +1813,7 @@ export default function App() {
 
       setDecisionListingResult(listing);
     } catch (err) {
-      setDecisionListingError(err.message || "No se pudo localizar un anuncio real para esta operaciÃ³n.");
+      setDecisionListingError(err.message || "No se pudo localizar un anuncio real para esta operación.");
     } finally {
       setDecisionListingLoading(false);
     }
@@ -2111,10 +2111,10 @@ export default function App() {
   const remainingQuestions = Math.max(totalSteps - answeredSteps, 0);
   const completionPct = Math.min(100, Math.round((answeredSteps / totalSteps) * 100));
 
-  // â”€â”€â”€ STYLES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // -------------------- STYLES --------------------
   const s = useMemo(() => createAppStyles(progress), [progress]);
 
-  // â”€â”€â”€ RENDER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // -------------------- RENDER --------------------
   return (
     <div style={s.page}>
       {/* HEADER */}
@@ -2232,7 +2232,7 @@ export default function App() {
               }}
             >
               <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 8 }}>
-                Ãrea de usuario
+                Área de usuario
               </div>
               <button
                 type="button"
@@ -2250,7 +2250,7 @@ export default function App() {
                   marginBottom: 8,
                 }}
               >
-                Iniciar sesiÃ³n
+                Iniciar sesión
               </button>
               <button
                 type="button"
@@ -2297,7 +2297,7 @@ export default function App() {
                   </div>
                   {currentUser?.email && (
                     <div style={{ fontSize: 11, color: "#bfdbfe", marginTop: 4 }}>
-                      {currentUser.name || "Usuario"} Â· {currentUser.email}
+                      {currentUser.name || "Usuario"} · {currentUser.email}
                     </div>
                   )}
                 </div>
@@ -2331,7 +2331,7 @@ export default function App() {
                       fontSize: 11,
                     }}
                   >
-                    Cerrar sesiÃ³n
+                    Cerrar sesión
                   </button>
                 </div>
               </div>
@@ -2358,7 +2358,7 @@ export default function App() {
                         cursor: "pointer",
                       }}
                     >
-                      {showChangePasswordForm ? "Cancelar" : "Cambiar contraseÃ±a"}
+                      {showChangePasswordForm ? "Cancelar" : "Cambiar contraseña"}
                     </button>
                   </div>
 
@@ -2374,21 +2374,21 @@ export default function App() {
                         type="password"
                         value={changePasswordForm.currentPassword}
                         onChange={(event) => setChangePasswordForm((prev) => ({ ...prev, currentPassword: event.target.value }))}
-                        placeholder="ContraseÃ±a actual"
+                        placeholder="Contraseña actual"
                         style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
                       />
                       <input
                         type="password"
                         value={changePasswordForm.newPassword}
                         onChange={(event) => setChangePasswordForm((prev) => ({ ...prev, newPassword: event.target.value }))}
-                        placeholder="Nueva contraseÃ±a (mÃ­nimo 6 caracteres)"
+                        placeholder="Nueva contraseña (mínimo 6 caracteres)"
                         style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
                       />
                       <input
                         type="password"
                         value={changePasswordForm.confirmPassword}
                         onChange={(event) => setChangePasswordForm((prev) => ({ ...prev, confirmPassword: event.target.value }))}
-                        placeholder="Confirmar nueva contraseÃ±a"
+                        placeholder="Confirmar nueva contraseña"
                         style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
                       />
 
@@ -2414,12 +2414,12 @@ export default function App() {
                           opacity: changePasswordLoading ? 0.78 : 1,
                         }}
                       >
-                        {changePasswordLoading ? "Guardando..." : "Guardar contraseÃ±a"}
+                        {changePasswordLoading ? "Guardando..." : "Guardar contraseña"}
                       </button>
                     </form>
                   ) : (
                     <div style={{ fontSize: 11, color: "#94a3b8" }}>
-                      Puedes actualizar tu contraseÃ±a sin cerrar sesiÃ³n.
+                      Puedes actualizar tu contraseña sin cerrar sesión.
                     </div>
                   )}
                 </div>
@@ -2495,7 +2495,7 @@ export default function App() {
                     );})
                   ) : (
                     <div style={{ fontSize: 11, color: "#94a3b8" }}>
-                      Cuando guardes una comparativa aparecerÃ¡ aquÃ­ automÃ¡ticamente.
+                      Cuando guardes una comparativa aparecerá aquí automáticamente.
                     </div>
                   )}
                 </div>
@@ -2545,7 +2545,7 @@ export default function App() {
                     ))
                   ) : (
                     <div style={{ fontSize: 11, color: "#94a3b8" }}>
-                      AÃºn no tienes citas programadas. Cuando reserves una, se verÃ¡ aquÃ­.
+                      Aún no tienes citas programadas. Cuando reserves una, se verá aquí.
                     </div>
                   )}
                 </div>
@@ -2565,14 +2565,14 @@ export default function App() {
                     ))
                   ) : (
                     <div style={{ fontSize: 11, color: "#94a3b8" }}>
-                      Cuando hagas una tasaciÃ³n de tu coche, la verÃ¡s aquÃ­ guardada.
+                      Cuando hagas una tasación de tu coche, la verás aquí guardada.
                     </div>
                   )}
                 </div>
 
                 <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 12 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#f8fafc", marginBottom: 8 }}>
-                    Mis vehÃ­culos
+                    Mis vehículos
                   </div>
                   <div style={{ display: "grid", gap: 8 }}>
                     {userVehicleSections.map((section) => (
@@ -2614,7 +2614,7 @@ export default function App() {
         <div
           role="dialog"
           aria-modal="true"
-          aria-label={authDialogMode === "register" ? "Crear tu cuenta" : "Iniciar sesiÃ³n"}
+          aria-label={authDialogMode === "register" ? "Crear tu cuenta" : "Iniciar sesión"}
           style={{
             position: "fixed",
             inset: 0,
@@ -2642,7 +2642,7 @@ export default function App() {
               <div>
                 <div style={{ fontSize: 11, color: authDialogMode === "register" ? "#6ee7b7" : "#93c5fd", letterSpacing: "0.6px" }}>
                   {authRecoveryMode === "request"
-                    ? "RECUPERACIÃ“N"
+                    ? "RECUPERACION"
                     : authRecoveryMode === "confirm"
                     ? "RESETEO"
                     : authDialogMode === "register"
@@ -2651,17 +2651,17 @@ export default function App() {
                 </div>
                 <div style={{ fontSize: 22, fontWeight: 800, color: "#f8fafc" }}>
                   {authRecoveryMode === "request"
-                    ? "Recuperar contraseÃ±a"
+                    ? "Recuperar contraseña"
                     : authRecoveryMode === "confirm"
-                    ? "Introduce tu cÃ³digo"
+                    ? "Introduce tu código"
                     : authDialogMode === "register"
                     ? "Crear tu cuenta"
-                    : "Iniciar sesiÃ³n"}
+                    : "Iniciar sesión"}
                 </div>
                 <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>
                   {authRecoveryMode === "none"
-                    ? "Tu email de acceso serÃ¡ el destinatario por defecto de los avisos y resÃºmenes."
-                    : "Te enviaremos un cÃ³digo temporal para actualizar la contraseÃ±a de forma segura."}
+                    ? "Tu email de acceso será el destinatario por defecto de los avisos y resúmenes."
+                    : "Te enviaremos un código temporal para actualizar la contraseña de forma segura."}
                 </div>
               </div>
               <button
@@ -2675,7 +2675,7 @@ export default function App() {
                   cursor: "pointer",
                 }}
               >
-                Ã—
+                x
               </button>
             </div>
 
@@ -2694,7 +2694,7 @@ export default function App() {
               )}
 
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
-                Correo electrÃ³nico
+                Correo electrónico
                 <input
                   type="email"
                   value={authForm.email}
@@ -2705,19 +2705,19 @@ export default function App() {
               </label>
 
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
-                {authRecoveryMode === "confirm" ? "Nueva contraseÃ±a" : "ContraseÃ±a"}
+                {authRecoveryMode === "confirm" ? "Nueva contraseña" : "Contraseña"}
                 <input
                   type="password"
                   value={authForm.password}
                   onChange={(event) => setAuthForm((prev) => ({ ...prev, password: event.target.value }))}
-                  placeholder={authRecoveryMode === "confirm" ? "Nueva contraseÃ±a (mÃ­nimo 6 caracteres)" : "MÃ­nimo 6 caracteres"}
+                  placeholder={authRecoveryMode === "confirm" ? "Nueva contraseña (mínimo 6 caracteres)" : "Mínimo 6 caracteres"}
                   style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
                 />
               </label>
 
               {authRecoveryMode === "confirm" && (
                 <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
-                  CÃ³digo de recuperaciÃ³n
+                  Código de recuperación
                   <input
                     type="text"
                     value={authRecoveryCode}
@@ -2791,7 +2791,7 @@ export default function App() {
                       fontWeight: 700,
                     }}
                   >
-                    He olvidado mi contraseÃ±a
+                    He olvidado mi contraseña
                   </button>
                 )}
                 <button
@@ -2815,11 +2815,11 @@ export default function App() {
                   }}
                 >
                   {authLoading
-                    ? "Procesandoâ€¦"
+                    ? "Procesando⬦"
                     : authRecoveryMode === "request"
-                    ? "Enviar cÃ³digo"
+                    ? "Enviar código"
                     : authRecoveryMode === "confirm"
-                    ? "Actualizar contraseÃ±a"
+                    ? "Actualizar contraseña"
                     : authDialogMode === "register"
                     ? "Crear cuenta"
                     : "Entrar"}
@@ -2863,14 +2863,14 @@ export default function App() {
               CONFIGURACION INICIAL
             </div>
             <h3 style={{ margin: "0 0 8px", fontSize: "clamp(22px,4vw,28px)", color: "#f8fafc" }}>
-              Antes de entrar, acepta nuestra polÃ­tica de cookies
+              Antes de entrar, acepta nuestra política de cookies
             </h3>
             <p style={{ margin: "0 0 8px", color: "#cbd5e1", fontSize: 13, lineHeight: 1.65 }}>
-              Utilizamos cookies necesarias para el funcionamiento y, si tÃº quieres, cookies analÃ­ticas,
-              de personalizaciÃ³n y marketing para mejorar tu experiencia.
+              Utilizamos cookies necesarias para el funcionamiento y, si tú quieres, cookies analíticas,
+              de personalización y marketing para mejorar tu experiencia.
             </p>
             <p style={{ margin: "0 0 14px", color: "#94a3b8", fontSize: 12, lineHeight: 1.6 }}>
-              Puedes aceptar todas, rechazar las opcionales o configurar tus preferencias por categorÃ­a.
+              Puedes aceptar todas, rechazar las opcionales o configurar tus preferencias por categoría.
             </p>
 
             <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>
@@ -2878,23 +2878,23 @@ export default function App() {
                 {
                   key: "necessary",
                   title: "Cookies necesarias",
-                  description: "Imprescindibles para acceder, mantener sesiÃ³n y navegar correctamente.",
+                  description: "Imprescindibles para acceder, mantener sesión y navegar correctamente.",
                   locked: true,
                 },
                 {
                   key: "analytics",
-                  title: "Cookies analÃ­ticas",
+                  title: "Cookies analíticas",
                   description: "Nos ayudan a medir uso y rendimiento para mejorar la plataforma.",
                 },
                 {
                   key: "personalization",
-                  title: "Cookies de personalizaciÃ³n",
+                  title: "Cookies de personalización",
                   description: "Guardan preferencias para adaptar contenido y experiencia.",
                 },
                 {
                   key: "marketing",
                   title: "Cookies de marketing",
-                  description: "Permiten comunicaciones y campaÃ±as mÃ¡s relevantes.",
+                  description: "Permiten comunicaciones y campañas más relevantes.",
                 },
               ].map((item) => {
                 const enabled = cookiePreferences[item.key];
@@ -2980,7 +2980,7 @@ export default function App() {
                   color: "#bae6fd",
                 }}
               >
-                ConfiguraciÃ³n avanzada activa. Cuando termines, pulsa Guardar selecciÃ³n.
+                Configuración avanzada activa. Cuando termines, pulsa Guardar selección.
               </div>
             )}
 
@@ -3036,7 +3036,7 @@ export default function App() {
                   cursor: "pointer",
                 }}
               >
-                Guardar selecciÃ³n
+                Guardar selección
               </button>
 
               <button
@@ -3054,12 +3054,12 @@ export default function App() {
                   textDecoration: "underline",
                 }}
               >
-                {showCookieSettings ? "Ocultar configuraciÃ³n" : "Configurar cookies"}
+                {showCookieSettings ? "Ocultar configuración" : "Configurar cookies"}
               </button>
             </div>
 
             <div style={{ marginTop: 10, fontSize: 12, color: "#94a3b8" }}>
-              Puedes revisar los detalles en la polÃ­tica de cookies desde el footer.
+              Puedes revisar los detalles en la política de cookies desde el footer.
             </div>
           </div>
         </div>
@@ -3192,7 +3192,7 @@ export default function App() {
         <div style={s.progressFill} />
       </div>
 
-      {/* â”€â”€ LANDING â”€â”€ */}
+      {/* LANDING */}
       {step === -1 && !entryMode && (
         <LandingPage
           styles={s}
@@ -3217,7 +3217,7 @@ export default function App() {
           }}
           onSelectSell={() => {
             if (!isUserLoggedIn) {
-              setPlanCheckoutFeedback("Inicia sesiÃ³n o regÃ­strate para sincronizar este flujo con tu portal.");
+              setPlanCheckoutFeedback("Inicia sesión o regístrate para sincronizar este flujo con tu portal.");
               openAuthDialog("login", { entryMode: "sellOptions", routePage: "home" });
               return;
             }
@@ -3227,7 +3227,7 @@ export default function App() {
           }}
           onSelectService={() => {
             if (!isUserLoggedIn) {
-              setPlanCheckoutFeedback("Inicia sesiÃ³n o regÃ­strate para sincronizar este flujo con tu portal.");
+              setPlanCheckoutFeedback("Inicia sesión o regístrate para sincronizar este flujo con tu portal.");
               openAuthDialog("login", { entryMode: "serviceOptions", routePage: "home" });
               return;
             }
@@ -3408,7 +3408,7 @@ export default function App() {
       {step === -1 && entryMode === "userDashboard" && isUserLoggedIn && (
         <UserDashboardPage
           centerStyle={s.center}
-          blockBadgeStyle={s.blockBadge("VinculaciÃ³n")}
+          blockBadgeStyle={s.blockBadge("Vinculación")}
           panelStyle={s.panel}
           userDashboardPage={userDashboardPage}
           savedComparisons={savedComparisons}
@@ -3562,7 +3562,7 @@ export default function App() {
         />
       )}
 
-      {/* â”€â”€ QUESTIONS â”€â”€ */}
+      {/* QUESTIONS */}
       {entryMode === "consejo" && step >= 0 && step < totalSteps && currentStep && (
         <QuestionnairePage
           styles={s}
@@ -3586,7 +3586,7 @@ export default function App() {
         />
       )}
 
-      {/* â”€â”€ LOADING â”€â”€ */}
+      {/* LOADING */}
       {step === 99 && loading && (
         <LoadingAnalysisPage
           styles={s}
@@ -3595,7 +3595,7 @@ export default function App() {
         />
       )}
 
-      {/* â”€â”€ API KEY MISSING â”€â”€ */}
+      {/* API KEY MISSING */}
       {apiKeyMissing && (
         <ApiKeyMissingPage
           styles={s}
@@ -3656,7 +3656,7 @@ export default function App() {
         />
       )}
 
-      {/* â”€â”€ ERROR â”€â”€ */}
+      {/* ERROR */}
       {error && <ErrorStatePage error={error} onRetry={() => analyzeWithAI(answers)} />}
 
       <footer
@@ -3703,7 +3703,7 @@ export default function App() {
                 <div style={{ fontWeight: 800, fontSize: 14, color: "#f8fafc" }}>CarAdvisor</div>
               </div>
               <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                Plataforma de movilidad para comprar mejor, vender mejor y reducir el coste total de tu vehÃ­culo.
+                Plataforma de movilidad para comprar mejor, vender mejor y reducir el coste total de tu vehículo.
               </div>
             </div>
 
@@ -3712,7 +3712,7 @@ export default function App() {
               <div style={{ display: "grid", gap: 6, fontSize: 12 }}>
                 <a href="mailto:soporte@caradvisor.es" style={{ color: "#e2e8f0", textDecoration: "none" }}>soporte@caradvisor.es</a>
                 <a href="tel:+34910000000" style={{ color: "#e2e8f0", textDecoration: "none" }}>+34 910 000 000</a>
-                <div style={{ color: "#94a3b8" }}>L-V 09:00 a 18:00 (EspaÃ±a)</div>
+                <div style={{ color: "#94a3b8" }}>L-V 09:00 a 18:00 (España)</div>
               </div>
             </div>
 
@@ -3721,12 +3721,12 @@ export default function App() {
               <div style={{ display: "grid", gap: 7, fontSize: 12 }}>
                 <button type="button" onClick={restart} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Inicio</button>
                 <button type="button" onClick={() => { setEntryMode("portalVo"); setStep(-1); setPortalVoFilters({ ...INITIAL_PORTAL_VO_FILTERS }); }} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Marketplace VO</button>
-                <button type="button" onClick={() => { setEntryMode("vehicleOptions"); setStep(-1); }} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Asesor de vehÃ­culo</button>
+                <button type="button" onClick={() => { setEntryMode("vehicleOptions"); setStep(-1); }} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Asesor de vehículo</button>
                 <button
                   type="button"
                   onClick={() => {
                     if (!isUserLoggedIn) {
-                      setPlanCheckoutFeedback("Inicia sesiÃ³n o regÃ­strate para sincronizar este flujo con tu portal.");
+                      setPlanCheckoutFeedback("Inicia sesión o regístrate para sincronizar este flujo con tu portal.");
                       openAuthDialog("login", { entryMode: "serviceOptions", routePage: "home" });
                       return;
                     }
@@ -3786,13 +3786,13 @@ export default function App() {
               textAlign: "left",
             }}
           >
-            <div>Â© {new Date().getFullYear()} CarAdvisor. Todos los derechos reservados.</div>
+            <div>© {new Date().getFullYear()} CarAdvisor. Todos los derechos reservados.</div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               {[
                 ["Aviso legal", "legalNotice"],
                 ["Privacidad", "privacyPolicy"],
                 ["Cookies", "cookiePolicy"],
-                ["TÃ©rminos", "termsConditions"],
+                ["Términos", "termsConditions"],
               ].map(([label, key]) => (
                 <button
                   key={key}

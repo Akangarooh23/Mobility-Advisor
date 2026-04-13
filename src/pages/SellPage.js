@@ -1,5 +1,6 @@
 export default function SellPage({
   styles,
+  sellFlowType,
   sellAnswers,
   setSellAnswers,
   MARKET_BRANDS,
@@ -17,9 +18,18 @@ export default function SellPage({
   formatCurrency,
   onRestart,
 }) {
+  const isCertificateFlow = sellFlowType === "certificate";
+  const pageBadge = isCertificateFlow ? "📑 CERTIFICADO B2CARS" : "📊 INFORME B2CARS";
+  const pageTitle = isCertificateFlow
+    ? "Prepara la certificación oficial de tu coche"
+    : "Calcula el precio de salida de tu coche";
+  const pageDescription = isCertificateFlow
+    ? "Recopilamos la información clave del vehículo para emitir una certificación oficial y ayudarte en la venta con mayor respaldo frente al comprador."
+    : "Te damos información en tiempo real sobre precio medio, tendencia histórica, stock de coches similares y una horquilla de salida para publicar con criterio.";
+
   return (
     <div style={styles.center}>
-      <div style={{ ...styles.blockBadge("Pricing"), marginBottom: 10 }}>💶 VALORACIÓN DE VEHÍCULO</div>
+      <div style={{ ...styles.blockBadge("Pricing"), marginBottom: 10 }}>{pageBadge}</div>
       <h2
         style={{
           fontSize: "clamp(22px,4vw,30px)",
@@ -29,11 +39,10 @@ export default function SellPage({
           color: "#f1f5f9",
         }}
       >
-        Calcula el precio de salida de tu coche
+        {pageTitle}
       </h2>
       <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.7, margin: "0 0 24px" }}>
-        La propuesta se alinea con un informe tipo Motoreto: precio medio, tendencia histórica,
-        stock de coches similares y una horquilla de salida para publicar con criterio.
+        {pageDescription}
       </p>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 12, marginBottom: 24 }}>

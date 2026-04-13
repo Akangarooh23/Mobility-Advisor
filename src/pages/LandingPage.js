@@ -6,11 +6,17 @@ export default function LandingPage({
   totalSteps,
   blockColors,
   questionnaireDraft,
+  isUserLoggedIn,
+  planCheckoutLoadingId,
+  planCheckoutFeedback,
   onSelectAdvice,
+  onSelectVehicle,
   onResumeAdvice,
   onSelectDecision,
   onSelectSell,
+  onSelectService,
   onSelectPortalVo,
+  onSelectSubscriptionPlan,
 }) {
   const [isMobileView, setIsMobileView] = useState(() => {
     if (typeof window === "undefined") {
@@ -82,12 +88,13 @@ export default function LandingPage({
           margin: "0 auto 36px",
         }}
       >
-        Elige primero si ya sabes lo que quieres o si necesitas que te guiemos. A partir de ahí,
-        activamos el flujo adecuado para comparar ofertas o recomendarte la mejor solución.
+        Te ayudamos a encontrar el coche usado con mejor relación calidad precio y que el proceso
+        de compra y venta sea fiable, transparente y rentable.
       </p>
 
       {showResumeAdvice && (
         <div
+          className="ma-card-soft ma-fade-stagger"
           style={{
             maxWidth: 720,
             margin: "0 auto 28px",
@@ -101,6 +108,7 @@ export default function LandingPage({
             justifyContent: "space-between",
             gap: 12,
             textAlign: "left",
+            animationDelay: "20ms",
           }}
         >
           <div>
@@ -137,71 +145,77 @@ export default function LandingPage({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))",
+          gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,260px),1fr))",
           gap: 16,
           marginTop: 28,
           textAlign: "left",
         }}
       >
         <button
-          onClick={onSelectAdvice}
+          onClick={onSelectVehicle}
+          className="ma-card-interactive ma-fade-stagger"
           style={{
             ...styles.card(false),
             padding: 22,
             background: "rgba(37,99,235,0.08)",
             border: "1px solid rgba(37,99,235,0.22)",
+            animationDelay: "40ms",
           }}
         >
           <span style={{ fontSize: 28, minWidth: 40 }}>🎯</span>
           <div>
             <div style={{ fontWeight: 700, fontSize: 17, color: "#f1f5f9", marginBottom: 6 }}>
-              Quiero que me ayudes a encontrar el coche con mejor relación calidad-precio
+              Quiero un vehículo
             </div>
             <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
-              Te hacemos las preguntas del marco completo y te devolvemos una recomendación
-              personalizada con análisis de uso real, coste total, riesgo y siguiente paso.
-            </div>
-          </div>
-        </button>
-
-        <button
-          onClick={onSelectDecision}
-          style={{
-            ...styles.card(false),
-            padding: 22,
-            background: "rgba(5,150,105,0.08)",
-            border: "1px solid rgba(5,150,105,0.22)",
-          }}
-        >
-          <span style={{ fontSize: 28, minWidth: 40 }}>🧭</span>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 17, color: "#f1f5f9", marginBottom: 6 }}>
-              Tengo claro qué marca y modelo quiero, ayúdame a encontrar la mejor oferta
-            </div>
-            <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
-              Filtra por marca, modelo, antigüedad y kilometraje para que la IA ordene las ofertas del mercado
-              actual según valor, riesgo y coste final.
+              Índicanos si quieres comprar, alquilar o quieres que te guiemos en la mejor solución
+              para ti.
             </div>
           </div>
         </button>
 
         <button
           onClick={onSelectSell}
+          className="ma-card-interactive ma-fade-stagger"
+          style={{
+            ...styles.card(false),
+            padding: 22,
+            background: "rgba(5,150,105,0.08)",
+            border: "1px solid rgba(5,150,105,0.22)",
+            animationDelay: "120ms",
+          }}
+        >
+          <span style={{ fontSize: 28, minWidth: 40 }}>🧭</span>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 17, color: "#f1f5f9", marginBottom: 6 }}>
+              Quiero vender mi coche
+            </div>
+            <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
+              ¿Cansado de que los concesionarios te ofrezcan mucho menos de lo que vale tu coche?
+              Te ayudamos a que ganes más.
+            </div>
+          </div>
+        </button>
+
+        <button
+          onClick={onSelectService}
+          className="ma-card-interactive ma-fade-stagger"
           style={{
             ...styles.card(false),
             padding: 22,
             background: "rgba(217,119,6,0.08)",
             border: "1px solid rgba(217,119,6,0.22)",
+            animationDelay: "200ms",
           }}
         >
           <span style={{ fontSize: 28, minWidth: 40 }}>💶</span>
           <div>
             <div style={{ fontWeight: 700, fontSize: 17, color: "#f1f5f9", marginBottom: 6 }}>
-              Quiero vender mi coche, ayúdame a saber el precio al que debo ofertarlo
+              Quiero contratar un Servicio
             </div>
             <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
-              La IA estima rango de precio, tendencia histórica, volumen de unidades similares y un informe
-              entregable que luego se puede monetizar como servicio premium.
+              Únete a una nueva era en la automoción y aprovecha las economías de escala de una empresa
+              en la unión de los particulares.
             </div>
           </div>
         </button>
@@ -211,16 +225,20 @@ export default function LandingPage({
         <button
           type="button"
           onClick={onSelectPortalVo}
+          className="ma-card-soft ma-fade-stagger"
           style={{
             background: "linear-gradient(135deg,#f59e0b,#d97706)",
             border: "none",
             color: "white",
-            padding: "13px 18px",
+            padding: isMobileView ? "12px 14px" : "13px 18px",
             borderRadius: 12,
-            fontSize: 14,
+            fontSize: isMobileView ? 13 : 14,
             fontWeight: 800,
             cursor: "pointer",
             boxShadow: "0 14px 34px rgba(217,119,6,0.18)",
+            width: "100%",
+            maxWidth: 440,
+            animationDelay: "260ms",
           }}
         >
           🏪 Ofertas VO únicas de nuestro portal
@@ -281,6 +299,7 @@ export default function LandingPage({
           {SERVICE_PLANS.map((plan) => (
             <article
               key={plan.id}
+              className="ma-card-interactive ma-fade-stagger"
               style={{
                 flex: isMobileView ? undefined : `0 0 ${planCardBasis}`,
                 minWidth: isMobileView ? "100%" : 210,
@@ -291,6 +310,7 @@ export default function LandingPage({
                 border: `1px solid ${plan.border}`,
                 padding: "16px 14px",
                 boxShadow: plan.featured ? "0 16px 34px rgba(15,23,42,0.28)" : "none",
+                animationDelay: `${80 + SERVICE_PLANS.findIndex((item) => item.id === plan.id) * 80}ms`,
               }}
             >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
@@ -327,33 +347,60 @@ export default function LandingPage({
 
               <button
                 type="button"
-                disabled
+                onClick={() => onSelectSubscriptionPlan?.(plan)}
+                disabled={Boolean(planCheckoutLoadingId && planCheckoutLoadingId !== plan.id)}
                 style={{
                   marginTop: 12,
                   width: "100%",
-                  border: "1px dashed rgba(148,163,184,0.55)",
-                  background: "rgba(15,23,42,0.42)",
-                  color: "#cbd5e1",
+                  border: "1px solid rgba(56,189,248,0.42)",
+                  background: "linear-gradient(135deg,rgba(14,116,144,0.22),rgba(37,99,235,0.26))",
+                  color: "#e2e8f0",
                   borderRadius: 10,
                   padding: "10px 12px",
                   fontSize: 12,
                   fontWeight: 700,
-                  cursor: "not-allowed",
+                  cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
                   gap: 8,
+                  opacity: planCheckoutLoadingId && planCheckoutLoadingId !== plan.id ? 0.6 : 1,
                 }}
-                aria-label={`${plan.ctaLabel || "Elegir plan"} (desactivado)`}
+                aria-label={plan.ctaLabel || "Elegir plan"}
               >
-                <span>{plan.ctaLabel || "Elegir plan"}</span>
-                <span style={{ color: "#94a3b8", fontSize: 11 }}>{PRICING_SECTION_COPY.ctaSoonLabel}</span>
+                <span>
+                  {planCheckoutLoadingId === plan.id
+                    ? "Abriendo pasarela..."
+                    : plan.ctaLabel || "Elegir plan"}
+                </span>
+                <span style={{ color: "#94a3b8", fontSize: 11 }}>
+                  {isUserLoggedIn ? "Pago seguro" : "Requiere acceso"}
+                </span>
               </button>
             </article>
           ))}
         </div>
 
+        {planCheckoutFeedback && (
+          <div
+            style={{
+              marginTop: 10,
+              borderRadius: 12,
+              border: "1px solid rgba(56,189,248,0.32)",
+              background: "rgba(2,132,199,0.10)",
+              color: "#bae6fd",
+              fontSize: 12,
+              fontWeight: 600,
+              padding: "10px 12px",
+              textAlign: "center",
+            }}
+          >
+            {planCheckoutFeedback}
+          </div>
+        )}
+
         <div
+          className="ma-card-soft"
           style={{
             marginTop: 14,
             borderRadius: 14,
@@ -403,7 +450,7 @@ export default function LandingPage({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(3,1fr)",
+          gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))",
           gap: 12,
           marginTop: 52,
           borderTop: "1px solid rgba(255,255,255,0.05)",

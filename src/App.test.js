@@ -1,10 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import App from "./App";
 
-test("renders the MoveAdvisor landing page", () => {
+test("renders the CarAdvisor landing page", () => {
   render(<App />);
 
-  expect(screen.getByText(/moveadvisor/i)).toBeInTheDocument();
+  expect(screen.getByText(/caradvisor/i)).toBeInTheDocument();
   expect(
     screen.getByRole("button", {
       name: /quiero que me ayudes a encontrar el coche con mejor relación calidad-precio/i,

@@ -1041,6 +1041,14 @@ async function ensurePostgresSchema() {
       user_agent   VARCHAR(255)
     )
   `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS ix_moveadvisor_sessions_user_id
+    ON moveadvisor_sessions (user_id)
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS ix_moveadvisor_sessions_expires_at
+    ON moveadvisor_sessions (expires_at)
+  `);
   _pgSchemaEnsured = true;
 }
 

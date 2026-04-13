@@ -27,3 +27,25 @@ CREATE TABLE IF NOT EXISTS moveadvisor_sessions (
 
 CREATE INDEX IF NOT EXISTS ix_moveadvisor_sessions_user_id ON moveadvisor_sessions (user_id);
 CREATE INDEX IF NOT EXISTS ix_moveadvisor_sessions_expires_at ON moveadvisor_sessions (expires_at);
+
+-- Catálogo de vehículos (marcas y modelos)
+CREATE TABLE IF NOT EXISTS moveadvisor_vehicle_brands (
+  id         SERIAL       PRIMARY KEY,
+  name       VARCHAR(100) NOT NULL,
+  is_active  BOOLEAN      NOT NULL DEFAULT TRUE,
+  sort_order INT          NOT NULL DEFAULT 0
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS ix_moveadvisor_vehicle_brands_name
+  ON moveadvisor_vehicle_brands (name);
+
+CREATE TABLE IF NOT EXISTS moveadvisor_vehicle_models (
+  id         SERIAL       PRIMARY KEY,
+  brand_id   INT          NOT NULL REFERENCES moveadvisor_vehicle_brands(id),
+  name       VARCHAR(120) NOT NULL,
+  is_active  BOOLEAN      NOT NULL DEFAULT TRUE,
+  sort_order INT          NOT NULL DEFAULT 0
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS ix_moveadvisor_vehicle_models_brand_name
+  ON moveadvisor_vehicle_models (brand_id, name);

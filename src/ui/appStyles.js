@@ -29,10 +29,10 @@ export function createAppStyles(progress = 0) {
       borderRadius: "0 2px 2px 0",
     },
     center: {
-      width: "min(1380px, calc(100vw - 32px))",
+      width: "min(1380px, calc(100vw - 20px))",
       maxWidth: 1380,
       margin: "0 auto",
-      padding: "40px 16px 72px",
+      padding: "clamp(22px,5vw,40px) 10px clamp(48px,10vw,72px)",
     },
     btn: {
       background: "linear-gradient(135deg,#2563EB,#1d4ed8)",

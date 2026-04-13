@@ -117,7 +117,7 @@ export default function UserDashboardPage({
               color: "#f1f5f9",
             }}
           >
-            Mi espacio MoveAdvisor
+            Mi espacio CarAdvisor
           </h2>
           <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.7, margin: 0, maxWidth: 760 }}>
             La vista actual funciona como el home de tu panel. Desde la navegación superior puedes entrar en

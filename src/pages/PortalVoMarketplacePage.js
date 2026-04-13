@@ -29,7 +29,7 @@ export default function PortalVoMarketplacePage({
       </h2>
       <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.7, margin: "0 0 16px" }}>
         Aquí ves un escaparate con vehículos publicados por usuarios del portal. Arriba priorizamos
-        las unidades con mejor puntuación y <strong>sello de garantía MoveAdvisor</strong>.
+        las unidades con mejor puntuación y <strong>sello de garantía CarAdvisor</strong>.
       </p>
 
       <div style={{ display: "flex", justifyContent: "flex-end", margin: "0 0 20px" }}>
@@ -160,7 +160,7 @@ export default function PortalVoMarketplacePage({
 
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 10, color: "#6ee7b7", marginBottom: 8, fontWeight: 800, letterSpacing: "0.6px" }}>
-          ⭐ MEJOR PUNTUADOS CON SELLO MOVEADVISOR
+          ⭐ MEJOR PUNTUADOS CON SELLO CARADVISOR
         </div>
         {featuredPortalVoOffers.length > 0 ? (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 12 }}>

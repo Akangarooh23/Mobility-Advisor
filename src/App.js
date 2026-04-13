@@ -11,6 +11,14 @@ import ErrorStatePage from "./pages/ErrorStatePage";
 import LoadingAnalysisPage from "./pages/LoadingAnalysisPage";
 import QuestionnairePage from "./pages/QuestionnairePage";
 import UserDashboardPage from "./pages/userDashboard/UserDashboardPage";
+import VehicleOptionsPage from "./pages/VehicleOptionsPage";
+import BuyOptionsPage from "./pages/BuyOptionsPage";
+import RentingOptionsPage from "./pages/RentingOptionsPage";
+import SellOptionsPage from "./pages/SellOptionsPage";
+import ServiceOptionsPage from "./pages/ServiceOptionsPage";
+import ServiceInsurancePage from "./pages/ServiceInsurancePage";
+import ServiceMaintenancePage from "./pages/ServiceMaintenancePage";
+import ServiceAutogestorPage from "./pages/ServiceAutogestorPage";
 import ResolvedOfferImage from "./components/offers/ResolvedOfferImage";
 import {
   createInitialDecisionAnswers,
@@ -43,7 +51,14 @@ import {
   normalizeSellAiResult,
   sanitizeResultForDisplay,
 } from "./utils/advisorResults";
-import { getAuthSessionJson, getVehicleCatalogJson, postAlertEmailDigestJson, postAuthJson, postListingJson } from "./utils/apiClient";
+import {
+  getAuthSessionJson,
+  getVehicleCatalogJson,
+  postAlertEmailDigestJson,
+  postAuthJson,
+  postBillingCheckoutJson,
+  postListingJson,
+} from "./utils/apiClient";
 import {
   ANALYSIS_LOADING_PHASES,
   buildAdviceAnalysisPrompt,
@@ -158,6 +173,8 @@ function resolveAlertRecipientEmail(alert = {}, fallbackEmail = "") {
 // ─────────────────────────────────────────
 export default function App() {
   const [entryMode, setEntryMode] = useState(null);
+  const [advisorContext, setAdvisorContext] = useState(null); // null | "buy" | "renting"
+  const [sellFlowType, setSellFlowType] = useState(""); // "certificate" | "report" | ""
   const [step, setStep] = useState(-1);
   const [answers, setAnswers] = useState({});
   const [multiSelected, setMultiSelected] = useState([]);
@@ -204,6 +221,9 @@ export default function App() {
   const [saveFeedback, setSaveFeedback] = useState("");
   const [emailDigestFeedback, setEmailDigestFeedback] = useState("");
   const [emailDigestLoading, setEmailDigestLoading] = useState(false);
+  const [planCheckoutLoadingId, setPlanCheckoutLoadingId] = useState("");
+  const [planCheckoutFeedback, setPlanCheckoutFeedback] = useState("");
+  const [pendingPlanCheckoutId, setPendingPlanCheckoutId] = useState("");
   const [showAuthMenu, setShowAuthMenu] = useState(false);
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
   const [showUserPanel, setShowUserPanel] = useState(false);
@@ -213,6 +233,7 @@ export default function App() {
   const [authRecoveryCode, setAuthRecoveryCode] = useState("");
   const [authRecoveryFeedback, setAuthRecoveryFeedback] = useState("");
   const [authTargetPage, setAuthTargetPage] = useState("home");
+  const [authTargetEntryMode, setAuthTargetEntryMode] = useState("");
   const [authForm, setAuthForm] = useState({ name: "", email: "", password: "" });
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
@@ -279,7 +300,27 @@ export default function App() {
     navigateToUserDashboardPage(routePage || "home");
   }, [navigateToUserDashboardPage]);
 
-  const activeSteps = useMemo(() => getQuestionnaireSteps(advancedMode), [advancedMode]);
+  const activeSteps = useMemo(() => {
+    const steps = getQuestionnaireSteps(advancedMode);
+    if (advisorContext === "renting") {
+      // Skip the flexibilidad question — renting is already pre-selected
+      return steps.filter((s) => s.id !== "flexibilidad");
+    }
+    if (advisorContext === "buy") {
+      // Show only comprar options in the flexibilidad question
+      return steps.map((s) =>
+        s.id === "flexibilidad"
+          ? {
+              ...s,
+              options: s.options.filter(
+                (o) => o.value === "propiedad_contado" || o.value === "propiedad_financiada"
+              ),
+            }
+          : s
+      );
+    }
+    return steps;
+  }, [advancedMode, advisorContext]);
 
   useEffect(() => {
     let isMounted = true;
@@ -650,6 +691,7 @@ export default function App() {
     setAuthRecoveryCode("");
     setAuthRecoveryFeedback("");
     setAuthTargetPage(options?.routePage || "home");
+    setAuthTargetEntryMode(options?.entryMode || "");
     setAuthError("");
     setShowAuthMenu(false);
     setShowUserPanel(false);
@@ -665,6 +707,8 @@ export default function App() {
     setAuthRecoveryMode("none");
     setAuthRecoveryCode("");
     setAuthRecoveryFeedback("");
+    setAuthTargetEntryMode("");
+    setPendingPlanCheckoutId("");
     setAuthError("");
     setAuthLoading(false);
     setAuthForm((prev) => ({
@@ -673,6 +717,53 @@ export default function App() {
       password: "",
     }));
   }, [currentUserEmail]);
+
+  const startSubscriptionCheckout = useCallback(async (planId, options = {}) => {
+    const normalizedPlanId = normalizeText(planId).toLowerCase();
+    const shouldSkipAuthGate = Boolean(options?.skipAuth);
+
+    if (!normalizedPlanId) {
+      return;
+    }
+
+    if (!shouldSkipAuthGate && !isUserLoggedIn) {
+      setPendingPlanCheckoutId(normalizedPlanId);
+      setPlanCheckoutFeedback("Inicia sesión para continuar con la suscripción.");
+      openAuthDialog("login", { routePage: "home" });
+      return;
+    }
+
+    setPlanCheckoutLoadingId(normalizedPlanId);
+    setPlanCheckoutFeedback("");
+
+    try {
+      const { data } = await postBillingCheckoutJson({
+        planId: normalizedPlanId,
+        origin: typeof window !== "undefined" ? window.location.origin : "",
+        customerEmail: normalizeText(options?.customerEmail || currentUserEmail).toLowerCase(),
+      });
+
+      if (normalizeText(data?.url)) {
+        if (typeof window !== "undefined") {
+          window.location.assign(data.url);
+          return;
+        }
+      }
+
+      setPlanCheckoutFeedback(
+        normalizeText(data?.message) ||
+          (data?.simulated
+            ? "Checkout en modo simulado: falta configurar Stripe (claves/precios)."
+            : "No se pudo abrir la pasarela de pago para este plan.")
+      );
+
+      setPendingPlanCheckoutId("");
+    } catch (error) {
+      setPlanCheckoutFeedback(error?.message || "No se pudo iniciar el checkout del plan seleccionado.");
+    } finally {
+      setPlanCheckoutLoadingId("");
+    }
+  }, [currentUserEmail, isUserLoggedIn, openAuthDialog]);
 
   const resetLoggedUser = useCallback(() => {
     void postAuthJson({ action: "logout" }).catch(() => {});
@@ -684,6 +775,7 @@ export default function App() {
     setAuthRecoveryFeedback("");
     setAuthError("");
     setAuthLoading(false);
+    setPendingPlanCheckoutId("");
     setShowChangePasswordForm(false);
     setChangePasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
     setChangePasswordError("");
@@ -802,6 +894,7 @@ export default function App() {
           newPassword,
         });
         const nextUser = data?.user;
+        const nextTargetEntryMode = normalizeText(authTargetEntryMode);
 
         if (!nextUser?.email) {
           throw new Error("No se pudo completar el cambio de contraseña.");
@@ -810,17 +903,41 @@ export default function App() {
         writeAuthUser(nextUser);
         setCurrentUser(nextUser);
         setIsUserLoggedIn(true);
-        setEntryMode("userDashboard");
         setStep(-1);
-        setUserDashboardPage(authTargetPage || "home");
+        if (nextTargetEntryMode) {
+          setEntryMode(nextTargetEntryMode);
+          syncBrowserPath("/", "replace");
+        } else {
+          setEntryMode("userDashboard");
+          setUserDashboardPage(authTargetPage || "home");
+          syncBrowserPath(getUserDashboardPath(authTargetPage || "home"), "replace");
+        }
         setShowAuthMenu(false);
         setShowUserPanel(false);
         setSaveFeedback(data?.message || "Contraseña actualizada y sesión iniciada.");
-        syncBrowserPath(getUserDashboardPath(authTargetPage || "home"), "replace");
         setAuthDialogMode("");
         setAuthRecoveryMode("none");
         setAuthRecoveryCode("");
+        setAuthTargetEntryMode("");
         setAuthForm({ name: "", email: nextUser.email, password: "" });
+
+        const nextPendingPlanId = normalizeText(pendingPlanCheckoutId).toLowerCase();
+
+        if (nextPendingPlanId) {
+          if (typeof window !== "undefined") {
+            window.setTimeout(() => {
+              void startSubscriptionCheckout(nextPendingPlanId, {
+                skipAuth: true,
+                customerEmail: nextUser.email,
+              });
+            }, 120);
+          } else {
+            void startSubscriptionCheckout(nextPendingPlanId, {
+              skipAuth: true,
+              customerEmail: nextUser.email,
+            });
+          }
+        }
 
         if (typeof window !== "undefined") {
           window.setTimeout(() => setSaveFeedback(""), 2200);
@@ -863,6 +980,7 @@ export default function App() {
 
     try {
       const { response, data } = await postAuthJson(payload);
+      const nextTargetEntryMode = normalizeText(authTargetEntryMode);
 
       if (!response.ok || data?.ok === false) {
         throw new Error(data?.details || data?.error || "No se pudo completar el acceso.");
@@ -877,9 +995,15 @@ export default function App() {
       writeAuthUser(nextUser);
       setCurrentUser(nextUser);
       setIsUserLoggedIn(true);
-      setEntryMode("userDashboard");
       setStep(-1);
-      setUserDashboardPage(authTargetPage || "home");
+      if (nextTargetEntryMode) {
+        setEntryMode(nextTargetEntryMode);
+        syncBrowserPath("/", "replace");
+      } else {
+        setEntryMode("userDashboard");
+        setUserDashboardPage(authTargetPage || "home");
+        syncBrowserPath(getUserDashboardPath(authTargetPage || "home"), "replace");
+      }
       setShowAuthMenu(false);
       setShowUserPanel(false);
       setSaveFeedback(
@@ -888,9 +1012,27 @@ export default function App() {
             ? `Cuenta creada para ${nextUser.email}.`
             : `Sesión iniciada para ${nextUser.email}.`)
       );
-      syncBrowserPath(getUserDashboardPath(authTargetPage || "home"), "replace");
       setAuthDialogMode("");
+          setAuthTargetEntryMode("");
       setAuthForm({ name: "", email: nextUser.email, password: "" });
+
+      const nextPendingPlanId = normalizeText(pendingPlanCheckoutId).toLowerCase();
+
+      if (nextPendingPlanId) {
+        if (typeof window !== "undefined") {
+          window.setTimeout(() => {
+            void startSubscriptionCheckout(nextPendingPlanId, {
+              skipAuth: true,
+              customerEmail: nextUser.email,
+            });
+          }, 120);
+        } else {
+          void startSubscriptionCheckout(nextPendingPlanId, {
+            skipAuth: true,
+            customerEmail: nextUser.email,
+          });
+        }
+      }
 
       if (typeof window !== "undefined") {
         window.setTimeout(() => setSaveFeedback(""), 2200);
@@ -901,7 +1043,17 @@ export default function App() {
     } finally {
       setAuthLoading(false);
     }
-  }, [authDialogMode, authForm, authRecoveryCode, authRecoveryMode, authTargetPage, syncBrowserPath]);
+  }, [
+    authDialogMode,
+    authForm,
+    authRecoveryCode,
+    authRecoveryMode,
+    authTargetEntryMode,
+    authTargetPage,
+    pendingPlanCheckoutId,
+    startSubscriptionCheckout,
+    syncBrowserPath,
+  ]);
 
   const createMarketAlert = (filters = {}) => {
     const notifyByEmail = Boolean(filters?.notifyByEmail);
@@ -1079,8 +1231,8 @@ export default function App() {
         to: emailTargets,
         subject:
           emailTargets.length === 1
-            ? "MoveAdvisor · Tu resumen de alertas"
-            : `MoveAdvisor · ${emailTargets.length} resúmenes de alertas`,
+            ? "CarAdvisor · Tu resumen de alertas"
+            : `CarAdvisor · ${emailTargets.length} resúmenes de alertas`,
         notifications: notificationsToSend,
       });
 
@@ -1581,7 +1733,7 @@ export default function App() {
     handleLogout,
     handleUserAccessClick,
     openPortalVoOfferDetail,
-    restart,
+    restart: restartBase,
     restartQuestionnaire,
     updateDecisionAnswer,
     updateListingFilter,
@@ -1636,6 +1788,12 @@ export default function App() {
     onAuthRequest: openAuthDialog,
     onLogoutUser: resetLoggedUser,
   });
+
+  const restart = useCallback(() => {
+    setAdvisorContext(null);
+    setSellFlowType("");
+    restartBase();
+  }, [restartBase]);
 
   const decisionModels = decisionAnswers.brand ? marketBrandsCatalog[decisionAnswers.brand] || [] : [];
   const estimatedFinanceMonthly = estimateMonthlyPayment(
@@ -1718,7 +1876,22 @@ export default function App() {
     <div style={s.page}>
       {/* HEADER */}
       <header style={s.header}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <button
+          type="button"
+          onClick={restart}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            background: "transparent",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+            color: "inherit",
+          }}
+          title="Ir al home"
+          aria-label="Ir al home"
+        >
           <div
             style={{
               width: 34,
@@ -1734,12 +1907,12 @@ export default function App() {
             🚗
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 14, color: "#f1f5f9" }}>MoveAdvisor</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: "#f1f5f9" }}>CarAdvisor</div>
             <div style={{ fontSize: 10, color: "#475569", letterSpacing: "0.8px" }}>
               SPAIN MOBILITY PLATFORM
             </div>
           </div>
-        </div>
+        </button>
         <div style={{ display: "flex", alignItems: "center", gap: 12, position: "relative" }}>
           {step >= 0 && step < totalSteps && (
             <div style={{ fontSize: 12, color: "#475569" }}>
@@ -1877,7 +2050,7 @@ export default function App() {
                     PANEL DE USUARIO
                   </div>
                   <div style={{ fontSize: 16, fontWeight: 700, color: "#f8fafc" }}>
-                    Mi espacio MoveAdvisor
+                    Mi espacio CarAdvisor
                   </div>
                   {currentUser?.email && (
                     <div style={{ fontSize: 11, color: "#bfdbfe", marginTop: 4 }}>
@@ -2213,6 +2386,8 @@ export default function App() {
           <div
             style={{
               width: "min(460px, 100%)",
+              maxHeight: "92vh",
+              overflowY: "auto",
               background: "rgba(8,15,30,0.98)",
               border: "1px solid rgba(96,165,250,0.18)",
               borderRadius: 18,
@@ -2412,6 +2587,128 @@ export default function App() {
         </div>
       )}
 
+      <style>
+        {`
+          .ma-card-interactive {
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+            box-shadow: 0 14px 30px rgba(2,6,23,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
+            transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 240ms ease, border-color 240ms ease, background 240ms ease, filter 240ms ease;
+            will-change: transform;
+          }
+
+          .ma-card-interactive > * {
+            position: relative;
+            z-index: 2;
+          }
+
+          .ma-card-interactive::before {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            background: radial-gradient(120% 90% at 8% 10%, rgba(59,130,246,0.26), rgba(59,130,246,0) 55%),
+              radial-gradient(90% 75% at 92% 12%, rgba(16,185,129,0.2), rgba(16,185,129,0) 55%);
+            opacity: 0;
+            transition: opacity 220ms ease;
+            pointer-events: none;
+            z-index: 1;
+          }
+
+          .ma-card-interactive::after {
+            content: "";
+            position: absolute;
+            width: 46%;
+            height: 160%;
+            top: -30%;
+            left: -60%;
+            transform: rotate(18deg);
+            background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.2), rgba(255,255,255,0));
+            transition: left 520ms ease;
+            pointer-events: none;
+            z-index: 1;
+          }
+
+          .ma-card-interactive:focus-visible {
+            outline: 2px solid rgba(125,211,252,0.7);
+            outline-offset: 2px;
+          }
+
+          .ma-card-interactive:hover,
+          .ma-card-interactive:focus-visible {
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 24px 46px rgba(2,6,23,0.34), 0 0 0 1px rgba(125,211,252,0.18), 0 0 24px rgba(56,189,248,0.14);
+            border-color: rgba(125,211,252,0.64) !important;
+            filter: saturate(1.08) brightness(1.03);
+          }
+
+          .ma-card-interactive:hover::before,
+          .ma-card-interactive:focus-visible::before {
+            opacity: 1;
+          }
+
+          .ma-card-interactive:hover::after,
+          .ma-card-interactive:focus-visible::after {
+            left: 120%;
+          }
+
+          .ma-card-interactive:active {
+            transform: translateY(-1px) scale(0.995);
+          }
+
+          .ma-card-soft {
+            transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease, filter 200ms ease;
+          }
+
+          .ma-card-soft:hover,
+          .ma-card-soft:focus-visible {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 34px rgba(2,6,23,0.26), 0 0 18px rgba(56,189,248,0.1);
+            border-color: rgba(125,211,252,0.5);
+            filter: saturate(1.04);
+          }
+
+          .ma-card-soft:focus-visible {
+            outline: 2px solid rgba(125,211,252,0.65);
+            outline-offset: 2px;
+          }
+
+          .ma-fade-stagger {
+            opacity: 0;
+            transform: translateY(14px) scale(0.985);
+            animation: maCardIn 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          }
+
+          @keyframes maCardIn {
+            to {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+            }
+          }
+
+          @media (max-width: 768px) {
+            .ma-card-interactive:hover,
+            .ma-card-interactive:focus-visible {
+              transform: translateY(-3px) scale(1.005);
+            }
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .ma-card-interactive,
+            .ma-card-soft,
+            .ma-fade-stagger {
+              animation: none !important;
+              transition: none !important;
+            }
+
+            .ma-card-interactive::after,
+            .ma-card-interactive::before {
+              transition: none !important;
+            }
+          }
+        `}
+      </style>
+
       {/* PROGRESS */}
       <div style={s.progressBar}>
         <div style={s.progressFill} />
@@ -2424,6 +2721,13 @@ export default function App() {
           totalSteps={totalSteps}
           blockColors={BLOCK_COLORS}
           questionnaireDraft={questionnaireDraft}
+          isUserLoggedIn={isUserLoggedIn}
+          planCheckoutLoadingId={planCheckoutLoadingId}
+          planCheckoutFeedback={planCheckoutFeedback}
+          onSelectVehicle={() => {
+            setEntryMode("vehicleOptions");
+            setStep(-1);
+          }}
           onSelectAdvice={() => {
             setEntryMode("consejo");
             setStep(-1);
@@ -2434,7 +2738,22 @@ export default function App() {
             setStep(-1);
           }}
           onSelectSell={() => {
-            setEntryMode("sell");
+            if (!isUserLoggedIn) {
+              setPlanCheckoutFeedback("Inicia sesión o regístrate para sincronizar este flujo con tu portal.");
+              openAuthDialog("login", { entryMode: "sellOptions", routePage: "home" });
+              return;
+            }
+            setSellFlowType("");
+            setEntryMode("sellOptions");
+            setStep(-1);
+          }}
+          onSelectService={() => {
+            if (!isUserLoggedIn) {
+              setPlanCheckoutFeedback("Inicia sesión o regístrate para sincronizar este flujo con tu portal.");
+              openAuthDialog("login", { entryMode: "serviceOptions", routePage: "home" });
+              return;
+            }
+            setEntryMode("serviceOptions");
             setStep(-1);
           }}
           onSelectPortalVo={() => {
@@ -2442,6 +2761,157 @@ export default function App() {
             setStep(-1);
             setPortalVoFilters({ ...INITIAL_PORTAL_VO_FILTERS });
           }}
+          onSelectSubscriptionPlan={(plan) => {
+            void startSubscriptionCheckout(plan?.id || "");
+          }}
+        />
+      )}
+
+      {step === -1 && entryMode === "vehicleOptions" && (
+        <VehicleOptionsPage
+          styles={s}
+          onSelectBuy={() => {
+            setEntryMode("buyOptions");
+            setStep(-1);
+          }}
+          onSelectRenting={() => {
+            setAdvisorContext(null);
+            setEntryMode("rentingOptions");
+            setStep(-1);
+          }}
+          onSelectGuide={() => {
+            setAdvisorContext(null);
+            setAnswers({});
+            setEntryMode("consejo");
+            setStep(-1);
+          }}
+          onGoHome={() => {
+            setAdvisorContext(null);
+            setEntryMode(null);
+            setStep(-1);
+          }}
+        />
+      )}
+
+      {step === -1 && entryMode === "rentingOptions" && (
+        <RentingOptionsPage
+          styles={s}
+          onSelectAdvisor={() => {
+            setAdvisorContext("renting");
+            setAnswers({ flexibilidad: "renting" });
+            setEntryMode("consejo");
+            setStep(-1);
+          }}
+          onSelectKnownModel={() => {
+            setAdvisorContext("renting");
+            setEntryMode("decision");
+            setStep(-1);
+          }}
+          onGoBack={() => {
+            setAdvisorContext(null);
+            setEntryMode("vehicleOptions");
+            setStep(-1);
+          }}
+        />
+      )}
+
+      {step === -1 && entryMode === "buyOptions" && (
+        <BuyOptionsPage
+          styles={s}
+          onSelectAdvisor={() => {
+            setAdvisorContext("buy");
+            setAnswers({});
+            setEntryMode("consejo");
+            setStep(-1);
+          }}
+          onSelectKnownModel={() => {
+            setAdvisorContext(null);
+            setEntryMode("decision");
+            setStep(-1);
+          }}
+          onGoBack={() => {
+            setAdvisorContext(null);
+            setEntryMode("vehicleOptions");
+            setStep(-1);
+          }}
+        />
+      )}
+
+      {step === -1 && entryMode === "sellOptions" && (
+        <SellOptionsPage
+          styles={s}
+          onSelectCertificate={() => {
+            setSellFlowType("certificate");
+            setSellAnswers((prev) => ({ ...prev, sellerType: "profesional" }));
+            setEntryMode("sell");
+            setStep(-1);
+          }}
+          onSelectReport={() => {
+            setSellFlowType("report");
+            setSellAnswers((prev) => ({ ...prev, sellerType: "particular" }));
+            setEntryMode("sell");
+            setStep(-1);
+          }}
+          onGoBack={() => {
+            setSellFlowType("");
+            setEntryMode(null);
+            setStep(-1);
+          }}
+        />
+      )}
+
+      {step === -1 && entryMode === "serviceOptions" && (
+        <ServiceOptionsPage
+          styles={s}
+          onSelectInsurance={() => {
+            setEntryMode("serviceInsurance");
+            setStep(-1);
+          }}
+          onSelectMaintenance={() => {
+            setEntryMode("serviceMaintenance");
+            setStep(-1);
+          }}
+          onSelectAutogestor={() => {
+            setEntryMode("serviceAutogestor");
+            setStep(-1);
+          }}
+          onGoBack={() => {
+            setEntryMode(null);
+            setStep(-1);
+          }}
+        />
+      )}
+
+      {step === -1 && entryMode === "serviceInsurance" && (
+        <ServiceInsurancePage
+          styles={s}
+          onGoBack={() => {
+            setEntryMode("serviceOptions");
+            setStep(-1);
+          }}
+          onGoHome={restart}
+        />
+      )}
+
+      {step === -1 && entryMode === "serviceMaintenance" && (
+        <ServiceMaintenancePage
+          styles={s}
+          onGoBack={() => {
+            setEntryMode("serviceOptions");
+            setStep(-1);
+          }}
+          onGoHome={restart}
+        />
+      )}
+
+      {step === -1 && entryMode === "serviceAutogestor" && (
+        <ServiceAutogestorPage
+          styles={s}
+          onGoBack={() => {
+            setEntryMode("serviceOptions");
+            setStep(-1);
+          }}
+          onGoHome={restart}
         />
       )}
 
@@ -2582,6 +3052,7 @@ export default function App() {
       {step === -1 && entryMode === "sell" && (
         <SellPage
           styles={s}
+          sellFlowType={sellFlowType}
           sellAnswers={sellAnswers}
           setSellAnswers={setSellAnswers}
           MARKET_BRANDS={marketBrandsCatalog}

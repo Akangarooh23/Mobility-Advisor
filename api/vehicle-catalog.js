@@ -1,7 +1,16 @@
 const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
-const sql = require("mssql");
+
+// mssql is only needed when VEHICLE_CATALOG_PROVIDER=mssql; lazy-load to avoid crashing on Vercel
+function getMssqlModule() {
+  return require("mssql");
+}
+
+// Neon injects DATABASE_URL; map to POSTGRES_URL early
+if (!process.env.POSTGRES_URL && process.env.DATABASE_URL) {
+  process.env.POSTGRES_URL = process.env.DATABASE_URL;
+}
 
 const DEFAULT_CATALOG_PATH = path.join(__dirname, "..", "data", "vehicle-catalog.json");
 
@@ -18,6 +27,14 @@ function getCatalogProvider() {
 
   if (["sqlcmd-windows", "windows", "mssql-windows"].includes(provider)) {
     return "sqlcmd-windows";
+  }
+
+  if (["postgres", "postgresql", "neon", "vercel-postgres"].includes(provider)) {
+    return "postgres";
+  }
+
+  if (normalizeText(process.env.POSTGRES_URL) || normalizeText(process.env.DATABASE_URL)) {
+    return "postgres";
   }
 
   if (normalizeText(process.env.MSSQL_SERVER)) {
@@ -141,10 +158,116 @@ function getMssqlConfig() {
 
 async function getMssqlPool() {
   if (!mssqlPoolPromise) {
+    const sql = getMssqlModule();
     mssqlPoolPromise = sql.connect(getMssqlConfig());
   }
 
   return mssqlPoolPromise;
+}
+
+// ─── PostgreSQL (Neon / Vercel Postgres) ──────────────────────────────────────
+
+let _pgPool = null;
+
+function getPgPool() {
+  if (!_pgPool) {
+    const { Pool } = require("pg");
+    const connString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+    if (!connString) {
+      throw new Error("No DATABASE_URL o POSTGRES_URL configurados para conexión PostgreSQL");
+    }
+    _pgPool = new Pool({ connectionString: connString, ssl: { rejectUnauthorized: false } });
+  }
+  return _pgPool;
+}
+
+let _pgCatalogSchemaEnsured = false;
+
+async function ensureCatalogSchemaPostgres() {
+  if (_pgCatalogSchemaEnsured) return;
+  const pool = getPgPool();
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS moveadvisor_vehicle_brands (
+      id         SERIAL       PRIMARY KEY,
+      name       VARCHAR(100) NOT NULL,
+      is_active  BOOLEAN      NOT NULL DEFAULT TRUE,
+      sort_order INT          NOT NULL DEFAULT 0
+    )
+  `);
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS ix_moveadvisor_vehicle_brands_name
+    ON moveadvisor_vehicle_brands (name)
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS moveadvisor_vehicle_models (
+      id         SERIAL       PRIMARY KEY,
+      brand_id   INT          NOT NULL REFERENCES moveadvisor_vehicle_brands(id),
+      name       VARCHAR(120) NOT NULL,
+      is_active  BOOLEAN      NOT NULL DEFAULT TRUE,
+      sort_order INT          NOT NULL DEFAULT 0
+    )
+  `);
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS ix_moveadvisor_vehicle_models_brand_name
+    ON moveadvisor_vehicle_models (brand_id, name)
+  `);
+  _pgCatalogSchemaEnsured = true;
+}
+
+async function seedCatalogIfEmptyPostgres(defaultCatalogMap = {}) {
+  const pool = getPgPool();
+  const { rows } = await pool.query("SELECT COUNT(*)::int AS total FROM moveadvisor_vehicle_brands");
+  const total = Number(rows[0]?.total || 0);
+
+  if (total > 0 || Object.keys(defaultCatalogMap).length === 0) {
+    return;
+  }
+
+  for (const [brandName, models] of Object.entries(defaultCatalogMap)) {
+    await pool.query(
+      `INSERT INTO moveadvisor_vehicle_brands (name) VALUES ($1) ON CONFLICT (name) DO NOTHING`,
+      [brandName]
+    );
+    const brandResult = await pool.query(
+      `SELECT id FROM moveadvisor_vehicle_brands WHERE name = $1 LIMIT 1`,
+      [brandName]
+    );
+    const brandId = brandResult.rows[0]?.id;
+    if (!brandId) continue;
+
+    for (const modelName of Array.isArray(models) ? models : []) {
+      await pool.query(
+        `INSERT INTO moveadvisor_vehicle_models (brand_id, name) VALUES ($1, $2) ON CONFLICT (brand_id, name) DO NOTHING`,
+        [brandId, modelName]
+      );
+    }
+  }
+}
+
+async function getCatalogFromPostgres(defaultCatalogMap = {}) {
+  await ensureCatalogSchemaPostgres();
+  await seedCatalogIfEmptyPostgres(defaultCatalogMap);
+  const pool = getPgPool();
+
+  const { rows } = await pool.query(`
+    SELECT b.name AS brand, m.name AS model
+    FROM moveadvisor_vehicle_brands b
+    LEFT JOIN moveadvisor_vehicle_models m ON m.brand_id = b.id AND m.is_active = TRUE
+    WHERE b.is_active = TRUE
+    ORDER BY b.sort_order ASC, b.name ASC, m.sort_order ASC, m.name ASC
+  `);
+
+  const brandMap = {};
+
+  for (const row of rows) {
+    const brand = normalizeText(row?.brand);
+    const model = normalizeText(row?.model);
+    if (!brand) continue;
+    if (!brandMap[brand]) brandMap[brand] = [];
+    if (model && !brandMap[brand].includes(model)) brandMap[brand].push(model);
+  }
+
+  return brandMap;
 }
 
 const TABLE_SETUP_QUERY = `
@@ -323,6 +446,16 @@ module.exports = async function vehicleCatalogHandler(req, res) {
 
     if (provider === "sqlcmd-windows") {
       const catalogMap = getCatalogFromSqlcmd(defaultCatalogMap);
+      return res.status(200).json({
+        ok: true,
+        provider,
+        source: "database",
+        brands: mapToBrandRows(catalogMap),
+      });
+    }
+
+    if (provider === "postgres") {
+      const catalogMap = await getCatalogFromPostgres(defaultCatalogMap);
       return res.status(200).json({
         ok: true,
         provider,

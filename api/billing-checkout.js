@@ -1,4 +1,4 @@
-const { updateBillingState } = require("./_billingStore");
+const { resolveAccountByEmail, updateBillingState } = require("./_billingStore");
 const authHandler = require("./auth");
 
 function normalizeText(value) {
@@ -19,6 +19,62 @@ function parseBody(body) {
 
 function encodeForm(payload = {}) {
   return new URLSearchParams(payload).toString();
+}
+
+function buildStripeCustomerForm(profile = {}, customerEmail = "") {
+  const fullName = normalizeText(profile?.fullName);
+  const phone = normalizeText(profile?.phone);
+  const billingAddress = normalizeText(profile?.billingAddress);
+  const taxId = normalizeText(profile?.taxId);
+  const company = normalizeText(profile?.company);
+  const payload = {
+    email: customerEmail,
+    name: fullName || customerEmail,
+  };
+
+  if (phone) {
+    payload.phone = phone;
+  }
+
+  if (billingAddress) {
+    payload["address[line1]"] = billingAddress;
+  }
+
+  if (taxId) {
+    payload["metadata[tax_id]"] = taxId;
+  }
+
+  if (company) {
+    payload["metadata[company]"] = company;
+  }
+
+  return payload;
+}
+
+async function upsertStripeCustomer({ stripeSecretKey, account = {}, customerEmail = "" }) {
+  const existingCustomerId = normalizeText(account?.billing?.stripeCustomerId);
+  const customerPayload = buildStripeCustomerForm(account?.profile, customerEmail);
+  const targetUrl = existingCustomerId
+    ? `https://api.stripe.com/v1/customers/${encodeURIComponent(existingCustomerId)}`
+    : "https://api.stripe.com/v1/customers";
+
+  const stripeResponse = await fetch(targetUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${stripeSecretKey}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: encodeForm(customerPayload),
+  });
+
+  const data = await stripeResponse.json().catch(() => ({}));
+
+  if (!stripeResponse.ok) {
+    const detail = normalizeText(data?.error?.message || stripeResponse.statusText);
+    throw new Error(detail || "No se pudo preparar el cliente de Stripe.");
+  }
+
+  return normalizeText(data?.id);
 }
 
 function getPlanPriceId(planId = "") {
@@ -56,6 +112,7 @@ module.exports = async function billingCheckoutHandler(req, res) {
   const priceId = getPlanPriceId(planId);
   const successUrl = normalizeText(process.env.STRIPE_CHECKOUT_SUCCESS_URL) || `${origin || "https://example.com"}/panel/cuenta?checkout=ok`;
   const cancelUrl = normalizeText(process.env.STRIPE_CHECKOUT_CANCEL_URL) || `${origin || "https://example.com"}/panel/cuenta?checkout=cancel`;
+  const accountSnapshot = resolveAccountByEmail(customerEmail);
   const planLabelMap = {
     gratis: "Plan Gratis",
     bronce: "Plan Bronce",
@@ -83,6 +140,12 @@ module.exports = async function billingCheckoutHandler(req, res) {
   }
 
   try {
+    const stripeCustomerId = await upsertStripeCustomer({
+      stripeSecretKey,
+      account: accountSnapshot,
+      customerEmail,
+    });
+
     const stripeResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
       headers: {
@@ -95,7 +158,7 @@ module.exports = async function billingCheckoutHandler(req, res) {
         cancel_url: cancelUrl,
         "line_items[0][price]": priceId,
         "line_items[0][quantity]": "1",
-        customer_email: customerEmail,
+        customer: stripeCustomerId,
         "metadata[plan_id]": planId,
       }),
     });
@@ -118,6 +181,7 @@ module.exports = async function billingCheckoutHandler(req, res) {
         planId,
         planLabel,
         status: "checkout_abierto",
+        stripeCustomerId,
       }),
     });
   } catch (error) {

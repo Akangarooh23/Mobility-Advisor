@@ -16,7 +16,7 @@ export function buildUserDashboardModel({
     ? [
         {
           id: "advisor-follow-up",
-          title: "Revisión personalizada MoveAdvisor",
+          title: "Revisión personalizada CarAdvisor",
           meta: `${normalizeText(result?.solucion_principal?.titulo) || "Tu plan de movilidad"} · pendiente de reservar`,
           status: "Pendiente",
         },

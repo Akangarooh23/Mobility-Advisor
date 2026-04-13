@@ -1,7 +1,16 @@
 const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
-const sql = require("mssql");
+
+// mssql is only needed when VEHICLE_CATALOG_PROVIDER=mssql; lazy-load to avoid crashing on Vercel
+function getMssqlModule() {
+  return require("mssql");
+}
+
+// Neon injects DATABASE_URL; map to POSTGRES_URL early
+if (!process.env.POSTGRES_URL && process.env.DATABASE_URL) {
+  process.env.POSTGRES_URL = process.env.DATABASE_URL;
+}
 
 const DEFAULT_CATALOG_PATH = path.join(__dirname, "..", "data", "vehicle-catalog.json");
 
@@ -18,6 +27,14 @@ function getCatalogProvider() {
 
   if (["sqlcmd-windows", "windows", "mssql-windows"].includes(provider)) {
     return "sqlcmd-windows";
+  }
+
+  if (["postgres", "postgresql", "neon", "vercel-postgres"].includes(provider)) {
+    return "postgres";
+  }
+
+  if (normalizeText(process.env.POSTGRES_URL) || normalizeText(process.env.DATABASE_URL)) {
+    return "postgres";
   }
 
   if (normalizeText(process.env.MSSQL_SERVER)) {
@@ -72,10 +89,122 @@ function getMssqlConfig() {
 
 async function getMssqlPool() {
   if (!mssqlPoolPromise) {
+    const sql = getMssqlModule();
     mssqlPoolPromise = sql.connect(getMssqlConfig());
   }
 
   return mssqlPoolPromise;
+}
+
+// ─── PostgreSQL (Neon / Vercel Postgres) ──────────────────────────────────────
+
+let _pgPool = null;
+
+function getPgPool() {
+  if (!_pgPool) {
+    const { Pool } = require("pg");
+    const connString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+    if (!connString) {
+      throw new Error("No DATABASE_URL o POSTGRES_URL configurados para conexión PostgreSQL");
+    }
+    _pgPool = new Pool({ connectionString: connString, ssl: { rejectUnauthorized: false } });
+  }
+  return _pgPool;
+}
+
+let _pgAdminSchemaEnsured = false;
+
+async function ensureCatalogSchemaPostgres() {
+  if (_pgAdminSchemaEnsured) return;
+  const pool = getPgPool();
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS moveadvisor_vehicle_brands (
+      id         SERIAL       PRIMARY KEY,
+      name       VARCHAR(100) NOT NULL,
+      is_active  BOOLEAN      NOT NULL DEFAULT TRUE,
+      sort_order INT          NOT NULL DEFAULT 0
+    )
+  `);
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS ix_moveadvisor_vehicle_brands_name
+    ON moveadvisor_vehicle_brands (name)
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS moveadvisor_vehicle_models (
+      id         SERIAL       PRIMARY KEY,
+      brand_id   INT          NOT NULL REFERENCES moveadvisor_vehicle_brands(id),
+      name       VARCHAR(120) NOT NULL,
+      is_active  BOOLEAN      NOT NULL DEFAULT TRUE,
+      sort_order INT          NOT NULL DEFAULT 0
+    )
+  `);
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS ix_moveadvisor_vehicle_models_brand_name
+    ON moveadvisor_vehicle_models (brand_id, name)
+  `);
+  _pgAdminSchemaEnsured = true;
+}
+
+async function applyPostgresAction(action, brand, model) {
+  await ensureCatalogSchemaPostgres();
+  const pool = getPgPool();
+
+  if (action === "upsert_brand") {
+    await pool.query(
+      `INSERT INTO moveadvisor_vehicle_brands (name, is_active)
+       VALUES ($1, TRUE)
+       ON CONFLICT (name) DO UPDATE SET is_active = TRUE`,
+      [brand]
+    );
+    return;
+  }
+
+  if (action === "upsert_model") {
+    await pool.query(
+      `INSERT INTO moveadvisor_vehicle_brands (name, is_active)
+       VALUES ($1, TRUE)
+       ON CONFLICT (name) DO UPDATE SET is_active = TRUE`,
+      [brand]
+    );
+    const brandResult = await pool.query(
+      `SELECT id FROM moveadvisor_vehicle_brands WHERE name = $1 LIMIT 1`,
+      [brand]
+    );
+    const brandId = brandResult.rows[0]?.id;
+    if (!brandId) return;
+    await pool.query(
+      `INSERT INTO moveadvisor_vehicle_models (brand_id, name, is_active)
+       VALUES ($1, $2, TRUE)
+       ON CONFLICT (brand_id, name) DO UPDATE SET is_active = TRUE`,
+      [brandId, model]
+    );
+    return;
+  }
+
+  if (action === "delete_model") {
+    await pool.query(
+      `UPDATE moveadvisor_vehicle_models m
+       SET is_active = FALSE
+       FROM moveadvisor_vehicle_brands b
+       WHERE m.brand_id = b.id AND b.name = $1 AND m.name = $2`,
+      [brand, model]
+    );
+    return;
+  }
+
+  if (action === "delete_brand") {
+    await pool.query(
+      `UPDATE moveadvisor_vehicle_models m
+       SET is_active = FALSE
+       FROM moveadvisor_vehicle_brands b
+       WHERE m.brand_id = b.id AND b.name = $1`,
+      [brand]
+    );
+    await pool.query(
+      `UPDATE moveadvisor_vehicle_brands SET is_active = FALSE WHERE name = $1`,
+      [brand]
+    );
+  }
 }
 
 const TABLE_SETUP_QUERY = `
@@ -339,6 +468,8 @@ module.exports = async function vehicleCatalogAdminHandler(req, res) {
       await applyMssqlAction(action, brand, model);
     } else if (provider === "sqlcmd-windows") {
       applySqlcmdAction(action, brand, model);
+    } else if (provider === "postgres") {
+      await applyPostgresAction(action, brand, model);
     } else {
       applyLocalAction(action, brand, model);
     }

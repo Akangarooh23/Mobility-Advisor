@@ -1,0 +1,103 @@
+{
+  "customersByEmail": {
+    "stripe.check@example.com": {
+      "email": "stripe.check@example.com",
+      "profile": {
+        "fullName": "",
+        "email": "stripe.check@example.com",
+        "phone": "",
+        "companyName": "",
+        "taxId": "",
+        "billingAddress": "",
+        "iban": "",
+        "updatedAt": ""
+      },
+      "billingState": {
+        "planId": "plata",
+        "planLabel": "Plan Plata",
+        "status": "pendiente",
+        "nextBillingDate": "",
+        "stripeCustomerId": "",
+        "stripeSubscriptionId": "",
+        "invoices": [
+          {
+            "id": "demo-invoice-001",
+            "number": "MA-2026-001",
+            "date": "2026-04-01",
+            "amount": 0,
+            "status": "Pagada",
+            "pdfUrl": ""
+          }
+        ]
+      },
+      "updatedAt": "2026-04-12T20:14:59.081Z"
+    },
+    "stripe.check2@example.com": {
+      "email": "stripe.check2@example.com",
+      "profile": {
+        "fullName": "",
+        "email": "stripe.check2@example.com",
+        "phone": "",
+        "companyName": "",
+        "taxId": "",
+        "billingAddress": "",
+        "iban": "",
+        "updatedAt": ""
+      },
+      "billingState": {
+        "planId": "plata",
+        "planLabel": "Plan Plata",
+        "status": "pendiente",
+        "nextBillingDate": "",
+        "stripeCustomerId": "",
+        "stripeSubscriptionId": "",
+        "invoices": [
+          {
+            "id": "demo-invoice-001",
+            "number": "MA-2026-001",
+            "date": "2026-04-01",
+            "amount": 0,
+            "status": "Pagada",
+            "pdfUrl": ""
+          }
+        ]
+      },
+      "updatedAt": "2026-04-12T20:19:14.350Z"
+    },
+    "anapicazoh@gmail.com": {
+      "email": "anapicazoh@gmail.com",
+      "profile": {
+        "fullName": "",
+        "email": "anapicazoh@gmail.com",
+        "phone": "",
+        "companyName": "",
+        "taxId": "",
+        "billingAddress": "",
+        "iban": "",
+        "updatedAt": ""
+      },
+      "billingState": {
+        "planId": "plata",
+        "planLabel": "Plan Plata",
+        "status": "pendiente",
+        "nextBillingDate": "",
+        "stripeCustomerId": "",
+        "stripeSubscriptionId": "",
+        "invoices": [
+          {
+            "id": "demo-invoice-001",
+            "number": "MA-2026-001",
+            "date": "2026-04-01",
+            "amount": 0,
+            "status": "Pagada",
+            "pdfUrl": ""
+          }
+        ]
+      },
+      "updatedAt": "2026-04-13T15:09:04.189Z"
+    }
+  },
+  "stripeCustomerToEmail": {},
+  "stripeSubscriptionToEmail": {},
+  "updatedAt": "2026-04-13T15:09:04.189Z"
+}

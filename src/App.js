@@ -547,7 +547,7 @@ export default function App() {
           ? {
               ...s,
               options: s.options.filter(
-                (o) => o.value === "propiedad_contado" || o.value === "propiedad_financiada"
+                (o) => o.value === "propiedad_contado" || o.value === "propiedad_financiada" || o.value === "propiedad_entrada_inicial"
               ),
             }
           : s

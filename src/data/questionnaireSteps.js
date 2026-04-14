@@ -20,10 +20,10 @@ export const STEPS = [
     subtitle: "Cada modelo tiene implicaciones financieras y de riesgo muy distintas",
     type: "cards",
     options: [
-      { value: "propiedad_contado", label: "Comprar al contado", icon: "💶", desc: "Mayor poder negociador, capital inmovilizado" },
-      { value: "propiedad_financiada", label: "Comprar financiado", icon: "📝", desc: "Pago a plazos, coche mío al final" },
-      { value: "renting", label: "Renting (cuota fija)", icon: "📅", desc: "Todo incluido, sin propiedad" },
-      { value: "flexible", label: "Lo más flexible posible", icon: "⚡", desc: "Pagar solo cuando uso o suscripción" },
+      { value: "propiedad_contado", label: "Comprar al contado", icon: "💶", desc: "Adiós Interés" },
+      { value: "propiedad_financiada", label: "Comprar financiado", icon: "📝", desc: "Pago a plazos (El coche ya es tuyo aunque esté financiado)" },
+      { value: "propiedad_entrada_inicial", label: "Entrada inicial + Financiación", icon: "💳", desc: "Pago a Plazos con Entrada Inicial" },
+      { value: "renting", label: "Renting o Suscripción", icon: "📅", desc: "Pagar una cuota y no tener el coche en propiedad" },
     ],
   },
   {

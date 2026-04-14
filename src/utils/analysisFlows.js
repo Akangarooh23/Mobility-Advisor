@@ -80,11 +80,40 @@ export function buildAnswersSummary(finalAnswers, activeSteps = []) {
       if (stepConfig?.type === "score_weights") {
         const value = finalAnswers?.[stepConfig.id];
         const metrics = Array.isArray(stepConfig?.metrics) ? stepConfig.metrics : [];
+        const findAnswerStep = (answerKey) =>
+          activeSteps.find((item) => item?.id === answerKey)
+          || activeSteps.find((item) => Array.isArray(item?.compositeKeys) && item.compositeKeys.includes(answerKey));
+        const resolveSelectedAnswer = (answerKey) => {
+          const answerValue = finalAnswers?.[answerKey];
+          const answerStep = findAnswerStep(answerKey);
+
+          if (Array.isArray(answerStep?.compositeKeys)) {
+            const options = answerStep?.fields?.[answerKey]?.options || [];
+            if (Array.isArray(answerValue)) {
+              return answerValue
+                .filter(Boolean)
+                .map((item) => options.find((opt) => opt.value === item)?.label || item)
+                .join(", ");
+            }
+            return options.find((opt) => opt.value === answerValue)?.label || "No indicado";
+          }
+
+          if (Array.isArray(answerValue)) {
+            const options = answerStep?.options || [];
+            return answerValue
+              .filter(Boolean)
+              .map((item) => options.find((opt) => opt.value === item)?.label || item)
+              .join(", ");
+          }
+
+          const options = answerStep?.options || [];
+          return options.find((opt) => opt.value === answerValue)?.label || answerValue || "No indicado";
+        };
         const ranking = metrics
           .map((metric) => {
             const rank = Number(value?.[metric.key]);
             return Number.isFinite(rank)
-              ? `${metric.label}: ${rank}`
+              ? `${metric.label} (${resolveSelectedAnswer(metric.key)}): ${rank}`
               : `${metric.label}: No indicado`;
           })
           .join(" | ");
@@ -171,7 +200,8 @@ Criterios de analisis:
 - Añade un plan_accion claro con semaforo (verde, ambar o rojo), acciones concretas y alertas rojas para la decision final.
 - Si el test avanzado aporta datos de garaje, ZBE, capital inicial, control de riesgo o tipo de zona, usalos para afinar de verdad la recomendacion.
 - Explica el score con logica de encaje de uso, coste total, flexibilidad, viabilidad real y ajuste con preferencias.
-- Si existe una respuesta de "Pondera tu score...", usa esa jerarquia numerica (5 mas importante, 1 menos importante) para priorizar y justificar el score_desglose.
+- Si existe una respuesta de prioridades finales, trata los criterios con prioridad 5 como restricciones casi obligatorias, los de 4 como preferencias fuertes, los de 3 como preferencias normales y los de 1-2 como criterios relajables.
+- Si marca, motorizacion, tipo de compra, antiguedad o plazas tienen prioridad alta, las ofertas y propulsiones viables deben respetar eso de forma clara salvo imposibilidad real del mercado.
 - Prioriza opciones realistas en Espana para el perfil dado.
 - Si el horizonte es "Menos de 1 año", prioriza renting_corto o suscripción flexible antes que compra o renting largo.
 - Si recomiendas electrico puro, explicita claramente los requisitos de carga y validalos en el siguiente paso.

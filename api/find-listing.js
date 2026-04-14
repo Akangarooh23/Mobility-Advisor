@@ -901,6 +901,77 @@ function getProfileBrandKeywords(answers, models = []) {
   return uniq([...fromExplicitBrand, ...fromPreference, ...fromModels]);
 }
 
+function getOfferPriorityMap(answers = {}) {
+  const raw = answers?.ponderacion_score_personalizada;
+  return raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+}
+
+function getOfferPriorityRank(answers, key) {
+  const numeric = Number(getOfferPriorityMap(answers)?.[key]);
+  return Number.isInteger(numeric) ? numeric : 3;
+}
+
+function getPriorityMultiplier(rank, low = 0.45, high = 1.9) {
+  const clamped = Math.max(1, Math.min(5, Number(rank) || 3));
+  const ratio = (clamped - 1) / 4;
+  return low + (high - low) * ratio;
+}
+
+function getAllowedAgeBuckets(answers = {}) {
+  const selected = answers?.antiguedad_vehiculo_buscada;
+  if (!Array.isArray(selected) || selected.length === 0 || selected.includes("indiferente")) {
+    return [];
+  }
+
+  return selected.filter(Boolean);
+}
+
+function inferListingYear(listing, rawText = "") {
+  const explicitYear = Number(listing?.builtYear || listing?.year || 0);
+  if (Number.isInteger(explicitYear) && explicitYear >= 2000 && explicitYear <= new Date().getFullYear() + 1) {
+    return explicitYear;
+  }
+
+  const match = String(rawText || "").match(/\b(20\d{2}|19\d{2})\b/);
+  return match ? Number(match[1]) : null;
+}
+
+function resolveAgeBucketFromYear(year) {
+  if (!Number.isInteger(year)) {
+    return "";
+  }
+
+  const currentYear = new Date().getFullYear();
+  const age = Math.max(0, currentYear - year);
+
+  if (age === 0) return "cero_anos";
+  if (age <= 2) return "0_2_anos";
+  if (age <= 4) return "2_4_anos";
+  if (age <= 7) return "4_7_anos";
+  return "mas_7_anos";
+}
+
+function scoreAgePreference(listing, rawText, answers) {
+  const agePriority = getOfferPriorityRank(answers, "antiguedad_vehiculo_buscada");
+  const allowedBuckets = getAllowedAgeBuckets(answers);
+  if (allowedBuckets.length === 0) {
+    return 0;
+  }
+
+  const year = inferListingYear(listing, rawText);
+  const bucket = resolveAgeBucketFromYear(year);
+  if (!bucket) {
+    return agePriority >= 5 ? -6 : agePriority >= 4 ? -3 : 0;
+  }
+
+  const matched = allowedBuckets.includes(bucket);
+  if (matched) {
+    return Math.round(8 * getPriorityMultiplier(agePriority, 0.6, 2));
+  }
+
+  return -Math.round(8 * getPriorityMultiplier(agePriority, 0.6, 2.5));
+}
+
 function isChinaForwardPreference(result, answers) {
   const combined = removeAccents(
     `${result?.solucion_principal?.titulo || ""} ${result?.solucion_principal?.resumen || ""} ${answers?.marca_preferencia || ""} ${answers?.marca_objetivo || ""} ${answers?.modelo_objetivo || ""}`
@@ -976,6 +1047,14 @@ function scorePreferredFuel(haystack, preferredFuel, viableFuel) {
   }
 
   return score;
+}
+
+function getPreferredFuelString(answers = {}) {
+  const value = answers?.propulsion_preferida;
+  if (Array.isArray(value)) {
+    return value.join(" ");
+  }
+  return String(value || "");
 }
 
 function getEffectiveBudgetKey(filters = {}, answers = {}, desiredType = "compra") {
@@ -1166,10 +1245,13 @@ function scoreListingForProfile(listing, { result, answers, filters, company, mo
   const rawText = `${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""} ${listing?.price || ""}`;
   const haystack = removeAccents(rawText).toLowerCase();
   const preferredBrands = getProfileBrandKeywords(answers, models);
-  const preferredFuel = removeAccents(answers?.propulsion_preferida || "").toLowerCase();
+  const preferredFuel = removeAccents(getPreferredFuelString(answers)).toLowerCase();
   const viableFuel = removeAccents(
     Array.isArray(result?.propulsiones_viables) ? result.propulsiones_viables.join(" ") : ""
   ).toLowerCase();
+  const brandPriority = getOfferPriorityRank(answers, "marca_preferencia");
+  const fuelPriority = getOfferPriorityRank(answers, "propulsion_preferida");
+  const seatsPriority = getOfferPriorityRank(answers, "ocupantes");
   const monthlyPriceSignal = hasMonthlyPriceSignal(rawText);
   const vehicleOfferSignal = looksLikeVehicleOffer(rawText);
   const genericNonVehicle = looksLikeGenericNonVehiclePage(rawText);
@@ -1206,11 +1288,11 @@ function scoreListingForProfile(listing, { result, answers, filters, company, mo
     score += hits * 2;
   }
 
-  score += brandHits * 4;
-  score += scorePreferredFuel(haystack, preferredFuel, viableFuel);
+  score += Math.round(brandHits * 4 * getPriorityMultiplier(brandPriority, 0.35, 2.3));
+  score += Math.round(scorePreferredFuel(haystack, preferredFuel, viableFuel) * getPriorityMultiplier(fuelPriority, 0.45, 2.1));
 
   if (answers?.marca_preferencia && answers.marca_preferencia !== "sin_preferencia" && brandHits === 0) {
-    score -= chinaForward ? 14 : 5;
+    score -= Math.round((chinaForward ? 14 : 5) * getPriorityMultiplier(brandPriority, 0.2, 2.8));
   }
 
   if (chinaForward) {
@@ -1218,14 +1300,16 @@ function scoreListingForProfile(listing, { result, answers, filters, company, mo
   }
 
   if (answers?.ocupantes === "7_plazas_maletero_grande" && /(kodiaq|sorento|santa fe|x-trail|5008|tourneo)/.test(haystack)) {
-    score += 4;
+    score += Math.round(4 * getPriorityMultiplier(seatsPriority, 0.5, 2));
   }
   if (answers?.ocupantes === "5_plazas_maletero_medio" && /(corolla|leon|captur|qashqai|tucson|sportage|octavia|kona|niro|dolphin|mg4|ev3)/.test(haystack)) {
-    score += 4;
+    score += Math.round(4 * getPriorityMultiplier(seatsPriority, 0.5, 2));
   }
   if (answers?.ocupantes === "2_plazas_maletero_pequeno" && /(yaris|clio|ibiza|polo|208|i20|micra)/.test(haystack)) {
-    score += 4;
+    score += Math.round(4 * getPriorityMultiplier(seatsPriority, 0.5, 2));
   }
+
+  score += scoreAgePreference(listing, rawText, answers);
 
   if (answers?.entorno_uso === "ciudad" && /(yaris|clio|ibiza|polo|208|i20|mg4|dolphin|kona|niro|ev3)/.test(haystack)) {
     score += 3;
@@ -1297,12 +1381,14 @@ function scoreFallbackListing(listing, context) {
   const rawText = `${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""} ${listing?.price || ""}`;
   const haystack = removeAccents(rawText).toLowerCase();
   const preferredBrands = getProfileBrandKeywords(context.answers, context.models || []);
-  const preferredFuel = removeAccents(context.answers?.propulsion_preferida || "").toLowerCase();
+  const preferredFuel = removeAccents(getPreferredFuelString(context.answers)).toLowerCase();
   const viableFuel = removeAccents(
     Array.isArray(context.result?.propulsiones_viables) ? context.result.propulsiones_viables.join(" ") : ""
   ).toLowerCase();
   const usage = Array.isArray(context.answers?.uso_principal) ? context.answers.uso_principal : [];
   const brandHits = countTokenHits(haystack, preferredBrands);
+  const brandPriority = getOfferPriorityRank(context.answers, "marca_preferencia");
+  const fuelPriority = getOfferPriorityRank(context.answers, "propulsion_preferida");
   const effectiveBudgetKey = getEffectiveBudgetKey(context.filters, context.answers, context.desiredType);
   const budgetFit = getBudgetFitInfo(listing?.price, effectiveBudgetKey, context.desiredType);
   const modelHits = (context.models || []).reduce((acc, model) => {
@@ -1320,10 +1406,11 @@ function scoreFallbackListing(listing, context) {
   const carsharingSignal = hasCarsharingSignals(rawText);
 
   score += getBudgetPriorityScore(listing?.price, effectiveBudgetKey, context.desiredType, context.answers);
-  score += scorePreferredFuel(haystack, preferredFuel, viableFuel);
-  score += brandHits * 4;
+  score += Math.round(scorePreferredFuel(haystack, preferredFuel, viableFuel) * getPriorityMultiplier(fuelPriority, 0.45, 2.1));
+  score += Math.round(brandHits * 4 * getPriorityMultiplier(brandPriority, 0.35, 2.3));
   score += Math.min(modelHits, 4) * 2;
   score += Math.max(0, Number(listing?.profileScore || 0)) * 1.2;
+  score += scoreAgePreference(listing, rawText, context.answers);
 
   if (matchesDesiredListingType(listing, context.desiredType)) {
     score += 8;
@@ -1369,6 +1456,7 @@ function isRelevantListingForProfile(listing, context) {
   const score = Number(listing?.profileScore || 0);
   const preferredBrands = getProfileBrandKeywords(context.answers, context.models || []);
   const brandHits = countTokenHits(haystack, preferredBrands);
+  const brandPriority = getOfferPriorityRank(context.answers, "marca_preferencia");
   const chinaForward = isChinaForwardPreference(context.result, context.answers);
   const chineseBrandSignal = /(byd|mg\b|xpeng|omoda|jaecoo|seal u|atto 3|dolphin|mg4|zs hybrid|hs phev)/.test(haystack);
   const specificOfferSignal = hasSpecificVehicleIdentity(listing);
@@ -1391,6 +1479,10 @@ function isRelevantListingForProfile(listing, context) {
   }
 
   if (chinaForward && brandHits === 0 && modelHits === 0 && !chineseBrandSignal) {
+    return false;
+  }
+
+  if (brandPriority >= 5 && preferredBrands.length > 0 && brandHits === 0 && modelHits === 0) {
     return false;
   }
 
@@ -2032,6 +2124,19 @@ function buildVehicleCandidates({ result, answers }) {
     ? [...preferred, ...dynamic.filter((model) => /^(BYD|MG|XPeng|Omoda|Jaecoo)\b/i.test(model) || /(Seal U|Atto 3|Dolphin|MG4|ZS Hybrid|HS PHEV)/i.test(model))]
     : [...preferred, ...dynamic];
 
+  const brandPriority = getOfferPriorityRank(answers, "marca_preferencia");
+  if (brandPriority >= 5 && preferred.length > 0) {
+    const preferredBrands = getProfileBrandKeywords(answers, preferred);
+    const constrained = combined.filter((model) => {
+      const normalized = removeAccents(model).toLowerCase();
+      return preferredBrands.some((brand) => normalized.startsWith(brand));
+    });
+
+    if (constrained.length > 0) {
+      return uniq(constrained.filter(looksLikeSpecificModelName)).slice(0, chinaForward ? 10 : 8);
+    }
+  }
+
   return uniq(combined.filter(looksLikeSpecificModelName)).slice(0, chinaForward ? 10 : 8);
 }
 
@@ -2062,6 +2167,18 @@ function getSearchCompanies({ result, filters, desiredType }) {
 function buildQueries({ result, answers, filters, companies = [], desiredType = getDesiredListingType(result) }) {
   const models = buildVehicleCandidates({ result, answers });
   const chinaForward = isChinaForwardPreference(result, answers);
+  const agePriority = getOfferPriorityRank(answers, "antiguedad_vehiculo_buscada");
+  const ageBuckets = getAllowedAgeBuckets(answers);
+  const ageHint = agePriority >= 4
+    ? ageBuckets.map((bucket) => {
+        if (bucket === "cero_anos") return "km 0 nuevo";
+        if (bucket === "0_2_anos") return "seminuevo 2024 2025";
+        if (bucket === "2_4_anos") return "ocasion 2022 2023 2024";
+        if (bucket === "4_7_anos") return "ocasion 2019 2020 2021 2022";
+        if (bucket === "mas_7_anos") return "ocasion usado";
+        return "";
+      }).filter(Boolean).join(" ")
+    : "";
   const budgetHint = BUDGET_HINTS[filters?.budget] || "";
   const incomeHint = INCOME_HINTS[filters?.income] || "";
   const platformList = companies.length ? companies : getSearchCompanies({ result, filters, desiredType });
@@ -2085,20 +2202,20 @@ function buildQueries({ result, answers, filters, companies = [], desiredType = 
   const companyLimit = chinaForward ? 8 : 6;
 
   for (const model of models.slice(0, modelLimit)) {
-    queries.push(`${model} ${operationHint} España ${fuelHint} ${budgetHint}`.trim());
+    queries.push(`${model} ${operationHint} España ${fuelHint} ${ageHint} ${budgetHint}`.trim());
 
     for (const company of platformList.slice(0, companyLimit)) {
       const companySite = COMPANY_SITE_HINTS[company] || "";
-      queries.push(`${company} ${model} ${operationHint} España ${budgetHint}`.trim());
+      queries.push(`${company} ${model} ${operationHint} España ${ageHint} ${budgetHint}`.trim());
 
       if (companySite) {
-        queries.push(`site:${companySite} ${model} ${operationHint} ${budgetHint}`.trim());
+        queries.push(`site:${companySite} ${model} ${operationHint} ${ageHint} ${budgetHint}`.trim());
       }
     }
   }
 
   for (const hint of alternativeHints) {
-    queries.push(`${hint} ${operationHint} España ${budgetHint}`.trim());
+    queries.push(`${hint} ${operationHint} España ${ageHint} ${budgetHint}`.trim());
   }
 
   if (chinaForward) {
@@ -2107,7 +2224,7 @@ function buildQueries({ result, answers, filters, companies = [], desiredType = 
     });
   }
 
-  queries.push(`${operationHint} España ${fuelHint} ${budgetHint} ${incomeHint}`.trim());
+  queries.push(`${operationHint} España ${fuelHint} ${ageHint} ${budgetHint} ${incomeHint}`.trim());
 
   return uniq(queries).slice(0, 22);
 }

@@ -562,7 +562,7 @@ export default function QuestionnairePage({
                           padding: "8px 0",
                           cursor: "pointer",
                         }}
-                        title={inUseByAnother && !isSelected ? "Este número ya está asignado a otra métrica" : "Asignar importancia"}
+                        title={inUseByAnother && !isSelected ? "Este número ya está asignado a otro criterio" : "Asignar importancia"}
                       >
                         {rank}
                       </button>
@@ -621,7 +621,7 @@ export default function QuestionnairePage({
           }}
         >
           {!hasCompleteScoreWeights(currentStep, scoreWeightsSelection)
-            ? "Numera todas las métricas (sin repetir números)"
+            ? "Numera todos los criterios (sin repetir números)"
             : "Continuar →"}
         </button>
       )}

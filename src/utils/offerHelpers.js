@@ -96,6 +96,14 @@ export function normalizeOfferAssetUrl(value) {
 }
 
 export function buildOfferModelSuggestions(answers = {}, resultData = {}) {
+  const priorityMap = answers?.ponderacion_score_personalizada && typeof answers.ponderacion_score_personalizada === "object"
+    ? answers.ponderacion_score_personalizada
+    : {};
+  const getPriority = (key) => {
+    const numeric = Number(priorityMap?.[key]);
+    return Number.isInteger(numeric) ? numeric : 3;
+  };
+  const brandPriority = getPriority("marca_preferencia");
   const viablePropulsions = Array.isArray(resultData?.propulsiones_viables)
     ? resultData.propulsiones_viables.map((item) => normalizeText(item).toLowerCase())
     : [];
@@ -139,7 +147,17 @@ export function buildOfferModelSuggestions(answers = {}, resultData = {}) {
     ? dynamic.filter((model) => /^(BYD|MG|XPeng|Omoda|Jaecoo)\b/i.test(model) || /(Seal U|Dolphin|MG4|ZS Hybrid|Jaecoo 7)/i.test(model))
     : dynamic;
 
-  return [...new Set(filtered.filter(Boolean))].slice(0, 5);
+  const preferredBrandModels = OFFER_BRAND_HINTS[answers?.marca_preferencia] || [];
+  const preferredBrandTokens = preferredBrandModels
+    .map((model) => normalizeText(model).split(/\s+/)[0]?.toLowerCase())
+    .filter(Boolean);
+  const brandFocused = brandPriority >= 5 && preferredBrandTokens.length > 0
+    ? filtered.filter((model) => preferredBrandTokens.some((token) => normalizeText(model).toLowerCase().startsWith(token)))
+    : filtered;
+
+  const source = brandFocused.length > 0 ? brandFocused : filtered;
+
+  return [...new Set(source.filter(Boolean))].slice(0, 5);
 }
 
 function isSpecificOfferUrl(url, listingType = "movilidad") {

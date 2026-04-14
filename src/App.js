@@ -210,6 +210,24 @@ function buildActiveAnswers(allAnswers, steps = STEPS) {
   }, {});
 }
 
+function isAdvisorResultCompatibleWithContext(resultData, advisorContext) {
+  const topType = normalizeText(resultData?.solucion_principal?.tipo);
+  const alternativeTypes = Array.isArray(resultData?.alternativas)
+    ? resultData.alternativas.map((item) => normalizeText(item?.tipo)).filter(Boolean)
+    : [];
+  const allTypes = [topType, ...alternativeTypes].filter(Boolean);
+
+  if (advisorContext === "renting") {
+    return allTypes.every((type) => ["renting_largo", "renting_corto", "rent_a_car", "carsharing"].includes(type));
+  }
+
+  if (advisorContext === "buy") {
+    return allTypes.every((type) => ["compra_contado", "compra_financiada"].includes(type));
+  }
+
+  return true;
+}
+
 function resolveAlertRecipientEmail(alert = {}, fallbackEmail = "") {
   const directEmail = normalizeText(alert?.email).toLowerCase();
   const fallback = normalizeText(fallbackEmail).toLowerCase();
@@ -2085,19 +2103,35 @@ export default function App() {
 
     try {
       const answersSummary = buildAnswersSummary(finalAnswers, activeSteps);
-      const prompt = buildAdviceAnalysisPrompt({ answersSummary });
+      const buildPrompt = (extraInstruction = "") => buildAdviceAnalysisPrompt({
+        answersSummary: extraInstruction ? `${answersSummary}\n- Instruccion adicional del sistema: ${extraInstruction}` : answersSummary,
+        advisorContext,
+      });
 
-      const raw = await requestAiJson(
-        prompt,
+      let raw = await requestAiJson(
+        buildPrompt(),
         { answers: finalAnswers },
         { onApiKeyMissing: () => setApiKeyMissing(true) }
       );
-      clearInterval(phaseInterval);
+      let normalizedResult = normalizeAdvisorResult(raw);
 
-      const normalizedResult = normalizeAdvisorResult(raw);
+      if (!isAdvisorResultCompatibleWithContext(normalizedResult, advisorContext)) {
+        raw = await requestAiJson(
+          buildPrompt("La respuesta anterior incumplio la restriccion de categoria. Repite el analisis respetando estrictamente la via de entrada del usuario."),
+          { answers: finalAnswers },
+          { onApiKeyMissing: () => setApiKeyMissing(true) }
+        );
+        normalizedResult = normalizeAdvisorResult(raw);
+      }
+
+      clearInterval(phaseInterval);
 
       if (!isCompleteAdvisorResult(normalizedResult)) {
         throw new Error("La IA ha devuelto un analisis incompleto. Intentalo de nuevo.");
+      }
+
+      if (!isAdvisorResultCompatibleWithContext(normalizedResult, advisorContext)) {
+        throw new Error("La IA ha devuelto una categoria incompatible con la via elegida. Vuelve a intentarlo.");
       }
 
       clearQuestionnaireDraft();

@@ -419,15 +419,15 @@ export default function QuestionnairePage({
       {currentStep.type === "dual_timeline" && (
         <button
           onClick={onHandleDualTimelineNext}
-          disabled={!hasCompleteRange(dualTimelineSelection?.horizonte) || !hasCompleteRange(dualTimelineSelection?.km_anuales)}
+          disabled={!hasCompleteRange(dualTimelineSelection?.horizonte_tenencia) || !hasCompleteRange(dualTimelineSelection?.antiguedad_vehiculo_buscada)}
           style={{
             ...styles.btn,
             width: "100%",
             marginTop: 14,
-            opacity: !hasCompleteRange(dualTimelineSelection?.horizonte) || !hasCompleteRange(dualTimelineSelection?.km_anuales) ? 0.35 : 1,
+            opacity: !hasCompleteRange(dualTimelineSelection?.horizonte_tenencia) || !hasCompleteRange(dualTimelineSelection?.antiguedad_vehiculo_buscada) ? 0.35 : 1,
           }}
         >
-          {!hasCompleteRange(dualTimelineSelection?.horizonte) || !hasCompleteRange(dualTimelineSelection?.km_anuales)
+          {!hasCompleteRange(dualTimelineSelection?.horizonte_tenencia) || !hasCompleteRange(dualTimelineSelection?.antiguedad_vehiculo_buscada)
             ? "Completa ambas líneas temporales"
             : "Continuar →"}
         </button>

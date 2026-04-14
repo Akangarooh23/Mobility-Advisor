@@ -140,16 +140,10 @@ function hasAnsweredValue(value) {
 function normalizeRangeValue(value) {
   if (Array.isArray(value)) {
     const cleaned = value.filter(Boolean);
-    if (cleaned.length === 0) {
-      return [];
-    }
-    if (cleaned.length === 1) {
-      return [cleaned[0], cleaned[0]];
-    }
-    return [cleaned[0], cleaned[1]];
+    return cleaned;
   }
 
-  return value ? [value, value] : [];
+  return value ? [value] : [];
 }
 
 function countAnsweredSteps(answers, steps = STEPS) {

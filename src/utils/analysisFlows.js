@@ -44,6 +44,7 @@ export function buildAnswersSummary(finalAnswers, activeSteps = []) {
       if (Array.isArray(stepConfig?.compositeKeys) && stepConfig.compositeKeys.length > 0) {
         const horizonTenenciaValue = finalAnswers?.horizonte_tenencia || "";
         const antiguedadVehiculoValue = finalAnswers?.antiguedad_vehiculo_buscada || "";
+        const antiguedadMode = stepConfig.fields?.antiguedad_vehiculo_buscada?.selectionMode;
         const resolveRangeLabel = (value, options = []) => {
           const resolveSingle = (singleValue) =>
             options.find((opt) => opt.value === singleValue)?.label || "No indicado";
@@ -57,8 +58,21 @@ export function buildAnswersSummary(finalAnswers, activeSteps = []) {
           return resolveSingle(value);
         };
 
+        const resolveMultiLabel = (value, options = []) => {
+          if (!Array.isArray(value) || value.length === 0) {
+            return "No indicado";
+          }
+
+          return value
+            .filter(Boolean)
+            .map((singleValue) => options.find((opt) => opt.value === singleValue)?.label || singleValue)
+            .join(", ");
+        };
+
         const horizonLabel = resolveRangeLabel(horizonTenenciaValue, stepConfig.fields?.horizonte_tenencia?.options || []);
-        const antiguedadLabel = resolveRangeLabel(antiguedadVehiculoValue, stepConfig.fields?.antiguedad_vehiculo_buscada?.options || []);
+        const antiguedadLabel = antiguedadMode === "multi"
+          ? resolveMultiLabel(antiguedadVehiculoValue, stepConfig.fields?.antiguedad_vehiculo_buscada?.options || [])
+          : resolveRangeLabel(antiguedadVehiculoValue, stepConfig.fields?.antiguedad_vehiculo_buscada?.options || []);
 
         return `- ${stepConfig.fields?.horizonte_tenencia?.title || "Horizonte de tenencia"}: ${horizonLabel}\n- ${stepConfig.fields?.antiguedad_vehiculo_buscada?.title || "Antigüedad del vehículo"}: ${antiguedadLabel}`;
       }

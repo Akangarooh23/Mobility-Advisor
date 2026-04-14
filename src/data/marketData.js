@@ -78,11 +78,11 @@ export const ENTRY_AMOUNT_OPTIONS = [
 ];
 
 export const AGE_FILTER_OPTIONS = [
-  { value: "all", label: "Sin límite de antigüedad" },
-  { value: "2", label: "Hasta 2 años" },
-  { value: "4", label: "Hasta 4 años" },
-  { value: "6", label: "Hasta 6 años" },
-  { value: "8", label: "Hasta 8 años" },
+  { value: "all", label: "Cualquier antigüedad" },
+  { value: "2", label: "0 - 2 años" },
+  { value: "4", label: "0 - 4 años" },
+  { value: "6", label: "0 - 6 años" },
+  { value: "8", label: "0 - 8 años" },
 ];
 
 export const MILEAGE_FILTER_OPTIONS = [

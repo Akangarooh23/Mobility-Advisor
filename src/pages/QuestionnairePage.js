@@ -29,6 +29,98 @@ export default function QuestionnairePage({
       return null;
     }
 
+    const isMultiSelectionField = fieldConfig?.selectionMode === "multi";
+    const selectedValues = Array.isArray(selectedValue)
+      ? selectedValue.filter(Boolean)
+      : selectedValue
+      ? [selectedValue]
+      : [];
+
+    const resolveOptionLabel = (value) =>
+      options.find((item) => item.value === value)?.label || value;
+
+    if (isMultiSelectionField) {
+      const selectedSet = new Set(selectedValues);
+      const selectionLabel = selectedValues.length > 0
+        ? selectedValues.map(resolveOptionLabel).join(" · ")
+        : "Selecciona uno o varios tramos";
+
+      const toggleMultiValue = (optionValue) => {
+        const nextValues = selectedSet.has(optionValue)
+          ? selectedValues.filter((value) => value !== optionValue)
+          : [...selectedValues, optionValue];
+
+        const orderedValues = options
+          .map((item) => item.value)
+          .filter((value) => nextValues.includes(value));
+
+        onHandleDualTimelineSelect(fieldKey, orderedValues);
+      };
+
+      return (
+        <div
+          style={{
+            background: "linear-gradient(180deg, rgba(15,23,42,0.82), rgba(2,6,23,0.72))",
+            border: "1px solid rgba(148,163,184,0.22)",
+            borderRadius: 14,
+            padding: 14,
+          }}
+        >
+          <div style={{ fontSize: 12, color: "#cbd5e1", fontWeight: 700, marginBottom: 10 }}>
+            {fieldConfig?.title}
+          </div>
+
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "6px 10px",
+              borderRadius: 999,
+              background: "rgba(37,99,235,0.12)",
+              border: "1px solid rgba(125,211,252,0.25)",
+              color: "#dbeafe",
+              fontSize: 12,
+              fontWeight: 700,
+              marginBottom: 12,
+            }}
+          >
+            <span>☑</span>
+            <span>{selectionLabel}</span>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`, gap: 6, marginTop: 6 }}>
+            {options.map((opt) => {
+              const isSelected = selectedSet.has(opt.value);
+
+              return (
+                <button
+                  key={`${fieldKey}-${opt.value}`}
+                  type="button"
+                  onClick={() => toggleMultiValue(opt.value)}
+                  style={{
+                    background: isSelected ? "rgba(37,99,235,0.18)" : "transparent",
+                    border: `1px solid ${isSelected ? "rgba(125,211,252,0.52)" : "rgba(148,163,184,0.22)"}`,
+                    borderRadius: 10,
+                    color: isSelected ? "#dbeafe" : "#94a3b8",
+                    fontSize: 11,
+                    fontWeight: isSelected ? 800 : 600,
+                    padding: "8px 6px",
+                    lineHeight: 1.25,
+                    cursor: "pointer",
+                    minHeight: 56,
+                  }}
+                >
+                  <div style={{ fontSize: 14, marginBottom: 2 }}>{opt.icon}</div>
+                  <div>{opt.label}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
     const normalizedRange = Array.isArray(selectedValue) && selectedValue.length > 0
       ? [selectedValue[0], selectedValue[selectedValue.length - 1]]
       : selectedValue

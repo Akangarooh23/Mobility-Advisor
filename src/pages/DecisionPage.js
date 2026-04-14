@@ -249,7 +249,7 @@ export default function DecisionPage({
         {decisionAnswers.hasBrand === "si" && (
           <>
             <div>
-              <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>Antigüedad máxima</div>
+              <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>Tramo de antigüedad</div>
               <select
                 value={decisionAnswers.ageFilter}
                 onChange={(event) => updateDecisionAnswer("ageFilter", event.target.value)}

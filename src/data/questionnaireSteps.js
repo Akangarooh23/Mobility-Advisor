@@ -24,6 +24,7 @@ export const STEPS = [
       { value: "propiedad_financiada", label: "Comprar financiado", icon: "📝", desc: "Pago a plazos (El coche ya es tuyo aunque esté financiado)" },
       { value: "propiedad_entrada_inicial", label: "Entrada inicial + Financiación", icon: "💳", desc: "Pago a Plazos con Entrada Inicial" },
       { value: "renting", label: "Renting o Suscripción", icon: "📅", desc: "Pagar una cuota y no tener el coche en propiedad" },
+      { value: "no_tengo_claro", label: "No lo tengo claro", icon: "🤔", desc: "Ayúdame a decidir cuál es la mejor opción" },
     ],
   },
   {

@@ -146,8 +146,24 @@ function normalizeRangeValue(value) {
   return value ? [value] : [];
 }
 
+function hasCompleteScoreWeights(value, metrics = []) {
+  if (!value || typeof value !== "object" || Array.isArray(value) || metrics.length === 0) {
+    return false;
+  }
+
+  const ranks = metrics
+    .map((metric) => Number(value?.[metric?.key]))
+    .filter((rank) => Number.isInteger(rank) && rank >= 1 && rank <= metrics.length);
+
+  return ranks.length === metrics.length && new Set(ranks).size === metrics.length;
+}
+
 function countAnsweredSteps(answers, steps = STEPS) {
   return steps.reduce((acc, stepConfig) => {
+    if (stepConfig?.type === "score_weights") {
+      return acc + (hasCompleteScoreWeights(answers?.[stepConfig.id], stepConfig.metrics || []) ? 1 : 0);
+    }
+
     if (Array.isArray(stepConfig?.compositeKeys) && stepConfig.compositeKeys.length > 0) {
       const allAnswered = stepConfig.compositeKeys.every((key) => hasAnsweredValue(answers?.[key]));
       return acc + (allAnswered ? 1 : 0);
@@ -406,6 +422,7 @@ export default function App() {
   const [answers, setAnswers] = useState({});
   const [multiSelected, setMultiSelected] = useState([]);
   const [dualTimelineSelection, setDualTimelineSelection] = useState({ horizonte_tenencia: [], antiguedad_vehiculo_buscada: [] });
+  const [scoreWeightsSelection, setScoreWeightsSelection] = useState({});
   const [result, setResult] = useState(null);
   const [resultView, setResultView] = useState("analysis");
   const [loading, setLoading] = useState(false);
@@ -793,6 +810,7 @@ export default function App() {
     if (entryMode !== "consejo" || step < 0 || step >= totalSteps) {
       setMultiSelected([]);
       setDualTimelineSelection({ horizonte_tenencia: [], antiguedad_vehiculo_buscada: [] });
+      setScoreWeightsSelection({});
       return;
     }
 
@@ -801,6 +819,7 @@ export default function App() {
       const saved = answers[stepConfig.id];
       setMultiSelected(Array.isArray(saved) ? saved : []);
       setDualTimelineSelection({ horizonte_tenencia: [], antiguedad_vehiculo_buscada: [] });
+      setScoreWeightsSelection({});
       return;
     }
 
@@ -810,11 +829,21 @@ export default function App() {
         antiguedad_vehiculo_buscada: normalizeRangeValue(answers?.antiguedad_vehiculo_buscada),
       });
       setMultiSelected([]);
+      setScoreWeightsSelection({});
+      return;
+    }
+
+    if (stepConfig.type === "score_weights") {
+      const saved = answers?.[stepConfig.id];
+      setScoreWeightsSelection(saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {});
+      setMultiSelected([]);
+      setDualTimelineSelection({ horizonte_tenencia: [], antiguedad_vehiculo_buscada: [] });
       return;
     }
 
     setMultiSelected([]);
     setDualTimelineSelection({ horizonte_tenencia: [], antiguedad_vehiculo_buscada: [] });
+    setScoreWeightsSelection({});
   }, [entryMode, step, totalSteps, answers, activeSteps]);
 
   useEffect(() => {
@@ -825,6 +854,8 @@ export default function App() {
     const answersForDraft =
       currentStep?.type === "multi"
         ? { ...answers, [currentStep.id]: multiSelected }
+        : currentStep?.type === "score_weights"
+        ? { ...answers, [currentStep.id]: scoreWeightsSelection }
         : currentStep?.type === "dual_timeline"
         ? {
             ...answers,
@@ -850,7 +881,7 @@ export default function App() {
 
     writeQuestionnaireDraft(draft);
     setQuestionnaireDraft(draft);
-  }, [activeSteps, advancedMode, answers, apiKeyMissing, currentStep, dualTimelineSelection, entryMode, multiSelected, result, step]);
+  }, [activeSteps, advancedMode, answers, apiKeyMissing, currentStep, dualTimelineSelection, entryMode, multiSelected, result, scoreWeightsSelection, step]);
 
   useEffect(() => {
     setDecisionAiResult(null);
@@ -1633,6 +1664,43 @@ export default function App() {
     setDualTimelineSelection((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleScoreWeightSelect = (metricKey, rank, metrics = []) => {
+    setScoreWeightsSelection((prev) => {
+      const next = { ...prev };
+      const numericRank = Number(rank);
+
+      if (next?.[metricKey] === numericRank) {
+        delete next[metricKey];
+        return next;
+      }
+
+      metrics.forEach((metric) => {
+        if (metric?.key !== metricKey && Number(next?.[metric?.key]) === numericRank) {
+          delete next[metric.key];
+        }
+      });
+
+      next[metricKey] = numericRank;
+      return next;
+    });
+  };
+
+  const handleScoreWeightsNext = () => {
+    const metrics = currentStep?.metrics || [];
+    if (!hasCompleteScoreWeights(scoreWeightsSelection, metrics)) {
+      return;
+    }
+
+    const newAnswers = {
+      ...answers,
+      [currentStep.id]: scoreWeightsSelection,
+    };
+
+    setAnswers(newAnswers);
+    if (step < totalSteps - 1) setStep(step + 1);
+    else analyzeWithAI(buildActiveAnswers(newAnswers, activeSteps));
+  };
+
   const handleDualTimelineNext = () => {
     if (!hasAnsweredValue(dualTimelineSelection.horizonte_tenencia) || !hasAnsweredValue(dualTimelineSelection.antiguedad_vehiculo_buscada)) {
       return;
@@ -1742,6 +1810,8 @@ export default function App() {
     const draftAnswers =
       currentStep?.type === "multi"
         ? { ...answers, [currentStep.id]: multiSelected }
+        : currentStep?.type === "score_weights"
+        ? { ...answers, [currentStep.id]: scoreWeightsSelection }
         : currentStep?.type === "dual_timeline"
         ? {
             ...answers,
@@ -2184,6 +2254,8 @@ export default function App() {
   const draftAnswers =
     entryMode === "consejo" && currentStep?.type === "multi"
       ? { ...answers, [currentStep.id]: multiSelected }
+      : entryMode === "consejo" && currentStep?.type === "score_weights"
+      ? { ...answers, [currentStep.id]: scoreWeightsSelection }
       : entryMode === "consejo" && currentStep?.type === "dual_timeline"
       ? {
           ...answers,
@@ -3660,13 +3732,16 @@ export default function App() {
           completionPct={completionPct}
           multiSelected={multiSelected}
           dualTimelineSelection={dualTimelineSelection}
+          scoreWeightsSelection={scoreWeightsSelection}
           answers={answers}
           BRAND_LOGOS={BRAND_LOGOS}
           onHandleMultiToggle={handleMultiToggle}
           onHandleDualTimelineSelect={handleDualTimelineSelect}
+          onHandleScoreWeightSelect={handleScoreWeightSelect}
           onHandleSingle={handleSingle}
           onHandleMultiNext={handleMultiNext}
           onHandleDualTimelineNext={handleDualTimelineNext}
+          onHandleScoreWeightsNext={handleScoreWeightsNext}
           onGoPrevious={goToPreviousStep}
           onRestartQuestionnaire={restartQuestionnaire}
           onTellMeNow={handleTellMeNow}

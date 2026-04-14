@@ -77,6 +77,21 @@ export function buildAnswersSummary(finalAnswers, activeSteps = []) {
         return `- ${stepConfig.fields?.horizonte_tenencia?.title || "Horizonte de tenencia"}: ${horizonLabel}\n- ${stepConfig.fields?.antiguedad_vehiculo_buscada?.title || "Antigüedad del vehículo"}: ${antiguedadLabel}`;
       }
 
+      if (stepConfig?.type === "score_weights") {
+        const value = finalAnswers?.[stepConfig.id];
+        const metrics = Array.isArray(stepConfig?.metrics) ? stepConfig.metrics : [];
+        const ranking = metrics
+          .map((metric) => {
+            const rank = Number(value?.[metric.key]);
+            return Number.isFinite(rank)
+              ? `${metric.label}: ${rank}`
+              : `${metric.label}: No indicado`;
+          })
+          .join(" | ");
+
+        return `- ${stepConfig.question}: ${ranking}`;
+      }
+
       const value = finalAnswers?.[stepConfig.id];
       const normalizedValue = Array.isArray(value) ? value.join(", ") : value || "No indicado";
       return `- ${stepConfig.question}: ${normalizedValue}`;
@@ -156,6 +171,7 @@ Criterios de analisis:
 - Añade un plan_accion claro con semaforo (verde, ambar o rojo), acciones concretas y alertas rojas para la decision final.
 - Si el test avanzado aporta datos de garaje, ZBE, capital inicial, control de riesgo o tipo de zona, usalos para afinar de verdad la recomendacion.
 - Explica el score con logica de encaje de uso, coste total, flexibilidad, viabilidad real y ajuste con preferencias.
+- Si existe una respuesta de "Pondera tu score...", usa esa jerarquia numerica (5 mas importante, 1 menos importante) para priorizar y justificar el score_desglose.
 - Prioriza opciones realistas en Espana para el perfil dado.
 - Si el horizonte es "Menos de 1 año", prioriza renting_corto o suscripción flexible antes que compra o renting largo.
 - Si recomiendas electrico puro, explicita claramente los requisitos de carga y validalos en el siguiente paso.

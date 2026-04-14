@@ -9,19 +9,34 @@ export default function QuestionnairePage({
   completionPct,
   multiSelected,
   dualTimelineSelection,
+  scoreWeightsSelection,
   answers,
   BRAND_LOGOS,
   onHandleMultiToggle,
   onHandleDualTimelineSelect,
+  onHandleScoreWeightSelect,
   onHandleSingle,
   onHandleMultiNext,
   onHandleDualTimelineNext,
+  onHandleScoreWeightsNext,
   onGoPrevious,
   onRestartQuestionnaire,
   onTellMeNow,
   answeredSteps,
 }) {
   const hasCompleteRange = (value) => Array.isArray(value) && value.length > 0 && value.every(Boolean);
+  const hasCompleteScoreWeights = (stepConfig, selection) => {
+    const metrics = Array.isArray(stepConfig?.metrics) ? stepConfig.metrics : [];
+    if (metrics.length === 0) {
+      return false;
+    }
+
+    const ranks = metrics
+      .map((metric) => Number(selection?.[metric?.key]))
+      .filter((rank) => Number.isInteger(rank) && rank >= 1 && rank <= metrics.length);
+
+    return ranks.length === metrics.length && new Set(ranks).size === metrics.length;
+  };
 
   const renderTimelineField = (fieldKey, fieldConfig, selectedValue, tone = "#38bdf8") => {
     const options = Array.isArray(fieldConfig?.options) ? fieldConfig.options : [];
@@ -392,7 +407,7 @@ export default function QuestionnairePage({
         </div>
       </div>
 
-      {currentStep.type !== "dual_timeline" && currentStep.options.map((opt) => {
+      {currentStep.type !== "dual_timeline" && currentStep.type !== "score_weights" && currentStep.options.map((opt) => {
         const selected =
           currentStep.type === "multi"
             ? multiSelected.includes(opt.value)
@@ -491,6 +506,75 @@ export default function QuestionnairePage({
         </div>
       )}
 
+      {currentStep.type === "score_weights" && (
+        <div style={{ display: "grid", gap: 12 }}>
+          <div
+            style={{
+              background: "rgba(37,99,235,0.12)",
+              border: "1px solid rgba(125,211,252,0.25)",
+              borderRadius: 10,
+              padding: "10px 12px",
+              color: "#dbeafe",
+              fontSize: 12,
+              lineHeight: 1.5,
+            }}
+          >
+            Usa cada número una sola vez: <strong>5 = máxima importancia</strong>, <strong>1 = menor importancia</strong>.
+          </div>
+
+          {currentStep.metrics?.map((metric) => {
+            const selectedRank = Number(scoreWeightsSelection?.[metric.key]);
+            const rankOptions = Array.from({ length: currentStep.metrics.length }, (_, idx) => idx + 1);
+
+            return (
+              <div
+                key={metric.key}
+                style={{
+                  background: "linear-gradient(180deg, rgba(15,23,42,0.82), rgba(2,6,23,0.72))",
+                  border: "1px solid rgba(148,163,184,0.22)",
+                  borderRadius: 12,
+                  padding: 12,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <span style={{ fontSize: 16 }}>{metric.icon || "•"}</span>
+                  <span style={{ color: "#e2e8f0", fontSize: 13, fontWeight: 700 }}>{metric.label}</span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: `repeat(${rankOptions.length}, minmax(0, 1fr))`, gap: 6 }}>
+                  {rankOptions.map((rank) => {
+                    const isSelected = selectedRank === rank;
+                    const inUseByAnother = Object.entries(scoreWeightsSelection || {}).some(
+                      ([key, value]) => key !== metric.key && Number(value) === rank
+                    );
+
+                    return (
+                      <button
+                        key={`${metric.key}-${rank}`}
+                        type="button"
+                        onClick={() => onHandleScoreWeightSelect(metric.key, rank, currentStep.metrics || [])}
+                        style={{
+                          borderRadius: 9,
+                          border: `1px solid ${isSelected ? "rgba(125,211,252,0.52)" : inUseByAnother ? "rgba(251,191,36,0.35)" : "rgba(148,163,184,0.25)"}`,
+                          background: isSelected ? "rgba(37,99,235,0.25)" : inUseByAnother ? "rgba(245,158,11,0.12)" : "transparent",
+                          color: isSelected ? "#dbeafe" : inUseByAnother ? "#fcd34d" : "#94a3b8",
+                          fontWeight: 800,
+                          fontSize: 13,
+                          padding: "8px 0",
+                          cursor: "pointer",
+                        }}
+                        title={inUseByAnother && !isSelected ? "Este número ya está asignado a otra métrica" : "Asignar importancia"}
+                      >
+                        {rank}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {currentStep.type === "multi" && (
         <button
           onClick={onHandleMultiNext}
@@ -521,6 +605,23 @@ export default function QuestionnairePage({
         >
           {!hasCompleteRange(dualTimelineSelection?.horizonte_tenencia) || !hasCompleteRange(dualTimelineSelection?.antiguedad_vehiculo_buscada)
             ? "Completa ambas líneas temporales"
+            : "Continuar →"}
+        </button>
+      )}
+
+      {currentStep.type === "score_weights" && (
+        <button
+          onClick={onHandleScoreWeightsNext}
+          disabled={!hasCompleteScoreWeights(currentStep, scoreWeightsSelection)}
+          style={{
+            ...styles.btn,
+            width: "100%",
+            marginTop: 14,
+            opacity: !hasCompleteScoreWeights(currentStep, scoreWeightsSelection) ? 0.35 : 1,
+          }}
+        >
+          {!hasCompleteScoreWeights(currentStep, scoreWeightsSelection)
+            ? "Numera todas las métricas (sin repetir números)"
             : "Continuar →"}
         </button>
       )}

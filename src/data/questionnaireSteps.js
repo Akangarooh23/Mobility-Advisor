@@ -58,7 +58,7 @@ export const STEPS = [
     id: "horizonte_y_antiguedad",
     block: "Compra",
     blockIcon: "🕒",
-    question: "¿Cuánto tiempo quieres quedarte con el coche y qué tramo de antigüedad quieres?",
+    question: "¿Cuánto tiempo quieres quedarte con el coche y cuál es la antigüedad deseada?",
     subtitle: "Estas dos líneas definen tu estrategia de compra (nuevo vs usado)",
     type: "dual_timeline",
     compositeKeys: ["horizonte_tenencia", "antiguedad_vehiculo_buscada"],
@@ -76,7 +76,7 @@ export const STEPS = [
         ],
       },
       antiguedad_vehiculo_buscada: {
-        title: "¿Qué tramo de antigüedad quieres para el coche?",
+        title: "¿Cuál es la antigüedad deseada del coche?",
         selectionMode: "multi",
         options: [
           { value: "cero_anos", label: "0 años (nuevo)", icon: "✨" },
@@ -226,6 +226,21 @@ export const STEPS = [
       { value: "si_entrego", label: "Sí, lo entrego al comprar", icon: "🔄", desc: "Reduce el diferencial a financiar" },
       { value: "si_vendo", label: "Sí, lo vendo aparte", icon: "💶", desc: "Más control sobre el precio" },
       { value: "no", label: "No tengo vehículo actual", icon: "0️⃣", desc: "Primera compra o ya vendido" },
+    ],
+  },
+  {
+    id: "ponderacion_score_personalizada",
+    block: "Prioridades",
+    blockIcon: "🎛️",
+    question: "Pondera tu score de forma flexible y personalizado para ti",
+    subtitle: "Asigna un número del 1 al 5 a cada métrica: 5 significa máxima importancia para tu decisión.",
+    type: "score_weights",
+    metrics: [
+      { key: "encaje_uso", label: "Encaje con tu uso real", icon: "🎯" },
+      { key: "coste_total", label: "Coste total mensual/anual", icon: "💶" },
+      { key: "flexibilidad", label: "Flexibilidad del modelo (cambio/salida)", icon: "🔄" },
+      { key: "viabilidad_real", label: "Viabilidad real en mercado y contexto", icon: "✅" },
+      { key: "ajuste_preferencias", label: "Ajuste a tus preferencias", icon: "🧩" },
     ],
   },
 ];

@@ -411,7 +411,7 @@ export default function App() {
   const [step, setStep] = useState(-1);
   const [answers, setAnswers] = useState({});
   const [multiSelected, setMultiSelected] = useState([]);
-  const [dualTimelineSelection, setDualTimelineSelection] = useState({ horizonte: [], km_anuales: [] });
+  const [dualTimelineSelection, setDualTimelineSelection] = useState({ horizonte_tenencia: [], antiguedad_vehiculo_buscada: [] });
   const [result, setResult] = useState(null);
   const [resultView, setResultView] = useState("analysis");
   const [loading, setLoading] = useState(false);
@@ -798,7 +798,7 @@ export default function App() {
   useEffect(() => {
     if (entryMode !== "consejo" || step < 0 || step >= totalSteps) {
       setMultiSelected([]);
-      setDualTimelineSelection({ horizonte: [], km_anuales: [] });
+      setDualTimelineSelection({ horizonte_tenencia: [], antiguedad_vehiculo_buscada: [] });
       return;
     }
 
@@ -806,21 +806,21 @@ export default function App() {
     if (stepConfig.type === "multi") {
       const saved = answers[stepConfig.id];
       setMultiSelected(Array.isArray(saved) ? saved : []);
-      setDualTimelineSelection({ horizonte: [], km_anuales: [] });
+      setDualTimelineSelection({ horizonte_tenencia: [], antiguedad_vehiculo_buscada: [] });
       return;
     }
 
     if (stepConfig.type === "dual_timeline") {
       setDualTimelineSelection({
-        horizonte: normalizeRangeValue(answers?.horizonte),
-        km_anuales: normalizeRangeValue(answers?.km_anuales),
+        horizonte_tenencia: normalizeRangeValue(answers?.horizonte_tenencia),
+        antiguedad_vehiculo_buscada: normalizeRangeValue(answers?.antiguedad_vehiculo_buscada),
       });
       setMultiSelected([]);
       return;
     }
 
     setMultiSelected([]);
-    setDualTimelineSelection({ horizonte: [], km_anuales: [] });
+    setDualTimelineSelection({ horizonte_tenencia: [], antiguedad_vehiculo_buscada: [] });
   }, [entryMode, step, totalSteps, answers, activeSteps]);
 
   useEffect(() => {
@@ -834,8 +834,8 @@ export default function App() {
         : currentStep?.type === "dual_timeline"
         ? {
             ...answers,
-            horizonte: dualTimelineSelection.horizonte,
-            km_anuales: dualTimelineSelection.km_anuales,
+            horizonte_tenencia: dualTimelineSelection.horizonte_tenencia,
+            antiguedad_vehiculo_buscada: dualTimelineSelection.antiguedad_vehiculo_buscada,
           }
         : { ...answers };
     const activeAnswers = buildActiveAnswers(answersForDraft, activeSteps);
@@ -1640,14 +1640,14 @@ export default function App() {
   };
 
   const handleDualTimelineNext = () => {
-    if (!hasAnsweredValue(dualTimelineSelection.horizonte) || !hasAnsweredValue(dualTimelineSelection.km_anuales)) {
+    if (!hasAnsweredValue(dualTimelineSelection.horizonte_tenencia) || !hasAnsweredValue(dualTimelineSelection.antiguedad_vehiculo_buscada)) {
       return;
     }
 
     const newAnswers = {
       ...answers,
-      horizonte: dualTimelineSelection.horizonte,
-      km_anuales: dualTimelineSelection.km_anuales,
+      horizonte_tenencia: dualTimelineSelection.horizonte_tenencia,
+      antiguedad_vehiculo_buscada: dualTimelineSelection.antiguedad_vehiculo_buscada,
     };
 
     setAnswers(newAnswers);
@@ -1751,8 +1751,8 @@ export default function App() {
         : currentStep?.type === "dual_timeline"
         ? {
             ...answers,
-            horizonte: dualTimelineSelection.horizonte,
-            km_anuales: dualTimelineSelection.km_anuales,
+            horizonte_tenencia: dualTimelineSelection.horizonte_tenencia,
+            antiguedad_vehiculo_buscada: dualTimelineSelection.antiguedad_vehiculo_buscada,
           }
         : { ...answers };
 
@@ -2193,8 +2193,8 @@ export default function App() {
       : entryMode === "consejo" && currentStep?.type === "dual_timeline"
       ? {
           ...answers,
-          horizonte: dualTimelineSelection.horizonte,
-          km_anuales: dualTimelineSelection.km_anuales,
+          horizonte_tenencia: dualTimelineSelection.horizonte_tenencia,
+          antiguedad_vehiculo_buscada: dualTimelineSelection.antiguedad_vehiculo_buscada,
         }
       : answers;
   const visibleDraftAnswers = buildActiveAnswers(draftAnswers, activeSteps);

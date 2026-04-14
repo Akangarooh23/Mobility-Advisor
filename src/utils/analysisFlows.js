@@ -42,8 +42,8 @@ export function buildAnswersSummary(finalAnswers, activeSteps = []) {
   return activeSteps
     .map((stepConfig) => {
       if (Array.isArray(stepConfig?.compositeKeys) && stepConfig.compositeKeys.length > 0) {
-        const horizonValue = finalAnswers?.horizonte || "";
-        const kmValue = finalAnswers?.km_anuales || "";
+        const horizonTenenciaValue = finalAnswers?.horizonte_tenencia || "";
+        const antiguedadVehiculoValue = finalAnswers?.antiguedad_vehiculo_buscada || "";
         const resolveRangeLabel = (value, options = []) => {
           const resolveSingle = (singleValue) =>
             options.find((opt) => opt.value === singleValue)?.label || "No indicado";
@@ -57,10 +57,10 @@ export function buildAnswersSummary(finalAnswers, activeSteps = []) {
           return resolveSingle(value);
         };
 
-        const horizonLabel = resolveRangeLabel(horizonValue, stepConfig.fields?.horizonte?.options || []);
-        const kmLabel = resolveRangeLabel(kmValue, stepConfig.fields?.km_anuales?.options || []);
+        const horizonLabel = resolveRangeLabel(horizonTenenciaValue, stepConfig.fields?.horizonte_tenencia?.options || []);
+        const antiguedadLabel = resolveRangeLabel(antiguedadVehiculoValue, stepConfig.fields?.antiguedad_vehiculo_buscada?.options || []);
 
-        return `- ${stepConfig.fields?.horizonte?.title || "Horizonte"}: ${horizonLabel}\n- ${stepConfig.fields?.km_anuales?.title || "Kilometraje anual"}: ${kmLabel}`;
+        return `- ${stepConfig.fields?.horizonte_tenencia?.title || "Horizonte de tenencia"}: ${horizonLabel}\n- ${stepConfig.fields?.antiguedad_vehiculo_buscada?.title || "Antigüedad del vehículo"}: ${antiguedadLabel}`;
       }
 
       const value = finalAnswers?.[stepConfig.id];
@@ -243,7 +243,7 @@ export async function fetchDecisionListing({ aiResult, decisionFlowReady, decisi
     marca_preferencia: inferBrandPreferenceFromBrand(decisionAnswers.brand),
     ocupantes: "5_plazas_maletero_medio",
     entorno_uso: "mixto",
-    km_anuales: "10k_20k",
+    uso_km_anuales: "10k_20k",
     uso_principal: ["trabajo_diario"],
     marca_objetivo: decisionAnswers.brand || "",
     modelo_objetivo: [decisionAnswers.brand, decisionAnswers.model].filter(Boolean).join(" "),
@@ -298,7 +298,7 @@ export async function fetchSellComparableListing({ sellAnswers }) {
       marca_preferencia: inferBrandPreferenceFromBrand(sellAnswers.brand),
       ocupantes: "5_plazas_maletero_medio",
       entorno_uso: "mixto",
-      km_anuales: Number(sellAnswers.mileage || 0) > 80000 ? "mas_20k" : "10k_20k",
+      uso_km_anuales: Number(sellAnswers.mileage || 0) > 80000 ? "mas_35k" : "10k_20k",
       uso_principal: ["trabajo_diario"],
       marca_objetivo: sellAnswers.brand,
       modelo_objetivo: `${sellAnswers.brand} ${sellAnswers.model}`,

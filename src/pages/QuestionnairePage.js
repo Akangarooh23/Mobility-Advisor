@@ -385,15 +385,15 @@ export default function QuestionnairePage({
       {currentStep.type === "dual_timeline" && (
         <div style={{ display: "grid", gap: 14 }}>
           {renderTimelineField(
-            "horizonte",
-            currentStep.fields?.horizonte,
-            dualTimelineSelection?.horizonte,
+            "horizonte_tenencia",
+            currentStep.fields?.horizonte_tenencia,
+            dualTimelineSelection?.horizonte_tenencia,
             "#06b6d4"
           )}
           {renderTimelineField(
-            "km_anuales",
-            currentStep.fields?.km_anuales,
-            dualTimelineSelection?.km_anuales,
+            "antiguedad_vehiculo_buscada",
+            currentStep.fields?.antiguedad_vehiculo_buscada,
+            dualTimelineSelection?.antiguedad_vehiculo_buscada,
             "#22c55e"
           )}
         </div>

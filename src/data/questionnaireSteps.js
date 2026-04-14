@@ -55,19 +55,19 @@ export const STEPS = [
     }
   },
   {
-    id: "horizonte_km",
-    block: "Uso y horizonte",
+    id: "horizonte_y_antiguedad",
+    block: "Compra",
     blockIcon: "🕒",
-    question: "¿Cuánto tiempo tienes previsto quedarte este coche y qué kilometraje anual harás?",
-    subtitle: "Completa ambas líneas temporales para que el análisis sea más preciso",
+    question: "¿Cuánto tiempo quieres quedarte con el coche y qué antigüedad máxima aceptas?",
+    subtitle: "Estas dos líneas definen tu estrategia de compra (nuevo vs usado)",
     type: "dual_timeline",
-    compositeKeys: ["horizonte", "km_anuales"],
+    compositeKeys: ["horizonte_tenencia", "antiguedad_vehiculo_buscada"],
     fields: {
-      horizonte: {
+      horizonte_tenencia: {
         title: "¿Cuánto tiempo tienes previsto quedarte este coche?",
         options: [
           { value: "menos_1_ano", label: "Menos de 1 año", icon: "⚡" },
-          { value: "menos_2", label: "1 - 2 años", icon: "🚗" },
+          { value: "1_2", label: "1 - 2 años", icon: "🚗" },
           { value: "2_3", label: "2 - 3 años", icon: "📊" },
           { value: "3_5", label: "3 - 5 años", icon: "📈" },
           { value: "5_7", label: "5 - 7 años", icon: "🛣️" },
@@ -75,15 +75,32 @@ export const STEPS = [
           { value: "no_claro", label: "Aún no lo tengo claro", icon: "🤔" },
         ],
       },
-      km_anuales: {
-        title: "¿Qué kilometraje al año piensas realizar de media?",
+      antiguedad_vehiculo_buscada: {
+        title: "¿Qué antigüedad máxima del coche aceptas?",
         options: [
-          { value: "menos_10k", label: "Menos de 10.000 km", icon: "🐢" },
-          { value: "10k_20k", label: "10.000 - 20.000 km", icon: "🚶" },
-          { value: "mas_20k", label: "Más de 20.000 km", icon: "🚀" },
+          { value: "cero_anos", label: "Coche nuevo (0 años)", icon: "✨" },
+          { value: "0_2_anos", label: "Hasta 2 años", icon: "🆕" },
+          { value: "2_4_anos", label: "Hasta 4 años", icon: "📅" },
+          { value: "4_7_anos", label: "Hasta 7 años", icon: "🕐" },
+          { value: "mas_7_anos", label: "Más de 7 años (lo que esté bien)", icon: "🔧" },
+          { value: "indiferente", label: "Me es indiferente", icon: "🤷" },
         ],
       },
     },
+  },
+  {
+    id: "uso_km_anuales",
+    block: "Uso real",
+    blockIcon: "🛣️",
+    question: "¿Cuál es tu kilometraje anual previsto de media?",
+    subtitle: "Esto influye en el coste total y la propulsión más eficiente",
+    type: "cards",
+    options: [
+      { value: "menos_10k", label: "Menos de 10.000 km", icon: "🐢", desc: "Uso muy local" },
+      { value: "10k_20k", label: "10.000 - 20.000 km", icon: "🚶", desc: "Uso moderado" },
+      { value: "20k_35k", label: "20.000 - 35.000 km", icon: "🏃", desc: "Uso frecuente" },
+      { value: "mas_35k", label: "Más de 35.000 km", icon: "🚀", desc: "Alto kilometraje" },
+    ],
   },
   {
     id: "entorno_uso",

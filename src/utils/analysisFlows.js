@@ -41,6 +41,15 @@ export async function requestAiJson(prompt, extraPayload = {}, options = {}) {
 export function buildAnswersSummary(finalAnswers, activeSteps = []) {
   return activeSteps
     .map((stepConfig) => {
+      if (Array.isArray(stepConfig?.compositeKeys) && stepConfig.compositeKeys.length > 0) {
+        const horizonValue = finalAnswers?.horizonte || "";
+        const kmValue = finalAnswers?.km_anuales || "";
+        const horizonLabel = (stepConfig.fields?.horizonte?.options || []).find((opt) => opt.value === horizonValue)?.label || "No indicado";
+        const kmLabel = (stepConfig.fields?.km_anuales?.options || []).find((opt) => opt.value === kmValue)?.label || "No indicado";
+
+        return `- ${stepConfig.fields?.horizonte?.title || "Horizonte"}: ${horizonLabel}\n- ${stepConfig.fields?.km_anuales?.title || "Kilometraje anual"}: ${kmLabel}`;
+      }
+
       const value = finalAnswers?.[stepConfig.id];
       const normalizedValue = Array.isArray(value) ? value.join(", ") : value || "No indicado";
       return `- ${stepConfig.question}: ${normalizedValue}`;
@@ -121,8 +130,6 @@ Criterios de analisis:
 - Si el test avanzado aporta datos de garaje, ZBE, capital inicial, control de riesgo o tipo de zona, usalos para afinar de verdad la recomendacion.
 - Explica el score con logica de encaje de uso, coste total, flexibilidad, viabilidad real y ajuste con preferencias.
 - Prioriza opciones realistas en Espana para el perfil dado.
-- Si el horizonte es "Por días", prioriza rent_a_car o alquiler por días frente a compra o renting largo.
-- Si el horizonte es "Menos de 2 meses", prioriza carsharing o alquiler temporal; solo sugiere renting si está muy justificado.
 - Si el horizonte es "Menos de 1 año", prioriza renting_corto o suscripción flexible antes que compra o renting largo.
 - Si recomiendas electrico puro, explicita claramente los requisitos de carga y validalos en el siguiente paso.
 - Si recomiendas compra financiada, indica que la validacion de capacidad financiera y scoring se hara en el siguiente paso sobre el shortlist de coches.

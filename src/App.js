@@ -131,6 +131,11 @@ import { createAppStyles } from "./ui/appStyles";
 
 function countAnsweredSteps(answers, steps = STEPS) {
   return steps.reduce((acc, stepConfig) => {
+    if (Array.isArray(stepConfig?.compositeKeys) && stepConfig.compositeKeys.length > 0) {
+      const allAnswered = stepConfig.compositeKeys.every((key) => Boolean(answers?.[key]));
+      return acc + (allAnswered ? 1 : 0);
+    }
+
     const value = answers?.[stepConfig.id];
 
     if (Array.isArray(value)) {
@@ -143,6 +148,22 @@ function countAnsweredSteps(answers, steps = STEPS) {
 
 function buildActiveAnswers(allAnswers, steps = STEPS) {
   return steps.reduce((acc, stepConfig) => {
+    if (Array.isArray(stepConfig?.compositeKeys) && stepConfig.compositeKeys.length > 0) {
+      stepConfig.compositeKeys.forEach((key) => {
+        const compositeValue = allAnswers?.[key];
+        if (Array.isArray(compositeValue)) {
+          if (compositeValue.length > 0) {
+            acc[key] = compositeValue;
+          }
+          return;
+        }
+        if (compositeValue) {
+          acc[key] = compositeValue;
+        }
+      });
+      return acc;
+    }
+
     const value = allAnswers?.[stepConfig.id];
 
     if (Array.isArray(value)) {
@@ -371,6 +392,7 @@ export default function App() {
   const [step, setStep] = useState(-1);
   const [answers, setAnswers] = useState({});
   const [multiSelected, setMultiSelected] = useState([]);
+  const [dualTimelineSelection, setDualTimelineSelection] = useState({ horizonte: "", km_anuales: "" });
   const [result, setResult] = useState(null);
   const [resultView, setResultView] = useState("analysis");
   const [loading, setLoading] = useState(false);
@@ -757,6 +779,7 @@ export default function App() {
   useEffect(() => {
     if (entryMode !== "consejo" || step < 0 || step >= totalSteps) {
       setMultiSelected([]);
+      setDualTimelineSelection({ horizonte: "", km_anuales: "" });
       return;
     }
 
@@ -764,10 +787,21 @@ export default function App() {
     if (stepConfig.type === "multi") {
       const saved = answers[stepConfig.id];
       setMultiSelected(Array.isArray(saved) ? saved : []);
+      setDualTimelineSelection({ horizonte: "", km_anuales: "" });
+      return;
+    }
+
+    if (stepConfig.type === "dual_timeline") {
+      setDualTimelineSelection({
+        horizonte: answers?.horizonte || "",
+        km_anuales: answers?.km_anuales || "",
+      });
+      setMultiSelected([]);
       return;
     }
 
     setMultiSelected([]);
+    setDualTimelineSelection({ horizonte: "", km_anuales: "" });
   }, [entryMode, step, totalSteps, answers, activeSteps]);
 
   useEffect(() => {
@@ -778,6 +812,12 @@ export default function App() {
     const answersForDraft =
       currentStep?.type === "multi"
         ? { ...answers, [currentStep.id]: multiSelected }
+        : currentStep?.type === "dual_timeline"
+        ? {
+            ...answers,
+            horizonte: dualTimelineSelection.horizonte,
+            km_anuales: dualTimelineSelection.km_anuales,
+          }
         : { ...answers };
     const activeAnswers = buildActiveAnswers(answersForDraft, activeSteps);
     const answeredSteps = countAnsweredSteps(activeAnswers, activeSteps);
@@ -797,7 +837,7 @@ export default function App() {
 
     writeQuestionnaireDraft(draft);
     setQuestionnaireDraft(draft);
-  }, [activeSteps, advancedMode, answers, apiKeyMissing, currentStep, entryMode, multiSelected, result, step]);
+  }, [activeSteps, advancedMode, answers, apiKeyMissing, currentStep, dualTimelineSelection, entryMode, multiSelected, result, step]);
 
   useEffect(() => {
     setDecisionAiResult(null);
@@ -1576,6 +1616,26 @@ export default function App() {
     else analyzeWithAI(buildActiveAnswers(newAnswers, activeSteps));
   };
 
+  const handleDualTimelineSelect = (field, value) => {
+    setDualTimelineSelection((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleDualTimelineNext = () => {
+    if (!dualTimelineSelection.horizonte || !dualTimelineSelection.km_anuales) {
+      return;
+    }
+
+    const newAnswers = {
+      ...answers,
+      horizonte: dualTimelineSelection.horizonte,
+      km_anuales: dualTimelineSelection.km_anuales,
+    };
+
+    setAnswers(newAnswers);
+    if (step < totalSteps - 1) setStep(step + 1);
+    else analyzeWithAI(buildActiveAnswers(newAnswers, activeSteps));
+  };
+
   const goToPreviousStep = () => {
     if (step > 0) {
       setStep(step - 1);
@@ -1669,6 +1729,12 @@ export default function App() {
     const draftAnswers =
       currentStep?.type === "multi"
         ? { ...answers, [currentStep.id]: multiSelected }
+        : currentStep?.type === "dual_timeline"
+        ? {
+            ...answers,
+            horizonte: dualTimelineSelection.horizonte,
+            km_anuales: dualTimelineSelection.km_anuales,
+          }
         : { ...answers };
 
     analyzeWithAI(buildActiveAnswers(draftAnswers, activeSteps));
@@ -2105,6 +2171,12 @@ export default function App() {
   const draftAnswers =
     entryMode === "consejo" && currentStep?.type === "multi"
       ? { ...answers, [currentStep.id]: multiSelected }
+      : entryMode === "consejo" && currentStep?.type === "dual_timeline"
+      ? {
+          ...answers,
+          horizonte: dualTimelineSelection.horizonte,
+          km_anuales: dualTimelineSelection.km_anuales,
+        }
       : answers;
   const visibleDraftAnswers = buildActiveAnswers(draftAnswers, activeSteps);
   const answeredSteps = countAnsweredSteps(visibleDraftAnswers, activeSteps);
@@ -3574,11 +3646,14 @@ export default function App() {
           remainingQuestions={remainingQuestions}
           completionPct={completionPct}
           multiSelected={multiSelected}
+          dualTimelineSelection={dualTimelineSelection}
           answers={answers}
           BRAND_LOGOS={BRAND_LOGOS}
           onHandleMultiToggle={handleMultiToggle}
+          onHandleDualTimelineSelect={handleDualTimelineSelect}
           onHandleSingle={handleSingle}
           onHandleMultiNext={handleMultiNext}
+          onHandleDualTimelineNext={handleDualTimelineNext}
           onGoPrevious={goToPreviousStep}
           onRestartQuestionnaire={restartQuestionnaire}
           onTellMeNow={handleTellMeNow}

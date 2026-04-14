@@ -8,11 +8,14 @@ export default function QuestionnairePage({
   remainingQuestions,
   completionPct,
   multiSelected,
+  dualTimelineSelection,
   answers,
   BRAND_LOGOS,
   onHandleMultiToggle,
+  onHandleDualTimelineSelect,
   onHandleSingle,
   onHandleMultiNext,
+  onHandleDualTimelineNext,
   onGoPrevious,
   onRestartQuestionnaire,
   onTellMeNow,
@@ -119,7 +122,7 @@ export default function QuestionnairePage({
         </div>
       </div>
 
-      {currentStep.options.map((opt) => {
+      {currentStep.type !== "dual_timeline" && currentStep.options.map((opt) => {
         const selected =
           currentStep.type === "multi"
             ? multiSelected.includes(opt.value)
@@ -201,6 +204,56 @@ export default function QuestionnairePage({
         );
       })}
 
+      {currentStep.type === "dual_timeline" && (
+        <div style={{ display: "grid", gap: 14 }}>
+          <div>
+            <div style={{ fontSize: 12, color: "#cbd5e1", fontWeight: 700, marginBottom: 8 }}>
+              {currentStep.fields?.horizonte?.title}
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(165px,1fr))", gap: 8 }}>
+              {(currentStep.fields?.horizonte?.options || []).map((opt) => {
+                const selected = dualTimelineSelection?.horizonte === opt.value;
+                return (
+                  <button
+                    key={`h-${opt.value}`}
+                    style={styles.card(selected)}
+                    onClick={() => onHandleDualTimelineSelect("horizonte", opt.value)}
+                  >
+                    <span style={{ fontSize: 20, minWidth: 26 }}>{opt.icon}</span>
+                    <div style={{ fontWeight: 600, fontSize: 13, color: selected ? "#93c5fd" : "#e2e8f0" }}>
+                      {opt.label}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: 12, color: "#cbd5e1", fontWeight: 700, marginBottom: 8 }}>
+              {currentStep.fields?.km_anuales?.title}
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(165px,1fr))", gap: 8 }}>
+              {(currentStep.fields?.km_anuales?.options || []).map((opt) => {
+                const selected = dualTimelineSelection?.km_anuales === opt.value;
+                return (
+                  <button
+                    key={`k-${opt.value}`}
+                    style={styles.card(selected)}
+                    onClick={() => onHandleDualTimelineSelect("km_anuales", opt.value)}
+                  >
+                    <span style={{ fontSize: 20, minWidth: 26 }}>{opt.icon}</span>
+                    <div style={{ fontWeight: 600, fontSize: 13, color: selected ? "#93c5fd" : "#e2e8f0" }}>
+                      {opt.label}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {currentStep.type === "multi" && (
         <button
           onClick={onHandleMultiNext}
@@ -215,6 +268,23 @@ export default function QuestionnairePage({
           {multiSelected.length === 0
             ? "Selecciona al menos una opción"
             : `Continuar (${multiSelected.length} seleccionada${multiSelected.length > 1 ? "s" : ""}) →`}
+        </button>
+      )}
+
+      {currentStep.type === "dual_timeline" && (
+        <button
+          onClick={onHandleDualTimelineNext}
+          disabled={!dualTimelineSelection?.horizonte || !dualTimelineSelection?.km_anuales}
+          style={{
+            ...styles.btn,
+            width: "100%",
+            marginTop: 14,
+            opacity: !dualTimelineSelection?.horizonte || !dualTimelineSelection?.km_anuales ? 0.35 : 1,
+          }}
+        >
+          {!dualTimelineSelection?.horizonte || !dualTimelineSelection?.km_anuales
+            ? "Completa ambas líneas temporales"
+            : "Continuar →"}
         </button>
       )}
 

@@ -17,9 +17,8 @@ const OFFER_PROVIDER_ALIASES = {
 
 const OFFER_MODEL_HINTS = {
   electrico_puro: ["BYD Dolphin", "MG4 Electric", "Hyundai Kona Electric", "Kia EV3"],
-  hibrido_no_enchufable: ["Toyota Corolla Hybrid", "Kia Niro Hybrid", "Hyundai Kona Hybrid"],
+  hibrido_no_enchufable: ["Toyota Corolla Hybrid", "Kia Niro Hybrid", "Hyundai Kona Hybrid", "Ford Puma MHEV", "Kia Sportage MHEV", "Hyundai Tucson MHEV"],
   hibrido_enchufable: ["Kia Niro PHEV", "Hyundai Tucson PHEV", "BYD Seal U DM-i"],
-  microhibrido: ["Ford Puma MHEV", "Kia Sportage MHEV", "Hyundai Tucson MHEV"],
   gasolina: ["Toyota Corolla", "Seat Leon", "Renault Clio", "Kia Ceed"],
   diesel: ["Skoda Octavia", "Peugeot 3008", "Volkswagen Tiguan"],
 };
@@ -104,11 +103,15 @@ export function buildOfferModelSuggestions(answers = {}, resultData = {}) {
     || /vehicul[oa] chino|marca[s]? china[s]?|tecnologia de vanguardia|byd|mg\b|xpeng|omoda|jaecoo/i.test(
       `${resultData?.solucion_principal?.titulo || ""} ${resultData?.solucion_principal?.resumen || ""}`
     );
-  const dynamic = [
-    normalizeText(answers?.modelo_objetivo),
-    ...(OFFER_MODEL_HINTS[answers?.propulsion_preferida] || []),
-    ...(OFFER_BRAND_HINTS[answers?.marca_preferencia] || []),
-  ];
+   // Handle propulsion_preferida as either single value or array
+   const propulsionHints = Array.isArray(answers?.propulsion_preferida)
+     ? answers.propulsion_preferida.flatMap((p) => OFFER_MODEL_HINTS[p] || [])
+     : (OFFER_MODEL_HINTS[answers?.propulsion_preferida] || []);
+   const dynamic = [
+     normalizeText(answers?.modelo_objetivo),
+     ...propulsionHints,
+     ...(OFFER_BRAND_HINTS[answers?.marca_preferencia] || []),
+   ];
 
   if (chinaForward) {
     dynamic.unshift("BYD Seal U DM-i", "MG ZS Hybrid+", "Omoda 5", "Jaecoo 7", "BYD Dolphin", "MG4 Electric", "XPeng G6");

@@ -218,6 +218,55 @@ export default function QuestionnairePage({
         </button>
       )}
 
+      {currentStep.helpInfo && (
+        <div
+          style={{
+            marginTop: 20,
+            padding: 14,
+            background: "rgba(30,41,59,0.8)",
+            border: "1px solid rgba(148,163,184,0.25)",
+            borderRadius: 12,
+          }}
+        >
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#cbd5e1", marginBottom: 10 }}>
+            ℹ️ {currentStep.helpInfo.title}
+          </div>
+          <div style={{ overflowX: "auto" }}>
+            <table
+              style={{
+                width: "100%",
+                fontSize: 11,
+                color: "#cbd5e1",
+                borderCollapse: "collapse",
+              }}
+            >
+              <thead>
+                <tr style={{ borderBottom: "1px solid rgba(148,163,184,0.35)" }}>
+                  <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: "#e2e8f0" }}>Tipo</th>
+                  <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: "#e2e8f0" }}>Consumo Estimado</th>
+                  <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: "#e2e8f0" }}>Coste/100km</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentStep.helpInfo.table.map((row, idx) => (
+                  <tr
+                    key={idx}
+                    style={{
+                      borderBottom: "1px solid rgba(148,163,184,0.15)",
+                      background: idx % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent",
+                    }}
+                  >
+                    <td style={{ padding: "6px 8px", color: "#cbd5e1" }}>{row.type}</td>
+                    <td style={{ padding: "6px 8px", color: "#94a3b8" }}>{row.consumption}</td>
+                    <td style={{ padding: "6px 8px", fontWeight: 600, color: "#86efac" }}>{row.cost}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       <div
         style={{
           display: "flex",

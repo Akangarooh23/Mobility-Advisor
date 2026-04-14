@@ -33,17 +33,26 @@ export const STEPS = [
     blockIcon: "⚡",
     question: "¿Qué motorización prefieres?",
     subtitle: "Es una decisión clave porque condiciona coste total, etiqueta DGT, ZBE y uso real",
-    type: "cards",
+    type: "multi",
     options: [
       { value: "electrico_puro", label: "Eléctrico puro (BEV)", icon: "⚡", desc: "Etiqueta CERO — recarga 100% eléctrica" },
-      { value: "hibrido_no_enchufable", label: "Híbrido no enchufable (HEV)", icon: "🔋", desc: "Etiqueta ECO — sin enchufe, muy eficiente en ciudad" },
+      { value: "hibrido_no_enchufable", label: "Híbrido (HEV/MHEV)", icon: "🔋", desc: "Etiqueta ECO — sin enchufe, muy eficiente en ciudad" },
       { value: "hibrido_enchufable", label: "Híbrido enchufable (PHEV)", icon: "🔌", desc: "Etiqueta CERO/ECO según autonomía — requiere hábito de carga" },
-      { value: "microhibrido", label: "Microhíbrido (MHEV)", icon: "⚙️", desc: "Etiqueta ECO — apoyo eléctrico ligero al motor térmico" },
-      { value: "gasolina", label: "Gasolina", icon: "⛽", desc: "Suele encajar en kilometrajes medios o bajos" },
-      { value: "diesel", label: "Diésel", icon: "🛢️", desc: "Más interesante con kilometrajes altos y trayectos largos" },
+      { value: "gasolina", label: "Gasolina", icon: "⛽", desc: "Etiqueta ECO o B — según modelo y año" },
+      { value: "diesel", label: "Diésel", icon: "🛢️", desc: "Etiqueta ECO o B — según modelo y año" },
       { value: "glp_gnc", label: "GLP / GNC", icon: "🟢", desc: "Alternativa de menor coste por km donde hay infraestructura" },
       { value: "indiferente_motor", label: "Sin preferencia", icon: "🤷", desc: "Priorizo que el análisis elija lo óptimo" },
     ],
+    helpInfo: {
+      title: "Comparativa Coste Energético Medio (por cada 100 km)",
+      table: [
+        { type: "Eléctrico (en casa)", consumption: "15-20 kWh/100 km", cost: "2,00 € - 4,00 €" },
+        { type: "Híbrido Enchufable (PHEV)", consumption: "1-2 L + electricidad*", cost: "4,00 € - 7,00 € (con cargas)" },
+        { type: "Híbrido (HEV/MHEV sin enchufe)", consumption: "4-5 L/100 km", cost: "7,00 € - 9,00 €" },
+        { type: "Diésel", consumption: "5-6 L/100 km", cost: "8,00 € - 11,00 €" },
+        { type: "Gasolina", consumption: "6-7 L/100 km", cost: "10,00 € - 14,00 €" },
+      ]
+    }
   },
   {
     id: "horizonte",

@@ -21,6 +21,115 @@ export default function QuestionnairePage({
   onTellMeNow,
   answeredSteps,
 }) {
+  const renderTimelineField = (fieldKey, fieldConfig, selectedValue, tone = "#38bdf8") => {
+    const options = Array.isArray(fieldConfig?.options) ? fieldConfig.options : [];
+    if (options.length === 0) {
+      return null;
+    }
+
+    const selectedIndex = options.findIndex((item) => item.value === selectedValue);
+    const sliderIndex = selectedIndex < 0 ? 0 : selectedIndex;
+    const progressPct = options.length > 1 && selectedIndex >= 0
+      ? (selectedIndex / (options.length - 1)) * 100
+      : 0;
+
+    return (
+      <div
+        style={{
+          background: "linear-gradient(180deg, rgba(15,23,42,0.82), rgba(2,6,23,0.72))",
+          border: "1px solid rgba(148,163,184,0.22)",
+          borderRadius: 14,
+          padding: 14,
+        }}
+      >
+        <div style={{ fontSize: 12, color: "#cbd5e1", fontWeight: 700, marginBottom: 10 }}>
+          {fieldConfig?.title}
+        </div>
+
+        <div style={{ position: "relative", padding: "10px 4px 6px" }}>
+          <div
+            style={{
+              position: "absolute",
+              top: 18,
+              left: 4,
+              right: 4,
+              height: 6,
+              borderRadius: 999,
+              background: "rgba(148,163,184,0.24)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: 18,
+              left: 4,
+              width: `calc(${progressPct}% - 2px)`,
+              maxWidth: "calc(100% - 8px)",
+              height: 6,
+              borderRadius: 999,
+              background: `linear-gradient(90deg, ${tone}, #2563eb)`,
+              transition: "width 0.22s ease",
+            }}
+          />
+
+          <input
+            type="range"
+            min={0}
+            max={options.length - 1}
+            step={1}
+            value={sliderIndex}
+            onChange={(event) => {
+              const nextIndex = Number(event.target.value);
+              const next = options[nextIndex];
+              if (next?.value) {
+                onHandleDualTimelineSelect(fieldKey, next.value);
+              }
+            }}
+            style={{
+              width: "100%",
+              margin: 0,
+              accentColor: tone,
+              cursor: "pointer",
+              background: "transparent",
+              position: "relative",
+              zIndex: 2,
+            }}
+            aria-label={fieldConfig?.title || fieldKey}
+          />
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`, gap: 4, marginTop: 6 }}>
+          {options.map((opt, idx) => {
+            const isSelected = idx === selectedIndex;
+
+            return (
+              <button
+                key={`${fieldKey}-${opt.value}`}
+                type="button"
+                onClick={() => onHandleDualTimelineSelect(fieldKey, opt.value)}
+                style={{
+                  background: isSelected ? "rgba(37,99,235,0.26)" : "transparent",
+                  border: `1px solid ${isSelected ? "rgba(125,211,252,0.5)" : "rgba(148,163,184,0.22)"}`,
+                  borderRadius: 10,
+                  color: isSelected ? "#dbeafe" : "#94a3b8",
+                  fontSize: 11,
+                  fontWeight: isSelected ? 700 : 600,
+                  padding: "8px 6px",
+                  lineHeight: 1.25,
+                  cursor: "pointer",
+                  minHeight: 56,
+                }}
+              >
+                <div style={{ fontSize: 14, marginBottom: 2 }}>{opt.icon}</div>
+                <div>{opt.label}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div style={styles.center}>
       <div style={styles.blockBadge(currentStep.block)}>
@@ -206,51 +315,18 @@ export default function QuestionnairePage({
 
       {currentStep.type === "dual_timeline" && (
         <div style={{ display: "grid", gap: 14 }}>
-          <div>
-            <div style={{ fontSize: 12, color: "#cbd5e1", fontWeight: 700, marginBottom: 8 }}>
-              {currentStep.fields?.horizonte?.title}
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(165px,1fr))", gap: 8 }}>
-              {(currentStep.fields?.horizonte?.options || []).map((opt) => {
-                const selected = dualTimelineSelection?.horizonte === opt.value;
-                return (
-                  <button
-                    key={`h-${opt.value}`}
-                    style={styles.card(selected)}
-                    onClick={() => onHandleDualTimelineSelect("horizonte", opt.value)}
-                  >
-                    <span style={{ fontSize: 20, minWidth: 26 }}>{opt.icon}</span>
-                    <div style={{ fontWeight: 600, fontSize: 13, color: selected ? "#93c5fd" : "#e2e8f0" }}>
-                      {opt.label}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <div style={{ fontSize: 12, color: "#cbd5e1", fontWeight: 700, marginBottom: 8 }}>
-              {currentStep.fields?.km_anuales?.title}
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(165px,1fr))", gap: 8 }}>
-              {(currentStep.fields?.km_anuales?.options || []).map((opt) => {
-                const selected = dualTimelineSelection?.km_anuales === opt.value;
-                return (
-                  <button
-                    key={`k-${opt.value}`}
-                    style={styles.card(selected)}
-                    onClick={() => onHandleDualTimelineSelect("km_anuales", opt.value)}
-                  >
-                    <span style={{ fontSize: 20, minWidth: 26 }}>{opt.icon}</span>
-                    <div style={{ fontWeight: 600, fontSize: 13, color: selected ? "#93c5fd" : "#e2e8f0" }}>
-                      {opt.label}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          {renderTimelineField(
+            "horizonte",
+            currentStep.fields?.horizonte,
+            dualTimelineSelection?.horizonte,
+            "#06b6d4"
+          )}
+          {renderTimelineField(
+            "km_anuales",
+            currentStep.fields?.km_anuales,
+            dualTimelineSelection?.km_anuales,
+            "#22c55e"
+          )}
         </div>
       )}
 

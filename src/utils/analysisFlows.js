@@ -44,8 +44,21 @@ export function buildAnswersSummary(finalAnswers, activeSteps = []) {
       if (Array.isArray(stepConfig?.compositeKeys) && stepConfig.compositeKeys.length > 0) {
         const horizonValue = finalAnswers?.horizonte || "";
         const kmValue = finalAnswers?.km_anuales || "";
-        const horizonLabel = (stepConfig.fields?.horizonte?.options || []).find((opt) => opt.value === horizonValue)?.label || "No indicado";
-        const kmLabel = (stepConfig.fields?.km_anuales?.options || []).find((opt) => opt.value === kmValue)?.label || "No indicado";
+        const resolveRangeLabel = (value, options = []) => {
+          const resolveSingle = (singleValue) =>
+            options.find((opt) => opt.value === singleValue)?.label || "No indicado";
+
+          if (Array.isArray(value) && value.length > 0) {
+            const startLabel = resolveSingle(value[0]);
+            const endLabel = resolveSingle(value[value.length - 1]);
+            return startLabel === endLabel ? startLabel : `${startLabel} → ${endLabel}`;
+          }
+
+          return resolveSingle(value);
+        };
+
+        const horizonLabel = resolveRangeLabel(horizonValue, stepConfig.fields?.horizonte?.options || []);
+        const kmLabel = resolveRangeLabel(kmValue, stepConfig.fields?.km_anuales?.options || []);
 
         return `- ${stepConfig.fields?.horizonte?.title || "Horizonte"}: ${horizonLabel}\n- ${stepConfig.fields?.km_anuales?.title || "Kilometraje anual"}: ${kmLabel}`;
       }

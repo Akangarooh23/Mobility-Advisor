@@ -129,20 +129,39 @@ import { STEPS, getQuestionnaireSteps } from "./data/questionnaireSteps";
 import { BLOCK_COLORS, BRAND_LOGOS } from "./ui/branding";
 import { createAppStyles } from "./ui/appStyles";
 
+function hasAnsweredValue(value) {
+  if (Array.isArray(value)) {
+    return value.length > 0 && value.every(Boolean);
+  }
+
+  return Boolean(value);
+}
+
+function normalizeRangeValue(value) {
+  if (Array.isArray(value)) {
+    const cleaned = value.filter(Boolean);
+    if (cleaned.length === 0) {
+      return [];
+    }
+    if (cleaned.length === 1) {
+      return [cleaned[0], cleaned[0]];
+    }
+    return [cleaned[0], cleaned[1]];
+  }
+
+  return value ? [value, value] : [];
+}
+
 function countAnsweredSteps(answers, steps = STEPS) {
   return steps.reduce((acc, stepConfig) => {
     if (Array.isArray(stepConfig?.compositeKeys) && stepConfig.compositeKeys.length > 0) {
-      const allAnswered = stepConfig.compositeKeys.every((key) => Boolean(answers?.[key]));
+      const allAnswered = stepConfig.compositeKeys.every((key) => hasAnsweredValue(answers?.[key]));
       return acc + (allAnswered ? 1 : 0);
     }
 
     const value = answers?.[stepConfig.id];
 
-    if (Array.isArray(value)) {
-      return acc + (value.length > 0 ? 1 : 0);
-    }
-
-    return acc + (value ? 1 : 0);
+    return acc + (hasAnsweredValue(value) ? 1 : 0);
   }, 0);
 }
 
@@ -392,7 +411,7 @@ export default function App() {
   const [step, setStep] = useState(-1);
   const [answers, setAnswers] = useState({});
   const [multiSelected, setMultiSelected] = useState([]);
-  const [dualTimelineSelection, setDualTimelineSelection] = useState({ horizonte: "", km_anuales: "" });
+  const [dualTimelineSelection, setDualTimelineSelection] = useState({ horizonte: [], km_anuales: [] });
   const [result, setResult] = useState(null);
   const [resultView, setResultView] = useState("analysis");
   const [loading, setLoading] = useState(false);
@@ -779,7 +798,7 @@ export default function App() {
   useEffect(() => {
     if (entryMode !== "consejo" || step < 0 || step >= totalSteps) {
       setMultiSelected([]);
-      setDualTimelineSelection({ horizonte: "", km_anuales: "" });
+      setDualTimelineSelection({ horizonte: [], km_anuales: [] });
       return;
     }
 
@@ -787,21 +806,21 @@ export default function App() {
     if (stepConfig.type === "multi") {
       const saved = answers[stepConfig.id];
       setMultiSelected(Array.isArray(saved) ? saved : []);
-      setDualTimelineSelection({ horizonte: "", km_anuales: "" });
+      setDualTimelineSelection({ horizonte: [], km_anuales: [] });
       return;
     }
 
     if (stepConfig.type === "dual_timeline") {
       setDualTimelineSelection({
-        horizonte: answers?.horizonte || "",
-        km_anuales: answers?.km_anuales || "",
+        horizonte: normalizeRangeValue(answers?.horizonte),
+        km_anuales: normalizeRangeValue(answers?.km_anuales),
       });
       setMultiSelected([]);
       return;
     }
 
     setMultiSelected([]);
-    setDualTimelineSelection({ horizonte: "", km_anuales: "" });
+    setDualTimelineSelection({ horizonte: [], km_anuales: [] });
   }, [entryMode, step, totalSteps, answers, activeSteps]);
 
   useEffect(() => {
@@ -1621,7 +1640,7 @@ export default function App() {
   };
 
   const handleDualTimelineNext = () => {
-    if (!dualTimelineSelection.horizonte || !dualTimelineSelection.km_anuales) {
+    if (!hasAnsweredValue(dualTimelineSelection.horizonte) || !hasAnsweredValue(dualTimelineSelection.km_anuales)) {
       return;
     }
 

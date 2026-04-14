@@ -21,17 +21,45 @@ export default function QuestionnairePage({
   onTellMeNow,
   answeredSteps,
 }) {
+  const hasCompleteRange = (value) => Array.isArray(value) && value.length > 0 && value.every(Boolean);
+
   const renderTimelineField = (fieldKey, fieldConfig, selectedValue, tone = "#38bdf8") => {
     const options = Array.isArray(fieldConfig?.options) ? fieldConfig.options : [];
     if (options.length === 0) {
       return null;
     }
 
-    const selectedIndex = options.findIndex((item) => item.value === selectedValue);
-    const sliderIndex = selectedIndex < 0 ? 0 : selectedIndex;
-    const progressPct = options.length > 1 && selectedIndex >= 0
-      ? (selectedIndex / (options.length - 1)) * 100
-      : 0;
+    const normalizedRange = Array.isArray(selectedValue) && selectedValue.length > 0
+      ? [selectedValue[0], selectedValue[selectedValue.length - 1]]
+      : selectedValue
+      ? [selectedValue, selectedValue]
+      : [];
+    const startIndexRaw = options.findIndex((item) => item.value === normalizedRange[0]);
+    const endIndexRaw = options.findIndex((item) => item.value === normalizedRange[1]);
+    const startIndex = startIndexRaw < 0 ? 0 : startIndexRaw;
+    const endIndex = endIndexRaw < 0 ? startIndex : endIndexRaw;
+    const safeStartIndex = Math.min(startIndex, endIndex);
+    const safeEndIndex = Math.max(startIndex, endIndex);
+    const leftPct = options.length > 1 ? (safeStartIndex / (options.length - 1)) * 100 : 0;
+    const rightPct = options.length > 1 ? (safeEndIndex / (options.length - 1)) * 100 : 0;
+    const startLabel = options[safeStartIndex]?.label || "";
+    const endLabel = options[safeEndIndex]?.label || "";
+    const selectionLabel = startLabel && endLabel
+      ? (startLabel === endLabel ? startLabel : `${startLabel} → ${endLabel}`)
+      : "Selecciona un punto o rango";
+
+    const updateRangeIndex = (bound, nextIndex) => {
+      const boundedIndex = Math.max(0, Math.min(options.length - 1, nextIndex));
+      const nextStart = bound === "start" ? boundedIndex : Math.min(safeStartIndex, boundedIndex);
+      const nextEnd = bound === "end" ? boundedIndex : Math.max(safeEndIndex, boundedIndex);
+      const normalizedStart = Math.min(nextStart, nextEnd);
+      const normalizedEnd = Math.max(nextStart, nextEnd);
+
+      onHandleDualTimelineSelect(fieldKey, [
+        options[normalizedStart]?.value,
+        options[normalizedEnd]?.value,
+      ].filter(Boolean));
+    };
 
     return (
       <div
@@ -46,11 +74,30 @@ export default function QuestionnairePage({
           {fieldConfig?.title}
         </div>
 
-        <div style={{ position: "relative", padding: "10px 4px 6px" }}>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "6px 10px",
+            borderRadius: 999,
+            background: "rgba(37,99,235,0.12)",
+            border: "1px solid rgba(125,211,252,0.25)",
+            color: "#dbeafe",
+            fontSize: 12,
+            fontWeight: 700,
+            marginBottom: 12,
+          }}
+        >
+          <span>↔</span>
+          <span>{selectionLabel}</span>
+        </div>
+
+        <div style={{ position: "relative", padding: "12px 4px 8px" }}>
           <div
             style={{
               position: "absolute",
-              top: 18,
+              top: 20,
               left: 4,
               right: 4,
               height: 6,
@@ -61,14 +108,13 @@ export default function QuestionnairePage({
           <div
             style={{
               position: "absolute",
-              top: 18,
-              left: 4,
-              width: `calc(${progressPct}% - 2px)`,
-              maxWidth: "calc(100% - 8px)",
+              top: 20,
+              left: `calc(${leftPct}% + 4px)`,
+              width: `${Math.max(rightPct - leftPct, 0)}%`,
               height: 6,
               borderRadius: 999,
               background: `linear-gradient(90deg, ${tone}, #2563eb)`,
-              transition: "width 0.22s ease",
+              transition: "left 0.22s ease, width 0.22s ease",
             }}
           />
 
@@ -77,13 +123,10 @@ export default function QuestionnairePage({
             min={0}
             max={options.length - 1}
             step={1}
-            value={sliderIndex}
+            value={safeStartIndex}
             onChange={(event) => {
               const nextIndex = Number(event.target.value);
-              const next = options[nextIndex];
-              if (next?.value) {
-                onHandleDualTimelineSelect(fieldKey, next.value);
-              }
+              updateRangeIndex("start", Math.min(nextIndex, safeEndIndex));
             }}
             style={{
               width: "100%",
@@ -92,28 +135,54 @@ export default function QuestionnairePage({
               cursor: "pointer",
               background: "transparent",
               position: "relative",
-              zIndex: 2,
+              zIndex: 3,
             }}
-            aria-label={fieldConfig?.title || fieldKey}
+            aria-label={`${fieldConfig?.title || fieldKey} inicio`}
+          />
+
+          <input
+            type="range"
+            min={0}
+            max={options.length - 1}
+            step={1}
+            value={safeEndIndex}
+            onChange={(event) => {
+              const nextIndex = Number(event.target.value);
+              updateRangeIndex("end", Math.max(nextIndex, safeStartIndex));
+            }}
+            style={{
+              width: "100%",
+              margin: 0,
+              accentColor: tone,
+              cursor: "pointer",
+              background: "transparent",
+              position: "absolute",
+              left: 0,
+              top: 12,
+              zIndex: 4,
+              pointerEvents: "auto",
+            }}
+            aria-label={`${fieldConfig?.title || fieldKey} fin`}
           />
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`, gap: 4, marginTop: 6 }}>
           {options.map((opt, idx) => {
-            const isSelected = idx === selectedIndex;
+            const isWithinRange = idx >= safeStartIndex && idx <= safeEndIndex;
+            const isEdge = idx === safeStartIndex || idx === safeEndIndex;
 
             return (
               <button
                 key={`${fieldKey}-${opt.value}`}
                 type="button"
-                onClick={() => onHandleDualTimelineSelect(fieldKey, opt.value)}
+                onClick={() => onHandleDualTimelineSelect(fieldKey, [opt.value, opt.value])}
                 style={{
-                  background: isSelected ? "rgba(37,99,235,0.26)" : "transparent",
-                  border: `1px solid ${isSelected ? "rgba(125,211,252,0.5)" : "rgba(148,163,184,0.22)"}`,
+                  background: isWithinRange ? "rgba(37,99,235,0.18)" : "transparent",
+                  border: `1px solid ${isEdge ? "rgba(125,211,252,0.52)" : isWithinRange ? "rgba(96,165,250,0.28)" : "rgba(148,163,184,0.22)"}`,
                   borderRadius: 10,
-                  color: isSelected ? "#dbeafe" : "#94a3b8",
+                  color: isWithinRange ? "#dbeafe" : "#94a3b8",
                   fontSize: 11,
-                  fontWeight: isSelected ? 700 : 600,
+                  fontWeight: isEdge ? 800 : isWithinRange ? 700 : 600,
                   padding: "8px 6px",
                   lineHeight: 1.25,
                   cursor: "pointer",
@@ -350,15 +419,15 @@ export default function QuestionnairePage({
       {currentStep.type === "dual_timeline" && (
         <button
           onClick={onHandleDualTimelineNext}
-          disabled={!dualTimelineSelection?.horizonte || !dualTimelineSelection?.km_anuales}
+          disabled={!hasCompleteRange(dualTimelineSelection?.horizonte) || !hasCompleteRange(dualTimelineSelection?.km_anuales)}
           style={{
             ...styles.btn,
             width: "100%",
             marginTop: 14,
-            opacity: !dualTimelineSelection?.horizonte || !dualTimelineSelection?.km_anuales ? 0.35 : 1,
+            opacity: !hasCompleteRange(dualTimelineSelection?.horizonte) || !hasCompleteRange(dualTimelineSelection?.km_anuales) ? 0.35 : 1,
           }}
         >
-          {!dualTimelineSelection?.horizonte || !dualTimelineSelection?.km_anuales
+          {!hasCompleteRange(dualTimelineSelection?.horizonte) || !hasCompleteRange(dualTimelineSelection?.km_anuales)
             ? "Completa ambas líneas temporales"
             : "Continuar →"}
         </button>

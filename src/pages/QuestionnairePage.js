@@ -75,13 +75,13 @@ export default function QuestionnairePage({
       return (
         <div
           style={{
-            background: "linear-gradient(180deg, rgba(15,23,42,0.82), rgba(2,6,23,0.72))",
+            background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
             border: "1px solid rgba(148,163,184,0.22)",
             borderRadius: 14,
             padding: 14,
           }}
         >
-          <div style={{ fontSize: 12, color: "#cbd5e1", fontWeight: 700, marginBottom: 10 }}>
+          <div style={{ fontSize: 12, color: "#334155", fontWeight: 700, marginBottom: 10 }}>
             {fieldConfig?.title}
           </div>
 
@@ -94,7 +94,7 @@ export default function QuestionnairePage({
               borderRadius: 999,
               background: "rgba(37,99,235,0.12)",
               border: "1px solid rgba(125,211,252,0.25)",
-              color: "#dbeafe",
+              color: "#1e3a8a",
               fontSize: 12,
               fontWeight: 700,
               marginBottom: 12,
@@ -114,10 +114,10 @@ export default function QuestionnairePage({
                   type="button"
                   onClick={() => toggleMultiValue(opt.value)}
                   style={{
-                    background: isSelected ? "rgba(37,99,235,0.18)" : "transparent",
+                    background: isSelected ? "rgba(37,99,235,0.12)" : "rgba(255,255,255,0.9)",
                     border: `1px solid ${isSelected ? "rgba(125,211,252,0.52)" : "rgba(148,163,184,0.22)"}`,
                     borderRadius: 10,
-                    color: isSelected ? "#dbeafe" : "#94a3b8",
+                    color: isSelected ? "#1e3a8a" : "#475569",
                     fontSize: 11,
                     fontWeight: isSelected ? 800 : 600,
                     padding: "8px 6px",
@@ -171,13 +171,13 @@ export default function QuestionnairePage({
     return (
       <div
         style={{
-          background: "linear-gradient(180deg, rgba(15,23,42,0.82), rgba(2,6,23,0.72))",
+          background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
           border: "1px solid rgba(148,163,184,0.22)",
           borderRadius: 14,
           padding: 14,
         }}
       >
-        <div style={{ fontSize: 12, color: "#cbd5e1", fontWeight: 700, marginBottom: 10 }}>
+        <div style={{ fontSize: 12, color: "#334155", fontWeight: 700, marginBottom: 10 }}>
           {fieldConfig?.title}
         </div>
 
@@ -190,7 +190,7 @@ export default function QuestionnairePage({
             borderRadius: 999,
             background: "rgba(37,99,235,0.12)",
             border: "1px solid rgba(125,211,252,0.25)",
-            color: "#dbeafe",
+            color: "#1e3a8a",
             fontSize: 12,
             fontWeight: 700,
             marginBottom: 12,
@@ -284,10 +284,10 @@ export default function QuestionnairePage({
                 type="button"
                 onClick={() => onHandleDualTimelineSelect(fieldKey, [opt.value, opt.value])}
                 style={{
-                  background: isWithinRange ? "rgba(37,99,235,0.18)" : "transparent",
+                  background: isWithinRange ? "rgba(37,99,235,0.12)" : "rgba(255,255,255,0.9)",
                   border: `1px solid ${isEdge ? "rgba(125,211,252,0.52)" : isWithinRange ? "rgba(96,165,250,0.28)" : "rgba(148,163,184,0.22)"}`,
                   borderRadius: 10,
-                  color: isWithinRange ? "#dbeafe" : "#94a3b8",
+                  color: isWithinRange ? "#1e3a8a" : "#475569",
                   fontSize: 11,
                   fontWeight: isEdge ? 800 : isWithinRange ? 700 : 600,
                   padding: "8px 6px",
@@ -320,7 +320,7 @@ export default function QuestionnairePage({
           fontWeight: 700,
           letterSpacing: "-0.6px",
           margin: "0 0 8px",
-          color: "#f1f5f9",
+          color: "#0f172a",
           lineHeight: 1.3,
         }}
       >
@@ -341,10 +341,10 @@ export default function QuestionnairePage({
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
           <div>
-            <div style={{ fontSize: 12, color: "#99f6e4", fontWeight: 700, marginBottom: 4 }}>
+            <div style={{ fontSize: 12, color: "#0d9488", fontWeight: 700, marginBottom: 4 }}>
               🧪 Test avanzado opcional
             </div>
-            <div style={{ fontSize: 12, color: "#ccfbf1", lineHeight: 1.5 }}>
+            <div style={{ fontSize: 12, color: "#0f766e", lineHeight: 1.5 }}>
               {advancedMode
                 ? "Activado: añadimos preguntas de zona, ZBE, garaje, presupuesto cómodo, capital y riesgo para afinar la recomendación."
                 : "Puedes activar 6 preguntas extra para llevar el análisis a un nivel mucho más preciso sin tocar el flujo base."}
@@ -354,9 +354,9 @@ export default function QuestionnairePage({
             type="button"
             onClick={toggleAdvancedMode}
             style={{
-              background: advancedMode ? "rgba(20,184,166,0.22)" : "rgba(37,99,235,0.18)",
+              background: advancedMode ? "rgba(20,184,166,0.14)" : "rgba(37,99,235,0.12)",
               border: `1px solid ${advancedMode ? "rgba(153,246,228,0.4)" : "rgba(147,197,253,0.35)"}`,
-              color: advancedMode ? "#ccfbf1" : "#dbeafe",
+              color: advancedMode ? "#0f766e" : "#1e3a8a",
               padding: "8px 12px",
               borderRadius: 10,
               fontSize: 12,
@@ -380,10 +380,10 @@ export default function QuestionnairePage({
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-          <div style={{ fontSize: 12, color: "#bae6fd", fontWeight: 600 }}>
+          <div style={{ fontSize: 12, color: "#0369a1", fontWeight: 600 }}>
             ✅ Te quedan {remainingQuestions} pregunta{remainingQuestions === 1 ? "" : "s"}
           </div>
-          <div style={{ fontSize: 12, color: "#7dd3fc" }}>
+          <div style={{ fontSize: 12, color: "#0ea5e9" }}>
             {completionPct}% completado
           </div>
         </div>
@@ -428,7 +428,7 @@ export default function QuestionnairePage({
                 style={{
                   fontWeight: 600,
                   fontSize: 14,
-                  color: selected ? "#93c5fd" : "#e2e8f0",
+                  color: selected ? "#2563eb" : "#0f172a",
                 }}
               >
                 {opt.label}
@@ -456,7 +456,7 @@ export default function QuestionnairePage({
                           fontSize: 10,
                           fontWeight: 700,
                           letterSpacing: "0.2px",
-                          color: "#f8fafc",
+                          color: "#0f172a",
                           background: logo?.color || chip.tone || "#334155",
                           border: "1px solid rgba(255,255,255,0.18)",
                         }}
@@ -514,7 +514,7 @@ export default function QuestionnairePage({
               border: "1px solid rgba(125,211,252,0.25)",
               borderRadius: 10,
               padding: "10px 12px",
-              color: "#dbeafe",
+              color: "#1e3a8a",
               fontSize: 12,
               lineHeight: 1.5,
             }}
@@ -530,7 +530,7 @@ export default function QuestionnairePage({
               <div
                 key={metric.key}
                 style={{
-                  background: "linear-gradient(180deg, rgba(15,23,42,0.82), rgba(2,6,23,0.72))",
+                  background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
                   border: "1px solid rgba(148,163,184,0.22)",
                   borderRadius: 12,
                   padding: 12,
@@ -538,7 +538,7 @@ export default function QuestionnairePage({
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                   <span style={{ fontSize: 16 }}>{metric.icon || "•"}</span>
-                  <span style={{ color: "#e2e8f0", fontSize: 13, fontWeight: 700 }}>{metric.label}</span>
+                  <span style={{ color: "#0f172a", fontSize: 13, fontWeight: 700 }}>{metric.label}</span>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: `repeat(${rankOptions.length}, minmax(0, 1fr))`, gap: 6 }}>
                   {rankOptions.map((rank) => {
@@ -556,7 +556,7 @@ export default function QuestionnairePage({
                           borderRadius: 9,
                           border: `1px solid ${isSelected ? "rgba(125,211,252,0.52)" : inUseByAnother ? "rgba(251,191,36,0.35)" : "rgba(148,163,184,0.25)"}`,
                           background: isSelected ? "rgba(37,99,235,0.25)" : inUseByAnother ? "rgba(245,158,11,0.12)" : "transparent",
-                          color: isSelected ? "#dbeafe" : inUseByAnother ? "#fcd34d" : "#94a3b8",
+                          color: isSelected ? "#1e3a8a" : inUseByAnother ? "#b45309" : "#475569",
                           fontWeight: 800,
                           fontSize: 13,
                           padding: "8px 0",
@@ -631,12 +631,12 @@ export default function QuestionnairePage({
           style={{
             marginTop: 20,
             padding: 14,
-            background: "rgba(30,41,59,0.8)",
+            background: "rgba(255,255,255,0.95)",
             border: "1px solid rgba(148,163,184,0.25)",
             borderRadius: 12,
           }}
         >
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#cbd5e1", marginBottom: 10 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 10 }}>
             ℹ️ {currentStep.helpInfo.title}
           </div>
           <div style={{ overflowX: "auto" }}>
@@ -644,15 +644,15 @@ export default function QuestionnairePage({
               style={{
                 width: "100%",
                 fontSize: 11,
-                color: "#cbd5e1",
+                color: "#475569",
                 borderCollapse: "collapse",
               }}
             >
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(148,163,184,0.35)" }}>
-                  <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: "#e2e8f0" }}>Tipo</th>
-                  <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: "#e2e8f0" }}>Consumo Estimado</th>
-                  <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: "#e2e8f0" }}>Coste/100km</th>
+                  <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: "#0f172a" }}>Tipo</th>
+                  <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: "#0f172a" }}>Consumo Estimado</th>
+                  <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: "#0f172a" }}>Coste/100km</th>
                 </tr>
               </thead>
               <tbody>
@@ -664,8 +664,8 @@ export default function QuestionnairePage({
                       background: idx % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent",
                     }}
                   >
-                    <td style={{ padding: "6px 8px", color: "#cbd5e1" }}>{row.type}</td>
-                    <td style={{ padding: "6px 8px", color: "#94a3b8" }}>{row.consumption}</td>
+                    <td style={{ padding: "6px 8px", color: "#334155" }}>{row.type}</td>
+                    <td style={{ padding: "6px 8px", color: "#475569" }}>{row.consumption}</td>
                     <td style={{ padding: "6px 8px", fontWeight: 600, color: "#86efac" }}>{row.cost}</td>
                   </tr>
                 ))}
@@ -687,9 +687,9 @@ export default function QuestionnairePage({
           onClick={onGoPrevious}
           disabled={step === 0}
           style={{
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            color: "#cbd5e1",
+            background: "rgba(241,245,249,0.9)",
+            border: "1px solid rgba(148,163,184,0.28)",
+            color: "#334155",
             padding: "9px 14px",
             borderRadius: 9,
             fontSize: 12,
@@ -705,7 +705,7 @@ export default function QuestionnairePage({
           style={{
             background: "rgba(239,68,68,0.1)",
             border: "1px solid rgba(239,68,68,0.25)",
-            color: "#fecaca",
+            color: "#991b1b",
             padding: "9px 14px",
             borderRadius: 9,
             fontSize: 12,

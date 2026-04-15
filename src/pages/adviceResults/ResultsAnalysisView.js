@@ -73,17 +73,17 @@ export default function ResultsAnalysisView({
             >
               RECOMENDACIÓN PRINCIPAL · {result.solucion_principal?.score}% COINCIDENCIA
             </div>
-            <h3 style={{ margin: "0 0 6px", fontSize: 18, fontWeight: 700, color: "#f1f5f9" }}>
+            <h3 style={{ margin: "0 0 6px", fontSize: 18, fontWeight: 700, color: "#0f172a" }}>
               {displayResult.solucion_principal?.titulo}
             </h3>
-            <p style={{ margin: 0, color: "#94a3b8", fontSize: 13, lineHeight: 1.6 }}>
+            <p style={{ margin: 0, color: "#64748b", fontSize: 13, lineHeight: 1.6 }}>
               {displayResult.solucion_principal?.resumen}
             </p>
           </div>
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 16, alignItems: "center" }}>
-          <div style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.5, maxWidth: 720 }}>
+          <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.5, maxWidth: 720 }}>
             Exporta un Word con el detalle de la lógica aplicada: pesos del score, lectura de cada respuesta, coste total, comparador, supuestos y plan de acción.
           </div>
           <button
@@ -108,7 +108,7 @@ export default function ResultsAnalysisView({
         </div>
 
         {logicExportFeedback && (
-          <div style={{ marginBottom: 12, fontSize: 12, color: "#7dd3fc" }}>
+          <div style={{ marginBottom: 12, fontSize: 12, color: "#0369a1" }}>
             {logicExportFeedback}
           </div>
         )}
@@ -142,13 +142,13 @@ export default function ResultsAnalysisView({
         >
           <div
             style={{
-              background: "rgba(15,23,42,0.28)",
-              border: "1px solid rgba(148,163,184,0.16)",
+              background: "rgba(255,255,255,0.95)",
+              border: "1px solid rgba(3,105,161,0.1)",
               borderRadius: 12,
               padding: 12,
             }}
           >
-            <div style={{ fontSize: 10, color: "#7dd3fc", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
+            <div style={{ fontSize: 10, color: "#0369a1", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
               🔍 DESGLOSE DEL SCORE
             </div>
             <div style={{ display: "grid", gap: 8 }}>
@@ -156,11 +156,11 @@ export default function ResultsAnalysisView({
                 const value = Number(scoreBreakdown[item.key] || 0);
                 return (
                   <div key={item.key}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 11, color: "#cbd5e1", marginBottom: 4 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 11, color: "#475569", marginBottom: 4 }}>
                       <span>{item.label}</span>
                       <span style={{ color: item.color, fontWeight: 700 }}>{value}/{item.max}</span>
                     </div>
-                    <div style={{ height: 5, background: "rgba(255,255,255,0.08)", borderRadius: 999, overflow: "hidden" }}>
+                    <div style={{ height: 5, background: "rgba(31,41,55,0.08)", borderRadius: 999, overflow: "hidden" }}>
                       <div
                         style={{
                           height: "100%",
@@ -178,18 +178,18 @@ export default function ResultsAnalysisView({
 
           <div
             style={{
-              background: "rgba(15,23,42,0.28)",
-              border: "1px solid rgba(148,163,184,0.16)",
+              background: "rgba(255,255,255,0.95)",
+              border: "1px solid rgba(16,185,129,0.1)",
               borderRadius: 12,
               padding: 12,
             }}
           >
-            <div style={{ fontSize: 10, color: "#6ee7b7", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
+            <div style={{ fontSize: 10, color: "#047857", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
               🧠 POR QUÉ GANA ESTA OPCIÓN
             </div>
             <div style={{ display: "grid", gap: 6 }}>
               {whyThisWins.map((reason, index) => (
-                <div key={`why-win-${index}`} style={{ fontSize: 12, color: "#d1fae5", lineHeight: 1.5 }}>
+                <div key={`why-win-${index}`} style={{ fontSize: 12, color: "#065f46", lineHeight: 1.5 }}>
                   • {reason}
                 </div>
               ))}
@@ -210,7 +210,7 @@ export default function ResultsAnalysisView({
               ✅ VENTAJAS
             </div>
             {(displayResult.solucion_principal?.ventajas || []).map((v, i) => (
-              <div key={i} style={{ fontSize: 12, color: "#94a3b8", marginBottom: 5, lineHeight: 1.4 }}>
+              <div key={i} style={{ fontSize: 12, color: "#475569", marginBottom: 5, lineHeight: 1.4 }}>
                 → {v}
               </div>
             ))}
@@ -220,14 +220,14 @@ export default function ResultsAnalysisView({
               ⚠️ A TENER EN CUENTA
             </div>
             {(displayResult.solucion_principal?.inconvenientes || []).map((v, i) => (
-              <div key={i} style={{ fontSize: 12, color: "#94a3b8", marginBottom: 5, lineHeight: 1.4 }}>
+              <div key={i} style={{ fontSize: 12, color: "#475569", marginBottom: 5, lineHeight: 1.4 }}>
                 → {v}
               </div>
             ))}
           </div>
         </div>
 
-        <div style={{ padding: 14, background: "rgba(0,0,0,0.2)", borderRadius: 10 }}>
+        <div style={{ padding: 14, background: "rgba(255,255,255,0.95)", borderRadius: 10, border: "1px solid rgba(31,41,55,0.1)" }}>
           <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: 12 }}>
             <div>
               <div style={{ fontSize: 10, color: "#475569", marginBottom: 4 }}>COSTE ESTIMADO</div>
@@ -271,7 +271,7 @@ export default function ResultsAnalysisView({
           <div style={{ fontSize: 10, color: "#475569", marginBottom: 6, letterSpacing: "0.6px" }}>
             BÚSQUEDA DE MERCADO
           </div>
-          <div style={{ fontSize: 11, color: "#cbd5e1", lineHeight: 1.6 }}>
+          <div style={{ fontSize: 11, color: "#475569", lineHeight: 1.6 }}>
             Contrastamos stock público y solo mostramos la mejor opción final encontrada por la IA.
           </div>
         </div>
@@ -287,10 +287,10 @@ export default function ResultsAnalysisView({
             marginBottom: 12,
           }}
         >
-          <div style={{ fontSize: 10, color: "#f87171", marginBottom: 6, fontWeight: 600, letterSpacing: "0.6px" }}>
+          <div style={{ fontSize: 10, color: "#b91c1c", marginBottom: 6, fontWeight: 600, letterSpacing: "0.6px" }}>
             ⚡ TENSIÓN DETECTADA EN TU PERFIL
           </div>
-          <p style={{ margin: 0, fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
+          <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
             {displayResult.solucion_principal.tension_principal}
           </p>
         </div>
@@ -320,8 +320,8 @@ export default function ResultsAnalysisView({
           >
             <div
               style={{
-                background: "rgba(15,23,42,0.28)",
-                border: "1px solid rgba(251,191,36,0.16)",
+                background: "rgba(255,255,255,0.95)",
+                border: "1px solid rgba(251,191,36,0.24)",
                 borderRadius: 12,
                 padding: 12,
               }}
@@ -329,14 +329,14 @@ export default function ResultsAnalysisView({
               <div style={{ fontSize: 10, color: "#fcd34d", marginBottom: 6, letterSpacing: "0.5px" }}>
                 TOTAL ORIENTATIVO
               </div>
-              <div style={{ fontSize: 24, fontWeight: 800, color: "#f8fafc", marginBottom: 2 }}>
+              <div style={{ fontSize: 24, fontWeight: 800, color: "#0f172a", marginBottom: 2 }}>
                 {formatCurrency(Number(tcoDetail.total_mensual || 0))} / mes
               </div>
               <div style={{ fontSize: 12, color: "#fde68a", marginBottom: 6 }}>
                 ≈ {formatCurrency(Number(tcoDetail.total_anual || 0))} / año
               </div>
               {Number(tcoDetail.entrada_inicial || 0) > 0 && (
-                <div style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.5 }}>
+                <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.5 }}>
                   Entrada / capital inicial orientativo: <strong>{formatCurrency(Number(tcoDetail.entrada_inicial || 0))}</strong>
                 </div>
               )}
@@ -344,8 +344,8 @@ export default function ResultsAnalysisView({
 
             <div
               style={{
-                background: "rgba(15,23,42,0.28)",
-                border: "1px solid rgba(251,191,36,0.16)",
+                background: "rgba(255,255,255,0.95)",
+                border: "1px solid rgba(251,191,36,0.24)",
                 borderRadius: 12,
                 padding: 12,
               }}
@@ -359,11 +359,11 @@ export default function ResultsAnalysisView({
                   const total = Math.max(1, Number(tcoDetail.total_mensual || 0));
                   return (
                     <div key={item.key}>
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 11, color: "#e2e8f0", marginBottom: 4 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 11, color: "#475569", marginBottom: 4 }}>
                         <span>{item.label}</span>
                         <span style={{ color: item.color, fontWeight: 700 }}>{formatCurrency(value)}</span>
                       </div>
-                      <div style={{ height: 5, background: "rgba(255,255,255,0.08)", borderRadius: 999, overflow: "hidden" }}>
+                      <div style={{ height: 5, background: "rgba(31,41,55,0.08)", borderRadius: 999, overflow: "hidden" }}>
                         <div
                           style={{
                             height: "100%",
@@ -381,7 +381,7 @@ export default function ResultsAnalysisView({
           </div>
 
           {displayResult.tco_aviso && (
-            <p style={{ margin: "0 0 6px", fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
+            <p style={{ margin: "0 0 6px", fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
               {displayResult.tco_aviso}
             </p>
           )}
@@ -411,8 +411,8 @@ export default function ResultsAnalysisView({
             <div
               key={i}
               style={{
-                background: "rgba(255,255,255,0.025)",
-                border: "1px solid rgba(255,255,255,0.07)",
+                background: "rgba(255,255,255,0.95)",
+                border: "1px solid rgba(31,41,55,0.1)",
                 borderRadius: 12,
                 padding: 14,
               }}
@@ -420,7 +420,7 @@ export default function ResultsAnalysisView({
               <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 7 }}>
                 <span style={{ fontSize: 18 }}>{mt2.icon}</span>
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: 13, color: "#e2e8f0" }}>{alt.titulo}</div>
+                  <div style={{ fontWeight: 600, fontSize: 13, color: "#0f172a" }}>{alt.titulo}</div>
                   <div style={{ fontSize: 11, color: mt2.color }}>{alt.score}% coincidencia</div>
                 </div>
               </div>
@@ -456,14 +456,14 @@ export default function ResultsAnalysisView({
                   <div
                     key={`compare-${row.criterio || index}`}
                     style={{
-                      background: "rgba(15,23,42,0.26)",
+                      background: "rgba(255,255,255,0.95)",
                       border: "1px solid rgba(148,163,184,0.12)",
                       borderRadius: 10,
                       padding: 10,
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "#f8fafc" }}>{row.criterio}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#0f172a" }}>{row.criterio}</div>
                       <span
                         style={{
                           background: "rgba(16,185,129,0.14)",
@@ -479,9 +479,9 @@ export default function ResultsAnalysisView({
                       </span>
                     </div>
                     <div style={{ display: "grid", gap: 5 }}>
-                      <div style={{ fontSize: 11, color: "#dbeafe", lineHeight: 1.5 }}><strong>Opción elegida:</strong> {row.opcion_principal}</div>
+                      <div style={{ fontSize: 11, color: "#1e3a8a", lineHeight: 1.5 }}><strong>Opción elegida:</strong> {row.opcion_principal}</div>
                       {row.alternativa_1 && (
-                        <div style={{ fontSize: 11, color: "#cbd5e1", lineHeight: 1.5 }}><strong>Alternativa 1:</strong> {row.alternativa_1}</div>
+                        <div style={{ fontSize: 11, color: "#475569", lineHeight: 1.5 }}><strong>Alternativa 1:</strong> {row.alternativa_1}</div>
                       )}
                       {row.alternativa_2 && (
                         <div style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.5 }}><strong>Alternativa 2:</strong> {row.alternativa_2}</div>
@@ -563,8 +563,8 @@ export default function ResultsAnalysisView({
               {trafficLabel}
             </span>
           </div>
-          {actionPlan.estado && <div style={{ fontSize: 16, fontWeight: 800, color: "#f8fafc", marginBottom: 6 }}>{actionPlan.estado}</div>}
-          {actionPlan.resumen && <p style={{ margin: "0 0 10px", fontSize: 12, color: "#e2e8f0", lineHeight: 1.6 }}>{actionPlan.resumen}</p>}
+          {actionPlan.estado && <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a", marginBottom: 6 }}>{actionPlan.estado}</div>}
+          {actionPlan.resumen && <p style={{ margin: "0 0 10px", fontSize: 12, color: "#334155", lineHeight: 1.6 }}>{actionPlan.resumen}</p>}
           <div
             style={{
               display: "grid",
@@ -577,7 +577,7 @@ export default function ResultsAnalysisView({
                 <div style={{ fontSize: 10, color: trafficTone.text, marginBottom: 6, letterSpacing: "0.5px" }}>QUÉ HACER AHORA</div>
                 <div style={{ display: "grid", gap: 5 }}>
                   {actionSteps.map((item, index) => (
-                    <div key={`action-step-${index}`} style={{ fontSize: 11, color: "#f8fafc", lineHeight: 1.5 }}>
+                    <div key={`action-step-${index}`} style={{ fontSize: 11, color: "#0f172a", lineHeight: 1.5 }}>
                       {index + 1}. {item}
                     </div>
                   ))}
@@ -631,7 +631,7 @@ export default function ResultsAnalysisView({
           </button>
         </div>
 
-        <p style={{ margin: "0 0 10px", fontSize: 12, color: "#dbeafe", lineHeight: 1.6 }}>{marketRadar.objetivo}</p>
+        <p style={{ margin: "0 0 10px", fontSize: 12, color: "#1e3a8a", lineHeight: 1.6 }}>{marketRadar.objetivo}</p>
 
         <div
           style={{
@@ -687,7 +687,7 @@ export default function ResultsAnalysisView({
                     onClick={() => savedOfferHref && openOfferInNewTab(savedOfferHref)}
                     title={savedOfferHref ? "Abrir oferta guardada" : undefined}
                     style={{
-                      background: "rgba(15,23,42,0.28)",
+                      background: "rgba(255,255,255,0.95)",
                       border: "1px solid rgba(148,163,184,0.14)",
                       borderRadius: 10,
                       padding: 10,
@@ -695,7 +695,7 @@ export default function ResultsAnalysisView({
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "#f8fafc" }}>{item.title}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#0f172a" }}>{item.title}</div>
                       <button
                         type="button"
                         onClick={() => removeSavedComparison(item.id)}
@@ -713,7 +713,7 @@ export default function ResultsAnalysisView({
                     <div style={{ fontSize: 11, color: "#93c5fd", marginBottom: 4 }}>
                       {item.typeLabel} · {item.score}% · confianza {String(item.confidence || "media").toUpperCase()} · {item.savedAt}
                     </div>
-                    <div style={{ fontSize: 11, color: "#cbd5e1", lineHeight: 1.5 }}>
+                    <div style={{ fontSize: 11, color: "#475569", lineHeight: 1.5 }}>
                       {item.monthlyTotal > 0 ? `${formatCurrency(item.monthlyTotal)}/mes` : item.budgetLabel}
                       {item.listingTitle ? ` · referencia: ${item.listingTitle}` : ""}
                       {item.listingPrice ? ` · ${item.listingPrice}` : ""}

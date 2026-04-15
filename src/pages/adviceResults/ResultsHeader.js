@@ -35,7 +35,7 @@ export default function ResultsHeader({
             fontWeight: 800,
             letterSpacing: "-1px",
             margin: 0,
-            color: "#f1f5f9",
+            color: "#0f172a",
           }}
         >
           {isOffersResultView ? "Tus ofertas recomendadas" : "Tu solución de movilidad óptima"}
@@ -45,15 +45,15 @@ export default function ResultsHeader({
       {!isOffersResultView ? (
         <div
           style={{
-            background: "linear-gradient(135deg,rgba(37,99,235,0.14),rgba(14,165,233,0.08))",
-            border: "1px solid rgba(96,165,250,0.24)",
+            background: "rgba(255,255,255,0.95)",
+            border: "1px solid rgba(37,99,235,0.2)",
             borderRadius: 16,
             padding: 18,
             marginBottom: 18,
             textAlign: "center",
           }}
         >
-          <div style={{ fontSize: 12, color: "#dbeafe", marginBottom: 10, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 12, color: "#334155", marginBottom: 10, lineHeight: 1.6 }}>
             Ya tienes el análisis completo. Cuando quieras, entra en una vista separada con solo tus ofertas ordenadas por encaje real.
           </div>
           <button
@@ -78,8 +78,8 @@ export default function ResultsHeader({
         <>
           <div
             style={{
-              background: "rgba(14,165,233,0.08)",
-              border: "1px solid rgba(125,211,252,0.22)",
+              background: "rgba(255,255,255,0.95)",
+              border: "1px solid rgba(14,165,233,0.2)",
               borderRadius: 16,
               padding: 16,
               marginBottom: 18,
@@ -90,16 +90,16 @@ export default function ResultsHeader({
               alignItems: "center",
             }}
           >
-            <div style={{ fontSize: 12, color: "#dbeafe", lineHeight: 1.6, textAlign: "left", flex: 1, minWidth: 240 }}>
+            <div style={{ fontSize: 12, color: "#334155", lineHeight: 1.6, textAlign: "left", flex: 1, minWidth: 240 }}>
               Aquí ves solo las ofertas del test: la destacada y las alternativas, con el motivo de selección y su ajuste con tus respuestas.
             </div>
             <button
               type="button"
               onClick={showAnalysisPage}
               style={{
-                background: "rgba(255,255,255,0.06)",
-                border: "1px solid rgba(255,255,255,0.12)",
-                color: "#e2e8f0",
+                background: "rgba(241,245,249,0.9)",
+                border: "1px solid rgba(148,163,184,0.28)",
+                color: "#334155",
                 padding: "10px 14px",
                 borderRadius: 10,
                 fontSize: 12,
@@ -130,10 +130,10 @@ export default function ResultsHeader({
                 <div style={{ fontSize: 10, color: "#fbbf24", marginBottom: 6, fontWeight: 800, letterSpacing: "0.6px" }}>
                   💶 TASACIÓN RECOMENDADA
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#f8fafc", marginBottom: 4 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", marginBottom: 4 }}>
                   {valuationPromptTitle}
                 </div>
-                <div style={{ fontSize: 12, color: "#fde68a", lineHeight: 1.6 }}>
+                <div style={{ fontSize: 12, color: "#92400e", lineHeight: 1.6 }}>
                   {valuationPromptText}
                 </div>
               </div>

@@ -27,8 +27,8 @@ export default function LoadingAnalysisPage({ styles, loadingTexts, loadingPhase
 
       <div
         style={{
-          background: "rgba(255,255,255,0.03)",
-          border: "1px solid rgba(255,255,255,0.07)",
+          background: "rgba(255,255,255,0.95)",
+          border: "1px solid rgba(148,163,184,0.24)",
           borderRadius: 12,
           padding: "14px 20px",
           marginBottom: 28,
@@ -40,7 +40,7 @@ export default function LoadingAnalysisPage({ styles, loadingTexts, loadingPhase
         }}
       >
         <span style={{ fontSize: 16 }}>⚙️</span>
-        <span style={{ fontSize: 13, color: "#94a3b8" }}>{loadingTexts[loadingPhase]}</span>
+        <span style={{ fontSize: 13, color: "#475569" }}>{loadingTexts[loadingPhase]}</span>
       </div>
 
       <div style={{ textAlign: "left", maxWidth: 320, margin: "0 auto 32px" }}>
@@ -64,7 +64,7 @@ export default function LoadingAnalysisPage({ styles, loadingTexts, loadingPhase
             <span style={{ color: loadingPhase > i ? "#34d399" : "#475569", fontSize: 14 }}>
               {loadingPhase > i ? "✓" : "○"}
             </span>
-            <span style={{ fontSize: 13, color: loadingPhase > i ? "#94a3b8" : "#334155" }}>
+            <span style={{ fontSize: 13, color: loadingPhase > i ? "#334155" : "#64748b" }}>
               {item}
             </span>
           </div>

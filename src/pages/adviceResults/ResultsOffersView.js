@@ -39,13 +39,13 @@ export default function ResultsOffersView({
         >
           <div
             style={{
-              background: "rgba(14,165,233,0.08)",
-              border: "1px solid rgba(125,211,252,0.2)",
+              background: "rgba(255,255,255,0.95)",
+              border: "1px solid rgba(31,41,55,0.1)",
               borderRadius: 12,
               padding: 14,
             }}
           >
-            <div style={{ fontSize: 10, color: "#67e8f9", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
+            <div style={{ fontSize: 10, color: "#0f172a", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
               ✅ VALIDACIÓN RÁPIDA
             </div>
             <div style={{ display: "grid", gap: 8 }}>
@@ -56,13 +56,13 @@ export default function ResultsOffersView({
                   <div
                     key={item.id}
                     style={{
-                      background: "rgba(15,23,42,0.28)",
-                      border: "1px solid rgba(148,163,184,0.16)",
+                      background: "rgba(255,255,255,0.95)",
+                      border: "1px solid rgba(31,41,55,0.1)",
                       borderRadius: 10,
                       padding: 10,
                     }}
                   >
-                    <div style={{ fontSize: 12, color: "#dbeafe", lineHeight: 1.5, marginBottom: 8 }}>
+                    <div style={{ fontSize: 12, color: "#334155", lineHeight: 1.5, marginBottom: 8 }}>
                       {item.label}
                     </div>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -78,15 +78,15 @@ export default function ResultsOffersView({
                             style={{
                               background: active
                                 ? isYes
-                                  ? "rgba(16,185,129,0.24)"
-                                  : "rgba(239,68,68,0.2)"
-                                : "rgba(15,23,42,0.2)",
+                                  ? "rgba(16,185,129,0.15)"
+                                  : "rgba(239,68,68,0.12)"
+                                : "rgba(148,163,184,0.1)",
                               border: active
                                 ? isYes
-                                  ? "1px solid rgba(52,211,153,0.45)"
-                                  : "1px solid rgba(248,113,113,0.42)"
-                                : "1px solid rgba(148,163,184,0.18)",
-                              color: active ? (isYes ? "#d1fae5" : "#fecaca") : "#cbd5e1",
+                                  ? "1px solid rgba(16,185,129,0.3)"
+                                  : "1px solid rgba(239,68,68,0.3)"
+                                : "1px solid rgba(148,163,184,0.2)",
+                              color: active ? (isYes ? "#065f46" : "#991b1b") : "#475569",
                               padding: "5px 10px",
                               borderRadius: 8,
                               fontSize: 11,
@@ -107,25 +107,25 @@ export default function ResultsOffersView({
 
           <div
             style={{
-              background: "rgba(16,185,129,0.08)",
-              border: "1px solid rgba(110,231,183,0.2)",
+              background: "rgba(255,255,255,0.95)",
+              border: "1px solid rgba(16,185,129,0.2)",
               borderRadius: 12,
               padding: 14,
             }}
           >
-            <div style={{ fontSize: 10, color: "#6ee7b7", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
+            <div style={{ fontSize: 10, color: "#047857", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
               🎯 SIGUIENTE PASO
             </div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#f8fafc", marginBottom: 6 }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a", marginBottom: 6 }}>
               {displayResult.siguiente_paso}
             </div>
-            <p style={{ margin: "0 0 10px", fontSize: 12, color: "#d1fae5", lineHeight: 1.6 }}>
+            <p style={{ margin: "0 0 10px", fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
               Ajusta esta parte rápida y el bloque de ofertas se reordena para enseñarte primero la mejor coincidencia real.
             </p>
 
             {isRentingOutcome ? (
               <>
-                <div style={{ fontSize: 11, color: "#a7f3d0", marginBottom: 6 }}>Cuota objetivo mensual</div>
+                <div style={{ fontSize: 11, color: "#047857", marginBottom: 6 }}>Cuota objetivo mensual</div>
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
                   {MONTHLY_BUDGET_OPTIONS.map((option) => {
                     const selected = listingFilters.budget === option.value;
@@ -136,14 +136,14 @@ export default function ResultsOffersView({
                         type="button"
                         onClick={() => updateListingFilter("budget", option.value)}
                         style={{
-                          background: selected ? "rgba(16,185,129,0.28)" : "rgba(5,150,105,0.15)",
+                          background: selected ? "rgba(16,185,129,0.15)" : "rgba(148,163,184,0.1)",
                           border: selected
-                            ? "1px solid rgba(110,231,183,0.55)"
-                            : "1px solid rgba(5,150,105,0.28)",
+                            ? "1px solid rgba(16,185,129,0.3)"
+                            : "1px solid rgba(148,163,184,0.2)",
                           padding: "4px 10px",
                           borderRadius: 100,
                           fontSize: 11,
-                          color: "#d1fae5",
+                          color: selected ? "#047857" : "#475569",
                           cursor: "pointer",
                           fontWeight: selected ? 700 : 500,
                         }}
@@ -154,7 +154,7 @@ export default function ResultsOffersView({
                   })}
                 </div>
 
-                <div style={{ fontSize: 11, color: "#a7f3d0", marginBottom: 6 }}>Estabilidad de ingresos</div>
+                <div style={{ fontSize: 11, color: "#047857", marginBottom: 6 }}>Estabilidad de ingresos</div>
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   {INCOME_STABILITY_OPTIONS.map((option) => {
                     const selected = listingFilters.income === option.value;
@@ -165,14 +165,14 @@ export default function ResultsOffersView({
                         type="button"
                         onClick={() => updateListingFilter("income", option.value)}
                         style={{
-                          background: selected ? "rgba(16,185,129,0.28)" : "rgba(5,150,105,0.15)",
+                          background: selected ? "rgba(16,185,129,0.15)" : "rgba(148,163,184,0.1)",
                           border: selected
-                            ? "1px solid rgba(110,231,183,0.55)"
-                            : "1px solid rgba(5,150,105,0.28)",
+                            ? "1px solid rgba(16,185,129,0.3)"
+                            : "1px solid rgba(148,163,184,0.2)",
                           padding: "4px 10px",
                           borderRadius: 100,
                           fontSize: 11,
-                          color: "#d1fae5",
+                          color: selected ? "#047857" : "#475569",
                           cursor: "pointer",
                           fontWeight: selected ? 700 : 500,
                         }}
@@ -190,7 +190,7 @@ export default function ResultsOffersView({
                   "Pide oferta desglosada con TIN/TAE, seguro y coste total.",
                   "Descarta cualquier opción que no cuadre con el TCO objetivo.",
                 ].map((item) => (
-                  <div key={item} style={{ fontSize: 11, color: "#dcfce7", lineHeight: 1.5 }}>• {item}</div>
+                  <div key={item} style={{ fontSize: 11, color: "#334155", lineHeight: 1.5 }}>• {item}</div>
                 ))}
               </div>
             ) : (
@@ -200,7 +200,7 @@ export default function ResultsOffersView({
                   "Compara el coste puntual frente al coste fijo de otra modalidad.",
                   "Quédate con la opción que menos fricción te meta hoy.",
                 ].map((item) => (
-                  <div key={item} style={{ fontSize: 11, color: "#dcfce7", lineHeight: 1.5 }}>• {item}</div>
+                  <div key={item} style={{ fontSize: 11, color: "#334155", lineHeight: 1.5 }}>• {item}</div>
                 ))}
               </div>
             )}
@@ -220,15 +220,15 @@ export default function ResultsOffersView({
         <div>
           <div
             style={{
-              background: "linear-gradient(135deg,rgba(14,165,233,0.16),rgba(37,99,235,0.08))",
-              border: "1px solid rgba(96,165,250,0.32)",
+              background: "rgba(255,255,255,0.95)",
+              border: "1px solid rgba(3,105,161,0.2)",
               borderRadius: 16,
               padding: 18,
-              boxShadow: "0 18px 45px rgba(37,99,235,0.08)",
+              boxShadow: "0 4px 12px rgba(3,105,161,0.04)",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
-              <div style={{ fontSize: 10, color: "#7dd3fc", fontWeight: 700, letterSpacing: "0.7px" }}>
+              <div style={{ fontSize: 10, color: "#0369a1", fontWeight: 700, letterSpacing: "0.7px" }}>
                 🏆 OFERTAS QUE MEJOR ENCAJAN
               </div>
               <button
@@ -253,20 +253,20 @@ export default function ResultsOffersView({
               </button>
             </div>
 
-            <p style={{ margin: "0 0 12px", fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
+            <p style={{ margin: "0 0 12px", fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
               La oferta destacada es la que mejor funciona para tu caso; debajo verás otras 3 que también podrían encajar con sus motivos de posición.
             </p>
 
             {listingCoverageSummary && (
               <div
                 style={{
-                  background: "rgba(15,23,42,0.38)",
-                  border: "1px solid rgba(125,211,252,0.22)",
+                  background: "rgba(255,255,255,0.95)",
+                  border: "1px solid rgba(3,105,161,0.2)",
                   borderRadius: 12,
                   padding: 10,
                   marginBottom: 10,
                   fontSize: 11,
-                  color: "#dbeafe",
+                  color: "#0369a1",
                   lineHeight: 1.6,
                 }}
               >
@@ -295,12 +295,12 @@ export default function ResultsOffersView({
             {!featuredOffer && !listingLoading && !listingError && (
               <div
                 style={{
-                  background: "rgba(15,23,42,0.28)",
+                  background: "rgba(255,255,255,0.95)",
                   border: "1px dashed rgba(148,163,184,0.24)",
                   borderRadius: 12,
                   padding: 14,
                   fontSize: 12,
-                  color: "#cbd5e1",
+                  color: "#475569",
                   lineHeight: 1.6,
                 }}
               >
@@ -315,8 +315,8 @@ export default function ResultsOffersView({
                 onClick={() => featuredOffer?.url && openOfferInNewTab(featuredOffer.url)}
                 title={featuredOffer?.url ? "Abrir oferta en una pestaña nueva" : undefined}
                 style={{
-                  background: "rgba(2,6,23,0.42)",
-                  border: "1px solid rgba(96,165,250,0.24)",
+                  background: "rgba(255,255,255,0.95)",
+                  border: "1px solid rgba(3,105,161,0.15)",
                   borderRadius: 14,
                   padding: 14,
                   marginBottom: 12,
@@ -336,7 +336,7 @@ export default function ResultsOffersView({
                       borderRadius: 12,
                       overflow: "hidden",
                       minHeight: 170,
-                      background: "rgba(15,23,42,0.72)",
+                      background: "rgba(241,245,249,0.5)",
                       border: "1px solid rgba(148,163,184,0.14)",
                     }}
                   >
@@ -355,16 +355,16 @@ export default function ResultsOffersView({
                   </div>
 
                   <div>
-                    <div style={{ fontSize: 10, color: "#67e8f9", marginBottom: 6, fontWeight: 700, letterSpacing: "0.6px" }}>
+                    <div style={{ fontSize: 10, color: "#0369a1", marginBottom: 6, fontWeight: 700, letterSpacing: "0.6px" }}>
                       ⭐ OFERTA DESTACADA · PUESTO #{featuredOffer.rankPosition || 1}
                       {Number.isFinite(Number(featuredOffer.rankingScore ?? featuredOffer.profileScore))
                         ? ` · ENCAJE ${Number(featuredOffer.rankingScore ?? featuredOffer.profileScore)}/100`
                         : ""}
                     </div>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: "#f8fafc", marginBottom: 6 }}>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", marginBottom: 6 }}>
                       {featuredOffer.title}
                     </div>
-                    <p style={{ margin: "0 0 8px", fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
+                    <p style={{ margin: "0 0 8px", fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
                       {featuredOffer.description || "Es la coincidencia real mejor posicionada para tu test y tu contexto actual."}
                     </p>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
@@ -377,7 +377,7 @@ export default function ResultsOffersView({
                         </div>
                       )}
                     </div>
-                    <p style={{ margin: "0 0 8px", fontSize: 11, color: "#dbeafe", lineHeight: 1.6 }}>
+                    <p style={{ margin: "0 0 8px", fontSize: 11, color: "#1e3a8a", lineHeight: 1.6 }}>
                       <strong>Por qué va la 1ª:</strong> {featuredOffer.positionReason || featuredOffer.matchReason}
                     </p>
 
@@ -393,7 +393,7 @@ export default function ResultsOffersView({
                           style={{
                             background: "rgba(37,99,235,0.1)",
                             border: "1px solid rgba(96,165,250,0.22)",
-                            color: "#dbeafe",
+                            color: "#1e3a8a",
                             padding: "4px 8px",
                             borderRadius: 999,
                             fontSize: 10,
@@ -445,7 +445,7 @@ export default function ResultsOffersView({
                           style={{
                             background: "rgba(16,185,129,0.12)",
                             border: "1px solid rgba(52,211,153,0.22)",
-                            color: "#bbf7d0",
+                            color: "#065f46",
                             padding: "9px 13px",
                             borderRadius: 10,
                             fontSize: 12,
@@ -464,11 +464,11 @@ export default function ResultsOffersView({
                           toggleSavedRecommendation(featuredOffer);
                         }}
                         style={{
-                          background: featuredOfferSaved ? "rgba(236,72,153,0.16)" : "rgba(255,255,255,0.06)",
+                          background: featuredOfferSaved ? "rgba(236,72,153,0.16)" : "rgba(241,245,249,0.9)",
                           border: featuredOfferSaved
                             ? "1px solid rgba(244,114,182,0.28)"
-                            : "1px solid rgba(255,255,255,0.12)",
-                          color: featuredOfferSaved ? "#fbcfe8" : "#e2e8f0",
+                            : "1px solid rgba(148,163,184,0.22)",
+                          color: featuredOfferSaved ? "#be185d" : "#334155",
                           padding: "9px 13px",
                           borderRadius: 10,
                           fontSize: 12,
@@ -486,9 +486,9 @@ export default function ResultsOffersView({
                           searchRealListing(listingFilters, quickValidationAnswers, { forceRefresh: true });
                         }}
                         style={{
-                          background: "rgba(255,255,255,0.06)",
-                          border: "1px solid rgba(255,255,255,0.12)",
-                          color: "#cbd5e1",
+                          background: "rgba(241,245,249,0.9)",
+                          border: "1px solid rgba(148,163,184,0.22)",
+                          color: "#334155",
                           padding: "9px 13px",
                           borderRadius: 10,
                           fontSize: 12,
@@ -505,7 +505,7 @@ export default function ResultsOffersView({
 
             {otherOffers.length > 0 && (
               <div>
-                <div style={{ fontSize: 10, color: "#bfdbfe", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
+                <div style={{ fontSize: 10, color: "#0369a1", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
                   OTRAS OFERTAS QUE TAMBIÉN ENCAJAN
                 </div>
                 <div style={{ display: "grid", gap: 8 }}>
@@ -518,7 +518,7 @@ export default function ResultsOffersView({
                         onClick={() => offer?.url && openOfferInNewTab(offer.url)}
                         title={offer?.url ? "Abrir oferta en una pestaña nueva" : undefined}
                         style={{
-                          background: "rgba(15,23,42,0.28)",
+                          background: "rgba(255,255,255,0.95)",
                           border: "1px solid rgba(148,163,184,0.16)",
                           borderRadius: 12,
                           padding: 12,
@@ -530,7 +530,7 @@ export default function ResultsOffersView({
                             style={{
                               borderRadius: 10,
                               overflow: "hidden",
-                              background: "rgba(15,23,42,0.72)",
+                              background: "rgba(241,245,249,0.55)",
                               border: "1px solid rgba(148,163,184,0.14)",
                               minHeight: 78,
                             }}
@@ -545,7 +545,7 @@ export default function ResultsOffersView({
 
                           <div>
                             <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
-                              <div style={{ fontSize: 12, fontWeight: 700, color: "#f8fafc" }}>
+                              <div style={{ fontSize: 12, fontWeight: 700, color: "#0f172a" }}>
                                 #{offer.rankPosition || index + 2} · {offer.title}
                               </div>
                               {offer.price && <div style={{ fontSize: 13, fontWeight: 800, color: "#6ee7b7" }}>{offer.price}</div>}
@@ -556,7 +556,7 @@ export default function ResultsOffersView({
                                 ? ` · ${Number(offer.rankingScore ?? offer.profileScore)}/100`
                                 : ""}
                             </div>
-                            <p style={{ margin: "0 0 6px", fontSize: 11, color: "#cbd5e1", lineHeight: 1.5 }}>
+                            <p style={{ margin: "0 0 6px", fontSize: 11, color: "#475569", lineHeight: 1.5 }}>
                               {offer.positionReason || offer.matchReason}
                             </p>
 
@@ -572,7 +572,7 @@ export default function ResultsOffersView({
                                   style={{
                                     background: "rgba(37,99,235,0.1)",
                                     border: "1px solid rgba(96,165,250,0.22)",
-                                    color: "#dbeafe",
+                                    color: "#1e3a8a",
                                     padding: "3px 7px",
                                     borderRadius: 999,
                                     fontSize: 10,
@@ -630,7 +630,7 @@ export default function ResultsOffersView({
                                 style={{
                                   background: isRecommendationSaved(offer) ? "rgba(236,72,153,0.14)" : "transparent",
                                   border: "none",
-                                  color: isRecommendationSaved(offer) ? "#f9a8d4" : "#cbd5e1",
+                                  color: isRecommendationSaved(offer) ? "#be185d" : "#334155",
                                   fontSize: 11,
                                   fontWeight: 700,
                                   cursor: "pointer",

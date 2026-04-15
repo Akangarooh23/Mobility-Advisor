@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 export default function QuestionnairePage({
   styles,
   currentStep,
@@ -24,6 +26,8 @@ export default function QuestionnairePage({
   onTellMeNow,
   answeredSteps,
 }) {
+  const [hoveredOption, setHoveredOption] = useState(null);
+
   const hasCompleteRange = (value) => Array.isArray(value) && value.length > 0 && value.every(Boolean);
   const hasCompleteScoreWeights = (stepConfig, selection) => {
     const metrics = Array.isArray(stepConfig?.metrics) ? stepConfig.metrics : [];
@@ -412,10 +416,30 @@ export default function QuestionnairePage({
           currentStep.type === "multi"
             ? multiSelected.includes(opt.value)
             : answers[currentStep.id] === opt.value;
+        const isHovered = hoveredOption === opt.value;
         return (
           <button
             key={opt.value}
-            style={styles.card(selected)}
+            onMouseEnter={() => setHoveredOption(opt.value)}
+            onMouseLeave={() => setHoveredOption(null)}
+            style={{
+              ...styles.card(selected),
+              background: selected
+                ? "linear-gradient(145deg, rgba(219,234,254,0.9), rgba(191,219,254,0.75))"
+                : "linear-gradient(145deg, #ffffff, #f8fafc)",
+              border: selected
+                ? "1px solid rgba(59,130,246,0.38)"
+                : isHovered
+                ? "1px solid rgba(96,165,250,0.35)"
+                : "1px solid rgba(148,163,184,0.22)",
+              boxShadow: selected
+                ? "0 14px 30px rgba(37,99,235,0.16)"
+                : isHovered
+                ? "0 10px 24px rgba(15,23,42,0.08)"
+                : "0 4px 12px rgba(15,23,42,0.05)",
+              transform: isHovered ? "translateY(-1px)" : "translateY(0)",
+              transition: "all 0.2s ease",
+            }}
             onClick={() =>
               currentStep.type === "multi"
                 ? onHandleMultiToggle(opt.value)

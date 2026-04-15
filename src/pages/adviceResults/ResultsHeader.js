@@ -51,6 +51,7 @@ export default function ResultsHeader({
             padding: 18,
             marginBottom: 18,
             textAlign: "center",
+            boxShadow: "0 14px 30px rgba(37,99,235,0.1)",
           }}
         >
           <div style={{ fontSize: 12, color: "#334155", marginBottom: 10, lineHeight: 1.6 }}>
@@ -88,6 +89,7 @@ export default function ResultsHeader({
               gap: 12,
               flexWrap: "wrap",
               alignItems: "center",
+              boxShadow: "0 12px 26px rgba(14,165,233,0.08)",
             }}
           >
             <div style={{ fontSize: 12, color: "#334155", lineHeight: 1.6, textAlign: "left", flex: 1, minWidth: 240 }}>
@@ -124,6 +126,7 @@ export default function ResultsHeader({
                 gap: 12,
                 flexWrap: "wrap",
                 alignItems: "center",
+                boxShadow: "0 12px 26px rgba(217,119,6,0.1)",
               }}
             >
               <div style={{ flex: 1, minWidth: 240 }}>

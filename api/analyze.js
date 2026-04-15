@@ -653,6 +653,33 @@ function getVehicleProfile(answers) {
   return "un compacto equilibrado";
 }
 
+function getAllowedTypesForAdvisorContext(advisorContext = null) {
+  if (advisorContext === "renting") {
+    return ["renting_largo", "renting_corto", "rent_a_car", "carsharing"];
+  }
+
+  if (advisorContext === "buy") {
+    return ["compra_contado", "compra_financiada"];
+  }
+
+  return [];
+}
+
+function isAdvisorResultCompatibleWithContext(resultData, advisorContext = null) {
+  if (!advisorContext) {
+    return true;
+  }
+
+  const allowedTypes = getAllowedTypesForAdvisorContext(advisorContext);
+  const topType = normalizeText(resultData?.solucion_principal?.tipo);
+  const alternativeTypes = Array.isArray(resultData?.alternativas)
+    ? resultData.alternativas.map((item) => normalizeText(item?.tipo)).filter(Boolean)
+    : [];
+  const allTypes = [topType, ...alternativeTypes].filter(Boolean);
+
+  return allTypes.every((type) => allowedTypes.includes(type));
+}
+
 function getViablePropulsions(answers) {
   const propulsions = [];
   const noGarage = answers.garaje === "sin_garaje";
@@ -689,7 +716,29 @@ function getViablePropulsions(answers) {
   return [...new Set(propulsions)].slice(0, 4);
 }
 
-function getPrimaryType(answers) {
+function getPrimaryType(answers, advisorContext = null) {
+  if (advisorContext === "renting") {
+    const veryShortHorizon = answers.horizonte;
+
+    if (veryShortHorizon === "por_dias") {
+      return "rent_a_car";
+    }
+
+    if (veryShortHorizon === "menos_2_meses") {
+      return "carsharing";
+    }
+
+    if (veryShortHorizon === "menos_1_ano") {
+      return "renting_corto";
+    }
+
+    return "renting_largo";
+  }
+
+  if (advisorContext === "buy") {
+    return answers.flexibilidad === "propiedad_contado" ? "compra_contado" : "compra_financiada";
+  }
+
   const flexibility = answers.flexibilidad;
   const lowKm = answers.km_anuales === "menos_10k";
   const cityUse = answers.entorno_uso === "ciudad";
@@ -1003,19 +1052,19 @@ function getTensionPrincipal(answers, primaryType) {
   return "Tu caso exige equilibrar coste mensual, uso real y riesgo futuro sin sobredimensionar coche ni motorizacion.";
 }
 
-function buildAlternatives(primaryType, answers) {
+function buildAlternatives(primaryType, answers, advisorContext = null) {
   const profile = getVehicleProfile(answers);
   const alternativesByType = {
     compra_contado: [
       { tipo: "compra_financiada", score: 76, titulo: `Compra financiada de ${profile}`, razon: "Tiene sentido si prefieres preservar liquidez y mantienes una cuota por debajo de tu limite comodo." },
-      { tipo: "renting_largo", score: 68, titulo: "Renting con cuota cerrada", razon: "Buena opcion si priorizas previsibilidad de gasto y no quieres asumir depreciacion ni venta futura." },
+      { tipo: "compra_financiada", score: 68, titulo: `Compra financiada de ${profile}`, razon: "Buena alternativa si quieres preservar liquidez inicial y repartir esfuerzo mensual." },
     ],
     compra_financiada: [
-      { tipo: "renting_largo", score: 79, titulo: "Renting a largo plazo", razon: "Reduce riesgo operativo y fija gasto si valoras tranquilidad mas que propiedad." },
+      { tipo: "compra_contado", score: 79, titulo: `Compra al contado de ${profile}`, razon: "Reduce coste financiero si puedes aumentar entrada y priorizas coste total final." },
       { tipo: "compra_contado", score: 66, titulo: `Compra al contado de ${profile}`, razon: "Interesa si puedes aumentar entrada y evitar coste financiero en una unidad fiable." },
     ],
     renting_largo: [
-      { tipo: "compra_financiada", score: 74, titulo: `Compra financiada de ${profile}`, razon: "Puede ser mas rentable si vas a mantener el vehiculo varios anos y eliges una version liquida." },
+      { tipo: "renting_corto", score: 74, titulo: "Renting flexible", razon: "Puede encajar mejor si prevés cambios cercanos y no quieres permanencia larga." },
       { tipo: "renting_corto", score: 64, titulo: "Renting flexible", razon: "Solo compensa si preves cambios de vida cercanos y quieres posponer la decision final." },
     ],
     renting_corto: [
@@ -1036,14 +1085,21 @@ function buildAlternatives(primaryType, answers) {
     ],
   };
 
-  return alternativesByType[primaryType] || [
+  const alternatives = alternativesByType[primaryType] || [
     { tipo: "compra_financiada", score: 70, titulo: `Compra financiada de ${profile}`, razon: "Mantiene equilibrio entre control mensual, disponibilidad total y valor residual." },
     { tipo: "renting_largo", score: 65, titulo: "Renting con servicios incluidos", razon: "Interesa si priorizas simplificar gestion y fijar coste total." },
   ];
+
+  if (!advisorContext) {
+    return alternatives;
+  }
+
+  const allowedTypes = getAllowedTypesForAdvisorContext(advisorContext);
+  return alternatives.filter((item) => allowedTypes.includes(item.tipo)).slice(0, 2);
 }
 
-function buildFallbackAdvisorResult(answers = {}) {
-  const primaryType = getPrimaryType(answers);
+function buildFallbackAdvisorResult(answers = {}, advisorContext = null) {
+  const primaryType = getPrimaryType(answers, advisorContext);
   const propulsions = getViablePropulsions(answers);
   const dgtLabel = getDgtLabel(propulsions);
   const vehicleProfile = getVehicleProfile(answers);
@@ -1060,7 +1116,7 @@ function buildFallbackAdvisorResult(answers = {}) {
   const tension = getTensionPrincipal(answers, primaryType);
   const whyWins = buildWhyWins(answers, primaryType, propulsions, dgtLabel);
   const tcoDetail = buildTcoEstimate(answers, primaryType, propulsions);
-  const alternatives = buildAlternatives(primaryType, answers);
+  const alternatives = buildAlternatives(primaryType, answers, advisorContext);
   const comparadorFinal = buildComparatorRows(primaryType, answers, scoreBreakdown, tcoDetail, alternatives);
   const transparencia = buildTransparencyReport(answers, primaryType, propulsions, tcoDetail, scoreBreakdown, score);
   const planAccion = buildActionPlan(answers, primaryType, transparencia, tcoDetail, companies);
@@ -1136,6 +1192,7 @@ module.exports = async function handler(req, res) {
     const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
     const prompt = body?.prompt;
     const answers = body?.answers && typeof body.answers === "object" ? body.answers : {};
+    const advisorContext = normalizeText(body?.advisorContext || null) || null;
 
     if (!prompt || typeof prompt !== "string") {
       return res.status(400).json({ error: "Missing prompt" });
@@ -1240,7 +1297,7 @@ module.exports = async function handler(req, res) {
     const text = generation.data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
     const parsed = parseGeminiJson(text);
 
-    if (parsed && isCompleteAdvisorResult(parsed)) {
+    if (parsed && isCompleteAdvisorResult(parsed) && isAdvisorResultCompatibleWithContext(parsed, advisorContext)) {
       return res.status(200).json({ parsed: normalizeAdvisorResult(parsed, answers) });
     }
 
@@ -1252,13 +1309,13 @@ module.exports = async function handler(req, res) {
       const repairedText = repairedGeneration.data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
       const repairedParsed = parseGeminiJson(repairedText);
 
-      if (repairedParsed && isCompleteAdvisorResult(repairedParsed)) {
+      if (repairedParsed && isCompleteAdvisorResult(repairedParsed) && isAdvisorResultCompatibleWithContext(repairedParsed, advisorContext)) {
         return res.status(200).json({ parsed: normalizeAdvisorResult(repairedParsed, answers) });
       }
     }
 
     return res.status(200).json({
-      parsed: buildFallbackAdvisorResult(answers),
+      parsed: buildFallbackAdvisorResult(answers, advisorContext),
       meta: {
         source: "fallback",
       },

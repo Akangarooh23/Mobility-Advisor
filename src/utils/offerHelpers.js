@@ -401,34 +401,34 @@ export function buildSearchCoverageSummary(coverage = null) {
 export function getOfferBadgeStyle(tone = "slate") {
   const toneMap = {
     green: {
-      background: "rgba(16,185,129,0.12)",
-      border: "1px solid rgba(52,211,153,0.24)",
-      color: "#bbf7d0",
+      background: "rgba(16,185,129,0.14)",
+      border: "1px solid rgba(16,185,129,0.26)",
+      color: "#065f46",
     },
     success: {
-      background: "rgba(16,185,129,0.16)",
-      border: "1px solid rgba(52,211,153,0.32)",
-      color: "#d1fae5",
+      background: "rgba(16,185,129,0.17)",
+      border: "1px solid rgba(16,185,129,0.34)",
+      color: "#065f46",
     },
     amber: {
-      background: "rgba(245,158,11,0.12)",
-      border: "1px solid rgba(251,191,36,0.24)",
-      color: "#fde68a",
+      background: "rgba(245,158,11,0.14)",
+      border: "1px solid rgba(245,158,11,0.3)",
+      color: "#92400e",
     },
     info: {
       background: "rgba(37,99,235,0.14)",
       border: "1px solid rgba(96,165,250,0.28)",
-      color: "#dbeafe",
+      color: "#1e3a8a",
     },
     neutral: {
       background: "rgba(148,163,184,0.1)",
       border: "1px solid rgba(148,163,184,0.16)",
-      color: "#cbd5e1",
+      color: "#334155",
     },
     slate: {
       background: "rgba(148,163,184,0.12)",
       border: "1px solid rgba(148,163,184,0.22)",
-      color: "#e2e8f0",
+      color: "#334155",
     },
   };
 

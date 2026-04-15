@@ -82,10 +82,10 @@ export function buildAdviceResultsViewModel({
   const trafficLight = normalizeText(actionPlan.semaforo || "").toLowerCase();
   const trafficTone =
     trafficLight === "verde"
-      ? { bg: "rgba(16,185,129,0.07)", border: "rgba(52,211,153,0.18)", text: "#6ee7b7", chip: "rgba(16,185,129,0.14)" }
+      ? { bg: "rgba(16,185,129,0.07)", border: "rgba(52,211,153,0.18)", text: "#047857", chip: "rgba(16,185,129,0.14)" }
       : trafficLight === "rojo"
-        ? { bg: "rgba(239,68,68,0.07)", border: "rgba(248,113,113,0.18)", text: "#fca5a5", chip: "rgba(239,68,68,0.14)" }
-        : { bg: "rgba(245,158,11,0.07)", border: "rgba(251,191,36,0.18)", text: "#fbbf24", chip: "rgba(245,158,11,0.14)" };
+        ? { bg: "rgba(239,68,68,0.07)", border: "rgba(248,113,113,0.18)", text: "#b91c1c", chip: "rgba(239,68,68,0.14)" }
+        : { bg: "rgba(245,158,11,0.07)", border: "rgba(251,191,36,0.18)", text: "#b45309", chip: "rgba(245,158,11,0.14)" };
   const trafficLabel =
     trafficLight === "verde"
       ? "VERDE · PUEDES AVANZAR"

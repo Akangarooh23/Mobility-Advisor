@@ -212,17 +212,13 @@ function buildActiveAnswers(allAnswers, steps = STEPS) {
 
 function isAdvisorResultCompatibleWithContext(resultData, advisorContext) {
   const topType = normalizeText(resultData?.solucion_principal?.tipo);
-  const alternativeTypes = Array.isArray(resultData?.alternativas)
-    ? resultData.alternativas.map((item) => normalizeText(item?.tipo)).filter(Boolean)
-    : [];
-  const allTypes = [topType, ...alternativeTypes].filter(Boolean);
 
   if (advisorContext === "renting") {
-    return allTypes.every((type) => ["renting_largo", "renting_corto", "rent_a_car", "carsharing"].includes(type));
+    return ["renting_largo", "renting_corto", "rent_a_car", "carsharing"].includes(topType);
   }
 
   if (advisorContext === "buy") {
-    return allTypes.every((type) => ["compra_contado", "compra_financiada"].includes(type));
+    return ["compra_contado", "compra_financiada"].includes(topType);
   }
 
   return true;
@@ -2110,7 +2106,7 @@ export default function App() {
 
       let raw = await requestAiJson(
         buildPrompt(),
-        { answers: finalAnswers },
+        { answers: finalAnswers, advisorContext },
         { onApiKeyMissing: () => setApiKeyMissing(true) }
       );
       let normalizedResult = normalizeAdvisorResult(raw);
@@ -2118,7 +2114,7 @@ export default function App() {
       if (!isAdvisorResultCompatibleWithContext(normalizedResult, advisorContext)) {
         raw = await requestAiJson(
           buildPrompt("La respuesta anterior incumplio la restriccion de categoria. Repite el analisis respetando estrictamente la via de entrada del usuario."),
-          { answers: finalAnswers },
+          { answers: finalAnswers, advisorContext },
           { onApiKeyMissing: () => setApiKeyMissing(true) }
         );
         normalizedResult = normalizeAdvisorResult(raw);
@@ -2150,7 +2146,7 @@ export default function App() {
 
       setError(`Error: ${err.message}`);
       setLoading(false);
-      setStep(totalSteps - 1);
+      setStep(99);
     }
   };
 
@@ -2301,6 +2297,13 @@ export default function App() {
   const answeredSteps = countAnsweredSteps(visibleDraftAnswers, activeSteps);
   const remainingQuestions = Math.max(totalSteps - answeredSteps, 0);
   const completionPct = Math.min(100, Math.round((answeredSteps / totalSteps) * 100));
+  const isAdviceFlowLightBackground =
+    entryMode === "consejo" &&
+    (
+      (step >= 0 && step < totalSteps) ||
+      (step === 99 && loading) ||
+      Boolean(result && !LEGAL_DOCUMENTS[entryMode])
+    );
 
   // -------------------- STYLES --------------------
   const s = useMemo(() => createAppStyles(progress), [progress]);
@@ -2313,7 +2316,7 @@ export default function App() {
         display: "flex",
         flexDirection: "column",
         minHeight: "100vh",
-        ...(step === -1
+        ...(step === -1 || isAdviceFlowLightBackground
           ? {
               background: "#ffffff",
               color: "#0f172a",

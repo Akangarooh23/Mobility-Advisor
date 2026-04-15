@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 export default function ResultsOffersView({
   quickValidationQuestions,
   displayResult,
@@ -26,6 +28,8 @@ export default function ResultsOffersView({
   isRecommendationSaved,
   getOfferActionMeta,
 }) {
+  const [hoveredCard, setHoveredCard] = useState(null);
+
   return (
     <>
       {(quickValidationQuestions.length > 0 || displayResult.siguiente_paso) && (
@@ -57,9 +61,11 @@ export default function ResultsOffersView({
                     key={item.id}
                     style={{
                       background: "rgba(255,255,255,0.95)",
-                      border: "1px solid rgba(31,41,55,0.1)",
+                      border: "1px solid rgba(59,130,246,0.16)",
                       borderRadius: 10,
                       padding: 10,
+                      boxShadow: "0 8px 20px rgba(15,23,42,0.06)",
+                      transition: "all 0.2s ease",
                     }}
                   >
                     <div style={{ fontSize: 12, color: "#334155", lineHeight: 1.5, marginBottom: 8 }}>
@@ -111,6 +117,7 @@ export default function ResultsOffersView({
               border: "1px solid rgba(16,185,129,0.2)",
               borderRadius: 12,
               padding: 14,
+              boxShadow: "0 10px 24px rgba(16,185,129,0.08)",
             }}
           >
             <div style={{ fontSize: 10, color: "#047857", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
@@ -221,10 +228,10 @@ export default function ResultsOffersView({
           <div
             style={{
               background: "rgba(255,255,255,0.95)",
-              border: "1px solid rgba(3,105,161,0.2)",
+              border: "1px solid rgba(3,105,161,0.24)",
               borderRadius: 16,
               padding: 18,
-              boxShadow: "0 4px 12px rgba(3,105,161,0.04)",
+              boxShadow: "0 14px 30px rgba(3,105,161,0.1)",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
@@ -283,7 +290,7 @@ export default function ResultsOffersView({
                   padding: 12,
                   marginBottom: 10,
                   fontSize: 12,
-                  color: featuredOffer ? "#fde68a" : "#fecaca",
+                  color: featuredOffer ? "#92400e" : "#991b1b",
                 }}
               >
                 {featuredOffer
@@ -314,13 +321,22 @@ export default function ResultsOffersView({
               <div
                 onClick={() => featuredOffer?.url && openOfferInNewTab(featuredOffer.url)}
                 title={featuredOffer?.url ? "Abrir oferta en una pestaña nueva" : undefined}
+                onMouseEnter={() => setHoveredCard("featured")}
+                onMouseLeave={() => setHoveredCard(null)}
                 style={{
                   background: "rgba(255,255,255,0.95)",
-                  border: "1px solid rgba(3,105,161,0.15)",
+                  border: hoveredCard === "featured"
+                    ? "1px solid rgba(37,99,235,0.3)"
+                    : "1px solid rgba(3,105,161,0.15)",
                   borderRadius: 14,
                   padding: 14,
                   marginBottom: 12,
                   cursor: featuredOffer?.url ? "pointer" : "default",
+                  boxShadow: hoveredCard === "featured"
+                    ? "0 18px 36px rgba(37,99,235,0.16)"
+                    : "0 10px 24px rgba(15,23,42,0.08)",
+                  transform: hoveredCard === "featured" ? "translateY(-2px)" : "translateY(0)",
+                  transition: "all 0.2s ease",
                 }}
               >
                 <div
@@ -368,11 +384,11 @@ export default function ResultsOffersView({
                       {featuredOffer.description || "Es la coincidencia real mejor posicionada para tu test y tu contexto actual."}
                     </p>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
-                      <div style={{ fontSize: 12, color: "#93c5fd" }}>
+                      <div style={{ fontSize: 12, color: "#1d4ed8" }}>
                         {featuredOffer.source || "Web externa"}
                       </div>
                       {featuredOffer.price && (
-                        <div style={{ fontSize: 20, fontWeight: 800, color: "#34d399" }}>
+                        <div style={{ fontSize: 20, fontWeight: 800, color: "#047857" }}>
                           {featuredOffer.price}
                         </div>
                       )}
@@ -406,7 +422,7 @@ export default function ResultsOffersView({
                     </div>
 
                     {!featuredOffer.url && featuredOffer.searchUrl && (
-                      <p style={{ margin: "0 0 10px", fontSize: 11, color: "#fde68a", lineHeight: 1.6 }}>
+                      <p style={{ margin: "0 0 10px", fontSize: 11, color: "#92400e", lineHeight: 1.6 }}>
                         Esta tarjeta es una <strong>referencia orientativa</strong>: te lleva al portal del proveedor, no a una ficha exacta ya verificada.
                       </p>
                     )}
@@ -467,8 +483,8 @@ export default function ResultsOffersView({
                           background: featuredOfferSaved ? "rgba(236,72,153,0.16)" : "rgba(241,245,249,0.9)",
                           border: featuredOfferSaved
                             ? "1px solid rgba(244,114,182,0.28)"
-                            : "1px solid rgba(148,163,184,0.22)",
-                          color: featuredOfferSaved ? "#be185d" : "#334155",
+                            : "1px solid rgba(100,116,139,0.35)",
+                          color: featuredOfferSaved ? "#9d174d" : "#1f2937",
                           padding: "9px 13px",
                           borderRadius: 10,
                           fontSize: 12,
@@ -487,8 +503,8 @@ export default function ResultsOffersView({
                         }}
                         style={{
                           background: "rgba(241,245,249,0.9)",
-                          border: "1px solid rgba(148,163,184,0.22)",
-                          color: "#334155",
+                          border: "1px solid rgba(100,116,139,0.35)",
+                          color: "#1f2937",
                           padding: "9px 13px",
                           borderRadius: 10,
                           fontSize: 12,
@@ -517,12 +533,21 @@ export default function ResultsOffersView({
                         key={offer.url || offer.searchUrl || `${offer.title}-${index}`}
                         onClick={() => offer?.url && openOfferInNewTab(offer.url)}
                         title={offer?.url ? "Abrir oferta en una pestaña nueva" : undefined}
+                        onMouseEnter={() => setHoveredCard(`other-${index}`)}
+                        onMouseLeave={() => setHoveredCard(null)}
                         style={{
                           background: "rgba(255,255,255,0.95)",
-                          border: "1px solid rgba(148,163,184,0.16)",
+                          border: hoveredCard === `other-${index}`
+                            ? "1px solid rgba(59,130,246,0.3)"
+                            : "1px solid rgba(148,163,184,0.16)",
                           borderRadius: 12,
                           padding: 12,
                           cursor: offer?.url ? "pointer" : "default",
+                          boxShadow: hoveredCard === `other-${index}`
+                            ? "0 14px 30px rgba(59,130,246,0.14)"
+                            : "0 8px 18px rgba(15,23,42,0.06)",
+                          transform: hoveredCard === `other-${index}` ? "translateY(-2px)" : "translateY(0)",
+                          transition: "all 0.2s ease",
                         }}
                       >
                         <div style={{ display: "grid", gridTemplateColumns: "96px 1fr", gap: 12, alignItems: "start" }}>
@@ -548,9 +573,9 @@ export default function ResultsOffersView({
                               <div style={{ fontSize: 12, fontWeight: 700, color: "#0f172a" }}>
                                 #{offer.rankPosition || index + 2} · {offer.title}
                               </div>
-                              {offer.price && <div style={{ fontSize: 13, fontWeight: 800, color: "#6ee7b7" }}>{offer.price}</div>}
+                              {offer.price && <div style={{ fontSize: 13, fontWeight: 800, color: "#047857" }}>{offer.price}</div>}
                             </div>
-                            <div style={{ fontSize: 11, color: "#93c5fd", marginBottom: 6 }}>
+                            <div style={{ fontSize: 11, color: "#1d4ed8", marginBottom: 6 }}>
                               {offer.source || "Web externa"}
                               {Number.isFinite(Number(offer.rankingScore ?? offer.profileScore))
                                 ? ` · ${Number(offer.rankingScore ?? offer.profileScore)}/100`
@@ -591,7 +616,7 @@ export default function ResultsOffersView({
                                   rel="noopener noreferrer"
                                   onClick={(event) => event.stopPropagation()}
                                   style={{
-                                    color: offerAction.exact ? "#7dd3fc" : "#fcd34d",
+                                    color: offerAction.exact ? "#0369a1" : "#b45309",
                                     textDecoration: "none",
                                     fontSize: 11,
                                     fontWeight: 700,
@@ -609,7 +634,7 @@ export default function ResultsOffersView({
                                   style={{
                                     background: "transparent",
                                     border: "none",
-                                    color: "#7dd3fc",
+                                    color: "#0369a1",
                                     textDecoration: "none",
                                     fontSize: 11,
                                     fontWeight: 700,
@@ -630,7 +655,7 @@ export default function ResultsOffersView({
                                 style={{
                                   background: isRecommendationSaved(offer) ? "rgba(236,72,153,0.14)" : "transparent",
                                   border: "none",
-                                  color: isRecommendationSaved(offer) ? "#be185d" : "#334155",
+                                  color: isRecommendationSaved(offer) ? "#9d174d" : "#1f2937",
                                   fontSize: 11,
                                   fontWeight: 700,
                                   cursor: "pointer",

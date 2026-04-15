@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 export default function ResultsAnalysisView({
   mt,
   result,
@@ -34,6 +36,8 @@ export default function ResultsAnalysisView({
   logicExportLoading,
   logicExportFeedback,
 }) {
+  const [hoveredCard, setHoveredCard] = useState(null);
+
   return (
     <div style={{ display: "grid", gap: 12 }}>
       <div
@@ -43,6 +47,7 @@ export default function ResultsAnalysisView({
           borderRadius: 18,
           padding: 24,
           marginBottom: 14,
+          boxShadow: "0 14px 30px rgba(15,23,42,0.1)",
         }}
       >
         <div style={{ display: "flex", gap: 14, marginBottom: 16 }}>
@@ -146,6 +151,7 @@ export default function ResultsAnalysisView({
               border: "1px solid rgba(3,105,161,0.1)",
               borderRadius: 12,
               padding: 12,
+              boxShadow: "0 8px 20px rgba(3,105,161,0.08)",
             }}
           >
             <div style={{ fontSize: 10, color: "#0369a1", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
@@ -182,6 +188,7 @@ export default function ResultsAnalysisView({
               border: "1px solid rgba(16,185,129,0.1)",
               borderRadius: 12,
               padding: 12,
+              boxShadow: "0 8px 20px rgba(16,185,129,0.08)",
             }}
           >
             <div style={{ fontSize: 10, color: "#047857", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
@@ -324,15 +331,16 @@ export default function ResultsAnalysisView({
                 border: "1px solid rgba(251,191,36,0.24)",
                 borderRadius: 12,
                 padding: 12,
+                boxShadow: "0 8px 18px rgba(217,119,6,0.08)",
               }}
             >
-              <div style={{ fontSize: 10, color: "#fcd34d", marginBottom: 6, letterSpacing: "0.5px" }}>
+              <div style={{ fontSize: 10, color: "#b45309", marginBottom: 6, letterSpacing: "0.5px" }}>
                 TOTAL ORIENTATIVO
               </div>
               <div style={{ fontSize: 24, fontWeight: 800, color: "#0f172a", marginBottom: 2 }}>
                 {formatCurrency(Number(tcoDetail.total_mensual || 0))} / mes
               </div>
-              <div style={{ fontSize: 12, color: "#fde68a", marginBottom: 6 }}>
+              <div style={{ fontSize: 12, color: "#92400e", marginBottom: 6 }}>
                 ≈ {formatCurrency(Number(tcoDetail.total_anual || 0))} / año
               </div>
               {Number(tcoDetail.entrada_inicial || 0) > 0 && (
@@ -348,9 +356,10 @@ export default function ResultsAnalysisView({
                 border: "1px solid rgba(251,191,36,0.24)",
                 borderRadius: 12,
                 padding: 12,
+                boxShadow: "0 8px 18px rgba(217,119,6,0.08)",
               }}
             >
-              <div style={{ fontSize: 10, color: "#fde68a", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
+              <div style={{ fontSize: 10, color: "#92400e", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
                 DESGLOSE MENSUAL
               </div>
               <div style={{ display: "grid", gap: 8 }}>
@@ -386,7 +395,7 @@ export default function ResultsAnalysisView({
             </p>
           )}
           {displayResult.tco_detalle?.nota && (
-            <p style={{ margin: 0, fontSize: 12, color: "#fde68a", lineHeight: 1.6 }}>
+            <p style={{ margin: 0, fontSize: 12, color: "#92400e", lineHeight: 1.6 }}>
               <strong>Lectura:</strong> {displayResult.tco_detalle.nota}
             </p>
           )}
@@ -410,11 +419,20 @@ export default function ResultsAnalysisView({
           return (
             <div
               key={i}
+              onMouseEnter={() => setHoveredCard(`alt-${i}`)}
+              onMouseLeave={() => setHoveredCard(null)}
               style={{
                 background: "rgba(255,255,255,0.95)",
-                border: "1px solid rgba(31,41,55,0.1)",
+                border: hoveredCard === `alt-${i}`
+                  ? "1px solid rgba(59,130,246,0.32)"
+                  : "1px solid rgba(31,41,55,0.1)",
                 borderRadius: 12,
                 padding: 14,
+                boxShadow: hoveredCard === `alt-${i}`
+                  ? "0 14px 30px rgba(59,130,246,0.14)"
+                  : "0 8px 18px rgba(15,23,42,0.06)",
+                transform: hoveredCard === `alt-${i}` ? "translateY(-2px)" : "translateY(0)",
+                transition: "all 0.2s ease",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 7 }}>
@@ -448,7 +466,7 @@ export default function ResultsAnalysisView({
                 padding: 16,
               }}
             >
-              <div style={{ fontSize: 10, color: "#93c5fd", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
+              <div style={{ fontSize: 10, color: "#1d4ed8", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
                 🆚 COMPARADOR FINAL
               </div>
               <div style={{ display: "grid", gap: 10 }}>
@@ -468,7 +486,7 @@ export default function ResultsAnalysisView({
                         style={{
                           background: "rgba(16,185,129,0.14)",
                           border: "1px solid rgba(52,211,153,0.24)",
-                          color: "#bbf7d0",
+                          color: "#047857",
                           padding: "2px 8px",
                           borderRadius: 999,
                           fontSize: 10,
@@ -502,30 +520,30 @@ export default function ResultsAnalysisView({
                 padding: 16,
               }}
             >
-              <div style={{ fontSize: 10, color: "#6ee7b7", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
+              <div style={{ fontSize: 10, color: "#047857", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
                 🔎 TRANSPARENCIA DEL VEREDICTO
               </div>
               {transparency.confianza_motivo && (
-                <p style={{ margin: "0 0 10px", fontSize: 12, color: "#d1fae5", lineHeight: 1.6 }}>
+                <p style={{ margin: "0 0 10px", fontSize: 12, color: "#065f46", lineHeight: 1.6 }}>
                   <strong>{confidenceLevel ? `Confianza ${confidenceLevel}` : "Lectura"}:</strong> {transparency.confianza_motivo}
                 </p>
               )}
               {transparencyAssumptions.length > 0 && (
                 <div style={{ marginBottom: 10 }}>
-                  <div style={{ fontSize: 10, color: "#bbf7d0", marginBottom: 6, letterSpacing: "0.5px" }}>SUPUESTOS CLAVE</div>
+                  <div style={{ fontSize: 10, color: "#047857", marginBottom: 6, letterSpacing: "0.5px" }}>SUPUESTOS CLAVE</div>
                   <div style={{ display: "grid", gap: 5 }}>
                     {transparencyAssumptions.map((item, index) => (
-                      <div key={`assumption-${index}`} style={{ fontSize: 11, color: "#dcfce7", lineHeight: 1.5 }}>• {item}</div>
+                      <div key={`assumption-${index}`} style={{ fontSize: 11, color: "#065f46", lineHeight: 1.5 }}>• {item}</div>
                     ))}
                   </div>
                 </div>
               )}
               {transparencyChecks.length > 0 && (
                 <div>
-                  <div style={{ fontSize: 10, color: "#bbf7d0", marginBottom: 6, letterSpacing: "0.5px" }}>VALIDACIONES PENDIENTES</div>
+                  <div style={{ fontSize: 10, color: "#047857", marginBottom: 6, letterSpacing: "0.5px" }}>VALIDACIONES PENDIENTES</div>
                   <div style={{ display: "grid", gap: 5 }}>
                     {transparencyChecks.map((item, index) => (
-                      <div key={`check-${index}`} style={{ fontSize: 11, color: "#d1fae5", lineHeight: 1.5 }}>• {item}</div>
+                      <div key={`check-${index}`} style={{ fontSize: 11, color: "#065f46", lineHeight: 1.5 }}>• {item}</div>
                     ))}
                   </div>
                 </div>
@@ -586,10 +604,10 @@ export default function ResultsAnalysisView({
             )}
             {actionAlerts.length > 0 && (
               <div>
-                <div style={{ fontSize: 10, color: "#fda4af", marginBottom: 6, letterSpacing: "0.5px" }}>ALERTAS ROJAS</div>
+                <div style={{ fontSize: 10, color: "#b91c1c", marginBottom: 6, letterSpacing: "0.5px" }}>ALERTAS ROJAS</div>
                 <div style={{ display: "grid", gap: 5 }}>
                   {actionAlerts.map((item, index) => (
-                    <div key={`action-alert-${index}`} style={{ fontSize: 11, color: "#fecdd3", lineHeight: 1.5 }}>
+                    <div key={`action-alert-${index}`} style={{ fontSize: 11, color: "#991b1b", lineHeight: 1.5 }}>
                       • {item}
                     </div>
                   ))}
@@ -610,7 +628,7 @@ export default function ResultsAnalysisView({
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
-          <div style={{ fontSize: 10, color: "#7dd3fc", fontWeight: 700, letterSpacing: "0.6px" }}>
+          <div style={{ fontSize: 10, color: "#0369a1", fontWeight: 700, letterSpacing: "0.6px" }}>
             📌 RADAR DE MERCADO Y COMPARATIVAS GUARDADAS
           </div>
           <button
@@ -619,7 +637,7 @@ export default function ResultsAnalysisView({
             style={{
               background: "rgba(14,165,233,0.18)",
               border: "1px solid rgba(125,211,252,0.28)",
-              color: "#e0f2fe",
+              color: "#0c4a6e",
               padding: "6px 10px",
               borderRadius: 10,
               fontSize: 11,
@@ -642,20 +660,20 @@ export default function ResultsAnalysisView({
           }}
         >
           <div>
-            <div style={{ fontSize: 10, color: "#bae6fd", marginBottom: 6, letterSpacing: "0.5px" }}>SEÑALES PARA ENTRAR</div>
+            <div style={{ fontSize: 10, color: "#075985", marginBottom: 6, letterSpacing: "0.5px" }}>SEÑALES PARA ENTRAR</div>
             <div style={{ display: "grid", gap: 5 }}>
               {marketRadar.senales_verdes.map((item, index) => (
-                <div key={`radar-green-${index}`} style={{ fontSize: 11, color: "#e0f2fe", lineHeight: 1.5 }}>
+                <div key={`radar-green-${index}`} style={{ fontSize: 11, color: "#0c4a6e", lineHeight: 1.5 }}>
                   • {item}
                 </div>
               ))}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: 10, color: "#fda4af", marginBottom: 6, letterSpacing: "0.5px" }}>CUÁNDO ESPERAR O DESCARTAR</div>
+            <div style={{ fontSize: 10, color: "#b91c1c", marginBottom: 6, letterSpacing: "0.5px" }}>CUÁNDO ESPERAR O DESCARTAR</div>
             <div style={{ display: "grid", gap: 5 }}>
               {marketRadar.alertas.map((item, index) => (
-                <div key={`radar-alert-${index}`} style={{ fontSize: 11, color: "#fecdd3", lineHeight: 1.5 }}>
+                <div key={`radar-alert-${index}`} style={{ fontSize: 11, color: "#991b1b", lineHeight: 1.5 }}>
                   • {item}
                 </div>
               ))}
@@ -663,11 +681,11 @@ export default function ResultsAnalysisView({
           </div>
         </div>
 
-        {saveFeedback && <div style={{ fontSize: 11, color: "#67e8f9", marginBottom: 10 }}>{saveFeedback}</div>}
+        {saveFeedback && <div style={{ fontSize: 11, color: "#0c4a6e", marginBottom: 10 }}>{saveFeedback}</div>}
 
         {savedComparisonItems.length > 0 && (
           <div>
-            <div style={{ fontSize: 10, color: "#bae6fd", marginBottom: 8, letterSpacing: "0.5px" }}>ÚLTIMAS COMPARATIVAS</div>
+            <div style={{ fontSize: 10, color: "#075985", marginBottom: 8, letterSpacing: "0.5px" }}>ÚLTIMAS COMPARATIVAS</div>
             <div style={{ display: "grid", gap: 8 }}>
               {savedComparisonItems.map((item) => {
                 const savedOfferHref =
@@ -686,12 +704,21 @@ export default function ResultsAnalysisView({
                     key={item.id}
                     onClick={() => savedOfferHref && openOfferInNewTab(savedOfferHref)}
                     title={savedOfferHref ? "Abrir oferta guardada" : undefined}
+                    onMouseEnter={() => setHoveredCard(`saved-${item.id}`)}
+                    onMouseLeave={() => setHoveredCard(null)}
                     style={{
                       background: "rgba(255,255,255,0.95)",
-                      border: "1px solid rgba(148,163,184,0.14)",
+                      border: hoveredCard === `saved-${item.id}`
+                        ? "1px solid rgba(59,130,246,0.3)"
+                        : "1px solid rgba(148,163,184,0.14)",
                       borderRadius: 10,
                       padding: 10,
                       cursor: savedOfferHref ? "pointer" : "default",
+                      boxShadow: hoveredCard === `saved-${item.id}`
+                        ? "0 14px 30px rgba(59,130,246,0.14)"
+                        : "0 8px 18px rgba(15,23,42,0.06)",
+                      transform: hoveredCard === `saved-${item.id}` ? "translateY(-2px)" : "translateY(0)",
+                      transition: "all 0.2s ease",
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
@@ -702,7 +729,7 @@ export default function ResultsAnalysisView({
                         style={{
                           background: "transparent",
                           border: "none",
-                          color: "#fda4af",
+                          color: "#b91c1c",
                           fontSize: 11,
                           cursor: "pointer",
                         }}
@@ -710,7 +737,7 @@ export default function ResultsAnalysisView({
                         Quitar
                       </button>
                     </div>
-                    <div style={{ fontSize: 11, color: "#93c5fd", marginBottom: 4 }}>
+                    <div style={{ fontSize: 11, color: "#1d4ed8", marginBottom: 4 }}>
                       {item.typeLabel} · {item.score}% · confianza {String(item.confidence || "media").toUpperCase()} · {item.savedAt}
                     </div>
                     <div style={{ fontSize: 11, color: "#475569", lineHeight: 1.5 }}>
@@ -718,7 +745,7 @@ export default function ResultsAnalysisView({
                       {item.listingTitle ? ` · referencia: ${item.listingTitle}` : ""}
                       {item.listingPrice ? ` · ${item.listingPrice}` : ""}
                     </div>
-                    {savedOfferHref && <div style={{ fontSize: 11, color: "#7dd3fc", marginTop: 5, fontWeight: 700 }}>Abrir oferta ↗</div>}
+                    {savedOfferHref && <div style={{ fontSize: 11, color: "#0369a1", marginTop: 5, fontWeight: 700 }}>Abrir oferta ↗</div>}
                   </div>
                 );
               })}
@@ -741,12 +768,13 @@ export default function ResultsAnalysisView({
             border: "1px solid rgba(234,179,8,0.18)",
             borderRadius: 12,
             padding: 16,
+            boxShadow: "0 10px 24px rgba(217,119,6,0.08)",
           }}
         >
           <div style={{ fontSize: 10, color: "#eab308", marginBottom: 7, fontWeight: 600, letterSpacing: "0.6px" }}>
             💡 CONSEJO DE EXPERTO
           </div>
-          <p style={{ margin: 0, fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>{displayResult.consejo_experto}</p>
+          <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.6 }}>{displayResult.consejo_experto}</p>
         </div>
         <div
           style={{
@@ -754,12 +782,13 @@ export default function ResultsAnalysisView({
             border: "1px solid rgba(16,185,129,0.18)",
             borderRadius: 12,
             padding: 16,
+            boxShadow: "0 10px 24px rgba(5,150,105,0.08)",
           }}
         >
-          <div style={{ fontSize: 10, color: "#34d399", marginBottom: 7, fontWeight: 600, letterSpacing: "0.6px" }}>
+          <div style={{ fontSize: 10, color: "#047857", marginBottom: 7, fontWeight: 600, letterSpacing: "0.6px" }}>
             {listingResult ? "✅ OFERTA REAL PRESELECCIONADA" : "🧭 BÚSQUEDA DE OFERTA REAL"}
           </div>
-          <p style={{ margin: 0, fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
+          <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
             {listingResult
               ? `${listingResult.title}${listingResult.price ? ` · ${listingResult.price}` : ""}`
               : "Indica tu cuota objetivo y lanza la búsqueda para que la IA revise automáticamente varios portales y te traiga una única opción real."}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, LazyMotion, domAnimation, m, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { PLAN_COMPARISON_ROWS, PRICING_SECTION_COPY, SERVICE_PLANS } from "../data/servicePlans";
 
@@ -31,6 +31,9 @@ export default function LandingPage({
   });
   const prefersReducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll();
+  const howItWorksSectionRef = useRef(null);
+  const pricingSectionRef = useRef(null);
+  const metricsSectionRef = useRef(null);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -87,15 +90,42 @@ export default function LandingPage({
     ? {}
     : { scale: isMobileView ? 0.985 : 0.992 };
 
-  const revealInitial = prefersReducedMotion ? false : { opacity: 0, y: 20, scale: 0.985 };
-  const revealInView = prefersReducedMotion ? undefined : { opacity: 1, y: 0, scale: 1 };
-  const revealViewport = prefersReducedMotion ? undefined : { once: true, amount: 0.26 };
+  const enableInViewReveals = !prefersReducedMotion && !isMobileView;
+  const revealInitial = enableInViewReveals ? { opacity: 0, y: 20, scale: 0.985 } : false;
+  const revealInView = enableInViewReveals ? { opacity: 1, y: 0, scale: 1 } : undefined;
+  const revealViewport = enableInViewReveals ? { once: true, amount: 0.26 } : undefined;
   const showLightBackgroundFx = !isDark;
   const panelMinHeight = isMobileView ? "auto" : "96vh";
-  const panelRevealInitial = prefersReducedMotion ? false : { opacity: 0, y: isMobileView ? 14 : 28, scale: isMobileView ? 0.995 : 0.985 };
-  const panelRevealInView = prefersReducedMotion ? undefined : { opacity: 1, y: 0, scale: 1 };
-  const panelRevealViewport = prefersReducedMotion ? undefined : { once: true, amount: isMobileView ? 0.12 : 0.18 };
+  const panelRevealInitial = !prefersReducedMotion && !isMobileView ? { opacity: 0, y: 28, scale: 0.985 } : false;
+  const panelRevealInView = !prefersReducedMotion && !isMobileView ? { opacity: 1, y: 0, scale: 1 } : undefined;
+  const panelRevealViewport = !prefersReducedMotion && !isMobileView ? { once: true, amount: 0.18 } : undefined;
   const mobilePanelSpacing = isMobileView ? 18 : 0;
+  const metricsSectionBackground = isDark
+    ? "linear-gradient(180deg, rgba(15,23,42,0.94), rgba(2,6,23,0.92))"
+    : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.95))";
+  const metricsSectionBorder = isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.24)";
+  const metricsLabelColor = isDark ? "#e2e8f0" : "#475569";
+  const metricsDividerColor = isDark ? "1px solid rgba(148,163,184,0.3)" : "1px solid rgba(148,163,184,0.22)";
+
+  const { scrollYProgress: howItWorksProgress } = useScroll({
+    target: howItWorksSectionRef,
+    offset: ["start 98%", "start 18%"],
+  });
+  const { scrollYProgress: pricingProgress } = useScroll({
+    target: pricingSectionRef,
+    offset: ["start 98%", "start 18%"],
+  });
+  const { scrollYProgress: metricsProgress } = useScroll({
+    target: metricsSectionRef,
+    offset: ["start 98%", "start 18%"],
+  });
+
+  const howItWorksMobileOpacity = useTransform(howItWorksProgress, [0, 1], [0.06, 1]);
+  const howItWorksMobileY = useTransform(howItWorksProgress, [0, 1], [34, 0]);
+  const pricingMobileOpacity = useTransform(pricingProgress, [0, 1], [0.08, 1]);
+  const pricingMobileY = useTransform(pricingProgress, [0, 1], [32, 0]);
+  const metricsMobileOpacity = useTransform(metricsProgress, [0, 1], [0.1, 1]);
+  const metricsMobileY = useTransform(metricsProgress, [0, 1], [28, 0]);
   const draftCardTitleColor = isDark ? "#e2e8f0" : "#0f172a";
   const draftCardMetaColor = isDark ? "#cbd5e1" : "#334155";
 
@@ -529,6 +559,7 @@ export default function LandingPage({
       </section>
 
       <m.section
+        ref={howItWorksSectionRef}
         style={{
           minHeight: panelMinHeight,
           display: "grid",
@@ -537,6 +568,8 @@ export default function LandingPage({
           paddingBottom: isMobileView ? 6 : 0,
           scrollSnapAlign: "start",
           scrollSnapStop: "normal",
+          opacity: !prefersReducedMotion && isMobileView ? howItWorksMobileOpacity : 1,
+          y: !prefersReducedMotion && isMobileView ? howItWorksMobileY : 0,
         }}
         initial={panelRevealInitial}
         whileInView={panelRevealInView}
@@ -778,6 +811,7 @@ export default function LandingPage({
       </m.section>
 
       <m.section
+        ref={pricingSectionRef}
         style={{
           minHeight: panelMinHeight,
           display: "grid",
@@ -785,6 +819,8 @@ export default function LandingPage({
           marginTop: mobilePanelSpacing,
           scrollSnapAlign: "start",
           scrollSnapStop: "normal",
+          opacity: !prefersReducedMotion && isMobileView ? pricingMobileOpacity : 1,
+          y: !prefersReducedMotion && isMobileView ? pricingMobileY : 0,
         }}
         initial={panelRevealInitial}
         whileInView={panelRevealInView}
@@ -1033,16 +1069,19 @@ export default function LandingPage({
       </m.section>
 
       <m.section
+        ref={metricsSectionRef}
         style={{
           marginTop: isMobileView ? 18 : 24,
           borderRadius: 16,
-          border: "1px solid rgba(148,163,184,0.24)",
-          background: "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.95))",
+          border: metricsSectionBorder,
+          background: metricsSectionBackground,
           padding: isMobileView ? "18px 12px" : "20px 16px",
+          opacity: !prefersReducedMotion && isMobileView ? metricsMobileOpacity : 1,
+          y: !prefersReducedMotion && isMobileView ? metricsMobileY : 0,
         }}
-        initial={prefersReducedMotion ? false : { opacity: 0, y: 30, scale: 0.985 }}
-        whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
-        viewport={prefersReducedMotion ? undefined : { once: true, amount: 0.28 }}
+        initial={!prefersReducedMotion && !isMobileView ? { opacity: 0, y: 30, scale: 0.985 } : false}
+        whileInView={!prefersReducedMotion && !isMobileView ? { opacity: 1, y: 0, scale: 1 } : undefined}
+        viewport={!prefersReducedMotion && !isMobileView ? { once: true, amount: 0.28 } : undefined}
         transition={{ duration: 0.72, ease: [0.22, 1, 0.36, 1] }}
       >
       <div
@@ -1059,7 +1098,7 @@ export default function LandingPage({
         ].map(([n, l]) => (
           <div key={l}>
             <div style={{ fontSize: 26, fontWeight: 800, color: "#2563EB" }}>{n}</div>
-            <div style={{ fontSize: 12, color: "#475569", marginTop: 3 }}>{l}</div>
+            <div style={{ fontSize: 12, color: metricsLabelColor, marginTop: 3 }}>{l}</div>
           </div>
         ))}
       </div>
@@ -1072,7 +1111,7 @@ export default function LandingPage({
           justifyContent: "center",
           marginTop: isMobileView ? 18 : 24,
           paddingTop: isMobileView ? 12 : 16,
-          borderTop: "1px solid rgba(148,163,184,0.22)",
+          borderTop: metricsDividerColor,
         }}
       >
         {Object.entries(blockColors).map(([name, color]) => (

@@ -61,6 +61,13 @@ export default function LandingPage({
   const tiltHover = prefersReducedMotion || isMobileView
     ? {}
     : { rotateX: 8, rotateY: -8, scale: 1.025, y: -6 };
+  const tapFeedback = prefersReducedMotion
+    ? {}
+    : { scale: isMobileView ? 0.985 : 0.992 };
+
+  const revealInitial = prefersReducedMotion ? false : { opacity: 0, y: 20, scale: 0.985 };
+  const revealInView = prefersReducedMotion ? undefined : { opacity: 1, y: 0, scale: 1 };
+  const revealViewport = prefersReducedMotion ? undefined : { once: true, amount: 0.26 };
 
   const experienceSteps = [
     {
@@ -233,6 +240,10 @@ export default function LandingPage({
           position: "relative",
           zIndex: 1,
         }}
+        initial={revealInitial}
+        whileInView={revealInView}
+        viewport={revealViewport}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       >
         <m.div
           style={{
@@ -240,7 +251,11 @@ export default function LandingPage({
             perspective: 1000,
           }}
           whileHover={tiltHover}
+          whileTap={tapFeedback}
           transition={{ type: "spring", stiffness: 220, damping: 20 }}
+          initial={revealInitial}
+          whileInView={revealInView}
+          viewport={revealViewport}
         >
           <button
             onClick={onSelectVehicle}
@@ -275,7 +290,11 @@ export default function LandingPage({
             perspective: 1000,
           }}
           whileHover={tiltHover}
+          whileTap={tapFeedback}
           transition={{ type: "spring", stiffness: 220, damping: 20 }}
+          initial={revealInitial}
+          whileInView={revealInView}
+          viewport={revealViewport}
         >
           <button
             onClick={onSelectSell}
@@ -310,7 +329,11 @@ export default function LandingPage({
             perspective: 1000,
           }}
           whileHover={tiltHover}
+          whileTap={tapFeedback}
           transition={{ type: "spring", stiffness: 220, damping: 20 }}
+          initial={revealInitial}
+          whileInView={revealInView}
+          viewport={revealViewport}
         >
           <button
             onClick={onSelectService}
@@ -340,14 +363,18 @@ export default function LandingPage({
         </m.div>
       </m.section>
 
-      <div
+      <m.div
         style={{
           marginTop: 20,
           display: "flex",
           justifyContent: "center",
         }}
+        initial={revealInitial}
+        whileInView={revealInView}
+        viewport={revealViewport}
+        transition={{ duration: 0.45, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}
       >
-        <button
+        <m.button
           type="button"
           onClick={onSelectPortalVo}
           className="ma-card-soft ma-fade-stagger"
@@ -365,10 +392,11 @@ export default function LandingPage({
             maxWidth: 440,
             animationDelay: "260ms",
           }}
+          whileTap={tapFeedback}
         >
           ✨ Ofertas VO únicas de nuestro portal
-        </button>
-      </div>
+        </m.button>
+      </m.div>
 
       <p style={{ marginTop: 20, fontSize: 12, color: "#334155" }}>
         Sin registro · Sin tarjeta · ~5 minutos
@@ -388,6 +416,10 @@ export default function LandingPage({
           position: "relative",
           zIndex: 1,
         }}
+        initial={revealInitial}
+        whileInView={revealInView}
+        viewport={revealViewport}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       >
         <div style={{ textAlign: "center", marginBottom: 18 }}>
           <div
@@ -436,9 +468,13 @@ export default function LandingPage({
               display: "grid",
               gap: 10,
             }}
+            initial={revealInitial}
+            whileInView={revealInView}
+            viewport={revealViewport}
+            transition={{ duration: 0.45, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
           >
             {experienceSteps.map((step, index) => (
-              <button
+              <m.button
                 key={step.id}
                 type="button"
                 onClick={() => setActiveJourneyStep(index)}
@@ -458,6 +494,11 @@ export default function LandingPage({
                       : "rgba(15,23,42,0.55)",
                   cursor: "pointer",
                 }}
+                whileTap={tapFeedback}
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
+                whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+                viewport={revealViewport}
+                transition={{ duration: 0.34, delay: 0.03 * index, ease: [0.22, 1, 0.36, 1] }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
                   <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.6px", color: "#7dd3fc" }}>
@@ -473,7 +514,7 @@ export default function LandingPage({
                 <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.55 }}>
                   {step.description}
                 </div>
-              </button>
+              </m.button>
             ))}
           </m.div>
 
@@ -569,7 +610,7 @@ export default function LandingPage({
                   >
                     {activeExperience.actionLabel}
                   </button>
-                  <button
+                  <m.button
                     type="button"
                     className="ma-card-soft"
                     onClick={onSelectPortalVo}
@@ -583,9 +624,10 @@ export default function LandingPage({
                       fontWeight: 700,
                       cursor: "pointer",
                     }}
+                    whileTap={tapFeedback}
                   >
                     Ver marketplace VO
-                  </button>
+                  </m.button>
                 </div>
               </m.div>
             </AnimatePresence>

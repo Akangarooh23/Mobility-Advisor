@@ -1,15 +1,21 @@
 export default function UserDashboardVehicles({
+  themeMode,
   userVehicleSections,
   dashboardVehicleCount,
   panelStyle,
   getOfferBadgeStyle,
 }) {
+  const isDark = themeMode === "dark";
+  const cardBg = isDark
+    ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
+    : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))";
+
   return (
     <section id="user-dashboard-vehicles" style={panelStyle}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
           <div style={{ fontSize: 11, color: "#34d399", letterSpacing: "0.6px" }}>MIS VEHÍCULOS</div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a" }}>Seguimiento de tu actividad</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>Seguimiento de tu actividad</div>
         </div>
         <span style={{ ...getOfferBadgeStyle("green"), fontSize: 11 }}>
           {dashboardVehicleCount} registros
@@ -21,20 +27,20 @@ export default function UserDashboardVehicles({
           <div
             key={section.key}
             style={{
-              background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
+              background: cardBg,
               border: "1px solid rgba(148,163,184,0.26)",
               borderRadius: 12,
               padding: 12,
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{section.title}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>{section.title}</div>
               <span style={{ fontSize: 11, color: "#1d4ed8" }}>{section.items.length}</span>
             </div>
             {section.items.length > 0 ? (
               section.items.map((vehicle, index) => (
-                <div key={`${section.key}-${index}`} style={{ fontSize: 12, color: "#334155", marginTop: 8 }}>
-                  <div style={{ fontWeight: 700, color: "#0f172a" }}>{vehicle.title}</div>
+                <div key={`${section.key}-${index}`} style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#334155", marginTop: 8 }}>
+                  <div style={{ fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>{vehicle.title}</div>
                   <div style={{ marginTop: 2 }}>{vehicle.meta}</div>
                   <div style={{ marginTop: 2, color: "#047857" }}>{vehicle.status}</div>
                 </div>

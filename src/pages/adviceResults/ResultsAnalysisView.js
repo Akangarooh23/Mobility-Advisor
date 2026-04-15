@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 export default function ResultsAnalysisView({
+  themeMode,
   mt,
   result,
   displayResult,
@@ -37,6 +38,11 @@ export default function ResultsAnalysisView({
   logicExportFeedback,
 }) {
   const [hoveredCard, setHoveredCard] = useState(null);
+  const isDark = themeMode === "dark";
+  const cardBg = isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)";
+  const cardBorder = isDark ? "rgba(148,163,184,0.32)" : "rgba(31,41,55,0.1)";
+  const titleColor = isDark ? "#f8fafc" : "#0f172a";
+  const bodyColor = isDark ? "#cbd5e1" : "#475569";
 
   return (
     <div style={{ display: "grid", gap: 12 }}>
@@ -78,17 +84,17 @@ export default function ResultsAnalysisView({
             >
               RECOMENDACIÓN PRINCIPAL · {result.solucion_principal?.score}% COINCIDENCIA
             </div>
-            <h3 style={{ margin: "0 0 6px", fontSize: 18, fontWeight: 700, color: "#0f172a" }}>
+            <h3 style={{ margin: "0 0 6px", fontSize: 18, fontWeight: 700, color: titleColor }}>
               {displayResult.solucion_principal?.titulo}
             </h3>
-            <p style={{ margin: 0, color: "#64748b", fontSize: 13, lineHeight: 1.6 }}>
+            <p style={{ margin: 0, color: isDark ? "#cbd5e1" : "#64748b", fontSize: 13, lineHeight: 1.6 }}>
               {displayResult.solucion_principal?.resumen}
             </p>
           </div>
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 16, alignItems: "center" }}>
-          <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.5, maxWidth: 720 }}>
+          <div style={{ fontSize: 12, color: bodyColor, lineHeight: 1.5, maxWidth: 720 }}>
             Exporta un Word con el detalle de la lógica aplicada: pesos del score, lectura de cada respuesta, coste total, comparador, supuestos y plan de acción.
           </div>
           <button
@@ -121,7 +127,7 @@ export default function ResultsAnalysisView({
         <div
           style={{
             height: 5,
-            background: "rgba(255,255,255,0.07)",
+            background: isDark ? "rgba(148,163,184,0.26)" : "rgba(255,255,255,0.07)",
             borderRadius: 3,
             overflow: "hidden",
             marginBottom: 18,
@@ -147,8 +153,8 @@ export default function ResultsAnalysisView({
         >
           <div
             style={{
-              background: "rgba(255,255,255,0.95)",
-              border: "1px solid rgba(3,105,161,0.1)",
+              background: cardBg,
+              border: isDark ? "1px solid rgba(125,211,252,0.22)" : "1px solid rgba(3,105,161,0.1)",
               borderRadius: 12,
               padding: 12,
               boxShadow: "0 8px 20px rgba(3,105,161,0.08)",
@@ -162,7 +168,7 @@ export default function ResultsAnalysisView({
                 const value = Number(scoreBreakdown[item.key] || 0);
                 return (
                   <div key={item.key}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 11, color: "#475569", marginBottom: 4 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 11, color: bodyColor, marginBottom: 4 }}>
                       <span>{item.label}</span>
                       <span style={{ color: item.color, fontWeight: 700 }}>{value}/{item.max}</span>
                     </div>
@@ -184,8 +190,8 @@ export default function ResultsAnalysisView({
 
           <div
             style={{
-              background: "rgba(255,255,255,0.95)",
-              border: "1px solid rgba(16,185,129,0.1)",
+              background: cardBg,
+              border: isDark ? "1px solid rgba(110,231,183,0.22)" : "1px solid rgba(16,185,129,0.1)",
               borderRadius: 12,
               padding: 12,
               boxShadow: "0 8px 20px rgba(16,185,129,0.08)",
@@ -213,38 +219,38 @@ export default function ResultsAnalysisView({
           }}
         >
           <div>
-            <div style={{ fontSize: 10, color: "#475569", marginBottom: 8, fontWeight: 600, letterSpacing: "0.6px" }}>
+            <div style={{ fontSize: 10, color: bodyColor, marginBottom: 8, fontWeight: 600, letterSpacing: "0.6px" }}>
               ✅ VENTAJAS
             </div>
             {(displayResult.solucion_principal?.ventajas || []).map((v, i) => (
-              <div key={i} style={{ fontSize: 12, color: "#475569", marginBottom: 5, lineHeight: 1.4 }}>
+              <div key={i} style={{ fontSize: 12, color: bodyColor, marginBottom: 5, lineHeight: 1.4 }}>
                 → {v}
               </div>
             ))}
           </div>
           <div>
-            <div style={{ fontSize: 10, color: "#475569", marginBottom: 8, fontWeight: 600, letterSpacing: "0.6px" }}>
+            <div style={{ fontSize: 10, color: bodyColor, marginBottom: 8, fontWeight: 600, letterSpacing: "0.6px" }}>
               ⚠️ A TENER EN CUENTA
             </div>
             {(displayResult.solucion_principal?.inconvenientes || []).map((v, i) => (
-              <div key={i} style={{ fontSize: 12, color: "#475569", marginBottom: 5, lineHeight: 1.4 }}>
+              <div key={i} style={{ fontSize: 12, color: bodyColor, marginBottom: 5, lineHeight: 1.4 }}>
                 → {v}
               </div>
             ))}
           </div>
         </div>
 
-        <div style={{ padding: 14, background: "rgba(255,255,255,0.95)", borderRadius: 10, border: "1px solid rgba(31,41,55,0.1)" }}>
+        <div style={{ padding: 14, background: cardBg, borderRadius: 10, border: `1px solid ${cardBorder}` }}>
           <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: 12 }}>
             <div>
-              <div style={{ fontSize: 10, color: "#475569", marginBottom: 4 }}>COSTE ESTIMADO</div>
+              <div style={{ fontSize: 10, color: bodyColor, marginBottom: 4 }}>COSTE ESTIMADO</div>
               <div style={{ fontWeight: 700, color: mt.color, fontSize: 14 }}>
                 {result.solucion_principal?.coste_estimado}
               </div>
             </div>
             {result.solucion_principal?.etiqueta_dgt && result.solucion_principal.etiqueta_dgt !== "No aplica" && (
               <div>
-                <div style={{ fontSize: 10, color: "#475569", marginBottom: 4 }}>ETIQUETA DGT</div>
+                <div style={{ fontSize: 10, color: bodyColor, marginBottom: 4 }}>ETIQUETA DGT</div>
                 <div style={{ fontWeight: 700, color: "#34d399", fontSize: 14 }}>
                   {result.solucion_principal.etiqueta_dgt}
                 </div>
@@ -253,7 +259,7 @@ export default function ResultsAnalysisView({
           </div>
           {result.propulsiones_viables && (
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 10, color: "#475569", marginBottom: 6, letterSpacing: "0.6px" }}>
+              <div style={{ fontSize: 10, color: bodyColor, marginBottom: 6, letterSpacing: "0.6px" }}>
                 PROPULSIONES VIABLES
               </div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -275,10 +281,10 @@ export default function ResultsAnalysisView({
               </div>
             </div>
           )}
-          <div style={{ fontSize: 10, color: "#475569", marginBottom: 6, letterSpacing: "0.6px" }}>
+              <div style={{ fontSize: 10, color: bodyColor, marginBottom: 6, letterSpacing: "0.6px" }}>
             BÚSQUEDA DE MERCADO
           </div>
-          <div style={{ fontSize: 11, color: "#475569", lineHeight: 1.6 }}>
+          <div style={{ fontSize: 11, color: bodyColor, lineHeight: 1.6 }}>
             Contrastamos stock público y solo mostramos la mejor opción final encontrada por la IA.
           </div>
         </div>
@@ -327,7 +333,7 @@ export default function ResultsAnalysisView({
           >
             <div
               style={{
-                background: "rgba(255,255,255,0.95)",
+                background: cardBg,
                 border: "1px solid rgba(251,191,36,0.24)",
                 borderRadius: 12,
                 padding: 12,
@@ -337,7 +343,7 @@ export default function ResultsAnalysisView({
               <div style={{ fontSize: 10, color: "#b45309", marginBottom: 6, letterSpacing: "0.5px" }}>
                 TOTAL ORIENTATIVO
               </div>
-              <div style={{ fontSize: 24, fontWeight: 800, color: "#0f172a", marginBottom: 2 }}>
+              <div style={{ fontSize: 24, fontWeight: 800, color: titleColor, marginBottom: 2 }}>
                 {formatCurrency(Number(tcoDetail.total_mensual || 0))} / mes
               </div>
               <div style={{ fontSize: 12, color: "#92400e", marginBottom: 6 }}>
@@ -352,7 +358,7 @@ export default function ResultsAnalysisView({
 
             <div
               style={{
-                background: "rgba(255,255,255,0.95)",
+                background: cardBg,
                 border: "1px solid rgba(251,191,36,0.24)",
                 borderRadius: 12,
                 padding: 12,
@@ -422,7 +428,7 @@ export default function ResultsAnalysisView({
               onMouseEnter={() => setHoveredCard(`alt-${i}`)}
               onMouseLeave={() => setHoveredCard(null)}
               style={{
-                background: "rgba(255,255,255,0.95)",
+                background: cardBg,
                 border: hoveredCard === `alt-${i}`
                   ? "1px solid rgba(59,130,246,0.32)"
                   : "1px solid rgba(31,41,55,0.1)",
@@ -438,7 +444,7 @@ export default function ResultsAnalysisView({
               <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 7 }}>
                 <span style={{ fontSize: 18 }}>{mt2.icon}</span>
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: 13, color: "#0f172a" }}>{alt.titulo}</div>
+                  <div style={{ fontWeight: 600, fontSize: 13, color: titleColor }}>{alt.titulo}</div>
                   <div style={{ fontSize: 11, color: mt2.color }}>{alt.score}% coincidencia</div>
                 </div>
               </div>
@@ -474,14 +480,14 @@ export default function ResultsAnalysisView({
                   <div
                     key={`compare-${row.criterio || index}`}
                     style={{
-                      background: "rgba(255,255,255,0.95)",
+                      background: cardBg,
                       border: "1px solid rgba(148,163,184,0.12)",
                       borderRadius: 10,
                       padding: 10,
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "#0f172a" }}>{row.criterio}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: titleColor }}>{row.criterio}</div>
                       <span
                         style={{
                           background: "rgba(16,185,129,0.14)",
@@ -581,8 +587,8 @@ export default function ResultsAnalysisView({
               {trafficLabel}
             </span>
           </div>
-          {actionPlan.estado && <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a", marginBottom: 6 }}>{actionPlan.estado}</div>}
-          {actionPlan.resumen && <p style={{ margin: "0 0 10px", fontSize: 12, color: "#334155", lineHeight: 1.6 }}>{actionPlan.resumen}</p>}
+          {actionPlan.estado && <div style={{ fontSize: 16, fontWeight: 800, color: titleColor, marginBottom: 6 }}>{actionPlan.estado}</div>}
+          {actionPlan.resumen && <p style={{ margin: "0 0 10px", fontSize: 12, color: bodyColor, lineHeight: 1.6 }}>{actionPlan.resumen}</p>}
           <div
             style={{
               display: "grid",
@@ -595,7 +601,7 @@ export default function ResultsAnalysisView({
                 <div style={{ fontSize: 10, color: trafficTone.text, marginBottom: 6, letterSpacing: "0.5px" }}>QUÉ HACER AHORA</div>
                 <div style={{ display: "grid", gap: 5 }}>
                   {actionSteps.map((item, index) => (
-                    <div key={`action-step-${index}`} style={{ fontSize: 11, color: "#0f172a", lineHeight: 1.5 }}>
+                    <div key={`action-step-${index}`} style={{ fontSize: 11, color: titleColor, lineHeight: 1.5 }}>
                       {index + 1}. {item}
                     </div>
                   ))}
@@ -707,7 +713,7 @@ export default function ResultsAnalysisView({
                     onMouseEnter={() => setHoveredCard(`saved-${item.id}`)}
                     onMouseLeave={() => setHoveredCard(null)}
                     style={{
-                      background: "rgba(255,255,255,0.95)",
+                      background: cardBg,
                       border: hoveredCard === `saved-${item.id}`
                         ? "1px solid rgba(59,130,246,0.3)"
                         : "1px solid rgba(148,163,184,0.14)",
@@ -722,7 +728,7 @@ export default function ResultsAnalysisView({
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "#0f172a" }}>{item.title}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: titleColor }}>{item.title}</div>
                       <button
                         type="button"
                         onClick={() => removeSavedComparison(item.id)}
@@ -740,7 +746,7 @@ export default function ResultsAnalysisView({
                     <div style={{ fontSize: 11, color: "#1d4ed8", marginBottom: 4 }}>
                       {item.typeLabel} · {item.score}% · confianza {String(item.confidence || "media").toUpperCase()} · {item.savedAt}
                     </div>
-                    <div style={{ fontSize: 11, color: "#475569", lineHeight: 1.5 }}>
+                    <div style={{ fontSize: 11, color: bodyColor, lineHeight: 1.5 }}>
                       {item.monthlyTotal > 0 ? `${formatCurrency(item.monthlyTotal)}/mes` : item.budgetLabel}
                       {item.listingTitle ? ` · referencia: ${item.listingTitle}` : ""}
                       {item.listingPrice ? ` · ${item.listingPrice}` : ""}

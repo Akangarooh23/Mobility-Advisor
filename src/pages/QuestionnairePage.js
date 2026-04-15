@@ -2,6 +2,7 @@ import { useState } from "react";
 
 export default function QuestionnairePage({
   styles,
+  themeMode,
   currentStep,
   step,
   totalSteps,
@@ -27,6 +28,7 @@ export default function QuestionnairePage({
   answeredSteps,
 }) {
   const [hoveredOption, setHoveredOption] = useState(null);
+  const isDark = themeMode === "dark";
 
   const hasCompleteRange = (value) => Array.isArray(value) && value.length > 0 && value.every(Boolean);
   const hasCompleteScoreWeights = (stepConfig, selection) => {
@@ -79,13 +81,15 @@ export default function QuestionnairePage({
       return (
         <div
           style={{
-            background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
-            border: "1px solid rgba(148,163,184,0.22)",
+            background: isDark
+              ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
+              : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
+            border: isDark ? "1px solid rgba(148,163,184,0.34)" : "1px solid rgba(148,163,184,0.22)",
             borderRadius: 14,
             padding: 14,
           }}
         >
-          <div style={{ fontSize: 12, color: "#334155", fontWeight: 700, marginBottom: 10 }}>
+          <div style={{ fontSize: 12, color: isDark ? "#e2e8f0" : "#334155", fontWeight: 700, marginBottom: 10 }}>
             {fieldConfig?.title}
           </div>
 
@@ -118,10 +122,12 @@ export default function QuestionnairePage({
                   type="button"
                   onClick={() => toggleMultiValue(opt.value)}
                   style={{
-                    background: isSelected ? "rgba(37,99,235,0.12)" : "rgba(255,255,255,0.9)",
+                    background: isSelected
+                      ? (isDark ? "rgba(37,99,235,0.3)" : "rgba(37,99,235,0.12)")
+                      : (isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.9)"),
                     border: `1px solid ${isSelected ? "rgba(125,211,252,0.52)" : "rgba(148,163,184,0.22)"}`,
                     borderRadius: 10,
-                    color: isSelected ? "#1e3a8a" : "#475569",
+                    color: isSelected ? (isDark ? "#bfdbfe" : "#1e3a8a") : (isDark ? "#cbd5e1" : "#475569"),
                     fontSize: 11,
                     fontWeight: isSelected ? 800 : 600,
                     padding: "8px 6px",
@@ -175,13 +181,15 @@ export default function QuestionnairePage({
     return (
       <div
         style={{
-          background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
-          border: "1px solid rgba(148,163,184,0.22)",
+          background: isDark
+            ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
+            : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
+          border: isDark ? "1px solid rgba(148,163,184,0.34)" : "1px solid rgba(148,163,184,0.22)",
           borderRadius: 14,
           padding: 14,
         }}
       >
-        <div style={{ fontSize: 12, color: "#334155", fontWeight: 700, marginBottom: 10 }}>
+        <div style={{ fontSize: 12, color: isDark ? "#e2e8f0" : "#334155", fontWeight: 700, marginBottom: 10 }}>
           {fieldConfig?.title}
         </div>
 
@@ -288,10 +296,12 @@ export default function QuestionnairePage({
                 type="button"
                 onClick={() => onHandleDualTimelineSelect(fieldKey, [opt.value, opt.value])}
                 style={{
-                  background: isWithinRange ? "rgba(37,99,235,0.12)" : "rgba(255,255,255,0.9)",
+                  background: isWithinRange
+                    ? (isDark ? "rgba(37,99,235,0.3)" : "rgba(37,99,235,0.12)")
+                    : (isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.9)"),
                   border: `1px solid ${isEdge ? "rgba(125,211,252,0.52)" : isWithinRange ? "rgba(96,165,250,0.28)" : "rgba(148,163,184,0.22)"}`,
                   borderRadius: 10,
-                  color: isWithinRange ? "#1e3a8a" : "#475569",
+                  color: isWithinRange ? (isDark ? "#bfdbfe" : "#1e3a8a") : (isDark ? "#cbd5e1" : "#475569"),
                   fontSize: 11,
                   fontWeight: isEdge ? 800 : isWithinRange ? 700 : 600,
                   padding: "8px 6px",
@@ -315,7 +325,7 @@ export default function QuestionnairePage({
       <div style={styles.blockBadge(currentStep.block)}>
         {currentStep.blockIcon} {currentStep.block.toUpperCase()}
       </div>
-      <div style={{ fontSize: 11, color: "#334155", letterSpacing: "1px", marginBottom: 6 }}>
+      <div style={{ fontSize: 11, color: isDark ? "#cbd5e1" : "#334155", letterSpacing: "1px", marginBottom: 6 }}>
         PREGUNTA {step + 1} DE {totalSteps}
       </div>
       <h2
@@ -324,20 +334,20 @@ export default function QuestionnairePage({
           fontWeight: 700,
           letterSpacing: "-0.6px",
           margin: "0 0 8px",
-          color: "#0f172a",
+          color: isDark ? "#f8fafc" : "#0f172a",
           lineHeight: 1.3,
         }}
       >
         {currentStep.question}
       </h2>
-      <p style={{ color: "#64748b", fontSize: 14, margin: "0 0 24px", lineHeight: 1.6 }}>
+      <p style={{ color: isDark ? "#cbd5e1" : "#64748b", fontSize: 14, margin: "0 0 24px", lineHeight: 1.6 }}>
         {currentStep.subtitle}
       </p>
 
       <div
         style={{
-          background: "rgba(20,184,166,0.08)",
-          border: "1px solid rgba(20,184,166,0.22)",
+          background: isDark ? "rgba(13,148,136,0.2)" : "rgba(20,184,166,0.08)",
+          border: isDark ? "1px solid rgba(94,234,212,0.26)" : "1px solid rgba(20,184,166,0.22)",
           borderRadius: 12,
           padding: 12,
           marginBottom: 12,
@@ -345,10 +355,10 @@ export default function QuestionnairePage({
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
           <div>
-            <div style={{ fontSize: 12, color: "#0d9488", fontWeight: 700, marginBottom: 4 }}>
+            <div style={{ fontSize: 12, color: isDark ? "#99f6e4" : "#0d9488", fontWeight: 700, marginBottom: 4 }}>
               🧪 Test avanzado opcional
             </div>
-            <div style={{ fontSize: 12, color: "#0f766e", lineHeight: 1.5 }}>
+            <div style={{ fontSize: 12, color: isDark ? "#ccfbf1" : "#0f766e", lineHeight: 1.5 }}>
               {advancedMode
                 ? "Activado: añadimos preguntas de zona, ZBE, garaje, presupuesto cómodo, capital y riesgo para afinar la recomendación."
                 : "Puedes activar 6 preguntas extra para llevar el análisis a un nivel mucho más preciso sin tocar el flujo base."}
@@ -360,7 +370,7 @@ export default function QuestionnairePage({
             style={{
               background: advancedMode ? "rgba(20,184,166,0.14)" : "rgba(37,99,235,0.12)",
               border: `1px solid ${advancedMode ? "rgba(153,246,228,0.4)" : "rgba(147,197,253,0.35)"}`,
-              color: advancedMode ? "#0f766e" : "#1e3a8a",
+              color: advancedMode ? (isDark ? "#99f6e4" : "#0f766e") : (isDark ? "#bfdbfe" : "#1e3a8a"),
               padding: "8px 12px",
               borderRadius: 10,
               fontSize: 12,
@@ -376,18 +386,18 @@ export default function QuestionnairePage({
 
       <div
         style={{
-          background: "rgba(14,165,233,0.08)",
-          border: "1px solid rgba(14,165,233,0.2)",
+          background: isDark ? "rgba(3,105,161,0.24)" : "rgba(14,165,233,0.08)",
+          border: isDark ? "1px solid rgba(125,211,252,0.28)" : "1px solid rgba(14,165,233,0.2)",
           borderRadius: 12,
           padding: 12,
           marginBottom: 18,
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-          <div style={{ fontSize: 12, color: "#0369a1", fontWeight: 600 }}>
+          <div style={{ fontSize: 12, color: isDark ? "#bae6fd" : "#0369a1", fontWeight: 600 }}>
             ✅ Te quedan {remainingQuestions} pregunta{remainingQuestions === 1 ? "" : "s"}
           </div>
-          <div style={{ fontSize: 12, color: "#0ea5e9" }}>
+          <div style={{ fontSize: 12, color: isDark ? "#7dd3fc" : "#0ea5e9" }}>
             {completionPct}% completado
           </div>
         </div>
@@ -426,11 +436,15 @@ export default function QuestionnairePage({
               ...styles.card(selected),
               background: selected
                 ? "linear-gradient(145deg, rgba(219,234,254,0.9), rgba(191,219,254,0.75))"
+                : isDark
+                ? "linear-gradient(145deg, rgba(15,23,42,0.95), rgba(30,41,59,0.92))"
                 : "linear-gradient(145deg, #ffffff, #f8fafc)",
               border: selected
                 ? "1px solid rgba(59,130,246,0.38)"
                 : isHovered
                 ? "1px solid rgba(96,165,250,0.35)"
+                : isDark
+                ? "1px solid rgba(148,163,184,0.3)"
                 : "1px solid rgba(148,163,184,0.22)",
               boxShadow: selected
                 ? "0 14px 30px rgba(37,99,235,0.16)"
@@ -452,13 +466,13 @@ export default function QuestionnairePage({
                 style={{
                   fontWeight: 600,
                   fontSize: 14,
-                  color: selected ? "#2563eb" : "#0f172a",
+                  color: selected ? "#2563eb" : isDark ? "#f8fafc" : "#0f172a",
                 }}
               >
                 {opt.label}
               </div>
               {opt.desc && (
-                <div style={{ fontSize: 12, color: "#475569", marginTop: 2 }}>{opt.desc}</div>
+                <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569", marginTop: 2 }}>{opt.desc}</div>
               )}
               {Array.isArray(opt.brandChips) && opt.brandChips.length > 0 && (
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
@@ -480,7 +494,7 @@ export default function QuestionnairePage({
                           fontSize: 10,
                           fontWeight: 700,
                           letterSpacing: "0.2px",
-                          color: "#0f172a",
+                          color: isDark ? "#f8fafc" : "#0f172a",
                           background: logo?.color || chip.tone || "#334155",
                           border: "1px solid rgba(255,255,255,0.18)",
                         }}
@@ -554,15 +568,17 @@ export default function QuestionnairePage({
               <div
                 key={metric.key}
                 style={{
-                  background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
-                  border: "1px solid rgba(148,163,184,0.22)",
+                  background: isDark
+                    ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
+                    : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
+                  border: isDark ? "1px solid rgba(148,163,184,0.34)" : "1px solid rgba(148,163,184,0.22)",
                   borderRadius: 12,
                   padding: 12,
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                   <span style={{ fontSize: 16 }}>{metric.icon || "•"}</span>
-                  <span style={{ color: "#0f172a", fontSize: 13, fontWeight: 700 }}>{metric.label}</span>
+                  <span style={{ color: isDark ? "#f8fafc" : "#0f172a", fontSize: 13, fontWeight: 700 }}>{metric.label}</span>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: `repeat(${rankOptions.length}, minmax(0, 1fr))`, gap: 6 }}>
                   {rankOptions.map((rank) => {
@@ -655,7 +671,7 @@ export default function QuestionnairePage({
           style={{
             marginTop: 20,
             padding: 14,
-            background: "rgba(255,255,255,0.95)",
+            background: isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)",
             border: "1px solid rgba(148,163,184,0.25)",
             borderRadius: 12,
           }}
@@ -674,9 +690,9 @@ export default function QuestionnairePage({
             >
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(148,163,184,0.35)" }}>
-                  <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: "#0f172a" }}>Tipo</th>
-                  <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: "#0f172a" }}>Consumo Estimado</th>
-                  <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: "#0f172a" }}>Coste/100km</th>
+                  <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>Tipo</th>
+                  <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>Consumo Estimado</th>
+                  <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>Coste/100km</th>
                 </tr>
               </thead>
               <tbody>
@@ -711,9 +727,9 @@ export default function QuestionnairePage({
           onClick={onGoPrevious}
           disabled={step === 0}
           style={{
-            background: "rgba(241,245,249,0.9)",
-            border: "1px solid rgba(148,163,184,0.28)",
-            color: "#334155",
+            background: isDark ? "rgba(30,41,59,0.86)" : "rgba(241,245,249,0.9)",
+            border: isDark ? "1px solid rgba(148,163,184,0.36)" : "1px solid rgba(148,163,184,0.28)",
+            color: isDark ? "#e2e8f0" : "#334155",
             padding: "9px 14px",
             borderRadius: 9,
             fontSize: 12,

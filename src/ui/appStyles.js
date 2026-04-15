@@ -1,26 +1,30 @@
 import { BLOCK_COLORS } from "./branding";
 
-export function createAppStyles(progress = 0) {
+export function createAppStyles(progress = 0, themeMode = "light") {
+  const isDark = themeMode === "dark";
+
   return {
     page: {
       minHeight: "100vh",
-      background: "linear-gradient(160deg,#060d1a 0%,#0a1628 50%,#050e1c 100%)",
+      background: isDark
+        ? "linear-gradient(160deg,#060d1a 0%,#0a1628 50%,#050e1c 100%)"
+        : "linear-gradient(180deg,#ffffff 0%,#f8fafc 100%)",
       fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
-      color: "#e2e8f0",
+      color: isDark ? "#e2e8f0" : "#0f172a",
     },
     header: {
       padding: "18px 28px",
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
-      borderBottom: "1px solid rgba(255,255,255,0.05)",
+      borderBottom: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(148,163,184,0.24)",
       position: "sticky",
       top: 0,
-      background: "rgba(6,13,26,0.92)",
+      background: isDark ? "rgba(6,13,26,0.92)" : "rgba(255,255,255,0.95)",
       backdropFilter: "blur(12px)",
       zIndex: 100,
     },
-    progressBar: { height: 3, background: "rgba(255,255,255,0.06)" },
+    progressBar: { height: 3, background: isDark ? "rgba(255,255,255,0.06)" : "rgba(15,23,42,0.08)" },
     progressFill: {
       height: "100%",
       width: `${progress}%`,
@@ -46,8 +50,16 @@ export function createAppStyles(progress = 0) {
       transition: "opacity 0.2s, transform 0.15s",
     },
     card: (selected) => ({
-      background: selected ? "rgba(37,99,235,0.12)" : "rgba(255,255,255,0.025)",
-      border: selected ? "1px solid rgba(37,99,235,0.45)" : "1px solid rgba(255,255,255,0.07)",
+      background: selected
+        ? "rgba(37,99,235,0.12)"
+        : isDark
+          ? "rgba(255,255,255,0.025)"
+          : "rgba(255,255,255,0.92)",
+      border: selected
+        ? "1px solid rgba(37,99,235,0.45)"
+        : isDark
+          ? "1px solid rgba(255,255,255,0.07)"
+          : "1px solid rgba(148,163,184,0.24)",
       borderRadius: 13,
       padding: "14px 18px",
       cursor: "pointer",
@@ -76,27 +88,27 @@ export function createAppStyles(progress = 0) {
     }),
     select: {
       width: "100%",
-      background: "#0f1b2d",
-      color: "#f8fafc",
-      border: "1px solid rgba(255,255,255,0.12)",
+      background: isDark ? "#0f1b2d" : "#ffffff",
+      color: isDark ? "#f8fafc" : "#0f172a",
+      border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(148,163,184,0.3)",
       borderRadius: 10,
       padding: "12px 14px",
       outline: "none",
-      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
+      boxShadow: isDark ? "inset 0 1px 0 rgba(255,255,255,0.03)" : "none",
     },
     input: {
       width: "100%",
-      background: "#0f1b2d",
-      color: "#f8fafc",
-      border: "1px solid rgba(255,255,255,0.12)",
+      background: isDark ? "#0f1b2d" : "#ffffff",
+      color: isDark ? "#f8fafc" : "#0f172a",
+      border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(148,163,184,0.3)",
       borderRadius: 10,
       padding: "12px 14px",
       outline: "none",
-      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
+      boxShadow: isDark ? "inset 0 1px 0 rgba(255,255,255,0.03)" : "none",
     },
     panel: {
-      background: "rgba(255,255,255,0.03)",
-      border: "1px solid rgba(255,255,255,0.08)",
+      background: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.92)",
+      border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(148,163,184,0.24)",
       borderRadius: 16,
       padding: 18,
     },

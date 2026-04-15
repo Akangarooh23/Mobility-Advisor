@@ -5,6 +5,10 @@ export default function ServiceOptionsPage({
   onSelectAutogestor,
   onGoBack,
 }) {
+  const isDark = styles?.page?.color === "#e2e8f0";
+  const titleColor = isDark ? "#f8fafc" : "#000000";
+  const mutedColor = isDark ? "#cbd5e1" : "#94a3b8";
+
   return (
     <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
       <button
@@ -25,10 +29,10 @@ export default function ServiceOptionsPage({
         ← Volver
       </button>
 
-      <h2 style={{ margin: "0 0 8px", fontSize: "clamp(28px,4vw,38px)", color: "#000000", letterSpacing: "-0.9px" }}>
+      <h2 style={{ margin: "0 0 8px", fontSize: "clamp(28px,4vw,38px)", color: titleColor, letterSpacing: "-0.9px" }}>
         Quiero contratar un Servicio
       </h2>
-      <p style={{ margin: "0 0 22px", color: "#94a3b8", fontSize: 14, lineHeight: 1.6 }}>
+      <p style={{ margin: "0 0 22px", color: mutedColor, fontSize: 14, lineHeight: 1.6 }}>
         Selecciona el servicio que quieras activar para tu vehículo.
       </p>
 
@@ -60,8 +64,8 @@ export default function ServiceOptionsPage({
             animationDelay: "60ms",
           }}
         >
-          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: "#000000" }}>Seguro</div>
-          <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.5 }}>
+          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>Seguro</div>
+          <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.5 }}>
             Negociamos las condiciones para muchos particulares como uno solo, de forma que conseguimos
             mejores precios.
           </div>
@@ -87,8 +91,8 @@ export default function ServiceOptionsPage({
             animationDelay: "150ms",
           }}
         >
-          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: "#000000" }}>Mantenimiento</div>
-          <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.5 }}>
+          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>Mantenimiento</div>
+          <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.5 }}>
             Paga una cuota mensual por el mantenimiento de tu coche actual y dejate de sustos y gastos
             inesperados.
           </div>
@@ -114,8 +118,8 @@ export default function ServiceOptionsPage({
             animationDelay: "240ms",
           }}
         >
-          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: "#000000" }}>AutoGestor</div>
-          <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.5 }}>
+          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>AutoGestor</div>
+          <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.5 }}>
             Utiliza nuestra IA de gestion integral para monitorizar y archivar todo lo relacionado con
             tu vehículo.
           </div>

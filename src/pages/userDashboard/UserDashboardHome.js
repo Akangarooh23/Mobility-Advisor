@@ -1,4 +1,5 @@
 export default function UserDashboardHome({
+  themeMode,
   counts,
   sections,
   panelStyle,
@@ -10,6 +11,11 @@ export default function UserDashboardHome({
   onMarkAllAlertsSeen = () => {},
   onSendAlertEmailDigest = () => {},
 }) {
+  const isDark = themeMode === "dark";
+  const cardBg = isDark
+    ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
+    : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))";
+
   const stats = [
     { label: "Guardadas", value: counts.saved, color: "#60a5fa" },
     { label: "Citas", value: counts.appointments, color: "#fbbf24" },
@@ -31,14 +37,14 @@ export default function UserDashboardHome({
           <div
             key={item.label}
             style={{
-              background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
+              background: cardBg,
               border: "1px solid rgba(148,163,184,0.26)",
               borderRadius: 14,
               padding: 14,
             }}
           >
             <div style={{ fontSize: 24, fontWeight: 800, color: item.color }}>{item.value}</div>
-            <div style={{ fontSize: 12, color: "#334155", marginTop: 4 }}>{item.label}</div>
+            <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#334155", marginTop: 4 }}>{item.label}</div>
             {item.label === "Guardadas" && newAlertMatchesCount > 0 && (
               <div style={{ fontSize: 11, color: "#047857", marginTop: 6, fontWeight: 700 }}>
                 🔔 {newAlertMatchesCount} novedades
@@ -52,7 +58,9 @@ export default function UserDashboardHome({
         style={{
           ...panelStyle,
           marginBottom: 18,
-          background: "linear-gradient(135deg,rgba(16,185,129,0.10),rgba(255,255,255,0.96))",
+          background: isDark
+            ? "linear-gradient(135deg,rgba(16,185,129,0.16),rgba(15,23,42,0.9))"
+            : "linear-gradient(135deg,rgba(16,185,129,0.10),rgba(255,255,255,0.96))",
           border: "1px solid rgba(148,163,184,0.26)",
         }}
       >
@@ -61,8 +69,8 @@ export default function UserDashboardHome({
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a" }}>🔔 Mercado bajo vigilancia</div>
-            <div style={{ fontSize: 12, color: "#334155", marginTop: 4, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>🔔 Mercado bajo vigilancia</div>
+            <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#334155", marginTop: 4, lineHeight: 1.6 }}>
               {pendingAlertNotifications.length > 0
                 ? `Tienes ${newAlertMatchesCount} ${newAlertMatchesCount === 1 ? "novedad pendiente" : "novedades pendientes"} en tus alertas.`
                 : "No hay avisos nuevos ahora mismo. Tus alertas siguen vigilando el mercado por ti."}
@@ -143,14 +151,14 @@ export default function UserDashboardHome({
               <div
                 key={notice.id}
                 style={{
-                  background: "rgba(255,255,255,0.95)",
+                  background: isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)",
                   border: "1px solid rgba(148,163,184,0.24)",
                   borderRadius: 12,
                   padding: 10,
                 }}
               >
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#0f172a" }}>{notice.title}</div>
-                <div style={{ fontSize: 11, color: "#475569", marginTop: 4 }}>{notice.summary}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>{notice.title}</div>
+                <div style={{ fontSize: 11, color: isDark ? "#cbd5e1" : "#475569", marginTop: 4 }}>{notice.summary}</div>
                 {notice.notifyByEmail && notice.email && (
                   <div style={{ fontSize: 11, color: "#1d4ed8", marginTop: 4 }}>📧 {notice.email}</div>
                 )}
@@ -172,17 +180,17 @@ export default function UserDashboardHome({
                 ...panelStyle,
                 textAlign: "left",
                 cursor: "pointer",
-                background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
+                background: cardBg,
                 border: "1px solid rgba(148,163,184,0.26)",
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start", marginBottom: 10 }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>
                   {section.icon} {section.label}
                 </div>
                 <span style={{ fontSize: 11, color: "#1d4ed8" }}>{section.count}</span>
               </div>
-              <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
+              <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569", lineHeight: 1.6 }}>
                 {section.description}
               </div>
               {section.notice && (

@@ -1,4 +1,8 @@
 export default function SellOptionsPage({ styles, onSelectCertificate, onSelectReport, onGoBack }) {
+  const isDark = styles?.page?.color === "#e2e8f0";
+  const titleColor = isDark ? "#f8fafc" : "#000000";
+  const mutedColor = isDark ? "#cbd5e1" : "#94a3b8";
+
   return (
     <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
       <button
@@ -19,10 +23,10 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
         ← Volver
       </button>
 
-      <h2 style={{ margin: "0 0 8px", fontSize: "clamp(28px,4vw,38px)", color: "#000000", letterSpacing: "-0.9px" }}>
+      <h2 style={{ margin: "0 0 8px", fontSize: "clamp(28px,4vw,38px)", color: titleColor, letterSpacing: "-0.9px" }}>
         Quiero vender mi coche
       </h2>
-      <p style={{ margin: "0 0 22px", color: "#94a3b8", fontSize: 14, lineHeight: 1.6 }}>
+      <p style={{ margin: "0 0 22px", color: mutedColor, fontSize: 14, lineHeight: 1.6 }}>
         Elige el servicio que mejor se adapte al punto en el que estás.
       </p>
 
@@ -54,10 +58,10 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
             animationDelay: "60ms",
           }}
         >
-          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: "#000000" }}>
+          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
             Certificado B2Cars
           </div>
-          <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.5 }}>
+          <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.5 }}>
             Certificamos el estado de tu vehículo de forma oficial y nos encargamos de todas las
             gestiones para la venta. Solo tienes que enseñárselo al comprador.
           </div>
@@ -83,10 +87,10 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
             animationDelay: "150ms",
           }}
         >
-          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: "#000000" }}>
+          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
             Informe B2Cars
           </div>
-          <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.5 }}>
+          <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.5 }}>
             Te damos información en tiempo real sobre el precio de venta promedio en España de tu
             coche o similares.
           </div>

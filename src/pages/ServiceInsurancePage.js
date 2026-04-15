@@ -1,6 +1,14 @@
 import { useMemo, useState } from "react";
 
-export default function ServiceInsurancePage({ styles, onGoBack, onGoHome }) {
+export default function ServiceInsurancePage({ styles, onGoBack, onGoHome, themeMode }) {
+  const isDark = themeMode === "dark";
+  const cardBg = isDark
+    ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
+    : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))";
+  const inputBg = isDark ? "#0f1b2d" : "#ffffff";
+  const inputText = isDark ? "#f8fafc" : "#0f172a";
+  const titleColor = isDark ? "#f8fafc" : "#000000";
+  const bodyColor = isDark ? "#cbd5e1" : "#334155";
   const secondaryBtnStyle = {
     background: "rgba(15,23,42,0.72)",
     border: "1px solid rgba(148,163,184,0.35)",
@@ -48,7 +56,9 @@ export default function ServiceInsurancePage({ styles, onGoBack, onGoHome }) {
             border: 1px solid rgba(148,163,184,0.35);
             border-radius: 14px;
             padding: 12px;
-            background: linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92));
+            background: ${isDark
+              ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
+              : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))"};
             box-shadow: 0 8px 22px rgba(15,23,42,0.08);
             transition: transform 170ms ease, box-shadow 170ms ease, border-color 170ms ease;
           }
@@ -62,7 +72,7 @@ export default function ServiceInsurancePage({ styles, onGoBack, onGoHome }) {
 
           .service-field-label {
             font-size: 12px;
-            color: #334155;
+            color: ${isDark ? "#cbd5e1" : "#334155"};
             font-weight: 700;
             margin-bottom: 6px;
           }
@@ -74,7 +84,7 @@ export default function ServiceInsurancePage({ styles, onGoBack, onGoHome }) {
       </button>
 
       <div style={{ ...styles.blockBadge("Vinculación"), marginBottom: 10 }}>🛡️ SEGURO COLECTIVO</div>
-      <h2 style={{ margin: "0 0 8px", fontSize: "clamp(26px,4vw,36px)", color: "#000000" }}>
+      <h2 style={{ margin: "0 0 8px", fontSize: "clamp(26px,4vw,36px)", color: titleColor }}>
         Negociación de seguro en bloque
       </h2>
       <p style={{ margin: "0 0 20px", color: "#94a3b8", fontSize: 14, lineHeight: 1.6 }}>
@@ -87,7 +97,7 @@ export default function ServiceInsurancePage({ styles, onGoBack, onGoHome }) {
           <input
             value={form.vehicleValue}
             onChange={(e) => setForm((p) => ({ ...p, vehicleValue: e.target.value }))}
-            style={{ ...styles.input, background: "#ffffff", color: "#0f172a", border: "1px solid rgba(148,163,184,0.45)" }}
+            style={{ ...styles.input, background: inputBg, color: inputText, border: "1px solid rgba(148,163,184,0.45)" }}
           />
         </label>
         <label className="service-field-card ma-card-soft">
@@ -95,7 +105,7 @@ export default function ServiceInsurancePage({ styles, onGoBack, onGoHome }) {
           <input
             value={form.annualKm}
             onChange={(e) => setForm((p) => ({ ...p, annualKm: e.target.value }))}
-            style={{ ...styles.input, background: "#ffffff", color: "#0f172a", border: "1px solid rgba(148,163,184,0.45)" }}
+            style={{ ...styles.input, background: inputBg, color: inputText, border: "1px solid rgba(148,163,184,0.45)" }}
           />
         </label>
         <label className="service-field-card ma-card-soft">
@@ -103,7 +113,7 @@ export default function ServiceInsurancePage({ styles, onGoBack, onGoHome }) {
           <input
             value={form.driverAge}
             onChange={(e) => setForm((p) => ({ ...p, driverAge: e.target.value }))}
-            style={{ ...styles.input, background: "#ffffff", color: "#0f172a", border: "1px solid rgba(148,163,184,0.45)" }}
+            style={{ ...styles.input, background: inputBg, color: inputText, border: "1px solid rgba(148,163,184,0.45)" }}
           />
         </label>
         <label className="service-field-card ma-card-soft">
@@ -111,7 +121,7 @@ export default function ServiceInsurancePage({ styles, onGoBack, onGoHome }) {
           <select
             value={form.coverage}
             onChange={(e) => setForm((p) => ({ ...p, coverage: e.target.value }))}
-            style={{ ...styles.select, background: "#ffffff", color: "#0f172a", border: "1px solid rgba(148,163,184,0.45)" }}
+            style={{ ...styles.select, background: inputBg, color: inputText, border: "1px solid rgba(148,163,184,0.45)" }}
           >
             <option value="terceros">Terceros</option>
             <option value="terceros_ampliado">Terceros ampliado</option>
@@ -135,15 +145,15 @@ export default function ServiceInsurancePage({ styles, onGoBack, onGoHome }) {
           style={{
             ...styles.panel,
             animationDelay: "180ms",
-            background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
+            background: cardBg,
             border: "1px solid rgba(148,163,184,0.35)",
           }}
         >
           <div style={{ fontSize: 12, color: "#67e8f9", marginBottom: 6 }}>ESTIMACIÓN INSTANTÁNEA</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: "#000000", marginBottom: 8 }}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: titleColor, marginBottom: 8 }}>
             Cuota estimada B2Cars: {quote.monthlyB2Cars} €/mes
           </div>
-          <div style={{ color: "#334155", fontSize: 13, lineHeight: 1.6 }}>
+          <div style={{ color: bodyColor, fontSize: 13, lineHeight: 1.6 }}>
             Mercado: {quote.monthlyMarket} €/mes · Ahorro potencial anual: {quote.yearlySavings} €.
           </div>
         </div>

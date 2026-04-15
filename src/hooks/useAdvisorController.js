@@ -199,12 +199,13 @@ export function useAdvisorController({
     }
 
     setSelectedPortalVoOfferId(offer.id);
+    syncBrowserPath("/", "replace");
     setEntryMode("portalVoDetail");
 
     if (typeof window !== "undefined") {
       window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
     }
-  }, [setEntryMode, setSelectedPortalVoOfferId]);
+  }, [setEntryMode, setSelectedPortalVoOfferId, syncBrowserPath]);
 
   const restart = useCallback(() => {
     clearQuestionnaireDraftFn?.();

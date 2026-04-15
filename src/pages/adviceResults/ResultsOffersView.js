@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 export default function ResultsOffersView({
+  themeMode,
   quickValidationQuestions,
   displayResult,
   quickValidationAnswers,
@@ -29,6 +30,10 @@ export default function ResultsOffersView({
   getOfferActionMeta,
 }) {
   const [hoveredCard, setHoveredCard] = useState(null);
+  const isDark = themeMode === "dark";
+  const cardBg = isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)";
+  const titleColor = isDark ? "#f8fafc" : "#0f172a";
+  const bodyColor = isDark ? "#cbd5e1" : "#475569";
 
   return (
     <>
@@ -43,13 +48,13 @@ export default function ResultsOffersView({
         >
           <div
             style={{
-              background: "rgba(255,255,255,0.95)",
-              border: "1px solid rgba(31,41,55,0.1)",
+              background: cardBg,
+              border: isDark ? "1px solid rgba(148,163,184,0.32)" : "1px solid rgba(31,41,55,0.1)",
               borderRadius: 12,
               padding: 14,
             }}
           >
-            <div style={{ fontSize: 10, color: "#0f172a", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
+            <div style={{ fontSize: 10, color: titleColor, marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
               ✅ VALIDACIÓN RÁPIDA
             </div>
             <div style={{ display: "grid", gap: 8 }}>
@@ -60,15 +65,15 @@ export default function ResultsOffersView({
                   <div
                     key={item.id}
                     style={{
-                      background: "rgba(255,255,255,0.95)",
-                      border: "1px solid rgba(59,130,246,0.16)",
+                      background: cardBg,
+                      border: isDark ? "1px solid rgba(96,165,250,0.26)" : "1px solid rgba(59,130,246,0.16)",
                       borderRadius: 10,
                       padding: 10,
                       boxShadow: "0 8px 20px rgba(15,23,42,0.06)",
                       transition: "all 0.2s ease",
                     }}
                   >
-                    <div style={{ fontSize: 12, color: "#334155", lineHeight: 1.5, marginBottom: 8 }}>
+                    <div style={{ fontSize: 12, color: isDark ? "#e2e8f0" : "#334155", lineHeight: 1.5, marginBottom: 8 }}>
                       {item.label}
                     </div>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -113,20 +118,20 @@ export default function ResultsOffersView({
 
           <div
             style={{
-              background: "rgba(255,255,255,0.95)",
-              border: "1px solid rgba(16,185,129,0.2)",
+              background: cardBg,
+              border: isDark ? "1px solid rgba(110,231,183,0.28)" : "1px solid rgba(16,185,129,0.2)",
               borderRadius: 12,
               padding: 14,
-              boxShadow: "0 10px 24px rgba(16,185,129,0.08)",
+              boxShadow: isDark ? "0 10px 24px rgba(2,6,23,0.28)" : "0 10px 24px rgba(16,185,129,0.08)",
             }}
           >
             <div style={{ fontSize: 10, color: "#047857", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
               🎯 SIGUIENTE PASO
             </div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a", marginBottom: 6 }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: titleColor, marginBottom: 6 }}>
               {displayResult.siguiente_paso}
             </div>
-            <p style={{ margin: "0 0 10px", fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
+            <p style={{ margin: "0 0 10px", fontSize: 12, color: bodyColor, lineHeight: 1.6 }}>
               Ajusta esta parte rápida y el bloque de ofertas se reordena para enseñarte primero la mejor coincidencia real.
             </p>
 
@@ -197,7 +202,7 @@ export default function ResultsOffersView({
                   "Pide oferta desglosada con TIN/TAE, seguro y coste total.",
                   "Descarta cualquier opción que no cuadre con el TCO objetivo.",
                 ].map((item) => (
-                  <div key={item} style={{ fontSize: 11, color: "#334155", lineHeight: 1.5 }}>• {item}</div>
+                  <div key={item} style={{ fontSize: 11, color: isDark ? "#e2e8f0" : "#334155", lineHeight: 1.5 }}>• {item}</div>
                 ))}
               </div>
             ) : (
@@ -207,7 +212,7 @@ export default function ResultsOffersView({
                   "Compara el coste puntual frente al coste fijo de otra modalidad.",
                   "Quédate con la opción que menos fricción te meta hoy.",
                 ].map((item) => (
-                  <div key={item} style={{ fontSize: 11, color: "#334155", lineHeight: 1.5 }}>• {item}</div>
+                  <div key={item} style={{ fontSize: 11, color: isDark ? "#e2e8f0" : "#334155", lineHeight: 1.5 }}>• {item}</div>
                 ))}
               </div>
             )}
@@ -227,11 +232,11 @@ export default function ResultsOffersView({
         <div>
           <div
             style={{
-              background: "rgba(255,255,255,0.95)",
-              border: "1px solid rgba(3,105,161,0.24)",
+              background: cardBg,
+              border: isDark ? "1px solid rgba(125,211,252,0.28)" : "1px solid rgba(3,105,161,0.24)",
               borderRadius: 16,
               padding: 18,
-              boxShadow: "0 14px 30px rgba(3,105,161,0.1)",
+              boxShadow: isDark ? "0 14px 30px rgba(2,6,23,0.34)" : "0 14px 30px rgba(3,105,161,0.1)",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
@@ -260,20 +265,20 @@ export default function ResultsOffersView({
               </button>
             </div>
 
-            <p style={{ margin: "0 0 12px", fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
+            <p style={{ margin: "0 0 12px", fontSize: 12, color: bodyColor, lineHeight: 1.6 }}>
               La oferta destacada es la que mejor funciona para tu caso; debajo verás otras 3 que también podrían encajar con sus motivos de posición.
             </p>
 
             {listingCoverageSummary && (
               <div
                 style={{
-                  background: "rgba(255,255,255,0.95)",
-                  border: "1px solid rgba(3,105,161,0.2)",
+                  background: isDark ? "rgba(15,23,42,0.86)" : "rgba(255,255,255,0.95)",
+                  border: isDark ? "1px solid rgba(125,211,252,0.3)" : "1px solid rgba(3,105,161,0.2)",
                   borderRadius: 12,
                   padding: 10,
                   marginBottom: 10,
                   fontSize: 11,
-                  color: "#0369a1",
+                  color: isDark ? "#7dd3fc" : "#0369a1",
                   lineHeight: 1.6,
                 }}
               >
@@ -302,12 +307,12 @@ export default function ResultsOffersView({
             {!featuredOffer && !listingLoading && !listingError && (
               <div
                 style={{
-                  background: "rgba(255,255,255,0.95)",
-                  border: "1px dashed rgba(148,163,184,0.24)",
+                  background: cardBg,
+                  border: isDark ? "1px dashed rgba(148,163,184,0.36)" : "1px dashed rgba(148,163,184,0.24)",
                   borderRadius: 12,
                   padding: 14,
                   fontSize: 12,
-                  color: "#475569",
+                  color: bodyColor,
                   lineHeight: 1.6,
                 }}
               >
@@ -324,7 +329,7 @@ export default function ResultsOffersView({
                 onMouseEnter={() => setHoveredCard("featured")}
                 onMouseLeave={() => setHoveredCard(null)}
                 style={{
-                  background: "rgba(255,255,255,0.95)",
+                  background: cardBg,
                   border: hoveredCard === "featured"
                     ? "1px solid rgba(37,99,235,0.3)"
                     : "1px solid rgba(3,105,161,0.15)",
@@ -377,10 +382,10 @@ export default function ResultsOffersView({
                         ? ` · ENCAJE ${Number(featuredOffer.rankingScore ?? featuredOffer.profileScore)}/100`
                         : ""}
                     </div>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", marginBottom: 6 }}>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: titleColor, marginBottom: 6 }}>
                       {featuredOffer.title}
                     </div>
-                    <p style={{ margin: "0 0 8px", fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
+                    <p style={{ margin: "0 0 8px", fontSize: 12, color: bodyColor, lineHeight: 1.6 }}>
                       {featuredOffer.description || "Es la coincidencia real mejor posicionada para tu test y tu contexto actual."}
                     </p>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
@@ -536,7 +541,7 @@ export default function ResultsOffersView({
                         onMouseEnter={() => setHoveredCard(`other-${index}`)}
                         onMouseLeave={() => setHoveredCard(null)}
                         style={{
-                          background: "rgba(255,255,255,0.95)",
+                          background: cardBg,
                           border: hoveredCard === `other-${index}`
                             ? "1px solid rgba(59,130,246,0.3)"
                             : "1px solid rgba(148,163,184,0.16)",
@@ -570,7 +575,7 @@ export default function ResultsOffersView({
 
                           <div>
                             <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
-                              <div style={{ fontSize: 12, fontWeight: 700, color: "#0f172a" }}>
+                              <div style={{ fontSize: 12, fontWeight: 700, color: titleColor }}>
                                 #{offer.rankPosition || index + 2} · {offer.title}
                               </div>
                               {offer.price && <div style={{ fontSize: 13, fontWeight: 800, color: "#047857" }}>{offer.price}</div>}
@@ -581,7 +586,7 @@ export default function ResultsOffersView({
                                 ? ` · ${Number(offer.rankingScore ?? offer.profileScore)}/100`
                                 : ""}
                             </div>
-                            <p style={{ margin: "0 0 6px", fontSize: 11, color: "#475569", lineHeight: 1.5 }}>
+                            <p style={{ margin: "0 0 6px", fontSize: 11, color: bodyColor, lineHeight: 1.5 }}>
                               {offer.positionReason || offer.matchReason}
                             </p>
 

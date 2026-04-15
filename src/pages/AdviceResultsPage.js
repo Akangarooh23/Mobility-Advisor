@@ -9,6 +9,7 @@ export default function AdviceResultsPage({
   result,
   resultRef,
   styles: s,
+  themeMode,
   resultView,
   answers,
   listingResult,
@@ -172,6 +173,7 @@ export default function AdviceResultsPage({
   return (
     <div ref={resultRef} style={s.center}>
       <ResultsHeader
+        themeMode={themeMode}
         isOffersResultView={isOffersResultView}
         result={result}
         confidenceLabel={confidenceLabel}
@@ -185,6 +187,7 @@ export default function AdviceResultsPage({
 
       {isOffersResultView ? (
         <ResultsOffersView
+          themeMode={themeMode}
           quickValidationQuestions={quickValidationQuestions}
           displayResult={displayResult}
           quickValidationAnswers={quickValidationAnswers}
@@ -214,6 +217,7 @@ export default function AdviceResultsPage({
         />
       ) : (
         <ResultsAnalysisView
+          themeMode={themeMode}
           mt={mt}
           result={result}
           displayResult={displayResult}

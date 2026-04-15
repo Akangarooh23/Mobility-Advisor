@@ -1,4 +1,8 @@
 export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownModel, onGoBack }) {
+  const isDark = styles?.page?.color === "#e2e8f0";
+  const titleColor = isDark ? "#f8fafc" : "#000000";
+  const mutedColor = isDark ? "#cbd5e1" : "#94a3b8";
+
   const timelineSteps = [
     "Seleccionas una opcion",
     "Respondes al CarAdvisor",
@@ -116,10 +120,10 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
         ← Volver
       </button>
 
-      <h2 style={{ margin: "0 0 8px", fontSize: "clamp(28px,4vw,38px)", color: "#000000", letterSpacing: "-0.9px" }}>
+      <h2 style={{ margin: "0 0 8px", fontSize: "clamp(28px,4vw,38px)", color: titleColor, letterSpacing: "-0.9px" }}>
         Comprar un coche
       </h2>
-      <p style={{ margin: "0 0 22px", color: "#94a3b8", fontSize: 14, lineHeight: 1.6 }}>
+      <p style={{ margin: "0 0 22px", color: mutedColor, fontSize: 14, lineHeight: 1.6 }}>
         Selecciona la opción que mejor describa tu punto de partida.
       </p>
 
@@ -151,10 +155,10 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             animationDelay: "60ms",
           }}
         >
-          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: "#000000" }}>
+          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
             No sé qué modelo
           </div>
-          <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.45 }}>
+          <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
             Ayúdanos a conocerte en 3 minutos con nuestro CarAdvisor para encontrar las opciones que más se adapten a ti.
           </div>
         </button>
@@ -179,10 +183,10 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             animationDelay: "150ms",
           }}
         >
-          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: "#000000" }}>
+          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
             Tengo claro cuál quiero
           </div>
-          <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.45 }}>
+          <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
             Analizamos el mercado en tiempo real para ofrecerte las mejores opciones en base al precio y la fiabilidad del proveedor.
           </div>
         </button>

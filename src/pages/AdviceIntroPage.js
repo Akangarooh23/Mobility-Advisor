@@ -1,4 +1,8 @@
 export default function AdviceIntroPage({ styles, pillars, onStart, onRestart }) {
+  const isDark = styles?.page?.color === "#e2e8f0";
+  const titleColor = isDark ? "#f8fafc" : "#000000";
+  const mutedColor = isDark ? "#cbd5e1" : "#94a3b8";
+
   return (
     <div style={styles.center}>
       <style>
@@ -86,12 +90,12 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
           fontWeight: 800,
           letterSpacing: "-1px",
           margin: "0 0 10px",
-          color: "#000000",
+          color: titleColor,
         }}
       >
         Encontrar el coche con mejor relación calidad-precio
       </h2>
-      <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.7, margin: "0 0 24px" }}>
+      <p style={{ color: mutedColor, fontSize: 14, lineHeight: 1.7, margin: "0 0 24px" }}>
         Este flujo arranca el test de decisión y añade una capa de valor con financiación, TCO,
         garantías, pricing, señales de mercado y valor futuro antes de recomendar una compra o renting.
       </p>
@@ -99,10 +103,10 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
       <div className="advice-intro-pillars">
         {pillars.map((pillar) => (
           <div key={pillar.title} style={styles.panel} className="advice-intro-pillar-card">
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#000000", marginBottom: 8 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: titleColor, marginBottom: 8 }}>
               {pillar.title}
             </div>
-            <p style={{ margin: 0, fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
+            <p style={{ margin: 0, fontSize: 12, color: mutedColor, lineHeight: 1.6 }}>
               {pillar.text}
             </p>
           </div>
@@ -118,7 +122,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
           style={{
             background: "rgba(255,255,255,0.05)",
             border: "1px solid rgba(255,255,255,0.1)",
-            color: "#94a3b8",
+            color: mutedColor,
             padding: "12px 20px",
             borderRadius: 10,
             fontSize: 13,

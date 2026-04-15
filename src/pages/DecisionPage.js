@@ -31,6 +31,10 @@ export default function DecisionPage({
   onSwitchToAdvice,
   onRestart,
 }) {
+  const isDark = styles?.page?.color === "#e2e8f0";
+  const titleColor = isDark ? "#f8fafc" : "#000000";
+  const mutedColor = isDark ? "#cbd5e1" : "#94a3b8";
+
   const effectiveOperation = lockedOperation || decisionAnswers.operation;
   const operationChoices =
     lockedOperation === "comprar"
@@ -86,12 +90,12 @@ export default function DecisionPage({
           fontWeight: 800,
           letterSpacing: "-1px",
           margin: "0 0 10px",
-          color: "#000000",
+          color: titleColor,
         }}
       >
         Afina marca, modelo y condiciones para ordenar las ofertas
       </h2>
-      <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.7, margin: "0 0 24px" }}>
+      <p style={{ color: mutedColor, fontSize: 14, lineHeight: 1.7, margin: "0 0 24px" }}>
         Aquí priorizamos el mercado actual para una necesidad ya concreta. Puedes filtrar por modalidad,
         estado, antigüedad y kilometraje antes de ver un ranking de oportunidades.
       </p>
@@ -112,7 +116,7 @@ export default function DecisionPage({
               }}
             >
               <span style={{ fontSize: 22, minWidth: 30 }}>{icon}</span>
-              <div style={{ fontWeight: 700, fontSize: 14, color: "#000000" }}>{label}</div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: titleColor }}>{label}</div>
             </button>
           ))}
         </div>
@@ -141,7 +145,7 @@ export default function DecisionPage({
               onClick={() => updateDecisionAnswer("acquisition", value)}
             >
               <span style={{ fontSize: 22, minWidth: 30 }}>{icon}</span>
-              <div style={{ fontWeight: 700, fontSize: 14, color: "#000000" }}>{label}</div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: titleColor }}>{label}</div>
             </button>
           ))}
         </div>
@@ -163,7 +167,7 @@ export default function DecisionPage({
               onClick={() => updateDecisionAnswer("hasBrand", value)}
             >
               <span style={{ fontSize: 22, minWidth: 30 }}>{icon}</span>
-              <div style={{ fontWeight: 700, fontSize: 14, color: "#000000" }}>{label}</div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: titleColor }}>{label}</div>
             </button>
           ))}
         </div>

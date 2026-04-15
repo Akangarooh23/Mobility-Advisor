@@ -61,6 +61,54 @@ test("shows marketplace matches for an active alert", () => {
   expect(screen.getByText(/Toyota Corolla 120H Active Tech/i)).toBeInTheDocument();
 });
 
+test("opens concrete marketplace offer detail when clicking a match", () => {
+  const onOpenMarketplaceOffer = jest.fn();
+
+  render(
+    <UserDashboardSaved
+      savedComparisons={[]}
+      marketAlerts={[
+        {
+          id: "alert-toyota",
+          title: "Alerta Compra · Toyota · Corolla",
+          createdAt: "11/04/2026, 12:00",
+          status: "Vigilando mercado",
+          modeLabel: "Compra",
+          brand: "Toyota",
+          model: "Corolla",
+        },
+      ]}
+      marketAlertMatches={{
+        "alert-toyota": {
+          count: 1,
+          matches: [
+            {
+              id: "vo-001",
+              title: "Toyota Corolla 120H Active Tech",
+              price: 21990,
+              location: "Madrid",
+              mileage: 34800,
+            },
+          ],
+        },
+      }}
+      panelStyle={{}}
+      getOfferBadgeStyle={() => ({})}
+      formatCurrency={(value) => `${value} €`}
+      getSavedComparisonHref={() => ""}
+      onOpenOffer={() => {}}
+      onOpenMarketplaceOffer={onOpenMarketplaceOffer}
+      onRemoveSavedComparison={() => {}}
+      onRemoveMarketAlert={() => {}}
+      onMarkAlertSeen={() => {}}
+    />
+  );
+
+  fireEvent.click(screen.getByRole("button", { name: /ver oferta/i }));
+
+  expect(onOpenMarketplaceOffer).toHaveBeenCalledWith(expect.objectContaining({ id: "vo-001" }));
+});
+
 test("shows a new matches badge when an alert has unseen offers", () => {
   render(
     <UserDashboardSaved

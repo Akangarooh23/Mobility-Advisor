@@ -18,6 +18,10 @@ export default function LandingPage({
   onSelectPortalVo,
   onSelectSubscriptionPlan,
 }) {
+  const isDark = styles?.page?.color === "#e2e8f0";
+  const titleColor = isDark ? "#f8fafc" : "#000000";
+  const mutedColor = isDark ? "#cbd5e1" : "#94a3b8";
+
   const [isMobileView, setIsMobileView] = useState(() => {
     if (typeof window === "undefined") {
       return false;
@@ -139,7 +143,7 @@ export default function LandingPage({
           fontWeight: 800,
           letterSpacing: "-2px",
           margin: "0 auto 36px",
-          color: "#000000",
+          color: titleColor,
           lineHeight: 1.1,
           maxWidth: 860,
         }}
@@ -222,10 +226,10 @@ export default function LandingPage({
         >
           <span style={{ fontSize: 28, minWidth: 40 }}>🚗</span>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 19, color: "#000000", marginBottom: 6 }}>
+            <div style={{ fontWeight: 700, fontSize: 19, color: titleColor, marginBottom: 6 }}>
               Quiero un vehículo
             </div>
-            <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
+            <div style={{ fontSize: 13, color: mutedColor, lineHeight: 1.6 }}>
               Índicanos si quieres comprar, alquilar o quieres que te guiemos en la mejor solución
               para ti.
             </div>
@@ -245,10 +249,10 @@ export default function LandingPage({
         >
           <span style={{ fontSize: 28, minWidth: 40 }}>💶</span>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 19, color: "#000000", marginBottom: 6 }}>
+            <div style={{ fontWeight: 700, fontSize: 19, color: titleColor, marginBottom: 6 }}>
               Quiero vender mi coche
             </div>
-            <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
+            <div style={{ fontSize: 13, color: mutedColor, lineHeight: 1.6 }}>
               ¿Cansado de que los concesionarios te ofrezcan mucho menos de lo que vale tu coche?
               Te ayudamos a que ganes más.
             </div>
@@ -268,10 +272,10 @@ export default function LandingPage({
         >
           <span style={{ fontSize: 28, minWidth: 40 }}>🛠️</span>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 19, color: "#000000", marginBottom: 6 }}>
+            <div style={{ fontWeight: 700, fontSize: 19, color: titleColor, marginBottom: 6 }}>
               Quiero contratar un Servicio
             </div>
-            <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
+            <div style={{ fontSize: 13, color: mutedColor, lineHeight: 1.6 }}>
               Únete a una nueva era en la automoción y aprovecha las economías de escala de una empresa
               en la unión de los particulares.
             </div>

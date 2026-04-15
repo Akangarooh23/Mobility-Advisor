@@ -428,6 +428,8 @@ const LEGAL_DOCUMENTS = {
 // APP
 // ------------------------------------------------------------
 
+const THEME_STORAGE_KEY = "movilidad-advisor.themeMode.v1";
+
 export default function App() {
   const [entryMode, setEntryMode] = useState(null);
   const [advisorContext, setAdvisorContext] = useState(null); // null | "buy" | "renting"
@@ -508,6 +510,7 @@ export default function App() {
   const [userDashboardPage, setUserDashboardPage] = useState("home");
   const [showCookieGate, setShowCookieGate] = useState(false);
   const [showCookieSettings, setShowCookieSettings] = useState(false);
+  const [themeMode, setThemeMode] = useState("light");
   const [cookiePreferences, setCookiePreferences] = useState({
     necessary: true,
     analytics: true,
@@ -721,6 +724,10 @@ export default function App() {
 
   useEffect(() => {
     const savedAuthUser = readAuthUser();
+    const persistedTheme = typeof window !== "undefined" ? window.localStorage.getItem(THEME_STORAGE_KEY) : "";
+    if (persistedTheme === "dark" || persistedTheme === "light") {
+      setThemeMode(persistedTheme);
+    }
 
     setSavedComparisons(readSavedComparisons());
     setUserAppointments(readUserAppointments());
@@ -762,6 +769,13 @@ export default function App() {
 
   useEffect(() => {
     if (typeof window === "undefined") {
+      return;
+    }
+    window.localStorage.setItem(THEME_STORAGE_KEY, themeMode === "dark" ? "dark" : "light");
+  }, [themeMode]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
       return undefined;
     }
 
@@ -780,16 +794,13 @@ export default function App() {
         return;
       }
 
-      if (entryMode === "userDashboard") {
-        setEntryMode(null);
-        setStep(-1);
-      }
+      setEntryMode((prev) => (prev === "userDashboard" ? null : prev));
     };
 
     handleBrowserNavigation();
     window.addEventListener("popstate", handleBrowserNavigation);
     return () => window.removeEventListener("popstate", handleBrowserNavigation);
-  }, [entryMode, isUserLoggedIn]);
+  }, [isUserLoggedIn]);
 
   useEffect(() => {
     quickValidationRef.current = quickValidationAnswers;
@@ -1629,13 +1640,14 @@ export default function App() {
     setSelectedPortalVoOfferId(null);
     setShowAuthMenu(false);
     setShowUserPanel(false);
+    syncBrowserPath("/", "replace");
     setEntryMode("portalVo");
     setStep(-1);
 
     if (typeof window !== "undefined") {
       window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
     }
-  }, []);
+  }, [syncBrowserPath]);
 
   const getSavedComparisonHref = useCallback(
     (item) =>
@@ -2298,6 +2310,7 @@ export default function App() {
   const remainingQuestions = Math.max(totalSteps - answeredSteps, 0);
   const completionPct = Math.min(100, Math.round((answeredSteps / totalSteps) * 100));
   const isAdviceFlowLightBackground =
+    themeMode === "light" &&
     entryMode === "consejo" &&
     (
       (step >= 0 && step < totalSteps) ||
@@ -2306,7 +2319,7 @@ export default function App() {
     );
 
   // -------------------- STYLES --------------------
-  const s = useMemo(() => createAppStyles(progress), [progress]);
+  const s = useMemo(() => createAppStyles(progress, themeMode), [progress, themeMode]);
 
   // -------------------- RENDER --------------------
   return (
@@ -2316,7 +2329,7 @@ export default function App() {
         display: "flex",
         flexDirection: "column",
         minHeight: "100vh",
-        ...(step === -1 || isAdviceFlowLightBackground
+        ...((themeMode === "light" && step === -1) || isAdviceFlowLightBackground
           ? {
               background: "#ffffff",
               color: "#0f172a",
@@ -2357,8 +2370,8 @@ export default function App() {
             {"\uD83D\uDE97"}
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 14, color: "#f1f5f9" }}>CarAdvisor</div>
-            <div style={{ fontSize: 10, color: "#475569", letterSpacing: "0.8px" }}>
+            <div style={{ fontWeight: 700, fontSize: 14, color: themeMode === "dark" ? "#f1f5f9" : "#0f172a" }}>CarAdvisor</div>
+            <div style={{ fontSize: 10, color: themeMode === "dark" ? "#94a3b8" : "#64748b", letterSpacing: "0.8px" }}>
               SPAIN MOBILITY PLATFORM
             </div>
           </div>
@@ -2373,9 +2386,9 @@ export default function App() {
             <button
               onClick={restart}
               style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                color: "#94a3b8",
+                background: themeMode === "dark" ? "rgba(255,255,255,0.04)" : "rgba(241,245,249,0.92)",
+                border: themeMode === "dark" ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(148,163,184,0.32)",
+                color: themeMode === "dark" ? "#94a3b8" : "#334155",
                 padding: "5px 13px",
                 borderRadius: 7,
                 cursor: "pointer",
@@ -2385,6 +2398,28 @@ export default function App() {
               {"\u2190"} Volver al home
             </button>
           )}
+
+          <button
+            type="button"
+            onClick={() => setThemeMode((prev) => (prev === "dark" ? "light" : "dark"))}
+            title={themeMode === "dark" ? "Cambiar a white mode" : "Cambiar a dark mode"}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              background: themeMode === "dark" ? "rgba(15,23,42,0.7)" : "rgba(241,245,249,0.95)",
+              border: themeMode === "dark" ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.34)",
+              color: themeMode === "dark" ? "#e2e8f0" : "#334155",
+              padding: "7px 11px",
+              borderRadius: 999,
+              cursor: "pointer",
+              fontSize: 11,
+              fontWeight: 700,
+            }}
+          >
+            <span>{themeMode === "dark" ? "☀️" : "🌙"}</span>
+            <span>{themeMode === "dark" ? "White mode" : "Dark mode"}</span>
+          </button>
 
           <button
             type="button"
@@ -2398,7 +2433,7 @@ export default function App() {
               border: isUserLoggedIn
                 ? "1px solid rgba(110,231,183,0.26)"
                 : "1px solid rgba(125,211,252,0.24)",
-              color: "#e0f2fe",
+              color: themeMode === "dark" ? "#e0f2fe" : "#0c4a6e",
               padding: "7px 12px",
               borderRadius: 999,
               cursor: "pointer",
@@ -2416,6 +2451,7 @@ export default function App() {
                 justifyContent: "center",
                 background: isUserLoggedIn ? "rgba(16,185,129,0.2)" : "rgba(37,99,235,0.22)",
                 fontSize: 13,
+                color: themeMode === "dark" ? "#e2e8f0" : "#0f172a",
               }}
             >
               {"\uD83D\uDC64"}
@@ -3571,6 +3607,7 @@ export default function App() {
 
       {step === -1 && entryMode === "serviceInsurance" && (
         <ServiceInsurancePage
+          themeMode={themeMode}
           styles={s}
           onGoBack={() => {
             setEntryMode("serviceOptions");
@@ -3582,6 +3619,7 @@ export default function App() {
 
       {step === -1 && entryMode === "serviceMaintenance" && (
         <ServiceMaintenancePage
+          themeMode={themeMode}
           styles={s}
           onGoBack={() => {
             setEntryMode("serviceOptions");
@@ -3593,6 +3631,7 @@ export default function App() {
 
       {step === -1 && entryMode === "serviceAutogestor" && (
         <ServiceAutogestorPage
+          themeMode={themeMode}
           styles={s}
           onGoBack={() => {
             setEntryMode("serviceOptions");
@@ -3616,13 +3655,20 @@ export default function App() {
 
       {step === -1 && entryMode === "userDashboard" && isUserLoggedIn && (
         <UserDashboardPage
+          themeMode={themeMode}
           centerStyle={s.center}
           blockBadgeStyle={s.blockBadge("Vinculación")}
           panelStyle={{
             ...s.panel,
-            background: "linear-gradient(160deg, rgba(255,255,255,0.97), rgba(241,245,249,0.94))",
-            border: "1px solid rgba(148,163,184,0.24)",
-            boxShadow: "0 10px 28px rgba(15,23,42,0.08)",
+            background: themeMode === "dark"
+              ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
+              : "linear-gradient(160deg, rgba(255,255,255,0.97), rgba(241,245,249,0.94))",
+            border: themeMode === "dark"
+              ? "1px solid rgba(148,163,184,0.34)"
+              : "1px solid rgba(148,163,184,0.24)",
+            boxShadow: themeMode === "dark"
+              ? "0 10px 28px rgba(2,6,23,0.34)"
+              : "0 10px 28px rgba(15,23,42,0.08)",
           }}
           userDashboardPage={userDashboardPage}
           savedComparisons={savedComparisons}
@@ -3647,6 +3693,7 @@ export default function App() {
           onLogout={handleLogout}
           onRequestAppointment={requestUserAppointment}
           onOpenOffer={openOfferInNewTab}
+          onOpenMarketplaceOffer={openPortalVoOfferDetail}
           onRemoveSavedComparison={removeSavedComparison}
           onCreateMarketAlert={createMarketAlert}
           onRemoveMarketAlert={removeMarketAlert}
@@ -3710,6 +3757,7 @@ export default function App() {
 
       {step === -1 && entryMode === "portalVoDetail" && selectedPortalVoOffer && (
         <PortalVoDetailPage
+          themeMode={themeMode}
           styles={s}
           selectedPortalVoOffer={selectedPortalVoOffer}
           relatedPortalVoOffers={relatedPortalVoOffers}
@@ -3738,6 +3786,7 @@ export default function App() {
 
       {step === -1 && entryMode === "portalVo" && (
         <PortalVoMarketplacePage
+          themeMode={themeMode}
           styles={s}
           portalVoFilters={portalVoFilters}
           updatePortalVoFilter={updatePortalVoFilter}
@@ -3781,6 +3830,7 @@ export default function App() {
       {entryMode === "consejo" && step >= 0 && step < totalSteps && currentStep && (
         <QuestionnairePage
           styles={s}
+          themeMode={themeMode}
           currentStep={currentStep}
           step={step}
           totalSteps={totalSteps}
@@ -3811,6 +3861,7 @@ export default function App() {
       {step === 99 && loading && (
         <LoadingAnalysisPage
           styles={s}
+          themeMode={themeMode}
           loadingTexts={loadingTexts}
           loadingPhase={loadingPhase}
         />
@@ -3833,6 +3884,7 @@ export default function App() {
           result={result}
           resultRef={resultRef}
           styles={s}
+          themeMode={themeMode}
           resultView={resultView}
           answers={answers}
           listingResult={listingResult}
@@ -4067,11 +4119,11 @@ export default function App() {
         button { font-family: inherit; }
         select {
           font-family: inherit;
-          color-scheme: dark;
+          color-scheme: ${themeMode === "dark" ? "dark" : "light"};
         }
         select option {
-          background: #0f1b2d;
-          color: #f8fafc;
+          background: ${themeMode === "dark" ? "#0f1b2d" : "#ffffff"};
+          color: ${themeMode === "dark" ? "#f8fafc" : "#0f172a"};
         }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }

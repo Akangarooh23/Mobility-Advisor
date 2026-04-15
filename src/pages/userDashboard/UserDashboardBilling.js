@@ -36,7 +36,37 @@ const AVAILABLE_PLANS = [
   { id: "platino", label: "Plan Platino" },
 ];
 
-export default function UserDashboardBilling({ panelStyle, currentUser }) {
+export default function UserDashboardBilling({ panelStyle, currentUser, themeMode }) {
+  const isDark = themeMode === "dark";
+  const cardBg = isDark
+    ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
+    : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))";
+  const inputStyle = {
+    width: "100%",
+    background: isDark ? "#0f1b2d" : "#ffffff",
+    border: "1px solid rgba(148,163,184,0.45)",
+    borderRadius: 8,
+    color: isDark ? "#f8fafc" : "#0f172a",
+    padding: "8px 10px",
+    fontSize: 12,
+    boxSizing: "border-box",
+  };
+  const secondaryButtonStyle = {
+    background: isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)",
+    border: "1px solid rgba(148,163,184,0.32)",
+    color: isDark ? "#e2e8f0" : "#334155",
+    borderRadius: 10,
+    fontSize: 12,
+    fontWeight: 700,
+    padding: "10px 12px",
+    cursor: "pointer",
+  };
+  const tableCellStyle = {
+    padding: "8px",
+    fontSize: 12,
+    color: isDark ? "#cbd5e1" : "#334155",
+    borderBottom: "1px solid rgba(148,163,184,0.2)",
+  };
   const resolvedUserEmail = useMemo(
     () => normalizeText(currentUser?.email).toLowerCase(),
     [currentUser?.email]
@@ -251,7 +281,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser }) {
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
           <div style={{ fontSize: 11, color: "#2563eb", letterSpacing: "0.6px" }}>MI CUENTA Y FACTURACION</div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a" }}>Perfil, suscripcion y facturas</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>Perfil, suscripcion y facturas</div>
         </div>
         <span
           style={{
@@ -277,13 +307,13 @@ export default function UserDashboardBilling({ panelStyle, currentUser }) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 12, marginBottom: 14 }}>
         <div
           style={{
-            background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
+            background: cardBg,
             border: "1px solid rgba(148,163,184,0.26)",
             borderRadius: 12,
             padding: 12,
           }}
         >
-          <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>Datos personales y fiscales</div>
+          <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 8 }}>Datos personales y fiscales</div>
           <div style={{ display: "grid", gap: 8 }}>
             <input value={profileForm.fullName} onChange={handleProfileChange("fullName")} placeholder="Nombre completo" style={inputStyle} />
             <input value={profileForm.email} onChange={handleProfileChange("email")} placeholder="Email de facturacion" style={inputStyle} />
@@ -297,21 +327,21 @@ export default function UserDashboardBilling({ panelStyle, currentUser }) {
             <button type="button" onClick={saveProfile} style={primaryButtonStyle} disabled={savingProfile}>
               {savingProfile ? "Guardando..." : "Guardar datos"}
             </button>
-            <span style={{ fontSize: 11, color: "#94a3b8" }}>{profileForm.updatedAt ? `Actualizado: ${toInputDateLabel(profileForm.updatedAt)}` : "Sin guardar"}</span>
+            <span style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#94a3b8" }}>{profileForm.updatedAt ? `Actualizado: ${toInputDateLabel(profileForm.updatedAt)}` : "Sin guardar"}</span>
           </div>
           {profileFeedback && <div style={{ marginTop: 8, fontSize: 12, color: "#1d4ed8" }}>{profileFeedback}</div>}
         </div>
 
         <div
           style={{
-            background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
+            background: cardBg,
             border: "1px solid rgba(148,163,184,0.26)",
             borderRadius: 12,
             padding: 12,
           }}
         >
-          <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>Suscripcion y pagos</div>
-          <div style={{ fontSize: 12, color: "#334155", lineHeight: 1.65, marginBottom: 10 }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 8 }}>Suscripcion y pagos</div>
+          <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#334155", lineHeight: 1.65, marginBottom: 10 }}>
             Estado: <strong>{billingState?.status || "inactivo"}</strong><br />
             Proxima renovacion: <strong>{toInputDateLabel(billingState?.nextBillingDate)}</strong>
           </div>
@@ -341,13 +371,13 @@ export default function UserDashboardBilling({ panelStyle, currentUser }) {
 
       <div
         style={{
-          background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
+          background: cardBg,
           border: "1px solid rgba(148,163,184,0.26)",
           borderRadius: 12,
           padding: 12,
         }}
       >
-        <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>Facturas</div>
+        <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 8 }}>Facturas</div>
 
         {invoices.length === 0 ? (
           <div style={{ fontSize: 12, color: "#94a3b8" }}>Todavia no hay facturas registradas en tu cuenta.</div>
@@ -391,7 +421,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser }) {
                           Descargar PDF
                         </a>
                       ) : (
-                        <span style={{ color: "#64748b" }}>No disponible</span>
+                        <span style={{ color: isDark ? "#94a3b8" : "#64748b" }}>No disponible</span>
                       )}
                     </td>
                   </tr>
@@ -405,17 +435,6 @@ export default function UserDashboardBilling({ panelStyle, currentUser }) {
   );
 }
 
-const inputStyle = {
-  width: "100%",
-  background: "#ffffff",
-  border: "1px solid rgba(148,163,184,0.45)",
-  borderRadius: 8,
-  color: "#0f172a",
-  padding: "8px 10px",
-  fontSize: 12,
-  boxSizing: "border-box",
-};
-
 const primaryButtonStyle = {
   background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
   border: "none",
@@ -427,20 +446,3 @@ const primaryButtonStyle = {
   cursor: "pointer",
 };
 
-const secondaryButtonStyle = {
-  background: "rgba(255,255,255,0.95)",
-  border: "1px solid rgba(148,163,184,0.32)",
-  color: "#334155",
-  borderRadius: 10,
-  fontSize: 12,
-  fontWeight: 700,
-  padding: "10px 12px",
-  cursor: "pointer",
-};
-
-const tableCellStyle = {
-  padding: "8px",
-  fontSize: 12,
-  color: "#334155",
-  borderBottom: "1px solid rgba(148,163,184,0.2)",
-};

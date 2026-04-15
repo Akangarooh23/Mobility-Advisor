@@ -60,6 +60,7 @@ function buildSections(counts, newAlertMatchesCount = 0) {
 }
 
 export default function UserDashboardPage({
+  themeMode,
   centerStyle,
   blockBadgeStyle,
   panelStyle,
@@ -81,6 +82,7 @@ export default function UserDashboardPage({
   onLogout,
   onRequestAppointment,
   onOpenOffer,
+  onOpenMarketplaceOffer,
   onRemoveSavedComparison,
   onCreateMarketAlert,
   onRemoveMarketAlert,
@@ -92,6 +94,11 @@ export default function UserDashboardPage({
   formatCurrency,
   getSavedComparisonHref,
 }) {
+  const isDark = themeMode === "dark";
+  const cardBg = isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)";
+  const titleColor = isDark ? "#f8fafc" : "#0f172a";
+  const bodyColor = isDark ? "#cbd5e1" : "#475569";
+
   const dashboardVehicleCount = userVehicleSections.reduce((acc, section) => acc + section.items.length, 0);
   const counts = {
     saved: savedComparisons.length + (Array.isArray(marketAlerts) ? marketAlerts.length : 0),
@@ -114,12 +121,12 @@ export default function UserDashboardPage({
               fontWeight: 800,
               letterSpacing: "-1px",
               margin: "0 0 10px",
-              color: "#0f172a",
+              color: titleColor,
             }}
           >
             Mi espacio CarAdvisor
           </h2>
-          <p style={{ color: "#475569", fontSize: 14, lineHeight: 1.7, margin: 0, maxWidth: 760 }}>
+          <p style={{ color: bodyColor, fontSize: 14, lineHeight: 1.7, margin: 0, maxWidth: 760 }}>
             La vista actual funciona como el home de tu panel. Desde la navegación superior puedes entrar en
             cada sección y verla en su propia página dentro del área privada.
           </p>
@@ -169,9 +176,9 @@ export default function UserDashboardPage({
             type="button"
             onClick={onLogout}
             style={{
-              background: "rgba(255,255,255,0.9)",
+              background: cardBg,
               border: "1px solid rgba(148,163,184,0.3)",
-              color: "#334155",
+              color: isDark ? "#e2e8f0" : "#334155",
               padding: "11px 16px",
               borderRadius: 10,
               fontSize: 12,
@@ -200,9 +207,9 @@ export default function UserDashboardPage({
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 8,
-                  background: isActive ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "rgba(255,255,255,0.95)",
+                  background: isActive ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : cardBg,
                   border: isActive ? "none" : "1px solid rgba(148,163,184,0.26)",
-                  color: isActive ? "#eff6ff" : "#1e293b",
+                  color: isActive ? "#eff6ff" : isDark ? "#e2e8f0" : "#1e293b",
                   padding: "9px 12px",
                   borderRadius: 999,
                   fontSize: 12,
@@ -247,7 +254,9 @@ export default function UserDashboardPage({
         style={{
           ...panelStyle,
           marginBottom: 18,
-          background: "linear-gradient(135deg,rgba(37,99,235,0.12),rgba(255,255,255,0.96))",
+          background: isDark
+            ? "linear-gradient(135deg,rgba(37,99,235,0.24),rgba(15,23,42,0.9))"
+            : "linear-gradient(135deg,rgba(37,99,235,0.12),rgba(255,255,255,0.96))",
           border: "1px solid rgba(148,163,184,0.26)",
         }}
       >
@@ -256,10 +265,10 @@ export default function UserDashboardPage({
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
           <div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a" }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: titleColor }}>
               {activeUserDashboardSection.icon} {activeUserDashboardSection.title}
             </div>
-            <p style={{ margin: "6px 0 0", color: "#475569", fontSize: 13, lineHeight: 1.6, maxWidth: 760 }}>
+            <p style={{ margin: "6px 0 0", color: bodyColor, fontSize: 13, lineHeight: 1.6, maxWidth: 760 }}>
               {activeUserDashboardSection.description}
             </p>
           </div>
@@ -268,9 +277,9 @@ export default function UserDashboardPage({
               type="button"
               onClick={() => onNavigate("home")}
               style={{
-                background: "rgba(255,255,255,0.95)",
+                background: cardBg,
                 border: "1px solid rgba(148,163,184,0.3)",
-                color: "#334155",
+                color: isDark ? "#e2e8f0" : "#334155",
                 padding: "9px 12px",
                 borderRadius: 10,
                 fontSize: 12,
@@ -286,6 +295,7 @@ export default function UserDashboardPage({
 
       {userDashboardPage === "home" && (
         <UserDashboardHome
+          themeMode={themeMode}
           counts={counts}
           sections={sections}
           panelStyle={panelStyle}
@@ -301,6 +311,7 @@ export default function UserDashboardPage({
 
       {userDashboardPage === "saved" && (
         <UserDashboardSaved
+          themeMode={themeMode}
           savedComparisons={savedComparisons}
           marketAlerts={marketAlerts}
           marketAlertStatus={marketAlertStatus}
@@ -311,6 +322,7 @@ export default function UserDashboardPage({
           formatCurrency={formatCurrency}
           getSavedComparisonHref={getSavedComparisonHref}
           onOpenOffer={onOpenOffer}
+          onOpenMarketplaceOffer={onOpenMarketplaceOffer}
           onRemoveSavedComparison={onRemoveSavedComparison}
           onCreateMarketAlert={onCreateMarketAlert}
           onRemoveMarketAlert={onRemoveMarketAlert}
@@ -324,6 +336,7 @@ export default function UserDashboardPage({
 
       {userDashboardPage === "appointments" && (
         <UserDashboardAppointments
+          themeMode={themeMode}
           dashboardAppointments={dashboardAppointments}
           panelStyle={panelStyle}
           getOfferBadgeStyle={getOfferBadgeStyle}
@@ -333,6 +346,7 @@ export default function UserDashboardPage({
 
       {userDashboardPage === "valuations" && (
         <UserDashboardValuations
+          themeMode={themeMode}
           dashboardValuations={dashboardValuations}
           panelStyle={panelStyle}
           getOfferBadgeStyle={getOfferBadgeStyle}
@@ -341,6 +355,7 @@ export default function UserDashboardPage({
 
       {userDashboardPage === "vehicles" && (
         <UserDashboardVehicles
+          themeMode={themeMode}
           userVehicleSections={userVehicleSections}
           dashboardVehicleCount={dashboardVehicleCount}
           panelStyle={panelStyle}
@@ -350,6 +365,7 @@ export default function UserDashboardPage({
 
       {userDashboardPage === "billing" && (
         <UserDashboardBilling
+          themeMode={themeMode}
           panelStyle={panelStyle}
           currentUser={currentUser}
         />

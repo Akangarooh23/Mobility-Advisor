@@ -1,4 +1,5 @@
 export default function PortalVoMarketplacePage({
+  themeMode,
   styles,
   portalVoFilters,
   updatePortalVoFilter,
@@ -13,6 +14,12 @@ export default function PortalVoMarketplacePage({
   onOpenOffer,
   onGoHome,
 }) {
+  const isDark = themeMode === "dark";
+  const titleColor = isDark ? "#f1f5f9" : "#0f172a";
+  const bodyColor = isDark ? "#94a3b8" : "#475569";
+  const cardBg = isDark ? "rgba(15,23,42,0.34)" : "rgba(255,255,255,0.96)";
+  const cardBorder = isDark ? "1px solid rgba(148,163,184,0.16)" : "1px solid rgba(148,163,184,0.26)";
+
   return (
     <div style={styles.center}>
       <div style={{ ...styles.blockBadge("Vinculación"), marginBottom: 10 }}>🏪 MARKETPLACE VO DEL PORTAL</div>
@@ -22,12 +29,12 @@ export default function PortalVoMarketplacePage({
           fontWeight: 800,
           letterSpacing: "-1px",
           margin: "0 0 10px",
-          color: "#f1f5f9",
+          color: titleColor,
         }}
       >
         Ofertas VO únicas de nuestro portal
       </h2>
-      <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.7, margin: "0 0 16px" }}>
+      <p style={{ color: bodyColor, fontSize: 14, lineHeight: 1.7, margin: "0 0 16px" }}>
         Aquí ves un escaparate con vehículos publicados por usuarios del portal. Arriba priorizamos
         las unidades con mejor puntuación y <strong>sello de garantía CarAdvisor</strong>.
       </p>
@@ -132,7 +139,7 @@ export default function PortalVoMarketplacePage({
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginTop: 12 }}>
-          <label style={{ display: "inline-flex", gap: 8, alignItems: "center", fontSize: 12, color: "#dbeafe", cursor: "pointer" }}>
+          <label style={{ display: "inline-flex", gap: 8, alignItems: "center", fontSize: 12, color: isDark ? "#dbeafe" : "#334155", cursor: "pointer" }}>
             <input
               type="checkbox"
               checked={portalVoFilters.onlyGuaranteed}
@@ -144,9 +151,9 @@ export default function PortalVoMarketplacePage({
             type="button"
             onClick={onResetFilters}
             style={{
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              color: "#cbd5e1",
+              background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.95)",
+              border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(148,163,184,0.32)",
+              color: isDark ? "#cbd5e1" : "#475569",
               padding: "10px 14px",
               borderRadius: 10,
               fontSize: 12,
@@ -159,7 +166,7 @@ export default function PortalVoMarketplacePage({
       </div>
 
       <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 10, color: "#6ee7b7", marginBottom: 8, fontWeight: 800, letterSpacing: "0.6px" }}>
+        <div style={{ fontSize: 10, color: isDark ? "#6ee7b7" : "#059669", marginBottom: 8, fontWeight: 800, letterSpacing: "0.6px" }}>
           ⭐ MEJOR PUNTUADOS CON SELLO CARADVISOR
         </div>
         {featuredPortalVoOffers.length > 0 ? (
@@ -171,9 +178,11 @@ export default function PortalVoMarketplacePage({
                 title="Ver ficha completa"
                 style={{
                   position: "relative",
-                  background: "linear-gradient(135deg,rgba(22,163,74,0.16),rgba(16,185,129,0.08) 45%,rgba(5,150,105,0.16))",
-                  border: "1px solid rgba(74,222,128,0.55)",
-                  boxShadow: "0 10px 28px rgba(22,163,74,0.14)",
+                  background: isDark
+                    ? "linear-gradient(135deg,rgba(22,163,74,0.16),rgba(16,185,129,0.08) 45%,rgba(5,150,105,0.16))"
+                    : "linear-gradient(135deg,rgba(236,253,245,0.98),rgba(220,252,231,0.96) 45%,rgba(209,250,229,0.96))",
+                  border: isDark ? "1px solid rgba(74,222,128,0.55)" : "1px solid rgba(16,185,129,0.36)",
+                  boxShadow: isDark ? "0 10px 28px rgba(22,163,74,0.14)" : "0 10px 28px rgba(16,185,129,0.12)",
                   borderRadius: 14,
                   overflow: "hidden",
                   cursor: "pointer",
@@ -200,20 +209,20 @@ export default function PortalVoMarketplacePage({
                 </div>
                 <div style={{ padding: 12, position: "relative", zIndex: 1 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#f8fafc" }}>{offer.title}</div>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "#6ee7b7" }}>{offer.portalScore}/100</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>{offer.title}</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: isDark ? "#6ee7b7" : "#059669" }}>{offer.portalScore}/100</div>
                   </div>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
                     <span style={getOfferBadgeStyle("success")}>Sello de garantía</span>
                     <span style={getOfferBadgeStyle("info")}>{offer.warrantyMonths} meses</span>
                   </div>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: "#f8fafc", marginBottom: 6 }}>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 6 }}>
                     {formatCurrency(offer.price)}
                   </div>
-                  <div style={{ fontSize: 11, color: "#cbd5e1", lineHeight: 1.6 }}>
+                  <div style={{ fontSize: 11, color: isDark ? "#cbd5e1" : "#334155", lineHeight: 1.6 }}>
                     {offer.year} · {Number(offer.mileage).toLocaleString("es-ES")} km · {offer.location}
                   </div>
-                  <p style={{ margin: "8px 0 0", fontSize: 12, color: "#dbeafe", lineHeight: 1.6 }}>
+                  <p style={{ margin: "8px 0 0", fontSize: 12, color: isDark ? "#dbeafe" : "#334155", lineHeight: 1.6 }}>
                     {offer.description}
                   </p>
                 </div>
@@ -230,7 +239,7 @@ export default function PortalVoMarketplacePage({
           <div style={{ fontSize: 10, color: "#93c5fd", fontWeight: 800, letterSpacing: "0.6px" }}>
             🚗 TODAS LAS OFERTAS DEL PORTAL
           </div>
-          <div style={{ fontSize: 12, color: "#cbd5e1" }}>{filteredPortalVoOffers.length} resultados</div>
+          <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569" }}>{filteredPortalVoOffers.length} resultados</div>
         </div>
 
         {filteredPortalVoOffers.length > 0 ? (
@@ -241,8 +250,8 @@ export default function PortalVoMarketplacePage({
                 onClick={() => onOpenOffer(offer)}
                 title="Ver ficha completa"
                 style={{
-                  background: "rgba(15,23,42,0.34)",
-                  border: "1px solid rgba(148,163,184,0.16)",
+                  background: cardBg,
+                  border: cardBorder,
                   borderRadius: 14,
                   overflow: "hidden",
                   cursor: "pointer",
@@ -255,8 +264,8 @@ export default function PortalVoMarketplacePage({
                 />
                 <div style={{ padding: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#f8fafc" }}>{offer.title}</div>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "#34d399" }}>{formatCurrency(offer.price)}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>{offer.title}</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: isDark ? "#34d399" : "#059669" }}>{formatCurrency(offer.price)}</div>
                   </div>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
                     <span style={getOfferBadgeStyle(offer.hasGuaranteeSeal ? "success" : "neutral")}>
@@ -265,13 +274,13 @@ export default function PortalVoMarketplacePage({
                     <span style={getOfferBadgeStyle("info")}>{offer.color}</span>
                     <span style={getOfferBadgeStyle("info")}>{offer.displacement > 0 ? `${offer.displacement.toLocaleString("es-ES")} cc` : "EV"}</span>
                   </div>
-                  <div style={{ fontSize: 11, color: "#cbd5e1", lineHeight: 1.6 }}>
+                  <div style={{ fontSize: 11, color: isDark ? "#cbd5e1" : "#334155", lineHeight: 1.6 }}>
                     {offer.year} · {Number(offer.mileage).toLocaleString("es-ES")} km · {offer.location}
                   </div>
-                  <div style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.6, marginTop: 4 }}>
+                  <div style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#64748b", lineHeight: 1.6, marginTop: 4 }}>
                     {offer.fuel} · {offer.power} · vendedor: {offer.seller}
                   </div>
-                  <p style={{ margin: "8px 0 0", fontSize: 12, color: "#e2e8f0", lineHeight: 1.6 }}>
+                  <p style={{ margin: "8px 0 0", fontSize: 12, color: isDark ? "#e2e8f0" : "#334155", lineHeight: 1.6 }}>
                     {offer.description}
                   </p>
                 </div>
@@ -289,9 +298,9 @@ export default function PortalVoMarketplacePage({
         <button
           onClick={onGoHome}
           style={{
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            color: "#94a3b8",
+            background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.95)",
+            border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(148,163,184,0.32)",
+            color: isDark ? "#94a3b8" : "#475569",
             padding: "12px 20px",
             borderRadius: 10,
             fontSize: 13,

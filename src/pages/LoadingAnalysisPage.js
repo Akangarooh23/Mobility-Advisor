@@ -1,4 +1,6 @@
-export default function LoadingAnalysisPage({ styles, loadingTexts, loadingPhase }) {
+export default function LoadingAnalysisPage({ styles, loadingTexts, loadingPhase, themeMode }) {
+  const isDark = themeMode === "dark";
+
   return (
     <div style={{ ...styles.center, textAlign: "center" }}>
       <div
@@ -18,17 +20,17 @@ export default function LoadingAnalysisPage({ styles, loadingTexts, loadingPhase
       >
         🧠
       </div>
-      <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8, letterSpacing: "-0.5px" }}>
+      <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8, letterSpacing: "-0.5px", color: isDark ? "#f8fafc" : "#0f172a" }}>
         Analizando tu perfil de movilidad
       </h2>
-      <p style={{ color: "#64748b", fontSize: 14, marginBottom: 32 }}>
+      <p style={{ color: isDark ? "#cbd5e1" : "#64748b", fontSize: 14, marginBottom: 32 }}>
         Aplicando el marco de decisión estructurado a tus respuestas
       </p>
 
       <div
         style={{
-          background: "rgba(255,255,255,0.95)",
-          border: "1px solid rgba(148,163,184,0.24)",
+          background: isDark ? "rgba(15,23,42,0.85)" : "rgba(255,255,255,0.95)",
+          border: isDark ? "1px solid rgba(148,163,184,0.34)" : "1px solid rgba(148,163,184,0.24)",
           borderRadius: 12,
           padding: "14px 20px",
           marginBottom: 28,
@@ -40,7 +42,7 @@ export default function LoadingAnalysisPage({ styles, loadingTexts, loadingPhase
         }}
       >
         <span style={{ fontSize: 16 }}>⚙️</span>
-        <span style={{ fontSize: 13, color: "#475569" }}>{loadingTexts[loadingPhase]}</span>
+        <span style={{ fontSize: 13, color: isDark ? "#e2e8f0" : "#475569" }}>{loadingTexts[loadingPhase]}</span>
       </div>
 
       <div style={{ textAlign: "left", maxWidth: 320, margin: "0 auto 32px" }}>
@@ -61,10 +63,10 @@ export default function LoadingAnalysisPage({ styles, loadingTexts, loadingPhase
               transition: "opacity 0.5s",
             }}
           >
-            <span style={{ color: loadingPhase > i ? "#34d399" : "#475569", fontSize: 14 }}>
+            <span style={{ color: loadingPhase > i ? "#34d399" : isDark ? "#94a3b8" : "#475569", fontSize: 14 }}>
               {loadingPhase > i ? "✓" : "○"}
             </span>
-            <span style={{ fontSize: 13, color: loadingPhase > i ? "#334155" : "#64748b" }}>
+            <span style={{ fontSize: 13, color: loadingPhase > i ? (isDark ? "#e2e8f0" : "#334155") : isDark ? "#94a3b8" : "#64748b" }}>
               {item}
             </span>
           </div>

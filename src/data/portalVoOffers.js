@@ -332,7 +332,7 @@ export const PORTAL_VO_OFFERS = [
     year: 2023,
     mileage: 19800,
     location: "Madrid",
-    color: "Azul ravenna",
+    color: "Blanco",
     displacement: 1498,
     fuel: "Gasolina",
     power: "150 CV",

@@ -55,7 +55,7 @@ export default function LandingPage({
     const previousHtmlSnap = html.style.scrollSnapType;
     const previousHtmlBehavior = html.style.scrollBehavior;
 
-    if (!prefersReducedMotion) {
+    if (!prefersReducedMotion && !isMobileView) {
       const snapMode = "y proximity";
       html.style.scrollSnapType = snapMode;
       html.style.scrollBehavior = "smooth";
@@ -65,7 +65,7 @@ export default function LandingPage({
       html.style.scrollSnapType = previousHtmlSnap;
       html.style.scrollBehavior = previousHtmlBehavior;
     };
-  }, [prefersReducedMotion]);
+  }, [isMobileView, prefersReducedMotion]);
 
   const draftAnsweredSteps = Number(questionnaireDraft?.answeredSteps || 0);
   const draftTotalSteps = Number(questionnaireDraft?.totalSteps || totalSteps || 0);
@@ -75,9 +75,9 @@ export default function LandingPage({
   const planCardBasis = `calc((100% - ${(SERVICE_PLANS.length - 1) * 12}px) / ${SERVICE_PLANS.length})`;
   const [activeJourneyStep, setActiveJourneyStep] = useState(0);
   const sectionPadding = isMobileView ? "18px 12px" : "24px 20px";
-  const heroScale = useTransform(scrollYProgress, [0, 0.26], [1, isMobileView ? 1.03 : 1.11]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, isMobileView ? 0.42 : 0.18]);
-  const heroY = useTransform(scrollYProgress, [0, 0.28], [0, isMobileView ? -14 : -52]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.26], [1, isMobileView ? 1 : 1.11]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, isMobileView ? 1 : 0.18]);
+  const heroY = useTransform(scrollYProgress, [0, 0.28], [0, isMobileView ? 0 : -52]);
   const bgParallaxNear = useTransform(scrollYProgress, [0, 1], [0, isMobileView ? -38 : -92]);
   const bgParallaxFar = useTransform(scrollYProgress, [0, 1], [0, isMobileView ? 24 : 58]);
   const tiltHover = prefersReducedMotion || isMobileView
@@ -91,10 +91,11 @@ export default function LandingPage({
   const revealInView = prefersReducedMotion ? undefined : { opacity: 1, y: 0, scale: 1 };
   const revealViewport = prefersReducedMotion ? undefined : { once: true, amount: 0.26 };
   const showLightBackgroundFx = !isDark;
-  const panelMinHeight = isMobileView ? "88vh" : "96vh";
-  const panelRevealInitial = prefersReducedMotion ? false : { opacity: 0, y: 28, scale: 0.985 };
+  const panelMinHeight = isMobileView ? "auto" : "96vh";
+  const panelRevealInitial = prefersReducedMotion ? false : { opacity: 0, y: isMobileView ? 14 : 28, scale: isMobileView ? 0.995 : 0.985 };
   const panelRevealInView = prefersReducedMotion ? undefined : { opacity: 1, y: 0, scale: 1 };
-  const panelRevealViewport = prefersReducedMotion ? undefined : { once: true, amount: 0.18 };
+  const panelRevealViewport = prefersReducedMotion ? undefined : { once: true, amount: isMobileView ? 0.12 : 0.18 };
+  const mobilePanelSpacing = isMobileView ? 18 : 0;
   const draftCardTitleColor = isDark ? "#e2e8f0" : "#0f172a";
   const draftCardMetaColor = isDark ? "#cbd5e1" : "#334155";
 
@@ -247,6 +248,8 @@ export default function LandingPage({
           minHeight: panelMinHeight,
           display: "grid",
           alignContent: "center",
+          paddingTop: isMobileView ? 78 : 0,
+          paddingBottom: isMobileView ? 8 : 0,
           scrollSnapAlign: "start",
           scrollSnapStop: "normal",
         }}
@@ -530,6 +533,8 @@ export default function LandingPage({
           minHeight: panelMinHeight,
           display: "grid",
           alignContent: "center",
+          marginTop: mobilePanelSpacing,
+          paddingBottom: isMobileView ? 6 : 0,
           scrollSnapAlign: "start",
           scrollSnapStop: "normal",
         }}
@@ -777,6 +782,7 @@ export default function LandingPage({
           minHeight: panelMinHeight,
           display: "grid",
           alignContent: "center",
+          marginTop: mobilePanelSpacing,
           scrollSnapAlign: "start",
           scrollSnapStop: "normal",
         }}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AnimatePresence, LazyMotion, domAnimation, m, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { PLAN_COMPARISON_ROWS, PRICING_SECTION_COPY, SERVICE_PLANS } from "../data/servicePlans";
 
 export default function LandingPage({
@@ -28,6 +29,8 @@ export default function LandingPage({
     }
     return window.innerWidth < 768;
   });
+  const prefersReducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll();
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -52,6 +55,12 @@ export default function LandingPage({
   const [activeJourneyStep, setActiveJourneyStep] = useState(0);
   const sectionGap = isMobileView ? 44 : 72;
   const sectionPadding = isMobileView ? "18px 12px" : "24px 20px";
+  const heroScale = useTransform(scrollYProgress, [0, 0.26], [1, isMobileView ? 1.03 : 1.11]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, isMobileView ? 0.42 : 0.18]);
+  const heroY = useTransform(scrollYProgress, [0, 0.28], [0, isMobileView ? -14 : -52]);
+  const tiltHover = prefersReducedMotion || isMobileView
+    ? {}
+    : { rotateX: 8, rotateY: -8, scale: 1.025, y: -6 };
 
   const experienceSteps = [
     {
@@ -119,8 +128,9 @@ export default function LandingPage({
   };
 
   return (
-    <div style={{ ...styles.center, maxWidth: 1280, textAlign: "center" }}>
-      <div
+    <LazyMotion features={domAnimation}>
+      <div style={{ ...styles.center, maxWidth: 1280, textAlign: "center", position: "relative", overflow: "hidden" }}>
+      <m.div
         style={{
           display: "inline-flex",
           alignItems: "center",
@@ -133,11 +143,15 @@ export default function LandingPage({
           color: "#60a5fa",
           marginBottom: 28,
           letterSpacing: "0.6px",
+          position: "relative",
+          zIndex: 1,
+          y: prefersReducedMotion ? 0 : heroY,
+          opacity: prefersReducedMotion ? 1 : heroOpacity,
         }}
       >
         🧠 ASESOR INTELIGENTE DE MOVILIDAD · ESPAÑA
-      </div>
-      <h1
+      </m.div>
+      <m.h1
         style={{
           fontSize: "clamp(24px,4.8vw,42px)",
           fontWeight: 800,
@@ -146,11 +160,16 @@ export default function LandingPage({
           color: titleColor,
           lineHeight: 1.1,
           maxWidth: 860,
+          position: "relative",
+          zIndex: 1,
+          y: prefersReducedMotion ? 0 : heroY,
+          scale: prefersReducedMotion ? 1 : heroScale,
+          opacity: prefersReducedMotion ? 1 : heroOpacity,
         }}
       >
         Te ayudamos a encontrar el coche usado con mejor relación calidad precio y que el proceso
         de compra y venta sea fiable, transparente y rentable.
-      </h1>
+      </m.h1>
 
       {showResumeAdvice && (
         <div
@@ -202,7 +221,7 @@ export default function LandingPage({
           </button>
         </div>
       )}
-      <section
+      <m.section
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,260px),1fr))",
@@ -211,79 +230,123 @@ export default function LandingPage({
           textAlign: "left",
           paddingBottom: isMobileView ? 22 : 28,
           borderBottom: "1px solid rgba(148,163,184,0.16)",
+          position: "relative",
+          zIndex: 1,
         }}
       >
-        <button
-          onClick={onSelectVehicle}
-          className="ma-card-interactive ma-fade-stagger"
+        <m.div
           style={{
-            ...styles.card(false),
-            padding: 22,
-            background: "rgba(37,99,235,0.08)",
-            border: "1px solid rgba(37,99,235,0.22)",
-            animationDelay: "40ms",
+            display: "flex",
+            perspective: 1000,
           }}
+          whileHover={tiltHover}
+          transition={{ type: "spring", stiffness: 220, damping: 20 }}
         >
-          <span style={{ fontSize: 28, minWidth: 40 }}>🚗</span>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 19, color: titleColor, marginBottom: 6 }}>
-              Quiero un vehículo
+          <button
+            onClick={onSelectVehicle}
+            className="ma-card-interactive ma-fade-stagger"
+            style={{
+              ...styles.card(false),
+              transformStyle: "preserve-3d",
+              width: "100%",
+              height: "100%",
+              padding: 22,
+              background: "rgba(37,99,235,0.08)",
+              border: "1px solid rgba(37,99,235,0.22)",
+              animationDelay: "40ms",
+            }}
+          >
+            <span style={{ fontSize: 28, minWidth: 40 }}>🚗</span>
+            <div style={{ transform: "translateZ(24px)" }}>
+              <div style={{ fontWeight: 700, fontSize: 19, color: titleColor, marginBottom: 6 }}>
+                Quiero un vehículo
+              </div>
+              <div style={{ fontSize: 13, color: mutedColor, lineHeight: 1.6 }}>
+                Índicanos si quieres comprar, alquilar o quieres que te guiemos en la mejor solución
+                para ti.
+              </div>
             </div>
-            <div style={{ fontSize: 13, color: mutedColor, lineHeight: 1.6 }}>
-              Índicanos si quieres comprar, alquilar o quieres que te guiemos en la mejor solución
-              para ti.
-            </div>
-          </div>
-        </button>
+          </button>
+        </m.div>
 
-        <button
-          onClick={onSelectSell}
-          className="ma-card-interactive ma-fade-stagger"
+        <m.div
           style={{
-            ...styles.card(false),
-            padding: 22,
-            background: "rgba(5,150,105,0.08)",
-            border: "1px solid rgba(5,150,105,0.22)",
-            animationDelay: "120ms",
+            display: "flex",
+            perspective: 1000,
           }}
+          whileHover={tiltHover}
+          transition={{ type: "spring", stiffness: 220, damping: 20 }}
         >
-          <span style={{ fontSize: 28, minWidth: 40 }}>💶</span>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 19, color: titleColor, marginBottom: 6 }}>
-              Quiero vender mi coche
+          <button
+            onClick={onSelectSell}
+            className="ma-card-interactive ma-fade-stagger"
+            style={{
+              ...styles.card(false),
+              transformStyle: "preserve-3d",
+              width: "100%",
+              height: "100%",
+              padding: 22,
+              background: "rgba(5,150,105,0.08)",
+              border: "1px solid rgba(5,150,105,0.22)",
+              animationDelay: "120ms",
+            }}
+          >
+            <span style={{ fontSize: 28, minWidth: 40 }}>💶</span>
+            <div style={{ transform: "translateZ(24px)" }}>
+              <div style={{ fontWeight: 700, fontSize: 19, color: titleColor, marginBottom: 6 }}>
+                Quiero vender mi coche
+              </div>
+              <div style={{ fontSize: 13, color: mutedColor, lineHeight: 1.6 }}>
+                ¿Cansado de que los concesionarios te ofrezcan mucho menos de lo que vale tu coche?
+                Te ayudamos a que ganes más.
+              </div>
             </div>
-            <div style={{ fontSize: 13, color: mutedColor, lineHeight: 1.6 }}>
-              ¿Cansado de que los concesionarios te ofrezcan mucho menos de lo que vale tu coche?
-              Te ayudamos a que ganes más.
-            </div>
-          </div>
-        </button>
+          </button>
+        </m.div>
 
-        <button
-          onClick={onSelectService}
-          className="ma-card-interactive ma-fade-stagger"
+        <m.div
           style={{
-            ...styles.card(false),
-            padding: 22,
-            background: "rgba(217,119,6,0.08)",
-            border: "1px solid rgba(217,119,6,0.22)",
-            animationDelay: "200ms",
+            display: "flex",
+            perspective: 1000,
           }}
+          whileHover={tiltHover}
+          transition={{ type: "spring", stiffness: 220, damping: 20 }}
         >
-          <span style={{ fontSize: 28, minWidth: 40 }}>🛠️</span>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 19, color: titleColor, marginBottom: 6 }}>
-              Quiero contratar un Servicio
+          <button
+            onClick={onSelectService}
+            className="ma-card-interactive ma-fade-stagger"
+            style={{
+              ...styles.card(false),
+              transformStyle: "preserve-3d",
+              width: "100%",
+              height: "100%",
+              padding: 22,
+              background: "rgba(217,119,6,0.08)",
+              border: "1px solid rgba(217,119,6,0.22)",
+              animationDelay: "200ms",
+            }}
+          >
+            <span style={{ fontSize: 28, minWidth: 40 }}>🛠️</span>
+            <div style={{ transform: "translateZ(24px)" }}>
+              <div style={{ fontWeight: 700, fontSize: 19, color: titleColor, marginBottom: 6 }}>
+                Quiero contratar un Servicio
+              </div>
+              <div style={{ fontSize: 13, color: mutedColor, lineHeight: 1.6 }}>
+                Únete a una nueva era en la automoción y aprovecha las economías de escala de una empresa
+                en la unión de los particulares.
+              </div>
             </div>
-            <div style={{ fontSize: 13, color: mutedColor, lineHeight: 1.6 }}>
-              Únete a una nueva era en la automoción y aprovecha las economías de escala de una empresa
-              en la unión de los particulares.
-            </div>
-          </div>
-        </button>
-      </section>
+          </button>
+        </m.div>
+      </m.section>
 
-      <div style={{ marginTop: 20, display: "flex", justifyContent: "center" }}>
+      <div
+        style={{
+          marginTop: 20,
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
         <button
           type="button"
           onClick={onSelectPortalVo}
@@ -311,7 +374,7 @@ export default function LandingPage({
         Sin registro · Sin tarjeta · ~5 minutos
       </p>
 
-      <section
+      <m.section
         className="ma-fade-stagger"
         style={{
           marginTop: sectionGap,
@@ -322,6 +385,8 @@ export default function LandingPage({
             "radial-gradient(100% 160% at 5% 0%, rgba(56,189,248,0.14), rgba(56,189,248,0) 45%), radial-gradient(120% 120% at 100% 0%, rgba(52,211,153,0.12), rgba(52,211,153,0) 42%), linear-gradient(150deg, rgba(15,23,42,0.88), rgba(2,6,23,0.9))",
           padding: sectionPadding,
           animationDelay: "280ms",
+          position: "relative",
+          zIndex: 1,
         }}
       >
         <div style={{ textAlign: "center", marginBottom: 18 }}>
@@ -366,7 +431,12 @@ export default function LandingPage({
             alignItems: "stretch",
           }}
         >
-          <div style={{ display: "grid", gap: 10 }}>
+          <m.div
+            style={{
+              display: "grid",
+              gap: 10,
+            }}
+          >
             {experienceSteps.map((step, index) => (
               <button
                 key={step.id}
@@ -405,9 +475,9 @@ export default function LandingPage({
                 </div>
               </button>
             ))}
-          </div>
+          </m.div>
 
-          <article
+          <m.article
             className="ma-card-interactive"
             style={{
               borderRadius: 16,
@@ -419,98 +489,109 @@ export default function LandingPage({
               alignContent: "start",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.6px", color: activeExperience.accent }}>
-                  DETALLE DE LA FASE ACTIVA
-                </div>
-                <div style={{ marginTop: 4, fontSize: "clamp(18px,3.2vw,24px)", fontWeight: 800, color: "#f8fafc", lineHeight: 1.2 }}>
-                  {activeExperience.title}
-                </div>
-              </div>
-              <div
-                style={{
-                  borderRadius: 12,
-                  border: `1px solid ${activeExperience.accent}66`,
-                  background: "rgba(15,23,42,0.72)",
-                  padding: "8px 10px",
-                  minWidth: isMobileView ? "100%" : 170,
-                  textAlign: isMobileView ? "left" : "center",
-                }}
+            <AnimatePresence mode="wait" initial={false}>
+              <m.div
+                key={activeExperience.id}
+                initial={{ opacity: 0, y: 22 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -22 }}
+                transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                style={{ display: "grid", gap: 12 }}
               >
-                <div style={{ fontSize: 18, fontWeight: 800, color: "#f8fafc", lineHeight: 1.1 }}>
-                  {activeExperience.metric}
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.6px", color: activeExperience.accent }}>
+                      DETALLE DE LA FASE ACTIVA
+                    </div>
+                    <div style={{ marginTop: 4, fontSize: "clamp(18px,3.2vw,24px)", fontWeight: 800, color: "#f8fafc", lineHeight: 1.2 }}>
+                      {activeExperience.title}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      borderRadius: 12,
+                      border: `1px solid ${activeExperience.accent}66`,
+                      background: "rgba(15,23,42,0.72)",
+                      padding: "8px 10px",
+                      minWidth: isMobileView ? "100%" : 170,
+                      textAlign: isMobileView ? "left" : "center",
+                    }}
+                  >
+                    <div style={{ fontSize: 18, fontWeight: 800, color: "#f8fafc", lineHeight: 1.1 }}>
+                      {activeExperience.metric}
+                    </div>
+                    <div style={{ fontSize: 11, color: "#93c5fd", marginTop: 3 }}>
+                      {activeExperience.metricLabel}
+                    </div>
+                  </div>
                 </div>
-                <div style={{ fontSize: 11, color: "#93c5fd", marginTop: 3 }}>
-                  {activeExperience.metricLabel}
+
+                <div style={{ fontSize: 13, color: "#cbd5e1", lineHeight: 1.65 }}>
+                  {activeExperience.description}
                 </div>
-              </div>
-            </div>
 
-            <div style={{ fontSize: 13, color: "#cbd5e1", lineHeight: 1.65 }}>
-              {activeExperience.description}
-            </div>
-
-            <div style={{ display: "grid", gap: 7 }}>
-              {activeExperience.highlights.map((item) => (
-                <div
-                  key={item}
-                  className="ma-card-soft"
-                  style={{
-                    borderRadius: 10,
-                    border: "1px solid rgba(148,163,184,0.2)",
-                    background: "rgba(15,23,42,0.55)",
-                    padding: "9px 10px",
-                    color: "#dbeafe",
-                    fontSize: 12,
-                    lineHeight: 1.5,
-                  }}
-                >
-                  <span style={{ color: activeExperience.accent, marginRight: 8 }}>✓</span>
-                  {item}
+                <div style={{ display: "grid", gap: 7 }}>
+                  {activeExperience.highlights.map((item) => (
+                    <div
+                      key={item}
+                      className="ma-card-soft"
+                      style={{
+                        borderRadius: 10,
+                        border: "1px solid rgba(148,163,184,0.2)",
+                        background: "rgba(15,23,42,0.55)",
+                        padding: "9px 10px",
+                        color: "#dbeafe",
+                        fontSize: 12,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      <span style={{ color: activeExperience.accent, marginRight: 8 }}>✓</span>
+                      {item}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 2 }}>
-              <button
-                type="button"
-                className="ma-card-soft"
-                onClick={() => handleExperienceAction(activeExperience.actionKey)}
-                style={{
-                  border: "none",
-                  borderRadius: 10,
-                  padding: "10px 14px",
-                  background: "linear-gradient(135deg,#2563eb,#0ea5e9)",
-                  color: "#ffffff",
-                  fontSize: 12,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                }}
-              >
-                {activeExperience.actionLabel}
-              </button>
-              <button
-                type="button"
-                className="ma-card-soft"
-                onClick={onSelectPortalVo}
-                style={{
-                  border: "1px solid rgba(148,163,184,0.28)",
-                  borderRadius: 10,
-                  padding: "10px 14px",
-                  background: "rgba(15,23,42,0.55)",
-                  color: "#e2e8f0",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                Ver marketplace VO
-              </button>
-            </div>
-          </article>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 2 }}>
+                  <button
+                    type="button"
+                    className="ma-card-soft"
+                    onClick={() => handleExperienceAction(activeExperience.actionKey)}
+                    style={{
+                      border: "none",
+                      borderRadius: 10,
+                      padding: "10px 14px",
+                      background: "linear-gradient(135deg,#2563eb,#0ea5e9)",
+                      color: "#ffffff",
+                      fontSize: 12,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {activeExperience.actionLabel}
+                  </button>
+                  <button
+                    type="button"
+                    className="ma-card-soft"
+                    onClick={onSelectPortalVo}
+                    style={{
+                      border: "1px solid rgba(148,163,184,0.28)",
+                      borderRadius: 10,
+                      padding: "10px 14px",
+                      background: "rgba(15,23,42,0.55)",
+                      color: "#e2e8f0",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Ver marketplace VO
+                  </button>
+                </div>
+              </m.div>
+            </AnimatePresence>
+          </m.article>
         </div>
-      </section>
+      </m.section>
 
       <section
         style={{
@@ -759,5 +840,6 @@ export default function LandingPage({
         ))}
       </div>
     </div>
+    </LazyMotion>
   );
 }

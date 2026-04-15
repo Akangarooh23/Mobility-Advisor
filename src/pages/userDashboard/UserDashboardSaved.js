@@ -66,6 +66,7 @@ function mapCatalogBrandsFromApi(payload = null) {
 
 export default function UserDashboardSaved({
   themeMode,
+  isMobile = false,
   savedComparisons,
   marketAlerts = [],
   marketAlertStatus = {},
@@ -291,7 +292,7 @@ export default function UserDashboardSaved({
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
           <div style={{ fontSize: 11, color: "#60a5fa", letterSpacing: "0.6px" }}>RECOMENDACIONES GUARDADAS</div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: titleText }}>Tus comparativas, ofertas favoritas y alertas</div>
+          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: titleText }}>Tus comparativas, ofertas favoritas y alertas</div>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <span style={{ ...getOfferBadgeStyle("info"), fontSize: 11 }}>{savedComparisons.length} guardadas</span>
@@ -364,7 +365,7 @@ export default function UserDashboardSaved({
             gap: 10,
           }}
         >
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 10 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(150px,1fr))", gap: 10 }}>
             {[
               ["Guardadas", savedComparisons.length, "#60a5fa"],
               ["Alertas activas", marketAlerts.length, "#34d399"],
@@ -385,7 +386,7 @@ export default function UserDashboardSaved({
             ))}
           </div>
 
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", width: isMobile ? "100%" : "auto" }}>
             <button
               type="button"
               onClick={() => onBrowseMarketplace()}
@@ -398,6 +399,7 @@ export default function UserDashboardSaved({
                 fontSize: 12,
                 fontWeight: 800,
                 cursor: "pointer",
+                width: isMobile ? "100%" : "auto",
               }}
             >
               Explorar marketplace VO
@@ -414,6 +416,7 @@ export default function UserDashboardSaved({
                 fontSize: 12,
                 fontWeight: 800,
                 cursor: "pointer",
+                width: isMobile ? "100%" : "auto",
               }}
             >
               {showAlertForm ? "Cerrar creación de alerta" : "Crear alerta de mercado"}
@@ -447,7 +450,7 @@ export default function UserDashboardSaved({
                       {item.monthlyTotal > 0 ? `${formatCurrency(item.monthlyTotal)}/mes` : item.budgetLabel || "Sin cuota definida"}
                     </div>
                   </div>
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", width: isMobile ? "100%" : "auto" }}>
                     {savedOfferHref && (
                       <button
                         type="button"
@@ -461,6 +464,7 @@ export default function UserDashboardSaved({
                           fontSize: 11,
                           fontWeight: 700,
                           cursor: "pointer",
+                          width: isMobile ? "100%" : "auto",
                         }}
                       >
                         Abrir oferta ↗
@@ -478,6 +482,7 @@ export default function UserDashboardSaved({
                         fontSize: 11,
                         fontWeight: 700,
                         cursor: "pointer",
+                          width: isMobile ? "100%" : "auto",
                       }}
                     >
                       Crear alerta similar
@@ -494,6 +499,7 @@ export default function UserDashboardSaved({
                         fontSize: 11,
                         fontWeight: 700,
                         cursor: "pointer",
+                          width: isMobile ? "100%" : "auto",
                       }}
                     >
                       Quitar
@@ -545,7 +551,7 @@ export default function UserDashboardSaved({
 
         {showCatalogAdmin && (
           <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
-            <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))" }}>
+            <div style={{ display: "grid", gap: 10, gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(180px,1fr))" }}>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
                 Marca existente
                 <select
@@ -597,7 +603,7 @@ export default function UserDashboardSaved({
               </label>
             </div>
 
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", width: isMobile ? "100%" : "auto" }}>
               <button
                 type="button"
                 disabled={catalogAdminLoading || !String(catalogAdminForm.newBrand || "").trim()}
@@ -611,6 +617,7 @@ export default function UserDashboardSaved({
                   fontSize: 11,
                   fontWeight: 700,
                   cursor: catalogAdminLoading ? "progress" : "pointer",
+                  width: isMobile ? "100%" : "auto",
                 }}
               >
                 Añadir marca
@@ -628,6 +635,7 @@ export default function UserDashboardSaved({
                   fontSize: 11,
                   fontWeight: 700,
                   cursor: catalogAdminLoading ? "progress" : "pointer",
+                  width: isMobile ? "100%" : "auto",
                 }}
               >
                 Añadir modelo
@@ -645,6 +653,7 @@ export default function UserDashboardSaved({
                   fontSize: 11,
                   fontWeight: 700,
                   cursor: catalogAdminLoading ? "progress" : "pointer",
+                  width: isMobile ? "100%" : "auto",
                 }}
               >
                 Quitar modelo
@@ -662,6 +671,7 @@ export default function UserDashboardSaved({
                   fontSize: 11,
                   fontWeight: 700,
                   cursor: catalogAdminLoading ? "progress" : "pointer",
+                  width: isMobile ? "100%" : "auto",
                 }}
               >
                 Quitar marca
@@ -696,7 +706,7 @@ export default function UserDashboardSaved({
               Activa alertas para compra o renting por marca, modelo, precio, kilometraje, combustible, localización o color.
             </div>
           </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", width: isMobile ? "100%" : "auto" }}>
             <button
               type="button"
               onClick={onSendAlertEmailDigest}
@@ -711,6 +721,7 @@ export default function UserDashboardSaved({
                 fontWeight: 800,
                 cursor: emailAlertCount > 0 && !emailDigestLoading ? "pointer" : "not-allowed",
                 opacity: emailAlertCount > 0 || emailDigestLoading ? 1 : 0.82,
+                width: isMobile ? "100%" : "auto",
               }}
             >
               {emailDigestLoading ? "Enviando…" : "Enviar resumen por email"}
@@ -727,6 +738,7 @@ export default function UserDashboardSaved({
                 fontSize: 12,
                 fontWeight: 800,
                 cursor: "pointer",
+                width: isMobile ? "100%" : "auto",
               }}
             >
               {showAlertForm ? "Cerrar" : "Añadir alerta"}
@@ -735,7 +747,7 @@ export default function UserDashboardSaved({
         </div>
 
         {showAlertForm && (
-          <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", marginBottom: 12 }}>
+          <div style={{ display: "grid", gap: 10, gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(180px,1fr))", marginBottom: 12 }}>
             <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
               Tipo de oferta
               <select value={alertForm.mode} onChange={(event) => updateAlertField("mode", event.target.value)} style={{ background: inputBg, color: inputText, border: "1px solid rgba(148,163,184,0.45)", borderRadius: 10, padding: "10px 12px" }}>
@@ -859,6 +871,7 @@ export default function UserDashboardSaved({
                 fontSize: 12,
                 fontWeight: 800,
                 cursor: "pointer",
+                width: isMobile ? "100%" : "auto",
               }}
             >
               Guardar alerta
@@ -1054,7 +1067,7 @@ export default function UserDashboardSaved({
                         )}
                       </div>
                     </div>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", width: isMobile ? "100%" : "auto" }}>
                       {alertMatchInfo.count > 0 && newMatchesCount > 0 && (
                         <button
                           type="button"
@@ -1068,6 +1081,7 @@ export default function UserDashboardSaved({
                             fontSize: 11,
                             fontWeight: 700,
                             cursor: "pointer",
+                            width: isMobile ? "100%" : "auto",
                           }}
                         >
                           Marcar como revisada
@@ -1088,6 +1102,7 @@ export default function UserDashboardSaved({
                           fontSize: 11,
                           fontWeight: 700,
                           cursor: "pointer",
+                          width: isMobile ? "100%" : "auto",
                         }}
                       >
                         Explorar en marketplace
@@ -1104,6 +1119,7 @@ export default function UserDashboardSaved({
                           fontSize: 11,
                           fontWeight: 700,
                           cursor: "pointer",
+                          width: isMobile ? "100%" : "auto",
                         }}
                       >
                         Eliminar alerta

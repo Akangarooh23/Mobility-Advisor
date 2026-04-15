@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import UserDashboardBilling from "./UserDashboardBilling";
 import UserDashboardHome from "./UserDashboardHome";
 import UserDashboardOperations from "./UserDashboardOperations";
@@ -80,6 +81,7 @@ export default function UserDashboardPage({
   onRestart,
   onLogout,
   onRequestAppointment,
+  onRequestValuation = () => {},
   onOpenOffer,
   onOpenMarketplaceOffer,
   onRemoveSavedComparison,
@@ -93,6 +95,27 @@ export default function UserDashboardPage({
   formatCurrency,
   getSavedComparisonHref,
 }) {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return window.innerWidth < 900;
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 900);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const isDark = themeMode === "dark";
   const cardBg = isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)";
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
@@ -127,7 +150,7 @@ export default function UserDashboardPage({
         style={{
           ...sectionShell,
           marginBottom: 18,
-          padding: 18,
+          padding: isMobile ? 12 : 18,
           background: isDark
             ? "radial-gradient(1200px 380px at -10% -30%, rgba(37,99,235,0.34), rgba(15,23,42,0.96))"
             : "radial-gradient(1200px 380px at -10% -30%, rgba(147,197,253,0.52), rgba(255,255,255,0.98))",
@@ -137,7 +160,7 @@ export default function UserDashboardPage({
         <div>
           <h2
             style={{
-              fontSize: "clamp(24px,4vw,34px)",
+              fontSize: isMobile ? "clamp(22px,8vw,28px)" : "clamp(24px,4vw,34px)",
               fontWeight: 800,
               letterSpacing: "-1.2px",
               margin: "0 0 8px",
@@ -146,7 +169,7 @@ export default function UserDashboardPage({
           >
             Mi espacio CarAdvisor
           </h2>
-          <p style={{ color: bodyColor, fontSize: 14, lineHeight: 1.7, margin: 0, maxWidth: 760, fontWeight: 500 }}>
+          <p style={{ color: bodyColor, fontSize: isMobile ? 13 : 14, lineHeight: 1.7, margin: 0, maxWidth: 760, fontWeight: 500 }}>
             Panel unificado para gestionar oportunidades, operaciones, vehículos y cuenta en un solo flujo.
           </p>
           {currentUser?.email && (
@@ -155,7 +178,7 @@ export default function UserDashboardPage({
             </div>
           )}
         </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", width: isMobile ? "100%" : "auto" }}>
           {newAlertMatchesCount > 0 && (
             <button
               type="button"
@@ -165,12 +188,13 @@ export default function UserDashboardPage({
                 background: "linear-gradient(135deg,rgba(16,185,129,0.24),rgba(5,150,105,0.18))",
                 border: "1px solid rgba(110,231,183,0.28)",
                 color: "#065f46",
-                padding: "11px 16px",
+                padding: "11px 14px",
                 borderRadius: 12,
                 fontSize: 12,
                 fontWeight: 800,
                 cursor: "pointer",
                 boxShadow: "0 10px 20px rgba(5,150,105,0.18)",
+                width: isMobile ? "100%" : "auto",
               }}
             >
               🔔 {newAlertMatchesCount} {newAlertMatchesCount === 1 ? "novedad" : "novedades"} en alertas
@@ -183,12 +207,13 @@ export default function UserDashboardPage({
               background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
               border: "none",
               color: "#ffffff",
-              padding: "11px 16px",
+              padding: "11px 14px",
               borderRadius: 12,
               fontSize: 12,
               fontWeight: 800,
               cursor: "pointer",
               boxShadow: "0 12px 24px rgba(29,78,216,0.24)",
+              width: isMobile ? "100%" : "auto",
             }}
           >
             ⌂ Volver al inicio
@@ -200,10 +225,11 @@ export default function UserDashboardPage({
               background: cardBg,
               border: "1px solid rgba(148,163,184,0.3)",
               color: isDark ? "#e2e8f0" : "#334155",
-              padding: "11px 16px",
+              padding: "11px 14px",
               borderRadius: 12,
               fontSize: 12,
               cursor: "pointer",
+              width: isMobile ? "100%" : "auto",
             }}
           >
             Cerrar sesión
@@ -211,7 +237,7 @@ export default function UserDashboardPage({
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(6,minmax(0,1fr))", gap: 10 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,minmax(0,1fr))" : "repeat(6,minmax(0,1fr))", gap: 10 }}>
         {topNavSections
           .map((section) => (
             <button
@@ -222,7 +248,7 @@ export default function UserDashboardPage({
                 background: isDark ? "rgba(15,23,42,0.76)" : "rgba(255,255,255,0.9)",
                 border: isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(37,99,235,0.32)",
                 borderRadius: 16,
-                padding: "11px 11px 10px",
+                padding: isMobile ? "10px" : "11px 11px 10px",
                 textAlign: "left",
                 cursor: "pointer",
                 boxShadow: isDark
@@ -252,6 +278,7 @@ export default function UserDashboardPage({
           themeMode={themeMode}
           counts={counts}
           panelStyle={panelStyle}
+          isMobile={isMobile}
           newAlertMatchesCount={newAlertMatchesCount}
           pendingAlertNotifications={pendingAlertNotifications}
           emailDigestFeedback={emailDigestFeedback}
@@ -265,6 +292,7 @@ export default function UserDashboardPage({
       {userDashboardPage === "saved" && (
         <UserDashboardSaved
           themeMode={themeMode}
+          isMobile={isMobile}
           savedComparisons={savedComparisons}
           marketAlerts={marketAlerts}
           marketAlertStatus={marketAlertStatus}
@@ -290,11 +318,15 @@ export default function UserDashboardPage({
       {(userDashboardPage === "appointments" || userDashboardPage === "valuations") && (
         <UserDashboardOperations
           themeMode={themeMode}
+          isMobile={isMobile}
           dashboardAppointments={dashboardAppointments}
           dashboardValuations={dashboardValuations}
           panelStyle={panelStyle}
           getOfferBadgeStyle={getOfferBadgeStyle}
           onRequestAppointment={onRequestAppointment}
+          onRequestValuation={onRequestValuation}
+          onNavigate={onNavigate}
+          currentUserEmail={currentUser?.email || ""}
           initialTab={userDashboardPage === "valuations" ? "valuations" : "appointments"}
         />
       )}
@@ -302,6 +334,7 @@ export default function UserDashboardPage({
       {userDashboardPage === "vehicles" && (
         <UserDashboardVehicles
           themeMode={themeMode}
+          isMobile={isMobile}
           userVehicleSections={userVehicleSections}
           dashboardVehicleCount={dashboardVehicleCount}
           panelStyle={panelStyle}
@@ -316,6 +349,7 @@ export default function UserDashboardPage({
       {userDashboardPage === "billing" && (
         <UserDashboardBilling
           themeMode={themeMode}
+          isMobile={isMobile}
           panelStyle={panelStyle}
           currentUser={currentUser}
         />

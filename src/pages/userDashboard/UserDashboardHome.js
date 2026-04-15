@@ -1,5 +1,6 @@
 export default function UserDashboardHome({
   themeMode,
+  isMobile = false,
   counts,
   panelStyle,
   newAlertMatchesCount = 0,
@@ -36,7 +37,7 @@ export default function UserDashboardHome({
 
   return (
     <>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 12, marginBottom: 18 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,minmax(0,1fr))" : "repeat(auto-fit,minmax(150px,1fr))", gap: 12, marginBottom: 18 }}>
         {stats.map((item) => (
           <div
             key={item.label}
@@ -44,11 +45,11 @@ export default function UserDashboardHome({
               background: cardBg,
               border: panelBorder,
               borderRadius: 16,
-              padding: 16,
+              padding: isMobile ? 12 : 16,
               boxShadow: homeCardShadow,
             }}
           >
-            <div style={{ fontSize: 28, fontWeight: 800, color: item.color, letterSpacing: "-0.7px" }}>{item.value}</div>
+            <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 800, color: item.color, letterSpacing: "-0.7px" }}>{item.value}</div>
             <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#334155", marginTop: 4 }}>{item.label}</div>
             {item.label === "Guardadas" && newAlertMatchesCount > 0 && (
               <div style={{ fontSize: 11, color: "#047857", marginTop: 6, fontWeight: 700 }}>
@@ -76,7 +77,7 @@ export default function UserDashboardHome({
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>🔔 Mercado bajo vigilancia</div>
+            <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>🔔 Mercado bajo vigilancia</div>
             <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#334155", marginTop: 4, lineHeight: 1.6 }}>
               {pendingAlertNotifications.length > 0
                 ? `Tienes ${newAlertMatchesCount} ${newAlertMatchesCount === 1 ? "novedad pendiente" : "novedades pendientes"} en tus alertas.`
@@ -88,7 +89,7 @@ export default function UserDashboardHome({
               </div>
             )}
           </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", width: isMobile ? "100%" : "auto" }}>
             <button
               type="button"
               onClick={() => onNavigate("saved")}
@@ -101,6 +102,7 @@ export default function UserDashboardHome({
                 fontSize: 12,
                 fontWeight: 800,
                 cursor: "pointer",
+                width: isMobile ? "100%" : "auto",
               }}
             >
               Abrir alertas
@@ -120,6 +122,7 @@ export default function UserDashboardHome({
                   fontWeight: 800,
                   cursor: emailDigestLoading ? "progress" : "pointer",
                   opacity: emailDigestLoading ? 0.75 : 1,
+                  width: isMobile ? "100%" : "auto",
                 }}
               >
                 {emailDigestLoading ? "Enviando…" : "Enviar resumen por email"}
@@ -138,6 +141,7 @@ export default function UserDashboardHome({
                   fontSize: 12,
                   fontWeight: 800,
                   cursor: "pointer",
+                  width: isMobile ? "100%" : "auto",
                 }}
               >
                 Marcar todo como revisado

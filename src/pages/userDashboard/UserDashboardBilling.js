@@ -36,7 +36,7 @@ const AVAILABLE_PLANS = [
   { id: "platino", label: "Plan Platino" },
 ];
 
-export default function UserDashboardBilling({ panelStyle, currentUser, themeMode }) {
+export default function UserDashboardBilling({ panelStyle, currentUser, themeMode, isMobile = false }) {
   const isDark = themeMode === "dark";
   const cardBg = isDark
     ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
@@ -292,7 +292,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
           <div style={{ fontSize: 11, color: "#2563eb", letterSpacing: "0.6px" }}>MI CUENTA Y FACTURACION</div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>Hub de cuenta y facturación</div>
+          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>Hub de cuenta y facturación</div>
         </div>
         <span
           style={{
@@ -369,7 +369,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
       )}
 
       {activeAccountTab === "overview" && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 12, marginBottom: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,minmax(0,1fr))" : "repeat(auto-fit,minmax(170px,1fr))", gap: 12, marginBottom: 14 }}>
           {[
             ["Plan actual", billingState?.planLabel || "Plan Gratis", "#2563eb"],
             ["Estado", billingState?.status || "inactivo", "#0ea5e9"],
@@ -393,7 +393,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
       )}
 
       {(activeAccountTab === "overview" || activeAccountTab === "profile" || activeAccountTab === "subscription") && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 12, marginBottom: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(260px,1fr))", gap: 12, marginBottom: 14 }}>
           {(activeAccountTab === "overview" || activeAccountTab === "profile") && (
             <div
               style={{
@@ -413,8 +413,8 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                 <textarea value={profileForm.billingAddress} onChange={handleProfileChange("billingAddress")} placeholder="Direccion fiscal" rows={2} style={{ ...inputStyle, resize: "vertical" }} />
                 <input value={profileForm.iban} onChange={handleProfileChange("iban")} placeholder="IBAN (opcional)" style={inputStyle} />
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginTop: 10 }}>
-                <button type="button" onClick={saveProfile} style={primaryButtonStyle} disabled={savingProfile}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginTop: 10, flexWrap: "wrap" }}>
+                <button type="button" onClick={saveProfile} style={{ ...primaryButtonStyle, width: isMobile ? "100%" : "auto" }} disabled={savingProfile}>
                   {savingProfile ? "Guardando..." : "Guardar datos"}
                 </button>
                 <span style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#94a3b8" }}>{profileForm.updatedAt ? `Actualizado: ${toInputDateLabel(profileForm.updatedAt)}` : "Sin guardar"}</span>
@@ -446,10 +446,10 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
               </select>
 
               <div style={{ display: "grid", gap: 8 }}>
-                <button type="button" onClick={startCheckout} disabled={billingActionLoading} style={primaryButtonStyle}>
+                <button type="button" onClick={startCheckout} disabled={billingActionLoading} style={{ ...primaryButtonStyle, width: isMobile ? "100%" : "auto" }}>
                   {billingActionLoading ? "Procesando..." : "Iniciar checkout"}
                 </button>
-                <button type="button" onClick={openCustomerPortal} disabled={billingActionLoading} style={secondaryButtonStyle}>
+                <button type="button" onClick={openCustomerPortal} disabled={billingActionLoading} style={{ ...secondaryButtonStyle, width: isMobile ? "100%" : "auto" }}>
                   Gestionar metodo de pago
                 </button>
               </div>
@@ -478,7 +478,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
             <div style={{ fontSize: 12, color: "#94a3b8" }}>Todavia no hay facturas registradas en tu cuenta.</div>
           ) : (
             <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 580 }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: isMobile ? 460 : 580 }}>
                 <thead>
                   <tr>
                     {[

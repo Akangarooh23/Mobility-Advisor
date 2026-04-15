@@ -1761,7 +1761,7 @@ export default function App() {
     });
   };
 
-  const requestUserAppointment = (type) => {
+  const requestUserAppointment = (type, context = {}) => {
     const appointmentCatalog = {
       workshop: {
         title: "Cita de taller",
@@ -1788,6 +1788,10 @@ export default function App() {
     const appointment = {
       id: `${type}-${Date.now()}`,
       ...template,
+      meta:
+        context?.vehicleTitle || context?.vehiclePlate
+          ? `${template.meta} · Vehículo: ${context.vehicleTitle || "Vehículo"}${context.vehiclePlate ? ` (${context.vehiclePlate})` : ""}`
+          : template.meta,
       requestedAt: new Date().toLocaleString("es-ES", {
         day: "2-digit",
         month: "2-digit",
@@ -3692,6 +3696,7 @@ export default function App() {
           }}
           onLogout={handleLogout}
           onRequestAppointment={requestUserAppointment}
+          onRequestValuation={openSellValuationFromOffers}
           onOpenOffer={openOfferInNewTab}
           onOpenMarketplaceOffer={openPortalVoOfferDetail}
           onRemoveSavedComparison={removeSavedComparison}

@@ -51,6 +51,7 @@ function writeGarageVehicles(currentUserEmail = "", items = []) {
 
 export default function UserDashboardVehicles({
   themeMode,
+  isMobile = false,
   userVehicleSections,
   dashboardVehicleCount,
   panelStyle,
@@ -236,7 +237,7 @@ export default function UserDashboardVehicles({
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
           <div style={{ fontSize: 11, color: "#34d399", letterSpacing: "0.6px" }}>MIS VEHÍCULOS</div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: titleColor }}>Hub de ciclo de vida de vehículos</div>
+          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: titleColor }}>Hub de ciclo de vida de vehículos</div>
           <div style={{ fontSize: 12, color: bodyColor, marginTop: 4 }}>
             Controla en una sola vista tus coches comprados, activos en venta y operaciones cerradas.
           </div>
@@ -294,7 +295,7 @@ export default function UserDashboardVehicles({
 
       {activeVehicleTab === "my-garage" && (
         <div style={{ display: "grid", gap: 12 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,minmax(0,1fr))" : "repeat(auto-fit,minmax(180px,1fr))", gap: 12 }}>
             {[
               ["Mis vehículos", myVehicles.length, "#2563eb"],
               ["Comprados", lifecycleTotals.owned, "#60a5fa"],
@@ -350,7 +351,7 @@ export default function UserDashboardVehicles({
                 Máximo 20 vehículos
               </div>
             </div>
-            <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))" }}>
+            <div style={{ display: "grid", gap: 10, gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(180px,1fr))" }}>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
                 Alias / nombre
                 <input
@@ -425,7 +426,7 @@ export default function UserDashboardVehicles({
               </label>
             </div>
 
-            <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", marginTop: 10 }}>
+            <div style={{ display: "grid", gap: 10, gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(220px,1fr))", marginTop: 10 }}>
               <div style={{ display: "grid", gap: 7, fontSize: 12, color: bodyColor }}>
                 <div>Fotos del vehículo</div>
                 <input
@@ -523,6 +524,7 @@ export default function UserDashboardVehicles({
                   fontSize: 12,
                   fontWeight: 800,
                   cursor: "pointer",
+                  width: isMobile ? "100%" : "auto",
                 }}
               >
                 Guardar en mis vehículos
@@ -540,6 +542,7 @@ export default function UserDashboardVehicles({
                   fontSize: 12,
                   fontWeight: 700,
                   cursor: "pointer",
+                  width: isMobile ? "100%" : "auto",
                 }}
               >
                 Ver estado en pipeline
@@ -619,39 +622,39 @@ export default function UserDashboardVehicles({
                       )}
                     </div>
 
-                    <div style={{ display: "grid", gap: 8, gridTemplateColumns: "repeat(2,minmax(130px,1fr))", minWidth: 280 }}>
+                    <div style={{ display: "grid", gap: 8, gridTemplateColumns: isMobile ? "1fr" : "repeat(2,minmax(130px,1fr))", minWidth: isMobile ? "100%" : 280 }}>
                       <button
                         type="button"
                         onClick={() => handleVehicleAction("appointment", vehicle)}
-                        style={{ background: "rgba(245,158,11,0.14)", border: "1px solid rgba(251,191,36,0.28)", color: "#92400e", borderRadius: 10, padding: "8px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left" }}
+                        style={{ background: "rgba(245,158,11,0.14)", border: "1px solid rgba(251,191,36,0.28)", color: "#92400e", borderRadius: 10, padding: "8px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left", width: "100%" }}
                       >
                         Solicitar cita
                       </button>
                       <button
                         type="button"
                         onClick={() => handleVehicleAction("valuation", vehicle)}
-                        style={{ background: "rgba(37,99,235,0.14)", border: "1px solid rgba(96,165,250,0.28)", color: "#1e3a8a", borderRadius: 10, padding: "8px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left" }}
+                        style={{ background: "rgba(37,99,235,0.14)", border: "1px solid rgba(96,165,250,0.28)", color: "#1e3a8a", borderRadius: 10, padding: "8px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left", width: "100%" }}
                       >
                         Solicitar tasación
                       </button>
                       <button
                         type="button"
                         onClick={() => handleVehicleAction("marketplace", vehicle)}
-                        style={{ background: "rgba(16,185,129,0.14)", border: "1px solid rgba(110,231,183,0.28)", color: "#065f46", borderRadius: 10, padding: "8px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left" }}
+                        style={{ background: "rgba(16,185,129,0.14)", border: "1px solid rgba(110,231,183,0.28)", color: "#065f46", borderRadius: 10, padding: "8px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left", width: "100%" }}
                       >
                         Publicar en marketplace
                       </button>
                       <button
                         type="button"
                         onClick={() => handleVehicleAction("insurance", vehicle)}
-                        style={{ background: "rgba(14,116,144,0.14)", border: "1px solid rgba(103,232,249,0.28)", color: "#155e75", borderRadius: 10, padding: "8px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left" }}
+                        style={{ background: "rgba(14,116,144,0.14)", border: "1px solid rgba(103,232,249,0.28)", color: "#155e75", borderRadius: 10, padding: "8px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left", width: "100%" }}
                       >
                         Gestionar seguro
                       </button>
                       <button
                         type="button"
                         onClick={() => removeVehicleFromGarage(vehicle.id)}
-                        style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(248,113,113,0.24)", color: "#b91c1c", borderRadius: 10, padding: "8px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left", gridColumn: "1 / -1" }}
+                        style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(248,113,113,0.24)", color: "#b91c1c", borderRadius: 10, padding: "8px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left", gridColumn: "1 / -1", width: "100%" }}
                       >
                         Quitar
                       </button>

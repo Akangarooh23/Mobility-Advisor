@@ -3935,6 +3935,8 @@ export default function App() {
       <footer
         style={{
           marginTop: "auto",
+          position: "relative",
+          zIndex: 5,
           borderTop: "1px solid rgba(148,163,184,0.22)",
           background:
             "radial-gradient(120% 100% at 8% 0%, rgba(56,189,248,0.1), rgba(56,189,248,0) 45%), linear-gradient(180deg, rgba(2,6,23,0.9), rgba(2,6,23,0.98))",

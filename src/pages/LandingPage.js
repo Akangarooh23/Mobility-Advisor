@@ -46,6 +46,27 @@ export default function LandingPage({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return undefined;
+    }
+
+    const html = document.documentElement;
+    const previousHtmlSnap = html.style.scrollSnapType;
+    const previousHtmlBehavior = html.style.scrollBehavior;
+
+    if (!prefersReducedMotion) {
+      const snapMode = "y proximity";
+      html.style.scrollSnapType = snapMode;
+      html.style.scrollBehavior = "smooth";
+    }
+
+    return () => {
+      html.style.scrollSnapType = previousHtmlSnap;
+      html.style.scrollBehavior = previousHtmlBehavior;
+    };
+  }, [prefersReducedMotion]);
+
   const draftAnsweredSteps = Number(questionnaireDraft?.answeredSteps || 0);
   const draftTotalSteps = Number(questionnaireDraft?.totalSteps || totalSteps || 0);
   const hasDraftAnswers = Object.keys(questionnaireDraft?.answers || {}).length > 0;
@@ -53,11 +74,12 @@ export default function LandingPage({
   const comparisonGridTemplate = `1.3fr repeat(${SERVICE_PLANS.length},1fr)`;
   const planCardBasis = `calc((100% - ${(SERVICE_PLANS.length - 1) * 12}px) / ${SERVICE_PLANS.length})`;
   const [activeJourneyStep, setActiveJourneyStep] = useState(0);
-  const sectionGap = isMobileView ? 44 : 72;
   const sectionPadding = isMobileView ? "18px 12px" : "24px 20px";
   const heroScale = useTransform(scrollYProgress, [0, 0.26], [1, isMobileView ? 1.03 : 1.11]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, isMobileView ? 0.42 : 0.18]);
   const heroY = useTransform(scrollYProgress, [0, 0.28], [0, isMobileView ? -14 : -52]);
+  const bgParallaxNear = useTransform(scrollYProgress, [0, 1], [0, isMobileView ? -38 : -92]);
+  const bgParallaxFar = useTransform(scrollYProgress, [0, 1], [0, isMobileView ? 24 : 58]);
   const tiltHover = prefersReducedMotion || isMobileView
     ? {}
     : { rotateX: 8, rotateY: -8, scale: 1.025, y: -6 };
@@ -68,6 +90,11 @@ export default function LandingPage({
   const revealInitial = prefersReducedMotion ? false : { opacity: 0, y: 20, scale: 0.985 };
   const revealInView = prefersReducedMotion ? undefined : { opacity: 1, y: 0, scale: 1 };
   const revealViewport = prefersReducedMotion ? undefined : { once: true, amount: 0.26 };
+  const showLightBackgroundFx = !isDark;
+  const panelMinHeight = isMobileView ? "88vh" : "96vh";
+  const panelRevealInitial = prefersReducedMotion ? false : { opacity: 0, y: 28, scale: 0.985 };
+  const panelRevealInView = prefersReducedMotion ? undefined : { opacity: 1, y: 0, scale: 1 };
+  const panelRevealViewport = prefersReducedMotion ? undefined : { once: true, amount: 0.18 };
 
   const experienceSteps = [
     {
@@ -136,22 +163,115 @@ export default function LandingPage({
 
   return (
     <LazyMotion features={domAnimation}>
-      <div style={{ ...styles.center, maxWidth: 1280, textAlign: "center", position: "relative", overflow: "hidden" }}>
+      {showLightBackgroundFx && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 0,
+            pointerEvents: "none",
+            overflow: "hidden",
+            background: "#ffffff",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "radial-gradient(105% 84% at 8% 0%, rgba(14,165,233,0.08), rgba(14,165,233,0) 52%), radial-gradient(95% 78% at 100% 0%, rgba(16,185,129,0.06), rgba(16,185,129,0) 50%), linear-gradient(180deg, rgba(255,255,255,1), rgba(255,255,255,0.985))",
+            }}
+          />
+
+          <m.div
+            style={{
+              position: "absolute",
+              top: isMobileView ? -130 : -180,
+              left: isMobileView ? -120 : -150,
+              width: isMobileView ? 280 : 420,
+              height: isMobileView ? 280 : 420,
+              borderRadius: "50%",
+              background: "radial-gradient(circle at 40% 40%, rgba(59,130,246,0.13), rgba(59,130,246,0.02) 62%, rgba(59,130,246,0) 76%)",
+              filter: "blur(10px)",
+              y: prefersReducedMotion ? 0 : bgParallaxNear,
+            }}
+          />
+
+          <m.div
+            style={{
+              position: "absolute",
+              top: isMobileView ? "34%" : "26%",
+              right: isMobileView ? -110 : -160,
+              width: isMobileView ? 260 : 390,
+              height: isMobileView ? 260 : 390,
+              borderRadius: "50%",
+              background: "radial-gradient(circle at 58% 42%, rgba(6,182,212,0.1), rgba(6,182,212,0.015) 58%, rgba(6,182,212,0) 74%)",
+              filter: "blur(12px)",
+              y: prefersReducedMotion ? 0 : bgParallaxFar,
+            }}
+          />
+
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage:
+                "linear-gradient(rgba(148,163,184,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.08) 1px, transparent 1px)",
+              backgroundSize: isMobileView ? "24px 24px" : "32px 32px",
+              opacity: isMobileView ? 0.08 : 0.11,
+              maskImage: "radial-gradient(circle at 50% 28%, rgba(0,0,0,0.42), rgba(0,0,0,0.06) 60%, transparent 86%)",
+            }}
+          />
+
+          <m.div
+            style={{
+              position: "absolute",
+              top: isMobileView ? "18%" : "14%",
+              left: 0,
+              right: 0,
+              height: isMobileView ? 160 : 220,
+              background: "linear-gradient(100deg, rgba(255,255,255,0), rgba(37,99,235,0.08) 42%, rgba(14,165,233,0.06) 58%, rgba(255,255,255,0))",
+              filter: "blur(22px)",
+              y: prefersReducedMotion ? 0 : bgParallaxNear,
+            }}
+          />
+        </div>
+      )}
+
+      <div style={{ ...styles.center, maxWidth: 1280, textAlign: "center", position: "relative", overflow: "visible", zIndex: 1 }}>
+      <section
+        style={{
+          minHeight: panelMinHeight,
+          display: "grid",
+          alignContent: "center",
+          scrollSnapAlign: "start",
+          scrollSnapStop: "normal",
+        }}
+      >
       <m.div
         style={{
-          display: "inline-flex",
+          display: "flex",
           alignItems: "center",
+          justifyContent: "center",
           gap: 8,
-          background: "rgba(37,99,235,0.1)",
-          border: "1px solid rgba(37,99,235,0.22)",
-          padding: "5px 14px",
+          background: isDark
+            ? "rgba(37,99,235,0.1)"
+            : "linear-gradient(135deg, rgba(219,234,254,0.92), rgba(191,219,254,0.9))",
+          border: isDark
+            ? "1px solid rgba(37,99,235,0.22)"
+            : "1px solid rgba(59,130,246,0.34)",
+          padding: "6px 16px",
           borderRadius: 100,
-          fontSize: 11,
-          color: "#60a5fa",
-          marginBottom: 28,
+          fontSize: 12,
+          fontWeight: 800,
+          color: isDark ? "#60a5fa" : "#1d4ed8",
+          margin: `${isMobileView ? 26 : 40}px auto 28px`,
           letterSpacing: "0.6px",
           position: "relative",
           zIndex: 1,
+          width: "fit-content",
+          textAlign: "center",
           y: prefersReducedMotion ? 0 : heroY,
           opacity: prefersReducedMotion ? 1 : heroOpacity,
         }}
@@ -401,11 +521,25 @@ export default function LandingPage({
       <p style={{ marginTop: 20, fontSize: 12, color: "#334155" }}>
         Sin registro · Sin tarjeta · ~5 minutos
       </p>
+      </section>
 
+      <m.section
+        style={{
+          minHeight: panelMinHeight,
+          display: "grid",
+          alignContent: "center",
+          scrollSnapAlign: "start",
+          scrollSnapStop: "normal",
+        }}
+        initial={panelRevealInitial}
+        whileInView={panelRevealInView}
+        viewport={panelRevealViewport}
+        transition={{ duration: 0.72, ease: [0.22, 1, 0.36, 1] }}
+      >
       <m.section
         className="ma-fade-stagger"
         style={{
-          marginTop: sectionGap,
+          marginTop: 0,
           textAlign: "left",
           borderRadius: 22,
           border: "1px solid rgba(56,189,248,0.22)",
@@ -634,10 +768,24 @@ export default function LandingPage({
           </m.article>
         </div>
       </m.section>
+      </m.section>
 
+      <m.section
+        style={{
+          minHeight: panelMinHeight,
+          display: "grid",
+          alignContent: "center",
+          scrollSnapAlign: "start",
+          scrollSnapStop: "normal",
+        }}
+        initial={panelRevealInitial}
+        whileInView={panelRevealInView}
+        viewport={panelRevealViewport}
+        transition={{ duration: 0.76, ease: [0.22, 1, 0.36, 1] }}
+      >
       <section
         style={{
-          marginTop: sectionGap,
+          marginTop: 0,
           textAlign: "left",
           padding: isMobileView ? "18px 12px" : "24px 18px",
           borderRadius: 20,
@@ -832,15 +980,26 @@ export default function LandingPage({
           ))}
         </div>
       </section>
+      </m.section>
 
+      <m.section
+        style={{
+          marginTop: isMobileView ? 18 : 24,
+          borderRadius: 16,
+          border: "1px solid rgba(148,163,184,0.24)",
+          background: "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.95))",
+          padding: isMobileView ? "18px 12px" : "20px 16px",
+        }}
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 30, scale: 0.985 }}
+        whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
+        viewport={prefersReducedMotion ? undefined : { once: true, amount: 0.28 }}
+        transition={{ duration: 0.72, ease: [0.22, 1, 0.36, 1] }}
+      >
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))",
           gap: 12,
-          marginTop: isMobileView ? 40 : 56,
-          borderTop: "1px solid rgba(255,255,255,0.05)",
-          paddingTop: isMobileView ? 28 : 36,
         }}
       >
         {[
@@ -861,15 +1020,17 @@ export default function LandingPage({
           flexWrap: "wrap",
           gap: 8,
           justifyContent: "center",
-          marginTop: isMobileView ? 28 : 36,
+          marginTop: isMobileView ? 18 : 24,
+          paddingTop: isMobileView ? 12 : 16,
+          borderTop: "1px solid rgba(148,163,184,0.22)",
         }}
       >
         {Object.entries(blockColors).map(([name, color]) => (
           <span
             key={name}
             style={{
-              background: `${color}15`,
-              border: `1px solid ${color}28`,
+              background: `${color}12`,
+              border: `1px solid ${color}33`,
               color,
               padding: "4px 12px",
               borderRadius: 100,
@@ -881,6 +1042,7 @@ export default function LandingPage({
           </span>
         ))}
       </div>
+      </m.section>
     </div>
     </LazyMotion>
   );

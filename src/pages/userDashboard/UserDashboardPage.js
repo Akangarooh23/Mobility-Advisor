@@ -114,17 +114,17 @@ export default function UserDashboardPage({
               fontWeight: 800,
               letterSpacing: "-1px",
               margin: "0 0 10px",
-              color: "#f1f5f9",
+              color: "#0f172a",
             }}
           >
             Mi espacio CarAdvisor
           </h2>
-          <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.7, margin: 0, maxWidth: 760 }}>
+          <p style={{ color: "#475569", fontSize: 14, lineHeight: 1.7, margin: 0, maxWidth: 760 }}>
             La vista actual funciona como el home de tu panel. Desde la navegación superior puedes entrar en
             cada sección y verla en su propia página dentro del área privada.
           </p>
           {currentUser?.email && (
-            <div style={{ marginTop: 8, fontSize: 12, color: "#bfdbfe", fontWeight: 700 }}>
+            <div style={{ marginTop: 8, fontSize: 12, color: "#2563eb", fontWeight: 700 }}>
               Sesión activa: {currentUser.name || "Usuario"} · {currentUser.email}
             </div>
           )}
@@ -138,7 +138,7 @@ export default function UserDashboardPage({
               style={{
                 background: "linear-gradient(135deg,rgba(16,185,129,0.24),rgba(5,150,105,0.18))",
                 border: "1px solid rgba(110,231,183,0.28)",
-                color: "#ecfdf5",
+                color: "#065f46",
                 padding: "11px 16px",
                 borderRadius: 10,
                 fontSize: 12,
@@ -169,9 +169,9 @@ export default function UserDashboardPage({
             type="button"
             onClick={onLogout}
             style={{
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              color: "#cbd5e1",
+              background: "rgba(255,255,255,0.9)",
+              border: "1px solid rgba(148,163,184,0.3)",
+              color: "#334155",
               padding: "11px 16px",
               borderRadius: 10,
               fontSize: 12,
@@ -184,7 +184,7 @@ export default function UserDashboardPage({
       </div>
 
       <div style={{ ...panelStyle, marginBottom: 18, padding: 14 }}>
-        <div style={{ fontSize: 11, color: "#93c5fd", letterSpacing: "0.6px", marginBottom: 10 }}>
+        <div style={{ fontSize: 11, color: "#2563eb", letterSpacing: "0.6px", marginBottom: 10 }}>
           NAVEGACIÓN DEL PANEL
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -200,9 +200,9 @@ export default function UserDashboardPage({
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 8,
-                  background: isActive ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "rgba(37,99,235,0.08)",
-                  border: isActive ? "none" : "1px solid rgba(96,165,250,0.2)",
-                  color: "#eff6ff",
+                  background: isActive ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "rgba(255,255,255,0.95)",
+                  border: isActive ? "none" : "1px solid rgba(148,163,184,0.26)",
+                  color: isActive ? "#eff6ff" : "#1e293b",
                   padding: "9px 12px",
                   borderRadius: 999,
                   fontSize: 12,
@@ -214,7 +214,7 @@ export default function UserDashboardPage({
                 {section.count !== null && (
                   <span
                     style={{
-                      background: isActive ? "rgba(255,255,255,0.16)" : "rgba(148,163,184,0.18)",
+                      background: isActive ? "rgba(255,255,255,0.16)" : "rgba(148,163,184,0.14)",
                       padding: "2px 7px",
                       borderRadius: 999,
                       fontSize: 11,
@@ -228,7 +228,7 @@ export default function UserDashboardPage({
                     style={{
                       background: "rgba(16,185,129,0.16)",
                       border: "1px solid rgba(110,231,183,0.22)",
-                      color: "#d1fae5",
+                      color: "#065f46",
                       padding: "2px 7px",
                       borderRadius: 999,
                       fontSize: 10,
@@ -247,19 +247,19 @@ export default function UserDashboardPage({
         style={{
           ...panelStyle,
           marginBottom: 18,
-          background: "linear-gradient(135deg,rgba(37,99,235,0.12),rgba(15,23,42,0.82))",
-          border: "1px solid rgba(96,165,250,0.18)",
+          background: "linear-gradient(135deg,rgba(37,99,235,0.12),rgba(255,255,255,0.96))",
+          border: "1px solid rgba(148,163,184,0.26)",
         }}
       >
-        <div style={{ fontSize: 11, color: "#93c5fd", letterSpacing: "0.6px", marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: "#2563eb", letterSpacing: "0.6px", marginBottom: 8 }}>
           VISTA ACTUAL
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
           <div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "#f8fafc" }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a" }}>
               {activeUserDashboardSection.icon} {activeUserDashboardSection.title}
             </div>
-            <p style={{ margin: "6px 0 0", color: "#cbd5e1", fontSize: 13, lineHeight: 1.6, maxWidth: 760 }}>
+            <p style={{ margin: "6px 0 0", color: "#475569", fontSize: 13, lineHeight: 1.6, maxWidth: 760 }}>
               {activeUserDashboardSection.description}
             </p>
           </div>
@@ -268,9 +268,9 @@ export default function UserDashboardPage({
               type="button"
               onClick={() => onNavigate("home")}
               style={{
-                background: "rgba(255,255,255,0.06)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                color: "#e2e8f0",
+                background: "rgba(255,255,255,0.95)",
+                border: "1px solid rgba(148,163,184,0.3)",
+                color: "#334155",
                 padding: "9px 12px",
                 borderRadius: 10,
                 fontSize: 12,

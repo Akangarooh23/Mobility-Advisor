@@ -39,12 +39,39 @@ export default function ServiceMaintenancePage({ styles, onGoBack, onGoHome }) {
 
   return (
     <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
+      <style>
+        {`
+          .service-field-card {
+            border: 1px solid rgba(148,163,184,0.35);
+            border-radius: 14px;
+            padding: 12px;
+            background: linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92));
+            box-shadow: 0 8px 22px rgba(15,23,42,0.08);
+            transition: transform 170ms ease, box-shadow 170ms ease, border-color 170ms ease;
+          }
+
+          .service-field-card:hover,
+          .service-field-card:focus-within {
+            transform: translateY(-2px);
+            border-color: rgba(14,165,233,0.5);
+            box-shadow: 0 14px 26px rgba(14,116,144,0.14);
+          }
+
+          .service-field-label {
+            font-size: 12px;
+            color: #334155;
+            font-weight: 700;
+            margin-bottom: 6px;
+          }
+        `}
+      </style>
+
       <button type="button" onClick={onGoBack} style={{ ...secondaryBtnStyle, marginBottom: 18 }}>
         ← Volver
       </button>
 
       <div style={{ ...styles.blockBadge("Pricing"), marginBottom: 10 }}>🔧 MANTENIMIENTO</div>
-      <h2 style={{ margin: "0 0 8px", fontSize: "clamp(26px,4vw,36px)", color: "#f8fafc" }}>
+      <h2 style={{ margin: "0 0 8px", fontSize: "clamp(26px,4vw,36px)", color: "#000000" }}>
         Cuota mensual de mantenimiento
       </h2>
       <p style={{ margin: "0 0 20px", color: "#94a3b8", fontSize: 14, lineHeight: 1.6 }}>
@@ -52,21 +79,33 @@ export default function ServiceMaintenancePage({ styles, onGoBack, onGoHome }) {
       </p>
 
       <div className="ma-fade-stagger" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 12, marginBottom: 16, animationDelay: "60ms" }}>
-        <label className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 12, padding: 10, background: "rgba(15,23,42,0.35)" }}>
-          <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>Plan</div>
-          <select value={plan} onChange={(e) => setPlan(e.target.value)} style={styles.select}>
+        <label className="service-field-card ma-card-soft">
+          <div className="service-field-label">Plan</div>
+          <select
+            value={plan}
+            onChange={(e) => setPlan(e.target.value)}
+            style={{ ...styles.select, background: "#ffffff", color: "#0f172a", border: "1px solid rgba(148,163,184,0.45)" }}
+          >
             <option value="esencial">Esencial</option>
             <option value="completo">Completo</option>
             <option value="premium">Premium</option>
           </select>
         </label>
-        <label className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 12, padding: 10, background: "rgba(15,23,42,0.35)" }}>
-          <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>Km anuales</div>
-          <input value={km} onChange={(e) => setKm(e.target.value)} style={styles.input} />
+        <label className="service-field-card ma-card-soft">
+          <div className="service-field-label">Km anuales</div>
+          <input
+            value={km}
+            onChange={(e) => setKm(e.target.value)}
+            style={{ ...styles.input, background: "#ffffff", color: "#0f172a", border: "1px solid rgba(148,163,184,0.45)" }}
+          />
         </label>
-        <label className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 12, padding: 10, background: "rgba(15,23,42,0.35)" }}>
-          <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>Edad del coche (años)</div>
-          <input value={carAge} onChange={(e) => setCarAge(e.target.value)} style={styles.input} />
+        <label className="service-field-card ma-card-soft">
+          <div className="service-field-label">Edad del coche (años)</div>
+          <input
+            value={carAge}
+            onChange={(e) => setCarAge(e.target.value)}
+            style={{ ...styles.input, background: "#ffffff", color: "#0f172a", border: "1px solid rgba(148,163,184,0.45)" }}
+          />
         </label>
       </div>
 
@@ -80,12 +119,20 @@ export default function ServiceMaintenancePage({ styles, onGoBack, onGoHome }) {
       </div>
 
       {showPlan && (
-        <div className="ma-card-interactive ma-fade-stagger" style={{ ...styles.panel, animationDelay: "180ms" }}>
+        <div
+          className="ma-card-interactive ma-fade-stagger"
+          style={{
+            ...styles.panel,
+            animationDelay: "180ms",
+            background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
+            border: "1px solid rgba(148,163,184,0.35)",
+          }}
+        >
           <div style={{ fontSize: 12, color: "#67e8f9", marginBottom: 6 }}>PROPUESTA</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: "#f8fafc", marginBottom: 8 }}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: "#000000", marginBottom: 8 }}>
             {estimate.monthly} €/mes ({plan})
           </div>
-          <div style={{ color: "#cbd5e1", fontSize: 13, lineHeight: 1.6 }}>
+          <div style={{ color: "#334155", fontSize: 13, lineHeight: 1.6 }}>
             Total anual estimado: {estimate.yearly} € · Coste imprevisto amortizado estimado: {estimate.emergencyAvoided} €/mes.
           </div>
         </div>

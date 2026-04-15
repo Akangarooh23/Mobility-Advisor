@@ -271,7 +271,7 @@ export default function UserDashboardSaved({
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
           <div style={{ fontSize: 11, color: "#60a5fa", letterSpacing: "0.6px" }}>RECOMENDACIONES GUARDADAS</div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: "#f8fafc" }}>Tus comparativas, ofertas favoritas y alertas</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a" }}>Tus comparativas, ofertas favoritas y alertas</div>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <span style={{ ...getOfferBadgeStyle("info"), fontSize: 11 }}>{savedComparisons.length} guardadas</span>
@@ -288,19 +288,19 @@ export default function UserDashboardSaved({
               <div
                 key={item.id}
                 style={{
-                  background: "rgba(15,23,42,0.34)",
-                  border: "1px solid rgba(148,163,184,0.14)",
+                  background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
+                  border: "1px solid rgba(148,163,184,0.26)",
                   borderRadius: 12,
                   padding: 12,
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "flex-start" }}>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#f8fafc" }}>{item.title}</div>
-                    <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 3 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{item.title}</div>
+                    <div style={{ fontSize: 11, color: "#475569", marginTop: 3 }}>
                       {item.typeLabel} · {item.savedAt}
                     </div>
-                    <div style={{ fontSize: 11, color: "#bfdbfe", marginTop: 3 }}>
+                    <div style={{ fontSize: 11, color: "#2563eb", marginTop: 3 }}>
                       {item.monthlyTotal > 0 ? `${formatCurrency(item.monthlyTotal)}/mes` : item.budgetLabel || "Sin cuota definida"}
                     </div>
                   </div>
@@ -312,7 +312,7 @@ export default function UserDashboardSaved({
                         style={{
                           background: "rgba(37,99,235,0.12)",
                           border: "1px solid rgba(96,165,250,0.2)",
-                          color: "#dbeafe",
+                          color: "#1e3a8a",
                           padding: "8px 10px",
                           borderRadius: 10,
                           fontSize: 11,
@@ -329,7 +329,7 @@ export default function UserDashboardSaved({
                       style={{
                         background: "rgba(16,185,129,0.12)",
                         border: "1px solid rgba(110,231,183,0.2)",
-                        color: "#d1fae5",
+                        color: "#065f46",
                         padding: "8px 10px",
                         borderRadius: 10,
                         fontSize: 11,
@@ -345,7 +345,7 @@ export default function UserDashboardSaved({
                       style={{
                         background: "rgba(239,68,68,0.12)",
                         border: "1px solid rgba(248,113,113,0.18)",
-                        color: "#fecaca",
+                        color: "#b91c1c",
                         padding: "8px 10px",
                         borderRadius: 10,
                         fontSize: 11,
@@ -370,16 +370,16 @@ export default function UserDashboardSaved({
       <div
         style={{
           marginTop: 14,
-          background: "rgba(8,15,30,0.55)",
-          border: "1px solid rgba(148,163,184,0.16)",
+          background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
+          border: "1px solid rgba(148,163,184,0.26)",
           borderRadius: 14,
           padding: 14,
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
           <div>
-            <div style={{ fontSize: 11, color: "#c4b5fd", letterSpacing: "0.6px" }}>CATÁLOGO DE MARCAS Y MODELOS</div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "#f8fafc" }}>Gestiona el selector de marca/modelo</div>
+            <div style={{ fontSize: 11, color: "#7c3aed", letterSpacing: "0.6px" }}>CATÁLOGO DE MARCAS Y MODELOS</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a" }}>Gestiona el selector de marca/modelo</div>
           </div>
           <button
             type="button"
@@ -387,7 +387,7 @@ export default function UserDashboardSaved({
             style={{
               background: "rgba(124,58,237,0.16)",
               border: "1px solid rgba(196,181,253,0.24)",
-              color: "#ede9fe",
+              color: "#5b21b6",
               padding: "9px 11px",
               borderRadius: 10,
               fontSize: 12,
@@ -402,12 +402,12 @@ export default function UserDashboardSaved({
         {showCatalogAdmin && (
           <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
             <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))" }}>
-              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#cbd5e1" }}>
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
                 Marca existente
                 <select
                   value={catalogAdminForm.brand}
                   onChange={(event) => setCatalogAdminForm((prev) => ({ ...prev, brand: event.target.value, model: "" }))}
-                  style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px" }}
+                  style={{ background: "#ffffff", color: "#0f172a", border: "1px solid rgba(148,163,184,0.45)", borderRadius: 10, padding: "10px 12px" }}
                 >
                   <option value="">Selecciona marca</option>
                   {brandOptions.map((brand) => (
@@ -417,13 +417,13 @@ export default function UserDashboardSaved({
                   ))}
                 </select>
               </label>
-              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#cbd5e1" }}>
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
                 Modelo existente
                 <select
                   value={catalogAdminForm.model}
                   onChange={(event) => setCatalogAdminForm((prev) => ({ ...prev, model: event.target.value }))}
                   disabled={!catalogAdminForm.brand}
-                  style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px" }}
+                  style={{ background: "#ffffff", color: "#0f172a", border: "1px solid rgba(148,163,184,0.45)", borderRadius: 10, padding: "10px 12px" }}
                 >
                   <option value="">Selecciona modelo</option>
                   {(catalogBrandsMap[catalogAdminForm.brand] || []).map((model) => (
@@ -433,22 +433,22 @@ export default function UserDashboardSaved({
                   ))}
                 </select>
               </label>
-              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#cbd5e1" }}>
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
                 Nueva marca
                 <input
                   value={catalogAdminForm.newBrand}
                   onChange={(event) => setCatalogAdminForm((prev) => ({ ...prev, newBrand: event.target.value }))}
                   placeholder="Ejemplo: Ford"
-                  style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px" }}
+                  style={{ background: "#ffffff", color: "#0f172a", border: "1px solid rgba(148,163,184,0.45)", borderRadius: 10, padding: "10px 12px" }}
                 />
               </label>
-              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#cbd5e1" }}>
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
                 Nuevo modelo
                 <input
                   value={catalogAdminForm.newModel}
                   onChange={(event) => setCatalogAdminForm((prev) => ({ ...prev, newModel: event.target.value }))}
                   placeholder="Ejemplo: Focus"
-                  style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px" }}
+                  style={{ background: "#ffffff", color: "#0f172a", border: "1px solid rgba(148,163,184,0.45)", borderRadius: 10, padding: "10px 12px" }}
                 />
               </label>
             </div>
@@ -461,7 +461,7 @@ export default function UserDashboardSaved({
                 style={{
                   background: "rgba(16,185,129,0.12)",
                   border: "1px solid rgba(110,231,183,0.22)",
-                  color: "#d1fae5",
+                  color: "#065f46",
                   padding: "8px 10px",
                   borderRadius: 10,
                   fontSize: 11,
@@ -478,7 +478,7 @@ export default function UserDashboardSaved({
                 style={{
                   background: "rgba(37,99,235,0.14)",
                   border: "1px solid rgba(96,165,250,0.24)",
-                  color: "#dbeafe",
+                  color: "#1e3a8a",
                   padding: "8px 10px",
                   borderRadius: 10,
                   fontSize: 11,
@@ -495,7 +495,7 @@ export default function UserDashboardSaved({
                 style={{
                   background: "rgba(245,158,11,0.14)",
                   border: "1px solid rgba(251,191,36,0.22)",
-                  color: "#fde68a",
+                  color: "#92400e",
                   padding: "8px 10px",
                   borderRadius: 10,
                   fontSize: 11,
@@ -512,7 +512,7 @@ export default function UserDashboardSaved({
                 style={{
                   background: "rgba(239,68,68,0.12)",
                   border: "1px solid rgba(248,113,113,0.18)",
-                  color: "#fecaca",
+                  color: "#b91c1c",
                   padding: "8px 10px",
                   borderRadius: 10,
                   fontSize: 11,
@@ -525,7 +525,7 @@ export default function UserDashboardSaved({
             </div>
 
             {catalogAdminFeedback && (
-              <div style={{ fontSize: 12, color: "#c4b5fd" }}>{catalogAdminFeedback}</div>
+              <div style={{ fontSize: 12, color: "#6d28d9" }}>{catalogAdminFeedback}</div>
             )}
           </div>
         )}
@@ -534,19 +534,19 @@ export default function UserDashboardSaved({
       <div
         style={{
           marginTop: 16,
-          background: "rgba(8,15,30,0.55)",
-          border: "1px solid rgba(96,165,250,0.16)",
+          background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
+          border: "1px solid rgba(148,163,184,0.26)",
           borderRadius: 14,
           padding: 14,
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 10 }}>
           <div>
-            <div style={{ fontSize: 11, color: "#6ee7b7", letterSpacing: "0.6px" }}>ALERTAS DE MERCADO</div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#f8fafc" }}>
+            <div style={{ fontSize: 11, color: "#047857", letterSpacing: "0.6px" }}>ALERTAS DE MERCADO</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>
               Sigue nuevas ofertas con tus filtros
             </div>
-            <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>
+            <div style={{ fontSize: 12, color: "#475569", marginTop: 4 }}>
               Activa alertas para compra o renting por marca, modelo, precio, kilometraje, combustible, localización o color.
             </div>
           </div>
@@ -558,7 +558,7 @@ export default function UserDashboardSaved({
               style={{
                 background: emailAlertCount > 0 ? "rgba(99,102,241,0.16)" : "rgba(148,163,184,0.12)",
                 border: emailAlertCount > 0 ? "1px solid rgba(165,180,252,0.24)" : "1px solid rgba(148,163,184,0.18)",
-                color: emailAlertCount > 0 ? "#e0e7ff" : "#94a3b8",
+                color: emailAlertCount > 0 ? "#312e81" : "#64748b",
                 padding: "10px 12px",
                 borderRadius: 10,
                 fontSize: 12,
@@ -590,20 +590,20 @@ export default function UserDashboardSaved({
 
         {showAlertForm && (
           <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", marginBottom: 12 }}>
-            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#cbd5e1" }}>
+            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
               Tipo de oferta
-              <select value={alertForm.mode} onChange={(event) => updateAlertField("mode", event.target.value)} style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px" }}>
+              <select value={alertForm.mode} onChange={(event) => updateAlertField("mode", event.target.value)} style={{ background: "#ffffff", color: "#0f172a", border: "1px solid rgba(148,163,184,0.45)", borderRadius: 10, padding: "10px 12px" }}>
                 <option value="ambos">Compra o renting</option>
                 <option value="compra">Compra</option>
                 <option value="renting">Renting</option>
               </select>
             </label>
-            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#cbd5e1" }}>
+            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
               Marca
               <select
                 value={selectedBrandInCatalog ? alertForm.brand : ""}
                 onChange={(event) => updateAlertField("brand", event.target.value)}
-                style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px" }}
+                style={{ background: "#ffffff", color: "#0f172a", border: "1px solid rgba(148,163,184,0.45)", borderRadius: 10, padding: "10px 12px" }}
               >
                 <option value="">Todas las marcas</option>
                 {brandOptions.map((brand) => (
@@ -613,18 +613,18 @@ export default function UserDashboardSaved({
                 ))}
               </select>
               {!selectedBrandInCatalog && alertForm.brand && (
-                <div style={{ fontSize: 11, color: "#93c5fd" }}>
+                <div style={{ fontSize: 11, color: "#1d4ed8" }}>
                   Marca guardada fuera del catálogo: <strong>{alertForm.brand}</strong>
                 </div>
               )}
             </label>
-            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#cbd5e1" }}>
+            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
               Modelo
               <select
                 value={selectedModelInCatalog ? alertForm.model : ""}
                 onChange={(event) => updateAlertField("model", event.target.value)}
                 disabled={!alertForm.brand}
-                style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px" }}
+                style={{ background: "#ffffff", color: "#0f172a", border: "1px solid rgba(148,163,184,0.45)", borderRadius: 10, padding: "10px 12px" }}
               >
                 <option value="">{alertForm.brand ? "Todos los modelos" : "Selecciona marca antes"}</option>
                 {modelOptions.map((model) => (
@@ -634,22 +634,22 @@ export default function UserDashboardSaved({
                 ))}
               </select>
               {!selectedModelInCatalog && alertForm.model && (
-                <div style={{ fontSize: 11, color: "#93c5fd" }}>
+                <div style={{ fontSize: 11, color: "#1d4ed8" }}>
                   Modelo guardado fuera del catálogo: <strong>{alertForm.model}</strong>
                 </div>
               )}
             </label>
-            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#cbd5e1" }}>
+            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
               Precio máximo (€)
-              <input type="number" value={alertForm.maxPrice} onChange={(event) => updateAlertField("maxPrice", event.target.value)} placeholder="25000" style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px" }} />
+              <input type="number" value={alertForm.maxPrice} onChange={(event) => updateAlertField("maxPrice", event.target.value)} placeholder="25000" style={{ background: "#ffffff", color: "#0f172a", border: "1px solid rgba(148,163,184,0.45)", borderRadius: 10, padding: "10px 12px" }} />
             </label>
-            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#cbd5e1" }}>
+            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
               Kilometraje máximo
-              <input type="number" value={alertForm.maxMileage} onChange={(event) => updateAlertField("maxMileage", event.target.value)} placeholder="60000" style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px" }} />
+              <input type="number" value={alertForm.maxMileage} onChange={(event) => updateAlertField("maxMileage", event.target.value)} placeholder="60000" style={{ background: "#ffffff", color: "#0f172a", border: "1px solid rgba(148,163,184,0.45)", borderRadius: 10, padding: "10px 12px" }} />
             </label>
-            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#cbd5e1" }}>
+            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
               Combustible
-              <select value={alertForm.fuel} onChange={(event) => updateAlertField("fuel", event.target.value)} style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px" }}>
+              <select value={alertForm.fuel} onChange={(event) => updateAlertField("fuel", event.target.value)} style={{ background: "#ffffff", color: "#0f172a", border: "1px solid rgba(148,163,184,0.45)", borderRadius: 10, padding: "10px 12px" }}>
                 <option value="">Cualquiera</option>
                 <option value="Gasolina">Gasolina</option>
                 <option value="Diésel">Diésel</option>
@@ -658,17 +658,17 @@ export default function UserDashboardSaved({
                 <option value="Eléctrico">Eléctrico</option>
               </select>
             </label>
-            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#cbd5e1" }}>
+            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
               Localización
-              <input value={alertForm.location} onChange={(event) => updateAlertField("location", event.target.value)} placeholder="Madrid, Valencia, Bilbao..." style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px" }} />
+              <input value={alertForm.location} onChange={(event) => updateAlertField("location", event.target.value)} placeholder="Madrid, Valencia, Bilbao..." style={{ background: "#ffffff", color: "#0f172a", border: "1px solid rgba(148,163,184,0.45)", borderRadius: 10, padding: "10px 12px" }} />
             </label>
-            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#cbd5e1" }}>
+            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
               Color
-              <input value={alertForm.color} onChange={(event) => updateAlertField("color", event.target.value)} placeholder="Blanco, gris, azul..." style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px" }} />
+              <input value={alertForm.color} onChange={(event) => updateAlertField("color", event.target.value)} placeholder="Blanco, gris, azul..." style={{ background: "#ffffff", color: "#0f172a", border: "1px solid rgba(148,163,184,0.45)", borderRadius: 10, padding: "10px 12px" }} />
             </label>
-            <label style={{ display: "grid", gap: 8, fontSize: 12, color: "#cbd5e1", alignContent: "start" }}>
+            <label style={{ display: "grid", gap: 8, fontSize: 12, color: "#334155", alignContent: "start" }}>
               <span>Aviso por email</span>
-              <label style={{ display: "inline-flex", gap: 8, alignItems: "center", fontSize: 12, color: "#dbeafe", cursor: "pointer" }}>
+              <label style={{ display: "inline-flex", gap: 8, alignItems: "center", fontSize: 12, color: "#334155", cursor: "pointer" }}>
                 <input
                   type="checkbox"
                   checked={Boolean(alertForm.notifyByEmail)}
@@ -679,7 +679,7 @@ export default function UserDashboardSaved({
               {alertForm.notifyByEmail && (
                 <>
                   {normalizedCurrentUserEmail && (
-                    <div style={{ fontSize: 11, color: "#93c5fd" }}>
+                    <div style={{ fontSize: 11, color: "#1d4ed8" }}>
                       Se enviará al email de tu cuenta: <strong>{normalizedCurrentUserEmail}</strong>
                     </div>
                   )}
@@ -688,7 +688,7 @@ export default function UserDashboardSaved({
                     value={alertForm.email}
                     onChange={(event) => updateAlertField("email", event.target.value)}
                     placeholder="nombre@correo.com"
-                    style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px" }}
+                    style={{ background: "#ffffff", color: "#0f172a", border: "1px solid rgba(148,163,184,0.45)", borderRadius: 10, padding: "10px 12px" }}
                   />
                 </>
               )}
@@ -698,7 +698,7 @@ export default function UserDashboardSaved({
 
         {showAlertForm && (
           <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
-            <div style={{ fontSize: 11, color: "#93c5fd" }}>
+            <div style={{ fontSize: 11, color: "#1d4ed8" }}>
               Puedes mezclar filtros de compra/renting, marca, modelo, precio, kilometraje, combustible, localización y color, y añadir un aviso por email.
             </div>
             <button
@@ -707,7 +707,7 @@ export default function UserDashboardSaved({
               style={{
                 background: "rgba(37,99,235,0.14)",
                 border: "1px solid rgba(96,165,250,0.24)",
-                color: "#dbeafe",
+                color: "#1e3a8a",
                 padding: "9px 12px",
                 borderRadius: 10,
                 fontSize: 12,
@@ -728,7 +728,7 @@ export default function UserDashboardSaved({
         )}
 
         {(alertFeedback || emailDigestFeedback) && (
-          <div style={{ marginBottom: 12, fontSize: 12, color: "#bfdbfe" }}>
+          <div style={{ marginBottom: 12, fontSize: 12, color: "#1d4ed8" }}>
             {emailDigestFeedback || alertFeedback}
           </div>
         )}
@@ -742,7 +742,7 @@ export default function UserDashboardSaved({
               borderRadius: 10,
               padding: "10px 12px",
               fontSize: 12,
-              color: "#d1fae5",
+              color: "#065f46",
               fontWeight: 700,
             }}
           >
@@ -763,7 +763,7 @@ export default function UserDashboardSaved({
                 <div
                   key={alert.id}
                   style={{
-                    background: "rgba(15,23,42,0.34)",
+                    background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
                     border: "1px solid rgba(110,231,183,0.14)",
                     borderRadius: 12,
                     padding: 12,
@@ -771,12 +771,12 @@ export default function UserDashboardSaved({
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "flex-start" }}>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#f8fafc" }}>{alert.title}</div>
-                      <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 3 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{alert.title}</div>
+                      <div style={{ fontSize: 11, color: "#475569", marginTop: 3 }}>
                         {alert.createdAt} · {alert.status || "Activa"}
                       </div>
                       {alert.notifyByEmail && alertEmail && (
-                        <div style={{ fontSize: 11, color: "#bfdbfe", marginTop: 4 }}>
+                        <div style={{ fontSize: 11, color: "#1d4ed8", marginTop: 4 }}>
                           📧 Resumen por email a {alertEmail}
                         </div>
                       )}
@@ -786,7 +786,7 @@ export default function UserDashboardSaved({
                             style={{
                               background: "rgba(16,185,129,0.16)",
                               border: "1px solid rgba(110,231,183,0.2)",
-                              color: "#d1fae5",
+                              color: "#065f46",
                               padding: "4px 8px",
                               borderRadius: 999,
                               fontSize: 11,
@@ -800,7 +800,7 @@ export default function UserDashboardSaved({
                             style={{
                               background: "rgba(148,163,184,0.12)",
                               border: "1px solid rgba(148,163,184,0.18)",
-                              color: "#cbd5e1",
+                              color: "#475569",
                               padding: "4px 8px",
                               borderRadius: 999,
                               fontSize: 11,
@@ -817,7 +817,7 @@ export default function UserDashboardSaved({
                             style={{
                               background: "rgba(37,99,235,0.10)",
                               border: "1px solid rgba(96,165,250,0.18)",
-                              color: "#dbeafe",
+                              color: "#1e3a8a",
                               padding: "4px 8px",
                               borderRadius: 999,
                               fontSize: 11,
@@ -831,13 +831,13 @@ export default function UserDashboardSaved({
                       <div
                         style={{
                           marginTop: 10,
-                          background: "rgba(2,6,23,0.45)",
-                          border: "1px solid rgba(96,165,250,0.12)",
+                          background: "rgba(255,255,255,0.9)",
+                          border: "1px solid rgba(148,163,184,0.24)",
                           borderRadius: 10,
                           padding: 10,
                         }}
                       >
-                        <div style={{ fontSize: 11, fontWeight: 800, color: "#93c5fd", letterSpacing: "0.4px", marginBottom: 6 }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: "#1d4ed8", letterSpacing: "0.4px", marginBottom: 6 }}>
                           {alertMatchInfo.count === 1 ? "1 coincidencia ahora" : `${alertMatchInfo.count} coincidencias ahora`}
                         </div>
                         {alertMatchInfo.count > 0 ? (
@@ -851,14 +851,14 @@ export default function UserDashboardSaved({
                                   gap: 10,
                                   flexWrap: "wrap",
                                   alignItems: "center",
-                                  background: "rgba(15,23,42,0.5)",
+                                  background: "rgba(241,245,249,0.9)",
                                   borderRadius: 10,
                                   padding: "8px 10px",
                                 }}
                               >
                                 <div>
-                                  <div style={{ fontSize: 12, fontWeight: 700, color: "#f8fafc" }}>{offer.title}</div>
-                                  <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>
+                                  <div style={{ fontSize: 12, fontWeight: 700, color: "#0f172a" }}>{offer.title}</div>
+                                  <div style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>
                                     {alert.mode === "renting" && Number(offer.rentingMonthly || 0) > 0
                                       ? `${formatCurrency(offer.rentingMonthly)}/mes`
                                       : formatCurrency(offer.price)}
@@ -877,7 +877,7 @@ export default function UserDashboardSaved({
                                   style={{
                                     background: "rgba(37,99,235,0.12)",
                                     border: "1px solid rgba(96,165,250,0.2)",
-                                    color: "#dbeafe",
+                                    color: "#1e3a8a",
                                     padding: "8px 10px",
                                     borderRadius: 10,
                                     fontSize: 11,
@@ -905,7 +905,7 @@ export default function UserDashboardSaved({
                           style={{
                             background: "rgba(245,158,11,0.12)",
                             border: "1px solid rgba(251,191,36,0.18)",
-                            color: "#fde68a",
+                            color: "#92400e",
                             padding: "8px 10px",
                             borderRadius: 10,
                             fontSize: 11,
@@ -925,7 +925,7 @@ export default function UserDashboardSaved({
                         style={{
                           background: "rgba(16,185,129,0.12)",
                           border: "1px solid rgba(110,231,183,0.2)",
-                          color: "#d1fae5",
+                          color: "#065f46",
                           padding: "8px 10px",
                           borderRadius: 10,
                           fontSize: 11,
@@ -941,7 +941,7 @@ export default function UserDashboardSaved({
                         style={{
                           background: "rgba(239,68,68,0.12)",
                           border: "1px solid rgba(248,113,113,0.18)",
-                          color: "#fecaca",
+                          color: "#b91c1c",
                           padding: "8px 10px",
                           borderRadius: 10,
                           fontSize: 11,

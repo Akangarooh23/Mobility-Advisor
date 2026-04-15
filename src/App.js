@@ -2307,7 +2307,20 @@ export default function App() {
 
   // -------------------- RENDER --------------------
   return (
-    <div style={s.page}>
+    <div
+      style={{
+        ...s.page,
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        ...(step === -1
+          ? {
+              background: "#ffffff",
+              color: "#0f172a",
+            }
+          : null),
+      }}
+    >
       {/* HEADER */}
       <header style={s.header}>
         <button
@@ -3473,6 +3486,7 @@ export default function App() {
           }}
           onSelectKnownModel={() => {
             setAdvisorContext("renting");
+            setDecisionAnswers({ ...createInitialDecisionAnswers(), operation: "renting" });
             setEntryMode("decision");
             setStep(-1);
           }}
@@ -3494,7 +3508,8 @@ export default function App() {
             setStep(-1);
           }}
           onSelectKnownModel={() => {
-            setAdvisorContext(null);
+            setAdvisorContext("buy");
+            setDecisionAnswers({ ...createInitialDecisionAnswers(), operation: "comprar" });
             setEntryMode("decision");
             setStep(-1);
           }}
@@ -3600,7 +3615,12 @@ export default function App() {
         <UserDashboardPage
           centerStyle={s.center}
           blockBadgeStyle={s.blockBadge("Vinculación")}
-          panelStyle={s.panel}
+          panelStyle={{
+            ...s.panel,
+            background: "linear-gradient(160deg, rgba(255,255,255,0.97), rgba(241,245,249,0.94))",
+            border: "1px solid rgba(148,163,184,0.24)",
+            boxShadow: "0 10px 28px rgba(15,23,42,0.08)",
+          }}
           userDashboardPage={userDashboardPage}
           savedComparisons={savedComparisons}
           marketAlerts={marketAlerts}
@@ -3649,6 +3669,7 @@ export default function App() {
       {step === -1 && entryMode === "decision" && (
         <DecisionPage
           styles={s}
+          lockedOperation={advisorContext === "renting" ? "renting" : advisorContext === "buy" ? "comprar" : null}
           decisionAnswers={decisionAnswers}
           updateDecisionAnswer={updateDecisionAnswer}
           MARKET_BRANDS={marketBrandsCatalog}
@@ -3858,7 +3879,7 @@ export default function App() {
 
       <footer
         style={{
-          marginTop: 40,
+          marginTop: "auto",
           borderTop: "1px solid rgba(148,163,184,0.22)",
           background:
             "radial-gradient(120% 100% at 8% 0%, rgba(56,189,248,0.1), rgba(56,189,248,0) 45%), linear-gradient(180deg, rgba(2,6,23,0.9), rgba(2,6,23,0.98))",

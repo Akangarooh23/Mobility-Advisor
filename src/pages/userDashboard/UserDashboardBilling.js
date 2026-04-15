@@ -250,8 +250,8 @@ export default function UserDashboardBilling({ panelStyle, currentUser }) {
     <section id="user-dashboard-billing" style={{ ...panelStyle, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
-          <div style={{ fontSize: 11, color: "#93c5fd", letterSpacing: "0.6px" }}>MI CUENTA Y FACTURACION</div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: "#f8fafc" }}>Perfil, suscripcion y facturas</div>
+          <div style={{ fontSize: 11, color: "#2563eb", letterSpacing: "0.6px" }}>MI CUENTA Y FACTURACION</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a" }}>Perfil, suscripcion y facturas</div>
         </div>
         <span
           style={{
@@ -261,7 +261,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser }) {
             padding: "5px 9px",
             fontSize: 11,
             fontWeight: 700,
-            color: "#dbeafe",
+            color: "#1e3a8a",
           }}
         >
           {billingState?.planLabel || "Plan Gratis"}
@@ -269,7 +269,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser }) {
       </div>
 
       {loadingAccount && (
-        <div style={{ fontSize: 12, color: "#93c5fd", marginBottom: 10 }}>
+        <div style={{ fontSize: 12, color: "#2563eb", marginBottom: 10 }}>
           Cargando datos de cuenta...
         </div>
       )}
@@ -277,13 +277,13 @@ export default function UserDashboardBilling({ panelStyle, currentUser }) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 12, marginBottom: 14 }}>
         <div
           style={{
-            background: "rgba(15,23,42,0.36)",
-            border: "1px solid rgba(148,163,184,0.16)",
+            background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
+            border: "1px solid rgba(148,163,184,0.26)",
             borderRadius: 12,
             padding: 12,
           }}
         >
-          <div style={{ fontSize: 13, fontWeight: 800, color: "#f8fafc", marginBottom: 8 }}>Datos personales y fiscales</div>
+          <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>Datos personales y fiscales</div>
           <div style={{ display: "grid", gap: 8 }}>
             <input value={profileForm.fullName} onChange={handleProfileChange("fullName")} placeholder="Nombre completo" style={inputStyle} />
             <input value={profileForm.email} onChange={handleProfileChange("email")} placeholder="Email de facturacion" style={inputStyle} />
@@ -299,19 +299,19 @@ export default function UserDashboardBilling({ panelStyle, currentUser }) {
             </button>
             <span style={{ fontSize: 11, color: "#94a3b8" }}>{profileForm.updatedAt ? `Actualizado: ${toInputDateLabel(profileForm.updatedAt)}` : "Sin guardar"}</span>
           </div>
-          {profileFeedback && <div style={{ marginTop: 8, fontSize: 12, color: "#bfdbfe" }}>{profileFeedback}</div>}
+          {profileFeedback && <div style={{ marginTop: 8, fontSize: 12, color: "#1d4ed8" }}>{profileFeedback}</div>}
         </div>
 
         <div
           style={{
-            background: "rgba(15,23,42,0.36)",
-            border: "1px solid rgba(148,163,184,0.16)",
+            background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
+            border: "1px solid rgba(148,163,184,0.26)",
             borderRadius: 12,
             padding: 12,
           }}
         >
-          <div style={{ fontSize: 13, fontWeight: 800, color: "#f8fafc", marginBottom: 8 }}>Suscripcion y pagos</div>
-          <div style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.65, marginBottom: 10 }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>Suscripcion y pagos</div>
+          <div style={{ fontSize: 12, color: "#334155", lineHeight: 1.65, marginBottom: 10 }}>
             Estado: <strong>{billingState?.status || "inactivo"}</strong><br />
             Proxima renovacion: <strong>{toInputDateLabel(billingState?.nextBillingDate)}</strong>
           </div>
@@ -335,19 +335,19 @@ export default function UserDashboardBilling({ panelStyle, currentUser }) {
           <div style={{ marginTop: 8, fontSize: 11, color: "#94a3b8" }}>
             Integracion preparada para Stripe. Si no hay claves configuradas, se ejecuta en modo simulado.
           </div>
-          {billingFeedback && <div style={{ marginTop: 8, fontSize: 12, color: "#bfdbfe" }}>{billingFeedback}</div>}
+          {billingFeedback && <div style={{ marginTop: 8, fontSize: 12, color: "#1d4ed8" }}>{billingFeedback}</div>}
         </div>
       </div>
 
       <div
         style={{
-          background: "rgba(15,23,42,0.36)",
-          border: "1px solid rgba(148,163,184,0.16)",
+          background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
+          border: "1px solid rgba(148,163,184,0.26)",
           borderRadius: 12,
           padding: 12,
         }}
       >
-        <div style={{ fontSize: 13, fontWeight: 800, color: "#f8fafc", marginBottom: 8 }}>Facturas</div>
+        <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>Facturas</div>
 
         {invoices.length === 0 ? (
           <div style={{ fontSize: 12, color: "#94a3b8" }}>Todavia no hay facturas registradas en tu cuenta.</div>
@@ -368,7 +368,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser }) {
                       style={{
                         textAlign: "left",
                         fontSize: 11,
-                        color: "#93c5fd",
+                        color: "#1d4ed8",
                         padding: "7px 8px",
                         borderBottom: "1px solid rgba(148,163,184,0.18)",
                       }}
@@ -387,7 +387,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser }) {
                     <td style={tableCellStyle}>{invoice.status || "Pendiente"}</td>
                     <td style={tableCellStyle}>
                       {invoice.pdfUrl ? (
-                        <a href={invoice.pdfUrl} target="_blank" rel="noreferrer" style={{ color: "#93c5fd", fontWeight: 700 }}>
+                        <a href={invoice.pdfUrl} target="_blank" rel="noreferrer" style={{ color: "#1d4ed8", fontWeight: 700 }}>
                           Descargar PDF
                         </a>
                       ) : (
@@ -407,10 +407,10 @@ export default function UserDashboardBilling({ panelStyle, currentUser }) {
 
 const inputStyle = {
   width: "100%",
-  background: "rgba(15,23,42,0.55)",
-  border: "1px solid rgba(148,163,184,0.2)",
+  background: "#ffffff",
+  border: "1px solid rgba(148,163,184,0.45)",
   borderRadius: 8,
-  color: "#e2e8f0",
+  color: "#0f172a",
   padding: "8px 10px",
   fontSize: 12,
   boxSizing: "border-box",
@@ -428,9 +428,9 @@ const primaryButtonStyle = {
 };
 
 const secondaryButtonStyle = {
-  background: "rgba(255,255,255,0.05)",
-  border: "1px solid rgba(255,255,255,0.12)",
-  color: "#e2e8f0",
+  background: "rgba(255,255,255,0.95)",
+  border: "1px solid rgba(148,163,184,0.32)",
+  color: "#334155",
   borderRadius: 10,
   fontSize: 12,
   fontWeight: 700,
@@ -441,6 +441,6 @@ const secondaryButtonStyle = {
 const tableCellStyle = {
   padding: "8px",
   fontSize: 12,
-  color: "#cbd5e1",
-  borderBottom: "1px solid rgba(148,163,184,0.12)",
+  color: "#334155",
+  borderBottom: "1px solid rgba(148,163,184,0.2)",
 };

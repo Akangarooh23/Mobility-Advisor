@@ -1,5 +1,6 @@
 export default function DecisionPage({
   styles,
+  lockedOperation,
   decisionAnswers,
   updateDecisionAnswer,
   MARKET_BRANDS,
@@ -30,8 +31,54 @@ export default function DecisionPage({
   onSwitchToAdvice,
   onRestart,
 }) {
+  const effectiveOperation = lockedOperation || decisionAnswers.operation;
+  const operationChoices =
+    lockedOperation === "comprar"
+      ? [["comprar", "Compra", "🔑"]]
+      : lockedOperation === "renting"
+        ? [["renting", "Renting", "📅"]]
+        : [
+            ["comprar", "Compra", "🔑"],
+            ["renting", "Renting", "📅"],
+          ];
+
   return (
     <div style={styles.center}>
+      <style>
+        {`
+          .decision-choice {
+            position: relative;
+            overflow: hidden;
+            border-radius: 13px;
+            border: 1px solid rgba(37,99,235,0.2);
+            box-shadow: 0 8px 18px rgba(15,23,42,0.08);
+            transition: transform 170ms ease, box-shadow 170ms ease, border-color 170ms ease, filter 170ms ease;
+          }
+
+          .decision-choice::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 90% 8%, rgba(56,189,248,0.16), rgba(56,189,248,0) 45%);
+            pointer-events: none;
+            opacity: 0.85;
+          }
+
+          .decision-choice:hover,
+          .decision-choice:focus-visible {
+            transform: translateY(-2px);
+            border-color: rgba(14,165,233,0.5);
+            box-shadow: 0 14px 24px rgba(14,116,144,0.16), 0 0 18px rgba(14,165,233,0.14);
+            filter: saturate(1.03);
+          }
+
+          .decision-choice.is-active {
+            border-color: rgba(37,99,235,0.58);
+            box-shadow: 0 0 0 1px rgba(37,99,235,0.2) inset, 0 12px 22px rgba(37,99,235,0.16);
+          }
+        `}
+      </style>
+
       <div style={{ ...styles.blockBadge("Vinculación"), marginBottom: 10 }}>🧭 OFERTAS DE MERCADO</div>
       <h2
         style={{
@@ -39,7 +86,7 @@ export default function DecisionPage({
           fontWeight: 800,
           letterSpacing: "-1px",
           margin: "0 0 10px",
-          color: "#f1f5f9",
+          color: "#000000",
         }}
       >
         Afina marca, modelo y condiciones para ordenar las ofertas
@@ -54,17 +101,18 @@ export default function DecisionPage({
           1. TIPO DE OPERACIÓN
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 10 }}>
-          {[
-            ["comprar", "Compra", "🔑"],
-            ["renting", "Renting", "📅"],
-          ].map(([value, label, icon]) => (
+          {operationChoices.map(([value, label, icon]) => (
             <button
               key={value}
-              style={styles.card(decisionAnswers.operation === value)}
-              onClick={() => updateDecisionAnswer("operation", value)}
+              style={styles.card(effectiveOperation === value)}
+              className={`decision-choice ${effectiveOperation === value ? "is-active" : ""}`}
+              onClick={() => {
+                if (lockedOperation) return;
+                updateDecisionAnswer("operation", value);
+              }}
             >
               <span style={{ fontSize: 22, minWidth: 30 }}>{icon}</span>
-              <div style={{ fontWeight: 600, fontSize: 14 }}>{label}</div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: "#000000" }}>{label}</div>
             </button>
           ))}
         </div>
@@ -75,7 +123,7 @@ export default function DecisionPage({
           2. MODALIDAD
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 10 }}>
-          {(decisionAnswers.operation === "renting"
+          {(effectiveOperation === "renting"
             ? [
                 ["particular", "Renting particular", "👤"],
                 ["empresa", "Renting empresa", "🏢"],
@@ -89,10 +137,11 @@ export default function DecisionPage({
             <button
               key={value}
               style={styles.card(decisionAnswers.acquisition === value)}
+              className={`decision-choice ${decisionAnswers.acquisition === value ? "is-active" : ""}`}
               onClick={() => updateDecisionAnswer("acquisition", value)}
             >
               <span style={{ fontSize: 22, minWidth: 30 }}>{icon}</span>
-              <div style={{ fontWeight: 600, fontSize: 14 }}>{label}</div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: "#000000" }}>{label}</div>
             </button>
           ))}
         </div>
@@ -110,10 +159,11 @@ export default function DecisionPage({
             <button
               key={value}
               style={styles.card(decisionAnswers.hasBrand === value)}
+              className={`decision-choice ${decisionAnswers.hasBrand === value ? "is-active" : ""}`}
               onClick={() => updateDecisionAnswer("hasBrand", value)}
             >
               <span style={{ fontSize: 22, minWidth: 30 }}>{icon}</span>
-              <div style={{ fontWeight: 600, fontSize: 14 }}>{label}</div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: "#000000" }}>{label}</div>
             </button>
           ))}
         </div>

@@ -25,7 +25,7 @@ export default function ServiceOptionsPage({
         ← Volver
       </button>
 
-      <h2 style={{ margin: "0 0 8px", fontSize: "clamp(28px,4vw,38px)", color: "#f8fafc", letterSpacing: "-0.9px" }}>
+      <h2 style={{ margin: "0 0 8px", fontSize: "clamp(28px,4vw,38px)", color: "#000000", letterSpacing: "-0.9px" }}>
         Quiero contratar un Servicio
       </h2>
       <p style={{ margin: "0 0 22px", color: "#94a3b8", fontSize: 14, lineHeight: 1.6 }}>
@@ -60,7 +60,7 @@ export default function ServiceOptionsPage({
             animationDelay: "60ms",
           }}
         >
-          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2 }}>Seguro</div>
+          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: "#000000" }}>Seguro</div>
           <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.5 }}>
             Negociamos las condiciones para muchos particulares como uno solo, de forma que conseguimos
             mejores precios.
@@ -87,7 +87,7 @@ export default function ServiceOptionsPage({
             animationDelay: "150ms",
           }}
         >
-          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2 }}>Mantenimiento</div>
+          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: "#000000" }}>Mantenimiento</div>
           <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.5 }}>
             Paga una cuota mensual por el mantenimiento de tu coche actual y dejate de sustos y gastos
             inesperados.
@@ -114,7 +114,7 @@ export default function ServiceOptionsPage({
             animationDelay: "240ms",
           }}
         >
-          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2 }}>AutoGestor</div>
+          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: "#000000" }}>AutoGestor</div>
           <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.5 }}>
             Utiliza nuestra IA de gestion integral para monitorizar y archivar todo lo relacionado con
             tu vehículo.

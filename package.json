@@ -29,6 +29,7 @@
     "test:auth-local:strict": "node scripts/auth-e2e-local-strict.js",
     "test:auth-all-local": "node scripts/auth-e2e-all-local.js",
     "test:auth-security-local": "node scripts/auth-security-local.js",
+    "test:ranking": "node scripts/find-listing-ranking-local.js",
     "eject": "react-scripts eject"
   },
   "proxy": "http://localhost:3001",

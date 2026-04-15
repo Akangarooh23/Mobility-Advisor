@@ -101,6 +101,22 @@ function normalizeStringArray(value) {
     .filter(Boolean);
 }
 
+function enforceUserFuelInPropulsions(propulsions, answers) {
+  const priority = Number((answers?.ponderacion_score_personalizada || {}).propulsion_preferida) || 0;
+  if (priority < 3) return propulsions;
+  const preferred = Array.isArray(answers?.propulsion_preferida)
+    ? answers.propulsion_preferida
+    : answers?.propulsion_preferida ? [answers.propulsion_preferida] : [];
+  const result = [...propulsions];
+  for (const fuel of preferred) {
+    const f = fuel.toLowerCase();
+    if (!result.some((p) => p.toLowerCase().includes(f))) {
+      result.unshift(fuel);
+    }
+  }
+  return result;
+}
+
 function toNumber(value, fallback = 0) {
   if (Number.isFinite(Number(value))) {
     return Number(value);
@@ -509,7 +525,7 @@ function normalizeAdvisorResult(value, answers = {}) {
   const main = value?.solucion_principal || {};
   const score = Number.isFinite(Number(main.score)) ? Number(main.score) : Number(value?.alineacion_pct) || 0;
   const mainType = normalizeText(main.tipo);
-  const propulsionesViables = normalizeStringArray(value?.propulsiones_viables);
+  const propulsionesViables = enforceUserFuelInPropulsions(normalizeStringArray(value?.propulsiones_viables), answers);
   const providedBreakdown = normalizeScoreBreakdown(value?.score_desglose);
   const providedBreakdownTotal = Object.values(providedBreakdown).reduce((acc, item) => acc + Number(item || 0), 0);
   const score_desglose = providedBreakdownTotal > 0
@@ -654,15 +670,23 @@ function getViablePropulsions(answers) {
     propulsions.push("hibrido", "PHEV", "gasolina eficiente");
   }
 
-  if (answers.propulsion_preferida === "electrico" && ownCharger && !propulsions.includes("electrico")) {
+  const prefArr = Array.isArray(answers.propulsion_preferida)
+    ? answers.propulsion_preferida
+    : answers.propulsion_preferida ? [answers.propulsion_preferida] : [];
+
+  if (prefArr.includes("electrico") && ownCharger && !propulsions.includes("electrico")) {
     propulsions.unshift("electrico");
   }
 
-  if (answers.propulsion_preferida === "gasolina" && !propulsions.includes("gasolina eficiente")) {
+  if (prefArr.includes("gasolina") && !propulsions.includes("gasolina eficiente")) {
     propulsions.push("gasolina eficiente");
   }
 
-  return [...new Set(propulsions)].slice(0, 3);
+  if (prefArr.includes("diesel") && !propulsions.some((p) => p.toLowerCase().includes("diesel"))) {
+    propulsions.push("diesel");
+  }
+
+  return [...new Set(propulsions)].slice(0, 4);
 }
 
 function getPrimaryType(answers) {

@@ -31,16 +31,16 @@ export default function UserDashboardHome({
           <div
             key={item.label}
             style={{
-              background: "rgba(15,23,42,0.45)",
-              border: "1px solid rgba(148,163,184,0.14)",
+              background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
+              border: "1px solid rgba(148,163,184,0.26)",
               borderRadius: 14,
               padding: 14,
             }}
           >
             <div style={{ fontSize: 24, fontWeight: 800, color: item.color }}>{item.value}</div>
-            <div style={{ fontSize: 12, color: "#cbd5e1", marginTop: 4 }}>{item.label}</div>
+            <div style={{ fontSize: 12, color: "#334155", marginTop: 4 }}>{item.label}</div>
             {item.label === "Guardadas" && newAlertMatchesCount > 0 && (
-              <div style={{ fontSize: 11, color: "#6ee7b7", marginTop: 6, fontWeight: 700 }}>
+              <div style={{ fontSize: 11, color: "#047857", marginTop: 6, fontWeight: 700 }}>
                 🔔 {newAlertMatchesCount} novedades
               </div>
             )}
@@ -52,23 +52,23 @@ export default function UserDashboardHome({
         style={{
           ...panelStyle,
           marginBottom: 18,
-          background: "linear-gradient(135deg,rgba(16,185,129,0.10),rgba(15,23,42,0.82))",
-          border: "1px solid rgba(110,231,183,0.16)",
+          background: "linear-gradient(135deg,rgba(16,185,129,0.10),rgba(255,255,255,0.96))",
+          border: "1px solid rgba(148,163,184,0.26)",
         }}
       >
-        <div style={{ fontSize: 11, color: "#6ee7b7", letterSpacing: "0.6px", marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: "#047857", letterSpacing: "0.6px", marginBottom: 8 }}>
           BANDEJA DE AVISOS
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#f8fafc" }}>🔔 Mercado bajo vigilancia</div>
-            <div style={{ fontSize: 12, color: "#cbd5e1", marginTop: 4, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a" }}>🔔 Mercado bajo vigilancia</div>
+            <div style={{ fontSize: 12, color: "#334155", marginTop: 4, lineHeight: 1.6 }}>
               {pendingAlertNotifications.length > 0
                 ? `Tienes ${newAlertMatchesCount} ${newAlertMatchesCount === 1 ? "novedad pendiente" : "novedades pendientes"} en tus alertas.`
                 : "No hay avisos nuevos ahora mismo. Tus alertas siguen vigilando el mercado por ti."}
             </div>
             {emailTargets.length > 0 && (
-              <div style={{ fontSize: 11, color: "#bfdbfe", marginTop: 6 }}>
+              <div style={{ fontSize: 11, color: "#1d4ed8", marginTop: 6 }}>
                 📧 Resumen por email a {emailTargets.join(", ")}
               </div>
             )}
@@ -78,9 +78,9 @@ export default function UserDashboardHome({
               type="button"
               onClick={() => onNavigate("saved")}
               style={{
-                background: "rgba(37,99,235,0.14)",
-                border: "1px solid rgba(96,165,250,0.24)",
-                color: "#dbeafe",
+                background: "rgba(37,99,235,0.10)",
+                border: "1px solid rgba(96,165,250,0.28)",
+                color: "#1e3a8a",
                 padding: "9px 12px",
                 borderRadius: 10,
                 fontSize: 12,
@@ -98,7 +98,7 @@ export default function UserDashboardHome({
                 style={{
                   background: "rgba(99,102,241,0.16)",
                   border: "1px solid rgba(165,180,252,0.24)",
-                  color: "#e0e7ff",
+                  color: "#3730a3",
                   padding: "9px 12px",
                   borderRadius: 10,
                   fontSize: 12,
@@ -117,7 +117,7 @@ export default function UserDashboardHome({
                 style={{
                   background: "rgba(245,158,11,0.12)",
                   border: "1px solid rgba(251,191,36,0.2)",
-                  color: "#fde68a",
+                  color: "#92400e",
                   padding: "9px 12px",
                   borderRadius: 10,
                   fontSize: 12,
@@ -132,7 +132,7 @@ export default function UserDashboardHome({
         </div>
 
         {emailDigestFeedback && (
-          <div style={{ marginTop: 12, fontSize: 12, color: "#dbeafe", fontWeight: 700 }}>
+          <div style={{ marginTop: 12, fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>
             {emailDigestFeedback}
           </div>
         )}
@@ -143,16 +143,16 @@ export default function UserDashboardHome({
               <div
                 key={notice.id}
                 style={{
-                  background: "rgba(15,23,42,0.45)",
-                  border: "1px solid rgba(148,163,184,0.14)",
+                  background: "rgba(255,255,255,0.95)",
+                  border: "1px solid rgba(148,163,184,0.24)",
                   borderRadius: 12,
                   padding: 10,
                 }}
               >
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#f8fafc" }}>{notice.title}</div>
-                <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 4 }}>{notice.summary}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#0f172a" }}>{notice.title}</div>
+                <div style={{ fontSize: 11, color: "#475569", marginTop: 4 }}>{notice.summary}</div>
                 {notice.notifyByEmail && notice.email && (
-                  <div style={{ fontSize: 11, color: "#bfdbfe", marginTop: 4 }}>📧 {notice.email}</div>
+                  <div style={{ fontSize: 11, color: "#1d4ed8", marginTop: 4 }}>📧 {notice.email}</div>
                 )}
               </div>
             ))}
@@ -172,24 +172,25 @@ export default function UserDashboardHome({
                 ...panelStyle,
                 textAlign: "left",
                 cursor: "pointer",
-                background: "rgba(15,23,42,0.42)",
+                background: "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
+                border: "1px solid rgba(148,163,184,0.26)",
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start", marginBottom: 10 }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: "#f8fafc" }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>
                   {section.icon} {section.label}
                 </div>
-                <span style={{ fontSize: 11, color: "#93c5fd" }}>{section.count}</span>
+                <span style={{ fontSize: 11, color: "#1d4ed8" }}>{section.count}</span>
               </div>
-              <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
+              <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
                 {section.description}
               </div>
               {section.notice && (
-                <div style={{ marginTop: 8, fontSize: 11, color: "#6ee7b7", fontWeight: 700 }}>
+                <div style={{ marginTop: 8, fontSize: 11, color: "#047857", fontWeight: 700 }}>
                   {section.notice}
                 </div>
               )}
-              <div style={{ marginTop: 12, fontSize: 12, color: "#bfdbfe", fontWeight: 700 }}>
+              <div style={{ marginTop: 12, fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>
                 Abrir sección →
               </div>
             </button>

@@ -135,30 +135,18 @@ export default function LandingPage({
       </div>
       <h1
         style={{
-          fontSize: "clamp(30px,6vw,52px)",
+          fontSize: "clamp(24px,4.8vw,42px)",
           fontWeight: 800,
           letterSpacing: "-2px",
-          margin: "0 0 18px",
-          background: "linear-gradient(135deg,#f1f5f9 30%,#64748b)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          lineHeight: 1.1,
-        }}
-      >
-        ¿Cuál es tu mejor<br />opción de movilidad?
-      </h1>
-      <p
-        style={{
-          fontSize: 16,
-          color: "#64748b",
-          lineHeight: 1.7,
-          maxWidth: 440,
           margin: "0 auto 36px",
+          color: "#000000",
+          lineHeight: 1.1,
+          maxWidth: 860,
         }}
       >
         Te ayudamos a encontrar el coche usado con mejor relación calidad precio y que el proceso
         de compra y venta sea fiable, transparente y rentable.
-      </p>
+      </h1>
 
       {showResumeAdvice && (
         <div
@@ -234,7 +222,7 @@ export default function LandingPage({
         >
           <span style={{ fontSize: 28, minWidth: 40 }}>🚗</span>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 17, color: "#f1f5f9", marginBottom: 6 }}>
+            <div style={{ fontWeight: 700, fontSize: 19, color: "#000000", marginBottom: 6 }}>
               Quiero un vehículo
             </div>
             <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
@@ -257,7 +245,7 @@ export default function LandingPage({
         >
           <span style={{ fontSize: 28, minWidth: 40 }}>💶</span>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 17, color: "#f1f5f9", marginBottom: 6 }}>
+            <div style={{ fontWeight: 700, fontSize: 19, color: "#000000", marginBottom: 6 }}>
               Quiero vender mi coche
             </div>
             <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
@@ -280,7 +268,7 @@ export default function LandingPage({
         >
           <span style={{ fontSize: 28, minWidth: 40 }}>🛠️</span>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 17, color: "#f1f5f9", marginBottom: 6 }}>
+            <div style={{ fontWeight: 700, fontSize: 19, color: "#000000", marginBottom: 6 }}>
               Quiero contratar un Servicio
             </div>
             <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>

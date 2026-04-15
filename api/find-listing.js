@@ -1212,33 +1212,75 @@ function getPracticalFitScore(rawText, listing, context) {
 function buildRankingSignals(listing, context, { budgetFit, providerTrustScore, practicalFitScore }) {
   const rawText = `${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""} ${listing?.price || ""}`;
   const haystack = removeAccents(rawText).toLowerCase();
-  const signals = [];
 
-  if (listing?.hasRealImage || isUsefulImageUrl(listing?.image)) {
-    signals.push("Foto real del anuncio");
+  // Profile-match signals: shown as tags and used as positionReason text
+  const profileSignals = [];
+  const preferredBrands = getProfileBrandKeywords(context.answers, context.models || []);
+  const preferredFuel = removeAccents(getPreferredFuelString(context.answers)).toLowerCase();
+  const brandPriority = getOfferPriorityRank(context.answers, "marca_preferencia");
+  const fuelPriority = getOfferPriorityRank(context.answers, "propulsion_preferida");
+
+  if (
+    preferredBrands.length > 0 &&
+    context.answers?.marca_preferencia !== "sin_preferencia" &&
+    preferredBrands.some((b) => haystack.includes(b))
+  ) {
+    const brandLabel = {
+      premium_alemana: "Marca premium alemana",
+      premium_escandinava: "Marca premium escandinava",
+      asiatica_fiable: "Marca asiática de confianza",
+      generalista_europea: "Marca generalista europea",
+      nueva_china: "Marca china de nueva generación",
+    }[context.answers.marca_preferencia] || "Marca preferida detectada";
+    profileSignals.push(brandLabel);
   }
 
-  if (budgetFit?.label) {
-    signals.push(budgetFit.label);
+  if (preferredFuel && scorePreferredFuel(haystack, preferredFuel, preferredFuel) > 0) {
+    const fuelNames = {
+      diesel: "Motorización diésel",
+      gasolina: "Motorización gasolina",
+      hibrido: "Híbrido detectado",
+      electrico: "Eléctrico puro",
+      phev: "Híbrido enchufable",
+    };
+    const fuelKey = Object.keys(fuelNames).find((k) => preferredFuel.includes(k));
+    if (fuelKey) profileSignals.push(fuelNames[fuelKey]);
   }
 
-  if (providerTrustScore >= 10) {
-    signals.push(`Fuente priorizada: ${listing?.source || "portal fiable"}`);
-  }
-
-  if (matchesDesiredListingType(listing, context.desiredType)) {
-    signals.push(context.desiredType === "renting" ? "Tipo correcto: renting / suscripción" : "Tipo correcto: compra / ocasión");
+  if (context.answers?.entorno_uso === "ciudad" && /(yaris|clio|ibiza|polo|208|i20|hybrid|electrico|bmw.*1|serie 1|a1|golf|leon)/.test(haystack)) {
+    profileSignals.push("Buen encaje para uso urbano");
+  } else if (context.answers?.entorno_uso === "autopista" && /(tdi|diesel|diésel|hybrid|xc|a4|a6|serie 3|octavia|touareg|qashqai)/.test(haystack)) {
+    profileSignals.push("Buen encaje para autopista");
   }
 
   if (context.answers?.zbe_impacto === "alta" && /(hybrid|hibrid|phev|electric|electrico|eco|cero)/.test(haystack)) {
-    signals.push("Mejor encaje con ZBE y uso urbano");
+    profileSignals.push("Encaja con ZBE y uso urbano");
   }
 
+  if (context.answers?.km_anuales === "mas_20k" && /(diesel|di.sel|hybrid|octavia|corolla|qashqai|tucson)/.test(haystack)) {
+    profileSignals.push("Eficiente para muchos km");
+  }
+
+  // Quality/trust signals: shown as tags but NOT used as positionReason
+  const qualitySignals = [];
+  if (listing?.hasRealImage || isUsefulImageUrl(listing?.image)) {
+    qualitySignals.push("Foto real del anuncio");
+  }
+  if (budgetFit?.label) {
+    qualitySignals.push(budgetFit.label);
+  }
+  if (providerTrustScore >= 10) {
+    qualitySignals.push(`Fuente priorizada: ${listing?.source || "portal fiable"}`);
+  }
+  if (matchesDesiredListingType(listing, context.desiredType)) {
+    qualitySignals.push(context.desiredType === "renting" ? "Tipo correcto: renting / suscripción" : "Tipo correcto: compra / ocasión");
+  }
   if (context.answers?.gestion_riesgo === "alto" && practicalFitScore >= 4) {
-    signals.push("Precio visible: menos riesgo comercial");
+    qualitySignals.push("Precio visible: menos riesgo");
   }
 
-  return uniq(signals).slice(0, 4);
+  // Profile signals first so positionReason picks them; quality signals trail
+  return uniq([...profileSignals, ...qualitySignals]).slice(0, 5);
 }
 
 function scoreListingForProfile(listing, { result, answers, filters, company, models = [], desiredType }) {
@@ -1288,7 +1330,11 @@ function scoreListingForProfile(listing, { result, answers, filters, company, mo
     score += hits * 2;
   }
 
-  score += Math.round(brandHits * 4 * getPriorityMultiplier(brandPriority, 0.35, 2.3));
+  // Brand score: priority multiplier + a guaranteed floor so that a brand-matched listing
+  // always beats a non-matching one even when the user rated brand importance at 1.
+  const brandScoreRaw = Math.round(brandHits * 4 * getPriorityMultiplier(brandPriority, 0.35, 2.3));
+  const brandFloor = (brandHits > 0 && preferredBrands.length > 0 && answers?.marca_preferencia !== "sin_preferencia") ? 5 : 0;
+  score += Math.max(brandScoreRaw, brandFloor);
   score += Math.round(scorePreferredFuel(haystack, preferredFuel, viableFuel) * getPriorityMultiplier(fuelPriority, 0.45, 2.1));
 
   if (answers?.marca_preferencia && answers.marca_preferencia !== "sin_preferencia" && brandHits === 0) {
@@ -1667,9 +1713,11 @@ function isPreviouslySeenListing(listing, excludedUrls = new Set(), excludedTitl
 
 function buildPositionReason(listing, index) {
   const rankingSignals = Array.isArray(listing?.rankingSignals) ? listing.rankingSignals : [];
-  const positiveSignals = rankingSignals.filter((signal) => !/^(Sin|Se sale|Por debajo)/i.test(String(signal || "")));
-  const topSignal = positiveSignals[0] || listing?.matchReason || rankingSignals[0] || "buen equilibrio general para tu perfil";
-  const secondSignal = rankingSignals.find((signal) => signal && signal !== topSignal) || "";
+  // Profile signals come first in rankingSignals; exclude quality metadata from the reason text
+  const metadataRe = /^(Sin|Se sale|Por debajo|Foto real|Precio\s+(detectado|visible)|Fuente priorizada|Tipo correcto)/i;
+  const profileSignals = rankingSignals.filter((signal) => !metadataRe.test(String(signal || "")));
+  const topSignal = profileSignals[0] || listing?.matchReason || "buen equilibrio general para tu perfil";
+  const secondSignal = profileSignals.find((signal) => signal && signal !== topSignal) || "";
 
   if (index === 0) {
     return `Sube al puesto #1 porque ${topSignal.toLowerCase()}${secondSignal ? ` y además ${secondSignal.toLowerCase()}` : ""}.`;
@@ -1734,13 +1782,56 @@ function pickProviderDiverseListings(listings = [], limit = 4) {
 
 function buildRankedListingResponse(listings = [], options = {}) {
   const dedupedListings = dedupeListings(listings);
+  const answers = options.answers && typeof options.answers === "object" ? options.answers : {};
+  const models = Array.isArray(options.models) ? options.models : [];
+  const brandPriority = getOfferPriorityRank(answers, "marca_preferencia");
+  const modelObjective = normalizeText(answers?.modelo_objetivo);
+  const preferredBrands = getProfileBrandKeywords(answers, models);
+  const modelTokens = removeAccents(modelObjective)
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((token) => token.length > 2);
+
+  const hasModelMatch = (listing) => {
+    if (!modelTokens.length) {
+      return false;
+    }
+
+    const haystack = removeAccents(`${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""}`).toLowerCase();
+    return modelTokens.every((token) => haystack.includes(token));
+  };
+
+  const hasBrandMatch = (listing) => {
+    if (!preferredBrands.length) {
+      return false;
+    }
+
+    const haystack = removeAccents(`${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""}`).toLowerCase();
+    return preferredBrands.some((brand) => haystack.includes(brand));
+  };
+
+  let constrainedListings = [...dedupedListings];
+  if (modelTokens.length > 0) {
+    const modelMatched = constrainedListings.filter(hasModelMatch);
+    if (modelMatched.length > 0) {
+      constrainedListings = modelMatched;
+    }
+  }
+
+  if (brandPriority >= 5) {
+    const brandMatched = constrainedListings.filter(hasBrandMatch);
+    if (brandMatched.length > 0) {
+      constrainedListings = brandMatched;
+    }
+  }
+
   const excludedUrls = options.excludedUrls instanceof Set
     ? options.excludedUrls
     : createNormalizedLookup(options.excludedUrls || []);
   const excludedTitles = options.excludedTitles instanceof Set
     ? options.excludedTitles
     : createNormalizedLookup(options.excludedTitles || []);
-  const orderedListings = [...dedupedListings].sort(sortListingsByPriority);
+  const orderedListings = [...constrainedListings].sort(sortListingsByPriority);
   const imagePreferredListings = options.preferRealImage === false
     ? orderedListings
     : [
@@ -1762,16 +1853,33 @@ function buildRankedListingResponse(listings = [], options = {}) {
     return null;
   }
 
-  const [first, ...rest] = ranked;
+  // Promote a real listing over a synthetic one when model objective has a concrete real match
+  let finalRanked = ranked;
+  if (modelTokens.length > 0 && ranked.length > 1 && ranked[0]?.synthetic) {
+    const realMatchIdx = ranked.findIndex((l, i) => i > 0 && !l.synthetic && hasModelMatch(l));
+    if (realMatchIdx > 0) {
+      finalRanked = [
+        ranked[realMatchIdx],
+        ...ranked.slice(0, realMatchIdx),
+        ...ranked.slice(realMatchIdx + 1),
+      ];
+    }
+  }
+
+  const [first, ...rest] = finalRanked;
+  const isSyntheticModelFallback = options.fallbackMode && first?.synthetic && modelTokens.length > 0;
   const topListing = options.fallbackMode
     ? {
         ...first,
         whyMatches: uniq([
-          "No había una coincidencia exacta con todos tus filtros; esta es la alternativa real con mejor equilibrio entre encaje, precio visible y confianza de fuente.",
+          isSyntheticModelFallback
+            ? `No encontré stock real de ${modelObjective} en este momento; te muestro la referencia orientativa más cercana para que busques directamente en el proveedor.`
+            : "No había una coincidencia exacta con todos tus filtros; esta es la alternativa real con mejor equilibrio entre encaje, precio visible y confianza de fuente.",
           ...(first.whyMatches || []),
         ]).slice(0, 6),
-        matchReason:
-          "No había una coincidencia exacta; esta opción sube al primer puesto por equilibrio real entre encaje, presupuesto y confianza.",
+        matchReason: isSyntheticModelFallback
+          ? `No encontré anuncios reales de ${modelObjective} ahora mismo; esta referencia orientativa te lleva directamente a buscarlo en el proveedor.`
+          : "No había una coincidencia exacta; esta opción sube al primer puesto por equilibrio real entre encaje, presupuesto y confianza.",
       }
     : first;
   const listingsWithTop = [topListing, ...rest.map((item) => ({ ...item }))];
@@ -1974,7 +2082,13 @@ function decorateListing(listing, context) {
     providerTrustScore,
     practicalFitScore,
   });
-  const positiveRankingSignal = rankingSignals.find((signal) => !/^(Sin|Se sale|Por debajo)/i.test(signal));
+  // Keep match reason user-meaningful: avoid metadata and generic price/provider labels.
+  const positiveMatchSignal = rankingSignals.find(
+    (signal) => !/^(Sin|Se sale|Por debajo|Foto real|Precio\s+(detectado|visible)|Fuente priorizada|Tipo correcto)/i.test(String(signal || ""))
+  );
+  const preferredWhyMatch = whyMatches.find(
+    (reason) => /encaja con tu perfil|priorizo|he tenido en cuenta|propulsiones viables|franja economica|contexto financiero/i.test(String(reason || ""))
+  );
   const baseListing = {
     ...normalizedListing,
     listingType: context.desiredType,
@@ -1993,12 +2107,15 @@ function decorateListing(listing, context) {
     isFallbackMatch,
     whyMatches,
     matchReason:
-      positiveRankingSignal ||
+      preferredWhyMatch ||
       whyMatches[1] ||
+      positiveMatchSignal ||
       whyMatches[0] ||
       context.matchReason ||
       "Opcion real localizada en la web externa para tu perfil.",
   };
+
+
 }
 
 async function fetchListingDetails(candidate, context) {
@@ -2578,6 +2695,19 @@ async function searchFlexicarListings(models, context) {
 
 async function findListing({ result, answers, filters }) {
   const models = buildVehicleCandidates({ result, answers });
+  const modelObjective = normalizeText(answers?.modelo_objetivo);
+  const modelObjectiveTokens = removeAccents(modelObjective)
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((token) => token.length > 2 || /\d/.test(token));
+  const listingMatchesModelObjective = (listing) => {
+    if (!modelObjectiveTokens.length) {
+      return false;
+    }
+
+    const haystack = removeAccents(`${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""}`).toLowerCase();
+    return modelObjectiveTokens.every((token) => haystack.includes(token));
+  };
   const desiredType = getDesiredListingType(result);
   const companies = getSearchCompanies({ result, filters, desiredType });
   const queries = buildQueries({ result, answers, filters, companies, desiredType });
@@ -2634,6 +2764,8 @@ async function findListing({ result, answers, filters }) {
       excludedUrls: context.excludedUrls,
       excludedTitles: context.excludedTitles,
       preferUnseen: context.preferUnseen,
+      answers,
+      models,
       searchCoverage: getSearchCoverage(),
     });
   }
@@ -2676,12 +2808,18 @@ async function findListing({ result, answers, filters }) {
 
   const bestExactMatches = matches.filter((listing) => listing?.isRelevantMatch);
   const concreteExactMatches = bestExactMatches.filter((listing) => hasConcreteModelSignal(listing, models));
-  if (concreteExactMatches.length > 0) {
+  const concreteObjectiveMatches = modelObjectiveTokens.length
+    ? concreteExactMatches.filter((listing) => listingMatchesModelObjective(listing))
+    : concreteExactMatches;
+
+  if (concreteExactMatches.length > 0 && (!modelObjectiveTokens.length || concreteObjectiveMatches.length > 0)) {
     return buildRankedListingResponse([...concreteExactMatches, ...matches], {
       fallbackMode: false,
       excludedUrls: context.excludedUrls,
       excludedTitles: context.excludedTitles,
       preferUnseen: context.preferUnseen,
+      answers,
+      models,
       searchCoverage: getSearchCoverage(),
     });
   }
@@ -2694,6 +2832,8 @@ async function findListing({ result, answers, filters }) {
         excludedUrls: context.excludedUrls,
         excludedTitles: context.excludedTitles,
         preferUnseen: context.preferUnseen,
+        answers,
+        models,
         searchCoverage: getSearchCoverage(),
       }
     );
@@ -2701,12 +2841,18 @@ async function findListing({ result, answers, filters }) {
 
   const bestFallbackMatches = matches.filter((listing) => listing?.isFallbackMatch);
   const concreteFallbackMatches = bestFallbackMatches.filter((listing) => hasConcreteModelSignal(listing, models));
-  if (concreteFallbackMatches.length > 0) {
+  const concreteFallbackObjectiveMatches = modelObjectiveTokens.length
+    ? concreteFallbackMatches.filter((listing) => listingMatchesModelObjective(listing))
+    : concreteFallbackMatches;
+
+  if (concreteFallbackMatches.length > 0 && (!modelObjectiveTokens.length || concreteFallbackObjectiveMatches.length > 0)) {
     return buildRankedListingResponse([...concreteFallbackMatches, ...bestFallbackMatches], {
       fallbackMode: true,
       excludedUrls: context.excludedUrls,
       excludedTitles: context.excludedTitles,
       preferUnseen: context.preferUnseen,
+      answers,
+      models,
       searchCoverage: getSearchCoverage(),
     });
   }
@@ -2719,6 +2865,8 @@ async function findListing({ result, answers, filters }) {
         excludedUrls: context.excludedUrls,
         excludedTitles: context.excludedTitles,
         preferUnseen: context.preferUnseen,
+        answers,
+        models,
         searchCoverage: getSearchCoverage(),
       }
     );
@@ -2731,6 +2879,8 @@ async function findListing({ result, answers, filters }) {
       excludedUrls: context.excludedUrls,
       excludedTitles: context.excludedTitles,
       preferUnseen: context.preferUnseen,
+      answers,
+      models,
       searchCoverage: getSearchCoverage(),
     }
   );
@@ -2759,3 +2909,5 @@ module.exports = async function handler(req, res) {
     res.status(500).json({ error: error?.message || "No se pudo buscar un anuncio real." });
   }
 };
+
+module.exports.buildRankedListingResponse = buildRankedListingResponse;

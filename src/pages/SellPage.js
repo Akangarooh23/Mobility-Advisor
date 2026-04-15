@@ -36,7 +36,7 @@ export default function SellPage({
           fontWeight: 800,
           letterSpacing: "-1px",
           margin: "0 0 10px",
-          color: "#f1f5f9",
+          color: "#000000",
         }}
       >
         {pageTitle}
@@ -190,7 +190,7 @@ export default function SellPage({
             <div style={{ fontSize: 11, color: "#f59e0b", marginBottom: 6, letterSpacing: "0.6px" }}>
               PRECIO OBJETIVO IA
             </div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: "#f1f5f9", marginBottom: 8 }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: "#000000", marginBottom: 8 }}>
               {sellAiResult.precio_objetivo}
             </div>
             <p style={{ margin: 0, fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
@@ -203,13 +203,13 @@ export default function SellPage({
               <div style={{ fontSize: 11, color: "#60a5fa", marginBottom: 6, letterSpacing: "0.6px" }}>
                 DEMANDA ESTIMADA
               </div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#f1f5f9" }}>{sellAiResult.nivel_demanda || "Media"}</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#000000" }}>{sellAiResult.nivel_demanda || "Media"}</div>
             </div>
             <div style={styles.panel}>
               <div style={{ fontSize: 11, color: "#60a5fa", marginBottom: 6, letterSpacing: "0.6px" }}>
                 TIEMPO ESTIMADO DE VENTA
               </div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#f1f5f9" }}>{sellAiResult.tiempo_estimado_venta || "Depende del precio y la demanda"}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#000000" }}>{sellAiResult.tiempo_estimado_venta || "Depende del precio y la demanda"}</div>
             </div>
           </div>
 
@@ -287,7 +287,7 @@ export default function SellPage({
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 8 }}>
                   <div style={{ flex: 1, minWidth: 220 }}>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: "#f8fafc", marginBottom: 6 }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "#000000", marginBottom: 6 }}>
                       {sellListingResult.title}
                     </div>
                     <p style={{ margin: 0, fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
@@ -330,7 +330,7 @@ export default function SellPage({
             <div style={{ fontSize: 11, color: "#f59e0b", marginBottom: 6, letterSpacing: "0.6px" }}>
               PREVIEW LOCAL DE PRECIO
             </div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: "#f1f5f9", marginBottom: 8 }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: "#000000", marginBottom: 8 }}>
               {formatCurrency(sellEstimate.targetPrice)}
             </div>
             <p style={{ margin: 0, fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>

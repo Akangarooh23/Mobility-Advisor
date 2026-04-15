@@ -95,6 +95,8 @@ export default function LandingPage({
   const panelRevealInitial = prefersReducedMotion ? false : { opacity: 0, y: 28, scale: 0.985 };
   const panelRevealInView = prefersReducedMotion ? undefined : { opacity: 1, y: 0, scale: 1 };
   const panelRevealViewport = prefersReducedMotion ? undefined : { once: true, amount: 0.18 };
+  const draftCardTitleColor = isDark ? "#e2e8f0" : "#0f172a";
+  const draftCardMetaColor = isDark ? "#cbd5e1" : "#334155";
 
   const experienceSteps = [
     {
@@ -321,10 +323,10 @@ export default function LandingPage({
             <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.4px", color: "#93c5fd", marginBottom: 4 }}>
               BORRADOR DISPONIBLE
             </div>
-            <div style={{ fontSize: 14, color: "#e2e8f0", fontWeight: 700 }}>
+            <div style={{ fontSize: 14, color: draftCardTitleColor, fontWeight: 700 }}>
               Tienes un cuestionario a medias
             </div>
-            <div style={{ fontSize: 12, color: "#cbd5e1", marginTop: 4 }}>
+            <div style={{ fontSize: 12, color: draftCardMetaColor, marginTop: 4 }}>
               Llevabas {draftAnsweredSteps} de {draftTotalSteps} preguntas completadas.
             </div>
           </div>
@@ -847,7 +849,7 @@ export default function LandingPage({
                 animationDelay: `${80 + SERVICE_PLANS.findIndex((item) => item.id === plan.id) * 80}ms`,
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: isMobileView ? "wrap" : "nowrap" }}>
                 <div style={{ fontWeight: 800, color: "#f8fafc", fontSize: 18 }}>{plan.name}</div>
                 <span
                   style={{
@@ -859,6 +861,7 @@ export default function LandingPage({
                     background: plan.badgeBackground,
                     border: `1px solid ${plan.border}`,
                     whiteSpace: "nowrap",
+                    marginLeft: isMobileView ? 0 : "auto",
                   }}
                 >
                   {plan.badge}
@@ -866,7 +869,7 @@ export default function LandingPage({
               </div>
 
               <div style={{ marginTop: 10, marginBottom: 12 }}>
-                <span style={{ color: "#f8fafc", fontWeight: 800, fontSize: 26 }}>{plan.monthlyPrice}€</span>
+                <span style={{ color: "#f8fafc", fontWeight: 800, fontSize: isMobileView ? 24 : 26 }}>{plan.monthlyPrice}€</span>
                 <span style={{ color: "#94a3b8", marginLeft: 6, fontSize: 13 }}>/mes</span>
               </div>
 
@@ -895,19 +898,21 @@ export default function LandingPage({
                   fontWeight: 700,
                   cursor: "pointer",
                   display: "flex",
-                  alignItems: "center",
+                  alignItems: isMobileView ? "flex-start" : "center",
                   justifyContent: "space-between",
+                  flexDirection: isMobileView ? "column" : "row",
                   gap: 8,
+                  textAlign: isMobileView ? "left" : "inherit",
                   opacity: planCheckoutLoadingId && planCheckoutLoadingId !== plan.id ? 0.6 : 1,
                 }}
                 aria-label={plan.ctaLabel || "Elegir plan"}
               >
-                <span>
+                <span style={{ wordBreak: "break-word" }}>
                   {planCheckoutLoadingId === plan.id
                     ? "Abriendo pasarela..."
                     : plan.ctaLabel || "Elegir plan"}
                 </span>
-                <span style={{ color: "#94a3b8", fontSize: 11 }}>
+                <span style={{ color: "#94a3b8", fontSize: 11, whiteSpace: isMobileView ? "normal" : "nowrap" }}>
                   {isUserLoggedIn ? "Pago seguro" : "Requiere acceso"}
                 </span>
               </button>
@@ -933,52 +938,91 @@ export default function LandingPage({
           </div>
         )}
 
-        <div
-          className="ma-card-soft"
-          style={{
-            marginTop: 14,
-            borderRadius: 14,
-            overflow: "hidden",
-            border: "1px solid rgba(148,163,184,0.22)",
-            overflowX: isMobileView ? "auto" : "hidden",
-          }}
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: comparisonGridTemplate,
-              background: "rgba(15,23,42,0.85)",
-              minWidth: isMobileView ? 820 : "auto",
-            }}
-          >
-            <div style={{ padding: "10px 12px", fontSize: 12, fontWeight: 700, color: "#93c5fd" }}>{PRICING_SECTION_COPY.comparisonTitle}</div>
-            {SERVICE_PLANS.map((plan) => (
-              <div key={`${plan.id}-head`} style={{ padding: "10px 8px", fontSize: 12, fontWeight: 700, color: "#e2e8f0", textAlign: "center" }}>
-                {plan.name.replace("Plan ", "")}
+        {isMobileView ? (
+          <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: "#93c5fd", textAlign: "center" }}>
+              {PRICING_SECTION_COPY.comparisonTitle}
+            </div>
+            {SERVICE_PLANS.map((plan, planIndex) => (
+              <div
+                key={`${plan.id}-mobile-comparison`}
+                className="ma-card-soft"
+                style={{
+                  borderRadius: 12,
+                  border: `1px solid ${plan.border}`,
+                  background: "rgba(15,23,42,0.5)",
+                  padding: "10px 10px",
+                  display: "grid",
+                  gap: 6,
+                }}
+              >
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#e2e8f0" }}>{plan.name}</div>
+                {PLAN_COMPARISON_ROWS.map((row) => (
+                  <div
+                    key={`${plan.id}-${row.label}`}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr auto",
+                      alignItems: "start",
+                      columnGap: 10,
+                      rowGap: 2,
+                      borderTop: "1px solid rgba(148,163,184,0.14)",
+                      paddingTop: 6,
+                    }}
+                  >
+                    <span style={{ fontSize: 11, color: "#cbd5e1", fontWeight: 700 }}>{row.label}</span>
+                    <span style={{ fontSize: 11, color: "#94a3b8", textAlign: "right" }}>{row.values[planIndex]}</span>
+                  </div>
+                ))}
               </div>
             ))}
           </div>
-
-          {PLAN_COMPARISON_ROWS.map((row, rowIndex) => (
+        ) : (
+          <div
+            className="ma-card-soft"
+            style={{
+              marginTop: 14,
+              borderRadius: 14,
+              overflow: "hidden",
+              border: "1px solid rgba(148,163,184,0.22)",
+              overflowX: "hidden",
+            }}
+          >
             <div
-              key={row.label}
               style={{
                 display: "grid",
                 gridTemplateColumns: comparisonGridTemplate,
-                background: rowIndex % 2 === 0 ? "rgba(15,23,42,0.35)" : "rgba(15,23,42,0.2)",
-                borderTop: "1px solid rgba(148,163,184,0.14)",
-                minWidth: isMobileView ? 820 : "auto",
+                background: "rgba(15,23,42,0.85)",
               }}
             >
-              <div style={{ padding: "9px 12px", fontSize: 12, color: "#cbd5e1", fontWeight: 700 }}>{row.label}</div>
-              {row.values.map((value, index) => (
-                <div key={`${row.label}-${index}`} style={{ padding: "9px 8px", fontSize: 12, color: "#94a3b8", textAlign: "center" }}>
-                  {value}
+              <div style={{ padding: "10px 12px", fontSize: 12, fontWeight: 700, color: "#93c5fd" }}>{PRICING_SECTION_COPY.comparisonTitle}</div>
+              {SERVICE_PLANS.map((plan) => (
+                <div key={`${plan.id}-head`} style={{ padding: "10px 8px", fontSize: 12, fontWeight: 700, color: "#e2e8f0", textAlign: "center" }}>
+                  {plan.name.replace("Plan ", "")}
                 </div>
               ))}
             </div>
-          ))}
-        </div>
+
+            {PLAN_COMPARISON_ROWS.map((row, rowIndex) => (
+              <div
+                key={row.label}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: comparisonGridTemplate,
+                  background: rowIndex % 2 === 0 ? "rgba(15,23,42,0.35)" : "rgba(15,23,42,0.2)",
+                  borderTop: "1px solid rgba(148,163,184,0.14)",
+                }}
+              >
+                <div style={{ padding: "9px 12px", fontSize: 12, color: "#cbd5e1", fontWeight: 700 }}>{row.label}</div>
+                {row.values.map((value, index) => (
+                  <div key={`${row.label}-${index}`} style={{ padding: "9px 8px", fontSize: 12, color: "#94a3b8", textAlign: "center" }}>
+                    {value}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
       </section>
       </m.section>
 

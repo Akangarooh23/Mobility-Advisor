@@ -1,7 +1,6 @@
 export default function UserDashboardHome({
   themeMode,
   counts,
-  sections,
   panelStyle,
   newAlertMatchesCount = 0,
   pendingAlertNotifications = [],
@@ -15,6 +14,11 @@ export default function UserDashboardHome({
   const cardBg = isDark
     ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
     : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))";
+  const panelBorder = isDark ? "1px solid rgba(148,163,184,0.26)" : "1px solid rgba(59,130,246,0.34)";
+  const cardBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(37,99,235,0.3)";
+  const homeCardShadow = isDark
+    ? "0 18px 30px rgba(2,6,23,0.35)"
+    : "0 14px 24px rgba(30,64,175,0.1)";
 
   const stats = [
     { label: "Guardadas", value: counts.saved, color: "#60a5fa" },
@@ -38,12 +42,13 @@ export default function UserDashboardHome({
             key={item.label}
             style={{
               background: cardBg,
-              border: "1px solid rgba(148,163,184,0.26)",
-              borderRadius: 14,
-              padding: 14,
+              border: panelBorder,
+              borderRadius: 16,
+              padding: 16,
+              boxShadow: homeCardShadow,
             }}
           >
-            <div style={{ fontSize: 24, fontWeight: 800, color: item.color }}>{item.value}</div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: item.color, letterSpacing: "-0.7px" }}>{item.value}</div>
             <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#334155", marginTop: 4 }}>{item.label}</div>
             {item.label === "Guardadas" && newAlertMatchesCount > 0 && (
               <div style={{ fontSize: 11, color: "#047857", marginTop: 6, fontWeight: 700 }}>
@@ -59,9 +64,11 @@ export default function UserDashboardHome({
           ...panelStyle,
           marginBottom: 18,
           background: isDark
-            ? "linear-gradient(135deg,rgba(16,185,129,0.16),rgba(15,23,42,0.9))"
-            : "linear-gradient(135deg,rgba(16,185,129,0.10),rgba(255,255,255,0.96))",
-          border: "1px solid rgba(148,163,184,0.26)",
+            ? "linear-gradient(130deg,rgba(5,150,105,0.2),rgba(15,23,42,0.94))"
+            : "linear-gradient(130deg,rgba(167,243,208,0.58),rgba(255,255,255,0.98))",
+          border: panelBorder,
+          borderRadius: 18,
+          boxShadow: homeCardShadow,
         }}
       >
         <div style={{ fontSize: 11, color: "#047857", letterSpacing: "0.6px", marginBottom: 8 }}>
@@ -89,8 +96,8 @@ export default function UserDashboardHome({
                 background: "rgba(37,99,235,0.10)",
                 border: "1px solid rgba(96,165,250,0.28)",
                 color: "#1e3a8a",
-                padding: "9px 12px",
-                borderRadius: 10,
+                padding: "10px 13px",
+                borderRadius: 12,
                 fontSize: 12,
                 fontWeight: 800,
                 cursor: "pointer",
@@ -107,8 +114,8 @@ export default function UserDashboardHome({
                   background: "rgba(99,102,241,0.16)",
                   border: "1px solid rgba(165,180,252,0.24)",
                   color: "#3730a3",
-                  padding: "9px 12px",
-                  borderRadius: 10,
+                  padding: "10px 13px",
+                  borderRadius: 12,
                   fontSize: 12,
                   fontWeight: 800,
                   cursor: emailDigestLoading ? "progress" : "pointer",
@@ -126,8 +133,8 @@ export default function UserDashboardHome({
                   background: "rgba(245,158,11,0.12)",
                   border: "1px solid rgba(251,191,36,0.2)",
                   color: "#92400e",
-                  padding: "9px 12px",
-                  borderRadius: 10,
+                  padding: "10px 13px",
+                  borderRadius: 12,
                   fontSize: 12,
                   fontWeight: 800,
                   cursor: "pointer",
@@ -152,9 +159,9 @@ export default function UserDashboardHome({
                 key={notice.id}
                 style={{
                   background: isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)",
-                  border: "1px solid rgba(148,163,184,0.24)",
-                  borderRadius: 12,
-                  padding: 10,
+                  border: cardBorder,
+                  borderRadius: 14,
+                  padding: 11,
                 }}
               >
                 <div style={{ fontSize: 12, fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>{notice.title}</div>
@@ -168,42 +175,6 @@ export default function UserDashboardHome({
         )}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 12 }}>
-        {sections
-          .filter((section) => section.key !== "home")
-          .map((section) => (
-            <button
-              key={section.key}
-              type="button"
-              onClick={() => onNavigate(section.key)}
-              style={{
-                ...panelStyle,
-                textAlign: "left",
-                cursor: "pointer",
-                background: cardBg,
-                border: "1px solid rgba(148,163,184,0.26)",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start", marginBottom: 10 }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>
-                  {section.icon} {section.label}
-                </div>
-                <span style={{ fontSize: 11, color: "#1d4ed8" }}>{section.count}</span>
-              </div>
-              <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569", lineHeight: 1.6 }}>
-                {section.description}
-              </div>
-              {section.notice && (
-                <div style={{ marginTop: 8, fontSize: 11, color: "#047857", fontWeight: 700 }}>
-                  {section.notice}
-                </div>
-              )}
-              <div style={{ marginTop: 12, fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>
-                Abrir sección →
-              </div>
-            </button>
-          ))}
-      </div>
     </>
   );
 }

@@ -94,11 +94,14 @@ export default function UserDashboardSaved({
   const inputText = isDark ? "#f8fafc" : "#0f172a";
   const mutedText = isDark ? "#cbd5e1" : "#475569";
   const titleText = isDark ? "#f8fafc" : "#0f172a";
+  const panelBorder = isDark ? "1px solid rgba(148,163,184,0.26)" : "1px solid rgba(59,130,246,0.34)";
+  const cardBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(37,99,235,0.3)";
 
   const [showAlertForm, setShowAlertForm] = useState(false);
   const [alertForm, setAlertForm] = useState(EMPTY_ALERT_FORM);
   const [alertFeedback, setAlertFeedback] = useState("");
   const [showCatalogAdmin, setShowCatalogAdmin] = useState(false);
+  const [activeOpportunityTab, setActiveOpportunityTab] = useState("overview");
   const [catalogAdminLoading, setCatalogAdminLoading] = useState(false);
   const [catalogAdminFeedback, setCatalogAdminFeedback] = useState("");
   const [catalogAdminForm, setCatalogAdminForm] = useState({
@@ -125,6 +128,12 @@ export default function UserDashboardSaved({
     const seenCount = Number(marketAlertStatus?.[alert.id]?.seenCount || 0);
     return acc + Math.max(Number(matchInfo.count || 0) - seenCount, 0);
   }, 0);
+  const opportunityTabs = [
+    { key: "overview", label: "Resumen", count: null },
+    { key: "saved", label: "Guardadas", count: savedComparisons.length },
+    { key: "alerts", label: "Alertas", count: marketAlerts.length },
+    { key: "marketplace", label: "Marketplace", count: totalNewMatches },
+  ];
 
   const loadVehicleCatalog = async () => {
     try {
@@ -290,7 +299,130 @@ export default function UserDashboardSaved({
         </div>
       </div>
 
-      {savedComparisons.length > 0 ? (
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          flexWrap: "wrap",
+          marginBottom: 12,
+          paddingBottom: 12,
+          borderBottom: "1px solid rgba(148,163,184,0.2)",
+        }}
+      >
+        {opportunityTabs.map((tab) => {
+          const isActive = activeOpportunityTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveOpportunityTab(tab.key)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: isActive
+                  ? "linear-gradient(135deg,#2563eb,#1d4ed8)"
+                  : isDark
+                  ? "rgba(15,23,42,0.88)"
+                  : "rgba(255,255,255,0.95)",
+                border: isActive ? "none" : cardBorder,
+                color: isActive ? "#eff6ff" : isDark ? "#e2e8f0" : "#334155",
+                borderRadius: 999,
+                padding: "8px 12px",
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              <span>{tab.label}</span>
+              {tab.count !== null && (
+                <span
+                  style={{
+                    background: isActive ? "rgba(255,255,255,0.18)" : "rgba(148,163,184,0.16)",
+                    borderRadius: 999,
+                    padding: "2px 7px",
+                    fontSize: 11,
+                  }}
+                >
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {(activeOpportunityTab === "overview" || activeOpportunityTab === "marketplace") && (
+        <div
+          style={{
+            marginBottom: 14,
+            background: cardBg,
+            border: panelBorder,
+            borderRadius: 14,
+            padding: 14,
+            display: "grid",
+            gap: 10,
+          }}
+        >
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 10 }}>
+            {[
+              ["Guardadas", savedComparisons.length, "#60a5fa"],
+              ["Alertas activas", marketAlerts.length, "#34d399"],
+              ["Novedades", totalNewMatches, "#f59e0b"],
+            ].map(([label, value, color]) => (
+              <div
+                key={String(label)}
+                style={{
+                  background: isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)",
+                  border: cardBorder,
+                  borderRadius: 12,
+                  padding: "10px 11px",
+                }}
+              >
+                <div style={{ fontSize: 22, fontWeight: 800, color: String(color) }}>{value}</div>
+                <div style={{ fontSize: 12, color: mutedText }}>{label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button
+              type="button"
+              onClick={() => onBrowseMarketplace()}
+              style={{
+                background: "linear-gradient(135deg,#10b981,#059669)",
+                border: "none",
+                color: "#ffffff",
+                padding: "10px 12px",
+                borderRadius: 10,
+                fontSize: 12,
+                fontWeight: 800,
+                cursor: "pointer",
+              }}
+            >
+              Explorar marketplace VO
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowAlertForm((prev) => !prev)}
+              style={{
+                background: "rgba(37,99,235,0.14)",
+                border: "1px solid rgba(96,165,250,0.24)",
+                color: "#1e3a8a",
+                padding: "10px 12px",
+                borderRadius: 10,
+                fontSize: 12,
+                fontWeight: 800,
+                cursor: "pointer",
+              }}
+            >
+              {showAlertForm ? "Cerrar creación de alerta" : "Crear alerta de mercado"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {(activeOpportunityTab === "overview" || activeOpportunityTab === "saved") && (savedComparisons.length > 0 ? (
         <div style={{ display: "grid", gap: 10 }}>
           {savedComparisons.map((item) => {
             const savedOfferHref = getSavedComparisonHref(item);
@@ -300,7 +432,7 @@ export default function UserDashboardSaved({
                 key={item.id}
                 style={{
                   background: cardBg,
-                  border: "1px solid rgba(148,163,184,0.26)",
+                  border: panelBorder,
                   borderRadius: 12,
                   padding: 12,
                 }}
@@ -376,13 +508,14 @@ export default function UserDashboardSaved({
         <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 14 }}>
           Todavía no tienes recomendaciones guardadas. Cuando guardes una comparativa, aparecerá aquí.
         </div>
-      )}
+      ))}
 
+      {(activeOpportunityTab === "overview" || activeOpportunityTab === "marketplace") && (
       <div
         style={{
           marginTop: 14,
           background: cardBg,
-          border: "1px solid rgba(148,163,184,0.26)",
+          border: panelBorder,
           borderRadius: 14,
           padding: 14,
         }}
@@ -541,12 +674,14 @@ export default function UserDashboardSaved({
           </div>
         )}
       </div>
+      )}
 
+      {(activeOpportunityTab === "overview" || activeOpportunityTab === "alerts" || activeOpportunityTab === "marketplace") && (
       <div
         style={{
           marginTop: 16,
           background: cardBg,
-          border: "1px solid rgba(148,163,184,0.26)",
+          border: panelBorder,
           borderRadius: 14,
           padding: 14,
         }}
@@ -775,7 +910,7 @@ export default function UserDashboardSaved({
                   key={alert.id}
                   style={{
                     background: cardBg,
-                    border: "1px solid rgba(110,231,183,0.14)",
+                    border: isDark ? "1px solid rgba(110,231,183,0.14)" : "1px solid rgba(16,185,129,0.3)",
                     borderRadius: 12,
                     padding: 12,
                   }}
@@ -843,7 +978,7 @@ export default function UserDashboardSaved({
                         style={{
                           marginTop: 10,
                           background: isDark ? "rgba(15,23,42,0.86)" : "rgba(255,255,255,0.9)",
-                          border: "1px solid rgba(148,163,184,0.24)",
+                          border: cardBorder,
                           borderRadius: 10,
                           padding: 10,
                         }}
@@ -863,7 +998,7 @@ export default function UserDashboardSaved({
                                   flexWrap: "wrap",
                                   alignItems: "center",
                                   background: isDark ? "rgba(15,23,42,0.88)" : "rgba(241,245,249,0.9)",
-                                  border: isDark ? "1px solid rgba(148,163,184,0.24)" : "none",
+                                  border: isDark ? "1px solid rgba(148,163,184,0.24)" : cardBorder,
                                   borderRadius: 10,
                                   padding: "8px 10px",
                                 }}
@@ -985,6 +1120,7 @@ export default function UserDashboardSaved({
           </div>
         )}
       </div>
+      )}
     </section>
   );
 }

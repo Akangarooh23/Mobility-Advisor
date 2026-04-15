@@ -218,8 +218,23 @@ export function getUserDashboardPageFromPath(pathname = "") {
     .replace(/\/+$/, "")
     .toLowerCase() || "/";
 
+  const aliasRouteMap = {
+    "/panel/inicio": "home",
+    "/panel/oportunidades": "saved",
+    "/panel/operaciones": "appointments",
+    "/panel/operaciones/citas": "appointments",
+    "/panel/operaciones/tasaciones": "valuations",
+    "/panel/vehiculos/mis-vehiculos": "vehicles",
+    "/panel/perfil": "billing",
+    "/panel/facturacion": "billing",
+  };
+
   if (normalizedPath === "/panel" || normalizedPath === "/panel/resumen" || normalizedPath === "/panel/home") {
     return "home";
+  }
+
+  if (aliasRouteMap[normalizedPath]) {
+    return aliasRouteMap[normalizedPath];
   }
 
   const matchedSection = Object.entries(USER_DASHBOARD_ROUTE_MAP).find(([, path]) => path === normalizedPath);

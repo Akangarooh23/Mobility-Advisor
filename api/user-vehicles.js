@@ -27,7 +27,8 @@ module.exports = async function userVehiclesHandler(req, res) {
   }
 
   const body = parseBody(req.body);
-  const requireSession = String(process.env.AUTH_GARAGE_REQUIRE_SESSION || "true").toLowerCase() !== "false";
+  const defaultRequireSession = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
+  const requireSession = String(process.env.AUTH_GARAGE_REQUIRE_SESSION || (defaultRequireSession ? "true" : "false")).toLowerCase() !== "false";
   const sessionPayload = await authHandler.getSessionUserFromRequest?.(req);
   const sessionEmail = normalizeText(sessionPayload?.user?.email).toLowerCase();
   const requestEmail = normalizeText(req.query?.email || body.email).toLowerCase();

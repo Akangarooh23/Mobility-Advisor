@@ -1,28 +1,12 @@
-export const MARKET_BRANDS = {
-  Toyota: ["Corolla", "C-HR", "Yaris", "RAV4"],
-  Renault: ["Clio", "Captur", "Megane", "Austral"],
-  Seat: ["Ibiza", "Leon", "Arona", "Ateca"],
-  Volkswagen: ["Polo", "Golf", "T-Roc", "Tiguan"],
-  Peugeot: ["208", "2008", "308", "3008"],
-  BMW: ["Serie 1", "Serie 3", "X1", "X3"],
-  Audi: ["A1", "A3", "Q2", "Q3"],
-  Mercedes: ["Clase A", "Clase C", "GLA", "GLC"],
-  Volvo: ["XC40", "XC60", "S60", "V60"],
-  Kia: ["Ceed", "Niro", "Sportage", "EV6"],
-  Hyundai: ["i20", "i30", "Tucson", "Kona"],
-  Nissan: ["Micra", "Qashqai", "X-Trail", "Juke"],
-  Skoda: ["Fabia", "Octavia", "Kamiq", "Kodiaq"],
-  Citroen: ["C3", "C4", "C5 Aircross", "Berlingo"],
-  Dacia: ["Sandero", "Duster", "Jogger", "Spring"],
-  MG: ["ZS", "HS", "MG4", "Marvel R"],
-};
-
 export const TOTAL_PURCHASE_OPTIONS = [
   { value: "hasta_10000", label: "Hasta 10.000 €", amount: 10000 },
   { value: "10000_20000", label: "10.000 - 20.000 €", amount: 20000 },
   { value: "20000_30000", label: "20.000 - 30.000 €", amount: 30000 },
   { value: "30000_45000", label: "30.000 - 45.000 €", amount: 45000 },
-  { value: "mas_45000", label: "Más de 45.000 €", amount: 55000 },
+  { value: "45000_70000", label: "45.000 - 70.000 €", amount: 70000 },
+  { value: "70000_100000", label: "70.000 - 100.000 €", amount: 100000 },
+  { value: "100000_150000", label: "100.000 - 150.000 €", amount: 150000 },
+  { value: "mas_150000", label: "Más de 150.000 €", amount: 180000 },
 ];
 
 export const MONTHLY_BUDGET_OPTIONS = [

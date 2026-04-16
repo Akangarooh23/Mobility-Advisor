@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { getBrandOptionSegments } from "../utils/brandCatalog";
+
 export default function SellPage({
   styles,
   sellFlowType,
@@ -26,6 +29,11 @@ export default function SellPage({
   const pageDescription = isCertificateFlow
     ? "Recopilamos la información clave del vehículo para emitir una certificación oficial y ayudarte en la venta con mayor respaldo frente al comprador."
     : "Te damos información en tiempo real sobre precio medio, tendencia histórica, stock de coches similares y una horquilla de salida para publicar con criterio.";
+  const [showAllBrands, setShowAllBrands] = useState(false);
+  const { knownBrands, otherBrands, knownBrandSet } = getBrandOptionSegments(MARKET_BRANDS);
+  const hasUnknownSelectedBrand = Boolean(sellAnswers.brand && !knownBrandSet.has(sellAnswers.brand));
+  const shouldShowAllBrands = showAllBrands || hasUnknownSelectedBrand;
+  const visibleBrands = shouldShowAllBrands ? [...knownBrands, ...otherBrands] : knownBrands;
 
   return (
     <div style={styles.center}>
@@ -50,15 +58,26 @@ export default function SellPage({
           <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>Marca</div>
           <select
             value={sellAnswers.brand}
-            onChange={(event) => setSellAnswers((prev) => ({ ...prev, brand: event.target.value, model: "" }))}
+            onChange={(event) => {
+              if (event.target.value === "__SHOW_MORE_BRANDS__") {
+                setShowAllBrands(true);
+                setSellAnswers((prev) => ({ ...prev, brand: "", model: "" }));
+                return;
+              }
+
+              setSellAnswers((prev) => ({ ...prev, brand: event.target.value, model: "" }));
+            }}
             style={styles.select}
           >
             <option value="">Selecciona marca</option>
-            {Object.keys(MARKET_BRANDS).map((brand) => (
+            {visibleBrands.map((brand) => (
               <option key={brand} value={brand}>
                 {brand}
               </option>
             ))}
+            {!shouldShowAllBrands && otherBrands.length > 0 && (
+              <option value="__SHOW_MORE_BRANDS__">+ más marcas ({otherBrands.length})</option>
+            )}
           </select>
         </div>
         <div>

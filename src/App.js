@@ -117,7 +117,6 @@ import {
   ENTRY_AMOUNT_OPTIONS,
   FINANCE_AMOUNT_OPTIONS,
   INCOME_STABILITY_OPTIONS,
-  MARKET_BRANDS,
   MILEAGE_FILTER_OPTIONS,
   MOBILITY_TYPES,
   MONTHLY_BUDGET_OPTIONS,
@@ -467,6 +466,13 @@ export default function App() {
   const [decisionListingResult, setDecisionListingResult] = useState(null);
   const [decisionListingLoading, setDecisionListingLoading] = useState(false);
   const [decisionListingError, setDecisionListingError] = useState(null);
+  const [decisionMarketListings, setDecisionMarketListings] = useState([]);
+  const [decisionMarketLoading, setDecisionMarketLoading] = useState(false);
+  const [decisionMarketError, setDecisionMarketError] = useState(null);
+  const [decisionMarketInsight, setDecisionMarketInsight] = useState(null);
+  const [decisionMarketRefreshNonce, setDecisionMarketRefreshNonce] = useState(0);
+  const [decisionMarketExcludeUrls, setDecisionMarketExcludeUrls] = useState([]);
+  const [decisionMarketExcludeTitles, setDecisionMarketExcludeTitles] = useState([]);
   const [sellAiResult, setSellAiResult] = useState(null);
   const [sellLoading, setSellLoading] = useState(false);
   const [sellError, setSellError] = useState(null);
@@ -477,7 +483,7 @@ export default function App() {
   const [userAppointments, setUserAppointments] = useState([]);
   const [marketAlerts, setMarketAlerts] = useState([]);
   const [marketAlertStatus, setMarketAlertStatus] = useState({});
-  const [marketBrandsCatalog, setMarketBrandsCatalog] = useState(MARKET_BRANDS);
+  const [marketBrandsCatalog, setMarketBrandsCatalog] = useState({});
   const [questionnaireDraft, setQuestionnaireDraft] = useState(null);
   const [saveFeedback, setSaveFeedback] = useState("");
   const [emailDigestFeedback, setEmailDigestFeedback] = useState("");
@@ -650,7 +656,7 @@ export default function App() {
           setMarketBrandsCatalog(nextCatalog);
         }
       } catch {
-        // Keep static in-app catalog if API catalog is unavailable.
+        // Catalog remains empty if endpoint is unavailable.
       }
     })();
 
@@ -1984,19 +1990,91 @@ export default function App() {
     setDecisionListingResult(null);
 
     try {
-      const listing = await fetchDecisionListing({
+      const payload = await fetchDecisionListing({
         aiResult,
         decisionFlowReady,
         decisionAnswers,
       });
 
-      setDecisionListingResult(listing);
+      setDecisionListingResult(payload?.listing || null);
     } catch (err) {
       setDecisionListingError(err.message || "No se pudo localizar un anuncio real para esta operación.");
     } finally {
       setDecisionListingLoading(false);
     }
   };
+
+  useEffect(() => {
+    const isDecisionFlowReady =
+      decisionAnswers.operation &&
+      decisionAnswers.brand &&
+      decisionAnswers.model &&
+      decisionAnswers.cashBudget &&
+      decisionAnswers.ageFilter &&
+      decisionAnswers.mileageFilter;
+
+    if (!isDecisionFlowReady || decisionAiResult) {
+      setDecisionMarketListings([]);
+      setDecisionMarketError(null);
+      setDecisionMarketInsight(null);
+      setDecisionMarketLoading(false);
+      setDecisionMarketRefreshNonce(0);
+      setDecisionMarketExcludeUrls([]);
+      setDecisionMarketExcludeTitles([]);
+      return;
+    }
+
+    let isMounted = true;
+    const timeoutId = window.setTimeout(async () => {
+      setDecisionMarketLoading(true);
+      setDecisionMarketError(null);
+      setDecisionMarketInsight(null);
+
+      try {
+        const payload = await fetchDecisionListing({
+          decisionFlowReady: isDecisionFlowReady,
+          decisionAnswers,
+          refreshNonce: decisionMarketRefreshNonce,
+          excludeUrls: decisionMarketExcludeUrls,
+          excludeTitles: decisionMarketExcludeTitles,
+        });
+
+        if (isMounted) {
+          const listings = Array.isArray(payload?.listings) ? payload.listings.slice(0, 3) : [];
+          setDecisionMarketListings(listings);
+          setDecisionMarketInsight(payload?.filterInsight || null);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setDecisionMarketError(err.message || "No se pudieron cargar ofertas reales ahora mismo.");
+          setDecisionMarketInsight(null);
+          setDecisionMarketListings([]);
+        }
+      } finally {
+        if (isMounted) {
+          setDecisionMarketLoading(false);
+        }
+      }
+    }, 220);
+
+    return () => {
+      isMounted = false;
+      window.clearTimeout(timeoutId);
+    };
+  }, [decisionAiResult, decisionAnswers, decisionMarketRefreshNonce, decisionMarketExcludeUrls, decisionMarketExcludeTitles]);
+
+  const recalculateDecisionMarketOffers = useCallback(() => {
+    const urls = decisionMarketListings
+      .map((listing) => normalizeText(listing?.url))
+      .filter(Boolean);
+    const titles = decisionMarketListings
+      .map((listing) => normalizeText(listing?.title))
+      .filter(Boolean);
+
+    setDecisionMarketExcludeUrls(urls);
+    setDecisionMarketExcludeTitles(titles);
+    setDecisionMarketRefreshNonce(Date.now());
+  }, [decisionMarketListings]);
 
   const searchSellComparableListing = async () => {
     if (!(sellAnswers.brand && sellAnswers.model)) {
@@ -2036,6 +2114,9 @@ export default function App() {
           entryAmount: getOptionLabel(ENTRY_AMOUNT_OPTIONS, decisionAnswers.entryAmount),
           ageFilter: getOptionLabel(AGE_FILTER_OPTIONS, decisionAnswers.ageFilter),
           mileageFilter: getOptionLabel(MILEAGE_FILTER_OPTIONS, decisionAnswers.mileageFilter),
+          powerRange: `${decisionAnswers.powerMin || 70} - ${decisionAnswers.powerMax || 250} CV`,
+          location: decisionAnswers.location || "toda_espana",
+          fuelFilter: decisionAnswers.fuelFilter || "cualquiera",
         },
       });
 
@@ -2240,28 +2321,27 @@ export default function App() {
   const estimatedMixedMonthly = estimateMonthlyPayment(
     getOptionAmount(FINANCE_AMOUNT_OPTIONS, decisionAnswers.financeAmount)
   );
-  const needsMonthlyBudget = decisionAnswers.operation === "renting";
-  const needsCashBudget = decisionAnswers.operation === "comprar" && decisionAnswers.acquisition === "contado";
-  const needsFinanceAmount =
-    decisionAnswers.operation === "comprar" &&
-    (decisionAnswers.acquisition === "financiado" || decisionAnswers.acquisition === "mixto");
-  const needsEntryAmount = decisionAnswers.operation === "comprar" && decisionAnswers.acquisition === "mixto";
+  const resolvedAcquisition =
+    decisionAnswers.acquisition || (decisionAnswers.operation === "renting" ? "particular" : "contado");
+  const needsMonthlyBudget = false;
+  const needsCashBudget = false;
+  const needsFinanceAmount = false;
+  const needsEntryAmount = false;
   const decisionFlowReady =
     decisionAnswers.operation &&
-    decisionAnswers.acquisition &&
-    decisionAnswers.hasBrand &&
-    (!needsMonthlyBudget || decisionAnswers.monthlyBudget) &&
-    (!needsCashBudget || decisionAnswers.cashBudget) &&
-    (!needsFinanceAmount || decisionAnswers.financeAmount) &&
-    (!needsEntryAmount || decisionAnswers.entryAmount) &&
-    (decisionAnswers.hasBrand === "no" || (decisionAnswers.brand && decisionAnswers.model));
+    decisionAnswers.brand &&
+    decisionAnswers.model &&
+    decisionAnswers.cashBudget &&
+    decisionAnswers.ageFilter &&
+    decisionAnswers.mileageFilter;
   const rankedOffers =
-    decisionFlowReady && decisionAnswers.hasBrand === "si"
+    decisionFlowReady
       ? buildOfferRanking({
           brand: decisionAnswers.brand,
           model: decisionAnswers.model,
-          acquisition: decisionAnswers.acquisition,
+          acquisition: resolvedAcquisition,
           condition: decisionAnswers.condition || "seminuevo",
+          priceRange: getOptionAmount(TOTAL_PURCHASE_OPTIONS, decisionAnswers.cashBudget),
           ageFilter: decisionAnswers.ageFilter,
           mileageFilter: decisionAnswers.mileageFilter,
         })
@@ -3529,7 +3609,12 @@ export default function App() {
           }}
           onSelectKnownModel={() => {
             setAdvisorContext("renting");
-            setDecisionAnswers({ ...createInitialDecisionAnswers(), operation: "renting" });
+            setDecisionAnswers({
+              ...createInitialDecisionAnswers(),
+              operation: "renting",
+              acquisition: "particular",
+              hasBrand: "si",
+            });
             setEntryMode("decision");
             setStep(-1);
           }}
@@ -3552,7 +3637,12 @@ export default function App() {
           }}
           onSelectKnownModel={() => {
             setAdvisorContext("buy");
-            setDecisionAnswers({ ...createInitialDecisionAnswers(), operation: "comprar" });
+            setDecisionAnswers({
+              ...createInitialDecisionAnswers(),
+              operation: "comprar",
+              acquisition: "contado",
+              hasBrand: "si",
+            });
             setEntryMode("decision");
             setStep(-1);
           }}
@@ -3750,6 +3840,11 @@ export default function App() {
           decisionListingLoading={decisionListingLoading}
           decisionListingError={decisionListingError}
           decisionListingResult={decisionListingResult}
+          decisionMarketListings={decisionMarketListings}
+          decisionMarketLoading={decisionMarketLoading}
+          decisionMarketError={decisionMarketError}
+          decisionMarketInsight={decisionMarketInsight}
+          onRecalculateDecisionMarketOffers={recalculateDecisionMarketOffers}
           rankedOffers={rankedOffers}
           formatCurrency={formatCurrency}
           onSwitchToAdvice={() => {

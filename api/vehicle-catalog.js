@@ -79,6 +79,26 @@ function readDefaultCatalogMap() {
   }
 }
 
+function mergeCatalogMaps(primaryMap = {}, secondaryMap = {}) {
+  const merged = {};
+  const allBrands = new Set([
+    ...Object.keys(secondaryMap || {}),
+    ...Object.keys(primaryMap || {}),
+  ]);
+
+  for (const brandName of allBrands) {
+    const primaryModels = Array.isArray(primaryMap?.[brandName]) ? primaryMap[brandName] : [];
+    const secondaryModels = Array.isArray(secondaryMap?.[brandName]) ? secondaryMap[brandName] : [];
+    const mergedModels = Array.from(new Set([...secondaryModels, ...primaryModels].map((model) => normalizeText(model)).filter(Boolean)));
+
+    if (mergedModels.length > 0) {
+      merged[brandName] = mergedModels;
+    }
+  }
+
+  return merged;
+}
+
 function mapToBrandRows(catalogMap = {}) {
   return Object.keys(catalogMap)
     .sort((a, b) => a.localeCompare(b, "es"))
@@ -436,31 +456,34 @@ module.exports = async function vehicleCatalogHandler(req, res) {
   try {
     if (provider === "mssql") {
       const catalogMap = await getCatalogFromMssql(defaultCatalogMap);
+      const mergedCatalogMap = mergeCatalogMaps(catalogMap, defaultCatalogMap);
       return res.status(200).json({
         ok: true,
         provider,
-        source: "database",
-        brands: mapToBrandRows(catalogMap),
+        source: "database+local-file",
+        brands: mapToBrandRows(mergedCatalogMap),
       });
     }
 
     if (provider === "sqlcmd-windows") {
       const catalogMap = getCatalogFromSqlcmd(defaultCatalogMap);
+      const mergedCatalogMap = mergeCatalogMaps(catalogMap, defaultCatalogMap);
       return res.status(200).json({
         ok: true,
         provider,
-        source: "database",
-        brands: mapToBrandRows(catalogMap),
+        source: "database+local-file",
+        brands: mapToBrandRows(mergedCatalogMap),
       });
     }
 
     if (provider === "postgres") {
       const catalogMap = await getCatalogFromPostgres(defaultCatalogMap);
+      const mergedCatalogMap = mergeCatalogMaps(catalogMap, defaultCatalogMap);
       return res.status(200).json({
         ok: true,
         provider,
-        source: "database",
-        brands: mapToBrandRows(catalogMap),
+        source: "database+local-file",
+        brands: mapToBrandRows(mergedCatalogMap),
       });
     }
 

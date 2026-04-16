@@ -34,9 +34,9 @@ const OFFER_BRAND_HINTS = {
 const OFFER_IMAGE_PROXY_ENDPOINT = "/api/offer-image";
 
 const OFFER_KNOWN_BRANDS = [
-  "audi", "bmw", "byd", "citroen", "cupra", "dacia", "fiat", "ford", "honda", "hyundai", "jeep",
-  "kia", "lexus", "mazda", "mercedes", "mg", "mini", "nissan", "opel", "peugeot", "renault",
-  "seat", "skoda", "tesla", "toyota", "volkswagen", "volvo", "xpeng",
+  "alfa romeo", "audi", "bmw", "byd", "citroen", "cupra", "dacia", "ds", "fiat", "ford", "honda", "hyundai", "jaecoo", "jaguar", "jeep",
+  "kia", "land rover", "lexus", "lynkco", "mazda", "mercedes", "mg", "mini", "mitsubishi", "nissan", "omoda", "opel", "peugeot", "polestar", "porsche", "renault",
+  "seat", "skoda", "smart", "subaru", "suzuki", "tesla", "toyota", "volkswagen", "volvo", "xpeng",
 ];
 
 export const OFFER_MODEL_FALLBACK_IMAGES = {

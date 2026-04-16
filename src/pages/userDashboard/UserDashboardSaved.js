@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { MARKET_BRANDS } from "../../data/marketData";
 import { getVehicleCatalogJson, postVehicleCatalogAdminJson } from "../../utils/apiClient";
 
 const EMPTY_ALERT_FORM = {
@@ -111,7 +110,7 @@ export default function UserDashboardSaved({
     newBrand: "",
     newModel: "",
   });
-  const [catalogBrandsMap, setCatalogBrandsMap] = useState(MARKET_BRANDS);
+  const [catalogBrandsMap, setCatalogBrandsMap] = useState({});
   const brandOptions = useMemo(() => Object.keys(catalogBrandsMap).sort((a, b) => a.localeCompare(b, "es")), [catalogBrandsMap]);
   const modelOptions = useMemo(
     () => (alertForm.brand && Array.isArray(catalogBrandsMap[alertForm.brand]) ? catalogBrandsMap[alertForm.brand] : []),
@@ -145,7 +144,7 @@ export default function UserDashboardSaved({
         setCatalogBrandsMap(nextCatalog);
       }
     } catch {
-      // Keep static catalog fallback if backend endpoint is unavailable.
+      // Catalog remains empty if endpoint is unavailable.
     }
   };
 
@@ -161,7 +160,7 @@ export default function UserDashboardSaved({
           setCatalogBrandsMap(nextCatalog);
         }
       } catch {
-        // Keep static catalog fallback if backend endpoint is unavailable.
+        // Catalog remains empty if endpoint is unavailable.
       }
     })();
 

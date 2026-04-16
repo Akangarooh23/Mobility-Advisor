@@ -6,15 +6,25 @@ export function createInitialDecisionAnswers() {
   return {
     operation: "",
     acquisition: "",
-    hasBrand: "",
+    hasBrand: "si",
     brand: "",
     model: "",
     condition: "",
     monthlyBudget: "",
     cashBudget: "",
+    priceMin: 0,
+    priceMax: 220000,
     financeAmount: "",
     entryAmount: "",
+    powerMin: 70,
+    powerMax: 250,
+    location: "toda_espana",
+    fuelFilter: "cualquiera",
+    ageMin: 0,
+    ageMax: null,
     ageFilter: "all",
+    mileageMin: 0,
+    mileageMax: null,
     mileageFilter: "all",
   };
 }
@@ -41,9 +51,19 @@ function buildNextDecisionAnswers(prev, key, value) {
     next.acquisition = key === "operation" ? "" : next.acquisition;
     next.monthlyBudget = "";
     next.cashBudget = "";
+    next.priceMin = 0;
+    next.priceMax = 220000;
     next.financeAmount = "";
     next.entryAmount = "";
+    next.powerMin = 70;
+    next.powerMax = 250;
+    next.location = "toda_espana";
+    next.fuelFilter = "cualquiera";
+    next.ageMin = 0;
+    next.ageMax = null;
     next.ageFilter = "all";
+    next.mileageMin = 0;
+    next.mileageMax = null;
     next.mileageFilter = "all";
   }
 

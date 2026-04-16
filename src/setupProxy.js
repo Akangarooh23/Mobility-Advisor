@@ -3,6 +3,7 @@ const findListingHandler = require("../api/find-listing");
 const sendAlertEmailHandler = require("../api/send-alert-email");
 const authHandler = require("../api/auth");
 const authStatusHandler = require("../api/auth-status");
+const vehicleCatalogHandler = require("../api/vehicle-catalog");
 
 function readRequestBody(req) {
   return new Promise((resolve, reject) => {
@@ -63,4 +64,14 @@ module.exports = function setupProxy(app) {
       });
     }
   });
+
+    app.get("/api/vehicle-catalog", async (req, res) => {
+      try {
+        await vehicleCatalogHandler(req, res);
+      } catch (error) {
+        res.status(500).json({
+          error: error?.message || "Local API proxy error",
+        });
+      }
+    });
 };

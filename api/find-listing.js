@@ -175,6 +175,13 @@ const SEARCH_COVERAGE_LIMITS = {
   compra: { companies: 10, pagesPerCompany: 3, detailLinksPerPage: 4, queryLimit: 10, timeBudgetMs: 15000, modelSearches: 6 },
 };
 
+const AGGRESSIVE_SEARCH_COVERAGE_LIMITS = {
+  renting: { companies: 18, pagesPerCompany: 5, detailLinksPerPage: 7, queryLimit: 16, timeBudgetMs: 32000, modelSearches: 9 },
+  compra: { companies: 20, pagesPerCompany: 6, detailLinksPerPage: 8, queryLimit: 18, timeBudgetMs: 32000, modelSearches: 10 },
+};
+
+const AGGRESSIVE_SCRAPING_ENABLED = String(process.env.FIND_LISTING_AGGRESSIVE_SCRAPING || "true").toLowerCase() !== "false";
+
 const BRAND_MODEL_MAP = {
   generalista_europea: ["Volkswagen Golf", "Seat Leon", "Renault Captur", "Skoda Octavia"],
   asiatica_fiable: ["Toyota Corolla", "Kia Niro", "Hyundai Kona", "Nissan Qashqai"],
@@ -289,6 +296,7 @@ const INCOME_HINTS = {
 
 const RENTING_DOMAINS = ["ayvens.com", "arval.es", "alphabet.es", "northgate.es", "free2move.com", "okmobility.com", "enterprise.es", "sixt.es", "zity.es", "wible.es", "swipcar.com", "vamos.es", "yoyomove.com", "bipicar.com", "kinto-mobility.es", "leasecom.es", "athlon.com", "idoneo.es"];
 const PURCHASE_DOMAINS = ["coches.net", "flexicar.es", "autohero.com", "spoticar.es", "ocasionplus.com", "clicars.com", "autoscout24.es", "dasweltauto.es"];
+const READABLE_PROXY_DOMAINS = ["coches.net", "ocasionplus.com", "flexicar.es"];
 const BRAND_PREFERENCE_KEYWORDS = {
   generalista_europea: ["volkswagen", "seat", "renault", "skoda", "peugeot", "citroen", "dacia"],
   asiatica_fiable: ["toyota", "kia", "hyundai", "nissan", "lexus", "mazda", "honda", "byd", "mg", "xpeng"],
@@ -446,6 +454,127 @@ function extractSearchResults(html) {
   }
 
   return results;
+}
+
+function shouldUseReadableMirror(url = "") {
+  const domain = getDomain(url);
+  return READABLE_PROXY_DOMAINS.some((item) => domain.includes(item));
+}
+
+function buildReadableMirrorUrl(url = "") {
+  const normalized = String(url || "").trim();
+  if (!/^https?:\/\//i.test(normalized)) {
+    return "";
+  }
+
+  return `https://r.jina.ai/http://${normalized}`;
+}
+
+async function fetchReadableMirrorText(url, context, timeoutMs = 4500) {
+  const mirrorUrl = buildReadableMirrorUrl(url);
+  if (!mirrorUrl) {
+    return "";
+  }
+
+  try {
+    const response = await fetchWithTimeout(mirrorUrl, {
+      headers: {
+        "user-agent": USER_AGENT,
+        "accept-language": "es-ES,es;q=0.9,en;q=0.8",
+      },
+      redirect: "follow",
+    }, context ? getRemainingTimeMs(context, timeoutMs) : timeoutMs);
+    return await response.text();
+  } catch {
+    return "";
+  }
+}
+
+function extractReadableMirrorTitle(text = "") {
+  const lines = String(text || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const preferred = lines.find((line) => /^#{1,6}\s+/.test(line) || /^#{5}\s*/.test(line));
+  if (preferred) {
+    return normalizeText(preferred.replace(/^#{1,6}\s*/, ""));
+  }
+
+  return "";
+}
+
+function extractReadableMirrorImage(text = "", baseUrl = "") {
+  const match = String(text || "").match(/!\[[^\]]*\]\((https?:\/\/[^)\s]+)\)/i);
+  return match ? normalizeProviderAssetUrl(match[1], baseUrl) : "";
+}
+
+function extractReadableMirrorLinks(text = "", baseUrl = "") {
+  const links = [];
+  const source = String(text || "");
+  const regex = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
+  let match;
+
+  while ((match = regex.exec(source))) {
+    if ((match.index || 0) > 0 && source[(match.index || 0) - 1] === "!") {
+      continue;
+    }
+
+    const title = normalizeText(match[1] || "");
+    const url = absolutizeUrl(baseUrl, decodeHtmlEntities(match[2] || ""));
+    if (!title || !url) {
+      continue;
+    }
+
+    links.push({ title, url, source: getDomain(url) || getDomain(baseUrl) });
+  }
+
+  return dedupeListings(links);
+}
+
+function extractReadableMirrorOfferCards(text = "", pageUrl = "", company = "") {
+  const cards = [];
+  const source = String(text || "");
+  const blocks = source.match(/##\s+\[[^\]]+\]\(https?:\/\/[^)]+\)[\s\S]{0,1200}(?=\n##\s+\[|$)/g) || [];
+
+  for (const block of blocks) {
+    const titleMatch = block.match(/##\s+\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/i);
+    if (!titleMatch) {
+      continue;
+    }
+
+    const title = normalizeText(titleMatch[1] || "");
+    const url = absolutizeUrl(pageUrl, titleMatch[2] || "");
+    const price = parsePrice(block);
+    const image = extractReadableMirrorImage(block, pageUrl);
+    const description = cleanListingText(block)
+      .replace(title, "")
+      .slice(0, 260);
+
+    if (!title || !url) {
+      continue;
+    }
+
+    cards.push({
+      title,
+      url,
+      price,
+      image,
+      source: normalizeCompanyAlias(company) || getDomain(url) || getDomain(pageUrl),
+      description: description || `${title} localizado en la oferta real de ${normalizeCompanyAlias(company) || getDomain(pageUrl) || "mercado"}.`,
+    });
+  }
+
+  const seenUrls = new Set();
+  return cards.filter((card) => {
+    const key = normalizeText(card?.url || "").toLowerCase();
+    if (!key || seenUrls.has(key)) {
+      return false;
+    }
+
+    seenUrls.add(key);
+    return true;
+  });
 }
 
 function getDomain(url) {
@@ -988,7 +1117,7 @@ function countTokenHits(haystack, tokens) {
 function hasConcreteModelSignal(listing, models = []) {
   const haystack = removeAccents(`${listing?.title || ""} ${listing?.url || ""}`).toLowerCase();
 
-  if (/\/coches-ocasion\/|\/detalle\/|\/ficha\/|\/id\/[a-f0-9-]+/.test(String(listing?.url || "").toLowerCase())) {
+  if (/\/coches-ocasion\/|\/detalle\/|\/ficha\/|\/id\/[a-f0-9-]+|-[0-9]+-covo\.aspx(?:\?|$)/.test(String(listing?.url || "").toLowerCase())) {
     return true;
   }
 
@@ -2000,7 +2129,10 @@ function getDesiredListingType(result) {
 }
 
 function getSearchCoverageConfig(result, desiredType = "compra") {
-  const base = { ...(SEARCH_COVERAGE_LIMITS[desiredType] || SEARCH_COVERAGE_LIMITS.compra) };
+  const baseConfig = AGGRESSIVE_SCRAPING_ENABLED
+    ? AGGRESSIVE_SEARCH_COVERAGE_LIMITS
+    : SEARCH_COVERAGE_LIMITS;
+  const base = { ...(baseConfig[desiredType] || baseConfig.compra || SEARCH_COVERAGE_LIMITS.compra) };
   const solutionType = result?.solucion_principal?.tipo;
 
   if (["rent_a_car", "carsharing", "renting_corto"].includes(solutionType)) {
@@ -2129,7 +2261,12 @@ async function fetchListingDetails(candidate, context) {
     }, getRemainingTimeMs(context, 4000));
 
     const html = await response.text();
+    const strippedHtml = stripHtml(html);
+    const mirrorText = shouldUseReadableMirror(response.url || candidate.url)
+      ? await fetchReadableMirrorText(response.url || candidate.url, context, 4000)
+      : "";
     const rawTitle =
+      extractReadableMirrorTitle(mirrorText) ||
       getMetaContent(html, "og:title") ||
       getMetaContent(html, "twitter:title") ||
       stripHtml(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]) ||
@@ -2140,14 +2277,15 @@ async function fetchListingDetails(candidate, context) {
     const title = (!looksLikeSpecificModelName(cleanedRawTitle) || cleanedRawTitle.toLowerCase() === sourceName)
       ? (fallbackUrlTitle || cleanedRawTitle || candidate.title)
       : cleanedRawTitle;
-    const bodyPreview = stripHtml(html).slice(0, 320);
+    const bodyPreview = (mirrorText || strippedHtml).slice(0, 320);
     const description =
+      cleanListingText(mirrorText).slice(0, 260) ||
       getMetaContent(html, "og:description") ||
       getMetaContent(html, "description") ||
       bodyPreview ||
       candidate.title;
-    const price = parsePrice(`${html.slice(0, 60000)} ${title} ${description}`);
-    const image = extractPrimaryImage(html, response.url || candidate.url);
+    const price = parsePrice(`${mirrorText.slice(0, 60000)} ${html.slice(0, 60000)} ${title} ${description}`);
+    const image = extractReadableMirrorImage(mirrorText, response.url || candidate.url) || extractPrimaryImage(html, response.url || candidate.url);
     const cleanedDescription = cleanListingText(description || bodyPreview || candidate.title).slice(0, 220);
 
     const listing = decorateListing(
@@ -2181,6 +2319,18 @@ async function fetchListingDetails(candidate, context) {
 }
 
 function buildVehicleCandidates({ result, answers }) {
+  const explicitBrand = normalizeText(answers?.marca_objetivo);
+  const explicitModelObjective = normalizeText(answers?.modelo_objetivo);
+  const normalizedExplicitModelObjective = (() => {
+    const brandLower = removeAccents(explicitBrand).toLowerCase();
+    const modelLower = removeAccents(explicitModelObjective).toLowerCase();
+
+    if (brandLower && modelLower.startsWith(`${brandLower} `)) {
+      return explicitModelObjective;
+    }
+
+    return [explicitBrand, explicitModelObjective].filter(Boolean).join(" ").trim();
+  })();
   const chinaForward = isChinaForwardPreference(result, answers);
   const chinesePriorityModels = (() => {
     const propulsions = (Array.isArray(result?.propulsiones_viables) ? result.propulsiones_viables : [])
@@ -2201,8 +2351,8 @@ function buildVehicleCandidates({ result, answers }) {
     ? uniq([...(BRAND_MODEL_MAP.nueva_china || []), ...chinesePriorityModels, ...(BRAND_MODEL_MAP[answers?.marca_preferencia] || [])])
     : (BRAND_MODEL_MAP[answers?.marca_preferencia] || []);
   const explicitCandidates = [
-    [normalizeText(answers?.marca_objetivo), normalizeText(answers?.modelo_objetivo)].filter(Boolean).join(" ").trim(),
-    normalizeText(answers?.modelo_objetivo),
+    normalizedExplicitModelObjective,
+    explicitModelObjective,
     normalizeText(result?.solucion_principal?.titulo),
   ].filter(Boolean);
   const propulsions = (Array.isArray(result?.propulsiones_viables) ? result.propulsiones_viables : [])
@@ -2259,6 +2409,8 @@ function buildVehicleCandidates({ result, answers }) {
 
 function getSearchCompanies({ result, filters, desiredType }) {
   const selected = normalizeText(filters?.company);
+  const hasExplicitLocation = Boolean(normalizeText(filters?.location)) && normalizeText(filters?.location) !== "toda_espana";
+  const explicitObjective = normalizeText(result?.solucion_principal?.titulo || "");
   const recommended = Array.isArray(result?.solucion_principal?.empresas_recomendadas)
     ? result.solucion_principal.empresas_recomendadas.map((company) => normalizeText(company))
     : [];
@@ -2268,6 +2420,9 @@ function getSearchCompanies({ result, filters, desiredType }) {
     : [];
   const priorityFromAlternatives = alternativeTypes.flatMap((type) => PRIORITY_PLATFORM_GROUPS[type] || []);
   const defaults = PRIORITY_PLATFORM_GROUPS[solutionType] || DEFAULT_PLATFORM_GROUPS[desiredType] || [];
+  const explicitPurchasePriority = desiredType === "compra" && (hasExplicitLocation || explicitObjective)
+    ? ["Coches.net", "OcasionPlus", "Flexicar", "AutoScout24", "Clicars", "Spoticar", "Autohero", "Das WeltAuto"]
+    : [];
   const supportedRecommended = recommended.filter((company) => {
     const normalized = normalizeCompanyAlias(company);
     return Boolean(COMPANY_DIRECT_URLS[normalized] || COMPANY_SITE_HINTS[normalized]);
@@ -2276,7 +2431,7 @@ function getSearchCompanies({ result, filters, desiredType }) {
 
   return uniq(
     desiredType === "compra"
-      ? [selected, ...defaults, ...supportedRecommended, ...priorityFromAlternatives, ...nonMarketplaceRecommended]
+      ? [selected, ...explicitPurchasePriority, ...defaults, ...supportedRecommended, ...priorityFromAlternatives, ...nonMarketplaceRecommended]
       : [selected, ...supportedRecommended, ...recommended, ...defaults, ...priorityFromAlternatives]
   );
 }
@@ -2298,6 +2453,8 @@ function buildQueries({ result, answers, filters, companies = [], desiredType = 
     : "";
   const budgetHint = BUDGET_HINTS[filters?.budget] || "";
   const incomeHint = INCOME_HINTS[filters?.income] || "";
+  const locationHint = normalizeText(String(filters?.location || "").replace(/_/g, " "));
+  const fuelHintFromFilters = normalizeText(filters?.fuel);
   const platformList = companies.length ? companies : getSearchCompanies({ result, filters, desiredType });
   const operationHint = ["rent_a_car", "carsharing"].includes(result?.solucion_principal?.tipo)
     ? "alquiler coche por dias carsharing suscripcion coche"
@@ -2319,6 +2476,21 @@ function buildQueries({ result, answers, filters, companies = [], desiredType = 
   const companyLimit = chinaForward ? 8 : 6;
 
   for (const model of models.slice(0, modelLimit)) {
+    if (desiredType === "compra") {
+      queries.push(
+        [model, locationHint, fuelHintFromFilters, "site:coches.net", "coche ocasion"].filter(Boolean).join(" ").trim()
+      );
+      queries.push(
+        [model, locationHint, fuelHintFromFilters, "site:ocasionplus.com", "coche ocasion"].filter(Boolean).join(" ").trim()
+      );
+      queries.push(
+        [model, locationHint, fuelHintFromFilters, "site:flexicar.es", "segunda mano"].filter(Boolean).join(" ").trim()
+      );
+      queries.push(
+        [model, locationHint, fuelHintFromFilters, "España", "coche ocasion anuncio"].filter(Boolean).join(" ").trim()
+      );
+    }
+
     queries.push(`${model} ${operationHint} España ${fuelHint} ${ageHint} ${budgetHint}`.trim());
 
     for (const company of platformList.slice(0, companyLimit)) {
@@ -2327,6 +2499,9 @@ function buildQueries({ result, answers, filters, companies = [], desiredType = 
 
       if (companySite) {
         queries.push(`site:${companySite} ${model} ${operationHint} ${ageHint} ${budgetHint}`.trim());
+        if (desiredType === "compra") {
+          queries.push(`site:${companySite} ${model} ${locationHint} ${fuelHintFromFilters} coche ocasion`.trim());
+        }
       }
     }
   }
@@ -2384,7 +2559,7 @@ function hasSpecificVehicleIdentity(listing) {
   ];
   const brandHits = knownBrands.filter((brand) => haystack.includes(brand)).length;
 
-  if (/\/ofertas\/[^/]+\/[^/]+|\/coches-ocasion\/[^/]+\/[^/]+|\/vehiculos-ocasion\/[^/]+\/[^/]+|\/detalle\/[^/]+|\/ficha\/[^/]+|\/id\/[a-f0-9-]+/i.test(url)) {
+  if (/\/ofertas\/[^/]+\/[^/]+|\/coches-ocasion\/[^/]+\/[^/]+|\/vehiculos-ocasion\/[^/]+\/[^/]+|\/detalle\/[^/]+|\/ficha\/[^/]+|\/id\/[a-f0-9-]+|-[0-9]+-covo\.aspx(?:\?|$)/i.test(url)) {
     return true;
   }
 
@@ -2413,7 +2588,7 @@ function isLikelyListing(url, desiredType = "compra") {
   }
 
   if (PURCHASE_DOMAINS.some((domain) => source.includes(domain))) {
-    return /\/coches-ocasion\/[^/]+\/[^/]+|\/vehiculos-ocasion\/[^/]+\/[^/]+|\/detalle\/|\/ficha\/|\/id\/[a-f0-9-]+/.test(lowered);
+    return /\/coches-ocasion\/[^/]+\/[^/]+|\/vehiculos-ocasion\/[^/]+\/[^/]+|\/detalle\/|\/ficha\/|\/id\/[a-f0-9-]+|-[0-9]+-covo\.aspx(?:\?|$)/.test(lowered);
   }
 
   return ["coche", "car", "vehiculo", "vehicle", "ocasion", "segunda-mano", "stock", "usado"]
@@ -2438,9 +2613,45 @@ function getDirectSourceUrls(company, desiredType) {
   return uniq([...directUrls, ...genericUrls]);
 }
 
-function getCompanySearchUrls(company, desiredType, models = []) {
+function slugifyVehicleSegment(value) {
+  return removeAccents(String(value || ""))
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function splitBrandAndModel(model = "") {
+  const normalized = String(model || "").trim();
+  if (!normalized) {
+    return { brand: "", modelName: "" };
+  }
+
+  const knownMultiWordBrands = ["land rover", "alfa romeo", "aston martin", "mercedes benz"];
+  const lower = normalized.toLowerCase();
+  const multiWordBrand = knownMultiWordBrands.find((brand) => lower.startsWith(`${brand} `));
+
+  if (multiWordBrand) {
+    return {
+      brand: normalized.slice(0, multiWordBrand.length),
+      modelName: normalized.slice(multiWordBrand.length).trim(),
+    };
+  }
+
+  const parts = normalized.split(/\s+/);
+  if (parts.length === 1) {
+    return { brand: normalized, modelName: "" };
+  }
+
+  return {
+    brand: parts[0],
+    modelName: parts.slice(1).join(" "),
+  };
+}
+
+function getCompanySearchUrls(company, desiredType, models = [], filters = {}) {
   const normalizedCompany = normalizeCompanyAlias(company);
   const topModels = uniq(models.filter(Boolean)).slice(0, 3);
+  const locationSlug = slugifyVehicleSegment(String(filters?.location || "")).replace(/-/g, "_");
 
   if (!topModels.length) {
     return [];
@@ -2452,18 +2663,47 @@ function getCompanySearchUrls(company, desiredType, models = []) {
     }
 
     if (normalizedCompany === "Flexicar") {
-      return topModels.map((model) => `https://www.flexicar.es/coches-segunda-mano/?s=${encodeURIComponent(model)}`);
+      return topModels.flatMap((model) => {
+        const { brand, modelName } = splitBrandAndModel(model);
+        const brandSlug = slugifyVehicleSegment(brand);
+        const modelSlug = slugifyVehicleSegment(modelName);
+
+        return uniq([
+          brandSlug && modelSlug ? `https://www.flexicar.es/${brandSlug}/${modelSlug}/segunda-mano/` : "",
+          `https://www.flexicar.es/coches-segunda-mano/?s=${encodeURIComponent(model)}`,
+        ]).filter(Boolean);
+      });
     }
 
     if (normalizedCompany === "Coches.net") {
-      return topModels.map((model) => `https://www.coches.net/segunda-mano/?Key=${encodeURIComponent(model)}`);
+      return topModels.flatMap((model) => {
+        const { brand, modelName } = splitBrandAndModel(model);
+        const brandSlug = slugifyVehicleSegment(brand).replace(/-/g, "_");
+        const modelSlug = slugifyVehicleSegment(modelName).replace(/-/g, "_");
+
+        return uniq([
+          brandSlug && modelSlug && locationSlug && locationSlug !== "toda_espana"
+            ? `https://www.coches.net/${brandSlug}/${modelSlug}/segunda-mano/${locationSlug}/`
+            : "",
+          brandSlug && modelSlug ? `https://www.coches.net/${brandSlug}/${modelSlug}/segunda-mano/` : "",
+          `https://www.coches.net/segunda-mano/?Key=${encodeURIComponent(model)}`,
+        ]).filter(Boolean);
+      });
     }
 
     if (normalizedCompany === "OcasionPlus") {
       return topModels.flatMap((model) => [
+        (() => {
+          const { brand, modelName } = splitBrandAndModel(model);
+          const brandSlug = slugifyVehicleSegment(brand);
+          const modelSlug = slugifyVehicleSegment(modelName);
+          return brandSlug && modelSlug
+            ? `https://www.ocasionplus.com/coches-segunda-mano/${brandSlug}/${modelSlug}`
+            : "";
+        })(),
         `https://www.ocasionplus.com/coches-ocasion?search=${encodeURIComponent(model)}`,
         buildSearchLandingUrl(`site:ocasionplus.com ${model} coche ocasion`),
-      ]);
+      ].filter(Boolean));
     }
 
     if (normalizedCompany === "Clicars") {
@@ -2520,7 +2760,7 @@ async function searchCompanySiteListings(models, context) {
     }
 
     const directUrls = uniq([
-      ...getCompanySearchUrls(company, context.desiredType, models),
+      ...getCompanySearchUrls(company, context.desiredType, models, context.filters),
       ...getDirectSourceUrls(company, context.desiredType),
     ]);
     if (!directUrls.length) {
@@ -2563,9 +2803,42 @@ async function searchCompanySiteListings(models, context) {
             .map((match) => absolutizeUrl(response.url || pageUrl, decodeHtmlEntities(match[1])))
             .filter(Boolean)
         );
+        const mirrorText = shouldUseReadableMirror(response.url || pageUrl)
+          ? await fetchReadableMirrorText(response.url || pageUrl, providerContext, 4500)
+          : "";
+        const mirrorCards = extractReadableMirrorOfferCards(mirrorText, response.url || pageUrl, company)
+          .map((card) => {
+            const decorated = decorateListing(card, providerContext);
+            if (decorated?.isRelevantMatch || decorated?.isFallbackMatch) {
+              return decorated;
+            }
+
+            if (!hasConcreteModelSignal(card, models)) {
+              return null;
+            }
+
+            return {
+              ...decorated,
+              synthetic: false,
+              isGuaranteedFallback: false,
+              isRelevantMatch: false,
+              isFallbackMatch: true,
+              fallbackScore: Math.max(32, Number(decorated?.fallbackScore || 0)),
+              rankingScore: Math.max(38, Number(decorated?.rankingScore || 0)),
+              rankingSignals: uniq([...(Array.isArray(decorated?.rankingSignals) ? decorated.rankingSignals : []), "Oferta real del portal"]),
+              matchReason: decorated?.matchReason || `Oferta real localizada en ${normalizeCompanyAlias(company) || getDomain(response.url || pageUrl) || "el portal"}.`,
+            };
+          })
+          .filter(Boolean);
+        if (mirrorCards.length > 0) {
+          matches.push(...mirrorCards);
+        }
+        const mirrorLinks = extractReadableMirrorLinks(mirrorText, response.url || pageUrl)
+          .map((item) => item.url)
+          .filter(Boolean);
 
         const preferredBrands = getProfileBrandKeywords(providerContext.answers, models);
-        const rankedLinks = rawLinks
+        const rankedLinks = uniq([...rawLinks, ...mirrorLinks])
           .filter((link) => isUsefulProviderLink(link) && isLikelyListing(link, providerContext.desiredType))
           .map((link) => {
             const haystack = removeAccents(link).toLowerCase();
@@ -2637,7 +2910,12 @@ async function searchFlexicarListings(models, context) {
     }
 
     try {
-      const searchUrl = `https://www.flexicar.es/coches-segunda-mano/?s=${encodeURIComponent(model)}`;
+      const { brand, modelName } = splitBrandAndModel(model);
+      const brandSlug = slugifyVehicleSegment(brand);
+      const modelSlug = slugifyVehicleSegment(modelName);
+      const searchUrl = brandSlug && modelSlug
+        ? `https://www.flexicar.es/${brandSlug}/${modelSlug}/segunda-mano/`
+        : `https://www.flexicar.es/coches-segunda-mano/?s=${encodeURIComponent(model)}`;
       if (context?.searchedProviderPages instanceof Set) {
         context.searchedProviderPages.add(searchUrl);
       }
@@ -2691,6 +2969,77 @@ async function searchFlexicarListings(models, context) {
   }
 
   return matches.sort(sortListingsByPriority);
+}
+
+async function searchExactObjectiveMarketplaceListings(context) {
+  if (context.desiredType !== "compra") {
+    return [];
+  }
+
+  const modelObjective = normalizeText(context?.answers?.modelo_objetivo);
+  const location = normalizeText(context?.filters?.location || "");
+  if (!modelObjective || !location || location === "toda_espana") {
+    return [];
+  }
+
+  const { brand, modelName } = splitBrandAndModel(modelObjective);
+  const brandSlug = slugifyVehicleSegment(brand).replace(/-/g, "_");
+  const modelSlug = slugifyVehicleSegment(modelName).replace(/-/g, "_");
+  const locationSlug = slugifyVehicleSegment(location).replace(/-/g, "_");
+  if (!(brandSlug && modelSlug && locationSlug)) {
+    return [];
+  }
+
+  const pageUrl = `https://www.coches.net/${brandSlug}/${modelSlug}/segunda-mano/${locationSlug}/`;
+  if (context?.searchedProviderPages instanceof Set) {
+    context.searchedProviderPages.add(pageUrl);
+  }
+  if (context?.searchedCompanies instanceof Set) {
+    context.searchedCompanies.add("Coches.net");
+  }
+
+  const mirrorText = await fetchReadableMirrorText(pageUrl, context, 4500);
+  if (!mirrorText) {
+    return [];
+  }
+  const fuelToken = removeAccents(normalizeText(context?.filters?.fuel || "")).toLowerCase();
+  const extractedCards = extractReadableMirrorOfferCards(mirrorText, pageUrl, "Coches.net");
+  const fuelMatchedCards = (!fuelToken || fuelToken === "cualquiera")
+    ? extractedCards
+    : extractedCards.filter((card) => {
+        const haystack = removeAccents(`${card?.title || ""} ${card?.description || ""} ${card?.url || ""}`).toLowerCase();
+        return haystack.includes(fuelToken);
+      });
+
+  return (fuelMatchedCards.length > 0 ? fuelMatchedCards : extractedCards)
+    .sort((left, right) => {
+      if (!fuelToken || fuelToken === "cualquiera") {
+        return 0;
+      }
+
+      const leftHaystack = removeAccents(`${left?.title || ""} ${left?.description || ""} ${left?.url || ""}`).toLowerCase();
+      const rightHaystack = removeAccents(`${right?.title || ""} ${right?.description || ""} ${right?.url || ""}`).toLowerCase();
+      return Number(rightHaystack.includes(fuelToken)) - Number(leftHaystack.includes(fuelToken));
+    })
+    .slice(0, 6)
+    .map((card) => ({
+      ...card,
+      synthetic: false,
+      isGuaranteedFallback: false,
+      listingType: context.desiredType,
+      hasRealImage: Boolean(card?.image && isUsefulImageUrl(card.image)),
+      profileScore: 62,
+      fallbackScore: 68,
+      rankingScore: 78,
+      rankingSignals: ["Modelo exacto localizado", "Oferta real del portal", "Provincia coincidente"],
+      whyMatches: [
+        `He localizado una oferta real de ${modelObjective} en Coches.net.`,
+        `La provincia coincide con ${location}.`,
+      ],
+      matchReason: `He localizado una oferta real de ${modelObjective} en Coches.net para la provincia ${location}.`,
+      isRelevantMatch: true,
+      isFallbackMatch: true,
+    }));
 }
 
 async function findListing({ result, answers, filters }) {
@@ -2748,9 +3097,56 @@ async function findListing({ result, answers, filters }) {
   });
 
   const matches = [
-    ...(await searchCompanySiteListings(models, context)),
-    ...(await searchFlexicarListings(models, context)),
+    ...(await searchExactObjectiveMarketplaceListings(context)),
   ];
+
+  if (matches.some((listing) => listing?.isRelevantMatch && hasConcreteModelSignal(listing, models))) {
+    return buildRankedListingResponse(matches, {
+      fallbackMode: false,
+      excludedUrls: context.excludedUrls,
+      excludedTitles: context.excludedTitles,
+      preferUnseen: context.preferUnseen,
+      answers,
+      models,
+      searchCoverage: getSearchCoverage(),
+    });
+  }
+
+  const queryLimit = coverage.queryLimit;
+
+  for (const query of queries.slice(0, Math.min(6, queryLimit))) {
+    if (!hasTimeRemaining(context, 1400)) {
+      break;
+    }
+
+    try {
+      if (Array.isArray(context.searchedQueries)) {
+        context.searchedQueries.push(query);
+      }
+      const candidates = await searchDuckDuckGo(query, context);
+      const usefulCandidates = candidates
+        .filter((candidate) => isLikelyListing(candidate.url, desiredType))
+        .slice(0, 4);
+
+      for (const candidate of usefulCandidates) {
+        if (!hasTimeRemaining(context, 1000)) {
+          break;
+        }
+
+        const listing = await fetchListingDetails(candidate, context);
+        if (listing?.url && listing?.title) {
+          matches.push(listing);
+        }
+      }
+    } catch {
+      // Continue with provider crawling.
+    }
+  }
+
+  matches.push(
+    ...(await searchCompanySiteListings(models, context)),
+    ...(await searchFlexicarListings(models, context))
+  );
 
   const initialRelevantMatches = matches.filter((listing) => listing?.isRelevantMatch);
   const initialRelevantProviders = new Set(
@@ -2770,9 +3166,7 @@ async function findListing({ result, answers, filters }) {
     });
   }
 
-  const queryLimit = coverage.queryLimit;
-
-  for (const query of queries.slice(0, queryLimit)) {
+  for (const query of queries.slice(Math.min(6, queryLimit), queryLimit)) {
     if (!hasTimeRemaining(context, 1200)) {
       break;
     }

@@ -261,7 +261,10 @@ Perfil:
 - Importe a financiar: ${labels.financeAmount}
 - Entrada: ${labels.entryAmount}
 - Antiguedad maxima: ${labels.ageFilter}
-- Kilometraje maximo: ${labels.mileageFilter}`;
+- Kilometraje maximo: ${labels.mileageFilter}
+- Potencia objetivo: ${labels.powerRange}
+- Ubicacion objetivo: ${labels.location}
+- Combustible preferido: ${labels.fuelFilter}`;
 }
 
 export function buildSellAnalysisPrompt({ sellAnswers }) {
@@ -293,10 +296,32 @@ Vehiculo:
 - Canal de venta: ${sellAnswers.sellerType}`;
 }
 
-export async function fetchDecisionListing({ aiResult, decisionFlowReady, decisionAnswers }) {
-  if (!decisionFlowReady || !aiResult?.oferta_top?.titulo) {
+export async function fetchDecisionListing({
+  aiResult,
+  decisionFlowReady,
+  decisionAnswers,
+  refreshNonce = 0,
+  excludeUrls = [],
+  excludeTitles = [],
+}) {
+  if (!decisionFlowReady) {
     return null;
   }
+
+  const fuelPreferenceMap = {
+    cualquiera: "indiferente_motor",
+    gasolina: "gasolina",
+    diesel: "diesel",
+    hibrido: "hibrido_no_enchufable",
+    phev: "hibrido_enchufable",
+    electrico: "electrico_puro",
+  };
+
+  const fallbackTitle = [decisionAnswers.brand, decisionAnswers.model, decisionAnswers.operation === "renting" ? "renting" : "compra"]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+  const listingTitle = aiResult?.oferta_top?.titulo || fallbackTitle || "oferta recomendada";
 
   const mappedAnswers = {
     perfil: "particular",
@@ -306,7 +331,7 @@ export async function fetchDecisionListing({ aiResult, decisionFlowReady, decisi
         : decisionAnswers.acquisition === "contado"
           ? "propiedad_contado"
           : "propiedad_financiada",
-    propulsion_preferida: "indiferente_motor",
+    propulsion_preferida: fuelPreferenceMap[decisionAnswers.fuelFilter] || "indiferente_motor",
     marca_preferencia: inferBrandPreferenceFromBrand(decisionAnswers.brand),
     ocupantes: "5_plazas_maletero_medio",
     entorno_uso: "mixto",
@@ -319,7 +344,7 @@ export async function fetchDecisionListing({ aiResult, decisionFlowReady, decisi
   const { response, data } = await postListingJson({
     result: {
       solucion_principal: {
-        titulo: aiResult.oferta_top.titulo,
+        titulo: listingTitle,
         tipo:
           decisionAnswers.operation === "renting"
             ? "renting_largo"
@@ -334,6 +359,11 @@ export async function fetchDecisionListing({ aiResult, decisionFlowReady, decisi
     filters: {
       budget: decisionAnswers.monthlyBudget || "",
       income: "fijos_estables",
+      location: decisionAnswers.location || "",
+      fuel: decisionAnswers.fuelFilter || "",
+      refreshNonce,
+      excludeUrls,
+      excludeTitles,
     },
   });
 
@@ -341,7 +371,318 @@ export async function fetchDecisionListing({ aiResult, decisionFlowReady, decisi
     throw new Error(data?.error || "No se pudo localizar un anuncio real para esta operación.");
   }
 
-  return data.listing || null;
+  const listings = Array.isArray(data?.listings)
+    ? data.listings
+    : [data?.listing, ...(Array.isArray(data?.alternatives) ? data.alternatives : [])].filter(Boolean);
+
+  const vehicleTarget = `${decisionAnswers.brand || ""} ${decisionAnswers.model || ""}`.toLowerCase();
+  const vehicleTokens = vehicleTarget
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length > 2);
+
+  function isGenericLandingUrl(url) {
+    try {
+      const parsed = new URL(String(url || ""));
+      const path = (parsed.pathname || "/").toLowerCase();
+      const hasSearchQuery = ["q", "search", "query", "filter", "marca", "modelo"].some((key) => parsed.searchParams.has(key));
+      if (path === "/") {
+        return true;
+      }
+      if (hasSearchQuery) {
+        return true;
+      }
+      return /\/(coches-segunda-mano|coches-ocasion|vehiculos-ocasion|stock|search|buscar)\/?$/.test(path);
+    } catch {
+      return true;
+    }
+  }
+
+  function hasStrongVehicleMatch(listing) {
+    if (vehicleTokens.length === 0) {
+      return true;
+    }
+
+    const haystack = `${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""}`.toLowerCase();
+    return vehicleTokens.every((token) => haystack.includes(token));
+  }
+
+  function parseListingYear(haystack) {
+    const match = haystack.match(/\b(20\d{2}|19\d{2})\b/);
+    return match ? Number(match[1]) : null;
+  }
+
+  function parseListingKm(haystack) {
+    const match = haystack.match(/(\d{1,3}(?:[.,]\d{3})+|\d{4,6})\s*km\b/i);
+    if (!match) {
+      return null;
+    }
+
+    const numeric = Number(String(match[1]).replace(/[.,]/g, ""));
+    return Number.isFinite(numeric) ? numeric : null;
+  }
+
+  function parseListingCv(haystack) {
+    const match = haystack.match(/(\d{2,3})\s*cv\b/i);
+    return match ? Number(match[1]) : null;
+  }
+
+  function parseListingPrice(listing, haystack) {
+    const sources = [listing?.price, haystack];
+    for (const source of sources) {
+      const match = String(source || "").match(/(\d{1,3}(?:[.,]\d{3})+|\d{4,6})\s*€/i);
+      if (!match) {
+        continue;
+      }
+
+      const numeric = Number(String(match[1]).replace(/[.,]/g, ""));
+      if (Number.isFinite(numeric)) {
+        return numeric;
+      }
+    }
+
+    return null;
+  }
+
+  function formatAmount(value) {
+    return `${Number(value || 0).toLocaleString("es-ES")} €`;
+  }
+
+  function formatKm(value) {
+    return `${Number(value || 0).toLocaleString("es-ES")} km`;
+  }
+
+  function formatYears(value) {
+    return `${Number(value || 0)} años`;
+  }
+
+  function getFuelLabel() {
+    const labels = {
+      gasolina: "Gasolina",
+      diesel: "Diésel",
+      hibrido: "Híbrido",
+      phev: "PHEV",
+      electrico: "Eléctrico",
+      cualquiera: "Cualquiera",
+    };
+    const fuel = String(decisionAnswers.fuelFilter || "cualquiera").toLowerCase();
+    return labels[fuel] || "el combustible seleccionado";
+  }
+
+  function getLocationLabel() {
+    const location = String(decisionAnswers.location || "toda_espana").toLowerCase();
+    if (!location || location === "toda_espana") {
+      return "Toda España";
+    }
+
+    return location
+      .split("_")
+      .filter(Boolean)
+      .map((token) => token.charAt(0).toUpperCase() + token.slice(1))
+      .join(" ");
+  }
+
+  function getDecisionRanges() {
+    const explicitPriceMax = Number(decisionAnswers.priceMax);
+    const hasExplicitAgeMax = decisionAnswers.ageMax !== null && decisionAnswers.ageMax !== undefined && decisionAnswers.ageMax !== "";
+    const hasExplicitMileageMax = decisionAnswers.mileageMax !== null && decisionAnswers.mileageMax !== undefined && decisionAnswers.mileageMax !== "";
+    const explicitAgeMax = hasExplicitAgeMax ? Number(decisionAnswers.ageMax) : Number.NaN;
+    const explicitMileageMax = hasExplicitMileageMax ? Number(decisionAnswers.mileageMax) : Number.NaN;
+
+    return {
+      priceMin: Number(decisionAnswers.priceMin || 0),
+      priceMax: Number.isFinite(explicitPriceMax) ? explicitPriceMax : Number.POSITIVE_INFINITY,
+      ageMin: Number(decisionAnswers.ageMin || 0),
+      ageMax:
+        Number.isFinite(explicitAgeMax)
+          ? explicitAgeMax
+          : decisionAnswers.ageFilter === "all"
+            ? Number.POSITIVE_INFINITY
+            : Number(decisionAnswers.ageFilter || Number.POSITIVE_INFINITY),
+      mileageMin: Number(decisionAnswers.mileageMin || 0),
+      mileageMax:
+        Number.isFinite(explicitMileageMax)
+          ? explicitMileageMax
+          : decisionAnswers.mileageFilter === "all"
+            ? Number.POSITIVE_INFINITY
+            : Number(decisionAnswers.mileageFilter || Number.POSITIVE_INFINITY),
+      powerMin: Number(decisionAnswers.powerMin || 0),
+      powerMax: Number(decisionAnswers.powerMax || Number.POSITIVE_INFINITY),
+    };
+  }
+
+  const decisionRanges = getDecisionRanges();
+
+  function matchesFuelFilter(haystack) {
+    const fuel = String(decisionAnswers.fuelFilter || "cualquiera").toLowerCase();
+    if (!fuel || fuel === "cualquiera") {
+      return true;
+    }
+
+    const fuelPatterns = {
+      gasolina: /gasolina/,
+      diesel: /diesel|di[eé]sel/,
+      hibrido: /hybrid|hibrid|h[ií]brido/,
+      phev: /phev|enchufable/,
+      electrico: /electric|electrico|el[eé]ctrico|bev|ev\b/,
+    };
+
+    return fuelPatterns[fuel] ? fuelPatterns[fuel].test(haystack) : true;
+  }
+
+  function matchesLocationFilter(haystack) {
+    const location = String(decisionAnswers.location || "toda_espana").toLowerCase();
+    if (!location || location === "toda_espana") {
+      return true;
+    }
+
+    const normalizedLocation = location.replace(/_/g, " ");
+    return haystack.includes(normalizedLocation);
+  }
+
+  function matchesPowerFilter(haystack) {
+    const parsedCv = parseListingCv(haystack);
+    if (!Number.isFinite(parsedCv)) {
+      return true;
+    }
+
+    return parsedCv >= decisionRanges.powerMin && parsedCv <= decisionRanges.powerMax;
+  }
+
+  function matchesAgeFilter(haystack) {
+    const parsedYear = parseListingYear(haystack);
+    if (!Number.isFinite(parsedYear)) {
+      return true;
+    }
+
+    const currentYear = new Date().getFullYear();
+    const age = currentYear - parsedYear;
+    return age >= decisionRanges.ageMin && age <= decisionRanges.ageMax;
+  }
+
+  function matchesMileageFilter(haystack) {
+    const parsedKm = parseListingKm(haystack);
+    if (!Number.isFinite(parsedKm)) {
+      return true;
+    }
+
+    return parsedKm >= decisionRanges.mileageMin && parsedKm <= decisionRanges.mileageMax;
+  }
+
+  function matchesPriceFilter(listing, haystack) {
+    const parsedPrice = parseListingPrice(listing, haystack);
+    if (!Number.isFinite(parsedPrice)) {
+      return true;
+    }
+
+    return parsedPrice >= decisionRanges.priceMin && parsedPrice <= decisionRanges.priceMax;
+  }
+
+  function getListingFilterFailures(listing) {
+    const haystack = `${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""}`.toLowerCase();
+    const failures = [];
+
+    if (!matchesPriceFilter(listing, haystack)) {
+      failures.push({
+        key: "price",
+        label: `el rango de precio ${formatAmount(decisionRanges.priceMin)} - ${formatAmount(decisionRanges.priceMax)}`,
+      });
+    }
+    if (!matchesFuelFilter(haystack)) {
+      failures.push({
+        key: "fuel",
+        label: `el combustible ${getFuelLabel()}`,
+      });
+    }
+    if (!matchesLocationFilter(haystack)) {
+      failures.push({
+        key: "location",
+        label: `la ubicación ${getLocationLabel()}`,
+      });
+    }
+    if (!matchesPowerFilter(haystack)) {
+      failures.push({
+        key: "power",
+        label: `la potencia ${decisionRanges.powerMin} - ${decisionRanges.powerMax} CV`,
+      });
+    }
+    if (!matchesAgeFilter(haystack)) {
+      const ageMaxLabel = Number.isFinite(decisionRanges.ageMax) ? formatYears(decisionRanges.ageMax) : "sin límite";
+      failures.push({
+        key: "age",
+        label: `la antigüedad ${formatYears(decisionRanges.ageMin)} - ${ageMaxLabel}`,
+      });
+    }
+    if (!matchesMileageFilter(haystack)) {
+      const mileageMaxLabel = Number.isFinite(decisionRanges.mileageMax) ? formatKm(decisionRanges.mileageMax) : "sin límite";
+      failures.push({
+        key: "mileage",
+        label: `el kilometraje ${formatKm(decisionRanges.mileageMin)} - ${mileageMaxLabel}`,
+      });
+    }
+
+    return failures;
+  }
+
+  function buildFilterInsight(candidates, rejectedReasons) {
+    if (candidates.length === 0) {
+      return `No he localizado anuncios concretos de ${fallbackTitle || "ese modelo"} en los resultados que devolvieron los portales.`;
+    }
+
+    if (rejectedReasons.length === 0) {
+      return null;
+    }
+
+    const reasonCounts = rejectedReasons.reduce((acc, reason) => {
+      const current = acc.get(reason.key) || { count: 0, label: reason.label };
+      current.count += 1;
+      acc.set(reason.key, current);
+      return acc;
+    }, new Map());
+
+    const topReasons = Array.from(reasonCounts.values())
+      .sort((left, right) => right.count - left.count)
+      .slice(0, 2)
+      .map((item) => item.label);
+
+    if (topReasons.length === 0) {
+      return null;
+    }
+
+    return `He encontrado ${candidates.length} anuncio${candidates.length === 1 ? "" : "s"} concretos de ${fallbackTitle || "ese modelo"}, pero los descartan sobre todo ${topReasons.join(" y ")}.`;
+  }
+
+  const candidateListings = listings.filter((listing) => {
+    if (!listing || listing.synthetic || listing.isGuaranteedFallback) {
+      return false;
+    }
+
+    const hasUrl = Boolean(String(listing.url || "").trim());
+    if (!hasUrl || isGenericLandingUrl(listing.url)) {
+      return false;
+    }
+
+    return hasStrongVehicleMatch(listing);
+  });
+
+  const rejectedReasons = [];
+  const concreteListings = candidateListings.filter((listing) => {
+    const failures = getListingFilterFailures(listing);
+    if (failures.length > 0) {
+      rejectedReasons.push(...failures);
+      return false;
+    }
+
+    return true;
+  });
+
+  const finalListings = concreteListings;
+
+  return {
+    listing: finalListings[0] || null,
+    listings: finalListings,
+    filterInsight: finalListings.length === 0 ? buildFilterInsight(candidateListings, rejectedReasons) : null,
+  };
 }
 
 export async function fetchSellComparableListing({ sellAnswers }) {

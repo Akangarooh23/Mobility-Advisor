@@ -67,7 +67,7 @@ export function getQuickValidationQuestions({ shouldShowChargingChecklist, isBuy
   ];
 }
 
-export function buildOfferRanking({ brand, model, acquisition, condition, ageFilter, mileageFilter }) {
+export function buildOfferRanking({ brand, model, acquisition, condition, priceRange = 0, ageFilter, mileageFilter }) {
   const basePriceByBrand = {
     Toyota: 23900,
     Renault: 21400,
@@ -92,11 +92,15 @@ export function buildOfferRanking({ brand, model, acquisition, condition, ageFil
   const mileageLimit = mileageFilter === "all" ? 90000 : Number(mileageFilter);
   const acquisitionDelta = acquisition === "contado" ? -600 : acquisition === "financiado" ? 400 : acquisition === "mixto" ? 150 : 0;
   const conditionDelta = condition === "nuevo" ? 0 : condition === "seminuevo" ? -3200 : -6200;
+  const targetPriceCap = Number(priceRange || 0);
 
   return [0, 1, 2].map((index) => {
     const age = Math.max(0, ageLimit - index);
     const mileage = Math.max(10000, mileageLimit - index * 14000);
-    const price = Math.max(8900, basePrice + acquisitionDelta + conditionDelta - index * 1800);
+    const rawPrice = basePrice + acquisitionDelta + conditionDelta - index * 1800;
+    const price = targetPriceCap > 0
+      ? Math.max(8900, Math.min(rawPrice, targetPriceCap - index * 600))
+      : Math.max(8900, rawPrice);
     const score = Math.max(74, 93 - index * 6);
 
     return {

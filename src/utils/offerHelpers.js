@@ -174,7 +174,43 @@ function isSpecificOfferUrl(url, listingType = "movilidad") {
       return /\/ofertas\/[^/]+\/[^/]+|\/renting[^\s]*\/[^/]+\/[^/]+|\/vehiculos\/[^/]+|\/detalle\/|\/id\/[a-f0-9-]+/.test(path);
     }
 
-    return /\/coches-ocasion\/[^/]+\/[^/]+|\/vehiculos-ocasion\/[^/]+\/[^/]+|\/detalle\/|\/ficha\/|\/id\/[a-f0-9-]+/.test(path);
+    // Coches.net and OcasionPlus individual listings
+    if (/\/coches-ocasion\/[^/]+\/[^/]+|\/vehiculos-ocasion\/[^/]+\/[^/]+|\/detalle\/|\/ficha\//.test(path)) {
+      return true;
+    }
+
+    // Autohero: /es/cars/12345 or /es/used-cars/...
+    if (/autohero\.com/.test(host) && /\/(?:es\/)?cars?\/\w+/.test(path)) {
+      return true;
+    }
+
+    // Flexicar: /coches-segunda-mano/brand/model/...
+    if (/flexicar\.es/.test(host) && /\/coches-segunda-mano\/[^/]+\/[^/]+/.test(path)) {
+      return true;
+    }
+
+    // Spoticar: /es/vehiculos/...
+    if (/spoticar\.es/.test(host) && /\/vehiculos\/[^/]+/.test(path)) {
+      return true;
+    }
+
+    // AutoScout24: /es/annonce/... or /lst/
+    if (/autoscout24\.es/.test(host) && /\/annonce\/|\/anuncio\//.test(path)) {
+      return true;
+    }
+
+    // Das WeltAuto: /es/coches/...
+    if (/dasweltauto\.es/.test(host) && /\/coches\/[^/]+\/[^/]+/.test(path)) {
+      return true;
+    }
+
+    // Clicars: /es/vehiculos/... or /ficha/
+    if (/clicars\.com/.test(host) && /\/vehiculos\/[^/]+|\/ficha\//.test(path)) {
+      return true;
+    }
+
+    // Generic: URL with numeric or UUID-style ID anywhere in path
+    return /\/id\/[a-f0-9-]+|\/\d{5,}(?:[^/]|$)/.test(path);
   } catch {
     return false;
   }

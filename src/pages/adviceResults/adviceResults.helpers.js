@@ -101,13 +101,16 @@ export function buildAdviceResultsViewModel({
       : [];
   const realOfferCards = realOfferCardsRaw.map((offer) => {
     const directUrl = getOfferNavigationUrl(offer, displayResult);
+    const fallbackUrl = !directUrl
+      ? normalizeText(offer?.searchUrl || offer?.url || "")
+      : "";
 
     return {
       ...offer,
       image: normalizeOfferAssetUrl(offer?.image) || "",
       hasRealImage: hasOfferRealImage(offer),
       url: directUrl,
-      searchUrl: !directUrl ? normalizeText(offer?.searchUrl || "") : "",
+      searchUrl: fallbackUrl,
     };
   });
   const offerModelSuggestions = buildOfferModelSuggestions(answers, displayResult);

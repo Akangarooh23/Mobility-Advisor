@@ -221,6 +221,28 @@ function isSpecificOfferUrl(url, listingType = "movilidad") {
   }
 }
 
+function extractSpecificOfferUrlFromText(text = "", listingType = "movilidad") {
+  const matches = String(text || "").match(/https?:\/\/[^\s)"']+/gi) || [];
+
+  for (const rawMatch of matches) {
+    const candidate = normalizeText(rawMatch)
+      .replace(/[),.;!?]+$/g, "")
+      .replace(/^https?:\/\/r\.jina\.ai\/http:\/\/https:\/\//i, "https://")
+      .replace(/^https?:\/\/r\.jina\.ai\/http:\/\/http:\/\//i, "http://")
+      .replace(/^https?:\/\/r\.jina\.ai\/https?:\/\//i, "https://");
+
+    if (!candidate || /\.(?:jpg|jpeg|png|webp|gif)(?:$|[?#])/i.test(candidate)) {
+      continue;
+    }
+
+    if (isSpecificOfferUrl(candidate, listingType)) {
+      return candidate;
+    }
+  }
+
+  return "";
+}
+
 export function getOfferNavigationUrl(offer, resultData) {
   if (offer?.synthetic || offer?.isGuaranteedFallback) {
     return "";
@@ -229,11 +251,16 @@ export function getOfferNavigationUrl(offer, resultData) {
   const directUrl = normalizeText(offer?.url);
   const listingType = normalizeText(offer?.listingType || resultData?.solucion_principal?.tipo || "movilidad");
 
-  if (!directUrl) {
-    return "";
+  if (directUrl && isSpecificOfferUrl(directUrl, listingType)) {
+    return directUrl;
   }
 
-  return isSpecificOfferUrl(directUrl, listingType) ? directUrl : "";
+  const descriptionUrl = extractSpecificOfferUrlFromText(offer?.description, listingType);
+  if (descriptionUrl) {
+    return descriptionUrl;
+  }
+
+  return "";
 }
 
 export function getOfferFallbackSearchUrl(offer = {}, resultData = {}) {

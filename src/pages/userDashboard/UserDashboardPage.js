@@ -5,6 +5,31 @@ import UserDashboardOperations from "./UserDashboardOperations";
 import UserDashboardSaved from "./UserDashboardSaved";
 import UserDashboardVehicles from "./UserDashboardVehicles";
 
+const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
+
+function normalizeText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function getGarageStorageKey(currentUserEmail = "") {
+  const normalizedEmail = normalizeText(currentUserEmail).toLowerCase();
+  return normalizedEmail ? `${GARAGE_STORAGE_PREFIX}.${normalizedEmail}` : GARAGE_STORAGE_PREFIX;
+}
+
+function readGarageVehiclesCount(currentUserEmail = "") {
+  if (typeof window === "undefined") {
+    return 0;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(getGarageStorageKey(currentUserEmail));
+    const parsed = JSON.parse(raw || "[]");
+    return Array.isArray(parsed) ? parsed.filter((item) => item && item.id).length : 0;
+  } catch {
+    return 0;
+  }
+}
+
 function buildSections(counts, newAlertMatchesCount = 0) {
   return [
     {
@@ -102,6 +127,7 @@ export default function UserDashboardPage({
 
     return window.innerWidth < 900;
   });
+  const [garageVehicleCount, setGarageVehicleCount] = useState(() => readGarageVehiclesCount(currentUser?.email || ""));
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -115,6 +141,57 @@ export default function UserDashboardPage({
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    let disposed = false;
+    const currentUserEmail = normalizeText(currentUser?.email).toLowerCase();
+
+    const refreshGarageCount = async () => {
+      setGarageVehicleCount(readGarageVehiclesCount(currentUserEmail));
+
+      if (!currentUserEmail) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/user-vehicles?email=${encodeURIComponent(currentUserEmail)}`, {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const payload = await response.json();
+        if (!disposed) {
+          const count = Array.isArray(payload?.vehicles) ? payload.vehicles.length : 0;
+          setGarageVehicleCount(count);
+        }
+      } catch {
+        // Keep localStorage fallback when API is unavailable.
+      }
+    };
+
+    void refreshGarageCount();
+
+    const storageListener = (event) => {
+      if (!event?.key || event.key === getGarageStorageKey(currentUserEmail)) {
+        setGarageVehicleCount(readGarageVehiclesCount(currentUserEmail));
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("storage", storageListener);
+    }
+
+    return () => {
+      disposed = true;
+      if (typeof window !== "undefined") {
+        window.removeEventListener("storage", storageListener);
+      }
+    };
+  }, [currentUser?.email]);
 
   const isDark = themeMode === "dark";
   const cardBg = isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)";
@@ -130,11 +207,12 @@ export default function UserDashboardPage({
     backdropFilter: "blur(8px)",
   };
   const dashboardVehicleCount = userVehicleSections.reduce((acc, section) => acc + section.items.length, 0);
+  const totalVehiclesCount = dashboardVehicleCount + garageVehicleCount;
   const counts = {
     saved: savedComparisons.length + (Array.isArray(marketAlerts) ? marketAlerts.length : 0),
     appointments: dashboardAppointments.length,
     valuations: dashboardValuations.length,
-    vehicles: dashboardVehicleCount,
+    vehicles: totalVehiclesCount,
   };
   const sections = buildSections(counts, newAlertMatchesCount);
   const topNavSections = [

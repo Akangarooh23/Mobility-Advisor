@@ -21,10 +21,10 @@ export default function LoadingAnalysisPage({ styles, loadingTexts, loadingPhase
         🧠
       </div>
       <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8, letterSpacing: "-0.5px", color: isDark ? "#f8fafc" : "#0f172a" }}>
-        Analizando tu perfil de movilidad
+        Buscando las mejores opciones ajustadas a tu perfil
       </h2>
       <p style={{ color: isDark ? "#cbd5e1" : "#64748b", fontSize: 14, marginBottom: 32 }}>
-        Aplicando el marco de decisión estructurado a tus respuestas
+        Comparando alternativas reales según tus respuestas
       </p>
 
       <div

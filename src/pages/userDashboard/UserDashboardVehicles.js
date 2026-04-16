@@ -25,6 +25,69 @@ function readGarageVehicles(currentUserEmail = "") {
   }
 }
 
+async function fetchGarageVehiclesFromApi(currentUserEmail = "") {
+  const normalizedEmail = normalizeText(currentUserEmail).toLowerCase();
+  const query = normalizedEmail ? `?email=${encodeURIComponent(normalizedEmail)}` : "";
+
+  const response = await fetch(`/api/user-vehicles${query}`, {
+    method: "GET",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("No se pudo leer el garage desde la API");
+  }
+
+  const payload = await response.json();
+  return Array.isArray(payload?.vehicles) ? payload.vehicles : [];
+}
+
+async function addGarageVehicleFromApi(currentUserEmail = "", vehicle = {}) {
+  const normalizedEmail = normalizeText(currentUserEmail).toLowerCase();
+  const response = await fetch("/api/user-vehicles", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      action: "add",
+      email: normalizedEmail,
+      vehicle,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("No se pudo guardar el vehículo en la API");
+  }
+
+  const payload = await response.json();
+  return Array.isArray(payload?.vehicles) ? payload.vehicles : [];
+}
+
+async function removeGarageVehicleFromApi(currentUserEmail = "", vehicleId = "") {
+  const normalizedEmail = normalizeText(currentUserEmail).toLowerCase();
+  const response = await fetch("/api/user-vehicles", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      action: "remove",
+      email: normalizedEmail,
+      vehicleId,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("No se pudo eliminar el vehículo en la API");
+  }
+
+  const payload = await response.json();
+  return Array.isArray(payload?.vehicles) ? payload.vehicles : [];
+}
+
 function formatBytes(bytes) {
   const size = Number(bytes || 0);
   if (!size) {
@@ -97,7 +160,28 @@ export default function UserDashboardVehicles({
   const totalVehiclesCount = dashboardVehicleCount + myVehicles.length;
 
   useEffect(() => {
-    setMyVehicles(readGarageVehicles(currentUserEmail));
+    let disposed = false;
+
+    const hydrateVehicles = async () => {
+      const localVehicles = readGarageVehicles(currentUserEmail);
+      if (!disposed) {
+        setMyVehicles(localVehicles);
+      }
+
+      try {
+        const apiVehicles = await fetchGarageVehiclesFromApi(currentUserEmail);
+        if (!disposed && Array.isArray(apiVehicles)) {
+          setMyVehicles(apiVehicles);
+        }
+      } catch {
+        // Keep local fallback when API is unavailable.
+      }
+    };
+
+    void hydrateVehicles();
+    return () => {
+      disposed = true;
+    };
   }, [currentUserEmail]);
 
   useEffect(() => {
@@ -154,7 +238,7 @@ export default function UserDashboardVehicles({
     }));
   };
 
-  const addVehicleToGarage = () => {
+  const addVehicleToGarage = async () => {
     const brand = normalizeText(vehicleForm.brand);
     const model = normalizeText(vehicleForm.model);
 
@@ -182,7 +266,15 @@ export default function UserDashboardVehicles({
       createdAt: new Date().toISOString(),
     };
 
-    setMyVehicles((prev) => [vehicle, ...prev].slice(0, 20));
+    let nextVehicles = [vehicle, ...myVehicles].slice(0, 20);
+
+    try {
+      nextVehicles = await addGarageVehicleFromApi(currentUserEmail, vehicle);
+    } catch {
+      // Fallback to local state/localStorage when API is unavailable.
+    }
+
+    setMyVehicles(Array.isArray(nextVehicles) ? nextVehicles : [vehicle, ...myVehicles].slice(0, 20));
     setVehicleForm({
       nickname: "",
       brand: "",
@@ -199,8 +291,16 @@ export default function UserDashboardVehicles({
     setVehicleFeedback(`Vehículo ${title} guardado en Mis vehículos.`);
   };
 
-  const removeVehicleFromGarage = (vehicleId) => {
-    setMyVehicles((prev) => prev.filter((vehicle) => vehicle.id !== vehicleId));
+  const removeVehicleFromGarage = async (vehicleId) => {
+    let nextVehicles = myVehicles.filter((vehicle) => vehicle.id !== vehicleId);
+
+    try {
+      nextVehicles = await removeGarageVehicleFromApi(currentUserEmail, vehicleId);
+    } catch {
+      // Fallback to local state/localStorage when API is unavailable.
+    }
+
+    setMyVehicles(Array.isArray(nextVehicles) ? nextVehicles : []);
     setVehicleFeedback("Vehículo eliminado de Mis vehículos.");
   };
 

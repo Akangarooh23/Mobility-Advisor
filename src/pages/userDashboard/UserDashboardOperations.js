@@ -25,6 +25,22 @@ function readGarageVehicles(currentUserEmail = "") {
   }
 }
 
+async function fetchGarageVehiclesFromApi(currentUserEmail = "") {
+  const normalizedEmail = normalizeText(currentUserEmail).toLowerCase();
+  const query = normalizedEmail ? `?email=${encodeURIComponent(normalizedEmail)}` : "";
+  const response = await fetch(`/api/user-vehicles${query}`, {
+    method: "GET",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("No se pudo leer el garage desde la API");
+  }
+
+  const payload = await response.json();
+  return Array.isArray(payload?.vehicles) ? payload.vehicles : [];
+}
+
 function inferAppointmentStage(item = {}) {
   const text = `${item?.status || ""} ${item?.meta || ""}`.toLowerCase();
 
@@ -93,7 +109,28 @@ export default function UserDashboardOperations({
   ];
 
   useEffect(() => {
-    setGarageVehicles(readGarageVehicles(currentUserEmail));
+    let disposed = false;
+
+    const hydrateVehicles = async () => {
+      const localVehicles = readGarageVehicles(currentUserEmail);
+      if (!disposed) {
+        setGarageVehicles(localVehicles);
+      }
+
+      try {
+        const apiVehicles = await fetchGarageVehiclesFromApi(currentUserEmail);
+        if (!disposed && Array.isArray(apiVehicles)) {
+          setGarageVehicles(apiVehicles);
+        }
+      } catch {
+        // Keep local fallback when API is unavailable.
+      }
+    };
+
+    void hydrateVehicles();
+    return () => {
+      disposed = true;
+    };
   }, [currentUserEmail]);
 
   useEffect(() => {
@@ -147,8 +184,15 @@ export default function UserDashboardOperations({
     { pending: 0, active: 0, closed: 0 }
   );
 
-  const openAppointmentForm = () => {
-    const nextGarageVehicles = readGarageVehicles(currentUserEmail);
+  const openAppointmentForm = async () => {
+    let nextGarageVehicles = readGarageVehicles(currentUserEmail);
+
+    try {
+      nextGarageVehicles = await fetchGarageVehiclesFromApi(currentUserEmail);
+    } catch {
+      // Keep local fallback when API is unavailable.
+    }
+
     setGarageVehicles(nextGarageVehicles);
     setSelectedVehicleId(nextGarageVehicles[0]?.id || "");
     setAppointmentType("workshop");

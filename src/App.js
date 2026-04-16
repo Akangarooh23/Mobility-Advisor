@@ -2064,17 +2064,10 @@ export default function App() {
   }, [decisionAiResult, decisionAnswers, decisionMarketRefreshNonce, decisionMarketExcludeUrls, decisionMarketExcludeTitles]);
 
   const recalculateDecisionMarketOffers = useCallback(() => {
-    const urls = decisionMarketListings
-      .map((listing) => normalizeText(listing?.url))
-      .filter(Boolean);
-    const titles = decisionMarketListings
-      .map((listing) => normalizeText(listing?.title))
-      .filter(Boolean);
-
-    setDecisionMarketExcludeUrls(urls);
-    setDecisionMarketExcludeTitles(titles);
+    setDecisionMarketExcludeUrls([]);
+    setDecisionMarketExcludeTitles([]);
     setDecisionMarketRefreshNonce(Date.now());
-  }, [decisionMarketListings]);
+  }, []);
 
   const searchSellComparableListing = async () => {
     if (!(sellAnswers.brand && sellAnswers.model)) {

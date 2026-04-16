@@ -179,6 +179,11 @@ function isSpecificOfferUrl(url, listingType = "movilidad") {
       return true;
     }
 
+    // Coches.net slug with embedded numeric ID: /marca-modelo-...-NNNNNNNN-covo.aspx
+    if (/coches\.net/.test(host) && /-\d{6,}-\w+\.aspx$/.test(path)) {
+      return true;
+    }
+
     // Autohero: /es/cars/12345 or /es/used-cars/...
     if (/autohero\.com/.test(host) && /\/(?:es\/)?cars?\/\w+/.test(path)) {
       return true;

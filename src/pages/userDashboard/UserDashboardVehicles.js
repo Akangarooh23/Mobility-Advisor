@@ -17,6 +17,75 @@ function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function normalizeAttachmentItem(input = {}) {
+  let safeInput = input;
+
+  if (typeof safeInput === "string") {
+    try {
+      safeInput = JSON.parse(safeInput);
+    } catch {
+      safeInput = { name: safeInput };
+    }
+  }
+
+  if (!safeInput || typeof safeInput !== "object" || Array.isArray(safeInput)) {
+    return null;
+  }
+
+  const normalized = {
+    name: normalizeText(safeInput?.name),
+    size: Number(safeInput?.size || 0),
+    mimeType: normalizeText(safeInput?.mimeType),
+    contentBase64: normalizeText(safeInput?.contentBase64),
+  };
+
+  return normalized.name ? normalized : null;
+}
+
+function normalizeAttachmentCollection(input) {
+  let safeInput = input;
+
+  if (typeof safeInput === "string") {
+    try {
+      safeInput = JSON.parse(safeInput);
+    } catch {
+      safeInput = [];
+    }
+  }
+
+  if (!Array.isArray(safeInput)) {
+    if (safeInput && typeof safeInput === "object") {
+      safeInput = [safeInput];
+    } else {
+      safeInput = [];
+    }
+  }
+
+  return safeInput.map((item) => normalizeAttachmentItem(item)).filter(Boolean).slice(0, 30);
+}
+
+function normalizeVehicleAttachmentCollections(vehicle = {}) {
+  if (!vehicle || typeof vehicle !== "object") {
+    return null;
+  }
+
+  const initialMaintenance = vehicle?.initialMaintenance && typeof vehicle.initialMaintenance === "object" ? vehicle.initialMaintenance : {};
+
+  return {
+    ...vehicle,
+    photos: normalizeAttachmentCollection(vehicle?.photos),
+    documents: normalizeAttachmentCollection(vehicle?.documents),
+    technicalSheetDocuments: normalizeAttachmentCollection(vehicle?.technicalSheetDocuments),
+    circulationPermitDocuments: normalizeAttachmentCollection(vehicle?.circulationPermitDocuments),
+    itvDocuments: normalizeAttachmentCollection(vehicle?.itvDocuments),
+    insuranceDocuments: normalizeAttachmentCollection(vehicle?.insuranceDocuments),
+    initialMaintenance: {
+      ...initialMaintenance,
+      invoices: normalizeAttachmentCollection(initialMaintenance?.invoices),
+    },
+  };
+}
+
 function getGarageStorageKey(currentUserEmail = "") {
   const normalizedEmail = normalizeText(currentUserEmail).toLowerCase();
   return normalizedEmail ? `${GARAGE_STORAGE_PREFIX}.${normalizedEmail}` : GARAGE_STORAGE_PREFIX;
@@ -35,7 +104,9 @@ function readGarageVehicles(currentUserEmail = "") {
   try {
     const raw = window.localStorage.getItem(getGarageStorageKey(currentUserEmail));
     const parsed = JSON.parse(raw || "[]");
-    return Array.isArray(parsed) ? parsed.filter((item) => item && item.id) : [];
+    return Array.isArray(parsed)
+      ? parsed.map((item) => normalizeVehicleAttachmentCollections(item)).filter((item) => item && item.id)
+      : [];
   } catch {
     return [];
   }
@@ -62,7 +133,7 @@ async function fetchGarageVehiclesFromApi(currentUserEmail = "") {
     throw new Error("No se pudo leer el garage desde la API");
   }
 
-  return Array.isArray(data?.vehicles) ? data.vehicles : [];
+  return Array.isArray(data?.vehicles) ? data.vehicles.map((item) => normalizeVehicleAttachmentCollections(item)).filter(Boolean) : [];
 }
 
 async function addGarageVehicleFromApi(currentUserEmail = "", vehicle = {}) {
@@ -72,7 +143,7 @@ async function addGarageVehicleFromApi(currentUserEmail = "", vehicle = {}) {
     throw new Error("No se pudo guardar el vehículo en la API");
   }
 
-  return Array.isArray(data?.vehicles) ? data.vehicles : [];
+  return Array.isArray(data?.vehicles) ? data.vehicles.map((item) => normalizeVehicleAttachmentCollections(item)).filter(Boolean) : [];
 }
 
 async function removeGarageVehicleFromApi(currentUserEmail = "", vehicleId = "") {
@@ -82,7 +153,7 @@ async function removeGarageVehicleFromApi(currentUserEmail = "", vehicleId = "")
     throw new Error("No se pudo eliminar el vehículo en la API");
   }
 
-  return Array.isArray(data?.vehicles) ? data.vehicles : [];
+  return Array.isArray(data?.vehicles) ? data.vehicles.map((item) => normalizeVehicleAttachmentCollections(item)).filter(Boolean) : [];
 }
 
 function formatBytes(bytes) {
@@ -664,6 +735,20 @@ export default function UserDashboardVehicles({
     );
   };
 
+  const resolveAttachmentDownloadHref = (item = {}) => {
+    const rawContent = normalizeText(item?.contentBase64);
+    if (!rawContent) {
+      return "";
+    }
+
+    if (rawContent.startsWith("data:")) {
+      return rawContent;
+    }
+
+    const mimeType = normalizeText(item?.mimeType || item?.fileMimeType).toLowerCase() || "application/octet-stream";
+    return `data:${mimeType};base64,${rawContent}`;
+  };
+
   const renderStoredAttachmentList = (items, emptyLabel) => {
     if (!Array.isArray(items) || items.length === 0) {
       return <div style={{ fontSize: 11, color: bodyColor }}>{emptyLabel}</div>;
@@ -685,8 +770,43 @@ export default function UserDashboardVehicles({
               background: isDark ? "rgba(15,23,42,0.3)" : "rgba(248,250,252,0.9)",
             }}
           >
-            <span style={{ fontSize: 11, color: titleColor, overflowWrap: "anywhere" }}>{item?.name || `Adjunto ${index + 1}`}</span>
-            <span style={{ fontSize: 10, color: bodyColor, whiteSpace: "nowrap" }}>{formatBytes(Number(item?.size || 0))}</span>
+            <span style={{ fontSize: 11, color: titleColor, overflowWrap: "anywhere", flex: 1 }}>{item?.name || `Adjunto ${index + 1}`}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 10, color: bodyColor, whiteSpace: "nowrap" }}>{formatBytes(Number(item?.size || 0))}</span>
+              {(() => {
+                const downloadHref = resolveAttachmentDownloadHref(item);
+                const canDownload = Boolean(downloadHref);
+
+                return (
+                  <a
+                    href={canDownload ? downloadHref : undefined}
+                    download={normalizeText(item?.name) || `adjunto-${index + 1}`}
+                    onClick={(event) => {
+                      if (!canDownload) {
+                        event.preventDefault();
+                      }
+                    }}
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      borderRadius: 999,
+                      padding: "4px 8px",
+                      border: canDownload ? "1px solid rgba(37,99,235,0.28)" : "1px solid rgba(148,163,184,0.2)",
+                      background: canDownload ? "rgba(37,99,235,0.1)" : "rgba(148,163,184,0.12)",
+                      color: canDownload ? "#1d4ed8" : bodyColor,
+                      textDecoration: "none",
+                      cursor: canDownload ? "pointer" : "not-allowed",
+                      whiteSpace: "nowrap",
+                      pointerEvents: canDownload ? "auto" : "none",
+                    }}
+                    aria-disabled={!canDownload}
+                    title={canDownload ? "Descargar adjunto" : "Este adjunto no tiene contenido descargable"}
+                  >
+                    Descargar
+                  </a>
+                );
+              })()}
+            </div>
           </div>
         ))}
       </div>
@@ -2213,6 +2333,10 @@ export default function UserDashboardVehicles({
                         "Documentos",
                         <div style={{ display: "grid", gap: 10, fontSize: 11, color: bodyColor }}>
                           <div style={{ display: "grid", gap: 6 }}>
+                            <div style={{ fontSize: 11, fontWeight: 800, color: titleColor }}>Fotos</div>
+                            {renderStoredAttachmentList(vehicle.photos, "Sin fotos adjuntas.")}
+                          </div>
+                          <div style={{ display: "grid", gap: 6 }}>
                             <div style={{ fontSize: 11, fontWeight: 800, color: titleColor }}>Generales</div>
                             {renderStoredAttachmentList(vehicle.documents, "Sin documentos generales.")}
                           </div>
@@ -2229,7 +2353,7 @@ export default function UserDashboardVehicles({
                             {renderStoredAttachmentList(vehicle.itvDocuments, "Sin documentos ITV adjuntos.")}
                           </div>
                         </div>,
-                        `${(Array.isArray(vehicle.documents) ? vehicle.documents.length : 0) + (Array.isArray(vehicle.technicalSheetDocuments) ? vehicle.technicalSheetDocuments.length : 0) + (Array.isArray(vehicle.circulationPermitDocuments) ? vehicle.circulationPermitDocuments.length : 0) + (Array.isArray(vehicle.itvDocuments) ? vehicle.itvDocuments.length : 0)} adjuntos`
+                        `${(Array.isArray(vehicle.photos) ? vehicle.photos.length : 0) + (Array.isArray(vehicle.documents) ? vehicle.documents.length : 0) + (Array.isArray(vehicle.technicalSheetDocuments) ? vehicle.technicalSheetDocuments.length : 0) + (Array.isArray(vehicle.circulationPermitDocuments) ? vehicle.circulationPermitDocuments.length : 0) + (Array.isArray(vehicle.itvDocuments) ? vehicle.itvDocuments.length : 0)} adjuntos`
                       )}
                       {renderStoredVehicleSection(
                         vehicle.id,

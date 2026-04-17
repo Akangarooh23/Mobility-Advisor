@@ -447,40 +447,6 @@ function getCatalogFromSqlcmd(defaultCatalogMap = {}) {
 
 // ── Admin (write) helpers ──────────────────────────────────────────────────
 
-const TABLE_SETUP_QUERY = `
-IF OBJECT_ID(N'dbo.MoveAdvisorVehicleBrands', N'U') IS NULL
-BEGIN
-  CREATE TABLE dbo.MoveAdvisorVehicleBrands (
-    Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    Name NVARCHAR(100) NOT NULL,
-    IsActive BIT NOT NULL CONSTRAINT DF_MoveAdvisorVehicleBrands_IsActive DEFAULT (1),
-    SortOrder INT NOT NULL CONSTRAINT DF_MoveAdvisorVehicleBrands_SortOrder DEFAULT (0)
-  );
-  CREATE UNIQUE INDEX IX_MoveAdvisorVehicleBrands_Name ON dbo.MoveAdvisorVehicleBrands (Name);
-END;
-IF OBJECT_ID(N'dbo.MoveAdvisorVehicleModels', N'U') IS NULL
-BEGIN
-  CREATE TABLE dbo.MoveAdvisorVehicleModels (
-    Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    BrandId INT NOT NULL,
-    Name NVARCHAR(120) NOT NULL,
-    IsActive BIT NOT NULL CONSTRAINT DF_MoveAdvisorVehicleModels_IsActive DEFAULT (1),
-    SortOrder INT NOT NULL CONSTRAINT DF_MoveAdvisorVehicleModels_SortOrder DEFAULT (0),
-    CONSTRAINT FK_MoveAdvisorVehicleModels_Brand FOREIGN KEY (BrandId) REFERENCES dbo.MoveAdvisorVehicleBrands(Id)
-  );
-  CREATE UNIQUE INDEX IX_MoveAdvisorVehicleModels_BrandId_Name ON dbo.MoveAdvisorVehicleModels (BrandId, Name);
-END;
-`;
-
-async function ensureCatalogTablesMssql() {
-  const pool = await getMssqlPool();
-  await pool.request().query(TABLE_SETUP_QUERY);
-}
-
-function ensureCatalogTablesSqlcmd() {
-  runSqlcmd(TABLE_SETUP_QUERY);
-}
-
 function readLocalCatalogMap() {
   try {
     const raw = fs.readFileSync(DEFAULT_CATALOG_PATH, "utf8");

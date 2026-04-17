@@ -37,6 +37,11 @@ function normalizeAttachmentItem(input = {}) {
     size: Number(safeInput?.size || 0),
     mimeType: normalizeText(safeInput?.mimeType),
     contentBase64: normalizeText(safeInput?.contentBase64),
+    previewUrl: normalizeText(safeInput?.previewUrl),
+    url: normalizeText(safeInput?.url),
+    src: normalizeText(safeInput?.src),
+    imageUrl: normalizeText(safeInput?.imageUrl),
+    path: normalizeText(safeInput?.path),
   };
 
   return normalized.name ? normalized : null;
@@ -167,6 +172,49 @@ function formatBytes(bytes) {
   }
 
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function isLikelyBase64Payload(value = "") {
+  const normalized = normalizeText(value).replace(/\s/g, "");
+  if (!normalized || normalized.length < 64) {
+    return false;
+  }
+
+  return /^[A-Za-z0-9+/=]+$/.test(normalized);
+}
+
+function resolvePhotoPreviewSrc(photo = {}) {
+  const rawContent = normalizeText(photo?.contentBase64);
+  const mimeType = normalizeText(photo?.mimeType || photo?.fileMimeType).toLowerCase() || "image/jpeg";
+
+  if (rawContent) {
+    if (rawContent.startsWith("data:image/")) {
+      const payload = rawContent.split(",")[1] || "";
+      return isLikelyBase64Payload(payload) ? rawContent : "";
+    }
+
+    if (isLikelyBase64Payload(rawContent)) {
+      return `data:${mimeType};base64,${rawContent}`;
+    }
+  }
+
+  const externalSource = [photo?.previewUrl, photo?.url, photo?.src, photo?.imageUrl, photo?.path]
+    .map((candidate) => normalizeText(candidate))
+    .find((candidate) => candidate);
+
+  if (!externalSource) {
+    return "";
+  }
+
+  if (externalSource.startsWith("http://") || externalSource.startsWith("https://") || externalSource.startsWith("data:image/") || externalSource.startsWith("blob:")) {
+    return externalSource;
+  }
+
+  if (externalSource.startsWith("/")) {
+    return externalSource;
+  }
+
+  return externalSource;
 }
 
 function fileToBase64DataUrl(file) {
@@ -357,6 +405,9 @@ export default function UserDashboardVehicles({
 
   const [activeVehicleTab, setActiveVehicleTab] = useState("my-garage");
   const [showNewVehicleForm, setShowNewVehicleForm] = useState(false);
+  const [vehicleWorkspaceMode, setVehicleWorkspaceMode] = useState("list");
+  const [managementVehicleId, setManagementVehicleId] = useState("");
+  const [failedPhotoVehicleIds, setFailedPhotoVehicleIds] = useState({});
   const [myVehicles, setMyVehicles] = useState(() => readGarageVehicles(currentUserEmail));
   const [vehicleFeedback, setVehicleFeedback] = useState("");
   const [pendingPhotos, setPendingPhotos] = useState([]);
@@ -1046,6 +1097,8 @@ export default function UserDashboardVehicles({
     setMyVehicles(Array.isArray(nextVehicles) ? nextVehicles : [vehicle, ...myVehicles].slice(0, 20));
     setEditingVehicleId("");
     setShowNewVehicleForm(false);
+    setVehicleWorkspaceMode("list");
+    setManagementVehicleId("");
     setErpSelectedBrandId("");
     setErpSelectedModelId("");
     setErpModels([]);
@@ -1103,6 +1156,8 @@ export default function UserDashboardVehicles({
 
     setEditingVehicleId(vehicleId);
     setShowNewVehicleForm(true);
+    setVehicleWorkspaceMode("editor");
+    setManagementVehicleId("");
     setVehicleCatalogMode("manual");
     setErpSelectedBrandId("");
     setErpSelectedModelId("");
@@ -1157,6 +1212,7 @@ export default function UserDashboardVehicles({
   const cancelEditingVehicle = () => {
     setEditingVehicleId("");
     setShowNewVehicleForm(false);
+    setVehicleWorkspaceMode("list");
     setVehicleCatalogMode("erp");
     setErpSelectedBrandId("");
     setErpSelectedModelId("");
@@ -1175,7 +1231,19 @@ export default function UserDashboardVehicles({
     }
 
     setMyVehicles(Array.isArray(nextVehicles) ? nextVehicles : []);
+    if (managementVehicleId === vehicleId) {
+      setManagementVehicleId("");
+    }
     setVehicleFeedback("Vehículo eliminado de Mis vehículos.");
+  };
+
+  const startCreatingVehicle = () => {
+    setEditingVehicleId("");
+    setShowNewVehicleForm(true);
+    setVehicleWorkspaceMode("editor");
+    setManagementVehicleId("");
+    setVehicleCatalogMode("erp");
+    setVehicleFeedback("Completa los apartados y guarda tu nuevo vehículo.");
   };
 
   const requestValuationForVehicle = (vehicle = {}, feedbackPrefix = "Tasación iniciada para") => {
@@ -1385,6 +1453,45 @@ export default function UserDashboardVehicles({
             ))}
           </div>
 
+          {vehicleWorkspaceMode === "list" ? (
+            <div
+              style={{
+                background: isDark ? "rgba(15,23,42,0.7)" : "rgba(255,255,255,0.9)",
+                border: panelBorder,
+                borderRadius: 12,
+                padding: 12,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 10,
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ fontSize: 12, color: bodyColor }}>
+                Elige un vehículo para gestionar acciones rápidas o crea uno nuevo.
+              </div>
+              <button
+                type="button"
+                onClick={startCreatingVehicle}
+                style={{
+                  background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
+                  color: "#ffffff",
+                  border: "none",
+                  borderRadius: 999,
+                  boxShadow: "0 10px 18px rgba(37,99,235,0.24)",
+                  padding: "8px 12px",
+                  fontSize: 11,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Añadir nuevo vehículo
+              </button>
+            </div>
+          ) : null}
+
+          {vehicleWorkspaceMode === "editor" ? (
           <div
             style={{
               background: isDark
@@ -1404,13 +1511,17 @@ export default function UserDashboardVehicles({
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                 <button
                   type="button"
-                  onClick={() => setShowNewVehicleForm((prev) => !prev)}
+                  onClick={() => {
+                    setVehicleWorkspaceMode("list");
+                    setShowNewVehicleForm(false);
+                    setEditingVehicleId("");
+                  }}
                   style={{
-                    background: showNewVehicleForm ? "rgba(37,99,235,0.12)" : "linear-gradient(135deg,#2563eb,#1d4ed8)",
-                    color: showNewVehicleForm ? "#1d4ed8" : "#ffffff",
-                    border: showNewVehicleForm ? cardBorder : "none",
+                    background: "rgba(37,99,235,0.12)",
+                    color: "#1d4ed8",
+                    border: cardBorder,
                     borderRadius: 999,
-                    boxShadow: showNewVehicleForm ? "none" : "0 10px 18px rgba(37,99,235,0.24)",
+                    boxShadow: "none",
                     padding: "8px 12px",
                     fontSize: 11,
                     fontWeight: 800,
@@ -1418,7 +1529,7 @@ export default function UserDashboardVehicles({
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {showNewVehicleForm ? "Ocultar formulario" : "Añadir Nuevo vehículo"}
+                  Volver al listado
                 </button>
                 <div style={{ fontSize: 11, color: "#1d4ed8", fontWeight: 700, background: "rgba(37,99,235,0.1)", border: cardBorder, borderRadius: 999, padding: "5px 9px" }}>
                   Máximo 20 vehículos
@@ -2184,605 +2295,163 @@ export default function UserDashboardVehicles({
               <div style={{ marginTop: 10, fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>{vehicleFeedback}</div>
             )}
           </div>
+          ) : null}
 
-          {myVehicles.length > 0 ? (
+          {vehicleWorkspaceMode === "list" ? (
+            myVehicles.length > 0 ? (
             <div style={{ display: "grid", gap: 10 }}>
               {myVehicles.map((vehicle) => {
-                const vehicleAppointments = appointmentsByVehicleId[normalizeText(vehicle.id)] || [];
-                const currentAppointmentFilter = getVehicleAppointmentFilter(vehicle.id);
-                const filteredVehicleAppointments = vehicleAppointments.filter(
-                  (item) => currentAppointmentFilter === "all" || inferAppointmentType(item) === currentAppointmentFilter
-                );
-                const pendingAppointments = filteredVehicleAppointments.filter((item) => inferAppointmentStage(item) !== "closed");
-                const closedAppointments = filteredVehicleAppointments.filter((item) => inferAppointmentStage(item) === "closed");
-                const firstPhotoWithContent = (Array.isArray(vehicle?.photos) ? vehicle.photos : []).find((photo) => {
-                  const raw = normalizeText(photo?.contentBase64);
-                  if (!raw) {
-                    return false;
-                  }
-                  if (raw.startsWith("data:image/")) {
-                    return true;
-                  }
-                  const mimeType = normalizeText(photo?.mimeType || photo?.fileMimeType).toLowerCase();
-                  return mimeType.startsWith("image/");
-                });
-                const firstPhotoPreviewSrc = (() => {
-                  const raw = normalizeText(firstPhotoWithContent?.contentBase64);
-                  if (!raw) {
-                    return "";
-                  }
-                  if (raw.startsWith("data:image/")) {
-                    return raw;
-                  }
-                  const mimeType = normalizeText(firstPhotoWithContent?.mimeType || firstPhotoWithContent?.fileMimeType).toLowerCase() || "image/jpeg";
-                  return `data:${mimeType};base64,${raw}`;
-                })();
+                const vehicleId = normalizeText(vehicle?.id);
+                const firstPhotoWithContent = (Array.isArray(vehicle?.photos) ? vehicle.photos : []).find((photo) => Boolean(resolvePhotoPreviewSrc(photo)));
+                const firstPhotoPreviewSrc = resolvePhotoPreviewSrc(firstPhotoWithContent);
+                const identityLabel = [normalizeText(vehicle?.brand), normalizeText(vehicle?.model), normalizeText(vehicle?.version)].filter(Boolean).join(" ");
+                const vehicleHeader = `${normalizeText(vehicle?.plate) || "Sin matrícula"} - ${identityLabel || normalizeText(vehicle?.title) || "Vehículo"}`;
+                const isManagementOpen = managementVehicleId === vehicleId;
+                const isPreviewBlocked = Boolean(failedPhotoVehicleIds[vehicleId]);
 
                 return <div
                   key={vehicle.id}
                   style={{
                     background: isDark
-                      ? "linear-gradient(155deg, rgba(15,23,42,0.96), rgba(30,41,59,0.9))"
-                      : "linear-gradient(155deg, rgba(255,255,255,0.99), rgba(239,246,255,0.86))",
-                    border: panelBorder,
-                    boxShadow: elevatedShadow,
-                    borderRadius: 14,
-                    padding: 14,
+                      ? "linear-gradient(135deg, rgba(15,23,42,0.97) 0%, rgba(30,41,59,0.92) 100%)"
+                      : "linear-gradient(135deg, #ffffff 0%, #f0f6ff 100%)",
+                    border: isDark ? "1px solid rgba(99,102,241,0.18)" : "1px solid rgba(99,102,241,0.14)",
+                    boxShadow: isDark
+                      ? "0 2px 16px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.3)"
+                      : "0 2px 12px rgba(99,102,241,0.08), 0 1px 4px rgba(0,0,0,0.05)",
+                    borderRadius: 16,
+                    padding: "12px 14px",
+                    transition: "box-shadow 0.15s",
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "stretch", flexWrap: "wrap" }}>
-                    <div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                        <div style={{ fontSize: 14, fontWeight: 800, color: titleColor }}>{vehicle.title}</div>
-                  {renderVehicleSection(
-                    "marketplace",
-                    "Valor del Vehículo en el mercado",
-                    <div style={{ display: "grid", gap: 10 }}>
-                      <div style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                        <span>Estrategia de precio para publicar</span>
-                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                          <button
-                            type="button"
-                            onClick={() => updateVehicleForm("marketplacePricingMode", "manual")}
-                            style={{
-                              background: vehicleForm.marketplacePricingMode === "manual" ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "rgba(37,99,235,0.08)",
-                              color: vehicleForm.marketplacePricingMode === "manual" ? "#ffffff" : "#1d4ed8",
-                              border: vehicleForm.marketplacePricingMode === "manual" ? "none" : cardBorder,
-                              borderRadius: 999,
-                              padding: "7px 11px",
-                              fontSize: 11,
-                              fontWeight: 700,
-                              cursor: "pointer",
-                            }}
-                          >
-                            Fijar precio manual
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              updateVehicleForm("marketplacePricingMode", "valuation");
-                              requestValuationForVehicle(vehicle);
-                            }}
-                            style={{
-                              background: vehicleForm.marketplacePricingMode === "valuation" ? "linear-gradient(135deg,#0ea5e9,#0284c7)" : "rgba(14,165,233,0.08)",
-                              color: vehicleForm.marketplacePricingMode === "valuation" ? "#ffffff" : "#0c4a6e",
-                              border: vehicleForm.marketplacePricingMode === "valuation" ? "none" : cardBorder,
-                              borderRadius: 999,
-                              padding: "7px 11px",
-                              fontSize: 11,
-                              fontWeight: 700,
-                              cursor: "pointer",
-                            }}
-                          >
-                            Primero tasar el coche
-                          </button>
-                        </div>
-                      </div>
-
-                      {vehicleForm.marketplacePricingMode === "manual" ? (
-                        <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                          <input
-                            value={vehicleForm.price}
-                            onChange={(event) => updateVehicleForm("price", event.target.value)}
-                            placeholder="18500"
-                            style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor }}
-                          />
-                        </label>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: isMobile ? "1fr" : "96px minmax(0,1fr) 200px",
+                      gap: 14,
+                      alignItems: "start",
+                    }}
+                  >
+                    {/* Foto cuadrada */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      {firstPhotoPreviewSrc && !isPreviewBlocked ? (
+                        <img
+                          src={firstPhotoPreviewSrc}
+                          alt={normalizeText(firstPhotoWithContent?.name) || `Foto ${vehicle.title || vehicle.id}`}
+                          onError={() => {
+                            if (!vehicleId) return;
+                            setFailedPhotoVehicleIds((prev) => ({ ...prev, [vehicleId]: true }));
+                          }}
+                          style={{ width: 96, height: 96, objectFit: "cover", borderRadius: 12, border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(99,102,241,0.15)", display: "block", boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}
+                        />
                       ) : (
-                        <div style={{ fontSize: 11, color: bodyColor, background: isDark ? "rgba(15,23,42,0.3)" : "rgba(239,246,255,0.9)", border: cardBorder, borderRadius: 10, padding: "9px 10px" }}>
-                          Al publicar en marketplace te pediremos tasación antes de fijar el precio final.
+                        <div style={{ width: 96, height: 96, borderRadius: 12, border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(99,102,241,0.12)", background: isDark ? "rgba(30,41,59,0.6)" : "rgba(241,245,249,0.9)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 4 }}>
+                          <span style={{ fontSize: 22, opacity: 0.3 }}>🚗</span>
+                          <span style={{ fontSize: 9, color: bodyColor, textAlign: "center" }}>Sin foto</span>
                         </div>
                       )}
-                    </div>,
-                    vehicleForm.marketplacePricingMode === "manual" ? "Valor manual definido" : "Publicación condicionada a tasación"
-                  )}
-                        <span
-                          style={{
-                            fontSize: 10,
-                            fontWeight: 800,
-                            color: "#1d4ed8",
-                            background: "rgba(37,99,235,0.12)",
-                            border: cardBorder,
-                            borderRadius: 999,
-                            padding: "3px 7px",
-                            letterSpacing: "0.2px",
-                          }}
-                        >
-                          GARAGE
+                      <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                        <span style={{ background: "rgba(37,99,235,0.1)", border: "1px solid rgba(37,99,235,0.18)", borderRadius: 999, padding: "2px 7px", fontSize: 9, fontWeight: 600, color: "#3b82f6", letterSpacing: 0.2 }}>
+                          📷 {Array.isArray(vehicle.photos) ? vehicle.photos.length : 0}
                         </span>
-                        <span
-                          style={{
-                            fontSize: 10,
-                            fontWeight: 800,
-                            color: resolveMarketplacePricingMode(vehicle) === "valuation" ? "#0c4a6e" : "#92400e",
-                            background: resolveMarketplacePricingMode(vehicle) === "valuation" ? "rgba(14,165,233,0.14)" : "rgba(245,158,11,0.14)",
-                            border: cardBorder,
-                            borderRadius: 999,
-                            padding: "3px 7px",
-                            letterSpacing: "0.2px",
-                          }}
-                        >
-                          {resolveMarketplacePricingMode(vehicle) === "valuation" ? "TASACION" : "PRECIO MANUAL"}
+                        <span style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.18)", borderRadius: 999, padding: "2px 7px", fontSize: 9, fontWeight: 600, color: "#10b981", letterSpacing: 0.2 }}>
+                          📄 {Array.isArray(vehicle.documents) ? vehicle.documents.length : 0}
                         </span>
                       </div>
-                      <div style={{ fontSize: 12, color: bodyColor, marginTop: 3 }}>
-                        {vehicle.brand} {vehicle.model}
-                        {vehicle.version ? ` · ${vehicle.version}` : ""}
-                        {vehicle.bodyType ? ` · ${vehicle.bodyType}` : ""}
-                        {vehicle.transmissionType ? ` · ${vehicle.transmissionType}` : ""}
-                        {vehicle.year ? ` · ${vehicle.year}` : ""}
-                        {vehicle.plate ? ` · ${vehicle.plate}` : ""}
-                        {vehicle.mileage ? ` · ${vehicle.mileage} km` : ""}
-                        {vehicle.fuel ? ` · ${vehicle.fuel}` : ""}
-                      </div>
-                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
-                        <span style={{ background: "rgba(37,99,235,0.12)", border: cardBorder, borderRadius: 999, padding: "4px 8px", fontSize: 11, color: "#1d4ed8" }}>
-                          {Array.isArray(vehicle.photos) ? vehicle.photos.length : 0} fotos
-                        </span>
-                        <span style={{ background: "rgba(16,185,129,0.12)", border: cardBorder, borderRadius: 999, padding: "4px 8px", fontSize: 11, color: "#065f46" }}>
-                          {Array.isArray(vehicle.documents) ? vehicle.documents.length : 0} documentos
-                        </span>
-                        <span style={{ background: "rgba(148,163,184,0.16)", border: cardBorder, borderRadius: 999, padding: "4px 8px", fontSize: 11, color: bodyColor }}>
-                          Adjuntos: {formatBytes(
-                            [...(Array.isArray(vehicle.photos) ? vehicle.photos : []), ...(Array.isArray(vehicle.documents) ? vehicle.documents : [])].reduce(
-                              (acc, file) => acc + Number(file?.size || 0),
-                              0
-                            )
-                          )}
-                        </span>
-                      </div>
-                      {renderStoredVehicleSection(
-                        vehicle.id,
-                        "characteristics",
-                        "Características",
-                        <div style={{ display: "grid", gap: 6, fontSize: 11, color: bodyColor }}>
-                          {vehicle.location ? <div>Ubicación: {vehicle.location}</div> : null}
-                          {vehicle.environmentalLabel ? <div>Etiqueta: {vehicle.environmentalLabel}</div> : null}
-                          {vehicle.co2 ? <div>CO2: {vehicle.co2} g/km</div> : null}
-                          {vehicle.cv ? <div>CV: {vehicle.cv}</div> : null}
-                          {vehicle.horsepower ? <div>Caballos: {vehicle.horsepower}</div> : null}
-                          {vehicle.seats ? <div>Plazas: {vehicle.seats}</div> : null}
-                          {vehicle.doors ? <div>Puertas: {vehicle.doors}</div> : null}
-                          {vehicle.color ? <div>Color: {vehicle.color}</div> : null}
-                          {vehicle.lastIvt ? <div>Última ITV: {vehicle.lastIvt}</div> : null}
-                          {vehicle.nextIvt ? <div>Próxima ITV: {vehicle.nextIvt}</div> : null}
-                          {!vehicle.location && !vehicle.environmentalLabel && !vehicle.co2 && !vehicle.cv && !vehicle.horsepower && !vehicle.seats && !vehicle.doors && !vehicle.color && !vehicle.lastIvt && !vehicle.nextIvt ? (
-                            <div>No hay características ampliadas guardadas.</div>
-                          ) : null}
-                        </div>,
-                        "Datos técnicos y comerciales"
-                      )}
-                      {renderStoredVehicleSection(
-                        vehicle.id,
-                        "marketplace",
-                        "Marketplace",
-                        <div style={{ display: "grid", gap: 6, fontSize: 11, color: bodyColor }}>
-                          <div>
-                            Estrategia de precio: {normalizeText(vehicle.marketplacePricingMode).toLowerCase() === "valuation" ? "Tasación previa" : "Precio manual"}
-                          </div>
-                          <div>
-                            Precio publicación: {vehicle.price ? `${vehicle.price} EUR` : "Sin precio cargado"}
-                          </div>
-                        </div>,
-                        normalizeText(vehicle.marketplacePricingMode).toLowerCase() === "valuation"
-                          ? "Se pedirá tasación al publicar"
-                          : vehicle.price
-                          ? `Precio ${vehicle.price} EUR`
-                          : "Completa precio antes de publicar"
-                      )}
-                      {renderStoredVehicleSection(
-                        vehicle.id,
-                        "documents",
-                        "Documentos",
-                        <div style={{ display: "grid", gap: 10, fontSize: 11, color: bodyColor }}>
-                          <div style={{ display: "grid", gap: 6 }}>
-                            <div style={{ fontSize: 11, fontWeight: 800, color: titleColor }}>Fotos</div>
-                            {renderStoredAttachmentList(vehicle.photos, "Sin fotos adjuntas.")}
-                          </div>
-                          <div style={{ display: "grid", gap: 6 }}>
-                            <div style={{ fontSize: 11, fontWeight: 800, color: titleColor }}>Generales</div>
-                            {renderStoredAttachmentList(vehicle.documents, "Sin documentos generales.")}
-                          </div>
-                          <div style={{ display: "grid", gap: 6 }}>
-                            <div style={{ fontSize: 11, fontWeight: 800, color: titleColor }}>Ficha técnica</div>
-                            {renderStoredAttachmentList(vehicle.technicalSheetDocuments, "Sin ficha técnica adjunta.")}
-                          </div>
-                          <div style={{ display: "grid", gap: 6 }}>
-                            <div style={{ fontSize: 11, fontWeight: 800, color: titleColor }}>Permiso de circulación</div>
-                            {renderStoredAttachmentList(vehicle.circulationPermitDocuments, "Sin permiso de circulación adjunto.")}
-                          </div>
-                          <div style={{ display: "grid", gap: 6 }}>
-                            <div style={{ fontSize: 11, fontWeight: 800, color: titleColor }}>ITV</div>
-                            {renderStoredAttachmentList(vehicle.itvDocuments, "Sin documentos ITV adjuntos.")}
-                          </div>
-                        </div>,
-                        `${(Array.isArray(vehicle.photos) ? vehicle.photos.length : 0) + (Array.isArray(vehicle.documents) ? vehicle.documents.length : 0) + (Array.isArray(vehicle.technicalSheetDocuments) ? vehicle.technicalSheetDocuments.length : 0) + (Array.isArray(vehicle.circulationPermitDocuments) ? vehicle.circulationPermitDocuments.length : 0) + (Array.isArray(vehicle.itvDocuments) ? vehicle.itvDocuments.length : 0)} adjuntos`
-                      )}
-                      {renderStoredVehicleSection(
-                        vehicle.id,
-                        "insurance",
-                        "Seguro",
-                        <div style={{ display: "grid", gap: 8, fontSize: 11, color: bodyColor }}>
-                          <div>Aseguradora: {vehicle.policyCompany || "Sin dato"}</div>
-                          <div>Cobertura: {vehicle.coverageType || "Sin dato"}</div>
-                          <div>Póliza: {vehicle.policyNumber || "Sin dato"}</div>
-                          <div style={{ display: "grid", gap: 6 }}>
-                            <div style={{ fontSize: 11, fontWeight: 800, color: titleColor }}>Documentos</div>
-                            {renderStoredAttachmentList(vehicle.insuranceDocuments, "Sin documentos de seguro adjuntos.")}
-                          </div>
-                        </div>,
-                        vehicle.policyCompany || (Array.isArray(vehicle.insuranceDocuments) && vehicle.insuranceDocuments.length ? "Seguro documentado" : "Sin seguro cargado")
-                      )}
-                      {renderStoredVehicleSection(
-                        vehicle.id,
-                        "appointments",
-                        "Citas",
-                        <div style={{ display: "grid", gap: 10, fontSize: 11, color: bodyColor }}>
-                          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                            <select
-                              value={getVehicleNewAppointmentDraft(vehicle.id).type || "workshop"}
-                              onChange={(event) => updateVehicleNewAppointmentDraft(vehicle.id, "type", event.target.value)}
-                              style={{ background: inputBg, border: cardBorder, borderRadius: 8, padding: "7px 9px", color: titleColor, minWidth: 170 }}
-                            >
-                              {APPOINTMENT_TYPE_FILTERS.filter((option) => option.key !== "all").map((option) => (
-                                <option key={`${vehicle.id}-new-${option.key}`} value={option.key}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
-                            <button
-                              type="button"
-                              onClick={() => createAppointmentForVehicle(vehicle)}
-                              style={{
-                                background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
-                                color: "#ffffff",
-                                border: "none",
-                                borderRadius: 8,
-                                padding: "7px 10px",
-                                fontSize: 11,
-                                fontWeight: 700,
-                                cursor: "pointer",
-                              }}
-                            >
-                              Nueva cita
-                            </button>
-                          </div>
-                          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                            {APPOINTMENT_TYPE_FILTERS.map((filterOption) => {
-                              const isActive = currentAppointmentFilter === filterOption.key;
-
-                              return (
-                                <button
-                                  key={`${vehicle.id}-${filterOption.key}`}
-                                  type="button"
-                                  onClick={() => updateVehicleAppointmentFilter(vehicle.id, filterOption.key)}
-                                  style={{
-                                    background: isActive ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "rgba(37,99,235,0.08)",
-                                    color: isActive ? "#ffffff" : "#1d4ed8",
-                                    border: isActive ? "none" : cardBorder,
-                                    borderRadius: 999,
-                                    padding: "6px 10px",
-                                    fontSize: 11,
-                                    fontWeight: 700,
-                                    cursor: "pointer",
-                                  }}
-                                >
-                                  {filterOption.label}
-                                </button>
-                              );
-                            })}
-                          </div>
-                          <div style={{ display: "grid", gap: 6 }}>
-                            <div style={{ fontSize: 11, fontWeight: 800, color: titleColor }}>Pendientes o activas</div>
-                            {pendingAppointments.length > 0 ? (
-                              pendingAppointments.map((item, index) => (
-                                (() => {
-                                  const priority = inferAppointmentPriority(item);
-                                  const historyEntries = getAppointmentHistory(item);
-
-                                  return <div
-                                  key={item.id || `${vehicle.id}-pending-${index}`}
-                                  style={{
-                                    display: "grid",
-                                    gap: 8,
-                                    border: cardBorder,
-                                    borderRadius: 8,
-                                    padding: "10px 12px 10px 16px",
-                                    background: isDark ? "rgba(15,23,42,0.3)" : "rgba(248,250,252,0.9)",
-                                    borderLeft: "3px solid rgba(245,158,11,0.65)",
-                                    position: "relative",
-                                  }}
-                                >
-                                  <span style={{ position: "absolute", left: -6, top: 16, width: 10, height: 10, borderRadius: 999, background: "#f59e0b", border: isDark ? "2px solid #0f172a" : "2px solid #ffffff" }} />
-                                  <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                                    <div style={{ display: "grid", gap: 3 }}>
-                                      <span style={{ fontWeight: 800, color: titleColor }}>{item.title || "Cita"}</span>
-                                      <span style={{ fontSize: 10, color: bodyColor }}>{getAppointmentTypeLabel(inferAppointmentType(item))}</span>
-                                    </div>
-                                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
-                                      {getAppointmentDraftValue(item, "requestedAt") ? <span style={{ fontSize: 10, color: bodyColor }}>{getAppointmentDraftValue(item, "requestedAt")}</span> : null}
-                                      <span style={{ fontSize: 10, color: priority.color, background: priority.bg, border: priority.border, borderRadius: 999, padding: "3px 7px" }}>
-                                        Prioridad {priority.label}
-                                      </span>
-                                      <span style={{ fontSize: 10, color: "#92400e", background: "rgba(245,158,11,0.14)", border: "1px solid rgba(251,191,36,0.28)", borderRadius: 999, padding: "3px 7px" }}>
-                                        {item.status || "Pendiente"}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div style={{ display: "grid", gap: 8, gridTemplateColumns: isMobile ? "1fr" : "minmax(150px,220px) 1fr" }}>
-                                    <label style={{ display: "grid", gap: 5 }}>
-                                      <span style={{ fontSize: 10, color: bodyColor }}>Fecha</span>
-                                      <input
-                                        value={getAppointmentDraftValue(item, "requestedAt")}
-                                        onChange={(event) => updateAppointmentDraft(item.id, "requestedAt", event.target.value)}
-                                        style={{ background: inputBg, border: cardBorder, borderRadius: 8, padding: "7px 9px", color: titleColor }}
-                                      />
-                                    </label>
-                                    <label style={{ display: "grid", gap: 5 }}>
-                                      <span style={{ fontSize: 10, color: bodyColor }}>Notas</span>
-                                      <textarea
-                                        value={getAppointmentDraftValue(item, "meta")}
-                                        onChange={(event) => updateAppointmentDraft(item.id, "meta", event.target.value)}
-                                        rows={2}
-                                        style={{ background: inputBg, border: cardBorder, borderRadius: 8, padding: "7px 9px", color: titleColor, resize: "vertical" }}
-                                      />
-                                    </label>
-                                  </div>
-                                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                                      <select
-                                        value={getAppointmentDraftValue(item, "status")}
-                                        onChange={(event) => updateAppointmentDraft(item.id, "status", event.target.value)}
-                                        style={{ background: inputBg, border: cardBorder, borderRadius: 8, padding: "7px 9px", color: titleColor, minWidth: 170 }}
-                                      >
-                                        {APPOINTMENT_STATUS_OPTIONS.map((statusOption) => (
-                                          <option key={statusOption} value={statusOption}>
-                                            {statusOption}
-                                          </option>
-                                        ))}
-                                      </select>
-                                      <button
-                                        type="button"
-                                        onClick={() => saveAppointmentChanges(item, vehicle)}
-                                        disabled={updatingAppointmentId === item.id}
-                                        style={{
-                                          background: "rgba(37,99,235,0.12)",
-                                          color: "#1d4ed8",
-                                          border: cardBorder,
-                                          borderRadius: 8,
-                                          padding: "7px 10px",
-                                          fontSize: 11,
-                                          fontWeight: 700,
-                                          cursor: updatingAppointmentId === item.id ? "progress" : "pointer",
-                                          opacity: updatingAppointmentId === item.id ? 0.7 : 1,
-                                        }}
-                                      >
-                                        {updatingAppointmentId === item.id ? "Guardando..." : "Actualizar estado"}
-                                      </button>
-                                  </div>
-                                  {historyEntries.length > 0 ? (
-                                    <div style={{ display: "grid", gap: 4, marginTop: 2 }}>
-                                      <div style={{ fontSize: 10, color: bodyColor, fontWeight: 700 }}>Historial de estados</div>
-                                      {historyEntries.slice(0, 3).map((entry, historyIndex) => (
-                                        <div key={`${item.id}-history-${historyIndex}`} style={{ fontSize: 10, color: bodyColor }}>
-                                          {new Date(entry.changedAt).toLocaleString("es-ES")} · {entry.previousStatus} → {entry.nextStatus}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  ) : null}
-                                </div>;
-                                })()
-                              ))
-                            ) : (
-                              <div>No hay citas pendientes para este vehículo con este filtro.</div>
-                            )}
-                          </div>
-                          <div style={{ display: "grid", gap: 6 }}>
-                            <div style={{ fontSize: 11, fontWeight: 800, color: titleColor }}>Ya realizadas</div>
-                            {closedAppointments.length > 0 ? (
-                              closedAppointments.map((item, index) => (
-                                (() => {
-                                  const priority = inferAppointmentPriority(item);
-                                  const historyEntries = getAppointmentHistory(item);
-
-                                  return <div
-                                  key={item.id || `${vehicle.id}-closed-${index}`}
-                                  style={{
-                                    display: "grid",
-                                    gap: 8,
-                                    border: cardBorder,
-                                    borderRadius: 8,
-                                    padding: "10px 12px 10px 16px",
-                                    background: isDark ? "rgba(15,23,42,0.3)" : "rgba(248,250,252,0.9)",
-                                    borderLeft: "3px solid rgba(16,185,129,0.7)",
-                                    position: "relative",
-                                  }}
-                                >
-                                  <span style={{ position: "absolute", left: -6, top: 16, width: 10, height: 10, borderRadius: 999, background: "#10b981", border: isDark ? "2px solid #0f172a" : "2px solid #ffffff" }} />
-                                  <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                                    <div style={{ display: "grid", gap: 3 }}>
-                                      <span style={{ fontWeight: 800, color: titleColor }}>{item.title || "Cita"}</span>
-                                      <span style={{ fontSize: 10, color: bodyColor }}>{getAppointmentTypeLabel(inferAppointmentType(item))}</span>
-                                    </div>
-                                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
-                                      {getAppointmentDraftValue(item, "requestedAt") ? <span style={{ fontSize: 10, color: bodyColor }}>{getAppointmentDraftValue(item, "requestedAt")}</span> : null}
-                                      <span style={{ fontSize: 10, color: priority.color, background: priority.bg, border: priority.border, borderRadius: 999, padding: "3px 7px" }}>
-                                        Prioridad {priority.label}
-                                      </span>
-                                      <span style={{ fontSize: 10, color: "#065f46", background: "rgba(16,185,129,0.12)", border: "1px solid rgba(110,231,183,0.28)", borderRadius: 999, padding: "3px 7px" }}>
-                                        {item.status || "Cerrada"}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div style={{ display: "grid", gap: 8, gridTemplateColumns: isMobile ? "1fr" : "minmax(150px,220px) 1fr" }}>
-                                    <label style={{ display: "grid", gap: 5 }}>
-                                      <span style={{ fontSize: 10, color: bodyColor }}>Fecha</span>
-                                      <input
-                                        value={getAppointmentDraftValue(item, "requestedAt")}
-                                        onChange={(event) => updateAppointmentDraft(item.id, "requestedAt", event.target.value)}
-                                        style={{ background: inputBg, border: cardBorder, borderRadius: 8, padding: "7px 9px", color: titleColor }}
-                                      />
-                                    </label>
-                                    <label style={{ display: "grid", gap: 5 }}>
-                                      <span style={{ fontSize: 10, color: bodyColor }}>Notas</span>
-                                      <textarea
-                                        value={getAppointmentDraftValue(item, "meta")}
-                                        onChange={(event) => updateAppointmentDraft(item.id, "meta", event.target.value)}
-                                        rows={2}
-                                        style={{ background: inputBg, border: cardBorder, borderRadius: 8, padding: "7px 9px", color: titleColor, resize: "vertical" }}
-                                      />
-                                    </label>
-                                  </div>
-                                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                                      <select
-                                        value={getAppointmentDraftValue(item, "status")}
-                                        onChange={(event) => updateAppointmentDraft(item.id, "status", event.target.value)}
-                                        style={{ background: inputBg, border: cardBorder, borderRadius: 8, padding: "7px 9px", color: titleColor, minWidth: 170 }}
-                                      >
-                                        {APPOINTMENT_STATUS_OPTIONS.map((statusOption) => (
-                                          <option key={statusOption} value={statusOption}>
-                                            {statusOption}
-                                          </option>
-                                        ))}
-                                      </select>
-                                      <button
-                                        type="button"
-                                        onClick={() => saveAppointmentChanges(item, vehicle)}
-                                        disabled={updatingAppointmentId === item.id}
-                                        style={{
-                                          background: "rgba(37,99,235,0.12)",
-                                          color: "#1d4ed8",
-                                          border: cardBorder,
-                                          borderRadius: 8,
-                                          padding: "7px 10px",
-                                          fontSize: 11,
-                                          fontWeight: 700,
-                                          cursor: updatingAppointmentId === item.id ? "progress" : "pointer",
-                                          opacity: updatingAppointmentId === item.id ? 0.7 : 1,
-                                        }}
-                                      >
-                                        {updatingAppointmentId === item.id ? "Guardando..." : "Actualizar estado"}
-                                      </button>
-                                  </div>
-                                  {historyEntries.length > 0 ? (
-                                    <div style={{ display: "grid", gap: 4, marginTop: 2 }}>
-                                      <div style={{ fontSize: 10, color: bodyColor, fontWeight: 700 }}>Historial de estados</div>
-                                      {historyEntries.slice(0, 3).map((entry, historyIndex) => (
-                                        <div key={`${item.id}-history-${historyIndex}`} style={{ fontSize: 10, color: bodyColor }}>
-                                          {new Date(entry.changedAt).toLocaleString("es-ES")} · {entry.previousStatus} → {entry.nextStatus}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  ) : null}
-                                </div>;
-                                })()
-                              ))
-                            ) : (
-                              <div>Todavía no hay citas cerradas para este vehículo con este filtro.</div>
-                            )}
-                          </div>
-                        </div>,
-                        vehicleAppointments.length > 0
-                          ? `${filteredVehicleAppointments.length} visibles · ${pendingAppointments.length} pendientes · ${closedAppointments.length} realizadas`
-                          : "Sin citas registradas"
-                      )}
-                      {renderStoredVehicleSection(
-                        vehicle.id,
-                        "notes",
-                        "Notas",
-                        <div style={{ fontSize: 11, color: bodyColor, maxWidth: 620 }}>
-                          {vehicle.notes || "No hay notas internas para este vehículo."}
-                        </div>
-                      )}
                     </div>
 
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8, minWidth: isMobile ? "100%" : 280, flex: isMobile ? "1 1 100%" : "0 0 380px" }}>
-                      <div style={{ display: "grid", gap: 8, gridTemplateColumns: isMobile ? "1fr" : "repeat(2,minmax(130px,1fr))" }}>
+                    {/* Resumen de características */}
+                    <div style={{ display: "grid", gap: 8 }}>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: titleColor, letterSpacing: -0.2, lineHeight: 1.3 }}>
+                          {normalizeText(vehicle?.plate) ? (
+                            <><span style={{ background: isDark ? "rgba(99,102,241,0.2)" : "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.22)", borderRadius: 6, padding: "1px 7px", fontSize: 11, fontWeight: 800, color: isDark ? "#a5b4fc" : "#4f46e5", marginRight: 6, letterSpacing: 1 }}>{normalizeText(vehicle.plate)}</span></>
+                          ) : null}
+                          {identityLabel || normalizeText(vehicle?.title) || "Vehículo"}
+                        </div>
+                      </div>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "4px 8px" }}>
+                        {[
+                          ["📅", "Año", vehicle.year],
+                          ["⛽", "Comb.", vehicle.fuel],
+                          ["🛣️", "Km", vehicle.mileage ? Number(vehicle.mileage).toLocaleString("es-ES") + " km" : null],
+                          ["⚙️", "Cambio", vehicle.transmissionType],
+                          ["🎨", "Color", vehicle.color],
+                          ["🚪", "Puertas", vehicle.doors],
+                          ["💪", "CV", vehicle.cv],
+                          ["🚗", "Carrocería", vehicle.bodyType],
+                          ["🏷️", "Etiqueta", vehicle.environmentalLabel],
+                          ["💺", "Asientos", vehicle.seats],
+                        ]
+                          .filter(([, , val]) => val)
+                          .map(([icon, label, val]) => (
+                            <div key={label} style={{ fontSize: 11, color: bodyColor, lineHeight: 1.5, display: "flex", gap: 4, alignItems: "baseline" }}>
+                              <span style={{ fontSize: 10, opacity: 0.7 }}>{icon}</span>
+                              <span style={{ fontWeight: 600, color: isDark ? "rgba(226,232,240,0.65)" : "rgba(51,65,85,0.6)", fontSize: 10 }}>{label}</span>
+                              <span style={{ fontWeight: 700, color: titleColor }}>{val}</span>
+                            </div>
+                          ))}
+                      </div>
+                      {vehicle.notes ? (
+                        <div style={{ fontSize: 10, color: bodyColor, fontStyle: "italic", borderTop: isDark ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(99,102,241,0.1)", paddingTop: 5, marginTop: 2 }}>{vehicle.notes}</div>
+                      ) : null}
+                    </div>
+
+                    <div style={{ display: "grid", gap: 6 }}>
+                      <button
+                        type="button"
+                        onClick={() => removeVehicleFromGarage(vehicle.id)}
+                        style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)", color: "#dc2626", borderRadius: 10, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%", letterSpacing: 0.2, transition: "background 0.15s" }}
+                      >
+                        Quitar
+                      </button>
                       <button
                         type="button"
                         onClick={() => startEditingVehicle(vehicle)}
-                        style={{ background: "rgba(99,102,241,0.12)", border: "1px solid rgba(129,140,248,0.28)", color: "#3730a3", borderRadius: 10, padding: "8px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left", width: "100%" }}
+                        style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.25)", color: isDark ? "#a5b4fc" : "#4f46e5", borderRadius: 10, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%", letterSpacing: 0.2 }}
                       >
                         Editar
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleVehicleAction("appointment", vehicle)}
-                        style={{ background: "rgba(245,158,11,0.14)", border: "1px solid rgba(251,191,36,0.28)", color: "#92400e", borderRadius: 10, padding: "8px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left", width: "100%" }}
+                        onClick={() => setManagementVehicleId((prev) => (prev === vehicleId ? "" : vehicleId))}
+                        style={{ background: "rgba(14,116,144,0.1)", border: "1px solid rgba(14,116,144,0.22)", color: isDark ? "#67e8f9" : "#0e7490", borderRadius: 10, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%", letterSpacing: 0.2 }}
                       >
-                        Solicitar cita
+                        {isManagementOpen ? "Ocultar gestión" : "Gestionar"}
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => handleVehicleAction("valuation", vehicle)}
-                        style={{ background: "rgba(37,99,235,0.14)", border: "1px solid rgba(96,165,250,0.28)", color: "#1e3a8a", borderRadius: 10, padding: "8px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left", width: "100%" }}
-                      >
-                        Solicitar tasación
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(event) => handleVehicleAction("marketplace", vehicle, event.currentTarget)}
-                        style={{ background: "rgba(16,185,129,0.14)", border: "1px solid rgba(110,231,183,0.28)", color: "#065f46", borderRadius: 10, padding: "8px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left", width: "100%" }}
-                      >
-                        Publicar en marketplace
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleVehicleAction("insurance", vehicle)}
-                        style={{ background: "rgba(14,116,144,0.14)", border: "1px solid rgba(103,232,249,0.28)", color: "#155e75", borderRadius: 10, padding: "8px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left", width: "100%" }}
-                      >
-                        Gestionar seguro
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => removeVehicleFromGarage(vehicle.id)}
-                        style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(248,113,113,0.24)", color: "#b91c1c", borderRadius: 10, padding: "8px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left", gridColumn: "1 / -1", width: "100%" }}
-                      >
-                        Quitar
-                      </button>
-                      </div>
-                      <div
-                        style={{
-                          border: cardBorder,
-                          borderRadius: 10,
-                          padding: 8,
-                          background: isDark ? "rgba(15,23,42,0.32)" : "rgba(248,250,252,0.9)",
-                          minHeight: isMobile ? 150 : 280,
-                          flex: 1,
-                          display: "grid",
-                          gap: 6,
-                        }}
-                      >
-                        <div style={{ fontSize: 10, fontWeight: 700, color: bodyColor }}>Primera foto</div>
-                        {firstPhotoPreviewSrc ? (
-                          <img
-                            src={firstPhotoPreviewSrc}
-                            alt={normalizeText(firstPhotoWithContent?.name) || `Foto ${vehicle.title || vehicle.id}`}
-                            style={{ width: "100%", height: "100%", minHeight: isMobile ? 110 : 240, objectFit: "cover", borderRadius: 8, border: cardBorder }}
-                          />
-                        ) : (
-                          <div style={{ fontSize: 11, color: bodyColor }}>Sin foto con vista previa</div>
-                        )}
-                      </div>
+
+                      {isManagementOpen ? (
+                        <div style={{ display: "grid", gap: 6, border: isDark ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(99,102,241,0.1)", borderRadius: 10, background: isDark ? "rgba(15,23,42,0.5)" : "rgba(248,250,252,0.85)", padding: 8 }}>
+                          <button
+                            type="button"
+                            onClick={() => handleVehicleAction("appointment", vehicle)}
+                            style={{ background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.22)", color: "#b45309", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%" }}
+                          >
+                            Pedir cita
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleVehicleAction("valuation", vehicle)}
+                            style={{ background: "rgba(37,99,235,0.1)", border: "1px solid rgba(37,99,235,0.22)", color: isDark ? "#93c5fd" : "#1d4ed8", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%" }}
+                          >
+                            Solicitar tasación
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleVehicleAction("insurance", vehicle)}
+                            style={{ background: "rgba(14,116,144,0.1)", border: "1px solid rgba(14,116,144,0.22)", color: isDark ? "#67e8f9" : "#0e7490", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%" }}
+                          >
+                            Gestionar seguro
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(event) => handleVehicleAction("marketplace", vehicle, event.currentTarget)}
+                            style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.22)", color: isDark ? "#6ee7b7" : "#047857", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%" }}
+                          >
+                            Publicar
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 </div>;
@@ -2880,11 +2549,12 @@ export default function UserDashboardVehicles({
                 </div>
               ) : null}
             </div>
-          ) : (
+            ) : (
             <div style={{ fontSize: 12, color: "#94a3b8" }}>
               Todavía no tienes vehículos en tu área privada. Añade uno para empezar a gestionar citas, tasaciones, marketplace y seguro.
             </div>
-          )}
+            )
+          ) : null}
         </div>
       )}
 

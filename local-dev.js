@@ -5,33 +5,52 @@ const isWindows = process.platform === "win32";
 const children = [];
 let shuttingDown = false;
 
-function runTask(label, command, extraEnv = {}) {
+function runTask(label, command, extraEnv = {}, options = {}) {
+  const {
+    restartOnFailure = false,
+    maxRestarts = 0,
+    restartDelayMs = 700,
+  } = options;
+
   const env = { ...process.env, ...extraEnv };
-  const child = isWindows
-    ? spawn("cmd.exe", ["/c", command], {
-        cwd: __dirname,
-        stdio: "inherit",
-        env,
-      })
-    : spawn("sh", ["-c", command], {
-        cwd: __dirname,
-        stdio: "inherit",
-        env,
-      });
+  let restartCount = 0;
 
-  child.on("exit", (code) => {
-    if (shuttingDown) {
-      return;
-    }
+  function spawnChild() {
+    const child = isWindows
+      ? spawn("cmd.exe", ["/c", command], {
+          cwd: __dirname,
+          stdio: "inherit",
+          env,
+        })
+      : spawn("sh", ["-c", command], {
+          cwd: __dirname,
+          stdio: "inherit",
+          env,
+        });
 
-    if (code && code !== 0) {
-      console.error(`❌ ${label} terminó con código ${code}`);
-      shutdown(code);
-    }
-  });
+    child.on("exit", (code) => {
+      if (shuttingDown) {
+        return;
+      }
 
-  children.push(child);
-  return child;
+      if (code && code !== 0) {
+        if (restartOnFailure && restartCount < maxRestarts) {
+          restartCount += 1;
+          console.error(`⚠️ ${label} terminó con código ${code}. Reintento ${restartCount}/${maxRestarts}...`);
+          setTimeout(spawnChild, restartDelayMs);
+          return;
+        }
+
+        console.error(`❌ ${label} terminó con código ${code}`);
+        shutdown(code);
+      }
+    });
+
+    children.push(child);
+    return child;
+  }
+
+  return spawnChild();
 }
 
 function isPortListening(port) {
@@ -79,7 +98,12 @@ async function start() {
   if (apiAlreadyRunning) {
     console.log(`ℹ️ API detectada en http://localhost:${apiPort}. Se reutiliza proceso existente.`);
   } else {
-    runTask("API local", "npm run start:api", { PORT: String(apiPort || 3001) });
+    runTask(
+      "API local",
+      "npm run start:api",
+      { API_PORT: String(apiPort || 3001), PORT: String(apiPort || 3001) },
+      { restartOnFailure: true, maxRestarts: 2, restartDelayMs: 900 }
+    );
   }
 
   const requestedFrontendPort = Number(process.env.PORT || "3002");

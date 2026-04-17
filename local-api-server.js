@@ -49,7 +49,7 @@ const billingAccountHandler = require("./api/billing-account");
 const billingWebhookHandler = require("./api/billing-webhook");
 const erpCatalogHandler = require("./api/erp-catalog");
 
-const API_PORT = Number(process.env.API_PORT || 3001);
+const API_PORT = Number(process.env.API_PORT || process.env.PORT || 3001);
 
 const handlers = {
   "/api/analyze": analyzeHandler,
@@ -172,6 +172,17 @@ server.listen(API_PORT, () => {
   console.log(`✅ Local API disponible en http://localhost:${API_PORT}`);
   console.log(`🔑 GEMINI_API_KEY ${process.env.GEMINI_API_KEY ? "detectada" : "no configurada"}`);
   console.log(`📧 RESEND_API_KEY ${process.env.RESEND_API_KEY ? "detectada" : "no configurada (modo local/simulado)"}`);
+});
+
+server.on("error", (error) => {
+  if (error && error.code === "EADDRINUSE") {
+    console.error(`❌ No se pudo iniciar la API: el puerto ${API_PORT} ya está en uso.`);
+    process.exit(1);
+    return;
+  }
+
+  console.error("❌ Error iniciando la API local:", error instanceof Error ? error.message : String(error));
+  process.exit(1);
 });
 
 function shutdown() {

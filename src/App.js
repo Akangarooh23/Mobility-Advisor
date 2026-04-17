@@ -27,18 +27,17 @@ import {
   useAdvisorController,
 } from "./hooks/useAdvisorController";
 import { useAppBootstrap } from "./hooks/useAppBootstrap";
+import { useDashboardNavigation } from "./hooks/useDashboardNavigation";
 import { useMarketAlertInsights } from "./hooks/useMarketAlertInsights";
 import { useMarketCatalog } from "./hooks/useMarketCatalog";
 import { useUserMobilitySync } from "./hooks/useUserMobilitySync";
 import {
-  USER_DASHBOARD_ROUTE_MAP,
   buildOfferModelSuggestions,
   buildSearchCoverageSummary,
   getOfferBadgeStyle,
   getOfferFallbackSearchUrl,
   getOfferNavigationUrl,
   getOfferTrustBadges,
-  getUserDashboardPageFromPath,
   getUserDashboardPath,
   hasOfferRealImage,
   normalizeOfferAssetUrl,
@@ -531,35 +530,18 @@ export default function App() {
   const listingSeenRef = useRef({ urls: [], titles: [] });
   const resultRef = useRef(null);
 
-  const syncBrowserPath = useCallback((nextPath, historyMode = "push") => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const targetPath = normalizeText(nextPath) || "/";
-
-    if (window.location.pathname === targetPath) {
-      return;
-    }
-
-    const historyMethod = historyMode === "replace" ? "replaceState" : "pushState";
-    window.history[historyMethod]({}, "", targetPath);
-  }, []);
-
-  const navigateToUserDashboardPage = useCallback((page = "home", historyMode = "push") => {
-    const targetPage = USER_DASHBOARD_ROUTE_MAP[page] ? page : "home";
-
-    setShowAuthMenu(false);
-    setShowUserPanel(false);
-    setUserDashboardPage(targetPage);
-    setEntryMode("userDashboard");
-    setStep(-1);
-    syncBrowserPath(getUserDashboardPath(targetPage), historyMode);
-
-    if (typeof window !== "undefined") {
-      window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
-    }
-  }, [syncBrowserPath]);
+  const {
+    syncBrowserPath,
+    navigateToUserDashboardPage,
+    openUserDashboard,
+  } = useDashboardNavigation({
+    isUserLoggedIn,
+    setShowAuthMenu,
+    setShowUserPanel,
+    setUserDashboardPage,
+    setEntryMode,
+    setStep,
+  });
 
   const showOffersPage = useCallback(() => {
     setResultView("offers");
@@ -570,14 +552,6 @@ export default function App() {
     setResultView("analysis");
     setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
   }, []);
-
-  const openUserDashboard = useCallback(() => {
-    const routePage = typeof window !== "undefined"
-      ? getUserDashboardPageFromPath(window.location.pathname)
-      : null;
-
-    navigateToUserDashboardPage(routePage || "home");
-  }, [navigateToUserDashboardPage]);
 
   const openLegalDocument = useCallback((docKey = "legalNotice") => {
     if (!LEGAL_DOCUMENTS[docKey]) {
@@ -708,34 +682,6 @@ export default function App() {
     }
     window.localStorage.setItem(THEME_STORAGE_KEY, themeMode === "dark" ? "dark" : "light");
   }, [themeMode]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return undefined;
-    }
-
-    const handleBrowserNavigation = () => {
-      const routePage = getUserDashboardPageFromPath(window.location.pathname);
-
-      if (routePage) {
-        setUserDashboardPage(routePage);
-
-        if (isUserLoggedIn) {
-          setShowAuthMenu(false);
-          setShowUserPanel(false);
-          setEntryMode("userDashboard");
-          setStep(-1);
-        }
-        return;
-      }
-
-      setEntryMode((prev) => (prev === "userDashboard" ? null : prev));
-    };
-
-    handleBrowserNavigation();
-    window.addEventListener("popstate", handleBrowserNavigation);
-    return () => window.removeEventListener("popstate", handleBrowserNavigation);
-  }, [isUserLoggedIn]);
 
   useEffect(() => {
     quickValidationRef.current = quickValidationAnswers;

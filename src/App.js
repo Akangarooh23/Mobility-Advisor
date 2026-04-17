@@ -29,6 +29,7 @@ import {
 import { useAppBootstrap } from "./hooks/useAppBootstrap";
 import { useDashboardNavigation } from "./hooks/useDashboardNavigation";
 import { useListingDiscoveryMemory } from "./hooks/useListingDiscoveryMemory";
+import { useAppPreferences } from "./hooks/useAppPreferences";
 import { useMarketAlertInsights } from "./hooks/useMarketAlertInsights";
 import { useMarketCatalog } from "./hooks/useMarketCatalog";
 import { useUserMobilitySync } from "./hooks/useUserMobilitySync";
@@ -102,7 +103,6 @@ import {
   clearQuestionnaireDraft,
   readQuestionnaireDraft,
   writeAuthUser,
-  writeCookieConsent,
   writeMarketAlerts,
   writeMarketAlertStatus,
   writeQuestionnaireDraft,
@@ -571,25 +571,13 @@ export default function App() {
     }
   }, []);
 
-  const saveCookieConsent = useCallback((mode = "all") => {
-    const normalizedMode = ["all", "necessary", "custom"].includes(mode)
-      ? mode
-      : "all";
-    const preferences =
-      normalizedMode === "all"
-        ? { necessary: true, analytics: true, personalization: true, marketing: true }
-        : normalizedMode === "necessary"
-        ? { necessary: true, analytics: false, personalization: false, marketing: false }
-        : { ...cookiePreferences, necessary: true };
-
-    writeCookieConsent(normalizedMode, {
-      version: "2026-04",
-      preferences,
-    });
-
-    setShowCookieGate(false);
-    setShowCookieSettings(false);
-  }, [cookiePreferences]);
+  const { saveCookieConsent } = useAppPreferences({
+    themeStorageKey: THEME_STORAGE_KEY,
+    themeMode,
+    cookiePreferences,
+    setShowCookieGate,
+    setShowCookieSettings,
+  });
 
   const activeSteps = useMemo(() => {
     const steps = getQuestionnaireSteps(advancedMode);
@@ -680,13 +668,6 @@ export default function App() {
         sellListingResult,
       ]
   );
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-    window.localStorage.setItem(THEME_STORAGE_KEY, themeMode === "dark" ? "dark" : "light");
-  }, [themeMode]);
 
   useEffect(() => {
     quickValidationRef.current = quickValidationAnswers;

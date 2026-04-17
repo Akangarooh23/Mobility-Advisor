@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
 const sql = require("mssql");
+const { Pool } = require("pg");
 const authHandler = require("./auth");
 
 const USERS_DB_PATH = path.join(__dirname, "..", "data", "local-users.json");
@@ -19,6 +20,14 @@ function getAuthProvider() {
 
   if (["sqlcmd-windows", "windows", "mssql-windows"].includes(provider)) {
     return "sqlcmd-windows";
+  }
+
+  if (["postgres", "postgresql", "neon", "vercel-postgres"].includes(provider)) {
+    return "postgres";
+  }
+
+  if (normalizeText(process.env.POSTGRES_URL) || normalizeText(process.env.DATABASE_URL)) {
+    return "postgres";
   }
 
   if (normalizeText(process.env.MSSQL_SERVER)) {
@@ -85,6 +94,7 @@ function parseSqlcmdJsonOutput(rawOutput = "") {
 }
 
 let mssqlPoolPromise = null;
+let postgresPool = null;
 
 function getMssqlConfig() {
   const server = normalizeText(process.env.MSSQL_SERVER);
@@ -117,6 +127,42 @@ async function getMssqlPool() {
   }
 
   return mssqlPoolPromise;
+}
+
+function getPostgresPool() {
+  if (!postgresPool) {
+    const connectionString = normalizeText(process.env.DATABASE_URL || process.env.POSTGRES_URL);
+
+    if (!connectionString) {
+      throw new Error("Falta configurar DATABASE_URL o POSTGRES_URL.");
+    }
+
+    postgresPool = new Pool({
+      connectionString,
+      ssl: { rejectUnauthorized: false },
+    });
+  }
+
+  return postgresPool;
+}
+
+async function getPostgresUsersCount() {
+  const pool = getPostgresPool();
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS moveadvisor_users (
+      id            VARCHAR(64)  PRIMARY KEY,
+      name          VARCHAR(120) NOT NULL,
+      email         VARCHAR(255) NOT NULL UNIQUE,
+      password_salt VARCHAR(64)  NOT NULL,
+      password_hash VARCHAR(200) NOT NULL,
+      created_at    TIMESTAMPTZ  NOT NULL,
+      last_login_at TIMESTAMPTZ  NOT NULL
+    )
+  `);
+  await pool.query("CREATE UNIQUE INDEX IF NOT EXISTS ix_moveadvisor_users_email ON moveadvisor_users (email)");
+
+  const result = await pool.query("SELECT COUNT(1) AS total FROM moveadvisor_users");
+  return Number(result.rows?.[0]?.total || 0);
 }
 
 async function getMssqlUsersCount() {
@@ -190,6 +236,17 @@ module.exports = async function authStatusHandler(req, res) {
         server: normalizeText(process.env.MSSQL_SERVER) || "localhost\\SQLEXPRESS",
         database: normalizeText(process.env.MSSQL_DATABASE) || "Mobilityadvisor",
         usersCount: getSqlcmdUsersCount(),
+        ...(includeSecurity ? { security: securitySnapshot } : {}),
+      });
+    }
+
+    if (provider === "postgres") {
+      return res.status(200).json({
+        ok: true,
+        provider,
+        database: normalizeText(process.env.PGDATABASE || process.env.POSTGRES_DATABASE),
+        host: normalizeText(process.env.PGHOST || process.env.POSTGRES_HOST),
+        usersCount: await getPostgresUsersCount(),
         ...(includeSecurity ? { security: securitySnapshot } : {}),
       });
     }

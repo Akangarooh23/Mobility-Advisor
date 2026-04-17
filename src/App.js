@@ -28,6 +28,7 @@ import {
 } from "./hooks/useAdvisorController";
 import { useAppBootstrap } from "./hooks/useAppBootstrap";
 import { useDashboardNavigation } from "./hooks/useDashboardNavigation";
+import { useDecisionResetState, useSellResetState } from "./hooks/useDecisionSellResets";
 import { useListingBootstrap } from "./hooks/useListingBootstrap";
 import { useListingDiscoveryMemory } from "./hooks/useListingDiscoveryMemory";
 import { useListingQuickValidationRefresh } from "./hooks/useListingQuickValidationRefresh";
@@ -748,21 +749,23 @@ export default function App() {
     setQuestionnaireDraft(draft);
   }, [activeSteps, advancedMode, answers, apiKeyMissing, currentStep, dualTimelineSelection, entryMode, multiSelected, result, scoreWeightsSelection, step]);
 
-  useEffect(() => {
-    setDecisionAiResult(null);
-    setDecisionError(null);
-    setDecisionListingResult(null);
-    setDecisionListingError(null);
-    setDecisionListingLoading(false);
-  }, [decisionAnswers]);
+  useDecisionResetState({
+    decisionAnswers,
+    setDecisionAiResult,
+    setDecisionError,
+    setDecisionListingResult,
+    setDecisionListingError,
+    setDecisionListingLoading,
+  });
 
-  useEffect(() => {
-    setSellAiResult(null);
-    setSellError(null);
-    setSellListingResult(null);
-    setSellListingError(null);
-    setSellListingLoading(false);
-  }, [sellAnswers]);
+  useSellResetState({
+    sellAnswers,
+    setSellAiResult,
+    setSellError,
+    setSellListingResult,
+    setSellListingError,
+    setSellListingLoading,
+  });
 
   const resetListingDiscovery = useCallback(() => {
     setListingFilters({ company: "", budget: "", income: "" });

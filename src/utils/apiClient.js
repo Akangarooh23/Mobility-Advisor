@@ -143,3 +143,37 @@ export function postBillingAccountJson(payload, options = {}) {
     ...options,
   });
 }
+
+export function getGarageVehiclesJson(email, options = {}) {
+  const query = new URLSearchParams({
+    email: String(email || ""),
+    scope: "garage",
+  });
+
+  return getJson(`${BILLING_ACCOUNT_API_ENDPOINT}?${query.toString()}`, {
+    endpointLabel: "billing-account",
+    ...options,
+  });
+}
+
+export function postGarageVehicleAddJson(email, vehicle, options = {}) {
+  return postJson(BILLING_ACCOUNT_API_ENDPOINT, {
+    action: "garage_add",
+    email,
+    vehicle,
+  }, {
+    endpointLabel: "billing-account",
+    ...options,
+  });
+}
+
+export function postGarageVehicleRemoveJson(email, vehicleId, options = {}) {
+  return postJson(BILLING_ACCOUNT_API_ENDPOINT, {
+    action: "garage_remove",
+    email,
+    vehicleId,
+  }, {
+    endpointLabel: "billing-account",
+    ...options,
+  });
+}

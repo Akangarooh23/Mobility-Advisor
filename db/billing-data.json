@@ -94,6 +94,23 @@
           }
         ]
       },
+      "garageVehicles": [
+        {
+          "id": "garage-seed-audi-a3-sportback-s-line",
+          "title": "Audi A3 Sportback S line",
+          "brand": "Audi",
+          "model": "A3 Sportback S line",
+          "year": "",
+          "plate": "",
+          "mileage": "",
+          "fuel": "",
+          "policyCompany": "",
+          "notes": "Vehiculo asignado desde marketplace.",
+          "photos": [],
+          "documents": [],
+          "createdAt": "2026-04-17T00:00:00.000Z"
+        }
+      ],
       "updatedAt": "2026-04-13T15:09:04.189Z"
     }
   },

@@ -47,7 +47,6 @@ const billingCheckoutHandler = require("./api/billing-checkout");
 const billingPortalHandler = require("./api/billing-portal");
 const billingAccountHandler = require("./api/billing-account");
 const billingWebhookHandler = require("./api/billing-webhook");
-const userVehiclesHandler = require("./api/user-vehicles");
 
 const API_PORT = Number(process.env.API_PORT || 3001);
 
@@ -64,7 +63,6 @@ const handlers = {
   "/api/billing-portal": billingPortalHandler,
   "/api/billing-account": billingAccountHandler,
   "/api/billing-webhook": billingWebhookHandler,
-  "/api/user-vehicles": userVehiclesHandler,
 };
 
 function sendJson(res, statusCode, payload) {

@@ -1,4 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  getGarageVehiclesJson,
+  postGarageVehicleAddJson,
+  postGarageVehicleRemoveJson,
+} from "../../utils/apiClient";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 
@@ -26,66 +31,33 @@ function readGarageVehicles(currentUserEmail = "") {
 }
 
 async function fetchGarageVehiclesFromApi(currentUserEmail = "") {
-  const normalizedEmail = normalizeText(currentUserEmail).toLowerCase();
-  const query = normalizedEmail ? `?email=${encodeURIComponent(normalizedEmail)}` : "";
-
-  const response = await fetch(`/api/user-vehicles${query}`, {
-    method: "GET",
-    credentials: "include",
-  });
+  const { response, data } = await getGarageVehiclesJson(normalizeText(currentUserEmail).toLowerCase());
 
   if (!response.ok) {
     throw new Error("No se pudo leer el garage desde la API");
   }
 
-  const payload = await response.json();
-  return Array.isArray(payload?.vehicles) ? payload.vehicles : [];
+  return Array.isArray(data?.vehicles) ? data.vehicles : [];
 }
 
 async function addGarageVehicleFromApi(currentUserEmail = "", vehicle = {}) {
-  const normalizedEmail = normalizeText(currentUserEmail).toLowerCase();
-  const response = await fetch("/api/user-vehicles", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify({
-      action: "add",
-      email: normalizedEmail,
-      vehicle,
-    }),
-  });
+  const { response, data } = await postGarageVehicleAddJson(normalizeText(currentUserEmail).toLowerCase(), vehicle);
 
   if (!response.ok) {
     throw new Error("No se pudo guardar el vehículo en la API");
   }
 
-  const payload = await response.json();
-  return Array.isArray(payload?.vehicles) ? payload.vehicles : [];
+  return Array.isArray(data?.vehicles) ? data.vehicles : [];
 }
 
 async function removeGarageVehicleFromApi(currentUserEmail = "", vehicleId = "") {
-  const normalizedEmail = normalizeText(currentUserEmail).toLowerCase();
-  const response = await fetch("/api/user-vehicles", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify({
-      action: "remove",
-      email: normalizedEmail,
-      vehicleId,
-    }),
-  });
+  const { response, data } = await postGarageVehicleRemoveJson(normalizeText(currentUserEmail).toLowerCase(), vehicleId);
 
   if (!response.ok) {
     throw new Error("No se pudo eliminar el vehículo en la API");
   }
 
-  const payload = await response.json();
-  return Array.isArray(payload?.vehicles) ? payload.vehicles : [];
+  return Array.isArray(data?.vehicles) ? data.vehicles : [];
 }
 
 function formatBytes(bytes) {

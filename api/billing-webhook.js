@@ -4,7 +4,7 @@ const {
   getEmailByStripeCustomerId,
   getEmailByStripeSubscriptionId,
   updateBillingState,
-} = require("./_billingStore");
+} = require("../lib/billingStore");
 
 function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";

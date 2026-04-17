@@ -1,4 +1,4 @@
-const { resolveAccountByEmail, updateBillingState } = require("./_billingStore");
+const { resolveAccountByEmail, updateBillingState } = require("../lib/billingStore");
 const authHandler = require("./auth");
 
 function normalizeText(value) {

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getGarageVehiclesJson } from "../../utils/apiClient";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 
@@ -26,19 +27,13 @@ function readGarageVehicles(currentUserEmail = "") {
 }
 
 async function fetchGarageVehiclesFromApi(currentUserEmail = "") {
-  const normalizedEmail = normalizeText(currentUserEmail).toLowerCase();
-  const query = normalizedEmail ? `?email=${encodeURIComponent(normalizedEmail)}` : "";
-  const response = await fetch(`/api/user-vehicles${query}`, {
-    method: "GET",
-    credentials: "include",
-  });
+  const { response, data } = await getGarageVehiclesJson(normalizeText(currentUserEmail).toLowerCase());
 
   if (!response.ok) {
     throw new Error("No se pudo leer el garage desde la API");
   }
 
-  const payload = await response.json();
-  return Array.isArray(payload?.vehicles) ? payload.vehicles : [];
+  return Array.isArray(data?.vehicles) ? data.vehicles : [];
 }
 
 function inferAppointmentStage(item = {}) {

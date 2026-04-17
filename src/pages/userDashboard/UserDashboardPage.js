@@ -4,6 +4,7 @@ import UserDashboardHome from "./UserDashboardHome";
 import UserDashboardOperations from "./UserDashboardOperations";
 import UserDashboardSaved from "./UserDashboardSaved";
 import UserDashboardVehicles from "./UserDashboardVehicles";
+import { getGarageVehiclesJson } from "../../utils/apiClient";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 
@@ -154,18 +155,14 @@ export default function UserDashboardPage({
       }
 
       try {
-        const response = await fetch(`/api/user-vehicles?email=${encodeURIComponent(currentUserEmail)}`, {
-          method: "GET",
-          credentials: "include",
-        });
+        const { response, data } = await getGarageVehiclesJson(currentUserEmail);
 
         if (!response.ok) {
           return;
         }
 
-        const payload = await response.json();
         if (!disposed) {
-          const count = Array.isArray(payload?.vehicles) ? payload.vehicles.length : 0;
+          const count = Array.isArray(data?.vehicles) ? data.vehicles.length : 0;
           setGarageVehicleCount(count);
         }
       } catch {

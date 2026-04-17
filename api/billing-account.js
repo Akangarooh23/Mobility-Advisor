@@ -2,7 +2,10 @@ const {
   resolveAccountByEmail,
   updateProfile,
   updateBillingState,
-} = require("./_billingStore");
+  listGarageVehiclesByEmail,
+  addGarageVehicleByEmail,
+  removeGarageVehicleByEmail,
+} = require("../lib/billingStore");
 const authHandler = require("./auth");
 
 function normalizeText(value) {
@@ -27,7 +30,8 @@ module.exports = async function billingAccountHandler(req, res) {
   }
 
   const body = parseBody(req.body);
-  const requireSession = String(process.env.AUTH_BILLING_REQUIRE_SESSION || "true").toLowerCase() !== "false";
+  const defaultRequireSession = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
+  const requireSession = String(process.env.AUTH_BILLING_REQUIRE_SESSION || (defaultRequireSession ? "true" : "false")).toLowerCase() !== "false";
   const sessionPayload = await authHandler.getSessionUserFromRequest?.(req);
   const sessionEmail = normalizeText(sessionPayload?.user?.email).toLowerCase();
   const requestEmail = normalizeText(req.query?.email || body.email).toLowerCase();
@@ -38,6 +42,10 @@ module.exports = async function billingAccountHandler(req, res) {
   }
 
   if (req.method === "GET") {
+    if (normalizeText(req.query?.scope).toLowerCase() === "garage") {
+      return res.status(200).json({ ok: true, vehicles: listGarageVehiclesByEmail(email) });
+    }
+
     const account = resolveAccountByEmail(email);
     return res.status(200).json({ ok: true, account });
   }
@@ -52,6 +60,16 @@ module.exports = async function billingAccountHandler(req, res) {
   if (action === "update_billing_state") {
     const account = updateBillingState(email, body.billingState || {});
     return res.status(200).json({ ok: true, account, message: "Estado de facturacion actualizado." });
+  }
+
+  if (action === "garage_add") {
+    const vehicles = addGarageVehicleByEmail(email, body.vehicle || body);
+    return res.status(200).json({ ok: true, vehicles, message: "Vehiculo guardado." });
+  }
+
+  if (action === "garage_remove") {
+    const vehicles = removeGarageVehicleByEmail(email, body.vehicleId || body.id);
+    return res.status(200).json({ ok: true, vehicles, message: "Vehiculo eliminado." });
   }
 
   return res.status(400).json({ error: "Accion no valida para billing-account." });

@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { getUserDashboardPageFromPath } from "../utils/offerHelpers";
+import { getUserDashboardPageFromPath, getUserDashboardPath } from "../utils/offerHelpers";
 import { INITIAL_PORTAL_VO_FILTERS } from "../utils/portalVoHelpers";
 
 export function createInitialDecisionAnswers() {
@@ -168,14 +168,22 @@ export function useAdvisorController({
 
   const handleUserAccessClick = useCallback(() => {
     if (isUserLoggedIn) {
-      setShowUserPanel((prev) => !prev);
+      const routePage = typeof window !== "undefined"
+        ? getUserDashboardPageFromPath(window.location.pathname)
+        : null;
+
       setShowAuthMenu(false);
+      setShowUserPanel(false);
+      setUserDashboardPage(routePage || "home");
+      setEntryMode("userDashboard");
+      setStep(-1);
+      syncBrowserPath(getUserDashboardPath(routePage || "home"));
       return;
     }
 
     setShowAuthMenu((prev) => !prev);
     setShowUserPanel(false);
-  }, [isUserLoggedIn, setShowAuthMenu, setShowUserPanel]);
+  }, [isUserLoggedIn, setEntryMode, setShowAuthMenu, setShowUserPanel, setStep, setUserDashboardPage, syncBrowserPath]);
 
   const handleLogout = useCallback(() => {
     onLogoutUser?.();

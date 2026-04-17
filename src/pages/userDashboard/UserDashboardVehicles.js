@@ -2305,7 +2305,6 @@ export default function UserDashboardVehicles({
                 const firstPhotoWithContent = (Array.isArray(vehicle?.photos) ? vehicle.photos : []).find((photo) => Boolean(resolvePhotoPreviewSrc(photo)));
                 const firstPhotoPreviewSrc = resolvePhotoPreviewSrc(firstPhotoWithContent);
                 const identityLabel = [normalizeText(vehicle?.brand), normalizeText(vehicle?.model), normalizeText(vehicle?.version)].filter(Boolean).join(" ");
-                const vehicleHeader = `${normalizeText(vehicle?.plate) || "Sin matrícula"} - ${identityLabel || normalizeText(vehicle?.title) || "Vehículo"}`;
                 const isManagementOpen = managementVehicleId === vehicleId;
                 const isPreviewBlocked = Boolean(failedPhotoVehicleIds[vehicleId]);
 

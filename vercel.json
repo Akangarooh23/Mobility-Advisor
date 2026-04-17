@@ -1,4 +1,5 @@
 {
+  "buildCommand": "CI= npm run build",
   "rewrites": [
     {
       "source": "/api/(.*)",

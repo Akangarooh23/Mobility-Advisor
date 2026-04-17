@@ -10,7 +10,6 @@ import {
 } from "../../utils/apiClient";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
-const APPOINTMENT_HISTORY_STORAGE_PREFIX = "movilidad-advisor.userAppointmentHistory.v1";
 const MAX_ATTACHMENT_BYTES = 2 * 1024 * 1024;
 
 function normalizeText(value) {
@@ -96,11 +95,6 @@ function getGarageStorageKey(currentUserEmail = "") {
   return normalizedEmail ? `${GARAGE_STORAGE_PREFIX}.${normalizedEmail}` : GARAGE_STORAGE_PREFIX;
 }
 
-function getAppointmentHistoryStorageKey(currentUserEmail = "") {
-  const normalizedEmail = normalizeText(currentUserEmail).toLowerCase();
-  return normalizedEmail ? `${APPOINTMENT_HISTORY_STORAGE_PREFIX}.${normalizedEmail}` : APPOINTMENT_HISTORY_STORAGE_PREFIX;
-}
-
 function readGarageVehicles(currentUserEmail = "") {
   if (typeof window === "undefined") {
     return [];
@@ -114,20 +108,6 @@ function readGarageVehicles(currentUserEmail = "") {
       : [];
   } catch {
     return [];
-  }
-}
-
-function readAppointmentHistory(currentUserEmail = "") {
-  if (typeof window === "undefined") {
-    return {};
-  }
-
-  try {
-    const raw = window.localStorage.getItem(getAppointmentHistoryStorageKey(currentUserEmail));
-    const parsed = JSON.parse(raw || "{}");
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
-  } catch {
-    return {};
   }
 }
 
@@ -159,19 +139,6 @@ async function removeGarageVehicleFromApi(currentUserEmail = "", vehicleId = "")
   }
 
   return Array.isArray(data?.vehicles) ? data.vehicles.map((item) => normalizeVehicleAttachmentCollections(item)).filter(Boolean) : [];
-}
-
-function formatBytes(bytes) {
-  const size = Number(bytes || 0);
-  if (!size) {
-    return "0 KB";
-  }
-
-  if (size < 1024 * 1024) {
-    return `${Math.round(size / 1024)} KB`;
-  }
-
-  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function isLikelyBase64Payload(value = "") {
@@ -262,83 +229,6 @@ function writeGarageVehicles(currentUserEmail = "", items = []) {
   } catch {}
 }
 
-function writeAppointmentHistory(currentUserEmail = "", historyByAppointmentId = {}) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  try {
-    const safeHistory = historyByAppointmentId && typeof historyByAppointmentId === "object" ? historyByAppointmentId : {};
-    window.localStorage.setItem(getAppointmentHistoryStorageKey(currentUserEmail), JSON.stringify(safeHistory));
-  } catch {}
-}
-
-function inferAppointmentStage(item = {}) {
-  const text = `${item?.status || ""} ${item?.meta || ""}`.toLowerCase();
-
-  if (text.includes("cerrad") || text.includes("finaliz") || text.includes("complet") || text.includes("pasad")) {
-    return "closed";
-  }
-
-  if (text.includes("en curso") || text.includes("proceso") || text.includes("confirm") || text.includes("hoy")) {
-    return "active";
-  }
-
-  return "pending";
-}
-
-const APPOINTMENT_STATUS_OPTIONS = ["Solicitud enviada", "Pendiente", "Pendiente de confirmación", "Confirmada", "En validación", "En curso", "Completada", "Cerrada"];
-const APPOINTMENT_TYPE_FILTERS = [
-  { key: "all", label: "Todas" },
-  { key: "workshop", label: "Taller" },
-  { key: "maintenance", label: "Mantenimiento" },
-  { key: "certification", label: "Garantía" },
-  { key: "insurance", label: "Seguro" },
-];
-
-function inferAppointmentType(item = {}) {
-  const rawType = normalizeText(item?.type).toLowerCase();
-  if (rawType) {
-    return rawType;
-  }
-
-  const text = `${item?.title || ""} ${item?.meta || ""}`.toLowerCase();
-
-  if (text.includes("mantenimiento")) {
-    return "maintenance";
-  }
-
-  if (text.includes("garant") || text.includes("certific")) {
-    return "certification";
-  }
-
-  if (text.includes("seguro") || text.includes("póliza") || text.includes("poliza")) {
-    return "insurance";
-  }
-
-  return "workshop";
-}
-
-function getAppointmentTypeLabel(type = "") {
-  const normalizedType = normalizeText(type).toLowerCase();
-  return APPOINTMENT_TYPE_FILTERS.find((item) => item.key === normalizedType)?.label || "Taller";
-}
-
-function inferAppointmentPriority(item = {}) {
-  const stage = inferAppointmentStage(item);
-  const text = `${item?.status || ""} ${item?.meta || ""}`.toLowerCase();
-
-  if (stage === "closed") {
-    return { key: "low", label: "Baja", color: "#065f46", bg: "rgba(16,185,129,0.14)", border: "1px solid rgba(110,231,183,0.3)" };
-  }
-
-  if (text.includes("urgente") || text.includes("hoy") || stage === "active") {
-    return { key: "high", label: "Alta", color: "#b91c1c", bg: "rgba(239,68,68,0.14)", border: "1px solid rgba(248,113,113,0.28)" };
-  }
-
-  return { key: "medium", label: "Media", color: "#92400e", bg: "rgba(245,158,11,0.14)", border: "1px solid rgba(251,191,36,0.28)" };
-}
-
 function resolveMarketplacePricingMode(vehicle = {}) {
   return normalizeText(vehicle?.marketplacePricingMode).toLowerCase() === "valuation" ? "valuation" : "manual";
 }
@@ -346,14 +236,12 @@ function resolveMarketplacePricingMode(vehicle = {}) {
 export default function UserDashboardVehicles({
   themeMode,
   isMobile = false,
-  dashboardAppointments = [],
   userVehicleSections,
   dashboardVehicleCount,
   panelStyle,
   getOfferBadgeStyle,
   onRequestAppointment = () => {},
   onRequestValuation = () => {},
-  onUpdateAppointmentStatus = () => {},
   onNavigate = () => {},
   onBrowseMarketplace = () => {},
   currentUserEmail = "",
@@ -417,11 +305,6 @@ export default function UserDashboardVehicles({
   const [pendingIvtDocuments, setPendingIvtDocuments] = useState([]);
   const [pendingInsuranceDocuments, setPendingInsuranceDocuments] = useState([]);
   const [pendingMaintenanceInvoices, setPendingMaintenanceInvoices] = useState([]);
-  const [appointmentDrafts, setAppointmentDrafts] = useState({});
-  const [appointmentFilters, setAppointmentFilters] = useState({});
-  const [appointmentHistory, setAppointmentHistory] = useState(() => readAppointmentHistory(currentUserEmail));
-  const [newAppointmentDraftByVehicle, setNewAppointmentDraftByVehicle] = useState({});
-  const [updatingAppointmentId, setUpdatingAppointmentId] = useState("");
   const [marketplacePublishDialog, setMarketplacePublishDialog] = useState({ open: false, vehicle: null });
   const [expandedVehicleSections, setExpandedVehicleSections] = useState({
     characteristics: true,
@@ -431,7 +314,6 @@ export default function UserDashboardVehicles({
     maintenance: false,
     notes: false,
   });
-  const [expandedStoredVehicleSections, setExpandedStoredVehicleSections] = useState({});
   const [vehicleForm, setVehicleForm] = useState({
     nickname: "",
     brand: "",
@@ -475,26 +357,6 @@ export default function UserDashboardVehicles({
   const marketplacePublishDialogRef = useRef(null);
 
   const safeSections = useMemo(() => (Array.isArray(userVehicleSections) ? userVehicleSections : []), [userVehicleSections]);
-  const safeDashboardAppointments = useMemo(() => (Array.isArray(dashboardAppointments) ? dashboardAppointments : []), [dashboardAppointments]);
-  const appointmentsByVehicleId = useMemo(
-    () =>
-      safeDashboardAppointments.reduce((acc, item) => {
-        const vehicleId = normalizeText(item?.vehicleId);
-
-        if (!vehicleId) {
-          return acc;
-        }
-
-        if (!acc[vehicleId]) {
-          acc[vehicleId] = [];
-        }
-
-        acc[vehicleId].push(item);
-        return acc;
-      }, {}),
-    [safeDashboardAppointments]
-  );
-
   const totalVehiclesCount = dashboardVehicleCount + myVehicles.length;
 
   useEffect(() => {
@@ -536,10 +398,6 @@ export default function UserDashboardVehicles({
   useEffect(() => {
     writeGarageVehicles(currentUserEmail, myVehicles);
   }, [currentUserEmail, myVehicles]);
-
-  useEffect(() => {
-    writeAppointmentHistory(currentUserEmail, appointmentHistory);
-  }, [currentUserEmail, appointmentHistory]);
 
   useEffect(() => {
     if (activeVehicleTab === "overview" || activeVehicleTab === "my-garage") {
@@ -734,276 +592,6 @@ export default function UserDashboardVehicles({
         {isOpen ? children : null}
       </div>
     );
-  };
-
-  const toggleStoredVehicleSection = (vehicleId, sectionKey) => {
-    const stateKey = `${vehicleId}:${sectionKey}`;
-    setExpandedStoredVehicleSections((prev) => ({
-      ...prev,
-      [stateKey]: !prev[stateKey],
-    }));
-  };
-
-  const renderStoredVehicleSection = (vehicleId, sectionKey, title, children, meta = "") => {
-    const stateKey = `${vehicleId}:${sectionKey}`;
-    const isOpen = Boolean(expandedStoredVehicleSections[stateKey]);
-
-    return (
-      <div
-        style={{
-          display: "grid",
-          gap: 8,
-          border: cardBorder,
-          borderRadius: 10,
-          background: isDark ? "rgba(15,23,42,0.36)" : "rgba(255,255,255,0.72)",
-          padding: 10,
-          marginTop: 10,
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => toggleStoredVehicleSection(vehicleId, sectionKey)}
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 10,
-            background: "transparent",
-            border: "none",
-            padding: 0,
-            cursor: "pointer",
-            textAlign: "left",
-          }}
-        >
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 800, color: titleColor }}>{title}</div>
-            {meta ? <div style={{ fontSize: 11, color: bodyColor, marginTop: 2 }}>{meta}</div> : null}
-          </div>
-          <span style={{ fontSize: 11, fontWeight: 700, color: "#1d4ed8", background: "rgba(37,99,235,0.1)", border: cardBorder, borderRadius: 999, padding: "4px 8px" }}>
-            {isOpen ? "Ocultar" : "Abrir"}
-          </span>
-        </button>
-        {isOpen ? children : null}
-      </div>
-    );
-  };
-
-  const resolveAttachmentDownloadHref = (item = {}) => {
-    const rawContent = normalizeText(item?.contentBase64);
-    if (!rawContent) {
-      return "";
-    }
-
-    if (rawContent.startsWith("data:")) {
-      return rawContent;
-    }
-
-    const mimeType = normalizeText(item?.mimeType || item?.fileMimeType).toLowerCase() || "application/octet-stream";
-    return `data:${mimeType};base64,${rawContent}`;
-  };
-
-  const renderStoredAttachmentList = (items, emptyLabel) => {
-    if (!Array.isArray(items) || items.length === 0) {
-      return <div style={{ fontSize: 11, color: bodyColor }}>{emptyLabel}</div>;
-    }
-
-    return (
-      <div style={{ display: "grid", gap: 6 }}>
-        {items.map((item, index) => (
-          <div
-            key={`${item?.name || "attachment"}-${index}`}
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              gap: 10,
-              alignItems: "center",
-              border: cardBorder,
-              borderRadius: 8,
-              padding: "7px 9px",
-              background: isDark ? "rgba(15,23,42,0.3)" : "rgba(248,250,252,0.9)",
-            }}
-          >
-            <span style={{ fontSize: 11, color: titleColor, overflowWrap: "anywhere", flex: 1 }}>{item?.name || `Adjunto ${index + 1}`}</span>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 10, color: bodyColor, whiteSpace: "nowrap" }}>{formatBytes(Number(item?.size || 0))}</span>
-              {(() => {
-                const downloadHref = resolveAttachmentDownloadHref(item);
-                const canDownload = Boolean(downloadHref);
-
-                return (
-                  <a
-                    href={canDownload ? downloadHref : undefined}
-                    download={normalizeText(item?.name) || `adjunto-${index + 1}`}
-                    onClick={(event) => {
-                      if (!canDownload) {
-                        event.preventDefault();
-                      }
-                    }}
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      borderRadius: 999,
-                      padding: "4px 8px",
-                      border: canDownload ? "1px solid rgba(37,99,235,0.28)" : "1px solid rgba(148,163,184,0.2)",
-                      background: canDownload ? "rgba(37,99,235,0.1)" : "rgba(148,163,184,0.12)",
-                      color: canDownload ? "#1d4ed8" : bodyColor,
-                      textDecoration: "none",
-                      cursor: canDownload ? "pointer" : "not-allowed",
-                      whiteSpace: "nowrap",
-                      pointerEvents: canDownload ? "auto" : "none",
-                    }}
-                    aria-disabled={!canDownload}
-                    title={canDownload ? "Descargar adjunto" : "Este adjunto no tiene contenido descargable"}
-                  >
-                    Descargar
-                  </a>
-                );
-              })()}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const updateAppointmentDraft = (appointmentId, field, value) => {
-    const normalizedAppointmentId = normalizeText(appointmentId);
-
-    if (!normalizedAppointmentId) {
-      return;
-    }
-
-    setAppointmentDrafts((prev) => ({
-      ...prev,
-      [normalizedAppointmentId]: {
-        ...(prev[normalizedAppointmentId] || {}),
-        [field]: value,
-      },
-    }));
-  };
-
-  const getAppointmentDraftValue = (appointment = {}, field) => {
-    const appointmentId = normalizeText(appointment?.id);
-    const draft = appointmentDrafts[appointmentId] || {};
-
-    if (field === "status") {
-      return draft.status || normalizeText(appointment?.status) || "Pendiente";
-    }
-
-    if (field === "requestedAt") {
-      return draft.requestedAt || normalizeText(appointment?.requestedAt) || "";
-    }
-
-    if (field === "meta") {
-      return Object.prototype.hasOwnProperty.call(draft, "meta") ? draft.meta : normalizeText(appointment?.meta);
-    }
-
-    return draft[field] || "";
-  };
-
-  const getVehicleAppointmentFilter = (vehicleId = "") => appointmentFilters[normalizeText(vehicleId)] || "all";
-
-  const updateVehicleAppointmentFilter = (vehicleId = "", filterKey = "all") => {
-    const normalizedVehicleId = normalizeText(vehicleId);
-    if (!normalizedVehicleId) {
-      return;
-    }
-
-    setAppointmentFilters((prev) => ({
-      ...prev,
-      [normalizedVehicleId]: filterKey,
-    }));
-  };
-
-  const getVehicleNewAppointmentDraft = (vehicleId = "") => {
-    const normalizedVehicleId = normalizeText(vehicleId);
-    return newAppointmentDraftByVehicle[normalizedVehicleId] || { type: "workshop" };
-  };
-
-  const updateVehicleNewAppointmentDraft = (vehicleId = "", field, value) => {
-    const normalizedVehicleId = normalizeText(vehicleId);
-    if (!normalizedVehicleId) {
-      return;
-    }
-
-    setNewAppointmentDraftByVehicle((prev) => ({
-      ...prev,
-      [normalizedVehicleId]: {
-        ...getVehicleNewAppointmentDraft(normalizedVehicleId),
-        [field]: value,
-      },
-    }));
-  };
-
-  const createAppointmentForVehicle = (vehicle = {}) => {
-    const normalizedVehicleId = normalizeText(vehicle?.id);
-    if (!normalizedVehicleId) {
-      return;
-    }
-
-    const draft = getVehicleNewAppointmentDraft(normalizedVehicleId);
-    const appointmentType = normalizeText(draft?.type || "workshop") || "workshop";
-
-    onRequestAppointment(appointmentType, {
-      vehicleId: normalizedVehicleId,
-      vehicleTitle: normalizeText(vehicle?.title || `${vehicle?.brand || ""} ${vehicle?.model || ""}`),
-      vehiclePlate: normalizeText(vehicle?.plate),
-    });
-
-    setVehicleFeedback(`Nueva cita (${getAppointmentTypeLabel(appointmentType)}) creada para ${vehicle?.title || vehicle?.brand || "tu vehículo"}.`);
-  };
-
-  const getAppointmentHistory = (appointment = {}) => {
-    const appointmentId = normalizeText(appointment?.id);
-    if (Array.isArray(appointment?.statusHistory) && appointment.statusHistory.length > 0) {
-      return appointment.statusHistory;
-    }
-    const fromLocal = appointmentHistory[appointmentId];
-    return Array.isArray(fromLocal) ? fromLocal : [];
-  };
-
-  const saveAppointmentChanges = async (appointment = {}, vehicle = {}) => {
-    const appointmentId = normalizeText(appointment?.id);
-    const nextStatus = getAppointmentDraftValue(appointment, "status");
-    const nextRequestedAt = getAppointmentDraftValue(appointment, "requestedAt");
-    const nextMeta = getAppointmentDraftValue(appointment, "meta");
-
-    if (!appointmentId || !nextStatus || !nextRequestedAt) {
-      return;
-    }
-
-    setUpdatingAppointmentId(appointmentId);
-
-    try {
-      const previousStatus = normalizeText(appointment?.status);
-      await onUpdateAppointmentStatus(appointmentId, {
-        status: nextStatus,
-        requestedAt: nextRequestedAt,
-        meta: nextMeta,
-      });
-
-      if (previousStatus && previousStatus !== nextStatus) {
-        setAppointmentHistory((prev) => {
-          const currentHistory = Array.isArray(prev[appointmentId]) ? prev[appointmentId] : [];
-          const nextEntry = {
-            changedAt: new Date().toISOString(),
-            previousStatus,
-            nextStatus,
-          };
-
-          return {
-            ...prev,
-            [appointmentId]: [nextEntry, ...currentHistory].slice(0, 20),
-          };
-        });
-      }
-
-      setVehicleFeedback(`Estado de cita actualizado para ${vehicle?.title || vehicle?.brand || "el vehículo"}.`);
-    } catch {
-      setVehicleFeedback("No se pudo actualizar el estado de la cita.");
-    } finally {
-      setUpdatingAppointmentId("");
-    }
   };
 
   const addVehicleToGarage = async () => {

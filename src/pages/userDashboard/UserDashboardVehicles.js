@@ -1648,7 +1648,7 @@ export default function UserDashboardVehicles({
                     updateVehicleForm("version", "");
                     if (modelId) {
                       setErpVersionsLoading(true);
-                      getErpVersionsJson(modelId)
+                      getErpVersionsJson(modelId, erpSelectedBrandId)
                         .then((r) => r.json())
                         .then((data) => { if (Array.isArray(data?.versions)) setErpVersions(data.versions); else setErpVersions([]); })
                         .catch(() => { setErpVersions([]); })

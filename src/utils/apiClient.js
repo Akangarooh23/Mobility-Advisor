@@ -17,8 +17,9 @@ export function getErpModelsJson(brandId, options = {}) {
   return fetch(`${ERP_CATALOG_API_ENDPOINT}?scope=models&brandId=${encodeURIComponent(brandId)}`, { credentials: "include", ...options });
 }
 
-export function getErpVersionsJson(modelId, options = {}) {
-  return fetch(`${ERP_CATALOG_API_ENDPOINT}?scope=versions&modelId=${encodeURIComponent(modelId)}`, { credentials: "include", ...options });
+export function getErpVersionsJson(modelId, brandId = "", options = {}) {
+  const brandQuery = brandId ? `&brandId=${encodeURIComponent(brandId)}` : "";
+  return fetch(`${ERP_CATALOG_API_ENDPOINT}?scope=versions&modelId=${encodeURIComponent(modelId)}${brandQuery}`, { credentials: "include", ...options });
 }
 
 export function getErpVersionDetailJson(codversion, options = {}) {

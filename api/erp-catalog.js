@@ -34,6 +34,22 @@ function getLocalModels(brandId) {
   return models.map((name, i) => ({ id: i + 1, name }));
 }
 
+function getLocalVersions(brandId, modelId) {
+  const modelRows = getLocalModels(brandId);
+  const selectedModel = modelRows.find((row) => String(row.id) === String(modelId));
+
+  if (!selectedModel?.name) {
+    return [];
+  }
+
+  return [
+    {
+      codversion: `local-${brandId}-${modelId}`,
+      label: `${selectedModel.name} (estándar)`,
+    },
+  ];
+}
+
 
 function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -143,7 +159,9 @@ module.exports = function erpCatalogHandler(req, res) {
     }
     // versions and version-detail have no local data; return empty gracefully
     if (scope === "versions") {
-      return res.status(200).json({ ok: true, versions: [], source: "local-fallback" });
+      const brandId = req.query?.brandId;
+      const modelId = req.query?.modelId;
+      return res.status(200).json({ ok: true, versions: getLocalVersions(brandId, modelId), source: "local-fallback" });
     }
     if (scope === "version-detail") {
       return res.status(200).json({ ok: true, detail: null, source: "local-fallback" });

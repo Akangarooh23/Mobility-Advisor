@@ -356,6 +356,7 @@ export default function UserDashboardVehicles({
   const [editingVehicleId, setEditingVehicleId] = useState("");
 
   const [activeVehicleTab, setActiveVehicleTab] = useState("my-garage");
+  const [showNewVehicleForm, setShowNewVehicleForm] = useState(false);
   const [myVehicles, setMyVehicles] = useState(() => readGarageVehicles(currentUserEmail));
   const [vehicleFeedback, setVehicleFeedback] = useState("");
   const [pendingPhotos, setPendingPhotos] = useState([]);
@@ -1044,6 +1045,7 @@ export default function UserDashboardVehicles({
 
     setMyVehicles(Array.isArray(nextVehicles) ? nextVehicles : [vehicle, ...myVehicles].slice(0, 20));
     setEditingVehicleId("");
+    setShowNewVehicleForm(false);
     setErpSelectedBrandId("");
     setErpSelectedModelId("");
     setErpModels([]);
@@ -1100,6 +1102,7 @@ export default function UserDashboardVehicles({
     }
 
     setEditingVehicleId(vehicleId);
+    setShowNewVehicleForm(true);
     setVehicleCatalogMode("manual");
     setErpSelectedBrandId("");
     setErpSelectedModelId("");
@@ -1153,6 +1156,7 @@ export default function UserDashboardVehicles({
 
   const cancelEditingVehicle = () => {
     setEditingVehicleId("");
+    setShowNewVehicleForm(false);
     setVehicleCatalogMode("erp");
     setErpSelectedBrandId("");
     setErpSelectedModelId("");
@@ -1397,10 +1401,32 @@ export default function UserDashboardVehicles({
                 <div style={{ fontSize: 14, fontWeight: 800, color: titleColor }}>Añadir vehículo propio</div>
                 <div style={{ fontSize: 11, color: bodyColor, marginTop: 3 }}>Crea tu garage personal con fotos, documentación y acciones rápidas.</div>
               </div>
-              <div style={{ fontSize: 11, color: "#1d4ed8", fontWeight: 700, background: "rgba(37,99,235,0.1)", border: cardBorder, borderRadius: 999, padding: "5px 9px" }}>
-                Máximo 20 vehículos
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={() => setShowNewVehicleForm((prev) => !prev)}
+                  style={{
+                    background: showNewVehicleForm ? "rgba(37,99,235,0.12)" : "linear-gradient(135deg,#2563eb,#1d4ed8)",
+                    color: showNewVehicleForm ? "#1d4ed8" : "#ffffff",
+                    border: showNewVehicleForm ? cardBorder : "none",
+                    borderRadius: 999,
+                    boxShadow: showNewVehicleForm ? "none" : "0 10px 18px rgba(37,99,235,0.24)",
+                    padding: "8px 12px",
+                    fontSize: 11,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {showNewVehicleForm ? "Ocultar formulario" : "Añadir Nuevo vehículo"}
+                </button>
+                <div style={{ fontSize: 11, color: "#1d4ed8", fontWeight: 700, background: "rgba(37,99,235,0.1)", border: cardBorder, borderRadius: 999, padding: "5px 9px" }}>
+                  Máximo 20 vehículos
+                </div>
               </div>
             </div>
+            {showNewVehicleForm ? (
+              <>
             {renderVehicleSection(
               "characteristics",
               "Características del vehículo",
@@ -2151,6 +2177,9 @@ export default function UserDashboardVehicles({
                 Ver estado en pipeline
               </button>
             </div>
+              </>
+            ) : null}
+
             {vehicleFeedback && (
               <div style={{ marginTop: 10, fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>{vehicleFeedback}</div>
             )}

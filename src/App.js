@@ -33,6 +33,7 @@ import { useListingBootstrap } from "./hooks/useListingBootstrap";
 import { useListingDiscoveryMemory } from "./hooks/useListingDiscoveryMemory";
 import { useListingQuickValidationRefresh } from "./hooks/useListingQuickValidationRefresh";
 import { useQuestionnaireDraftPersistence } from "./hooks/useQuestionnaireDraftPersistence";
+import { useQuestionnaireStepVisualSync } from "./hooks/useQuestionnaireStepVisualSync";
 import { useAppPreferences } from "./hooks/useAppPreferences";
 import { useMarketAlertInsights } from "./hooks/useMarketAlertInsights";
 import { useMarketCatalog } from "./hooks/useMarketCatalog";
@@ -672,45 +673,17 @@ export default function App() {
       ]
   );
 
-  useEffect(() => {
-    if (entryMode !== "consejo" || step < 0 || step >= totalSteps) {
-      setMultiSelected([]);
-      setDualTimelineSelection({ horizonte_tenencia: [], antiguedad_vehiculo_buscada: [] });
-      setScoreWeightsSelection({});
-      return;
-    }
-
-    const stepConfig = activeSteps[step];
-    if (stepConfig.type === "multi") {
-      const saved = answers[stepConfig.id];
-      setMultiSelected(Array.isArray(saved) ? saved : []);
-      setDualTimelineSelection({ horizonte_tenencia: [], antiguedad_vehiculo_buscada: [] });
-      setScoreWeightsSelection({});
-      return;
-    }
-
-    if (stepConfig.type === "dual_timeline") {
-      setDualTimelineSelection({
-        horizonte_tenencia: normalizeRangeValue(answers?.horizonte_tenencia),
-        antiguedad_vehiculo_buscada: normalizeRangeValue(answers?.antiguedad_vehiculo_buscada),
-      });
-      setMultiSelected([]);
-      setScoreWeightsSelection({});
-      return;
-    }
-
-    if (stepConfig.type === "score_weights") {
-      const saved = answers?.[stepConfig.id];
-      setScoreWeightsSelection(saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {});
-      setMultiSelected([]);
-      setDualTimelineSelection({ horizonte_tenencia: [], antiguedad_vehiculo_buscada: [] });
-      return;
-    }
-
-    setMultiSelected([]);
-    setDualTimelineSelection({ horizonte_tenencia: [], antiguedad_vehiculo_buscada: [] });
-    setScoreWeightsSelection({});
-  }, [entryMode, step, totalSteps, answers, activeSteps]);
+  useQuestionnaireStepVisualSync({
+    entryMode,
+    step,
+    totalSteps,
+    activeSteps,
+    answers,
+    normalizeRangeValue,
+    setMultiSelected,
+    setDualTimelineSelection,
+    setScoreWeightsSelection,
+  });
 
   useQuestionnaireDraftPersistence({
     entryMode,

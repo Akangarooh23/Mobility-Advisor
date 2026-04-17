@@ -3,6 +3,8 @@ import { normalizeText } from "./offerHelpers";
 export function buildUserDashboardModel({
   savedComparisons = [],
   userAppointments = [],
+  userMaintenances = [],
+  userInsurances = [],
   userValuations = [],
   userVehicleStates = [],
   result = null,
@@ -25,7 +27,51 @@ export function buildUserDashboardModel({
       ]
     : [];
 
-  const dashboardAppointments = [...userAppointments, ...advisorAppointments].slice(0, 6);
+  const maintenanceAppointments = Array.isArray(userMaintenances)
+    ? userMaintenances
+        .map((item) => {
+          const vehicleLabel = normalizeText(item?.vehicleTitle) || "Vehículo";
+          const scheduleLabel = normalizeText(item?.scheduledAt);
+          const notes = normalizeText(item?.notes);
+
+          return {
+            id: normalizeText(item?.id),
+            type: "maintenance",
+            title: normalizeText(item?.title) || `Mantenimiento · ${vehicleLabel}`,
+            meta: [vehicleLabel, notes].filter(Boolean).join(" · "),
+            status: normalizeText(item?.status) || "Pendiente",
+            requestedAt: scheduleLabel,
+          };
+        })
+        .filter((item) => item.id)
+    : [];
+
+  const insuranceAppointments = Array.isArray(userInsurances)
+    ? userInsurances
+        .map((item) => {
+          const vehicleLabel = normalizeText(item?.vehicleTitle) || "Vehículo";
+          const provider = normalizeText(item?.provider);
+          const notes = normalizeText(item?.notes);
+          const renewalAt = normalizeText(item?.renewalAt);
+
+          return {
+            id: normalizeText(item?.id),
+            type: "insurance",
+            title: provider ? `Seguro · ${provider}` : `Seguro · ${vehicleLabel}`,
+            meta: [vehicleLabel, notes].filter(Boolean).join(" · "),
+            status: normalizeText(item?.status) || "Activo",
+            requestedAt: renewalAt,
+          };
+        })
+        .filter((item) => item.id)
+    : [];
+
+  const dashboardAppointments = [
+    ...userAppointments,
+    ...maintenanceAppointments,
+    ...insuranceAppointments,
+    ...advisorAppointments,
+  ].slice(0, 12);
 
   const persistedValuations = Array.isArray(userValuations)
     ? userValuations

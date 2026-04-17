@@ -100,6 +100,7 @@ export default function UserDashboardOperations({
   const appointmentTypeOptions = [
     { key: "workshop", label: "Taller" },
     { key: "maintenance", label: "Mantenimiento" },
+    { key: "insurance", label: "Seguro" },
     { key: "certification", label: "Garantía / calidad" },
   ];
 
@@ -149,7 +150,12 @@ export default function UserDashboardOperations({
     const appointmentRows = (dashboardAppointments || []).map((item) => ({
       ...item,
       itemType: "appointment",
-      itemTypeLabel: "Cita",
+      itemTypeLabel:
+        normalizeText(item?.type) === "maintenance"
+          ? "Mantenimiento"
+          : normalizeText(item?.type) === "insurance"
+          ? "Seguro"
+          : "Cita",
       stage: inferAppointmentStage(item),
     }));
 

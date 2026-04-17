@@ -485,6 +485,8 @@ export default function App() {
   const [sellListingError, setSellListingError] = useState(null);
   const [savedComparisons, setSavedComparisons] = useState([]);
   const [userAppointments, setUserAppointments] = useState([]);
+  const [userMaintenances, setUserMaintenances] = useState([]);
+  const [userInsurances, setUserInsurances] = useState([]);
   const [userValuations, setUserValuations] = useState([]);
   const [userVehicleStates, setUserVehicleStates] = useState([]);
   const [marketAlerts, setMarketAlerts] = useState([]);
@@ -726,6 +728,8 @@ export default function App() {
       buildUserDashboardModel({
         savedComparisons,
         userAppointments,
+        userMaintenances,
+        userInsurances,
         userValuations,
         userVehicleStates,
         result,
@@ -733,7 +737,18 @@ export default function App() {
         sellAnswers,
         sellListingResult,
       }),
-    [savedComparisons, userAppointments, userValuations, userVehicleStates, result, sellAiResult, sellAnswers, sellListingResult]
+      [
+        savedComparisons,
+        userAppointments,
+        userMaintenances,
+        userInsurances,
+        userValuations,
+        userVehicleStates,
+        result,
+        sellAiResult,
+        sellAnswers,
+        sellListingResult,
+      ]
   );
 
   useEffect(() => {
@@ -787,6 +802,8 @@ export default function App() {
     if (!currentUserEmail) {
       setUserValuations([]);
       setUserVehicleStates([]);
+      setUserMaintenances([]);
+      setUserInsurances([]);
       return () => {
         disposed = true;
       };
@@ -802,11 +819,15 @@ export default function App() {
 
         const nextSaved = Array.isArray(data?.savedOffers) ? data.savedOffers.slice(0, 6) : [];
         const nextAppointments = Array.isArray(data?.appointments) ? data.appointments.slice(0, 8) : [];
+        const nextMaintenances = Array.isArray(data?.maintenances) ? data.maintenances.slice(0, 12) : [];
+        const nextInsurances = Array.isArray(data?.insurances) ? data.insurances.slice(0, 8) : [];
         const nextValuations = Array.isArray(data?.valuations) ? data.valuations.slice(0, 12) : [];
         const nextVehicleStates = Array.isArray(data?.vehicleStates) ? data.vehicleStates.slice(0, 30) : [];
 
         setSavedComparisons(nextSaved);
         setUserAppointments(nextAppointments);
+        setUserMaintenances(nextMaintenances);
+        setUserInsurances(nextInsurances);
         setUserValuations(nextValuations);
         setUserVehicleStates(nextVehicleStates);
 
@@ -1847,6 +1868,11 @@ export default function App() {
         meta: "Revisión para garantía extendida o certificación de calidad",
         status: "En validación",
       },
+      insurance: {
+        title: "Gestión de seguro",
+        meta: "Revisión de póliza, prima y vencimiento del seguro",
+        status: "En gestión",
+      },
     };
 
     const template = appointmentCatalog[type];
@@ -1890,6 +1916,43 @@ export default function App() {
 
     writeUserAppointments(next);
     setUserAppointments(next);
+
+    if (type === "maintenance" && normalizeText(context?.vehicleId)) {
+      setUserMaintenances((prev) => {
+        const nextMaintenance = {
+          id: `mnt-${appointment.id}`,
+          vehicleId: normalizeText(context?.vehicleId),
+          vehicleTitle: normalizeText(context?.vehicleTitle),
+          vehiclePlate: normalizeText(context?.vehiclePlate),
+          type: "maintenance",
+          title: appointment.title,
+          status: appointment.status,
+          scheduledAt: appointment.requestedAt,
+          notes: appointment.meta,
+        };
+
+        const deduped = (Array.isArray(prev) ? prev : []).filter((item) => normalizeText(item?.id) !== nextMaintenance.id);
+        return [nextMaintenance, ...deduped].slice(0, 12);
+      });
+    }
+
+    if (type === "insurance" && normalizeText(context?.vehicleId)) {
+      setUserInsurances((prev) => {
+        const nextInsurance = {
+          id: `ins-${normalizeText(context?.vehicleId)}`,
+          vehicleId: normalizeText(context?.vehicleId),
+          vehicleTitle: normalizeText(context?.vehicleTitle),
+          vehiclePlate: normalizeText(context?.vehiclePlate),
+          status: "active",
+          renewalAt: appointment.requestedAt,
+          notes: appointment.meta,
+        };
+
+        const deduped = (Array.isArray(prev) ? prev : []).filter((item) => normalizeText(item?.vehicleId) !== nextInsurance.vehicleId);
+        return [nextInsurance, ...deduped].slice(0, 8);
+      });
+    }
+
     setSaveFeedback(`${template.title} solicitada correctamente.`);
     window.setTimeout(() => setSaveFeedback(""), 2200);
   };
@@ -2911,6 +2974,7 @@ export default function App() {
                     {[
                       { key: "workshop", label: "\uD83D\uDEE0\uFE0F Taller" },
                       { key: "maintenance", label: "\uD83D\uDD27 Mantenimiento" },
+                      { key: "insurance", label: "\uD83D\uDEE1\uFE0F Seguro" },
                       { key: "certification", label: "\u2705 Garantia / calidad" },
                     ].map((option) => (
                       <button

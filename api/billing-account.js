@@ -7,6 +7,10 @@ const {
   removeGarageVehicleByEmail,
   listAppointmentsByEmail,
   addAppointmentByEmail,
+  listMaintenancesByEmail,
+  addMaintenanceByEmail,
+  listInsurancesByEmail,
+  upsertInsuranceByEmail,
   listValuationsByEmail,
   addValuationByEmail,
   listVehicleStatesByEmail,
@@ -96,6 +100,16 @@ module.exports = async function billingAccountHandler(req, res) {
     return res.status(200).json({ ok: true, valuations, message: "Tasacion guardada." });
   }
 
+  if (action === "maintenance_add") {
+    const maintenances = await addMaintenanceByEmail(email, body.maintenance || body);
+    return res.status(200).json({ ok: true, maintenances, message: "Mantenimiento guardado." });
+  }
+
+  if (action === "insurance_upsert") {
+    const insurances = await upsertInsuranceByEmail(email, body.insurance || body);
+    return res.status(200).json({ ok: true, insurances, message: "Seguro actualizado." });
+  }
+
   if (action === "vehicle_state_upsert") {
     const vehicleStates = await upsertVehicleStateByEmail(email, body.vehicleState || body);
     return res.status(200).json({ ok: true, vehicleStates, message: "Estado de vehiculo actualizado." });
@@ -117,6 +131,14 @@ module.exports = async function billingAccountHandler(req, res) {
 
   if (action === "valuations_list") {
     return res.status(200).json({ ok: true, valuations: await listValuationsByEmail(email) });
+  }
+
+  if (action === "maintenances_list") {
+    return res.status(200).json({ ok: true, maintenances: await listMaintenancesByEmail(email) });
+  }
+
+  if (action === "insurances_list") {
+    return res.status(200).json({ ok: true, insurances: await listInsurancesByEmail(email) });
   }
 
   if (action === "vehicle_states_list") {

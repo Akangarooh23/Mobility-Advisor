@@ -76,6 +76,44 @@ CREATE TABLE IF NOT EXISTS moveadvisor_user_appointments (
 CREATE INDEX IF NOT EXISTS ix_moveadvisor_appointments_email
   ON moveadvisor_user_appointments (user_email, created_at DESC);
 
+CREATE TABLE IF NOT EXISTS moveadvisor_user_insurances (
+  id               VARCHAR(64)  PRIMARY KEY,
+  user_email       VARCHAR(255) NOT NULL,
+  vehicle_id       VARCHAR(64)  NOT NULL REFERENCES moveadvisor_user_vehicles(id) ON DELETE CASCADE,
+  provider         VARCHAR(140) NOT NULL DEFAULT '',
+  policy_number    VARCHAR(80)  NOT NULL DEFAULT '',
+  coverage_type    VARCHAR(80)  NOT NULL DEFAULT '',
+  status           VARCHAR(40)  NOT NULL DEFAULT 'active',
+  renewal_at_text  VARCHAR(60)  NOT NULL DEFAULT '',
+  monthly_premium  NUMERIC(12,2),
+  notes            TEXT         NOT NULL DEFAULT '',
+  created_at       TIMESTAMPTZ  NOT NULL,
+  updated_at       TIMESTAMPTZ  NOT NULL,
+  UNIQUE (user_email, vehicle_id)
+);
+
+CREATE INDEX IF NOT EXISTS ix_moveadvisor_insurances_email
+  ON moveadvisor_user_insurances (user_email, updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS moveadvisor_user_maintenances (
+  id                 VARCHAR(64)  PRIMARY KEY,
+  user_email         VARCHAR(255) NOT NULL,
+  vehicle_id         VARCHAR(64)  NOT NULL REFERENCES moveadvisor_user_vehicles(id) ON DELETE CASCADE,
+  maintenance_type   VARCHAR(60)  NOT NULL DEFAULT 'maintenance',
+  title              VARCHAR(180) NOT NULL,
+  status             VARCHAR(80)  NOT NULL DEFAULT 'Pendiente',
+  scheduled_at_text  VARCHAR(60)  NOT NULL DEFAULT '',
+  workshop_name      VARCHAR(140) NOT NULL DEFAULT '',
+  mileage_text       VARCHAR(40)  NOT NULL DEFAULT '',
+  estimated_cost     NUMERIC(12,2),
+  notes              TEXT         NOT NULL DEFAULT '',
+  created_at         TIMESTAMPTZ  NOT NULL,
+  updated_at         TIMESTAMPTZ  NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS ix_moveadvisor_maintenances_email
+  ON moveadvisor_user_maintenances (user_email, created_at DESC);
+
 CREATE TABLE IF NOT EXISTS moveadvisor_user_valuations (
   id             VARCHAR(64)  PRIMARY KEY,
   user_email     VARCHAR(255) NOT NULL,

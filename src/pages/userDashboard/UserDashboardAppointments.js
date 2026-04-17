@@ -13,6 +13,7 @@ export default function UserDashboardAppointments({
   const appointmentActions = [
     { key: "workshop", label: "🛠️ Taller" },
     { key: "maintenance", label: "🔧 Mantenimiento" },
+    { key: "insurance", label: "🛡️ Seguro" },
     { key: "certification", label: "✅ Garantía / calidad" },
   ];
 

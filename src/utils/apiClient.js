@@ -212,6 +212,28 @@ export function postValuationAddJson(email, valuation, options = {}) {
   });
 }
 
+export function postMaintenanceAddJson(email, maintenance, options = {}) {
+  return postJson(BILLING_ACCOUNT_API_ENDPOINT, {
+    action: "maintenance_add",
+    email,
+    maintenance,
+  }, {
+    endpointLabel: "billing-account",
+    ...options,
+  });
+}
+
+export function postInsuranceUpsertJson(email, insurance, options = {}) {
+  return postJson(BILLING_ACCOUNT_API_ENDPOINT, {
+    action: "insurance_upsert",
+    email,
+    insurance,
+  }, {
+    endpointLabel: "billing-account",
+    ...options,
+  });
+}
+
 export function postVehicleStateUpsertJson(email, vehicleState, options = {}) {
   return postJson(BILLING_ACCOUNT_API_ENDPOINT, {
     action: "vehicle_state_upsert",

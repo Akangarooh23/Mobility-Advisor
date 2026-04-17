@@ -30,6 +30,7 @@ import { useAppBootstrap } from "./hooks/useAppBootstrap";
 import { useDashboardNavigation } from "./hooks/useDashboardNavigation";
 import { useListingBootstrap } from "./hooks/useListingBootstrap";
 import { useListingDiscoveryMemory } from "./hooks/useListingDiscoveryMemory";
+import { useListingQuickValidationRefresh } from "./hooks/useListingQuickValidationRefresh";
 import { useAppPreferences } from "./hooks/useAppPreferences";
 import { useMarketAlertInsights } from "./hooks/useMarketAlertInsights";
 import { useMarketCatalog } from "./hooks/useMarketCatalog";
@@ -1990,17 +1991,12 @@ export default function App() {
     }
   }, [answers, listingOptionsRef, listingSeenRef, result]);
 
-  useEffect(() => {
-    if (!result || Object.keys(quickValidationAnswers).length === 0) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      void searchRealListing(listingFilters, quickValidationAnswers);
-    }, 160);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [quickValidationAnswers, result, listingFilters, searchRealListing]);
+  useListingQuickValidationRefresh({
+    result,
+    quickValidationAnswers,
+    listingFilters,
+    searchRealListing,
+  });
 
   const searchDecisionListing = async (aiResult = decisionAiResult) => {
     if (!decisionFlowReady || !aiResult?.oferta_top?.titulo) {

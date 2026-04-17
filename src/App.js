@@ -35,6 +35,7 @@ import { useListingQuickValidationRefresh } from "./hooks/useListingQuickValidat
 import { useQuestionnaireDraftPersistence } from "./hooks/useQuestionnaireDraftPersistence";
 import { useQuestionnaireStepVisualSync } from "./hooks/useQuestionnaireStepVisualSync";
 import { useResumeQuestionnaireDraft } from "./hooks/useResumeQuestionnaireDraft";
+import { useSavedRecommendations } from "./hooks/useSavedRecommendations";
 import { useAppPreferences } from "./hooks/useAppPreferences";
 import { useMarketAlertInsights } from "./hooks/useMarketAlertInsights";
 import { useMarketCatalog } from "./hooks/useMarketCatalog";
@@ -69,8 +70,6 @@ import {
   postAuthJson,
   postBillingCheckoutJson,
   postListingJson,
-  postSavedOfferAddJson,
-  postSavedOfferRemoveJson,
 } from "./utils/apiClient";
 import {
   ANALYSIS_LOADING_PHASES,
@@ -91,10 +90,8 @@ import {
   INITIAL_PORTAL_VO_FILTERS,
 } from "./utils/portalVoHelpers";
 import {
-  buildComparisonSnapshot,
   buildMarketRadarSnapshot,
   buildOfferRanking,
-  buildSavedComparisonKey,
   buildSellEstimate,
   estimateMonthlyPayment,
   formatCurrency,
@@ -110,7 +107,6 @@ import {
   writeAuthUser,
   writeMarketAlerts,
   writeMarketAlertStatus,
-  writeSavedComparisons,
   writeUserAppointments,
 } from "./utils/storage";
 import {
@@ -745,85 +741,21 @@ export default function App() {
     setLoading,
   });
 
-  const saveCurrentComparison = (selectedOffer = null) => {
-    if (!result) {
-      return;
-    }
-
-    const snapshot = buildComparisonSnapshot({
-      result,
-      answers,
-      listingResult: selectedOffer || listingResult,
-      listingFilters,
-    });
-    const next = [snapshot, ...savedComparisons.filter((item) => item.id !== snapshot.id)].slice(0, 6);
-    writeSavedComparisons(next);
-    setSavedComparisons(next);
-
-    if (currentUserEmail) {
-      void postSavedOfferAddJson(currentUserEmail, snapshot).catch(() => {});
-    }
-
-    setSaveFeedback(
-      selectedOffer
-        ? "Recomendación guardada en Recomendaciones guardadas."
-        : "Comparativa guardada en este navegador."
-    );
-    window.setTimeout(() => setSaveFeedback(""), 2200);
-  };
-
-  const isRecommendationSaved = (selectedOffer = null) => {
-    if (!result) {
-      return false;
-    }
-
-    const targetId = buildSavedComparisonKey({
-      result,
-      listingResult: selectedOffer || listingResult,
-    });
-
-    return savedComparisons.some((item) => item.id === targetId);
-  };
-
-  const toggleSavedRecommendation = (selectedOffer = null) => {
-    if (!result) {
-      return;
-    }
-
-    const snapshot = buildComparisonSnapshot({
-      result,
-      answers,
-      listingResult: selectedOffer || listingResult,
-      listingFilters,
-    });
-    const alreadySaved = savedComparisons.some((item) => item.id === snapshot.id);
-
-    if (alreadySaved) {
-      const next = savedComparisons.filter((item) => item.id !== snapshot.id);
-      writeSavedComparisons(next);
-      setSavedComparisons(next);
-
-      if (currentUserEmail) {
-        void postSavedOfferRemoveJson(currentUserEmail, snapshot.id).catch(() => {});
-      }
-
-      setSaveFeedback("Recomendación quitada de guardadas.");
-      window.setTimeout(() => setSaveFeedback(""), 2200);
-      return;
-    }
-
-    saveCurrentComparison(selectedOffer);
-  };
-
-  const removeSavedComparison = (id) => {
-    const next = savedComparisons.filter((item) => item.id !== id);
-    writeSavedComparisons(next);
-    setSavedComparisons(next);
-
-    if (currentUserEmail) {
-      void postSavedOfferRemoveJson(currentUserEmail, id).catch(() => {});
-    }
-  };
+  const {
+    saveCurrentComparison,
+    isRecommendationSaved,
+    toggleSavedRecommendation,
+    removeSavedComparison,
+  } = useSavedRecommendations({
+    result,
+    answers,
+    listingResult,
+    listingFilters,
+    savedComparisons,
+    currentUserEmail,
+    setSavedComparisons,
+    setSaveFeedback,
+  });
 
   const openAuthDialog = useCallback((mode = "login", options = {}) => {
     setAuthDialogMode(mode === "register" ? "register" : "login");

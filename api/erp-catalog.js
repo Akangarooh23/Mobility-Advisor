@@ -1,4 +1,39 @@
+const fs = require("fs");
+const path = require("path");
 const { execFileSync } = require("child_process");
+
+const LOCAL_CATALOG_PATH = path.join(__dirname, "..", "data", "vehicle-catalog.json");
+
+function readLocalCatalog() {
+  try {
+    const raw = fs.readFileSync(LOCAL_CATALOG_PATH, "utf8");
+    const parsed = JSON.parse(raw || "{}");
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    return parsed;
+  } catch {
+    return {};
+  }
+}
+
+// Returns sorted brand list from local catalog, each with a 1-based numeric id
+function getLocalBrands() {
+  const catalog = readLocalCatalog();
+  return Object.keys(catalog)
+    .sort((a, b) => a.localeCompare(b, "es"))
+    .map((name, idx) => ({ id: idx + 1, name }));
+}
+
+// Returns models for the given brand id (1-based index) from local catalog
+function getLocalModels(brandId) {
+  const catalog = readLocalCatalog();
+  const brands = Object.keys(catalog).sort((a, b) => a.localeCompare(b, "es"));
+  const idx = Number(brandId) - 1;
+  if (idx < 0 || idx >= brands.length) return [];
+  const brandName = brands[idx];
+  const models = Array.isArray(catalog[brandName]) ? catalog[brandName] : [];
+  return models.map((name, i) => ({ id: i + 1, name }));
+}
+
 
 function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -98,6 +133,21 @@ module.exports = function erpCatalogHandler(req, res) {
 
     return res.status(400).json({ error: "scope no reconocido. Usa: brands, models, versions, version-detail" });
   } catch (err) {
-    return res.status(500).json({ error: "Error consultando catálogo ERP", detail: String(err?.message || err) });
+    // sqlcmd / SQL Server not available (e.g. Vercel). Fall back to local catalog file.
+    if (scope === "brands") {
+      return res.status(200).json({ ok: true, brands: getLocalBrands(), source: "local-fallback" });
+    }
+    if (scope === "models") {
+      const brandId = req.query?.brandId;
+      return res.status(200).json({ ok: true, models: getLocalModels(brandId), source: "local-fallback" });
+    }
+    // versions and version-detail have no local data; return empty gracefully
+    if (scope === "versions") {
+      return res.status(200).json({ ok: true, versions: [], source: "local-fallback" });
+    }
+    if (scope === "version-detail") {
+      return res.status(200).json({ ok: true, detail: null, source: "local-fallback" });
+    }
+    return res.status(200).json({ ok: true, brands: getLocalBrands(), source: "local-fallback" });
   }
 };

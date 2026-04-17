@@ -36,6 +36,7 @@ import { useQuestionnaireDraftPersistence } from "./hooks/useQuestionnaireDraftP
 import { useQuestionnaireStepVisualSync } from "./hooks/useQuestionnaireStepVisualSync";
 import { useResumeQuestionnaireDraft } from "./hooks/useResumeQuestionnaireDraft";
 import { useSavedRecommendations } from "./hooks/useSavedRecommendations";
+import { useAuthDialogControls } from "./hooks/useAuthDialogControls";
 import { useAppPreferences } from "./hooks/useAppPreferences";
 import { useMarketAlertInsights } from "./hooks/useMarketAlertInsights";
 import { useMarketCatalog } from "./hooks/useMarketCatalog";
@@ -757,38 +758,21 @@ export default function App() {
     setSaveFeedback,
   });
 
-  const openAuthDialog = useCallback((mode = "login", options = {}) => {
-    setAuthDialogMode(mode === "register" ? "register" : "login");
-    setAuthRecoveryMode("none");
-    setAuthRecoveryCode("");
-    setAuthRecoveryFeedback("");
-    setAuthTargetPage(options?.routePage || "home");
-    setAuthTargetEntryMode(options?.entryMode || "");
-    setAuthError("");
-    setShowAuthMenu(false);
-    setShowUserPanel(false);
-    setAuthForm((prev) => ({
-      name: mode === "register" ? prev.name : "",
-      email: currentUserEmail || prev.email || "",
-      password: "",
-    }));
-  }, [currentUserEmail]);
-
-  const closeAuthDialog = useCallback(() => {
-    setAuthDialogMode("");
-    setAuthRecoveryMode("none");
-    setAuthRecoveryCode("");
-    setAuthRecoveryFeedback("");
-    setAuthTargetEntryMode("");
-    setPendingPlanCheckoutId("");
-    setAuthError("");
-    setAuthLoading(false);
-    setAuthForm((prev) => ({
-      name: "",
-      email: currentUserEmail || prev.email || "",
-      password: "",
-    }));
-  }, [currentUserEmail]);
+  const { openAuthDialog, closeAuthDialog } = useAuthDialogControls({
+    currentUserEmail,
+    setAuthDialogMode,
+    setAuthRecoveryMode,
+    setAuthRecoveryCode,
+    setAuthRecoveryFeedback,
+    setAuthTargetPage,
+    setAuthTargetEntryMode,
+    setAuthError,
+    setShowAuthMenu,
+    setShowUserPanel,
+    setAuthForm,
+    setPendingPlanCheckoutId,
+    setAuthLoading,
+  });
 
   const startSubscriptionCheckout = useCallback(async (planId, options = {}) => {
     const normalizedPlanId = normalizeText(planId).toLowerCase();

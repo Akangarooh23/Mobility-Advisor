@@ -37,6 +37,7 @@ import { useQuestionnaireStepVisualSync } from "./hooks/useQuestionnaireStepVisu
 import { useResumeQuestionnaireDraft } from "./hooks/useResumeQuestionnaireDraft";
 import { useSavedRecommendations } from "./hooks/useSavedRecommendations";
 import { useAuthDialogControls } from "./hooks/useAuthDialogControls";
+import { useAuthSessionReset } from "./hooks/useAuthSessionReset";
 import { usePlanCheckout } from "./hooks/usePlanCheckout";
 import { useAppPreferences } from "./hooks/useAppPreferences";
 import { useMarketAlertInsights } from "./hooks/useMarketAlertInsights";
@@ -103,7 +104,6 @@ import {
 } from "./utils/businessHelpers";
 import { buildUserDashboardModel } from "./utils/userDashboardHelpers";
 import {
-  clearAuthUser,
   clearQuestionnaireDraft,
   writeAuthUser,
   writeMarketAlerts,
@@ -783,24 +783,22 @@ export default function App() {
     setPlanCheckoutFeedback,
   });
 
-  const resetLoggedUser = useCallback(() => {
-    void postAuthJson({ action: "logout" }).catch(() => {});
-    clearAuthUser();
-    setCurrentUser(null);
-    setAuthDialogMode("");
-    setAuthRecoveryMode("none");
-    setAuthRecoveryCode("");
-    setAuthRecoveryFeedback("");
-    setAuthError("");
-    setAuthLoading(false);
-    setPendingPlanCheckoutId("");
-    setShowChangePasswordForm(false);
-    setChangePasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-    setChangePasswordError("");
-    setChangePasswordSuccess("");
-    setChangePasswordLoading(false);
-    setAuthForm({ name: "", email: "", password: "" });
-  }, []);
+  const { resetLoggedUser } = useAuthSessionReset({
+    setCurrentUser,
+    setAuthDialogMode,
+    setAuthRecoveryMode,
+    setAuthRecoveryCode,
+    setAuthRecoveryFeedback,
+    setAuthError,
+    setAuthLoading,
+    setPendingPlanCheckoutId,
+    setShowChangePasswordForm,
+    setChangePasswordForm,
+    setChangePasswordError,
+    setChangePasswordSuccess,
+    setChangePasswordLoading,
+    setAuthForm,
+  });
 
   const submitChangePassword = useCallback(async (event) => {
     event?.preventDefault?.();

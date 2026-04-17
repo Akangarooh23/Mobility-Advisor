@@ -304,6 +304,7 @@ export default function UserDashboardVehicles({
   panelStyle,
   getOfferBadgeStyle,
   onRequestAppointment = () => {},
+  onRequestValuation = () => {},
   onUpdateAppointmentStatus = () => {},
   onNavigate = () => {},
   onBrowseMarketplace = () => {},
@@ -1173,6 +1174,25 @@ export default function UserDashboardVehicles({
     setVehicleFeedback("Vehículo eliminado de Mis vehículos.");
   };
 
+  const requestValuationForVehicle = (vehicle = {}, feedbackPrefix = "Tasación iniciada para") => {
+    const vehicleTitle = normalizeText(vehicle?.title || `${vehicle?.brand || ""} ${vehicle?.model || ""}`.trim());
+    const vehiclePlate = normalizeText(vehicle?.plate);
+
+    onRequestValuation({
+      vehicleId: normalizeText(vehicle?.id),
+      vehicleTitle,
+      vehiclePlate,
+      brand: normalizeText(vehicle?.brand),
+      model: normalizeText(vehicle?.model),
+      year: normalizeText(vehicle?.year),
+      mileage: normalizeText(vehicle?.mileage),
+      fuel: normalizeText(vehicle?.fuel),
+    });
+
+    const vehicleLabel = vehiclePlate ? `matrícula ${vehiclePlate}` : vehicleTitle || "tu vehículo";
+    setVehicleFeedback(`${feedbackPrefix} ${vehicleLabel}.`);
+  };
+
   const closeMarketplacePublishDialog = () => {
     setMarketplacePublishDialog({ open: false, vehicle: null });
 
@@ -1198,8 +1218,7 @@ export default function UserDashboardVehicles({
     const marketplacePrice = normalizeText(vehicle.price);
 
     if (pricingMode === "valuation" && !marketplacePrice) {
-      onNavigate("valuations");
-      setVehicleFeedback(`Antes de publicar ${vehicleLabel}, solicita su tasación para obtener un precio objetivo.`);
+      requestValuationForVehicle(vehicle, `Antes de publicar ${vehicleLabel}, hemos iniciado la tasación para`);
       closeMarketplacePublishDialog();
       return;
     }
@@ -1233,7 +1252,7 @@ export default function UserDashboardVehicles({
     }
 
     if (action === "valuation") {
-      onNavigate("valuations");
+      requestValuationForVehicle(vehicle);
       return;
     }
 
@@ -1247,6 +1266,9 @@ export default function UserDashboardVehicles({
           title: vehicleLabel,
           brand: normalizeText(vehicle?.brand),
           model: normalizeText(vehicle?.model),
+          year: normalizeText(vehicle?.year),
+          mileage: normalizeText(vehicle?.mileage),
+          plate: normalizeText(vehicle?.plate),
           fuel: normalizeText(vehicle?.fuel),
           price: normalizeText(vehicle?.price),
           marketplacePricingMode: resolveMarketplacePricingMode(vehicle),
@@ -1762,7 +1784,19 @@ export default function UserDashboardVehicles({
                       type="button"
                       onClick={() => {
                         updateVehicleForm("marketplacePricingMode", "valuation");
-                        onNavigate("valuations");
+                        if (normalizeText(vehicleForm.brand) || normalizeText(vehicleForm.model)) {
+                          requestValuationForVehicle({
+                            title: normalizeText(vehicleForm.nickname),
+                            brand: normalizeText(vehicleForm.brand),
+                            model: normalizeText(vehicleForm.model),
+                            year: normalizeText(vehicleForm.year),
+                            mileage: normalizeText(vehicleForm.mileage),
+                            fuel: normalizeText(vehicleForm.fuel),
+                            plate: normalizeText(vehicleForm.plate),
+                          });
+                        } else {
+                          setVehicleFeedback("Para iniciar la tasación, añade al menos marca y modelo del vehículo.");
+                        }
                       }}
                       style={{
                         background: vehicleForm.marketplacePricingMode === "valuation" ? "linear-gradient(135deg,#0ea5e9,#0284c7)" : "rgba(14,165,233,0.08)",
@@ -2198,7 +2232,7 @@ export default function UserDashboardVehicles({
                             type="button"
                             onClick={() => {
                               updateVehicleForm("marketplacePricingMode", "valuation");
-                              onNavigate("valuations");
+                              requestValuationForVehicle(vehicle);
                             }}
                             style={{
                               background: vehicleForm.marketplacePricingMode === "valuation" ? "linear-gradient(135deg,#0ea5e9,#0284c7)" : "rgba(14,165,233,0.08)",

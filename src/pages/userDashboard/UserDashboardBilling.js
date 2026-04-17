@@ -5,6 +5,7 @@ import {
   postBillingCheckoutJson,
   postBillingPortalJson,
 } from "../../utils/apiClient";
+import { clearUserBillingCheckoutIntent, readUserBillingCheckoutIntent } from "../../utils/storage";
 
 function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -162,6 +163,34 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
       cancelled = true;
     };
   }, [currentUser?.name, resolvedUserEmail]);
+
+  useEffect(() => {
+    const intent = readUserBillingCheckoutIntent();
+
+    if (!intent) {
+      return;
+    }
+
+    const suggestedPlanId = normalizeText(intent?.suggestedPlanId).toLowerCase();
+    const hasSuggestedPlan = AVAILABLE_PLANS.some((plan) => plan.id === suggestedPlanId);
+    const managementType = normalizeText(intent?.managementType).toLowerCase();
+    const managementLabel = managementType === "valuation" ? "tasación" : "gestión";
+    const estimatedPrice = normalizeText(intent?.estimatedPrice);
+
+    setActiveAccountTab("subscription");
+
+    if (hasSuggestedPlan) {
+      setSelectedPlanId(suggestedPlanId);
+    }
+
+    setBillingFeedback(
+      estimatedPrice
+        ? `Has llegado desde Nueva gestión (${managementLabel}). Precio puntual estimado: ${estimatedPrice}. Puedes hacer checkout del plan sugerido.`
+        : `Has llegado desde Nueva gestión (${managementLabel}). Puedes hacer checkout del plan sugerido.`
+    );
+
+    clearUserBillingCheckoutIntent();
+  }, []);
 
   const invoices = Array.isArray(billingState?.invoices) ? billingState.invoices : [];
   const paidInvoicesCount = invoices.filter((invoice) => normalizeText(invoice?.status).toLowerCase() === "paid").length;

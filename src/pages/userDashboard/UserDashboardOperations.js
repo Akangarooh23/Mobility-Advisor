@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { getGarageVehiclesJson } from "../../utils/apiClient";
+import { readUserBillingState, writeUserBillingCheckoutIntent } from "../../utils/storage";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 
@@ -64,6 +65,50 @@ function inferValuationStage(item = {}) {
   return "pending";
 }
 
+function normalizePlanId(value = "") {
+  const normalized = normalizeText(value).toLowerCase();
+  return normalized || "gratis";
+}
+
+function getPlanCoverage(planId = "gratis", managementType = "appointment", appointmentType = "workshop") {
+  const normalizedPlanId = normalizePlanId(planId);
+
+  const valuationCoverageByPlan = {
+    gratis: { included: false, estimatedPrice: "59 EUR", note: "Pago por gestión" },
+    bronce: { included: false, estimatedPrice: "39 EUR", note: "Descuento de plan aplicado" },
+    plata: { included: true, estimatedPrice: "Incluida", note: "1 tasación incluida" },
+    oro: { included: true, estimatedPrice: "Incluida", note: "Cupo de tasaciones incluido" },
+    platino: { included: true, estimatedPrice: "Incluida", note: "Cupo alto incluido" },
+  };
+
+  const appointmentCoverageByPlan = {
+    gratis: { included: false, estimatedPrice: "25 EUR", note: "Pago por gestión" },
+    bronce: { included: false, estimatedPrice: "19 EUR", note: "Precio reducido por plan" },
+    plata: { included: true, estimatedPrice: "Incluida", note: "Gestión asistida incluida" },
+    oro: { included: true, estimatedPrice: "Incluida", note: "Gestión prioritaria incluida" },
+    platino: { included: true, estimatedPrice: "Incluida", note: "Gestión premium incluida" },
+  };
+
+  const maintenanceExtra =
+    managementType === "appointment" && normalizeText(appointmentType) === "maintenance"
+      ? " · Incluye checklist preventivo"
+      : "";
+
+  if (managementType === "valuation") {
+    return valuationCoverageByPlan[normalizedPlanId] || valuationCoverageByPlan.gratis;
+  }
+
+  const baseCoverage = appointmentCoverageByPlan[normalizedPlanId] || appointmentCoverageByPlan.gratis;
+  return {
+    ...baseCoverage,
+    note: `${baseCoverage.note}${maintenanceExtra}`,
+  };
+}
+
+function getSuggestedPlanForManagement(managementType = "appointment") {
+  return managementType === "valuation" ? "plata" : "bronce";
+}
+
 export default function UserDashboardOperations({
   themeMode,
   isMobile = false,
@@ -87,15 +132,15 @@ export default function UserDashboardOperations({
   const cardBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(37,99,235,0.3)";
 
   const [activeTab, setActiveTab] = useState(initialTab);
-  const [showAppointmentForm, setShowAppointmentForm] = useState(false);
-  const [appointmentType, setAppointmentType] = useState("workshop");
-  const [selectedVehicleId, setSelectedVehicleId] = useState("");
+  const [showManagementWizard, setShowManagementWizard] = useState(false);
+  const [managementType, setManagementType] = useState(initialTab === "valuations" ? "valuation" : "appointment");
+  const [managementVehicleId, setManagementVehicleId] = useState("");
+  const [managementAppointmentType, setManagementAppointmentType] = useState("workshop");
+  const [managementValuationSource, setManagementValuationSource] = useState("garage");
   const [appointmentFeedback, setAppointmentFeedback] = useState("");
-  const [showValuationForm, setShowValuationForm] = useState(false);
-  const [valuationSource, setValuationSource] = useState("scratch");
-  const [selectedValuationVehicleId, setSelectedValuationVehicleId] = useState("");
   const [valuationFeedback, setValuationFeedback] = useState("");
   const [garageVehicles, setGarageVehicles] = useState(() => readGarageVehicles(currentUserEmail));
+  const [billingPlanState, setBillingPlanState] = useState(() => readUserBillingState());
 
   useEffect(() => {
     setActiveTab(initialTab);
@@ -135,17 +180,29 @@ export default function UserDashboardOperations({
 
   useEffect(() => {
     if (activeTab !== "appointments") {
-      setShowAppointmentForm(false);
       setAppointmentFeedback("");
     }
   }, [activeTab]);
 
   useEffect(() => {
     if (activeTab !== "valuations") {
-      setShowValuationForm(false);
       setValuationFeedback("");
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const refreshBillingState = () => {
+      setBillingPlanState(readUserBillingState());
+    };
+
+    refreshBillingState();
+    window.addEventListener("storage", refreshBillingState);
+    return () => window.removeEventListener("storage", refreshBillingState);
+  }, []);
   const visibleTabOptions =
     initialTab === "appointments"
       ? [["appointments", "Citas"]]
@@ -196,12 +253,16 @@ export default function UserDashboardOperations({
     { pending: 0, active: 0, closed: 0 }
   );
 
-  const garageVehiclesWithPlate = useMemo(
-    () => (Array.isArray(garageVehicles) ? garageVehicles.filter((vehicle) => normalizeText(vehicle?.plate)) : []),
+  const garageVehiclesForValuation = useMemo(
+    () => (Array.isArray(garageVehicles) ? garageVehicles.filter((vehicle) => normalizeText(vehicle?.id)) : []),
     [garageVehicles]
   );
 
-  const openAppointmentForm = async () => {
+  const currentPlanLabel = normalizeText(billingPlanState?.planLabel) || "Plan Gratis";
+  const currentPlanId = normalizePlanId(billingPlanState?.planId);
+  const managementCoverage = getPlanCoverage(currentPlanId, managementType, managementAppointmentType);
+
+  const refreshGarageVehicles = async () => {
     let nextGarageVehicles = readGarageVehicles(currentUserEmail);
 
     try {
@@ -211,58 +272,59 @@ export default function UserDashboardOperations({
     }
 
     setGarageVehicles(nextGarageVehicles);
-    setSelectedVehicleId(nextGarageVehicles[0]?.id || "");
-    setAppointmentType("workshop");
-    setShowAppointmentForm(true);
+    return nextGarageVehicles;
+  };
+
+  const openManagementWizard = async (type = activeTab === "valuations" ? "valuation" : "appointment") => {
+    const nextGarageVehicles = await refreshGarageVehicles();
+    setManagementType(type);
+    setManagementVehicleId(nextGarageVehicles[0]?.id || "");
+    setManagementAppointmentType("workshop");
+    setManagementValuationSource("garage");
+    setShowManagementWizard(true);
     setAppointmentFeedback("");
-  };
-
-  const submitAppointmentRequest = () => {
-    const selectedVehicle = garageVehicles.find((vehicle) => vehicle.id === selectedVehicleId);
-
-    if (!selectedVehicle) {
-      setAppointmentFeedback("Debes seleccionar uno de tus vehículos para pedir la cita.");
-      return;
-    }
-
-    onRequestAppointment(appointmentType, {
-      vehicleId: selectedVehicle.id,
-      vehicleTitle: selectedVehicle.title || `${selectedVehicle.brand || ""} ${selectedVehicle.model || ""}`.trim(),
-      vehiclePlate: selectedVehicle.plate || "",
-    });
-
-    const selectedTypeLabel = appointmentTypeOptions.find((option) => option.key === appointmentType)?.label || "Cita";
-    const vehicleLabel = selectedVehicle.title || `${selectedVehicle.brand || ""} ${selectedVehicle.model || ""}`.trim();
-    setAppointmentFeedback(`${selectedTypeLabel} solicitada para ${vehicleLabel}.`);
-    setShowAppointmentForm(false);
-  };
-
-  const openValuationForm = async () => {
-    let nextGarageVehicles = readGarageVehicles(currentUserEmail);
-
-    try {
-      nextGarageVehicles = await fetchGarageVehiclesFromApi(currentUserEmail);
-    } catch {
-      // Keep local fallback when API is unavailable.
-    }
-
-    setGarageVehicles(nextGarageVehicles);
-    const withPlate = Array.isArray(nextGarageVehicles) ? nextGarageVehicles.filter((vehicle) => normalizeText(vehicle?.plate)) : [];
-    setSelectedValuationVehicleId(withPlate[0]?.id || "");
-    setValuationSource("scratch");
-    setShowValuationForm(true);
     setValuationFeedback("");
   };
 
-  const submitValuationRequest = () => {
-    if (valuationSource === "scratch") {
-      onRequestValuation();
-      setValuationFeedback("Nueva tasación iniciada desde cero.");
-      setShowValuationForm(false);
+  const submitManagementWizard = () => {
+    if (managementType === "appointment") {
+      const selectedVehicle = garageVehicles.find((vehicle) => vehicle.id === managementVehicleId);
+
+      if (!selectedVehicle) {
+        setAppointmentFeedback("Debes seleccionar uno de tus vehículos para pedir la cita.");
+        return;
+      }
+
+      onRequestAppointment(managementAppointmentType, {
+        vehicleId: selectedVehicle.id,
+        vehicleTitle: selectedVehicle.title || `${selectedVehicle.brand || ""} ${selectedVehicle.model || ""}`.trim(),
+        vehiclePlate: selectedVehicle.plate || "",
+      });
+
+      const selectedTypeLabel = appointmentTypeOptions.find((option) => option.key === managementAppointmentType)?.label || "Cita";
+      const vehicleLabel = selectedVehicle.title || `${selectedVehicle.brand || ""} ${selectedVehicle.model || ""}`.trim();
+      setAppointmentFeedback(
+        managementCoverage.included
+          ? `${selectedTypeLabel} solicitada para ${vehicleLabel}. Incluida en ${currentPlanLabel}.`
+          : `${selectedTypeLabel} solicitada para ${vehicleLabel}. Servicio de pago por gestión (${managementCoverage.estimatedPrice}).`
+      );
+      setShowManagementWizard(false);
       return;
     }
 
-    const selectedVehicle = garageVehiclesWithPlate.find((vehicle) => vehicle.id === selectedValuationVehicleId);
+    if (managementValuationSource === "scratch") {
+      onRequestValuation();
+      setValuationFeedback(
+        managementCoverage.included
+          ? `Nueva tasación iniciada desde cero. Incluida en ${currentPlanLabel}.`
+          : `Nueva tasación iniciada desde cero. Gestión puntual (${managementCoverage.estimatedPrice}).`
+      );
+      setShowManagementWizard(false);
+      return;
+    }
+
+    const selectedVehicle = garageVehiclesForValuation.find((vehicle) => vehicle.id === managementVehicleId);
+
     if (!selectedVehicle) {
       setValuationFeedback("Selecciona uno de tus vehículos para iniciar la tasación.");
       return;
@@ -280,9 +342,24 @@ export default function UserDashboardOperations({
     });
 
     setValuationFeedback(
-      `Nueva tasación iniciada para ${selectedVehicle.plate ? `matrícula ${selectedVehicle.plate}` : selectedVehicle.title || "tu vehículo"}.`
+      managementCoverage.included
+        ? `Nueva tasación iniciada para ${selectedVehicle.plate ? `matrícula ${selectedVehicle.plate}` : selectedVehicle.title || "tu vehículo"}. Incluida en ${currentPlanLabel}.`
+        : `Nueva tasación iniciada para ${selectedVehicle.plate ? `matrícula ${selectedVehicle.plate}` : selectedVehicle.title || "tu vehículo"}. Gestión puntual (${managementCoverage.estimatedPrice}).`
     );
-    setShowValuationForm(false);
+    setShowManagementWizard(false);
+  };
+
+  const goToBillingForManagement = () => {
+    writeUserBillingCheckoutIntent({
+      source: "operations-wizard",
+      managementType,
+      appointmentType: managementType === "appointment" ? managementAppointmentType : "",
+      suggestedPlanId: getSuggestedPlanForManagement(managementType),
+      estimatedPrice: managementCoverage.estimatedPrice,
+      createdAt: new Date().toISOString(),
+    });
+
+    onNavigate("billing");
   };
 
   return (
@@ -347,13 +424,13 @@ export default function UserDashboardOperations({
         })}
       </div>
 
-      {activeTab === "valuations" ? (
-        <div style={{ display: "grid", gap: 10, marginBottom: 12 }}>
+      <div style={{ display: "grid", gap: 10, marginBottom: 12 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button
             type="button"
-            onClick={openValuationForm}
+            onClick={() => openManagementWizard(activeTab === "valuations" ? "valuation" : "appointment")}
             style={{
-              background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
+              background: activeTab === "valuations" ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "linear-gradient(135deg,#f59e0b,#d97706)",
               border: "none",
               color: "#ffffff",
               padding: "9px 12px",
@@ -361,208 +438,98 @@ export default function UserDashboardOperations({
               fontSize: 12,
               fontWeight: 800,
               cursor: "pointer",
-              boxShadow: "0 10px 18px rgba(37,99,235,0.24)",
+              boxShadow: activeTab === "valuations" ? "0 10px 18px rgba(37,99,235,0.24)" : "0 10px 18px rgba(217,119,6,0.24)",
               width: isMobile ? "100%" : "auto",
             }}
           >
-            Nueva tasación
+            Nueva gestión
           </button>
-
-          {showValuationForm && (
-            <div
-              style={{
-                background: cardBg,
-                border: panelBorder,
-                borderRadius: 12,
-                padding: 12,
-                display: "grid",
-                gap: 10,
-              }}
-            >
-              <div style={{ fontSize: 12, color: bodyColor }}>
-                Elige si quieres empezar la tasación desde cero o usando la matrícula de uno de tus vehículos.
-              </div>
-
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <button
-                  type="button"
-                  onClick={() => setValuationSource("scratch")}
-                  style={{
-                    background: valuationSource === "scratch" ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "transparent",
-                    border: valuationSource === "scratch" ? "none" : cardBorder,
-                    color: valuationSource === "scratch" ? "#eff6ff" : isDark ? "#cbd5e1" : "#334155",
-                    padding: "8px 10px",
-                    borderRadius: 999,
-                    fontSize: 11,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                  }}
-                >
-                  Empezar desde cero
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setValuationSource("garage")}
-                  style={{
-                    background: valuationSource === "garage" ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "transparent",
-                    border: valuationSource === "garage" ? "none" : cardBorder,
-                    color: valuationSource === "garage" ? "#eff6ff" : isDark ? "#cbd5e1" : "#334155",
-                    padding: "8px 10px",
-                    borderRadius: 999,
-                    fontSize: 11,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                  }}
-                >
-                  Usar matrícula de Mis vehículos
-                </button>
-              </div>
-
-              {valuationSource === "garage" ? (
-                <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                  Matrícula del vehículo
-                  <select
-                    value={selectedValuationVehicleId}
-                    onChange={(event) => setSelectedValuationVehicleId(event.target.value)}
-                    style={{
-                      background: isDark ? "#0f1b2d" : "#ffffff",
-                      border: cardBorder,
-                      borderRadius: 10,
-                      padding: "9px 10px",
-                      color: titleColor,
-                      fontSize: 12,
-                    }}
-                  >
-                    {garageVehiclesWithPlate.length > 0 ? (
-                      garageVehiclesWithPlate.map((vehicle) => (
-                        <option key={vehicle.id} value={vehicle.id}>
-                          {vehicle.plate || "Sin matrícula"}
-                          {` · ${vehicle.title || `${vehicle.brand || ""} ${vehicle.model || ""}`.trim()}`}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="">No hay vehículos en Mis vehículos</option>
-                    )}
-                  </select>
-                </label>
-              ) : null}
-
-              {valuationSource === "garage" && garageVehiclesWithPlate.length === 0 ? (
-                <div style={{ display: "grid", gap: 8 }}>
-                  <div style={{ fontSize: 12, color: "#b45309" }}>
-                    Primero sube al menos un vehículo con matrícula en Mis vehículos para usar esta opción.
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate("vehicles")}
-                    style={{
-                      background: "rgba(37,99,235,0.12)",
-                      border: "1px solid rgba(96,165,250,0.24)",
-                      color: "#1e3a8a",
-                      padding: "8px 10px",
-                      borderRadius: 10,
-                      fontSize: 12,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      width: isMobile ? "100%" : "fit-content",
-                    }}
-                  >
-                    Ir a Mis vehículos
-                  </button>
-                </div>
-              ) : null}
-
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <button
-                  type="button"
-                  onClick={submitValuationRequest}
-                  disabled={valuationSource === "garage" && garageVehiclesWithPlate.length === 0}
-                  style={{
-                    background:
-                      valuationSource === "garage" && garageVehiclesWithPlate.length === 0
-                        ? "rgba(148,163,184,0.24)"
-                        : "linear-gradient(135deg,#2563eb,#1d4ed8)",
-                    border: "none",
-                    color: valuationSource === "garage" && garageVehiclesWithPlate.length === 0 ? "#64748b" : "#ffffff",
-                    padding: "9px 12px",
-                    borderRadius: 10,
-                    fontSize: 12,
-                    fontWeight: 800,
-                    cursor: valuationSource === "garage" && garageVehiclesWithPlate.length === 0 ? "not-allowed" : "pointer",
-                    width: isMobile ? "100%" : "auto",
-                  }}
-                >
-                  Iniciar tasación
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowValuationForm(false)}
-                  style={{
-                    background: "rgba(148,163,184,0.14)",
-                    border: cardBorder,
-                    color: isDark ? "#e2e8f0" : "#334155",
-                    padding: "9px 12px",
-                    borderRadius: 10,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    width: isMobile ? "100%" : "auto",
-                  }}
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          )}
-
-          {valuationFeedback ? (
-            <div style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>{valuationFeedback}</div>
-          ) : null}
         </div>
-      ) : (
-        <div style={{ display: "grid", gap: 10, marginBottom: 12 }}>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button
-              type="button"
-              onClick={openAppointmentForm}
-              style={{
-                background: "linear-gradient(135deg,#f59e0b,#d97706)",
-                border: "none",
-                color: "#ffffff",
-                padding: "9px 12px",
-                borderRadius: 999,
-                fontSize: 12,
-                fontWeight: 800,
-                cursor: "pointer",
-                boxShadow: "0 10px 18px rgba(217,119,6,0.24)",
-                width: isMobile ? "100%" : "auto",
-              }}
-            >
-              Pedir cita
-            </button>
-          </div>
 
-          {showAppointmentForm && (
-            <div
-              style={{
-                background: cardBg,
-                border: panelBorder,
-                borderRadius: 12,
-                padding: 12,
-                display: "grid",
-                gap: 10,
-              }}
-            >
-              <div style={{ fontSize: 12, color: bodyColor }}>
-                Selecciona tipo de cita y uno de tus vehículos para enviar la solicitud.
-              </div>
+        {showManagementWizard && (
+          <div
+            style={{
+              background: cardBg,
+              border: panelBorder,
+              borderRadius: 12,
+              padding: 12,
+              display: "grid",
+              gap: 10,
+            }}
+          >
+            <div style={{ fontSize: 12, color: bodyColor }}>
+              Crea una gestión desde un único flujo: selecciona vehículo y tipo de servicio.
+            </div>
 
-              <div style={{ display: "grid", gap: 10, gridTemplateColumns: isMobile ? "1fr" : "repeat(2,minmax(0,1fr))" }}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={() => setManagementType("appointment")}
+                style={{
+                  background: managementType === "appointment" ? "linear-gradient(135deg,#f59e0b,#d97706)" : "transparent",
+                  border: managementType === "appointment" ? "none" : cardBorder,
+                  color: managementType === "appointment" ? "#ffffff" : isDark ? "#cbd5e1" : "#334155",
+                  padding: "8px 10px",
+                  borderRadius: 999,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Cita / mantenimiento
+              </button>
+              <button
+                type="button"
+                onClick={() => setManagementType("valuation")}
+                style={{
+                  background: managementType === "valuation" ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "transparent",
+                  border: managementType === "valuation" ? "none" : cardBorder,
+                  color: managementType === "valuation" ? "#eff6ff" : isDark ? "#cbd5e1" : "#334155",
+                  padding: "8px 10px",
+                  borderRadius: 999,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Tasación
+              </button>
+            </div>
+
+            <div style={{ display: "grid", gap: 10, gridTemplateColumns: isMobile ? "1fr" : "repeat(2,minmax(0,1fr))" }}>
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
+                Vehículo
+                <select
+                  value={managementVehicleId}
+                  onChange={(event) => setManagementVehicleId(event.target.value)}
+                  style={{
+                    background: isDark ? "#0f1b2d" : "#ffffff",
+                    border: cardBorder,
+                    borderRadius: 10,
+                    padding: "9px 10px",
+                    color: titleColor,
+                    fontSize: 12,
+                  }}
+                >
+                  {garageVehiclesForValuation.length > 0 ? (
+                    garageVehiclesForValuation.map((vehicle) => (
+                      <option key={vehicle.id} value={vehicle.id}>
+                        {vehicle.title || `${vehicle.brand || ""} ${vehicle.model || ""}`.trim()}
+                        {vehicle.plate ? ` · ${vehicle.plate}` : ""}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="">No hay vehículos en Mis vehículos</option>
+                  )}
+                </select>
+              </label>
+
+              {managementType === "appointment" ? (
                 <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
                   Tipo de cita
                   <select
-                    value={appointmentType}
-                    onChange={(event) => setAppointmentType(event.target.value)}
+                    value={managementAppointmentType}
+                    onChange={(event) => setManagementAppointmentType(event.target.value)}
                     style={{
                       background: isDark ? "#0f1b2d" : "#ffffff",
                       border: cardBorder,
@@ -579,12 +546,12 @@ export default function UserDashboardOperations({
                     ))}
                   </select>
                 </label>
-
+              ) : (
                 <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                  Vehículo
+                  Modo de tasación
                   <select
-                    value={selectedVehicleId}
-                    onChange={(event) => setSelectedVehicleId(event.target.value)}
+                    value={managementValuationSource}
+                    onChange={(event) => setManagementValuationSource(event.target.value)}
                     style={{
                       background: isDark ? "#0f1b2d" : "#ffffff",
                       border: cardBorder,
@@ -594,90 +561,126 @@ export default function UserDashboardOperations({
                       fontSize: 12,
                     }}
                   >
-                    {garageVehicles.length > 0 ? (
-                      garageVehicles.map((vehicle) => (
-                        <option key={vehicle.id} value={vehicle.id}>
-                          {vehicle.title || `${vehicle.brand || ""} ${vehicle.model || ""}`.trim()}
-                          {vehicle.plate ? ` · ${vehicle.plate}` : ""}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="">No hay vehículos en Mis vehículos</option>
-                    )}
+                    <option value="garage">Usar datos de Mis vehículos</option>
+                    <option value="scratch">Empezar desde cero</option>
                   </select>
                 </label>
-              </div>
-
-              {garageVehicles.length === 0 && (
-                <div style={{ display: "grid", gap: 8 }}>
-                  <div style={{ fontSize: 12, color: "#b45309" }}>
-                    Primero sube al menos un vehículo en Mis vehículos para poder pedir cita.
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate("vehicles")}
-                    style={{
-                      background: "rgba(37,99,235,0.12)",
-                      border: "1px solid rgba(96,165,250,0.24)",
-                      color: "#1e3a8a",
-                      padding: "8px 10px",
-                      borderRadius: 10,
-                      fontSize: 12,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      width: isMobile ? "100%" : "fit-content",
-                    }}
-                  >
-                    Ir a Mis vehículos
-                  </button>
-                </div>
               )}
+            </div>
 
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div
+              style={{
+                border: cardBorder,
+                borderRadius: 10,
+                padding: "10px 12px",
+                background: managementCoverage.included
+                  ? isDark
+                    ? "rgba(16,185,129,0.16)"
+                    : "rgba(16,185,129,0.1)"
+                  : isDark
+                  ? "rgba(245,158,11,0.16)"
+                  : "rgba(245,158,11,0.1)",
+                display: "grid",
+                gap: 4,
+              }}
+            >
+              <div style={{ fontSize: 11, fontWeight: 800, color: managementCoverage.included ? "#065f46" : "#92400e" }}>
+                Cobertura de tu plan · {currentPlanLabel}
+              </div>
+              <div style={{ fontSize: 12, color: titleColor }}>
+                {managementCoverage.included ? "Servicio incluido" : "Servicio de pago por gestión"} · {managementCoverage.estimatedPrice}
+              </div>
+              <div style={{ fontSize: 11, color: bodyColor }}>{managementCoverage.note}</div>
+            </div>
+
+            {garageVehiclesForValuation.length === 0 && (
+              <div style={{ display: "grid", gap: 8 }}>
+                <div style={{ fontSize: 12, color: "#b45309" }}>
+                  Primero sube al menos un vehículo en Mis vehículos para crear gestiones.
+                </div>
                 <button
                   type="button"
-                  onClick={submitAppointmentRequest}
-                  disabled={garageVehicles.length === 0}
+                  onClick={() => onNavigate("vehicles")}
                   style={{
-                    background: garageVehicles.length > 0 ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "rgba(148,163,184,0.24)",
-                    border: "none",
-                    color: garageVehicles.length > 0 ? "#ffffff" : "#64748b",
-                    padding: "9px 12px",
-                    borderRadius: 10,
-                    fontSize: 12,
-                    fontWeight: 800,
-                    cursor: garageVehicles.length > 0 ? "pointer" : "not-allowed",
-                    width: isMobile ? "100%" : "auto",
-                  }}
-                >
-                  Confirmar cita
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowAppointmentForm(false)}
-                  style={{
-                    background: "rgba(148,163,184,0.14)",
-                    border: cardBorder,
-                    color: isDark ? "#e2e8f0" : "#334155",
-                    padding: "9px 12px",
+                    background: "rgba(37,99,235,0.12)",
+                    border: "1px solid rgba(96,165,250,0.24)",
+                    color: "#1e3a8a",
+                    padding: "8px 10px",
                     borderRadius: 10,
                     fontSize: 12,
                     fontWeight: 700,
                     cursor: "pointer",
-                    width: isMobile ? "100%" : "auto",
+                    width: isMobile ? "100%" : "fit-content",
                   }}
                 >
-                  Cancelar
+                  Ir a Mis vehículos
                 </button>
               </div>
-            </div>
-          )}
+            )}
 
-          {appointmentFeedback && (
-            <div style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>{appointmentFeedback}</div>
-          )}
-        </div>
-      )}
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={submitManagementWizard}
+                disabled={garageVehiclesForValuation.length === 0}
+                style={{
+                  background: garageVehiclesForValuation.length > 0 ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "rgba(148,163,184,0.24)",
+                  border: "none",
+                  color: garageVehiclesForValuation.length > 0 ? "#ffffff" : "#64748b",
+                  padding: "9px 12px",
+                  borderRadius: 10,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  cursor: garageVehiclesForValuation.length > 0 ? "pointer" : "not-allowed",
+                  width: isMobile ? "100%" : "auto",
+                }}
+              >
+                {managementCoverage.included ? "Incluido, continuar" : "Continuar como pago puntual"}
+              </button>
+              {!managementCoverage.included && (
+                <button
+                  type="button"
+                  onClick={goToBillingForManagement}
+                  style={{
+                    background: "linear-gradient(135deg,#0ea5e9,#0284c7)",
+                    border: "none",
+                    color: "#ffffff",
+                    padding: "9px 12px",
+                    borderRadius: 10,
+                    fontSize: 12,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    width: isMobile ? "100%" : "auto",
+                    boxShadow: "0 10px 18px rgba(2,132,199,0.22)",
+                  }}
+                >
+                  Comprar gestión
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowManagementWizard(false)}
+                style={{
+                  background: "rgba(148,163,184,0.14)",
+                  border: cardBorder,
+                  color: isDark ? "#e2e8f0" : "#334155",
+                  padding: "9px 12px",
+                  borderRadius: 10,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  width: isMobile ? "100%" : "auto",
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+
+        {appointmentFeedback && <div style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>{appointmentFeedback}</div>}
+        {valuationFeedback && <div style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>{valuationFeedback}</div>}
+      </div>
 
       {filteredRows.length > 0 ? (
         <div style={{ display: "grid", gap: 10 }}>

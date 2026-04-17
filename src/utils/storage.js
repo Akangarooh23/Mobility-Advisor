@@ -6,6 +6,7 @@ const MARKET_ALERT_STATUS_KEY = "movilidad-advisor.marketAlertStatus.v1";
 const AUTH_USER_KEY = "movilidad-advisor.authUser.v1";
 const USER_BILLING_PROFILE_KEY = "movilidad-advisor.userBillingProfile.v1";
 const USER_BILLING_STATE_KEY = "movilidad-advisor.userBillingState.v1";
+const USER_BILLING_CHECKOUT_INTENT_KEY = "movilidad-advisor.userBillingCheckoutIntent.v1";
 const COOKIE_CONSENT_KEY = "movilidad-advisor.cookieConsent.v1";
 
 function normalizeText(value) {
@@ -342,6 +343,67 @@ export function writeUserBillingState(state = {}) {
         invoices: Array.isArray(safeState.invoices) ? safeState.invoices.slice(0, 24) : getDefaultBillingState().invoices,
       })
     );
+  } catch {}
+}
+
+export function readUserBillingCheckoutIntent() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(USER_BILLING_CHECKOUT_INTENT_KEY);
+    const parsed = JSON.parse(raw || "null");
+
+    if (!parsed || typeof parsed !== "object") {
+      return null;
+    }
+
+    return {
+      source: normalizeText(parsed.source),
+      managementType: normalizeText(parsed.managementType),
+      appointmentType: normalizeText(parsed.appointmentType),
+      suggestedPlanId: normalizeText(parsed.suggestedPlanId),
+      estimatedPrice: normalizeText(parsed.estimatedPrice),
+      createdAt: normalizeText(parsed.createdAt),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function writeUserBillingCheckoutIntent(intent = null) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    if (!intent || typeof intent !== "object") {
+      window.localStorage.removeItem(USER_BILLING_CHECKOUT_INTENT_KEY);
+      return;
+    }
+
+    window.localStorage.setItem(
+      USER_BILLING_CHECKOUT_INTENT_KEY,
+      JSON.stringify({
+        source: normalizeText(intent.source),
+        managementType: normalizeText(intent.managementType),
+        appointmentType: normalizeText(intent.appointmentType),
+        suggestedPlanId: normalizeText(intent.suggestedPlanId),
+        estimatedPrice: normalizeText(intent.estimatedPrice),
+        createdAt: normalizeText(intent.createdAt || new Date().toISOString()),
+      })
+    );
+  } catch {}
+}
+
+export function clearUserBillingCheckoutIntent() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.removeItem(USER_BILLING_CHECKOUT_INTENT_KEY);
   } catch {}
 }
 

@@ -417,6 +417,7 @@ export default function UserDashboardPage({
           panelStyle={panelStyle}
           getOfferBadgeStyle={getOfferBadgeStyle}
           onRequestAppointment={onRequestAppointment}
+          onRequestValuation={onRequestValuation}
           onUpdateAppointmentStatus={onUpdateAppointmentStatus}
           onNavigate={onNavigate}
           onBrowseMarketplace={onBrowseMarketplace}

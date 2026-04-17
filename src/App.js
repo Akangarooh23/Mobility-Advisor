@@ -54,11 +54,15 @@ import {
 } from "./utils/advisorResults";
 import {
   getAuthSessionJson,
+  getUserMobilityDataJson,
   getVehicleCatalogJson,
   postAlertEmailDigestJson,
+  postAppointmentAddJson,
   postAuthJson,
   postBillingCheckoutJson,
   postListingJson,
+  postSavedOfferAddJson,
+  postSavedOfferRemoveJson,
 } from "./utils/apiClient";
 import {
   ANALYSIS_LOADING_PHASES,
@@ -481,6 +485,8 @@ export default function App() {
   const [sellListingError, setSellListingError] = useState(null);
   const [savedComparisons, setSavedComparisons] = useState([]);
   const [userAppointments, setUserAppointments] = useState([]);
+  const [userValuations, setUserValuations] = useState([]);
+  const [userVehicleStates, setUserVehicleStates] = useState([]);
   const [marketAlerts, setMarketAlerts] = useState([]);
   const [marketAlertStatus, setMarketAlertStatus] = useState({});
   const [marketBrandsCatalog, setMarketBrandsCatalog] = useState({});
@@ -720,12 +726,14 @@ export default function App() {
       buildUserDashboardModel({
         savedComparisons,
         userAppointments,
+        userValuations,
+        userVehicleStates,
         result,
         sellAiResult,
         sellAnswers,
         sellListingResult,
       }),
-    [savedComparisons, userAppointments, result, sellAiResult, sellAnswers, sellListingResult]
+    [savedComparisons, userAppointments, userValuations, userVehicleStates, result, sellAiResult, sellAnswers, sellListingResult]
   );
 
   useEffect(() => {
@@ -772,6 +780,47 @@ export default function App() {
       }
     })();
   }, []);
+
+  useEffect(() => {
+    let disposed = false;
+
+    if (!currentUserEmail) {
+      setUserValuations([]);
+      setUserVehicleStates([]);
+      return () => {
+        disposed = true;
+      };
+    }
+
+    void (async () => {
+      try {
+        const { response, data } = await getUserMobilityDataJson(currentUserEmail);
+
+        if (!response.ok || disposed) {
+          return;
+        }
+
+        const nextSaved = Array.isArray(data?.savedOffers) ? data.savedOffers.slice(0, 6) : [];
+        const nextAppointments = Array.isArray(data?.appointments) ? data.appointments.slice(0, 8) : [];
+        const nextValuations = Array.isArray(data?.valuations) ? data.valuations.slice(0, 12) : [];
+        const nextVehicleStates = Array.isArray(data?.vehicleStates) ? data.vehicleStates.slice(0, 30) : [];
+
+        setSavedComparisons(nextSaved);
+        setUserAppointments(nextAppointments);
+        setUserValuations(nextValuations);
+        setUserVehicleStates(nextVehicleStates);
+
+        writeSavedComparisons(nextSaved);
+        writeUserAppointments(nextAppointments);
+      } catch {
+        // Keep local fallback if mobility API is unavailable.
+      }
+    })();
+
+    return () => {
+      disposed = true;
+    };
+  }, [currentUserEmail]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -991,6 +1040,11 @@ export default function App() {
     const next = [snapshot, ...savedComparisons.filter((item) => item.id !== snapshot.id)].slice(0, 6);
     writeSavedComparisons(next);
     setSavedComparisons(next);
+
+    if (currentUserEmail) {
+      void postSavedOfferAddJson(currentUserEmail, snapshot).catch(() => {});
+    }
+
     setSaveFeedback(
       selectedOffer
         ? "Recomendación guardada en Recomendaciones guardadas."
@@ -1029,6 +1083,11 @@ export default function App() {
       const next = savedComparisons.filter((item) => item.id !== snapshot.id);
       writeSavedComparisons(next);
       setSavedComparisons(next);
+
+      if (currentUserEmail) {
+        void postSavedOfferRemoveJson(currentUserEmail, snapshot.id).catch(() => {});
+      }
+
       setSaveFeedback("Recomendación quitada de guardadas.");
       window.setTimeout(() => setSaveFeedback(""), 2200);
       return;
@@ -1041,6 +1100,10 @@ export default function App() {
     const next = savedComparisons.filter((item) => item.id !== id);
     writeSavedComparisons(next);
     setSavedComparisons(next);
+
+    if (currentUserEmail) {
+      void postSavedOfferRemoveJson(currentUserEmail, id).catch(() => {});
+    }
   };
 
   const openAuthDialog = useCallback((mode = "login", options = {}) => {
@@ -1767,7 +1830,7 @@ export default function App() {
     });
   };
 
-  const requestUserAppointment = (type, context = {}) => {
+  const requestUserAppointment = async (type, context = {}) => {
     const appointmentCatalog = {
       workshop: {
         title: "Cita de taller",
@@ -1806,7 +1869,25 @@ export default function App() {
       }),
     };
 
-    const next = [appointment, ...userAppointments].slice(0, 8);
+    let next = [appointment, ...userAppointments].slice(0, 8);
+
+    if (currentUserEmail && normalizeText(context?.vehicleId)) {
+      try {
+        const { data } = await postAppointmentAddJson(currentUserEmail, {
+          ...appointment,
+          vehicleId: normalizeText(context?.vehicleId),
+          vehicleTitle: normalizeText(context?.vehicleTitle),
+          vehiclePlate: normalizeText(context?.vehiclePlate),
+        });
+
+        if (Array.isArray(data?.appointments)) {
+          next = data.appointments.slice(0, 8);
+        }
+      } catch {
+        // Fallback to local storage when API is unavailable.
+      }
+    }
+
     writeUserAppointments(next);
     setUserAppointments(next);
     setSaveFeedback(`${template.title} solicitada correctamente.`);

@@ -3,6 +3,8 @@ import { normalizeText } from "./offerHelpers";
 export function buildUserDashboardModel({
   savedComparisons = [],
   userAppointments = [],
+  userValuations = [],
+  userVehicleStates = [],
   result = null,
   sellAiResult = null,
   sellAnswers = {},
@@ -25,39 +27,90 @@ export function buildUserDashboardModel({
 
   const dashboardAppointments = [...userAppointments, ...advisorAppointments].slice(0, 6);
 
-  const dashboardValuations = sellAiResult
+  const persistedValuations = Array.isArray(userValuations)
+    ? userValuations
+        .map((item) => ({
+          id: normalizeText(item?.id),
+          title: normalizeText(item?.title) || normalizeText(item?.vehicleTitle) || "Vehiculo en valoracion",
+          meta: normalizeText(item?.meta) || normalizeText(item?.report),
+          status: normalizeText(item?.status) || "Ultima tasacion disponible",
+        }))
+        .filter((item) => item.id)
+        .slice(0, 6)
+    : [];
+
+  const derivedValuations = sellAiResult
     ? [
         {
           id: "sell-valuation",
           title:
             sellAnswers?.brand && sellAnswers?.model
               ? `${sellAnswers.brand} ${sellAnswers.model}`
-              : "Vehículo en valoración",
+              : "Vehiculo en valoracion",
           meta:
             normalizeText(sellAiResult?.report) ||
-            "Tasación generada a partir del estado, kilometraje y demanda estimada.",
-          status: sellListingResult ? "Tasación vinculada a venta activa" : "Última tasación disponible",
+            "Tasacion generada a partir del estado, kilometraje y demanda estimada.",
+          status: sellListingResult ? "Tasacion vinculada a venta activa" : "Ultima tasacion disponible",
         },
       ]
     : [];
+
+  const dashboardValuations = [...persistedValuations, ...derivedValuations].slice(0, 6);
+
+  const persistedSections = {
+    owned: [],
+    sold: [],
+    "active-sale": [],
+  };
+
+  if (Array.isArray(userVehicleStates)) {
+    userVehicleStates.forEach((item) => {
+      const state = normalizeText(item?.state).toLowerCase();
+      const sectionKey = state === "active_sale" ? "active-sale" : state;
+
+      if (!persistedSections[sectionKey]) {
+        return;
+      }
+
+      const title = normalizeText(item?.title)
+        || `${normalizeText(item?.brand)} ${normalizeText(item?.model)}`.trim()
+        || "Vehiculo";
+
+      const extraMeta = [normalizeText(item?.year), normalizeText(item?.notes)].filter(Boolean).join(" · ");
+
+      persistedSections[sectionKey].push({
+        id: normalizeText(item?.vehicleId),
+        title,
+        meta: extraMeta,
+        status:
+          sectionKey === "active-sale"
+            ? "Publicado en seguimiento"
+            : sectionKey === "sold"
+            ? "Operacion cerrada"
+            : "Vehiculo disponible",
+      });
+    });
+  }
 
   const userVehicleSections = [
     {
       key: "owned",
       title: "Comprados",
-      items: [],
+      items: persistedSections.owned,
       empty: "Todavía no has marcado vehículos como comprados.",
     },
     {
       key: "sold",
       title: "Vendidos",
-      items: [],
+      items: persistedSections.sold,
       empty: "Aún no tienes operaciones de venta cerradas.",
     },
     {
       key: "active-sale",
       title: "Activos en venta",
-      items:
+      items: [
+        ...persistedSections["active-sale"],
+        ...(
         sellAnswers?.brand && sellAnswers?.model
           ? [
               {
@@ -66,7 +119,9 @@ export function buildUserDashboardModel({
                 status: sellListingResult ? "Publicado en seguimiento" : "Borrador listo para publicar",
               },
             ]
-          : [],
+          : []
+        ),
+      ],
       empty: "No hay anuncios activos en venta ahora mismo.",
     },
   ];

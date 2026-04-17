@@ -28,6 +28,97 @@ CREATE TABLE IF NOT EXISTS moveadvisor_sessions (
 CREATE INDEX IF NOT EXISTS ix_moveadvisor_sessions_user_id ON moveadvisor_sessions (user_id);
 CREATE INDEX IF NOT EXISTS ix_moveadvisor_sessions_expires_at ON moveadvisor_sessions (expires_at);
 
+-- Datos relacionales del usuario vinculados a vehiculos
+CREATE TABLE IF NOT EXISTS moveadvisor_user_vehicles (
+  id             VARCHAR(64)  PRIMARY KEY,
+  user_email     VARCHAR(255) NOT NULL,
+  title          VARCHAR(180) NOT NULL,
+  brand          VARCHAR(100) NOT NULL,
+  model          VARCHAR(120) NOT NULL,
+  year           VARCHAR(20)  NOT NULL DEFAULT '',
+  plate          VARCHAR(30)  NOT NULL DEFAULT '',
+  mileage        VARCHAR(40)  NOT NULL DEFAULT '',
+  fuel           VARCHAR(60)  NOT NULL DEFAULT '',
+  policy_company VARCHAR(120) NOT NULL DEFAULT '',
+  notes          TEXT         NOT NULL DEFAULT '',
+  created_at     TIMESTAMPTZ  NOT NULL,
+  updated_at     TIMESTAMPTZ  NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS ix_moveadvisor_user_vehicles_email
+  ON moveadvisor_user_vehicles (user_email, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS moveadvisor_user_vehicle_files (
+  id          BIGSERIAL    PRIMARY KEY,
+  vehicle_id  VARCHAR(64)  NOT NULL REFERENCES moveadvisor_user_vehicles(id) ON DELETE CASCADE,
+  file_type   VARCHAR(20)  NOT NULL CHECK (file_type IN ('photo', 'document')),
+  file_name   VARCHAR(255) NOT NULL,
+  file_size   BIGINT       NOT NULL DEFAULT 0,
+  created_at  TIMESTAMPTZ  NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS ix_moveadvisor_vehicle_files_vehicle
+  ON moveadvisor_user_vehicle_files (vehicle_id, file_type);
+
+CREATE TABLE IF NOT EXISTS moveadvisor_user_appointments (
+  id                VARCHAR(64)  PRIMARY KEY,
+  user_email        VARCHAR(255) NOT NULL,
+  vehicle_id        VARCHAR(64)  NOT NULL REFERENCES moveadvisor_user_vehicles(id) ON DELETE CASCADE,
+  appointment_type  VARCHAR(40)  NOT NULL,
+  title             VARCHAR(180) NOT NULL,
+  meta              TEXT         NOT NULL DEFAULT '',
+  status            VARCHAR(80)  NOT NULL DEFAULT 'Pendiente',
+  requested_at_text VARCHAR(60)  NOT NULL DEFAULT '',
+  created_at        TIMESTAMPTZ  NOT NULL,
+  updated_at        TIMESTAMPTZ  NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS ix_moveadvisor_appointments_email
+  ON moveadvisor_user_appointments (user_email, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS moveadvisor_user_valuations (
+  id             VARCHAR(64)  PRIMARY KEY,
+  user_email     VARCHAR(255) NOT NULL,
+  vehicle_id     VARCHAR(64)  NOT NULL REFERENCES moveadvisor_user_vehicles(id) ON DELETE CASCADE,
+  title          VARCHAR(180) NOT NULL,
+  meta           TEXT         NOT NULL DEFAULT '',
+  status         VARCHAR(100) NOT NULL DEFAULT 'Ultima tasacion disponible',
+  report         TEXT         NOT NULL DEFAULT '',
+  estimate_value NUMERIC(12,2),
+  created_at     TIMESTAMPTZ  NOT NULL,
+  updated_at     TIMESTAMPTZ  NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS ix_moveadvisor_valuations_email
+  ON moveadvisor_user_valuations (user_email, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS moveadvisor_user_vehicle_states (
+  id          BIGSERIAL    PRIMARY KEY,
+  user_email  VARCHAR(255) NOT NULL,
+  vehicle_id  VARCHAR(64)  NOT NULL REFERENCES moveadvisor_user_vehicles(id) ON DELETE CASCADE,
+  state       VARCHAR(30)  NOT NULL CHECK (state IN ('owned', 'active_sale', 'sold')),
+  listing_url TEXT         NOT NULL DEFAULT '',
+  notes       TEXT         NOT NULL DEFAULT '',
+  updated_at  TIMESTAMPTZ  NOT NULL,
+  UNIQUE (user_email, vehicle_id)
+);
+
+CREATE INDEX IF NOT EXISTS ix_moveadvisor_vehicle_states_email
+  ON moveadvisor_user_vehicle_states (user_email, state, updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS moveadvisor_user_saved_offers (
+  id            VARCHAR(80)  PRIMARY KEY,
+  user_email    VARCHAR(255) NOT NULL,
+  vehicle_id    VARCHAR(64) REFERENCES moveadvisor_user_vehicles(id) ON DELETE SET NULL,
+  title         VARCHAR(180) NOT NULL DEFAULT '',
+  offer_payload JSONB        NOT NULL DEFAULT '{}'::jsonb,
+  created_at    TIMESTAMPTZ  NOT NULL,
+  updated_at    TIMESTAMPTZ  NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS ix_moveadvisor_saved_offers_email
+  ON moveadvisor_user_saved_offers (user_email, created_at DESC);
+
 -- Catálogo de vehículos (marcas y modelos)
 CREATE TABLE IF NOT EXISTS moveadvisor_vehicle_brands (
   id         SERIAL       PRIMARY KEY,

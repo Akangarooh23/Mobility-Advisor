@@ -177,3 +177,70 @@ export function postGarageVehicleRemoveJson(email, vehicleId, options = {}) {
     ...options,
   });
 }
+
+export function getUserMobilityDataJson(email, options = {}) {
+  const query = new URLSearchParams({
+    email: String(email || ""),
+    scope: "mobility",
+  });
+
+  return getJson(`${BILLING_ACCOUNT_API_ENDPOINT}?${query.toString()}`, {
+    endpointLabel: "billing-account",
+    ...options,
+  });
+}
+
+export function postAppointmentAddJson(email, appointment, options = {}) {
+  return postJson(BILLING_ACCOUNT_API_ENDPOINT, {
+    action: "appointment_add",
+    email,
+    appointment,
+  }, {
+    endpointLabel: "billing-account",
+    ...options,
+  });
+}
+
+export function postValuationAddJson(email, valuation, options = {}) {
+  return postJson(BILLING_ACCOUNT_API_ENDPOINT, {
+    action: "valuation_add",
+    email,
+    valuation,
+  }, {
+    endpointLabel: "billing-account",
+    ...options,
+  });
+}
+
+export function postVehicleStateUpsertJson(email, vehicleState, options = {}) {
+  return postJson(BILLING_ACCOUNT_API_ENDPOINT, {
+    action: "vehicle_state_upsert",
+    email,
+    vehicleState,
+  }, {
+    endpointLabel: "billing-account",
+    ...options,
+  });
+}
+
+export function postSavedOfferAddJson(email, offer, options = {}) {
+  return postJson(BILLING_ACCOUNT_API_ENDPOINT, {
+    action: "saved_offer_add",
+    email,
+    offer,
+  }, {
+    endpointLabel: "billing-account",
+    ...options,
+  });
+}
+
+export function postSavedOfferRemoveJson(email, offerId, options = {}) {
+  return postJson(BILLING_ACCOUNT_API_ENDPOINT, {
+    action: "saved_offer_remove",
+    email,
+    offerId,
+  }, {
+    endpointLabel: "billing-account",
+    ...options,
+  });
+}

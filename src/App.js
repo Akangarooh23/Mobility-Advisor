@@ -541,6 +541,7 @@ export default function App() {
   const [marketAlerts, setMarketAlerts] = useState([]);
   const [marketAlertStatus, setMarketAlertStatus] = useState({});
   const [marketBrandsCatalog, setMarketBrandsCatalog] = useState(() => buildFallbackMarketCatalogFromOffers(PORTAL_VO_OFFERS));
+  const [marketCatalogSource, setMarketCatalogSource] = useState("fallback");
   const [questionnaireDraft, setQuestionnaireDraft] = useState(null);
   const [saveFeedback, setSaveFeedback] = useState("");
   const [emailDigestFeedback, setEmailDigestFeedback] = useState("");
@@ -713,9 +714,13 @@ export default function App() {
 
         if (isMounted && Object.keys(mergedCatalog).length > 0) {
           setMarketBrandsCatalog(mergedCatalog);
+          setMarketCatalogSource(Object.keys(nextCatalog).length > 0 ? "api+fallback" : "fallback");
         }
       } catch {
         // Keep fallback catalog when endpoint is unavailable.
+        if (isMounted) {
+          setMarketCatalogSource("fallback");
+        }
       }
     })();
 
@@ -4149,6 +4154,7 @@ export default function App() {
           decisionAnswers={decisionAnswers}
           updateDecisionAnswer={updateDecisionAnswer}
           MARKET_BRANDS={marketBrandsCatalog}
+          marketCatalogSource={marketCatalogSource}
           decisionModels={decisionModels}
           needsMonthlyBudget={needsMonthlyBudget}
           needsCashBudget={needsCashBudget}

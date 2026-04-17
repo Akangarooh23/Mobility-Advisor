@@ -135,6 +135,7 @@ export default function DecisionPage({
   decisionAnswers,
   updateDecisionAnswer,
   MARKET_BRANDS,
+  marketCatalogSource = "fallback",
   decisionModels,
   decisionFlowReady,
   decisionMarketListings,
@@ -178,6 +179,7 @@ export default function DecisionPage({
   const [powerToIndex, setPowerToIndex] = useState(POWER_MARKS.length - 2);
 
   const effectiveOperation = lockedOperation || decisionAnswers.operation;
+  const isApiCatalogActive = marketCatalogSource === "api+fallback";
   const { knownBrands, otherBrands, knownBrandSet } = getBrandOptionSegments(MARKET_BRANDS);
   const hasUnknownSelectedBrand = Boolean(decisionAnswers.brand && !knownBrandSet.has(decisionAnswers.brand));
   const shouldShowAllBrands = showAllBrands || hasUnknownSelectedBrand;
@@ -270,8 +272,24 @@ export default function DecisionPage({
       </div>
 
       <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 11, color: "#475569", marginBottom: 10, letterSpacing: "0.6px" }}>
-          2. MARCA Y MODELO
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
+          <div style={{ fontSize: 11, color: "#475569", letterSpacing: "0.6px" }}>
+            2. MARCA Y MODELO
+          </div>
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              borderRadius: 999,
+              padding: "3px 8px",
+              border: isApiCatalogActive ? "1px solid rgba(16,185,129,0.35)" : "1px solid rgba(245,158,11,0.35)",
+              background: isApiCatalogActive ? "rgba(16,185,129,0.12)" : "rgba(245,158,11,0.14)",
+              color: isApiCatalogActive ? "#065f46" : "#92400e",
+            }}
+            title={isApiCatalogActive ? "Catálogo cargado desde API y enriquecido con respaldo local" : "Catálogo cargado desde respaldo local"}
+          >
+            {isApiCatalogActive ? "Catálogo API + respaldo" : "Catálogo de respaldo"}
+          </span>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <div>

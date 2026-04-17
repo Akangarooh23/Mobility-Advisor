@@ -34,6 +34,7 @@ import { useListingDiscoveryMemory } from "./hooks/useListingDiscoveryMemory";
 import { useListingQuickValidationRefresh } from "./hooks/useListingQuickValidationRefresh";
 import { useQuestionnaireDraftPersistence } from "./hooks/useQuestionnaireDraftPersistence";
 import { useQuestionnaireStepVisualSync } from "./hooks/useQuestionnaireStepVisualSync";
+import { useResumeQuestionnaireDraft } from "./hooks/useResumeQuestionnaireDraft";
 import { useAppPreferences } from "./hooks/useAppPreferences";
 import { useMarketAlertInsights } from "./hooks/useMarketAlertInsights";
 import { useMarketCatalog } from "./hooks/useMarketCatalog";
@@ -106,7 +107,6 @@ import { buildUserDashboardModel } from "./utils/userDashboardHelpers";
 import {
   clearAuthUser,
   clearQuestionnaireDraft,
-  readQuestionnaireDraft,
   writeAuthUser,
   writeMarketAlerts,
   writeMarketAlertStatus,
@@ -730,42 +730,20 @@ export default function App() {
     setListingLoading(false);
   }, [resetListingDiscoveryMemory]);
 
-  const resumeQuestionnaireDraft = useCallback(() => {
-    const savedDraft = readQuestionnaireDraft();
-
-    if (!savedDraft?.answers) {
-      setEntryMode("consejo");
-      setStep(-1);
-      return;
-    }
-
-    const restoredAdvancedMode = Boolean(savedDraft.advancedMode);
-    const restoredSteps = getQuestionnaireSteps(restoredAdvancedMode);
-    const restoredAnswers = savedDraft.answers && typeof savedDraft.answers === "object"
-      ? savedDraft.answers
-      : {};
-    const numericStep = Number(savedDraft.step);
-    const fallbackStep = Math.max(0, Math.min(countAnsweredSteps(restoredAnswers, restoredSteps), restoredSteps.length - 1));
-    const nextStep = Number.isFinite(numericStep)
-      ? Math.max(0, Math.min(numericStep, restoredSteps.length - 1))
-      : fallbackStep;
-
-    setQuestionnaireDraft(savedDraft);
-    setEntryMode("consejo");
-    setAdvancedMode(restoredAdvancedMode);
-    setAnswers(restoredAnswers);
-    setMultiSelected([]);
-    setResult(null);
-    setError(null);
-    setApiKeyMissing(false);
-    setLoading(false);
-    resetListingDiscovery();
-    setStep(nextStep);
-
-    if (typeof window !== "undefined") {
-      window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
-    }
-  }, [resetListingDiscovery]);
+  const resumeQuestionnaireDraft = useResumeQuestionnaireDraft({
+    countAnsweredSteps,
+    resetListingDiscovery,
+    setQuestionnaireDraft,
+    setEntryMode,
+    setStep,
+    setAdvancedMode,
+    setAnswers,
+    setMultiSelected,
+    setResult,
+    setError,
+    setApiKeyMissing,
+    setLoading,
+  });
 
   const saveCurrentComparison = (selectedOffer = null) => {
     if (!result) {

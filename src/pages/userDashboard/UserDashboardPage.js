@@ -107,6 +107,7 @@ export default function UserDashboardPage({
   onRestart,
   onLogout,
   onRequestAppointment,
+  onUpdateAppointmentStatus = () => {},
   onRequestValuation = () => {},
   onOpenOffer,
   onOpenMarketplaceOffer,
@@ -410,11 +411,13 @@ export default function UserDashboardPage({
         <UserDashboardVehicles
           themeMode={themeMode}
           isMobile={isMobile}
+          dashboardAppointments={dashboardAppointments}
           userVehicleSections={userVehicleSections}
           dashboardVehicleCount={dashboardVehicleCount}
           panelStyle={panelStyle}
           getOfferBadgeStyle={getOfferBadgeStyle}
           onRequestAppointment={onRequestAppointment}
+          onUpdateAppointmentStatus={onUpdateAppointmentStatus}
           onNavigate={onNavigate}
           onBrowseMarketplace={onBrowseMarketplace}
           currentUserEmail={currentUser?.email || ""}

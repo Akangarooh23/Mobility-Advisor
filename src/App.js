@@ -450,6 +450,7 @@ export default function App() {
   const [apiKeyMissing, setApiKeyMissing] = useState(false);
   const [decisionAnswers, setDecisionAnswers] = useState(createInitialDecisionAnswers);
   const [sellAnswers, setSellAnswers] = useState(createInitialSellAnswers);
+  const [selectedValuationVehicleSummary, setSelectedValuationVehicleSummary] = useState(null);
   const [portalVoFilters, setPortalVoFilters] = useState({ ...INITIAL_PORTAL_VO_FILTERS });
   const [selectedPortalVoOfferId, setSelectedPortalVoOfferId] = useState(null);
   const [listingFilters, setListingFilters] = useState({
@@ -1957,19 +1958,157 @@ export default function App() {
     window.setTimeout(() => setSaveFeedback(""), 2200);
   };
 
-  const openSellValuationFromOffers = () => {
+  function mapMileageToSellOption(rawMileage = "") {
+    const numericMileage = Number(String(rawMileage || "").replace(/[^\d]/g, ""));
+
+    if (!Number.isFinite(numericMileage) || numericMileage <= 0) {
+      return "";
+    }
+
+    if (numericMileage <= 20000) {
+      return "20000";
+    }
+
+    if (numericMileage <= 50000) {
+      return "50000";
+    }
+
+    if (numericMileage <= 80000) {
+      return "80000";
+    }
+
+    if (numericMileage <= 120000) {
+      return "120000";
+    }
+
+    return "160000";
+  }
+
+  function normalizeFuelForSellFlow(rawFuel = "") {
+    const text = normalizeText(rawFuel).toLowerCase();
+
+    if (!text) {
+      return "";
+    }
+
+    if (text.includes("dies") || text.includes("diés")) {
+      return "Diésel";
+    }
+
+    if (text.includes("elect")) {
+      return "Eléctrico";
+    }
+
+    if (text.includes("hibr") && text.includes("ench")) {
+      return "Híbrido enchufable";
+    }
+
+    if (text.includes("hibr") || text.includes("hev") || text.includes("mhev")) {
+      return "Híbrido";
+    }
+
+    if (text.includes("glp") || text.includes("gpl")) {
+      return "GLP";
+    }
+
+    return "Gasolina";
+  }
+
+  const openSellValuationFromOffers = (context = {}) => {
     const hasTradeInVehicle = normalizeText(answers?.vehiculo_actual);
+    const prefillBrand = normalizeText(context?.brand);
+    const prefillModel = normalizeText(context?.model);
+    const prefillYear = normalizeText(context?.year);
+    const prefillMileage = mapMileageToSellOption(normalizeText(context?.mileage));
+    const prefillFuel = normalizeFuelForSellFlow(normalizeText(context?.fuel));
+    const hasVehiclePrefill = Boolean(prefillBrand || prefillModel || prefillYear || prefillMileage || prefillFuel);
 
     setEntryMode("sell");
     setStep(-1);
+    setSelectedValuationVehicleSummary(
+      hasVehiclePrefill
+        ? {
+            plate: normalizeText(context?.vehiclePlate),
+            title: normalizeText(context?.vehicleTitle),
+            brand: prefillBrand,
+            model: prefillModel,
+            year: prefillYear,
+          }
+        : null
+    );
     setSellAnswers((prev) => ({
       ...prev,
-      sellerType: hasTradeInVehicle === "si_entrego" ? "entrega" : "particular",
+      sellerType: hasVehiclePrefill ? "particular" : hasTradeInVehicle === "si_entrego" ? "entrega" : "particular",
+      brand: prefillBrand || prev?.brand || "",
+      model: prefillModel || prev?.model || "",
+      year: prefillYear || prev?.year || "",
+      mileage: prefillMileage || prev?.mileage || "",
+      fuel: prefillFuel || prev?.fuel || "Gasolina",
     }));
 
     if (typeof window !== "undefined") {
       window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 80);
     }
+  };
+
+  const updateUserAppointmentStatus = async (appointmentId, nextValues = {}) => {
+    const normalizedAppointmentId = normalizeText(appointmentId);
+    const normalizedStatus = normalizeText(
+      typeof nextValues === "string" ? nextValues : nextValues?.status
+    );
+
+    if (!normalizedAppointmentId || !normalizedStatus) {
+      return;
+    }
+
+    const currentAppointment = (Array.isArray(userAppointments) ? userAppointments : []).find(
+      (item) => normalizeText(item?.id) === normalizedAppointmentId
+    );
+
+    if (!currentAppointment) {
+      return;
+    }
+
+    const normalizedRequestedAt = normalizeText(
+      typeof nextValues === "object" ? nextValues?.requestedAt : currentAppointment?.requestedAt
+    ) || normalizeText(currentAppointment?.requestedAt);
+    const normalizedMeta = normalizeText(
+      typeof nextValues === "object" ? nextValues?.meta : currentAppointment?.meta
+    ) || normalizeText(currentAppointment?.meta);
+
+    let nextAppointments = (Array.isArray(userAppointments) ? userAppointments : []).map((item) =>
+      normalizeText(item?.id) === normalizedAppointmentId
+        ? {
+            ...item,
+            status: normalizedStatus,
+            requestedAt: normalizedRequestedAt,
+            meta: normalizedMeta,
+          }
+        : item
+    );
+
+    if (currentUserEmail && normalizeText(currentAppointment?.vehicleId)) {
+      try {
+        const { data } = await postAppointmentAddJson(currentUserEmail, {
+          ...currentAppointment,
+          status: normalizedStatus,
+          requestedAt: normalizedRequestedAt,
+          meta: normalizedMeta,
+          vehicleId: normalizeText(currentAppointment?.vehicleId),
+          vehicleTitle: normalizeText(currentAppointment?.vehicleTitle),
+          vehiclePlate: normalizeText(currentAppointment?.vehiclePlate),
+        });
+
+        if (Array.isArray(data?.appointments)) {
+          nextAppointments = data.appointments.slice(0, 8);
+        }
+      } catch {
+        // Keep local fallback when API is unavailable.
+      }
+    }
+
+    writeUserAppointments(nextAppointments);
+    setUserAppointments(nextAppointments);
   };
 
   const handleTellMeNow = () => {
@@ -2448,6 +2587,7 @@ export default function App() {
   const restart = useCallback(() => {
     setAdvisorContext(null);
     setSellFlowType("");
+    setSelectedValuationVehicleSummary(null);
     restartBase();
   }, [restartBase]);
 
@@ -3797,12 +3937,14 @@ export default function App() {
           styles={s}
           onSelectCertificate={() => {
             setSellFlowType("certificate");
+            setSelectedValuationVehicleSummary(null);
             setSellAnswers((prev) => ({ ...prev, sellerType: "profesional" }));
             setEntryMode("sell");
             setStep(-1);
           }}
           onSelectReport={() => {
             setSellFlowType("report");
+            setSelectedValuationVehicleSummary(null);
             setSellAnswers((prev) => ({ ...prev, sellerType: "particular" }));
             setEntryMode("sell");
             setStep(-1);
@@ -3924,6 +4066,7 @@ export default function App() {
           }}
           onLogout={handleLogout}
           onRequestAppointment={requestUserAppointment}
+          onUpdateAppointmentStatus={updateUserAppointmentStatus}
           onRequestValuation={openSellValuationFromOffers}
           onOpenOffer={openOfferInNewTab}
           onOpenMarketplaceOffer={openPortalVoOfferDetail}
@@ -4045,6 +4188,7 @@ export default function App() {
         <SellPage
           styles={s}
           sellFlowType={sellFlowType}
+          selectedValuationVehicleSummary={selectedValuationVehicleSummary}
           sellAnswers={sellAnswers}
           setSellAnswers={setSellAnswers}
           MARKET_BRANDS={marketBrandsCatalog}

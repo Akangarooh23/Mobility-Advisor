@@ -91,6 +91,10 @@ export default function UserDashboardOperations({
   const [appointmentType, setAppointmentType] = useState("workshop");
   const [selectedVehicleId, setSelectedVehicleId] = useState("");
   const [appointmentFeedback, setAppointmentFeedback] = useState("");
+  const [showValuationForm, setShowValuationForm] = useState(false);
+  const [valuationSource, setValuationSource] = useState("scratch");
+  const [selectedValuationVehicleId, setSelectedValuationVehicleId] = useState("");
+  const [valuationFeedback, setValuationFeedback] = useState("");
   const [garageVehicles, setGarageVehicles] = useState(() => readGarageVehicles(currentUserEmail));
 
   useEffect(() => {
@@ -133,6 +137,13 @@ export default function UserDashboardOperations({
     if (activeTab !== "appointments") {
       setShowAppointmentForm(false);
       setAppointmentFeedback("");
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== "valuations") {
+      setShowValuationForm(false);
+      setValuationFeedback("");
     }
   }, [activeTab]);
   const visibleTabOptions =
@@ -185,6 +196,11 @@ export default function UserDashboardOperations({
     { pending: 0, active: 0, closed: 0 }
   );
 
+  const garageVehiclesWithPlate = useMemo(
+    () => (Array.isArray(garageVehicles) ? garageVehicles.filter((vehicle) => normalizeText(vehicle?.plate)) : []),
+    [garageVehicles]
+  );
+
   const openAppointmentForm = async () => {
     let nextGarageVehicles = readGarageVehicles(currentUserEmail);
 
@@ -219,6 +235,54 @@ export default function UserDashboardOperations({
     const vehicleLabel = selectedVehicle.title || `${selectedVehicle.brand || ""} ${selectedVehicle.model || ""}`.trim();
     setAppointmentFeedback(`${selectedTypeLabel} solicitada para ${vehicleLabel}.`);
     setShowAppointmentForm(false);
+  };
+
+  const openValuationForm = async () => {
+    let nextGarageVehicles = readGarageVehicles(currentUserEmail);
+
+    try {
+      nextGarageVehicles = await fetchGarageVehiclesFromApi(currentUserEmail);
+    } catch {
+      // Keep local fallback when API is unavailable.
+    }
+
+    setGarageVehicles(nextGarageVehicles);
+    const withPlate = Array.isArray(nextGarageVehicles) ? nextGarageVehicles.filter((vehicle) => normalizeText(vehicle?.plate)) : [];
+    setSelectedValuationVehicleId(withPlate[0]?.id || "");
+    setValuationSource("scratch");
+    setShowValuationForm(true);
+    setValuationFeedback("");
+  };
+
+  const submitValuationRequest = () => {
+    if (valuationSource === "scratch") {
+      onRequestValuation();
+      setValuationFeedback("Nueva tasación iniciada desde cero.");
+      setShowValuationForm(false);
+      return;
+    }
+
+    const selectedVehicle = garageVehiclesWithPlate.find((vehicle) => vehicle.id === selectedValuationVehicleId);
+    if (!selectedVehicle) {
+      setValuationFeedback("Selecciona uno de tus vehículos para iniciar la tasación.");
+      return;
+    }
+
+    onRequestValuation({
+      vehicleId: selectedVehicle.id,
+      vehicleTitle: selectedVehicle.title || `${selectedVehicle.brand || ""} ${selectedVehicle.model || ""}`.trim(),
+      vehiclePlate: selectedVehicle.plate || "",
+      brand: selectedVehicle.brand || "",
+      model: selectedVehicle.model || "",
+      year: selectedVehicle.year || "",
+      mileage: selectedVehicle.mileage || "",
+      fuel: selectedVehicle.fuel || "",
+    });
+
+    setValuationFeedback(
+      `Nueva tasación iniciada para ${selectedVehicle.plate ? `matrícula ${selectedVehicle.plate}` : selectedVehicle.title || "tu vehículo"}.`
+    );
+    setShowValuationForm(false);
   };
 
   return (
@@ -284,10 +348,10 @@ export default function UserDashboardOperations({
       </div>
 
       {activeTab === "valuations" ? (
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+        <div style={{ display: "grid", gap: 10, marginBottom: 12 }}>
           <button
             type="button"
-            onClick={onRequestValuation}
+            onClick={openValuationForm}
             style={{
               background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
               border: "none",
@@ -303,6 +367,157 @@ export default function UserDashboardOperations({
           >
             Nueva tasación
           </button>
+
+          {showValuationForm && (
+            <div
+              style={{
+                background: cardBg,
+                border: panelBorder,
+                borderRadius: 12,
+                padding: 12,
+                display: "grid",
+                gap: 10,
+              }}
+            >
+              <div style={{ fontSize: 12, color: bodyColor }}>
+                Elige si quieres empezar la tasación desde cero o usando la matrícula de uno de tus vehículos.
+              </div>
+
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={() => setValuationSource("scratch")}
+                  style={{
+                    background: valuationSource === "scratch" ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "transparent",
+                    border: valuationSource === "scratch" ? "none" : cardBorder,
+                    color: valuationSource === "scratch" ? "#eff6ff" : isDark ? "#cbd5e1" : "#334155",
+                    padding: "8px 10px",
+                    borderRadius: 999,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  Empezar desde cero
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setValuationSource("garage")}
+                  style={{
+                    background: valuationSource === "garage" ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "transparent",
+                    border: valuationSource === "garage" ? "none" : cardBorder,
+                    color: valuationSource === "garage" ? "#eff6ff" : isDark ? "#cbd5e1" : "#334155",
+                    padding: "8px 10px",
+                    borderRadius: 999,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  Usar matrícula de Mis vehículos
+                </button>
+              </div>
+
+              {valuationSource === "garage" ? (
+                <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
+                  Matrícula del vehículo
+                  <select
+                    value={selectedValuationVehicleId}
+                    onChange={(event) => setSelectedValuationVehicleId(event.target.value)}
+                    style={{
+                      background: isDark ? "#0f1b2d" : "#ffffff",
+                      border: cardBorder,
+                      borderRadius: 10,
+                      padding: "9px 10px",
+                      color: titleColor,
+                      fontSize: 12,
+                    }}
+                  >
+                    {garageVehiclesWithPlate.length > 0 ? (
+                      garageVehiclesWithPlate.map((vehicle) => (
+                        <option key={vehicle.id} value={vehicle.id}>
+                          {vehicle.plate || "Sin matrícula"}
+                          {` · ${vehicle.title || `${vehicle.brand || ""} ${vehicle.model || ""}`.trim()}`}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">No hay vehículos en Mis vehículos</option>
+                    )}
+                  </select>
+                </label>
+              ) : null}
+
+              {valuationSource === "garage" && garageVehiclesWithPlate.length === 0 ? (
+                <div style={{ display: "grid", gap: 8 }}>
+                  <div style={{ fontSize: 12, color: "#b45309" }}>
+                    Primero sube al menos un vehículo con matrícula en Mis vehículos para usar esta opción.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate("vehicles")}
+                    style={{
+                      background: "rgba(37,99,235,0.12)",
+                      border: "1px solid rgba(96,165,250,0.24)",
+                      color: "#1e3a8a",
+                      padding: "8px 10px",
+                      borderRadius: 10,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      width: isMobile ? "100%" : "fit-content",
+                    }}
+                  >
+                    Ir a Mis vehículos
+                  </button>
+                </div>
+              ) : null}
+
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={submitValuationRequest}
+                  disabled={valuationSource === "garage" && garageVehiclesWithPlate.length === 0}
+                  style={{
+                    background:
+                      valuationSource === "garage" && garageVehiclesWithPlate.length === 0
+                        ? "rgba(148,163,184,0.24)"
+                        : "linear-gradient(135deg,#2563eb,#1d4ed8)",
+                    border: "none",
+                    color: valuationSource === "garage" && garageVehiclesWithPlate.length === 0 ? "#64748b" : "#ffffff",
+                    padding: "9px 12px",
+                    borderRadius: 10,
+                    fontSize: 12,
+                    fontWeight: 800,
+                    cursor: valuationSource === "garage" && garageVehiclesWithPlate.length === 0 ? "not-allowed" : "pointer",
+                    width: isMobile ? "100%" : "auto",
+                  }}
+                >
+                  Iniciar tasación
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowValuationForm(false)}
+                  style={{
+                    background: "rgba(148,163,184,0.14)",
+                    border: cardBorder,
+                    color: isDark ? "#e2e8f0" : "#334155",
+                    padding: "9px 12px",
+                    borderRadius: 10,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    width: isMobile ? "100%" : "auto",
+                  }}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
+
+          {valuationFeedback ? (
+            <div style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>{valuationFeedback}</div>
+          ) : null}
         </div>
       ) : (
         <div style={{ display: "grid", gap: 10, marginBottom: 12 }}>

@@ -4,6 +4,7 @@ import { getBrandOptionSegments } from "../utils/brandCatalog";
 export default function SellPage({
   styles,
   sellFlowType,
+  selectedValuationVehicleSummary,
   sellAnswers,
   setSellAnswers,
   MARKET_BRANDS,
@@ -34,6 +35,12 @@ export default function SellPage({
   const hasUnknownSelectedBrand = Boolean(sellAnswers.brand && !knownBrandSet.has(sellAnswers.brand));
   const shouldShowAllBrands = showAllBrands || hasUnknownSelectedBrand;
   const visibleBrands = shouldShowAllBrands ? [...knownBrands, ...otherBrands] : knownBrands;
+  const modelOptions = sellAnswers.model && !sellModels.includes(sellAnswers.model) ? [sellAnswers.model, ...sellModels] : sellModels;
+  const defaultYearOptions = [2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018];
+  const yearOptions =
+    sellAnswers.year && !defaultYearOptions.includes(Number(sellAnswers.year))
+      ? [Number(sellAnswers.year), ...defaultYearOptions]
+      : defaultYearOptions;
 
   return (
     <div style={styles.center}>
@@ -52,6 +59,32 @@ export default function SellPage({
       <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.7, margin: "0 0 24px" }}>
         {pageDescription}
       </p>
+
+      {selectedValuationVehicleSummary ? (
+        <div
+          style={{
+            background: "rgba(37,99,235,0.08)",
+            border: "1px solid rgba(37,99,235,0.2)",
+            borderRadius: 12,
+            padding: 12,
+            marginBottom: 16,
+            display: "grid",
+            gap: 4,
+          }}
+        >
+          <div style={{ fontSize: 11, color: "#1d4ed8", fontWeight: 800, letterSpacing: "0.3px" }}>
+            VEHÍCULO SELECCIONADO DESDE MATRÍCULA
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>
+            {selectedValuationVehicleSummary.plate || "Sin matrícula"}
+            {selectedValuationVehicleSummary.title ? ` · ${selectedValuationVehicleSummary.title}` : ""}
+          </div>
+          <div style={{ fontSize: 12, color: "#475569" }}>
+            {`${selectedValuationVehicleSummary.brand || ""} ${selectedValuationVehicleSummary.model || ""}`.trim()}
+            {selectedValuationVehicleSummary.year ? ` · ${selectedValuationVehicleSummary.year}` : ""}
+          </div>
+        </div>
+      ) : null}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 12, marginBottom: 24 }}>
         <div>
@@ -89,7 +122,7 @@ export default function SellPage({
             style={{ ...styles.select, opacity: sellAnswers.brand ? 1 : 0.55 }}
           >
             <option value="">Selecciona modelo</option>
-            {sellModels.map((model) => (
+            {modelOptions.map((model) => (
               <option key={model} value={model}>
                 {model}
               </option>
@@ -104,7 +137,7 @@ export default function SellPage({
             style={styles.select}
           >
             <option value="">Selecciona año</option>
-            {[2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018].map((year) => (
+            {yearOptions.map((year) => (
               <option key={year} value={year}>
                 {year}
               </option>

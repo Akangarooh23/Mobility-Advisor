@@ -35,6 +35,21 @@ CREATE TABLE IF NOT EXISTS moveadvisor_user_vehicles (
   title          VARCHAR(180) NOT NULL,
   brand          VARCHAR(100) NOT NULL,
   model          VARCHAR(120) NOT NULL,
+  version        VARCHAR(160) NOT NULL DEFAULT '',
+  transmission_type VARCHAR(40) NOT NULL DEFAULT '',
+  cv             VARCHAR(20)  NOT NULL DEFAULT '',
+  color          VARCHAR(60)  NOT NULL DEFAULT '',
+  horsepower     VARCHAR(20)  NOT NULL DEFAULT '',
+  seats          VARCHAR(10)  NOT NULL DEFAULT '',
+  doors          VARCHAR(10)  NOT NULL DEFAULT '',
+  vehicle_location VARCHAR(160) NOT NULL DEFAULT '',
+  body_type      VARCHAR(60)  NOT NULL DEFAULT '',
+  environmental_label VARCHAR(30) NOT NULL DEFAULT '',
+  last_itv       VARCHAR(40)  NOT NULL DEFAULT '',
+  next_itv       VARCHAR(40)  NOT NULL DEFAULT '',
+  co2            VARCHAR(30)  NOT NULL DEFAULT '',
+  price          VARCHAR(40)  NOT NULL DEFAULT '',
+  marketplace_pricing_mode VARCHAR(30) NOT NULL DEFAULT 'manual',
   year           VARCHAR(20)  NOT NULL DEFAULT '',
   plate          VARCHAR(30)  NOT NULL DEFAULT '',
   mileage        VARCHAR(40)  NOT NULL DEFAULT '',
@@ -48,17 +63,108 @@ CREATE TABLE IF NOT EXISTS moveadvisor_user_vehicles (
 CREATE INDEX IF NOT EXISTS ix_moveadvisor_user_vehicles_email
   ON moveadvisor_user_vehicles (user_email, created_at DESC);
 
+ALTER TABLE moveadvisor_user_vehicles
+  ADD COLUMN IF NOT EXISTS version VARCHAR(160) NOT NULL DEFAULT '';
+
+ALTER TABLE moveadvisor_user_vehicles
+  ADD COLUMN IF NOT EXISTS transmission_type VARCHAR(40) NOT NULL DEFAULT '';
+
+ALTER TABLE moveadvisor_user_vehicles
+  ADD COLUMN IF NOT EXISTS cv VARCHAR(20) NOT NULL DEFAULT '';
+
+ALTER TABLE moveadvisor_user_vehicles
+  ADD COLUMN IF NOT EXISTS color VARCHAR(60) NOT NULL DEFAULT '';
+
+ALTER TABLE moveadvisor_user_vehicles
+  ADD COLUMN IF NOT EXISTS horsepower VARCHAR(20) NOT NULL DEFAULT '';
+
+ALTER TABLE moveadvisor_user_vehicles
+  ADD COLUMN IF NOT EXISTS seats VARCHAR(10) NOT NULL DEFAULT '';
+
+ALTER TABLE moveadvisor_user_vehicles
+  ADD COLUMN IF NOT EXISTS doors VARCHAR(10) NOT NULL DEFAULT '';
+
+ALTER TABLE moveadvisor_user_vehicles
+  ADD COLUMN IF NOT EXISTS vehicle_location VARCHAR(160) NOT NULL DEFAULT '';
+
+ALTER TABLE moveadvisor_user_vehicles
+  ADD COLUMN IF NOT EXISTS body_type VARCHAR(60) NOT NULL DEFAULT '';
+
+ALTER TABLE moveadvisor_user_vehicles
+  ADD COLUMN IF NOT EXISTS environmental_label VARCHAR(30) NOT NULL DEFAULT '';
+
+ALTER TABLE moveadvisor_user_vehicles
+  ADD COLUMN IF NOT EXISTS last_itv VARCHAR(40) NOT NULL DEFAULT '';
+
+ALTER TABLE moveadvisor_user_vehicles
+  ADD COLUMN IF NOT EXISTS next_itv VARCHAR(40) NOT NULL DEFAULT '';
+
+ALTER TABLE moveadvisor_user_vehicles
+  ADD COLUMN IF NOT EXISTS co2 VARCHAR(30) NOT NULL DEFAULT '';
+
+ALTER TABLE moveadvisor_user_vehicles
+  ADD COLUMN IF NOT EXISTS price VARCHAR(40) NOT NULL DEFAULT '';
+
+ALTER TABLE moveadvisor_user_vehicles
+  ADD COLUMN IF NOT EXISTS marketplace_pricing_mode VARCHAR(30) NOT NULL DEFAULT 'manual';
+
 CREATE TABLE IF NOT EXISTS moveadvisor_user_vehicle_files (
   id          BIGSERIAL    PRIMARY KEY,
   vehicle_id  VARCHAR(64)  NOT NULL REFERENCES moveadvisor_user_vehicles(id) ON DELETE CASCADE,
   file_type   VARCHAR(20)  NOT NULL CHECK (file_type IN ('photo', 'document')),
   file_name   VARCHAR(255) NOT NULL,
   file_size   BIGINT       NOT NULL DEFAULT 0,
+  file_mime_type TEXT      NOT NULL DEFAULT '',
+  file_content_base64 TEXT NOT NULL DEFAULT '',
   created_at  TIMESTAMPTZ  NOT NULL
 );
 
+ALTER TABLE moveadvisor_user_vehicle_files
+  ADD COLUMN IF NOT EXISTS file_mime_type TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE moveadvisor_user_vehicle_files
+  ADD COLUMN IF NOT EXISTS file_content_base64 TEXT NOT NULL DEFAULT '';
+
 CREATE INDEX IF NOT EXISTS ix_moveadvisor_vehicle_files_vehicle
   ON moveadvisor_user_vehicle_files (vehicle_id, file_type);
+
+CREATE TABLE IF NOT EXISTS moveadvisor_user_vehicle_characteristics (
+  vehicle_id           VARCHAR(64) PRIMARY KEY REFERENCES moveadvisor_user_vehicles(id) ON DELETE CASCADE,
+  transmission_type    VARCHAR(40) NOT NULL DEFAULT '',
+  cv                   VARCHAR(20) NOT NULL DEFAULT '',
+  color                VARCHAR(60) NOT NULL DEFAULT '',
+  horsepower           VARCHAR(20) NOT NULL DEFAULT '',
+  seats                VARCHAR(10) NOT NULL DEFAULT '',
+  doors                VARCHAR(10) NOT NULL DEFAULT '',
+  vehicle_location     VARCHAR(160) NOT NULL DEFAULT '',
+  body_type            VARCHAR(60) NOT NULL DEFAULT '',
+  environmental_label  VARCHAR(30) NOT NULL DEFAULT '',
+  last_itv             VARCHAR(40) NOT NULL DEFAULT '',
+  next_itv             VARCHAR(40) NOT NULL DEFAULT '',
+  co2                  VARCHAR(30) NOT NULL DEFAULT '',
+  price                VARCHAR(40) NOT NULL DEFAULT '',
+  updated_at           TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS moveadvisor_user_vehicle_documents (
+  id            BIGSERIAL PRIMARY KEY,
+  vehicle_id     VARCHAR(64) NOT NULL REFERENCES moveadvisor_user_vehicles(id) ON DELETE CASCADE,
+  document_type  VARCHAR(40) NOT NULL CHECK (document_type IN ('technical_sheet', 'circulation_permit', 'itv')),
+  file_name      VARCHAR(255) NOT NULL,
+  file_size      BIGINT NOT NULL DEFAULT 0,
+  file_mime_type TEXT NOT NULL DEFAULT '',
+  file_content_base64 TEXT NOT NULL DEFAULT '',
+  created_at     TIMESTAMPTZ NOT NULL
+);
+
+ALTER TABLE moveadvisor_user_vehicle_documents
+  ADD COLUMN IF NOT EXISTS file_mime_type TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE moveadvisor_user_vehicle_documents
+  ADD COLUMN IF NOT EXISTS file_content_base64 TEXT NOT NULL DEFAULT '';
+
+CREATE INDEX IF NOT EXISTS ix_moveadvisor_vehicle_documents_vehicle
+  ON moveadvisor_user_vehicle_documents (vehicle_id, document_type);
 
 CREATE TABLE IF NOT EXISTS moveadvisor_user_appointments (
   id                VARCHAR(64)  PRIMARY KEY,
@@ -75,6 +181,17 @@ CREATE TABLE IF NOT EXISTS moveadvisor_user_appointments (
 
 CREATE INDEX IF NOT EXISTS ix_moveadvisor_appointments_email
   ON moveadvisor_user_appointments (user_email, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS moveadvisor_user_appointment_status_history (
+  id              BIGSERIAL PRIMARY KEY,
+  appointment_id  VARCHAR(64) NOT NULL REFERENCES moveadvisor_user_appointments(id) ON DELETE CASCADE,
+  previous_status VARCHAR(80) NOT NULL DEFAULT '',
+  next_status     VARCHAR(80) NOT NULL DEFAULT '',
+  changed_at      TIMESTAMPTZ NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS ix_moveadvisor_appointment_status_history_appointment
+  ON moveadvisor_user_appointment_status_history (appointment_id, changed_at DESC);
 
 CREATE TABLE IF NOT EXISTS moveadvisor_user_insurances (
   id               VARCHAR(64)  PRIMARY KEY,
@@ -95,6 +212,25 @@ CREATE TABLE IF NOT EXISTS moveadvisor_user_insurances (
 CREATE INDEX IF NOT EXISTS ix_moveadvisor_insurances_email
   ON moveadvisor_user_insurances (user_email, updated_at DESC);
 
+CREATE TABLE IF NOT EXISTS moveadvisor_user_insurance_documents (
+  id            BIGSERIAL PRIMARY KEY,
+  insurance_id  VARCHAR(64) NOT NULL REFERENCES moveadvisor_user_insurances(id) ON DELETE CASCADE,
+  file_name     VARCHAR(255) NOT NULL,
+  file_size     BIGINT NOT NULL DEFAULT 0,
+  file_mime_type TEXT NOT NULL DEFAULT '',
+  file_content_base64 TEXT NOT NULL DEFAULT '',
+  created_at    TIMESTAMPTZ NOT NULL
+);
+
+ALTER TABLE moveadvisor_user_insurance_documents
+  ADD COLUMN IF NOT EXISTS file_mime_type TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE moveadvisor_user_insurance_documents
+  ADD COLUMN IF NOT EXISTS file_content_base64 TEXT NOT NULL DEFAULT '';
+
+CREATE INDEX IF NOT EXISTS ix_moveadvisor_insurance_documents_insurance
+  ON moveadvisor_user_insurance_documents (insurance_id);
+
 CREATE TABLE IF NOT EXISTS moveadvisor_user_maintenances (
   id                 VARCHAR(64)  PRIMARY KEY,
   user_email         VARCHAR(255) NOT NULL,
@@ -113,6 +249,25 @@ CREATE TABLE IF NOT EXISTS moveadvisor_user_maintenances (
 
 CREATE INDEX IF NOT EXISTS ix_moveadvisor_maintenances_email
   ON moveadvisor_user_maintenances (user_email, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS moveadvisor_user_maintenance_invoices (
+  id              BIGSERIAL PRIMARY KEY,
+  maintenance_id  VARCHAR(64) NOT NULL REFERENCES moveadvisor_user_maintenances(id) ON DELETE CASCADE,
+  file_name       VARCHAR(255) NOT NULL,
+  file_size       BIGINT NOT NULL DEFAULT 0,
+  file_mime_type TEXT NOT NULL DEFAULT '',
+  file_content_base64 TEXT NOT NULL DEFAULT '',
+  created_at      TIMESTAMPTZ NOT NULL
+);
+
+ALTER TABLE moveadvisor_user_maintenance_invoices
+  ADD COLUMN IF NOT EXISTS file_mime_type TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE moveadvisor_user_maintenance_invoices
+  ADD COLUMN IF NOT EXISTS file_content_base64 TEXT NOT NULL DEFAULT '';
+
+CREATE INDEX IF NOT EXISTS ix_moveadvisor_maintenance_invoices_maintenance
+  ON moveadvisor_user_maintenance_invoices (maintenance_id);
 
 CREATE TABLE IF NOT EXISTS moveadvisor_user_valuations (
   id             VARCHAR(64)  PRIMARY KEY,

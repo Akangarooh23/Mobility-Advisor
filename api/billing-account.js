@@ -81,6 +81,15 @@ module.exports = async function billingAccountHandler(req, res) {
   }
 
   if (action === "garage_add") {
+    const vehicle = body.vehicle || body;
+    const brand = normalizeText(vehicle?.brand);
+    const model = normalizeText(vehicle?.model);
+    const version = normalizeText(vehicle?.version);
+
+    if (!brand || !model || !version) {
+      return res.status(400).json({ error: "Debes indicar marca, modelo y version para guardar el vehiculo." });
+    }
+
     const vehicles = await addGarageVehicleByEmail(email, body.vehicle || body);
     return res.status(200).json({ ok: true, vehicles, message: "Vehiculo guardado." });
   }

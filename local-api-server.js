@@ -47,6 +47,7 @@ const billingCheckoutHandler = require("./api/billing-checkout");
 const billingPortalHandler = require("./api/billing-portal");
 const billingAccountHandler = require("./api/billing-account");
 const billingWebhookHandler = require("./api/billing-webhook");
+const erpCatalogHandler = require("./api/erp-catalog");
 
 const API_PORT = Number(process.env.API_PORT || 3001);
 
@@ -63,6 +64,7 @@ const handlers = {
   "/api/billing-portal": billingPortalHandler,
   "/api/billing-account": billingAccountHandler,
   "/api/billing-webhook": billingWebhookHandler,
+  "/api/erp-catalog": erpCatalogHandler,
 };
 
 function sendJson(res, statusCode, payload) {

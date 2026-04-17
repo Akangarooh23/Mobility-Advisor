@@ -7,6 +7,23 @@ export const VEHICLE_CATALOG_ADMIN_API_ENDPOINT = "/api/vehicle-catalog-admin";
 export const BILLING_CHECKOUT_API_ENDPOINT = "/api/billing-checkout";
 export const BILLING_PORTAL_API_ENDPOINT = "/api/billing-portal";
 export const BILLING_ACCOUNT_API_ENDPOINT = "/api/billing-account";
+export const ERP_CATALOG_API_ENDPOINT = "/api/erp-catalog";
+
+export function getErpBrandsJson(options = {}) {
+  return fetch(`${ERP_CATALOG_API_ENDPOINT}?scope=brands`, { credentials: "include", ...options });
+}
+
+export function getErpModelsJson(brandId, options = {}) {
+  return fetch(`${ERP_CATALOG_API_ENDPOINT}?scope=models&brandId=${encodeURIComponent(brandId)}`, { credentials: "include", ...options });
+}
+
+export function getErpVersionsJson(modelId, options = {}) {
+  return fetch(`${ERP_CATALOG_API_ENDPOINT}?scope=versions&modelId=${encodeURIComponent(modelId)}`, { credentials: "include", ...options });
+}
+
+export function getErpVersionDetailJson(codversion, options = {}) {
+  return fetch(`${ERP_CATALOG_API_ENDPOINT}?scope=version-detail&codversion=${encodeURIComponent(codversion)}`, { credentials: "include", ...options });
+}
 
 export async function readApiResponse(response, { endpointLabel = "analyze" } = {}) {
   const contentType = (response.headers.get("content-type") || "").toLowerCase();

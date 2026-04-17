@@ -28,6 +28,7 @@ import {
 } from "./hooks/useAdvisorController";
 import { useAppBootstrap } from "./hooks/useAppBootstrap";
 import { useDashboardNavigation } from "./hooks/useDashboardNavigation";
+import { useListingBootstrap } from "./hooks/useListingBootstrap";
 import { useListingDiscoveryMemory } from "./hooks/useListingDiscoveryMemory";
 import { useAppPreferences } from "./hooks/useAppPreferences";
 import { useMarketAlertInsights } from "./hooks/useMarketAlertInsights";
@@ -668,10 +669,6 @@ export default function App() {
         sellListingResult,
       ]
   );
-
-  useEffect(() => {
-    quickValidationRef.current = quickValidationAnswers;
-  }, [quickValidationAnswers]);
 
   useEffect(() => {
     if (entryMode !== "consejo" || step < 0 || step >= totalSteps) {
@@ -1994,29 +1991,6 @@ export default function App() {
   }, [answers, listingOptionsRef, listingSeenRef, result]);
 
   useEffect(() => {
-    if (!result) {
-      return;
-    }
-
-    const initialFilters = {
-      company: "",
-      budget: inferListingBudgetFromAnswers(answers),
-      income: "",
-    };
-
-    setListingFilters(initialFilters);
-    setListingResult(null);
-    setListingOptions([]);
-    setListingError(null);
-    setListingLoading(false);
-    setQuickValidationAnswers({});
-
-    window.setTimeout(() => {
-      void searchRealListing(initialFilters);
-    }, 120);
-  }, [result, answers, searchRealListing]);
-
-  useEffect(() => {
     if (!result || Object.keys(quickValidationAnswers).length === 0) {
       return;
     }
@@ -2347,6 +2321,21 @@ export default function App() {
     syncBrowserPath,
     onAuthRequest: openAuthDialog,
     onLogoutUser: resetLoggedUser,
+  });
+
+  useListingBootstrap({
+    quickValidationRef,
+    quickValidationAnswers,
+    result,
+    answers,
+    inferListingBudget: inferListingBudgetFromAnswers,
+    setListingFilters,
+    setListingResult,
+    setListingOptions,
+    setListingError,
+    setListingLoading,
+    setQuickValidationAnswers,
+    searchRealListing,
   });
 
   const restart = useCallback(() => {

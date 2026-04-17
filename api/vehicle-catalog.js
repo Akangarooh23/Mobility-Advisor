@@ -445,7 +445,171 @@ function getCatalogFromSqlcmd(defaultCatalogMap = {}) {
   return brandMap;
 }
 
+// ── Admin (write) helpers ──────────────────────────────────────────────────
+
+const TABLE_SETUP_QUERY = `
+IF OBJECT_ID(N'dbo.MoveAdvisorVehicleBrands', N'U') IS NULL
+BEGIN
+  CREATE TABLE dbo.MoveAdvisorVehicleBrands (
+    Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    Name NVARCHAR(100) NOT NULL,
+    IsActive BIT NOT NULL CONSTRAINT DF_MoveAdvisorVehicleBrands_IsActive DEFAULT (1),
+    SortOrder INT NOT NULL CONSTRAINT DF_MoveAdvisorVehicleBrands_SortOrder DEFAULT (0)
+  );
+  CREATE UNIQUE INDEX IX_MoveAdvisorVehicleBrands_Name ON dbo.MoveAdvisorVehicleBrands (Name);
+END;
+IF OBJECT_ID(N'dbo.MoveAdvisorVehicleModels', N'U') IS NULL
+BEGIN
+  CREATE TABLE dbo.MoveAdvisorVehicleModels (
+    Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    BrandId INT NOT NULL,
+    Name NVARCHAR(120) NOT NULL,
+    IsActive BIT NOT NULL CONSTRAINT DF_MoveAdvisorVehicleModels_IsActive DEFAULT (1),
+    SortOrder INT NOT NULL CONSTRAINT DF_MoveAdvisorVehicleModels_SortOrder DEFAULT (0),
+    CONSTRAINT FK_MoveAdvisorVehicleModels_Brand FOREIGN KEY (BrandId) REFERENCES dbo.MoveAdvisorVehicleBrands(Id)
+  );
+  CREATE UNIQUE INDEX IX_MoveAdvisorVehicleModels_BrandId_Name ON dbo.MoveAdvisorVehicleModels (BrandId, Name);
+END;
+`;
+
+async function ensureCatalogTablesMssql() {
+  const pool = await getMssqlPool();
+  await pool.request().query(TABLE_SETUP_QUERY);
+}
+
+function ensureCatalogTablesSqlcmd() {
+  runSqlcmd(TABLE_SETUP_QUERY);
+}
+
+function readLocalCatalogMap() {
+  try {
+    const raw = fs.readFileSync(DEFAULT_CATALOG_PATH, "utf8");
+    const parsed = JSON.parse(raw || "{}");
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeLocalCatalogMap(map = {}) {
+  const safeMap = Object.entries(map).reduce((acc, [brand, models]) => {
+    const brandName = normalizeText(brand);
+    if (!brandName) return acc;
+    const safeModels = Array.from(
+      new Set((Array.isArray(models) ? models : []).map((m) => normalizeText(m)).filter(Boolean))
+    ).sort((a, b) => a.localeCompare(b, "es"));
+    acc[brandName] = safeModels;
+    return acc;
+  }, {});
+  fs.writeFileSync(DEFAULT_CATALOG_PATH, JSON.stringify(safeMap, null, 2), "utf8");
+}
+
+async function applyPostgresAction(action, brand, model) {
+  await ensureCatalogSchemaPostgres();
+  const pool = getPgPool();
+  if (action === "upsert_brand") {
+    await pool.query(`INSERT INTO moveadvisor_vehicle_brands (name, is_active) VALUES ($1, TRUE) ON CONFLICT (name) DO UPDATE SET is_active = TRUE`, [brand]);
+    return;
+  }
+  if (action === "upsert_model") {
+    await pool.query(`INSERT INTO moveadvisor_vehicle_brands (name, is_active) VALUES ($1, TRUE) ON CONFLICT (name) DO UPDATE SET is_active = TRUE`, [brand]);
+    const r = await pool.query(`SELECT id FROM moveadvisor_vehicle_brands WHERE name = $1 LIMIT 1`, [brand]);
+    const brandId = r.rows[0]?.id;
+    if (!brandId) return;
+    await pool.query(`INSERT INTO moveadvisor_vehicle_models (brand_id, name, is_active) VALUES ($1, $2, TRUE) ON CONFLICT (brand_id, name) DO UPDATE SET is_active = TRUE`, [brandId, model]);
+    return;
+  }
+  if (action === "delete_model") {
+    await pool.query(`UPDATE moveadvisor_vehicle_models m SET is_active = FALSE FROM moveadvisor_vehicle_brands b WHERE m.brand_id = b.id AND b.name = $1 AND m.name = $2`, [brand, model]);
+    return;
+  }
+  if (action === "delete_brand") {
+    await pool.query(`UPDATE moveadvisor_vehicle_models m SET is_active = FALSE FROM moveadvisor_vehicle_brands b WHERE m.brand_id = b.id AND b.name = $1`, [brand]);
+    await pool.query(`UPDATE moveadvisor_vehicle_brands SET is_active = FALSE WHERE name = $1`, [brand]);
+  }
+}
+
+async function applyMssqlAction(action, brand, model) {
+  await ensureCatalogTablesMssql();
+  const pool = await getMssqlPool();
+  const sb = brand.replace(/'/g, "''");
+  const sm = model.replace(/'/g, "''");
+  if (action === "upsert_brand") {
+    await pool.request().query(`IF EXISTS (SELECT 1 FROM dbo.MoveAdvisorVehicleBrands WHERE Name = N'${sb}') UPDATE dbo.MoveAdvisorVehicleBrands SET IsActive = 1 WHERE Name = N'${sb}'; ELSE INSERT INTO dbo.MoveAdvisorVehicleBrands (Name, IsActive) VALUES (N'${sb}', 1);`);
+    return;
+  }
+  if (action === "upsert_model") {
+    await pool.request().query(`IF EXISTS (SELECT 1 FROM dbo.MoveAdvisorVehicleBrands WHERE Name = N'${sb}') UPDATE dbo.MoveAdvisorVehicleBrands SET IsActive = 1 WHERE Name = N'${sb}'; ELSE INSERT INTO dbo.MoveAdvisorVehicleBrands (Name, IsActive) VALUES (N'${sb}', 1); IF EXISTS (SELECT 1 FROM dbo.MoveAdvisorVehicleModels m INNER JOIN dbo.MoveAdvisorVehicleBrands b ON b.Id = m.BrandId WHERE b.Name = N'${sb}' AND m.Name = N'${sm}') UPDATE m SET IsActive = 1 FROM dbo.MoveAdvisorVehicleModels m INNER JOIN dbo.MoveAdvisorVehicleBrands b ON b.Id = m.BrandId WHERE b.Name = N'${sb}' AND m.Name = N'${sm}'; ELSE INSERT INTO dbo.MoveAdvisorVehicleModels (BrandId, Name, IsActive) SELECT TOP 1 b.Id, N'${sm}', 1 FROM dbo.MoveAdvisorVehicleBrands b WHERE b.Name = N'${sb}';`);
+    return;
+  }
+  if (action === "delete_model") {
+    await pool.request().query(`UPDATE m SET m.IsActive = 0 FROM dbo.MoveAdvisorVehicleModels m INNER JOIN dbo.MoveAdvisorVehicleBrands b ON b.Id = m.BrandId WHERE b.Name = N'${sb}' AND m.Name = N'${sm}';`);
+    return;
+  }
+  if (action === "delete_brand") {
+    await pool.request().query(`UPDATE b SET b.IsActive = 0 FROM dbo.MoveAdvisorVehicleBrands b WHERE b.Name = N'${sb}'; UPDATE m SET m.IsActive = 0 FROM dbo.MoveAdvisorVehicleModels m INNER JOIN dbo.MoveAdvisorVehicleBrands b ON b.Id = m.BrandId WHERE b.Name = N'${sb}';`);
+  }
+}
+
+function applySqlcmdAction(action, brand, model) {
+  ensureCatalogTablesSqlcmd();
+  const sb = brand.replace(/'/g, "''");
+  const sm = model.replace(/'/g, "''");
+  if (action === "upsert_brand") {
+    runSqlcmd(`IF EXISTS (SELECT 1 FROM dbo.MoveAdvisorVehicleBrands WHERE Name = N'${sb}') UPDATE dbo.MoveAdvisorVehicleBrands SET IsActive = 1 WHERE Name = N'${sb}'; ELSE INSERT INTO dbo.MoveAdvisorVehicleBrands (Name, IsActive) VALUES (N'${sb}', 1);`);
+    return;
+  }
+  if (action === "upsert_model") {
+    runSqlcmd(`IF EXISTS (SELECT 1 FROM dbo.MoveAdvisorVehicleBrands WHERE Name = N'${sb}') UPDATE dbo.MoveAdvisorVehicleBrands SET IsActive = 1 WHERE Name = N'${sb}'; ELSE INSERT INTO dbo.MoveAdvisorVehicleBrands (Name, IsActive) VALUES (N'${sb}', 1); IF EXISTS (SELECT 1 FROM dbo.MoveAdvisorVehicleModels m INNER JOIN dbo.MoveAdvisorVehicleBrands b ON b.Id = m.BrandId WHERE b.Name = N'${sb}' AND m.Name = N'${sm}') UPDATE m SET IsActive = 1 FROM dbo.MoveAdvisorVehicleModels m INNER JOIN dbo.MoveAdvisorVehicleBrands b ON b.Id = m.BrandId WHERE b.Name = N'${sb}' AND m.Name = N'${sm}'; ELSE INSERT INTO dbo.MoveAdvisorVehicleModels (BrandId, Name, IsActive) SELECT TOP 1 b.Id, N'${sm}', 1 FROM dbo.MoveAdvisorVehicleBrands b WHERE b.Name = N'${sb}';`);
+    return;
+  }
+  if (action === "delete_model") {
+    runSqlcmd(`UPDATE m SET m.IsActive = 0 FROM dbo.MoveAdvisorVehicleModels m INNER JOIN dbo.MoveAdvisorVehicleBrands b ON b.Id = m.BrandId WHERE b.Name = N'${sb}' AND m.Name = N'${sm}';`);
+    return;
+  }
+  if (action === "delete_brand") {
+    runSqlcmd(`UPDATE b SET b.IsActive = 0 FROM dbo.MoveAdvisorVehicleBrands b WHERE b.Name = N'${sb}'; UPDATE m SET m.IsActive = 0 FROM dbo.MoveAdvisorVehicleModels m INNER JOIN dbo.MoveAdvisorVehicleBrands b ON b.Id = m.BrandId WHERE b.Name = N'${sb}';`);
+  }
+}
+
+function applyLocalAction(action, brand, model) {
+  const map = readLocalCatalogMap();
+  if (action === "upsert_brand") { if (!Array.isArray(map[brand])) map[brand] = []; }
+  if (action === "upsert_model") { if (!Array.isArray(map[brand])) map[brand] = []; if (!map[brand].includes(model)) map[brand].push(model); }
+  if (action === "delete_model") { if (Array.isArray(map[brand])) map[brand] = map[brand].filter((e) => normalizeText(e) !== model); }
+  if (action === "delete_brand") { delete map[brand]; }
+  writeLocalCatalogMap(map);
+}
+
+// ── Unified handler (GET = read, POST = admin write) ───────────────────────
+
 module.exports = async function vehicleCatalogHandler(req, res) {
+  // POST → admin actions
+  if (req.method === "POST") {
+    const action = normalizeText(req?.body?.action).toLowerCase();
+    const brand = normalizeText(req?.body?.brand);
+    const model = normalizeText(req?.body?.model);
+    const provider = getCatalogProvider();
+
+    if (!["upsert_brand", "upsert_model", "delete_model", "delete_brand"].includes(action)) {
+      return res.status(400).json({ ok: false, error: "Accion no valida para catalogo." });
+    }
+    if (!brand) return res.status(400).json({ ok: false, error: "La marca es obligatoria." });
+    if (["upsert_model", "delete_model"].includes(action) && !model) {
+      return res.status(400).json({ ok: false, error: "El modelo es obligatorio para esta accion." });
+    }
+
+    try {
+      if (provider === "mssql") await applyMssqlAction(action, brand, model);
+      else if (provider === "sqlcmd-windows") applySqlcmdAction(action, brand, model);
+      else if (provider === "postgres") await applyPostgresAction(action, brand, model);
+      else applyLocalAction(action, brand, model);
+      return res.status(200).json({ ok: true, provider, action, brand, model: model || "" });
+    } catch (error) {
+      return res.status(500).json({ ok: false, provider, error: error instanceof Error ? error.message : "No se pudo actualizar el catalogo." });
+    }
+  }
+
   if (req.method && req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }

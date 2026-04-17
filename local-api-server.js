@@ -42,7 +42,7 @@ const sendAlertEmailHandler = require("./api/send-alert-email");
 const authHandler = require("./api/auth");
 const authStatusHandler = require("./api/auth-status");
 const vehicleCatalogHandler = require("./api/vehicle-catalog");
-const vehicleCatalogAdminHandler = require("./api/vehicle-catalog-admin");
+
 const billingCheckoutHandler = require("./api/billing-checkout");
 const billingPortalHandler = require("./api/billing-portal");
 const billingAccountHandler = require("./api/billing-account");
@@ -59,7 +59,7 @@ const handlers = {
   "/api/auth": authHandler,
   "/api/auth-status": authStatusHandler,
   "/api/vehicle-catalog": vehicleCatalogHandler,
-  "/api/vehicle-catalog-admin": vehicleCatalogAdminHandler,
+
   "/api/billing-checkout": billingCheckoutHandler,
   "/api/billing-portal": billingPortalHandler,
   "/api/billing-account": billingAccountHandler,

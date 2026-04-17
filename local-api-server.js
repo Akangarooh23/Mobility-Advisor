@@ -97,6 +97,41 @@ function createResponseHelpers(res) {
   };
 }
 
+function detectCompatibleApiOnPort(port) {
+  return new Promise((resolve) => {
+    const request = http.get(
+      {
+        hostname: "127.0.0.1",
+        port,
+        path: "/api/health",
+        timeout: 1000,
+      },
+      (response) => {
+        let body = "";
+
+        response.on("data", (chunk) => {
+          body += chunk;
+        });
+
+        response.on("end", () => {
+          try {
+            const payload = JSON.parse(body);
+            resolve(Boolean(payload?.ok));
+          } catch {
+            resolve(false);
+          }
+        });
+      }
+    );
+
+    request.on("error", () => resolve(false));
+    request.on("timeout", () => {
+      request.destroy();
+      resolve(false);
+    });
+  });
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
 
@@ -174,9 +209,17 @@ server.listen(API_PORT, () => {
   console.log(`📧 RESEND_API_KEY ${process.env.RESEND_API_KEY ? "detectada" : "no configurada (modo local/simulado)"}`);
 });
 
-server.on("error", (error) => {
+server.on("error", async (error) => {
   if (error && error.code === "EADDRINUSE") {
-    console.error(`❌ No se pudo iniciar la API: el puerto ${API_PORT} ya está en uso.`);
+    const compatibleApiRunning = await detectCompatibleApiOnPort(API_PORT);
+
+    if (compatibleApiRunning) {
+      console.log(`ℹ️ API local ya activa en http://localhost:${API_PORT}. Se reutiliza proceso existente.`);
+      process.exit(0);
+      return;
+    }
+
+    console.error(`❌ No se pudo iniciar la API: el puerto ${API_PORT} ya está en uso por otro proceso.`);
     process.exit(1);
     return;
   }

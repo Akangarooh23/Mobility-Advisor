@@ -1,0 +1,98 @@
+import { useEffect, useMemo, useState } from "react";
+import { getVehicleCatalogJson } from "../utils/apiClient";
+import { normalizeText } from "../utils/offerHelpers";
+
+function buildFallbackMarketCatalogFromOffers(offers = []) {
+  const safeOffers = Array.isArray(offers) ? offers : [];
+
+  return safeOffers.reduce((acc, offer) => {
+    const brand = normalizeText(offer?.brand);
+    const model = normalizeText(offer?.model);
+
+    if (!brand || !model) {
+      return acc;
+    }
+
+    if (!Array.isArray(acc[brand])) {
+      acc[brand] = [];
+    }
+
+    if (!acc[brand].includes(model)) {
+      acc[brand].push(model);
+    }
+
+    return acc;
+  }, {});
+}
+
+function mergeCatalogMaps(primaryMap = {}, secondaryMap = {}) {
+  const merged = {};
+  const allBrands = new Set([...Object.keys(secondaryMap || {}), ...Object.keys(primaryMap || {})]);
+
+  for (const brandName of allBrands) {
+    const primaryModels = Array.isArray(primaryMap?.[brandName]) ? primaryMap[brandName] : [];
+    const secondaryModels = Array.isArray(secondaryMap?.[brandName]) ? secondaryMap[brandName] : [];
+    const mergedModels = Array.from(
+      new Set([
+        ...secondaryModels.map((name) => normalizeText(name)).filter(Boolean),
+        ...primaryModels.map((name) => normalizeText(name)).filter(Boolean),
+      ])
+    );
+
+    if (mergedModels.length > 0) {
+      merged[brandName] = mergedModels;
+    }
+  }
+
+  return merged;
+}
+
+export function useMarketCatalog(fallbackOffers = []) {
+  const fallbackCatalog = useMemo(
+    () => buildFallbackMarketCatalogFromOffers(fallbackOffers),
+    [fallbackOffers]
+  );
+  const [marketBrandsCatalog, setMarketBrandsCatalog] = useState(() => fallbackCatalog);
+  const [marketCatalogSource, setMarketCatalogSource] = useState("fallback");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    (async () => {
+      try {
+        const { data } = await getVehicleCatalogJson();
+        const nextCatalog = (Array.isArray(data?.brands) ? data.brands : []).reduce((acc, brandEntry) => {
+          const brandName = normalizeText(brandEntry?.name);
+
+          if (!brandName) {
+            return acc;
+          }
+
+          const models = Array.isArray(brandEntry?.models)
+            ? brandEntry.models.map((modelName) => normalizeText(modelName)).filter(Boolean)
+            : [];
+
+          acc[brandName] = models;
+          return acc;
+        }, {});
+
+        const mergedCatalog = mergeCatalogMaps(nextCatalog, fallbackCatalog);
+
+        if (isMounted && Object.keys(mergedCatalog).length > 0) {
+          setMarketBrandsCatalog(mergedCatalog);
+          setMarketCatalogSource(Object.keys(nextCatalog).length > 0 ? "api+fallback" : "fallback");
+        }
+      } catch {
+        if (isMounted) {
+          setMarketCatalogSource("fallback");
+        }
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fallbackCatalog]);
+
+  return { marketBrandsCatalog, marketCatalogSource };
+}

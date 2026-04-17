@@ -26,6 +26,8 @@ import {
   createInitialSellAnswers,
   useAdvisorController,
 } from "./hooks/useAdvisorController";
+import { useMarketAlertInsights } from "./hooks/useMarketAlertInsights";
+import { useMarketCatalog } from "./hooks/useMarketCatalog";
 import {
   USER_DASHBOARD_ROUTE_MAP,
   buildOfferModelSuggestions,
@@ -55,7 +57,6 @@ import {
 import {
   getAuthSessionJson,
   getUserMobilityDataJson,
-  getVehicleCatalogJson,
   postAlertEmailDigestJson,
   postAppointmentAddJson,
   postAuthJson,
@@ -75,7 +76,6 @@ import {
   requestAiJson,
 } from "./utils/analysisFlows";
 import {
-  buildMarketAlertMatches,
   buildPortalVoEquipment,
   buildPortalVoHighlights,
   buildPortalVoMarketplaceModel,
@@ -147,54 +147,6 @@ function normalizeRangeValue(value) {
   }
 
   return value ? [value] : [];
-}
-
-function buildFallbackMarketCatalogFromOffers(offers = []) {
-  const safeOffers = Array.isArray(offers) ? offers : [];
-
-  return safeOffers.reduce((acc, offer) => {
-    const brand = normalizeText(offer?.brand);
-    const model = normalizeText(offer?.model);
-
-    if (!brand || !model) {
-      return acc;
-    }
-
-    if (!Array.isArray(acc[brand])) {
-      acc[brand] = [];
-    }
-
-    if (!acc[brand].includes(model)) {
-      acc[brand].push(model);
-    }
-
-    return acc;
-  }, {});
-}
-
-function mergeCatalogMaps(primaryMap = {}, secondaryMap = {}) {
-  const merged = {};
-  const allBrands = new Set([
-    ...Object.keys(secondaryMap || {}),
-    ...Object.keys(primaryMap || {}),
-  ]);
-
-  for (const brandName of allBrands) {
-    const primaryModels = Array.isArray(primaryMap?.[brandName]) ? primaryMap[brandName] : [];
-    const secondaryModels = Array.isArray(secondaryMap?.[brandName]) ? secondaryMap[brandName] : [];
-    const mergedModels = Array.from(
-      new Set([
-        ...secondaryModels.map((name) => normalizeText(name)).filter(Boolean),
-        ...primaryModels.map((name) => normalizeText(name)).filter(Boolean),
-      ])
-    );
-
-    if (mergedModels.length > 0) {
-      merged[brandName] = mergedModels;
-    }
-  }
-
-  return merged;
 }
 
 function hasCompleteScoreWeights(value, metrics = []) {
@@ -540,8 +492,7 @@ export default function App() {
   const [userVehicleStates, setUserVehicleStates] = useState([]);
   const [marketAlerts, setMarketAlerts] = useState([]);
   const [marketAlertStatus, setMarketAlertStatus] = useState({});
-  const [marketBrandsCatalog, setMarketBrandsCatalog] = useState(() => buildFallbackMarketCatalogFromOffers(PORTAL_VO_OFFERS));
-  const [marketCatalogSource, setMarketCatalogSource] = useState("fallback");
+  const { marketBrandsCatalog, marketCatalogSource } = useMarketCatalog(PORTAL_VO_OFFERS);
   const [questionnaireDraft, setQuestionnaireDraft] = useState(null);
   const [saveFeedback, setSaveFeedback] = useState("");
   const [emailDigestFeedback, setEmailDigestFeedback] = useState("");
@@ -689,90 +640,16 @@ export default function App() {
     return steps;
   }, [advancedMode, advisorContext]);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    (async () => {
-      try {
-        const { data } = await getVehicleCatalogJson();
-        const fallbackCatalog = buildFallbackMarketCatalogFromOffers(PORTAL_VO_OFFERS);
-        const nextCatalog = (Array.isArray(data?.brands) ? data.brands : []).reduce((acc, brandEntry) => {
-          const brandName = normalizeText(brandEntry?.name);
-
-          if (!brandName) {
-            return acc;
-          }
-
-          const models = Array.isArray(brandEntry?.models)
-            ? brandEntry.models.map((modelName) => normalizeText(modelName)).filter(Boolean)
-            : [];
-
-          acc[brandName] = models;
-          return acc;
-        }, {});
-        const mergedCatalog = mergeCatalogMaps(nextCatalog, fallbackCatalog);
-
-        if (isMounted && Object.keys(mergedCatalog).length > 0) {
-          setMarketBrandsCatalog(mergedCatalog);
-          setMarketCatalogSource(Object.keys(nextCatalog).length > 0 ? "api+fallback" : "fallback");
-        }
-      } catch {
-        // Keep fallback catalog when endpoint is unavailable.
-        if (isMounted) {
-          setMarketCatalogSource("fallback");
-        }
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
   const currentStep = activeSteps[step];
   const totalSteps = activeSteps.length;
   const currentUserEmail = normalizeText(currentUser?.email).toLowerCase();
-  const marketAlertMatches = useMemo(
-    () => buildMarketAlertMatches({ alerts: marketAlerts, offers: PORTAL_VO_OFFERS }),
-    [marketAlerts]
-  );
-  const newAlertMatchesCount = useMemo(
-    () =>
-      marketAlerts.reduce((acc, alert) => {
-        const matchCount = Number(marketAlertMatches?.[alert.id]?.count || 0);
-        const seenCount = Number(marketAlertStatus?.[alert.id]?.seenCount || 0);
-        return acc + Math.max(matchCount - seenCount, 0);
-      }, 0),
-    [marketAlertMatches, marketAlertStatus, marketAlerts]
-  );
-  const pendingAlertNotifications = useMemo(
-    () =>
-      marketAlerts
-        .map((alert) => {
-          const matchInfo = marketAlertMatches?.[alert.id] || { count: 0, matches: [] };
-          const seenCount = Number(marketAlertStatus?.[alert.id]?.seenCount || 0);
-          const newMatchesCount = Math.max(Number(matchInfo.count || 0) - seenCount, 0);
-
-          if (newMatchesCount <= 0) {
-            return null;
-          }
-
-          const alertEmail = resolveAlertRecipientEmail(alert, currentUserEmail);
-
-          return {
-            id: alert.id,
-            title: alert.title,
-            newMatchesCount,
-            summary: `${newMatchesCount} ${newMatchesCount === 1 ? "coincidencia nueva detectada" : "coincidencias nuevas detectadas"} en el marketplace`,
-            matches: Array.isArray(matchInfo.matches) ? matchInfo.matches.slice(0, 2) : [],
-            notifyByEmail: Boolean(alert.notifyByEmail && alertEmail),
-            email: alertEmail,
-          };
-        })
-        .filter(Boolean)
-        .sort((a, b) => b.newMatchesCount - a.newMatchesCount || a.title.localeCompare(b.title, "es")),
-    [currentUserEmail, marketAlertMatches, marketAlertStatus, marketAlerts]
-  );
+  const { marketAlertMatches, newAlertMatchesCount, pendingAlertNotifications } = useMarketAlertInsights({
+    marketAlerts,
+    marketAlertStatus,
+    offers: PORTAL_VO_OFFERS,
+    currentUserEmail,
+    resolveAlertRecipientEmail,
+  });
 
   const {
     dashboardSavedComparisons,

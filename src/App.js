@@ -20,6 +20,9 @@ import ServiceInsurancePage from "./pages/ServiceInsurancePage";
 import ServiceMaintenancePage from "./pages/ServiceMaintenancePage";
 import ServiceAutogestorPage from "./pages/ServiceAutogestorPage";
 import LegalPolicyPage from "./pages/LegalPolicyPage";
+import SeoStaticPage from "./pages/SeoStaticPage";
+import BlogIndexPage from "./pages/BlogIndexPage";
+import BlogArticlePage from "./pages/BlogArticlePage";
 import ResolvedOfferImage from "./components/offers/ResolvedOfferImage";
 import {
   createInitialDecisionAnswers,
@@ -123,6 +126,7 @@ import {
   TOTAL_PURCHASE_OPTIONS,
 } from "./data/marketData";
 import { PORTAL_VO_OFFERS } from "./data/portalVoOffers";
+import { BLOG_POSTS, getBlogPostBySlug } from "./data/blogPosts";
 import { STEPS, getQuestionnaireSteps } from "./data/questionnaireSteps";
 import { BLOCK_COLORS, BRAND_LOGOS } from "./ui/branding";
 import { createAppStyles } from "./ui/appStyles";
@@ -422,6 +426,156 @@ const LEGAL_DOCUMENTS = {
   },
 };
 
+const SEO_STATIC_PAGES = {
+  servicesSeo: {
+    badge: "Servicios",
+    title: "Servicios de movilidad para reducir coste y friccion operativa",
+    description:
+      "Centraliza seguro, mantenimiento, certificaciones y soporte de gestion para tu vehiculo en un solo flujo.",
+    sections: [
+      {
+        heading: "Seguros con criterio de coste total",
+        paragraphs: [
+          "Comparamos cobertura, franquicia y precio para reducir gasto sin perder proteccion relevante.",
+        ],
+      },
+      {
+        heading: "Mantenimiento preventivo",
+        paragraphs: [
+          "Planificamos revisiones por uso real para evitar averias inesperadas y mejorar la vida util del coche.",
+        ],
+      },
+      {
+        heading: "Soporte de gestion",
+        bullets: [
+          "Recordatorios de renovaciones y tramites.",
+          "Seguimiento de incidencias de servicio.",
+          "Visibilidad centralizada desde tu panel.",
+        ],
+      },
+    ],
+  },
+  contact: {
+    badge: "Contacto",
+    title: "Contacto CarsWise",
+    description:
+      "Si necesitas ayuda para compra, renting, venta o servicios de movilidad, te atendemos por email y telefono.",
+    sections: [
+      {
+        heading: "Canales de atencion",
+        bullets: [
+          "Email: soporte@carswise.es",
+          "Telefono: +34 910 000 000",
+          "Horario: L-V de 09:00 a 18:00 (Espana)",
+        ],
+      },
+      {
+        heading: "Que incluir en tu consulta",
+        bullets: [
+          "Tipo de operacion: compra, renting, venta o servicio.",
+          "Presupuesto aproximado y horizonte de uso.",
+          "Contexto del vehiculo actual, si aplica.",
+        ],
+      },
+    ],
+  },
+};
+
+const PUBLIC_ROUTE_BY_ENTRY_MODE = {
+  portalVo: "/marketplace-vo",
+  vehicleOptions: "/asesor-vehiculo",
+  servicesSeo: "/servicios",
+  blog: "/blog",
+  blogCompraUsado: "/blog/guia-compra-coche-segunda-mano-espana",
+  blogRentingCompra: "/blog/renting-vs-compra-2026-que-conviene-segun-tu-uso",
+  contact: "/contacto",
+  legalNotice: "/aviso-legal",
+  privacyPolicy: "/politica-privacidad",
+  cookiePolicy: "/politica-cookies",
+  termsConditions: "/terminos-condiciones",
+};
+
+const ENTRY_MODE_BY_PUBLIC_ROUTE = Object.entries(PUBLIC_ROUTE_BY_ENTRY_MODE).reduce((acc, [entryMode, path]) => {
+  acc[path] = entryMode;
+  return acc;
+}, {});
+
+const SEO_META_BY_ENTRY_MODE = {
+  home: {
+    title: "CarsWise AI | Asesor de movilidad para comprar, renting y vender mejor",
+    description:
+      "CarsWise te ayuda a decidir mejor en compra, renting, venta y servicios del coche con analisis de coste total.",
+  },
+  portalVo: {
+    title: "Marketplace VO | Coches de ocasion con enfoque de coste total | CarsWise",
+    description:
+      "Explora ofertas de vehiculo de ocasion y compara opciones con enfoque de coste total y decision informada.",
+  },
+  vehicleOptions: {
+    title: "Asesor de vehiculo | Descubre la mejor operacion para tu caso | CarsWise",
+    description:
+      "Compara escenarios de compra y renting segun presupuesto, kilometros, uso y objetivos de movilidad.",
+  },
+  servicesSeo: {
+    title: "Servicios de movilidad | Seguro, mantenimiento y gestion | CarsWise",
+    description:
+      "Centraliza servicios de movilidad para reducir imprevistos y optimizar el coste total de tu vehiculo.",
+  },
+  blog: {
+    title: "Blog de movilidad | Guias utiles de compra, renting y ahorro | CarsWise",
+    description:
+      "Consejos practicos y comparativas para tomar mejores decisiones de movilidad en Espana.",
+  },
+  blogCompraUsado: {
+    title: "Guia 2026: comprar coche usado en Espana | CarsWise",
+    description:
+      "Checklist practico para comprar coche de segunda mano con menos riesgo tecnico, legal y financiero.",
+  },
+  blogRentingCompra: {
+    title: "Renting vs compra 2026: que conviene segun tu uso | CarsWise",
+    description:
+      "Analisis claro para elegir entre renting y compra segun kilometraje, liquidez y horizonte de uso.",
+  },
+  contact: {
+    title: "Contacto | CarsWise",
+    description:
+      "Contacta con CarsWise para ayuda en compra, renting, venta y servicios de movilidad.",
+  },
+  legalNotice: {
+    title: "Aviso legal | CarsWise",
+    description: "Informacion legal sobre titularidad, uso del servicio y responsabilidades.",
+  },
+  privacyPolicy: {
+    title: "Politica de privacidad | CarsWise",
+    description: "Como tratamos y protegemos tus datos personales en CarsWise.",
+  },
+  cookiePolicy: {
+    title: "Politica de cookies | CarsWise",
+    description: "Informacion sobre cookies, consentimiento y configuracion de preferencias.",
+  },
+  termsConditions: {
+    title: "Terminos y condiciones | CarsWise",
+    description: "Condiciones generales de uso de la plataforma CarsWise.",
+  },
+};
+
+function normalizePublicPath(pathname = "") {
+  const normalized = String(pathname || "").replace(/\/+$/, "").toLowerCase();
+  return normalized || "/";
+}
+
+function resolveEntryModeFromPublicPath(pathname = "") {
+  const normalizedPath = normalizePublicPath(pathname);
+  if (normalizedPath.startsWith("/panel")) {
+    return null;
+  }
+  return ENTRY_MODE_BY_PUBLIC_ROUTE[normalizedPath] || null;
+}
+
+function getPublicPathForEntryMode(entryMode = "") {
+  return PUBLIC_ROUTE_BY_ENTRY_MODE[entryMode] || "/";
+}
+
 // ------------------------------------------------------------
 // APP
 // ------------------------------------------------------------
@@ -559,18 +713,35 @@ export default function App() {
     setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
   }, []);
 
+  const openPublicPage = useCallback((nextEntryMode = null, historyMode = "push") => {
+    setEntryMode(nextEntryMode);
+    setStep(-1);
+    syncBrowserPath(nextEntryMode ? getPublicPathForEntryMode(nextEntryMode) : "/", historyMode);
+
+    if (typeof window !== "undefined") {
+      window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
+    }
+  }, [syncBrowserPath]);
+
   const openLegalDocument = useCallback((docKey = "legalNotice") => {
     if (!LEGAL_DOCUMENTS[docKey]) {
       return;
     }
 
-    setEntryMode(docKey);
-    setStep(-1);
+    openPublicPage(docKey);
+  }, [openPublicPage]);
 
-    if (typeof window !== "undefined") {
-      window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
+  const openBlogPost = useCallback((slug = "") => {
+    const post = getBlogPostBySlug(slug);
+    if (!post) {
+      return;
     }
-  }, []);
+
+    const nextEntryMode = post.slug === "guia-compra-coche-segunda-mano-espana"
+      ? "blogCompraUsado"
+      : "blogRentingCompra";
+    openPublicPage(nextEntryMode);
+  }, [openPublicPage]);
 
   const { saveCookieConsent } = useAppPreferences({
     themeStorageKey: THEME_STORAGE_KEY,
@@ -615,6 +786,63 @@ export default function App() {
     setCookiePreferences,
     setShowCookieGate,
   });
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const applyRouteFromPath = () => {
+      const pathEntryMode = resolveEntryModeFromPublicPath(window.location.pathname);
+
+      if (!pathEntryMode) {
+        if (normalizePublicPath(window.location.pathname) === "/") {
+          setEntryMode(null);
+          setStep(-1);
+        }
+        return;
+      }
+
+      setEntryMode(pathEntryMode);
+      setStep(-1);
+    };
+
+    applyRouteFromPath();
+    window.addEventListener("popstate", applyRouteFromPath);
+    return () => window.removeEventListener("popstate", applyRouteFromPath);
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === "undefined" || typeof window === "undefined") {
+      return;
+    }
+
+    const effectiveEntryMode = entryMode || "home";
+    const meta = SEO_META_BY_ENTRY_MODE[effectiveEntryMode] || SEO_META_BY_ENTRY_MODE.home;
+    const canonicalPath = effectiveEntryMode === "home" ? "/" : getPublicPathForEntryMode(effectiveEntryMode);
+    const canonicalUrl = `https://www.carswiseai.com${canonicalPath}`;
+
+    document.title = meta.title;
+
+    const setMetaContent = (selector, content) => {
+      const node = document.querySelector(selector);
+      if (node) {
+        node.setAttribute("content", content);
+      }
+    };
+
+    setMetaContent('meta[name="description"]', meta.description);
+    setMetaContent('meta[property="og:title"]', meta.title);
+    setMetaContent('meta[property="og:description"]', meta.description);
+    setMetaContent('meta[property="og:url"]', canonicalUrl);
+    setMetaContent('meta[name="twitter:title"]', meta.title);
+    setMetaContent('meta[name="twitter:description"]', meta.description);
+
+    const canonicalLink = document.querySelector('link[rel="canonical"]');
+    if (canonicalLink) {
+      canonicalLink.setAttribute("href", canonicalUrl);
+    }
+  }, [entryMode]);
 
   const currentStep = activeSteps[step];
   const totalSteps = activeSteps.length;
@@ -2230,6 +2458,17 @@ export default function App() {
   const answeredSteps = countAnsweredSteps(visibleDraftAnswers, activeSteps);
   const remainingQuestions = Math.max(totalSteps - answeredSteps, 0);
   const completionPct = Math.min(100, Math.round((answeredSteps / totalSteps) * 100));
+  const selectedBlogArticle = useMemo(() => {
+    if (entryMode === "blogCompraUsado") {
+      return getBlogPostBySlug("guia-compra-coche-segunda-mano-espana");
+    }
+
+    if (entryMode === "blogRentingCompra") {
+      return getBlogPostBySlug("renting-vs-compra-2026-que-conviene-segun-tu-uso");
+    }
+
+    return null;
+  }, [entryMode]);
   const isAdviceFlowLightBackground =
     themeMode === "light" &&
     entryMode === "consejo" &&
@@ -3610,6 +3849,46 @@ export default function App() {
         />
       )}
 
+      {step === -1 && entryMode === "servicesSeo" && (
+        <SeoStaticPage
+          styles={s}
+          badge={SEO_STATIC_PAGES.servicesSeo.badge}
+          title={SEO_STATIC_PAGES.servicesSeo.title}
+          description={SEO_STATIC_PAGES.servicesSeo.description}
+          sections={SEO_STATIC_PAGES.servicesSeo.sections}
+          onGoHome={restart}
+        />
+      )}
+
+      {step === -1 && entryMode === "contact" && (
+        <SeoStaticPage
+          styles={s}
+          badge={SEO_STATIC_PAGES.contact.badge}
+          title={SEO_STATIC_PAGES.contact.title}
+          description={SEO_STATIC_PAGES.contact.description}
+          sections={SEO_STATIC_PAGES.contact.sections}
+          onGoHome={restart}
+        />
+      )}
+
+      {step === -1 && entryMode === "blog" && (
+        <BlogIndexPage
+          styles={s}
+          posts={BLOG_POSTS}
+          onOpenPost={openBlogPost}
+          onGoHome={restart}
+        />
+      )}
+
+      {step === -1 && (entryMode === "blogCompraUsado" || entryMode === "blogRentingCompra") && (
+        <BlogArticlePage
+          styles={s}
+          article={selectedBlogArticle}
+          onGoBlog={() => openPublicPage("blog")}
+          onGoHome={restart}
+        />
+      )}
+
       {step === -1 && LEGAL_DOCUMENTS[entryMode] && (
         <LegalPolicyPage
           styles={s}
@@ -3979,18 +4258,14 @@ export default function App() {
               <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>ENLACES UTILES</div>
               <div style={{ display: "grid", gap: 7, fontSize: 12 }}>
                 <button type="button" onClick={restart} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Inicio</button>
-                <button type="button" onClick={() => { setEntryMode("portalVo"); setStep(-1); setPortalVoFilters({ ...INITIAL_PORTAL_VO_FILTERS }); }} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Marketplace VO</button>
-                <button type="button" onClick={() => { setEntryMode("vehicleOptions"); setStep(-1); }} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Asesor de vehículo</button>
+                <button type="button" onClick={() => openPublicPage("portalVo")} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Marketplace VO</button>
+                <button type="button" onClick={() => openPublicPage("vehicleOptions")} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Asesor de vehículo</button>
+                <button type="button" onClick={() => openPublicPage("blog")} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Blog</button>
+                <button type="button" onClick={() => openPublicPage("contact")} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Contacto</button>
                 <button
                   type="button"
                   onClick={() => {
-                    if (!isUserLoggedIn) {
-                      setPlanCheckoutFeedback("Inicia sesión o regístrate para sincronizar este flujo con tu portal.");
-                      openAuthDialog("login", { entryMode: "serviceOptions", routePage: "home" });
-                      return;
-                    }
-                    setEntryMode("serviceOptions");
-                    setStep(-1);
+                    openPublicPage("servicesSeo");
                   }}
                   style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}
                 >

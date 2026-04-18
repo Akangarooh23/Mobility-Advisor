@@ -1,5 +1,29 @@
 {
   "buildCommand": "npm run build",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "cartrust.vercel.app"
+        }
+      ],
+      "destination": "https://carswise.vercel.app/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "caradvisor.vercel.app"
+        }
+      ],
+      "destination": "https://carswise.vercel.app/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",

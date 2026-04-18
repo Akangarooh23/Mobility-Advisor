@@ -559,6 +559,50 @@ const SEO_META_BY_ENTRY_MODE = {
   },
 };
 
+const SITE_URL = "https://www.carswiseai.com";
+const SITE_NAME = "CarsWise AI";
+const SITE_LOGO_URL = `${SITE_URL}/carswise-logo.png`;
+const SITE_IMAGE_URL = `${SITE_URL}/CarWise_app.jpg?v=20260418b`;
+
+function buildBreadcrumbSchema(items = []) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  };
+}
+
+function buildBlogPostingSchema(post = {}) {
+  const postUrl = `${SITE_URL}/blog/${post.slug}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.description,
+    datePublished: post.publishedAt,
+    dateModified: post.publishedAt,
+    mainEntityOfPage: postUrl,
+    image: [SITE_IMAGE_URL],
+    author: {
+      "@type": "Organization",
+      name: SITE_NAME,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      logo: {
+        "@type": "ImageObject",
+        url: SITE_LOGO_URL,
+      },
+    },
+  };
+}
+
 function normalizePublicPath(pathname = "") {
   const normalized = String(pathname || "").replace(/\/+$/, "").toLowerCase();
   return normalized || "/";
@@ -2469,6 +2513,86 @@ export default function App() {
 
     return null;
   }, [entryMode]);
+  const structuredDataSchemas = useMemo(() => {
+    if (!entryMode) {
+      return [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: SITE_NAME,
+          url: SITE_URL,
+          logo: SITE_LOGO_URL,
+          image: SITE_IMAGE_URL,
+          contactPoint: [
+            {
+              "@type": "ContactPoint",
+              contactType: "customer support",
+              email: "soporte@carswise.es",
+              telephone: "+34910000000",
+              availableLanguage: ["es"],
+            },
+          ],
+          sameAs: [
+            "https://www.linkedin.com",
+            "https://x.com",
+            "https://www.instagram.com",
+            "https://www.youtube.com",
+          ],
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: SITE_NAME,
+          url: SITE_URL,
+          inLanguage: "es-ES",
+        },
+      ];
+    }
+
+    if (entryMode === "blog") {
+      return [
+        {
+          "@context": "https://schema.org",
+          "@type": "Blog",
+          name: "Blog CarsWise",
+          url: `${SITE_URL}/blog`,
+          inLanguage: "es-ES",
+          publisher: {
+            "@type": "Organization",
+            name: SITE_NAME,
+            logo: {
+              "@type": "ImageObject",
+              url: SITE_LOGO_URL,
+            },
+          },
+          blogPost: BLOG_POSTS.map((post) => ({
+            "@type": "BlogPosting",
+            headline: post.title,
+            url: `${SITE_URL}/blog/${post.slug}`,
+            datePublished: post.publishedAt,
+            dateModified: post.publishedAt,
+          })),
+        },
+        buildBreadcrumbSchema([
+          { name: "Inicio", url: `${SITE_URL}/` },
+          { name: "Blog", url: `${SITE_URL}/blog` },
+        ]),
+      ];
+    }
+
+    if ((entryMode === "blogCompraUsado" || entryMode === "blogRentingCompra") && selectedBlogArticle) {
+      return [
+        buildBlogPostingSchema(selectedBlogArticle),
+        buildBreadcrumbSchema([
+          { name: "Inicio", url: `${SITE_URL}/` },
+          { name: "Blog", url: `${SITE_URL}/blog` },
+          { name: selectedBlogArticle.title, url: `${SITE_URL}/blog/${selectedBlogArticle.slug}` },
+        ]),
+      ];
+    }
+
+    return [];
+  }, [entryMode, selectedBlogArticle]);
   const isAdviceFlowLightBackground =
     themeMode === "light" &&
     entryMode === "consejo" &&
@@ -2507,6 +2631,14 @@ export default function App() {
           justifyContent: "space-between",
         }}
       >
+      {structuredDataSchemas.map((schema, index) => (
+        <script
+          key={`schema-${index}`}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+      ))}
+
         <button
           type="button"
           onClick={restart}

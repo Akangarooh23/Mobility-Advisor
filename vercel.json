@@ -1,40 +1,5 @@
 {
   "buildCommand": "npm run build",
-  "redirects": [
-    {
-      "source": "/:path*",
-      "has": [
-        {
-          "type": "host",
-          "value": "cartrustai.vercel.app"
-        }
-      ],
-      "destination": "https://carswise.ai/:path*",
-      "permanent": true
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        {
-          "type": "host",
-          "value": "cartrust.vercel.app"
-        }
-      ],
-      "destination": "https://carswise.ai/:path*",
-      "permanent": true
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        {
-          "type": "host",
-          "value": "caradvisor.vercel.app"
-        }
-      ],
-      "destination": "https://carswise.ai/:path*",
-      "permanent": true
-    }
-  ],
   "rewrites": [
     {
       "source": "/api/(.*)",

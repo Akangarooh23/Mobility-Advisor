@@ -6,10 +6,21 @@
       "has": [
         {
           "type": "host",
+          "value": "cartrustai.vercel.app"
+        }
+      ],
+      "destination": "https://carswise.ai/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
           "value": "cartrust.vercel.app"
         }
       ],
-      "destination": "https://carswise.vercel.app/:path*",
+      "destination": "https://carswise.ai/:path*",
       "permanent": true
     },
     {
@@ -20,7 +31,7 @@
           "value": "caradvisor.vercel.app"
         }
       ],
-      "destination": "https://carswise.vercel.app/:path*",
+      "destination": "https://carswise.ai/:path*",
       "permanent": true
     }
   ],

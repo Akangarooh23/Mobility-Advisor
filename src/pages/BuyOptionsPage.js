@@ -5,7 +5,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
 
   const timelineSteps = [
     "Seleccionas una opcion",
-    "Respondes al CarAdvisor",
+    "Respondes al CarsWise",
     "Analizamos el mercado en tiempo real",
     "Te ofrecemos 3 modelos",
     "Te agendamos una cita",
@@ -159,7 +159,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             No sé qué modelo
           </div>
           <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
-            Ayúdanos a conocerte en 3 minutos con nuestro CarAdvisor para encontrar las opciones que más se adapten a ti.
+            Ayúdanos a conocerte en 3 minutos con nuestro CarsWise para encontrar las opciones que más se adapten a ti.
           </div>
         </button>
 

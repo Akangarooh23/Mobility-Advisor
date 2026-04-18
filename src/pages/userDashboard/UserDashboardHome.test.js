@@ -49,7 +49,7 @@ test("shows an email summary action when notifications have an email recipient",
           title: "Alerta Compra · Toyota · Corolla",
           newMatchesCount: 1,
           summary: "1 coincidencia nueva detectada en el marketplace",
-          email: "cliente@caradvisor.es",
+          email: "cliente@carswise.es",
           notifyByEmail: true,
         },
       ]}
@@ -59,7 +59,7 @@ test("shows an email summary action when notifications have an email recipient",
     />
   );
 
-  expect(screen.getAllByText(/cliente@caradvisor.es/i).length).toBeGreaterThan(0);
+  expect(screen.getAllByText(/cliente@carswise.es/i).length).toBeGreaterThan(0);
   fireEvent.click(screen.getByRole("button", { name: /enviar resumen por email/i }));
   expect(onSendAlertEmailDigest).toHaveBeenCalled();
 });

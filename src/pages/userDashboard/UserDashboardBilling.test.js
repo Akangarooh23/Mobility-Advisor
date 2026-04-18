@@ -8,7 +8,7 @@ jest.mock("../../utils/apiClient", () => ({
       account: {
         profile: {
           fullName: "Usuario Demo",
-          email: "demo@caradvisor.com",
+          email: "demo@carswise.com",
           phone: "",
           companyName: "",
           taxId: "",
@@ -33,7 +33,7 @@ jest.mock("../../utils/apiClient", () => ({
       account: {
         profile: {
           fullName: "Usuario Demo",
-          email: "demo@caradvisor.com",
+          email: "demo@carswise.com",
           phone: "",
           companyName: "",
           taxId: "",
@@ -54,7 +54,7 @@ test("renders billing section with account actions", async () => {
       panelStyle={{}}
       currentUser={{
         name: "Usuario Demo",
-        email: "demo@caradvisor.com",
+        email: "demo@carswise.com",
       }}
     />
   );

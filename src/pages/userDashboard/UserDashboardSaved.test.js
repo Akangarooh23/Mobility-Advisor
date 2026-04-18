@@ -164,7 +164,7 @@ test("shows the email digest button directly in saved alerts", () => {
           brand: "Toyota",
           model: "Corolla",
           notifyByEmail: true,
-          email: "cliente@caradvisor.es",
+          email: "cliente@carswise.es",
         },
       ]}
       panelStyle={{}}
@@ -185,7 +185,7 @@ test("uses the login email as the default recipient for new alerts", () => {
   render(
     <UserDashboardSaved
       savedComparisons={[]}
-      currentUserEmail="cliente@caradvisor.es"
+      currentUserEmail="cliente@carswise.es"
       panelStyle={{}}
       getOfferBadgeStyle={() => ({})}
       formatCurrency={(value) => `${value} €`}
@@ -198,5 +198,5 @@ test("uses the login email as the default recipient for new alerts", () => {
   fireEvent.click(screen.getByRole("button", { name: /añadir alerta/i }));
   fireEvent.click(screen.getByRole("checkbox", { name: /enviarme también un resumen por email/i }));
 
-  expect(screen.getByDisplayValue("cliente@caradvisor.es")).toBeInTheDocument();
+  expect(screen.getByDisplayValue("cliente@carswise.es")).toBeInTheDocument();
 });

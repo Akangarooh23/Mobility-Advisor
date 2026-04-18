@@ -38,7 +38,7 @@ export function buildPortalVoHighlights(offer = {}) {
   const items = [];
 
   if (offer?.hasGuaranteeSeal) {
-    items.push(`Sello CarAdvisor con ${offer.warrantyMonths || 12} meses de garantía.`);
+    items.push(`Sello CarsWise con ${offer.warrantyMonths || 12} meses de garantía.`);
   }
 
   if (Number(offer?.mileage || 0) <= 20000) {

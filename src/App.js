@@ -243,8 +243,8 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "Datos identificativos",
         paragraphs: [
-          "CarAdvisor es una plataforma digital orientada al asesoramiento y operativa de movilidad en España.",
-          "A efectos de contacto general, soporte y gestión de incidencias puedes dirigirte a soporte@caradvisor.es.",
+          "CarsWise es una plataforma digital orientada al asesoramiento y operativa de movilidad en España.",
+          "A efectos de contacto general, soporte y gestión de incidencias puedes dirigirte a soporte@carswise.es.",
         ],
       },
       {
@@ -259,20 +259,20 @@ const LEGAL_DOCUMENTS = {
         bullets: [
           "El usuario se compromete a utilizar la plataforma conforme a la ley, la buena fe y el orden público.",
           "Queda prohibido el uso fraudulento, la extracción automatizada no autorizada de datos y cualquier intento de alterar el funcionamiento del servicio.",
-          "CarAdvisor puede actualizar, mejorar o retirar funcionalidades para mantener seguridad, rendimiento y calidad de servicio.",
+          "CarsWise puede actualizar, mejorar o retirar funcionalidades para mantener seguridad, rendimiento y calidad de servicio.",
         ],
       },
       {
         heading: "Propiedad intelectual",
         paragraphs: [
-          "La marca CarAdvisor, el diseño de la plataforma, su arquitectura funcional, contenidos, código y elementos gráficos son titularidad de sus propietarios o licenciantes.",
+          "La marca CarsWise, el diseño de la plataforma, su arquitectura funcional, contenidos, código y elementos gráficos son titularidad de sus propietarios o licenciantes.",
           "No se autoriza su reproducción, distribución o transformación sin autorización expresa salvo en los casos legalmente permitidos.",
         ],
       },
       {
         heading: "Responsabilidad",
         paragraphs: [
-          "CarAdvisor no garantiza la disponibilidad permanente e ininterrumpida del servicio, aunque aplica medidas razonables para mantener su continuidad.",
+          "CarsWise no garantiza la disponibilidad permanente e ininterrumpida del servicio, aunque aplica medidas razonables para mantener su continuidad.",
           "Las decisiones finales de contratación o compra/venta corresponden al usuario y, en su caso, al tercero proveedor con quien formalice la operación.",
         ],
       },
@@ -327,7 +327,7 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "Derechos de las personas usuarias",
         paragraphs: [
-          "Puedes ejercer los derechos de acceso, rectificación, supresión, oposición, limitación del tratamiento y portabilidad escribiendo a soporte@caradvisor.es.",
+          "Puedes ejercer los derechos de acceso, rectificación, supresión, oposición, limitación del tratamiento y portabilidad escribiendo a soporte@carswise.es.",
           "Si consideras que tus derechos no han sido atendidos correctamente, puedes presentar reclamación ante la Agencia Española de Protección de Datos (AEPD).",
         ],
       },
@@ -378,14 +378,14 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "Aceptación de términos",
         paragraphs: [
-          "El acceso y uso de CarAdvisor implica la aceptación de estos términos y condiciones.",
+          "El acceso y uso de CarsWise implica la aceptación de estos términos y condiciones.",
           "Si no estás de acuerdo con los términos, debes abstenerte de utilizar la plataforma.",
         ],
       },
       {
         heading: "Alcance y naturaleza del servicio",
         paragraphs: [
-          "CarAdvisor proporciona recomendaciones y herramientas de apoyo para decisiones de movilidad, compra, venta y servicios asociados.",
+          "CarsWise proporciona recomendaciones y herramientas de apoyo para decisiones de movilidad, compra, venta y servicios asociados.",
           "La plataforma no sustituye la revisión contractual o técnica que el usuario deba realizar antes de cerrar operaciones con terceros.",
         ],
       },
@@ -407,14 +407,14 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "Limitación de responsabilidad",
         paragraphs: [
-          "CarAdvisor no garantiza resultados económicos concretos ni asume responsabilidad por decisiones finales adoptadas por el usuario.",
+          "CarsWise no garantiza resultados económicos concretos ni asume responsabilidad por decisiones finales adoptadas por el usuario.",
           "Las relaciones contractuales con terceros proveedores son responsabilidad directa de las partes intervinientes.",
         ],
       },
       {
         heading: "Modificaciones y vigencia",
         paragraphs: [
-          "CarAdvisor puede actualizar estos términos para adaptarlos a cambios normativos, técnicos o de servicio.",
+          "CarsWise puede actualizar estos términos para adaptarlos a cambios normativos, técnicos o de servicio.",
           "La versión vigente estará siempre disponible en el apartado legal de la plataforma.",
         ],
       },
@@ -1247,8 +1247,8 @@ export default function App() {
         to: emailTargets,
         subject:
           emailTargets.length === 1
-            ? "CarAdvisor · Tu resumen de alertas"
-            : `CarAdvisor · ${emailTargets.length} resúmenes de alertas`,
+            ? "CarsWise · Tu resumen de alertas"
+            : `CarsWise · ${emailTargets.length} resúmenes de alertas`,
         notifications: notificationsToSend,
       });
 
@@ -2276,22 +2276,18 @@ export default function App() {
           title="Ir al home"
           aria-label="Ir al home"
         >
-          <div
+          <img
+            src="/carswise-logo.png"
+            alt="CarsWise"
             style={{
-              width: 34,
-              height: 34,
-              borderRadius: 9,
-              background: "linear-gradient(135deg,#2563EB,#059669)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 16,
+              width: 42,
+              height: 42,
+              objectFit: "contain",
+              display: "block",
             }}
-          >
-            {"\uD83D\uDE97"}
-          </div>
+          />
           <div>
-            <div style={{ fontWeight: 700, fontSize: 14, color: themeMode === "dark" ? "#f1f5f9" : "#0f172a" }}>CarAdvisor</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: themeMode === "dark" ? "#f1f5f9" : "#0f172a" }}>CarsWise</div>
             <div style={{ fontSize: 10, color: themeMode === "dark" ? "#94a3b8" : "#64748b", letterSpacing: "0.8px" }}>
               SPAIN MOBILITY PLATFORM
             </div>
@@ -2457,7 +2453,7 @@ export default function App() {
                     PANEL DE USUARIO
                   </div>
                   <div style={{ fontSize: 16, fontWeight: 700, color: "#f8fafc" }}>
-                    Mi espacio CarAdvisor
+                    Mi espacio CarsWise
                   </div>
                   {currentUser?.email && (
                     <div style={{ fontSize: 11, color: "#bfdbfe", marginTop: 4 }}>
@@ -3904,21 +3900,17 @@ export default function App() {
           >
             <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <div
+                <img
+                  src="/carswise-logo.png"
+                  alt="CarsWise"
                   style={{
-                    width: 30,
-                    height: 30,
-                    borderRadius: 8,
-                    background: "linear-gradient(135deg,#2563EB,#10b981)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 14,
+                    width: 36,
+                    height: 36,
+                    objectFit: "contain",
+                    display: "block",
                   }}
-                >
-                  {"\uD83D\uDE97"}
-                </div>
-                <div style={{ fontWeight: 800, fontSize: 14, color: "#f8fafc" }}>CarAdvisor</div>
+                />
+                <div style={{ fontWeight: 800, fontSize: 14, color: "#f8fafc" }}>CarsWise</div>
               </div>
               <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
                 Plataforma de movilidad para comprar mejor, vender mejor y reducir el coste total de tu vehículo.
@@ -3928,7 +3920,7 @@ export default function App() {
             <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
               <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>CONTACTO</div>
               <div style={{ display: "grid", gap: 6, fontSize: 12 }}>
-                <a href="mailto:soporte@caradvisor.es" style={{ color: "#e2e8f0", textDecoration: "none" }}>soporte@caradvisor.es</a>
+                <a href="mailto:soporte@carswise.es" style={{ color: "#e2e8f0", textDecoration: "none" }}>soporte@carswise.es</a>
                 <a href="tel:+34910000000" style={{ color: "#e2e8f0", textDecoration: "none" }}>+34 910 000 000</a>
                 <div style={{ color: "#94a3b8" }}>L-V 09:00 a 18:00 (España)</div>
               </div>
@@ -4004,7 +3996,7 @@ export default function App() {
               textAlign: "left",
             }}
           >
-            <div>© {new Date().getFullYear()} CarAdvisor. Todos los derechos reservados.</div>
+            <div>© {new Date().getFullYear()} CarsWise. Todos los derechos reservados.</div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               {[
                 ["Aviso legal", "legalNotice"],

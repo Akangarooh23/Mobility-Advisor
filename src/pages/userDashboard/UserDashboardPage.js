@@ -243,7 +243,7 @@ export default function UserDashboardPage({
               color: titleColor,
             }}
           >
-            Mi espacio CarAdvisor
+            Mi espacio CarsWise
           </h2>
           <p style={{ color: bodyColor, fontSize: isMobile ? 13 : 14, lineHeight: 1.7, margin: 0, maxWidth: 760, fontWeight: 500 }}>
             Panel unificado para gestionar oportunidades, operaciones, vehículos y cuenta en un solo flujo.

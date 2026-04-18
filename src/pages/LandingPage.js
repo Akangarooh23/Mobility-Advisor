@@ -611,7 +611,7 @@ export default function LandingPage({
               border: "1px solid rgba(103,232,249,0.3)",
             }}
           >
-            COMO FUNCIONA CARADVISOR
+            COMO FUNCIONA CARSWISE
           </div>
           <h2
             style={{

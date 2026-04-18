@@ -281,8 +281,8 @@ export default function LandingPage({
           display: "grid",
           alignContent: "center",
           paddingTop: isMobileView
-            ? (showResumeAdvice ? 104 : 92)
-            : (showResumeAdvice ? 78 : 62),
+            ? (showResumeAdvice ? 136 : 122)
+            : (showResumeAdvice ? 126 : 112),
           paddingBottom: isMobileView ? 8 : 0,
           scrollSnapAlign: "start",
           scrollSnapStop: "normal",
@@ -305,7 +305,7 @@ export default function LandingPage({
           fontSize: 12,
           fontWeight: 800,
           color: isDark ? "#60a5fa" : "#1d4ed8",
-          margin: `0 auto ${isMobileView ? 34 : 42}px`,
+          margin: `${isMobileView ? 14 : 20}px auto ${isMobileView ? 34 : 42}px`,
           letterSpacing: "0.6px",
           position: "relative",
           zIndex: 1,

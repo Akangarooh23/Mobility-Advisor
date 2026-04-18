@@ -73,7 +73,9 @@ export default function LandingPage({
   const draftAnsweredSteps = Number(questionnaireDraft?.answeredSteps || 0);
   const draftTotalSteps = Number(questionnaireDraft?.totalSteps || totalSteps || 0);
   const hasDraftAnswers = Object.keys(questionnaireDraft?.answers || {}).length > 0;
-  const showResumeAdvice = (draftAnsweredSteps > 0 || hasDraftAnswers) && typeof onResumeAdvice === "function";
+  const draftStep = Number(questionnaireDraft?.step ?? -1);
+  const draftWasStarted = Number.isFinite(draftStep) && draftStep >= 0;
+  const showResumeAdvice = (draftAnsweredSteps > 0 || hasDraftAnswers || draftWasStarted) && typeof onResumeAdvice === "function";
   const comparisonGridTemplate = `1.3fr repeat(${SERVICE_PLANS.length},1fr)`;
   const planCardBasis = `calc((100% - ${(SERVICE_PLANS.length - 1) * 12}px) / ${SERVICE_PLANS.length})`;
   const [activeJourneyStep, setActiveJourneyStep] = useState(0);
@@ -278,7 +280,9 @@ export default function LandingPage({
           minHeight: panelMinHeight,
           display: "grid",
           alignContent: "center",
-          paddingTop: isMobileView ? 78 : 0,
+          paddingTop: isMobileView
+            ? (showResumeAdvice ? 104 : 92)
+            : (showResumeAdvice ? 78 : 62),
           paddingBottom: isMobileView ? 8 : 0,
           scrollSnapAlign: "start",
           scrollSnapStop: "normal",
@@ -301,13 +305,12 @@ export default function LandingPage({
           fontSize: 12,
           fontWeight: 800,
           color: isDark ? "#60a5fa" : "#1d4ed8",
-          margin: `${isMobileView ? 26 : 40}px auto 28px`,
+          margin: `0 auto ${isMobileView ? 34 : 42}px`,
           letterSpacing: "0.6px",
           position: "relative",
           zIndex: 1,
           width: "fit-content",
           textAlign: "center",
-          y: prefersReducedMotion ? 0 : heroY,
           opacity: prefersReducedMotion ? 1 : heroOpacity,
         }}
       >

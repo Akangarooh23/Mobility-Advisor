@@ -2259,19 +2259,29 @@ export default function App() {
       }}
     >
       {/* HEADER */}
-      <header style={s.header}>
+      <header
+        style={{
+          ...s.header,
+          minHeight: 104,
+          paddingTop: 8,
+          paddingBottom: 8,
+          justifyContent: "space-between",
+        }}
+      >
         <button
           type="button"
           onClick={restart}
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
+            width: "min(42vw, 420px)",
+            minWidth: 220,
+            height: 84,
             background: "transparent",
             border: "none",
             padding: 0,
             cursor: "pointer",
-            color: "inherit",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-start",
           }}
           title="Ir al home"
           aria-label="Ir al home"
@@ -2280,18 +2290,13 @@ export default function App() {
             src="/carswise-logo.png"
             alt="CarsWise"
             style={{
-              width: 42,
-              height: 42,
+              width: "100%",
+              height: "100%",
               objectFit: "contain",
+              objectPosition: "left center",
               display: "block",
             }}
           />
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 14, color: themeMode === "dark" ? "#f1f5f9" : "#0f172a" }}>CarsWise</div>
-            <div style={{ fontSize: 10, color: themeMode === "dark" ? "#94a3b8" : "#64748b", letterSpacing: "0.8px" }}>
-              SPAIN MOBILITY PLATFORM
-            </div>
-          </div>
         </button>
         <div style={{ display: "flex", alignItems: "center", gap: 12, position: "relative" }}>
           {step >= 0 && step < totalSteps && (
@@ -3318,10 +3323,42 @@ export default function App() {
             animation: maCardIn 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
           }
 
+          .ma-header-progress {
+            background: linear-gradient(90deg, #2563eb 0%, #22c55e 100%);
+            background-size: 180% 100%;
+            animation: maHeaderLineShift 4.8s linear infinite;
+            box-shadow: 0 1px 8px rgba(37, 99, 235, 0.2);
+          }
+
+          .ma-header-progress-fill {
+            backdrop-filter: saturate(1.08);
+            animation: maHeaderFillGlow 2.6s ease-in-out infinite alternate;
+          }
+
           @keyframes maCardIn {
             to {
               opacity: 1;
               transform: translateY(0) scale(1);
+            }
+          }
+
+          @keyframes maHeaderLineShift {
+            from {
+              background-position: 0% 50%;
+            }
+
+            to {
+              background-position: 220% 50%;
+            }
+          }
+
+          @keyframes maHeaderFillGlow {
+            from {
+              opacity: 0.58;
+            }
+
+            to {
+              opacity: 0.92;
             }
           }
 
@@ -3335,7 +3372,9 @@ export default function App() {
           @media (prefers-reduced-motion: reduce) {
             .ma-card-interactive,
             .ma-card-soft,
-            .ma-fade-stagger {
+            .ma-fade-stagger,
+            .ma-header-progress,
+            .ma-header-progress-fill {
               animation: none !important;
               transition: none !important;
             }
@@ -3349,8 +3388,8 @@ export default function App() {
       </style>
 
       {/* PROGRESS */}
-      <div style={s.progressBar}>
-        <div style={s.progressFill} />
+      <div className="ma-header-progress" style={s.progressBar}>
+        <div className="ma-header-progress-fill" style={s.progressFill} />
       </div>
 
       {/* LANDING */}
@@ -3900,16 +3939,26 @@ export default function App() {
           >
             <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <img
-                  src="/carswise-logo.png"
-                  alt="CarsWise"
+                <div
                   style={{
-                    width: 36,
-                    height: 36,
-                    objectFit: "contain",
-                    display: "block",
+                    width: 98,
+                    height: 40,
+                    borderRadius: 6,
+                    flexShrink: 0,
                   }}
-                />
+                >
+                  <img
+                    src="/carswise-logo.png"
+                    alt="CarsWise"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain",
+                      objectPosition: "center center",
+                      display: "block",
+                    }}
+                  />
+                </div>
                 <div style={{ fontWeight: 800, fontSize: 14, color: "#f8fafc" }}>CarsWise</div>
               </div>
               <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>

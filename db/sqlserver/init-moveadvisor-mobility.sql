@@ -428,3 +428,153 @@ BEGIN
   CREATE INDEX IX_MoveAdvisorUserSavedOffers_UserEmail_CreatedAt
     ON dbo.MoveAdvisorUserSavedOffers (UserEmail, CreatedAt DESC);
 END;
+
+-- BEGIN 3NF NORMALIZATION (compatible migration)
+IF COL_LENGTH(N'dbo.MoveAdvisorUserVehicles', N'UserId') IS NULL
+BEGIN
+  ALTER TABLE dbo.MoveAdvisorUserVehicles ADD UserId NVARCHAR(64) NULL;
+END;
+IF COL_LENGTH(N'dbo.MoveAdvisorUserAppointments', N'UserId') IS NULL
+BEGIN
+  ALTER TABLE dbo.MoveAdvisorUserAppointments ADD UserId NVARCHAR(64) NULL;
+END;
+IF COL_LENGTH(N'dbo.MoveAdvisorUserInsurances', N'UserId') IS NULL
+BEGIN
+  ALTER TABLE dbo.MoveAdvisorUserInsurances ADD UserId NVARCHAR(64) NULL;
+END;
+IF COL_LENGTH(N'dbo.MoveAdvisorUserMaintenances', N'UserId') IS NULL
+BEGIN
+  ALTER TABLE dbo.MoveAdvisorUserMaintenances ADD UserId NVARCHAR(64) NULL;
+END;
+IF COL_LENGTH(N'dbo.MoveAdvisorUserValuations', N'UserId') IS NULL
+BEGIN
+  ALTER TABLE dbo.MoveAdvisorUserValuations ADD UserId NVARCHAR(64) NULL;
+END;
+IF COL_LENGTH(N'dbo.MoveAdvisorUserVehicleStates', N'UserId') IS NULL
+BEGIN
+  ALTER TABLE dbo.MoveAdvisorUserVehicleStates ADD UserId NVARCHAR(64) NULL;
+END;
+IF COL_LENGTH(N'dbo.MoveAdvisorUserSavedOffers', N'UserId') IS NULL
+BEGIN
+  ALTER TABLE dbo.MoveAdvisorUserSavedOffers ADD UserId NVARCHAR(64) NULL;
+END;
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_MoveAdvisorUserVehicles_UserId_CreatedAt' AND object_id = OBJECT_ID(N'dbo.MoveAdvisorUserVehicles'))
+BEGIN
+  CREATE INDEX IX_MoveAdvisorUserVehicles_UserId_CreatedAt ON dbo.MoveAdvisorUserVehicles (UserId, CreatedAt DESC);
+END;
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_MoveAdvisorUserAppointments_UserId_CreatedAt' AND object_id = OBJECT_ID(N'dbo.MoveAdvisorUserAppointments'))
+BEGIN
+  CREATE INDEX IX_MoveAdvisorUserAppointments_UserId_CreatedAt ON dbo.MoveAdvisorUserAppointments (UserId, CreatedAt DESC);
+END;
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_MoveAdvisorUserInsurances_UserId_UpdatedAt' AND object_id = OBJECT_ID(N'dbo.MoveAdvisorUserInsurances'))
+BEGIN
+  CREATE INDEX IX_MoveAdvisorUserInsurances_UserId_UpdatedAt ON dbo.MoveAdvisorUserInsurances (UserId, UpdatedAt DESC);
+END;
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_MoveAdvisorUserMaintenances_UserId_CreatedAt' AND object_id = OBJECT_ID(N'dbo.MoveAdvisorUserMaintenances'))
+BEGIN
+  CREATE INDEX IX_MoveAdvisorUserMaintenances_UserId_CreatedAt ON dbo.MoveAdvisorUserMaintenances (UserId, CreatedAt DESC);
+END;
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_MoveAdvisorUserValuations_UserId_CreatedAt' AND object_id = OBJECT_ID(N'dbo.MoveAdvisorUserValuations'))
+BEGIN
+  CREATE INDEX IX_MoveAdvisorUserValuations_UserId_CreatedAt ON dbo.MoveAdvisorUserValuations (UserId, CreatedAt DESC);
+END;
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_MoveAdvisorUserVehicleStates_UserId_State_UpdatedAt' AND object_id = OBJECT_ID(N'dbo.MoveAdvisorUserVehicleStates'))
+BEGIN
+  CREATE INDEX IX_MoveAdvisorUserVehicleStates_UserId_State_UpdatedAt ON dbo.MoveAdvisorUserVehicleStates (UserId, [State], UpdatedAt DESC);
+END;
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_MoveAdvisorUserSavedOffers_UserId_CreatedAt' AND object_id = OBJECT_ID(N'dbo.MoveAdvisorUserSavedOffers'))
+BEGIN
+  CREATE INDEX IX_MoveAdvisorUserSavedOffers_UserId_CreatedAt ON dbo.MoveAdvisorUserSavedOffers (UserId, CreatedAt DESC);
+END;
+
+IF OBJECT_ID(N'dbo.MoveAdvisorUsers', N'U') IS NOT NULL
+BEGIN
+  UPDATE t SET UserId = u.Id
+  FROM dbo.MoveAdvisorUserVehicles t
+  INNER JOIN dbo.MoveAdvisorUsers u ON LOWER(u.Email) = LOWER(t.UserEmail)
+  WHERE t.UserId IS NULL;
+
+  UPDATE t SET UserId = u.Id
+  FROM dbo.MoveAdvisorUserAppointments t
+  INNER JOIN dbo.MoveAdvisorUsers u ON LOWER(u.Email) = LOWER(t.UserEmail)
+  WHERE t.UserId IS NULL;
+
+  UPDATE t SET UserId = u.Id
+  FROM dbo.MoveAdvisorUserInsurances t
+  INNER JOIN dbo.MoveAdvisorUsers u ON LOWER(u.Email) = LOWER(t.UserEmail)
+  WHERE t.UserId IS NULL;
+
+  UPDATE t SET UserId = u.Id
+  FROM dbo.MoveAdvisorUserMaintenances t
+  INNER JOIN dbo.MoveAdvisorUsers u ON LOWER(u.Email) = LOWER(t.UserEmail)
+  WHERE t.UserId IS NULL;
+
+  UPDATE t SET UserId = u.Id
+  FROM dbo.MoveAdvisorUserValuations t
+  INNER JOIN dbo.MoveAdvisorUsers u ON LOWER(u.Email) = LOWER(t.UserEmail)
+  WHERE t.UserId IS NULL;
+
+  UPDATE t SET UserId = u.Id
+  FROM dbo.MoveAdvisorUserVehicleStates t
+  INNER JOIN dbo.MoveAdvisorUsers u ON LOWER(u.Email) = LOWER(t.UserEmail)
+  WHERE t.UserId IS NULL;
+
+  UPDATE t SET UserId = u.Id
+  FROM dbo.MoveAdvisorUserSavedOffers t
+  INNER JOIN dbo.MoveAdvisorUsers u ON LOWER(u.Email) = LOWER(t.UserEmail)
+  WHERE t.UserId IS NULL;
+END;
+
+IF COL_LENGTH(N'dbo.MoveAdvisorUserVehicles', N'YearInt') IS NULL
+BEGIN
+  ALTER TABLE dbo.MoveAdvisorUserVehicles ADD YearInt SMALLINT NULL;
+END;
+IF COL_LENGTH(N'dbo.MoveAdvisorUserVehicles', N'MileageKm') IS NULL
+BEGIN
+  ALTER TABLE dbo.MoveAdvisorUserVehicles ADD MileageKm INT NULL;
+END;
+IF COL_LENGTH(N'dbo.MoveAdvisorUserVehicles', N'PriceAmount') IS NULL
+BEGIN
+  ALTER TABLE dbo.MoveAdvisorUserVehicles ADD PriceAmount DECIMAL(12,2) NULL;
+END;
+IF COL_LENGTH(N'dbo.MoveAdvisorUserVehicles', N'Co2GKm') IS NULL
+BEGIN
+  ALTER TABLE dbo.MoveAdvisorUserVehicles ADD Co2GKm DECIMAL(10,2) NULL;
+END;
+IF COL_LENGTH(N'dbo.MoveAdvisorUserVehicles', N'LastIvtDate') IS NULL
+BEGIN
+  ALTER TABLE dbo.MoveAdvisorUserVehicles ADD LastIvtDate DATE NULL;
+END;
+IF COL_LENGTH(N'dbo.MoveAdvisorUserVehicles', N'NextIvtDate') IS NULL
+BEGIN
+  ALTER TABLE dbo.MoveAdvisorUserVehicles ADD NextIvtDate DATE NULL;
+END;
+
+UPDATE dbo.MoveAdvisorUserVehicles
+SET
+  YearInt = COALESCE(YearInt, TRY_CONVERT(SMALLINT, NULLIF([Year], N''))),
+  MileageKm = COALESCE(MileageKm, TRY_CONVERT(INT, NULLIF(REPLACE(REPLACE(Mileage, N'.', N''), N',', N''), N''))),
+  PriceAmount = COALESCE(PriceAmount, TRY_CONVERT(DECIMAL(12,2), NULLIF(REPLACE(REPLACE(Price, N'.', N''), N',', N'.'), N''))),
+  Co2GKm = COALESCE(Co2GKm, TRY_CONVERT(DECIMAL(10,2), NULLIF(REPLACE(REPLACE(Co2, N'.', N''), N',', N'.'), N''))),
+  LastIvtDate = COALESCE(LastIvtDate, TRY_CONVERT(DATE, NULLIF(LastIvt, N''), 103), TRY_CONVERT(DATE, NULLIF(LastIvt, N''), 120)),
+  NextIvtDate = COALESCE(NextIvtDate, TRY_CONVERT(DATE, NULLIF(NextIvt, N''), 103), TRY_CONVERT(DATE, NULLIF(NextIvt, N''), 120));
+
+IF NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CK_MoveAdvisorUserVehicles_YearInt_Valid')
+BEGIN
+  ALTER TABLE dbo.MoveAdvisorUserVehicles
+    ADD CONSTRAINT CK_MoveAdvisorUserVehicles_YearInt_Valid CHECK (YearInt IS NULL OR (YearInt BETWEEN 1950 AND 2100));
+END;
+
+IF NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CK_MoveAdvisorUserVehicles_MileageKm_Valid')
+BEGIN
+  ALTER TABLE dbo.MoveAdvisorUserVehicles
+    ADD CONSTRAINT CK_MoveAdvisorUserVehicles_MileageKm_Valid CHECK (MileageKm IS NULL OR MileageKm >= 0);
+END;
+
+IF NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CK_MoveAdvisorUserVehicles_PriceAmount_Valid')
+BEGIN
+  ALTER TABLE dbo.MoveAdvisorUserVehicles
+    ADD CONSTRAINT CK_MoveAdvisorUserVehicles_PriceAmount_Valid CHECK (PriceAmount IS NULL OR PriceAmount >= 0);
+END;
+-- END 3NF NORMALIZATION

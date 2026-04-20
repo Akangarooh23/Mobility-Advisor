@@ -1049,6 +1049,19 @@ async function ensurePostgresSchema() {
     CREATE INDEX IF NOT EXISTS ix_moveadvisor_sessions_expires_at
     ON moveadvisor_sessions (expires_at)
   `);
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'fk_moveadvisor_sessions_user_id'
+      ) THEN
+        ALTER TABLE moveadvisor_sessions
+          ADD CONSTRAINT fk_moveadvisor_sessions_user_id
+          FOREIGN KEY (user_id) REFERENCES moveadvisor_users(id) ON DELETE CASCADE;
+      END IF;
+    END $$;
+  `);
   _pgSchemaEnsured = true;
 }
 

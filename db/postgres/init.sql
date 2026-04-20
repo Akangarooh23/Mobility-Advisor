@@ -560,3 +560,160 @@ INNER JOIN moveadvisor_vehicle_brands b ON b.name = m.brand_name
 ON CONFLICT (brand_id, name) DO UPDATE
 SET sort_order = EXCLUDED.sort_order, is_active = TRUE;
 -- END VEHICLE CATALOG SEED
+
+-- BEGIN 3NF NORMALIZATION (compatible migration)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'fk_moveadvisor_sessions_user_id'
+  ) THEN
+    ALTER TABLE moveadvisor_sessions
+      ADD CONSTRAINT fk_moveadvisor_sessions_user_id
+      FOREIGN KEY (user_id) REFERENCES moveadvisor_users(id) ON DELETE CASCADE;
+  END IF;
+END $$;
+
+ALTER TABLE moveadvisor_user_vehicles ADD COLUMN IF NOT EXISTS user_id VARCHAR(64);
+ALTER TABLE moveadvisor_user_appointments ADD COLUMN IF NOT EXISTS user_id VARCHAR(64);
+ALTER TABLE moveadvisor_user_insurances ADD COLUMN IF NOT EXISTS user_id VARCHAR(64);
+ALTER TABLE moveadvisor_user_maintenances ADD COLUMN IF NOT EXISTS user_id VARCHAR(64);
+ALTER TABLE moveadvisor_user_valuations ADD COLUMN IF NOT EXISTS user_id VARCHAR(64);
+ALTER TABLE moveadvisor_user_vehicle_states ADD COLUMN IF NOT EXISTS user_id VARCHAR(64);
+ALTER TABLE moveadvisor_user_saved_offers ADD COLUMN IF NOT EXISTS user_id VARCHAR(64);
+
+UPDATE moveadvisor_user_vehicles t
+SET user_id = u.id
+FROM moveadvisor_users u
+WHERE t.user_id IS NULL AND lower(u.email) = lower(t.user_email);
+
+UPDATE moveadvisor_user_appointments t
+SET user_id = u.id
+FROM moveadvisor_users u
+WHERE t.user_id IS NULL AND lower(u.email) = lower(t.user_email);
+
+UPDATE moveadvisor_user_insurances t
+SET user_id = u.id
+FROM moveadvisor_users u
+WHERE t.user_id IS NULL AND lower(u.email) = lower(t.user_email);
+
+UPDATE moveadvisor_user_maintenances t
+SET user_id = u.id
+FROM moveadvisor_users u
+WHERE t.user_id IS NULL AND lower(u.email) = lower(t.user_email);
+
+UPDATE moveadvisor_user_valuations t
+SET user_id = u.id
+FROM moveadvisor_users u
+WHERE t.user_id IS NULL AND lower(u.email) = lower(t.user_email);
+
+UPDATE moveadvisor_user_vehicle_states t
+SET user_id = u.id
+FROM moveadvisor_users u
+WHERE t.user_id IS NULL AND lower(u.email) = lower(t.user_email);
+
+UPDATE moveadvisor_user_saved_offers t
+SET user_id = u.id
+FROM moveadvisor_users u
+WHERE t.user_id IS NULL AND lower(u.email) = lower(t.user_email);
+
+CREATE INDEX IF NOT EXISTS ix_moveadvisor_user_vehicles_user_id ON moveadvisor_user_vehicles (user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS ix_moveadvisor_user_appointments_user_id ON moveadvisor_user_appointments (user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS ix_moveadvisor_user_insurances_user_id ON moveadvisor_user_insurances (user_id, updated_at DESC);
+CREATE INDEX IF NOT EXISTS ix_moveadvisor_user_maintenances_user_id ON moveadvisor_user_maintenances (user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS ix_moveadvisor_user_valuations_user_id ON moveadvisor_user_valuations (user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS ix_moveadvisor_user_vehicle_states_user_id ON moveadvisor_user_vehicle_states (user_id, state, updated_at DESC);
+CREATE INDEX IF NOT EXISTS ix_moveadvisor_user_saved_offers_user_id ON moveadvisor_user_saved_offers (user_id, created_at DESC);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_moveadvisor_user_vehicles_user_id') THEN
+    ALTER TABLE moveadvisor_user_vehicles
+      ADD CONSTRAINT fk_moveadvisor_user_vehicles_user_id
+      FOREIGN KEY (user_id) REFERENCES moveadvisor_users(id) ON DELETE CASCADE;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_moveadvisor_user_appointments_user_id') THEN
+    ALTER TABLE moveadvisor_user_appointments
+      ADD CONSTRAINT fk_moveadvisor_user_appointments_user_id
+      FOREIGN KEY (user_id) REFERENCES moveadvisor_users(id) ON DELETE CASCADE;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_moveadvisor_user_insurances_user_id') THEN
+    ALTER TABLE moveadvisor_user_insurances
+      ADD CONSTRAINT fk_moveadvisor_user_insurances_user_id
+      FOREIGN KEY (user_id) REFERENCES moveadvisor_users(id) ON DELETE CASCADE;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_moveadvisor_user_maintenances_user_id') THEN
+    ALTER TABLE moveadvisor_user_maintenances
+      ADD CONSTRAINT fk_moveadvisor_user_maintenances_user_id
+      FOREIGN KEY (user_id) REFERENCES moveadvisor_users(id) ON DELETE CASCADE;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_moveadvisor_user_valuations_user_id') THEN
+    ALTER TABLE moveadvisor_user_valuations
+      ADD CONSTRAINT fk_moveadvisor_user_valuations_user_id
+      FOREIGN KEY (user_id) REFERENCES moveadvisor_users(id) ON DELETE CASCADE;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_moveadvisor_user_vehicle_states_user_id') THEN
+    ALTER TABLE moveadvisor_user_vehicle_states
+      ADD CONSTRAINT fk_moveadvisor_user_vehicle_states_user_id
+      FOREIGN KEY (user_id) REFERENCES moveadvisor_users(id) ON DELETE CASCADE;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_moveadvisor_user_saved_offers_user_id') THEN
+    ALTER TABLE moveadvisor_user_saved_offers
+      ADD CONSTRAINT fk_moveadvisor_user_saved_offers_user_id
+      FOREIGN KEY (user_id) REFERENCES moveadvisor_users(id) ON DELETE CASCADE;
+  END IF;
+END $$;
+
+ALTER TABLE moveadvisor_user_vehicles ADD COLUMN IF NOT EXISTS year_int SMALLINT;
+ALTER TABLE moveadvisor_user_vehicles ADD COLUMN IF NOT EXISTS mileage_km INTEGER;
+ALTER TABLE moveadvisor_user_vehicles ADD COLUMN IF NOT EXISTS price_amount NUMERIC(12,2);
+ALTER TABLE moveadvisor_user_vehicles ADD COLUMN IF NOT EXISTS co2_g_km NUMERIC(10,2);
+ALTER TABLE moveadvisor_user_vehicles ADD COLUMN IF NOT EXISTS last_itv_date DATE;
+ALTER TABLE moveadvisor_user_vehicles ADD COLUMN IF NOT EXISTS next_itv_date DATE;
+
+UPDATE moveadvisor_user_vehicles
+SET
+  year_int = COALESCE(year_int, NULLIF(regexp_replace(year, '[^0-9]', '', 'g'), '')::SMALLINT),
+  mileage_km = COALESCE(mileage_km, NULLIF(regexp_replace(mileage, '[^0-9]', '', 'g'), '')::INTEGER),
+  price_amount = COALESCE(price_amount, NULLIF(replace(regexp_replace(price, '[^0-9,\.]', '', 'g'), ',', '.'), '')::NUMERIC(12,2)),
+  co2_g_km = COALESCE(co2_g_km, NULLIF(replace(regexp_replace(co2, '[^0-9,\.]', '', 'g'), ',', '.'), '')::NUMERIC(10,2)),
+  last_itv_date = COALESCE(last_itv_date,
+    CASE
+      WHEN last_itv ~ '^[0-9]{2}/[0-9]{2}/[0-9]{4}$' THEN to_date(last_itv, 'DD/MM/YYYY')
+      WHEN last_itv ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' THEN last_itv::DATE
+      ELSE NULL
+    END),
+  next_itv_date = COALESCE(next_itv_date,
+    CASE
+      WHEN next_itv ~ '^[0-9]{2}/[0-9]{2}/[0-9]{4}$' THEN to_date(next_itv, 'DD/MM/YYYY')
+      WHEN next_itv ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' THEN next_itv::DATE
+      ELSE NULL
+    END);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ck_moveadvisor_user_vehicles_year_int_valid') THEN
+    ALTER TABLE moveadvisor_user_vehicles
+      ADD CONSTRAINT ck_moveadvisor_user_vehicles_year_int_valid
+      CHECK (year_int IS NULL OR year_int BETWEEN 1950 AND 2100);
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ck_moveadvisor_user_vehicles_mileage_km_valid') THEN
+    ALTER TABLE moveadvisor_user_vehicles
+      ADD CONSTRAINT ck_moveadvisor_user_vehicles_mileage_km_valid
+      CHECK (mileage_km IS NULL OR mileage_km >= 0);
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ck_moveadvisor_user_vehicles_price_amount_valid') THEN
+    ALTER TABLE moveadvisor_user_vehicles
+      ADD CONSTRAINT ck_moveadvisor_user_vehicles_price_amount_valid
+      CHECK (price_amount IS NULL OR price_amount >= 0);
+  END IF;
+END $$;
+-- END 3NF NORMALIZATION

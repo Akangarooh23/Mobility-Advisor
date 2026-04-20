@@ -1,4 +1,4 @@
-const { resolveAccountByEmail } = require("../lib/billingStore");
+const { resolveAccount } = require("../lib/billingStore");
 const authHandler = require("./auth");
 
 function normalizeText(value) {
@@ -29,12 +29,17 @@ module.exports = async function billingPortalHandler(req, res) {
   const body = parseBody(req.body);
   const requireSession = String(process.env.AUTH_BILLING_REQUIRE_SESSION || "true").toLowerCase() !== "false";
   const sessionPayload = await authHandler.getSessionUserFromRequest?.(req);
+  const sessionUserId = normalizeText(sessionPayload?.user?.id);
   const sessionEmail = normalizeText(sessionPayload?.user?.email).toLowerCase();
   const bodyCustomerId = normalizeText(body.customerId);
   const customerEmail = sessionEmail || (requireSession ? "" : normalizeText(body.customerEmail).toLowerCase());
+  const identity = {
+    userId: sessionUserId,
+    email: customerEmail,
+  };
   const origin = normalizeText(body.origin) || normalizeText(req.headers?.origin) || "";
   const stripeSecretKey = normalizeText(process.env.STRIPE_SECRET_KEY);
-  const account = customerEmail ? resolveAccountByEmail(customerEmail) : null;
+  const account = customerEmail ? resolveAccount(identity) : null;
   const customerId = bodyCustomerId || normalizeText(account?.billingState?.stripeCustomerId);
 
   if (!customerEmail && !customerId) {

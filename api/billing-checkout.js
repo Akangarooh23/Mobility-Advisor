@@ -1,4 +1,4 @@
-const { resolveAccountByEmail, updateBillingState } = require("../lib/billingStore");
+const { resolveAccount, updateBillingState } = require("../lib/billingStore");
 const authHandler = require("./auth");
 
 function normalizeText(value) {
@@ -100,8 +100,13 @@ module.exports = async function billingCheckoutHandler(req, res) {
   const planId = normalizeText(body.planId || "plata").toLowerCase();
   const requireSession = String(process.env.AUTH_BILLING_REQUIRE_SESSION || "true").toLowerCase() !== "false";
   const sessionPayload = await authHandler.getSessionUserFromRequest?.(req);
+  const sessionUserId = normalizeText(sessionPayload?.user?.id);
   const sessionEmail = normalizeText(sessionPayload?.user?.email).toLowerCase();
   const customerEmail = sessionEmail || (requireSession ? "" : normalizeText(body.customerEmail).toLowerCase());
+  const identity = {
+    userId: sessionUserId,
+    email: customerEmail,
+  };
   const origin = normalizeText(body.origin) || normalizeText(req.headers?.origin) || "";
 
   if (!customerEmail) {
@@ -112,7 +117,7 @@ module.exports = async function billingCheckoutHandler(req, res) {
   const priceId = getPlanPriceId(planId);
   const successUrl = normalizeText(process.env.STRIPE_CHECKOUT_SUCCESS_URL) || `${origin || "https://example.com"}/panel/cuenta?checkout=ok`;
   const cancelUrl = normalizeText(process.env.STRIPE_CHECKOUT_CANCEL_URL) || `${origin || "https://example.com"}/panel/cuenta?checkout=cancel`;
-  const accountSnapshot = resolveAccountByEmail(customerEmail);
+  const accountSnapshot = resolveAccount(identity);
   const planLabelMap = {
     gratis: "Plan Gratis",
     bronce: "Plan Bronce",

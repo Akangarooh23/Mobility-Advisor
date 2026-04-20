@@ -1,24 +1,24 @@
 const {
-  resolveAccountByEmail,
+  resolveAccount,
   updateProfile,
   updateBillingState,
-  listGarageVehiclesByEmail,
-  addGarageVehicleByEmail,
-  removeGarageVehicleByEmail,
-  listAppointmentsByEmail,
-  addAppointmentByEmail,
-  listMaintenancesByEmail,
-  addMaintenanceByEmail,
-  listInsurancesByEmail,
-  upsertInsuranceByEmail,
-  listValuationsByEmail,
-  addValuationByEmail,
-  listVehicleStatesByEmail,
-  upsertVehicleStateByEmail,
-  listSavedOffersByEmail,
-  addSavedOfferByEmail,
-  removeSavedOfferByEmail,
-  getUserMobilityDataByEmail,
+  listGarageVehicles,
+  addGarageVehicle,
+  removeGarageVehicle,
+  listAppointments,
+  addAppointment,
+  listMaintenances,
+  addMaintenance,
+  listInsurances,
+  upsertInsurance,
+  listValuations,
+  addValuation,
+  listVehicleStates,
+  upsertVehicleState,
+  listSavedOffers,
+  addSavedOffer,
+  removeSavedOffer,
+  getUserMobilityData,
 } = require("../lib/billingStore");
 const authHandler = require("./auth");
 
@@ -47,9 +47,14 @@ module.exports = async function billingAccountHandler(req, res) {
   const defaultRequireSession = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
   const requireSession = String(process.env.AUTH_BILLING_REQUIRE_SESSION || (defaultRequireSession ? "true" : "false")).toLowerCase() !== "false";
   const sessionPayload = await authHandler.getSessionUserFromRequest?.(req);
+  const sessionUserId = normalizeText(sessionPayload?.user?.id);
   const sessionEmail = normalizeText(sessionPayload?.user?.email).toLowerCase();
   const requestEmail = normalizeText(req.query?.email || body.email).toLowerCase();
   const email = sessionEmail || (requireSession ? "" : requestEmail);
+  const identity = {
+    userId: sessionUserId,
+    email,
+  };
 
   if (!email) {
     return res.status(401).json({ error: "Sesion no valida. Debes iniciar sesion para gestionar facturacion." });
@@ -57,14 +62,14 @@ module.exports = async function billingAccountHandler(req, res) {
 
   if (req.method === "GET") {
     if (normalizeText(req.query?.scope).toLowerCase() === "garage") {
-      return res.status(200).json({ ok: true, vehicles: await listGarageVehiclesByEmail(email) });
+      return res.status(200).json({ ok: true, vehicles: await listGarageVehicles(identity) });
     }
 
     if (normalizeText(req.query?.scope).toLowerCase() === "mobility") {
-      return res.status(200).json({ ok: true, ...(await getUserMobilityDataByEmail(email)) });
+      return res.status(200).json({ ok: true, ...(await getUserMobilityData(identity)) });
     }
 
-    const account = resolveAccountByEmail(email);
+    const account = resolveAccount(identity);
     return res.status(200).json({ ok: true, account });
   }
 
@@ -90,72 +95,72 @@ module.exports = async function billingAccountHandler(req, res) {
       return res.status(400).json({ error: "Debes indicar marca, modelo y version para guardar el vehiculo." });
     }
 
-    const vehicles = await addGarageVehicleByEmail(email, body.vehicle || body);
+    const vehicles = await addGarageVehicle(identity, body.vehicle || body);
     return res.status(200).json({ ok: true, vehicles, message: "Vehiculo guardado." });
   }
 
   if (action === "garage_remove") {
-    const vehicles = await removeGarageVehicleByEmail(email, body.vehicleId || body.id);
+    const vehicles = await removeGarageVehicle(identity, body.vehicleId || body.id);
     return res.status(200).json({ ok: true, vehicles, message: "Vehiculo eliminado." });
   }
 
   if (action === "appointment_add") {
-    const appointments = await addAppointmentByEmail(email, body.appointment || body);
+    const appointments = await addAppointment(identity, body.appointment || body);
     return res.status(200).json({ ok: true, appointments, message: "Cita guardada." });
   }
 
   if (action === "valuation_add") {
-    const valuations = await addValuationByEmail(email, body.valuation || body);
+    const valuations = await addValuation(identity, body.valuation || body);
     return res.status(200).json({ ok: true, valuations, message: "Tasacion guardada." });
   }
 
   if (action === "maintenance_add") {
-    const maintenances = await addMaintenanceByEmail(email, body.maintenance || body);
+    const maintenances = await addMaintenance(identity, body.maintenance || body);
     return res.status(200).json({ ok: true, maintenances, message: "Mantenimiento guardado." });
   }
 
   if (action === "insurance_upsert") {
-    const insurances = await upsertInsuranceByEmail(email, body.insurance || body);
+    const insurances = await upsertInsurance(identity, body.insurance || body);
     return res.status(200).json({ ok: true, insurances, message: "Seguro actualizado." });
   }
 
   if (action === "vehicle_state_upsert") {
-    const vehicleStates = await upsertVehicleStateByEmail(email, body.vehicleState || body);
+    const vehicleStates = await upsertVehicleState(identity, body.vehicleState || body);
     return res.status(200).json({ ok: true, vehicleStates, message: "Estado de vehiculo actualizado." });
   }
 
   if (action === "saved_offer_add") {
-    const savedOffers = await addSavedOfferByEmail(email, body.offer || body);
+    const savedOffers = await addSavedOffer(identity, body.offer || body);
     return res.status(200).json({ ok: true, savedOffers, message: "Oferta guardada." });
   }
 
   if (action === "saved_offer_remove") {
-    const savedOffers = await removeSavedOfferByEmail(email, body.offerId || body.id);
+    const savedOffers = await removeSavedOffer(identity, body.offerId || body.id);
     return res.status(200).json({ ok: true, savedOffers, message: "Oferta eliminada." });
   }
 
   if (action === "appointments_list") {
-    return res.status(200).json({ ok: true, appointments: await listAppointmentsByEmail(email) });
+    return res.status(200).json({ ok: true, appointments: await listAppointments(identity) });
   }
 
   if (action === "valuations_list") {
-    return res.status(200).json({ ok: true, valuations: await listValuationsByEmail(email) });
+    return res.status(200).json({ ok: true, valuations: await listValuations(identity) });
   }
 
   if (action === "maintenances_list") {
-    return res.status(200).json({ ok: true, maintenances: await listMaintenancesByEmail(email) });
+    return res.status(200).json({ ok: true, maintenances: await listMaintenances(identity) });
   }
 
   if (action === "insurances_list") {
-    return res.status(200).json({ ok: true, insurances: await listInsurancesByEmail(email) });
+    return res.status(200).json({ ok: true, insurances: await listInsurances(identity) });
   }
 
   if (action === "vehicle_states_list") {
-    return res.status(200).json({ ok: true, vehicleStates: await listVehicleStatesByEmail(email) });
+    return res.status(200).json({ ok: true, vehicleStates: await listVehicleStates(identity) });
   }
 
   if (action === "saved_offers_list") {
-    return res.status(200).json({ ok: true, savedOffers: await listSavedOffersByEmail(email) });
+    return res.status(200).json({ ok: true, savedOffers: await listSavedOffers(identity) });
   }
 
   return res.status(400).json({ error: "Accion no valida para billing-account." });

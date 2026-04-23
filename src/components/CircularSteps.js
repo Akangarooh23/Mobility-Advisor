@@ -7,7 +7,7 @@ const STEPS = [
     title: "Quiero comprar un vehículo",
     desc: "Explora nuestro catálogo de vehículos nuevos y de ocasión. Te asesoramos para encontrar el modelo que mejor se adapta a tus necesidades y presupuesto.",
     icon: "🚗",
-    color: "#1D9E75",
+    color: "#5FAEFF",
     cls: "step-1",
   },
   {
@@ -15,7 +15,7 @@ const STEPS = [
     title: "Quiero contratar un Servicio",
     desc: "Únete a una nueva era en la automoción y aprovecha las economías de escala de una empresa en la unión de los particulares.",
     icon: "🔧",
-    color: "#378ADD",
+    color: "#2F6EDC",
     cls: "step-2",
   },
   {
@@ -23,14 +23,32 @@ const STEPS = [
     title: "Quiero vender mi coche",
     desc: "¿Cansado de que los concesionarios te ofrezcan mucho menos de lo que vale tu coche? Te ayudamos a que ganes más.",
     icon: "💵",
-    color: "#D85A30",
+    color: "#1F3F9A",
     cls: "step-3",
   },
 ];
 
-const ARROW_COLORS = ["#1D9E75", "#378ADD", "#D85A30"];
+const ARROW_COLORS = ["#5FAEFF", "#2F6EDC", "#1F3F9A"];
 const STEP_DURATION = 4000;
-const ANIM_DURATION = 500;
+const ANIM_DURATION = 650;
+const ARC_WIDTH = 42;
+
+function clampChannel(value) {
+  return Math.max(0, Math.min(255, value));
+}
+
+function shadeHex(hex, delta) {
+  const cleaned = String(hex || "").replace("#", "");
+  if (cleaned.length !== 6) {
+    return hex;
+  }
+  const r = clampChannel(parseInt(cleaned.slice(0, 2), 16) + delta);
+  const g = clampChannel(parseInt(cleaned.slice(2, 4), 16) + delta);
+  const b = clampChannel(parseInt(cleaned.slice(4, 6), 16) + delta);
+  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b
+    .toString(16)
+    .padStart(2, "0")}`;
+}
 
 export default function CircularSteps() {
   const canvasRef = useRef(null);
@@ -42,7 +60,7 @@ export default function CircularSteps() {
   const renderArrowsRef = useRef(null);
 
   // Arc definitions
-  const W = 240, H = 240, cx = 120, cy = 120, R = 84;
+  const W = 280, H = 280, cx = 140, cy = 140, R = 78;
   const GAP = 0.22;
   const ARC = (2 * Math.PI - 3 * GAP) / 3;
   const arcs = [
@@ -59,18 +77,19 @@ export default function CircularSteps() {
     ctx.beginPath();
     ctx.arc(cx, cy, R, startAngle, startAngle + sweepAngle);
     ctx.strokeStyle = color;
-    ctx.lineWidth = 34;
+    ctx.lineWidth = ARC_WIDTH;
     ctx.lineCap = "round";
     ctx.stroke();
     ctx.restore();
   }
+
   function drawArrowhead(ctx, startAngle, sweepAngle, color, alpha) {
     if (sweepAngle <= 0) return;
     const tipA = startAngle + sweepAngle;
     const tx = cx + R * Math.cos(tipA);
     const ty = cy + R * Math.sin(tipA);
     const tangent = tipA + Math.PI / 2;
-    const hs = 16, hl = 20;
+    const hs = 20, hl = 26;
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.beginPath();
@@ -109,7 +128,7 @@ export default function CircularSteps() {
     const start = performance.now();
     function frame(now) {
       const t = Math.min((now - start) / ANIM_DURATION, 1);
-      const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+      const ease = 1 - Math.pow(1 - t, 3);
       ctx.clearRect(0, 0, W, H);
       if (targetFilled === 0) {
         for (let i = 0; i < 3; i++) {
@@ -189,7 +208,15 @@ export default function CircularSteps() {
 
   // Init
   useEffect(() => {
-    renderArrowsRef.current?.(canvasRef.current.getContext("2d"), 0, 0);
+    const canvas = canvasRef.current;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = W + "px";
+    canvas.style.height = H + "px";
+    const ctx = canvas.getContext("2d");
+    ctx.scale(dpr, dpr);
+    renderArrowsRef.current?.(ctx, 0, 0);
     setTimeout(() => {
       goToStepRef.current?.(0, -1, false);
     }, 400);

@@ -33,23 +33,6 @@ const STEP_DURATION = 4000;
 const ANIM_DURATION = 650;
 const ARC_WIDTH = 42;
 
-function clampChannel(value) {
-  return Math.max(0, Math.min(255, value));
-}
-
-function shadeHex(hex, delta) {
-  const cleaned = String(hex || "").replace("#", "");
-  if (cleaned.length !== 6) {
-    return hex;
-  }
-  const r = clampChannel(parseInt(cleaned.slice(0, 2), 16) + delta);
-  const g = clampChannel(parseInt(cleaned.slice(2, 4), 16) + delta);
-  const b = clampChannel(parseInt(cleaned.slice(4, 6), 16) + delta);
-  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b
-    .toString(16)
-    .padStart(2, "0")}`;
-}
-
 export default function CircularSteps() {
   const canvasRef = useRef(null);
   const [currentStep, setCurrentStep] = useState(0);

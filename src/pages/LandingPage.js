@@ -1,6 +1,8 @@
+
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, LazyMotion, domAnimation, m, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { PLAN_COMPARISON_ROWS, PRICING_SECTION_COPY, SERVICE_PLANS } from "../data/servicePlans";
+import CircularSteps from "../components/CircularSteps";
 
 export default function LandingPage({
   styles,
@@ -386,179 +388,12 @@ export default function LandingPage({
           </button>
         </div>
       )}
-      <m.section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,260px),1fr))",
-          gap: 16,
-          marginTop: 30,
-          textAlign: "left",
-          paddingBottom: isMobileView ? 22 : 28,
-          borderBottom: "1px solid rgba(148,163,184,0.16)",
-          position: "relative",
-          zIndex: 1,
-        }}
-        initial={revealInitial}
-        whileInView={revealInView}
-        viewport={revealViewport}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <m.div
-          style={{
-            display: "flex",
-            perspective: 1000,
-          }}
-          whileHover={tiltHover}
-          whileTap={tapFeedback}
-          transition={{ type: "spring", stiffness: 220, damping: 20 }}
-          initial={revealInitial}
-          whileInView={revealInView}
-          viewport={revealViewport}
-        >
-          <button
-            onClick={onSelectVehicle}
-            className="ma-card-interactive ma-fade-stagger"
-            style={{
-              ...styles.card(false),
-              transformStyle: "preserve-3d",
-              width: "100%",
-              height: "100%",
-              padding: 22,
-              background: "rgba(37,99,235,0.08)",
-              border: "1px solid rgba(37,99,235,0.22)",
-              animationDelay: "40ms",
-            }}
-          >
-            <span style={{ fontSize: 28, minWidth: 40 }}>🚗</span>
-            <div style={{ transform: "translateZ(24px)" }}>
-              <div style={{ fontWeight: 700, fontSize: 19, color: titleColor, marginBottom: 6 }}>
-                Quiero un vehículo
-              </div>
-              <div style={{ fontSize: 13, color: mutedColor, lineHeight: 1.6 }}>
-                Índicanos si quieres comprar, alquilar o quieres que te guiemos en la mejor solución
-                para ti.
-              </div>
-            </div>
-          </button>
-        </m.div>
 
-        <m.div
-          style={{
-            display: "flex",
-            perspective: 1000,
-          }}
-          whileHover={tiltHover}
-          whileTap={tapFeedback}
-          transition={{ type: "spring", stiffness: 220, damping: 20 }}
-          initial={revealInitial}
-          whileInView={revealInView}
-          viewport={revealViewport}
-        >
-          <button
-            onClick={onSelectSell}
-            className="ma-card-interactive ma-fade-stagger"
-            style={{
-              ...styles.card(false),
-              transformStyle: "preserve-3d",
-              width: "100%",
-              height: "100%",
-              padding: 22,
-              background: "rgba(5,150,105,0.08)",
-              border: "1px solid rgba(5,150,105,0.22)",
-              animationDelay: "120ms",
-            }}
-          >
-            <span style={{ fontSize: 28, minWidth: 40 }}>💶</span>
-            <div style={{ transform: "translateZ(24px)" }}>
-              <div style={{ fontWeight: 700, fontSize: 19, color: titleColor, marginBottom: 6 }}>
-                Quiero vender mi coche
-              </div>
-              <div style={{ fontSize: 13, color: mutedColor, lineHeight: 1.6 }}>
-                ¿Cansado de que los concesionarios te ofrezcan mucho menos de lo que vale tu coche?
-                Te ayudamos a que ganes más.
-              </div>
-            </div>
-          </button>
-        </m.div>
+      {/* NUEVO: CircularSteps reemplaza los tres recuadros de features */}
+      <div style={{ marginTop: 30, marginBottom: 18 }}>
+        <CircularSteps />
+      </div>
 
-        <m.div
-          style={{
-            display: "flex",
-            perspective: 1000,
-          }}
-          whileHover={tiltHover}
-          whileTap={tapFeedback}
-          transition={{ type: "spring", stiffness: 220, damping: 20 }}
-          initial={revealInitial}
-          whileInView={revealInView}
-          viewport={revealViewport}
-        >
-          <button
-            onClick={onSelectService}
-            className="ma-card-interactive ma-fade-stagger"
-            style={{
-              ...styles.card(false),
-              transformStyle: "preserve-3d",
-              width: "100%",
-              height: "100%",
-              padding: 22,
-              background: "rgba(217,119,6,0.08)",
-              border: "1px solid rgba(217,119,6,0.22)",
-              animationDelay: "200ms",
-            }}
-          >
-            <span style={{ fontSize: 28, minWidth: 40 }}>🛠️</span>
-            <div style={{ transform: "translateZ(24px)" }}>
-              <div style={{ fontWeight: 700, fontSize: 19, color: titleColor, marginBottom: 6 }}>
-                Quiero contratar un Servicio
-              </div>
-              <div style={{ fontSize: 13, color: mutedColor, lineHeight: 1.6 }}>
-                Únete a una nueva era en la automoción y aprovecha las economías de escala de una empresa
-                en la unión de los particulares.
-              </div>
-            </div>
-          </button>
-        </m.div>
-      </m.section>
-
-      <m.div
-        style={{
-          marginTop: 20,
-          display: "flex",
-          justifyContent: "center",
-        }}
-        initial={revealInitial}
-        whileInView={revealInView}
-        viewport={revealViewport}
-        transition={{ duration: 0.45, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <m.button
-          type="button"
-          onClick={onSelectPortalVo}
-          className="ma-card-soft ma-fade-stagger"
-          style={{
-            background: "linear-gradient(135deg,#f59e0b,#d97706)",
-            border: "none",
-            color: "white",
-            padding: isMobileView ? "12px 14px" : "13px 18px",
-            borderRadius: 12,
-            fontSize: isMobileView ? 13 : 14,
-            fontWeight: 800,
-            cursor: "pointer",
-            boxShadow: "0 14px 34px rgba(217,119,6,0.18)",
-            width: "100%",
-            maxWidth: 440,
-            animationDelay: "260ms",
-          }}
-          whileTap={tapFeedback}
-        >
-          ✨ Ofertas VO únicas de nuestro portal
-        </m.button>
-      </m.div>
-
-      <p style={{ marginTop: 20, fontSize: 12, color: "#334155" }}>
-        Sin registro · Sin tarjeta · ~5 minutos
-      </p>
       </section>
 
       <m.section

@@ -35,8 +35,11 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  overflow-x: auto;
-  scrollbar-width: thin;
+  overflow-x: visible !important;
+  flex-wrap: wrap !important;
+  white-space: normal !important;
+  max-width: 100vw !important;
+  scrollbar-width: none !important;
 }
 
 .cw-header-nav-link {
@@ -108,6 +111,10 @@
   background: rgba(59, 130, 246, 0.12);
 }
 
+.cw-header-desktop-only {
+  display: inline-flex;
+}
+
 @media (max-width: 1280px) {
   .cw-header-nav {
     justify-content: flex-start;
@@ -116,6 +123,10 @@
 
 @media (max-width: 980px) {
   .cw-header-nav {
+    display: none;
+  }
+
+  .cw-header-desktop-only {
     display: none;
   }
 

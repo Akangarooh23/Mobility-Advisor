@@ -13,7 +13,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
       color: isDark ? "#e2e8f0" : "#0f172a",
     },
     header: {
-      padding: "18px 28px",
+      padding: "12px 10px 12px 2px", // minimal left padding
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",

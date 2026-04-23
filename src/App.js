@@ -942,6 +942,8 @@ export default function App() {
     },
   ], [goToAboutHeaderPage, goToHomeHeaderPage, goToPublicHeaderPage, openInternalLandingFlow]);
 
+  const centerHeaderNavItems = headerNavItems;
+
   const openLegalDocument = useCallback((docKey = "legalNotice") => {
     if (!LEGAL_DOCUMENTS[docKey]) {
       return;
@@ -2803,8 +2805,8 @@ export default function App() {
           minHeight: 104,
           paddingTop: 8,
           paddingBottom: 8,
-          justifyContent: "space-between",
-          gap: 12,
+          justifyContent: "flex-start",
+          gap: 0,
         }}
       >
       {structuredDataSchemas.map((schema, index) => (
@@ -2815,47 +2817,49 @@ export default function App() {
         />
       ))}
 
-        <button
-          type="button"
-          onClick={restart}
-          style={{
-            width: "min(42vw, 420px)",
-            minWidth: 220,
-            height: 84,
-            background: "transparent",
-            border: "none",
-            padding: 0,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-start",
-          }}
-          title="Ir al home"
-          aria-label="Ir al home"
-        >
-          <img
-            src="/carswise-logo.png"
-            alt="CarsWise"
+        <div style={{ display: "flex", alignItems: "center", gap: 0, width: "100%" }}>
+          <button
+            type="button"
+            onClick={restart}
             style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
-              objectPosition: "left center",
-              display: "block",
+              height: 84,
+              background: "transparent",
+              border: "none",
+              padding: 0,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-start",
             }}
-          />
-        </button>
-        <nav
-          className="cw-header-nav"
-          aria-label="Navegacion principal CarsWise"
-          style={{
-            "--cw-nav-color": themeMode === "dark" ? "#cbd5e1" : "#5b6b82",
-            "--cw-nav-hover-color": themeMode === "dark" ? "#dbeafe" : "#334155",
-            "--cw-nav-active-color": themeMode === "dark" ? "#7dd3fc" : "#3b82f6",
-            "--cw-nav-active-bg": themeMode === "dark" ? "rgba(125,211,252,0.18)" : "rgba(59,130,246,0.12)",
-          }}
-        >
-          {headerNavItems.map((item) => {
+            title="Ir al home"
+            aria-label="Ir al home"
+          >
+            <img
+              src="/carswise-logo.png"
+              alt="CarsWise"
+              style={{
+                height: 84,
+                width: "auto",
+                objectFit: "contain",
+                objectPosition: "left center",
+                display: "block",
+              }}
+            />
+          </button>
+          <nav
+            className="cw-header-nav"
+            aria-label="Navegacion principal CarsWise"
+            style={{
+              "--cw-nav-color": themeMode === "dark" ? "#cbd5e1" : "#5b6b82",
+              "--cw-nav-hover-color": themeMode === "dark" ? "#dbeafe" : "#334155",
+              "--cw-nav-active-color": themeMode === "dark" ? "#7dd3fc" : "#3b82f6",
+              "--cw-nav-active-bg": themeMode === "dark" ? "rgba(125,211,252,0.18)" : "rgba(59,130,246,0.12)",
+                justifyContent: "center",
+                marginLeft: 18,
+                marginRight: 18,
+            }}
+          >
+            {centerHeaderNavItems.map((item) => {
             const isActive = item.key === currentHeaderNavKey;
             return (
               <button
@@ -2868,36 +2872,8 @@ export default function App() {
               </button>
             );
           })}
-        </nav>
-        <button
-          type="button"
-          className="cw-header-mobile-toggle"
-          onClick={() => setShowHeaderMobileNav((prev) => !prev)}
-          aria-expanded={showHeaderMobileNav}
-          aria-controls="cw-header-mobile-nav"
-          aria-label="Abrir menu de navegacion"
-        >
-          ☰
-        </button>
-        {showHeaderMobileNav && (
-          <div id="cw-header-mobile-nav" className="cw-header-mobile-nav" role="menu" aria-label="Navegacion movil principal">
-            {headerNavItems.map((item) => {
-              const isActive = item.key === currentHeaderNavKey;
-              return (
-                <button
-                  key={`mobile-${item.key}`}
-                  type="button"
-                  role="menuitem"
-                  className={`cw-header-mobile-nav-link${isActive ? " is-active" : ""}`}
-                  onClick={item.onClick}
-                >
-                  {item.label}
-                </button>
-              );
-            })}
-          </div>
-        )}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, position: "relative" }}>
+          </nav>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, position: "relative" }}>
           {step >= 0 && step < totalSteps && (
             <div style={{ fontSize: 12, color: "#475569" }}>
               {step + 1} / {totalSteps}
@@ -3372,7 +3348,36 @@ export default function App() {
               </div>
             </div>
           )}
+          </div>
         </div>
+        <button
+          type="button"
+          className="cw-header-mobile-toggle"
+          onClick={() => setShowHeaderMobileNav((prev) => !prev)}
+          aria-expanded={showHeaderMobileNav}
+          aria-controls="cw-header-mobile-nav"
+          aria-label="Abrir menu de navegacion"
+        >
+          ☰
+        </button>
+        {showHeaderMobileNav && (
+          <div id="cw-header-mobile-nav" className="cw-header-mobile-nav" role="menu" aria-label="Navegacion movil principal">
+            {headerNavItems.map((item) => {
+              const isActive = item.key === currentHeaderNavKey;
+              return (
+                <button
+                  key={`mobile-${item.key}`}
+                  type="button"
+                  role="menuitem"
+                  className={`cw-header-mobile-nav-link${isActive ? " is-active" : ""}`}
+                  onClick={item.onClick}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </header>
 
       {authDialogMode && (

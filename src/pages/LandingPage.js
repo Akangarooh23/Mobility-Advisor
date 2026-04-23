@@ -23,7 +23,6 @@ export default function LandingPage({
 }) {
   const isDark = styles?.page?.color === "#e2e8f0";
   const titleColor = isDark ? "#f8fafc" : "#000000";
-  const mutedColor = isDark ? "#cbd5e1" : "#94a3b8";
 
   const [isMobileView, setIsMobileView] = useState(() => {
     if (typeof window === "undefined") {
@@ -87,9 +86,6 @@ export default function LandingPage({
   const heroY = useTransform(scrollYProgress, [0, 0.28], [0, isMobileView ? 0 : -52]);
   const bgParallaxNear = useTransform(scrollYProgress, [0, 1], [0, isMobileView ? -38 : -92]);
   const bgParallaxFar = useTransform(scrollYProgress, [0, 1], [0, isMobileView ? 24 : 58]);
-  const tiltHover = prefersReducedMotion || isMobileView
-    ? {}
-    : { rotateX: 8, rotateY: -8, scale: 1.025, y: -6 };
   const tapFeedback = prefersReducedMotion
     ? {}
     : { scale: isMobileView ? 0.985 : 0.992 };

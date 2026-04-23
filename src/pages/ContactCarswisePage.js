@@ -30,24 +30,6 @@ const FAQ_ITEMS = [
   },
 ];
 
-function FounderMiniAvatar({ initials, image, className, alt }) {
-  const [failed, setFailed] = useState(false);
-
-  return (
-    <div className={className}>
-      <span>{initials}</span>
-      {!failed && image ? (
-        <img
-          src={image}
-          alt={alt}
-          className="cw-contact-founder-avatar-image"
-          onError={() => setFailed(true)}
-        />
-      ) : null}
-    </div>
-  );
-}
-
 function buildBotReply(text) {
   const normalized = String(text || "").toLowerCase();
 
@@ -277,48 +259,6 @@ export default function ContactCarswisePage() {
         </section>
 
         <section className="cw-contact-bottom">
-          <article>
-            <div className="cw-contact-bottom-label">El equipo</div>
-            <div className="cw-contact-founders">
-              <div className="cw-contact-founder-item">
-                <FounderMiniAvatar
-                  className="cw-contact-founder-avatar is-1"
-                  initials="JH"
-                  image="/team/juan.jpeg"
-                  alt="Juan Hernandez"
-                />
-                <div>
-                  <div className="cw-contact-founder-name">Juan Hernandez</div>
-                  <div className="cw-contact-founder-role">Negocio y Operaciones</div>
-                </div>
-              </div>
-              <div className="cw-contact-founder-item">
-                <FounderMiniAvatar
-                  className="cw-contact-founder-avatar is-2"
-                  initials="JL"
-                  image="/team/javier.jpeg"
-                  alt="Javier Linares"
-                />
-                <div>
-                  <div className="cw-contact-founder-name">Javier Linares</div>
-                  <div className="cw-contact-founder-role">Operaciones y Finanzas</div>
-                </div>
-              </div>
-              <div className="cw-contact-founder-item">
-                <FounderMiniAvatar
-                  className="cw-contact-founder-avatar is-3"
-                  initials="AP"
-                  image="/team/ana.jpeg"
-                  alt="Ana Picazo"
-                />
-                <div>
-                  <div className="cw-contact-founder-name">Ana Picazo</div>
-                  <div className="cw-contact-founder-role">Tecnologia y Producto</div>
-                </div>
-              </div>
-            </div>
-          </article>
-
           <article>
             <div className="cw-contact-bottom-label">Preguntas frecuentes</div>
             <div className="cw-contact-faq-list">

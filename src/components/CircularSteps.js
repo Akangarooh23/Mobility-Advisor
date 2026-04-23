@@ -38,6 +38,8 @@ export default function CircularSteps() {
   const [animating, setAnimating] = useState(false);
   const progressBarRef = useRef(null);
   const autoTimer = useRef(null);
+  const goToStepRef = useRef(null);
+  const renderArrowsRef = useRef(null);
 
   // Arc definitions
   const W = 240, H = 240, cx = 120, cy = 120, R = 84;
@@ -98,6 +100,8 @@ export default function CircularSteps() {
     }
   }
 
+  renderArrowsRef.current = renderArrows;
+
   // Animation logic
   function animateTo(targetFilled, fromFilled, callback) {
     setAnimating(true);
@@ -150,19 +154,6 @@ export default function CircularSteps() {
     bar.style.transition = `width ${STEP_DURATION}ms linear`;
     bar.style.width = "100%";
   }
-  function stopProgress() {
-    const bar = progressBarRef.current;
-    if (!bar || !bar.parentElement) return;
-    const computed = parseFloat(getComputedStyle(bar).width) / bar.parentElement.offsetWidth * 100;
-    bar.style.transition = "none";
-    bar.style.width = computed + "%";
-  }
-
-  // Step/card update
-  function updateCard(idx) {
-    // handled by React render
-  }
-
   // Step navigation
   function goToStep(newStep, fromStep, skipAnimation) {
     if (animating) return;
@@ -191,17 +182,18 @@ export default function CircularSteps() {
     }
   }
 
+  goToStepRef.current = goToStep;
+
   // Button handlers
   // Eliminar controles de navegación manual y pausa
 
   // Init
   useEffect(() => {
-    renderArrows(canvasRef.current.getContext("2d"), 0, 0);
+    renderArrowsRef.current?.(canvasRef.current.getContext("2d"), 0, 0);
     setTimeout(() => {
-      goToStep(0, -1, false);
+      goToStepRef.current?.(0, -1, false);
     }, 400);
     return () => clearTimeout(autoTimer.current);
-    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
@@ -211,7 +203,7 @@ export default function CircularSteps() {
         return;
       }
       const next = (currentStep + 1) % 3;
-      goToStep(next, currentStep, false);
+      goToStepRef.current?.(next, currentStep, false);
     }, STEP_DURATION);
 
     return () => clearTimeout(autoTimer.current);

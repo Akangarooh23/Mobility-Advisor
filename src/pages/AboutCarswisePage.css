@@ -1,0 +1,402 @@
+.cw-about-page {
+  background: #ffffff;
+  color: #0f172a;
+  min-height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.cw-about-bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.38;
+}
+
+.cw-about-bg-orb-1 {
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle at 30% 30%, rgba(59,130,246,0.26), rgba(59,130,246,0));
+  top: -120px;
+  left: -90px;
+}
+
+.cw-about-bg-orb-2 {
+  width: 340px;
+  height: 340px;
+  background: radial-gradient(circle at 60% 40%, rgba(20,184,166,0.22), rgba(20,184,166,0));
+  top: 220px;
+  right: -110px;
+}
+
+.cw-about-bg-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(148,163,184,0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148,163,184,0.09) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: radial-gradient(circle at 35% 12%, rgba(0,0,0,0.32), rgba(0,0,0,0.06) 58%, transparent 82%);
+  pointer-events: none;
+}
+
+.cw-about-shell {
+  width: min(1120px, calc(100vw - 40px));
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.cw-about-hero {
+  padding: 22px 0 44px;
+}
+
+.cw-about-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #0ea5e9;
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+.cw-about-eyebrow::before {
+  content: "";
+  width: 24px;
+  height: 1px;
+  background: #0ea5e9;
+}
+
+.cw-about-title {
+  margin: 0;
+  font-size: clamp(34px, 6vw, 78px);
+  line-height: 0.94;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.cw-about-title-accent {
+  background: linear-gradient(120deg, #3b82f6, #06b6d4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.cw-about-description {
+  margin-top: 24px;
+  max-width: 720px;
+  font-size: 18px;
+  line-height: 1.7;
+  color: #475569;
+}
+
+.cw-about-hero-cta {
+  margin-top: 26px;
+  border: 1px solid #93c5fd;
+  background: linear-gradient(180deg, #eff6ff, #dbeafe);
+  color: #1d4ed8;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.14);
+}
+
+.cw-about-stats {
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding: 28px 6px;
+}
+
+.cw-about-stat {
+  text-align: center;
+}
+
+.cw-about-stat-number {
+  margin: 0;
+  font-size: clamp(32px, 4vw, 44px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  background: linear-gradient(120deg, #3b82f6, #14b8a6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.cw-about-stat-label {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #64748b;
+  letter-spacing: 0.04em;
+}
+
+.cw-about-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #cbd5e1, transparent);
+}
+
+.cw-about-section {
+  padding: 52px 0;
+}
+
+.cw-about-section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #0ea5e9;
+  font-size: 11px;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.cw-about-section-label::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: #0ea5e9;
+}
+
+.cw-about-section-title {
+  margin: 0 0 26px;
+  font-size: clamp(28px, 4.2vw, 44px);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.cw-about-mission {
+  border: 1px solid #dbeafe;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #ffffff, #f8fbff);
+  padding: 32px;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+}
+
+.cw-about-mission-text {
+  margin: 0;
+  font-size: 22px;
+  color: #0f172a;
+  line-height: 1.58;
+}
+
+.cw-about-grid-three {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.cw-about-feature-card,
+.cw-about-team-card,
+.cw-about-value-card {
+  border: 1px solid #dbeafe;
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 22px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+}
+
+.cw-about-feature-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-bottom: 14px;
+}
+
+.cw-about-feature-icon.is-buy {
+  background: #dbeafe;
+}
+
+.cw-about-feature-icon.is-manage {
+  background: #ccfbf1;
+}
+
+.cw-about-feature-icon.is-sell {
+  background: #fef3c7;
+}
+
+.cw-about-feature-tag {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.cw-about-feature-tag.is-buy {
+  color: #2563eb;
+}
+
+.cw-about-feature-tag.is-manage {
+  color: #0f766e;
+}
+
+.cw-about-feature-tag.is-sell {
+  color: #b45309;
+}
+
+.cw-about-feature-title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: #0f172a;
+}
+
+.cw-about-feature-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: #475569;
+}
+
+.cw-about-team-avatar {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 18px;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.cw-about-team-avatar-fallback {
+  position: relative;
+  z-index: 1;
+}
+
+.cw-about-team-avatar-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  z-index: 2;
+}
+
+.cw-about-team-avatar.is-1 {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.cw-about-team-avatar.is-2 {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.cw-about-team-avatar.is-3 {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.cw-about-team-name {
+  margin: 0;
+  font-size: 20px;
+  color: #0f172a;
+}
+
+.cw-about-team-role {
+  margin-top: 4px;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.cw-about-team-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 14px 0;
+}
+
+.cw-about-team-bio {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.cw-about-team-tag {
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  font-weight: 700;
+  border-radius: 999px;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  background: #eff6ff;
+  padding: 5px 10px;
+}
+
+.cw-about-value-number {
+  margin: 0;
+  font-size: 48px;
+  line-height: 0.9;
+  letter-spacing: -0.06em;
+  color: #dbeafe;
+  font-weight: 800;
+}
+
+.cw-about-value-title {
+  margin: 10px 0 8px;
+  font-size: 18px;
+  color: #0f172a;
+}
+
+.cw-about-value-text {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+@media (max-width: 980px) {
+  .cw-about-grid-three {
+    grid-template-columns: 1fr;
+  }
+
+  .cw-about-stats {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+
+  .cw-about-stat {
+    text-align: left;
+  }
+
+  .cw-about-hero {
+    padding-top: 8px;
+  }
+
+  .cw-about-bg-grid {
+    background-size: 26px 26px;
+  }
+
+  .cw-about-mission-text {
+    font-size: 19px;
+  }
+}

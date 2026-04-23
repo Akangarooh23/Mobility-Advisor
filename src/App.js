@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import "./App.css";
 import AdviceIntroPage from "./pages/AdviceIntroPage";
 import AdviceResultsPage from "./pages/AdviceResultsPage";
 import DecisionPage from "./pages/DecisionPage";
@@ -21,6 +22,8 @@ import ServiceMaintenancePage from "./pages/ServiceMaintenancePage";
 import ServiceAutogestorPage from "./pages/ServiceAutogestorPage";
 import LegalPolicyPage from "./pages/LegalPolicyPage";
 import SeoStaticPage from "./pages/SeoStaticPage";
+import AboutCarswisePage from "./pages/AboutCarswisePage";
+import ContactCarswisePage from "./pages/ContactCarswisePage";
 import BlogIndexPage from "./pages/BlogIndexPage";
 import BlogArticlePage from "./pages/BlogArticlePage";
 import ResolvedOfferImage from "./components/offers/ResolvedOfferImage";
@@ -427,6 +430,65 @@ const LEGAL_DOCUMENTS = {
 };
 
 const SEO_STATIC_PAGES = {
+  aboutCarswise: {
+    badge: "Sobre CarsWise",
+    title: "Quienes somos en CarsWise",
+    description:
+      "CarsWise nace para que cualquier persona compre, gestione y venda su coche con informacion neutral y criterio financiero real.",
+    sections: [
+      {
+        heading: "Mision",
+        paragraphs: [
+          "Queremos profesionalizar la movilidad del particular con la misma disciplina de analisis y operacion que hoy solo tienen grandes flotas y operadores.",
+        ],
+      },
+      {
+        heading: "Que construimos",
+        bullets: [
+          "Compra: recomendacion de modelo y ranking de oportunidades con foco en coste total.",
+          "Gestion: seguimiento del vehiculo, servicios preventivos y trazabilidad completa.",
+          "Venta: precio objetivo, certificacion y ejecucion comercial para vender mejor.",
+        ],
+      },
+      {
+        heading: "Quienes somos",
+        cards: [
+          {
+            title: "Juan Hernandez",
+            subtitle: "Cofundador · Negocio y Operaciones",
+            lines: [
+              "Trayectoria ejecutiva en renting, seguros y banca.",
+              "Responsable de crecimiento comercial, alianzas y ejecucion operativa.",
+            ],
+          },
+          {
+            title: "Javier Linares",
+            subtitle: "Cofundador · Operaciones y Finanzas",
+            lines: [
+              "Experiencia en VO, gestion de flotas y operaciones estructuradas.",
+              "Lidera pricing, unit economics y control financiero de la plataforma.",
+            ],
+          },
+          {
+            title: "Ana Picazo",
+            subtitle: "Cofundadora · Tecnologia y Producto",
+            lines: [
+              "Especialista en software, datos y arquitectura de producto digital.",
+              "Dirige la hoja de ruta tecnica y la calidad de la experiencia CarsWise.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Nuestros valores",
+        bullets: [
+          "Transparencia: decisiones basadas en datos y criterio objetivo para el cliente.",
+          "Rigor: cada recomendacion combina analisis financiero, contexto de uso y riesgo real.",
+          "Ejecucion: convertimos el diagnostico en accion, desde la compra hasta la venta.",
+        ],
+      },
+    ],
+  },
   servicesSeo: {
     badge: "Servicios",
     title: "Servicios de movilidad para reducir coste y friccion operativa",
@@ -482,6 +544,7 @@ const SEO_STATIC_PAGES = {
 };
 
 const PUBLIC_ROUTE_BY_ENTRY_MODE = {
+  aboutCarswise: "/sobre-carswise",
   portalVo: "/marketplace-vo",
   vehicleOptions: "/asesor-vehiculo",
   servicesSeo: "/servicios",
@@ -505,6 +568,11 @@ const SEO_META_BY_ENTRY_MODE = {
     title: "CarsWise AI | Asesor de movilidad para comprar, renting y vender mejor",
     description:
       "CarsWise te ayuda a decidir mejor en compra, renting, venta y servicios del coche con analisis de coste total.",
+  },
+  aboutCarswise: {
+    title: "Sobre CarsWise | Quienes somos y que construimos",
+    description:
+      "Conoce al equipo fundador de CarsWise y nuestra vision para comprar, gestionar y vender coche con mejor informacion.",
   },
   portalVo: {
     title: "Marketplace VO | Coches de ocasion con enfoque de coste total | CarsWise",
@@ -696,6 +764,7 @@ export default function App() {
   const [showAuthMenu, setShowAuthMenu] = useState(false);
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
   const [showUserPanel, setShowUserPanel] = useState(false);
+  const [showHeaderMobileNav, setShowHeaderMobileNav] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [authDialogMode, setAuthDialogMode] = useState("");
   const [authRecoveryMode, setAuthRecoveryMode] = useState("none");
@@ -766,6 +835,112 @@ export default function App() {
       window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
     }
   }, [syncBrowserPath]);
+
+  const openInternalLandingFlow = useCallback((nextEntryMode) => {
+    setShowHeaderMobileNav(false);
+    setShowAuthMenu(false);
+    setShowUserPanel(false);
+    setEntryMode(nextEntryMode);
+    setStep(-1);
+    syncBrowserPath("/", "push");
+
+    if (typeof window !== "undefined") {
+      window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
+    }
+  }, [syncBrowserPath]);
+
+  const goToPublicHeaderPage = useCallback((nextEntryMode) => {
+    setShowHeaderMobileNav(false);
+    openPublicPage(nextEntryMode);
+  }, [openPublicPage]);
+
+  const goToHomeHeaderPage = useCallback(() => {
+    setShowHeaderMobileNav(false);
+    openPublicPage(null);
+  }, [openPublicPage]);
+
+  const goToAboutHeaderPage = useCallback(() => {
+    setShowHeaderMobileNav(false);
+    openPublicPage("aboutCarswise");
+  }, [openPublicPage]);
+
+  const currentHeaderNavKey = useMemo(() => {
+    if (entryMode === "portalVo" || entryMode === "portalVoDetail") {
+      return "marketplace";
+    }
+
+    if (
+      entryMode === "serviceOptions" ||
+      entryMode === "serviceInsurance" ||
+      entryMode === "serviceMaintenance" ||
+      entryMode === "serviceAutogestor" ||
+      entryMode === "servicesSeo"
+    ) {
+      return "services";
+    }
+
+    if (entryMode === "sellOptions" || entryMode === "sell") {
+      return "sell";
+    }
+
+    if (entryMode === "contact") {
+      return "contact";
+    }
+
+    if (entryMode === "aboutCarswise") {
+      return "about";
+    }
+
+    if (
+      entryMode === "vehicleOptions" ||
+      entryMode === "buyOptions" ||
+      entryMode === "rentingOptions" ||
+      entryMode === "consejo" ||
+      entryMode === "decision"
+    ) {
+      return "buy";
+    }
+
+    return "home";
+  }, [entryMode]);
+
+  const headerNavItems = useMemo(() => [
+    {
+      key: "home",
+      label: "Home",
+      onClick: goToHomeHeaderPage,
+    },
+    {
+      key: "buy",
+      label: "Quiero Comprar",
+      onClick: () => openInternalLandingFlow("buyOptions"),
+    },
+    {
+      key: "services",
+      label: "Quiero Contratar un Servicio",
+      onClick: () => openInternalLandingFlow("serviceOptions"),
+    },
+    {
+      key: "sell",
+      label: "Quiero vender mi Coche",
+      onClick: () => openInternalLandingFlow("sellOptions"),
+    },
+    {
+      key: "marketplace",
+      label: "Marketplace VO",
+      onClick: () => goToPublicHeaderPage("portalVo"),
+    },
+    {
+      key: "about",
+      label: "Sobre CarsWise",
+      onClick: goToAboutHeaderPage,
+    },
+    {
+      key: "contact",
+      label: "Contacto",
+      onClick: () => goToPublicHeaderPage("contact"),
+    },
+  ], [goToAboutHeaderPage, goToHomeHeaderPage, goToPublicHeaderPage, openInternalLandingFlow]);
 
   const openLegalDocument = useCallback((docKey = "legalNotice") => {
     if (!LEGAL_DOCUMENTS[docKey]) {
@@ -2629,6 +2804,7 @@ export default function App() {
           paddingTop: 8,
           paddingBottom: 8,
           justifyContent: "space-between",
+          gap: 12,
         }}
       >
       {structuredDataSchemas.map((schema, index) => (
@@ -2669,6 +2845,58 @@ export default function App() {
             }}
           />
         </button>
+        <nav
+          className="cw-header-nav"
+          aria-label="Navegacion principal CarsWise"
+          style={{
+            "--cw-nav-color": themeMode === "dark" ? "#cbd5e1" : "#5b6b82",
+            "--cw-nav-hover-color": themeMode === "dark" ? "#dbeafe" : "#334155",
+            "--cw-nav-active-color": themeMode === "dark" ? "#7dd3fc" : "#3b82f6",
+            "--cw-nav-active-bg": themeMode === "dark" ? "rgba(125,211,252,0.18)" : "rgba(59,130,246,0.12)",
+          }}
+        >
+          {headerNavItems.map((item) => {
+            const isActive = item.key === currentHeaderNavKey;
+            return (
+              <button
+                key={item.key}
+                type="button"
+                className={`cw-header-nav-link${isActive ? " is-active" : ""}`}
+                onClick={item.onClick}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </nav>
+        <button
+          type="button"
+          className="cw-header-mobile-toggle"
+          onClick={() => setShowHeaderMobileNav((prev) => !prev)}
+          aria-expanded={showHeaderMobileNav}
+          aria-controls="cw-header-mobile-nav"
+          aria-label="Abrir menu de navegacion"
+        >
+          ☰
+        </button>
+        {showHeaderMobileNav && (
+          <div id="cw-header-mobile-nav" className="cw-header-mobile-nav" role="menu" aria-label="Navegacion movil principal">
+            {headerNavItems.map((item) => {
+              const isActive = item.key === currentHeaderNavKey;
+              return (
+                <button
+                  key={`mobile-${item.key}`}
+                  type="button"
+                  role="menuitem"
+                  className={`cw-header-mobile-nav-link${isActive ? " is-active" : ""}`}
+                  onClick={item.onClick}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
         <div style={{ display: "flex", alignItems: "center", gap: 12, position: "relative" }}>
           {step >= 0 && step < totalSteps && (
             <div style={{ fontSize: 12, color: "#475569" }}>
@@ -3992,15 +4220,12 @@ export default function App() {
         />
       )}
 
+      {step === -1 && entryMode === "aboutCarswise" && (
+        <AboutCarswisePage />
+      )}
+
       {step === -1 && entryMode === "contact" && (
-        <SeoStaticPage
-          styles={s}
-          badge={SEO_STATIC_PAGES.contact.badge}
-          title={SEO_STATIC_PAGES.contact.title}
-          description={SEO_STATIC_PAGES.contact.description}
-          sections={SEO_STATIC_PAGES.contact.sections}
-          onGoHome={restart}
-        />
+        <ContactCarswisePage onGoHome={restart} />
       )}
 
       {step === -1 && entryMode === "blog" && (

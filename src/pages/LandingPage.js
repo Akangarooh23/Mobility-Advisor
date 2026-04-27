@@ -7,6 +7,7 @@ import CircularSteps from "../components/CircularSteps";
 export default function LandingPage({
   styles,
   totalSteps,
+  uiLanguage = "es",
   blockColors,
   questionnaireDraft,
   isUserLoggedIn,
@@ -391,6 +392,7 @@ export default function LandingPage({
           onSelectBuy={onSelectDecision}
           onSelectService={onSelectService}
           onSelectSell={onSelectSell}
+          uiLanguage={uiLanguage}
         />
       </div>
 

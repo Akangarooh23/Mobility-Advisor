@@ -4190,6 +4190,7 @@ export default function App() {
         <LandingPage
           styles={s}
           totalSteps={totalSteps}
+          uiLanguage={uiLanguage}
           blockColors={BLOCK_COLORS}
           questionnaireDraft={questionnaireDraft}
           isUserLoggedIn={isUserLoggedIn}
@@ -4241,6 +4242,7 @@ export default function App() {
       {step === -1 && entryMode === "vehicleOptions" && (
         <VehicleOptionsPage
           styles={s}
+          uiLanguage={uiLanguage}
           onSelectBuy={() => {
             setEntryMode("buyOptions");
             setStep(-1);
@@ -4295,6 +4297,7 @@ export default function App() {
       {step === -1 && entryMode === "buyOptions" && (
         <BuyOptionsPage
           styles={s}
+          uiLanguage={uiLanguage}
           onSelectAdvisor={() => {
             setAdvisorContext("buy");
             setAnswers({});
@@ -4419,7 +4422,7 @@ export default function App() {
       )}
 
       {step === -1 && entryMode === "contact" && (
-        <ContactCarswisePage onGoHome={restart} />
+        <ContactCarswisePage uiLanguage={uiLanguage} onGoHome={restart} />
       )}
 
       {step === -1 && entryMode === "blog" && (
@@ -4455,6 +4458,7 @@ export default function App() {
       {step === -1 && entryMode === "userDashboard" && isUserLoggedIn && (
         <UserDashboardPage
           themeMode={themeMode}
+          uiLanguage={uiLanguage}
           centerStyle={s.center}
           blockBadgeStyle={s.blockBadge("Vinculación")}
           panelStyle={{
@@ -4520,6 +4524,7 @@ export default function App() {
       {step === -1 && entryMode === "decision" && (
         <DecisionPage
           styles={s}
+          uiLanguage={uiLanguage}
           lockedOperation={advisorContext === "renting" ? "renting" : advisorContext === "buy" ? "comprar" : null}
           decisionAnswers={decisionAnswers}
           updateDecisionAnswer={updateDecisionAnswer}
@@ -4613,6 +4618,7 @@ export default function App() {
       {step === -1 && entryMode === "sell" && (
         <SellPage
           styles={s}
+          uiLanguage={uiLanguage}
           sellFlowType={sellFlowType}
           selectedValuationVehicleSummary={selectedValuationVehicleSummary}
           sellAnswers={sellAnswers}
@@ -4693,6 +4699,7 @@ export default function App() {
           resultRef={resultRef}
           styles={s}
           themeMode={themeMode}
+          uiLanguage={uiLanguage}
           resultView={resultView}
           answers={answers}
           listingResult={listingResult}

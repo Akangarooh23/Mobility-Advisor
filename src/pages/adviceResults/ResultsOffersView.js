@@ -2,6 +2,7 @@ import { useState } from "react";
 
 export default function ResultsOffersView({
   themeMode,
+  uiLanguage = "es",
   quickValidationQuestions,
   displayResult,
   quickValidationAnswers,
@@ -29,6 +30,86 @@ export default function ResultsOffersView({
   isRecommendationSaved,
   getOfferActionMeta,
 }) {
+  const language = String(uiLanguage || "").toLowerCase() === "en" ? "en" : "es";
+  const text = {
+    quickValidation: language === "en" ? "✅ QUICK VALIDATION" : "✅ VALIDACIÓN RÁPIDA",
+    yes: language === "en" ? "Yes" : "Sí",
+    no: language === "en" ? "No" : "No",
+    nextStep: language === "en" ? "🎯 NEXT STEP" : "🎯 SIGUIENTE PASO",
+    nextStepDesc:
+      language === "en"
+        ? "Adjust this quick section and the offers block will reorder to show the best real match first."
+        : "Ajusta esta parte rápida y el bloque de ofertas se reordena para enseñarte primero la mejor coincidencia real.",
+    targetMonthlyFee: language === "en" ? "Target monthly fee" : "Cuota objetivo mensual",
+    incomeStability: language === "en" ? "Income stability" : "Estabilidad de ingresos",
+    buyChecklist:
+      language === "en"
+        ? [
+            "Define your comfortable max monthly payment and real upfront capital.",
+            "Request a detailed quote with APR/NIR, insurance and total cost.",
+            "Discard any option that does not fit your target TCO.",
+          ]
+        : [
+            "Define tu cuota máxima cómoda y el capital inicial real.",
+            "Pide oferta desglosada con TIN/TAE, seguro y coste total.",
+            "Descarta cualquier opción que no cuadre con el TCO objetivo.",
+          ],
+    altChecklist:
+      language === "en"
+        ? [
+            "Check real coverage in your area and day-to-day availability.",
+            "Compare occasional cost against fixed cost of another modality.",
+            "Choose the option that creates the least friction for you now.",
+          ]
+        : [
+            "Comprueba cobertura real en tu zona y disponibilidad diaria.",
+            "Compara el coste puntual frente al coste fijo de otra modalidad.",
+            "Quédate con la opción que menos fricción te meta hoy.",
+          ],
+    bestOffers: language === "en" ? "🏆 BEST FIT OFFERS" : "🏆 OFERTAS QUE MEJOR ENCAJAN",
+    recalculating: language === "en" ? "Recalculating..." : "Recalculando...",
+    recalculateOffers: language === "en" ? "Recalculate offers" : "Recalcular ofertas",
+    featuredIntro:
+      language === "en"
+        ? "The featured offer is the best fit for your case; below you will see 3 more that can also fit, with ranking reasons."
+        : "La oferta destacada es la que mejor funciona para tu caso; debajo verás otras 3 que también podrían encajar con sus motivos de posición.",
+    listingCoveragePrefix: "🔎",
+    refineWarning:
+      language === "en"
+        ? "You can already open visible options while we refine an even better match."
+        : "Ya puedes abrir las opciones visibles mientras afinamos una coincidencia todavía mejor.",
+    loadingRealtime:
+      language === "en"
+        ? "We are recalculating offers for your profile in real time."
+        : "Estamos recalculando las ofertas para tu perfil en tiempo real.",
+    firstLoadInfo:
+      language === "en"
+        ? "Offers are shown immediately; if you tweak quick validation or monthly payment, they reorder automatically."
+        : "Las ofertas salen ya de primeras; si tocas validación rápida o cuota, se reordenan automáticamente.",
+    openOfferNewTab: language === "en" ? "Open offer in a new tab" : "Abrir oferta en una pestaña nueva",
+    featuredOffer: language === "en" ? "⭐ FEATURED OFFER" : "⭐ OFERTA DESTACADA",
+    position: language === "en" ? "POSITION" : "PUESTO",
+    fit: language === "en" ? "FIT" : "ENCAJE",
+    featuredFallback:
+      language === "en"
+        ? "It is the best ranked real match for your test and current context."
+        : "Es la coincidencia real mejor posicionada para tu test y tu contexto actual.",
+    externalWeb: language === "en" ? "External site" : "Web externa",
+    whyFirst: language === "en" ? "Why #1" : "Por qué va la 1ª",
+    referenceOnly:
+      language === "en"
+        ? "This card is a reference only: it takes you to the provider portal, not to an exact verified listing."
+        : "Esta tarjeta es una referencia orientativa: te lleva al portal del proveedor, no a una ficha exacta ya verificada.",
+    searchRealNow: language === "en" ? "Search real offer now ↗" : "Buscar oferta real ahora ↗",
+    saved: language === "en" ? "💖 Saved" : "💖 Guardada",
+    saveFavorite: language === "en" ? "🤍 Save favorite" : "🤍 Guardar favorita",
+    searchAnotherBatch: language === "en" ? "Search another batch" : "Buscar otra tanda",
+    otherFittingOffers: language === "en" ? "OTHER FITTING OFFERS" : "OTRAS OFERTAS QUE TAMBIÉN ENCAJAN",
+    save: language === "en" ? "🤍 Save" : "🤍 Guardar",
+    inSaved: language === "en" ? "💖 In saved" : "💖 En guardadas",
+    searchReal: language === "en" ? "Search real offer ↗" : "Buscar oferta real ↗",
+  };
+
   const [hoveredCard, setHoveredCard] = useState(null);
   const isDark = themeMode === "dark";
   const cardBg = isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)";
@@ -55,7 +136,7 @@ export default function ResultsOffersView({
             }}
           >
             <div style={{ fontSize: 10, color: titleColor, marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
-              ✅ VALIDACIÓN RÁPIDA
+              {text.quickValidation}
             </div>
             <div style={{ display: "grid", gap: 8 }}>
               {quickValidationQuestions.map((item) => {
@@ -105,7 +186,7 @@ export default function ResultsOffersView({
                               cursor: "pointer",
                             }}
                           >
-                            {isYes ? "Sí" : "No"}
+                            {isYes ? text.yes : text.no}
                           </button>
                         );
                       })}
@@ -126,18 +207,18 @@ export default function ResultsOffersView({
             }}
           >
             <div style={{ fontSize: 10, color: "#047857", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
-              🎯 SIGUIENTE PASO
+              {text.nextStep}
             </div>
             <div style={{ fontSize: 16, fontWeight: 800, color: titleColor, marginBottom: 6 }}>
               {displayResult.siguiente_paso}
             </div>
             <p style={{ margin: "0 0 10px", fontSize: 12, color: bodyColor, lineHeight: 1.6 }}>
-              Ajusta esta parte rápida y el bloque de ofertas se reordena para enseñarte primero la mejor coincidencia real.
+              {text.nextStepDesc}
             </p>
 
             {isRentingOutcome ? (
               <>
-                <div style={{ fontSize: 11, color: "#047857", marginBottom: 6 }}>Cuota objetivo mensual</div>
+                <div style={{ fontSize: 11, color: "#047857", marginBottom: 6 }}>{text.targetMonthlyFee}</div>
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
                   {MONTHLY_BUDGET_OPTIONS.map((option) => {
                     const selected = listingFilters.budget === option.value;
@@ -166,7 +247,7 @@ export default function ResultsOffersView({
                   })}
                 </div>
 
-                <div style={{ fontSize: 11, color: "#047857", marginBottom: 6 }}>Estabilidad de ingresos</div>
+                <div style={{ fontSize: 11, color: "#047857", marginBottom: 6 }}>{text.incomeStability}</div>
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   {INCOME_STABILITY_OPTIONS.map((option) => {
                     const selected = listingFilters.income === option.value;
@@ -197,21 +278,13 @@ export default function ResultsOffersView({
               </>
             ) : isBuyOrFinanceOutcome ? (
               <div style={{ display: "grid", gap: 5 }}>
-                {[
-                  "Define tu cuota máxima cómoda y el capital inicial real.",
-                  "Pide oferta desglosada con TIN/TAE, seguro y coste total.",
-                  "Descarta cualquier opción que no cuadre con el TCO objetivo.",
-                ].map((item) => (
+                {text.buyChecklist.map((item) => (
                   <div key={item} style={{ fontSize: 11, color: isDark ? "#e2e8f0" : "#334155", lineHeight: 1.5 }}>• {item}</div>
                 ))}
               </div>
             ) : (
               <div style={{ display: "grid", gap: 5 }}>
-                {[
-                  "Comprueba cobertura real en tu zona y disponibilidad diaria.",
-                  "Compara el coste puntual frente al coste fijo de otra modalidad.",
-                  "Quédate con la opción que menos fricción te meta hoy.",
-                ].map((item) => (
+                {text.altChecklist.map((item) => (
                   <div key={item} style={{ fontSize: 11, color: isDark ? "#e2e8f0" : "#334155", lineHeight: 1.5 }}>• {item}</div>
                 ))}
               </div>
@@ -241,7 +314,7 @@ export default function ResultsOffersView({
           >
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
               <div style={{ fontSize: 10, color: "#0369a1", fontWeight: 700, letterSpacing: "0.7px" }}>
-                🏆 OFERTAS QUE MEJOR ENCAJAN
+                {text.bestOffers}
               </div>
               <button
                 type="button"
@@ -261,12 +334,12 @@ export default function ResultsOffersView({
                   opacity: canSearchListing && !listingLoading ? 1 : 0.6,
                 }}
               >
-                {listingLoading ? "Recalculando..." : "Recalcular ofertas"}
+                {listingLoading ? text.recalculating : text.recalculateOffers}
               </button>
             </div>
 
             <p style={{ margin: "0 0 12px", fontSize: 12, color: bodyColor, lineHeight: 1.6 }}>
-              La oferta destacada es la que mejor funciona para tu caso; debajo verás otras 3 que también podrían encajar con sus motivos de posición.
+              {text.featuredIntro}
             </p>
 
             {listingCoverageSummary && (
@@ -282,7 +355,7 @@ export default function ResultsOffersView({
                   lineHeight: 1.6,
                 }}
               >
-                🔎 {listingCoverageSummary}
+                {text.listingCoveragePrefix} {listingCoverageSummary}
               </div>
             )}
 
@@ -299,7 +372,7 @@ export default function ResultsOffersView({
                 }}
               >
                 {featuredOffer
-                  ? `⚠️ ${listingError} Ya puedes abrir las opciones visibles mientras afinamos una coincidencia todavía mejor.`
+                  ? `⚠️ ${listingError} ${text.refineWarning}`
                   : listingError}
               </div>
             )}
@@ -317,15 +390,15 @@ export default function ResultsOffersView({
                 }}
               >
                 {listingLoading
-                  ? "Estamos recalculando las ofertas para tu perfil en tiempo real."
-                  : "Las ofertas salen ya de primeras; si tocas validación rápida o cuota, se reordenan automáticamente."}
+                  ? text.loadingRealtime
+                  : text.firstLoadInfo}
               </div>
             )}
 
             {featuredOffer && (
               <div
                 onClick={() => featuredOffer?.url && openOfferInNewTab(featuredOffer.url)}
-                title={featuredOffer?.url ? "Abrir oferta en una pestaña nueva" : undefined}
+                title={featuredOffer?.url ? text.openOfferNewTab : undefined}
                 onMouseEnter={() => setHoveredCard("featured")}
                 onMouseLeave={() => setHoveredCard(null)}
                 style={{
@@ -363,6 +436,7 @@ export default function ResultsOffersView({
                   >
                     <ResolvedOfferImage
                       offer={featuredOffer}
+                      uiLanguage={language}
                       alt={featuredOffer.title || "Oferta destacada"}
                       loading="lazy"
                       style={{
@@ -377,20 +451,20 @@ export default function ResultsOffersView({
 
                   <div>
                     <div style={{ fontSize: 10, color: "#0369a1", marginBottom: 6, fontWeight: 700, letterSpacing: "0.6px" }}>
-                      ⭐ OFERTA DESTACADA · PUESTO #{featuredOffer.rankPosition || 1}
+                      {text.featuredOffer} · {text.position} #{featuredOffer.rankPosition || 1}
                       {Number.isFinite(Number(featuredOffer.rankingScore ?? featuredOffer.profileScore))
-                        ? ` · ENCAJE ${Number(featuredOffer.rankingScore ?? featuredOffer.profileScore)}/100`
+                        ? ` · ${text.fit} ${Number(featuredOffer.rankingScore ?? featuredOffer.profileScore)}/100`
                         : ""}
                     </div>
                     <div style={{ fontSize: 18, fontWeight: 800, color: titleColor, marginBottom: 6 }}>
                       {featuredOffer.title}
                     </div>
                     <p style={{ margin: "0 0 8px", fontSize: 12, color: bodyColor, lineHeight: 1.6 }}>
-                      {featuredOffer.description || "Es la coincidencia real mejor posicionada para tu test y tu contexto actual."}
+                      {featuredOffer.description || text.featuredFallback}
                     </p>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
                       <div style={{ fontSize: 12, color: "#1d4ed8" }}>
-                        {featuredOffer.source || "Web externa"}
+                        {featuredOffer.source || text.externalWeb}
                       </div>
                       {featuredOffer.price && (
                         <div style={{ fontSize: 20, fontWeight: 800, color: "#047857" }}>
@@ -399,7 +473,7 @@ export default function ResultsOffersView({
                       )}
                     </div>
                     <p style={{ margin: "0 0 8px", fontSize: 11, color: "#1e3a8a", lineHeight: 1.6 }}>
-                      <strong>Por qué va la 1ª:</strong> {featuredOffer.positionReason || featuredOffer.matchReason}
+                      <strong>{text.whyFirst}:</strong> {featuredOffer.positionReason || featuredOffer.matchReason}
                     </p>
 
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
@@ -428,7 +502,7 @@ export default function ResultsOffersView({
 
                     {!featuredOffer.url && featuredOffer.searchUrl && (
                       <p style={{ margin: "0 0 10px", fontSize: 11, color: "#92400e", lineHeight: 1.6 }}>
-                        Esta tarjeta es una <strong>referencia orientativa</strong>: te lleva al portal del proveedor, no a una ficha exacta ya verificada.
+                        {text.referenceOnly}
                       </p>
                     )}
 
@@ -474,7 +548,7 @@ export default function ResultsOffersView({
                             cursor: "pointer",
                           }}
                         >
-                          Buscar oferta real ahora ↗
+                          {text.searchRealNow}
                         </button>
                       )}
 
@@ -497,7 +571,7 @@ export default function ResultsOffersView({
                           cursor: "pointer",
                         }}
                       >
-                        {featuredOfferSaved ? "💖 Guardada" : "🤍 Guardar favorita"}
+                        {featuredOfferSaved ? text.saved : text.saveFavorite}
                       </button>
 
                       <button
@@ -516,7 +590,7 @@ export default function ResultsOffersView({
                           cursor: "pointer",
                         }}
                       >
-                        Buscar otra tanda
+                        {text.searchAnotherBatch}
                       </button>
                     </div>
                   </div>
@@ -527,7 +601,7 @@ export default function ResultsOffersView({
             {otherOffers.length > 0 && (
               <div>
                 <div style={{ fontSize: 10, color: "#0369a1", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
-                  OTRAS OFERTAS QUE TAMBIÉN ENCAJAN
+                  {text.otherFittingOffers}
                 </div>
                 <div style={{ display: "grid", gap: 8 }}>
                   {otherOffers.map((offer, index) => {
@@ -537,7 +611,7 @@ export default function ResultsOffersView({
                       <div
                         key={offer.url || offer.searchUrl || `${offer.title}-${index}`}
                         onClick={() => offer?.url && openOfferInNewTab(offer.url)}
-                        title={offer?.url ? "Abrir oferta en una pestaña nueva" : undefined}
+                        title={offer?.url ? text.openOfferNewTab : undefined}
                         onMouseEnter={() => setHoveredCard(`other-${index}`)}
                         onMouseLeave={() => setHoveredCard(null)}
                         style={{
@@ -567,6 +641,7 @@ export default function ResultsOffersView({
                           >
                             <ResolvedOfferImage
                               offer={offer}
+                              uiLanguage={language}
                               alt={offer.title || "Oferta"}
                               loading="lazy"
                               style={{ width: "100%", height: 78, objectFit: "cover", display: "block" }}
@@ -581,7 +656,7 @@ export default function ResultsOffersView({
                               {offer.price && <div style={{ fontSize: 13, fontWeight: 800, color: "#047857" }}>{offer.price}</div>}
                             </div>
                             <div style={{ fontSize: 11, color: "#1d4ed8", marginBottom: 6 }}>
-                              {offer.source || "Web externa"}
+                              {offer.source || text.externalWeb}
                               {Number.isFinite(Number(offer.rankingScore ?? offer.profileScore))
                                 ? ` · ${Number(offer.rankingScore ?? offer.profileScore)}/100`
                                 : ""}
@@ -647,7 +722,7 @@ export default function ResultsOffersView({
                                     padding: 0,
                                   }}
                                 >
-                                  Buscar oferta real ↗
+                                  {text.searchReal}
                                 </button>
                               )}
 
@@ -667,7 +742,7 @@ export default function ResultsOffersView({
                                   padding: 0,
                                 }}
                               >
-                                {isRecommendationSaved(offer) ? "💖 En guardadas" : "🤍 Guardar"}
+                                {isRecommendationSaved(offer) ? text.inSaved : text.save}
                               </button>
                             </div>
                           </div>

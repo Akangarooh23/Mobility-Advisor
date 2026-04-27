@@ -1,15 +1,43 @@
-export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownModel, onGoBack }) {
+export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownModel, onGoBack, uiLanguage = "es" }) {
+  const language = String(uiLanguage || "").toLowerCase() === "en" ? "en" : "es";
+  const text = {
+    timelineSteps:
+      language === "en"
+        ? [
+            "You choose an option",
+            "You answer CarsWise",
+            "We analyze the market in real time",
+            "We offer you 3 models",
+            "We schedule an appointment",
+          ]
+        : [
+            "Seleccionas una opcion",
+            "Respondes al CarsWise",
+            "Analizamos el mercado en tiempo real",
+            "Te ofrecemos 3 modelos",
+            "Te agendamos una cita",
+          ],
+    goBack: language === "en" ? "← Back" : "← Volver",
+    title: language === "en" ? "Buy a car" : "Comprar un coche",
+    subtitle: language === "en" ? "Select the option that best describes your starting point." : "Selecciona la opción que mejor describa tu punto de partida.",
+    dontKnowModel: language === "en" ? "I don't know the model yet" : "No sé qué modelo",
+    dontKnowModelDesc:
+      language === "en"
+        ? "Help us understand your profile in 3 minutes with CarsWise to find the options that best fit you."
+        : "Ayúdanos a conocerte en 3 minutos con nuestro CarsWise para encontrar las opciones que más se adapten a ti.",
+    knowModel: language === "en" ? "I know exactly what I want" : "Tengo claro cuál quiero",
+    knowModelDesc:
+      language === "en"
+        ? "We analyze the market in real time to offer the best options based on price and seller reliability."
+        : "Analizamos el mercado en tiempo real para ofrecerte las mejores opciones en base al precio y la fiabilidad del proveedor.",
+    howItWorks: language === "en" ? "HOW IT WORKS" : "ASI FUNCIONA",
+    step: language === "en" ? "Step" : "Paso",
+  };
   const isDark = styles?.page?.color === "#e2e8f0";
   const titleColor = isDark ? "#f8fafc" : "#000000";
   const mutedColor = isDark ? "#cbd5e1" : "#94a3b8";
 
-  const timelineSteps = [
-    "Seleccionas una opcion",
-    "Respondes al CarsWise",
-    "Analizamos el mercado en tiempo real",
-    "Te ofrecemos 3 modelos",
-    "Te agendamos una cita",
-  ];
+  const timelineSteps = text.timelineSteps;
 
   return (
     <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
@@ -117,14 +145,14 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           marginBottom: 20,
         }}
       >
-        ← Volver
+        {text.goBack}
       </button>
 
       <h2 style={{ margin: "0 0 8px", fontSize: "clamp(28px,4vw,38px)", color: titleColor, letterSpacing: "-0.9px" }}>
-        Comprar un coche
+        {text.title}
       </h2>
       <p style={{ margin: "0 0 22px", color: mutedColor, fontSize: 14, lineHeight: 1.6 }}>
-        Selecciona la opción que mejor describa tu punto de partida.
+        {text.subtitle}
       </p>
 
       <div
@@ -156,10 +184,10 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           }}
         >
           <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
-            No sé qué modelo
+            {text.dontKnowModel}
           </div>
           <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
-            Ayúdanos a conocerte en 3 minutos con nuestro CarsWise para encontrar las opciones que más se adapten a ti.
+            {text.dontKnowModelDesc}
           </div>
         </button>
 
@@ -184,10 +212,10 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           }}
         >
           <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
-            Tengo claro cuál quiero
+            {text.knowModel}
           </div>
           <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
-            Analizamos el mercado en tiempo real para ofrecerte las mejores opciones en base al precio y la fiabilidad del proveedor.
+            {text.knowModelDesc}
           </div>
         </button>
       </div>
@@ -204,7 +232,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
         className="buy-flow-card ma-card-soft ma-fade-stagger"
       >
         <div style={{ fontSize: 12, color: "#93c5fd", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 10 }}>
-          ASI FUNCIONA
+          {text.howItWorks}
         </div>
         <div style={{ position: "relative", display: "grid", gap: 9 }}>
           <div className="buy-flow-axis" />
@@ -215,7 +243,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               style={{ animationDelay: `${index * 90}ms` }}
             >
               <div className="buy-flow-dot" />
-              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, marginBottom: 3 }}>Paso {index + 1}</div>
+              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, marginBottom: 3 }}>{text.step} {index + 1}</div>
               <div style={{ fontSize: 13, color: "#cbd5e1", lineHeight: 1.45 }}>{label}</div>
             </div>
           ))}

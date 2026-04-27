@@ -3,6 +3,7 @@ import { getBrandOptionSegments } from "../utils/brandCatalog";
 
 export default function SellPage({
   styles,
+  uiLanguage = "es",
   sellFlowType,
   selectedValuationVehicleSummary,
   sellAnswers,
@@ -22,14 +23,82 @@ export default function SellPage({
   formatCurrency,
   onRestart,
 }) {
+  const language = String(uiLanguage || "").toLowerCase() === "en" ? "en" : "es";
+  const text = {
+    pageBadgeCertificate: language === "en" ? "📑 B2CARS CERTIFICATE" : "📑 CERTIFICADO B2CARS",
+    pageBadgeReport: language === "en" ? "📊 B2CARS REPORT" : "📊 INFORME B2CARS",
+    pageTitleCertificate: language === "en" ? "Prepare your car's official certification" : "Prepara la certificación oficial de tu coche",
+    pageTitleReport: language === "en" ? "Calculate your car's listing price" : "Calcula el precio de salida de tu coche",
+    pageDescriptionCertificate:
+      language === "en"
+        ? "We gather key vehicle information to issue an official certification and help you sell with stronger backing for the buyer."
+        : "Recopilamos la información clave del vehículo para emitir una certificación oficial y ayudarte en la venta con mayor respaldo frente al comprador.",
+    pageDescriptionReport:
+      language === "en"
+        ? "We provide real-time information on average price, historical trend, similar stock, and a launch range so you can publish with clear criteria."
+        : "Te damos información en tiempo real sobre precio medio, tendencia histórica, stock de coches similares y una horquilla de salida para publicar con criterio.",
+    selectedFromPlate: language === "en" ? "VEHICLE SELECTED FROM PLATE" : "VEHÍCULO SELECCIONADO DESDE MATRÍCULA",
+    noPlate: language === "en" ? "No plate" : "Sin matrícula",
+    brand: language === "en" ? "Brand" : "Marca",
+    selectBrand: language === "en" ? "Select brand" : "Selecciona marca",
+    moreBrands: language === "en" ? "+ more brands" : "+ más marcas",
+    model: language === "en" ? "Model" : "Modelo",
+    selectModel: language === "en" ? "Select model" : "Selecciona modelo",
+    year: language === "en" ? "Year" : "Año",
+    selectYear: language === "en" ? "Select year" : "Selecciona año",
+    mileage: language === "en" ? "Mileage" : "Kilometraje",
+    selectMileage: language === "en" ? "Select mileage" : "Selecciona kilometraje",
+    upTo20k: language === "en" ? "Up to 20,000 km" : "Hasta 20.000 km",
+    from20kTo50k: language === "en" ? "20,000 - 50,000 km" : "20.000 - 50.000 km",
+    from50kTo80k: language === "en" ? "50,000 - 80,000 km" : "50.000 - 80.000 km",
+    from80kTo120k: language === "en" ? "80,000 - 120,000 km" : "80.000 - 120.000 km",
+    over120k: language === "en" ? "Over 120,000 km" : "Más de 120.000 km",
+    fuel: language === "en" ? "Fuel" : "Combustible",
+    salesChannel: language === "en" ? "Sales channel" : "Canal de venta",
+    privateSeller: language === "en" ? "Private seller" : "Particular",
+    professionalSeller: language === "en" ? "Professional" : "Profesional",
+    dealerTradeIn: language === "en" ? "Dealer trade-in" : "Entrega en concesionario",
+    aiValuation: language === "en" ? "AI VALUATION" : "VALORACIÓN CON IA",
+    valuing: language === "en" ? "Valuing with AI..." : "Valorando con IA...",
+    valueWithAi: language === "en" ? "🤖 Value car with AI" : "🤖 Valorar coche con IA",
+    aiHint:
+      language === "en"
+        ? "AI will return the valuation and one real comparable listing for review."
+        : "La IA te devolverá la valoración y un anuncio comparable real para revisar.",
+    aiTargetPrice: language === "en" ? "AI TARGET PRICE" : "PRECIO OBJETIVO IA",
+    reasonableRange: language === "en" ? "Reasonable range between" : "Rango razonable entre",
+    estimatedDemand: language === "en" ? "ESTIMATED DEMAND" : "DEMANDA ESTIMADA",
+    average: language === "en" ? "Average" : "Media",
+    estimatedSaleTime: language === "en" ? "ESTIMATED SALE TIME" : "TIEMPO ESTIMADO DE VENTA",
+    saleTimeFallback: language === "en" ? "Depends on price and demand" : "Depende del precio y la demanda",
+    aiSummary: language === "en" ? "AI REPORT SUMMARY" : "RESUMEN DEL INFORME IA",
+    strategy: language === "en" ? "Strategy" : "Estrategia",
+    searchingComparable: language === "en" ? "Searching comparable..." : "Buscando comparable...",
+    viewComparable: language === "en" ? "🔎 View real comparable listing" : "🔎 Ver anuncio comparable real",
+    comparableHint:
+      language === "en"
+        ? "We show one real market comparable listing so you can contrast your price."
+        : "Te mostramos un único anuncio comparable del mercado para contrastar el precio.",
+    marketComparable: language === "en" ? "🚗 MARKET COMPARABLE LISTING" : "🚗 ANUNCIO COMPARABLE DE MERCADO",
+    comparableDescriptionFallback:
+      language === "en"
+        ? "Real comparable found to help you defend your listing price."
+        : "Comparable real localizado para ayudarte a defender el precio de salida.",
+    openListing: language === "en" ? "Open listing ↗" : "Abrir anuncio ↗",
+    localPricePreview: language === "en" ? "LOCAL PRICE PREVIEW" : "PREVIEW LOCAL DE PRECIO",
+    indicativeRange: language === "en" ? "Indicative range between" : "Rango orientativo entre",
+    whileAiRuns: language === "en" ? "while you launch AI valuation." : "mientras lanzas la valoración con IA.",
+    backHome: language === "en" ? "Back to home" : "Volver al inicio",
+  };
+
   const isCertificateFlow = sellFlowType === "certificate";
-  const pageBadge = isCertificateFlow ? "📑 CERTIFICADO B2CARS" : "📊 INFORME B2CARS";
+  const pageBadge = isCertificateFlow ? text.pageBadgeCertificate : text.pageBadgeReport;
   const pageTitle = isCertificateFlow
-    ? "Prepara la certificación oficial de tu coche"
-    : "Calcula el precio de salida de tu coche";
+    ? text.pageTitleCertificate
+    : text.pageTitleReport;
   const pageDescription = isCertificateFlow
-    ? "Recopilamos la información clave del vehículo para emitir una certificación oficial y ayudarte en la venta con mayor respaldo frente al comprador."
-    : "Te damos información en tiempo real sobre precio medio, tendencia histórica, stock de coches similares y una horquilla de salida para publicar con criterio.";
+    ? text.pageDescriptionCertificate
+    : text.pageDescriptionReport;
   const [showAllBrands, setShowAllBrands] = useState(true);
   const { knownBrands, otherBrands, knownBrandSet } = getBrandOptionSegments(MARKET_BRANDS);
   const hasUnknownSelectedBrand = Boolean(sellAnswers.brand && !knownBrandSet.has(sellAnswers.brand));
@@ -78,10 +147,10 @@ export default function SellPage({
           }}
         >
           <div style={{ fontSize: 11, color: "#1d4ed8", fontWeight: 800, letterSpacing: "0.3px" }}>
-            VEHÍCULO SELECCIONADO DESDE MATRÍCULA
+            {text.selectedFromPlate}
           </div>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>
-            {selectedValuationVehicleSummary.plate || "Sin matrícula"}
+            {selectedValuationVehicleSummary.plate || text.noPlate}
             {selectedValuationVehicleSummary.title ? ` · ${selectedValuationVehicleSummary.title}` : ""}
           </div>
           <div style={{ fontSize: 12, color: "#475569" }}>
@@ -93,7 +162,7 @@ export default function SellPage({
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 12, marginBottom: 24 }}>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>Marca</div>
+          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.brand}</div>
           <select
             value={sellAnswers.brand}
             onChange={(event) => {
@@ -107,26 +176,26 @@ export default function SellPage({
             }}
             style={styles.select}
           >
-            <option value="">Selecciona marca</option>
+            <option value="">{text.selectBrand}</option>
             {visibleBrands.map((brand) => (
               <option key={brand} value={brand}>
                 {brand}
               </option>
             ))}
             {!shouldShowAllBrands && otherBrands.length > 0 && (
-              <option value="__SHOW_MORE_BRANDS__">+ más marcas ({otherBrands.length})</option>
+              <option value="__SHOW_MORE_BRANDS__">{text.moreBrands} ({otherBrands.length})</option>
             )}
           </select>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>Modelo</div>
+          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.model}</div>
           <select
             value={sellAnswers.model}
             onChange={(event) => setSellAnswers((prev) => ({ ...prev, model: event.target.value }))}
             disabled={!sellAnswers.brand}
             style={{ ...styles.select, opacity: sellAnswers.brand ? 1 : 0.55 }}
           >
-            <option value="">Selecciona modelo</option>
+            <option value="">{text.selectModel}</option>
             {modelOptions.map((model) => (
               <option key={model} value={model}>
                 {model}
@@ -135,13 +204,13 @@ export default function SellPage({
           </select>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>Año</div>
+          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.year}</div>
           <select
             value={sellAnswers.year}
             onChange={(event) => setSellAnswers((prev) => ({ ...prev, year: event.target.value }))}
             style={styles.select}
           >
-            <option value="">Selecciona año</option>
+            <option value="">{text.selectYear}</option>
             {yearOptions.map((year) => (
               <option key={year} value={year}>
                 {year}
@@ -150,22 +219,22 @@ export default function SellPage({
           </select>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>Kilometraje</div>
+          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.mileage}</div>
           <select
             value={sellAnswers.mileage}
             onChange={(event) => setSellAnswers((prev) => ({ ...prev, mileage: event.target.value }))}
             style={styles.select}
           >
-            <option value="">Selecciona kilometraje</option>
-            <option value="20000">Hasta 20.000 km</option>
-            <option value="50000">20.000 - 50.000 km</option>
-            <option value="80000">50.000 - 80.000 km</option>
-            <option value="120000">80.000 - 120.000 km</option>
-            <option value="160000">Más de 120.000 km</option>
+            <option value="">{text.selectMileage}</option>
+            <option value="20000">{text.upTo20k}</option>
+            <option value="50000">{text.from20kTo50k}</option>
+            <option value="80000">{text.from50kTo80k}</option>
+            <option value="120000">{text.from80kTo120k}</option>
+            <option value="160000">{text.over120k}</option>
           </select>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>Combustible</div>
+          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.fuel}</div>
           <select
             value={sellAnswers.fuel}
             onChange={(event) => setSellAnswers((prev) => ({ ...prev, fuel: event.target.value }))}
@@ -179,15 +248,15 @@ export default function SellPage({
           </select>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>Canal de venta</div>
+          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.salesChannel}</div>
           <select
             value={sellAnswers.sellerType}
             onChange={(event) => setSellAnswers((prev) => ({ ...prev, sellerType: event.target.value }))}
             style={styles.select}
           >
-            <option value="particular">Particular</option>
-            <option value="profesional">Profesional</option>
-            <option value="entrega">Entrega en concesionario</option>
+            <option value="particular">{text.privateSeller}</option>
+            <option value="profesional">{text.professionalSeller}</option>
+            <option value="entrega">{text.dealerTradeIn}</option>
           </select>
         </div>
       </div>
@@ -203,7 +272,7 @@ export default function SellPage({
           }}
         >
           <div style={{ fontSize: 11, color: "#60a5fa", letterSpacing: "0.6px", marginBottom: 8 }}>
-            VALORACIÓN CON IA
+            {text.aiValuation}
           </div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <button
@@ -216,10 +285,10 @@ export default function SellPage({
                 opacity: sellLoading ? 0.7 : 1,
               }}
             >
-              {sellLoading ? "Valorando con IA..." : "🤖 Valorar coche con IA"}
+              {sellLoading ? text.valuing : text.valueWithAi}
             </button>
             <span style={{ fontSize: 12, color: "#bfdbfe", alignSelf: "center" }}>
-              La IA te devolverá la valoración y un anuncio comparable real para revisar.
+              {text.aiHint}
             </span>
           </div>
         </div>
@@ -245,34 +314,34 @@ export default function SellPage({
         <div style={{ display: "grid", gap: 12, marginBottom: 24 }}>
           <div style={styles.panel}>
             <div style={{ fontSize: 11, color: "#f59e0b", marginBottom: 6, letterSpacing: "0.6px" }}>
-              PRECIO OBJETIVO IA
+              {text.aiTargetPrice}
             </div>
             <div style={{ fontSize: 28, fontWeight: 800, color: "#000000", marginBottom: 8 }}>
               {sellAiResult.precio_objetivo}
             </div>
             <p style={{ margin: 0, fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
-              Rango razonable entre {sellAiResult.rango_publicacion.min} y {sellAiResult.rango_publicacion.max}.
+              {text.reasonableRange} {sellAiResult.rango_publicacion.min} y {sellAiResult.rango_publicacion.max}.
             </p>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 12 }}>
             <div style={styles.panel}>
               <div style={{ fontSize: 11, color: "#60a5fa", marginBottom: 6, letterSpacing: "0.6px" }}>
-                DEMANDA ESTIMADA
+                {text.estimatedDemand}
               </div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#000000" }}>{sellAiResult.nivel_demanda || "Media"}</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#000000" }}>{sellAiResult.nivel_demanda || text.average}</div>
             </div>
             <div style={styles.panel}>
               <div style={{ fontSize: 11, color: "#60a5fa", marginBottom: 6, letterSpacing: "0.6px" }}>
-                TIEMPO ESTIMADO DE VENTA
+                {text.estimatedSaleTime}
               </div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#000000" }}>{sellAiResult.tiempo_estimado_venta || "Depende del precio y la demanda"}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#000000" }}>{sellAiResult.tiempo_estimado_venta || text.saleTimeFallback}</div>
             </div>
           </div>
 
           <div style={styles.panel}>
             <div style={{ fontSize: 11, color: "#34d399", marginBottom: 6, letterSpacing: "0.6px" }}>
-              RESUMEN DEL INFORME IA
+              {text.aiSummary}
             </div>
             <p style={{ margin: "0 0 10px", fontSize: 13, color: "#94a3b8", lineHeight: 1.7 }}>
               {sellAiResult.resumen}
@@ -292,7 +361,7 @@ export default function SellPage({
               </div>
             )}
             <p style={{ margin: "0 0 12px", fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
-              <strong>Estrategia:</strong> {sellAiResult.estrategia_publicacion}
+              <strong>{text.strategy}:</strong> {sellAiResult.estrategia_publicacion}
             </p>
 
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
@@ -307,10 +376,10 @@ export default function SellPage({
                   opacity: sellListingLoading ? 0.7 : 1,
                 }}
               >
-                {sellListingLoading ? "Buscando comparable..." : "🔎 Ver anuncio comparable real"}
+                {sellListingLoading ? text.searchingComparable : text.viewComparable}
               </button>
               <span style={{ fontSize: 12, color: "#bfdbfe", alignSelf: "center" }}>
-                Te mostramos un único anuncio comparable del mercado para contrastar el precio.
+                {text.comparableHint}
               </span>
             </div>
 
@@ -340,7 +409,7 @@ export default function SellPage({
                 }}
               >
                 <div style={{ fontSize: 10, color: "#67e8f9", marginBottom: 6, fontWeight: 700, letterSpacing: "0.6px" }}>
-                  🚗 ANUNCIO COMPARABLE DE MERCADO
+                  {text.marketComparable}
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 8 }}>
                   <div style={{ flex: 1, minWidth: 220 }}>
@@ -348,7 +417,7 @@ export default function SellPage({
                       {sellListingResult.title}
                     </div>
                     <p style={{ margin: 0, fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
-                      {sellListingResult.description || "Comparable real localizado para ayudarte a defender el precio de salida."}
+                      {sellListingResult.description || text.comparableDescriptionFallback}
                     </p>
                   </div>
                   {sellListingResult.price && (
@@ -372,7 +441,7 @@ export default function SellPage({
                       fontWeight: 700,
                     }}
                   >
-                    Abrir anuncio ↗
+                    {text.openListing}
                   </a>
                 </div>
               </div>
@@ -385,13 +454,13 @@ export default function SellPage({
         <div style={{ display: "grid", gap: 12, marginBottom: 24 }}>
           <div style={styles.panel}>
             <div style={{ fontSize: 11, color: "#f59e0b", marginBottom: 6, letterSpacing: "0.6px" }}>
-              PREVIEW LOCAL DE PRECIO
+              {text.localPricePreview}
             </div>
             <div style={{ fontSize: 28, fontWeight: 800, color: "#000000", marginBottom: 8 }}>
               {formatCurrency(sellEstimate.targetPrice)}
             </div>
             <p style={{ margin: 0, fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
-              Rango orientativo entre {formatCurrency(sellEstimate.lowPrice)} y {formatCurrency(sellEstimate.highPrice)} mientras lanzas la valoración con IA.
+              {text.indicativeRange} {formatCurrency(sellEstimate.lowPrice)} y {formatCurrency(sellEstimate.highPrice)} {text.whileAiRuns}
             </p>
           </div>
         </div>
@@ -399,7 +468,7 @@ export default function SellPage({
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         <button onClick={onRestart} style={styles.btn}>
-          Volver al inicio
+          {text.backHome}
         </button>
       </div>
     </div>

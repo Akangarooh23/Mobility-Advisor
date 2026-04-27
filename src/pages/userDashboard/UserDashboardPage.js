@@ -87,6 +87,7 @@ function buildSections(counts, newAlertMatchesCount = 0) {
 
 export default function UserDashboardPage({
   themeMode,
+  uiLanguage = "es",
   centerStyle,
   blockBadgeStyle,
   panelStyle,
@@ -394,6 +395,7 @@ export default function UserDashboardPage({
       {(userDashboardPage === "appointments" || userDashboardPage === "valuations") && (
         <UserDashboardOperations
           themeMode={themeMode}
+          uiLanguage={uiLanguage}
           isMobile={isMobile}
           dashboardAppointments={dashboardAppointments}
           dashboardValuations={dashboardValuations}

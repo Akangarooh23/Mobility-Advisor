@@ -131,6 +131,7 @@ function getIndexFromMarkValue(marks, value, fallback = 0) {
 
 export default function DecisionPage({
   styles,
+  uiLanguage = "es",
   lockedOperation,
   decisionAnswers,
   updateDecisionAnswer,
@@ -146,6 +147,74 @@ export default function DecisionPage({
   onSwitchToAdvice,
   onRestart,
 }) {
+  const language = String(uiLanguage || "").toLowerCase() === "en" ? "en" : "es";
+  const text = {
+    marketOffers: language === "en" ? "🧭 MARKET OFFERS" : "🧭 OFERTAS DE MERCADO",
+    title:
+      language === "en"
+        ? "Refine brand, model and conditions to rank offers"
+        : "Afina marca, modelo y condiciones para ordenar las ofertas",
+    subtitle:
+      language === "en"
+        ? "Here we prioritize the current market for a concrete need. You can filter by modality, age, price and mileage before seeing a ranked opportunity list."
+        : "Aquí priorizamos el mercado actual para una necesidad ya concreta. Puedes filtrar por modalidad, antigüedad, precio y kilometraje antes de ver un ranking de oportunidades.",
+    operationType: language === "en" ? "1. OPERATION TYPE" : "1. TIPO DE OPERACIÓN",
+    buy: language === "en" ? "Buy" : "Compra",
+    brandModel: language === "en" ? "2. BRAND AND MODEL" : "2. MARCA Y MODELO",
+    apiCatalogTitle:
+      language === "en"
+        ? "Catalog loaded from API and enriched with local backup"
+        : "Catálogo cargado desde API y enriquecido con respaldo local",
+    fallbackCatalogTitle:
+      language === "en"
+        ? "Catalog loaded from local backup"
+        : "Catálogo cargado desde respaldo local",
+    apiCatalog: language === "en" ? "API catalog + backup" : "Catálogo API + respaldo",
+    fallbackCatalog: language === "en" ? "Backup catalog" : "Catálogo de respaldo",
+    brand: language === "en" ? "Brand" : "Marca",
+    selectBrand: language === "en" ? "Select brand" : "Selecciona marca",
+    moreBrands: language === "en" ? "+ more brands" : "+ más marcas",
+    model: language === "en" ? "Model" : "Modelo",
+    selectModel: language === "en" ? "Select model" : "Selecciona modelo",
+    priceRange: language === "en" ? "Price range" : "Rango de precio",
+    from: language === "en" ? "From" : "Desde",
+    to: language === "en" ? "To" : "Hasta",
+    ageRange: language === "en" ? "Age range" : "Rango de antigüedad",
+    noLimit: language === "en" ? "No limit" : "Sin límite",
+    mileageRange: language === "en" ? "Mileage range" : "Rango de kilometraje",
+    powerRange: language === "en" ? "Power range" : "Rango de potencia",
+    location: language === "en" ? "Location" : "Ubicación",
+    fuel: language === "en" ? "Fuel" : "Combustible",
+    directOffers:
+      language === "en"
+        ? "We show you real market offers directly according to your filters."
+        : "Te mostramos directamente ofertas reales del mercado según tus filtros.",
+    completeFilters:
+      language === "en"
+        ? "Complete operation, brand, model, price, age and mileage ranges."
+        : "Completa operación, marca, modelo, rango de precio, antigüedad y kilometraje.",
+    realOffers: language === "en" ? "REAL MARKET OFFERS" : "OFERTAS REALES DE MERCADO",
+    recalculating: language === "en" ? "Recalculating..." : "Recalculando...",
+    recalculateOffer: language === "en" ? "Recalculate offers" : "Recalcular oferta",
+    loadingOffers: language === "en" ? "Loading real offers..." : "Cargando ofertas reales...",
+    noOffers:
+      language === "en"
+        ? "There are no real offers yet for this filter."
+        : "Todavía no hay ofertas reales disponibles para este filtro.",
+    realOffer: language === "en" ? "REAL OFFER" : "OFERTA REAL",
+    fit: language === "en" ? "FIT" : "ENCAJE",
+    provider: language === "en" ? "Provider" : "Proveedor",
+    priceNotVisible: language === "en" ? "Price not visible" : "Precio no visible",
+    directBuy: language === "en" ? "Direct purchase" : "Compra directa",
+    listingFallback:
+      language === "en"
+        ? "Real listing found for your current setup."
+        : "Anuncio real localizado para tu configuración actual.",
+    openListing: language === "en" ? "Open listing ↗" : "Abrir anuncio ↗",
+    switchFlow: language === "en" ? "Switch to decision flow →" : "Cambiar al flujo de decisión →",
+    backHome: language === "en" ? "Back to home" : "Volver al inicio",
+  };
+
   const isDark = styles?.page?.color === "#e2e8f0";
   const titleColor = isDark ? "#f8fafc" : "#000000";
   const mutedColor = isDark ? "#cbd5e1" : "#94a3b8";
@@ -186,11 +255,11 @@ export default function DecisionPage({
   const visibleBrands = shouldShowAllBrands ? [...knownBrands, ...otherBrands] : knownBrands;
   const operationChoices =
     lockedOperation === "comprar"
-      ? [["comprar", "Compra", "🔑"]]
+      ? [["comprar", text.buy, "🔑"]]
       : lockedOperation === "renting"
         ? [["renting", "Renting", "📅"]]
         : [
-            ["comprar", "Compra", "🔑"],
+            ["comprar", text.buy, "🔑"],
             ["renting", "Renting", "📅"],
           ];
 
@@ -231,7 +300,7 @@ export default function DecisionPage({
         `}
       </style>
 
-      <div style={{ ...styles.blockBadge("Vinculación"), marginBottom: 10 }}>🧭 OFERTAS DE MERCADO</div>
+      <div style={{ ...styles.blockBadge("Vinculación"), marginBottom: 10 }}>{text.marketOffers}</div>
       <h2
         style={{
           fontSize: "clamp(22px,4vw,30px)",
@@ -241,16 +310,15 @@ export default function DecisionPage({
           color: titleColor,
         }}
       >
-        Afina marca, modelo y condiciones para ordenar las ofertas
+        {text.title}
       </h2>
       <p style={{ color: mutedColor, fontSize: 14, lineHeight: 1.7, margin: "0 0 24px" }}>
-        Aquí priorizamos el mercado actual para una necesidad ya concreta. Puedes filtrar por modalidad,
-        antigüedad, precio y kilometraje antes de ver un ranking de oportunidades.
+        {text.subtitle}
       </p>
 
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 11, color: "#475569", marginBottom: 10, letterSpacing: "0.6px" }}>
-          1. TIPO DE OPERACIÓN
+          {text.operationType}
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 10 }}>
           {operationChoices.map(([value, label, icon]) => (
@@ -274,7 +342,7 @@ export default function DecisionPage({
       <div style={{ marginBottom: 20 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
           <div style={{ fontSize: 11, color: "#475569", letterSpacing: "0.6px" }}>
-            2. MARCA Y MODELO
+            {text.brandModel}
           </div>
           <span
             style={{
@@ -286,14 +354,14 @@ export default function DecisionPage({
               background: isApiCatalogActive ? "rgba(16,185,129,0.12)" : "rgba(245,158,11,0.14)",
               color: isApiCatalogActive ? "#065f46" : "#92400e",
             }}
-            title={isApiCatalogActive ? "Catálogo cargado desde API y enriquecido con respaldo local" : "Catálogo cargado desde respaldo local"}
+            title={isApiCatalogActive ? text.apiCatalogTitle : text.fallbackCatalogTitle}
           >
-            {isApiCatalogActive ? "Catálogo API + respaldo" : "Catálogo de respaldo"}
+            {isApiCatalogActive ? text.apiCatalog : text.fallbackCatalog}
           </span>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <div>
-            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>Marca</div>
+            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.brand}</div>
             <select
               value={decisionAnswers.brand}
               onChange={(event) => {
@@ -309,19 +377,19 @@ export default function DecisionPage({
               }}
               style={styles.select}
             >
-              <option value="">Selecciona marca</option>
+              <option value="">{text.selectBrand}</option>
               {visibleBrands.map((brand) => (
                 <option key={brand} value={brand}>
                   {brand}
                 </option>
               ))}
               {!shouldShowAllBrands && otherBrands.length > 0 && (
-                <option value="__SHOW_MORE_BRANDS__">+ más marcas ({otherBrands.length})</option>
+                <option value="__SHOW_MORE_BRANDS__">{text.moreBrands} ({otherBrands.length})</option>
               )}
             </select>
           </div>
           <div>
-            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>Modelo</div>
+            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.model}</div>
             <select
               value={decisionAnswers.model}
               onChange={(event) => {
@@ -334,7 +402,7 @@ export default function DecisionPage({
                 opacity: decisionAnswers.brand ? 1 : 0.55,
               }}
             >
-              <option value="">Selecciona modelo</option>
+              <option value="">{text.selectModel}</option>
               {decisionModels.map((model) => (
                 <option key={model} value={model}>
                   {model}
@@ -347,11 +415,11 @@ export default function DecisionPage({
 
       <div style={{ marginBottom: 24, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 12 }}>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>Rango de precio</div>
+          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.priceRange}</div>
           <div style={{ ...styles.panel, padding: 12 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, color: "#334155", marginBottom: 6 }}>
-              <span>Desde: {formatEuro(PRICE_MARKS[priceFromIndex])}</span>
-              <span>Hasta: {formatEuro(PRICE_MARKS[priceToIndex])}</span>
+              <span>{text.from}: {formatEuro(PRICE_MARKS[priceFromIndex])}</span>
+              <span>{text.to}: {formatEuro(PRICE_MARKS[priceToIndex])}</span>
             </div>
             <input
               type="range"
@@ -384,11 +452,11 @@ export default function DecisionPage({
         </div>
 
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>Rango de antigüedad</div>
+          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.ageRange}</div>
           <div style={{ ...styles.panel, padding: 12 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, color: "#334155", marginBottom: 6 }}>
-              <span>Desde: {formatYears(AGE_MARKS[ageFromIndex])}</span>
-              <span>Hasta: {ageToIndex >= AGE_MARKS.length - 1 ? "Sin límite" : formatYears(AGE_MARKS[ageToIndex])}</span>
+              <span>{text.from}: {formatYears(AGE_MARKS[ageFromIndex])}</span>
+              <span>{text.to}: {ageToIndex >= AGE_MARKS.length - 1 ? text.noLimit : formatYears(AGE_MARKS[ageToIndex])}</span>
             </div>
             <input
               type="range"
@@ -421,11 +489,11 @@ export default function DecisionPage({
         </div>
 
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>Rango de kilometraje</div>
+          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.mileageRange}</div>
           <div style={{ ...styles.panel, padding: 12 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, color: "#334155", marginBottom: 6 }}>
-              <span>Desde: {formatKm(MILEAGE_MARKS[mileageFromIndex])}</span>
-              <span>Hasta: {mileageToIndex >= MILEAGE_MARKS.length - 1 ? "Sin límite" : formatKm(MILEAGE_MARKS[mileageToIndex])}</span>
+              <span>{text.from}: {formatKm(MILEAGE_MARKS[mileageFromIndex])}</span>
+              <span>{text.to}: {mileageToIndex >= MILEAGE_MARKS.length - 1 ? text.noLimit : formatKm(MILEAGE_MARKS[mileageToIndex])}</span>
             </div>
             <input
               type="range"
@@ -458,11 +526,11 @@ export default function DecisionPage({
         </div>
 
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>Rango de potencia</div>
+          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.powerRange}</div>
           <div style={{ ...styles.panel, padding: 12 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, color: "#334155", marginBottom: 6 }}>
-              <span>Desde: {formatPower(POWER_MARKS[powerFromIndex])}</span>
-              <span>Hasta: {formatPower(POWER_MARKS[powerToIndex])}</span>
+              <span>{text.from}: {formatPower(POWER_MARKS[powerFromIndex])}</span>
+              <span>{text.to}: {formatPower(POWER_MARKS[powerToIndex])}</span>
             </div>
             <input
               type="range"
@@ -494,7 +562,7 @@ export default function DecisionPage({
         </div>
 
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>Ubicación</div>
+          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.location}</div>
           <select
             value={decisionAnswers.location || "toda_espana"}
             onChange={(event) => updateDecisionAnswer("location", event.target.value)}
@@ -509,7 +577,7 @@ export default function DecisionPage({
         </div>
 
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>Combustible</div>
+          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.fuel}</div>
           <select
             value={decisionAnswers.fuelFilter || "cualquiera"}
             onChange={(event) => updateDecisionAnswer("fuelFilter", event.target.value)}
@@ -526,18 +594,18 @@ export default function DecisionPage({
 
       {decisionFlowReady ? (
         <div style={{ marginBottom: 18, fontSize: 13, color: panelBodyColor }}>
-          Te mostramos directamente ofertas reales del mercado según tus filtros.
+          {text.directOffers}
         </div>
       ) : (
         <p style={{ color: "#64748b", fontSize: 13, marginBottom: 18 }}>
-          Completa operación, marca, modelo, rango de precio, antigüedad y kilometraje.
+          {text.completeFilters}
         </p>
       )}
       {decisionFlowReady && (
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 10, flexWrap: "wrap" }}>
             <div style={{ fontSize: 11, color: accentColor, letterSpacing: "0.6px" }}>
-              OFERTAS REALES DE MERCADO
+              {text.realOffers}
             </div>
             <button
               type="button"
@@ -555,12 +623,12 @@ export default function DecisionPage({
                 opacity: decisionMarketLoading ? 0.7 : 1,
               }}
             >
-              {decisionMarketLoading ? "Recalculando..." : "Recalcular oferta"}
+              {decisionMarketLoading ? text.recalculating : text.recalculateOffer}
             </button>
           </div>
           {decisionMarketLoading && (
             <div style={{ ...styles.panel, fontSize: 12, color: panelBodyColor }}>
-              Cargando ofertas reales...
+              {text.loadingOffers}
             </div>
           )}
 
@@ -582,7 +650,7 @@ export default function DecisionPage({
 
           {!decisionMarketLoading && !decisionMarketError && decisionMarketListings.length === 0 && decisionFlowReady && (
             <div style={{ ...styles.panel, fontSize: 12, color: panelBodyColor }}>
-              <div>Todavía no hay ofertas reales disponibles para este filtro.</div>
+              <div>{text.noOffers}</div>
               {decisionMarketInsight && (
                 <div style={{ marginTop: 8, color: panelTitleColor, lineHeight: 1.6 }}>
                   {decisionMarketInsight}
@@ -597,18 +665,18 @@ export default function DecisionPage({
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
                   <div>
                     <div style={{ fontSize: 11, color: accentColor, marginBottom: 4 }}>
-                      #{index + 1} OFERTA REAL · ENCAJE {Number(offer.rankingScore ?? offer.profileScore ?? 0)}/100
+                      #{index + 1} {text.realOffer} · {text.fit} {Number(offer.rankingScore ?? offer.profileScore ?? 0)}/100
                     </div>
                     <div style={{ fontSize: 17, fontWeight: 700, color: panelTitleColor, marginBottom: 6 }}>
                       {offer.title}
                     </div>
                     <div style={{ fontSize: 12, color: panelBodyColor, lineHeight: 1.6 }}>
-                      {offer.source || "Proveedor"}
+                      {offer.source || text.provider}
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <div style={{ fontSize: 21, fontWeight: 800, color: panelTitleColor }}>
-                      {offer.price || "Precio no visible"}
+                      {offer.price || text.priceNotVisible}
                     </div>
                     {offer.listingType === "renting" ? (
                       <div style={{ fontSize: 12, color: accentColor, marginTop: 4 }}>
@@ -616,13 +684,13 @@ export default function DecisionPage({
                       </div>
                     ) : (
                       <div style={{ fontSize: 12, color: accentColor, marginTop: 4 }}>
-                        Compra directa
+                        {text.directBuy}
                       </div>
                     )}
                   </div>
                 </div>
                 <p style={{ margin: "10px 0 0", fontSize: 12, color: panelBodyColor, lineHeight: 1.6 }}>
-                  {offer.description || "Anuncio real localizado para tu configuración actual."}
+                  {offer.description || text.listingFallback}
                 </p>
                 {offer.url && (
                   <div style={{ marginTop: 10 }}>
@@ -637,7 +705,7 @@ export default function DecisionPage({
                         textDecoration: "none",
                       }}
                     >
-                      Abrir anuncio ↗
+                      {text.openListing}
                     </a>
                   </div>
                 )}
@@ -649,7 +717,7 @@ export default function DecisionPage({
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         <button onClick={onSwitchToAdvice} style={styles.btn}>
-          Cambiar al flujo de decisión →
+          {text.switchFlow}
         </button>
         <button
           onClick={onRestart}
@@ -663,7 +731,7 @@ export default function DecisionPage({
             cursor: "pointer",
           }}
         >
-          Volver al inicio
+          {text.backHome}
         </button>
       </div>
     </div>

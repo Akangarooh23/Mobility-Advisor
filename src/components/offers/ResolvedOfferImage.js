@@ -8,11 +8,16 @@ import {
   slugifyOfferFolderName,
 } from "../../utils/offerHelpers";
 
-function OfferGuaranteeSeal({ months = 12, size = 54 }) {
+function OfferGuaranteeSeal({ months = 12, size = 54, uiLanguage = "es" }) {
+  const language = String(uiLanguage || "").toLowerCase() === "en" ? "en" : "es";
+  const warrantyText =
+    language === "en"
+      ? `Vehicle with ${months} months warranty`
+      : `Vehículo con ${months} meses de garantía`;
   return (
     <div
-      aria-label={`Vehículo con ${months} meses de garantía`}
-      title={`Vehículo con ${months} meses de garantía`}
+      aria-label={warrantyText}
+      title={warrantyText}
       style={{
         position: "absolute",
         top: 10,
@@ -58,7 +63,12 @@ function OfferGuaranteeSeal({ months = 12, size = 54 }) {
   );
 }
 
-export default function ResolvedOfferImage({ offer = {}, alt, loading = "lazy", style = {} }) {
+export default function ResolvedOfferImage({ offer = {}, alt, loading = "lazy", style = {}, uiLanguage }) {
+  const resolvedLanguage =
+    String(uiLanguage || "").trim() ||
+    (typeof document !== "undefined" ? document?.documentElement?.lang : "") ||
+    "es";
+
   const fallbackSrc = buildOfferPlaceholderImage(offer);
   const searchQuery = buildOfferImageSearchQuery(offer);
   const directImage = buildImageProxyUrl(offer?.image);
@@ -121,7 +131,7 @@ export default function ResolvedOfferImage({ offer = {}, alt, loading = "lazy", 
         }}
       />
       {offer?.hasGuaranteeSeal ? (
-        <OfferGuaranteeSeal months={offer?.warrantyMonths || 12} size={sealSize} />
+        <OfferGuaranteeSeal months={offer?.warrantyMonths || 12} size={sealSize} uiLanguage={resolvedLanguage} />
       ) : null}
     </div>
   );

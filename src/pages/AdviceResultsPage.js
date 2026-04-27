@@ -10,6 +10,7 @@ export default function AdviceResultsPage({
   resultRef,
   styles: s,
   themeMode,
+  uiLanguage = "es",
   resultView,
   answers,
   listingResult,
@@ -188,6 +189,7 @@ export default function AdviceResultsPage({
       {isOffersResultView ? (
         <ResultsOffersView
           themeMode={themeMode}
+          uiLanguage={uiLanguage}
           quickValidationQuestions={quickValidationQuestions}
           displayResult={displayResult}
           quickValidationAnswers={quickValidationAnswers}

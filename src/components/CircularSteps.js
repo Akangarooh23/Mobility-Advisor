@@ -1,30 +1,51 @@
 import React, { useRef, useEffect, useState } from "react";
 import "./CircularSteps.css";
 
-const STEPS = [
+const STEP_DEFINITIONS = [
   {
-    tag: "Paso 1",
-    title: "Quiero comprar un vehículo",
-    desc: "Explora nuestro catálogo de vehículos nuevos y de ocasión. Te asesoramos para encontrar el modelo que mejor se adapta a tus necesidades y presupuesto.",
     icon: "🚗",
     color: "#5FAEFF",
     cls: "step-1",
+    es: {
+      tag: "Paso 1",
+      title: "Quiero comprar un vehículo",
+      desc: "Explora nuestro catálogo de vehículos nuevos y de ocasión. Te asesoramos para encontrar el modelo que mejor se adapta a tus necesidades y presupuesto.",
+    },
+    en: {
+      tag: "Step 1",
+      title: "I want to buy a vehicle",
+      desc: "Explore our new and used vehicle catalog. We guide you to find the model that best fits your needs and budget.",
+    },
   },
   {
-    tag: "Paso 2",
-    title: "Quiero contratar un Servicio",
-    desc: "Únete a una nueva era en la automoción y aprovecha las economías de escala de una empresa en la unión de los particulares.",
     icon: "🔧",
     color: "#2F6EDC",
     cls: "step-2",
+    es: {
+      tag: "Paso 2",
+      title: "Quiero contratar un Servicio",
+      desc: "Únete a una nueva era en la automoción y aprovecha las economías de escala de una empresa en la unión de los particulares.",
+    },
+    en: {
+      tag: "Step 2",
+      title: "I want to hire a service",
+      desc: "Join a new era in mobility and benefit from scale advantages created by connecting individual users.",
+    },
   },
   {
-    tag: "Paso 3",
-    title: "Quiero vender mi coche",
-    desc: "¿Cansado de que los concesionarios te ofrezcan mucho menos de lo que vale tu coche? Te ayudamos a que ganes más.",
     icon: "💵",
     color: "#1F3F9A",
     cls: "step-3",
+    es: {
+      tag: "Paso 3",
+      title: "Quiero vender mi coche",
+      desc: "¿Cansado de que los concesionarios te ofrezcan mucho menos de lo que vale tu coche? Te ayudamos a que ganes más.",
+    },
+    en: {
+      tag: "Step 3",
+      title: "I want to sell my car",
+      desc: "Tired of dealerships offering far less than your car is worth? We help you get a better result.",
+    },
   },
 ];
 
@@ -33,7 +54,14 @@ const STEP_DURATION = 4000;
 const ANIM_DURATION = 650;
 const ARC_WIDTH = 42;
 
-export default function CircularSteps({ onSelectBuy, onSelectService, onSelectSell }) {
+export default function CircularSteps({ onSelectBuy, onSelectService, onSelectSell, uiLanguage = "es" }) {
+  const language = String(uiLanguage || "").toLowerCase() === "en" ? "en" : "es";
+  const steps = STEP_DEFINITIONS.map((step) => ({
+    icon: step.icon,
+    color: step.color,
+    cls: step.cls,
+    ...(step[language] || step.es),
+  }));
   const stepActions = [onSelectBuy, onSelectService, onSelectSell];
   const canvasRef = useRef(null);
   const [currentStep, setCurrentStep] = useState(0);
@@ -166,20 +194,20 @@ export default function CircularSteps({ onSelectBuy, onSelectService, onSelectSe
     if (skipAnimation) {
       renderArrows(ctx, next + 1, 0);
       setCurrentStep(next);
-      startProgress(STEPS[next].color);
+      startProgress(steps[next].color);
       return;
     }
     if (next === 0 && prev === 2) {
       animateTo(0, 0, () => {
         animateTo(1, 0, () => {
           setCurrentStep(0);
-          startProgress(STEPS[0].color);
+          startProgress(steps[0].color);
         });
       });
       renderArrows(ctx, 0, 0);
     } else {
       animateTo(next + 1, prev + 1 > next + 1 ? 0 : prev, () => {
-        startProgress(STEPS[next].color);
+        startProgress(steps[next].color);
       });
       setCurrentStep(next);
     }
@@ -245,38 +273,40 @@ export default function CircularSteps({ onSelectBuy, onSelectService, onSelectSe
         {/* Header siempre visible, sin scroll ni overflow */}
         <div className="cw-circular-header" style={{ marginBottom: 0, minWidth: 0 }}>
           <h1 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, whiteSpace: 'normal', overflow: 'visible', textOverflow: 'unset' }}>
-            ¿Qué deseas hacer hoy?
+            {language === "en" ? "What do you want to do today?" : "¿Qué deseas hacer hoy?"}
           </h1>
           <p style={{ margin: 0, fontSize: '0.95rem', color: '#6B6B6B', fontWeight: 300, whiteSpace: 'normal', overflow: 'visible', textOverflow: 'unset' }}>
-            Selecciona tu opción y te guiamos en cada paso
+            {language === "en"
+              ? "Select your option and we will guide you through each step"
+              : "Selecciona tu opción y te guiamos en cada paso"}
           </p>
         </div>
         <div className="cw-canvas-wrap">
           <canvas ref={canvasRef} width={W} height={H}></canvas>
           <div className="cw-center-badge">
-            <span className="cw-step-num" style={{ color: STEPS[currentStep].color }}>{currentStep + 1}</span>
-            <span className="cw-step-label">de 3</span>
+            <span className="cw-step-num" style={{ color: steps[currentStep].color }}>{currentStep + 1}</span>
+            <span className="cw-step-label">{language === "en" ? "of 3" : "de 3"}</span>
           </div>
         </div>
       </div>
       <div className="cw-info-card-side">
         <div
-          className={`cw-info-card ${STEPS[currentStep].cls} cw-info-card-clickable`}
+          className={`cw-info-card ${steps[currentStep].cls} cw-info-card-clickable`}
           role="button"
           tabIndex={0}
           onClick={handleCardSelect}
           onKeyDown={handleCardKeyDown}
-          aria-label={`Ir a ${STEPS[currentStep].title}`}
+          aria-label={`${language === "en" ? "Go to" : "Ir a"} ${steps[currentStep].title}`}
         >
-          <div className="cw-card-icon">{STEPS[currentStep].icon}</div>
+          <div className="cw-card-icon">{steps[currentStep].icon}</div>
           <div className="cw-card-body">
-            <span className="cw-card-tag">{STEPS[currentStep].tag}</span>
-            <h2>{STEPS[currentStep].title}</h2>
-            <p>{STEPS[currentStep].desc}</p>
+            <span className="cw-card-tag">{steps[currentStep].tag}</span>
+            <h2>{steps[currentStep].title}</h2>
+            <p>{steps[currentStep].desc}</p>
           </div>
         </div>
         <div className="cw-dots">
-          {STEPS.map((_, i) => (
+          {steps.map((_, i) => (
             <div key={i} className={"cw-dot" + (i <= currentStep ? " active" : "")}
               data-step={i}
               style={i === 0 ? { background: i === currentStep ? ARROW_COLORS[0] : undefined }

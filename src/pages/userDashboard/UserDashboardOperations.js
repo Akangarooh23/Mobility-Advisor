@@ -111,6 +111,7 @@ function getSuggestedPlanForManagement(managementType = "appointment") {
 
 export default function UserDashboardOperations({
   themeMode,
+  uiLanguage = "es",
   isMobile = false,
   dashboardAppointments,
   dashboardValuations,
@@ -122,6 +123,75 @@ export default function UserDashboardOperations({
   currentUserEmail = "",
   initialTab = "appointments",
 }) {
+  const language = String(uiLanguage || "").toLowerCase() === "en" ? "en" : "es";
+  const text = {
+    apiGarageReadError: language === "en" ? "Could not read garage from API" : "No se pudo leer el garage desde la API",
+    appointmentsTab: language === "en" ? "Appointments" : "Citas",
+    valuationsTab: language === "en" ? "Valuations" : "Tasaciones",
+    allTab: language === "en" ? "All" : "Todo",
+    workshop: language === "en" ? "Workshop" : "Taller",
+    maintenance: language === "en" ? "Maintenance" : "Mantenimiento",
+    insurance: language === "en" ? "Insurance" : "Seguro",
+    warrantyQuality: language === "en" ? "Warranty / quality" : "Garantía / calidad",
+    appointment: language === "en" ? "Appointment" : "Cita",
+    operationLabel: language === "en" ? "OPERATIONS" : "OPERACIONES",
+    title: language === "en" ? "Appointments and valuations workflow" : "Workflow de citas y tasaciones",
+    subtitle:
+      language === "en"
+        ? "Manage technical agenda and commercial valuation in a single operational line."
+        : "Gestiona agenda técnica y valoración comercial en una única línea operativa.",
+    appointmentsCountSuffix: language === "en" ? "appointments" : "citas",
+    valuationsCountSuffix: language === "en" ? "valuations" : "tasaciones",
+    pending: language === "en" ? "Pending" : "Pendientes",
+    active: language === "en" ? "In progress" : "En curso",
+    closed: language === "en" ? "Closed" : "Cerradas",
+    newManagement: language === "en" ? "New operation" : "Nueva gestión",
+    wizardIntro:
+      language === "en"
+        ? "Create an operation in a single flow: select vehicle and service type."
+        : "Crea una gestión desde un único flujo: selecciona vehículo y tipo de servicio.",
+    appointmentMaintenance: language === "en" ? "Appointment / maintenance" : "Cita / mantenimiento",
+    valuation: language === "en" ? "Valuation" : "Tasación",
+    vehicle: language === "en" ? "Vehicle" : "Vehículo",
+    noVehiclesInGarage: language === "en" ? "No vehicles in My vehicles" : "No hay vehículos en Mis vehículos",
+    appointmentType: language === "en" ? "Appointment type" : "Tipo de cita",
+    valuationMode: language === "en" ? "Valuation mode" : "Modo de tasación",
+    useGarageData: language === "en" ? "Use My vehicles data" : "Usar datos de Mis vehículos",
+    startFromScratch: language === "en" ? "Start from scratch" : "Empezar desde cero",
+    planCoverage: language === "en" ? "Plan coverage" : "Cobertura de tu plan",
+    serviceIncluded: language === "en" ? "Service included" : "Servicio incluido",
+    payPerOperation: language === "en" ? "Pay per operation service" : "Servicio de pago por gestión",
+    uploadVehicleFirst:
+      language === "en"
+        ? "First upload at least one vehicle in My vehicles to create operations."
+        : "Primero sube al menos un vehículo en Mis vehículos para crear gestiones.",
+    goToMyVehicles: language === "en" ? "Go to My vehicles" : "Ir a Mis vehículos",
+    includedContinue: language === "en" ? "Included, continue" : "Incluido, continuar",
+    continueAsOneOff: language === "en" ? "Continue as one-off payment" : "Continuar como pago puntual",
+    buyOperation: language === "en" ? "Buy operation" : "Comprar gestión",
+    cancel: language === "en" ? "Cancel" : "Cancelar",
+    noOperationsYet:
+      language === "en"
+        ? "No operations in this view yet. When you have activity, it will appear here."
+        : "No hay operaciones en esta vista todavía. Cuando tengas actividad, aparecerá aquí.",
+    yourVehicle: language === "en" ? "your vehicle" : "tu vehículo",
+    plate: language === "en" ? "plate" : "matrícula",
+    includedInPlan: language === "en" ? "Included in" : "Incluida en",
+    oneOffPayment: language === "en" ? "One-off management" : "Gestión puntual",
+    requestedFor: language === "en" ? "requested for" : "solicitada para",
+    valuationFromScratch:
+      language === "en" ? "New valuation started from scratch." : "Nueva tasación iniciada desde cero.",
+    valuationStartedFor: language === "en" ? "New valuation started for" : "Nueva tasación iniciada para",
+    selectVehicleForAppointment:
+      language === "en"
+        ? "You must select one of your vehicles to request an appointment."
+        : "Debes seleccionar uno de tus vehículos para pedir la cita.",
+    selectVehicleForValuation:
+      language === "en"
+        ? "Select one of your vehicles to start valuation."
+        : "Selecciona uno de tus vehículos para iniciar la tasación.",
+  };
+
   const isDark = themeMode === "dark";
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
   const bodyColor = isDark ? "#cbd5e1" : "#475569";
@@ -147,10 +217,10 @@ export default function UserDashboardOperations({
   }, [initialTab]);
 
   const appointmentTypeOptions = [
-    { key: "workshop", label: "Taller" },
-    { key: "maintenance", label: "Mantenimiento" },
-    { key: "insurance", label: "Seguro" },
-    { key: "certification", label: "Garantía / calidad" },
+    { key: "workshop", label: text.workshop },
+    { key: "maintenance", label: text.maintenance },
+    { key: "insurance", label: text.insurance },
+    { key: "certification", label: text.warrantyQuality },
   ];
 
   useEffect(() => {
@@ -205,13 +275,13 @@ export default function UserDashboardOperations({
   }, []);
   const visibleTabOptions =
     initialTab === "appointments"
-      ? [["appointments", "Citas"]]
+      ? [["appointments", text.appointmentsTab]]
       : initialTab === "valuations"
-      ? [["valuations", "Tasaciones"]]
+      ? [["valuations", text.valuationsTab]]
       : [
-          ["appointments", "Citas"],
-          ["valuations", "Tasaciones"],
-          ["all", "Todo"],
+          ["appointments", text.appointmentsTab],
+          ["valuations", text.valuationsTab],
+          ["all", text.allTab],
         ];
 
   const operationRows = useMemo(() => {
@@ -220,22 +290,22 @@ export default function UserDashboardOperations({
       itemType: "appointment",
       itemTypeLabel:
         normalizeText(item?.type) === "maintenance"
-          ? "Mantenimiento"
+          ? text.maintenance
           : normalizeText(item?.type) === "insurance"
-          ? "Seguro"
-          : "Cita",
+          ? text.insurance
+          : text.appointment,
       stage: inferAppointmentStage(item),
     }));
 
     const valuationRows = (dashboardValuations || []).map((item) => ({
       ...item,
       itemType: "valuation",
-      itemTypeLabel: "Tasación",
+      itemTypeLabel: text.valuation,
       stage: inferValuationStage(item),
     }));
 
     return [...appointmentRows, ...valuationRows];
-  }, [dashboardAppointments, dashboardValuations]);
+  }, [dashboardAppointments, dashboardValuations, text.appointment, text.insurance, text.maintenance, text.valuation]);
 
   const filteredRows = operationRows.filter((item) => {
     if (activeTab === "all") {
@@ -291,7 +361,7 @@ export default function UserDashboardOperations({
       const selectedVehicle = garageVehicles.find((vehicle) => vehicle.id === managementVehicleId);
 
       if (!selectedVehicle) {
-        setAppointmentFeedback("Debes seleccionar uno de tus vehículos para pedir la cita.");
+        setAppointmentFeedback(text.selectVehicleForAppointment);
         return;
       }
 
@@ -301,12 +371,12 @@ export default function UserDashboardOperations({
         vehiclePlate: selectedVehicle.plate || "",
       });
 
-      const selectedTypeLabel = appointmentTypeOptions.find((option) => option.key === managementAppointmentType)?.label || "Cita";
+      const selectedTypeLabel = appointmentTypeOptions.find((option) => option.key === managementAppointmentType)?.label || text.appointment;
       const vehicleLabel = selectedVehicle.title || `${selectedVehicle.brand || ""} ${selectedVehicle.model || ""}`.trim();
       setAppointmentFeedback(
         managementCoverage.included
-          ? `${selectedTypeLabel} solicitada para ${vehicleLabel}. Incluida en ${currentPlanLabel}.`
-          : `${selectedTypeLabel} solicitada para ${vehicleLabel}. Servicio de pago por gestión (${managementCoverage.estimatedPrice}).`
+          ? `${selectedTypeLabel} ${text.requestedFor} ${vehicleLabel}. ${text.includedInPlan} ${currentPlanLabel}.`
+          : `${selectedTypeLabel} ${text.requestedFor} ${vehicleLabel}. ${text.oneOffPayment} (${managementCoverage.estimatedPrice}).`
       );
       setShowManagementWizard(false);
       return;
@@ -316,8 +386,8 @@ export default function UserDashboardOperations({
       onRequestValuation();
       setValuationFeedback(
         managementCoverage.included
-          ? `Nueva tasación iniciada desde cero. Incluida en ${currentPlanLabel}.`
-          : `Nueva tasación iniciada desde cero. Gestión puntual (${managementCoverage.estimatedPrice}).`
+          ? `${text.valuationFromScratch} ${text.includedInPlan} ${currentPlanLabel}.`
+          : `${text.valuationFromScratch} ${text.oneOffPayment} (${managementCoverage.estimatedPrice}).`
       );
       setShowManagementWizard(false);
       return;
@@ -326,7 +396,7 @@ export default function UserDashboardOperations({
     const selectedVehicle = garageVehiclesForValuation.find((vehicle) => vehicle.id === managementVehicleId);
 
     if (!selectedVehicle) {
-      setValuationFeedback("Selecciona uno de tus vehículos para iniciar la tasación.");
+      setValuationFeedback(text.selectVehicleForValuation);
       return;
     }
 
@@ -343,8 +413,8 @@ export default function UserDashboardOperations({
 
     setValuationFeedback(
       managementCoverage.included
-        ? `Nueva tasación iniciada para ${selectedVehicle.plate ? `matrícula ${selectedVehicle.plate}` : selectedVehicle.title || "tu vehículo"}. Incluida en ${currentPlanLabel}.`
-        : `Nueva tasación iniciada para ${selectedVehicle.plate ? `matrícula ${selectedVehicle.plate}` : selectedVehicle.title || "tu vehículo"}. Gestión puntual (${managementCoverage.estimatedPrice}).`
+        ? `${text.valuationStartedFor} ${selectedVehicle.plate ? `${text.plate} ${selectedVehicle.plate}` : selectedVehicle.title || text.yourVehicle}. ${text.includedInPlan} ${currentPlanLabel}.`
+        : `${text.valuationStartedFor} ${selectedVehicle.plate ? `${text.plate} ${selectedVehicle.plate}` : selectedVehicle.title || text.yourVehicle}. ${text.oneOffPayment} (${managementCoverage.estimatedPrice}).`
     );
     setShowManagementWizard(false);
   };
@@ -366,23 +436,23 @@ export default function UserDashboardOperations({
     <section id="user-dashboard-operations" style={{ ...panelStyle, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
-          <div style={{ fontSize: 11, color: "#f59e0b", letterSpacing: "0.6px" }}>OPERACIONES</div>
-          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: titleColor }}>Workflow de citas y tasaciones</div>
+          <div style={{ fontSize: 11, color: "#f59e0b", letterSpacing: "0.6px" }}>{text.operationLabel}</div>
+          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: titleColor }}>{text.title}</div>
           <div style={{ fontSize: 12, color: bodyColor, marginTop: 4 }}>
-            Gestiona agenda técnica y valoración comercial en una única línea operativa.
+            {text.subtitle}
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ ...getOfferBadgeStyle("amber"), fontSize: 11 }}>{dashboardAppointments.length} citas</span>
-          <span style={{ ...getOfferBadgeStyle("slate"), fontSize: 11 }}>{dashboardValuations.length} tasaciones</span>
+          <span style={{ ...getOfferBadgeStyle("amber"), fontSize: 11 }}>{dashboardAppointments.length} {text.appointmentsCountSuffix}</span>
+          <span style={{ ...getOfferBadgeStyle("slate"), fontSize: 11 }}>{dashboardValuations.length} {text.valuationsCountSuffix}</span>
         </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,minmax(0,1fr))" : "repeat(auto-fit,minmax(160px,1fr))", gap: 10, marginBottom: 12 }}>
         {[
-          ["Pendientes", stageSummary.pending, "#f59e0b"],
-          ["En curso", stageSummary.active, "#2563eb"],
-          ["Cerradas", stageSummary.closed, "#059669"],
+          [text.pending, stageSummary.pending, "#f59e0b"],
+          [text.active, stageSummary.active, "#2563eb"],
+          [text.closed, stageSummary.closed, "#059669"],
         ].map(([label, value, color]) => (
           <div
             key={String(label)}
@@ -442,7 +512,7 @@ export default function UserDashboardOperations({
               width: isMobile ? "100%" : "auto",
             }}
           >
-            Nueva gestión
+            {text.newManagement}
           </button>
         </div>
 
@@ -458,7 +528,7 @@ export default function UserDashboardOperations({
             }}
           >
             <div style={{ fontSize: 12, color: bodyColor }}>
-              Crea una gestión desde un único flujo: selecciona vehículo y tipo de servicio.
+              {text.wizardIntro}
             </div>
 
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -476,7 +546,7 @@ export default function UserDashboardOperations({
                   cursor: "pointer",
                 }}
               >
-                Cita / mantenimiento
+                {text.appointmentMaintenance}
               </button>
               <button
                 type="button"
@@ -492,13 +562,13 @@ export default function UserDashboardOperations({
                   cursor: "pointer",
                 }}
               >
-                Tasación
+                {text.valuation}
               </button>
             </div>
 
             <div style={{ display: "grid", gap: 10, gridTemplateColumns: isMobile ? "1fr" : "repeat(2,minmax(0,1fr))" }}>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Vehículo
+                {text.vehicle}
                 <select
                   value={managementVehicleId}
                   onChange={(event) => setManagementVehicleId(event.target.value)}
@@ -519,14 +589,14 @@ export default function UserDashboardOperations({
                       </option>
                     ))
                   ) : (
-                    <option value="">No hay vehículos en Mis vehículos</option>
+                    <option value="">{text.noVehiclesInGarage}</option>
                   )}
                 </select>
               </label>
 
               {managementType === "appointment" ? (
                 <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                  Tipo de cita
+                  {text.appointmentType}
                   <select
                     value={managementAppointmentType}
                     onChange={(event) => setManagementAppointmentType(event.target.value)}
@@ -548,7 +618,7 @@ export default function UserDashboardOperations({
                 </label>
               ) : (
                 <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                  Modo de tasación
+                  {text.valuationMode}
                   <select
                     value={managementValuationSource}
                     onChange={(event) => setManagementValuationSource(event.target.value)}
@@ -561,8 +631,8 @@ export default function UserDashboardOperations({
                       fontSize: 12,
                     }}
                   >
-                    <option value="garage">Usar datos de Mis vehículos</option>
-                    <option value="scratch">Empezar desde cero</option>
+                    <option value="garage">{text.useGarageData}</option>
+                    <option value="scratch">{text.startFromScratch}</option>
                   </select>
                 </label>
               )}
@@ -585,10 +655,10 @@ export default function UserDashboardOperations({
               }}
             >
               <div style={{ fontSize: 11, fontWeight: 800, color: managementCoverage.included ? "#065f46" : "#92400e" }}>
-                Cobertura de tu plan · {currentPlanLabel}
+                {text.planCoverage} · {currentPlanLabel}
               </div>
               <div style={{ fontSize: 12, color: titleColor }}>
-                {managementCoverage.included ? "Servicio incluido" : "Servicio de pago por gestión"} · {managementCoverage.estimatedPrice}
+                {managementCoverage.included ? text.serviceIncluded : text.payPerOperation} · {managementCoverage.estimatedPrice}
               </div>
               <div style={{ fontSize: 11, color: bodyColor }}>{managementCoverage.note}</div>
             </div>
@@ -596,7 +666,7 @@ export default function UserDashboardOperations({
             {garageVehiclesForValuation.length === 0 && (
               <div style={{ display: "grid", gap: 8 }}>
                 <div style={{ fontSize: 12, color: "#b45309" }}>
-                  Primero sube al menos un vehículo en Mis vehículos para crear gestiones.
+                  {text.uploadVehicleFirst}
                 </div>
                 <button
                   type="button"
@@ -613,7 +683,7 @@ export default function UserDashboardOperations({
                     width: isMobile ? "100%" : "fit-content",
                   }}
                 >
-                  Ir a Mis vehículos
+                  {text.goToMyVehicles}
                 </button>
               </div>
             )}
@@ -635,7 +705,7 @@ export default function UserDashboardOperations({
                   width: isMobile ? "100%" : "auto",
                 }}
               >
-                {managementCoverage.included ? "Incluido, continuar" : "Continuar como pago puntual"}
+                {managementCoverage.included ? text.includedContinue : text.continueAsOneOff}
               </button>
               {!managementCoverage.included && (
                 <button
@@ -654,7 +724,7 @@ export default function UserDashboardOperations({
                     boxShadow: "0 10px 18px rgba(2,132,199,0.22)",
                   }}
                 >
-                  Comprar gestión
+                  {text.buyOperation}
                 </button>
               )}
               <button
@@ -672,7 +742,7 @@ export default function UserDashboardOperations({
                   width: isMobile ? "100%" : "auto",
                 }}
               >
-                Cancelar
+                {text.cancel}
               </button>
             </div>
           </div>
@@ -727,7 +797,7 @@ export default function UserDashboardOperations({
         </div>
       ) : (
         <div style={{ fontSize: 12, color: "#94a3b8" }}>
-          No hay operaciones en esta vista todavía. Cuando tengas actividad, aparecerá aquí.
+          {text.noOperationsYet}
         </div>
       )}
     </section>

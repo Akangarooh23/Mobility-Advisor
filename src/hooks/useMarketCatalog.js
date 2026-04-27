@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { getVehicleCatalogJson } from "../utils/apiClient";
 import { normalizeText } from "../utils/offerHelpers";
+import localVehicleCatalog from "../data/vehicle-catalog.json";
 
 function buildFallbackMarketCatalogFromOffers(offers = []) {
   const safeOffers = Array.isArray(offers) ? offers : [];
@@ -47,11 +48,39 @@ function mergeCatalogMaps(primaryMap = {}, secondaryMap = {}) {
   return merged;
 }
 
+function buildFallbackCatalogFromLocalFile() {
+  const rawCatalog = localVehicleCatalog && typeof localVehicleCatalog === "object" ? localVehicleCatalog : {};
+
+  return Object.entries(rawCatalog).reduce((acc, [brandName, models]) => {
+    const cleanBrand = normalizeText(brandName);
+
+    if (!cleanBrand || !Array.isArray(models)) {
+      return acc;
+    }
+
+    const cleanModels = Array.from(
+      new Set(
+        models
+          .map((modelName) => normalizeText(modelName))
+          .filter(Boolean)
+      )
+    );
+
+    if (cleanModels.length > 0) {
+      acc[cleanBrand] = cleanModels;
+    }
+
+    return acc;
+  }, {});
+}
+
 export function useMarketCatalog(fallbackOffers = []) {
-  const fallbackCatalog = useMemo(
-    () => buildFallbackMarketCatalogFromOffers(fallbackOffers),
-    [fallbackOffers]
-  );
+  const fallbackCatalog = useMemo(() => {
+    const fullCatalogFallback = buildFallbackCatalogFromLocalFile();
+    const offersCatalogFallback = buildFallbackMarketCatalogFromOffers(fallbackOffers);
+
+    return mergeCatalogMaps(fullCatalogFallback, offersCatalogFallback);
+  }, [fallbackOffers]);
   const [marketBrandsCatalog, setMarketBrandsCatalog] = useState(() => fallbackCatalog);
   const [marketCatalogSource, setMarketCatalogSource] = useState("fallback");
 

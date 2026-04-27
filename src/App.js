@@ -693,6 +693,34 @@ function getPublicPathForEntryMode(entryMode = "") {
 // ------------------------------------------------------------
 
 const THEME_STORAGE_KEY = "movilidad-advisor.themeMode.v1";
+const LANGUAGE_STORAGE_KEY = "movilidad-advisor.uiLanguage.v1";
+const GOOGLE_TRANSLATE_SCRIPT_ID = "cw-google-translate-script";
+
+function normalizeUiLanguage(value) {
+  return String(value || "").toLowerCase() === "en" ? "en" : "es";
+}
+
+function clearGoogTransCookie() {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  document.cookie = "googtrans=; path=/; max-age=0";
+}
+
+function setGoogTransCookie(targetLanguage) {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  const normalizedTarget = normalizeUiLanguage(targetLanguage);
+  if (normalizedTarget === "es") {
+    clearGoogTransCookie();
+    return;
+  }
+
+  document.cookie = `googtrans=/es/${normalizedTarget}; path=/`;
+}
 
 export default function App() {
   const [entryMode, setEntryMode] = useState(null);
@@ -788,6 +816,13 @@ export default function App() {
   const [showCookieGate, setShowCookieGate] = useState(false);
   const [showCookieSettings, setShowCookieSettings] = useState(false);
   const [themeMode, setThemeMode] = useState("light");
+  const [uiLanguage, setUiLanguage] = useState(() => {
+    if (typeof window === "undefined") {
+      return "es";
+    }
+
+    return normalizeUiLanguage(window.localStorage.getItem(LANGUAGE_STORAGE_KEY));
+  });
   const [cookiePreferences, setCookiePreferences] = useState({
     necessary: true,
     analytics: true,
@@ -796,6 +831,102 @@ export default function App() {
   });
   const quickValidationRef = useRef({});
   const resultRef = useRef(null);
+
+  const applyUiLanguage = useCallback((nextLanguage) => {
+    const targetLanguage = normalizeUiLanguage(nextLanguage);
+
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("lang", targetLanguage === "en" ? "en" : "es");
+    }
+
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, targetLanguage);
+    } catch {
+      // ignore storage failures
+    }
+
+    if (targetLanguage === "es") {
+      clearGoogTransCookie();
+    } else {
+      setGoogTransCookie(targetLanguage);
+    }
+
+    const applyToGoogleCombo = () => {
+      const combo = document.querySelector(".goog-te-combo");
+
+      if (!combo) {
+        return false;
+      }
+
+      if (combo.value !== targetLanguage) {
+        combo.value = targetLanguage;
+        combo.dispatchEvent(new Event("change"));
+      }
+
+      return true;
+    };
+
+    if (!applyToGoogleCombo()) {
+      window.setTimeout(() => {
+        applyToGoogleCombo();
+      }, 450);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      return;
+    }
+
+    const initializeTranslateElement = () => {
+      if (!window.google?.translate?.TranslateElement) {
+        return;
+      }
+
+      const container = document.getElementById("google_translate_element");
+
+      if (!container || container.childElementCount > 0) {
+        return;
+      }
+
+      // eslint-disable-next-line no-new
+      new window.google.translate.TranslateElement(
+        {
+          pageLanguage: "es",
+          includedLanguages: "es,en",
+          autoDisplay: false,
+        },
+        "google_translate_element"
+      );
+
+      window.setTimeout(() => {
+        applyUiLanguage(uiLanguage);
+      }, 320);
+    };
+
+    window.googleTranslateElementInit = initializeTranslateElement;
+
+    if (window.google?.translate?.TranslateElement) {
+      initializeTranslateElement();
+      return;
+    }
+
+    if (!document.getElementById(GOOGLE_TRANSLATE_SCRIPT_ID)) {
+      const script = document.createElement("script");
+      script.id = GOOGLE_TRANSLATE_SCRIPT_ID;
+      script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, [applyUiLanguage, uiLanguage]);
+
+  useEffect(() => {
+    applyUiLanguage(uiLanguage);
+  }, [applyUiLanguage, uiLanguage]);
 
   const {
     listingOptionsRef,
@@ -2898,6 +3029,18 @@ export default function App() {
           })}
           </nav>
           <div style={{ display: "flex", alignItems: "center", gap: 12, position: "relative" }}>
+          <div
+            id="google_translate_element"
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              width: 0,
+              height: 0,
+              overflow: "hidden",
+              opacity: 0,
+              pointerEvents: "none",
+            }}
+          />
           {step >= 0 && step < totalSteps && (
             <div style={{ fontSize: 12, color: "#475569" }}>
               {step + 1} / {totalSteps}
@@ -2919,6 +3062,28 @@ export default function App() {
               {"\u2190"} Volver al home
             </button>
           )}
+
+          <button
+            type="button"
+            onClick={() => setUiLanguage((prev) => (prev === "es" ? "en" : "es"))}
+            title={uiLanguage === "es" ? "Switch to English" : "Cambiar a español"}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              background: themeMode === "dark" ? "rgba(15,23,42,0.7)" : "rgba(241,245,249,0.95)",
+              border: themeMode === "dark" ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.34)",
+              color: themeMode === "dark" ? "#e2e8f0" : "#334155",
+              padding: "7px 11px",
+              borderRadius: 999,
+              cursor: "pointer",
+              fontSize: 11,
+              fontWeight: 700,
+            }}
+          >
+            <span>🌐</span>
+            <span>{uiLanguage === "es" ? "ES" : "EN"}</span>
+          </button>
 
           <button
             type="button"

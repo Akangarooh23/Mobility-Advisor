@@ -115,6 +115,22 @@
   display: inline-flex;
 }
 
+#google_translate_element,
+.goog-te-banner-frame.skiptranslate,
+.goog-te-gadget-icon,
+.goog-logo-link,
+.goog-te-gadget span {
+  display: none !important;
+}
+
+.goog-te-gadget {
+  font-size: 0 !important;
+}
+
+body {
+  top: 0 !important;
+}
+
 @media (max-width: 1280px) {
   .cw-header-nav {
     justify-content: flex-start;

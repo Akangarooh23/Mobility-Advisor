@@ -152,7 +152,7 @@ export default function DecisionPage({
   const accentColor = isDark ? "#60a5fa" : "#2563eb";
   const panelTitleColor = isDark ? "#f1f5f9" : "#0f172a";
   const panelBodyColor = isDark ? "#94a3b8" : "#475569";
-  const [showAllBrands, setShowAllBrands] = useState(false);
+  const [showAllBrands, setShowAllBrands] = useState(true);
   const [priceFromIndex, setPriceFromIndex] = useState(() => getIndexFromMarkValue(PRICE_MARKS, decisionAnswers.priceMin, 0));
   const [priceToIndex, setPriceToIndex] = useState(() =>
     Number.isFinite(Number(decisionAnswers.priceMax))

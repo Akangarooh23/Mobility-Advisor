@@ -2600,7 +2600,31 @@ export default function App() {
     restartBase();
   }, [restartBase]);
 
-  const decisionModels = decisionAnswers.brand ? marketBrandsCatalog[decisionAnswers.brand] || [] : [];
+  const resolveCatalogModelsByBrand = useCallback(
+    (rawBrand) => {
+      const normalizedBrand = normalizeText(rawBrand);
+
+      if (!normalizedBrand) {
+        return [];
+      }
+
+      const exactModels = marketBrandsCatalog[normalizedBrand];
+
+      if (Array.isArray(exactModels)) {
+        return exactModels;
+      }
+
+      const normalizedSearchKey = normalizedBrand.toLowerCase();
+      const fallbackBrandKey = Object.keys(marketBrandsCatalog).find(
+        (brandName) => normalizeText(brandName).toLowerCase() === normalizedSearchKey
+      );
+
+      return fallbackBrandKey ? marketBrandsCatalog[fallbackBrandKey] || [] : [];
+    },
+    [marketBrandsCatalog]
+  );
+
+  const decisionModels = resolveCatalogModelsByBrand(decisionAnswers.brand);
   const estimatedFinanceMonthly = estimateMonthlyPayment(
     getOptionAmount(FINANCE_AMOUNT_OPTIONS, decisionAnswers.financeAmount)
   );
@@ -2632,7 +2656,7 @@ export default function App() {
           mileageFilter: decisionAnswers.mileageFilter,
         })
       : [];
-  const sellModels = sellAnswers.brand ? marketBrandsCatalog[sellAnswers.brand] || [] : [];
+  const sellModels = resolveCatalogModelsByBrand(sellAnswers.brand);
   const sellEstimate =
     sellAnswers.brand && sellAnswers.model && sellAnswers.year && sellAnswers.mileage
       ? buildSellEstimate(sellAnswers)

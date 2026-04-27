@@ -30,7 +30,7 @@ export default function SellPage({
   const pageDescription = isCertificateFlow
     ? "Recopilamos la información clave del vehículo para emitir una certificación oficial y ayudarte en la venta con mayor respaldo frente al comprador."
     : "Te damos información en tiempo real sobre precio medio, tendencia histórica, stock de coches similares y una horquilla de salida para publicar con criterio.";
-  const [showAllBrands, setShowAllBrands] = useState(false);
+  const [showAllBrands, setShowAllBrands] = useState(true);
   const { knownBrands, otherBrands, knownBrandSet } = getBrandOptionSegments(MARKET_BRANDS);
   const hasUnknownSelectedBrand = Boolean(sellAnswers.brand && !knownBrandSet.has(sellAnswers.brand));
   const shouldShowAllBrands = showAllBrands || hasUnknownSelectedBrand;

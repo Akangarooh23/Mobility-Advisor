@@ -387,7 +387,11 @@ export default function LandingPage({
 
       {/* NUEVO: CircularSteps reemplaza los tres recuadros de features */}
       <div style={{ marginTop: 30, marginBottom: 18 }}>
-        <CircularSteps />
+        <CircularSteps
+          onSelectBuy={onSelectDecision}
+          onSelectService={onSelectService}
+          onSelectSell={onSelectSell}
+        />
       </div>
 
       </section>

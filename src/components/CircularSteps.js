@@ -33,7 +33,8 @@ const STEP_DURATION = 4000;
 const ANIM_DURATION = 650;
 const ARC_WIDTH = 42;
 
-export default function CircularSteps() {
+export default function CircularSteps({ onSelectBuy, onSelectService, onSelectSell }) {
+  const stepActions = [onSelectBuy, onSelectService, onSelectSell];
   const canvasRef = useRef(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [animating, setAnimating] = useState(false);
@@ -224,6 +225,20 @@ export default function CircularSteps() {
     // handled by React render
   }, [currentStep]);
 
+  function handleCardSelect() {
+    const action = stepActions[currentStep];
+    if (typeof action === "function") {
+      action();
+    }
+  }
+
+  function handleCardKeyDown(event) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleCardSelect();
+    }
+  }
+
   return (
     <div className="cw-circular-steps-page cw-horizontal-layout">
       <div className="cw-circular-left-stack">
@@ -245,7 +260,14 @@ export default function CircularSteps() {
         </div>
       </div>
       <div className="cw-info-card-side">
-        <div className={`cw-info-card ${STEPS[currentStep].cls}`}>
+        <div
+          className={`cw-info-card ${STEPS[currentStep].cls} cw-info-card-clickable`}
+          role="button"
+          tabIndex={0}
+          onClick={handleCardSelect}
+          onKeyDown={handleCardKeyDown}
+          aria-label={`Ir a ${STEPS[currentStep].title}`}
+        >
           <div className="cw-card-icon">{STEPS[currentStep].icon}</div>
           <div className="cw-card-body">
             <span className="cw-card-tag">{STEPS[currentStep].tag}</span>

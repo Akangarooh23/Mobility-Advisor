@@ -135,6 +135,18 @@ canvas { display: block; }
   gap: 1rem;
   transition: border-color 0.4s;
 }
+.cw-info-card-clickable {
+  cursor: pointer;
+}
+
+.cw-info-card-clickable:hover {
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+}
+
+.cw-info-card-clickable:focus-visible {
+  outline: 2px solid rgba(47, 110, 220, 0.8);
+  outline-offset: 2px;
+}
 .cw-info-card.step-1 {
   border-color: rgba(95, 174, 255, 0.84);
 }

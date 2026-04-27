@@ -36,7 +36,12 @@ export default function SellPage({
   const shouldShowAllBrands = showAllBrands || hasUnknownSelectedBrand;
   const visibleBrands = shouldShowAllBrands ? [...knownBrands, ...otherBrands] : knownBrands;
   const modelOptions = sellAnswers.model && !sellModels.includes(sellAnswers.model) ? [sellAnswers.model, ...sellModels] : sellModels;
-  const defaultYearOptions = [2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018];
+  const currentYear = new Date().getFullYear();
+  const minYear = 1990;
+  const defaultYearOptions = Array.from(
+    { length: currentYear - minYear + 1 },
+    (_, index) => currentYear - index
+  );
   const yearOptions =
     sellAnswers.year && !defaultYearOptions.includes(Number(sellAnswers.year))
       ? [Number(sellAnswers.year), ...defaultYearOptions]

@@ -1,284 +1,171 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import "./CircularSteps.css";
 
 const STEP_DEFINITIONS = [
-  { icon: "🚗", color: "#5FAEFF", cls: "step-1", key: "step1" },
-  { icon: "🔧", color: "#2F6EDC", cls: "step-2", key: "step2" },
-  { icon: "💵", color: "#1F3F9A", cls: "step-3", key: "step3" },
+  { key: "step1", icon: "🚗", color: "#F6C21B", action: "buy", position: "top" },
+  { key: "step3", icon: "💵", color: "#E84DAE", action: "sell", position: "right" },
+  { key: "step2", icon: "🛠️", color: "#21C7C9", action: "service", position: "left" },
 ];
 
-const ARROW_COLORS = ["#5FAEFF", "#2F6EDC", "#1F3F9A"];
-const STEP_DURATION = 4000;
-const ANIM_DURATION = 650;
-const ARC_WIDTH = 42;
+const AUTO_ADVANCE_MS = 3600;
+const CIRCLE_SIZE = 360;
+const CENTER = CIRCLE_SIZE / 2;
+const RADIUS = 118;
+const GAP_DEGREES = 16;
+
+function polarToCartesian(cx, cy, radius, angleInDegrees) {
+  const angleInRadians = (angleInDegrees * Math.PI) / 180;
+  return {
+    x: cx + radius * Math.cos(angleInRadians),
+    y: cy + radius * Math.sin(angleInRadians),
+  };
+}
+
+function describeArc(cx, cy, radius, startAngle, endAngle) {
+  const start = polarToCartesian(cx, cy, radius, startAngle);
+  const end = polarToCartesian(cx, cy, radius, endAngle);
+  const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+  return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`;
+}
 
 export default function CircularSteps({ onSelectBuy, onSelectService, onSelectSell }) {
   const { t } = useTranslation();
-  const steps = STEP_DEFINITIONS.map((step) => ({
-    icon: step.icon,
-    color: step.color,
-    cls: step.cls,
-    tag: t(`circularSteps.${step.key}Tag`),
-    title: t(`circularSteps.${step.key}Title`),
-    desc: t(`circularSteps.${step.key}Desc`),
-  }));
-  const stepActions = [onSelectBuy, onSelectService, onSelectSell];
-  const canvasRef = useRef(null);
   const [currentStep, setCurrentStep] = useState(0);
-  const [animating, setAnimating] = useState(false);
-  const progressBarRef = useRef(null);
-  const autoTimer = useRef(null);
-  const goToStepRef = useRef(null);
-  const renderArrowsRef = useRef(null);
+  const [isHovering, setIsHovering] = useState(false);
 
-  // Arc definitions
-  const W = 280, H = 280, cx = 140, cy = 140, R = 78;
-  const GAP = 0.22;
-  const ARC = (2 * Math.PI - 3 * GAP) / 3;
-  const arcs = [
-    { start: -Math.PI / 2, sweep: ARC },
-    { start: -Math.PI / 2 + ARC + GAP, sweep: ARC },
-    { start: -Math.PI / 2 + 2 * (ARC + GAP), sweep: ARC },
-  ];
+  const steps = useMemo(() => {
+    const segmentSweep = (360 - GAP_DEGREES * STEP_DEFINITIONS.length) / STEP_DEFINITIONS.length;
 
-  // Drawing helpers
-  function drawArc(ctx, startAngle, sweepAngle, color, alpha) {
-    if (sweepAngle <= 0) return;
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.beginPath();
-    ctx.arc(cx, cy, R, startAngle, startAngle + sweepAngle);
-    ctx.strokeStyle = color;
-    ctx.lineWidth = ARC_WIDTH;
-    ctx.lineCap = "round";
-    ctx.stroke();
-    ctx.restore();
-  }
+    return STEP_DEFINITIONS.map((step, index) => {
+      const startAngle = -90 + index * (segmentSweep + GAP_DEGREES);
+      const endAngle = startAngle + segmentSweep;
+      const midAngle = startAngle + segmentSweep / 2;
 
-  function drawArrowhead(ctx, startAngle, sweepAngle, color, alpha) {
-    if (sweepAngle <= 0) return;
-    const tipA = startAngle + sweepAngle;
-    const tx = cx + R * Math.cos(tipA);
-    const ty = cy + R * Math.sin(tipA);
-    const tangent = tipA + Math.PI / 2;
-    const hs = 20, hl = 26;
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.beginPath();
-    ctx.moveTo(tx + hs * Math.cos(tangent - 0.55), ty + hs * Math.sin(tangent - 0.55));
-    ctx.lineTo(tx + hl * Math.cos(tangent), ty + hl * Math.sin(tangent));
-    ctx.lineTo(tx + hs * Math.cos(tangent + 0.55), ty + hs * Math.sin(tangent + 0.55));
-    ctx.closePath();
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.restore();
-  }
-  function renderArrows(ctx, filledCount, partialFill = 0) {
-    ctx.clearRect(0, 0, W, H);
-    for (let i = 0; i < 3; i++) {
-      const { start, sweep } = arcs[i];
-      if (i < filledCount) {
-        drawArc(ctx, start, sweep, ARROW_COLORS[i], 1);
-        drawArrowhead(ctx, start, sweep, ARROW_COLORS[i], 1);
-      } else if (i === filledCount && partialFill > 0) {
-        const partialSweep = sweep * partialFill;
-        drawArc(ctx, start, partialSweep, ARROW_COLORS[i], 1);
-        if (partialFill > 0.7) drawArrowhead(ctx, start, partialSweep, ARROW_COLORS[i], (partialFill - 0.7) / 0.3);
-        drawArc(ctx, start, sweep, ARROW_COLORS[i], 0.12);
-      } else {
-        drawArc(ctx, start, sweep, ARROW_COLORS[i], 0.12);
-      }
-    }
-  }
+      return {
+        ...step,
+        tag: t(`circularSteps.${step.key}Tag`),
+        title: t(`circularSteps.${step.key}Title`),
+        desc: t(`circularSteps.${step.key}Desc`),
+        startAngle,
+        endAngle,
+        midAngle,
+        arcPath: describeArc(CENTER, CENTER, RADIUS, startAngle, endAngle),
+        iconPoint: polarToCartesian(CENTER, CENTER, RADIUS, midAngle),
+      };
+    });
+  }, [t]);
 
-  renderArrowsRef.current = renderArrows;
-
-  // Animation logic
-  function animateTo(targetFilled, fromFilled, callback) {
-    setAnimating(true);
-    const ctx = canvasRef.current.getContext("2d");
-    const start = performance.now();
-    function frame(now) {
-      const t = Math.min((now - start) / ANIM_DURATION, 1);
-      const ease = 1 - Math.pow(1 - t, 3);
-      ctx.clearRect(0, 0, W, H);
-      if (targetFilled === 0) {
-        for (let i = 0; i < 3; i++) {
-          const { start: s, sweep } = arcs[i];
-          drawArc(ctx, s, sweep, ARROW_COLORS[i], 0.12);
-        }
-      } else {
-        for (let i = 0; i < 3; i++) {
-          const { start: s, sweep } = arcs[i];
-          if (i < fromFilled) {
-            drawArc(ctx, s, sweep, ARROW_COLORS[i], 1);
-            drawArrowhead(ctx, s, sweep, ARROW_COLORS[i], 1);
-          } else if (i === fromFilled && targetFilled > fromFilled) {
-            const partialSweep = sweep * ease;
-            drawArc(ctx, s, sweep, ARROW_COLORS[i], 0.12);
-            drawArc(ctx, s, partialSweep, ARROW_COLORS[i], 1);
-            if (ease > 0.7) drawArrowhead(ctx, s, partialSweep, ARROW_COLORS[i], (ease - 0.7) / 0.3);
-          } else {
-            drawArc(ctx, s, sweep, ARROW_COLORS[i], 0.12);
-          }
-        }
-      }
-      if (t < 1) {
-        requestAnimationFrame(frame);
-      } else {
-        renderArrows(ctx, targetFilled);
-        setAnimating(false);
-        if (callback) callback();
-      }
-    }
-    requestAnimationFrame(frame);
-  }
-
-  // Progress bar
-  function startProgress(color) {
-    const bar = progressBarRef.current;
-    if (!bar) return;
-    bar.style.transition = "none";
-    bar.style.width = "0%";
-    bar.style.background = color;
-    void bar.offsetWidth;
-    bar.style.transition = `width ${STEP_DURATION}ms linear`;
-    bar.style.width = "100%";
-  }
-  // Step navigation
-  function goToStep(newStep, fromStep, skipAnimation) {
-    if (animating) return;
-    const prev = fromStep;
-    const next = newStep;
-    const ctx = canvasRef.current.getContext("2d");
-    if (skipAnimation) {
-      renderArrows(ctx, next + 1, 0);
-      setCurrentStep(next);
-      startProgress(steps[next].color);
-      return;
-    }
-    if (next === 0 && prev === 2) {
-      animateTo(0, 0, () => {
-        animateTo(1, 0, () => {
-          setCurrentStep(0);
-          startProgress(steps[0].color);
-        });
-      });
-      renderArrows(ctx, 0, 0);
-    } else {
-      animateTo(next + 1, prev + 1 > next + 1 ? 0 : prev, () => {
-        startProgress(steps[next].color);
-      });
-      setCurrentStep(next);
-    }
-  }
-
-  goToStepRef.current = goToStep;
-
-  // Button handlers
-  // Eliminar controles de navegación manual y pausa
-
-  // Init
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = W * dpr;
-    canvas.height = H * dpr;
-    canvas.style.width = W + "px";
-    canvas.style.height = H + "px";
-    const ctx = canvas.getContext("2d");
-    ctx.scale(dpr, dpr);
-    renderArrowsRef.current?.(ctx, 0, 0);
-    setTimeout(() => {
-      goToStepRef.current?.(0, -1, false);
-    }, 400);
-    return () => clearTimeout(autoTimer.current);
-  }, []);
+  const stepActions = {
+    buy: onSelectBuy,
+    sell: onSelectSell,
+    service: onSelectService,
+  };
 
   useEffect(() => {
-    clearTimeout(autoTimer.current);
-    autoTimer.current = setTimeout(() => {
-      if (animating) {
-        return;
-      }
-      const next = (currentStep + 1) % 3;
-      goToStepRef.current?.(next, currentStep, false);
-    }, STEP_DURATION);
+    if (isHovering) {
+      return undefined;
+    }
 
-    return () => clearTimeout(autoTimer.current);
-  }, [currentStep, animating]);
+    const timer = window.setInterval(() => {
+      setCurrentStep((prev) => (prev + 1) % steps.length);
+    }, AUTO_ADVANCE_MS);
 
-  // Dots update
-  useEffect(() => {
-    // handled by React render
-  }, [currentStep]);
+    return () => window.clearInterval(timer);
+  }, [isHovering, steps.length]);
 
-  function handleCardSelect() {
-    const action = stepActions[currentStep];
+  function handleSelect(step) {
+    const action = stepActions[step.action];
     if (typeof action === "function") {
       action();
     }
   }
 
-  function handleCardKeyDown(event) {
+  function handleKeyDown(event, step) {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      handleCardSelect();
+      handleSelect(step);
     }
   }
 
   return (
-    <div className="cw-circular-steps-page cw-horizontal-layout">
-      <div className="cw-circular-left-stack">
-        {/* Header siempre visible, sin scroll ni overflow */}
-        <div className="cw-circular-header" style={{ marginBottom: 0, minWidth: 0 }}>
-          <h1 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, whiteSpace: 'normal', overflow: 'visible', textOverflow: 'unset' }}>
-            {t("circularSteps.whatToDoToday")}
-          </h1>
-          <p style={{ margin: 0, fontSize: '0.95rem', color: '#6B6B6B', fontWeight: 300, whiteSpace: 'normal', overflow: 'visible', textOverflow: 'unset' }}>
-              {t("circularSteps.selectOption")}
-          </p>
-        </div>
-        <div className="cw-canvas-wrap">
-          <canvas ref={canvasRef} width={W} height={H}></canvas>
-          <div className="cw-center-badge">
-            <span className="cw-step-num" style={{ color: steps[currentStep].color }}>{currentStep + 1}</span>
-            <span className="cw-step-label">{t("circularSteps.stepsOf")}</span>
+    <section className="cw-process-wrap">
+      <header className="cw-process-header">
+        <h2>{t("circularSteps.whatToDoToday")}</h2>
+        <p>{t("circularSteps.selectOption")}</p>
+      </header>
+
+      <div className="cw-process-visual" onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}>
+        <div className="cw-process-ring-stage">
+          <svg className="cw-process-ring" viewBox={`0 0 ${CIRCLE_SIZE} ${CIRCLE_SIZE}`} role="img" aria-label="Ciclo de servicios CarsWise">
+            <circle cx={CENTER} cy={CENTER} r={RADIUS} className="cw-process-ring-base" />
+
+            {steps.map((step, index) => {
+              const isActive = currentStep === index;
+
+              return (
+                <path
+                  key={step.key}
+                  d={step.arcPath}
+                  className={`cw-process-segment ${isActive ? "is-active" : ""}`}
+                  stroke={step.color}
+                  style={{ opacity: isActive ? 1 : 0.35 }}
+                />
+              );
+            })}
+          </svg>
+
+          <div className="cw-process-center" aria-hidden="true">
+            <span>{`${currentStep + 1} ${t("circularSteps.stepsOf")}`}</span>
+            <strong>{currentStep + 1}</strong>
           </div>
+
+          {steps.map((step, index) => {
+            const isActive = currentStep === index;
+            const iconStyle = {
+              left: `${step.iconPoint.x}px`,
+              top: `${step.iconPoint.y}px`,
+              borderColor: isActive ? step.color : "rgba(148,163,184,0.28)",
+              color: step.color,
+            };
+
+            return (
+              <button
+                key={`${step.key}-icon`}
+                type="button"
+                className={`cw-process-icon ${isActive ? "is-active" : ""}`}
+                style={iconStyle}
+                onClick={() => {
+                  setCurrentStep(index);
+                  handleSelect(step);
+                }}
+                aria-label={`${t("circularSteps.goTo")} ${step.title}`}
+              >
+                {step.icon}
+              </button>
+            );
+          })}
         </div>
+
+        {steps.map((step, index) => {
+          const isActive = currentStep === index;
+          return (
+            <article
+              key={`${step.key}-text`}
+              className={`cw-process-copy cw-process-copy-${step.position} ${isActive ? "is-active" : ""}`}
+              onMouseEnter={() => setCurrentStep(index)}
+              role="button"
+              tabIndex={0}
+              onClick={() => handleSelect(step)}
+              onKeyDown={(event) => handleKeyDown(event, step)}
+            >
+              <span style={{ color: step.color }}>{step.tag}</span>
+              <h3>{step.title}</h3>
+              <p>{step.desc}</p>
+            </article>
+          );
+        })}
       </div>
-      <div className="cw-info-card-side">
-        <div
-          className={`cw-info-card ${steps[currentStep].cls} cw-info-card-clickable`}
-          role="button"
-          tabIndex={0}
-          onClick={handleCardSelect}
-          onKeyDown={handleCardKeyDown}
-          aria-label={`${t("circularSteps.goTo")} ${steps[currentStep].title}`}
-        >
-          <div className="cw-card-icon">{steps[currentStep].icon}</div>
-          <div className="cw-card-body">
-            <span className="cw-card-tag">{steps[currentStep].tag}</span>
-            <h2>{steps[currentStep].title}</h2>
-            <p>{steps[currentStep].desc}</p>
-          </div>
-        </div>
-        <div className="cw-dots">
-          {steps.map((_, i) => (
-            <div key={i} className={"cw-dot" + (i <= currentStep ? " active" : "")}
-              data-step={i}
-              style={i === 0 ? { background: i === currentStep ? ARROW_COLORS[0] : undefined }
-                : i === 1 ? { background: i === currentStep ? ARROW_COLORS[1] : undefined }
-                : { background: i === currentStep ? ARROW_COLORS[2] : undefined }}
-              onClick={() => { if (!animating) goToStep(i, currentStep, false); }}
-            ></div>
-          ))}
-        </div>
-        <div className="cw-progress-bar-wrap">
-          <div className="cw-progress-bar" ref={progressBarRef}></div>
-        </div>
-      </div>
-    </div>
+    </section>
   );
 }

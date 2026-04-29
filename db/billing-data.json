@@ -77,8 +77,8 @@
         "updatedAt": ""
       },
       "billingState": {
-        "planId": "plata",
-        "planLabel": "Plan Plata",
+        "planId": "gratis",
+        "planLabel": "Plan Gratis",
         "status": "pendiente",
         "nextBillingDate": "",
         "stripeCustomerId": "",
@@ -184,8 +184,7 @@
               "name": "foto-principal.webp",
               "size": 0,
               "mimeType": "image/webp",
-              "contentBase64": "",
-              "url": "/vo-images/foto-principal.webp"
+              "contentBase64": ""
             }
           ],
           "documents": [
@@ -269,8 +268,7 @@
               "name": "foto-principal.webp",
               "size": 0,
               "mimeType": "image/webp",
-              "contentBase64": "",
-              "url": "/vo-images/foto-principal.webp"
+              "contentBase64": ""
             }
           ],
           "documents": [],
@@ -417,8 +415,7 @@
               "name": "foto-principal.webp",
               "size": 0,
               "mimeType": "image/webp",
-              "contentBase64": "",
-              "url": "/vo-images/foto-principal.webp"
+              "contentBase64": ""
             }
           ],
           "documents": [],
@@ -435,10 +432,10 @@
           "createdAt": "2026-04-17T00:00:00.000Z"
         }
       ],
-      "updatedAt": "2026-04-17T19:57:51.209Z"
+      "updatedAt": "2026-04-28T16:54:31.730Z"
     }
   },
   "stripeCustomerToEmail": {},
   "stripeSubscriptionToEmail": {},
-  "updatedAt": "2026-04-17T19:58:56.627Z"
+  "updatedAt": "2026-04-28T16:54:31.730Z"
 }

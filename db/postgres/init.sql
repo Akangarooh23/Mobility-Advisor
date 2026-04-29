@@ -717,3 +717,26 @@ BEGIN
   END IF;
 END $$;
 -- END 3NF NORMALIZATION
+
+-- Allow sell-flow valuations without a garage vehicle (vehicle_id becomes optional)
+DO $$
+BEGIN
+  -- Drop the NOT NULL constraint on vehicle_id
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'moveadvisor_user_valuations'
+      AND column_name = 'vehicle_id'
+      AND is_nullable = 'NO'
+  ) THEN
+    ALTER TABLE moveadvisor_user_valuations ALTER COLUMN vehicle_id DROP NOT NULL;
+  END IF;
+
+  -- Drop the FK constraint from vehicle_id to moveadvisor_user_vehicles
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'moveadvisor_user_valuations_vehicle_id_fkey'
+  ) THEN
+    ALTER TABLE moveadvisor_user_valuations
+      DROP CONSTRAINT moveadvisor_user_valuations_vehicle_id_fkey;
+  END IF;
+END $$;

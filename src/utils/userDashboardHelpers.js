@@ -80,6 +80,9 @@ export function buildUserDashboardModel({
           title: normalizeText(item?.title) || normalizeText(item?.vehicleTitle) || "Vehiculo en valoracion",
           meta: normalizeText(item?.meta) || normalizeText(item?.report),
           status: normalizeText(item?.status) || "Ultima tasacion disponible",
+          estimateValue: item?.estimateValue != null ? Number(item.estimateValue) : null,
+          createdAt: normalizeText(item?.createdAt),
+          vehicleTitle: normalizeText(item?.vehicleTitle),
         }))
         .filter((item) => item.id)
         .slice(0, 6)

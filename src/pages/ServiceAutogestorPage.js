@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { postAlertEmailDigestJson } from "../utils/apiClient";
 
 export default function ServiceAutogestorPage({ styles, onGoBack, onGoHome, themeMode }) {
   const isDark = themeMode === "dark";
@@ -27,6 +28,8 @@ export default function ServiceAutogestorPage({ styles, onGoBack, onGoHome, them
     maintenanceDate: "",
   });
   const [active, setActive] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitFeedback, setSubmitFeedback] = useState("");
 
   const reminders = useMemo(() => {
     if (!active) {
@@ -40,6 +43,40 @@ export default function ServiceAutogestorPage({ styles, onGoBack, onGoHome, them
     if (data.plate) entries.push(`Expediente digital activo para matrícula ${data.plate.toUpperCase()}`);
     return entries;
   }, [active, data]);
+
+  async function activateAutoManager() {
+    if (isSubmitting) {
+      return;
+    }
+
+    setActive(true);
+    setIsSubmitting(true);
+    setSubmitFeedback("");
+
+    try {
+      const { response, data: apiData } = await postAlertEmailDigestJson({
+        to: ["hola@carswise.es"],
+        subject: `CarsWise · Solicitud AutoGestor${data.plate ? ` · ${data.plate.toUpperCase()}` : ""}`,
+        text: [
+          "Nueva solicitud del servicio AutoGestor.",
+          `Matrícula: ${data.plate || "No indicada"}`,
+          `ITV: ${data.itvDate || "No indicada"}`,
+          `Renovación seguro: ${data.insuranceRenewal || "No indicada"}`,
+          `Mantenimiento: ${data.maintenanceDate || "No indicado"}`,
+        ].join("\n"),
+      });
+
+      if (!response.ok || !apiData?.ok) {
+        throw new Error(apiData?.error || "No se pudo activar AutoGestor.");
+      }
+
+      setSubmitFeedback("Solicitud enviada. El equipo revisará los hitos y activará el seguimiento.");
+    } catch (error) {
+      setSubmitFeedback(error instanceof Error ? error.message : "No se pudo activar AutoGestor.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
@@ -124,13 +161,19 @@ export default function ServiceAutogestorPage({ styles, onGoBack, onGoHome, them
       </div>
 
       <div className="ma-fade-stagger" style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16, animationDelay: "130ms" }}>
-        <button type="button" className="ma-card-soft" style={styles.btn} onClick={() => setActive(true)}>
-          Activar AutoGestor
+        <button type="button" className="ma-card-soft" style={styles.btn} onClick={activateAutoManager} disabled={isSubmitting}>
+          {isSubmitting ? "Activando..." : "Activar AutoGestor"}
         </button>
         <button type="button" className="ma-card-soft" style={secondaryBtnStyle} onClick={onGoHome}>
           Ir al inicio
         </button>
       </div>
+
+      {submitFeedback ? (
+        <div style={{ marginBottom: 16, fontSize: 13, color: submitFeedback.toLowerCase().includes("no se pudo") ? "#b91c1c" : bodyColor }}>
+          {submitFeedback}
+        </div>
+      ) : null}
 
       {active && (
         <div

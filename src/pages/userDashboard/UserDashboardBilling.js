@@ -44,6 +44,14 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
     : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))";
   const panelBorder = isDark ? "1px solid rgba(148,163,184,0.26)" : "1px solid rgba(59,130,246,0.34)";
   const cardBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(37,99,235,0.3)";
+  const sectionFrame = {
+    background: isDark ? "rgba(2,6,23,0.34)" : "rgba(248,250,252,0.86)",
+    border: isDark ? "1px solid rgba(148,163,184,0.22)" : "1px solid rgba(148,163,184,0.24)",
+    borderRadius: 14,
+    boxShadow: isDark
+      ? "0 14px 26px rgba(2,6,23,0.28)"
+      : "0 10px 20px rgba(15,23,42,0.06)",
+  };
   const inputStyle = {
     width: "100%",
     background: isDark ? "#0f1b2d" : "#ffffff",
@@ -317,7 +325,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
   };
 
   return (
-    <section id="user-dashboard-billing" style={{ ...panelStyle, marginBottom: 16 }}>
+    <section id="user-dashboard-billing" style={{ ...panelStyle, ...sectionFrame, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
           <div style={{ fontSize: 11, color: "#2563eb", letterSpacing: "0.6px" }}>MI CUENTA Y FACTURACION</div>

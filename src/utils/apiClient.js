@@ -284,3 +284,75 @@ export function postSavedOfferRemoveJson(email, offerId, options = {}) {
     ...options,
   });
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// User saved comparisons  /api/user-saved
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const USER_SAVED_API_ENDPOINT = "/api/user-saved";
+
+export function getUserSavedComparisonsJson(options = {}) {
+  return getJson(USER_SAVED_API_ENDPOINT, { endpointLabel: "user-saved", ...options });
+}
+
+export function postUserSavedComparisonJson(comparison, options = {}) {
+  return postJson(USER_SAVED_API_ENDPOINT, { comparison }, { endpointLabel: "user-saved", ...options });
+}
+
+export function deleteUserSavedComparisonJson(id, options = {}) {
+  const query = new URLSearchParams({ id: String(id || "") });
+  return fetch(`${USER_SAVED_API_ENDPOINT}?${query.toString()}`, {
+    method: "DELETE",
+    credentials: "include",
+    ...options,
+  }).then(async (response) => {
+    const data = await readApiResponse(response, { endpointLabel: "user-saved" });
+    return { response, data };
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Market alerts  /api/user-alerts
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const USER_ALERTS_API_ENDPOINT = "/api/user-alerts";
+
+export function getUserAlertsJson(options = {}) {
+  return getJson(USER_ALERTS_API_ENDPOINT, { endpointLabel: "user-alerts", ...options });
+}
+
+export function postUserAlertJson(alert, options = {}) {
+  return postJson(USER_ALERTS_API_ENDPOINT, { alert }, { endpointLabel: "user-alerts", ...options });
+}
+
+export function deleteUserAlertJson(id, options = {}) {
+  const query = new URLSearchParams({ id: String(id || "") });
+  return fetch(`${USER_ALERTS_API_ENDPOINT}?${query.toString()}`, {
+    method: "DELETE",
+    credentials: "include",
+    ...options,
+  }).then(async (response) => {
+    const data = await readApiResponse(response, { endpointLabel: "user-alerts" });
+    return { response, data };
+  });
+}
+
+export function postUserAlertStatusJson(alertId, seenCount, options = {}) {
+  const query = new URLSearchParams({ scope: "status" });
+  return postJson(`${USER_ALERTS_API_ENDPOINT}?${query.toString()}`, { alertId, seenCount }, { endpointLabel: "user-alerts", ...options });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// User preferences  /api/user-preferences
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const USER_PREFERENCES_API_ENDPOINT = "/api/user-preferences";
+
+export function getUserPreferencesJson(options = {}) {
+  return getJson(USER_PREFERENCES_API_ENDPOINT, { endpointLabel: "user-preferences", ...options });
+}
+
+export function putUserPreferencesJson(preferences, options = {}) {
+  return postJson(USER_PREFERENCES_API_ENDPOINT, { preferences }, { endpointLabel: "user-preferences", ...options });
+}
+

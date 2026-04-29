@@ -1,184 +1,71 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { postAlertEmailDigestJson } from "../utils/apiClient";
 import "./ContactCarswisePage.css";
 
-function getContactContent(language) {
-  if (language === "en") {
-    return {
-      topics: [
-        { key: "compra", emoji: "🔍", label: "Car purchase" },
-        { key: "gestion", emoji: "⚙️", label: "Vehicle management" },
-        { key: "venta", emoji: "💰", label: "Car sale" },
-        { key: "otro", emoji: "💡", label: "Other topic" },
-      ],
-      chatSuggestions: [
-        "Which car do you recommend?",
-        "When should I change my car?",
-        "How can I sell my car better?",
-        "Electric or hybrid?",
-      ],
-      faqItems: [
-        {
-          q: "Does CarsWise charge for advice?",
-          a: "The first consultation is free. For advanced buying, management or selling services, we use a transparent fee model that we explain with no commitment.",
-        },
-        {
-          q: "Which areas do you operate in?",
-          a: "We operate across Spain. Financial and model advisory is 100% digital.",
-        },
-        {
-          q: "How long does a response take?",
-          a: "We reply within a maximum of 24 hours on business days. Messages received Friday afternoon are handled on Monday.",
-        },
-      ],
-      botWelcome:
-        "Hi, I am the CarsWise assistant. I help you make better decisions about buying, managing or selling your car. How can I help?",
-      eyebrow: "Let's talk",
-      heroTitlePrefix: "Tell us how we can",
-      heroTitleAccent: "help",
-      heroSubtitle: "Whether you want to buy, manage or sell your car, we are here to guide you with real criteria.",
-      responseHours: "Response hours",
-      responseSchedule: "Mon - Fri, 9:00 - 18:00",
-      tabWrite: "Write to us",
-      tabChat: "AI Chatbot",
-      formTitle: "Write to us",
-      formSubtitle: "Response in less than 24 hours on business days.",
-      firstName: "First name",
-      firstNamePlaceholder: "Your first name",
-      lastName: "Last name",
-      lastNamePlaceholder: "Your last name",
-      phone: "Phone",
-      message: "Message",
-      messagePlaceholder: "Tell us your situation, the type of car you are looking for, or any question...",
-      selectedTopic: "Selected topic",
-      other: "Other",
-      sendMessage: "Send message",
-      aiAssistantTitle: "CarsWise AI assistant",
-      aiAssistantSubtitle: "Ask me about buying, managing or selling your car.",
-      questionPlaceholder: "Write your question...",
-      send: "Send",
-      sentTitle: "Message sent",
-      sentSubtitle: "Thanks for contacting CarsWise. We will reply in less than 24 hours.",
-      sendAnother: "Send another message",
-      faqTitle: "Frequently asked questions",
-      commitmentTitle: "Our commitment",
-      promiseResponseTitle: "Reply in less than 24h",
-      promiseResponseText: "No generic forms. A real person will answer you.",
-      promiseDirectTitle: "No fluff",
-      promiseDirectText: "We give direct criteria, not empty marketing.",
-      promiseDataTitle: "Your data is safe",
-      promiseDataText: "GDPR compliant. We do not sell or share your information.",
-    };
-  }
-
-  return {
-    topics: [
-      { key: "compra", emoji: "🔍", label: "Compra de coche" },
-      { key: "gestion", emoji: "⚙️", label: "Gestion de vehiculo" },
-      { key: "venta", emoji: "💰", label: "Venta de coche" },
-      { key: "otro", emoji: "💡", label: "Otro tema" },
-    ],
-    chatSuggestions: [
-      "Que coche me recomiendas?",
-      "Cuando debo cambiar el coche?",
-      "Como vendo mejor mi coche?",
-      "Electrico o hibrido?",
-    ],
-    faqItems: [
-      {
-        q: "CarsWise cobra por el asesoramiento?",
-        a: "La primera consulta es gratuita. Para servicios avanzados de compra, gestion o venta existe un modelo de honorarios transparente que te explicamos sin compromiso.",
-      },
-      {
-        q: "En que zonas operais?",
-        a: "Operamos en todo el territorio espanol. El asesoramiento financiero y de modelo es 100% digital.",
-      },
-      {
-        q: "Cuanto tarda una respuesta?",
-        a: "Respondemos en un maximo de 24 horas en dias laborables. Lo recibido en viernes tarde se gestiona el lunes.",
-      },
-    ],
-    botWelcome:
-      "Hola, soy el asistente de CarsWise. Te ayudo a decidir mejor sobre compra, gestion o venta de coche. En que te ayudo?",
-    eyebrow: "Hablemos",
-    heroTitlePrefix: "Cuentanos en que",
-    heroTitleAccent: "podemos",
-    heroSubtitle: "Ya sea que quieras comprar, gestionar o vender tu coche, estamos aqui para orientarte con criterio real.",
-    responseHours: "Horario de respuesta",
-    responseSchedule: "Lun - Vie, 9:00 - 18:00",
-    tabWrite: "Escribenos",
-    tabChat: "Chatbot IA",
-    formTitle: "Escribenos",
-    formSubtitle: "Respuesta en menos de 24 horas en dias laborables.",
-    firstName: "Nombre",
-    firstNamePlaceholder: "Tu nombre",
-    lastName: "Apellido",
-    lastNamePlaceholder: "Tu apellido",
-    phone: "Telefono",
-    message: "Mensaje",
-    messagePlaceholder: "Cuentanos tu situacion, el tipo de coche que buscas o cualquier pregunta...",
-    selectedTopic: "Tema seleccionado",
-    other: "Otro",
-    sendMessage: "Enviar mensaje",
-    aiAssistantTitle: "Asistente CarsWise IA",
-    aiAssistantSubtitle: "Preguntame sobre compra, gestion o venta de tu coche.",
-    questionPlaceholder: "Escribe tu pregunta...",
-    send: "Enviar",
-    sentTitle: "Mensaje enviado",
-    sentSubtitle: "Gracias por contactar con CarsWise. Te responderemos en menos de 24 horas.",
-    sendAnother: "Enviar otro mensaje",
-    faqTitle: "Preguntas frecuentes",
-    commitmentTitle: "Nuestro compromiso",
-    promiseResponseTitle: "Respuesta en menos de 24h",
-    promiseResponseText: "Sin formularios genericos. Una persona real te contestara.",
-    promiseDirectTitle: "Sin rodeos",
-    promiseDirectText: "Te daremos criterio directo, no marketing vacio.",
-    promiseDataTitle: "Tus datos seguros",
-    promiseDataText: "Cumplimos RGPD. No vendemos ni cedemos informacion.",
-  };
-}
-
-function buildBotReply(text, language = "es") {
-  const normalized = String(text || "").toLowerCase();
-
-  if (language === "en") {
-    if (normalized.includes("electric") || normalized.includes("hybrid")) {
-      return "If you drive many urban km and can charge at home, electric. If you do frequent long trips and want flexibility, hybrid or efficient petrol. If you want, I can help you decide with your monthly usage.";
-    }
-
-    if (normalized.includes("sell") || normalized.includes("sale")) {
-      return "To sell better, define a target price based on the real market, prepare maintenance history, and publish with consistent photos. At CarsWise we help you set pricing and exit strategy.";
-    }
-
-    if (normalized.includes("recommend") || normalized.includes("car")) {
-      return "I recommend choosing by total cost, not only by initial payment. If you share budget, yearly km and usage type, I will give you a concrete recommendation in 2-3 options.";
-    }
-
-    return "Perfect. To give you a precise answer I need your approximate monthly budget, yearly kilometers, and whether you prioritize buying, management or selling.";
-  }
-
-  if (normalized.includes("electrico") || normalized.includes("hibr")) {
-    return "Si haces muchos km urbanos y puedes cargar en casa, electrico. Si haces viajes largos frecuentes y quieres flexibilidad, hibrido o gasolina eficiente. Si quieres, te ayudo a decidir con tu uso mensual.";
-  }
-
-  if (normalized.includes("vender") || normalized.includes("venta")) {
-    return "Para vender mejor, define precio objetivo por mercado real, prepara historial de mantenimiento y publica con fotos consistentes. En CarsWise te ayudamos a fijar precio y estrategia de salida.";
-  }
-
-  if (normalized.includes("recom") || normalized.includes("coche")) {
-    return "Te recomiendo elegir por coste total, no solo por cuota inicial. Si me dices presupuesto, km al ano y tipo de uso, te doy una recomendacion concreta en 2-3 opciones.";
-  }
-
-  return "Perfecto. Para darte una respuesta precisa necesito tu presupuesto mensual aproximado, kilometros al ano y si priorizas compra, gestion o venta.";
-}
-
-export default function ContactCarswisePage({ uiLanguage = "es" }) {
-  const language = String(uiLanguage || "").toLowerCase() === "en" ? "en" : "es";
-  const content = useMemo(() => getContactContent(language), [language]);
+export default function ContactCarswisePage() {
+  const { t } = useTranslation();
+  const content = useMemo(
+    () => ({
+      topics: t("contact.topics", { returnObjects: true }),
+      chatSuggestions: t("contact.chatSuggestions", { returnObjects: true }),
+      faqItems: t("contact.faqItems", { returnObjects: true }),
+      botWelcome: t("contact.botWelcome"),
+      eyebrow: t("contact.eyebrow"),
+      heroTitlePrefix: t("contact.heroTitlePrefix"),
+      heroTitleAccent: t("contact.heroTitleAccent"),
+      heroTitleSuffix: t("contact.heroTitleSuffix"),
+      heroSubtitle: t("contact.heroSubtitle"),
+      responseHours: t("contact.responseHours"),
+      responseSchedule: t("contact.responseSchedule"),
+      tabWrite: t("contact.tabWrite"),
+      tabChat: t("contact.tabChat"),
+      formTitle: t("contact.formTitle"),
+      formSubtitle: t("contact.formSubtitle"),
+      firstName: t("contact.firstName"),
+      firstNamePlaceholder: t("contact.firstNamePlaceholder"),
+      lastName: t("contact.lastName"),
+      lastNamePlaceholder: t("contact.lastNamePlaceholder"),
+      phone: t("contact.phone"),
+      message: t("contact.message"),
+      messagePlaceholder: t("contact.messagePlaceholder"),
+      selectedTopic: t("contact.selectedTopic"),
+      other: t("contact.other"),
+      sendMessage: t("contact.sendMessage"),
+      aiAssistantTitle: t("contact.aiAssistantTitle"),
+      aiAssistantSubtitle: t("contact.aiAssistantSubtitle"),
+      questionPlaceholder: t("contact.questionPlaceholder"),
+      send: t("contact.send"),
+      sentTitle: t("contact.sentTitle"),
+      sentSubtitle: t("contact.sentSubtitle"),
+      sendAnother: t("contact.sendAnother"),
+      faqTitle: t("contact.faqTitle"),
+      commitmentTitle: t("contact.commitmentTitle"),
+      promiseResponseTitle: t("contact.promiseResponseTitle"),
+      promiseResponseText: t("contact.promiseResponseText"),
+      promiseDirectTitle: t("contact.promiseDirectTitle"),
+      promiseDirectText: t("contact.promiseDirectText"),
+      promiseDataTitle: t("contact.promiseDataTitle"),
+      promiseDataText: t("contact.promiseDataText"),
+    }),
+    [t]
+  );
   const [mode, setMode] = useState("form");
   const [topic, setTopic] = useState("compra");
   const [submitted, setSubmitted] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState(-1);
   const [chatInput, setChatInput] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [isChatSubmitting, setIsChatSubmitting] = useState(false);
+  const [chatError, setChatError] = useState("");
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    message: "",
+  });
   const [chatMessages, setChatMessages] = useState([
     {
       role: "bot",
@@ -190,32 +77,154 @@ export default function ContactCarswisePage({ uiLanguage = "es" }) {
 
   const activeTopic = useMemo(() => content.topics.find((item) => item.key === topic), [content.topics, topic]);
 
+  function buildBotReply(text) {
+    const normalized = String(text || "").toLowerCase();
+
+    if (normalized.includes("venta") || normalized.includes("sell")) {
+      return t("contact.botReply_venta");
+    }
+
+    if (normalized.includes("gestion") || normalized.includes("manage") || normalized.includes("service")) {
+      return t("contact.botReply_gestion");
+    }
+
+    if (normalized.includes("compra") || normalized.includes("buy") || normalized.includes("recommend") || normalized.includes("coche") || normalized.includes("car")) {
+      return t("contact.botReply_compra");
+    }
+
+    return t("contact.botReply_default");
+  }
+
   function resetWithCurrentLanguage() {
     setMode("form");
     setTopic("compra");
     setSubmitted(false);
+    setSubmitError("");
+    setIsSubmitting(false);
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      message: "",
+    });
+    setIsChatSubmitting(false);
+    setChatError("");
     setOpenFaqIndex(-1);
     setChatInput("");
     setChatMessages([{ role: "bot", text: content.botWelcome }]);
   }
 
-  function handleSubmit(event) {
-    event.preventDefault();
-    setSubmitted(true);
+  function updateFormField(field, value) {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   }
 
-  function sendMessage(rawText) {
-    const value = String(rawText || chatInput).trim();
-    if (!value) {
+  async function handleSubmit(event) {
+    event.preventDefault();
+
+    if (isSubmitting) {
       return;
     }
 
-    setChatMessages((prev) => [
-      ...prev,
-      { role: "user", text: value },
-      { role: "bot", text: buildBotReply(value, language) },
-    ]);
+    setIsSubmitting(true);
+    setSubmitError("");
+
+    const fullName = `${formData.firstName} ${formData.lastName}`.trim();
+    const topicLabel = activeTopic?.label || content.other;
+
+    try {
+      const { response, data } = await postAlertEmailDigestJson({
+        to: ["hola@carswise.es"],
+        subject: `CarsWise · Nuevo contacto web · ${topicLabel}`,
+        text: [
+          "Nuevo mensaje recibido desde la página de contacto de CarsWise.",
+          `Tema: ${topicLabel}`,
+          `Nombre: ${fullName || "No indicado"}`,
+          `Email: ${formData.email}`,
+          `Teléfono: ${formData.phone || "No indicado"}`,
+          "",
+          "Mensaje:",
+          formData.message,
+        ].join("\n"),
+        html: `
+          <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a;max-width:680px;margin:0 auto;">
+            <h2>Nuevo contacto web de CarsWise</h2>
+            <p><strong>Tema:</strong> ${topicLabel}</p>
+            <p><strong>Nombre:</strong> ${fullName || "No indicado"}<br />
+            <strong>Email:</strong> ${formData.email}<br />
+            <strong>Teléfono:</strong> ${formData.phone || "No indicado"}</p>
+            <p><strong>Mensaje:</strong></p>
+            <p>${String(formData.message || "").replace(/\n/g, "<br />")}</p>
+          </div>
+        `,
+      });
+
+      if (!response.ok || !data?.ok) {
+        throw new Error(data?.error || "No se pudo enviar el mensaje.");
+      }
+
+      setSubmitted(true);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "No se pudo enviar el mensaje.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function sendMessage(rawText) {
+    const value = String(rawText || chatInput).trim();
+    if (!value || isChatSubmitting) {
+      return;
+    }
+
+    setChatError("");
+    setIsChatSubmitting(true);
+    setChatMessages((prev) => [...prev, { role: "user", text: value }]);
     setChatInput("");
+
+    try {
+      const { response, data } = await postAlertEmailDigestJson({
+        to: ["hola@carswise.es"],
+        subject: "CarsWise · Consulta desde chat web",
+        text: [
+          "Nueva consulta enviada desde el chat de la página de contacto.",
+          "",
+          "Consulta:",
+          value,
+        ].join("\n"),
+        html: `
+          <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a;max-width:680px;margin:0 auto;">
+            <h2>Nueva consulta desde el chat web de CarsWise</h2>
+            <p><strong>Consulta:</strong></p>
+            <p>${String(value).replace(/\n/g, "<br />")}</p>
+          </div>
+        `,
+      });
+
+      if (!response.ok || !data?.ok) {
+        throw new Error(data?.error || "No se pudo enviar la consulta.");
+      }
+
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          role: "bot",
+          text: `${buildBotReply(value)}\n\nHe enviado tu consulta al equipo de CarsWise para que puedan responderte por un canal humano si hace falta.`,
+        },
+      ]);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "No se pudo enviar la consulta.";
+      setChatError(message);
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          role: "bot",
+          text: "No he podido escalar tu consulta al equipo en este momento. Puedes intentarlo de nuevo o usar el formulario de contacto.",
+        },
+      ]);
+    } finally {
+      setIsChatSubmitting(false);
+    }
   }
 
   return (
@@ -229,7 +238,7 @@ export default function ContactCarswisePage({ uiLanguage = "es" }) {
           <div className="cw-contact-hero-left">
             <div className="cw-contact-eyebrow">{content.eyebrow}</div>
             <h1 className="cw-contact-title">
-              {content.heroTitlePrefix} <span className="cw-contact-title-accent">{content.heroTitleAccent}</span> ayudarte
+              {content.heroTitlePrefix} <span className="cw-contact-title-accent">{content.heroTitleAccent}</span> {content.heroTitleSuffix}
             </h1>
             <p className="cw-contact-subtitle">
               {content.heroSubtitle}
@@ -304,20 +313,20 @@ export default function ContactCarswisePage({ uiLanguage = "es" }) {
                         <div className="cw-contact-row">
                           <label className="cw-contact-field">
                             <span>{content.firstName}</span>
-                            <input type="text" required placeholder={content.firstNamePlaceholder} />
+                            <input type="text" required placeholder={content.firstNamePlaceholder} value={formData.firstName} onChange={(event) => updateFormField("firstName", event.target.value)} />
                           </label>
                           <label className="cw-contact-field">
                             <span>{content.lastName}</span>
-                            <input type="text" placeholder={content.lastNamePlaceholder} />
+                            <input type="text" placeholder={content.lastNamePlaceholder} value={formData.lastName} onChange={(event) => updateFormField("lastName", event.target.value)} />
                           </label>
                         </div>
                         <label className="cw-contact-field">
                           <span>Email</span>
-                          <input type="email" required placeholder="tu@email.com" />
+                          <input type="email" required placeholder="tu@email.com" value={formData.email} onChange={(event) => updateFormField("email", event.target.value)} />
                         </label>
                         <label className="cw-contact-field">
                           <span>{content.phone}</span>
-                          <input type="tel" placeholder="+34 600 000 000" />
+                          <input type="tel" placeholder="+34 600 000 000" value={formData.phone} onChange={(event) => updateFormField("phone", event.target.value)} />
                         </label>
                         <label className="cw-contact-field">
                           <span>{content.message}</span>
@@ -325,11 +334,14 @@ export default function ContactCarswisePage({ uiLanguage = "es" }) {
                             required
                             placeholder={content.messagePlaceholder}
                             rows={4}
+                            value={formData.message}
+                            onChange={(event) => updateFormField("message", event.target.value)}
                           />
                         </label>
                         <div className="cw-contact-topic-hint">{content.selectedTopic}: {activeTopic?.label || content.other}</div>
-                        <button type="submit" className="cw-contact-submit-btn">
-                          {content.sendMessage}
+                        {submitError ? <div className="cw-contact-topic-hint" style={{ color: "#b91c1c" }}>{submitError}</div> : null}
+                        <button type="submit" className="cw-contact-submit-btn" disabled={isSubmitting}>
+                          {isSubmitting ? "Enviando..." : content.sendMessage}
                         </button>
                       </form>
                     </div>
@@ -369,10 +381,11 @@ export default function ContactCarswisePage({ uiLanguage = "es" }) {
                           onChange={(event) => setChatInput(event.target.value)}
                           placeholder={content.questionPlaceholder}
                         />
-                        <button type="button" className="cw-contact-chat-send" onClick={() => sendMessage()}>
-                          {content.send}
+                        <button type="button" className="cw-contact-chat-send" onClick={() => sendMessage()} disabled={isChatSubmitting}>
+                          {isChatSubmitting ? "Enviando..." : content.send}
                         </button>
                       </div>
+                      {chatError ? <div className="cw-contact-topic-hint" style={{ color: "#b91c1c", marginTop: 8 }}>{chatError}</div> : null}
                     </div>
                   )}
                 </>

@@ -1,5 +1,10 @@
 import { useEffect } from "react";
-import { getAuthSessionJson } from "../utils/apiClient";
+import {
+  getAuthSessionJson,
+  getUserAlertsJson,
+  getUserPreferencesJson,
+  getUserSavedComparisonsJson,
+} from "../utils/apiClient";
 import {
   clearAuthUser,
   readAuthUser,
@@ -10,6 +15,9 @@ import {
   readSavedComparisons,
   readUserAppointments,
   writeAuthUser,
+  writeMarketAlerts,
+  writeMarketAlertStatus,
+  writeSavedComparisons,
 } from "../utils/storage";
 
 export function useAppBootstrap({
@@ -62,6 +70,48 @@ export function useAppBootstrap({
           writeAuthUser(sessionUser);
           setCurrentUser(sessionUser);
           setIsUserLoggedIn(true);
+
+          // Sync backend data into state; localStorage becomes fallback cache.
+          void (async () => {
+            try {
+              const [savedRes, alertsRes, prefsRes] = await Promise.allSettled([
+                getUserSavedComparisonsJson(),
+                getUserAlertsJson(),
+                getUserPreferencesJson(),
+              ]);
+
+              if (savedRes.status === "fulfilled" && savedRes.value?.data?.ok) {
+                const comparisons = Array.isArray(savedRes.value.data.comparisons)
+                  ? savedRes.value.data.comparisons
+                  : [];
+                writeSavedComparisons(comparisons);
+                setSavedComparisons(comparisons);
+              }
+
+              if (alertsRes.status === "fulfilled" && alertsRes.value?.data?.ok) {
+                const alerts = Array.isArray(alertsRes.value.data.alerts)
+                  ? alertsRes.value.data.alerts
+                  : [];
+                const alertStatus = alertsRes.value.data.alertStatus || {};
+                writeMarketAlerts(alerts);
+                writeMarketAlertStatus(alertStatus);
+                setMarketAlerts(alerts);
+                setMarketAlertStatus(alertStatus);
+              }
+
+              if (prefsRes.status === "fulfilled" && prefsRes.value?.data?.ok && prefsRes.value.data.preferences) {
+                try {
+                  window.localStorage.setItem(
+                    "movilidad-advisor.userDashboard.preferences.v1",
+                    JSON.stringify(prefsRes.value.data.preferences)
+                  );
+                } catch {}
+              }
+            } catch {
+              // Backend sync failed; keep localStorage state as fallback.
+            }
+          })();
+
           return;
         }
 

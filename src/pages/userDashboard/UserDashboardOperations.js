@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getGarageVehiclesJson } from "../../utils/apiClient";
 import { readUserBillingState, writeUserBillingCheckoutIntent } from "../../utils/storage";
 
@@ -111,7 +112,6 @@ function getSuggestedPlanForManagement(managementType = "appointment") {
 
 export default function UserDashboardOperations({
   themeMode,
-  uiLanguage = "es",
   isMobile = false,
   dashboardAppointments,
   dashboardValuations,
@@ -123,73 +123,54 @@ export default function UserDashboardOperations({
   currentUserEmail = "",
   initialTab = "appointments",
 }) {
-  const language = String(uiLanguage || "").toLowerCase() === "en" ? "en" : "es";
+  const { t } = useTranslation();
   const text = {
-    apiGarageReadError: language === "en" ? "Could not read garage from API" : "No se pudo leer el garage desde la API",
-    appointmentsTab: language === "en" ? "Appointments" : "Citas",
-    valuationsTab: language === "en" ? "Valuations" : "Tasaciones",
-    allTab: language === "en" ? "All" : "Todo",
-    workshop: language === "en" ? "Workshop" : "Taller",
-    maintenance: language === "en" ? "Maintenance" : "Mantenimiento",
-    insurance: language === "en" ? "Insurance" : "Seguro",
-    warrantyQuality: language === "en" ? "Warranty / quality" : "Garantía / calidad",
-    appointment: language === "en" ? "Appointment" : "Cita",
-    operationLabel: language === "en" ? "OPERATIONS" : "OPERACIONES",
-    title: language === "en" ? "Appointments and valuations workflow" : "Workflow de citas y tasaciones",
-    subtitle:
-      language === "en"
-        ? "Manage technical agenda and commercial valuation in a single operational line."
-        : "Gestiona agenda técnica y valoración comercial en una única línea operativa.",
-    appointmentsCountSuffix: language === "en" ? "appointments" : "citas",
-    valuationsCountSuffix: language === "en" ? "valuations" : "tasaciones",
-    pending: language === "en" ? "Pending" : "Pendientes",
-    active: language === "en" ? "In progress" : "En curso",
-    closed: language === "en" ? "Closed" : "Cerradas",
-    newManagement: language === "en" ? "New operation" : "Nueva gestión",
-    wizardIntro:
-      language === "en"
-        ? "Create an operation in a single flow: select vehicle and service type."
-        : "Crea una gestión desde un único flujo: selecciona vehículo y tipo de servicio.",
-    appointmentMaintenance: language === "en" ? "Appointment / maintenance" : "Cita / mantenimiento",
-    valuation: language === "en" ? "Valuation" : "Tasación",
-    vehicle: language === "en" ? "Vehicle" : "Vehículo",
-    noVehiclesInGarage: language === "en" ? "No vehicles in My vehicles" : "No hay vehículos en Mis vehículos",
-    appointmentType: language === "en" ? "Appointment type" : "Tipo de cita",
-    valuationMode: language === "en" ? "Valuation mode" : "Modo de tasación",
-    useGarageData: language === "en" ? "Use My vehicles data" : "Usar datos de Mis vehículos",
-    startFromScratch: language === "en" ? "Start from scratch" : "Empezar desde cero",
-    planCoverage: language === "en" ? "Plan coverage" : "Cobertura de tu plan",
-    serviceIncluded: language === "en" ? "Service included" : "Servicio incluido",
-    payPerOperation: language === "en" ? "Pay per operation service" : "Servicio de pago por gestión",
-    uploadVehicleFirst:
-      language === "en"
-        ? "First upload at least one vehicle in My vehicles to create operations."
-        : "Primero sube al menos un vehículo en Mis vehículos para crear gestiones.",
-    goToMyVehicles: language === "en" ? "Go to My vehicles" : "Ir a Mis vehículos",
-    includedContinue: language === "en" ? "Included, continue" : "Incluido, continuar",
-    continueAsOneOff: language === "en" ? "Continue as one-off payment" : "Continuar como pago puntual",
-    buyOperation: language === "en" ? "Buy operation" : "Comprar gestión",
-    cancel: language === "en" ? "Cancel" : "Cancelar",
-    noOperationsYet:
-      language === "en"
-        ? "No operations in this view yet. When you have activity, it will appear here."
-        : "No hay operaciones en esta vista todavía. Cuando tengas actividad, aparecerá aquí.",
-    yourVehicle: language === "en" ? "your vehicle" : "tu vehículo",
-    plate: language === "en" ? "plate" : "matrícula",
-    includedInPlan: language === "en" ? "Included in" : "Incluida en",
-    oneOffPayment: language === "en" ? "One-off management" : "Gestión puntual",
-    requestedFor: language === "en" ? "requested for" : "solicitada para",
-    valuationFromScratch:
-      language === "en" ? "New valuation started from scratch." : "Nueva tasación iniciada desde cero.",
-    valuationStartedFor: language === "en" ? "New valuation started for" : "Nueva tasación iniciada para",
-    selectVehicleForAppointment:
-      language === "en"
-        ? "You must select one of your vehicles to request an appointment."
-        : "Debes seleccionar uno de tus vehículos para pedir la cita.",
-    selectVehicleForValuation:
-      language === "en"
-        ? "Select one of your vehicles to start valuation."
-        : "Selecciona uno de tus vehículos para iniciar la tasación.",
+    apiGarageReadError: t("dashboardOperations.apiGarageReadError"),
+    appointmentsTab: t("dashboardOperations.appointmentsTab"),
+    valuationsTab: t("dashboardOperations.valuationsTab"),
+    allTab: t("dashboardOperations.allTab"),
+    workshop: t("dashboardOperations.workshop"),
+    maintenance: t("dashboardOperations.maintenance"),
+    insurance: t("dashboardOperations.insurance"),
+    warrantyQuality: t("dashboardOperations.warrantyQuality"),
+    appointment: t("dashboardOperations.appointment"),
+    operationLabel: t("dashboardOperations.operationLabel"),
+    title: t("dashboardOperations.title"),
+    subtitle: t("dashboardOperations.subtitle"),
+    appointmentsCountSuffix: t("dashboardOperations.appointmentsCountSuffix"),
+    valuationsCountSuffix: t("dashboardOperations.valuationsCountSuffix"),
+    pending: t("dashboardOperations.pending"),
+    active: t("dashboardOperations.active"),
+    closed: t("dashboardOperations.closed"),
+    newManagement: t("dashboardOperations.newManagement"),
+    wizardIntro: t("dashboardOperations.wizardIntro"),
+    appointmentMaintenance: t("dashboardOperations.appointmentMaintenance"),
+    valuation: t("dashboardOperations.valuation"),
+    vehicle: t("dashboardOperations.vehicle"),
+    noVehiclesInGarage: t("dashboardOperations.noVehiclesInGarage"),
+    appointmentType: t("dashboardOperations.appointmentType"),
+    valuationMode: t("dashboardOperations.valuationMode"),
+    useGarageData: t("dashboardOperations.useGarageData"),
+    startFromScratch: t("dashboardOperations.startFromScratch"),
+    planCoverage: t("dashboardOperations.planCoverage"),
+    serviceIncluded: t("dashboardOperations.serviceIncluded"),
+    payPerOperation: t("dashboardOperations.payPerOperation"),
+    uploadVehicleFirst: t("dashboardOperations.uploadVehicleFirst"),
+    goToMyVehicles: t("dashboardOperations.goToMyVehicles"),
+    includedContinue: t("dashboardOperations.includedContinue"),
+    continueAsOneOff: t("dashboardOperations.continueAsOneOff"),
+    buyOperation: t("dashboardOperations.buyOperation"),
+    cancel: t("dashboardOperations.cancel"),
+    noOperationsYet: t("dashboardOperations.noOperationsYet"),
+    yourVehicle: t("dashboardOperations.yourVehicle"),
+    plate: t("dashboardOperations.plate"),
+    includedInPlan: t("dashboardOperations.includedInPlan"),
+    oneOffPayment: t("dashboardOperations.oneOffPayment"),
+    requestedFor: t("dashboardOperations.requestedFor"),
+    valuationFromScratch: t("dashboardOperations.valuationFromScratch"),
+    valuationStartedFor: t("dashboardOperations.valuationStartedFor"),
+    selectVehicleForAppointment: t("dashboardOperations.selectVehicleForAppointment"),
+    selectVehicleForValuation: t("dashboardOperations.selectVehicleForValuation"),
   };
 
   const isDark = themeMode === "dark";
@@ -200,6 +181,14 @@ export default function UserDashboardOperations({
     : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))";
   const panelBorder = isDark ? "1px solid rgba(148,163,184,0.26)" : "1px solid rgba(59,130,246,0.34)";
   const cardBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(37,99,235,0.3)";
+  const sectionFrame = {
+    background: isDark ? "rgba(2,6,23,0.34)" : "rgba(248,250,252,0.86)",
+    border: isDark ? "1px solid rgba(148,163,184,0.22)" : "1px solid rgba(148,163,184,0.24)",
+    borderRadius: 14,
+    boxShadow: isDark
+      ? "0 14px 26px rgba(2,6,23,0.28)"
+      : "0 10px 20px rgba(15,23,42,0.06)",
+  };
 
   const [activeTab, setActiveTab] = useState(initialTab);
   const [showManagementWizard, setShowManagementWizard] = useState(false);
@@ -433,7 +422,7 @@ export default function UserDashboardOperations({
   };
 
   return (
-    <section id="user-dashboard-operations" style={{ ...panelStyle, marginBottom: 16 }}>
+    <section id="user-dashboard-operations" style={{ ...panelStyle, ...sectionFrame, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
           <div style={{ fontSize: 11, color: "#f59e0b", letterSpacing: "0.6px" }}>{text.operationLabel}</div>

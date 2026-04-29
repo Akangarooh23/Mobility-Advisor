@@ -1,9 +1,9 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getBrandOptionSegments } from "../utils/brandCatalog";
 
 export default function SellPage({
   styles,
-  uiLanguage = "es",
   sellFlowType,
   selectedValuationVehicleSummary,
   sellAnswers,
@@ -23,72 +23,57 @@ export default function SellPage({
   formatCurrency,
   onRestart,
 }) {
-  const language = String(uiLanguage || "").toLowerCase() === "en" ? "en" : "es";
+  const { t } = useTranslation();
   const text = {
-    pageBadgeCertificate: language === "en" ? "📑 B2CARS CERTIFICATE" : "📑 CERTIFICADO B2CARS",
-    pageBadgeReport: language === "en" ? "📊 B2CARS REPORT" : "📊 INFORME B2CARS",
-    pageTitleCertificate: language === "en" ? "Prepare your car's official certification" : "Prepara la certificación oficial de tu coche",
-    pageTitleReport: language === "en" ? "Calculate your car's listing price" : "Calcula el precio de salida de tu coche",
-    pageDescriptionCertificate:
-      language === "en"
-        ? "We gather key vehicle information to issue an official certification and help you sell with stronger backing for the buyer."
-        : "Recopilamos la información clave del vehículo para emitir una certificación oficial y ayudarte en la venta con mayor respaldo frente al comprador.",
-    pageDescriptionReport:
-      language === "en"
-        ? "We provide real-time information on average price, historical trend, similar stock, and a launch range so you can publish with clear criteria."
-        : "Te damos información en tiempo real sobre precio medio, tendencia histórica, stock de coches similares y una horquilla de salida para publicar con criterio.",
-    selectedFromPlate: language === "en" ? "VEHICLE SELECTED FROM PLATE" : "VEHÍCULO SELECCIONADO DESDE MATRÍCULA",
-    noPlate: language === "en" ? "No plate" : "Sin matrícula",
-    brand: language === "en" ? "Brand" : "Marca",
-    selectBrand: language === "en" ? "Select brand" : "Selecciona marca",
-    moreBrands: language === "en" ? "+ more brands" : "+ más marcas",
-    model: language === "en" ? "Model" : "Modelo",
-    selectModel: language === "en" ? "Select model" : "Selecciona modelo",
-    year: language === "en" ? "Year" : "Año",
-    selectYear: language === "en" ? "Select year" : "Selecciona año",
-    mileage: language === "en" ? "Mileage" : "Kilometraje",
-    selectMileage: language === "en" ? "Select mileage" : "Selecciona kilometraje",
-    upTo20k: language === "en" ? "Up to 20,000 km" : "Hasta 20.000 km",
-    from20kTo50k: language === "en" ? "20,000 - 50,000 km" : "20.000 - 50.000 km",
-    from50kTo80k: language === "en" ? "50,000 - 80,000 km" : "50.000 - 80.000 km",
-    from80kTo120k: language === "en" ? "80,000 - 120,000 km" : "80.000 - 120.000 km",
-    over120k: language === "en" ? "Over 120,000 km" : "Más de 120.000 km",
-    fuel: language === "en" ? "Fuel" : "Combustible",
-    salesChannel: language === "en" ? "Sales channel" : "Canal de venta",
-    privateSeller: language === "en" ? "Private seller" : "Particular",
-    professionalSeller: language === "en" ? "Professional" : "Profesional",
-    dealerTradeIn: language === "en" ? "Dealer trade-in" : "Entrega en concesionario",
-    aiValuation: language === "en" ? "AI VALUATION" : "VALORACIÓN CON IA",
-    valuing: language === "en" ? "Valuing with AI..." : "Valorando con IA...",
-    valueWithAi: language === "en" ? "🤖 Value car with AI" : "🤖 Valorar coche con IA",
-    aiHint:
-      language === "en"
-        ? "AI will return the valuation and one real comparable listing for review."
-        : "La IA te devolverá la valoración y un anuncio comparable real para revisar.",
-    aiTargetPrice: language === "en" ? "AI TARGET PRICE" : "PRECIO OBJETIVO IA",
-    reasonableRange: language === "en" ? "Reasonable range between" : "Rango razonable entre",
-    estimatedDemand: language === "en" ? "ESTIMATED DEMAND" : "DEMANDA ESTIMADA",
-    average: language === "en" ? "Average" : "Media",
-    estimatedSaleTime: language === "en" ? "ESTIMATED SALE TIME" : "TIEMPO ESTIMADO DE VENTA",
-    saleTimeFallback: language === "en" ? "Depends on price and demand" : "Depende del precio y la demanda",
-    aiSummary: language === "en" ? "AI REPORT SUMMARY" : "RESUMEN DEL INFORME IA",
-    strategy: language === "en" ? "Strategy" : "Estrategia",
-    searchingComparable: language === "en" ? "Searching comparable..." : "Buscando comparable...",
-    viewComparable: language === "en" ? "🔎 View real comparable listing" : "🔎 Ver anuncio comparable real",
-    comparableHint:
-      language === "en"
-        ? "We show one real market comparable listing so you can contrast your price."
-        : "Te mostramos un único anuncio comparable del mercado para contrastar el precio.",
-    marketComparable: language === "en" ? "🚗 MARKET COMPARABLE LISTING" : "🚗 ANUNCIO COMPARABLE DE MERCADO",
-    comparableDescriptionFallback:
-      language === "en"
-        ? "Real comparable found to help you defend your listing price."
-        : "Comparable real localizado para ayudarte a defender el precio de salida.",
-    openListing: language === "en" ? "Open listing ↗" : "Abrir anuncio ↗",
-    localPricePreview: language === "en" ? "LOCAL PRICE PREVIEW" : "PREVIEW LOCAL DE PRECIO",
-    indicativeRange: language === "en" ? "Indicative range between" : "Rango orientativo entre",
-    whileAiRuns: language === "en" ? "while you launch AI valuation." : "mientras lanzas la valoración con IA.",
-    backHome: language === "en" ? "Back to home" : "Volver al inicio",
+    pageBadgeCertificate: t("sell.pageBadgeCertificate"),
+    pageBadgeReport: t("sell.pageBadgeReport"),
+    pageTitleCertificate: t("sell.pageTitleCertificate"),
+    pageTitleReport: t("sell.pageTitleReport"),
+    pageDescriptionCertificate: t("sell.pageDescriptionCertificate"),
+    pageDescriptionReport: t("sell.pageDescriptionReport"),
+    selectedFromPlate: t("sell.selectedFromPlate"),
+    noPlate: t("sell.noPlate"),
+    brand: t("sell.brand"),
+    selectBrand: t("sell.selectBrand"),
+    moreBrands: t("sell.moreBrands"),
+    model: t("sell.model"),
+    selectModel: t("sell.selectModel"),
+    year: t("sell.year"),
+    selectYear: t("sell.selectYear"),
+    mileage: t("sell.mileage"),
+    selectMileage: t("sell.selectMileage"),
+    upTo20k: t("sell.upTo20k"),
+    from20kTo50k: t("sell.from20kTo50k"),
+    from50kTo80k: t("sell.from50kTo80k"),
+    from80kTo120k: t("sell.from80kTo120k"),
+    over120k: t("sell.over120k"),
+    fuel: t("sell.fuel"),
+    salesChannel: t("sell.salesChannel"),
+    privateSeller: t("sell.privateSeller"),
+    professionalSeller: t("sell.professionalSeller"),
+    dealerTradeIn: t("sell.dealerTradeIn"),
+    aiValuation: t("sell.aiValuation"),
+    valuing: t("sell.valuing"),
+    valueWithAi: t("sell.valueWithAi"),
+    aiHint: t("sell.aiHint"),
+    aiTargetPrice: t("sell.aiTargetPrice"),
+    reasonableRange: t("sell.reasonableRange"),
+    estimatedDemand: t("sell.estimatedDemand"),
+    average: t("sell.average"),
+    estimatedSaleTime: t("sell.estimatedSaleTime"),
+    saleTimeFallback: t("sell.saleTimeFallback"),
+    aiSummary: t("sell.aiSummary"),
+    strategy: t("sell.strategy"),
+    searchingComparable: t("sell.searchingComparable"),
+    viewComparable: t("sell.viewComparable"),
+    comparableHint: t("sell.comparableHint"),
+    marketComparable: t("sell.marketComparable"),
+    comparableDescriptionFallback: t("sell.comparableDescriptionFallback"),
+    openListing: t("sell.openListing"),
+    localPricePreview: t("sell.localPricePreview"),
+    indicativeRange: t("sell.indicativeRange"),
+    whileAiRuns: t("sell.whileAiRuns"),
+    backHome: t("sell.backHome"),
   };
 
   const isCertificateFlow = sellFlowType === "certificate";

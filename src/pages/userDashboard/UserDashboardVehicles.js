@@ -3,6 +3,9 @@ import {
   getGarageVehiclesJson,
   postGarageVehicleAddJson,
   postGarageVehicleRemoveJson,
+  postMaintenanceAddJson,
+  postInsuranceUpsertJson,
+  postVehicleStateUpsertJson,
   getErpBrandsJson,
   getErpModelsJson,
   getErpVersionsJson,
@@ -257,6 +260,14 @@ export default function UserDashboardVehicles({
   const elevatedShadow = isDark ? "0 18px 30px rgba(2,6,23,0.4)" : "0 14px 28px rgba(15,23,42,0.08)";
   const subtleShadow = isDark ? "0 8px 16px rgba(2,6,23,0.28)" : "0 8px 18px rgba(15,23,42,0.06)";
   const inputBg = isDark ? "#0f1b2d" : "#ffffff";
+  const sectionFrame = {
+    background: isDark ? "rgba(2,6,23,0.34)" : "rgba(248,250,252,0.86)",
+    border: isDark ? "1px solid rgba(148,163,184,0.22)" : "1px solid rgba(148,163,184,0.24)",
+    borderRadius: 14,
+    boxShadow: isDark
+      ? "0 14px 26px rgba(2,6,23,0.28)"
+      : "0 10px 20px rgba(15,23,42,0.06)",
+  };
 
   function mapErpTransmission(t = "") {
     const v = String(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -682,6 +693,31 @@ export default function UserDashboardVehicles({
       // Fallback to local state/localStorage when API is unavailable.
     }
 
+    if (currentUserEmail) {
+      const maintenanceTitle = normalizeText(vehicle.initialMaintenance?.title);
+      if (maintenanceTitle) {
+        void postMaintenanceAddJson(currentUserEmail, {
+          vehicleId: vehicle.id,
+          type: normalizeText(vehicle.initialMaintenance?.type) || "maintenance",
+          title: maintenanceTitle,
+          notes: normalizeText(vehicle.initialMaintenance?.notes),
+          status: "pendiente",
+        }).catch(() => {});
+      }
+
+      const policyCompany = normalizeText(vehicle.policyCompany);
+      const policyNumber = normalizeText(vehicle.policyNumber);
+      if (policyCompany || policyNumber) {
+        void postInsuranceUpsertJson(currentUserEmail, {
+          vehicleId: vehicle.id,
+          policyCompany,
+          policyNumber,
+          coverageType: normalizeText(vehicle.coverageType),
+          status: "activo",
+        }).catch(() => {});
+      }
+    }
+
     setMyVehicles(Array.isArray(nextVehicles) ? nextVehicles : [vehicle, ...myVehicles].slice(0, 20));
     setEditingVehicleId("");
     setShowNewVehicleForm(false);
@@ -895,6 +931,14 @@ export default function UserDashboardVehicles({
       fuel: vehicle.fuel,
     });
 
+    if (currentUserEmail && normalizeText(vehicle.id)) {
+      void postVehicleStateUpsertJson(currentUserEmail, {
+        vehicleId: vehicle.id,
+        state: "active_sale",
+        notes: `Precio publicado: ${marketplacePrice} EUR`,
+      }).catch(() => {});
+    }
+
     setVehicleFeedback(`Vehículo ${vehicleLabel} preparado para marketplace con precio ${marketplacePrice} EUR.`);
     closeMarketplacePublishDialog();
   };
@@ -939,11 +983,14 @@ export default function UserDashboardVehicles({
 
     if (action === "insurance") {
       setVehicleFeedback(`Gestión de seguro iniciada para ${vehicleLabel}.`);
+      startEditingVehicle(vehicle);
+      // Expand the insurance section in the editor
+      setExpandedVehicleSections((prev) => ({ ...prev, insurance: true }));
     }
   };
 
   return (
-    <section id="user-dashboard-vehicles" style={{ ...panelStyle, marginBottom: 16 }}>
+    <section id="user-dashboard-vehicles" style={{ ...panelStyle, ...sectionFrame, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
           <div style={{ fontSize: 11, color: "#34d399", letterSpacing: "0.6px" }}>MIS VEHÍCULOS</div>

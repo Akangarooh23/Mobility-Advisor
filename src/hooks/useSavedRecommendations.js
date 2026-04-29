@@ -1,5 +1,8 @@
 import { useCallback } from "react";
-import { postSavedOfferAddJson, postSavedOfferRemoveJson } from "../utils/apiClient";
+import {
+  deleteUserSavedComparisonJson,
+  postUserSavedComparisonJson,
+} from "../utils/apiClient";
 import { buildComparisonSnapshot, buildSavedComparisonKey } from "../utils/businessHelpers";
 import { writeSavedComparisons } from "../utils/storage";
 
@@ -29,7 +32,7 @@ export function useSavedRecommendations({
     setSavedComparisons(next);
 
     if (currentUserEmail) {
-      void postSavedOfferAddJson(currentUserEmail, snapshot).catch(() => {});
+      void postUserSavedComparisonJson(snapshot).catch(() => {});
     }
 
     setSaveFeedback(
@@ -81,7 +84,7 @@ export function useSavedRecommendations({
       setSavedComparisons(next);
 
       if (currentUserEmail) {
-        void postSavedOfferRemoveJson(currentUserEmail, snapshot.id).catch(() => {});
+        void deleteUserSavedComparisonJson(snapshot.id).catch(() => {});
       }
 
       setSaveFeedback("Recomendación quitada de guardadas.");
@@ -108,7 +111,7 @@ export function useSavedRecommendations({
     setSavedComparisons(next);
 
     if (currentUserEmail) {
-      void postSavedOfferRemoveJson(currentUserEmail, id).catch(() => {});
+      void deleteUserSavedComparisonJson(id).catch(() => {});
     }
   }, [currentUserEmail, savedComparisons, setSavedComparisons]);
 

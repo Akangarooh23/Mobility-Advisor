@@ -227,6 +227,65 @@ Diagnóstico rápido (local):
    - `npm run test:auth-all-local`
 - Verificación de seguridad (rate-limit/backoff) en local:
    - `npm run test:auth-security-local`
+- Flujo combinado de backend local (auth + seguridad + movilidad):
+   - `npm run test:backend-all-local`
+- Flujo CI multiplataforma (auth + seguridad, y movilidad solo si `RUN_MOBILITY_BACKEND_TESTS=true`):
+   - `npm run test:backend-ci`
+
+### Verificación E2E de persistencia de movilidad
+
+- Con la API local levantada en `http://localhost:3001`, puedes validar el flujo completo de persistencia backend:
+   - `npm run test:mobility-backend-local`
+- Ese check ya queda incluido dentro del flujo combinado:
+   - `npm run test:backend-all-local`
+- Y puede incluirse en CI si el runner dispone de SQL Server y `sqlcmd`:
+   - `RUN_MOBILITY_BACKEND_TESTS=true npm run test:backend-ci`
+- El script prueba con sesión real:
+   - registro + login,
+   - `GET/POST /api/user-preferences`,
+   - `POST/GET/DELETE /api/user-saved`,
+   - `POST/GET/DELETE /api/user-alerts`,
+   - `POST /api/user-alerts?scope=status`.
+- Después verifica directamente en SQL Server que se han escrito filas reales en:
+   - `dbo.MoveAdvisorUserSavedComparisons`
+   - `dbo.MoveAdvisorUserMarketAlerts`
+   - `dbo.MoveAdvisorUserMarketAlertStatus`
+   - `dbo.MoveAdvisorUserPreferences`
+- Variables relevantes para este check:
+   - `API_BASE_URL` (por defecto `http://localhost:3001`)
+   - `MSSQL_SERVER`
+   - `MSSQL_DATABASE`
+
+### Limpieza de usuarios de prueba en SQL Server
+
+- Para borrar usuarios generados por los checks locales y sus datos asociados de movilidad/auth:
+   - `npm run cleanup:test-users-local`
+- Patrones eliminados por defecto:
+   - `mobility.e2e.%@example.com`
+   - `auth.local.%@example.com`
+- Si necesitas otros patrones, puedes sobrescribirlos con:
+   - `TEST_EMAIL_PATTERNS=patron1,patron2`
+- El script elimina sesiones y datos relacionados antes de borrar el usuario, y muestra un resumen `before/after` al terminar.
+- Soporta:
+   - Windows Auth por `sqlcmd` si no defines `MSSQL_USER`
+   - Login SQL si defines `MSSQL_USER` y `MSSQL_PASSWORD`
+
+### CI en GitHub Actions
+
+- Se añadió el workflow [/.github/workflows/backend-validation.yml](c:/Users/Anapi/Projects/movilidad-advisor/.github/workflows/backend-validation.yml).
+- Qué hace:
+   - Job estable en `ubuntu-latest`: instala dependencias, arranca la API local con provider `local`, ejecuta `npm run test:backend-ci` y `npm run build`.
+   - Job SQL opcional en runner `self-hosted` Windows: ejecuta el check de movilidad real contra SQL Server y luego limpia datos de prueba.
+- El job SQL opcional está pensado para un runner con estos requisitos ya preparados:
+   - Windows
+   - `sqlcmd` disponible en `PATH`
+   - conectividad al SQL Server objetivo
+- Variables/secretos esperados para el job SQL:
+   - `MSSQL_SERVER`
+   - `MSSQL_DATABASE`
+   - `MSSQL_USER` y `MSSQL_PASSWORD` si no usas Windows Auth
+   - `RUN_SQL_BACKEND=true` al lanzar `workflow_dispatch`
+
 
 ## Deploy en hosting opcional
 

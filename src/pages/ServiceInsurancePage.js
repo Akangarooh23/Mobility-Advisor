@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { postAlertEmailDigestJson } from "../utils/apiClient";
 
 export default function ServiceInsurancePage({ styles, onGoBack, onGoHome, themeMode }) {
   const isDark = themeMode === "dark";
@@ -27,6 +28,8 @@ export default function ServiceInsurancePage({ styles, onGoBack, onGoHome, theme
     driverAge: "35",
   });
   const [showQuote, setShowQuote] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitFeedback, setSubmitFeedback] = useState("");
 
   const quote = useMemo(() => {
     const value = Number(form.vehicleValue || 0);
@@ -47,6 +50,42 @@ export default function ServiceInsurancePage({ styles, onGoBack, onGoHome, theme
       yearlySavings: (monthlyMarket - monthlyB2Cars) * 12,
     };
   }, [form]);
+
+  async function requestCollectiveQuote() {
+    if (isSubmitting) {
+      return;
+    }
+
+    setShowQuote(true);
+    setIsSubmitting(true);
+    setSubmitFeedback("");
+
+    try {
+      const { response, data } = await postAlertEmailDigestJson({
+        to: ["hola@carswise.es"],
+        subject: "CarsWise · Solicitud seguro colectivo",
+        text: [
+          "Nueva solicitud de seguro colectivo.",
+          `Valor aproximado: ${form.vehicleValue} EUR`,
+          `Km anuales: ${form.annualKm}`,
+          `Edad conductor: ${form.driverAge}`,
+          `Cobertura: ${form.coverage}`,
+          `Estimación B2Cars: ${quote.monthlyB2Cars} EUR/mes`,
+          `Estimación mercado: ${quote.monthlyMarket} EUR/mes`,
+        ].join("\n"),
+      });
+
+      if (!response.ok || !data?.ok) {
+        throw new Error(data?.error || "No se pudo registrar la solicitud.");
+      }
+
+      setSubmitFeedback("Solicitud enviada. El equipo de seguros revisará la propuesta colectiva.");
+    } catch (error) {
+      setSubmitFeedback(error instanceof Error ? error.message : "No se pudo registrar la solicitud.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
@@ -131,13 +170,19 @@ export default function ServiceInsurancePage({ styles, onGoBack, onGoHome, theme
       </div>
 
       <div className="ma-fade-stagger" style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16, animationDelay: "130ms" }}>
-        <button type="button" className="ma-card-soft" style={styles.btn} onClick={() => setShowQuote(true)}>
-          Calcular oferta colectiva
+        <button type="button" className="ma-card-soft" style={styles.btn} onClick={requestCollectiveQuote} disabled={isSubmitting}>
+          {isSubmitting ? "Enviando..." : "Calcular oferta colectiva"}
         </button>
         <button type="button" className="ma-card-soft" style={secondaryBtnStyle} onClick={onGoHome}>
           Ir al inicio
         </button>
       </div>
+
+      {submitFeedback ? (
+        <div style={{ marginBottom: 16, fontSize: 13, color: submitFeedback.toLowerCase().includes("no se pudo") ? "#b91c1c" : bodyColor }}>
+          {submitFeedback}
+        </div>
+      ) : null}
 
       {showQuote && (
         <div

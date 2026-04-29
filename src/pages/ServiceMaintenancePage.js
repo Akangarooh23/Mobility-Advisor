@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { postAlertEmailDigestJson } from "../utils/apiClient";
 
 const PLAN_BASE = {
   esencial: 29,
@@ -30,6 +31,8 @@ export default function ServiceMaintenancePage({ styles, onGoBack, onGoHome, the
   const [km, setKm] = useState("15000");
   const [carAge, setCarAge] = useState("4");
   const [showPlan, setShowPlan] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitFeedback, setSubmitFeedback] = useState("");
 
   const estimate = useMemo(() => {
     const annualKm = Number(km || 0);
@@ -44,6 +47,41 @@ export default function ServiceMaintenancePage({ styles, onGoBack, onGoHome, the
       emergencyAvoided: Math.round(monthly * 0.45),
     };
   }, [plan, km, carAge]);
+
+  async function requestMaintenancePlan() {
+    if (isSubmitting) {
+      return;
+    }
+
+    setShowPlan(true);
+    setIsSubmitting(true);
+    setSubmitFeedback("");
+
+    try {
+      const { response, data } = await postAlertEmailDigestJson({
+        to: ["hola@carswise.es"],
+        subject: "CarsWise · Solicitud mantenimiento",
+        text: [
+          "Nueva solicitud de plan de mantenimiento.",
+          `Plan: ${plan}`,
+          `Km anuales: ${km}`,
+          `Edad del coche: ${carAge}`,
+          `Cuota estimada: ${estimate.monthly} EUR/mes`,
+          `Total anual estimado: ${estimate.yearly} EUR`,
+        ].join("\n"),
+      });
+
+      if (!response.ok || !data?.ok) {
+        throw new Error(data?.error || "No se pudo registrar la solicitud.");
+      }
+
+      setSubmitFeedback("Solicitud enviada. El equipo revisará tu propuesta de mantenimiento.");
+    } catch (error) {
+      setSubmitFeedback(error instanceof Error ? error.message : "No se pudo registrar la solicitud.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
@@ -120,13 +158,19 @@ export default function ServiceMaintenancePage({ styles, onGoBack, onGoHome, the
       </div>
 
       <div className="ma-fade-stagger" style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16, animationDelay: "130ms" }}>
-        <button type="button" className="ma-card-soft" style={styles.btn} onClick={() => setShowPlan(true)}>
-          Ver cuota recomendada
+        <button type="button" className="ma-card-soft" style={styles.btn} onClick={requestMaintenancePlan} disabled={isSubmitting}>
+          {isSubmitting ? "Enviando..." : "Ver cuota recomendada"}
         </button>
         <button type="button" className="ma-card-soft" style={secondaryBtnStyle} onClick={onGoHome}>
           Ir al inicio
         </button>
       </div>
+
+      {submitFeedback ? (
+        <div style={{ marginBottom: 16, fontSize: 13, color: submitFeedback.toLowerCase().includes("no se pudo") ? "#b91c1c" : bodyColor }}>
+          {submitFeedback}
+        </div>
+      ) : null}
 
       {showPlan && (
         <div

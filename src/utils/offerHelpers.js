@@ -1,9 +1,11 @@
 export const USER_DASHBOARD_ROUTE_MAP = {
   home: "/panel",
   saved: "/panel/guardadas",
+  alerts: "/panel/alertas",
   appointments: "/panel/citas",
   valuations: "/panel/tasaciones",
   billing: "/panel/cuenta",
+  preferences: "/panel/preferencias",
   vehicles: "/panel/vehiculos",
 };
 
@@ -289,12 +291,14 @@ export function getUserDashboardPageFromPath(pathname = "") {
   const aliasRouteMap = {
     "/panel/inicio": "home",
     "/panel/oportunidades": "saved",
+    "/panel/alertas": "alerts",
     "/panel/operaciones": "appointments",
     "/panel/operaciones/citas": "appointments",
     "/panel/operaciones/tasaciones": "valuations",
     "/panel/vehiculos/mis-vehiculos": "vehicles",
     "/panel/perfil": "billing",
     "/panel/facturacion": "billing",
+    "/panel/preferencias": "preferences",
   };
 
   if (normalizedPath === "/panel" || normalizedPath === "/panel/resumen" || normalizedPath === "/panel/home") {

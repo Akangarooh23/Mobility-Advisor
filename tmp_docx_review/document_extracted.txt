@@ -1,0 +1,1736 @@
+﻿CarsWise
+CÃ³digo fuente â€” Dashboard de usuario
+VersiÃ³n 1.0 Â· 29 de abril de 2026
+Componentes incluidos
+1. UserDashboardPage.js
+2. UserDashboardHome.js
+3. UserDashboardSaved.js
+4. UserDashboardAlerts.js
+5. UserDashboardVehicles.js
+6. UserDashboardValuations.js
+7. UserDashboardOperations.js
+8. UserDashboardBilling.js
+9. UserDashboardPreferences.js
+10. UserDashboardPage.css
+1. UserDashboardPage.js
+Orquesta la navegaciÃ³n del panel de usuario. Gestiona el estado de la secciÃ³n activa, renderiza el sidebar con los items de navegaciÃ³n y muestra el componente correspondiente segÃºn la ruta seleccionada.
+ðŸ“„  UserDashboardPage.js
+import React, { useState } from 'react';
+import UserDashboardHome from './UserDashboardHome';
+import UserDashboardSaved from './UserDashboardSaved';
+import UserDashboardAlerts from './UserDashboardAlerts';
+import UserDashboardVehicles from './UserDashboardVehicles';
+import UserDashboardValuations from './UserDashboardValuations';
+import UserDashboardOperations from './UserDashboardOperations';
+import UserDashboardBilling from './UserDashboardBilling';
+import UserDashboardPreferences from './UserDashboardPreferences';
+import './UserDashboardPage.css';
+const MAIN_NAV = [
+  { id: 'home',       label: 'Inicio',           dot: 'blue',   badge: null },
+  { id: 'saved',      label: 'Guardados',         dot: 'green',  badge: 2    },
+  { id: 'alerts',     label: 'Alertas',           dot: 'amber',  badge: 3    },
+  { id: 'vehicles',   label: 'Mis vehÃ­culos',     dot: 'teal',   badge: null },
+  { id: 'valuations', label: 'Valoraciones',      dot: 'purple', badge: null },
+  { id: 'operations', label: 'Citas y gestiones', dot: 'coral',  badge: null },
+];
+const ACCOUNT_NAV = [
+  { id: 'billing',     label: 'FacturaciÃ³n',  dot: 'gray' },
+  { id: 'preferences', label: 'Preferencias', dot: 'gray' },
+];
+const SECTION_MAP = {
+  home:        UserDashboardHome,
+  saved:       UserDashboardSaved,
+  alerts:      UserDashboardAlerts,
+  vehicles:    UserDashboardVehicles,
+  valuations:  UserDashboardValuations,
+  operations:  UserDashboardOperations,
+  billing:     UserDashboardBilling,
+  preferences: UserDashboardPreferences,
+};
+export default function UserDashboardPage({ user }) {
+  const [activeSection, setActiveSection] = useState('home');
+  const ActiveComponent = SECTION_MAP[activeSection];
+  return (
+    <div className="dashboard-shell">
+      {/* Top bar */}
+      <header className="dashboard-topbar">
+        <span className="dashboard-logo">CarsWise</span>
+        <div className="dashboard-topbar-right">
+          <span className="plan-badge">{user?.plan || 'Free'}</span>
+          <span className="user-name">{user?.name}</span>
+          <div className="user-avatar">
+            {user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2)}
+          </div>
+        </div>
+      </header>
+      <div className="dashboard-layout">
+        {/* Sidebar */}
+        <aside className="dashboard-sidebar">
+          <nav>
+            <p className="sidebar-group-label">Mi panel</p>
+            {MAIN_NAV.map(item => (
+              <button
+                key={item.id}
+                className={`sidebar-item ${activeSection === item.id ? 'active' : ''}`}
+                onClick={() => setActiveSection(item.id)}
+              >
+                <span className={`sidebar-dot dot-${item.dot}`} />
+                <span className="sidebar-item-label">{item.label}</span>
+                {item.badge && (
+                  <span className="sidebar-badge">{item.badge}</span>
+                )}
+              </button>
+            ))}
+            <div className="sidebar-divider" />
+            <p className="sidebar-group-label">Cuenta</p>
+            {ACCOUNT_NAV.map(item => (
+              <button
+                key={item.id}
+                className={`sidebar-item ${activeSection === item.id ? 'active' : ''}`}
+                onClick={() => setActiveSection(item.id)}
+              >
+                <span className={`sidebar-dot dot-${item.dot}`} />
+                <span className="sidebar-item-label">{item.label}</span>
+              </button>
+            ))}
+          </nav>
+        </aside>
+        {/* Main content */}
+        <main className="dashboard-main">
+          <ActiveComponent user={user} onNavigate={setActiveSection} />
+        </main>
+      </div>
+    </div>
+  );
+}
+2. UserDashboardHome.js
+Vista de inicio del panel. Muestra KPIs de resumen (alertas activas, anÃ¡lisis guardados, vehÃ­culos, valoraciones), un feed de novedades accionables con prioridad visual por tipo (precio, ITV, seguro, anÃ¡lisis) y el historial de actividad reciente del usuario.
+ðŸ“„  UserDashboardHome.js
+import React from 'react';
+// Mock data â€” reemplazar con llamadas reales a la API
+const KPI_DATA = [
+  { value: 3,  label: 'Alertas activas'    },
+  { value: 2,  label: 'AnÃ¡lisis guardados' },
+  { value: 2,  label: 'VehÃ­culos'          },
+  { value: 4,  label: 'Valoraciones'       },
+];
+const NOTIFICATIONS = [
+  {
+    id: 1,
+    type: 'alert-price',
+    icon: 'ðŸ””',
+    iconBg: 'amber',
+    title: 'Bajada de precio detectada',
+    body: 'Toyota RAV4 2020 bajÃ³ a 20.900â‚¬ en Coches.net â€” tu alerta era 22.000â‚¬',
+    cta: 'Ver oferta',
+    ctaSection: 'alerts',
+  },
+  {
+    id: 2,
+    type: 'itv',
+    icon: 'ðŸ“‹',
+    iconBg: 'blue',
+    title: 'ITV de tu Renault Clio en 42 dÃ­as',
+    body: 'Recuerda reservar cita en una estaciÃ³n cerca de Madrid.',
+    cta: 'Gestionar',
+    ctaSection: 'operations',
+  },
+  {
+    id: 3,
+    type: 'analysis',
+    icon: 'âœ“',
+    iconBg: 'green',
+    title: 'AnÃ¡lisis completado ayer',
+    body: 'Renting recomendado Â· Score 87/100 Â· 3 ofertas guardadas',
+    cta: 'Ver anÃ¡lisis',
+    ctaSection: 'saved',
+  },
+  {
+    id: 4,
+    type: 'insurance',
+    icon: 'âš¡',
+    iconBg: 'red',
+    title: 'Seguro del Clio vence en 18 dÃ­as',
+    body: 'Renueva o compara alternativas desde el simulador de seguros.',
+    cta: 'Comparar',
+    ctaSection: 'operations',
+  },
+];
+const RECENT_ACTIVITY = [
+  { text: 'ValoraciÃ³n realizada â€” RAV4 Hybrid 2020',          date: 'Ayer'        },
+  { text: 'AnÃ¡lisis IA completado â€” Perfil conductor urbano',  date: 'Hace 2 dÃ­as' },
+  { text: 'Alerta creada â€” BMW Serie 3 <30.000â‚¬',             date: 'Hace 5 dÃ­as' },
+  { text: 'Documento aÃ±adido â€” Seguro Renault Clio',           date: 'Hace 8 dÃ­as' },
+];
+export default function UserDashboardHome({ onNavigate }) {
+  return (
+    <div className="section-wrap">
+      <h1 className="section-title">Buenos dÃ­as, Miguel ðŸ‘‹</h1>
+      {/* KPI row */}
+      <div className="kpi-grid">
+        {KPI_DATA.map((kpi, i) => (
+          <div key={i} className="kpi-card">
+            <span className="kpi-value">{kpi.value}</span>
+            <span className="kpi-label">{kpi.label}</span>
+          </div>
+        ))}
+      </div>
+      {/* Notifications */}
+      <div className="section-header">
+        <h2 className="section-subtitle">Novedades para ti</h2>
+        <button className="text-btn">Ver todo</button>
+      </div>
+      <div className="notifications-list">
+        {NOTIFICATIONS.map(n => (
+          <div key={n.id} className="notification-item">
+            <div className={`notif-icon bg-${n.iconBg}`}>{n.icon}</div>
+            <div className="notif-body">
+              <p className="notif-title">{n.title}</p>
+              <p className="notif-sub">{n.body}</p>
+            </div>
+            <button
+              className="notif-cta"
+              onClick={() => n.ctaSection && onNavigate(n.ctaSection)}
+            >
+              {n.cta} â†’
+            </button>
+          </div>
+        ))}
+      </div>
+      {/* Recent activity */}
+      <div className="section-divider" />
+      <h2 className="section-subtitle">Actividad reciente</h2>
+      <div className="activity-card">
+        {RECENT_ACTIVITY.map((item, i) => (
+          <div key={i} className="activity-row">
+            <span className="activity-text">{item.text}</span>
+            <span className="activity-date">{item.date}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+3. UserDashboardSaved.js
+Listado de anÃ¡lisis de IA guardados por el usuario. Cada tarjeta muestra el tipo de recomendaciÃ³n, la fecha, el score obtenido, las mÃ©tricas de TCO/flexibilidad/riesgo en mini-barras y acciones rÃ¡pidas para ver el resultado, las ofertas asociadas o repetir el anÃ¡lisis.
+ðŸ“„  UserDashboardSaved.js
+import React, { useState } from 'react';
+const SAVED_ANALYSES = [
+  {
+    id: 1,
+    title: 'Perfil conductor mixto Â· Renting',
+    recommendation: 'Renting recomendado',
+    recType: 'renting',
+    date: '28 abr 2026',
+    score: 87,
+    offers: 14,
+    metrics: [
+      { label: 'TCO favorable',    value: 82, color: '#1D9E75' },
+      { label: 'Flexibilidad',     value: 92, color: '#378ADD' },
+      { label: 'Riesgo financiero',value: 22, color: '#1D9E75' },
+      { label: 'Ventaja fiscal',   value: 58, color: '#BA7517' },
+    ],
+  },
+  {
+    id: 2,
+    title: 'Perfil autÃ³nomo Â· Compra vs Renting',
+    recommendation: 'Compra recomendada',
+    recType: 'compra',
+    date: '14 mar 2026',
+    score: 74,
+    offers: 8,
+    metrics: [
+      { label: 'Propiedad del vehÃ­culo',  value: 100, color: '#7F77DD' },
+      { label: 'DeducciÃ³n fiscal (IVA)',  value: 88,  color: '#7F77DD' },
+      { label: 'Liquidez requerida',      value: 68,  color: '#D85A30' },
+      { label: 'Flexibilidad',            value: 35,  color: '#BA7517' },
+    ],
+  },
+];
+export default function UserDashboardSaved({ onNavigate }) {
+  const [analyses, setAnalyses] = useState(SAVED_ANALYSES);
+  const handleDelete = (id) => {
+    if (window.confirm('Â¿Eliminar este anÃ¡lisis guardado?')) {
+      setAnalyses(prev => prev.filter(a => a.id !== id));
+    }
+  };
+  return (
+    <div className="section-wrap">
+      <div className="section-header">
+        <h1 className="section-title">AnÃ¡lisis guardados</h1>
+        <button
+          className="btn-primary-sm"
+          onClick={() => onNavigate && onNavigate('advisor')}
+        >
+          + Nuevo anÃ¡lisis
+        </button>
+      </div>
+      <p className="section-count">{analyses.length} anÃ¡lisis guardados</p>
+      {analyses.length === 0 && (
+        <div className="empty-state">
+          <p>AÃºn no tienes anÃ¡lisis guardados.</p>
+          <button className="btn-primary-sm" onClick={() => onNavigate('advisor')}>
+            Hacer mi primer anÃ¡lisis â†’
+          </button>
+        </div>
+      )}
+      {analyses.map(analysis => (
+        <div key={analysis.id} className="saved-card">
+          <div className="saved-card-header">
+            <span className="saved-card-title">{analysis.title}</span>
+            <span className={`rec-badge rec-${analysis.recType}`}>
+              {analysis.recommendation}
+            </span>
+          </div>
+          <p className="saved-card-meta">
+            Realizado el {analysis.date} Â· Score {analysis.score}/100 Â·{' '}
+            {analysis.offers} ofertas encontradas
+          </p>
+          <div className="metrics-grid">
+            {analysis.metrics.map((m, i) => (
+              <div key={i} className="metric-item">
+                <span className="metric-label">{m.label}</span>
+                <div className="metric-track">
+                  <div
+                    className="metric-fill"
+                    style={{ width: `${m.value}%`, background: m.color }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="saved-actions">
+            <button className="btn-primary-sm">Ver resultado</button>
+            <button className="btn-outline-sm">
+              Ver ofertas ({analysis.offers})
+            </button>
+            <button className="btn-outline-sm">Repetir anÃ¡lisis</button>
+            <button
+              className="btn-danger-sm"
+              style={{ marginLeft: 'auto' }}
+              onClick={() => handleDelete(analysis.id)}
+            >
+              Eliminar
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+4. UserDashboardAlerts.js
+GestiÃ³n de alertas de precio configuradas. Permite activar/pausar reglas de bÃºsqueda, ver las coincidencias detectadas y actuar sobre ellas (guardar vehÃ­culo, ver anuncio o descartar). Incluye botÃ³n para crear nuevas alertas.
+ðŸ“„  UserDashboardAlerts.js
+import React, { useState } from 'react';
+const INITIAL_ALERTS = [
+  {
+    id: 1,
+    icon: 'ðŸ””',
+    iconBg: 'amber',
+    name: 'Toyota RAV4 Hybrid 2020â€“2022',
+    conditions: 'Precio â‰¤ 22.000â‚¬ Â· Madrid 100 km Â· HÃ­brido Â· <80.000 km',
+    active: true,
+    matches: 1,
+  },
+  {
+    id: 2,
+    icon: 'ðŸ”',
+    iconBg: 'blue',
+    name: 'BMW Serie 3 Â· Cualquier aÃ±o',
+    conditions: 'Precio â‰¤ 30.000â‚¬ Â· EspaÃ±a Â· DiÃ©sel o Gasolina Â· <60.000 km',
+    active: true,
+    matches: 0,
+  },
+  {
+    id: 3,
+    icon: 'ðŸ”•',
+    iconBg: 'gray',
+    name: 'Volkswagen ID.4 Â· 2022+',
+    conditions: 'Precio â‰¤ 28.000â‚¬ Â· ElÃ©ctrico Â· <40.000 km',
+    active: false,
+    matches: 0,
+  },
+];
+const MATCHES = [
+  {
+    id: 1,
+    alertId: 1,
+    name: 'Toyota RAV4 2.5 HV AWD Â· 2020',
+    specs: '72.000 km Â· Coches.net Â· Madrid',
+    price: 20900,
+    saving: 1100,
+  },
+];
+export default function UserDashboardAlerts() {
+  const [alerts, setAlerts] = useState(INITIAL_ALERTS);
+  const [matches, setMatches] = useState(MATCHES);
+  const toggleAlert = (id) => {
+    setAlerts(prev =>
+      prev.map(a => a.id === id ? { ...a, active: !a.active } : a)
+    );
+  };
+  const dismissMatch = (id) => {
+    setMatches(prev => prev.filter(m => m.id !== id));
+  };
+  return (
+    <div className="section-wrap">
+      <div className="section-header">
+        <h1 className="section-title">Alertas de precio</h1>
+        <button className="btn-primary-sm">+ Nueva alerta</button>
+      </div>
+      <p className="section-count">
+        {alerts.filter(a => a.active).length} alertas activas
+      </p>
+      {/* Alert rules */}
+      {alerts.map(alert => (
+        <div
+          key={alert.id}
+          className={`alert-rule-card ${!alert.active ? 'paused' : ''}`}
+        >
+          <div className={`alert-rule-icon bg-${alert.iconBg}`}>
+            {alert.icon}
+          </div>
+          <div className="alert-rule-body">
+            <p className="alert-rule-name">{alert.name}</p>
+            <p className="alert-rule-conditions">{alert.conditions}</p>
+            {alert.matches > 0 && (
+              <span className="match-badge">{alert.matches} coincidencia nueva</span>
+            )}
+            {alert.matches === 0 && alert.active && (
+              <span className="no-match-badge">Sin novedades</span>
+            )}
+            {!alert.active && (
+              <span className="paused-badge">Pausada</span>
+            )}
+          </div>
+          <div className="alert-rule-right">
+            <p className={`alert-status ${alert.active ? 'active' : 'paused'}`}>
+              {alert.active ? 'Activa' : 'Pausada'}
+            </p>
+            <button
+              className={`toggle-btn ${alert.active ? 'on' : 'off'}`}
+              onClick={() => toggleAlert(alert.id)}
+              aria-label={alert.active ? 'Pausar alerta' : 'Activar alerta'}
+            />
+          </div>
+        </div>
+      ))}
+      {/* Matches section */}
+      {matches.length > 0 && (
+        <>
+          <div className="section-divider" />
+          <h2 className="section-subtitle">Coincidencias recientes</h2>
+          {matches.map(match => (
+            <div key={match.id} className="match-card">
+              <div className="match-info">
+                <p className="match-name">{match.name}</p>
+                <p className="match-specs">{match.specs}</p>
+              </div>
+              <div className="match-price-col">
+                <p className="match-price">
+                  {match.price.toLocaleString('es-ES')}â‚¬
+                </p>
+                <p className="match-saving">
+                  âˆ’{match.saving.toLocaleString('es-ES')}â‚¬ vs tu alerta
+                </p>
+              </div>
+              <div className="match-actions">
+                <button className="btn-primary-sm">Ver anuncio</button>
+                <button className="btn-outline-sm">Guardar</button>
+                <button
+                  className="btn-outline-sm"
+                  onClick={() => dismissMatch(match.id)}
+                >
+                  Descartar
+                </button>
+              </div>
+            </div>
+          ))}
+        </>
+      )}
+    </div>
+  );
+}
+5. UserDashboardVehicles.js
+Garaje del usuario con ficha completa de cada vehÃ­culo: datos tÃ©cnicos, estado de ITV/seguro con alertas visuales, gestiÃ³n de documentos adjuntos (subida, descarga y eliminaciÃ³n) y acciones de ediciÃ³n, valoraciÃ³n rÃ¡pida y baja del vehÃ­culo.
+ðŸ“„  UserDashboardVehicles.js
+import React, { useState, useRef } from 'react';
+const INITIAL_VEHICLES = [
+  {
+    id: 1,
+    name: 'Renault Clio 1.0 TCe 90 CV',
+    plate: '1234 ABC',
+    year: 2021,
+    km: 48200,
+    fuel: 'Gasolina',
+    estimatedValue: 11400,
+    isPrimary: true,
+    status: { itv: { ok: false, daysLeft: 42 }, insurance: { ok: false, daysLeft: 18 } },
+    docs: [
+      { id: 1, name: 'Ficha tÃ©cnica.pdf',           date: '12 ene 2026', type: 'pdf' },
+      { id: 2, name: 'PÃ³liza seguro 2025-2026.pdf', date: '3 feb 2026',  type: 'pdf' },
+      { id: 3, name: 'Ãšltima revisiÃ³n taller.pdf',  date: '20 mar 2026', type: 'pdf' },
+    ],
+  },
+  {
+    id: 2,
+    name: 'Toyota RAV4 Hybrid AWD Advance',
+    plate: '5678 XYZ',
+    year: 2020,
+    km: 68000,
+    fuel: 'HÃ­brido',
+    estimatedValue: 21400,
+    isPrimary: false,
+    status: { itv: { ok: true, daysLeft: null }, insurance: { ok: true, daysLeft: null } },
+    docs: [
+      { id: 1, name: 'Contrato compraventa.pdf', date: '5 oct 2023', type: 'pdf' },
+    ],
+  },
+];
+function VehicleCard({ vehicle, onUpdate, onDelete }) {
+  const [editing, setEditing] = useState(false);
+  const [editData, setEditData] = useState({ km: vehicle.km });
+  const fileInputRef = useRef();
+  const handleSave = () => {
+    onUpdate(vehicle.id, editData);
+    setEditing(false);
+  };
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const newDoc = {
+      id: Date.now(),
+      name: file.name,
+      date: new Date().toLocaleDateString('es-ES', {
+        day: 'numeric', month: 'short', year: 'numeric'
+      }),
+      type: file.name.split('.').pop(),
+    };
+    onUpdate(vehicle.id, {
+      docs: [...vehicle.docs, newDoc],
+    });
+  };
+  return (
+    <div className="vehicle-card">
+      {/* Header */}
+      <div className="vehicle-header">
+        <div className="vehicle-thumb">
+          {vehicle.fuel === 'HÃ­brido' ? 'ðŸš—âš¡' : 'ðŸš—'}
+        </div>
+        <div className="vehicle-info">
+          <p className="vehicle-name">{vehicle.name}</p>
+          <span className="vehicle-plate">{vehicle.plate}</span>
+          <div className="vehicle-tags">
+            {vehicle.isPrimary && (
+              <span className="tag-green">Principal</span>
+            )}
+            {!vehicle.status.itv.ok && (
+              <span className="tag-amber">
+                ITV en {vehicle.status.itv.daysLeft} dÃ­as
+              </span>
+            )}
+            {vehicle.status.itv.ok && (
+              <span className="tag-green">ITV OK</span>
+            )}
+            {!vehicle.status.insurance.ok && (
+              <span className="tag-red">
+                Seguro en {vehicle.status.insurance.daysLeft} dÃ­as
+              </span>
+            )}
+            {vehicle.status.insurance.ok && (
+              <span className="tag-green">Seguro OK</span>
+            )}
+          </div>
+        </div>
+      </div>
+      {/* Stats */}
+      <div className="vehicle-stats">
+        <div className="vehicle-stat">
+          <span className="stat-value">{vehicle.year}</span>
+          <span className="stat-label">AÃ±o</span>
+        </div>
+        <div className="vehicle-stat">
+          <span className="stat-value">
+            {vehicle.km.toLocaleString('es-ES')}
+          </span>
+          <span className="stat-label">KilÃ³metros</span>
+        </div>
+        <div className="vehicle-stat">
+          <span className="stat-value">{vehicle.fuel}</span>
+          <span className="stat-label">Combustible</span>
+        </div>
+        <div className="vehicle-stat">
+          <span className="stat-value">
+            ~{vehicle.estimatedValue.toLocaleString('es-ES')}â‚¬
+          </span>
+          <span className="stat-label">Valor estimado</span>
+        </div>
+      </div>
+      {/* Documents */}
+      <div className="vehicle-docs">
+        <p className="docs-title">Documentos adjuntos</p>
+        {vehicle.docs.map(doc => (
+          <div key={doc.id} className="doc-row">
+            <span className="doc-icon">ðŸ“„</span>
+            <span className="doc-name">{doc.name}</span>
+            <span className="doc-date">{doc.date}</span>
+            <button className="doc-download-btn">â†“ Descargar</button>
+          </div>
+        ))}
+        <button
+          className="add-doc-btn"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          + AÃ±adir documento
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf,.jpg,.png,.doc,.docx"
+          hidden
+          onChange={handleFileUpload}
+        />
+      </div>
+      {/* Actions */}
+      <div className="vehicle-actions">
+        <button className="btn-primary-sm" onClick={() => setEditing(!editing)}>
+          Editar datos
+        </button>
+        <button className="btn-outline-sm">Valorar ahora</button>
+        <button className="btn-outline-sm">Gestionar ITV</button>
+        <button
+          className="btn-danger-sm"
+          style={{ marginLeft: 'auto' }}
+          onClick={() => onDelete(vehicle.id)}
+        >
+          Eliminar
+        </button>
+      </div>
+      {/* Inline edit form */}
+      {editing && (
+        <div className="edit-form">
+          <label className="form-label">
+            KilÃ³metros actuales
+            <input
+              type="number"
+              className="form-input"
+              value={editData.km}
+              onChange={e => setEditData(p => ({ ...p, km: Number(e.target.value) }))}
+            />
+          </label>
+          <div className="edit-actions">
+            <button className="btn-primary-sm" onClick={handleSave}>Guardar</button>
+            <button className="btn-outline-sm" onClick={() => setEditing(false)}>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+export default function UserDashboardVehicles() {
+  const [vehicles, setVehicles] = useState(INITIAL_VEHICLES);
+  const handleUpdate = (id, data) => {
+    setVehicles(prev =>
+      prev.map(v => v.id === id ? { ...v, ...data } : v)
+    );
+  };
+  const handleDelete = (id) => {
+    if (window.confirm('Â¿Eliminar este vehÃ­culo del garaje?')) {
+      setVehicles(prev => prev.filter(v => v.id !== id));
+    }
+  };
+  return (
+    <div className="section-wrap">
+      <div className="section-header">
+        <h1 className="section-title">Mis vehÃ­culos</h1>
+        <button className="btn-primary-sm">+ AÃ±adir vehÃ­culo</button>
+      </div>
+      <p className="section-count">
+        {vehicles.length} vehÃ­culo{vehicles.length !== 1 ? 's' : ''} en tu garaje
+      </p>
+      {vehicles.map(v => (
+        <VehicleCard
+          key={v.id}
+          vehicle={v}
+          onUpdate={handleUpdate}
+          onDelete={handleDelete}
+        />
+      ))}
+      {vehicles.length === 0 && (
+        <div className="empty-state">
+          <p>AÃºn no tienes vehÃ­culos en tu garaje.</p>
+          <button className="btn-primary-sm">AÃ±adir mi primer vehÃ­culo</button>
+        </div>
+      )}
+    </div>
+  );
+}
+6. UserDashboardValuations.js
+Historial cronolÃ³gico de todas las valoraciones realizadas por el usuario. Cada entrada muestra el vehÃ­culo, la fecha, el precio estimado con su rango, la tendencia del mercado (% de variaciÃ³n en 30 dÃ­as) y acciones para ver el detalle o los comparables activos.
+ðŸ“„  UserDashboardValuations.js
+import React, { useState } from 'react';
+const VALUATIONS = [
+  {
+    id: 1,
+    car: 'Toyota RAV4 Hybrid 2020',
+    km: 68000,
+    condition: 'Bueno',
+    province: 'Madrid',
+    date: 'Ayer',
+    estimatedPrice: 21400,
+    rangeMin: 19800,
+    rangeMax: 23200,
+    trend: -3.2,
+    trendLabel: 'Ãºltimos 30 dÃ­as',
+  },
+  {
+    id: 2,
+    car: 'Toyota RAV4 Hybrid 2020',
+    km: 62000,
+    condition: 'Bueno',
+    province: 'Madrid',
+    date: 'Hace 3 meses',
+    estimatedPrice: 22800,
+    rangeMin: 21000,
+    rangeMax: 24500,
+    trend: +1.8,
+    trendLabel: 'Ãºltimos 30 dÃ­as',
+  },
+  {
+    id: 3,
+    car: 'Renault Clio TCe 90 2021',
+    km: 38000,
+    condition: 'Excelente',
+    province: 'Madrid',
+    date: 'Hace 6 meses',
+    estimatedPrice: 13200,
+    rangeMin: 12000,
+    rangeMax: 14400,
+    trend: -1.1,
+    trendLabel: 'Ãºltimos 30 dÃ­as',
+  },
+  {
+    id: 4,
+    car: 'Renault Clio TCe 90 2021',
+    km: 28000,
+    condition: 'Excelente',
+    province: 'Madrid',
+    date: 'Hace 11 meses',
+    estimatedPrice: 14900,
+    rangeMin: 13800,
+    rangeMax: 16000,
+    trend: +0.5,
+    trendLabel: 'Ãºltimos 30 dÃ­as',
+  },
+];
+function TrendIndicator({ trend }) {
+  const isUp = trend > 0;
+  return (
+    <span className={`trend-indicator ${isUp ? 'trend-up' : 'trend-down'}`}>
+      {isUp ? 'â†‘' : 'â†“'} {Math.abs(trend).toFixed(1)}% {' '}
+      <span className="trend-period">Ãºltimos 30 dÃ­as</span>
+    </span>
+  );
+}
+export default function UserDashboardValuations({ onNavigate }) {
+  const [valuations] = useState(VALUATIONS);
+  const [expanded, setExpanded] = useState(null);
+  const fmt = (n) => n.toLocaleString('es-ES');
+  return (
+    <div className="section-wrap">
+      <div className="section-header">
+        <h1 className="section-title">Historial de valoraciones</h1>
+        <button
+          className="btn-primary-sm"
+          onClick={() => onNavigate && onNavigate('sell')}
+        >
+          + Nueva valoraciÃ³n
+        </button>
+      </div>
+      <p className="section-count">
+        {valuations.length} valoraciones realizadas
+      </p>
+      {valuations.map(v => (
+        <div key={v.id} className="valuation-card">
+          <div className="valuation-header">
+            <div>
+              <p className="valuation-car">{v.car}</p>
+              <p className="valuation-meta">
+                {fmt(v.km)} km Â· Estado: {v.condition} Â· {v.province}
+              </p>
+            </div>
+            <span className="valuation-date">{v.date}</span>
+          </div>
+          <div className="valuation-prices">
+            <div className="price-col">
+              <span className="price-label">Precio estimado</span>
+              <span className="price-value">{fmt(v.estimatedPrice)}â‚¬</span>
+              <span className="price-range">
+                Rango: {fmt(v.rangeMin)} â€“ {fmt(v.rangeMax)}â‚¬
+              </span>
+            </div>
+            <div className="trend-col">
+              <span className="price-label">Tendencia de mercado</span>
+              <TrendIndicator trend={v.trend} />
+            </div>
+          </div>
+          <div className="valuation-actions">
+            <button
+              className="btn-outline-sm"
+              onClick={() => setExpanded(expanded === v.id ? null : v.id)}
+            >
+              {expanded === v.id ? 'Ocultar detalle' : 'Ver detalle'}
+            </button>
+            <button className="btn-outline-sm">Ver comparables</button>
+            <button className="btn-outline-sm">Repetir valoraciÃ³n</button>
+          </div>
+          {/* Expanded detail */}
+          {expanded === v.id && (
+            <div className="valuation-detail">
+              <p className="detail-label">Estrategia de venta sugerida</p>
+              <p className="detail-text">
+                Publica a {fmt(Math.round(v.estimatedPrice * 1.05))}â‚¬ y ajusta
+                500â‚¬ cada semana si no recibes contactos.
+                Mejor canal para tu rango de precio: Coches.net.
+              </p>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+7. UserDashboardOperations.js
+GestiÃ³n de citas y operaciones del vehÃ­culo. Incluye barra de uso del plan (gestiones consumidas/disponibles), lista de gestiones activas con prioridad visual (urgente, pendiente), historial de gestiones completadas y acceso directo a comparadores de seguro o reserva de ITV.
+ðŸ“„  UserDashboardOperations.js
+import React, { useState } from 'react';
+const PLAN_USAGE = { used: 3, total: 10 };
+const ACTIVE_OPERATIONS = [
+  {
+    id: 1,
+    type: 'itv',
+    icon: 'ðŸ“‹',
+    iconBg: 'amber',
+    title: 'Reserva cita ITV â€” Renault Clio',
+    meta: 'EstaciÃ³n ITV Vallecas Â· Pendiente de confirmaciÃ³n',
+    dueText: 'Vence en 42 dÃ­as',
+    priority: 'pending',
+    priorityLabel: 'Pendiente',
+    cta: 'Gestionar',
+  },
+  {
+    id: 2,
+    type: 'insurance',
+    icon: 'ðŸ›¡ï¸',
+    iconBg: 'red',
+    title: 'RenovaciÃ³n seguro â€” Renault Clio',
+    meta: 'LÃ­nea Directa Â· Vence 17 may 2026',
+    dueText: 'En 18 dÃ­as',
+    priority: 'urgent',
+    priorityLabel: 'Urgente',
+    cta: 'Comparar â†’',
+  },
+];
+const COMPLETED_OPERATIONS = [
+  {
+    id: 3,
+    icon: 'âœ“',
+    iconBg: 'green',
+    title: 'RevisiÃ³n taller 45.000 km â€” Renault Clio',
+    meta: 'Renault Madrid Sur Â· Completado',
+    date: '12 feb 2026',
+  },
+  {
+    id: 4,
+    icon: 'âœ“',
+    iconBg: 'green',
+    title: 'ITV pasada â€” Renault Clio',
+    meta: 'ITV Vallecas Â· Favorable sin defectos',
+    date: '5 ene 2026',
+  },
+];
+export default function UserDashboardOperations() {
+  const [activeOps, setActiveOps] = useState(ACTIVE_OPERATIONS);
+  const usagePct = Math.round((PLAN_USAGE.used / PLAN_USAGE.total) * 100);
+  const handleComplete = (id) => {
+    setActiveOps(prev => prev.filter(op => op.id !== id));
+  };
+  return (
+    <div className="section-wrap">
+      <h1 className="section-title">Citas y gestiones</h1>
+      {/* Plan usage bar */}
+      <div className="plan-usage-bar">
+        <div className="plan-usage-header">
+          <span className="plan-usage-title">Uso del plan Pro este mes</span>
+          <span className="plan-usage-count">
+            {PLAN_USAGE.used} / {PLAN_USAGE.total} gestiones
+          </span>
+        </div>
+        <div className="usage-track">
+          <div
+            className="usage-fill"
+            style={{ width: `${usagePct}%` }}
+          />
+        </div>
+        <p className="plan-usage-note">
+          Las gestiones incluyen: citas taller, trÃ¡mites ITV,
+          gestiÃ³n de seguros y asesoramiento personalizado.
+        </p>
+      </div>
+      {/* Active operations */}
+      <div className="section-header">
+        <h2 className="section-subtitle">Gestiones activas</h2>
+        <button className="btn-primary-sm">+ Nueva gestiÃ³n</button>
+      </div>
+      {activeOps.length === 0 && (
+        <p className="empty-text">No tienes gestiones pendientes. Â¡Todo al dÃ­a!</p>
+      )}
+      {activeOps.map(op => (
+        <div key={op.id} className="operation-card">
+          <div className={`op-icon bg-${op.iconBg}`}>{op.icon}</div>
+          <div className="op-body">
+            <p className="op-title">{op.title}</p>
+            <p className="op-meta">{op.meta}</p>
+            <span className={`priority-badge priority-${op.priority}`}>
+              {op.priorityLabel}
+            </span>
+          </div>
+          <div className="op-right">
+            <p className="op-due">{op.dueText}</p>
+            <button className={`btn-${op.priority === 'urgent' ? 'primary' : 'outline'}-sm`}>
+              {op.cta}
+            </button>
+            <button
+              className="btn-ghost-sm"
+              onClick={() => handleComplete(op.id)}
+            >
+              Marcar hecho
+            </button>
+          </div>
+        </div>
+      ))}
+      {/* Completed */}
+      <div className="section-divider" />
+      <h2 className="section-subtitle">Historial de gestiones</h2>
+      {COMPLETED_OPERATIONS.map(op => (
+        <div key={op.id} className="operation-card completed">
+          <div className="op-icon bg-green">{op.icon}</div>
+          <div className="op-body">
+            <p className="op-title">{op.title}</p>
+            <p className="op-meta">{op.meta}</p>
+          </div>
+          <p className="op-date">{op.date}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+8. UserDashboardBilling.js
+GestiÃ³n de la suscripciÃ³n del usuario. Muestra el plan activo con sus features incluidas, el mÃ©todo de pago guardado, los datos de facturaciÃ³n/NIF y el histÃ³rico de facturas descargables. Integra con el portal de cliente de Stripe para cambios de plan y cancelaciÃ³n.
+ðŸ“„  UserDashboardBilling.js
+import React, { useState } from 'react';
+const PLAN_FEATURES = [
+  'AnÃ¡lisis IA ilimitados',
+  'Alertas de precio',
+  'Garaje de vehÃ­culos',
+  'Historial de valoraciones',
+  '10 gestiones/mes',
+  'Autogestor de vehÃ­culo',
+];
+const INVOICES = [
+  { id: 1, period: 'Abril 2026',    amount: 9.00, status: 'paid' },
+  { id: 2, period: 'Marzo 2026',    amount: 9.00, status: 'paid' },
+  { id: 3, period: 'Febrero 2026',  amount: 9.00, status: 'paid' },
+  { id: 4, period: 'Enero 2026',    amount: 9.00, status: 'paid' },
+];
+export default function UserDashboardBilling({ user }) {
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const handleManagePortal = () => {
+    // Redirect to Stripe customer portal
+    window.open('/api/billing-portal', '_blank');
+  };
+  const handleUpgrade = () => {
+    window.open('/api/billing-checkout?plan=business', '_blank');
+  };
+  const fmt = (n) => n.toFixed(2).replace('.', ',');
+  return (
+    <div className="section-wrap">
+      <h1 className="section-title">FacturaciÃ³n y suscripciÃ³n</h1>
+      {/* Current plan */}
+      <div className="plan-card featured">
+        <div className="plan-card-header">
+          <div>
+            <p className="plan-name">Plan Pro</p>
+            <p className="plan-renewal">
+              RenovaciÃ³n: 29 may 2026 Â· Pago mensual
+            </p>
+          </div>
+          <div className="plan-price-col">
+            <p className="plan-price">
+              9â‚¬<span className="plan-period">/mes</span>
+            </p>
+            <span className="tag-green">Activo</span>
+          </div>
+        </div>
+        <div className="plan-features-grid">
+          {PLAN_FEATURES.map((feat, i) => (
+            <div key={i} className="plan-feature">
+              <span className="check-icon">âœ“</span>
+              <span>{feat}</span>
+            </div>
+          ))}
+        </div>
+        <div className="plan-actions">
+          <button className="btn-primary-sm" onClick={handleManagePortal}>
+            Gestionar suscripciÃ³n
+          </button>
+          <button className="btn-outline-sm" onClick={handleUpgrade}>
+            Cambiar a Business
+          </button>
+          <button
+            className="btn-danger-sm"
+            style={{ marginLeft: 'auto' }}
+            onClick={() => setShowCancelConfirm(true)}
+          >
+            Cancelar plan
+          </button>
+        </div>
+      </div>
+      {/* Cancel confirmation */}
+      {showCancelConfirm && (
+        <div className="confirm-box">
+          <p className="confirm-text">
+            Â¿Seguro que quieres cancelar? PerderÃ¡s el acceso a las funciones
+            Pro al final del perÃ­odo actual (29 may 2026).
+          </p>
+          <div className="confirm-actions">
+            <button className="btn-danger-sm" onClick={handleManagePortal}>
+              SÃ­, cancelar plan
+            </button>
+            <button
+              className="btn-outline-sm"
+              onClick={() => setShowCancelConfirm(false)}
+            >
+              Mantener mi plan
+            </button>
+          </div>
+        </div>
+      )}
+      {/* Billing info */}
+      <div className="billing-info-grid">
+        <div className="billing-info-box">
+          <p className="billing-info-label">MÃ©todo de pago</p>
+          <p className="billing-info-value">â€¢â€¢â€¢â€¢ â€¢â€¢â€¢â€¢ â€¢â€¢â€¢â€¢ 4242</p>
+          <p className="billing-info-sub">Visa Â· Caduca 03/28</p>
+        </div>
+        <div className="billing-info-box">
+          <p className="billing-info-label">Datos de facturaciÃ³n</p>
+          <p className="billing-info-value">{user?.name || 'Miguel GarcÃ­a Ruiz'}</p>
+          <p className="billing-info-sub">NIF: 12345678Z Â· Madrid</p>
+        </div>
+      </div>
+      {/* Invoices */}
+      <div className="section-header">
+        <h2 className="section-subtitle">Facturas emitidas</h2>
+      </div>
+      {INVOICES.map(inv => (
+        <div key={inv.id} className="invoice-row">
+          <span className="invoice-period">{inv.period}</span>
+          <span className="tag-green">Pagada</span>
+          <span className="invoice-amount">{fmt(inv.amount)}â‚¬</span>
+          <button className="invoice-download-btn">Descargar PDF</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+9. UserDashboardPreferences.js
+Panel de configuraciÃ³n del usuario. Gestiona los datos de perfil (nombre, email, contraseÃ±a), las preferencias de notificaciones por tipo con toggles, la configuraciÃ³n de regiÃ³n e idioma y la opciÃ³n de eliminaciÃ³n permanente de la cuenta con confirmaciÃ³n.
+ðŸ“„  UserDashboardPreferences.js
+import React, { useState } from 'react';
+const NOTIFICATION_PREFS = [
+  {
+    id: 'price_alerts',
+    label: 'Alertas de precio',
+    sub: 'Cuando un coche baje de tu precio objetivo',
+    default: true,
+  },
+  {
+    id: 'vehicle_reminders',
+    label: 'Recordatorios de vehÃ­culo',
+    sub: 'ITV, seguro, revisiones prÃ³ximas',
+    default: true,
+  },
+  {
+    id: 'product_news',
+    label: 'Novedades del producto',
+    sub: 'Nuevas funciones y mejoras de CarsWise',
+    default: false,
+  },
+  {
+    id: 'weekly_digest',
+    label: 'Resumen semanal',
+    sub: 'Actividad de tus alertas y vehÃ­culos',
+    default: true,
+  },
+];
+function Toggle({ value, onChange }) {
+  return (
+    <button
+      className={`toggle-btn ${value ? 'on' : 'off'}`}
+      onClick={() => onChange(!value)}
+      aria-checked={value}
+      role="switch"
+    />
+  );
+}
+function EditableField({ label, value, onSave }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const handleSave = () => {
+    onSave(draft);
+    setEditing(false);
+  };
+  return (
+    <div className="pref-row">
+      <div className="pref-left">
+        <p className="pref-label">{label}</p>
+        {editing ? (
+          <input
+            className="form-input-sm"
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            autoFocus
+          />
+        ) : (
+          <p className="pref-sub">{value}</p>
+        )}
+      </div>
+      {editing ? (
+        <div className="pref-edit-actions">
+          <button className="btn-primary-sm" onClick={handleSave}>Guardar</button>
+          <button className="btn-outline-sm" onClick={() => setEditing(false)}>
+            Cancelar
+          </button>
+        </div>
+      ) : (
+        <button className="btn-outline-sm" onClick={() => setEditing(true)}>
+          Editar
+        </button>
+      )}
+    </div>
+  );
+}
+export default function UserDashboardPreferences({ user }) {
+  const [profile, setProfile] = useState({
+    name:  user?.name  || 'Miguel GarcÃ­a Ruiz',
+    email: user?.email || 'miguel@ejemplo.com',
+  });
+  const [notifications, setNotifications] = useState(() =>
+    Object.fromEntries(NOTIFICATION_PREFS.map(p => [p.id, p.default]))
+  );
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const updateProfile = (field, value) => {
+    setProfile(prev => ({ ...prev, [field]: value }));
+    // TODO: call API to persist change
+  };
+  const toggleNotification = (id, value) => {
+    setNotifications(prev => ({ ...prev, [id]: value }));
+    // TODO: call API to persist change
+  };
+  const handleDeleteAccount = () => {
+    // TODO: call API to delete account, then sign out
+    alert('Cuenta eliminada. Redirigiendo...');
+  };
+  return (
+    <div className="section-wrap">
+      <h1 className="section-title">Preferencias</h1>
+      {/* Profile */}
+      <section className="pref-section">
+        <h2 className="pref-section-title">Perfil</h2>
+        <EditableField
+          label="Nombre"
+          value={profile.name}
+          onSave={val => updateProfile('name', val)}
+        />
+        <EditableField
+          label="Email"
+          value={profile.email}
+          onSave={val => updateProfile('email', val)}
+        />
+        <div className="pref-row">
+          <div className="pref-left">
+            <p className="pref-label">ContraseÃ±a</p>
+            <p className="pref-sub">Ãšltima actualizaciÃ³n hace 2 meses</p>
+          </div>
+          <button className="btn-outline-sm">Cambiar contraseÃ±a</button>
+        </div>
+      </section>
+      {/* Notifications */}
+      <section className="pref-section">
+        <h2 className="pref-section-title">Notificaciones por email</h2>
+        {NOTIFICATION_PREFS.map(pref => (
+          <div key={pref.id} className="pref-row">
+            <div className="pref-left">
+              <p className="pref-label">{pref.label}</p>
+              <p className="pref-sub">{pref.sub}</p>
+            </div>
+            <Toggle
+              value={notifications[pref.id]}
+              onChange={val => toggleNotification(pref.id, val)}
+            />
+          </div>
+        ))}
+      </section>
+      {/* Region */}
+      <section className="pref-section">
+        <h2 className="pref-section-title">RegiÃ³n e idioma</h2>
+        <div className="pref-row">
+          <div className="pref-left">
+            <p className="pref-label">Idioma</p>
+            <p className="pref-sub">EspaÃ±ol</p>
+          </div>
+          <button className="btn-outline-sm">Cambiar</button>
+        </div>
+        <div className="pref-row">
+          <div className="pref-left">
+            <p className="pref-label">PaÃ­s</p>
+            <p className="pref-sub">EspaÃ±a</p>
+          </div>
+          <button className="btn-outline-sm">Cambiar</button>
+        </div>
+        <div className="pref-row">
+          <div className="pref-left">
+            <p className="pref-label">Moneda</p>
+            <p className="pref-sub">EUR (â‚¬)</p>
+          </div>
+        </div>
+      </section>
+      {/* Danger zone */}
+      <section className="pref-section danger-zone">
+        <h2 className="pref-section-title danger">Zona de peligro</h2>
+        <div className="pref-row">
+          <div className="pref-left">
+            <p className="pref-label danger-label">Eliminar cuenta</p>
+            <p className="pref-sub">
+              Borra todos tus datos permanentemente. Esta acciÃ³n no se puede deshacer.
+            </p>
+          </div>
+          <button
+            className="btn-danger-sm"
+            onClick={() => setShowDeleteConfirm(true)}
+          >
+            Eliminar
+          </button>
+        </div>
+        {showDeleteConfirm && (
+          <div className="confirm-box danger">
+            <p className="confirm-text">
+              Â¿Seguro? PerderÃ¡s todos tus anÃ¡lisis, alertas, vehÃ­culos y valoraciones.
+            </p>
+            <div className="confirm-actions">
+              <button className="btn-danger-sm" onClick={handleDeleteAccount}>
+                SÃ­, eliminar mi cuenta
+              </button>
+              <button
+                className="btn-outline-sm"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+10. UserDashboardPage.css
+Hoja de estilos compartida para todos los componentes del dashboard. Define el layout (topbar + sidebar + main), los tokens de color de los dots de navegaciÃ³n, los estados de los badges, las tarjetas, los toggles y los botones de acciÃ³n. Usa variables CSS para facilitar el theming.
+ðŸ“„  UserDashboardPage.css
+/* â”€â”€ Layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.dashboard-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--color-bg-primary, #fff);
+  font-family: var(--font-sans, system-ui, sans-serif);
+}
+.dashboard-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--color-border, #E5E7EB);
+  background: #fff;
+  flex-shrink: 0;
+}
+.dashboard-logo { font-size: 15px; font-weight: 600; color: #111; }
+.dashboard-topbar-right {
+  display: flex; align-items: center; gap: 10px;
+}
+.plan-badge {
+  font-size: 11px; padding: 3px 10px; border-radius: 20px;
+  background: #EFF6FF; color: #2563EB;
+}
+.user-name { font-size: 12px; color: #6B7280; }
+.user-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #EFF6FF; color: #2563EB;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600;
+}
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  flex: 1;
+  overflow: hidden;
+}
+/* â”€â”€ Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.dashboard-sidebar {
+  padding: 12px 8px;
+  border-right: 1px solid #E5E7EB;
+  background: #F9FAFB;
+  overflow-y: auto;
+}
+.sidebar-group-label {
+  font-size: 9px; color: #9CA3AF;
+  text-transform: uppercase; letter-spacing: .08em;
+  padding: 0 8px; margin-bottom: 5px; margin-top: 4px;
+}
+.sidebar-item {
+  display: flex; align-items: center; gap: 7px;
+  width: 100%; padding: 6px 8px;
+  border: none; background: transparent;
+  border-radius: 6px; font-size: 11px; color: #6B7280;
+  cursor: pointer; transition: all .1s; margin-bottom: 1px;
+  text-align: left;
+}
+.sidebar-item:hover { background: #fff; }
+.sidebar-item.active {
+  background: #fff; color: #111; font-weight: 500;
+  border: 1px solid #E5E7EB;
+}
+.sidebar-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.dot-blue   { background: #2563EB; }
+.dot-green  { background: #16A34A; }
+.dot-amber  { background: #D97706; }
+.dot-teal   { background: #0F766E; }
+.dot-purple { background: #7C3AED; }
+.dot-coral  { background: #DC2626; }
+.dot-gray   { background: #9CA3AF; }
+.sidebar-badge {
+  margin-left: auto; font-size: 9px; padding: 1px 5px;
+  border-radius: 20px; background: #FEE2E2; color: #DC2626;
+}
+.sidebar-divider {
+  height: 1px; background: #E5E7EB; margin: 10px 8px;
+}
+/* â”€â”€ Main content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.dashboard-main {
+  overflow-y: auto; padding: 0;
+}
+.section-wrap { padding: 18px 22px; }
+.section-title {
+  font-size: 15px; font-weight: 600; color: #111;
+  margin-bottom: 14px;
+}
+.section-subtitle {
+  font-size: 12px; font-weight: 500; color: #111;
+  margin-bottom: 8px;
+}
+.section-count {
+  font-size: 11px; color: #6B7280; margin-bottom: 10px;
+}
+.section-header {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 10px;
+}
+.section-divider {
+  height: 1px; background: #E5E7EB; margin: 14px 0;
+}
+.empty-state {
+  text-align: center; padding: 32px;
+  color: #6B7280; font-size: 13px;
+}
+.empty-state button { margin-top: 12px; }
+/* â”€â”€ KPI cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 8px; margin-bottom: 16px;
+}
+.kpi-card {
+  background: #F3F4F6; border-radius: 8px;
+  padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.kpi-value { font-size: 22px; font-weight: 600; color: #111; }
+.kpi-label { font-size: 9px; color: #9CA3AF; }
+/* â”€â”€ Notifications â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.notifications-list { display: flex; flex-direction: column; gap: 6px; }
+.notification-item {
+  display: flex; gap: 9px; align-items: flex-start;
+  padding: 9px; border-radius: 8px;
+  border: 1px solid #E5E7EB; background: #fff;
+}
+.notif-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0;
+}
+.bg-amber  { background: #FEF3C7; }
+.bg-blue   { background: #EFF6FF; }
+.bg-green  { background: #DCFCE7; }
+.bg-red    { background: #FEE2E2; }
+.bg-gray   { background: #F3F4F6; }
+.notif-body { flex: 1; }
+.notif-title { font-size: 11px; font-weight: 500; color: #111; }
+.notif-sub   { font-size: 10px; color: #6B7280; line-height: 1.4; margin-top: 1px; }
+.notif-cta {
+  font-size: 10px; color: #2563EB;
+  background: none; border: none; cursor: pointer;
+  white-space: nowrap; padding-top: 1px;
+}
+/* â”€â”€ Activity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.activity-card {
+  background: #fff; border: 1px solid #E5E7EB;
+  border-radius: 8px; padding: 10px 12px;
+}
+.activity-row {
+  display: flex; justify-content: space-between;
+  font-size: 10px; padding: 4px 0;
+  border-bottom: 1px solid #F3F4F6;
+}
+.activity-row:last-child { border: none; }
+.activity-text { color: #374151; }
+.activity-date { color: #9CA3AF; }
+/* â”€â”€ Tags / badges â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.tag-green  { display:inline-block;font-size:9px;padding:2px 7px;border-radius:20px;background:#DCFCE7;color:#15803D; }
+.tag-amber  { display:inline-block;font-size:9px;padding:2px 7px;border-radius:20px;background:#FEF3C7;color:#92400E; }
+.tag-blue   { display:inline-block;font-size:9px;padding:2px 7px;border-radius:20px;background:#EFF6FF;color:#1D4ED8; }
+.tag-red    { display:inline-block;font-size:9px;padding:2px 7px;border-radius:20px;background:#FEE2E2;color:#DC2626; }
+.tag-gray   { display:inline-block;font-size:9px;padding:2px 7px;border-radius:20px;background:#F3F4F6;color:#6B7280; }
+/* â”€â”€ Buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.btn-primary-sm {
+  padding: 6px 14px; background: #2563EB; color: #fff;
+  border: none; border-radius: 7px; font-size: 12px;
+  cursor: pointer; font-weight: 500;
+}
+.btn-primary-sm:hover { background: #1D4ED8; }
+.btn-outline-sm {
+  padding: 6px 12px; background: transparent; color: #374151;
+  border: 1px solid #D1D5DB; border-radius: 7px;
+  font-size: 12px; cursor: pointer;
+}
+.btn-outline-sm:hover { background: #F9FAFB; }
+.btn-danger-sm {
+  padding: 6px 12px; background: transparent; color: #DC2626;
+  border: 1px solid #FECACA; border-radius: 7px;
+  font-size: 12px; cursor: pointer;
+}
+.btn-ghost-sm {
+  padding: 6px 10px; background: transparent; color: #9CA3AF;
+  border: none; font-size: 11px; cursor: pointer;
+}
+.text-btn {
+  font-size: 11px; color: #2563EB;
+  background: none; border: none; cursor: pointer;
+}
+/* â”€â”€ Toggle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.toggle-btn {
+  width: 34px; height: 18px; border-radius: 9px;
+  border: none; cursor: pointer; position: relative;
+  transition: background .2s; flex-shrink: 0;
+}
+.toggle-btn.on  { background: #2563EB; }
+.toggle-btn.off { background: #D1D5DB; }
+.toggle-btn::after {
+  content: '';
+  position: absolute; top: 2px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #fff; transition: left .2s;
+}
+.toggle-btn.on::after  { right: 2px; left: auto; }
+.toggle-btn.off::after { left: 2px; }
+/* â”€â”€ Saved analyses â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.saved-card {
+  border: 1px solid #E5E7EB; border-radius: 8px;
+  padding: 12px; margin-bottom: 10px; background: #fff;
+}
+.saved-card-header {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 5px;
+}
+.saved-card-title { font-size: 12px; font-weight: 500; color: #111; }
+.saved-card-meta  { font-size: 10px; color: #6B7280; margin-bottom: 8px; }
+.metrics-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 6px; margin-bottom: 10px;
+}
+.metric-item { font-size: 9px; color: #6B7280; }
+.metric-track {
+  height: 3px; background: #F3F4F6; border-radius: 2px; margin-top: 3px;
+}
+.metric-fill { height: 100%; border-radius: 2px; }
+.saved-actions { display: flex; gap: 5px; flex-wrap: wrap; }
+.rec-badge {
+  font-size: 10px; padding: 3px 9px; border-radius: 20px;
+}
+.rec-renting { background: #DCFCE7; color: #15803D; }
+.rec-compra  { background: #EFF6FF; color: #1D4ED8; }
+/* â”€â”€ Alerts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.alert-rule-card {
+  display: flex; gap: 10px; align-items: center;
+  border: 1px solid #E5E7EB; border-radius: 8px;
+  padding: 10px 12px; margin-bottom: 7px; background: #fff;
+}
+.alert-rule-card.paused { opacity: .65; }
+.alert-rule-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  display: flex; align-items: center;
+  justify-content: center; font-size: 13px; flex-shrink: 0;
+}
+.alert-rule-body { flex: 1; }
+.alert-rule-name       { font-size: 11px; font-weight: 500; color: #111; }
+.alert-rule-conditions { font-size: 10px; color: #6B7280; margin-top: 1px; }
+.alert-rule-right { text-align: right; }
+.alert-status { font-size: 10px; margin-bottom: 5px; }
+.alert-status.active { color: #15803D; }
+.alert-status.paused { color: #9CA3AF; }
+.match-badge    { display:inline-block;font-size:9px;padding:2px 7px;border-radius:20px;background:#FEF3C7;color:#92400E;margin-top:4px; }
+.no-match-badge { display:inline-block;font-size:9px;padding:2px 7px;border-radius:20px;background:#F3F4F6;color:#6B7280;margin-top:4px; }
+.paused-badge   { display:inline-block;font-size:9px;padding:2px 7px;border-radius:20px;background:#F3F4F6;color:#9CA3AF;margin-top:4px; }
+.match-card {
+  display: flex; gap: 10px; align-items: center;
+  border: 1px solid #E5E7EB; border-radius: 8px;
+  padding: 10px 12px; background: #fff; margin-bottom: 7px;
+}
+.match-info { flex: 1; }
+.match-name    { font-size: 12px; font-weight: 500; color: #111; }
+.match-specs   { font-size: 10px; color: #6B7280; }
+.match-price-col { text-align: right; margin-right: 8px; }
+.match-price   { font-size: 14px; font-weight: 600; color: #111; }
+.match-saving  { font-size: 10px; color: #15803D; }
+.match-actions { display: flex; flex-direction: column; gap: 4px; }
+/* â”€â”€ Vehicles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.vehicle-card {
+  border: 1px solid #E5E7EB; border-radius: 10px;
+  padding: 12px; margin-bottom: 10px; background: #fff;
+}
+.vehicle-header { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+.vehicle-thumb {
+  width: 72px; height: 48px; background: #F3F4F6;
+  border-radius: 8px; display: flex; align-items: center;
+  justify-content: center; font-size: 22px; flex-shrink: 0;
+}
+.vehicle-name  { font-size: 12px; font-weight: 600; color: #111; }
+.vehicle-plate {
+  display: inline-block; font-size: 10px; padding: 2px 8px;
+  border-radius: 3px; border: 1px solid #D1D5DB;
+  color: #374151; font-family: monospace; margin-top: 3px;
+}
+.vehicle-tags { display: flex; gap: 5px; margin-top: 5px; flex-wrap: wrap; }
+.vehicle-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 6px; margin-bottom: 10px;
+}
+.vehicle-stat {
+  background: #F3F4F6; border-radius: 6px; padding: 7px 8px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.stat-value { font-size: 12px; font-weight: 500; color: #111; }
+.stat-label { font-size: 9px; color: #9CA3AF; }
+.vehicle-docs { border-top: 1px solid #F3F4F6; padding-top: 8px; }
+.docs-title { font-size: 10px; font-weight: 500; color: #6B7280; margin-bottom: 5px; }
+.doc-row {
+  display: flex; align-items: center; gap: 7px;
+  padding: 5px 0; font-size: 10px;
+  border-bottom: 1px solid #F9FAFB;
+}
+.doc-icon { font-size: 12px; }
+.doc-name { flex: 1; color: #111; }
+.doc-date { color: #9CA3AF; }
+.doc-download-btn {
+  font-size: 10px; color: #2563EB;
+  background: none; border: none; cursor: pointer;
+}
+.add-doc-btn {
+  font-size: 10px; color: #2563EB;
+  background: none; border: none; cursor: pointer;
+  padding: 5px 0; margin-top: 2px;
+}
+.vehicle-actions {
+  display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap;
+}
+.edit-form {
+  margin-top: 10px; padding: 10px;
+  border: 1px solid #E5E7EB; border-radius: 8px;
+  background: #F9FAFB;
+}
+.edit-actions { display: flex; gap: 6px; margin-top: 8px; }
+/* â”€â”€ Valuations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.valuation-card {
+  border: 1px solid #E5E7EB; border-radius: 8px;
+  padding: 12px; margin-bottom: 8px; background: #fff;
+}
+.valuation-header {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; margin-bottom: 6px;
+}
+.valuation-car  { font-size: 12px; font-weight: 500; color: #111; }
+.valuation-meta { font-size: 10px; color: #9CA3AF; margin-top: 1px; }
+.valuation-date { font-size: 10px; color: #9CA3AF; }
+.valuation-prices {
+  display: flex; gap: 16px; margin-bottom: 8px;
+}
+.price-col { display: flex; flex-direction: column; gap: 2px; }
+.trend-col { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.price-label { font-size: 9px; color: #9CA3AF; text-transform: uppercase; letter-spacing: .04em; }
+.price-value  { font-size: 18px; font-weight: 600; color: #111; }
+.price-range  { font-size: 9px; color: #9CA3AF; }
+.trend-indicator { font-size: 11px; font-weight: 500; }
+.trend-up   { color: #15803D; }
+.trend-down { color: #DC2626; }
+.trend-period { font-size: 10px; font-weight: 400; }
+.valuation-actions { display: flex; gap: 6px; }
+.valuation-detail {
+  margin-top: 10px; padding: 10px;
+  background: #F9FAFB; border-radius: 6px;
+  border-left: 3px solid #2563EB;
+}
+.detail-label { font-size: 10px; font-weight: 500; color: #374151; margin-bottom: 3px; }
+.detail-text  { font-size: 10px; color: #6B7280; line-height: 1.5; }
+/* â”€â”€ Operations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.plan-usage-bar {
+  background: #F3F4F6; border-radius: 8px;
+  padding: 12px; margin-bottom: 14px;
+}
+.plan-usage-header {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 6px;
+}
+.plan-usage-title { font-size: 11px; font-weight: 500; color: #111; }
+.plan-usage-count { font-size: 10px; color: #6B7280; }
+.usage-track { height: 5px; background: #E5E7EB; border-radius: 3px; }
+.usage-fill  { height: 100%; border-radius: 3px; background: #2563EB; }
+.plan-usage-note { font-size: 10px; color: #9CA3AF; margin-top: 5px; }
+.operation-card {
+  display: flex; gap: 10px; align-items: flex-start;
+  border: 1px solid #E5E7EB; border-radius: 8px;
+  padding: 11px 12px; margin-bottom: 7px; background: #fff;
+}
+.operation-card.completed { opacity: .7; }
+.op-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center;
+  justify-content: center; font-size: 14px; flex-shrink: 0;
+}
+.op-body { flex: 1; }
+.op-title { font-size: 11px; font-weight: 500; color: #111; }
+.op-meta  { font-size: 10px; color: #6B7280; margin-top: 1px; }
+.op-right { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+.op-due   { font-size: 10px; color: #6B7280; }
+.op-date  { font-size: 10px; color: #9CA3AF; }
+.priority-badge { display:inline-block;font-size:9px;padding:2px 7px;border-radius:20px;margin-top:4px; }
+.priority-urgent  { background: #FEE2E2; color: #DC2626; }
+.priority-pending { background: #FEF3C7; color: #92400E; }
+.empty-text { font-size: 12px; color: #9CA3AF; padding: 10px 0; }
+/* â”€â”€ Billing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.plan-card {
+  border: 1px solid #E5E7EB; border-radius: 10px;
+  padding: 14px; margin-bottom: 12px; background: #fff;
+}
+.plan-card.featured { border: 2px solid #2563EB; }
+.plan-card-header {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; margin-bottom: 10px;
+}
+.plan-name    { font-size: 14px; font-weight: 600; color: #111; }
+.plan-renewal { font-size: 10px; color: #6B7280; margin-top: 2px; }
+.plan-price-col { text-align: right; }
+.plan-price   { font-size: 22px; font-weight: 700; color: #111; }
+.plan-period  { font-size: 11px; color: #9CA3AF; font-weight: 400; }
+.plan-features-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 5px; margin-bottom: 12px;
+}
+.plan-feature { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #374151; }
+.check-icon   { color: #15803D; font-size: 11px; }
+.plan-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.billing-info-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px; margin-bottom: 14px;
+}
+.billing-info-box {
+  background: #F3F4F6; border-radius: 8px; padding: 10px;
+}
+.billing-info-label { font-size: 9px; color: #9CA3AF; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.billing-info-value { font-size: 12px; color: #111; font-weight: 500; }
+.billing-info-sub   { font-size: 10px; color: #6B7280; margin-top: 2px; }
+.invoice-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid #F3F4F6;
+  font-size: 11px;
+}
+.invoice-period  { flex: 1; color: #374151; }
+.invoice-amount  { font-weight: 500; color: #111; }
+.invoice-download-btn {
+  font-size: 10px; color: #2563EB;
+  background: none; border: none; cursor: pointer;
+}
+.confirm-box {
+  background: #FEF2F2; border: 1px solid #FECACA;
+  border-radius: 8px; padding: 12px; margin-bottom: 12px;
+}
+.confirm-text    { font-size: 12px; color: #374151; margin-bottom: 10px; line-height: 1.5; }
+.confirm-actions { display: flex; gap: 8px; }
+/* â”€â”€ Preferences â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.pref-section { margin-bottom: 20px; }
+.pref-section-title {
+  font-size: 11px; font-weight: 500; color: #111;
+  padding-bottom: 8px; margin-bottom: 8px;
+  border-bottom: 1px solid #E5E7EB;
+}
+.pref-row {
+  display: flex; justify-content: space-between;
+  align-items: center; padding: 8px 0;
+  border-bottom: 1px solid #F3F4F6;
+}
+.pref-row:last-child { border: none; }
+.pref-left  { flex: 1; }
+.pref-label { font-size: 11px; color: #111; }
+.pref-sub   { font-size: 10px; color: #6B7280; margin-top: 1px; }
+.pref-edit-actions { display: flex; gap: 5px; }
+.form-input-sm {
+  margin-top: 4px; width: 100%; max-width: 220px;
+  padding: 5px 8px; border: 1px solid #D1D5DB;
+  border-radius: 6px; font-size: 12px; color: #111;
+}
+.danger-zone { margin-top: 24px; }
+.pref-section-title.danger { color: #DC2626; border-color: #FECACA; }
+.danger-label { color: #DC2626; }
+.confirm-box.danger {
+  background: #FEF2F2; border-color: #FECACA; margin-top: 10px;
+}
+/* â”€â”€ Forms â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.form-label {
+  display: flex; flex-direction: column; gap: 4px;
+  font-size: 10px; color: #6B7280; font-weight: 500;
+}
+.form-input {
+  padding: 7px 10px; border: 1px solid #D1D5DB;
+  border-radius: 7px; font-size: 12px; color: #111;
+  background: #fff; margin-top: 3px;
+}
+/* â”€â”€ Responsive â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+@media (max-width: 640px) {
+  .dashboard-layout { grid-template-columns: 1fr; }
+  .dashboard-sidebar { display: none; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .vehicle-stats { grid-template-columns: repeat(2, 1fr); }
+  .billing-info-grid { grid-template-columns: 1fr; }
+}

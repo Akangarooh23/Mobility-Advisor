@@ -459,6 +459,8 @@ BEGIN
   ALTER TABLE dbo.MoveAdvisorUserSavedOffers ADD UserId NVARCHAR(64) NULL;
 END;
 
+GO
+
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_MoveAdvisorUserVehicles_UserId_CreatedAt' AND object_id = OBJECT_ID(N'dbo.MoveAdvisorUserVehicles'))
 BEGIN
   CREATE INDEX IX_MoveAdvisorUserVehicles_UserId_CreatedAt ON dbo.MoveAdvisorUserVehicles (UserId, CreatedAt DESC);
@@ -551,6 +553,8 @@ BEGIN
   ALTER TABLE dbo.MoveAdvisorUserVehicles ADD NextIvtDate DATE NULL;
 END;
 
+GO
+
 UPDATE dbo.MoveAdvisorUserVehicles
 SET
   YearInt = COALESCE(YearInt, TRY_CONVERT(SMALLINT, NULLIF([Year], N''))),
@@ -578,3 +582,155 @@ BEGIN
     ADD CONSTRAINT CK_MoveAdvisorUserVehicles_PriceAmount_Valid CHECK (PriceAmount IS NULL OR PriceAmount >= 0);
 END;
 -- END 3NF NORMALIZATION
+
+-- Allow sell-flow valuations without a garage vehicle (VehicleId becomes optional)
+IF EXISTS (
+  SELECT 1 FROM sys.foreign_keys
+  WHERE name = N'FK_MoveAdvisorUserValuations_Vehicle'
+    AND parent_object_id = OBJECT_ID(N'dbo.MoveAdvisorUserValuations')
+)
+BEGIN
+  ALTER TABLE dbo.MoveAdvisorUserValuations
+    DROP CONSTRAINT FK_MoveAdvisorUserValuations_Vehicle;
+END;
+
+IF EXISTS (
+  SELECT 1 FROM sys.columns
+  WHERE object_id = OBJECT_ID(N'dbo.MoveAdvisorUserValuations')
+    AND name = N'VehicleId'
+    AND is_nullable = 0
+)
+BEGIN
+  ALTER TABLE dbo.MoveAdvisorUserValuations ALTER COLUMN VehicleId NVARCHAR(64) NULL;
+END;
+
+-- =========================================================
+-- BEGIN USER DATA EXTENSIONS (comparaciones, alertas, prefs)
+-- =========================================================
+
+-- Comparaciones / análisis guardados por usuario
+IF OBJECT_ID(N'dbo.MoveAdvisorUserSavedComparisons', N'U') IS NULL
+BEGIN
+  CREATE TABLE dbo.MoveAdvisorUserSavedComparisons (
+    Id           NVARCHAR(64)   NOT NULL PRIMARY KEY,
+    UserEmail    NVARCHAR(255)  NOT NULL,
+    UserId       NVARCHAR(64)   NULL,
+    Title        NVARCHAR(255)  NOT NULL CONSTRAINT DF_MoveAdvisorUserSavedComparisons_Title DEFAULT (N''),
+    Mode         NVARCHAR(30)   NOT NULL CONSTRAINT DF_MoveAdvisorUserSavedComparisons_Mode  DEFAULT (N'buy'),
+    ComparisonPayload NVARCHAR(MAX) NOT NULL CONSTRAINT DF_MoveAdvisorUserSavedComparisons_Payload DEFAULT (N'{}'),
+    CreatedAt    DATETIME2      NOT NULL,
+    UpdatedAt    DATETIME2      NOT NULL
+  );
+
+  CREATE INDEX IX_MoveAdvisorUserSavedComparisons_UserEmail_CreatedAt
+    ON dbo.MoveAdvisorUserSavedComparisons (UserEmail, CreatedAt DESC);
+END;
+
+IF COL_LENGTH(N'dbo.MoveAdvisorUserSavedComparisons', N'UserId') IS NULL
+BEGIN
+  ALTER TABLE dbo.MoveAdvisorUserSavedComparisons ADD UserId NVARCHAR(64) NULL;
+END;
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_MoveAdvisorUserSavedComparisons_UserId_CreatedAt'
+               AND object_id = OBJECT_ID(N'dbo.MoveAdvisorUserSavedComparisons'))
+BEGIN
+  CREATE INDEX IX_MoveAdvisorUserSavedComparisons_UserId_CreatedAt
+    ON dbo.MoveAdvisorUserSavedComparisons (UserId, CreatedAt DESC);
+END;
+
+-- Alertas de mercado (reglas de precio)
+IF OBJECT_ID(N'dbo.MoveAdvisorUserMarketAlerts', N'U') IS NULL
+BEGIN
+  CREATE TABLE dbo.MoveAdvisorUserMarketAlerts (
+    Id             NVARCHAR(64)   NOT NULL PRIMARY KEY,
+    UserEmail      NVARCHAR(255)  NOT NULL,
+    UserId         NVARCHAR(64)   NULL,
+    Title          NVARCHAR(255)  NOT NULL CONSTRAINT DF_MoveAdvisorUserMarketAlerts_Title DEFAULT (N''),
+    Mode           NVARCHAR(30)   NOT NULL CONSTRAINT DF_MoveAdvisorUserMarketAlerts_Mode  DEFAULT (N'buy'),
+    Brand          NVARCHAR(100)  NOT NULL CONSTRAINT DF_MoveAdvisorUserMarketAlerts_Brand DEFAULT (N''),
+    Model          NVARCHAR(120)  NOT NULL CONSTRAINT DF_MoveAdvisorUserMarketAlerts_Model DEFAULT (N''),
+    MaxPrice       NVARCHAR(40)   NOT NULL CONSTRAINT DF_MoveAdvisorUserMarketAlerts_MaxPrice DEFAULT (N''),
+    MaxMileage     NVARCHAR(40)   NOT NULL CONSTRAINT DF_MoveAdvisorUserMarketAlerts_MaxMileage DEFAULT (N''),
+    Fuel           NVARCHAR(60)   NOT NULL CONSTRAINT DF_MoveAdvisorUserMarketAlerts_Fuel DEFAULT (N''),
+    Location       NVARCHAR(160)  NOT NULL CONSTRAINT DF_MoveAdvisorUserMarketAlerts_Location DEFAULT (N''),
+    Color          NVARCHAR(60)   NOT NULL CONSTRAINT DF_MoveAdvisorUserMarketAlerts_Color DEFAULT (N''),
+    NotifyByEmail  BIT            NOT NULL CONSTRAINT DF_MoveAdvisorUserMarketAlerts_NotifyByEmail DEFAULT (0),
+    AlertEmail     NVARCHAR(255)  NOT NULL CONSTRAINT DF_MoveAdvisorUserMarketAlerts_AlertEmail DEFAULT (N''),
+    Status         NVARCHAR(30)   NOT NULL CONSTRAINT DF_MoveAdvisorUserMarketAlerts_Status DEFAULT (N'active'),
+    AlertPayload   NVARCHAR(MAX)  NOT NULL CONSTRAINT DF_MoveAdvisorUserMarketAlerts_AlertPayload DEFAULT (N'{}'),
+    CreatedAt      DATETIME2      NOT NULL,
+    UpdatedAt      DATETIME2      NOT NULL,
+    CONSTRAINT CK_MoveAdvisorUserMarketAlerts_Status
+      CHECK (Status IN (N'active', N'paused', N'deleted'))
+  );
+
+  CREATE INDEX IX_MoveAdvisorUserMarketAlerts_UserEmail_CreatedAt
+    ON dbo.MoveAdvisorUserMarketAlerts (UserEmail, CreatedAt DESC);
+END;
+
+IF COL_LENGTH(N'dbo.MoveAdvisorUserMarketAlerts', N'UserId') IS NULL
+BEGIN
+  ALTER TABLE dbo.MoveAdvisorUserMarketAlerts ADD UserId NVARCHAR(64) NULL;
+END;
+
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_MoveAdvisorUserMarketAlerts_UserId_CreatedAt'
+               AND object_id = OBJECT_ID(N'dbo.MoveAdvisorUserMarketAlerts'))
+BEGIN
+  CREATE INDEX IX_MoveAdvisorUserMarketAlerts_UserId_CreatedAt
+    ON dbo.MoveAdvisorUserMarketAlerts (UserId, CreatedAt DESC);
+END;
+
+-- Estado de visto de cada alerta por usuario (1:1 con la alerta)
+IF OBJECT_ID(N'dbo.MoveAdvisorUserMarketAlertStatus', N'U') IS NULL
+BEGIN
+  CREATE TABLE dbo.MoveAdvisorUserMarketAlertStatus (
+    AlertId    NVARCHAR(64)  NOT NULL PRIMARY KEY,
+    UserEmail  NVARCHAR(255) NOT NULL,
+    SeenCount  INT           NOT NULL CONSTRAINT DF_MoveAdvisorUserMarketAlertStatus_SeenCount DEFAULT (0),
+    LastSeenAt DATETIME2     NOT NULL,
+    CONSTRAINT FK_MoveAdvisorUserMarketAlertStatus_Alert
+      FOREIGN KEY (AlertId) REFERENCES dbo.MoveAdvisorUserMarketAlerts(Id) ON DELETE CASCADE,
+    CONSTRAINT CK_MoveAdvisorUserMarketAlertStatus_SeenCount
+      CHECK (SeenCount >= 0)
+  );
+
+  CREATE INDEX IX_MoveAdvisorUserMarketAlertStatus_UserEmail
+    ON dbo.MoveAdvisorUserMarketAlertStatus (UserEmail);
+END;
+
+-- Preferencias de usuario (una fila por usuario, PK = email)
+IF OBJECT_ID(N'dbo.MoveAdvisorUserPreferences', N'U') IS NULL
+BEGIN
+  CREATE TABLE dbo.MoveAdvisorUserPreferences (
+    UserEmail            NVARCHAR(255) NOT NULL PRIMARY KEY,
+    UserId               NVARCHAR(64)  NULL,
+    FullName             NVARCHAR(120) NOT NULL CONSTRAINT DF_MoveAdvisorUserPreferences_FullName DEFAULT (N''),
+    Language             NVARCHAR(10)  NOT NULL CONSTRAINT DF_MoveAdvisorUserPreferences_Language DEFAULT (N'es'),
+    Region               NVARCHAR(10)  NOT NULL CONSTRAINT DF_MoveAdvisorUserPreferences_Region   DEFAULT (N'es'),
+    NotifyPriceAlerts    BIT           NOT NULL CONSTRAINT DF_MoveAdvisorUserPreferences_NPAlerts  DEFAULT (1),
+    NotifyAppointments   BIT           NOT NULL CONSTRAINT DF_MoveAdvisorUserPreferences_NAppts    DEFAULT (1),
+    NotifyAnalysisReady  BIT           NOT NULL CONSTRAINT DF_MoveAdvisorUserPreferences_NAnalysis DEFAULT (1),
+    WeeklyDigest         BIT           NOT NULL CONSTRAINT DF_MoveAdvisorUserPreferences_WDigest   DEFAULT (1),
+    UpdatedAt            DATETIME2     NOT NULL
+  );
+END;
+
+-- Backfill UserId en nuevas tablas para usuarios ya existentes
+IF OBJECT_ID(N'dbo.MoveAdvisorUsers', N'U') IS NOT NULL
+BEGIN
+  UPDATE t SET UserId = u.Id
+  FROM dbo.MoveAdvisorUserSavedComparisons t
+  INNER JOIN dbo.MoveAdvisorUsers u ON LOWER(u.Email) = LOWER(t.UserEmail)
+  WHERE t.UserId IS NULL;
+
+  UPDATE t SET UserId = u.Id
+  FROM dbo.MoveAdvisorUserMarketAlerts t
+  INNER JOIN dbo.MoveAdvisorUsers u ON LOWER(u.Email) = LOWER(t.UserEmail)
+  WHERE t.UserId IS NULL;
+END;
+
+-- =========================================================
+-- END USER DATA EXTENSIONS
+-- =========================================================

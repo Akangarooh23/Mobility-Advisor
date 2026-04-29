@@ -1,8 +1,8 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function ResultsOffersView({
   themeMode,
-  uiLanguage = "es",
   quickValidationQuestions,
   displayResult,
   quickValidationAnswers,
@@ -30,84 +30,49 @@ export default function ResultsOffersView({
   isRecommendationSaved,
   getOfferActionMeta,
 }) {
-  const language = String(uiLanguage || "").toLowerCase() === "en" ? "en" : "es";
+  const { t } = useTranslation();
   const text = {
-    quickValidation: language === "en" ? "✅ QUICK VALIDATION" : "✅ VALIDACIÓN RÁPIDA",
-    yes: language === "en" ? "Yes" : "Sí",
-    no: language === "en" ? "No" : "No",
-    nextStep: language === "en" ? "🎯 NEXT STEP" : "🎯 SIGUIENTE PASO",
-    nextStepDesc:
-      language === "en"
-        ? "Adjust this quick section and the offers block will reorder to show the best real match first."
-        : "Ajusta esta parte rápida y el bloque de ofertas se reordena para enseñarte primero la mejor coincidencia real.",
-    targetMonthlyFee: language === "en" ? "Target monthly fee" : "Cuota objetivo mensual",
-    incomeStability: language === "en" ? "Income stability" : "Estabilidad de ingresos",
-    buyChecklist:
-      language === "en"
-        ? [
-            "Define your comfortable max monthly payment and real upfront capital.",
-            "Request a detailed quote with APR/NIR, insurance and total cost.",
-            "Discard any option that does not fit your target TCO.",
-          ]
-        : [
-            "Define tu cuota máxima cómoda y el capital inicial real.",
-            "Pide oferta desglosada con TIN/TAE, seguro y coste total.",
-            "Descarta cualquier opción que no cuadre con el TCO objetivo.",
-          ],
-    altChecklist:
-      language === "en"
-        ? [
-            "Check real coverage in your area and day-to-day availability.",
-            "Compare occasional cost against fixed cost of another modality.",
-            "Choose the option that creates the least friction for you now.",
-          ]
-        : [
-            "Comprueba cobertura real en tu zona y disponibilidad diaria.",
-            "Compara el coste puntual frente al coste fijo de otra modalidad.",
-            "Quédate con la opción que menos fricción te meta hoy.",
-          ],
-    bestOffers: language === "en" ? "🏆 BEST FIT OFFERS" : "🏆 OFERTAS QUE MEJOR ENCAJAN",
-    recalculating: language === "en" ? "Recalculating..." : "Recalculando...",
-    recalculateOffers: language === "en" ? "Recalculate offers" : "Recalcular ofertas",
-    featuredIntro:
-      language === "en"
-        ? "The featured offer is the best fit for your case; below you will see 3 more that can also fit, with ranking reasons."
-        : "La oferta destacada es la que mejor funciona para tu caso; debajo verás otras 3 que también podrían encajar con sus motivos de posición.",
+    quickValidation: t("resultsOffersView.quickValidation"),
+    yes: t("resultsOffersView.yes"),
+    no: t("resultsOffersView.no"),
+    nextStep: t("resultsOffersView.nextStep"),
+    nextStepDesc: t("resultsOffersView.nextStepDesc"),
+    targetMonthlyFee: t("resultsOffersView.targetMonthlyFee"),
+    incomeStability: t("resultsOffersView.incomeStability"),
+    buyChecklist: [
+      t("resultsOffersView.buyChecklistItem1"),
+      t("resultsOffersView.buyChecklistItem2"),
+      t("resultsOffersView.buyChecklistItem3"),
+    ],
+    altChecklist: [
+      t("resultsOffersView.altChecklistItem1"),
+      t("resultsOffersView.altChecklistItem2"),
+      t("resultsOffersView.altChecklistItem3"),
+    ],
+    bestOffers: t("resultsOffersView.bestOffers"),
+    recalculating: t("resultsOffersView.recalculating"),
+    recalculateOffers: t("resultsOffersView.recalculateOffers"),
+    featuredIntro: t("resultsOffersView.featuredIntro"),
     listingCoveragePrefix: "🔎",
-    refineWarning:
-      language === "en"
-        ? "You can already open visible options while we refine an even better match."
-        : "Ya puedes abrir las opciones visibles mientras afinamos una coincidencia todavía mejor.",
-    loadingRealtime:
-      language === "en"
-        ? "We are recalculating offers for your profile in real time."
-        : "Estamos recalculando las ofertas para tu perfil en tiempo real.",
-    firstLoadInfo:
-      language === "en"
-        ? "Offers are shown immediately; if you tweak quick validation or monthly payment, they reorder automatically."
-        : "Las ofertas salen ya de primeras; si tocas validación rápida o cuota, se reordenan automáticamente.",
-    openOfferNewTab: language === "en" ? "Open offer in a new tab" : "Abrir oferta en una pestaña nueva",
-    featuredOffer: language === "en" ? "⭐ FEATURED OFFER" : "⭐ OFERTA DESTACADA",
-    position: language === "en" ? "POSITION" : "PUESTO",
-    fit: language === "en" ? "FIT" : "ENCAJE",
-    featuredFallback:
-      language === "en"
-        ? "It is the best ranked real match for your test and current context."
-        : "Es la coincidencia real mejor posicionada para tu test y tu contexto actual.",
-    externalWeb: language === "en" ? "External site" : "Web externa",
-    whyFirst: language === "en" ? "Why #1" : "Por qué va la 1ª",
-    referenceOnly:
-      language === "en"
-        ? "This card is a reference only: it takes you to the provider portal, not to an exact verified listing."
-        : "Esta tarjeta es una referencia orientativa: te lleva al portal del proveedor, no a una ficha exacta ya verificada.",
-    searchRealNow: language === "en" ? "Search real offer now ↗" : "Buscar oferta real ahora ↗",
-    saved: language === "en" ? "💖 Saved" : "💖 Guardada",
-    saveFavorite: language === "en" ? "🤍 Save favorite" : "🤍 Guardar favorita",
-    searchAnotherBatch: language === "en" ? "Search another batch" : "Buscar otra tanda",
-    otherFittingOffers: language === "en" ? "OTHER FITTING OFFERS" : "OTRAS OFERTAS QUE TAMBIÉN ENCAJAN",
-    save: language === "en" ? "🤍 Save" : "🤍 Guardar",
-    inSaved: language === "en" ? "💖 In saved" : "💖 En guardadas",
-    searchReal: language === "en" ? "Search real offer ↗" : "Buscar oferta real ↗",
+    refineWarning: t("resultsOffersView.refineWarning"),
+    loadingRealtime: t("resultsOffersView.loadingRealtime"),
+    firstLoadInfo: t("resultsOffersView.firstLoadInfo"),
+    openOfferNewTab: t("resultsOffersView.openOfferNewTab"),
+    featuredOffer: t("resultsOffersView.featuredOffer"),
+    position: t("resultsOffersView.position"),
+    fit: t("resultsOffersView.fit"),
+    featuredFallback: t("resultsOffersView.featuredFallback"),
+    externalWeb: t("resultsOffersView.externalWeb"),
+    whyFirst: t("resultsOffersView.whyFirst"),
+    referenceOnly: t("resultsOffersView.referenceOnly"),
+    searchRealNow: t("resultsOffersView.searchRealNow"),
+    saved: t("resultsOffersView.saved"),
+    saveFavorite: t("resultsOffersView.saveFavorite"),
+    searchAnotherBatch: t("resultsOffersView.searchAnotherBatch"),
+    otherFittingOffers: t("resultsOffersView.otherFittingOffers"),
+    save: t("resultsOffersView.save"),
+    inSaved: t("resultsOffersView.inSaved"),
+    searchReal: t("resultsOffersView.searchReal"),
   };
 
   const [hoveredCard, setHoveredCard] = useState(null);
@@ -436,7 +401,6 @@ export default function ResultsOffersView({
                   >
                     <ResolvedOfferImage
                       offer={featuredOffer}
-                      uiLanguage={language}
                       alt={featuredOffer.title || "Oferta destacada"}
                       loading="lazy"
                       style={{
@@ -641,7 +605,6 @@ export default function ResultsOffersView({
                           >
                             <ResolvedOfferImage
                               offer={offer}
-                              uiLanguage={language}
                               alt={offer.title || "Oferta"}
                               loading="lazy"
                               style={{ width: "100%", height: 78, objectFit: "cover", display: "block" }}

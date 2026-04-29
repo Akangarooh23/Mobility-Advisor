@@ -1,28 +1,7 @@
-export default function VehicleOptionsPage({ styles, onSelectBuy, onSelectRenting, onSelectGuide, onGoHome, uiLanguage = "es" }) {
-  const language = String(uiLanguage || "").toLowerCase() === "en" ? "en" : "es";
-  const text = {
-    backHome: language === "en" ? "← Back to home" : "← Volver al inicio",
-    title: language === "en" ? "I want a vehicle" : "Quiero un vehiculo",
-    subtitle:
-      language === "en"
-        ? "Choose how you want to move forward and we will take you to the right flow."
-        : "Elige como quieres avanzar y te llevamos al flujo adecuado.",
-    buyTitle: language === "en" ? "I want to buy a car" : "Quiero comprar un coche",
-    buyDesc:
-      language === "en"
-        ? "If you already have a brand and model in mind, we help you find the best offer."
-        : "Si ya tienes marca y modelo en mente, te ayudamos a localizar la mejor oferta.",
-    rentingTitle: language === "en" ? "I want leasing" : "Quiero hacer un Renting",
-    rentingDesc:
-      language === "en"
-        ? "We launch guided mode to evaluate monthly payment, real usage and the most convenient conditions."
-        : "Iniciamos el modo guiado para evaluar cuota, uso real y condiciones mas convenientes.",
-    guideTitle: language === "en" ? "Guide me" : "Quiero que me Guíes",
-    guideDesc:
-      language === "en"
-        ? "We ask key questions to recommend the most cost-effective option for your case."
-        : "Te hacemos preguntas clave para recomendarte la opcion mas rentable para tu caso.",
-  };
+import { useTranslation } from "react-i18next";
+
+export default function VehicleOptionsPage({ styles, onSelectBuy, onSelectRenting, onSelectGuide, onGoHome }) {
+  const { t } = useTranslation();
 
   const isDark = styles?.page?.color === "#e2e8f0";
   const titleColor = isDark ? "#f8fafc" : "#000000";
@@ -52,14 +31,14 @@ export default function VehicleOptionsPage({ styles, onSelectBuy, onSelectRentin
           marginBottom: 20,
         }}
       >
-        {text.backHome}
+        {t("vehicleOptions.backHome")}
       </button>
 
       <h2 style={{ margin: "0 0 8px", fontSize: "clamp(28px,4vw,38px)", color: titleColor, letterSpacing: "-0.9px" }}>
-        {text.title}
+        {t("vehicleOptions.title")}
       </h2>
       <p style={{ margin: "0 0 22px", color: mutedColor, fontSize: 14, lineHeight: 1.6 }}>
-        {text.subtitle}
+        {t("vehicleOptions.subtitle")}
       </p>
 
       <div
@@ -90,9 +69,9 @@ export default function VehicleOptionsPage({ styles, onSelectBuy, onSelectRentin
             animationDelay: "40ms",
           }}
         >
-          <div style={{ fontWeight: 800, fontSize: 19, lineHeight: 1.25, color: titleColor }}>{text.buyTitle}</div>
+          <div style={{ fontWeight: 800, fontSize: 19, lineHeight: 1.25, color: titleColor }}>{t("vehicleOptions.buyTitle")}</div>
           <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
-            {text.buyDesc}
+            {t("vehicleOptions.buyDesc")}
           </div>
         </button>
 
@@ -116,9 +95,9 @@ export default function VehicleOptionsPage({ styles, onSelectBuy, onSelectRentin
             animationDelay: "120ms",
           }}
         >
-          <div style={{ fontWeight: 800, fontSize: 19, lineHeight: 1.25, color: titleColor }}>{text.rentingTitle}</div>
+          <div style={{ fontWeight: 800, fontSize: 19, lineHeight: 1.25, color: titleColor }}>{t("vehicleOptions.rentingTitle")}</div>
           <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
-            {text.rentingDesc}
+            {t("vehicleOptions.rentingDesc")}
           </div>
         </button>
 
@@ -142,9 +121,9 @@ export default function VehicleOptionsPage({ styles, onSelectBuy, onSelectRentin
             animationDelay: "200ms",
           }}
         >
-          <div style={{ fontWeight: 800, fontSize: 19, lineHeight: 1.25, color: titleColor }}>{text.guideTitle}</div>
+          <div style={{ fontWeight: 800, fontSize: 19, lineHeight: 1.25, color: titleColor }}>{t("vehicleOptions.guideTitle")}</div>
           <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
-            {text.guideDesc}
+            {t("vehicleOptions.guideDesc")}
           </div>
         </button>
       </div>

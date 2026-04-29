@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getBrandOptionSegments } from "../utils/brandCatalog";
 
 const PRICE_MARKS = [0, 10000, 20000, 30000, 45000, 70000, 100000, 150000, 220000];
@@ -131,7 +132,6 @@ function getIndexFromMarkValue(marks, value, fallback = 0) {
 
 export default function DecisionPage({
   styles,
-  uiLanguage = "es",
   lockedOperation,
   decisionAnswers,
   updateDecisionAnswer,
@@ -147,72 +147,48 @@ export default function DecisionPage({
   onSwitchToAdvice,
   onRestart,
 }) {
-  const language = String(uiLanguage || "").toLowerCase() === "en" ? "en" : "es";
+  const { t } = useTranslation();
   const text = {
-    marketOffers: language === "en" ? "🧭 MARKET OFFERS" : "🧭 OFERTAS DE MERCADO",
-    title:
-      language === "en"
-        ? "Refine brand, model and conditions to rank offers"
-        : "Afina marca, modelo y condiciones para ordenar las ofertas",
-    subtitle:
-      language === "en"
-        ? "Here we prioritize the current market for a concrete need. You can filter by modality, age, price and mileage before seeing a ranked opportunity list."
-        : "Aquí priorizamos el mercado actual para una necesidad ya concreta. Puedes filtrar por modalidad, antigüedad, precio y kilometraje antes de ver un ranking de oportunidades.",
-    operationType: language === "en" ? "1. OPERATION TYPE" : "1. TIPO DE OPERACIÓN",
-    buy: language === "en" ? "Buy" : "Compra",
-    brandModel: language === "en" ? "2. BRAND AND MODEL" : "2. MARCA Y MODELO",
-    apiCatalogTitle:
-      language === "en"
-        ? "Catalog loaded from API and enriched with local backup"
-        : "Catálogo cargado desde API y enriquecido con respaldo local",
-    fallbackCatalogTitle:
-      language === "en"
-        ? "Catalog loaded from local backup"
-        : "Catálogo cargado desde respaldo local",
-    apiCatalog: language === "en" ? "API catalog + backup" : "Catálogo API + respaldo",
-    fallbackCatalog: language === "en" ? "Backup catalog" : "Catálogo de respaldo",
-    brand: language === "en" ? "Brand" : "Marca",
-    selectBrand: language === "en" ? "Select brand" : "Selecciona marca",
-    moreBrands: language === "en" ? "+ more brands" : "+ más marcas",
-    model: language === "en" ? "Model" : "Modelo",
-    selectModel: language === "en" ? "Select model" : "Selecciona modelo",
-    priceRange: language === "en" ? "Price range" : "Rango de precio",
-    from: language === "en" ? "From" : "Desde",
-    to: language === "en" ? "To" : "Hasta",
-    ageRange: language === "en" ? "Age range" : "Rango de antigüedad",
-    noLimit: language === "en" ? "No limit" : "Sin límite",
-    mileageRange: language === "en" ? "Mileage range" : "Rango de kilometraje",
-    powerRange: language === "en" ? "Power range" : "Rango de potencia",
-    location: language === "en" ? "Location" : "Ubicación",
-    fuel: language === "en" ? "Fuel" : "Combustible",
-    directOffers:
-      language === "en"
-        ? "We show you real market offers directly according to your filters."
-        : "Te mostramos directamente ofertas reales del mercado según tus filtros.",
-    completeFilters:
-      language === "en"
-        ? "Complete operation, brand, model, price, age and mileage ranges."
-        : "Completa operación, marca, modelo, rango de precio, antigüedad y kilometraje.",
-    realOffers: language === "en" ? "REAL MARKET OFFERS" : "OFERTAS REALES DE MERCADO",
-    recalculating: language === "en" ? "Recalculating..." : "Recalculando...",
-    recalculateOffer: language === "en" ? "Recalculate offers" : "Recalcular oferta",
-    loadingOffers: language === "en" ? "Loading real offers..." : "Cargando ofertas reales...",
-    noOffers:
-      language === "en"
-        ? "There are no real offers yet for this filter."
-        : "Todavía no hay ofertas reales disponibles para este filtro.",
-    realOffer: language === "en" ? "REAL OFFER" : "OFERTA REAL",
-    fit: language === "en" ? "FIT" : "ENCAJE",
-    provider: language === "en" ? "Provider" : "Proveedor",
-    priceNotVisible: language === "en" ? "Price not visible" : "Precio no visible",
-    directBuy: language === "en" ? "Direct purchase" : "Compra directa",
-    listingFallback:
-      language === "en"
-        ? "Real listing found for your current setup."
-        : "Anuncio real localizado para tu configuración actual.",
-    openListing: language === "en" ? "Open listing ↗" : "Abrir anuncio ↗",
-    switchFlow: language === "en" ? "Switch to decision flow →" : "Cambiar al flujo de decisión →",
-    backHome: language === "en" ? "Back to home" : "Volver al inicio",
+    marketOffers: t("decision.marketOffers"),
+    title: t("decision.title"),
+    subtitle: t("decision.subtitle"),
+    operationType: t("decision.operationType"),
+    buy: t("decision.buy"),
+    brandModel: t("decision.brandModel"),
+    apiCatalogTitle: t("decision.apiCatalogTitle"),
+    fallbackCatalogTitle: t("decision.fallbackCatalogTitle"),
+    apiCatalog: t("decision.apiCatalog"),
+    fallbackCatalog: t("decision.fallbackCatalog"),
+    brand: t("decision.brand"),
+    selectBrand: t("decision.selectBrand"),
+    moreBrands: t("decision.moreBrands"),
+    model: t("decision.model"),
+    selectModel: t("decision.selectModel"),
+    priceRange: t("decision.priceRange"),
+    from: t("decision.from"),
+    to: t("decision.to"),
+    ageRange: t("decision.ageRange"),
+    noLimit: t("decision.noLimit"),
+    mileageRange: t("decision.mileageRange"),
+    powerRange: t("decision.powerRange"),
+    location: t("decision.location"),
+    fuel: t("decision.fuel"),
+    directOffers: t("decision.directOffers"),
+    completeFilters: t("decision.completeFilters"),
+    realOffers: t("decision.realOffers"),
+    recalculating: t("decision.recalculating"),
+    recalculateOffer: t("decision.recalculateOffer"),
+    loadingOffers: t("decision.loadingOffers"),
+    noOffers: t("decision.noOffers"),
+    realOffer: t("decision.realOffer"),
+    fit: t("decision.fit"),
+    provider: t("decision.provider"),
+    priceNotVisible: t("decision.priceNotVisible"),
+    directBuy: t("decision.directBuy"),
+    listingFallback: t("decision.listingFallback"),
+    openListing: t("decision.openListing"),
+    switchFlow: t("decision.switchFlow"),
+    backHome: t("decision.backHome"),
   };
 
   const isDark = styles?.page?.color === "#e2e8f0";

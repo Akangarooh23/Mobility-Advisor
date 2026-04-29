@@ -1,5 +1,6 @@
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AnimatePresence, LazyMotion, domAnimation, m, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { PLAN_COMPARISON_ROWS, PRICING_SECTION_COPY, SERVICE_PLANS } from "../data/servicePlans";
 import CircularSteps from "../components/CircularSteps";
@@ -7,7 +8,6 @@ import CircularSteps from "../components/CircularSteps";
 export default function LandingPage({
   styles,
   totalSteps,
-  uiLanguage = "es",
   blockColors,
   questionnaireDraft,
   isUserLoggedIn,
@@ -22,6 +22,7 @@ export default function LandingPage({
   onSelectPortalVo,
   onSelectSubscriptionPlan,
 }) {
+  const { t } = useTranslation();
   const isDark = styles?.page?.color === "#e2e8f0";
   const titleColor = isDark ? "#f8fafc" : "#000000";
 
@@ -133,50 +134,50 @@ export default function LandingPage({
   const experienceSteps = [
     {
       id: "discover",
-      stage: "FASE 1",
-      title: "Diagnóstico inicial de movilidad",
-      description: "Definimos tu contexto: presupuesto, uso real, tipo de operación y objetivos personales.",
+      stage: t("landing.phase1Stage"),
+      title: t("landing.phase1Title"),
+      description: t("landing.phase1Desc"),
       highlights: [
-        "Cuestionario guiado en pocos minutos",
-        "Lectura de señales clave para compra o renting",
-        "Sin dependencia de formularios complejos",
+        t("landing.phase1H1"),
+        t("landing.phase1H2"),
+        t("landing.phase1H3"),
       ],
-      metric: "~5 min",
-      metricLabel: "Tiempo medio para tener un perfil útil",
+      metric: t("landing.phase1Metric"),
+      metricLabel: t("landing.phase1MetricLabel"),
       actionKey: "advice",
-      actionLabel: "Iniciar diagnóstico",
+      actionLabel: t("landing.phase1Action"),
       accent: "#38bdf8",
     },
     {
       id: "market",
-      stage: "FASE 2",
-      title: "Análisis y filtrado inteligente",
-      description: "Combinamos IA + reglas de negocio para quedarnos con opciones realistas y rentables.",
+      stage: t("landing.phase2Stage"),
+      title: t("landing.phase2Title"),
+      description: t("landing.phase2Desc"),
       highlights: [
-        "Descarta configuraciones con mal encaje financiero",
-        "Prioriza equilibrio entre coste, fiabilidad y uso",
-        "Visión comparativa clara para decidir con confianza",
+        t("landing.phase2H1"),
+        t("landing.phase2H2"),
+        t("landing.phase2H3"),
       ],
-      metric: "9+",
-      metricLabel: "Variables de movilidad evaluadas",
+      metric: t("landing.phase2Metric"),
+      metricLabel: t("landing.phase2MetricLabel"),
       actionKey: "vehicle",
-      actionLabel: "Explorar opciones",
+      actionLabel: t("landing.phase2Action"),
       accent: "#22d3ee",
     },
     {
       id: "execution",
-      stage: "FASE 3",
-      title: "Activación de servicios y operativa",
-      description: "Desde vender mejor tu coche hasta negociar seguro y mantenimiento con enfoque colectivo.",
+      stage: t("landing.phase3Stage"),
+      title: t("landing.phase3Title"),
+      description: t("landing.phase3Desc"),
       highlights: [
-        "Flujos de venta con informe o certificado",
-        "Servicios de ahorro y gestión del vehículo",
-        "Panel privado con seguimiento centralizado",
+        t("landing.phase3H1"),
+        t("landing.phase3H2"),
+        t("landing.phase3H3"),
       ],
-      metric: "360°",
-      metricLabel: "Cobertura integral del ciclo de movilidad",
+      metric: t("landing.phase3Metric"),
+      metricLabel: t("landing.phase3MetricLabel"),
       actionKey: "services",
-      actionLabel: "Ver servicios",
+      actionLabel: t("landing.phase3Action"),
       accent: "#34d399",
     },
   ];
@@ -331,8 +332,7 @@ export default function LandingPage({
           opacity: prefersReducedMotion ? 1 : heroOpacity,
         }}
       >
-        Te ayudamos a encontrar el coche usado con mejor relación calidad precio y que el proceso
-        de compra y venta sea fiable, transparente y rentable.
+        {t("landing.heroTitle")}
       </m.h1>
 
       {showResumeAdvice && (
@@ -356,13 +356,13 @@ export default function LandingPage({
         >
           <div>
             <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.4px", color: "#93c5fd", marginBottom: 4 }}>
-              BORRADOR DISPONIBLE
+              {t("landing.draftBadge")}
             </div>
             <div style={{ fontSize: 14, color: draftCardTitleColor, fontWeight: 700 }}>
-              Tienes un cuestionario a medias
+              {t("landing.draftTitle")}
             </div>
             <div style={{ fontSize: 12, color: draftCardMetaColor, marginTop: 4 }}>
-              Llevabas {draftAnsweredSteps} de {draftTotalSteps} preguntas completadas.
+              {t("landing.draftMeta", { answeredSteps: draftAnsweredSteps, totalSteps: draftTotalSteps })}
             </div>
           </div>
 
@@ -381,7 +381,7 @@ export default function LandingPage({
               whiteSpace: "nowrap",
             }}
           >
-            Continuar cuestionario
+            {t("landing.draftContinue")}
           </button>
         </div>
       )}
@@ -392,7 +392,6 @@ export default function LandingPage({
           onSelectBuy={onSelectDecision}
           onSelectService={onSelectService}
           onSelectSell={onSelectSell}
-          uiLanguage={uiLanguage}
         />
       </div>
 
@@ -451,7 +450,7 @@ export default function LandingPage({
               border: "1px solid rgba(103,232,249,0.3)",
             }}
           >
-            COMO FUNCIONA CARSWISE
+            {t("landing.howItWorksBadge")}
           </div>
           <h2
             style={{
@@ -462,10 +461,10 @@ export default function LandingPage({
               lineHeight: 1.1,
             }}
           >
-            Qué te ofrecemos y qué puedes conseguir
+            {t("landing.howItWorksTitle")}
           </h2>
           <p style={{ margin: 0, color: "#94a3b8", fontSize: isMobileView ? 13 : 14, lineHeight: 1.7 }}>
-            No es solo un comparador: es una plataforma de decisión y ejecución para optimizar todo tu ciclo de movilidad.
+            {t("landing.howItWorksDesc")}
           </p>
         </div>
 
@@ -556,7 +555,7 @@ export default function LandingPage({
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.6px", color: activeExperience.accent }}>
-                      DETALLE DE LA FASE ACTIVA
+                      {t("landing.activePhaseLabel")}
                     </div>
                     <div style={{ marginTop: 4, fontSize: "clamp(18px,3.2vw,24px)", fontWeight: 800, color: "#f8fafc", lineHeight: 1.2 }}>
                       {activeExperience.title}
@@ -640,7 +639,7 @@ export default function LandingPage({
                     }}
                     whileTap={tapFeedback}
                   >
-                    Ver marketplace VO
+                    {t("landing.marketplaceVo")}
                   </m.button>
                 </div>
               </m.div>

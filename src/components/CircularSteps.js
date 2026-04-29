@@ -1,52 +1,11 @@
 import React, { useRef, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import "./CircularSteps.css";
 
 const STEP_DEFINITIONS = [
-  {
-    icon: "🚗",
-    color: "#5FAEFF",
-    cls: "step-1",
-    es: {
-      tag: "Paso 1",
-      title: "Quiero comprar un vehículo",
-      desc: "Explora nuestro catálogo de vehículos nuevos y de ocasión. Te asesoramos para encontrar el modelo que mejor se adapta a tus necesidades y presupuesto.",
-    },
-    en: {
-      tag: "Step 1",
-      title: "I want to buy a vehicle",
-      desc: "Explore our new and used vehicle catalog. We guide you to find the model that best fits your needs and budget.",
-    },
-  },
-  {
-    icon: "🔧",
-    color: "#2F6EDC",
-    cls: "step-2",
-    es: {
-      tag: "Paso 2",
-      title: "Quiero contratar un Servicio",
-      desc: "Únete a una nueva era en la automoción y aprovecha las economías de escala de una empresa en la unión de los particulares.",
-    },
-    en: {
-      tag: "Step 2",
-      title: "I want to hire a service",
-      desc: "Join a new era in mobility and benefit from scale advantages created by connecting individual users.",
-    },
-  },
-  {
-    icon: "💵",
-    color: "#1F3F9A",
-    cls: "step-3",
-    es: {
-      tag: "Paso 3",
-      title: "Quiero vender mi coche",
-      desc: "¿Cansado de que los concesionarios te ofrezcan mucho menos de lo que vale tu coche? Te ayudamos a que ganes más.",
-    },
-    en: {
-      tag: "Step 3",
-      title: "I want to sell my car",
-      desc: "Tired of dealerships offering far less than your car is worth? We help you get a better result.",
-    },
-  },
+  { icon: "🚗", color: "#5FAEFF", cls: "step-1", key: "step1" },
+  { icon: "🔧", color: "#2F6EDC", cls: "step-2", key: "step2" },
+  { icon: "💵", color: "#1F3F9A", cls: "step-3", key: "step3" },
 ];
 
 const ARROW_COLORS = ["#5FAEFF", "#2F6EDC", "#1F3F9A"];
@@ -54,13 +13,15 @@ const STEP_DURATION = 4000;
 const ANIM_DURATION = 650;
 const ARC_WIDTH = 42;
 
-export default function CircularSteps({ onSelectBuy, onSelectService, onSelectSell, uiLanguage = "es" }) {
-  const language = String(uiLanguage || "").toLowerCase() === "en" ? "en" : "es";
+export default function CircularSteps({ onSelectBuy, onSelectService, onSelectSell }) {
+  const { t } = useTranslation();
   const steps = STEP_DEFINITIONS.map((step) => ({
     icon: step.icon,
     color: step.color,
     cls: step.cls,
-    ...(step[language] || step.es),
+    tag: t(`circularSteps.${step.key}Tag`),
+    title: t(`circularSteps.${step.key}Title`),
+    desc: t(`circularSteps.${step.key}Desc`),
   }));
   const stepActions = [onSelectBuy, onSelectService, onSelectSell];
   const canvasRef = useRef(null);
@@ -273,19 +234,17 @@ export default function CircularSteps({ onSelectBuy, onSelectService, onSelectSe
         {/* Header siempre visible, sin scroll ni overflow */}
         <div className="cw-circular-header" style={{ marginBottom: 0, minWidth: 0 }}>
           <h1 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, whiteSpace: 'normal', overflow: 'visible', textOverflow: 'unset' }}>
-            {language === "en" ? "What do you want to do today?" : "¿Qué deseas hacer hoy?"}
+            {t("circularSteps.whatToDoToday")}
           </h1>
           <p style={{ margin: 0, fontSize: '0.95rem', color: '#6B6B6B', fontWeight: 300, whiteSpace: 'normal', overflow: 'visible', textOverflow: 'unset' }}>
-            {language === "en"
-              ? "Select your option and we will guide you through each step"
-              : "Selecciona tu opción y te guiamos en cada paso"}
+              {t("circularSteps.selectOption")}
           </p>
         </div>
         <div className="cw-canvas-wrap">
           <canvas ref={canvasRef} width={W} height={H}></canvas>
           <div className="cw-center-badge">
             <span className="cw-step-num" style={{ color: steps[currentStep].color }}>{currentStep + 1}</span>
-            <span className="cw-step-label">{language === "en" ? "of 3" : "de 3"}</span>
+            <span className="cw-step-label">{t("circularSteps.stepsOf")}</span>
           </div>
         </div>
       </div>
@@ -296,7 +255,7 @@ export default function CircularSteps({ onSelectBuy, onSelectService, onSelectSe
           tabIndex={0}
           onClick={handleCardSelect}
           onKeyDown={handleCardKeyDown}
-          aria-label={`${language === "en" ? "Go to" : "Ir a"} ${steps[currentStep].title}`}
+          aria-label={`${t("circularSteps.goTo")} ${steps[currentStep].title}`}
         >
           <div className="cw-card-icon">{steps[currentStep].icon}</div>
           <div className="cw-card-body">

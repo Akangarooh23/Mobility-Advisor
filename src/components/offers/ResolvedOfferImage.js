@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   buildImageProxyUrl,
   buildImageSearchProxyUrl,
@@ -8,12 +9,9 @@ import {
   slugifyOfferFolderName,
 } from "../../utils/offerHelpers";
 
-function OfferGuaranteeSeal({ months = 12, size = 54, uiLanguage = "es" }) {
-  const language = String(uiLanguage || "").toLowerCase() === "en" ? "en" : "es";
-  const warrantyText =
-    language === "en"
-      ? `Vehicle with ${months} months warranty`
-      : `Vehículo con ${months} meses de garantía`;
+function OfferGuaranteeSeal({ months = 12, size = 54 }) {
+  const { t } = useTranslation();
+  const warrantyText = t("resolvedOfferImage.vehicleWithWarranty", { months });
   return (
     <div
       aria-label={warrantyText}
@@ -63,11 +61,7 @@ function OfferGuaranteeSeal({ months = 12, size = 54, uiLanguage = "es" }) {
   );
 }
 
-export default function ResolvedOfferImage({ offer = {}, alt, loading = "lazy", style = {}, uiLanguage }) {
-  const resolvedLanguage =
-    String(uiLanguage || "").trim() ||
-    (typeof document !== "undefined" ? document?.documentElement?.lang : "") ||
-    "es";
+export default function ResolvedOfferImage({ offer = {}, alt, loading = "lazy", style = {} }) {
 
   const fallbackSrc = buildOfferPlaceholderImage(offer);
   const searchQuery = buildOfferImageSearchQuery(offer);
@@ -130,9 +124,7 @@ export default function ResolvedOfferImage({ offer = {}, alt, loading = "lazy", 
           display: "block",
         }}
       />
-      {offer?.hasGuaranteeSeal ? (
-        <OfferGuaranteeSeal months={offer?.warrantyMonths || 12} size={sealSize} uiLanguage={resolvedLanguage} />
-      ) : null}
+      {offer?.hasGuaranteeSeal ? <OfferGuaranteeSeal months={offer?.warrantyMonths || 12} size={sealSize} /> : null}
     </div>
   );
 }

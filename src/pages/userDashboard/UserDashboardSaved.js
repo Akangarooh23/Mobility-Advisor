@@ -28,24 +28,6 @@ function buildAlertChips(alert, formatCurrency) {
   ].filter(Boolean);
 }
 
-function inferAlertDraftFromSaved(item = {}) {
-  const seedText = `${item?.listingTitle || item?.title || ""}`.trim();
-  const [brand = "", ...modelParts] = seedText.split(" ").filter(Boolean);
-
-  return {
-    mode: String(item?.typeKey || "").includes("renting") ? "renting" : "compra",
-    brand,
-    model: modelParts.slice(0, 2).join(" "),
-    maxPrice: item?.monthlyTotal > 0 ? String(Math.round(item.monthlyTotal)) : "",
-    maxMileage: "",
-    fuel: "",
-    location: "",
-    color: "",
-    notifyByEmail: false,
-    email: "",
-  };
-}
-
 function mapCatalogBrandsFromApi(payload = null) {
   return (Array.isArray(payload?.brands) ? payload.brands : []).reduce((acc, brandEntry) => {
     const brandName = String(brandEntry?.name || "").trim();
@@ -85,6 +67,7 @@ export default function UserDashboardSaved({
   emailDigestLoading = false,
   emailDigestFeedback = "",
   onBrowseMarketplace = () => {},
+  onNavigate = () => {},
 }) {
   const isDark = themeMode === "dark";
   const cardBg = isDark
@@ -96,6 +79,14 @@ export default function UserDashboardSaved({
   const titleText = isDark ? "#f8fafc" : "#0f172a";
   const panelBorder = isDark ? "1px solid rgba(148,163,184,0.26)" : "1px solid rgba(59,130,246,0.34)";
   const cardBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(37,99,235,0.3)";
+  const sectionFrame = {
+    background: isDark ? "rgba(2,6,23,0.34)" : "rgba(248,250,252,0.86)",
+    border: isDark ? "1px solid rgba(148,163,184,0.22)" : "1px solid rgba(148,163,184,0.24)",
+    borderRadius: 14,
+    boxShadow: isDark
+      ? "0 14px 26px rgba(2,6,23,0.28)"
+      : "0 10px 20px rgba(15,23,42,0.06)",
+  };
 
   const [showAlertForm, setShowAlertForm] = useState(false);
   const [alertForm, setAlertForm] = useState(EMPTY_ALERT_FORM);
@@ -131,7 +122,6 @@ export default function UserDashboardSaved({
   const opportunityTabs = [
     { key: "overview", label: "Resumen", count: null },
     { key: "saved", label: "Guardadas", count: savedComparisons.length },
-    { key: "alerts", label: "Alertas", count: marketAlerts.length },
     { key: "marketplace", label: "Marketplace", count: totalNewMatches },
   ];
 
@@ -249,14 +239,6 @@ export default function UserDashboardSaved({
     window.setTimeout(() => setAlertFeedback(""), 2400);
   };
 
-  const handleSeedAlertFromSaved = (item) => {
-    setAlertForm((prev) => ({
-      ...prev,
-      ...inferAlertDraftFromSaved(item),
-    }));
-    setShowAlertForm(true);
-  };
-
   const handleCatalogAdminMutation = async (action, payload = {}) => {
     setCatalogAdminLoading(true);
     setCatalogAdminFeedback("");
@@ -287,15 +269,15 @@ export default function UserDashboardSaved({
   };
 
   return (
-    <section id="user-dashboard-saved" style={{ ...panelStyle, marginBottom: 16 }}>
+    <section id="user-dashboard-saved" style={{ ...panelStyle, ...sectionFrame, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
           <div style={{ fontSize: 11, color: "#60a5fa", letterSpacing: "0.6px" }}>RECOMENDACIONES GUARDADAS</div>
-          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: titleText }}>Tus comparativas, ofertas favoritas y alertas</div>
+          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: titleText }}>Tus comparativas y ofertas favoritas</div>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <span style={{ ...getOfferBadgeStyle("info"), fontSize: 11 }}>{savedComparisons.length} guardadas</span>
-          <span style={{ ...getOfferBadgeStyle("success"), fontSize: 11 }}>{marketAlerts.length} alertas activas</span>
+          <span style={{ ...getOfferBadgeStyle("success"), fontSize: 11 }}>{totalNewMatches} novedades marketplace</span>
         </div>
       </div>
 
@@ -405,7 +387,7 @@ export default function UserDashboardSaved({
             </button>
             <button
               type="button"
-              onClick={() => setShowAlertForm((prev) => !prev)}
+              onClick={() => onNavigate("alerts")}
               style={{
                 background: "rgba(37,99,235,0.14)",
                 border: "1px solid rgba(96,165,250,0.24)",
@@ -418,7 +400,7 @@ export default function UserDashboardSaved({
                 width: isMobile ? "100%" : "auto",
               }}
             >
-              {showAlertForm ? "Cerrar creación de alerta" : "Crear alerta de mercado"}
+              Gestionar alertas
             </button>
           </div>
         </div>
@@ -440,14 +422,64 @@ export default function UserDashboardSaved({
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "flex-start" }}>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: titleText }}>{item.title}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: titleText }}>{item.title}</div>
+                      {item.score > 0 && (
+                        <span
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 800,
+                            background: item.score >= 80 ? "rgba(5,150,105,0.12)" : item.score >= 60 ? "rgba(245,158,11,0.12)" : "rgba(239,68,68,0.10)",
+                            border: `1px solid ${item.score >= 80 ? "rgba(52,211,153,0.3)" : item.score >= 60 ? "rgba(252,211,77,0.3)" : "rgba(252,165,165,0.3)"}`,
+                            color: item.score >= 80 ? "#059669" : item.score >= 60 ? "#d97706" : "#dc2626",
+                            borderRadius: 999,
+                            padding: "3px 7px",
+                            letterSpacing: "0.3px",
+                          }}
+                        >
+                          {item.score}/100
+                        </span>
+                      )}
+                    </div>
                     <div style={{ fontSize: 11, color: mutedText, marginTop: 3 }}>
                       {item.typeLabel} · {item.savedAt}
                     </div>
                     <div style={{ fontSize: 11, color: "#2563eb", marginTop: 3 }}>
                       {item.monthlyTotal > 0 ? `${formatCurrency(item.monthlyTotal)}/mes` : item.budgetLabel || "Sin cuota definida"}
                     </div>
+                    {(item.tco > 0 || item.flexibilidad > 0 || item.riesgo > 0) && (
+                      <div style={{ display: "flex", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
+                        {[
+                          { label: "TCO", value: item.tco, color: "#2563eb" },
+                          { label: "Flexib.", value: item.flexibilidad, color: "#7c3aed" },
+                          { label: "Riesgo", value: item.riesgo, color: item.riesgo > 60 ? "#dc2626" : "#059669", invert: true },
+                        ].filter((m) => m.value > 0).map((metric) => (
+                          <div key={metric.label} style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 56 }}>
+                            <div style={{ fontSize: 10, color: mutedText, letterSpacing: "0.3px" }}>{metric.label}</div>
+                            <div
+                              style={{
+                                height: 4,
+                                borderRadius: 999,
+                                background: isDark ? "rgba(148,163,184,0.18)" : "rgba(148,163,184,0.28)",
+                                width: 56,
+                                overflow: "hidden",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  height: "100%",
+                                  width: `${Math.min(metric.value, 100)}%`,
+                                  background: metric.color,
+                                  borderRadius: 999,
+                                }}
+                              />
+                            </div>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: metric.color }}>{metric.value}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap", width: isMobile ? "100%" : "auto" }}>
                     {savedOfferHref && (
@@ -471,7 +503,7 @@ export default function UserDashboardSaved({
                     )}
                     <button
                       type="button"
-                      onClick={() => handleSeedAlertFromSaved(item)}
+                      onClick={() => onNavigate("alerts")}
                       style={{
                         background: "rgba(16,185,129,0.12)",
                         border: "1px solid rgba(110,231,183,0.2)",
@@ -481,10 +513,10 @@ export default function UserDashboardSaved({
                         fontSize: 11,
                         fontWeight: 700,
                         cursor: "pointer",
-                          width: isMobile ? "100%" : "auto",
+                        width: isMobile ? "100%" : "auto",
                       }}
                     >
-                      Crear alerta similar
+                      Crear alerta
                     </button>
                     <button
                       type="button"
@@ -685,7 +717,7 @@ export default function UserDashboardSaved({
       </div>
       )}
 
-      {(activeOpportunityTab === "overview" || activeOpportunityTab === "alerts" || activeOpportunityTab === "marketplace") && (
+      {false && (
       <div
         style={{
           marginTop: 16,

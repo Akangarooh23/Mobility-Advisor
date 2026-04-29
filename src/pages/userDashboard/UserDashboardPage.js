@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import UserDashboardBilling from "./UserDashboardBilling";
+import UserDashboardAlerts from "./UserDashboardAlerts";
 import UserDashboardHome from "./UserDashboardHome";
 import UserDashboardOperations from "./UserDashboardOperations";
+import UserDashboardPreferences from "./UserDashboardPreferences";
 import UserDashboardSaved from "./UserDashboardSaved";
+import UserDashboardValuations from "./UserDashboardValuations";
 import UserDashboardVehicles from "./UserDashboardVehicles";
 import { getGarageVehiclesJson } from "../../utils/apiClient";
 
@@ -31,63 +35,82 @@ function readGarageVehiclesCount(currentUserEmail = "") {
   }
 }
 
-function buildSections(counts, newAlertMatchesCount = 0) {
+function buildSections(counts, t, newAlertMatchesCount = 0) {
   return [
     {
       key: "home",
-      label: "Inicio",
+      label: t("dashboardPage.homeLabel"),
       icon: "⌂",
       count: null,
-      title: "Inicio del panel",
-      description: "Vista principal con el estado de tu actividad, tareas pendientes y accesos rápidos.",
+      title: t("dashboardPage.homeTitle"),
+      description: t("dashboardPage.homeDescription"),
     },
     {
       key: "saved",
-      label: "Oportunidades",
+      label: t("dashboardPage.savedLabel"),
       icon: "⭐",
       count: counts.saved,
-      title: "Oportunidades guardadas y alertas",
-      description: "Gestiona comparativas favoritas, alertas y nuevas coincidencias del mercado en un solo bloque.",
-      notice: newAlertMatchesCount > 0 ? `🔔 ${newAlertMatchesCount} nuevas` : null,
+      title: t("dashboardPage.savedTitle"),
+      description: t("dashboardPage.savedDescription"),
+      notice: newAlertMatchesCount > 0 ? t("dashboardPage.newAlertsNotice", { count: newAlertMatchesCount }) : null,
+    },
+    {
+      key: "alerts",
+      label: t("dashboardPage.alertsLabel", { defaultValue: "Alertas" }),
+      icon: "🔔",
+      count: counts.alerts,
+      title: t("dashboardPage.alertsTitle", { defaultValue: "Alertas de mercado" }),
+      description: t("dashboardPage.alertsDescription", {
+        defaultValue: "Controla tus alertas y revisa coincidencias nuevas en el marketplace.",
+      }),
     },
     {
       key: "appointments",
-      label: "Citas",
+      label: t("dashboardPage.appointmentsLabel"),
       icon: "🛠️",
       count: counts.appointments,
-      title: "Operaciones · citas",
-      description: "Controla agenda de taller, mantenimiento y revisiones de garantía.",
+      title: t("dashboardPage.appointmentsTitle"),
+      description: t("dashboardPage.appointmentsDescription"),
     },
     {
       key: "valuations",
-      label: "Tasaciones",
+      label: t("dashboardPage.valuationsLabel"),
       icon: "💶",
       count: counts.valuations,
-      title: "Operaciones · tasaciones",
-      description: "Revisa valoraciones guardadas y el estado de informes vinculados a venta.",
+      title: t("dashboardPage.valuationsTitle"),
+      description: t("dashboardPage.valuationsDescription"),
     },
     {
       key: "billing",
-      label: "Cuenta",
+      label: t("dashboardPage.billingLabel"),
       icon: "💳",
       count: null,
-      title: "Cuenta y facturación",
-      description: "Gestiona perfil, suscripción, facturas y método de pago desde un único lugar.",
+      title: t("dashboardPage.billingTitle"),
+      description: t("dashboardPage.billingDescription"),
+    },
+    {
+      key: "preferences",
+      label: t("dashboardPage.preferencesLabel", { defaultValue: "Preferencias" }),
+      icon: "⚙️",
+      count: null,
+      title: t("dashboardPage.preferencesTitle", { defaultValue: "Preferencias de cuenta" }),
+      description: t("dashboardPage.preferencesDescription", {
+        defaultValue: "Configura idioma, region y avisos del panel.",
+      }),
     },
     {
       key: "vehicles",
-      label: "Vehículos",
+      label: t("dashboardPage.vehiclesLabel"),
       icon: "🚗",
       count: counts.vehicles,
-      title: "Mis vehículos",
-      description: "Sigue los coches comprados, vendidos o activos en venta desde tu área privada.",
+      title: t("dashboardPage.vehiclesTitle"),
+      description: t("dashboardPage.vehiclesDescription"),
     },
   ];
 }
 
 export default function UserDashboardPage({
   themeMode,
-  uiLanguage = "es",
   centerStyle,
   blockBadgeStyle,
   panelStyle,
@@ -123,6 +146,7 @@ export default function UserDashboardPage({
   formatCurrency,
   getSavedComparisonHref,
 }) {
+  const { t } = useTranslation();
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === "undefined") {
       return false;
@@ -193,164 +217,253 @@ export default function UserDashboardPage({
   }, [currentUser?.email]);
 
   const isDark = themeMode === "dark";
-  const cardBg = isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)";
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
   const bodyColor = isDark ? "#cbd5e1" : "#475569";
+  const shellBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(148,163,184,0.26)";
+  const shellBackground = isDark
+    ? "linear-gradient(160deg, rgba(8,15,30,0.98), rgba(15,23,42,0.94))"
+    : "linear-gradient(160deg, rgba(255,255,255,0.99), rgba(248,250,252,0.96))";
   const sectionShell = {
     ...panelStyle,
-    border: isDark ? "1px solid rgba(59,130,246,0.25)" : "1px solid rgba(96,165,250,0.28)",
+    border: shellBorder,
     borderRadius: 18,
     boxShadow: isDark
-      ? "0 22px 42px rgba(2,6,23,0.38)"
-      : "0 18px 34px rgba(30,64,175,0.08)",
+      ? "0 24px 44px rgba(2,6,23,0.42)"
+      : "0 16px 34px rgba(15,23,42,0.10)",
     backdropFilter: "blur(8px)",
   };
   const dashboardVehicleCount = userVehicleSections.reduce((acc, section) => acc + section.items.length, 0);
   const totalVehiclesCount = dashboardVehicleCount + garageVehicleCount;
   const counts = {
     saved: savedComparisons.length + (Array.isArray(marketAlerts) ? marketAlerts.length : 0),
+    alerts: Array.isArray(marketAlerts) ? marketAlerts.length : 0,
     appointments: dashboardAppointments.length,
     valuations: dashboardValuations.length,
     vehicles: totalVehiclesCount,
   };
-  const sections = buildSections(counts, newAlertMatchesCount);
-  const topNavSections = [
-    ...sections.filter((section) => section.key !== "billing"),
-    ...sections.filter((section) => section.key === "billing"),
-  ];
+  const sections = buildSections(counts, t, newAlertMatchesCount);
+  const navMain = ["home", "saved", "alerts", "vehicles", "valuations", "appointments"];
+  const navAccount = ["billing", "preferences"];
+  const navSectionsMain = sections.filter((section) => navMain.includes(section.key));
+  const navSectionsAccount = sections.filter((section) => navAccount.includes(section.key));
+
+  const renderNavItem = (section) => {
+    const isActive = userDashboardPage === section.key;
+    return (
+      <button
+        key={`side-nav-${section.key}`}
+        type="button"
+        onClick={() => onNavigate(section.key)}
+        style={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 8,
+          padding: "10px 12px",
+          borderRadius: 10,
+          border: isActive
+            ? "1px solid rgba(59,130,246,0.40)"
+            : (isDark ? "1px solid rgba(148,163,184,0.14)" : "1px solid rgba(148,163,184,0.24)"),
+          background: isActive
+            ? (isDark ? "rgba(37,99,235,0.20)" : "rgba(37,99,235,0.10)")
+            : (isDark ? "rgba(15,23,42,0.76)" : "rgba(255,255,255,0.84)"),
+          color: isActive ? "#1d4ed8" : (isDark ? "#e2e8f0" : "#334155"),
+          textAlign: "left",
+          cursor: "pointer",
+        }}
+      >
+        <span style={{ fontSize: 13, fontWeight: isActive ? 800 : 600 }}>
+          {section.icon} {section.key === "home" ? t("dashboardPage.summaryLabel") : section.label}
+        </span>
+        {section.count !== null && (
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: isActive ? "#1d4ed8" : (isDark ? "#bfdbfe" : "#334155"),
+            }}
+          >
+            {section.count}
+          </span>
+        )}
+      </button>
+    );
+  };
 
   return (
     <div style={centerStyle}>
-      <div style={{ ...blockBadgeStyle, marginBottom: 12 }}>👤 ÁREA PRIVADA DE USUARIO</div>
-
+      <div style={{ ...blockBadgeStyle, marginBottom: 12 }}>{t("dashboardPage.privateAreaBadge")}</div>
       <div
         style={{
           ...sectionShell,
+          background: shellBackground,
+          overflow: "hidden",
+          padding: 0,
           marginBottom: 18,
-          padding: isMobile ? 12 : 18,
-          background: isDark
-            ? "radial-gradient(1200px 380px at -10% -30%, rgba(37,99,235,0.34), rgba(15,23,42,0.96))"
-            : "radial-gradient(1200px 380px at -10% -30%, rgba(147,197,253,0.52), rgba(255,255,255,0.98))",
         }}
       >
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "flex-start", marginBottom: 14 }}>
-        <div>
-          <h2
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "240px minmax(0,1fr)", minHeight: 520 }}>
+          <aside
             style={{
-              fontSize: isMobile ? "clamp(22px,8vw,28px)" : "clamp(24px,4vw,34px)",
-              fontWeight: 800,
-              letterSpacing: "-1.2px",
-              margin: "0 0 8px",
-              color: titleColor,
+              borderRight: isMobile ? "none" : shellBorder,
+              borderBottom: isMobile ? shellBorder : "none",
+              background: isDark ? "rgba(2,6,23,0.46)" : "rgba(248,250,252,0.92)",
+              padding: isMobile ? 12 : 16,
             }}
           >
-            Mi espacio CarsWise
-          </h2>
-          <p style={{ color: bodyColor, fontSize: isMobile ? 13 : 14, lineHeight: 1.7, margin: 0, maxWidth: 760, fontWeight: 500 }}>
-            Panel unificado para gestionar oportunidades, operaciones, vehículos y cuenta en un solo flujo.
-          </p>
-          {currentUser?.email && (
-            <div style={{ marginTop: 10, fontSize: 12, color: "#2563eb", fontWeight: 700 }}>
-              Sesión activa: {currentUser.name || "Usuario"} · {currentUser.email}
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#2563eb", marginBottom: 14 }}>
+              CarsWise
             </div>
-          )}
-        </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", width: isMobile ? "100%" : "auto" }}>
-          {newAlertMatchesCount > 0 && (
-            <button
-              type="button"
-              onClick={() => onNavigate("saved")}
-              aria-label={`${newAlertMatchesCount} novedades en alertas`}
+
+            <div style={{ fontSize: 11, letterSpacing: "0.08em", color: isDark ? "#94a3b8" : "#64748b", marginBottom: 8 }}>
+              MI PANEL
+            </div>
+            <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>
+              {navSectionsMain.map(renderNavItem)}
+            </div>
+
+            <div style={{ height: 1, background: isDark ? "rgba(148,163,184,0.22)" : "rgba(148,163,184,0.26)", margin: "12px 0" }} />
+
+            <div style={{ fontSize: 11, letterSpacing: "0.08em", color: isDark ? "#94a3b8" : "#64748b", marginBottom: 8 }}>
+              CUENTA
+            </div>
+            <div style={{ display: "grid", gap: 8 }}>
+              {navSectionsAccount.map(renderNavItem)}
+              <button
+                type="button"
+                onClick={onRestart}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  padding: "10px 12px",
+                  borderRadius: 10,
+                  border: isDark ? "1px solid rgba(148,163,184,0.18)" : "1px solid rgba(148,163,184,0.24)",
+                  background: isDark ? "rgba(15,23,42,0.76)" : "rgba(255,255,255,0.84)",
+                  color: isDark ? "#e2e8f0" : "#334155",
+                  cursor: "pointer",
+                  fontSize: 13,
+                }}
+              >
+                ⌂ {t("dashboardPage.backHome")}
+              </button>
+              <button
+                type="button"
+                onClick={onLogout}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  padding: "10px 12px",
+                  borderRadius: 10,
+                  border: "1px solid rgba(239,68,68,0.30)",
+                  background: isDark ? "rgba(127,29,29,0.24)" : "rgba(254,226,226,0.74)",
+                  color: isDark ? "#fecaca" : "#b91c1c",
+                  cursor: "pointer",
+                  fontSize: 13,
+                  fontWeight: 600,
+                }}
+              >
+                ↩ {t("dashboardPage.logout")}
+              </button>
+            </div>
+          </aside>
+
+          <main style={{ padding: isMobile ? 12 : 18 }}>
+            <div
               style={{
-                background: "linear-gradient(135deg,rgba(16,185,129,0.24),rgba(5,150,105,0.18))",
-                border: "1px solid rgba(110,231,183,0.28)",
-                color: "#065f46",
-                padding: "11px 14px",
-                borderRadius: 12,
-                fontSize: 12,
-                fontWeight: 800,
-                cursor: "pointer",
-                boxShadow: "0 10px 20px rgba(5,150,105,0.18)",
-                width: isMobile ? "100%" : "auto",
+                border: shellBorder,
+                borderRadius: 14,
+                background: isDark ? "rgba(15,23,42,0.70)" : "rgba(255,255,255,0.96)",
+                padding: isMobile ? 10 : "10px 14px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 12,
+                flexWrap: "wrap",
+                marginBottom: 14,
               }}
             >
-              🔔 {newAlertMatchesCount} {newAlertMatchesCount === 1 ? "novedad" : "novedades"} en alertas
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={onRestart}
-            style={{
-              background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
-              border: "none",
-              color: "#ffffff",
-              padding: "11px 14px",
-              borderRadius: 12,
-              fontSize: 12,
-              fontWeight: 800,
-              cursor: "pointer",
-              boxShadow: "0 12px 24px rgba(29,78,216,0.24)",
-              width: isMobile ? "100%" : "auto",
-            }}
-          >
-            ⌂ Volver al inicio
-          </button>
-          <button
-            type="button"
-            onClick={onLogout}
-            style={{
-              background: cardBg,
-              border: "1px solid rgba(148,163,184,0.3)",
-              color: isDark ? "#e2e8f0" : "#334155",
-              padding: "11px 14px",
-              borderRadius: 12,
-              fontSize: 12,
-              cursor: "pointer",
-              width: isMobile ? "100%" : "auto",
-            }}
-          >
-            Cerrar sesión
-          </button>
-        </div>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,minmax(0,1fr))" : "repeat(6,minmax(0,1fr))", gap: 10 }}>
-        {topNavSections
-          .map((section) => (
-            <button
-              key={`top-nav-${section.key}`}
-              type="button"
-              onClick={() => onNavigate(section.key)}
-              style={{
-                background: isDark ? "rgba(15,23,42,0.76)" : "rgba(255,255,255,0.9)",
-                border: isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(37,99,235,0.32)",
-                borderRadius: 16,
-                padding: isMobile ? "10px" : "11px 11px 10px",
-                textAlign: "left",
-                cursor: "pointer",
-                boxShadow: isDark
-                  ? "0 12px 22px rgba(2,6,23,0.34)"
-                  : "0 10px 20px rgba(30,64,175,0.12)",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start", marginBottom: 8 }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: titleColor }}>
-                  {section.icon} {section.key === "home" ? "Resumen" : section.label}
-                </div>
-                {section.count !== null && (
-                  <span style={{ fontSize: 11, color: "#1d4ed8", fontWeight: 700 }}>{section.count}</span>
-                )}
+              <div style={{ fontSize: 12, color: bodyColor }}>
+                carswise.es/panel
               </div>
-              <div style={{ fontSize: 11, color: bodyColor, lineHeight: 1.45 }}>{section.description}</div>
-              <div style={{ marginTop: 8, fontSize: 11, color: "#1d4ed8", fontWeight: 700 }}>
-                {section.key === "home" ? "Ir al inicio →" : "Abrir sección →"}
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: "#1d4ed8",
+                    background: "rgba(59,130,246,0.12)",
+                    border: "1px solid rgba(59,130,246,0.24)",
+                    borderRadius: 999,
+                    padding: "4px 10px",
+                  }}
+                >
+                  Plan Gratis
+                </span>
+                <span
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: "50%",
+                    display: "grid",
+                    placeItems: "center",
+                    fontSize: 12,
+                    fontWeight: 800,
+                    color: "#1d4ed8",
+                    background: "rgba(59,130,246,0.14)",
+                    border: "1px solid rgba(59,130,246,0.26)",
+                  }}
+                >
+                  {(currentUser?.name || "U").slice(0, 1).toUpperCase()}
+                </span>
+                <span style={{ fontSize: 13, color: titleColor, fontWeight: 600 }}>
+                  {currentUser?.name || t("dashboardPage.userFallback")}
+                </span>
               </div>
-            </button>
-          ))}
-      </div>
-      </div>
+            </div>
 
-      {userDashboardPage === "home" && (
+            <div style={{ marginBottom: 12 }}>
+              <h2
+                style={{
+                  fontSize: isMobile ? 22 : 28,
+                  fontWeight: 800,
+                  letterSpacing: "-0.03em",
+                  margin: "0 0 6px",
+                  color: titleColor,
+                }}
+              >
+                {userDashboardPage === "home"
+                  ? `Buenos dias, ${currentUser?.name || t("dashboardPage.userFallback")}`
+                  : sections.find((section) => section.key === userDashboardPage)?.title || t("dashboardPage.title")}
+              </h2>
+              <p style={{ margin: 0, color: bodyColor, fontSize: 13 }}>
+                {sections.find((section) => section.key === userDashboardPage)?.description || t("dashboardPage.subtitle")}
+              </p>
+            </div>
+
+            {newAlertMatchesCount > 0 && (
+              <button
+                type="button"
+                onClick={() => onNavigate("alerts")}
+                aria-label={t("dashboardPage.alertsAriaLabel", { count: newAlertMatchesCount })}
+                style={{
+                  background: "linear-gradient(135deg,rgba(16,185,129,0.24),rgba(5,150,105,0.18))",
+                  border: "1px solid rgba(110,231,183,0.28)",
+                  color: "#065f46",
+                  padding: "10px 14px",
+                  borderRadius: 12,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  boxShadow: "0 10px 20px rgba(5,150,105,0.18)",
+                  marginBottom: 12,
+                }}
+              >
+                {t("dashboardPage.alertsButton", { count: newAlertMatchesCount })}
+              </button>
+            )}
+
+            {userDashboardPage === "home" && (
         <UserDashboardHome
           themeMode={themeMode}
           counts={counts}
@@ -363,10 +476,11 @@ export default function UserDashboardPage({
           onNavigate={onNavigate}
           onMarkAllAlertsSeen={onMarkAllAlertsSeen}
           onSendAlertEmailDigest={onSendAlertEmailDigest}
+          currentUser={currentUser}
         />
       )}
 
-      {userDashboardPage === "saved" && (
+            {userDashboardPage === "saved" && (
         <UserDashboardSaved
           themeMode={themeMode}
           isMobile={isMobile}
@@ -389,13 +503,47 @@ export default function UserDashboardPage({
           emailDigestLoading={emailDigestLoading}
           emailDigestFeedback={emailDigestFeedback}
           onBrowseMarketplace={onBrowseMarketplace}
+          onNavigate={onNavigate}
         />
       )}
 
-      {(userDashboardPage === "appointments" || userDashboardPage === "valuations") && (
+            {userDashboardPage === "alerts" && (
+        <UserDashboardAlerts
+          themeMode={themeMode}
+          isMobile={isMobile}
+          panelStyle={panelStyle}
+          marketAlerts={marketAlerts}
+          marketAlertStatus={marketAlertStatus}
+          marketAlertMatches={marketAlertMatches}
+          currentUserEmail={currentUser?.email || ""}
+          onRemoveMarketAlert={onRemoveMarketAlert}
+          onMarkAlertSeen={onMarkAlertSeen}
+          onOpenMarketplaceOffer={onOpenMarketplaceOffer}
+          onOpenOffer={onOpenOffer}
+          onBrowseMarketplace={onBrowseMarketplace}
+          onCreateMarketAlert={onCreateMarketAlert}
+          onSendAlertEmailDigest={onSendAlertEmailDigest}
+          emailDigestLoading={emailDigestLoading}
+          emailDigestFeedback={emailDigestFeedback}
+          formatCurrency={formatCurrency}
+        />
+      )}
+
+            {userDashboardPage === "valuations" && (
+        <UserDashboardValuations
+          themeMode={themeMode}
+          isMobile={isMobile}
+          dashboardValuations={dashboardValuations}
+          panelStyle={panelStyle}
+          getOfferBadgeStyle={getOfferBadgeStyle}
+          onRequestValuation={onRequestValuation}
+          onNavigate={onNavigate}
+        />
+      )}
+
+            {(userDashboardPage === "appointments" || userDashboardPage === "valuations") && (
         <UserDashboardOperations
           themeMode={themeMode}
-          uiLanguage={uiLanguage}
           isMobile={isMobile}
           dashboardAppointments={dashboardAppointments}
           dashboardValuations={dashboardValuations}
@@ -409,7 +557,7 @@ export default function UserDashboardPage({
         />
       )}
 
-      {userDashboardPage === "vehicles" && (
+            {userDashboardPage === "vehicles" && (
         <UserDashboardVehicles
           themeMode={themeMode}
           isMobile={isMobile}
@@ -427,7 +575,7 @@ export default function UserDashboardPage({
         />
       )}
 
-      {userDashboardPage === "billing" && (
+            {userDashboardPage === "billing" && (
         <UserDashboardBilling
           themeMode={themeMode}
           isMobile={isMobile}
@@ -435,6 +583,18 @@ export default function UserDashboardPage({
           currentUser={currentUser}
         />
       )}
+
+            {userDashboardPage === "preferences" && (
+        <UserDashboardPreferences
+          themeMode={themeMode}
+          isMobile={isMobile}
+          panelStyle={panelStyle}
+          currentUser={currentUser}
+        />
+      )}
+          </main>
+        </div>
+      </div>
     </div>
   );
 }

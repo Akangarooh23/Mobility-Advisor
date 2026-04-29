@@ -48,6 +48,9 @@ const billingPortalHandler = require("./api/billing-portal");
 const billingAccountHandler = require("./api/billing-account");
 const billingWebhookHandler = require("./api/billing-webhook");
 const erpCatalogHandler = require("./api/erp-catalog");
+const userSavedHandler = require("./api/user-saved");
+const userAlertsHandler = require("./api/user-alerts");
+const userPreferencesHandler = require("./api/user-preferences");
 
 const API_PORT = Number(process.env.API_PORT || process.env.PORT || 3001);
 
@@ -65,6 +68,9 @@ const handlers = {
   "/api/billing-account": billingAccountHandler,
   "/api/billing-webhook": billingWebhookHandler,
   "/api/erp-catalog": erpCatalogHandler,
+  "/api/user-saved": userSavedHandler,
+  "/api/user-alerts": userAlertsHandler,
+  "/api/user-preferences": userPreferencesHandler,
 };
 
 function sendJson(res, statusCode, payload) {

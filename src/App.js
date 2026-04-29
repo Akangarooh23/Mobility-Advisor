@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import i18next from "i18next";
 import "./App.css";
 import AdviceIntroPage from "./pages/AdviceIntroPage";
 import AdviceResultsPage from "./pages/AdviceResultsPage";
@@ -74,10 +75,14 @@ import {
   sanitizeResultForDisplay,
 } from "./utils/advisorResults";
 import {
+  deleteUserAlertJson,
   postAlertEmailDigestJson,
   postAppointmentAddJson,
   postAuthJson,
   postListingJson,
+  postUserAlertJson,
+  postUserAlertStatusJson,
+  postValuationAddJson,
 } from "./utils/apiClient";
 import {
   ANALYSIS_LOADING_PHASES,
@@ -834,6 +839,8 @@ export default function App() {
 
   const applyUiLanguage = useCallback((nextLanguage) => {
     const targetLanguage = normalizeUiLanguage(nextLanguage);
+
+    i18next.changeLanguage(targetLanguage);
 
     if (typeof document !== "undefined") {
       document.documentElement.setAttribute("lang", targetLanguage === "en" ? "en" : "es");
@@ -1717,6 +1724,7 @@ export default function App() {
     const next = [alert, ...marketAlerts.filter((item) => item.id !== alert.id)].slice(0, 20);
     writeMarketAlerts(next);
     setMarketAlerts(next);
+    void postUserAlertJson(alert).catch(() => {});
     return alert;
   };
 
@@ -1728,6 +1736,7 @@ export default function App() {
     writeMarketAlertStatus(nextStatus);
     setMarketAlerts(next);
     setMarketAlertStatus(nextStatus);
+    void deleteUserAlertJson(id).catch(() => {});
   };
 
   const markMarketAlertSeen = useCallback((id, count = 0) => {
@@ -1745,6 +1754,7 @@ export default function App() {
       };
 
       writeMarketAlertStatus(nextStatus);
+      void postUserAlertStatusJson(id, Number(count || 0)).catch(() => {});
       return nextStatus;
     });
   }, []);
@@ -2569,6 +2579,31 @@ export default function App() {
       }
 
       setSellAiResult(normalized);
+      if (currentUserEmail) {
+        try {
+          const rawPrice = normalizeText(normalized.precio_objetivo)
+            .replace(/[^\d.,]/g, "")
+            .replace(",", ".");
+          const estimateValue = parseFloat(rawPrice) || 0;
+          const vehicleLabel =
+            normalizeText(selectedValuationVehicleSummary?.title) ||
+            `${normalizeText(sellAnswers.brand)} ${normalizeText(sellAnswers.model)} ${normalizeText(sellAnswers.year)}`.trim();
+          await postValuationAddJson(currentUserEmail, {
+            title: vehicleLabel || "Tasacion vehiculo",
+            meta: [
+              normalizeText(sellAnswers.mileage) ? `${normalizeText(sellAnswers.mileage)} km` : "",
+              normalizeText(sellAnswers.fuel),
+            ]
+              .filter(Boolean)
+              .join(" · "),
+            status: "Tasacion IA completada",
+            report: normalizeText(normalized.resumen),
+            estimateValue,
+          });
+        } catch {
+          // non-blocking — valuation display is not gated on persistence
+        }
+      }
       await searchSellComparableListing();
     } catch (err) {
       if (err?.code === "API_KEY_MISSING") {
@@ -4190,7 +4225,6 @@ export default function App() {
         <LandingPage
           styles={s}
           totalSteps={totalSteps}
-          uiLanguage={uiLanguage}
           blockColors={BLOCK_COLORS}
           questionnaireDraft={questionnaireDraft}
           isUserLoggedIn={isUserLoggedIn}
@@ -4242,7 +4276,6 @@ export default function App() {
       {step === -1 && entryMode === "vehicleOptions" && (
         <VehicleOptionsPage
           styles={s}
-          uiLanguage={uiLanguage}
           onSelectBuy={() => {
             setEntryMode("buyOptions");
             setStep(-1);
@@ -4297,7 +4330,6 @@ export default function App() {
       {step === -1 && entryMode === "buyOptions" && (
         <BuyOptionsPage
           styles={s}
-          uiLanguage={uiLanguage}
           onSelectAdvisor={() => {
             setAdvisorContext("buy");
             setAnswers({});
@@ -4422,7 +4454,7 @@ export default function App() {
       )}
 
       {step === -1 && entryMode === "contact" && (
-        <ContactCarswisePage uiLanguage={uiLanguage} onGoHome={restart} />
+        <ContactCarswisePage onGoHome={restart} />
       )}
 
       {step === -1 && entryMode === "blog" && (
@@ -4458,7 +4490,6 @@ export default function App() {
       {step === -1 && entryMode === "userDashboard" && isUserLoggedIn && (
         <UserDashboardPage
           themeMode={themeMode}
-          uiLanguage={uiLanguage}
           centerStyle={s.center}
           blockBadgeStyle={s.blockBadge("Vinculación")}
           panelStyle={{
@@ -4524,7 +4555,6 @@ export default function App() {
       {step === -1 && entryMode === "decision" && (
         <DecisionPage
           styles={s}
-          uiLanguage={uiLanguage}
           lockedOperation={advisorContext === "renting" ? "renting" : advisorContext === "buy" ? "comprar" : null}
           decisionAnswers={decisionAnswers}
           updateDecisionAnswer={updateDecisionAnswer}
@@ -4618,7 +4648,6 @@ export default function App() {
       {step === -1 && entryMode === "sell" && (
         <SellPage
           styles={s}
-          uiLanguage={uiLanguage}
           sellFlowType={sellFlowType}
           selectedValuationVehicleSummary={selectedValuationVehicleSummary}
           sellAnswers={sellAnswers}
@@ -4699,7 +4728,6 @@ export default function App() {
           resultRef={resultRef}
           styles={s}
           themeMode={themeMode}
-          uiLanguage={uiLanguage}
           resultView={resultView}
           answers={answers}
           listingResult={listingResult}

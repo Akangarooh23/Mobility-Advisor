@@ -4,8 +4,8 @@ import "./CircularSteps.css";
 
 const STEP_DEFINITIONS = [
   { key: "step1", icon: "🚗", color: "#F6C21B", action: "buy", position: "top" },
-  { key: "step3", icon: "💵", color: "#E84DAE", action: "sell", position: "right" },
-  { key: "step2", icon: "🛠️", color: "#21C7C9", action: "service", position: "left" },
+  { key: "step2", icon: "💵", color: "#E84DAE", action: "sell", position: "right" },
+  { key: "step3", icon: "🛠️", color: "#21C7C9", action: "service", position: "left" },
 ];
 
 const AUTO_ADVANCE_MS = 3600;

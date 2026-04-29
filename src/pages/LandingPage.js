@@ -1,9 +1,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AnimatePresence, LazyMotion, domAnimation, m, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { LazyMotion, domAnimation, m, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { PLAN_COMPARISON_ROWS, PRICING_SECTION_COPY, SERVICE_PLANS } from "../data/servicePlans";
 import CircularSteps from "../components/CircularSteps";
+import HomeProcessSections from "../components/HomeProcessSections";
 
 export default function LandingPage({
   styles,
@@ -81,21 +82,11 @@ export default function LandingPage({
   const showResumeAdvice = (draftAnsweredSteps > 0 || hasDraftAnswers || draftWasStarted) && typeof onResumeAdvice === "function";
   const comparisonGridTemplate = `1.3fr repeat(${SERVICE_PLANS.length},1fr)`;
   const planCardBasis = `calc((100% - ${(SERVICE_PLANS.length - 1) * 12}px) / ${SERVICE_PLANS.length})`;
-  const [activeJourneyStep, setActiveJourneyStep] = useState(0);
-  const sectionPadding = isMobileView ? "18px 12px" : "24px 20px";
   const heroScale = useTransform(scrollYProgress, [0, 0.26], [1, isMobileView ? 1 : 1.11]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, isMobileView ? 1 : 0.18]);
   const heroY = useTransform(scrollYProgress, [0, 0.28], [0, isMobileView ? 0 : -52]);
   const bgParallaxNear = useTransform(scrollYProgress, [0, 1], [0, isMobileView ? -38 : -92]);
   const bgParallaxFar = useTransform(scrollYProgress, [0, 1], [0, isMobileView ? 24 : 58]);
-  const tapFeedback = prefersReducedMotion
-    ? {}
-    : { scale: isMobileView ? 0.985 : 0.992 };
-
-  const enableInViewReveals = !prefersReducedMotion && !isMobileView;
-  const revealInitial = enableInViewReveals ? { opacity: 0, y: 20, scale: 0.985 } : false;
-  const revealInView = enableInViewReveals ? { opacity: 1, y: 0, scale: 1 } : undefined;
-  const revealViewport = enableInViewReveals ? { once: true, amount: 0.26 } : undefined;
   const showLightBackgroundFx = !isDark;
   const panelMinHeight = isMobileView ? "auto" : "96vh";
   const panelRevealInitial = !prefersReducedMotion && !isMobileView ? { opacity: 0, y: 28, scale: 0.985 } : false;
@@ -130,71 +121,6 @@ export default function LandingPage({
   const metricsMobileY = useTransform(metricsProgress, [0, 1], [28, 0]);
   const draftCardTitleColor = isDark ? "#e2e8f0" : "#0f172a";
   const draftCardMetaColor = isDark ? "#cbd5e1" : "#334155";
-
-  const experienceSteps = [
-    {
-      id: "discover",
-      stage: t("landing.phase1Stage"),
-      title: t("landing.phase1Title"),
-      description: t("landing.phase1Desc"),
-      highlights: [
-        t("landing.phase1H1"),
-        t("landing.phase1H2"),
-        t("landing.phase1H3"),
-      ],
-      metric: t("landing.phase1Metric"),
-      metricLabel: t("landing.phase1MetricLabel"),
-      actionKey: "advice",
-      actionLabel: t("landing.phase1Action"),
-      accent: "#38bdf8",
-    },
-    {
-      id: "market",
-      stage: t("landing.phase2Stage"),
-      title: t("landing.phase2Title"),
-      description: t("landing.phase2Desc"),
-      highlights: [
-        t("landing.phase2H1"),
-        t("landing.phase2H2"),
-        t("landing.phase2H3"),
-      ],
-      metric: t("landing.phase2Metric"),
-      metricLabel: t("landing.phase2MetricLabel"),
-      actionKey: "vehicle",
-      actionLabel: t("landing.phase2Action"),
-      accent: "#22d3ee",
-    },
-    {
-      id: "execution",
-      stage: t("landing.phase3Stage"),
-      title: t("landing.phase3Title"),
-      description: t("landing.phase3Desc"),
-      highlights: [
-        t("landing.phase3H1"),
-        t("landing.phase3H2"),
-        t("landing.phase3H3"),
-      ],
-      metric: t("landing.phase3Metric"),
-      metricLabel: t("landing.phase3MetricLabel"),
-      actionKey: "services",
-      actionLabel: t("landing.phase3Action"),
-      accent: "#34d399",
-    },
-  ];
-
-  const activeExperience = experienceSteps[activeJourneyStep] || experienceSteps[0];
-
-  const handleExperienceAction = (actionKey) => {
-    if (actionKey === "vehicle") {
-      onSelectVehicle?.();
-      return;
-    }
-    if (actionKey === "services") {
-      onSelectService?.();
-      return;
-    }
-    onSelectAdvice?.();
-  };
 
   return (
     <LazyMotion features={domAnimation}>
@@ -415,238 +341,12 @@ export default function LandingPage({
         viewport={panelRevealViewport}
         transition={{ duration: 0.72, ease: [0.22, 1, 0.36, 1] }}
       >
-      <m.section
-        className="ma-fade-stagger"
-        style={{
-          marginTop: 0,
-          textAlign: "left",
-          borderRadius: 22,
-          border: "1px solid rgba(56,189,248,0.22)",
-          background:
-            "radial-gradient(100% 160% at 5% 0%, rgba(56,189,248,0.14), rgba(56,189,248,0) 45%), radial-gradient(120% 120% at 100% 0%, rgba(52,211,153,0.12), rgba(52,211,153,0) 42%), linear-gradient(150deg, rgba(15,23,42,0.88), rgba(2,6,23,0.9))",
-          padding: sectionPadding,
-          animationDelay: "280ms",
-          position: "relative",
-          zIndex: 1,
-        }}
-        initial={revealInitial}
-        whileInView={revealInView}
-        viewport={revealViewport}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <div style={{ textAlign: "center", marginBottom: 18 }}>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "5px 12px",
-              borderRadius: 100,
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.4px",
-              color: "#a5f3fc",
-              background: "rgba(8,145,178,0.2)",
-              border: "1px solid rgba(103,232,249,0.3)",
-            }}
-          >
-            {t("landing.howItWorksBadge")}
-          </div>
-          <h2
-            style={{
-              margin: "12px 0 8px",
-              fontSize: isMobileView ? "30px" : "clamp(26px,4.4vw,38px)",
-              color: "#f8fafc",
-              letterSpacing: "-0.9px",
-              lineHeight: 1.1,
-            }}
-          >
-            {t("landing.howItWorksTitle")}
-          </h2>
-          <p style={{ margin: 0, color: "#94a3b8", fontSize: isMobileView ? 13 : 14, lineHeight: 1.7 }}>
-            {t("landing.howItWorksDesc")}
-          </p>
-        </div>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: isMobileView ? "1fr" : "minmax(280px,0.9fr) minmax(0,1.1fr)",
-            gap: 14,
-            alignItems: "stretch",
-          }}
-        >
-          <m.div
-            style={{
-              display: "grid",
-              gap: 10,
-            }}
-            initial={revealInitial}
-            whileInView={revealInView}
-            viewport={revealViewport}
-            transition={{ duration: 0.45, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {experienceSteps.map((step, index) => (
-              <m.button
-                key={step.id}
-                type="button"
-                onClick={() => setActiveJourneyStep(index)}
-                className="ma-card-interactive"
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  borderRadius: 14,
-                  padding: "12px 12px",
-                  border:
-                    activeJourneyStep === index
-                      ? `1px solid ${step.accent}`
-                      : "1px solid rgba(148,163,184,0.22)",
-                  background:
-                    activeJourneyStep === index
-                      ? "linear-gradient(140deg, rgba(15,23,42,0.95), rgba(30,41,59,0.78))"
-                      : "rgba(15,23,42,0.55)",
-                  cursor: "pointer",
-                }}
-                whileTap={tapFeedback}
-                initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
-                whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-                viewport={revealViewport}
-                transition={{ duration: 0.34, delay: 0.03 * index, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
-                  <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.6px", color: "#7dd3fc" }}>
-                    {step.stage}
-                  </span>
-                  <span style={{ fontSize: 11, color: step.accent, fontWeight: 700 }}>
-                    {step.metric}
-                  </span>
-                </div>
-                <div style={{ fontSize: 15, color: "#f8fafc", fontWeight: 800, marginBottom: 4 }}>
-                  {step.title}
-                </div>
-                <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.55 }}>
-                  {step.description}
-                </div>
-              </m.button>
-            ))}
-          </m.div>
-
-          <m.article
-            className="ma-card-interactive"
-            style={{
-              borderRadius: 16,
-              border: `1px solid ${activeExperience.accent}66`,
-              background: "linear-gradient(140deg, rgba(15,23,42,0.92), rgba(30,41,59,0.72))",
-              padding: isMobileView ? "14px 12px" : "16px 14px",
-              display: "grid",
-              gap: 12,
-              alignContent: "start",
-            }}
-          >
-            <AnimatePresence mode="wait" initial={false}>
-              <m.div
-                key={activeExperience.id}
-                initial={{ opacity: 0, y: 22 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -22 }}
-                transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-                style={{ display: "grid", gap: 12 }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-                  <div>
-                    <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.6px", color: activeExperience.accent }}>
-                      {t("landing.activePhaseLabel")}
-                    </div>
-                    <div style={{ marginTop: 4, fontSize: "clamp(18px,3.2vw,24px)", fontWeight: 800, color: "#f8fafc", lineHeight: 1.2 }}>
-                      {activeExperience.title}
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      borderRadius: 12,
-                      border: `1px solid ${activeExperience.accent}66`,
-                      background: "rgba(15,23,42,0.72)",
-                      padding: "8px 10px",
-                      minWidth: isMobileView ? "100%" : 170,
-                      textAlign: isMobileView ? "left" : "center",
-                    }}
-                  >
-                    <div style={{ fontSize: 18, fontWeight: 800, color: "#f8fafc", lineHeight: 1.1 }}>
-                      {activeExperience.metric}
-                    </div>
-                    <div style={{ fontSize: 11, color: "#93c5fd", marginTop: 3 }}>
-                      {activeExperience.metricLabel}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ fontSize: 13, color: "#cbd5e1", lineHeight: 1.65 }}>
-                  {activeExperience.description}
-                </div>
-
-                <div style={{ display: "grid", gap: 7 }}>
-                  {activeExperience.highlights.map((item) => (
-                    <div
-                      key={item}
-                      className="ma-card-soft"
-                      style={{
-                        borderRadius: 10,
-                        border: "1px solid rgba(148,163,184,0.2)",
-                        background: "rgba(15,23,42,0.55)",
-                        padding: "9px 10px",
-                        color: "#dbeafe",
-                        fontSize: 12,
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      <span style={{ color: activeExperience.accent, marginRight: 8 }}>✓</span>
-                      {item}
-                    </div>
-                  ))}
-                </div>
-
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 2 }}>
-                  <button
-                    type="button"
-                    className="ma-card-soft"
-                    onClick={() => handleExperienceAction(activeExperience.actionKey)}
-                    style={{
-                      border: "none",
-                      borderRadius: 10,
-                      padding: "10px 14px",
-                      background: "linear-gradient(135deg,#2563eb,#0ea5e9)",
-                      color: "#ffffff",
-                      fontSize: 12,
-                      fontWeight: 800,
-                      cursor: "pointer",
-                    }}
-                  >
-                    {activeExperience.actionLabel}
-                  </button>
-                  <m.button
-                    type="button"
-                    className="ma-card-soft"
-                    onClick={onSelectPortalVo}
-                    style={{
-                      border: "1px solid rgba(148,163,184,0.28)",
-                      borderRadius: 10,
-                      padding: "10px 14px",
-                      background: "rgba(15,23,42,0.55)",
-                      color: "#e2e8f0",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                    }}
-                    whileTap={tapFeedback}
-                  >
-                    {t("landing.marketplaceVo")}
-                  </m.button>
-                </div>
-              </m.div>
-            </AnimatePresence>
-          </m.article>
-        </div>
-      </m.section>
+        <HomeProcessSections
+          onAccessBuyKnownModel={onSelectDecision}
+          onAccessBuyGuided={onSelectAdvice}
+          onAccessSellInfo={onSelectSell}
+          onAccessSellManaged={onSelectSell}
+        />
       </m.section>
 
       <m.section

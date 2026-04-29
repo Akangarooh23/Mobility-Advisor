@@ -43,14 +43,9 @@ const authHandler = require("./api/auth");
 const authStatusHandler = require("./api/auth-status");
 const vehicleCatalogHandler = require("./api/vehicle-catalog");
 
-const billingCheckoutHandler = require("./api/billing-checkout");
-const billingPortalHandler = require("./api/billing-portal");
-const billingAccountHandler = require("./api/billing-account");
-const billingWebhookHandler = require("./api/billing-webhook");
+const billingHandler = require("./api/billing");
 const erpCatalogHandler = require("./api/erp-catalog");
-const userSavedHandler = require("./api/user-saved");
-const userAlertsHandler = require("./api/user-alerts");
-const userPreferencesHandler = require("./api/user-preferences");
+const userHandler = require("./api/user");
 
 const API_PORT = Number(process.env.API_PORT || process.env.PORT || 3001);
 
@@ -63,14 +58,14 @@ const handlers = {
   "/api/auth-status": authStatusHandler,
   "/api/vehicle-catalog": vehicleCatalogHandler,
 
-  "/api/billing-checkout": billingCheckoutHandler,
-  "/api/billing-portal": billingPortalHandler,
-  "/api/billing-account": billingAccountHandler,
-  "/api/billing-webhook": billingWebhookHandler,
+  "/api/billing-checkout": billingHandler,
+  "/api/billing-portal": billingHandler,
+  "/api/billing-account": billingHandler,
+  "/api/billing-webhook": billingHandler,
   "/api/erp-catalog": erpCatalogHandler,
-  "/api/user-saved": userSavedHandler,
-  "/api/user-alerts": userAlertsHandler,
-  "/api/user-preferences": userPreferencesHandler,
+  "/api/user-saved": userHandler,
+  "/api/user-alerts": userHandler,
+  "/api/user-preferences": userHandler,
 };
 
 function sendJson(res, statusCode, payload) {

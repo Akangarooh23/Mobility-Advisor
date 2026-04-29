@@ -2,6 +2,34 @@
   "buildCommand": "npm run build",
   "rewrites": [
     {
+      "source": "/api/billing-account",
+      "destination": "/api/billing?route=account"
+    },
+    {
+      "source": "/api/billing-checkout",
+      "destination": "/api/billing?route=checkout"
+    },
+    {
+      "source": "/api/billing-portal",
+      "destination": "/api/billing?route=portal"
+    },
+    {
+      "source": "/api/billing-webhook",
+      "destination": "/api/billing?route=webhook"
+    },
+    {
+      "source": "/api/user-saved",
+      "destination": "/api/user?route=saved"
+    },
+    {
+      "source": "/api/user-alerts",
+      "destination": "/api/user?route=alerts"
+    },
+    {
+      "source": "/api/user-preferences",
+      "destination": "/api/user?route=preferences"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

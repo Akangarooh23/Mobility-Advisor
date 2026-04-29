@@ -1,5 +1,6 @@
  .cw-plans {
   padding: 1rem 0 0;
+  overflow-x: hidden;
 }
 
 .cw-plans-hero {
@@ -520,24 +521,61 @@
   .cw-plans-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .cw-plan-card.featured,
+  .cw-plan-card.featured:hover {
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 640px) {
   .cw-plans-hero {
-    padding: 2.8rem 0.2rem 2rem;
+    padding: 2.4rem 0.6rem 1.6rem;
+  }
+
+  .cw-plans-hero h2 {
+    font-size: clamp(28px, 10vw, 38px);
+  }
+
+  .cw-plans-hero p {
+    font-size: 14px;
+    margin-bottom: 1.4rem;
   }
 
   .cw-plans-grid {
     grid-template-columns: 1fr;
-    padding: 0 0 1.4rem;
+    padding: 0 0.65rem 1.2rem;
+    gap: 0.8rem;
+  }
+
+  .cw-plan-card {
+    padding: 1.35rem 1rem;
+    border-radius: 16px;
+  }
+
+  .cw-plan-card.featured,
+  .cw-plan-card.featured:hover {
+    transform: none;
+    padding-top: 1.8rem;
+    padding-bottom: 1.6rem;
+  }
+
+  .cw-plan-featured-badge {
+    top: -11px;
+    font-size: 9px;
+    padding: 0.3rem 0.8rem;
+  }
+
+  .cw-plan-price .amount {
+    font-size: 32px;
   }
 
   .cw-plans-table-wrap {
     overflow-x: auto;
-    padding: 0 0 3rem;
+    padding: 0 0.65rem 2.4rem;
   }
 
   .cw-plans-comp-table {
-    min-width: 680px;
+    min-width: 620px;
   }
 }

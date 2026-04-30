@@ -240,7 +240,7 @@ export default function DecisionPage({
           ];
 
   return (
-    <div style={styles.center}>
+    <div style={{...styles.center, maxWidth: 1400}}>
       <style>
         {`
           .decision-choice {
@@ -273,442 +273,497 @@ export default function DecisionPage({
             border-color: rgba(37,99,235,0.58);
             box-shadow: 0 0 0 1px rgba(37,99,235,0.2) inset, 0 12px 22px rgba(37,99,235,0.16);
           }
+          
+          .decision-layout {
+            display: grid;
+            gridTemplateColumns: 280px 1fr;
+            gap: 24px;
+            alignItems: start;
+          }
+          
+          @media (max-width: 900px) {
+            .decision-layout {
+              gridTemplateColumns: 1fr;
+              gap: 20px;
+            }
+          }
+          
+          .decision-filters {
+            position: sticky;
+            top: 20px;
+            maxHeight: calc(100vh - 40px);
+            overflowY: auto;
+            paddingRight: 12px;
+          }
+          
+          .decision-filters::-webkit-scrollbar {
+            width: 6px;
+          }
+          
+          .decision-filters::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          
+          .decision-filters::-webkit-scrollbar-thumb {
+            background: rgba(148,163,184,0.3);
+            borderRadius: 3px;
+          }
+          
+          .decision-results {
+            display: flex;
+            flexDirection: column;
+            gap: 20px;
+          }
         `}
       </style>
 
-      <div style={{ ...styles.blockBadge("Vinculación"), marginBottom: 10 }}>{text.marketOffers}</div>
-      <h2
-        style={{
-          fontSize: "clamp(22px,4vw,30px)",
-          fontWeight: 800,
-          letterSpacing: "-1px",
-          margin: "0 0 10px",
-          color: titleColor,
-        }}
-      >
-        {text.title}
-      </h2>
-      <p style={{ color: mutedColor, fontSize: 14, lineHeight: 1.7, margin: "0 0 24px" }}>
-        {text.subtitle}
-      </p>
-
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 11, color: "#475569", marginBottom: 10, letterSpacing: "0.6px" }}>
-          {text.operationType}
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 10 }}>
-          {operationChoices.map(([value, label, icon]) => (
-            <button
-              key={value}
-              style={styles.card(effectiveOperation === value)}
-              className={`decision-choice ${effectiveOperation === value ? "is-active" : ""}`}
-              onClick={() => {
-                if (lockedOperation) return;
-                updateDecisionAnswer("operation", value);
-                updateDecisionAnswer("acquisition", value === "renting" ? "particular" : "contado");
-              }}
-            >
-              <span style={{ fontSize: 22, minWidth: 30 }}>{icon}</span>
-              <div style={{ fontWeight: 700, fontSize: 14, color: titleColor }}>{label}</div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
-          <div style={{ fontSize: 11, color: "#475569", letterSpacing: "0.6px" }}>
-            {text.brandModel}
-          </div>
-          <span
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              borderRadius: 999,
-              padding: "3px 8px",
-              border: isApiCatalogActive ? "1px solid rgba(16,185,129,0.35)" : "1px solid rgba(245,158,11,0.35)",
-              background: isApiCatalogActive ? "rgba(16,185,129,0.12)" : "rgba(245,158,11,0.14)",
-              color: isApiCatalogActive ? "#065f46" : "#92400e",
-            }}
-            title={isApiCatalogActive ? text.apiCatalogTitle : text.fallbackCatalogTitle}
-          >
-            {isApiCatalogActive ? text.apiCatalog : text.fallbackCatalog}
-          </span>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <div>
-            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.brand}</div>
-            <select
-              value={decisionAnswers.brand}
-              onChange={(event) => {
-                if (event.target.value === "__SHOW_MORE_BRANDS__") {
-                  setShowAllBrands(true);
-                  updateDecisionAnswer("hasBrand", "si");
-                  updateDecisionAnswer("brand", "");
-                  return;
-                }
-
-                updateDecisionAnswer("hasBrand", "si");
-                updateDecisionAnswer("brand", event.target.value);
-              }}
-              style={styles.select}
-            >
-              <option value="">{text.selectBrand}</option>
-              {visibleBrands.map((brand) => (
-                <option key={brand} value={brand}>
-                  {brand}
-                </option>
-              ))}
-              {!shouldShowAllBrands && otherBrands.length > 0 && (
-                <option value="__SHOW_MORE_BRANDS__">{text.moreBrands} ({otherBrands.length})</option>
-              )}
-            </select>
-          </div>
-          <div>
-            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.model}</div>
-            <select
-              value={decisionAnswers.model}
-              onChange={(event) => {
-                updateDecisionAnswer("hasBrand", "si");
-                updateDecisionAnswer("model", event.target.value);
-              }}
-              disabled={!decisionAnswers.brand}
-              style={{
-                ...styles.select,
-                opacity: decisionAnswers.brand ? 1 : 0.55,
-              }}
-            >
-              <option value="">{text.selectModel}</option>
-              {decisionModels.map((model) => (
-                <option key={model} value={model}>
-                  {model}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ marginBottom: 24, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 12 }}>
-        <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.priceRange}</div>
-          <div style={{ ...styles.panel, padding: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, color: "#334155", marginBottom: 6 }}>
-              <span>{text.from}: {formatEuro(PRICE_MARKS[priceFromIndex])}</span>
-              <span>{text.to}: {formatEuro(PRICE_MARKS[priceToIndex])}</span>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={PRICE_MARKS.length - 2}
-              step={1}
-              value={priceFromIndex}
-              onChange={(event) => {
-                const nextFrom = Math.min(Number(event.target.value), priceToIndex - 1);
-                setPriceFromIndex(nextFrom);
-                updateDecisionAnswer("priceMin", PRICE_MARKS[nextFrom]);
-              }}
-              style={{ width: "100%" }}
-            />
-            <input
-              type="range"
-              min={1}
-              max={PRICE_MARKS.length - 1}
-              step={1}
-              value={priceToIndex}
-              onChange={(event) => {
-                const nextTo = Math.max(Number(event.target.value), priceFromIndex + 1);
-                setPriceToIndex(nextTo);
-                updateDecisionAnswer("priceMax", PRICE_MARKS[nextTo]);
-                updateDecisionAnswer("cashBudget", PRICE_FILTER_BY_TO_INDEX[nextTo] || "mas_150000");
-              }}
-              style={{ width: "100%", marginTop: 6 }}
-            />
-          </div>
-        </div>
-
-        <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.ageRange}</div>
-          <div style={{ ...styles.panel, padding: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, color: "#334155", marginBottom: 6 }}>
-              <span>{text.from}: {formatYears(AGE_MARKS[ageFromIndex])}</span>
-              <span>{text.to}: {ageToIndex >= AGE_MARKS.length - 1 ? text.noLimit : formatYears(AGE_MARKS[ageToIndex])}</span>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={AGE_MARKS.length - 2}
-              step={1}
-              value={ageFromIndex}
-              onChange={(event) => {
-                const nextFrom = Math.min(Number(event.target.value), ageToIndex - 1);
-                setAgeFromIndex(nextFrom);
-                updateDecisionAnswer("ageMin", AGE_MARKS[nextFrom]);
-              }}
-              style={{ width: "100%" }}
-            />
-            <input
-              type="range"
-              min={1}
-              max={AGE_MARKS.length - 1}
-              step={1}
-              value={ageToIndex}
-              onChange={(event) => {
-                const nextTo = Math.max(Number(event.target.value), ageFromIndex + 1);
-                setAgeToIndex(nextTo);
-                updateDecisionAnswer("ageMax", nextTo >= AGE_MARKS.length - 1 ? null : AGE_MARKS[nextTo]);
-                updateDecisionAnswer("ageFilter", AGE_FILTER_BY_TO_INDEX[nextTo] || "all");
-              }}
-              style={{ width: "100%", marginTop: 6 }}
-            />
-          </div>
-        </div>
-
-        <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.mileageRange}</div>
-          <div style={{ ...styles.panel, padding: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, color: "#334155", marginBottom: 6 }}>
-              <span>{text.from}: {formatKm(MILEAGE_MARKS[mileageFromIndex])}</span>
-              <span>{text.to}: {mileageToIndex >= MILEAGE_MARKS.length - 1 ? text.noLimit : formatKm(MILEAGE_MARKS[mileageToIndex])}</span>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={MILEAGE_MARKS.length - 2}
-              step={1}
-              value={mileageFromIndex}
-              onChange={(event) => {
-                const nextFrom = Math.min(Number(event.target.value), mileageToIndex - 1);
-                setMileageFromIndex(nextFrom);
-                updateDecisionAnswer("mileageMin", MILEAGE_MARKS[nextFrom]);
-              }}
-              style={{ width: "100%" }}
-            />
-            <input
-              type="range"
-              min={1}
-              max={MILEAGE_MARKS.length - 1}
-              step={1}
-              value={mileageToIndex}
-              onChange={(event) => {
-                const nextTo = Math.max(Number(event.target.value), mileageFromIndex + 1);
-                setMileageToIndex(nextTo);
-                updateDecisionAnswer("mileageMax", nextTo >= MILEAGE_MARKS.length - 1 ? null : MILEAGE_MARKS[nextTo]);
-                updateDecisionAnswer("mileageFilter", MILEAGE_FILTER_BY_TO_INDEX[nextTo] || "all");
-              }}
-              style={{ width: "100%", marginTop: 6 }}
-            />
-          </div>
-        </div>
-
-        <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.powerRange}</div>
-          <div style={{ ...styles.panel, padding: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, color: "#334155", marginBottom: 6 }}>
-              <span>{text.from}: {formatPower(POWER_MARKS[powerFromIndex])}</span>
-              <span>{text.to}: {formatPower(POWER_MARKS[powerToIndex])}</span>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={POWER_MARKS.length - 2}
-              step={1}
-              value={powerFromIndex}
-              onChange={(event) => {
-                const nextFrom = Math.min(Number(event.target.value), powerToIndex - 1);
-                setPowerFromIndex(nextFrom);
-                updateDecisionAnswer("powerMin", POWER_MARKS[nextFrom]);
-              }}
-              style={{ width: "100%" }}
-            />
-            <input
-              type="range"
-              min={1}
-              max={POWER_MARKS.length - 1}
-              step={1}
-              value={powerToIndex}
-              onChange={(event) => {
-                const nextTo = Math.max(Number(event.target.value), powerFromIndex + 1);
-                setPowerToIndex(nextTo);
-                updateDecisionAnswer("powerMax", POWER_MARKS[nextTo]);
-              }}
-              style={{ width: "100%", marginTop: 6 }}
-            />
-          </div>
-        </div>
-
-        <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.location}</div>
-          <select
-            value={decisionAnswers.location || "toda_espana"}
-            onChange={(event) => updateDecisionAnswer("location", event.target.value)}
-            style={styles.select}
-          >
-            {LOCATION_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.fuel}</div>
-          <select
-            value={decisionAnswers.fuelFilter || "cualquiera"}
-            onChange={(event) => updateDecisionAnswer("fuelFilter", event.target.value)}
-            style={styles.select}
-          >
-            {FUEL_FILTER_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {decisionFlowReady ? (
-        <div style={{ marginBottom: 18, fontSize: 13, color: panelBodyColor }}>
-          {text.directOffers}
-        </div>
-      ) : (
-        <p style={{ color: "#64748b", fontSize: 13, marginBottom: 18 }}>
-          {text.completeFilters}
-        </p>
-      )}
-      {decisionFlowReady && (
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 10, flexWrap: "wrap" }}>
-            <div style={{ fontSize: 11, color: accentColor, letterSpacing: "0.6px" }}>
-              {text.realOffers}
-            </div>
-            <button
-              type="button"
-              onClick={onRecalculateDecisionMarketOffers}
-              disabled={decisionMarketLoading}
-              style={{
-                background: "transparent",
-                border: `1px solid ${isDark ? "rgba(148,163,184,0.4)" : "rgba(37,99,235,0.32)"}`,
-                color: accentColor,
-                borderRadius: 10,
-                padding: "8px 12px",
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: decisionMarketLoading ? "default" : "pointer",
-                opacity: decisionMarketLoading ? 0.7 : 1,
-              }}
-            >
-              {decisionMarketLoading ? text.recalculating : text.recalculateOffer}
-            </button>
-          </div>
-          {decisionMarketLoading && (
-            <div style={{ ...styles.panel, fontSize: 12, color: panelBodyColor }}>
-              {text.loadingOffers}
-            </div>
-          )}
-
-          {decisionMarketError && (
-            <div
-              style={{
-                background: "rgba(239,68,68,0.08)",
-                border: "1px solid rgba(239,68,68,0.18)",
-                borderRadius: 12,
-                padding: 12,
-                color: "#b91c1c",
-                fontSize: 12,
-                marginBottom: 10,
-              }}
-            >
-              {decisionMarketError}
-            </div>
-          )}
-
-          {!decisionMarketLoading && !decisionMarketError && decisionMarketListings.length === 0 && decisionFlowReady && (
-            <div style={{ ...styles.panel, fontSize: 12, color: panelBodyColor }}>
-              <div>{text.noOffers}</div>
-              {decisionMarketInsight && (
-                <div style={{ marginTop: 8, color: panelTitleColor, lineHeight: 1.6 }}>
-                  {decisionMarketInsight}
-                </div>
-              )}
-            </div>
-          )}
-
-          <div style={{ display: "grid", gap: 12 }}>
-            {decisionMarketListings.slice(0, 3).map((offer, index) => (
-              <div key={`${offer.url || offer.title || "offer"}-${index}`} style={styles.panel}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-                  <div>
-                    <div style={{ fontSize: 11, color: accentColor, marginBottom: 4 }}>
-                      #{index + 1} {text.realOffer} · {text.fit} {Number(offer.rankingScore ?? offer.profileScore ?? 0)}/100
-                    </div>
-                    <div style={{ fontSize: 17, fontWeight: 700, color: panelTitleColor, marginBottom: 6 }}>
-                      {offer.title}
-                    </div>
-                    <div style={{ fontSize: 12, color: panelBodyColor, lineHeight: 1.6 }}>
-                      {offer.source || text.provider}
-                    </div>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: 21, fontWeight: 800, color: panelTitleColor }}>
-                      {offer.price || text.priceNotVisible}
-                    </div>
-                    {offer.listingType === "renting" ? (
-                      <div style={{ fontSize: 12, color: accentColor, marginTop: 4 }}>
-                        Renting
-                      </div>
-                    ) : (
-                      <div style={{ fontSize: 12, color: accentColor, marginTop: 4 }}>
-                        {text.directBuy}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <p style={{ margin: "10px 0 0", fontSize: 12, color: panelBodyColor, lineHeight: 1.6 }}>
-                  {offer.description || text.listingFallback}
-                </p>
-                {offer.url && (
-                  <div style={{ marginTop: 10 }}>
-                    <a
-                      href={offer.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        color: accentColor,
-                        fontSize: 12,
-                        fontWeight: 700,
-                        textDecoration: "none",
-                      }}
-                    >
-                      {text.openListing}
-                    </a>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-        <button onClick={onSwitchToAdvice} style={styles.btn}>
-          {text.switchFlow}
-        </button>
-        <button
-          onClick={onRestart}
+      {/* Header */}
+      <div style={{ marginBottom: 20, gridColumn: "1/-1" }}>
+        <div style={{ ...styles.blockBadge("Vinculación"), marginBottom: 10 }}>{text.marketOffers}</div>
+        <h2
           style={{
-            background: isDark ? "rgba(255,255,255,0.05)" : "rgba(15,23,42,0.04)",
-            border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(15,23,42,0.16)",
-            color: isDark ? "#94a3b8" : "#334155",
-            padding: "12px 20px",
-            borderRadius: 10,
-            fontSize: 13,
-            cursor: "pointer",
+            fontSize: "clamp(22px,4vw,30px)",
+            fontWeight: 800,
+            letterSpacing: "-1px",
+            margin: "0 0 10px",
+            color: titleColor,
           }}
         >
-          {text.backHome}
-        </button>
+          {text.title}
+        </h2>
+        <p style={{ color: mutedColor, fontSize: 14, lineHeight: 1.7, margin: "0 0 24px" }}>
+          {text.subtitle}
+        </p>
+      </div>
+
+      {/* Two-column layout */}
+      <div className="decision-layout" style={{ gridColumn: "1/-1" }}>
+        {/* LEFT: Filters */}
+        <div className="decision-filters">
+          {/* Operation type */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 11, color: "#475569", marginBottom: 10, letterSpacing: "0.6px", fontWeight: 700 }}>
+              {text.operationType}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {operationChoices.map(([value, label, icon]) => (
+                <button
+                  key={value}
+                  style={styles.card(effectiveOperation === value)}
+                  className={`decision-choice ${effectiveOperation === value ? "is-active" : ""}`}
+                  onClick={() => {
+                    if (lockedOperation) return;
+                    updateDecisionAnswer("operation", value);
+                    updateDecisionAnswer("acquisition", value === "renting" ? "particular" : "contado");
+                  }}
+                >
+                  <span style={{ fontSize: 18, minWidth: 24 }}>{icon}</span>
+                  <div style={{ fontWeight: 700, fontSize: 13, color: titleColor }}>{label}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Brand & Model */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
+              <div style={{ fontSize: 11, color: "#475569", letterSpacing: "0.6px", fontWeight: 700 }}>
+                {text.brandModel}
+              </div>
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 700,
+                  borderRadius: 999,
+                  padding: "2px 6px",
+                  border: isApiCatalogActive ? "1px solid rgba(16,185,129,0.35)" : "1px solid rgba(245,158,11,0.35)",
+                  background: isApiCatalogActive ? "rgba(16,185,129,0.12)" : "rgba(245,158,11,0.14)",
+                  color: isApiCatalogActive ? "#065f46" : "#92400e",
+                }}
+                title={isApiCatalogActive ? text.apiCatalogTitle : text.fallbackCatalogTitle}
+              >
+                {isApiCatalogActive ? "API" : "FB"}
+              </span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8 }}>
+              <div>
+                <div style={{ fontSize: 10, color: "#64748b", marginBottom: 6 }}>{text.brand}</div>
+                <select
+                  value={decisionAnswers.brand}
+                  onChange={(event) => {
+                    if (event.target.value === "__SHOW_MORE_BRANDS__") {
+                      setShowAllBrands(true);
+                      updateDecisionAnswer("hasBrand", "si");
+                      updateDecisionAnswer("brand", "");
+                      return;
+                    }
+                    updateDecisionAnswer("hasBrand", "si");
+                    updateDecisionAnswer("brand", event.target.value);
+                  }}
+                  style={{...styles.select, fontSize: 12}}
+                >
+                  <option value="">{text.selectBrand}</option>
+                  {visibleBrands.map((brand) => (
+                    <option key={brand} value={brand}>
+                      {brand}
+                    </option>
+                  ))}
+                  {!shouldShowAllBrands && otherBrands.length > 0 && (
+                    <option value="__SHOW_MORE_BRANDS__">{text.moreBrands} ({otherBrands.length})</option>
+                  )}
+                </select>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, color: "#64748b", marginBottom: 6 }}>{text.model}</div>
+                <select
+                  value={decisionAnswers.model}
+                  onChange={(event) => {
+                    updateDecisionAnswer("hasBrand", "si");
+                    updateDecisionAnswer("model", event.target.value);
+                  }}
+                  disabled={!decisionAnswers.brand}
+                  style={{
+                    ...styles.select,
+                    opacity: decisionAnswers.brand ? 1 : 0.55,
+                    fontSize: 12,
+                  }}
+                >
+                  <option value="">{text.selectModel}</option>
+                  {decisionModels.map((model) => (
+                    <option key={model} value={model}>
+                      {model}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Price Filter */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8, fontWeight: 700 }}>{text.priceRange}</div>
+            <div style={{ ...styles.panel, padding: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 6, fontSize: 10, color: "#334155", marginBottom: 4 }}>
+                <span>{formatEuro(PRICE_MARKS[priceFromIndex])}</span>
+                <span>{formatEuro(PRICE_MARKS[priceToIndex])}</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={PRICE_MARKS.length - 2}
+                step={1}
+                value={priceFromIndex}
+                onChange={(event) => {
+                  const nextFrom = Math.min(Number(event.target.value), priceToIndex - 1);
+                  setPriceFromIndex(nextFrom);
+                  updateDecisionAnswer("priceMin", PRICE_MARKS[nextFrom]);
+                }}
+                style={{ width: "100%" }}
+              />
+              <input
+                type="range"
+                min={1}
+                max={PRICE_MARKS.length - 1}
+                step={1}
+                value={priceToIndex}
+                onChange={(event) => {
+                  const nextTo = Math.max(Number(event.target.value), priceFromIndex + 1);
+                  setPriceToIndex(nextTo);
+                  updateDecisionAnswer("priceMax", PRICE_MARKS[nextTo]);
+                  updateDecisionAnswer("cashBudget", PRICE_FILTER_BY_TO_INDEX[nextTo] || "mas_150000");
+                }}
+                style={{ width: "100%", marginTop: 4 }}
+              />
+            </div>
+          </div>
+
+          {/* Age Filter */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8, fontWeight: 700 }}>{text.ageRange}</div>
+            <div style={{ ...styles.panel, padding: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 6, fontSize: 10, color: "#334155", marginBottom: 4 }}>
+                <span>{formatYears(AGE_MARKS[ageFromIndex])}</span>
+                <span>{ageToIndex >= AGE_MARKS.length - 1 ? text.noLimit : formatYears(AGE_MARKS[ageToIndex])}</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={AGE_MARKS.length - 2}
+                step={1}
+                value={ageFromIndex}
+                onChange={(event) => {
+                  const nextFrom = Math.min(Number(event.target.value), ageToIndex - 1);
+                  setAgeFromIndex(nextFrom);
+                  updateDecisionAnswer("ageMin", AGE_MARKS[nextFrom]);
+                }}
+                style={{ width: "100%" }}
+              />
+              <input
+                type="range"
+                min={1}
+                max={AGE_MARKS.length - 1}
+                step={1}
+                value={ageToIndex}
+                onChange={(event) => {
+                  const nextTo = Math.max(Number(event.target.value), ageFromIndex + 1);
+                  setAgeToIndex(nextTo);
+                  updateDecisionAnswer("ageMax", nextTo >= AGE_MARKS.length - 1 ? null : AGE_MARKS[nextTo]);
+                  updateDecisionAnswer("ageFilter", AGE_FILTER_BY_TO_INDEX[nextTo] || "all");
+                }}
+                style={{ width: "100%", marginTop: 4 }}
+              />
+            </div>
+          </div>
+
+          {/* Mileage Filter */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8, fontWeight: 700 }}>{text.mileageRange}</div>
+            <div style={{ ...styles.panel, padding: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 6, fontSize: 10, color: "#334155", marginBottom: 4 }}>
+                <span>{formatKm(MILEAGE_MARKS[mileageFromIndex])}</span>
+                <span>{mileageToIndex >= MILEAGE_MARKS.length - 1 ? text.noLimit : formatKm(MILEAGE_MARKS[mileageToIndex])}</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={MILEAGE_MARKS.length - 2}
+                step={1}
+                value={mileageFromIndex}
+                onChange={(event) => {
+                  const nextFrom = Math.min(Number(event.target.value), mileageToIndex - 1);
+                  setMileageFromIndex(nextFrom);
+                  updateDecisionAnswer("mileageMin", MILEAGE_MARKS[nextFrom]);
+                }}
+                style={{ width: "100%" }}
+              />
+              <input
+                type="range"
+                min={1}
+                max={MILEAGE_MARKS.length - 1}
+                step={1}
+                value={mileageToIndex}
+                onChange={(event) => {
+                  const nextTo = Math.max(Number(event.target.value), mileageFromIndex + 1);
+                  setMileageToIndex(nextTo);
+                  updateDecisionAnswer("mileageMax", nextTo >= MILEAGE_MARKS.length - 1 ? null : MILEAGE_MARKS[nextTo]);
+                  updateDecisionAnswer("mileageFilter", MILEAGE_FILTER_BY_TO_INDEX[nextTo] || "all");
+                }}
+                style={{ width: "100%", marginTop: 4 }}
+              />
+            </div>
+          </div>
+
+          {/* Power Filter */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8, fontWeight: 700 }}>{text.powerRange}</div>
+            <div style={{ ...styles.panel, padding: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 6, fontSize: 10, color: "#334155", marginBottom: 4 }}>
+                <span>{formatPower(POWER_MARKS[powerFromIndex])}</span>
+                <span>{formatPower(POWER_MARKS[powerToIndex])}</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={POWER_MARKS.length - 2}
+                step={1}
+                value={powerFromIndex}
+                onChange={(event) => {
+                  const nextFrom = Math.min(Number(event.target.value), powerToIndex - 1);
+                  setPowerFromIndex(nextFrom);
+                  updateDecisionAnswer("powerMin", POWER_MARKS[nextFrom]);
+                }}
+                style={{ width: "100%" }}
+              />
+              <input
+                type="range"
+                min={1}
+                max={POWER_MARKS.length - 1}
+                step={1}
+                value={powerToIndex}
+                onChange={(event) => {
+                  const nextTo = Math.max(Number(event.target.value), powerFromIndex + 1);
+                  setPowerToIndex(nextTo);
+                  updateDecisionAnswer("powerMax", POWER_MARKS[nextTo]);
+                }}
+                style={{ width: "100%", marginTop: 4 }}
+              />
+            </div>
+          </div>
+
+          {/* Location */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8, fontWeight: 700 }}>{text.location}</div>
+            <select
+              value={decisionAnswers.location || "toda_espana"}
+              onChange={(event) => updateDecisionAnswer("location", event.target.value)}
+              style={{...styles.select, fontSize: 12}}
+            >
+              {LOCATION_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Fuel */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8, fontWeight: 700 }}>{text.fuel}</div>
+            <select
+              value={decisionAnswers.fuelFilter || "cualquiera"}
+              onChange={(event) => updateDecisionAnswer("fuelFilter", event.target.value)}
+              style={{...styles.select, fontSize: 12}}
+            >
+              {FUEL_FILTER_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Action buttons */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 12, borderTop: `1px solid ${isDark ? "rgba(148,163,184,0.2)" : "rgba(148,163,184,0.2)"}` }}>
+            <button onClick={onSwitchToAdvice} style={{...styles.btn, width: "100%", fontSize: 12}}>
+              {text.switchFlow}
+            </button>
+            <button
+              onClick={onRestart}
+              style={{
+                background: isDark ? "rgba(255,255,255,0.05)" : "rgba(15,23,42,0.04)",
+                border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(15,23,42,0.16)",
+                color: isDark ? "#94a3b8" : "#334155",
+                padding: "10px 12px",
+                borderRadius: 10,
+                fontSize: 12,
+                cursor: "pointer",
+                width: "100%",
+              }}
+            >
+              {text.backHome}
+            </button>
+          </div>
+        </div>
+
+        {/* RIGHT: Results */}
+        <div className="decision-results">
+          {decisionFlowReady ? (
+            <div style={{ fontSize: 12, color: panelBodyColor, fontWeight: 600 }}>
+              {text.directOffers}
+            </div>
+          ) : (
+            <p style={{ color: "#64748b", fontSize: 13 }}>
+              {text.completeFilters}
+            </p>
+          )}
+
+          {decisionFlowReady && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 16, flexWrap: "wrap" }}>
+                <div style={{ fontSize: 12, color: accentColor, letterSpacing: "0.5px", fontWeight: 700 }}>
+                  {text.realOffers}
+                </div>
+                <button
+                  type="button"
+                  onClick={onRecalculateDecisionMarketOffers}
+                  disabled={decisionMarketLoading}
+                  style={{
+                    background: "transparent",
+                    border: `1px solid ${isDark ? "rgba(148,163,184,0.4)" : "rgba(37,99,235,0.32)"}`,
+                    color: accentColor,
+                    borderRadius: 10,
+                    padding: "8px 12px",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: decisionMarketLoading ? "default" : "pointer",
+                    opacity: decisionMarketLoading ? 0.7 : 1,
+                  }}
+                >
+                  {decisionMarketLoading ? text.recalculating : text.recalculateOffer}
+                </button>
+              </div>
+
+              {decisionMarketLoading && (
+                <div style={{ ...styles.panel, fontSize: 12, color: panelBodyColor }}>
+                  {text.loadingOffers}
+                </div>
+              )}
+
+              {decisionMarketError && (
+                <div
+                  style={{
+                    background: "rgba(239,68,68,0.08)",
+                    border: "1px solid rgba(239,68,68,0.18)",
+                    borderRadius: 12,
+                    padding: 12,
+                    color: "#b91c1c",
+                    fontSize: 12,
+                    marginBottom: 10,
+                  }}
+                >
+                  {decisionMarketError}
+                </div>
+              )}
+
+              {!decisionMarketLoading && !decisionMarketError && decisionMarketListings.length === 0 && decisionFlowReady && (
+                <div style={{ ...styles.panel, fontSize: 12, color: panelBodyColor }}>
+                  <div>{text.noOffers}</div>
+                  {decisionMarketInsight && (
+                    <div style={{ marginTop: 8, color: panelTitleColor, lineHeight: 1.6, fontSize: 11 }}>
+                      {decisionMarketInsight}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+                {decisionMarketListings.map((offer, index) => (
+                  <div key={`${offer.url || offer.title || "offer"}-${index}`} style={{...styles.panel, display: "flex", flexDirection: "column"}}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 10, alignItems: "flex-start" }}>
+                      <div>
+                        <div style={{ fontSize: 10, color: accentColor, marginBottom: 4, fontWeight: 700 }}>
+                          #{index + 1} · {Number(offer.rankingScore ?? offer.profileScore ?? 0)}/100
+                        </div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: panelTitleColor }}>
+                          {offer.title}
+                        </div>
+                      </div>
+                      <div style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: panelTitleColor }}>
+                          {offer.price || text.priceNotVisible}
+                        </div>
+                        <div style={{ fontSize: 11, color: accentColor, marginTop: 4 }}>
+                          {offer.listingType === "renting" ? "Renting" : text.directBuy}
+                        </div>
+                      </div>
+                    </div>
+                    <p style={{ margin: "0 0 8px", fontSize: 11, color: panelBodyColor, lineHeight: 1.5, flex: 1 }}>
+                      {offer.description || text.listingFallback}
+                    </p>
+                    <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8 }}>
+                      {offer.source || text.provider}
+                    </div>
+                    {offer.url && (
+                      <a
+                        href={offer.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          color: accentColor,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          textDecoration: "none",
+                        }}
+                      >
+                        {text.openListing} →
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,0 +1,434 @@
+.sell-pro-assist-root,
+.sell-pro-assist-root * {
+  box-sizing: border-box;
+}
+
+.sell-pro-assist-root {
+  --c1: #1a1a2e;
+  --c2: #2e3f7f;
+  --acc: #ba7517;
+  --acc-light: rgba(186, 117, 23, 0.08);
+  --acc-border: rgba(186, 117, 23, 0.22);
+  --acc-glow: rgba(186, 117, 23, 0.35);
+  --grad: linear-gradient(135deg, #1a1a2e, #2e3f7f);
+  --grad-btn: linear-gradient(135deg, #1a1a2e, #3b4a7a);
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  color: #1a1a1a;
+}
+
+.sell-pro-assist-root .back-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.25rem;
+}
+
+.sell-pro-assist-root .back-btn {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 0.35rem 0.85rem;
+  font-size: 12px;
+  color: #888;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.15s;
+}
+
+.sell-pro-assist-root .back-btn:hover {
+  border-color: #ddd;
+  color: #555;
+}
+
+.sell-pro-assist-root .back-btn svg {
+  width: 11px;
+  height: 11px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sell-pro-assist-root .breadcrumb {
+  font-size: 11.5px;
+  color: #ccc;
+}
+
+.sell-pro-assist-root .breadcrumb b {
+  color: #3b4a7a;
+  font-weight: 500;
+}
+
+.sell-pro-assist-root .hero-card,
+.sell-pro-assist-root .flow-card {
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.sell-pro-assist-root .hero-band {
+  height: 4px;
+  background: var(--grad);
+}
+
+.sell-pro-assist-root .flow-band {
+  height: 3px;
+  background: var(--grad);
+}
+
+.sell-pro-assist-root .hero-inner,
+.sell-pro-assist-root .flow-inner {
+  padding: 1.75rem 2rem;
+}
+
+.sell-pro-assist-root .badge {
+  display: inline-flex;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  padding: 0.28rem 0.85rem;
+  border-radius: 20px;
+  margin-bottom: 1rem;
+  background: #f0f0f7;
+  color: #3b4a7a;
+  border: 1px solid #d0d0e8;
+}
+
+.sell-pro-assist-root .hero-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #111;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+.sell-pro-assist-root .hero-desc {
+  font-size: 13.5px;
+  color: #888;
+  line-height: 1.7;
+  max-width: 540px;
+  font-weight: 300;
+}
+
+.sell-pro-assist-root .hero-meta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1.1rem;
+}
+
+.sell-pro-assist-root .mpill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 11px;
+  font-weight: 500;
+  color: #999;
+  background: #fafaf9;
+  border: 1px solid #eee;
+  padding: 0.28rem 0.75rem;
+  border-radius: 20px;
+}
+
+.sell-pro-assist-root .mpill svg {
+  width: 11px;
+  height: 11px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sell-pro-assist-root .blabel {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ccc;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sell-pro-assist-root .blabel-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #3b4a7a;
+  flex-shrink: 0;
+}
+
+.sell-pro-assist-root .steps-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.sell-pro-assist-root .step-block {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  align-items: start;
+  padding: 1.1rem 1.25rem;
+  background: #fafaf9;
+  border: 1px solid #f0ece4;
+  border-radius: 14px;
+  transition: all 0.2s;
+}
+
+.sell-pro-assist-root .step-block:hover {
+  border-color: rgba(59, 74, 122, 0.2);
+  background: #f7f7fc;
+}
+
+.sell-pro-assist-root .step-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding-top: 2px;
+}
+
+.sell-pro-assist-root .step-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--grad-btn);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(26, 26, 46, 0.25);
+  flex-shrink: 0;
+}
+
+.sell-pro-assist-root .step-label {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #3b4a7a;
+  margin-bottom: 0.3rem;
+}
+
+.sell-pro-assist-root .step-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 0.3rem;
+  line-height: 1.3;
+}
+
+.sell-pro-assist-root .step-desc {
+  font-size: 12.5px;
+  color: #888;
+  line-height: 1.65;
+  font-weight: 300;
+}
+
+.sell-pro-assist-root .step-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.22rem 0.65rem;
+  border-radius: 20px;
+  margin-top: 0.6rem;
+}
+
+.sell-pro-assist-root .tag-inc {
+  background: #f0f0f7;
+  color: #3b4a7a;
+}
+
+.sell-pro-assist-root .tag-opt {
+  background: #f5f5f5;
+  color: #bbb;
+}
+
+.sell-pro-assist-root .tag-acc {
+  background: var(--acc-light);
+  color: var(--acc);
+  border: 1px solid var(--acc-border);
+}
+
+.sell-pro-assist-root .detail-box {
+  margin-top: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: #fff;
+  border: 1px solid rgba(59, 74, 122, 0.12);
+  border-radius: 11px;
+}
+
+.sell-pro-assist-root .detail-feat {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 0.4rem;
+  line-height: 1.45;
+}
+
+.sell-pro-assist-root .detail-feat:last-child {
+  margin-bottom: 0;
+}
+
+.sell-pro-assist-root .detail-feat::before {
+  content: "·";
+  font-size: 16px;
+  font-weight: 700;
+  color: #3b4a7a;
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: -1px;
+}
+
+.sell-pro-assist-root .portal-badges {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.sell-pro-assist-root .pb {
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+  border: 1px solid #eee;
+  background: #fafaf9;
+  color: #888;
+}
+
+.sell-pro-assist-root .portal-top-gap {
+  margin-top: 0.5rem;
+}
+
+.sell-pro-assist-root .dark-cta {
+  background: var(--grad);
+  border-radius: 20px;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  box-shadow: 0 4px 24px rgba(26, 26, 46, 0.22);
+  margin-bottom: 2rem;
+}
+
+.sell-pro-assist-root .dc-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 0.5rem;
+}
+
+.sell-pro-assist-root .dc-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.3;
+  margin-bottom: 0.4rem;
+}
+
+.sell-pro-assist-root .dc-sub {
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 300;
+  line-height: 1.55;
+  max-width: 360px;
+}
+
+.sell-pro-assist-root .dc-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.sell-pro-assist-root .btn-gold {
+  background: linear-gradient(135deg, #ba7517, #c98120);
+  border: none;
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 14px var(--acc-glow);
+  white-space: nowrap;
+  transition: all 0.18s;
+}
+
+.sell-pro-assist-root .btn-gold:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(186, 117, 23, 0.52);
+}
+
+.sell-pro-assist-root .btn-gold svg {
+  width: 13px;
+  height: 13px;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.sell-pro-assist-root .btn-outline {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 0.65rem 1.25rem;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.sell-pro-assist-root .btn-outline:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  .sell-pro-assist-root .hero-inner,
+  .sell-pro-assist-root .flow-inner,
+  .sell-pro-assist-root .dark-cta {
+    padding: 1.25rem;
+  }
+
+  .sell-pro-assist-root .dark-cta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sell-pro-assist-root .dc-right {
+    width: 100%;
+    align-items: stretch;
+  }
+}

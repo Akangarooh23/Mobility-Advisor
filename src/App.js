@@ -4400,6 +4400,30 @@ export default function App() {
             setEntryMode("sellOptions");
             setStep(-1);
           }}
+          onSelectSellInfo={() => {
+            if (!isUserLoggedIn) {
+              setPlanCheckoutFeedback("Inicia sesión o regístrate para sincronizar este flujo con tu portal.");
+              openAuthDialog("login", { entryMode: "sell", routePage: "home", sellFlowType: "report" });
+              return;
+            }
+            setSellFlowType("report");
+            setSelectedValuationVehicleSummary(null);
+            setSellAnswers((prev) => ({ ...prev, sellerType: "particular" }));
+            setEntryMode("sell");
+            setStep(-1);
+          }}
+          onSelectSellManaged={() => {
+            if (!isUserLoggedIn) {
+              setPlanCheckoutFeedback("Inicia sesión o regístrate para sincronizar este flujo con tu portal.");
+              openAuthDialog("login", { entryMode: "sell", routePage: "home", sellFlowType: "certificate" });
+              return;
+            }
+            setSellFlowType("certificate");
+            setSelectedValuationVehicleSummary(null);
+            setSellAnswers((prev) => ({ ...prev, sellerType: "profesional" }));
+            setEntryMode("sell");
+            setStep(-1);
+          }}
           onSelectService={() => {
             if (!isUserLoggedIn) {
               setPlanCheckoutFeedback("Inicia sesión o regístrate para sincronizar este flujo con tu portal.");
@@ -5046,6 +5070,7 @@ export default function App() {
           styles={s}
           sellFlowType={sellFlowType}
           selectedValuationVehicleSummary={selectedValuationVehicleSummary}
+          currentUserEmail={currentUserEmail}
           sellAnswers={sellAnswers}
           setSellAnswers={setSellAnswers}
           MARKET_BRANDS={marketBrandsCatalog}
@@ -5062,6 +5087,20 @@ export default function App() {
           sellListingResult={sellListingResult}
           formatCurrency={formatCurrency}
           onRestart={restart}
+          onOpenContact={() => {
+            setEntryMode("contact");
+            setStep(-1);
+          }}
+          onGoBack={() => {
+            setEntryMode("sellOptions");
+            setStep(-1);
+          }}
+          onSwitchToCertificate={() => {
+            setSellFlowType("certificate");
+            setSellAnswers((prev) => ({ ...prev, sellerType: "profesional" }));
+            setEntryMode("sell");
+            setStep(-1);
+          }}
         />
       )}
 

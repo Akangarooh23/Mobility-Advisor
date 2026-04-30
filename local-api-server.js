@@ -42,7 +42,6 @@ const sendAlertEmailHandler = require("./api/send-alert-email");
 const authHandler = require("./api/auth");
 const authStatusHandler = require("./api/auth-status");
 const vehicleCatalogHandler = require("./api/vehicle-catalog");
-const attachmentFileHandler = require("./api/attachment-file");
 const workshopsNearbyHandler = require("./api/workshops-nearby");
 const workshopAvailabilityHandler = require("./api/workshop-availability");
 
@@ -60,7 +59,7 @@ const handlers = {
   "/api/auth": authHandler,
   "/api/auth-status": authStatusHandler,
   "/api/vehicle-catalog": vehicleCatalogHandler,
-  "/api/attachment-file": attachmentFileHandler,
+  "/api/attachment-file": userHandler,
   "/api/workshops-nearby": workshopsNearbyHandler,
   "/api/workshop-availability": workshopAvailabilityHandler,
 

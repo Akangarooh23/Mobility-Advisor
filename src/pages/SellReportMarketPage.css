@@ -1,0 +1,689 @@
+.sell-market-root,
+.sell-market-root * {
+  box-sizing: border-box;
+}
+
+.sell-market-root {
+  --c1: #1d6fa4;
+  --c2: #1a9c6b;
+  --grad: linear-gradient(90deg, #1d6fa4, #1a9c6b);
+  --grad-btn: linear-gradient(135deg, #1d6fa4, #22a88a);
+  --c1-light: rgba(29, 111, 164, 0.07);
+  --c1-border: rgba(29, 111, 164, 0.2);
+  --c1-glow: rgba(29, 111, 164, 0.3);
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  color: #1a1a1a;
+}
+
+.sell-market-root .back-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.25rem;
+}
+
+.sell-market-root .back-btn {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 0.35rem 0.85rem;
+  font-size: 12px;
+  color: #888;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.15s;
+}
+
+.sell-market-root .back-btn:hover {
+  border-color: #ddd;
+  color: #555;
+}
+
+.sell-market-root .back-btn svg {
+  width: 11px;
+  height: 11px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sell-market-root .breadcrumb {
+  font-size: 11.5px;
+  color: #ccc;
+}
+
+.sell-market-root .breadcrumb b {
+  color: var(--c1);
+  font-weight: 500;
+}
+
+.sell-market-root .hero-card,
+.sell-market-root .flow-card,
+.sell-market-root .cta-card {
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.sell-market-root .hero-band {
+  height: 4px;
+  background: var(--grad);
+}
+
+.sell-market-root .hero-inner,
+.sell-market-root .flow-inner {
+  padding: 1.75rem 2rem;
+}
+
+.sell-market-root .badge {
+  display: inline-flex;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  padding: 0.28rem 0.85rem;
+  border-radius: 20px;
+  margin-bottom: 1rem;
+  background: var(--c1-light);
+  color: var(--c1);
+  border: 1px solid var(--c1-border);
+}
+
+.sell-market-root .sell-market-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #111;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+.sell-market-root .sell-market-desc {
+  font-size: 13.5px;
+  color: #888;
+  line-height: 1.7;
+  max-width: 540px;
+  font-weight: 300;
+}
+
+.sell-market-root .sell-market-meta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1.1rem;
+}
+
+.sell-market-root .mpill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 11px;
+  font-weight: 500;
+  color: #999;
+  background: #fafaf9;
+  border: 1px solid #eee;
+  padding: 0.28rem 0.75rem;
+  border-radius: 20px;
+}
+
+.sell-market-root .mpill svg {
+  width: 11px;
+  height: 11px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sell-market-root .flow-band {
+  height: 3px;
+  background: var(--grad);
+}
+
+.sell-market-root .blabel {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ccc;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sell-market-root .blabel-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--c1);
+  flex-shrink: 0;
+}
+
+.sell-market-root .steps-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.sell-market-root .step-block {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  align-items: start;
+  padding: 1.1rem 1.25rem;
+  background: #fafaf9;
+  border: 1px solid #f0ece4;
+  border-radius: 14px;
+  transition: all 0.2s;
+}
+
+.sell-market-root .step-block:hover {
+  border-color: rgba(29, 111, 164, 0.2);
+  background: #f6fbff;
+}
+
+.sell-market-root .step-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding-top: 2px;
+}
+
+.sell-market-root .step-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--grad-btn);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px var(--c1-glow);
+  flex-shrink: 0;
+}
+
+.sell-market-root .step-connector {
+  width: 1.5px;
+  height: 24px;
+  background: linear-gradient(180deg, rgba(29, 111, 164, 0.2), transparent);
+}
+
+.sell-market-root .step-label {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c1);
+  margin-bottom: 0.3rem;
+}
+
+.sell-market-root .step-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 0.3rem;
+  line-height: 1.3;
+}
+
+.sell-market-root .step-desc {
+  font-size: 12.5px;
+  color: #999;
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+.sell-market-root .form-section,
+.sell-market-root .result-section,
+.sell-market-root .ref-box {
+  margin-top: 1rem;
+  padding: 1rem 1.25rem;
+  background: #fff;
+  border: 1px solid rgba(29, 111, 164, 0.12);
+  border-radius: 12px;
+}
+
+.sell-market-root .field-grid,
+.sell-market-root .field-grid-3 {
+  display: grid;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.sell-market-root .field-grid {
+  grid-template-columns: 1fr 1fr;
+}
+
+.sell-market-root .field-grid-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.sell-market-root .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.sell-market-root .field-full-row {
+  grid-column: 1 / -1;
+}
+
+.sell-market-root .sell-market-idcar-hint {
+  margin-top: 0.45rem;
+  font-size: 11px;
+  color: #1d6fa4;
+}
+
+.sell-market-root .field label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #bbb;
+}
+
+.sell-market-root .field input,
+.sell-market-root .field select {
+  background: #fafaf9;
+  border: 1px solid #eee;
+  border-radius: 9px;
+  padding: 0.55rem 0.85rem;
+  font-size: 12.5px;
+  color: #444;
+  outline: none;
+  transition: all 0.15s;
+  appearance: none;
+}
+
+.sell-market-root .field input:focus,
+.sell-market-root .field select:focus {
+  border-color: var(--c1-border);
+  background: #fff;
+  box-shadow: 0 0 0 3px var(--c1-light);
+}
+
+.sell-market-root .field input::placeholder {
+  color: #ccc;
+}
+
+.sell-market-root .sel-wrap {
+  position: relative;
+}
+
+.sell-market-root .sel-wrap select {
+  width: 100%;
+  padding-right: 1.75rem;
+}
+
+.sell-market-root .sel-arrow {
+  position: absolute;
+  right: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 9px;
+  color: #bbb;
+}
+
+.sell-market-root .damage-opts {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.sell-market-root .damage-opt {
+  font-size: 11.5px;
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  border: 1px solid #eee;
+  background: #fafaf9;
+  color: #999;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.sell-market-root .damage-opt:hover {
+  border-color: #ddd;
+  color: #555;
+}
+
+.sell-market-root .damage-opt.sel {
+  background: var(--grad-btn);
+  border-color: transparent;
+  color: #fff;
+  font-weight: 500;
+  box-shadow: 0 2px 8px var(--c1-glow);
+}
+
+.sell-market-root .sell-market-inline-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.9rem;
+}
+
+.sell-market-root .divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #f0ece4, transparent);
+  margin: 0.5rem 0;
+}
+
+.sell-market-root .result-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 0.9rem;
+}
+
+.sell-market-root .rstat {
+  text-align: center;
+  padding: 0.85rem 0.5rem;
+  background: #fafaf9;
+  border: 1px solid #f0ece4;
+  border-radius: 10px;
+}
+
+.sell-market-root .rstat-num {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.2rem;
+}
+
+.sell-market-root .rstat-lbl {
+  font-size: 10.5px;
+  color: #aaa;
+  line-height: 1.35;
+}
+
+.sell-market-root .blue {
+  color: var(--c1);
+}
+
+.sell-market-root .green {
+  color: var(--c2);
+}
+
+.sell-market-root .grad-text {
+  background: var(--grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.sell-market-root .portal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.sell-market-root .portal-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  background: #fafaf9;
+  border: 1px solid #f0ece4;
+  border-radius: 9px;
+}
+
+.sell-market-root .portal-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.sell-market-root .portal-ico {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.sell-market-root .portal-right {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.sell-market-root .portal-price {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.sell-market-root .portal-units {
+  font-size: 10.5px;
+  color: #bbb;
+}
+
+.sell-market-root .price-range {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, rgba(29, 111, 164, 0.05), rgba(26, 156, 107, 0.05));
+  border: 1px solid rgba(29, 111, 164, 0.1);
+  border-radius: 10px;
+}
+
+.sell-market-root .pr-label {
+  font-size: 11px;
+  color: #888;
+  font-weight: 300;
+  flex: 1;
+}
+
+.sell-market-root .pr-range {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sell-market-root .pr-val {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sell-market-root .pr-sep {
+  font-size: 11px;
+  color: #ccc;
+}
+
+.sell-market-root .ref-box {
+  background: linear-gradient(135deg, rgba(29, 111, 164, 0.05), rgba(26, 156, 107, 0.05));
+}
+
+.sell-market-root .ref-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sell-market-root .ref-feat {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 12px;
+  color: #666;
+  margin-top: 0.45rem;
+  line-height: 1.45;
+}
+
+.sell-market-root .ref-feat::before {
+  content: "\2713";
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--c2);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.sell-market-root .cta-card {
+  border-radius: 18px;
+  padding: 1.25rem 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.sell-market-root .cta-text strong {
+  color: #333;
+  font-weight: 500;
+  display: block;
+  font-size: 14px;
+  margin-bottom: 0.15rem;
+}
+
+.sell-market-root .cta-text span {
+  font-size: 12.5px;
+  color: #aaa;
+  font-weight: 300;
+}
+
+.sell-market-root .cta-btns {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.sell-market-root .btn-ghost {
+  background: none;
+  border: none;
+  font-size: 12.5px;
+  color: #bbb;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.sell-market-root .btn-ghost:hover {
+  color: #888;
+}
+
+.sell-market-root .btn-ghost svg {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.sell-market-root .btn-secondary {
+  background: #fafaf9;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 0.65rem 1.25rem;
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.sell-market-root .btn-secondary:hover {
+  border-color: #ddd;
+  color: #333;
+}
+
+.sell-market-root .btn-primary {
+  background: var(--grad-btn);
+  border: none;
+  border-radius: 12px;
+  padding: 0.7rem 1.5rem;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 14px var(--c1-glow);
+  white-space: nowrap;
+  transition: all 0.18s;
+}
+
+.sell-market-root .btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(29, 111, 164, 0.45);
+}
+
+.sell-market-root .btn-primary svg {
+  width: 13px;
+  height: 13px;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.sell-market-root .sell-market-error {
+  margin-top: -0.25rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  background: rgba(254, 242, 242, 0.9);
+  border-radius: 10px;
+  color: #b91c1c;
+  font-size: 12px;
+}
+
+.sell-market-root .sell-market-summary {
+  font-size: 11px;
+  color: #8b96a4;
+  text-align: center;
+  margin-top: -0.2rem;
+}
+
+@media (max-width: 900px) {
+  .sell-market-root .hero-inner,
+  .sell-market-root .flow-inner {
+    padding: 1.25rem;
+  }
+
+  .sell-market-root .field-grid,
+  .sell-market-root .field-grid-3,
+  .sell-market-root .result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sell-market-root .cta-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sell-market-root .cta-btns {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}

@@ -20,6 +20,8 @@ export default function LandingPage({
   onResumeAdvice,
   onSelectDecision,
   onSelectSell,
+  onSelectSellInfo,
+  onSelectSellManaged,
   onSelectService,
   onSelectServiceAutogestor,
   onSelectServiceMaintenance,
@@ -350,8 +352,8 @@ export default function LandingPage({
         <HomeProcessSections
           onAccessBuyKnownModel={onSelectDecision}
           onAccessBuyGuided={onSelectAdvice}
-          onAccessSellInfo={onSelectSell}
-          onAccessSellManaged={onSelectSell}
+          onAccessSellInfo={onSelectSellInfo || onSelectSell}
+          onAccessSellManaged={onSelectSellManaged || onSelectSell}
           onAccessServiceAutogestor={onSelectServiceAutogestor}
           onAccessServiceMaintenance={onSelectServiceMaintenance}
           onAccessServiceAppointment={onSelectServiceAppointment}

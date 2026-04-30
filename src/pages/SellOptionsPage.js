@@ -1,29 +1,9 @@
-import { useState } from "react";
-
 export default function SellOptionsPage({ styles, onSelectCertificate, onSelectReport, onGoBack }) {
   const isDark = styles?.page?.color === "#e2e8f0";
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
   const mutedColor = isDark ? "#cbd5e1" : "#475569";
   const cardBackground = isDark ? "rgba(15,23,42,0.55)" : "#ffffff";
   const cardBorder = isDark ? "1px solid rgba(148,163,184,0.26)" : "1px solid rgba(15,23,42,0.12)";
-  const [openFlow, setOpenFlow] = useState(null);
-
-  const toggleFlow = (flowKey) => {
-    setOpenFlow((prev) => (prev === flowKey ? null : flowKey));
-  };
-
-  const flowA = [
-    { title: "Introduce los datos de tu vehiculo", sub: "Matricula, marca, modelo, version, año y kilometros." },
-    { title: "Analizamos el mercado en tiempo real", sub: "Precio medio actual y numero de unidades similares publicadas." },
-    { title: "Recibes una referencia objetiva", sub: "Para vender por tu cuenta con mejor criterio y sin depender de una tasacion." },
-  ];
-
-  const flowB = [
-    { title: "Revisamos el estado real del vehiculo", sub: "Certificacion previa para generar confianza desde el primer contacto." },
-    { title: "Definimos el precio contigo", sub: "Con apoyo de datos de mercado y posicionamiento frente a otros anuncios." },
-    { title: "Publicamos y gestionamos interesados", sub: "Filtrado de llamadas, coordinacion y seguimiento comercial." },
-    { title: "Te acompañamos hasta el cierre", sub: "Soporte en documentacion, negociacion y venta final." },
-  ];
 
   return (
     <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
@@ -88,11 +68,11 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
           }}
           role="button"
           tabIndex={0}
-          onClick={() => toggleFlow("a")}
+          onClick={onSelectReport}
           onKeyDown={(event) => {
             if (event.key === "Enter" || event.key === " ") {
               event.preventDefault();
-              toggleFlow("a");
+              onSelectReport();
             }
           }}
         >
@@ -142,7 +122,7 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
             type="button"
             onClick={(event) => {
               event.stopPropagation();
-              toggleFlow("a");
+              onSelectReport();
             }}
             style={{
               marginTop: 2,
@@ -156,7 +136,7 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
               cursor: "pointer",
             }}
           >
-            {openFlow === "a" ? "Ocultar" : "Ver mas"}
+            Acceder
           </button>
         </article>
 
@@ -181,11 +161,11 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
           }}
           role="button"
           tabIndex={0}
-          onClick={() => toggleFlow("b")}
+          onClick={onSelectCertificate}
           onKeyDown={(event) => {
             if (event.key === "Enter" || event.key === " ") {
               event.preventDefault();
-              toggleFlow("b");
+              onSelectCertificate();
             }
           }}
         >
@@ -235,7 +215,7 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
             type="button"
             onClick={(event) => {
               event.stopPropagation();
-              toggleFlow("b");
+              onSelectCertificate();
             }}
             style={{
               marginTop: 2,
@@ -249,128 +229,10 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
               cursor: "pointer",
             }}
           >
-            {openFlow === "b" ? "Ocultar" : "Ver mas"}
+            Acceder
           </button>
         </article>
       </div>
-
-      {openFlow === "a" && (
-        <section
-          style={{
-            marginTop: 14,
-            border: cardBorder,
-            background: isDark ? "rgba(15,23,42,0.7)" : "#f8fafc",
-            borderRadius: 12,
-            padding: "14px 14px 12px",
-          }}
-        >
-          <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700, color: "#64748b", marginBottom: 10 }}>
-            Flujo A - Informacion para vender
-          </div>
-          <div style={{ display: "grid", gap: 8 }}>
-            {flowA.map((item, index) => (
-              <div key={`a-${item.title}`} style={{ border: cardBorder, borderRadius: 10, background: cardBackground, padding: "9px 10px" }}>
-                <div style={{ fontSize: 11, color: "#2563eb", fontWeight: 700, marginBottom: 2 }}>Paso {index + 1}</div>
-                <div style={{ fontSize: 13, color: titleColor, fontWeight: 700, lineHeight: 1.35 }}>{item.title}</div>
-                {item.sub ? <div style={{ fontSize: 12, color: mutedColor, marginTop: 2 }}>{item.sub}</div> : null}
-              </div>
-            ))}
-          </div>
-          <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button
-              type="button"
-              onClick={onSelectReport}
-              style={{
-                border: "1px solid rgba(37,99,235,0.25)",
-                background: "linear-gradient(135deg,#2563eb,#3b82f6)",
-                color: "#ffffff",
-                borderRadius: 10,
-                padding: "9px 14px",
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
-              Acceder
-            </button>
-            <button
-              type="button"
-              onClick={() => setOpenFlow(null)}
-              style={{
-                border: "1px solid rgba(37,99,235,0.25)",
-                background: "rgba(37,99,235,0.08)",
-                color: "#1d4ed8",
-                borderRadius: 10,
-                padding: "9px 14px",
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
-              Minimizar
-            </button>
-          </div>
-        </section>
-      )}
-
-      {openFlow === "b" && (
-        <section
-          style={{
-            marginTop: 14,
-            border: cardBorder,
-            background: isDark ? "rgba(15,23,42,0.7)" : "#f8fafc",
-            borderRadius: 12,
-            padding: "14px 14px 12px",
-          }}
-        >
-          <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700, color: "#64748b", marginBottom: 10 }}>
-            Flujo B - Venta asistida integral
-          </div>
-          <div style={{ display: "grid", gap: 8 }}>
-            {flowB.map((item, index) => (
-              <div key={`b-${item.title}`} style={{ border: cardBorder, borderRadius: 10, background: cardBackground, padding: "9px 10px" }}>
-                <div style={{ fontSize: 11, color: "#2563eb", fontWeight: 700, marginBottom: 2 }}>Paso {index + 1}</div>
-                <div style={{ fontSize: 13, color: titleColor, fontWeight: 700, lineHeight: 1.35 }}>{item.title}</div>
-                {item.sub ? <div style={{ fontSize: 12, color: mutedColor, marginTop: 2 }}>{item.sub}</div> : null}
-              </div>
-            ))}
-          </div>
-          <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button
-              type="button"
-              onClick={onSelectCertificate}
-              style={{
-                border: "1px solid rgba(37,99,235,0.25)",
-                background: "linear-gradient(135deg,#2563eb,#3b82f6)",
-                color: "#ffffff",
-                borderRadius: 10,
-                padding: "9px 14px",
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
-              Acceder
-            </button>
-            <button
-              type="button"
-              onClick={() => setOpenFlow(null)}
-              style={{
-                border: "1px solid rgba(37,99,235,0.25)",
-                background: "rgba(37,99,235,0.08)",
-                color: "#1d4ed8",
-                borderRadius: 10,
-                padding: "9px 14px",
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
-              Minimizar
-            </button>
-          </div>
-        </section>
-      )}
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getBrandOptionSegments } from "../utils/brandCatalog";
+import SellReportMarketPage from "./SellReportMarketPage";
+import SellProfessionalAssistPage from "./SellProfessionalAssistPage";
 
 export default function SellPage({
   styles,
@@ -22,6 +24,10 @@ export default function SellPage({
   sellListingResult,
   formatCurrency,
   onRestart,
+  onOpenContact,
+  onGoBack,
+  onSwitchToCertificate,
+  currentUserEmail,
 }) {
   const { t } = useTranslation();
   const text = {
@@ -100,6 +106,36 @@ export default function SellPage({
     sellAnswers.year && !defaultYearOptions.includes(Number(sellAnswers.year))
       ? [Number(sellAnswers.year), ...defaultYearOptions]
       : defaultYearOptions;
+
+  if (!isCertificateFlow) {
+    return (
+      <SellReportMarketPage
+        currentUserEmail={currentUserEmail}
+        selectedValuationVehicleSummary={selectedValuationVehicleSummary}
+        sellAnswers={sellAnswers}
+        setSellAnswers={setSellAnswers}
+        fuelOptions={SELL_FUEL_OPTIONS}
+        analyzeSellWithAI={analyzeSellWithAI}
+        sellLoading={sellLoading}
+        sellEstimate={sellEstimate}
+        sellAiResult={sellAiResult}
+        sellError={sellError}
+        onGoBack={onGoBack}
+        onSwitchToCertificate={onSwitchToCertificate}
+        formatCurrency={formatCurrency}
+      />
+    );
+  }
+
+  if (isCertificateFlow) {
+    return (
+      <SellProfessionalAssistPage
+        onGoBack={onGoBack}
+        onGoHome={onRestart}
+        onStartRequest={onOpenContact}
+      />
+    );
+  }
 
   return (
     <div style={styles.center}>

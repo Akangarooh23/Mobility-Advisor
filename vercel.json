@@ -30,6 +30,10 @@
       "destination": "/api/user?route=preferences"
     },
     {
+      "source": "/api/attachment-file",
+      "destination": "/api/user?route=attachment-file"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

@@ -386,11 +386,17 @@
 }
 
 .cw-home-svc-card {
+  display: block;
+  width: 100%;
   grid-column: span 2;
   padding: 1.75rem;
   border: 1px solid var(--b);
   border-radius: var(--r);
   background: var(--card);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
   box-shadow: 0 10px 26px rgba(15, 23, 42, 0.04);
   transition: background 0.2s, border-color 0.2s, transform 0.18s, box-shadow 0.2s;
 }

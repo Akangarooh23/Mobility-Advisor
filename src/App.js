@@ -4351,6 +4351,51 @@ export default function App() {
             setEntryMode("serviceOptions");
             setStep(-1);
           }}
+          onSelectServiceAutogestor={() => {
+            if (!isUserLoggedIn) {
+              setPlanCheckoutFeedback("Inicia sesión o regístrate para sincronizar este flujo con tu portal.");
+              openAuthDialog("login", { entryMode: "serviceAutogestor", routePage: "home" });
+              return;
+            }
+            setEntryMode("serviceAutogestor");
+            setStep(-1);
+          }}
+          onSelectServiceMaintenance={() => {
+            if (!isUserLoggedIn) {
+              setPlanCheckoutFeedback("Inicia sesión o regístrate para sincronizar este flujo con tu portal.");
+              openAuthDialog("login", { entryMode: "serviceMaintenance", routePage: "home" });
+              return;
+            }
+            setEntryMode("serviceMaintenance");
+            setStep(-1);
+          }}
+          onSelectServiceAppointment={() => {
+            if (!isUserLoggedIn) {
+              setPlanCheckoutFeedback("Inicia sesión o regístrate para sincronizar este flujo con tu portal.");
+              openAuthDialog("login", { entryMode: "serviceAppointment", routePage: "home" });
+              return;
+            }
+            setEntryMode("serviceAppointment");
+            setStep(-1);
+          }}
+          onSelectServiceMonthlyPlan={() => {
+            if (!isUserLoggedIn) {
+              setPlanCheckoutFeedback("Inicia sesión o regístrate para sincronizar este flujo con tu portal.");
+              openAuthDialog("login", { entryMode: "serviceMonthlyPlan", routePage: "home" });
+              return;
+            }
+            setEntryMode("serviceMonthlyPlan");
+            setStep(-1);
+          }}
+          onSelectServiceInsurance={() => {
+            if (!isUserLoggedIn) {
+              setPlanCheckoutFeedback("Inicia sesión o regístrate para sincronizar este flujo con tu portal.");
+              openAuthDialog("login", { entryMode: "serviceInsurance", routePage: "home" });
+              return;
+            }
+            setEntryMode("serviceInsurance");
+            setStep(-1);
+          }}
           onSelectPortalVo={() => {
             setEntryMode("portalVo");
             setStep(-1);

@@ -64,6 +64,11 @@ export default function HomeProcessSections({
   onAccessBuyGuided,
   onAccessSellInfo,
   onAccessSellManaged,
+  onAccessServiceAutogestor,
+  onAccessServiceMaintenance,
+  onAccessServiceAppointment,
+  onAccessServiceMonthlyPlan,
+  onAccessServiceInsurance,
 }) {
   const [openPanels, setOpenPanels] = useState(INITIAL_OPEN);
   const rootRef = useRef(null);
@@ -171,11 +176,36 @@ export default function HomeProcessSections({
         </p>
 
         <div className="cw-home-svc-grid">
-          <article className="cw-home-svc-card cw-home-reveal"><div className="cw-home-svc-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" /></svg></div><div className="cw-home-svc-pill">A - Autogestor</div><h3>ID digital de tu vehiculo</h3><p>Toda la informacion de tu coche desde una unica plataforma: documentacion, poliza, facturas de mantenimientos y garantias. No vuelvas a perder un papel.</p></article>
-          <article className="cw-home-svc-card cw-home-reveal cw-home-reveal-d1"><div className="cw-home-svc-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg></div><div className="cw-home-svc-pill">B - Mantenimientos</div><h3>Recordatorio inteligente</h3><p>Cruzamos los datos de tu vehiculo con el plan de mantenimientos definido por la marca y te avisamos cuando toca. Agenda cita con nuestros proveedores.</p></article>
-          <article className="cw-home-svc-card cw-home-reveal cw-home-reveal-d2"><div className="cw-home-svc-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg></div><div className="cw-home-svc-pill">C - Cita mantenimientos</div><h3>Precios de acuerdo, no de particular</h3><p>Aprovecha nuestros acuerdos para conseguir precios mas reducidos y agenda tu proxima revision a traves nuestra.</p></article>
-          <article className="cw-home-svc-card cw-home-reveal cw-home-reveal-d1"><div className="cw-home-svc-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 3" /></svg></div><div className="cw-home-svc-pill">D - Cuota mensual</div><h3>Tu mantenimiento en una cuota fija</h3><p>Quieres pagar una cuota mensual por el mantenimiento preventivo de tu coche y no llevarte mas sustos antes de vacaciones? Con nosotros es posible.</p></article>
-          <article className="cw-home-svc-card cw-home-reveal cw-home-reveal-d2"><div className="cw-home-svc-icon"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg></div><div className="cw-home-svc-pill">E - Seguro - AInsurance</div><h3>Entiende de verdad tu poliza</h3><p>Sube tu poliza y nuestra IA lee las condiciones. Te resumimos ventajas, puntos debiles y te ayudamos a buscar opciones mas completas o economicas en la renovacion.</p></article>
+          <button type="button" className="cw-home-svc-card cw-home-reveal" onClick={onAccessServiceAutogestor}>
+            <div className="cw-home-svc-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" /></svg></div>
+            <div className="cw-home-svc-pill">A - Autogestor</div>
+            <h3>ID digital de tu vehiculo</h3>
+            <p>Toda la informacion de tu coche desde una unica plataforma: documentacion, poliza, facturas de mantenimientos y garantias. No vuelvas a perder un papel.</p>
+          </button>
+          <button type="button" className="cw-home-svc-card cw-home-reveal cw-home-reveal-d1" onClick={onAccessServiceMaintenance}>
+            <div className="cw-home-svc-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg></div>
+            <div className="cw-home-svc-pill">B - Mantenimientos</div>
+            <h3>Recordatorio inteligente</h3>
+            <p>Cruzamos los datos de tu vehiculo con el plan de mantenimientos definido por la marca y te avisamos cuando toca. Agenda cita con nuestros proveedores.</p>
+          </button>
+          <button type="button" className="cw-home-svc-card cw-home-reveal cw-home-reveal-d2" onClick={onAccessServiceAppointment}>
+            <div className="cw-home-svc-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg></div>
+            <div className="cw-home-svc-pill">C - Cita mantenimientos</div>
+            <h3>Precios de acuerdo, no de particular</h3>
+            <p>Aprovecha nuestros acuerdos para conseguir precios mas reducidos y agenda tu proxima revision a traves nuestra.</p>
+          </button>
+          <button type="button" className="cw-home-svc-card cw-home-reveal cw-home-reveal-d1" onClick={onAccessServiceMonthlyPlan}>
+            <div className="cw-home-svc-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 3" /></svg></div>
+            <div className="cw-home-svc-pill">D - Cuota mensual</div>
+            <h3>Tu mantenimiento en una cuota fija</h3>
+            <p>Quieres pagar una cuota mensual por el mantenimiento preventivo de tu coche y no llevarte mas sustos antes de vacaciones? Con nosotros es posible.</p>
+          </button>
+          <button type="button" className="cw-home-svc-card cw-home-reveal cw-home-reveal-d2" onClick={onAccessServiceInsurance}>
+            <div className="cw-home-svc-icon"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg></div>
+            <div className="cw-home-svc-pill">E - Seguro - AInsurance</div>
+            <h3>Entiende de verdad tu poliza</h3>
+            <p>Sube tu poliza y nuestra IA lee las condiciones. Te resumimos ventajas, puntos debiles y te ayudamos a buscar opciones mas completas o economicas en la renovacion.</p>
+          </button>
         </div>
       </section>
 

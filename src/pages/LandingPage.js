@@ -21,6 +21,11 @@ export default function LandingPage({
   onSelectDecision,
   onSelectSell,
   onSelectService,
+  onSelectServiceAutogestor,
+  onSelectServiceMaintenance,
+  onSelectServiceAppointment,
+  onSelectServiceMonthlyPlan,
+  onSelectServiceInsurance,
   onSelectPortalVo,
   onSelectSubscriptionPlan,
 }) {
@@ -347,6 +352,11 @@ export default function LandingPage({
           onAccessBuyGuided={onSelectAdvice}
           onAccessSellInfo={onSelectSell}
           onAccessSellManaged={onSelectSell}
+          onAccessServiceAutogestor={onSelectServiceAutogestor}
+          onAccessServiceMaintenance={onSelectServiceMaintenance}
+          onAccessServiceAppointment={onSelectServiceAppointment}
+          onAccessServiceMonthlyPlan={onSelectServiceMonthlyPlan}
+          onAccessServiceInsurance={onSelectServiceInsurance}
         />
       </m.section>
 

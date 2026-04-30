@@ -16,6 +16,7 @@ export default function LandingPage({
   planCheckoutFeedback,
   onSelectAdvice,
   onSelectVehicle,
+  onSelectBuyStart,
   onResumeAdvice,
   onSelectDecision,
   onSelectSell,
@@ -313,7 +314,7 @@ export default function LandingPage({
       {/* NUEVO: CircularSteps reemplaza los tres recuadros de features */}
       <div style={{ marginTop: 30, marginBottom: 18 }}>
         <CircularSteps
-          onSelectBuy={onSelectDecision}
+          onSelectBuy={onSelectBuyStart || onSelectVehicle}
           onSelectService={onSelectService}
           onSelectSell={onSelectSell}
         />

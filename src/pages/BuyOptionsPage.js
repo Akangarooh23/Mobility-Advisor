@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownModel, onGoBack }) {
+export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownModel, onOpenMarketplace, onGoBack }) {
   const { t } = useTranslation();
   const isDark = styles?.page?.color === "#e2e8f0";
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
@@ -378,6 +378,50 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           </div>
         </section>
       )}
+
+      <section
+        style={{
+          marginTop: 24,
+          border: cardBorder,
+          background: isDark ? "rgba(15,23,42,0.62)" : "linear-gradient(180deg,#f8fbff 0%,#ffffff 100%)",
+          borderRadius: 12,
+          padding: "18px 18px 16px",
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+        }}
+      >
+        <div style={{ maxWidth: 620 }}>
+          <div style={{ fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 800, color: "#2563eb", marginBottom: 6 }}>
+            Marketplace VO
+          </div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: titleColor, lineHeight: 1.25, marginBottom: 4 }}>
+            Igual te puede interesar ver nuestro marketplace de VO de Carswise
+          </div>
+          <div style={{ fontSize: 13, color: mutedColor, lineHeight: 1.5 }}>
+            Si prefieres explorar directamente el stock disponible, puedes entrar al marketplace y ver las ofertas publicadas.
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={onOpenMarketplace}
+          style={{
+            border: "1px solid rgba(37,99,235,0.25)",
+            background: "linear-gradient(135deg,#2563eb,#3b82f6)",
+            color: "#ffffff",
+            borderRadius: 10,
+            padding: "11px 16px",
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Ir al marketplace
+        </button>
+      </section>
     </div>
   );
 }

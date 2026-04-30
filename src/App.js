@@ -4310,6 +4310,11 @@ export default function App() {
             setEntryMode("consejo");
             setStep(-1);
           }}
+          onSelectBuyStart={() => {
+            setAdvisorContext("buy");
+            setEntryMode("buyOptions");
+            setStep(-1);
+          }}
           onResumeAdvice={resumeQuestionnaireDraft}
           onSelectDecision={() => {
             setEntryMode("decision");
@@ -4393,7 +4398,7 @@ export default function App() {
           }}
           onGoBack={() => {
             setAdvisorContext(null);
-            setEntryMode("vehicleOptions");
+            setEntryMode(null);
             setStep(-1);
           }}
         />
@@ -4419,9 +4424,15 @@ export default function App() {
             setEntryMode("decision");
             setStep(-1);
           }}
+          onOpenMarketplace={() => {
+            setAdvisorContext("buy");
+            setSelectedPortalVoOfferId(null);
+            setEntryMode("portalVo");
+            setStep(-1);
+          }}
           onGoBack={() => {
             setAdvisorContext(null);
-            setEntryMode("vehicleOptions");
+            setEntryMode(null);
             setStep(-1);
           }}
         />
@@ -4662,8 +4673,9 @@ export default function App() {
           rankedOffers={rankedOffers}
           formatCurrency={formatCurrency}
           onSwitchToAdvice={() => {
-            setEntryMode("consejo");
-            setStep(0);
+            setEntryMode("portalVo");
+            setStep(-1);
+            setSelectedPortalVoOfferId(null);
           }}
           onRestart={restart}
         />

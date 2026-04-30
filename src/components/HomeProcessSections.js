@@ -92,7 +92,7 @@ export default function HomeProcessSections({
   const togglePanel = (section, option) => {
     setOpenPanels((prev) => ({
       ...prev,
-      [section]: option,
+      [section]: prev[section] === option ? null : option,
     }));
   };
 

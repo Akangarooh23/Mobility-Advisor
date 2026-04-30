@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getBrandOptionSegments } from "../utils/brandCatalog";
 
@@ -201,7 +201,6 @@ function getCeilIndexFromValue(marks, value, fallback = 0) {
 
 export default function DecisionPage({
   styles,
-  lockedOperation,
   decisionAnswers,
   updateDecisionAnswer,
   MARKET_BRANDS,
@@ -284,21 +283,48 @@ export default function DecisionPage({
   );
   const [powerFromIndex, setPowerFromIndex] = useState(() => getIndexFromMarkValue(POWER_MARKS, decisionAnswers.powerMin, 0));
   const [powerToIndex, setPowerToIndex] = useState(() => getIndexFromMarkValue(POWER_MARKS, decisionAnswers.powerMax, POWER_MARKS.length - 1));
+  const [priceFromDraft, setPriceFromDraft] = useState(() => String(PRICE_MARKS[priceFromIndex]));
+  const [priceToDraft, setPriceToDraft] = useState(() => String(PRICE_MARKS[priceToIndex]));
+  const [ageFromDraft, setAgeFromDraft] = useState(() => String(AGE_MARKS[ageFromIndex]));
+  const [ageToDraft, setAgeToDraft] = useState(() => String(AGE_MARKS[ageToIndex]));
+  const [mileageFromDraft, setMileageFromDraft] = useState(() => String(MILEAGE_MARKS[mileageFromIndex]));
+  const [mileageToDraft, setMileageToDraft] = useState(() => String(MILEAGE_MARKS[mileageToIndex]));
+  const [powerFromDraft, setPowerFromDraft] = useState(() => String(POWER_MARKS[powerFromIndex]));
+  const [powerToDraft, setPowerToDraft] = useState(() => String(POWER_MARKS[powerToIndex]));
 
-  const effectiveOperation = lockedOperation || decisionAnswers.operation;
   const { knownBrands, otherBrands, knownBrandSet } = getBrandOptionSegments(MARKET_BRANDS);
   const hasUnknownSelectedBrand = Boolean(decisionAnswers.brand && !knownBrandSet.has(decisionAnswers.brand));
   const shouldShowAllBrands = showAllBrands || hasUnknownSelectedBrand;
   const visibleBrands = shouldShowAllBrands ? [...knownBrands, ...otherBrands] : knownBrands;
-  const operationChoices =
-    lockedOperation === "comprar"
-      ? [["comprar", text.buy, "🔑"]]
-      : lockedOperation === "renting"
-        ? [["renting", "Renting", "📅"]]
-        : [
-            ["comprar", text.buy, "🔑"],
-            ["renting", "Renting", "📅"],
-          ];
+
+  useEffect(() => {
+    if (decisionAnswers.operation !== "comprar") {
+      updateDecisionAnswer("operation", "comprar");
+    }
+    if (decisionAnswers.acquisition !== "contado") {
+      updateDecisionAnswer("acquisition", "contado");
+    }
+  }, [decisionAnswers.operation, decisionAnswers.acquisition, updateDecisionAnswer]);
+
+  useEffect(() => {
+    setPriceFromDraft(String(PRICE_MARKS[priceFromIndex]));
+    setPriceToDraft(String(PRICE_MARKS[priceToIndex]));
+  }, [priceFromIndex, priceToIndex]);
+
+  useEffect(() => {
+    setAgeFromDraft(String(AGE_MARKS[ageFromIndex]));
+    setAgeToDraft(String(AGE_MARKS[ageToIndex]));
+  }, [ageFromIndex, ageToIndex]);
+
+  useEffect(() => {
+    setMileageFromDraft(String(MILEAGE_MARKS[mileageFromIndex]));
+    setMileageToDraft(String(MILEAGE_MARKS[mileageToIndex]));
+  }, [mileageFromIndex, mileageToIndex]);
+
+  useEffect(() => {
+    setPowerFromDraft(String(POWER_MARKS[powerFromIndex]));
+    setPowerToDraft(String(POWER_MARKS[powerToIndex]));
+  }, [powerFromIndex, powerToIndex]);
 
   const handleClearAll = () => {
     updateDecisionAnswer("brand", "");
@@ -354,6 +380,86 @@ export default function DecisionPage({
   const syncPowerRange = (fromIdx, toIdx) => {
     updateDecisionAnswer("powerMin", POWER_MARKS[fromIdx]);
     updateDecisionAnswer("powerMax", POWER_MARKS[toIdx]);
+  };
+
+  const submitPriceFromDraft = () => {
+    if (!priceFromDraft.trim()) {
+      setPriceFromDraft(String(PRICE_MARKS[priceFromIndex]));
+      return;
+    }
+    const nextFrom = Math.min(getFloorIndexFromValue(PRICE_MARKS, priceFromDraft, 0), priceToIndex - 1);
+    setPriceFromIndex(nextFrom);
+    syncPriceRange(nextFrom, priceToIndex);
+  };
+
+  const submitPriceToDraft = () => {
+    if (!priceToDraft.trim()) {
+      setPriceToDraft(String(PRICE_MARKS[priceToIndex]));
+      return;
+    }
+    const nextTo = Math.max(getCeilIndexFromValue(PRICE_MARKS, priceToDraft, PRICE_MARKS.length - 1), priceFromIndex + 1);
+    setPriceToIndex(nextTo);
+    syncPriceRange(priceFromIndex, nextTo);
+  };
+
+  const submitAgeFromDraft = () => {
+    if (!ageFromDraft.trim()) {
+      setAgeFromDraft(String(AGE_MARKS[ageFromIndex]));
+      return;
+    }
+    const nextFrom = Math.min(getFloorIndexFromValue(AGE_MARKS, ageFromDraft, 0), ageToIndex - 1);
+    setAgeFromIndex(nextFrom);
+    syncAgeRange(nextFrom, ageToIndex);
+  };
+
+  const submitAgeToDraft = () => {
+    if (!ageToDraft.trim()) {
+      setAgeToDraft(String(AGE_MARKS[ageToIndex]));
+      return;
+    }
+    const nextTo = Math.max(getCeilIndexFromValue(AGE_MARKS, ageToDraft, AGE_MARKS.length - 1), ageFromIndex + 1);
+    setAgeToIndex(nextTo);
+    syncAgeRange(ageFromIndex, nextTo);
+  };
+
+  const submitMileageFromDraft = () => {
+    if (!mileageFromDraft.trim()) {
+      setMileageFromDraft(String(MILEAGE_MARKS[mileageFromIndex]));
+      return;
+    }
+    const nextFrom = Math.min(getFloorIndexFromValue(MILEAGE_MARKS, mileageFromDraft, 0), mileageToIndex - 1);
+    setMileageFromIndex(nextFrom);
+    syncMileageRange(nextFrom, mileageToIndex);
+  };
+
+  const submitMileageToDraft = () => {
+    if (!mileageToDraft.trim()) {
+      setMileageToDraft(String(MILEAGE_MARKS[mileageToIndex]));
+      return;
+    }
+    const nextTo = Math.max(getCeilIndexFromValue(MILEAGE_MARKS, mileageToDraft, MILEAGE_MARKS.length - 1), mileageFromIndex + 1);
+    setMileageToIndex(nextTo);
+    syncMileageRange(mileageFromIndex, nextTo);
+  };
+
+  const submitPowerFromDraft = () => {
+    if (!powerFromDraft.trim()) {
+      setPowerFromDraft(String(POWER_MARKS[powerFromIndex]));
+      return;
+    }
+    const nextFrom = Math.min(getFloorIndexFromValue(POWER_MARKS, powerFromDraft, 0), powerToIndex - 1);
+    setPowerFromIndex(nextFrom);
+    syncPowerRange(nextFrom, powerToIndex);
+  };
+
+  const submitPowerToDraft = () => {
+    if (!powerToDraft.trim()) {
+      setPowerToDraft(String(POWER_MARKS[powerToIndex]));
+      return;
+    }
+    const nextTo = Math.max(getCeilIndexFromValue(POWER_MARKS, powerToDraft, POWER_MARKS.length - 1), powerFromIndex + 1);
+    setPowerToIndex(nextTo);
+    syncPowerRange(powerFromIndex, nextTo);
   };
 
   const handleSeatsFromChange = (value) => {
@@ -501,6 +607,12 @@ export default function DecisionPage({
           .cw-btn-main { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border: none; border-radius: 12px; padding: 0.7rem 1.6rem; font-size: 13.5px; font-weight: 600; color: #fff; cursor: pointer; font-family: Inter, sans-serif; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 16px rgba(59,130,246,0.4); transition: all 0.2s; white-space: nowrap; }
           .cw-btn-main:hover { box-shadow: 0 6px 24px rgba(59,130,246,0.55); transform: translateY(-2px); }
           .cw-btn-main:active { transform: translateY(0); }
+          @media (max-width: 700px) {
+            .cw-cta-card { flex-direction: column; align-items: stretch; }
+            .cw-cta-right { width: 100%; justify-content: flex-end; }
+            .cw-btn-main { flex: 1; justify-content: center; min-width: 0; font-size: 12px; padding: 0.65rem 1rem; }
+            .cw-btn-back { font-size: 12px; }
+          }
           .cw-results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
           .cw-offer-card { background: #fff; border: 1px solid #f0ece4; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.8rem; transition: all 0.15s; text-decoration: none; color: inherit; }
           .cw-offer-card:hover { border-color: rgba(186,117,23,0.3); box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-1px); }
@@ -539,30 +651,9 @@ export default function DecisionPage({
 
           {/* FILTERS */}
           <div className="cw-filters">
-            {/* 1. OPERATION */}
-            <div className="cw-f-block">
-              <div className="cw-f-lbl"><span className="cw-f-lbl-n">1</span>{text.operationType}</div>
-              <div className="cw-chips">
-                {operationChoices.map(([value, label]) => (
-                  <button
-                    key={value}
-                    className={`cw-chip ${effectiveOperation === value ? "sel" : ""}`}
-                    onClick={() => {
-                      if (lockedOperation) return;
-                      updateDecisionAnswer("operation", value);
-                      updateDecisionAnswer("acquisition", value === "renting" ? "particular" : "contado");
-                    }}
-                    disabled={lockedOperation !== null}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* 2. BRAND */}
             <div className="cw-f-block">
-              <div className="cw-f-lbl"><span className="cw-f-lbl-n">2</span>{text.brand}</div>
+              <div className="cw-f-lbl"><span className="cw-f-lbl-n">1</span>{text.brand}</div>
               <div className="cw-sel-wrap">
                 <select
                   value={decisionAnswers.brand || ""}
@@ -657,11 +748,13 @@ export default function DecisionPage({
                         type="number"
                         min={PRICE_MARKS[0]}
                         max={PRICE_MARKS[PRICE_MARKS.length - 1]}
-                        value={PRICE_MARKS[priceFromIndex]}
-                        onChange={(e) => {
-                          const nextFrom = Math.min(getFloorIndexFromValue(PRICE_MARKS, e.target.value, 0), priceToIndex - 1);
-                          setPriceFromIndex(nextFrom);
-                          syncPriceRange(nextFrom, priceToIndex);
+                        value={priceFromDraft}
+                        onChange={(e) => setPriceFromDraft(e.target.value)}
+                        onBlur={submitPriceFromDraft}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                          }
                         }}
                       />
                     </label>
@@ -671,11 +764,13 @@ export default function DecisionPage({
                         type="number"
                         min={PRICE_MARKS[0]}
                         max={PRICE_MARKS[PRICE_MARKS.length - 1]}
-                        value={PRICE_MARKS[priceToIndex]}
-                        onChange={(e) => {
-                          const nextTo = Math.max(getCeilIndexFromValue(PRICE_MARKS, e.target.value, PRICE_MARKS.length - 1), priceFromIndex + 1);
-                          setPriceToIndex(nextTo);
-                          syncPriceRange(priceFromIndex, nextTo);
+                        value={priceToDraft}
+                        onChange={(e) => setPriceToDraft(e.target.value)}
+                        onBlur={submitPriceToDraft}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                          }
                         }}
                       />
                     </label>
@@ -722,11 +817,13 @@ export default function DecisionPage({
                         type="number"
                         min={POWER_MARKS[0]}
                         max={POWER_MARKS[POWER_MARKS.length - 1]}
-                        value={POWER_MARKS[powerFromIndex]}
-                        onChange={(e) => {
-                          const nextFrom = Math.min(getFloorIndexFromValue(POWER_MARKS, e.target.value, 0), powerToIndex - 1);
-                          setPowerFromIndex(nextFrom);
-                          syncPowerRange(nextFrom, powerToIndex);
+                        value={powerFromDraft}
+                        onChange={(e) => setPowerFromDraft(e.target.value)}
+                        onBlur={submitPowerFromDraft}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                          }
                         }}
                       />
                     </label>
@@ -736,11 +833,13 @@ export default function DecisionPage({
                         type="number"
                         min={POWER_MARKS[0]}
                         max={POWER_MARKS[POWER_MARKS.length - 1]}
-                        value={POWER_MARKS[powerToIndex]}
-                        onChange={(e) => {
-                          const nextTo = Math.max(getCeilIndexFromValue(POWER_MARKS, e.target.value, POWER_MARKS.length - 1), powerFromIndex + 1);
-                          setPowerToIndex(nextTo);
-                          syncPowerRange(powerFromIndex, nextTo);
+                        value={powerToDraft}
+                        onChange={(e) => setPowerToDraft(e.target.value)}
+                        onBlur={submitPowerToDraft}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                          }
                         }}
                       />
                     </label>
@@ -805,11 +904,13 @@ export default function DecisionPage({
                         type="number"
                         min={AGE_MARKS[0]}
                         max={AGE_MARKS[AGE_MARKS.length - 1]}
-                        value={AGE_MARKS[ageFromIndex]}
-                        onChange={(e) => {
-                          const nextFrom = Math.min(getFloorIndexFromValue(AGE_MARKS, e.target.value, 0), ageToIndex - 1);
-                          setAgeFromIndex(nextFrom);
-                          syncAgeRange(nextFrom, ageToIndex);
+                        value={ageFromDraft}
+                        onChange={(e) => setAgeFromDraft(e.target.value)}
+                        onBlur={submitAgeFromDraft}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                          }
                         }}
                       />
                     </label>
@@ -819,11 +920,13 @@ export default function DecisionPage({
                         type="number"
                         min={AGE_MARKS[0]}
                         max={AGE_MARKS[AGE_MARKS.length - 1]}
-                        value={AGE_MARKS[ageToIndex]}
-                        onChange={(e) => {
-                          const nextTo = Math.max(getCeilIndexFromValue(AGE_MARKS, e.target.value, AGE_MARKS.length - 1), ageFromIndex + 1);
-                          setAgeToIndex(nextTo);
-                          syncAgeRange(ageFromIndex, nextTo);
+                        value={ageToDraft}
+                        onChange={(e) => setAgeToDraft(e.target.value)}
+                        onBlur={submitAgeToDraft}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                          }
                         }}
                       />
                     </label>
@@ -868,11 +971,13 @@ export default function DecisionPage({
                         type="number"
                         min={MILEAGE_MARKS[0]}
                         max={MILEAGE_MARKS[MILEAGE_MARKS.length - 1]}
-                        value={MILEAGE_MARKS[mileageFromIndex]}
-                        onChange={(e) => {
-                          const nextFrom = Math.min(getFloorIndexFromValue(MILEAGE_MARKS, e.target.value, 0), mileageToIndex - 1);
-                          setMileageFromIndex(nextFrom);
-                          syncMileageRange(nextFrom, mileageToIndex);
+                        value={mileageFromDraft}
+                        onChange={(e) => setMileageFromDraft(e.target.value)}
+                        onBlur={submitMileageFromDraft}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                          }
                         }}
                       />
                     </label>
@@ -882,11 +987,13 @@ export default function DecisionPage({
                         type="number"
                         min={MILEAGE_MARKS[0]}
                         max={MILEAGE_MARKS[MILEAGE_MARKS.length - 1]}
-                        value={MILEAGE_MARKS[mileageToIndex]}
-                        onChange={(e) => {
-                          const nextTo = Math.max(getCeilIndexFromValue(MILEAGE_MARKS, e.target.value, MILEAGE_MARKS.length - 1), mileageFromIndex + 1);
-                          setMileageToIndex(nextTo);
-                          syncMileageRange(mileageFromIndex, nextTo);
+                        value={mileageToDraft}
+                        onChange={(e) => setMileageToDraft(e.target.value)}
+                        onBlur={submitMileageToDraft}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                          }
                         }}
                       />
                     </label>

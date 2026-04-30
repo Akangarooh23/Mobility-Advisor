@@ -241,30 +241,6 @@ export default function DecisionPage({
 
   const [modelInput, setModelInput] = useState("");
   const [modelTags, setModelTags] = useState([]);
-  const [showMoreBrands, setShowMoreBrands] = useState(false);
-
-  const BRAND_LOGOS = {
-    "Alfa Romeo": "🅰",
-    "Audi": "🅰",
-    "BMW": "🅱",
-    "BYD": "🅱",
-    "Dacia": "🅳",
-    "Fiat": "🅵",
-    "Ford": "🅵",
-    "Honda": "🅷",
-    "Hyundai": "🅷",
-    "Jaguar": "🅹",
-    "Kia": "🅺",
-    "Mercedes": "🅼",
-    "Nissan": "🅽",
-    "Peugeot": "🅿",
-    "Renault": "®️",
-    "Seat": "🅣",
-    "Skoda": "🅣",
-    "Toyota": "🅣",
-    "Volkswagen": "🅥",
-    "Volvo": "🅥",
-  };
 
   const handleAddModel = (e) => {
     if (e.key !== "Enter") return;
@@ -334,7 +310,6 @@ export default function DecisionPage({
           .cw-wrap { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 1rem; }
           .cw-main-card { background: #fff; border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04); overflow: hidden; }
           .cw-card-head { padding: 1.75rem 2rem 1.5rem; border-bottom: 1px solid #f0ece4; }
-          .cw-brand-more-wrapper { position: relative; }
           .cw-eyebrow { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #3b82f6; background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(59,130,246,0.06)); border: 1px solid rgba(59,130,246,0.18); padding: 0.3rem 0.85rem; border-radius: 30px; margin-bottom: 1rem; }
           .cw-eyebrow::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.25); }
           .cw-page-title { font-size: 21px; font-weight: 600; color: #111; letter-spacing: -0.025em; margin-bottom: 0.35rem; }
@@ -362,15 +337,6 @@ export default function DecisionPage({
           .cw-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
           @media (max-width: 640px) { .cw-two-col { grid-template-columns: 1fr; } }
           .cw-f-sep { height: 1px; background: linear-gradient(90deg, transparent, #f0ece4, transparent); }
-          .cw-brand-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.4rem; }
-          .cw-b-btn { background: #fafaf9; border: 1px solid #eee; border-radius: 12px; padding: 0.65rem 0.4rem 0.55rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; transition: all 0.18s; font-family: Inter, sans-serif; font-size: 9.5px; color: #aaa; font-weight: 600; position: relative; }
-          .cw-b-btn:hover { border-color: #ddd; background: #fff; transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,0.07); }
-          .cw-b-btn.sel { border-color: rgba(59,130,246,0.4); background: #fff; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); color: #3b82f6; }
-          .cw-b-more-dropdown { position: absolute; top: 100%; right: 0; margin-top: 0.5rem; background: #fff; border: 1px solid #eee; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); z-index: 1000; min-width: 200px; max-height: 300px; overflow-y: auto; }
-          .cw-b-more-item { padding: 0.6rem 1rem; font-size: 12px; color: #666; cursor: pointer; border-bottom: 1px solid #f5f5f5; transition: all 0.12s; }
-          .cw-b-more-item:hover { background: rgba(59,130,246,0.05); color: #3b82f6; font-weight: 500; }
-          .cw-b-more-item:last-child { border-bottom: none; }
-          .cw-b-ico { font-size: 18px; }
           .cw-sel-wrap { position: relative; }
           .cw-sel-wrap select { appearance: none; width: 100%; background: #fafaf9; border: 1px solid #eee; border-radius: 12px; padding: 0.62rem 2.2rem 0.62rem 1rem; font-size: 13px; color: #666; font-family: Inter, sans-serif; cursor: pointer; outline: none; }
           .cw-sel-wrap select:focus { border-color: rgba(59,130,246,0.4); background: #fff; box-shadow: 0 0 0 3px rgba(59,130,246,0.07); }
@@ -447,51 +413,25 @@ export default function DecisionPage({
               </div>
             </div>
 
-            {/* 2. BRAND GRID */}
+            {/* 2. BRAND */}
             <div className="cw-f-block">
               <div className="cw-f-lbl"><span className="cw-f-lbl-n">2</span>{text.brand}</div>
-              <div className="cw-brand-grid">
-                {visibleBrands.slice(0, 9).map((brand) => (
-                  <button
-                    key={brand}
-                    className={`cw-b-btn ${decisionAnswers.brand === brand ? "sel" : ""}`}
-                    onClick={() => {
-                      updateDecisionAnswer("hasBrand", "si");
-                      updateDecisionAnswer("brand", decisionAnswers.brand === brand ? "" : brand);
-                    }}
-                    title={brand}
-                  >
-                    <div className="cw-b-ico">{BRAND_LOGOS[brand] || "🚗"}</div>
-                    <div>{brand}</div>
-                  </button>
-                ))}
-                <div className="cw-brand-more-wrapper">
-                  <button
-                    className="cw-b-btn"
-                    onClick={() => setShowMoreBrands(!showMoreBrands)}
-                    title="Más marcas"
-                  >
-                    <div className="cw-b-ico">···</div>
-                    <div>Más</div>
-                  </button>
-                  {showMoreBrands && visibleBrands.length > 9 && (
-                    <div className="cw-b-more-dropdown">
-                      {visibleBrands.slice(9).map((brand) => (
-                        <div
-                          key={brand}
-                          className="cw-b-more-item"
-                          onClick={() => {
-                            updateDecisionAnswer("hasBrand", "si");
-                            updateDecisionAnswer("brand", brand);
-                            setShowMoreBrands(false);
-                          }}
-                        >
-                          {BRAND_LOGOS[brand] || "🚗"} {brand}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+              <div className="cw-sel-wrap">
+                <select
+                  value={decisionAnswers.brand || ""}
+                  onChange={(e) => {
+                    updateDecisionAnswer("hasBrand", e.target.value ? "si" : "");
+                    updateDecisionAnswer("brand", e.target.value);
+                  }}
+                >
+                  <option value="">{text.selectBrand}</option>
+                  {visibleBrands.map((brand) => (
+                    <option key={brand} value={brand}>
+                      {brand}
+                    </option>
+                  ))}
+                </select>
+                <div className="cw-sel-arrow">▾</div>
               </div>
             </div>
 

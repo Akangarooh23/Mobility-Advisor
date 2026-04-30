@@ -221,6 +221,126 @@ function formatPriceTag(value) {
   return String(value);
 }
 
+const REVISION_TYPES = [
+  ["Revision menor", "Aceite + filtros"],
+  ["Revision mayor", "Completa de marca"],
+  ["Revision de frenos", "Pastillas y discos"],
+  ["Neumaticos", "Cambio o equilibrado"],
+  ["Revision ITV", "Pre-ITV incluida"],
+];
+
+const SPECIFIC_APPOINTMENT_SECTIONS = [
+  {
+    title: "🔧 1. Neumaticos",
+    items: [
+      "Cambio de neumaticos",
+      "Equilibrado",
+      "Alineacion",
+      "Reparacion de pinchazos",
+      "Permutacion de ruedas",
+      "Diagnostico de neumaticos",
+    ],
+  },
+  {
+    title: "🛠️ 2. Mecanica general y reparaciones",
+    items: [
+      "Frenos (pastillas, discos)",
+      "Suspension (amortiguadores, rotulas)",
+      "Direccion",
+      "Embrague",
+      "Transmision",
+      "Escapes",
+      "Correa de distribucion",
+      "Reparaciones generales",
+    ],
+    note: "En Midas entra dentro de mantenimiento y mecanica.",
+  },
+  {
+    title: "🛢️ 3. Mantenimiento y revisiones",
+    items: [
+      "Revision oficial (tipo fabricante)",
+      "Cambio de aceite",
+      "Cambio de filtros",
+      "Revision de niveles",
+      "AdBlue",
+      "Bateria",
+    ],
+    note: "Midas lo agrupa como Revision y mantenimiento.",
+  },
+  {
+    title: "❄️ 4. Climatizacion / Aire acondicionado",
+    items: [
+      "Recarga de aire acondicionado",
+      "Deteccion de averias",
+      "Eliminacion de olores (tipo AirCare)",
+    ],
+  },
+  {
+    title: "🔍 5. Diagnostico",
+    items: [
+      "Diagnostico electronico",
+      "Diagnostico de bateria",
+      "Diagnostico de frenos",
+      "Diagnostico de amortiguadores",
+      "Diagnostico general del vehiculo",
+    ],
+    note: "En Midas muchos son gratuitos con cita previa.",
+  },
+  {
+    title: "🚗 6. Pre-ITV e ITV",
+    items: [
+      "Revision Pre-ITV",
+      "Servicio de pasar ITV por ti",
+    ],
+    note: "Lo ofrecen ambos.",
+  },
+  {
+    title: "💡 7. Iluminacion y visibilidad",
+    items: [
+      "Cambio de bombillas",
+      "Reglaje de faros",
+      "Pulido de faros",
+      "Escobillas limpiaparabrisas",
+    ],
+  },
+  {
+    title: "🧼 8. Servicios especificos / especiales",
+    items: [
+      "Descarbonizacion / limpieza de motor (MotorCare en Midas)",
+      "Desinfeccion del habitaculo",
+      "Eliminacion de olores",
+    ],
+  },
+  {
+    title: "🔩 9. Instalacion de accesorios",
+    items: [
+      "Matriculas",
+      "Accesorios y equipamiento",
+      "Multimedia / radio",
+      "Enganches",
+    ],
+  },
+  {
+    title: "🏍️ 10. Moto",
+    items: [
+      "Mantenimiento de moto",
+      "Neumaticos moto",
+      "Frenos moto",
+      "Bateria moto",
+      "Suspension y transmision moto",
+    ],
+    note: "Extra que destaca en Midas.",
+  },
+  {
+    title: "🚚 11. Servicios adicionales",
+    items: [
+      "Recogida y entrega del vehiculo",
+      "Servicio a domicilio (algunas operaciones)",
+      "Servicios para flotas/empresas",
+    ],
+  },
+];
+
 function buildVehicleDisplayName(vehicle = {}, fallbackIndex = 0) {
   const title = normalizeText(vehicle?.title);
   const brand = normalizeText(vehicle?.brand);
@@ -249,126 +369,6 @@ export default function ServiceAppointmentPage({
     border: "1px solid #ece8df",
     boxShadow: "0 1px 3px rgba(0,0,0,0.05),0 4px 20px rgba(0,0,0,0.04)",
   };
-
-  const revisionTypes = [
-    ["Revision menor", "Aceite + filtros"],
-    ["Revision mayor", "Completa de marca"],
-    ["Revision de frenos", "Pastillas y discos"],
-    ["Neumaticos", "Cambio o equilibrado"],
-    ["Revision ITV", "Pre-ITV incluida"],
-  ];
-
-  const specificAppointmentSections = [
-    {
-      title: "🔧 1. Neumaticos",
-      items: [
-        "Cambio de neumaticos",
-        "Equilibrado",
-        "Alineacion",
-        "Reparacion de pinchazos",
-        "Permutacion de ruedas",
-        "Diagnostico de neumaticos",
-      ],
-    },
-    {
-      title: "🛠️ 2. Mecanica general y reparaciones",
-      items: [
-        "Frenos (pastillas, discos)",
-        "Suspension (amortiguadores, rotulas)",
-        "Direccion",
-        "Embrague",
-        "Transmision",
-        "Escapes",
-        "Correa de distribucion",
-        "Reparaciones generales",
-      ],
-      note: "En Midas entra dentro de mantenimiento y mecanica.",
-    },
-    {
-      title: "🛢️ 3. Mantenimiento y revisiones",
-      items: [
-        "Revision oficial (tipo fabricante)",
-        "Cambio de aceite",
-        "Cambio de filtros",
-        "Revision de niveles",
-        "AdBlue",
-        "Bateria",
-      ],
-      note: "Midas lo agrupa como Revision y mantenimiento.",
-    },
-    {
-      title: "❄️ 4. Climatizacion / Aire acondicionado",
-      items: [
-        "Recarga de aire acondicionado",
-        "Deteccion de averias",
-        "Eliminacion de olores (tipo AirCare)",
-      ],
-    },
-    {
-      title: "🔍 5. Diagnostico",
-      items: [
-        "Diagnostico electronico",
-        "Diagnostico de bateria",
-        "Diagnostico de frenos",
-        "Diagnostico de amortiguadores",
-        "Diagnostico general del vehiculo",
-      ],
-      note: "En Midas muchos son gratuitos con cita previa.",
-    },
-    {
-      title: "🚗 6. Pre-ITV e ITV",
-      items: [
-        "Revision Pre-ITV",
-        "Servicio de pasar ITV por ti",
-      ],
-      note: "Lo ofrecen ambos.",
-    },
-    {
-      title: "💡 7. Iluminacion y visibilidad",
-      items: [
-        "Cambio de bombillas",
-        "Reglaje de faros",
-        "Pulido de faros",
-        "Escobillas limpiaparabrisas",
-      ],
-    },
-    {
-      title: "🧼 8. Servicios especificos / especiales",
-      items: [
-        "Descarbonizacion / limpieza de motor (MotorCare en Midas)",
-        "Desinfeccion del habitaculo",
-        "Eliminacion de olores",
-      ],
-    },
-    {
-      title: "🔩 9. Instalacion de accesorios",
-      items: [
-        "Matriculas",
-        "Accesorios y equipamiento",
-        "Multimedia / radio",
-        "Enganches",
-      ],
-    },
-    {
-      title: "🏍️ 10. Moto",
-      items: [
-        "Mantenimiento de moto",
-        "Neumaticos moto",
-        "Frenos moto",
-        "Bateria moto",
-        "Suspension y transmision moto",
-      ],
-      note: "Extra que destaca en Midas.",
-    },
-    {
-      title: "🚚 11. Servicios adicionales",
-      items: [
-        "Recogida y entrega del vehiculo",
-        "Servicio a domicilio (algunas operaciones)",
-        "Servicios para flotas/empresas",
-      ],
-    },
-  ];
 
   const [selectedRevision, setSelectedRevision] = useState(-1);
   const [selectedProvider, setSelectedProvider] = useState("");
@@ -448,7 +448,7 @@ export default function ServiceAppointmentPage({
   }, [selectedVehicleId, vehicleOptions, vehicleId]);
 
   useEffect(() => {
-    const nextIndex = resolveRevisionIndex(revisionTypes, selectedRevisionTitle);
+    const nextIndex = resolveRevisionIndex(REVISION_TYPES, selectedRevisionTitle);
     if (nextIndex >= 0) {
       setSelectedRevision(nextIndex);
       setSelectedSpecificSection("");
@@ -456,7 +456,7 @@ export default function ServiceAppointmentPage({
       return;
     }
 
-    const specificPrefill = resolveSpecificTypePrefill(specificAppointmentSections, selectedRevisionTitle);
+    const specificPrefill = resolveSpecificTypePrefill(SPECIFIC_APPOINTMENT_SECTIONS, selectedRevisionTitle);
     if (specificPrefill.sectionTitle && specificPrefill.itemLabel) {
       setSelectedRevision(-1);
       setSelectedSpecificSection(specificPrefill.sectionTitle);
@@ -481,7 +481,7 @@ export default function ServiceAppointmentPage({
     onSelectVehicleId(vehicleId);
   }, [vehicleId, onSelectVehicleId, selectedVehicleId]);
 
-  const selectedSpecificSectionModel = specificAppointmentSections.find(
+  const selectedSpecificSectionModel = SPECIFIC_APPOINTMENT_SECTIONS.find(
     (section) => normalizeText(section?.title) === selectedSpecificSection
   ) || null;
   const specificTypeOptions = selectedSpecificSectionModel?.items || [];
@@ -539,7 +539,7 @@ export default function ServiceAppointmentPage({
   }, [hasLocationContext, postalCode, province]);
 
   const canChooseRevision = hasAnyVehicles && Boolean(vehicleId) && hasLocationContext;
-  const selectedPopularRevisionName = selectedRevision >= 0 ? revisionTypes[selectedRevision][0] : "";
+  const selectedPopularRevisionName = selectedRevision >= 0 ? REVISION_TYPES[selectedRevision][0] : "";
   const selectedAppointmentTypeName = selectedSpecificType || selectedPopularRevisionName;
   const hasSelectedProvider = Boolean(normalizeText(selectedProvider));
   const canContinueBooking = canChooseRevision && Boolean(selectedAppointmentTypeName) && hasSelectedProvider;
@@ -794,7 +794,7 @@ export default function ServiceAppointmentPage({
             </div>
           ) : null}
           <div style={{ display: "grid", gap: 8 }}>
-            {revisionTypes.map((item, idx) => (
+                {REVISION_TYPES.map((item, idx) => (
               <button
                 key={item[0]}
                 type="button"
@@ -874,7 +874,7 @@ export default function ServiceAppointmentPage({
                     }}
                   >
                     <option value="">Selecciona una seccion</option>
-                    {specificAppointmentSections.map((section) => (
+                    {SPECIFIC_APPOINTMENT_SECTIONS.map((section) => (
                       <option key={section.title} value={section.title}>{section.title}</option>
                     ))}
                   </select>

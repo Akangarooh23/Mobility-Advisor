@@ -797,6 +797,7 @@ export default function App() {
   const [showAuthMenu, setShowAuthMenu] = useState(false);
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
   const [showUserPanel, setShowUserPanel] = useState(false);
+  const [showHeaderMoreNav, setShowHeaderMoreNav] = useState(false);
   const [showHeaderMobileNav, setShowHeaderMobileNav] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [authDialogMode, setAuthDialogMode] = useState("");
@@ -976,6 +977,7 @@ export default function App() {
 
   const openInternalLandingFlow = useCallback((nextEntryMode) => {
     setShowHeaderMobileNav(false);
+    setShowHeaderMoreNav(false);
     setShowAuthMenu(false);
     setShowUserPanel(false);
     setEntryMode(nextEntryMode);
@@ -989,24 +991,23 @@ export default function App() {
 
   const goToPublicHeaderPage = useCallback((nextEntryMode) => {
     setShowHeaderMobileNav(false);
+    setShowHeaderMoreNav(false);
     openPublicPage(nextEntryMode);
   }, [openPublicPage]);
 
   const goToHomeHeaderPage = useCallback(() => {
     setShowHeaderMobileNav(false);
+    setShowHeaderMoreNav(false);
     openPublicPage(null);
   }, [openPublicPage]);
 
   const goToAboutHeaderPage = useCallback(() => {
     setShowHeaderMobileNav(false);
+    setShowHeaderMoreNav(false);
     openPublicPage("aboutCarswise");
   }, [openPublicPage]);
 
   const currentHeaderNavKey = useMemo(() => {
-    if (entryMode === "portalVo" || entryMode === "portalVoDetail") {
-      return "marketplace";
-    }
-
     if (
       entryMode === "serviceOptions" ||
       entryMode === "serviceInsurance" ||
@@ -1021,12 +1022,8 @@ export default function App() {
       return "sell";
     }
 
-    if (entryMode === "contact") {
-      return "contact";
-    }
-
-    if (entryMode === "aboutCarswise") {
-      return "about";
+    if (entryMode === "contact" || entryMode === "aboutCarswise") {
+      return "more";
     }
 
     if (
@@ -1045,7 +1042,7 @@ export default function App() {
   const headerNavItems = useMemo(() => [
     {
       key: "home",
-      label: "Home",
+      label: uiLanguage === "en" ? "Home" : "Indice",
       onClick: goToHomeHeaderPage,
     },
     {
@@ -1055,22 +1052,28 @@ export default function App() {
     },
     {
       key: "services",
-      label: "Quiero Contratar un Servicio",
+      label: "Contratar un Servicio",
       onClick: () => openInternalLandingFlow("serviceOptions"),
     },
     {
       key: "sell",
-      label: "Quiero vender mi Coche",
+      label: "Vender mi Coche",
       onClick: () => openInternalLandingFlow("sellOptions"),
     },
     {
-      key: "marketplace",
-      label: "Marketplace VO",
-      onClick: () => goToPublicHeaderPage("portalVo"),
+      key: "more",
+      label: "Más ▾",
+      onClick: () => {
+        setShowHeaderMobileNav(false);
+        setShowHeaderMoreNav((prev) => !prev);
+      },
     },
+  ], [goToHomeHeaderPage, openInternalLandingFlow, uiLanguage]);
+
+  const headerMoreNavItems = useMemo(() => [
     {
       key: "about",
-      label: "Sobre CarsWise",
+      label: "Sobre Nosotros",
       onClick: goToAboutHeaderPage,
     },
     {
@@ -1078,7 +1081,12 @@ export default function App() {
       label: "Contacto",
       onClick: () => goToPublicHeaderPage("contact"),
     },
-  ], [goToAboutHeaderPage, goToHomeHeaderPage, goToPublicHeaderPage, openInternalLandingFlow]);
+  ], [goToAboutHeaderPage, goToPublicHeaderPage]);
+
+  const mobileHeaderNavItems = useMemo(() => [
+    ...headerNavItems.filter((item) => item.key !== "more"),
+    ...headerMoreNavItems,
+  ], [headerNavItems, headerMoreNavItems]);
 
   const centerHeaderNavItems = headerNavItems;
 
@@ -3050,18 +3058,79 @@ export default function App() {
             }}
           >
             {centerHeaderNavItems.map((item) => {
-            const isActive = item.key === currentHeaderNavKey;
-            return (
-              <button
-                key={item.key}
-                type="button"
-                className={`cw-header-nav-link${isActive ? " is-active" : ""}`}
-                onClick={item.onClick}
-              >
-                {item.label}
-              </button>
-            );
-          })}
+              const isActive = item.key === currentHeaderNavKey;
+
+              if (item.key === "more") {
+                return (
+                  <div key={item.key} style={{ position: "relative" }}>
+                    <button
+                      type="button"
+                      className={`cw-header-nav-link${isActive || showHeaderMoreNav ? " is-active" : ""}`}
+                      onClick={item.onClick}
+                      aria-haspopup="menu"
+                      aria-expanded={showHeaderMoreNav}
+                    >
+                      {item.label}
+                    </button>
+
+                    {showHeaderMoreNav && (
+                      <div
+                        role="menu"
+                        aria-label="Mas opciones"
+                        style={{
+                          position: "absolute",
+                          top: "calc(100% + 8px)",
+                          right: 0,
+                          minWidth: 190,
+                          background: "rgba(255,255,255,0.98)",
+                          border: "1px solid rgba(148,163,184,0.34)",
+                          borderRadius: 12,
+                          boxShadow: "0 12px 30px rgba(15,23,42,0.16)",
+                          padding: 8,
+                          zIndex: 140,
+                          display: "grid",
+                          gap: 6,
+                        }}
+                      >
+                        {headerMoreNavItems.map((moreItem) => (
+                          <button
+                            key={moreItem.key}
+                            type="button"
+                            role="menuitem"
+                            onClick={moreItem.onClick}
+                            style={{
+                              width: "100%",
+                              textAlign: "left",
+                              border: "1px solid rgba(148,163,184,0.28)",
+                              borderRadius: 10,
+                              background: "#ffffff",
+                              color: "#0f172a",
+                              fontSize: 12,
+                              fontWeight: 700,
+                              padding: "8px 10px",
+                              cursor: "pointer",
+                            }}
+                          >
+                            {moreItem.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  className={`cw-header-nav-link${isActive ? " is-active" : ""}`}
+                  onClick={item.onClick}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
           </nav>
           <div style={{ display: "flex", alignItems: "center", gap: 12, position: "relative" }}>
           <div
@@ -3577,7 +3646,10 @@ export default function App() {
         <button
           type="button"
           className="cw-header-mobile-toggle"
-          onClick={() => setShowHeaderMobileNav((prev) => !prev)}
+          onClick={() => {
+            setShowHeaderMoreNav(false);
+            setShowHeaderMobileNav((prev) => !prev);
+          }}
           aria-expanded={showHeaderMobileNav}
           aria-controls="cw-header-mobile-nav"
           aria-label="Abrir menu de navegacion"
@@ -3586,7 +3658,7 @@ export default function App() {
         </button>
         {showHeaderMobileNav && (
           <div id="cw-header-mobile-nav" className="cw-header-mobile-nav" role="menu" aria-label="Navegacion movil principal">
-            {headerNavItems.map((item) => {
+            {mobileHeaderNavItems.map((item) => {
               const isActive = item.key === currentHeaderNavKey;
               return (
                 <button

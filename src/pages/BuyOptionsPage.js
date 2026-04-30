@@ -1,116 +1,46 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownModel, onGoBack }) {
   const { t } = useTranslation();
   const isDark = styles?.page?.color === "#e2e8f0";
-  const titleColor = isDark ? "#f8fafc" : "#000000";
-  const mutedColor = isDark ? "#cbd5e1" : "#94a3b8";
-  const timelineSteps = [
-    t("buyOptions.timelineStep1"),
-    t("buyOptions.timelineStep2"),
-    t("buyOptions.timelineStep3"),
-    t("buyOptions.timelineStep4"),
-    t("buyOptions.timelineStep5"),
+  const titleColor = isDark ? "#f8fafc" : "#0f172a";
+  const mutedColor = isDark ? "#cbd5e1" : "#475569";
+  const cardBackground = isDark ? "rgba(15,23,42,0.55)" : "#ffffff";
+  const cardBorder = isDark ? "1px solid rgba(148,163,184,0.26)" : "1px solid rgba(15,23,42,0.12)";
+  const [openFlow, setOpenFlow] = useState(null);
+
+  const toggleFlow = (flowKey) => {
+    setOpenFlow((prev) => (prev === flowKey ? null : flowKey));
+  };
+
+  const flowA = [
+    { title: "Selecciona el modelo", sub: "Marca, modelo y version" },
+    { title: "Establece tus limites geograficos y de precio" },
+    { title: "Analizamos anuncios en tiempo real", sub: "Precio, proveedor y caracteristicas del vehiculo" },
+    { title: "Te ofrecemos las 5 mejores opciones" },
+    { title: "Agendamos una cita con el vendedor" },
+    { title: "Te buscamos la mejor financiacion" },
+  ];
+
+  const flowB = [
+    { title: "Test CarsWise", sub: "Estilo de vida, desplazamientos y entorno legal" },
+    { title: "Establece tus limites geograficos y de precio" },
+    { title: "Analizamos anuncios en tiempo real" },
+    { title: "Te ofrecemos las 5 mejores opciones" },
+    { title: "Agendamos una cita con el vendedor" },
+    { title: "Te buscamos la mejor financiacion" },
   ];
 
   return (
     <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
-      <style>
-        {`
-          .buy-flow-card {
-            position: relative;
-            overflow: hidden;
-          }
-
-          .buy-flow-card::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at 85% 10%, rgba(59,130,246,0.18), transparent 50%);
-            pointer-events: none;
-          }
-
-          .buy-flow-axis {
-            position: absolute;
-            left: 17px;
-            top: 16px;
-            bottom: 16px;
-            width: 2px;
-            background: linear-gradient(180deg, rgba(59,130,246,0.25), rgba(56,189,248,0.65), rgba(20,184,166,0.35));
-          }
-
-          .buy-flow-item {
-            position: relative;
-            padding: 10px 12px 10px 42px;
-            border-radius: 12px;
-            border: 1px solid rgba(71,85,105,0.55);
-            background: rgba(15,23,42,0.72);
-            color: #dbeafe;
-            opacity: 0;
-            transform: translateY(12px);
-            animation: buyFlowIn 0.45s ease forwards;
-            transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
-          }
-
-          .buy-flow-item:hover {
-            transform: translateY(-2px);
-            border-color: rgba(56,189,248,0.72);
-            background: rgba(15,23,42,0.88);
-            box-shadow: 0 10px 24px rgba(2,6,23,0.35);
-          }
-
-          .buy-flow-dot {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 14px;
-            height: 14px;
-            border-radius: 999px;
-            border: 2px solid rgba(125,211,252,0.95);
-            background: #0f172a;
-            box-shadow: 0 0 0 0 rgba(14,165,233,0.45);
-            animation: buyFlowPulse 1.8s ease-in-out infinite;
-          }
-
-          @keyframes buyFlowIn {
-            from {
-              opacity: 0;
-              transform: translateY(12px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-
-          @keyframes buyFlowPulse {
-            0% {
-              box-shadow: 0 0 0 0 rgba(14,165,233,0.5);
-            }
-            70% {
-              box-shadow: 0 0 0 10px rgba(14,165,233,0);
-            }
-            100% {
-              box-shadow: 0 0 0 0 rgba(14,165,233,0);
-            }
-          }
-
-          @media (max-width: 640px) {
-            .buy-flow-item {
-              padding-right: 10px;
-            }
-          }
-        `}
-      </style>
-
       <button
         type="button"
         onClick={onGoBack}
         style={{
           border: "1px solid rgba(148,163,184,0.35)",
-          background: "rgba(15,23,42,0.5)",
-          color: "#cbd5e1",
+          background: isDark ? "rgba(15,23,42,0.5)" : "rgba(148,163,184,0.16)",
+          color: isDark ? "#cbd5e1" : "#475569",
           borderRadius: 10,
           padding: "8px 12px",
           fontSize: 12,
@@ -122,107 +52,332 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
         {t("buyOptions.goBack")}
       </button>
 
+      <div style={{ marginBottom: 10, marginTop: 4, display: "flex", alignItems: "center", gap: 12 }}>
+        <span style={{ fontSize: 10, letterSpacing: "0.18em", fontWeight: 800, color: "#2563eb", textTransform: "uppercase" }}>
+          Compra
+        </span>
+        <span style={{ width: 34, height: 1, background: "rgba(37,99,235,0.5)" }} />
+      </div>
+
       <h2 style={{ margin: "0 0 8px", fontSize: "clamp(28px,4vw,38px)", color: titleColor, letterSpacing: "-0.9px" }}>
-        {t("buyOptions.title")}
+        {t("circularSteps.step1Title")}
       </h2>
       <p style={{ margin: "0 0 22px", color: mutedColor, fontSize: 14, lineHeight: 1.6 }}>
-        {t("buyOptions.subtitle")}
+        Dinos cuanto sabes ya sobre lo que quieres y empezamos desde ahi. Analizamos el mercado en tiempo real para encontrar las mejores opciones.
       </p>
 
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,280px),1fr))",
+          gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,320px),1fr))",
           gap: 14,
           alignItems: "stretch",
         }}
       >
-        <button
-          type="button"
-          onClick={onSelectAdvisor}
+        <article
           className="ma-card-interactive ma-fade-stagger"
           style={{
-            ...styles.card(false),
-            padding: 18,
-            border: "1px solid rgba(37,99,235,0.32)",
-            background: "rgba(37,99,235,0.12)",
-            color: "#f1f5f9",
+            position: "relative",
+            border: cardBorder,
+            borderRadius: 12,
+            background: cardBackground,
+            boxShadow: isDark ? "none" : "0 8px 22px rgba(15,23,42,0.05)",
+            padding: "24px 22px 20px",
             textAlign: "left",
             display: "flex",
             flexDirection: "column",
             alignItems: "flex-start",
             justifyContent: "flex-start",
-            gap: 8,
-            minHeight: "clamp(148px, 22vw, 180px)",
+            gap: 10,
+            minHeight: "clamp(148px, 20vw, 178px)",
             animationDelay: "60ms",
+            cursor: "pointer",
           }}
-        >
-          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
-            {t("buyOptions.dontKnowModel")}
-          </div>
-          <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
-            {t("buyOptions.dontKnowModelDesc")}
-          </div>
-        </button>
-
-        <button
-          type="button"
+          role="button"
+          tabIndex={0}
           onClick={onSelectKnownModel}
-          className="ma-card-interactive ma-fade-stagger"
-          style={{
-            ...styles.card(false),
-            padding: 18,
-            border: "1px solid rgba(14,165,233,0.34)",
-            background: "rgba(14,165,233,0.12)",
-            color: "#f1f5f9",
-            textAlign: "left",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            justifyContent: "flex-start",
-            gap: 8,
-            minHeight: "clamp(148px, 22vw, 180px)",
-            animationDelay: "150ms",
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              onSelectKnownModel();
+            }
           }}
         >
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "3px 10px",
+              borderRadius: 20,
+              border: "1px solid rgba(37,99,235,0.24)",
+              background: "rgba(37,99,235,0.1)",
+              color: "#2563eb",
+              fontSize: 9,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              fontWeight: 700,
+              marginBottom: 4,
+            }}
+          >
+            Opcion A
+          </span>
+          <span
+            style={{
+              position: "absolute",
+              top: 22,
+              right: 20,
+              width: 24,
+              height: 24,
+              borderRadius: "50%",
+              border: "1px solid rgba(148,163,184,0.35)",
+              color: "#64748b",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 15,
+            }}
+          >
+            &gt;
+          </span>
           <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
             {t("buyOptions.knowModel")}
           </div>
           <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
             {t("buyOptions.knowModelDesc")}
           </div>
-        </button>
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              toggleFlow("a");
+            }}
+            style={{
+              marginTop: 2,
+              border: "1px solid rgba(37,99,235,0.28)",
+              background: "rgba(37,99,235,0.08)",
+              color: "#1d4ed8",
+              borderRadius: 10,
+              padding: "8px 12px",
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            {openFlow === "a" ? "Ocultar" : "Ver mas"}
+          </button>
+        </article>
+
+        <article
+          className="ma-card-interactive ma-fade-stagger"
+          style={{
+            position: "relative",
+            border: cardBorder,
+            borderRadius: 12,
+            background: cardBackground,
+            boxShadow: isDark ? "none" : "0 8px 22px rgba(15,23,42,0.05)",
+            padding: "24px 22px 20px",
+            textAlign: "left",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            justifyContent: "flex-start",
+            gap: 10,
+            minHeight: "clamp(148px, 20vw, 178px)",
+            animationDelay: "150ms",
+            cursor: "pointer",
+          }}
+          role="button"
+          tabIndex={0}
+          onClick={onSelectAdvisor}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              onSelectAdvisor();
+            }
+          }}
+        >
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "3px 10px",
+              borderRadius: 20,
+              border: "1px solid rgba(37,99,235,0.24)",
+              background: "rgba(37,99,235,0.1)",
+              color: "#2563eb",
+              fontSize: 9,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              fontWeight: 700,
+              marginBottom: 4,
+            }}
+          >
+            Opcion B
+          </span>
+          <span
+            style={{
+              position: "absolute",
+              top: 22,
+              right: 20,
+              width: 24,
+              height: 24,
+              borderRadius: "50%",
+              border: "1px solid rgba(148,163,184,0.35)",
+              color: "#64748b",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 15,
+            }}
+          >
+            &gt;
+          </span>
+          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
+            {t("buyOptions.dontKnowModel")}
+          </div>
+          <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
+            {t("buyOptions.dontKnowModelDesc")}
+          </div>
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              toggleFlow("b");
+            }}
+            style={{
+              marginTop: 2,
+              border: "1px solid rgba(37,99,235,0.28)",
+              background: "rgba(37,99,235,0.08)",
+              color: "#1d4ed8",
+              borderRadius: 10,
+              padding: "8px 12px",
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            {openFlow === "b" ? "Ocultar" : "Ver mas"}
+          </button>
+        </article>
       </div>
 
-      <div
-        style={{
-          margin: "22px 0 0",
-          padding: "14px 14px 14px",
-          borderRadius: 14,
-          border: "1px solid rgba(148,163,184,0.24)",
-          background: "linear-gradient(145deg, rgba(15,23,42,0.82), rgba(30,41,59,0.62))",
-          animationDelay: "260ms",
-        }}
-        className="buy-flow-card ma-card-soft ma-fade-stagger"
-      >
-        <div style={{ fontSize: 12, color: "#93c5fd", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 10 }}>
-          {t("buyOptions.howItWorks")}
-        </div>
-        <div style={{ position: "relative", display: "grid", gap: 9 }}>
-          <div className="buy-flow-axis" />
-          {timelineSteps.map((label, index) => (
-            <div
-              key={label}
-              className="buy-flow-item"
-              style={{ animationDelay: `${index * 90}ms` }}
+      {openFlow === "a" && (
+        <section
+          style={{
+            marginTop: 14,
+            border: cardBorder,
+            background: isDark ? "rgba(15,23,42,0.7)" : "#f8fafc",
+            borderRadius: 12,
+            padding: "14px 14px 12px",
+          }}
+        >
+          <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700, color: "#64748b", marginBottom: 10 }}>
+            Flujo A - Modelo conocido
+          </div>
+          <div style={{ display: "grid", gap: 8 }}>
+            {flowA.map((item, index) => (
+              <div key={`a-${item.title}`} style={{ border: cardBorder, borderRadius: 10, background: cardBackground, padding: "9px 10px" }}>
+                <div style={{ fontSize: 11, color: "#2563eb", fontWeight: 700, marginBottom: 2 }}>Paso {index + 1}</div>
+                <div style={{ fontSize: 13, color: titleColor, fontWeight: 700, lineHeight: 1.35 }}>{item.title}</div>
+                {item.sub ? <div style={{ fontSize: 12, color: mutedColor, marginTop: 2 }}>{item.sub}</div> : null}
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button
+              type="button"
+              onClick={onSelectKnownModel}
+              style={{
+                border: "1px solid rgba(37,99,235,0.25)",
+                background: "linear-gradient(135deg,#2563eb,#3b82f6)",
+                color: "#ffffff",
+                borderRadius: 10,
+                padding: "9px 14px",
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
             >
-              <div className="buy-flow-dot" />
-              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, marginBottom: 3 }}>{t("buyOptions.step")} {index + 1}</div>
-              <div style={{ fontSize: 13, color: "#cbd5e1", lineHeight: 1.45 }}>{label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+              Acceder
+            </button>
+            <button
+              type="button"
+              onClick={() => setOpenFlow(null)}
+              style={{
+                border: "1px solid rgba(37,99,235,0.25)",
+                background: "rgba(37,99,235,0.08)",
+                color: "#1d4ed8",
+                borderRadius: 10,
+                padding: "9px 14px",
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              Minimizar
+            </button>
+          </div>
+        </section>
+      )}
+
+      {openFlow === "b" && (
+        <section
+          style={{
+            marginTop: 14,
+            border: cardBorder,
+            background: isDark ? "rgba(15,23,42,0.7)" : "#f8fafc",
+            borderRadius: 12,
+            padding: "14px 14px 12px",
+          }}
+        >
+          <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700, color: "#64748b", marginBottom: 10 }}>
+            Flujo B - Test CarsWise
+          </div>
+          <div style={{ display: "grid", gap: 8 }}>
+            {flowB.map((item, index) => (
+              <div key={`b-${item.title}`} style={{ border: cardBorder, borderRadius: 10, background: cardBackground, padding: "9px 10px" }}>
+                <div style={{ fontSize: 11, color: "#2563eb", fontWeight: 700, marginBottom: 2 }}>Paso {index + 1}</div>
+                <div style={{ fontSize: 13, color: titleColor, fontWeight: 700, lineHeight: 1.35 }}>{item.title}</div>
+                {item.sub ? <div style={{ fontSize: 12, color: mutedColor, marginTop: 2 }}>{item.sub}</div> : null}
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button
+              type="button"
+              onClick={onSelectAdvisor}
+              style={{
+                border: "1px solid rgba(37,99,235,0.25)",
+                background: "linear-gradient(135deg,#2563eb,#3b82f6)",
+                color: "#ffffff",
+                borderRadius: 10,
+                padding: "9px 14px",
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              Acceder
+            </button>
+            <button
+              type="button"
+              onClick={() => setOpenFlow(null)}
+              style={{
+                border: "1px solid rgba(37,99,235,0.25)",
+                background: "rgba(37,99,235,0.08)",
+                color: "#1d4ed8",
+                borderRadius: 10,
+                padding: "9px 14px",
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              Minimizar
+            </button>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

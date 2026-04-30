@@ -241,6 +241,30 @@ export default function DecisionPage({
 
   const [modelInput, setModelInput] = useState("");
   const [modelTags, setModelTags] = useState([]);
+  const [showMoreBrands, setShowMoreBrands] = useState(false);
+
+  const BRAND_LOGOS = {
+    "Alfa Romeo": "🅰",
+    "Audi": "🅰",
+    "BMW": "🅱",
+    "BYD": "🅱",
+    "Dacia": "🅳",
+    "Fiat": "🅵",
+    "Ford": "🅵",
+    "Honda": "🅷",
+    "Hyundai": "🅷",
+    "Jaguar": "🅹",
+    "Kia": "🅺",
+    "Mercedes": "🅼",
+    "Nissan": "🅽",
+    "Peugeot": "🅿",
+    "Renault": "®️",
+    "Seat": "🅣",
+    "Skoda": "🅣",
+    "Toyota": "🅣",
+    "Volkswagen": "🅥",
+    "Volvo": "🅥",
+  };
 
   const handleAddModel = (e) => {
     if (e.key !== "Enter") return;
@@ -310,59 +334,64 @@ export default function DecisionPage({
           .cw-wrap { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 1rem; }
           .cw-main-card { background: #fff; border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04); overflow: hidden; }
           .cw-card-head { padding: 1.75rem 2rem 1.5rem; border-bottom: 1px solid #f0ece4; }
-          .cw-eyebrow { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #BA7517; background: linear-gradient(135deg, rgba(186,117,23,0.1), rgba(186,117,23,0.06)); border: 1px solid rgba(186,117,23,0.18); padding: 0.3rem 0.85rem; border-radius: 30px; margin-bottom: 1rem; }
-          .cw-eyebrow::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: #BA7517; box-shadow: 0 0 0 2px rgba(186,117,23,0.25); }
+          .cw-brand-more-wrapper { position: relative; }
+          .cw-eyebrow { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #3b82f6; background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(59,130,246,0.06)); border: 1px solid rgba(59,130,246,0.18); padding: 0.3rem 0.85rem; border-radius: 30px; margin-bottom: 1rem; }
+          .cw-eyebrow::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.25); }
           .cw-page-title { font-size: 21px; font-weight: 600; color: #111; letter-spacing: -0.025em; margin-bottom: 0.35rem; }
           .cw-page-sub { font-size: 13px; color: #999; line-height: 1.65; font-weight: 300; }
-          .cw-active-bar { padding: 0.65rem 2rem; background: linear-gradient(90deg, rgba(186,117,23,0.05), rgba(186,117,23,0.02)); border-bottom: 1px solid rgba(186,117,23,0.1); display: none; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+          .cw-active-bar { padding: 0.65rem 2rem; background: linear-gradient(90deg, rgba(59,130,246,0.05), rgba(59,130,246,0.02)); border-bottom: 1px solid rgba(59,130,246,0.1); display: none; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
           .cw-active-bar.show { display: flex; }
-          .cw-ab-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #BA7517; margin-right: 0.25rem; white-space: nowrap; }
-          .cw-a-chip { background: rgba(186,117,23,0.1); border: 1px solid rgba(186,117,23,0.2); color: #8a5512; font-size: 11px; font-weight: 500; padding: 0.2rem 0.65rem; border-radius: 20px; display: inline-flex; align-items: center; gap: 0.3rem; }
+          .cw-ab-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #3b82f6; margin-right: 0.25rem; white-space: nowrap; }
+          .cw-a-chip { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); color: #1e40af; font-size: 11px; font-weight: 500; padding: 0.2rem 0.65rem; border-radius: 20px; display: inline-flex; align-items: center; gap: 0.3rem; }
           .cw-ab-clear { margin-left: auto; font-size: 11px; color: #aaa; background: none; border: none; cursor: pointer; font-family: Inter, sans-serif; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
           .cw-ab-clear:hover { color: #666; }
           .cw-filters { padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
           .cw-f-block { }
           .cw-f-lbl { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #ccc; margin-bottom: 0.7rem; display: flex; align-items: center; gap: 0.5rem; }
-          .cw-f-lbl-n { width: 17px; height: 17px; border-radius: 50%; background: linear-gradient(135deg, rgba(186,117,23,0.15), rgba(186,117,23,0.08)); color: #BA7517; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+          .cw-f-lbl-n { width: 17px; height: 17px; border-radius: 50%; background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(59,130,246,0.08)); color: #3b82f6; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
           .cw-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
           .cw-chip { font-size: 12px; font-weight: 400; padding: 0.4rem 0.9rem; border-radius: 30px; border: 1px solid #ebebeb; background: #fafaf9; color: #999; cursor: pointer; font-family: Inter, sans-serif; transition: all 0.15s; white-space: nowrap; }
           .cw-chip:hover { border-color: #ddd; color: #555; background: #fff; }
-          .cw-chip.sel { background: linear-gradient(135deg, #BA7517, #d4881e); border-color: transparent; color: #fff; font-weight: 500; box-shadow: 0 2px 10px rgba(186,117,23,0.35); }
+          .cw-chip.sel { background: linear-gradient(135deg, #3b82f6, #2563eb); border-color: transparent; color: #fff; font-weight: 500; box-shadow: 0 2px 10px rgba(59,130,246,0.35); }
           .cw-model-wrap { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; background: #fafaf9; border: 1px solid #eee; border-radius: 12px; padding: 0.55rem 0.9rem; min-height: 42px; }
-          .cw-model-wrap:focus-within { border-color: rgba(186,117,23,0.4); background: #fff; box-shadow: 0 0 0 3px rgba(186,117,23,0.07); }
+          .cw-model-wrap:focus-within { border-color: rgba(59,130,246,0.4); background: #fff; box-shadow: 0 0 0 3px rgba(59,130,246,0.07); }
           .cw-model-input { border: none; background: none; outline: none; font-size: 13px; color: #444; font-family: Inter, sans-serif; flex: 1; min-width: 140px; }
           .cw-model-input::placeholder { color: #ccc; }
-          .cw-m-tag { background: rgba(186,117,23,0.1); border: 1px solid rgba(186,117,23,0.2); color: #8a5512; font-size: 11px; font-weight: 500; padding: 0.2rem 0.6rem; border-radius: 20px; display: inline-flex; align-items: center; gap: 0.3rem; }
-          .cw-m-tag button { background: none; border: none; color: #BA7517; cursor: pointer; font-size: 13px; line-height: 1; padding: 0; }
+          .cw-m-tag { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); color: #1e40af; font-size: 11px; font-weight: 500; padding: 0.2rem 0.6rem; border-radius: 20px; display: inline-flex; align-items: center; gap: 0.3rem; }
+          .cw-m-tag button { background: none; border: none; color: #3b82f6; cursor: pointer; font-size: 13px; line-height: 1; padding: 0; }
           .cw-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
           @media (max-width: 640px) { .cw-two-col { grid-template-columns: 1fr; } }
           .cw-f-sep { height: 1px; background: linear-gradient(90deg, transparent, #f0ece4, transparent); }
           .cw-brand-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.4rem; }
-          .cw-b-btn { background: #fafaf9; border: 1px solid #eee; border-radius: 12px; padding: 0.65rem 0.4rem 0.55rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; transition: all 0.18s; font-family: Inter, sans-serif; font-size: 9.5px; color: #aaa; font-weight: 600; }
+          .cw-b-btn { background: #fafaf9; border: 1px solid #eee; border-radius: 12px; padding: 0.65rem 0.4rem 0.55rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; transition: all 0.18s; font-family: Inter, sans-serif; font-size: 9.5px; color: #aaa; font-weight: 600; position: relative; }
           .cw-b-btn:hover { border-color: #ddd; background: #fff; transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,0.07); }
-          .cw-b-btn.sel { border-color: rgba(186,117,23,0.4); background: #fff; box-shadow: 0 0 0 3px rgba(186,117,23,0.1); color: #BA7517; }
+          .cw-b-btn.sel { border-color: rgba(59,130,246,0.4); background: #fff; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); color: #3b82f6; }
+          .cw-b-more-dropdown { position: absolute; top: 100%; right: 0; margin-top: 0.5rem; background: #fff; border: 1px solid #eee; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); z-index: 1000; min-width: 200px; max-height: 300px; overflow-y: auto; }
+          .cw-b-more-item { padding: 0.6rem 1rem; font-size: 12px; color: #666; cursor: pointer; border-bottom: 1px solid #f5f5f5; transition: all 0.12s; }
+          .cw-b-more-item:hover { background: rgba(59,130,246,0.05); color: #3b82f6; font-weight: 500; }
+          .cw-b-more-item:last-child { border-bottom: none; }
           .cw-b-ico { font-size: 18px; }
           .cw-sel-wrap { position: relative; }
           .cw-sel-wrap select { appearance: none; width: 100%; background: #fafaf9; border: 1px solid #eee; border-radius: 12px; padding: 0.62rem 2.2rem 0.62rem 1rem; font-size: 13px; color: #666; font-family: Inter, sans-serif; cursor: pointer; outline: none; }
-          .cw-sel-wrap select:focus { border-color: rgba(186,117,23,0.4); background: #fff; box-shadow: 0 0 0 3px rgba(186,117,23,0.07); }
+          .cw-sel-wrap select:focus { border-color: rgba(59,130,246,0.4); background: #fff; box-shadow: 0 0 0 3px rgba(59,130,246,0.07); }
           .cw-sel-arrow { position: absolute; right: 0.8rem; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 10px; color: #bbb; }
           .cw-loc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
           .cw-cta-card { background: #fff; border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04); padding: 1.25rem 1.75rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
           .cw-cta-left { display: flex; flex-direction: column; gap: 0.2rem; }
           .cw-count-row { display: flex; align-items: baseline; gap: 0.45rem; }
-          .cw-count-n { font-size: 28px; font-weight: 600; color: #BA7517; letter-spacing: -0.03em; line-height: 1; }
+          .cw-count-n { font-size: 28px; font-weight: 600; color: #3b82f6; letter-spacing: -0.03em; line-height: 1; }
           .cw-count-lbl { font-size: 13px; color: #999; font-weight: 300; }
           .cw-cta-hint { font-size: 11.5px; color: #ccc; font-weight: 300; }
           .cw-cta-right { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
           .cw-btn-back { background: none; border: none; font-size: 12.5px; color: #bbb; cursor: pointer; font-family: Inter, sans-serif; display: flex; align-items: center; gap: 0.35rem; padding: 0.6rem 0; white-space: nowrap; }
           .cw-btn-back:hover { color: #888; }
-          .cw-btn-main { background: linear-gradient(135deg, #BA7517 0%, #c98120 100%); border: none; border-radius: 12px; padding: 0.7rem 1.6rem; font-size: 13.5px; font-weight: 600; color: #fff; cursor: pointer; font-family: Inter, sans-serif; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 16px rgba(186,117,23,0.4); transition: all 0.2s; white-space: nowrap; }
-          .cw-btn-main:hover { box-shadow: 0 6px 24px rgba(186,117,23,0.55); transform: translateY(-2px); }
+          .cw-btn-main { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border: none; border-radius: 12px; padding: 0.7rem 1.6rem; font-size: 13.5px; font-weight: 600; color: #fff; cursor: pointer; font-family: Inter, sans-serif; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 16px rgba(59,130,246,0.4); transition: all 0.2s; white-space: nowrap; }
+          .cw-btn-main:hover { box-shadow: 0 6px 24px rgba(59,130,246,0.55); transform: translateY(-2px); }
           .cw-btn-main:active { transform: translateY(0); }
           .cw-results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
           .cw-offer-card { background: #fff; border: 1px solid #f0ece4; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.8rem; transition: all 0.15s; text-decoration: none; color: inherit; }
           .cw-offer-card:hover { border-color: rgba(186,117,23,0.3); box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-1px); }
-          .cw-offer-type { font-size: 10px; color: #BA7517; font-weight: 700; margin-bottom: 0.2rem; }
+          .cw-offer-type { font-size: 10px; color: #3b82f6; font-weight: 700; margin-bottom: 0.2rem; }
           .cw-offer-title { font-size: 13px; font-weight: 700; color: #111; margin-bottom: 0.3rem; }
           .cw-offer-desc { font-size: 11px; color: #666; line-height: 1.4; }
           .cw-offer-footer { display: flex; justify-content: space-between; align-items: flex-end; padding-top: 0.8rem; border-top: 1px solid #f0ece4; }
@@ -422,7 +451,7 @@ export default function DecisionPage({
             <div className="cw-f-block">
               <div className="cw-f-lbl"><span className="cw-f-lbl-n">2</span>{text.brand}</div>
               <div className="cw-brand-grid">
-                {visibleBrands.slice(0, 10).map((brand) => (
+                {visibleBrands.slice(0, 9).map((brand) => (
                   <button
                     key={brand}
                     className={`cw-b-btn ${decisionAnswers.brand === brand ? "sel" : ""}`}
@@ -430,11 +459,39 @@ export default function DecisionPage({
                       updateDecisionAnswer("hasBrand", "si");
                       updateDecisionAnswer("brand", decisionAnswers.brand === brand ? "" : brand);
                     }}
+                    title={brand}
                   >
-                    <div className="cw-b-ico">🔷</div>
+                    <div className="cw-b-ico">{BRAND_LOGOS[brand] || "🚗"}</div>
                     <div>{brand}</div>
                   </button>
                 ))}
+                <div className="cw-brand-more-wrapper">
+                  <button
+                    className="cw-b-btn"
+                    onClick={() => setShowMoreBrands(!showMoreBrands)}
+                    title="Más marcas"
+                  >
+                    <div className="cw-b-ico">···</div>
+                    <div>Más</div>
+                  </button>
+                  {showMoreBrands && visibleBrands.length > 9 && (
+                    <div className="cw-b-more-dropdown">
+                      {visibleBrands.slice(9).map((brand) => (
+                        <div
+                          key={brand}
+                          className="cw-b-more-item"
+                          onClick={() => {
+                            updateDecisionAnswer("hasBrand", "si");
+                            updateDecisionAnswer("brand", brand);
+                            setShowMoreBrands(false);
+                          }}
+                        >
+                          {BRAND_LOGOS[brand] || "🚗"} {brand}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

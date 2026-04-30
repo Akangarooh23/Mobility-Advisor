@@ -732,7 +732,7 @@ export default function App() {
   const [advisorContext, setAdvisorContext] = useState(null); // null | "buy" | "renting"
   const [sellFlowType, setSellFlowType] = useState(""); // "certificate" | "report" | ""
   const [step, setStep] = useState(-1);
-  const [answers, setAnswers] = useState({});
+  const [answers, setAnswers] = useState({ perfil: "particular" });
   const [multiSelected, setMultiSelected] = useState([]);
   const [dualTimelineSelection, setDualTimelineSelection] = useState({ horizonte_tenencia: [], antiguedad_vehiculo_buscada: [] });
   const [scoreWeightsSelection, setScoreWeightsSelection] = useState({});
@@ -1119,7 +1119,7 @@ export default function App() {
   });
 
   const activeSteps = useMemo(() => {
-    const steps = getQuestionnaireSteps(advancedMode);
+    const steps = getQuestionnaireSteps(advancedMode).filter((s) => s.id !== "perfil");
     if (advisorContext === "renting") {
       // Skip the flexibilidad question: renting is already pre-selected
       return steps.filter((s) => s.id !== "flexibilidad");
@@ -4359,7 +4359,7 @@ export default function App() {
           }}
           onSelectGuide={() => {
             setAdvisorContext(null);
-            setAnswers({});
+            setAnswers({ perfil: "particular" });
             setEntryMode("consejo");
             setStep(-1);
           }}
@@ -4376,7 +4376,7 @@ export default function App() {
           styles={s}
           onSelectAdvisor={() => {
             setAdvisorContext("renting");
-            setAnswers({ flexibilidad: "renting" });
+            setAnswers({ perfil: "particular", flexibilidad: "renting" });
             setEntryMode("consejo");
             setStep(-1);
           }}
@@ -4404,7 +4404,7 @@ export default function App() {
           styles={s}
           onSelectAdvisor={() => {
             setAdvisorContext("buy");
-            setAnswers({});
+            setAnswers({ perfil: "particular" });
             setEntryMode("consejo");
             setStep(-1);
           }}
@@ -4761,6 +4761,7 @@ export default function App() {
           onHandleMultiToggle={handleMultiToggle}
           onHandleDualTimelineSelect={handleDualTimelineSelect}
           onHandleScoreWeightSelect={handleScoreWeightSelect}
+          onSetScoreWeights={setScoreWeightsSelection}
           onHandleSingle={handleSingle}
           onHandleMultiNext={handleMultiNext}
           onHandleDualTimelineNext={handleDualTimelineNext}

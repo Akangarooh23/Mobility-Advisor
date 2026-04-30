@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function QuestionnairePage({
   styles,
@@ -18,6 +18,7 @@ export default function QuestionnairePage({
   onHandleMultiToggle,
   onHandleDualTimelineSelect,
   onHandleScoreWeightSelect,
+  onSetScoreWeights,
   onHandleSingle,
   onHandleMultiNext,
   onHandleDualTimelineNext,
@@ -28,6 +29,24 @@ export default function QuestionnairePage({
   answeredSteps,
 }) {
   const [hoveredOption, setHoveredOption] = useState(null);
+  const [dragOrder, setDragOrder] = useState(null);
+  const [dragSrcIdx, setDragSrcIdx] = useState(null);
+  const [dragOverIdx, setDragOverIdx] = useState(null);
+
+  // Initialize score_weights step with default order on first visit
+  useEffect(() => {
+    if (currentStep?.type === "score_weights") {
+      const metrics = currentStep.metrics || [];
+      setDragOrder(metrics.map((m) => m.key));
+      const defaultWeights = {};
+      metrics.forEach((m, pos) => {
+        defaultWeights[m.key] = metrics.length - pos;
+      });
+      onSetScoreWeights(defaultWeights);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep?.id]);
+  const [showHelpInfoModal, setShowHelpInfoModal] = useState(false);
   const isDark = themeMode === "dark";
 
   const hasCompleteRange = (value) => Array.isArray(value) && value.length > 0 && value.every(Boolean);
@@ -51,6 +70,7 @@ export default function QuestionnairePage({
     }
 
     const isMultiSelectionField = fieldConfig?.selectionMode === "multi";
+    const isSingleSelectionField = fieldConfig?.selectionMode === "single";
     const selectedValues = Array.isArray(selectedValue)
       ? selectedValue.filter(Boolean)
       : selectedValue
@@ -138,6 +158,58 @@ export default function QuestionnairePage({
                 >
                   <div style={{ fontSize: 14, marginBottom: 2 }}>{opt.icon}</div>
                   <div>{opt.label}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    if (isSingleSelectionField) {
+      const selectedSingleValue = selectedValues[0] || "";
+
+      return (
+        <div
+          style={{
+            background: isDark
+              ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
+              : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
+            border: isDark ? "1px solid rgba(148,163,184,0.34)" : "1px solid rgba(148,163,184,0.22)",
+            borderRadius: 14,
+            padding: 14,
+          }}
+        >
+          <div style={{ fontSize: 12, color: isDark ? "#e2e8f0" : "#334155", fontWeight: 700, marginBottom: 10 }}>
+            {fieldConfig?.title}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
+            {options.map((opt) => {
+              const isSelected = selectedSingleValue === opt.value;
+
+              return (
+                <button
+                  key={`${fieldKey}-${opt.value}`}
+                  type="button"
+                  onClick={() => onHandleDualTimelineSelect(fieldKey, [opt.value, opt.value])}
+                  style={{
+                    background: isSelected
+                      ? (isDark ? "rgba(37,99,235,0.3)" : "rgba(37,99,235,0.12)")
+                      : (isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.9)"),
+                    border: `1px solid ${isSelected ? "rgba(125,211,252,0.52)" : "rgba(148,163,184,0.22)"}`,
+                    borderRadius: 10,
+                    color: isSelected ? (isDark ? "#bfdbfe" : "#1e3a8a") : (isDark ? "#cbd5e1" : "#475569"),
+                    fontSize: 12,
+                    fontWeight: isSelected ? 800 : 600,
+                    padding: "10px 8px",
+                    lineHeight: 1.3,
+                    cursor: "pointer",
+                    minHeight: 54,
+                    textAlign: "left",
+                  }}
+                >
+                  {opt.label}
                 </button>
               );
             })}
@@ -421,6 +493,117 @@ export default function QuestionnairePage({
         </div>
       </div>
 
+      {currentStep.helpInfo && (
+        <div style={{ marginBottom: 12 }}>
+          <button
+            type="button"
+            onClick={() => setShowHelpInfoModal(true)}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "9px 12px",
+              borderRadius: 10,
+              border: "1px solid rgba(37,99,235,0.24)",
+              background: isDark ? "rgba(37,99,235,0.18)" : "rgba(219,234,254,0.7)",
+              color: isDark ? "#bfdbfe" : "#1d4ed8",
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            <span>ℹ️</span>
+            <span>{currentStep.helpInfo.title}</span>
+          </button>
+
+          {showHelpInfoModal && (
+            <div
+              role="dialog"
+              aria-modal="true"
+              onClick={() => setShowHelpInfoModal(false)}
+              style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(15,23,42,0.45)",
+                display: "grid",
+                placeItems: "center",
+                zIndex: 1000,
+                padding: 16,
+              }}
+            >
+              <div
+                onClick={(event) => event.stopPropagation()}
+                style={{
+                  width: "min(920px, 100%)",
+                  maxHeight: "80vh",
+                  overflow: "auto",
+                  borderRadius: 14,
+                  border: isDark ? "1px solid rgba(148,163,184,0.34)" : "1px solid rgba(148,163,184,0.25)",
+                  background: isDark ? "rgba(15,23,42,0.98)" : "#ffffff",
+                  boxShadow: "0 20px 48px rgba(15,23,42,0.28)",
+                  padding: 16,
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>
+                    {currentStep.helpInfo.title}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowHelpInfoModal(false)}
+                    style={{
+                      border: "1px solid rgba(148,163,184,0.3)",
+                      background: "transparent",
+                      color: isDark ? "#e2e8f0" : "#334155",
+                      borderRadius: 8,
+                      padding: "6px 10px",
+                      fontSize: 12,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Cerrar
+                  </button>
+                </div>
+
+                <div style={{ overflowX: "auto" }}>
+                  <table
+                    style={{
+                      width: "100%",
+                      fontSize: 11,
+                      color: isDark ? "#cbd5e1" : "#475569",
+                      borderCollapse: "collapse",
+                    }}
+                  >
+                    <thead>
+                      <tr style={{ borderBottom: "1px solid rgba(148,163,184,0.35)" }}>
+                        <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>Tipo</th>
+                        <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>Consumo Estimado</th>
+                        <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>Coste/100km</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentStep.helpInfo.table.map((row, idx) => (
+                        <tr
+                          key={idx}
+                          style={{
+                            borderBottom: "1px solid rgba(148,163,184,0.15)",
+                            background: idx % 2 === 0 ? (isDark ? "rgba(255,255,255,0.02)" : "rgba(148,163,184,0.06)") : "transparent",
+                          }}
+                        >
+                          <td style={{ padding: "6px 8px", color: isDark ? "#e2e8f0" : "#334155" }}>{row.type}</td>
+                          <td style={{ padding: "6px 8px" }}>{row.consumption}</td>
+                          <td style={{ padding: "6px 8px", fontWeight: 700, color: "#16a34a" }}>{row.cost}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {currentStep.type !== "dual_timeline" && currentStep.type !== "score_weights" && currentStep.options.map((opt) => {
         const selected =
           currentStep.type === "multi"
@@ -494,9 +677,9 @@ export default function QuestionnairePage({
                           fontSize: 10,
                           fontWeight: 700,
                           letterSpacing: "0.2px",
-                          color: isDark ? "#f8fafc" : "#0f172a",
-                          background: logo?.color || chip.tone || "#334155",
-                          border: "1px solid rgba(255,255,255,0.18)",
+                          color: logo?.color || chip.tone || "#334155",
+                          background: "#ffffff",
+                          border: "1px solid #e2e8f0",
                         }}
                       >
                         {LogoIcon ? <LogoIcon size={14} /> : chip.short}
@@ -544,76 +727,112 @@ export default function QuestionnairePage({
         </div>
       )}
 
-      {currentStep.type === "score_weights" && (
-        <div style={{ display: "grid", gap: 12 }}>
-          <div
-            style={{
-              background: "rgba(37,99,235,0.12)",
-              border: "1px solid rgba(125,211,252,0.25)",
-              borderRadius: 10,
-              padding: "10px 12px",
-              color: "#1e3a8a",
-              fontSize: 12,
-              lineHeight: 1.5,
-            }}
-          >
-            Usa cada número una sola vez: <strong>5 = máxima importancia</strong>, <strong>1 = menor importancia</strong>.
+      {currentStep.type === "score_weights" && (() => {
+        const metrics = currentStep.metrics || [];
+        const order = dragOrder && dragOrder.length === metrics.length ? dragOrder : metrics.map((m) => m.key);
+
+        const handleDragStart = (idx) => {
+          setDragSrcIdx(idx);
+        };
+
+        const handleDragEnter = (idx) => {
+          if (idx === dragSrcIdx) return;
+          setDragOverIdx(idx);
+          const newOrder = [...order];
+          const [moved] = newOrder.splice(dragSrcIdx, 1);
+          newOrder.splice(idx, 0, moved);
+          setDragSrcIdx(idx);
+          setDragOrder(newOrder);
+          // sync scoreWeightsSelection: position 0 = most important = rank N, position N-1 = rank 1
+          const newWeights = {};
+          newOrder.forEach((key, pos) => {
+            newWeights[key] = metrics.length - pos;
+          });
+          onSetScoreWeights(newWeights);
+        };
+
+        const handleDragEnd = () => {
+          setDragSrcIdx(null);
+          setDragOverIdx(null);
+        };
+
+        return (
+          <div style={{ display: "grid", gap: 10 }}>
+            <div
+              style={{
+                background: isDark ? "rgba(37,99,235,0.12)" : "rgba(219,234,254,0.6)",
+                border: "1px solid rgba(125,211,252,0.25)",
+                borderRadius: 10,
+                padding: "10px 14px",
+                color: isDark ? "#93c5fd" : "#1e3a8a",
+                fontSize: 12,
+                lineHeight: 1.5,
+              }}
+            >
+              Arrastra para reordenar · El <strong>primero</strong> tendrá más peso · El <strong>último</strong> menos
+            </div>
+            {order.map((key, pos) => {
+              const metric = metrics.find((m) => m.key === key);
+              if (!metric) return null;
+              const rank = metrics.length - pos; // 5 = top, 1 = bottom
+              const isBeingDragged = dragSrcIdx === pos;
+              return (
+                <div
+                  key={key}
+                  draggable
+                  onDragStart={() => handleDragStart(pos)}
+                  onDragEnter={() => handleDragEnter(pos)}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={(e) => e.preventDefault()}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    background: isBeingDragged
+                      ? isDark ? "rgba(37,99,235,0.22)" : "rgba(219,234,254,0.85)"
+                      : isDark
+                        ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
+                        : "linear-gradient(160deg, rgba(255,255,255,0.97), rgba(241,245,249,0.95))",
+                    border: isBeingDragged
+                      ? "2px dashed rgba(99,102,241,0.6)"
+                      : isDark ? "1px solid rgba(148,163,184,0.34)" : "1px solid rgba(148,163,184,0.22)",
+                    borderRadius: 14,
+                    padding: "12px 14px",
+                    cursor: "grab",
+                    userSelect: "none",
+                    opacity: isBeingDragged ? 0.55 : 1,
+                    transition: "box-shadow 0.15s",
+                    boxShadow: isBeingDragged ? "0 4px 18px rgba(99,102,241,0.18)" : "none",
+                  }}
+                >
+                  {/* drag handle */}
+                  <span style={{ color: isDark ? "#64748b" : "#94a3b8", fontSize: 16, lineHeight: 1, flexShrink: 0 }}>⠿</span>
+                  {/* rank badge */}
+                  <span
+                    style={{
+                      width: 26,
+                      height: 26,
+                      borderRadius: "50%",
+                      background: rank === metrics.length ? "rgba(37,99,235,0.85)" : isDark ? "rgba(51,65,85,0.8)" : "rgba(226,232,240,0.9)",
+                      color: rank === metrics.length ? "#fff" : isDark ? "#94a3b8" : "#475569",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 11,
+                      fontWeight: 800,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {pos + 1}
+                  </span>
+                  <span style={{ fontSize: 18, flexShrink: 0 }}>{metric.icon || "•"}</span>
+                  <span style={{ color: isDark ? "#f8fafc" : "#0f172a", fontSize: 13, fontWeight: 600, flex: 1 }}>{metric.label}</span>
+                </div>
+              );
+            })}
           </div>
-
-          {currentStep.metrics?.map((metric) => {
-            const selectedRank = Number(scoreWeightsSelection?.[metric.key]);
-            const rankOptions = Array.from({ length: currentStep.metrics.length }, (_, idx) => idx + 1);
-
-            return (
-              <div
-                key={metric.key}
-                style={{
-                  background: isDark
-                    ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
-                    : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
-                  border: isDark ? "1px solid rgba(148,163,184,0.34)" : "1px solid rgba(148,163,184,0.22)",
-                  borderRadius: 12,
-                  padding: 12,
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                  <span style={{ fontSize: 16 }}>{metric.icon || "•"}</span>
-                  <span style={{ color: isDark ? "#f8fafc" : "#0f172a", fontSize: 13, fontWeight: 700 }}>{metric.label}</span>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: `repeat(${rankOptions.length}, minmax(0, 1fr))`, gap: 6 }}>
-                  {rankOptions.map((rank) => {
-                    const isSelected = selectedRank === rank;
-                    const inUseByAnother = Object.entries(scoreWeightsSelection || {}).some(
-                      ([key, value]) => key !== metric.key && Number(value) === rank
-                    );
-
-                    return (
-                      <button
-                        key={`${metric.key}-${rank}`}
-                        type="button"
-                        onClick={() => onHandleScoreWeightSelect(metric.key, rank, currentStep.metrics || [])}
-                        style={{
-                          borderRadius: 9,
-                          border: `1px solid ${isSelected ? "rgba(125,211,252,0.52)" : inUseByAnother ? "rgba(251,191,36,0.35)" : "rgba(148,163,184,0.25)"}`,
-                          background: isSelected ? "rgba(37,99,235,0.25)" : inUseByAnother ? "rgba(245,158,11,0.12)" : "transparent",
-                          color: isSelected ? "#1e3a8a" : inUseByAnother ? "#b45309" : "#475569",
-                          fontWeight: 800,
-                          fontSize: 13,
-                          padding: "8px 0",
-                          cursor: "pointer",
-                        }}
-                        title={inUseByAnother && !isSelected ? "Este número ya está asignado a otro criterio" : "Asignar importancia"}
-                      >
-                        {rank}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+        );
+      })()}
 
       {currentStep.type === "multi" && (
         <button
@@ -664,55 +883,6 @@ export default function QuestionnairePage({
             ? "Numera todos los criterios (sin repetir números)"
             : "Continuar →"}
         </button>
-      )}
-
-      {currentStep.helpInfo && (
-        <div
-          style={{
-            marginTop: 20,
-            padding: 14,
-            background: isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)",
-            border: "1px solid rgba(148,163,184,0.25)",
-            borderRadius: 12,
-          }}
-        >
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 10 }}>
-            ℹ️ {currentStep.helpInfo.title}
-          </div>
-          <div style={{ overflowX: "auto" }}>
-            <table
-              style={{
-                width: "100%",
-                fontSize: 11,
-                color: "#475569",
-                borderCollapse: "collapse",
-              }}
-            >
-              <thead>
-                <tr style={{ borderBottom: "1px solid rgba(148,163,184,0.35)" }}>
-                  <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>Tipo</th>
-                  <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>Consumo Estimado</th>
-                  <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>Coste/100km</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentStep.helpInfo.table.map((row, idx) => (
-                  <tr
-                    key={idx}
-                    style={{
-                      borderBottom: "1px solid rgba(148,163,184,0.15)",
-                      background: idx % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent",
-                    }}
-                  >
-                    <td style={{ padding: "6px 8px", color: "#334155" }}>{row.type}</td>
-                    <td style={{ padding: "6px 8px", color: "#475569" }}>{row.consumption}</td>
-                    <td style={{ padding: "6px 8px", fontWeight: 600, color: "#86efac" }}>{row.cost}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
       )}
 
       <div

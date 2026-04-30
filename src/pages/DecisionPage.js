@@ -240,55 +240,54 @@ export default function DecisionPage({
           ];
 
   return (
-    <div style={{...styles.center, maxWidth: 1400}}>
+    <div style={{...styles.center, maxWidth: 1600, padding: "20px"}}>
       <style>
         {`
-          .decision-choice {
-            position: relative;
-            overflow: hidden;
-            border-radius: 13px;
-            border: 1px solid rgba(37,99,235,0.2);
-            box-shadow: 0 8px 18px rgba(15,23,42,0.08);
-            transition: transform 170ms ease, box-shadow 170ms ease, border-color 170ms ease, filter 170ms ease;
-          }
-
-          .decision-choice::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at 90% 8%, rgba(56,189,248,0.16), rgba(56,189,248,0) 45%);
-            pointer-events: none;
-            opacity: 0.85;
-          }
-
-          .decision-choice:hover,
-          .decision-choice:focus-visible {
-            transform: translateY(-2px);
-            border-color: rgba(14,165,233,0.5);
-            box-shadow: 0 14px 24px rgba(14,116,144,0.16), 0 0 18px rgba(14,165,233,0.14);
-            filter: saturate(1.03);
-          }
-
-          .decision-choice.is-active {
-            border-color: rgba(37,99,235,0.58);
-            box-shadow: 0 0 0 1px rgba(37,99,235,0.2) inset, 0 12px 22px rgba(37,99,235,0.16);
+          .decision-sidebar-filter {
+            display: flex;
+            flexWrap: wrap;
+            gap: 6px;
+            marginTop: 8px;
           }
           
-          .decision-layout {
+          .filter-chip {
+            padding: 6px 12px;
+            borderRadius: 20px;
+            border: 1px solid rgba(148,163,184,0.3);
+            background: transparent;
+            cursor: pointer;
+            fontSize: 12px;
+            fontWeight: 500;
+            transition: all 150ms ease;
+            whiteSpace: nowrap;
+          }
+          
+          .filter-chip:hover {
+            borderColor: rgba(37,99,235,0.5);
+            background: rgba(37,99,235,0.08);
+          }
+          
+          .filter-chip.active {
+            background: rgba(37,99,235,0.85);
+            color: white;
+            borderColor: rgba(37,99,235,0.85);
+          }
+          
+          .decision-layout-sidebar {
             display: grid;
-            gridTemplateColumns: 280px 1fr;
+            gridTemplateColumns: 220px 1fr;
             gap: 24px;
             alignItems: start;
           }
           
           @media (max-width: 900px) {
-            .decision-layout {
+            .decision-layout-sidebar {
               gridTemplateColumns: 1fr;
               gap: 20px;
             }
           }
           
-          .decision-filters {
+          .sidebar {
             position: sticky;
             top: 20px;
             maxHeight: calc(100vh - 40px);
@@ -296,307 +295,246 @@ export default function DecisionPage({
             paddingRight: 12px;
           }
           
-          .decision-filters::-webkit-scrollbar {
+          .sidebar::-webkit-scrollbar {
             width: 6px;
           }
           
-          .decision-filters::-webkit-scrollbar-track {
+          .sidebar::-webkit-scrollbar-track {
             background: transparent;
           }
           
-          .decision-filters::-webkit-scrollbar-thumb {
+          .sidebar::-webkit-scrollbar-thumb {
             background: rgba(148,163,184,0.3);
             borderRadius: 3px;
           }
           
-          .decision-results {
+          .results-grid {
+            display: grid;
+            gridTemplateColumns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 14px;
+          }
+          
+          .offer-card {
+            borderRadius: 12px;
+            padding: 14px;
+            border: 1px solid rgba(148,163,184,0.2);
+            background: ${isDark ? "rgba(15,23,42,0.5)" : "rgba(255,255,255,0.98)"};
             display: flex;
             flexDirection: column;
-            gap: 20px;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 150ms ease;
+          }
+          
+          .offer-card:hover {
+            borderColor: rgba(37,99,235,0.3);
+            boxShadow: 0 8px 16px rgba(37,99,235,0.12);
+            transform: translateY(-1px);
           }
         `}
       </style>
 
       {/* Header */}
-      <div style={{ marginBottom: 20, gridColumn: "1/-1" }}>
+      <div style={{ marginBottom: 24 }}>
         <div style={{ ...styles.blockBadge("Vinculación"), marginBottom: 10 }}>{text.marketOffers}</div>
         <h2
           style={{
-            fontSize: "clamp(22px,4vw,30px)",
+            fontSize: "clamp(24px,5vw,32px)",
             fontWeight: 800,
             letterSpacing: "-1px",
-            margin: "0 0 10px",
+            margin: "0 0 8px",
             color: titleColor,
           }}
         >
           {text.title}
         </h2>
-        <p style={{ color: mutedColor, fontSize: 14, lineHeight: 1.7, margin: "0 0 24px" }}>
+        <p style={{ color: mutedColor, fontSize: 13, lineHeight: 1.6, margin: 0 }}>
           {text.subtitle}
         </p>
       </div>
 
-      {/* Two-column layout */}
-      <div className="decision-layout" style={{ gridColumn: "1/-1" }}>
-        {/* LEFT: Filters */}
-        <div className="decision-filters">
-          {/* Operation type */}
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 11, color: "#475569", marginBottom: 10, letterSpacing: "0.6px", fontWeight: 700 }}>
+      {/* Two-column sidebar layout */}
+      <div className="decision-layout-sidebar">
+        {/* LEFT SIDEBAR: Filters */}
+        <div className="sidebar">
+          {/* Operation */}
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8, letterSpacing: "0.5px", fontWeight: 700, textTransform: "uppercase" }}>
               {text.operationType}
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {operationChoices.map(([value, label, icon]) => (
+            <div className="decision-sidebar-filter">
+              {operationChoices.map(([value, label]) => (
                 <button
                   key={value}
-                  style={styles.card(effectiveOperation === value)}
-                  className={`decision-choice ${effectiveOperation === value ? "is-active" : ""}`}
+                  className={`filter-chip ${effectiveOperation === value ? "active" : ""}`}
                   onClick={() => {
                     if (lockedOperation) return;
                     updateDecisionAnswer("operation", value);
                     updateDecisionAnswer("acquisition", value === "renting" ? "particular" : "contado");
                   }}
+                  disabled={lockedOperation !== null}
+                  style={{ opacity: lockedOperation && lockedOperation !== value ? 0.5 : 1 }}
                 >
-                  <span style={{ fontSize: 18, minWidth: 24 }}>{icon}</span>
-                  <div style={{ fontWeight: 700, fontSize: 13, color: titleColor }}>{label}</div>
+                  {label}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Brand & Model */}
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
-              <div style={{ fontSize: 11, color: "#475569", letterSpacing: "0.6px", fontWeight: 700 }}>
-                {text.brandModel}
+          {/* Brand */}
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8, letterSpacing: "0.5px", fontWeight: 700, textTransform: "uppercase" }}>
+              {text.brand}
+            </div>
+            <select
+              value={decisionAnswers.brand}
+              onChange={(event) => {
+                updateDecisionAnswer("hasBrand", "si");
+                updateDecisionAnswer("brand", event.target.value);
+              }}
+              style={{...styles.select, width: "100%", fontSize: 12}}
+            >
+              <option value="">{text.selectBrand}</option>
+              {visibleBrands.slice(0, 15).map((brand) => (
+                <option key={brand} value={brand}>
+                  {brand}
+                </option>
+              ))}
+              {visibleBrands.length > 15 && <option value="__MORE__">+ Más marcas</option>}
+            </select>
+          </div>
+
+          {/* Model */}
+          {decisionAnswers.brand && (
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8, letterSpacing: "0.5px", fontWeight: 700, textTransform: "uppercase" }}>
+                {text.model}
               </div>
-              <span
-                style={{
-                  fontSize: 9,
-                  fontWeight: 700,
-                  borderRadius: 999,
-                  padding: "2px 6px",
-                  border: isApiCatalogActive ? "1px solid rgba(16,185,129,0.35)" : "1px solid rgba(245,158,11,0.35)",
-                  background: isApiCatalogActive ? "rgba(16,185,129,0.12)" : "rgba(245,158,11,0.14)",
-                  color: isApiCatalogActive ? "#065f46" : "#92400e",
-                }}
-                title={isApiCatalogActive ? text.apiCatalogTitle : text.fallbackCatalogTitle}
+              <select
+                value={decisionAnswers.model}
+                onChange={(event) => updateDecisionAnswer("model", event.target.value)}
+                style={{...styles.select, width: "100%", fontSize: 12}}
               >
-                {isApiCatalogActive ? "API" : "FB"}
-              </span>
+                <option value="">{text.selectModel}</option>
+                {decisionModels.map((model) => (
+                  <option key={model} value={model}>
+                    {model}
+                  </option>
+                ))}
+              </select>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8 }}>
-              <div>
-                <div style={{ fontSize: 10, color: "#64748b", marginBottom: 6 }}>{text.brand}</div>
-                <select
-                  value={decisionAnswers.brand}
-                  onChange={(event) => {
-                    if (event.target.value === "__SHOW_MORE_BRANDS__") {
-                      setShowAllBrands(true);
-                      updateDecisionAnswer("hasBrand", "si");
-                      updateDecisionAnswer("brand", "");
-                      return;
-                    }
-                    updateDecisionAnswer("hasBrand", "si");
-                    updateDecisionAnswer("brand", event.target.value);
-                  }}
-                  style={{...styles.select, fontSize: 12}}
+          )}
+
+          {/* Price */}
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8, letterSpacing: "0.5px", fontWeight: 700, textTransform: "uppercase" }}>
+              {text.priceRange}
+            </div>
+            <div className="decision-sidebar-filter">
+              {PRICE_MARKS.slice(0, -1).map((mark, idx) => {
+                const nextMark = PRICE_MARKS[idx + 1];
+                const label = idx === 0 ? `${mark/1000|0}k` : `${mark/1000|0}k-${nextMark/1000|0}k`;
+                const isInRange = mark >= PRICE_MARKS[priceFromIndex] && mark <= PRICE_MARKS[priceToIndex];
+                return (
+                  <button
+                    key={mark}
+                    className={`filter-chip ${isInRange ? "active" : ""}`}
+                    onClick={() => {
+                      setPriceFromIndex(idx);
+                      setPriceToIndex(Math.min(idx + 2, PRICE_MARKS.length - 1));
+                      updateDecisionAnswer("priceMin", PRICE_MARKS[idx]);
+                      updateDecisionAnswer("priceMax", PRICE_MARKS[Math.min(idx + 2, PRICE_MARKS.length - 1)]);
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Fuel */}
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8, letterSpacing: "0.5px", fontWeight: 700, textTransform: "uppercase" }}>
+              {text.fuel}
+            </div>
+            <div className="decision-sidebar-filter">
+              {FUEL_FILTER_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  className={`filter-chip ${decisionAnswers.fuelFilter === opt.value ? "active" : ""}`}
+                  onClick={() => updateDecisionAnswer("fuelFilter", opt.value)}
                 >
-                  <option value="">{text.selectBrand}</option>
-                  {visibleBrands.map((brand) => (
-                    <option key={brand} value={brand}>
-                      {brand}
-                    </option>
-                  ))}
-                  {!shouldShowAllBrands && otherBrands.length > 0 && (
-                    <option value="__SHOW_MORE_BRANDS__">{text.moreBrands} ({otherBrands.length})</option>
-                  )}
-                </select>
-              </div>
-              <div>
-                <div style={{ fontSize: 10, color: "#64748b", marginBottom: 6 }}>{text.model}</div>
-                <select
-                  value={decisionAnswers.model}
-                  onChange={(event) => {
-                    updateDecisionAnswer("hasBrand", "si");
-                    updateDecisionAnswer("model", event.target.value);
-                  }}
-                  disabled={!decisionAnswers.brand}
-                  style={{
-                    ...styles.select,
-                    opacity: decisionAnswers.brand ? 1 : 0.55,
-                    fontSize: 12,
-                  }}
-                >
-                  <option value="">{text.selectModel}</option>
-                  {decisionModels.map((model) => (
-                    <option key={model} value={model}>
-                      {model}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  {opt.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Price Filter */}
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8, fontWeight: 700 }}>{text.priceRange}</div>
-            <div style={{ ...styles.panel, padding: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 6, fontSize: 10, color: "#334155", marginBottom: 4 }}>
-                <span>{formatEuro(PRICE_MARKS[priceFromIndex])}</span>
-                <span>{formatEuro(PRICE_MARKS[priceToIndex])}</span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={PRICE_MARKS.length - 2}
-                step={1}
-                value={priceFromIndex}
-                onChange={(event) => {
-                  const nextFrom = Math.min(Number(event.target.value), priceToIndex - 1);
-                  setPriceFromIndex(nextFrom);
-                  updateDecisionAnswer("priceMin", PRICE_MARKS[nextFrom]);
-                }}
-                style={{ width: "100%" }}
-              />
-              <input
-                type="range"
-                min={1}
-                max={PRICE_MARKS.length - 1}
-                step={1}
-                value={priceToIndex}
-                onChange={(event) => {
-                  const nextTo = Math.max(Number(event.target.value), priceFromIndex + 1);
-                  setPriceToIndex(nextTo);
-                  updateDecisionAnswer("priceMax", PRICE_MARKS[nextTo]);
-                  updateDecisionAnswer("cashBudget", PRICE_FILTER_BY_TO_INDEX[nextTo] || "mas_150000");
-                }}
-                style={{ width: "100%", marginTop: 4 }}
-              />
+          {/* Age */}
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8, letterSpacing: "0.5px", fontWeight: 700, textTransform: "uppercase" }}>
+              {text.ageRange}
+            </div>
+            <div className="decision-sidebar-filter">
+              {AGE_MARKS.slice(0, -1).map((mark, idx) => {
+                const nextMark = AGE_MARKS[idx + 1];
+                const isInRange = mark >= AGE_MARKS[ageFromIndex] && mark <= AGE_MARKS[ageToIndex];
+                return (
+                  <button
+                    key={mark}
+                    className={`filter-chip ${isInRange ? "active" : ""}`}
+                    onClick={() => {
+                      setAgeFromIndex(idx);
+                      setAgeToIndex(Math.min(idx + 2, AGE_MARKS.length - 1));
+                      updateDecisionAnswer("ageMin", AGE_MARKS[idx]);
+                      updateDecisionAnswer("ageMax", AGE_MARKS[Math.min(idx + 2, AGE_MARKS.length - 1)]);
+                    }}
+                  >
+                    {mark}-{nextMark}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Age Filter */}
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8, fontWeight: 700 }}>{text.ageRange}</div>
-            <div style={{ ...styles.panel, padding: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 6, fontSize: 10, color: "#334155", marginBottom: 4 }}>
-                <span>{formatYears(AGE_MARKS[ageFromIndex])}</span>
-                <span>{ageToIndex >= AGE_MARKS.length - 1 ? text.noLimit : formatYears(AGE_MARKS[ageToIndex])}</span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={AGE_MARKS.length - 2}
-                step={1}
-                value={ageFromIndex}
-                onChange={(event) => {
-                  const nextFrom = Math.min(Number(event.target.value), ageToIndex - 1);
-                  setAgeFromIndex(nextFrom);
-                  updateDecisionAnswer("ageMin", AGE_MARKS[nextFrom]);
-                }}
-                style={{ width: "100%" }}
-              />
-              <input
-                type="range"
-                min={1}
-                max={AGE_MARKS.length - 1}
-                step={1}
-                value={ageToIndex}
-                onChange={(event) => {
-                  const nextTo = Math.max(Number(event.target.value), ageFromIndex + 1);
-                  setAgeToIndex(nextTo);
-                  updateDecisionAnswer("ageMax", nextTo >= AGE_MARKS.length - 1 ? null : AGE_MARKS[nextTo]);
-                  updateDecisionAnswer("ageFilter", AGE_FILTER_BY_TO_INDEX[nextTo] || "all");
-                }}
-                style={{ width: "100%", marginTop: 4 }}
-              />
+          {/* Mileage */}
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8, letterSpacing: "0.5px", fontWeight: 700, textTransform: "uppercase" }}>
+              {text.mileageRange}
             </div>
-          </div>
-
-          {/* Mileage Filter */}
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8, fontWeight: 700 }}>{text.mileageRange}</div>
-            <div style={{ ...styles.panel, padding: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 6, fontSize: 10, color: "#334155", marginBottom: 4 }}>
-                <span>{formatKm(MILEAGE_MARKS[mileageFromIndex])}</span>
-                <span>{mileageToIndex >= MILEAGE_MARKS.length - 1 ? text.noLimit : formatKm(MILEAGE_MARKS[mileageToIndex])}</span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={MILEAGE_MARKS.length - 2}
-                step={1}
-                value={mileageFromIndex}
-                onChange={(event) => {
-                  const nextFrom = Math.min(Number(event.target.value), mileageToIndex - 1);
-                  setMileageFromIndex(nextFrom);
-                  updateDecisionAnswer("mileageMin", MILEAGE_MARKS[nextFrom]);
-                }}
-                style={{ width: "100%" }}
-              />
-              <input
-                type="range"
-                min={1}
-                max={MILEAGE_MARKS.length - 1}
-                step={1}
-                value={mileageToIndex}
-                onChange={(event) => {
-                  const nextTo = Math.max(Number(event.target.value), mileageFromIndex + 1);
-                  setMileageToIndex(nextTo);
-                  updateDecisionAnswer("mileageMax", nextTo >= MILEAGE_MARKS.length - 1 ? null : MILEAGE_MARKS[nextTo]);
-                  updateDecisionAnswer("mileageFilter", MILEAGE_FILTER_BY_TO_INDEX[nextTo] || "all");
-                }}
-                style={{ width: "100%", marginTop: 4 }}
-              />
-            </div>
-          </div>
-
-          {/* Power Filter */}
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8, fontWeight: 700 }}>{text.powerRange}</div>
-            <div style={{ ...styles.panel, padding: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 6, fontSize: 10, color: "#334155", marginBottom: 4 }}>
-                <span>{formatPower(POWER_MARKS[powerFromIndex])}</span>
-                <span>{formatPower(POWER_MARKS[powerToIndex])}</span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={POWER_MARKS.length - 2}
-                step={1}
-                value={powerFromIndex}
-                onChange={(event) => {
-                  const nextFrom = Math.min(Number(event.target.value), powerToIndex - 1);
-                  setPowerFromIndex(nextFrom);
-                  updateDecisionAnswer("powerMin", POWER_MARKS[nextFrom]);
-                }}
-                style={{ width: "100%" }}
-              />
-              <input
-                type="range"
-                min={1}
-                max={POWER_MARKS.length - 1}
-                step={1}
-                value={powerToIndex}
-                onChange={(event) => {
-                  const nextTo = Math.max(Number(event.target.value), powerFromIndex + 1);
-                  setPowerToIndex(nextTo);
-                  updateDecisionAnswer("powerMax", POWER_MARKS[nextTo]);
-                }}
-                style={{ width: "100%", marginTop: 4 }}
-              />
+            <div className="decision-sidebar-filter">
+              {MILEAGE_MARKS.slice(0, -1).map((mark, idx) => {
+                const nextMark = MILEAGE_MARKS[idx + 1];
+                const label = `${mark/1000|0}-${nextMark/1000|0}k`;
+                const isInRange = mark >= MILEAGE_MARKS[mileageFromIndex] && mark <= MILEAGE_MARKS[mileageToIndex];
+                return (
+                  <button
+                    key={mark}
+                    className={`filter-chip ${isInRange ? "active" : ""}`}
+                    onClick={() => {
+                      setMileageFromIndex(idx);
+                      setMileageToIndex(Math.min(idx + 2, MILEAGE_MARKS.length - 1));
+                      updateDecisionAnswer("mileageMin", MILEAGE_MARKS[idx]);
+                      updateDecisionAnswer("mileageMax", MILEAGE_MARKS[Math.min(idx + 2, MILEAGE_MARKS.length - 1)]);
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* Location */}
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8, fontWeight: 700 }}>{text.location}</div>
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8, letterSpacing: "0.5px", fontWeight: 700, textTransform: "uppercase" }}>
+              {text.location}
+            </div>
             <select
               value={decisionAnswers.location || "toda_espana"}
               onChange={(event) => updateDecisionAnswer("location", event.target.value)}
-              style={{...styles.select, fontSize: 12}}
+              style={{...styles.select, width: "100%", fontSize: 12}}
             >
               {LOCATION_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -606,36 +544,20 @@ export default function DecisionPage({
             </select>
           </div>
 
-          {/* Fuel */}
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8, fontWeight: 700 }}>{text.fuel}</div>
-            <select
-              value={decisionAnswers.fuelFilter || "cualquiera"}
-              onChange={(event) => updateDecisionAnswer("fuelFilter", event.target.value)}
-              style={{...styles.select, fontSize: 12}}
-            >
-              {FUEL_FILTER_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Action buttons */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 12, borderTop: `1px solid ${isDark ? "rgba(148,163,184,0.2)" : "rgba(148,163,184,0.2)"}` }}>
-            <button onClick={onSwitchToAdvice} style={{...styles.btn, width: "100%", fontSize: 12}}>
+          {/* Action Buttons */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 12, borderTop: `1px solid ${isDark ? "rgba(148,163,184,0.15)" : "rgba(148,163,184,0.15)"}` }}>
+            <button onClick={onSwitchToAdvice} style={{...styles.btn, width: "100%", fontSize: 11, padding: "8px 12px"}}>
               {text.switchFlow}
             </button>
             <button
               onClick={onRestart}
               style={{
                 background: isDark ? "rgba(255,255,255,0.05)" : "rgba(15,23,42,0.04)",
-                border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(15,23,42,0.16)",
+                border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(15,23,42,0.12)",
                 color: isDark ? "#94a3b8" : "#334155",
-                padding: "10px 12px",
-                borderRadius: 10,
-                fontSize: 12,
+                padding: "8px 12px",
+                borderRadius: 8,
+                fontSize: 11,
                 cursor: "pointer",
                 width: "100%",
               }}
@@ -646,121 +568,100 @@ export default function DecisionPage({
         </div>
 
         {/* RIGHT: Results */}
-        <div className="decision-results">
-          {decisionFlowReady ? (
-            <div style={{ fontSize: 12, color: panelBodyColor, fontWeight: 600 }}>
-              {text.directOffers}
+        <div>
+          <div style={{ marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+            <div style={{ fontSize: 12, color: mutedColor }}>
+              {decisionMarketListings.length} {text.realOffers}
             </div>
-          ) : (
-            <p style={{ color: "#64748b", fontSize: 13 }}>
-              {text.completeFilters}
-            </p>
+            {decisionFlowReady && (
+              <button
+                type="button"
+                onClick={onRecalculateDecisionMarketOffers}
+                disabled={decisionMarketLoading}
+                style={{
+                  background: "transparent",
+                  border: `1px solid ${isDark ? "rgba(148,163,184,0.4)" : "rgba(37,99,235,0.32)"}`,
+                  color: accentColor,
+                  borderRadius: 8,
+                  padding: "6px 10px",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: decisionMarketLoading ? "default" : "pointer",
+                  opacity: decisionMarketLoading ? 0.7 : 1,
+                }}
+              >
+                {decisionMarketLoading ? text.recalculating : "Recalcular"}
+              </button>
+            )}
+          </div>
+
+          {decisionMarketError && (
+            <div
+              style={{
+                background: "rgba(239,68,68,0.08)",
+                border: "1px solid rgba(239,68,68,0.18)",
+                borderRadius: 10,
+                padding: 12,
+                color: "#b91c1c",
+                fontSize: 12,
+                marginBottom: 12,
+              }}
+            >
+              {decisionMarketError}
+            </div>
           )}
 
-          {decisionFlowReady && (
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 16, flexWrap: "wrap" }}>
-                <div style={{ fontSize: 12, color: accentColor, letterSpacing: "0.5px", fontWeight: 700 }}>
-                  {text.realOffers}
-                </div>
-                <button
-                  type="button"
-                  onClick={onRecalculateDecisionMarketOffers}
-                  disabled={decisionMarketLoading}
-                  style={{
-                    background: "transparent",
-                    border: `1px solid ${isDark ? "rgba(148,163,184,0.4)" : "rgba(37,99,235,0.32)"}`,
-                    color: accentColor,
-                    borderRadius: 10,
-                    padding: "8px 12px",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    cursor: decisionMarketLoading ? "default" : "pointer",
-                    opacity: decisionMarketLoading ? 0.7 : 1,
-                  }}
+          {!decisionFlowReady && (
+            <div style={{ ...styles.panel, fontSize: 12, color: panelBodyColor }}>
+              {text.completeFilters}
+            </div>
+          )}
+
+          {decisionFlowReady && decisionMarketLoading && (
+            <div style={{ ...styles.panel, fontSize: 12, color: panelBodyColor }}>
+              {text.loadingOffers}
+            </div>
+          )}
+
+          {decisionFlowReady && !decisionMarketLoading && decisionMarketListings.length === 0 && (
+            <div style={{ ...styles.panel, fontSize: 12, color: panelBodyColor }}>
+              {text.noOffers}
+            </div>
+          )}
+
+          {decisionFlowReady && decisionMarketListings.length > 0 && (
+            <div className="results-grid">
+              {decisionMarketListings.map((offer, index) => (
+                <a
+                  key={`${offer.url || index}`}
+                  href={offer.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: "none" }}
                 >
-                  {decisionMarketLoading ? text.recalculating : text.recalculateOffer}
-                </button>
-              </div>
-
-              {decisionMarketLoading && (
-                <div style={{ ...styles.panel, fontSize: 12, color: panelBodyColor }}>
-                  {text.loadingOffers}
-                </div>
-              )}
-
-              {decisionMarketError && (
-                <div
-                  style={{
-                    background: "rgba(239,68,68,0.08)",
-                    border: "1px solid rgba(239,68,68,0.18)",
-                    borderRadius: 12,
-                    padding: 12,
-                    color: "#b91c1c",
-                    fontSize: 12,
-                    marginBottom: 10,
-                  }}
-                >
-                  {decisionMarketError}
-                </div>
-              )}
-
-              {!decisionMarketLoading && !decisionMarketError && decisionMarketListings.length === 0 && decisionFlowReady && (
-                <div style={{ ...styles.panel, fontSize: 12, color: panelBodyColor }}>
-                  <div>{text.noOffers}</div>
-                  {decisionMarketInsight && (
-                    <div style={{ marginTop: 8, color: panelTitleColor, lineHeight: 1.6, fontSize: 11 }}>
-                      {decisionMarketInsight}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
-                {decisionMarketListings.map((offer, index) => (
-                  <div key={`${offer.url || offer.title || "offer"}-${index}`} style={{...styles.panel, display: "flex", flexDirection: "column"}}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 10, alignItems: "flex-start" }}>
-                      <div>
-                        <div style={{ fontSize: 10, color: accentColor, marginBottom: 4, fontWeight: 700 }}>
-                          #{index + 1} · {Number(offer.rankingScore ?? offer.profileScore ?? 0)}/100
-                        </div>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: panelTitleColor }}>
-                          {offer.title}
-                        </div>
+                  <div className="offer-card">
+                    <div>
+                      <div style={{ fontSize: 10, color: accentColor, fontWeight: 700, marginBottom: 4 }}>
+                        {offer.listingType === "renting" ? "Renting" : text.directBuy}
                       </div>
-                      <div style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                        <div style={{ fontSize: 16, fontWeight: 800, color: panelTitleColor }}>
-                          {offer.price || text.priceNotVisible}
-                        </div>
-                        <div style={{ fontSize: 11, color: accentColor, marginTop: 4 }}>
-                          {offer.listingType === "renting" ? "Renting" : text.directBuy}
-                        </div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: panelTitleColor, marginBottom: 4 }}>
+                        {offer.title}
+                      </div>
+                      <div style={{ fontSize: 11, color: panelBodyColor, lineHeight: 1.4 }}>
+                        {offer.description?.substring(0, 60)}...
                       </div>
                     </div>
-                    <p style={{ margin: "0 0 8px", fontSize: 11, color: panelBodyColor, lineHeight: 1.5, flex: 1 }}>
-                      {offer.description || text.listingFallback}
-                    </p>
-                    <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8 }}>
-                      {offer.source || text.provider}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", paddingTop: 8, borderTop: `1px solid ${isDark ? "rgba(148,163,184,0.1)" : "rgba(148,163,184,0.1)"}` }}>
+                      <div style={{ fontSize: 10, color: "#64748b" }}>
+                        {offer.source || text.provider}
+                      </div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: panelTitleColor }}>
+                        {offer.price}
+                      </div>
                     </div>
-                    {offer.url && (
-                      <a
-                        href={offer.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          color: accentColor,
-                          fontSize: 11,
-                          fontWeight: 700,
-                          textDecoration: "none",
-                        }}
-                      >
-                        {text.openListing} →
-                      </a>
-                    )}
                   </div>
-                ))}
-              </div>
+                </a>
+              ))}
             </div>
           )}
         </div>

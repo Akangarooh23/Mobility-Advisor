@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   getGarageVehiclesJson,
   postGarageVehicleAddJson,
@@ -13,7 +13,8 @@ import {
 } from "../../utils/apiClient";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
-const MAX_ATTACHMENT_BYTES = 2 * 1024 * 1024;
+const IDCAR_PENDING_ACTION_KEY = "movilidad-advisor.idcar.action";
+const MAX_ATTACHMENT_BYTES = 12 * 1024 * 1024;
 
 function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -35,10 +36,10 @@ function normalizeAttachmentItem(input = {}) {
   }
 
   const normalized = {
-    name: normalizeText(safeInput?.name),
+    name: normalizeText(safeInput?.name || safeInput?.fileName),
     size: Number(safeInput?.size || 0),
-    mimeType: normalizeText(safeInput?.mimeType),
-    contentBase64: normalizeText(safeInput?.contentBase64),
+    mimeType: normalizeText(safeInput?.mimeType || safeInput?.fileMimeType),
+    contentBase64: normalizeText(safeInput?.contentBase64 || safeInput?.storageKey),
     previewUrl: normalizeText(safeInput?.previewUrl),
     url: normalizeText(safeInput?.url),
     src: normalizeText(safeInput?.src),
@@ -86,11 +87,27 @@ function normalizeVehicleAttachmentCollections(vehicle = {}) {
     circulationPermitDocuments: normalizeAttachmentCollection(vehicle?.circulationPermitDocuments),
     itvDocuments: normalizeAttachmentCollection(vehicle?.itvDocuments),
     insuranceDocuments: normalizeAttachmentCollection(vehicle?.insuranceDocuments),
+    maintenanceInvoices: normalizeAttachmentCollection(vehicle?.maintenanceInvoices),
     initialMaintenance: {
       ...initialMaintenance,
       invoices: normalizeAttachmentCollection(initialMaintenance?.invoices),
     },
   };
+}
+
+function getVehicleStoredDocumentsCount(vehicle = {}) {
+  const legacyDocuments = Array.isArray(vehicle?.documents) ? vehicle.documents.length : 0;
+  const technicalSheetDocuments = Array.isArray(vehicle?.technicalSheetDocuments) ? vehicle.technicalSheetDocuments.length : 0;
+  const circulationPermitDocuments = Array.isArray(vehicle?.circulationPermitDocuments) ? vehicle.circulationPermitDocuments.length : 0;
+  const itvDocuments = Array.isArray(vehicle?.itvDocuments) ? vehicle.itvDocuments.length : 0;
+  const insuranceDocuments = Array.isArray(vehicle?.insuranceDocuments) ? vehicle.insuranceDocuments.length : 0;
+  const maintenanceInvoices = Array.isArray(vehicle?.maintenanceInvoices)
+    ? vehicle.maintenanceInvoices.length
+    : Array.isArray(vehicle?.initialMaintenance?.invoices)
+      ? vehicle.initialMaintenance.invoices.length
+      : 0;
+
+  return legacyDocuments + technicalSheetDocuments + circulationPermitDocuments + itvDocuments + insuranceDocuments + maintenanceInvoices;
 }
 
 function getGarageStorageKey(currentUserEmail = "") {
@@ -187,6 +204,14 @@ function resolvePhotoPreviewSrc(photo = {}) {
   return externalSource;
 }
 
+function resolveAttachmentLink(file = {}) {
+  const pathLink = normalizeText(file?.path);
+  if (pathLink) return pathLink;
+  const urlLink = normalizeText(file?.url);
+  if (urlLink) return urlLink;
+  return "";
+}
+
 function fileToBase64DataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -208,10 +233,13 @@ async function filesToAttachmentPayload(files = []) {
 
     const size = Number(file?.size || 0);
     const mimeType = normalizeText(file?.type);
-    const contentBase64 = size > 0 && size <= MAX_ATTACHMENT_BYTES ? await fileToBase64DataUrl(file) : "";
+    const contentBase64 = size > 0 && size <= MAX_ATTACHMENT_BYTES
+      ? (await fileToBase64DataUrl(file)).split(",")[1] || ""
+      : "";
 
     payload.push({
       name,
+      fileName: name,
       size,
       mimeType,
       contentBase64,
@@ -548,6 +576,69 @@ export default function UserDashboardVehicles({
     { owned: 0, activeSale: 0, sold: 0 }
   );
 
+  const editingVehicle = editingVehicleId
+    ? myVehicles.find((item) => normalizeText(item?.id) === normalizeText(editingVehicleId)) || null
+    : null;
+
+  const storedPhotosCount = Array.isArray(editingVehicle?.photos) ? editingVehicle.photos.length : 0;
+  const storedLegacyDocumentsCount = Array.isArray(editingVehicle?.documents) ? editingVehicle.documents.length : 0;
+  const storedTechnicalSheetDocumentsCount = Array.isArray(editingVehicle?.technicalSheetDocuments) ? editingVehicle.technicalSheetDocuments.length : 0;
+  const storedCirculationPermitDocumentsCount = Array.isArray(editingVehicle?.circulationPermitDocuments) ? editingVehicle.circulationPermitDocuments.length : 0;
+  const storedItvDocumentsCount = Array.isArray(editingVehicle?.itvDocuments) ? editingVehicle.itvDocuments.length : 0;
+  const storedInsuranceDocumentsCount = Array.isArray(editingVehicle?.insuranceDocuments) ? editingVehicle.insuranceDocuments.length : 0;
+  const storedMaintenanceInvoicesCount = Array.isArray(editingVehicle?.maintenanceInvoices)
+    ? editingVehicle.maintenanceInvoices.length
+    : Array.isArray(editingVehicle?.initialMaintenance?.invoices)
+      ? editingVehicle.initialMaintenance.invoices.length
+      : 0;
+
+  const storedVehicleDocumentsEditorCount =
+    storedPhotosCount +
+    storedLegacyDocumentsCount +
+    storedTechnicalSheetDocumentsCount +
+    storedCirculationPermitDocumentsCount +
+    storedItvDocumentsCount;
+
+  const storedPhotos = Array.isArray(editingVehicle?.photos) ? editingVehicle.photos : [];
+  const storedLegacyDocuments = Array.isArray(editingVehicle?.documents) ? editingVehicle.documents : [];
+  const storedTechnicalSheetDocuments = Array.isArray(editingVehicle?.technicalSheetDocuments) ? editingVehicle.technicalSheetDocuments : [];
+  const storedCirculationPermitDocuments = Array.isArray(editingVehicle?.circulationPermitDocuments) ? editingVehicle.circulationPermitDocuments : [];
+  const storedItvDocuments = Array.isArray(editingVehicle?.itvDocuments) ? editingVehicle.itvDocuments : [];
+  const storedInsuranceDocuments = Array.isArray(editingVehicle?.insuranceDocuments) ? editingVehicle.insuranceDocuments : [];
+  const storedMaintenanceInvoices = Array.isArray(editingVehicle?.maintenanceInvoices)
+    ? editingVehicle.maintenanceInvoices
+    : Array.isArray(editingVehicle?.initialMaintenance?.invoices)
+      ? editingVehicle.initialMaintenance.invoices
+      : [];
+
+  const renderStoredAttachmentPreview = (files = []) => {
+    if (!Array.isArray(files) || files.length === 0) {
+      return null;
+    }
+
+    return (
+      <div style={{ border: cardBorder, borderRadius: 10, background: isDark ? "rgba(15,23,42,0.36)" : "#ffffff", padding: "8px 10px" }}>
+        <div style={{ fontSize: 10.5, color: bodyColor, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
+          Guardados en ficha
+        </div>
+        <div style={{ display: "grid", gap: 4 }}>
+          {files.slice(0, 3).map((file, index) => {
+            const link = resolveAttachmentLink(file);
+            const name = normalizeText(file?.name) || `Archivo ${index + 1}`;
+            return (
+              <div key={`${name}-${index}`} style={{ fontSize: 11.5, color: bodyColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                • {link
+                  ? <a href={link} target="_blank" rel="noreferrer" style={{ color: "#1d4ed8", textDecoration: "none", fontWeight: 600 }}>{name}</a>
+                  : name}
+              </div>
+            );
+          })}
+          {files.length > 3 ? <div style={{ fontSize: 11, color: bodyColor }}>+{files.length - 3} archivo(s) más</div> : null}
+        </div>
+      </div>
+    );
+  };
+
   const updateVehicleForm = (field, value) => {
     setVehicleForm((prev) => ({
       ...prev,
@@ -674,11 +765,12 @@ export default function UserDashboardVehicles({
       circulationPermitDocuments: [...(Array.isArray(existingVehicle?.circulationPermitDocuments) ? existingVehicle.circulationPermitDocuments : []), ...circulationPermitDocumentsPayload],
       itvDocuments: [...(Array.isArray(existingVehicle?.itvDocuments) ? existingVehicle.itvDocuments : []), ...itvDocumentsPayload],
       insuranceDocuments: [...(Array.isArray(existingVehicle?.insuranceDocuments) ? existingVehicle.insuranceDocuments : []), ...insuranceDocumentsPayload],
+      maintenanceInvoices: [...(Array.isArray(existingVehicle?.maintenanceInvoices) ? existingVehicle.maintenanceInvoices : []), ...maintenanceInvoicesPayload],
       initialMaintenance: {
         type: normalizeText(vehicleForm.maintenanceType || "maintenance"),
         title: normalizeText(vehicleForm.maintenanceTitle),
         notes: normalizeText(vehicleForm.maintenanceNotes),
-        invoices: maintenanceInvoicesPayload,
+        invoices: [...(Array.isArray(existingVehicle?.initialMaintenance?.invoices) ? existingVehicle.initialMaintenance.invoices : []), ...maintenanceInvoicesPayload],
       },
       createdAt: existingVehicle?.createdAt || new Date().toISOString(),
     };
@@ -861,14 +953,41 @@ export default function UserDashboardVehicles({
     setVehicleFeedback("Vehículo eliminado de Mis vehículos.");
   };
 
-  const startCreatingVehicle = () => {
+  const startCreatingVehicle = useCallback(() => {
     setEditingVehicleId("");
     setShowNewVehicleForm(true);
     setVehicleWorkspaceMode("editor");
     setManagementVehicleId("");
     setVehicleCatalogMode("erp");
     setVehicleFeedback("Completa los apartados y guarda tu nuevo vehículo.");
-  };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const pendingAction = normalizeText(window.sessionStorage.getItem(IDCAR_PENDING_ACTION_KEY)).toLowerCase();
+
+    if (!pendingAction) {
+      return;
+    }
+
+    window.sessionStorage.removeItem(IDCAR_PENDING_ACTION_KEY);
+    setActiveVehicleTab("my-garage");
+
+    if (pendingAction === "create") {
+      startCreatingVehicle();
+      return;
+    }
+
+    if (pendingAction === "manage") {
+      setShowNewVehicleForm(false);
+      setVehicleWorkspaceMode("list");
+      setManagementVehicleId("");
+      setVehicleFeedback("Gestiona tus IDCars desde tu garage.");
+    }
+  }, [startCreatingVehicle]);
 
   const requestValuationForVehicle = (vehicle = {}, feedbackPrefix = "Tasación iniciada para") => {
     const vehicleTitle = normalizeText(vehicle?.title || `${vehicle?.brand || ""} ${vehicle?.model || ""}`.trim());
@@ -1642,6 +1761,7 @@ export default function UserDashboardVehicles({
                   <span style={{ fontSize: 11, opacity: 0.95 }}>{pendingPhotos.length} seleccionadas</span>
                 </button>
                 <span style={{ fontSize: 11, color: "#1d4ed8", fontWeight: 700 }}>JPG, PNG, WEBP · selección múltiple</span>
+                {renderStoredAttachmentPreview(storedPhotos)}
               </div>
               <div style={{ display: "grid", gap: 7, fontSize: 12, color: bodyColor }}>
                 <div>Documentación (PDF/imagen)</div>
@@ -1677,6 +1797,7 @@ export default function UserDashboardVehicles({
                   <span style={{ fontSize: 11, opacity: 0.95 }}>{pendingDocuments.length} seleccionados</span>
                 </button>
                 <span style={{ fontSize: 11, color: "#0f766e", fontWeight: 700 }}>PDF, JPG, PNG · selección múltiple</span>
+                {renderStoredAttachmentPreview(storedLegacyDocuments)}
               </div>
               <div style={{ display: "grid", gap: 7, fontSize: 12, color: bodyColor }}>
                 <div>Ficha técnica</div>
@@ -1696,6 +1817,7 @@ export default function UserDashboardVehicles({
                   <span>Adjuntar ficha</span>
                   <span style={{ fontSize: 11 }}>{pendingTechnicalSheetDocuments.length}</span>
                 </button>
+                {renderStoredAttachmentPreview(storedTechnicalSheetDocuments)}
               </div>
               <div style={{ display: "grid", gap: 7, fontSize: 12, color: bodyColor }}>
                 <div>Permiso de circulación</div>
@@ -1715,6 +1837,7 @@ export default function UserDashboardVehicles({
                   <span>Adjuntar permiso</span>
                   <span style={{ fontSize: 11 }}>{pendingCirculationPermitDocuments.length}</span>
                 </button>
+                {renderStoredAttachmentPreview(storedCirculationPermitDocuments)}
               </div>
               <div style={{ display: "grid", gap: 7, fontSize: 12, color: bodyColor }}>
                 <div>Documentación ITV</div>
@@ -1734,9 +1857,10 @@ export default function UserDashboardVehicles({
                   <span>Adjuntar ITV</span>
                   <span style={{ fontSize: 11 }}>{pendingIvtDocuments.length}</span>
                 </button>
+                {renderStoredAttachmentPreview(storedItvDocuments)}
               </div>
               </div>,
-              `${pendingPhotos.length + pendingDocuments.length + pendingTechnicalSheetDocuments.length + pendingCirculationPermitDocuments.length + pendingIvtDocuments.length} adjuntos preparados`
+              `${storedVehicleDocumentsEditorCount} guardados · ${pendingPhotos.length + pendingDocuments.length + pendingTechnicalSheetDocuments.length + pendingCirculationPermitDocuments.length + pendingIvtDocuments.length} adjuntos preparados`
             )}
 
             {renderVehicleSection(
@@ -1788,9 +1912,10 @@ export default function UserDashboardVehicles({
                   <span>Adjuntar seguro</span>
                   <span style={{ fontSize: 11 }}>{pendingInsuranceDocuments.length}</span>
                 </button>
+                {renderStoredAttachmentPreview(storedInsuranceDocuments)}
               </div>
               </div>,
-              `${pendingInsuranceDocuments.length} documentos de seguro preparados`
+              `${storedInsuranceDocumentsCount} guardados · ${pendingInsuranceDocuments.length} documentos de seguro preparados`
             )}
 
             {renderVehicleSection(
@@ -1845,9 +1970,10 @@ export default function UserDashboardVehicles({
                 <span>Adjuntar facturas</span>
                 <span style={{ fontSize: 11 }}>{pendingMaintenanceInvoices.length}</span>
               </button>
+              {renderStoredAttachmentPreview(storedMaintenanceInvoices)}
             </div>
               </>,
-              `${pendingMaintenanceInvoices.length} facturas de mantenimiento preparadas`
+              `${storedMaintenanceInvoicesCount} guardadas · ${pendingMaintenanceInvoices.length} facturas de mantenimiento preparadas`
             )}
 
             {renderVehicleSection(
@@ -1940,6 +2066,7 @@ export default function UserDashboardVehicles({
                 const firstPhotoWithContent = (Array.isArray(vehicle?.photos) ? vehicle.photos : []).find((photo) => Boolean(resolvePhotoPreviewSrc(photo)));
                 const firstPhotoPreviewSrc = resolvePhotoPreviewSrc(firstPhotoWithContent);
                 const identityLabel = [normalizeText(vehicle?.brand), normalizeText(vehicle?.model), normalizeText(vehicle?.version)].filter(Boolean).join(" ");
+                const vehicleStoredDocumentsCount = getVehicleStoredDocumentsCount(vehicle);
                 const isManagementOpen = managementVehicleId === vehicleId;
                 const isPreviewBlocked = Boolean(failedPhotoVehicleIds[vehicleId]);
 
@@ -1989,7 +2116,7 @@ export default function UserDashboardVehicles({
                           📷 {Array.isArray(vehicle.photos) ? vehicle.photos.length : 0}
                         </span>
                         <span style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.18)", borderRadius: 999, padding: "2px 7px", fontSize: 9, fontWeight: 600, color: "#10b981", letterSpacing: 0.2 }}>
-                          📄 {Array.isArray(vehicle.documents) ? vehicle.documents.length : 0}
+                          📄 {vehicleStoredDocumentsCount}
                         </span>
                       </div>
                     </div>

@@ -9,11 +9,11 @@ export function useDecisionResetState({
   setDecisionListingLoading,
 }) {
   useEffect(() => {
-    setDecisionAiResult(null);
-    setDecisionError(null);
-    setDecisionListingResult(null);
-    setDecisionListingError(null);
-    setDecisionListingLoading(false);
+    setDecisionAiResult((prev) => (prev === null ? prev : null));
+    setDecisionError((prev) => (prev === null ? prev : null));
+    setDecisionListingResult((prev) => (prev === null ? prev : null));
+    setDecisionListingError((prev) => (prev === null ? prev : null));
+    setDecisionListingLoading((prev) => (prev === false ? prev : false));
   }, [
     decisionAnswers,
     setDecisionAiResult,
@@ -33,11 +33,11 @@ export function useSellResetState({
   setSellListingLoading,
 }) {
   useEffect(() => {
-    setSellAiResult(null);
-    setSellError(null);
-    setSellListingResult(null);
-    setSellListingError(null);
-    setSellListingLoading(false);
+    setSellAiResult((prev) => (prev === null ? prev : null));
+    setSellError((prev) => (prev === null ? prev : null));
+    setSellListingResult((prev) => (prev === null ? prev : null));
+    setSellListingError((prev) => (prev === null ? prev : null));
+    setSellListingLoading((prev) => (prev === false ? prev : false));
   }, [
     sellAnswers,
     setSellAiResult,

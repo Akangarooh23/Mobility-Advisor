@@ -21,6 +21,9 @@ import ServiceOptionsPage from "./pages/ServiceOptionsPage";
 import ServiceInsurancePage from "./pages/ServiceInsurancePage";
 import ServiceMaintenancePage from "./pages/ServiceMaintenancePage";
 import ServiceAutogestorPage from "./pages/ServiceAutogestorPage";
+import ServiceAppointmentPage from "./pages/ServiceAppointmentPage";
+import ServiceMonthlyPlanPage from "./pages/ServiceMonthlyPlanPage";
+import ServiceIdCarsManagePage from "./pages/ServiceIdCarsManagePage";
 import LegalPolicyPage from "./pages/LegalPolicyPage";
 import SeoStaticPage from "./pages/SeoStaticPage";
 import AboutCarswisePage from "./pages/AboutCarswisePage";
@@ -729,6 +732,8 @@ function setGoogTransCookie(targetLanguage) {
 
 export default function App() {
   const [entryMode, setEntryMode] = useState(null);
+  const [selectedIdCarVehicleId, setSelectedIdCarVehicleId] = useState("");
+  const [selectedIdCarOpenEditor, setSelectedIdCarOpenEditor] = useState(false);
   const [advisorContext, setAdvisorContext] = useState(null); // null | "buy" | "renting"
   const [sellFlowType, setSellFlowType] = useState(""); // "certificate" | "report" | ""
   const [step, setStep] = useState(-1);
@@ -1013,6 +1018,11 @@ export default function App() {
       entryMode === "serviceInsurance" ||
       entryMode === "serviceMaintenance" ||
       entryMode === "serviceAutogestor" ||
+      entryMode === "idCarsManage" ||
+      entryMode === "idCarDetail" ||
+      entryMode === "idCarCreate" ||
+      entryMode === "serviceAppointment" ||
+      entryMode === "serviceMonthlyPlan" ||
       entryMode === "servicesSeo"
     ) {
       return "services";
@@ -2440,13 +2450,13 @@ export default function App() {
       decisionAnswers.mileageFilter;
 
     if (!isDecisionFlowReady || decisionAiResult) {
-      setDecisionMarketListings([]);
-      setDecisionMarketError(null);
-      setDecisionMarketInsight(null);
-      setDecisionMarketLoading(false);
-      setDecisionMarketRefreshNonce(0);
-      setDecisionMarketExcludeUrls([]);
-      setDecisionMarketExcludeTitles([]);
+      setDecisionMarketListings((prev) => (prev.length ? [] : prev));
+      setDecisionMarketError((prev) => (prev ? null : prev));
+      setDecisionMarketInsight((prev) => (prev ? null : prev));
+      setDecisionMarketLoading((prev) => (prev ? false : prev));
+      setDecisionMarketRefreshNonce((prev) => (prev ? 0 : prev));
+      setDecisionMarketExcludeUrls((prev) => (prev.length ? [] : prev));
+      setDecisionMarketExcludeTitles((prev) => (prev.length ? [] : prev));
       return;
     }
 
@@ -2771,6 +2781,8 @@ export default function App() {
     setAdvisorContext(null);
     setSellFlowType("");
     setSelectedValuationVehicleSummary(null);
+    setSelectedIdCarVehicleId("");
+    setSelectedIdCarOpenEditor(false);
     restartBase();
   }, [restartBase]);
 
@@ -4474,6 +4486,14 @@ export default function App() {
             setEntryMode("serviceMaintenance");
             setStep(-1);
           }}
+          onSelectAppointment={() => {
+            setEntryMode("serviceAppointment");
+            setStep(-1);
+          }}
+          onSelectMonthlyPlan={() => {
+            setEntryMode("serviceMonthlyPlan");
+            setStep(-1);
+          }}
           onSelectAutogestor={() => {
             setEntryMode("serviceAutogestor");
             setStep(-1);
@@ -4501,6 +4521,27 @@ export default function App() {
         <ServiceMaintenancePage
           themeMode={themeMode}
           styles={s}
+          currentUserEmail={currentUser?.email || ""}
+          userAppointments={userAppointments}
+          userMaintenances={userMaintenances}
+          onUpdateAppointmentStatus={updateUserAppointmentStatus}
+          onScheduleAppointment={async (context = {}) => {
+            await requestUserAppointment("maintenance", {
+              vehicleId: normalizeText(context?.vehicleId),
+              vehicleTitle: normalizeText(context?.vehicleTitle),
+              vehiclePlate: normalizeText(context?.vehiclePlate),
+            });
+          }}
+          onManageIdCars={() => {
+            if (!isUserLoggedIn || !currentUser?.email) {
+              openAuthDialog("login", { entryMode: "idCarsManage", routePage: "home" });
+              return;
+            }
+            setSelectedIdCarVehicleId("");
+            setSelectedIdCarOpenEditor(false);
+            setEntryMode("idCarsManage");
+            setStep(-1);
+          }}
           onGoBack={() => {
             setEntryMode("serviceOptions");
             setStep(-1);
@@ -4511,6 +4552,111 @@ export default function App() {
 
       {step === -1 && entryMode === "serviceAutogestor" && (
         <ServiceAutogestorPage
+          themeMode={themeMode}
+          styles={s}
+          onGoBack={() => {
+            setEntryMode("serviceOptions");
+            setStep(-1);
+          }}
+          onCreateIdCar={() => {
+            if (!isUserLoggedIn || !currentUser?.email) {
+              openAuthDialog("login", { entryMode: "idCarCreate", routePage: "home" });
+              return;
+            }
+
+            setSelectedIdCarVehicleId("");
+            setSelectedIdCarOpenEditor(false);
+            setEntryMode("idCarCreate");
+            setStep(-1);
+          }}
+          onManageIdCars={() => {
+            if (!isUserLoggedIn || !currentUser?.email) {
+              openAuthDialog("login", { entryMode: "idCarsManage", routePage: "home" });
+              return;
+            }
+
+            if (typeof window !== "undefined") {
+              window.sessionStorage.setItem("movilidad-advisor.idcar.action", "manage");
+            }
+            setSelectedIdCarVehicleId("");
+            setEntryMode("idCarsManage");
+            setStep(-1);
+          }}
+          onGoHome={restart}
+        />
+      )}
+
+      {step === -1 && entryMode === "idCarsManage" && (
+        <ServiceIdCarsManagePage
+          currentUserEmail={currentUser?.email || ""}
+          viewMode="list"
+          onOpenVehicle={(vehicle, startEditing) => {
+            setSelectedIdCarVehicleId(vehicle?.id || "");
+            setSelectedIdCarOpenEditor(!!startEditing);
+            setEntryMode("idCarDetail");
+            setStep(-1);
+          }}
+          onCreateNew={() => {
+            setSelectedIdCarVehicleId("");
+            setSelectedIdCarOpenEditor(false);
+            setEntryMode("idCarCreate");
+            setStep(-1);
+          }}
+          onGoBack={() => {
+            setSelectedIdCarVehicleId("");
+            setEntryMode("serviceAutogestor");
+            setStep(-1);
+          }}
+          onGoHome={restart}
+        />
+      )}
+
+      {step === -1 && entryMode === "idCarDetail" && (
+        <ServiceIdCarsManagePage
+          currentUserEmail={currentUser?.email || ""}
+          viewMode="detail"
+          selectedVehicleId={selectedIdCarVehicleId}
+          startEditing={selectedIdCarOpenEditor}
+          onGoBack={() => {
+            setEntryMode("idCarsManage");
+            setStep(-1);
+          }}
+          onGoHome={restart}
+        />
+      )}
+
+      {step === -1 && entryMode === "idCarCreate" && (
+        <ServiceIdCarsManagePage
+          currentUserEmail={currentUser?.email || ""}
+          viewMode="create"
+          onCreated={(vehicle) => {
+            setSelectedIdCarVehicleId(vehicle?.id || "");
+            setSelectedIdCarOpenEditor(false);
+            setEntryMode("idCarDetail");
+            setStep(-1);
+          }}
+          onGoBack={() => {
+            setEntryMode("idCarsManage");
+            setStep(-1);
+          }}
+          onGoHome={restart}
+        />
+      )}
+
+      {step === -1 && entryMode === "serviceAppointment" && (
+        <ServiceAppointmentPage
+          themeMode={themeMode}
+          styles={s}
+          onGoBack={() => {
+            setEntryMode("serviceOptions");
+            setStep(-1);
+          }}
+          onGoHome={restart}
+        />
+      )}
+
+      {step === -1 && entryMode === "serviceMonthlyPlan" && (
+        <ServiceMonthlyPlanPage
           themeMode={themeMode}
           styles={s}
           onGoBack={() => {

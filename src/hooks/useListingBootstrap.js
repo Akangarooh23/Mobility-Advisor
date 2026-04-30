@@ -30,11 +30,16 @@ export function useListingBootstrap({
     };
 
     setListingFilters(initialFilters);
-    setListingResult(null);
-    setListingOptions([]);
-    setListingError(null);
-    setListingLoading(false);
-    setQuickValidationAnswers({});
+    setListingResult((prev) => (prev === null ? prev : null));
+    setListingOptions((prev) => (Array.isArray(prev) && prev.length === 0 ? prev : []));
+    setListingError((prev) => (prev === null ? prev : null));
+    setListingLoading((prev) => (prev === false ? prev : false));
+    setQuickValidationAnswers((prev) => {
+      if (!prev || Object.keys(prev).length === 0) {
+        return prev;
+      }
+      return {};
+    });
 
     const timeoutId = window.setTimeout(() => {
       void searchRealListing(initialFilters);

@@ -236,55 +236,6 @@
           "createdAt": "2026-04-17T17:50:53.786Z"
         },
         {
-          "id": "garage-debug-photo",
-          "title": "Coche 1",
-          "brand": "Opel",
-          "model": "Corsa",
-          "version": "test",
-          "transmissionType": "",
-          "cv": "",
-          "color": "",
-          "horsepower": "",
-          "seats": "",
-          "doors": "",
-          "location": "",
-          "bodyType": "",
-          "environmentalLabel": "",
-          "lastIvt": "",
-          "nextIvt": "",
-          "co2": "",
-          "price": "",
-          "marketplacePricingMode": "manual",
-          "year": "",
-          "plate": "",
-          "mileage": "",
-          "fuel": "",
-          "policyCompany": "",
-          "policyNumber": "",
-          "coverageType": "",
-          "notes": "",
-          "photos": [
-            {
-              "name": "foto-principal.webp",
-              "size": 0,
-              "mimeType": "image/webp",
-              "contentBase64": ""
-            }
-          ],
-          "documents": [],
-          "technicalSheetDocuments": [],
-          "circulationPermitDocuments": [],
-          "itvDocuments": [],
-          "insuranceDocuments": [],
-          "initialMaintenance": {
-            "type": "maintenance",
-            "title": "",
-            "notes": "",
-            "invoices": []
-          },
-          "createdAt": "2026-04-17T16:05:11.3360000"
-        },
-        {
           "id": "garage-test-doc2",
           "title": "Test Doc",
           "brand": "Toyota",
@@ -432,10 +383,10 @@
           "createdAt": "2026-04-17T00:00:00.000Z"
         }
       ],
-      "updatedAt": "2026-04-28T16:54:31.730Z"
+      "updatedAt": "2026-04-30T15:09:48.762Z"
     }
   },
   "stripeCustomerToEmail": {},
   "stripeSubscriptionToEmail": {},
-  "updatedAt": "2026-04-28T16:54:31.730Z"
+  "updatedAt": "2026-04-30T15:09:48.762Z"
 }

@@ -2,6 +2,8 @@ export default function ServiceOptionsPage({
   styles,
   onSelectInsurance,
   onSelectMaintenance,
+  onSelectAppointment,
+  onSelectMonthlyPlan,
   onSelectAutogestor,
   onGoBack,
 }) {
@@ -43,7 +45,7 @@ export default function ServiceOptionsPage({
       title: "Precios de acuerdo, no de particular",
       description:
         "Aprovecha nuestros acuerdos para conseguir precios mas reducidos y agenda tu proxima revision a traves nuestra.",
-      onClick: onSelectMaintenance,
+      onClick: onSelectAppointment,
       icon: (
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
           <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -57,7 +59,7 @@ export default function ServiceOptionsPage({
       title: "Tu mantenimiento en una cuota fija",
       description:
         "Quieres pagar una cuota mensual por el mantenimiento preventivo de tu coche y no llevarte mas sustos antes de vacaciones? Con nosotros es posible.",
-      onClick: onSelectMaintenance,
+      onClick: onSelectMonthlyPlan,
       icon: (
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
           <circle cx="12" cy="12" r="9" />

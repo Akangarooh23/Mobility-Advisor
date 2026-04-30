@@ -11,3 +11,14 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+@keyframes idcarBorderMove {
+  0%   { box-shadow: 0 0 0 2px #0ea5e9, 0 2px 10px rgba(0,0,0,0.06); border-color: #0ea5e9; }
+  33%  { box-shadow: 0 0 0 2px #22c55e, 0 2px 10px rgba(0,0,0,0.06); border-color: #22c55e; }
+  66%  { box-shadow: 0 0 0 2px #0284c7, 0 2px 10px rgba(0,0,0,0.06); border-color: #0284c7; }
+  100% { box-shadow: 0 0 0 2px #0ea5e9, 0 2px 10px rgba(0,0,0,0.06); border-color: #0ea5e9; }
+}
+
+.idcar-card-animated {
+  animation: idcarBorderMove 3s ease-in-out infinite;
+}

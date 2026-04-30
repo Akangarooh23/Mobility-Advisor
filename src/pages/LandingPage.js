@@ -204,6 +204,7 @@ export default function LandingPage({
         style={{
           minHeight: panelMinHeight,
           display: "grid",
+          position: "relative",
           alignContent: "center",
           paddingTop: isMobileView
             ? (showResumeAdvice ? 136 : 122)
@@ -327,6 +328,7 @@ export default function LandingPage({
         style={{
           minHeight: panelMinHeight,
           display: "grid",
+          position: "relative",
           alignContent: "center",
           marginTop: mobilePanelSpacing,
           paddingBottom: isMobileView ? 6 : 0,
@@ -353,6 +355,7 @@ export default function LandingPage({
         style={{
           minHeight: panelMinHeight,
           display: "grid",
+          position: "relative",
           alignContent: "center",
           marginTop: mobilePanelSpacing,
           scrollSnapAlign: "start",
@@ -375,6 +378,7 @@ export default function LandingPage({
       <m.section
         ref={metricsSectionRef}
         style={{
+          position: "relative",
           marginTop: isMobileView ? 18 : 24,
           borderRadius: 16,
           border: metricsSectionBorder,

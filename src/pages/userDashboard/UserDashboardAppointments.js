@@ -5,6 +5,28 @@ export default function UserDashboardAppointments({
   getOfferBadgeStyle,
   onRequestAppointment,
 }) {
+  const parseAppointmentMeta = (meta = "") => {
+    const rawParts = String(meta || "").split(" · ").map((part) => part.trim()).filter(Boolean);
+    const addressPart = rawParts.find((part) => part.startsWith("Direccion:")) || "";
+    const detailParts = rawParts.filter((part) =>
+      part.startsWith("Taller:") ||
+      part.startsWith("Distancia:") ||
+      part.startsWith("Proveedor:")
+    );
+
+    const compactDetails = detailParts
+      .map((part) => part.replace(/^Taller:\s*/, "").replace(/^Distancia:\s*/, "").replace(/^Proveedor:\s*/, ""))
+      .join(" · ");
+
+    const summary = rawParts.filter((part) => !detailParts.includes(part)).join(" · ");
+
+    return {
+      summary,
+      details: compactDetails,
+      address: addressPart.replace(/^Direccion:\s*/, ""),
+    };
+  };
+
   const isDark = themeMode === "dark";
   const cardBg = isDark
     ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
@@ -51,24 +73,38 @@ export default function UserDashboardAppointments({
 
       {dashboardAppointments.length > 0 ? (
         <div style={{ display: "grid", gap: 10 }}>
-          {dashboardAppointments.map((item) => (
-            <div
-              key={item.id}
-              style={{
-                background: cardBg,
-                border: "1px solid rgba(148,163,184,0.26)",
-                borderRadius: 12,
-                padding: 12,
-              }}
-            >
-              <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>{item.title}</div>
-              <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569", marginTop: 3 }}>{item.meta}</div>
-              <div style={{ fontSize: 11, color: "#b45309", marginTop: 3 }}>
-                {item.status}
-                {item.requestedAt ? ` · ${item.requestedAt}` : ""}
+          {dashboardAppointments.map((item) => {
+            const parsed = parseAppointmentMeta(item.meta);
+
+            return (
+              <div
+                key={item.id}
+                style={{
+                  background: cardBg,
+                  border: "1px solid rgba(148,163,184,0.26)",
+                  borderRadius: 12,
+                  padding: 12,
+                }}
+              >
+                <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>{item.title}</div>
+                <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569", marginTop: 3 }}>{parsed.summary}</div>
+                {parsed.details ? (
+                  <div style={{ fontSize: 11, color: isDark ? "#93c5fd" : "#1d4ed8", marginTop: 4, fontWeight: 700 }}>
+                    Taller · {parsed.details}
+                  </div>
+                ) : null}
+                {parsed.address ? (
+                  <div style={{ fontSize: 11, color: isDark ? "#cbd5e1" : "#334155", marginTop: 2 }}>
+                    Dirección · {parsed.address}
+                  </div>
+                ) : null}
+                <div style={{ fontSize: 11, color: "#b45309", marginTop: 3 }}>
+                  {item.status}
+                  {item.requestedAt ? ` · ${item.requestedAt}` : ""}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div style={{ fontSize: 12, color: "#94a3b8" }}>

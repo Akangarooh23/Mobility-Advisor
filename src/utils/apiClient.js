@@ -8,6 +8,8 @@ export const BILLING_CHECKOUT_API_ENDPOINT = "/api/billing-checkout";
 export const BILLING_PORTAL_API_ENDPOINT = "/api/billing-portal";
 export const BILLING_ACCOUNT_API_ENDPOINT = "/api/billing-account";
 export const ERP_CATALOG_API_ENDPOINT = "/api/erp-catalog";
+export const WORKSHOPS_NEARBY_API_ENDPOINT = "/api/workshops-nearby";
+export const WORKSHOP_AVAILABILITY_API_ENDPOINT = "/api/workshop-availability";
 
 export function getErpBrandsJson(options = {}) {
   return fetch(`${ERP_CATALOG_API_ENDPOINT}?scope=brands`, { credentials: "include", ...options });
@@ -24,6 +26,50 @@ export function getErpVersionsJson(modelId, brandId = "", options = {}) {
 
 export function getErpVersionDetailJson(codversion, options = {}) {
   return fetch(`${ERP_CATALOG_API_ENDPOINT}?scope=version-detail&codversion=${encodeURIComponent(codversion)}`, { credentials: "include", ...options });
+}
+
+export function getNearbyWorkshopsJson({ postalCode = "", province = "" } = {}, options = {}) {
+  const query = new URLSearchParams({
+    postalCode: String(postalCode || ""),
+    province: String(province || ""),
+  });
+
+  return getJson(`${WORKSHOPS_NEARBY_API_ENDPOINT}?${query.toString()}`, {
+    endpointLabel: "workshops-nearby",
+    ...options,
+  });
+}
+
+export function getWorkshopAvailabilityJson({ workshopId = "", provider = "", monthKey = "" } = {}, options = {}) {
+  const query = new URLSearchParams({
+    workshopId: String(workshopId || ""),
+    provider: String(provider || ""),
+    monthKey: String(monthKey || ""),
+  });
+
+  return getJson(`${WORKSHOP_AVAILABILITY_API_ENDPOINT}?${query.toString()}`, {
+    endpointLabel: "workshop-availability",
+    ...options,
+  });
+}
+
+export function postWorkshopReservationJson(payload, options = {}) {
+  return postJson(WORKSHOP_AVAILABILITY_API_ENDPOINT, {
+    action: "reserve",
+    ...payload,
+  }, {
+    endpointLabel: "workshop-availability",
+    ...options,
+  });
+}
+
+export function postWorkshopAvailabilityAdminJson(payload, options = {}) {
+  return postJson(WORKSHOP_AVAILABILITY_API_ENDPOINT, {
+    ...payload,
+  }, {
+    endpointLabel: "workshop-availability",
+    ...options,
+  });
 }
 
 export async function readApiResponse(response, { endpointLabel = "analyze" } = {}) {

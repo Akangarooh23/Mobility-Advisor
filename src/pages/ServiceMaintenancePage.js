@@ -706,6 +706,7 @@ export default function ServiceMaintenancePage({
     const fallbackVehicle = vehicleById.get(normalizeText(selectedAlert?.vehicleId)) || {};
     const context = {
       vehicleId: normalizeText(selectedAlert?.vehicleId),
+      appointmentType: normalizeText(selectedAlert?.title),
       vehicleTitle:
         normalizeText(selectedAlert?.sourceData?.vehicleTitle) ||
         normalizeText(fallbackVehicle?.title) ||

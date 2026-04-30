@@ -22,6 +22,7 @@ import ServiceInsurancePage from "./pages/ServiceInsurancePage";
 import ServiceMaintenancePage from "./pages/ServiceMaintenancePage";
 import ServiceAutogestorPage from "./pages/ServiceAutogestorPage";
 import ServiceAppointmentPage from "./pages/ServiceAppointmentPage";
+import ServiceAppointmentCalendarPage from "./pages/ServiceAppointmentCalendarPage";
 import ServiceMonthlyPlanPage from "./pages/ServiceMonthlyPlanPage";
 import ServiceIdCarsManagePage from "./pages/ServiceIdCarsManagePage";
 import LegalPolicyPage from "./pages/LegalPolicyPage";
@@ -734,6 +735,10 @@ export default function App() {
   const [entryMode, setEntryMode] = useState(null);
   const [selectedIdCarVehicleId, setSelectedIdCarVehicleId] = useState("");
   const [selectedIdCarOpenEditor, setSelectedIdCarOpenEditor] = useState(false);
+  const [serviceAppointmentVehicleId, setServiceAppointmentVehicleId] = useState("");
+  const [serviceAppointmentTypeTitle, setServiceAppointmentTypeTitle] = useState("");
+  const [serviceAppointmentBackMode, setServiceAppointmentBackMode] = useState("serviceOptions");
+  const [serviceAppointmentDraft, setServiceAppointmentDraft] = useState(null);
   const [advisorContext, setAdvisorContext] = useState(null); // null | "buy" | "renting"
   const [sellFlowType, setSellFlowType] = useState(""); // "certificate" | "report" | ""
   const [step, setStep] = useState(-1);
@@ -1022,6 +1027,7 @@ export default function App() {
       entryMode === "idCarDetail" ||
       entryMode === "idCarCreate" ||
       entryMode === "serviceAppointment" ||
+      entryMode === "serviceAppointmentCalendar" ||
       entryMode === "serviceMonthlyPlan" ||
       entryMode === "servicesSeo"
     ) {
@@ -2062,19 +2068,38 @@ export default function App() {
       return;
     }
 
+    const vehicleMeta =
+      context?.vehicleTitle || context?.vehiclePlate
+        ? `Vehículo: ${context.vehicleTitle || "Vehiculo"}${context.vehiclePlate ? ` (${context.vehiclePlate})` : ""}`
+        : "";
+
+    const extraMetaParts = [
+      normalizeText(context?.appointmentType) ? `Servicio: ${normalizeText(context.appointmentType)}` : "",
+      normalizeText(context?.provider) ? `Proveedor: ${normalizeText(context.provider)}` : "",
+      normalizeText(context?.workshopName) ? `Taller: ${normalizeText(context.workshopName)}` : "",
+      normalizeText(context?.workshopAddress) ? `Direccion: ${normalizeText(context.workshopAddress)}` : "",
+      Number.isFinite(Number(context?.workshopDistanceKm)) ? `Distancia: ${Number(context.workshopDistanceKm).toFixed(1)} km` : "",
+      normalizeText(context?.province) || normalizeText(context?.postalCode)
+        ? `Zona: ${normalizeText(context.province)} ${normalizeText(context.postalCode)}`.trim()
+        : "",
+      context?.quotedPrice !== undefined && context?.quotedPrice !== null && context?.quotedPrice !== ""
+        ? `Precio CarWise: ${typeof context.quotedPrice === "number" ? `${context.quotedPrice}€` : String(context.quotedPrice)}`
+        : "",
+      vehicleMeta,
+    ].filter(Boolean);
+
     const appointment = {
       id: `${type}-${Date.now()}`,
       ...template,
-      meta:
-        context?.vehicleTitle || context?.vehiclePlate
-          ? `${template.meta} · Vehículo: ${context.vehicleTitle || "Vehículo"}${context.vehiclePlate ? ` (${context.vehiclePlate})` : ""}`
-          : template.meta,
-      requestedAt: new Date().toLocaleString("es-ES", {
-        day: "2-digit",
-        month: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      meta: [template.meta, ...extraMetaParts].join(" · "),
+      requestedAt:
+        normalizeText(context?.requestedAt) ||
+        new Date().toLocaleString("es-ES", {
+          day: "2-digit",
+          month: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
     };
 
     let next = [appointment, ...userAppointments].slice(0, 8);
@@ -2086,6 +2111,15 @@ export default function App() {
           vehicleId: normalizeText(context?.vehicleId),
           vehicleTitle: normalizeText(context?.vehicleTitle),
           vehiclePlate: normalizeText(context?.vehiclePlate),
+          appointmentType: normalizeText(context?.appointmentType),
+          provider: normalizeText(context?.provider),
+          workshopId: normalizeText(context?.workshopId),
+          workshopName: normalizeText(context?.workshopName),
+          workshopAddress: normalizeText(context?.workshopAddress),
+          workshopDistanceKm: Number.isFinite(Number(context?.workshopDistanceKm)) ? Number(context.workshopDistanceKm) : null,
+          province: normalizeText(context?.province),
+          postalCode: normalizeText(context?.postalCode),
+          quotedPrice: context?.quotedPrice ?? null,
         });
 
         if (Array.isArray(data?.appointments)) {
@@ -3579,16 +3613,40 @@ export default function App() {
                   </div>
 
                   {dashboardAppointments.length > 0 ? (
-                    dashboardAppointments.map((item) => (
-                      <div key={item.id} style={{ paddingTop: 6 }}>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{item.title}</div>
-                        <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{item.meta}</div>
-                        <div style={{ fontSize: 11, color: "#fbbf24", marginTop: 2 }}>
-                          {item.status}
-                          {item.requestedAt ? ` ${"\u00B7"} ${item.requestedAt}` : ""}
+                    dashboardAppointments.map((item) => {
+                      const metaParts = String(item?.meta || "").split(" · ").map((part) => part.trim()).filter(Boolean);
+                      const addressPart = metaParts.find((part) => part.startsWith("Direccion:")) || "";
+                      const detailParts = metaParts.filter((part) =>
+                        part.startsWith("Taller:") ||
+                        part.startsWith("Distancia:") ||
+                        part.startsWith("Proveedor:")
+                      );
+                      const detailLine = detailParts
+                        .map((part) => part.replace(/^Taller:\s*/, "").replace(/^Distancia:\s*/, "").replace(/^Proveedor:\s*/, ""))
+                        .join(" · ");
+                      const summaryLine = metaParts.filter((part) => !detailParts.includes(part)).join(" · ");
+
+                      return (
+                        <div key={item.id} style={{ paddingTop: 6 }}>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{item.title}</div>
+                          <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{summaryLine}</div>
+                          {detailLine ? (
+                            <div style={{ fontSize: 11, color: "#7dd3fc", marginTop: 2, fontWeight: 700 }}>
+                              Taller {"\u00B7"} {detailLine}
+                            </div>
+                          ) : null}
+                          {addressPart ? (
+                            <div style={{ fontSize: 11, color: "#cbd5e1", marginTop: 2 }}>
+                              Dirección {"\u00B7"} {addressPart.replace(/^Direccion:\s*/, "")}
+                            </div>
+                          ) : null}
+                          <div style={{ fontSize: 11, color: "#fbbf24", marginTop: 2 }}>
+                            {item.status}
+                            {item.requestedAt ? ` ${"\u00B7"} ${item.requestedAt}` : ""}
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   ) : (
                     <div style={{ fontSize: 11, color: "#94a3b8" }}>
                       Aún no tienes citas programadas. Cuando reserves una, se verá aquí.
@@ -4375,6 +4433,10 @@ export default function App() {
               openAuthDialog("login", { entryMode: "serviceAppointment", routePage: "home" });
               return;
             }
+            setServiceAppointmentVehicleId("");
+            setServiceAppointmentTypeTitle("");
+            setServiceAppointmentBackMode("serviceOptions");
+            setServiceAppointmentDraft(null);
             setEntryMode("serviceAppointment");
             setStep(-1);
           }}
@@ -4532,6 +4594,10 @@ export default function App() {
             setStep(-1);
           }}
           onSelectAppointment={() => {
+            setServiceAppointmentVehicleId("");
+            setServiceAppointmentTypeTitle("");
+            setServiceAppointmentBackMode("serviceOptions");
+            setServiceAppointmentDraft(null);
             setEntryMode("serviceAppointment");
             setStep(-1);
           }}
@@ -4570,12 +4636,13 @@ export default function App() {
           userAppointments={userAppointments}
           userMaintenances={userMaintenances}
           onUpdateAppointmentStatus={updateUserAppointmentStatus}
-          onScheduleAppointment={async (context = {}) => {
-            await requestUserAppointment("maintenance", {
-              vehicleId: normalizeText(context?.vehicleId),
-              vehicleTitle: normalizeText(context?.vehicleTitle),
-              vehiclePlate: normalizeText(context?.vehiclePlate),
-            });
+          onScheduleAppointment={(context = {}) => {
+            setServiceAppointmentVehicleId(normalizeText(context?.vehicleId));
+            setServiceAppointmentTypeTitle(normalizeText(context?.appointmentType));
+            setServiceAppointmentBackMode("serviceMaintenance");
+            setServiceAppointmentDraft(null);
+            setEntryMode("serviceAppointment");
+            setStep(-1);
           }}
           onManageIdCars={() => {
             if (!isUserLoggedIn || !currentUser?.email) {
@@ -4692,9 +4759,63 @@ export default function App() {
         <ServiceAppointmentPage
           themeMode={themeMode}
           styles={s}
-          onGoBack={() => {
-            setEntryMode("serviceOptions");
+          currentUserEmail={currentUser?.email || ""}
+          selectedVehicleId={serviceAppointmentVehicleId}
+          selectedRevisionTitle={serviceAppointmentTypeTitle}
+          onSelectVehicleId={(vehicleId) => {
+            setServiceAppointmentVehicleId(normalizeText(vehicleId));
+          }}
+          onConfirmAppointment={async (context = {}) => {
+            setServiceAppointmentDraft({
+              vehicleId: normalizeText(context?.vehicleId),
+              vehicleTitle: normalizeText(context?.vehicleTitle),
+              vehiclePlate: normalizeText(context?.vehiclePlate),
+              appointmentType: normalizeText(context?.appointmentType),
+              provider: normalizeText(context?.provider),
+              workshopId: normalizeText(context?.workshopId),
+              workshopName: normalizeText(context?.workshopName),
+              workshopAddress: normalizeText(context?.workshopAddress),
+              workshopDistanceKm: context?.workshopDistanceKm,
+              province: normalizeText(context?.province),
+              postalCode: normalizeText(context?.postalCode),
+              quotedPrice: context?.quotedPrice,
+            });
+            setEntryMode("serviceAppointmentCalendar");
             setStep(-1);
+          }}
+          onManageIdCars={() => {
+            if (!isUserLoggedIn || !currentUser?.email) {
+              openAuthDialog("login", { entryMode: "idCarsManage", routePage: "home" });
+              return;
+            }
+            setSelectedIdCarVehicleId("");
+            setSelectedIdCarOpenEditor(false);
+            setEntryMode("idCarsManage");
+            setStep(-1);
+          }}
+          onGoBack={() => {
+            setEntryMode(serviceAppointmentBackMode || "serviceOptions");
+            setStep(-1);
+          }}
+          onGoHome={restart}
+        />
+      )}
+
+      {step === -1 && entryMode === "serviceAppointmentCalendar" && (
+        <ServiceAppointmentCalendarPage
+          bookingDraft={serviceAppointmentDraft}
+          onBack={() => {
+            setEntryMode("serviceAppointment");
+            setStep(-1);
+          }}
+          onConfirmBooking={async (booking = {}) => {
+            await requestUserAppointment("maintenance", {
+              ...(serviceAppointmentDraft || {}),
+              requestedAt: normalizeText(booking?.requestedAt),
+              selectedDateKey: normalizeText(booking?.selectedDateKey),
+              selectedTime: normalizeText(booking?.selectedTime),
+            });
+            setServiceAppointmentDraft(null);
           }}
           onGoHome={restart}
         />

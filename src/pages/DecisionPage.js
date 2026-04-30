@@ -239,431 +239,405 @@ export default function DecisionPage({
             ["renting", "Renting", "📅"],
           ];
 
+  const [modelInput, setModelInput] = useState("");
+  const [modelTags, setModelTags] = useState([]);
+
+  const handleAddModel = (e) => {
+    if (e.key !== "Enter") return;
+    const v = e.target.value.trim();
+    if (!v) return;
+    setModelTags([...modelTags, v]);
+    setModelInput("");
+  };
+
+  const handleRemoveModel = (idx) => {
+    setModelTags(modelTags.filter((_, i) => i !== idx));
+  };
+
+  const handleClearAll = () => {
+    updateDecisionAnswer("brand", "");
+    updateDecisionAnswer("hasBrand", "");
+    updateDecisionAnswer("operation", "comprar");
+    updateDecisionAnswer("acquisition", "contado");
+    updateDecisionAnswer("fuelFilter", "cualquiera");
+    updateDecisionAnswer("priceMin", 0);
+    updateDecisionAnswer("priceMax", PRICE_MARKS[PRICE_MARKS.length - 1]);
+    updateDecisionAnswer("ageMin", 0);
+    updateDecisionAnswer("ageMax", null);
+    updateDecisionAnswer("mileageMin", 0);
+    updateDecisionAnswer("mileageMax", null);
+    updateDecisionAnswer("location", "toda_espana");
+    setModelTags([]);
+    setPriceFromIndex(0);
+    setPriceToIndex(PRICE_MARKS.length - 1);
+    setAgeFromIndex(0);
+    setAgeToIndex(AGE_MARKS.length - 1);
+    setMileageFromIndex(0);
+    setMileageToIndex(MILEAGE_MARKS.length - 1);
+  };
+
+  const getActiveFilters = () => {
+    const active = [];
+    if (decisionAnswers.brand) active.push(decisionAnswers.brand);
+    if (decisionAnswers.operation && decisionAnswers.operation !== "comprar") active.push(decisionAnswers.operation === "renting" ? "Renting" : "Comprar");
+    if (decisionAnswers.fuelFilter && decisionAnswers.fuelFilter !== "cualquiera") {
+      const fuel = FUEL_FILTER_OPTIONS.find(f => f.value === decisionAnswers.fuelFilter);
+      if (fuel) active.push(fuel.label);
+    }
+    if (PRICE_MARKS[priceFromIndex] > 0 || PRICE_MARKS[priceToIndex] < PRICE_MARKS[PRICE_MARKS.length - 1]) {
+      const label = `${PRICE_MARKS[priceFromIndex]/1000|0}k-${PRICE_MARKS[priceToIndex]/1000|0}k`;
+      active.push(label);
+    }
+    if (AGE_MARKS[ageFromIndex] > 0 || AGE_MARKS[ageToIndex] < AGE_MARKS[AGE_MARKS.length - 1]) {
+      const label = `${AGE_MARKS[ageFromIndex]}-${AGE_MARKS[ageToIndex]}a`;
+      active.push(label);
+    }
+    if (MILEAGE_MARKS[mileageFromIndex] > 0 || MILEAGE_MARKS[mileageToIndex] < MILEAGE_MARKS[MILEAGE_MARKS.length - 1]) {
+      const label = `${MILEAGE_MARKS[mileageFromIndex]/1000|0}-${MILEAGE_MARKS[mileageToIndex]/1000|0}k`;
+      active.push(label);
+    }
+    active.push(...modelTags);
+    return active;
+  };
+
+  const activeFilters = getActiveFilters();
+  const hasActiveFilters = activeFilters.length > 0;
+
   return (
-    <div style={{...styles.center, maxWidth: 1600, padding: "20px"}}>
+    <div style={{...styles.center, maxWidth: 900, padding: "2rem"}}>
       <style>
         {`
-          .decision-sidebar-filter {
-            display: flex;
-            flexWrap: wrap;
-            gap: 6px;
-            marginTop: 8px;
-          }
-          
-          .filter-chip {
-            padding: 6px 12px;
-            borderRadius: 20px;
-            border: 1px solid rgba(148,163,184,0.3);
-            background: transparent;
-            cursor: pointer;
-            fontSize: 12px;
-            fontWeight: 500;
-            transition: all 150ms ease;
-            whiteSpace: nowrap;
-          }
-          
-          .filter-chip:hover {
-            borderColor: rgba(37,99,235,0.5);
-            background: rgba(37,99,235,0.08);
-          }
-          
-          .filter-chip.active {
-            background: rgba(37,99,235,0.85);
-            color: white;
-            borderColor: rgba(37,99,235,0.85);
-          }
-          
-          .decision-layout-sidebar {
-            display: grid;
-            gridTemplateColumns: 220px 1fr;
-            gap: 24px;
-            alignItems: start;
-          }
-          
-          @media (max-width: 900px) {
-            .decision-layout-sidebar {
-              gridTemplateColumns: 1fr;
-              gap: 20px;
-            }
-          }
-          
-          .sidebar {
-            position: sticky;
-            top: 20px;
-            maxHeight: calc(100vh - 40px);
-            overflowY: auto;
-            paddingRight: 12px;
-          }
-          
-          .sidebar::-webkit-scrollbar {
-            width: 6px;
-          }
-          
-          .sidebar::-webkit-scrollbar-track {
-            background: transparent;
-          }
-          
-          .sidebar::-webkit-scrollbar-thumb {
-            background: rgba(148,163,184,0.3);
-            borderRadius: 3px;
-          }
-          
-          .results-grid {
-            display: grid;
-            gridTemplateColumns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 14px;
-          }
-          
-          .offer-card {
-            borderRadius: 12px;
-            padding: 14px;
-            border: 1px solid rgba(148,163,184,0.2);
-            background: ${isDark ? "rgba(15,23,42,0.5)" : "rgba(255,255,255,0.98)"};
-            display: flex;
-            flexDirection: column;
-            gap: 8px;
-            cursor: pointer;
-            transition: all 150ms ease;
-          }
-          
-          .offer-card:hover {
-            borderColor: rgba(37,99,235,0.3);
-            boxShadow: 0 8px 16px rgba(37,99,235,0.12);
-            transform: translateY(-1px);
-          }
+          .cw-wrap { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 1rem; }
+          .cw-main-card { background: #fff; border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04); overflow: hidden; }
+          .cw-card-head { padding: 1.75rem 2rem 1.5rem; border-bottom: 1px solid #f0ece4; }
+          .cw-eyebrow { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #BA7517; background: linear-gradient(135deg, rgba(186,117,23,0.1), rgba(186,117,23,0.06)); border: 1px solid rgba(186,117,23,0.18); padding: 0.3rem 0.85rem; border-radius: 30px; margin-bottom: 1rem; }
+          .cw-eyebrow::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: #BA7517; box-shadow: 0 0 0 2px rgba(186,117,23,0.25); }
+          .cw-page-title { font-size: 21px; font-weight: 600; color: #111; letter-spacing: -0.025em; margin-bottom: 0.35rem; }
+          .cw-page-sub { font-size: 13px; color: #999; line-height: 1.65; font-weight: 300; }
+          .cw-active-bar { padding: 0.65rem 2rem; background: linear-gradient(90deg, rgba(186,117,23,0.05), rgba(186,117,23,0.02)); border-bottom: 1px solid rgba(186,117,23,0.1); display: none; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+          .cw-active-bar.show { display: flex; }
+          .cw-ab-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #BA7517; margin-right: 0.25rem; white-space: nowrap; }
+          .cw-a-chip { background: rgba(186,117,23,0.1); border: 1px solid rgba(186,117,23,0.2); color: #8a5512; font-size: 11px; font-weight: 500; padding: 0.2rem 0.65rem; border-radius: 20px; display: inline-flex; align-items: center; gap: 0.3rem; }
+          .cw-ab-clear { margin-left: auto; font-size: 11px; color: #aaa; background: none; border: none; cursor: pointer; font-family: Inter, sans-serif; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+          .cw-ab-clear:hover { color: #666; }
+          .cw-filters { padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
+          .cw-f-block { }
+          .cw-f-lbl { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #ccc; margin-bottom: 0.7rem; display: flex; align-items: center; gap: 0.5rem; }
+          .cw-f-lbl-n { width: 17px; height: 17px; border-radius: 50%; background: linear-gradient(135deg, rgba(186,117,23,0.15), rgba(186,117,23,0.08)); color: #BA7517; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+          .cw-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+          .cw-chip { font-size: 12px; font-weight: 400; padding: 0.4rem 0.9rem; border-radius: 30px; border: 1px solid #ebebeb; background: #fafaf9; color: #999; cursor: pointer; font-family: Inter, sans-serif; transition: all 0.15s; white-space: nowrap; }
+          .cw-chip:hover { border-color: #ddd; color: #555; background: #fff; }
+          .cw-chip.sel { background: linear-gradient(135deg, #BA7517, #d4881e); border-color: transparent; color: #fff; font-weight: 500; box-shadow: 0 2px 10px rgba(186,117,23,0.35); }
+          .cw-model-wrap { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; background: #fafaf9; border: 1px solid #eee; border-radius: 12px; padding: 0.55rem 0.9rem; min-height: 42px; }
+          .cw-model-wrap:focus-within { border-color: rgba(186,117,23,0.4); background: #fff; box-shadow: 0 0 0 3px rgba(186,117,23,0.07); }
+          .cw-model-input { border: none; background: none; outline: none; font-size: 13px; color: #444; font-family: Inter, sans-serif; flex: 1; min-width: 140px; }
+          .cw-model-input::placeholder { color: #ccc; }
+          .cw-m-tag { background: rgba(186,117,23,0.1); border: 1px solid rgba(186,117,23,0.2); color: #8a5512; font-size: 11px; font-weight: 500; padding: 0.2rem 0.6rem; border-radius: 20px; display: inline-flex; align-items: center; gap: 0.3rem; }
+          .cw-m-tag button { background: none; border: none; color: #BA7517; cursor: pointer; font-size: 13px; line-height: 1; padding: 0; }
+          .cw-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+          @media (max-width: 640px) { .cw-two-col { grid-template-columns: 1fr; } }
+          .cw-f-sep { height: 1px; background: linear-gradient(90deg, transparent, #f0ece4, transparent); }
+          .cw-brand-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.4rem; }
+          .cw-b-btn { background: #fafaf9; border: 1px solid #eee; border-radius: 12px; padding: 0.65rem 0.4rem 0.55rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; transition: all 0.18s; font-family: Inter, sans-serif; font-size: 9.5px; color: #aaa; font-weight: 600; }
+          .cw-b-btn:hover { border-color: #ddd; background: #fff; transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,0.07); }
+          .cw-b-btn.sel { border-color: rgba(186,117,23,0.4); background: #fff; box-shadow: 0 0 0 3px rgba(186,117,23,0.1); color: #BA7517; }
+          .cw-b-ico { font-size: 18px; }
+          .cw-sel-wrap { position: relative; }
+          .cw-sel-wrap select { appearance: none; width: 100%; background: #fafaf9; border: 1px solid #eee; border-radius: 12px; padding: 0.62rem 2.2rem 0.62rem 1rem; font-size: 13px; color: #666; font-family: Inter, sans-serif; cursor: pointer; outline: none; }
+          .cw-sel-wrap select:focus { border-color: rgba(186,117,23,0.4); background: #fff; box-shadow: 0 0 0 3px rgba(186,117,23,0.07); }
+          .cw-sel-arrow { position: absolute; right: 0.8rem; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 10px; color: #bbb; }
+          .cw-loc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+          .cw-cta-card { background: #fff; border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04); padding: 1.25rem 1.75rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+          .cw-cta-left { display: flex; flex-direction: column; gap: 0.2rem; }
+          .cw-count-row { display: flex; align-items: baseline; gap: 0.45rem; }
+          .cw-count-n { font-size: 28px; font-weight: 600; color: #BA7517; letter-spacing: -0.03em; line-height: 1; }
+          .cw-count-lbl { font-size: 13px; color: #999; font-weight: 300; }
+          .cw-cta-hint { font-size: 11.5px; color: #ccc; font-weight: 300; }
+          .cw-cta-right { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+          .cw-btn-back { background: none; border: none; font-size: 12.5px; color: #bbb; cursor: pointer; font-family: Inter, sans-serif; display: flex; align-items: center; gap: 0.35rem; padding: 0.6rem 0; white-space: nowrap; }
+          .cw-btn-back:hover { color: #888; }
+          .cw-btn-main { background: linear-gradient(135deg, #BA7517 0%, #c98120 100%); border: none; border-radius: 12px; padding: 0.7rem 1.6rem; font-size: 13.5px; font-weight: 600; color: #fff; cursor: pointer; font-family: Inter, sans-serif; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 16px rgba(186,117,23,0.4); transition: all 0.2s; white-space: nowrap; }
+          .cw-btn-main:hover { box-shadow: 0 6px 24px rgba(186,117,23,0.55); transform: translateY(-2px); }
+          .cw-btn-main:active { transform: translateY(0); }
+          .cw-results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+          .cw-offer-card { background: #fff; border: 1px solid #f0ece4; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.8rem; transition: all 0.15s; text-decoration: none; color: inherit; }
+          .cw-offer-card:hover { border-color: rgba(186,117,23,0.3); box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-1px); }
+          .cw-offer-type { font-size: 10px; color: #BA7517; font-weight: 700; margin-bottom: 0.2rem; }
+          .cw-offer-title { font-size: 13px; font-weight: 700; color: #111; margin-bottom: 0.3rem; }
+          .cw-offer-desc { font-size: 11px; color: #666; line-height: 1.4; }
+          .cw-offer-footer { display: flex; justify-content: space-between; align-items: flex-end; padding-top: 0.8rem; border-top: 1px solid #f0ece4; }
+          .cw-offer-source { font-size: 10px; color: #999; }
+          .cw-offer-price { font-size: 16px; font-weight: 800; color: #111; }
+          .cw-no-results { background: #fff; border: 1px solid #f0ece4; border-radius: 12px; padding: 2rem; text-align: center; color: #999; font-size: 13px; }
         `}
       </style>
 
-      {/* Header */}
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ ...styles.blockBadge("Vinculación"), marginBottom: 10 }}>{text.marketOffers}</div>
-        <h2
-          style={{
-            fontSize: "clamp(24px,5vw,32px)",
-            fontWeight: 800,
-            letterSpacing: "-1px",
-            margin: "0 0 8px",
-            color: titleColor,
-          }}
-        >
-          {text.title}
-        </h2>
-        <p style={{ color: mutedColor, fontSize: 13, lineHeight: 1.6, margin: 0 }}>
-          {text.subtitle}
-        </p>
-      </div>
+      <div className="cw-wrap">
+        {/* MAIN CARD */}
+        <div className="cw-main-card">
+          {/* HEAD */}
+          <div className="cw-card-head">
+            <div className="cw-eyebrow">Búsqueda de compra</div>
+            <div className="cw-page-title">{text.title}</div>
+            <div className="cw-page-sub">{text.subtitle}</div>
+          </div>
 
-      {/* Two-column sidebar layout */}
-      <div className="decision-layout-sidebar">
-        {/* LEFT SIDEBAR: Filters */}
-        <div className="sidebar">
-          {/* Operation */}
-          <div style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8, letterSpacing: "0.5px", fontWeight: 700, textTransform: "uppercase" }}>
-              {text.operationType}
-            </div>
-            <div className="decision-sidebar-filter">
-              {operationChoices.map(([value, label]) => (
-                <button
-                  key={value}
-                  className={`filter-chip ${effectiveOperation === value ? "active" : ""}`}
-                  onClick={() => {
-                    if (lockedOperation) return;
-                    updateDecisionAnswer("operation", value);
-                    updateDecisionAnswer("acquisition", value === "renting" ? "particular" : "contado");
-                  }}
-                  disabled={lockedOperation !== null}
-                  style={{ opacity: lockedOperation && lockedOperation !== value ? 0.5 : 1 }}
-                >
-                  {label}
-                </button>
+          {/* ACTIVE FILTERS */}
+          <div className={`cw-active-bar ${hasActiveFilters ? "show" : ""}`}>
+            <span className="cw-ab-label">Filtros activos</span>
+            <div style={{display:"flex",gap:"0.35rem",flexWrap:"wrap"}}>
+              {activeFilters.map((f, i) => (
+                <span key={i} className="cw-a-chip">{f}</span>
               ))}
             </div>
-          </div>
-
-          {/* Brand */}
-          <div style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8, letterSpacing: "0.5px", fontWeight: 700, textTransform: "uppercase" }}>
-              {text.brand}
-            </div>
-            <select
-              value={decisionAnswers.brand}
-              onChange={(event) => {
-                updateDecisionAnswer("hasBrand", "si");
-                updateDecisionAnswer("brand", event.target.value);
-              }}
-              style={{...styles.select, width: "100%", fontSize: 12}}
-            >
-              <option value="">{text.selectBrand}</option>
-              {visibleBrands.slice(0, 15).map((brand) => (
-                <option key={brand} value={brand}>
-                  {brand}
-                </option>
-              ))}
-              {visibleBrands.length > 15 && <option value="__MORE__">+ Más marcas</option>}
-            </select>
-          </div>
-
-          {/* Model */}
-          {decisionAnswers.brand && (
-            <div style={{ marginBottom: 18 }}>
-              <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8, letterSpacing: "0.5px", fontWeight: 700, textTransform: "uppercase" }}>
-                {text.model}
-              </div>
-              <select
-                value={decisionAnswers.model}
-                onChange={(event) => updateDecisionAnswer("model", event.target.value)}
-                style={{...styles.select, width: "100%", fontSize: 12}}
-              >
-                <option value="">{text.selectModel}</option>
-                {decisionModels.map((model) => (
-                  <option key={model} value={model}>
-                    {model}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Price */}
-          <div style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8, letterSpacing: "0.5px", fontWeight: 700, textTransform: "uppercase" }}>
-              {text.priceRange}
-            </div>
-            <div className="decision-sidebar-filter">
-              {PRICE_MARKS.slice(0, -1).map((mark, idx) => {
-                const nextMark = PRICE_MARKS[idx + 1];
-                const label = idx === 0 ? `${mark/1000|0}k` : `${mark/1000|0}k-${nextMark/1000|0}k`;
-                const isInRange = mark >= PRICE_MARKS[priceFromIndex] && mark <= PRICE_MARKS[priceToIndex];
-                return (
-                  <button
-                    key={mark}
-                    className={`filter-chip ${isInRange ? "active" : ""}`}
-                    onClick={() => {
-                      setPriceFromIndex(idx);
-                      setPriceToIndex(Math.min(idx + 2, PRICE_MARKS.length - 1));
-                      updateDecisionAnswer("priceMin", PRICE_MARKS[idx]);
-                      updateDecisionAnswer("priceMax", PRICE_MARKS[Math.min(idx + 2, PRICE_MARKS.length - 1)]);
-                    }}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Fuel */}
-          <div style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8, letterSpacing: "0.5px", fontWeight: 700, textTransform: "uppercase" }}>
-              {text.fuel}
-            </div>
-            <div className="decision-sidebar-filter">
-              {FUEL_FILTER_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  className={`filter-chip ${decisionAnswers.fuelFilter === opt.value ? "active" : ""}`}
-                  onClick={() => updateDecisionAnswer("fuelFilter", opt.value)}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Age */}
-          <div style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8, letterSpacing: "0.5px", fontWeight: 700, textTransform: "uppercase" }}>
-              {text.ageRange}
-            </div>
-            <div className="decision-sidebar-filter">
-              {AGE_MARKS.slice(0, -1).map((mark, idx) => {
-                const nextMark = AGE_MARKS[idx + 1];
-                const isInRange = mark >= AGE_MARKS[ageFromIndex] && mark <= AGE_MARKS[ageToIndex];
-                return (
-                  <button
-                    key={mark}
-                    className={`filter-chip ${isInRange ? "active" : ""}`}
-                    onClick={() => {
-                      setAgeFromIndex(idx);
-                      setAgeToIndex(Math.min(idx + 2, AGE_MARKS.length - 1));
-                      updateDecisionAnswer("ageMin", AGE_MARKS[idx]);
-                      updateDecisionAnswer("ageMax", AGE_MARKS[Math.min(idx + 2, AGE_MARKS.length - 1)]);
-                    }}
-                  >
-                    {mark}-{nextMark}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Mileage */}
-          <div style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8, letterSpacing: "0.5px", fontWeight: 700, textTransform: "uppercase" }}>
-              {text.mileageRange}
-            </div>
-            <div className="decision-sidebar-filter">
-              {MILEAGE_MARKS.slice(0, -1).map((mark, idx) => {
-                const nextMark = MILEAGE_MARKS[idx + 1];
-                const label = `${mark/1000|0}-${nextMark/1000|0}k`;
-                const isInRange = mark >= MILEAGE_MARKS[mileageFromIndex] && mark <= MILEAGE_MARKS[mileageToIndex];
-                return (
-                  <button
-                    key={mark}
-                    className={`filter-chip ${isInRange ? "active" : ""}`}
-                    onClick={() => {
-                      setMileageFromIndex(idx);
-                      setMileageToIndex(Math.min(idx + 2, MILEAGE_MARKS.length - 1));
-                      updateDecisionAnswer("mileageMin", MILEAGE_MARKS[idx]);
-                      updateDecisionAnswer("mileageMax", MILEAGE_MARKS[Math.min(idx + 2, MILEAGE_MARKS.length - 1)]);
-                    }}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Location */}
-          <div style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8, letterSpacing: "0.5px", fontWeight: 700, textTransform: "uppercase" }}>
-              {text.location}
-            </div>
-            <select
-              value={decisionAnswers.location || "toda_espana"}
-              onChange={(event) => updateDecisionAnswer("location", event.target.value)}
-              style={{...styles.select, width: "100%", fontSize: 12}}
-            >
-              {LOCATION_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Action Buttons */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 12, borderTop: `1px solid ${isDark ? "rgba(148,163,184,0.15)" : "rgba(148,163,184,0.15)"}` }}>
-            <button onClick={onSwitchToAdvice} style={{...styles.btn, width: "100%", fontSize: 11, padding: "8px 12px"}}>
-              {text.switchFlow}
-            </button>
-            <button
-              onClick={onRestart}
-              style={{
-                background: isDark ? "rgba(255,255,255,0.05)" : "rgba(15,23,42,0.04)",
-                border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(15,23,42,0.12)",
-                color: isDark ? "#94a3b8" : "#334155",
-                padding: "8px 12px",
-                borderRadius: 8,
-                fontSize: 11,
-                cursor: "pointer",
-                width: "100%",
-              }}
-            >
-              {text.backHome}
-            </button>
-          </div>
-        </div>
-
-        {/* RIGHT: Results */}
-        <div>
-          <div style={{ marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-            <div style={{ fontSize: 12, color: mutedColor }}>
-              {decisionMarketListings.length} {text.realOffers}
-            </div>
-            {decisionFlowReady && (
-              <button
-                type="button"
-                onClick={onRecalculateDecisionMarketOffers}
-                disabled={decisionMarketLoading}
-                style={{
-                  background: "transparent",
-                  border: `1px solid ${isDark ? "rgba(148,163,184,0.4)" : "rgba(37,99,235,0.32)"}`,
-                  color: accentColor,
-                  borderRadius: 8,
-                  padding: "6px 10px",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  cursor: decisionMarketLoading ? "default" : "pointer",
-                  opacity: decisionMarketLoading ? 0.7 : 1,
-                }}
-              >
-                {decisionMarketLoading ? text.recalculating : "Recalcular"}
-              </button>
+            {hasActiveFilters && (
+              <button className="cw-ab-clear" onClick={handleClearAll}>Limpiar todo</button>
             )}
           </div>
 
-          {decisionMarketError && (
-            <div
-              style={{
-                background: "rgba(239,68,68,0.08)",
-                border: "1px solid rgba(239,68,68,0.18)",
-                borderRadius: 10,
-                padding: 12,
-                color: "#b91c1c",
-                fontSize: 12,
-                marginBottom: 12,
-              }}
-            >
-              {decisionMarketError}
+          {/* FILTERS */}
+          <div className="cw-filters">
+            {/* 1. OPERATION */}
+            <div className="cw-f-block">
+              <div className="cw-f-lbl"><span className="cw-f-lbl-n">1</span>{text.operationType}</div>
+              <div className="cw-chips">
+                {operationChoices.map(([value, label]) => (
+                  <button
+                    key={value}
+                    className={`cw-chip ${effectiveOperation === value ? "sel" : ""}`}
+                    onClick={() => {
+                      if (lockedOperation) return;
+                      updateDecisionAnswer("operation", value);
+                      updateDecisionAnswer("acquisition", value === "renting" ? "particular" : "contado");
+                    }}
+                    disabled={lockedOperation !== null}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
-          )}
 
-          {!decisionFlowReady && (
-            <div style={{ ...styles.panel, fontSize: 12, color: panelBodyColor }}>
-              {text.completeFilters}
+            {/* 2. BRAND GRID */}
+            <div className="cw-f-block">
+              <div className="cw-f-lbl"><span className="cw-f-lbl-n">2</span>{text.brand}</div>
+              <div className="cw-brand-grid">
+                {visibleBrands.slice(0, 10).map((brand) => (
+                  <button
+                    key={brand}
+                    className={`cw-b-btn ${decisionAnswers.brand === brand ? "sel" : ""}`}
+                    onClick={() => {
+                      updateDecisionAnswer("hasBrand", "si");
+                      updateDecisionAnswer("brand", decisionAnswers.brand === brand ? "" : brand);
+                    }}
+                  >
+                    <div className="cw-b-ico">🔷</div>
+                    <div>{brand}</div>
+                  </button>
+                ))}
+              </div>
             </div>
-          )}
 
-          {decisionFlowReady && decisionMarketLoading && (
-            <div style={{ ...styles.panel, fontSize: 12, color: panelBodyColor }}>
-              {text.loadingOffers}
-            </div>
-          )}
-
-          {decisionFlowReady && !decisionMarketLoading && decisionMarketListings.length === 0 && (
-            <div style={{ ...styles.panel, fontSize: 12, color: panelBodyColor }}>
-              {text.noOffers}
-            </div>
-          )}
-
-          {decisionFlowReady && decisionMarketListings.length > 0 && (
-            <div className="results-grid">
-              {decisionMarketListings.map((offer, index) => (
-                <a
-                  key={`${offer.url || index}`}
-                  href={offer.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ textDecoration: "none" }}
-                >
-                  <div className="offer-card">
-                    <div>
-                      <div style={{ fontSize: 10, color: accentColor, fontWeight: 700, marginBottom: 4 }}>
-                        {offer.listingType === "renting" ? "Renting" : text.directBuy}
-                      </div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: panelTitleColor, marginBottom: 4 }}>
-                        {offer.title}
-                      </div>
-                      <div style={{ fontSize: 11, color: panelBodyColor, lineHeight: 1.4 }}>
-                        {offer.description?.substring(0, 60)}...
-                      </div>
+            {/* 3. MODEL */}
+            <div className="cw-f-block">
+              <div className="cw-f-lbl">
+                <span className="cw-f-lbl-n">3</span>{text.model}
+                <span style={{fontSize:"10px",fontWeight:400,textTransform:"none",letterSpacing:0,color:"#ccc",marginLeft:"0.25rem"}}>— opcional</span>
+              </div>
+              <div className="cw-model-wrap">
+                <div style={{display:"flex",gap:"0.35rem",flexWrap:"wrap"}}>
+                  {modelTags.map((m, i) => (
+                    <div key={i} className="cw-m-tag">
+                      {m}
+                      <button onClick={() => handleRemoveModel(i)}>×</button>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", paddingTop: 8, borderTop: `1px solid ${isDark ? "rgba(148,163,184,0.1)" : "rgba(148,163,184,0.1)"}` }}>
-                      <div style={{ fontSize: 10, color: "#64748b" }}>
-                        {offer.source || text.provider}
-                      </div>
-                      <div style={{ fontSize: 16, fontWeight: 800, color: panelTitleColor }}>
-                        {offer.price}
-                      </div>
-                    </div>
-                  </div>
-                </a>
-              ))}
+                  ))}
+                </div>
+                <input
+                  className="cw-model-input"
+                  type="text"
+                  placeholder="Ej: Golf, Ibiza, Clase A…"
+                  value={modelInput}
+                  onChange={(e) => setModelInput(e.target.value)}
+                  onKeyDown={handleAddModel}
+                />
+              </div>
             </div>
-          )}
+
+            <div className="cw-f-sep"></div>
+
+            {/* 4. PRESUPUESTO */}
+            <div className="cw-f-block">
+              <div className="cw-f-lbl"><span className="cw-f-lbl-n">4</span>{text.priceRange}</div>
+              <div className="cw-chips">
+                {PRICE_MARKS.slice(0, -1).map((mark, idx) => {
+                  const nextMark = PRICE_MARKS[idx + 1];
+                  const label = `${mark/1000|0}k – ${nextMark/1000|0}k`;
+                  const isActive = priceFromIndex === idx && priceToIndex === idx + 2;
+                  return (
+                    <button
+                      key={mark}
+                      className={`cw-chip ${isActive ? "sel" : ""}`}
+                      onClick={() => {
+                        setPriceFromIndex(idx);
+                        setPriceToIndex(Math.min(idx + 2, PRICE_MARKS.length - 1));
+                        updateDecisionAnswer("priceMin", PRICE_MARKS[idx]);
+                        updateDecisionAnswer("priceMax", PRICE_MARKS[Math.min(idx + 2, PRICE_MARKS.length - 1)]);
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 5. COMBUSTIBLE */}
+            <div className="cw-f-block">
+              <div className="cw-f-lbl"><span className="cw-f-lbl-n">5</span>{text.fuel}</div>
+              <div className="cw-chips">
+                {FUEL_FILTER_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    className={`cw-chip ${decisionAnswers.fuelFilter === opt.value ? "sel" : ""}`}
+                    onClick={() => updateDecisionAnswer("fuelFilter", opt.value)}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 6+7. ANTIGÜEDAD + KM */}
+            <div className="cw-two-col">
+              <div className="cw-f-block">
+                <div className="cw-f-lbl"><span className="cw-f-lbl-n">6</span>{text.ageRange}</div>
+                <div className="cw-chips">
+                  {AGE_MARKS.slice(0, -1).map((mark, idx) => {
+                    const nextMark = AGE_MARKS[idx + 1];
+                    const isActive = ageFromIndex === idx && ageToIndex === idx + 2;
+                    return (
+                      <button
+                        key={mark}
+                        className={`cw-chip ${isActive ? "sel" : ""}`}
+                        onClick={() => {
+                          setAgeFromIndex(idx);
+                          setAgeToIndex(Math.min(idx + 2, AGE_MARKS.length - 1));
+                          updateDecisionAnswer("ageMin", AGE_MARKS[idx]);
+                          updateDecisionAnswer("ageMax", AGE_MARKS[Math.min(idx + 2, AGE_MARKS.length - 1)]);
+                        }}
+                      >
+                        {mark}–{nextMark}a
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="cw-f-block">
+                <div className="cw-f-lbl"><span className="cw-f-lbl-n">7</span>{text.mileageRange}</div>
+                <div className="cw-chips">
+                  {MILEAGE_MARKS.slice(0, -1).map((mark, idx) => {
+                    const nextMark = MILEAGE_MARKS[idx + 1];
+                    const label = `${mark/1000|0}–${nextMark/1000|0}k`;
+                    const isActive = mileageFromIndex === idx && mileageToIndex === idx + 2;
+                    return (
+                      <button
+                        key={mark}
+                        className={`cw-chip ${isActive ? "sel" : ""}`}
+                        onClick={() => {
+                          setMileageFromIndex(idx);
+                          setMileageToIndex(Math.min(idx + 2, MILEAGE_MARKS.length - 1));
+                          updateDecisionAnswer("mileageMin", MILEAGE_MARKS[idx]);
+                          updateDecisionAnswer("mileageMax", MILEAGE_MARKS[Math.min(idx + 2, MILEAGE_MARKS.length - 1)]);
+                        }}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* 8. UBICACIÓN */}
+            <div className="cw-f-block">
+              <div className="cw-f-lbl"><span className="cw-f-lbl-n">8</span>{text.location}</div>
+              <div className="cw-loc-grid">
+                <div className="cw-sel-wrap">
+                  <select
+                    value={decisionAnswers.location || "toda_espana"}
+                    onChange={(e) => updateDecisionAnswer("location", e.target.value)}
+                  >
+                    {LOCATION_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                  <div className="cw-sel-arrow">▾</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* RESULTS */}
+        {decisionFlowReady && (
+          <>
+            {decisionMarketLoading && (
+              <div className="cw-no-results">{text.loadingOffers}</div>
+            )}
+            {decisionMarketError && (
+              <div style={{background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.18)",borderRadius:12,padding:12,color:"#b91c1c",fontSize:12}}>
+                {decisionMarketError}
+              </div>
+            )}
+            {!decisionMarketLoading && decisionMarketListings.length === 0 && (
+              <div className="cw-no-results">{text.noOffers}</div>
+            )}
+            {!decisionMarketLoading && decisionMarketListings.length > 0 && (
+              <div className="cw-results-grid">
+                {decisionMarketListings.map((offer, i) => (
+                  <a
+                    key={i}
+                    href={offer.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="cw-offer-card"
+                  >
+                    <div className="cw-offer-type">{offer.listingType === "renting" ? "Renting" : "Compra"}</div>
+                    <div className="cw-offer-title">{offer.title}</div>
+                    <div className="cw-offer-desc">{offer.description?.substring(0, 80)}</div>
+                    <div className="cw-offer-footer">
+                      <div className="cw-offer-source">{offer.source}</div>
+                      <div className="cw-offer-price">{offer.price}</div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {!decisionFlowReady && (
+          <div className="cw-no-results">{text.completeFilters}</div>
+        )}
+
+        {/* CTA */}
+        <div className="cw-cta-card">
+          <div className="cw-cta-left">
+            <div className="cw-count-row">
+              <div className="cw-count-n" id="countN">{decisionFlowReady && !decisionMarketLoading ? decisionMarketListings.length : "—"}</div>
+              <div className="cw-count-lbl">ofertas disponibles</div>
+            </div>
+            <div className="cw-cta-hint">{decisionFlowReady ? "Resultados listos para analizar" : "Aplica filtros para ver resultados"}</div>
+          </div>
+          <div className="cw-cta-right">
+            <button className="cw-btn-back" onClick={onRestart}>
+              ← {text.backHome}
+            </button>
+            <button className="cw-btn-main" onClick={onSwitchToAdvice}>
+              {text.switchFlow} →
+            </button>
+          </div>
         </div>
       </div>
     </div>

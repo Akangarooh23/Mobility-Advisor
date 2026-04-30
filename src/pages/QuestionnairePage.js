@@ -31,7 +31,6 @@ export default function QuestionnairePage({
   const [hoveredOption, setHoveredOption] = useState(null);
   const [dragOrder, setDragOrder] = useState(null);
   const [dragSrcIdx, setDragSrcIdx] = useState(null);
-  const [dragOverIdx, setDragOverIdx] = useState(null);
 
   // Initialize score_weights step with default order on first visit
   useEffect(() => {
@@ -737,7 +736,6 @@ export default function QuestionnairePage({
 
         const handleDragEnter = (idx) => {
           if (idx === dragSrcIdx) return;
-          setDragOverIdx(idx);
           const newOrder = [...order];
           const [moved] = newOrder.splice(dragSrcIdx, 1);
           newOrder.splice(idx, 0, moved);
@@ -753,7 +751,6 @@ export default function QuestionnairePage({
 
         const handleDragEnd = () => {
           setDragSrcIdx(null);
-          setDragOverIdx(null);
         };
 
         return (

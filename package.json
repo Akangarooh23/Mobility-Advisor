@@ -49,6 +49,7 @@
     "inventory:scrape:massive:sqlserver": "powershell -NoProfile -Command \"$env:INVENTORY_SYNC_BATCH_SIZE='1000'; python scrapers/main.py --mode live --tiers tier1,tier2,tier3 --allow-planned --crawl-all --max-pages-per-platform 120 --max-links-per-platform 12000 --persist-sqlserver\"",
     "inventory:schedule:register": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/register-inventory-sqlserver-schedule.ps1",
     "migrate:attachments:sqlserver": "node scripts/migrate-attachments-filesystem-sqlserver.js",
+    "migrate:sqlserver-to-postgres": "node scripts/migrate-sqlserver-to-postgres.js",
     "cleanup:test-users-local": "node scripts/cleanup-test-users-sqlserver.js",
     "test:ranking": "node scripts/find-listing-ranking-local.js",
     "eject": "react-scripts eject"

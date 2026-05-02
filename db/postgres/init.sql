@@ -740,3 +740,110 @@ BEGIN
       DROP CONSTRAINT moveadvisor_user_valuations_vehicle_id_fkey;
   END IF;
 END $$;
+
+-- ============================================================
+-- Tablas añadidas en mayo 2026 (sincronización con SQL Server)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS moveadvisor_user_saved_comparisons (
+  id                  VARCHAR(64)   NOT NULL PRIMARY KEY,
+  user_email          VARCHAR(255)  NOT NULL,
+  user_id             VARCHAR(64),
+  title               VARCHAR(255)  NOT NULL DEFAULT '',
+  mode                VARCHAR(30)   NOT NULL DEFAULT 'buy',
+  comparison_payload  TEXT          NOT NULL DEFAULT '{}',
+  created_at          TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+  updated_at          TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS ix_user_saved_comparisons_email
+  ON moveadvisor_user_saved_comparisons (user_email, created_at DESC);
+CREATE INDEX IF NOT EXISTS ix_user_saved_comparisons_user_id
+  ON moveadvisor_user_saved_comparisons (user_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS moveadvisor_user_market_alerts (
+  id               VARCHAR(64)   NOT NULL PRIMARY KEY,
+  user_email       VARCHAR(255)  NOT NULL,
+  user_id          VARCHAR(64),
+  title            VARCHAR(255)  NOT NULL DEFAULT '',
+  mode             VARCHAR(30)   NOT NULL DEFAULT 'buy',
+  brand            VARCHAR(100)  NOT NULL DEFAULT '',
+  model            VARCHAR(120)  NOT NULL DEFAULT '',
+  max_price        VARCHAR(40)   NOT NULL DEFAULT '',
+  max_mileage      VARCHAR(40)   NOT NULL DEFAULT '',
+  fuel             VARCHAR(60)   NOT NULL DEFAULT '',
+  location         VARCHAR(160)  NOT NULL DEFAULT '',
+  color            VARCHAR(60)   NOT NULL DEFAULT '',
+  notify_by_email  BOOLEAN       NOT NULL DEFAULT FALSE,
+  alert_email      VARCHAR(255)  NOT NULL DEFAULT '',
+  status           VARCHAR(30)   NOT NULL DEFAULT 'active' CHECK (status IN ('active','paused','deleted')),
+  alert_payload    TEXT          NOT NULL DEFAULT '{}',
+  created_at       TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS ix_user_market_alerts_email
+  ON moveadvisor_user_market_alerts (user_email, created_at DESC);
+CREATE INDEX IF NOT EXISTS ix_user_market_alerts_user_id
+  ON moveadvisor_user_market_alerts (user_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS moveadvisor_user_market_alert_status (
+  alert_id     VARCHAR(64)   NOT NULL PRIMARY KEY,
+  user_email   VARCHAR(255)  NOT NULL,
+  seen_count   INT           NOT NULL DEFAULT 0 CHECK (seen_count >= 0),
+  last_seen_at TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+  CONSTRAINT fk_market_alert_status_alert
+    FOREIGN KEY (alert_id) REFERENCES moveadvisor_user_market_alerts(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS ix_user_market_alert_status_email
+  ON moveadvisor_user_market_alert_status (user_email);
+
+CREATE TABLE IF NOT EXISTS moveadvisor_user_preferences (
+  user_email             VARCHAR(255)  NOT NULL PRIMARY KEY,
+  user_id                VARCHAR(64),
+  full_name              VARCHAR(120)  NOT NULL DEFAULT '',
+  language               VARCHAR(10)   NOT NULL DEFAULT 'es',
+  region                 VARCHAR(10)   NOT NULL DEFAULT 'es',
+  notify_price_alerts    BOOLEAN       NOT NULL DEFAULT TRUE,
+  notify_appointments    BOOLEAN       NOT NULL DEFAULT TRUE,
+  notify_analysis_ready  BOOLEAN       NOT NULL DEFAULT TRUE,
+  weekly_digest          BOOLEAN       NOT NULL DEFAULT TRUE,
+  updated_at             TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+);
+
+-- Tablas de inventario scrapeado
+CREATE TABLE IF NOT EXISTS moveadvisor_market_offers (
+  id            VARCHAR(40)   NOT NULL PRIMARY KEY,
+  portal        VARCHAR(60)   NOT NULL DEFAULT '',
+  url           VARCHAR(1024) NOT NULL DEFAULT '',
+  brand         VARCHAR(100)  NOT NULL DEFAULT '',
+  model         VARCHAR(120)  NOT NULL DEFAULT '',
+  version       VARCHAR(180)  NOT NULL DEFAULT '',
+  year          INT,
+  mileage       INT,
+  price         NUMERIC(12,2),
+  fuel          VARCHAR(60)   NOT NULL DEFAULT '',
+  transmission  VARCHAR(60)   NOT NULL DEFAULT '',
+  color         VARCHAR(80)   NOT NULL DEFAULT '',
+  location      VARCHAR(160)  NOT NULL DEFAULT '',
+  images        TEXT          NOT NULL DEFAULT '[]',
+  raw_payload   TEXT          NOT NULL DEFAULT '{}',
+  scraped_at    TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS ix_market_offers_brand_model
+  ON moveadvisor_market_offers (brand, model);
+CREATE INDEX IF NOT EXISTS ix_market_offers_portal
+  ON moveadvisor_market_offers (portal);
+CREATE INDEX IF NOT EXISTS ix_market_offers_price
+  ON moveadvisor_market_offers (price);
+
+CREATE TABLE IF NOT EXISTS moveadvisor_scraping_runs (
+  id          SERIAL        PRIMARY KEY,
+  portal      VARCHAR(60)   NOT NULL DEFAULT '',
+  started_at  TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+  finished_at TIMESTAMPTZ,
+  offers_found INT          NOT NULL DEFAULT 0,
+  status      VARCHAR(30)   NOT NULL DEFAULT 'ok' CHECK (status IN ('ok','error','partial')),
+  error_msg   TEXT          NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS ix_scraping_runs_portal
+  ON moveadvisor_scraping_runs (portal, started_at DESC);

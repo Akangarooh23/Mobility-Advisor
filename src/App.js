@@ -80,6 +80,7 @@ import {
 } from "./utils/advisorResults";
 import {
   deleteUserAlertJson,
+  getSellMarketSnapshotJson,
   postAlertEmailDigestJson,
   postAppointmentAddJson,
   postAuthJson,
@@ -788,6 +789,9 @@ export default function App() {
   const [sellListingResult, setSellListingResult] = useState(null);
   const [sellListingLoading, setSellListingLoading] = useState(false);
   const [sellListingError, setSellListingError] = useState(null);
+  const [sellMarketSnapshot, setSellMarketSnapshot] = useState(null);
+  const [sellMarketSnapshotLoading, setSellMarketSnapshotLoading] = useState(false);
+  const [sellMarketSnapshotError, setSellMarketSnapshotError] = useState("");
   const [savedComparisons, setSavedComparisons] = useState([]);
   const [userAppointments, setUserAppointments] = useState([]);
   const [userMaintenances, setUserMaintenances] = useState([]);
@@ -2615,6 +2619,34 @@ export default function App() {
     setSellLoading(true);
     setSellError(null);
     setApiKeyMissing(false);
+    setSellMarketSnapshotError("");
+    setSellMarketSnapshotLoading(true);
+
+    try {
+      const { response, data } = await getSellMarketSnapshotJson({
+        brand: sellAnswers.brand,
+        model: sellAnswers.model,
+        version: sellAnswers.version,
+        fuel: sellAnswers.fuel,
+        year: sellAnswers.year,
+        mileage: sellAnswers.mileage,
+      }, {
+        headers: {
+          "Cache-Control": "no-cache",
+        },
+        cache: "no-store",
+      });
+
+      if (response.ok && data?.ok) {
+        setSellMarketSnapshot(data);
+      } else {
+        throw new Error(data?.error || "No se pudo obtener referencia de mercado.");
+      }
+    } catch (snapshotError) {
+      setSellMarketSnapshotError(snapshotError?.message || "No se pudo cargar el mercado real.");
+    } finally {
+      setSellMarketSnapshotLoading(false);
+    }
 
     try {
       const prompt = buildSellAnalysisPrompt({ sellAnswers });
@@ -4563,6 +4595,9 @@ export default function App() {
               operation: "comprar",
               acquisition: "contado",
               hasBrand: "si",
+              cashBudget: "mas_150000",
+              ageFilter: "all",
+              mileageFilter: "all",
             });
             setEntryMode("decision");
             setStep(-1);
@@ -5085,6 +5120,9 @@ export default function App() {
           sellListingLoading={sellListingLoading}
           sellListingError={sellListingError}
           sellListingResult={sellListingResult}
+          sellMarketSnapshot={sellMarketSnapshot}
+          sellMarketSnapshotLoading={sellMarketSnapshotLoading}
+          sellMarketSnapshotError={sellMarketSnapshotError}
           formatCurrency={formatCurrency}
           onRestart={restart}
           onOpenContact={() => {
@@ -5099,6 +5137,20 @@ export default function App() {
             setSellFlowType("certificate");
             setSellAnswers((prev) => ({ ...prev, sellerType: "profesional" }));
             setEntryMode("sell");
+            setStep(-1);
+          }}
+          onGoToBuyKnownModel={() => {
+            setAdvisorContext("buy");
+            setDecisionAnswers({
+              ...createInitialDecisionAnswers(),
+              operation: "comprar",
+              acquisition: "contado",
+              hasBrand: "si",
+              cashBudget: "mas_150000",
+              ageFilter: "all",
+              mileageFilter: "all",
+            });
+            setEntryMode("decision");
             setStep(-1);
           }}
         />

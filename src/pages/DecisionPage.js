@@ -199,6 +199,13 @@ function getCeilIndexFromValue(marks, value, fallback = 0) {
   return idx >= 0 ? idx : marks.length - 1;
 }
 
+function cleanOfferText(value) {
+  return String(value || "")
+    .replace(/\uFFFD/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 export default function DecisionPage({
   styles,
   decisionAnswers,
@@ -305,6 +312,12 @@ export default function DecisionPage({
       updateDecisionAnswer("acquisition", "contado");
     }
   }, [decisionAnswers.operation, decisionAnswers.acquisition, updateDecisionAnswer]);
+
+  useEffect(() => {
+    if (!decisionAnswers.cashBudget) {
+      updateDecisionAnswer("cashBudget", PRICE_FILTER_BY_TO_INDEX[priceToIndex] || "mas_150000");
+    }
+  }, [decisionAnswers.cashBudget, priceToIndex, updateDecisionAnswer]);
 
   useEffect(() => {
     setPriceFromDraft(String(PRICE_MARKS[priceFromIndex]));
@@ -595,16 +608,16 @@ export default function DecisionPage({
           .cw-sel-wrap select:focus { border-color: rgba(59,130,246,0.4); background: #fff; box-shadow: 0 0 0 3px rgba(59,130,246,0.07); }
           .cw-sel-arrow { position: absolute; right: 0.8rem; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 10px; color: #bbb; }
           .cw-loc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
-          .cw-cta-card { background: #fff; border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04); padding: 1.25rem 1.75rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+          .cw-cta-card { background: linear-gradient(145deg, #ffffff 0%, #f8fbff 100%); border: 1px solid #e5eefb; border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 6px 24px rgba(31,77,165,0.08); padding: 1.25rem 1.75rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
           .cw-cta-left { display: flex; flex-direction: column; gap: 0.2rem; }
           .cw-count-row { display: flex; align-items: baseline; gap: 0.45rem; }
           .cw-count-n { font-size: 28px; font-weight: 600; color: #3b82f6; letter-spacing: -0.03em; line-height: 1; }
-          .cw-count-lbl { font-size: 13px; color: #999; font-weight: 300; }
-          .cw-cta-hint { font-size: 11.5px; color: #ccc; font-weight: 300; }
+          .cw-count-lbl { font-size: 13px; color: #64748b; font-weight: 500; }
+          .cw-cta-hint { font-size: 11.5px; color: #7a8aa3; font-weight: 500; }
           .cw-cta-right { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
-          .cw-btn-back { background: none; border: none; font-size: 12.5px; color: #bbb; cursor: pointer; font-family: Inter, sans-serif; display: flex; align-items: center; gap: 0.35rem; padding: 0.6rem 0; white-space: nowrap; }
-          .cw-btn-back:hover { color: #888; }
-          .cw-btn-main { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border: none; border-radius: 12px; padding: 0.7rem 1.6rem; font-size: 13.5px; font-weight: 600; color: #fff; cursor: pointer; font-family: Inter, sans-serif; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 16px rgba(59,130,246,0.4); transition: all 0.2s; white-space: nowrap; }
+          .cw-btn-back { background: none; border: none; font-size: 12.5px; color: #6b7a90; cursor: pointer; font-family: Inter, sans-serif; display: flex; align-items: center; gap: 0.35rem; padding: 0.6rem 0; white-space: nowrap; }
+          .cw-btn-back:hover { color: #334155; }
+          .cw-btn-main { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); border: none; border-radius: 12px; padding: 0.7rem 1.6rem; font-size: 13.5px; font-weight: 700; color: #fff; cursor: pointer; font-family: Inter, sans-serif; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 16px rgba(37,99,235,0.35); transition: all 0.2s; white-space: nowrap; }
           .cw-btn-main:hover { box-shadow: 0 6px 24px rgba(59,130,246,0.55); transform: translateY(-2px); }
           .cw-btn-main:active { transform: translateY(0); }
           @media (max-width: 700px) {
@@ -614,14 +627,18 @@ export default function DecisionPage({
             .cw-btn-back { font-size: 12px; }
           }
           .cw-results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
-          .cw-offer-card { background: #fff; border: 1px solid #f0ece4; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.8rem; transition: all 0.15s; text-decoration: none; color: inherit; }
-          .cw-offer-card:hover { border-color: rgba(186,117,23,0.3); box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-1px); }
-          .cw-offer-type { font-size: 10px; color: #3b82f6; font-weight: 700; margin-bottom: 0.2rem; }
-          .cw-offer-title { font-size: 13px; font-weight: 700; color: #111; margin-bottom: 0.3rem; }
-          .cw-offer-desc { font-size: 11px; color: #666; line-height: 1.4; }
-          .cw-offer-footer { display: flex; justify-content: space-between; align-items: flex-end; padding-top: 0.8rem; border-top: 1px solid #f0ece4; }
-          .cw-offer-source { font-size: 10px; color: #999; }
-          .cw-offer-price { font-size: 16px; font-weight: 800; color: #111; }
+          .cw-offer-card { background: linear-gradient(160deg, #ffffff 0%, #f8fafc 100%); border: 1px solid #d9e4f5; border-radius: 16px; padding: 1rem; display: flex; flex-direction: column; gap: 0.85rem; transition: all 0.2s ease; text-decoration: none; color: inherit; position: relative; overflow: hidden; }
+          .cw-offer-card::after { content: ''; position: absolute; inset: auto -10% -35% -10%; height: 70px; background: radial-gradient(circle at top, rgba(37,99,235,0.14), transparent 70%); opacity: 0; transition: opacity 0.2s ease; pointer-events: none; }
+          .cw-offer-card:hover { border-color: #9fbaf0; box-shadow: 0 10px 28px rgba(30,64,175,0.14); transform: translateY(-2px); }
+          .cw-offer-card:hover::after { opacity: 1; }
+          .cw-offer-top { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+          .cw-offer-type { font-size: 10px; color: #1d4ed8; background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.25); font-weight: 700; padding: 0.22rem 0.52rem; border-radius: 999px; letter-spacing: 0.04em; text-transform: uppercase; }
+          .cw-offer-source { font-size: 10px; color: #35507a; background: rgba(148,163,184,0.16); border: 1px solid rgba(148,163,184,0.35); padding: 0.2rem 0.5rem; border-radius: 999px; font-weight: 600; text-transform: lowercase; }
+          .cw-offer-title { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 0.1rem; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+          .cw-offer-desc { font-size: 11.5px; color: #5c6c82; line-height: 1.5; min-height: 34px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+          .cw-offer-footer { display: flex; justify-content: space-between; align-items: flex-end; padding-top: 0.65rem; border-top: 1px solid #e6edf8; }
+          .cw-offer-price { font-size: 22px; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; line-height: 1; }
+          .cw-offer-open { font-size: 11px; font-weight: 700; color: #1d4ed8; }
           .cw-no-results { background: #fff; border: 1px solid #f0ece4; border-radius: 12px; padding: 2rem; text-align: center; color: #999; font-size: 13px; }
         `}
       </style>
@@ -1191,6 +1208,11 @@ export default function DecisionPage({
                 {decisionMarketError}
               </div>
             )}
+            {!decisionMarketError && decisionMarketInsight && (
+              <div style={{background:"rgba(59,130,246,0.08)",border:"1px solid rgba(59,130,246,0.2)",borderRadius:12,padding:12,color:"#1e3a8a",fontSize:12}}>
+                {decisionMarketInsight}
+              </div>
+            )}
             {!decisionMarketLoading && decisionMarketListings.length === 0 && (
               <div className="cw-no-results">{text.noOffers}</div>
             )}
@@ -1204,12 +1226,15 @@ export default function DecisionPage({
                     rel="noopener noreferrer"
                     className="cw-offer-card"
                   >
-                    <div className="cw-offer-type">{offer.listingType === "renting" ? "Renting" : "Compra"}</div>
-                    <div className="cw-offer-title">{offer.title}</div>
-                    <div className="cw-offer-desc">{offer.description?.substring(0, 80)}</div>
+                    <div className="cw-offer-top">
+                      <div className="cw-offer-type">{offer.listingType === "renting" ? "Renting" : "Compra"}</div>
+                      <div className="cw-offer-source">{cleanOfferText(offer.source) || "market"}</div>
+                    </div>
+                    <div className="cw-offer-title">{cleanOfferText(offer.title)}</div>
+                    <div className="cw-offer-desc">{cleanOfferText(offer.description)?.substring(0, 96)}</div>
                     <div className="cw-offer-footer">
-                      <div className="cw-offer-source">{offer.source}</div>
-                      <div className="cw-offer-price">{offer.price}</div>
+                      <div className="cw-offer-open">Ver ficha ↗</div>
+                      <div className="cw-offer-price">{cleanOfferText(offer.price)}</div>
                     </div>
                   </a>
                 ))}
@@ -1236,7 +1261,7 @@ export default function DecisionPage({
               ← {text.backHome}
             </button>
             <button className="cw-btn-main" onClick={onSwitchToAdvice}>
-              Ver Marketplace Vo de Carswise →
+              Ver Marketplace VO de Carswise →
             </button>
           </div>
         </div>

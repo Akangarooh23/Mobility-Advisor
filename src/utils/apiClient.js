@@ -10,6 +10,7 @@ export const BILLING_ACCOUNT_API_ENDPOINT = "/api/billing-account";
 export const ERP_CATALOG_API_ENDPOINT = "/api/erp-catalog";
 export const WORKSHOPS_NEARBY_API_ENDPOINT = "/api/workshops-nearby";
 export const WORKSHOP_AVAILABILITY_API_ENDPOINT = "/api/workshop-availability";
+export const MARKET_PRICE_API_ENDPOINT = "/api/market-price";
 
 export function getErpBrandsJson(options = {}) {
   return fetch(`${ERP_CATALOG_API_ENDPOINT}?scope=brands`, { credentials: "include", ...options });
@@ -139,6 +140,13 @@ export function postAnalyzeJson(payload, options = {}) {
 export function postListingJson(payload, options = {}) {
   return postJson(LISTING_API_ENDPOINT, payload, {
     endpointLabel: "find-listing",
+    ...options,
+  });
+}
+
+export function getSellMarketSnapshotJson(payload, options = {}) {
+  return postJson(MARKET_PRICE_API_ENDPOINT, { payload }, {
+    endpointLabel: "market-price",
     ...options,
   });
 }

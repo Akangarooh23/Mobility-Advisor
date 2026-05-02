@@ -22,11 +22,15 @@ export default function SellPage({
   sellListingLoading,
   sellListingError,
   sellListingResult,
+  sellMarketSnapshot,
+  sellMarketSnapshotLoading,
+  sellMarketSnapshotError,
   formatCurrency,
   onRestart,
   onOpenContact,
   onGoBack,
   onSwitchToCertificate,
+  onGoToBuyKnownModel,
   currentUserEmail,
 }) {
   const { t } = useTranslation();
@@ -120,7 +124,11 @@ export default function SellPage({
         sellEstimate={sellEstimate}
         sellAiResult={sellAiResult}
         sellError={sellError}
+        sellMarketSnapshot={sellMarketSnapshot}
+        sellMarketSnapshotLoading={sellMarketSnapshotLoading}
+        sellMarketSnapshotError={sellMarketSnapshotError}
         onGoBack={onGoBack}
+        onGoToBuyKnownModel={onGoToBuyKnownModel}
         onSwitchToCertificate={onSwitchToCertificate}
         formatCurrency={formatCurrency}
       />

@@ -1,0 +1,27 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "terminal-reset-check",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-c",
+				"print('task-ok')"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "python-smoke-task",
+			"type": "shell",
+			"command": "python -c \"print('task-ok')\"",
+			"isBackground": false
+		},
+		{
+			"label": "cochesnet-seed-persist",
+			"type": "shell",
+			"command": "node scripts/scrape-cochesnet-playwright.js --seed-urls-url https://raw.githubusercontent.com/davidsandovalrodriguez/cochesscraping/main/OutdatedCarLinks/car_links_2025-02-23_14-18.txt --max-urls 120 --concurrency 1 --max-retries 4 --persist-sqlserver --output data/cochesnet-seed-batch.json",
+			"isBackground": false
+		}
+	]
+}

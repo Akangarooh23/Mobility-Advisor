@@ -58,8 +58,12 @@ export default function SellReportMarketPage({
   sellLoading,
   sellEstimate,
   sellAiResult,
+  sellMarketSnapshot,
+  sellMarketSnapshotLoading,
+  sellMarketSnapshotError,
   sellError,
   onGoBack,
+  onGoToBuyKnownModel,
   formatCurrency,
 }) {
   const [erpBrands, setErpBrands] = useState([]);
@@ -87,6 +91,66 @@ export default function SellReportMarketPage({
     187
   );
   const marketDays = pickNumber((sellAiResult?.tiempo_estimado_venta || "").match(/\d+/)?.[0], 38);
+
+  const snapshotMean = pickNumber(sellMarketSnapshot?.market?.mean, marketMean);
+  const snapshotLow = pickNumber(sellMarketSnapshot?.market?.p25, marketLow);
+  const snapshotHigh = pickNumber(sellMarketSnapshot?.market?.p75, marketHigh);
+  const snapshotUnits = pickNumber(sellMarketSnapshot?.comparables, marketUnits);
+  const snapshotDays = pickNumber(sellMarketSnapshot?.market?.daysOnMarketMedian, marketDays);
+  const marketUpdatedAt = normalizeText(sellMarketSnapshot?.market?.updatedAt);
+  const marketSource = normalizeText(sellMarketSnapshot?.source);
+
+  const defaultPortalRows = [
+    {
+      key: "coches",
+      icon: "C",
+      iconColor: "#003087",
+      name: "Coches.net",
+      price: currencyEUR(Math.round(snapshotMean * 0.985), formatCurrency),
+      units: Math.max(30, Math.round(snapshotUnits * 0.45)),
+      toneClass: "blue",
+    },
+    {
+      key: "autoscout",
+      icon: "A",
+      iconColor: "#ff6600",
+      name: "AutoScout24",
+      price: currencyEUR(Math.round(snapshotMean * 1.02), formatCurrency),
+      units: Math.max(25, Math.round(snapshotUnits * 0.34)),
+      toneClass: "",
+    },
+    {
+      key: "milanuncios",
+      icon: "M",
+      iconColor: "#00a651",
+      name: "Milanuncios",
+      price: currencyEUR(Math.round(snapshotMean * 0.94), formatCurrency),
+      units: Math.max(15, Math.round(snapshotUnits * 0.21)),
+      toneClass: "green",
+    },
+  ];
+
+  const snapshotPortalRows = Array.isArray(sellMarketSnapshot?.byPortal)
+    ? sellMarketSnapshot.byPortal.slice(0, 3).map((item, index) => {
+        const portalName = normalizeText(item?.portal) || `Portal ${index + 1}`;
+        const initials = portalName.slice(0, 1).toUpperCase() || "P";
+        const avgPrice = pickNumber(item?.avgPrice, 0);
+        const units = pickNumber(item?.units, 0);
+        const toneClass = index === 0 ? "blue" : index === 2 ? "green" : "";
+
+        return {
+          key: `${portalName}-${index}`,
+          icon: initials,
+          iconColor: index === 0 ? "#003087" : index === 1 ? "#ff6600" : "#00a651",
+          name: portalName,
+          price: avgPrice > 0 ? currencyEUR(avgPrice, formatCurrency) : "Sin precio",
+          units,
+          toneClass,
+        };
+      })
+    : [];
+
+  const portalRows = snapshotPortalRows.length > 0 ? snapshotPortalRows : defaultPortalRows;
 
   useEffect(() => {
     if (!normalizeText(currentUserEmail)) {
@@ -245,36 +309,6 @@ export default function SellReportMarketPage({
     setIdCarPromptVisible(false);
     analyzeSellWithAI();
   };
-
-  const portalRows = [
-    {
-      key: "coches",
-      icon: "C",
-      iconColor: "#003087",
-      name: "Coches.net",
-      price: currencyEUR(Math.round(marketMean * 0.985), formatCurrency),
-      units: Math.max(30, Math.round(marketUnits * 0.45)),
-      toneClass: "blue",
-    },
-    {
-      key: "autoscout",
-      icon: "A",
-      iconColor: "#ff6600",
-      name: "AutoScout24",
-      price: currencyEUR(Math.round(marketMean * 1.02), formatCurrency),
-      units: Math.max(25, Math.round(marketUnits * 0.34)),
-      toneClass: "",
-    },
-    {
-      key: "milanuncios",
-      icon: "M",
-      iconColor: "#00a651",
-      name: "Milanuncios",
-      price: currencyEUR(Math.round(marketMean * 0.94), formatCurrency),
-      units: Math.max(15, Math.round(marketUnits * 0.21)),
-      toneClass: "green",
-    },
-  ];
 
   return (
     <div className="sell-market-root sell-market-wrap">
@@ -605,15 +639,15 @@ export default function SellReportMarketPage({
                 <div className="result-section">
                   <div className="result-grid">
                     <div className="rstat">
-                      <div className="rstat-num blue">{currencyEUR(marketMean, formatCurrency)}</div>
+                      <div className="rstat-num blue">{currencyEUR(snapshotMean, formatCurrency)}</div>
                       <div className="rstat-lbl">Precio medio<br />de oferta</div>
                     </div>
                     <div className="rstat">
-                      <div className="rstat-num grad-text">{marketUnits}</div>
+                      <div className="rstat-num grad-text">{snapshotUnits}</div>
                       <div className="rstat-lbl">Unidades en<br />venta ahora</div>
                     </div>
                     <div className="rstat">
-                      <div className="rstat-num green">{marketDays} d.</div>
+                      <div className="rstat-num green">{snapshotDays} d.</div>
                       <div className="rstat-lbl">Tiempo medio<br />anunciado</div>
                     </div>
                   </div>
@@ -638,10 +672,19 @@ export default function SellReportMarketPage({
                   <div className="price-range">
                     <div className="pr-label">Rango de precios para este perfil de vehículo</div>
                     <div className="pr-range">
-                      <span className="pr-val blue">{currencyEUR(marketLow, formatCurrency)}</span>
+                      <span className="pr-val blue">{currencyEUR(snapshotLow, formatCurrency)}</span>
                       <span className="pr-sep">—</span>
-                      <span className="pr-val green">{currencyEUR(marketHigh, formatCurrency)}</span>
+                      <span className="pr-val green">{currencyEUR(snapshotHigh, formatCurrency)}</span>
                     </div>
+                  </div>
+                  <div className="sell-market-idcar-hint" style={{ marginTop: "0.75rem" }}>
+                    {sellMarketSnapshotLoading
+                      ? "Cargando comparables reales de mercado..."
+                      : sellMarketSnapshotError
+                        ? `Mercado real no disponible ahora: ${sellMarketSnapshotError}`
+                        : marketSource
+                          ? `Fuente: ${marketSource}${marketUpdatedAt ? ` · actualizado ${new Date(marketUpdatedAt).toLocaleString("es-ES")}` : ""}`
+                          : "Mostrando referencia actual."}
                   </div>
                 </div>
               </div>
@@ -669,6 +712,20 @@ export default function SellReportMarketPage({
       </div>
 
       {sellError ? <div className="sell-market-error">{sellError}</div> : null}
+
+      {typeof onGoToBuyKnownModel === "function" ? (
+        <div className="cta-card">
+          <div className="cta-text">
+            <strong>¿Ya tienes claro cuál quieres comprar?</strong>
+            <span>Salta directo al flujo de compra con modelo conocido.</span>
+          </div>
+          <div className="cta-btns">
+            <button className="btn-primary" type="button" onClick={onGoToBuyKnownModel}>
+              Ir a comprar ahora
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

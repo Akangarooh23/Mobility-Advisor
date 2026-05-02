@@ -1,0 +1,647 @@
+{
+  "generatedAt": "2026-05-02T18:42:37.537Z",
+  "pipeline": {
+    "mode": "browser-playwright",
+    "selected": [
+      "coches.net"
+    ],
+    "tiers": [
+      "tier1"
+    ],
+    "report": [
+      {
+        "platform": "coches.net",
+        "selected": true,
+        "attempted": 5,
+        "extracted": 3,
+        "valid": 3,
+        "errors": 4,
+        "status": "ok",
+        "message": "playwright extracted 3 offers from 1 sitemap(s)"
+      }
+    ]
+  },
+  "offers": [
+    {
+      "portal": "coches.net",
+      "url": "https://www.coches.net/mercedes-benz-clase-e-diesel-2000-en-madrid-70544552-covo.aspx",
+      "brand": "MERCEDES-BENZ",
+      "model": "CLASE E",
+      "version": "MERCEDES-BENZ Clase E",
+      "year": 2000,
+      "mileage": 400000,
+      "fuel": "Diésel",
+      "transmission": "Automatica",
+      "bodyType": "",
+      "price": 5000,
+      "monthlyPrice": null,
+      "province": "Madrid",
+      "city": "Madrid",
+      "color": "Negro",
+      "image": "https://a.ccdn.es/cnet/2026/05/02/70544552/2103829982_g.jpg",
+      "listingType": "compra",
+      "doors": 4,
+      "seats": null,
+      "powerCv": null,
+      "sellerType": "particular",
+      "dealerName": "",
+      "warrantyMonths": null,
+      "title": "MERCEDES-BENZ Clase E",
+      "updatedAt": "2026-05-02T18:41:12.472Z",
+      "listedAt": "2026-05-02T18:41:12.474Z",
+      "rawPayload": {
+        "blocked": false,
+        "pageTitle": "MERCEDES-BENZ (2000) - 5.000 € en Madrid | Coches.net",
+        "title": "MERCEDES-BENZ Clase E",
+        "url": "https://www.coches.net/mercedes-benz-clase-e-diesel-2000-en-madrid-70544552-covo.aspx",
+        "brand": "MERCEDES-BENZ",
+        "model": "CLASE E",
+        "image": "https://a.ccdn.es/cnet/2026/05/02/70544552/2103829982_g.jpg",
+        "price": 5000,
+        "year": 2000,
+        "mileage": 400000,
+        "fuel": "Diésel",
+        "transmission": "Automatic",
+        "bodyType": "",
+        "doors": 4,
+        "seats": null,
+        "powerCv": null,
+        "color": "Negro",
+        "city": "Madrid",
+        "breadcrumbLocation": "Madrid",
+        "description": "Utilizamos cookies y tecnologías similares propias y de terceros y tratamos tus datos personales para poder ofrecerte un servicio de calidad. Si las aceptas, podrás acceder a todo el contenido del Sitio. Si decides rechazarlas, podrás acceder igualmente si te creas una cuenta de usuario, por lo que podrás navegar de la misma manera sin que instalemos estas tecnologías, salvo aquellas que no requieran de tu consentimiento. Con tu consentimiento, nosotros y nuestros 1011 socios utilizamos las cookies o tecnologías similares propias y de terceros y datos personales, como identificadores únicos y datos de navegación, para medir visitas y analizar nuestros servicios, ofrecerte contenido y/o publicidad personalizados en nuestros sitios, los del Grupo y/o terceros, realizar mediciones y desarrollar/mejorar nuestros servicios, crear, comparar y/o combinar audiencias. Algunos socios tratan datos basándose en interés legítimo, sin tu consentimiento. Puedes administrar tu selección, retirar tu consentimiento u oponerte al interés legítimo en cualquier momento haciendo click en “Más información”. Política de privacidad. Más Información Rechazar y crear cuenta Aceptar y cerrar Buscar Pruebas e información Trámites y Servicios Mi cuenta Acceder Vender 5.000 € MERCEDES-BENZ Clase E Favorito Compartir 1/9 Publicado: Ahora, modificado: Ahora MERCEDES-BENZ Clase E Precio al contado 5.000 € Avísame si baja de precio Guarda tus búsquedas favoritas Recibe alertas de anuncios similares por email Guardar búsqueda Favorito Compartir Denunciar 2000 400.000 km Madrid Cambio Automático 4 Puertas Negro Diesel Comentarios del anunciante Todo en pwrfectas condiciones. Culquiero pregunta no dude en escribirme Servicios Adicionales Calcular tu seguro Encuentra el mejor seguro comparando entre varias entidades. Calcular tu seguro Historial del vehículo Comprueba el Informe de Registro de Vehículos CARFAX® de este coche y haz una compra segura. Obtener el Historial Online Comprueba daños y accidentes, lecturas de kilometraje, inspecciones, número de propietarios, etc... Datos del anunciante Usuario particular Jamila Madrid Te puede interesar Suscríbete a la newsletter Si quieres estar al día de nuestras noticias, tienes que tener una cuenta en coches.net. Crear cuenta Contacta con el anunciante Acepto las condiciones de uso y la información básica de protección de datos. Quiero recibir alertas de anuncios similares Contactar Concesionarios con el modelo MugarsportLuxe CarsAuto Elegant Deluxe IIARL CarsVivo Motor GarageGatsby GarageBLACK GOLD CARS MADRIDSUPERAUTO MOTOREl Maño III SLAutos MóstolesAbm AutomotiveGran Motor SportMillan AutomobileEliteAutoCarsMercedes - Benz Mobility-Centro Alcalá de HenaresAMLMercedes - Benz Mobility-Centro RivasMonsa MotorAutomóviles Arpi Európolissecond cars luxuryAsunción Motor S.L.Automotor Dursan MadridAutomoviles Juan CarsDms AutomociónMercedes - Benz Mobility-CentroAutomoviles AlhambraAutomóviles Arturo SoriaTotal Ocasión Leganés - Ciudad del AutomóvilMOTOR 88Rock&road motorAutomicAutomóviles ArgüellesAutomoviles LuansaM&S Coches de OcasiónCar OneRenting creditAutosmanExclusivityGAS MOTOR GALLERYASM CarmotionAthlon Car Lease SpainAutomoviles La SagraDajoal AutoDream CarsCars MadridMCM Cars500 MillasPremiumcar EspañaAutofesaRENOVE.ESClickAutos MadridPREMIER VEHICULOSCars cartubasAutoclub Trackdays S.L.Tayre Automoción - Concesionario OficialVtrc AutomocionMercedes - Benz Mobility-Centro ColmenarDIALBRA AUTOMadrid Transfer Group S.LAC Car Las Rozas y Pinto otros enlaces de interés MERCEDES-BENZ Clase E precioMedidas de MERCEDES-BENZ Clase ERenting MERCEDES-BENZ Clase EConfigurador MERCEDES-BENZ Clase EInterior MERCEDES-BENZ Clase EMaletero MERCEDES-BENZ Clase EMERCEDES-BENZ Clase E de segunda mano y ocasión en BarcelonaMERCEDES-BENZ Clase E de segunda mano y ocasión en ValenciaMERCEDES-BENZ Clase E de segunda mano y ocasión en SevillaMERCEDES-BENZ Clase E de segunda mano y ocasiónMERCEDES-BENZ Clase E de segunda mano y ocasión en AlicanteMERCEDES-BENZ Clase E de segunda mano y ocasión en MálagaMERCEDES-BENZ Clase E de segunda mano y ocasión en MurciaMERCEDES-BENZ Clase E de segunda mano y ocasión en ZaragozaMERCEDES-BENZ Clase E de segunda mano y ocasión en Las PalmasMERCEDES-BENZ Clase E de segunda mano y ocasión en Asturias Coches de segunda mano MERCEDES-BENZ Clase E Madrid MERCEDES-BENZ Clase E",
+        "sellerType": "particular",
+        "rawJsonLd": [
+          {
+            "@context": "https://schema.org",
+            "@type": [
+              "Car",
+              "Product"
+            ],
+            "@id": "https://www.coches.net/mercedes-benz-clase-e-diesel-2000-en-madrid-70544552-covo.aspx",
+            "mainEntityOfPage": {
+              "@type": "WebPage",
+              "@id": "https://www.coches.net/mercedes-benz-clase-e-diesel-2000-en-madrid-70544552-covo.aspx"
+            },
+            "name": "MERCEDES-BENZ Clase E",
+            "brand": {
+              "@type": "Brand",
+              "name": "MERCEDES-BENZ"
+            },
+            "model": "CLASE E",
+            "url": "https://www.coches.net/mercedes-benz-clase-e-diesel-2000-en-madrid-70544552-covo.aspx",
+            "image": [
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544552/2103829982_g.jpg",
+                "caption": "Foto de MERCEDES-BENZ CLASE E 1",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544552/2103829983_g.jpg",
+                "caption": "Foto de MERCEDES-BENZ CLASE E 2",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544552/2103829984_g.jpg",
+                "caption": "Foto de MERCEDES-BENZ CLASE E 3",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544552/2103829985_g.jpg",
+                "caption": "Foto de MERCEDES-BENZ CLASE E 4",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544552/2103829986_g.jpg",
+                "caption": "Foto de MERCEDES-BENZ CLASE E 5",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544552/2103829987_g.jpg",
+                "caption": "Foto de MERCEDES-BENZ CLASE E 6",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544552/2103829988_g.jpg",
+                "caption": "Foto de MERCEDES-BENZ CLASE E 7",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544552/2103829989_g.jpg",
+                "caption": "Foto de MERCEDES-BENZ CLASE E 8",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544552/2103829990_g.jpg",
+                "caption": "Foto de MERCEDES-BENZ CLASE E 9",
+                "width": 1200,
+                "height": 800
+              }
+            ],
+            "productionDate": 2000,
+            "vehicleModelDate": 2000,
+            "modelDate": 2000,
+            "color": "Negro",
+            "itemCondition": "https://schema.org/UsedCondition",
+            "numberOfDoors": 4,
+            "vehicleTransmission": "Automatic",
+            "fuelType": "Diésel",
+            "mileageFromOdometer": {
+              "@type": "QuantitativeValue",
+              "value": 400000,
+              "unitCode": "KMT",
+              "unitText": "km"
+            },
+            "vehicleEngine": {
+              "@type": "EngineSpecification",
+              "engineType": "Diésel",
+              "fuelType": "Diésel"
+            },
+            "offers": {
+              "@type": "Offer",
+              "@id": "https://www.coches.net/mercedes-benz-clase-e-diesel-2000-en-madrid-70544552-covo.aspx",
+              "price": "5.000",
+              "priceCurrency": "EUR",
+              "itemCondition": "https://schema.org/UsedCondition",
+              "availability": "https://schema.org/InStock",
+              "url": "https://www.coches.net/mercedes-benz-clase-e-diesel-2000-en-madrid-70544552-covo.aspx"
+            }
+          },
+          {
+            "@context": "http://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "item": {
+                  "@type": "Thing",
+                  "id": "https://www.coches.net/segunda-mano/",
+                  "name": "Coches de segunda mano"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "item": {
+                  "@type": "Thing",
+                  "id": "https://www.coches.net/mercedes-benz/segunda-mano/",
+                  "name": "MERCEDES-BENZ"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "item": {
+                  "@type": "Thing",
+                  "id": "https://www.coches.net/mercedes-benz/clase_e/segunda-mano/",
+                  "name": "Clase E"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 4,
+                "item": {
+                  "@type": "Thing",
+                  "id": "https://www.coches.net/mercedes-benz/clase_e/segunda-mano/madrid/",
+                  "name": "Madrid"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "portal": "coches.net",
+      "url": "https://www.coches.net/renault-laguna-diesel-2010-en-asturias-70544547-covo.aspx",
+      "brand": "RENAULT",
+      "model": "LAGUNA",
+      "version": "RENAULT Laguna",
+      "year": 2010,
+      "mileage": 285000,
+      "fuel": "Diésel",
+      "transmission": "Manual",
+      "bodyType": "",
+      "price": 3999,
+      "monthlyPrice": null,
+      "province": "Asturias",
+      "city": "Asturias",
+      "color": "Gris / Plata",
+      "image": "https://a.ccdn.es/cnet/2026/05/02/70544547/2103829929_g.jpg",
+      "listingType": "compra",
+      "doors": 5,
+      "seats": null,
+      "powerCv": null,
+      "sellerType": "particular",
+      "dealerName": "",
+      "warrantyMonths": null,
+      "title": "RENAULT Laguna",
+      "updatedAt": "2026-05-02T18:41:17.916Z",
+      "listedAt": "2026-05-02T18:41:17.916Z",
+      "rawPayload": {
+        "blocked": false,
+        "pageTitle": "RENAULT (2010) - 3.999 € en Asturias | Coches.net",
+        "title": "RENAULT Laguna",
+        "url": "https://www.coches.net/renault-laguna-diesel-2010-en-asturias-70544547-covo.aspx",
+        "brand": "RENAULT",
+        "model": "LAGUNA",
+        "image": "https://a.ccdn.es/cnet/2026/05/02/70544547/2103829929_g.jpg",
+        "price": 3999,
+        "year": 2010,
+        "mileage": 285000,
+        "fuel": "Diésel",
+        "transmission": "Manual",
+        "bodyType": "",
+        "doors": 5,
+        "seats": null,
+        "powerCv": null,
+        "color": "Gris / Plata",
+        "city": "Asturias",
+        "breadcrumbLocation": "Asturias",
+        "description": "Utilizamos cookies y tecnologías similares propias y de terceros y tratamos tus datos personales para poder ofrecerte un servicio de calidad. Si las aceptas, podrás acceder a todo el contenido del Sitio. Si decides rechazarlas, podrás acceder igualmente si te creas una cuenta de usuario, por lo que podrás navegar de la misma manera sin que instalemos estas tecnologías, salvo aquellas que no requieran de tu consentimiento. Con tu consentimiento, nosotros y nuestros 1011 socios utilizamos las cookies o tecnologías similares propias y de terceros y datos personales, como identificadores únicos y datos de navegación, para medir visitas y analizar nuestros servicios, ofrecerte contenido y/o publicidad personalizados en nuestros sitios, los del Grupo y/o terceros, realizar mediciones y desarrollar/mejorar nuestros servicios, crear, comparar y/o combinar audiencias. Algunos socios tratan datos basándose en interés legítimo, sin tu consentimiento. Puedes administrar tu selección, retirar tu consentimiento u oponerte al interés legítimo en cualquier momento haciendo click en “Más información”. Política de privacidad. Más Información Rechazar y crear cuenta Aceptar y cerrar Buscar Pruebas e información Trámites y Servicios Mi cuenta Acceder Vender 3.999 € RENAULT Laguna Favorito Compartir 1/9 Publicado: Hace 5 min., modificado: Hace 5 min. RENAULT Laguna Precio al contado 3.999 € Avísame si baja de precio Guarda tus búsquedas favoritas Recibe alertas de anuncios similares por email Guardar búsqueda Favorito Compartir Denunciar 2010 285.000 km Asturias Cambio Manual 5 Puertas Gris / Plata Diesel Comentarios del anunciante coche en muy buen estado tanto interior como esterior,es motor 2000 cc y 150cv diesel, lleva cadena de distribución, navegador,xenon, tapicería de cuero y Alcántara, tarjeta inteligente, mantenimientos cada 10000 km ITV hasta noviembre,nada que hacerle ,es el más alto de gama, el precio no incluye transferencia ni garantía,no cambios ni regateos,solo gente interesada Servicios Adicionales Calcular tu seguro Encuentra el mejor seguro comparando entre varias entidades. Calcular tu seguro Historial del vehículo Comprueba el Informe de Registro de Vehículos CARFAX® de este coche y haz una compra segura. Obtener el Historial Online Comprueba daños y accidentes, lecturas de kilometraje, inspecciones, número de propietarios, etc... Datos del anunciante Usuario particular Antonio Asturias Mostrar teléfono Te puede interesar Suscríbete a la newsletter Si quieres estar al día de nuestras noticias, tienes que tener una cuenta en coches.net. Crear cuenta Mostrar teléfono Contacta con el anunciante Acepto las condiciones de uso y la información básica de protección de datos. Quiero recibir alertas de anuncios similares Contactar Concesionarios con el modelo VICAN motorAutoAsturF SieroCarsMedellín GarageAstur Ocasión del AutómovilAUTOS VEIMCO otros enlaces de interés RENAULT Laguna de segunda mano y ocasión en AlicanteRENAULT Laguna de segunda mano y ocasión en MurciaRENAULT Laguna de segunda mano y ocasión en ValenciaRENAULT Laguna de segunda mano y ocasión en SevillaRENAULT Laguna de segunda mano y ocasión en MadridRENAULT Laguna de segunda mano y ocasión en Las PalmasRENAULT Laguna de segunda mano y ocasión en BarcelonaRENAULT Laguna de segunda mano y ocasión en VizcayaRENAULT Laguna de segunda mano y ocasión en A CoruñaRENAULT Laguna de segunda mano y ocasión en Granada Coches de segunda mano RENAULT Laguna Asturias RENAULT Laguna",
+        "sellerType": "particular",
+        "rawJsonLd": [
+          {
+            "@context": "https://schema.org",
+            "@type": [
+              "Car",
+              "Product"
+            ],
+            "@id": "https://www.coches.net/renault-laguna-diesel-2010-en-asturias-70544547-covo.aspx",
+            "mainEntityOfPage": {
+              "@type": "WebPage",
+              "@id": "https://www.coches.net/renault-laguna-diesel-2010-en-asturias-70544547-covo.aspx"
+            },
+            "name": "RENAULT Laguna",
+            "brand": {
+              "@type": "Brand",
+              "name": "RENAULT"
+            },
+            "model": "LAGUNA",
+            "url": "https://www.coches.net/renault-laguna-diesel-2010-en-asturias-70544547-covo.aspx",
+            "image": [
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544547/2103829929_g.jpg",
+                "caption": "Foto de RENAULT LAGUNA 1",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544547/2103829930_g.jpg",
+                "caption": "Foto de RENAULT LAGUNA 2",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544547/2103829931_g.jpg",
+                "caption": "Foto de RENAULT LAGUNA 3",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544547/2103829932_g.jpg",
+                "caption": "Foto de RENAULT LAGUNA 4",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544547/2103829933_g.jpg",
+                "caption": "Foto de RENAULT LAGUNA 5",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544547/2103829934_g.jpg",
+                "caption": "Foto de RENAULT LAGUNA 6",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544547/2103829935_g.jpg",
+                "caption": "Foto de RENAULT LAGUNA 7",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544547/2103829936_g.jpg",
+                "caption": "Foto de RENAULT LAGUNA 8",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544547/2103829937_g.jpg",
+                "caption": "Foto de RENAULT LAGUNA 9",
+                "width": 1200,
+                "height": 800
+              }
+            ],
+            "productionDate": 2010,
+            "vehicleModelDate": 2010,
+            "modelDate": 2010,
+            "color": "Gris / Plata",
+            "itemCondition": "https://schema.org/UsedCondition",
+            "numberOfDoors": 5,
+            "vehicleTransmission": "Manual",
+            "fuelType": "Diésel",
+            "mileageFromOdometer": {
+              "@type": "QuantitativeValue",
+              "value": 285000,
+              "unitCode": "KMT",
+              "unitText": "km"
+            },
+            "vehicleEngine": {
+              "@type": "EngineSpecification",
+              "engineType": "Diésel",
+              "fuelType": "Diésel"
+            },
+            "offers": {
+              "@type": "Offer",
+              "@id": "https://www.coches.net/renault-laguna-diesel-2010-en-asturias-70544547-covo.aspx",
+              "price": "3.999",
+              "priceCurrency": "EUR",
+              "itemCondition": "https://schema.org/UsedCondition",
+              "availability": "https://schema.org/InStock",
+              "url": "https://www.coches.net/renault-laguna-diesel-2010-en-asturias-70544547-covo.aspx"
+            }
+          },
+          {
+            "@context": "http://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "item": {
+                  "@type": "Thing",
+                  "id": "https://www.coches.net/segunda-mano/",
+                  "name": "Coches de segunda mano"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "item": {
+                  "@type": "Thing",
+                  "id": "https://www.coches.net/renault/segunda-mano/",
+                  "name": "RENAULT"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "item": {
+                  "@type": "Thing",
+                  "id": "https://www.coches.net/renault/laguna/segunda-mano/",
+                  "name": "Laguna"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 4,
+                "item": {
+                  "@type": "Thing",
+                  "id": "https://www.coches.net/renault/laguna/segunda-mano/asturias/",
+                  "name": "Asturias"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "portal": "coches.net",
+      "url": "https://www.coches.net/opel-astra-diesel-2025-en-asturias-70544540-covo.aspx",
+      "brand": "OPEL",
+      "model": "ASTRA",
+      "version": "OPEL Astra",
+      "year": 2025,
+      "mileage": 255000,
+      "fuel": "Diésel",
+      "transmission": "Manual",
+      "bodyType": "",
+      "price": 4200,
+      "monthlyPrice": null,
+      "province": "Asturias",
+      "city": "Asturias",
+      "color": "Gris / Plata",
+      "image": "https://a.ccdn.es/cnet/2026/05/02/70544540/2103829859_g.jpg",
+      "listingType": "compra",
+      "doors": 5,
+      "seats": null,
+      "powerCv": null,
+      "sellerType": "particular",
+      "dealerName": "",
+      "warrantyMonths": null,
+      "title": "OPEL Astra",
+      "updatedAt": "2026-05-02T18:41:24.963Z",
+      "listedAt": "2026-05-02T18:41:24.963Z",
+      "rawPayload": {
+        "blocked": false,
+        "pageTitle": "OPEL (2025) - 4.200 € en Asturias | Coches.net",
+        "title": "OPEL Astra",
+        "url": "https://www.coches.net/opel-astra-diesel-2025-en-asturias-70544540-covo.aspx",
+        "brand": "OPEL",
+        "model": "ASTRA",
+        "image": "https://a.ccdn.es/cnet/2026/05/02/70544540/2103829859_g.jpg",
+        "price": 4200,
+        "year": 2025,
+        "mileage": 255000,
+        "fuel": "Diésel",
+        "transmission": "Manual",
+        "bodyType": "",
+        "doors": 5,
+        "seats": null,
+        "powerCv": null,
+        "color": "Gris / Plata",
+        "city": "Asturias",
+        "breadcrumbLocation": "Asturias",
+        "description": "Utilizamos cookies y tecnologías similares propias y de terceros y tratamos tus datos personales para poder ofrecerte un servicio de calidad. Si las aceptas, podrás acceder a todo el contenido del Sitio. Si decides rechazarlas, podrás acceder igualmente si te creas una cuenta de usuario, por lo que podrás navegar de la misma manera sin que instalemos estas tecnologías, salvo aquellas que no requieran de tu consentimiento. Con tu consentimiento, nosotros y nuestros 1011 socios utilizamos las cookies o tecnologías similares propias y de terceros y datos personales, como identificadores únicos y datos de navegación, para medir visitas y analizar nuestros servicios, ofrecerte contenido y/o publicidad personalizados en nuestros sitios, los del Grupo y/o terceros, realizar mediciones y desarrollar/mejorar nuestros servicios, crear, comparar y/o combinar audiencias. Algunos socios tratan datos basándose en interés legítimo, sin tu consentimiento. Puedes administrar tu selección, retirar tu consentimiento u oponerte al interés legítimo en cualquier momento haciendo click en “Más información”. Política de privacidad. Más Información Rechazar y crear cuenta Aceptar y cerrar Buscar Pruebas e información Trámites y Servicios Mi cuenta Acceder Vender 4.200 € OPEL Astra Favorito Compartir 1/9 Publicado: Hace 6 min., modificado: Hace 6 min. OPEL Astra Precio al contado 4.200 € Cuota mensual préstamo personal 51,74 € /mes* con un pago al contado de 420 € Calcular cuota Avísame si baja de precio Guarda tus búsquedas favoritas Recibe alertas de anuncios similares por email Guardar búsqueda Favorito Compartir Denunciar 2025 255.000 km Asturias Cambio Manual 5 Puertas Gris / Plata Diesel Comentarios del anunciante Coche perfecto Compra tu vehículo con un préstamo 100% online Elige cuánto necesitas y cuándo quieres devolverlo. Solicita el préstamo con la confianza de Santander Consumer Bank. ¿Aún no te decides? Contacta con el vendedor para solicitar más información. Pago al contado Plazos Cuota 50,99 € /mes* Detalles oferta Importe solicitado 3.780,00 € Comisión de apertura 94,50 € TIN 9,85 % TAE 11 % Importe total adeudado 6.118,80 € Mostrar condiciones legales préstamo personal Conseguir préstamo personal Servicios Adicionales Calcular tu seguro Encuentra el mejor seguro comparando entre varias entidades. Calcular tu seguro Historial del vehículo Comprueba el Informe de Registro de Vehículos CARFAX® de este coche y haz una compra segura. Obtener el Historial Online Comprueba daños y accidentes, lecturas de kilometraje, inspecciones, número de propietarios, etc... Datos del anunciante Usuario particular Youssef Asturias Mostrar teléfono Te puede interesar Suscríbete a la newsletter Si quieres estar al día de nuestras noticias, tienes que tener una cuenta en coches.net. Crear cuenta Condiciones legales préstamo personal Condiciones legales Adevinta La información, precios, cuotas de financiación, imágenes y otros contenidos relativos a los vehículos incluidos en el Portal son proporcionados por terceros por lo que pueden no ser exactos, precisos y completos o estar actualizados en cada momento. Por ello, Coches.net no asume responsabilidad respecto de los contenidos proporcionados por los concesionarios, las entidades de financiación, los intermediarios de estas, por terceros o aquellos incluidos por los propios usuarios y que puedan ser incorrectos, erróneos, falsos, incompletos o contrarios a la ley o al orden público, salvo que el error sea imputable a una acción u omisión de coches.net. En particular, las cuotas de financiación reflejadas en los anuncios se basan en las campañas de financiación de la entidad bancaria de acuerdo con sus propios términos y condiciones de concesión de créditos al consumo o de protección de datos de carácter personal. Dichas entidades aplicarán sus propias condiciones de financiación. Condiciones legales Santander Consumer Bank *T.A.E.: 11,39 %. Importe total del crédito: 3.923,64 €. Comisión de apertura: 3,80 % sobre el importe total del crédito: 143,64 €. Comisión financiada . Importe total adeudado: 6.209,33 €. Importe de los intereses: 2.285,69 €. Coste total del crédito: 2.429,33 €. El periodo de liquidación comienza el día 2 del mes siguiente al desembolso del préstamo, siendo ese día la fecha que comienza a devengar intereses. La TAE varía en función del plazo. Solicitud de préstamo personal, con independencia de la financiación del bien, sujeta a la autorización de Santander Consumer Finance, S.A. tras el estudio de la documentación aportada. SANTANDER CONSUMER FINANCE, S.A. se reserva la posibilidad de rechazar la solicitud. Sistema de amortización francés. Mostrar teléfono Contacta con el anunciante Acepto las condiciones de uso y la información básica de protección de datos. Quiero recibir alertas de anuncios similares Contactar Concesionarios con el modelo Multicar StoreAutos ÁlexVO Norte GalasturJMD MotorClickautos AsturiasRENTING CREDITMamba AutomocionMP Car GijonAutoSport Gricad",
+        "sellerType": "particular",
+        "rawJsonLd": [
+          {
+            "@context": "https://schema.org",
+            "@type": [
+              "Car",
+              "Product"
+            ],
+            "@id": "https://www.coches.net/opel-astra-diesel-2025-en-asturias-70544540-covo.aspx",
+            "mainEntityOfPage": {
+              "@type": "WebPage",
+              "@id": "https://www.coches.net/opel-astra-diesel-2025-en-asturias-70544540-covo.aspx"
+            },
+            "name": "OPEL Astra",
+            "brand": {
+              "@type": "Brand",
+              "name": "OPEL"
+            },
+            "model": "ASTRA",
+            "url": "https://www.coches.net/opel-astra-diesel-2025-en-asturias-70544540-covo.aspx",
+            "image": [
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544540/2103829859_g.jpg",
+                "caption": "Foto de OPEL ASTRA 1",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544540/2103829860_g.jpg",
+                "caption": "Foto de OPEL ASTRA 2",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544540/2103829861_g.jpg",
+                "caption": "Foto de OPEL ASTRA 3",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544540/2103829862_g.jpg",
+                "caption": "Foto de OPEL ASTRA 4",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544540/2103829863_g.jpg",
+                "caption": "Foto de OPEL ASTRA 5",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544540/2103829864_g.jpg",
+                "caption": "Foto de OPEL ASTRA 6",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544540/2103829865_g.jpg",
+                "caption": "Foto de OPEL ASTRA 7",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544540/2103829866_g.jpg",
+                "caption": "Foto de OPEL ASTRA 8",
+                "width": 1200,
+                "height": 800
+              },
+              {
+                "@type": "ImageObject",
+                "url": "https://a.ccdn.es/cnet/2026/05/02/70544540/2103829869_g.jpg",
+                "caption": "Foto de OPEL ASTRA 9",
+                "width": 1200,
+                "height": 800
+              }
+            ],
+            "productionDate": 2025,
+            "vehicleModelDate": 2025,
+            "modelDate": 2025,
+            "color": "Gris / Plata",
+            "itemCondition": "https://schema.org/UsedCondition",
+            "numberOfDoors": 5,
+            "vehicleTransmission": "Manual",
+            "fuelType": "Diésel",
+            "mileageFromOdometer": {
+              "@type": "QuantitativeValue",
+              "value": 255000,
+              "unitCode": "KMT",
+              "unitText": "km"
+            },
+            "vehicleEngine": {
+              "@type": "EngineSpecification",
+              "engineType": "Diésel",
+              "fuelType": "Diésel"
+            },
+            "offers": {
+              "@type": "Offer",
+              "@id": "https://www.coches.net/opel-astra-diesel-2025-en-asturias-70544540-covo.aspx",
+              "price": "4.200",
+              "priceCurrency": "EUR",
+              "itemCondition": "https://schema.org/UsedCondition",
+              "availability": "https://schema.org/InStock",
+              "url": "https://www.coches.net/opel-astra-diesel-2025-en-asturias-70544540-covo.aspx"
+            }
+          },
+          {
+            "@context": "http://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "item": {
+                  "@type": "Thing",
+                  "id": "https://www.coches.net/segunda-mano/",
+                  "name": "Coches de segunda mano"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "item": {
+                  "@type": "Thing",
+                  "id": "https://www.coches.net/opel/segunda-mano/",
+                  "name": "OPEL"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "item": {
+                  "@type": "Thing",
+                  "id": "https://www.coches.net/opel/astra/segunda-mano/",
+                  "name": "Astra"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 4,
+                "item": {
+                  "@type": "Thing",
+                  "id": "https://www.coches.net/opel/astra/segunda-mano/asturias/",
+                  "name": "Asturias"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

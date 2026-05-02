@@ -44,6 +44,7 @@ const authStatusHandler = require("./api/auth-status");
 const vehicleCatalogHandler = require("./api/vehicle-catalog");
 const workshopsNearbyHandler = require("./api/workshops-nearby");
 const workshopAvailabilityHandler = require("./api/workshop-availability");
+const marketPriceHandler = require("./api/market-price");
 
 const billingHandler = require("./api/billing");
 const erpCatalogHandler = require("./api/erp-catalog");
@@ -62,6 +63,7 @@ const handlers = {
   "/api/attachment-file": userHandler,
   "/api/workshops-nearby": workshopsNearbyHandler,
   "/api/workshop-availability": workshopAvailabilityHandler,
+  "/api/market-price": marketPriceHandler,
 
   "/api/billing-checkout": billingHandler,
   "/api/billing-portal": billingHandler,

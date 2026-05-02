@@ -1,4 +1,5 @@
 const SEARCH_ENDPOINT = "https://html.duckduckgo.com/html/";
+const { listInventoryOffers } = require("../lib/inventoryStore");
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
@@ -411,6 +412,12 @@ function removeAccents(text) {
   return String(text || "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
+}
+
+function normalizeCompactAlphaNum(text) {
+  return removeAccents(String(text || ""))
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
 }
 
 function uniq(values) {
@@ -1317,7 +1324,15 @@ function hasExplicitObjectiveMatch(listing, answers = {}) {
   }
 
   const haystack = removeAccents(`${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""}`).toLowerCase();
-  return objectiveTokens.every((token) => haystack.includes(token));
+  const compactHaystack = normalizeCompactAlphaNum(`${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""}`);
+  return objectiveTokens.every((token) => {
+    if (haystack.includes(token)) {
+      return true;
+    }
+
+    const compactToken = normalizeCompactAlphaNum(token);
+    return compactToken.length >= 3 ? compactHaystack.includes(compactToken) : false;
+  });
 }
 
 function looksLikeGenericNonVehiclePage(text) {
@@ -2316,6 +2331,36 @@ function buildGuaranteedFallbackListings({ result, answers, filters, desiredType
   return [...companyListings, ...alternativeListings].slice(0, 4);
 }
 
+function formatInventoryPrice(offer, desiredType) {
+  const value = desiredType === "renting" ? Number(offer?.monthlyPrice) : Number(offer?.price);
+  if (!Number.isFinite(value) || value <= 0) {
+    return "";
+  }
+
+  return `${Math.round(value).toLocaleString("es-ES")} €`;
+}
+
+function inventoryOfferToListing(offer, desiredType) {
+  const title = [offer?.brand, offer?.model, offer?.version].filter(Boolean).join(" ").trim();
+  const details = [
+    Number.isFinite(offer?.year) ? String(offer.year) : "",
+    Number.isFinite(offer?.mileage) ? `${Number(offer.mileage).toLocaleString("es-ES")} km` : "",
+    normalizeText(offer?.fuel),
+    [normalizeText(offer?.city), normalizeText(offer?.province)].filter(Boolean).join(", "),
+  ].filter(Boolean);
+
+  return {
+    title: title || "Oferta mercado",
+    url: offer?.url || "",
+    source: normalizeText(offer?.portal) || getDomain(offer?.url || "") || "market",
+    description: details.join(" · "),
+    price: formatInventoryPrice(offer, desiredType),
+    image: normalizeProviderAssetUrl(offer?.image || "", offer?.url || ""),
+    synthetic: false,
+    isGuaranteedFallback: false,
+  };
+}
+
 function getDesiredListingType(result) {
   const solutionType = normalizeText(result?.solucion_principal?.tipo || "").toLowerCase();
 
@@ -2515,6 +2560,18 @@ async function fetchListingDetails(candidate, context) {
 }
 
 function buildVehicleCandidates({ result, answers }) {
+  const expandModelAliasVariants = (value) => {
+    const base = normalizeText(value);
+    if (!base) {
+      return [];
+    }
+
+    return uniq([
+      base,
+      base.replace(/\bmercedes[-\s]*benz\b/gi, "Mercedes"),
+    ]);
+  };
+
   const explicitBrand = normalizeText(answers?.marca_objetivo);
   const explicitModelObjective = normalizeText(answers?.modelo_objetivo);
   const normalizedExplicitModelObjective = (() => {
@@ -2529,7 +2586,9 @@ function buildVehicleCandidates({ result, answers }) {
   })();
 
   if (looksLikeSpecificModelName(normalizedExplicitModelObjective)) {
-    return [normalizedExplicitModelObjective];
+    return expandModelAliasVariants(normalizedExplicitModelObjective)
+      .filter(looksLikeSpecificModelName)
+      .slice(0, 3);
   }
 
   const chinaForward = isChinaForwardPreference(result, answers);
@@ -3298,7 +3357,15 @@ async function findListing({ result, answers, filters }) {
     }
 
     const haystack = removeAccents(`${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""}`).toLowerCase();
-    return modelObjectiveTokens.every((token) => haystack.includes(token));
+    const compactHaystack = normalizeCompactAlphaNum(`${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""}`);
+    return modelObjectiveTokens.every((token) => {
+      if (haystack.includes(token)) {
+        return true;
+      }
+
+      const compactToken = normalizeCompactAlphaNum(token);
+      return compactToken.length >= 3 ? compactHaystack.includes(compactToken) : false;
+    });
   };
   const desiredType = getDesiredListingType(result);
   const companies = getSearchCompanies({ result, filters, desiredType });
@@ -3349,6 +3416,122 @@ async function findListing({ result, answers, filters }) {
     detailLinksPerPage: coverage.detailLinksPerPage,
     timeBudgetMs: coverage.timeBudgetMs,
   });
+
+  try {
+    const inventoryOnly = Boolean(filters?.inventoryOnly);
+    const inventory = await listInventoryOffers({
+      desiredType,
+      modelCandidates: models,
+      version: normalizeText(filters?.version || ""),
+      fuel: normalizeText(filters?.fuel || ""),
+      transmission: normalizeText(filters?.transmission || ""),
+      bodyType: normalizeText(filters?.bodyType || filters?.body_type || ""),
+      environmentalLabel: normalizeText(filters?.environmentalLabel || filters?.dgtLabel || ""),
+      location: normalizeText(String(filters?.location || "").replace(/_/g, " ")),
+      city: normalizeText(filters?.city || ""),
+      color: normalizeText(filters?.color || ""),
+      targetYear: answers?.antiguedad_vehiculo_buscada?.[0] || null,
+      minYear: filters?.minYear || null,
+      maxYear: filters?.maxYear || null,
+      minMileage: filters?.minMileage || null,
+      maxMileage: filters?.maxMileage || null,
+      minDoors: filters?.minDoors || null,
+      minSeats: filters?.minSeats || null,
+      minPowerCv: filters?.minPowerCv || null,
+      maxPowerCv: filters?.maxPowerCv || null,
+      minPrice: filters?.minPrice || null,
+      maxPrice: filters?.maxPrice || null,
+      limit: 30,
+    });
+
+    const inventoryDecorated = (inventory?.offers || [])
+      .map((offer) => inventoryOfferToListing(offer, desiredType))
+      .filter((listing) => listing?.url && listing?.title)
+      .map((listing) => decorateListing(listing, context));
+
+    const inventoryRelevant = inventoryDecorated.filter((listing) => listing?.isRelevantMatch || listing?.isFallbackMatch);
+    if (inventoryOnly) {
+      let rankedInventory = inventoryRelevant.slice(0, 20);
+      let filterInsight = null;
+      let inventorySourceUsed = inventory?.source || "unknown";
+      let inventoryUniverseUsed = Number(inventory?.totalUniverse || 0);
+
+      const hasSpecificLocation = normalizeText(filters?.location).toLowerCase() && normalizeText(filters?.location).toLowerCase() !== "toda_espana";
+      if (rankedInventory.length === 0 && hasSpecificLocation) {
+        const relaxedInventory = await listInventoryOffers({
+          desiredType,
+          modelCandidates: models,
+          version: normalizeText(filters?.version || ""),
+          fuel: normalizeText(filters?.fuel || ""),
+          transmission: normalizeText(filters?.transmission || ""),
+          bodyType: normalizeText(filters?.bodyType || filters?.body_type || ""),
+          environmentalLabel: normalizeText(filters?.environmentalLabel || filters?.dgtLabel || ""),
+          location: "",
+          city: normalizeText(filters?.city || ""),
+          color: normalizeText(filters?.color || ""),
+          targetYear: answers?.antiguedad_vehiculo_buscada?.[0] || null,
+          minYear: filters?.minYear || null,
+          maxYear: filters?.maxYear || null,
+          minMileage: filters?.minMileage || null,
+          maxMileage: filters?.maxMileage || null,
+          minDoors: filters?.minDoors || null,
+          minSeats: filters?.minSeats || null,
+          minPowerCv: filters?.minPowerCv || null,
+          maxPowerCv: filters?.maxPowerCv || null,
+          minPrice: filters?.minPrice || null,
+          maxPrice: filters?.maxPrice || null,
+          limit: 30,
+        });
+
+        const relaxedDecorated = (relaxedInventory?.offers || [])
+          .map((offer) => inventoryOfferToListing(offer, desiredType))
+          .filter((listing) => listing?.url && listing?.title)
+          .map((listing) => decorateListing(listing, context));
+
+        const relaxedRelevant = relaxedDecorated.filter((listing) => listing?.isRelevantMatch || listing?.isFallbackMatch);
+        if (relaxedRelevant.length > 0) {
+          rankedInventory = relaxedRelevant.slice(0, 20);
+          inventorySourceUsed = relaxedInventory?.source || inventorySourceUsed;
+          inventoryUniverseUsed = Number(relaxedInventory?.totalUniverse || inventoryUniverseUsed || 0);
+          filterInsight = `No he encontrado coincidencias en ${filters.location}. Te muestro ${rankedInventory.length} oferta${rankedInventory.length === 1 ? "" : "s"} ampliando a Toda España.`;
+        }
+      }
+
+      return {
+        listing: rankedInventory[0] || null,
+        listings: rankedInventory,
+        alternatives: rankedInventory.slice(1),
+        filterInsight,
+        searchCoverage: {
+          ...getSearchCoverage(),
+          mode: "inventory-only",
+          inventorySource: inventorySourceUsed,
+          inventoryUniverse: inventoryUniverseUsed,
+          inventoryMatches: rankedInventory.length,
+        },
+      };
+    }
+
+    if (inventoryRelevant.length >= 4) {
+      return buildRankedListingResponse(inventoryRelevant, {
+        fallbackMode: false,
+        excludedUrls: context.excludedUrls,
+        excludedTitles: context.excludedTitles,
+        preferUnseen: context.preferUnseen,
+        answers,
+        models,
+        searchCoverage: {
+          ...getSearchCoverage(),
+          mode: "inventory-first",
+          inventorySource: inventory?.source || "unknown",
+          inventoryUniverse: Number(inventory?.totalUniverse || 0),
+          inventoryMatches: inventoryRelevant.length,
+        },
+      });
+    }
+  } catch {
+    // Continue with live scraping fallback.
+  }
 
   const matches = [
     ...(await searchExactObjectiveMarketplaceListings(context)),

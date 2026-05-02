@@ -4,6 +4,7 @@ const sendAlertEmailHandler = require("../api/send-alert-email");
 const authHandler = require("../api/auth");
 const authStatusHandler = require("../api/auth-status");
 const vehicleCatalogHandler = require("../api/vehicle-catalog");
+const marketPriceHandler = require("../api/market-price");
 
 function readRequestBody(req) {
   return new Promise((resolve, reject) => {
@@ -30,6 +31,7 @@ module.exports = function setupProxy(app) {
   [
     ["/api/analyze", analyzeHandler],
     ["/api/find-listing", findListingHandler],
+    ["/api/market-price", marketPriceHandler],
     ["/api/send-alert-email", sendAlertEmailHandler],
     ["/api/auth", authHandler],
   ].forEach(([route, handler]) => {

@@ -258,6 +258,49 @@ Diagnóstico rápido (local):
 
 ### Limpieza de usuarios de prueba en SQL Server
 
+## Inventario de scraping en SQL Server
+
+Para guardar el inventario generado por scraping en SQL Server:
+
+1. Configura en `.env.local` (o variables de entorno):
+   - `MSSQL_SERVER`
+   - `MSSQL_DATABASE`
+   - Opcional para login SQL: `MSSQL_USER`, `MSSQL_PASSWORD`
+   - Opcional para ruta de `sqlcmd`: `SQLCMD_PATH`
+2. Genera inventario y persiste en SQL Server en un solo comando:
+   - `npm run inventory:scrape:live:sqlserver`
+3. Si ya tienes `data/inventory-offers.json` y solo quieres sincronizar:
+   - `npm run inventory:sync:sqlserver`
+
+El sync crea/actualiza automáticamente estas tablas en SQL Server:
+- `dbo.MoveAdvisorMarketOffers` (ofertas normalizadas con upsert por `Url`)
+- `dbo.MoveAdvisorScrapingRuns` (histórico de ejecuciones)
+
+Para que el backend priorice este inventario al responder búsquedas (`/api/find-listing`), configura:
+- `INVENTORY_PROVIDER=sqlserver`
+
+### Programación recomendada (3 veces al día)
+
+En Windows Task Scheduler, programa este comando 3 veces al día (ejemplo: 06:00, 14:00, 22:00):
+
+- Programa: `npm`
+- Argumentos: `run inventory:scrape:live:sqlserver`
+- Carpeta de inicio: raíz del proyecto (`movilidad-advisor`)
+
+Así cuando el cliente busque coche, el backend trabajará con inventario persistido y actualizado periódicamente.
+
+También puedes registrar automáticamente las 3 tareas en Windows con:
+
+- `npm run inventory:schedule:register`
+
+Este comando crea/actualiza estas tareas diarias:
+- `MoveAdvisorInventorySqlServer-Morning` (06:00)
+- `MoveAdvisorInventorySqlServer-Afternoon` (14:00)
+- `MoveAdvisorInventorySqlServer-Night` (22:00)
+
+Nota operativa:
+- Las tareas usan modo rápido (`--max-models 1 --max-links 1`) para mantener tiempos de ejecución acotados.
+
 - Para borrar usuarios generados por los checks locales y sus datos asociados de movilidad/auth:
    - `npm run cleanup:test-users-local`
 - Patrones eliminados por defecto:

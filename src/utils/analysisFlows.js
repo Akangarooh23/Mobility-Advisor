@@ -322,6 +322,12 @@ export async function fetchDecisionListing({
     .join(" ")
     .trim();
   const listingTitle = aiResult?.oferta_top?.titulo || fallbackTitle || "oferta recomendada";
+  const currentYear = new Date().getFullYear();
+  const ageMin = Number(decisionAnswers.ageMin || 0);
+  const hasAgeMax = decisionAnswers.ageMax !== null && decisionAnswers.ageMax !== undefined && decisionAnswers.ageMax !== "";
+  const ageMax = hasAgeMax ? Number(decisionAnswers.ageMax) : Number.POSITIVE_INFINITY;
+  const minYear = Number.isFinite(ageMax) ? Math.max(1980, currentYear - ageMax) : null;
+  const maxYear = Number.isFinite(ageMin) ? Math.max(1980, currentYear - ageMin) : null;
 
   const mappedAnswers = {
     perfil: "particular",
@@ -361,6 +367,24 @@ export async function fetchDecisionListing({
       income: "fijos_estables",
       location: decisionAnswers.location || "",
       fuel: decisionAnswers.fuelFilter || "",
+      transmission: decisionAnswers.transmission || "",
+      bodyType: decisionAnswers.bodyType || "",
+      dgtLabel: decisionAnswers.dgtLabel || "",
+      color: decisionAnswers.color || "",
+      minPrice: Number(decisionAnswers.priceMin || 0),
+      maxPrice: Number(decisionAnswers.priceMax || Number.POSITIVE_INFINITY),
+      minPowerCv: Number(decisionAnswers.powerMin || 0),
+      maxPowerCv: Number(decisionAnswers.powerMax || Number.POSITIVE_INFINITY),
+      minYear,
+      maxYear,
+      minMileage: Number(decisionAnswers.mileageMin || 0),
+      maxMileage:
+        decisionAnswers.mileageMax === null || decisionAnswers.mileageMax === undefined || decisionAnswers.mileageMax === ""
+          ? null
+          : Number(decisionAnswers.mileageMax),
+      minDoors: decisionAnswers.doorsFrom ? Number(decisionAnswers.doorsFrom) : null,
+      minSeats: decisionAnswers.seatsFrom ? Number(decisionAnswers.seatsFrom) : null,
+      inventoryOnly: true,
       refreshNonce,
       excludeUrls,
       excludeTitles,

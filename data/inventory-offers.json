@@ -1,0 +1,25 @@
+{
+  "generatedAt": "2026-05-02T18:23:37+00:00",
+  "pipeline": {
+    "mode": "live",
+    "selected": [
+      "coches.net"
+    ],
+    "tiers": [
+      "tier1"
+    ],
+    "report": [
+      {
+        "platform": "coches.net",
+        "selected": true,
+        "attempted": 0,
+        "extracted": 0,
+        "valid": 0,
+        "errors": 0,
+        "status": "no-data",
+        "message": "no valid offers returned"
+      }
+    ]
+  },
+  "offers": []
+}

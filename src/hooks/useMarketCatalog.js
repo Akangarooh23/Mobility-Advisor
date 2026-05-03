@@ -26,10 +26,6 @@ function buildFallbackMarketCatalogFromOffers(offers = []) {
   }, {});
 }
 
-function buildMatchedModelsByBrandFromOffers(offers = []) {
-  return buildFallbackMarketCatalogFromOffers(offers);
-}
-
 function mergeCatalogMaps(primaryMap = {}, secondaryMap = {}) {
   const merged = {};
   const allBrands = new Set([...Object.keys(secondaryMap || {}), ...Object.keys(primaryMap || {})]);

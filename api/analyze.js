@@ -240,7 +240,24 @@ function isVehicleFuelCompatible(vehicle = {}, preferredFuelTokens = []) {
 function alignVehicleRecommendationsWithFuel(recommendations = [], answers = {}, propulsions = []) {
   const preferredFuelTokens = getPreferredFuelTokens(answers, propulsions);
   if (preferredFuelTokens.length === 0) {
-    return recommendations;
+    const normalized = normalizeVehicleRecommendations(recommendations);
+    if (normalized.length >= 5) {
+      return normalized.slice(0, 5).map((item, index) => ({ ...item, rank: index + 1 }));
+    }
+
+    const fallback = normalizeVehicleRecommendations(buildRecommendedVehiclesFallback(answers, propulsions));
+    const byKey = new Map();
+    [...normalized, ...fallback].forEach((item) => {
+      const key = removeAccents(`${item?.marca || ""}|${item?.modelo || ""}`).toLowerCase();
+      if (!key || byKey.has(key)) {
+        return;
+      }
+      byKey.set(key, item);
+    });
+
+    return Array.from(byKey.values())
+      .slice(0, 5)
+      .map((item, index) => ({ ...item, rank: index + 1, titulo: normalizeText(item?.titulo || `${item?.marca || ""} ${item?.modelo || ""}`) }));
   }
 
   const compatible = recommendations.filter((item) => isVehicleFuelCompatible(item, preferredFuelTokens));
@@ -260,6 +277,38 @@ function alignVehicleRecommendationsWithFuel(recommendations = [], answers = {},
 
     byKey.set(key, item);
   });
+
+  if (byKey.size < 5) {
+    const unfilteredFallback = normalizeVehicleRecommendations(buildRecommendedVehiclesFallback(answers, propulsions));
+    unfilteredFallback.forEach((item) => {
+      if (byKey.size >= 5) {
+        return;
+      }
+
+      const key = removeAccents(`${item?.marca || ""}|${item?.modelo || ""}`).toLowerCase();
+      if (!key || byKey.has(key)) {
+        return;
+      }
+
+      byKey.set(key, item);
+    });
+  }
+
+  if (byKey.size < 5) {
+    const originalNormalized = normalizeVehicleRecommendations(recommendations);
+    originalNormalized.forEach((item) => {
+      if (byKey.size >= 5) {
+        return;
+      }
+
+      const key = removeAccents(`${item?.marca || ""}|${item?.modelo || ""}`).toLowerCase();
+      if (!key || byKey.has(key)) {
+        return;
+      }
+
+      byKey.set(key, item);
+    });
+  }
 
   return Array.from(byKey.values())
     .slice(0, 5)

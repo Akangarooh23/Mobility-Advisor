@@ -13,6 +13,7 @@ import ErrorStatePage from "./pages/ErrorStatePage";
 import LoadingAnalysisPage from "./pages/LoadingAnalysisPage";
 import QuestionnairePage from "./pages/QuestionnairePage";
 import UserDashboardPage from "./pages/userDashboard/UserDashboardPage";
+import VehicleDetailPage from "./pages/VehicleDetailPage";
 import VehicleOptionsPage from "./pages/VehicleOptionsPage";
 import BuyOptionsPage from "./pages/BuyOptionsPage";
 import RentingOptionsPage from "./pages/RentingOptionsPage";
@@ -758,6 +759,7 @@ export default function App() {
   const [selectedValuationVehicleSummary, setSelectedValuationVehicleSummary] = useState(null);
   const [portalVoFilters, setPortalVoFilters] = useState({ ...INITIAL_PORTAL_VO_FILTERS });
   const [selectedPortalVoOfferId, setSelectedPortalVoOfferId] = useState(null);
+  const [vehicleDetailOffer, setVehicleDetailOffer] = useState(null);
   const [listingFilters, setListingFilters] = useState({
     company: "",
     budget: "",
@@ -800,7 +802,7 @@ export default function App() {
   const [userVehicleStates, setUserVehicleStates] = useState([]);
   const [marketAlerts, setMarketAlerts] = useState([]);
   const [marketAlertStatus, setMarketAlertStatus] = useState({});
-  const { marketBrandsCatalog, marketCatalogSource } = useMarketCatalog(PORTAL_VO_OFFERS);
+  const { marketBrandsCatalog, matchedModelsByBrand, marketCatalogSource } = useMarketCatalog(PORTAL_VO_OFFERS);
   const [questionnaireDraft, setQuestionnaireDraft] = useState(null);
   const [saveFeedback, setSaveFeedback] = useState("");
   const [emailDigestFeedback, setEmailDigestFeedback] = useState("");
@@ -2479,15 +2481,11 @@ export default function App() {
   };
 
   useEffect(() => {
-    const isDecisionFlowReady =
-      decisionAnswers.operation &&
+    const isDecisionMarketReady =
       decisionAnswers.brand &&
-      decisionAnswers.model &&
-      decisionAnswers.cashBudget &&
-      decisionAnswers.ageFilter &&
-      decisionAnswers.mileageFilter;
+      decisionAnswers.model;
 
-    if (!isDecisionFlowReady || decisionAiResult) {
+    if (!isDecisionMarketReady || decisionAiResult) {
       setDecisionMarketListings((prev) => (prev.length ? [] : prev));
       setDecisionMarketError((prev) => (prev ? null : prev));
       setDecisionMarketInsight((prev) => (prev ? null : prev));
@@ -2506,7 +2504,7 @@ export default function App() {
 
       try {
         const payload = await fetchDecisionListing({
-          decisionFlowReady: isDecisionFlowReady,
+          decisionFlowReady: isDecisionMarketReady,
           decisionAnswers,
           refreshNonce: decisionMarketRefreshNonce,
           excludeUrls: decisionMarketExcludeUrls,
@@ -2876,7 +2874,36 @@ export default function App() {
     [marketBrandsCatalog]
   );
 
+  const resolveMatchedModelsByBrand = useCallback(
+    (rawBrand) => {
+      const normalizedBrand = normalizeText(rawBrand);
+
+      if (!normalizedBrand) {
+        return [];
+      }
+
+      const exactModels = matchedModelsByBrand[normalizedBrand];
+
+      if (Array.isArray(exactModels)) {
+        return exactModels;
+      }
+
+      const normalizedSearchKey = normalizedBrand.toLowerCase();
+      const fallbackBrandKey = Object.keys(matchedModelsByBrand || {}).find(
+        (brandName) => normalizeText(brandName).toLowerCase() === normalizedSearchKey
+      );
+
+      return fallbackBrandKey ? matchedModelsByBrand[fallbackBrandKey] || [] : [];
+    },
+    [matchedModelsByBrand]
+  );
+
   const decisionModels = resolveCatalogModelsByBrand(decisionAnswers.brand);
+  const decisionMatchedSource = resolveMatchedModelsByBrand(decisionAnswers.brand);
+  const normalizeModelKey = (value) => normalizeText(value).toLowerCase();
+  const matchedModelKeys = new Set(decisionMatchedSource.map((modelName) => normalizeModelKey(modelName)));
+  const decisionMatchedModels = decisionModels.filter((modelName) => matchedModelKeys.has(normalizeModelKey(modelName)));
+  const decisionOtherModels = decisionModels.filter((modelName) => !matchedModelKeys.has(normalizeModelKey(modelName)));
   const estimatedFinanceMonthly = estimateMonthlyPayment(
     getOptionAmount(FINANCE_AMOUNT_OPTIONS, decisionAnswers.financeAmount)
   );
@@ -2889,6 +2916,9 @@ export default function App() {
   const needsCashBudget = false;
   const needsFinanceAmount = false;
   const needsEntryAmount = false;
+  const decisionMarketReady =
+    decisionAnswers.brand &&
+    decisionAnswers.model;
   const decisionFlowReady =
     decisionAnswers.operation &&
     decisionAnswers.brand &&
@@ -5014,7 +5044,8 @@ export default function App() {
           updateDecisionAnswer={updateDecisionAnswer}
           MARKET_BRANDS={marketBrandsCatalog}
           marketCatalogSource={marketCatalogSource}
-          decisionModels={decisionModels}
+          decisionTopModels={decisionMatchedModels}
+          decisionOtherModels={decisionOtherModels}
           needsMonthlyBudget={needsMonthlyBudget}
           needsCashBudget={needsCashBudget}
           needsFinanceAmount={needsFinanceAmount}
@@ -5027,7 +5058,7 @@ export default function App() {
           MILEAGE_FILTER_OPTIONS={MILEAGE_FILTER_OPTIONS}
           estimatedFinanceMonthly={estimatedFinanceMonthly}
           estimatedMixedMonthly={estimatedMixedMonthly}
-          decisionFlowReady={decisionFlowReady}
+          decisionFlowReady={decisionMarketReady}
           analyzeDecisionWithAI={analyzeDecisionWithAI}
           decisionLoading={decisionLoading}
           decisionError={decisionError}
@@ -5048,7 +5079,26 @@ export default function App() {
             setStep(-1);
             setSelectedPortalVoOfferId(null);
           }}
+          onOpenVehicleDetail={(offer) => {
+            setVehicleDetailOffer(offer);
+            setEntryMode("vehicleDetail");
+            if (typeof window !== "undefined") {
+              window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
+            }
+          }}
           onRestart={restart}
+        />
+      )}
+
+      {step === -1 && entryMode === "vehicleDetail" && vehicleDetailOffer && (
+        <VehicleDetailPage
+          offer={vehicleDetailOffer}
+          onBack={() => {
+            setEntryMode("decision");
+            if (typeof window !== "undefined") {
+              window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
+            }
+          }}
         />
       )}
 

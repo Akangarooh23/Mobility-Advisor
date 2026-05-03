@@ -811,23 +811,48 @@ CREATE TABLE IF NOT EXISTS moveadvisor_user_preferences (
 
 -- Tablas de inventario scrapeado
 CREATE TABLE IF NOT EXISTS moveadvisor_market_offers (
-  id            VARCHAR(40)   NOT NULL PRIMARY KEY,
-  portal        VARCHAR(60)   NOT NULL DEFAULT '',
-  url           VARCHAR(1024) NOT NULL DEFAULT '',
-  brand         VARCHAR(100)  NOT NULL DEFAULT '',
-  model         VARCHAR(120)  NOT NULL DEFAULT '',
-  version       VARCHAR(180)  NOT NULL DEFAULT '',
-  year          INT,
-  mileage       INT,
-  price         NUMERIC(12,2),
-  fuel          VARCHAR(60)   NOT NULL DEFAULT '',
-  transmission  VARCHAR(60)   NOT NULL DEFAULT '',
-  color         VARCHAR(80)   NOT NULL DEFAULT '',
-  location      VARCHAR(160)  NOT NULL DEFAULT '',
-  images        TEXT          NOT NULL DEFAULT '[]',
-  raw_payload   TEXT          NOT NULL DEFAULT '{}',
-  scraped_at    TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
-  updated_at    TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+  id                   VARCHAR(40)   NOT NULL PRIMARY KEY,
+  url                  VARCHAR(2000) NOT NULL DEFAULT '',
+  portal               VARCHAR(100)  NOT NULL DEFAULT '',
+  brand                VARCHAR(120)  NOT NULL DEFAULT '',
+  model                VARCHAR(160)  NOT NULL DEFAULT '',
+  version              VARCHAR(500)  NOT NULL DEFAULT '',
+  fuel                 VARCHAR(80)   NOT NULL DEFAULT '',
+  listing_type         VARCHAR(40)   NOT NULL DEFAULT '',
+  price                NUMERIC(18,2),
+  monthly_price        NUMERIC(18,2),
+  finance_price        NUMERIC(18,2),
+  year                 INT,
+  mileage              INT,
+  province             VARCHAR(120)  NOT NULL DEFAULT '',
+  city                 VARCHAR(120)  NOT NULL DEFAULT '',
+  image_url            VARCHAR(2000) NOT NULL DEFAULT '',
+  title                VARCHAR(500)  NOT NULL DEFAULT '',
+  listed_at            TIMESTAMPTZ,
+  source_updated_at    TIMESTAMPTZ,
+  first_seen_at        TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+  last_seen_at         TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+  raw_payload          TEXT          NOT NULL DEFAULT '{}',
+  transmission         VARCHAR(80)   NOT NULL DEFAULT '',
+  body_type            VARCHAR(80)   NOT NULL DEFAULT '',
+  environmental_label  VARCHAR(50)   NOT NULL DEFAULT '',
+  doors                INT,
+  seats                INT,
+  power_cv             INT,
+  color                VARCHAR(80)   NOT NULL DEFAULT '',
+  seller_type          VARCHAR(80)   NOT NULL DEFAULT '',
+  dealer_name          VARCHAR(200)  NOT NULL DEFAULT '',
+  warranty_months      INT,
+  traction             VARCHAR(100),
+  displacement         VARCHAR(50),
+  co2                  VARCHAR(50),
+  next_itv             VARCHAR(50),
+  power_kw             INT,
+  consumption          NUMERIC(6,2),
+  location             VARCHAR(160)  NOT NULL DEFAULT '',
+  images               TEXT          NOT NULL DEFAULT '[]',
+  scraped_at           TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+  updated_at           TIMESTAMPTZ   NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS ix_market_offers_brand_model
   ON moveadvisor_market_offers (brand, model);
@@ -835,6 +860,8 @@ CREATE INDEX IF NOT EXISTS ix_market_offers_portal
   ON moveadvisor_market_offers (portal);
 CREATE INDEX IF NOT EXISTS ix_market_offers_price
   ON moveadvisor_market_offers (price);
+CREATE INDEX IF NOT EXISTS ix_market_offers_url
+  ON moveadvisor_market_offers (url);
 
 CREATE TABLE IF NOT EXISTS moveadvisor_scraping_runs (
   id          SERIAL        PRIMARY KEY,

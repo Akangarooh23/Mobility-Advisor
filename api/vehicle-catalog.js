@@ -108,6 +108,28 @@ function mapToBrandRows(catalogMap = {}) {
     }));
 }
 
+function mapCoverageRowsToBrandMap(rows = []) {
+  const coverageMap = {};
+
+  for (const row of Array.isArray(rows) ? rows : []) {
+    const brand = normalizeText(row?.brand);
+    const model = normalizeText(row?.model);
+    if (!brand || !model) {
+      continue;
+    }
+
+    if (!Array.isArray(coverageMap[brand])) {
+      coverageMap[brand] = [];
+    }
+
+    if (!coverageMap[brand].includes(model)) {
+      coverageMap[brand].push(model);
+    }
+  }
+
+  return coverageMap;
+}
+
 function parseSqlcmdJsonOutput(rawOutput = "") {
   const output = String(rawOutput || "");
   const firstJsonChar = output.search(/[\[{]/);
@@ -445,6 +467,58 @@ function getCatalogFromSqlcmd(defaultCatalogMap = {}) {
   return brandMap;
 }
 
+async function getModelCoverageFromMssql() {
+  const pool = await getMssqlPool();
+
+  const result = await pool.request().query(`
+    SELECT
+      Brand AS brand,
+      Model AS model,
+      COUNT(1) AS matches
+    FROM dbo.MoveAdvisorMarketOffers
+    WHERE LTRIM(RTRIM(COALESCE(Brand, N''))) <> N''
+      AND LTRIM(RTRIM(COALESCE(Model, N''))) <> N''
+    GROUP BY Brand, Model
+    ORDER BY Brand ASC, COUNT(1) DESC, Model ASC;
+  `);
+
+  return mapCoverageRowsToBrandMap(result.recordset || []);
+}
+
+function getModelCoverageFromSqlcmd() {
+  const output = runSqlcmd(`
+    SELECT
+      Brand AS brand,
+      Model AS model,
+      COUNT(1) AS matches
+    FROM dbo.MoveAdvisorMarketOffers
+    WHERE LTRIM(RTRIM(COALESCE(Brand, N''))) <> N''
+      AND LTRIM(RTRIM(COALESCE(Model, N''))) <> N''
+    GROUP BY Brand, Model
+    ORDER BY Brand ASC, COUNT(1) DESC, Model ASC
+    FOR JSON PATH;
+  `);
+
+  return mapCoverageRowsToBrandMap(parseSqlcmdJsonOutput(output));
+}
+
+async function getModelCoverageFromPostgres() {
+  const pool = getPgPool();
+  const { rows } = await pool.query(`
+    SELECT
+      TRIM(brand) AS brand,
+      TRIM(model) AS model,
+      COUNT(*)::int AS matches
+    FROM moveadvisor_market_offers
+    WHERE TRIM(COALESCE(brand, '')) <> ''
+      AND TRIM(COALESCE(model, '')) <> ''
+    GROUP BY TRIM(brand), TRIM(model)
+    ORDER BY TRIM(brand) ASC, COUNT(*) DESC, TRIM(model) ASC
+  `);
+
+  return mapCoverageRowsToBrandMap(rows || []);
+}
+
 // ── Admin (write) helpers ──────────────────────────────────────────────────
 
 function readLocalCatalogMap() {
@@ -586,34 +660,46 @@ module.exports = async function vehicleCatalogHandler(req, res) {
   try {
     if (provider === "mssql") {
       const catalogMap = await getCatalogFromMssql(defaultCatalogMap);
+      const matchedModelsByBrand = await getModelCoverageFromMssql().catch(() => ({}));
       const mergedCatalogMap = mergeCatalogMaps(catalogMap, defaultCatalogMap);
       return res.status(200).json({
         ok: true,
         provider,
         source: "database+local-file",
         brands: mapToBrandRows(mergedCatalogMap),
+        matchedModelsByBrand,
       });
     }
 
     if (provider === "sqlcmd-windows") {
       const catalogMap = getCatalogFromSqlcmd(defaultCatalogMap);
+      const matchedModelsByBrand = (() => {
+        try {
+          return getModelCoverageFromSqlcmd();
+        } catch {
+          return {};
+        }
+      })();
       const mergedCatalogMap = mergeCatalogMaps(catalogMap, defaultCatalogMap);
       return res.status(200).json({
         ok: true,
         provider,
         source: "database+local-file",
         brands: mapToBrandRows(mergedCatalogMap),
+        matchedModelsByBrand,
       });
     }
 
     if (provider === "postgres") {
       const catalogMap = await getCatalogFromPostgres(defaultCatalogMap);
+      const matchedModelsByBrand = await getModelCoverageFromPostgres().catch(() => ({}));
       const mergedCatalogMap = mergeCatalogMaps(catalogMap, defaultCatalogMap);
       return res.status(200).json({
         ok: true,
         provider,
         source: "database+local-file",
         brands: mapToBrandRows(mergedCatalogMap),
+        matchedModelsByBrand,
       });
     }
 
@@ -622,6 +708,7 @@ module.exports = async function vehicleCatalogHandler(req, res) {
       provider,
       source: "local-file",
       brands: mapToBrandRows(defaultCatalogMap),
+      matchedModelsByBrand: {},
     });
   } catch (error) {
     return res.status(200).json({
@@ -630,6 +717,7 @@ module.exports = async function vehicleCatalogHandler(req, res) {
       source: "local-file-fallback",
       warning: error instanceof Error ? error.message : "No se pudo cargar catalogo desde base de datos.",
       brands: mapToBrandRows(defaultCatalogMap),
+      matchedModelsByBrand: {},
     });
   }
 };

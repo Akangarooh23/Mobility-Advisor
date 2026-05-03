@@ -192,7 +192,22 @@ function getPreferredFuelTokens(answers = {}, propulsions = []) {
     : answers?.propulsion_preferida
       ? [answers.propulsion_preferida]
       : [];
-  const merged = [...fromAnswers, ...(Array.isArray(propulsions) ? propulsions : [])]
+  const normalizedAnswers = fromAnswers
+    .map((item) => removeAccents(normalizeText(item)).toLowerCase())
+    .join(" ");
+
+  // If user explicitly selected a propulsion in the questionnaire, keep it as the strict target
+  // instead of broadening with viable alternatives.
+  if (normalizedAnswers) {
+    if (/electrico_puro|electrico|ev|bev/.test(normalizedAnswers)) return ["electrico"];
+    if (/hibrido_no_enchufable/.test(normalizedAnswers)) return ["hibrido"];
+    if (/hibrido_enchufable|phev/.test(normalizedAnswers)) return ["phev"];
+    if (/hibrido_no_enchufable|hibrido|hybrid|hev|mhev|microhibrid/.test(normalizedAnswers)) return ["hibrido"];
+    if (/diesel|di[eé]sel/.test(normalizedAnswers)) return ["diesel"];
+    if (/gasolina|gasoline/.test(normalizedAnswers)) return ["gasolina"];
+  }
+
+  const merged = (Array.isArray(propulsions) ? propulsions : [])
     .map((item) => removeAccents(normalizeText(item)).toLowerCase())
     .join(" ");
 
@@ -798,7 +813,8 @@ function isCompleteAdvisorResult(value) {
 
 function buildRecommendedVehiclesFallback(answers = {}, propulsions = []) {
   const marcaPreferencia = normalizeText(answers?.marca_preferencia).toLowerCase();
-  const fuel = propulsions.map((item) => normalizeText(item).toLowerCase()).join(" ");
+  const preferredFuel = getPreferredFuelTokens(answers, propulsions);
+  const fuel = preferredFuel.join(" ");
 
   let shortlist = [
     { marca: "Toyota", modelo: "Corolla Hybrid", razon: "Fiabilidad, consumo contenido y alta liquidez en el mercado español." },
@@ -808,13 +824,29 @@ function buildRecommendedVehiclesFallback(answers = {}, propulsions = []) {
     { marca: "Renault", modelo: "Captur", razon: "Opción urbana-polivalente con costes de entrada competitivos." },
   ];
 
-  if (marcaPreferencia === "nueva_china" || /(electrico|ev|hibrid|phev)/.test(fuel)) {
+  if (marcaPreferencia === "nueva_china" || preferredFuel.includes("electrico")) {
     shortlist = [
       { marca: "BYD", modelo: "Dolphin", razon: "Eléctrico equilibrado para ciudad y periurbano con buen equipamiento." },
       { marca: "MG", modelo: "MG4 Electric", razon: "Muy competitivo en coste total para electrificación realista." },
       { marca: "BYD", modelo: "Seal U DM-i", razon: "Alternativa híbrida enchufable con enfoque familiar." },
       { marca: "Omoda", modelo: "5", razon: "Relación precio/equipamiento alta en SUV compacto." },
       { marca: "Jaecoo", modelo: "7", razon: "SUV de enfoque práctico con buen valor percibido." },
+    ];
+  } else if (preferredFuel.includes("hibrido")) {
+    shortlist = [
+      { marca: "Toyota", modelo: "Corolla Hybrid", razon: "Referente en híbrido no enchufable por eficiencia y fiabilidad." },
+      { marca: "Toyota", modelo: "C-HR Hybrid", razon: "SUV compacto HEV muy coherente para uso mixto y ZBE." },
+      { marca: "Kia", modelo: "Niro Hybrid", razon: "Buen equilibrio de coste total y eficiencia urbana/interurbana." },
+      { marca: "Hyundai", modelo: "Kona Hybrid", razon: "Formato compacto con etiqueta ECO y consumo contenido." },
+      { marca: "Nissan", modelo: "Qashqai e-POWER", razon: "Conducción tipo eléctrica sin necesidad de enchufe." },
+    ];
+  } else if (preferredFuel.includes("phev")) {
+    shortlist = [
+      { marca: "Kia", modelo: "Niro PHEV", razon: "PHEV eficiente para trayectos diarios con etiqueta CERO." },
+      { marca: "Hyundai", modelo: "Tucson PHEV", razon: "SUV familiar enchufable con buena disponibilidad." },
+      { marca: "Peugeot", modelo: "3008 Hybrid", razon: "Oferta PHEV equilibrada en coste-prestaciones." },
+      { marca: "Ford", modelo: "Kuga Plug-in Hybrid", razon: "Muy buena relación autonomía eléctrica/precio." },
+      { marca: "Mitsubishi", modelo: "Eclipse Cross PHEV", razon: "PHEV conocido y robusto para uso mixto." },
     ];
   }
 

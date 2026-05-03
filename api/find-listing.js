@@ -2206,6 +2206,47 @@ function buildRankedListingResponse(listings = [], options = {}) {
     return preferredBrands.some((brand) => haystack.includes(brand));
   };
 
+  const getPreferredFuelMode = () => {
+    const selected = removeAccents(normalizeText(answers?.propulsion_preferida)).toLowerCase();
+    if (!selected) {
+      return "";
+    }
+    if (/(electrico_puro|electrico|ev|bev)/.test(selected)) return "electrico";
+    if (/hibrido_no_enchufable/.test(selected)) return "hibrido";
+    if (/(hibrido_enchufable|phev)/.test(selected)) return "phev";
+    if (/(hibrido_no_enchufable|hibrido|hybrid|hev|mhev|microhibrid)/.test(selected)) return "hibrido";
+    if (/(diesel|di[eé]sel)/.test(selected)) return "diesel";
+    if (/(gasolina|gasoline)/.test(selected)) return "gasolina";
+    return "";
+  };
+
+  const fuelMode = getPreferredFuelMode();
+
+  const matchesFuelMode = (listing) => {
+    if (!fuelMode) {
+      return true;
+    }
+
+    const haystack = removeAccents(`${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""}`).toLowerCase();
+    if (fuelMode === "electrico") {
+      return /(electrico|electric|ev\b|bev|e-tron|eq[absce]\b)/.test(haystack);
+    }
+    if (fuelMode === "phev") {
+      return /(phev|enchufable|plug-in|plug in|hybrid\s+plugin)/.test(haystack);
+    }
+    if (fuelMode === "hibrido") {
+      return /(hybrid|hibrid|hev|full hybrid|mhev|microhibrid|e-power)/.test(haystack) && !/(phev|enchufable|plug-in|plug in)/.test(haystack);
+    }
+    if (fuelMode === "diesel") {
+      return /(diesel|di[eé]sel|tdi|dci|hdi|multijet|bluehdi)/.test(haystack);
+    }
+    if (fuelMode === "gasolina") {
+      return /(gasolina|tsi|tce|ecoboost|puretech|firefly|mpi|tgdi)/.test(haystack) && !/(hybrid|hibrid|phev|enchufable|electric|electrico)/.test(haystack);
+    }
+
+    return true;
+  };
+
   let constrainedListings = [...dedupedListings];
   if (modelTokens.length > 0) {
     const modelMatched = constrainedListings.filter(hasModelMatch);
@@ -2218,6 +2259,13 @@ function buildRankedListingResponse(listings = [], options = {}) {
     const brandMatched = constrainedListings.filter(hasBrandMatch);
     if (brandMatched.length > 0) {
       constrainedListings = brandMatched;
+    }
+  }
+
+  if (fuelMode) {
+    const fuelMatched = constrainedListings.filter(matchesFuelMode);
+    if (fuelMatched.length > 0) {
+      constrainedListings = fuelMatched;
     }
   }
 
@@ -2410,11 +2458,13 @@ function inventoryOfferToListing(offer, desiredType) {
   ].filter(Boolean);
 
   return {
+    ...offer,
     title: title || "Oferta mercado",
     url: offer?.url || "",
     source: normalizeText(offer?.portal) || getDomain(offer?.url || "") || "market",
     description: details.join(" · "),
-    price: formatInventoryPrice(offer, desiredType),
+    priceText: formatInventoryPrice(offer, desiredType),
+    price: Number.isFinite(offer?.price) ? offer.price : null,
     image: normalizeProviderAssetUrl(offer?.image || "", offer?.url || ""),
     synthetic: false,
     isGuaranteedFallback: false,
@@ -2879,7 +2929,8 @@ function inferFuelFilterFromAnswers(answers = {}) {
   const joined = removeAccents(preferred.map((item) => normalizeText(item)).join(" ")).toLowerCase();
 
   if (/(electrico|ev|bev)/.test(joined)) return "electrico";
-  if (/(phev|enchufable)/.test(joined)) return "hibrido enchufable";
+  if (/hibrido_no_enchufable/.test(joined)) return "hibrido";
+  if (/(hibrido_enchufable|phev)/.test(joined)) return "hibrido enchufable";
   if (/(hibrido|hybrid|mhev|microhibrid|suave)/.test(joined)) return "hibrido";
   if (/(diesel|di[eé]sel)/.test(joined)) return "diesel";
   if (/(gasolina|gasoline)/.test(joined)) return "gasolina";
@@ -3525,6 +3576,20 @@ async function findListing({ result, answers, filters }) {
       location: normalizeText(String(filters?.location || "").replace(/_/g, " ")),
       city: normalizeText(filters?.city || ""),
       color: normalizeText(filters?.color || ""),
+      sellerType: normalizeText(filters?.sellerType || ""),
+      traction: normalizeText(filters?.traction || ""),
+      displacement: normalizeText(filters?.displacement || ""),
+      displacementMin: normalizeText(filters?.displacementMin || ""),
+      displacementMax: normalizeText(filters?.displacementMax || ""),
+      co2: normalizeText(filters?.co2 || ""),
+      co2Min: normalizeText(filters?.co2Min || ""),
+      co2Max: normalizeText(filters?.co2Max || ""),
+      powerKw: normalizeText(filters?.powerKw || ""),
+      powerKwMin: normalizeText(filters?.powerKwMin || ""),
+      powerKwMax: normalizeText(filters?.powerKwMax || ""),
+      consumption: normalizeText(filters?.consumption || ""),
+      consumptionMin: normalizeText(filters?.consumptionMin || ""),
+      consumptionMax: normalizeText(filters?.consumptionMax || ""),
       targetYear: answers?.antiguedad_vehiculo_buscada?.[0] || null,
       minYear: filters?.minYear || null,
       maxYear: filters?.maxYear || null,
@@ -3542,9 +3607,13 @@ async function findListing({ result, answers, filters }) {
     const inventoryDecorated = (inventory?.offers || [])
       .map((offer) => inventoryOfferToListing(offer, desiredType))
       .filter((listing) => listing?.url && listing?.title)
-      .map((listing) => decorateListing(listing, context));
+      .map((listing) => inventoryOnly
+        ? { ...listing, isRelevantMatch: true, isFallbackMatch: false }
+        : decorateListing(listing, context));
 
-    const inventoryRelevant = inventoryDecorated.filter((listing) => listing?.isRelevantMatch || listing?.isFallbackMatch);
+    const inventoryRelevant = inventoryOnly
+      ? inventoryDecorated
+      : inventoryDecorated.filter((listing) => listing?.isRelevantMatch || listing?.isFallbackMatch);
     if (inventoryOnly) {
       let rankedInventory = inventoryRelevant.slice(0, 20);
       let filterInsight = null;
@@ -3564,6 +3633,20 @@ async function findListing({ result, answers, filters }) {
           location: "",
           city: normalizeText(filters?.city || ""),
           color: normalizeText(filters?.color || ""),
+          sellerType: normalizeText(filters?.sellerType || ""),
+          traction: normalizeText(filters?.traction || ""),
+          displacement: normalizeText(filters?.displacement || ""),
+          displacementMin: normalizeText(filters?.displacementMin || ""),
+          displacementMax: normalizeText(filters?.displacementMax || ""),
+          co2: normalizeText(filters?.co2 || ""),
+          co2Min: normalizeText(filters?.co2Min || ""),
+          co2Max: normalizeText(filters?.co2Max || ""),
+          powerKw: normalizeText(filters?.powerKw || ""),
+          powerKwMin: normalizeText(filters?.powerKwMin || ""),
+          powerKwMax: normalizeText(filters?.powerKwMax || ""),
+          consumption: normalizeText(filters?.consumption || ""),
+          consumptionMin: normalizeText(filters?.consumptionMin || ""),
+          consumptionMax: normalizeText(filters?.consumptionMax || ""),
           targetYear: answers?.antiguedad_vehiculo_buscada?.[0] || null,
           minYear: filters?.minYear || null,
           maxYear: filters?.maxYear || null,
@@ -3581,9 +3664,9 @@ async function findListing({ result, answers, filters }) {
         const relaxedDecorated = (relaxedInventory?.offers || [])
           .map((offer) => inventoryOfferToListing(offer, desiredType))
           .filter((listing) => listing?.url && listing?.title)
-          .map((listing) => decorateListing(listing, context));
+          .map((listing) => ({ ...listing, isRelevantMatch: true, isFallbackMatch: false }));
 
-        const relaxedRelevant = relaxedDecorated.filter((listing) => listing?.isRelevantMatch || listing?.isFallbackMatch);
+        const relaxedRelevant = relaxedDecorated;
         if (relaxedRelevant.length > 0) {
           rankedInventory = relaxedRelevant.slice(0, 20);
           inventorySourceUsed = relaxedInventory?.source || inventorySourceUsed;

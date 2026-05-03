@@ -20,6 +20,20 @@ export function createInitialDecisionAnswers() {
     powerMax: 250,
     location: "toda_espana",
     fuelFilter: "cualquiera",
+    sellerType: "",
+    traction: "",
+    displacement: "",
+    displacementMin: "",
+    displacementMax: "",
+    co2: "",
+    co2Min: "",
+    co2Max: "",
+    powerKw: "",
+    powerKwMin: "",
+    powerKwMax: "",
+    consumption: "",
+    consumptionMin: "",
+    consumptionMax: "",
     ageMin: 0,
     ageMax: null,
     ageFilter: "all",
@@ -59,6 +73,20 @@ function buildNextDecisionAnswers(prev, key, value) {
     next.powerMax = 250;
     next.location = "toda_espana";
     next.fuelFilter = "cualquiera";
+    next.sellerType = "";
+    next.traction = "";
+    next.displacement = "";
+    next.displacementMin = "";
+    next.displacementMax = "";
+    next.co2 = "";
+    next.co2Min = "";
+    next.co2Max = "";
+    next.powerKw = "";
+    next.powerKwMin = "";
+    next.powerKwMax = "";
+    next.consumption = "";
+    next.consumptionMin = "";
+    next.consumptionMax = "";
     next.ageMin = 0;
     next.ageMax = null;
     next.ageFilter = "all";

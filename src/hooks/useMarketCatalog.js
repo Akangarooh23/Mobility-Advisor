@@ -26,6 +26,10 @@ function buildFallbackMarketCatalogFromOffers(offers = []) {
   }, {});
 }
 
+function buildMatchedModelsByBrandFromOffers(offers = []) {
+  return buildFallbackMarketCatalogFromOffers(offers);
+}
+
 function mergeCatalogMaps(primaryMap = {}, secondaryMap = {}) {
   const merged = {};
   const allBrands = new Set([...Object.keys(secondaryMap || {}), ...Object.keys(primaryMap || {})]);
@@ -81,7 +85,10 @@ export function useMarketCatalog(fallbackOffers = []) {
 
     return mergeCatalogMaps(fullCatalogFallback, offersCatalogFallback);
   }, [fallbackOffers]);
+  // "Más buscados" should come from real inventory coverage (API), not static fallback offers.
+  const fallbackMatchedModels = useMemo(() => ({}), []);
   const [marketBrandsCatalog, setMarketBrandsCatalog] = useState(() => fallbackCatalog);
+  const [matchedModelsByBrand, setMatchedModelsByBrand] = useState(() => fallbackMatchedModels);
   const [marketCatalogSource, setMarketCatalogSource] = useState("fallback");
 
   useEffect(() => {
@@ -104,15 +111,30 @@ export function useMarketCatalog(fallbackOffers = []) {
           acc[brandName] = models;
           return acc;
         }, {});
+        const nextMatchedModels = Object.entries(data?.matchedModelsByBrand || {}).reduce((acc, [brandName, models]) => {
+          const cleanBrand = normalizeText(brandName);
+          if (!cleanBrand || !Array.isArray(models)) {
+            return acc;
+          }
+
+          const cleanModels = Array.from(new Set(models.map((modelName) => normalizeText(modelName)).filter(Boolean)));
+          if (cleanModels.length > 0) {
+            acc[cleanBrand] = cleanModels;
+          }
+          return acc;
+        }, {});
 
         const mergedCatalog = mergeCatalogMaps(nextCatalog, fallbackCatalog);
+        const mergedMatchedModels = nextMatchedModels;
 
         if (isMounted && Object.keys(mergedCatalog).length > 0) {
           setMarketBrandsCatalog(mergedCatalog);
+          setMatchedModelsByBrand(mergedMatchedModels);
           setMarketCatalogSource(Object.keys(nextCatalog).length > 0 ? "api+fallback" : "fallback");
         }
       } catch {
         if (isMounted) {
+          setMatchedModelsByBrand({});
           setMarketCatalogSource("fallback");
         }
       }
@@ -123,5 +145,5 @@ export function useMarketCatalog(fallbackOffers = []) {
     };
   }, [fallbackCatalog]);
 
-  return { marketBrandsCatalog, marketCatalogSource };
+  return { marketBrandsCatalog, matchedModelsByBrand, marketCatalogSource };
 }

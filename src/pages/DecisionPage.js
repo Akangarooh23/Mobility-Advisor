@@ -6,6 +6,10 @@ const PRICE_MARKS = [0, 10000, 20000, 30000, 45000, 70000, 100000, 150000, 22000
 const AGE_MARKS = [0, 2, 4, 6, 8, 12];
 const MILEAGE_MARKS = [0, 20000, 50000, 80000, 120000, 180000];
 const POWER_MARKS = [70, 90, 110, 130, 160, 200, 250, 320];
+const DISPLACEMENT_MARKS = [800, 1000, 1200, 1400, 1600, 1800, 2000, 2500, 3000, 4000];
+const CO2_MARKS = [0, 80, 100, 120, 140, 160, 180, 220, 300];
+const POWER_KW_MARKS = [40, 55, 70, 85, 100, 120, 140, 170, 220, 300];
+const CONSUMPTION_MARKS = [2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 9, 11, 14];
 
 const LOCATION_OPTIONS = [
   { value: "toda_espana", label: "Toda España" },
@@ -113,8 +117,22 @@ const COLOR_OPTIONS = [
   { value: "violeta", label: "Violeta / Lila", dot: "#a78bfa" },
 ];
 
+const SELLER_TYPE_OPTIONS = [
+  { value: "", label: "Todos" },
+  { value: "particular", label: "Particular" },
+  { value: "profesional", label: "Profesional" },
+];
+
+const TRACTION_OPTIONS = [
+  { value: "", label: "Todas" },
+  { value: "delantera", label: "Delantera" },
+  { value: "trasera", label: "Trasera" },
+  { value: "4x4", label: "4x4 / AWD" },
+];
+
 const SEAT_OPTIONS = [2, 3, 4, 5, 6, 7, 8];
 const DOOR_OPTIONS = [2, 3, 4, 5, 6, 7];
+const ADVANCED_FILTERS_STORAGE_KEY = "decision_show_advanced_filters";
 
 const PRICE_FILTER_BY_TO_INDEX = {
   1: "hasta_10000",
@@ -157,6 +175,10 @@ function formatKm(amount) {
 
 function formatPower(amount) {
   return `${Number(amount || 0)} CV`;
+}
+
+function formatConsumption(amount) {
+  return `${Number(amount || 0).toLocaleString("es-ES", { maximumFractionDigits: 1 })} l/100`;
 }
 
 function getToIndexFromFilterValue(filterValue, mapByToIndex, fallback = 1) {
@@ -211,13 +233,15 @@ export default function DecisionPage({
   decisionAnswers,
   updateDecisionAnswer,
   MARKET_BRANDS,
-  decisionModels,
+  decisionTopModels = [],
+  decisionOtherModels = [],
   decisionFlowReady,
   decisionMarketListings,
   decisionMarketLoading,
   decisionMarketError,
   decisionMarketInsight,
   onRecalculateDecisionMarketOffers,
+  onOpenVehicleDetail,
   onSwitchToAdvice,
   onRestart,
 }) {
@@ -290,6 +314,42 @@ export default function DecisionPage({
   );
   const [powerFromIndex, setPowerFromIndex] = useState(() => getIndexFromMarkValue(POWER_MARKS, decisionAnswers.powerMin, 0));
   const [powerToIndex, setPowerToIndex] = useState(() => getIndexFromMarkValue(POWER_MARKS, decisionAnswers.powerMax, POWER_MARKS.length - 1));
+  const [displacementFromIndex, setDisplacementFromIndex] = useState(() =>
+    getFloorIndexFromValue(DISPLACEMENT_MARKS, decisionAnswers.displacementMin || decisionAnswers.displacement || DISPLACEMENT_MARKS[0], 0)
+  );
+  const [displacementToIndex, setDisplacementToIndex] = useState(() =>
+    getCeilIndexFromValue(
+      DISPLACEMENT_MARKS,
+      decisionAnswers.displacementMax || decisionAnswers.displacement || DISPLACEMENT_MARKS[DISPLACEMENT_MARKS.length - 1],
+      DISPLACEMENT_MARKS.length - 1
+    )
+  );
+  const [co2FromIndex, setCo2FromIndex] = useState(() =>
+    getFloorIndexFromValue(CO2_MARKS, decisionAnswers.co2Min || decisionAnswers.co2 || CO2_MARKS[0], 0)
+  );
+  const [co2ToIndex, setCo2ToIndex] = useState(() =>
+    getCeilIndexFromValue(CO2_MARKS, decisionAnswers.co2Max || decisionAnswers.co2 || CO2_MARKS[CO2_MARKS.length - 1], CO2_MARKS.length - 1)
+  );
+  const [powerKwFromIndex, setPowerKwFromIndex] = useState(() =>
+    getFloorIndexFromValue(POWER_KW_MARKS, decisionAnswers.powerKwMin || decisionAnswers.powerKw || POWER_KW_MARKS[0], 0)
+  );
+  const [powerKwToIndex, setPowerKwToIndex] = useState(() =>
+    getCeilIndexFromValue(
+      POWER_KW_MARKS,
+      decisionAnswers.powerKwMax || decisionAnswers.powerKw || POWER_KW_MARKS[POWER_KW_MARKS.length - 1],
+      POWER_KW_MARKS.length - 1
+    )
+  );
+  const [consumptionFromIndex, setConsumptionFromIndex] = useState(() =>
+    getFloorIndexFromValue(CONSUMPTION_MARKS, decisionAnswers.consumptionMin || decisionAnswers.consumption || CONSUMPTION_MARKS[0], 0)
+  );
+  const [consumptionToIndex, setConsumptionToIndex] = useState(() =>
+    getCeilIndexFromValue(
+      CONSUMPTION_MARKS,
+      decisionAnswers.consumptionMax || decisionAnswers.consumption || CONSUMPTION_MARKS[CONSUMPTION_MARKS.length - 1],
+      CONSUMPTION_MARKS.length - 1
+    )
+  );
   const [priceFromDraft, setPriceFromDraft] = useState(() => String(PRICE_MARKS[priceFromIndex]));
   const [priceToDraft, setPriceToDraft] = useState(() => String(PRICE_MARKS[priceToIndex]));
   const [ageFromDraft, setAgeFromDraft] = useState(() => String(AGE_MARKS[ageFromIndex]));
@@ -298,6 +358,34 @@ export default function DecisionPage({
   const [mileageToDraft, setMileageToDraft] = useState(() => String(MILEAGE_MARKS[mileageToIndex]));
   const [powerFromDraft, setPowerFromDraft] = useState(() => String(POWER_MARKS[powerFromIndex]));
   const [powerToDraft, setPowerToDraft] = useState(() => String(POWER_MARKS[powerToIndex]));
+  const [displacementFromDraft, setDisplacementFromDraft] = useState(() => String(DISPLACEMENT_MARKS[displacementFromIndex]));
+  const [displacementToDraft, setDisplacementToDraft] = useState(() => String(DISPLACEMENT_MARKS[displacementToIndex]));
+  const [co2FromDraft, setCo2FromDraft] = useState(() => String(CO2_MARKS[co2FromIndex]));
+  const [co2ToDraft, setCo2ToDraft] = useState(() => String(CO2_MARKS[co2ToIndex]));
+  const [powerKwFromDraft, setPowerKwFromDraft] = useState(() => String(POWER_KW_MARKS[powerKwFromIndex]));
+  const [powerKwToDraft, setPowerKwToDraft] = useState(() => String(POWER_KW_MARKS[powerKwToIndex]));
+  const [consumptionFromDraft, setConsumptionFromDraft] = useState(() => String(CONSUMPTION_MARKS[consumptionFromIndex]));
+  const [consumptionToDraft, setConsumptionToDraft] = useState(() => String(CONSUMPTION_MARKS[consumptionToIndex]));
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const storedValue = window.localStorage.getItem(ADVANCED_FILTERS_STORAGE_KEY);
+    if (storedValue === "1") {
+      setShowAdvancedFilters(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.localStorage.setItem(ADVANCED_FILTERS_STORAGE_KEY, showAdvancedFilters ? "1" : "0");
+  }, [showAdvancedFilters]);
 
   const { knownBrands, otherBrands, knownBrandSet } = getBrandOptionSegments(MARKET_BRANDS);
   const hasUnknownSelectedBrand = Boolean(decisionAnswers.brand && !knownBrandSet.has(decisionAnswers.brand));
@@ -339,6 +427,26 @@ export default function DecisionPage({
     setPowerToDraft(String(POWER_MARKS[powerToIndex]));
   }, [powerFromIndex, powerToIndex]);
 
+  useEffect(() => {
+    setDisplacementFromDraft(String(DISPLACEMENT_MARKS[displacementFromIndex]));
+    setDisplacementToDraft(String(DISPLACEMENT_MARKS[displacementToIndex]));
+  }, [displacementFromIndex, displacementToIndex]);
+
+  useEffect(() => {
+    setCo2FromDraft(String(CO2_MARKS[co2FromIndex]));
+    setCo2ToDraft(String(CO2_MARKS[co2ToIndex]));
+  }, [co2FromIndex, co2ToIndex]);
+
+  useEffect(() => {
+    setPowerKwFromDraft(String(POWER_KW_MARKS[powerKwFromIndex]));
+    setPowerKwToDraft(String(POWER_KW_MARKS[powerKwToIndex]));
+  }, [powerKwFromIndex, powerKwToIndex]);
+
+  useEffect(() => {
+    setConsumptionFromDraft(String(CONSUMPTION_MARKS[consumptionFromIndex]));
+    setConsumptionToDraft(String(CONSUMPTION_MARKS[consumptionToIndex]));
+  }, [consumptionFromIndex, consumptionToIndex]);
+
   const handleClearAll = () => {
     updateDecisionAnswer("brand", "");
     updateDecisionAnswer("hasBrand", "");
@@ -361,6 +469,20 @@ export default function DecisionPage({
     updateDecisionAnswer("transmission", "");
     updateDecisionAnswer("dgtLabel", "");
     updateDecisionAnswer("color", "");
+    updateDecisionAnswer("sellerType", "");
+    updateDecisionAnswer("traction", "");
+    updateDecisionAnswer("displacement", "");
+    updateDecisionAnswer("displacementMin", "");
+    updateDecisionAnswer("displacementMax", "");
+    updateDecisionAnswer("co2", "");
+    updateDecisionAnswer("co2Min", "");
+    updateDecisionAnswer("co2Max", "");
+    updateDecisionAnswer("powerKw", "");
+    updateDecisionAnswer("powerKwMin", "");
+    updateDecisionAnswer("powerKwMax", "");
+    updateDecisionAnswer("consumption", "");
+    updateDecisionAnswer("consumptionMin", "");
+    updateDecisionAnswer("consumptionMax", "");
     updateDecisionAnswer("location", "toda_espana");
     setPriceFromIndex(0);
     setPriceToIndex(PRICE_MARKS.length - 1);
@@ -370,6 +492,14 @@ export default function DecisionPage({
     setMileageToIndex(MILEAGE_MARKS.length - 1);
     setPowerFromIndex(0);
     setPowerToIndex(POWER_MARKS.length - 1);
+    setDisplacementFromIndex(0);
+    setDisplacementToIndex(DISPLACEMENT_MARKS.length - 1);
+    setCo2FromIndex(0);
+    setCo2ToIndex(CO2_MARKS.length - 1);
+    setPowerKwFromIndex(0);
+    setPowerKwToIndex(POWER_KW_MARKS.length - 1);
+    setConsumptionFromIndex(0);
+    setConsumptionToIndex(CONSUMPTION_MARKS.length - 1);
   };
 
   const syncPriceRange = (fromIdx, toIdx) => {
@@ -393,6 +523,30 @@ export default function DecisionPage({
   const syncPowerRange = (fromIdx, toIdx) => {
     updateDecisionAnswer("powerMin", POWER_MARKS[fromIdx]);
     updateDecisionAnswer("powerMax", POWER_MARKS[toIdx]);
+  };
+
+  const syncDisplacementRange = (fromIdx, toIdx) => {
+    updateDecisionAnswer("displacement", "");
+    updateDecisionAnswer("displacementMin", DISPLACEMENT_MARKS[fromIdx]);
+    updateDecisionAnswer("displacementMax", DISPLACEMENT_MARKS[toIdx]);
+  };
+
+  const syncCo2Range = (fromIdx, toIdx) => {
+    updateDecisionAnswer("co2", "");
+    updateDecisionAnswer("co2Min", CO2_MARKS[fromIdx]);
+    updateDecisionAnswer("co2Max", CO2_MARKS[toIdx]);
+  };
+
+  const syncPowerKwRange = (fromIdx, toIdx) => {
+    updateDecisionAnswer("powerKw", "");
+    updateDecisionAnswer("powerKwMin", POWER_KW_MARKS[fromIdx]);
+    updateDecisionAnswer("powerKwMax", POWER_KW_MARKS[toIdx]);
+  };
+
+  const syncConsumptionRange = (fromIdx, toIdx) => {
+    updateDecisionAnswer("consumption", "");
+    updateDecisionAnswer("consumptionMin", CONSUMPTION_MARKS[fromIdx]);
+    updateDecisionAnswer("consumptionMax", CONSUMPTION_MARKS[toIdx]);
   };
 
   const submitPriceFromDraft = () => {
@@ -475,6 +629,95 @@ export default function DecisionPage({
     syncPowerRange(powerFromIndex, nextTo);
   };
 
+  const submitDisplacementFromDraft = () => {
+    if (!displacementFromDraft.trim()) {
+      setDisplacementFromDraft(String(DISPLACEMENT_MARKS[displacementFromIndex]));
+      return;
+    }
+    const nextFrom = Math.min(getFloorIndexFromValue(DISPLACEMENT_MARKS, displacementFromDraft, 0), displacementToIndex - 1);
+    setDisplacementFromIndex(nextFrom);
+    syncDisplacementRange(nextFrom, displacementToIndex);
+  };
+
+  const submitDisplacementToDraft = () => {
+    if (!displacementToDraft.trim()) {
+      setDisplacementToDraft(String(DISPLACEMENT_MARKS[displacementToIndex]));
+      return;
+    }
+    const nextTo = Math.max(
+      getCeilIndexFromValue(DISPLACEMENT_MARKS, displacementToDraft, DISPLACEMENT_MARKS.length - 1),
+      displacementFromIndex + 1
+    );
+    setDisplacementToIndex(nextTo);
+    syncDisplacementRange(displacementFromIndex, nextTo);
+  };
+
+  const submitCo2FromDraft = () => {
+    if (!co2FromDraft.trim()) {
+      setCo2FromDraft(String(CO2_MARKS[co2FromIndex]));
+      return;
+    }
+    const nextFrom = Math.min(getFloorIndexFromValue(CO2_MARKS, co2FromDraft, 0), co2ToIndex - 1);
+    setCo2FromIndex(nextFrom);
+    syncCo2Range(nextFrom, co2ToIndex);
+  };
+
+  const submitCo2ToDraft = () => {
+    if (!co2ToDraft.trim()) {
+      setCo2ToDraft(String(CO2_MARKS[co2ToIndex]));
+      return;
+    }
+    const nextTo = Math.max(getCeilIndexFromValue(CO2_MARKS, co2ToDraft, CO2_MARKS.length - 1), co2FromIndex + 1);
+    setCo2ToIndex(nextTo);
+    syncCo2Range(co2FromIndex, nextTo);
+  };
+
+  const submitPowerKwFromDraft = () => {
+    if (!powerKwFromDraft.trim()) {
+      setPowerKwFromDraft(String(POWER_KW_MARKS[powerKwFromIndex]));
+      return;
+    }
+    const nextFrom = Math.min(getFloorIndexFromValue(POWER_KW_MARKS, powerKwFromDraft, 0), powerKwToIndex - 1);
+    setPowerKwFromIndex(nextFrom);
+    syncPowerKwRange(nextFrom, powerKwToIndex);
+  };
+
+  const submitPowerKwToDraft = () => {
+    if (!powerKwToDraft.trim()) {
+      setPowerKwToDraft(String(POWER_KW_MARKS[powerKwToIndex]));
+      return;
+    }
+    const nextTo = Math.max(
+      getCeilIndexFromValue(POWER_KW_MARKS, powerKwToDraft, POWER_KW_MARKS.length - 1),
+      powerKwFromIndex + 1
+    );
+    setPowerKwToIndex(nextTo);
+    syncPowerKwRange(powerKwFromIndex, nextTo);
+  };
+
+  const submitConsumptionFromDraft = () => {
+    if (!consumptionFromDraft.trim()) {
+      setConsumptionFromDraft(String(CONSUMPTION_MARKS[consumptionFromIndex]));
+      return;
+    }
+    const nextFrom = Math.min(getFloorIndexFromValue(CONSUMPTION_MARKS, consumptionFromDraft, 0), consumptionToIndex - 1);
+    setConsumptionFromIndex(nextFrom);
+    syncConsumptionRange(nextFrom, consumptionToIndex);
+  };
+
+  const submitConsumptionToDraft = () => {
+    if (!consumptionToDraft.trim()) {
+      setConsumptionToDraft(String(CONSUMPTION_MARKS[consumptionToIndex]));
+      return;
+    }
+    const nextTo = Math.max(
+      getCeilIndexFromValue(CONSUMPTION_MARKS, consumptionToDraft, CONSUMPTION_MARKS.length - 1),
+      consumptionFromIndex + 1
+    );
+    setConsumptionToIndex(nextTo);
+    syncConsumptionRange(consumptionFromIndex, nextTo);
+  };
+
   const handleSeatsFromChange = (value) => {
     updateDecisionAnswer("seatsFrom", value);
     if (value && decisionAnswers.seatsTo && Number(value) > Number(decisionAnswers.seatsTo)) {
@@ -550,6 +793,38 @@ export default function DecisionPage({
       const colorLabel = COLOR_OPTIONS.find((opt) => opt.value === decisionAnswers.color)?.label;
       if (colorLabel) active.push(colorLabel);
     }
+    if (decisionAnswers.sellerType) {
+      const sellerTypeLabel = SELLER_TYPE_OPTIONS.find((opt) => opt.value === decisionAnswers.sellerType)?.label;
+      if (sellerTypeLabel) active.push(sellerTypeLabel);
+    }
+    if (decisionAnswers.traction) {
+      const tractionLabel = TRACTION_OPTIONS.find((opt) => opt.value === decisionAnswers.traction)?.label || decisionAnswers.traction;
+      active.push(tractionLabel);
+    }
+    if (
+      DISPLACEMENT_MARKS[displacementFromIndex] > DISPLACEMENT_MARKS[0]
+      || DISPLACEMENT_MARKS[displacementToIndex] < DISPLACEMENT_MARKS[DISPLACEMENT_MARKS.length - 1]
+    ) {
+      active.push(`Cilindrada ${DISPLACEMENT_MARKS[displacementFromIndex]}-${DISPLACEMENT_MARKS[displacementToIndex]} cc`);
+    }
+    if (CO2_MARKS[co2FromIndex] > CO2_MARKS[0] || CO2_MARKS[co2ToIndex] < CO2_MARKS[CO2_MARKS.length - 1]) {
+      active.push(`CO2 ${CO2_MARKS[co2FromIndex]}-${CO2_MARKS[co2ToIndex]} g/km`);
+    }
+    if (
+      POWER_KW_MARKS[powerKwFromIndex] > POWER_KW_MARKS[0]
+      || POWER_KW_MARKS[powerKwToIndex] < POWER_KW_MARKS[POWER_KW_MARKS.length - 1]
+    ) {
+      active.push(`Potencia ${POWER_KW_MARKS[powerKwFromIndex]}-${POWER_KW_MARKS[powerKwToIndex]} kW`);
+    }
+    if (
+      CONSUMPTION_MARKS[consumptionFromIndex] > CONSUMPTION_MARKS[0]
+      || CONSUMPTION_MARKS[consumptionToIndex] < CONSUMPTION_MARKS[CONSUMPTION_MARKS.length - 1]
+    ) {
+      active.push(
+        `Consumo ${Number(CONSUMPTION_MARKS[consumptionFromIndex]).toLocaleString("es-ES", { maximumFractionDigits: 1 })}`
+        + `-${Number(CONSUMPTION_MARKS[consumptionToIndex]).toLocaleString("es-ES", { maximumFractionDigits: 1 })} l/100`
+      );
+    }
     return active;
   };
 
@@ -603,6 +878,9 @@ export default function DecisionPage({
           .cw-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
           @media (max-width: 640px) { .cw-two-col { grid-template-columns: 1fr; } }
           .cw-f-sep { height: 1px; background: linear-gradient(90deg, transparent, #f0ece4, transparent); }
+          .cw-advanced-toggle { width: fit-content; border: 1px solid #dbe6f9; background: #f8fbff; color: #1d4ed8; border-radius: 999px; padding: 0.42rem 0.85rem; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s ease; }
+          .cw-advanced-toggle:hover { background: #eef4ff; border-color: #bfd4fb; }
+          .cw-advanced-wrap { display: flex; flex-direction: column; gap: 1.5rem; }
           .cw-sel-wrap { position: relative; }
           .cw-sel-wrap select { appearance: none; width: 100%; background: #fafaf9; border: 1px solid #eee; border-radius: 12px; padding: 0.62rem 2.2rem 0.62rem 1rem; font-size: 13px; color: #666; font-family: Inter, sans-serif; cursor: pointer; outline: none; }
           .cw-sel-wrap select:focus { border-color: rgba(59,130,246,0.4); background: #fff; box-shadow: 0 0 0 3px rgba(59,130,246,0.07); }
@@ -634,6 +912,9 @@ export default function DecisionPage({
           .cw-offer-top { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
           .cw-offer-type { font-size: 10px; color: #1d4ed8; background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.25); font-weight: 700; padding: 0.22rem 0.52rem; border-radius: 999px; letter-spacing: 0.04em; text-transform: uppercase; }
           .cw-offer-source { font-size: 10px; color: #35507a; background: rgba(148,163,184,0.16); border: 1px solid rgba(148,163,184,0.35); padding: 0.2rem 0.5rem; border-radius: 999px; font-weight: 600; text-transform: lowercase; }
+          .cw-offer-media { position: relative; width: 100%; height: 132px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; background: linear-gradient(145deg, #f8fafc 0%, #eef2f7 100%); }
+          .cw-offer-image { width: 100%; height: 100%; object-fit: cover; display: block; }
+          .cw-offer-image-fallback { width: 100%; height: 100%; align-items: center; justify-content: center; font-size: 11px; color: #7b8798; font-weight: 600; letter-spacing: 0.02em; }
           .cw-offer-title { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 0.1rem; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
           .cw-offer-desc { font-size: 11.5px; color: #5c6c82; line-height: 1.5; min-height: 34px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
           .cw-offer-footer { display: flex; justify-content: space-between; align-items: flex-end; padding-top: 0.65rem; border-top: 1px solid #e6edf8; }
@@ -700,32 +981,55 @@ export default function DecisionPage({
                 <select
                   value={decisionAnswers.model || ""}
                   onChange={(e) => updateDecisionAnswer("model", e.target.value)}
-                  disabled={!decisionAnswers.brand || decisionModels.length === 0}
+                  disabled={!decisionAnswers.brand || (decisionTopModels.length + decisionOtherModels.length) === 0}
                   style={{
-                    opacity: !decisionAnswers.brand || decisionModels.length === 0 ? 0.6 : 1,
-                    cursor: !decisionAnswers.brand || decisionModels.length === 0 ? "not-allowed" : "pointer",
+                    opacity: !decisionAnswers.brand || (decisionTopModels.length + decisionOtherModels.length) === 0 ? 0.6 : 1,
+                    cursor: !decisionAnswers.brand || (decisionTopModels.length + decisionOtherModels.length) === 0 ? "not-allowed" : "pointer",
                   }}
                 >
                   <option value="">
                     {!decisionAnswers.brand
                       ? "Selecciona marca primero"
-                      : decisionModels.length
+                      : (decisionTopModels.length + decisionOtherModels.length)
                         ? text.selectModel
                         : "No hay modelos en catálogo"}
                   </option>
-                  {decisionModels.map((model) => (
-                    <option key={model} value={model}>
-                      {model}
-                    </option>
-                  ))}
+                  {decisionTopModels.length > 0 && (
+                    <optgroup label="Modelos más buscados">
+                      {decisionTopModels.map((model) => (
+                        <option key={`top-${model}`} value={model}>
+                          {model}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {decisionOtherModels.length > 0 && (
+                    <optgroup label="Otros modelos">
+                      {decisionOtherModels.map((model) => (
+                        <option key={`other-${model}`} value={model}>
+                          {model}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
                 </select>
                 <div className="cw-sel-arrow">▾</div>
               </div>
             </div>
 
-            <div className="cw-f-sep"></div>
+            <button
+              type="button"
+              className="cw-advanced-toggle"
+              onClick={() => setShowAdvancedFilters((prev) => !prev)}
+            >
+              {showAdvancedFilters ? "− Filtros" : "+ Filtros"}
+            </button>
 
-            <div className="cw-two-col">
+            {showAdvancedFilters && (
+              <div className="cw-advanced-wrap">
+                <div className="cw-f-sep"></div>
+
+                <div className="cw-two-col">
               {/* 4. PRESUPUESTO */}
               <div className="cw-f-block">
                 <div className="cw-f-lbl"><span className="cw-f-lbl-n">4</span>{text.priceRange}</div>
@@ -1194,8 +1498,327 @@ export default function DecisionPage({
                 ))}
               </div>
             </div>
-          </div>
+
+            {/* 16+17. VENDEDOR + TRACCION */}
+            <div className="cw-two-col">
+              <div className="cw-f-block">
+                <div className="cw-f-lbl"><span className="cw-f-lbl-n">16</span>Tipo de vendedor</div>
+                <div className="cw-sel-wrap">
+                  <select
+                    value={decisionAnswers.sellerType || ""}
+                    onChange={(e) => updateDecisionAnswer("sellerType", e.target.value)}
+                  >
+                    {SELLER_TYPE_OPTIONS.map((option) => (
+                      <option key={option.value || "all"} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="cw-sel-arrow">▾</div>
+                </div>
+              </div>
+
+              <div className="cw-f-block">
+                <div className="cw-f-lbl"><span className="cw-f-lbl-n">17</span>Tracción</div>
+                <div className="cw-sel-wrap">
+                  <select
+                    value={decisionAnswers.traction || ""}
+                    onChange={(e) => updateDecisionAnswer("traction", e.target.value)}
+                  >
+                    {TRACTION_OPTIONS.map((option) => (
+                      <option key={option.value || "all"} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="cw-sel-arrow">▾</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 18-21. FILTROS TECNICOS */}
+            <div className="cw-two-col">
+              <div className="cw-f-block">
+                <div className="cw-f-lbl"><span className="cw-f-lbl-n">18</span>Cilindrada (cc)</div>
+                <div className="cw-range-box">
+                  <div className="cw-range-values">
+                    <span>{text.from}: <strong>{DISPLACEMENT_MARKS[displacementFromIndex]} cc</strong></span>
+                    <span>{text.to}: <strong>{DISPLACEMENT_MARKS[displacementToIndex]} cc</strong></span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={DISPLACEMENT_MARKS.length - 2}
+                    step={1}
+                    value={displacementFromIndex}
+                    onChange={(e) => {
+                      const nextFrom = Math.min(Number(e.target.value), displacementToIndex - 1);
+                      setDisplacementFromIndex(nextFrom);
+                      syncDisplacementRange(nextFrom, displacementToIndex);
+                    }}
+                  />
+                  <input
+                    type="range"
+                    min={1}
+                    max={DISPLACEMENT_MARKS.length - 1}
+                    step={1}
+                    value={displacementToIndex}
+                    onChange={(e) => {
+                      const nextTo = Math.max(Number(e.target.value), displacementFromIndex + 1);
+                      setDisplacementToIndex(nextTo);
+                      syncDisplacementRange(displacementFromIndex, nextTo);
+                    }}
+                  />
+                  <div className="cw-range-manual">
+                    <label>
+                      {text.from}
+                      <input
+                        type="number"
+                        min={DISPLACEMENT_MARKS[0]}
+                        max={DISPLACEMENT_MARKS[DISPLACEMENT_MARKS.length - 1]}
+                        value={displacementFromDraft}
+                        onChange={(e) => setDisplacementFromDraft(e.target.value)}
+                        onBlur={submitDisplacementFromDraft}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                          }
+                        }}
+                      />
+                    </label>
+                    <label>
+                      {text.to}
+                      <input
+                        type="number"
+                        min={DISPLACEMENT_MARKS[0]}
+                        max={DISPLACEMENT_MARKS[DISPLACEMENT_MARKS.length - 1]}
+                        value={displacementToDraft}
+                        onChange={(e) => setDisplacementToDraft(e.target.value)}
+                        onBlur={submitDisplacementToDraft}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="cw-f-block">
+                <div className="cw-f-lbl"><span className="cw-f-lbl-n">19</span>CO2 (g/km)</div>
+                <div className="cw-range-box">
+                  <div className="cw-range-values">
+                    <span>{text.from}: <strong>{CO2_MARKS[co2FromIndex]} g/km</strong></span>
+                    <span>{text.to}: <strong>{CO2_MARKS[co2ToIndex]} g/km</strong></span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={CO2_MARKS.length - 2}
+                    step={1}
+                    value={co2FromIndex}
+                    onChange={(e) => {
+                      const nextFrom = Math.min(Number(e.target.value), co2ToIndex - 1);
+                      setCo2FromIndex(nextFrom);
+                      syncCo2Range(nextFrom, co2ToIndex);
+                    }}
+                  />
+                  <input
+                    type="range"
+                    min={1}
+                    max={CO2_MARKS.length - 1}
+                    step={1}
+                    value={co2ToIndex}
+                    onChange={(e) => {
+                      const nextTo = Math.max(Number(e.target.value), co2FromIndex + 1);
+                      setCo2ToIndex(nextTo);
+                      syncCo2Range(co2FromIndex, nextTo);
+                    }}
+                  />
+                  <div className="cw-range-manual">
+                    <label>
+                      {text.from}
+                      <input
+                        type="number"
+                        min={CO2_MARKS[0]}
+                        max={CO2_MARKS[CO2_MARKS.length - 1]}
+                        value={co2FromDraft}
+                        onChange={(e) => setCo2FromDraft(e.target.value)}
+                        onBlur={submitCo2FromDraft}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                          }
+                        }}
+                      />
+                    </label>
+                    <label>
+                      {text.to}
+                      <input
+                        type="number"
+                        min={CO2_MARKS[0]}
+                        max={CO2_MARKS[CO2_MARKS.length - 1]}
+                        value={co2ToDraft}
+                        onChange={(e) => setCo2ToDraft(e.target.value)}
+                        onBlur={submitCo2ToDraft}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="cw-two-col">
+              <div className="cw-f-block">
+                <div className="cw-f-lbl"><span className="cw-f-lbl-n">20</span>Potencia (kW)</div>
+                <div className="cw-range-box">
+                  <div className="cw-range-values">
+                    <span>{text.from}: <strong>{POWER_KW_MARKS[powerKwFromIndex]} kW</strong></span>
+                    <span>{text.to}: <strong>{POWER_KW_MARKS[powerKwToIndex]} kW</strong></span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={POWER_KW_MARKS.length - 2}
+                    step={1}
+                    value={powerKwFromIndex}
+                    onChange={(e) => {
+                      const nextFrom = Math.min(Number(e.target.value), powerKwToIndex - 1);
+                      setPowerKwFromIndex(nextFrom);
+                      syncPowerKwRange(nextFrom, powerKwToIndex);
+                    }}
+                  />
+                  <input
+                    type="range"
+                    min={1}
+                    max={POWER_KW_MARKS.length - 1}
+                    step={1}
+                    value={powerKwToIndex}
+                    onChange={(e) => {
+                      const nextTo = Math.max(Number(e.target.value), powerKwFromIndex + 1);
+                      setPowerKwToIndex(nextTo);
+                      syncPowerKwRange(powerKwFromIndex, nextTo);
+                    }}
+                  />
+                  <div className="cw-range-manual">
+                    <label>
+                      {text.from}
+                      <input
+                        type="number"
+                        min={POWER_KW_MARKS[0]}
+                        max={POWER_KW_MARKS[POWER_KW_MARKS.length - 1]}
+                        value={powerKwFromDraft}
+                        onChange={(e) => setPowerKwFromDraft(e.target.value)}
+                        onBlur={submitPowerKwFromDraft}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                          }
+                        }}
+                      />
+                    </label>
+                    <label>
+                      {text.to}
+                      <input
+                        type="number"
+                        min={POWER_KW_MARKS[0]}
+                        max={POWER_KW_MARKS[POWER_KW_MARKS.length - 1]}
+                        value={powerKwToDraft}
+                        onChange={(e) => setPowerKwToDraft(e.target.value)}
+                        onBlur={submitPowerKwToDraft}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="cw-f-block">
+                <div className="cw-f-lbl"><span className="cw-f-lbl-n">21</span>Consumo (l/100)</div>
+                <div className="cw-range-box">
+                  <div className="cw-range-values">
+                    <span>{text.from}: <strong>{formatConsumption(CONSUMPTION_MARKS[consumptionFromIndex])}</strong></span>
+                    <span>{text.to}: <strong>{formatConsumption(CONSUMPTION_MARKS[consumptionToIndex])}</strong></span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={CONSUMPTION_MARKS.length - 2}
+                    step={1}
+                    value={consumptionFromIndex}
+                    onChange={(e) => {
+                      const nextFrom = Math.min(Number(e.target.value), consumptionToIndex - 1);
+                      setConsumptionFromIndex(nextFrom);
+                      syncConsumptionRange(nextFrom, consumptionToIndex);
+                    }}
+                  />
+                  <input
+                    type="range"
+                    min={1}
+                    max={CONSUMPTION_MARKS.length - 1}
+                    step={1}
+                    value={consumptionToIndex}
+                    onChange={(e) => {
+                      const nextTo = Math.max(Number(e.target.value), consumptionFromIndex + 1);
+                      setConsumptionToIndex(nextTo);
+                      syncConsumptionRange(consumptionFromIndex, nextTo);
+                    }}
+                  />
+                  <div className="cw-range-manual">
+                    <label>
+                      {text.from}
+                      <input
+                        type="number"
+                        min={CONSUMPTION_MARKS[0]}
+                        max={CONSUMPTION_MARKS[CONSUMPTION_MARKS.length - 1]}
+                        step={0.1}
+                        value={consumptionFromDraft}
+                        onChange={(e) => setConsumptionFromDraft(e.target.value)}
+                        onBlur={submitConsumptionFromDraft}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                          }
+                        }}
+                      />
+                    </label>
+                    <label>
+                      {text.to}
+                      <input
+                        type="number"
+                        min={CONSUMPTION_MARKS[0]}
+                        max={CONSUMPTION_MARKS[CONSUMPTION_MARKS.length - 1]}
+                        step={0.1}
+                        value={consumptionToDraft}
+                        onChange={(e) => setConsumptionToDraft(e.target.value)}
+                        onBlur={submitConsumptionToDraft}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+              </div>
+            )}
         </div>
+          </div>
 
         {/* RESULTS */}
         {decisionFlowReady && (
@@ -1214,29 +1837,60 @@ export default function DecisionPage({
               </div>
             )}
             {!decisionMarketLoading && decisionMarketListings.length === 0 && (
-              <div className="cw-no-results">{text.noOffers}</div>
+              <div className="cw-no-results" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:12,padding:"2rem 1.5rem"}}>
+                <span style={{fontSize:14,color:"#666"}}>{text.noOffers}</span>
+                <button
+                  disabled
+                  style={{marginTop:4,padding:"9px 20px",borderRadius:8,border:"1px solid #d1d5db",background:"#f3f4f6",color:"#9ca3af",fontSize:13,cursor:"not-allowed",fontWeight:500}}
+                >
+                  🔔 Solicitar alerta
+                </button>
+              </div>
             )}
             {!decisionMarketLoading && decisionMarketListings.length > 0 && (
               <div className="cw-results-grid">
                 {decisionMarketListings.map((offer, i) => (
-                  <a
+                  <div
                     key={i}
-                    href={offer.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="cw-offer-card"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => onOpenVehicleDetail && onOpenVehicleDetail(offer)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === "Enter" && onOpenVehicleDetail && onOpenVehicleDetail(offer)}
                   >
                     <div className="cw-offer-top">
                       <div className="cw-offer-type">{offer.listingType === "renting" ? "Renting" : "Compra"}</div>
                       <div className="cw-offer-source">{cleanOfferText(offer.source) || "market"}</div>
                     </div>
+                    <div className="cw-offer-media">
+                      {offer.image ? (
+                        <img
+                          className="cw-offer-image"
+                          src={offer.image}
+                          alt={cleanOfferText(offer.title) || "Oferta"}
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                          onError={(event) => {
+                            event.currentTarget.style.display = "none";
+                            const fallback = event.currentTarget.nextElementSibling;
+                            if (fallback) {
+                              fallback.style.display = "flex";
+                            }
+                          }}
+                        />
+                      ) : null}
+                      <div className="cw-offer-image-fallback" style={{ display: offer.image ? "none" : "flex" }}>
+                        Sin imagen
+                      </div>
+                    </div>
                     <div className="cw-offer-title">{cleanOfferText(offer.title)}</div>
                     <div className="cw-offer-desc">{cleanOfferText(offer.description)?.substring(0, 96)}</div>
                     <div className="cw-offer-footer">
                       <div className="cw-offer-open">Ver ficha ↗</div>
-                      <div className="cw-offer-price">{cleanOfferText(offer.price)}</div>
+                      <div className="cw-offer-price">{cleanOfferText(offer.priceText || offer.price)}</div>
                     </div>
-                  </a>
+                  </div>
                 ))}
               </div>
             )}
@@ -1244,7 +1898,7 @@ export default function DecisionPage({
         )}
 
         {!decisionFlowReady && (
-          <div className="cw-no-results">{text.completeFilters}</div>
+          <div className="cw-no-results">Selecciona marca y modelo para ver ofertas.</div>
         )}
 
         {/* CTA */}
@@ -1254,7 +1908,7 @@ export default function DecisionPage({
               <div className="cw-count-n" id="countN">{decisionFlowReady && !decisionMarketLoading ? decisionMarketListings.length : "—"}</div>
               <div className="cw-count-lbl">ofertas disponibles</div>
             </div>
-            <div className="cw-cta-hint">{decisionFlowReady ? "Resultados listos para analizar" : "Aplica filtros para ver resultados"}</div>
+            <div className="cw-cta-hint">{decisionFlowReady ? "Resultados listos para analizar" : "Selecciona marca y modelo para ver resultados"}</div>
           </div>
           <div className="cw-cta-right">
             <button className="cw-btn-back" onClick={onRestart}>

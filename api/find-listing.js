@@ -1191,6 +1191,9 @@ function getProfileBrandKeywords(answers, models = []) {
   const knownBrands = [
     "volkswagen", "seat", "renault", "skoda", "toyota", "kia", "hyundai", "nissan",
     "bmw", "audi", "mercedes", "volvo", "byd", "mg", "xpeng", "omoda", "jaecoo", "peugeot", "citroen", "dacia",
+    "fiat", "ford", "opel", "honda", "mazda", "mini", "jeep", "cupra", "lexus", "tesla", "jaguar",
+    "ds", "suzuki", "alfa romeo", "smart", "mitsubishi", "land rover", "porsche",
+    "subaru", "polestar", "abarth", "dethleffs", "challenger", "hymer",
   ];
   const explicitBrand = removeAccents(normalizeText(answers?.marca_objetivo)).toLowerCase();
   const fromExplicitBrand = knownBrands.includes(explicitBrand) ? [explicitBrand] : [];

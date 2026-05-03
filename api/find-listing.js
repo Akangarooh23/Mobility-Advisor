@@ -2827,13 +2827,13 @@ function hasSpecificVehicleIdentity(listing) {
   const url = String(listing?.url || "").toLowerCase();
   const haystack = removeAccents(`${listing?.title || ""} ${listing?.description || ""} ${url}`).toLowerCase();
   const knownBrands = [
-    "audi", "bmw", "byd", "citroen", "cupra", "dacia", "fiat", "ford", "honda", "hyundai", "jaguar",
+    "audi", "bmw", "byd", "citroen", "cupra", "dacia", "ds", "fiat", "ford", "honda", "hyundai", "jaguar",
     "jeep", "kia", "lexus", "mazda", "mercedes", "mg", "mini", "nissan", "opel", "peugeot", "renault",
     "seat", "skoda", "tesla", "toyota", "volkswagen", "volvo", "xpeng",
   ];
   const brandHits = knownBrands.filter((brand) => haystack.includes(brand)).length;
 
-  if (/\/ofertas\/[^/]+\/[^/]+|\/coches-ocasion\/[^/]+\/[^/]+|\/vehiculos-ocasion\/[^/]+\/[^/]+|\/detalle\/[^/]+|\/ficha\/[^/]+|\/id\/[a-f0-9-]+|-[0-9]+-covo\.aspx(?:\?|$)/i.test(url)) {
+  if (/\/ofertas\/[^/]+\/[^/]+|\/coches-segunda-mano\/[^/]+|\/segunda-mano\/[^/]+\/[^/]+|\/coches-ocasion\/[^/]+\/[^/]+|\/vehiculos-ocasion\/[^/]+\/[^/]+|\/detalle\/[^/]+|\/ficha\/[^/]+|\/id\/[a-f0-9-]+|-[0-9]+-covo\.aspx(?:\?|$)/i.test(url)) {
     return true;
   }
 

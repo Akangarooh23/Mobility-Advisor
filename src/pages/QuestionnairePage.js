@@ -730,23 +730,36 @@ export default function QuestionnairePage({
         const metrics = currentStep.metrics || [];
         const order = dragOrder && dragOrder.length === metrics.length ? dragOrder : metrics.map((m) => m.key);
 
-        const handleDragStart = (idx) => {
-          setDragSrcIdx(idx);
-        };
-
-        const handleDragEnter = (idx) => {
-          if (idx === dragSrcIdx) return;
-          const newOrder = [...order];
-          const [moved] = newOrder.splice(dragSrcIdx, 1);
-          newOrder.splice(idx, 0, moved);
-          setDragSrcIdx(idx);
+        const applyOrder = (newOrder) => {
           setDragOrder(newOrder);
-          // sync scoreWeightsSelection: position 0 = most important = rank N, position N-1 = rank 1
+          // position 0 = most important = rank N, position N-1 = rank 1
           const newWeights = {};
           newOrder.forEach((key, pos) => {
             newWeights[key] = metrics.length - pos;
           });
           onSetScoreWeights(newWeights);
+        };
+
+        const moveMetric = (fromIdx, toIdx) => {
+          if (fromIdx === toIdx || fromIdx < 0 || toIdx < 0 || fromIdx >= order.length || toIdx >= order.length) {
+            return;
+          }
+
+          const newOrder = [...order];
+          const [moved] = newOrder.splice(fromIdx, 1);
+          newOrder.splice(toIdx, 0, moved);
+          applyOrder(newOrder);
+        };
+
+        const handleDragStart = (idx) => {
+          setDragSrcIdx(idx);
+        };
+
+        const handleDragEnter = (idx) => {
+          if (dragSrcIdx === null) return;
+          if (idx === dragSrcIdx) return;
+          moveMetric(dragSrcIdx, idx);
+          setDragSrcIdx(idx);
         };
 
         const handleDragEnd = () => {
@@ -766,7 +779,7 @@ export default function QuestionnairePage({
                 lineHeight: 1.5,
               }}
             >
-              Arrastra para reordenar · El <strong>primero</strong> tendrá más peso · El <strong>último</strong> menos
+              Arrastra para reordenar o usa ↑ ↓ en móvil · El <strong>primero</strong> tendrá más peso · El <strong>último</strong> menos
             </div>
             {order.map((key, pos) => {
               const metric = metrics.find((m) => m.key === key);
@@ -797,6 +810,7 @@ export default function QuestionnairePage({
                     padding: "12px 14px",
                     cursor: "grab",
                     userSelect: "none",
+                    touchAction: "manipulation",
                     opacity: isBeingDragged ? 0.55 : 1,
                     transition: "box-shadow 0.15s",
                     boxShadow: isBeingDragged ? "0 4px 18px rgba(99,102,241,0.18)" : "none",
@@ -824,6 +838,54 @@ export default function QuestionnairePage({
                   </span>
                   <span style={{ fontSize: 18, flexShrink: 0 }}>{metric.icon || "•"}</span>
                   <span style={{ color: isDark ? "#f8fafc" : "#0f172a", fontSize: 13, fontWeight: 600, flex: 1 }}>{metric.label}</span>
+                  <div style={{ display: "inline-flex", gap: 6, flexShrink: 0 }}>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        moveMetric(pos, pos - 1);
+                      }}
+                      disabled={pos === 0}
+                      aria-label={`Subir ${metric.label}`}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 8,
+                        border: "1px solid rgba(148,163,184,0.35)",
+                        background: isDark ? "rgba(30,41,59,0.8)" : "rgba(255,255,255,0.92)",
+                        color: isDark ? "#e2e8f0" : "#334155",
+                        fontSize: 14,
+                        cursor: pos === 0 ? "not-allowed" : "pointer",
+                        opacity: pos === 0 ? 0.4 : 1,
+                      }}
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        moveMetric(pos, pos + 1);
+                      }}
+                      disabled={pos === metrics.length - 1}
+                      aria-label={`Bajar ${metric.label}`}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 8,
+                        border: "1px solid rgba(148,163,184,0.35)",
+                        background: isDark ? "rgba(30,41,59,0.8)" : "rgba(255,255,255,0.92)",
+                        color: isDark ? "#e2e8f0" : "#334155",
+                        fontSize: 14,
+                        cursor: pos === metrics.length - 1 ? "not-allowed" : "pointer",
+                        opacity: pos === metrics.length - 1 ? 0.4 : 1,
+                      }}
+                    >
+                      ↓
+                    </button>
+                  </div>
                 </div>
               );
             })}

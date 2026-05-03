@@ -186,6 +186,90 @@ function normalizeVehicleRecommendations(value) {
     }));
 }
 
+function getPreferredFuelTokens(answers = {}, propulsions = []) {
+  const fromAnswers = Array.isArray(answers?.propulsion_preferida)
+    ? answers.propulsion_preferida
+    : answers?.propulsion_preferida
+      ? [answers.propulsion_preferida]
+      : [];
+  const merged = [...fromAnswers, ...(Array.isArray(propulsions) ? propulsions : [])]
+    .map((item) => removeAccents(normalizeText(item)).toLowerCase())
+    .join(" ");
+
+  const tokens = new Set();
+  if (/(electrico|ev|bev)/.test(merged)) tokens.add("electrico");
+  if (/(hibrido|hybrid|mhev|microhibrid|suave)/.test(merged)) tokens.add("hibrido");
+  if (/(phev|enchufable)/.test(merged)) tokens.add("phev");
+  if (/(diesel|di[eé]sel)/.test(merged)) tokens.add("diesel");
+  if (/(gasolina|gasoline)/.test(merged)) tokens.add("gasolina");
+
+  return Array.from(tokens);
+}
+
+function isVehicleFuelCompatible(vehicle = {}, preferredFuelTokens = []) {
+  if (!Array.isArray(preferredFuelTokens) || preferredFuelTokens.length === 0) {
+    return true;
+  }
+
+  const haystack = removeAccents(`${vehicle?.marca || ""} ${vehicle?.modelo || ""} ${vehicle?.titulo || ""}`)
+    .toLowerCase();
+
+  if (preferredFuelTokens.includes("electrico")) {
+    return /(electric|electrico|ev\b|bev|e-tron|eq[absce]\b|ioniq 5|ioniq 6|mg4|dolphin|leaf|kona electric)/.test(haystack);
+  }
+
+  if (preferredFuelTokens.includes("phev")) {
+    return /(phev|enchufable|plug-in|plug in|e-hybrid|hybrid\s+plugin)/.test(haystack);
+  }
+
+  if (preferredFuelTokens.includes("hibrido")) {
+    return /(hybrid|hibrid|hev|full hybrid|mhev|microhibrid|e-power|hybrid\+)/.test(haystack);
+  }
+
+  if (preferredFuelTokens.includes("diesel")) {
+    return /(diesel|di[eé]sel|tdi|dci|hdi|multijet|bluehdi)/.test(haystack);
+  }
+
+  if (preferredFuelTokens.includes("gasolina")) {
+    return /(gasolina|tsi|tce|ecoboost|puretech|firefly|mpi|tgdi)/.test(haystack);
+  }
+
+  return true;
+}
+
+function alignVehicleRecommendationsWithFuel(recommendations = [], answers = {}, propulsions = []) {
+  const preferredFuelTokens = getPreferredFuelTokens(answers, propulsions);
+  if (preferredFuelTokens.length === 0) {
+    return recommendations;
+  }
+
+  const compatible = recommendations.filter((item) => isVehicleFuelCompatible(item, preferredFuelTokens));
+  if (compatible.length >= 5) {
+    return compatible.slice(0, 5).map((item, index) => ({ ...item, rank: index + 1 }));
+  }
+
+  const fallback = buildRecommendedVehiclesFallback(answers, propulsions)
+    .filter((item) => isVehicleFuelCompatible(item, preferredFuelTokens));
+  const byKey = new Map();
+
+  [...compatible, ...fallback].forEach((item) => {
+    const key = removeAccents(`${item?.marca || ""}|${item?.modelo || ""}`).toLowerCase();
+    if (!key || byKey.has(key)) {
+      return;
+    }
+
+    byKey.set(key, item);
+  });
+
+  return Array.from(byKey.values())
+    .slice(0, 5)
+    .map((item, index) => ({
+      ...item,
+      rank: index + 1,
+      titulo: normalizeText(item?.titulo || `${item?.marca || ""} ${item?.modelo || ""}`),
+    }));
+}
+
 function normalizeScoreBreakdown(value) {
   const raw = value && typeof value === "object" ? value : {};
 
@@ -598,7 +682,11 @@ function normalizeAdvisorResult(value, answers = {}) {
     value?.plan_accion,
     buildActionPlan(answers, mainType, transparencia, tco_detalle, main.empresas_recomendadas || [])
   );
-  const vehiculos_recomendados = normalizeVehicleRecommendations(value?.vehiculos_recomendados);
+  const vehiculos_recomendados = alignVehicleRecommendationsWithFuel(
+    normalizeVehicleRecommendations(value?.vehiculos_recomendados),
+    answers,
+    propulsionesViables
+  );
 
   return {
     alineacion_pct: Number.isFinite(Number(value?.alineacion_pct)) ? Number(value.alineacion_pct) : 0,

@@ -2330,8 +2330,8 @@ function buildGuaranteedFallbackListings({ result, answers, filters, desiredType
     return {
       title:
         index === 0
-          ? `${model} · ${desiredType === "renting" ? "renting sugerido en" : "unidad sugerida en"} ${source}`
-          : `${model} · alternativa concreta en ${source}`,
+          ? `Buscar ${model} en ${source}`
+          : `Busqueda alternativa de ${model} en ${source}`,
       source,
       url: searchUrl,
       price: "",
@@ -2356,8 +2356,8 @@ function buildGuaranteedFallbackListings({ result, answers, filters, desiredType
       ],
       matchReason:
         index === 0
-          ? `No había una coincidencia real inmediata; te propongo empezar por ${model} en ${source}, que es la vía más probable para cerrar una oferta concreta.`
-          : `Se mantiene como alternativa concreta con el modelo ${model} para comparar antes de decidir.`,
+          ? `No había una coincidencia real inmediata; te dejo una búsqueda directa de ${model} en ${source}.`
+          : `Se mantiene como búsqueda alternativa de ${model} para comparar antes de decidir.`,
     };
   });
 
@@ -2366,7 +2366,7 @@ function buildGuaranteedFallbackListings({ result, answers, filters, desiredType
     const source = normalizeCompanyAlias(alternative?.tipo || "Mercado general");
     const searchUrl = getCompanySearchUrls(source, desiredType, [model])[0] || getCompanyDirectUrl(source, desiredType) || buildSearchLandingUrl(`${source} ${model}`);
     return {
-      title: `${model} · ${alternative?.titulo || `alternativa ${index + 1}`}`,
+      title: `Buscar ${model} · ${alternative?.titulo || `alternativa ${index + 1}`}`,
       source,
       url: searchUrl,
       price: "",
@@ -2803,7 +2803,7 @@ function buildQueries({ result, answers, filters, companies = [], desiredType = 
   const budgetHint = BUDGET_HINTS[filters?.budget] || "";
   const incomeHint = INCOME_HINTS[filters?.income] || "";
   const locationHint = normalizeText(String(filters?.location || "").replace(/_/g, " "));
-  const fuelHintFromFilters = normalizeText(filters?.fuel);
+  const fuelHintFromFilters = normalizeText(filters?.fuel || inferFuelFilterFromAnswers(answers));
   const platformList = companies.length ? companies : getSearchCompanies({ result, filters, desiredType });
   const operationHint = ["rent_a_car", "carsharing"].includes(result?.solucion_principal?.tipo)
     ? "alquiler coche por dias carsharing suscripcion coche"
@@ -2868,6 +2868,23 @@ function buildQueries({ result, answers, filters, companies = [], desiredType = 
   queries.push(`${operationHint} España ${fuelHint} ${ageHint} ${budgetHint} ${incomeHint}`.trim());
 
   return uniq(queries).slice(0, explicitObjective ? 40 : 22);
+}
+
+function inferFuelFilterFromAnswers(answers = {}) {
+  const preferred = Array.isArray(answers?.propulsion_preferida)
+    ? answers.propulsion_preferida
+    : answers?.propulsion_preferida
+      ? [answers.propulsion_preferida]
+      : [];
+  const joined = removeAccents(preferred.map((item) => normalizeText(item)).join(" ")).toLowerCase();
+
+  if (/(electrico|ev|bev)/.test(joined)) return "electrico";
+  if (/(phev|enchufable)/.test(joined)) return "hibrido enchufable";
+  if (/(hibrido|hybrid|mhev|microhibrid|suave)/.test(joined)) return "hibrido";
+  if (/(diesel|di[eé]sel)/.test(joined)) return "diesel";
+  if (/(gasolina|gasoline)/.test(joined)) return "gasolina";
+
+  return "";
 }
 
 function isGenericOfferLandingUrl(url, desiredType = "compra") {
@@ -3449,6 +3466,7 @@ async function findListing({ result, answers, filters }) {
   const queries = buildQueries({ result, answers, filters, companies, desiredType });
   const coverage = getSearchCoverageConfig(result, desiredType);
   const strictObjectiveMode = desiredType === "compra" && modelObjectiveTokens.length > 0;
+  const effectiveFuelFilter = normalizeText(filters?.fuel || inferFuelFilterFromAnswers(answers));
 
   if (strictObjectiveMode) {
     coverage.companies = Math.max(coverage.companies, companies.length);
@@ -3464,7 +3482,7 @@ async function findListing({ result, answers, filters }) {
   const context = {
     result,
     answers,
-    filters: { ...filters, companies },
+    filters: { ...filters, fuel: effectiveFuelFilter, companies },
     company,
     companies,
     models,
@@ -3500,7 +3518,7 @@ async function findListing({ result, answers, filters }) {
       desiredType,
       modelCandidates: models,
       version: normalizeText(filters?.version || ""),
-      fuel: normalizeText(filters?.fuel || ""),
+      fuel: effectiveFuelFilter,
       transmission: normalizeText(filters?.transmission || ""),
       bodyType: normalizeText(filters?.bodyType || filters?.body_type || ""),
       environmentalLabel: normalizeText(filters?.environmentalLabel || filters?.dgtLabel || ""),
@@ -3539,7 +3557,7 @@ async function findListing({ result, answers, filters }) {
           desiredType,
           modelCandidates: models,
           version: normalizeText(filters?.version || ""),
-          fuel: normalizeText(filters?.fuel || ""),
+          fuel: effectiveFuelFilter,
           transmission: normalizeText(filters?.transmission || ""),
           bodyType: normalizeText(filters?.bodyType || filters?.body_type || ""),
           environmentalLabel: normalizeText(filters?.environmentalLabel || filters?.dgtLabel || ""),

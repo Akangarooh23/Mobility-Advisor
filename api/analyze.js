@@ -155,6 +155,37 @@ function normalizeAlternative(item) {
   };
 }
 
+function normalizeVehicleRecommendation(item) {
+  const rank = Number(item?.rank || item?.posicion || item?.orden || 0);
+  const marca = normalizeText(item?.marca);
+  const modelo = normalizeText(item?.modelo);
+  const titulo = normalizeText(item?.titulo || `${marca} ${modelo}`.trim());
+
+  return {
+    rank: Number.isFinite(rank) && rank > 0 ? rank : 0,
+    marca,
+    modelo,
+    titulo,
+    razon: normalizeText(item?.razon),
+  };
+}
+
+function normalizeVehicleRecommendations(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map(normalizeVehicleRecommendation)
+    .filter((item) => item.marca && item.modelo)
+    .slice(0, 5)
+    .map((item, index) => ({
+      ...item,
+      rank: item.rank || index + 1,
+      titulo: item.titulo || `${item.marca} ${item.modelo}`,
+    }));
+}
+
 function normalizeScoreBreakdown(value) {
   const raw = value && typeof value === "object" ? value : {};
 
@@ -567,6 +598,7 @@ function normalizeAdvisorResult(value, answers = {}) {
     value?.plan_accion,
     buildActionPlan(answers, mainType, transparencia, tco_detalle, main.empresas_recomendadas || [])
   );
+  const vehiculos_recomendados = normalizeVehicleRecommendations(value?.vehiculos_recomendados);
 
   return {
     alineacion_pct: Number.isFinite(Number(value?.alineacion_pct)) ? Number(value.alineacion_pct) : 0,
@@ -593,6 +625,7 @@ function normalizeAdvisorResult(value, answers = {}) {
     consejo_experto: normalizeText(value?.consejo_experto),
     siguiente_paso: normalizeText(value?.siguiente_paso),
     propulsiones_viables: propulsionesViables,
+    vehiculos_recomendados,
   };
 }
 
@@ -621,8 +654,38 @@ function isCompleteAdvisorResult(value) {
       normalized.siguiente_paso &&
       normalized.propulsiones_viables.length >= 1 &&
       normalized.por_que_gana.length >= 2 &&
-      scoreBreakdownTotal > 0
+      scoreBreakdownTotal > 0 &&
+      normalized.vehiculos_recomendados.length >= 5
   );
+}
+
+function buildRecommendedVehiclesFallback(answers = {}, propulsions = []) {
+  const marcaPreferencia = normalizeText(answers?.marca_preferencia).toLowerCase();
+  const fuel = propulsions.map((item) => normalizeText(item).toLowerCase()).join(" ");
+
+  let shortlist = [
+    { marca: "Toyota", modelo: "Corolla Hybrid", razon: "Fiabilidad, consumo contenido y alta liquidez en el mercado español." },
+    { marca: "Kia", modelo: "Niro", razon: "Buen equilibrio entre espacio, eficiencia y coste total de uso." },
+    { marca: "Hyundai", modelo: "Tucson", razon: "SUV familiar con oferta amplia y mantenimiento razonable." },
+    { marca: "Skoda", modelo: "Octavia", razon: "Gran relación espacio/precio y buen comportamiento en uso mixto." },
+    { marca: "Renault", modelo: "Captur", razon: "Opción urbana-polivalente con costes de entrada competitivos." },
+  ];
+
+  if (marcaPreferencia === "nueva_china" || /(electrico|ev|hibrid|phev)/.test(fuel)) {
+    shortlist = [
+      { marca: "BYD", modelo: "Dolphin", razon: "Eléctrico equilibrado para ciudad y periurbano con buen equipamiento." },
+      { marca: "MG", modelo: "MG4 Electric", razon: "Muy competitivo en coste total para electrificación realista." },
+      { marca: "BYD", modelo: "Seal U DM-i", razon: "Alternativa híbrida enchufable con enfoque familiar." },
+      { marca: "Omoda", modelo: "5", razon: "Relación precio/equipamiento alta en SUV compacto." },
+      { marca: "Jaecoo", modelo: "7", razon: "SUV de enfoque práctico con buen valor percibido." },
+    ];
+  }
+
+  return shortlist.map((item, index) => ({
+    rank: index + 1,
+    ...item,
+    titulo: `${item.marca} ${item.modelo}`,
+  }));
 }
 
 function asArray(value) {
@@ -1120,6 +1183,7 @@ function buildFallbackAdvisorResult(answers = {}, advisorContext = null) {
   const comparadorFinal = buildComparatorRows(primaryType, answers, scoreBreakdown, tcoDetail, alternatives);
   const transparencia = buildTransparencyReport(answers, primaryType, propulsions, tcoDetail, scoreBreakdown, score);
   const planAccion = buildActionPlan(answers, primaryType, transparencia, tcoDetail, companies);
+  const vehiculosRecomendados = buildRecommendedVehiclesFallback(answers, propulsions);
 
   const titles = {
     compra_contado: `Compra al contado de ${vehicleProfile}`,
@@ -1171,6 +1235,7 @@ function buildFallbackAdvisorResult(answers = {}, advisorContext = null) {
       : "Pide siempre oferta desglosada con precio final, comision, vinculaciones y coste total a 36-72 meses; ahi es donde suelen esconderse las peores decisiones.",
     siguiente_paso: `Esta semana compara 3 ofertas de ${companies.slice(0, 2).join(" y ")} para ${vehicleProfile} y descarta cualquier opcion cuyo TCO real supere ${tcoDetail.total_mensual} EUR/mes o no encaje con ${propulsions.join(", ")}.`,
     propulsiones_viables: propulsions,
+    vehiculos_recomendados: vehiculosRecomendados,
   });
 }
 
@@ -1301,7 +1366,7 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ parsed: normalizeAdvisorResult(parsed, answers) });
     }
 
-    const repairPrompt = `${prompt}\n\nLa respuesta anterior ha llegado incompleta o con campos vacios. Repite el analisis y devuelve JSON VALIDO COMPLETO. Requisitos obligatorios:\n- No dejes ningun string vacio.\n- Incluye exactamente 3 ventajas.\n- Incluye exactamente 2 inconvenientes.\n- Incluye exactamente 2 alternativas con titulo, score y razon.\n- Incluye score_desglose con encaje_uso, coste_total, flexibilidad, viabilidad_real y ajuste_preferencias.\n- Incluye 4 bullets en por_que_gana.\n- Incluye comparador_final con 3-4 filas comparando criterio, opcion_principal, alternativa_1, alternativa_2 y ganador.\n- Incluye transparencia con confianza_nivel, confianza_motivo, supuestos_clave y validaciones_pendientes.\n- Incluye plan_accion con semaforo, estado, resumen, acciones y alertas_rojas.\n- Incluye tco_detalle con concepto_base, entrada_inicial, base_mensual, seguro, energia, mantenimiento, extras, total_mensual, total_anual y nota.\n- Incluye al menos 3 empresas_recomendadas reales en Espana.\n- Incluye consejo_experto, siguiente_paso y tco_aviso con contenido concreto.\n- Devuelve solo JSON.`;
+    const repairPrompt = `${prompt}\n\nLa respuesta anterior ha llegado incompleta o con campos vacios. Repite el analisis y devuelve JSON VALIDO COMPLETO. Requisitos obligatorios:\n- No dejes ningun string vacio.\n- Incluye exactamente 3 ventajas.\n- Incluye exactamente 2 inconvenientes.\n- Incluye exactamente 2 alternativas con titulo, score y razon.\n- Incluye score_desglose con encaje_uso, coste_total, flexibilidad, viabilidad_real y ajuste_preferencias.\n- Incluye 4 bullets en por_que_gana.\n- Incluye comparador_final con 3-4 filas comparando criterio, opcion_principal, alternativa_1, alternativa_2 y ganador.\n- Incluye transparencia con confianza_nivel, confianza_motivo, supuestos_clave y validaciones_pendientes.\n- Incluye plan_accion con semaforo, estado, resumen, acciones y alertas_rojas.\n- Incluye tco_detalle con concepto_base, entrada_inicial, base_mensual, seguro, energia, mantenimiento, extras, total_mensual, total_anual y nota.\n- Incluye al menos 3 empresas_recomendadas reales en Espana.\n- Incluye consejo_experto, siguiente_paso y tco_aviso con contenido concreto.\n- Incluye `vehiculos_recomendados` con exactamente 5 entradas (marca, modelo, rank, titulo, razon), sin repetir modelo.\n- Devuelve solo JSON.`;
 
     const repairedGeneration = await generateContent(repairPrompt);
 

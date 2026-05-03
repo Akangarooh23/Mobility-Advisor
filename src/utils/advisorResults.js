@@ -109,6 +109,37 @@ function normalizeAlternative(item) {
   };
 }
 
+function normalizeVehicleRecommendation(item) {
+  const rank = Number(item?.rank || item?.posicion || item?.orden || 0);
+  const marca = normalizeText(item?.marca);
+  const modelo = normalizeText(item?.modelo);
+  const titulo = normalizeText(item?.titulo || `${marca} ${modelo}`.trim());
+
+  return {
+    rank: Number.isFinite(rank) && rank > 0 ? rank : 0,
+    marca,
+    modelo,
+    titulo,
+    razon: normalizeText(item?.razon),
+  };
+}
+
+function normalizeVehicleRecommendations(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map(normalizeVehicleRecommendation)
+    .filter((item) => item.marca && item.modelo)
+    .slice(0, 5)
+    .map((item, index) => ({
+      ...item,
+      rank: item.rank || index + 1,
+      titulo: item.titulo || `${item.marca} ${item.modelo}`,
+    }));
+}
+
 function normalizeScoreBreakdown(value) {
   const raw = value && typeof value === "object" ? value : {};
 
@@ -350,6 +381,7 @@ export function normalizeAdvisorResult(value) {
   const normalizedAlternatives = Array.isArray(value?.alternativas)
     ? value.alternativas.map(normalizeAlternative).filter((item) => item.titulo || item.razon)
     : [];
+  const vehiculos_recomendados = normalizeVehicleRecommendations(value?.vehiculos_recomendados);
   const baseForDerived = {
     ...value,
     alternativas: normalizedAlternatives,
@@ -391,6 +423,7 @@ export function normalizeAdvisorResult(value) {
     consejo_experto: normalizeText(value?.consejo_experto),
     siguiente_paso: normalizeText(value?.siguiente_paso),
     propulsiones_viables: normalizeStringArray(value?.propulsiones_viables),
+    vehiculos_recomendados,
   };
 }
 
@@ -413,7 +446,8 @@ export function isCompleteAdvisorResult(value) {
       normalized.tco_detalle?.total_mensual > 0 &&
       normalized.consejo_experto &&
       normalized.siguiente_paso &&
-      normalized.propulsiones_viables.length >= 1
+      normalized.propulsiones_viables.length >= 1 &&
+      normalized.vehiculos_recomendados.length >= 5
   );
 }
 

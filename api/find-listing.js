@@ -215,6 +215,8 @@ const AGGRESSIVE_SEARCH_COVERAGE_LIMITS = {
 };
 
 const AGGRESSIVE_SCRAPING_ENABLED = String(process.env.FIND_LISTING_AGGRESSIVE_SCRAPING || "true").toLowerCase() !== "false";
+const TOP_LISTINGS_LIMIT = 3;
+const AI_RECOMMENDED_MODELS_LIMIT = 5;
 
 const BRAND_MODEL_MAP = {
   generalista_europea: ["Volkswagen Golf", "Seat Leon", "Renault Captur", "Skoda Octavia"],
@@ -2012,6 +2014,57 @@ function buildVehicleIdentityKey(listing = {}) {
   return tokens.slice(0, 2).join(" ");
 }
 
+function buildVehicleModelKey(listing = {}) {
+  const rawText = removeAccents(`${listing?.title || ""}`)
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, " ");
+  const stopwords = new Set([
+    "de", "del", "con", "para", "por", "the", "and", "edition", "line", "style", "tech", "techno", "premium",
+    "business", "urban", "active", "advance", "comfort", "plus", "hybrid", "phev", "mhev", "electric", "ev",
+    "gasolina", "diesel", "manual", "automatico", "automat", "cv", "kw", "km", "kms", "nuevo", "seminuevo",
+    "flexicar", "coches", "ocasion", "segunda", "mano",
+  ]);
+  const tokens = rawText
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token && token.length > 0 && !stopwords.has(token));
+
+  if (tokens.length === 0) {
+    return buildVehicleIdentityKey(listing);
+  }
+
+  if (tokens[0] === "land" && tokens[1] === "rover" && tokens[2]) {
+    return tokens.slice(0, 3).join(" ");
+  }
+
+  if (tokens[0] === "alfa" && tokens[1] === "romeo" && tokens[2]) {
+    return tokens.slice(0, 3).join(" ");
+  }
+
+  return tokens.slice(0, 2).join(" ");
+}
+
+function enforceDistinctModelListings(listings = [], limit = TOP_LISTINGS_LIMIT) {
+  const uniqueModelListings = [];
+  const usedModelKeys = new Set();
+
+  for (const listing of Array.isArray(listings) ? listings : []) {
+    const modelKey = buildVehicleModelKey(listing);
+    if (!modelKey || usedModelKeys.has(modelKey)) {
+      continue;
+    }
+
+    usedModelKeys.add(modelKey);
+    uniqueModelListings.push(listing);
+
+    if (uniqueModelListings.length >= limit) {
+      break;
+    }
+  }
+
+  return uniqueModelListings;
+}
+
 function dedupeListings(listings = []) {
   const bestByKey = new Map();
   const orderedListings = Array.isArray(listings) ? [...listings].sort(sortListingsByPriority) : [];
@@ -2185,7 +2238,7 @@ function buildRankedListingResponse(listings = [], options = {}) {
     ? imagePreferredListings.filter((listing) => !isPreviouslySeenListing(listing, excludedUrls, excludedTitles))
     : imagePreferredListings;
   const candidatePool = unseenListings.length > 0 ? unseenListings : imagePreferredListings;
-  const ranked = pickProviderDiverseListings(candidatePool, 4)
+  const ranked = pickProviderDiverseListings(candidatePool, Math.max(TOP_LISTINGS_LIMIT + 3, 6))
     .map((listing, index) => ({
       ...listing,
       rankPosition: index + 1,
@@ -2209,7 +2262,11 @@ function buildRankedListingResponse(listings = [], options = {}) {
     }
   }
 
-  const [first, ...rest] = finalRanked;
+  const modelDiverseRanked = enforceDistinctModelListings(finalRanked, TOP_LISTINGS_LIMIT);
+  const [first, ...rest] = modelDiverseRanked;
+  if (!first) {
+    return null;
+  }
   const isSyntheticModelFallback = options.fallbackMode && first?.synthetic && modelTokens.length > 0;
   const topListing = options.fallbackMode
     ? {
@@ -2225,7 +2282,7 @@ function buildRankedListingResponse(listings = [], options = {}) {
           : "No había una coincidencia exacta; esta opción sube al primer puesto por equilibrio real entre encaje, presupuesto y confianza.",
       }
     : first;
-  const listingsWithTop = [topListing, ...rest.map((item) => ({ ...item }))];
+  const listingsWithTop = [topListing, ...rest.map((item) => ({ ...item }))].slice(0, TOP_LISTINGS_LIMIT);
 
   return {
     listing: topListing,
@@ -2331,7 +2388,7 @@ function buildGuaranteedFallbackListings({ result, answers, filters, desiredType
     };
   });
 
-  return [...companyListings, ...alternativeListings].slice(0, 4);
+  return [...companyListings, ...alternativeListings].slice(0, TOP_LISTINGS_LIMIT);
 }
 
 function formatInventoryPrice(offer, desiredType) {
@@ -2563,6 +2620,21 @@ async function fetchListingDetails(candidate, context) {
 }
 
 function buildVehicleCandidates({ result, answers }) {
+  const fromAdvisorShortlist = Array.isArray(result?.vehiculos_recomendados)
+    ? result.vehiculos_recomendados
+        .map((item) => {
+          const brand = normalizeText(item?.marca);
+          const model = normalizeText(item?.modelo);
+          const combined = normalizeText(`${brand} ${model}`);
+          return combined || normalizeText(item?.titulo);
+        })
+        .filter(Boolean)
+    : [];
+
+  if (fromAdvisorShortlist.length > 0) {
+    return uniq(fromAdvisorShortlist.filter(looksLikeSpecificModelName)).slice(0, AI_RECOMMENDED_MODELS_LIMIT);
+  }
+
   const expandModelAliasVariants = (value) => {
     const base = normalizeText(value);
     if (!base) {
@@ -2663,11 +2735,11 @@ function buildVehicleCandidates({ result, answers }) {
     });
 
     if (constrained.length > 0) {
-      return uniq(constrained.filter(looksLikeSpecificModelName)).slice(0, chinaForward ? 10 : 8);
+      return uniq(constrained.filter(looksLikeSpecificModelName)).slice(0, AI_RECOMMENDED_MODELS_LIMIT);
     }
   }
 
-  return uniq(combined.filter(looksLikeSpecificModelName)).slice(0, chinaForward ? 10 : 8);
+  return uniq(combined.filter(looksLikeSpecificModelName)).slice(0, AI_RECOMMENDED_MODELS_LIMIT);
 }
 
 function getSearchCompanies({ result, filters, desiredType }) {
@@ -3517,7 +3589,7 @@ async function findListing({ result, answers, filters }) {
       };
     }
 
-    if (inventoryRelevant.length >= 4) {
+    if (inventoryRelevant.length >= TOP_LISTINGS_LIMIT) {
       return buildRankedListingResponse(inventoryRelevant, {
         fallbackMode: false,
         excludedUrls: context.excludedUrls,
@@ -3621,7 +3693,7 @@ async function findListing({ result, answers, filters }) {
       .map((listing) => normalizeText(listing?.source || getDomain(listing?.url || "")).toLowerCase())
       .filter(Boolean)
   );
-  if (initialRelevantMatches.length >= 4 && initialRelevantProviders.size >= Math.min(2, companies.length)) {
+  if (initialRelevantMatches.length >= TOP_LISTINGS_LIMIT && initialRelevantProviders.size >= Math.min(2, companies.length)) {
     return buildRankedListingResponse(matches, {
       fallbackMode: false,
       excludedUrls: context.excludedUrls,
@@ -3659,7 +3731,7 @@ async function findListing({ result, answers, filters }) {
       }
 
       const relevantMatches = matches.filter((listing) => listing?.isRelevantMatch);
-      if (relevantMatches.length >= 6) {
+      if (relevantMatches.length >= TOP_LISTINGS_LIMIT + 3) {
         break;
       }
     } catch {

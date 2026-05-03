@@ -196,7 +196,14 @@ Debes devolver exactamente esta estructura:
   },
   "consejo_experto": "consejo practico muy especifico para Espana que normalmente no se conoce",
   "siguiente_paso": "accion concreta que deberia hacer esta semana",
-  "propulsiones_viables": ["hibrido suave", "PHEV", "electrico"]
+  "propulsiones_viables": ["hibrido suave", "PHEV", "electrico"],
+  "vehiculos_recomendados": [
+    { "rank": 1, "marca": "Toyota", "modelo": "Corolla Hybrid", "titulo": "Toyota Corolla Hybrid", "razon": "encaje concreto con el perfil" },
+    { "rank": 2, "marca": "Kia", "modelo": "Niro", "titulo": "Kia Niro", "razon": "encaje concreto con el perfil" },
+    { "rank": 3, "marca": "Hyundai", "modelo": "Tucson", "titulo": "Hyundai Tucson", "razon": "encaje concreto con el perfil" },
+    { "rank": 4, "marca": "Skoda", "modelo": "Octavia", "titulo": "Skoda Octavia", "razon": "encaje concreto con el perfil" },
+    { "rank": 5, "marca": "Renault", "modelo": "Captur", "titulo": "Renault Captur", "razon": "encaje concreto con el perfil" }
+  ]
 }
 
 Criterios de analisis:
@@ -215,6 +222,8 @@ Criterios de analisis:
 - Si recomiendas compra financiada, indica que la validacion de capacidad financiera y scoring se hara en el siguiente paso sobre el shortlist de coches.
 - Si recomiendas renting, indica que la validacion de cuota mensual objetivo y estabilidad de ingresos se hara al final como siguiente paso.
 - Valora flexibilidad vs propiedad y horizonte temporal.
+- Incluye obligatoriamente el campo vehiculos_recomendados con exactamente 5 entradas (marca+modelo), ordenadas de mejor a peor para este perfil.
+- No repitas modelo dentro del campo vehiculos_recomendados.
 
 Perfil del usuario:
 ${answersSummary}`;

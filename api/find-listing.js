@@ -2830,6 +2830,8 @@ function hasSpecificVehicleIdentity(listing) {
     "audi", "bmw", "byd", "citroen", "cupra", "dacia", "ds", "fiat", "ford", "honda", "hyundai", "jaguar",
     "jeep", "kia", "lexus", "mazda", "mercedes", "mg", "mini", "nissan", "opel", "peugeot", "renault",
     "seat", "skoda", "tesla", "toyota", "volkswagen", "volvo", "xpeng",
+    "suzuki", "alfa romeo", "smart", "mitsubishi", "land rover", "porsche", "omoda", "jaecoo", "subaru",
+    "polestar", "abarth", "dethleffs", "challenger", "hymer",
   ];
   const brandHits = knownBrands.filter((brand) => haystack.includes(brand)).length;
 

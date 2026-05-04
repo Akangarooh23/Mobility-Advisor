@@ -2118,7 +2118,7 @@ export default function App() {
         ? `Zona: ${normalizeText(context.province)} ${normalizeText(context.postalCode)}`.trim()
         : "",
       context?.quotedPrice !== undefined && context?.quotedPrice !== null && context?.quotedPrice !== ""
-        ? `Precio CarWise: ${typeof context.quotedPrice === "number" ? `${context.quotedPrice}€` : String(context.quotedPrice)}`
+        ? `Precio CarsWise: ${typeof context.quotedPrice === "number" ? `${context.quotedPrice}€` : String(context.quotedPrice)}`
         : "",
       vehicleMeta,
     ].filter(Boolean);

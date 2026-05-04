@@ -61,7 +61,7 @@ export default function HomePricingPlans({
           Elige el plan <span>que mejor se adapta a ti</span>
         </h2>
         <p>
-          Sin permanencias. Cambia o cancela cuando quieras. Todos los planes incluyen acceso a tu panel CarWise.
+          Sin permanencias. Cambia o cancela cuando quieras. Todos los planes incluyen acceso a tu panel CarsWise.
         </p>
 
         <div className="cw-plans-toggle-wrap">

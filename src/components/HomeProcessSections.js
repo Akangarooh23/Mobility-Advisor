@@ -154,10 +154,10 @@ export default function HomeProcessSections({
 
         <FlowPanel
           isOpen={openPanels.comprar === "b"}
-          header="Flujo B - Test CarWise - seleccion personalizada"
+          header="Flujo B - Test CarsWise - seleccion personalizada"
           onAccess={onAccessBuyGuided}
           steps={[
-            { n: 1, title: "Test CarWise", sub: "Estilo de vida, desplazamientos, entorno legal" },
+            { n: 1, title: "Test CarsWise", sub: "Estilo de vida, desplazamientos, entorno legal" },
             { n: 2, title: "Establece tus limites geograficos y de precio" },
             { n: 3, title: "Analizamos anuncios en tiempo real" },
             { n: 4, title: "Te ofrecemos las 5 mejores opciones" },

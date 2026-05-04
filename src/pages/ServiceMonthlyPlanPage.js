@@ -138,7 +138,7 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
                 "Cambio de aceite y filtro anual",
                 "Revision preventiva de 20 puntos",
                 "Alertas automaticas de mantenimiento",
-                "Precio partner en talleres CarWise",
+                "Precio partner en talleres CarsWise",
                 "Acceso al panel Autogestor",
               ].map((item) => (
                 <div key={item}>✓ {item}</div>
@@ -159,7 +159,7 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
               ["Aceite y filtros anuales", "Programado automaticamente cada ano"],
               ["Revision preventiva de 20 puntos", "Frenos, luces, liquidos, neumaticos, correas"],
               ["Recordatorios automaticos", "Nunca mas olvides una revision obligatoria"],
-              ["Precio partner en talleres CarWise", "Descuento garantizado sobre precio de calle"],
+              ["Precio partner en talleres CarsWise", "Descuento garantizado sobre precio de calle"],
               ["Planes ampliados disponibles", "ITV, neumaticos, garantia mecanica y mas"],
             ].map(([title, sub]) => (
               <div key={title} style={{ border: "1px solid #ece8df", borderRadius: 10, background: "#fafaf9", padding: "10px 12px" }}>
@@ -179,7 +179,7 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
                 <span>~580€/ano</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: "#888" }}>
-                <span>Con cuota {selected.name.toLowerCase()} CarWise</span>
+                <span>Con cuota {selected.name.toLowerCase()} CarsWise</span>
                 <span>~{selected.price * 12 - 24}€/ano</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 15, color: "#b45309", fontWeight: 800 }}>

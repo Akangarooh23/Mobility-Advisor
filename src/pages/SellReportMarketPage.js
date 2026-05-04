@@ -702,7 +702,7 @@ export default function SellReportMarketPage({
                   <div className="ref-title">💡 Con esta información puedes</div>
                   <div className="ref-feat">Fijar un precio de salida competitivo y justificado</div>
                   <div className="ref-feat">Saber cuánta competencia tienes en el mercado ahora mismo</div>
-                  <div className="ref-feat">Decidir si publicar tú mismo o pedir ayuda a CarWise (Opción B)</div>
+                  <div className="ref-feat">Decidir si publicar tú mismo o pedir ayuda a CarsWise (Opción B)</div>
                   <div className="ref-feat">Negociar con compradores desde una posición informada</div>
                 </div>
               </div>

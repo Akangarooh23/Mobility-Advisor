@@ -11,7 +11,7 @@ const FLOW_A = [
 ];
 
 const FLOW_B = [
-  { title: "Test CarWise", sub: "Estilo de vida, desplazamientos, entorno legal" },
+  { title: "Test CarsWise", sub: "Estilo de vida, desplazamientos, entorno legal" },
   { title: "Establece tus limites geograficos y de precio" },
   { title: "Analizamos anuncios en tiempo real" },
   { title: "Te ofrecemos las 5 mejores opciones" },
@@ -331,7 +331,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           }}
         >
           <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700, color: "#64748b", marginBottom: 10 }}>
-            Flujo B - Test CarWise - seleccion personalizada
+            Flujo B - Test CarsWise - seleccion personalizada
           </div>
           <div style={{ display: "grid", gap: 8 }}>
             {FLOW_B.map((item, index) => (

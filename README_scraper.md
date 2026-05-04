@@ -1,4 +1,4 @@
-# CarWise Scraper — coches.net
+# CarsWise Scraper - coches.net
 
 ## Instalación
 

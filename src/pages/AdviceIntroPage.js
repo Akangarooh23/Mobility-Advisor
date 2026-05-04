@@ -135,7 +135,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
                 boxShadow: "0 12px 26px rgba(37,99,235,0.18)",
               }}
             >
-              Empezar CarWise Test
+              Empezar CarsWise Test
             </button>
 
             <button

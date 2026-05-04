@@ -395,7 +395,7 @@ export default function VehicleDetailPage({ offer, onBack }) {
                 Sin imagen
               </div>
             )}
-            <div className="vd-gallery-badge">CarWise Análisis</div>
+            <div className="vd-gallery-badge">CarsWise Análisis</div>
             <div className="vd-portal-source">Fuente: {portalLabel(car.portal)}</div>
           </div>
 
@@ -474,7 +474,7 @@ export default function VehicleDetailPage({ offer, onBack }) {
             )}
 
             <button className="vd-btn-primary" onClick={() => setModalOpen(true)}>
-              Solicitar información — CarWise gestiona
+              Solicitar información — CarsWise gestiona
             </button>
             <button className="vd-btn-secondary" onClick={() => setModalOpen(true)}>
               📅 Agendar visita al vehículo
@@ -521,14 +521,14 @@ export default function VehicleDetailPage({ offer, onBack }) {
               {car.sellerType === "profesional" ? "🏢 Profesional" : "👤 Particular"}
             </div>
             <div className="vd-seller-name">
-              {car.dealerName || "Vendedor verificado CarWise"}
+              {car.dealerName || "Vendedor verificado CarsWise"}
             </div>
             <div className="vd-seller-meta">
               Los datos de contacto se facilitan cuando confirmes el interés
             </div>
             <div className="vd-seller-portal">
               <div className="vd-portal-dot" />
-              Anuncio publicado en {portalLabel(car.portal)} · Gestionado por CarWise
+              Anuncio publicado en {portalLabel(car.portal)} · Gestionado por CarsWise
             </div>
           </div>
 
@@ -616,9 +616,9 @@ export default function VehicleDetailPage({ offer, onBack }) {
             </div>
           </div>
 
-          {/* CARWISE ANALYSIS */}
+          {/* CARSWISE ANALYSIS */}
           <div className="vd-analysis-box">
-            <div className="vd-ab-title">Análisis CarWise</div>
+            <div className="vd-ab-title">Análisis CarsWise</div>
             <div className="vd-ab-rows">
               <div className="vd-ab-row">
                 <span className="vd-ab-ico">🛡️</span>
@@ -676,7 +676,7 @@ export default function VehicleDetailPage({ offer, onBack }) {
             </button>
             <h3>Solicitar información</h3>
             <p>
-              CarWise gestiona el contacto con el vendedor por ti. Te responderemos en menos de 2
+              CarsWise gestiona el contacto con el vendedor por ti. Te responderemos en menos de 2
               horas.
             </p>
             {submitted ? (
@@ -720,7 +720,7 @@ export default function VehicleDetailPage({ offer, onBack }) {
                   </select>
                 </div>
                 <button className="vd-modal-submit" onClick={handleSubmit}>
-                  Solicitar cita — CarWise gestiona el contacto
+                  Solicitar cita — CarsWise gestiona el contacto
                 </button>
                 <div className="vd-modal-note">
                   No compartimos tus datos con el vendedor hasta que tú confirmes

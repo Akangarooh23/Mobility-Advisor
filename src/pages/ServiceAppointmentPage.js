@@ -720,7 +720,7 @@ export default function ServiceAppointmentPage({
           </h2>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: "#868686", maxWidth: 760 }}>
             Aprovecha nuestros acuerdos con talleres partner para conseguir precios mas reducidos que como cliente
-            particular. Agenda tu proxima revision en segundos a traves de CarWise.
+            particular. Agenda tu proxima revision en segundos a traves de CarsWise.
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 18 }}>
             {[
@@ -1036,7 +1036,7 @@ export default function ServiceAppointmentPage({
                   </div>
                 ) : null}
                 <div style={{ fontSize: 12, color: "#8b5cf6", marginTop: 2, fontWeight: 700 }}>
-                  Particular: {formatPriceTag(item.particular)} · Con CarWise: {formatPriceTag(item.withCarsWise)}
+                  Particular: {formatPriceTag(item.particular)} · Con CarsWise: {formatPriceTag(item.withCarsWise)}
                 </div>
                 {item.savings !== null ? (
                   <div style={{ fontSize: 11, color: "#16a34a", marginTop: 2, fontWeight: 700 }}>
@@ -1064,7 +1064,7 @@ export default function ServiceAppointmentPage({
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 6 }}>
               <div style={{ fontSize: 14, color: "#8b5cf6", fontWeight: 700 }}>
-                ✓ Con CarWise: {formatPriceTag(selectedProviderOffer?.withCarsWise)}
+                ✓ Con CarsWise: {formatPriceTag(selectedProviderOffer?.withCarsWise)}
               </div>
               <div style={{ fontSize: 24, color: "#7c3aed", fontWeight: 800, lineHeight: 1 }}>
                 {formatPriceTag(selectedProviderOffer?.withCarsWise)}

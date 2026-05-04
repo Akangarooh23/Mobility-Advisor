@@ -3755,6 +3755,7 @@ async function findListing({ result, answers, filters }) {
 
   try {
     const inventoryOnly = Boolean(filters?.inventoryOnly);
+    const requestedInventoryLimit = Math.max(20, Math.min(Number(filters?.limit || 30), 1000));
     const inventory = await listInventoryOffers({
       desiredType,
       modelCandidates: models,
@@ -3791,7 +3792,7 @@ async function findListing({ result, answers, filters }) {
       maxPowerCv: filters?.maxPowerCv || null,
       minPrice: filters?.minPrice || null,
       maxPrice: filters?.maxPrice || null,
-      limit: 30,
+      limit: requestedInventoryLimit,
     });
 
     const inventoryDecorated = (inventory?.offers || [])
@@ -3818,11 +3819,40 @@ async function findListing({ result, answers, filters }) {
       ? constrainedInventoryDecorated.filter(matchesSelectedLocation)
       : inventoryDecorated.filter((listing) => listing?.isRelevantMatch || listing?.isFallbackMatch);
     if (inventoryOnly) {
+      const exactModelOnly = Boolean(filters?.exactModelOnly);
       let rankedInventory = inventoryRelevant.slice(0, 20);
       let broadLocationInventoryPool = [];
       let filterInsight = null;
       let inventorySourceUsed = inventory?.source || "unknown";
       let inventoryUniverseUsed = Number(inventory?.totalUniverse || 0);
+
+      if (exactModelOnly) {
+        const exactModelInventory = constrainedInventoryDecorated
+          .filter(matchesSelectedLocation)
+          .filter((listing) => hasConcreteModelSignal(listing, models));
+        const unseenFirstExact = context.preferUnseen
+          ? exactModelInventory.filter((listing) => !isPreviouslySeenListing(listing, context.excludedUrls, context.excludedTitles))
+          : exactModelInventory;
+        const finalExactInventory = dedupeListings(unseenFirstExact.length ? unseenFirstExact : exactModelInventory)
+          .slice(0, requestedInventoryLimit);
+
+        return {
+          listing: finalExactInventory[0] || null,
+          listings: finalExactInventory,
+          alternatives: finalExactInventory.slice(1),
+          filterInsight: finalExactInventory.length === 0
+            ? `No hay ofertas exactas de ${normalizeText(models[0] || filters?.model || "ese modelo")} con los filtros actuales.`
+            : null,
+          searchCoverage: {
+            ...getSearchCoverage(),
+            mode: "inventory-only-exact-model",
+            inventorySource: inventory?.source || "unknown",
+            inventoryUniverse: Number(inventory?.totalUniverse || 0),
+            inventoryMatches: finalExactInventory.length,
+            inventoryLimit: requestedInventoryLimit,
+          },
+        };
+      }
 
       if (!rankedInventory.length && hasStrictSelectedLocation) {
         filterInsight = `No hay ofertas en ${filters.location} con los filtros actuales.`;

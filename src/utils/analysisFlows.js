@@ -408,6 +408,8 @@ export async function fetchDecisionListing({
       minDoors: decisionAnswers.doorsFrom ? Number(decisionAnswers.doorsFrom) : null,
       minSeats: decisionAnswers.seatsFrom ? Number(decisionAnswers.seatsFrom) : null,
       inventoryOnly: true,
+      exactModelOnly: true,
+      limit: 500,
       refreshNonce,
       excludeUrls,
       excludeTitles,
@@ -426,12 +428,12 @@ export async function fetchDecisionListing({
     .toLowerCase()
     .split(/\s+/)
     .map((token) => token.trim())
-    .filter((token) => token.length > 2);
+    .filter((token) => token.length > 1);
   const modelTokens = String(decisionAnswers.model || "")
     .toLowerCase()
     .split(/\s+/)
     .map((token) => token.trim())
-    .filter((token) => token.length > 2);
+    .filter((token) => token.length > 1);
 
   function isGenericLandingUrl(url) {
     try {

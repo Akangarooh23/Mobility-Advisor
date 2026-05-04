@@ -2544,7 +2544,7 @@ export default function App() {
         });
 
         if (isMounted) {
-          const listings = Array.isArray(payload?.listings) ? payload.listings.slice(0, 3) : [];
+          const listings = Array.isArray(payload?.listings) ? payload.listings : [];
           setDecisionMarketListings(listings);
           setDecisionMarketInsight(payload?.filterInsight || null);
         }

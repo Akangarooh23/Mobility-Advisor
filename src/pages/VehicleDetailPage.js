@@ -26,6 +26,8 @@ const VEHICLE_DETAIL_CSS = `
 .vd-btn-back svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 /* MAIN LAYOUT */
 .vd-main{max-width:1240px;margin:0 auto;padding:1.25rem 2.5rem 4rem;display:grid;grid-template-columns:1fr 340px;gap:2rem;align-items:start}
+.vd-left-primary,.vd-left-secondary{min-width:0}
+.vd-left-secondary{grid-column:1/2}
 /* GALLERY */
 .vd-gallery{border-radius:16px;overflow:hidden;background:#000;position:relative;margin-bottom:1.25rem;aspect-ratio:16/9}
 .vd-gallery img{width:100%;height:100%;object-fit:cover;display:block}
@@ -131,6 +133,7 @@ const VEHICLE_DETAIL_CSS = `
   .vd-specs-grid{grid-template-columns:repeat(2,1fr)}
   .vd-detail-grid{grid-template-columns:1fr}
   .vd-right{position:static}
+  .vd-left-secondary{grid-column:auto}
   .vd-back-bar{padding:1.25rem 1rem 0}
 }
 `;
@@ -375,7 +378,7 @@ export default function VehicleDetailPage({ offer, onBack }) {
       {/* MAIN GRID */}
       <div className="vd-main">
         {/* ── LEFT ── */}
-        <div>
+        <div className="vd-left-primary">
           {/* GALLERY */}
           <div className="vd-gallery">
             {car.image ? (
@@ -439,6 +442,104 @@ export default function VehicleDetailPage({ offer, onBack }) {
             </div>
           </div>
 
+        </div>
+
+        {/* ── RIGHT ── */}
+        <div className="vd-right">
+          {/* PRICE CARD */}
+          <div className="vd-price-card">
+            <div className="vd-price-main-label">Precio de compra</div>
+            <div className="vd-price-main">
+              <sup>€</sup>{car.price ? fmt(car.price) : "—"}
+            </div>
+            <div style={{ height: ".75rem" }} />
+
+            {(car.monthlyPrice > 0 || car.financePrice > 0) && (
+              <div className="vd-finance-block">
+                {car.financePrice > 0 && (
+                  <div className="vd-finance-row">
+                    <span className="vd-finance-key">Precio Financiado</span>
+                    <div className="vd-finance-monthly">
+                      €{fmt(car.financePrice)}
+                    </div>
+                  </div>
+                )}
+                {car.monthlyPrice > 0 && (
+                  <div className="vd-finance-row">
+                    <span className="vd-finance-key">Coste mes</span>
+                    <span className="vd-finance-val">{fmt(car.monthlyPrice)} €/mes</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <button className="vd-btn-primary" onClick={() => setModalOpen(true)}>
+              Solicitar información — CarWise gestiona
+            </button>
+            <button className="vd-btn-secondary" onClick={() => setModalOpen(true)}>
+              📅 Agendar visita al vehículo
+            </button>
+            <button className="vd-btn-secondary" onClick={() => setModalOpen(true)}>
+              💬 Preguntar sobre este coche
+            </button>
+            <button
+              className="vd-btn-ghost"
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({ title: `${car.brand} ${car.model}`, url: window.location.href });
+                } else {
+                  navigator.clipboard?.writeText(window.location.href);
+                }
+              }}
+            >
+              🔗 Compartir esta ficha
+            </button>
+
+            <div className="vd-trust-row">
+              <div className="vd-trust-item">
+                <span className="vd-trust-ico">🛡️</span>
+                <span className="vd-trust-lbl">Sin datos<br />al vendedor</span>
+              </div>
+              <div className="vd-trust-item">
+                <span className="vd-trust-ico">⚡</span>
+                <span className="vd-trust-lbl">Respuesta<br />&lt; 2 horas</span>
+              </div>
+              <div className="vd-trust-item">
+                <span className="vd-trust-ico">📊</span>
+                <span className="vd-trust-lbl">Precio<br />analizado</span>
+              </div>
+              <div className="vd-trust-item">
+                <span className="vd-trust-ico">🆓</span>
+                <span className="vd-trust-lbl">Servicio<br />gratuito</span>
+              </div>
+            </div>
+          </div>
+
+          {/* SELLER CARD */}
+          <div className="vd-seller-card">
+            <div className="vd-seller-type">
+              {car.sellerType === "profesional" ? "🏢 Profesional" : "👤 Particular"}
+            </div>
+            <div className="vd-seller-name">
+              {car.dealerName || "Vendedor verificado CarWise"}
+            </div>
+            <div className="vd-seller-meta">
+              Los datos de contacto se facilitan cuando confirmes el interés
+            </div>
+            <div className="vd-seller-portal">
+              <div className="vd-portal-dot" />
+              Anuncio publicado en {portalLabel(car.portal)} · Gestionado por CarWise
+            </div>
+          </div>
+
+          {car.warrantyMonths > 0 && (
+            <div className="vd-warranty-row">
+              ✅ Garantía de {car.warrantyMonths} meses incluida en el precio
+            </div>
+          )}
+        </div>
+
+        <div className="vd-left-secondary">
           {/* TECHNICAL */}
           <div className="vd-section">
             <div className="vd-section-title">Ficha técnica</div>
@@ -560,101 +661,6 @@ export default function VehicleDetailPage({ offer, onBack }) {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* ── RIGHT ── */}
-        <div className="vd-right">
-          {/* PRICE CARD */}
-          <div className="vd-price-card">
-            <div className="vd-price-main-label">Precio de compra</div>
-            <div className="vd-price-main">
-              <sup>€</sup>{car.price ? fmt(car.price) : "—"}
-            </div>
-            <div style={{ height: ".75rem" }} />
-
-            {(car.monthlyPrice > 0 || car.financePrice > 0) && (
-              <div className="vd-finance-block">
-                {car.financePrice > 0 && (
-                  <div className="vd-finance-row">
-                    <span className="vd-finance-key">Precio Financiado</span>
-                    <div className="vd-finance-monthly">
-                      €{fmt(car.financePrice)}
-                    </div>
-                  </div>
-                )}
-                {car.monthlyPrice > 0 && (
-                  <div className="vd-finance-row">
-                    <span className="vd-finance-key">Coste mes</span>
-                    <span className="vd-finance-val">{fmt(car.monthlyPrice)} €/mes</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <button className="vd-btn-primary" onClick={() => setModalOpen(true)}>
-              Solicitar información — CarWise gestiona
-            </button>
-            <button className="vd-btn-secondary" onClick={() => setModalOpen(true)}>
-              📅 Agendar visita al vehículo
-            </button>
-            <button className="vd-btn-secondary" onClick={() => setModalOpen(true)}>
-              💬 Preguntar sobre este coche
-            </button>
-            <button
-              className="vd-btn-ghost"
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({ title: `${car.brand} ${car.model}`, url: window.location.href });
-                } else {
-                  navigator.clipboard?.writeText(window.location.href);
-                }
-              }}
-            >
-              🔗 Compartir esta ficha
-            </button>
-
-            <div className="vd-trust-row">
-              <div className="vd-trust-item">
-                <span className="vd-trust-ico">🛡️</span>
-                <span className="vd-trust-lbl">Sin datos<br />al vendedor</span>
-              </div>
-              <div className="vd-trust-item">
-                <span className="vd-trust-ico">⚡</span>
-                <span className="vd-trust-lbl">Respuesta<br />&lt; 2 horas</span>
-              </div>
-              <div className="vd-trust-item">
-                <span className="vd-trust-ico">📊</span>
-                <span className="vd-trust-lbl">Precio<br />analizado</span>
-              </div>
-              <div className="vd-trust-item">
-                <span className="vd-trust-ico">🆓</span>
-                <span className="vd-trust-lbl">Servicio<br />gratuito</span>
-              </div>
-            </div>
-          </div>
-
-          {/* SELLER CARD */}
-          <div className="vd-seller-card">
-            <div className="vd-seller-type">
-              {car.sellerType === "profesional" ? "🏢 Profesional" : "👤 Particular"}
-            </div>
-            <div className="vd-seller-name">
-              {car.dealerName || "Vendedor verificado CarWise"}
-            </div>
-            <div className="vd-seller-meta">
-              Los datos de contacto se facilitan cuando confirmes el interés
-            </div>
-            <div className="vd-seller-portal">
-              <div className="vd-portal-dot" />
-              Anuncio publicado en {portalLabel(car.portal)} · Gestionado por CarWise
-            </div>
-          </div>
-
-          {car.warrantyMonths > 0 && (
-            <div className="vd-warranty-row">
-              ✅ Garantía de {car.warrantyMonths} meses incluida en el precio
-            </div>
-          )}
         </div>
       </div>
 

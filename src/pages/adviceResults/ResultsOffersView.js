@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 const SPAIN_PROVINCES = [
@@ -140,6 +140,23 @@ export default function ResultsOffersView({
   };
 
   const [hoveredCard, setHoveredCard] = useState(null);
+  const [isMobileOffersView, setIsMobileOffersView] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth <= 760 : false
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const handleResize = () => {
+      setIsMobileOffersView(window.innerWidth <= 760);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const isDark = themeMode === "dark";
   const cardBg = isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)";
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
@@ -397,7 +414,7 @@ export default function ResultsOffersView({
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "minmax(220px,260px) 1fr",
+                    gridTemplateColumns: isMobileOffersView ? "1fr" : "minmax(220px,260px) 1fr",
                     gap: 14,
                     alignItems: "start",
                   }}
@@ -406,7 +423,8 @@ export default function ResultsOffersView({
                     style={{
                       borderRadius: 12,
                       overflow: "hidden",
-                      minHeight: 170,
+                      minHeight: isMobileOffersView ? 190 : 170,
+                      height: isMobileOffersView ? 190 : undefined,
                       background: "rgba(241,245,249,0.5)",
                       border: "1px solid rgba(148,163,184,0.14)",
                     }}
@@ -417,8 +435,8 @@ export default function ResultsOffersView({
                       loading="lazy"
                       style={{
                         width: "100%",
-                        height: "100%",
-                        minHeight: 170,
+                        height: isMobileOffersView ? 190 : "100%",
+                        minHeight: isMobileOffersView ? 190 : 170,
                         objectFit: "cover",
                         display: "block",
                       }}
@@ -624,21 +642,22 @@ export default function ResultsOffersView({
                           transition: "all 0.2s ease",
                         }}
                       >
-                        <div style={{ display: "grid", gridTemplateColumns: "96px 1fr", gap: 12, alignItems: "start" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: isMobileOffersView ? "1fr" : "96px 1fr", gap: 12, alignItems: "start" }}>
                           <div
                             style={{
                               borderRadius: 10,
                               overflow: "hidden",
                               background: "rgba(241,245,249,0.55)",
                               border: "1px solid rgba(148,163,184,0.14)",
-                              minHeight: 78,
+                              minHeight: isMobileOffersView ? 170 : 78,
+                              height: isMobileOffersView ? 170 : undefined,
                             }}
                           >
                             <ResolvedOfferImage
                               offer={offer}
                               alt={offer.title || "Oferta"}
                               loading="lazy"
-                              style={{ width: "100%", height: 78, objectFit: "cover", display: "block" }}
+                              style={{ width: "100%", height: isMobileOffersView ? 170 : 78, objectFit: "cover", display: "block" }}
                             />
                           </div>
 

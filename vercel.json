@@ -2,6 +2,22 @@
   "buildCommand": "npm run build",
   "rewrites": [
     {
+      "source": "/api/market-price",
+      "destination": "/api/market?route=price"
+    },
+    {
+      "source": "/api/marketplace-vo",
+      "destination": "/api/market?route=vo"
+    },
+    {
+      "source": "/api/workshops-nearby",
+      "destination": "/api/workshops?route=nearby"
+    },
+    {
+      "source": "/api/workshop-availability",
+      "destination": "/api/workshops?route=availability"
+    },
+    {
       "source": "/api/billing-account",
       "destination": "/api/billing?route=account"
     },

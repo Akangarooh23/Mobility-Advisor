@@ -42,10 +42,8 @@ const sendAlertEmailHandler = require("./api/send-alert-email");
 const authHandler = require("./api/auth");
 const authStatusHandler = require("./api/auth-status");
 const vehicleCatalogHandler = require("./api/vehicle-catalog");
-const marketplaceVoHandler = require("./api/marketplace-vo");
-const workshopsNearbyHandler = require("./api/workshops-nearby");
-const workshopAvailabilityHandler = require("./api/workshop-availability");
-const marketPriceHandler = require("./api/market-price");
+const marketHandler = require("./api/market");
+const workshopsHandler = require("./api/workshops");
 
 const billingHandler = require("./api/billing");
 const erpCatalogHandler = require("./api/erp-catalog");
@@ -61,11 +59,11 @@ const handlers = {
   "/api/auth": authHandler,
   "/api/auth-status": authStatusHandler,
   "/api/vehicle-catalog": vehicleCatalogHandler,
-  "/api/marketplace-vo": marketplaceVoHandler,
+  "/api/marketplace-vo": marketHandler,
   "/api/attachment-file": userHandler,
-  "/api/workshops-nearby": workshopsNearbyHandler,
-  "/api/workshop-availability": workshopAvailabilityHandler,
-  "/api/market-price": marketPriceHandler,
+  "/api/workshops-nearby": workshopsHandler,
+  "/api/workshop-availability": workshopsHandler,
+  "/api/market-price": marketHandler,
 
   "/api/billing-checkout": billingHandler,
   "/api/billing-portal": billingHandler,

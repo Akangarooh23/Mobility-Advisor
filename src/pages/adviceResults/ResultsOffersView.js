@@ -94,7 +94,8 @@ export default function ResultsOffersView({
   isRecommendationSaved,
   getOfferActionMeta,
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language === "en";
   const text = {
     quickValidation: t("resultsOffersView.quickValidation"),
     yes: t("resultsOffersView.yes"),
@@ -137,6 +138,14 @@ export default function ResultsOffersView({
     save: t("resultsOffersView.save"),
     inSaved: t("resultsOffersView.inSaved"),
     searchReal: t("resultsOffersView.searchReal"),
+    location: isEn ? "LOCATION" : "UBICACION",
+    allSpain: isEn ? "All Spain" : "Toda Espana",
+    priceRange: isEn ? "PRICE RANGE" : "RANGO DE PRECIOS",
+    featuredOfferAlt: isEn ? "Featured offer" : "Oferta destacada",
+    offerAlt: isEn ? "Offer" : "Oferta",
+    nationalDelivery: isEn ? "Nationwide delivery" : "Entrega nacional",
+    viewDetails: isEn ? "View details" : "Ver ficha",
+    goPortal: isEn ? "Go to portal" : "Ir al portal",
   };
 
   const [hoveredCard, setHoveredCard] = useState(null);
@@ -247,7 +256,7 @@ export default function ResultsOffersView({
 
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
           <span style={{ fontSize: 10, color: isDark ? "#94a3b8" : "#64748b", fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap" }}>
-            UBICACION
+            {text.location}
           </span>
           <select
             value={listingFilters.location || ""}
@@ -264,7 +273,7 @@ export default function ResultsOffersView({
               cursor: "pointer",
             }}
           >
-            <option value="">Toda Espana</option>
+            <option value="">{text.allSpain}</option>
             {SPAIN_PROVINCES.map((province) => (
               <option key={province} value={province}>{province}</option>
             ))}
@@ -273,7 +282,7 @@ export default function ResultsOffersView({
 
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
           <span style={{ fontSize: 10, color: isDark ? "#94a3b8" : "#64748b", fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap" }}>
-            RANGO DE PRECIOS
+            {text.priceRange}
           </span>
           {PRICE_RANGE_OPTIONS.map((option) => {
             const selected = (listingFilters.priceRange || "") === option.value;
@@ -445,7 +454,7 @@ export default function ResultsOffersView({
                   >
                     <ResolvedOfferImage
                       offer={featuredOffer}
-                      alt={featuredOffer.title || "Oferta destacada"}
+                      alt={featuredOffer.title || text.featuredOfferAlt}
                       loading="lazy"
                       style={{
                         width: "100%",
@@ -502,7 +511,7 @@ export default function ResultsOffersView({
                             fontWeight: 700,
                           }}
                         >
-                          Entrega nacional
+                          {text.nationalDelivery}
                         </span>
                       )}
                       {Array.isArray(featuredOffer.rankingSignals) && featuredOffer.rankingSignals.slice(0, 3).map((signal) => (
@@ -555,7 +564,7 @@ export default function ResultsOffersView({
                             cursor: "pointer",
                           }}
                         >
-                          {featuredOfferAction.exact ? "Ver ficha" : "Ir al portal"}
+                          {featuredOfferAction.exact ? text.viewDetails : text.goPortal}
                         </button>
                       ) : (
                         <button
@@ -669,7 +678,7 @@ export default function ResultsOffersView({
                           >
                             <ResolvedOfferImage
                               offer={offer}
-                              alt={offer.title || "Oferta"}
+                              alt={offer.title || text.offerAlt}
                               loading="lazy"
                               style={{ width: "100%", height: isMobileOffersView ? 170 : 78, objectFit: "cover", display: "block" }}
                             />
@@ -710,7 +719,7 @@ export default function ResultsOffersView({
                                     fontWeight: 700,
                                   }}
                                 >
-                                  Entrega nacional
+                                  {text.nationalDelivery}
                                 </span>
                               )}
                               {Array.isArray(offer.rankingSignals) && offer.rankingSignals.slice(0, 1).map((signal) => (
@@ -748,7 +757,7 @@ export default function ResultsOffersView({
                                     padding: 0,
                                   }}
                                 >
-                                  {offerAction.exact ? "Ver ficha" : "Ir al portal"}
+                                  {offerAction.exact ? text.viewDetails : text.goPortal}
                                 </button>
                               ) : (
                                 <button

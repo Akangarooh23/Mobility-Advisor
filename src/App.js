@@ -706,32 +706,28 @@ function getPublicPathForEntryMode(entryMode = "") {
 
 const THEME_STORAGE_KEY = "movilidad-advisor.themeMode.v1";
 const LANGUAGE_STORAGE_KEY = "movilidad-advisor.uiLanguage.v1";
-const GOOGLE_TRANSLATE_SCRIPT_ID = "cw-google-translate-script";
 
-function normalizeUiLanguage(value) {
-  return String(value || "").toLowerCase() === "en" ? "en" : "es";
+function normalizeUiLanguage(lang) {
+  if (!lang) {
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+      // Only use stored value if it's a valid language code
+      lang = (stored === "en" || stored === "es") ? stored : "en";
+    } else {
+      lang = "en";
+    }
+  }
+  return ["en", "es"].includes(lang) ? lang : "en";
 }
 
-function clearGoogTransCookie() {
+function clearLegacyTranslateCookies() {
   if (typeof document === "undefined") {
     return;
   }
 
   document.cookie = "googtrans=; path=/; max-age=0";
-}
-
-function setGoogTransCookie(targetLanguage) {
-  if (typeof document === "undefined") {
-    return;
-  }
-
-  const normalizedTarget = normalizeUiLanguage(targetLanguage);
-  if (normalizedTarget === "es") {
-    clearGoogTransCookie();
-    return;
-  }
-
-  document.cookie = `googtrans=/es/${normalizedTarget}; path=/`;
+  document.cookie = "googtrans=; domain=.localhost; path=/; max-age=0";
+  document.cookie = "googtrans=; domain=localhost; path=/; max-age=0";
 }
 
 export default function App() {
@@ -846,11 +842,7 @@ export default function App() {
   const [showCookieSettings, setShowCookieSettings] = useState(false);
   const [themeMode, setThemeMode] = useState("light");
   const [uiLanguage, setUiLanguage] = useState(() => {
-    if (typeof window === "undefined") {
-      return "es";
-    }
-
-    return normalizeUiLanguage(window.localStorage.getItem(LANGUAGE_STORAGE_KEY));
+    return normalizeUiLanguage();
   });
   const [cookiePreferences, setCookiePreferences] = useState({
     necessary: true,
@@ -879,81 +871,15 @@ export default function App() {
     } catch {
       // ignore storage failures
     }
-
-    if (targetLanguage === "es") {
-      clearGoogTransCookie();
-    } else {
-      setGoogTransCookie(targetLanguage);
-    }
-
-    const applyToGoogleCombo = () => {
-      const combo = document.querySelector(".goog-te-combo");
-
-      if (!combo) {
-        return false;
-      }
-
-      if (combo.value !== targetLanguage) {
-        combo.value = targetLanguage;
-        combo.dispatchEvent(new Event("change"));
-      }
-
-      return true;
-    };
-
-    if (!applyToGoogleCombo()) {
-      window.setTimeout(() => {
-        applyToGoogleCombo();
-      }, 450);
-    }
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined" || typeof document === "undefined") {
+    if (typeof document === "undefined") {
       return;
     }
 
-    const initializeTranslateElement = () => {
-      if (!window.google?.translate?.TranslateElement) {
-        return;
-      }
-
-      const container = document.getElementById("google_translate_element");
-
-      if (!container || container.childElementCount > 0) {
-        return;
-      }
-
-      // eslint-disable-next-line no-new
-      new window.google.translate.TranslateElement(
-        {
-          pageLanguage: "es",
-          includedLanguages: "es,en",
-          autoDisplay: false,
-        },
-        "google_translate_element"
-      );
-
-      window.setTimeout(() => {
-        applyUiLanguage(uiLanguage);
-      }, 320);
-    };
-
-    window.googleTranslateElementInit = initializeTranslateElement;
-
-    if (window.google?.translate?.TranslateElement) {
-      initializeTranslateElement();
-      return;
-    }
-
-    if (!document.getElementById(GOOGLE_TRANSLATE_SCRIPT_ID)) {
-      const script = document.createElement("script");
-      script.id = GOOGLE_TRANSLATE_SCRIPT_ID;
-      script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-      script.async = true;
-      document.body.appendChild(script);
-    }
-  }, [applyUiLanguage, uiLanguage]);
+    clearLegacyTranslateCookies();
+  }, []);
 
   useEffect(() => {
     applyUiLanguage(uiLanguage);
@@ -1071,27 +997,27 @@ export default function App() {
   const headerNavItems = useMemo(() => [
     {
       key: "home",
-      label: uiLanguage === "en" ? "Home" : "Indice",
+      label: uiLanguage === "en" ? "Home" : "Inicio",
       onClick: goToHomeHeaderPage,
     },
     {
       key: "buy",
-      label: "Quiero Comprar",
+      label: uiLanguage === "en" ? "Buy a Car" : "Quiero Comprar",
       onClick: () => openInternalLandingFlow("buyOptions"),
     },
     {
       key: "services",
-      label: "Contratar un Servicio",
+      label: uiLanguage === "en" ? "Hire a Service" : "Contratar un Servicio",
       onClick: () => openInternalLandingFlow("serviceOptions"),
     },
     {
       key: "sell",
-      label: "Vender mi Coche",
+      label: uiLanguage === "en" ? "Sell my Car" : "Vender mi Coche",
       onClick: () => openInternalLandingFlow("sellOptions"),
     },
     {
       key: "more",
-      label: "Más ▾",
+      label: uiLanguage === "en" ? "More ▾" : "Más ▾",
       onClick: () => {
         setShowHeaderMobileNav(false);
         setShowHeaderMoreNav((prev) => !prev);
@@ -1102,15 +1028,15 @@ export default function App() {
   const headerMoreNavItems = useMemo(() => [
     {
       key: "about",
-      label: "Sobre Nosotros",
+      label: uiLanguage === "en" ? "About Us" : "Sobre Nosotros",
       onClick: goToAboutHeaderPage,
     },
     {
       key: "contact",
-      label: "Contacto",
+      label: uiLanguage === "en" ? "Contact" : "Contacto",
       onClick: () => goToPublicHeaderPage("contact"),
     },
-  ], [goToAboutHeaderPage, goToPublicHeaderPage]);
+  ], [goToAboutHeaderPage, goToPublicHeaderPage, uiLanguage]);
 
   const mobileHeaderNavItems = useMemo(() => [
     ...headerNavItems.filter((item) => item.key !== "more"),
@@ -1968,12 +1894,12 @@ export default function App() {
       getOfferFallbackSearchUrl(
         {
           title: item?.listingTitle || item?.title,
-          source: item?.sourceLabel || "Mercado general",
+          source: item?.sourceLabel || (uiLanguage === "en" ? "General market" : "Mercado general"),
           listingType: item?.typeKey || "movilidad",
         },
         { solucion_principal: { tipo: item?.typeKey || "movilidad", titulo: item?.title || "" } }
       ),
-    []
+    [uiLanguage]
   );
 
   const handleSingle = (value) => {
@@ -2368,7 +2294,7 @@ export default function App() {
 
     if (answeredSteps < totalSteps) {
       const proceed = window.confirm(
-        "Todavia no has completado todo el formulario. Podemos darte una recomendacion util ahora, pero sera una estimacion menos precisa que si respondes todas las preguntas. ¿Quieres continuar de todos modos?"
+        i18next.t("questionnaire.quickEstimateConfirm")
       );
 
       if (!proceed) {
@@ -2746,9 +2672,16 @@ export default function App() {
 
     try {
       const answersSummary = buildAnswersSummary(finalAnswers, activeSteps);
+      const systemInstructionLabel = uiLanguage === "en"
+        ? "Additional system instruction"
+        : "Instruccion adicional del sistema";
+      const retryConstraintMessage = uiLanguage === "en"
+        ? "The previous response violated the category restriction. Repeat the analysis strictly respecting the user's entry path."
+        : "La respuesta anterior incumplio la restriccion de categoria. Repite el analisis respetando estrictamente la via de entrada del usuario.";
       const buildPrompt = (extraInstruction = "") => buildAdviceAnalysisPrompt({
-        answersSummary: extraInstruction ? `${answersSummary}\n- Instruccion adicional del sistema: ${extraInstruction}` : answersSummary,
+        answersSummary: extraInstruction ? `${answersSummary}\n- ${systemInstructionLabel}: ${extraInstruction}` : answersSummary,
         advisorContext,
+        outputLanguage: uiLanguage,
       });
 
       let raw = await requestAiJson(
@@ -2760,7 +2693,7 @@ export default function App() {
 
       if (!isAdvisorResultCompatibleWithContext(normalizedResult, advisorContext)) {
         raw = await requestAiJson(
-          buildPrompt("La respuesta anterior incumplio la restriccion de categoria. Repite el analisis respetando estrictamente la via de entrada del usuario."),
+          buildPrompt(retryConstraintMessage),
           { answers: finalAnswers, advisorContext },
           { onApiKeyMissing: () => setApiKeyMissing(true) }
         );
@@ -3001,7 +2934,14 @@ export default function App() {
       ? 100
       : 0;
 
-  const loadingTexts = ANALYSIS_LOADING_PHASES;
+  const loadingTexts = [
+    i18next.t("loading.phase1"),
+    i18next.t("loading.phase2"),
+    i18next.t("loading.phase3"),
+    i18next.t("loading.phase4"),
+    i18next.t("loading.phase5"),
+    i18next.t("loading.phase6"),
+  ];
 
   const draftAnswers =
     entryMode === "consejo" && currentStep?.type === "multi"
@@ -3275,18 +3215,6 @@ export default function App() {
             })}
           </nav>
           <div style={{ display: "flex", alignItems: "center", gap: 12, position: "relative" }}>
-          <div
-            id="google_translate_element"
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              width: 0,
-              height: 0,
-              overflow: "hidden",
-              opacity: 0,
-              pointerEvents: "none",
-            }}
-          />
           {step >= 0 && step < totalSteps && (
             <div style={{ fontSize: 12, color: "#475569" }}>
               {step + 1} / {totalSteps}
@@ -3312,7 +3240,7 @@ export default function App() {
           <button
             type="button"
             onClick={() => setUiLanguage((prev) => (prev === "es" ? "en" : "es"))}
-            title={uiLanguage === "es" ? "Switch to English" : "Cambiar a español"}
+            title={uiLanguage === "es" ? "Cambiar a inglés" : "Cambiar a español"}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -3334,7 +3262,7 @@ export default function App() {
           <button
             type="button"
             onClick={() => setThemeMode((prev) => (prev === "dark" ? "light" : "dark"))}
-            title={themeMode === "dark" ? "Cambiar a white mode" : "Cambiar a dark mode"}
+            title={themeMode === "dark" ? (uiLanguage === "en" ? "Switch to light mode" : "Cambiar a modo claro") : (uiLanguage === "en" ? "Switch to dark mode" : "Cambiar a modo oscuro")}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -3350,13 +3278,13 @@ export default function App() {
             }}
           >
             <span>{themeMode === "dark" ? "☀️" : "🌙"}</span>
-            <span>{themeMode === "dark" ? "White mode" : "Dark mode"}</span>
+            <span>{themeMode === "dark" ? (uiLanguage === "en" ? "Light mode" : "Modo claro") : (uiLanguage === "en" ? "Dark mode" : "Modo oscuro")}</span>
           </button>
 
           <button
             type="button"
             onClick={handleUserAccessClick}
-            title={isUserLoggedIn ? "Abrir mi panel" : "Acceder o registrarse"}
+            title={isUserLoggedIn ? (uiLanguage === "en" ? "Open my panel" : "Abrir mi panel") : (uiLanguage === "en" ? "Sign in or register" : "Acceder o registrarse")}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -3388,7 +3316,7 @@ export default function App() {
             >
               {"\uD83D\uDC64"}
             </span>
-            <span>{isUserLoggedIn ? "Mi panel" : "Acceder"}</span>
+            <span>{isUserLoggedIn ? (uiLanguage === "en" ? "My panel" : "Mi panel") : (uiLanguage === "en" ? "Sign in" : "Acceder")}</span>
           </button>
 
           {showAuthMenu && !isUserLoggedIn && (
@@ -4468,6 +4396,7 @@ export default function App() {
           isUserLoggedIn={isUserLoggedIn}
           planCheckoutLoadingId={planCheckoutLoadingId}
           planCheckoutFeedback={planCheckoutFeedback}
+          uiLanguage={uiLanguage}
           onSelectVehicle={() => {
             setEntryMode("vehicleOptions");
             setStep(-1);
@@ -5270,6 +5199,7 @@ export default function App() {
           onRestartQuestionnaire={restartQuestionnaire}
           onTellMeNow={handleTellMeNow}
           answeredSteps={answeredSteps}
+          uiLanguage={uiLanguage}
         />
       )}
 
@@ -5409,27 +5339,27 @@ export default function App() {
                 <div style={{ fontWeight: 800, fontSize: 14, color: "#f8fafc" }}>CarsWise</div>
               </div>
               <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                Plataforma de movilidad para comprar mejor, vender mejor y reducir el coste total de tu vehículo.
+                {uiLanguage === "en" ? "Mobility platform to buy better, sell better and reduce your vehicle's total cost." : "Plataforma de movilidad para comprar mejor, vender mejor y reducir el coste total de tu vehículo."}
               </div>
             </div>
 
             <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
-              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>CONTACTO</div>
+              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "CONTACT" : "CONTACTO"}</div>
               <div style={{ display: "grid", gap: 6, fontSize: 12 }}>
                 <a href="mailto:soporte@carswise.es" style={{ color: "#e2e8f0", textDecoration: "none" }}>soporte@carswise.es</a>
                 <a href="tel:+34910000000" style={{ color: "#e2e8f0", textDecoration: "none" }}>+34 910 000 000</a>
-                <div style={{ color: "#94a3b8" }}>L-V 09:00 a 18:00 (España)</div>
+                <div style={{ color: "#94a3b8" }}>{uiLanguage === "en" ? "M-F 09:00 to 18:00 (Spain)" : "L-V 09:00 a 18:00 (España)"}</div>
               </div>
             </div>
 
             <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
-              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>ENLACES UTILES</div>
+              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "USEFUL LINKS" : "ENLACES UTILES"}</div>
               <div style={{ display: "grid", gap: 7, fontSize: 12 }}>
-                <button type="button" onClick={restart} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Inicio</button>
+                <button type="button" onClick={restart} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>{uiLanguage === "en" ? "Home" : "Inicio"}</button>
                 <button type="button" onClick={() => openPublicPage("portalVo")} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Marketplace VO</button>
-                <button type="button" onClick={() => openPublicPage("vehicleOptions")} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Asesor de vehículo</button>
+                <button type="button" onClick={() => openPublicPage("vehicleOptions")} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>{uiLanguage === "en" ? "Vehicle Advisor" : "Asesor de vehículo"}</button>
                 <button type="button" onClick={() => openPublicPage("blog")} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Blog</button>
-                <button type="button" onClick={() => openPublicPage("contact")} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Contacto</button>
+                <button type="button" onClick={() => openPublicPage("contact")} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>{uiLanguage === "en" ? "Contact" : "Contacto"}</button>
                 <button
                   type="button"
                   onClick={() => {
@@ -5437,13 +5367,13 @@ export default function App() {
                   }}
                   style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}
                 >
-                  Servicios
+                  {uiLanguage === "en" ? "Services" : "Servicios"}
                 </button>
               </div>
             </div>
 
             <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
-              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>REDES SOCIALES</div>
+              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "SOCIAL MEDIA" : "REDES SOCIALES"}</div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {[
                   ["LinkedIn", "https://www.linkedin.com"],
@@ -5488,13 +5418,13 @@ export default function App() {
               textAlign: "left",
             }}
           >
-            <div>© {new Date().getFullYear()} CarsWise. Todos los derechos reservados.</div>
+            <div>© {new Date().getFullYear()} CarsWise. {uiLanguage === "en" ? "All rights reserved." : "Todos los derechos reservados."}</div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               {[
-                ["Aviso legal", "legalNotice"],
-                ["Privacidad", "privacyPolicy"],
+                [uiLanguage === "en" ? "Legal Notice" : "Aviso legal", "legalNotice"],
+                [uiLanguage === "en" ? "Privacy" : "Privacidad", "privacyPolicy"],
                 ["Cookies", "cookiePolicy"],
-                ["Términos", "termsConditions"],
+                [uiLanguage === "en" ? "Terms" : "Términos", "termsConditions"],
               ].map(([label, key]) => (
                 <button
                   key={key}

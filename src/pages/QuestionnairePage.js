@@ -1,4 +1,260 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+
+const TEST_COPY = {
+  en: {
+    steps: {
+      perfil: {
+        question: "Who is this mobility solution for?",
+        subtitle: "This helps us personalize the full analysis",
+        options: {
+          particular: { label: "For me / family", desc: "Personal or family use" },
+          empresa: { label: "For my company", desc: "Fleet or company vehicle" },
+          autonomo: { label: "I am self-employed", desc: "Mixed business / personal use" },
+        },
+      },
+      flexibilidad: {
+        question: "How will you acquire the vehicle?",
+        subtitle: "Each option has very different financial and risk implications",
+        options: {
+          propiedad_contado: { label: "Paying cash" },
+          propiedad_financiada: { label: "Financed" },
+          propiedad_entrada_inicial: { label: "I want to pay a down payment and finance the rest" },
+          renting: { label: "Leasing or subscription", desc: "Pay a monthly fee without owning the car" },
+          no_tengo_claro: { label: "I am not sure yet", desc: "Help me decide which option is best" },
+        },
+      },
+      propulsion_preferida: {
+        question: "Which powertrain do you prefer?",
+        subtitle: "This is key because it affects total maintenance cost, environmental label, and approximate insurance premium.",
+        helpInfo: {
+          title: "View approximate cost per 100 km in interurban driving by engine type",
+          table: [
+            { type: "Electric (home charging)", consumption: "15-20 kWh/100 km", cost: "EUR 2.00 - 4.00" },
+            { type: "Plug-in hybrid (PHEV)", consumption: "1-2 L + electricity*", cost: "EUR 4.00 - 7.00 (with charging)" },
+            { type: "Hybrid (HEV/MHEV, non plug-in)", consumption: "4-5 L/100 km", cost: "EUR 7.00 - 9.00" },
+            { type: "Diesel", consumption: "5-6 L/100 km", cost: "EUR 8.00 - 11.00" },
+            { type: "Gasoline", consumption: "6-7 L/100 km", cost: "EUR 10.00 - 14.00" },
+          ],
+        },
+        options: {
+          electrico_puro: { label: "Battery electric (BEV)", desc: "ZERO label - 100% electric charging" },
+          hibrido_no_enchufable: { label: "Hybrid (HEV/MHEV)", desc: "ECO label - no plug, very efficient in city" },
+          hibrido_enchufable: { label: "Plug-in hybrid (PHEV)", desc: "Requires access to a charging point" },
+          gasolina: { label: "Gasoline", desc: "Possible label: B, C or ECO (depending on version and year)" },
+          diesel: { label: "Diesel", desc: "Possible label: B, C or ECO (depending on version and year)" },
+          glp_gnc: { label: "LPG / CNG", desc: "Interesting alternative if you have a nearby refuel point" },
+          indiferente_motor: { label: "No preference", desc: "Choose the most convenient option based on the rest of my answers" },
+        },
+      },
+      horizonte_y_antiguedad: {
+        question: "How long do you plan to keep the car? Maximum age?",
+        subtitle: "These two questions help us define your purchase strategy.",
+        fields: {
+          horizonte_tenencia: {
+            title: "How long do you plan to keep the car?",
+            options: {
+              menos_1_ano: "Less than 1 year",
+              "2_3": "2 or 3 years",
+              "4_6": "4 to 6 years",
+              mas_7: "7 years or more",
+              no_claro: "I am not sure yet",
+            },
+          },
+          antiguedad_vehiculo_buscada: {
+            title: "What maximum vehicle age do you accept?",
+            options: {
+              cero_anos: "0 years or nearly new",
+              "2_3_anos": "2-3 years",
+              "5_anos": "5 years",
+              "7_anos": "7 years",
+              mas_7_anos: "More than 7 years",
+              indiferente: "No preference",
+            },
+          },
+        },
+      },
+      uso_km_anuales: {
+        question: "How many kilometers do you drive per year?",
+        subtitle: "It affects maintenance costs and the most suitable engine type",
+        options: {
+          menos_10k: { label: "Less than 10,000 km", desc: "Very low usage" },
+          "10k_20k": { label: "10,001 to 20,000 km", desc: "Moderate usage" },
+          "20k_35k": { label: "20,001 to 35,000 km", desc: "Frequent usage" },
+          mas_35k: { label: "35,000 km and above", desc: "Very intensive usage" },
+        },
+      },
+      entorno_uso: {
+        question: "Where do you usually drive?",
+        subtitle: "Includes your city/area context (LEZ), real consumption and usage type",
+        options: {
+          ciudad: { label: "Mostly city", desc: "Traffic, congestion, parking" },
+          interurbano: { label: "Interurban roads", desc: "Mixed routes, small towns" },
+          autopista: { label: "Highway / long distance", desc: "Frequent trips over 100 km" },
+          mixto: { label: "A bit of everything", desc: "No clear dominant environment" },
+        },
+      },
+      uso_principal: {
+        question: "What do you mainly use it for?",
+        subtitle: "Select all that apply",
+        options: {
+          trabajo_diario: { label: "Daily commuting" },
+          viajes_ocio: { label: "Leisure trips or vacations" },
+          visitas_clientes: { label: "Client visits / meetings" },
+          compras_recados: { label: "Shopping and errands" },
+          familia: { label: "Transporting family / children" },
+          remolque: { label: "Towing (caravan, trailer)" },
+        },
+      },
+      ocupantes: {
+        question: "What combination of seats and trunk space do you usually need?",
+        subtitle: "This captures people and daily cargo space in one answer",
+        options: {
+          "2_plazas_maletero_pequeno": { label: "1-2 seats + small trunk", desc: "Individual or couple use" },
+          "5_plazas_maletero_medio": { label: "3-5 seats + medium trunk", desc: "Balanced family use" },
+          "7_plazas_maletero_grande": { label: "6-7 seats + large trunk", desc: "Large family or lots of luggage" },
+        },
+      },
+      marca_preferencia: {
+        question: "Do you have a preferred brand?",
+        subtitle: "Entry-level premium ranges often offer a worse value/price ratio",
+        options: {
+          generalista_europea: { label: "European mainstream", desc: "Balanced price and broad service network" },
+          asiatica_fiable: { label: "Asian reliability-focused", desc: "Strong reputation for efficiency and durability" },
+          premium_alemana: { label: "German premium", desc: "Image, technology, and higher maintenance cost" },
+          premium_escandinava: { label: "Scandinavian premium", desc: "Safety and comfort first" },
+          nueva_china: { label: "New brands", desc: "Strong equipment for the price and electrified engines" },
+          sin_preferencia: { label: "No brand preference" },
+        },
+      },
+      vehiculo_actual: {
+        question: "Do you have a vehicle to trade in or sell?",
+        subtitle: "If you do, we can search sellers who accept it as part of payment, or we can help you sell it directly.",
+        options: {
+          si_entrego: { label: "Yes, I want to trade it in when buying.", desc: "Reduces the amount to pay in the purchase" },
+          si_vendo: { label: "Yes, I prefer selling it to a third party.", desc: "You may earn more, but it takes more time." },
+          no: { label: "I currently have no vehicle", desc: "I already sold it or this is my first car" },
+        },
+      },
+      ponderacion_score_personalizada: {
+        question: "Which criteria matter most to you?",
+        subtitle: "Drag cards to reorder them: the first one will have the highest weight in your offers.",
+        metrics: {
+          marca_preferencia: "Brand or brand type",
+          propulsion_preferida: "Powertrain",
+          flexibilidad: "Purchase type or relationship with the car",
+          antiguedad_vehiculo_buscada: "Maximum car age",
+          ocupantes: "Seats and space",
+        },
+      },
+      provincia_zona: {
+        question: "What kind of area do you usually move in?",
+        subtitle: "Real coverage and mobility weighting vary a lot by city, LEZ, or rural area",
+        options: {
+          madrid_barcelona: { label: "Madrid / Barcelona", desc: "Maximum carsharing, transport and stock availability" },
+          capital_zbe: { label: "Capital city with LEZ", desc: "Label and access restrictions matter a lot" },
+          ciudad_media: { label: "Mid-size city / metro area", desc: "Mixed use with medium availability" },
+          zona_rural: { label: "Town / dispersed rural area", desc: "Range and full availability matter more" },
+          islas: { label: "Islands", desc: "More limited market and stronger dependency on local stock" },
+        },
+      },
+      garaje: {
+        question: "What is your real parking and charging situation?",
+        subtitle: "Key to know if an EV or PHEV truly fits your life",
+        options: {
+          garaje_cargador: { label: "I have a spot and can charge", desc: "Electrification gains many points" },
+          garaje_sin_cargador: { label: "I have a spot but no charger", desc: "I could install one or partially depend on public charging" },
+          sin_garaje: { label: "No fixed spot / street parking", desc: "Much harder to make a pure EV worthwhile" },
+        },
+      },
+      zbe_impacto: {
+        question: "How much do LEZ and urban restrictions affect you?",
+        subtitle: "This can completely change which engine and mobility solution are smartest",
+        options: {
+          alta: { label: "A lot", desc: "I frequently enter restricted zones" },
+          media: { label: "Somewhat", desc: "It affects me in specific situations" },
+          baja: { label: "Little or none", desc: "My daily use barely depends on LEZ" },
+        },
+      },
+      capital_propio: {
+        question: "If you bought, what upfront capital could you provide without stress?",
+        subtitle: "This helps separate what looks attractive from what is truly financially healthy",
+        options: {
+          sin_capital: { label: "No available down payment", desc: "I need to finance 100% of the price" },
+          menos_5k: { label: "Less than EUR 5,000", desc: "Very limited down payment" },
+          "5k_10k": { label: "EUR 5,000 - 10,000", desc: "Tight but useful down payment" },
+          "10k_20k": { label: "EUR 10,000 - 20,000", desc: "Already gives strong negotiation margin" },
+          mas_20k: { label: "More than EUR 20,000", desc: "Strong capacity to reduce financing" },
+        },
+      },
+      gestion_riesgo: {
+        question: "How much control do you want over cost surprises and risk?",
+        subtitle: "Defines whether we prioritize maximum predictability or more savings with some risk",
+        options: {
+          alto: { label: "I want maximum control", desc: "I prefer avoiding surprises even if I pay a bit more" },
+          medio: { label: "Reasonable balance", desc: "I want a good cost vs peace-of-mind ratio" },
+          bajo: { label: "I can take some risk", desc: "I prioritize savings even with more variability" },
+        },
+      },
+      vehiculo_actual_antiguedad: {
+        question: "What year is the car you trade in or sell?",
+        subtitle: "Age directly affects valuation and buyer profile",
+        options: {
+          no_entrego: { label: "I am not trading in or selling any vehicle", desc: "This question does not apply to me" },
+          menos_3: { label: "Less than 3 years", desc: "Relatively new vehicle, strong valuation" },
+          "3_5": { label: "3 to 5 years", desc: "Good balance between depreciation and market price" },
+          "6_10": { label: "6 to 10 years", desc: "Price drops more, but still has demand" },
+          mas_10: { label: "More than 10 years", desc: "Advanced depreciation, better for direct sale strategy" },
+        },
+      },
+      vehiculo_actual_km: {
+        question: "How many kilometers does the car have that you trade in or sell?",
+        subtitle: "Mileage is one of the most important valuation factors",
+        options: {
+          no_entrego_km: { label: "I am not trading in or selling any vehicle", desc: "This question does not apply to me" },
+          menos_50k: { label: "Less than 50,000 km", desc: "Low mileage, high valuation" },
+          "50k_100k": { label: "50,000 - 100,000 km", desc: "Normal use, medium valuation" },
+          "100k_150k": { label: "100,000 - 150,000 km", desc: "High mileage, noticeable depreciation" },
+          mas_150k: { label: "More than 150,000 km", desc: "Very high mileage, more limited market" },
+        },
+      },
+      vehiculo_actual_deuda: {
+        question: "Does it still have outstanding financing?",
+        subtitle: "If there is debt, it must be cancelled before transferring the vehicle or using its value in a purchase",
+        options: {
+          sin_deuda: { label: "No, it is debt-free", desc: "You can use 100% of the valuation" },
+          deuda_pequena: { label: "Yes, less than EUR 3,000", desc: "Easy to cancel with part of the sale" },
+          deuda_media: { label: "Yes, between EUR 3,000 and 10,000", desc: "Must be covered before transfer" },
+          deuda_grande: { label: "Yes, more than EUR 10,000", desc: "May limit how much you can apply to the next purchase" },
+          no_se_deuda: { label: "I do not know", desc: "We can help you calculate it" },
+        },
+      },
+      financiacion_plazo: {
+        question: "What financing term would you like?",
+        subtitle: "Longer terms mean lower monthly payment but higher total interest",
+        options: {
+          no_financio_plazo: { label: "I do not want financing", desc: "I will pay cash" },
+          "12_24": { label: "12-24 months", desc: "Higher monthly payment but much lower total interest" },
+          "36_48": { label: "36-48 months", desc: "Most common term, good balance" },
+          "60_72": { label: "60-72 months", desc: "More comfortable monthly payment, higher financial cost" },
+          mas_84: { label: "84 months or more", desc: "Maximum monthly comfort, high total cost" },
+          no_se_plazo: { label: "I am not sure", desc: "We can advise based on your situation" },
+        },
+      },
+      financiacion_gestion: {
+        question: "How do you prefer to manage financing?",
+        subtitle: "Always compare real APR, regardless of who offers it",
+        options: {
+          no_financio_gestion: { label: "I do not want financing", desc: "I will pay cash" },
+          banco_propio: { label: "With my trusted bank", desc: "More control and room to negotiate interest rate" },
+          concesionario: { label: "With dealer financing", desc: "More convenient, but always compare APR" },
+          broker_comparador: { label: "Through a broker or comparison service", desc: "Useful if you want the best market offer" },
+          no_se_financiacion: { label: "I still do not know", desc: "We guide you during the purchase process" },
+        },
+      },
+    },
+  },
+};
 
 export default function QuestionnairePage({
   styles,
@@ -27,6 +283,7 @@ export default function QuestionnairePage({
   onRestartQuestionnaire,
   onTellMeNow,
   answeredSteps,
+  uiLanguage = "es",
 }) {
   const [hoveredOption, setHoveredOption] = useState(null);
   const [dragOrder, setDragOrder] = useState(null);
@@ -46,7 +303,85 @@ export default function QuestionnairePage({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep?.id]);
   const [showHelpInfoModal, setShowHelpInfoModal] = useState(false);
+  const { t } = useTranslation();
   const isDark = themeMode === "dark";
+  const isEn = uiLanguage === "en";
+
+  const getStepI18n = (stepId) => TEST_COPY.en.steps?.[stepId] || null;
+  const stepI18n = getStepI18n(currentStep?.id);
+
+  const getStepText = (key, fallback = "") => {
+    if (!isEn) {
+      return fallback;
+    }
+    return stepI18n?.[key] || fallback;
+  };
+
+  const getOptionText = (option, key) => {
+    if (!isEn) {
+      return option?.[key] || "";
+    }
+    return stepI18n?.options?.[option?.value]?.[key] || option?.[key] || "";
+  };
+
+  const getFieldTitleText = (fieldKey, fallback = "") => {
+    if (!isEn) {
+      return fallback;
+    }
+    return stepI18n?.fields?.[fieldKey]?.title || fallback;
+  };
+
+  const getFieldOptionLabel = (fieldKey, option) => {
+    if (!isEn) {
+      return option?.label || "";
+    }
+    return stepI18n?.fields?.[fieldKey]?.options?.[option?.value] || option?.label || "";
+  };
+
+  const getMetricLabel = (metric) => {
+    if (!isEn) {
+      return metric?.label || "";
+    }
+    return stepI18n?.metrics?.[metric?.key] || metric?.label || "";
+  };
+
+  const getHelpInfo = () => {
+    if (!currentStep?.helpInfo) {
+      return null;
+    }
+    if (!isEn) {
+      return currentStep.helpInfo;
+    }
+    const helpI18n = stepI18n?.helpInfo;
+    return {
+      ...currentStep.helpInfo,
+      title: helpI18n?.title || currentStep.helpInfo.title,
+      table: Array.isArray(helpI18n?.table) ? helpI18n.table : currentStep.helpInfo.table,
+    };
+  };
+
+  const localizedHelpInfo = getHelpInfo();
+
+  const getLocalizedBlockName = (blockNameES) => {
+    const blockTranslations = {
+      Perfil: { en: "Profile", es: "Perfil" },
+      "Uso real": { en: "Real Usage", es: "Uso real" },
+      Capacidad: { en: "Capacity", es: "Capacidad" },
+      Preferencias: { en: "Preferences", es: "Preferencias" },
+      Energía: { en: "Energy", es: "Energía" },
+      Financiero: { en: "Financial", es: "Financiero" },
+      Restricciones: { en: "Restrictions", es: "Restricciones" },
+      Vinculación: { en: "Binding", es: "Vinculación" },
+      Riesgo: { en: "Risk", es: "Riesgo" },
+      Avanzado: { en: "Advanced", es: "Avanzado" },
+      Compra: { en: "Purchase", es: "Compra" },
+      Prioridades: { en: "Priorities", es: "Prioridades" },
+      "Coche a entregar": { en: "Trade-in Car", es: "Coche a entregar" },
+      Financiación: { en: "Financing", es: "Financiación" },
+    };
+    const translation = blockTranslations[blockNameES];
+    return translation ? translation[uiLanguage] : blockNameES;
+  };
 
   const hasCompleteRange = (value) => Array.isArray(value) && value.length > 0 && value.every(Boolean);
   const hasCompleteScoreWeights = (stepConfig, selection) => {
@@ -76,14 +411,16 @@ export default function QuestionnairePage({
       ? [selectedValue]
       : [];
 
-    const resolveOptionLabel = (value) =>
-      options.find((item) => item.value === value)?.label || value;
+    const resolveOptionLabel = (value) => {
+      const option = options.find((item) => item.value === value);
+      return getFieldOptionLabel(fieldKey, option) || value;
+    };
 
     if (isMultiSelectionField) {
       const selectedSet = new Set(selectedValues);
       const selectionLabel = selectedValues.length > 0
         ? selectedValues.map(resolveOptionLabel).join(" · ")
-        : "Selecciona uno o varios tramos";
+        : t("questionnaire.selectOneOrMore");
 
       const toggleMultiValue = (optionValue) => {
         const nextValues = selectedSet.has(optionValue)
@@ -109,7 +446,7 @@ export default function QuestionnairePage({
           }}
         >
           <div style={{ fontSize: 12, color: isDark ? "#e2e8f0" : "#334155", fontWeight: 700, marginBottom: 10 }}>
-            {fieldConfig?.title}
+            {getFieldTitleText(fieldKey, fieldConfig?.title)}
           </div>
 
           <div
@@ -156,7 +493,7 @@ export default function QuestionnairePage({
                   }}
                 >
                   <div style={{ fontSize: 14, marginBottom: 2 }}>{opt.icon}</div>
-                  <div>{opt.label}</div>
+                  <div>{getFieldOptionLabel(fieldKey, opt)}</div>
                 </button>
               );
             })}
@@ -180,7 +517,7 @@ export default function QuestionnairePage({
           }}
         >
           <div style={{ fontSize: 12, color: isDark ? "#e2e8f0" : "#334155", fontWeight: 700, marginBottom: 10 }}>
-            {fieldConfig?.title}
+            {getFieldTitleText(fieldKey, fieldConfig?.title)}
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
@@ -208,7 +545,7 @@ export default function QuestionnairePage({
                     textAlign: "left",
                   }}
                 >
-                  {opt.label}
+                  {getFieldOptionLabel(fieldKey, opt)}
                 </button>
               );
             })}
@@ -234,7 +571,7 @@ export default function QuestionnairePage({
     const endLabel = options[safeEndIndex]?.label || "";
     const selectionLabel = startLabel && endLabel
       ? (startLabel === endLabel ? startLabel : `${startLabel} → ${endLabel}`)
-      : "Selecciona un punto o rango";
+      : t("questionnaire.selectRange");
 
     const updateRangeIndex = (bound, nextIndex) => {
       const boundedIndex = Math.max(0, Math.min(options.length - 1, nextIndex));
@@ -327,7 +664,7 @@ export default function QuestionnairePage({
               position: "relative",
               zIndex: 3,
             }}
-            aria-label={`${fieldConfig?.title || fieldKey} inicio`}
+            aria-label={`${getFieldTitleText(fieldKey, fieldConfig?.title || fieldKey)} ${t("questionnaire.rangeStart")}`}
           />
 
           <input
@@ -352,7 +689,7 @@ export default function QuestionnairePage({
               zIndex: 4,
               pointerEvents: "auto",
             }}
-            aria-label={`${fieldConfig?.title || fieldKey} fin`}
+            aria-label={`${getFieldTitleText(fieldKey, fieldConfig?.title || fieldKey)} ${t("questionnaire.rangeEnd")}`}
           />
         </div>
 
@@ -382,7 +719,7 @@ export default function QuestionnairePage({
                 }}
               >
                 <div style={{ fontSize: 14, marginBottom: 2 }}>{opt.icon}</div>
-                <div>{opt.label}</div>
+                <div>{getFieldOptionLabel(fieldKey, opt)}</div>
               </button>
             );
           })}
@@ -394,10 +731,10 @@ export default function QuestionnairePage({
   return (
     <div style={styles.center}>
       <div style={styles.blockBadge(currentStep.block)}>
-        {currentStep.blockIcon} {currentStep.block.toUpperCase()}
+        {currentStep.blockIcon} {getLocalizedBlockName(currentStep.block).toUpperCase()}
       </div>
       <div style={{ fontSize: 11, color: isDark ? "#cbd5e1" : "#334155", letterSpacing: "1px", marginBottom: 6 }}>
-        PREGUNTA {step + 1} DE {totalSteps}
+        {t("questionnaire.questionOf", { step: step + 1, total: totalSteps })}
       </div>
       <h2
         style={{
@@ -409,10 +746,10 @@ export default function QuestionnairePage({
           lineHeight: 1.3,
         }}
       >
-        {currentStep.question}
+        {getStepText("question", currentStep.question)}
       </h2>
       <p style={{ color: isDark ? "#cbd5e1" : "#64748b", fontSize: 14, margin: "0 0 24px", lineHeight: 1.6 }}>
-        {currentStep.subtitle}
+        {getStepText("subtitle", currentStep.subtitle)}
       </p>
 
       <div
@@ -427,12 +764,12 @@ export default function QuestionnairePage({
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
           <div>
             <div style={{ fontSize: 12, color: isDark ? "#99f6e4" : "#0d9488", fontWeight: 700, marginBottom: 4 }}>
-              🧪 Test avanzado opcional
+              🧪 {t("questionnaire.advancedTestLabel")}
             </div>
             <div style={{ fontSize: 12, color: isDark ? "#ccfbf1" : "#0f766e", lineHeight: 1.5 }}>
               {advancedMode
-                ? "Activado: añadimos preguntas de zona, ZBE, garaje, presupuesto cómodo, capital y riesgo para afinar la recomendación."
-                : "Puedes activar 6 preguntas extra para llevar el análisis a un nivel mucho más preciso sin tocar el flujo base."}
+                ? t("questionnaire.advancedModeOn")
+                : t("questionnaire.advancedModeOff")}
             </div>
           </div>
           <button
@@ -450,7 +787,7 @@ export default function QuestionnairePage({
               whiteSpace: "nowrap",
             }}
           >
-            {advancedMode ? "✓ Modo avanzado activado" : "+ Activar test avanzado"}
+            {advancedMode ? t("questionnaire.advancedModeActive") : t("questionnaire.advancedModeActivate")}
           </button>
         </div>
       </div>
@@ -466,10 +803,10 @@ export default function QuestionnairePage({
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
           <div style={{ fontSize: 12, color: isDark ? "#bae6fd" : "#0369a1", fontWeight: 600 }}>
-            ✅ Te quedan {remainingQuestions} pregunta{remainingQuestions === 1 ? "" : "s"}
+            ✅ {t("questionnaire.remaining", { count: remainingQuestions })}
           </div>
           <div style={{ fontSize: 12, color: isDark ? "#7dd3fc" : "#0ea5e9" }}>
-            {completionPct}% completado
+            {completionPct}% {t("questionnaire.completed")}
           </div>
         </div>
         <div
@@ -492,7 +829,7 @@ export default function QuestionnairePage({
         </div>
       </div>
 
-      {currentStep.helpInfo && (
+      {localizedHelpInfo && (
         <div style={{ marginBottom: 12 }}>
           <button
             type="button"
@@ -512,7 +849,7 @@ export default function QuestionnairePage({
             }}
           >
             <span>ℹ️</span>
-            <span>{currentStep.helpInfo.title}</span>
+            <span>{localizedHelpInfo.title}</span>
           </button>
 
           {showHelpInfoModal && (
@@ -545,7 +882,7 @@ export default function QuestionnairePage({
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 10 }}>
                   <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>
-                    {currentStep.helpInfo.title}
+                    {localizedHelpInfo.title}
                   </div>
                   <button
                     type="button"
@@ -560,7 +897,7 @@ export default function QuestionnairePage({
                       cursor: "pointer",
                     }}
                   >
-                    Cerrar
+                    {t("questionnaire.close")}
                   </button>
                 </div>
 
@@ -575,13 +912,13 @@ export default function QuestionnairePage({
                   >
                     <thead>
                       <tr style={{ borderBottom: "1px solid rgba(148,163,184,0.35)" }}>
-                        <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>Tipo</th>
-                        <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>Consumo Estimado</th>
-                        <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>Coste/100km</th>
+                        <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>{t("questionnaire.tableType")}</th>
+                        <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>{t("questionnaire.tableConsumption")}</th>
+                        <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>{t("questionnaire.tableCost")}</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {currentStep.helpInfo.table.map((row, idx) => (
+                      {localizedHelpInfo.table.map((row, idx) => (
                         <tr
                           key={idx}
                           style={{
@@ -651,10 +988,10 @@ export default function QuestionnairePage({
                   color: selected ? "#2563eb" : isDark ? "#f8fafc" : "#0f172a",
                 }}
               >
-                {opt.label}
+                {getOptionText(opt, "label")}
               </div>
               {opt.desc && (
-                <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569", marginTop: 2 }}>{opt.desc}</div>
+                <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569", marginTop: 2 }}>{getOptionText(opt, "desc")}</div>
               )}
               {Array.isArray(opt.brandChips) && opt.brandChips.length > 0 && (
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
@@ -779,7 +1116,7 @@ export default function QuestionnairePage({
                 lineHeight: 1.5,
               }}
             >
-              Arrastra para reordenar o usa ↑ ↓ en móvil · El <strong>primero</strong> tendrá más peso · El <strong>último</strong> menos
+              {t("questionnaire.dragInstruction")}
             </div>
             {order.map((key, pos) => {
               const metric = metrics.find((m) => m.key === key);
@@ -837,7 +1174,7 @@ export default function QuestionnairePage({
                     {pos + 1}
                   </span>
                   <span style={{ fontSize: 18, flexShrink: 0 }}>{metric.icon || "•"}</span>
-                  <span style={{ color: isDark ? "#f8fafc" : "#0f172a", fontSize: 13, fontWeight: 600, flex: 1 }}>{metric.label}</span>
+                  <span style={{ color: isDark ? "#f8fafc" : "#0f172a", fontSize: 13, fontWeight: 600, flex: 1 }}>{getMetricLabel(metric)}</span>
                   <div style={{ display: "inline-flex", gap: 6, flexShrink: 0 }}>
                     <button
                       type="button"
@@ -847,7 +1184,7 @@ export default function QuestionnairePage({
                         moveMetric(pos, pos - 1);
                       }}
                       disabled={pos === 0}
-                      aria-label={`Subir ${metric.label}`}
+                      aria-label={`${t("questionnaire.ariaUp")} ${getMetricLabel(metric)}`}
                       style={{
                         width: 28,
                         height: 28,
@@ -870,7 +1207,7 @@ export default function QuestionnairePage({
                         moveMetric(pos, pos + 1);
                       }}
                       disabled={pos === metrics.length - 1}
-                      aria-label={`Bajar ${metric.label}`}
+                      aria-label={`${t("questionnaire.ariaDown")} ${getMetricLabel(metric)}`}
                       style={{
                         width: 28,
                         height: 28,
@@ -905,8 +1242,8 @@ export default function QuestionnairePage({
           }}
         >
           {multiSelected.length === 0
-            ? "Selecciona al menos una opción"
-            : `Continuar (${multiSelected.length} seleccionada${multiSelected.length > 1 ? "s" : ""}) →`}
+            ? t("questionnaire.selectAtLeastOne")
+            : `${t("questionnaire.continueWith")} (${multiSelected.length}) →`}
         </button>
       )}
 
@@ -922,8 +1259,8 @@ export default function QuestionnairePage({
           }}
         >
           {!hasCompleteRange(dualTimelineSelection?.horizonte_tenencia) || !hasCompleteRange(dualTimelineSelection?.antiguedad_vehiculo_buscada)
-            ? "Completa ambas líneas temporales"
-            : "Continuar →"}
+            ? t("questionnaire.completeBothTimelines")
+            : t("questionnaire.continue")}
         </button>
       )}
 
@@ -939,8 +1276,8 @@ export default function QuestionnairePage({
           }}
         >
           {!hasCompleteScoreWeights(currentStep, scoreWeightsSelection)
-            ? "Numera todos los criterios (sin repetir números)"
-            : "Continuar →"}
+            ? t("questionnaire.numberAllCriteria")
+            : t("questionnaire.continue")}
         </button>
       )}
 
@@ -966,7 +1303,7 @@ export default function QuestionnairePage({
             opacity: step === 0 ? 0.45 : 1,
           }}
         >
-          ← Volver a la pregunta anterior
+          {t("questionnaire.goBack")}
         </button>
 
         <button
@@ -981,7 +1318,7 @@ export default function QuestionnairePage({
             cursor: "pointer",
           }}
         >
-          ↺ Reiniciar preguntas
+          {t("questionnaire.restart")}
         </button>
 
         <button
@@ -999,7 +1336,7 @@ export default function QuestionnairePage({
             opacity: answeredSteps === 0 ? 0.45 : 1,
           }}
         >
-          ⚡ ¡Dímelo ya!
+          {t("questionnaire.tellMeNow")}
         </button>
       </div>
     </div>

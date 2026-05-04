@@ -5,6 +5,17 @@ import './i18n';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+// Clean up old localStorage entries before rendering
+if (typeof window !== 'undefined') {
+  const keysToRemove = Object.keys(localStorage).filter(
+    key => key.startsWith('movilidad-advisor')
+  );
+  keysToRemove.forEach(key => {
+    localStorage.removeItem(key);
+  });
+  console.log(`Cleaned ${keysToRemove.length} localStorage entries`);
+}
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import "./HomeProcessSections.css";
 
 const INITIAL_OPEN = {
@@ -42,6 +43,7 @@ function StepItem({ n, title, sub }) {
 }
 
 function FlowPanel({ isOpen, header, steps, onAccess }) {
+  const { t } = useTranslation();
   return (
     <div className={`cw-home-flow-panel ${isOpen ? "open" : ""}`}>
       <div className="cw-home-flow-inner">
@@ -52,7 +54,7 @@ function FlowPanel({ isOpen, header, steps, onAccess }) {
           ))}
         </div>
         <div className="cw-home-flow-actions">
-          <button type="button" className="cw-home-flow-access-btn" onClick={onAccess}>Acceder</button>
+          <button type="button" className="cw-home-flow-access-btn" onClick={onAccess}>{t("buyOptions.accessButton")}</button>
         </div>
       </div>
     </div>
@@ -70,6 +72,7 @@ export default function HomeProcessSections({
   onAccessServiceMonthlyPlan,
   onAccessServiceInsurance,
 }) {
+  const { t } = useTranslation();
   const [openPanels, setOpenPanels] = useState(INITIAL_OPEN);
   const rootRef = useRef(null);
 
@@ -104,35 +107,35 @@ export default function HomeProcessSections({
   return (
     <div className="cw-home-process" ref={rootRef}>
       <section id="como">
-        <div className="cw-home-section-label cw-home-reveal">El proceso</div>
-        <h1 className="cw-home-section-title cw-home-reveal cw-home-reveal-d1">Como funciona?</h1>
+        <div className="cw-home-section-label cw-home-reveal">{t("homeProcessSections.processLabel")}</div>
+        <h1 className="cw-home-section-title cw-home-reveal cw-home-reveal-d1">{t("homeProcessSections.procesTitle")}</h1>
         <p className="cw-home-section-desc cw-home-reveal cw-home-reveal-d2">
-          Elige tu punto de partida y te guiamos paso a paso. Tanto si ya sabes lo que buscas como si necesitas orientacion para encontrarlo.
+          {t("homeProcessSections.processDesc")}
         </p>
       </section>
 
       <section id="comprar">
         <div className="cw-home-section-num">1</div>
-        <div className="cw-home-section-label cw-home-reveal">Compra</div>
-        <h2 className="cw-home-section-title cw-home-reveal cw-home-reveal-d1">Quiero comprar</h2>
+        <div className="cw-home-section-label cw-home-reveal">{t("homeProcessSections.buyLabel")}</div>
+        <h2 className="cw-home-section-title cw-home-reveal cw-home-reveal-d1">{t("homeProcessSections.buyTitle")}</h2>
         <p className="cw-home-section-desc cw-home-reveal cw-home-reveal-d2">
-          Dinos cuanto sabes ya sobre lo que quieres y empezamos desde ahi. Analizamos el mercado en tiempo real para encontrar las mejores opciones.
+          {t("homeProcessSections.buyDesc")}
         </p>
 
         <div className="cw-home-path-grid">
           <FlowCard
             className="cw-home-reveal cw-home-reveal-d1"
-            badge="Opcion A"
-            title="Ya se que modelo me interesa"
-            description="Si tienes claro que modelo quieres, indicanos area, rango de precios y kilometros. Analizamos las ofertas actuales bajo esos parametros."
+            badge={t("homeProcessSections.optionA")}
+            title={t("homeProcessSections.optionATitle")}
+            description={t("homeProcessSections.optionADesc")}
             isOpen={openPanels.comprar === "a"}
             onClick={() => togglePanel("comprar", "a")}
           />
           <FlowCard
             className="cw-home-reveal cw-home-reveal-d2"
-            badge="Opcion B"
-            title="Ayudame a encontrar los modelos que mejor se adapten a mi"
-            description="Realiza nuestro test para conocernos y ayudarte a elegir el coche que encaje con tu estilo de vida y desplazamientos."
+            badge={t("homeProcessSections.optionB")}
+            title={t("homeProcessSections.optionBTitle")}
+            description={t("homeProcessSections.optionBDesc")}
             isOpen={openPanels.comprar === "b"}
             onClick={() => togglePanel("comprar", "b")}
           />
@@ -140,97 +143,97 @@ export default function HomeProcessSections({
 
         <FlowPanel
           isOpen={openPanels.comprar === "a"}
-          header="Flujo A - Modelo conocido - 6 pasos"
+          header={t("homeProcessSections.flowAHeader")}
           onAccess={onAccessBuyKnownModel}
           steps={[
-            { n: 1, title: "Selecciona el modelo", sub: "Marca, modelo y version" },
-            { n: 2, title: "Establece tus limites geograficos y de precio" },
-            { n: 3, title: "Analizamos anuncios en tiempo real", sub: "Precio, proveedor y caracteristicas del vehiculo" },
-            { n: 4, title: "Te ofrecemos las 5 mejores opciones" },
-            { n: 5, title: "Agendamos una cita con el vendedor" },
-            { n: 6, title: "Te buscamos la mejor financiacion" },
+            { n: 1, title: t("homeProcessSections.flowAStep1"), sub: t("homeProcessSections.flowAStep1Sub") },
+            { n: 2, title: t("homeProcessSections.flowAStep2") },
+            { n: 3, title: t("homeProcessSections.flowAStep3"), sub: t("homeProcessSections.flowAStep3Sub") },
+            { n: 4, title: t("homeProcessSections.flowAStep4") },
+            { n: 5, title: t("homeProcessSections.flowAStep5") },
+            { n: 6, title: t("homeProcessSections.flowAStep6") },
           ]}
         />
 
         <FlowPanel
           isOpen={openPanels.comprar === "b"}
-          header="Flujo B - Test CarsWise - seleccion personalizada"
+          header={t("homeProcessSections.flowBHeader")}
           onAccess={onAccessBuyGuided}
           steps={[
-            { n: 1, title: "Test CarsWise", sub: "Estilo de vida, desplazamientos, entorno legal" },
-            { n: 2, title: "Establece tus limites geograficos y de precio" },
-            { n: 3, title: "Analizamos anuncios en tiempo real" },
-            { n: 4, title: "Te ofrecemos las 5 mejores opciones" },
-            { n: 5, title: "Agendamos una cita con el vendedor" },
-            { n: 6, title: "Te buscamos la mejor financiacion" },
+            { n: 1, title: t("homeProcessSections.flowBStep1"), sub: t("homeProcessSections.flowBStep1Sub") },
+            { n: 2, title: t("homeProcessSections.flowBStep2") },
+            { n: 3, title: t("homeProcessSections.flowBStep3") },
+            { n: 4, title: t("homeProcessSections.flowBStep4") },
+            { n: 5, title: t("homeProcessSections.flowBStep5") },
+            { n: 6, title: t("homeProcessSections.flowBStep6") },
           ]}
         />
       </section>
 
       <section id="servicios">
         <div className="cw-home-section-num">2</div>
-        <div className="cw-home-section-label cw-home-reveal">Servicios</div>
-        <h2 className="cw-home-section-title cw-home-reveal cw-home-reveal-d1">Quiero contratar un servicio</h2>
+        <div className="cw-home-section-label cw-home-reveal">{t("homeProcessSections.serviceLabel")}</div>
+        <h2 className="cw-home-section-title cw-home-reveal cw-home-reveal-d1">{t("homeProcessSections.serviceTitle")}</h2>
         <p className="cw-home-section-desc cw-home-reveal cw-home-reveal-d2">
-          Herramientas para que tu relacion con tu coche sea mas sencilla, economica y sin sorpresas.
+          {t("homeProcessSections.serviceDesc")}
         </p>
 
         <div className="cw-home-svc-grid">
           <button type="button" className="cw-home-svc-card cw-home-reveal" onClick={onAccessServiceAutogestor}>
             <div className="cw-home-svc-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" /></svg></div>
-            <div className="cw-home-svc-pill">A - Autogestor</div>
-            <h3>ID digital de tu vehiculo</h3>
-            <p>Toda la informacion de tu coche desde una unica plataforma: documentacion, poliza, facturas de mantenimientos y garantias. No vuelvas a perder un papel.</p>
+            <div className="cw-home-svc-pill">{t("homeProcessSections.serviceAutogestorLabel")}</div>
+            <h3>{t("homeProcessSections.serviceAutogestorTitle")}</h3>
+            <p>{t("homeProcessSections.serviceAutogestorDesc")}</p>
           </button>
           <button type="button" className="cw-home-svc-card cw-home-reveal cw-home-reveal-d1" onClick={onAccessServiceMaintenance}>
             <div className="cw-home-svc-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg></div>
-            <div className="cw-home-svc-pill">B - Mantenimientos</div>
-            <h3>Recordatorio inteligente</h3>
-            <p>Cruzamos los datos de tu vehiculo con el plan de mantenimientos definido por la marca y te avisamos cuando toca. Agenda cita con nuestros proveedores.</p>
+            <div className="cw-home-svc-pill">{t("homeProcessSections.serviceMaintenanceLabel")}</div>
+            <h3>{t("homeProcessSections.serviceMaintenanceTitle")}</h3>
+            <p>{t("homeProcessSections.serviceMaintenanceDesc")}</p>
           </button>
           <button type="button" className="cw-home-svc-card cw-home-reveal cw-home-reveal-d2" onClick={onAccessServiceAppointment}>
             <div className="cw-home-svc-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg></div>
-            <div className="cw-home-svc-pill">C - Cita mantenimientos</div>
-            <h3>Precios de acuerdo, no de particular</h3>
-            <p>Aprovecha nuestros acuerdos para conseguir precios mas reducidos y agenda tu proxima revision a traves nuestra.</p>
+            <div className="cw-home-svc-pill">{t("homeProcessSections.serviceAppointmentLabel")}</div>
+            <h3>{t("homeProcessSections.serviceAppointmentTitle")}</h3>
+            <p>{t("homeProcessSections.serviceAppointmentDesc")}</p>
           </button>
           <button type="button" className="cw-home-svc-card cw-home-reveal cw-home-reveal-d1" onClick={onAccessServiceMonthlyPlan}>
             <div className="cw-home-svc-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 3" /></svg></div>
-            <div className="cw-home-svc-pill">D - Cuota mensual</div>
-            <h3>Tu mantenimiento en una cuota fija</h3>
-            <p>Quieres pagar una cuota mensual por el mantenimiento preventivo de tu coche y no llevarte mas sustos antes de vacaciones? Con nosotros es posible.</p>
+            <div className="cw-home-svc-pill">{t("homeProcessSections.serviceMonthlyLabel")}</div>
+            <h3>{t("homeProcessSections.serviceMonthlyTitle")}</h3>
+            <p>{t("homeProcessSections.serviceMonthlyDesc")}</p>
           </button>
           <button type="button" className="cw-home-svc-card cw-home-reveal cw-home-reveal-d2" onClick={onAccessServiceInsurance}>
             <div className="cw-home-svc-icon"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg></div>
-            <div className="cw-home-svc-pill">E - Seguro - AInsurance</div>
-            <h3>Entiende de verdad tu poliza</h3>
-            <p>Sube tu poliza y nuestra IA lee las condiciones. Te resumimos ventajas, puntos debiles y te ayudamos a buscar opciones mas completas o economicas en la renovacion.</p>
+            <div className="cw-home-svc-pill">{t("homeProcessSections.serviceInsuranceLabel")}</div>
+            <h3>{t("homeProcessSections.serviceInsuranceTitle")}</h3>
+            <p>{t("homeProcessSections.serviceInsuranceDesc")}</p>
           </button>
         </div>
       </section>
 
       <section id="vender">
         <div className="cw-home-section-num">3</div>
-        <div className="cw-home-section-label cw-home-reveal">Venta</div>
-        <h2 className="cw-home-section-title cw-home-reveal cw-home-reveal-d1">Quiero vender</h2>
+        <div className="cw-home-section-label cw-home-reveal">{t("homeProcessSections.sellLabel")}</div>
+        <h2 className="cw-home-section-title cw-home-reveal cw-home-reveal-d1">{t("homeProcessSections.sellTitle")}</h2>
         <p className="cw-home-section-desc cw-home-reveal cw-home-reveal-d2">
-          Tanto si quieres gestionar la venta tu mismo con informacion de mercado como si prefieres que lo hagamos por ti de principio a fin.
+          {t("homeProcessSections.sellDesc")}
         </p>
 
         <div className="cw-home-path-grid">
           <FlowCard
             className="cw-home-reveal cw-home-reveal-d1"
-            badge="Opcion A"
-            title="Te damos la informacion para vender"
-            description="No tasamos tu vehiculo, te damos informacion de mercado: precio medio actual y numero de unidades en venta en los principales portales."
+            badge={t("homeProcessSections.optionA")}
+            title={t("homeProcessSections.sellOptionATitle")}
+            description={t("homeProcessSections.sellOptionADesc")}
             isOpen={openPanels.vender === "a"}
             onClick={() => togglePanel("vender", "a")}
           />
           <FlowCard
             className="cw-home-reveal cw-home-reveal-d2"
-            badge="Opcion B"
-            title="Te ayudamos a vender como un profesional"
-            description="Definimos el precio, publicamos en portales, filtramos llamadas, agendamos citas y gestionamos la venta completa por ti."
+            badge={t("homeProcessSections.optionB")}
+            title={t("homeProcessSections.sellOptionBTitle")}
+            description={t("homeProcessSections.sellOptionBDesc")}
             isOpen={openPanels.vender === "b"}
             onClick={() => togglePanel("vender", "b")}
           />
@@ -238,38 +241,38 @@ export default function HomeProcessSections({
 
         <div className={`cw-home-flow-panel ${openPanels.vender === "a" ? "open" : ""}`}>
           <div className="cw-home-flow-inner">
-            <div className="cw-home-flow-header">Consulta de valor de mercado - introduce los datos de tu vehiculo</div>
+            <div className="cw-home-flow-header">{t("homeProcessSections.sellFlowAHeader")}</div>
             <div className="cw-home-filter-grid">
-              <div className="cw-home-filter-field"><div className="cw-home-filter-label">Matricula</div><div className="cw-home-filter-value">1234 ABC</div></div>
-              <div className="cw-home-filter-field"><div className="cw-home-filter-label">Marca</div><div className="cw-home-filter-value">Volkswagen</div></div>
-              <div className="cw-home-filter-field"><div className="cw-home-filter-label">Modelo</div><div className="cw-home-filter-value">Golf</div></div>
-              <div className="cw-home-filter-field"><div className="cw-home-filter-label">Version</div><div className="cw-home-filter-value">1.5 TSI Life</div></div>
-              <div className="cw-home-filter-field"><div className="cw-home-filter-label">Matriculacion</div><div className="cw-home-filter-value">2020</div></div>
-              <div className="cw-home-filter-field"><div className="cw-home-filter-label">Kilometros</div><div className="cw-home-filter-value">45.000 km</div></div>
-              <div className="cw-home-filter-field"><div className="cw-home-filter-label">Danos</div><div className="cw-home-filter-value">Sin danos visibles</div></div>
-              <div className="cw-home-filter-field"><div className="cw-home-filter-label">Resultado</div><div className="cw-home-filter-value acc">Precio medio + unidades</div></div>
+              <div className="cw-home-filter-field"><div className="cw-home-filter-label">{t("homeProcessSections.sellFlowAPlateLabel")}</div><div className="cw-home-filter-value">1234 ABC</div></div>
+              <div className="cw-home-filter-field"><div className="cw-home-filter-label">{t("homeProcessSections.sellFlowABrandLabel")}</div><div className="cw-home-filter-value">Volkswagen</div></div>
+              <div className="cw-home-filter-field"><div className="cw-home-filter-label">{t("homeProcessSections.sellFlowAModelLabel")}</div><div className="cw-home-filter-value">Golf</div></div>
+              <div className="cw-home-filter-field"><div className="cw-home-filter-label">{t("homeProcessSections.sellFlowAVersionLabel")}</div><div className="cw-home-filter-value">1.5 TSI Life</div></div>
+              <div className="cw-home-filter-field"><div className="cw-home-filter-label">{t("homeProcessSections.sellFlowARegistrationLabel")}</div><div className="cw-home-filter-value">2020</div></div>
+              <div className="cw-home-filter-field"><div className="cw-home-filter-label">{t("homeProcessSections.sellFlowAMileageLabel")}</div><div className="cw-home-filter-value">45.000 km</div></div>
+              <div className="cw-home-filter-field"><div className="cw-home-filter-label">{t("homeProcessSections.sellFlowADamagesLabel")}</div><div className="cw-home-filter-value">{t("homeProcessSections.sellFlowADamagesValue")}</div></div>
+              <div className="cw-home-filter-field"><div className="cw-home-filter-label">{t("homeProcessSections.sellFlowAResultLabel")}</div><div className="cw-home-filter-value acc">{t("homeProcessSections.sellFlowAResultValue")}</div></div>
             </div>
             <div className="cw-home-result-note">
-              Recibiras el precio medio al que se oferta actualmente en los principales portales y el numero de unidades encontradas a la venta con esas caracteristicas.
+              {t("homeProcessSections.sellFlowANote")}
             </div>
             <div className="cw-home-flow-actions">
-              <button type="button" className="cw-home-flow-access-btn" onClick={onAccessSellInfo}>Acceder</button>
+              <button type="button" className="cw-home-flow-access-btn" onClick={onAccessSellInfo}>{t("sell.accessButton")}</button>
             </div>
           </div>
         </div>
 
         <FlowPanel
           isOpen={openPanels.vender === "b"}
-          header="Flujo B - Venta asistida integral - 7 pasos"
+          header={t("homeProcessSections.sellFlowBHeader")}
           onAccess={onAccessSellManaged}
           steps={[
-            { n: 1, title: "Acudimos a verte si es necesario", sub: "Certificamos el estado real del vehiculo" },
-            { n: 2, title: "Acordamos el precio de venta contigo" },
-            { n: 3, title: "Valoramos arreglarlo si mejora su posicionamiento", sub: "Opcion de preparacion previa a la venta" },
-            { n: 4, title: "Publicamos anuncios en los principales portales", sub: "Con las mejores fotos y descripcion, por ti" },
-            { n: 5, title: "Recibimos y filtramos las llamadas de interesados", sub: "Solo te trasladamos clientes potenciales reales" },
-            { n: 6, title: "Agendamos citas segun tu disponibilidad", sub: "Los compradores van a tu casa a ver el coche" },
-            { n: 7, title: "Soporte integral en todos los tramites de la venta", sub: "Contrato, transferencia y gestion documental" },
+            { n: 1, title: t("homeProcessSections.sellFlowBStep1"), sub: t("homeProcessSections.sellFlowBStep1Sub") },
+            { n: 2, title: t("homeProcessSections.sellFlowBStep2") },
+            { n: 3, title: t("homeProcessSections.sellFlowBStep3"), sub: t("homeProcessSections.sellFlowBStep3Sub") },
+            { n: 4, title: t("homeProcessSections.sellFlowBStep4") },
+            { n: 5, title: t("homeProcessSections.sellFlowBStep5") },
+            { n: 6, title: t("homeProcessSections.sellFlowBStep6") },
+            { n: 7, title: t("homeProcessSections.sellFlowBStep7") },
           ]}
         />
       </section>

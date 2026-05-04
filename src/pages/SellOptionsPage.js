@@ -1,4 +1,7 @@
+import { useTranslation } from "react-i18next";
+
 export default function SellOptionsPage({ styles, onSelectCertificate, onSelectReport, onGoBack }) {
+  const { t } = useTranslation();
   const isDark = styles?.page?.color === "#e2e8f0";
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
   const mutedColor = isDark ? "#cbd5e1" : "#475569";
@@ -22,21 +25,21 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
           marginBottom: 20,
         }}
       >
-        ← Volver
+        {t("sell.goBack")}
       </button>
 
       <div style={{ marginBottom: 10, marginTop: 4, display: "flex", alignItems: "center", gap: 12 }}>
         <span style={{ fontSize: 10, letterSpacing: "0.18em", fontWeight: 800, color: "#2563eb", textTransform: "uppercase" }}>
-          Venta
+          {t("sell.badgeLabel")}
         </span>
         <span style={{ width: 34, height: 1, background: "rgba(37,99,235,0.5)" }} />
       </div>
 
       <h2 style={{ margin: "0 0 8px", fontSize: "clamp(28px,4vw,38px)", color: titleColor, letterSpacing: "-0.9px" }}>
-        Quiero vender
+        {t("sell.pageTitle")}
       </h2>
       <p style={{ margin: "0 0 22px", color: mutedColor, fontSize: 14, lineHeight: 1.6, maxWidth: 720 }}>
-        Tanto si quieres gestionar la venta tu mismo con informacion de mercado como si prefieres que lo hagamos por ti de principio a fin.
+        {t("sell.pageSubtitle")}
       </p>
 
       <div
@@ -92,7 +95,7 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
               marginBottom: 4,
             }}
           >
-            Opcion A
+            {t("sell.optionABadge")}
           </span>
           <span
             style={{
@@ -113,10 +116,10 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
             &gt;
           </span>
           <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
-            Te damos la informacion para vender
+            {t("sell.optionATitle")}
           </div>
           <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
-            No tasamos tu vehiculo, te damos informacion de mercado: precio medio actual y numero de unidades en venta en los principales portales.
+            {t("sell.optionADesc")}
           </div>
           <button
             type="button"
@@ -136,7 +139,7 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
               cursor: "pointer",
             }}
           >
-            Acceder
+            {t("sell.accessButton")}
           </button>
         </article>
 
@@ -185,7 +188,7 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
               marginBottom: 4,
             }}
           >
-            Opcion B
+            {t("sell.optionBBadge")}
           </span>
           <span
             style={{
@@ -206,10 +209,10 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
             &gt;
           </span>
           <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
-            Te ayudamos a vender como un profesional
+            {t("sell.optionBTitle")}
           </div>
           <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
-            Definimos el precio, publicamos en portales, filtramos llamadas, agendamos citas y gestionamos la venta completa por ti.
+            {t("sell.optionBDesc")}
           </div>
           <button
             type="button"
@@ -229,7 +232,7 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
               cursor: "pointer",
             }}
           >
-            Acceder
+            {t("sell.accessButton")}
           </button>
         </article>
       </div>

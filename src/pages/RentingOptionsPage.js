@@ -1,14 +1,17 @@
+import { useTranslation } from "react-i18next";
+
 export default function RentingOptionsPage({ styles, onSelectAdvisor, onSelectKnownModel, onGoBack }) {
+  const { t } = useTranslation();
   const isDark = styles?.page?.color === "#e2e8f0";
   const titleColor = isDark ? "#f8fafc" : "#000000";
   const mutedColor = isDark ? "#cbd5e1" : "#94a3b8";
 
   const timelineSteps = [
-    "Seleccionas una opcion",
-    "Respondes al CarsWise",
-    "Analizamos el mercado en tiempo real",
-    "Te ofrecemos 3 modelos",
-    "Te agendamos una cita",
+    t("renting.step1"),
+    t("renting.step2"),
+    t("renting.step3"),
+    t("renting.step4"),
+    t("renting.step5"),
   ];
 
   return (
@@ -117,14 +120,14 @@ export default function RentingOptionsPage({ styles, onSelectAdvisor, onSelectKn
           marginBottom: 20,
         }}
       >
-        ← Volver
+        {t("common.backArrow")}
       </button>
 
       <h2 style={{ margin: "0 0 8px", fontSize: "clamp(28px,4vw,38px)", color: titleColor, letterSpacing: "-0.9px" }}>
-        Renting
+        {t("renting.title")}
       </h2>
       <p style={{ margin: "0 0 22px", color: mutedColor, fontSize: 14, lineHeight: 1.6 }}>
-        Selecciona la opción que mejor describa tu punto de partida.
+        {t("renting.subtitle")}
       </p>
 
       <div
@@ -156,10 +159,10 @@ export default function RentingOptionsPage({ styles, onSelectAdvisor, onSelectKn
           }}
         >
           <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
-            No sé qué modelo
+            {t("renting.unknownModel")}
           </div>
           <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
-            Ayúdanos a conocerte en 3 minutos con nuestro CarsWise para encontrar las opciones de renting que más se adapten a ti.
+            {t("renting.unknownModelDesc")}
           </div>
         </button>
 
@@ -184,10 +187,10 @@ export default function RentingOptionsPage({ styles, onSelectAdvisor, onSelectKn
           }}
         >
           <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
-            Tengo claro cuál quiero
+            {t("renting.knownModel")}
           </div>
           <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
-            Analizamos el mercado en tiempo real para ofrecerte las mejores opciones de renting en base al precio y la fiabilidad del proveedor.
+            {t("renting.knownModelDesc")}
           </div>
         </button>
       </div>
@@ -204,7 +207,7 @@ export default function RentingOptionsPage({ styles, onSelectAdvisor, onSelectKn
         className="renting-flow-card ma-card-soft ma-fade-stagger"
       >
         <div style={{ fontSize: 12, color: "#93c5fd", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 10 }}>
-          ASI FUNCIONA
+          {t("renting.howItWorks")}
         </div>
         <div style={{ position: "relative", display: "grid", gap: 9 }}>
           <div className="renting-flow-axis" />
@@ -215,7 +218,7 @@ export default function RentingOptionsPage({ styles, onSelectAdvisor, onSelectKn
               style={{ animationDelay: `${index * 90}ms` }}
             >
               <div className="renting-flow-dot" />
-              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, marginBottom: 3 }}>Paso {index + 1}</div>
+              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, marginBottom: 3 }}>{t("renting.stepLabel")} {index + 1}</div>
               <div style={{ fontSize: 13, color: "#cbd5e1", lineHeight: 1.45 }}>{label}</div>
             </div>
           ))}

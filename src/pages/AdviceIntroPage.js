@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function AdviceIntroPage({ styles, pillars, onStart, onRestart }) {
   const isDark = styles?.page?.color === "#e2e8f0";
@@ -8,15 +9,16 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
   const cardBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(15,23,42,0.14)";
   const [showAnalysis, setShowAnalysis] = useState(false);
 
+  const { t } = useTranslation();
   const checklist = [
-    "Uso y desplazamientos",
-    "Entorno y zona",
-    "Presupuesto",
-    "Prioridades de compra",
-    "Preferencias de vehículo",
+    t("advice.checklistUsage"),
+    t("advice.checklistEnvironment"),
+    t("advice.checklistBudget"),
+    t("advice.checklistPriorities"),
+    t("advice.checklistPreferences"),
   ];
 
-  const badges = ["3-5 minutos", "Sin registro previo", "Resultado inmediato"];
+  const badges = [t("advice.duration"), t("advice.noRegistration"), t("advice.immediateResult")];
 
   return (
     <div style={{ ...styles.center, maxWidth: 1180, textAlign: "left" }}>
@@ -71,7 +73,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
       <div className="cw-advice-intro-grid">
         <div>
           <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.16em", color: "#0f172a", textTransform: "uppercase", marginBottom: 16 }}>
-            Antes de empezar
+            {t("advice.beforeStart")}
           </div>
 
           <h2
@@ -85,13 +87,13 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
               maxWidth: 620,
             }}
           >
-            Cuentanos <span style={{ color: "#2563eb" }}>como es tu vida</span>
+            {t("advice.introTitleStart")} <span style={{ color: "#2563eb" }}>{t("advice.introTitleAccent")}</span>
             <br />
-            y encontramos tu coche ideal
+            {t("advice.introTitleEnd")}
           </h2>
 
           <p style={{ margin: "0 0 22px", color: mutedColor, fontSize: 15, lineHeight: 1.75, maxWidth: 520 }}>
-            Unas pocas preguntas sobre tus desplazamientos, entorno y prioridades. Sin tecnicismos. Analizamos el mercado en tiempo real con ese perfil y te presentamos las mejores opciones.
+            {t("advice.introDescription")}
           </p>
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 26 }}>
@@ -135,7 +137,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
                 boxShadow: "0 12px 26px rgba(37,99,235,0.18)",
               }}
             >
-              Empezar CarsWise Test
+              {t("advice.startTest")}
             </button>
 
             <button
@@ -152,7 +154,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
                 cursor: "pointer",
               }}
             >
-              Volver al inicio
+              {t("common.backHome")}
             </button>
           </div>
         </div>
@@ -168,7 +170,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
             }}
           >
             <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: "#0f172a", marginBottom: 14 }}>
-              El test incluye
+              {t("advice.testIncludes")}
             </div>
             <div style={{ display: "grid", gap: 10 }}>
               {checklist.map((item, index) => (
@@ -216,7 +218,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
             }}
           >
             <span style={{ color: "#64748b", fontSize: 13 }}>◌</span>
-            <span>Como funciona el analisis?</span>
+            <span>{t("advice.howAnalysisWorks")}</span>
             <span style={{ color: "#0f766e" }}>{showAnalysis ? "−" : "+"}</span>
           </button>
         </div>
@@ -240,7 +242,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
       <div style={{ marginTop: 34, paddingTop: 14, borderTop: "1px solid rgba(148,163,184,0.2)", display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 8, color: mutedColor, fontSize: 13, fontWeight: 600 }}>
           <span style={{ fontSize: 11 }}>◌</span>
-          Tus respuestas no se almacenan sin tu permiso
+          {t("advice.dataPrivacy")}
         </div>
         <div style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
           {[0, 1, 2, 3, 4].map((index) => (

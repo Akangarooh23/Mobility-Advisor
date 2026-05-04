@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 export default function ResultsHeader({
   themeMode,
   result,
@@ -7,6 +9,8 @@ export default function ResultsHeader({
   valuationPromptText,
   openSellValuationFromOffers,
 }) {
+  const { i18n } = useTranslation();
+  const isEn = i18n.language === "en";
   const isDark = themeMode === "dark";
 
   return (
@@ -27,7 +31,9 @@ export default function ResultsHeader({
             letterSpacing: "0.6px",
           }}
         >
-          ✅ ANÁLISIS COMPLETADO · {result.alineacion_pct || result.solucion_principal?.score}% ALINEACIÓN{confidenceLabel}
+          {isEn
+            ? `✅ ANALYSIS COMPLETED · ${result.alineacion_pct || result.solucion_principal?.score}% ALIGNMENT${confidenceLabel}`
+            : `✅ ANÁLISIS COMPLETADO · ${result.alineacion_pct || result.solucion_principal?.score}% ALINEACIÓN${confidenceLabel}`}
         </div>
         <h2
           style={{
@@ -38,7 +44,7 @@ export default function ResultsHeader({
             color: isDark ? "#f8fafc" : "#0f172a",
           }}
         >
-          Tu solución de movilidad óptima
+          {isEn ? "Your optimal mobility solution" : "Tu solución de movilidad óptima"}
         </h2>
       </div>
 
@@ -60,7 +66,7 @@ export default function ResultsHeader({
         >
           <div style={{ flex: 1, minWidth: 240 }}>
             <div style={{ fontSize: 10, color: isDark ? "#fcd34d" : "#92400e", marginBottom: 6, fontWeight: 800, letterSpacing: "0.6px" }}>
-              💶 TASACIÓN RECOMENDADA
+              {isEn ? "💶 RECOMMENDED VALUATION" : "💶 TASACIÓN RECOMENDADA"}
             </div>
             <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 4 }}>
               {valuationPromptTitle}
@@ -84,7 +90,7 @@ export default function ResultsHeader({
               boxShadow: "0 12px 30px rgba(217,119,6,0.16)",
             }}
           >
-            Ir a la tasación →
+            {isEn ? "Go to valuation →" : "Ir a la tasación →"}
           </button>
         </div>
       )}

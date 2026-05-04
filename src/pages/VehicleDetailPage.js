@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 const VEHICLE_DETAIL_CSS = `
 /* ══ TOKENS ══ */
@@ -323,6 +324,7 @@ function normalizeOffer(offer) {
 }
 
 export default function VehicleDetailPage({ offer, onBack }) {
+  const { t } = useTranslation();
   const [modalOpen, setModalOpen] = React.useState(false);
   const [contactForm, setContactForm] = React.useState({
     name: "",
@@ -339,7 +341,7 @@ export default function VehicleDetailPage({ offer, onBack }) {
   if (!offer) {
     return (
       <div className="vd-root" style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh" }}>
-        <div style={{ color: "var(--muted)", fontSize: 14 }}>Ficha no disponible.</div>
+        <div style={{ color: "var(--muted)", fontSize: 14 }}>{t("vehicleDetail.notAvailable")}</div>
       </div>
     );
   }
@@ -348,8 +350,8 @@ export default function VehicleDetailPage({ offer, onBack }) {
   const offerUrl = safeText(car.url || car.searchUrl);
 
   const label = car.environmentalLabel || car.label || "C";
-  const loc = [car.city, car.province].filter(Boolean).join(", ") || "Ubicación no disponible";
-  const locationLabel = loc === "Ubicación no disponible" ? "Sin ubicación" : loc;
+  const loc = [car.city, car.province].filter(Boolean).join(", ") || t("vehicleDetail.locationNA");
+  const locationLabel = loc === t("vehicleDetail.locationNA") ? t("vehicleDetail.noLocation") : loc;
   const yearLabel = car.year || "N/D";
 
   function handleSubmit() {
@@ -371,7 +373,7 @@ export default function VehicleDetailPage({ offer, onBack }) {
           <svg viewBox="0 0 24 24">
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
-          Volver
+          {t("vehicleDetail.back")}
         </button>
       </div>
 
@@ -392,11 +394,11 @@ export default function VehicleDetailPage({ offer, onBack }) {
               />
             ) : (
               <div style={{ width: "100%", height: "100%", background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", color: "#7a756c", fontSize: 13 }}>
-                Sin imagen
+                {t("vehicleDetail.noImage")}
               </div>
             )}
-            <div className="vd-gallery-badge">CarsWise Análisis</div>
-            <div className="vd-portal-source">Fuente: {portalLabel(car.portal)}</div>
+            <div className="vd-gallery-badge">{t("vehicleDetail.analysisLabel")}</div>
+            <div className="vd-portal-source">{t("vehicleDetail.source")}: {portalLabel(car.portal)}</div>
           </div>
 
           {/* TITLE BLOCK */}
@@ -421,24 +423,24 @@ export default function VehicleDetailPage({ offer, onBack }) {
             <div className="vd-spec-card">
               <span className="vd-spec-icon">🛣️</span>
               <div className="vd-spec-val">{car.mileage ? `${fmt(car.mileage)} km` : "—"}</div>
-              <div className="vd-spec-lbl">Kilometraje</div>
+              <div className="vd-spec-lbl">{t("vehicleDetail.mileage")}</div>
             </div>
             <div className="vd-spec-card">
               <span className="vd-spec-icon">⚡</span>
               <div className="vd-spec-val">{car.powerCv || car.power || "—"} CV</div>
               <div className="vd-spec-lbl">
-                Potencia{car.powerKw ? ` · ${car.powerKw} kW` : ""}
+                {t("vehicleDetail.power")}{car.powerKw ? ` · ${car.powerKw} kW` : ""}
               </div>
             </div>
             <div className="vd-spec-card">
               <span className="vd-spec-icon">⚙️</span>
               <div className="vd-spec-val">{car.transmission || "—"}</div>
-              <div className="vd-spec-lbl">Transmisión</div>
+              <div className="vd-spec-lbl">{t("vehicleDetail.transmission")}</div>
             </div>
             <div className="vd-spec-card">
               <span className="vd-spec-icon">🚗</span>
               <div className="vd-spec-val">{car.bodyType || car.body || "—"}</div>
-              <div className="vd-spec-lbl">Carrocería</div>
+              <div className="vd-spec-lbl">{t("vehicleDetail.bodyType")}</div>
             </div>
           </div>
 
@@ -448,7 +450,7 @@ export default function VehicleDetailPage({ offer, onBack }) {
         <div className="vd-right">
           {/* PRICE CARD */}
           <div className="vd-price-card">
-            <div className="vd-price-main-label">Precio de compra</div>
+            <div className="vd-price-main-label">{t("vehicleDetail.purchasePrice")}</div>
             <div className="vd-price-main">
               <sup>€</sup>{car.price ? fmt(car.price) : "—"}
             </div>
@@ -458,7 +460,7 @@ export default function VehicleDetailPage({ offer, onBack }) {
               <div className="vd-finance-block">
                 {car.financePrice > 0 && (
                   <div className="vd-finance-row">
-                    <span className="vd-finance-key">Precio Financiado</span>
+                    <span className="vd-finance-key">{t("vehicleDetail.financedPrice")}</span>
                     <div className="vd-finance-monthly">
                       €{fmt(car.financePrice)}
                     </div>
@@ -466,7 +468,7 @@ export default function VehicleDetailPage({ offer, onBack }) {
                 )}
                 {car.monthlyPrice > 0 && (
                   <div className="vd-finance-row">
-                    <span className="vd-finance-key">Coste mes</span>
+                    <span className="vd-finance-key">{t("vehicleDetail.monthlyCost")}</span>
                     <span className="vd-finance-val">{fmt(car.monthlyPrice)} €/mes</span>
                   </div>
                 )}
@@ -474,13 +476,13 @@ export default function VehicleDetailPage({ offer, onBack }) {
             )}
 
             <button className="vd-btn-primary" onClick={() => setModalOpen(true)}>
-              Solicitar información — CarsWise gestiona
+              {t("vehicleDetail.requestInfo")}
             </button>
             <button className="vd-btn-secondary" onClick={() => setModalOpen(true)}>
-              📅 Agendar visita al vehículo
+              {t("vehicleDetail.scheduleVisit")}
             </button>
             <button className="vd-btn-secondary" onClick={() => setModalOpen(true)}>
-              💬 Preguntar sobre este coche
+              {t("vehicleDetail.askAboutCar")}
             </button>
             <button
               className="vd-btn-ghost"
@@ -492,25 +494,25 @@ export default function VehicleDetailPage({ offer, onBack }) {
                 }
               }}
             >
-              🔗 Compartir esta ficha
+              {t("vehicleDetail.shareCard")}
             </button>
 
             <div className="vd-trust-row">
               <div className="vd-trust-item">
                 <span className="vd-trust-ico">🛡️</span>
-                <span className="vd-trust-lbl">Sin datos<br />al vendedor</span>
+                <span className="vd-trust-lbl">{t("vehicleDetail.trustNoData")}<br />{t("vehicleDetail.trustToSeller")}</span>
               </div>
               <div className="vd-trust-item">
                 <span className="vd-trust-ico">⚡</span>
-                <span className="vd-trust-lbl">Respuesta<br />&lt; 2 horas</span>
+                <span className="vd-trust-lbl">{t("vehicleDetail.trustResponse")}<br />&lt; 2 {t("vehicleDetail.trustHours")}</span>
               </div>
               <div className="vd-trust-item">
                 <span className="vd-trust-ico">📊</span>
-                <span className="vd-trust-lbl">Precio<br />analizado</span>
+                <span className="vd-trust-lbl">{t("vehicleDetail.trustPrice")}<br />{t("vehicleDetail.trustAnalyzed")}</span>
               </div>
               <div className="vd-trust-item">
                 <span className="vd-trust-ico">🆓</span>
-                <span className="vd-trust-lbl">Servicio<br />gratuito</span>
+                <span className="vd-trust-lbl">{t("vehicleDetail.trustService")}<br />{t("vehicleDetail.trustFree")}</span>
               </div>
             </div>
           </div>
@@ -518,23 +520,23 @@ export default function VehicleDetailPage({ offer, onBack }) {
           {/* SELLER CARD */}
           <div className="vd-seller-card">
             <div className="vd-seller-type">
-              {car.sellerType === "profesional" ? "🏢 Profesional" : "👤 Particular"}
+              {car.sellerType === "profesional" ? `🏢 ${t("vehicleDetail.professional")}` : `👤 ${t("vehicleDetail.private")}`}
             </div>
             <div className="vd-seller-name">
-              {car.dealerName || "Vendedor verificado CarsWise"}
+              {car.dealerName || t("vehicleDetail.verifiedSeller")}
             </div>
             <div className="vd-seller-meta">
-              Los datos de contacto se facilitan cuando confirmes el interés
+              {t("vehicleDetail.contactDataInfo")}
             </div>
             <div className="vd-seller-portal">
               <div className="vd-portal-dot" />
-              Anuncio publicado en {portalLabel(car.portal)} · Gestionado por CarsWise
+              {t("vehicleDetail.listingPublished", { portal: portalLabel(car.portal) })}
             </div>
           </div>
 
           {car.warrantyMonths > 0 && (
             <div className="vd-warranty-row">
-              ✅ Garantía de {car.warrantyMonths} meses incluida en el precio
+              ✅ {t("vehicleDetail.warrantyIncluded", { months: car.warrantyMonths })}
             </div>
           )}
         </div>
@@ -542,60 +544,60 @@ export default function VehicleDetailPage({ offer, onBack }) {
         <div className="vd-left-secondary">
           {/* TECHNICAL */}
           <div className="vd-section">
-            <div className="vd-section-title">Ficha técnica</div>
+            <div className="vd-section-title">{t("vehicleDetail.technicalSheet")}</div>
             <div className="vd-detail-grid">
               <div className="vd-detail-row">
-                <span className="vd-detail-key">Cilindrada</span>
+                <span className="vd-detail-key">{t("vehicleDetail.displacement")}</span>
                 <span className="vd-detail-val">{car.displacement || "—"}</span>
               </div>
               <div className="vd-detail-row">
-                <span className="vd-detail-key">Tracción</span>
+                <span className="vd-detail-key">{t("vehicleDetail.traction")}</span>
                 <span className="vd-detail-val">{car.traction || "—"}</span>
               </div>
               <div className="vd-detail-row">
-                <span className="vd-detail-key">Transmisión</span>
+                <span className="vd-detail-key">{t("vehicleDetail.transmission")}</span>
                 <span className="vd-detail-val">{car.transmission || "—"}</span>
               </div>
               <div className="vd-detail-row">
-                <span className="vd-detail-key">Tipo de vendedor</span>
+                <span className="vd-detail-key">{t("vehicleDetail.sellerType")}</span>
                 <span className="vd-detail-val">
                   {car.sellerType === "profesional"
-                    ? "Profesional"
+                    ? t("vehicleDetail.professional")
                     : car.sellerType === "particular"
-                      ? "Particular"
+                      ? t("vehicleDetail.private")
                       : car.sellerType || "—"}
                 </span>
               </div>
               <div className="vd-detail-row">
-                <span className="vd-detail-key">Puertas</span>
+                <span className="vd-detail-key">{t("vehicleDetail.doors")}</span>
                 <span className="vd-detail-val">{car.doors || "—"}</span>
               </div>
               <div className="vd-detail-row">
-                <span className="vd-detail-key">Plazas</span>
+                <span className="vd-detail-key">{t("vehicleDetail.seats")}</span>
                 <span className="vd-detail-val">{car.seats || "—"}</span>
               </div>
               <div className="vd-detail-row">
-                <span className="vd-detail-key">Color</span>
+                <span className="vd-detail-key">{t("vehicleDetail.color")}</span>
                 <span className="vd-detail-val">{car.color || "—"}</span>
               </div>
               <div className="vd-detail-row">
-                <span className="vd-detail-key">Consumo medio</span>
+                <span className="vd-detail-key">{t("vehicleDetail.avgConsumption")}</span>
                 <span className="vd-detail-val">{car.consumption ? `${car.consumption} l/100km` : "—"}</span>
               </div>
               <div className="vd-detail-row">
-                <span className="vd-detail-key">Próxima ITV</span>
+                <span className="vd-detail-key">{t("vehicleDetail.nextITV")}</span>
                 <span className="vd-detail-val">{car.nextITV || "—"}</span>
               </div>
               <div className="vd-detail-row">
-                <span className="vd-detail-key">Garantía</span>
-                <span className="vd-detail-val">{car.warrantyMonths > 0 ? `${car.warrantyMonths} meses` : "—"}</span>
+                <span className="vd-detail-key">{t("vehicleDetail.warranty")}</span>
+                <span className="vd-detail-val">{car.warrantyMonths > 0 ? `${car.warrantyMonths} ${t("vehicleDetail.months")}` : "—"}</span>
               </div>
             </div>
           </div>
 
           {/* CO2 */}
           <div className="vd-section">
-            <div className="vd-section-title">Emisiones CO₂</div>
+            <div className="vd-section-title">{t("vehicleDetail.co2Emissions")}</div>
             <div className="vd-co2-wrap">
               <div className="vd-co2-val">{car.co2 || "N/D"}</div>
               <div className="vd-co2-bar-bg">
@@ -609,7 +611,7 @@ export default function VehicleDetailPage({ offer, onBack }) {
               </div>
             </div>
             <div style={{ fontSize: 11, color: "var(--subtle)", marginTop: ".6rem" }}>
-              Etiqueta medioambiental:{" "}
+              {t("vehicleDetail.envLabel")}:{" "}
               <strong style={{ color: "var(--txt)" }}>
                 {label.toUpperCase() === "0" ? "0 Emisiones (CERO)" : label}
               </strong>
@@ -618,30 +620,30 @@ export default function VehicleDetailPage({ offer, onBack }) {
 
           {/* CARSWISE ANALYSIS */}
           <div className="vd-analysis-box">
-            <div className="vd-ab-title">Análisis CarsWise</div>
+            <div className="vd-ab-title">{t("vehicleDetail.analysisTitle")}</div>
             <div className="vd-ab-rows">
               <div className="vd-ab-row">
                 <span className="vd-ab-ico">🛡️</span>
-                <span className="vd-ab-txt">Vendedor verificado</span>
+                <span className="vd-ab-txt">{t("vehicleDetail.verifiedSellerLabel")}</span>
                 <span className="vd-ab-val">
-                  {car.sellerType === "profesional" ? "✓ Profesional" : "Particular"}
+                  {car.sellerType === "profesional" ? `✓ ${t("vehicleDetail.professional")}` : t("vehicleDetail.private")}
                 </span>
               </div>
               <div className="vd-ab-row">
                 <span className="vd-ab-ico">📅</span>
-                <span className="vd-ab-txt">Antigüedad</span>
+                <span className="vd-ab-txt">{t("vehicleDetail.age")}</span>
                 <span className="vd-ab-val">
                   {yearLabel}
                 </span>
               </div>
               <div className="vd-ab-row">
                 <span className="vd-ab-ico">📍</span>
-                <span className="vd-ab-txt">Ubicación</span>
+                <span className="vd-ab-txt">{t("vehicleDetail.location")}</span>
                 <span className="vd-ab-val">{loc}</span>
               </div>
               <div className="vd-ab-row">
                 <span className="vd-ab-ico">🔗</span>
-                <span className="vd-ab-txt">Publicado en</span>
+                <span className="vd-ab-txt">{t("vehicleDetail.publishedIn")}</span>
                 <span className="vd-ab-val">
                   {offerUrl ? (
                     <a
@@ -649,8 +651,8 @@ export default function VehicleDetailPage({ offer, onBack }) {
                       href={offerUrl}
                       target="_blank"
                       rel="noreferrer"
-                      title="Abrir oferta original"
-                      aria-label={`Abrir oferta en ${portalLabel(car.portal)}`}
+                      title={t("vehicleDetail.openOriginal")}
+                      aria-label={`${t("vehicleDetail.openOfferIn")} ${portalLabel(car.portal)}`}
                     >
                       {portalLabel(car.portal)}
                     </a>
@@ -674,14 +676,11 @@ export default function VehicleDetailPage({ offer, onBack }) {
             <button className="vd-modal-close" onClick={() => setModalOpen(false)}>
               ×
             </button>
-            <h3>Solicitar información</h3>
-            <p>
-              CarsWise gestiona el contacto con el vendedor por ti. Te responderemos en menos de 2
-              horas.
-            </p>
+            <h3>{t("vehicleDetail.modalTitle")}</h3>
+            <p>{t("vehicleDetail.modalDesc")}</p>
             {submitted ? (
               <div style={{ textAlign: "center", padding: "1.5rem 0", color: "var(--eco-txt)", fontWeight: 500 }}>
-                ✅ ¡Solicitud enviada! Te contactaremos en breve.
+                ✅ {t("vehicleDetail.requestSent")}
               </div>
             ) : (
               <>
@@ -689,14 +688,14 @@ export default function VehicleDetailPage({ offer, onBack }) {
                   <input
                     className="vd-modal-input"
                     type="text"
-                    placeholder="Tu nombre"
+                    placeholder={t("vehicleDetail.yourName")}
                     value={contactForm.name}
                     onChange={(e) => setContactForm((f) => ({ ...f, name: e.target.value }))}
                   />
                   <input
                     className="vd-modal-input"
                     type="tel"
-                    placeholder="Teléfono (WhatsApp)"
+                    placeholder={t("vehicleDetail.yourPhone")}
                     value={contactForm.phone}
                     onChange={(e) => setContactForm((f) => ({ ...f, phone: e.target.value }))}
                   />
@@ -713,17 +712,17 @@ export default function VehicleDetailPage({ offer, onBack }) {
                     value={contactForm.when}
                     onChange={(e) => setContactForm((f) => ({ ...f, when: e.target.value }))}
                   >
-                    <option value="">¿Cuándo quieres verlo?</option>
-                    <option value="thisweek">Esta semana</option>
-                    <option value="nextweek">La próxima semana</option>
-                    <option value="them">Me lo indican ellos</option>
+                    <option value="">{t("vehicleDetail.whenOption")}</option>
+                    <option value="thisweek">{t("vehicleDetail.thisWeek")}</option>
+                    <option value="nextweek">{t("vehicleDetail.nextWeek")}</option>
+                    <option value="them">{t("vehicleDetail.theyIndicate")}</option>
                   </select>
                 </div>
                 <button className="vd-modal-submit" onClick={handleSubmit}>
-                  Solicitar cita — CarsWise gestiona el contacto
+                  {t("vehicleDetail.requestAppointment")}
                 </button>
                 <div className="vd-modal-note">
-                  No compartimos tus datos con el vendedor hasta que tú confirmes
+                  {t("vehicleDetail.dataPrivacyNote")}
                 </div>
               </>
             )}

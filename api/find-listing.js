@@ -3997,6 +3997,76 @@ async function findListing({ result, answers, filters }) {
 
       rankedInventory = distinctByModel;
 
+      // Hard floor for test flow: always return at least TOP_LISTINGS_LIMIT DB offers
+      // when the inventory universe has enough stock, even if strict filters are too narrow.
+      if (rankedInventory.length < TOP_LISTINGS_LIMIT && Number(inventory?.totalUniverse || 0) >= TOP_LISTINGS_LIMIT) {
+        try {
+          const strictSeen = new Set(
+            rankedInventory
+              .map((item) => normalizeText(item?.url || `${item?.source || ""}|${item?.title || ""}`).toLowerCase())
+              .filter(Boolean)
+          );
+
+          const sameLocationPool = await listInventoryOffers({
+            desiredType,
+            modelCandidates: [],
+            location: normalizeText(String(filters?.location || "").replace(/_/g, " ")),
+            limit: Math.max(60, TOP_LISTINGS_LIMIT * 20),
+          });
+
+          const sameLocationCandidates = (sameLocationPool?.offers || [])
+            .map((offer) => inventoryOfferToListing(offer, desiredType))
+            .filter((listing) => listing?.url && listing?.title)
+            .filter((listing) => {
+              const key = normalizeText(listing?.url || `${listing?.source || ""}|${listing?.title || ""}`).toLowerCase();
+              return key && !strictSeen.has(key);
+            });
+
+          for (const listing of sameLocationCandidates) {
+            if (rankedInventory.length >= TOP_LISTINGS_LIMIT) {
+              break;
+            }
+            const key = normalizeText(listing?.url || `${listing?.source || ""}|${listing?.title || ""}`).toLowerCase();
+            if (!key || strictSeen.has(key)) {
+              continue;
+            }
+            strictSeen.add(key);
+            rankedInventory.push(listing);
+          }
+
+          if (rankedInventory.length < TOP_LISTINGS_LIMIT) {
+            const allSpainPool = await listInventoryOffers({
+              desiredType,
+              modelCandidates: [],
+              location: "",
+              limit: Math.max(120, TOP_LISTINGS_LIMIT * 40),
+            });
+
+            const allSpainCandidates = (allSpainPool?.offers || [])
+              .map((offer) => inventoryOfferToListing(offer, desiredType))
+              .filter((listing) => listing?.url && listing?.title);
+
+            for (const listing of allSpainCandidates) {
+              if (rankedInventory.length >= TOP_LISTINGS_LIMIT) {
+                break;
+              }
+              const key = normalizeText(listing?.url || `${listing?.source || ""}|${listing?.title || ""}`).toLowerCase();
+              if (!key || strictSeen.has(key)) {
+                continue;
+              }
+              strictSeen.add(key);
+              rankedInventory.push(listing);
+            }
+          }
+
+          if (rankedInventory.length >= TOP_LISTINGS_LIMIT && !filterInsight) {
+            filterInsight = "He ampliado ligeramente la búsqueda dentro del inventario real para mostrarte al menos 3 opciones comparables.";
+          }
+        } catch {
+          // Keep current inventory-ranked selection if broadening query fails.
+        }
+      }
+
       return {
         listing: rankedInventory[0] || null,
         listings: rankedInventory,

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { PLAN_COMPARISON_ROWS, SERVICE_PLANS } from "../data/servicePlans";
 import "./HomePricingPlans.css";
 
@@ -19,9 +20,13 @@ export default function HomePricingPlans({
   onSelectSubscriptionPlan,
   planCheckoutLoadingId,
   planCheckoutFeedback,
+  uiLanguage = "es",
 }) {
+  const { t } = useTranslation();
   const [isAnnual, setIsAnnual] = useState(false);
   const sectionRef = useRef(null);
+  
+  const isEnglish = uiLanguage === "en";
 
   useEffect(() => {
     if (typeof IntersectionObserver === "undefined" || !sectionRef.current) {
@@ -56,24 +61,24 @@ export default function HomePricingPlans({
   return (
     <section className="cw-plans" ref={sectionRef}>
       <div className="cw-plans-hero">
-        <div className="cw-plans-hero-badge">Planes de gestion y servicios</div>
+        <div className="cw-plans-hero-badge">{t("homePricingPlans.badge")}</div>
         <h2>
-          Elige el plan <span>que mejor se adapta a ti</span>
+          {t("homePricingPlans.title")} <span>{t("homePricingPlans.titleHighlight")}</span>
         </h2>
         <p>
-          Sin permanencias. Cambia o cancela cuando quieras. Todos los planes incluyen acceso a tu panel CarsWise.
+          {t("homePricingPlans.description")}
         </p>
 
         <div className="cw-plans-toggle-wrap">
-          <span className={`cw-plans-toggle-label ${!isAnnual ? "active" : ""}`}>Mensual</span>
+          <span className={`cw-plans-toggle-label ${!isAnnual ? "active" : ""}`}>{t("homePricingPlans.monthly")}</span>
           <button
             type="button"
             className={`cw-plans-toggle ${isAnnual ? "is-annual" : ""}`}
             onClick={() => setIsAnnual((prev) => !prev)}
-            aria-label="Cambiar tipo de facturacion"
+            aria-label="Change billing type"
           />
-          <span className={`cw-plans-toggle-label ${isAnnual ? "active" : ""}`}>Anual</span>
-          <span className="cw-plans-save">Ahorra 20%</span>
+          <span className={`cw-plans-toggle-label ${isAnnual ? "active" : ""}`}>{t("homePricingPlans.annual")}</span>
+          <span className="cw-plans-save">{t("homePricingPlans.save")}</span>
         </div>
       </div>
 
@@ -85,17 +90,17 @@ export default function HomePricingPlans({
               key={plan.id}
               className={`cw-plan-card ${theme} ${plan.featured ? "featured" : ""} cw-plans-reveal cw-plans-reveal-d${Math.min(index, 5)}`}
             >
-              {plan.featured ? <div className="cw-plan-featured-badge">Mas popular</div> : null}
-              <div className="cw-plan-tag">{plan.badge}</div>
-              <div className="cw-plan-name">{plan.name}</div>
+              {plan.featured ? <div className="cw-plan-featured-badge">{t("homePricingPlans.mostPopular")}</div> : null}
+              <div className="cw-plan-tag">{isEnglish ? plan.badgeEn : plan.badge}</div>
+              <div className="cw-plan-name">{isEnglish ? plan.nameEn : plan.name}</div>
               <div className="cw-plan-price">
                 <span className="currency">EUR</span>
                 <span className="amount">{plan.displayPrice}</span>
-                <span className="period">/{isAnnual ? "mes (fact. anual)" : "mes"}</span>
+                <span className="period">/{isAnnual ? t("homePricingPlans.annualPeriod") : t("homePricingPlans.monthlyPeriod")}</span>
               </div>
               <div className="cw-plan-divider" />
               <ul className="cw-plan-features">
-                {plan.highlights.map((item) => (
+                {(isEnglish ? plan.highlightsEn : plan.highlights).map((item) => (
                   <li key={`${plan.id}-${item}`}>{item}</li>
                 ))}
               </ul>
@@ -105,9 +110,9 @@ export default function HomePricingPlans({
                 onClick={() => onSelectSubscriptionPlan?.(plan)}
                 disabled={Boolean(planCheckoutLoadingId && planCheckoutLoadingId !== plan.id)}
               >
-                {planCheckoutLoadingId === plan.id ? "Abriendo pasarela..." : plan.ctaLabel}
+                {planCheckoutLoadingId === plan.id ? t("homePricingPlans.loading") : (isEnglish ? plan.ctaLabelEn : plan.ctaLabel)}
               </button>
-              <div className="cw-plan-secure">Pago seguro</div>
+              <div className="cw-plan-secure">{t("homePricingPlans.secure")}</div>
             </article>
           );
         })}
@@ -116,14 +121,14 @@ export default function HomePricingPlans({
       {planCheckoutFeedback ? <div className="cw-plans-feedback">{planCheckoutFeedback}</div> : null}
 
       <div className="cw-plans-table-wrap cw-plans-reveal">
-        <div className="cw-plans-table-title">Comparativa detallada de coberturas</div>
+        <div className="cw-plans-table-title">{t("homePricingPlans.comparisonTitle")}</div>
         <table className="cw-plans-comp-table">
           <thead>
             <tr>
-              <th>Cobertura</th>
+              <th>{t("homePricingPlans.comparisonColumnLabel")}</th>
               {plans.map((plan) => (
                 <th key={`${plan.id}-th`} className={plan.featured ? "col-featured" : ""}>
-                  {plan.name.replace("Plan ", "")}
+                  {(isEnglish ? plan.nameEn : plan.name).replace("Plan ", "")}
                 </th>
               ))}
             </tr>
@@ -131,8 +136,8 @@ export default function HomePricingPlans({
           <tbody>
             {PLAN_COMPARISON_ROWS.map((row) => (
               <tr key={row.label}>
-                <td>{row.label}</td>
-                {row.values.map((value, index) => (
+                <td>{isEnglish ? row.labelEn : row.label}</td>
+                {(isEnglish ? row.valuesEn : row.values).map((value, index) => (
                   <td key={`${row.label}-${index}`} className={plans[index]?.featured ? "col-featured" : ""}>
                     {value}
                   </td>

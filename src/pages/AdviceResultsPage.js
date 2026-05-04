@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import ResultsAnalysisView from "./adviceResults/ResultsAnalysisView";
 import ResultsHeader from "./adviceResults/ResultsHeader";
 import ResultsOffersView from "./adviceResults/ResultsOffersView";
@@ -7,6 +8,8 @@ import { exportAdviceLogicDoc } from "../utils/exportLogicDoc";
 
 function AnalysisAccordion({ themeMode, children }) {
   const [open, setOpen] = useState(false);
+  const { i18n } = useTranslation();
+  const isEn = i18n.language === "en";
   const isDark = themeMode === "dark";
   return (
     <div style={{ marginTop: 24 }}>
@@ -29,7 +32,7 @@ function AnalysisAccordion({ themeMode, children }) {
           boxShadow: isDark ? "0 12px 26px rgba(2,6,23,0.3)" : "0 12px 26px rgba(37,99,235,0.08)",
         }}
       >
-        <span>📊 Ver el análisis completo</span>
+        <span>{isEn ? "📊 View full analysis" : "📊 Ver el análisis completo"}</span>
         <span style={{ fontSize: 18, transition: "transform 0.2s", display: "inline-block", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>
           ▾
         </span>
@@ -100,6 +103,8 @@ export default function AdviceResultsPage({
   removeSavedComparison,
 }) {
   const [logicExportLoading, setLogicExportLoading] = useState(false);
+  const { i18n } = useTranslation();
+  const isEn = i18n.language === "en";
   const [logicExportFeedback, setLogicExportFeedback] = useState("");
 
   const {
@@ -156,9 +161,10 @@ export default function AdviceResultsPage({
     getOfferFallbackSearchUrl,
     getOfferNavigationUrl,
     normalizeOfferAssetUrl,
-    hasOfferRealImage,
     isRecommendationSaved,
+    hasOfferRealImage,
     buildSearchCoverageSummary,
+    uiLanguage: isEn ? "en" : "es",
   });
 
   const handleExportLogicDocument = useCallback(async () => {
@@ -189,9 +195,9 @@ export default function AdviceResultsPage({
         formatCurrency,
       });
 
-      setLogicExportFeedback(`Documento exportado: ${fileName}`);
+      setLogicExportFeedback(isEn ? `Document exported: ${fileName}` : `Documento exportado: ${fileName}`);
     } catch (error) {
-      setLogicExportFeedback(error?.message || "No se pudo exportar la lógica del resultado.");
+      setLogicExportFeedback(error?.message || (isEn ? "Could not export result logic." : "No se pudo exportar la lógica del resultado."));
     } finally {
       setLogicExportLoading(false);
       window.setTimeout(() => setLogicExportFeedback(""), 3200);
@@ -204,6 +210,7 @@ export default function AdviceResultsPage({
     comparatorRows,
     displayResult,
     formatCurrency,
+    isEn,
     logicExportLoading,
     marketRadar,
     result,

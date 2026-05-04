@@ -128,14 +128,20 @@ export function buildAnswersSummary(finalAnswers, activeSteps = []) {
     .join("\n");
 }
 
-export function buildAdviceAnalysisPrompt({ answersSummary, advisorContext = null }) {
+export function buildAdviceAnalysisPrompt({ answersSummary, advisorContext = null, outputLanguage = "es" }) {
   const forcedTypeInstruction = advisorContext === "renting"
     ? `Restriccion obligatoria de contexto: el usuario ha entrado por la via de renting. La solucion_principal.tipo y las alternativas SOLO pueden ser renting_largo, renting_corto, rent_a_car o carsharing. No puedes devolver compra_contado ni compra_financiada.`
     : advisorContext === "buy"
     ? `Restriccion obligatoria de contexto: el usuario ha entrado por la via de compra. La solucion_principal.tipo y las alternativas SOLO pueden ser compra_contado o compra_financiada. No puedes devolver renting_largo, renting_corto, rent_a_car ni carsharing.`
     : "";
 
+  const languageInstruction = outputLanguage === "en"
+    ? "Idioma obligatorio para todos los textos de valores del JSON: ingles natural (no espanol)."
+    : "Idioma obligatorio para todos los textos de valores del JSON: espanol natural.";
+
   return `Eres un asesor experto en movilidad en Espana. Analiza este perfil y responde SOLO con JSON valido, sin markdown ni texto adicional.
+
+${languageInstruction}
 
 Debes devolver exactamente esta estructura:
 {

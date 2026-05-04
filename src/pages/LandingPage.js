@@ -28,6 +28,7 @@ export default function LandingPage({
   onSelectServiceAppointment,
   onSelectServiceMonthlyPlan,
   onSelectServiceInsurance,
+  uiLanguage = "es",
   onSelectPortalVo,
   onSelectSubscriptionPlan,
 }) {
@@ -46,6 +47,23 @@ export default function LandingPage({
   const howItWorksSectionRef = useRef(null);
   const pricingSectionRef = useRef(null);
   const metricsSectionRef = useRef(null);
+
+  const getLocalizedBlockName = (blockNameES) => {
+    const blockTranslations = {
+      Perfil: { en: "Profile", es: "Perfil" },
+      "Uso real": { en: "Real Usage", es: "Uso real" },
+      Capacidad: { en: "Capacity", es: "Capacidad" },
+      Preferencias: { en: "Preferences", es: "Preferencias" },
+      Energía: { en: "Energy", es: "Energía" },
+      Financiero: { en: "Financial", es: "Financiero" },
+      Restricciones: { en: "Restrictions", es: "Restricciones" },
+      Vinculación: { en: "Binding", es: "Vinculación" },
+      Riesgo: { en: "Risk", es: "Riesgo" },
+      Avanzado: { en: "Advanced", es: "Avanzado" },
+    };
+    const translation = blockTranslations[blockNameES];
+    return translation ? translation[uiLanguage] : blockNameES;
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -247,7 +265,7 @@ export default function LandingPage({
           opacity: prefersReducedMotion ? 1 : heroOpacity,
         }}
       >
-        🧠 ASESOR INTELIGENTE DE MOVILIDAD · ESPAÑA
+        {uiLanguage === "en" ? "🧠 INTELLIGENT MOBILITY ADVISOR · SPAIN" : "🧠 ASESOR INTELIGENTE DE MOVILIDAD · ESPAÑA"}
       </m.div>
       <m.h1
         style={{
@@ -384,6 +402,7 @@ export default function LandingPage({
           onSelectSubscriptionPlan={onSelectSubscriptionPlan}
           planCheckoutLoadingId={planCheckoutLoadingId}
           planCheckoutFeedback={planCheckoutFeedback}
+          uiLanguage={uiLanguage}
         />
       </m.section>
 
@@ -412,9 +431,9 @@ export default function LandingPage({
         }}
       >
         {[
-          [String(totalSteps), "Preguntas del marco"],
-          ["9+", "Opciones de movilidad"],
-          ["IA", "Análisis personalizado"],
+          [String(totalSteps), uiLanguage === "en" ? "Market questions" : "Preguntas del marco"],
+          ["9+", uiLanguage === "en" ? "Mobility options" : "Opciones de movilidad"],
+          ["IA", uiLanguage === "en" ? "Personalized analysis" : "Análisis personalizado"],
         ].map(([n, l]) => (
           <div key={l}>
             <div style={{ fontSize: 26, fontWeight: 800, color: "#2563EB" }}>{n}</div>
@@ -447,7 +466,7 @@ export default function LandingPage({
               fontWeight: 600,
             }}
           >
-            {name}
+            {getLocalizedBlockName(name)}
           </span>
         ))}
       </div>

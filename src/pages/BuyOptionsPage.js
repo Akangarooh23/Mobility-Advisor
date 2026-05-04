@@ -1,26 +1,47 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-const FLOW_A = [
-  { title: "Selecciona el modelo", sub: "Marca, modelo y version" },
-  { title: "Establece tus limites geograficos y de precio" },
-  { title: "Analizamos anuncios en tiempo real", sub: "Precio, proveedor y caracteristicas del vehiculo" },
+const FLOW_A_ES = [
+  { title: "Selecciona el modelo", sub: "Marca, modelo y versión" },
+  { title: "Establece tus límites geográficos y de precio" },
+  { title: "Analizamos anuncios en tiempo real", sub: "Precio, proveedor y características del vehículo" },
   { title: "Te ofrecemos las 5 mejores opciones" },
   { title: "Agendamos una cita con el vendedor" },
-  { title: "Te buscamos la mejor financiacion" },
+  { title: "Te buscamos la mejor financiación" },
 ];
 
-const FLOW_B = [
+const FLOW_A_EN = [
+  { title: "Select the model", sub: "Brand, model and version" },
+  { title: "Set your geographic and price limits" },
+  { title: "We analyze listings in real time", sub: "Price, seller and vehicle characteristics" },
+  { title: "We offer you the 5 best options" },
+  { title: "We schedule an appointment with the seller" },
+  { title: "We find you the best financing" },
+];
+
+const FLOW_B_ES = [
   { title: "Test CarsWise", sub: "Estilo de vida, desplazamientos, entorno legal" },
-  { title: "Establece tus limites geograficos y de precio" },
+  { title: "Establece tus límites geográficos y de precio" },
   { title: "Analizamos anuncios en tiempo real" },
   { title: "Te ofrecemos las 5 mejores opciones" },
   { title: "Agendamos una cita con el vendedor" },
-  { title: "Te buscamos la mejor financiacion" },
+  { title: "Te buscamos la mejor financiación" },
+];
+
+const FLOW_B_EN = [
+  { title: "CarsWise Test", sub: "Lifestyle, commuting, legal environment" },
+  { title: "Set your geographic and price limits" },
+  { title: "We analyze listings in real time" },
+  { title: "We offer you the 5 best options" },
+  { title: "We schedule an appointment with the seller" },
+  { title: "We find you the best financing" },
 ];
 
 export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownModel, onGoBack }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const uiLanguage = i18n.language === "en" ? "en" : "es";
+  const FLOW_A = uiLanguage === "en" ? FLOW_A_EN : FLOW_A_ES;
+  const FLOW_B = uiLanguage === "en" ? FLOW_B_EN : FLOW_B_ES;
   const isDark = styles?.page?.color === "#e2e8f0";
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
   const mutedColor = isDark ? "#cbd5e1" : "#475569";
@@ -54,7 +75,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
 
       <div style={{ marginBottom: 10, marginTop: 4, display: "flex", alignItems: "center", gap: 12 }}>
         <span style={{ fontSize: 10, letterSpacing: "0.18em", fontWeight: 800, color: "#2563eb", textTransform: "uppercase" }}>
-          Compra
+          {t("buyOptions.badgeLabel")}
         </span>
         <span style={{ width: 34, height: 1, background: "rgba(37,99,235,0.5)" }} />
       </div>
@@ -63,7 +84,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
         {t("circularSteps.step1Title")}
       </h2>
       <p style={{ margin: "0 0 22px", color: mutedColor, fontSize: 14, lineHeight: 1.6 }}>
-        Dinos cuanto sabes ya sobre lo que quieres y empezamos desde ahi. Analizamos el mercado en tiempo real para encontrar las mejores opciones.
+        {t("buyOptions.pageSubtitle")}
       </p>
 
       <div
@@ -119,7 +140,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               marginBottom: 4,
             }}
           >
-            Opcion A
+            {t("buyOptions.optionABadge")}
           </span>
           <span
             style={{
@@ -140,10 +161,10 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             &gt;
           </span>
           <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
-            Ya se que modelo me interesa
+            {t("buyOptions.optionATitle")}
           </div>
           <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
-            Si tienes claro que modelo quieres, indicanos area, rango de precios y kilometros. Analizamos las ofertas actuales bajo esos parametros.
+            {t("buyOptions.optionADesc")}
           </div>
           <button
             type="button"
@@ -163,7 +184,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               cursor: "pointer",
             }}
           >
-            {openFlow === "a" ? "Ocultar" : "Ver mas"}
+            {openFlow === "a" ? t("buyOptions.hideButton") : t("buyOptions.showMore")}
           </button>
         </article>
 
@@ -212,7 +233,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               marginBottom: 4,
             }}
           >
-            Opcion B
+            {t("buyOptions.optionBBadge")}
           </span>
           <span
             style={{
@@ -233,10 +254,10 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             &gt;
           </span>
           <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
-            Ayudame a encontrar los modelos que mejor se adapten a mi
+            {t("buyOptions.optionBTitle")}
           </div>
           <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
-            Realiza nuestro test para conocernos y ayudarte a elegir el coche que encaje con tu estilo de vida y desplazamientos.
+            {t("buyOptions.optionBDesc")}
           </div>
           <button
             type="button"
@@ -256,7 +277,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               cursor: "pointer",
             }}
           >
-            {openFlow === "b" ? "Ocultar" : "Ver mas"}
+            {openFlow === "b" ? t("buyOptions.hideButton") : t("buyOptions.showMore")}
           </button>
         </article>
       </div>
@@ -272,19 +293,19 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           }}
         >
           <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700, color: "#64748b", marginBottom: 10 }}>
-            Flujo A - Modelo conocido - 6 pasos
+            {t("buyOptions.flowAHeader")}
           </div>
           <div style={{ display: "grid", gap: 8 }}>
             {FLOW_A.map((item, index) => (
               <div key={`a-${item.title}`} style={{ border: cardBorder, borderRadius: 10, background: cardBackground, padding: "9px 10px" }}>
-                <div style={{ fontSize: 11, color: "#2563eb", fontWeight: 700, marginBottom: 2 }}>Paso {index + 1}</div>
+                <div style={{ fontSize: 11, color: "#2563eb", fontWeight: 700, marginBottom: 2 }}>{t("buyOptions.step")} {index + 1}</div>
                 <div style={{ fontSize: 13, color: titleColor, fontWeight: 700, lineHeight: 1.35 }}>{item.title}</div>
                 {item.sub ? <div style={{ fontSize: 12, color: mutedColor, marginTop: 2 }}>{item.sub}</div> : null}
               </div>
             ))}
           </div>
           <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button
+              <button
               type="button"
               onClick={onSelectKnownModel}
               style={{
@@ -298,7 +319,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
                 cursor: "pointer",
               }}
             >
-              Acceder
+              {t("buyOptions.accessButton")}
             </button>
             <button
               type="button"
@@ -314,7 +335,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
                 cursor: "pointer",
               }}
             >
-              Minimizar
+              {t("buyOptions.minimizeButton")}
             </button>
           </div>
         </section>
@@ -331,12 +352,12 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           }}
         >
           <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700, color: "#64748b", marginBottom: 10 }}>
-            Flujo B - Test CarsWise - seleccion personalizada
+            {t("buyOptions.flowBHeader")}
           </div>
           <div style={{ display: "grid", gap: 8 }}>
             {FLOW_B.map((item, index) => (
               <div key={`b-${item.title}`} style={{ border: cardBorder, borderRadius: 10, background: cardBackground, padding: "9px 10px" }}>
-                <div style={{ fontSize: 11, color: "#2563eb", fontWeight: 700, marginBottom: 2 }}>Paso {index + 1}</div>
+                <div style={{ fontSize: 11, color: "#2563eb", fontWeight: 700, marginBottom: 2 }}>{t("buyOptions.step")} {index + 1}</div>
                 <div style={{ fontSize: 13, color: titleColor, fontWeight: 700, lineHeight: 1.35 }}>{item.title}</div>
                 {item.sub ? <div style={{ fontSize: 12, color: mutedColor, marginTop: 2 }}>{item.sub}</div> : null}
               </div>
@@ -357,7 +378,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
                 cursor: "pointer",
               }}
             >
-              Acceder
+              {t("buyOptions.accessButton")}
             </button>
             <button
               type="button"
@@ -373,7 +394,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
                 cursor: "pointer",
               }}
             >
-              Minimizar
+              {t("buyOptions.minimizeButton")}
             </button>
           </div>
         </section>

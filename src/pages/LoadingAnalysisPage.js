@@ -1,5 +1,8 @@
+import { useTranslation } from "react-i18next";
+
 export default function LoadingAnalysisPage({ styles, loadingTexts, loadingPhase, themeMode }) {
   const isDark = themeMode === "dark";
+  const { t } = useTranslation();
 
   return (
     <div style={{ ...styles.center, textAlign: "center" }}>
@@ -21,10 +24,10 @@ export default function LoadingAnalysisPage({ styles, loadingTexts, loadingPhase
         🧠
       </div>
       <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8, letterSpacing: "-0.5px", color: isDark ? "#f8fafc" : "#0f172a" }}>
-        Buscando las mejores opciones ajustadas a tu perfil
+        {t("loading.title")}
       </h2>
       <p style={{ color: isDark ? "#cbd5e1" : "#64748b", fontSize: 14, marginBottom: 32 }}>
-        Comparando alternativas reales según tus respuestas
+        {t("loading.subtitle")}
       </p>
 
       <div
@@ -47,10 +50,10 @@ export default function LoadingAnalysisPage({ styles, loadingTexts, loadingPhase
 
       <div style={{ textAlign: "left", maxWidth: 320, margin: "0 auto 32px" }}>
         {[
-          "Mundo del deseo analizado",
-          "Mundo de la realidad analizado",
-          "Tensiones activas detectadas",
-          "Zona de intersección calculada",
+          t("loading.step1"),
+          t("loading.step2"),
+          t("loading.step3"),
+          t("loading.step4"),
         ].map((item, i) => (
           <div
             key={i}

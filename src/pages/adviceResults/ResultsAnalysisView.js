@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function ResultsAnalysisView({
   themeMode,
@@ -37,6 +38,61 @@ export default function ResultsAnalysisView({
   logicExportLoading,
   logicExportFeedback,
 }) {
+  const { i18n } = useTranslation();
+  const isEn = i18n.language === "en";
+  const text = {
+    mainRecommendation: isEn ? "MAIN RECOMMENDATION" : "RECOMENDACIÓN PRINCIPAL",
+    match: isEn ? "MATCH" : "COINCIDENCIA",
+    exportDesc: isEn
+      ? "Export a Word document with applied logic details: score weights, answer reading, total cost, comparator, assumptions and action plan."
+      : "Exporta un Word con el detalle de la lógica aplicada: pesos del score, lectura de cada respuesta, coste total, comparador, supuestos y plan de acción.",
+    exporting: isEn ? "Exporting logic..." : "Exportando lógica...",
+    exportWord: isEn ? "Export logic to Word" : "Exportar lógica a Word",
+    scoreBreakdown: isEn ? "🔍 SCORE BREAKDOWN" : "🔍 DESGLOSE DEL SCORE",
+    whyWins: isEn ? "🧠 WHY THIS OPTION WINS" : "🧠 POR QUÉ GANA ESTA OPCIÓN",
+    strengths: isEn ? "✅ STRENGTHS" : "✅ VENTAJAS",
+    consider: isEn ? "⚠️ POINTS TO CONSIDER" : "⚠️ A TENER EN CUENTA",
+    estimatedCost: isEn ? "ESTIMATED COST" : "COSTE ESTIMADO",
+    dgtLabel: isEn ? "DGT LABEL" : "ETIQUETA DGT",
+    viablePowertrains: isEn ? "VIABLE POWERTRAINS" : "PROPULSIONES VIABLES",
+    marketSearch: isEn ? "MARKET SEARCH" : "BÚSQUEDA DE MERCADO",
+    marketSearchDesc: isEn ? "We contrast public stock and show only the best final option found by AI." : "Contrastamos stock público y solo mostramos la mejor opción final encontrada por la IA.",
+    profileTension: isEn ? "⚡ TENSION DETECTED IN YOUR PROFILE" : "⚡ TENSIÓN DETECTADA EN TU PERFIL",
+    tcoTitle: isEn ? "📊 REAL TCO - TOTAL COST OF OWNERSHIP / USE" : "📊 TCO REAL — COSTE TOTAL DE PROPIEDAD / USO",
+    monthly: isEn ? "month" : "mes",
+    annual: isEn ? "year" : "año",
+    downPayment: isEn ? "Indicative down payment / upfront capital" : "Entrada / capital inicial orientativo",
+    monthlyBreakdown: isEn ? "MONTHLY BREAKDOWN" : "DESGLOSE MENSUAL",
+    reading: isEn ? "Reading" : "Lectura",
+    finalComparator: isEn ? "🆚 FINAL COMPARATOR" : "🆚 COMPARADOR FINAL",
+    transparency: isEn ? "🔎 VERDICT TRANSPARENCY" : "🔎 TRANSPARENCIA DEL VEREDICTO",
+    selectedOption: isEn ? "Selected option" : "Opción elegida",
+    alternative1: isEn ? "Alternative 1" : "Alternativa 1",
+    alternative2: isEn ? "Alternative 2" : "Alternativa 2",
+    keyAssumptions: isEn ? "KEY ASSUMPTIONS" : "SUPUESTOS CLAVE",
+    pendingChecks: isEn ? "PENDING VALIDATIONS" : "VALIDACIONES PENDIENTES",
+    finalDecision: isEn ? "🚦 FINAL DECISION TRAFFIC LIGHT" : "🚦 SEMÁFORO DE DECISIÓN FINAL",
+    doNow: isEn ? "WHAT TO DO NOW" : "QUÉ HACER AHORA",
+    redAlerts: isEn ? "RED ALERTS" : "ALERTAS ROJAS",
+    marketRadar: isEn ? "📌 MARKET RADAR AND SAVED COMPARISONS" : "📌 RADAR DE MERCADO Y COMPARATIVAS GUARDADAS",
+    saveComparison: isEn ? "📌 Save comparison" : "📌 Guardar comparativa",
+    enterSignals: isEn ? "ENTRY SIGNALS" : "SEÑALES PARA ENTRAR",
+    waitSignals: isEn ? "WHEN TO WAIT OR DISCARD" : "CUÁNDO ESPERAR O DESCARTAR",
+    latestComparisons: isEn ? "LATEST COMPARISONS" : "ÚLTIMAS COMPARATIVAS",
+    openSavedOffer: isEn ? "Open saved offer" : "Abrir oferta guardada",
+    remove: isEn ? "Remove" : "Quitar",
+    confidence: isEn ? "confidence" : "confianza",
+    reference: isEn ? "reference" : "referencia",
+    openOffer: isEn ? "Open offer ↗" : "Abrir oferta ↗",
+    generalMarket: isEn ? "General market" : "Mercado general",
+    expertTip: isEn ? "💡 EXPERT TIP" : "💡 CONSEJO DE EXPERTO",
+    realOfferReady: isEn ? "✅ REAL OFFER PRESELECTED" : "✅ OFERTA REAL PRESELECCIONADA",
+    realOfferSearch: isEn ? "🧭 REAL OFFER SEARCH" : "🧭 BÚSQUEDA DE OFERTA REAL",
+    realOfferHelp: isEn
+      ? "Set your target monthly payment and launch the search so AI reviews multiple portals and brings you a single real option."
+      : "Indica tu cuota objetivo y lanza la búsqueda para que la IA revise automáticamente varios portales y te traiga una única opción real.",
+    viewOffers: isEn ? "🚗 View your offers" : "🚗 Ver tus ofertas",
+  };
   const [hoveredCard, setHoveredCard] = useState(null);
   const isDark = themeMode === "dark";
   const cardBg = isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)";
@@ -82,7 +138,7 @@ export default function ResultsAnalysisView({
                 fontWeight: 600,
               }}
             >
-              RECOMENDACIÓN PRINCIPAL · {result.solucion_principal?.score}% COINCIDENCIA
+              {text.mainRecommendation} · {result.solucion_principal?.score}% {text.match}
             </div>
             <h3 style={{ margin: "0 0 6px", fontSize: 18, fontWeight: 700, color: titleColor }}>
               {displayResult.solucion_principal?.titulo}
@@ -95,7 +151,7 @@ export default function ResultsAnalysisView({
 
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 16, alignItems: "center" }}>
           <div style={{ fontSize: 12, color: bodyColor, lineHeight: 1.5, maxWidth: 720 }}>
-            Exporta un Word con el detalle de la lógica aplicada: pesos del score, lectura de cada respuesta, coste total, comparador, supuestos y plan de acción.
+            {text.exportDesc}
           </div>
           <button
             type="button"
@@ -114,7 +170,7 @@ export default function ResultsAnalysisView({
               boxShadow: logicExportLoading ? "none" : "0 10px 24px rgba(14,165,233,0.16)",
             }}
           >
-            {logicExportLoading ? "Exportando lógica..." : "Exportar lógica a Word"}
+            {logicExportLoading ? text.exporting : text.exportWord}
           </button>
         </div>
 
@@ -161,7 +217,7 @@ export default function ResultsAnalysisView({
             }}
           >
             <div style={{ fontSize: 10, color: "#0369a1", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
-              🔍 DESGLOSE DEL SCORE
+              {text.scoreBreakdown}
             </div>
             <div style={{ display: "grid", gap: 8 }}>
               {scoreBreakdownEntries.map((item) => {
@@ -198,7 +254,7 @@ export default function ResultsAnalysisView({
             }}
           >
             <div style={{ fontSize: 10, color: "#047857", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
-              🧠 POR QUÉ GANA ESTA OPCIÓN
+              {text.whyWins}
             </div>
             <div style={{ display: "grid", gap: 6 }}>
               {whyThisWins.map((reason, index) => (
@@ -220,7 +276,7 @@ export default function ResultsAnalysisView({
         >
           <div>
             <div style={{ fontSize: 10, color: bodyColor, marginBottom: 8, fontWeight: 600, letterSpacing: "0.6px" }}>
-              ✅ VENTAJAS
+              {text.strengths}
             </div>
             {(displayResult.solucion_principal?.ventajas || []).map((v, i) => (
               <div key={i} style={{ fontSize: 12, color: bodyColor, marginBottom: 5, lineHeight: 1.4 }}>
@@ -230,7 +286,7 @@ export default function ResultsAnalysisView({
           </div>
           <div>
             <div style={{ fontSize: 10, color: bodyColor, marginBottom: 8, fontWeight: 600, letterSpacing: "0.6px" }}>
-              ⚠️ A TENER EN CUENTA
+              {text.consider}
             </div>
             {(displayResult.solucion_principal?.inconvenientes || []).map((v, i) => (
               <div key={i} style={{ fontSize: 12, color: bodyColor, marginBottom: 5, lineHeight: 1.4 }}>
@@ -243,14 +299,14 @@ export default function ResultsAnalysisView({
         <div style={{ padding: 14, background: cardBg, borderRadius: 10, border: `1px solid ${cardBorder}` }}>
           <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: 12 }}>
             <div>
-              <div style={{ fontSize: 10, color: bodyColor, marginBottom: 4 }}>COSTE ESTIMADO</div>
+              <div style={{ fontSize: 10, color: bodyColor, marginBottom: 4 }}>{text.estimatedCost}</div>
               <div style={{ fontWeight: 700, color: mt.color, fontSize: 14 }}>
                 {result.solucion_principal?.coste_estimado}
               </div>
             </div>
             {result.solucion_principal?.etiqueta_dgt && result.solucion_principal.etiqueta_dgt !== "No aplica" && (
               <div>
-                <div style={{ fontSize: 10, color: bodyColor, marginBottom: 4 }}>ETIQUETA DGT</div>
+                <div style={{ fontSize: 10, color: bodyColor, marginBottom: 4 }}>{text.dgtLabel}</div>
                 <div style={{ fontWeight: 700, color: "#34d399", fontSize: 14 }}>
                   {result.solucion_principal.etiqueta_dgt}
                 </div>
@@ -260,7 +316,7 @@ export default function ResultsAnalysisView({
           {result.propulsiones_viables && (
             <div style={{ marginBottom: 12 }}>
               <div style={{ fontSize: 10, color: bodyColor, marginBottom: 6, letterSpacing: "0.6px" }}>
-                PROPULSIONES VIABLES
+                {text.viablePowertrains}
               </div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 {result.propulsiones_viables.map((p) => (
@@ -282,10 +338,10 @@ export default function ResultsAnalysisView({
             </div>
           )}
               <div style={{ fontSize: 10, color: bodyColor, marginBottom: 6, letterSpacing: "0.6px" }}>
-            BÚSQUEDA DE MERCADO
+            {text.marketSearch}
           </div>
           <div style={{ fontSize: 11, color: bodyColor, lineHeight: 1.6 }}>
-            Contrastamos stock público y solo mostramos la mejor opción final encontrada por la IA.
+            {text.marketSearchDesc}
           </div>
         </div>
       </div>
@@ -301,7 +357,7 @@ export default function ResultsAnalysisView({
           }}
         >
           <div style={{ fontSize: 10, color: "#b91c1c", marginBottom: 6, fontWeight: 600, letterSpacing: "0.6px" }}>
-            ⚡ TENSIÓN DETECTADA EN TU PERFIL
+            {text.profileTension}
           </div>
           <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
             {displayResult.solucion_principal.tension_principal}
@@ -320,7 +376,7 @@ export default function ResultsAnalysisView({
           }}
         >
           <div style={{ fontSize: 10, color: "#fbbf24", marginBottom: 8, fontWeight: 600, letterSpacing: "0.6px" }}>
-            📊 TCO REAL — COSTE TOTAL DE PROPIEDAD / USO
+            {text.tcoTitle}
           </div>
 
           <div
@@ -344,14 +400,14 @@ export default function ResultsAnalysisView({
                 TOTAL ORIENTATIVO
               </div>
               <div style={{ fontSize: 24, fontWeight: 800, color: titleColor, marginBottom: 2 }}>
-                {formatCurrency(Number(tcoDetail.total_mensual || 0))} / mes
+                {formatCurrency(Number(tcoDetail.total_mensual || 0))} / {text.monthly}
               </div>
               <div style={{ fontSize: 12, color: "#92400e", marginBottom: 6 }}>
-                ≈ {formatCurrency(Number(tcoDetail.total_anual || 0))} / año
+                ≈ {formatCurrency(Number(tcoDetail.total_anual || 0))} / {text.annual}
               </div>
               {Number(tcoDetail.entrada_inicial || 0) > 0 && (
                 <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.5 }}>
-                  Entrada / capital inicial orientativo: <strong>{formatCurrency(Number(tcoDetail.entrada_inicial || 0))}</strong>
+                  {text.downPayment}: <strong>{formatCurrency(Number(tcoDetail.entrada_inicial || 0))}</strong>
                 </div>
               )}
             </div>
@@ -366,7 +422,7 @@ export default function ResultsAnalysisView({
               }}
             >
               <div style={{ fontSize: 10, color: "#92400e", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
-                DESGLOSE MENSUAL
+                {text.monthlyBreakdown}
               </div>
               <div style={{ display: "grid", gap: 8 }}>
                 {tcoBreakdownItems.map((item) => {
@@ -402,7 +458,7 @@ export default function ResultsAnalysisView({
           )}
           {displayResult.tco_detalle?.nota && (
             <p style={{ margin: 0, fontSize: 12, color: "#92400e", lineHeight: 1.6 }}>
-              <strong>Lectura:</strong> {displayResult.tco_detalle.nota}
+              <strong>{text.reading}:</strong> {displayResult.tco_detalle.nota}
             </p>
           )}
         </div>
@@ -473,7 +529,7 @@ export default function ResultsAnalysisView({
               }}
             >
               <div style={{ fontSize: 10, color: "#1d4ed8", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
-                🆚 COMPARADOR FINAL
+                {text.finalComparator}
               </div>
               <div style={{ display: "grid", gap: 10 }}>
                 {comparatorRows.map((row, index) => (
@@ -503,12 +559,12 @@ export default function ResultsAnalysisView({
                       </span>
                     </div>
                     <div style={{ display: "grid", gap: 5 }}>
-                      <div style={{ fontSize: 11, color: "#1e3a8a", lineHeight: 1.5 }}><strong>Opción elegida:</strong> {row.opcion_principal}</div>
+                      <div style={{ fontSize: 11, color: "#1e3a8a", lineHeight: 1.5 }}><strong>{text.selectedOption}:</strong> {row.opcion_principal}</div>
                       {row.alternativa_1 && (
-                        <div style={{ fontSize: 11, color: "#475569", lineHeight: 1.5 }}><strong>Alternativa 1:</strong> {row.alternativa_1}</div>
+                        <div style={{ fontSize: 11, color: "#475569", lineHeight: 1.5 }}><strong>{text.alternative1}:</strong> {row.alternativa_1}</div>
                       )}
                       {row.alternativa_2 && (
-                        <div style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.5 }}><strong>Alternativa 2:</strong> {row.alternativa_2}</div>
+                        <div style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.5 }}><strong>{text.alternative2}:</strong> {row.alternativa_2}</div>
                       )}
                     </div>
                   </div>
@@ -527,16 +583,16 @@ export default function ResultsAnalysisView({
               }}
             >
               <div style={{ fontSize: 10, color: "#047857", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
-                🔎 TRANSPARENCIA DEL VEREDICTO
+                {text.transparency}
               </div>
               {transparency.confianza_motivo && (
                 <p style={{ margin: "0 0 10px", fontSize: 12, color: "#065f46", lineHeight: 1.6 }}>
-                  <strong>{confidenceLevel ? `Confianza ${confidenceLevel}` : "Lectura"}:</strong> {transparency.confianza_motivo}
+                  <strong>{confidenceLevel ? `${text.reading} ${confidenceLevel}` : text.reading}:</strong> {transparency.confianza_motivo}
                 </p>
               )}
               {transparencyAssumptions.length > 0 && (
                 <div style={{ marginBottom: 10 }}>
-                  <div style={{ fontSize: 10, color: "#047857", marginBottom: 6, letterSpacing: "0.5px" }}>SUPUESTOS CLAVE</div>
+                  <div style={{ fontSize: 10, color: "#047857", marginBottom: 6, letterSpacing: "0.5px" }}>{text.keyAssumptions}</div>
                   <div style={{ display: "grid", gap: 5 }}>
                     {transparencyAssumptions.map((item, index) => (
                       <div key={`assumption-${index}`} style={{ fontSize: 11, color: "#065f46", lineHeight: 1.5 }}>• {item}</div>
@@ -546,7 +602,7 @@ export default function ResultsAnalysisView({
               )}
               {transparencyChecks.length > 0 && (
                 <div>
-                  <div style={{ fontSize: 10, color: "#047857", marginBottom: 6, letterSpacing: "0.5px" }}>VALIDACIONES PENDIENTES</div>
+                  <div style={{ fontSize: 10, color: "#047857", marginBottom: 6, letterSpacing: "0.5px" }}>{text.pendingChecks}</div>
                   <div style={{ display: "grid", gap: 5 }}>
                     {transparencyChecks.map((item, index) => (
                       <div key={`check-${index}`} style={{ fontSize: 11, color: "#065f46", lineHeight: 1.5 }}>• {item}</div>
@@ -571,7 +627,7 @@ export default function ResultsAnalysisView({
         >
           <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
             <div style={{ fontSize: 10, color: trafficTone.text, fontWeight: 700, letterSpacing: "0.6px" }}>
-              🚦 SEMÁFORO DE DECISIÓN FINAL
+              {text.finalDecision}
             </div>
             <span
               style={{
@@ -598,7 +654,7 @@ export default function ResultsAnalysisView({
           >
             {actionSteps.length > 0 && (
               <div>
-                <div style={{ fontSize: 10, color: trafficTone.text, marginBottom: 6, letterSpacing: "0.5px" }}>QUÉ HACER AHORA</div>
+                <div style={{ fontSize: 10, color: trafficTone.text, marginBottom: 6, letterSpacing: "0.5px" }}>{text.doNow}</div>
                 <div style={{ display: "grid", gap: 5 }}>
                   {actionSteps.map((item, index) => (
                     <div key={`action-step-${index}`} style={{ fontSize: 11, color: titleColor, lineHeight: 1.5 }}>
@@ -610,7 +666,7 @@ export default function ResultsAnalysisView({
             )}
             {actionAlerts.length > 0 && (
               <div>
-                <div style={{ fontSize: 10, color: "#b91c1c", marginBottom: 6, letterSpacing: "0.5px" }}>ALERTAS ROJAS</div>
+                <div style={{ fontSize: 10, color: "#b91c1c", marginBottom: 6, letterSpacing: "0.5px" }}>{text.redAlerts}</div>
                 <div style={{ display: "grid", gap: 5 }}>
                   {actionAlerts.map((item, index) => (
                     <div key={`action-alert-${index}`} style={{ fontSize: 11, color: "#991b1b", lineHeight: 1.5 }}>
@@ -635,7 +691,7 @@ export default function ResultsAnalysisView({
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
           <div style={{ fontSize: 10, color: "#0369a1", fontWeight: 700, letterSpacing: "0.6px" }}>
-            📌 RADAR DE MERCADO Y COMPARATIVAS GUARDADAS
+            {text.marketRadar}
           </div>
           <button
             type="button"
@@ -651,7 +707,7 @@ export default function ResultsAnalysisView({
               cursor: "pointer",
             }}
           >
-            📌 Guardar comparativa
+            {text.saveComparison}
           </button>
         </div>
 
@@ -666,7 +722,7 @@ export default function ResultsAnalysisView({
           }}
         >
           <div>
-            <div style={{ fontSize: 10, color: "#075985", marginBottom: 6, letterSpacing: "0.5px" }}>SEÑALES PARA ENTRAR</div>
+            <div style={{ fontSize: 10, color: "#075985", marginBottom: 6, letterSpacing: "0.5px" }}>{text.enterSignals}</div>
             <div style={{ display: "grid", gap: 5 }}>
               {marketRadar.senales_verdes.map((item, index) => (
                 <div key={`radar-green-${index}`} style={{ fontSize: 11, color: "#0c4a6e", lineHeight: 1.5 }}>
@@ -676,7 +732,7 @@ export default function ResultsAnalysisView({
             </div>
           </div>
           <div>
-            <div style={{ fontSize: 10, color: "#b91c1c", marginBottom: 6, letterSpacing: "0.5px" }}>CUÁNDO ESPERAR O DESCARTAR</div>
+            <div style={{ fontSize: 10, color: "#b91c1c", marginBottom: 6, letterSpacing: "0.5px" }}>{text.waitSignals}</div>
             <div style={{ display: "grid", gap: 5 }}>
               {marketRadar.alertas.map((item, index) => (
                 <div key={`radar-alert-${index}`} style={{ fontSize: 11, color: "#991b1b", lineHeight: 1.5 }}>
@@ -691,7 +747,7 @@ export default function ResultsAnalysisView({
 
         {savedComparisonItems.length > 0 && (
           <div>
-            <div style={{ fontSize: 10, color: "#075985", marginBottom: 8, letterSpacing: "0.5px" }}>ÚLTIMAS COMPARATIVAS</div>
+            <div style={{ fontSize: 10, color: "#075985", marginBottom: 8, letterSpacing: "0.5px" }}>{text.latestComparisons}</div>
             <div style={{ display: "grid", gap: 8 }}>
               {savedComparisonItems.map((item) => {
                 const savedOfferHref =
@@ -699,7 +755,7 @@ export default function ResultsAnalysisView({
                   getOfferFallbackSearchUrl(
                     {
                       title: item?.listingTitle || item?.title,
-                      source: item?.sourceLabel || "Mercado general",
+                      source: item?.sourceLabel || text.generalMarket,
                       listingType: item?.typeKey || "movilidad",
                     },
                     { solucion_principal: { tipo: item?.typeKey || "movilidad", titulo: item?.title || "" } }
@@ -709,7 +765,7 @@ export default function ResultsAnalysisView({
                   <div
                     key={item.id}
                     onClick={() => savedOfferHref && openOfferInNewTab(savedOfferHref)}
-                    title={savedOfferHref ? "Abrir oferta guardada" : undefined}
+                    title={savedOfferHref ? text.openSavedOffer : undefined}
                     onMouseEnter={() => setHoveredCard(`saved-${item.id}`)}
                     onMouseLeave={() => setHoveredCard(null)}
                     style={{
@@ -740,18 +796,18 @@ export default function ResultsAnalysisView({
                           cursor: "pointer",
                         }}
                       >
-                        Quitar
+                        {text.remove}
                       </button>
                     </div>
                     <div style={{ fontSize: 11, color: "#1d4ed8", marginBottom: 4 }}>
-                      {item.typeLabel} · {item.score}% · confianza {String(item.confidence || "media").toUpperCase()} · {item.savedAt}
+                      {item.typeLabel} · {item.score}% · {text.confidence} {String(item.confidence || "media").toUpperCase()} · {item.savedAt}
                     </div>
                     <div style={{ fontSize: 11, color: bodyColor, lineHeight: 1.5 }}>
-                      {item.monthlyTotal > 0 ? `${formatCurrency(item.monthlyTotal)}/mes` : item.budgetLabel}
-                      {item.listingTitle ? ` · referencia: ${item.listingTitle}` : ""}
+                      {item.monthlyTotal > 0 ? `${formatCurrency(item.monthlyTotal)}/${text.monthly}` : item.budgetLabel}
+                      {item.listingTitle ? ` · ${text.reference}: ${item.listingTitle}` : ""}
                       {item.listingPrice ? ` · ${item.listingPrice}` : ""}
                     </div>
-                    {savedOfferHref && <div style={{ fontSize: 11, color: "#0369a1", marginTop: 5, fontWeight: 700 }}>Abrir oferta ↗</div>}
+                    {savedOfferHref && <div style={{ fontSize: 11, color: "#0369a1", marginTop: 5, fontWeight: 700 }}>{text.openOffer}</div>}
                   </div>
                 );
               })}
@@ -778,7 +834,7 @@ export default function ResultsAnalysisView({
           }}
         >
           <div style={{ fontSize: 10, color: "#eab308", marginBottom: 7, fontWeight: 600, letterSpacing: "0.6px" }}>
-            💡 CONSEJO DE EXPERTO
+            {text.expertTip}
           </div>
           <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.6 }}>{displayResult.consejo_experto}</p>
         </div>
@@ -792,12 +848,12 @@ export default function ResultsAnalysisView({
           }}
         >
           <div style={{ fontSize: 10, color: "#047857", marginBottom: 7, fontWeight: 600, letterSpacing: "0.6px" }}>
-            {listingResult ? "✅ OFERTA REAL PRESELECCIONADA" : "🧭 BÚSQUEDA DE OFERTA REAL"}
+            {listingResult ? text.realOfferReady : text.realOfferSearch}
           </div>
           <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
             {listingResult
               ? `${listingResult.title}${listingResult.price ? ` · ${listingResult.price}` : ""}`
-              : "Indica tu cuota objetivo y lanza la búsqueda para que la IA revise automáticamente varios portales y te traiga una única opción real."}
+              : text.realOfferHelp}
           </p>
         </div>
       </div>
@@ -818,7 +874,7 @@ export default function ResultsAnalysisView({
             boxShadow: "0 12px 30px rgba(16,185,129,0.18)",
           }}
         >
-          🚗 Ver tus ofertas
+          {text.viewOffers}
         </button>
       </div>
     </div>

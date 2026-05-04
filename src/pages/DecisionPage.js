@@ -67,69 +67,6 @@ const LOCATION_OPTIONS = [
   { value: "zaragoza", label: "Zaragoza" },
 ];
 
-const FUEL_FILTER_OPTIONS = [
-  { value: "cualquiera", label: "Cualquiera" },
-  { value: "gasolina", label: "Gasolina" },
-  { value: "diesel", label: "Diésel" },
-  { value: "hibrido", label: "Híbrido" },
-  { value: "phev", label: "PHEV" },
-  { value: "electrico", label: "Eléctrico" },
-];
-
-const BODY_TYPE_OPTIONS = [
-  { value: "", label: "Todas" },
-  { value: "berlina", label: "Berlina" },
-  { value: "familiar", label: "Familiar" },
-  { value: "coupe", label: "Coupe" },
-  { value: "monovolumen", label: "Monovolumen" },
-  { value: "suv", label: "SUV" },
-  { value: "cabrio", label: "Cabrio" },
-  { value: "pick_up", label: "Pick Up" },
-];
-
-const TRANSMISSION_OPTIONS = [
-  { value: "", label: "Todos" },
-  { value: "automatico", label: "Automático" },
-  { value: "manual", label: "Manual" },
-];
-
-const DGT_LABEL_OPTIONS = [
-  { value: "", label: "Todas" },
-  { value: "cero", label: "Etiqueta CERO" },
-  { value: "eco", label: "Etiqueta ECO" },
-  { value: "c", label: "Etiqueta C" },
-  { value: "b", label: "Etiqueta B" },
-];
-
-const COLOR_OPTIONS = [
-  { value: "amarillo", label: "Amarillo", dot: "#facc15" },
-  { value: "azul", label: "Azul", dot: "#3b82f6" },
-  { value: "beige", label: "Beige", dot: "#d6c7b4" },
-  { value: "blanco", label: "Blanco", dot: "#ffffff" },
-  { value: "granate", label: "Granate", dot: "#991b1b" },
-  { value: "gris", label: "Gris / Plata", dot: "#9ca3af" },
-  { value: "marron", label: "Marrón", dot: "#92400e" },
-  { value: "naranja", label: "Naranja", dot: "#f97316" },
-  { value: "negro", label: "Negro", dot: "#111827" },
-  { value: "rojo", label: "Rojo", dot: "#ef4444" },
-  { value: "rosa", label: "Rosa", dot: "#f9a8d4" },
-  { value: "verde", label: "Verde", dot: "#22c55e" },
-  { value: "violeta", label: "Violeta / Lila", dot: "#a78bfa" },
-];
-
-const SELLER_TYPE_OPTIONS = [
-  { value: "", label: "Todos" },
-  { value: "particular", label: "Particular" },
-  { value: "profesional", label: "Profesional" },
-];
-
-const TRACTION_OPTIONS = [
-  { value: "", label: "Todas" },
-  { value: "delantera", label: "Delantera" },
-  { value: "trasera", label: "Trasera" },
-  { value: "4x4", label: "4x4 / AWD" },
-];
-
 const SEAT_OPTIONS = [2, 3, 4, 5, 6, 7, 8];
 const DOOR_OPTIONS = [2, 3, 4, 5, 6, 7];
 const ADVANCED_FILTERS_STORAGE_KEY = "decision_show_advanced_filters";
@@ -287,7 +224,95 @@ export default function DecisionPage({
     openListing: t("decision.openListing"),
     switchFlow: t("decision.switchFlow"),
     backHome: t("decision.backHome"),
+    filterToggleShow: t("decision.filterToggleShow"),
+    filterToggleHide: t("decision.filterToggleHide"),
+    byMarca: t("decision.byMarca"),
+    bodyTypeLabel: t("decision.bodyTypeLabel"),
+    seatsLabel: t("decision.seatsLabel"),
+    doorsLabel: t("decision.doorsLabel"),
+    transmissionLabel: t("decision.transmissionLabel"),
+    dgtLabelLabel: t("decision.dgtLabelLabel"),
+    colorLabel: t("decision.colorLabel"),
+    sellerTypeLabel: t("decision.sellerTypeLabel"),
+    tractionLabel: t("decision.tractionLabel"),
+    displacementLabel: t("decision.displacementLabel"),
+    co2Label: t("decision.co2Label"),
+    powerKwLabel: t("decision.powerKwLabel"),
+    consumptionLabel: t("decision.consumptionLabel"),
+    fromOption: t("decision.fromOption"),
+    toOption: t("decision.toOption"),
+    seatsUnit: t("decision.seatsUnit"),
+    doorsUnit: t("decision.doorsUnit"),
+    requestAlert: t("decision.requestAlert"),
+    selectBrandModelCta: t("decision.selectBrandModelCta"),
+    availableOffers: t("decision.availableOffers"),
+    resultsReady: t("decision.resultsReady"),
+    selectBrandModelResults: t("decision.selectBrandModelResults"),
+    viewMarketplace: t("decision.viewMarketplace"),
+    buyLabel: t("decision.buyLabel"),
+    noImage: t("decision.noImage"),
+    viewListing: t("decision.viewListing"),
+    allFeminine: t("decision.allFeminine"),
+    allMasculine: t("decision.allMasculine"),
+    allSpain: t("decision.allSpain"),
   };
+
+  const fuelFilterOptionsT = [
+    { value: "cualquiera", label: t("decision.fuelAny") },
+    { value: "gasolina", label: t("decision.fuelGas") },
+    { value: "diesel", label: t("decision.fuelDiesel") },
+    { value: "hibrido", label: t("decision.fuelHybrid") },
+    { value: "phev", label: "PHEV" },
+    { value: "electrico", label: t("decision.fuelElectric") },
+  ];
+  const bodyTypeOptionsT = [
+    { value: "", label: t("decision.allFeminine") },
+    { value: "berlina", label: t("decision.bodyBerlina") },
+    { value: "familiar", label: t("decision.bodyFamiliar") },
+    { value: "coupe", label: t("decision.bodyCoupe") },
+    { value: "monovolumen", label: t("decision.bodyMonovolumen") },
+    { value: "suv", label: "SUV" },
+    { value: "cabrio", label: t("decision.bodyCabrio") },
+    { value: "pick_up", label: t("decision.bodyPickUp") },
+  ];
+  const transmissionOptionsT = [
+    { value: "", label: t("decision.allMasculine") },
+    { value: "automatico", label: t("decision.transAuto") },
+    { value: "manual", label: t("decision.transManual") },
+  ];
+  const dgtLabelOptionsT = [
+    { value: "", label: t("decision.allFeminine") },
+    { value: "cero", label: t("decision.dgtCero") },
+    { value: "eco", label: t("decision.dgtEco") },
+    { value: "c", label: t("decision.dgtC") },
+    { value: "b", label: t("decision.dgtB") },
+  ];
+  const colorOptionsT = [
+    { value: "amarillo", label: t("decision.colorAmarillo"), dot: "#facc15" },
+    { value: "azul", label: t("decision.colorAzul"), dot: "#3b82f6" },
+    { value: "beige", label: t("decision.colorBeige"), dot: "#d6c7b4" },
+    { value: "blanco", label: t("decision.colorBlanco"), dot: "#ffffff" },
+    { value: "granate", label: t("decision.colorGranate"), dot: "#991b1b" },
+    { value: "gris", label: t("decision.colorGris"), dot: "#9ca3af" },
+    { value: "marron", label: t("decision.colorMarron"), dot: "#92400e" },
+    { value: "naranja", label: t("decision.colorNaranja"), dot: "#f97316" },
+    { value: "negro", label: t("decision.colorNegro"), dot: "#111827" },
+    { value: "rojo", label: t("decision.colorRojo"), dot: "#ef4444" },
+    { value: "rosa", label: t("decision.colorRosa"), dot: "#f9a8d4" },
+    { value: "verde", label: t("decision.colorVerde"), dot: "#22c55e" },
+    { value: "violeta", label: t("decision.colorVioleta"), dot: "#a78bfa" },
+  ];
+  const sellerTypeOptionsT = [
+    { value: "", label: t("decision.allMasculine") },
+    { value: "particular", label: t("decision.sellerParticular") },
+    { value: "profesional", label: t("decision.sellerProfesional") },
+  ];
+  const tractionOptionsT = [
+    { value: "", label: t("decision.allFeminine") },
+    { value: "delantera", label: t("decision.tractionFront") },
+    { value: "trasera", label: t("decision.tractionRear") },
+    { value: "4x4", label: t("decision.traction4x4") },
+  ];
 
   const showAllBrands = true;
   const [priceFromIndex, setPriceFromIndex] = useState(() => getIndexFromMarkValue(PRICE_MARKS, decisionAnswers.priceMin, 0));
@@ -750,9 +775,9 @@ export default function DecisionPage({
     const active = [];
     if (decisionAnswers.brand) active.push(decisionAnswers.brand);
     if (decisionAnswers.model) active.push(decisionAnswers.model);
-    if (decisionAnswers.operation && decisionAnswers.operation !== "comprar") active.push(decisionAnswers.operation === "renting" ? "Renting" : "Comprar");
+    if (decisionAnswers.operation && decisionAnswers.operation !== "comprar") active.push(decisionAnswers.operation === "renting" ? "Renting" : text.buyLabel);
     if (decisionAnswers.fuelFilter && decisionAnswers.fuelFilter !== "cualquiera") {
-      const fuel = FUEL_FILTER_OPTIONS.find(f => f.value === decisionAnswers.fuelFilter);
+      const fuel = fuelFilterOptionsT.find(f => f.value === decisionAnswers.fuelFilter);
       if (fuel) active.push(fuel.label);
     }
     if (PRICE_MARKS[priceFromIndex] > 0 || PRICE_MARKS[priceToIndex] < PRICE_MARKS[PRICE_MARKS.length - 1]) {
@@ -772,40 +797,40 @@ export default function DecisionPage({
       active.push(label);
     }
     if (decisionAnswers.bodyType) {
-      const bodyLabel = BODY_TYPE_OPTIONS.find((opt) => opt.value === decisionAnswers.bodyType)?.label;
+      const bodyLabel = bodyTypeOptionsT.find((opt) => opt.value === decisionAnswers.bodyType)?.label;
       if (bodyLabel) active.push(bodyLabel);
     }
     if (decisionAnswers.seatsFrom || decisionAnswers.seatsTo) {
-      active.push(`Plazas ${decisionAnswers.seatsFrom || "?"}-${decisionAnswers.seatsTo || "?"}`);
+      active.push(`${text.seatsLabel} ${decisionAnswers.seatsFrom || "?"}-${decisionAnswers.seatsTo || "?"}`);
     }
     if (decisionAnswers.doorsFrom || decisionAnswers.doorsTo) {
-      active.push(`Puertas ${decisionAnswers.doorsFrom || "?"}-${decisionAnswers.doorsTo || "?"}`);
+      active.push(`${text.doorsLabel} ${decisionAnswers.doorsFrom || "?"}-${decisionAnswers.doorsTo || "?"}`);
     }
     if (decisionAnswers.transmission) {
-      const transmissionLabel = TRANSMISSION_OPTIONS.find((opt) => opt.value === decisionAnswers.transmission)?.label;
+      const transmissionLabel = transmissionOptionsT.find((opt) => opt.value === decisionAnswers.transmission)?.label;
       if (transmissionLabel) active.push(transmissionLabel);
     }
     if (decisionAnswers.dgtLabel) {
-      const dgtLabel = DGT_LABEL_OPTIONS.find((opt) => opt.value === decisionAnswers.dgtLabel)?.label;
+      const dgtLabel = dgtLabelOptionsT.find((opt) => opt.value === decisionAnswers.dgtLabel)?.label;
       if (dgtLabel) active.push(dgtLabel);
     }
     if (decisionAnswers.color) {
-      const colorLabel = COLOR_OPTIONS.find((opt) => opt.value === decisionAnswers.color)?.label;
+      const colorLabel = colorOptionsT.find((opt) => opt.value === decisionAnswers.color)?.label;
       if (colorLabel) active.push(colorLabel);
     }
     if (decisionAnswers.sellerType) {
-      const sellerTypeLabel = SELLER_TYPE_OPTIONS.find((opt) => opt.value === decisionAnswers.sellerType)?.label;
+      const sellerTypeLabel = sellerTypeOptionsT.find((opt) => opt.value === decisionAnswers.sellerType)?.label;
       if (sellerTypeLabel) active.push(sellerTypeLabel);
     }
     if (decisionAnswers.traction) {
-      const tractionLabel = TRACTION_OPTIONS.find((opt) => opt.value === decisionAnswers.traction)?.label || decisionAnswers.traction;
+      const tractionLabel = tractionOptionsT.find((opt) => opt.value === decisionAnswers.traction)?.label || decisionAnswers.traction;
       active.push(tractionLabel);
     }
     if (
       DISPLACEMENT_MARKS[displacementFromIndex] > DISPLACEMENT_MARKS[0]
       || DISPLACEMENT_MARKS[displacementToIndex] < DISPLACEMENT_MARKS[DISPLACEMENT_MARKS.length - 1]
     ) {
-      active.push(`Cilindrada ${DISPLACEMENT_MARKS[displacementFromIndex]}-${DISPLACEMENT_MARKS[displacementToIndex]} cc`);
+      active.push(`${text.displacementLabel} ${DISPLACEMENT_MARKS[displacementFromIndex]}-${DISPLACEMENT_MARKS[displacementToIndex]} cc`);
     }
     if (CO2_MARKS[co2FromIndex] > CO2_MARKS[0] || CO2_MARKS[co2ToIndex] < CO2_MARKS[CO2_MARKS.length - 1]) {
       active.push(`CO2 ${CO2_MARKS[co2FromIndex]}-${CO2_MARKS[co2ToIndex]} g/km`);
@@ -814,14 +839,14 @@ export default function DecisionPage({
       POWER_KW_MARKS[powerKwFromIndex] > POWER_KW_MARKS[0]
       || POWER_KW_MARKS[powerKwToIndex] < POWER_KW_MARKS[POWER_KW_MARKS.length - 1]
     ) {
-      active.push(`Potencia ${POWER_KW_MARKS[powerKwFromIndex]}-${POWER_KW_MARKS[powerKwToIndex]} kW`);
+      active.push(`${text.powerKwLabel} ${POWER_KW_MARKS[powerKwFromIndex]}-${POWER_KW_MARKS[powerKwToIndex]} kW`);
     }
     if (
       CONSUMPTION_MARKS[consumptionFromIndex] > CONSUMPTION_MARKS[0]
       || CONSUMPTION_MARKS[consumptionToIndex] < CONSUMPTION_MARKS[CONSUMPTION_MARKS.length - 1]
     ) {
       active.push(
-        `Consumo ${Number(CONSUMPTION_MARKS[consumptionFromIndex]).toLocaleString("es-ES", { maximumFractionDigits: 1 })}`
+        `${text.consumptionLabel} ${Number(CONSUMPTION_MARKS[consumptionFromIndex]).toLocaleString("es-ES", { maximumFractionDigits: 1 })}`
         + `-${Number(CONSUMPTION_MARKS[consumptionToIndex]).toLocaleString("es-ES", { maximumFractionDigits: 1 })} l/100`
       );
     }
@@ -929,14 +954,14 @@ export default function DecisionPage({
         <div className="cw-main-card">
           {/* HEAD */}
           <div className="cw-card-head">
-            <div className="cw-eyebrow">Búsqueda de compra</div>
+            <div className="cw-eyebrow">{t("decision.searchLabel")}</div>
             <div className="cw-page-title">{text.title}</div>
             <div className="cw-page-sub">{text.subtitle}</div>
           </div>
 
           {/* ACTIVE FILTERS */}
           <div className={`cw-active-bar ${hasActiveFilters ? "show" : ""}`}>
-            <span className="cw-ab-label">Filtros activos</span>
+            <span className="cw-ab-label">{t("decision.activeFilters")}</span>
             <div style={{display:"flex",gap:"0.35rem",flexWrap:"wrap"}}>
               {activeFilters.map((f, i) => (
                 <span key={i} className="cw-a-chip">{f}</span>
@@ -975,7 +1000,7 @@ export default function DecisionPage({
             <div className="cw-f-block">
               <div className="cw-f-lbl">
                 <span className="cw-f-lbl-n">3</span>{text.model}
-                <span style={{fontSize:"10px",fontWeight:400,textTransform:"none",letterSpacing:0,color:"#ccc",marginLeft:"0.25rem"}}>— según marca</span>
+                <span style={{fontSize:"10px",fontWeight:400,textTransform:"none",letterSpacing:0,color:"#ccc",marginLeft:"0.25rem"}}>{text.byMarca}</span>
               </div>
               <div className="cw-sel-wrap">
                 <select
@@ -989,13 +1014,13 @@ export default function DecisionPage({
                 >
                   <option value="">
                     {!decisionAnswers.brand
-                      ? "Selecciona marca primero"
+                      ? t("decision.selectBrandFirst")
                       : (decisionTopModels.length + decisionOtherModels.length)
                         ? text.selectModel
-                        : "No hay modelos en catálogo"}
+                        : t("decision.noCatalogModels")}
                   </option>
                   {decisionTopModels.length > 0 && (
-                    <optgroup label="Modelos más buscados">
+                    <optgroup label={t("decision.topModelsLabel")}>
                       {decisionTopModels.map((model) => (
                         <option key={`top-${model}`} value={model}>
                           {model}
@@ -1004,7 +1029,7 @@ export default function DecisionPage({
                     </optgroup>
                   )}
                   {decisionOtherModels.length > 0 && (
-                    <optgroup label="Otros modelos">
+                    <optgroup label={t("decision.otherModelsLabel")}>
                       {decisionOtherModels.map((model) => (
                         <option key={`other-${model}`} value={model}>
                           {model}
@@ -1022,7 +1047,7 @@ export default function DecisionPage({
               className="cw-advanced-toggle"
               onClick={() => setShowAdvancedFilters((prev) => !prev)}
             >
-              {showAdvancedFilters ? "− Filtros" : "+ Filtros"}
+              {showAdvancedFilters ? text.filterToggleHide : text.filterToggleShow}
             </button>
 
             {showAdvancedFilters && (
@@ -1101,7 +1126,7 @@ export default function DecisionPage({
 
               {/* 5. POTENCIA */}
               <div className="cw-f-block">
-                <div className="cw-f-lbl"><span className="cw-f-lbl-n">5</span>{text.powerRange || "Rango de CV / Potencia"}</div>
+                <div className="cw-f-lbl"><span className="cw-f-lbl-n">5</span>{text.powerRange}</div>
                 <div className="cw-range-box">
                   <div className="cw-range-values">
                     <span>{text.from}: <strong>{formatPower(POWER_MARKS[powerFromIndex])}</strong></span>
@@ -1173,7 +1198,7 @@ export default function DecisionPage({
             <div className="cw-f-block">
               <div className="cw-f-lbl"><span className="cw-f-lbl-n">6</span>{text.fuel}</div>
               <div className="cw-chips">
-                {FUEL_FILTER_OPTIONS.map((opt) => (
+                {fuelFilterOptionsT.map((opt) => (
                   <button
                     key={opt.value}
                     className={`cw-chip ${decisionAnswers.fuelFilter === opt.value ? "sel" : ""}`}
@@ -1343,13 +1368,13 @@ export default function DecisionPage({
 
             {/* 10. CARROCERÍA */}
             <div className="cw-f-block">
-              <div className="cw-f-lbl"><span className="cw-f-lbl-n">10</span>Carrocería</div>
+              <div className="cw-f-lbl"><span className="cw-f-lbl-n">10</span>{text.bodyTypeLabel}</div>
               <div className="cw-sel-wrap">
                 <select
                   value={decisionAnswers.bodyType || ""}
                   onChange={(e) => updateDecisionAnswer("bodyType", e.target.value)}
                 >
-                  {BODY_TYPE_OPTIONS.map((option) => (
+                  {bodyTypeOptionsT.map((option) => (
                     <option key={option.value || "all"} value={option.value}>
                       {option.label}
                     </option>
@@ -1362,7 +1387,7 @@ export default function DecisionPage({
             {/* 11+12. PLAZAS + PUERTAS */}
             <div className="cw-two-col">
               <div className="cw-f-block">
-                <div className="cw-f-lbl"><span className="cw-f-lbl-n">11</span>Plazas</div>
+                <div className="cw-f-lbl"><span className="cw-f-lbl-n">11</span>{text.seatsLabel}</div>
                 <div className="cw-plain-manual">
                   <label>
                     {text.from}
@@ -1371,10 +1396,10 @@ export default function DecisionPage({
                         value={decisionAnswers.seatsFrom || ""}
                         onChange={(e) => handleSeatsFromChange(e.target.value)}
                       >
-                        <option value="">Desde</option>
+                        <option value="">{text.fromOption}</option>
                         {SEAT_OPTIONS.map((seat) => (
                           <option key={`seat-from-${seat}`} value={seat}>
-                            {seat} plazas
+                            {seat} {text.seatsUnit}
                           </option>
                         ))}
                       </select>
@@ -1388,10 +1413,10 @@ export default function DecisionPage({
                         value={decisionAnswers.seatsTo || ""}
                         onChange={(e) => handleSeatsToChange(e.target.value)}
                       >
-                        <option value="">Hasta</option>
+                        <option value="">{text.toOption}</option>
                         {SEAT_OPTIONS.map((seat) => (
                           <option key={`seat-to-${seat}`} value={seat}>
-                            {seat} plazas
+                            {seat} {text.seatsUnit}
                           </option>
                         ))}
                       </select>
@@ -1402,7 +1427,7 @@ export default function DecisionPage({
               </div>
 
               <div className="cw-f-block">
-                <div className="cw-f-lbl"><span className="cw-f-lbl-n">12</span>Puertas</div>
+                <div className="cw-f-lbl"><span className="cw-f-lbl-n">12</span>{text.doorsLabel}</div>
                 <div className="cw-plain-manual">
                   <label>
                     {text.from}
@@ -1411,10 +1436,10 @@ export default function DecisionPage({
                         value={decisionAnswers.doorsFrom || ""}
                         onChange={(e) => handleDoorsFromChange(e.target.value)}
                       >
-                        <option value="">Desde</option>
+                        <option value="">{text.fromOption}</option>
                         {DOOR_OPTIONS.map((door) => (
                           <option key={`door-from-${door}`} value={door}>
-                            {door} puertas
+                            {door} {text.doorsUnit}
                           </option>
                         ))}
                       </select>
@@ -1428,10 +1453,10 @@ export default function DecisionPage({
                         value={decisionAnswers.doorsTo || ""}
                         onChange={(e) => handleDoorsToChange(e.target.value)}
                       >
-                        <option value="">Hasta</option>
+                        <option value="">{text.toOption}</option>
                         {DOOR_OPTIONS.map((door) => (
                           <option key={`door-to-${door}`} value={door}>
-                            {door} puertas
+                            {door} {text.doorsUnit}
                           </option>
                         ))}
                       </select>
@@ -1445,13 +1470,13 @@ export default function DecisionPage({
             {/* 13+14. MOTOR + ETIQUETA */}
             <div className="cw-two-col">
               <div className="cw-f-block">
-                <div className="cw-f-lbl"><span className="cw-f-lbl-n">13</span>Motor</div>
+                <div className="cw-f-lbl"><span className="cw-f-lbl-n">13</span>{text.transmissionLabel}</div>
                 <div className="cw-sel-wrap">
                   <select
                     value={decisionAnswers.transmission || ""}
                     onChange={(e) => updateDecisionAnswer("transmission", e.target.value)}
                   >
-                    {TRANSMISSION_OPTIONS.map((option) => (
+                    {transmissionOptionsT.map((option) => (
                       <option key={option.value || "all"} value={option.value}>
                         {option.label}
                       </option>
@@ -1462,13 +1487,13 @@ export default function DecisionPage({
               </div>
 
               <div className="cw-f-block">
-                <div className="cw-f-lbl"><span className="cw-f-lbl-n">14</span>Etiqueta DGT</div>
+                <div className="cw-f-lbl"><span className="cw-f-lbl-n">14</span>{text.dgtLabelLabel}</div>
                 <div className="cw-sel-wrap">
                   <select
                     value={decisionAnswers.dgtLabel || ""}
                     onChange={(e) => updateDecisionAnswer("dgtLabel", e.target.value)}
                   >
-                    {DGT_LABEL_OPTIONS.map((option) => (
+                    {dgtLabelOptionsT.map((option) => (
                       <option key={option.value || "all"} value={option.value}>
                         {option.label}
                       </option>
@@ -1481,9 +1506,9 @@ export default function DecisionPage({
 
             {/* 15. COLOR */}
             <div className="cw-f-block">
-              <div className="cw-f-lbl"><span className="cw-f-lbl-n">15</span>Color</div>
+              <div className="cw-f-lbl"><span className="cw-f-lbl-n">15</span>{text.colorLabel}</div>
               <div className="cw-color-grid">
-                {COLOR_OPTIONS.map((color) => (
+                {colorOptionsT.map((color) => (
                   <button
                     key={color.value}
                     type="button"
@@ -1502,13 +1527,13 @@ export default function DecisionPage({
             {/* 16+17. VENDEDOR + TRACCION */}
             <div className="cw-two-col">
               <div className="cw-f-block">
-                <div className="cw-f-lbl"><span className="cw-f-lbl-n">16</span>Tipo de vendedor</div>
+                <div className="cw-f-lbl"><span className="cw-f-lbl-n">16</span>{text.sellerTypeLabel}</div>
                 <div className="cw-sel-wrap">
                   <select
                     value={decisionAnswers.sellerType || ""}
                     onChange={(e) => updateDecisionAnswer("sellerType", e.target.value)}
                   >
-                    {SELLER_TYPE_OPTIONS.map((option) => (
+                    {sellerTypeOptionsT.map((option) => (
                       <option key={option.value || "all"} value={option.value}>
                         {option.label}
                       </option>
@@ -1519,13 +1544,13 @@ export default function DecisionPage({
               </div>
 
               <div className="cw-f-block">
-                <div className="cw-f-lbl"><span className="cw-f-lbl-n">17</span>Tracción</div>
+                <div className="cw-f-lbl"><span className="cw-f-lbl-n">17</span>{text.tractionLabel}</div>
                 <div className="cw-sel-wrap">
                   <select
                     value={decisionAnswers.traction || ""}
                     onChange={(e) => updateDecisionAnswer("traction", e.target.value)}
                   >
-                    {TRACTION_OPTIONS.map((option) => (
+                    {tractionOptionsT.map((option) => (
                       <option key={option.value || "all"} value={option.value}>
                         {option.label}
                       </option>
@@ -1539,7 +1564,7 @@ export default function DecisionPage({
             {/* 18-21. FILTROS TECNICOS */}
             <div className="cw-two-col">
               <div className="cw-f-block">
-                <div className="cw-f-lbl"><span className="cw-f-lbl-n">18</span>Cilindrada (cc)</div>
+                <div className="cw-f-lbl"><span className="cw-f-lbl-n">18</span>{text.displacementLabel}</div>
                 <div className="cw-range-box">
                   <div className="cw-range-values">
                     <span>{text.from}: <strong>{DISPLACEMENT_MARKS[displacementFromIndex]} cc</strong></span>
@@ -1607,7 +1632,7 @@ export default function DecisionPage({
               </div>
 
               <div className="cw-f-block">
-                <div className="cw-f-lbl"><span className="cw-f-lbl-n">19</span>CO2 (g/km)</div>
+                <div className="cw-f-lbl"><span className="cw-f-lbl-n">19</span>{text.co2Label}</div>
                 <div className="cw-range-box">
                   <div className="cw-range-values">
                     <span>{text.from}: <strong>{CO2_MARKS[co2FromIndex]} g/km</strong></span>
@@ -1677,7 +1702,7 @@ export default function DecisionPage({
 
             <div className="cw-two-col">
               <div className="cw-f-block">
-                <div className="cw-f-lbl"><span className="cw-f-lbl-n">20</span>Potencia (kW)</div>
+                <div className="cw-f-lbl"><span className="cw-f-lbl-n">20</span>{text.powerKwLabel}</div>
                 <div className="cw-range-box">
                   <div className="cw-range-values">
                     <span>{text.from}: <strong>{POWER_KW_MARKS[powerKwFromIndex]} kW</strong></span>
@@ -1745,7 +1770,7 @@ export default function DecisionPage({
               </div>
 
               <div className="cw-f-block">
-                <div className="cw-f-lbl"><span className="cw-f-lbl-n">21</span>Consumo (l/100)</div>
+                <div className="cw-f-lbl"><span className="cw-f-lbl-n">21</span>{text.consumptionLabel}</div>
                 <div className="cw-range-box">
                   <div className="cw-range-values">
                     <span>{text.from}: <strong>{formatConsumption(CONSUMPTION_MARKS[consumptionFromIndex])}</strong></span>
@@ -1843,7 +1868,7 @@ export default function DecisionPage({
                   disabled
                   style={{marginTop:4,padding:"9px 20px",borderRadius:8,border:"1px solid #d1d5db",background:"#f3f4f6",color:"#9ca3af",fontSize:13,cursor:"not-allowed",fontWeight:500}}
                 >
-                  🔔 Solicitar alerta
+                  {text.requestAlert}
                 </button>
               </div>
             )}
@@ -1860,7 +1885,7 @@ export default function DecisionPage({
                     onKeyDown={(e) => e.key === "Enter" && onOpenVehicleDetail && onOpenVehicleDetail(offer)}
                   >
                     <div className="cw-offer-top">
-                      <div className="cw-offer-type">{offer.listingType === "renting" ? "Renting" : "Compra"}</div>
+                      <div className="cw-offer-type">{offer.listingType === "renting" ? "Renting" : text.buyLabel}</div>
                       <div className="cw-offer-source">{cleanOfferText(offer.source) || "market"}</div>
                     </div>
                     <div className="cw-offer-media">
@@ -1881,13 +1906,13 @@ export default function DecisionPage({
                         />
                       ) : null}
                       <div className="cw-offer-image-fallback" style={{ display: offer.image ? "none" : "flex" }}>
-                        Sin imagen
+                        {text.noImage}
                       </div>
                     </div>
                     <div className="cw-offer-title">{cleanOfferText(offer.title)}</div>
                     <div className="cw-offer-desc">{cleanOfferText(offer.description)?.substring(0, 96)}</div>
                     <div className="cw-offer-footer">
-                      <div className="cw-offer-open">Ver ficha ↗</div>
+                      <div className="cw-offer-open">{text.viewListing}</div>
                       <div className="cw-offer-price">{cleanOfferText(offer.priceText || offer.price)}</div>
                     </div>
                   </div>
@@ -1898,7 +1923,7 @@ export default function DecisionPage({
         )}
 
         {!decisionFlowReady && (
-          <div className="cw-no-results">Selecciona marca y modelo para ver ofertas.</div>
+          <div className="cw-no-results">{text.selectBrandModelCta}</div>
         )}
 
         {/* CTA */}
@@ -1906,16 +1931,16 @@ export default function DecisionPage({
           <div className="cw-cta-left">
             <div className="cw-count-row">
               <div className="cw-count-n" id="countN">{decisionFlowReady && !decisionMarketLoading ? decisionMarketListings.length : "—"}</div>
-              <div className="cw-count-lbl">ofertas disponibles</div>
+              <div className="cw-count-lbl">{text.availableOffers}</div>
             </div>
-            <div className="cw-cta-hint">{decisionFlowReady ? "Resultados listos para analizar" : "Selecciona marca y modelo para ver resultados"}</div>
+            <div className="cw-cta-hint">{decisionFlowReady ? text.resultsReady : text.selectBrandModelResults}</div>
           </div>
           <div className="cw-cta-right">
             <button className="cw-btn-back" onClick={onRestart}>
               ← {text.backHome}
             </button>
             <button className="cw-btn-main" onClick={onSwitchToAdvice}>
-              Ver Marketplace VO de Carswise →
+              {text.viewMarketplace}
             </button>
           </div>
         </div>

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 export default function ServiceOptionsPage({
   styles,
   onSelectInsurance,
@@ -7,6 +9,7 @@ export default function ServiceOptionsPage({
   onSelectAutogestor,
   onGoBack,
 }) {
+  const { t } = useTranslation();
   const isDark = styles?.page?.color === "#e2e8f0";
   const titleColor = isDark ? "#f8fafc" : "#000000";
   const mutedColor = isDark ? "#cbd5e1" : "#94a3b8";
@@ -14,10 +17,9 @@ export default function ServiceOptionsPage({
   const serviceCards = [
     {
       id: "autogestor",
-      badge: "A - AUTOGESTOR",
-      title: "ID digital de tu vehiculo",
-      description:
-        "Toda la informacion de tu coche desde una unica plataforma: documentacion, poliza, facturas de mantenimientos y garantias. No vuelvas a perder un papel.",
+      badge: t("service.autogestorBadge"),
+      title: t("service.autogestorTitle"),
+      description: t("service.autogestorDescription"),
       onClick: onSelectAutogestor,
       icon: (
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -28,10 +30,9 @@ export default function ServiceOptionsPage({
     },
     {
       id: "mantenimientos",
-      badge: "B - MANTENIMIENTOS",
-      title: "Recordatorio inteligente",
-      description:
-        "Cruzamos los datos de tu vehiculo con el plan de mantenimientos definido por la marca y te avisamos cuando toca. Agenda cita con nuestros proveedores.",
+      badge: t("service.maintenanceBadge"),
+      title: t("service.maintenanceTitle"),
+      description: t("service.maintenanceDescription"),
       onClick: onSelectMaintenance,
       icon: (
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -41,10 +42,9 @@ export default function ServiceOptionsPage({
     },
     {
       id: "cita",
-      badge: "C - CITA MANTENIMIENTOS",
-      title: "Precios de acuerdo, no de particular",
-      description:
-        "Aprovecha nuestros acuerdos para conseguir precios mas reducidos y agenda tu proxima revision a traves nuestra.",
+      badge: t("service.appointmentBadge"),
+      title: t("service.appointmentTitle"),
+      description: t("service.appointmentDescription"),
       onClick: onSelectAppointment,
       icon: (
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -55,10 +55,9 @@ export default function ServiceOptionsPage({
     },
     {
       id: "cuota",
-      badge: "D - CUOTA MENSUAL",
-      title: "Tu mantenimiento en una cuota fija",
-      description:
-        "Quieres pagar una cuota mensual por el mantenimiento preventivo de tu coche y no llevarte mas sustos antes de vacaciones? Con nosotros es posible.",
+      badge: t("service.monthlyPlanBadge"),
+      title: t("service.monthlyPlanTitle"),
+      description: t("service.monthlyPlanDescription"),
       onClick: onSelectMonthlyPlan,
       icon: (
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -69,10 +68,9 @@ export default function ServiceOptionsPage({
     },
     {
       id: "insurance",
-      badge: "E - SEGURO - AINSURANCE",
-      title: "Entiende de verdad tu poliza",
-      description:
-        "Sube tu poliza y nuestra IA lee las condiciones. Te resumimos ventajas, puntos debiles y te ayudamos a buscar opciones mas completas o economicas en la renovacion.",
+      badge: t("service.insuranceBadge"),
+      title: t("service.insuranceTitle"),
+      description: t("service.insuranceDescription"),
       onClick: onSelectInsurance,
       icon: (
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -100,14 +98,14 @@ export default function ServiceOptionsPage({
           marginBottom: 20,
         }}
       >
-        ← Volver
+        {t("common.backArrow")}
       </button>
 
       <h2 style={{ margin: "0 0 8px", fontSize: "clamp(28px,4vw,38px)", color: titleColor, letterSpacing: "-0.9px" }}>
-        Quiero contratar un Servicio
+        {t("service.title")}
       </h2>
       <p style={{ margin: "0 0 22px", color: mutedColor, fontSize: 14, lineHeight: 1.6 }}>
-        Selecciona el servicio que quieras activar para tu vehículo.
+        {t("service.subtitle")}
       </p>
 
       <div

@@ -1,21 +1,29 @@
 export const PRICING_SECTION_COPY = {
   pill: "PLANES VISUALES (SIN RESTRICCIONES ACTIVAS)",
+  pillEn: "VISUAL PLANS (NO ACTIVE RESTRICTIONS)",
   title: "Planes de gestión y servicios",
+  titleEn: "Plans Management and Services",
   description:
     "Esta sección es solo de presentación. Precios y características se podrán editar más adelante sin tocar lógica.",
+  descriptionEn:
+    "This section is for presentation only. Prices and features can be edited later without touching logic.",
   comparisonTitle: "Cobertura",
+  comparisonTitleEn: "Coverage",
   ctaSoonLabel: "Próximamente",
+  ctaSoonLabelEn: "Coming soon",
 };
 
 export const SERVICE_PLANS = [
   {
     id: "gratis",
     name: "Plan Gratis",
+    nameEn: "Free Plan",
     monthlyPrice: "0",
     accent: "#22c55e",
     background: "rgba(34,197,94,0.10)",
     border: "rgba(34,197,94,0.30)",
     badge: "Para empezar",
+    badgeEn: "Get started",
     badgeBackground: "rgba(34,197,94,0.18)",
     highlights: [
       "1 alerta activa",
@@ -23,7 +31,14 @@ export const SERVICE_PLANS = [
       "Acceso a ofertas destacadas",
       "Soporte comunitario",
     ],
+    highlightsEn: [
+      "1 active alert",
+      "Basic comparison tool",
+      "Access to featured offers",
+      "Community support",
+    ],
     ctaLabel: "Empezar gratis",
+    ctaLabelEn: "Start free",
     billing: {
       checkoutEnabled: false,
       stripePriceId: "",
@@ -32,11 +47,13 @@ export const SERVICE_PLANS = [
   {
     id: "bronce",
     name: "Plan Bronce",
+    nameEn: "Bronze Plan",
     monthlyPrice: "29",
     accent: "#b45309",
     background: "rgba(180,83,9,0.10)",
     border: "rgba(245,158,11,0.28)",
     badge: "Entrada",
+    badgeEn: "Entry",
     badgeBackground: "rgba(245,158,11,0.18)",
     highlights: [
       "Alertas y comparador básico",
@@ -44,7 +61,14 @@ export const SERVICE_PLANS = [
       "Descuento en tasación externa",
       "Soporte por email",
     ],
+    highlightsEn: [
+      "Alerts and basic comparison",
+      "Initial document review",
+      "External appraisal discount",
+      "Email support",
+    ],
     ctaLabel: "Elegir Bronce",
+    ctaLabelEn: "Choose Bronze",
     billing: {
       checkoutEnabled: false,
       stripePriceId: "",
@@ -53,11 +77,13 @@ export const SERVICE_PLANS = [
   {
     id: "plata",
     name: "Plan Plata",
+    nameEn: "Silver Plan",
     monthlyPrice: "79",
     accent: "#94a3b8",
     background: "rgba(148,163,184,0.10)",
     border: "rgba(148,163,184,0.28)",
     badge: "Más equilibrado",
+    badgeEn: "Most balanced",
     badgeBackground: "rgba(148,163,184,0.2)",
     highlights: [
       "Todo lo de Bronce",
@@ -65,8 +91,15 @@ export const SERVICE_PLANS = [
       "1 informe de historial incluido",
       "Gestión de transferencia asistida",
     ],
+    highlightsEn: [
+      "Everything in Bronze",
+      "1 professional appraisal included",
+      "1 history report included",
+      "Assisted transfer management",
+    ],
     featured: true,
     ctaLabel: "Elegir Plata",
+    ctaLabelEn: "Choose Silver",
     billing: {
       checkoutEnabled: false,
       stripePriceId: "",
@@ -75,11 +108,13 @@ export const SERVICE_PLANS = [
   {
     id: "oro",
     name: "Plan Oro",
+    nameEn: "Gold Plan",
     monthlyPrice: "149",
     accent: "#f59e0b",
     background: "rgba(245,158,11,0.10)",
     border: "rgba(245,158,11,0.30)",
     badge: "Servicio avanzado",
+    badgeEn: "Advanced service",
     badgeBackground: "rgba(245,158,11,0.18)",
     highlights: [
       "Todo lo de Plata",
@@ -87,7 +122,14 @@ export const SERVICE_PLANS = [
       "3 informes de historial",
       "Verificación mecánica partner",
     ],
+    highlightsEn: [
+      "Everything in Silver",
+      "3 professional appraisals",
+      "3 history reports",
+      "Partner mechanical verification",
+    ],
     ctaLabel: "Elegir Oro",
+    ctaLabelEn: "Choose Gold",
     billing: {
       checkoutEnabled: false,
       stripePriceId: "",
@@ -96,11 +138,13 @@ export const SERVICE_PLANS = [
   {
     id: "platino",
     name: "Plan Platino",
+    nameEn: "Platinum Plan",
     monthlyPrice: "299",
     accent: "#22d3ee",
     background: "rgba(34,211,238,0.10)",
     border: "rgba(34,211,238,0.30)",
     badge: "Integral",
+    badgeEn: "Comprehensive",
     badgeBackground: "rgba(34,211,238,0.2)",
     highlights: [
       "Todo lo de Oro",
@@ -108,7 +152,14 @@ export const SERVICE_PLANS = [
       "Gestor personal de operaciones",
       "SLA y soporte prioritario",
     ],
+    highlightsEn: [
+      "Everything in Gold",
+      "High quota of appraisals and reports",
+      "Personal operations manager",
+      "SLA and priority support",
+    ],
     ctaLabel: "Elegir Platino",
+    ctaLabelEn: "Choose Platinum",
     billing: {
       checkoutEnabled: false,
       stripePriceId: "",
@@ -119,19 +170,27 @@ export const SERVICE_PLANS = [
 export const PLAN_COMPARISON_ROWS = [
   {
     label: "Tasaciones incluidas",
+    labelEn: "Appraisals included",
     values: ["0", "0", "1", "3", "Cupo alto"],
+    valuesEn: ["0", "0", "1", "3", "High quota"],
   },
   {
     label: "Informes de historial",
+    labelEn: "History reports",
     values: ["No incluido", "Con descuento", "1 incluido", "3 incluidos", "Cupo alto"],
+    valuesEn: ["Not included", "With discount", "1 included", "3 included", "High quota"],
   },
   {
     label: "Gestión de transferencia",
+    labelEn: "Transfer management",
     values: ["No incluida", "Guía", "Asistida", "Completa", "Completa + gestor"],
+    valuesEn: ["Not included", "Guide", "Assisted", "Complete", "Complete + manager"],
   },
   {
     label: "Soporte",
+    labelEn: "Support",
     values: ["Comunidad", "Email", "Prioritario", "Prioritario + teléfono", "SLA dedicado"],
+    valuesEn: ["Community", "Email", "Priority", "Priority + phone", "Dedicated SLA"],
   },
 ];
 

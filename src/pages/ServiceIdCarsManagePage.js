@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
+import { useTranslation } from "react-i18next";
 import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemoveJson } from "../utils/apiClient";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
@@ -302,7 +303,7 @@ const INPUT_STYLE = {
 
 const LABEL_STYLE = { display: "grid", gap: 5, fontSize: 12, color: "#6b7280" };
 
-function SectionBlock({ title, subtitle, open, onToggle, children }) {
+function SectionBlock({ title, subtitle, open, onToggle, children, openLabel = "Open", closeLabel = "Hide" }) {
   return (
     <div style={SECTION_CARD_STYLE}>
       <button
@@ -323,7 +324,7 @@ function SectionBlock({ title, subtitle, open, onToggle, children }) {
           background: "rgba(37,99,235,0.07)", borderRadius: 8, padding: "4px 10px",
           border: "1px solid rgba(37,99,235,0.14)", whiteSpace: "nowrap",
         }}>
-          {open ? "Ocultar" : "Abrir"}
+          {open ? closeLabel : openLabel}
         </span>
       </button>
       {open ? <div style={{ borderTop: "1px solid #f1ede6", padding: "14px 16px" }}>{children}</div> : null}
@@ -342,6 +343,10 @@ export default function ServiceIdCarsManagePage({
   startEditing = false,
   viewMode = "list",
 }) {
+  const { i18n } = useTranslation();
+  const isEn = i18n.resolvedLanguage === "en";
+  const txt = (es, en) => (isEn ? en : es);
+
   const isDetailView = viewMode === "detail";
   const isCreateView = viewMode === "create";
   const [isEditMode, setIsEditMode] = useState(startEditing);
@@ -414,7 +419,7 @@ export default function ServiceIdCarsManagePage({
     setIsCreating(true);
     setEditingVehicleId("");
     setForm(createEmptyForm());
-    showFeedback("Completa la ficha y guarda tu nuevo IDCar.", "info");
+    showFeedback(txt("Completa la ficha y guarda tu nuevo IDCar.", "Complete the form and save your new IDCar."), "info");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isCreateView]);
 
@@ -427,9 +432,9 @@ export default function ServiceIdCarsManagePage({
       setIsCreating(true);
       setEditingVehicleId("");
       setForm(createEmptyForm());
-      showFeedback("Completa la ficha y guarda tu nuevo IDCar.", "info");
+      showFeedback(txt("Completa la ficha y guarda tu nuevo IDCar.", "Complete the form and save your new IDCar."), "info");
     }
-  }, [isDetailView, isCreateView]);
+  }, [isDetailView, isCreateView, isEn]);
 
   useEffect(() => {
     if (!isDetailView) {
@@ -470,7 +475,7 @@ export default function ServiceIdCarsManagePage({
     setForm(createEmptyForm());
     setOpenSections(defaultSections);
     resetFileUploads();
-    showFeedback("Completa la ficha y guarda tu nuevo IDCar.", "info");
+    showFeedback(txt("Completa la ficha y guarda tu nuevo IDCar.", "Complete the form and save your new IDCar."), "info");
   };
 
   const openVehicleDetail = (vehicle, wantEdit = false) => {
@@ -483,7 +488,13 @@ export default function ServiceIdCarsManagePage({
     setForm(vehicleToForm(vehicle));
     setOpenSections(defaultSections);
     resetFileUploads();
-    showFeedback(`Editando ${buildVehicleTitle(vehicle)}. Pulsa Guardar cambios para confirmar.`, "info");
+    showFeedback(
+      txt(
+        `Editando ${buildVehicleTitle(vehicle)}. Pulsa Guardar cambios para confirmar.`,
+        `Editing ${buildVehicleTitle(vehicle)}. Press Save changes to confirm.`
+      ),
+      "info"
+    );
   };
 
   const cancelEdit = () => {
@@ -497,7 +508,7 @@ export default function ServiceIdCarsManagePage({
     setIsCreating(false);
     setForm(createEmptyForm());
     resetFileUploads();
-    showFeedback("Edición cancelada.", "info");
+    showFeedback(txt("Edición cancelada.", "Edit canceled."), "info");
   };
 
   const handleRemove = async (vehicleId) => {
@@ -511,24 +522,24 @@ export default function ServiceIdCarsManagePage({
     }
     setVehicles(nextVehicles);
     if (isDetailView) {
-      showFeedback("IDCar eliminado.", "success");
+      showFeedback(txt("IDCar eliminado.", "IDCar removed."), "success");
       onGoBack?.();
       return;
     }
     if (editingVehicleId === vehicleId) cancelEdit();
-    showFeedback("IDCar eliminado.", "success");
+    showFeedback(txt("IDCar eliminado.", "IDCar removed."), "success");
   };
 
   const handleSave = async () => {
     if (isSaving) return;
 
     setIsSaving(true);
-    showFeedback("Guardando cambios...", "info");
+    showFeedback(txt("Guardando cambios...", "Saving changes..."), "info");
 
     try {
       const normalizedEmail = normalizeText(currentUserEmail).toLowerCase();
       if (!normalizedEmail) {
-        throw new Error("Tu sesión no está activa. Inicia sesión de nuevo antes de guardar el IDCar.");
+        throw new Error(txt("Tu sesión no está activa. Inicia sesión de nuevo antes de guardar el IDCar.", "Your session is not active. Sign in again before saving the IDCar."));
       }
 
       const baseVehicle = editingVehicleId ? vehicles.find((v) => v.id === editingVehicleId) || {} : {};
@@ -541,7 +552,7 @@ export default function ServiceIdCarsManagePage({
       const insuranceDocumentsPayload = await filesToAttachmentPayload(pendingInsuranceDocuments, "El documento del seguro");
       const maintenanceInvoicesPayload = await filesToAttachmentPayload(pendingMaintenanceInvoices, "La factura de mantenimiento");
 
-      const titleVal = normalizeText(form.nickname) || [normalizeText(form.brand), normalizeText(form.model)].filter(Boolean).join(" ") || "Vehículo";
+      const titleVal = normalizeText(form.nickname) || [normalizeText(form.brand), normalizeText(form.model)].filter(Boolean).join(" ") || txt("Vehículo", "Vehicle");
 
       const legacySplit = splitLegacyDocumentsByType(baseVehicle.documents);
 
@@ -596,22 +607,22 @@ export default function ServiceIdCarsManagePage({
       if (normalizedEmail) {
         const { response, data } = await postGarageVehicleAddJson(normalizedEmail, nextVehicle);
         if (!response.ok) {
-          throw new Error(normalizeText(data?.error) || "No se pudo guardar el IDCar en servidor.");
+          throw new Error(normalizeText(data?.error) || txt("No se pudo guardar el IDCar en servidor.", "Could not save the IDCar on server."));
         }
 
         const persistedSummary = data?.persistedDocumentSummary;
         if (technicalSheetDocumentsPayload.length > 0 && Number(persistedSummary?.technicalSheetDocuments || 0) === 0) {
-          throw new Error("El servidor no confirmó la persistencia de la ficha técnica.");
+          throw new Error(txt("El servidor no confirmó la persistencia de la ficha técnica.", "The server did not confirm technical sheet persistence."));
         }
         if (circulationPermitDocumentsPayload.length > 0 && Number(persistedSummary?.circulationPermitDocuments || 0) === 0) {
-          throw new Error("El servidor no confirmó la persistencia del permiso de circulación.");
+          throw new Error(txt("El servidor no confirmó la persistencia del permiso de circulación.", "The server did not confirm circulation permit persistence."));
         }
         if (itvDocumentsPayload.length > 0 && Number(persistedSummary?.itvDocuments || 0) === 0) {
-          throw new Error("El servidor no confirmó la persistencia de la documentación ITV.");
+          throw new Error(txt("El servidor no confirmó la persistencia de la documentación ITV.", "The server did not confirm MOT documentation persistence."));
         }
 
         if (!Array.isArray(data?.vehicles)) {
-          throw new Error("La API devolvio una respuesta incompleta al guardar el IDCar.");
+          throw new Error(txt("La API devolvio una respuesta incompleta al guardar el IDCar.", "The API returned an incomplete response while saving the IDCar."));
         }
         nextVehicles = data.vehicles.filter((item) => item && item.id);
       }
@@ -632,14 +643,16 @@ export default function ServiceIdCarsManagePage({
         maintenanceInvoicesPayload.length;
 
       showFeedback(
-        `${editingVehicleId ? `IDCar "${titleVal}" actualizado` : `IDCar "${titleVal}" creado y sincronizado`} correctamente.${uploadedFiles > 0 ? ` ${uploadedFiles} archivo(s) procesado(s).` : ""}`,
+        `${editingVehicleId
+          ? txt(`IDCar "${titleVal}" actualizado`, `IDCar "${titleVal}" updated`)
+          : txt(`IDCar "${titleVal}" creado y sincronizado`, `IDCar "${titleVal}" created and synced`)} ${txt("correctamente.", "successfully.")}${uploadedFiles > 0 ? ` ${uploadedFiles} ${txt("archivo(s) procesado(s).", "file(s) processed.")}` : ""}`,
         "success"
       );
       if (isCreateView && typeof onCreated === "function") {
         onCreated(persistedVehicle);
       }
     } catch (error) {
-      const message = normalizeText(error?.message) || "No se pudo guardar el IDCar. Revisa tu sesion e intentalo de nuevo.";
+      const message = normalizeText(error?.message) || txt("No se pudo guardar el IDCar. Revisa tu sesion e intentalo de nuevo.", "Could not save IDCar. Check your session and try again.");
       showFeedback(message, "error");
     } finally {
       setIsSaving(false);
@@ -652,7 +665,7 @@ export default function ServiceIdCarsManagePage({
       {label}
       {opts.type === "select" ? (
         <select value={form[key]} onChange={(e) => updateForm(key, e.target.value)} style={INPUT_STYLE}>
-          <option value="">Selecciona</option>
+          <option value="">{txt("Selecciona", "Select")}</option>
           {(opts.options || []).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
       ) : (
@@ -683,29 +696,29 @@ export default function ServiceIdCarsManagePage({
           fontSize: 12, fontWeight: 700, cursor: "pointer",
         }}
       >
-        <span>Adjuntar archivo</span>
-        <span style={{ fontSize: 11 }}>{storedFiles.length} guardados · {pendingFiles.length} seleccionados</span>
+        <span>{txt("Adjuntar archivo", "Attach file")}</span>
+        <span style={{ fontSize: 11 }}>{storedFiles.length} {txt("guardados", "saved")} · {pendingFiles.length} {txt("seleccionados", "selected")}</span>
       </button>
       {pendingFiles.some((file) => Number(file?.size || 0) > MAX_ATTACHMENT_BYTES) ? (
         <div style={{ fontSize: 11, color: "#b91c1c", fontWeight: 600 }}>
-          Hay archivos seleccionados que superan el máximo de {formatBytes(MAX_ATTACHMENT_BYTES)}.
+          {txt("Hay archivos seleccionados que superan el máximo de", "Some selected files exceed the maximum of")} {formatBytes(MAX_ATTACHMENT_BYTES)}.
         </div>
       ) : null}
       {storedFiles.length ? (
         <div style={{ border: "1px solid #e5e7eb", borderRadius: 10, background: "#fff", padding: "8px 10px" }}>
           <div style={{ fontSize: 10.5, color: "#6b7280", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
-            Guardados en ficha
+            {txt("Guardados en ficha", "Saved in profile")}
           </div>
           <div style={{ display: "grid", gap: 4 }}>
             {storedFiles.slice(0, 4).map((file, index) => (
               <div key={`${normalizeText(file?.name)}-${index}`} style={{ fontSize: 11.5, color: "#374151", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 • {getAttachmentLink(file)
-                  ? <a href={getAttachmentLink(file)} target="_blank" rel="noreferrer" style={{ color: "#1d4ed8", textDecoration: "none", fontWeight: 600 }}>{normalizeText(file?.name) || `Archivo ${index + 1}`}</a>
-                  : (normalizeText(file?.name) || `Archivo ${index + 1}`)}
+                  ? <a href={getAttachmentLink(file)} target="_blank" rel="noreferrer" style={{ color: "#1d4ed8", textDecoration: "none", fontWeight: 600 }}>{normalizeText(file?.name) || `${txt("Archivo", "File")} ${index + 1}`}</a>
+                  : (normalizeText(file?.name) || `${txt("Archivo", "File")} ${index + 1}`)}
               </div>
             ))}
             {storedFiles.length > 4 ? (
-              <div style={{ fontSize: 11, color: "#9ca3af" }}>+{storedFiles.length - 4} archivo(s) más</div>
+              <div style={{ fontSize: 11, color: "#9ca3af" }}>+{storedFiles.length - 4} {txt("archivo(s) más", "more file(s)")}</div>
             ) : null}
           </div>
         </div>
@@ -742,101 +755,107 @@ export default function ServiceIdCarsManagePage({
     return (
     <div style={{ marginBottom: 12 }}>
       <div style={{ fontSize: 16, fontWeight: 800, color: "#1f2937", marginBottom: 4, padding: "0 2px" }}>
-        {isCreating ? "Añadir vehículo propio" : "Editar vehículo"}
+        {isCreating ? txt("Añadir vehículo propio", "Add your own vehicle") : txt("Editar vehículo", "Edit vehicle")}
       </div>
       <p style={{ fontSize: 12.5, color: "#9ca3af", marginBottom: 12, padding: "0 2px", fontWeight: 300 }}>
-        Crea tu garage personal con fotos, documentación y acciones rápidas.
+        {txt("Crea tu garage personal con fotos, documentación y acciones rápidas.", "Create your personal garage with photos, documents, and quick actions.")}
       </p>
 
-      <SectionBlock title="Características del vehículo" subtitle="Datos base, ficha técnica y atributos comerciales"
-        open={openSections.characteristics} onToggle={() => toggleSection("characteristics")}>
+      <SectionBlock title={txt("Características del vehículo", "Vehicle characteristics")} subtitle={txt("Datos base, ficha técnica y atributos comerciales", "Base data, technical sheet and commercial attributes")}
+        open={openSections.characteristics} onToggle={() => toggleSection("characteristics")}
+        openLabel={txt("Abrir", "Open")} closeLabel={txt("Ocultar", "Hide")}>
         <div style={{ display: "grid", rowGap: 10, columnGap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>
-          {renderField("Alias / nombre", "nickname", { placeholder: "Coche familiar" })}
-          {renderField("Marca", "brand", { placeholder: "Opel" })}
-          {renderField("Modelo", "model", { placeholder: "Corsa" })}
-          {renderField("Versión", "version", { placeholder: "1.4 Color Edition 90 CV" })}
-          {renderField("Tipo de cambio", "transmissionType", { type: "select", options: [["manual","Manual"],["automatico","Automático"]] })}
-          {renderField("Tipo de coche", "bodyType", { type: "select", options: [["berlina","Berlina"],["suv","SUV"],["familiar","Familiar"],["coupe","Coupé"],["cabrio","Cabrio"],["monovolumen","Monovolumen"],["pickup","Pickup"],["todoterreno","Todoterreno"],["furgoneta","Furgoneta"]] })}
+          {renderField(txt("Alias / nombre", "Alias / name"), "nickname", { placeholder: txt("Coche familiar", "Family car") })}
+          {renderField(txt("Marca", "Brand"), "brand", { placeholder: "Opel" })}
+          {renderField(txt("Modelo", "Model"), "model", { placeholder: "Corsa" })}
+          {renderField(txt("Versión", "Version"), "version", { placeholder: "1.4 Color Edition 90 CV" })}
+          {renderField(txt("Tipo de cambio", "Transmission"), "transmissionType", { type: "select", options: [["manual", txt("Manual", "Manual")],["automatico", txt("Automático", "Automatic")]] })}
+          {renderField(txt("Tipo de coche", "Body type"), "bodyType", { type: "select", options: [["berlina", txt("Berlina", "Sedan")],["suv", "SUV"],["familiar", txt("Familiar", "Estate")],["coupe", txt("Coupé", "Coupe")],["cabrio", txt("Cabrio", "Convertible")],["monovolumen", txt("Monovolumen", "Minivan")],["pickup", "Pickup"],["todoterreno", txt("Todoterreno", "Off-road")],["furgoneta", txt("Furgoneta", "Van")]] })}
           {renderField("CV", "cv", { placeholder: "90" })}
-          {renderField("Caballos (cc)", "horsepower", { placeholder: "1398" })}
-          {renderField("Color", "color", { placeholder: "Gris" })}
-          {renderField("Plazas", "seats", { placeholder: "5" })}
-          {renderField("Puertas", "doors", { placeholder: "5" })}
-          {renderField("Ubicación", "location", { placeholder: "Madrid" })}
-          {renderField("Etiqueta ambiental", "environmentalLabel", { type: "select", options: [["0","0 emisiones"],["eco","ECO"],["c","C"],["b","B"]] })}
-          {renderField("Última ITV", "lastIvt", { placeholder: "2026-01-20" })}
-          {renderField("Próxima ITV", "nextIvt", { placeholder: "2028-01-20" })}
-          {renderField("CO₂ (g/km)", "co2", { placeholder: "120" })}
-          {renderField("Año", "year", { placeholder: "2016" })}
-          {renderField("Matrícula", "plate", { placeholder: "9052JMM" })}
-          {renderField("Kilometraje", "mileage", { placeholder: "130000" })}
-          {renderField("Combustible", "fuel", { type: "select", options: [["gasolina","Gasolina"],["diesel","Diésel"],["hibrido","Híbrido"],["electrico","Eléctrico"],["gas","Gas"]] })}
+          {renderField(txt("Caballos (cc)", "Horsepower (cc)"), "horsepower", { placeholder: "1398" })}
+          {renderField(txt("Color", "Color"), "color", { placeholder: txt("Gris", "Grey") })}
+          {renderField(txt("Plazas", "Seats"), "seats", { placeholder: "5" })}
+          {renderField(txt("Puertas", "Doors"), "doors", { placeholder: "5" })}
+          {renderField(txt("Ubicación", "Location"), "location", { placeholder: txt("Madrid", "Madrid") })}
+          {renderField(txt("Etiqueta ambiental", "Environmental label"), "environmentalLabel", { type: "select", options: [["0", txt("0 emisiones", "0 emissions")],["eco", "ECO"],["c", "C"],["b", "B"]] })}
+          {renderField(txt("Última ITV", "Last MOT"), "lastIvt", { placeholder: "2026-01-20" })}
+          {renderField(txt("Próxima ITV", "Next MOT"), "nextIvt", { placeholder: "2028-01-20" })}
+          {renderField(txt("CO₂ (g/km)", "CO₂ (g/km)"), "co2", { placeholder: "120" })}
+          {renderField(txt("Año", "Year"), "year", { placeholder: "2016" })}
+          {renderField(txt("Matrícula", "Plate"), "plate", { placeholder: "9052JMM" })}
+          {renderField(txt("Kilometraje", "Mileage"), "mileage", { placeholder: "130000" })}
+          {renderField(txt("Combustible", "Fuel"), "fuel", { type: "select", options: [["gasolina", txt("Gasolina", "Gasoline")],["diesel", txt("Diésel", "Diesel")],["hibrido", txt("Híbrido", "Hybrid")],["electrico", txt("Eléctrico", "Electric")],["gas", txt("Gas", "Gas")]] })}
         </div>
       </SectionBlock>
 
-      <SectionBlock title="Valor del Vehículo en el mercado" subtitle="Valor manual definido"
-        open={openSections.marketplace} onToggle={() => toggleSection("marketplace")}>
+      <SectionBlock title={txt("Valor del Vehículo en el mercado", "Vehicle market value")} subtitle={txt("Valor manual definido", "Manual value")}
+        open={openSections.marketplace} onToggle={() => toggleSection("marketplace")}
+        openLabel={txt("Abrir", "Open")} closeLabel={txt("Ocultar", "Hide")}>
         <div style={{ display: "grid", rowGap: 10, columnGap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>
-          {renderField("Precio (€)", "price", { placeholder: "8500" })}
+          {renderField(txt("Precio (€)", "Price (€)"), "price", { placeholder: "8500" })}
         </div>
       </SectionBlock>
 
-      <SectionBlock title="Documentos del vehículo"
-        subtitle={`${storedVehicleDocuments} guardados · ${preparedVehicleDocuments} adjuntos preparados`}
-        open={openSections.vehicleDocuments} onToggle={() => toggleSection("vehicleDocuments")}>
+      <SectionBlock title={txt("Documentos del vehículo", "Vehicle documents")}
+        subtitle={`${storedVehicleDocuments} ${txt("guardados", "saved")} · ${preparedVehicleDocuments} ${txt("adjuntos preparados", "attachments prepared")}`}
+        open={openSections.vehicleDocuments} onToggle={() => toggleSection("vehicleDocuments")}
+        openLabel={txt("Abrir", "Open")} closeLabel={txt("Ocultar", "Hide")}>
         <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))" }}>
-          {renderFileUpload("Fotos del vehículo", pendingPhotos, setPendingPhotos, photoInputRef, "image/*", "#2563eb", storedPhotos)}
-          {renderFileUpload("Ficha técnica", pendingTechnicalSheetDocuments, setPendingTechnicalSheetDocuments, technicalSheetInputRef, ".pdf,image/*", "#0f766e", storedTechnicalSheetDocuments)}
-          {renderFileUpload("Permiso de circulación", pendingCirculationPermitDocuments, setPendingCirculationPermitDocuments, circulationPermitInputRef, ".pdf,image/*", "#0f766e", storedCirculationPermitDocuments)}
-          {renderFileUpload("Documentación ITV", pendingItvDocuments, setPendingItvDocuments, itvInputRef, ".pdf,image/*", "#0f766e", storedItvDocuments)}
+          {renderFileUpload(txt("Fotos del vehículo", "Vehicle photos"), pendingPhotos, setPendingPhotos, photoInputRef, "image/*", "#2563eb", storedPhotos)}
+          {renderFileUpload(txt("Ficha técnica", "Technical sheet"), pendingTechnicalSheetDocuments, setPendingTechnicalSheetDocuments, technicalSheetInputRef, ".pdf,image/*", "#0f766e", storedTechnicalSheetDocuments)}
+          {renderFileUpload(txt("Permiso de circulación", "Circulation permit"), pendingCirculationPermitDocuments, setPendingCirculationPermitDocuments, circulationPermitInputRef, ".pdf,image/*", "#0f766e", storedCirculationPermitDocuments)}
+          {renderFileUpload(txt("Documentación ITV", "MOT documentation"), pendingItvDocuments, setPendingItvDocuments, itvInputRef, ".pdf,image/*", "#0f766e", storedItvDocuments)}
         </div>
       </SectionBlock>
 
-      <SectionBlock title="Seguros" subtitle={`${storedInsuranceDocuments.length} guardados · ${pendingInsuranceDocuments.length} documentos de seguro preparados`}
-        open={openSections.insurance} onToggle={() => toggleSection("insurance")}>
+      <SectionBlock title={txt("Seguros", "Insurance")} subtitle={`${storedInsuranceDocuments.length} ${txt("guardados", "saved")} · ${pendingInsuranceDocuments.length} ${txt("documentos de seguro preparados", "insurance docs prepared")}`}
+        open={openSections.insurance} onToggle={() => toggleSection("insurance")}
+        openLabel={txt("Abrir", "Open")} closeLabel={txt("Ocultar", "Hide")}>
         <div style={{ display: "grid", rowGap: 10, columnGap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>
-          {renderField("Aseguradora", "policyCompany", { placeholder: "Compañía de seguro" })}
-          {renderField("Póliza", "policyNumber", { placeholder: "Número de póliza" })}
-          {renderField("Cobertura", "coverageType", { placeholder: "Todo riesgo, terceros..." })}
+          {renderField(txt("Aseguradora", "Insurer"), "policyCompany", { placeholder: txt("Compañía de seguro", "Insurance company") })}
+          {renderField(txt("Póliza", "Policy"), "policyNumber", { placeholder: txt("Número de póliza", "Policy number") })}
+          {renderField(txt("Cobertura", "Coverage"), "coverageType", { placeholder: txt("Todo riesgo, terceros...", "Full coverage, third-party...") })}
         </div>
         <div style={{ marginTop: 12 }}>
-          {renderFileUpload("Documentos del seguro", pendingInsuranceDocuments, setPendingInsuranceDocuments, insuranceDocInputRef, ".pdf,image/*", "#0f766e", storedInsuranceDocuments)}
+          {renderFileUpload(txt("Documentos del seguro", "Insurance documents"), pendingInsuranceDocuments, setPendingInsuranceDocuments, insuranceDocInputRef, ".pdf,image/*", "#0f766e", storedInsuranceDocuments)}
         </div>
       </SectionBlock>
 
-      <SectionBlock title="Mantenimientos" subtitle={`${storedMaintenanceInvoices.length} guardadas · ${pendingMaintenanceInvoices.length} facturas de mantenimiento preparadas`}
-        open={openSections.maintenance} onToggle={() => toggleSection("maintenance")}>
+      <SectionBlock title={txt("Mantenimientos", "Maintenance")} subtitle={`${storedMaintenanceInvoices.length} ${txt("guardadas", "saved")} · ${pendingMaintenanceInvoices.length} ${txt("facturas de mantenimiento preparadas", "maintenance invoices prepared")}`}
+        open={openSections.maintenance} onToggle={() => toggleSection("maintenance")}
+        openLabel={txt("Abrir", "Open")} closeLabel={txt("Ocultar", "Hide")}>
         <div style={{ display: "grid", rowGap: 10, columnGap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))" }}>
-          {renderField("Tipo mantenimiento", "maintenanceType", { placeholder: "Revisión, aceite, frenos..." })}
-          {renderField("Descripción", "maintenanceTitle", { placeholder: "Qué se le ha hecho al coche" })}
+          {renderField(txt("Tipo mantenimiento", "Maintenance type"), "maintenanceType", { placeholder: txt("Revisión, aceite, frenos...", "Service, oil, brakes...") })}
+          {renderField(txt("Descripción", "Description"), "maintenanceTitle", { placeholder: txt("Qué se le ha hecho al coche", "What has been done to the car") })}
         </div>
         <label style={{ ...LABEL_STYLE, marginTop: 10 }}>
-          Notas mantenimiento
+          {txt("Notas mantenimiento", "Maintenance notes")}
           <textarea value={form.maintenanceNotes} onChange={(e) => updateForm("maintenanceNotes", e.target.value)}
-            placeholder="Detalle del mantenimiento" rows={2} style={{ ...INPUT_STYLE, resize: "vertical" }} />
+            placeholder={txt("Detalle del mantenimiento", "Maintenance details")} rows={2} style={{ ...INPUT_STYLE, resize: "vertical" }} />
         </label>
         <div style={{ marginTop: 12 }}>
-          {renderFileUpload("Facturas de mantenimiento", pendingMaintenanceInvoices, setPendingMaintenanceInvoices, maintenanceInputRef, ".pdf,image/*", "#0f766e", storedMaintenanceInvoices)}
+          {renderFileUpload(txt("Facturas de mantenimiento", "Maintenance invoices"), pendingMaintenanceInvoices, setPendingMaintenanceInvoices, maintenanceInputRef, ".pdf,image/*", "#0f766e", storedMaintenanceInvoices)}
         </div>
       </SectionBlock>
 
-      <SectionBlock title="Notas internas" subtitle={normalizeText(form.notes) ? "Con contenido" : "Sin notas"}
-        open={openSections.notes} onToggle={() => toggleSection("notes")}>
+      <SectionBlock title={txt("Notas internas", "Internal notes")} subtitle={normalizeText(form.notes) ? txt("Con contenido", "With content") : txt("Sin notas", "No notes")}
+        open={openSections.notes} onToggle={() => toggleSection("notes")}
+        openLabel={txt("Abrir", "Open")} closeLabel={txt("Ocultar", "Hide")}>
         <label style={LABEL_STYLE}>
-          Notas
+          {txt("Notas", "Notes")}
           <textarea value={form.notes} onChange={(e) => updateForm("notes", e.target.value)}
-            rows={3} placeholder="Notas privadas sobre este vehículo..." style={{ ...INPUT_STYLE, resize: "vertical" }} />
+            rows={3} placeholder={txt("Notas privadas sobre este vehículo...", "Private notes about this vehicle...")} style={{ ...INPUT_STYLE, resize: "vertical" }} />
         </label>
       </SectionBlock>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 4, padding: "10px 0" }}>
         <button type="button" onClick={handleSave} disabled={isSaving}
           style={{ border: "none", borderRadius: 10, background: "linear-gradient(135deg,#2563eb,#3b82f6)", color: "#fff", padding: "11px 18px", fontSize: 13.5, fontWeight: 700, cursor: isSaving ? "not-allowed" : "pointer", opacity: isSaving ? 0.78 : 1 }}>
-          {isSaving ? "Guardando..." : "Guardar cambios"}
+          {isSaving ? txt("Guardando...", "Saving...") : txt("Guardar cambios", "Save changes")}
         </button>
         <button type="button" onClick={cancelEdit}
           style={{ border: "1px solid #e5e7eb", borderRadius: 10, background: "#fff", color: "#6b7280", padding: "11px 18px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-          {isDetailView ? "Volver al listado" : "Cancelar edición"}
+          {isDetailView ? txt("Volver al listado", "Back to list") : txt("Cancelar edición", "Cancel edit")}
         </button>
       </div>
     </div>
@@ -850,11 +869,11 @@ export default function ServiceIdCarsManagePage({
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
         <button type="button" onClick={isCreateView ? onGoBack : onGoBack}
           style={{ border: "1px solid #ece8df", background: "#fff", borderRadius: 8, padding: "7px 12px", fontSize: 12, color: "#888", cursor: "pointer", fontWeight: 600 }}>
-          ← Volver
+          {txt("← Volver", "← Back")}
         </button>
         <div style={{ fontSize: 12, color: "#b8b8b8" }}>
-          Servicios › <span style={{ color: "#2563eb", fontWeight: 700 }}>
-            {isCreateView ? "Crear IDCar" : isDetailView ? buildVehicleTitle(selectedVehicle || {}) : "Mis IDCars"}
+          {txt("Servicios", "Services")} › <span style={{ color: "#2563eb", fontWeight: 700 }}>
+            {isCreateView ? txt("Crear IDCar", "Create IDCar") : isDetailView ? buildVehicleTitle(selectedVehicle || {}) : txt("Mis IDCars", "My IDCars")}
           </span>
         </div>
       </div>
@@ -864,11 +883,11 @@ export default function ServiceIdCarsManagePage({
         <>
           <section style={{ ...SECTION_CARD_STYLE, padding: "18px 20px", marginBottom: 12 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#2563eb", background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 20, padding: "4px 12px", marginBottom: 10 }}>
-              🚗 Nuevo IDCar
+              {txt("🚗 Nuevo IDCar", "🚗 New IDCar")}
             </div>
-            <h2 style={{ margin: "0 0 5px", fontSize: 22, fontWeight: 700, color: "#111", letterSpacing: "-0.02em" }}>Crear mi IDCar</h2>
+            <h2 style={{ margin: "0 0 5px", fontSize: 22, fontWeight: 700, color: "#111", letterSpacing: "-0.02em" }}>{txt("Crear mi IDCar", "Create my IDCar")}</h2>
             <p style={{ margin: 0, fontSize: 13.5, color: "#888", lineHeight: 1.6, fontWeight: 300, maxWidth: 520 }}>
-              Añade tu vehículo con ficha técnica, documentación, seguro y mantenimiento. Todo en un mismo lugar.
+              {txt("Añade tu vehículo con ficha técnica, documentación, seguro y mantenimiento. Todo en un mismo lugar.", "Add your vehicle with technical sheet, documents, insurance and maintenance. All in one place.")}
             </p>
           </section>
           {feedback ? <div style={{ marginBottom: 10, fontSize: 13, color: feedbackColor, fontWeight: 600 }}>{feedback}</div> : null}
@@ -880,14 +899,14 @@ export default function ServiceIdCarsManagePage({
       {!isCreateView ? (
         <>
       <section style={{ ...SECTION_CARD_STYLE, padding: "18px 20px", marginBottom: 12 }}>
-        <h2 style={{ margin: "0 0 5px", fontSize: 22, fontWeight: 700, color: "#111", letterSpacing: "-0.02em" }}>Gestionar mis IDCars</h2>
+        <h2 style={{ margin: "0 0 5px", fontSize: 22, fontWeight: 700, color: "#111", letterSpacing: "-0.02em" }}>{txt("Gestionar mis IDCars", "Manage my IDCars")}</h2>
         <p style={{ margin: "0 0 10px", fontSize: 13.5, color: "#888", lineHeight: 1.6, fontWeight: 300 }}>
-          Tus vehículos se sincronizan con el Panel de usuario. Puedes editarlos o quitarlos desde aquí.
+          {txt("Tus vehículos se sincronizan con el Panel de usuario. Puedes editarlos o quitarlos desde aquí.", "Your vehicles sync with the user panel. You can edit or remove them from here.")}
         </p>
         {!isDetailView && !editingVehicleId && !isCreating ? (
           <button type="button" onClick={startCreate}
             style={{ border: "none", borderRadius: 12, background: "linear-gradient(135deg,#2563eb,#3b82f6)", color: "#fff", padding: "10px 16px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-            Crear nuevo IDCar
+            {txt("Crear nuevo IDCar", "Create new IDCar")}
           </button>
         ) : null}
       </section>
@@ -896,11 +915,11 @@ export default function ServiceIdCarsManagePage({
 
       {isDetailView && !selectedVehicle ? (
         <section style={{ ...SECTION_CARD_STYLE, padding: "18px 20px", marginBottom: 12 }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: "#111", marginBottom: 6 }}>No se ha encontrado este IDCar</div>
-          <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 12 }}>Vuelve al listado y selecciona un vehículo válido.</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#111", marginBottom: 6 }}>{txt("No se ha encontrado este IDCar", "This IDCar was not found")}</div>
+          <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 12 }}>{txt("Vuelve al listado y selecciona un vehículo válido.", "Go back to the list and select a valid vehicle.")}</div>
           <button type="button" onClick={onGoBack}
             style={{ border: "1px solid #e5e7eb", borderRadius: 10, background: "#fff", color: "#6b7280", padding: "10px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-            Volver al listado
+            {txt("Volver al listado", "Back to list")}
           </button>
         </section>
       ) : null}
@@ -911,18 +930,18 @@ export default function ServiceIdCarsManagePage({
         const insuranceDocs = vehicle.insuranceDocuments?.length || 0;
         const maintenanceDocs = vehicle.maintenanceInvoices?.length || 0;
         const specGrid = [
-          { label: "Marca", value: normalizeText(vehicle.brand) },
-          { label: "Modelo", value: normalizeText(vehicle.model) },
-          { label: "Año", value: normalizeText(vehicle.year) },
+          { label: txt("Marca", "Brand"), value: normalizeText(vehicle.brand) },
+          { label: txt("Modelo", "Model"), value: normalizeText(vehicle.model) },
+          { label: txt("Año", "Year"), value: normalizeText(vehicle.year) },
           { label: "Km", value: normalizeText(vehicle.mileage) ? `${normalizeText(vehicle.mileage)} km` : "" },
-          { label: "Combustible", value: normalizeText(vehicle.fuel) },
-          { label: "Cambio", value: normalizeText(vehicle.transmissionType) },
+          { label: txt("Combustible", "Fuel"), value: normalizeText(vehicle.fuel) },
+          { label: txt("Cambio", "Transmission"), value: normalizeText(vehicle.transmissionType) },
           { label: "CV", value: normalizeText(vehicle.cv) },
-          { label: "Matrícula", value: normalizeText(vehicle.plate) },
-          { label: "Color", value: normalizeText(vehicle.color) },
-          { label: "Seguro", value: normalizeText(vehicle.policyCompany) },
-          { label: "ITV", value: normalizeText(vehicle.nextIvt) ? `Próx. ${normalizeText(vehicle.nextIvt)}` : "" },
-          { label: "Carrocería", value: normalizeText(vehicle.bodyType) },
+          { label: txt("Matrícula", "Plate"), value: normalizeText(vehicle.plate) },
+          { label: txt("Color", "Color"), value: normalizeText(vehicle.color) },
+          { label: txt("Seguro", "Insurance"), value: normalizeText(vehicle.policyCompany) },
+          { label: "ITV", value: normalizeText(vehicle.nextIvt) ? `${txt("Próx.", "Next:")} ${normalizeText(vehicle.nextIvt)}` : "" },
+          { label: txt("Carrocería", "Body type"), value: normalizeText(vehicle.bodyType) },
         ].filter((s) => s.value);
         const envLabel = normalizeText(vehicle.environmentalLabel);
         const envColor = envLabel === "0" ? "#22c55e" : envLabel === "eco" ? "#0ea5e9" : envLabel === "c" ? "#f59e0b" : envLabel === "b" ? "#ef4444" : "";
@@ -981,15 +1000,15 @@ export default function ServiceIdCarsManagePage({
                   <div style={{ display: "flex", gap: 5, flexShrink: 0 }}>
                     <button type="button" onClick={() => handleRemove(vehicle.id)}
                       style={{ border: "1px solid rgba(239,68,68,0.28)", background: "rgba(239,68,68,0.07)", color: "#dc2626", borderRadius: 7, padding: "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer" }}>
-                      Quitar
+                      {txt("Quitar", "Remove")}
                     </button>
                     <button type="button" onClick={() => openVehicleDetail(vehicle, false)}
                       style={{ border: "1px solid rgba(15,118,110,0.3)", background: "rgba(15,118,110,0.07)", color: "#0f766e", borderRadius: 7, padding: "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer" }}>
-                      Ver ficha
+                      {txt("Ver ficha", "View profile")}
                     </button>
                     <button type="button" onClick={() => openVehicleDetail(vehicle, true)}
                       style={{ border: "1px solid rgba(59,130,246,0.3)", background: "rgba(59,130,246,0.08)", color: "#2563eb", borderRadius: 7, padding: "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer" }}>
-                      Editar
+                      {txt("Editar", "Edit")}
                     </button>
                   </div>
                 </div>
@@ -1041,17 +1060,17 @@ export default function ServiceIdCarsManagePage({
                   {!isEditMode ? (
                     <button type="button" onClick={() => setIsEditMode(true)}
                       style={{ border: "none", borderRadius: 10, background: "linear-gradient(135deg,#2563eb,#3b82f6)", color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 2px 12px rgba(37,99,235,0.4)" }}>
-                      ✏️ Editar ficha
+                      {txt("✏️ Editar ficha", "✏️ Edit profile")}
                     </button>
                   ) : (
                     <button type="button" onClick={() => setIsEditMode(false)}
                       style={{ border: "1px solid rgba(255,255,255,0.4)", borderRadius: 10, background: "rgba(255,255,255,0.15)", backdropFilter: "blur(6px)", color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-                      👁 Ver ficha
+                      {txt("👁 Ver ficha", "👁 View profile")}
                     </button>
                   )}
                   <button type="button" onClick={() => handleRemove(selectedVehicle.id)}
                     style={{ border: "1px solid rgba(239,68,68,0.5)", borderRadius: 10, background: "rgba(239,68,68,0.15)", backdropFilter: "blur(6px)", color: "#fca5a5", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-                    Quitar
+                    {txt("Quitar", "Remove")}
                   </button>
                 </div>
               </div>
@@ -1059,18 +1078,18 @@ export default function ServiceIdCarsManagePage({
             {/* Spec grid below image */}
             <div style={{ padding: "16px 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10 }}>
               {[
-                ["Marca", selectedVehicle.brand],
-                ["Modelo", selectedVehicle.model],
-                ["Versión", selectedVehicle.version],
-                ["Año", selectedVehicle.year],
-                ["Color", selectedVehicle.color],
-                ["Cambio", selectedVehicle.transmissionType],
-                ["Carrocería", selectedVehicle.bodyType],
+                [txt("Marca", "Brand"), selectedVehicle.brand],
+                [txt("Modelo", "Model"), selectedVehicle.model],
+                [txt("Versión", "Version"), selectedVehicle.version],
+                [txt("Año", "Year"), selectedVehicle.year],
+                [txt("Color", "Color"), selectedVehicle.color],
+                [txt("Cambio", "Transmission"), selectedVehicle.transmissionType],
+                [txt("Carrocería", "Body type"), selectedVehicle.bodyType],
                 ["CV", selectedVehicle.cv],
                 ["CO₂", selectedVehicle.co2 ? `${selectedVehicle.co2} g/km` : ""],
-                ["ITV", selectedVehicle.nextIvt ? `Próxima: ${selectedVehicle.nextIvt}` : ""],
-                ["Seguro", selectedVehicle.policyCompany],
-                ["Cobertura", selectedVehicle.coverageType],
+                ["ITV", selectedVehicle.nextIvt ? `${txt("Próxima:", "Next:")} ${selectedVehicle.nextIvt}` : ""],
+                [txt("Seguro", "Insurance"), selectedVehicle.policyCompany],
+                [txt("Cobertura", "Coverage"), selectedVehicle.coverageType],
               ].filter(([, value]) => normalizeText(value)).map(([label, value]) => (
                 <div key={label} style={{ border: "1px solid #ece8df", borderRadius: 10, background: "#fafaf9", padding: "8px 10px" }}>
                   <div style={{ fontSize: 9.5, textTransform: "uppercase", letterSpacing: "0.09em", color: "#b3b3b3", fontWeight: 700, marginBottom: 3 }}>{label}</div>
@@ -1090,31 +1109,31 @@ export default function ServiceIdCarsManagePage({
               if (!docCount && !insCount && !mntCount && !photoCount) return null;
               return (
                 <div style={{ padding: "0 20px 16px", display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {photoCount > 0 && <span style={{ background: "rgba(37,99,235,0.08)", color: "#1d4ed8", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📷 {photoCount} foto{photoCount !== 1 ? "s" : ""}</span>}
-                  {docCount > 0 && <span style={{ background: "rgba(37,99,235,0.08)", color: "#1d4ed8", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📄 {docCount} doc{docCount !== 1 ? "s" : ""}</span>}
-                  {insCount > 0 && <span style={{ background: "rgba(16,185,129,0.08)", color: "#047857", border: "1px solid rgba(16,185,129,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>🛡️ {insCount} seguro{insCount !== 1 ? "s" : ""}</span>}
+                  {photoCount > 0 && <span style={{ background: "rgba(37,99,235,0.08)", color: "#1d4ed8", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📷 {photoCount} {txt(`foto${photoCount !== 1 ? "s" : ""}`, `photo${photoCount !== 1 ? "s" : ""}`)}</span>}
+                  {docCount > 0 && <span style={{ background: "rgba(37,99,235,0.08)", color: "#1d4ed8", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📄 {docCount} {txt(`doc${docCount !== 1 ? "s" : ""}`, `doc${docCount !== 1 ? "s" : ""}`)}</span>}
+                  {insCount > 0 && <span style={{ background: "rgba(16,185,129,0.08)", color: "#047857", border: "1px solid rgba(16,185,129,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>🛡️ {insCount} {txt(`seguro${insCount !== 1 ? "s" : ""}`, `insurance${insCount !== 1 ? "s" : ""}`)}</span>}
                   {mntCount > 0 && <span style={{ background: "rgba(251,146,60,0.1)", color: "#c2410c", border: "1px solid rgba(251,146,60,0.25)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>🔧 {mntCount} mant.</span>}
-                  {normalizeText(selectedVehicle.notes) ? <span style={{ background: "rgba(107,114,128,0.08)", color: "#6b7280", border: "1px solid rgba(107,114,128,0.18)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📝 Notas</span> : null}
+                  {normalizeText(selectedVehicle.notes) ? <span style={{ background: "rgba(107,114,128,0.08)", color: "#6b7280", border: "1px solid rgba(107,114,128,0.18)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📝 {txt("Notas", "Notes")}</span> : null}
                 </div>
               );
             })()}
 
             {(() => {
               const sections = [
-                { key: "photos", title: "Fotos del vehículo", items: Array.isArray(selectedVehicle.photos) ? selectedVehicle.photos : [], color: "#1d4ed8" },
+                { key: "photos", title: txt("Fotos del vehículo", "Vehicle photos"), items: Array.isArray(selectedVehicle.photos) ? selectedVehicle.photos : [], color: "#1d4ed8" },
                 {
                   key: "technical-sheet",
-                  title: "Ficha técnica",
+                  title: txt("Ficha técnica", "Technical sheet"),
                   items: [
                     ...(Array.isArray(selectedVehicle.technicalSheetDocuments) ? selectedVehicle.technicalSheetDocuments : []),
                     ...(Array.isArray(selectedVehicle.documents) ? selectedVehicle.documents : []),
                   ],
                   color: "#0f766e",
                 },
-                { key: "circulation-permit", title: "Permiso de circulación", items: Array.isArray(selectedVehicle.circulationPermitDocuments) ? selectedVehicle.circulationPermitDocuments : [], color: "#0f766e" },
-                { key: "itv", title: "Documentación ITV", items: Array.isArray(selectedVehicle.itvDocuments) ? selectedVehicle.itvDocuments : [], color: "#0f766e" },
-                { key: "insurance", title: "Documentos de seguro", items: Array.isArray(selectedVehicle.insuranceDocuments) ? selectedVehicle.insuranceDocuments : [], color: "#047857" },
-                { key: "maintenance", title: "Facturas de mantenimiento", items: Array.isArray(selectedVehicle.maintenanceInvoices) ? selectedVehicle.maintenanceInvoices : [], color: "#c2410c" },
+                { key: "circulation-permit", title: txt("Permiso de circulación", "Circulation permit"), items: Array.isArray(selectedVehicle.circulationPermitDocuments) ? selectedVehicle.circulationPermitDocuments : [], color: "#0f766e" },
+                { key: "itv", title: txt("Documentación ITV", "MOT documentation"), items: Array.isArray(selectedVehicle.itvDocuments) ? selectedVehicle.itvDocuments : [], color: "#0f766e" },
+                { key: "insurance", title: txt("Documentos de seguro", "Insurance documents"), items: Array.isArray(selectedVehicle.insuranceDocuments) ? selectedVehicle.insuranceDocuments : [], color: "#047857" },
+                { key: "maintenance", title: txt("Facturas de mantenimiento", "Maintenance invoices"), items: Array.isArray(selectedVehicle.maintenanceInvoices) ? selectedVehicle.maintenanceInvoices : [], color: "#c2410c" },
               ];
 
               return (
@@ -1127,14 +1146,14 @@ export default function ServiceIdCarsManagePage({
                           {section.items.slice(0, 5).map((file, index) => (
                             <div key={`${section.key}-${normalizeText(file?.name)}-${index}`} style={{ fontSize: 11.5, color: section.color, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                               • {getAttachmentLink(file)
-                                ? <a href={getAttachmentLink(file)} target="_blank" rel="noreferrer" style={{ color: section.color, textDecoration: "none", fontWeight: 700 }}>{normalizeText(file?.name) || `Archivo ${index + 1}`}</a>
-                                : (normalizeText(file?.name) || `Archivo ${index + 1}`)}
+                                ? <a href={getAttachmentLink(file)} target="_blank" rel="noreferrer" style={{ color: section.color, textDecoration: "none", fontWeight: 700 }}>{normalizeText(file?.name) || `${txt("Archivo", "File")} ${index + 1}`}</a>
+                                : (normalizeText(file?.name) || `${txt("Archivo", "File")} ${index + 1}`)}
                             </div>
                           ))}
-                          {section.items.length > 5 ? <div style={{ fontSize: 11, color: "#9ca3af" }}>+{section.items.length - 5} archivo(s) más</div> : null}
+                          {section.items.length > 5 ? <div style={{ fontSize: 11, color: "#9ca3af" }}>+{section.items.length - 5} {txt("archivo(s) más", "more file(s)")}</div> : null}
                         </div>
                       ) : (
-                        <div style={{ fontSize: 11.5, color: "#9ca3af" }}>Sin adjuntos</div>
+                        <div style={{ fontSize: 11.5, color: "#9ca3af" }}>{txt("Sin adjuntos", "No attachments")}</div>
                       )}
                     </div>
                   ))}
@@ -1151,10 +1170,10 @@ export default function ServiceIdCarsManagePage({
 
       {!visibleVehicles.length && !isCreating && !isDetailView ? (
         <section style={{ ...SECTION_CARD_STYLE, padding: "20px 16px" }}>
-          <div style={{ fontSize: 14, color: "#6b7280", marginBottom: 10 }}>Aún no tienes IDCars creados.</div>
+          <div style={{ fontSize: 14, color: "#6b7280", marginBottom: 10 }}>{txt("Aún no tienes IDCars creados.", "You do not have any IDCars yet.")}</div>
           <button type="button" onClick={startCreate}
             style={{ border: "none", borderRadius: 10, background: "linear-gradient(135deg,#2563eb,#3b82f6)", color: "#fff", padding: "10px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-            Crear mi primer IDCar
+            {txt("Crear mi primer IDCar", "Create my first IDCar")}
           </button>
         </section>
       ) : null}
@@ -1162,7 +1181,7 @@ export default function ServiceIdCarsManagePage({
       <div style={{ marginTop: 14 }}>
         <button type="button" onClick={onGoHome}
           style={{ border: "1px solid #e5e7eb", borderRadius: 10, background: "#fff", color: "#6b7280", padding: "9px 12px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-          Ir al inicio
+          {txt("Ir al inicio", "Go to home")}
         </button>
       </div>
         </>

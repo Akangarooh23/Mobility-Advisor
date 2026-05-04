@@ -1,4 +1,8 @@
+import { useTranslation } from "react-i18next";
+
 export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCar, onManageIdCars }) {
+  const { t } = useTranslation();
+  
   const cardStyle = {
     background: "#ffffff",
     borderRadius: 16,
@@ -7,19 +11,19 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
   };
 
   const docs = [
-    { icon: "📄", name: "Permiso de circulacion", status: "Activo", active: true },
-    { icon: "🛡️", name: "Poliza de seguro", status: "Activo", active: true },
-    { icon: "🔧", name: "Ultima factura de taller", status: "Pendiente", active: false },
-    { icon: "📋", name: "Garantia extendida", status: "Pendiente", active: false },
-    { icon: "🚗", name: "Ficha tecnica del vehiculo", status: "Pendiente", active: false },
+    { icon: "📄", name: t("autogestor.circulationPermit"), status: t("autogestor.statusActive"), active: true },
+    { icon: "🛡️", name: t("autogestor.insurancePolicy"), status: t("autogestor.statusActive"), active: true },
+    { icon: "🔧", name: t("autogestor.lastInvoice"), status: t("autogestor.statusPending"), active: false },
+    { icon: "📋", name: t("autogestor.extendedWarranty"), status: t("autogestor.statusPending"), active: false },
+    { icon: "🚗", name: t("autogestor.technicalSheet"), status: t("autogestor.statusPending"), active: false },
   ];
 
   const profileChecks = [
-    { label: "Matricula verificada", ok: true },
-    { label: "Seguro vinculado", ok: true },
-    { label: "ITV pendiente", ok: false },
-    { label: "Historial completo", ok: false },
-    { label: "Garantia registrada", ok: false },
+    { label: t("autogestor.matriculaVerified"), ok: true },
+    { label: t("autogestor.insuranceLinked"), ok: true },
+    { label: t("autogestor.itvPending"), ok: false },
+    { label: t("autogestor.completeHistory"), ok: false },
+    { label: t("autogestor.warrantyRegistered"), ok: false },
   ];
 
   return (
@@ -39,10 +43,10 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
             fontWeight: 600,
           }}
         >
-          ← Volver
+          {t("autogestor.back")}
         </button>
         <div style={{ fontSize: 12, color: "#b8b8b8" }}>
-          Servicios › <span style={{ color: "#2563eb", fontWeight: 700 }}>Autogestor</span>
+          {t("autogestor.breadcrumbServices")} › <span style={{ color: "#2563eb", fontWeight: 700 }}>{t("autogestor.breadcrumbAutogestor")}</span>
         </div>
       </div>
 
@@ -64,22 +68,16 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
               marginBottom: 14,
             }}
           >
-            A · Autogestor
+            {t("autogestor.badge")}
           </div>
           <h2 style={{ margin: "0 0 8px", fontSize: "clamp(30px,3.1vw,40px)", letterSpacing: "-0.03em", lineHeight: 1.15, color: "#111" }}>
-            ID digital de tu vehiculo
+            {t("autogestor.title")}
           </h2>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: "#868686", maxWidth: 760 }}>
-            Toda la informacion de tu coche en un unico panel: documentacion, poliza de seguro,
-            facturas de mantenimiento y garantias. No vuelvas a buscar un papel nunca mas.
+            {t("autogestor.subtitle")}
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 18 }}>
-            {[
-              "Acceso seguro",
-              "Panel centralizado",
-              "Alertas por email",
-              "Sync automatico",
-            ].map((pill) => (
+            {t("autogestor.features", { returnObjects: true }).map((pill) => (
               <span
                 key={pill}
                 style={{
@@ -102,7 +100,7 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
       <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 12, marginBottom: 12 }}>
         <div style={{ ...cardStyle, padding: 22 }}>
           <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
-            Documentos del vehiculo
+            {t("autogestor.documentsLabel")}
           </div>
           <div style={{ display: "grid", gap: 8 }}>
             {docs.map((doc) => (
@@ -149,7 +147,7 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
                 fontWeight: 600,
               }}
             >
-              + Anadir documento
+              {t("autogestor.addDocument")}
             </button>
           </div>
         </div>
@@ -157,10 +155,10 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
         <div style={{ display: "grid", gap: 12 }}>
           <div style={{ ...cardStyle, padding: 18 }}>
             <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 10 }}>
-              Estado del perfil IDCar
+              {t("autogestor.idCarProfileLabel")}
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: "#666", marginBottom: 6, fontWeight: 600 }}>
-              <span>Completitud</span>
+              <span>{t("autogestor.completeness")}</span>
               <span style={{ color: "#3b82f6" }}>45%</span>
             </div>
             <div style={{ height: 6, background: "#ece8df", borderRadius: 3, overflow: "hidden", marginBottom: 12 }}>
@@ -185,23 +183,23 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
                 fontWeight: 600,
               }}
             >
-              Completa tu perfil subiendo la ultima factura de taller para acceder a analisis de mantenimiento.
+              {t("autogestor.profileTip")}
             </div>
           </div>
 
           <div style={{ ...cardStyle, padding: 18 }}>
             <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 10 }}>
-              Proximos vencimientos
+              {t("autogestor.upcomingExpirations")}
             </div>
             <div style={{ display: "grid", gap: 10 }}>
               {[
                 ["ITV", "Nov 2025"],
-                ["Seguro", "Mar 2026"],
-                ["Garantia", "Sin registrar"],
+                [t("autogestor.insurance"), "Mar 2026"],
+                [t("autogestor.extendedWarranty"), t("autogestor.notRegistered")],
               ].map(([label, value]) => (
                 <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
                   <span style={{ color: "#666", fontWeight: 600 }}>{label}</span>
-                  <span style={{ color: value === "Sin registrar" ? "#b9b9b9" : "#3b82f6", fontWeight: 700 }}>{value}</span>
+                  <span style={{ color: value === t("autogestor.notRegistered") ? "#b9b9b9" : "#3b82f6", fontWeight: 700 }}>{value}</span>
                 </div>
               ))}
             </div>
@@ -220,9 +218,9 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
         }}
       >
         <div>
-          <div style={{ fontSize: 18, color: "#303030", fontWeight: 700, marginBottom: 3 }}>Activa tu Autogestor IDCar</div>
+          <div style={{ fontSize: 18, color: "#303030", fontWeight: 700, marginBottom: 3 }}>{t("autogestor.activateSection")}</div>
           <div style={{ fontSize: 13, color: "#a2a2a2", lineHeight: 1.45 }}>
-            Incluido en todos los planes de pago. Empieza subiendo el permiso de circulacion.
+            {t("autogestor.activateDescription")}
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -231,7 +229,7 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
             onClick={onGoBack}
             style={{ border: "none", background: "transparent", color: "#bbb", fontSize: 14, cursor: "pointer" }}
           >
-            ← Volver
+            {t("autogestor.back")}
           </button>
           <button
             type="button"
@@ -253,7 +251,7 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
               cursor: "pointer",
             }}
           >
-            Gestionar mis IDCars
+            {t("autogestor.manageIdCars")}
           </button>
           <button
             type="button"
@@ -276,7 +274,7 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
               boxShadow: "0 8px 20px rgba(37,99,235,0.32)",
             }}
           >
-            Crear mi IDCar →
+            {t("autogestor.createIdCar")}
           </button>
         </div>
       </section>

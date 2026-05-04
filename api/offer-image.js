@@ -79,7 +79,12 @@ function sendPlaceholderImage(res, label = "Coche de ocasión") {
     </defs>
     <rect width="1200" height="700" rx="28" fill="url(#bg)" />
     <text x="80" y="150" fill="#67e8f9" font-family="Arial, sans-serif" font-size="28" font-weight="700">Foto del vehículo en preparación</text>
-    <text x="80" y="310" fill="#ffffff" font-family="Arial, sans-serif" font-size="84">🚗</text>
+    <path d="M200 360 L240 300 L440 285 L500 300 L580 300 L610 360 Z" fill="#1e40af" stroke="#3b82f6" stroke-width="4"/>
+    <circle cx="280" cy="368" r="28" fill="#0f172a" stroke="#3b82f6" stroke-width="4"/>
+    <circle cx="280" cy="368" r="12" fill="#64748b"/>
+    <circle cx="510" cy="368" r="28" fill="#0f172a" stroke="#3b82f6" stroke-width="4"/>
+    <circle cx="510" cy="368" r="12" fill="#64748b"/>
+    <rect x="200" y="340" width="410" height="28" rx="4" fill="#1e3a8a"/>
     <text x="80" y="430" fill="#f8fafc" font-family="Arial, sans-serif" font-size="42" font-weight="700">${safeLabel}</text>
     <text x="80" y="490" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="26">MoveAdvisor VO</text>
   </svg>`;

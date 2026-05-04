@@ -449,7 +449,12 @@ export function buildOfferPlaceholderImage(offer = {}) {
       </defs>
       <rect width="1200" height="700" rx="28" fill="url(#bg)"/>
       <text x="80" y="160" fill="#7dd3fc" font-family="Arial, sans-serif" font-size="28" font-weight="700">Imagen orientativa no disponible</text>
-      <text x="80" y="300" fill="#ffffff" font-family="Arial, sans-serif" font-size="84">🚗</text>
+      <path d="M200 340 L240 280 L440 265 L500 280 L580 280 L610 340 Z" fill="#1e40af" stroke="#38bdf8" stroke-width="4"/>
+      <circle cx="280" cy="348" r="28" fill="#0f172a" stroke="#38bdf8" stroke-width="4"/>
+      <circle cx="280" cy="348" r="12" fill="#64748b"/>
+      <circle cx="510" cy="348" r="28" fill="#0f172a" stroke="#38bdf8" stroke-width="4"/>
+      <circle cx="510" cy="348" r="12" fill="#64748b"/>
+      <rect x="200" y="320" width="410" height="28" rx="4" fill="#1e3a8a"/>
       <text x="80" y="420" fill="#f8fafc" font-family="Arial, sans-serif" font-size="44" font-weight="700">${title || "Prueba otra oferta"}</text>
       <text x="80" y="480" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="28">${source || "Proveedor"}</text>
     </svg>`;

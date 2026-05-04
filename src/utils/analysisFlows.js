@@ -331,6 +331,8 @@ export async function fetchDecisionListing({
     .join(" ")
     .trim();
   const listingTitle = aiResult?.oferta_top?.titulo || fallbackTitle || "oferta recomendada";
+  const parsedMaxPrice = Number(decisionAnswers.priceMax);
+  const parsedMaxPowerCv = Number(decisionAnswers.powerMax);
   const currentYear = new Date().getFullYear();
   const ageMin = Number(decisionAnswers.ageMin || 0);
   const hasAgeMax = decisionAnswers.ageMax !== null && decisionAnswers.ageMax !== undefined && decisionAnswers.ageMax !== "";
@@ -395,9 +397,9 @@ export async function fetchDecisionListing({
       consumptionMin: decisionAnswers.consumptionMin || "",
       consumptionMax: decisionAnswers.consumptionMax || "",
       minPrice: Number(decisionAnswers.priceMin || 0),
-      maxPrice: Number(decisionAnswers.priceMax || Number.POSITIVE_INFINITY),
+      maxPrice: Number.isFinite(parsedMaxPrice) ? parsedMaxPrice : null,
       minPowerCv: Number(decisionAnswers.powerMin || 0),
-      maxPowerCv: Number(decisionAnswers.powerMax || Number.POSITIVE_INFINITY),
+      maxPowerCv: Number.isFinite(parsedMaxPowerCv) ? parsedMaxPowerCv : null,
       minYear,
       maxYear,
       minMileage: Number(decisionAnswers.mileageMin || 0),

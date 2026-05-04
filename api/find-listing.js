@@ -3827,13 +3827,22 @@ async function findListing({ result, answers, filters }) {
       let inventoryUniverseUsed = Number(inventory?.totalUniverse || 0);
 
       if (exactModelOnly) {
-        const exactModelInventory = constrainedInventoryDecorated
-          .filter(matchesSelectedLocation)
-          .filter((listing) => hasConcreteModelSignal(listing, models));
+        const exactModelInventory = inventoryDecorated
+          .filter(matchesSelectedLocation);
         const unseenFirstExact = context.preferUnseen
           ? exactModelInventory.filter((listing) => !isPreviouslySeenListing(listing, context.excludedUrls, context.excludedTitles))
           : exactModelInventory;
-        const finalExactInventory = dedupeListings(unseenFirstExact.length ? unseenFirstExact : exactModelInventory)
+        const exactPool = unseenFirstExact.length ? unseenFirstExact : exactModelInventory;
+        const finalExactInventory = Array.from(
+          (exactPool || []).reduce((acc, listing) => {
+            const key = normalizeText(listing?.url || `${listing?.source || ""}|${listing?.title || ""}`).toLowerCase();
+            if (key && !acc.has(key)) {
+              acc.set(key, listing);
+            }
+            return acc;
+          }, new Map()).values()
+        )
+          .sort(sortListingsByPriority)
           .slice(0, requestedInventoryLimit);
 
         return {

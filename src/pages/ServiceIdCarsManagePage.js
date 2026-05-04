@@ -345,7 +345,7 @@ export default function ServiceIdCarsManagePage({
 }) {
   const { i18n } = useTranslation();
   const isEn = i18n.resolvedLanguage === "en";
-  const txt = (es, en) => (isEn ? en : es);
+  const txt = useCallback((es, en) => (isEn ? en : es), [isEn]);
 
   const isDetailView = viewMode === "detail";
   const isCreateView = viewMode === "create";
@@ -420,8 +420,7 @@ export default function ServiceIdCarsManagePage({
     setEditingVehicleId("");
     setForm(createEmptyForm());
     showFeedback(txt("Completa la ficha y guarda tu nuevo IDCar.", "Complete the form and save your new IDCar."), "info");
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isCreateView]);
+  }, [isCreateView, txt]);
 
   useEffect(() => {
     if (typeof window === "undefined" || isDetailView || isCreateView) return;
@@ -434,7 +433,7 @@ export default function ServiceIdCarsManagePage({
       setForm(createEmptyForm());
       showFeedback(txt("Completa la ficha y guarda tu nuevo IDCar.", "Complete the form and save your new IDCar."), "info");
     }
-  }, [isDetailView, isCreateView, isEn]);
+  }, [isDetailView, isCreateView, isEn, txt]);
 
   useEffect(() => {
     if (!isDetailView) {

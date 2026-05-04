@@ -81,9 +81,11 @@ export default function ResolvedOfferImage({ offer = {}, alt, loading = "lazy", 
     ].filter((candidate, index, array) => candidate && array.indexOf(candidate) === index);
   }, [searchQuery, directImage, offer?.preferAiImage, localCandidates, fallbackSrc]);
   const [candidateIndex, setCandidateIndex] = useState(0);
+  const [fallbackBlocked, setFallbackBlocked] = useState(false);
 
   useEffect(() => {
     setCandidateIndex(0);
+    setFallbackBlocked(false);
   }, [imageCandidates]);
 
   const currentSrc = imageCandidates[Math.min(candidateIndex, imageCandidates.length - 1)] || fallbackSrc;
@@ -109,21 +111,58 @@ export default function ResolvedOfferImage({ offer = {}, alt, loading = "lazy", 
         lineHeight: 0,
       }}
     >
-      <img
-        src={currentSrc}
-        alt={alt || offer?.title || "Oferta"}
-        loading={loading}
-        referrerPolicy="no-referrer"
-        onError={() => {
-          setCandidateIndex((current) => Math.min(current + 1, imageCandidates.length - 1));
-        }}
-        style={{
-          ...style,
-          width: "100%",
-          height: style?.height || "auto",
-          display: "block",
-        }}
-      />
+      {!fallbackBlocked ? (
+        <img
+          src={currentSrc}
+          alt={alt || offer?.title || "Oferta"}
+          loading={loading}
+          referrerPolicy="no-referrer"
+          onError={() => {
+            setCandidateIndex((current) => {
+              const nextIndex = Math.min(current + 1, imageCandidates.length - 1);
+              if (nextIndex === current) {
+                setFallbackBlocked(true);
+              }
+              return nextIndex;
+            });
+          }}
+          style={{
+            ...style,
+            width: "100%",
+            height: style?.height || "auto",
+            display: "block",
+          }}
+        />
+      ) : (
+        <div
+          aria-label={alt || offer?.title || "Imagen no disponible"}
+          style={{
+            ...style,
+            width: "100%",
+            height: style?.height || "100%",
+            minHeight: style?.minHeight || 120,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            justifyContent: "flex-end",
+            padding: "14px 16px",
+            background: "linear-gradient(135deg,#0f172a 0%,#0ea5e9 100%)",
+            color: "#f8fafc",
+            lineHeight: 1.3,
+            fontFamily: "DM Sans, sans-serif",
+          }}
+        >
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#7dd3fc", marginBottom: 6 }}>
+            Imagen orientativa no disponible
+          </div>
+          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 2 }}>
+            {offer?.title || "Oferta recomendada"}
+          </div>
+          <div style={{ fontSize: 11, color: "#cbd5e1" }}>
+            {offer?.source || "Proveedor"}
+          </div>
+        </div>
+      )}
       {offer?.hasGuaranteeSeal ? <OfferGuaranteeSeal months={offer?.warrantyMonths || 12} size={sealSize} /> : null}
     </div>
   );

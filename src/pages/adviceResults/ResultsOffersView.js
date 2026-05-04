@@ -162,6 +162,20 @@ export default function ResultsOffersView({
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
   const bodyColor = isDark ? "#cbd5e1" : "#475569";
 
+  const formatOfferPrice = (rawPrice) => {
+    const value = String(rawPrice || "").trim();
+    if (!value) {
+      return "";
+    }
+
+    const numeric = Number(value.replace(/[^\d]/g, ""));
+    if (Number.isFinite(numeric) && numeric > 0) {
+      return `${numeric.toLocaleString("es-ES")} €`;
+    }
+
+    return value.includes("€") ? value : `${value} €`;
+  };
+
   const openOfferSheet = (offer) => {
     if (!offer) {
       return;
@@ -462,7 +476,7 @@ export default function ResultsOffersView({
                       </div>
                       {featuredOffer.price && (
                         <div style={{ fontSize: 20, fontWeight: 800, color: "#047857" }}>
-                          {featuredOffer.price}
+                          {formatOfferPrice(featuredOffer.price)}
                         </div>
                       )}
                     </div>
@@ -666,7 +680,7 @@ export default function ResultsOffersView({
                               <div style={{ fontSize: 12, fontWeight: 700, color: titleColor }}>
                                 #{offer.rankPosition || index + 2} · {offer.title}
                               </div>
-                              {offer.price && <div style={{ fontSize: 13, fontWeight: 800, color: "#047857" }}>{offer.price}</div>}
+                              {offer.price && <div style={{ fontSize: 13, fontWeight: 800, color: "#047857" }}>{formatOfferPrice(offer.price)}</div>}
                             </div>
                             <div style={{ fontSize: 11, color: "#1d4ed8", marginBottom: 6 }}>
                               {offer.source || text.externalWeb}

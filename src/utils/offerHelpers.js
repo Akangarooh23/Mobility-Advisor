@@ -403,7 +403,14 @@ function shouldBypassImageProxy(url) {
       || host.endsWith(".pexels.com")
       || host === "commons.wikimedia.org"
       || host.endsWith(".wikimedia.org")
-    );
+        || host.endsWith(".coches.net")
+        || host.endsWith(".coches.com")
+        || host.endsWith(".fotoclasicos.com")
+        || host.endsWith(".autoscout24.com")
+        || host.endsWith(".autoscout24.es")
+        || host.endsWith(".wallapop.com")
+        || host.endsWith(".milanuncios.com")
+      );
   } catch {
     return false;
   }

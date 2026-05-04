@@ -92,7 +92,6 @@ import {
   postValuationAddJson,
 } from "./utils/apiClient";
 import {
-  ANALYSIS_LOADING_PHASES,
   buildAdviceAnalysisPrompt,
   buildAnswersSummary,
   buildDecisionAnalysisPrompt,
@@ -2666,7 +2665,7 @@ export default function App() {
     let phaseIndex = 0;
     setLoadingPhase(0);
     const phaseInterval = setInterval(() => {
-      phaseIndex = (phaseIndex + 1) % ANALYSIS_LOADING_PHASES.length;
+      phaseIndex = (phaseIndex + 1) % 6;
       setLoadingPhase(phaseIndex);
     }, 1800);
 
@@ -2686,7 +2685,7 @@ export default function App() {
 
       let raw = await requestAiJson(
         buildPrompt(),
-        { answers: finalAnswers, advisorContext },
+        { answers: finalAnswers, advisorContext, uiLanguage },
         { onApiKeyMissing: () => setApiKeyMissing(true) }
       );
       let normalizedResult = normalizeAdvisorResult(raw);
@@ -2694,7 +2693,7 @@ export default function App() {
       if (!isAdvisorResultCompatibleWithContext(normalizedResult, advisorContext)) {
         raw = await requestAiJson(
           buildPrompt(retryConstraintMessage),
-          { answers: finalAnswers, advisorContext },
+          { answers: finalAnswers, advisorContext, uiLanguage },
           { onApiKeyMissing: () => setApiKeyMissing(true) }
         );
         normalizedResult = normalizeAdvisorResult(raw);

@@ -3,15 +3,6 @@ import { parseAdvisorJson } from "./advisorResults";
 import { inferBrandPreferenceFromBrand, mapFuelToPreference } from "./businessHelpers";
 import { normalizeText } from "./offerHelpers";
 
-export const ANALYSIS_LOADING_PHASES = [
-  "Evaluando patrón de uso real...",
-  "Calculando TCO estimado...",
-  "Analizando etiqueta DGT y ZBE...",
-  "Detectando tensiones activas...",
-  "Calculando zona de intersección...",
-  "Generando recomendación personalizada...",
-];
-
 export async function requestAiJson(prompt, extraPayload = {}, options = {}) {
   const { onApiKeyMissing } = options;
   const { response, data } = await postAnalyzeJson({

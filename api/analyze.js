@@ -1284,9 +1284,40 @@ function getTensionPrincipal(answers, primaryType) {
   return "Tu caso exige equilibrar coste mensual, uso real y riesgo futuro sin sobredimensionar coche ni motorizacion.";
 }
 
-function buildAlternatives(primaryType, answers, advisorContext = null) {
+function buildAlternatives(primaryType, answers, advisorContext = null, uiLanguage = "es") {
+  const isEn = uiLanguage === "en";
   const profile = getVehicleProfile(answers);
-  const alternativesByType = {
+  
+  const alternativesByType = isEn ? {
+    compra_contado: [
+      { tipo: "compra_financiada", score: 76, titulo: `Financed purchase of ${profile}`, razon: "Makes sense if you prefer to preserve liquidity and maintain a payment below your comfortable limit." },
+      { tipo: "compra_financiada", score: 68, titulo: `Financed purchase of ${profile}`, razon: "Good alternative if you want to preserve initial liquidity and spread monthly effort." },
+    ],
+    compra_financiada: [
+      { tipo: "compra_contado", score: 79, titulo: `Cash purchase of ${profile}`, razon: "Reduces financial cost if you can increase down payment and prioritize total final cost." },
+      { tipo: "compra_contado", score: 66, titulo: `Cash purchase of ${profile}`, razon: "Worthwhile if you can increase down payment and avoid financial cost on a reliable unit." },
+    ],
+    renting_largo: [
+      { tipo: "renting_corto", score: 74, titulo: "Flexible leasing", razon: "May fit better if you foresee upcoming changes and don't want long-term commitment." },
+      { tipo: "renting_corto", score: 64, titulo: "Flexible leasing", razon: "Only makes sense if you foresee upcoming life changes and want to postpone final decision." },
+    ],
+    renting_corto: [
+      { tipo: "carsharing", score: 72, titulo: "Carsharing + public transport", razon: "Very competitive if you drive few kilometers and most usage is urban and occasional." },
+      { tipo: "rent_a_car", score: 68, titulo: "Car rental by day or week", razon: "May be better than short-term leasing if you really only need temporary coverage and occasional usage." },
+    ],
+    carsharing: [
+      { tipo: "transporte_publico", score: 77, titulo: "Public transport as base", razon: "Further reduces fixed cost if you can cover daily commute without own car." },
+      { tipo: "rent_a_car", score: 69, titulo: "Car rental by day or week", razon: "Makes sense when usage is occasional but you need full car access at specific moments." },
+    ],
+    rent_a_car: [
+      { tipo: "carsharing", score: 78, titulo: "Carsharing for urban trips", razon: "Usually more efficient if usage is occasional, urban and you don't need car reserved multiple days." },
+      { tipo: "renting_corto", score: 66, titulo: `Short-term leasing of ${profile}`, razon: "Only worthwhile if you already know you'll need car continuously for several months." },
+    ],
+    transporte_publico: [
+      { tipo: "carsharing", score: 73, titulo: "Carsharing for weekends", razon: "Complements occasional trips well without assuming high fixed monthly fee." },
+      { tipo: "micromovilidad", score: 61, titulo: "Urban micro-mobility", razon: "Fits if most of your trips are short and within the city." },
+    ],
+  } : {
     compra_contado: [
       { tipo: "compra_financiada", score: 76, titulo: `Compra financiada de ${profile}`, razon: "Tiene sentido si prefieres preservar liquidez y mantienes una cuota por debajo de tu limite comodo." },
       { tipo: "compra_financiada", score: 68, titulo: `Compra financiada de ${profile}`, razon: "Buena alternativa si quieres preservar liquidez inicial y repartir esfuerzo mensual." },
@@ -1317,10 +1348,13 @@ function buildAlternatives(primaryType, answers, advisorContext = null) {
     ],
   };
 
-  const alternatives = alternativesByType[primaryType] || [
+  const alternatives = alternativesByType[primaryType] || (isEn ? [
+    { tipo: "compra_financiada", score: 70, titulo: `Financed purchase of ${profile}`, razon: "Maintains balance between monthly control, full availability and residual value." },
+    { tipo: "renting_largo", score: 65, titulo: "Leasing with included services", razon: "Worthwhile if you prioritize simplifying management and fixing total cost." },
+  ] : [
     { tipo: "compra_financiada", score: 70, titulo: `Compra financiada de ${profile}`, razon: "Mantiene equilibrio entre control mensual, disponibilidad total y valor residual." },
     { tipo: "renting_largo", score: 65, titulo: "Renting con servicios incluidos", razon: "Interesa si priorizas simplificar gestion y fijar coste total." },
-  ];
+  ]);
 
   if (!advisorContext) {
     return alternatives;
@@ -1330,7 +1364,8 @@ function buildAlternatives(primaryType, answers, advisorContext = null) {
   return alternatives.filter((item) => allowedTypes.includes(item.tipo)).slice(0, 2);
 }
 
-function buildFallbackAdvisorResult(answers = {}, advisorContext = null) {
+function buildFallbackAdvisorResult(answers = {}, advisorContext = null, uiLanguage = "es") {
+  const isEn = uiLanguage === "en";
   const primaryType = getPrimaryType(answers, advisorContext);
   const propulsions = getViablePropulsions(answers);
   const dgtLabel = getDgtLabel(propulsions);
@@ -1348,13 +1383,23 @@ function buildFallbackAdvisorResult(answers = {}, advisorContext = null) {
   const tension = getTensionPrincipal(answers, primaryType);
   const whyWins = buildWhyWins(answers, primaryType, propulsions, dgtLabel);
   const tcoDetail = buildTcoEstimate(answers, primaryType, propulsions);
-  const alternatives = buildAlternatives(primaryType, answers, advisorContext);
+  const alternatives = buildAlternatives(primaryType, answers, advisorContext, uiLanguage);
   const comparadorFinal = buildComparatorRows(primaryType, answers, scoreBreakdown, tcoDetail, alternatives);
   const transparencia = buildTransparencyReport(answers, primaryType, propulsions, tcoDetail, scoreBreakdown, score);
   const planAccion = buildActionPlan(answers, primaryType, transparencia, tcoDetail, companies);
   const vehiculosRecomendados = buildRecommendedVehiclesFallback(answers, propulsions);
 
-  const titles = {
+  const titles = isEn ? {
+    compra_contado: `Cash purchase of ${vehicleProfile}`,
+    compra_financiada: `Financed purchase of ${vehicleProfile}`,
+    renting_largo: `Long-term leasing of ${vehicleProfile}`,
+    renting_corto: `Short-term leasing for ${vehicleProfile}`,
+    carsharing: "Carsharing combined with public transport",
+    transporte_publico: "Public transport as mobility base",
+    micromovilidad: "Urban micro-mobility with occasional support",
+    rent_a_car: "Car rental for occasional needs",
+    carpooling: "Carpooling as primary savings solution",
+  } : {
     compra_contado: `Compra al contado de ${vehicleProfile}`,
     compra_financiada: `Compra financiada de ${vehicleProfile}`,
     renting_largo: `Renting a largo plazo de ${vehicleProfile}`,
@@ -1366,26 +1411,57 @@ function buildFallbackAdvisorResult(answers = {}, advisorContext = null) {
     carpooling: "Carpooling como solucion principal de ahorro",
   };
 
-  const summary = `Por tu patron de uso ${answers.entorno_uso || "mixto"}, tu horizonte ${answers.horizonte || "medio"} y tu nivel de riesgo ${answers.gestion_riesgo || "medio"}, encaja mejor ${titles[primaryType] || "una solucion equilibrada"}. Esta opcion reduce friccion operativa, mantiene el coste en una zona razonable y evita sobredimensionar motorizacion o formato.`;
+  const summaryTemplate = isEn
+    ? `Based on your ${answers.entorno_uso || "mixed"} usage pattern, your ${answers.horizonte || "medium-term"} horizon and your ${answers.gestion_riesgo || "medium"} risk profile, ${titles[primaryType] || "a balanced solution"} is the best fit. This option reduces operational friction, keeps costs in a reasonable zone and avoids oversizing the motorization or format.`
+    : `Por tu patron de uso ${answers.entorno_uso || "mixto"}, tu horizonte ${answers.horizonte || "medio"} y tu nivel de riesgo ${answers.gestion_riesgo || "medio"}, encaja mejor ${titles[primaryType] || "una solucion equilibrada"}. Esta opcion reduce friccion operativa, mantiene el coste en una zona razonable y evita sobredimensionar motorizacion o formato.`;
+
+  const advantages = isEn ? [
+    `It adapts better to ${answers.entorno_uso || "mixed"} usage with ${answers.km_anuales || "average mileage"} without increasing total cost.`,
+    `It fits your ${answers.horizonte || "usage"} horizon and gives you a cleaner exit if your needs change.`,
+    `It lets you prioritize ${vehicleProfile} with ${dgtLabel} label and real market offer in current Spanish market.`,
+  ] : [
+    `Se adapta mejor a un uso ${answers.entorno_uso || "mixto"} con ${answers.km_anuales || "kilometraje medio"} sin disparar el coste total.`,
+    `Encaja con tu horizonte ${answers.horizonte || "de uso"} y te deja una salida mas limpia si cambian tus necesidades.`,
+    `Permite priorizar ${vehicleProfile} con etiqueta ${dgtLabel} y una oferta realista en el mercado espanol actual.`,
+  ];
+
+  const disadvantages = isEn ? [
+    "It requires comparing several offers and not accepting the first commercial proposal without reviewing total cost.",
+    highRiskControl
+      ? "It's important to demand traceability, warranty or closed conditions to avoid introducing avoidable risk."
+      : "If your usage habits change, you may need to adjust format or modality sooner than expected.",
+  ] : [
+    "Requiere comparar varias ofertas y no aceptar la primera propuesta comercial sin revisar coste total.",
+    highRiskControl
+      ? "Conviene exigir trazabilidad, garantia o condiciones cerradas para no introducir riesgo evitable."
+      : "Si cambian tus habitos de uso, puede hacer falta reajustar formato o modalidad antes de lo previsto.",
+  ];
+
+  const adviceTemplate = isEn
+    ? highZbe
+      ? "If you enter LEZ zones frequently, prioritize versions with ECO or CERO label and confirm by VIN or technical sheet the exact label before closing anything."
+      : "Always ask for itemized quote with final price, commission, conditions and total cost for 36-72 months; that's where worst decisions usually hide."
+    : highZbe
+    ? "Si entras a ZBE con frecuencia, prioriza versiones con etiqueta ECO o CERO y confirma por VIN o ficha tecnica la etiqueta exacta antes de cerrar nada."
+    : "Pide siempre oferta desglosada con precio final, comision, vinculaciones y coste total a 36-72 meses; ahi es donde suelen esconderse las peores decisiones.";
+
+  const tcoWarning = isEn
+    ? `For this profile, real total cost is around ${tcoDetail.total_mensual} EUR/month (${tcoDetail.total_anual} EUR per year). The main drivers are ${tcoDetail.concepto_base.toLowerCase()}, energy and a buffer for extras so you don't feel tight.`
+    : `Para este perfil, el coste total real ronda ${tcoDetail.total_mensual} EUR/mes (${tcoDetail.total_anual} EUR al ano). Aqui pesan sobre todo ${tcoDetail.concepto_base.toLowerCase()}, la energia y el colchon de extras para no tensionarte.`;
+
+  const nextStep = isEn
+    ? `This week compare 3 offers from ${companies.slice(0, 2).join(" and ")} for ${vehicleProfile} and discard any option whose real TCO exceeds ${tcoDetail.total_mensual} EUR/month or doesn't fit with ${propulsions.join(", ")}.`
+    : `Esta semana compara 3 ofertas de ${companies.slice(0, 2).join(" y ")} para ${vehicleProfile} y descarta cualquier opcion cuyo TCO real supere ${tcoDetail.total_mensual} EUR/mes o no encaje con ${propulsions.join(", ")}.`;
 
   return normalizeAdvisorResult({
     alineacion_pct: score,
     solucion_principal: {
       tipo: primaryType,
       score,
-      titulo: titles[primaryType] || `Solucion prioritaria para ${vehicleProfile}`,
-      resumen: summary,
-      ventajas: [
-        `Se adapta mejor a un uso ${answers.entorno_uso || "mixto"} con ${answers.km_anuales || "kilometraje medio"} sin disparar el coste total.`,
-        `Encaja con tu horizonte ${answers.horizonte || "de uso"} y te deja una salida mas limpia si cambian tus necesidades.`,
-        `Permite priorizar ${vehicleProfile} con etiqueta ${dgtLabel} y una oferta realista en el mercado espanol actual.`,
-      ],
-      inconvenientes: [
-        "Requiere comparar varias ofertas y no aceptar la primera propuesta comercial sin revisar coste total.",
-        highRiskControl
-          ? "Conviene exigir trazabilidad, garantia o condiciones cerradas para no introducir riesgo evitable."
-          : "Si cambian tus habitos de uso, puede hacer falta reajustar formato o modalidad antes de lo previsto.",
-      ],
+      titulo: titles[primaryType] || (isEn ? `Priority solution for ${vehicleProfile}` : `Solucion prioritaria para ${vehicleProfile}`),
+      resumen: summaryTemplate,
+      ventajas: advantages,
+      inconvenientes: disadvantages,
       coste_estimado: cost,
       empresas_recomendadas: companies,
       etiqueta_dgt: dgtLabel,
@@ -1397,12 +1473,10 @@ function buildFallbackAdvisorResult(answers = {}, advisorContext = null) {
     comparador_final: comparadorFinal,
     transparencia,
     plan_accion: planAccion,
-    tco_aviso: `Para este perfil, el coste total real ronda ${tcoDetail.total_mensual} EUR/mes (${tcoDetail.total_anual} EUR al ano). Aqui pesan sobre todo ${tcoDetail.concepto_base.toLowerCase()}, la energia y el colchon de extras para no tensionarte.`,
+    tco_aviso: tcoWarning,
     tco_detalle: tcoDetail,
-    consejo_experto: highZbe
-      ? "Si entras a ZBE con frecuencia, prioriza versiones con etiqueta ECO o CERO y confirma por VIN o ficha tecnica la etiqueta exacta antes de cerrar nada."
-      : "Pide siempre oferta desglosada con precio final, comision, vinculaciones y coste total a 36-72 meses; ahi es donde suelen esconderse las peores decisiones.",
-    siguiente_paso: `Esta semana compara 3 ofertas de ${companies.slice(0, 2).join(" y ")} para ${vehicleProfile} y descarta cualquier opcion cuyo TCO real supere ${tcoDetail.total_mensual} EUR/mes o no encaje con ${propulsions.join(", ")}.`,
+    consejo_experto: adviceTemplate,
+    siguiente_paso: nextStep,
     propulsiones_viables: propulsions,
     vehiculos_recomendados: vehiculosRecomendados,
   });
@@ -1427,6 +1501,7 @@ module.exports = async function handler(req, res) {
     const prompt = body?.prompt;
     const answers = body?.answers && typeof body.answers === "object" ? body.answers : {};
     const advisorContext = normalizeText(body?.advisorContext || null) || null;
+    const uiLanguage = body?.uiLanguage || "es";
 
     if (!prompt || typeof prompt !== "string") {
       return res.status(400).json({ error: "Missing prompt" });
@@ -1549,7 +1624,7 @@ module.exports = async function handler(req, res) {
     }
 
     return res.status(200).json({
-      parsed: buildFallbackAdvisorResult(answers, advisorContext),
+      parsed: buildFallbackAdvisorResult(answers, advisorContext, uiLanguage),
       meta: {
         source: "fallback",
       },

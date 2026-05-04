@@ -72,6 +72,8 @@ const VEHICLE_DETAIL_CSS = `
 .vd-ab-ico{font-size:15px;flex-shrink:0}
 .vd-ab-txt{color:rgba(255,255,255,.8)}
 .vd-ab-val{margin-left:auto;font-weight:500;color:#fff;font-size:12px;text-align:right}
+.vd-ab-link{color:inherit;text-decoration:none;display:inline-flex;align-items:center;justify-content:flex-end;cursor:pointer}
+.vd-ab-link:hover{text-decoration:underline;text-underline-offset:2px}
 .vd-ab-positive{color:#66bb6a}
 .vd-ab-neutral{color:#ffa726}
 /* PRICE CARD */
@@ -340,6 +342,7 @@ export default function VehicleDetailPage({ offer, onBack }) {
   }
 
   const car = normalizeOffer(offer);
+  const offerUrl = safeText(car.url || car.searchUrl);
 
   const label = car.environmentalLabel || car.label || "C";
   const loc = [car.city, car.province].filter(Boolean).join(", ") || "Ubicación no disponible";
@@ -538,7 +541,22 @@ export default function VehicleDetailPage({ offer, onBack }) {
               <div className="vd-ab-row">
                 <span className="vd-ab-ico">🔗</span>
                 <span className="vd-ab-txt">Publicado en</span>
-                <span className="vd-ab-val">{portalLabel(car.portal)}</span>
+                <span className="vd-ab-val">
+                  {offerUrl ? (
+                    <a
+                      className="vd-ab-link"
+                      href={offerUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      title="Abrir oferta original"
+                      aria-label={`Abrir oferta en ${portalLabel(car.portal)}`}
+                    >
+                      {portalLabel(car.portal)}
+                    </a>
+                  ) : (
+                    portalLabel(car.portal)
+                  )}
+                </span>
               </div>
             </div>
           </div>

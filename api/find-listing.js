@@ -1209,6 +1209,81 @@ function getProfileBrandKeywords(answers, models = []) {
   return uniq([...fromExplicitBrand, ...fromPreference, ...fromModels]);
 }
 
+function getStrictBrandKeywords(answers = {}, filters = {}) {
+  const knownBrands = [
+    "volkswagen", "seat", "renault", "skoda", "toyota", "kia", "hyundai", "nissan",
+    "bmw", "audi", "mercedes", "volvo", "byd", "mg", "xpeng", "omoda", "jaecoo", "peugeot", "citroen", "dacia",
+    "fiat", "ford", "opel", "honda", "mazda", "mini", "jeep", "cupra", "lexus", "tesla", "jaguar",
+    "ds", "suzuki", "alfa romeo", "smart", "mitsubishi", "land rover", "porsche",
+    "subaru", "polestar", "abarth", "dethleffs", "challenger", "hymer",
+  ];
+
+  const explicitBrand = removeAccents(normalizeText(filters?.brand || answers?.marca_objetivo)).toLowerCase();
+  const explicitBrandKeywords = knownBrands.includes(explicitBrand) ? [explicitBrand] : [];
+  const byPreference = BRAND_PREFERENCE_KEYWORDS[answers?.marca_preferencia] || [];
+
+  return uniq([...explicitBrandKeywords, ...byPreference]);
+}
+
+function resolveStrictFuelMode(rawValue = "") {
+  const normalized = removeAccents(normalizeText(rawValue)).toLowerCase();
+  if (!normalized || normalized === "cualquiera" || normalized === "indiferente") {
+    return "";
+  }
+
+  if (/(electrico_puro|electrico|electric|ev\b|bev)/.test(normalized)) {
+    return "electrico";
+  }
+  if (/(hibrido_enchufable|phev|enchufable|plug\s?-?in)/.test(normalized)) {
+    return "phev";
+  }
+  if (/(microhibrido|mhev)/.test(normalized)) {
+    return "microhibrido";
+  }
+  if (/(hibrido_no_enchufable|hibrido|hybrid|hev)/.test(normalized)) {
+    return "hibrido";
+  }
+  if (/(diesel|di[eé]sel)/.test(normalized)) {
+    return "diesel";
+  }
+  if (/(gasolina|gasoline)/.test(normalized)) {
+    return "gasolina";
+  }
+
+  return "";
+}
+
+function matchesStrictFuelMode(listing = {}, fuelMode = "") {
+  if (!fuelMode) {
+    return true;
+  }
+
+  const haystack = removeAccents(`${listing?.fuel || ""} ${listing?.title || ""} ${listing?.description || ""}`).toLowerCase();
+  if (fuelMode === "electrico") {
+    return /(electrico|electric|ev\b|bev|e-tron|eq[absce]\b)/.test(haystack)
+      && !/(phev|enchufable|plug\s?-?in)/.test(haystack);
+  }
+  if (fuelMode === "phev") {
+    return /(phev|enchufable|plug\s?-?in)/.test(haystack);
+  }
+  if (fuelMode === "microhibrido") {
+    return /(mhev|microhibrid)/.test(haystack);
+  }
+  if (fuelMode === "hibrido") {
+    return /(hybrid|hibrid|hev|full hybrid|e-power)/.test(haystack)
+      && !/(phev|enchufable|plug\s?-?in|mhev|microhibrid)/.test(haystack);
+  }
+  if (fuelMode === "diesel") {
+    return /(diesel|di[eé]sel|tdi|dci|hdi|multijet|bluehdi)/.test(haystack);
+  }
+  if (fuelMode === "gasolina") {
+    return /(gasolina|tsi|tce|ecoboost|puretech|firefly|mpi|tgdi)/.test(haystack)
+      && !/(hybrid|hibrid|phev|enchufable|electric|electrico|diesel|di[eé]sel)/.test(haystack);
+  }
+
+  return true;
+}
+
 function getOfferPriorityMap(answers = {}) {
   const raw = answers?.ponderacion_score_personalizada;
   return raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
@@ -2926,14 +3001,46 @@ function inferFuelFilterFromAnswers(answers = {}) {
     : answers?.propulsion_preferida
       ? [answers.propulsion_preferida]
       : [];
-  const joined = removeAccents(preferred.map((item) => normalizeText(item)).join(" ")).toLowerCase();
+  const mappedModes = new Set();
 
-  if (/(electrico|ev|bev)/.test(joined)) return "electrico";
-  if (/hibrido_no_enchufable/.test(joined)) return "hibrido";
-  if (/(hibrido_enchufable|phev)/.test(joined)) return "hibrido enchufable";
-  if (/(hibrido|hybrid|mhev|microhibrid|suave)/.test(joined)) return "hibrido";
-  if (/(diesel|di[eé]sel)/.test(joined)) return "diesel";
-  if (/(gasolina|gasoline)/.test(joined)) return "gasolina";
+  for (const rawItem of preferred) {
+    const item = removeAccents(normalizeText(rawItem)).toLowerCase();
+    if (!item || /indiferente|cualquiera/.test(item)) {
+      continue;
+    }
+    if (/(electrico|ev|bev)/.test(item)) {
+      mappedModes.add("electrico");
+      continue;
+    }
+    if (/hibrido_no_enchufable/.test(item)) {
+      mappedModes.add("hibrido");
+      continue;
+    }
+    if (/(hibrido_enchufable|phev)/.test(item)) {
+      mappedModes.add("hibrido enchufable");
+      continue;
+    }
+    if (/(hibrido|hybrid|mhev|microhibrid|suave)/.test(item)) {
+      mappedModes.add("hibrido");
+      continue;
+    }
+    if (/(diesel|di[eé]sel)/.test(item)) {
+      mappedModes.add("diesel");
+      continue;
+    }
+    if (/(gasolina|gasoline)/.test(item)) {
+      mappedModes.add("gasolina");
+    }
+  }
+
+  if (mappedModes.size === 1) {
+    return Array.from(mappedModes)[0];
+  }
+
+  // With multiple fuel preferences selected (e.g. gasolina + diesel), do not over-constrain.
+  if (mappedModes.size > 1) {
+    return "";
+  }
 
   return "";
 }
@@ -3518,6 +3625,89 @@ async function findListing({ result, answers, filters }) {
   const coverage = getSearchCoverageConfig(result, desiredType);
   const strictObjectiveMode = desiredType === "compra" && modelObjectiveTokens.length > 0;
   const effectiveFuelFilter = normalizeText(filters?.fuel || inferFuelFilterFromAnswers(answers));
+  const strictBrandKeywords = getStrictBrandKeywords(answers, filters);
+  const strictFuelMode = resolveStrictFuelMode(effectiveFuelFilter);
+  const requestedFuelModes = (() => {
+    const explicitMode = resolveStrictFuelMode(filters?.fuel || "");
+    if (explicitMode) {
+      return new Set([explicitMode]);
+    }
+
+    const preferred = Array.isArray(answers?.propulsion_preferida)
+      ? answers.propulsion_preferida
+      : answers?.propulsion_preferida
+        ? [answers.propulsion_preferida]
+        : [];
+    const modes = preferred
+      .map((item) => resolveStrictFuelMode(item))
+      .filter(Boolean);
+
+    return new Set(modes);
+  })();
+  const matchesStrictBrand = (listing) => {
+    if (!strictBrandKeywords.length) {
+      return true;
+    }
+
+    const haystack = removeAccents(`${listing?.brand || ""} ${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""}`).toLowerCase();
+    return strictBrandKeywords.some((brand) => haystack.includes(brand));
+  };
+  const applyStrictInventoryConstraints = (listings = []) => {
+    const list = Array.isArray(listings) ? listings : [];
+    return list.filter((listing) => matchesStrictBrand(listing) && matchesStrictFuelMode(listing, strictFuelMode));
+  };
+  const matchesRequestedFuel = (listing) => {
+    if (!requestedFuelModes.size) {
+      return true;
+    }
+
+    const explicitFuel = removeAccents(normalizeText(listing?.fuel || "")).toLowerCase();
+    if (explicitFuel) {
+      const explicitMatchesMode = (mode) => {
+        if (mode === "diesel") {
+          return /(diesel|di[eé]sel|tdi|dci|hdi|multijet|bluehdi)/.test(explicitFuel);
+        }
+        if (mode === "gasolina") {
+          return /(gasolina|gasoline|tsi|tce|ecoboost|puretech|mpi|tgdi)/.test(explicitFuel)
+            && !/(hybrid|hibrid|phev|enchufable|electric|electrico)/.test(explicitFuel);
+        }
+        if (mode === "electrico") {
+          return /(electrico|electric|ev|bev)/.test(explicitFuel);
+        }
+        if (mode === "phev") {
+          return /(phev|enchufable|plug\s?-?in)/.test(explicitFuel);
+        }
+        if (mode === "hibrido") {
+          return /(hybrid|hibrid|hev|full hybrid|e-power)/.test(explicitFuel)
+            && !/(phev|enchufable|plug\s?-?in|mhev|microhibrid)/.test(explicitFuel);
+        }
+        if (mode === "microhibrido") {
+          return /(mhev|microhibrid)/.test(explicitFuel);
+        }
+        return false;
+      };
+
+      for (const mode of requestedFuelModes) {
+        if (explicitMatchesMode(mode)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    for (const mode of requestedFuelModes) {
+      if (matchesStrictFuelMode(listing, mode)) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+  const applySemiStrictInventoryConstraints = (listings = []) => {
+    const list = Array.isArray(listings) ? listings : [];
+    return list.filter((listing) => matchesStrictBrand(listing) && matchesRequestedFuel(listing));
+  };
 
   if (strictObjectiveMode) {
     coverage.companies = Math.max(coverage.companies, companies.length);
@@ -3610,70 +3800,163 @@ async function findListing({ result, answers, filters }) {
       .map((listing) => inventoryOnly
         ? { ...listing, isRelevantMatch: true, isFallbackMatch: false }
         : decorateListing(listing, context));
+    const selectedLocation = normalizeText(String(filters?.location || "").replace(/_/g, " ")).toLowerCase();
+    const hasStrictSelectedLocation = Boolean(selectedLocation) && selectedLocation !== "toda espana" && selectedLocation !== "toda_espana";
+    const matchesSelectedLocation = (listing) => {
+      if (!hasStrictSelectedLocation) {
+        return true;
+      }
+
+      const locationHaystack = normalizeText(`${listing?.city || ""} ${listing?.province || ""}`).toLowerCase();
+      return Boolean(locationHaystack) && locationHaystack.includes(selectedLocation);
+    };
+    const constrainedInventoryDecorated = requestedFuelModes.size > 0
+      ? applySemiStrictInventoryConstraints(inventoryDecorated)
+      : applyStrictInventoryConstraints(inventoryDecorated);
 
     const inventoryRelevant = inventoryOnly
-      ? inventoryDecorated
+      ? constrainedInventoryDecorated.filter(matchesSelectedLocation)
       : inventoryDecorated.filter((listing) => listing?.isRelevantMatch || listing?.isFallbackMatch);
     if (inventoryOnly) {
       let rankedInventory = inventoryRelevant.slice(0, 20);
+      let broadLocationInventoryPool = [];
       let filterInsight = null;
       let inventorySourceUsed = inventory?.source || "unknown";
       let inventoryUniverseUsed = Number(inventory?.totalUniverse || 0);
 
-      const hasSpecificLocation = normalizeText(filters?.location).toLowerCase() && normalizeText(filters?.location).toLowerCase() !== "toda_espana";
-      if (rankedInventory.length === 0 && hasSpecificLocation) {
-        const relaxedInventory = await listInventoryOffers({
-          desiredType,
-          modelCandidates: models,
-          version: normalizeText(filters?.version || ""),
-          fuel: effectiveFuelFilter,
-          transmission: normalizeText(filters?.transmission || ""),
-          bodyType: normalizeText(filters?.bodyType || filters?.body_type || ""),
-          environmentalLabel: normalizeText(filters?.environmentalLabel || filters?.dgtLabel || ""),
-          location: "",
-          city: normalizeText(filters?.city || ""),
-          color: normalizeText(filters?.color || ""),
-          sellerType: normalizeText(filters?.sellerType || ""),
-          traction: normalizeText(filters?.traction || ""),
-          displacement: normalizeText(filters?.displacement || ""),
-          displacementMin: normalizeText(filters?.displacementMin || ""),
-          displacementMax: normalizeText(filters?.displacementMax || ""),
-          co2: normalizeText(filters?.co2 || ""),
-          co2Min: normalizeText(filters?.co2Min || ""),
-          co2Max: normalizeText(filters?.co2Max || ""),
-          powerKw: normalizeText(filters?.powerKw || ""),
-          powerKwMin: normalizeText(filters?.powerKwMin || ""),
-          powerKwMax: normalizeText(filters?.powerKwMax || ""),
-          consumption: normalizeText(filters?.consumption || ""),
-          consumptionMin: normalizeText(filters?.consumptionMin || ""),
-          consumptionMax: normalizeText(filters?.consumptionMax || ""),
-          targetYear: answers?.antiguedad_vehiculo_buscada?.[0] || null,
-          minYear: filters?.minYear || null,
-          maxYear: filters?.maxYear || null,
-          minMileage: filters?.minMileage || null,
-          maxMileage: filters?.maxMileage || null,
-          minDoors: filters?.minDoors || null,
-          minSeats: filters?.minSeats || null,
-          minPowerCv: filters?.minPowerCv || null,
-          maxPowerCv: filters?.maxPowerCv || null,
-          minPrice: filters?.minPrice || null,
-          maxPrice: filters?.maxPrice || null,
-          limit: 30,
-        });
+      if (!rankedInventory.length && hasStrictSelectedLocation) {
+        filterInsight = `No hay ofertas en ${filters.location} con los filtros actuales.`;
+      }
 
-        const relaxedDecorated = (relaxedInventory?.offers || [])
-          .map((offer) => inventoryOfferToListing(offer, desiredType))
-          .filter((listing) => listing?.url && listing?.title)
-          .map((listing) => ({ ...listing, isRelevantMatch: true, isFallbackMatch: false }));
+      if (!rankedInventory.length && (strictBrandKeywords.length || strictFuelMode)) {
+        const activeBrand = strictBrandKeywords.length ? "marca/preferencia de marca" : "";
+        const activeFuel = requestedFuelModes.size || strictFuelMode ? "combustible" : "";
+        const activeFilters = [activeBrand, activeFuel].filter(Boolean).join(" y ");
+        filterInsight = `No hay ofertas en inventario que cumplan estrictamente el filtro de ${activeFilters}.`;
+      }
 
-        const relaxedRelevant = relaxedDecorated;
-        if (relaxedRelevant.length > 0) {
-          rankedInventory = relaxedRelevant.slice(0, 20);
-          inventorySourceUsed = relaxedInventory?.source || inventorySourceUsed;
-          inventoryUniverseUsed = Number(relaxedInventory?.totalUniverse || inventoryUniverseUsed || 0);
-          filterInsight = `No he encontrado coincidencias en ${filters.location}. Te muestro ${rankedInventory.length} oferta${rankedInventory.length === 1 ? "" : "s"} ampliando a Toda España.`;
+      if (rankedInventory.length < TOP_LISTINGS_LIMIT) {
+        const semiStrictInventory = applySemiStrictInventoryConstraints(inventoryDecorated).filter(matchesSelectedLocation);
+        rankedInventory = dedupeListings([...rankedInventory, ...semiStrictInventory]).slice(0, 20);
+      }
+
+      // When the specific model query returns fewer than TOP_LISTINGS_LIMIT offers, pad with
+      // broader inventory results (no model constraint) to always show the user multiple options.
+      if (rankedInventory.length < TOP_LISTINGS_LIMIT) {
+        const seenUrls = new Set(rankedInventory.map((o) => normalizeText(o.url || "")).filter(Boolean));
+        try {
+          const broadInventory = await listInventoryOffers({
+            desiredType,
+            modelCandidates: [],
+            fuel: effectiveFuelFilter,
+            bodyType: normalizeText(filters?.bodyType || filters?.body_type || ""),
+            location: normalizeText(String(filters?.location || "").replace(/_/g, " ")),
+            minPrice: filters?.minPrice || null,
+            maxPrice: filters?.maxPrice || null,
+            limit: TOP_LISTINGS_LIMIT * 6,
+          });
+          const broadDecorated = (broadInventory?.offers || [])
+            .map((offer) => inventoryOfferToListing(offer, desiredType))
+            .filter((listing) => listing?.url && listing?.title && !seenUrls.has(normalizeText(listing.url || "")))
+            .filter(matchesSelectedLocation)
+            .map((listing) => ({ ...listing, isRelevantMatch: true, isFallbackMatch: false }));
+          const broadConstrained = applyStrictInventoryConstraints(broadDecorated);
+          const broadSemiStrict = applySemiStrictInventoryConstraints(broadDecorated);
+          const broadPool = broadSemiStrict.length > 0
+            ? broadSemiStrict
+            : broadConstrained.length > 0
+              ? broadConstrained
+              : broadDecorated;
+          broadLocationInventoryPool = broadPool;
+          rankedInventory = dedupeListings([...rankedInventory, ...broadPool]).slice(0, 20);
+        } catch {
+          // Keep existing rankedInventory if broader query fails.
         }
       }
+
+      const unseenFirstPool = context.preferUnseen
+        ? rankedInventory.filter((listing) => !isPreviouslySeenListing(listing, context.excludedUrls, context.excludedTitles))
+        : rankedInventory;
+      const prioritizedPool = unseenFirstPool.length > 0 ? unseenFirstPool : rankedInventory;
+      const dedupedPrioritizedPool = dedupeListings(prioritizedPool);
+
+      const distinctByModel = enforceDistinctModelListings(dedupedPrioritizedPool, TOP_LISTINGS_LIMIT);
+      if (distinctByModel.length < TOP_LISTINGS_LIMIT) {
+        if (broadLocationInventoryPool.length === 0) {
+          try {
+            const broadInventory = await listInventoryOffers({
+              desiredType,
+              modelCandidates: [],
+              fuel: effectiveFuelFilter,
+              bodyType: normalizeText(filters?.bodyType || filters?.body_type || ""),
+              location: normalizeText(String(filters?.location || "").replace(/_/g, " ")),
+              minPrice: filters?.minPrice || null,
+              maxPrice: filters?.maxPrice || null,
+              limit: TOP_LISTINGS_LIMIT * 10,
+            });
+            const broadDecorated = (broadInventory?.offers || [])
+              .map((offer) => inventoryOfferToListing(offer, desiredType))
+              .filter((listing) => listing?.url && listing?.title)
+              .filter(matchesSelectedLocation)
+              .map((listing) => ({ ...listing, isRelevantMatch: true, isFallbackMatch: false }));
+            broadLocationInventoryPool = applySemiStrictInventoryConstraints(broadDecorated);
+          } catch {
+            broadLocationInventoryPool = [];
+          }
+        }
+
+        const usedModelKeys = new Set(distinctByModel.map((listing) => buildVehicleModelKey(listing)).filter(Boolean));
+        const relaxedCandidates = dedupeListings([
+          ...rankedInventory,
+          ...applySemiStrictInventoryConstraints(inventoryDecorated).filter(matchesSelectedLocation),
+          ...broadLocationInventoryPool,
+        ]);
+        for (const listing of relaxedCandidates) {
+          if (distinctByModel.length >= TOP_LISTINGS_LIMIT) {
+            break;
+          }
+          const modelKey = buildVehicleModelKey(listing);
+          if (!modelKey || usedModelKeys.has(modelKey)) {
+            continue;
+          }
+          usedModelKeys.add(modelKey);
+          distinctByModel.push(listing);
+        }
+
+        if (distinctByModel.length < TOP_LISTINGS_LIMIT) {
+          try {
+            const finalBroadInventory = await listInventoryOffers({
+              desiredType,
+              modelCandidates: [],
+              location: normalizeText(String(filters?.location || "").replace(/_/g, " ")),
+              minPrice: filters?.minPrice || null,
+              maxPrice: filters?.maxPrice || null,
+              limit: 100,
+            });
+            const finalBroadCandidates = (finalBroadInventory?.offers || [])
+              .map((offer) => inventoryOfferToListing(offer, desiredType))
+              .filter((listing) => listing?.url && listing?.title)
+              .filter(matchesSelectedLocation)
+              .filter((listing) => matchesStrictBrand(listing) && matchesRequestedFuel(listing));
+
+            for (const listing of dedupeListings(finalBroadCandidates)) {
+              if (distinctByModel.length >= TOP_LISTINGS_LIMIT) {
+                break;
+              }
+              const modelKey = buildVehicleModelKey(listing);
+              if (!modelKey || usedModelKeys.has(modelKey)) {
+                continue;
+              }
+              usedModelKeys.add(modelKey);
+              distinctByModel.push(listing);
+            }
+          } catch {
+            // Keep current selection if final broad fallback fails.
+          }
+        }
+      }
+
+      rankedInventory = distinctByModel;
 
       return {
         listing: rankedInventory[0] || null,

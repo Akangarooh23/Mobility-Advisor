@@ -1,6 +1,69 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+const SPAIN_PROVINCES = [
+  "A Coruna",
+  "Alava",
+  "Albacete",
+  "Alicante",
+  "Almeria",
+  "Asturias",
+  "Avila",
+  "Badajoz",
+  "Barcelona",
+  "Burgos",
+  "Caceres",
+  "Cadiz",
+  "Cantabria",
+  "Castellon",
+  "Ceuta",
+  "Ciudad Real",
+  "Cordoba",
+  "Cuenca",
+  "Girona",
+  "Granada",
+  "Guadalajara",
+  "Guipuzcoa",
+  "Huelva",
+  "Huesca",
+  "Illes Balears",
+  "Jaen",
+  "La Rioja",
+  "Las Palmas",
+  "Leon",
+  "Lleida",
+  "Lugo",
+  "Madrid",
+  "Malaga",
+  "Melilla",
+  "Murcia",
+  "Navarra",
+  "Ourense",
+  "Palencia",
+  "Pontevedra",
+  "Salamanca",
+  "Santa Cruz de Tenerife",
+  "Segovia",
+  "Sevilla",
+  "Soria",
+  "Tarragona",
+  "Teruel",
+  "Toledo",
+  "Valencia",
+  "Valladolid",
+  "Vizcaya",
+  "Zamora",
+  "Zaragoza",
+];
+
+const PRICE_RANGE_OPTIONS = [
+  { value: "", label: "Todos", min: null, max: null },
+  { value: "under_15000", label: "< 15.000 EUR", min: null, max: 15000 },
+  { value: "15000_25000", label: "15.000 - 25.000 EUR", min: 15000, max: 25000 },
+  { value: "25000_35000", label: "25.000 - 35.000 EUR", min: 25000, max: 35000 },
+  { value: "over_35000", label: "> 35.000 EUR", min: 35000, max: null },
+];
+
 export default function ResultsOffersView({
   themeMode,
   quickValidationQuestions,
@@ -23,6 +86,7 @@ export default function ResultsOffersView({
   featuredOfferSaved,
   otherOffers,
   ResolvedOfferImage,
+  openOfferInProductSheet,
   openOfferInNewTab,
   getOfferTrustBadges,
   getOfferBadgeStyle,
@@ -81,182 +145,130 @@ export default function ResultsOffersView({
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
   const bodyColor = isDark ? "#cbd5e1" : "#475569";
 
+  const openOfferSheet = (offer) => {
+    if (!offer) {
+      return;
+    }
+
+    if (typeof openOfferInProductSheet === "function") {
+      openOfferInProductSheet(offer);
+      return;
+    }
+
+    const fallbackUrl = offer?.url || offer?.searchUrl;
+    if (fallbackUrl) {
+      openOfferInNewTab(fallbackUrl);
+    }
+  };
+
+  const isNationalDeliveryOffer = (offer) => {
+    const province = String(offer?.province || "").trim();
+    const city = String(offer?.city || "").trim();
+    const location = String(offer?.location || "").trim();
+    return !province && !city && !location;
+  };
+
   return (
     <>
-      {(quickValidationQuestions.length > 0 || displayResult.siguiente_paso) && (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))",
-            gap: 12,
-            marginBottom: 14,
-          }}
-        >
-          <div
+      <div
+        style={{
+          background: isDark ? "rgba(15,23,42,0.7)" : "rgba(255,255,255,0.88)",
+          border: isDark ? "1px solid rgba(148,163,184,0.22)" : "1px solid rgba(148,163,184,0.18)",
+          borderRadius: 12,
+          padding: "10px 14px",
+          marginBottom: 14,
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 10,
+          alignItems: "center",
+        }}
+      >
+        {isRentingOutcome && MONTHLY_BUDGET_OPTIONS.length > 0 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 10, color: isDark ? "#94a3b8" : "#64748b", fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap" }}>
+              CUOTA
+            </span>
+            {MONTHLY_BUDGET_OPTIONS.map((option) => {
+              const selected = listingFilters.budget === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => updateListingFilter("budget", selected ? "" : option.value)}
+                  style={{
+                    background: selected ? (isDark ? "rgba(16,185,129,0.2)" : "rgba(16,185,129,0.12)") : "transparent",
+                    border: selected ? "1px solid rgba(16,185,129,0.4)" : (isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.22)"),
+                    color: selected ? (isDark ? "#6ee7b7" : "#047857") : (isDark ? "#cbd5e1" : "#475569"),
+                    padding: "4px 10px",
+                    borderRadius: 100,
+                    fontSize: 11,
+                    fontWeight: selected ? 700 : 500,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, color: isDark ? "#94a3b8" : "#64748b", fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap" }}>
+            UBICACION
+          </span>
+          <select
+            value={listingFilters.location || ""}
+            onChange={(event) => updateListingFilter("location", event.target.value)}
             style={{
-              background: cardBg,
-              border: isDark ? "1px solid rgba(148,163,184,0.32)" : "1px solid rgba(31,41,55,0.1)",
-              borderRadius: 12,
-              padding: 14,
+              border: isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.22)",
+              background: isDark ? "rgba(15,23,42,0.9)" : "#ffffff",
+              color: isDark ? "#e2e8f0" : "#1f2937",
+              borderRadius: 8,
+              padding: "6px 10px",
+              fontSize: 12,
+              fontWeight: 600,
+              minWidth: 170,
+              cursor: "pointer",
             }}
           >
-            <div style={{ fontSize: 10, color: titleColor, marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
-              {text.quickValidation}
-            </div>
-            <div style={{ display: "grid", gap: 8 }}>
-              {quickValidationQuestions.map((item) => {
-                const selected = quickValidationAnswers[item.id] || "";
-
-                return (
-                  <div
-                    key={item.id}
-                    style={{
-                      background: cardBg,
-                      border: isDark ? "1px solid rgba(96,165,250,0.26)" : "1px solid rgba(59,130,246,0.16)",
-                      borderRadius: 10,
-                      padding: 10,
-                      boxShadow: "0 8px 20px rgba(15,23,42,0.06)",
-                      transition: "all 0.2s ease",
-                    }}
-                  >
-                    <div style={{ fontSize: 12, color: isDark ? "#e2e8f0" : "#334155", lineHeight: 1.5, marginBottom: 8 }}>
-                      {item.label}
-                    </div>
-                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                      {["si", "no"].map((choice) => {
-                        const active = selected === choice;
-                        const isYes = choice === "si";
-
-                        return (
-                          <button
-                            key={`${item.id}-${choice}`}
-                            type="button"
-                            onClick={() => updateQuickValidationAnswer(item.id, choice)}
-                            style={{
-                              background: active
-                                ? isYes
-                                  ? "rgba(16,185,129,0.15)"
-                                  : "rgba(239,68,68,0.12)"
-                                : "rgba(148,163,184,0.1)",
-                              border: active
-                                ? isYes
-                                  ? "1px solid rgba(16,185,129,0.3)"
-                                  : "1px solid rgba(239,68,68,0.3)"
-                                : "1px solid rgba(148,163,184,0.2)",
-                              color: active ? (isYes ? "#065f46" : "#991b1b") : "#475569",
-                              padding: "5px 10px",
-                              borderRadius: 8,
-                              fontSize: 11,
-                              fontWeight: 700,
-                              cursor: "pointer",
-                            }}
-                          >
-                            {isYes ? text.yes : text.no}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div
-            style={{
-              background: cardBg,
-              border: isDark ? "1px solid rgba(110,231,183,0.28)" : "1px solid rgba(16,185,129,0.2)",
-              borderRadius: 12,
-              padding: 14,
-              boxShadow: isDark ? "0 10px 24px rgba(2,6,23,0.28)" : "0 10px 24px rgba(16,185,129,0.08)",
-            }}
-          >
-            <div style={{ fontSize: 10, color: "#047857", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
-              {text.nextStep}
-            </div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: titleColor, marginBottom: 6 }}>
-              {displayResult.siguiente_paso}
-            </div>
-            <p style={{ margin: "0 0 10px", fontSize: 12, color: bodyColor, lineHeight: 1.6 }}>
-              {text.nextStepDesc}
-            </p>
-
-            {isRentingOutcome ? (
-              <>
-                <div style={{ fontSize: 11, color: "#047857", marginBottom: 6 }}>{text.targetMonthlyFee}</div>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
-                  {MONTHLY_BUDGET_OPTIONS.map((option) => {
-                    const selected = listingFilters.budget === option.value;
-
-                    return (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => updateListingFilter("budget", option.value)}
-                        style={{
-                          background: selected ? "rgba(16,185,129,0.15)" : "rgba(148,163,184,0.1)",
-                          border: selected
-                            ? "1px solid rgba(16,185,129,0.3)"
-                            : "1px solid rgba(148,163,184,0.2)",
-                          padding: "4px 10px",
-                          borderRadius: 100,
-                          fontSize: 11,
-                          color: selected ? "#047857" : "#475569",
-                          cursor: "pointer",
-                          fontWeight: selected ? 700 : 500,
-                        }}
-                      >
-                        {option.label}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div style={{ fontSize: 11, color: "#047857", marginBottom: 6 }}>{text.incomeStability}</div>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  {INCOME_STABILITY_OPTIONS.map((option) => {
-                    const selected = listingFilters.income === option.value;
-
-                    return (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => updateListingFilter("income", option.value)}
-                        style={{
-                          background: selected ? "rgba(16,185,129,0.15)" : "rgba(148,163,184,0.1)",
-                          border: selected
-                            ? "1px solid rgba(16,185,129,0.3)"
-                            : "1px solid rgba(148,163,184,0.2)",
-                          padding: "4px 10px",
-                          borderRadius: 100,
-                          fontSize: 11,
-                          color: selected ? "#047857" : "#475569",
-                          cursor: "pointer",
-                          fontWeight: selected ? 700 : 500,
-                        }}
-                      >
-                        {option.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </>
-            ) : isBuyOrFinanceOutcome ? (
-              <div style={{ display: "grid", gap: 5 }}>
-                {text.buyChecklist.map((item) => (
-                  <div key={item} style={{ fontSize: 11, color: isDark ? "#e2e8f0" : "#334155", lineHeight: 1.5 }}>• {item}</div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ display: "grid", gap: 5 }}>
-                {text.altChecklist.map((item) => (
-                  <div key={item} style={{ fontSize: 11, color: isDark ? "#e2e8f0" : "#334155", lineHeight: 1.5 }}>• {item}</div>
-                ))}
-              </div>
-            )}
-          </div>
+            <option value="">Toda Espana</option>
+            {SPAIN_PROVINCES.map((province) => (
+              <option key={province} value={province}>{province}</option>
+            ))}
+          </select>
         </div>
-      )}
+
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, color: isDark ? "#94a3b8" : "#64748b", fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap" }}>
+            RANGO DE PRECIOS
+          </span>
+          {PRICE_RANGE_OPTIONS.map((option) => {
+            const selected = (listingFilters.priceRange || "") === option.value;
+            return (
+              <button
+                key={option.value || "all-price"}
+                type="button"
+                onClick={() => updateListingFilter("priceRange", option.value)}
+                style={{
+                  background: selected ? (isDark ? "rgba(167,139,250,0.2)" : "rgba(124,58,237,0.1)") : "transparent",
+                  border: selected ? "1px solid rgba(167,139,250,0.4)" : (isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.22)"),
+                  color: selected ? (isDark ? "#c4b5fd" : "#5b21b6") : (isDark ? "#cbd5e1" : "#475569"),
+                  padding: "4px 10px",
+                  borderRadius: 100,
+                  fontSize: 11,
+                  fontWeight: selected ? 700 : 500,
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       <div
         style={{
@@ -362,8 +374,8 @@ export default function ResultsOffersView({
 
             {featuredOffer && (
               <div
-                onClick={() => featuredOffer?.url && openOfferInNewTab(featuredOffer.url)}
-                title={featuredOffer?.url ? text.openOfferNewTab : undefined}
+                onClick={() => openOfferSheet(featuredOffer)}
+                title={featuredOffer ? text.openOfferNewTab : undefined}
                 onMouseEnter={() => setHoveredCard("featured")}
                 onMouseLeave={() => setHoveredCard(null)}
                 style={{
@@ -374,7 +386,7 @@ export default function ResultsOffersView({
                   borderRadius: 14,
                   padding: 14,
                   marginBottom: 12,
-                  cursor: featuredOffer?.url ? "pointer" : "default",
+                  cursor: featuredOffer ? "pointer" : "default",
                   boxShadow: hoveredCard === "featured"
                     ? "0 18px 36px rgba(37,99,235,0.16)"
                     : "0 10px 24px rgba(15,23,42,0.08)",
@@ -446,6 +458,21 @@ export default function ResultsOffersView({
                           {badge.label}
                         </span>
                       ))}
+                      {isNationalDeliveryOffer(featuredOffer) && (
+                        <span
+                          style={{
+                            background: "rgba(16,185,129,0.12)",
+                            border: "1px solid rgba(52,211,153,0.3)",
+                            color: "#047857",
+                            padding: "4px 8px",
+                            borderRadius: 999,
+                            fontSize: 10,
+                            fontWeight: 700,
+                          }}
+                        >
+                          Entrega nacional
+                        </span>
+                      )}
                       {Array.isArray(featuredOffer.rankingSignals) && featuredOffer.rankingSignals.slice(0, 3).map((signal) => (
                         <span
                           key={`${featuredOffer.url || featuredOffer.title || "featured"}-signal-${signal}`}
@@ -472,28 +499,32 @@ export default function ResultsOffersView({
 
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       {featuredOfferAction ? (
-                        <a
-                          href={featuredOfferAction.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(event) => event.stopPropagation()}
+                        <button
+                          type="button"
+                          onMouseDown={(event) => event.stopPropagation()}
+                          onMouseUp={(event) => event.stopPropagation()}
+                          onClickCapture={(event) => event.stopPropagation()}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openOfferSheet(featuredOffer);
+                          }}
                           style={{
                             background: featuredOfferAction.exact
-                              ? "linear-gradient(135deg,#10b981,#059669)"
-                              : "rgba(245,158,11,0.14)",
+                              ? "linear-gradient(135deg,#2563eb,#1d4ed8)"
+                              : "rgba(245,158,11,0.16)",
                             border: featuredOfferAction.exact
                               ? "none"
-                              : "1px solid rgba(251,191,36,0.28)",
-                            color: "white",
-                            textDecoration: "none",
+                              : "1px solid rgba(245,158,11,0.35)",
+                            color: featuredOfferAction.exact ? "#ffffff" : "#92400e",
                             padding: "9px 13px",
                             borderRadius: 10,
                             fontSize: 12,
                             fontWeight: 700,
+                            cursor: "pointer",
                           }}
                         >
-                          {featuredOfferAction.label}
-                        </a>
+                          {featuredOfferAction.exact ? "Ver ficha" : "Ir al portal"}
+                        </button>
                       ) : (
                         <button
                           type="button"
@@ -574,8 +605,8 @@ export default function ResultsOffersView({
                     return (
                       <div
                         key={offer.url || offer.searchUrl || `${offer.title}-${index}`}
-                        onClick={() => offer?.url && openOfferInNewTab(offer.url)}
-                        title={offer?.url ? text.openOfferNewTab : undefined}
+                        onClick={() => openOfferSheet(offer)}
+                        title={offer ? text.openOfferNewTab : undefined}
                         onMouseEnter={() => setHoveredCard(`other-${index}`)}
                         onMouseLeave={() => setHoveredCard(null)}
                         style={{
@@ -585,7 +616,7 @@ export default function ResultsOffersView({
                             : "1px solid rgba(148,163,184,0.16)",
                           borderRadius: 12,
                           padding: 12,
-                          cursor: offer?.url ? "pointer" : "default",
+                          cursor: offer ? "pointer" : "default",
                           boxShadow: hoveredCard === `other-${index}`
                             ? "0 14px 30px rgba(59,130,246,0.14)"
                             : "0 8px 18px rgba(15,23,42,0.06)",
@@ -634,6 +665,21 @@ export default function ResultsOffersView({
                                   {badge.label}
                                 </span>
                               ))}
+                              {isNationalDeliveryOffer(offer) && (
+                                <span
+                                  style={{
+                                    background: "rgba(16,185,129,0.12)",
+                                    border: "1px solid rgba(52,211,153,0.3)",
+                                    color: "#047857",
+                                    padding: "3px 7px",
+                                    borderRadius: 999,
+                                    fontSize: 10,
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  Entrega nacional
+                                </span>
+                              )}
                               {Array.isArray(offer.rankingSignals) && offer.rankingSignals.slice(0, 1).map((signal) => (
                                 <span
                                   key={`${offer.url || offer.searchUrl || offer.title}-signal-${signal}`}
@@ -653,20 +699,24 @@ export default function ResultsOffersView({
 
                             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
                               {offerAction ? (
-                                <a
-                                  href={offerAction.href}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={(event) => event.stopPropagation()}
+                                <button
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    openOfferSheet(offer);
+                                  }}
                                   style={{
                                     color: offerAction.exact ? "#0369a1" : "#b45309",
-                                    textDecoration: "none",
+                                    background: "transparent",
+                                    border: "none",
                                     fontSize: 11,
                                     fontWeight: 700,
+                                    cursor: "pointer",
+                                    padding: 0,
                                   }}
                                 >
-                                  {offerAction.label}
-                                </a>
+                                  {offerAction.exact ? "Ver ficha" : "Ir al portal"}
+                                </button>
                               ) : (
                                 <button
                                   type="button"

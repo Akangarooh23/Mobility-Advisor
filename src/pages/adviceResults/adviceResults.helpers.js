@@ -212,7 +212,7 @@ export function buildAdviceResultsViewModel({
       synthetic: true,
     }));
 
-  const offerCards = [...realOfferCards, ...syntheticOfferCards].slice(0, 4);
+  const offerCards = [...realOfferCards, ...syntheticOfferCards.filter(() => false)].slice(0, 4);
   const featuredOffer = offerCards[0] || null;
   const otherOffers = offerCards.slice(1, 4);
   const featuredOfferAction = featuredOffer ? getOfferActionMeta(featuredOffer) : null;

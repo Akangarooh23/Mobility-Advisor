@@ -4,6 +4,7 @@ const sendAlertEmailHandler = require("../api/send-alert-email");
 const authHandler = require("../api/auth");
 const authStatusHandler = require("../api/auth-status");
 const vehicleCatalogHandler = require("../api/vehicle-catalog");
+const marketplaceVoHandler = require("../api/marketplace-vo");
 const marketPriceHandler = require("../api/market-price");
 
 function readRequestBody(req) {
@@ -70,6 +71,16 @@ module.exports = function setupProxy(app) {
     app.get("/api/vehicle-catalog", async (req, res) => {
       try {
         await vehicleCatalogHandler(req, res);
+      } catch (error) {
+        res.status(500).json({
+          error: error?.message || "Local API proxy error",
+        });
+      }
+    });
+
+    app.get("/api/marketplace-vo", async (req, res) => {
+      try {
+        await marketplaceVoHandler(req, res);
       } catch (error) {
         res.status(500).json({
           error: error?.message || "Local API proxy error",

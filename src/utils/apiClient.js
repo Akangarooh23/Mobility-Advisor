@@ -11,6 +11,7 @@ export const ERP_CATALOG_API_ENDPOINT = "/api/erp-catalog";
 export const WORKSHOPS_NEARBY_API_ENDPOINT = "/api/workshops-nearby";
 export const WORKSHOP_AVAILABILITY_API_ENDPOINT = "/api/workshop-availability";
 export const MARKET_PRICE_API_ENDPOINT = "/api/market-price";
+export const MARKETPLACE_VO_API_ENDPOINT = "/api/marketplace-vo";
 
 export function getErpBrandsJson(options = {}) {
   return fetch(`${ERP_CATALOG_API_ENDPOINT}?scope=brands`, { credentials: "include", ...options });
@@ -175,6 +176,17 @@ export function getAuthSessionJson(options = {}) {
 export function getVehicleCatalogJson(options = {}) {
   return getJson(VEHICLE_CATALOG_API_ENDPOINT, {
     endpointLabel: "vehicle-catalog",
+    ...options,
+  });
+}
+
+export function getMarketplaceVoJson({ limit = 500 } = {}, options = {}) {
+  const query = new URLSearchParams({
+    limit: String(limit || 500),
+  });
+
+  return getJson(`${MARKETPLACE_VO_API_ENDPOINT}?${query.toString()}`, {
+    endpointLabel: "marketplace-vo",
     ...options,
   });
 }

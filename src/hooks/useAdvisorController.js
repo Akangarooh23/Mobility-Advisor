@@ -17,7 +17,7 @@ export function createInitialDecisionAnswers() {
     financeAmount: "",
     entryAmount: "",
     powerMin: 70,
-    powerMax: 250,
+    powerMax: 320,
     location: "toda_espana",
     fuelFilter: "cualquiera",
     sellerType: "",
@@ -70,7 +70,7 @@ function buildNextDecisionAnswers(prev, key, value) {
     next.financeAmount = "";
     next.entryAmount = "";
     next.powerMin = 70;
-    next.powerMax = 250;
+    next.powerMax = 320;
     next.location = "toda_espana";
     next.fuelFilter = "cualquiera";
     next.sellerType = "";
@@ -232,6 +232,28 @@ export function useAdvisorController({
   }, [entryMode, onLogoutUser, setEntryMode, setIsUserLoggedIn, setShowAuthMenu, setShowUserPanel, setStep, setUserDashboardPage, syncBrowserPath]);
 
   const updateListingFilter = useCallback((key, value) => {
+    if (key === "priceRange") {
+      const PRICE_RANGE_MAP = {
+        under_15000: { minPrice: null, maxPrice: 15000 },
+        "15000_25000": { minPrice: 15000, maxPrice: 25000 },
+        "25000_35000": { minPrice: 25000, maxPrice: 35000 },
+        over_35000: { minPrice: 35000, maxPrice: null },
+      };
+
+      const mappedRange = PRICE_RANGE_MAP[value] || { minPrice: null, maxPrice: null };
+      const nextFilters = {
+        ...listingFilters,
+        priceRange: value,
+        minPrice: mappedRange.minPrice,
+        maxPrice: mappedRange.maxPrice,
+      };
+
+      setListingFilters(nextFilters);
+      setListingError(null);
+      void searchRealListing(nextFilters, quickValidationAnswers);
+      return;
+    }
+
     const nextFilters = {
       ...listingFilters,
       [key]: value,

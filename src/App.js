@@ -81,6 +81,7 @@ import {
 } from "./utils/advisorResults";
 import {
   deleteUserAlertJson,
+  getMarketplaceVoJson,
   getSellMarketSnapshotJson,
   postAlertEmailDigestJson,
   postAppointmentAddJson,
@@ -760,10 +761,15 @@ export default function App() {
   const [portalVoFilters, setPortalVoFilters] = useState({ ...INITIAL_PORTAL_VO_FILTERS });
   const [selectedPortalVoOfferId, setSelectedPortalVoOfferId] = useState(null);
   const [vehicleDetailOffer, setVehicleDetailOffer] = useState(null);
+  const [vehicleDetailBackTarget, setVehicleDetailBackTarget] = useState("decision");
   const [listingFilters, setListingFilters] = useState({
     company: "",
     budget: "",
     income: "",
+    location: "",
+    priceRange: "",
+    minPrice: null,
+    maxPrice: null,
   });
   const [advancedMode, setAdvancedMode] = useState(false);
   const [listingResult, setListingResult] = useState(null);
@@ -802,7 +808,8 @@ export default function App() {
   const [userVehicleStates, setUserVehicleStates] = useState([]);
   const [marketAlerts, setMarketAlerts] = useState([]);
   const [marketAlertStatus, setMarketAlertStatus] = useState({});
-  const { marketBrandsCatalog, matchedModelsByBrand, marketCatalogSource } = useMarketCatalog(PORTAL_VO_OFFERS);
+  const [portalVoOffersLive, setPortalVoOffersLive] = useState(PORTAL_VO_OFFERS);
+  const { marketBrandsCatalog, matchedModelsByBrand, marketCatalogSource } = useMarketCatalog(portalVoOffersLive);
   const [questionnaireDraft, setQuestionnaireDraft] = useState(null);
   const [saveFeedback, setSaveFeedback] = useState("");
   const [emailDigestFeedback, setEmailDigestFeedback] = useState("");
@@ -1236,10 +1243,32 @@ export default function App() {
   const currentStep = activeSteps[step];
   const totalSteps = activeSteps.length;
   const currentUserEmail = normalizeText(currentUser?.email).toLowerCase();
+
+  useEffect(() => {
+    let isMounted = true;
+
+    (async () => {
+      try {
+        const { data } = await getMarketplaceVoJson({ limit: 800 });
+        const apiOffers = Array.isArray(data?.offers) ? data.offers : [];
+
+        if (isMounted && apiOffers.length > 0) {
+          setPortalVoOffersLive(apiOffers);
+        }
+      } catch {
+        // Keep static fallback when marketplace API is unavailable.
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const { marketAlertMatches, newAlertMatchesCount, pendingAlertNotifications } = useMarketAlertInsights({
     marketAlerts,
     marketAlertStatus,
-    offers: PORTAL_VO_OFFERS,
+    offers: portalVoOffersLive,
     currentUserEmail,
     resolveAlertRecipientEmail,
   });
@@ -1335,7 +1364,7 @@ export default function App() {
   });
 
   const resetListingDiscovery = useCallback(() => {
-    setListingFilters({ company: "", budget: "", income: "" });
+    setListingFilters({ company: "", budget: "", income: "", location: "", priceRange: "", minPrice: null, maxPrice: null });
     setListingResult(null);
     setListingOptions([]);
     resetListingDiscoveryMemory();
@@ -2373,6 +2402,8 @@ export default function App() {
       company: "",
       budget: inferListingBudgetFromAnswers(answers),
       income: "",
+      fuel: "",
+      bodyType: "",
     };
     const validationToUse = nextQuickValidation || quickValidationRef.current || {};
     const currentListings = Array.isArray(listingOptionsRef.current) ? listingOptionsRef.current : [];
@@ -2405,6 +2436,7 @@ export default function App() {
         },
         filters: {
           ...filtersToUse,
+          inventoryOnly: true,
           excludeUrls: excludedUrls,
           excludeTitles: excludedTitles,
           refreshNonce: forceRefresh ? Date.now() : 0,
@@ -2579,7 +2611,7 @@ export default function App() {
           entryAmount: getOptionLabel(ENTRY_AMOUNT_OPTIONS, decisionAnswers.entryAmount),
           ageFilter: getOptionLabel(AGE_FILTER_OPTIONS, decisionAnswers.ageFilter),
           mileageFilter: getOptionLabel(MILEAGE_FILTER_OPTIONS, decisionAnswers.mileageFilter),
-          powerRange: `${decisionAnswers.powerMin || 70} - ${decisionAnswers.powerMax || 250} CV`,
+          powerRange: `${decisionAnswers.powerMin || 70} - ${decisionAnswers.powerMax || 320} CV`,
           location: decisionAnswers.location || "toda_espana",
           fuelFilter: decisionAnswers.fuelFilter || "cualquiera",
         },
@@ -2901,8 +2933,10 @@ export default function App() {
   const decisionModels = resolveCatalogModelsByBrand(decisionAnswers.brand);
   const decisionMatchedSource = resolveMatchedModelsByBrand(decisionAnswers.brand);
   const normalizeModelKey = (value) => normalizeText(value).toLowerCase();
-  const matchedModelKeys = new Set(decisionMatchedSource.map((modelName) => normalizeModelKey(modelName)));
-  const decisionMatchedModels = decisionModels.filter((modelName) => matchedModelKeys.has(normalizeModelKey(modelName)));
+  const decisionMatchedModels = Array.from(
+    new Set(decisionMatchedSource.map((modelName) => normalizeText(modelName)).filter(Boolean))
+  );
+  const matchedModelKeys = new Set(decisionMatchedModels.map((modelName) => normalizeModelKey(modelName)));
   const decisionOtherModels = decisionModels.filter((modelName) => !matchedModelKeys.has(normalizeModelKey(modelName)));
   const estimatedFinanceMonthly = estimateMonthlyPayment(
     getOptionAmount(FINANCE_AMOUNT_OPTIONS, decisionAnswers.financeAmount)
@@ -2953,11 +2987,11 @@ export default function App() {
   } = useMemo(
     () =>
       buildPortalVoMarketplaceModel({
-        offers: PORTAL_VO_OFFERS,
+        offers: portalVoOffersLive,
         filters: portalVoFilters,
         selectedOfferId: selectedPortalVoOfferId,
       }),
-    [portalVoFilters, selectedPortalVoOfferId]
+    [portalVoFilters, selectedPortalVoOfferId, portalVoOffersLive]
   );
 
   const progress =
@@ -5081,6 +5115,7 @@ export default function App() {
           }}
           onOpenVehicleDetail={(offer) => {
             setVehicleDetailOffer(offer);
+            setVehicleDetailBackTarget("decision");
             setEntryMode("vehicleDetail");
             if (typeof window !== "undefined") {
               window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
@@ -5094,7 +5129,7 @@ export default function App() {
         <VehicleDetailPage
           offer={vehicleDetailOffer}
           onBack={() => {
-            setEntryMode("decision");
+            setEntryMode(vehicleDetailBackTarget === "advice" ? null : "decision");
             if (typeof window !== "undefined") {
               window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
             }
@@ -5260,7 +5295,7 @@ export default function App() {
       )}
 
       {/* -- RESULT -- */}
-      {result && !LEGAL_DOCUMENTS[entryMode] && (
+      {result && !LEGAL_DOCUMENTS[entryMode] && !(step === -1 && entryMode === "vehicleDetail" && vehicleDetailOffer) && (
         <AdviceResultsPage
           result={result}
           resultRef={resultRef}
@@ -5304,6 +5339,15 @@ export default function App() {
           getOfferBadgeStyle={getOfferBadgeStyle}
           ResolvedOfferImage={ResolvedOfferImage}
           toggleSavedRecommendation={toggleSavedRecommendation}
+          openOfferInProductSheet={(offer) => {
+            setVehicleDetailOffer(offer);
+            setVehicleDetailBackTarget("advice");
+            setEntryMode("vehicleDetail");
+            setStep(-1);
+            if (typeof window !== "undefined") {
+              window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
+            }
+          }}
           openOfferInNewTab={openOfferInNewTab}
           saveCurrentComparison={saveCurrentComparison}
           removeSavedComparison={removeSavedComparison}

@@ -42,6 +42,7 @@ const sendAlertEmailHandler = require("./api/send-alert-email");
 const authHandler = require("./api/auth");
 const authStatusHandler = require("./api/auth-status");
 const vehicleCatalogHandler = require("./api/vehicle-catalog");
+const marketplaceVoHandler = require("./api/marketplace-vo");
 const workshopsNearbyHandler = require("./api/workshops-nearby");
 const workshopAvailabilityHandler = require("./api/workshop-availability");
 const marketPriceHandler = require("./api/market-price");
@@ -60,6 +61,7 @@ const handlers = {
   "/api/auth": authHandler,
   "/api/auth-status": authStatusHandler,
   "/api/vehicle-catalog": vehicleCatalogHandler,
+  "/api/marketplace-vo": marketplaceVoHandler,
   "/api/attachment-file": userHandler,
   "/api/workshops-nearby": workshopsNearbyHandler,
   "/api/workshop-availability": workshopAvailabilityHandler,

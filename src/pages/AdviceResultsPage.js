@@ -5,6 +5,52 @@ import ResultsOffersView from "./adviceResults/ResultsOffersView";
 import { buildAdviceResultsViewModel, getOfferActionMeta } from "./adviceResults/adviceResults.helpers";
 import { exportAdviceLogicDoc } from "../utils/exportLogicDoc";
 
+function AnalysisAccordion({ themeMode, children }) {
+  const [open, setOpen] = useState(false);
+  const isDark = themeMode === "dark";
+  return (
+    <div style={{ marginTop: 24 }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: "100%",
+          background: isDark ? "rgba(15,23,42,0.86)" : "rgba(255,255,255,0.95)",
+          border: isDark ? "1px solid rgba(96,165,250,0.26)" : "1px solid rgba(37,99,235,0.2)",
+          borderRadius: open ? "16px 16px 0 0" : 16,
+          padding: "14px 20px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          cursor: "pointer",
+          color: isDark ? "#e2e8f0" : "#0f172a",
+          fontSize: 14,
+          fontWeight: 700,
+          boxShadow: isDark ? "0 12px 26px rgba(2,6,23,0.3)" : "0 12px 26px rgba(37,99,235,0.08)",
+        }}
+      >
+        <span>📊 Ver el análisis completo</span>
+        <span style={{ fontSize: 18, transition: "transform 0.2s", display: "inline-block", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>
+          ▾
+        </span>
+      </button>
+      {open && (
+        <div
+          style={{
+            background: isDark ? "rgba(15,23,42,0.7)" : "rgba(255,255,255,0.9)",
+            border: isDark ? "1px solid rgba(96,165,250,0.26)" : "1px solid rgba(37,99,235,0.2)",
+            borderTop: "none",
+            borderRadius: "0 0 16px 16px",
+            padding: "8px 0 8px",
+          }}
+        >
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdviceResultsPage({
   result,
   resultRef,
@@ -48,6 +94,7 @@ export default function AdviceResultsPage({
   getOfferBadgeStyle,
   ResolvedOfferImage,
   toggleSavedRecommendation,
+  openOfferInProductSheet,
   openOfferInNewTab,
   saveCurrentComparison,
   removeSavedComparison,
@@ -83,7 +130,6 @@ export default function AdviceResultsPage({
     featuredOfferAction,
     featuredOfferSaved,
     listingCoverageSummary,
-    isOffersResultView,
     winnerLabels,
     tcoBreakdownItems,
     shouldOfferValuationPrompt,
@@ -174,19 +220,15 @@ export default function AdviceResultsPage({
     <div ref={resultRef} style={s.center}>
       <ResultsHeader
         themeMode={themeMode}
-        isOffersResultView={isOffersResultView}
         result={result}
         confidenceLabel={confidenceLabel}
-        showOffersPage={showOffersPage}
-        showAnalysisPage={showAnalysisPage}
         shouldOfferValuationPrompt={shouldOfferValuationPrompt}
         valuationPromptTitle={valuationPromptTitle}
         valuationPromptText={valuationPromptText}
         openSellValuationFromOffers={openSellValuationFromOffers}
       />
 
-      {isOffersResultView ? (
-        <ResultsOffersView
+      <ResultsOffersView
           themeMode={themeMode}
           quickValidationQuestions={quickValidationQuestions}
           displayResult={displayResult}
@@ -208,6 +250,7 @@ export default function AdviceResultsPage({
           featuredOfferSaved={featuredOfferSaved}
           otherOffers={otherOffers}
           ResolvedOfferImage={ResolvedOfferImage}
+          openOfferInProductSheet={openOfferInProductSheet}
           openOfferInNewTab={openOfferInNewTab}
           getOfferTrustBadges={getOfferTrustBadges}
           getOfferBadgeStyle={getOfferBadgeStyle}
@@ -215,7 +258,8 @@ export default function AdviceResultsPage({
           isRecommendationSaved={isRecommendationSaved}
           getOfferActionMeta={getOfferActionMeta}
         />
-      ) : (
+
+      <AnalysisAccordion themeMode={themeMode}>
         <ResultsAnalysisView
           themeMode={themeMode}
           mt={mt}
@@ -253,7 +297,7 @@ export default function AdviceResultsPage({
           logicExportLoading={logicExportLoading}
           logicExportFeedback={logicExportFeedback}
         />
-      )}
+      </AnalysisAccordion>
     </div>
   );
 }

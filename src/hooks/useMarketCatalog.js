@@ -120,7 +120,9 @@ export function useMarketCatalog(fallbackOffers = []) {
           return acc;
         }, {});
 
-        const mergedCatalog = mergeCatalogMaps(nextCatalog, fallbackCatalog);
+        // Include real inventory coverage models even if catalog master table is lagging.
+        const catalogWithCoverage = mergeCatalogMaps(nextMatchedModels, nextCatalog);
+        const mergedCatalog = mergeCatalogMaps(catalogWithCoverage, fallbackCatalog);
         const mergedMatchedModels = nextMatchedModels;
 
         if (isMounted && Object.keys(mergedCatalog).length > 0) {

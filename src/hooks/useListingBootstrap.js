@@ -27,6 +27,10 @@ export function useListingBootstrap({
       company: "",
       budget: inferListingBudget(answers),
       income: "",
+      location: "",
+      priceRange: "",
+      minPrice: null,
+      maxPrice: null,
     };
 
     setListingFilters(initialFilters);

@@ -422,8 +422,13 @@ export async function fetchDecisionListing({
     ? data.listings
     : [data?.listing, ...(Array.isArray(data?.alternatives) ? data.alternatives : [])].filter(Boolean);
 
-  const vehicleTarget = `${decisionAnswers.brand || ""} ${decisionAnswers.model || ""}`.toLowerCase();
-  const vehicleTokens = vehicleTarget
+  const brandTokens = String(decisionAnswers.brand || "")
+    .toLowerCase()
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length > 2);
+  const modelTokens = String(decisionAnswers.model || "")
+    .toLowerCase()
     .split(/\s+/)
     .map((token) => token.trim())
     .filter((token) => token.length > 2);
@@ -446,12 +451,22 @@ export async function fetchDecisionListing({
   }
 
   function hasStrongVehicleMatch(listing) {
-    if (vehicleTokens.length === 0) {
+    if (modelTokens.length === 0) {
       return true;
     }
 
     const haystack = `${listing?.title || ""} ${listing?.description || ""} ${listing?.url || ""}`.toLowerCase();
-    return vehicleTokens.every((token) => haystack.includes(token));
+    const hasModelMatch = modelTokens.every((token) => haystack.includes(token));
+    if (!hasModelMatch) {
+      return false;
+    }
+
+    if (brandTokens.length === 0) {
+      return true;
+    }
+
+    // Some portals abbreviate multiword brands in title; accept if at least one brand token appears.
+    return brandTokens.some((token) => haystack.includes(token));
   }
 
   function parseListingYear(haystack) {
@@ -577,10 +592,17 @@ export async function fetchDecisionListing({
     return fuelPatterns[fuel] ? fuelPatterns[fuel].test(haystack) : true;
   }
 
-  function matchesLocationFilter(haystack) {
+  function matchesLocationFilter(listing, haystack) {
     const location = String(decisionAnswers.location || "toda_espana").toLowerCase();
     if (!location || location === "toda_espana") {
       return true;
+    }
+
+    const explicitListingLocation = `${listing?.province || ""} ${listing?.city || ""} ${listing?.location || ""}`
+      .toLowerCase()
+      .trim();
+    if (!explicitListingLocation) {
+      return false;
     }
 
     const normalizedLocation = location.replace(/_/g, " ");
@@ -641,7 +663,7 @@ export async function fetchDecisionListing({
         label: `el combustible ${getFuelLabel()}`,
       });
     }
-    if (!matchesLocationFilter(haystack)) {
+    if (!matchesLocationFilter(listing, haystack)) {
       failures.push({
         key: "location",
         label: `la ubicación ${getLocationLabel()}`,

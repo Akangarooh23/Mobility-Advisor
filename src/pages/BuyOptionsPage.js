@@ -1,7 +1,25 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownModel, onOpenMarketplace, onGoBack }) {
+const FLOW_A = [
+  { title: "Selecciona el modelo", sub: "Marca, modelo y version" },
+  { title: "Establece tus limites geograficos y de precio" },
+  { title: "Analizamos anuncios en tiempo real", sub: "Precio, proveedor y caracteristicas del vehiculo" },
+  { title: "Te ofrecemos las 5 mejores opciones" },
+  { title: "Agendamos una cita con el vendedor" },
+  { title: "Te buscamos la mejor financiacion" },
+];
+
+const FLOW_B = [
+  { title: "Test CarWise", sub: "Estilo de vida, desplazamientos, entorno legal" },
+  { title: "Establece tus limites geograficos y de precio" },
+  { title: "Analizamos anuncios en tiempo real" },
+  { title: "Te ofrecemos las 5 mejores opciones" },
+  { title: "Agendamos una cita con el vendedor" },
+  { title: "Te buscamos la mejor financiacion" },
+];
+
+export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownModel, onGoBack }) {
   const { t } = useTranslation();
   const isDark = styles?.page?.color === "#e2e8f0";
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
@@ -13,24 +31,6 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
   const toggleFlow = (flowKey) => {
     setOpenFlow((prev) => (prev === flowKey ? null : flowKey));
   };
-
-  const flowA = [
-    { title: "Selecciona el modelo", sub: "Marca, modelo y version" },
-    { title: "Establece tus limites geograficos y de precio" },
-    { title: "Analizamos anuncios en tiempo real", sub: "Precio, proveedor y caracteristicas del vehiculo" },
-    { title: "Te ofrecemos las 5 mejores opciones" },
-    { title: "Agendamos una cita con el vendedor" },
-    { title: "Te buscamos la mejor financiacion" },
-  ];
-
-  const flowB = [
-    { title: "Test CarsWise", sub: "Estilo de vida, desplazamientos y entorno legal" },
-    { title: "Establece tus limites geograficos y de precio" },
-    { title: "Analizamos anuncios en tiempo real" },
-    { title: "Te ofrecemos las 5 mejores opciones" },
-    { title: "Agendamos una cita con el vendedor" },
-    { title: "Te buscamos la mejor financiacion" },
-  ];
 
   return (
     <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
@@ -140,10 +140,10 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             &gt;
           </span>
           <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
-            {t("buyOptions.knowModel")}
+            Ya se que modelo me interesa
           </div>
           <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
-            {t("buyOptions.knowModelDesc")}
+            Si tienes claro que modelo quieres, indicanos area, rango de precios y kilometros. Analizamos las ofertas actuales bajo esos parametros.
           </div>
           <button
             type="button"
@@ -233,10 +233,10 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             &gt;
           </span>
           <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
-            {t("buyOptions.dontKnowModel")}
+            Ayudame a encontrar los modelos que mejor se adapten a mi
           </div>
           <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
-            {t("buyOptions.dontKnowModelDesc")}
+            Realiza nuestro test para conocernos y ayudarte a elegir el coche que encaje con tu estilo de vida y desplazamientos.
           </div>
           <button
             type="button"
@@ -272,10 +272,10 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           }}
         >
           <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700, color: "#64748b", marginBottom: 10 }}>
-            Flujo A - Modelo conocido
+            Flujo A - Modelo conocido - 6 pasos
           </div>
           <div style={{ display: "grid", gap: 8 }}>
-            {flowA.map((item, index) => (
+            {FLOW_A.map((item, index) => (
               <div key={`a-${item.title}`} style={{ border: cardBorder, borderRadius: 10, background: cardBackground, padding: "9px 10px" }}>
                 <div style={{ fontSize: 11, color: "#2563eb", fontWeight: 700, marginBottom: 2 }}>Paso {index + 1}</div>
                 <div style={{ fontSize: 13, color: titleColor, fontWeight: 700, lineHeight: 1.35 }}>{item.title}</div>
@@ -331,10 +331,10 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           }}
         >
           <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700, color: "#64748b", marginBottom: 10 }}>
-            Flujo B - Test CarsWise
+            Flujo B - Test CarWise - seleccion personalizada
           </div>
           <div style={{ display: "grid", gap: 8 }}>
-            {flowB.map((item, index) => (
+            {FLOW_B.map((item, index) => (
               <div key={`b-${item.title}`} style={{ border: cardBorder, borderRadius: 10, background: cardBackground, padding: "9px 10px" }}>
                 <div style={{ fontSize: 11, color: "#2563eb", fontWeight: 700, marginBottom: 2 }}>Paso {index + 1}</div>
                 <div style={{ fontSize: 13, color: titleColor, fontWeight: 700, lineHeight: 1.35 }}>{item.title}</div>
@@ -378,50 +378,6 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           </div>
         </section>
       )}
-
-      <section
-        style={{
-          marginTop: 24,
-          border: cardBorder,
-          background: isDark ? "rgba(15,23,42,0.62)" : "linear-gradient(180deg,#f8fbff 0%,#ffffff 100%)",
-          borderRadius: 12,
-          padding: "18px 18px 16px",
-          display: "flex",
-          flexWrap: "wrap",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-        }}
-      >
-        <div style={{ maxWidth: 620 }}>
-          <div style={{ fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 800, color: "#2563eb", marginBottom: 6 }}>
-            Marketplace VO
-          </div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: titleColor, lineHeight: 1.25, marginBottom: 4 }}>
-            Igual te puede interesar ver nuestro marketplace de VO de Carswise
-          </div>
-          <div style={{ fontSize: 13, color: mutedColor, lineHeight: 1.5 }}>
-            Si prefieres explorar directamente el stock disponible, puedes entrar al marketplace y ver las ofertas publicadas.
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={onOpenMarketplace}
-          style={{
-            border: "1px solid rgba(37,99,235,0.25)",
-            background: "linear-gradient(135deg,#2563eb,#3b82f6)",
-            color: "#ffffff",
-            borderRadius: 10,
-            padding: "11px 16px",
-            fontSize: 13,
-            fontWeight: 700,
-            cursor: "pointer",
-            whiteSpace: "nowrap",
-          }}
-        >
-          Ir al marketplace
-        </button>
-      </section>
     </div>
   );
 }

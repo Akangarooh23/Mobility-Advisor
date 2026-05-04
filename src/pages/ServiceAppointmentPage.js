@@ -5,6 +5,68 @@ function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+const GARAGE_STORAGE_PREFIX = "movilidadAdvisorGarage";
+const DASHBOARD_GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
+
+function getGarageStorageKey(currentUserEmail = "") {
+  const normalizedEmail = normalizeText(currentUserEmail).toLowerCase();
+  return normalizedEmail ? `${GARAGE_STORAGE_PREFIX}.${normalizedEmail}` : GARAGE_STORAGE_PREFIX;
+}
+
+function getDashboardGarageStorageKey(currentUserEmail = "") {
+  const normalizedEmail = normalizeText(currentUserEmail).toLowerCase();
+  return normalizedEmail ? `${DASHBOARD_GARAGE_STORAGE_PREFIX}.${normalizedEmail}` : DASHBOARD_GARAGE_STORAGE_PREFIX;
+}
+
+function readGarageVehicles(currentUserEmail = "") {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const keys = [
+      getGarageStorageKey(currentUserEmail),
+      getDashboardGarageStorageKey(currentUserEmail),
+    ];
+    const byId = new Map();
+
+    keys.forEach((key) => {
+      const raw = window.localStorage.getItem(key);
+      const parsed = JSON.parse(raw || "[]");
+      if (!Array.isArray(parsed)) {
+        return;
+      }
+
+      parsed.forEach((item) => {
+        const id = normalizeText(item?.id);
+        if (id && !byId.has(id)) {
+          byId.set(id, item);
+        }
+      });
+    });
+
+    return Array.from(byId.values());
+  } catch {
+    return [];
+  }
+}
+
+function writeGarageVehiclesCache(currentUserEmail = "", vehicles = []) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    const safeVehicles = Array.isArray(vehicles)
+      ? vehicles.filter((item) => item && normalizeText(item?.id)).slice(0, 30)
+      : [];
+    window.localStorage.setItem(getGarageStorageKey(currentUserEmail), JSON.stringify(safeVehicles));
+    window.localStorage.setItem(getDashboardGarageStorageKey(currentUserEmail), JSON.stringify(safeVehicles));
+  } catch {
+    // Ignore localStorage errors and keep runtime data.
+  }
+}
+
 function normalizeToken(value) {
   return normalizeText(value)
     .toLowerCase()
@@ -372,7 +434,7 @@ export default function ServiceAppointmentPage({
 
   const [selectedRevision, setSelectedRevision] = useState(-1);
   const [selectedProvider, setSelectedProvider] = useState("");
-  const [garageVehicles, setGarageVehicles] = useState([]);
+  const [garageVehicles, setGarageVehicles] = useState(() => readGarageVehicles(currentUserEmail));
   const [isLoadingVehicles, setIsLoadingVehicles] = useState(false);
   const [vehicleId, setVehicleId] = useState("");
   const [province, setProvince] = useState("");
@@ -398,18 +460,23 @@ export default function ServiceAppointmentPage({
         return;
       }
 
+      if (!disposed) {
+        setGarageVehicles(readGarageVehicles(normalizedEmail));
+      }
+
       setIsLoadingVehicles(true);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6500);
       try {
-        const { response, data } = await getGarageVehiclesJson(normalizedEmail);
+        const { response, data } = await getGarageVehiclesJson(normalizedEmail, { signal: controller.signal });
         if (!disposed && response.ok && Array.isArray(data?.vehicles)) {
           const nextVehicles = data.vehicles.filter((item) => item && normalizeText(item?.id));
           setGarageVehicles(nextVehicles);
+          writeGarageVehiclesCache(normalizedEmail, nextVehicles);
         }
       } catch {
-        if (!disposed) {
-          setGarageVehicles([]);
-        }
       } finally {
+        clearTimeout(timeoutId);
         if (!disposed) {
           setIsLoadingVehicles(false);
         }

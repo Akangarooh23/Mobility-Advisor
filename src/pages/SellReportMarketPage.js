@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   getErpBrandsJson,
   getErpModelsJson,
@@ -42,10 +43,10 @@ function currencyEUR(value, formatCurrency) {
 }
 
 const DAMAGE_OPTIONS = [
-  "Sin daños",
-  "Daños leves",
-  "Daños moderados",
-  "Daños graves",
+  "sell.damageNone",
+  "sell.damageMinor",
+  "sell.damageModerate",
+  "sell.damageMajor",
 ];
 
 export default function SellReportMarketPage({
@@ -75,7 +76,25 @@ export default function SellReportMarketPage({
   const [erpSelectedBrandId, setErpSelectedBrandId] = useState("");
   const [erpSelectedModelId, setErpSelectedModelId] = useState("");
   const [garageVehicles, setGarageVehicles] = useState([]);
+  const { t, i18n } = useTranslation();
   const [garageVehiclesLoading, setGarageVehiclesLoading] = useState(false);
+
+  const translateFuelOption = (fuel) => {
+    const normalized = normalizeText(fuel).toLowerCase();
+    const mapping = {
+      gasolina: "sell.fuelGas",
+      gasoline: "sell.fuelGas",
+      "diésel": "sell.fuelDiesel",
+      diesel: "sell.fuelDiesel",
+      híbrido: "sell.fuelHybrid",
+      hybrid: "sell.fuelHybrid",
+      phev: "sell.fuelPHEV",
+      eléctrico: "sell.fuelElectric",
+      electrico: "sell.fuelElectric",
+      electric: "sell.fuelElectric",
+    };
+    return t(mapping[normalized] || fuel);
+  };
   const [selectedIdCarId, setSelectedIdCarId] = useState("");
   const [idCarPromptVisible, setIdCarPromptVisible] = useState(false);
   const idCarSelectRef = useRef(null);
@@ -143,7 +162,7 @@ export default function SellReportMarketPage({
           icon: initials,
           iconColor: index === 0 ? "#003087" : index === 1 ? "#ff6600" : "#00a651",
           name: portalName,
-          price: avgPrice > 0 ? currencyEUR(avgPrice, formatCurrency) : "Sin precio",
+          price: avgPrice > 0 ? currencyEUR(avgPrice, formatCurrency) : t("sell.noPrice"),
           units,
           toneClass,
         };
@@ -315,32 +334,31 @@ export default function SellReportMarketPage({
       <div className="back-row">
         <button className="back-btn" type="button" onClick={onGoBack}>
           <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
-          Volver
+          {t("sell.goBack")}
         </button>
-        <span className="breadcrumb">Vender &rsaquo; <b>Información de mercado</b></span>
+        <span className="breadcrumb">{t("sell.breadcrumbReport")}</span>
       </div>
 
       <div className="hero-card">
         <div className="hero-band" />
         <div className="hero-inner">
-          <div className="badge">Opción A · Información para vender</div>
-          <h1 className="sell-market-title">Te damos la información para vender</h1>
+          <div className="badge">{`${t("sell.optionABadge")} · ${t("sell.optionATitle")}`}</div>
+          <h1 className="sell-market-title">{t("sell.optionATitle")}</h1>
           <p className="sell-market-desc">
-            No tasamos tu vehículo: te damos información real de mercado. Introduce los datos de tu coche y recibe
-            una referencia objetiva para vender por tu cuenta con mejor criterio.
+            {t("sell.reportHeroDesc")}
           </p>
           <div className="sell-market-meta">
             <div className="mpill">
               <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 3" /></svg>
-              Resultado inmediato
+              {t("sell.heroMetaImmediate")}
             </div>
             <div className="mpill">
               <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6" /></svg>
-              Datos en tiempo real
+              {t("sell.heroMetaRealtime")}
             </div>
             <div className="mpill">
               <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27z" /></svg>
-              Sin compromiso
+              {t("sell.heroMetaNoCommitment")}
             </div>
           </div>
         </div>
@@ -349,7 +367,7 @@ export default function SellReportMarketPage({
       <div className="flow-card">
         <div className="flow-band" />
         <div className="flow-inner">
-          <div className="blabel"><div className="blabel-dot" />Flujo A · Información para vender</div>
+          <div className="blabel"><div className="blabel-dot" />{t("sell.flowAHeader")}</div>
           <div className="steps-grid">
             <div className="step-block">
               <div className="step-left">
@@ -357,14 +375,14 @@ export default function SellReportMarketPage({
                 <div className="step-connector" />
               </div>
               <div className="step-right">
-                <div className="step-label">Paso 1</div>
-                <div className="step-title">Introduce los datos de tu vehículo</div>
-                <div className="step-desc">Matrícula, marca, modelo, versión, año y kilómetros.</div>
+                <div className="step-label">{t("sell.step1Label")}</div>
+                <div className="step-title">{t("sell.step1Title")}</div>
+                <div className="step-desc">{t("sell.step1Desc")}</div>
                 <div className="form-section">
                   {garageVehicles.length > 0 ? (
                     <div className="field-grid" style={{ marginBottom: "0.85rem" }}>
                       <div className="field field-full-row">
-                        <label>Usar IDCar</label>
+                        <label>{t("sell.useIdCar")}</label>
                         <div className="sel-wrap">
                           <select
                             ref={idCarSelectRef}
@@ -387,13 +405,13 @@ export default function SellReportMarketPage({
                                 version: normalizeText(vehicle?.version),
                                 year: normalizeText(vehicle?.year),
                                 mileage: normalizeText(vehicle?.mileage),
-                                fuel: normalizeText(vehicle?.fuel) || prev.fuel || "Gasolina",
+                                fuel: normalizeText(vehicle?.fuel) || prev.fuel || fuelOptions?.[0] || "",
                               }));
 
                               void syncVehicleToErpSelectors(vehicle);
                             }}
                           >
-                            <option value="">{garageVehiclesLoading ? "Cargando IDCars..." : "Selecciona tu IDCar"}</option>
+                            <option value="">{garageVehiclesLoading ? t("sell.loadingIdCars") : t("sell.selectYourIdCar")}</option>
                             {garageVehicles.map((vehicle, index) => (
                               <option key={vehicle.id} value={vehicle.id}>{buildIdCarLabel(vehicle, index)}</option>
                             ))}
@@ -401,7 +419,7 @@ export default function SellReportMarketPage({
                           <div className="sel-arrow">▾</div>
                         </div>
                         {idCarPromptVisible ? (
-                          <div className="sell-market-idcar-hint">Selecciona uno de tus IDCars creados para analizar ese vehículo.</div>
+                          <div className="sell-market-idcar-hint">{t("sell.selectIdCarHint")}</div>
                         ) : null}
                       </div>
                     </div>
@@ -409,16 +427,16 @@ export default function SellReportMarketPage({
 
                   <div className="field-grid">
                     <div className="field">
-                      <label>Matrícula</label>
+                      <label>{t("sell.sellFlowAPlateLabel")}</label>
                       <input
                         type="text"
-                        placeholder="1234 ABC"
+                        placeholder={t("sell.placeholderPlate")}
                         value={sellAnswers?.plate || ""}
                         onChange={(event) => setSellAnswers((prev) => ({ ...prev, plate: event.target.value }))}
                       />
                     </div>
                     <div className="field">
-                      <label>Marca</label>
+                      <label>{t("sell.sellFlowABrandLabel")}</label>
                       <div className="sel-wrap">
                         <select
                           value={erpSelectedBrandId}
@@ -458,7 +476,7 @@ export default function SellReportMarketPage({
                               });
                           }}
                         >
-                          <option value="">{erpBrandsLoading ? "Cargando marcas..." : "Selecciona"}</option>
+                          <option value="">{erpBrandsLoading ? t("sell.loadingBrands") : t("sell.select")}</option>
                           {erpBrands.map((brand) => (
                             <option key={brand.id} value={brand.id}>{brand.name}</option>
                           ))}
@@ -470,7 +488,7 @@ export default function SellReportMarketPage({
 
                   <div className="field-grid">
                     <div className="field">
-                      <label>Modelo</label>
+                      <label>{t("sell.sellFlowAModelLabel")}</label>
                       <div className="sel-wrap">
                         <select
                           value={erpSelectedModelId}
@@ -508,10 +526,10 @@ export default function SellReportMarketPage({
                         >
                           <option value="">
                             {erpModelsLoading
-                              ? "Cargando modelos..."
+                              ? t("sell.loadingModels")
                               : !erpSelectedBrandId
-                                ? "Primero selecciona marca"
-                                : "Selecciona"}
+                                ? t("sell.firstSelectBrand")
+                                : t("sell.select")}
                           </option>
                           {erpModels.map((model) => (
                             <option key={model.id} value={model.id}>{model.name}</option>
@@ -522,7 +540,7 @@ export default function SellReportMarketPage({
                     </div>
                     <div className="field">
                       <label>
-                        Versión <span style={{ fontWeight: 300, textTransform: "none", letterSpacing: 0, color: "#ccc" }}>— opcional</span>
+                        {t("sell.sellFlowAVersionLabel")} <span style={{ fontWeight: 300, textTransform: "none", letterSpacing: 0, color: "#ccc" }}>— {t("sell.optional")}</span>
                       </label>
                       <div className="sel-wrap">
                         <select
@@ -540,12 +558,12 @@ export default function SellReportMarketPage({
                         >
                           <option value="">
                             {erpVersionsLoading
-                              ? "Cargando versiones..."
+                              ? t("sell.loadingVersions")
                               : !erpSelectedModelId
-                                ? "Primero selecciona modelo"
+                                ? t("sell.firstSelectModel")
                                 : erpVersions.length === 0
-                                  ? "Sin versiones"
-                                  : "Selecciona"}
+                                  ? t("sell.noVersions")
+                                  : t("sell.select")}
                           </option>
                           {erpVersions.map((version) => (
                             <option key={version.codversion} value={version.codversion}>{version.label}</option>
@@ -558,39 +576,40 @@ export default function SellReportMarketPage({
 
                   <div className="field-grid-3">
                     <div className="field">
-                      <label>Año</label>
+                      <label>{t("sell.sellFlowARegistrationLabel")}</label>
                       <div className="sel-wrap">
                         <select
                           value={sellAnswers?.year || ""}
                           onChange={(event) => setSellAnswers((prev) => ({ ...prev, year: event.target.value }))}
                         >
-                          <option value="">Año</option>
+                          <option value="">{t("sell.yearPlaceholder")}</option>
                           {yearOptions.map((year) => (
                             <option key={year} value={String(year)}>{year}</option>
                           ))}
-                          <option value="anterior">Anterior</option>
+                          <option value="anterior">{t("sell.yearOlder")}</option>
                         </select>
                         <div className="sel-arrow">▾</div>
                       </div>
                     </div>
                     <div className="field">
-                      <label>Kilómetros</label>
+                      <label>{t("sell.sellFlowAMileageLabel")}</label>
                       <input
                         type="number"
-                        placeholder="45000"
+                        placeholder={t("sell.placeholderMileage")}
                         value={sellAnswers?.mileage || ""}
                         onChange={(event) => setSellAnswers((prev) => ({ ...prev, mileage: event.target.value }))}
                       />
                     </div>
                     <div className="field">
-                      <label>Combustible</label>
+                      <label>{t("sell.fuelLabel")}</label>
                       <div className="sel-wrap">
                         <select
-                          value={sellAnswers?.fuel || "Gasolina"}
+                          value={sellAnswers?.fuel || ""}
                           onChange={(event) => setSellAnswers((prev) => ({ ...prev, fuel: event.target.value }))}
                         >
+                          <option value="">{t("sell.select")}</option>
                           {fuelOptions.map((fuel) => (
-                            <option key={fuel} value={fuel}>{fuel}</option>
+                            <option key={fuel} value={fuel}>{translateFuelOption(fuel)}</option>
                           ))}
                         </select>
                         <div className="sel-arrow">▾</div>
@@ -600,7 +619,7 @@ export default function SellReportMarketPage({
 
                   <div className="divider" />
                   <div className="field">
-                    <label>Estado / Daños</label>
+                    <label>{t("sell.sellFlowADamagesLabel")}</label>
                     <div className="damage-opts" style={{ marginTop: "0.2rem" }}>
                       {DAMAGE_OPTIONS.map((option) => {
                         const selected = (sellAnswers?.damageLevel || DAMAGE_OPTIONS[0]) === option;
@@ -611,7 +630,7 @@ export default function SellReportMarketPage({
                             className={`damage-opt${selected ? " sel" : ""}`}
                             onClick={() => setSellAnswers((prev) => ({ ...prev, damageLevel: option }))}
                           >
-                            {option}
+                            {t(option)}
                           </button>
                         );
                       })}
@@ -620,7 +639,7 @@ export default function SellReportMarketPage({
 
                   <div className="sell-market-inline-actions">
                     <button className="btn-secondary" type="button" onClick={handleAnalyzeClick} disabled={sellLoading}>
-                      {sellLoading ? "Analizando..." : "Analizar mi coche"}
+                      {sellLoading ? t("sell.loadingAnalyze") : t("sell.analyzeButton")}
                     </button>
                   </div>
                 </div>
@@ -633,22 +652,22 @@ export default function SellReportMarketPage({
                 <div className="step-connector" />
               </div>
               <div className="step-right">
-                <div className="step-label">Paso 2</div>
-                <div className="step-title">Analizamos el mercado en tiempo real</div>
-                <div className="step-desc">Precio medio actual y número de unidades similares publicadas en los principales portales.</div>
+                <div className="step-label">{t("sell.step2Label")}</div>
+                <div className="step-title">{t("sell.step2Title")}</div>
+                <div className="step-desc">{t("sell.step2Desc")}</div>
                 <div className="result-section">
                   <div className="result-grid">
                     <div className="rstat">
                       <div className="rstat-num blue">{currencyEUR(snapshotMean, formatCurrency)}</div>
-                      <div className="rstat-lbl">Precio medio<br />de oferta</div>
+                      <div className="rstat-lbl">{t("sell.priceAverageLine1")}<br />{t("sell.priceAverageLine2")}</div>
                     </div>
                     <div className="rstat">
                       <div className="rstat-num grad-text">{snapshotUnits}</div>
-                      <div className="rstat-lbl">Unidades en<br />venta ahora</div>
+                      <div className="rstat-lbl">{t("sell.unitsNowLine1")}<br />{t("sell.unitsNowLine2")}</div>
                     </div>
                     <div className="rstat">
                       <div className="rstat-num green">{snapshotDays} d.</div>
-                      <div className="rstat-lbl">Tiempo medio<br />anunciado</div>
+                      <div className="rstat-lbl">{t("sell.timeOnMarketLine1")}<br />{t("sell.timeOnMarketLine2")}</div>
                     </div>
                   </div>
 
@@ -663,14 +682,14 @@ export default function SellReportMarketPage({
                           <span className={`portal-price ${portal.toneClass}`.trim()}>
                             {portal.price}
                           </span>
-                          <span className="portal-units">· {portal.units} uds.</span>
+                          <span className="portal-units">· {portal.units} {t("sell.unitsAbbreviation")}</span>
                         </div>
                       </div>
                     ))}
                   </div>
 
                   <div className="price-range">
-                    <div className="pr-label">Rango de precios para este perfil de vehículo</div>
+                    <div className="pr-label">{t("sell.priceRangeLabel")}</div>
                     <div className="pr-range">
                       <span className="pr-val blue">{currencyEUR(snapshotLow, formatCurrency)}</span>
                       <span className="pr-sep">—</span>
@@ -679,12 +698,12 @@ export default function SellReportMarketPage({
                   </div>
                   <div className="sell-market-idcar-hint" style={{ marginTop: "0.75rem" }}>
                     {sellMarketSnapshotLoading
-                      ? "Cargando comparables reales de mercado..."
+                      ? t("sell.loadingMarketComparables")
                       : sellMarketSnapshotError
-                        ? `Mercado real no disponible ahora: ${sellMarketSnapshotError}`
+                        ? `${t("sell.marketUnavailable")} ${sellMarketSnapshotError}`
                         : marketSource
-                          ? `Fuente: ${marketSource}${marketUpdatedAt ? ` · actualizado ${new Date(marketUpdatedAt).toLocaleString("es-ES")}` : ""}`
-                          : "Mostrando referencia actual."}
+                          ? `${t("sell.marketSource")} ${marketSource}${marketUpdatedAt ? ` · ${t("sell.marketUpdatedAt")} ${new Date(marketUpdatedAt).toLocaleString(i18n.resolvedLanguage || "es-ES")}` : ""}`
+                          : t("sell.currentReference")}
                   </div>
                 </div>
               </div>
@@ -695,15 +714,15 @@ export default function SellReportMarketPage({
                 <div className="step-circle">3</div>
               </div>
               <div className="step-right">
-                <div className="step-label">Paso 3</div>
-                <div className="step-title">Recibes una referencia objetiva</div>
-                <div className="step-desc">Para vender por tu cuenta con mejor criterio y sin depender de una tasación.</div>
+                <div className="step-label">{t("sell.step3Label")}</div>
+                <div className="step-title">{t("sell.step3Title")}</div>
+                <div className="step-desc">{t("sell.step3Desc")}</div>
                 <div className="ref-box">
-                  <div className="ref-title">💡 Con esta información puedes</div>
-                  <div className="ref-feat">Fijar un precio de salida competitivo y justificado</div>
-                  <div className="ref-feat">Saber cuánta competencia tienes en el mercado ahora mismo</div>
-                  <div className="ref-feat">Decidir si publicar tú mismo o pedir ayuda a CarsWise (Opción B)</div>
-                  <div className="ref-feat">Negociar con compradores desde una posición informada</div>
+                  <div className="ref-title">{t("sell.refTitle")}</div>
+                  <div className="ref-feat">{t("sell.refFeat1")}</div>
+                  <div className="ref-feat">{t("sell.refFeat2")}</div>
+                  <div className="ref-feat">{t("sell.refFeat3")}</div>
+                  <div className="ref-feat">{t("sell.refFeat4")}</div>
                 </div>
               </div>
             </div>
@@ -716,12 +735,12 @@ export default function SellReportMarketPage({
       {typeof onGoToBuyKnownModel === "function" ? (
         <div className="cta-card">
           <div className="cta-text">
-            <strong>¿Ya tienes claro cuál quieres comprar?</strong>
-            <span>Salta directo al flujo de compra con modelo conocido.</span>
+            <strong>{t("sell.ctaTitle")}</strong>
+            <span>{t("sell.ctaSubtitle")}</span>
           </div>
           <div className="cta-btns">
             <button className="btn-primary" type="button" onClick={onGoToBuyKnownModel}>
-              Ir a comprar ahora
+              {t("sell.ctaBtn")}
             </button>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getGarageVehiclesJson } from "../utils/apiClient";
 
 function normalizeText(value) {
@@ -119,7 +120,7 @@ function dateKeyFromDate(date) {
   return `${monthKeyFromDate(date)}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
-function monthLabelFromKey(key = "") {
+function monthLabelFromKey(key = "", locale = "es") {
   const [yearRaw, monthRaw] = String(key).split("-");
   const year = Number(yearRaw);
   const month = Number(monthRaw);
@@ -127,16 +128,16 @@ function monthLabelFromKey(key = "") {
     return "";
   }
 
-  return new Intl.DateTimeFormat("es-ES", { month: "long", year: "numeric" }).format(new Date(year, month - 1, 1));
+  return new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(new Date(year, month - 1, 1));
 }
 
-function toEsDateTimeText(date) {
+function toLocalizedDateTimeText(date, locale = "es") {
   const safeDate = date instanceof Date ? date : new Date(date);
   if (Number.isNaN(safeDate.getTime())) {
     return "";
   }
 
-  return new Intl.DateTimeFormat("es-ES", {
+  return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -177,6 +178,23 @@ function isStatusScheduled(status = "") {
   return token.includes("confirm") || token.includes("programad") || token.includes("agendad") || token.includes("en taller");
 }
 
+function translateAlertStatus(status = "", t = (key) => key) {
+  const token = normalizeStatusToken(status);
+  if (token.includes("cancel")) {
+    return t("service.maintenanceStatusCancelled");
+  }
+  if (token.includes("reagend")) {
+    return t("service.maintenanceStatusRescheduled");
+  }
+  if (token.includes("confirm") || token.includes("programad") || token.includes("agendad") || token.includes("en taller")) {
+    return t("service.maintenanceStatusScheduled");
+  }
+  if (!token) {
+    return t("service.maintenanceStatusPending");
+  }
+  return status;
+}
+
 function isAlertScheduled(alert = {}) {
   const status = normalizeText(alert?.status);
 
@@ -195,13 +213,13 @@ function isAlertScheduled(alert = {}) {
   return isStatusScheduled(status);
 }
 
-function buildVehicleDisplayName(vehicle = {}, fallbackIndex = 0) {
+function buildVehicleDisplayName(vehicle = {}, fallbackIndex = 0, fallbackPrefix = "IDCar") {
   const title = normalizeText(vehicle?.title);
   const brand = normalizeText(vehicle?.brand);
   const model = normalizeText(vehicle?.model);
   const plate = normalizeText(vehicle?.plate).toUpperCase();
 
-  const base = title || [brand, model].filter(Boolean).join(" ") || `IDCar ${fallbackIndex + 1}`;
+  const base = title || [brand, model].filter(Boolean).join(" ") || `${fallbackPrefix} ${fallbackIndex + 1}`;
   return plate ? `${base} (${plate})` : base;
 }
 
@@ -323,10 +341,10 @@ function estimateMaintenanceDueDate({
   };
 }
 
-function buildVehicleAlerts(vehicle = {}, vehicleIndex = 0) {
+function buildVehicleAlerts(vehicle = {}, vehicleIndex = 0, locale = "es", t = (key) => key) {
   const today = new Date();
   const vehicleId = normalizeText(vehicle?.id) || `vehicle-${vehicleIndex}`;
-  const displayName = buildVehicleDisplayName(vehicle, vehicleIndex);
+  const displayName = buildVehicleDisplayName(vehicle, vehicleIndex, t("service.maintenanceDefaultIdCarLabel"));
   const mileage = Number(normalizeText(vehicle?.mileage).replace(/[^\d]/g, "") || 0);
   const maintenancePlan = getVehicleMaintenancePlan(vehicle);
   const referenceDate = buildReferenceDate(vehicle, addDays(today, -180));
@@ -344,8 +362,8 @@ function buildVehicleAlerts(vehicle = {}, vehicleIndex = 0) {
       vehicleName: displayName,
       date: computedIvtDate,
       type: "itv",
-      title: "Revision ITV",
-      subtitle: "Control periodico de inspeccion tecnica",
+      title: t("service.maintenanceItvTitle"),
+      subtitle: t("service.maintenanceItvSubtitle"),
       urgent: computedIvtDate.getTime() <= addDays(today, 30).getTime(),
     });
   }
@@ -361,11 +379,15 @@ function buildVehicleAlerts(vehicle = {}, vehicleIndex = 0) {
 
     const hints = [];
     if (estimation.basedOnKm && rule.intervalKm) {
-      const kmHint = estimation.kmToNext > 0 ? `~${Math.round(estimation.kmToNext).toLocaleString("es-ES")} km` : "en km objetivo";
-      hints.push(`cada ${rule.intervalKm.toLocaleString("es-ES")} km (${kmHint})`);
+      const formattedIntervalKm = rule.intervalKm.toLocaleString(locale);
+      const formattedKmToNext = Math.round(estimation.kmToNext).toLocaleString(locale);
+      const kmHint = estimation.kmToNext > 0
+        ? t("service.maintenanceEstimatedKmHint", { km: formattedKmToNext, unit: t("service.maintenanceUnitKm") })
+        : t("service.maintenanceKmTarget");
+      hints.push(t("service.maintenanceHintEveryKm", { intervalKm: formattedIntervalKm, kmHint }));
     }
     if (estimation.basedOnTime && rule.intervalMonths) {
-      hints.push(`cada ${rule.intervalMonths} mes(es)`);
+      hints.push(t("service.maintenanceHintEveryMonths", { months: rule.intervalMonths }));
     }
 
     alerts.push({
@@ -374,8 +396,8 @@ function buildVehicleAlerts(vehicle = {}, vehicleIndex = 0) {
       vehicleName: displayName,
       date: estimation.dueDate,
       type: "maintenance",
-      title: rule.title,
-      subtitle: hints.join(" · ") || "Mantenimiento programado",
+      title: t(`service.maintenanceTask.${rule.key}`, { defaultValue: rule.title }),
+      subtitle: hints.join(" · ") || t("service.maintenanceScheduledMaintenance"),
       urgent:
         estimation.dueDate.getTime() <= addDays(today, 30).getTime() ||
         (estimation.kmToNext > 0 && estimation.kmToNext <= 1200),
@@ -390,6 +412,8 @@ function buildSyncedWorkshopAlerts({
   maintenances = [],
   vehicleFilter = "all",
   vehicleNameById = new Map(),
+  locale = "es",
+  t = (key) => key,
 }) {
   const output = [];
   const seen = new Set();
@@ -446,15 +470,15 @@ function buildSyncedWorkshopAlerts({
       normalizeText(item?.vehicleTitle) ||
       (vehicleId ? vehicleNameById.get(vehicleId) : "") ||
       normalizeText(item?.vehiclePlate) ||
-      "IDCar";
+      t("service.maintenanceDefaultIdCarLabel");
 
     pushAlert({
       id: normalizeText(item?.id) || `appt-synced-${index}`,
       vehicleId,
       vehicleName,
       date,
-      title: normalizeText(item?.title) || "Cita de taller",
-      subtitle: normalizeText(item?.meta) || normalizeText(item?.status) || "Cita sincronizada",
+      title: normalizeText(item?.title) || t("service.maintenanceDefaultWorkshopAppointmentTitle"),
+      subtitle: normalizeText(item?.meta) || normalizeText(item?.status) || t("service.maintenanceDefaultSyncedAppointmentSubtitle"),
       status: normalizeText(item?.status),
       sourceType: "appointment",
       sourceData: item,
@@ -473,15 +497,15 @@ function buildSyncedWorkshopAlerts({
       normalizeText(item?.vehicleTitle) ||
       (vehicleId ? vehicleNameById.get(vehicleId) : "") ||
       normalizeText(item?.vehiclePlate) ||
-      "IDCar";
+      t("service.maintenanceDefaultIdCarLabel");
 
     pushAlert({
       id: normalizeText(item?.id) || `mnt-synced-${index}`,
       vehicleId,
       vehicleName,
       date,
-      title: normalizeText(item?.title) || "Mantenimiento de taller",
-      subtitle: normalizeText(item?.notes) || normalizeText(item?.status) || "Mantenimiento sincronizado",
+      title: normalizeText(item?.title) || t("service.maintenanceDefaultWorkshopAppointmentTitle"),
+      subtitle: normalizeText(item?.notes) || normalizeText(item?.status) || t("service.maintenanceDefaultSyncedAppointmentSubtitle"),
       status: normalizeText(item?.status),
       sourceType: "maintenance",
       sourceData: item,
@@ -525,6 +549,9 @@ export default function ServiceMaintenancePage({
   onUpdateAppointmentStatus = () => {},
   onScheduleAppointment = () => {},
 }) {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language || "es";
+
   const cardStyle = {
     background: "#ffffff",
     borderRadius: 16,
@@ -541,6 +568,13 @@ export default function ServiceMaintenancePage({
   const [rescheduleAt, setRescheduleAt] = useState("");
   const [updatingAppointment, setUpdatingAppointment] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+  const maintenancePills = [
+    t("service.maintenancePillKmDate"),
+    t("service.maintenancePillAutoAlerts"),
+    t("service.maintenancePillVehicleFilter"),
+    t("service.maintenancePillSyncedAppointments"),
+  ];
 
   useEffect(() => {
     let disposed = false;
@@ -597,19 +631,19 @@ export default function ServiceMaintenancePage({
   const vehicleOptions = useMemo(() => {
     return garageVehicles.map((vehicle, index) => ({
       id: normalizeText(vehicle?.id),
-      label: buildVehicleDisplayName(vehicle, index),
+      label: buildVehicleDisplayName(vehicle, index, t("service.maintenanceDefaultIdCarLabel")),
     }));
-  }, [garageVehicles]);
+  }, [garageVehicles, t]);
 
   const vehicleNameById = useMemo(() => {
     const map = new Map();
     garageVehicles.forEach((vehicle, index) => {
       const id = normalizeText(vehicle?.id);
       if (!id) return;
-      map.set(id, buildVehicleDisplayName(vehicle, index));
+      map.set(id, buildVehicleDisplayName(vehicle, index, t("service.maintenanceDefaultIdCarLabel")));
     });
     return map;
-  }, [garageVehicles]);
+  }, [garageVehicles, t]);
 
   const vehicleById = useMemo(() => {
     const map = new Map();
@@ -630,12 +664,14 @@ export default function ServiceMaintenancePage({
   }, [garageVehicles, vehicleFilter]);
 
   const allAlerts = useMemo(() => {
-    const forecastAlerts = filteredVehicles.flatMap((vehicle, index) => buildVehicleAlerts(vehicle, index));
+    const forecastAlerts = filteredVehicles.flatMap((vehicle, index) => buildVehicleAlerts(vehicle, index, locale, t));
     const syncedAlerts = buildSyncedWorkshopAlerts({
       appointments: userAppointments,
       maintenances: userMaintenances,
       vehicleFilter,
       vehicleNameById,
+      locale,
+      t,
     });
 
     return [...forecastAlerts, ...syncedAlerts].sort((a, b) => a.date.getTime() - b.date.getTime());
@@ -649,7 +685,7 @@ export default function ServiceMaintenancePage({
       if (!map.has(key)) {
         map.set(key, {
           key,
-          label: monthLabelFromKey(key),
+          label: monthLabelFromKey(key, locale),
           alerts: [],
         });
       }
@@ -693,6 +729,13 @@ export default function ServiceMaintenancePage({
   }, [activeMonth]);
 
   const calendarCells = useMemo(() => getCalendarCellsFromMonthKey(selectedMonthKey), [selectedMonthKey]);
+
+  const weekDayLetters = useMemo(() => {
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(Date.UTC(2024, 0, 1 + index));
+      return new Intl.DateTimeFormat(locale, { weekday: "short" }).format(date).slice(0, 1).toUpperCase();
+    });
+  }, [locale]);
 
   const selectedDayAlerts = useMemo(() => {
     if (!selectedDayKey) {
@@ -751,8 +794,8 @@ export default function ServiceMaintenancePage({
     try {
       await onUpdateAppointmentStatus(selectedAlert.sourceId, {
         status: "Reagendada",
-        requestedAt: toEsDateTimeText(nextDate),
-        meta: `${normalizeText(selectedAlert.subtitle) || "Cita reagendada"} · Nueva fecha: ${toEsDateTimeText(nextDate)}`,
+        requestedAt: toLocalizedDateTimeText(nextDate, locale),
+        meta: `${normalizeText(selectedAlert.subtitle) || t("service.maintenanceRescheduledMeta")} · ${t("service.maintenanceMetaNewDate")} ${toLocalizedDateTimeText(nextDate, locale)}`,
       });
       closeAlertModal();
     } finally {
@@ -769,7 +812,7 @@ export default function ServiceMaintenancePage({
     try {
       await onUpdateAppointmentStatus(selectedAlert.sourceId, {
         status: "Cancelada",
-        meta: `${normalizeText(selectedAlert.subtitle) || "Cita"} · Cancelada por usuario`,
+        meta: `${normalizeText(selectedAlert.subtitle) || t("service.maintenanceMetaAppointment")} · ${t("service.maintenanceMetaCancelledByUser")}`,
       });
       closeAlertModal();
     } finally {
@@ -803,8 +846,8 @@ export default function ServiceMaintenancePage({
     const baseHistory = Array.isArray(selectedAlert?.statusHistory) ? selectedAlert.statusHistory : [];
     const normalized = baseHistory
       .map((item) => ({
-        previousStatus: normalizeText(item?.previousStatus || item?.previous_status),
-        nextStatus: normalizeText(item?.nextStatus || item?.next_status),
+        previousStatus: translateAlertStatus(normalizeText(item?.previousStatus || item?.previous_status), t),
+        nextStatus: translateAlertStatus(normalizeText(item?.nextStatus || item?.next_status), t),
         changedAt: normalizeText(item?.changedAt || item?.changed_at),
       }))
       .filter((item) => item.nextStatus || item.changedAt);
@@ -812,13 +855,13 @@ export default function ServiceMaintenancePage({
     if (!normalized.length && normalizeText(selectedAlert?.status)) {
       return [{
         previousStatus: "",
-        nextStatus: normalizeText(selectedAlert.status),
-        changedAt: toEsDateTimeText(selectedAlert.date),
+        nextStatus: translateAlertStatus(normalizeText(selectedAlert.status), t),
+        changedAt: toLocalizedDateTimeText(selectedAlert.date, locale),
       }];
     }
 
     return normalized;
-  }, [selectedAlert]);
+  }, [selectedAlert, locale, t]);
 
   return (
     <div style={{ width: "100%", maxWidth: 1040, margin: "0 auto", color: "#1a1a1a", padding: "0 8px 16px" }}>
@@ -837,12 +880,12 @@ export default function ServiceMaintenancePage({
             fontWeight: 600,
           }}
         >
-          ← Volver
-        </button>
-        <div style={{ fontSize: 12, color: "#b8b8b8" }}>
-          Servicios › <span style={{ color: "#16a34a", fontWeight: 700 }}>Mantenimientos</span>
+            {t("common.backArrow")}
+          </button>
+          <div style={{ fontSize: 12, color: "#b8b8b8" }}>
+            {t("service.breadcrumbServices")} › <span style={{ color: "#16a34a", fontWeight: 700 }}>{t("service.maintenanceSection")}</span>
+          </div>
         </div>
-      </div>
 
       <section style={{ ...cardStyle, overflow: "hidden", marginBottom: 12 }}>
         <div style={{ height: 4, background: "#22c55e" }} />
@@ -862,21 +905,16 @@ export default function ServiceMaintenancePage({
               marginBottom: 14,
             }}
           >
-            B · Mantenimientos
+            {t("service.maintenanceBadge")}
           </div>
           <h2 style={{ margin: "0 0 8px", fontSize: "clamp(30px,3.1vw,40px)", letterSpacing: "-0.03em", lineHeight: 1.15, color: "#111" }}>
-            Recordatorio inteligente de mantenimiento
+            {t("service.maintenanceTitle")}
           </h2>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: "#868686", maxWidth: 760 }}>
-            Vista mensual de mantenimientos para todos tus IDCars. Primero eliges el mes, y despues puedes entrar al detalle por dia.
+            {t("service.maintenanceOverview")}
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 18 }}>
-            {[
-              "Basado en km y fecha",
-              "Alertas automaticas",
-              "Filtro por IDCar",
-              "Sincronizado con citas",
-            ].map((pill) => (
+            {maintenancePills.map((pill) => (
               <span
                 key={pill}
                 style={{
@@ -895,7 +933,7 @@ export default function ServiceMaintenancePage({
           </div>
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 14, alignItems: "center" }}>
-            <span style={{ fontSize: 12, color: "#7b7b7b", fontWeight: 700 }}>IDCar:</span>
+            <span style={{ fontSize: 12, color: "#7b7b7b", fontWeight: 700 }}>{t("service.maintenanceLabelIdCar")}</span>
             <select
               value={vehicleFilter}
               onChange={(event) => setVehicleFilter(event.target.value)}
@@ -911,7 +949,7 @@ export default function ServiceMaintenancePage({
               }}
               disabled={!hasAnyVehicles}
             >
-              <option value="all">Todos los IDCars</option>
+              <option value="all">{t("service.maintenanceAllIdCars")}</option>
               {vehicleOptions.map((option) => (
                 <option key={option.id} value={option.id}>{option.label}</option>
               ))}
@@ -929,14 +967,14 @@ export default function ServiceMaintenancePage({
               color: "#6b7280",
             }}
           >
-            <span style={{ fontWeight: 700, color: "#475569" }}>Leyenda:</span>
+            <span style={{ fontWeight: 700, color: "#475569" }}>{t("service.maintenanceLegend")}</span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
               <span style={{ width: 10, height: 10, borderRadius: 99, background: "#60a5fa", border: "1px solid rgba(37,99,235,0.5)" }} />
-              Aviso para pedir cita
+              {t("service.maintenanceLegendAlertNotice")}
             </span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
               <span style={{ width: 10, height: 10, borderRadius: 99, background: "#16a34a", border: "1px solid rgba(21,128,61,0.55)" }} />
-              Cita agendada
+              {t("service.maintenanceLegendScheduled")}
             </span>
           </div>
         </div>
@@ -945,10 +983,10 @@ export default function ServiceMaintenancePage({
       {!hasAnyVehicles && !isLoadingVehicles ? (
         <section style={{ ...cardStyle, marginBottom: 12, padding: 22, border: "1px solid rgba(220,38,38,0.2)", background: "rgba(254,242,242,0.55)" }}>
           <div style={{ fontSize: 18, fontWeight: 800, color: "#991b1b", marginBottom: 6 }}>
-            No tienes ningun IDCar subido
+            {t("service.maintenanceNoVehiclesTitle")}
           </div>
           <div style={{ fontSize: 13, color: "#7f1d1d", lineHeight: 1.55, marginBottom: 12 }}>
-            El calendario esta vacio hasta que tengas al menos un IDCar en tu ficha. Sube un IDCar y automaticamente veras los avisos conjuntos.
+            {t("service.maintenanceNoVehiclesDescription")}
           </div>
           <button
             type="button"
@@ -964,7 +1002,7 @@ export default function ServiceMaintenancePage({
               cursor: "pointer",
             }}
           >
-            Ir a gestionar IDCars
+            {t("service.maintenanceManageIdCars")}
           </button>
         </section>
       ) : null}
@@ -973,12 +1011,12 @@ export default function ServiceMaintenancePage({
         <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 12, marginBottom: 12 }}>
           <div style={{ ...cardStyle, padding: 22 }}>
             <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
-              Meses con avisos
+              {t("service.maintenanceMonthsWithAlerts")}
             </div>
             {isLoadingVehicles ? (
-              <div style={{ fontSize: 13, color: "#8a8a8a" }}>Cargando IDCars...</div>
+              <div style={{ fontSize: 13, color: "#8a8a8a" }}>{t("service.maintenanceLoadingVehicles")}</div>
             ) : !hasAnyAlerts ? (
-              <div style={{ fontSize: 13, color: "#8a8a8a" }}>No hay avisos para el filtro seleccionado.</div>
+              <div style={{ fontSize: 13, color: "#8a8a8a" }}>{t("service.maintenanceNoAlertsFiltered")}</div>
             ) : (
               <div style={{ display: "grid", gap: 8 }}>
                 {monthBuckets.map((bucket, index) => {
@@ -1006,7 +1044,7 @@ export default function ServiceMaintenancePage({
                     >
                       <div>
                         <div style={{ fontSize: 14, fontWeight: 700, color: "#2d2d2d", marginBottom: 2 }}>{bucket.label}</div>
-                        <div style={{ fontSize: 12, color: "#909090" }}>{bucket.alerts.length} aviso(s)</div>
+                        <div style={{ fontSize: 12, color: "#909090" }}>{bucket.alerts.length} {t("service.maintenanceAlertsSuffix")}</div>
                       </div>
                       <span style={{ fontSize: 12, fontWeight: 700, color: isActive ? "#475569" : "#b0b0b0" }}>{index + 1}</span>
                     </button>
@@ -1018,15 +1056,15 @@ export default function ServiceMaintenancePage({
 
           <div style={{ ...cardStyle, padding: 22 }}>
             <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
-              Calendario por dias {activeMonth ? `— ${activeMonth.label}` : ""}
+              {t("service.maintenanceCalendarByDays")} {activeMonth ? `— ${activeMonth.label}` : ""}
             </div>
 
             {!activeMonth ? (
-              <div style={{ fontSize: 13, color: "#8a8a8a" }}>Selecciona un mes para ver los dias.</div>
+              <div style={{ fontSize: 13, color: "#8a8a8a" }}>{t("service.maintenanceSelectMonthPrompt")}</div>
             ) : (
               <>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 3, marginBottom: 6 }}>
-                  {["L", "M", "X", "J", "V", "S", "D"].map((d) => (
+                  {weekDayLetters.map((d) => (
                     <div key={d} style={{ textAlign: "center", fontSize: 10, color: "#c3c3c3", fontWeight: 700 }}>{d}</div>
                   ))}
                 </div>
@@ -1108,7 +1146,7 @@ export default function ServiceMaintenancePage({
                       type="button"
                       onClick={() => openAlertModal(alert)}
                       key={`${alert.id}-${index}`}
-                      aria-label={`Abrir detalle de ${alert.title}`}
+                      aria-label={t("service.maintenanceOpenAlertDetail", { title: alert.title })}
                       style={{
                         border: isAlertScheduled(alert)
                           ? "1px solid rgba(21,128,61,0.55)"
@@ -1134,7 +1172,7 @@ export default function ServiceMaintenancePage({
                           background: isAlertScheduled(alert) ? "rgba(21,128,61,0.22)" : "rgba(59,130,246,0.2)",
                           color: isAlertScheduled(alert) ? "#14532d" : "#1d4ed8",
                         }}>
-                          {isAlertScheduled(alert) ? "Cita agendada" : "Agendar cita"}
+                          {isAlertScheduled(alert) ? t("service.maintenanceButtonScheduled") : t("service.maintenanceButtonSchedule")}
                         </span>
                       </div>
                       <div style={{ fontSize: 12, color: "#6b7280" }}>{alert.vehicleName}</div>
@@ -1142,7 +1180,7 @@ export default function ServiceMaintenancePage({
                     </button>
                   ))}
                   {!selectedDayAlerts.length && !monthUpcomingAlerts.length ? (
-                    <div style={{ fontSize: 12, color: "#9a9a9a" }}>Sin avisos para este mes.</div>
+                    <div style={{ fontSize: 12, color: "#9a9a9a" }}>{t("service.maintenanceNoAlertsMonth")}</div>
                   ) : null}
                 </div>
               </>
@@ -1162,9 +1200,9 @@ export default function ServiceMaintenancePage({
         }}
       >
         <div>
-          <div style={{ fontSize: 18, color: "#303030", fontWeight: 700, marginBottom: 3 }}>Activar recordatorios automaticos</div>
+          <div style={{ fontSize: 18, color: "#303030", fontWeight: 700, marginBottom: 3 }}>{t("service.maintenanceEnableAlertsTitle")}</div>
           <div style={{ fontSize: 13, color: "#a2a2a2", lineHeight: 1.45 }}>
-            Cuando tengas IDCars subidos, combinaremos sus revisiones para darte una agenda unica por meses y dias.
+            {t("service.maintenanceEnableAlertsDescription")}
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -1173,7 +1211,7 @@ export default function ServiceMaintenancePage({
             onClick={onGoBack}
             style={{ border: "none", background: "transparent", color: "#bbb", fontSize: 14, cursor: "pointer" }}
           >
-            ← Volver
+            {t("common.backArrow")}
           </button>
           <button
             type="button"
@@ -1190,7 +1228,7 @@ export default function ServiceMaintenancePage({
               boxShadow: "0 8px 20px rgba(22,163,74,0.3)",
             }}
           >
-            Activar alertas →
+            {t("service.maintenanceEnableAlertsButton")}
           </button>
         </div>
       </section>
@@ -1213,7 +1251,7 @@ export default function ServiceMaintenancePage({
             onClick={(event) => event.stopPropagation()}
             role="dialog"
             aria-modal="true"
-            aria-label="Detalle de cita"
+            aria-label={t("service.maintenanceAlertDetailAria")}
             style={{
               width: "min(560px, 100%)",
               borderRadius: 14,
@@ -1243,20 +1281,20 @@ export default function ServiceMaintenancePage({
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 10 }}>
               <div style={{ border: "1px solid #e2e8f0", borderRadius: 10, padding: "8px 10px" }}>
-                <div style={{ fontSize: 10, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>Fecha</div>
-                <div style={{ fontSize: 13, color: "#0f172a", fontWeight: 700, marginTop: 2 }}>{toEsDateTimeText(selectedAlert.date)}</div>
+                <div style={{ fontSize: 10, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>{t("service.maintenanceDateLabel")}</div>
+                <div style={{ fontSize: 13, color: "#0f172a", fontWeight: 700, marginTop: 2 }}>{toLocalizedDateTimeText(selectedAlert.date, locale)}</div>
               </div>
               <div style={{ border: "1px solid #e2e8f0", borderRadius: 10, padding: "8px 10px" }}>
-                <div style={{ fontSize: 10, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>Estado</div>
-                <div style={{ fontSize: 13, color: "#0f172a", fontWeight: 700, marginTop: 2 }}>{normalizeText(selectedAlert.status) || "Pendiente"}</div>
+                <div style={{ fontSize: 10, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>{t("service.maintenanceStatusLabel")}</div>
+                <div style={{ fontSize: 13, color: "#0f172a", fontWeight: 700, marginTop: 2 }}>{translateAlertStatus(selectedAlert?.status, t)}</div>
               </div>
             </div>
 
             {canEditSelectedAppointment ? (
               <div style={{ border: "1px solid #dbeafe", borderRadius: 10, background: "#f8fbff", padding: 10, display: "grid", gap: 10 }}>
-                <div style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>Gestion de cita</div>
+                <div style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>{t("service.maintenanceAppointmentManagement")}</div>
                 <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
-                  Nueva fecha y hora
+                  {t("service.maintenanceRescheduleLabel")}
                   <input
                     type="datetime-local"
                     value={rescheduleAt}
@@ -1281,7 +1319,7 @@ export default function ServiceMaintenancePage({
                       opacity: updatingAppointment || !rescheduleAt ? 0.7 : 1,
                     }}
                   >
-                    Reagendar cita
+                    {t("service.maintenanceRescheduleButton")}
                   </button>
                   <button
                     type="button"
@@ -1299,14 +1337,14 @@ export default function ServiceMaintenancePage({
                       opacity: updatingAppointment ? 0.7 : 1,
                     }}
                   >
-                    Cancelar cita
+                    {t("service.maintenanceCancelAppointmentButton")}
                   </button>
                 </div>
 
                 {showCancelConfirm ? (
                   <div style={{ border: "1px solid rgba(220,38,38,0.28)", background: "rgba(254,242,242,0.9)", borderRadius: 8, padding: "8px 9px", display: "grid", gap: 8 }}>
                     <div style={{ fontSize: 12, color: "#7f1d1d", fontWeight: 700 }}>
-                      ¿Confirmas la cancelacion de esta cita?
+                      {t("service.maintenanceCancelConfirmMessage")}
                     </div>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       <button
@@ -1315,7 +1353,7 @@ export default function ServiceMaintenancePage({
                         disabled={updatingAppointment}
                         style={{ border: "none", borderRadius: 8, background: "#b91c1c", color: "#fff", padding: "7px 11px", fontSize: 12, fontWeight: 700, cursor: updatingAppointment ? "not-allowed" : "pointer", opacity: updatingAppointment ? 0.7 : 1 }}
                       >
-                        Sí, cancelar
+                        {t("service.maintenanceConfirmCancelButton")}
                       </button>
                       <button
                         type="button"
@@ -1323,7 +1361,7 @@ export default function ServiceMaintenancePage({
                         disabled={updatingAppointment}
                         style={{ border: "1px solid #fecaca", borderRadius: 8, background: "#fff", color: "#7f1d1d", padding: "7px 11px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
                       >
-                        No, volver
+                        {t("service.maintenanceCancelBackButton")}
                       </button>
                     </div>
                   </div>
@@ -1332,7 +1370,7 @@ export default function ServiceMaintenancePage({
             ) : (
               <div style={{ border: "1px solid rgba(59,130,246,0.28)", borderRadius: 10, background: "rgba(239,246,255,0.8)", padding: 10, display: "grid", gap: 8 }}>
                 <div style={{ fontSize: 12, color: "#1e3a8a", fontWeight: 700 }}>
-                  {canScheduleSelectedAlert ? "Aun no tienes cita agendada para este aviso." : "Este aviso es informativo."}
+                  {canScheduleSelectedAlert ? t("service.maintenanceNoScheduledAppointmentMessage") : t("service.maintenanceInformativeAlertMessage")}
                 </div>
                 {canScheduleSelectedAlert ? (
                   <button
@@ -1350,27 +1388,27 @@ export default function ServiceMaintenancePage({
                       justifySelf: "start",
                     }}
                   >
-                    Agendar cita
+                    {t("service.maintenanceScheduleButton")}
                   </button>
                 ) : null}
               </div>
             )}
 
             <div style={{ border: "1px solid #e2e8f0", borderRadius: 10, background: "#f8fafc", padding: 10, display: "grid", gap: 8 }}>
-              <div style={{ fontSize: 12, color: "#334155", fontWeight: 700 }}>Historial de la cita</div>
+              <div style={{ fontSize: 12, color: "#334155", fontWeight: 700 }}>{t("service.maintenanceAppointmentHistory")}</div>
               {selectedAlertHistory.length ? (
                 <div style={{ display: "grid", gap: 6 }}>
                   {selectedAlertHistory.map((item, index) => (
                     <div key={`${item.changedAt}-${item.nextStatus}-${index}`} style={{ border: "1px solid #e2e8f0", borderRadius: 8, background: "#fff", padding: "7px 9px", display: "grid", gap: 2 }}>
                       <div style={{ fontSize: 12, color: "#0f172a", fontWeight: 700 }}>
-                        {item.previousStatus ? `${item.previousStatus} → ` : ""}{item.nextStatus || "Actualizacion"}
+                        {item.previousStatus ? `${item.previousStatus} → ` : ""}{item.nextStatus || t("service.maintenanceUpdateFallback")}
                       </div>
-                      <div style={{ fontSize: 11, color: "#64748b" }}>{item.changedAt || "Sin fecha"}</div>
+                      <div style={{ fontSize: 11, color: "#64748b" }}>{item.changedAt || t("service.maintenanceNoDate")}</div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div style={{ fontSize: 12, color: "#64748b" }}>Aun no hay cambios registrados en esta cita.</div>
+                <div style={{ fontSize: 12, color: "#64748b" }}>{t("service.maintenanceNoChangesRecorded")}</div>
               )}
             </div>
           </div>

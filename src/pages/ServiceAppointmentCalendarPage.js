@@ -222,7 +222,7 @@ export default function ServiceAppointmentCalendarPage({
     return () => {
       disposed = true;
     };
-  }, [workshopId, safeDraft?.provider, monthKey]);
+  }, [workshopId, safeDraft?.provider, monthKey, t]);
 
   const dayAvailability = useMemo(() => {
     const map = new Map();

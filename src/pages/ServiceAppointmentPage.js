@@ -81,13 +81,13 @@ function resolveRevisionIndex(revisionTypes = [], revisionTitle = "") {
     return -1;
   }
 
-  const exactIndex = revisionTypes.findIndex((item) => normalizeToken(item?.[0]) === target);
+  const exactIndex = revisionTypes.findIndex((item) => normalizeToken(item?.id) === target);
   if (exactIndex >= 0) {
     return exactIndex;
   }
 
   const partialIndex = revisionTypes.findIndex((item) => {
-    const label = normalizeToken(item?.[0]);
+    const label = normalizeToken(item?.id);
     return label && (target.includes(label) || label.includes(target));
   });
 
@@ -96,23 +96,23 @@ function resolveRevisionIndex(revisionTypes = [], revisionTitle = "") {
   }
 
   if (target.includes("itv") || target.includes("inspeccion")) {
-    return revisionTypes.findIndex((item) => normalizeToken(item?.[0]).includes("itv"));
+    return revisionTypes.findIndex((item) => normalizeToken(item?.id).includes("itv"));
   }
 
   if (target.includes("fren")) {
-    return revisionTypes.findIndex((item) => normalizeToken(item?.[0]).includes("freno"));
+    return revisionTypes.findIndex((item) => normalizeToken(item?.id).includes("freno"));
   }
 
   if (target.includes("neumatic") || target.includes("rueda") || target.includes("llanta")) {
-    return revisionTypes.findIndex((item) => normalizeToken(item?.[0]).includes("neumatic"));
+    return revisionTypes.findIndex((item) => normalizeToken(item?.id).includes("neumatic"));
   }
 
   if (target.includes("mayor") || target.includes("completa")) {
-    return revisionTypes.findIndex((item) => normalizeToken(item?.[0]).includes("mayor"));
+    return revisionTypes.findIndex((item) => normalizeToken(item?.id).includes("mayor"));
   }
 
   if (target.includes("aceite") || target.includes("filtro") || target.includes("menor")) {
-    return revisionTypes.findIndex((item) => normalizeToken(item?.[0]).includes("menor"));
+    return revisionTypes.findIndex((item) => normalizeToken(item?.id).includes("menor"));
   }
 
   return -1;
@@ -127,11 +127,11 @@ function resolveSpecificTypePrefill(sections = [], revisionTitle = "") {
   for (const section of sections) {
     const sectionItems = Array.isArray(section?.items) ? section.items : [];
     for (const item of sectionItems) {
-      const itemToken = normalizeToken(item);
+      const itemToken = normalizeToken(item?.id ?? item);
       if (itemToken && (target.includes(itemToken) || itemToken.includes(target))) {
         return {
           sectionTitle: normalizeText(section?.title),
-          itemLabel: item,
+          itemLabel: item?.id ?? item,
         };
       }
     }
@@ -287,121 +287,137 @@ function formatPriceTag(value, options = {}) {
 }
 
 const REVISION_TYPES = [
-  ["Revision menor", "Aceite + filtros"],
-  ["Revision mayor", "Completa de marca"],
-  ["Revision de frenos", "Pastillas y discos"],
-  ["Neumaticos", "Cambio o equilibrado"],
-  ["Revision ITV", "Pre-ITV incluida"],
+  { id: "Revision menor", nameKey: "service.revisionMinorName", subtitleKey: "service.revisionMinorSubtitle" },
+  { id: "Revision mayor", nameKey: "service.revisionMajorName", subtitleKey: "service.revisionMajorSubtitle" },
+  { id: "Revision de frenos", nameKey: "service.revisionBrakesName", subtitleKey: "service.revisionBrakesSubtitle" },
+  { id: "Neumaticos", nameKey: "service.revisionTiresName", subtitleKey: "service.revisionTiresSubtitle" },
+  { id: "Revision ITV", nameKey: "service.revisionITVName", subtitleKey: "service.revisionITVSubtitle" },
 ];
 
 const SPECIFIC_APPOINTMENT_SECTIONS = [
   {
     title: "🔧 1. Neumaticos",
+    titleKey: "service.specificSec1Title",
     items: [
-      "Cambio de neumaticos",
-      "Equilibrado",
-      "Alineacion",
-      "Reparacion de pinchazos",
-      "Permutacion de ruedas",
-      "Diagnostico de neumaticos",
+      { id: "Cambio de neumaticos", labelKey: "service.specificSec1Item1" },
+      { id: "Equilibrado", labelKey: "service.specificSec1Item2" },
+      { id: "Alineacion", labelKey: "service.specificSec1Item3" },
+      { id: "Reparacion de pinchazos", labelKey: "service.specificSec1Item4" },
+      { id: "Permutacion de ruedas", labelKey: "service.specificSec1Item5" },
+      { id: "Diagnostico de neumaticos", labelKey: "service.specificSec1Item6" },
     ],
   },
   {
     title: "🛠️ 2. Mecanica general y reparaciones",
+    titleKey: "service.specificSec2Title",
     items: [
-      "Frenos (pastillas, discos)",
-      "Suspension (amortiguadores, rotulas)",
-      "Direccion",
-      "Embrague",
-      "Transmision",
-      "Escapes",
-      "Correa de distribucion",
-      "Reparaciones generales",
+      { id: "Frenos (pastillas, discos)", labelKey: "service.specificSec2Item1" },
+      { id: "Suspension (amortiguadores, rotulas)", labelKey: "service.specificSec2Item2" },
+      { id: "Direccion", labelKey: "service.specificSec2Item3" },
+      { id: "Embrague", labelKey: "service.specificSec2Item4" },
+      { id: "Transmision", labelKey: "service.specificSec2Item5" },
+      { id: "Escapes", labelKey: "service.specificSec2Item6" },
+      { id: "Correa de distribucion", labelKey: "service.specificSec2Item7" },
+      { id: "Reparaciones generales", labelKey: "service.specificSec2Item8" },
     ],
     note: "En Midas entra dentro de mantenimiento y mecanica.",
+    noteKey: "service.specificSec2Note",
   },
   {
     title: "🛢️ 3. Mantenimiento y revisiones",
+    titleKey: "service.specificSec3Title",
     items: [
-      "Revision oficial (tipo fabricante)",
-      "Cambio de aceite",
-      "Cambio de filtros",
-      "Revision de niveles",
-      "AdBlue",
-      "Bateria",
+      { id: "Revision oficial (tipo fabricante)", labelKey: "service.specificSec3Item1" },
+      { id: "Cambio de aceite", labelKey: "service.specificSec3Item2" },
+      { id: "Cambio de filtros", labelKey: "service.specificSec3Item3" },
+      { id: "Revision de niveles", labelKey: "service.specificSec3Item4" },
+      { id: "AdBlue", labelKey: "service.specificSec3Item5" },
+      { id: "Bateria", labelKey: "service.specificSec3Item6" },
     ],
     note: "Midas lo agrupa como Revision y mantenimiento.",
+    noteKey: "service.specificSec3Note",
   },
   {
     title: "❄️ 4. Climatizacion / Aire acondicionado",
+    titleKey: "service.specificSec4Title",
     items: [
-      "Recarga de aire acondicionado",
-      "Deteccion de averias",
-      "Eliminacion de olores (tipo AirCare)",
+      { id: "Recarga de aire acondicionado", labelKey: "service.specificSec4Item1" },
+      { id: "Deteccion de averias", labelKey: "service.specificSec4Item2" },
+      { id: "Eliminacion de olores (tipo AirCare)", labelKey: "service.specificSec4Item3" },
     ],
   },
   {
     title: "🔍 5. Diagnostico",
+    titleKey: "service.specificSec5Title",
     items: [
-      "Diagnostico electronico",
-      "Diagnostico de bateria",
-      "Diagnostico de frenos",
-      "Diagnostico de amortiguadores",
-      "Diagnostico general del vehiculo",
+      { id: "Diagnostico electronico", labelKey: "service.specificSec5Item1" },
+      { id: "Diagnostico de bateria", labelKey: "service.specificSec5Item2" },
+      { id: "Diagnostico de frenos", labelKey: "service.specificSec5Item3" },
+      { id: "Diagnostico de amortiguadores", labelKey: "service.specificSec5Item4" },
+      { id: "Diagnostico general del vehiculo", labelKey: "service.specificSec5Item5" },
     ],
     note: "En Midas muchos son gratuitos con cita previa.",
+    noteKey: "service.specificSec5Note",
   },
   {
     title: "🚗 6. Pre-ITV e ITV",
+    titleKey: "service.specificSec6Title",
     items: [
-      "Revision Pre-ITV",
-      "Servicio de pasar ITV por ti",
+      { id: "Revision Pre-ITV", labelKey: "service.specificSec6Item1" },
+      { id: "Servicio de pasar ITV por ti", labelKey: "service.specificSec6Item2" },
     ],
     note: "Lo ofrecen ambos.",
+    noteKey: "service.specificSec6Note",
   },
   {
     title: "💡 7. Iluminacion y visibilidad",
+    titleKey: "service.specificSec7Title",
     items: [
-      "Cambio de bombillas",
-      "Reglaje de faros",
-      "Pulido de faros",
-      "Escobillas limpiaparabrisas",
+      { id: "Cambio de bombillas", labelKey: "service.specificSec7Item1" },
+      { id: "Reglaje de faros", labelKey: "service.specificSec7Item2" },
+      { id: "Pulido de faros", labelKey: "service.specificSec7Item3" },
+      { id: "Escobillas limpiaparabrisas", labelKey: "service.specificSec7Item4" },
     ],
   },
   {
     title: "🧼 8. Servicios especificos / especiales",
+    titleKey: "service.specificSec8Title",
     items: [
-      "Descarbonizacion / limpieza de motor (MotorCare en Midas)",
-      "Desinfeccion del habitaculo",
-      "Eliminacion de olores",
+      { id: "Descarbonizacion / limpieza de motor (MotorCare en Midas)", labelKey: "service.specificSec8Item1" },
+      { id: "Desinfeccion del habitaculo", labelKey: "service.specificSec8Item2" },
+      { id: "Eliminacion de olores", labelKey: "service.specificSec8Item3" },
     ],
   },
   {
     title: "🔩 9. Instalacion de accesorios",
+    titleKey: "service.specificSec9Title",
     items: [
-      "Matriculas",
-      "Accesorios y equipamiento",
-      "Multimedia / radio",
-      "Enganches",
+      { id: "Matriculas", labelKey: "service.specificSec9Item1" },
+      { id: "Accesorios y equipamiento", labelKey: "service.specificSec9Item2" },
+      { id: "Multimedia / radio", labelKey: "service.specificSec9Item3" },
+      { id: "Enganches", labelKey: "service.specificSec9Item4" },
     ],
   },
   {
     title: "🏍️ 10. Moto",
+    titleKey: "service.specificSec10Title",
     items: [
-      "Mantenimiento de moto",
-      "Neumaticos moto",
-      "Frenos moto",
-      "Bateria moto",
-      "Suspension y transmision moto",
+      { id: "Mantenimiento de moto", labelKey: "service.specificSec10Item1" },
+      { id: "Neumaticos moto", labelKey: "service.specificSec10Item2" },
+      { id: "Frenos moto", labelKey: "service.specificSec10Item3" },
+      { id: "Bateria moto", labelKey: "service.specificSec10Item4" },
+      { id: "Suspension y transmision moto", labelKey: "service.specificSec10Item5" },
     ],
     note: "Extra que destaca en Midas.",
+    noteKey: "service.specificSec10Note",
   },
   {
     title: "🚚 11. Servicios adicionales",
+    titleKey: "service.specificSec11Title",
     items: [
-      "Recogida y entrega del vehiculo",
-      "Servicio a domicilio (algunas operaciones)",
-      "Servicios para flotas/empresas",
+      { id: "Recogida y entrega del vehiculo", labelKey: "service.specificSec11Item1" },
+      { id: "Servicio a domicilio (algunas operaciones)", labelKey: "service.specificSec11Item2" },
+      { id: "Servicios para flotas/empresas", labelKey: "service.specificSec11Item3" },
     ],
   },
 ];
@@ -611,10 +627,10 @@ export default function ServiceAppointmentPage({
     return () => {
       disposed = true;
     };
-  }, [hasLocationContext, postalCode, province]);
+  }, [hasLocationContext, postalCode, province, t]);
 
   const canChooseRevision = hasAnyVehicles && Boolean(vehicleId) && hasLocationContext;
-  const selectedPopularRevisionName = selectedRevision >= 0 ? REVISION_TYPES[selectedRevision][0] : "";
+  const selectedPopularRevisionName = selectedRevision >= 0 ? REVISION_TYPES[selectedRevision].id : "";
   const selectedAppointmentTypeName = selectedSpecificType || selectedPopularRevisionName;
   const hasSelectedProvider = Boolean(normalizeText(selectedProvider));
   const canContinueBooking = canChooseRevision && Boolean(selectedAppointmentTypeName) && hasSelectedProvider;
@@ -870,7 +886,7 @@ export default function ServiceAppointmentPage({
           <div style={{ display: "grid", gap: 8 }}>
                 {REVISION_TYPES.map((item, idx) => (
               <button
-                key={item[0]}
+                key={item.id}
                 type="button"
                 onClick={() => {
                   setSelectedRevision(idx);
@@ -888,8 +904,8 @@ export default function ServiceAppointmentPage({
                   opacity: canChooseRevision ? 1 : 0.75,
                 }}
               >
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#3b3b3b" }}>{item[0]}</div>
-                <div style={{ fontSize: 12, color: "#9a9a9a" }}>{item[1]}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#3b3b3b" }}>{t(item.nameKey)}</div>
+                <div style={{ fontSize: 12, color: "#9a9a9a" }}>{t(item.subtitleKey)}</div>
               </button>
             ))}
           </div>
@@ -949,7 +965,7 @@ export default function ServiceAppointmentPage({
                   >
                     <option value="">{t("service.appointmentSpecificSectionPlaceholder")}</option>
                     {SPECIFIC_APPOINTMENT_SECTIONS.map((section) => (
-                      <option key={section.title} value={section.title}>{section.title}</option>
+                      <option key={section.title} value={section.title}>{t(section.titleKey)}</option>
                     ))}
                   </select>
                 </div>
@@ -978,14 +994,14 @@ export default function ServiceAppointmentPage({
                       >
                         <option value="">{t("service.appointmentSpecificTypePlaceholder")}</option>
                         {specificTypeOptions.map((item) => (
-                          <option key={`${selectedSpecificSection}-${item}`} value={item}>{item}</option>
+                          <option key={`${selectedSpecificSection}-${item.id}`} value={item.id}>{t(item.labelKey)}</option>
                         ))}
                       </select>
                     </div>
 
-                    {selectedSpecificSectionModel.note ? (
+                    {selectedSpecificSectionModel.noteKey ? (
                       <div style={{ fontSize: 11, color: "#6d28d9", fontWeight: 700 }}>
-                        👉 {selectedSpecificSectionModel.note}
+                        👉 {t(selectedSpecificSectionModel.noteKey)}
                       </div>
                     ) : null}
                   </>

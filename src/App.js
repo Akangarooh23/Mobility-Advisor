@@ -440,6 +440,195 @@ const LEGAL_DOCUMENTS = {
   },
 };
 
+const LEGAL_DOCUMENTS_EN = {
+  legalNotice: {
+    title: "Legal Notice",
+    summary:
+      "General information on ownership, scope of service, intellectual property and responsibilities for use of the platform.",
+    updatedAt: "13/04/2026",
+    sections: [
+      {
+        heading: "Identifying information",
+        paragraphs: [
+          "CarsWise is a digital platform focused on mobility advisory and operations in Spain.",
+          "For general contact, support and incident management you can reach us at soporte@carswise.es.",
+        ],
+      },
+      {
+        heading: "Purpose of the website",
+        paragraphs: [
+          "This site provides recommendation, comparison and mobility service management tools, as well as support features for registered users.",
+          "The information displayed is informational and decision-support in nature and does not constitute binding financial, legal or tax advice.",
+        ],
+      },
+      {
+        heading: "Permitted use and prohibitions",
+        bullets: [
+          "The user agrees to use the platform in accordance with the law, good faith and public order.",
+          "Fraudulent use, unauthorised automated data extraction and any attempt to alter the functioning of the service are prohibited.",
+          "CarsWise may update, improve or withdraw features to maintain security, performance and quality of service.",
+        ],
+      },
+      {
+        heading: "Intellectual property",
+        paragraphs: [
+          "The CarsWise brand, the platform design, its functional architecture, content, code and graphic elements are owned by their owners or licensors.",
+          "Their reproduction, distribution or transformation without express authorisation is not permitted except where legally allowed.",
+        ],
+      },
+      {
+        heading: "Liability",
+        paragraphs: [
+          "CarsWise does not guarantee permanent and uninterrupted availability of the service, although it applies reasonable measures to maintain continuity.",
+          "Final contracting or buying/selling decisions rest with the user and, where applicable, the third-party provider with whom they formalise the transaction.",
+        ],
+      },
+    ],
+  },
+  privacyPolicy: {
+    title: "Privacy Policy",
+    summary:
+      "Information on personal data processing in accordance with the GDPR (EU 2016/679) and applicable data protection legislation.",
+    updatedAt: "13/04/2026",
+    sections: [
+      {
+        heading: "Categories of data processed",
+        bullets: [
+          "Identification and account data: name, email address, user and session identifiers.",
+          "Usage and browsing data: interactions with the advisor, preferences, filters, activity and functional events.",
+          "Operational data provided voluntarily: service requests, alerts, contact details and data associated with transactions within the platform.",
+        ],
+      },
+      {
+        heading: "Purposes of processing",
+        bullets: [
+          "Manage registration, authentication and maintenance of user accounts.",
+          "Provide recommendation, comparison and mobility management features.",
+          "Maintain security, prevent abuse and optimise service performance.",
+          "Send operational communications essential for service delivery.",
+        ],
+      },
+      {
+        heading: "Legal bases",
+        bullets: [
+          "Performance of the contractual or pre-contractual relationship when the user requests platform features.",
+          "Compliance with applicable legal obligations.",
+          "Legitimate interest in security, service continuity and platform improvement.",
+          "Consent where required for certain purposes (e.g., certain cookies or communications).",
+        ],
+      },
+      {
+        heading: "Data retention",
+        paragraphs: [
+          "Data is retained for as long as necessary to fulfil the purpose for which it was collected and, subsequently, for the legally required periods.",
+          "Where applicable, data will be blocked and processed exclusively to address potential legal liabilities.",
+        ],
+      },
+      {
+        heading: "Recipients and transfers",
+        paragraphs: [
+          "Data is generally not shared with third parties unless required by law or necessary for the provision of technology services linked to the platform.",
+          "Where providers are located outside the European Economic Area, appropriate safeguards in accordance with the GDPR will be applied.",
+        ],
+      },
+      {
+        heading: "User rights",
+        paragraphs: [
+          "You can exercise your rights of access, rectification, erasure, objection, restriction of processing and portability by writing to soporte@carswise.es.",
+          "If you consider that your rights have not been properly addressed, you can lodge a complaint with the Spanish Data Protection Agency (AEPD).",
+        ],
+      },
+    ],
+  },
+  cookiePolicy: {
+    title: "Cookie Policy",
+    summary:
+      "Information on the use of cookies and similar technologies, their purpose and how to manage consent.",
+    updatedAt: "13/04/2026",
+    sections: [
+      {
+        heading: "What are cookies",
+        paragraphs: [
+          "Cookies are files stored on the user's device that allow browsing to be recognised, preferences to be remembered and the experience to be improved.",
+        ],
+      },
+      {
+        heading: "Types of cookies used",
+        bullets: [
+          "Technical or necessary cookies: essential for access, authentication and basic service operation.",
+          "Preference cookies: preserve the user's settings and choices to personalise the experience.",
+          "Analytical cookies: allow the use of the service to be evaluated and features to be improved.",
+        ],
+      },
+      {
+        heading: "Legal basis and consent",
+        paragraphs: [
+          "Necessary cookies are used to ensure the functioning of the platform. Others are managed in accordance with user consent where required.",
+          "On first access, acceptance is requested to enable the full experience and record the consent preference.",
+        ],
+      },
+      {
+        heading: "How to withdraw or modify consent",
+        paragraphs: [
+          "You can modify cookie settings from your browser settings and, where applicable, from mechanisms enabled by the platform.",
+          "Disabling certain cookies may affect the availability of some features.",
+        ],
+      },
+    ],
+  },
+  termsConditions: {
+    title: "Terms and Conditions",
+    summary:
+      "General conditions of use of the service, obligations of the parties and limits of liability.",
+    updatedAt: "13/04/2026",
+    sections: [
+      {
+        heading: "Acceptance of terms",
+        paragraphs: [
+          "Access to and use of CarsWise implies acceptance of these terms and conditions.",
+          "If you do not agree with the terms, you must refrain from using the platform.",
+        ],
+      },
+      {
+        heading: "Scope and nature of the service",
+        paragraphs: [
+          "CarsWise provides recommendations and support tools for mobility, buying, selling and associated service decisions.",
+          "The platform does not replace the contractual or technical review that the user must carry out before closing transactions with third parties.",
+        ],
+      },
+      {
+        heading: "User account and security",
+        bullets: [
+          "The user is responsible for keeping their credentials safe and for all activity carried out on their account.",
+          "Any unauthorised use or security incident must be reported as soon as it is detected.",
+        ],
+      },
+      {
+        heading: "Usage obligations",
+        bullets: [
+          "Use the service in a lawful, diligent manner and in accordance with these terms.",
+          "Do not manipulate, interfere with or take actions that compromise the security, stability or integrity of the system.",
+          "Do not use the service for unlawful purposes or purposes contrary to the rights of third parties.",
+        ],
+      },
+      {
+        heading: "Limitation of liability",
+        paragraphs: [
+          "CarsWise does not guarantee specific financial results and accepts no liability for final decisions made by the user.",
+          "Contractual relationships with third-party providers are the direct responsibility of the parties involved.",
+        ],
+      },
+      {
+        heading: "Amendments and validity",
+        paragraphs: [
+          "CarsWise may update these terms to adapt them to regulatory, technical or service changes.",
+          "The current version will always be available in the legal section of the platform.",
+        ],
+      },
+    ],
+  },
+};
+
 const SEO_STATIC_PAGES = {
   aboutCarswise: {
     badge: "Sobre CarsWise",
@@ -843,6 +1032,7 @@ export default function App() {
   const [uiLanguage, setUiLanguage] = useState(() => {
     return normalizeUiLanguage();
   });
+  const activeLegalDocs = uiLanguage === "en" ? LEGAL_DOCUMENTS_EN : LEGAL_DOCUMENTS;
   const [cookiePreferences, setCookiePreferences] = useState({
     necessary: true,
     analytics: true,
@@ -1053,7 +1243,7 @@ export default function App() {
   }, [openPublicPage]);
 
   const openBlogPost = useCallback((slug = "") => {
-    const post = getBlogPostBySlug(slug);
+    const post = getBlogPostBySlug(slug, uiLanguage);
     if (!post) {
       return;
     }
@@ -1062,7 +1252,7 @@ export default function App() {
       ? "blogCompraUsado"
       : "blogRentingCompra";
     openPublicPage(nextEntryMode);
-  }, [openPublicPage]);
+  }, [openPublicPage, uiLanguage]);
 
   const { saveCookieConsent } = useAppPreferences({
     themeStorageKey: THEME_STORAGE_KEY,
@@ -2960,15 +3150,15 @@ export default function App() {
   const completionPct = Math.min(100, Math.round((answeredSteps / totalSteps) * 100));
   const selectedBlogArticle = useMemo(() => {
     if (entryMode === "blogCompraUsado") {
-      return getBlogPostBySlug("guia-compra-coche-segunda-mano-espana");
+      return getBlogPostBySlug("guia-compra-coche-segunda-mano-espana", uiLanguage);
     }
 
     if (entryMode === "blogRentingCompra") {
-      return getBlogPostBySlug("renting-vs-compra-2026-que-conviene-segun-tu-uso");
+      return getBlogPostBySlug("renting-vs-compra-2026-que-conviene-segun-tu-uso", uiLanguage);
     }
 
     return null;
-  }, [entryMode]);
+  }, [entryMode, uiLanguage]);
   const structuredDataSchemas = useMemo(() => {
     if (!entryMode) {
       return [
@@ -3055,7 +3245,7 @@ export default function App() {
     (
       (step >= 0 && step < totalSteps) ||
       (step === 99 && loading) ||
-      Boolean(result && !LEGAL_DOCUMENTS[entryMode])
+      Boolean(result && !activeLegalDocs[entryMode])
     );
 
   // -------------------- STYLES --------------------
@@ -4921,13 +5111,13 @@ export default function App() {
         />
       )}
 
-      {step === -1 && LEGAL_DOCUMENTS[entryMode] && (
+      {step === -1 && activeLegalDocs[entryMode] && (
         <LegalPolicyPage
           styles={s}
-          title={LEGAL_DOCUMENTS[entryMode].title}
-          summary={LEGAL_DOCUMENTS[entryMode].summary}
-          updatedAt={LEGAL_DOCUMENTS[entryMode].updatedAt}
-          sections={LEGAL_DOCUMENTS[entryMode].sections}
+          title={activeLegalDocs[entryMode].title}
+          summary={activeLegalDocs[entryMode].summary}
+          updatedAt={activeLegalDocs[entryMode].updatedAt}
+          sections={activeLegalDocs[entryMode].sections}
           onGoBack={restart}
           onGoHome={restart}
         />
@@ -5224,7 +5414,7 @@ export default function App() {
       )}
 
       {/* -- RESULT -- */}
-      {result && !LEGAL_DOCUMENTS[entryMode] && !(step === -1 && entryMode === "vehicleDetail" && vehicleDetailOffer) && (
+      {result && !activeLegalDocs[entryMode] && !(step === -1 && entryMode === "vehicleDetail" && vehicleDetailOffer) && (
         <AdviceResultsPage
           result={result}
           resultRef={resultRef}

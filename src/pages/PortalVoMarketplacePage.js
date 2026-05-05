@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 export default function PortalVoMarketplacePage({
   themeMode,
   styles,
@@ -15,6 +17,7 @@ export default function PortalVoMarketplacePage({
   onGoHome,
 }) {
   const isDark = themeMode === "dark";
+  const { t } = useTranslation();
   const titleColor = isDark ? "#f1f5f9" : "#0f172a";
   const bodyColor = isDark ? "#94a3b8" : "#475569";
   const cardBg = isDark ? "rgba(15,23,42,0.34)" : "rgba(255,255,255,0.96)";
@@ -22,7 +25,7 @@ export default function PortalVoMarketplacePage({
 
   return (
     <div style={styles.center}>
-      <div style={{ ...styles.blockBadge("Vinculación"), marginBottom: 10 }}>🏪 MARKETPLACE VO DEL PORTAL</div>
+      <div style={{ ...styles.blockBadge("Vinculación"), marginBottom: 10 }}>{t("marketplace.badge")}</div>
       <h2
         style={{
           fontSize: "clamp(22px,4vw,30px)",
@@ -32,11 +35,10 @@ export default function PortalVoMarketplacePage({
           color: titleColor,
         }}
       >
-        Ofertas VO únicas de nuestro portal
+        {t("marketplace.title")}
       </h2>
       <p style={{ color: bodyColor, fontSize: 14, lineHeight: 1.7, margin: "0 0 16px" }}>
-        Aquí ves un escaparate con vehículos publicados por usuarios del portal. Arriba priorizamos
-        las unidades con mejor puntuación y <strong>sello de garantía CarsWise</strong>.
+        {t("marketplace.subtitle")}
       </p>
 
       <div style={{ display: "flex", justifyContent: "flex-end", margin: "0 0 20px" }}>
@@ -55,19 +57,19 @@ export default function PortalVoMarketplacePage({
             boxShadow: "0 10px 24px rgba(37,99,235,0.18)",
           }}
         >
-          ⌂ Volver al home
+          {t("marketplace.backHome")}
         </button>
       </div>
 
       <div style={{ ...styles.panel, marginBottom: 18 }}>
         <div style={{ fontSize: 11, color: "#60a5fa", marginBottom: 10, letterSpacing: "0.6px" }}>
-          FILTROS DEL MARKETPLACE
+          {t("marketplace.filtersLabel")}
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12 }}>
           <input
             value={portalVoFilters.query}
             onChange={(event) => updatePortalVoFilter("query", event.target.value)}
-            placeholder="Marca, modelo o versión"
+            placeholder={t("marketplace.filterQuery")}
             style={styles.input}
           />
           <select
@@ -75,19 +77,19 @@ export default function PortalVoMarketplacePage({
             onChange={(event) => updatePortalVoFilter("maxPrice", event.target.value)}
             style={styles.select}
           >
-            <option value="">Precio máximo</option>
-            <option value="15000">Hasta 15.000 €</option>
-            <option value="20000">Hasta 20.000 €</option>
-            <option value="25000">Hasta 25.000 €</option>
-            <option value="30000">Hasta 30.000 €</option>
-            <option value="40000">Hasta 40.000 €</option>
+            <option value="">{t("marketplace.filterMaxPrice")}</option>
+            <option value="15000">{t("marketplace.filterMaxPrice15")}</option>
+            <option value="20000">{t("marketplace.filterMaxPrice20")}</option>
+            <option value="25000">{t("marketplace.filterMaxPrice25")}</option>
+            <option value="30000">{t("marketplace.filterMaxPrice30")}</option>
+            <option value="40000">{t("marketplace.filterMaxPrice40")}</option>
           </select>
           <select
             value={portalVoFilters.minYear}
             onChange={(event) => updatePortalVoFilter("minYear", event.target.value)}
             style={styles.select}
           >
-            <option value="">Año mínimo</option>
+            <option value="">{t("marketplace.filterMinYear")}</option>
             {[2024, 2023, 2022, 2021, 2020, 2019].map((year) => (
               <option key={year} value={year}>{year}</option>
             ))}
@@ -97,19 +99,19 @@ export default function PortalVoMarketplacePage({
             onChange={(event) => updatePortalVoFilter("maxMileage", event.target.value)}
             style={styles.select}
           >
-            <option value="">Kilometraje máximo</option>
-            <option value="20000">Hasta 20.000 km</option>
-            <option value="40000">Hasta 40.000 km</option>
-            <option value="60000">Hasta 60.000 km</option>
-            <option value="80000">Hasta 80.000 km</option>
-            <option value="120000">Hasta 120.000 km</option>
+            <option value="">{t("marketplace.filterMaxMileage")}</option>
+            <option value="20000">{t("marketplace.filterMaxMileage20")}</option>
+            <option value="40000">{t("marketplace.filterMaxMileage40")}</option>
+            <option value="60000">{t("marketplace.filterMaxMileage60")}</option>
+            <option value="80000">{t("marketplace.filterMaxMileage80")}</option>
+            <option value="120000">{t("marketplace.filterMaxMileage120")}</option>
           </select>
           <select
             value={portalVoFilters.location}
             onChange={(event) => updatePortalVoFilter("location", event.target.value)}
             style={styles.select}
           >
-            <option value="">Ubicación</option>
+            <option value="">{t("marketplace.filterLocation")}</option>
             {portalVoLocations.map((location) => (
               <option key={location} value={location}>{location}</option>
             ))}
@@ -119,7 +121,7 @@ export default function PortalVoMarketplacePage({
             onChange={(event) => updatePortalVoFilter("color", event.target.value)}
             style={styles.select}
           >
-            <option value="">Color</option>
+            <option value="">{t("marketplace.filterColor")}</option>
             {portalVoColors.map((color) => (
               <option key={color} value={color}>{color}</option>
             ))}
@@ -129,12 +131,12 @@ export default function PortalVoMarketplacePage({
             onChange={(event) => updatePortalVoFilter("displacement", event.target.value)}
             style={styles.select}
           >
-            <option value="">Cilindrada</option>
-            <option value="electric">Eléctrico / sin cilindrada</option>
-            <option value="0_1200">Hasta 1.200 cc</option>
-            <option value="1200_1600">1.200 - 1.600 cc</option>
-            <option value="1600_2000">1.600 - 2.000 cc</option>
-            <option value="2000_plus">Más de 2.000 cc</option>
+            <option value="">{t("marketplace.filterDisplacement")}</option>
+            <option value="electric">{t("marketplace.filterDisplacementElectric")}</option>
+            <option value="0_1200">{t("marketplace.filterDisplacement0_1200")}</option>
+            <option value="1200_1600">{t("marketplace.filterDisplacement1200_1600")}</option>
+            <option value="1600_2000">{t("marketplace.filterDisplacement1600_2000")}</option>
+            <option value="2000_plus">{t("marketplace.filterDisplacement2000plus")}</option>
           </select>
         </div>
 
@@ -145,7 +147,7 @@ export default function PortalVoMarketplacePage({
               checked={portalVoFilters.onlyGuaranteed}
               onChange={(event) => updatePortalVoFilter("onlyGuaranteed", event.target.checked)}
             />
-            Solo con sello de garantía
+            {t("marketplace.filterOnlyGuaranteed")}
           </label>
           <button
             type="button"
@@ -160,14 +162,14 @@ export default function PortalVoMarketplacePage({
               cursor: "pointer",
             }}
           >
-            Limpiar filtros
+            {t("marketplace.filterReset")}
           </button>
         </div>
       </div>
 
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 10, color: isDark ? "#6ee7b7" : "#059669", marginBottom: 8, fontWeight: 800, letterSpacing: "0.6px" }}>
-          ⭐ MEJOR PUNTUADOS CON SELLO CARSWISE
+          {t("marketplace.featuredLabel")}
         </div>
         {featuredPortalVoOffers.length > 0 ? (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 12 }}>
@@ -175,7 +177,7 @@ export default function PortalVoMarketplacePage({
               <div
                 key={offer.id}
                 onClick={() => onOpenOffer(offer)}
-                title="Ver ficha completa"
+                title={t("marketplace.seeFullCard")}
                 style={{
                   position: "relative",
                   background: isDark
@@ -213,8 +215,8 @@ export default function PortalVoMarketplacePage({
                     <div style={{ fontSize: 12, fontWeight: 800, color: isDark ? "#6ee7b7" : "#059669" }}>{offer.portalScore}/100</div>
                   </div>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
-                    <span style={getOfferBadgeStyle("success")}>Sello de garantía</span>
-                    <span style={getOfferBadgeStyle("info")}>{offer.warrantyMonths} meses</span>
+                    <span style={getOfferBadgeStyle("success")}>{t("marketplace.guaranteeSeal")}</span>
+                    <span style={getOfferBadgeStyle("info")}>{t("marketplace.warrantyMonths", { months: offer.warrantyMonths })}</span>
                   </div>
                   <div style={{ fontSize: 22, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 6 }}>
                     {formatCurrency(offer.price)}
@@ -223,23 +225,23 @@ export default function PortalVoMarketplacePage({
                     {offer.year} · {Number(offer.mileage).toLocaleString("es-ES")} km · {offer.location}
                   </div>
                   <p style={{ margin: "8px 0 0", fontSize: 12, color: isDark ? "#dbeafe" : "#334155", lineHeight: 1.6 }}>
-                    {offer.description}
+                    {t("marketplace.offerAvailableIn", { title: offer.title, location: offer.location })}
                   </p>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div style={styles.panel}>No hay vehículos con sello para esos filtros ahora mismo.</div>
+          <div style={styles.panel}>{t("marketplace.noFeatured")}</div>
         )}
       </div>
 
       <div style={{ marginBottom: 20 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 10 }}>
           <div style={{ fontSize: 10, color: "#93c5fd", fontWeight: 800, letterSpacing: "0.6px" }}>
-            🚗 TODAS LAS OFERTAS DEL PORTAL
+            {t("marketplace.allOffersLabel")}
           </div>
-          <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569" }}>{filteredPortalVoOffers.length} resultados</div>
+          <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569" }}>{t("marketplace.resultsCount", { count: filteredPortalVoOffers.length })}</div>
         </div>
 
         {filteredPortalVoOffers.length > 0 ? (
@@ -248,7 +250,7 @@ export default function PortalVoMarketplacePage({
               <div
                 key={offer.id}
                 onClick={() => onOpenOffer(offer)}
-                title="Ver ficha completa"
+                title={t("marketplace.seeFullCard")}
                 style={{
                   background: cardBg,
                   border: cardBorder,
@@ -269,7 +271,7 @@ export default function PortalVoMarketplacePage({
                   </div>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
                     <span style={getOfferBadgeStyle(offer.hasGuaranteeSeal ? "success" : "neutral")}>
-                      {offer.hasGuaranteeSeal ? "Garantía portal" : "Publicado por usuario"}
+                      {offer.hasGuaranteeSeal ? t("marketplace.guaranteePortal") : t("marketplace.postedByUser")}
                     </span>
                     <span style={getOfferBadgeStyle("info")}>{offer.color}</span>
                     <span style={getOfferBadgeStyle("info")}>{offer.displacement > 0 ? `${offer.displacement.toLocaleString("es-ES")} cc` : "EV"}</span>
@@ -278,10 +280,10 @@ export default function PortalVoMarketplacePage({
                     {offer.year} · {Number(offer.mileage).toLocaleString("es-ES")} km · {offer.location}
                   </div>
                   <div style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#64748b", lineHeight: 1.6, marginTop: 4 }}>
-                    {offer.fuel} · {offer.power} · vendedor: {offer.seller}
+                    {offer.fuel} · {offer.power} · {t("marketplace.sellerLabel", { seller: offer.seller })}
                   </div>
                   <p style={{ margin: "8px 0 0", fontSize: 12, color: isDark ? "#e2e8f0" : "#334155", lineHeight: 1.6 }}>
-                    {offer.description}
+                    {t("marketplace.offerAvailableIn", { title: offer.title, location: offer.location })}
                   </p>
                 </div>
               </div>
@@ -289,7 +291,7 @@ export default function PortalVoMarketplacePage({
           </div>
         ) : (
           <div style={styles.panel}>
-            No hemos encontrado resultados con esos filtros. Prueba a ampliar precio, kilometraje o ubicación.
+            {t("marketplace.noResults")}
           </div>
         )}
       </div>
@@ -307,7 +309,7 @@ export default function PortalVoMarketplacePage({
             cursor: "pointer",
           }}
         >
-          Volver al inicio
+          {t("marketplace.backHomeBottom")}
         </button>
       </div>
     </div>

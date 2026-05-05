@@ -1,4 +1,7 @@
+import { useTranslation } from "react-i18next";
+
 export default function BlogArticlePage({ styles, article, onGoBlog, onGoHome }) {
+  const { t } = useTranslation();
   if (!article) {
     return null;
   }
@@ -20,7 +23,7 @@ export default function BlogArticlePage({ styles, article, onGoBlog, onGoHome })
             cursor: "pointer",
           }}
         >
-          Volver al blog
+          {t("blog.goBack")}
         </button>
         <button
           type="button"
@@ -36,7 +39,7 @@ export default function BlogArticlePage({ styles, article, onGoBlog, onGoHome })
             cursor: "pointer",
           }}
         >
-          Ir al inicio
+          {t("blog.goToHome")}
         </button>
       </div>
 

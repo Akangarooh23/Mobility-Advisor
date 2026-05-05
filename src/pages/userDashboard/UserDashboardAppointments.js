@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 export default function UserDashboardAppointments({
   themeMode,
   dashboardAppointments,
@@ -27,26 +29,28 @@ export default function UserDashboardAppointments({
     };
   };
 
+  const { t } = useTranslation();
+
   const isDark = themeMode === "dark";
   const cardBg = isDark
     ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
     : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))";
 
   const appointmentActions = [
-    { key: "workshop", label: "🛠️ Taller" },
-    { key: "maintenance", label: "🔧 Mantenimiento" },
-    { key: "insurance", label: "🛡️ Seguro" },
-    { key: "certification", label: "✅ Garantía / calidad" },
+    { key: "workshop", label: t("dashboard.apptWorkshop") },
+    { key: "maintenance", label: t("dashboard.apptMaintenance") },
+    { key: "insurance", label: t("dashboard.apptInsurance") },
+    { key: "certification", label: t("dashboard.apptCertification") },
   ];
 
   return (
     <section id="user-dashboard-appointments" style={{ ...panelStyle, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
-          <div style={{ fontSize: 11, color: "#fbbf24", letterSpacing: "0.6px" }}>CITAS Y GESTIONES</div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>Tu agenda de taller y mantenimiento</div>
+          <div style={{ fontSize: 11, color: "#fbbf24", letterSpacing: "0.6px" }}>{t("dashboard.apptSectionLabel")}</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>{t("dashboard.apptTitle")}</div>
         </div>
-        <span style={{ ...getOfferBadgeStyle("amber"), fontSize: 11 }}>{dashboardAppointments.length} activas</span>
+        <span style={{ ...getOfferBadgeStyle("amber"), fontSize: 11 }}>{t("dashboard.apptActive", { count: dashboardAppointments.length })}</span>
       </div>
 
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
@@ -90,12 +94,12 @@ export default function UserDashboardAppointments({
                 <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569", marginTop: 3 }}>{parsed.summary}</div>
                 {parsed.details ? (
                   <div style={{ fontSize: 11, color: isDark ? "#93c5fd" : "#1d4ed8", marginTop: 4, fontWeight: 700 }}>
-                    Taller · {parsed.details}
+                    {t("dashboard.apptWorkshopMeta")}{parsed.details}
                   </div>
                 ) : null}
                 {parsed.address ? (
                   <div style={{ fontSize: 11, color: isDark ? "#cbd5e1" : "#334155", marginTop: 2 }}>
-                    Dirección · {parsed.address}
+                    {t("dashboard.apptAddressMeta")}{parsed.address}
                   </div>
                 ) : null}
                 <div style={{ fontSize: 11, color: "#b45309", marginTop: 3 }}>
@@ -108,7 +112,7 @@ export default function UserDashboardAppointments({
         </div>
       ) : (
         <div style={{ fontSize: 12, color: "#94a3b8" }}>
-          Aún no tienes citas programadas. Cuando reserves una, se verá aquí.
+          {t("dashboard.apptEmpty")}
         </div>
       )}
     </section>

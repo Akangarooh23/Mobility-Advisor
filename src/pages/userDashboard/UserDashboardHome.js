@@ -1,10 +1,14 @@
-function buildActivityLog(pendingAlertNotifications, counts) {
+import { useTranslation } from "react-i18next";
+
+function buildActivityLog(pendingAlertNotifications, counts, t) {
   const log = [];
   pendingAlertNotifications.forEach((n) => {
     log.push({
       id: `alert-${n.id}`,
       icon: "🔔",
-      label: `Alerta activada: ${n.title || "Nuevo vehículo que cumple criterios"}`,
+      label: t("dashboard.homeActivityAlertLabel", {
+        title: n.title || t("dashboard.homeActivityAlertDefault"),
+      }),
       detail: n.summary || "",
       section: "alerts",
       type: "alert",
@@ -14,8 +18,8 @@ function buildActivityLog(pendingAlertNotifications, counts) {
     log.push({
       id: "act-garage",
       icon: "🚗",
-      label: `${counts.vehicles} vehículo${counts.vehicles > 1 ? "s" : ""} en tu garaje`,
-      detail: "Gestiona tu flota personal",
+      label: t("dashboard.homeActivityGarageLabel", { count: counts.vehicles }),
+      detail: t("dashboard.homeActivityGarageDetail"),
       section: "vehicles",
       type: "garage",
     });
@@ -24,8 +28,8 @@ function buildActivityLog(pendingAlertNotifications, counts) {
     log.push({
       id: "act-val",
       icon: "📋",
-      label: `${counts.valuations} valoración${counts.valuations > 1 ? "es" : ""} guardada${counts.valuations > 1 ? "s" : ""}`,
-      detail: "Ver informes de tasación",
+      label: t("dashboard.homeActivityValuationLabel", { count: counts.valuations }),
+      detail: t("dashboard.homeActivityValuationDetail"),
       section: "valuations",
       type: "valuation",
     });
@@ -34,8 +38,8 @@ function buildActivityLog(pendingAlertNotifications, counts) {
     log.push({
       id: "act-saved",
       icon: "📌",
-      label: `${counts.saved} alerta${counts.saved > 1 ? "s" : ""} de mercado activa${counts.saved > 1 ? "s" : ""}`,
-      detail: "Vigilando el mercado por ti",
+      label: t("dashboard.homeActivitySavedLabel", { count: counts.saved }),
+      detail: t("dashboard.homeActivitySavedDetail"),
       section: "saved",
       type: "saved",
     });
@@ -44,7 +48,8 @@ function buildActivityLog(pendingAlertNotifications, counts) {
 }
 
 function ActivityLog({ isDark, isMobile, panelStyle, cardBg, cardBorder, titleText, mutedText, pendingAlertNotifications, counts, onNavigate }) {
-  const entries = buildActivityLog(pendingAlertNotifications, counts);
+  const { t } = useTranslation();
+  const entries = buildActivityLog(pendingAlertNotifications, counts, t);
   if (entries.length === 0) return null;
 
   const typeColor = {
@@ -66,7 +71,7 @@ function ActivityLog({ isDark, isMobile, panelStyle, cardBg, cardBorder, titleTe
       }}
     >
       <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "#e2e8f0" : "#334155", marginBottom: 10, letterSpacing: "0.02em" }}>
-        Actividad reciente
+        {t("dashboard.homeActivityTitle")}
       </div>
       <div style={{ display: "grid", gap: 6 }}>
         {entries.map((entry) => (
@@ -128,6 +133,7 @@ export default function UserDashboardHome({
   onMarkAllAlertsSeen = () => {},
   onSendAlertEmailDigest = () => {},
 }) {
+  const { t } = useTranslation();
   const isDark = themeMode === "dark";
   const cardBg = isDark
     ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
@@ -137,9 +143,9 @@ export default function UserDashboardHome({
   const mutedText = isDark ? "#cbd5e1" : "#475569";
 
   const stats = [
-    { label: "Alertas de mercado", value: counts.alerts, color: "#2563eb" },
-    { label: "Valoraciones", value: counts.valuations, color: "#7c3aed" },
-    { label: "Vehículos en garaje", value: counts.vehicles, color: "#0f766e" },
+    { label: t("dashboard.homeStatAlerts"), value: counts.alerts, color: "#2563eb", key: "alerts" },
+    { label: t("dashboard.homeStatValuations"), value: counts.valuations, color: "#7c3aed", key: "valuations" },
+    { label: t("dashboard.homeStatVehicles"), value: counts.vehicles, color: "#0f766e", key: "vehicles" },
   ];
   const emailTargets = Array.from(
     new Set(
@@ -156,7 +162,7 @@ export default function UserDashboardHome({
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3,minmax(0,1fr))", gap: 12, marginBottom: 16 }}>
         {stats.map((item) => (
           <div
-            key={item.label}
+            key={item.key}
             style={{
               background: isDark ? "rgba(15,23,42,0.88)" : "rgba(241,245,249,0.8)",
               border: cardBorder,
@@ -171,9 +177,9 @@ export default function UserDashboardHome({
               {item.value}
             </div>
             <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569", marginTop: 8 }}>{item.label}</div>
-            {item.label === "Alertas de mercado" && newAlertMatchesCount > 0 && (
+            {item.key === "alerts" && newAlertMatchesCount > 0 && (
               <div style={{ fontSize: 11, color: "#047857", marginTop: 6, fontWeight: 700 }}>
-                🔔 {newAlertMatchesCount} novedades
+                {t("dashboard.homeNewMatches", { count: newAlertMatchesCount })}
               </div>
             )}
           </div>
@@ -193,7 +199,7 @@ export default function UserDashboardHome({
         }}
       >
         <div style={{ fontSize: 13, color: isDark ? "#e2e8f0" : "#334155", letterSpacing: "0.02em", marginBottom: 10, fontWeight: 700 }}>
-          Novedades para ti
+          {t("dashboard.homeNewsTitle")}
         </div>
         <div style={{ display: "grid", gap: 10 }}>
           {latestNotices.length === 0 && (
@@ -207,13 +213,13 @@ export default function UserDashboardHome({
                 color: mutedText,
               }}
             >
-              Todo al dia, {currentUser?.name || "usuario"}. No hay novedades nuevas en este momento.
+              {t("dashboard.homeAllGood", { name: currentUser?.name || "usuario" })}
             </div>
           )}
 
           {latestNotices.map((notice, index) => {
             const icon = index === 0 ? "🔔" : index === 1 ? "📅" : "✅";
-            const actionLabel = index === 0 ? "Ver oferta →" : index === 1 ? "Reservar →" : "Ver analisis →";
+            const actionLabel = index === 0 ? t("dashboard.homeViewOffer") : index === 1 ? t("dashboard.homeBook") : t("dashboard.homeViewAnalysis");
 
             return (
               <div
@@ -291,7 +297,7 @@ export default function UserDashboardHome({
               cursor: "pointer",
             }}
           >
-            Abrir alertas
+            {t("dashboard.homeOpenAlerts")}
           </button>
           {emailTargets.length > 0 && (
             <button
@@ -310,7 +316,7 @@ export default function UserDashboardHome({
                 opacity: emailDigestLoading ? 0.75 : 1,
               }}
             >
-              {emailDigestLoading ? "Enviando..." : "Enviar resumen por email"}
+              {emailDigestLoading ? t("dashboard.homeSending") : t("dashboard.homeSendEmail")}
             </button>
           )}
           {pendingAlertNotifications.length > 0 && (
@@ -328,7 +334,7 @@ export default function UserDashboardHome({
                 cursor: "pointer",
               }}
             >
-              Marcar todo como revisado
+              {t("dashboard.homeMarkReviewed")}
             </button>
           )}
         </div>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getVehicleCatalogJson, postVehicleCatalogAdminJson } from "../../utils/apiClient";
 
 const EMPTY_ALERT_FORM = {
@@ -14,7 +15,7 @@ const EMPTY_ALERT_FORM = {
   email: "",
 };
 
-function buildAlertChips(alert, formatCurrency) {
+function buildAlertChips(alert, formatCurrency, t) {
   return [
     alert?.modeLabel,
     alert?.brand ? `Marca ${alert.brand}` : "",
@@ -69,6 +70,7 @@ export default function UserDashboardSaved({
   onBrowseMarketplace = () => {},
   onNavigate = () => {},
 }) {
+  const { t } = useTranslation();
   const isDark = themeMode === "dark";
   const cardBg = isDark
     ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
@@ -120,8 +122,8 @@ export default function UserDashboardSaved({
     return acc + Math.max(Number(matchInfo.count || 0) - seenCount, 0);
   }, 0);
   const opportunityTabs = [
-    { key: "overview", label: "Resumen", count: null },
-    { key: "saved", label: "Guardadas", count: savedComparisons.length },
+    { key: "overview", label: t("dashboard.savedTabOverview"), count: null },
+    { key: "saved", label: t("dashboard.savedTabSaved"), count: savedComparisons.length },
     { key: "marketplace", label: "Marketplace", count: totalNewMatches },
   ];
 
@@ -218,21 +220,21 @@ export default function UserDashboardSaved({
 
   const handleCreateAlert = () => {
     if (alertForm.notifyByEmail && !String(alertForm.email || normalizedCurrentUserEmail || "").trim()) {
-      setAlertFeedback("Inicia sesión o indica un correo para activar el aviso por email de esta alerta.");
+      setAlertFeedback(t("dashboard.alertNoEmail"));
       return;
     }
 
     const createdAlert = onCreateMarketAlert(alertForm);
 
     if (!createdAlert) {
-      setAlertFeedback("No se pudo guardar la alerta. Revisa los filtros y vuelve a intentarlo.");
+      setAlertFeedback(t("dashboard.alertSaveError"));
       return;
     }
 
     setAlertFeedback(
       createdAlert.notifyByEmail && createdAlert.email
-        ? `Alerta guardada con resumen por email para ${createdAlert.email}.`
-        : "Alerta guardada: te avisaremos aquí cuando aparezcan ofertas nuevas que encajen."
+        ? t("dashboard.alertSavedWithEmail", { email: createdAlert.email })
+        : t("dashboard.alertSavedOk")
     );
     setShowAlertForm(false);
     setAlertForm(EMPTY_ALERT_FORM);
@@ -250,11 +252,11 @@ export default function UserDashboardSaved({
       });
 
       if (!response.ok || !data?.ok) {
-        throw new Error(data?.error || "No se pudo actualizar el catálogo.");
+        throw new Error(data?.error || t("dashboard.savedCatalogError"));
       }
 
       await loadVehicleCatalog();
-      setCatalogAdminFeedback("Catálogo actualizado correctamente.");
+      setCatalogAdminFeedback(t("dashboard.savedCatalogSuccess"));
       window.setTimeout(() => setCatalogAdminFeedback(""), 2200);
       setCatalogAdminForm((prev) => ({
         ...prev,
@@ -262,7 +264,7 @@ export default function UserDashboardSaved({
         newModel: "",
       }));
     } catch (error) {
-      setCatalogAdminFeedback(error instanceof Error ? error.message : "No se pudo actualizar el catálogo.");
+      setCatalogAdminFeedback(error instanceof Error ? error.message : t("dashboard.savedCatalogError"));
     } finally {
       setCatalogAdminLoading(false);
     }
@@ -272,12 +274,12 @@ export default function UserDashboardSaved({
     <section id="user-dashboard-saved" style={{ ...panelStyle, ...sectionFrame, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
-          <div style={{ fontSize: 11, color: "#60a5fa", letterSpacing: "0.6px" }}>RECOMENDACIONES GUARDADAS</div>
-          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: titleText }}>Tus comparativas y ofertas favoritas</div>
+          <div style={{ fontSize: 11, color: "#60a5fa", letterSpacing: "0.6px" }}>{t("dashboard.savedSectionLabel")}</div>
+          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: titleText }}>{t("dashboard.savedTitle")}</div>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ ...getOfferBadgeStyle("info"), fontSize: 11 }}>{savedComparisons.length} guardadas</span>
-          <span style={{ ...getOfferBadgeStyle("success"), fontSize: 11 }}>{totalNewMatches} novedades marketplace</span>
+          <span style={{ ...getOfferBadgeStyle("info"), fontSize: 11 }}>{t("dashboard.savedBadge", { count: savedComparisons.length })}</span>
+          <span style={{ ...getOfferBadgeStyle("success"), fontSize: 11 }}>{t("dashboard.savedNewsBadge", { count: totalNewMatches })}</span>
         </div>
       </div>
 
@@ -348,9 +350,9 @@ export default function UserDashboardSaved({
         >
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(150px,1fr))", gap: 10 }}>
             {[
-              ["Guardadas", savedComparisons.length, "#60a5fa"],
-              ["Alertas activas", marketAlerts.length, "#34d399"],
-              ["Novedades", totalNewMatches, "#f59e0b"],
+              [t("dashboard.savedStatSaved"), savedComparisons.length, "#60a5fa"],
+              [t("dashboard.savedStatAlerts"), marketAlerts.length, "#34d399"],
+              [t("dashboard.savedStatNews"), totalNewMatches, "#f59e0b"],
             ].map(([label, value, color]) => (
               <div
                 key={String(label)}
@@ -383,7 +385,7 @@ export default function UserDashboardSaved({
                 width: isMobile ? "100%" : "auto",
               }}
             >
-              Explorar marketplace VO
+              {t("dashboard.savedExploreMarketplace")}
             </button>
             <button
               type="button"
@@ -399,9 +401,7 @@ export default function UserDashboardSaved({
                 cursor: "pointer",
                 width: isMobile ? "100%" : "auto",
               }}
-            >
-              Gestionar alertas
-            </button>
+            >{t("dashboard.savedManageAlerts")}</button>
           </div>
         </div>
       )}
@@ -543,7 +543,7 @@ export default function UserDashboardSaved({
         </div>
       ) : (
         <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 14 }}>
-          Todavía no tienes recomendaciones guardadas. Cuando guardes una comparativa, aparecerá aquí.
+          {t("dashboard.savedEmpty")}
         </div>
       ))}
 
@@ -559,8 +559,8 @@ export default function UserDashboardSaved({
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
           <div>
-            <div style={{ fontSize: 11, color: "#7c3aed", letterSpacing: "0.6px" }}>CATÁLOGO DE MARCAS Y MODELOS</div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: titleText }}>Gestiona el selector de marca/modelo</div>
+            <div style={{ fontSize: 11, color: "#7c3aed", letterSpacing: "0.6px" }}>{t("dashboard.savedCatalogLabel")}</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: titleText }}>{t("dashboard.savedCatalogTitle")}</div>
           </div>
           <button
             type="button"
@@ -576,7 +576,7 @@ export default function UserDashboardSaved({
               cursor: "pointer",
             }}
           >
-            {showCatalogAdmin ? "Cerrar" : "Gestionar catálogo"}
+            {showCatalogAdmin ? t("dashboard.savedCatalogClose") : t("dashboard.savedManageCatalog")}
           </button>
         </div>
 
@@ -650,9 +650,7 @@ export default function UserDashboardSaved({
                   cursor: catalogAdminLoading ? "progress" : "pointer",
                   width: isMobile ? "100%" : "auto",
                 }}
-              >
-                Añadir marca
-              </button>
+              >{t("dashboard.savedCatalogAddBrand")}</button>
               <button
                 type="button"
                 disabled={catalogAdminLoading || !String(catalogAdminForm.newBrand || "").trim() || !String(catalogAdminForm.newModel || "").trim()}
@@ -668,9 +666,7 @@ export default function UserDashboardSaved({
                   cursor: catalogAdminLoading ? "progress" : "pointer",
                   width: isMobile ? "100%" : "auto",
                 }}
-              >
-                Añadir modelo
-              </button>
+              >{t("dashboard.savedCatalogAddModel")}</button>
               <button
                 type="button"
                 disabled={catalogAdminLoading || !catalogAdminForm.brand || !catalogAdminForm.model}
@@ -729,7 +725,7 @@ export default function UserDashboardSaved({
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 10 }}>
           <div>
-            <div style={{ fontSize: 11, color: "#047857", letterSpacing: "0.6px" }}>ALERTAS DE MERCADO</div>
+            <div style={{ fontSize: 11, color: "#047857", letterSpacing: "0.6px" }}>{t("dashboard.alertSectionLabel")}</div>
             <div style={{ fontSize: 16, fontWeight: 800, color: titleText }}>
               Sigue nuevas ofertas con tus filtros
             </div>
@@ -755,7 +751,7 @@ export default function UserDashboardSaved({
                 width: isMobile ? "100%" : "auto",
               }}
             >
-              {emailDigestLoading ? "Enviando…" : "Enviar resumen por email"}
+              {emailDigestLoading ? t("dashboard.alertSending") : t("dashboard.alertSendEmail")}
             </button>
             <button
               type="button"
@@ -772,7 +768,7 @@ export default function UserDashboardSaved({
                 width: isMobile ? "100%" : "auto",
               }}
             >
-              {showAlertForm ? "Cerrar" : "Añadir alerta"}
+              {showAlertForm ? t("dashboard.alertClose") : t("dashboard.alertAddAlert")}
             </button>
           </div>
         </div>
@@ -828,13 +824,9 @@ export default function UserDashboardSaved({
                 </div>
               )}
             </label>
-            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
-              Precio máximo (€)
-              <input type="number" value={alertForm.maxPrice} onChange={(event) => updateAlertField("maxPrice", event.target.value)} placeholder="25000" style={{ background: inputBg, color: inputText, border: "1px solid rgba(148,163,184,0.45)", borderRadius: 10, padding: "10px 12px" }} />
+            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>{t("dashboard.alertMaxPrice")}<input type="number" value={alertForm.maxPrice} onChange={(event) => updateAlertField("maxPrice", event.target.value)} placeholder="25000" style={{ background: inputBg, color: inputText, border: "1px solid rgba(148,163,184,0.45)", borderRadius: 10, padding: "10px 12px" }} />
             </label>
-            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
-              Kilometraje máximo
-              <input type="number" value={alertForm.maxMileage} onChange={(event) => updateAlertField("maxMileage", event.target.value)} placeholder="60000" style={{ background: inputBg, color: inputText, border: "1px solid rgba(148,163,184,0.45)", borderRadius: 10, padding: "10px 12px" }} />
+            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>{t("dashboard.alertMaxMileage")}<input type="number" value={alertForm.maxMileage} onChange={(event) => updateAlertField("maxMileage", event.target.value)} placeholder="60000" style={{ background: inputBg, color: inputText, border: "1px solid rgba(148,163,184,0.45)", borderRadius: 10, padding: "10px 12px" }} />
             </label>
             <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
               Combustible
@@ -847,9 +839,7 @@ export default function UserDashboardSaved({
                 <option value="Eléctrico">Eléctrico</option>
               </select>
             </label>
-            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
-              Localización
-              <input value={alertForm.location} onChange={(event) => updateAlertField("location", event.target.value)} placeholder="Madrid, Valencia, Bilbao..." style={{ background: inputBg, color: inputText, border: "1px solid rgba(148,163,184,0.45)", borderRadius: 10, padding: "10px 12px" }} />
+            <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>{t("dashboard.alertLocation")}<input value={alertForm.location} onChange={(event) => updateAlertField("location", event.target.value)} placeholder="Madrid, Valencia, Bilbao..." style={{ background: inputBg, color: inputText, border: "1px solid rgba(148,163,184,0.45)", borderRadius: 10, padding: "10px 12px" }} />
             </label>
             <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
               Color
@@ -862,9 +852,7 @@ export default function UserDashboardSaved({
                   type="checkbox"
                   checked={Boolean(alertForm.notifyByEmail)}
                   onChange={(event) => updateAlertField("notifyByEmail", event.target.checked)}
-                />
-                Enviarme también un resumen por email
-              </label>
+                />{t("dashboard.alertEmailCheckbox")}</label>
               {alertForm.notifyByEmail && (
                 <>
                   {normalizedCurrentUserEmail && (
@@ -904,16 +892,13 @@ export default function UserDashboardSaved({
                 cursor: "pointer",
                 width: isMobile ? "100%" : "auto",
               }}
-            >
-              Guardar alerta
-            </button>
+            >{t("dashboard.alertSaveButton")}</button>
           </div>
         )}
 
         {emailAlertCount === 0 && (
           <div style={{ marginBottom: 12, fontSize: 11, color: "#94a3b8" }}>
-            Activa <strong>"Enviarme también un resumen por email"</strong> al crear una alerta para habilitar este botón aquí mismo.
-            {normalizedCurrentUserEmail ? ` Usaremos tu cuenta ${normalizedCurrentUserEmail} como destinatario por defecto.` : ""}
+            {t("dashboard.alertNoEmailHint", { email: normalizedCurrentUserEmail ? `Usaremos tu cuenta ${normalizedCurrentUserEmail} como destinatario.` : "" })}
           </div>
         )}
 
@@ -936,7 +921,7 @@ export default function UserDashboardSaved({
               fontWeight: 700,
             }}
           >
-            🔔 Tienes {totalNewMatches} {totalNewMatches === 1 ? "novedad pendiente" : "novedades pendientes"} en tus alertas de mercado.
+            {`🔔 `}{t("dashboard.homeNewMatches", { count: totalNewMatches })}
           </div>
         )}
 
@@ -944,7 +929,7 @@ export default function UserDashboardSaved({
           <div style={{ display: "grid", gap: 10 }}>
             {marketAlerts.map((alert) => {
               const alertEmail = String(alert?.email || normalizedCurrentUserEmail || "").trim().toLowerCase();
-              const alertChips = buildAlertChips({ ...alert, email: alertEmail }, formatCurrency);
+              const alertChips = buildAlertChips({ ...alert, email: alertEmail }, formatCurrency, t);
               const alertMatchInfo = marketAlertMatches?.[alert.id] || { count: 0, matches: [] };
               const seenCount = Number(marketAlertStatus?.[alert.id]?.seenCount || 0);
               const newMatchesCount = Math.max(Number(alertMatchInfo.count || 0) - seenCount, 0);
@@ -963,11 +948,11 @@ export default function UserDashboardSaved({
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: titleText }}>{alert.title}</div>
                       <div style={{ fontSize: 11, color: mutedText, marginTop: 3 }}>
-                        {alert.createdAt} · {alert.status || "Activa"}
+                        {alert.createdAt} · {alert.status || t("dashboard.alertStatusActive")}
                       </div>
                       {alert.notifyByEmail && alertEmail && (
                         <div style={{ fontSize: 11, color: "#1d4ed8", marginTop: 4 }}>
-                          📧 Resumen por email a {alertEmail}
+                          {t("dashboard.alertEmailDigest", { email: alertEmail })}
                         </div>
                       )}
                       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8, alignItems: "center" }}>
@@ -983,7 +968,7 @@ export default function UserDashboardSaved({
                               fontWeight: 800,
                             }}
                           >
-                            🔔 {newMatchesCount} {newMatchesCount === 1 ? "novedad" : "novedades"}
+                            {t("dashboard.alertNewMatches", { count: newMatchesCount })}
                           </span>
                         ) : (
                           <span
@@ -996,7 +981,7 @@ export default function UserDashboardSaved({
                               fontSize: 11,
                             }}
                           >
-                            Sin novedades pendientes
+                            {t("dashboard.alertNoNewMatches")}
                           </span>
                         )}
                       </div>
@@ -1028,7 +1013,7 @@ export default function UserDashboardSaved({
                         }}
                       >
                         <div style={{ fontSize: 11, fontWeight: 800, color: "#1d4ed8", letterSpacing: "0.4px", marginBottom: 6 }}>
-                          {alertMatchInfo.count === 1 ? "1 coincidencia ahora" : `${alertMatchInfo.count} coincidencias ahora`}
+                          {t("dashboard.alertMatch", { count: alertMatchInfo.count })}
                         </div>
                         {alertMatchInfo.count > 0 ? (
                           <div style={{ display: "grid", gap: 8 }}>
@@ -1085,15 +1070,13 @@ export default function UserDashboardSaved({
                                     fontWeight: 700,
                                     cursor: "pointer",
                                   }}
-                                >
-                                  Ver oferta ↗
-                                </button>
+                                >{t("dashboard.alertViewOffer")}</button>
                               </div>
                             ))}
                           </div>
                         ) : (
                           <div style={{ fontSize: 11, color: "#94a3b8" }}>
-                            Aún no vemos coincidencias en el marketplace VO con estos filtros. Seguimos vigilando el mercado.
+                            {t("dashboard.alertNoMatches")}
                           </div>
                         )}
                       </div>
@@ -1163,7 +1146,7 @@ export default function UserDashboardSaved({
           </div>
         ) : (
           <div style={{ fontSize: 12, color: "#94a3b8" }}>
-            Todavía no tienes alertas activas. Crea una y deja vigilado el mercado para compra o renting con los filtros que necesites.
+            {t("dashboard.alertEmpty")}
           </div>
         )}
       </div>

@@ -9,6 +9,7 @@ import UserDashboardSaved from "./UserDashboardSaved";
 import UserDashboardValuations from "./UserDashboardValuations";
 import UserDashboardVehicles from "./UserDashboardVehicles";
 import { getGarageVehiclesJson } from "../../utils/apiClient";
+import { readUserBillingState } from "../../utils/storage";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 
@@ -56,13 +57,11 @@ function buildSections(counts, t, newAlertMatchesCount = 0) {
     },
     {
       key: "alerts",
-      label: t("dashboardPage.alertsLabel", { defaultValue: "Alertas" }),
+      label: t("dashboardPage.alertsLabel"),
       icon: "🔔",
       count: counts.alerts,
-      title: t("dashboardPage.alertsTitle", { defaultValue: "Alertas de mercado" }),
-      description: t("dashboardPage.alertsDescription", {
-        defaultValue: "Controla tus alertas y revisa coincidencias nuevas en el marketplace.",
-      }),
+      title: t("dashboardPage.alertsTitle"),
+      description: t("dashboardPage.alertsDescription"),
     },
     {
       key: "appointments",
@@ -90,13 +89,11 @@ function buildSections(counts, t, newAlertMatchesCount = 0) {
     },
     {
       key: "preferences",
-      label: t("dashboardPage.preferencesLabel", { defaultValue: "Preferencias" }),
+      label: t("dashboardPage.preferencesLabel"),
       icon: "⚙️",
       count: null,
-      title: t("dashboardPage.preferencesTitle", { defaultValue: "Preferencias de cuenta" }),
-      description: t("dashboardPage.preferencesDescription", {
-        defaultValue: "Configura idioma, region y avisos del panel.",
-      }),
+      title: t("dashboardPage.preferencesTitle"),
+      description: t("dashboardPage.preferencesDescription"),
     },
     {
       key: "vehicles",
@@ -147,6 +144,14 @@ export default function UserDashboardPage({
   getSavedComparisonHref,
 }) {
   const { t } = useTranslation();
+  const planLabelMap = {
+    gratis: t("dashboard.billingPlanGratis"),
+    bronce: t("dashboard.billingPlanBronce"),
+    plata: t("dashboard.billingPlanPlata"),
+    oro: t("dashboard.billingPlanOro"),
+    platino: t("dashboard.billingPlanPlatino"),
+  };
+  const [currentPlanId, setCurrentPlanId] = useState(() => readUserBillingState()?.planId || "gratis");
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === "undefined") {
       return false;
@@ -155,6 +160,10 @@ export default function UserDashboardPage({
     return window.innerWidth < 900;
   });
   const [garageVehicleCount, setGarageVehicleCount] = useState(() => readGarageVehiclesCount(currentUser?.email || ""));
+
+  useEffect(() => {
+    setCurrentPlanId(readUserBillingState()?.planId || "gratis");
+  }, [userDashboardPage]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -398,7 +407,7 @@ export default function UserDashboardPage({
                     padding: "4px 10px",
                   }}
                 >
-                  Plan Gratis
+                  {planLabelMap[currentPlanId] || t("dashboard.billingPlanGratis")}
                 </span>
                 <span
                   style={{
@@ -433,7 +442,7 @@ export default function UserDashboardPage({
                 }}
               >
                 {userDashboardPage === "home"
-                  ? `Buenos dias, ${currentUser?.name || t("dashboardPage.userFallback")}`
+                  ? t("dashboardPage.greeting", { name: currentUser?.name || t("dashboardPage.userFallback") })
                   : sections.find((section) => section.key === userDashboardPage)?.title || t("dashboardPage.title")}
               </h2>
               <p style={{ margin: 0, color: bodyColor, fontSize: 13 }}>

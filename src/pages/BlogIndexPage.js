@@ -1,16 +1,19 @@
-import { BLOG_POSTS } from "../data/blogPosts";
+import { useTranslation } from "react-i18next";
+import { getLocalizedBlogPosts } from "../data/blogPosts";
 
 export default function BlogIndexPage({ styles, onOpenPost, onGoHome }) {
+  const { t, i18n } = useTranslation();
+  const posts = getLocalizedBlogPosts(i18n.language);
   return (
     <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
         <div>
-          <div style={{ ...styles.blockBadge("Contenido"), marginBottom: 8 }}>BLOG DE MOVILIDAD</div>
+          <div style={{ ...styles.blockBadge("Contenido"), marginBottom: 8 }}>{t("blog.badge")}</div>
           <h2 style={{ margin: "0 0 6px", fontSize: "clamp(28px, 4vw, 36px)", color: "#f8fafc" }}>
-            Guias practicas para decidir mejor
+            {t("blog.title")}
           </h2>
           <p style={{ margin: 0, color: "#94a3b8", fontSize: 14, lineHeight: 1.7 }}>
-            Articulos utiles sobre compra, renting, coste total y operativa de movilidad en Espana.
+            {t("blog.subtitle")}
           </p>
         </div>
         <button
@@ -28,12 +31,12 @@ export default function BlogIndexPage({ styles, onOpenPost, onGoHome }) {
             alignSelf: "flex-start",
           }}
         >
-          Volver al inicio
+          {t("blog.goHome")}
         </button>
       </div>
 
       <div style={{ display: "grid", gap: 12 }}>
-        {BLOG_POSTS.map((post) => (
+        {posts.map((post) => (
           <article
             key={post.slug}
             className="ma-card-soft"
@@ -68,7 +71,7 @@ export default function BlogIndexPage({ styles, onOpenPost, onGoHome }) {
                 cursor: "pointer",
               }}
             >
-              Leer articulo
+              {t("blog.readArticle")}
             </button>
           </article>
         ))}

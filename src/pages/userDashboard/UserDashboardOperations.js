@@ -124,6 +124,13 @@ export default function UserDashboardOperations({
   initialTab = "appointments",
 }) {
   const { t } = useTranslation();
+  const planLabelMap = {
+    gratis: t("dashboard.billingPlanGratis"),
+    bronce: t("dashboard.billingPlanBronce"),
+    plata: t("dashboard.billingPlanPlata"),
+    oro: t("dashboard.billingPlanOro"),
+    platino: t("dashboard.billingPlanPlatino"),
+  };
   const text = {
     apiGarageReadError: t("dashboardOperations.apiGarageReadError"),
     appointmentsTab: t("dashboardOperations.appointmentsTab"),
@@ -317,7 +324,7 @@ export default function UserDashboardOperations({
     [garageVehicles]
   );
 
-  const currentPlanLabel = normalizeText(billingPlanState?.planLabel) || "Plan Gratis";
+  const currentPlanLabel = planLabelMap[normalizePlanId(billingPlanState?.planId)] || normalizeText(billingPlanState?.planLabel) || t("dashboard.billingPlanGratis");
   const currentPlanId = normalizePlanId(billingPlanState?.planId);
   const managementCoverage = getPlanCoverage(currentPlanId, managementType, managementAppointmentType);
 

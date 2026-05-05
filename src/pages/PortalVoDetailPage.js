@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 export default function PortalVoDetailPage({
   themeMode,
   styles,
@@ -15,6 +17,7 @@ export default function PortalVoDetailPage({
   onOpenRelatedOffer,
 }) {
   const isDark = themeMode === "dark";
+  const { t } = useTranslation();
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
   const bodyColor = isDark ? "#dbeafe" : "#334155";
   const metaColor = isDark ? "#93c5fd" : "#1d4ed8";
@@ -23,12 +26,12 @@ export default function PortalVoDetailPage({
 
   return (
     <div style={styles.center}>
-      <div style={{ ...styles.blockBadge("Vinculación"), marginBottom: 10 }}>🚗 FICHA DEL VEHÍCULO</div>
+      <div style={{ ...styles.blockBadge("Vinculación"), marginBottom: 10 }}>{t("marketplace.detailBadge")}</div>
       <div style={{ ...styles.panel, marginBottom: 18, overflow: "hidden" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
           <div>
             <div style={{ fontSize: 10, color: isDark ? "#67e8f9" : "#0284c7", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 4 }}>
-              DETALLE DEL VEHÍCULO VO
+              {t("marketplace.detailSubBadge")}
             </div>
             <div style={{ fontSize: 22, fontWeight: 800, color: titleColor }}>{selectedPortalVoOffer.title}</div>
           </div>
@@ -46,7 +49,7 @@ export default function PortalVoDetailPage({
                 cursor: "pointer",
               }}
             >
-              ← Volver al marketplace
+              {t("marketplace.backToMarketplace")}
             </button>
             <button
               type="button"
@@ -62,7 +65,7 @@ export default function PortalVoDetailPage({
                 cursor: "pointer",
               }}
             >
-              ⌂ Volver al inicio
+              {t("marketplace.backToHome")}
             </button>
           </div>
         </div>
@@ -79,7 +82,7 @@ export default function PortalVoDetailPage({
           <div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
               <span style={getOfferBadgeStyle(selectedPortalVoOffer.hasGuaranteeSeal ? "green" : "slate")}>
-                {selectedPortalVoOffer.hasGuaranteeSeal ? `Garantía ${selectedPortalVoOffer.warrantyMonths} meses` : "Publicado por usuario"}
+                {selectedPortalVoOffer.hasGuaranteeSeal ? t("marketplace.guaranteeLabel", { months: selectedPortalVoOffer.warrantyMonths }) : t("marketplace.postedByUser")}
               </span>
               <span style={getOfferBadgeStyle("slate")}>{getPortalVoEcoLabel(selectedPortalVoOffer)}</span>
               <span style={getOfferBadgeStyle("slate")}>{selectedPortalVoOffer.color}</span>
@@ -89,21 +92,25 @@ export default function PortalVoDetailPage({
               {formatCurrency(selectedPortalVoOffer.price)}
             </div>
             <p style={{ margin: "0 0 12px", fontSize: 13, color: bodyColor, lineHeight: 1.7 }}>
-              {selectedPortalVoOffer.description} Unidad ubicada en {selectedPortalVoOffer.location}, con
-              {` ${Number(selectedPortalVoOffer.mileage || 0).toLocaleString("es-ES")} km`} y motorización
-              {` ${selectedPortalVoOffer.fuel.toLowerCase()}${selectedPortalVoOffer.power ? ` de ${selectedPortalVoOffer.power}` : ""}` }.
+              {selectedPortalVoOffer.description}{" "}
+              {t("marketplace.detailLocation", {
+                location: selectedPortalVoOffer.location,
+                mileage: Number(selectedPortalVoOffer.mileage || 0).toLocaleString("es-ES"),
+                fuel: selectedPortalVoOffer.fuel.toLowerCase(),
+                power: selectedPortalVoOffer.power ? t("marketplace.detailPower", { power: selectedPortalVoOffer.power }) : "",
+              })}
             </p>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 10 }}>
               {[
-                ["Año", selectedPortalVoOffer.year],
-                ["Kilómetros", `${Number(selectedPortalVoOffer.mileage || 0).toLocaleString("es-ES")} km`],
-                ["Combustible", selectedPortalVoOffer.fuel],
-                ["Potencia", selectedPortalVoOffer.power],
-                ["Cambio", getPortalVoTransmission(selectedPortalVoOffer)],
-                ["Cilindrada", selectedPortalVoOffer.displacement > 0 ? `${selectedPortalVoOffer.displacement.toLocaleString("es-ES")} cc` : "EV"],
-                ["Ubicación", selectedPortalVoOffer.location],
-                ["Vendedor", selectedPortalVoOffer.seller],
+                [t("marketplace.specYear"), selectedPortalVoOffer.year],
+                [t("marketplace.specKm"), `${Number(selectedPortalVoOffer.mileage || 0).toLocaleString("es-ES")} km`],
+                [t("marketplace.specFuel"), selectedPortalVoOffer.fuel],
+                [t("marketplace.specPower"), selectedPortalVoOffer.power],
+                [t("marketplace.specTransmission"), getPortalVoTransmission(selectedPortalVoOffer)],
+                [t("marketplace.specDisplacement"), selectedPortalVoOffer.displacement > 0 ? `${selectedPortalVoOffer.displacement.toLocaleString("es-ES")} cc` : "EV"],
+                [t("marketplace.specLocation"), selectedPortalVoOffer.location],
+                [t("marketplace.specSeller"), selectedPortalVoOffer.seller],
               ].map(([label, value]) => (
                 <div
                   key={`${selectedPortalVoOffer.id}-${label}`}
@@ -124,7 +131,7 @@ export default function PortalVoDetailPage({
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 12, marginTop: 16 }}>
           <div style={{ background: panelCardBg, border: "1px solid rgba(148,163,184,0.14)", borderRadius: 12, padding: 14 }}>
-            <div style={{ fontSize: 11, color: isDark ? "#60a5fa" : "#0369a1", fontWeight: 700, marginBottom: 8 }}>PUNTOS CLAVE</div>
+            <div style={{ fontSize: 11, color: isDark ? "#60a5fa" : "#0369a1", fontWeight: 700, marginBottom: 8 }}>{t("marketplace.keyPointsLabel")}</div>
             <ul style={{ margin: 0, paddingLeft: 18, color: bodyColor, fontSize: 12, lineHeight: 1.7 }}>
               {buildPortalVoHighlights(selectedPortalVoOffer).map((item) => (
                 <li key={`${selectedPortalVoOffer.id}-${item}`}>{item}</li>
@@ -132,7 +139,7 @@ export default function PortalVoDetailPage({
             </ul>
           </div>
           <div style={{ background: panelCardBg, border: "1px solid rgba(148,163,184,0.14)", borderRadius: 12, padding: 14 }}>
-            <div style={{ fontSize: 11, color: isDark ? "#60a5fa" : "#0369a1", fontWeight: 700, marginBottom: 8 }}>CARACTERÍSTICAS / EQUIPAMIENTO</div>
+            <div style={{ fontSize: 11, color: isDark ? "#60a5fa" : "#0369a1", fontWeight: 700, marginBottom: 8 }}>{t("marketplace.featuresLabel")}</div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {buildPortalVoEquipment(selectedPortalVoOffer).map((item) => (
                 <span key={`${selectedPortalVoOffer.id}-feature-${item}`} style={getOfferBadgeStyle("slate")}>
@@ -145,7 +152,7 @@ export default function PortalVoDetailPage({
 
         {relatedPortalVoOffers.length > 0 && (
           <div style={{ marginTop: 16 }}>
-            <div style={{ fontSize: 11, color: isDark ? "#6ee7b7" : "#059669", fontWeight: 700, marginBottom: 8 }}>OTRAS UNIDADES RELACIONADAS</div>
+            <div style={{ fontSize: 11, color: isDark ? "#6ee7b7" : "#059669", fontWeight: 700, marginBottom: 8 }}>{t("marketplace.relatedLabel")}</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 10 }}>
               {relatedPortalVoOffers.map((offer) => (
                 <button

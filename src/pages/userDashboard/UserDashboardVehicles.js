@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   getGarageVehiclesJson,
   postGarageVehicleAddJson,
@@ -277,6 +278,7 @@ export default function UserDashboardVehicles({
   onBrowseMarketplace = () => {},
   currentUserEmail = "",
 }) {
+  const { t } = useTranslation();
   const isDark = themeMode === "dark";
   const cardBg = isDark
     ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
@@ -297,8 +299,8 @@ export default function UserDashboardVehicles({
       : "0 10px 20px rgba(15,23,42,0.06)",
   };
 
-  function mapErpTransmission(t = "") {
-    const v = String(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  function mapErpTransmission(rawTx = "") {
+    const v = String(rawTx).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     if (v.includes("auto") || v.includes("dsg") || v.includes("cvt") || v.includes("tiptronic")) return "automatico";
     if (v.includes("manual")) return "manual";
     return "";
@@ -546,15 +548,20 @@ export default function UserDashboardVehicles({
 
   const selectedSection = safeSections.find((section) => section.key === activeVehicleTab) || null;
 
+  const vehSectionTitleMap = {
+    "owned": t("dashboard.vehTabBought"),
+    "sold": t("dashboard.vehTabSold"),
+    "active-sale": t("dashboard.vehTabActiveSale"),
+  };
   const vehicleTabs = [
     {
       key: "my-garage",
-      title: "Mis vehículos",
+      title: t("dashboard.vehMyVehicles"),
       count: myVehicles.length,
     },
     ...safeSections.map((section) => ({
       key: section.key,
-      title: section.title,
+      title: vehSectionTitleMap[section.key] || section.title,
       count: Array.isArray(section.items) ? section.items.length : 0,
     })),
   ];
@@ -619,7 +626,7 @@ export default function UserDashboardVehicles({
     return (
       <div style={{ border: cardBorder, borderRadius: 10, background: isDark ? "rgba(15,23,42,0.36)" : "#ffffff", padding: "8px 10px" }}>
         <div style={{ fontSize: 10.5, color: bodyColor, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
-          Guardados en ficha
+          {t("dashboard.vehSavedInFile")}
         </div>
         <div style={{ display: "grid", gap: 4 }}>
           {files.slice(0, 3).map((file, index) => {
@@ -633,7 +640,7 @@ export default function UserDashboardVehicles({
               </div>
             );
           })}
-          {files.length > 3 ? <div style={{ fontSize: 11, color: bodyColor }}>+{files.length - 3} archivo(s) más</div> : null}
+          {files.length > 3 ? <div style={{ fontSize: 11, color: bodyColor }}>+{t("dashboard.vehMoreFiles", { count: files.length - 3 }).replace("+", "")}</div> : null}
         </div>
       </div>
     );
@@ -688,7 +695,7 @@ export default function UserDashboardVehicles({
             {meta ? <div style={{ fontSize: 11, color: bodyColor, marginTop: 3 }}>{meta}</div> : null}
           </div>
           <span style={{ fontSize: 11, fontWeight: 700, color: "#1d4ed8", background: "rgba(37,99,235,0.1)", border: cardBorder, borderRadius: 999, padding: "4px 8px" }}>
-            {isOpen ? "Ocultar" : "Abrir"}
+            {isOpen ? t("dashboard.vehSectionHide") : t("dashboard.vehSectionOpen")}
           </span>
         </button>
         {isOpen ? children : null}
@@ -702,7 +709,7 @@ export default function UserDashboardVehicles({
     const version = normalizeText(vehicleForm.version);
 
     if (!brand || !model || !version) {
-      setVehicleFeedback("Añade marca, modelo y versión para guardar tu vehículo.");
+      setVehicleFeedback(t("dashboard.vehRequiredFields"));
       return;
     }
 
@@ -716,16 +723,6 @@ export default function UserDashboardVehicles({
     const itvDocumentsPayload = await filesToAttachmentPayload(pendingIvtDocuments);
     const insuranceDocumentsPayload = await filesToAttachmentPayload(pendingInsuranceDocuments);
     const maintenanceInvoicesPayload = await filesToAttachmentPayload(pendingMaintenanceInvoices);
-
-    const skippedLargeFilesCount = [
-      ...photosPayload,
-      ...documentsPayload,
-      ...technicalSheetDocumentsPayload,
-      ...circulationPermitDocumentsPayload,
-      ...itvDocumentsPayload,
-      ...insuranceDocumentsPayload,
-      ...maintenanceInvoicesPayload,
-    ].filter((file) => Number(file?.size || 0) > MAX_ATTACHMENT_BYTES && !file?.contentBase64).length;
 
     const existingVehicle = editingVehicleId
       ? myVehicles.find((item) => normalizeText(item?.id) === normalizeText(editingVehicleId)) || null
@@ -858,9 +855,7 @@ export default function UserDashboardVehicles({
     setPendingInsuranceDocuments([]);
     setPendingMaintenanceInvoices([]);
     setVehicleFeedback(
-      skippedLargeFilesCount > 0
-        ? `Vehículo ${title} ${existingVehicle ? "actualizado" : "guardado"}. ${skippedLargeFilesCount} ficheros superaban 2 MB y se guardaron sin contenido.`
-        : `Vehículo ${title} ${existingVehicle ? "actualizado" : "guardado en Mis vehículos"}.`
+      existingVehicle ? t("dashboard.vehSavedUpdated", { title }) : t("dashboard.vehSavedNew", { title })
     );
   };
 
@@ -950,7 +945,7 @@ export default function UserDashboardVehicles({
     if (managementVehicleId === vehicleId) {
       setManagementVehicleId("");
     }
-    setVehicleFeedback("Vehículo eliminado de Mis vehículos.");
+    setVehicleFeedback(t("dashboard.vehFeedbackDeleted"));
   };
 
   const startCreatingVehicle = useCallback(() => {
@@ -1112,14 +1107,14 @@ export default function UserDashboardVehicles({
     <section id="user-dashboard-vehicles" style={{ ...panelStyle, ...sectionFrame, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
-          <div style={{ fontSize: 11, color: "#34d399", letterSpacing: "0.6px" }}>MIS VEHÍCULOS</div>
-          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: titleColor }}>Hub de ciclo de vida de vehículos</div>
+          <div style={{ fontSize: 11, color: "#34d399", letterSpacing: "0.6px" }}>{t("dashboard.vehSectionLabel")}</div>
+          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: titleColor }}>{t("dashboard.vehTitle")}</div>
           <div style={{ fontSize: 12, color: bodyColor, marginTop: 4 }}>
-            Controla en una sola vista tus coches comprados, activos en venta y operaciones cerradas.
+            {t("dashboard.vehDesc")}
           </div>
         </div>
         <span style={{ ...getOfferBadgeStyle("green"), fontSize: 11 }}>
-          {totalVehiclesCount} registros
+          {t("dashboard.vehRegistros", { count: totalVehiclesCount })}
         </span>
       </div>
 
@@ -1173,10 +1168,10 @@ export default function UserDashboardVehicles({
         <div style={{ display: "grid", gap: 12 }}>
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,minmax(0,1fr))" : "repeat(auto-fit,minmax(180px,1fr))", gap: 12 }}>
             {[
-              ["Mis vehículos", myVehicles.length, "#2563eb"],
-              ["Comprados", lifecycleTotals.owned, "#60a5fa"],
-              ["Activos en venta", lifecycleTotals.activeSale, "#f59e0b"],
-              ["Vendidos", lifecycleTotals.sold, "#34d399"],
+              [t("dashboard.vehSectionLabel"), myVehicles.length, "#2563eb"],
+              [t("dashboard.vehStatBought"), lifecycleTotals.owned, "#60a5fa"],
+              [t("dashboard.vehStatActive"), lifecycleTotals.activeSale, "#f59e0b"],
+              [t("dashboard.vehStatSold"), lifecycleTotals.sold, "#34d399"],
             ].map(([label, value, color]) => (
               <div
                 key={String(label)}
@@ -1222,7 +1217,7 @@ export default function UserDashboardVehicles({
               }}
             >
               <div style={{ fontSize: 12, color: bodyColor }}>
-                Elige un vehículo para gestionar acciones rápidas o crea uno nuevo.
+                {t("dashboard.vehSelectVehicle")}
               </div>
               <button
                 type="button"
@@ -1240,7 +1235,7 @@ export default function UserDashboardVehicles({
                   whiteSpace: "nowrap",
                 }}
               >
-                Añadir nuevo vehículo
+                {t("dashboard.vehAddNew")}
               </button>
             </div>
           ) : null}
@@ -1259,8 +1254,8 @@ export default function UserDashboardVehicles({
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: titleColor }}>Añadir vehículo propio</div>
-                <div style={{ fontSize: 11, color: bodyColor, marginTop: 3 }}>Crea tu garage personal con fotos, documentación y acciones rápidas.</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: titleColor }}>{t("dashboard.vehAddOwn")}</div>
+                <div style={{ fontSize: 11, color: bodyColor, marginTop: 3 }}>{t("dashboard.vehAddSubtitle")}</div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                 <button
@@ -1283,10 +1278,10 @@ export default function UserDashboardVehicles({
                     whiteSpace: "nowrap",
                   }}
                 >
-                  Volver al listado
+                  {t("dashboard.vehBackToList")}
                 </button>
                 <div style={{ fontSize: 11, color: "#1d4ed8", fontWeight: 700, background: "rgba(37,99,235,0.1)", border: cardBorder, borderRadius: 999, padding: "5px 9px" }}>
-                  Máximo 20 vehículos
+                  {t("dashboard.vehMaxVehicles")}
                 </div>
               </div>
             </div>
@@ -1294,7 +1289,7 @@ export default function UserDashboardVehicles({
               <>
             {renderVehicleSection(
               "characteristics",
-              "Características del vehículo",
+              t("dashboard.vehCharacteristics"),
               <div
                 style={{
                   display: "grid",
@@ -1304,7 +1299,7 @@ export default function UserDashboardVehicles({
                 }}
               >
               <div style={{ gridColumn: "1 / -1", display: "flex", justifyContent: "flex-start", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: bodyColor }}>Relleno:</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: bodyColor }}>{t("dashboard.vehFillLabel")}</span>
                 <button
                   type="button"
                   onClick={() => setVehicleCatalogMode("erp")}
@@ -1319,7 +1314,7 @@ export default function UserDashboardVehicles({
                     cursor: "pointer",
                   }}
                 >
-                  Catálogo ERP
+                  {t("dashboard.vehModeErp")}
                 </button>
                 <button
                   type="button"
@@ -1345,7 +1340,7 @@ export default function UserDashboardVehicles({
                 </button>
               </div>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Alias / nombre
+                {t("dashboard.vehAliasLabel")}
                 <input
                   value={vehicleForm.nickname}
                   onChange={(event) => updateVehicleForm("nickname", event.target.value)}
@@ -1356,7 +1351,7 @@ export default function UserDashboardVehicles({
               {vehicleCatalogMode === "erp" ? (
                 <>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Marca
+                {t("dashboard.vehBrandLabel")}
                 <select
                   value={erpSelectedBrandId}
                   disabled={erpBrandsLoading}
@@ -1382,14 +1377,14 @@ export default function UserDashboardVehicles({
                   }}
                   style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: erpSelectedBrandId ? titleColor : bodyColor, width: "100%", minWidth: 0, boxSizing: "border-box" }}
                 >
-                  <option value="">{erpBrandsLoading ? "Cargando marcas…" : "Selecciona marca"}</option>
+                  <option value="">{erpBrandsLoading ? t("dashboard.vehBrandLoading") : t("dashboard.vehSelectBrand")}</option>
                   {erpBrands.map((b) => (
                     <option key={b.id} value={b.id}>{b.name}</option>
                   ))}
                 </select>
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Modelo
+                {t("dashboard.vehModelLabel")}
                 <select
                   value={erpSelectedModelId}
                   disabled={!erpSelectedBrandId || erpModelsLoading}
@@ -1413,14 +1408,14 @@ export default function UserDashboardVehicles({
                   }}
                   style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: erpSelectedModelId ? titleColor : bodyColor, width: "100%", minWidth: 0, boxSizing: "border-box" }}
                 >
-                  <option value="">{erpModelsLoading ? "Cargando modelos…" : !erpSelectedBrandId ? "Primero selecciona marca" : "Selecciona modelo"}</option>
+                  <option value="">{erpModelsLoading ? t("dashboard.vehModelLoading") : !erpSelectedBrandId ? t("dashboard.vehSelectBrandFirst") : t("dashboard.vehSelectModel")}</option>
                   {erpModels.map((m) => (
                     <option key={m.id} value={m.id}>{m.name}</option>
                   ))}
                 </select>
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Versión
+                {t("dashboard.vehVersionLabel")}
                 <select
                   value={vehicleForm.version}
                   disabled={!erpSelectedModelId || erpVersionsLoading || erpVersions.length === 0}
@@ -1448,7 +1443,7 @@ export default function UserDashboardVehicles({
                   }}
                   style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: vehicleForm.version ? titleColor : bodyColor, width: "100%", minWidth: 0, boxSizing: "border-box" }}
                 >
-                  <option value="">{erpVersionsLoading ? "Cargando versiones…" : !erpSelectedModelId ? "Primero selecciona modelo" : erpVersions.length === 0 ? "Sin versiones en catálogo" : "Selecciona versión"}</option>
+                  <option value="">{erpVersionsLoading ? t("dashboard.vehVersionLoading") : !erpSelectedModelId ? t("dashboard.vehSelectModelFirst") : erpVersions.length === 0 ? t("dashboard.vehNoVersions") : t("dashboard.vehSelectVersion")}</option>
                   {erpVersions.map((v) => (
                     <option key={v.codversion} value={v.codversion}>{v.label}</option>
                   ))}
@@ -1462,7 +1457,7 @@ export default function UserDashboardVehicles({
                 <input
                   value={vehicleForm.brand}
                   onChange={(event) => updateVehicleForm("brand", event.target.value)}
-                  placeholder="Escribe la marca"
+                  placeholder={t("dashboard.vehPlaceholderBrand")}
                   style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor, width: "100%", minWidth: 0, boxSizing: "border-box" }}
                 />
               </label>
@@ -1471,51 +1466,51 @@ export default function UserDashboardVehicles({
                 <input
                   value={vehicleForm.model}
                   onChange={(event) => updateVehicleForm("model", event.target.value)}
-                  placeholder="Escribe el modelo"
+                  placeholder={t("dashboard.vehPlaceholderModel")}
                   style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor, width: "100%", minWidth: 0, boxSizing: "border-box" }}
                 />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Versión
+                {t("dashboard.vehVersionLabel")}
                 <input
                   value={vehicleForm.version}
                   onChange={(event) => updateVehicleForm("version", event.target.value)}
-                  placeholder="Escribe la versión"
+                  placeholder={t("dashboard.vehVersionPlaceholder")}
                   style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor, width: "100%", minWidth: 0, boxSizing: "border-box" }}
                 />
               </label>
                 </>
               )}
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Tipo de cambio
+                {t("dashboard.vehTransmissionLabel")}
                 <select
                   value={vehicleForm.transmissionType}
                   onChange={(event) => updateVehicleForm("transmissionType", event.target.value)}
                   style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor, width: "100%", minWidth: 0, boxSizing: "border-box" }}
                 >
                   <option value="">Selecciona</option>
-                  <option value="manual">Manual</option>
-                  <option value="automatico">Automático</option>
+                  <option value="manual">{t("dashboard.vehTransmissionManual")}</option>
+                  <option value="automatico">{t("dashboard.vehTransmissionAuto")}</option>
                 </select>
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Tipo de coche
+                {t("dashboard.vehTypeLabel")}
                 <select
                   value={vehicleForm.bodyType}
                   onChange={(event) => updateVehicleForm("bodyType", event.target.value)}
                   style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor }}
                 >
                   <option value="">Selecciona</option>
-                  <option value="berlina">Berlina</option>
-                  <option value="compacto">Compacto</option>
+                  <option value="berlina">{t("dashboard.vehBodyBerlina")}</option>
+                  <option value="compacto">{t("dashboard.vehBodyCompact")}</option>
                   <option value="cabrio">Cabrio</option>
-                  <option value="suv">SUV</option>
-                  <option value="familiar">Familiar</option>
+                  <option value="suv">{t("dashboard.vehBodySuv")}</option>
+                  <option value="familiar">{t("dashboard.vehBodyFamiliar")}</option>
                   <option value="coupe">Coupé</option>
-                  <option value="monovolumen">Monovolumen</option>
-                  <option value="pickup">Pickup</option>
-                  <option value="todoterreno">Todoterreno</option>
-                  <option value="furgoneta">Furgoneta</option>
+                  <option value="monovolumen">{t("dashboard.vehBodyMonovolumen")}</option>
+                  <option value="pickup">{t("dashboard.vehBodyPickup")}</option>
+                  <option value="todoterreno">{t("dashboard.vehBodyTodoterreno")}</option>
+                  <option value="furgoneta">{t("dashboard.vehBodyFurgoneta")}</option>
                 </select>
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
@@ -1536,9 +1531,7 @@ export default function UserDashboardVehicles({
                   style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor }}
                 />
               </label>
-              <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Color
-                <input
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>{t("dashboard.vehColor")}<input
                   value={vehicleForm.color}
                   onChange={(event) => updateVehicleForm("color", event.target.value)}
                   placeholder="Blanco, Negro, Gris..."
@@ -1546,7 +1539,7 @@ export default function UserDashboardVehicles({
                 />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Plazas
+                {t("dashboard.vehSeatsLabel")}
                 <input
                   value={vehicleForm.seats}
                   onChange={(event) => updateVehicleForm("seats", event.target.value)}
@@ -1555,7 +1548,7 @@ export default function UserDashboardVehicles({
                 />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Puertas
+                {t("dashboard.vehDoorsLabel")}
                 <input
                   value={vehicleForm.doors}
                   onChange={(event) => updateVehicleForm("doors", event.target.value)}
@@ -1564,7 +1557,7 @@ export default function UserDashboardVehicles({
                 />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Ubicación
+                {t("dashboard.vehLocationLabel")}
                 <input
                   value={vehicleForm.location}
                   onChange={(event) => updateVehicleForm("location", event.target.value)}
@@ -1573,7 +1566,7 @@ export default function UserDashboardVehicles({
                 />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Etiqueta
+                {t("dashboard.vehLabelTag")}
                 <input
                   value={vehicleForm.environmentalLabel}
                   onChange={(event) => updateVehicleForm("environmentalLabel", event.target.value)}
@@ -1582,7 +1575,7 @@ export default function UserDashboardVehicles({
                 />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Última ITV
+                {t("dashboard.vehLastItv")}
                 <input
                   value={vehicleForm.lastIvt}
                   onChange={(event) => updateVehicleForm("lastIvt", event.target.value)}
@@ -1591,7 +1584,7 @@ export default function UserDashboardVehicles({
                 />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Próxima ITV
+                {t("dashboard.vehNextItv")}
                 <input
                   value={vehicleForm.nextIvt}
                   onChange={(event) => updateVehicleForm("nextIvt", event.target.value)}
@@ -1600,7 +1593,7 @@ export default function UserDashboardVehicles({
                 />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                CO2 (g/km)
+                {t("dashboard.vehCo2Label")}
                 <input
                   value={vehicleForm.co2}
                   onChange={(event) => updateVehicleForm("co2", event.target.value)}
@@ -1609,7 +1602,7 @@ export default function UserDashboardVehicles({
                 />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Año
+                {t("dashboard.vehYearLabel")}
                 <input
                   value={vehicleForm.year}
                   onChange={(event) => updateVehicleForm("year", event.target.value)}
@@ -1618,7 +1611,7 @@ export default function UserDashboardVehicles({
                 />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Matrícula
+                {t("dashboard.vehPlateLabel")}
                 <input
                   value={vehicleForm.plate}
                   onChange={(event) => updateVehicleForm("plate", event.target.value)}
@@ -1626,18 +1619,14 @@ export default function UserDashboardVehicles({
                   style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor }}
                 />
               </label>
-              <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Kilometraje
-                <input
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>{t("dashboard.vehMileage")}<input
                   value={vehicleForm.mileage}
                   onChange={(event) => updateVehicleForm("mileage", event.target.value)}
                   placeholder="85000"
                   style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor }}
                 />
               </label>
-              <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Combustible
-                <input
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>{t("dashboard.vehFuel")}<input
                   value={vehicleForm.fuel}
                   onChange={(event) => updateVehicleForm("fuel", event.target.value)}
                   placeholder="Gasolina, Diésel, Híbrido..."
@@ -1645,15 +1634,15 @@ export default function UserDashboardVehicles({
                 />
               </label>
               </div>,
-              "Datos base, ficha técnica y atributos comerciales"
+              t("dashboard.vehCharacteristicsDesc")
             )}
 
             {renderVehicleSection(
               "marketplace",
-              "Valor del Vehículo en el mercado",
+              t("dashboard.vehMarketValue"),
               <div style={{ display: "grid", gap: 10 }}>
                 <div style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                  <span>Estrategia de precio para publicar</span>
+                  <span>{t("dashboard.vehPricingStrategy")}</span>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     <button
                       type="button"
@@ -1669,7 +1658,7 @@ export default function UserDashboardVehicles({
                         cursor: "pointer",
                       }}
                     >
-                      Fijar precio manual
+                      {t("dashboard.vehPriceFixed")}
                     </button>
                     <button
                       type="button"
@@ -1700,7 +1689,7 @@ export default function UserDashboardVehicles({
                         cursor: "pointer",
                       }}
                     >
-                      Primero tasar el coche
+                      {t("dashboard.vehPriceValuate")}
                     </button>
                   </div>
                 </div>
@@ -1720,15 +1709,15 @@ export default function UserDashboardVehicles({
                   </div>
                 )}
               </div>,
-              vehicleForm.marketplacePricingMode === "manual" ? "Valor manual definido" : "Publicación condicionada a tasación"
+              vehicleForm.marketplacePricingMode === "manual" ? t("dashboard.vehManualValue") : t("dashboard.vehValuationValue")
             )}
 
             {renderVehicleSection(
               "vehicleDocuments",
-              "Documentos del vehículo",
+              t("dashboard.vehDocsSection"),
               <div style={{ display: "grid", gap: 10, gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(220px,1fr))" }}>
               <div style={{ display: "grid", gap: 7, fontSize: 12, color: bodyColor }}>
-                <div>Fotos del vehículo</div>
+                <div>{t("dashboard.vehPhotos")}</div>
                 <input
                   ref={photoInputRef}
                   type="file"
@@ -1757,10 +1746,10 @@ export default function UserDashboardVehicles({
                     boxShadow: "0 10px 16px rgba(37,99,235,0.22)",
                   }}
                 >
-                  <span>Subir fotos</span>
-                  <span style={{ fontSize: 11, opacity: 0.95 }}>{pendingPhotos.length} seleccionadas</span>
+                  <span>{t("dashboard.vehUploadPhotos")}</span>
+                  <span style={{ fontSize: 11, opacity: 0.95 }}>{t("dashboard.vehPhotosSelected", { count: pendingPhotos.length })}</span>
                 </button>
-                <span style={{ fontSize: 11, color: "#1d4ed8", fontWeight: 700 }}>JPG, PNG, WEBP · selección múltiple</span>
+                <span style={{ fontSize: 11, color: "#1d4ed8", fontWeight: 700 }}>{t("dashboard.vehPhotosHint")}</span>
                 {renderStoredAttachmentPreview(storedPhotos)}
               </div>
               <div style={{ display: "grid", gap: 7, fontSize: 12, color: bodyColor }}>
@@ -1793,10 +1782,10 @@ export default function UserDashboardVehicles({
                     boxShadow: "0 10px 16px rgba(14,116,144,0.2)",
                   }}
                 >
-                  <span>Subir documentos</span>
+                  <span>{t("dashboard.vehUploadDocs")}</span>
                   <span style={{ fontSize: 11, opacity: 0.95 }}>{pendingDocuments.length} seleccionados</span>
                 </button>
-                <span style={{ fontSize: 11, color: "#0f766e", fontWeight: 700 }}>PDF, JPG, PNG · selección múltiple</span>
+                <span style={{ fontSize: 11, color: "#0f766e", fontWeight: 700 }}>{t("dashboard.vehDocsHint")}</span>
                 {renderStoredAttachmentPreview(storedLegacyDocuments)}
               </div>
               <div style={{ display: "grid", gap: 7, fontSize: 12, color: bodyColor }}>
@@ -1814,7 +1803,7 @@ export default function UserDashboardVehicles({
                   onClick={() => technicalSheetInputRef.current?.click()}
                   style={{ display: "inline-flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", background: "rgba(15,118,110,0.14)", color: "#0f766e", border: cardBorder, borderRadius: 10, padding: "9px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
                 >
-                  <span>Adjuntar ficha</span>
+                  <span>{t("dashboard.vehAttachSheet")}</span>
                   <span style={{ fontSize: 11 }}>{pendingTechnicalSheetDocuments.length}</span>
                 </button>
                 {renderStoredAttachmentPreview(storedTechnicalSheetDocuments)}
@@ -1834,7 +1823,7 @@ export default function UserDashboardVehicles({
                   onClick={() => circulationPermitInputRef.current?.click()}
                   style={{ display: "inline-flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", background: "rgba(15,118,110,0.14)", color: "#0f766e", border: cardBorder, borderRadius: 10, padding: "9px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
                 >
-                  <span>Adjuntar permiso</span>
+                  <span>{t("dashboard.vehAttachPermit")}</span>
                   <span style={{ fontSize: 11 }}>{pendingCirculationPermitDocuments.length}</span>
                 </button>
                 {renderStoredAttachmentPreview(storedCirculationPermitDocuments)}
@@ -1854,21 +1843,21 @@ export default function UserDashboardVehicles({
                   onClick={() => ivtInputRef.current?.click()}
                   style={{ display: "inline-flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", background: "rgba(15,118,110,0.14)", color: "#0f766e", border: cardBorder, borderRadius: 10, padding: "9px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
                 >
-                  <span>Adjuntar ITV</span>
+                  <span>{t("dashboard.vehAttachItv")}</span>
                   <span style={{ fontSize: 11 }}>{pendingIvtDocuments.length}</span>
                 </button>
                 {renderStoredAttachmentPreview(storedItvDocuments)}
               </div>
               </div>,
-              `${storedVehicleDocumentsEditorCount} guardados · ${pendingPhotos.length + pendingDocuments.length + pendingTechnicalSheetDocuments.length + pendingCirculationPermitDocuments.length + pendingIvtDocuments.length} adjuntos preparados`
+              t("dashboard.vehDocsSummary", { saved: storedVehicleDocumentsEditorCount, pending: pendingPhotos.length + pendingDocuments.length + pendingTechnicalSheetDocuments.length + pendingCirculationPermitDocuments.length + pendingIvtDocuments.length })
             )}
 
             {renderVehicleSection(
               "insurance",
-              "Seguros",
+              t("dashboard.vehInsurance"),
               <div style={{ display: "grid", gap: 10, gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(220px,1fr))" }}>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Aseguradora
+                {t("dashboard.vehInsurer")}
                 <input
                   value={vehicleForm.policyCompany}
                   onChange={(event) => updateVehicleForm("policyCompany", event.target.value)}
@@ -1877,25 +1866,25 @@ export default function UserDashboardVehicles({
                 />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Cobertura
+                {t("dashboard.vehCoverage")}
                 <input
                   value={vehicleForm.coverageType}
                   onChange={(event) => updateVehicleForm("coverageType", event.target.value)}
-                  placeholder="Todo riesgo, terceros..."
+                  placeholder={t("dashboard.vehCoveragePlaceholder")}
                   style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor }}
                 />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Póliza
+                {t("dashboard.vehPolicy")}
                 <input
                   value={vehicleForm.policyNumber}
                   onChange={(event) => updateVehicleForm("policyNumber", event.target.value)}
-                  placeholder="Número de póliza"
+                  placeholder={t("dashboard.vehPolicyNumber")}
                   style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor }}
                 />
               </label>
               <div style={{ display: "grid", gap: 7, fontSize: 12, color: bodyColor }}>
-                <div>Documentos del seguro</div>
+                <div>{t("dashboard.vehInsuranceDocs")}</div>
                 <input
                   ref={insuranceDocumentsInputRef}
                   type="file"
@@ -1909,51 +1898,51 @@ export default function UserDashboardVehicles({
                   onClick={() => insuranceDocumentsInputRef.current?.click()}
                   style={{ display: "inline-flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", background: "rgba(37,99,235,0.12)", color: "#1d4ed8", border: cardBorder, borderRadius: 10, padding: "9px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
                 >
-                  <span>Adjuntar seguro</span>
+                  <span>{t("dashboard.vehAttachInsurance")}</span>
                   <span style={{ fontSize: 11 }}>{pendingInsuranceDocuments.length}</span>
                 </button>
                 {renderStoredAttachmentPreview(storedInsuranceDocuments)}
               </div>
               </div>,
-              `${storedInsuranceDocumentsCount} guardados · ${pendingInsuranceDocuments.length} documentos de seguro preparados`
+              t("dashboard.vehInsuranceSummary", { saved: storedInsuranceDocumentsCount, pending: pendingInsuranceDocuments.length })
             )}
 
             {renderVehicleSection(
               "maintenance",
-              "Mantenimientos",
+              t("dashboard.vehMaintenance"),
               <>
             <div style={{ display: "grid", gap: 10, gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(180px,1fr))" }}>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Tipo mantenimiento
+                {t("dashboard.vehMaintenanceType")}
                 <input
                   value={vehicleForm.maintenanceType}
                   onChange={(event) => updateVehicleForm("maintenanceType", event.target.value)}
-                  placeholder="Revisión, aceite, frenos..."
+                  placeholder={t("dashboard.vehMaintenanceTypePlaceholder")}
                   style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor }}
                 />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                Descripción mantenimiento
+                {t("dashboard.vehMaintenanceDesc")}
                 <input
                   value={vehicleForm.maintenanceTitle}
                   onChange={(event) => updateVehicleForm("maintenanceTitle", event.target.value)}
-                  placeholder="Qué se le ha hecho al coche"
+                  placeholder={t("dashboard.vehMaintenanceDescPlaceholder")}
                   style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor }}
                 />
               </label>
             </div>
             <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor, marginTop: 8 }}>
-              Notas mantenimiento
+              {t("dashboard.vehMaintenanceNotes")}
               <textarea
                 value={vehicleForm.maintenanceNotes}
                 onChange={(event) => updateVehicleForm("maintenanceNotes", event.target.value)}
-                placeholder="Detalle del mantenimiento"
+                placeholder={t("dashboard.vehMaintenanceNotesPlaceholder")}
                 rows={2}
                 style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor, resize: "vertical" }}
               />
             </label>
             <div style={{ display: "grid", gap: 7, fontSize: 12, color: bodyColor }}>
-              <div>Facturas de mantenimiento</div>
+              <div>{t("dashboard.vehMaintenanceInvoices")}</div>
               <input
                 ref={maintenanceInvoicesInputRef}
                 type="file"
@@ -1967,21 +1956,19 @@ export default function UserDashboardVehicles({
                 onClick={() => maintenanceInvoicesInputRef.current?.click()}
                 style={{ display: "inline-flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", background: "rgba(245,158,11,0.12)", color: "#92400e", border: cardBorder, borderRadius: 10, padding: "9px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
               >
-                <span>Adjuntar facturas</span>
+                <span>{t("dashboard.vehAttachInvoices")}</span>
                 <span style={{ fontSize: 11 }}>{pendingMaintenanceInvoices.length}</span>
               </button>
               {renderStoredAttachmentPreview(storedMaintenanceInvoices)}
             </div>
               </>,
-              `${storedMaintenanceInvoicesCount} guardadas · ${pendingMaintenanceInvoices.length} facturas de mantenimiento preparadas`
+              t("dashboard.vehMaintenanceSummary", { saved: storedMaintenanceInvoicesCount, pending: pendingMaintenanceInvoices.length })
             )}
 
             {renderVehicleSection(
               "notes",
-              "Notas internas",
-              <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-              Notas
-              <textarea
+              t("dashboard.vehNotes"),
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>{t("dashboard.vehNotes")}<textarea
                 value={vehicleForm.notes}
                 onChange={(event) => updateVehicleForm("notes", event.target.value)}
                 placeholder="Añade observaciones relevantes del vehículo"
@@ -2008,7 +1995,7 @@ export default function UserDashboardVehicles({
                   width: isMobile ? "100%" : "auto",
                 }}
               >
-                {editingVehicleId ? "Guardar cambios" : "Guardar en mis vehículos"}
+                {editingVehicleId ? t("dashboard.vehSaveChanges") : t("dashboard.vehSaveNew")}
               </button>
               {editingVehicleId ? (
                 <button
@@ -2027,7 +2014,7 @@ export default function UserDashboardVehicles({
                     width: isMobile ? "100%" : "auto",
                   }}
                 >
-                  Cancelar edición
+                  {t("dashboard.vehCancelEdit")}
                 </button>
               ) : null}
               <button
@@ -2108,7 +2095,7 @@ export default function UserDashboardVehicles({
                       ) : (
                         <div style={{ width: 96, height: 96, borderRadius: 12, border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(99,102,241,0.12)", background: isDark ? "rgba(30,41,59,0.6)" : "rgba(241,245,249,0.9)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 4 }}>
                           <span style={{ fontSize: 22, opacity: 0.3 }}>🚗</span>
-                          <span style={{ fontSize: 9, color: bodyColor, textAlign: "center" }}>Sin foto</span>
+                          <span style={{ fontSize: 9, color: bodyColor, textAlign: "center" }}>{t("dashboard.vehNoPhoto")}</span>
                         </div>
                       )}
                       <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
@@ -2133,16 +2120,16 @@ export default function UserDashboardVehicles({
                       </div>
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "4px 8px" }}>
                         {[
-                          ["📅", "Año", vehicle.year],
-                          ["⛽", "Comb.", vehicle.fuel],
-                          ["🛣️", "Km", vehicle.mileage ? Number(vehicle.mileage).toLocaleString("es-ES") + " km" : null],
-                          ["⚙️", "Cambio", vehicle.transmissionType],
-                          ["🎨", "Color", vehicle.color],
-                          ["🚪", "Puertas", vehicle.doors],
-                          ["💪", "CV", vehicle.cv],
-                          ["🚗", "Carrocería", vehicle.bodyType],
-                          ["🏷️", "Etiqueta", vehicle.environmentalLabel],
-                          ["💺", "Asientos", vehicle.seats],
+                          ["📅", t("dashboard.vehCardYear"), vehicle.year],
+                          ["⛽", t("dashboard.vehCardFuel"), vehicle.fuel],
+                          ["🛣️", t("dashboard.vehCardKm"), vehicle.mileage ? Number(vehicle.mileage).toLocaleString("es-ES") + " km" : null],
+                          ["⚙️", t("dashboard.vehCardTransmission"), vehicle.transmissionType],
+                          ["🎨", t("dashboard.vehCardColor"), vehicle.color],
+                          ["🚪", t("dashboard.vehCardDoors"), vehicle.doors],
+                          ["💪", t("dashboard.vehCardCv"), vehicle.cv],
+                          ["🚗", t("dashboard.vehCardBody"), vehicle.bodyType],
+                          ["🏷️", t("dashboard.vehCardLabel"), vehicle.environmentalLabel],
+                          ["💺", t("dashboard.vehCardSeats"), vehicle.seats],
                         ]
                           .filter(([, , val]) => val)
                           .map(([icon, label, val]) => (
@@ -2164,21 +2151,21 @@ export default function UserDashboardVehicles({
                         onClick={() => removeVehicleFromGarage(vehicle.id)}
                         style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)", color: "#dc2626", borderRadius: 10, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%", letterSpacing: 0.2, transition: "background 0.15s" }}
                       >
-                        Quitar
+                        {t("dashboard.vehDeleteBtn")}
                       </button>
                       <button
                         type="button"
                         onClick={() => startEditingVehicle(vehicle)}
                         style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.25)", color: isDark ? "#a5b4fc" : "#4f46e5", borderRadius: 10, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%", letterSpacing: 0.2 }}
                       >
-                        Editar
+                        {t("dashboard.vehEditBtn")}
                       </button>
                       <button
                         type="button"
                         onClick={() => setManagementVehicleId((prev) => (prev === vehicleId ? "" : vehicleId))}
                         style={{ background: "rgba(14,116,144,0.1)", border: "1px solid rgba(14,116,144,0.22)", color: isDark ? "#67e8f9" : "#0e7490", borderRadius: 10, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%", letterSpacing: 0.2 }}
                       >
-                        {isManagementOpen ? "Ocultar gestión" : "Gestionar"}
+                        {isManagementOpen ? t("dashboard.vehHideManage") : t("dashboard.vehManageBtn")}
                       </button>
 
                       {isManagementOpen ? (
@@ -2188,28 +2175,28 @@ export default function UserDashboardVehicles({
                             onClick={() => handleVehicleAction("appointment", vehicle)}
                             style={{ background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.22)", color: "#b45309", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%" }}
                           >
-                            Pedir cita
+                            {t("dashboard.vehRequestAppointment")}
                           </button>
                           <button
                             type="button"
                             onClick={() => handleVehicleAction("valuation", vehicle)}
                             style={{ background: "rgba(37,99,235,0.1)", border: "1px solid rgba(37,99,235,0.22)", color: isDark ? "#93c5fd" : "#1d4ed8", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%" }}
                           >
-                            Solicitar tasación
+                            {t("dashboard.vehRequestValuation")}
                           </button>
                           <button
                             type="button"
                             onClick={() => handleVehicleAction("insurance", vehicle)}
                             style={{ background: "rgba(14,116,144,0.1)", border: "1px solid rgba(14,116,144,0.22)", color: isDark ? "#67e8f9" : "#0e7490", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%" }}
                           >
-                            Gestionar seguro
+                            {t("dashboard.vehManageInsurance")}
                           </button>
                           <button
                             type="button"
                             onClick={(event) => handleVehicleAction("marketplace", vehicle, event.currentTarget)}
                             style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.22)", color: isDark ? "#6ee7b7" : "#047857", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%" }}
                           >
-                            Publicar
+                            {t("dashboard.vehPublish")}
                           </button>
                         </div>
                       ) : null}
@@ -2261,11 +2248,11 @@ export default function UserDashboardVehicles({
                         Estrategia: {marketplacePublishDialog.vehicle.marketplacePricingMode === "valuation" ? "Tasación previa" : "Precio manual"}
                       </div>
                       <div>
-                        Precio: {marketplacePublishDialog.vehicle.price ? `${marketplacePublishDialog.vehicle.price} EUR` : "Sin precio definido"}
+                        {t("dashboard.vehPublishPrice", { price: marketplacePublishDialog.vehicle.price ? `${marketplacePublishDialog.vehicle.price} EUR` : t("dashboard.vehPublishNoPrice") })}
                       </div>
                       {marketplacePublishDialog.vehicle.marketplacePricingMode === "valuation" && !marketplacePublishDialog.vehicle.price ? (
                         <div style={{ color: "#0c4a6e", fontWeight: 700 }}>
-                          Se abrirá Tasaciones para obtener el precio objetivo antes de publicar.
+                          {t("dashboard.vehPublishOpenValuation")}
                         </div>
                       ) : null}
                     </div>
@@ -2286,8 +2273,8 @@ export default function UserDashboardVehicles({
                         }}
                       >
                         {marketplacePublishDialog.vehicle.marketplacePricingMode === "valuation" && !marketplacePublishDialog.vehicle.price
-                          ? "Ir a tasación"
-                          : "Publicar"}
+                          ? t("dashboard.vehGoValuation")
+                          : t("dashboard.vehPublishConfirm")}
                       </button>
                       <button
                         type="button"
@@ -2312,7 +2299,7 @@ export default function UserDashboardVehicles({
             </div>
             ) : (
             <div style={{ fontSize: 12, color: "#94a3b8" }}>
-              Todavía no tienes vehículos en tu área privada. Añade uno para empezar a gestionar citas, tasaciones, marketplace y seguro.
+              {t("dashboard.vehEmpty")}
             </div>
             )
           ) : null}

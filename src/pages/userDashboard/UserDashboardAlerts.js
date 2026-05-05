@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 const EMPTY_ALERT_FORM = {
   mode: "ambos",
@@ -13,16 +14,16 @@ const EMPTY_ALERT_FORM = {
   email: "",
 };
 
-function buildAlertChips(alert, formatCurrency) {
+function buildAlertChips(alert, formatCurrency, t) {
   return [
     alert?.modeLabel,
-    alert?.brand ? `Marca ${alert.brand}` : "",
-    alert?.model ? `Modelo ${alert.model}` : "",
-    alert?.maxPrice ? `Hasta ${formatCurrency(Number(alert.maxPrice))}` : "",
+    alert?.brand ? t("dashboard.alertChipBrand", { brand: alert.brand }) : "",
+    alert?.model ? t("dashboard.alertChipModel", { model: alert.model }) : "",
+    alert?.maxPrice ? t("dashboard.alertChipMaxPrice", { price: formatCurrency(Number(alert.maxPrice)) }) : "",
     alert?.maxMileage ? `Hasta ${Number(alert.maxMileage).toLocaleString("es-ES")} km` : "",
     alert?.fuel || "",
-    alert?.location ? `Zona ${alert.location}` : "",
-    alert?.color ? `Color ${alert.color}` : "",
+    alert?.location ? t("dashboard.alertChipZone", { zone: alert.location }) : "",
+    alert?.color ? t("dashboard.alertChipColor", { color: alert.color }) : "",
   ].filter(Boolean);
 }
 
@@ -45,6 +46,7 @@ export default function UserDashboardAlerts({
   emailDigestFeedback = "",
   formatCurrency = (value) => `${Number(value || 0).toLocaleString("es-ES")} EUR`,
 }) {
+  const { t } = useTranslation();
   const isDark = themeMode === "dark";
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
   const bodyColor = isDark ? "#cbd5e1" : "#475569";
@@ -96,21 +98,21 @@ export default function UserDashboardAlerts({
 
   const handleCreateAlert = () => {
     if (alertForm.notifyByEmail && !String(alertForm.email || normalizedCurrentUserEmail || "").trim()) {
-      setAlertFeedback("Inicia sesión o indica un correo para activar el aviso por email de esta alerta.");
+      setAlertFeedback(t("dashboard.alertNoEmail"));
       return;
     }
 
     const createdAlert = onCreateMarketAlert(alertForm);
 
     if (!createdAlert) {
-      setAlertFeedback("No se pudo guardar la alerta. Revisa los filtros y vuelve a intentarlo.");
+      setAlertFeedback(t("dashboard.alertSaveError"));
       return;
     }
 
     setAlertFeedback(
       createdAlert.notifyByEmail && createdAlert.email
-        ? `Alerta guardada con resumen por email para ${createdAlert.email}.`
-        : "Alerta guardada: te avisaremos aquí cuando aparezcan ofertas nuevas que encajen."
+        ? t("dashboard.alertSavedWithEmail", { email: createdAlert.email })
+        : t("dashboard.alertSavedOk")
     );
     setShowAlertForm(false);
     setAlertForm(EMPTY_ALERT_FORM);
@@ -121,10 +123,10 @@ export default function UserDashboardAlerts({
     <section id="user-dashboard-alerts" style={{ ...panelStyle, ...sectionFrame, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
-          <div style={{ fontSize: 11, color: "#f59e0b", letterSpacing: "0.6px" }}>ALERTAS DE PRECIO</div>
-          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: titleColor }}>Reglas activas y coincidencias</div>
+          <div style={{ fontSize: 11, color: "#f59e0b", letterSpacing: "0.6px" }}>{t("dashboard.alertSectionLabel")}</div>
+          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: titleColor }}>{t("dashboard.alertTitle")}</div>
           <div style={{ fontSize: 12, color: bodyColor, marginTop: 4 }}>
-            Gestiona alertas, revisa nuevas coincidencias y actua en el marketplace.
+            {t("dashboard.alertDesc")}
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -139,7 +141,7 @@ export default function UserDashboardAlerts({
               fontWeight: 700,
             }}
           >
-            {marketAlerts.length} alertas activas
+            {t("dashboard.alertsActive", { count: marketAlerts.length })}
           </span>
           <span
             style={{
@@ -152,7 +154,7 @@ export default function UserDashboardAlerts({
               fontWeight: 700,
             }}
           >
-            {totalNewMatches} novedades
+            {t("dashboard.alertsNew", { count: totalNewMatches })}
           </span>
         </div>
       </div>
@@ -170,7 +172,7 @@ export default function UserDashboardAlerts({
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
           <div style={{ fontSize: 12, color: bodyColor }}>
-            Crea alertas por tipo de oferta, marca/modelo, precio, kilometraje, combustible y zona.
+            {t("dashboard.alertFormDesc")}
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", width: isMobile ? "100%" : "auto" }}>
             <button
@@ -189,7 +191,7 @@ export default function UserDashboardAlerts({
                 width: isMobile ? "100%" : "auto",
               }}
             >
-              {emailDigestLoading ? "Enviando…" : "Enviar resumen por email"}
+              {emailDigestLoading ? t("dashboard.alertSending") : t("dashboard.alertSendEmail")}
             </button>
             <button
               type="button"
@@ -206,7 +208,7 @@ export default function UserDashboardAlerts({
                 width: isMobile ? "100%" : "auto",
               }}
             >
-              {showAlertForm ? "Cerrar" : "Añadir alerta"}
+              {showAlertForm ? t("dashboard.alertClose") : t("dashboard.alertAddAlert")}
             </button>
           </div>
         </div>
@@ -215,46 +217,46 @@ export default function UserDashboardAlerts({
           <>
             <div style={{ display: "grid", gap: 10, gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(180px,1fr))" }}>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
-                Tipo de oferta
+                {t("dashboard.alertTypeLabel")}
                 <select value={alertForm.mode} onChange={(event) => updateAlertField("mode", event.target.value)} style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "#0f1b2d" : "#fff", color: titleColor }}>
-                  <option value="ambos">Compra o renting</option>
-                  <option value="compra">Compra</option>
-                  <option value="renting">Renting</option>
+                  <option value="ambos">{t("dashboard.alertTypeBoth")}</option>
+                  <option value="compra">{t("dashboard.alertTypeBuy")}</option>
+                  <option value="renting">{t("dashboard.alertTypeRent")}</option>
                 </select>
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
-                Marca
+                {t("dashboard.alertBrand")}
                 <input value={alertForm.brand} onChange={(event) => updateAlertField("brand", event.target.value)} placeholder="Toyota, BMW..." style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "#0f1b2d" : "#fff", color: titleColor }} />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
-                Modelo
+                {t("dashboard.alertModel")}
                 <input value={alertForm.model} onChange={(event) => updateAlertField("model", event.target.value)} placeholder="Corolla, X1..." style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "#0f1b2d" : "#fff", color: titleColor }} />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
-                Precio máximo (€)
+                {t("dashboard.alertMaxPrice")}
                 <input type="number" value={alertForm.maxPrice} onChange={(event) => updateAlertField("maxPrice", event.target.value)} placeholder="25000" style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "#0f1b2d" : "#fff", color: titleColor }} />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
-                Kilometraje máximo
+                {t("dashboard.alertMaxMileage")}
                 <input type="number" value={alertForm.maxMileage} onChange={(event) => updateAlertField("maxMileage", event.target.value)} placeholder="60000" style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "#0f1b2d" : "#fff", color: titleColor }} />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
-                Combustible
+                {t("dashboard.alertFuel")}
                 <input value={alertForm.fuel} onChange={(event) => updateAlertField("fuel", event.target.value)} placeholder="Diésel, Híbrido..." style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "#0f1b2d" : "#fff", color: titleColor }} />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
-                Localización
+                {t("dashboard.alertLocation")}
                 <input value={alertForm.location} onChange={(event) => updateAlertField("location", event.target.value)} placeholder="Madrid, Valencia..." style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "#0f1b2d" : "#fff", color: titleColor }} />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
-                Color
+                {t("dashboard.alertColor")}
                 <input value={alertForm.color} onChange={(event) => updateAlertField("color", event.target.value)} placeholder="Blanco, gris..." style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "#0f1b2d" : "#fff", color: titleColor }} />
               </label>
             </div>
 
             <label style={{ display: "inline-flex", gap: 8, alignItems: "center", fontSize: 12, color: bodyColor, cursor: "pointer" }}>
               <input type="checkbox" checked={Boolean(alertForm.notifyByEmail)} onChange={(event) => updateAlertField("notifyByEmail", event.target.checked)} />
-              Enviarme también un resumen por email
+              {t("dashboard.alertEmailCheckbox")}
             </label>
 
             {alertForm.notifyByEmail && (
@@ -282,7 +284,7 @@ export default function UserDashboardAlerts({
                 width: isMobile ? "100%" : "fit-content",
               }}
             >
-              Guardar alerta
+              {t("dashboard.alertSaveButton")}
             </button>
           </>
         )}
@@ -301,7 +303,7 @@ export default function UserDashboardAlerts({
             const alertMatchInfo = marketAlertMatches?.[alert.id] || { count: 0, matches: [] };
             const seenCount = Number(marketAlertStatus?.[alert.id]?.seenCount || 0);
             const newMatchesCount = Math.max(Number(alertMatchInfo.count || 0) - seenCount, 0);
-            const alertChips = buildAlertChips({ ...alert, email: alertEmail }, formatCurrency);
+            const alertChips = buildAlertChips({ ...alert, email: alertEmail }, formatCurrency, t);
 
             return (
               <div
@@ -358,7 +360,7 @@ export default function UserDashboardAlerts({
                           width: isMobile ? "100%" : "auto",
                         }}
                       >
-                        Marcar revisada
+                          {t("dashboard.alertMarkReviewed")}
                       </button>
                     )}
                     <button
@@ -379,7 +381,7 @@ export default function UserDashboardAlerts({
                         width: isMobile ? "100%" : "auto",
                       }}
                     >
-                      Ir al marketplace
+                      {t("dashboard.alertGoMarketplace")}
                     </button>
                     <button
                       type="button"
@@ -396,7 +398,7 @@ export default function UserDashboardAlerts({
                         width: isMobile ? "100%" : "auto",
                       }}
                     >
-                      Eliminar
+                      {t("dashboard.alertDelete")}
                     </button>
                   </div>
                 </div>
@@ -411,7 +413,7 @@ export default function UserDashboardAlerts({
                   }}
                 >
                   <div style={{ fontSize: 11, fontWeight: 800, color: "#1d4ed8", letterSpacing: "0.4px", marginBottom: 6 }}>
-                    {alertMatchInfo.count === 1 ? "1 coincidencia ahora" : `${alertMatchInfo.count} coincidencias ahora`}
+                    {t("dashboard.alertMatch", { count: alertMatchInfo.count })}
                   </div>
                   {alertMatchInfo.count > 0 ? (
                     <div style={{ display: "grid", gap: 8 }}>
@@ -464,14 +466,14 @@ export default function UserDashboardAlerts({
                               cursor: "pointer",
                             }}
                           >
-                            Ver oferta ↗
+                            {t("dashboard.alertViewOffer")}
                           </button>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div style={{ fontSize: 11, color: "#94a3b8" }}>
-                      Aun no hay coincidencias con estos filtros. Seguimos vigilando el mercado.
+                      {t("dashboard.alertNoMatches")}
                     </div>
                   )}
                 </div>
@@ -490,7 +492,7 @@ export default function UserDashboardAlerts({
             color: bodyColor,
           }}
         >
-          Todavia no has creado alertas de mercado. Crea una desde Guardados para empezar a recibir coincidencias.
+          {t("dashboard.alertEmpty")}
         </div>
       )}
     </section>

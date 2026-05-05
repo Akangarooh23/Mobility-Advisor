@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 function fmt(n) {
   return Number(n).toLocaleString("es-ES");
@@ -12,6 +13,7 @@ function formatDate(raw) {
 }
 
 function TrendIndicator({ estimateValue, isDark }) {
+  const { t } = useTranslation();
   if (!estimateValue || estimateValue <= 0) return null;
   // Simulate ±trend based on price band (real trend would come from report field)
   const trend = estimateValue > 20000 ? -3.2 : estimateValue > 10000 ? -1.1 : 0.5;
@@ -31,12 +33,13 @@ function TrendIndicator({ estimateValue, isDark }) {
       >
         {isUp ? "↑" : "↓"} {Math.abs(trend).toFixed(1)}%
       </span>
-      <span style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#64748b" }}>últimos 30 días</span>
+      <span style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#64748b" }}>{t("dashboard.valLastDays")}</span>
     </div>
   );
 }
 
 function ValuationCard({ item, isDark, cardBg, onRequestValuation, onNavigate }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
   const bodyColor = isDark ? "#cbd5e1" : "#475569";
@@ -110,16 +113,16 @@ function ValuationCard({ item, isDark, cardBg, onRequestValuation, onNavigate })
           }}
         >
           <div>
-            <div style={{ fontSize: 10, color: mutedColor, marginBottom: 2, letterSpacing: "0.4px" }}>PRECIO ESTIMADO</div>
+            <div style={{ fontSize: 10, color: mutedColor, marginBottom: 2, letterSpacing: "0.4px" }}>{t("dashboard.valEstimatedPrice")}</div>
             <div style={{ fontSize: 22, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", letterSpacing: "-0.04em" }}>
               {fmt(item.estimateValue)}€
             </div>
             <div style={{ fontSize: 11, color: mutedColor, marginTop: 2 }}>
-              Rango: {fmt(rangeMin)} – {fmt(rangeMax)}€
+              {t("dashboard.valRange", { min: fmt(rangeMin), max: fmt(rangeMax) })}
             </div>
           </div>
           <div style={{ marginLeft: "auto" }}>
-            <div style={{ fontSize: 10, color: mutedColor, marginBottom: 4, letterSpacing: "0.4px" }}>TENDENCIA</div>
+            <div style={{ fontSize: 10, color: mutedColor, marginBottom: 4, letterSpacing: "0.4px" }}>{t("dashboard.valTrend")}</div>
             <TrendIndicator estimateValue={item.estimateValue} isDark={isDark} />
           </div>
         </div>
@@ -132,15 +135,15 @@ function ValuationCard({ item, isDark, cardBg, onRequestValuation, onNavigate })
           style={{ ...btnSecondary }}
           onClick={() => setExpanded((v) => !v)}
         >
-          {expanded ? "Ocultar detalle" : "Ver detalle"}
+          {expanded ? t("dashboard.valHideDetail") : t("dashboard.valViewDetail")}
         </button>
-        <button type="button" style={{ ...btnSecondary }} onClick={() => onNavigate && onNavigate("saved")}>Ver comparables</button>
+        <button type="button" style={{ ...btnSecondary }} onClick={() => onNavigate && onNavigate("saved")}>{t("dashboard.valComparables")}</button>
         <button
           type="button"
           style={{ ...btnSecondary, marginLeft: "auto" }}
           onClick={() => onRequestValuation && onRequestValuation({ vehicleTitle: item.title })}
         >
-          Repetir valoración
+          {t("dashboard.valRepeat")}
         </button>
       </div>
 
@@ -156,13 +159,12 @@ function ValuationCard({ item, isDark, cardBg, onRequestValuation, onNavigate })
           }}
         >
           <div style={{ fontSize: 11, fontWeight: 700, color: mutedColor, marginBottom: 6, letterSpacing: "0.4px" }}>
-            ESTRATEGIA DE VENTA SUGERIDA
+            {t("dashboard.valStrategySectionLabel")}
           </div>
           <div style={{ fontSize: 12, color: bodyColor, lineHeight: 1.65 }}>
-            Publica a <strong style={{ color: titleColor }}>{fmt(suggestedListingPrice)}€</strong> y ajusta 500€ cada semana
-            si no recibes contactos. Rango de negociación estimado:{" "}
+            {t("dashboard.valStrategyText1")} <strong style={{ color: titleColor }}>{fmt(suggestedListingPrice)}€</strong> {t("dashboard.valStrategyText2")}{" "}
             <strong style={{ color: titleColor }}>{fmt(rangeMin)} – {fmt(rangeMax)}€</strong>.
-            Mejor canal para tu segmento de precio: <strong style={{ color: titleColor }}>Coches.net</strong>.
+            {t("dashboard.valStrategyText3")} <strong style={{ color: titleColor }}>Coches.net</strong>.
           </div>
         </div>
       ) : expanded && !hasPrice ? (
@@ -175,7 +177,7 @@ function ValuationCard({ item, isDark, cardBg, onRequestValuation, onNavigate })
             borderRadius: 10,
           }}
         >
-          <div style={{ fontSize: 12, color: bodyColor }}>{item.meta || "Sin datos adicionales para este informe."}</div>
+          <div style={{ fontSize: 12, color: bodyColor }}>{item.meta || t("dashboard.valNoData")}</div>
         </div>
       ) : null}
     </div>
@@ -191,6 +193,7 @@ export default function UserDashboardValuations({
   onRequestValuation = () => {},
   onNavigate = () => {},
 }) {
+  const { t } = useTranslation();
   const isDark = themeMode === "dark";
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
   const bodyColor = isDark ? "#cbd5e1" : "#475569";
@@ -209,17 +212,17 @@ export default function UserDashboardValuations({
       {/* Section header */}
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 14 }}>
         <div>
-          <div style={{ fontSize: 11, color: "#c084fc", letterSpacing: "0.6px" }}>MIS TASACIONES</div>
+          <div style={{ fontSize: 11, color: "#c084fc", letterSpacing: "0.6px" }}>{t("dashboard.valSectionLabel")}</div>
           <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: titleColor }}>
-            Valoraciones e informes guardados
+            {t("dashboard.valTitle")}
           </div>
           <div style={{ fontSize: 12, color: bodyColor, marginTop: 4 }}>
-            Historial de tasaciones, precios estimados y estrategias de venta.
+            {t("dashboard.valDesc")}
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
           <span style={{ ...getOfferBadgeStyle("slate"), fontSize: 11 }}>
-            {dashboardValuations.length} {dashboardValuations.length === 1 ? "informe" : "informes"}
+            {t("dashboard.valReport", { count: dashboardValuations.length })}
           </span>
           <button
             type="button"
@@ -235,7 +238,7 @@ export default function UserDashboardValuations({
               cursor: "pointer",
             }}
           >
-            + Nueva valoración
+            {t("dashboard.valNewValuation")}
           </button>
         </div>
       </div>
@@ -264,9 +267,9 @@ export default function UserDashboardValuations({
           }}
         >
           <div style={{ fontSize: 28, marginBottom: 8 }}>📋</div>
-          <div style={{ fontWeight: 600, marginBottom: 6, color: titleColor }}>Sin valoraciones aún</div>
+          <div style={{ fontWeight: 600, marginBottom: 6, color: titleColor }}>{t("dashboard.valEmptyTitle")}</div>
           <div style={{ fontSize: 12, marginBottom: 14 }}>
-            Tasa tu coche para conocer su precio de mercado actual y la estrategia de venta óptima.
+            {t("dashboard.valEmptyDesc")}
           </div>
           <button
             type="button"
@@ -282,7 +285,7 @@ export default function UserDashboardValuations({
               cursor: "pointer",
             }}
           >
-            Hacer mi primera valoración →
+            {t("dashboard.valFirstValuation")}
           </button>
         </div>
       )}

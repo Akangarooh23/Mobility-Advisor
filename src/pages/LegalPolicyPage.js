@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 export default function LegalPolicyPage({
   styles,
   title,
@@ -7,6 +9,7 @@ export default function LegalPolicyPage({
   onGoBack,
   onGoHome,
 }) {
+  const { t } = useTranslation();
   return (
     <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
@@ -24,7 +27,7 @@ export default function LegalPolicyPage({
             cursor: "pointer",
           }}
         >
-          ← Volver
+          {t("legal.back")}
         </button>
         <button
           type="button"
@@ -40,11 +43,11 @@ export default function LegalPolicyPage({
             cursor: "pointer",
           }}
         >
-          ⌂ Ir al inicio
+          {t("legal.goHome")}
         </button>
       </div>
 
-      <div style={{ ...styles.blockBadge("Vinculación"), marginBottom: 10 }}>DOCUMENTACIÓN LEGAL</div>
+      <div style={{ ...styles.blockBadge("Vinculación"), marginBottom: 10 }}>{t("legal.badge")}</div>
       <h2 style={{ margin: "0 0 8px", fontSize: "clamp(28px,4vw,36px)", color: "#f8fafc", letterSpacing: "-0.9px" }}>
         {title}
       </h2>
@@ -52,7 +55,7 @@ export default function LegalPolicyPage({
         {summary}
       </p>
       <p style={{ margin: "0 0 18px", color: "#64748b", fontSize: 12 }}>
-        Última actualización: {updatedAt}
+        {t("legal.lastUpdated", { date: updatedAt })}
       </p>
 
       <div style={{ display: "grid", gap: 12 }}>

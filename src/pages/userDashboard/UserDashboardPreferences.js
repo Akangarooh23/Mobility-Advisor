@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { putUserPreferencesJson } from "../../utils/apiClient";
 
 const PREFERENCES_STORAGE_KEY = "movilidad-advisor.userDashboard.preferences.v1";
@@ -37,6 +38,7 @@ export default function UserDashboardPreferences({
   panelStyle,
   currentUser,
 }) {
+  const { t } = useTranslation();
   const isDark = themeMode === "dark";
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
   const bodyColor = isDark ? "#cbd5e1" : "#475569";
@@ -93,7 +95,7 @@ export default function UserDashboardPreferences({
   const save = () => {
     writePreferences(form);
     void putUserPreferencesJson(form).catch(() => {});
-    setFeedback("Preferencias guardadas correctamente.");
+    setFeedback(t("dashboard.prefSaved"));
     if (typeof window !== "undefined") {
       window.setTimeout(() => setFeedback(""), 2200);
     }
@@ -125,63 +127,63 @@ export default function UserDashboardPreferences({
     <section id="user-dashboard-preferences" style={{ ...panelStyle, ...sectionFrame, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", letterSpacing: "0.6px" }}>PREFERENCIAS</div>
-          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: titleColor }}>Ajustes de usuario y notificaciones</div>
+          <div style={{ fontSize: 11, color: "#64748b", letterSpacing: "0.6px" }}>{t("dashboard.prefSectionLabel")}</div>
+          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: titleColor }}>{t("dashboard.prefTitle")}</div>
           <div style={{ fontSize: 12, color: bodyColor, marginTop: 4 }}>
-            Define idioma, region y como quieres recibir avisos.
+            {t("dashboard.prefDesc")}
           </div>
         </div>
       </div>
 
       <div style={{ display: "grid", gap: 12, gridTemplateColumns: isMobile ? "1fr" : "repeat(2,minmax(0,1fr))" }}>
         <div style={{ background: cardBg, border: panelBorder, borderRadius: 12, padding: 12 }}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: titleColor, marginBottom: 8 }}>Perfil</div>
+          <div style={{ fontSize: 13, fontWeight: 800, color: titleColor, marginBottom: 8 }}>{t("dashboard.prefProfileTitle")}</div>
           <div style={{ display: "grid", gap: 8 }}>
             <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-              Nombre
+              {t("dashboard.prefName")}
               <input value={form.fullName} onChange={(event) => updateField("fullName", event.target.value)} style={inputStyle} />
             </label>
             <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-              Email
+              {t("dashboard.prefEmail")}
               <input value={form.email} onChange={(event) => updateField("email", event.target.value)} style={inputStyle} />
             </label>
           </div>
         </div>
 
         <div style={{ background: cardBg, border: panelBorder, borderRadius: 12, padding: 12 }}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: titleColor, marginBottom: 8 }}>Idioma y region</div>
+          <div style={{ fontSize: 13, fontWeight: 800, color: titleColor, marginBottom: 8 }}>{t("dashboard.prefLangRegionTitle")}</div>
           <div style={{ display: "grid", gap: 8 }}>
             <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-              Idioma
+              {t("dashboard.prefLanguage")}
               <select value={form.language} onChange={(event) => updateField("language", event.target.value)} style={inputStyle}>
-                <option value="es">Español</option>
-                <option value="en">English</option>
+                <option value="es">{t("dashboard.prefSpanish")}</option>
+                <option value="en">{t("dashboard.prefEnglish")}</option>
               </select>
             </label>
             <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-              Region
+              {t("dashboard.prefRegion")}
               <select value={form.region} onChange={(event) => updateField("region", event.target.value)} style={inputStyle}>
-                <option value="es">España</option>
-                <option value="eu">Europa</option>
+                <option value="es">{t("dashboard.prefSpain")}</option>
+                <option value="eu">{t("dashboard.prefEurope")}</option>
               </select>
             </label>
           </div>
         </div>
 
         <div style={{ gridColumn: isMobile ? "auto" : "1 / -1", background: cardBg, border: panelBorder, borderRadius: 12, padding: 12 }}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: titleColor, marginBottom: 8 }}>Notificaciones</div>
+          <div style={{ fontSize: 13, fontWeight: 800, color: titleColor, marginBottom: 8 }}>{t("dashboard.prefNotificationsTitle")}</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             <button type="button" onClick={() => updateField("notifyPriceAlerts", !form.notifyPriceAlerts)} style={toggleButton(form.notifyPriceAlerts)}>
-              Alertas de precio: {form.notifyPriceAlerts ? "ON" : "OFF"}
+              {t("dashboard.prefPriceAlerts", { status: form.notifyPriceAlerts ? "ON" : "OFF" })}
             </button>
             <button type="button" onClick={() => updateField("notifyAppointments", !form.notifyAppointments)} style={toggleButton(form.notifyAppointments)}>
-              Citas y gestiones: {form.notifyAppointments ? "ON" : "OFF"}
+              {t("dashboard.prefAppointments", { status: form.notifyAppointments ? "ON" : "OFF" })}
             </button>
             <button type="button" onClick={() => updateField("notifyAnalysisReady", !form.notifyAnalysisReady)} style={toggleButton(form.notifyAnalysisReady)}>
-              Analisis listos: {form.notifyAnalysisReady ? "ON" : "OFF"}
+              {t("dashboard.prefAnalysisReady", { status: form.notifyAnalysisReady ? "ON" : "OFF" })}
             </button>
             <button type="button" onClick={() => updateField("weeklyDigest", !form.weeklyDigest)} style={toggleButton(form.weeklyDigest)}>
-              Resumen semanal: {form.weeklyDigest ? "ON" : "OFF"}
+              {t("dashboard.prefWeeklyDigest", { status: form.weeklyDigest ? "ON" : "OFF" })}
             </button>
           </div>
         </div>
@@ -202,7 +204,7 @@ export default function UserDashboardPreferences({
             cursor: "pointer",
           }}
         >
-          Guardar preferencias
+          {t("dashboard.prefSave")}
         </button>
         {feedback && <span style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>{feedback}</span>}
       </div>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   getBillingAccountJson,
   postBillingAccountJson,
@@ -11,10 +12,10 @@ function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function toInputDateLabel(value) {
+function toInputDateLabel(value, t) {
   const text = normalizeText(value);
   if (!text) {
-    return "Sin fecha";
+    return t ? t("dashboard.billingNoDate") : "Sin fecha";
   }
 
   const date = new Date(text);
@@ -38,6 +39,25 @@ const AVAILABLE_PLANS = [
 ];
 
 export default function UserDashboardBilling({ panelStyle, currentUser, themeMode, isMobile = false }) {
+  const { t } = useTranslation();
+  const planLabelMap = {
+    gratis: t("dashboard.billingPlanGratis"),
+    bronce: t("dashboard.billingPlanBronce"),
+    plata: t("dashboard.billingPlanPlata"),
+    oro: t("dashboard.billingPlanOro"),
+    platino: t("dashboard.billingPlanPlatino"),
+  };
+  const subscriptionStatusMap = {
+    activo: t("dashboard.billingStatusActivo"),
+    pendiente: t("dashboard.billingStatusPendiente"),
+    inactivo: t("dashboard.billingStatusInactivo"),
+    cancelado: t("dashboard.billingStatusCancelado"),
+  };
+  const invoiceStatusMap = {
+    pagada: t("dashboard.billingInvoiceStatusPagada"),
+    pendiente: t("dashboard.billingInvoiceStatusPendiente"),
+    cancelada: t("dashboard.billingInvoiceStatusCancelada"),
+  };
   const isDark = themeMode === "dark";
   const cardBg = isDark
     ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
@@ -113,6 +133,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
   const [billingFeedback, setBillingFeedback] = useState("");
   const [activeAccountTab, setActiveAccountTab] = useState("overview");
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!resolvedUserEmail) {
       return;
@@ -156,7 +177,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
         setSelectedPlanId(nextBillingState.planId || "plata");
       } catch {
         if (!cancelled) {
-          setBillingFeedback("No se pudo cargar la cuenta de facturacion. Mostrando estado local.");
+          setBillingFeedback(t("dashboard.billingLoadError"));
         }
       } finally {
         if (!cancelled) {
@@ -170,8 +191,10 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser?.name, resolvedUserEmail]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const intent = readUserBillingCheckoutIntent();
 
@@ -204,10 +227,10 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
   const paidInvoicesCount = invoices.filter((invoice) => normalizeText(invoice?.status).toLowerCase() === "paid").length;
   const pendingInvoicesCount = Math.max(invoices.length - paidInvoicesCount, 0);
   const accountTabs = [
-    { key: "overview", label: "Resumen", count: null },
-    { key: "profile", label: "Perfil", count: null },
-    { key: "subscription", label: "Suscripción", count: null },
-    { key: "invoices", label: "Facturas", count: invoices.length },
+    { key: "overview", label: t("dashboard.billingTabOverview"), count: null },
+    { key: "profile", label: t("dashboard.billingTabProfile"), count: null },
+    { key: "subscription", label: t("dashboard.billingTabSubscription"), count: null },
+    { key: "invoices", label: t("dashboard.billingTabInvoices"), count: invoices.length },
   ];
 
   const handleProfileChange = (field) => (event) => {
@@ -217,7 +240,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
 
   const saveProfile = () => {
     if (!resolvedUserEmail) {
-      setProfileFeedback("Necesitas una sesion activa para guardar los datos.");
+      setProfileFeedback(t("dashboard.billingNeedSession"));
       return;
     }
 
@@ -259,9 +282,9 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
           });
         }
 
-        setProfileFeedback("Datos guardados correctamente.");
+        setProfileFeedback(t("dashboard.billingDataSaved"));
       } catch {
-        setProfileFeedback("No se pudieron guardar los datos. Vuelve a intentarlo.");
+        setProfileFeedback(t("dashboard.billingSaveError"));
       } finally {
         setSavingProfile(false);
       }
@@ -328,8 +351,8 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
     <section id="user-dashboard-billing" style={{ ...panelStyle, ...sectionFrame, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
-          <div style={{ fontSize: 11, color: "#2563eb", letterSpacing: "0.6px" }}>MI CUENTA Y FACTURACION</div>
-          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>Hub de cuenta y facturación</div>
+          <div style={{ fontSize: 11, color: "#2563eb", letterSpacing: "0.6px" }}>{t("dashboard.billingSectionLabel")}</div>
+          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>{t("dashboard.billingTitle")}</div>
         </div>
         <span
           style={{
@@ -342,7 +365,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
             color: "#1e3a8a",
           }}
         >
-          {billingState?.planLabel || "Plan Gratis"}
+          {planLabelMap[billingState?.planId] || billingState?.planLabel || t("dashboard.billingPlanGratis")}
         </span>
       </div>
 
@@ -401,17 +424,17 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
 
       {loadingAccount && (
         <div style={{ fontSize: 12, color: "#2563eb", marginBottom: 10 }}>
-          Cargando datos de cuenta...
+          {t("dashboard.billingLoading")}
         </div>
       )}
 
       {activeAccountTab === "overview" && (
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,minmax(0,1fr))" : "repeat(auto-fit,minmax(170px,1fr))", gap: 12, marginBottom: 14 }}>
           {[
-            ["Plan actual", billingState?.planLabel || "Plan Gratis", "#2563eb"],
-            ["Estado", billingState?.status || "inactivo", "#0ea5e9"],
-            ["Facturas pagadas", paidInvoicesCount, "#10b981"],
-            ["Facturas pendientes", pendingInvoicesCount, "#f59e0b"],
+            [t("dashboard.billingCurrentPlan"), planLabelMap[billingState?.planId] || billingState?.planLabel || t("dashboard.billingPlanGratis"), "#2563eb"],
+            [t("dashboard.billingStatus"), subscriptionStatusMap[billingState?.status?.toLowerCase()] || billingState?.status || t("dashboard.billingStatusInactivo"), "#0ea5e9"],
+            [t("dashboard.billingPaidInvoices"), paidInvoicesCount, "#10b981"],
+            [t("dashboard.billingPendingInvoices"), pendingInvoicesCount, "#f59e0b"],
           ].map(([label, value, color]) => (
             <div
               key={String(label)}
@@ -440,21 +463,21 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                 padding: 12,
               }}
             >
-              <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 8 }}>Datos personales y fiscales</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 8 }}>{t("dashboard.billingProfileTitle")}</div>
               <div style={{ display: "grid", gap: 8 }}>
-                <input value={profileForm.fullName} onChange={handleProfileChange("fullName")} placeholder="Nombre completo" style={inputStyle} />
-                <input value={profileForm.email} onChange={handleProfileChange("email")} placeholder="Email de facturacion" style={inputStyle} />
-                <input value={profileForm.phone} onChange={handleProfileChange("phone")} placeholder="Telefono" style={inputStyle} />
-                <input value={profileForm.companyName} onChange={handleProfileChange("companyName")} placeholder="Empresa (opcional)" style={inputStyle} />
-                <input value={profileForm.taxId} onChange={handleProfileChange("taxId")} placeholder="NIF/CIF" style={inputStyle} />
-                <textarea value={profileForm.billingAddress} onChange={handleProfileChange("billingAddress")} placeholder="Direccion fiscal" rows={2} style={{ ...inputStyle, resize: "vertical" }} />
-                <input value={profileForm.iban} onChange={handleProfileChange("iban")} placeholder="IBAN (opcional)" style={inputStyle} />
+                <input value={profileForm.fullName} onChange={handleProfileChange("fullName")} placeholder={t("dashboard.billingFullName")} style={inputStyle} />
+                <input value={profileForm.email} onChange={handleProfileChange("email")} placeholder={t("dashboard.billingEmailBilling")} style={inputStyle} />
+                <input value={profileForm.phone} onChange={handleProfileChange("phone")} placeholder={t("dashboard.billingPhone")} style={inputStyle} />
+                <input value={profileForm.companyName} onChange={handleProfileChange("companyName")} placeholder={t("dashboard.billingCompany")} style={inputStyle} />
+                <input value={profileForm.taxId} onChange={handleProfileChange("taxId")} placeholder={t("dashboard.billingTaxId")} style={inputStyle} />
+                <textarea value={profileForm.billingAddress} onChange={handleProfileChange("billingAddress")} placeholder={t("dashboard.billingAddress")} rows={2} style={{ ...inputStyle, resize: "vertical" }} />
+                <input value={profileForm.iban} onChange={handleProfileChange("iban")} placeholder={t("dashboard.billingIban")} style={inputStyle} />
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginTop: 10, flexWrap: "wrap" }}>
                 <button type="button" onClick={saveProfile} style={{ ...primaryButtonStyle, width: isMobile ? "100%" : "auto" }} disabled={savingProfile}>
-                  {savingProfile ? "Guardando..." : "Guardar datos"}
+                  {savingProfile ? t("dashboard.billingSaving") : t("dashboard.billingSaveData")}
                 </button>
-                <span style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#94a3b8" }}>{profileForm.updatedAt ? `Actualizado: ${toInputDateLabel(profileForm.updatedAt)}` : "Sin guardar"}</span>
+                <span style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#94a3b8" }}>{profileForm.updatedAt ? t("dashboard.billingUpdated", { date: toInputDateLabel(profileForm.updatedAt, t) }) : t("dashboard.billingNotSaved")}</span>
               </div>
               {profileFeedback && <div style={{ marginTop: 8, fontSize: 12, color: "#1d4ed8" }}>{profileFeedback}</div>}
             </div>
@@ -469,30 +492,30 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                 padding: 12,
               }}
             >
-              <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 8 }}>Suscripcion y pagos</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 8 }}>{t("dashboard.billingSubscriptionTitle")}</div>
               <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#334155", lineHeight: 1.65, marginBottom: 10 }}>
-                Estado: <strong>{billingState?.status || "inactivo"}</strong><br />
-                Proxima renovacion: <strong>{toInputDateLabel(billingState?.nextBillingDate)}</strong>
+                {t("dashboard.billingStatusLabel")} <strong>{billingState?.status || "inactivo"}</strong><br />
+                {t("dashboard.billingNextRenewal")} <strong>{toInputDateLabel(billingState?.nextBillingDate, t)}</strong>
               </div>
 
-              <label style={{ display: "block", fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>Plan para checkout</label>
+              <label style={{ display: "block", fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>{t("dashboard.billingCheckoutPlan")}</label>
               <select value={selectedPlanId} onChange={(event) => setSelectedPlanId(event.target.value)} style={{ ...inputStyle, marginBottom: 10 }}>
                 {AVAILABLE_PLANS.map((plan) => (
-                  <option key={plan.id} value={plan.id}>{plan.label}</option>
+                  <option key={plan.id} value={plan.id}>{planLabelMap[plan.id] || plan.label}</option>
                 ))}
               </select>
 
               <div style={{ display: "grid", gap: 8 }}>
                 <button type="button" onClick={startCheckout} disabled={billingActionLoading} style={{ ...primaryButtonStyle, width: isMobile ? "100%" : "auto" }}>
-                  {billingActionLoading ? "Procesando..." : "Iniciar checkout"}
+                  {billingActionLoading ? t("dashboard.billingProcessing") : t("dashboard.billingStartCheckout")}
                 </button>
                 <button type="button" onClick={openCustomerPortal} disabled={billingActionLoading} style={{ ...secondaryButtonStyle, width: isMobile ? "100%" : "auto" }}>
-                  Gestionar metodo de pago
+                  {t("dashboard.billingManagePayment")}
                 </button>
               </div>
 
               <div style={{ marginTop: 8, fontSize: 11, color: "#94a3b8" }}>
-                Integracion preparada para Stripe. Si no hay claves configuradas, se ejecuta en modo simulado.
+                {t("dashboard.billingStripeNote")}
               </div>
               {billingFeedback && <div style={{ marginTop: 8, fontSize: 12, color: "#1d4ed8" }}>{billingFeedback}</div>}
             </div>
@@ -509,21 +532,21 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
             padding: 12,
           }}
         >
-          <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 8 }}>Facturas</div>
+          <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 8 }}>{t("dashboard.billingInvoicesTitle")}</div>
 
           {invoices.length === 0 ? (
-            <div style={{ fontSize: 12, color: "#94a3b8" }}>Todavia no hay facturas registradas en tu cuenta.</div>
+            <div style={{ fontSize: 12, color: "#94a3b8" }}>{t("dashboard.billingNoInvoices")}</div>
           ) : (
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", minWidth: isMobile ? 460 : 580 }}>
                 <thead>
                   <tr>
                     {[
-                      "Numero",
-                      "Fecha",
-                      "Importe",
-                      "Estado",
-                      "Documento",
+                      t("dashboard.billingTableNumber"),
+                      t("dashboard.billingTableDate"),
+                      t("dashboard.billingTableAmount"),
+                      t("dashboard.billingTableStatus"),
+                      t("dashboard.billingTableDocument"),
                     ].map((cell) => (
                       <th
                         key={cell}
@@ -544,16 +567,16 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                   {invoices.map((invoice) => (
                     <tr key={invoice.id || invoice.number}>
                       <td style={tableCellStyle}>{invoice.number || "-"}</td>
-                      <td style={tableCellStyle}>{toInputDateLabel(invoice.date)}</td>
+                      <td style={tableCellStyle}>{toInputDateLabel(invoice.date, t)}</td>
                       <td style={tableCellStyle}>{Number(invoice.amount || 0).toFixed(2)} EUR</td>
-                      <td style={tableCellStyle}>{invoice.status || "Pendiente"}</td>
+                      <td style={tableCellStyle}>{invoiceStatusMap[invoice.status?.toLowerCase()] || invoice.status || t("dashboard.billingInvoiceStatusPendiente")}</td>
                       <td style={tableCellStyle}>
                         {invoice.pdfUrl ? (
                           <a href={invoice.pdfUrl} target="_blank" rel="noreferrer" style={{ color: "#1d4ed8", fontWeight: 700 }}>
-                            Descargar PDF
+                            {t("dashboard.billingDownloadPdf")}
                           </a>
                         ) : (
-                          <span style={{ color: isDark ? "#94a3b8" : "#64748b" }}>No disponible</span>
+                          <span style={{ color: isDark ? "#94a3b8" : "#64748b" }}>{t("dashboard.billingNotAvailable")}</span>
                         )}
                       </td>
                     </tr>

@@ -111,6 +111,128 @@ export const BLOG_POSTS = [
   },
 ];
 
-export function getBlogPostBySlug(slug = "") {
-  return BLOG_POSTS.find((post) => post.slug === slug) || null;
+// English translations for each post (merged over the base post when lang === "en")
+const BLOG_POSTS_EN = {
+  "guia-compra-coche-segunda-mano-espana": {
+    title: "2026 Guide to Buying a Used Car in Spain Without Costly Mistakes",
+    description:
+      "A practical checklist to review price, history, mileage, maintenance and legal risk before buying a used car.",
+    category: "Smart buying",
+    intro:
+      "Buying a used car can be a great decision or an expensive problem. This guide summarises a clear process to reduce risk and negotiate better.",
+    sections: [
+      {
+        heading: "1) Validate the real financial fit first",
+        paragraphs: [
+          "Don't stop at the purchase price. Calculate the full monthly cost: financing, insurance, fuel, maintenance and possible repairs.",
+          "As a quick rule, try to keep the total cost of the car below 20% of your net monthly income if you have no other significant debts.",
+        ],
+      },
+      {
+        heading: "2) Compare the price against the real market",
+        paragraphs: [
+          "Compare at least 20 equivalent listings: same model, engine, year, mileage and trim level.",
+          "If a unit is well below the range, demand documented explanations. Cheap without traceability usually ends up being expensive.",
+        ],
+      },
+      {
+        heading: "3) Check history and traceability",
+        bullets: [
+          "Up-to-date vehicle and ownership report.",
+          "Maintenance book or verifiable invoices.",
+          "MOT consistent with mileage and dates.",
+          "Check for charges or liens before signing.",
+        ],
+      },
+      {
+        heading: "4) Minimum technical inspection before reserving",
+        bullets: [
+          "Cold start and abnormal noise test.",
+          "Check for fumes, vibrations and gear changes.",
+          "Irregular tyre and brake wear.",
+          "Check for leaks and battery condition.",
+        ],
+      },
+      {
+        heading: "5) Data-driven negotiation",
+        paragraphs: [
+          "Negotiate on facts: pending maintenance, tyres, brakes, minor damage and price spread vs. market.",
+          "Get in writing what was agreed: warranty, delivery date, declared mileage and condition of critical components.",
+        ],
+      },
+    ],
+    conclusion:
+      "Smart buying does not depend on finding a miracle, but on reducing uncertainty with a process. The better documented the operation, the lower the risk you assume.",
+  },
+  "renting-vs-compra-2026-que-conviene-segun-tu-uso": {
+    title: "Renting vs Buying in 2026: What Works Best for Your Usage, Mileage and Cash Flow",
+    description:
+      "A clear analysis to decide between renting and buying based on your usage horizon, income stability and depreciation risk.",
+    category: "Mobility decision",
+    intro:
+      "There is no universal answer. Renting and buying make sense in different scenarios. This comparison helps you choose with economic rationale.",
+    sections: [
+      {
+        heading: "1) When renting tends to win",
+        bullets: [
+          "You want a predictable monthly payment and no maintenance surprises.",
+          "You renew your car every 3-5 years.",
+          "You prioritise liquidity and don't want to tie up a large deposit.",
+          "You want to simplify management (insurance, maintenance, assistance).",
+        ],
+      },
+      {
+        heading: "2) When buying tends to win",
+        bullets: [
+          "You plan to keep the car for many years.",
+          "You do a stable and well-known mileage.",
+          "You can handle maintenance with a preventive plan.",
+          "Your goal is to reduce total cost after amortisation.",
+        ],
+      },
+      {
+        heading: "3) Key variables for a proper comparison",
+        paragraphs: [
+          "Compare total annual cost, not just the monthly payment. Include insurance, taxes, tyres, maintenance, likely repairs and future resale value.",
+          "Also measure the opportunity cost of money: upfront deposit, financing and liquidity you give up.",
+        ],
+      },
+      {
+        heading: "4) Common mistakes",
+        bullets: [
+          "Choosing based on monthly payment without checking the mileage limit.",
+          "Underestimating depreciation on a purchase.",
+          "Not accounting for use or return penalties in renting.",
+          "Deciding without a 3-year income and family-change scenario.",
+        ],
+      },
+      {
+        heading: "5) Practical rule for deciding",
+        paragraphs: [
+          "If you value spending stability, renewal flexibility and lower operational burden, renting usually fits better.",
+          "If you prioritise total long-term cost and can manage the full vehicle lifecycle, buying is usually superior.",
+        ],
+      },
+    ],
+    conclusion:
+      "The best decision is the one that fits your actual usage and financial context. A good upfront analysis avoids having to change strategy midway.",
+  },
+};
+
+export function getBlogPostBySlug(slug = "", lang = "es") {
+  const post = BLOG_POSTS.find((p) => p.slug === slug) || null;
+  if (!post) return null;
+  if (lang === "en" && BLOG_POSTS_EN[slug]) {
+    return { ...post, ...BLOG_POSTS_EN[slug] };
+  }
+  return post;
+}
+
+export function getLocalizedBlogPosts(lang = "es") {
+  return BLOG_POSTS.map((post) => {
+    if (lang === "en" && BLOG_POSTS_EN[post.slug]) {
+      return { ...post, ...BLOG_POSTS_EN[post.slug] };
+    }
+    return post;
+  });
 }

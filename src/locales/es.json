@@ -1889,5 +1889,36 @@
     "goHome": "\u2302 Ir al inicio",
     "badge": "DOCUMENTACI\u00d3N LEGAL",
     "lastUpdated": "\u00daltima actualizaci\u00f3n: {{date}}"
+  },
+  "cookies": {
+    "badge": "CONFIGURACION INICIAL",
+    "title": "Antes de entrar, acepta nuestra pol\u00edtica de cookies",
+    "description": "Utilizamos cookies necesarias para el funcionamiento y, si t\u00fa quieres, cookies anal\u00edticas, de personalizaci\u00f3n y marketing para mejorar tu experiencia.",
+    "note": "Puedes aceptar todas, rechazar las opcionales o configurar tus preferencias por categor\u00eda.",
+    "advancedMessage": "Configuraci\u00f3n avanzada activa. Cuando termines, pulsa Guardar selecci\u00f3n.",
+    "necessary": {
+      "title": "Cookies necesarias",
+      "description": "Imprescindibles para acceder, mantener sesi\u00f3n y navegar correctamente."
+    },
+    "analytics": {
+      "title": "Cookies anal\u00edticas",
+      "description": "Nos ayudan a medir uso y rendimiento para mejorar la plataforma."
+    },
+    "personalization": {
+      "title": "Cookies de personalizaci\u00f3n",
+      "description": "Guardan preferencias para adaptar contenido y experiencia."
+    },
+    "marketing": {
+      "title": "Cookies de marketing",
+      "description": "Permiten comunicaciones y campa\u00f1as m\u00e1s relevantes."
+    },
+    "alwaysActive": "Siempre activas",
+    "enabled": "Activadas",
+    "disabled": "Desactivadas",
+    "acceptAll": "Aceptar todas",
+    "necessaryOnly": "Solo necesarias",
+    "saveSelection": "Guardar selecci\u00f3n",
+    "showSettings": "Configurar cookies",
+    "hideSettings": "Ocultar configuraci\u00f3n"
   }
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import i18next from "i18next";
+import { useTranslation } from "react-i18next";
 import "./App.css";
 import AdviceIntroPage from "./pages/AdviceIntroPage";
 import AdviceResultsPage from "./pages/AdviceResultsPage";
@@ -919,6 +920,7 @@ function clearLegacyTranslateCookies() {
 }
 
 export default function App() {
+  const { t } = useTranslation();
   const [entryMode, setEntryMode] = useState(null);
   const [selectedIdCarVehicleId, setSelectedIdCarVehicleId] = useState("");
   const [selectedIdCarOpenEditor, setSelectedIdCarOpenEditor] = useState(false);
@@ -4209,41 +4211,40 @@ export default function App() {
             }}
           >
             <div style={{ fontSize: 11, color: "#67e8f9", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 8 }}>
-              CONFIGURACION INICIAL
+              {t("cookies.badge")}
             </div>
             <h3 style={{ margin: "0 0 8px", fontSize: "clamp(22px,4vw,28px)", color: "#f8fafc" }}>
-              Antes de entrar, acepta nuestra política de cookies
+              {t("cookies.title")}
             </h3>
             <p style={{ margin: "0 0 8px", color: "#cbd5e1", fontSize: 13, lineHeight: 1.65 }}>
-              Utilizamos cookies necesarias para el funcionamiento y, si tú quieres, cookies analíticas,
-              de personalización y marketing para mejorar tu experiencia.
+              {t("cookies.description")}
             </p>
             <p style={{ margin: "0 0 14px", color: "#94a3b8", fontSize: 12, lineHeight: 1.6 }}>
-              Puedes aceptar todas, rechazar las opcionales o configurar tus preferencias por categoría.
+              {t("cookies.note")}
             </p>
 
             <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>
               {[
                 {
                   key: "necessary",
-                  title: "Cookies necesarias",
-                  description: "Imprescindibles para acceder, mantener sesión y navegar correctamente.",
+                  title: t("cookies.necessary.title"),
+                  description: t("cookies.necessary.description"),
                   locked: true,
                 },
                 {
                   key: "analytics",
-                  title: "Cookies analíticas",
-                  description: "Nos ayudan a medir uso y rendimiento para mejorar la plataforma.",
+                  title: t("cookies.analytics.title"),
+                  description: t("cookies.analytics.description"),
                 },
                 {
                   key: "personalization",
-                  title: "Cookies de personalización",
-                  description: "Guardan preferencias para adaptar contenido y experiencia.",
+                  title: t("cookies.personalization.title"),
+                  description: t("cookies.personalization.description"),
                 },
                 {
                   key: "marketing",
-                  title: "Cookies de marketing",
-                  description: "Permiten comunicaciones y campañas más relevantes.",
+                  title: t("cookies.marketing.title"),
+                  description: t("cookies.marketing.description"),
                 },
               ].map((item) => {
                 const enabled = cookiePreferences[item.key];
@@ -4281,7 +4282,7 @@ export default function App() {
                           whiteSpace: "nowrap",
                         }}
                       >
-                        Siempre activas
+                        {t("cookies.alwaysActive")}
                       </span>
                     ) : (
                       <button
@@ -4309,7 +4310,7 @@ export default function App() {
                           whiteSpace: "nowrap",
                         }}
                       >
-                        {enabled ? "Activadas" : "Desactivadas"}
+                        {enabled ? t("cookies.enabled") : t("cookies.disabled")}
                       </button>
                     )}
                   </div>
@@ -4329,7 +4330,7 @@ export default function App() {
                   color: "#bae6fd",
                 }}
               >
-                Configuración avanzada activa. Cuando termines, pulsa Guardar selección.
+                {t("cookies.advancedMessage")}
               </div>
             )}
 
@@ -4348,7 +4349,7 @@ export default function App() {
                   cursor: "pointer",
                 }}
               >
-                Aceptar todas
+                {t("cookies.acceptAll")}
               </button>
 
               <button
@@ -4365,7 +4366,7 @@ export default function App() {
                   cursor: "pointer",
                 }}
               >
-                Solo necesarias
+                {t("cookies.necessaryOnly")}
               </button>
 
               <button
@@ -4385,7 +4386,7 @@ export default function App() {
                   cursor: "pointer",
                 }}
               >
-                Guardar selección
+                {t("cookies.saveSelection")}
               </button>
 
               <button
@@ -4403,7 +4404,7 @@ export default function App() {
                   textDecoration: "underline",
                 }}
               >
-                {showCookieSettings ? "Ocultar configuración" : "Configurar cookies"}
+                {showCookieSettings ? t("cookies.hideSettings") : t("cookies.showSettings")}
               </button>
             </div>
 

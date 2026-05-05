@@ -1888,5 +1888,36 @@
     "goHome": "\u2302 Go to home",
     "badge": "LEGAL DOCUMENTATION",
     "lastUpdated": "Last updated: {{date}}"
+  },
+  "cookies": {
+    "badge": "INITIAL SETUP",
+    "title": "Before entering, accept our cookie policy",
+    "description": "We use necessary cookies for functionality and, if you wish, analytical, personalisation and marketing cookies to improve your experience.",
+    "note": "You can accept all, reject optional ones or configure your preferences by category.",
+    "advancedMessage": "Advanced settings active. When done, click Save selection.",
+    "necessary": {
+      "title": "Necessary cookies",
+      "description": "Essential for access, session maintenance and correct navigation."
+    },
+    "analytics": {
+      "title": "Analytical cookies",
+      "description": "Help us measure usage and performance to improve the platform."
+    },
+    "personalization": {
+      "title": "Personalisation cookies",
+      "description": "Save preferences to adapt content and experience."
+    },
+    "marketing": {
+      "title": "Marketing cookies",
+      "description": "Enable more relevant communications and campaigns."
+    },
+    "alwaysActive": "Always active",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "acceptAll": "Accept all",
+    "necessaryOnly": "Necessary only",
+    "saveSelection": "Save selection",
+    "showSettings": "Configure cookies",
+    "hideSettings": "Hide settings"
   }
 }

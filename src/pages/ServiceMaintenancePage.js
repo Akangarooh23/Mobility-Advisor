@@ -675,7 +675,7 @@ export default function ServiceMaintenancePage({
     });
 
     return [...forecastAlerts, ...syncedAlerts].sort((a, b) => a.date.getTime() - b.date.getTime());
-  }, [filteredVehicles, userAppointments, userMaintenances, vehicleFilter, vehicleNameById]);
+  }, [filteredVehicles, userAppointments, userMaintenances, vehicleFilter, vehicleNameById, locale, t]);
 
   const monthBuckets = useMemo(() => {
     const map = new Map();
@@ -693,7 +693,7 @@ export default function ServiceMaintenancePage({
     });
 
     return Array.from(map.values()).sort((a, b) => a.key.localeCompare(b.key));
-  }, [allAlerts]);
+  }, [allAlerts, locale]);
 
   useEffect(() => {
     if (!monthBuckets.length) {

@@ -1,4 +1,7 @@
+import { useTranslation } from "react-i18next";
+
 export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
+  const { t } = useTranslation();
   const cardStyle = {
     background: "#ffffff",
     borderRadius: 16,
@@ -7,26 +10,26 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
   };
 
   const strengths = [
-    "Cobertura a terceros ilimitada — proteccion total en accidentes con terceros.",
-    "Incluye rotura de luna delantera sin franquicia.",
-    "Vehiculo de sustitucion hasta 15 dias en reparacion por accidente.",
-    "Cobertura de robo total con indemnizacion a valor venal.",
+    t("service.insuranceStrength1"),
+    t("service.insuranceStrength2"),
+    t("service.insuranceStrength3"),
+    t("service.insuranceStrength4"),
   ];
 
   const weaknesses = [
-    "Franquicia de 600€ en danos propios — elevada para el mercado actual.",
-    "Asistencia en viaje solo cubre territorio nacional.",
-    "Sin defensa juridica incluida — coste habitual de 80-120€/ano.",
-    "Cobertura de incendio limitada a incendio total, sin cobertura parcial.",
+    t("service.insuranceWeakness1"),
+    t("service.insuranceWeakness2"),
+    t("service.insuranceWeakness3"),
+    t("service.insuranceWeakness4"),
   ];
 
   const bars = [
-    ["Responsabilidad", 100, "Alta", "#22c55e"],
-    ["Danos propios", 62, "Media", "#38bdf8"],
-    ["Robo", 83, "Buena", "#22d3ee"],
-    ["Asistencia", 40, "Baja", "#f59e0b"],
-    ["Defensa legal", 18, "Baja", "#ef4444"],
-    ["Lunas", 70, "Media", "#38bdf8"],
+    [t("service.insuranceCovLabel1"), 100, t("service.insuranceCovScore1"), "#22c55e"],
+    [t("service.insuranceCovLabel2"), 62, t("service.insuranceCovScore2"), "#38bdf8"],
+    [t("service.insuranceCovLabel3"), 83, t("service.insuranceCovScore3"), "#22d3ee"],
+    [t("service.insuranceCovLabel4"), 40, t("service.insuranceCovScore4"), "#f59e0b"],
+    [t("service.insuranceCovLabel5"), 18, t("service.insuranceCovScore5"), "#ef4444"],
+    [t("service.insuranceCovLabel6"), 70, t("service.insuranceCovScore6"), "#38bdf8"],
   ];
 
   return (
@@ -46,10 +49,10 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
             fontWeight: 600,
           }}
         >
-          ← Volver
+          {t("service.insuranceBack")}
         </button>
         <div style={{ fontSize: 12, color: "#b8b8b8" }}>
-          Servicios › <span style={{ color: "#06b6d4", fontWeight: 700 }}>Seguro - Ainsurance</span>
+          {t("service.insuranceBreadcrumbParent")} › <span style={{ color: "#06b6d4", fontWeight: 700 }}>{t("service.insuranceBreadcrumb")}</span>
         </div>
       </div>
 
@@ -71,20 +74,19 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
               marginBottom: 14,
             }}
           >
-            E · Seguro - Ainsurance
+            {t("service.insurancePageBadge")}
           </div>
           <h2 style={{ margin: "0 0 8px", fontSize: "clamp(30px,3.1vw,40px)", letterSpacing: "-0.03em", lineHeight: 1.15, color: "#111" }}>
-            Entiende de verdad tu poliza
+            {t("service.insuranceTitle")}
           </h2>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: "#868686", maxWidth: 760 }}>
-            Sube tu poliza y nuestra IA lee las condiciones por ti. Te resumimos ventajas, puntos debiles y
-            te ayudamos a encontrar opciones mas completas o economicas en la renovacion.
+            {t("service.insurancePageDesc")}
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 18 }}>
             {[
-              "IA lee tu poliza",
-              "Resumen en lenguaje claro",
-              "Comparativa en renovacion",
+              t("service.insurancePill1"),
+              t("service.insurancePill2"),
+              t("service.insurancePill3"),
             ].map((pill) => (
               <span
                 key={pill}
@@ -109,7 +111,7 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
         <div style={{ display: "grid", gap: 12 }}>
           <div style={{ ...cardStyle, padding: 22 }}>
             <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
-              Sube tu poliza
+              {t("service.insuranceUploadLabel")}
             </div>
             <div
               style={{
@@ -121,15 +123,15 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
               }}
             >
               <div style={{ fontSize: 34, marginBottom: 10 }}>📄</div>
-              <div style={{ fontSize: 20, color: "#777", fontWeight: 700, marginBottom: 4 }}>Arrastra tu poliza aqui</div>
-              <div style={{ fontSize: 13, color: "#b2b2b2", marginBottom: 8 }}>La IA la analiza en menos de 30 segundos</div>
-              <div style={{ fontSize: 12, color: "#bbb", fontWeight: 700 }}>PDF · JPG · PNG</div>
+              <div style={{ fontSize: 20, color: "#777", fontWeight: 700, marginBottom: 4 }}>{t("service.insuranceDragTitle")}</div>
+              <div style={{ fontSize: 13, color: "#b2b2b2", marginBottom: 8 }}>{t("service.insuranceDragSubtitle")}</div>
+              <div style={{ fontSize: 12, color: "#bbb", fontWeight: 700 }}>{t("service.insuranceDragFormats")}</div>
             </div>
           </div>
 
           <div style={{ ...cardStyle, padding: 22 }}>
             <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
-              Analisis de cobertura actual
+              {t("service.insuranceCoverageLabel")}
             </div>
             {bars.map(([label, val, score, color]) => (
               <div key={label} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 9 }}>
@@ -145,13 +147,13 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
 
         <div style={{ ...cardStyle, padding: 22 }}>
           <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
-            Resumen Ainsurance
+            {t("service.insuranceSummaryLabel")}
           </div>
           <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
             {[
-              ["Puntos fuertes", true],
-              ["Puntos debiles", false],
-              ["Comparativa", false],
+              [t("service.insuranceTabStrengths"), true],
+              [t("service.insuranceTabWeaknesses"), false],
+              [t("service.insuranceTabComparison"), false],
             ].map(([label, active]) => (
               <span
                 key={label}
@@ -171,7 +173,7 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#22c55e", marginBottom: 6 }}>✓ Lo que cubre bien tu poliza</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#22c55e", marginBottom: 6 }}>{t("service.insuranceStrengthsHeader")}</div>
             <div style={{ display: "grid", gap: 8 }}>
               {strengths.map((item) => (
                 <div key={item} style={{ fontSize: 14, color: "#5f5f5f", lineHeight: 1.45 }}>✓ {item}</div>
@@ -180,7 +182,7 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#f59e0b", marginBottom: 6 }}>▲ Aspectos a mejorar</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#f59e0b", marginBottom: 6 }}>{t("service.insuranceWeaknessesHeader")}</div>
             <div style={{ display: "grid", gap: 8 }}>
               {weaknesses.map((item) => (
                 <div key={item} style={{ fontSize: 14, color: "#666", lineHeight: 1.45 }}>▲ {item}</div>
@@ -200,8 +202,7 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
               fontWeight: 600,
             }}
           >
-            CarsWise recomienda: Anadir ofensa juridica y asistencia europea. Estimamos un ahorro posible de 180€/ano cambiando
-            de compania con coberturas superiores a la tuya actual. Tenemos 3 opciones comparables disponibles para tu perfil.
+            {t("service.insuranceRecommendation")}
           </div>
         </div>
       </section>
@@ -217,9 +218,9 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
         }}
       >
         <div>
-          <div style={{ fontSize: 18, color: "#303030", fontWeight: 700, marginBottom: 3 }}>Ver alternativas para la renovacion</div>
+          <div style={{ fontSize: 18, color: "#303030", fontWeight: 700, marginBottom: 3 }}>{t("service.insuranceCtaTitle")}</div>
           <div style={{ fontSize: 13, color: "#a2a2a2", lineHeight: 1.45 }}>
-            Comparamos tu poliza con el mercado y te presentamos las 3 mejores opciones para tu perfil.
+            {t("service.insuranceCtaDesc")}
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -228,7 +229,7 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
             onClick={onGoBack}
             style={{ border: "none", background: "transparent", color: "#bbb", fontSize: 14, cursor: "pointer" }}
           >
-            ← Volver
+            {t("service.insuranceBack")}
           </button>
           <button
             type="button"
@@ -245,7 +246,7 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
               boxShadow: "0 8px 20px rgba(6,182,212,0.3)",
             }}
           >
-            Ver comparativa →
+            {t("service.insuranceCtaButton")}
           </button>
         </div>
       </section>

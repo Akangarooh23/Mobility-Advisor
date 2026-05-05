@@ -1,6 +1,9 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
+  const { t } = useTranslation();
+
   const cardStyle = {
     background: "#ffffff",
     borderRadius: 16,
@@ -9,9 +12,9 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
   };
 
   const plans = [
-    { name: "Basico", price: 29 },
-    { name: "Completo", price: 49 },
-    { name: "Premium", price: 79 },
+    { nameKey: "service.monthlyPlanBasic", price: 29 },
+    { nameKey: "service.monthlyPlanComplete", price: 49 },
+    { nameKey: "service.monthlyPlanPremium", price: 79 },
   ];
 
   const [selectedPlan, setSelectedPlan] = useState(0);
@@ -34,10 +37,10 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
             fontWeight: 600,
           }}
         >
-          ← Volver
+          {t("common.backArrow")}
         </button>
         <div style={{ fontSize: 12, color: "#b8b8b8" }}>
-          Servicios › <span style={{ color: "#d97706", fontWeight: 700 }}>Cuota Mensual</span>
+          {t("service.monthlyPageBreadcrumbParent")} › <span style={{ color: "#d97706", fontWeight: 700 }}>{t("service.monthlyPageBreadcrumb")}</span>
         </div>
       </div>
 
@@ -59,20 +62,19 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
               marginBottom: 14,
             }}
           >
-            D · Cuota Mensual
+            {t("service.monthlyPageBadge")}
           </div>
           <h2 style={{ margin: "0 0 8px", fontSize: "clamp(30px,3.1vw,40px)", letterSpacing: "-0.03em", lineHeight: 1.15, color: "#111" }}>
-            Tu mantenimiento en una cuota fija mensual
+            {t("service.serviceMonthlyTitle")}
           </h2>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: "#868686", maxWidth: 760 }}>
-            Paga una cuota mensual por el mantenimiento preventivo de tu coche y no te lleves mas sustos antes
-            de vacaciones. Sin sorpresas, sin imprevistos. Con nosotros es posible.
+            {t("service.monthlyPageDesc")}
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 18 }}>
             {[
-              "Cuota fija mensual",
-              "Mantenimiento preventivo",
-              "Sin permanencia",
+              t("service.monthlyPill1"),
+              t("service.monthlyPill2"),
+              t("service.monthlyPill3"),
             ].map((pill) => (
               <span
                 key={pill}
@@ -96,12 +98,12 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
       <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 12, marginBottom: 12 }}>
         <div style={{ ...cardStyle, padding: 18 }}>
           <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
-            Elige tu plan
+            {t("service.monthlyChoosePlan")}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 12 }}>
             {plans.map((plan, idx) => (
               <button
-                key={plan.name}
+                key={plan.nameKey}
                 type="button"
                 onClick={() => setSelectedPlan(idx)}
                 style={{
@@ -113,9 +115,9 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
                   cursor: "pointer",
                 }}
               >
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#4b4b4b" }}>{plan.name}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#4b4b4b" }}>{t(plan.nameKey)}</div>
                 <div style={{ fontSize: 30, fontWeight: 800, color: "#1f2937", lineHeight: 1.1 }}>{plan.price}€</div>
-                <div style={{ fontSize: 12, color: "#aaa" }}>/mes</div>
+                <div style={{ fontSize: 12, color: "#aaa" }}>/{t("service.monthlyPeriod")}</div>
               </button>
             ))}
           </div>
@@ -129,38 +131,38 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
             }}
           >
             <div style={{ fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)", fontWeight: 700 }}>
-              Plan {selected.name} · Cuota mensual
+              {t("service.monthlyCardLabel", { name: t(selected.nameKey) })}
             </div>
             <div style={{ fontSize: 46, lineHeight: 1, fontWeight: 800, marginTop: 4 }}>{selected.price}€</div>
-            <div style={{ fontSize: 18, color: "rgba(255,255,255,0.85)", marginBottom: 8 }}>al mes · primer mes gratuito</div>
+            <div style={{ fontSize: 18, color: "rgba(255,255,255,0.85)", marginBottom: 8 }}>{t("service.monthlyCardSubLabel")}</div>
             <div style={{ display: "grid", gap: 6, fontSize: 14, lineHeight: 1.4 }}>
               {[
-                "Cambio de aceite y filtro anual",
-                "Revision preventiva de 20 puntos",
-                "Alertas automaticas de mantenimiento",
-                "Precio partner en talleres CarsWise",
-                "Acceso al panel Autogestor",
+                t("service.monthlyCardItem1"),
+                t("service.monthlyCardItem2"),
+                t("service.monthlyCardItem3"),
+                t("service.monthlyCardItem4"),
+                t("service.monthlyCardItem5"),
               ].map((item) => (
                 <div key={item}>✓ {item}</div>
               ))}
             </div>
             <div style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>
-              Sin permanencia · Cancela cuando quieras
+              {t("service.monthlyNoCommit")}
             </div>
           </div>
         </div>
 
         <div style={{ ...cardStyle, padding: 18 }}>
           <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
-            ¿Que incluye tu cuota?
+            {t("service.monthlyIncludedHeader")}
           </div>
           <div style={{ display: "grid", gap: 8, marginBottom: 12 }}>
             {[
-              ["Aceite y filtros anuales", "Programado automaticamente cada ano"],
-              ["Revision preventiva de 20 puntos", "Frenos, luces, liquidos, neumaticos, correas"],
-              ["Recordatorios automaticos", "Nunca mas olvides una revision obligatoria"],
-              ["Precio partner en talleres CarsWise", "Descuento garantizado sobre precio de calle"],
-              ["Planes ampliados disponibles", "ITV, neumaticos, garantia mecanica y mas"],
+              [t("service.monthlyInclude1Title"), t("service.monthlyInclude1Desc")],
+              [t("service.monthlyInclude2Title"), t("service.monthlyInclude2Desc")],
+              [t("service.monthlyInclude3Title"), t("service.monthlyInclude3Desc")],
+              [t("service.monthlyInclude4Title"), t("service.monthlyInclude4Desc")],
+              [t("service.monthlyInclude5Title"), t("service.monthlyInclude5Desc")],
             ].map(([title, sub]) => (
               <div key={title} style={{ border: "1px solid #ece8df", borderRadius: 10, background: "#fafaf9", padding: "10px 12px" }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#4b4b4b", marginBottom: 2 }}>✓ {title}</div>
@@ -171,20 +173,20 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
 
           <div style={{ border: "1px solid rgba(217,119,6,0.35)", borderRadius: 12, background: "rgba(217,119,6,0.08)", padding: 12 }}>
             <div style={{ fontSize: 11, letterSpacing: "0.09em", textTransform: "uppercase", color: "#d97706", fontWeight: 800, marginBottom: 8 }}>
-              Ahorro estimado anual
+              {t("service.monthlySavingsHeader")}
             </div>
             <div style={{ display: "grid", gap: 7 }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: "#888" }}>
-                <span>Mantenimiento sin cuota</span>
-                <span>~580€/ano</span>
+                <span>{t("service.monthlySavingsWithout")}</span>
+                <span>{t("service.monthlySavingsWithoutAmount")}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: "#888" }}>
-                <span>Con cuota {selected.name.toLowerCase()} CarsWise</span>
-                <span>~{selected.price * 12 - 24}€/ano</span>
+                <span>{t("service.monthlySavingsWith", { name: t(selected.nameKey).toLowerCase() })}</span>
+                <span>{t("service.monthlySavingsWithAmount", { amount: selected.price * 12 - 24 })}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 15, color: "#b45309", fontWeight: 800 }}>
-                <span>Ahorro estimado</span>
-                <span>~{580 - (selected.price * 12 - 24)}€/ano</span>
+                <span>{t("service.monthlySavingsLabel")}</span>
+                <span>{t("service.monthlySavingsWithAmount", { amount: 580 - (selected.price * 12 - 24) })}</span>
               </div>
             </div>
           </div>
@@ -201,12 +203,12 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
           padding: "18px 20px",
         }}
       >
-        <div>
+          <div>
           <div style={{ fontSize: 18, color: "#303030", fontWeight: 700, marginBottom: 3 }}>
-            Contratar plan {selected.name.toLowerCase()} · {selected.price}€/mes
+            {t("service.monthlyCtaTitle", { name: t(selected.nameKey).toLowerCase(), price: selected.price })}
           </div>
           <div style={{ fontSize: 13, color: "#a2a2a2", lineHeight: 1.45 }}>
-            El primer mes es gratuito. Sin permanencia. Cancela en cualquier momento.
+            {t("service.monthlyCtaDesc")}
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -215,7 +217,7 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
             onClick={onGoBack}
             style={{ border: "none", background: "transparent", color: "#bbb", fontSize: 14, cursor: "pointer" }}
           >
-            ← Volver
+            {t("common.backArrow")}
           </button>
           <button
             type="button"
@@ -232,7 +234,7 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
               boxShadow: "0 8px 20px rgba(186,117,23,0.3)",
             }}
           >
-            Contratar cuota →
+            {t("service.monthlyCtaButton")}
           </button>
         </div>
       </section>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getWorkshopAvailabilityJson, postWorkshopReservationJson } from "../utils/apiClient";
 
 function normalizeText(value) {
@@ -121,6 +122,8 @@ export default function ServiceAppointmentCalendarPage({
   const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
   const [availabilityError, setAvailabilityError] = useState("");
 
+  const { t } = useTranslation();
+
   const cardStyle = {
     background: "#ffffff",
     borderRadius: 16,
@@ -129,13 +132,13 @@ export default function ServiceAppointmentCalendarPage({
   };
 
   const safeDraft = bookingDraft && typeof bookingDraft === "object" ? bookingDraft : {};
-  const workshopName = normalizeText(safeDraft?.workshopName) || normalizeText(safeDraft?.provider) || "Taller";
+  const workshopName = normalizeText(safeDraft?.workshopName) || normalizeText(safeDraft?.provider) || t("service.appointmentCalWorkshopFallback");
   const workshopId = normalizeText(safeDraft?.workshopId);
   const workshopProfile = useMemo(
     () => buildWorkshopProfile(workshopId, normalizeText(safeDraft?.provider)),
     [workshopId, safeDraft?.provider]
   );
-  const appointmentType = normalizeText(safeDraft?.appointmentType) || "Cita de mantenimiento";
+  const appointmentType = normalizeText(safeDraft?.appointmentType) || t("service.appointmentCalTypeFallback");
   const draftSeed = [
     normalizeText(safeDraft?.vehicleId),
     workshopId,
@@ -200,13 +203,13 @@ export default function ServiceAppointmentCalendarPage({
             setAvailabilityMap(data.availabilityByDate);
           } else {
             setAvailabilityMap({});
-            setAvailabilityError(normalizeText(data?.error) || "No se pudo cargar la disponibilidad del taller.");
+            setAvailabilityError(normalizeText(data?.error) || t("service.appointmentCalLoadError"));
           }
         }
       } catch {
         if (!disposed) {
           setAvailabilityMap({});
-          setAvailabilityError("No se pudo cargar la disponibilidad del taller.");
+          setAvailabilityError(t("service.appointmentCalLoadError"));
         }
       } finally {
         if (!disposed) {
@@ -266,7 +269,7 @@ export default function ServiceAppointmentCalendarPage({
         });
 
         if (!response.ok) {
-          const message = normalizeText(data?.error) || "La franja horaria ya no esta disponible.";
+          const message = normalizeText(data?.error) || t("service.appointmentCalSlotUnavailable");
           throw new Error(message);
         }
       }
@@ -278,7 +281,7 @@ export default function ServiceAppointmentCalendarPage({
       });
       onGoHome();
     } catch (error) {
-      setAvailabilityError(error instanceof Error ? error.message : "No se pudo reservar la franja seleccionada.");
+      setAvailabilityError(error instanceof Error ? error.message : t("service.appointmentCalReservationError"));
     } finally {
       setIsSaving(false);
     }
@@ -301,10 +304,10 @@ export default function ServiceAppointmentCalendarPage({
             fontWeight: 600,
           }}
         >
-          ← Volver
+          {t("common.backArrow")}
         </button>
         <div style={{ fontSize: 12, color: "#b8b8b8" }}>
-          Servicios › Cita Mantenimientos › <span style={{ color: "#7c3aed", fontWeight: 700 }}>Calendario</span>
+          {t("common.breadcrumbServices")} › {t("service.appointmentBreadcrumb")} › <span style={{ color: "#7c3aed", fontWeight: 700 }}>{t("service.appointmentCalBreadcrumb")}</span>
         </div>
       </div>
 
@@ -312,10 +315,10 @@ export default function ServiceAppointmentCalendarPage({
         <div style={{ height: 4, background: "#8b5cf6" }} />
         <div style={{ padding: "22px 24px" }}>
           <div style={{ fontSize: 10, color: "#7c3aed", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 800, marginBottom: 10 }}>
-            Seleccion de fecha y hora
+            {t("service.appointmentCalSectionBadge")}
           </div>
           <div style={{ fontSize: 24, lineHeight: 1.2, color: "#111", fontWeight: 800 }}>
-            Elige dia y hora para tu cita
+            {t("service.appointmentCalTitle")}
           </div>
           <div style={{ marginTop: 8, fontSize: 13, color: "#6b7280", lineHeight: 1.55 }}>
             {appointmentType} · {workshopName}
@@ -327,7 +330,7 @@ export default function ServiceAppointmentCalendarPage({
       <section style={{ ...cardStyle, padding: 16, marginBottom: 12 }}>
         {isLoadingAvailability ? (
           <div style={{ fontSize: 12, color: "#64748b", marginBottom: 8 }}>
-            Cargando disponibilidad real del taller...
+            {t("service.appointmentCalLoadingAvailability")}
           </div>
         ) : null}
         {availabilityError ? (
@@ -341,7 +344,7 @@ export default function ServiceAppointmentCalendarPage({
             onClick={() => setMonthCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
             style={{ border: "1px solid #e5e7eb", background: "#fff", borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontWeight: 700, color: "#64748b" }}
           >
-            ← Mes anterior
+            {t("service.appointmentCalPrevMonth")}
           </button>
           <div style={{ fontSize: 14, fontWeight: 800, color: "#334155", textTransform: "capitalize" }}>
             {new Intl.DateTimeFormat("es-ES", { month: "long", year: "numeric" }).format(monthCursor)}
@@ -351,12 +354,12 @@ export default function ServiceAppointmentCalendarPage({
             onClick={() => setMonthCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
             style={{ border: "1px solid #e5e7eb", background: "#fff", borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontWeight: 700, color: "#64748b" }}
           >
-            Mes siguiente →
+            {t("service.appointmentCalNextMonth")}
           </button>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4, marginBottom: 4 }}>
-          {["L", "M", "X", "J", "V", "S", "D"].map((label) => (
+          {(t("service.appointmentCalWeekDays", { returnObjects: true }) || ["L","M","X","J","V","S","D"]).map((label) => (
             <div key={label} style={{ textAlign: "center", fontSize: 10, color: "#94a3b8", fontWeight: 700 }}>{label}</div>
           ))}
         </div>
@@ -404,7 +407,7 @@ export default function ServiceAppointmentCalendarPage({
               >
                 {cell.day}
                 {full ? (
-                  <span style={{ position: "absolute", right: 4, top: 3, fontSize: 9, color: "#b91c1c", fontWeight: 800 }}>LLENO</span>
+                  <span style={{ position: "absolute", right: 4, top: 3, fontSize: 9, color: "#b91c1c", fontWeight: 800 }}>{t("service.appointmentCalDayFull")}</span>
                 ) : null}
               </button>
             );
@@ -414,13 +417,13 @@ export default function ServiceAppointmentCalendarPage({
 
       <section style={{ ...cardStyle, padding: 16, marginBottom: 12 }}>
         <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700, marginBottom: 8 }}>
-          {selectedDay ? `Horario para ${toDateLabel(selectedDay.date)}` : "Selecciona un dia para ver horas disponibles"}
+          {selectedDay ? t("service.appointmentCalScheduleFor", { date: toDateLabel(selectedDay.date) }) : t("service.appointmentCalSelectDay")}
         </div>
 
         {selectedDay ? (
           selectedDayData?.fullyBooked ? (
             <div style={{ fontSize: 12, color: "#b91c1c", fontWeight: 700 }}>
-              Dia completo, no disponible. Selecciona otro dia.
+              {t("service.appointmentCalDayFullMessage")}
             </div>
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(120px,1fr))", gap: 8 }}>
@@ -444,7 +447,7 @@ export default function ServiceAppointmentCalendarPage({
                     }}
                   >
                     {slot.time}
-                    {!slot.available ? " · No disp." : ""}
+                    {!slot.available ? ` ${t("service.appointmentCalSlotNotAvail")}` : ""}
                   </button>
                 );
               })}
@@ -465,12 +468,12 @@ export default function ServiceAppointmentCalendarPage({
       >
         <div>
           <div style={{ fontSize: 18, color: "#303030", fontWeight: 700, marginBottom: 3 }}>
-            Confirmar reserva de cita
+            {t("service.appointmentCalConfirmTitle")}
           </div>
           <div style={{ fontSize: 13, color: "#6b7280", lineHeight: 1.45 }}>
             {selectedDay && selectedTime
-              ? `${appointmentType} · ${toDateTimeLabel(selectedDay.date, selectedTime)} · ${workshopName}`
-              : "Selecciona un dia y despues una hora para confirmar tu cita."}
+              ? t("service.appointmentCalConfirmDetail", { type: appointmentType, datetime: toDateTimeLabel(selectedDay.date, selectedTime), workshop: workshopName })
+              : t("service.appointmentCalConfirmHint")}
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -479,7 +482,7 @@ export default function ServiceAppointmentCalendarPage({
             onClick={onBack}
             style={{ border: "none", background: "transparent", color: "#94a3b8", fontSize: 14, cursor: "pointer" }}
           >
-            ← Volver
+            {t("common.backArrow")}
           </button>
           <button
             type="button"
@@ -498,7 +501,7 @@ export default function ServiceAppointmentCalendarPage({
               boxShadow: "0 8px 20px rgba(124,58,237,0.3)",
             }}
           >
-            {isSaving ? "Confirmando..." : "Confirmar cita →"}
+            {isSaving ? t("service.appointmentCalConfirming") : t("service.appointmentCalConfirm")}
           </button>
         </div>
       </section>

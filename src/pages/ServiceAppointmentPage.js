@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getGarageVehiclesJson, getNearbyWorkshopsJson } from "../utils/apiClient";
 
 function normalizeText(value) {
@@ -271,13 +272,15 @@ function chooseCarsWisePrice(range) {
   return range.mid ?? range.min ?? range.max ?? null;
 }
 
-function formatPriceTag(value) {
+function formatPriceTag(value, options = {}) {
+  const notAvailable = options.notAvailable ?? "N/A";
+  const free = options.free ?? "Free";
   if (value === null || value === undefined) {
-    return "No disponible";
+    return notAvailable;
   }
 
   if (typeof value === "number") {
-    return value <= 0 ? "Gratis" : `${value}€`;
+    return value <= 0 ? free : `${value}€`;
   }
 
   return String(value);
@@ -423,7 +426,12 @@ export default function ServiceAppointmentPage({
   onGoBack,
   onGoHome,
 }) {
-  const pricingNotice = "Precios orientativos basados en rangos historicos (min/medio/alto). El importe final puede variar segun modelo, piezas, mano de obra, ciudad y disponibilidad del taller.";
+  const { t } = useTranslation();
+  const pricingNotice = t("service.appointmentPricingNotice");
+  const priceOptions = {
+    notAvailable: t("service.appointmentPriceNotAvailable"),
+    free: t("service.appointmentPriceFree"),
+  };
 
   const cardStyle = {
     background: "#ffffff",
@@ -584,13 +592,13 @@ export default function ServiceAppointmentPage({
             setNearbyProviders(data.providers);
           } else {
             setNearbyProviders([]);
-            setWorkshopSearchError(normalizeText(data?.error) || "No se pudieron cargar talleres cercanos.");
+            setWorkshopSearchError(normalizeText(data?.error) || t("service.appointmentWorkshopsError"));
           }
         }
       } catch {
         if (!disposed) {
           setNearbyProviders([]);
-          setWorkshopSearchError("No se pudieron cargar talleres cercanos.");
+          setWorkshopSearchError(t("service.appointmentWorkshopsError"));
         }
       } finally {
         if (!disposed) {
@@ -613,8 +621,8 @@ export default function ServiceAppointmentPage({
   const selectedVehicle = garageVehicles.find((item) => normalizeText(item?.id) === vehicleId) || null;
   const selectedVehicleLabel = vehicleOptions.find((item) => item.id === vehicleId)?.label || "";
 
-  const selectedProviderLabel = selectedProvider === "midas" ? "MIDAS" : selectedProvider === "norauto" ? "Norauto" : "Proveedor";
-  const selectedRevisionName = selectedAppointmentTypeName || "Selecciona tipo de revision";
+  const selectedProviderLabel = selectedProvider === "midas" ? "MIDAS" : selectedProvider === "norauto" ? "Norauto" : t("service.appointmentProviderFallback");
+  const selectedRevisionName = selectedAppointmentTypeName || t("service.appointmentRevisionFallback");
   const selectedCatalogServiceName = resolveCatalogServiceName(selectedAppointmentTypeName);
   const selectedServicePricing = SERVICE_PRICE_CATALOG[selectedCatalogServiceName] || null;
 
@@ -688,10 +696,10 @@ export default function ServiceAppointmentPage({
             fontWeight: 600,
           }}
         >
-          ← Volver
+          {t("common.backArrow")}
         </button>
         <div style={{ fontSize: 12, color: "#b8b8b8" }}>
-          Servicios › <span style={{ color: "#8b5cf6", fontWeight: 700 }}>Cita Mantenimientos</span>
+          {t("common.breadcrumbServices")} › <span style={{ color: "#8b5cf6", fontWeight: 700 }}>{t("service.appointmentBreadcrumb")}</span>
         </div>
       </div>
 
@@ -713,20 +721,19 @@ export default function ServiceAppointmentPage({
               marginBottom: 14,
             }}
           >
-            C · Cita Mantenimientos
+            {t("service.appointmentPageBadge")}
           </div>
           <h2 style={{ margin: "0 0 8px", fontSize: "clamp(30px,3.1vw,40px)", letterSpacing: "-0.03em", lineHeight: 1.15, color: "#111" }}>
-            Precios de acuerdo, no de particular
+            {t("service.appointmentPageTitle")}
           </h2>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: "#868686", maxWidth: 760 }}>
-            Aprovecha nuestros acuerdos con talleres partner para conseguir precios mas reducidos que como cliente
-            particular. Agenda tu proxima revision en segundos a traves de CarsWise.
+            {t("service.appointmentPageDescription")}
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 18 }}>
             {[
-              "Precios negociados",
-              "Cita en 2 clics",
-              "Talleres verificados",
+              t("service.appointmentPillNegotiatedPrices"),
+              t("service.appointmentPill2Clicks"),
+              t("service.appointmentPillVerifiedWorkshops"),
             ].map((pill) => (
               <span
                 key={pill}
@@ -749,15 +756,15 @@ export default function ServiceAppointmentPage({
 
       <section style={{ ...cardStyle, padding: 18, marginBottom: 12, border: "1px solid rgba(139,92,246,0.22)", background: "rgba(250,245,255,0.6)" }}>
         <div style={{ fontSize: 10, color: "#a78bfa", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 10 }}>
-          IDCar para esta cita
+          {t("service.appointmentIdCarSectionLabel")}
         </div>
 
         {isLoadingVehicles ? (
-          <div style={{ fontSize: 13, color: "#6b7280" }}>Cargando IDCars...</div>
+          <div style={{ fontSize: 13, color: "#6b7280" }}>{t("service.appointmentLoadingIdCars")}</div>
         ) : !hasAnyVehicles ? (
           <>
             <div style={{ fontSize: 13, color: "#6b7280", lineHeight: 1.6, marginBottom: 10 }}>
-              No tienes ningun IDCar disponible. Sube primero un IDCar para poder pedir la cita.
+              {t("service.appointmentNoIdCarMessage")}
             </div>
             <button
               type="button"
@@ -773,13 +780,13 @@ export default function ServiceAppointmentPage({
                 cursor: "pointer",
               }}
             >
-              Ir a gestionar IDCars
+              {t("service.appointmentGoManageIdCars")}
             </button>
           </>
         ) : (
           <div style={{ display: "grid", gap: 8 }}>
             <div style={{ fontSize: 13, color: "#5b21b6", fontWeight: 700 }}>
-              Selecciona IDCar, provincia y codigo postal antes de confirmar la cita
+              {t("service.appointmentSelectIdCarHint")}
             </div>
             <select
               value={vehicleId}
@@ -794,7 +801,7 @@ export default function ServiceAppointmentPage({
                 fontWeight: 700,
               }}
             >
-              <option value="">Selecciona un IDCar</option>
+              <option value="">{t("service.appointmentSelectIdCarPlaceholder")}</option>
               {vehicleOptions.map((option) => (
                 <option key={option.id} value={option.id}>{option.label}</option>
               ))}
@@ -802,12 +809,12 @@ export default function ServiceAppointmentPage({
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 8 }}>
               <label style={{ display: "grid", gap: 5 }}>
-                <span style={{ fontSize: 11, color: "#6d28d9", fontWeight: 700 }}>Provincia</span>
+                <span style={{ fontSize: 11, color: "#6d28d9", fontWeight: 700 }}>{t("service.appointmentProvinceLabel")}</span>
                 <input
                   type="text"
                   value={province}
                   onChange={(event) => setProvince(event.target.value)}
-                  placeholder="Ej: Madrid"
+                  placeholder={t("service.appointmentProvincePlaceholder")}
                   style={{
                     border: "1px solid rgba(139,92,246,0.32)",
                     borderRadius: 10,
@@ -821,7 +828,7 @@ export default function ServiceAppointmentPage({
               </label>
 
               <label style={{ display: "grid", gap: 5 }}>
-                <span style={{ fontSize: 11, color: "#6d28d9", fontWeight: 700 }}>Codigo postal</span>
+                <span style={{ fontSize: 11, color: "#6d28d9", fontWeight: 700 }}>{t("service.appointmentPostalCodeLabel")}</span>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -843,7 +850,7 @@ export default function ServiceAppointmentPage({
 
             {!hasLocationContext ? (
               <div style={{ fontSize: 11, color: "#7c3aed", fontWeight: 700 }}>
-                Introduce provincia y un codigo postal valido (5 digitos) para buscar taller cercano.
+                {t("service.appointmentLocationHint")}
               </div>
             ) : null}
           </div>
@@ -853,11 +860,11 @@ export default function ServiceAppointmentPage({
       <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 12, marginBottom: 12 }}>
         <div style={{ ...cardStyle, padding: 18, opacity: canChooseRevision ? 1 : 0.65 }}>
           <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
-            Tipo de revision (mas populares)
+            {t("service.appointmentRevisionSectionLabel")}
           </div>
           {!canChooseRevision ? (
             <div style={{ fontSize: 12, color: "#7c3aed", fontWeight: 700, marginBottom: 8 }}>
-              Primero selecciona el IDCar para continuar.
+              {t("service.appointmentSelectIdCarFirst")}
             </div>
           ) : null}
           <div style={{ display: "grid", gap: 8 }}>
@@ -907,7 +914,7 @@ export default function ServiceAppointmentPage({
                 opacity: canChooseRevision ? 1 : 0.75,
               }}
             >
-              Cita especifica {isSpecificOpen ? "▲" : "▼"}
+              {t("service.appointmentSpecificToggleLabel")} {isSpecificOpen ? "▲" : "▼"}
             </button>
 
             {isSpecificOpen ? (
@@ -922,7 +929,7 @@ export default function ServiceAppointmentPage({
                 }}
               >
                 <div style={{ display: "grid", gap: 6 }}>
-                  <label style={{ fontSize: 12, color: "#6d28d9", fontWeight: 700 }}>Seccion</label>
+                  <label style={{ fontSize: 12, color: "#6d28d9", fontWeight: 700 }}>{t("service.appointmentSpecificSectionLabel")}</label>
                   <select
                     value={selectedSpecificSection}
                     onChange={(event) => {
@@ -940,7 +947,7 @@ export default function ServiceAppointmentPage({
                       fontWeight: 700,
                     }}
                   >
-                    <option value="">Selecciona una seccion</option>
+                    <option value="">{t("service.appointmentSpecificSectionPlaceholder")}</option>
                     {SPECIFIC_APPOINTMENT_SECTIONS.map((section) => (
                       <option key={section.title} value={section.title}>{section.title}</option>
                     ))}
@@ -950,7 +957,7 @@ export default function ServiceAppointmentPage({
                 {selectedSpecificSectionModel ? (
                   <>
                     <div style={{ display: "grid", gap: 6 }}>
-                      <label style={{ fontSize: 12, color: "#6d28d9", fontWeight: 700 }}>Tipo de cita especifica</label>
+                      <label style={{ fontSize: 12, color: "#6d28d9", fontWeight: 700 }}>{t("service.appointmentSpecificTypeLabel")}</label>
                       <select
                         value={selectedSpecificType}
                         onChange={(event) => {
@@ -969,7 +976,7 @@ export default function ServiceAppointmentPage({
                           fontWeight: 700,
                         }}
                       >
-                        <option value="">Selecciona el tipo de cita</option>
+                        <option value="">{t("service.appointmentSpecificTypePlaceholder")}</option>
                         {specificTypeOptions.map((item) => (
                           <option key={`${selectedSpecificSection}-${item}`} value={item}>{item}</option>
                         ))}
@@ -990,11 +997,11 @@ export default function ServiceAppointmentPage({
 
         <div style={{ ...cardStyle, padding: 18, opacity: canChooseRevision ? 1 : 0.65 }}>
           <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
-            Taller partner (elige proveedor)
+            {t("service.appointmentProviderSectionLabel")}
           </div>
           {isSearchingWorkshops ? (
             <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>
-              Buscando talleres cercanos por codigo postal...
+              {t("service.appointmentLoadingWorkshops")}
             </div>
           ) : null}
           {!isSearchingWorkshops && workshopSearchError ? (
@@ -1004,7 +1011,7 @@ export default function ServiceAppointmentPage({
           ) : null}
           {!hasSelectedProvider ? (
             <div style={{ fontSize: 12, color: "#7c3aed", marginBottom: 8, fontWeight: 700 }}>
-              Selecciona un proveedor para habilitar la confirmacion de cita.
+              {t("service.appointmentSelectProviderHint")}
             </div>
           ) : null}
           <div style={{ display: "grid", gap: 8 }}>
@@ -1028,7 +1035,7 @@ export default function ServiceAppointmentPage({
                 <div style={{ fontSize: 12, color: "#9a9a9a", marginTop: 2 }}>
                   {item?.nearby?.available && item?.nearby?.workshop
                     ? `${item.nearby.workshop.name} · ${item.nearby.workshop.distanceKm} km`
-                    : (hasLocationContext ? `Cerca de ${normalizeText(province)} (${postalCode})` : "Completa ubicacion para buscar cerca")}
+                    : (hasLocationContext ? t("service.appointmentWorkshopNearText", { province, postalCode }) : t("service.appointmentWorkshopCompleteLocation"))}
                 </div>
                 {item?.nearby?.available && item?.nearby?.workshop ? (
                   <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
@@ -1036,15 +1043,15 @@ export default function ServiceAppointmentPage({
                   </div>
                 ) : null}
                 <div style={{ fontSize: 12, color: "#8b5cf6", marginTop: 2, fontWeight: 700 }}>
-                  Particular: {formatPriceTag(item.particular)} · Con CarsWise: {formatPriceTag(item.withCarsWise)}
+                  {t("service.appointmentPricingParticular", { price: formatPriceTag(item.particular, priceOptions) })} · {t("service.appointmentPricingCarsWise", { price: formatPriceTag(item.withCarsWise, priceOptions) })}
                 </div>
                 {item.savings !== null ? (
                   <div style={{ fontSize: 11, color: "#16a34a", marginTop: 2, fontWeight: 700 }}>
-                    Ahorras {item.savings}€ vs particular
+                    {t("service.appointmentSavings", { savings: item.savings })}
                   </div>
                 ) : null}
                 <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }} title={pricingNotice}>
-                  ℹ Precio orientativo
+                  {t("service.appointmentPricingOrientative")}
                 </div>
               </button>
             ))}
@@ -1053,21 +1060,21 @@ export default function ServiceAppointmentPage({
 
         <div style={{ ...cardStyle, padding: 18 }}>
           <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
-            Resumen de precio
+            {t("service.appointmentPriceSectionLabel")}
           </div>
           <div style={{ border: "1px solid rgba(139,92,246,0.28)", borderRadius: 12, background: "rgba(139,92,246,0.08)", padding: 12, marginBottom: 12 }}>
             <div style={{ fontSize: 12, color: "#a78bfa", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>
               {selectedRevisionName} · {selectedProviderLabel}
             </div>
             <div style={{ fontSize: 13, color: "#b9b9b9", marginTop: 6 }}>
-              PVP particular: {formatPriceTag(selectedProviderOffer?.particular)}
+              {t("service.appointmentPvpParticular", { price: formatPriceTag(selectedProviderOffer?.particular, priceOptions) })}
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 6 }}>
               <div style={{ fontSize: 14, color: "#8b5cf6", fontWeight: 700 }}>
-                ✓ Con CarsWise: {formatPriceTag(selectedProviderOffer?.withCarsWise)}
+                {t("service.appointmentWithCarsWise", { price: formatPriceTag(selectedProviderOffer?.withCarsWise, priceOptions) })}
               </div>
               <div style={{ fontSize: 24, color: "#7c3aed", fontWeight: 800, lineHeight: 1 }}>
-                {formatPriceTag(selectedProviderOffer?.withCarsWise)}
+                {formatPriceTag(selectedProviderOffer?.withCarsWise, priceOptions)}
               </div>
             </div>
             <div style={{ marginTop: 8, fontSize: 11, color: "#64748b", lineHeight: 1.45 }}>
@@ -1076,11 +1083,11 @@ export default function ServiceAppointmentPage({
           </div>
           <div style={{ display: "grid", gap: 8 }}>
             {[
-              "Aceite sintetico 5W30 incluido",
-              "Filtros de aceite y aire",
-              "Revision de 20 puntos",
-              "Informe digital del estado",
-              "Sin sorpresas en el precio final",
+              t("service.appointmentFeature1"),
+              t("service.appointmentFeature2"),
+              t("service.appointmentFeature3"),
+              t("service.appointmentFeature4"),
+              t("service.appointmentFeature5"),
             ].map((item) => (
               <div key={item} style={{ fontSize: 14, color: "#636363", lineHeight: 1.35 }}>✓ {item}</div>
             ))}
@@ -1098,12 +1105,12 @@ export default function ServiceAppointmentPage({
           padding: "18px 20px",
         }}
       >
-        <div>
+          <div>
           <div style={{ fontSize: 18, color: "#303030", fontWeight: 700, marginBottom: 3 }}>
-            Confirmar cita en {selectedProviderOffer?.nearby?.workshop?.name || selectedProviderLabel}
+            {t("service.appointmentConfirmTitle", { workshop: selectedProviderOffer?.nearby?.workshop?.name || selectedProviderLabel })}
           </div>
           <div style={{ fontSize: 13, color: "#a2a2a2", lineHeight: 1.45 }}>
-            {selectedRevisionName} · Hoy a las 15:00h · {formatPriceTag(selectedProviderOffer?.withCarsWise)} (incluye IVA){selectedVehicleLabel ? ` · ${selectedVehicleLabel}` : ""}{selectedProviderOffer?.nearby?.workshop?.distanceKm ? ` · ${selectedProviderOffer.nearby.workshop.distanceKm} km` : ""}
+            {selectedRevisionName}{selectedVehicleLabel ? ` · ${selectedVehicleLabel}` : ""} · {formatPriceTag(selectedProviderOffer?.withCarsWise, priceOptions)} {t("service.appointmentIncludesVat")}{selectedProviderOffer?.nearby?.workshop?.distanceKm ? ` · ${selectedProviderOffer.nearby.workshop.distanceKm} km` : ""}
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -1112,7 +1119,7 @@ export default function ServiceAppointmentPage({
             onClick={onGoBack}
             style={{ border: "none", background: "transparent", color: "#bbb", fontSize: 14, cursor: "pointer" }}
           >
-            ← Volver
+            {t("common.backArrow")}
           </button>
           <button
             type="button"
@@ -1131,7 +1138,7 @@ export default function ServiceAppointmentPage({
               boxShadow: "0 8px 20px rgba(124,58,237,0.3)",
             }}
           >
-            {isSubmittingAppointment ? "Preparando calendario..." : "Pedir cita →"}
+            {isSubmittingAppointment ? t("service.appointmentSubmitting") : t("service.appointmentSubmit")}
           </button>
         </div>
       </section>

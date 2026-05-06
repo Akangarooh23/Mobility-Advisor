@@ -77,8 +77,8 @@
         "updatedAt": ""
       },
       "billingState": {
-        "planId": "gratis",
-        "planLabel": "Plan Gratis",
+        "planId": "plata",
+        "planLabel": "Plan Plata",
         "status": "pendiente",
         "nextBillingDate": "",
         "stripeCustomerId": "",
@@ -383,10 +383,10 @@
           "createdAt": "2026-04-17T00:00:00.000Z"
         }
       ],
-      "updatedAt": "2026-04-30T15:09:48.762Z"
+      "updatedAt": "2026-05-06T15:53:04.280Z"
     }
   },
   "stripeCustomerToEmail": {},
   "stripeSubscriptionToEmail": {},
-  "updatedAt": "2026-04-30T15:09:48.762Z"
+  "updatedAt": "2026-05-06T15:53:04.281Z"
 }

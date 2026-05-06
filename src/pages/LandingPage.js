@@ -12,8 +12,6 @@ export default function LandingPage({
   blockColors,
   questionnaireDraft,
   isUserLoggedIn,
-  planCheckoutLoadingId,
-  planCheckoutFeedback,
   onSelectAdvice,
   onSelectVehicle,
   onSelectBuyStart,
@@ -30,7 +28,8 @@ export default function LandingPage({
   onSelectServiceInsurance,
   uiLanguage = "es",
   onSelectPortalVo,
-  onSelectSubscriptionPlan,
+  onOpenPlans,
+  onOpenPlansSection,
 }) {
   const { t } = useTranslation();
   const isDark = styles?.page?.color === "#e2e8f0";
@@ -399,9 +398,8 @@ export default function LandingPage({
         transition={{ duration: 0.76, ease: [0.22, 1, 0.36, 1] }}
       >
         <HomePricingPlans
-          onSelectSubscriptionPlan={onSelectSubscriptionPlan}
-          planCheckoutLoadingId={planCheckoutLoadingId}
-          planCheckoutFeedback={planCheckoutFeedback}
+          onOpenPlans={onOpenPlans}
+          onOpenPlansSection={onOpenPlansSection}
           uiLanguage={uiLanguage}
         />
       </m.section>

@@ -33,6 +33,7 @@ import AboutCarswisePage from "./pages/AboutCarswisePage";
 import ContactCarswisePage from "./pages/ContactCarswisePage";
 import BlogIndexPage from "./pages/BlogIndexPage";
 import BlogArticlePage from "./pages/BlogArticlePage";
+import PricingPlansPage from "./pages/PricingPlansPage";
 import ResolvedOfferImage from "./components/offers/ResolvedOfferImage";
 import {
   createInitialDecisionAnswers,
@@ -746,6 +747,7 @@ const SEO_STATIC_PAGES = {
 
 const PUBLIC_ROUTE_BY_ENTRY_MODE = {
   aboutCarswise: "/sobre-carswise",
+  plans: "/planes",
   portalVo: "/marketplace-vo",
   vehicleOptions: "/asesor-vehiculo",
   servicesSeo: "/servicios",
@@ -774,6 +776,11 @@ const SEO_META_BY_ENTRY_MODE = {
     title: "Sobre CarsWise | Quienes somos y que construimos",
     description:
       "Conoce al equipo fundador de CarsWise y nuestra vision para comprar, gestionar y vender coche con mejor informacion.",
+  },
+  plans: {
+    title: "Planes y precios | CarsWise",
+    description:
+      "Consulta planes de suscripcion y servicios premium bajo demanda para gestionar mejor tu coche.",
   },
   portalVo: {
     title: "Marketplace VO | Coches de ocasion con enfoque de coste total | CarsWise",
@@ -1006,6 +1013,7 @@ export default function App() {
   const [showAuthMenu, setShowAuthMenu] = useState(false);
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
   const [showUserPanel, setShowUserPanel] = useState(false);
+  const [showHeaderPlansNav, setShowHeaderPlansNav] = useState(false);
   const [showHeaderMoreNav, setShowHeaderMoreNav] = useState(false);
   const [showHeaderMobileNav, setShowHeaderMobileNav] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
@@ -1106,6 +1114,9 @@ export default function App() {
   }, []);
 
   const openPublicPage = useCallback((nextEntryMode = null, historyMode = "push") => {
+    setShowHeaderPlansNav(false);
+    setShowHeaderMoreNav(false);
+    setShowHeaderMobileNav(false);
     setEntryMode(nextEntryMode);
     setStep(-1);
     syncBrowserPath(nextEntryMode ? getPublicPathForEntryMode(nextEntryMode) : "/", historyMode);
@@ -1117,6 +1128,7 @@ export default function App() {
 
   const openInternalLandingFlow = useCallback((nextEntryMode) => {
     setShowHeaderMobileNav(false);
+    setShowHeaderPlansNav(false);
     setShowHeaderMoreNav(false);
     setShowAuthMenu(false);
     setShowUserPanel(false);
@@ -1131,20 +1143,34 @@ export default function App() {
 
   const goToPublicHeaderPage = useCallback((nextEntryMode) => {
     setShowHeaderMobileNav(false);
+    setShowHeaderPlansNav(false);
     setShowHeaderMoreNav(false);
     openPublicPage(nextEntryMode);
   }, [openPublicPage]);
 
   const goToHomeHeaderPage = useCallback(() => {
     setShowHeaderMobileNav(false);
+    setShowHeaderPlansNav(false);
     setShowHeaderMoreNav(false);
     openPublicPage(null);
   }, [openPublicPage]);
 
   const goToAboutHeaderPage = useCallback(() => {
     setShowHeaderMobileNav(false);
+    setShowHeaderPlansNav(false);
     setShowHeaderMoreNav(false);
     openPublicPage("aboutCarswise");
+  }, [openPublicPage]);
+
+  const openPlansSection = useCallback((sectionId = "planes") => {
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem("movilidad-advisor.plans.scroll-target", sectionId);
+    }
+
+    setShowHeaderMobileNav(false);
+    setShowHeaderPlansNav(false);
+    setShowHeaderMoreNav(false);
+    openPublicPage("plans");
   }, [openPublicPage]);
 
   const currentHeaderNavKey = useMemo(() => {
@@ -1166,6 +1192,10 @@ export default function App() {
 
     if (entryMode === "sellOptions" || entryMode === "sell") {
       return "sell";
+    }
+
+    if (entryMode === "plans") {
+      return "plans";
     }
 
     if (entryMode === "contact" || entryMode === "aboutCarswise") {
@@ -1207,14 +1237,47 @@ export default function App() {
       onClick: () => openInternalLandingFlow("sellOptions"),
     },
     {
+      key: "plans",
+      label: uiLanguage === "en" ? "Plans ▾" : "Planes ▾",
+      onClick: () => {
+        setShowHeaderMobileNav(false);
+        setShowHeaderMoreNav(false);
+        setShowHeaderPlansNav((prev) => !prev);
+      },
+    },
+    {
       key: "more",
       label: uiLanguage === "en" ? "More ▾" : "Más ▾",
       onClick: () => {
         setShowHeaderMobileNav(false);
+        setShowHeaderPlansNav(false);
         setShowHeaderMoreNav((prev) => !prev);
       },
     },
   ], [goToHomeHeaderPage, openInternalLandingFlow, uiLanguage]);
+
+  const headerPlansNavItems = useMemo(() => [
+    {
+      key: "plans-overview",
+      label: uiLanguage === "en" ? "Plans overview" : "Resumen de planes",
+      onClick: () => openPlansSection("planes"),
+    },
+    {
+      key: "plans-services",
+      label: uiLanguage === "en" ? "Services" : "Servicios",
+      onClick: () => openPlansSection("premium"),
+    },
+    {
+      key: "plans-compare",
+      label: uiLanguage === "en" ? "Compare" : "Comparar",
+      onClick: () => openPlansSection("comparar"),
+    },
+    {
+      key: "plans-faq",
+      label: "FAQ",
+      onClick: () => openPlansSection("faq"),
+    },
+  ], [openPlansSection, uiLanguage]);
 
   const headerMoreNavItems = useMemo(() => [
     {
@@ -1230,9 +1293,10 @@ export default function App() {
   ], [goToAboutHeaderPage, goToPublicHeaderPage, uiLanguage]);
 
   const mobileHeaderNavItems = useMemo(() => [
-    ...headerNavItems.filter((item) => item.key !== "more"),
+    ...headerNavItems.filter((item) => item.key !== "more" && item.key !== "plans"),
+    ...headerPlansNavItems,
     ...headerMoreNavItems,
-  ], [headerNavItems, headerMoreNavItems]);
+  ], [headerMoreNavItems, headerNavItems, headerPlansNavItems]);
 
   const centerHeaderNavItems = headerNavItems;
 
@@ -3333,6 +3397,66 @@ export default function App() {
             {centerHeaderNavItems.map((item) => {
               const isActive = item.key === currentHeaderNavKey;
 
+              if (item.key === "plans") {
+                return (
+                  <div key={item.key} style={{ position: "relative" }}>
+                    <button
+                      type="button"
+                      className={`cw-header-nav-link${isActive || showHeaderPlansNav ? " is-active" : ""}`}
+                      onClick={item.onClick}
+                      aria-haspopup="menu"
+                      aria-expanded={showHeaderPlansNav}
+                    >
+                      {item.label}
+                    </button>
+
+                    {showHeaderPlansNav && (
+                      <div
+                        role="menu"
+                        aria-label="Secciones de planes"
+                        style={{
+                          position: "absolute",
+                          top: "calc(100% + 8px)",
+                          right: 0,
+                          minWidth: 210,
+                          background: "rgba(255,255,255,0.98)",
+                          border: "1px solid rgba(148,163,184,0.34)",
+                          borderRadius: 12,
+                          boxShadow: "0 12px 30px rgba(15,23,42,0.16)",
+                          padding: 8,
+                          zIndex: 140,
+                          display: "grid",
+                          gap: 6,
+                        }}
+                      >
+                        {headerPlansNavItems.map((plansItem) => (
+                          <button
+                            key={plansItem.key}
+                            type="button"
+                            role="menuitem"
+                            onClick={plansItem.onClick}
+                            style={{
+                              width: "100%",
+                              textAlign: "left",
+                              border: "1px solid rgba(148,163,184,0.28)",
+                              borderRadius: 10,
+                              background: "#ffffff",
+                              color: "#0f172a",
+                              fontSize: 12,
+                              fontWeight: 700,
+                              padding: "8px 10px",
+                              cursor: "pointer",
+                            }}
+                          >
+                            {plansItem.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
               if (item.key === "more") {
                 return (
                   <div key={item.key} style={{ position: "relative" }}>
@@ -4584,8 +4708,6 @@ export default function App() {
           blockColors={BLOCK_COLORS}
           questionnaireDraft={questionnaireDraft}
           isUserLoggedIn={isUserLoggedIn}
-          planCheckoutLoadingId={planCheckoutLoadingId}
-          planCheckoutFeedback={planCheckoutFeedback}
           uiLanguage={uiLanguage}
           onSelectVehicle={() => {
             setEntryMode("vehicleOptions");
@@ -4702,9 +4824,14 @@ export default function App() {
             setStep(-1);
             setPortalVoFilters({ ...INITIAL_PORTAL_VO_FILTERS });
           }}
-          onSelectSubscriptionPlan={(plan) => {
-            void startSubscriptionCheckout(plan?.id || "");
+          onOpenPlans={() => {
+            if (typeof window !== "undefined") {
+              window.sessionStorage.setItem("movilidad-advisor.plans.scroll-target", "planes");
+            }
+            setEntryMode("plans");
+            setStep(-1);
           }}
+          onOpenPlansSection={openPlansSection}
         />
       )}
 
@@ -5088,6 +5215,53 @@ export default function App() {
 
       {step === -1 && entryMode === "aboutCarswise" && (
         <AboutCarswisePage />
+      )}
+
+      {step === -1 && entryMode === "plans" && (
+        <PricingPlansPage
+          uiLanguage={uiLanguage}
+          onStartFree={() => handleAuthAction("register")}
+          onStartPlus={() => void startSubscriptionCheckout("plata")}
+          onOpenServices={() => {
+            if (typeof window === "undefined") {
+              return;
+            }
+
+            const premiumSection = document.getElementById("premium");
+            premiumSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+          onOpenSellManagement={() => {
+            setSellFlowType("certificate");
+            setEntryMode("sell");
+            setStep(-1);
+          }}
+          onOpenMarketReport={() => {
+            setSellFlowType("report");
+            setEntryMode("sell");
+            setStep(-1);
+          }}
+          onOpenInsuranceReview={() => {
+            setEntryMode("serviceInsurance");
+            setStep(-1);
+          }}
+          onOpenBoostListing={() => {
+            setEntryMode("portalVo");
+            setStep(-1);
+          }}
+          onOpenGuaranteeSeal={() => {
+            setSellFlowType("certificate");
+            setEntryMode("sell");
+            setStep(-1);
+          }}
+          onOpenPremiumPublish={() => {
+            setEntryMode("portalVo");
+            setStep(-1);
+          }}
+          onTalkToTeam={() => {
+            setEntryMode("contact");
+            setStep(-1);
+          }}
+        />
       )}
 
       {step === -1 && entryMode === "contact" && (

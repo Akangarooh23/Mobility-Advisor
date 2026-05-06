@@ -1,0 +1,330 @@
+
+CarsWise AI
+Servicios Premium — precios, funcionamiento y modelo de cobro
+Documento detallado · Mayo 2026
+Premium no es un plan. Es un catálogo de servicios de pago único que el usuario contrata cuando los necesita, sea Free o Plus. No compiten con la suscripción: la complementan en momentos de alta intención.
+1. Qué son los Servicios Premium
+Los Servicios Premium de CarsWise AI son transacciones puntuales que el usuario realiza cuando tiene una necesidad concreta y de alto valor: vender su coche, saber cuánto vale realmente, certificar su estado, o mejorar su visibilidad en el marketplace.
+No requieren suscripción previa. Un usuario en Free puede comprar cualquier servicio Premium. Un usuario en Plus también, y probablemente lo hará más porque ya confía en la plataforma.
+Regla de presentación: los Servicios Premium se muestran en la web bajo el encabezado 'Servicios bajo demanda', fuera del comparador de planes Free / Plus. Si aparecen como una tercera columna simétrica, el usuario cree que tiene que elegir entre ellos — y no es así.
+Los dos tipos de servicios
+Servicios de resolución
+Add-ons de mejora
+Se venden por confianza y resultado.
+El usuario tiene un problema importante y quiere que CarsWise lo resuelva. El ticket es más alto porque el valor percibido es concreto y urgente.
+Servicios:
+· Gestión integral de venta
+· Informe de mercado avanzado
+· Revisión y recomendación de seguro
+Se venden por conversión y visibilidad.
+El usuario quiere que su coche se vea más o genere más confianza. Ticket más bajo, más fácil de comprar de forma impulsiva.
+Servicios:
+· Sello de Garantía CarsWise
+· Destacar anuncio
+· Publicación premium
+2. Gestión integral de venta
+Gestión integral de venta
+CarsWise gestiona todo el proceso: valoración, anuncio, compradores y cierre.
+2 – 3%
+del precio final · o fee fijo 149 – 249 €
+2.1 Qué incluye
+Este servicio convierte a CarsWise en el gestor completo de la venta del vehículo. El usuario entrega las llaves (metafóricamente) y CarsWise hace el resto.
+Valoración inicial
+Análisis del precio óptimo de venta basado en datos de mercado, estado del vehículo, historial y demanda actual del modelo.
+Creación del anuncio
+Redacción profesional de la ficha, selección de fotos, definición de puntos fuertes y publicación en el marketplace de CarsWise y portales externos.
+Gestión de contactos
+CarsWise filtra y responde a los compradores interesados, gestiona las visitas y descarta ofertas por debajo del precio objetivo.
+Negociación y cierre
+Acompañamiento en la negociación final y en la documentación de transferencia. El usuario aprueba el cierre, CarsWise lo ejecuta.
+Documentación
+Gestión del contrato de compraventa, verificación de datos del comprador y entrega de documentación.
+2.2 Modelo de cobro: comisión vs fee fijo
+Esta es la decisión más importante del servicio. No hay una respuesta única — depende de qué quieres optimizar.
+Criterio
+Fee fijo (149 – 249 €)
+Comisión (2 – 3%)
+Claridad para el usuario
+Alta. El usuario sabe desde el principio cuánto paga.
+Media. Depende del precio final de venta.
+Alineación de incentivos
+Baja. CarsWise cobra igual aunque el coche tarde en venderse.
+Alta. CarsWise gana más si vende mejor y más rápido.
+Ingreso para CarsWise
+Predecible. Fácil de planificar.
+Variable. Depende del ticket del coche.
+Riesgo para el usuario
+Bajo. Paga independientemente del resultado.
+Bajo. Solo paga si vende (si se pacta así).
+Ticket promedio estimado
+149 – 249 € siempre.
+200 – 600 € según el coche.
+Cuándo conviene
+Fase inicial: precio claro genera más conversión cuando no hay reputación todavía.
+Fase madura: cuando CarsWise tiene track record y el usuario confía en el resultado.
+Recomendación para el lanzamiento: empezar con fee fijo (149 – 199 €). El precio claro convierte mejor cuando el usuario no conoce aún el servicio. Cuando tengas datos reales de tiempo medio de venta y satisfacción, evalúa si cambiar a comisión o a un modelo mixto (fee fijo + comisión de éxito).
+2.3 Ejemplos de precio a comisión
+Precio de venta del coche
+Comisión 2%
+Comisión 2,5%
+Comisión 3%
+5.000 €
+100 €
+125 €
+150 €
+10.000 €
+200 €
+250 €
+300 €
+15.000 €
+300 €
+375 €
+450 €
+20.000 €
+400 €
+500 €
+600 €
+30.000 €
+600 €
+750 €
+900 €
+2.4 Cómo se paga
+Momento del pago
+Fee fijo: al contratar el servicio, antes de empezar. Comisión: al cierre de la venta, una vez el comprador ha pagado.
+Métodos de pago
+Tarjeta de crédito/débito, Bizum. Stripe o similar como procesador de pagos.
+Facturación
+Factura automática generada por la plataforma al momento del pago.
+Cancelación
+Si el usuario cancela antes de publicar el anuncio: reembolso completo. Si cancela con anuncio activo: reembolso parcial (50%). Si hay comprador en negociación: sin reembolso.
+2.5 Quién ejecuta el servicio
+Este es el punto más delicado operativamente. La gestión de venta no es un servicio automatizable al 100% — hay interacción humana real.
+En fase de lanzamiento
+El equipo de CarsWise gestiona manualmente cada caso.
+Volumen máximo recomendado para empezar: 5-10 ventas simultáneas. Más allá, la calidad se resiente.
+Tiempo estimado por venta: 3-8 horas de trabajo distribuido en 2-4 semanas.
+Herramientas necesarias: CRM básico para seguimiento, plantillas de comunicación, checklist de documentación.
+En fase de escala
+Incorporar gestores de ventas especializados o trabajar con red de colaboradores.
+Automatizar la parte de publicación, filtrado de contactos y recordatorios.
+La negociación y el cierre siempre con supervisión humana.
+Riesgo operativo: no lanzar la gestión de venta sin tener claro quién la ejecuta. Un servicio mal ejecutado genera NPS negativo y destruye reputación antes de que el producto madure. Mejor 5 ventas perfectas que 50 mediocres.
+3. Informe de mercado avanzado
+Informe de mercado avanzado
+Análisis del precio óptimo, histórico del modelo y recomendación de momento de venta.
+19 – 29 €
+pago único por informe
+3.1 Qué incluye
+Precio óptimo de venta
+Rango de precio recomendado basado en el modelo, año, kilometraje, equipamiento y estado del vehículo. Comparativa con anuncios activos similares en el mercado español.
+Histórico de precios
+Evolución del precio medio del modelo en los últimos 6-12 meses. Muestra si el mercado sube, baja o está estable.
+Demanda actual
+Velocidad media de venta del modelo (días en mercado), número de anuncios activos y ratio oferta/demanda en la zona del usuario.
+Mejor momento para vender
+Recomendación estacional basada en datos históricos del modelo. Algunos modelos se venden mejor en primavera/verano, otros no tienen estacionalidad.
+Formato de entrega
+PDF descargable + resumen en la app. Se genera automáticamente en menos de 5 minutos tras el pago.
+3.2 Por qué 19 – 29 €
+El precio está calibrado para que el usuario lo perciba como asequible frente al valor que obtiene. Pagar 25 € por saber si tu coche vale 8.000 o 11.000 € es una decisión fácil.
+Coste de ejecución: casi cero una vez el sistema de datos está construido. Margen muy alto.
+Precio de referencia del mercado: informes similares en plataformas como Cardón o AutoScout cuestan entre 15 y 40 €.
+Precio de 19 € para el informe básico, 29 € para el informe con histórico y recomendación de momento.
+Estrategia de upsell: ofrecer el informe de mercado con descuento (o gratis) a quien luego contrate la gestión integral de venta. El informe actúa como primer paso del funnel de venta, no como producto aislado.
+3.3 Cómo se paga y se entrega
+Momento del pago
+Al momento de solicitarlo. Pago inmediato antes de ver el informe completo.
+Métodos de pago
+Tarjeta, Bizum. Procesado por Stripe o similar.
+Entrega
+Automática. El informe se genera en menos de 5 minutos y se envía por email y está disponible en la app.
+Validez
+El informe refleja el mercado en el momento de generación. Se recomienda no usarlo pasadas 4-6 semanas sin actualización.
+Reembolso
+No aplica una vez generado. Se puede ofrecer una política de satisfacción garantizada: si el usuario no queda satisfecho, crédito para otro servicio.
+3.4 Quién ejecuta el servicio
+Este es el servicio de mayor margen porque es prácticamente automatizable al 100%.
+El sistema recoge los datos del vehículo de la IDCar del usuario (o los introduce manualmente si no tiene cuenta).
+Se consulta la base de datos de precios del mercado (scraping de portales, datos propios, APIs de valoración como InfoCar o Eurotax).
+Se genera el informe automáticamente con plantilla PDF predefinida.
+Sin intervención humana en el proceso de generación.
+4. Revisión y recomendación de seguro
+Revisión de seguro
+Análisis de la póliza actual y recomendación de alternativas más económicas o completas.
+Gratis para el usuario
+ingreso por comisión o lead · 15 – 60 € por lead cualificado
+4.1 Qué incluye
+Análisis de póliza actual
+El usuario sube o introduce los datos de su seguro actual (compañía, tipo de cobertura, precio anual). CarsWise evalúa si está pagando de más o si le falta cobertura.
+Comparativa de alternativas
+Búsqueda de pólizas similares o superiores a menor precio en el mercado. Comparativa de hasta 5 aseguradoras.
+Recomendación personalizada
+Informe con la recomendación concreta: quedarse, cambiar o ampliar cobertura. Con el ahorro estimado anual si cambia.
+Proceso de cambio
+Si el usuario quiere cambiar, CarsWise facilita el contacto con la aseguradora recomendada o redirige al comparador partner.
+4.2 Modelo de ingresos — el usuario no paga
+Este servicio no le cuesta nada al usuario. CarsWise ingresa por una de estas dos vías, o combinación de ambas:
+Comisión de aseguradora
+Pago por lead cualificado
+CarsWise cobra un % de la prima del primer año cuando el usuario contrata la póliza recomendada.
+Rango habitual: 15 – 25% de la prima anual.
+Ejemplo: si el usuario contrata un seguro de 600 €/año, CarsWise cobra entre 90 y 150 €.
+Requiere acuerdo de colaboración con aseguradoras o mediadores.
+La aseguradora o comparador partner paga a CarsWise por cada lead que se les envía y cumple criterios de calidad.
+Rango habitual: 15 – 60 € por lead cualificado.
+El pago se recibe aunque el usuario no contrate finalmente. Menos rentable pero más predecible.
+Requiere acuerdo con comparadores tipo Rastreator, Acierto, etc.
+Cuándo lanzar: solo si tienes al menos un acuerdo de afiliación o comisión cerrado. Sin ese acuerdo, el servicio es gratis para el usuario y gratis (es decir, con coste) para CarsWise. No lanzarlo como 'feature' sin modelo de ingresos definido.
+4.3 Quién ejecuta el servicio
+Análisis de póliza: automatizado mediante formulario o lectura de documento subido por el usuario.
+Comparativa: integración con API de comparador partner o scraping de tarifas públicas.
+Recomendación: generada automáticamente. En casos complejos, revisión humana ligera.
+Proceso de cambio: redirección al partner con tracking del lead para asegurar el cobro de comisión.
+5. Sello de Garantía CarsWise
+Sello de Garantía CarsWise
+Certificación del estado del coche que aumenta la confianza del comprador y acelera la venta.
+29 – 49 €
+pago único por vehículo
+5.1 Qué incluye
+Inspección del vehículo
+Revisión técnica del estado del coche en un taller homologado de la red CarsWise. Comprueba mecánica básica, carrocería, documentación y ausencia de cargas.
+Badge digital verificado
+Distintivo visible en el anuncio del marketplace: 'Garantía CarsWise'. Enlaza a un informe público con los puntos revisados y aprobados.
+Informe de inspección
+Documento PDF con los resultados de la revisión. Disponible para el comprador al consultar el anuncio.
+Vigencia
+El sello es válido durante 90 días o hasta la venta del vehículo.
+5.2 Por qué 29 – 49 €
+El coste de la inspección en taller es el principal coste variable. Un servicio básico de revisión pre-venta cuesta entre 20 y 35 € en taller. El precio al usuario debe cubrir ese coste y dejar margen.
+29 € para inspección estándar (carrocería + documentación). 49 € para inspección completa (mecánica + carrocería + documentación + informe ampliado).
+El valor percibido es alto: el comprador paga más por un coche con sello porque tiene más confianza. El vendedor recupera el coste del sello con creces si el coche se vende 200-500 € más caro.
+Requiere red de talleres homologados. Este servicio no se puede lanzar sin tener al menos 3-5 talleres partner en las principales ciudades. Es el servicio con mayor barrera operativa de todos los Premium.
+5.3 Cómo se paga
+Momento del pago
+Al solicitar el sello. El usuario paga y se le asigna una cita en un taller de la red.
+Métodos de pago
+Tarjeta, Bizum.
+Proceso post-pago
+CarsWise coordina la cita con el taller. El usuario lleva el coche. El taller hace la inspección y sube los resultados al sistema. CarsWise genera el badge y el informe automáticamente.
+Reembolso
+Si el coche no pasa la inspección, reembolso del 50% (se ha prestado el servicio de inspección igualmente).
+6. Add-ons de visibilidad en marketplace
+6.1 Destacar anuncio
+Destacar anuncio
+El anuncio aparece primero en los resultados de búsqueda relevantes durante el periodo contratado.
+9 – 19 €
+por anuncio · duración 7 o 14 días
+Qué hace
+El anuncio sube a las primeras posiciones en búsquedas de su categoría (marca, modelo, precio). Mayor visibilidad = más contactos de compradores.
+Duración
+7 días a 9 €. 14 días a 19 €.
+Cómo se paga
+Al activarlo desde el panel del anuncio. Pago inmediato, activación instantánea.
+Quién lo ejecuta
+Automático. El sistema cambia la posición del anuncio en el marketplace sin intervención humana.
+Renovación
+El usuario puede renovar al vencer. Si el coche no se vendió, se le muestra la opción de renovar con descuento (5 € de descuento la segunda semana).
+6.2 Publicación premium
+Publicación premium
+Ficha ampliada con más fotos, vídeo, historial visible y badge de vendedor verificado.
+29 – 39 €
+por anuncio · 30 días
+Qué incluye
+Hasta 20 fotos (vs. 8 en anuncio estándar) · posibilidad de añadir vídeo corto · historial de revisiones visible para el comprador · badge 'Vendedor verificado' · posición destacada en listado.
+Duración
+30 días desde la publicación.
+Diferencia con destacar anuncio
+Destacar anuncio sube la posición en resultados. Publicación premium mejora la ficha del anuncio en sí. Son complementarios y se pueden contratar juntos.
+Cómo se paga
+Al crear o editar el anuncio. Pago inmediato.
+Quién lo ejecuta
+Automático. El sistema desbloquea los campos adicionales y activa el badge.
+Los dos add-ons de visibilidad son los más fáciles de lanzar: son 100% automáticos, no requieren red de talleres ni acuerdos con terceros, y tienen margen muy alto. Son buenos candidatos para lanzar antes que el resto.
+7. Resumen de precios y modelo de cobro
+Servicio
+Precio
+Quién paga
+Modelo de cobro
+Gestión integral de venta
+149 – 249 € fijo o 2 – 3%
+Usuario
+Pago al contratar (fee) o al cerrar venta (comisión)
+Informe de mercado avanzado
+19 – 29 €
+Usuario
+Pago inmediato. Entrega automática en menos de 5 minutos.
+Revisión de seguro
+Gratis usuario 15 – 60 € lead
+Aseguradora
+Comisión al contratar póliza o pago por lead cualificado enviado al partner.
+Sello de Garantía CarsWise
+29 – 49 €
+Usuario
+Pago al solicitar. Servicio prestado por taller de la red CarsWise.
+Destacar anuncio
+9 – 19 €
+Usuario
+Pago inmediato. Activación instantánea. 7 o 14 días.
+Publicación premium
+29 – 39 €
+Usuario
+Pago inmediato. Activación instantánea. 30 días.
+8. Orden de lanzamiento recomendado
+No todos los servicios Premium tienen la misma barrera operativa. El orden correcto es de menor a mayor complejidad, validando margen y demanda antes de invertir en los más complejos.
+Fase
+Servicio
+Barrera operativa
+Por qué en este orden
+1
+Destacar anuncio
+Muy baja
+100% automático. Sin terceros. Margen altísimo. Fácil de testar demanda.
+1
+Publicación premium
+Muy baja
+100% automático. Complementa a destacar anuncio. Se pueden lanzar juntos.
+2
+Informe de mercado avanzado
+Baja
+Requiere datos de mercado. Casi automatizable. Alto margen. Puerta de entrada a la gestión de venta.
+2
+Revisión de seguro
+Media
+Requiere acuerdo de afiliación cerrado. Sin ese acuerdo no tiene sentido lanzarlo.
+3
+Gestión integral de venta
+Alta
+Requiere equipo o red operativa. Mayor ticket. Lanzar cuando hay capacidad de ejecutar bien.
+3
+Sello de Garantía CarsWise
+Muy alta
+Requiere red de talleres homologados. El más complejo. Lanzar solo con red activa y probada.
+9. Cómo presentar Premium en la web
+La forma de presentar los servicios Premium es tan importante como el precio. Si se presenta como un tercer plan comparable a Free y Plus, el usuario se confunde y abandona.
+9.1 Lo que no hay que hacer
+No poner Premium como tercera columna en la tabla de planes junto a Free y Plus.
+No usar la palabra 'plan' para describir Premium.
+No listar todos los servicios Premium en la misma pantalla que los planes de suscripción.
+9.2 Lo que sí hay que hacer
+Sección separada en la página, debajo de los planes de suscripción, con encabezado propio: 'Servicios bajo demanda'.
+Cada servicio con su propia tarjeta: nombre, precio, descripción en una línea y botón de acción.
+Texto de conexión entre secciones: 'Plus te acompaña mientras tienes el coche. Estos servicios resuelven el momento que necesitas, seas Free o Plus.'
+9.3 Copy de presentación
+Servicios bajo demanda
+Cuando necesitas resolver algo concreto. Sin suscripción, sin compromiso.
+Bajo ese encabezado, las tarjetas de servicio en grid de 2-3 columnas, cada una con:
+Nombre del servicio en negrita
+Precio destacado (grande, visible)
+Una línea de descripción del valor que aporta
+Botón de acción: 'Contratar', 'Solicitar informe', 'Activar' según el servicio
+10. Resumen operativo y decisiones clave
+La regla de oro: no lanzar ningún servicio Premium sin tener claro quién lo ejecuta, cómo se cobra y qué pasa si algo sale mal. Un servicio mal ejecutado en fase temprana destruye reputación antes de que el producto madure.
+Las 5 decisiones que hay que tomar antes de lanzar
+Fee fijo o comisión para la gestión de venta. Recomendación: fee fijo al lanzar. Revisarlo cuando tengas 20+ ventas gestionadas.
+Partner de afiliación para seguros. Sin acuerdo firmado, no lanzar la revisión de seguro. No es un feature gratuito, es un producto que necesita modelo de ingresos.
+Red de talleres para el sello de garantía. Mínimo 3-5 talleres en ciudades principales antes de lanzar. Sin red, no hay servicio.
+Fuente de datos de mercado para el informe. API de valoración (InfoCar, Eurotax, scraping propio) o datos propios suficientes para generar informes fiables.
+Política de reembolsos y cancelación. Definirla antes de cobrar el primer servicio. Sin política clara, los conflictos escalan.
+Primer servicio a lanzar: destacar anuncio y publicación premium
+Son los únicos dos servicios sin dependencia de terceros, sin operativa humana y con margen inmediato. Se pueden lanzar en cuanto el marketplace esté activo. El resto se lanza en el orden definido en la sección 8.
+CarsWise AI · Servicios Premium · Mayo 2026

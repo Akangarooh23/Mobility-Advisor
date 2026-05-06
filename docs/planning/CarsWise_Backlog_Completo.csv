@@ -1,0 +1,56 @@
+id,title,description,priority,team,sprint,estimate_days,dependencies,acceptance_criteria,kpi
+CW-001,Definir diccionario de eventos,"Definir nombres, payload y reglas de versionado para user_registered, idcar_created, alert_configured, first_value_seen, plus_conversion_triggered",P0,DATA,Sprint 0,1,,"Documento aprobado por Producto y Tech",Cobertura de eventos canónicos
+CW-002,Endpoint de tracking con idempotencia,"Crear endpoint backend para registrar eventos con control de duplicados por idempotency_key",P0,BE,Sprint 0,2,CW-001,"Endpoint operativo en staging y producción; sin duplicados",Tasa de duplicados menor al 1%
+CW-003,Tracking de registro,"Emitir user_registered al completar alta",P0,FE,Sprint 0,0.5,CW-002,"Evento visible en dashboard en menos de 5 min",Conversión visita a registro
+CW-004,Tracking de IDCar creada,"Emitir idcar_created al guardar primer vehículo",P0,FE,Sprint 0,0.5,CW-002,"Evento con user_id y car_id",Conversión registro a IDCar
+CW-005,Tracking de alerta configurada,"Emitir alert_configured al activar primera alerta",P0,FE,Sprint 0,0.5,CW-002,"Evento incluye tipo_alerta y canal",Conversión IDCar a alerta
+CW-006,Tracking de primer valor,"Emitir first_value_seen al abrir email de valor o módulo in-app",P0,FE+BE,Sprint 0,1,CW-002,"Evento único por primer valor",Time to first value
+CW-007,Tracking de trigger Plus,"Emitir plus_conversion_triggered al iniciar flujo de upgrade",P0,FE+BE,Sprint 0,0.5,CW-002,"Evento trazable por cohorte",Conversión Free a Plus
+CW-008,Dashboard del funnel,"Construir panel con 5 pasos y conversión por cohorte semanal",P0,DATA,Sprint 0,1.5,CW-003|CW-004|CW-005|CW-006|CW-007,"Panel con corte 7d y 30d",Drop-off por paso
+CW-009,QA de eventos,"Suite QA para validar orden, payload y no duplicación de eventos",P0,QA,Sprint 0,1,CW-003|CW-004|CW-005|CW-006|CW-007,"Checklist verde en flujo feliz y edge cases",Errores de instrumentación
+CW-010,Nueva página de pricing,"Separar visualmente Planes de Servicios bajo demanda",P0,FE,Sprint 1,2,,"Premium fuera de comparativa de planes",Comprensión de oferta en test
+CW-011,Copy final de pricing,"Unificar copy en Control, Avisos, Ahorro y mensajes CTA",P0,COPY,Sprint 1,1,,"Copy aprobado por negocio",CTR de CTA Plus
+CW-012,Comparativa Free y Plus,"Mostrar solo Free y Plus en tabla principal",P0,FE,Sprint 1,0.5,CW-010,"Tabla limpia sin Premium",Confusión Plus vs Premium
+CW-013,Catalogo Premium separado,"Bloque independiente para Resolución y Mejora",P0,FE,Sprint 1,1,CW-010,"CTA por servicio disponible",Clicks a servicios premium
+CW-014,Tracking de pricing,"Medir view y clics de CTAs en pricing",P0,FE+DATA,Sprint 1,0.5,CW-010,"Eventos pricing_view y pricing_cta_* activos",CTR por bloque
+CW-015,Test de comprensión pricing,"Validación rápida con 5 usuarios para claridad de propuesta",P0,QA+PM,Sprint 1,1,CW-010|CW-011,"4 de 5 usuarios explican diferencia correcta",Tasa de comprensión
+CW-016,Registro simplificado,"Reducir formulario a mínimos y eliminar fricción",P0,FE,Sprint 2,1,,"Alta completa en menos de 60 segundos",Abandono de formulario
+CW-017,Pantalla Añade tu coche,"Redirección inmediata post registro a crear IDCar",P0,FE,Sprint 2,0.5,CW-016,"Pantalla mostrada al 100 por ciento de nuevos registros",Conversión registro a IDCar
+CW-018,Creación IDCar en 2 pasos,"Implementar flujo corto con autocompletado cuando aplique",P0,FE+BE,Sprint 2,2,CW-017,"IDCar creada sin pasos avanzados",Tiempo medio de alta IDCar
+CW-019,Primera alerta en onboarding,"Forzar configuración de una alerta antes de finalizar onboarding",P0,FE,Sprint 2,1,CW-018,"alert_configured se dispara en onboarding",Conversión IDCar a alerta
+CW-020,Pantalla de confirmación onboarding,"Mostrar estado protegido y promesa de valor en 24h",P0,FE+COPY,Sprint 2,0.5,CW-019,"Pantalla visible tras completar secuencia",Finalización de onboarding
+CW-021,Métricas activación sesión y 24h,"Crear dos KPIs de activación para evitar falso negativo",P0,DATA,Sprint 2,0.5,CW-008|CW-019,"KPIs visibles por cohorte",Activación en sesión y en 24h
+CW-022,E2E onboarding,"Automatizar prueba registro a alerta para web desktop y mobile",P0,QA,Sprint 2,1,CW-016|CW-017|CW-018|CW-019,"Tests verdes en CI",Regresiones de onboarding
+CW-023,Modelo de datos de alertas,"Tabla y estados de alertas con auditoría y timestamps",P0,BE,Sprint 3,1.5,,"Migración aplicada y reversible",Integridad de alertas
+CW-024,Job alerta ITV,"Generar avisos a 30 y 7 días",P0,BE,Sprint 3,1.5,CW-023,"Alertas creadas en ventanas correctas",Cobertura de alertas ITV
+CW-025,Job alerta seguro,"Generar avisos por fecha de renovación del usuario",P0,BE,Sprint 3,1,CW-023,"Alertas emitidas según fecha cargada",Cobertura de alertas seguro
+CW-026,Job alerta impuestos,"Generar avisos estacionales configurables",P0,BE,Sprint 3,1,CW-023,"Regla configurable por periodo",Cobertura de alertas impuestos
+CW-027,Servicio de email y reintentos,"Enviar alertas por email con retry y logging de fallos",P0,BE,Sprint 3,1.5,CW-023,"Reintentos y estado failed visibles",Delivery rate
+CW-028,Bandeja in-app de avisos,"Listar alertas pendientes y leídas en panel de usuario",P0,FE,Sprint 3,1.5,CW-023,"Listado operativo con marcado leído",Retorno a app por alertas
+CW-029,Panel salud de alertas,"Monitorizar sent, opened, clicked, failed",P0,DATA,Sprint 3,1,CW-024|CW-025|CW-026|CW-027,"Dashboard con cortes diarios",Open rate y click rate
+CW-030,QA de fecha y duplicados,"Validar zonas horarias, ventanas y no duplicados",P0,QA,Sprint 3,1,CW-024|CW-025|CW-026,"Sin duplicados en test de carga",Errores de scheduler
+CW-031,Generación valor de mercado inicial,"Calcular valor inicial tras crear IDCar",P0,BE,Sprint 4,1.5,CW-018,"Payload disponible para email y app",Tiempo a primer valor
+CW-032,Plantilla email primer valor,"Diseñar y montar email con valor personalizado por vehículo",P0,COPY+BE,Sprint 4,1,CW-031,"Plantilla aprobada y enviada",CTR de primer valor
+CW-033,SLA primer valor 24h,"Garantizar envío del primer valor en menos de 24h",P0,BE,Sprint 4,1,CW-031|CW-032,"Monitoreo de cumplimiento activo",P50 y P90 de TTFV
+CW-034,Módulo in-app valor mercado,"Mostrar valor de mercado en home de usuario",P0,FE,Sprint 4,1,CW-031,"Widget visible y actualizado",first_value_seen in-app
+CW-035,Dashboard time-to-first-value,"Panel con percentiles y corte por cohorte",P0,DATA,Sprint 4,0.5,CW-006|CW-031|CW-033,"Métrica visible en tiempo real",Time to first value
+CW-036,QA valor mercado,"Validar consistencia de datos entre email e in-app",P0,QA,Sprint 4,0.5,CW-031|CW-032|CW-034,"Sin inconsistencias funcionales",Errores de contenido
+CW-037,Trigger conductual de upgrade,"Mostrar invitación a Plus tras first_value_seen",P0,FE,Sprint 5,1,CW-006|CW-034,"Trigger solo en contexto útil",Conversión contextual
+CW-038,Checkout Plus con trial,"Implementar flujo de alta con 30 días trial",P0,FE+BE,Sprint 5,2,CW-037,"Alta y cancelación funcionan",Free a Plus conversion
+CW-039,Estado plan y trial en backend,"Persistir estado del plan, trial_start y trial_end",P0,BE,Sprint 5,1,CW-038,"API de estado coherente",Errores de estado de plan
+CW-040,Dashboard conversión a Plus,"Medir upgrade sobre cohortes con first_value_seen",P0,DATA,Sprint 5,0.5,CW-037|CW-038,"Panel con corte semanal",CVR Free a Plus
+CW-041,E2E checkout y rollback,"Validar éxito, fallo y retry de upgrade",P0,QA,Sprint 5,1,CW-038|CW-039,"Flujo estable en escenarios de error",Tasa de fallo checkout
+CW-042,Recuperación fuga sin IDCar,"Email automático 2-4h para usuarios sin idcar_created",P1,BE+COPY,Sprint 6,1,CW-003|CW-004,"Secuencia activa y medible",Recovery rate fuga 1
+CW-043,Recuperación fuga sin alerta,"Push o email 24-48h para usuarios sin alert_configured",P1,BE+COPY,Sprint 6,1,CW-004|CW-005,"Secuencia activa y medible",Recovery rate fuga 2
+CW-044,Dashboard recuperación por canal,"Comparar recuperación por email y push",P1,DATA,Sprint 6,0.5,CW-042|CW-043,"Reporte por cohorte",Lift por canal
+CW-045,Control de frecuencia anti-spam,"Aplicar límites por usuario para secuencias",P1,BE+QA,Sprint 6,0.5,CW-042|CW-043,"Sin sobre-envíos",Quejas y bajas de emails
+CW-046,Catalogo Premium bajo demanda,"Página dedicada de servicios premium",P1,FE,Sprint 7,1.5,CW-013,"Separación clara respecto a planes",Clicks a servicios
+CW-047,Formulario solicitud por servicio,"Captura de lead con SLA y contexto",P1,BE+FE,Sprint 7,1.5,CW-046,"Lead persistido y notificable",Lead submit rate
+CW-048,Tracking embudo premium,"Medir view, interest, submit, close por servicio",P1,DATA,Sprint 7,0.5,CW-047,"Funnel premium visible",Conversión por servicio
+CW-049,Workflow operativo premium,"Estado interno de caso: nuevo, en curso, cerrado",P1,OPS+BE,Sprint 7,2,CW-047,"Pipeline funcional para operaciones",Tiempo de resolución
+CW-050,QA premium end-to-end,"Validar flujo completo de solicitud a cierre",P1,QA,Sprint 7,1,CW-047|CW-049,"Sin pérdida de leads",Errores en workflow premium
+CW-051,Descuentos de taller Fase 2,"Integrar beneficios de red cuando exista cobertura",P1,BE+OPS,Sprint 8+,3,CW-049,"Beneficio visible solo donde aplica",Uso de descuentos
+CW-052,Alerta mejor momento de venta,"Modelo de oportunidad basado en mercado",P1,DATA+BE,Sprint 8+,3,CW-031|CW-035,"Alerta explicable y accionable",CTR alerta venta
+CW-053,Push notifications,"Canal push tras madurar email e in-app",P2,BE+FE,Sprint 8+,2,CW-027|CW-028,"Permisos y envíos correctos",Delivery push
+CW-054,Comparador avanzado IA,"Funciones avanzadas de discovery como complemento",P2,FE+BE,Sprint 8+,3,CW-038,"No reduce claridad de Plus",Uso comparador avanzado
+CW-055,Priorización inteligente de alertas,"Ordenar alertas por impacto económico estimado",P2,DATA+FE,Sprint 8+,2,CW-029|CW-035,"Lista priorizada entendible",Engagement de alertas prioritarias

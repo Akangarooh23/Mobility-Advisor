@@ -579,3 +579,288 @@
     min-width: 620px;
   }
 }
+
+.cw-home-plans-preview {
+  padding: 1rem 1rem 0.5rem;
+  max-width: 1260px;
+  margin: 0 auto;
+}
+
+.cw-home-plans-helper {
+  text-align: center;
+  font-size: 30px;
+  line-height: 1.18;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+  margin: 0 auto 22px;
+  max-width: 980px;
+}
+
+.cw-home-plans-toggle {
+  margin: 0 auto 24px;
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #eef2f7;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+  padding: 5px;
+}
+
+.cw-home-plans-toggle-btn {
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.cw-home-plans-toggle-btn.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.14);
+}
+
+.cw-home-plans-save {
+  margin-left: 5px;
+  color: #047857;
+  background: #d1fae5;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+.cw-home-plans-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.cw-home-plan-card {
+  background: #ffffff;
+  border: 1px solid #dbe3ed;
+  border-radius: 22px;
+  padding: 24px;
+  text-align: left;
+  position: relative;
+}
+
+.cw-home-plan-card.featured {
+  border-color: #0f8f73;
+  box-shadow: 0 14px 34px rgba(15, 143, 115, 0.1);
+}
+
+.cw-home-plan-card.services {
+  background: #f8fafc;
+  border-style: dashed;
+}
+
+.cw-home-plan-featured {
+  position: absolute;
+  left: 50%;
+  top: -12px;
+  transform: translateX(-50%);
+  background: #0f8f73;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.cw-home-plan-tag {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.cw-home-plan-tag.services {
+  color: #0f766e;
+}
+
+.cw-home-plan-name {
+  color: #0f172a;
+  font-size: 42px;
+  line-height: 1;
+  margin: 16px 0 8px;
+  font-family: "DM Serif Display", serif;
+}
+
+.cw-home-plan-description {
+  color: #475569;
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
+
+.cw-home-plan-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.cw-home-plan-price {
+  color: #0f172a;
+  font-size: 54px;
+  line-height: 1.04;
+  font-family: "DM Serif Display", serif;
+}
+
+.cw-home-plan-period {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cw-home-plan-secondary {
+  color: #0f766e;
+  font-size: 13px;
+  font-weight: 700;
+  margin: 8px 0 14px;
+}
+
+.cw-home-plan-cta {
+  width: 100%;
+  border: 2px solid #0f172a;
+  background: #ffffff;
+  color: #0f172a;
+  border-radius: 14px;
+  padding: 11px 12px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  margin: 8px 0 14px;
+}
+
+.cw-home-plan-cta.primary,
+.cw-home-plan-cta.services {
+  border-color: #0f8f73;
+  background: #0f8f73;
+  color: #ffffff;
+}
+
+.cw-home-plan-includes {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+}
+
+.cw-home-plan-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.cw-home-plan-list li {
+  color: #0f172a;
+  font-size: 15px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.cw-home-plan-list li::before {
+  content: "✓";
+  color: #0f8f73;
+  font-weight: 900;
+  margin-top: 1px;
+}
+
+.cw-home-plan-divider {
+  border: 0;
+  border-top: 1px solid #dbe3ed;
+  margin: 14px 0;
+}
+
+.cw-home-plan-list.future li::before {
+  content: "F2";
+  color: #b45309;
+  background: #fef3c7;
+  border-radius: 999px;
+  font-size: 10px;
+  line-height: 1;
+  padding: 4px 6px;
+  margin-top: 2px;
+}
+
+.cw-home-services-list {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.cw-home-service-row {
+  border: 1px solid #dbe3ed;
+  background: #ffffff;
+  border-radius: 11px;
+  padding: 10px 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.cw-home-service-row strong {
+  color: #0f8f73;
+  font-size: 13px;
+}
+
+.cw-home-plans-footer-cta-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.cw-home-plans-footer-cta {
+  border: 2px solid #0f172a;
+  color: #0f172a;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 12px 18px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+  .cw-home-plans-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cw-home-plan-name {
+    font-size: 34px;
+  }
+
+  .cw-home-plan-price {
+    font-size: 44px;
+  }
+}
+
+@media (max-width: 640px) {
+  .cw-home-plans-helper {
+    font-size: 22px;
+  }
+
+  .cw-home-plans-preview {
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
+  }
+
+  .cw-home-plan-card {
+    padding: 16px;
+    border-radius: 16px;
+  }
+}

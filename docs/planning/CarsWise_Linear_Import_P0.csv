@@ -1,0 +1,42 @@
+Title,Description,Priority,State,Project,Cycle,Labels,Estimate,External ID,Dependencies,Team,KPI
+CW-001 - Definir diccionario de eventos,"Definir nombres, payload y reglas de versionado para user_registered, idcar_created, alert_configured, first_value_seen, plus_conversion_triggered",1,Backlog,CarsWise Execution,Sprint 0,"carswise,p0,sprint-0,data",2,CW-001,,DATA,Cobertura de eventos canónicos
+CW-002 - Endpoint de tracking con idempotencia,Crear endpoint backend para registrar eventos con control de duplicados por idempotency_key,1,Backlog,CarsWise Execution,Sprint 0,"carswise,p0,sprint-0,be",4,CW-002,CW-001,BE,Tasa de duplicados menor al 1%
+CW-003 - Tracking de registro,Emitir user_registered al completar alta,1,Backlog,CarsWise Execution,Sprint 0,"carswise,p0,sprint-0,fe",1,CW-003,CW-002,FE,Conversión visita a registro
+CW-004 - Tracking de IDCar creada,Emitir idcar_created al guardar primer vehículo,1,Backlog,CarsWise Execution,Sprint 0,"carswise,p0,sprint-0,fe",1,CW-004,CW-002,FE,Conversión registro a IDCar
+CW-005 - Tracking de alerta configurada,Emitir alert_configured al activar primera alerta,1,Backlog,CarsWise Execution,Sprint 0,"carswise,p0,sprint-0,fe",1,CW-005,CW-002,FE,Conversión IDCar a alerta
+CW-006 - Tracking de primer valor,Emitir first_value_seen al abrir email de valor o módulo in-app,1,Backlog,CarsWise Execution,Sprint 0,"carswise,p0,sprint-0,fe-be",2,CW-006,CW-002,FE+BE,Time to first value
+CW-007 - Tracking de trigger Plus,Emitir plus_conversion_triggered al iniciar flujo de upgrade,1,Backlog,CarsWise Execution,Sprint 0,"carswise,p0,sprint-0,fe-be",1,CW-007,CW-002,FE+BE,Conversión Free a Plus
+CW-008 - Dashboard del funnel,Construir panel con 5 pasos y conversión por cohorte semanal,1,Backlog,CarsWise Execution,Sprint 0,"carswise,p0,sprint-0,data",3,CW-008,CW-003|CW-004|CW-005|CW-006|CW-007,DATA,Drop-off por paso
+CW-009 - QA de eventos,"Suite QA para validar orden, payload y no duplicación de eventos",1,Backlog,CarsWise Execution,Sprint 0,"carswise,p0,sprint-0,qa",2,CW-009,CW-003|CW-004|CW-005|CW-006|CW-007,QA,Errores de instrumentación
+CW-010 - Nueva página de pricing,Separar visualmente Planes de Servicios bajo demanda,1,Backlog,CarsWise Execution,Sprint 1,"carswise,p0,sprint-1,fe",4,CW-010,,FE,Comprensión de oferta en test
+CW-011 - Copy final de pricing,"Unificar copy en Control, Avisos, Ahorro y mensajes CTA",1,Backlog,CarsWise Execution,Sprint 1,"carswise,p0,sprint-1,copy",2,CW-011,,COPY,CTR de CTA Plus
+CW-012 - Comparativa Free y Plus,Mostrar solo Free y Plus en tabla principal,1,Backlog,CarsWise Execution,Sprint 1,"carswise,p0,sprint-1,fe",1,CW-012,CW-010,FE,Confusión Plus vs Premium
+CW-013 - Catalogo Premium separado,Bloque independiente para Resolución y Mejora,1,Backlog,CarsWise Execution,Sprint 1,"carswise,p0,sprint-1,fe",2,CW-013,CW-010,FE,Clicks a servicios premium
+CW-014 - Tracking de pricing,Medir view y clics de CTAs en pricing,1,Backlog,CarsWise Execution,Sprint 1,"carswise,p0,sprint-1,fe-data",1,CW-014,CW-010,FE+DATA,CTR por bloque
+CW-015 - Test de comprensión pricing,Validación rápida con 5 usuarios para claridad de propuesta,1,Backlog,CarsWise Execution,Sprint 1,"carswise,p0,sprint-1,qa-pm",2,CW-015,CW-010|CW-011,QA+PM,Tasa de comprensión
+CW-016 - Registro simplificado,Reducir formulario a mínimos y eliminar fricción,1,Backlog,CarsWise Execution,Sprint 2,"carswise,p0,sprint-2,fe",2,CW-016,,FE,Abandono de formulario
+CW-017 - Pantalla Añade tu coche,Redirección inmediata post registro a crear IDCar,1,Backlog,CarsWise Execution,Sprint 2,"carswise,p0,sprint-2,fe",1,CW-017,CW-016,FE,Conversión registro a IDCar
+CW-018 - Creación IDCar en 2 pasos,Implementar flujo corto con autocompletado cuando aplique,1,Backlog,CarsWise Execution,Sprint 2,"carswise,p0,sprint-2,fe-be",4,CW-018,CW-017,FE+BE,Tiempo medio de alta IDCar
+CW-019 - Primera alerta en onboarding,Forzar configuración de una alerta antes de finalizar onboarding,1,Backlog,CarsWise Execution,Sprint 2,"carswise,p0,sprint-2,fe",2,CW-019,CW-018,FE,Conversión IDCar a alerta
+CW-020 - Pantalla de confirmación onboarding,Mostrar estado protegido y promesa de valor en 24h,1,Backlog,CarsWise Execution,Sprint 2,"carswise,p0,sprint-2,fe-copy",1,CW-020,CW-019,FE+COPY,Finalización de onboarding
+CW-021 - Métricas activación sesión y 24h,Crear dos KPIs de activación para evitar falso negativo,1,Backlog,CarsWise Execution,Sprint 2,"carswise,p0,sprint-2,data",1,CW-021,CW-008|CW-019,DATA,Activación en sesión y en 24h
+CW-022 - E2E onboarding,Automatizar prueba registro a alerta para web desktop y mobile,1,Backlog,CarsWise Execution,Sprint 2,"carswise,p0,sprint-2,qa",2,CW-022,CW-016|CW-017|CW-018|CW-019,QA,Regresiones de onboarding
+CW-023 - Modelo de datos de alertas,Tabla y estados de alertas con auditoría y timestamps,1,Backlog,CarsWise Execution,Sprint 3,"carswise,p0,sprint-3,be",3,CW-023,,BE,Integridad de alertas
+CW-024 - Job alerta ITV,Generar avisos a 30 y 7 días,1,Backlog,CarsWise Execution,Sprint 3,"carswise,p0,sprint-3,be",3,CW-024,CW-023,BE,Cobertura de alertas ITV
+CW-025 - Job alerta seguro,Generar avisos por fecha de renovación del usuario,1,Backlog,CarsWise Execution,Sprint 3,"carswise,p0,sprint-3,be",2,CW-025,CW-023,BE,Cobertura de alertas seguro
+CW-026 - Job alerta impuestos,Generar avisos estacionales configurables,1,Backlog,CarsWise Execution,Sprint 3,"carswise,p0,sprint-3,be",2,CW-026,CW-023,BE,Cobertura de alertas impuestos
+CW-027 - Servicio de email y reintentos,Enviar alertas por email con retry y logging de fallos,1,Backlog,CarsWise Execution,Sprint 3,"carswise,p0,sprint-3,be",3,CW-027,CW-023,BE,Delivery rate
+CW-028 - Bandeja in-app de avisos,Listar alertas pendientes y leídas en panel de usuario,1,Backlog,CarsWise Execution,Sprint 3,"carswise,p0,sprint-3,fe",3,CW-028,CW-023,FE,Retorno a app por alertas
+CW-029 - Panel salud de alertas,"Monitorizar sent, opened, clicked, failed",1,Backlog,CarsWise Execution,Sprint 3,"carswise,p0,sprint-3,data",2,CW-029,CW-024|CW-025|CW-026|CW-027,DATA,Open rate y click rate
+CW-030 - QA de fecha y duplicados,"Validar zonas horarias, ventanas y no duplicados",1,Backlog,CarsWise Execution,Sprint 3,"carswise,p0,sprint-3,qa",2,CW-030,CW-024|CW-025|CW-026,QA,Errores de scheduler
+CW-031 - Generación valor de mercado inicial,Calcular valor inicial tras crear IDCar,1,Backlog,CarsWise Execution,Sprint 4,"carswise,p0,sprint-4,be",3,CW-031,CW-018,BE,Tiempo a primer valor
+CW-032 - Plantilla email primer valor,Diseñar y montar email con valor personalizado por vehículo,1,Backlog,CarsWise Execution,Sprint 4,"carswise,p0,sprint-4,copy-be",2,CW-032,CW-031,COPY+BE,CTR de primer valor
+CW-033 - SLA primer valor 24h,Garantizar envío del primer valor en menos de 24h,1,Backlog,CarsWise Execution,Sprint 4,"carswise,p0,sprint-4,be",2,CW-033,CW-031|CW-032,BE,P50 y P90 de TTFV
+CW-034 - Módulo in-app valor mercado,Mostrar valor de mercado en home de usuario,1,Backlog,CarsWise Execution,Sprint 4,"carswise,p0,sprint-4,fe",2,CW-034,CW-031,FE,first_value_seen in-app
+CW-035 - Dashboard time-to-first-value,Panel con percentiles y corte por cohorte,1,Backlog,CarsWise Execution,Sprint 4,"carswise,p0,sprint-4,data",1,CW-035,CW-006|CW-031|CW-033,DATA,Time to first value
+CW-036 - QA valor mercado,Validar consistencia de datos entre email e in-app,1,Backlog,CarsWise Execution,Sprint 4,"carswise,p0,sprint-4,qa",1,CW-036,CW-031|CW-032|CW-034,QA,Errores de contenido
+CW-037 - Trigger conductual de upgrade,Mostrar invitación a Plus tras first_value_seen,1,Backlog,CarsWise Execution,Sprint 5,"carswise,p0,sprint-5,fe",2,CW-037,CW-006|CW-034,FE,Conversión contextual
+CW-038 - Checkout Plus con trial,Implementar flujo de alta con 30 días trial,1,Backlog,CarsWise Execution,Sprint 5,"carswise,p0,sprint-5,fe-be",4,CW-038,CW-037,FE+BE,Free a Plus conversion
+CW-039 - Estado plan y trial en backend,"Persistir estado del plan, trial_start y trial_end",1,Backlog,CarsWise Execution,Sprint 5,"carswise,p0,sprint-5,be",2,CW-039,CW-038,BE,Errores de estado de plan
+CW-040 - Dashboard conversión a Plus,Medir upgrade sobre cohortes con first_value_seen,1,Backlog,CarsWise Execution,Sprint 5,"carswise,p0,sprint-5,data",1,CW-040,CW-037|CW-038,DATA,CVR Free a Plus
+CW-041 - E2E checkout y rollback,"Validar éxito, fallo y retry de upgrade",1,Backlog,CarsWise Execution,Sprint 5,"carswise,p0,sprint-5,qa",2,CW-041,CW-038|CW-039,QA,Tasa de fallo checkout

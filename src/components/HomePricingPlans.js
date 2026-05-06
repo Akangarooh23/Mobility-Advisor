@@ -1,151 +1,195 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { PLAN_COMPARISON_ROWS, SERVICE_PLANS } from "../data/servicePlans";
+import { useMemo, useState } from "react";
 import "./HomePricingPlans.css";
 
-const DISCOUNT_FACTOR = 0.8;
-
-function getPriceByMode(monthlyPrice, isAnnual) {
-  const monthly = Number(monthlyPrice || 0);
-  if (!Number.isFinite(monthly)) {
-    return monthlyPrice;
-  }
-  if (!isAnnual) {
-    return String(monthly);
-  }
-  return String(Math.round(monthly * DISCOUNT_FACTOR));
-}
-
 export default function HomePricingPlans({
-  onSelectSubscriptionPlan,
-  planCheckoutLoadingId,
-  planCheckoutFeedback,
+  onOpenPlans,
+  onOpenPlansSection,
   uiLanguage = "es",
 }) {
-  const { t } = useTranslation();
   const [isAnnual, setIsAnnual] = useState(false);
-  const sectionRef = useRef(null);
-  
   const isEnglish = uiLanguage === "en";
 
-  useEffect(() => {
-    if (typeof IntersectionObserver === "undefined" || !sectionRef.current) {
-      return undefined;
+  const copy = useMemo(() => {
+    if (isEnglish) {
+      return {
+        helperText: "Start free. Control, save and sell better with CarsWise AI.",
+        monthly: "Monthly",
+        yearly: "Yearly",
+        save: "-14%",
+        featured: "Most popular",
+        freeTag: "For exploration",
+        freeTitle: "Free",
+        freeDescription: "Compare cars, save options and register your vehicle.",
+        freeCta: "Start free",
+        freeIncludes: "Includes",
+        freeFeatures: [
+          "Basic car comparison",
+          "AI needs test",
+          "1 IDCar with basic alert",
+          "Estimated valuation",
+          "Save up to 3 opportunities",
+        ],
+        plusTitle: "Plus",
+        plusDescription: "Total car control. No missed deadlines. No surprises.",
+        plusCta: "Try 30 days free",
+        plusIncludes: "Everything in Free, plus",
+        plusFeatures: [
+          "Control: up to 3 IDCars, full history and monthly value tracking",
+          "Alerts: MOT, insurance and taxes",
+          "Savings: avoid costs from missed deadlines",
+        ],
+        plusFuture: ["Workshop discounts", "Best time-to-sell alert"],
+        servicesTag: "Pay only for what you need",
+        servicesTitle: "Services",
+        servicesDescription: "For selling, certifying and visibility boosts. No subscription.",
+        servicesRows: [
+          ["Boost listing", "9-19 EUR"],
+          ["Advanced market report", "19-29 EUR"],
+          ["CarsWise guarantee seal", "29-49 EUR"],
+          ["Insurance review", "Free"],
+          ["Managed sale", "from 149 EUR"],
+        ],
+        servicesCta: "See all services",
+        goPlans: "Go to plans page",
+      };
     }
 
-    const targets = sectionRef.current.querySelectorAll(".cw-plans-reveal");
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("in");
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
+    return {
+      helperText: "Empieza gratis. Controla, ahorra y vende mejor con CarsWise AI.",
+      monthly: "Mensual",
+      yearly: "Anual",
+      save: "-14%",
+      featured: "Mas popular",
+      freeTag: "Para explorar",
+      freeTitle: "Free",
+      freeDescription: "Compara coches, guarda opciones y registra tu vehiculo.",
+      freeCta: "Empezar gratis",
+      freeIncludes: "Incluye",
+      freeFeatures: [
+        "Comparador basico de coches",
+        "Test IA de necesidades",
+        "1 IDCar con alerta basica",
+        "Tasacion orientativa",
+        "Guardar hasta 3 oportunidades",
+      ],
+      plusTitle: "Plus",
+      plusDescription: "Control total del coche. Sin olvidos. Sin sorpresas.",
+      plusCta: "Probar 30 dias gratis",
+      plusIncludes: "Todo lo de Free, mas",
+      plusFeatures: [
+        "Control: hasta 3 IDCars, historial y valor mensual",
+        "Avisos: ITV, seguro e impuestos",
+        "Ahorro: evita costes por olvidos",
+      ],
+      plusFuture: ["Descuentos en taller", "Mejor momento para vender"],
+      servicesTag: "Paga solo lo que necesitas",
+      servicesTitle: "Servicios",
+      servicesDescription: "Para vender, certificar y destacar. Sin suscripcion.",
+      servicesRows: [
+        ["Destacar anuncio", "9-19 EUR"],
+        ["Informe de mercado", "19-29 EUR"],
+        ["Sello de Garantia CarsWise", "29-49 EUR"],
+        ["Revision de seguro", "Gratis"],
+        ["Gestion de venta", "desde 149 EUR"],
+      ],
+      servicesCta: "Ver todos los servicios",
+      goPlans: "Ver planes completos",
+    };
+  }, [isEnglish]);
 
-    targets.forEach((node) => observer.observe(node));
-    return () => observer.disconnect();
-  }, []);
-
-  const plans = useMemo(
-    () =>
-      SERVICE_PLANS.map((plan) => ({
-        ...plan,
-        displayPrice: getPriceByMode(plan.monthlyPrice, isAnnual),
-      })),
-    [isAnnual]
-  );
+  const plusPrice = isAnnual
+    ? (isEnglish ? "4.99 EUR" : "4,99 EUR")
+    : (isEnglish ? "6.99 EUR" : "6,99 EUR");
+  const plusSecondary = isAnnual
+    ? (isEnglish ? "59.99 EUR/year - equivalent to 4.99 EUR/month" : "59,99 EUR/ano - equivale a 4,99 EUR/mes")
+    : (isEnglish ? "or 59.99 EUR/year - 2 months free" : "o 59,99 EUR/ano - 2 meses gratis");
 
   return (
-    <section className="cw-plans" ref={sectionRef}>
-      <div className="cw-plans-hero">
-        <div className="cw-plans-hero-badge">{t("homePricingPlans.badge")}</div>
-        <h2>
-          {t("homePricingPlans.title")} <span>{t("homePricingPlans.titleHighlight")}</span>
-        </h2>
-        <p>
-          {t("homePricingPlans.description")}
-        </p>
+    <section className="cw-home-plans-preview">
+      <p className="cw-home-plans-helper">{copy.helperText}</p>
 
-        <div className="cw-plans-toggle-wrap">
-          <span className={`cw-plans-toggle-label ${!isAnnual ? "active" : ""}`}>{t("homePricingPlans.monthly")}</span>
-          <button
-            type="button"
-            className={`cw-plans-toggle ${isAnnual ? "is-annual" : ""}`}
-            onClick={() => setIsAnnual((prev) => !prev)}
-            aria-label="Change billing type"
-          />
-          <span className={`cw-plans-toggle-label ${isAnnual ? "active" : ""}`}>{t("homePricingPlans.annual")}</span>
-          <span className="cw-plans-save">{t("homePricingPlans.save")}</span>
-        </div>
+      <div className="cw-home-plans-toggle" role="group" aria-label={isEnglish ? "Billing mode" : "Tipo de facturacion"}>
+        <button
+          type="button"
+          className={`cw-home-plans-toggle-btn${!isAnnual ? " active" : ""}`}
+          onClick={() => setIsAnnual(false)}
+        >
+          {copy.monthly}
+        </button>
+        <button
+          type="button"
+          className={`cw-home-plans-toggle-btn${isAnnual ? " active" : ""}`}
+          onClick={() => setIsAnnual(true)}
+        >
+          {copy.yearly} <span className="cw-home-plans-save">{copy.save}</span>
+        </button>
       </div>
 
-      <div className="cw-plans-grid">
-        {plans.map((plan, index) => {
-          const theme = plan.id;
-          return (
-            <article
-              key={plan.id}
-              className={`cw-plan-card ${theme} ${plan.featured ? "featured" : ""} cw-plans-reveal cw-plans-reveal-d${Math.min(index, 5)}`}
-            >
-              {plan.featured ? <div className="cw-plan-featured-badge">{t("homePricingPlans.mostPopular")}</div> : null}
-              <div className="cw-plan-tag">{isEnglish ? plan.badgeEn : plan.badge}</div>
-              <div className="cw-plan-name">{isEnglish ? plan.nameEn : plan.name}</div>
-              <div className="cw-plan-price">
-                <span className="currency">EUR</span>
-                <span className="amount">{plan.displayPrice}</span>
-                <span className="period">/{isAnnual ? t("homePricingPlans.annualPeriod") : t("homePricingPlans.monthlyPeriod")}</span>
-              </div>
-              <div className="cw-plan-divider" />
-              <ul className="cw-plan-features">
-                {(isEnglish ? plan.highlightsEn : plan.highlights).map((item) => (
-                  <li key={`${plan.id}-${item}`}>{item}</li>
-                ))}
-              </ul>
-              <button
-                type="button"
-                className="cw-plan-cta"
-                onClick={() => onSelectSubscriptionPlan?.(plan)}
-                disabled={Boolean(planCheckoutLoadingId && planCheckoutLoadingId !== plan.id)}
-              >
-                {planCheckoutLoadingId === plan.id ? t("homePricingPlans.loading") : (isEnglish ? plan.ctaLabelEn : plan.ctaLabel)}
-              </button>
-              <div className="cw-plan-secure">{t("homePricingPlans.secure")}</div>
-            </article>
-          );
-        })}
-      </div>
-
-      {planCheckoutFeedback ? <div className="cw-plans-feedback">{planCheckoutFeedback}</div> : null}
-
-      <div className="cw-plans-table-wrap cw-plans-reveal">
-        <div className="cw-plans-table-title">{t("homePricingPlans.comparisonTitle")}</div>
-        <table className="cw-plans-comp-table">
-          <thead>
-            <tr>
-              <th>{t("homePricingPlans.comparisonColumnLabel")}</th>
-              {plans.map((plan) => (
-                <th key={`${plan.id}-th`} className={plan.featured ? "col-featured" : ""}>
-                  {(isEnglish ? plan.nameEn : plan.name).replace("Plan ", "")}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {PLAN_COMPARISON_ROWS.map((row) => (
-              <tr key={row.label}>
-                <td>{isEnglish ? row.labelEn : row.label}</td>
-                {(isEnglish ? row.valuesEn : row.values).map((value, index) => (
-                  <td key={`${row.label}-${index}`} className={plans[index]?.featured ? "col-featured" : ""}>
-                    {value}
-                  </td>
-                ))}
-              </tr>
+      <div className="cw-home-plans-grid">
+        <article className="cw-home-plan-card">
+          <div className="cw-home-plan-tag">{copy.freeTag}</div>
+          <h3 className="cw-home-plan-name">{copy.freeTitle}</h3>
+          <p className="cw-home-plan-description">{copy.freeDescription}</p>
+          <div className="cw-home-plan-price">0 EUR</div>
+          <button type="button" className="cw-home-plan-cta" onClick={onOpenPlans}>
+            {copy.freeCta}
+          </button>
+          <div className="cw-home-plan-includes">{copy.freeIncludes}</div>
+          <ul className="cw-home-plan-list">
+            {copy.freeFeatures.map((item) => (
+              <li key={item}>{item}</li>
             ))}
-          </tbody>
-        </table>
+          </ul>
+        </article>
+
+        <article className="cw-home-plan-card featured">
+          <div className="cw-home-plan-featured">{copy.featured}</div>
+          <h3 className="cw-home-plan-name">{copy.plusTitle}</h3>
+          <p className="cw-home-plan-description">{copy.plusDescription}</p>
+          <div className="cw-home-plan-price-row">
+            <span className="cw-home-plan-price">{plusPrice}</span>
+            <span className="cw-home-plan-period">{isEnglish ? "/month" : "/mes"}</span>
+          </div>
+          <div className="cw-home-plan-secondary">{plusSecondary}</div>
+          <button type="button" className="cw-home-plan-cta primary" onClick={onOpenPlans}>
+            {copy.plusCta}
+          </button>
+          <div className="cw-home-plan-includes">{copy.plusIncludes}</div>
+          <ul className="cw-home-plan-list">
+            {copy.plusFeatures.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+          <hr className="cw-home-plan-divider" />
+          <ul className="cw-home-plan-list future">
+            {copy.plusFuture.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </article>
+
+        <article className="cw-home-plan-card services">
+          <div className="cw-home-plan-tag services">{copy.servicesTag}</div>
+          <h3 className="cw-home-plan-name">{copy.servicesTitle}</h3>
+          <p className="cw-home-plan-description">{copy.servicesDescription}</p>
+          <div className="cw-home-services-list">
+            {copy.servicesRows.map(([name, price]) => (
+              <div key={name} className="cw-home-service-row">
+                <span>{name}</span>
+                <strong>{price}</strong>
+              </div>
+            ))}
+          </div>
+          <button type="button" className="cw-home-plan-cta services" onClick={() => onOpenPlansSection?.("premium") || onOpenPlans?.()}>
+            {copy.servicesCta}{" ->"}
+          </button>
+        </article>
+      </div>
+
+      <div className="cw-home-plans-footer-cta-wrap">
+        <button type="button" className="cw-home-plans-footer-cta" onClick={onOpenPlans}>
+          {copy.goPlans}
+        </button>
       </div>
     </section>
   );

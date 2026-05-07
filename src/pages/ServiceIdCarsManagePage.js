@@ -619,11 +619,30 @@ export default function ServiceIdCarsManagePage({
         if (itvDocumentsPayload.length > 0 && Number(persistedSummary?.itvDocuments || 0) === 0) {
           throw new Error(txt("El servidor no confirmó la persistencia de la documentación ITV.", "The server did not confirm MOT documentation persistence."));
         }
+        if (insuranceDocumentsPayload.length > 0 && Number(persistedSummary?.insuranceDocuments || 0) === 0) {
+          throw new Error(txt("El servidor no confirmó la persistencia de los documentos del seguro.", "The server did not confirm insurance document persistence."));
+        }
+        if (maintenanceInvoicesPayload.length > 0 && Number(persistedSummary?.maintenanceInvoices || 0) === 0) {
+          throw new Error(txt("El servidor no confirmó la persistencia de las facturas de mantenimiento.", "The server did not confirm maintenance invoice persistence."));
+        }
 
         if (!Array.isArray(data?.vehicles)) {
           throw new Error(txt("La API devolvio una respuesta incompleta al guardar el IDCar.", "The API returned an incomplete response while saving the IDCar."));
         }
+
         nextVehicles = data.vehicles.filter((item) => item && item.id);
+        const persistedByServer = nextVehicles.find((item) => normalizeText(item?.id) === normalizeText(vehicleId));
+        if (!persistedByServer) {
+          throw new Error(txt("El servidor no devolvió el IDCar recién guardado. Revisa la persistencia en producción.", "The server did not return the saved IDCar. Check production persistence."));
+        }
+
+        if (normalizeText(form.policyNumber) && !normalizeText(persistedByServer?.policyNumber)) {
+          throw new Error(txt("El servidor no confirmó los datos de seguro (número de póliza).", "The server did not confirm insurance data (policy number)."));
+        }
+
+        if (normalizeText(form.maintenanceTitle) && !normalizeText(persistedByServer?.maintenanceTitle)) {
+          throw new Error(txt("El servidor no confirmó los datos de mantenimiento (título).", "The server did not confirm maintenance data (title)."));
+        }
       }
 
       const persistedVehicle = nextVehicles.find((item) => normalizeText(item?.id) === normalizeText(vehicleId)) || nextVehicle;

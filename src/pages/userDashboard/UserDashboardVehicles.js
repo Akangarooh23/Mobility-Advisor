@@ -346,6 +346,7 @@ export default function UserDashboardVehicles({
   const [pendingIvtDocuments, setPendingIvtDocuments] = useState([]);
   const [pendingInsuranceDocuments, setPendingInsuranceDocuments] = useState([]);
   const [pendingMaintenanceInvoices, setPendingMaintenanceInvoices] = useState([]);
+  const [isSaving, setIsSaving] = useState(false);
   const [marketplacePublishDialog, setMarketplacePublishDialog] = useState({ open: false, vehicle: null });
   const [expandedVehicleSections, setExpandedVehicleSections] = useState({
     characteristics: true,
@@ -704,6 +705,8 @@ export default function UserDashboardVehicles({
   };
 
   const addVehicleToGarage = async () => {
+    if (isSaving) return;
+
     const brand = normalizeText(vehicleForm.brand);
     const model = normalizeText(vehicleForm.model);
     const version = normalizeText(vehicleForm.version);
@@ -712,6 +715,8 @@ export default function UserDashboardVehicles({
       setVehicleFeedback(t("dashboard.vehRequiredFields"));
       return;
     }
+
+    setIsSaving(true);
 
     const nickname = normalizeText(vehicleForm.nickname);
     const title = nickname || `${brand} ${model} ${version}`.trim();
@@ -767,7 +772,7 @@ export default function UserDashboardVehicles({
         type: normalizeText(vehicleForm.maintenanceType || "maintenance"),
         title: normalizeText(vehicleForm.maintenanceTitle),
         notes: normalizeText(vehicleForm.maintenanceNotes),
-        invoices: [...(Array.isArray(existingVehicle?.initialMaintenance?.invoices) ? existingVehicle.initialMaintenance.invoices : []), ...maintenanceInvoicesPayload],
+        invoices: Array.isArray(existingVehicle?.initialMaintenance?.invoices) ? existingVehicle.initialMaintenance.invoices : [],
       },
       createdAt: existingVehicle?.createdAt || new Date().toISOString(),
     };
@@ -775,39 +780,51 @@ export default function UserDashboardVehicles({
     let nextVehicles = existingVehicle
       ? myVehicles.map((item) => (normalizeText(item?.id) === vehicle.id ? vehicle : item))
       : [vehicle, ...myVehicles].slice(0, 20);
+    let apiSaveOk = false;
+    let sideCallWarning = "";
 
     try {
       nextVehicles = await addGarageVehicleFromApi(currentUserEmail, vehicle);
+      apiSaveOk = true;
     } catch {
       // Fallback to local state/localStorage when API is unavailable.
     }
 
-    if (currentUserEmail) {
+    if (currentUserEmail && apiSaveOk) {
       const maintenanceTitle = normalizeText(vehicle.initialMaintenance?.title);
       if (maintenanceTitle) {
-        void postMaintenanceAddJson(currentUserEmail, {
-          vehicleId: vehicle.id,
-          type: normalizeText(vehicle.initialMaintenance?.type) || "maintenance",
-          title: maintenanceTitle,
-          notes: normalizeText(vehicle.initialMaintenance?.notes),
-          status: "pendiente",
-        }).catch(() => {});
+        try {
+          await postMaintenanceAddJson(currentUserEmail, {
+            vehicleId: vehicle.id,
+            type: normalizeText(vehicle.initialMaintenance?.type) || "maintenance",
+            title: maintenanceTitle,
+            notes: normalizeText(vehicle.initialMaintenance?.notes),
+            status: "pendiente",
+          });
+        } catch {
+          sideCallWarning = " (aviso: no se pudo guardar el mantenimiento)";
+        }
       }
 
       const policyCompany = normalizeText(vehicle.policyCompany);
       const policyNumber = normalizeText(vehicle.policyNumber);
       if (policyCompany || policyNumber) {
-        void postInsuranceUpsertJson(currentUserEmail, {
-          vehicleId: vehicle.id,
-          policyCompany,
-          policyNumber,
-          coverageType: normalizeText(vehicle.coverageType),
-          status: "activo",
-        }).catch(() => {});
+        try {
+          await postInsuranceUpsertJson(currentUserEmail, {
+            vehicleId: vehicle.id,
+            policyCompany,
+            policyNumber,
+            coverageType: normalizeText(vehicle.coverageType),
+            status: "activo",
+          });
+        } catch {
+          sideCallWarning = " (aviso: no se pudo guardar el seguro)";
+        }
       }
     }
 
     setMyVehicles(Array.isArray(nextVehicles) ? nextVehicles : [vehicle, ...myVehicles].slice(0, 20));
+    setIsSaving(false);
     setEditingVehicleId("");
     setShowNewVehicleForm(false);
     setVehicleWorkspaceMode("list");
@@ -854,9 +871,9 @@ export default function UserDashboardVehicles({
     setPendingIvtDocuments([]);
     setPendingInsuranceDocuments([]);
     setPendingMaintenanceInvoices([]);
-    setVehicleFeedback(
-      existingVehicle ? t("dashboard.vehSavedUpdated", { title }) : t("dashboard.vehSavedNew", { title })
-    );
+    const baseMsg = existingVehicle ? t("dashboard.vehSavedUpdated", { title }) : t("dashboard.vehSavedNew", { title });
+    const localFallbackSuffix = !apiSaveOk ? " (guardado localmente, sin conexión con servidor)" : "";
+    setVehicleFeedback(baseMsg + localFallbackSuffix + sideCallWarning);
   };
 
   const startEditingVehicle = (vehicle = {}) => {
@@ -1982,6 +1999,7 @@ export default function UserDashboardVehicles({
               <button
                 type="button"
                 onClick={addVehicleToGarage}
+                disabled={isSaving}
                 style={{
                   background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
                   color: "#ffffff",
@@ -1991,11 +2009,12 @@ export default function UserDashboardVehicles({
                   padding: "10px 13px",
                   fontSize: 12,
                   fontWeight: 800,
-                  cursor: "pointer",
+                  cursor: isSaving ? "not-allowed" : "pointer",
+                  opacity: isSaving ? 0.75 : 1,
                   width: isMobile ? "100%" : "auto",
                 }}
               >
-                {editingVehicleId ? t("dashboard.vehSaveChanges") : t("dashboard.vehSaveNew")}
+                {isSaving ? "Guardando..." : editingVehicleId ? t("dashboard.vehSaveChanges") : t("dashboard.vehSaveNew")}
               </button>
               {editingVehicleId ? (
                 <button

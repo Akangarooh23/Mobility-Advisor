@@ -364,6 +364,7 @@ export default function ServiceIdCarsManagePage({
 
   const [pendingPhotos, setPendingPhotos] = useState([]);
   const [pendingTechnicalSheetDocuments, setPendingTechnicalSheetDocuments] = useState([]);
+  const [pendingOtherDocuments, setPendingOtherDocuments] = useState([]);
   const [pendingCirculationPermitDocuments, setPendingCirculationPermitDocuments] = useState([]);
   const [pendingItvDocuments, setPendingItvDocuments] = useState([]);
   const [pendingInsuranceDocuments, setPendingInsuranceDocuments] = useState([]);
@@ -371,6 +372,7 @@ export default function ServiceIdCarsManagePage({
 
   const photoInputRef = useRef(null);
   const technicalSheetInputRef = useRef(null);
+  const otherDocInputRef = useRef(null);
   const circulationPermitInputRef = useRef(null);
   const itvInputRef = useRef(null);
   const insuranceDocInputRef = useRef(null);
@@ -458,7 +460,7 @@ export default function ServiceIdCarsManagePage({
   const feedbackColor = feedbackTone === "error" ? "#b91c1c" : feedbackTone === "success" ? "#047857" : "#1d4ed8";
 
   const resetFileUploads = () => {
-    setPendingPhotos([]); setPendingTechnicalSheetDocuments([]); setPendingCirculationPermitDocuments([]); setPendingItvDocuments([]);
+    setPendingPhotos([]); setPendingTechnicalSheetDocuments([]); setPendingOtherDocuments([]); setPendingCirculationPermitDocuments([]); setPendingItvDocuments([]);
     setPendingInsuranceDocuments([]); setPendingMaintenanceInvoices([]);
   };
 
@@ -546,6 +548,7 @@ export default function ServiceIdCarsManagePage({
 
       const photosPayload = await filesToAttachmentPayload(pendingPhotos, "La foto del vehículo");
       const technicalSheetDocumentsPayload = await filesToAttachmentPayload(pendingTechnicalSheetDocuments, "La ficha técnica");
+      const otherDocumentsPayload = await filesToAttachmentPayload(pendingOtherDocuments, "Otros documentos");
       const circulationPermitDocumentsPayload = await filesToAttachmentPayload(pendingCirculationPermitDocuments, "El permiso de circulación");
       const itvDocumentsPayload = await filesToAttachmentPayload(pendingItvDocuments, "La documentación ITV");
       const insuranceDocumentsPayload = await filesToAttachmentPayload(pendingInsuranceDocuments, "El documento del seguro");
@@ -571,10 +574,14 @@ export default function ServiceIdCarsManagePage({
         notes: normalizeText(form.notes),
         photos: [...(Array.isArray(baseVehicle.photos) ? baseVehicle.photos : []), ...photosPayload],
         documents: [],
+        documents: [
+          ...legacySplit.unknownDocuments,
+          ...(Array.isArray(baseVehicle.documents) ? baseVehicle.documents.filter((d) => !legacySplit.unknownDocuments.some((u) => u.name === d.name)) : []),
+          ...otherDocumentsPayload,
+        ],
         technicalSheetDocuments: [
           ...(Array.isArray(baseVehicle.technicalSheetDocuments) ? baseVehicle.technicalSheetDocuments : []),
           ...legacySplit.technicalSheetDocuments,
-          ...legacySplit.unknownDocuments,
           ...technicalSheetDocumentsPayload,
         ],
         circulationPermitDocuments: [
@@ -758,17 +765,15 @@ export default function ServiceIdCarsManagePage({
       : null) || (isDetailView ? selectedVehicle : null) || {};
 
     const storedPhotos = Array.isArray(activeVehicle?.photos) ? activeVehicle.photos : [];
-    const storedTechnicalSheetDocuments = [
-      ...(Array.isArray(activeVehicle?.technicalSheetDocuments) ? activeVehicle.technicalSheetDocuments : []),
-      ...(Array.isArray(activeVehicle?.documents) ? activeVehicle.documents : []),
-    ];
+    const storedTechnicalSheetDocuments = Array.isArray(activeVehicle?.technicalSheetDocuments) ? activeVehicle.technicalSheetDocuments : [];
+    const storedOtherDocuments = Array.isArray(activeVehicle?.documents) ? activeVehicle.documents : [];
     const storedCirculationPermitDocuments = Array.isArray(activeVehicle?.circulationPermitDocuments) ? activeVehicle.circulationPermitDocuments : [];
     const storedItvDocuments = Array.isArray(activeVehicle?.itvDocuments) ? activeVehicle.itvDocuments : [];
     const storedInsuranceDocuments = Array.isArray(activeVehicle?.insuranceDocuments) ? activeVehicle.insuranceDocuments : [];
     const storedMaintenanceInvoices = Array.isArray(activeVehicle?.maintenanceInvoices) ? activeVehicle.maintenanceInvoices : [];
 
-    const preparedVehicleDocuments = pendingPhotos.length + pendingTechnicalSheetDocuments.length + pendingCirculationPermitDocuments.length + pendingItvDocuments.length;
-    const storedVehicleDocuments = storedPhotos.length + storedTechnicalSheetDocuments.length + storedCirculationPermitDocuments.length + storedItvDocuments.length;
+    const preparedVehicleDocuments = pendingPhotos.length + pendingTechnicalSheetDocuments.length + pendingOtherDocuments.length + pendingCirculationPermitDocuments.length + pendingItvDocuments.length;
+    const storedVehicleDocuments = storedPhotos.length + storedTechnicalSheetDocuments.length + storedOtherDocuments.length + storedCirculationPermitDocuments.length + storedItvDocuments.length;
 
     return (
     <div style={{ marginBottom: 12 }}>
@@ -822,6 +827,7 @@ export default function ServiceIdCarsManagePage({
           {renderFileUpload(txt("Fotos del vehículo", "Vehicle photos"), pendingPhotos, setPendingPhotos, photoInputRef, "image/*", "#2563eb", storedPhotos)}
           {renderFileUpload(txt("Ficha técnica", "Technical sheet"), pendingTechnicalSheetDocuments, setPendingTechnicalSheetDocuments, technicalSheetInputRef, ".pdf,image/*", "#0f766e", storedTechnicalSheetDocuments)}
           {renderFileUpload(txt("Permiso de circulación", "Circulation permit"), pendingCirculationPermitDocuments, setPendingCirculationPermitDocuments, circulationPermitInputRef, ".pdf,image/*", "#0f766e", storedCirculationPermitDocuments)}
+          {renderFileUpload(txt("Otros documentos", "Other documents"), pendingOtherDocuments, setPendingOtherDocuments, otherDocInputRef, ".pdf,image/*,.doc,.docx", "#7c3aed", storedOtherDocuments)}
           {renderFileUpload(txt("Documentación ITV", "MOT documentation"), pendingItvDocuments, setPendingItvDocuments, itvInputRef, ".pdf,image/*", "#0f766e", storedItvDocuments)}
         </div>
       </SectionBlock>

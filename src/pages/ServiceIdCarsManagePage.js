@@ -573,7 +573,6 @@ export default function ServiceIdCarsManagePage({
         maintenanceTitle: normalizeText(form.maintenanceTitle), maintenanceNotes: normalizeText(form.maintenanceNotes),
         notes: normalizeText(form.notes),
         photos: [...(Array.isArray(baseVehicle.photos) ? baseVehicle.photos : []), ...photosPayload],
-        documents: [],
         documents: [
           ...legacySplit.unknownDocuments,
           ...(Array.isArray(baseVehicle.documents) ? baseVehicle.documents.filter((d) => !legacySplit.unknownDocuments.some((u) => u.name === d.name)) : []),
@@ -620,6 +619,9 @@ export default function ServiceIdCarsManagePage({
         if (technicalSheetDocumentsPayload.length > 0 && Number(persistedSummary?.technicalSheetDocuments || 0) === 0) {
           throw new Error(txt("El servidor no confirmó la persistencia de la ficha técnica.", "The server did not confirm technical sheet persistence."));
         }
+        if (otherDocumentsPayload.length > 0 && Number(persistedSummary?.documents || 0) === 0) {
+          throw new Error(txt("El servidor no confirmó la persistencia de otros documentos.", "The server did not confirm other document persistence."));
+        }
         if (circulationPermitDocumentsPayload.length > 0 && Number(persistedSummary?.circulationPermitDocuments || 0) === 0) {
           throw new Error(txt("El servidor no confirmó la persistencia del permiso de circulación.", "The server did not confirm circulation permit persistence."));
         }
@@ -662,6 +664,7 @@ export default function ServiceIdCarsManagePage({
       const uploadedFiles =
         photosPayload.length +
         technicalSheetDocumentsPayload.length +
+        otherDocumentsPayload.length +
         circulationPermitDocumentsPayload.length +
         itvDocumentsPayload.length +
         insuranceDocumentsPayload.length +

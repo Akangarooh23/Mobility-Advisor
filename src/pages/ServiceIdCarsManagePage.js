@@ -876,35 +876,40 @@ export default function ServiceIdCarsManagePage({
                 const hasDataLink = Boolean(getAttachmentDataUrl(file));
                 const fileName = normalizeText(file?.name) || `${txt("Archivo", "File")} ${index + 1}`;
                 return (
-                  <div key={`${getAttachmentIdentityKey(file)}-${index}`} style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, border: "1px solid #eef2f7", borderRadius: 8, padding: "6px 8px", background: "#fff" }}>
-                    <div style={{ fontSize: 11.5, color: "#374151", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1, fontWeight: 600 }}>
+                  <div key={`${getAttachmentIdentityKey(file)}-${index}`} style={{ border: "1px solid #eef2f7", borderRadius: 8, padding: "6px 8px", background: "#fff" }}>
+                    <div style={{ fontSize: 11.5, color: "#374151", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: 600, marginBottom: 5 }}>
                       {fileName}
                     </div>
-                    {hasExternalLink || hasDataLink ? (
+                    <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
+                    {(hasExternalLink || hasDataLink) ? (
                       <button
                         type="button"
                         onClick={() => openAttachmentPreview(file)}
-                        style={{ border: "1px solid #c7d2fe", background: "#eef2ff", color: "#3730a3", borderRadius: 7, fontSize: 11, fontWeight: 700, padding: "3px 8px", cursor: "pointer" }}
+                        title={txt("Abrir", "Open")}
+                        style={{ border: "1px solid #c7d2fe", background: "#eef2ff", color: "#3730a3", borderRadius: 6, fontSize: 13, lineHeight: 1, padding: "3px 7px", cursor: "pointer" }}
                       >
-                        {txt("Abrir", "Open")}
+                        ↗
                       </button>
                     ) : null}
-                    {hasExternalLink || hasDataLink ? (
+                    {(hasExternalLink || hasDataLink) ? (
                       <button
                         type="button"
                         onClick={() => triggerAttachmentDownload(file)}
-                        style={{ border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", borderRadius: 7, fontSize: 11, fontWeight: 700, padding: "3px 8px", cursor: "pointer" }}
+                        title={txt("Descargar", "Download")}
+                        style={{ border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", borderRadius: 6, fontSize: 13, lineHeight: 1, padding: "3px 7px", cursor: "pointer" }}
                       >
-                        {txt("Descargar", "Download")}
+                        ↓
                       </button>
                     ) : null}
                     <button
                       type="button"
                       onClick={() => markStoredAttachmentForRemoval(storedGroupKey, file)}
-                      style={{ border: "1px solid #fecaca", background: "#fff1f2", color: "#b91c1c", borderRadius: 7, fontSize: 11, fontWeight: 700, padding: "3px 8px", cursor: "pointer" }}
+                      title={txt("Eliminar", "Delete")}
+                      style={{ border: "1px solid #fecaca", background: "#fff1f2", color: "#b91c1c", borderRadius: 6, fontSize: 12, lineHeight: 1, padding: "3px 7px", cursor: "pointer", marginLeft: "auto" }}
                     >
-                      {txt("Eliminar", "Delete")}
+                      ✕
                     </button>
+                    </div>
                   </div>
                 );
               })}
@@ -1337,18 +1342,20 @@ export default function ServiceIdCarsManagePage({
                                 <button
                                   type="button"
                                   onClick={() => openAttachmentPreview(file)}
-                                  style={{ border: "1px solid #d1d5db", background: "#fff", color: "#374151", borderRadius: 6, padding: "2px 6px", fontSize: 10.5, fontWeight: 700, cursor: "pointer" }}
+                                  title={txt("Abrir", "Open")}
+                                  style={{ border: "1px solid #d1d5db", background: "#fff", color: "#374151", borderRadius: 6, padding: "2px 6px", fontSize: 13, lineHeight: 1, cursor: "pointer", flexShrink: 0 }}
                                 >
-                                  {txt("Abrir", "Open")}
+                                  ↗
                                 </button>
                               ) : null}
                               {(getAttachmentLink(file) || getAttachmentDataUrl(file)) ? (
                                 <button
                                   type="button"
                                   onClick={() => triggerAttachmentDownload(file)}
-                                  style={{ border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", borderRadius: 6, padding: "2px 6px", fontSize: 10.5, fontWeight: 700, cursor: "pointer" }}
+                                  title={txt("Descargar", "Download")}
+                                  style={{ border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", borderRadius: 6, padding: "2px 6px", fontSize: 13, lineHeight: 1, cursor: "pointer", flexShrink: 0 }}
                                 >
-                                  {txt("Descargar", "Download")}
+                                  ↓
                                 </button>
                               ) : null}
                             </div>

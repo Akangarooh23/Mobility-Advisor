@@ -379,6 +379,7 @@ export default function ServiceIdCarsManagePage({
   const [feedback, setFeedback] = useState("");
   const [feedbackTone, setFeedbackTone] = useState("info");
   const [isSaving, setIsSaving] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(() => (typeof window === "undefined" ? 1280 : window.innerWidth));
 
   const [pendingPhotos, setPendingPhotos] = useState([]);
   const [pendingTechnicalSheetDocuments, setPendingTechnicalSheetDocuments] = useState([]);
@@ -442,6 +443,16 @@ export default function ServiceIdCarsManagePage({
   useEffect(() => { void loadVehicles(); }, [loadVehicles]);
   useEffect(() => { writeGarageVehicles(currentUserEmail, vehicles); }, [currentUserEmail, vehicles]);
   useEffect(() => { setIsEditMode(startEditing); }, [startEditing]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const handleResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     if (!isCreateView) return;
@@ -1121,6 +1132,7 @@ export default function ServiceIdCarsManagePage({
         const docsCount = (vehicle.documents?.length || 0) + (vehicle.itvDocuments?.length || 0);
         const insuranceDocs = vehicle.insuranceDocuments?.length || 0;
         const maintenanceDocs = vehicle.maintenanceInvoices?.length || 0;
+        const isCompactCard = viewportWidth <= 880;
         const specGrid = [
           { label: txt("Marca", "Brand"), value: normalizeText(vehicle.brand) },
           { label: txt("Modelo", "Model"), value: normalizeText(vehicle.model) },
@@ -1141,19 +1153,19 @@ export default function ServiceIdCarsManagePage({
         return (
           <section key={vehicle.id} className="idcar-card-animated" style={{ ...SECTION_CARD_STYLE, marginBottom: 8, padding: 0, overflow: "hidden" }}>
             {/* Main row: image left + specs right */}
-            <div style={{ display: "flex", height: 148 }}>
+            <div style={{ display: "flex", flexWrap: isCompactCard ? "wrap" : "nowrap", minHeight: isCompactCard ? 0 : 148 }}>
               {/* QR column — full square */}
-              <div style={{ flex: "0 0 120px", width: 120, background: "#ffffff", borderRight: "1px solid #f1ede6", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ flex: isCompactCard ? "0 0 92px" : "0 0 120px", width: isCompactCard ? 92 : 120, height: isCompactCard ? 124 : 148, background: "#ffffff", borderRight: "1px solid #f1ede6", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <QRCodeSVG
                   value={`https://movilidad-advisor.vercel.app/idcar/${vehicle.id}`}
-                  size={104}
+                  size={isCompactCard ? 74 : 104}
                   level="M"
                   includeMargin={false}
                 />
               </div>
 
               {/* Photo column — wider */}
-              <div style={{ position: "relative", flex: "0 0 220px", width: 220, background: "#f1ede6", overflow: "hidden", borderRight: "1px solid #f1ede6" }}>
+              <div style={{ position: "relative", flex: isCompactCard ? "1 1 0%" : "0 0 220px", width: isCompactCard ? "auto" : 220, minWidth: 0, height: isCompactCard ? 124 : 148, background: "#f1ede6", overflow: "hidden", borderRight: isCompactCard ? "none" : "1px solid #f1ede6" }}>
                 {firstPhoto ? (
                   <img src={firstPhoto} alt={buildVehicleTitle(vehicle)} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block" }} />
                 ) : (
@@ -1173,8 +1185,8 @@ export default function ServiceIdCarsManagePage({
               </div>
 
               {/* Specs column — rectangular */}
-              <div style={{ flex: "1 1 0%", background: "#fff", padding: "9px 10px", display: "flex", flexDirection: "column", justifyContent: "space-between", overflow: "hidden" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: "6px 10px" }}>
+              <div style={{ flex: isCompactCard ? "1 1 100%" : "1 1 0%", background: "#fff", padding: isCompactCard ? "10px 10px 11px" : "9px 10px", display: "flex", flexDirection: "column", justifyContent: "space-between", overflow: "hidden", borderTop: isCompactCard ? "1px solid #f1ede6" : "none" }}>
+                <div style={{ display: "grid", gridTemplateColumns: isCompactCard ? "repeat(2,minmax(0,1fr))" : "repeat(3,minmax(0,1fr))", gap: isCompactCard ? "7px 9px" : "6px 10px" }}>
                   {specGrid.slice(0, 9).map(({ label, value }) => (
                     <div key={label} style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.06em", color: "#b8b1aa", fontWeight: 700 }}>{label}</div>
@@ -1183,23 +1195,23 @@ export default function ServiceIdCarsManagePage({
                   ))}
                 </div>
                 {/* Doc badges + actions row */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6, marginTop: 6 }}>
-                  <div style={{ display: "flex", gap: 4, flexWrap: "nowrap" }}>
+                <div style={{ display: "flex", flexDirection: isCompactCard ? "column" : "row", alignItems: isCompactCard ? "stretch" : "center", justifyContent: "space-between", gap: 8, marginTop: 8 }}>
+                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
                     {docsCount > 0 && <span style={{ background: "rgba(37,99,235,0.07)", color: "#1d4ed8", border: "1px solid rgba(37,99,235,0.18)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>📄 {docsCount}</span>}
                     {insuranceDocs > 0 && <span style={{ background: "rgba(16,185,129,0.07)", color: "#047857", border: "1px solid rgba(16,185,129,0.18)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>🛡️ {insuranceDocs}</span>}
                     {maintenanceDocs > 0 && <span style={{ background: "rgba(251,146,60,0.08)", color: "#c2410c", border: "1px solid rgba(251,146,60,0.22)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>🔧 {maintenanceDocs}</span>}
                   </div>
-                  <div style={{ display: "flex", gap: 5, flexShrink: 0 }}>
+                  <div style={{ display: isCompactCard ? "grid" : "flex", gridTemplateColumns: isCompactCard ? "repeat(3,minmax(0,1fr))" : "none", gap: 6, flexShrink: 0 }}>
                     <button type="button" onClick={() => handleRemove(vehicle.id)}
-                      style={{ border: "1px solid rgba(239,68,68,0.28)", background: "rgba(239,68,68,0.07)", color: "#dc2626", borderRadius: 7, padding: "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer" }}>
+                      style={{ border: "1px solid rgba(239,68,68,0.28)", background: "rgba(239,68,68,0.07)", color: "#dc2626", borderRadius: 7, padding: isCompactCard ? "8px 8px" : "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", minHeight: isCompactCard ? 36 : "auto" }}>
                       {txt("Quitar", "Remove")}
                     </button>
                     <button type="button" onClick={() => openVehicleDetail(vehicle, false)}
-                      style={{ border: "1px solid rgba(15,118,110,0.3)", background: "rgba(15,118,110,0.07)", color: "#0f766e", borderRadius: 7, padding: "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer" }}>
+                      style={{ border: "1px solid rgba(15,118,110,0.3)", background: "rgba(15,118,110,0.07)", color: "#0f766e", borderRadius: 7, padding: isCompactCard ? "8px 8px" : "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", minHeight: isCompactCard ? 36 : "auto" }}>
                       {txt("Ver ficha", "View profile")}
                     </button>
                     <button type="button" onClick={() => openVehicleDetail(vehicle, true)}
-                      style={{ border: "1px solid rgba(59,130,246,0.3)", background: "rgba(59,130,246,0.08)", color: "#2563eb", borderRadius: 7, padding: "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer" }}>
+                      style={{ border: "1px solid rgba(59,130,246,0.3)", background: "rgba(59,130,246,0.08)", color: "#2563eb", borderRadius: 7, padding: isCompactCard ? "8px 8px" : "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", minHeight: isCompactCard ? 36 : "auto" }}>
                       {txt("Editar", "Edit")}
                     </button>
                   </div>

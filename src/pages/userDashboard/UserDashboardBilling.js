@@ -30,7 +30,7 @@ function toInputDateLabel(value, t) {
   });
 }
 
-const AVAILABLE_PLANS = [
+const DEFAULT_AVAILABLE_PLANS = [
   { id: "gratis", label: "Plan Gratis" },
   { id: "bronce", label: "Plan Bronce" },
   { id: "plata", label: "Plan Plata" },
@@ -49,9 +49,16 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
   };
   const subscriptionStatusMap = {
     activo: t("dashboard.billingStatusActivo"),
+    activa: t("dashboard.billingStatusActivo"),
+    active: t("dashboard.billingStatusActivo"),
+    trialing: t("dashboard.billingStatusActivo"),
     pendiente: t("dashboard.billingStatusPendiente"),
+    past_due: t("dashboard.billingStatusPendiente"),
+    unpaid: t("dashboard.billingStatusPendiente"),
+    incomplete: t("dashboard.billingStatusPendiente"),
     inactivo: t("dashboard.billingStatusInactivo"),
     cancelado: t("dashboard.billingStatusCancelado"),
+    canceled: t("dashboard.billingStatusCancelado"),
   };
   const invoiceStatusMap = {
     pagada: t("dashboard.billingInvoiceStatusPagada"),
@@ -125,6 +132,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
     stripeCustomerId: "",
     invoices: [],
   });
+  const [availablePlans, setAvailablePlans] = useState(DEFAULT_AVAILABLE_PLANS);
   const [selectedPlanId, setSelectedPlanId] = useState("plata");
   const [loadingAccount, setLoadingAccount] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -169,12 +177,32 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
           status: normalizeText(account?.billingState?.status) || "inactivo",
           nextBillingDate: normalizeText(account?.billingState?.nextBillingDate),
           stripeCustomerId: normalizeText(account?.billingState?.stripeCustomerId),
+          stripeSubscriptionId: normalizeText(account?.billingState?.stripeSubscriptionId),
+          cancelAtPeriodEnd: Boolean(account?.billingState?.cancelAtPeriodEnd),
           invoices: Array.isArray(account?.billingState?.invoices) ? account.billingState.invoices : [],
         };
 
+        const nextCatalogPlans = Array.isArray(data?.billingCatalog?.plans)
+          ? data.billingCatalog.plans
+              .map((plan) => ({
+                id: normalizeText(plan?.id).toLowerCase(),
+                label: normalizeText(plan?.label) || `Plan ${normalizeText(plan?.id)}`,
+                checkoutEnabled: Boolean(plan?.checkoutEnabled),
+              }))
+              .filter((plan) => plan.id)
+          : [];
+
+        const effectivePlans = nextCatalogPlans.length > 0 ? nextCatalogPlans : DEFAULT_AVAILABLE_PLANS;
+
         setProfileForm(nextProfile);
         setBillingState(nextBillingState);
-        setSelectedPlanId(nextBillingState.planId || "plata");
+        setAvailablePlans(effectivePlans);
+        setSelectedPlanId(
+          nextBillingState.planId
+            || effectivePlans.find((plan) => plan.checkoutEnabled)?.id
+            || effectivePlans[0]?.id
+            || "plata"
+        );
       } catch {
         if (!cancelled) {
           setBillingFeedback(t("dashboard.billingLoadError"));
@@ -203,7 +231,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
     }
 
     const suggestedPlanId = normalizeText(intent?.suggestedPlanId).toLowerCase();
-    const hasSuggestedPlan = AVAILABLE_PLANS.some((plan) => plan.id === suggestedPlanId);
+    const hasSuggestedPlan = availablePlans.some((plan) => plan.id === suggestedPlanId);
     const managementType = normalizeText(intent?.managementType).toLowerCase();
     const managementLabel = managementType === "valuation" ? "tasación" : "gestión";
     const estimatedPrice = normalizeText(intent?.estimatedPrice);
@@ -221,7 +249,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
     );
 
     clearUserBillingCheckoutIntent();
-  }, []);
+  }, [availablePlans]);
 
   const invoices = Array.isArray(billingState?.invoices) ? billingState.invoices : [];
   const paidInvoicesCount = invoices.filter((invoice) => normalizeText(invoice?.status).toLowerCase() === "paid").length;
@@ -298,7 +326,12 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
     setBillingFeedback("");
 
     try {
-      const planMeta = AVAILABLE_PLANS.find((item) => item.id === selectedPlanId) || AVAILABLE_PLANS[0];
+      const planMeta = availablePlans.find((item) => item.id === selectedPlanId) || availablePlans[0] || DEFAULT_AVAILABLE_PLANS[0];
+      if (planMeta?.checkoutEnabled === false) {
+        setBillingFeedback("Este plan no requiere checkout de Stripe.");
+        return;
+      }
+
       const { data } = await postBillingCheckoutJson({
         planId: planMeta.id,
         customerEmail: normalizeText(profileForm.email || resolvedUserEmail).toLowerCase(),
@@ -316,6 +349,18 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
             ? data.account.billingState.invoices
             : prev.invoices,
         }));
+      }
+
+      if (Array.isArray(data?.plans) && data.plans.length > 0) {
+        setAvailablePlans(
+          data.plans
+            .map((plan) => ({
+              id: normalizeText(plan?.id).toLowerCase(),
+              label: normalizeText(plan?.label) || `Plan ${normalizeText(plan?.id)}`,
+              checkoutEnabled: Boolean(plan?.checkoutEnabled),
+            }))
+            .filter((plan) => plan.id)
+        );
       }
 
       setBillingFeedback(normalizeText(data?.message) || "Checkout preparado.");
@@ -342,6 +387,35 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
       setBillingFeedback(normalizeText(data?.message) || "Portal de cliente preparado.");
     } catch (error) {
       setBillingFeedback(error instanceof Error ? error.message : "No se pudo abrir el portal de cliente.");
+    } finally {
+      setBillingActionLoading(false);
+    }
+  };
+
+  const cancelSubscription = async () => {
+    setBillingActionLoading(true);
+    setBillingFeedback("");
+
+    try {
+      const { data } = await postBillingAccountJson({
+        action: "cancel_subscription",
+        email: normalizeText(profileForm.email || resolvedUserEmail).toLowerCase(),
+        cancelMode: "end_of_period",
+      });
+
+      if (data?.account?.billingState) {
+        setBillingState((prev) => ({
+          ...prev,
+          ...data.account.billingState,
+          invoices: Array.isArray(data?.account?.billingState?.invoices)
+            ? data.account.billingState.invoices
+            : prev.invoices,
+        }));
+      }
+
+      setBillingFeedback(normalizeText(data?.message) || "Suscripcion marcada para cancelarse al final del periodo.");
+    } catch (error) {
+      setBillingFeedback(error instanceof Error ? error.message : "No se pudo cancelar la suscripcion.");
     } finally {
       setBillingActionLoading(false);
     }
@@ -496,11 +570,14 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
               <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#334155", lineHeight: 1.65, marginBottom: 10 }}>
                 {t("dashboard.billingStatusLabel")} <strong>{billingState?.status || "inactivo"}</strong><br />
                 {t("dashboard.billingNextRenewal")} <strong>{toInputDateLabel(billingState?.nextBillingDate, t)}</strong>
+                {billingState?.cancelAtPeriodEnd ? (
+                  <><br />Cancelación programada: <strong>sí (fin de periodo)</strong></>
+                ) : null}
               </div>
 
               <label style={{ display: "block", fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>{t("dashboard.billingCheckoutPlan")}</label>
               <select value={selectedPlanId} onChange={(event) => setSelectedPlanId(event.target.value)} style={{ ...inputStyle, marginBottom: 10 }}>
-                {AVAILABLE_PLANS.map((plan) => (
+                {availablePlans.map((plan) => (
                   <option key={plan.id} value={plan.id}>{planLabelMap[plan.id] || plan.label}</option>
                 ))}
               </select>
@@ -511,6 +588,14 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                 </button>
                 <button type="button" onClick={openCustomerPortal} disabled={billingActionLoading} style={{ ...secondaryButtonStyle, width: isMobile ? "100%" : "auto" }}>
                   {t("dashboard.billingManagePayment")}
+                </button>
+                <button
+                  type="button"
+                  onClick={cancelSubscription}
+                  disabled={billingActionLoading || !normalizeText(billingState?.stripeSubscriptionId)}
+                  style={{ ...secondaryButtonStyle, width: isMobile ? "100%" : "auto" }}
+                >
+                  Cancelar al final del periodo
                 </button>
               </div>
 

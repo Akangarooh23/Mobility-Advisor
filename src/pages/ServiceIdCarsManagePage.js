@@ -1155,14 +1155,16 @@ export default function ServiceIdCarsManagePage({
             {/* Main row: image left + specs right */}
             <div style={{ display: "flex", flexWrap: isCompactCard ? "wrap" : "nowrap", minHeight: isCompactCard ? 0 : 148 }}>
               {/* QR column — full square */}
-              <div style={{ flex: isCompactCard ? "0 0 92px" : "0 0 120px", width: isCompactCard ? 92 : 120, height: isCompactCard ? 124 : 148, background: "#ffffff", borderRight: "1px solid #f1ede6", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <QRCodeSVG
-                  value={`https://movilidad-advisor.vercel.app/idcar/${vehicle.id}`}
-                  size={isCompactCard ? 74 : 104}
-                  level="M"
-                  includeMargin={false}
-                />
-              </div>
+              {!isCompactCard ? (
+                <div style={{ flex: "0 0 120px", width: 120, height: 148, background: "#ffffff", borderRight: "1px solid #f1ede6", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <QRCodeSVG
+                    value={`https://movilidad-advisor.vercel.app/idcar/${vehicle.id}`}
+                    size={104}
+                    level="M"
+                    includeMargin={false}
+                  />
+                </div>
+              ) : null}
 
               {/* Photo column — wider */}
               <div style={{ position: "relative", flex: isCompactCard ? "1 1 0%" : "0 0 220px", width: isCompactCard ? "auto" : 220, minWidth: 0, height: isCompactCard ? 124 : 148, background: "#f1ede6", overflow: "hidden", borderRight: isCompactCard ? "none" : "1px solid #f1ede6" }}>
@@ -1201,10 +1203,12 @@ export default function ServiceIdCarsManagePage({
                     {insuranceDocs > 0 && <span style={{ background: "rgba(16,185,129,0.07)", color: "#047857", border: "1px solid rgba(16,185,129,0.18)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>🛡️ {insuranceDocs}</span>}
                     {maintenanceDocs > 0 && <span style={{ background: "rgba(251,146,60,0.08)", color: "#c2410c", border: "1px solid rgba(251,146,60,0.22)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>🔧 {maintenanceDocs}</span>}
                   </div>
-                  <div style={{ display: isCompactCard ? "grid" : "flex", gridTemplateColumns: isCompactCard ? "repeat(3,minmax(0,1fr))" : "none", gap: 6, flexShrink: 0 }}>
+                  <div style={{ display: isCompactCard ? "grid" : "flex", gridTemplateColumns: isCompactCard ? "40px repeat(2,minmax(0,1fr))" : "none", gap: 6, flexShrink: 0 }}>
                     <button type="button" onClick={() => handleRemove(vehicle.id)}
-                      style={{ border: "1px solid rgba(239,68,68,0.28)", background: "rgba(239,68,68,0.07)", color: "#dc2626", borderRadius: 7, padding: isCompactCard ? "8px 8px" : "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", minHeight: isCompactCard ? 36 : "auto" }}>
-                      {txt("Quitar", "Remove")}
+                      title={txt("Quitar", "Remove")}
+                      aria-label={txt("Quitar", "Remove")}
+                      style={{ border: "1px solid rgba(239,68,68,0.28)", background: "rgba(239,68,68,0.07)", color: "#dc2626", borderRadius: 7, padding: isCompactCard ? "8px 8px" : "4px 9px", fontSize: isCompactCard ? 15 : 11.5, fontWeight: 700, cursor: "pointer", minHeight: isCompactCard ? 36 : "auto", minWidth: isCompactCard ? 38 : "auto" }}>
+                      {isCompactCard ? "🗑" : txt("Quitar", "Remove")}
                     </button>
                     <button type="button" onClick={() => openVehicleDetail(vehicle, false)}
                       style={{ border: "1px solid rgba(15,118,110,0.3)", background: "rgba(15,118,110,0.07)", color: "#0f766e", borderRadius: 7, padding: isCompactCard ? "8px 8px" : "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", minHeight: isCompactCard ? 36 : "auto" }}>

@@ -211,6 +211,24 @@ function formatBytes(bytes = 0) {
   return `${(value / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function getAttachmentDataUrl(file = {}) {
+  const rawContent = normalizeText(file?.contentBase64);
+  if (!rawContent) {
+    return "";
+  }
+
+  if (rawContent.startsWith("data:")) {
+    return rawContent;
+  }
+
+  if (!isLikelyBase64Payload(rawContent)) {
+    return "";
+  }
+
+  const mimeType = normalizeText(file?.mimeType || file?.fileMimeType) || "application/octet-stream";
+  return `data:${mimeType};base64,${rawContent}`;
+}
+
 async function filesToAttachmentPayload(files = [], label = "archivo") {
   const result = [];
   for (const file of files) {
@@ -748,6 +766,42 @@ export default function ServiceIdCarsManagePage({
     return "";
   };
 
+  const triggerAttachmentDownload = (file = {}) => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const externalLink = getAttachmentLink(file);
+    const dataUrl = getAttachmentDataUrl(file);
+    const href = externalLink || dataUrl;
+    if (!href) {
+      return;
+    }
+
+    const fileName = normalizeText(file?.name) || txt("archivo", "file");
+    const anchor = window.document.createElement("a");
+    anchor.href = href;
+    anchor.download = fileName;
+    anchor.target = "_blank";
+    anchor.rel = "noreferrer";
+    window.document.body.appendChild(anchor);
+    anchor.click();
+    window.document.body.removeChild(anchor);
+  };
+
+  const openAttachmentPreview = (file = {}) => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const href = getAttachmentLink(file) || getAttachmentDataUrl(file);
+    if (!href) {
+      return;
+    }
+
+    window.open(href, "_blank", "noopener,noreferrer");
+  };
+
   const getAttachmentIdentityKey = (file = {}) => {
     return [
       normalizeText(file?.path),
@@ -789,7 +843,7 @@ export default function ServiceIdCarsManagePage({
 
   const renderFileUpload = (label, pendingFiles, setPending, inputRef, accept, colorHex, storedFiles = [], storedGroupKey = "") => (
     <div style={{ display: "grid", gap: 6, fontSize: 12, color: "#6b7280" }}>
-      <div style={{ fontWeight: 600 }}>{label}</div>
+      <div style={{ fontWeight: 700, color: "#374151" }}>{label}</div>
       <input ref={inputRef} type="file" multiple accept={accept} onChange={(e) => setPending(Array.from(e.target.files || []))} style={{ display: "none" }} />
       <button
         type="button"
@@ -810,7 +864,7 @@ export default function ServiceIdCarsManagePage({
         </div>
       ) : null}
       {storedFiles.filter((file) => !isStoredAttachmentRemoved(storedGroupKey, file)).length ? (
-        <div style={{ border: "1px solid #e5e7eb", borderRadius: 10, background: "#fff", padding: "8px 10px" }}>
+        <div style={{ border: "1px solid #e5e7eb", borderRadius: 10, background: "#fcfcfc", padding: "8px 10px" }}>
           <div style={{ fontSize: 10.5, color: "#6b7280", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
             {txt("Guardados en ficha", "Saved in profile")}
           </div>
@@ -818,25 +872,31 @@ export default function ServiceIdCarsManagePage({
             {storedFiles
               .filter((file) => !isStoredAttachmentRemoved(storedGroupKey, file))
               .map((file, index) => {
-                const link = getAttachmentLink(file);
+                const hasExternalLink = Boolean(getAttachmentLink(file));
+                const hasDataLink = Boolean(getAttachmentDataUrl(file));
                 const fileName = normalizeText(file?.name) || `${txt("Archivo", "File")} ${index + 1}`;
                 return (
-                  <div key={`${getAttachmentIdentityKey(file)}-${index}`} style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-                    <div style={{ fontSize: 11.5, color: "#374151", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1 }}>
-                      • {link
-                        ? <a href={link} target="_blank" rel="noreferrer" style={{ color: "#1d4ed8", textDecoration: "none", fontWeight: 600 }}>{fileName}</a>
-                        : fileName}
+                  <div key={`${getAttachmentIdentityKey(file)}-${index}`} style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, border: "1px solid #eef2f7", borderRadius: 8, padding: "6px 8px", background: "#fff" }}>
+                    <div style={{ fontSize: 11.5, color: "#374151", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1, fontWeight: 600 }}>
+                      {fileName}
                     </div>
-                    {link ? (
-                      <a
-                        href={link}
-                        target="_blank"
-                        rel="noreferrer"
-                        download
-                        style={{ border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", borderRadius: 7, fontSize: 11, fontWeight: 700, padding: "3px 8px", textDecoration: "none" }}
+                    {hasExternalLink || hasDataLink ? (
+                      <button
+                        type="button"
+                        onClick={() => openAttachmentPreview(file)}
+                        style={{ border: "1px solid #c7d2fe", background: "#eef2ff", color: "#3730a3", borderRadius: 7, fontSize: 11, fontWeight: 700, padding: "3px 8px", cursor: "pointer" }}
+                      >
+                        {txt("Abrir", "Open")}
+                      </button>
+                    ) : null}
+                    {hasExternalLink || hasDataLink ? (
+                      <button
+                        type="button"
+                        onClick={() => triggerAttachmentDownload(file)}
+                        style={{ border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", borderRadius: 7, fontSize: 11, fontWeight: 700, padding: "3px 8px", cursor: "pointer" }}
                       >
                         {txt("Descargar", "Download")}
-                      </a>
+                      </button>
                     ) : null}
                     <button
                       type="button"
@@ -1251,14 +1311,12 @@ export default function ServiceIdCarsManagePage({
                 {
                   key: "technical-sheet",
                   title: txt("Ficha técnica", "Technical sheet"),
-                  items: [
-                    ...(Array.isArray(selectedVehicle.technicalSheetDocuments) ? selectedVehicle.technicalSheetDocuments : []),
-                    ...(Array.isArray(selectedVehicle.documents) ? selectedVehicle.documents : []),
-                  ],
+                  items: Array.isArray(selectedVehicle.technicalSheetDocuments) ? selectedVehicle.technicalSheetDocuments : [],
                   color: "#0f766e",
                 },
                 { key: "circulation-permit", title: txt("Permiso de circulación", "Circulation permit"), items: Array.isArray(selectedVehicle.circulationPermitDocuments) ? selectedVehicle.circulationPermitDocuments : [], color: "#0f766e" },
                 { key: "itv", title: txt("Documentación ITV", "MOT documentation"), items: Array.isArray(selectedVehicle.itvDocuments) ? selectedVehicle.itvDocuments : [], color: "#0f766e" },
+                { key: "other-documents", title: txt("Otros documentos", "Other documents"), items: Array.isArray(selectedVehicle.documents) ? selectedVehicle.documents : [], color: "#7c3aed" },
                 { key: "insurance", title: txt("Documentos de seguro", "Insurance documents"), items: Array.isArray(selectedVehicle.insuranceDocuments) ? selectedVehicle.insuranceDocuments : [], color: "#047857" },
                 { key: "maintenance", title: txt("Facturas de mantenimiento", "Maintenance invoices"), items: Array.isArray(selectedVehicle.maintenanceInvoices) ? selectedVehicle.maintenanceInvoices : [], color: "#c2410c" },
               ];
@@ -1271,10 +1329,28 @@ export default function ServiceIdCarsManagePage({
                       {section.items.length ? (
                         <div style={{ display: "grid", gap: 4 }}>
                           {section.items.slice(0, 5).map((file, index) => (
-                            <div key={`${section.key}-${normalizeText(file?.name)}-${index}`} style={{ fontSize: 11.5, color: section.color, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                              • {getAttachmentLink(file)
-                                ? <a href={getAttachmentLink(file)} target="_blank" rel="noreferrer" style={{ color: section.color, textDecoration: "none", fontWeight: 700 }}>{normalizeText(file?.name) || `${txt("Archivo", "File")} ${index + 1}`}</a>
-                                : (normalizeText(file?.name) || `${txt("Archivo", "File")} ${index + 1}`)}
+                            <div key={`${section.key}-${normalizeText(file?.name)}-${index}`} style={{ display: "flex", gap: 6, alignItems: "center", minWidth: 0 }}>
+                              <div style={{ fontSize: 11.5, color: section.color, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1, fontWeight: 700 }}>
+                                {normalizeText(file?.name) || `${txt("Archivo", "File")} ${index + 1}`}
+                              </div>
+                              {(getAttachmentLink(file) || getAttachmentDataUrl(file)) ? (
+                                <button
+                                  type="button"
+                                  onClick={() => openAttachmentPreview(file)}
+                                  style={{ border: "1px solid #d1d5db", background: "#fff", color: "#374151", borderRadius: 6, padding: "2px 6px", fontSize: 10.5, fontWeight: 700, cursor: "pointer" }}
+                                >
+                                  {txt("Abrir", "Open")}
+                                </button>
+                              ) : null}
+                              {(getAttachmentLink(file) || getAttachmentDataUrl(file)) ? (
+                                <button
+                                  type="button"
+                                  onClick={() => triggerAttachmentDownload(file)}
+                                  style={{ border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", borderRadius: 6, padding: "2px 6px", fontSize: 10.5, fontWeight: 700, cursor: "pointer" }}
+                                >
+                                  {txt("Descargar", "Download")}
+                                </button>
+                              ) : null}
                             </div>
                           ))}
                           {section.items.length > 5 ? <div style={{ fontSize: 11, color: "#9ca3af" }}>+{section.items.length - 5} {txt("archivo(s) más", "more file(s)")}</div> : null}

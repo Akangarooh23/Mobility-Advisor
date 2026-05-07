@@ -369,6 +369,15 @@ export default function ServiceIdCarsManagePage({
   const [pendingItvDocuments, setPendingItvDocuments] = useState([]);
   const [pendingInsuranceDocuments, setPendingInsuranceDocuments] = useState([]);
   const [pendingMaintenanceInvoices, setPendingMaintenanceInvoices] = useState([]);
+  const [removedStoredAttachmentKeys, setRemovedStoredAttachmentKeys] = useState({
+    photos: [],
+    technicalSheetDocuments: [],
+    documents: [],
+    circulationPermitDocuments: [],
+    itvDocuments: [],
+    insuranceDocuments: [],
+    maintenanceInvoices: [],
+  });
 
   const photoInputRef = useRef(null);
   const technicalSheetInputRef = useRef(null);
@@ -462,6 +471,15 @@ export default function ServiceIdCarsManagePage({
   const resetFileUploads = () => {
     setPendingPhotos([]); setPendingTechnicalSheetDocuments([]); setPendingOtherDocuments([]); setPendingCirculationPermitDocuments([]); setPendingItvDocuments([]);
     setPendingInsuranceDocuments([]); setPendingMaintenanceInvoices([]);
+    setRemovedStoredAttachmentKeys({
+      photos: [],
+      technicalSheetDocuments: [],
+      documents: [],
+      circulationPermitDocuments: [],
+      itvDocuments: [],
+      insuranceDocuments: [],
+      maintenanceInvoices: [],
+    });
   };
 
   const defaultSections = { characteristics: true, marketplace: false, vehicleDocuments: false, insurance: false, maintenance: false, notes: false };
@@ -556,7 +574,27 @@ export default function ServiceIdCarsManagePage({
 
       const titleVal = normalizeText(form.nickname) || [normalizeText(form.brand), normalizeText(form.model)].filter(Boolean).join(" ") || txt("Vehículo", "Vehicle");
 
-      const legacySplit = splitLegacyDocumentsByType(baseVehicle.documents);
+      const filterPersisted = (groupKey, source) => {
+        const items = Array.isArray(source) ? source : [];
+        return items.filter((item) => !isStoredAttachmentRemoved(groupKey, item));
+      };
+
+      const persistedPhotos = filterPersisted("photos", baseVehicle.photos);
+      const persistedDocuments = filterPersisted("documents", baseVehicle.documents);
+      const persistedTechnicalSheetDocuments = filterPersisted("technicalSheetDocuments", baseVehicle.technicalSheetDocuments);
+      const persistedCirculationPermitDocuments = filterPersisted("circulationPermitDocuments", baseVehicle.circulationPermitDocuments);
+      const persistedItvDocuments = filterPersisted("itvDocuments", baseVehicle.itvDocuments);
+      const persistedInsuranceDocuments = filterPersisted("insuranceDocuments", baseVehicle.insuranceDocuments);
+      const persistedMaintenanceInvoices = filterPersisted("maintenanceInvoices", baseVehicle.maintenanceInvoices);
+
+      const legacySplit = splitLegacyDocumentsByType(
+        persistedDocuments.filter(
+          (item) =>
+            !isStoredAttachmentRemoved("technicalSheetDocuments", item) &&
+            !isStoredAttachmentRemoved("circulationPermitDocuments", item) &&
+            !isStoredAttachmentRemoved("itvDocuments", item)
+        )
+      );
 
       const nextVehicle = {
         ...baseVehicle, id: vehicleId, title: titleVal,
@@ -572,34 +610,34 @@ export default function ServiceIdCarsManagePage({
         coverageType: normalizeText(form.coverageType), maintenanceType: normalizeText(form.maintenanceType),
         maintenanceTitle: normalizeText(form.maintenanceTitle), maintenanceNotes: normalizeText(form.maintenanceNotes),
         notes: normalizeText(form.notes),
-        photos: [...(Array.isArray(baseVehicle.photos) ? baseVehicle.photos : []), ...photosPayload],
+        photos: [...persistedPhotos, ...photosPayload],
         documents: [
           ...legacySplit.unknownDocuments,
-          ...(Array.isArray(baseVehicle.documents) ? baseVehicle.documents.filter((d) => !legacySplit.unknownDocuments.some((u) => u.name === d.name)) : []),
+          ...persistedDocuments.filter((d) => !legacySplit.unknownDocuments.some((u) => u.name === d.name)),
           ...otherDocumentsPayload,
         ],
         technicalSheetDocuments: [
-          ...(Array.isArray(baseVehicle.technicalSheetDocuments) ? baseVehicle.technicalSheetDocuments : []),
+          ...persistedTechnicalSheetDocuments,
           ...legacySplit.technicalSheetDocuments,
           ...technicalSheetDocumentsPayload,
         ],
         circulationPermitDocuments: [
-          ...(Array.isArray(baseVehicle.circulationPermitDocuments) ? baseVehicle.circulationPermitDocuments : []),
+          ...persistedCirculationPermitDocuments,
           ...legacySplit.circulationPermitDocuments,
           ...circulationPermitDocumentsPayload,
         ],
         itvDocuments: [
-          ...(Array.isArray(baseVehicle.itvDocuments) ? baseVehicle.itvDocuments : []),
+          ...persistedItvDocuments,
           ...legacySplit.itvDocuments,
           ...itvDocumentsPayload,
         ],
-        insuranceDocuments: [...(Array.isArray(baseVehicle.insuranceDocuments) ? baseVehicle.insuranceDocuments : []), ...insuranceDocumentsPayload],
-        maintenanceInvoices: [...(Array.isArray(baseVehicle.maintenanceInvoices) ? baseVehicle.maintenanceInvoices : []), ...maintenanceInvoicesPayload],
+        insuranceDocuments: [...persistedInsuranceDocuments, ...insuranceDocumentsPayload],
+        maintenanceInvoices: [...persistedMaintenanceInvoices, ...maintenanceInvoicesPayload],
         initialMaintenance: {
           type: normalizeText(form.maintenanceType) || "maintenance",
           title: normalizeText(form.maintenanceTitle),
           notes: normalizeText(form.maintenanceNotes),
-          invoices: [...(Array.isArray(baseVehicle.initialMaintenance?.invoices) ? baseVehicle.initialMaintenance.invoices : []), ...maintenanceInvoicesPayload],
+          invoices: [...persistedMaintenanceInvoices, ...maintenanceInvoicesPayload],
         },
         updatedAt: new Date().toISOString(),
         createdAt: normalizeText(baseVehicle?.createdAt) || new Date().toISOString(),
@@ -710,7 +748,46 @@ export default function ServiceIdCarsManagePage({
     return "";
   };
 
-  const renderFileUpload = (label, pendingFiles, setPending, inputRef, accept, colorHex, storedFiles = []) => (
+  const getAttachmentIdentityKey = (file = {}) => {
+    return [
+      normalizeText(file?.path),
+      normalizeText(file?.url),
+      normalizeText(file?.name),
+      String(Number(file?.size || 0)),
+      normalizeText(file?.mimeType || file?.fileMimeType),
+    ].join("|");
+  };
+
+  const isStoredAttachmentRemoved = (groupKey = "", file = {}) => {
+    const fileKey = getAttachmentIdentityKey(file);
+    if (!groupKey || !fileKey) {
+      return false;
+    }
+
+    const groupKeys = Array.isArray(removedStoredAttachmentKeys[groupKey]) ? removedStoredAttachmentKeys[groupKey] : [];
+    return groupKeys.includes(fileKey);
+  };
+
+  const markStoredAttachmentForRemoval = (groupKey = "", file = {}) => {
+    const fileKey = getAttachmentIdentityKey(file);
+    if (!groupKey || !fileKey) {
+      return;
+    }
+
+    setRemovedStoredAttachmentKeys((prev) => {
+      const currentKeys = Array.isArray(prev[groupKey]) ? prev[groupKey] : [];
+      if (currentKeys.includes(fileKey)) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        [groupKey]: [...currentKeys, fileKey],
+      };
+    });
+  };
+
+  const renderFileUpload = (label, pendingFiles, setPending, inputRef, accept, colorHex, storedFiles = [], storedGroupKey = "") => (
     <div style={{ display: "grid", gap: 6, fontSize: 12, color: "#6b7280" }}>
       <div style={{ fontWeight: 600 }}>{label}</div>
       <input ref={inputRef} type="file" multiple accept={accept} onChange={(e) => setPending(Array.from(e.target.files || []))} style={{ display: "none" }} />
@@ -732,22 +809,45 @@ export default function ServiceIdCarsManagePage({
           {txt("Hay archivos seleccionados que superan el máximo de", "Some selected files exceed the maximum of")} {formatBytes(MAX_ATTACHMENT_BYTES)}.
         </div>
       ) : null}
-      {storedFiles.length ? (
+      {storedFiles.filter((file) => !isStoredAttachmentRemoved(storedGroupKey, file)).length ? (
         <div style={{ border: "1px solid #e5e7eb", borderRadius: 10, background: "#fff", padding: "8px 10px" }}>
           <div style={{ fontSize: 10.5, color: "#6b7280", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
             {txt("Guardados en ficha", "Saved in profile")}
           </div>
-          <div style={{ display: "grid", gap: 4 }}>
-            {storedFiles.slice(0, 4).map((file, index) => (
-              <div key={`${normalizeText(file?.name)}-${index}`} style={{ fontSize: 11.5, color: "#374151", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                • {getAttachmentLink(file)
-                  ? <a href={getAttachmentLink(file)} target="_blank" rel="noreferrer" style={{ color: "#1d4ed8", textDecoration: "none", fontWeight: 600 }}>{normalizeText(file?.name) || `${txt("Archivo", "File")} ${index + 1}`}</a>
-                  : (normalizeText(file?.name) || `${txt("Archivo", "File")} ${index + 1}`)}
-              </div>
-            ))}
-            {storedFiles.length > 4 ? (
-              <div style={{ fontSize: 11, color: "#9ca3af" }}>+{storedFiles.length - 4} {txt("archivo(s) más", "more file(s)")}</div>
-            ) : null}
+          <div style={{ display: "grid", gap: 6, maxHeight: 180, overflowY: "auto", paddingRight: 2 }}>
+            {storedFiles
+              .filter((file) => !isStoredAttachmentRemoved(storedGroupKey, file))
+              .map((file, index) => {
+                const link = getAttachmentLink(file);
+                const fileName = normalizeText(file?.name) || `${txt("Archivo", "File")} ${index + 1}`;
+                return (
+                  <div key={`${getAttachmentIdentityKey(file)}-${index}`} style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                    <div style={{ fontSize: 11.5, color: "#374151", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1 }}>
+                      • {link
+                        ? <a href={link} target="_blank" rel="noreferrer" style={{ color: "#1d4ed8", textDecoration: "none", fontWeight: 600 }}>{fileName}</a>
+                        : fileName}
+                    </div>
+                    {link ? (
+                      <a
+                        href={link}
+                        target="_blank"
+                        rel="noreferrer"
+                        download
+                        style={{ border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", borderRadius: 7, fontSize: 11, fontWeight: 700, padding: "3px 8px", textDecoration: "none" }}
+                      >
+                        {txt("Descargar", "Download")}
+                      </a>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => markStoredAttachmentForRemoval(storedGroupKey, file)}
+                      style={{ border: "1px solid #fecaca", background: "#fff1f2", color: "#b91c1c", borderRadius: 7, fontSize: 11, fontWeight: 700, padding: "3px 8px", cursor: "pointer" }}
+                    >
+                      {txt("Eliminar", "Delete")}
+                    </button>
+                  </div>
+                );
+              })}
           </div>
         </div>
       ) : null}
@@ -827,11 +927,11 @@ export default function ServiceIdCarsManagePage({
         open={openSections.vehicleDocuments} onToggle={() => toggleSection("vehicleDocuments")}
         openLabel={txt("Abrir", "Open")} closeLabel={txt("Ocultar", "Hide")}>
         <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))" }}>
-          {renderFileUpload(txt("Fotos del vehículo", "Vehicle photos"), pendingPhotos, setPendingPhotos, photoInputRef, "image/*", "#2563eb", storedPhotos)}
-          {renderFileUpload(txt("Ficha técnica", "Technical sheet"), pendingTechnicalSheetDocuments, setPendingTechnicalSheetDocuments, technicalSheetInputRef, ".pdf,image/*", "#0f766e", storedTechnicalSheetDocuments)}
-          {renderFileUpload(txt("Permiso de circulación", "Circulation permit"), pendingCirculationPermitDocuments, setPendingCirculationPermitDocuments, circulationPermitInputRef, ".pdf,image/*", "#0f766e", storedCirculationPermitDocuments)}
-          {renderFileUpload(txt("Otros documentos", "Other documents"), pendingOtherDocuments, setPendingOtherDocuments, otherDocInputRef, ".pdf,image/*,.doc,.docx", "#7c3aed", storedOtherDocuments)}
-          {renderFileUpload(txt("Documentación ITV", "MOT documentation"), pendingItvDocuments, setPendingItvDocuments, itvInputRef, ".pdf,image/*", "#0f766e", storedItvDocuments)}
+          {renderFileUpload(txt("Fotos del vehículo", "Vehicle photos"), pendingPhotos, setPendingPhotos, photoInputRef, "image/*", "#2563eb", storedPhotos, "photos")}
+          {renderFileUpload(txt("Ficha técnica", "Technical sheet"), pendingTechnicalSheetDocuments, setPendingTechnicalSheetDocuments, technicalSheetInputRef, ".pdf,image/*", "#0f766e", storedTechnicalSheetDocuments, "technicalSheetDocuments")}
+          {renderFileUpload(txt("Permiso de circulación", "Circulation permit"), pendingCirculationPermitDocuments, setPendingCirculationPermitDocuments, circulationPermitInputRef, ".pdf,image/*", "#0f766e", storedCirculationPermitDocuments, "circulationPermitDocuments")}
+          {renderFileUpload(txt("Otros documentos", "Other documents"), pendingOtherDocuments, setPendingOtherDocuments, otherDocInputRef, ".pdf,image/*,.doc,.docx", "#7c3aed", storedOtherDocuments, "documents")}
+          {renderFileUpload(txt("Documentación ITV", "MOT documentation"), pendingItvDocuments, setPendingItvDocuments, itvInputRef, ".pdf,image/*", "#0f766e", storedItvDocuments, "itvDocuments")}
         </div>
       </SectionBlock>
 
@@ -844,7 +944,7 @@ export default function ServiceIdCarsManagePage({
           {renderField(txt("Cobertura", "Coverage"), "coverageType", { placeholder: txt("Todo riesgo, terceros...", "Full coverage, third-party...") })}
         </div>
         <div style={{ marginTop: 12 }}>
-          {renderFileUpload(txt("Documentos del seguro", "Insurance documents"), pendingInsuranceDocuments, setPendingInsuranceDocuments, insuranceDocInputRef, ".pdf,image/*", "#0f766e", storedInsuranceDocuments)}
+          {renderFileUpload(txt("Documentos del seguro", "Insurance documents"), pendingInsuranceDocuments, setPendingInsuranceDocuments, insuranceDocInputRef, ".pdf,image/*", "#0f766e", storedInsuranceDocuments, "insuranceDocuments")}
         </div>
       </SectionBlock>
 
@@ -861,7 +961,7 @@ export default function ServiceIdCarsManagePage({
             placeholder={txt("Detalle del mantenimiento", "Maintenance details")} rows={2} style={{ ...INPUT_STYLE, resize: "vertical" }} />
         </label>
         <div style={{ marginTop: 12 }}>
-          {renderFileUpload(txt("Facturas de mantenimiento", "Maintenance invoices"), pendingMaintenanceInvoices, setPendingMaintenanceInvoices, maintenanceInputRef, ".pdf,image/*", "#0f766e", storedMaintenanceInvoices)}
+          {renderFileUpload(txt("Facturas de mantenimiento", "Maintenance invoices"), pendingMaintenanceInvoices, setPendingMaintenanceInvoices, maintenanceInputRef, ".pdf,image/*", "#0f766e", storedMaintenanceInvoices, "maintenanceInvoices")}
         </div>
       </SectionBlock>
 

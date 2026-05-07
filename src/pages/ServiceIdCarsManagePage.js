@@ -31,6 +31,7 @@ function normalizeAttachmentItem(input = {}) {
     size: Number(safeInput?.size || 0),
     mimeType: normalizeText(safeInput?.mimeType || safeInput?.fileMimeType),
     contentBase64: normalizeText(safeInput?.contentBase64),
+    storageKey: normalizeText(safeInput?.storageKey),
     previewUrl: normalizeText(safeInput?.previewUrl),
     url: normalizeText(safeInput?.url),
     src: normalizeText(safeInput?.src),
@@ -131,14 +132,38 @@ function getGarageStorageKey(currentUserEmail = "") {
   return normalizedEmail ? `${GARAGE_STORAGE_PREFIX}.${normalizedEmail}` : GARAGE_STORAGE_PREFIX;
 }
 
-function readGarageVehicles(currentUserEmail = "") {
-  if (typeof window === "undefined") return [];
+function parseGarageStorageRaw(raw = "") {
   try {
-    const raw = window.localStorage.getItem(getGarageStorageKey(currentUserEmail));
     const parsed = JSON.parse(raw || "[]");
     return Array.isArray(parsed)
       ? parsed.map((item) => normalizeVehicleAttachmentCollections(item)).filter((item) => item && item.id)
       : [];
+  } catch {
+    return [];
+  }
+}
+
+function readGarageVehicles(currentUserEmail = "") {
+  if (typeof window === "undefined") return [];
+
+  const normalizedEmail = normalizeText(currentUserEmail).toLowerCase();
+
+  try {
+    const scopedRaw = window.localStorage.getItem(getGarageStorageKey(normalizedEmail));
+    const scopedItems = parseGarageStorageRaw(scopedRaw || "");
+    if (scopedItems.length > 0) {
+      return scopedItems;
+    }
+
+    if (normalizedEmail) {
+      const genericRaw = window.localStorage.getItem(GARAGE_STORAGE_PREFIX);
+      const genericItems = parseGarageStorageRaw(genericRaw || "");
+      if (genericItems.length > 0) {
+        return genericItems;
+      }
+    }
+
+    return [];
   } catch {
     return [];
   }
@@ -161,6 +186,10 @@ function buildVehicleTitle(vehicle = {}) {
 function resolvePhotoPreviewSrc(photo = {}) {
   const rawContent = normalizeText(photo?.contentBase64);
   const mimeType = normalizeText(photo?.mimeType || photo?.fileMimeType).toLowerCase() || "image/jpeg";
+  const storageKey = normalizeText(photo?.storageKey);
+  const pointerPath = storageKey.startsWith("fs:")
+    ? `/api/attachment-file?key=${encodeURIComponent(storageKey.slice(3))}&mimeType=${encodeURIComponent(mimeType)}&name=${encodeURIComponent(normalizeText(photo?.name || photo?.fileName) || "image")}`
+    : "";
 
   if (rawContent) {
     if (rawContent.startsWith("data:image/")) {
@@ -173,7 +202,7 @@ function resolvePhotoPreviewSrc(photo = {}) {
     }
   }
 
-  const externalSource = [photo?.previewUrl, photo?.url, photo?.src, photo?.imageUrl, photo?.path]
+  const externalSource = [photo?.previewUrl, photo?.url, photo?.src, photo?.imageUrl, photo?.path, pointerPath]
     .map((candidate) => normalizeText(candidate))
     .find((candidate) => candidate);
 
@@ -774,6 +803,12 @@ export default function ServiceIdCarsManagePage({
     if (pathLink) return pathLink;
     const urlLink = normalizeText(file?.url);
     if (urlLink) return urlLink;
+    const storageKey = normalizeText(file?.storageKey);
+    if (storageKey.startsWith("fs:")) {
+      const mimeType = normalizeText(file?.mimeType || file?.fileMimeType) || "application/octet-stream";
+      const fileName = normalizeText(file?.name || file?.fileName) || "archivo";
+      return `/api/attachment-file?key=${encodeURIComponent(storageKey.slice(3))}&mimeType=${encodeURIComponent(mimeType)}&name=${encodeURIComponent(fileName)}`;
+    }
     return "";
   };
 

@@ -22,6 +22,370 @@
 			"type": "shell",
 			"command": "node scripts/scrape-cochesnet-playwright.js --seed-urls-url https://raw.githubusercontent.com/davidsandovalrodriguez/cochesscraping/main/OutdatedCarLinks/car_links_2025-02-23_14-18.txt --max-urls 120 --concurrency 1 --max-retries 4 --persist-sqlserver --output data/cochesnet-seed-batch.json",
 			"isBackground": false
+		},
+		{
+			"label": "cap-open-android",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"cap:open:android"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "marketplace-seed-db",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"marketplace:seed:db"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "marketplace-seed-db-refresh",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"marketplace:seed:db"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-status-short-temp",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-diff-marketplace-targets-temp",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"diff",
+				"--",
+				"lib/api/marketplace-vo-handler.js",
+				"src/App.js",
+				"scripts/seed-marketplace-vo.js"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-add-marketplace-fix-temp",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"add",
+				"lib/api/marketplace-vo-handler.js",
+				"src/App.js",
+				"scripts/seed-marketplace-vo.js"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-unstage-app-temp",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"restore",
+				"--staged",
+				"src/App.js"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-branch-current-temp",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"branch",
+				"--show-current"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-commit-marketplace-fix-temp",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"commit",
+				"-m",
+				"fix: isolate marketplace VO source and restore seeded images"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-push-main-temp",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"push",
+				"origin",
+				"main"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-diff-appjs-only",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"diff",
+				"--",
+				"src/App.js"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-diff-appjs-grep",
+			"type": "shell",
+			"command": "pwsh",
+			"args": [
+				"-NoLogo",
+				"-NoProfile",
+				"-Command",
+				"git diff -- src/App.js | rg -n \"postgres-marketplace-table|isDedicatedSource|marketplaceNavItems|marketplace|source\""
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-diff-appjs-grep2",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoLogo",
+				"-NoProfile",
+				"-Command",
+				"git diff -- src/App.js | Select-String -Pattern 'postgres-marketplace-table|isDedicatedSource|marketplaceNavItems|marketplace|source'"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-diff-appjs-summary",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"git diff -- src/App.js | findstr /n /c:\"@@\" /c:\"postgres-marketplace-table\" /c:\"isDedicatedSource\" /c:\"Marketplace VO\" /c:\"marketplaceNavItems\""
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-diff-appjs-summary2",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"git diff -- src/App.js | findstr /n /c:\"@@\" /c:\"postgres-marketplace-table\" /c:\"isDedicatedSource\" /c:\"marketplaceNavItems\""
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-diff-appjs-full",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"diff",
+				"--",
+				"src/App.js",
+				"-U5"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-diff-appjs-target-hunk",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoLogo",
+				"-NoProfile",
+				"-Command",
+				"$d = git diff -- src/App.js; $s = ($d | Select-String '@@ -1432,8 \\+1441,10 @@').LineNumber; if ($s) { $tail = $d[$s-1..($d.Length-1)]; $n = ($tail | Select-String '^@@' | Select-Object -Skip 1 -First 1).LineNumber; if ($n) { $tail[0..($n-2)] } else { $tail } }"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-diff-appjs-target-hunk-node",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"-e",
+				"const cp=require('child_process');const d=cp.execSync('git diff -- src/App.js',{encoding:'utf8'});const lines=d.split(/\\r?\\n/);const start=lines.findIndex(l=>l.includes('@@ -1432,8 +1441,10 @@'));if(start===-1){console.log('hunk-not-found');process.exit(0);}let end=lines.length;for(let i=start+1;i<lines.length;i++){if(lines[i].startsWith('@@')){end=i;break;}}console.log(lines.slice(start,end).join('\\n'));"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "run-tmp-diff-app-hunk",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"scripts/tmp_diff_app_hunk.js"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "stage-app-hardening-hunk",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"apply",
+				"--cached",
+				"--unidiff-zero",
+				"scripts/tmp_app_hardening.patch"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "stage-app-hardening-hunk-2",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"apply",
+				"--cached",
+				"scripts/tmp_app_hardening.patch"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "backup-appjs-before-commit",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"copy /Y src\\App.js tmp_App_before_commit.js"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "restore-appjs-head",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"checkout",
+				"--",
+				"src/App.js"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "stage-appjs-only",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"add",
+				"src/App.js"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "commit-appjs-hardening",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"commit",
+				"-m",
+				"fix: enforce dedicated marketplace VO source in frontend sync"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "push-main-after-appjs",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"push",
+				"origin",
+				"main"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "restore-appjs-local-extras",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"copy /Y tmp_App_before_commit.js src\\App.js"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "cleanup-temp-files-appjs-commit",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"del /Q tmp_App_before_commit.js scripts\\tmp_diff_app_hunk.js scripts\\tmp_app_hardening.patch"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "verify-post-push-status-appjs",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short",
+				"src/App.js"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "verify-last-commit",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"log",
+				"-1",
+				"--oneline"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-check-push-state-now",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"-sb"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-last-local-remote",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"git log -1 --oneline && git log -1 --oneline origin/main"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-status-before-full-push",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-add-all-full-push",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"add",
+				"-A"
+			],
+			"isBackground": false
 		}
 	]
 }

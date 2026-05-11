@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@capacitor/android": "^8.3.2",
+    "@capacitor/cli": "^8.3.2",
+    "@capacitor/core": "^8.3.2",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -47,12 +50,16 @@
     "inventory:scrape:live:sqlserver": "python scrapers/main.py --mode live --tiers tier1,tier2,tier3 --allow-planned --persist-sqlserver",
     "inventory:scrape:all:sqlserver": "python scrapers/main.py --mode live --tiers tier1,tier2,tier3 --allow-planned --crawl-all --max-pages-per-platform 40 --max-links-per-platform 3000 --persist-sqlserver",
     "inventory:scrape:massive:sqlserver": "powershell -NoProfile -Command \"$env:INVENTORY_SYNC_BATCH_SIZE='1000'; python scrapers/main.py --mode live --tiers tier1,tier2,tier3 --allow-planned --crawl-all --max-pages-per-platform 120 --max-links-per-platform 12000 --persist-sqlserver\"",
+    "marketplace:seed:db": "node scripts/seed-marketplace-vo.js",
     "inventory:schedule:register": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/register-inventory-sqlserver-schedule.ps1",
     "migrate:attachments:sqlserver": "node scripts/migrate-attachments-filesystem-sqlserver.js",
     "migrate:sqlserver-to-postgres": "node scripts/migrate-sqlserver-to-postgres.js",
     "cleanup:test-users-local": "node scripts/cleanup-test-users-sqlserver.js",
     "test:ranking": "node scripts/find-listing-ranking-local.js",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "build:android": "powershell -NoProfile -Command \"$env:REACT_APP_API_BASE_URL='https://www.carswiseai.com'; npm run build; npx cap sync android\"",
+    "cap:sync": "npx cap sync",
+    "cap:open:android": "npx cap open android"
   },
   "proxy": "http://localhost:3001",
   "eslintConfig": {

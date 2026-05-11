@@ -1194,6 +1194,10 @@ export default function App() {
       return "sell";
     }
 
+    if (entryMode === "portalVo") {
+      return "marketplaceVo";
+    }
+
     if (entryMode === "plans") {
       return "plans";
     }
@@ -1237,6 +1241,11 @@ export default function App() {
       onClick: () => openInternalLandingFlow("sellOptions"),
     },
     {
+      key: "marketplaceVo",
+      label: uiLanguage === "en" ? "VO Marketplace" : "Marketplace de VO",
+      onClick: () => goToPublicHeaderPage("portalVo"),
+    },
+    {
       key: "plans",
       label: uiLanguage === "en" ? "Plans ▾" : "Planes ▾",
       onClick: () => {
@@ -1254,7 +1263,7 @@ export default function App() {
         setShowHeaderMoreNav((prev) => !prev);
       },
     },
-  ], [goToHomeHeaderPage, openInternalLandingFlow, uiLanguage]);
+  ], [goToHomeHeaderPage, goToPublicHeaderPage, openInternalLandingFlow, uiLanguage]);
 
   const headerPlansNavItems = useMemo(() => [
     {

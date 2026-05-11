@@ -1,17 +1,19 @@
-export const ANALYZE_API_ENDPOINT = "/api/analyze";
-export const LISTING_API_ENDPOINT = "/api/find-listing";
-export const ALERT_EMAIL_API_ENDPOINT = "/api/send-alert-email";
-export const AUTH_API_ENDPOINT = "/api/auth";
-export const VEHICLE_CATALOG_API_ENDPOINT = "/api/vehicle-catalog";
-export const VEHICLE_CATALOG_ADMIN_API_ENDPOINT = "/api/vehicle-catalog";
-export const BILLING_CHECKOUT_API_ENDPOINT = "/api/billing-checkout";
-export const BILLING_PORTAL_API_ENDPOINT = "/api/billing-portal";
-export const BILLING_ACCOUNT_API_ENDPOINT = "/api/billing-account";
-export const ERP_CATALOG_API_ENDPOINT = "/api/erp-catalog";
-export const WORKSHOPS_NEARBY_API_ENDPOINT = "/api/workshops-nearby";
-export const WORKSHOP_AVAILABILITY_API_ENDPOINT = "/api/workshop-availability";
-export const MARKET_PRICE_API_ENDPOINT = "/api/market-price";
-export const MARKETPLACE_VO_API_ENDPOINT = "/api/marketplace-vo";
+const API_BASE = process.env.REACT_APP_API_BASE_URL || '';
+
+export const ANALYZE_API_ENDPOINT = `${API_BASE}/api/analyze`;
+export const LISTING_API_ENDPOINT = `${API_BASE}/api/find-listing`;
+export const ALERT_EMAIL_API_ENDPOINT = `${API_BASE}/api/send-alert-email`;
+export const AUTH_API_ENDPOINT = `${API_BASE}/api/auth`;
+export const VEHICLE_CATALOG_API_ENDPOINT = `${API_BASE}/api/vehicle-catalog`;
+export const VEHICLE_CATALOG_ADMIN_API_ENDPOINT = `${API_BASE}/api/vehicle-catalog`;
+export const BILLING_CHECKOUT_API_ENDPOINT = `${API_BASE}/api/billing-checkout`;
+export const BILLING_PORTAL_API_ENDPOINT = `${API_BASE}/api/billing-portal`;
+export const BILLING_ACCOUNT_API_ENDPOINT = `${API_BASE}/api/billing-account`;
+export const ERP_CATALOG_API_ENDPOINT = `${API_BASE}/api/erp-catalog`;
+export const WORKSHOPS_NEARBY_API_ENDPOINT = `${API_BASE}/api/workshops-nearby`;
+export const WORKSHOP_AVAILABILITY_API_ENDPOINT = `${API_BASE}/api/workshop-availability`;
+export const MARKET_PRICE_API_ENDPOINT = `${API_BASE}/api/market-price`;
+export const MARKETPLACE_VO_API_ENDPOINT = `${API_BASE}/api/marketplace-vo`;
 
 export function getErpBrandsJson(options = {}) {
   return fetch(`${ERP_CATALOG_API_ENDPOINT}?scope=brands`, { credentials: "include", ...options });

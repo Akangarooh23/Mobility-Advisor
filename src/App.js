@@ -1432,8 +1432,10 @@ export default function App() {
       try {
         const { data } = await getMarketplaceVoJson({ limit: 800 });
         const apiOffers = Array.isArray(data?.offers) ? data.offers : [];
+        const source = String(data?.source || "").toLowerCase();
+        const isDedicatedSource = source === "postgres-marketplace-table";
 
-        if (isMounted && apiOffers.length > 0) {
+        if (isMounted && isDedicatedSource && apiOffers.length > 0) {
           setPortalVoOffersLive(apiOffers);
         }
       } catch {

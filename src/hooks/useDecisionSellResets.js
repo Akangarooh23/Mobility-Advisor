@@ -31,6 +31,9 @@ export function useSellResetState({
   setSellListingResult,
   setSellListingError,
   setSellListingLoading,
+  setSellMarketSnapshot,
+  setSellMarketSnapshotError,
+  setSellMarketSnapshotLoading,
 }) {
   useEffect(() => {
     setSellAiResult((prev) => (prev === null ? prev : null));
@@ -38,6 +41,15 @@ export function useSellResetState({
     setSellListingResult((prev) => (prev === null ? prev : null));
     setSellListingError((prev) => (prev === null ? prev : null));
     setSellListingLoading((prev) => (prev === false ? prev : false));
+    if (typeof setSellMarketSnapshot === "function") {
+      setSellMarketSnapshot((prev) => (prev === null ? prev : null));
+    }
+    if (typeof setSellMarketSnapshotError === "function") {
+      setSellMarketSnapshotError((prev) => (prev === "" ? prev : ""));
+    }
+    if (typeof setSellMarketSnapshotLoading === "function") {
+      setSellMarketSnapshotLoading((prev) => (prev === false ? prev : false));
+    }
   }, [
     sellAnswers,
     setSellAiResult,
@@ -45,5 +57,8 @@ export function useSellResetState({
     setSellListingResult,
     setSellListingError,
     setSellListingLoading,
+    setSellMarketSnapshot,
+    setSellMarketSnapshotError,
+    setSellMarketSnapshotLoading,
   ]);
 }

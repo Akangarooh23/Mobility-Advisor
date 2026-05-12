@@ -4,7 +4,7 @@ import {
   getErpBrandsJson,
   getErpModelsJson,
   getErpVersionsJson,
-  getGarageVehiclesJson,
+  getGarageVehicleSummariesJson,
 } from "../utils/apiClient";
 import "./SellReportMarketPage.css";
 
@@ -19,6 +19,68 @@ function normalizeMatchToken(value) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
+const GARAGE_STORAGE_PREFIX = "movilidadAdvisorGarage";
+const DASHBOARD_GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
+
+function getGarageStorageKey(currentUserEmail = "") {
+  const normalizedEmail = normalizeText(currentUserEmail).toLowerCase();
+  return normalizedEmail ? `${GARAGE_STORAGE_PREFIX}.${normalizedEmail}` : GARAGE_STORAGE_PREFIX;
+}
+
+function getDashboardGarageStorageKey(currentUserEmail = "") {
+  const normalizedEmail = normalizeText(currentUserEmail).toLowerCase();
+  return normalizedEmail ? `${DASHBOARD_GARAGE_STORAGE_PREFIX}.${normalizedEmail}` : DASHBOARD_GARAGE_STORAGE_PREFIX;
+}
+
+function readGarageVehiclesCache(currentUserEmail = "") {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const keys = [
+      getGarageStorageKey(currentUserEmail),
+      getDashboardGarageStorageKey(currentUserEmail),
+    ];
+
+    const byId = new Map();
+    keys.forEach((key) => {
+      const raw = window.localStorage.getItem(key);
+      const parsed = JSON.parse(raw || "[]");
+      if (!Array.isArray(parsed)) {
+        return;
+      }
+
+      parsed.forEach((item) => {
+        const id = normalizeText(item?.id);
+        if (id && !byId.has(id)) {
+          byId.set(id, item);
+        }
+      });
+    });
+
+    return Array.from(byId.values());
+  } catch {
+    return [];
+  }
+}
+
+function writeGarageVehiclesCache(currentUserEmail = "", vehicles = []) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    const safeVehicles = Array.isArray(vehicles)
+      ? vehicles.filter((item) => item && normalizeText(item?.id)).slice(0, 30)
+      : [];
+    window.localStorage.setItem(getGarageStorageKey(currentUserEmail), JSON.stringify(safeVehicles));
+    window.localStorage.setItem(getDashboardGarageStorageKey(currentUserEmail), JSON.stringify(safeVehicles));
+  } catch {
+    // Ignore storage errors and continue with runtime state.
+  }
+}
+
 function buildIdCarLabel(vehicle = {}, fallbackIndex = 0) {
   const title = normalizeText(vehicle?.title);
   const brand = normalizeText(vehicle?.brand);
@@ -31,8 +93,53 @@ function buildIdCarLabel(vehicle = {}, fallbackIndex = 0) {
 }
 
 function pickNumber(value, fallback) {
-  const numeric = Number(String(value ?? "").replace(/[.,]/g, ""));
+  if (typeof value === "number") {
+    return Number.isFinite(value) && value > 0 ? value : fallback;
+  }
+
+  const text = String(value ?? "").trim();
+  if (!text) {
+    return fallback;
+  }
+
+  const clean = text.replace(/[^\d.,-]/g, "");
+  const hasCommaDecimal = /,\d{1,2}$/.test(clean);
+  const hasDotDecimal = /\.\d{1,2}$/.test(clean);
+  let normalized = clean;
+
+  if (hasCommaDecimal) {
+    normalized = clean.replace(/\./g, "").replace(",", ".");
+  } else if (hasDotDecimal) {
+    normalized = clean.replace(/,/g, "");
+  } else {
+    normalized = clean.replace(/[.,]/g, "");
+  }
+
+  const numeric = Number(normalized);
   return Number.isFinite(numeric) && numeric > 0 ? numeric : fallback;
+}
+
+function parseEstimatedDays(value) {
+  const text = String(value ?? "");
+  if (!text.trim()) {
+    return 0;
+  }
+
+  const matches = text.match(/\d+/g);
+  if (!Array.isArray(matches) || matches.length === 0) {
+    return 0;
+  }
+
+  const numbers = matches
+    .map((item) => Number(item))
+    .filter((item) => Number.isFinite(item) && item > 0);
+
+  if (numbers.length === 0) {
+    return 0;
+  }
+
+  const average = numbers.reduce((acc, item) => acc + item, 0) / numbers.length;
+  return Math.round(average);
 }
 
 function currencyEUR(value, formatCurrency) {
@@ -40,6 +147,27 @@ function currencyEUR(value, formatCurrency) {
     return formatCurrency(value);
   }
   return `${Math.round(value).toLocaleString("es-ES")}€`;
+}
+
+function findCatalogItemByToken(items = [], token = "", getLabel = (item) => item?.name) {
+  if (!Array.isArray(items) || !token) {
+    return null;
+  }
+
+  const normalizedToken = normalizeMatchToken(token);
+  if (!normalizedToken) {
+    return null;
+  }
+
+  const exact = items.find((item) => normalizeMatchToken(getLabel(item)) === normalizedToken);
+  if (exact) {
+    return exact;
+  }
+
+  return items.find((item) => {
+    const label = normalizeMatchToken(getLabel(item));
+    return label.includes(normalizedToken) || normalizedToken.includes(label);
+  }) || null;
 }
 
 const DAMAGE_OPTIONS = [
@@ -80,20 +208,41 @@ export default function SellReportMarketPage({
   const [garageVehiclesLoading, setGarageVehiclesLoading] = useState(false);
 
   const translateFuelOption = (fuel) => {
-    const normalized = normalizeText(fuel).toLowerCase();
+    const raw = normalizeText(fuel);
+    const normalized = normalizeMatchToken(raw);
     const mapping = {
       gasolina: "sell.fuelGas",
       gasoline: "sell.fuelGas",
+      "sell.fuelgas": "sell.fuelGas",
       "diésel": "sell.fuelDiesel",
       diesel: "sell.fuelDiesel",
+      "sell.fueldiesel": "sell.fuelDiesel",
       híbrido: "sell.fuelHybrid",
       hybrid: "sell.fuelHybrid",
+      "sell.fuelhybrid": "sell.fuelHybrid",
       phev: "sell.fuelPHEV",
+      "sell.fuelphev": "sell.fuelPHEV",
       eléctrico: "sell.fuelElectric",
       electrico: "sell.fuelElectric",
       electric: "sell.fuelElectric",
+      "sell.fuelelectric": "sell.fuelElectric",
     };
-    return t(mapping[normalized] || fuel);
+
+    const mappedKey = mapping[normalized] || raw;
+    const translated = t(mappedKey);
+    if (translated !== mappedKey) {
+      return translated;
+    }
+
+    if (mappedKey.startsWith("sell.")) {
+      const unprefixed = mappedKey.slice(5);
+      const fallback = t(unprefixed);
+      if (fallback !== unprefixed) {
+        return fallback;
+      }
+    }
+
+    return raw;
   };
   const [selectedIdCarId, setSelectedIdCarId] = useState("");
   const [idCarPromptVisible, setIdCarPromptVisible] = useState(false);
@@ -102,22 +251,125 @@ export default function SellReportMarketPage({
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from({ length: currentYear - 2013 }, (_, index) => currentYear - index);
 
+  const normalizedYear = normalizeText(sellAnswers?.year).toLowerCase();
+  const normalizedFuel = normalizeMatchToken(sellAnswers?.fuel);
+  const normalizedDamageLevel = normalizeMatchToken(sellAnswers?.damageLevel);
+  const vehicleYear = normalizedYear === "anterior"
+    ? 2013
+    : pickNumber(sellAnswers?.year, currentYear);
+  const vehicleAge = Math.max(0, currentYear - vehicleYear);
+  const vehicleMileage = pickNumber(sellAnswers?.mileage, 0);
+
+  const fuelUnitsAdjust = normalizedFuel.includes("electric") || normalizedFuel.includes("electrico")
+    ? -16
+    : normalizedFuel.includes("phev")
+      ? -8
+      : normalizedFuel.includes("hybrid") || normalizedFuel.includes("hibrido")
+        ? -4
+        : normalizedFuel.includes("diesel")
+          ? 8
+          : 0;
+
+  const fuelDaysAdjust = normalizedFuel.includes("electric") || normalizedFuel.includes("electrico")
+    ? 10
+    : normalizedFuel.includes("phev")
+      ? 6
+      : normalizedFuel.includes("hybrid") || normalizedFuel.includes("hibrido")
+        ? -2
+        : normalizedFuel.includes("diesel")
+          ? 2
+          : 0;
+
+  const damageUnitsAdjust = normalizedDamageLevel.includes("major") || normalizedDamageLevel.includes("graves")
+    ? -16
+    : normalizedDamageLevel.includes("moderate") || normalizedDamageLevel.includes("moderados")
+      ? -10
+      : normalizedDamageLevel.includes("minor") || normalizedDamageLevel.includes("leves")
+        ? -5
+        : 0;
+
+  const damageDaysAdjust = normalizedDamageLevel.includes("major") || normalizedDamageLevel.includes("graves")
+    ? 18
+    : normalizedDamageLevel.includes("moderate") || normalizedDamageLevel.includes("moderados")
+      ? 11
+      : normalizedDamageLevel.includes("minor") || normalizedDamageLevel.includes("leves")
+        ? 5
+        : 0;
+
+  const derivedUnitsFromInputs = Math.max(
+    10,
+    Math.min(240, Math.round(170 - vehicleAge * 8 - vehicleMileage / 14000 + fuelUnitsAdjust + damageUnitsAdjust))
+  );
+  const derivedDaysFromInputs = Math.max(
+    10,
+    Math.min(140, Math.round(16 + vehicleAge * 2 + vehicleMileage / 18000 + fuelDaysAdjust + damageDaysAdjust))
+  );
+
   const marketMean = pickNumber(sellEstimate?.targetPrice, 14850);
   const marketLow = pickNumber(sellEstimate?.lowPrice, 12200);
   const marketHigh = pickNumber(sellEstimate?.highPrice, 17500);
-  const marketUnits = pickNumber(
+  const estimateUnits = pickNumber(sellEstimate?.similarUnits, derivedUnitsFromInputs);
+  const aiUnits = pickNumber(
     sellAiResult?.argumentos_clave?.length ? 140 + sellAiResult.argumentos_clave.length * 12 : 0,
-    187
+    0
   );
-  const marketDays = pickNumber((sellAiResult?.tiempo_estimado_venta || "").match(/\d+/)?.[0], 38);
+  const marketUnits = Math.max(
+    10,
+    Math.min(240, Math.round(estimateUnits * 0.45 + (aiUnits || derivedUnitsFromInputs) * 0.25 + derivedUnitsFromInputs * 0.3))
+  );
+  const marketDays = pickNumber(parseEstimatedDays(sellAiResult?.tiempo_estimado_venta), derivedDaysFromInputs);
 
-  const snapshotMean = pickNumber(sellMarketSnapshot?.market?.mean, marketMean);
-  const snapshotLow = pickNumber(sellMarketSnapshot?.market?.p25, marketLow);
-  const snapshotHigh = pickNumber(sellMarketSnapshot?.market?.p75, marketHigh);
-  const snapshotUnits = pickNumber(sellMarketSnapshot?.comparables, marketUnits);
-  const snapshotDays = pickNumber(sellMarketSnapshot?.market?.daysOnMarketMedian, marketDays);
+  const damagePriceFactor = normalizedDamageLevel.includes("major") || normalizedDamageLevel.includes("graves")
+    ? 0.84
+    : normalizedDamageLevel.includes("moderate") || normalizedDamageLevel.includes("moderados")
+      ? 0.91
+      : normalizedDamageLevel.includes("minor") || normalizedDamageLevel.includes("leves")
+        ? 0.97
+        : 1;
+  const damageUnitsFactor = normalizedDamageLevel.includes("major") || normalizedDamageLevel.includes("graves")
+    ? 0.72
+    : normalizedDamageLevel.includes("moderate") || normalizedDamageLevel.includes("moderados")
+      ? 0.84
+      : normalizedDamageLevel.includes("minor") || normalizedDamageLevel.includes("leves")
+        ? 0.93
+        : 1;
+  const damageDaysFactor = normalizedDamageLevel.includes("major") || normalizedDamageLevel.includes("graves")
+    ? 1.52
+    : normalizedDamageLevel.includes("moderate") || normalizedDamageLevel.includes("moderados")
+      ? 1.3
+      : normalizedDamageLevel.includes("minor") || normalizedDamageLevel.includes("leves")
+        ? 1.12
+        : 1;
+
+  const rawSnapshotMean = pickNumber(sellMarketSnapshot?.market?.mean, marketMean);
+  const rawSnapshotLow = pickNumber(sellMarketSnapshot?.market?.p25, marketLow);
+  const rawSnapshotHigh = pickNumber(sellMarketSnapshot?.market?.p75, marketHigh);
+  const rawSnapshotUnits = pickNumber(sellMarketSnapshot?.comparables, marketUnits);
+  const rawSnapshotDays = pickNumber(sellMarketSnapshot?.market?.daysOnMarketMedian, marketDays);
+
+  const snapshotMean = Math.max(2500, Math.round(rawSnapshotMean * damagePriceFactor));
+  const snapshotLowBase = Math.max(2200, Math.round(rawSnapshotLow * damagePriceFactor));
+  const snapshotHighBase = Math.max(snapshotLowBase + 400, Math.round(rawSnapshotHigh * damagePriceFactor));
+  const snapshotLow = Math.min(snapshotLowBase, snapshotHighBase - 200);
+  const snapshotHigh = Math.max(snapshotLow + 200, snapshotHighBase);
+  const snapshotUnits = Math.max(8, Math.round(rawSnapshotUnits * damageUnitsFactor));
+  const snapshotDays = Math.max(8, Math.round(rawSnapshotDays * damageDaysFactor));
   const marketUpdatedAt = normalizeText(sellMarketSnapshot?.market?.updatedAt);
   const marketSource = normalizeText(sellMarketSnapshot?.source);
+  const hasSnapshotPortals = Array.isArray(sellMarketSnapshot?.byPortal) && sellMarketSnapshot.byPortal.length > 0;
+  const hasSnapshotMean = pickNumber(sellMarketSnapshot?.market?.mean, 0) > 0;
+  const hasSnapshotUnits = pickNumber(sellMarketSnapshot?.comparables, 0) > 0;
+  const hasRealMarketSnapshot = Boolean(sellMarketSnapshot?.ok) && (hasSnapshotPortals || hasSnapshotMean || hasSnapshotUnits);
+  const updatedAtDate = marketUpdatedAt ? new Date(marketUpdatedAt) : null;
+  const hasValidUpdatedAt = updatedAtDate instanceof Date && !Number.isNaN(updatedAtDate.getTime());
+  const isEnglish = (i18n.resolvedLanguage || "").toLowerCase().startsWith("en");
+  const estimatedReferenceText = isEnglish
+    ? "Estimated reference (no live portal sample yet)."
+    : "Referencia estimada (sin muestra real de portales todavía).";
+  const realReferenceText = isEnglish
+    ? "Live market reference from comparables."
+    : "Referencia real obtenida de comparables de mercado.";
+  const daySuffix = isEnglish ? "d" : "d.";
 
   const defaultPortalRows = [
     {
@@ -169,7 +421,9 @@ export default function SellReportMarketPage({
       })
     : [];
 
-  const portalRows = snapshotPortalRows.length > 0 ? snapshotPortalRows : defaultPortalRows;
+  const portalRows = hasRealMarketSnapshot
+    ? snapshotPortalRows
+    : defaultPortalRows;
 
   useEffect(() => {
     if (!normalizeText(currentUserEmail)) {
@@ -179,19 +433,32 @@ export default function SellReportMarketPage({
     }
 
     let cancelled = false;
+    const normalizedEmail = normalizeText(currentUserEmail).toLowerCase();
+    const cachedVehicles = readGarageVehiclesCache(normalizedEmail);
+    if (cachedVehicles.length > 0) {
+      setGarageVehicles(cachedVehicles.filter((item) => item && normalizeText(item?.id)));
+    }
+
     setGarageVehiclesLoading(true);
-    getGarageVehiclesJson(normalizeText(currentUserEmail).toLowerCase())
-      .then(({ data }) => {
-        if (!cancelled) {
-          setGarageVehicles(Array.isArray(data?.vehicles) ? data.vehicles.filter((item) => item && normalizeText(item?.id)) : []);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6500);
+    getGarageVehicleSummariesJson(normalizedEmail, { signal: controller.signal })
+      .then(({ response, data }) => {
+        if (!cancelled && response?.ok) {
+          const nextVehicles = Array.isArray(data?.vehicles)
+            ? data.vehicles.filter((item) => item && normalizeText(item?.id))
+            : [];
+          setGarageVehicles(nextVehicles);
+          writeGarageVehiclesCache(normalizedEmail, nextVehicles);
         }
       })
       .catch(() => {
-        if (!cancelled) {
+        if (!cancelled && cachedVehicles.length === 0) {
           setGarageVehicles([]);
         }
       })
       .finally(() => {
+        clearTimeout(timeoutId);
         if (!cancelled) {
           setGarageVehiclesLoading(false);
         }
@@ -199,6 +466,7 @@ export default function SellReportMarketPage({
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [currentUserEmail]);
 
@@ -255,7 +523,7 @@ export default function SellReportMarketPage({
       return;
     }
 
-    const brand = erpBrands.find((item) => normalizeMatchToken(item?.name) === brandToken);
+    const brand = findCatalogItemByToken(erpBrands, brandToken, (item) => item?.name);
     if (!brand) {
       setErpSelectedBrandId("");
       setErpSelectedModelId("");
@@ -271,7 +539,7 @@ export default function SellReportMarketPage({
       const modelData = await modelResponse.json();
       const nextModels = Array.isArray(modelData?.models) ? modelData.models : [];
       setErpModels(nextModels);
-      const model = nextModels.find((item) => normalizeMatchToken(item?.name) === modelToken);
+      const model = findCatalogItemByToken(nextModels, modelToken, (item) => item?.name);
       if (!model) {
         setErpSelectedModelId("");
         setErpVersions([]);
@@ -283,11 +551,11 @@ export default function SellReportMarketPage({
       const versionResponse = await getErpVersionsJson(model.id, brand.id);
       const versionData = await versionResponse.json();
       const fetchedVersions = Array.isArray(versionData?.versions) ? versionData.versions : [];
-      const version = fetchedVersions.find((item) => {
-        const labelToken = normalizeMatchToken(item?.label);
-        const codeToken = normalizeMatchToken(item?.codversion);
-        return labelToken === versionToken || codeToken === versionToken;
-      });
+      const version = findCatalogItemByToken(
+        fetchedVersions,
+        versionToken,
+        (item) => `${normalizeText(item?.label)} ${normalizeText(item?.codversion)}`
+      );
       const fallbackVersionLabel = normalizeText(vehicle?.version);
       const fallbackVersion = !version && fallbackVersionLabel
         ? {
@@ -312,6 +580,19 @@ export default function SellReportMarketPage({
       setErpVersionsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!selectedIdCarId || erpBrands.length === 0 || garageVehicles.length === 0) {
+      return;
+    }
+
+    const vehicle = garageVehicles.find((item) => normalizeText(item?.id) === normalizeText(selectedIdCarId));
+    if (!vehicle) {
+      return;
+    }
+
+    void syncVehicleToErpSelectors(vehicle);
+  }, [selectedIdCarId, erpBrands, garageVehicles]);
 
   const handleAnalyzeClick = () => {
     if (garageVehicles.length > 0 && !selectedIdCarId) {
@@ -379,51 +660,55 @@ export default function SellReportMarketPage({
                 <div className="step-title">{t("sell.step1Title")}</div>
                 <div className="step-desc">{t("sell.step1Desc")}</div>
                 <div className="form-section">
-                  {garageVehicles.length > 0 ? (
-                    <div className="field-grid" style={{ marginBottom: "0.85rem" }}>
-                      <div className="field field-full-row">
-                        <label>{t("sell.useIdCar")}</label>
-                        <div className="sel-wrap">
-                          <select
-                            ref={idCarSelectRef}
-                            value={selectedIdCarId}
-                            disabled={garageVehiclesLoading}
-                            onChange={(event) => {
-                              const vehicleId = event.target.value;
-                              setSelectedIdCarId(vehicleId);
-                              setIdCarPromptVisible(false);
-                              const vehicle = garageVehicles.find((item) => normalizeText(item?.id) === normalizeText(vehicleId));
-                              if (!vehicle) {
-                                return;
-                              }
+                  <div className="field-grid" style={{ marginBottom: "0.85rem" }}>
+                    <div className="field field-full-row">
+                      <label>{t("sell.useIdCar")}</label>
+                      <div className="sel-wrap">
+                        <select
+                          ref={idCarSelectRef}
+                          value={selectedIdCarId}
+                          disabled={garageVehiclesLoading}
+                          onChange={(event) => {
+                            const vehicleId = event.target.value;
+                            setSelectedIdCarId(vehicleId);
+                            setIdCarPromptVisible(false);
+                            const vehicle = garageVehicles.find((item) => normalizeText(item?.id) === normalizeText(vehicleId));
+                            if (!vehicle) {
+                              return;
+                            }
 
-                              setSellAnswers((prev) => ({
-                                ...prev,
-                                plate: normalizeText(vehicle?.plate),
-                                brand: normalizeText(vehicle?.brand),
-                                model: normalizeText(vehicle?.model),
-                                version: normalizeText(vehicle?.version),
-                                year: normalizeText(vehicle?.year),
-                                mileage: normalizeText(vehicle?.mileage),
-                                fuel: normalizeText(vehicle?.fuel) || prev.fuel || fuelOptions?.[0] || "",
-                              }));
+                            setSellAnswers((prev) => ({
+                              ...prev,
+                              plate: normalizeText(vehicle?.plate),
+                              brand: normalizeText(vehicle?.brand),
+                              model: normalizeText(vehicle?.model),
+                              version: normalizeText(vehicle?.version),
+                              year: normalizeText(vehicle?.year),
+                              mileage: normalizeText(vehicle?.mileage),
+                              fuel: normalizeText(vehicle?.fuel) || prev.fuel || fuelOptions?.[0] || "",
+                            }));
 
-                              void syncVehicleToErpSelectors(vehicle);
-                            }}
-                          >
-                            <option value="">{garageVehiclesLoading ? t("sell.loadingIdCars") : t("sell.selectYourIdCar")}</option>
-                            {garageVehicles.map((vehicle, index) => (
-                              <option key={vehicle.id} value={vehicle.id}>{buildIdCarLabel(vehicle, index)}</option>
-                            ))}
-                          </select>
-                          <div className="sel-arrow">▾</div>
-                        </div>
-                        {idCarPromptVisible ? (
-                          <div className="sell-market-idcar-hint">{t("sell.selectIdCarHint")}</div>
-                        ) : null}
+                            void syncVehicleToErpSelectors(vehicle);
+                          }}
+                        >
+                          <option value="">
+                            {garageVehiclesLoading
+                              ? t("sell.loadingIdCars")
+                              : garageVehicles.length > 0
+                                ? t("sell.selectYourIdCar")
+                                : t("sell.noIdCarsYet")}
+                          </option>
+                          {garageVehicles.map((vehicle, index) => (
+                            <option key={vehicle.id} value={vehicle.id}>{buildIdCarLabel(vehicle, index)}</option>
+                          ))}
+                        </select>
+                        <div className="sel-arrow">▾</div>
                       </div>
+                      {idCarPromptVisible ? (
+                        <div className="sell-market-idcar-hint">{t("sell.selectIdCarHint")}</div>
+                      ) : null}
                     </div>
-                  ) : null}
+                  </div>
 
                   <div className="field-grid">
                     <div className="field">
@@ -655,6 +940,9 @@ export default function SellReportMarketPage({
                 <div className="step-label">{t("sell.step2Label")}</div>
                 <div className="step-title">{t("sell.step2Title")}</div>
                 <div className="step-desc">{t("sell.step2Desc")}</div>
+                <div className="sell-market-idcar-hint" style={{ marginTop: "0.35rem", marginBottom: "0.5rem" }}>
+                  {hasRealMarketSnapshot ? realReferenceText : estimatedReferenceText}
+                </div>
                 <div className="result-section">
                   <div className="result-grid">
                     <div className="rstat">
@@ -666,27 +954,29 @@ export default function SellReportMarketPage({
                       <div className="rstat-lbl">{t("sell.unitsNowLine1")}<br />{t("sell.unitsNowLine2")}</div>
                     </div>
                     <div className="rstat">
-                      <div className="rstat-num green">{snapshotDays} d.</div>
+                      <div className="rstat-num green">{snapshotDays} {daySuffix}</div>
                       <div className="rstat-lbl">{t("sell.timeOnMarketLine1")}<br />{t("sell.timeOnMarketLine2")}</div>
                     </div>
                   </div>
 
-                  <div className="portal-list">
-                    {portalRows.map((portal) => (
-                      <div key={portal.key} className="portal-row">
-                        <div className="portal-name">
-                          <div className="portal-ico" style={{ background: portal.iconColor }}>{portal.icon}</div>
-                          {portal.name}
+                  {portalRows.length > 0 ? (
+                    <div className="portal-list">
+                      {portalRows.map((portal) => (
+                        <div key={portal.key} className="portal-row">
+                          <div className="portal-name">
+                            <div className="portal-ico" style={{ background: portal.iconColor }}>{portal.icon}</div>
+                            {portal.name}
+                          </div>
+                          <div className="portal-right">
+                            <span className={`portal-price ${portal.toneClass}`.trim()}>
+                              {portal.price}
+                            </span>
+                            <span className="portal-units">· {portal.units} {t("sell.unitsAbbreviation")}</span>
+                          </div>
                         </div>
-                        <div className="portal-right">
-                          <span className={`portal-price ${portal.toneClass}`.trim()}>
-                            {portal.price}
-                          </span>
-                          <span className="portal-units">· {portal.units} {t("sell.unitsAbbreviation")}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : null}
 
                   <div className="price-range">
                     <div className="pr-label">{t("sell.priceRangeLabel")}</div>
@@ -702,7 +992,7 @@ export default function SellReportMarketPage({
                       : sellMarketSnapshotError
                         ? `${t("sell.marketUnavailable")} ${sellMarketSnapshotError}`
                         : marketSource
-                          ? `${t("sell.marketSource")} ${marketSource}${marketUpdatedAt ? ` · ${t("sell.marketUpdatedAt")} ${new Date(marketUpdatedAt).toLocaleString(i18n.resolvedLanguage || "es-ES")}` : ""}`
+                          ? `${t("sell.marketSource")} ${marketSource}${hasValidUpdatedAt ? ` · ${t("sell.marketUpdatedAt")} ${updatedAtDate.toLocaleString(i18n.resolvedLanguage || "es-ES")}` : ""}`
                           : t("sell.currentReference")}
                   </div>
                 </div>

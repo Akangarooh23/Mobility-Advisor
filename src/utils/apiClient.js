@@ -242,6 +242,19 @@ export function getGarageVehiclesJson(email, options = {}) {
   });
 }
 
+export function getGarageVehicleSummariesJson(email, options = {}) {
+  const query = new URLSearchParams({
+    email: String(email || ""),
+    scope: "garage",
+    summary: "true",
+  });
+
+  return getJson(`${BILLING_ACCOUNT_API_ENDPOINT}?${query.toString()}`, {
+    endpointLabel: "billing-account",
+    ...options,
+  });
+}
+
 export function postGarageVehicleAddJson(email, vehicle, options = {}) {
   return postJson(BILLING_ACCOUNT_API_ENDPOINT, {
     action: "garage_add",

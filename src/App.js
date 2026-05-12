@@ -1553,6 +1553,9 @@ export default function App() {
     setSellListingResult,
     setSellListingError,
     setSellListingLoading,
+    setSellMarketSnapshot,
+    setSellMarketSnapshotError,
+    setSellMarketSnapshotLoading,
   });
 
   const resetListingDiscovery = useCallback(() => {
@@ -2835,12 +2838,18 @@ export default function App() {
 
   const analyzeSellWithAI = async () => {
     if (!(sellAnswers.brand && sellAnswers.model && sellAnswers.year && sellAnswers.mileage)) {
+      setSellError(
+        uiLanguage === "en"
+          ? "Complete brand, model, year and mileage before analyzing."
+          : "Completa marca, modelo, año y kilometraje antes de analizar."
+      );
       return;
     }
 
     setSellLoading(true);
     setSellError(null);
     setApiKeyMissing(false);
+    setSellMarketSnapshot(null);
     setSellMarketSnapshotError("");
     setSellMarketSnapshotLoading(true);
 
@@ -2865,6 +2874,7 @@ export default function App() {
         throw new Error(data?.error || "No se pudo obtener referencia de mercado.");
       }
     } catch (snapshotError) {
+      setSellMarketSnapshot(null);
       setSellMarketSnapshotError(snapshotError?.message || "No se pudo cargar el mercado real.");
     } finally {
       setSellMarketSnapshotLoading(false);

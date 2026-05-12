@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   getErpBrandsJson,
@@ -510,7 +510,7 @@ export default function SellReportMarketPage({
     }));
   }, [selectedValuationVehicleSummary, setSellAnswers]);
 
-  const syncVehicleToErpSelectors = async (vehicle) => {
+  const syncVehicleToErpSelectors = useCallback(async (vehicle) => {
     const brandToken = normalizeMatchToken(vehicle?.brand);
     const modelToken = normalizeMatchToken(vehicle?.model);
     const versionToken = normalizeMatchToken(vehicle?.version);
@@ -579,7 +579,7 @@ export default function SellReportMarketPage({
       setErpModelsLoading(false);
       setErpVersionsLoading(false);
     }
-  };
+  }, [erpBrands, setSellAnswers]);
 
   useEffect(() => {
     if (!selectedIdCarId || erpBrands.length === 0 || garageVehicles.length === 0) {

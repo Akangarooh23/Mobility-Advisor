@@ -592,7 +592,7 @@ export default function SellReportMarketPage({
     }
 
     void syncVehicleToErpSelectors(vehicle);
-  }, [selectedIdCarId, erpBrands, garageVehicles]);
+  }, [selectedIdCarId, erpBrands, garageVehicles, syncVehicleToErpSelectors]);
 
   const handleAnalyzeClick = () => {
     if (garageVehicles.length > 0 && !selectedIdCarId) {

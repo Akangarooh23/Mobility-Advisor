@@ -611,7 +611,10 @@ export default function SellReportMarketPage({
         const versionResponse = await getErpVersionsJson(model.id, brand.id);
         const versionData = await versionResponse.json();
         fetchedVersions = Array.isArray(versionData?.versions) ? versionData.versions : [];
+        console.log(`[syncVehicleToErpSelectors] Fetched versions for model ${model.id}:`, fetchedVersions.length, fetchedVersions);
         setCachedVersions(model.id, brand.id, fetchedVersions);
+      } else {
+        console.log(`[syncVehicleToErpSelectors] Using cached versions for model ${model.id}:`, fetchedVersions.length, fetchedVersions);
       }
       const version = findCatalogItemByToken(
         fetchedVersions,
@@ -626,6 +629,7 @@ export default function SellReportMarketPage({
           }
         : null;
       const nextVersions = fallbackVersion ? [fallbackVersion, ...fetchedVersions] : fetchedVersions;
+      console.log(`[syncVehicleToErpSelectors] Setting erpVersions with ${nextVersions.length} versions:`, nextVersions);
       setErpVersions(nextVersions);
       setSellAnswers((prev) => ({
         ...prev,
@@ -870,6 +874,7 @@ export default function SellReportMarketPage({
                             if (erpSelectedBrandId) {
                               const cachedVersions = getCachedVersions(modelId, erpSelectedBrandId);
                               if (cachedVersions && Array.isArray(cachedVersions)) {
+                                console.log(`[SellReportMarketPage] Using cached versions for model ${modelId}:`, cachedVersions.length, cachedVersions);
                                 setErpVersions(cachedVersions);
                                 return;
                               }
@@ -880,12 +885,14 @@ export default function SellReportMarketPage({
                               .then((response) => response.json())
                               .then((data) => {
                                 const versions = Array.isArray(data?.versions) ? data.versions : [];
+                                console.log(`[SellReportMarketPage] Fetched versions for model ${modelId}:`, versions.length, versions);
                                 if (erpSelectedBrandId) {
                                   setCachedVersions(modelId, erpSelectedBrandId, versions);
                                 }
                                 setErpVersions(versions);
                               })
                               .catch(() => {
+                                console.log(`[SellReportMarketPage] Error fetching versions for model ${modelId}`);
                                 setErpVersions([]);
                               })
                               .finally(() => {
@@ -932,7 +939,7 @@ export default function SellReportMarketPage({
                                 ? t("sell.firstSelectModel")
                                 : erpVersions.length === 0
                                   ? t("sell.noVersions")
-                                  : "Selecciona una versión"}
+                                  : `Selecciona una versión (${erpVersions.length} disponibles)`}
                           </option>
                           {erpVersions.map((version) => (
                             <option key={version.codversion} value={version.codversion}>{version.label}</option>

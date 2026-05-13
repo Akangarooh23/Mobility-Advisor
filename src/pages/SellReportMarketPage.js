@@ -185,34 +185,37 @@ const ERP_CATALOG_CACHE = {
 };
 
 function getCachedBrands() {
-  return ERP_CATALOG_CACHE.brands;
+  const cached = ERP_CATALOG_CACHE.brands;
+  return cached ? cached.slice() : null;
 }
 
 function setCachedBrands(brands) {
   if (Array.isArray(brands)) {
-    ERP_CATALOG_CACHE.brands = brands;
+    ERP_CATALOG_CACHE.brands = brands.slice();
   }
 }
 
 function getCachedModels(brandId) {
-  return ERP_CATALOG_CACHE.models.get(String(brandId));
+  const cached = ERP_CATALOG_CACHE.models.get(String(brandId));
+  return cached ? cached.slice() : null;
 }
 
 function setCachedModels(brandId, models) {
   if (Array.isArray(models)) {
-    ERP_CATALOG_CACHE.models.set(String(brandId), models);
+    ERP_CATALOG_CACHE.models.set(String(brandId), models.slice());
   }
 }
 
 function getCachedVersions(modelId, brandId) {
   const key = `${modelId}|${brandId}`;
-  return ERP_CATALOG_CACHE.versions.get(key);
+  const cached = ERP_CATALOG_CACHE.versions.get(key);
+  return cached ? cached.slice() : null;
 }
 
 function setCachedVersions(modelId, brandId, versions) {
   if (Array.isArray(versions)) {
     const key = `${modelId}|${brandId}`;
-    ERP_CATALOG_CACHE.versions.set(key, versions);
+    ERP_CATALOG_CACHE.versions.set(key, versions.slice());
   }
 }
 
@@ -863,11 +866,13 @@ export default function SellReportMarketPage({
                               return;
                             }
 
-                            // Check cache first
-                            const cachedVersions = getCachedVersions(modelId, erpSelectedBrandId);
-                            if (cachedVersions) {
-                              setErpVersions(cachedVersions);
-                              return;
+                            // Check cache first - but only if we have a valid brandId
+                            if (erpSelectedBrandId) {
+                              const cachedVersions = getCachedVersions(modelId, erpSelectedBrandId);
+                              if (cachedVersions && Array.isArray(cachedVersions)) {
+                                setErpVersions(cachedVersions);
+                                return;
+                              }
                             }
 
                             setErpVersionsLoading(true);
@@ -875,7 +880,9 @@ export default function SellReportMarketPage({
                               .then((response) => response.json())
                               .then((data) => {
                                 const versions = Array.isArray(data?.versions) ? data.versions : [];
-                                setCachedVersions(modelId, erpSelectedBrandId, versions);
+                                if (erpSelectedBrandId) {
+                                  setCachedVersions(modelId, erpSelectedBrandId, versions);
+                                }
                                 setErpVersions(versions);
                               })
                               .catch(() => {

@@ -6,6 +6,10 @@ function getMssqlModule() {
   return require("mssql");
 }
 
+if (!process.env.POSTGRES_URL && process.env.DATABASE_URL) {
+  process.env.POSTGRES_URL = process.env.DATABASE_URL;
+}
+
 const LOCAL_CATALOG_PATH = path.join(__dirname, "..", "data", "vehicle-catalog.json");
 
 function readLocalCatalog() {
@@ -56,7 +60,167 @@ function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function hasPostgresEnvConfig() {
+  return Boolean(normalizeText(process.env.POSTGRES_URL || process.env.DATABASE_URL));
+}
+
+function getErpCatalogProvider() {
+  const provider = normalizeText(process.env.ERP_CATALOG_PROVIDER).toLowerCase();
+  if (["postgres", "postgresql", "neon", "vercel-postgres"].includes(provider)) {
+    return "postgres";
+  }
+  if (["mssql", "sqlserver"].includes(provider)) {
+    return "mssql";
+  }
+  if (["sqlcmd", "sqlcmd-windows", "windows"].includes(provider)) {
+    return "sqlcmd";
+  }
+  if (hasPostgresEnvConfig()) {
+    return "postgres";
+  }
+  if (hasMssqlEnvConfig()) {
+    return "mssql";
+  }
+  return "sqlcmd";
+}
+
 let mssqlPoolPromise = null;
+let pgPool = null;
+let pgErpSchemaEnsured = false;
+
+function getPgPool() {
+  if (!pgPool) {
+    const { Pool } = require("pg");
+    const connectionString = normalizeText(process.env.POSTGRES_URL || process.env.DATABASE_URL);
+    if (!connectionString) {
+      throw new Error("No DATABASE_URL o POSTGRES_URL configurados para ERP catalog en PostgreSQL.");
+    }
+    pgPool = new Pool({
+      connectionString,
+      ssl: { rejectUnauthorized: false },
+    });
+  }
+  return pgPool;
+}
+
+async function ensureErpCatalogSchemaPostgres() {
+  if (pgErpSchemaEnsured) {
+    return;
+  }
+
+  const pool = getPgPool();
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS moveadvisor_erp_brands (
+      id BIGINT PRIMARY KEY,
+      name VARCHAR(120) NOT NULL
+    )
+  `);
+  await pool.query("CREATE UNIQUE INDEX IF NOT EXISTS ix_moveadvisor_erp_brands_name ON moveadvisor_erp_brands (name)");
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS moveadvisor_erp_models (
+      id BIGINT PRIMARY KEY,
+      brand_id BIGINT NOT NULL REFERENCES moveadvisor_erp_brands(id),
+      name VARCHAR(160) NOT NULL
+    )
+  `);
+  await pool.query("CREATE UNIQUE INDEX IF NOT EXISTS ix_moveadvisor_erp_models_brand_name ON moveadvisor_erp_models (brand_id, name)");
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS moveadvisor_erp_versions (
+      codversion VARCHAR(128) PRIMARY KEY,
+      brand_id BIGINT NOT NULL REFERENCES moveadvisor_erp_brands(id),
+      model_id BIGINT NOT NULL REFERENCES moveadvisor_erp_models(id),
+      label VARCHAR(200) NOT NULL,
+      fuel VARCHAR(80) NOT NULL DEFAULT '',
+      body_type VARCHAR(80) NOT NULL DEFAULT '',
+      cv VARCHAR(40) NOT NULL DEFAULT '',
+      doors VARCHAR(20) NOT NULL DEFAULT '',
+      seats VARCHAR(20) NOT NULL DEFAULT '',
+      co2 VARCHAR(40) NOT NULL DEFAULT '',
+      transmision VARCHAR(80) NOT NULL DEFAULT '',
+      consumption VARCHAR(80) NOT NULL DEFAULT ''
+    )
+  `);
+  await pool.query("CREATE INDEX IF NOT EXISTS ix_moveadvisor_erp_versions_brand_model ON moveadvisor_erp_versions (brand_id, model_id)");
+  await pool.query("CREATE INDEX IF NOT EXISTS ix_moveadvisor_erp_versions_model ON moveadvisor_erp_versions (model_id)");
+  await pool.query("CREATE INDEX IF NOT EXISTS ix_moveadvisor_erp_versions_label ON moveadvisor_erp_versions (label)");
+
+  pgErpSchemaEnsured = true;
+}
+
+async function queryErpCatalogPostgres({ scope, brandId, modelId, codversion }) {
+  await ensureErpCatalogSchemaPostgres();
+  const pool = getPgPool();
+
+  if (scope === "brands") {
+    const result = await pool.query(`
+      SELECT DISTINCT b.id::bigint AS id, b.name
+      FROM moveadvisor_erp_brands b
+      WHERE EXISTS (
+        SELECT 1 FROM moveadvisor_erp_versions v WHERE v.brand_id = b.id
+      )
+      ORDER BY b.name ASC
+    `);
+    return Array.isArray(result?.rows) ? result.rows : [];
+  }
+
+  if (scope === "models") {
+    const result = await pool.query(
+      `
+        SELECT DISTINCT m.id::bigint AS id, m.name
+        FROM moveadvisor_erp_models m
+        WHERE m.brand_id = $1
+          AND EXISTS (
+            SELECT 1 FROM moveadvisor_erp_versions v WHERE v.model_id = m.id AND NULLIF(TRIM(v.label), '') IS NOT NULL
+          )
+        ORDER BY m.name ASC
+      `,
+      [Number(brandId)]
+    );
+    return Array.isArray(result?.rows) ? result.rows : [];
+  }
+
+  if (scope === "versions") {
+    const result = await pool.query(
+      `
+        SELECT DISTINCT v.codversion, v.label
+        FROM moveadvisor_erp_versions v
+        INNER JOIN moveadvisor_erp_models m ON m.id = v.model_id
+        INNER JOIN moveadvisor_erp_brands b ON b.id = m.brand_id
+        WHERE m.brand_id = $1
+          AND m.id = $2
+          AND NULLIF(TRIM(v.label), '') IS NOT NULL
+        ORDER BY v.label ASC
+      `,
+      [Number(brandId), Number(modelId)]
+    );
+    return Array.isArray(result?.rows) ? result.rows : [];
+  }
+
+  if (scope === "version-detail") {
+    const result = await pool.query(
+      `
+        SELECT
+          NULLIF(TRIM(v.fuel), '') AS fuel,
+          NULLIF(TRIM(v.body_type), '') AS "bodyType",
+          NULLIF(TRIM(v.cv), '') AS cv,
+          NULLIF(TRIM(v.doors), '') AS doors,
+          NULLIF(TRIM(v.seats), '') AS seats,
+          NULLIF(TRIM(v.co2), '') AS co2,
+          NULLIF(TRIM(v.transmision), '') AS transmision,
+          NULLIF(TRIM(v.consumption), '') AS consumption
+        FROM moveadvisor_erp_versions v
+        WHERE v.codversion = $1
+        LIMIT 1
+      `,
+      [String(codversion || "")]
+    );
+    return (result?.rows || [])[0] || null;
+  }
+
+  return null;
+}
 
 function hasMssqlEnvConfig() {
   return Boolean(
@@ -230,10 +394,15 @@ module.exports = async function erpCatalogHandler(req, res) {
   res.setHeader("Content-Type", "application/json");
   const scope = normalizeText(req.query?.scope).toLowerCase();
   const isVercelRuntime = Boolean(normalizeText(process.env.VERCEL) || normalizeText(process.env.VERCEL_ENV));
+  const provider = getErpCatalogProvider();
 
   try {
     if (scope === "brands") {
-      if (hasMssqlEnvConfig()) {
+      if (provider === "postgres") {
+        const rows = await queryErpCatalogPostgres({ scope: "brands" });
+        return res.status(200).json({ ok: true, brands: rows, source: "postgres" });
+      }
+      if (provider === "mssql") {
         const rows = await queryErpCatalogMssql({ scope: "brands" });
         return res.status(200).json({ ok: true, brands: rows, source: "mssql" });
       }
@@ -249,7 +418,11 @@ module.exports = async function erpCatalogHandler(req, res) {
       if (!brandId || isNaN(brandId)) {
         return res.status(400).json({ error: "brandId requerido" });
       }
-      if (hasMssqlEnvConfig()) {
+      if (provider === "postgres") {
+        const rows = await queryErpCatalogPostgres({ scope: "models", brandId });
+        return res.status(200).json({ ok: true, models: rows, source: "postgres" });
+      }
+      if (provider === "mssql") {
         const rows = await queryErpCatalogMssql({ scope: "models", brandId });
         return res.status(200).json({ ok: true, models: rows, source: "mssql" });
       }
@@ -269,7 +442,11 @@ module.exports = async function erpCatalogHandler(req, res) {
       if (!modelId || isNaN(modelId)) {
         return res.status(400).json({ error: "modelId requerido" });
       }
-      if (hasMssqlEnvConfig()) {
+      if (provider === "postgres") {
+        const rows = await queryErpCatalogPostgres({ scope: "versions", brandId, modelId });
+        return res.status(200).json({ ok: true, versions: rows, source: "postgres" });
+      }
+      if (provider === "mssql") {
         const rows = await queryErpCatalogMssql({ scope: "versions", brandId, modelId });
         return res.status(200).json({ ok: true, versions: rows, source: "mssql" });
       }
@@ -285,7 +462,11 @@ module.exports = async function erpCatalogHandler(req, res) {
       if (!codversion) {
         return res.status(400).json({ error: "codversion requerido" });
       }
-      if (hasMssqlEnvConfig()) {
+      if (provider === "postgres") {
+        const detail = await queryErpCatalogPostgres({ scope: "version-detail", codversion });
+        return res.status(200).json({ ok: true, detail: detail || null, source: "postgres" });
+      }
+      if (provider === "mssql") {
         const detail = await queryErpCatalogMssql({ scope: "version-detail", codversion });
         return res.status(200).json({ ok: true, detail: detail || null, source: "mssql" });
       }
@@ -304,6 +485,8 @@ module.exports = async function erpCatalogHandler(req, res) {
       source: "local-fallback",
       reason: fallbackReason,
       runtime: isVercelRuntime ? "vercel" : "node",
+      provider,
+      postgresConfigured: hasPostgresEnvConfig(),
       mssqlConfigured: hasMssqlEnvConfig(),
     };
 

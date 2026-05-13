@@ -201,13 +201,15 @@ function loadVersionsFromSqlServer() {
   const baseRows = readSqlServerRows(`
     SELECT DISTINCT
       CAST(v.CODVERSION AS NVARCHAR(128)) AS codversion,
-      v.IDMARCA AS brand_id,
-      v.IDMODELO AS model_id,
+      ma.IDMARCA AS brand_id,
+      mo.IDMODELO AS model_id,
       v.VERSION AS label
     FROM dbo.Vehiculos_ERP v
+    INNER JOIN dbo.Modelos mo ON mo.IDMODELO = v.IDMODELO
+    INNER JOIN dbo.Marcas ma ON ma.IDMARCA = mo.IDMARCA
     WHERE NULLIF(LTRIM(RTRIM(CAST(v.CODVERSION AS NVARCHAR(128)))), '') IS NOT NULL
-      AND v.IDMARCA IS NOT NULL
-      AND v.IDMODELO IS NOT NULL
+      AND ma.IDMARCA IS NOT NULL
+      AND mo.IDMODELO IS NOT NULL
       AND NULLIF(LTRIM(RTRIM(v.VERSION)), '') IS NOT NULL
     FOR JSON PATH, INCLUDE_NULL_VALUES;
   `);
@@ -272,96 +274,120 @@ function loadVersionsFromSqlServer() {
 
 async function upsertBrands(client, rows) {
   let ok = 0;
+  let skipped = 0;
   for (const row of rows) {
     const id = toBigIntOrNull(row?.id);
     const name = normalizeText(row?.name);
-    if (!id || !name) continue;
+    if (!id || !name) {
+      skipped += 1;
+      continue;
+    }
 
-    await client.query(
-      `
-        INSERT INTO moveadvisor_erp_brands (id, name)
-        VALUES ($1, $2)
-        ON CONFLICT (id) DO UPDATE SET
-          name = EXCLUDED.name
-      `,
-      [id, name]
-    );
-    ok += 1;
+    try {
+      await client.query(
+        `
+          INSERT INTO moveadvisor_erp_brands (id, name)
+          VALUES ($1, $2)
+          ON CONFLICT (id) DO UPDATE SET
+            name = EXCLUDED.name
+        `,
+        [id, name]
+      );
+      ok += 1;
+    } catch {
+      skipped += 1;
+    }
   }
-  return ok;
+  return { ok, skipped };
 }
 
 async function upsertModels(client, rows) {
   let ok = 0;
+  let skipped = 0;
   for (const row of rows) {
     const id = toBigIntOrNull(row?.id);
     const brandId = toBigIntOrNull(row?.brand_id);
     const name = normalizeText(row?.name);
-    if (!id || !brandId || !name) continue;
+    if (!id || !brandId || !name) {
+      skipped += 1;
+      continue;
+    }
 
-    await client.query(
-      `
-        INSERT INTO moveadvisor_erp_models (id, brand_id, name)
-        VALUES ($1, $2, $3)
-        ON CONFLICT (id) DO UPDATE SET
-          brand_id = EXCLUDED.brand_id,
-          name = EXCLUDED.name
-      `,
-      [id, brandId, name]
-    );
-    ok += 1;
+    try {
+      await client.query(
+        `
+          INSERT INTO moveadvisor_erp_models (id, brand_id, name)
+          VALUES ($1, $2, $3)
+          ON CONFLICT (id) DO UPDATE SET
+            brand_id = EXCLUDED.brand_id,
+            name = EXCLUDED.name
+        `,
+        [id, brandId, name]
+      );
+      ok += 1;
+    } catch {
+      skipped += 1;
+    }
   }
-  return ok;
+  return { ok, skipped };
 }
 
 async function upsertVersions(client, rows) {
   let ok = 0;
+  let skipped = 0;
   for (const row of rows) {
     const code = normalizeText(row?.codversion);
     const brandId = toBigIntOrNull(row?.brand_id);
     const modelId = toBigIntOrNull(row?.model_id);
     const label = normalizeText(row?.label);
-    if (!code || !brandId || !modelId || !label) continue;
+    if (!code || !brandId || !modelId || !label) {
+      skipped += 1;
+      continue;
+    }
 
-    await client.query(
-      `
-        INSERT INTO moveadvisor_erp_versions (
-          codversion, brand_id, model_id, label,
-          fuel, body_type, cv, doors, seats, co2, transmision, consumption
-        )
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
-        ON CONFLICT (codversion) DO UPDATE SET
-          brand_id = EXCLUDED.brand_id,
-          model_id = EXCLUDED.model_id,
-          label = EXCLUDED.label,
-          fuel = EXCLUDED.fuel,
-          body_type = EXCLUDED.body_type,
-          cv = EXCLUDED.cv,
-          doors = EXCLUDED.doors,
-          seats = EXCLUDED.seats,
-          co2 = EXCLUDED.co2,
-          transmision = EXCLUDED.transmision,
-          consumption = EXCLUDED.consumption
-      `,
-      [
-        code,
-        brandId,
-        modelId,
-        label,
-        toNullableText(row?.fuel) || "",
-        toNullableText(row?.body_type) || "",
-        toNullableText(row?.cv) || "",
-        toNullableText(row?.doors) || "",
-        toNullableText(row?.seats) || "",
-        toNullableText(row?.co2) || "",
-        toNullableText(row?.transmision) || "",
-        toNullableText(row?.consumption) || "",
-      ]
-    );
+    try {
+      await client.query(
+        `
+          INSERT INTO moveadvisor_erp_versions (
+            codversion, brand_id, model_id, label,
+            fuel, body_type, cv, doors, seats, co2, transmision, consumption
+          )
+          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+          ON CONFLICT (codversion) DO UPDATE SET
+            brand_id = EXCLUDED.brand_id,
+            model_id = EXCLUDED.model_id,
+            label = EXCLUDED.label,
+            fuel = EXCLUDED.fuel,
+            body_type = EXCLUDED.body_type,
+            cv = EXCLUDED.cv,
+            doors = EXCLUDED.doors,
+            seats = EXCLUDED.seats,
+            co2 = EXCLUDED.co2,
+            transmision = EXCLUDED.transmision,
+            consumption = EXCLUDED.consumption
+        `,
+        [
+          code,
+          brandId,
+          modelId,
+          label,
+          toNullableText(row?.fuel) || "",
+          toNullableText(row?.body_type) || "",
+          toNullableText(row?.cv) || "",
+          toNullableText(row?.doors) || "",
+          toNullableText(row?.seats) || "",
+          toNullableText(row?.co2) || "",
+          toNullableText(row?.transmision) || "",
+          toNullableText(row?.consumption) || "",
+        ]
+      );
 
-    ok += 1;
+      ok += 1;
+    } catch {
+      skipped += 1;
+    }
   }
-  return ok;
+  return { ok, skipped };
 }
 
 async function main() {
@@ -385,11 +411,9 @@ async function main() {
     const versions = loadVersionsFromSqlServer();
     console.log(`    versiones leidas: ${versions.length}`);
 
-    await pg.query("BEGIN");
     const upBrands = await upsertBrands(pg, brands);
     const upModels = await upsertModels(pg, models);
     const upVersions = await upsertVersions(pg, versions);
-    await pg.query("COMMIT");
 
     const counts = await pg.query(`
       SELECT
@@ -399,12 +423,11 @@ async function main() {
     `);
 
     console.log("[ERP MIGRATION] OK");
-    console.log(`  upsert brands:   ${upBrands}`);
-    console.log(`  upsert models:   ${upModels}`);
-    console.log(`  upsert versions: ${upVersions}`);
+    console.log(`  upsert brands:   ${upBrands.ok} (omitidas: ${upBrands.skipped})`);
+    console.log(`  upsert models:   ${upModels.ok} (omitidas: ${upModels.skipped})`);
+    console.log(`  upsert versions: ${upVersions.ok} (omitidas: ${upVersions.skipped})`);
     console.log(`  totals postgres: brands=${counts.rows[0].brands}, models=${counts.rows[0].models}, versions=${counts.rows[0].versions}`);
   } catch (error) {
-    try { await pg.query("ROLLBACK"); } catch {}
     console.error("[ERP MIGRATION] ERROR:", error?.message || error);
     process.exitCode = 1;
   } finally {

@@ -177,6 +177,45 @@ const DAMAGE_OPTIONS = [
   "sell.damageMajor",
 ];
 
+// ERP Catalog cache to avoid re-fetching the same data
+const ERP_CATALOG_CACHE = {
+  brands: null,
+  models: new Map(), // brandId -> models
+  versions: new Map(), // `${modelId}|${brandId}` -> versions
+};
+
+function getCachedBrands() {
+  return ERP_CATALOG_CACHE.brands;
+}
+
+function setCachedBrands(brands) {
+  if (Array.isArray(brands)) {
+    ERP_CATALOG_CACHE.brands = brands;
+  }
+}
+
+function getCachedModels(brandId) {
+  return ERP_CATALOG_CACHE.models.get(String(brandId));
+}
+
+function setCachedModels(brandId, models) {
+  if (Array.isArray(models)) {
+    ERP_CATALOG_CACHE.models.set(String(brandId), models);
+  }
+}
+
+function getCachedVersions(modelId, brandId) {
+  const key = `${modelId}|${brandId}`;
+  return ERP_CATALOG_CACHE.versions.get(key);
+}
+
+function setCachedVersions(modelId, brandId, versions) {
+  if (Array.isArray(versions)) {
+    const key = `${modelId}|${brandId}`;
+    ERP_CATALOG_CACHE.versions.set(key, versions);
+  }
+}
+
 export default function SellReportMarketPage({
   currentUserEmail,
   selectedValuationVehicleSummary,
@@ -472,12 +511,22 @@ export default function SellReportMarketPage({
 
   useEffect(() => {
     let cancelled = false;
+
+    // Check cache first
+    const cachedBrands = getCachedBrands();
+    if (cachedBrands) {
+      setErpBrands(cachedBrands);
+      return;
+    }
+
     setErpBrandsLoading(true);
     getErpBrandsJson()
       .then((response) => response.json())
       .then((data) => {
         if (!cancelled) {
-          setErpBrands(Array.isArray(data?.brands) ? data.brands : []);
+          const brands = Array.isArray(data?.brands) ? data.brands : [];
+          setCachedBrands(brands);
+          setErpBrands(brands);
         }
       })
       .catch(() => {
@@ -535,9 +584,14 @@ export default function SellReportMarketPage({
     setErpSelectedBrandId(String(brand.id));
     setErpModelsLoading(true);
     try {
-      const modelResponse = await getErpModelsJson(brand.id);
-      const modelData = await modelResponse.json();
-      const nextModels = Array.isArray(modelData?.models) ? modelData.models : [];
+      // Check cache first
+      let nextModels = getCachedModels(brand.id);
+      if (!nextModels) {
+        const modelResponse = await getErpModelsJson(brand.id);
+        const modelData = await modelResponse.json();
+        nextModels = Array.isArray(modelData?.models) ? modelData.models : [];
+        setCachedModels(brand.id, nextModels);
+      }
       setErpModels(nextModels);
       const model = findCatalogItemByToken(nextModels, modelToken, (item) => item?.name);
       if (!model) {
@@ -548,9 +602,14 @@ export default function SellReportMarketPage({
 
       setErpSelectedModelId(String(model.id));
       setErpVersionsLoading(true);
-      const versionResponse = await getErpVersionsJson(model.id, brand.id);
-      const versionData = await versionResponse.json();
-      const fetchedVersions = Array.isArray(versionData?.versions) ? versionData.versions : [];
+      // Check cache first
+      let fetchedVersions = getCachedVersions(model.id, brand.id);
+      if (!fetchedVersions) {
+        const versionResponse = await getErpVersionsJson(model.id, brand.id);
+        const versionData = await versionResponse.json();
+        fetchedVersions = Array.isArray(versionData?.versions) ? versionData.versions : [];
+        setCachedVersions(model.id, brand.id, fetchedVersions);
+      }
       const version = findCatalogItemByToken(
         fetchedVersions,
         versionToken,
@@ -747,11 +806,20 @@ export default function SellReportMarketPage({
                               return;
                             }
 
+                            // Check cache first
+                            const cachedModels = getCachedModels(brandId);
+                            if (cachedModels) {
+                              setErpModels(cachedModels);
+                              return;
+                            }
+
                             setErpModelsLoading(true);
                             getErpModelsJson(brandId)
                               .then((response) => response.json())
                               .then((data) => {
-                                setErpModels(Array.isArray(data?.models) ? data.models : []);
+                                const models = Array.isArray(data?.models) ? data.models : [];
+                                setCachedModels(brandId, models);
+                                setErpModels(models);
                               })
                               .catch(() => {
                                 setErpModels([]);
@@ -795,11 +863,20 @@ export default function SellReportMarketPage({
                               return;
                             }
 
+                            // Check cache first
+                            const cachedVersions = getCachedVersions(modelId, erpSelectedBrandId);
+                            if (cachedVersions) {
+                              setErpVersions(cachedVersions);
+                              return;
+                            }
+
                             setErpVersionsLoading(true);
                             getErpVersionsJson(modelId, erpSelectedBrandId)
                               .then((response) => response.json())
                               .then((data) => {
-                                setErpVersions(Array.isArray(data?.versions) ? data.versions : []);
+                                const versions = Array.isArray(data?.versions) ? data.versions : [];
+                                setCachedVersions(modelId, erpSelectedBrandId, versions);
+                                setErpVersions(versions);
                               })
                               .catch(() => {
                                 setErpVersions([]);

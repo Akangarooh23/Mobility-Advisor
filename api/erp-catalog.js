@@ -229,6 +229,7 @@ function parseSqlcmdJson(raw) {
 module.exports = async function erpCatalogHandler(req, res) {
   res.setHeader("Content-Type", "application/json");
   const scope = normalizeText(req.query?.scope).toLowerCase();
+  const isVercelRuntime = Boolean(normalizeText(process.env.VERCEL) || normalizeText(process.env.VERCEL_ENV));
 
   try {
     if (scope === "brands") {
@@ -298,23 +299,31 @@ module.exports = async function erpCatalogHandler(req, res) {
 
     return res.status(400).json({ error: "scope no reconocido. Usa: brands, models, versions, version-detail" });
   } catch (err) {
+    const fallbackReason = normalizeText(err?.message) || "catalog source unavailable";
+    const fallbackMeta = {
+      source: "local-fallback",
+      reason: fallbackReason,
+      runtime: isVercelRuntime ? "vercel" : "node",
+      mssqlConfigured: hasMssqlEnvConfig(),
+    };
+
     // sqlcmd / SQL Server not available (e.g. Vercel). Fall back to local catalog file.
     if (scope === "brands") {
-      return res.status(200).json({ ok: true, brands: getLocalBrands(), source: "local-fallback" });
+      return res.status(200).json({ ok: true, brands: getLocalBrands(), ...fallbackMeta });
     }
     if (scope === "models") {
       const brandId = req.query?.brandId;
-      return res.status(200).json({ ok: true, models: getLocalModels(brandId), source: "local-fallback" });
+      return res.status(200).json({ ok: true, models: getLocalModels(brandId), ...fallbackMeta });
     }
     // versions and version-detail have no local data; return empty gracefully
     if (scope === "versions") {
       const brandId = req.query?.brandId;
       const modelId = req.query?.modelId;
-      return res.status(200).json({ ok: true, versions: getLocalVersions(brandId, modelId), source: "local-fallback" });
+      return res.status(200).json({ ok: true, versions: getLocalVersions(brandId, modelId), ...fallbackMeta });
     }
     if (scope === "version-detail") {
-      return res.status(200).json({ ok: true, detail: null, source: "local-fallback" });
+      return res.status(200).json({ ok: true, detail: null, ...fallbackMeta });
     }
-    return res.status(200).json({ ok: true, brands: getLocalBrands(), source: "local-fallback" });
+    return res.status(200).json({ ok: true, brands: getLocalBrands(), ...fallbackMeta });
   }
 };

@@ -7,7 +7,6 @@ function getMssqlModule() {
 }
 
 const LOCAL_CATALOG_PATH = path.join(__dirname, "..", "data", "vehicle-catalog.json");
-const LOCAL_INVENTORY_OFFERS_PATH = path.join(__dirname, "..", "data", "inventory-offers.json");
 
 function readLocalCatalog() {
   try {
@@ -20,50 +19,6 @@ function readLocalCatalog() {
   }
 }
 
-function readLocalInventoryOffers() {
-  try {
-    const raw = fs.readFileSync(LOCAL_INVENTORY_OFFERS_PATH, "utf8");
-    const parsed = JSON.parse(raw || "{}");
-    return Array.isArray(parsed?.offers) ? parsed.offers : [];
-  } catch {
-    return [];
-  }
-}
-
-function normalizeToken(value) {
-  return String(value || "")
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
-
-function getLocalBrandName(brandId) {
-  const catalog = readLocalCatalog();
-  const brands = Object.keys(catalog).sort((a, b) => a.localeCompare(b, "es"));
-  const idx = Number(brandId) - 1;
-  if (idx < 0 || idx >= brands.length) return "";
-  return brands[idx];
-}
-
-function isLikelySameModel(selectedModelName, offeredModelName) {
-  const selected = normalizeToken(selectedModelName);
-  const offered = normalizeToken(offeredModelName);
-  if (!selected || !offered) return false;
-  return offered === selected || offered.startsWith(`${selected} `) || selected.startsWith(`${offered} `);
-}
-
-function normalizeVersionLabel(value) {
-  let text = String(value || "").trim();
-  if (!text) return "";
-  text = text.replace(/\s*\|\s*.*$/g, "");
-  text = text.replace(/\s*-\s*\d[\d.,\s]*€.*$/i, "");
-  text = text.replace(/\s+en\s+[A-Za-zÁÉÍÓÚÜÑáéíóúüñ].*$/i, "");
-  text = text.replace(/\s+/g, " ").trim();
-  return text.slice(0, 100);
-}
 
 // Returns sorted brand list from local catalog, each with a 1-based numeric id
 function getLocalBrands() {
@@ -92,54 +47,8 @@ function getLocalVersions(brandId, modelId) {
     return [];
   }
 
-  const brandName = getLocalBrandName(brandId);
-  const offers = readLocalInventoryOffers();
-  if (brandName && offers.length > 0) {
-    const targetBrand = normalizeToken(brandName);
-    const selectedModelName = selectedModel.name;
-    const dedup = new Set();
-    const localVersions = [];
-
-    for (const offer of offers) {
-      if (normalizeToken(offer?.brand) !== targetBrand) {
-        continue;
-      }
-      if (!isLikelySameModel(selectedModelName, offer?.model)) {
-        continue;
-      }
-
-      const label = normalizeVersionLabel(offer?.version || offer?.title || offer?.model);
-      if (!label) {
-        continue;
-      }
-
-      const key = normalizeToken(label);
-      if (!key || dedup.has(key)) {
-        continue;
-      }
-
-      dedup.add(key);
-      localVersions.push({
-        codversion: `local-${brandId}-${modelId}-${localVersions.length + 1}`,
-        label,
-      });
-
-      if (localVersions.length >= 30) {
-        break;
-      }
-    }
-
-    if (localVersions.length > 0) {
-      return localVersions;
-    }
-  }
-
-  return [
-    {
-      codversion: `local-${brandId}-${modelId}`,
-      label: `${selectedModel.name} (estándar)`,
-    },
-  ];
+  // Local catalog has no authoritative trim/version catalog. Return empty instead of synthetic versions.
+  return [];
 }
 
 
@@ -235,14 +144,18 @@ async function queryErpCatalogMssql({ scope, brandId, modelId, codversion }) {
   if (scope === "versions") {
     const result = await pool
       .request()
+      .input("brandId", sql.Int, Number(brandId))
       .input("modelId", sql.Int, Number(modelId))
       .query(`
-        SELECT DISTINCT CODVERSION AS codversion, VERSION AS label
-        FROM dbo.Vehiculos_ERP
-        WHERE IDMODELO = @modelId
-          AND VERSION IS NOT NULL
-          AND VERSION <> ''
-        ORDER BY VERSION;
+        SELECT DISTINCT v.CODVERSION AS codversion, v.VERSION AS label
+        FROM dbo.Vehiculos_ERP v
+        INNER JOIN dbo.Modelos mo ON mo.IDMODELO = v.IDMODELO
+        INNER JOIN dbo.Marcas ma ON ma.IDMARCA = mo.IDMARCA
+        WHERE mo.IDMARCA = @brandId
+          AND mo.IDMODELO = @modelId
+          AND v.VERSION IS NOT NULL
+          AND v.VERSION <> ''
+        ORDER BY v.VERSION;
       `);
     return Array.isArray(result?.recordset) ? result.recordset : [];
   }
@@ -347,16 +260,20 @@ module.exports = async function erpCatalogHandler(req, res) {
     }
 
     if (scope === "versions") {
+      const brandId = parseInt(req.query?.brandId, 10);
       const modelId = parseInt(req.query?.modelId, 10);
+      if (!brandId || isNaN(brandId)) {
+        return res.status(400).json({ error: "brandId requerido" });
+      }
       if (!modelId || isNaN(modelId)) {
         return res.status(400).json({ error: "modelId requerido" });
       }
       if (hasMssqlEnvConfig()) {
-        const rows = await queryErpCatalogMssql({ scope: "versions", modelId });
+        const rows = await queryErpCatalogMssql({ scope: "versions", brandId, modelId });
         return res.status(200).json({ ok: true, versions: rows, source: "mssql" });
       }
       const out = runSqlcmd(
-        `SELECT DISTINCT CODVERSION AS codversion, VERSION AS label FROM dbo.Vehiculos_ERP WHERE IDMODELO = ${modelId} AND VERSION IS NOT NULL AND VERSION <> '' ORDER BY VERSION FOR JSON PATH;`
+        `SELECT DISTINCT v.CODVERSION AS codversion, v.VERSION AS label FROM dbo.Vehiculos_ERP v INNER JOIN dbo.Modelos mo ON mo.IDMODELO = v.IDMODELO INNER JOIN dbo.Marcas ma ON ma.IDMARCA = mo.IDMARCA WHERE mo.IDMARCA = ${brandId} AND mo.IDMODELO = ${modelId} AND v.VERSION IS NOT NULL AND v.VERSION <> '' ORDER BY v.VERSION FOR JSON PATH;`
       );
       const rows = parseSqlcmdJson(out);
       return res.status(200).json({ ok: true, versions: Array.isArray(rows) ? rows : [] });

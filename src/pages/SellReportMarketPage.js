@@ -761,7 +761,7 @@ export default function SellReportMarketPage({
                               });
                           }}
                         >
-                          <option value="">{erpBrandsLoading ? t("sell.loadingBrands") : t("sell.select")}</option>
+                          <option value="">{erpBrandsLoading ? t("sell.loadingBrands") : "Selecciona una marca"}</option>
                           {erpBrands.map((brand) => (
                             <option key={brand.id} value={brand.id}>{brand.name}</option>
                           ))}
@@ -814,7 +814,7 @@ export default function SellReportMarketPage({
                               ? t("sell.loadingModels")
                               : !erpSelectedBrandId
                                 ? t("sell.firstSelectBrand")
-                                : t("sell.select")}
+                                : "Selecciona un modelo"}
                           </option>
                           {erpModels.map((model) => (
                             <option key={model.id} value={model.id}>{model.name}</option>
@@ -848,7 +848,7 @@ export default function SellReportMarketPage({
                                 ? t("sell.firstSelectModel")
                                 : erpVersions.length === 0
                                   ? t("sell.noVersions")
-                                  : t("sell.select")}
+                                  : "Selecciona una versión"}
                           </option>
                           {erpVersions.map((version) => (
                             <option key={version.codversion} value={version.codversion}>{version.label}</option>

@@ -3802,7 +3802,7 @@ async function findListing({ result, answers, filters }) {
       limit: requestedInventoryLimit,
     });
 
-    console.log("[find-listing] inventory source=", inventory?.source, "offers=", inventory?.offers?.length);
+    console.log("[find-listing] inventory source=", inventory?.source, "offers=", inventory?.offers?.length, "first raw=", inventory?.offers?.[0] ? `brand=${inventory.offers[0].brand} model=${inventory.offers[0].model} url=${String(inventory.offers[0].url||"").slice(0,50)}` : "none");
     const inventoryDecorated = (inventory?.offers || [])
       .map((offer) => inventoryOfferToListing(offer, desiredType))
       .filter((listing) => listing?.url && listing?.title)

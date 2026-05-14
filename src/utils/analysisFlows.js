@@ -328,14 +328,7 @@ export async function fetchDecisionListing({
     .join(" ")
     .trim();
   const listingTitle = aiResult?.oferta_top?.titulo || fallbackTitle || "oferta recomendada";
-  const parsedMaxPrice = Number(decisionAnswers.priceMax);
   const parsedMaxPowerCv = Number(decisionAnswers.powerMax);
-  const currentYear = new Date().getFullYear();
-  const ageMin = Number(decisionAnswers.ageMin || 0);
-  const hasAgeMax = decisionAnswers.ageMax !== null && decisionAnswers.ageMax !== undefined && decisionAnswers.ageMax !== "";
-  const ageMax = hasAgeMax ? Number(decisionAnswers.ageMax) : Number.POSITIVE_INFINITY;
-  const minYear = Number.isFinite(ageMax) ? Math.max(1980, currentYear - ageMax) : null;
-  const maxYear = Number.isFinite(ageMin) ? Math.max(1980, currentYear - ageMin) : null;
 
   const mappedAnswers = {
     perfil: "particular",

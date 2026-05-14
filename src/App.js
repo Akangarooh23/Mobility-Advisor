@@ -895,6 +895,12 @@ function resolveEntryModeFromPublicPath(pathname = "") {
   if (normalizedPath.startsWith("/panel")) {
     return null;
   }
+
+  const vehicleDetailBasePath = normalizePublicPath(getPublicPathForEntryMode("vehicleDetail"));
+  if (vehicleDetailBasePath !== "/" && normalizedPath.startsWith(`${vehicleDetailBasePath}/`)) {
+    return "vehicleDetail";
+  }
+
   return ENTRY_MODE_BY_PUBLIC_ROUTE[normalizedPath] || null;
 }
 
@@ -998,6 +1004,11 @@ function fromBase64Url(value = "") {
 
 function buildVehicleDetailSharePath(offer = {}) {
   const route = getPublicPathForEntryMode("vehicleDetail");
+  const offerId = normalizeText(String(offer?.id || ""));
+  if (offerId) {
+    return `${route}/${encodeURIComponent(offerId)}`;
+  }
+
   const payload = buildVehicleDetailSharePayload(offer);
 
   if (!payload) {
@@ -1010,6 +1021,26 @@ function buildVehicleDetailSharePath(offer = {}) {
   }
 
   return `${route}?vd=${encodedPayload}`;
+}
+
+function readVehicleDetailIdFromPath(pathname = "") {
+  const basePath = getPublicPathForEntryMode("vehicleDetail");
+  const rawPath = String(pathname || "").replace(/\/+$/, "") || "/";
+
+  if (!rawPath.startsWith(`${basePath}/`)) {
+    return "";
+  }
+
+  const encodedId = rawPath.slice(basePath.length + 1);
+  if (!encodedId) {
+    return "";
+  }
+
+  try {
+    return decodeURIComponent(encodedId);
+  } catch (_error) {
+    return encodedId;
+  }
 }
 
 function readVehicleDetailOfferFromSearch(search = "") {
@@ -1518,7 +1549,24 @@ export default function App() {
       const pathEntryMode = resolveEntryModeFromPublicPath(window.location.pathname);
 
       if (pathEntryMode === "vehicleDetail") {
-        const deepLinkedOffer = readVehicleDetailOfferFromSearch(window.location.search);
+        const deepLinkedOfferId = normalizeText(readVehicleDetailIdFromPath(window.location.pathname));
+        let deepLinkedOffer = null;
+
+        if (deepLinkedOfferId) {
+          const knownOffers = [...portalVoOffersLive, ...PORTAL_VO_OFFERS];
+          deepLinkedOffer = knownOffers.find(
+            (candidate) => normalizeText(String(candidate?.id || "")) === deepLinkedOfferId
+          ) || null;
+        }
+
+        if (!deepLinkedOffer) {
+          deepLinkedOffer = readVehicleDetailOfferFromSearch(window.location.search);
+        }
+
+        if (!deepLinkedOfferId && deepLinkedOffer?.id) {
+          syncBrowserPath(buildVehicleDetailSharePath(deepLinkedOffer), "replace");
+        }
+
         if (!deepLinkedOffer) {
           setEntryMode("portalVo");
           setStep(-1);
@@ -1547,7 +1595,7 @@ export default function App() {
     applyRouteFromPath();
     window.addEventListener("popstate", applyRouteFromPath);
     return () => window.removeEventListener("popstate", applyRouteFromPath);
-  }, []);
+  }, [portalVoOffersLive]);
 
   useEffect(() => {
     if (typeof document === "undefined" || typeof window === "undefined") {

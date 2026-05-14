@@ -35,6 +35,7 @@ module.exports = async function inventoryCheckHandler(req, res) {
         listingType: firstOffer.listingType,
         url: (firstOffer.url || "").slice(0, 80),
         image: (firstOffer.image || "").slice(0, 120),
+        imageRaw: (firstOffer.imageUrl || firstOffer.image_url || "").slice(0, 120),
         province: firstOffer.province,
         city: firstOffer.city,
         bodyType: firstOffer.bodyType,

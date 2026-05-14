@@ -664,7 +664,7 @@ function normalizeProviderAssetUrl(url, baseUrl = "") {
   const normalized = decodeHtmlEntities(String(url || ""))
     .replace(/\\u002F/gi, "/")
     .replace(/\\\//g, "/")
-    .replace(/\{size\}/g, "640x480/")
+    .replace(/\{size\}/g, "768x432-")
     .trim();
 
   return absolutizeUrl(baseUrl, normalized) || normalized;

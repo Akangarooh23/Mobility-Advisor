@@ -1235,6 +1235,10 @@ function mapDbUser(foundUser = {}) {
 
 async function sendPasswordResetEmail({ email, code }) {
   const provider = normalizeText(process.env.ALERT_EMAIL_PROVIDER || (process.env.RESEND_API_KEY ? "resend" : "console")).toLowerCase();
+  const exposeResetCode = String(process.env.AUTH_EXPOSE_RESET_CODE || "false").toLowerCase() === "true";
+  const requireDelivery = String(process.env.AUTH_REQUIRE_EMAIL_DELIVERY || "false").toLowerCase() === "true";
+  const localFallbackEnabled = String(process.env.AUTH_LOCAL_RESET_FALLBACK || "true").toLowerCase() !== "false";
+  const isProductionLike = String(process.env.NODE_ENV || "").toLowerCase() === "production" || String(process.env.VERCEL || "") === "1";
   const from =
     normalizeText(process.env.ALERT_EMAIL_FROM) ||
     normalizeText(process.env.RESEND_FROM_EMAIL) ||
@@ -1274,7 +1278,9 @@ async function sendPasswordResetEmail({ email, code }) {
 
       return;
     } catch (error) {
-      if (String(process.env.AUTH_REQUIRE_EMAIL_DELIVERY || "false").toLowerCase() === "true") {
+      const canUseLocalFallback = localFallbackEnabled && exposeResetCode && !isProductionLike;
+
+      if (requireDelivery && !canUseLocalFallback) {
         throw error;
       }
 

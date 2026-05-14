@@ -1718,8 +1718,15 @@ export default function App() {
           email: recoveryEmail,
         });
 
+        const recoveryMessage = data?.message || "Revisa tu correo y escribe el código de recuperación.";
+        const debugResetCode = normalizeText(data?.debugResetCode || "").toUpperCase();
+
         setAuthRecoveryMode("confirm");
-        setAuthRecoveryFeedback(data?.message || "Revisa tu correo y escribe el código de recuperación.");
+        setAuthRecoveryFeedback(
+          debugResetCode
+            ? `${recoveryMessage} Código (modo local): ${debugResetCode}`
+            : recoveryMessage
+        );
       } catch (error) {
         setAuthError(error?.message || "No se pudo solicitar la recuperación de contraseña.");
       } finally {

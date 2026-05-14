@@ -259,135 +259,6 @@ async function migrateUserPreferences(client) {
   console.log(`  user_preferences: ${inserted} insertadas/actualizadas, ${skipped} omitidas`);
 }
 
-async function migrateMarketOffers(client) {
-  const curatedWhere = `
-    WHERE COALESCE(Price, 0) > 0
-      AND ListingType NOT LIKE N'%rent%'
-      AND ListingType NOT LIKE N'%alquiler%'
-      AND ListingType NOT LIKE N'%suscrip%'
-      AND COALESCE(Co2, N'') <> N''
-  `;
-
-  // Replace full inventory snapshot so Postgres mirrors curated SQL Server subset exactly.
-  await client.query("DELETE FROM moveadvisor_market_offers");
-
-  // Leer en lotes para no saturar memoria
-  const countRaw = runSqlcmdQuery(`SELECT COUNT(*) AS cnt FROM dbo.MoveAdvisorMarketOffers ${curatedWhere} FOR JSON PATH;`);
-  const countRows = parseJsonFromSqlcmd(countRaw);
-  const total = countRows[0]?.cnt || 0;
-  console.log(`  market_offers: ${total} filas en SQL Server`);
-  if (!total) return;
-
-  const BATCH = 500;
-  let offset = 0, inserted = 0, skipped = 0;
-  while (offset < total) {
-    const sql = `
-          SELECT Id,Url,Portal,Brand,Model,Version,Fuel,ListingType,Price,MonthlyPrice,FinancePrice,
-            Year,Mileage,Province,City,ImageUrl,Title,ListedAt,SourceUpdatedAt,FirstSeenAt,LastSeenAt,
-            RawPayload,Transmission,BodyType,EnvironmentalLabel,Doors,Seats,PowerCv,Color,SellerType,
-            DealerName,WarrantyMonths,Traction,Displacement,Co2,NextITV,PowerKw,Consumption
-      FROM (
-        SELECT *, ROW_NUMBER() OVER (ORDER BY LastSeenAt DESC) rn
-        FROM dbo.MoveAdvisorMarketOffers
-        ${curatedWhere}
-      ) t
-      WHERE rn BETWEEN ${offset + 1} AND ${offset + BATCH}
-      FOR JSON PATH, INCLUDE_NULL_VALUES;`;
-    const rows = parseJsonFromSqlcmd(runSqlcmdQuery(sql));
-    for (const r of rows) {
-      const location = [pgVal(r.City), pgVal(r.Province)].filter(Boolean).join(", ");
-      const images = pgVal(r.ImageUrl) ? JSON.stringify([pgVal(r.ImageUrl)]) : "[]";
-      try {
-        await client.query(
-          `INSERT INTO moveadvisor_market_offers
-           (id, url, portal, brand, model, version, fuel, listing_type, price, monthly_price, finance_price,
-            year, mileage, province, city, image_url, title, listed_at, source_updated_at, first_seen_at, last_seen_at,
-            raw_payload, transmission, body_type, environmental_label, doors, seats, power_cv, color, seller_type,
-            dealer_name, warranty_months, traction, displacement, co2, next_itv, power_kw, consumption,
-            location, images, scraped_at, updated_at)
-          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,
-               $12,$13,$14,$15,$16,$17,$18,$19,$20,$21,
-               $22,$23,$24,$25,$26,$27,$28,$29,$30,
-               $31,$32,$33,$34,$35,$36,$37,$38,
-               $39,$40,$41,$42)
-          ON CONFLICT (id) DO UPDATE SET
-           url = EXCLUDED.url,
-           portal = EXCLUDED.portal,
-           brand = EXCLUDED.brand,
-           model = EXCLUDED.model,
-           version = EXCLUDED.version,
-           fuel = EXCLUDED.fuel,
-           listing_type = EXCLUDED.listing_type,
-           price = EXCLUDED.price,
-           monthly_price = EXCLUDED.monthly_price,
-           finance_price = EXCLUDED.finance_price,
-           year = EXCLUDED.year,
-           mileage = EXCLUDED.mileage,
-           province = EXCLUDED.province,
-           city = EXCLUDED.city,
-           image_url = EXCLUDED.image_url,
-           title = EXCLUDED.title,
-           listed_at = EXCLUDED.listed_at,
-           source_updated_at = EXCLUDED.source_updated_at,
-           first_seen_at = EXCLUDED.first_seen_at,
-           last_seen_at = EXCLUDED.last_seen_at,
-           raw_payload = EXCLUDED.raw_payload,
-           transmission = EXCLUDED.transmission,
-           body_type = EXCLUDED.body_type,
-           environmental_label = EXCLUDED.environmental_label,
-           doors = EXCLUDED.doors,
-           seats = EXCLUDED.seats,
-           power_cv = EXCLUDED.power_cv,
-           color = EXCLUDED.color,
-           seller_type = EXCLUDED.seller_type,
-           dealer_name = EXCLUDED.dealer_name,
-           warranty_months = EXCLUDED.warranty_months,
-           traction = EXCLUDED.traction,
-           displacement = EXCLUDED.displacement,
-           co2 = EXCLUDED.co2,
-           next_itv = EXCLUDED.next_itv,
-           power_kw = EXCLUDED.power_kw,
-           consumption = EXCLUDED.consumption,
-           location = EXCLUDED.location,
-           images = EXCLUDED.images,
-           scraped_at = EXCLUDED.scraped_at,
-           updated_at = EXCLUDED.updated_at`,
-         [pgVal(r.Id), pgVal(r.Url) || "", pgVal(r.Portal) || "",
-          pgVal(r.Brand) || "", pgVal(r.Model) || "", pgVal(r.Version) || "",
-          pgVal(r.Fuel) || "", pgVal(r.ListingType) || "",
-          r.Price ? Number(r.Price) : null,
-          r.MonthlyPrice ? Number(r.MonthlyPrice) : null,
-          r.FinancePrice ? Number(r.FinancePrice) : null,
-          r.Year ? Number(r.Year) : null,
-          r.Mileage ? Number(r.Mileage) : null,
-          pgVal(r.Province) || "", pgVal(r.City) || "",
-          pgVal(r.ImageUrl) || "", pgVal(r.Title) || "",
-          pgDate(r.ListedAt), pgDate(r.SourceUpdatedAt),
-          pgDate(r.FirstSeenAt) || pgDate(r.LastSeenAt) || new Date().toISOString(),
-          pgDate(r.LastSeenAt) || pgDate(r.FirstSeenAt) || new Date().toISOString(),
-          pgVal(r.RawPayload) || "{}",
-          pgVal(r.Transmission) || "", pgVal(r.BodyType) || "", pgVal(r.EnvironmentalLabel) || "",
-          r.Doors ? Number(r.Doors) : null,
-          r.Seats ? Number(r.Seats) : null,
-          r.PowerCv ? Number(r.PowerCv) : null,
-          pgVal(r.Color) || "", pgVal(r.SellerType) || "",
-          pgVal(r.DealerName) || "",
-          r.WarrantyMonths ? Number(r.WarrantyMonths) : null,
-          pgVal(r.Traction), pgVal(r.Displacement), pgVal(r.Co2), pgVal(r.NextITV),
-          r.PowerKw ? Number(r.PowerKw) : null,
-          r.Consumption ? Number(r.Consumption) : null,
-          location, images,
-          pgDate(r.FirstSeenAt) || pgDate(r.LastSeenAt) || new Date().toISOString(),
-          pgDate(r.LastSeenAt) || pgDate(r.FirstSeenAt) || new Date().toISOString()]
-        );
-        inserted++;
-      } catch (e) { skipped++; }
-    }
-    offset += BATCH;
-    process.stdout.write(`\r  market_offers: ${inserted} insertadas...`);
-  }
-  console.log(`\r  market_offers: ${inserted} insertadas, ${skipped} omitidas`);
-}
 
 async function migrateScrapingRuns(client) {
   let rows;
@@ -436,7 +307,6 @@ async function migrateScrapingRuns(client) {
   // Crear tablas si no existen (ejecutar init.sql)
   const initSql = fs.readFileSync(path.join(__dirname, "..", "db", "postgres", "init.sql"), "utf8");
   await client.query(initSql);
-  await ensureMarketOffersSchema(client);
   console.log("Schema Postgres actualizado\n");
 
   try {
@@ -452,10 +322,7 @@ async function migrateScrapingRuns(client) {
     console.log("[4/6] Preferencias de usuario...");
     await migrateUserPreferences(client);
 
-    console.log("[5/6] Ofertas de mercado (inventario)...");
-    await migrateMarketOffers(client);
-
-    console.log("[6/6] Runs de scraping...");
+    console.log("[5/6] Runs de scraping...");
     await migrateScrapingRuns(client);
   } finally {
     await client.end();

@@ -3597,7 +3597,13 @@ async function searchExactObjectiveMarketplaceListings(context) {
 }
 
 async function findListing({ result, answers, filters }) {
-  const models = buildVehicleCandidates({ result, answers });
+  const explicitBrand = normalizeText(filters?.brand || "");
+  const explicitModel = normalizeText(filters?.model || "");
+  const explicitModelCandidates = [
+    explicitBrand && explicitModel ? `${explicitBrand} ${explicitModel}` : "",
+    explicitModel,
+  ].filter(Boolean);
+  const models = [...new Set([...buildVehicleCandidates({ result, answers }), ...explicitModelCandidates])];
   const modelObjective = normalizeText(answers?.modelo_objetivo);
   const modelObjectiveTokens = removeAccents(modelObjective)
     .toLowerCase()

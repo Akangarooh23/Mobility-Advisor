@@ -14,12 +14,33 @@ module.exports = async function inventoryCheckHandler(req, res) {
       limit: 20,
     });
 
+    const firstOffer = result.offers[0] || null;
+
     return res.status(200).json({
       ok: true,
       query: { brand, model, candidate: modelCandidates[0] },
       source: result.source,
       totalUniverse: result.totalUniverse,
       matchCount: result.offers.length,
+      // Raw fields of first offer — shows which fields are null/empty
+      firstOfferFields: firstOffer ? {
+        brand: firstOffer.brand,
+        model: firstOffer.model,
+        version: firstOffer.version,
+        fuel: firstOffer.fuel,
+        year: firstOffer.year,
+        mileage: firstOffer.mileage,
+        price: firstOffer.price,
+        monthlyPrice: firstOffer.monthlyPrice,
+        listingType: firstOffer.listingType,
+        url: (firstOffer.url || "").slice(0, 80),
+        province: firstOffer.province,
+        city: firstOffer.city,
+        bodyType: firstOffer.bodyType,
+        transmission: firstOffer.transmission,
+        powerCv: firstOffer.powerCv,
+        portal: firstOffer.portal,
+      } : null,
       offers: result.offers.slice(0, 5).map((o) => ({
         brand: o.brand,
         model: o.model,
@@ -27,6 +48,8 @@ module.exports = async function inventoryCheckHandler(req, res) {
         year: o.year,
         mileage: o.mileage,
         price: o.price,
+        fuel: o.fuel,
+        listingType: o.listingType,
         url: (o.url || "").slice(0, 80),
       })),
     });

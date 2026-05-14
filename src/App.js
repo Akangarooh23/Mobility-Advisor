@@ -1595,7 +1595,7 @@ export default function App() {
     applyRouteFromPath();
     window.addEventListener("popstate", applyRouteFromPath);
     return () => window.removeEventListener("popstate", applyRouteFromPath);
-  }, [portalVoOffersLive]);
+  }, [portalVoOffersLive, syncBrowserPath]);
 
   useEffect(() => {
     if (typeof document === "undefined" || typeof window === "undefined") {

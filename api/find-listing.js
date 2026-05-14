@@ -3762,7 +3762,6 @@ async function findListing({ result, answers, filters }) {
   try {
     const inventoryOnly = Boolean(filters?.inventoryOnly);
     const requestedInventoryLimit = Math.max(20, Math.min(Number(filters?.limit || 30), 1000));
-    console.log("[find-listing] models=", JSON.stringify(models), "inventoryOnly=", inventoryOnly, "exactModelOnly=", Boolean(filters?.exactModelOnly), "location=", filters?.location);
     const inventory = await listInventoryOffers({
       desiredType,
       modelCandidates: models,
@@ -3802,14 +3801,12 @@ async function findListing({ result, answers, filters }) {
       limit: requestedInventoryLimit,
     });
 
-    console.log("[find-listing] inventory source=", inventory?.source, "offers=", inventory?.offers?.length, "first raw=", inventory?.offers?.[0] ? `brand=${inventory.offers[0].brand} model=${inventory.offers[0].model} url=${String(inventory.offers[0].url||"").slice(0,50)}` : "none");
     const inventoryDecorated = (inventory?.offers || [])
       .map((offer) => inventoryOfferToListing(offer, desiredType))
       .filter((listing) => listing?.url && listing?.title)
       .map((listing) => inventoryOnly
         ? { ...listing, isRelevantMatch: true, isFallbackMatch: false }
         : decorateListing(listing, context));
-    console.log("[find-listing] inventoryDecorated=", inventoryDecorated.length, "first=", inventoryDecorated[0] ? `${inventoryDecorated[0].title} | ${inventoryDecorated[0].url?.slice(0,60)}` : "none");
     const selectedLocation = normalizeText(String(filters?.location || "").replace(/_/g, " ")).toLowerCase();
     const hasStrictSelectedLocation = Boolean(selectedLocation) && selectedLocation !== "toda espana" && selectedLocation !== "toda_espana";
     const matchesSelectedLocation = (listing) => {
@@ -3838,7 +3835,6 @@ async function findListing({ result, answers, filters }) {
       if (exactModelOnly) {
         const exactModelInventory = inventoryDecorated
           .filter(matchesSelectedLocation);
-        console.log("[find-listing] exactModelOnly: hasStrictLocation=", hasStrictSelectedLocation, "selectedLocation=", selectedLocation, "exactModelInventory=", exactModelInventory.length);
         const unseenFirstExact = context.preferUnseen
           ? exactModelInventory.filter((listing) => !isPreviouslySeenListing(listing, context.excludedUrls, context.excludedTitles))
           : exactModelInventory;

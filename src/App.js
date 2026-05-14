@@ -749,6 +749,7 @@ const PUBLIC_ROUTE_BY_ENTRY_MODE = {
   aboutCarswise: "/sobre-carswise",
   plans: "/planes",
   portalVo: "/marketplace-vo",
+  vehicleDetail: "/ficha-vehiculo",
   vehicleOptions: "/asesor-vehiculo",
   servicesSeo: "/servicios",
   blog: "/blog",
@@ -786,6 +787,11 @@ const SEO_META_BY_ENTRY_MODE = {
     title: "Marketplace VO | Coches de ocasion con enfoque de coste total | CarsWise",
     description:
       "Explora ofertas de vehiculo de ocasion y compara opciones con enfoque de coste total y decision informada.",
+  },
+  vehicleDetail: {
+    title: "Ficha de vehiculo | CarsWise",
+    description:
+      "Consulta la ficha de una oferta concreta con sus datos clave, analisis y contexto de mercado.",
   },
   vehicleOptions: {
     title: "Asesor de vehiculo | Descubre la mejor operacion para tu caso | CarsWise",
@@ -894,6 +900,136 @@ function resolveEntryModeFromPublicPath(pathname = "") {
 
 function getPublicPathForEntryMode(entryMode = "") {
   return PUBLIC_ROUTE_BY_ENTRY_MODE[entryMode] || "/";
+}
+
+function buildVehicleDetailSharePayload(offer = {}) {
+  if (!offer || typeof offer !== "object") {
+    return null;
+  }
+
+  const allowedKeys = [
+    "id",
+    "title",
+    "description",
+    "brand",
+    "model",
+    "version",
+    "price",
+    "priceText",
+    "monthlyPrice",
+    "financePrice",
+    "year",
+    "mileage",
+    "power",
+    "powerCv",
+    "powerKw",
+    "fuel",
+    "transmission",
+    "bodyType",
+    "body",
+    "environmentalLabel",
+    "label",
+    "displacement",
+    "co2",
+    "traction",
+    "doors",
+    "seats",
+    "color",
+    "consumption",
+    "nextITV",
+    "warrantyMonths",
+    "sellerType",
+    "dealerName",
+    "city",
+    "province",
+    "portal",
+    "url",
+    "searchUrl",
+    "image",
+  ];
+
+  const payload = {};
+  allowedKeys.forEach((key) => {
+    const value = offer[key];
+    if (value !== undefined && value !== null && value !== "") {
+      payload[key] = value;
+    }
+  });
+
+  return Object.keys(payload).length > 0 ? payload : null;
+}
+
+function toBase64Url(value = "") {
+  try {
+    const input = String(value || "");
+    if (!input) {
+      return "";
+    }
+
+    const bytes = new TextEncoder().encode(input);
+    let binary = "";
+    bytes.forEach((byte) => {
+      binary += String.fromCharCode(byte);
+    });
+
+    return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+  } catch (_error) {
+    return "";
+  }
+}
+
+function fromBase64Url(value = "") {
+  try {
+    const input = String(value || "");
+    if (!input) {
+      return "";
+    }
+
+    const padded = input.replace(/-/g, "+").replace(/_/g, "/");
+    const normalized = padded + "=".repeat((4 - (padded.length % 4)) % 4);
+    const binary = atob(normalized);
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+
+    return new TextDecoder().decode(bytes);
+  } catch (_error) {
+    return "";
+  }
+}
+
+function buildVehicleDetailSharePath(offer = {}) {
+  const route = getPublicPathForEntryMode("vehicleDetail");
+  const payload = buildVehicleDetailSharePayload(offer);
+
+  if (!payload) {
+    return route;
+  }
+
+  const encodedPayload = toBase64Url(JSON.stringify(payload));
+  if (!encodedPayload) {
+    return route;
+  }
+
+  return `${route}?vd=${encodedPayload}`;
+}
+
+function readVehicleDetailOfferFromSearch(search = "") {
+  try {
+    const params = new URLSearchParams(String(search || ""));
+    const encodedPayload = params.get("vd") || "";
+    if (!encodedPayload) {
+      return null;
+    }
+
+    const json = fromBase64Url(encodedPayload);
+    if (!json) {
+      return null;
+    }
+
+    const parsed = JSON.parse(json);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch (_error) {
+    return null;
+  }
 }
 
 // ------------------------------------------------------------
@@ -1380,6 +1516,21 @@ export default function App() {
 
     const applyRouteFromPath = () => {
       const pathEntryMode = resolveEntryModeFromPublicPath(window.location.pathname);
+
+      if (pathEntryMode === "vehicleDetail") {
+        const deepLinkedOffer = readVehicleDetailOfferFromSearch(window.location.search);
+        if (!deepLinkedOffer) {
+          setEntryMode("portalVo");
+          setStep(-1);
+          return;
+        }
+
+        setVehicleDetailOffer(deepLinkedOffer);
+        setVehicleDetailBackTarget("advice");
+        setEntryMode("vehicleDetail");
+        setStep(-1);
+        return;
+      }
 
       if (!pathEntryMode) {
         if (normalizePublicPath(window.location.pathname) === "/") {
@@ -5438,6 +5589,7 @@ export default function App() {
             setVehicleDetailOffer(offer);
             setVehicleDetailBackTarget("decision");
             setEntryMode("vehicleDetail");
+            syncBrowserPath(buildVehicleDetailSharePath(offer), "push");
             if (typeof window !== "undefined") {
               window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
             }
@@ -5451,6 +5603,7 @@ export default function App() {
           offer={vehicleDetailOffer}
           onBack={() => {
             setEntryMode(vehicleDetailBackTarget === "advice" ? null : "decision");
+            syncBrowserPath("/", "replace");
             if (typeof window !== "undefined") {
               window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
             }
@@ -5665,6 +5818,7 @@ export default function App() {
             setVehicleDetailOffer(offer);
             setVehicleDetailBackTarget("advice");
             setEntryMode("vehicleDetail");
+            syncBrowserPath(buildVehicleDetailSharePath(offer), "push");
             setStep(-1);
             if (typeof window !== "undefined") {
               window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);

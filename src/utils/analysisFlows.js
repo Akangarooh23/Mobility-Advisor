@@ -393,17 +393,8 @@ export async function fetchDecisionListing({
       consumption: decisionAnswers.consumption || "",
       consumptionMin: decisionAnswers.consumptionMin || "",
       consumptionMax: decisionAnswers.consumptionMax || "",
-      minPrice: Number(decisionAnswers.priceMin || 0),
-      maxPrice: Number.isFinite(parsedMaxPrice) ? parsedMaxPrice : null,
       minPowerCv: Number(decisionAnswers.powerMin || 0),
       maxPowerCv: Number.isFinite(parsedMaxPowerCv) ? parsedMaxPowerCv : null,
-      minYear,
-      maxYear,
-      minMileage: Number(decisionAnswers.mileageMin || 0),
-      maxMileage:
-        decisionAnswers.mileageMax === null || decisionAnswers.mileageMax === undefined || decisionAnswers.mileageMax === ""
-          ? null
-          : Number(decisionAnswers.mileageMax),
       minDoors: decisionAnswers.doorsFrom ? Number(decisionAnswers.doorsFrom) : null,
       minSeats: decisionAnswers.seatsFrom ? Number(decisionAnswers.seatsFrom) : null,
       inventoryOnly: true,

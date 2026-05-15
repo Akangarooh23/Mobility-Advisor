@@ -1242,15 +1242,21 @@ async function sendPasswordResetEmail({ email, code }) {
   const from =
     normalizeText(process.env.ALERT_EMAIL_FROM) ||
     normalizeText(process.env.RESEND_FROM_EMAIL) ||
-    "MoveAdvisor <onboarding@resend.dev>";
+    "onboarding@resend.dev";
 
-  const subject = "MoveAdvisor Â· CÃ³digo para recuperar tu contraseÃ±a";
+  // onboarding@resend.dev only delivers to the Resend account owner.
+  // Set ALERT_EMAIL_FROM to a verified domain in production.
+  if (isProductionLike && from.includes("onboarding@resend.dev")) {
+    console.error("[auth] ALERT_EMAIL_FROM uses onboarding@resend.dev - emails only reach the Resend account owner. Set a verified domain.");
+  }
+
+  const subject = "MoveAdvisor · Código para recuperar tu contraseña";
   const text = [
     "Hola,",
     "",
-    "Has solicitado recuperar tu contraseÃ±a.",
-    `Tu cÃ³digo de recuperaciÃ³n es: ${code}`,
-    "Este cÃ³digo caduca en 15 minutos.",
+    "Has solicitado recuperar tu contraseña.",
+    `Tu código de recuperación es: ${code}`,
+    "Este código caduca en 15 minutos.",
     "",
     "Si no has solicitado este cambio, ignora este mensaje.",
   ].join("\n");
@@ -1273,7 +1279,7 @@ async function sendPasswordResetEmail({ email, code }) {
 
       if (!response.ok) {
         const payload = await response.text().catch(() => "");
-        throw new Error(payload || "No se pudo enviar el email de recuperaciÃ³n.");
+        throw new Error(payload || "No se pudo enviar el email de recuperación.");
       }
 
       return;
@@ -1284,12 +1290,11 @@ async function sendPasswordResetEmail({ email, code }) {
         throw error;
       }
 
-      console.warn("âš ï¸ [MoveAdvisor] FallÃ³ envÃ­o con Resend. Se usa fallback local para recuperaciÃ³n.");
+      console.warn("[auth] Fallo envio con Resend. Usando fallback local.");
     }
   }
 
-  console.log("ðŸ” [MoveAdvisor] CÃ³digo de recuperaciÃ³n (modo local)");
-  console.log(JSON.stringify({ email, code }, null, 2));
+  console.log("[auth] Codigo de recuperacion (modo local/consola):", JSON.stringify({ email, code }));
 }
 
 function buildPasswordResetSession({ userId, tokenHash }) {

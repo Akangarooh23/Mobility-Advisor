@@ -858,7 +858,11 @@ export async function listMarketVoOffers(params: { q?: string; limit?: number })
     `
     SELECT id, title, brand, model, price::text AS price, portal
     FROM moveadvisor_marketplace_vo_offers
-    WHERE ($1 = '' OR lower(id) LIKE '%' || $1 || '%' OR lower(title) LIKE '%' || $1 || '%' OR lower(brand) LIKE '%' || $1 || '%' OR lower(model) LIKE '%' || $1 || '%')
+    WHERE ($1 = '' 
+      OR normalize_alias_token(lower($1)) = normalize_alias_token(lower(brand))
+      OR normalize_alias_token(lower($1)) = normalize_alias_token(lower(model))
+      OR lower(id) LIKE '%' || $1 || '%' 
+      OR lower(title) LIKE '%' || $1 || '%')
       AND is_active = TRUE
     ORDER BY portal_score DESC NULLS LAST, updated_at DESC NULLS LAST
     LIMIT $2

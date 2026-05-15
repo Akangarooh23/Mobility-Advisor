@@ -1250,7 +1250,7 @@ async function sendPasswordResetEmail({ email, code }) {
     console.error("[auth] ALERT_EMAIL_FROM uses onboarding@resend.dev - emails only reach the Resend account owner. Set a verified domain.");
   }
 
-  const subject = "MoveAdvisor · Código para recuperar tu contraseña";
+  const subject = "Carswise · Código para recuperar tu contraseña";
   const text = [
     "Hola,",
     "",
@@ -1259,7 +1259,50 @@ async function sendPasswordResetEmail({ email, code }) {
     "Este código caduca en 15 minutos.",
     "",
     "Si no has solicitado este cambio, ignora este mensaje.",
+    "",
+    "— El equipo de Carswise",
   ].join("\n");
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:480px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+        <!-- Header -->
+        <tr>
+          <td style="padding:32px 40px 24px;border-bottom:1px solid #f0f0f0;">
+            <span style="font-size:20px;font-weight:700;color:#0b6e5a;letter-spacing:-0.3px;">Carswise</span>
+          </td>
+        </tr>
+        <!-- Body -->
+        <tr>
+          <td style="padding:36px 40px 28px;">
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:600;color:#111;">Recupera tu contraseña</h2>
+            <p style="margin:0 0 28px;font-size:15px;color:#555;line-height:1.6;">
+              Hemos recibido una solicitud para restablecer tu contraseña.<br>
+              Usa el siguiente código en la app:
+            </p>
+            <!-- Code block -->
+            <div style="background:#f0f9f5;border:1.5px solid #0b6e5a;border-radius:8px;padding:20px;text-align:center;margin-bottom:28px;">
+              <span style="font-size:36px;font-weight:700;letter-spacing:8px;color:#0b6e5a;font-variant-numeric:tabular-nums;">${code}</span>
+            </div>
+            <p style="margin:0 0 8px;font-size:13px;color:#888;">Este código caduca en <strong>15 minutos</strong>.</p>
+            <p style="margin:0;font-size:13px;color:#888;">Si no has solicitado este cambio, puedes ignorar este mensaje con total seguridad.</p>
+          </td>
+        </tr>
+        <!-- Footer -->
+        <tr>
+          <td style="padding:16px 40px 24px;border-top:1px solid #f0f0f0;">
+            <p style="margin:0;font-size:12px;color:#bbb;text-align:center;">© ${new Date().getFullYear()} Carswise &nbsp;·&nbsp; <a href="mailto:support@carswiseai.com" style="color:#bbb;text-decoration:none;">support@carswiseai.com</a></p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
 
   if (provider === "resend" && process.env.RESEND_API_KEY) {
     try {
@@ -1274,6 +1317,7 @@ async function sendPasswordResetEmail({ email, code }) {
           to: [email],
           subject,
           text,
+          html,
         }),
       });
 

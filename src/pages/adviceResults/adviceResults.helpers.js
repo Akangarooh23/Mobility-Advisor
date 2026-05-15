@@ -194,9 +194,9 @@ export function buildAdviceResultsViewModel({
     );
   }
 
-  const offerCards = realOfferCards.slice(0, 4);
+  const offerCards = realOfferCards;
   const featuredOffer = offerCards[0] || null;
-  const otherOffers = offerCards.slice(1, 4);
+  const otherOffers = offerCards.slice(1);
   const featuredOfferAction = featuredOffer ? getOfferActionMeta(featuredOffer, uiLanguage) : null;
   const featuredOfferSaved = featuredOffer ? isRecommendationSaved(featuredOffer) : false;
   const listingCoverageSummary = buildSearchCoverageSummary(listingSearchCoverage);

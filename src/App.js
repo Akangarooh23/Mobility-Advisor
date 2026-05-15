@@ -8,6 +8,7 @@ import DecisionPage from "./pages/DecisionPage";
 import LandingPage from "./pages/LandingPage";
 import PortalVoDetailPage from "./pages/PortalVoDetailPage";
 import PortalVoMarketplacePage from "./pages/PortalVoMarketplacePage";
+
 import SellPage from "./pages/SellPage";
 import ApiKeyMissingPage from "./pages/ApiKeyMissingPage";
 import ErrorStatePage from "./pages/ErrorStatePage";
@@ -1168,7 +1169,11 @@ export default function App() {
   const [userVehicleStates, setUserVehicleStates] = useState([]);
   const [marketAlerts, setMarketAlerts] = useState([]);
   const [marketAlertStatus, setMarketAlertStatus] = useState({});
+  // Infinite scroll state for marketplace offers
   const [portalVoOffersLive, setPortalVoOffersLive] = useState(PORTAL_VO_OFFERS);
+  const [marketplaceVoPage, setMarketplaceVoPage] = useState(0);
+  const [marketplaceVoHasMore, setMarketplaceVoHasMore] = useState(true);
+  const [marketplaceVoLoading, setMarketplaceVoLoading] = useState(false);
   const { marketBrandsCatalog, matchedModelsByBrand, marketCatalogSource } = useMarketCatalog(portalVoOffersLive);
   const [questionnaireDraft, setQuestionnaireDraft] = useState(null);
   const [saveFeedback, setSaveFeedback] = useState("");
@@ -1633,28 +1638,50 @@ export default function App() {
   const totalSteps = activeSteps.length;
   const currentUserEmail = normalizeText(currentUser?.email).toLowerCase();
 
-  useEffect(() => {
-    let isMounted = true;
-
-    (async () => {
-      try {
-        const { data } = await getMarketplaceVoJson({ limit: 800 });
-        const apiOffers = Array.isArray(data?.offers) ? data.offers : [];
-        const source = String(data?.source || "").toLowerCase();
-        const isDedicatedSource = source === "postgres-marketplace-table";
-
-        if (isMounted && isDedicatedSource && apiOffers.length > 0) {
-          setPortalVoOffersLive(apiOffers);
-        }
-      } catch {
-        // Keep static fallback when marketplace API is unavailable.
+  // Infinite scroll: fetch offers page by page
+  const MARKETPLACE_PAGE_SIZE = 40;
+  const fetchMarketplaceVoPage = useCallback(async (page = 0, filters = portalVoFilters) => {
+    setMarketplaceVoLoading(true);
+    try {
+      const offset = page * MARKETPLACE_PAGE_SIZE;
+      const params = { offset, limit: MARKETPLACE_PAGE_SIZE, ...filters };
+      const { data } = await getMarketplaceVoJson(params);
+      const apiOffers = Array.isArray(data?.offers) ? data.offers : [];
+      const source = String(data?.source || "").toLowerCase();
+      const isDedicatedSource = source === "postgres-marketplace-table";
+      if (isDedicatedSource && apiOffers.length > 0) {
+        setPortalVoOffersLive((prev) => (page === 0 ? apiOffers : [...prev, ...apiOffers]));
+        setMarketplaceVoHasMore(apiOffers.length === MARKETPLACE_PAGE_SIZE);
+      } else if (page === 0) {
+        setPortalVoOffersLive(PORTAL_VO_OFFERS);
+        setMarketplaceVoHasMore(false);
       }
-    })();
+    } catch {
+      if (page === 0) {
+        setPortalVoOffersLive(PORTAL_VO_OFFERS);
+      }
+      setMarketplaceVoHasMore(false);
+    } finally {
+      setMarketplaceVoLoading(false);
+    }
+  }, [portalVoFilters]);
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  // Reset and fetch first page on filter change or entry
+  useEffect(() => {
+    if (entryMode === "portalVo") {
+      setMarketplaceVoPage(0);
+      fetchMarketplaceVoPage(0, portalVoFilters);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entryMode, portalVoFilters]);
+
+  // Fetch next page
+  const loadMoreMarketplaceVoOffers = useCallback(() => {
+    if (marketplaceVoLoading || !marketplaceVoHasMore) return;
+    const nextPage = marketplaceVoPage + 1;
+    setMarketplaceVoPage(nextPage);
+    fetchMarketplaceVoPage(nextPage, portalVoFilters);
+  }, [marketplaceVoLoading, marketplaceVoHasMore, marketplaceVoPage, fetchMarketplaceVoPage, portalVoFilters]);
 
   const { marketAlertMatches, newAlertMatchesCount, pendingAlertNotifications } = useMarketAlertInsights({
     marketAlerts,
@@ -5704,6 +5731,10 @@ export default function App() {
           formatCurrency={formatCurrency}
           onOpenOffer={openPortalVoOfferDetail}
           onGoHome={restart}
+          infiniteScrollOffers={portalVoOffersLive}
+          loadMoreOffers={loadMoreMarketplaceVoOffers}
+          hasMoreOffers={marketplaceVoHasMore}
+          loadingOffers={marketplaceVoLoading}
         />
       )}
 

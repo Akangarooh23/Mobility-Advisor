@@ -1,5 +1,7 @@
 import { useTranslation } from "react-i18next";
 
+import { useRef, useEffect } from "react";
+
 export default function PortalVoMarketplacePage({
   themeMode,
   styles,
@@ -15,6 +17,10 @@ export default function PortalVoMarketplacePage({
   formatCurrency,
   onOpenOffer,
   onGoHome,
+  infiniteScrollOffers = [],
+  loadMoreOffers,
+  hasMoreOffers,
+  loadingOffers,
 }) {
   const isDark = themeMode === "dark";
   const { t } = useTranslation();
@@ -22,6 +28,26 @@ export default function PortalVoMarketplacePage({
   const bodyColor = isDark ? "#94a3b8" : "#475569";
   const cardBg = isDark ? "rgba(15,23,42,0.34)" : "rgba(255,255,255,0.96)";
   const cardBorder = isDark ? "1px solid rgba(148,163,184,0.16)" : "1px solid rgba(148,163,184,0.26)";
+
+  // Infinite scroll: observe sentinel
+  const sentinelRef = useRef(null);
+  useEffect(() => {
+    if (!hasMoreOffers || loadingOffers) return;
+    const observer = new window.IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMoreOffers && loadMoreOffers();
+        }
+      },
+      { root: null, rootMargin: "0px", threshold: 1.0 }
+    );
+    if (sentinelRef.current) {
+      observer.observe(sentinelRef.current);
+    }
+    return () => {
+      if (sentinelRef.current) observer.unobserve(sentinelRef.current);
+    };
+  }, [hasMoreOffers, loadingOffers, loadMoreOffers]);
 
   return (
     <div style={styles.center}>
@@ -236,17 +262,19 @@ export default function PortalVoMarketplacePage({
         )}
       </div>
 
+
+      {/* Infinite scroll offers grid */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 10 }}>
           <div style={{ fontSize: 10, color: "#93c5fd", fontWeight: 800, letterSpacing: "0.6px" }}>
             {t("marketplace.allOffersLabel")}
           </div>
-          <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569" }}>{t("marketplace.resultsCount", { count: filteredPortalVoOffers.length })}</div>
+          <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569" }}>{t("marketplace.resultsCount", { count: infiniteScrollOffers.length })}</div>
         </div>
 
-        {filteredPortalVoOffers.length > 0 ? (
+        {infiniteScrollOffers.length > 0 ? (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 12 }}>
-            {filteredPortalVoOffers.map((offer) => (
+            {infiniteScrollOffers.map((offer) => (
               <div
                 key={offer.id}
                 onClick={() => onOpenOffer(offer)}
@@ -292,6 +320,18 @@ export default function PortalVoMarketplacePage({
         ) : (
           <div style={styles.panel}>
             {t("marketplace.noResults")}
+          </div>
+        )}
+        {/* Infinite scroll sentinel */}
+        <div ref={sentinelRef} style={{ height: 1 }} />
+        {loadingOffers && (
+          <div style={{ textAlign: "center", padding: 18, color: isDark ? "#60a5fa" : "#2563eb" }}>
+            {t("marketplace.loadingMore")}
+          </div>
+        )}
+        {!hasMoreOffers && infiniteScrollOffers.length > 0 && (
+          <div style={{ textAlign: "center", padding: 18, color: isDark ? "#a7f3d0" : "#059669" }}>
+            {t("marketplace.noMoreResults")}
           </div>
         )}
       </div>

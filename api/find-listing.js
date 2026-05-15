@@ -849,7 +849,7 @@ function extractAutoheroSearchListings(html, pageUrl, company = "") {
     });
   }
 
-  return dedupeListings(cards).slice(0, 12);
+  return dedupeListings(cards);
 }
 
 function flattenJsonLdNodes(node, bucket = []) {
@@ -915,7 +915,7 @@ function extractJsonLdVehicleCards(html, pageUrl, company = "") {
     }
   }
 
-  return dedupeListings(cards).slice(0, 18);
+  return dedupeListings(cards);
 }
 
 function extractMarketplaceAnchorCards(html, pageUrl, company = "") {
@@ -956,7 +956,7 @@ function extractMarketplaceAnchorCards(html, pageUrl, company = "") {
     });
   }
 
-  return dedupeListings(cards).slice(0, 16);
+  return dedupeListings(cards);
 }
 
 function extractProviderOfferCards(html, pageUrl, company = "") {
@@ -1001,7 +1001,7 @@ function extractProviderOfferCards(html, pageUrl, company = "") {
     });
   }
 
-  return dedupeListings(cards).slice(0, 18);
+  return dedupeListings(cards);
 }
 
 function parseEuroAmount(value) {

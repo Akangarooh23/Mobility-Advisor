@@ -52,6 +52,8 @@
     "inventory:scrape:massive:sqlserver": "powershell -NoProfile -Command \"$env:INVENTORY_SYNC_BATCH_SIZE='1000'; python scrapers/main.py --mode live --tiers tier1,tier2,tier3 --allow-planned --crawl-all --max-pages-per-platform 120 --max-links-per-platform 12000 --persist-sqlserver\"",
     "marketplace:seed:db": "node scripts/seed-marketplace-vo.js",
     "inventory:schedule:register": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/register-inventory-sqlserver-schedule.ps1",
+    "catalog:offers:check": "node scripts/sync-catalog-from-offers.js",
+    "catalog:offers:sync": "node scripts/sync-catalog-from-offers.js --write",
     "migrate:attachments:sqlserver": "node scripts/migrate-attachments-filesystem-sqlserver.js",
     "migrate:sqlserver-to-postgres": "node scripts/migrate-sqlserver-to-postgres.js",
     "migrate:erp:sqlserver-to-postgres": "node scripts/migrate-erp-sqlserver-to-postgres.js",

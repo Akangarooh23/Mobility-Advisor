@@ -1,0 +1,229 @@
+{
+  "name": "Flexicar – Enriquecer Ofertas",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "node-manual-trigger",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {},
+      "id": "node-ewf-trigger",
+      "name": "Llamada desde workflow padre",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [0, 700]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 5 * * *"
+            }
+          ]
+        }
+      },
+      "id": "node-schedule-trigger",
+      "name": "Cada día a las 5:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [0, 500]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id,\n  COALESCE(color, '') AS color,\n  COALESCE(doors, 0)::int AS doors,\n  COALESCE(seats, 0)::int AS seats,\n  COALESCE(power_cv, 0)::int AS power_cv,\n  COALESCE(displacement, '') AS displacement,\n  COALESCE(consumption, 0) AS consumption,\n  COALESCE(body_type, '') AS body_type,\n  COALESCE(traction, '') AS traction,\n  COALESCE(co2, '') AS co2,\n  COALESCE(image_url, '') AS image_url\nFROM moveadvisor_market_offers\nWHERE portal = 'flexicar'\n  AND enrich_tried_at IS NULL\n  AND (\n    COALESCE(color, '') = ''\n    OR COALESCE(doors, 0) = 0\n    OR COALESCE(seats, 0) = 0\n    OR COALESCE(body_type, '') = ''\n    OR COALESCE(displacement, '') = ''\n    OR COALESCE(consumption, 0) = 0\n    OR COALESCE(traction, '') = ''\n    OR COALESCE(co2, '') = ''\n  )\nORDER BY first_seen_at ASC\nLIMIT 2000",
+        "additionalFields": {}
+      },
+      "id": "node-pg-select",
+      "name": "PG: Ofertas a enriquecer",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [280, 400],
+      "credentials": {
+        "postgres": {
+          "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL",
+          "name": "Postgres Neon"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "node-loop",
+      "name": "Loop: oferta por oferta",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [520, 400]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://services.flexicar.es/api/v1/vehicles/{{ $json.id }}",
+        "options": {
+          "timeout": 15000,
+          "headers": {
+            "values": [
+              {
+                "name": "Accept",
+                "value": "application/json"
+              },
+              {
+                "name": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+              }
+            ]
+          }
+        }
+      },
+      "id": "node-http-detail",
+      "name": "HTTP: API Detalle Flexicar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [760, 400],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const api = $input.item.json;\nconst id = api.id ? String(api.id) : null;\n\nif (!id) {\n  return [{ json: { id: null, hasUpdates: false, updateSql: null } }];\n}\n\nfunction esc(v) {\n  if (v === null || v === undefined) return \"NULL\";\n  if (typeof v === \"number\") return isNaN(v) ? \"NULL\" : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\n\nfunction normalizeBody(raw) {\n  const s = String(raw || \"\").toLowerCase();\n  if (s.indexOf(\"suv\") !== -1 || s.indexOf(\"4x4\") !== -1 || s.indexOf(\"todoterreno\") !== -1) return \"SUV\";\n  if (s.indexOf(\"berlina\") !== -1 || s.indexOf(\"sedan\") !== -1) return \"Berlina\";\n  if (s.indexOf(\"familiar\") !== -1 || s.indexOf(\"estate\") !== -1) return \"Familiar\";\n  if (s.indexOf(\"coupe\") !== -1 || s.indexOf(\"coupé\") !== -1) return \"Coupé\";\n  if (s.indexOf(\"cabrio\") !== -1 || s.indexOf(\"convert\") !== -1) return \"Cabrio\";\n  if (s.indexOf(\"monovolumen\") !== -1 || s.indexOf(\"mpv\") !== -1) return \"Monovolumen\";\n  if (s.indexOf(\"hatchback\") !== -1) return \"Berlina\";\n  return raw || \"\";\n}\n\nconst sets = [];\n\nif (api.color) sets.push(\"color = COALESCE(NULLIF(color,''), \" + esc(api.color) + \")\");\nif (api.doors) sets.push(\"doors = COALESCE(NULLIF(doors,0), \" + api.doors + \")\");\nif (api.seats) sets.push(\"seats = COALESCE(NULLIF(seats,0), \" + api.seats + \")\");\nif (api.hp) sets.push(\"power_cv = COALESCE(NULLIF(power_cv,0), \" + api.hp + \")\");\nif (api.cylinder) sets.push(\"displacement = COALESCE(NULLIF(displacement,''), '\" + Math.round(api.cylinder * 1000) + \"')\");\nif (api.mixedConsumption != null && api.mixedConsumption > 0) {\n  sets.push(\"consumption = COALESCE(NULLIF(consumption,0), \" + api.mixedConsumption + \")\");\n}\nif (api.body) sets.push(\"body_type = COALESCE(NULLIF(body_type,''), \" + esc(normalizeBody(api.body)) + \")\");\nif (Array.isArray(api.images) && api.images.length > 0) {\n  const imgUrls = api.images.map(function(i) { return i.image || \"\"; }).filter(Boolean).slice(0, 20);\n  if (imgUrls.length > 0) {\n    sets.push(\"image_url = COALESCE(NULLIF(image_url,''), \" + esc(imgUrls[0]) + \")\");\n    sets.push(\"images = COALESCE(NULLIF(images,''), \" + esc(JSON.stringify(imgUrls)) + \")\");\n  }\n}\nif (Array.isArray(api.dataSheet)) {\n  const ds = api.dataSheet.join(\" \").toLowerCase();\n  if (ds.indexOf(\"tracción total\") !== -1 || ds.indexOf(\"tracción integral\") !== -1 || ds.indexOf(\"tracción 4x4\") !== -1) {\n    sets.push(\"traction = COALESCE(NULLIF(traction,''), '4x4')\");\n  } else if (ds.indexOf(\"tracción trasera\") !== -1) {\n    sets.push(\"traction = COALESCE(NULLIF(traction,''), 'Trasera')\");\n  } else if (ds.indexOf(\"tracción delantera\") !== -1) {\n    sets.push(\"traction = COALESCE(NULLIF(traction,''), 'Delantera')\");\n  }\n  const dsText = api.dataSheet.join(\" \");\n  const wltpIdx = dsText.toLowerCase().indexOf(\"emisiones wltp ice\");\n  if (wltpIdx !== -1) {\n    const after = dsText.slice(wltpIdx + 18, wltpIdx + 60);\n    const m = after.match(/(\\d+)/);\n    if (m) sets.push(\"co2 = COALESCE(NULLIF(co2,''), '\" + m[1] + \"')\");\n  }\n}\n\nsets.push(\"enrich_tried_at = NOW()\");\n\nconst updateSql = \"UPDATE moveadvisor_market_offers SET \" + sets.join(\", \") + \", updated_at = NOW() WHERE id = '\" + id.replace(/'/g, \"''\") + \"'\";\n\nreturn [{ json: { id: id, hasUpdates: true, updateSql: updateSql } }];"
+      },
+      "id": "node-code-parse",
+      "name": "Code: Extraer campos y generar SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-has-updates",
+              "leftValue": "={{ $json.hasUpdates }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "node-if-has-updates",
+      "name": "IF: ¿hay datos nuevos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1240, 400]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.updateSql }}",
+        "additionalFields": {}
+      },
+      "id": "node-pg-update",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1480, 280],
+      "credentials": {
+        "postgres": {
+          "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL",
+          "name": "Postgres Neon"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "node-wait",
+      "name": "Esperar 1s (rate limit)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1720, 400],
+      "webhookId": "wait-flexicar-enrich"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [{ "node": "PG: Ofertas a enriquecer", "type": "main", "index": 0 }]
+      ]
+    },
+    "Cada día a las 5:00": {
+      "main": [
+        [{ "node": "PG: Ofertas a enriquecer", "type": "main", "index": 0 }]
+      ]
+    },
+    "Llamada desde workflow padre": {
+      "main": [
+        [{ "node": "PG: Ofertas a enriquecer", "type": "main", "index": 0 }]
+      ]
+    },
+    "PG: Ofertas a enriquecer": {
+      "main": [
+        [{ "node": "Loop: oferta por oferta", "type": "main", "index": 0 }]
+      ]
+    },
+    "Loop: oferta por oferta": {
+      "main": [
+        [{ "node": "HTTP: API Detalle Flexicar", "type": "main", "index": 0 }]
+      ]
+    },
+    "HTTP: API Detalle Flexicar": {
+      "main": [
+        [{ "node": "Code: Extraer campos y generar SQL", "type": "main", "index": 0 }]
+      ]
+    },
+    "Code: Extraer campos y generar SQL": {
+      "main": [
+        [{ "node": "IF: ¿hay datos nuevos?", "type": "main", "index": 0 }]
+      ]
+    },
+    "IF: ¿hay datos nuevos?": {
+      "main": [
+        [{ "node": "PG: Actualizar oferta", "type": "main", "index": 0 }],
+        [{ "node": "Esperar 1s (rate limit)", "type": "main", "index": 0 }]
+      ]
+    },
+    "PG: Actualizar oferta": {
+      "main": [
+        [{ "node": "Esperar 1s (rate limit)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Esperar 1s (rate limit)": {
+      "main": [
+        [{ "node": "Loop: oferta por oferta", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-05-15T00:00:00.000Z",
+  "versionId": "1"
+}

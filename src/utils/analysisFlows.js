@@ -392,7 +392,7 @@ export async function fetchDecisionListing({
       minSeats: decisionAnswers.seatsFrom ? Number(decisionAnswers.seatsFrom) : null,
       inventoryOnly: true,
       exactModelOnly: true,
-      limit: 500,
+      limit: 3000,
       refreshNonce,
       excludeUrls,
       excludeTitles,

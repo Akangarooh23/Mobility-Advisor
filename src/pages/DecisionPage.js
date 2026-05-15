@@ -183,6 +183,12 @@ export default function DecisionPage({
   onRestart,
 }) {
   const { t } = useTranslation();
+  const VISIBLE_PAGE_SIZE = 100;
+  const [visibleCount, setVisibleCount] = useState(VISIBLE_PAGE_SIZE);
+  useEffect(() => {
+    setVisibleCount(VISIBLE_PAGE_SIZE);
+  }, [decisionMarketListings]);
+
   const text = {
     marketOffers: t("decision.marketOffers"),
     title: t("decision.title"),
@@ -255,6 +261,9 @@ export default function DecisionPage({
     allFeminine: t("decision.allFeminine"),
     allMasculine: t("decision.allMasculine"),
     allSpain: t("decision.allSpain"),
+    showMore: t("decision.showMore"),
+    showing: t("decision.showing"),
+    of: t("decision.of"),
   };
 
   const fuelFilterOptionsT = [
@@ -1873,51 +1882,66 @@ export default function DecisionPage({
               </div>
             )}
             {!decisionMarketLoading && decisionMarketListings.length > 0 && (
-              <div className="cw-results-grid">
-                {decisionMarketListings.map((offer, i) => (
-                  <div
-                    key={i}
-                    className="cw-offer-card"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => onOpenVehicleDetail && onOpenVehicleDetail(offer)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => e.key === "Enter" && onOpenVehicleDetail && onOpenVehicleDetail(offer)}
-                  >
-                    <div className="cw-offer-top">
-                      <div className="cw-offer-type">{offer.listingType === "renting" ? "Renting" : text.buyLabel}</div>
-                      <div className="cw-offer-source">{cleanOfferText(offer.source) || "market"}</div>
-                    </div>
-                    <div className="cw-offer-media">
-                      {offer.image ? (
-                        <img
-                          className="cw-offer-image"
-                          src={offer.image}
-                          alt={cleanOfferText(offer.title) || "Oferta"}
-                          loading="lazy"
-                          referrerPolicy="no-referrer"
-                          onError={(event) => {
-                            event.currentTarget.style.display = "none";
-                            const fallback = event.currentTarget.nextElementSibling;
-                            if (fallback) {
-                              fallback.style.display = "flex";
-                            }
-                          }}
-                        />
-                      ) : null}
-                      <div className="cw-offer-image-fallback" style={{ display: offer.image ? "none" : "flex" }}>
-                        {text.noImage}
+              <>
+                <div className="cw-results-grid">
+                  {decisionMarketListings.slice(0, visibleCount).map((offer, i) => (
+                    <div
+                      key={i}
+                      className="cw-offer-card"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => onOpenVehicleDetail && onOpenVehicleDetail(offer)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === "Enter" && onOpenVehicleDetail && onOpenVehicleDetail(offer)}
+                    >
+                      <div className="cw-offer-top">
+                        <div className="cw-offer-type">{offer.listingType === "renting" ? "Renting" : text.buyLabel}</div>
+                        <div className="cw-offer-source">{cleanOfferText(offer.source) || "market"}</div>
+                      </div>
+                      <div className="cw-offer-media">
+                        {offer.image ? (
+                          <img
+                            className="cw-offer-image"
+                            src={offer.image}
+                            alt={cleanOfferText(offer.title) || "Oferta"}
+                            loading="lazy"
+                            referrerPolicy="no-referrer"
+                            onError={(event) => {
+                              event.currentTarget.style.display = "none";
+                              const fallback = event.currentTarget.nextElementSibling;
+                              if (fallback) {
+                                fallback.style.display = "flex";
+                              }
+                            }}
+                          />
+                        ) : null}
+                        <div className="cw-offer-image-fallback" style={{ display: offer.image ? "none" : "flex" }}>
+                          {text.noImage}
+                        </div>
+                      </div>
+                      <div className="cw-offer-title">{cleanOfferText(offer.title)}</div>
+                      <div className="cw-offer-desc">{cleanOfferText(offer.description)?.substring(0, 96)}</div>
+                      <div className="cw-offer-footer">
+                        <div className="cw-offer-open">{text.viewListing}</div>
+                        <div className="cw-offer-price">{cleanOfferText(offer.priceText || offer.price)}</div>
                       </div>
                     </div>
-                    <div className="cw-offer-title">{cleanOfferText(offer.title)}</div>
-                    <div className="cw-offer-desc">{cleanOfferText(offer.description)?.substring(0, 96)}</div>
-                    <div className="cw-offer-footer">
-                      <div className="cw-offer-open">{text.viewListing}</div>
-                      <div className="cw-offer-price">{cleanOfferText(offer.priceText || offer.price)}</div>
+                  ))}
+                </div>
+                {visibleCount < decisionMarketListings.length && (
+                  <div style={{ textAlign: "center", margin: "16px 0 8px" }}>
+                    <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>
+                      {text.showing} {Math.min(visibleCount, decisionMarketListings.length)} {text.of} {decisionMarketListings.length} {text.availableOffers}
                     </div>
+                    <button
+                      onClick={() => setVisibleCount((c) => c + VISIBLE_PAGE_SIZE)}
+                      style={{ padding: "9px 24px", borderRadius: 8, border: "1px solid #3b82f6", background: "#eff6ff", color: "#1d4ed8", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+                    >
+                      {text.showMore}
+                    </button>
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             )}
           </>
         )}
@@ -1931,7 +1955,7 @@ export default function DecisionPage({
           <div className="cw-cta-left">
             <div className="cw-count-row">
               <div className="cw-count-n" id="countN">{decisionFlowReady && !decisionMarketLoading ? decisionMarketListings.length : "—"}</div>
-              <div className="cw-count-lbl">{text.availableOffers}</div>
+              <div className="cw-count-lbl">{text.availableOffers}{decisionFlowReady && !decisionMarketLoading && decisionMarketListings.length > VISIBLE_PAGE_SIZE ? ` (${text.showing} ${Math.min(visibleCount, decisionMarketListings.length)})` : ""}</div>
             </div>
             <div className="cw-cta-hint">{decisionFlowReady ? text.resultsReady : text.selectBrandModelResults}</div>
           </div>

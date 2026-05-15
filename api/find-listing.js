@@ -3761,7 +3761,7 @@ async function findListing({ result, answers, filters }) {
 
   try {
     const inventoryOnly = Boolean(filters?.inventoryOnly);
-    const requestedInventoryLimit = Math.max(20, Math.min(Number(filters?.limit || 30), 1000));
+    const requestedInventoryLimit = Math.max(20, Math.min(Number(filters?.limit || 30), 5000));
     const inventory = await listInventoryOffers({
       desiredType,
       modelCandidates: models,

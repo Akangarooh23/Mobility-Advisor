@@ -33,6 +33,8 @@ export default function PortalVoMarketplacePage({
   const sentinelRef = useRef(null);
   useEffect(() => {
     if (!hasMoreOffers || loadingOffers) return;
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
     const observer = new window.IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
@@ -41,11 +43,9 @@ export default function PortalVoMarketplacePage({
       },
       { root: null, rootMargin: "0px", threshold: 1.0 }
     );
-    if (sentinelRef.current) {
-      observer.observe(sentinelRef.current);
-    }
+    observer.observe(sentinel);
     return () => {
-      if (sentinelRef.current) observer.unobserve(sentinelRef.current);
+      observer.unobserve(sentinel);
     };
   }, [hasMoreOffers, loadingOffers, loadMoreOffers]);
 

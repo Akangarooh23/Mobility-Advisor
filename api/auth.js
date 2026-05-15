@@ -1265,40 +1265,89 @@ async function sendPasswordResetEmail({ email, code }) {
 
   const html = `<!DOCTYPE html>
 <html lang="es">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 16px;">
-    <tr><td align="center">
-      <table width="100%" style="max-width:480px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
-        <!-- Header -->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Recupera tu contraseña · Carswise</title>
+</head>
+<body style="margin:0;padding:0;background:#f0f2f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#f0f2f0;min-height:100vh;">
+    <tr><td align="center" style="padding:48px 16px;">
+
+      <!-- Card -->
+      <table cellpadding="0" cellspacing="0" role="presentation" style="max-width:520px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.10);">
+
+        <!-- Header with logo -->
         <tr>
-          <td style="padding:32px 40px 24px;border-bottom:1px solid #f0f0f0;">
-            <span style="font-size:20px;font-weight:700;color:#0b6e5a;letter-spacing:-0.3px;">Carswise</span>
+          <td align="center" style="background:#0b6e5a;padding:32px 40px 28px;">
+            <img src="https://carswiseai.com/carswise-logo.png" alt="CarsWise AI" width="160" style="display:block;max-width:160px;filter:brightness(0) invert(1);">
           </td>
         </tr>
+
+        <!-- Green accent bar -->
+        <tr><td style="height:4px;background:linear-gradient(90deg,#0b6e5a,#0f8f73,#06b6d4);"></td></tr>
+
         <!-- Body -->
         <tr>
-          <td style="padding:36px 40px 28px;">
-            <h2 style="margin:0 0 12px;font-size:22px;font-weight:600;color:#111;">Recupera tu contraseña</h2>
-            <p style="margin:0 0 28px;font-size:15px;color:#555;line-height:1.6;">
-              Hemos recibido una solicitud para restablecer tu contraseña.<br>
-              Usa el siguiente código en la app:
+          <td style="padding:44px 48px 36px;">
+
+            <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#0d1f1a;letter-spacing:-0.4px;">Recupera tu contraseña</h1>
+            <p style="margin:0 0 32px;font-size:15px;color:#5a6b65;line-height:1.7;">
+              Hemos recibido una solicitud para restablecer la contraseña de tu cuenta.<br>
+              Introduce el siguiente código en la aplicación:
             </p>
+
             <!-- Code block -->
-            <div style="background:#f0f9f5;border:1.5px solid #0b6e5a;border-radius:8px;padding:20px;text-align:center;margin-bottom:28px;">
-              <span style="font-size:36px;font-weight:700;letter-spacing:8px;color:#0b6e5a;font-variant-numeric:tabular-nums;">${code}</span>
-            </div>
-            <p style="margin:0 0 8px;font-size:13px;color:#888;">Este código caduca en <strong>15 minutos</strong>.</p>
-            <p style="margin:0;font-size:13px;color:#888;">Si no has solicitado este cambio, puedes ignorar este mensaje con total seguridad.</p>
+            <table cellpadding="0" cellspacing="0" role="presentation" width="100%" style="margin-bottom:32px;">
+              <tr>
+                <td align="center" style="background:#f0f9f5;border:2px solid #0b6e5a;border-radius:12px;padding:28px 20px;">
+                  <p style="margin:0 0 6px;font-size:11px;font-weight:600;letter-spacing:2px;color:#0b6e5a;text-transform:uppercase;">Tu código</p>
+                  <p style="margin:0;font-size:42px;font-weight:800;letter-spacing:12px;color:#0b6e5a;font-variant-numeric:tabular-nums;line-height:1.1;">${code}</p>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Info boxes -->
+            <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
+              <tr>
+                <td style="background:#fffbeb;border-left:3px solid #f59e0b;border-radius:0 6px 6px 0;padding:12px 16px;margin-bottom:12px;">
+                  <p style="margin:0;font-size:13px;color:#92400e;line-height:1.5;">
+                    ⏱ Este código caduca en <strong>15 minutos</strong>.
+                  </p>
+                </td>
+              </tr>
+              <tr><td style="height:10px;"></td></tr>
+              <tr>
+                <td style="background:#f8f8f8;border-left:3px solid #d1d5db;border-radius:0 6px 6px 0;padding:12px 16px;">
+                  <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.5;">
+                    Si no has solicitado este cambio, puedes ignorar este mensaje. Tu contraseña no se modificará.
+                  </p>
+                </td>
+              </tr>
+            </table>
+
           </td>
         </tr>
+
+        <!-- Divider -->
+        <tr><td style="height:1px;background:#e8eeeb;margin:0 48px;"></td></tr>
+
         <!-- Footer -->
         <tr>
-          <td style="padding:16px 40px 24px;border-top:1px solid #f0f0f0;">
-            <p style="margin:0;font-size:12px;color:#bbb;text-align:center;">© ${new Date().getFullYear()} Carswise &nbsp;·&nbsp; <a href="mailto:support@carswiseai.com" style="color:#bbb;text-decoration:none;">support@carswiseai.com</a></p>
+          <td style="padding:24px 48px 32px;">
+            <p style="margin:0 0 4px;font-size:12px;color:#9ca3af;text-align:center;">
+              ¿Necesitas ayuda? Escríbenos a
+              <a href="mailto:support@carswiseai.com" style="color:#0b6e5a;text-decoration:none;">support@carswiseai.com</a>
+            </p>
+            <p style="margin:0;font-size:11px;color:#c4cdc9;text-align:center;">
+              © ${new Date().getFullYear()} CarsWise AI &nbsp;·&nbsp; Todos los derechos reservados
+            </p>
           </td>
         </tr>
+
       </table>
+      <!-- End card -->
+
     </td></tr>
   </table>
 </body>

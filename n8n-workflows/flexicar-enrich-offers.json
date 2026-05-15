@@ -93,7 +93,7 @@
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "const api = $input.item.json;\n// Fallback al id de la BD para que enrich_tried_at se marque siempre,\n// incluso cuando la API de Flexicar devuelve error (404, timeout, etc.)\nconst dbId = String($('Loop: oferta por oferta').item.json.id || '');\nconst id = api.id ? String(api.id) : dbId;\n\nif (!id) {\n  return [{ json: { id: null, hasUpdates: false, updateSql: null } }];\n}\n\nfunction esc(v) {\n  if (v === null || v === undefined) return \"NULL\";\n  if (typeof v === \"number\") return isNaN(v) ? \"NULL\" : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\n\nfunction normalizeBody(raw) {\n  const s = String(raw || \"\").toLowerCase();\n  if (s.indexOf(\"suv\") !== -1 || s.indexOf(\"4x4\") !== -1 || s.indexOf(\"todoterreno\") !== -1) return \"SUV\";\n  if (s.indexOf(\"berlina\") !== -1 || s.indexOf(\"sedan\") !== -1) return \"Berlina\";\n  if (s.indexOf(\"familiar\") !== -1 || s.indexOf(\"estate\") !== -1) return \"Familiar\";\n  if (s.indexOf(\"coupe\") !== -1 || s.indexOf(\"coupé\") !== -1) return \"Coupé\";\n  if (s.indexOf(\"cabrio\") !== -1 || s.indexOf(\"convert\") !== -1) return \"Cabrio\";\n  if (s.indexOf(\"monovolumen\") !== -1 || s.indexOf(\"mpv\") !== -1) return \"Monovolumen\";\n  if (s.indexOf(\"hatchback\") !== -1) return \"Berlina\";\n  return raw || \"\";\n}\n\nconst sets = [];\n\nif (api.color) sets.push(\"color = COALESCE(NULLIF(color,''), \" + esc(api.color) + \")\");\nif (api.doors) sets.push(\"doors = COALESCE(NULLIF(doors,0), \" + api.doors + \")\");\nif (api.seats) sets.push(\"seats = COALESCE(NULLIF(seats,0), \" + api.seats + \")\");\nif (api.hp) sets.push(\"power_cv = COALESCE(NULLIF(power_cv,0), \" + api.hp + \")\");\nif (api.cylinder) sets.push(\"displacement = COALESCE(NULLIF(displacement,''), '\" + Math.round(api.cylinder * 1000) + \"')\");\nif (api.mixedConsumption != null && api.mixedConsumption > 0) {\n  sets.push(\"consumption = COALESCE(NULLIF(consumption,0), \" + api.mixedConsumption + \")\");\n}\nif (api.body) sets.push(\"body_type = COALESCE(NULLIF(body_type,''), \" + esc(normalizeBody(api.body)) + \")\");\nif (Array.isArray(api.images) && api.images.length > 0) {\n  const imgUrls = api.images.map(function(i) { return i.image || \"\"; }).filter(Boolean).slice(0, 20);\n  if (imgUrls.length > 0) {\n    sets.push(\"image_url = COALESCE(NULLIF(image_url,''), \" + esc(imgUrls[0]) + \")\");\n    sets.push(\"images = COALESCE(NULLIF(images,''), \" + esc(JSON.stringify(imgUrls)) + \")\");\n  }\n}\nif (Array.isArray(api.dataSheet)) {\n  const ds = api.dataSheet.join(\" \").toLowerCase();\n  if (ds.indexOf(\"tracción total\") !== -1 || ds.indexOf(\"tracción integral\") !== -1 || ds.indexOf(\"tracción 4x4\") !== -1) {\n    sets.push(\"traction = COALESCE(NULLIF(traction,''), '4x4')\");\n  } else if (ds.indexOf(\"tracción trasera\") !== -1) {\n    sets.push(\"traction = COALESCE(NULLIF(traction,''), 'Trasera')\");\n  } else if (ds.indexOf(\"tracción delantera\") !== -1) {\n    sets.push(\"traction = COALESCE(NULLIF(traction,''), 'Delantera')\");\n  }\n  const dsText = api.dataSheet.join(\" \");\n  const wltpIdx = dsText.toLowerCase().indexOf(\"emisiones wltp ice\");\n  if (wltpIdx !== -1) {\n    const after = dsText.slice(wltpIdx + 18, wltpIdx + 60);\n    const m = after.match(/(\\d+)/);\n    if (m) sets.push(\"co2 = COALESCE(NULLIF(co2,''), '\" + m[1] + \"')\");\n  }\n}\n\n// Siempre marcar enrich_tried_at, incluso si la API no devolvió datos útiles\nsets.push(\"enrich_tried_at = NOW()\");\n\nconst updateSql = \"UPDATE moveadvisor_market_offers SET \" + sets.join(\", \") + \", updated_at = NOW() WHERE id = '\" + id.replace(/'/g, \"''\") + \"'\";\n\nreturn [{ json: { id: id, hasUpdates: true, updateSql: updateSql } }];"
+        "jsCode": "const api = $input.item.json;\n// Fallback al id de la BD para que enrich_tried_at se marque siempre,\n// incluso cuando la API de Flexicar devuelve error (404, timeout, etc.)\nconst dbId = String($('Loop: oferta por oferta').item.json.id || '');\nconst id = api.id ? String(api.id) : dbId;\n\nif (!id) {\n  await new Promise(r => setTimeout(r, 800));\n  return [{ json: { id: null, hasUpdates: false, updateSql: null } }];\n}\n\nfunction esc(v) {\n  if (v === null || v === undefined) return \"NULL\";\n  if (typeof v === \"number\") return isNaN(v) ? \"NULL\" : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\n\nfunction normalizeBody(raw) {\n  const s = String(raw || \"\").toLowerCase();\n  if (s.indexOf(\"suv\") !== -1 || s.indexOf(\"4x4\") !== -1 || s.indexOf(\"todoterreno\") !== -1) return \"SUV\";\n  if (s.indexOf(\"berlina\") !== -1 || s.indexOf(\"sedan\") !== -1) return \"Berlina\";\n  if (s.indexOf(\"familiar\") !== -1 || s.indexOf(\"estate\") !== -1) return \"Familiar\";\n  if (s.indexOf(\"coupe\") !== -1 || s.indexOf(\"coupé\") !== -1) return \"Coupé\";\n  if (s.indexOf(\"cabrio\") !== -1 || s.indexOf(\"convert\") !== -1) return \"Cabrio\";\n  if (s.indexOf(\"monovolumen\") !== -1 || s.indexOf(\"mpv\") !== -1) return \"Monovolumen\";\n  if (s.indexOf(\"hatchback\") !== -1) return \"Berlina\";\n  return raw || \"\";\n}\n\nconst sets = [];\n\nif (api.color) sets.push(\"color = COALESCE(NULLIF(color,''), \" + esc(api.color) + \")\");\nif (api.doors) sets.push(\"doors = COALESCE(NULLIF(doors,0), \" + api.doors + \")\");\nif (api.seats) sets.push(\"seats = COALESCE(NULLIF(seats,0), \" + api.seats + \")\");\nif (api.hp) sets.push(\"power_cv = COALESCE(NULLIF(power_cv,0), \" + api.hp + \")\");\nif (api.cylinder) sets.push(\"displacement = COALESCE(NULLIF(displacement,''), '\" + Math.round(api.cylinder * 1000) + \"')\");\nif (api.mixedConsumption != null && api.mixedConsumption > 0) {\n  sets.push(\"consumption = COALESCE(NULLIF(consumption,0), \" + api.mixedConsumption + \")\");\n}\nif (api.body) sets.push(\"body_type = COALESCE(NULLIF(body_type,''), \" + esc(normalizeBody(api.body)) + \")\");\nif (Array.isArray(api.images) && api.images.length > 0) {\n  const imgUrls = api.images.map(function(i) { return i.image || \"\"; }).filter(Boolean).slice(0, 20);\n  if (imgUrls.length > 0) {\n    sets.push(\"image_url = COALESCE(NULLIF(image_url,''), \" + esc(imgUrls[0]) + \")\");\n    sets.push(\"images = COALESCE(NULLIF(images,''), \" + esc(JSON.stringify(imgUrls)) + \")\");\n  }\n}\nif (Array.isArray(api.dataSheet)) {\n  const ds = api.dataSheet.join(\" \").toLowerCase();\n  if (ds.indexOf(\"tracción total\") !== -1 || ds.indexOf(\"tracción integral\") !== -1 || ds.indexOf(\"tracción 4x4\") !== -1) {\n    sets.push(\"traction = COALESCE(NULLIF(traction,''), '4x4')\");\n  } else if (ds.indexOf(\"tracción trasera\") !== -1) {\n    sets.push(\"traction = COALESCE(NULLIF(traction,''), 'Trasera')\");\n  } else if (ds.indexOf(\"tracción delantera\") !== -1) {\n    sets.push(\"traction = COALESCE(NULLIF(traction,''), 'Delantera')\");\n  }\n  const dsText = api.dataSheet.join(\" \");\n  const wltpIdx = dsText.toLowerCase().indexOf(\"emisiones wltp ice\");\n  if (wltpIdx !== -1) {\n    const after = dsText.slice(wltpIdx + 18, wltpIdx + 60);\n    const m = after.match(/(\\d+)/);\n    if (m) sets.push(\"co2 = COALESCE(NULLIF(co2,''), '\" + m[1] + \"')\");\n  }\n}\n\n// Siempre marcar enrich_tried_at, incluso si la API no devolvió datos útiles\nsets.push(\"enrich_tried_at = NOW()\");\n\nconst updateSql = \"UPDATE moveadvisor_market_offers SET \" + sets.join(\", \") + \", updated_at = NOW() WHERE id = '\" + id.replace(/'/g, \"''\") + \"'\";\n\n// Rate limit sin nodo Wait (que bloquea el loop con webhooks internos)\nawait new Promise(r => setTimeout(r, 800));\n\nreturn [{ json: { id: id, hasUpdates: true, updateSql: updateSql } }];"
       },
       "id": "node-code-parse",
       "name": "Code: Extraer campos y generar SQL",
@@ -147,18 +147,6 @@
           "name": "Postgres Neon"
         }
       }
-    },
-    {
-      "parameters": {
-        "amount": 1,
-        "unit": "seconds"
-      },
-      "id": "node-wait",
-      "name": "Esperar 1s (rate limit)",
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1,
-      "position": [1720, 400],
-      "webhookId": "wait-flexicar-enrich"
     }
   ],
   "connections": {
@@ -200,15 +188,10 @@
     "IF: ¿hay datos nuevos?": {
       "main": [
         [{ "node": "PG: Actualizar oferta", "type": "main", "index": 0 }],
-        [{ "node": "Esperar 1s (rate limit)", "type": "main", "index": 0 }]
+        [{ "node": "Loop: oferta por oferta", "type": "main", "index": 0 }]
       ]
     },
     "PG: Actualizar oferta": {
-      "main": [
-        [{ "node": "Esperar 1s (rate limit)", "type": "main", "index": 0 }]
-      ]
-    },
-    "Esperar 1s (rate limit)": {
       "main": [
         [{ "node": "Loop: oferta por oferta", "type": "main", "index": 0 }]
       ]

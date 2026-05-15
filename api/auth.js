@@ -1269,40 +1269,89 @@ async function sendPasswordResetEmail({ email, code }) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Recupera tu contraseña · Carswise</title>
+  <style>
+    @keyframes cwBorderShift {
+      0%   { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.18), 0 4px 24px rgba(59,130,246,0.12); }
+      30%  { border-color: #06b6d4; box-shadow: 0 0 0 3px rgba(6,182,212,0.18), 0 4px 24px rgba(6,182,212,0.12); }
+      60%  { border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.18),  0 4px 24px rgba(34,197,94,0.12); }
+      100% { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.18), 0 4px 24px rgba(59,130,246,0.12); }
+    }
+    @keyframes cwLabelShift {
+      0%   { color: #3b82f6; }
+      30%  { color: #06b6d4; }
+      60%  { color: #22c55e; }
+      100% { color: #3b82f6; }
+    }
+    @keyframes cwCodeShift {
+      0%   { color: #3b82f6; }
+      30%  { color: #06b6d4; }
+      60%  { color: #22c55e; }
+      100% { color: #3b82f6; }
+    }
+    .cw-code-box {
+      border: 2px solid #3b82f6;
+      border-radius: 14px;
+      padding: 28px 20px;
+      text-align: center;
+      background: #f0f7ff;
+      animation: cwBorderShift 3s ease-in-out infinite;
+    }
+    .cw-code-label {
+      margin: 0 0 8px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: #3b82f6;
+      text-transform: uppercase;
+      animation: cwLabelShift 3s ease-in-out infinite;
+    }
+    .cw-code-value {
+      margin: 0;
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: 12px;
+      color: #3b82f6;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+      animation: cwCodeShift 3s ease-in-out infinite;
+    }
+  </style>
 </head>
-<body style="margin:0;padding:0;background:#f0f2f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#f0f2f0;min-height:100vh;">
+<body style="margin:0;padding:0;background:#eef2f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#eef2f7;min-height:100vh;">
     <tr><td align="center" style="padding:48px 16px;">
 
       <!-- Card -->
-      <table cellpadding="0" cellspacing="0" role="presentation" style="max-width:520px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.10);">
+      <table cellpadding="0" cellspacing="0" role="presentation" style="max-width:520px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(59,130,246,0.10);">
 
         <!-- Header with logo -->
         <tr>
-          <td align="center" style="background:#0b6e5a;padding:32px 40px 28px;">
-            <img src="https://carswiseai.com/carswise-logo.png" alt="CarsWise AI" width="160" style="display:block;max-width:160px;filter:brightness(0) invert(1);">
+          <td align="center" style="background:linear-gradient(135deg,#1d4ed8 0%,#3b82f6 50%,#0ea5e9 100%);padding:36px 40px 30px;">
+            <img src="https://carswiseai.com/carswise-logo.png" alt="CarsWise AI" width="164" style="display:block;max-width:164px;filter:brightness(0) invert(1);">
           </td>
         </tr>
 
-        <!-- Green accent bar -->
-        <tr><td style="height:4px;background:linear-gradient(90deg,#0b6e5a,#0f8f73,#06b6d4);"></td></tr>
+        <!-- Animated accent bar — static gradient fallback, Apple Mail renders the animation -->
+        <tr><td style="height:4px;background:linear-gradient(90deg,#3b82f6,#06b6d4,#22c55e,#06b6d4,#3b82f6);background-size:200% 100%;"></td></tr>
 
         <!-- Body -->
         <tr>
           <td style="padding:44px 48px 36px;">
 
-            <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#0d1f1a;letter-spacing:-0.4px;">Recupera tu contraseña</h1>
-            <p style="margin:0 0 32px;font-size:15px;color:#5a6b65;line-height:1.7;">
+            <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#0f172a;letter-spacing:-0.4px;">Recupera tu contraseña</h1>
+            <p style="margin:0 0 32px;font-size:15px;color:#64748b;line-height:1.7;">
               Hemos recibido una solicitud para restablecer la contraseña de tu cuenta.<br>
               Introduce el siguiente código en la aplicación:
             </p>
 
-            <!-- Code block -->
+            <!-- Animated code block -->
             <table cellpadding="0" cellspacing="0" role="presentation" width="100%" style="margin-bottom:32px;">
               <tr>
-                <td align="center" style="background:#f0f9f5;border:2px solid #0b6e5a;border-radius:12px;padding:28px 20px;">
-                  <p style="margin:0 0 6px;font-size:11px;font-weight:600;letter-spacing:2px;color:#0b6e5a;text-transform:uppercase;">Tu código</p>
-                  <p style="margin:0;font-size:42px;font-weight:800;letter-spacing:12px;color:#0b6e5a;font-variant-numeric:tabular-nums;line-height:1.1;">${code}</p>
+                <td>
+                  <div class="cw-code-box" style="border:2px solid #3b82f6;border-radius:14px;padding:28px 20px;text-align:center;background:#f0f7ff;">
+                    <p class="cw-code-label" style="margin:0 0 8px;font-size:11px;font-weight:600;letter-spacing:2px;color:#3b82f6;text-transform:uppercase;">Tu código</p>
+                    <p class="cw-code-value" style="margin:0;font-size:42px;font-weight:800;letter-spacing:12px;color:#3b82f6;font-variant-numeric:tabular-nums;line-height:1.1;">${code}</p>
+                  </div>
                 </td>
               </tr>
             </table>
@@ -1310,7 +1359,7 @@ async function sendPasswordResetEmail({ email, code }) {
             <!-- Info boxes -->
             <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
               <tr>
-                <td style="background:#fffbeb;border-left:3px solid #f59e0b;border-radius:0 6px 6px 0;padding:12px 16px;margin-bottom:12px;">
+                <td style="background:#fffbeb;border-left:3px solid #f59e0b;border-radius:0 6px 6px 0;padding:12px 16px;">
                   <p style="margin:0;font-size:13px;color:#92400e;line-height:1.5;">
                     ⏱ Este código caduca en <strong>15 minutos</strong>.
                   </p>
@@ -1318,8 +1367,8 @@ async function sendPasswordResetEmail({ email, code }) {
               </tr>
               <tr><td style="height:10px;"></td></tr>
               <tr>
-                <td style="background:#f8f8f8;border-left:3px solid #d1d5db;border-radius:0 6px 6px 0;padding:12px 16px;">
-                  <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.5;">
+                <td style="background:#f8fafc;border-left:3px solid #cbd5e1;border-radius:0 6px 6px 0;padding:12px 16px;">
+                  <p style="margin:0;font-size:13px;color:#64748b;line-height:1.5;">
                     Si no has solicitado este cambio, puedes ignorar este mensaje. Tu contraseña no se modificará.
                   </p>
                 </td>
@@ -1330,16 +1379,16 @@ async function sendPasswordResetEmail({ email, code }) {
         </tr>
 
         <!-- Divider -->
-        <tr><td style="height:1px;background:#e8eeeb;margin:0 48px;"></td></tr>
+        <tr><td style="height:1px;background:#e2e8f0;"></td></tr>
 
         <!-- Footer -->
         <tr>
           <td style="padding:24px 48px 32px;">
-            <p style="margin:0 0 4px;font-size:12px;color:#9ca3af;text-align:center;">
+            <p style="margin:0 0 4px;font-size:12px;color:#94a3b8;text-align:center;">
               ¿Necesitas ayuda? Escríbenos a
-              <a href="mailto:support@carswiseai.com" style="color:#0b6e5a;text-decoration:none;">support@carswiseai.com</a>
+              <a href="mailto:support@carswiseai.com" style="color:#3b82f6;text-decoration:none;">support@carswiseai.com</a>
             </p>
-            <p style="margin:0;font-size:11px;color:#c4cdc9;text-align:center;">
+            <p style="margin:0;font-size:11px;color:#cbd5e1;text-align:center;">
               © ${new Date().getFullYear()} CarsWise AI &nbsp;·&nbsp; Todos los derechos reservados
             </p>
           </td>

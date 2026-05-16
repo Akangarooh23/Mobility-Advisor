@@ -73,11 +73,47 @@
             "values": [
               {
                 "name": "Accept",
-                "value": "application/json"
+                "value": "application/json, text/plain, */*"
               },
               {
                 "name": "User-Agent",
-                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+              },
+              {
+                "name": "Referer",
+                "value": "https://www.flexicar.es/"
+              },
+              {
+                "name": "Origin",
+                "value": "https://www.flexicar.es"
+              },
+              {
+                "name": "Accept-Language",
+                "value": "es-ES,es;q=0.9,en;q=0.8"
+              },
+              {
+                "name": "sec-ch-ua",
+                "value": "\"Chromium\";v=\"124\", \"Google Chrome\";v=\"124\", \"Not-A.Brand\";v=\"99\""
+              },
+              {
+                "name": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "name": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              },
+              {
+                "name": "Sec-Fetch-Dest",
+                "value": "empty"
+              },
+              {
+                "name": "Sec-Fetch-Mode",
+                "value": "cors"
+              },
+              {
+                "name": "Sec-Fetch-Site",
+                "value": "same-site"
               }
             ]
           }

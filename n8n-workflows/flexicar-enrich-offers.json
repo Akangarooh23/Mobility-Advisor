@@ -37,7 +37,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id,\n  COALESCE(color, '') AS color,\n  COALESCE(doors, 0)::int AS doors,\n  COALESCE(seats, 0)::int AS seats,\n  COALESCE(power_cv, 0)::int AS power_cv,\n  COALESCE(displacement, '') AS displacement,\n  COALESCE(consumption, 0) AS consumption,\n  COALESCE(body_type, '') AS body_type,\n  COALESCE(traction, '') AS traction,\n  COALESCE(co2, '') AS co2,\n  COALESCE(image_url, '') AS image_url\nFROM moveadvisor_market_offers\nWHERE portal = 'flexicar'\n  AND enrich_tried_at IS NULL\n  AND (\n    COALESCE(color, '') = ''\n    OR COALESCE(doors, 0) = 0\n    OR COALESCE(seats, 0) = 0\n    OR COALESCE(body_type, '') = ''\n    OR COALESCE(displacement, '') = ''\n    OR COALESCE(consumption, 0) = 0\n    OR COALESCE(traction, '') = ''\n    OR COALESCE(co2, '') = ''\n  )\nORDER BY first_seen_at ASC\nLIMIT 2000",
+        "query": "SELECT id,\n  COALESCE(url, '') AS url,\n  COALESCE(color, '') AS color,\n  COALESCE(doors, 0)::int AS doors,\n  COALESCE(seats, 0)::int AS seats,\n  COALESCE(power_cv, 0)::int AS power_cv,\n  COALESCE(displacement, '') AS displacement,\n  COALESCE(consumption, 0) AS consumption,\n  COALESCE(body_type, '') AS body_type,\n  COALESCE(traction, '') AS traction,\n  COALESCE(co2, '') AS co2,\n  COALESCE(image_url, '') AS image_url\nFROM moveadvisor_market_offers\nWHERE portal = 'flexicar'\n  AND enrich_tried_at IS NULL\n  AND (\n    COALESCE(color, '') = ''\n    OR COALESCE(doors, 0) = 0\n    OR COALESCE(seats, 0) = 0\n    OR COALESCE(body_type, '') = ''\n    OR COALESCE(displacement, '') = ''\n    OR COALESCE(consumption, 0) = 0\n    OR COALESCE(traction, '') = ''\n    OR COALESCE(co2, '') = ''\n  )\nORDER BY first_seen_at ASC\nLIMIT 2000",
         "additionalFields": {}
       },
       "id": "node-pg-select",
@@ -66,61 +66,54 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "=https://services.flexicar.es/api/v1/vehicles/{{ $json.id }}",
+        "url": "={{ $json.url }}",
         "options": {
-          "timeout": 15000,
+          "timeout": 20000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
           "headers": {
             "values": [
               {
                 "name": "Accept",
-                "value": "application/json, text/plain, */*"
+                "value": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
               },
               {
                 "name": "User-Agent",
                 "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
               },
               {
-                "name": "Referer",
-                "value": "https://www.flexicar.es/"
-              },
-              {
-                "name": "Origin",
-                "value": "https://www.flexicar.es"
-              },
-              {
                 "name": "Accept-Language",
                 "value": "es-ES,es;q=0.9,en;q=0.8"
               },
               {
-                "name": "sec-ch-ua",
-                "value": "\"Chromium\";v=\"124\", \"Google Chrome\";v=\"124\", \"Not-A.Brand\";v=\"99\""
-              },
-              {
-                "name": "sec-ch-ua-mobile",
-                "value": "?0"
-              },
-              {
-                "name": "sec-ch-ua-platform",
-                "value": "\"Windows\""
+                "name": "Accept-Encoding",
+                "value": "gzip, deflate, br"
               },
               {
                 "name": "Sec-Fetch-Dest",
-                "value": "empty"
+                "value": "document"
               },
               {
                 "name": "Sec-Fetch-Mode",
-                "value": "cors"
+                "value": "navigate"
               },
               {
                 "name": "Sec-Fetch-Site",
-                "value": "same-site"
+                "value": "none"
+              },
+              {
+                "name": "Upgrade-Insecure-Requests",
+                "value": "1"
               }
             ]
           }
         }
       },
       "id": "node-http-detail",
-      "name": "HTTP: API Detalle Flexicar",
+      "name": "HTTP: Ficha HTML Flexicar",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [760, 400],
@@ -129,7 +122,7 @@
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "const api = $input.item.json;\nconst dbId = String($('Loop: oferta por oferta').item.json.id || '');\nconst id = api.id ? String(api.id) : dbId;\n\n// LOG: ver la respuesta real de la API (quitar cuando esté mapeado bien)\nconsole.log('[flexicar-enrich] id=' + id + ' keys=' + Object.keys(api).join(','));\nconsole.log('[flexicar-enrich] raw=' + JSON.stringify(api).slice(0, 1500));\n\nif (!id) {\n  await new Promise(r => setTimeout(r, 800));\n  return [{ json: { id: null, hasUpdates: false, updateSql: null } }];\n}\n\nfunction esc(v) {\n  if (v === null || v === undefined) return \"NULL\";\n  if (typeof v === \"number\") return isNaN(v) ? \"NULL\" : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\n\nfunction normalizeBody(raw) {\n  const s = String(raw || \"\").toLowerCase();\n  if (s.indexOf(\"suv\") !== -1 || s.indexOf(\"4x4\") !== -1 || s.indexOf(\"todoterreno\") !== -1) return \"SUV\";\n  if (s.indexOf(\"berlina\") !== -1 || s.indexOf(\"sedan\") !== -1) return \"Berlina\";\n  if (s.indexOf(\"familiar\") !== -1 || s.indexOf(\"estate\") !== -1) return \"Familiar\";\n  if (s.indexOf(\"coupe\") !== -1 || s.indexOf(\"coupé\") !== -1) return \"Coupé\";\n  if (s.indexOf(\"cabrio\") !== -1 || s.indexOf(\"convert\") !== -1) return \"Cabrio\";\n  if (s.indexOf(\"monovolumen\") !== -1 || s.indexOf(\"mpv\") !== -1) return \"Monovolumen\";\n  if (s.indexOf(\"hatchback\") !== -1) return \"Berlina\";\n  return raw || \"\";\n}\n\n// Intentar múltiples nombres de campo posibles para cada dato\nconst colorVal = api.color || api.colorName || api.colour || api.colorExterior || '';\nconst doorsVal = api.doors || api.numDoors || api.numberOfDoors || api.puertas || 0;\nconst seatsVal = api.seats || api.numSeats || api.numberOfSeats || api.plazas || 0;\nconst hpVal    = api.hp || api.power || api.cv || api.potencia || api.horsePower || 0;\n\n// Cilindrada: puede venir en cc (1500) o en litros (1.5)\nconst cylRaw = api.cylinder || api.displacement || api.cc || api.engineDisplacement || api.cilindrada || 0;\nconst cylCC  = cylRaw > 100 ? Math.round(cylRaw) : Math.round(cylRaw * 1000); // normalizar a cc\n\nconst consumVal = api.mixedConsumption || api.consumption || api.fuelConsumption || api.consumo || 0;\nconst bodyVal   = api.body || api.bodyType || api.carType || api.carroceria || api.bodyWork || '';\n\n// Imágenes: puede ser array de strings o array de {image: url}\nlet imgUrls = [];\nconst imgsRaw = api.images || api.photos || api.gallery || [];\nif (Array.isArray(imgsRaw) && imgsRaw.length > 0) {\n  if (typeof imgsRaw[0] === 'string') {\n    imgUrls = imgsRaw.filter(Boolean).slice(0, 20);\n  } else {\n    imgUrls = imgsRaw.map(function(i) { return i.image || i.url || i.src || ''; }).filter(Boolean).slice(0, 20);\n  }\n}\n\n// Tracción y CO2: puede venir en dataSheet (array strings) o en campos directos\nconst dataSheetArr = api.dataSheet || api.specs || api.characteristics || api.features || [];\nconst tractionDirect = api.traction || api.traccion || api.driveType || api.tractionType || '';\nconst co2Direct = api.co2 || api.emissions || api.co2Emissions || '';\n\nconst sets = [];\n\nif (colorVal)              sets.push(\"color = COALESCE(NULLIF(color,''), \" + esc(colorVal) + \")\");\nif (doorsVal > 0)          sets.push(\"doors = COALESCE(NULLIF(doors,0), \" + doorsVal + \")\");\nif (seatsVal > 0)          sets.push(\"seats = COALESCE(NULLIF(seats,0), \" + seatsVal + \")\");\nif (hpVal > 0)             sets.push(\"power_cv = COALESCE(NULLIF(power_cv,0), \" + hpVal + \")\");\nif (cylCC > 0)             sets.push(\"displacement = COALESCE(NULLIF(displacement,''), '\" + cylCC + \"')\");\nif (consumVal > 0)         sets.push(\"consumption = COALESCE(NULLIF(consumption,0), \" + consumVal + \")\");\nif (bodyVal)               sets.push(\"body_type = COALESCE(NULLIF(body_type,''), \" + esc(normalizeBody(bodyVal)) + \")\");\nif (imgUrls.length > 0) {\n  sets.push(\"image_url = COALESCE(NULLIF(image_url,''), \" + esc(imgUrls[0]) + \")\");\n  sets.push(\"images = COALESCE(NULLIF(images,''), \" + esc(JSON.stringify(imgUrls)) + \")\");\n}\n\n// Tracción: primero campo directo, luego buscar en dataSheet\nif (tractionDirect) {\n  const td = tractionDirect.toLowerCase();\n  const trVal = td.indexOf('total') !== -1 || td.indexOf('integral') !== -1 || td.indexOf('4x4') !== -1 ? '4x4'\n    : td.indexOf('tras') !== -1 ? 'Trasera'\n    : td.indexOf('del') !== -1 ? 'Delantera' : tractionDirect;\n  sets.push(\"traction = COALESCE(NULLIF(traction,''), \" + esc(trVal) + \")\");\n} else if (Array.isArray(dataSheetArr) && dataSheetArr.length > 0) {\n  const ds = dataSheetArr.join(' ').toLowerCase();\n  if (ds.indexOf('tracción total') !== -1 || ds.indexOf('tracción integral') !== -1 || ds.indexOf('4x4') !== -1) {\n    sets.push(\"traction = COALESCE(NULLIF(traction,''), '4x4')\");\n  } else if (ds.indexOf('tracción trasera') !== -1) {\n    sets.push(\"traction = COALESCE(NULLIF(traction,''), 'Trasera')\");\n  } else if (ds.indexOf('tracción delantera') !== -1) {\n    sets.push(\"traction = COALESCE(NULLIF(traction,''), 'Delantera')\");\n  }\n}\n\n// CO2: primero campo directo, luego buscar en dataSheet\nif (co2Direct) {\n  sets.push(\"co2 = COALESCE(NULLIF(co2,''), \" + esc(String(co2Direct)) + \")\");\n} else if (Array.isArray(dataSheetArr) && dataSheetArr.length > 0) {\n  const dsText = dataSheetArr.join(' ');\n  const wltpIdx = dsText.toLowerCase().indexOf('emisiones wltp ice');\n  if (wltpIdx !== -1) {\n    const after = dsText.slice(wltpIdx + 18, wltpIdx + 60);\n    const m = after.match(/(\\d+)/);\n    if (m) sets.push(\"co2 = COALESCE(NULLIF(co2,''), '\" + m[1] + \"')\");\n  }\n}\n\nsets.push(\"enrich_tried_at = NOW()\");\n\nconst updateSql = \"UPDATE moveadvisor_market_offers SET \" + sets.join(\", \") + \", updated_at = NOW() WHERE id = '\" + id.replace(/'/g, \"''\") + \"'\";\n\nconsole.log('[flexicar-enrich] sets count=' + sets.length + ' sql=' + updateSql.slice(0, 300));\n\nawait new Promise(r => setTimeout(r, 800));\n\nreturn [{ json: { id: id, hasUpdates: true, updateSql: updateSql } }];"
+        "jsCode": "const dbRecord = $('Loop: oferta por oferta').item.json;\nconst dbId = String(dbRecord.id || '');\nconst dbUrl = String(dbRecord.url || '');\n\n// La respuesta HTML viene como string en $input.item.json.data o directamente\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut\n  : (httpOut.data || httpOut.body || httpOut.html || '');\n\nconsole.log('[flexicar-enrich] id=' + dbId + ' url=' + dbUrl + ' html_len=' + String(html).length);\n\nif (!dbId) {\n  await new Promise(r => setTimeout(r, 800));\n  return [{ json: { id: null, hasUpdates: false, updateSql: null } }];\n}\n\nfunction esc(v) {\n  if (v === null || v === undefined) return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\n\nfunction normalizeBody(raw) {\n  const s = String(raw || '').toLowerCase();\n  if (s.indexOf('suv') !== -1 || s.indexOf('4x4') !== -1 || s.indexOf('todoterreno') !== -1) return 'SUV';\n  if (s.indexOf('berlina') !== -1 || s.indexOf('sedan') !== -1 || s.indexOf('hatchback') !== -1) return 'Berlina';\n  if (s.indexOf('familiar') !== -1 || s.indexOf('estate') !== -1 || s.indexOf('combi') !== -1) return 'Familiar';\n  if (s.indexOf('coupe') !== -1 || s.indexOf('coupé') !== -1) return 'Coupé';\n  if (s.indexOf('cabrio') !== -1 || s.indexOf('convert') !== -1 || s.indexOf('descapotable') !== -1) return 'Cabrio';\n  if (s.indexOf('monovolumen') !== -1 || s.indexOf('mpv') !== -1 || s.indexOf('van') !== -1) return 'Monovolumen';\n  return raw || '';\n}\n\nfunction normalizeTraction(raw) {\n  const s = String(raw || '').toLowerCase();\n  if (s.indexOf('total') !== -1 || s.indexOf('integral') !== -1 || s.indexOf('4x4') !== -1 || s.indexOf('awd') !== -1 || s.indexOf('4wd') !== -1) return '4x4';\n  if (s.indexOf('tras') !== -1 || s.indexOf('rear') !== -1) return 'Trasera';\n  if (s.indexOf('del') !== -1 || s.indexOf('front') !== -1) return 'Delantera';\n  return '';\n}\n\n// ── Extraer __NEXT_DATA__ ──────────────────────────────────────────────────\nlet vehicle = null;\nconst htmlStr = String(html);\n\ntry {\n  const ndMatch = htmlStr.match(/<script id=\"__NEXT_DATA__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/);\n  if (ndMatch) {\n    const nd = JSON.parse(ndMatch[1]);\n    console.log('[flexicar-enrich] __NEXT_DATA__ keys=' + Object.keys(nd).join(','));\n    // Rutas comunes en apps Next.js de Flexicar\n    const pp = (nd.props || {}).pageProps || {};\n    vehicle = pp.vehicle || pp.car || pp.data || pp.offer\n      || ((nd.props || {}).initialState || {}).vehicle\n      || null;\n    if (!vehicle && pp.dehydratedState) {\n      // React Query: buscar en queries\n      const queries = ((pp.dehydratedState || {}).queries || []);\n      for (const q of queries) {\n        const d = (q.state || {}).data;\n        if (d && (d.color !== undefined || d.doors !== undefined || d.id !== undefined)) {\n          vehicle = d; break;\n        }\n      }\n    }\n    if (vehicle) {\n      console.log('[flexicar-enrich] vehicle keys=' + Object.keys(vehicle).join(','));\n    } else {\n      console.log('[flexicar-enrich] vehicle not found in __NEXT_DATA__, pp keys=' + Object.keys(pp).join(','));\n    }\n  } else {\n    console.log('[flexicar-enrich] no __NEXT_DATA__ found');\n  }\n} catch(e) {\n  console.log('[flexicar-enrich] parse error: ' + e.message);\n}\n\n// ── Extraer campos ─────────────────────────────────────────────────────────\nlet colorVal = '', doorsVal = 0, seatsVal = 0, hpVal = 0;\nlet cylCC = 0, consumVal = 0, bodyVal = '', tractionVal = '', co2Val = '';\nlet imgUrls = [];\n\nif (vehicle) {\n  colorVal   = vehicle.color || vehicle.colorName || vehicle.colour || vehicle.colorExterior || '';\n  doorsVal   = vehicle.doors || vehicle.numDoors || vehicle.numberOfDoors || vehicle.puertas || 0;\n  seatsVal   = vehicle.seats || vehicle.numSeats || vehicle.numberOfSeats || vehicle.plazas || 0;\n  hpVal      = vehicle.hp || vehicle.power || vehicle.cv || vehicle.potencia || vehicle.horsePower || 0;\n  const cylRaw = vehicle.cylinder || vehicle.displacement || vehicle.cc || vehicle.engineDisplacement || vehicle.cilindrada || 0;\n  cylCC      = cylRaw > 100 ? Math.round(cylRaw) : Math.round(cylRaw * 1000);\n  consumVal  = vehicle.mixedConsumption || vehicle.consumption || vehicle.fuelConsumption || vehicle.consumo || 0;\n  bodyVal    = vehicle.body || vehicle.bodyType || vehicle.carType || vehicle.carroceria || vehicle.bodyWork || '';\n  tractionVal= vehicle.traction || vehicle.traccion || vehicle.driveType || vehicle.tractionType || '';\n  co2Val     = String(vehicle.co2 || vehicle.emissions || vehicle.co2Emissions || '');\n\n  // Imágenes\n  const imgsRaw = vehicle.images || vehicle.photos || vehicle.gallery || [];\n  if (Array.isArray(imgsRaw) && imgsRaw.length > 0) {\n    if (typeof imgsRaw[0] === 'string') {\n      imgUrls = imgsRaw.filter(Boolean).slice(0, 20);\n    } else {\n      imgUrls = imgsRaw.map(function(i) { return i.image || i.url || i.src || ''; }).filter(Boolean).slice(0, 20);\n    }\n  }\n\n  // DataSheet para tracción/CO2 si no vienen en campos directos\n  const dataSheetArr = vehicle.dataSheet || vehicle.specs || vehicle.characteristics || [];\n  if (!tractionVal && Array.isArray(dataSheetArr)) {\n    const ds = dataSheetArr.join(' ').toLowerCase();\n    tractionVal = ds.indexOf('total') !== -1 || ds.indexOf('integral') !== -1 || ds.indexOf('4x4') !== -1 ? '4x4'\n      : ds.indexOf('trasera') !== -1 ? 'Trasera'\n      : ds.indexOf('delantera') !== -1 ? 'Delantera' : '';\n  }\n  if (!co2Val && Array.isArray(dataSheetArr)) {\n    const dsText = dataSheetArr.join(' ');\n    const idx = dsText.toLowerCase().indexOf('emisiones wltp ice');\n    if (idx !== -1) {\n      const m = dsText.slice(idx + 18, idx + 60).match(/(\\d+)/);\n      if (m) co2Val = m[1];\n    }\n  }\n} else {\n  // ── Fallback: regex sobre el HTML ─────────────────────────────────────\n  // Color\n  const mColor = htmlStr.match(/\"color\"\\s*:\\s*\"([^\"]+)\"/i) || htmlStr.match(/color[^>]*>([A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+)</);\n  if (mColor) colorVal = mColor[1];\n\n  // Puertas\n  const mDoors = htmlStr.match(/\"(?:doors|numDoors|puertas)\"\\s*:\\s*(\\d+)/);\n  if (mDoors) doorsVal = parseInt(mDoors[1], 10);\n\n  // Plazas\n  const mSeats = htmlStr.match(/\"(?:seats|numSeats|plazas)\"\\s*:\\s*(\\d+)/);\n  if (mSeats) seatsVal = parseInt(mSeats[1], 10);\n\n  // CV\n  const mHp = htmlStr.match(/\"(?:hp|power|cv|potencia)\"\\s*:\\s*(\\d+)/);\n  if (mHp) hpVal = parseInt(mHp[1], 10);\n\n  // Cilindrada\n  const mCyl = htmlStr.match(/\"(?:cylinder|displacement|cc)\"\\s*:\\s*([\\d.]+)/);\n  if (mCyl) { const v = parseFloat(mCyl[1]); cylCC = v > 100 ? Math.round(v) : Math.round(v * 1000); }\n\n  // Consumo\n  const mCons = htmlStr.match(/\"(?:mixedConsumption|consumption|consumo)\"\\s*:\\s*([\\d.]+)/);\n  if (mCons) consumVal = parseFloat(mCons[1]);\n\n  // Carrocería\n  const mBody = htmlStr.match(/\"(?:body|bodyType|carType|carroceria)\"\\s*:\\s*\"([^\"]+)\"/);\n  if (mBody) bodyVal = mBody[1];\n\n  // Tracción\n  const mTrac = htmlStr.match(/\"(?:traction|traccion|driveType)\"\\s*:\\s*\"([^\"]+)\"/);\n  if (mTrac) tractionVal = mTrac[1];\n\n  // CO2\n  const mCo2 = htmlStr.match(/\"(?:co2|emissions|co2Emissions)\"\\s*:\\s*\"?([\\d]+)\"?/);\n  if (mCo2) co2Val = mCo2[1];\n\n  console.log('[flexicar-enrich] regex fallback: color=' + colorVal + ' doors=' + doorsVal + ' seats=' + seatsVal);\n}\n\n// ── Construir SQL ──────────────────────────────────────────────────────────\nconst sets = [];\n\nif (colorVal)                 sets.push('color = COALESCE(NULLIF(color,\\'\\'), ' + esc(colorVal) + ')');\nif (Number(doorsVal) > 0)     sets.push('doors = COALESCE(NULLIF(doors,0), ' + Number(doorsVal) + ')');\nif (Number(seatsVal) > 0)     sets.push('seats = COALESCE(NULLIF(seats,0), ' + Number(seatsVal) + ')');\nif (Number(hpVal) > 0)        sets.push('power_cv = COALESCE(NULLIF(power_cv,0), ' + Number(hpVal) + ')');\nif (cylCC > 0)                sets.push('displacement = COALESCE(NULLIF(displacement,\\'\\'), \\'' + cylCC + '\\')');\nif (Number(consumVal) > 0)    sets.push('consumption = COALESCE(NULLIF(consumption,0), ' + Number(consumVal) + ')');\nif (bodyVal)                  sets.push('body_type = COALESCE(NULLIF(body_type,\\'\\'), ' + esc(normalizeBody(bodyVal)) + ')');\nif (imgUrls.length > 0) {\n  sets.push('image_url = COALESCE(NULLIF(image_url,\\'\\'), ' + esc(imgUrls[0]) + ')');\n  sets.push('images = COALESCE(NULLIF(images,\\'\\'), ' + esc(JSON.stringify(imgUrls)) + ')');\n}\nconst trNorm = normalizeTraction(tractionVal);\nif (trNorm)                   sets.push('traction = COALESCE(NULLIF(traction,\\'\\'), ' + esc(trNorm) + ')');\nif (co2Val && /^\\d+$/.test(co2Val.trim())) sets.push('co2 = COALESCE(NULLIF(co2,\\'\\'), ' + esc(co2Val.trim()) + ')');\n\nsets.push('enrich_tried_at = NOW()');\n\nconst updateSql = 'UPDATE moveadvisor_market_offers SET ' + sets.join(', ') + ', updated_at = NOW() WHERE id = \\'' + dbId.replace(/'/g, \"''\") + \"'\";\n\nconsole.log('[flexicar-enrich] sets=' + sets.length + ' sql=' + updateSql.slice(0, 400));\n\nawait new Promise(r => setTimeout(r, 800));\n\nreturn [{ json: { id: dbId, hasUpdates: true, updateSql: updateSql } }];"
       },
       "id": "node-code-parse",
       "name": "Code: Extraer campos y generar SQL",
@@ -208,10 +201,10 @@
     },
     "Loop: oferta por oferta": {
       "main": [
-        [{ "node": "HTTP: API Detalle Flexicar", "type": "main", "index": 0 }]
+        [{ "node": "HTTP: Ficha HTML Flexicar", "type": "main", "index": 0 }]
       ]
     },
-    "HTTP: API Detalle Flexicar": {
+    "HTTP: Ficha HTML Flexicar": {
       "main": [
         [{ "node": "Code: Extraer campos y generar SQL", "type": "main", "index": 0 }]
       ]
@@ -243,6 +236,6 @@
   "staticData": null,
   "tags": [],
   "triggerCount": 1,
-  "updatedAt": "2026-05-15T00:00:00.000Z",
+  "updatedAt": "2026-05-16T00:00:00.000Z",
   "versionId": "1"
 }

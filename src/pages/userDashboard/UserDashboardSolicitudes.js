@@ -125,6 +125,8 @@ export default function UserDashboardSolicitudes({
         body: JSON.stringify({ id, email: userEmail, action: "confirm" }),
       });
       if (!res.ok) throw new Error("Error al confirmar");
+      const data = await res.json();
+      if (data.email_error) console.warn("[confirm] email_error:", data.email_error);
       setLocalSolicitudes((prev) =>
         prev.map((s) => (s.id === id ? { ...s, status: "Cita confirmada" } : s))
       );

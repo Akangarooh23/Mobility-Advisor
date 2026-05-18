@@ -50,6 +50,10 @@
       "destination": "/api/user?route=attachment-file"
     },
     {
+      "source": "/api/leads",
+      "destination": "/api/user?route=leads"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

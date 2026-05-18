@@ -10,11 +10,12 @@ export default function UserDashboardSolicitudes({
   const isDark = themeMode === "dark";
 
   const [localSolicitudes, setLocalSolicitudes] = useState(userSolicitudes);
-  const [cancelId, setCancelId]       = useState(null);
+  const [cancelId, setCancelId]         = useState(null);
   const [rescheduleId, setRescheduleId] = useState(null);
-  const [proposals, setProposals]     = useState([{ date: "", time: "" }]);
+  const [confirmId, setConfirmId]       = useState(null);
+  const [proposals, setProposals]       = useState([{ date: "", time: "" }]);
   const [actionLoading, setActionLoading] = useState(false);
-  const [actionError, setActionError] = useState("");
+  const [actionError, setActionError]   = useState("");
 
   const TYPE_LABEL = {
     info:     "Solicitar info",
@@ -30,6 +31,7 @@ export default function UserDashboardSolicitudes({
     Pendiente:              { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
     Contactado:             { bg: "rgba(59,130,246,0.12)",  color: "#1d4ed8" },
     "En proceso":           { bg: "rgba(139,92,246,0.12)",  color: "#5b21b6" },
+    "Cita confirmada":      { bg: "rgba(16,185,129,0.15)",  color: "#065f46" },
     Cerrado:                { bg: "rgba(16,185,129,0.12)",  color: "#065f46" },
     Descartado:             { bg: "rgba(100,116,139,0.10)", color: "#475569" },
     "Reagendar solicitado": { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
@@ -113,15 +115,45 @@ export default function UserDashboardSolicitudes({
     }
   }
 
+  async function handleConfirm(id) {
+    setActionLoading(true);
+    setActionError("");
+    try {
+      const res = await fetch("/api/leads", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, email: userEmail, action: "confirm" }),
+      });
+      if (!res.ok) throw new Error("Error al confirmar");
+      setLocalSolicitudes((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, status: "Cita confirmada" } : s))
+      );
+      setConfirmId(null);
+    } catch {
+      setActionError("No se pudo confirmar la cita. Inténtalo de nuevo.");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   function openReschedule(id) {
     setRescheduleId(id);
     setCancelId(null);
+    setConfirmId(null);
     setProposals([{ date: "", time: "" }]);
     setActionError("");
   }
 
   function openCancel(id) {
     setCancelId(id);
+    setRescheduleId(null);
+    setConfirmId(null);
+    setActionError("");
+  }
+
+  function openConfirm(id) {
+    setConfirmId(id);
+    setCancelId(null);
     setRescheduleId(null);
     setActionError("");
   }
@@ -158,18 +190,25 @@ export default function UserDashboardSolicitudes({
             const meta = parseMeta(item.meta);
             const typeStyle = TYPE_COLOR[item.type] || TYPE_COLOR.info;
             const statusStyle = STATUS_COLOR[item.status] || { bg: "rgba(100,116,139,0.10)", color: "#475569" };
-            const hasResponse = meta.erp_response || meta.appointment_date;
             const isVisit = item.type === "visit";
-            const isConfirmed = isVisit && meta.appointment_date && item.status !== "Cancelado" && item.status !== "Reagendar solicitado";
+            const hasAppt = isVisit && !!meta.appointment_date;
+            const isReserved = item.status === "Cita confirmada";
+            // appointment box shown when visit has date and not cancelled/reschedule-pending
+            const showApptBox = hasAppt && item.status !== "Cancelado" && item.status !== "Reagendar solicitado";
+            // action buttons shown when not cancelled and no open dialog
+            const canAct = item.status !== "Cancelado" && userEmail;
             const isCancelConfirm = cancelId === item.id;
             const isRescheduleForm = rescheduleId === item.id;
+            const isConfirmDialog = confirmId === item.id;
+            // "Confirmar cita" only when operator has set a date and status is Contactado/En proceso
+            const canConfirm = hasAppt && ["Contactado", "En proceso"].includes(item.status);
 
             return (
               <div
                 key={item.id}
                 style={{
                   background: isDark ? "rgba(15,23,42,0.7)" : "#ffffff",
-                  border: `1px solid ${hasResponse ? (isDark ? "rgba(59,130,246,0.3)" : "#bfdbfe") : (isDark ? "rgba(255,255,255,0.07)" : "#e2e8f0")}`,
+                  border: `1px solid ${isReserved ? (isDark ? "rgba(16,185,129,0.4)" : "#86efac") : showApptBox ? (isDark ? "rgba(59,130,246,0.3)" : "#bfdbfe") : (isDark ? "rgba(255,255,255,0.07)" : "#e2e8f0")}`,
                   borderRadius: 12,
                   padding: "14px 16px",
                   display: "flex",
@@ -187,9 +226,9 @@ export default function UserDashboardSolicitudes({
                       <span style={{ display: "inline-block", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 999, background: statusStyle.bg, color: statusStyle.color }}>
                         {item.status || "Pendiente"}
                       </span>
-                      {meta.notified_at && item.status !== "Cancelado" && (
-                        <span style={{ display: "inline-block", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 999, background: "rgba(16,185,129,0.12)", color: "#065f46" }}>
-                          ✓ Respondido
+                      {isReserved && (
+                        <span style={{ display: "inline-block", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: "rgba(16,185,129,0.15)", color: "#065f46", border: "1px solid rgba(16,185,129,0.3)" }}>
+                          🔒 Vehículo reservado
                         </span>
                       )}
                     </div>
@@ -210,30 +249,53 @@ export default function UserDashboardSolicitudes({
                   </div>
                 </div>
 
-                {/* Confirmed appointment box */}
-                {hasResponse && item.status !== "Cancelado" && (
-                  <div style={{ background: isDark ? "rgba(37,99,235,0.12)" : "#eff6ff", border: `1px solid ${isDark ? "rgba(59,130,246,0.25)" : "#bfdbfe"}`, borderRadius: 8, padding: "10px 12px" }}>
-                    {isVisit && meta.appointment_date ? (
-                      <>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: "#1d4ed8", marginBottom: 6 }}>✅ Cita confirmada</div>
-                        <div style={{ fontSize: 13, color: isDark ? "#bfdbfe" : "#1e40af", display: "grid", gap: 3 }}>
-                          <div>📅 {formatAppointmentDate(meta.appointment_date)}</div>
-                          {meta.appointment_time && <div>⏰ {meta.appointment_time}</div>}
-                          {meta.appointment_address && <div>📍 {meta.appointment_address}</div>}
-                          {meta.appointment_contact && <div>👤 Pregunta por <strong>{meta.appointment_contact}</strong></div>}
-                        </div>
-                        {meta.erp_response && (
-                          <div style={{ marginTop: 8, fontSize: 12, color: isDark ? "#93c5fd" : "#1e40af", borderTop: `1px solid ${isDark ? "rgba(59,130,246,0.2)" : "#bfdbfe"}`, paddingTop: 8 }}>
-                            {meta.erp_response}
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: "#1d4ed8", marginBottom: 4 }}>💬 Respuesta de CarsWise</div>
-                        <div style={{ fontSize: 13, color: isDark ? "#bfdbfe" : "#1e40af", whiteSpace: "pre-wrap" }}>{meta.erp_response}</div>
-                      </>
+                {/* Appointment box */}
+                {showApptBox && (
+                  <div style={{
+                    background: isReserved ? (isDark ? "rgba(16,185,129,0.1)" : "#f0fdf4") : (isDark ? "rgba(37,99,235,0.12)" : "#eff6ff"),
+                    border: `1px solid ${isReserved ? (isDark ? "rgba(16,185,129,0.3)" : "#86efac") : (isDark ? "rgba(59,130,246,0.25)" : "#bfdbfe")}`,
+                    borderRadius: 8, padding: "10px 12px",
+                  }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: isReserved ? "#065f46" : "#1d4ed8", marginBottom: 6 }}>
+                      {isReserved ? "🎉 Cita confirmada — vehículo reservado" : "📅 Cita asignada por CarsWise"}
+                    </div>
+                    <div style={{ fontSize: 13, color: isDark ? (isReserved ? "#86efac" : "#bfdbfe") : (isReserved ? "#166534" : "#1e40af"), display: "grid", gap: 3 }}>
+                      <div>📅 {formatAppointmentDate(meta.appointment_date)}</div>
+                      {meta.appointment_time && <div>⏰ {meta.appointment_time}</div>}
+                      {meta.appointment_address && <div>📍 {meta.appointment_address}</div>}
+                      {meta.appointment_contact && <div>👤 Pregunta por <strong>{meta.appointment_contact}</strong></div>}
+                    </div>
+                    {meta.erp_response && (
+                      <div style={{ marginTop: 8, fontSize: 12, color: isDark ? "#93c5fd" : "#1e40af", borderTop: `1px solid ${isDark ? "rgba(59,130,246,0.2)" : "#bfdbfe"}`, paddingTop: 8 }}>
+                        {meta.erp_response}
+                      </div>
                     )}
+                  </div>
+                )}
+
+                {/* Non-visit response */}
+                {!isVisit && meta.erp_response && item.status !== "Cancelado" && (
+                  <div style={{ background: isDark ? "rgba(37,99,235,0.12)" : "#eff6ff", border: `1px solid ${isDark ? "rgba(59,130,246,0.25)" : "#bfdbfe"}`, borderRadius: 8, padding: "10px 12px" }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "#1d4ed8", marginBottom: 4 }}>💬 Respuesta de CarsWise</div>
+                    <div style={{ fontSize: 13, color: isDark ? "#bfdbfe" : "#1e40af", whiteSpace: "pre-wrap" }}>{meta.erp_response}</div>
+                  </div>
+                )}
+
+                {/* Prompt to confirm cita — shown when operator has set date but client hasn't confirmed yet */}
+                {canConfirm && !isCancelConfirm && !isRescheduleForm && !isConfirmDialog && (
+                  <div style={{ background: isDark ? "rgba(254,252,232,0.07)" : "#fefce8", border: "2px solid #fbbf24", borderRadius: 10, padding: "12px 14px" }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#92400e", marginBottom: 6 }}>
+                      ⚠️ Confirma tu cita para reservar el vehículo
+                    </div>
+                    <div style={{ fontSize: 12, color: isDark ? "#d97706" : "#78350f", marginBottom: 10 }}>
+                      El vehículo no estará reservado hasta que confirmes. Sin confirmación, otro cliente podría adquirirlo.
+                    </div>
+                    <button
+                      onClick={() => openConfirm(item.id)}
+                      style={{ ...btnBase, background: "#059669", color: "#fff", borderColor: "#059669", fontSize: 13, padding: "8px 18px" }}
+                    >
+                      ✅ Confirmar cita y reservar vehículo
+                    </button>
                   </div>
                 )}
 
@@ -254,15 +316,17 @@ export default function UserDashboardSolicitudes({
                   </div>
                 )}
 
-                {/* Action buttons — only for confirmed visits not yet cancelled/rescheduled */}
-                {isConfirmed && userEmail && !isCancelConfirm && !isRescheduleForm && (
+                {/* Action buttons */}
+                {canAct && !isCancelConfirm && !isRescheduleForm && !isConfirmDialog && (
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <button
-                      onClick={() => openReschedule(item.id)}
-                      style={{ ...btnBase, background: isDark ? "rgba(59,130,246,0.1)" : "#eff6ff", color: "#2563eb", borderColor: "rgba(59,130,246,0.3)" }}
-                    >
-                      📅 Solicitar cambio de fecha
-                    </button>
+                    {isVisit && item.status !== "Reagendar solicitado" && (
+                      <button
+                        onClick={() => openReschedule(item.id)}
+                        style={{ ...btnBase, background: isDark ? "rgba(59,130,246,0.1)" : "#eff6ff", color: "#2563eb", borderColor: "rgba(59,130,246,0.3)" }}
+                      >
+                        📅 Solicitar cambio de fecha
+                      </button>
+                    )}
                     <button
                       onClick={() => openCancel(item.id)}
                       style={{ ...btnBase, background: isDark ? "rgba(239,68,68,0.08)" : "#fef2f2", color: "#dc2626", borderColor: "rgba(239,68,68,0.25)" }}
@@ -272,12 +336,40 @@ export default function UserDashboardSolicitudes({
                   </div>
                 )}
 
+                {/* Confirm dialog */}
+                {isConfirmDialog && (
+                  <div style={{ background: isDark ? "rgba(5,150,105,0.1)" : "#f0fdf4", border: "1px solid #86efac", borderRadius: 8, padding: "12px 14px" }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#065f46", marginBottom: 8 }}>
+                      ¿Confirmas la cita? El vehículo quedará reservado a tu nombre.
+                    </div>
+                    {actionError && <div style={{ fontSize: 12, color: "#dc2626", marginBottom: 8 }}>{actionError}</div>}
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button
+                        onClick={() => handleConfirm(item.id)}
+                        disabled={actionLoading}
+                        style={{ ...btnBase, background: "#059669", color: "#fff", borderColor: "#059669", opacity: actionLoading ? 0.6 : 1 }}
+                      >
+                        {actionLoading ? "Confirmando…" : "✅ Sí, confirmar cita"}
+                      </button>
+                      <button
+                        onClick={() => setConfirmId(null)}
+                        disabled={actionLoading}
+                        style={{ ...btnBase, background: "transparent", color: isDark ? "#94a3b8" : "#64748b", borderColor: isDark ? "rgba(255,255,255,0.15)" : "#e2e8f0" }}
+                      >
+                        Ahora no
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Cancel confirmation */}
                 {isCancelConfirm && (
                   <div style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, padding: "12px 14px" }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "#b91c1c", marginBottom: 8 }}>
                       ¿Seguro que quieres anular esta cita?
+                      {isReserved && <span style={{ display: "block", fontSize: 12, fontWeight: 400, marginTop: 4 }}>La reserva del vehículo también se cancelará.</span>}
                     </div>
+                    {actionError && <div style={{ fontSize: 12, color: "#dc2626", marginBottom: 8 }}>{actionError}</div>}
                     <div style={{ display: "flex", gap: 8 }}>
                       <button
                         onClick={() => handleCancel(item.id)}

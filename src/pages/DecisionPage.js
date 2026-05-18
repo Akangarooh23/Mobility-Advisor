@@ -188,9 +188,16 @@ export default function DecisionPage({
   const [priceSortOrder, setPriceSortOrder] = useState("asc");
   const [offerPriceMin, setOfferPriceMin] = useState("");
   const [offerPriceMax, setOfferPriceMax] = useState("");
+  const [reservedUrls, setReservedUrls] = useState(new Set());
   useEffect(() => {
     setVisibleCount(VISIBLE_PAGE_SIZE);
   }, [decisionMarketListings]);
+  useEffect(() => {
+    fetch("/api/leads?reserved=1")
+      .then((r) => r.json())
+      .then((d) => { if (d.ok && Array.isArray(d.reservedUrls)) setReservedUrls(new Set(d.reservedUrls)); })
+      .catch(() => {});
+  }, []);
 
   const text = {
     marketOffers: t("decision.marketOffers"),
@@ -1938,11 +1945,13 @@ export default function DecisionPage({
             {!decisionMarketLoading && sortedDecisionMarketListings.length > 0 && (
               <>
                 <div className="cw-results-grid">
-                  {sortedDecisionMarketListings.slice(0, visibleCount).map((offer, i) => (
+                  {sortedDecisionMarketListings.slice(0, visibleCount).map((offer, i) => {
+                    const isOfferReserved = offer.url && reservedUrls.has(offer.url);
+                    return (
                     <div
                       key={i}
                       className="cw-offer-card"
-                      style={{ cursor: "pointer" }}
+                      style={{ cursor: "pointer", ...(isOfferReserved ? { opacity: 0.72, border: "1.5px solid #fbbf24" } : {}) }}
                       onClick={() => onOpenVehicleDetail && onOpenVehicleDetail(offer)}
                       role="button"
                       tabIndex={0}
@@ -1951,6 +1960,11 @@ export default function DecisionPage({
                       <div className="cw-offer-top">
                         <div className="cw-offer-type">{offer.listingType === "renting" ? "Renting" : text.buyLabel}</div>
                         <div className="cw-offer-source">{cleanOfferText(offer.source) || "market"}</div>
+                        {isOfferReserved && (
+                          <div style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 999, background: "#fef9c3", color: "#92400e", border: "1px solid #fbbf24", marginLeft: "auto" }}>
+                            🔒 Reservado
+                          </div>
+                        )}
                       </div>
                       <div className="cw-offer-media">
                         {offer.image ? (
@@ -1980,7 +1994,7 @@ export default function DecisionPage({
                         <div className="cw-offer-price">{cleanOfferText(offer.priceText || offer.price)}</div>
                       </div>
                     </div>
-                  ))}
+                  ); })}
                 </div>
                 {visibleCount < sortedDecisionMarketListings.length && (
                   <div style={{ textAlign: "center", margin: "16px 0 8px" }}>

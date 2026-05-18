@@ -601,6 +601,7 @@ export default function UserDashboardPage({
           userSolicitudes={userSolicitudes}
           panelStyle={panelStyle}
           getOfferBadgeStyle={getOfferBadgeStyle}
+          userEmail={currentUser?.email || ""}
         />
       )}
 

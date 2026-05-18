@@ -73,6 +73,7 @@ const handlers = {
   "/api/user-saved": userHandler,
   "/api/user-alerts": userHandler,
   "/api/user-preferences": userHandler,
+  "/api/leads": userHandler,
 };
 
 function sendJson(res, statusCode, payload) {
@@ -145,7 +146,7 @@ const server = http.createServer(async (req, res) => {
 
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
 
   if (req.method === "OPTIONS") {
     res.statusCode = 204;

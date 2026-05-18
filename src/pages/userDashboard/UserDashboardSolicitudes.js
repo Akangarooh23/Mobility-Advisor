@@ -52,7 +52,8 @@ export default function UserDashboardSolicitudes({
   function formatAppointmentDate(dateStr) {
     if (!dateStr) return "";
     try {
-      return new Date(dateStr + "T12:00:00").toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+      const datePart = String(dateStr).slice(0, 10);
+      return new Date(datePart + "T12:00:00").toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
     } catch { return dateStr; }
   }
 

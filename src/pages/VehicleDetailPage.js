@@ -326,6 +326,7 @@ function normalizeOffer(offer) {
 export default function VehicleDetailPage({ offer, onBack }) {
   const { t } = useTranslation();
   const [modalOpen, setModalOpen] = React.useState(false);
+  const [modalType, setModalType] = React.useState("info");
   const [contactForm, setContactForm] = React.useState({
     name: "",
     phone: "",
@@ -333,6 +334,8 @@ export default function VehicleDetailPage({ offer, onBack }) {
     when: "",
   });
   const [submitted, setSubmitted] = React.useState(false);
+  const [submitting, setSubmitting] = React.useState(false);
+  const [submitError, setSubmitError] = React.useState("");
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -354,12 +357,34 @@ export default function VehicleDetailPage({ offer, onBack }) {
   const locationLabel = loc === t("vehicleDetail.locationNA") ? t("vehicleDetail.noLocation") : loc;
   const yearLabel = car.year || "N/D";
 
-  function handleSubmit() {
-    setSubmitted(true);
-    setTimeout(() => {
-      setModalOpen(false);
-      setSubmitted(false);
-    }, 2000);
+  async function handleSubmit() {
+    setSubmitError("");
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: contactForm.name,
+          phone: contactForm.phone,
+          email: contactForm.email,
+          when: contactForm.when,
+          type: modalType,
+          vehicle_id: car.id || car.offerId || "",
+          vehicle_title: `${car.brand || ""} ${car.model || ""} ${car.year || ""}`.trim(),
+          vehicle_url: car.url || car.searchUrl || "",
+          portal: car.portal || "",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al enviar");
+      setSubmitted(true);
+      setTimeout(() => { setModalOpen(false); setSubmitted(false); }, 3000);
+    } catch (err) {
+      setSubmitError(err.message || "No se pudo enviar. Inténtalo de nuevo.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -475,13 +500,13 @@ export default function VehicleDetailPage({ offer, onBack }) {
               </div>
             )}
 
-            <button className="vd-btn-primary" onClick={() => setModalOpen(true)}>
+            <button className="vd-btn-primary" onClick={() => { setModalType("info"); setModalOpen(true); }}>
               {t("vehicleDetail.requestInfo")}
             </button>
-            <button className="vd-btn-secondary" onClick={() => setModalOpen(true)}>
+            <button className="vd-btn-secondary" onClick={() => { setModalType("visit"); setModalOpen(true); }}>
               {t("vehicleDetail.scheduleVisit")}
             </button>
-            <button className="vd-btn-secondary" onClick={() => setModalOpen(true)}>
+            <button className="vd-btn-secondary" onClick={() => { setModalType("question"); setModalOpen(true); }}>
               {t("vehicleDetail.askAboutCar")}
             </button>
             <button
@@ -718,8 +743,13 @@ export default function VehicleDetailPage({ offer, onBack }) {
                     <option value="them">{t("vehicleDetail.theyIndicate")}</option>
                   </select>
                 </div>
-                <button className="vd-modal-submit" onClick={handleSubmit}>
-                  {t("vehicleDetail.requestAppointment")}
+                {submitError && (
+                  <div style={{ color: "#c0392b", fontSize: 13, marginBottom: 8, padding: "6px 10px", background: "#ffeaea", borderRadius: 6 }}>
+                    {submitError}
+                  </div>
+                )}
+                <button className="vd-modal-submit" onClick={handleSubmit} disabled={submitting}>
+                  {submitting ? "Enviando…" : t("vehicleDetail.requestAppointment")}
                 </button>
                 <div className="vd-modal-note">
                   {t("vehicleDetail.dataPrivacyNote")}

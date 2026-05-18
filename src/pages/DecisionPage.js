@@ -185,6 +185,13 @@ export default function DecisionPage({
   const { t } = useTranslation();
   const VISIBLE_PAGE_SIZE = 100;
   const [visibleCount, setVisibleCount] = useState(VISIBLE_PAGE_SIZE);
+
+  // Sorting state: "asc" | "desc"
+  const [priceSortOrder, setPriceSortOrder] = useState("asc");
+  // Offer price filter (applied to results list, independent of wizard range)
+  const [offerPriceMin, setOfferPriceMin] = useState("");
+  const [offerPriceMax, setOfferPriceMax] = useState("");
+
   useEffect(() => {
     setVisibleCount(VISIBLE_PAGE_SIZE);
   }, [decisionMarketListings]);
@@ -865,6 +872,25 @@ export default function DecisionPage({
   const activeFilters = getActiveFilters();
   const hasActiveFilters = activeFilters.length > 0;
 
+  // Apply price sorting + price range filter to offers
+  let sortedDecisionMarketListings = decisionMarketListings;
+  if (decisionAnswers.model && Array.isArray(decisionMarketListings) && decisionMarketListings.length > 0) {
+    const minVal = offerPriceMin !== "" ? Number(offerPriceMin) : null;
+    const maxVal = offerPriceMax !== "" ? Number(offerPriceMax) : null;
+    sortedDecisionMarketListings = [...decisionMarketListings]
+      .filter((a) => {
+        const p = typeof a.price === "number" ? a.price : parseFloat(a.price);
+        if (minVal !== null && p < minVal) return false;
+        if (maxVal !== null && p > maxVal) return false;
+        return true;
+      })
+      .sort((a, b) => {
+        const priceA = typeof a.price === "number" ? a.price : parseFloat(a.price);
+        const priceB = typeof b.price === "number" ? b.price : parseFloat(b.price);
+        return priceSortOrder === "asc" ? priceA - priceB : priceB - priceA;
+      });
+  }
+
   return (
     <div style={{...styles.center, maxWidth: 900, padding: "2rem"}}>
       <style>
@@ -936,97 +962,155 @@ export default function DecisionPage({
             .cw-cta-card { flex-direction: column; align-items: stretch; }
             .cw-cta-right { width: 100%; justify-content: flex-end; }
             .cw-btn-main { flex: 1; justify-content: center; min-width: 0; font-size: 12px; padding: 0.65rem 1rem; }
-            .cw-btn-back { font-size: 12px; }
-          }
-          .cw-results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
-          .cw-offer-card { background: linear-gradient(160deg, #ffffff 0%, #f8fafc 100%); border: 1px solid #d9e4f5; border-radius: 16px; padding: 1rem; display: flex; flex-direction: column; gap: 0.85rem; transition: all 0.2s ease; text-decoration: none; color: inherit; position: relative; overflow: hidden; }
-          .cw-offer-card::after { content: ''; position: absolute; inset: auto -10% -35% -10%; height: 70px; background: radial-gradient(circle at top, rgba(37,99,235,0.14), transparent 70%); opacity: 0; transition: opacity 0.2s ease; pointer-events: none; }
-          .cw-offer-card:hover { border-color: #9fbaf0; box-shadow: 0 10px 28px rgba(30,64,175,0.14); transform: translateY(-2px); }
-          .cw-offer-card:hover::after { opacity: 1; }
-          .cw-offer-top { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
-          .cw-offer-type { font-size: 10px; color: #1d4ed8; background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.25); font-weight: 700; padding: 0.22rem 0.52rem; border-radius: 999px; letter-spacing: 0.04em; text-transform: uppercase; }
-          .cw-offer-source { font-size: 10px; color: #35507a; background: rgba(148,163,184,0.16); border: 1px solid rgba(148,163,184,0.35); padding: 0.2rem 0.5rem; border-radius: 999px; font-weight: 600; text-transform: lowercase; }
-          .cw-offer-media { position: relative; width: 100%; height: 132px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; background: linear-gradient(145deg, #f8fafc 0%, #eef2f7 100%); }
-          .cw-offer-image { width: 100%; height: 100%; object-fit: cover; display: block; }
-          .cw-offer-image-fallback { width: 100%; height: 100%; align-items: center; justify-content: center; font-size: 11px; color: #7b8798; font-weight: 600; letter-spacing: 0.02em; }
-          .cw-offer-title { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 0.1rem; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-          .cw-offer-desc { font-size: 11.5px; color: #5c6c82; line-height: 1.5; min-height: 34px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-          .cw-offer-footer { display: flex; justify-content: space-between; align-items: flex-end; padding-top: 0.65rem; border-top: 1px solid #e6edf8; }
-          .cw-offer-price { font-size: 22px; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; line-height: 1; }
-          .cw-offer-open { font-size: 11px; font-weight: 700; color: #1d4ed8; }
-          .cw-no-results { background: #fff; border: 1px solid #f0ece4; border-radius: 12px; padding: 2rem; text-align: center; color: #999; font-size: 13px; }
-        `}
-      </style>
 
-      <div className="cw-wrap">
-        {/* MAIN CARD */}
-        <div className="cw-main-card">
-          {/* HEAD */}
-          <div className="cw-card-head">
-            <div className="cw-eyebrow">{t("decision.searchLabel")}</div>
-            <div className="cw-page-title">{text.title}</div>
-            <div className="cw-page-sub">{text.subtitle}</div>
-          </div>
-
-          {/* ACTIVE FILTERS */}
-          <div className={`cw-active-bar ${hasActiveFilters ? "show" : ""}`}>
-            <span className="cw-ab-label">{t("decision.activeFilters")}</span>
-            <div style={{display:"flex",gap:"0.35rem",flexWrap:"wrap"}}>
-              {activeFilters.map((f, i) => (
-                <span key={i} className="cw-a-chip">{f}</span>
-              ))}
-            </div>
-            {hasActiveFilters && (
-              <button className="cw-ab-clear" onClick={handleClearAll}>Limpiar todo</button>
+            {/* RESULTS */}
+            {decisionFlowReady && (
+              <>
+                {decisionMarketLoading && (
+                  <div className="cw-no-results">{text.loadingOffers}</div>
+                )}
+                {decisionMarketError && (
+                  <div style={{background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.18)",borderRadius:12,padding:12,color:"#b91c1c",fontSize:12}}>
+                    {decisionMarketError}
+                  </div>
+                )}
+                {!decisionMarketError && decisionMarketInsight && (
+                  <div style={{background:"rgba(59,130,246,0.08)",border:"1px solid #3b82f6",borderRadius:12,padding:12,color:"#1e3a8a",fontSize:12}}>
+                    {decisionMarketInsight}
+                  </div>
+                )}
+                {/* Price filter + sort bar */}
+                {!decisionMarketLoading && decisionAnswers.model && Array.isArray(decisionMarketListings) && decisionMarketListings.length > 0 && (
+                  <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:10,margin:'14px 0 10px 0',padding:'12px 14px',background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12}}>
+                    {/* Price range inputs */}
+                    <div style={{display:'flex',alignItems:'center',gap:6,flex:'1 1 auto',minWidth:200}}>
+                      <span style={{fontSize:11,color:'#888',fontWeight:500,whiteSpace:'nowrap'}}>Precio €</span>
+                      <input
+                        type="number"
+                        placeholder="Mín"
+                        value={offerPriceMin}
+                        onChange={e => setOfferPriceMin(e.target.value)}
+                        style={{width:80,padding:'5px 8px',fontSize:12,border:'1px solid #d1d5db',borderRadius:7,background:'#fff',color:'#111',outline:'none'}}
+                      />
+                      <span style={{fontSize:12,color:'#bbb'}}>—</span>
+                      <input
+                        type="number"
+                        placeholder="Máx"
+                        value={offerPriceMax}
+                        onChange={e => setOfferPriceMax(e.target.value)}
+                        style={{width:80,padding:'5px 8px',fontSize:12,border:'1px solid #d1d5db',borderRadius:7,background:'#fff',color:'#111',outline:'none'}}
+                      />
+                      {(offerPriceMin !== "" || offerPriceMax !== "") && (
+                        <button
+                          onClick={() => { setOfferPriceMin(""); setOfferPriceMax(""); }}
+                          style={{fontSize:11,color:'#aaa',background:'none',border:'none',cursor:'pointer',padding:'2px 4px',lineHeight:1}}
+                          title="Limpiar filtro de precio"
+                        >✕</button>
+                      )}
+                    </div>
+                    {/* Sort buttons */}
+                    <div style={{display:'flex',alignItems:'center',gap:6}}>
+                      <span style={{fontSize:11,color:'#888',fontWeight:500,whiteSpace:'nowrap'}}>Ordenar:</span>
+                      <button
+                        onClick={() => setPriceSortOrder("asc")}
+                        style={{display:'flex',alignItems:'center',gap:4,padding:'5px 12px',fontSize:12,fontWeight:500,borderRadius:7,border:'1px solid',cursor:'pointer',transition:'all .15s',
+                          background: priceSortOrder === "asc" ? '#3b82f6' : '#fff',
+                          borderColor: priceSortOrder === "asc" ? '#3b82f6' : '#d1d5db',
+                          color: priceSortOrder === "asc" ? '#fff' : '#555'}}
+                      >
+                        ↑ Menor precio
+                      </button>
+                      <button
+                        onClick={() => setPriceSortOrder("desc")}
+                        style={{display:'flex',alignItems:'center',gap:4,padding:'5px 12px',fontSize:12,fontWeight:500,borderRadius:7,border:'1px solid',cursor:'pointer',transition:'all .15s',
+                          background: priceSortOrder === "desc" ? '#3b82f6' : '#fff',
+                          borderColor: priceSortOrder === "desc" ? '#3b82f6' : '#d1d5db',
+                          color: priceSortOrder === "desc" ? '#fff' : '#555'}}
+                      >
+                        ↓ Mayor precio
+                      </button>
+                    </div>
+                    {/* Results count */}
+                    <span style={{fontSize:11,color:'#aaa',marginLeft:'auto',whiteSpace:'nowrap'}}>
+                      {sortedDecisionMarketListings.length} oferta{sortedDecisionMarketListings.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                )}
+                {!decisionMarketLoading && sortedDecisionMarketListings.length === 0 && (
+                  <div className="cw-no-results" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:12,padding:"2rem 1.5rem"}}>
+                    <span style={{fontSize:14,color:"#666"}}>{text.noOffers}</span>
+                    <button
+                      disabled
+                      style={{marginTop:4,padding:"9px 20px",borderRadius:8,border:"1px solid #d1d5db",background:"#f3f4f6",color:"#9ca3af",fontSize:13,cursor:"not-allowed",fontWeight:500}}
+                    >
+                      {text.requestAlert}
+                    </button>
+                  </div>
+                )}
+                {!decisionMarketLoading && sortedDecisionMarketListings.length > 0 && (
+                  <>
+                    <div className="cw-results-grid">
+                      {sortedDecisionMarketListings.slice(0, visibleCount).map((offer, i) => (
+                        <div
+                          key={i}
+                          className="cw-offer-card"
+                          style={{ cursor: "pointer" }}
+                          onClick={() => onOpenVehicleDetail && onOpenVehicleDetail(offer)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => e.key === "Enter" && onOpenVehicleDetail && onOpenVehicleDetail(offer)}
+                        >
+                          <div className="cw-offer-top">
+                            <div className="cw-offer-type">{offer.listingType === "renting" ? "Renting" : text.buyLabel}</div>
+                            <div className="cw-offer-source">{cleanOfferText(offer.source) || "market"}</div>
+                          </div>
+                          <div className="cw-offer-media">
+                            {offer.image ? (
+                              <img
+                                className="cw-offer-image"
+                                src={offer.image}
+                                alt={cleanOfferText(offer.title) || "Oferta"}
+                                loading="lazy"
+                                referrerPolicy="no-referrer"
+                                onError={(event) => {
+                                  event.currentTarget.style.display = "none";
+                                  const fallback = event.currentTarget.nextElementSibling;
+                                  if (fallback) {
+                                    fallback.style.display = "flex";
+                                  }
+                                }}
+                              />
+                            ) : null}
+                            <div className="cw-offer-image-fallback" style={{ display: offer.image ? "none" : "flex" }}>
+                              {text.noImage}
+                            </div>
+                          </div>
+                          <div className="cw-offer-title">{cleanOfferText(offer.title)}</div>
+                          <div className="cw-offer-desc">{cleanOfferText(offer.description)?.substring(0, 96)}</div>
+                          <div className="cw-offer-footer">
+                            <div className="cw-offer-open">{text.viewListing}</div>
+                            <div className="cw-offer-price">{cleanOfferText(offer.priceText || offer.price)}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {visibleCount < sortedDecisionMarketListings.length && (
+                      <div style={{ textAlign: "center", margin: "16px 0 8px" }}>
+                        <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>
+                          {text.showing} {Math.min(visibleCount, sortedDecisionMarketListings.length)} {text.of} {sortedDecisionMarketListings.length} {text.availableOffers}
+                        </div>
+                        <button
+                          onClick={() => setVisibleCount((c) => c + VISIBLE_PAGE_SIZE)}
+                          style={{ padding: "9px 24px", borderRadius: 8, border: "1px solid #3b82f6", background: "#eff6ff", color: "#1d4ed8", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+                        >
+                          {text.showMore}
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </>
             )}
-          </div>
-
-          {/* FILTERS */}
-          <div className="cw-filters">
-            {/* 2. BRAND */}
-            <div className="cw-f-block">
-              <div className="cw-f-lbl"><span className="cw-f-lbl-n">1</span>{text.brand}</div>
-              <div className="cw-sel-wrap">
-                <select
-                  value={decisionAnswers.brand || ""}
-                  onChange={(e) => {
-                    updateDecisionAnswer("hasBrand", e.target.value ? "si" : "");
-                    updateDecisionAnswer("brand", e.target.value);
-                  }}
-                >
-                  <option value="">{text.selectBrand}</option>
-                  {visibleBrands.map((brand) => (
-                    <option key={brand} value={brand}>
-                      {brand}
-                    </option>
-                  ))}
-                </select>
-                <div className="cw-sel-arrow">▾</div>
-              </div>
-            </div>
-
-            {/* 3. MODEL */}
-            <div className="cw-f-block">
-              <div className="cw-f-lbl">
-                <span className="cw-f-lbl-n">3</span>{text.model}
-                <span style={{fontSize:"10px",fontWeight:400,textTransform:"none",letterSpacing:0,color:"#ccc",marginLeft:"0.25rem"}}>{text.byMarca}</span>
-              </div>
-              <div className="cw-sel-wrap">
-                <select
-                  value={decisionAnswers.model || ""}
-                  onChange={(e) => updateDecisionAnswer("model", e.target.value)}
-                  disabled={!decisionAnswers.brand || (decisionTopModels.length + decisionOtherModels.length) === 0}
-                  style={{
-                    opacity: !decisionAnswers.brand || (decisionTopModels.length + decisionOtherModels.length) === 0 ? 0.6 : 1,
-                    cursor: !decisionAnswers.brand || (decisionTopModels.length + decisionOtherModels.length) === 0 ? "not-allowed" : "pointer",
-                  }}
-                >
-                  <option value="">
-                    {!decisionAnswers.brand
-                      ? t("decision.selectBrandFirst")
-                      : (decisionTopModels.length + decisionOtherModels.length)
-                        ? text.selectModel
-                        : t("decision.noCatalogModels")}
                   </option>
                   {decisionTopModels.length > 0 && (
                     <optgroup label={t("decision.topModelsLabel")}>

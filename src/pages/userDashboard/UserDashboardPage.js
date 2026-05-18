@@ -8,6 +8,7 @@ import UserDashboardPreferences from "./UserDashboardPreferences";
 import UserDashboardSaved from "./UserDashboardSaved";
 import UserDashboardValuations from "./UserDashboardValuations";
 import UserDashboardVehicles from "./UserDashboardVehicles";
+import UserDashboardSolicitudes from "./UserDashboardSolicitudes";
 import { getGarageVehiclesJson } from "../../utils/apiClient";
 import { readUserBillingState } from "../../utils/storage";
 
@@ -103,6 +104,14 @@ function buildSections(counts, t, newAlertMatchesCount = 0) {
       title: t("dashboardPage.vehiclesTitle"),
       description: t("dashboardPage.vehiclesDescription"),
     },
+    {
+      key: "solicitudes",
+      label: "Solicitudes",
+      icon: "📋",
+      count: counts.solicitudes,
+      title: "Mis solicitudes",
+      description: "Información, visitas y consultas enviadas sobre vehículos.",
+    },
   ];
 }
 
@@ -124,6 +133,7 @@ export default function UserDashboardPage({
   dashboardAppointments,
   dashboardValuations,
   userVehicleSections,
+  userSolicitudes = [],
   onNavigate,
   onRestart,
   onLogout,
@@ -249,9 +259,10 @@ export default function UserDashboardPage({
     appointments: dashboardAppointments.length,
     valuations: dashboardValuations.length,
     vehicles: totalVehiclesCount,
+    solicitudes: userSolicitudes.length,
   };
   const sections = buildSections(counts, t, newAlertMatchesCount);
-  const navMain = ["home", "saved", "alerts", "vehicles", "valuations", "appointments"];
+  const navMain = ["home", "saved", "alerts", "vehicles", "valuations", "appointments", "solicitudes"];
   const navAccount = ["billing", "preferences"];
   const navSectionsMain = sections.filter((section) => navMain.includes(section.key));
   const navSectionsAccount = sections.filter((section) => navAccount.includes(section.key));
@@ -581,6 +592,15 @@ export default function UserDashboardPage({
           onNavigate={onNavigate}
           onBrowseMarketplace={onBrowseMarketplace}
           currentUserEmail={currentUser?.email || ""}
+        />
+      )}
+
+            {userDashboardPage === "solicitudes" && (
+        <UserDashboardSolicitudes
+          themeMode={themeMode}
+          userSolicitudes={userSolicitudes}
+          panelStyle={panelStyle}
+          getOfferBadgeStyle={getOfferBadgeStyle}
         />
       )}
 

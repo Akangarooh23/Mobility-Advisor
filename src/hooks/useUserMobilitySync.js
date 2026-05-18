@@ -10,6 +10,7 @@ export function useUserMobilitySync({
   setUserInsurances,
   setUserValuations,
   setUserVehicleStates,
+  setUserSolicitudes,
 }) {
   useEffect(() => {
     let disposed = false;
@@ -19,6 +20,7 @@ export function useUserMobilitySync({
       setUserVehicleStates([]);
       setUserMaintenances([]);
       setUserInsurances([]);
+      if (setUserSolicitudes) setUserSolicitudes([]);
       return () => {
         disposed = true;
       };
@@ -38,6 +40,7 @@ export function useUserMobilitySync({
         const nextInsurances = Array.isArray(data?.insurances) ? data.insurances.slice(0, 8) : [];
         const nextValuations = Array.isArray(data?.valuations) ? data.valuations.slice(0, 12) : [];
         const nextVehicleStates = Array.isArray(data?.vehicleStates) ? data.vehicleStates.slice(0, 30) : [];
+        const nextSolicitudes = Array.isArray(data?.solicitudes) ? data.solicitudes.slice(0, 20) : [];
 
         setSavedComparisons(nextSaved);
         setUserAppointments(nextAppointments);
@@ -45,6 +48,7 @@ export function useUserMobilitySync({
         setUserInsurances(nextInsurances);
         setUserValuations(nextValuations);
         setUserVehicleStates(nextVehicleStates);
+        if (setUserSolicitudes) setUserSolicitudes(nextSolicitudes);
 
         writeSavedComparisons(nextSaved);
         writeUserAppointments(nextAppointments);
@@ -64,5 +68,6 @@ export function useUserMobilitySync({
     setUserInsurances,
     setUserValuations,
     setUserVehicleStates,
+    setUserSolicitudes,
   ]);
 }

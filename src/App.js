@@ -1167,6 +1167,7 @@ export default function App() {
   const [userInsurances, setUserInsurances] = useState([]);
   const [userValuations, setUserValuations] = useState([]);
   const [userVehicleStates, setUserVehicleStates] = useState([]);
+  const [userSolicitudes, setUserSolicitudes] = useState([]);
   const [marketAlerts, setMarketAlerts] = useState([]);
   const [marketAlertStatus, setMarketAlertStatus] = useState({});
   // Infinite scroll state for marketplace offers
@@ -1699,6 +1700,7 @@ export default function App() {
     setUserInsurances,
     setUserValuations,
     setUserVehicleStates,
+    setUserSolicitudes,
   });
 
   const {
@@ -5582,6 +5584,7 @@ export default function App() {
           dashboardAppointments={dashboardAppointments}
           dashboardValuations={dashboardValuations}
           userVehicleSections={userVehicleSections}
+          userSolicitudes={userSolicitudes}
           onNavigate={navigateToUserDashboardPage}
           onRestart={() => {
             restart();

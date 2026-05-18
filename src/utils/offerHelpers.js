@@ -7,6 +7,7 @@ export const USER_DASHBOARD_ROUTE_MAP = {
   billing: "/panel/cuenta",
   preferences: "/panel/preferencias",
   vehicles: "/panel/vehiculos",
+  solicitudes: "/panel/solicitudes",
 };
 
 const OFFER_PROVIDER_ALIASES = {

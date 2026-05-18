@@ -327,19 +327,28 @@ export default function VehicleDetailPage({ offer, onBack }) {
   const { t } = useTranslation();
   const [modalOpen, setModalOpen] = React.useState(false);
   const [modalType, setModalType] = React.useState("info");
-  const [contactForm, setContactForm] = React.useState({
-    name: "",
-    phone: "",
-    email: "",
-    when: "",
-  });
+  const [contactForm, setContactForm] = React.useState({ name: "", phone: "", email: "", when: "" });
   const [submitted, setSubmitted] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
   const [submitError, setSubmitError] = React.useState("");
+  const [isReserved, setIsReserved] = React.useState(false);
+  const [alertEmail, setAlertEmail] = React.useState("");
+  const [alertModalOpen, setAlertModalOpen] = React.useState(false);
+  const [alertSubmitted, setAlertSubmitted] = React.useState(false);
+  const [alertSubmitting, setAlertSubmitting] = React.useState(false);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
+    fetch("/api/leads?reserved=1")
+      .then((r) => r.json())
+      .then((d) => {
+        const offerUrl = offer?.url || offer?.searchUrl || "";
+        if (d.ok && offerUrl && Array.isArray(d.reservedUrls)) {
+          setIsReserved(d.reservedUrls.includes(offerUrl));
+        }
+      })
+      .catch(() => {});
+  }, [offer]);
 
   if (!offer) {
     return (
@@ -356,6 +365,27 @@ export default function VehicleDetailPage({ offer, onBack }) {
   const loc = [car.city, car.province].filter(Boolean).join(", ") || t("vehicleDetail.locationNA");
   const locationLabel = loc === t("vehicleDetail.locationNA") ? t("vehicleDetail.noLocation") : loc;
   const yearLabel = car.year || "N/D";
+
+  async function handleAlertSubmit() {
+    if (!alertEmail) return;
+    setAlertSubmitting(true);
+    try {
+      await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "alert",
+          email: alertEmail,
+          vehicle_url: car.url || car.searchUrl || "",
+          vehicle_title: `${car.brand || ""} ${car.model || ""} ${car.year || ""}`.trim(),
+        }),
+      });
+      setAlertSubmitted(true);
+      setTimeout(() => { setAlertModalOpen(false); setAlertSubmitted(false); setAlertEmail(""); }, 3000);
+    } catch { /* silent */ } finally {
+      setAlertSubmitting(false);
+    }
+  }
 
   async function handleSubmit() {
     setSubmitError("");
@@ -500,15 +530,29 @@ export default function VehicleDetailPage({ offer, onBack }) {
               </div>
             )}
 
-            <button className="vd-btn-primary" onClick={() => { setModalType("info"); setModalOpen(true); }}>
-              {t("vehicleDetail.requestInfo")}
-            </button>
-            <button className="vd-btn-secondary" onClick={() => { setModalType("visit"); setModalOpen(true); }}>
-              {t("vehicleDetail.scheduleVisit")}
-            </button>
-            <button className="vd-btn-secondary" onClick={() => { setModalType("question"); setModalOpen(true); }}>
-              {t("vehicleDetail.askAboutCar")}
-            </button>
+            {isReserved ? (
+              <>
+                <div style={{ background: "#fef9c3", border: "1.5px solid #fbbf24", borderRadius: 10, padding: "12px 14px", marginBottom: ".5rem", textAlign: "center" }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#92400e", marginBottom: 4 }}>🔒 Vehículo temporalmente reservado</div>
+                  <div style={{ fontSize: 12, color: "#78350f", lineHeight: 1.5 }}>Este vehículo tiene una cita confirmada. Si la reserva se cancela, te avisaremos.</div>
+                </div>
+                <button className="vd-btn-secondary" onClick={() => setAlertModalOpen(true)} style={{ borderColor: "#3b82f6", color: "#2563eb" }}>
+                  🔔 Avisarme si vuelve a estar disponible
+                </button>
+              </>
+            ) : (
+              <>
+                <button className="vd-btn-primary" onClick={() => { setModalType("info"); setModalOpen(true); }}>
+                  {t("vehicleDetail.requestInfo")}
+                </button>
+                <button className="vd-btn-secondary" onClick={() => { setModalType("visit"); setModalOpen(true); }}>
+                  {t("vehicleDetail.scheduleVisit")}
+                </button>
+                <button className="vd-btn-secondary" onClick={() => { setModalType("question"); setModalOpen(true); }}>
+                  {t("vehicleDetail.askAboutCar")}
+                </button>
+              </>
+            )}
             <button
               className="vd-btn-ghost"
               onClick={() => {
@@ -690,6 +734,37 @@ export default function VehicleDetailPage({ offer, onBack }) {
           </div>
         </div>
       </div>
+
+      {/* ALERT MODAL */}
+      {alertModalOpen && (
+        <div className="vd-modal-overlay open" onClick={(e) => e.target === e.currentTarget && setAlertModalOpen(false)}>
+          <div className="vd-modal">
+            <button className="vd-modal-close" onClick={() => setAlertModalOpen(false)}>×</button>
+            <h3>🔔 Alerta de disponibilidad</h3>
+            <p>Te avisaremos por email en cuanto este vehículo vuelva a estar disponible.</p>
+            {alertSubmitted ? (
+              <div style={{ textAlign: "center", padding: "1.5rem 0", color: "var(--eco-txt)", fontWeight: 500 }}>
+                ✅ ¡Alerta activada! Te avisaremos si se libera.
+              </div>
+            ) : (
+              <>
+                <div className="vd-modal-fields">
+                  <input
+                    className="vd-modal-input"
+                    type="email"
+                    placeholder="Tu email"
+                    value={alertEmail}
+                    onChange={(e) => setAlertEmail(e.target.value)}
+                  />
+                </div>
+                <button className="vd-modal-submit" onClick={handleAlertSubmit} disabled={alertSubmitting || !alertEmail}>
+                  {alertSubmitting ? "Guardando…" : "Activar alerta"}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* CONTACT MODAL */}
       {modalOpen && (

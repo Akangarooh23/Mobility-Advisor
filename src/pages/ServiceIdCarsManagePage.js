@@ -408,6 +408,7 @@ export default function ServiceIdCarsManagePage({
   const [feedback, setFeedback] = useState("");
   const [feedbackTone, setFeedbackTone] = useState("info");
   const [isSaving, setIsSaving] = useState(false);
+  const [publishStates, setPublishStates] = useState({});
   const [viewportWidth, setViewportWidth] = useState(() => (typeof window === "undefined" ? 1280 : window.innerWidth));
 
   const [pendingPhotos, setPendingPhotos] = useState([]);
@@ -783,6 +784,32 @@ export default function ServiceIdCarsManagePage({
     }
   };
 
+  const handlePublish = async (vehicleId, price, action = "publish") => {
+    if (!vehicleId) return;
+    setPublishStates((prev) => ({ ...prev, [vehicleId]: { status: "loading" } }));
+    try {
+      const res = await fetch("/api/vehicle-publish", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vehicleId, price, action }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.error) {
+        setPublishStates((prev) => ({ ...prev, [vehicleId]: { status: "error", message: data.error || "Error al publicar" } }));
+      } else {
+        setPublishStates((prev) => ({ ...prev, [vehicleId]: { status: action === "unpublish" ? "unpublished" : "published" } }));
+        if (action === "publish") {
+          showFeedback(txt("¡Vehículo publicado en el Marketplace!", "Vehicle published in the Marketplace!"), "success");
+        } else {
+          showFeedback(txt("Oferta retirada del Marketplace.", "Offer removed from Marketplace."), "info");
+        }
+      }
+    } catch (err) {
+      setPublishStates((prev) => ({ ...prev, [vehicleId]: { status: "error", message: err.message } }));
+    }
+  };
+
   // ─── render helpers ─────────────────────────────────────────────────
   const renderField = (label, key, opts = {}) => (
     <label key={key} style={LABEL_STYLE}>
@@ -1031,6 +1058,56 @@ export default function ServiceIdCarsManagePage({
         <div style={{ display: "grid", rowGap: 10, columnGap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>
           {renderField(txt("Precio (€)", "Price (€)"), "price", { placeholder: "8500" })}
         </div>
+        {(() => {
+          const vid = editingVehicleId;
+          const ps = publishStates[vid] || {};
+          const isPublishing = ps.status === "loading";
+          const isPublished = ps.status === "published";
+          const isUnpublished = ps.status === "unpublished";
+          const hasError = ps.status === "error";
+          return (
+            <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 8 }}>
+              <p style={{ fontSize: 12, color: "#6b7280", margin: 0 }}>
+                {txt("Publica tu vehículo en el Marketplace de CarsWise para que otros usuarios puedan comprarlo.", "Publish your vehicle in the CarsWise Marketplace so other users can buy it.")}
+              </p>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                {!isPublished && !isUnpublished && (
+                  <button type="button"
+                    disabled={isPublishing || !normalizeText(form.price)}
+                    onClick={() => handlePublish(vid, form.price, "publish")}
+                    style={{ border: "none", borderRadius: 9, background: isPublishing ? "#93c5fd" : "linear-gradient(135deg,#2563eb,#3b82f6)", color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: isPublishing || !normalizeText(form.price) ? "not-allowed" : "pointer", opacity: !normalizeText(form.price) ? 0.5 : 1 }}>
+                    {isPublishing ? txt("Publicando…", "Publishing…") : txt("🚀 Publicar en Marketplace", "🚀 Publish to Marketplace")}
+                  </button>
+                )}
+                {isPublished && (
+                  <>
+                    <span style={{ background: "rgba(16,185,129,0.1)", color: "#047857", border: "1px solid rgba(16,185,129,0.3)", borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: 700 }}>
+                      ✅ {txt("Publicado en Marketplace", "Published in Marketplace")}
+                    </span>
+                    <button type="button"
+                      onClick={() => handlePublish(vid, form.price, "unpublish")}
+                      style={{ border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.06)", color: "#dc2626", borderRadius: 9, padding: "5px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+                      {txt("Retirar oferta", "Remove listing")}
+                    </button>
+                  </>
+                )}
+                {isUnpublished && (
+                  <button type="button"
+                    onClick={() => handlePublish(vid, form.price, "publish")}
+                    style={{ border: "none", borderRadius: 9, background: "linear-gradient(135deg,#2563eb,#3b82f6)", color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                    {txt("🚀 Volver a publicar", "🚀 Republish")}
+                  </button>
+                )}
+                {!normalizeText(form.price) && !isPublished && (
+                  <span style={{ fontSize: 11, color: "#9ca3af" }}>{txt("Introduce un precio para poder publicar", "Enter a price to publish")}</span>
+                )}
+              </div>
+              {hasError && (
+                <p style={{ fontSize: 12, color: "#dc2626", margin: 0 }}>⚠️ {ps.message}</p>
+              )}
+            </div>
+          );
+        })()}
       </SectionBlock>
 
       <SectionBlock title={txt("Documentos del vehículo", "Vehicle documents")}
@@ -1237,6 +1314,7 @@ export default function ServiceIdCarsManagePage({
                     {docsCount > 0 && <span style={{ background: "rgba(37,99,235,0.07)", color: "#1d4ed8", border: "1px solid rgba(37,99,235,0.18)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>📄 {docsCount}</span>}
                     {insuranceDocs > 0 && <span style={{ background: "rgba(16,185,129,0.07)", color: "#047857", border: "1px solid rgba(16,185,129,0.18)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>🛡️ {insuranceDocs}</span>}
                     {maintenanceDocs > 0 && <span style={{ background: "rgba(251,146,60,0.08)", color: "#c2410c", border: "1px solid rgba(251,146,60,0.22)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>🔧 {maintenanceDocs}</span>}
+                    {publishStates[vehicle.id]?.status === "published" && <span style={{ background: "rgba(16,185,129,0.1)", color: "#047857", border: "1px solid rgba(16,185,129,0.3)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 700 }}>🟢 Marketplace</span>}
                   </div>
                   <div style={{ display: isCompactCard ? "grid" : "flex", gridTemplateColumns: isCompactCard ? "40px repeat(2,minmax(0,1fr))" : "none", gap: 6, flexShrink: 0 }}>
                     <button type="button" onClick={() => handleRemove(vehicle.id)}

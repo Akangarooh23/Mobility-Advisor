@@ -54,6 +54,26 @@
       "destination": "/api/user?route=leads"
     },
     {
+      "source": "/api/vehicle-publish",
+      "destination": "/api/user?route=vehicle-publish"
+    },
+    {
+      "source": "/api/viewing-request",
+      "destination": "/api/viewing?route=request"
+    },
+    {
+      "source": "/api/viewing-propose",
+      "destination": "/api/viewing?route=propose"
+    },
+    {
+      "source": "/api/viewing-confirm",
+      "destination": "/api/viewing?route=confirm"
+    },
+    {
+      "source": "/api/viewing-get",
+      "destination": "/api/viewing?route=get"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

@@ -42,11 +42,7 @@ const sendAlertEmailHandler = require("./api/send-alert-email");
 const authHandler = require("./api/auth");
 const authStatusHandler = require("./api/auth-status");
 const vehicleCatalogHandler = require("./api/vehicle-catalog");
-const vehiclePublishHandler = require("./api/vehicle-publish");
-const viewingRequestHandler = require("./api/viewing-request");
-const viewingProposeHandler = require("./api/viewing-propose");
-const viewingConfirmHandler = require("./api/viewing-confirm");
-const viewingGetHandler = require("./api/viewing-get");
+const viewingHandler = require("./api/viewing");
 const marketHandler = require("./api/market");
 const workshopsHandler = require("./api/workshops");
 
@@ -64,11 +60,11 @@ const handlers = {
   "/api/auth": authHandler,
   "/api/auth-status": authStatusHandler,
   "/api/vehicle-catalog": vehicleCatalogHandler,
-  "/api/vehicle-publish": vehiclePublishHandler,
-  "/api/viewing-request": viewingRequestHandler,
-  "/api/viewing-propose": viewingProposeHandler,
-  "/api/viewing-confirm": viewingConfirmHandler,
-  "/api/viewing-get": viewingGetHandler,
+  "/api/vehicle-publish": require("./lib/api/vehicle-publish-handler"),
+  "/api/viewing-request": viewingHandler,
+  "/api/viewing-propose": viewingHandler,
+  "/api/viewing-confirm": viewingHandler,
+  "/api/viewing-get": viewingHandler,
   "/api/marketplace-vo": marketHandler,
   "/api/attachment-file": userHandler,
   "/api/workshops-nearby": workshopsHandler,

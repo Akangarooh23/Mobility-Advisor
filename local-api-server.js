@@ -43,6 +43,10 @@ const authHandler = require("./api/auth");
 const authStatusHandler = require("./api/auth-status");
 const vehicleCatalogHandler = require("./api/vehicle-catalog");
 const vehiclePublishHandler = require("./api/vehicle-publish");
+const viewingRequestHandler = require("./api/viewing-request");
+const viewingProposeHandler = require("./api/viewing-propose");
+const viewingConfirmHandler = require("./api/viewing-confirm");
+const viewingGetHandler = require("./api/viewing-get");
 const marketHandler = require("./api/market");
 const workshopsHandler = require("./api/workshops");
 
@@ -61,6 +65,10 @@ const handlers = {
   "/api/auth-status": authStatusHandler,
   "/api/vehicle-catalog": vehicleCatalogHandler,
   "/api/vehicle-publish": vehiclePublishHandler,
+  "/api/viewing-request": viewingRequestHandler,
+  "/api/viewing-propose": viewingProposeHandler,
+  "/api/viewing-confirm": viewingConfirmHandler,
+  "/api/viewing-get": viewingGetHandler,
   "/api/marketplace-vo": marketHandler,
   "/api/attachment-file": userHandler,
   "/api/workshops-nearby": workshopsHandler,

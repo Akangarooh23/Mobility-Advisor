@@ -28,6 +28,8 @@ import ServiceAppointmentPage from "./pages/ServiceAppointmentPage";
 import ServiceAppointmentCalendarPage from "./pages/ServiceAppointmentCalendarPage";
 import ServiceMonthlyPlanPage from "./pages/ServiceMonthlyPlanPage";
 import ServiceIdCarsManagePage from "./pages/ServiceIdCarsManagePage";
+import ViewingProposePage from "./pages/ViewingProposePage";
+import ViewingConfirmPage from "./pages/ViewingConfirmPage";
 import LegalPolicyPage from "./pages/LegalPolicyPage";
 import SeoStaticPage from "./pages/SeoStaticPage";
 import AboutCarswisePage from "./pages/AboutCarswisePage";
@@ -756,6 +758,8 @@ const PUBLIC_ROUTE_BY_ENTRY_MODE = {
   blog: "/blog",
   blogCompraUsado: "/blog/guia-compra-coche-segunda-mano-espana",
   blogRentingCompra: "/blog/renting-vs-compra-2026-que-conviene-segun-tu-uso",
+  viewingPropose: "/cita/proponer",
+  viewingConfirm: "/cita/confirmar",
   contact: "/contacto",
   legalNotice: "/aviso-legal",
   privacyPolicy: "/politica-privacidad",
@@ -5472,6 +5476,9 @@ export default function App() {
       {step === -1 && entryMode === "aboutCarswise" && (
         <AboutCarswisePage />
       )}
+
+      {entryMode === "viewingPropose" && <ViewingProposePage />}
+      {entryMode === "viewingConfirm" && <ViewingConfirmPage />}
 
       {step === -1 && entryMode === "plans" && (
         <PricingPlansPage

@@ -19,14 +19,16 @@ export default function UserDashboardSolicitudes({
   const [actionError, setActionError]   = useState("");
 
   const TYPE_LABEL = {
-    info:     "Solicitar info",
-    visit:    "Agendar visita",
-    question: "Preguntar",
+    info:            "Solicitar info",
+    visit:           "Agendar visita",
+    question:        "Preguntar",
+    viewing_seller:  "Solicitud de visita",
   };
   const TYPE_COLOR = {
-    info:     { bg: "rgba(59,130,246,0.12)", color: "#1d4ed8", border: "rgba(59,130,246,0.25)" },
-    visit:    { bg: "rgba(16,185,129,0.12)", color: "#065f46", border: "rgba(16,185,129,0.25)" },
-    question: { bg: "rgba(139,92,246,0.12)", color: "#5b21b6", border: "rgba(139,92,246,0.25)" },
+    info:            { bg: "rgba(59,130,246,0.12)",  color: "#1d4ed8", border: "rgba(59,130,246,0.25)" },
+    visit:           { bg: "rgba(16,185,129,0.12)",  color: "#065f46", border: "rgba(16,185,129,0.25)" },
+    question:        { bg: "rgba(139,92,246,0.12)",  color: "#5b21b6", border: "rgba(139,92,246,0.25)" },
+    viewing_seller:  { bg: "rgba(234,88,12,0.12)",   color: "#c2410c", border: "rgba(234,88,12,0.25)" },
   };
   const STATUS_COLOR = {
     Pendiente:              { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
@@ -37,6 +39,14 @@ export default function UserDashboardSolicitudes({
     Descartado:             { bg: "rgba(100,116,139,0.10)", color: "#475569" },
     "Reagendar solicitado": { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
     Cancelado:              { bg: "rgba(239,68,68,0.10)",   color: "#b91c1c" },
+    pending_seller:         { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
+    pending_buyer:          { bg: "rgba(59,130,246,0.12)",  color: "#1d4ed8" },
+    confirmed:              { bg: "rgba(16,185,129,0.15)",  color: "#065f46" },
+  };
+  const VIEWING_STATUS_LABEL = {
+    pending_seller: "Esperando tus fechas",
+    pending_buyer:  "Comprador eligiendo fecha",
+    confirmed:      "Cita confirmada",
   };
 
   function parseMeta(raw) {
@@ -195,6 +205,7 @@ export default function UserDashboardSolicitudes({
             const typeStyle = TYPE_COLOR[item.type] || TYPE_COLOR.info;
             const statusStyle = STATUS_COLOR[item.status] || { bg: "rgba(100,116,139,0.10)", color: "#475569" };
             const isVisit = item.type === "visit";
+            const isViewingSeller = item.type === "viewing_seller";
             const hasAppt = isVisit && !!meta.appointment_date;
             const isReserved = item.status === "Cita confirmada";
             // appointment box shown when visit has date and not cancelled/reschedule-pending
@@ -206,6 +217,36 @@ export default function UserDashboardSolicitudes({
             const isConfirmDialog = confirmId === item.id;
             // "Confirmar cita" only when operator has set a date and status is Contactado/En proceso
             const canConfirm = hasAppt && ["Contactado", "En proceso"].includes(item.status);
+
+            // Viewing seller card (P2P viewing request for seller's published IDCar)
+            if (isViewingSeller) {
+              const proposeUrl = meta.token_seller ? `/cita/proponer?token=${meta.token_seller}` : null;
+              const confirmedSlot = meta.confirmed_slot ? new Date(meta.confirmed_slot).toLocaleString("es-ES", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
+              return (
+                <div key={item.id} style={{ background: isDark ? "rgba(15,23,42,0.7)" : "#fff7ed", border: "1px solid rgba(234,88,12,0.25)", borderRadius: 12, padding: "14px 16px" }}>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: typeStyle.bg, color: typeStyle.color, border: `1px solid ${typeStyle.border}` }}>📅 Solicitud de visita</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 999, background: statusStyle.bg, color: statusStyle.color }}>{VIEWING_STATUS_LABEL[item.status] || item.status}</span>
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: isDark ? "#f1f5f9" : "#0f172a", marginBottom: 4 }}>{item.title}</div>
+                  <div style={{ fontSize: 13, color: isDark ? "#94a3b8" : "#475569", marginBottom: 6 }}>
+                    <strong>Interesado:</strong> {meta.buyer_name || "—"}
+                    {meta.buyer_message && <span style={{ fontStyle: "italic" }}> · "{meta.buyer_message}"</span>}
+                  </div>
+                  {item.status === "confirmed" && confirmedSlot && (
+                    <div style={{ background: "#dcfce7", borderRadius: 8, padding: "8px 12px", fontSize: 13, color: "#166534", fontWeight: 600, marginBottom: 6 }}>
+                      ✅ Cita confirmada: {confirmedSlot}
+                    </div>
+                  )}
+                  {item.status === "pending_seller" && proposeUrl && (
+                    <a href={proposeUrl} style={{ display: "inline-block", background: "#2563eb", color: "white", borderRadius: 7, padding: "7px 14px", fontSize: 12, fontWeight: 600, textDecoration: "none", marginTop: 4 }}>
+                      Proponer fechas →
+                    </a>
+                  )}
+                  <div style={{ fontSize: 11, color: isDark ? "#64748b" : "#94a3b8", marginTop: 6 }}>{item.createdAt ? new Date(item.createdAt).toLocaleDateString("es-ES") : ""}</div>
+                </div>
+              );
+            }
 
             return (
               <div

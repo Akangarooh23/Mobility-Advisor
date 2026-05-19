@@ -31,6 +31,9 @@ export default function PortalVoMarketplacePage({
   const isDark = themeMode === "dark";
   const { t } = useTranslation();
   const [modalityMode, setModalityMode] = useState("compra");
+  const [viewingModal, setViewingModal] = useState(null); // { offer }
+  const [viewingForm, setViewingForm] = useState({ name: "", email: "", message: "" });
+  const [viewingState, setViewingState] = useState({}); // { [offerId]: 'sent' | 'error' | 'sending' }
   const titleColor = isDark ? "#f1f5f9" : "#0f172a";
   const bodyColor = isDark ? "#94a3b8" : "#475569";
   const cardBg = isDark ? "rgba(15,23,42,0.34)" : "rgba(255,255,255,0.96)";
@@ -391,6 +394,22 @@ export default function PortalVoMarketplacePage({
                   <p style={{ margin: "8px 0 0", fontSize: 12, color: isDark ? "#e2e8f0" : "#334155", lineHeight: 1.6 }}>
                     {t("marketplace.offerAvailableIn", { title: offer.title, location: offer.location })}
                   </p>
+                  {offer.sellerType === "particular" && (
+                    <button
+                      type="button"
+                      onClick={e => { e.stopPropagation(); setViewingModal({ offer }); setViewingForm({ name: "", email: "", message: "" }); }}
+                      style={{
+                        marginTop: 10, width: "100%", background: "#2563eb", color: "white",
+                        border: "none", borderRadius: 7, padding: "8px 12px", fontSize: 12,
+                        fontWeight: 600, cursor: "pointer",
+                      }}
+                    >
+                      📅 Solicitar visita al vendedor
+                    </button>
+                  )}
+                  {viewingState[offer.id] === "sent" && (
+                    <p style={{ fontSize: 11, color: "#16a34a", margin: "6px 0 0", fontWeight: 600 }}>✅ Solicitud enviada al vendedor</p>
+                  )}
                 </div>
               </div>
             ))}
@@ -413,6 +432,72 @@ export default function PortalVoMarketplacePage({
           </div>
         )}
       </div>
+
+      {/* Viewing request modal */}
+      {viewingModal && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+          onClick={() => setViewingModal(null)}
+        >
+          <div
+            style={{ background: "white", borderRadius: 16, padding: "28px 32px", maxWidth: 460, width: "100%", boxShadow: "0 8px 40px rgba(0,0,0,0.18)" }}
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 style={{ margin: "0 0 4px", color: "#0f172a", fontSize: 18 }}>📅 Solicitar visita</h3>
+            <p style={{ margin: "0 0 16px", fontSize: 13, color: "#64748b" }}>{viewingModal.offer.title}</p>
+            {viewingState[viewingModal.offer.id] === "sent" ? (
+              <div style={{ background: "#dcfce7", borderRadius: 10, padding: "14px 18px", textAlign: "center" }}>
+                <div style={{ fontSize: 20 }}>✅</div>
+                <strong style={{ color: "#166534" }}>Solicitud enviada</strong>
+                <p style={{ margin: "6px 0 0", fontSize: 13, color: "#166534" }}>El vendedor recibirá un email para proponerte fechas disponibles.</p>
+                <button onClick={() => setViewingModal(null)} style={{ marginTop: 12, background: "#16a34a", color: "white", border: "none", borderRadius: 8, padding: "8px 20px", cursor: "pointer", fontWeight: 600 }}>Cerrar</button>
+              </div>
+            ) : (
+              <form onSubmit={async e => {
+                e.preventDefault();
+                setViewingState(s => ({ ...s, [viewingModal.offer.id]: "sending" }));
+                try {
+                  const res = await fetch("/api/viewing-request", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ offer_id: viewingModal.offer.id, buyer_email: viewingForm.email, buyer_name: viewingForm.name, buyer_message: viewingForm.message }),
+                  });
+                  const data = await res.json();
+                  if (data.ok) {
+                    setViewingState(s => ({ ...s, [viewingModal.offer.id]: "sent" }));
+                  } else {
+                    setViewingState(s => ({ ...s, [viewingModal.offer.id]: data.error || "Error" }));
+                  }
+                } catch {
+                  setViewingState(s => ({ ...s, [viewingModal.offer.id]: "Error al enviar" }));
+                }
+              }}>
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ fontSize: 13, color: "#64748b", display: "block", marginBottom: 4 }}>Tu nombre *</label>
+                  <input required value={viewingForm.name} onChange={e => setViewingForm(f => ({ ...f, name: e.target.value }))} style={{ width: "100%", padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: 8, fontSize: 14, boxSizing: "border-box" }} />
+                </div>
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ fontSize: 13, color: "#64748b", display: "block", marginBottom: 4 }}>Tu email *</label>
+                  <input required type="email" value={viewingForm.email} onChange={e => setViewingForm(f => ({ ...f, email: e.target.value }))} style={{ width: "100%", padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: 8, fontSize: 14, boxSizing: "border-box" }} />
+                </div>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ fontSize: 13, color: "#64748b", display: "block", marginBottom: 4 }}>Mensaje (opcional)</label>
+                  <textarea value={viewingForm.message} onChange={e => setViewingForm(f => ({ ...f, message: e.target.value }))} rows={3} placeholder="Ej: Me interesa el coche, ¿podemos quedar esta semana?" style={{ width: "100%", padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: 8, fontSize: 14, boxSizing: "border-box", resize: "vertical" }} />
+                </div>
+                {typeof viewingState[viewingModal.offer.id] === "string" && viewingState[viewingModal.offer.id] !== "sending" && viewingState[viewingModal.offer.id] !== "sent" && (
+                  <p style={{ color: "#dc2626", fontSize: 13, marginBottom: 10 }}>{viewingState[viewingModal.offer.id]}</p>
+                )}
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button type="button" onClick={() => setViewingModal(null)} style={{ flex: 1, background: "#f1f5f9", color: "#475569", border: "none", borderRadius: 8, padding: "10px", cursor: "pointer" }}>Cancelar</button>
+                  <button type="submit" disabled={viewingState[viewingModal.offer.id] === "sending"} style={{ flex: 2, background: "#2563eb", color: "white", border: "none", borderRadius: 8, padding: "10px", fontWeight: 600, cursor: "pointer", opacity: viewingState[viewingModal.offer.id] === "sending" ? 0.7 : 1 }}>
+                    {viewingState[viewingModal.offer.id] === "sending" ? "Enviando…" : "Enviar solicitud"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         <button

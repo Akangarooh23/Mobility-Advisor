@@ -5585,13 +5585,23 @@ export default function App() {
           dashboardValuations={dashboardValuations}
           userVehicleSections={userVehicleSections}
           userSolicitudes={userSolicitudes}
-          onOpenVehicleDetail={(sparseOffer) => {
+          onOpenVehicleDetail={async (sparseOffer) => {
             const targetUrl = sparseOffer.url || sparseOffer.searchUrl || "";
-            const fullOffer = targetUrl
+            let fullOffer = targetUrl
               ? ([...decisionMarketListings, ...portalVoOffersLive].find(
                   (o) => (o.url || o.searchUrl) === targetUrl
-                ) || sparseOffer)
-              : sparseOffer;
+                ) || null)
+              : null;
+            if (!fullOffer && targetUrl) {
+              try {
+                const resp = await fetch(
+                  `/api/market?route=vo&url=${encodeURIComponent(targetUrl)}`
+                );
+                const data = resp.ok ? await resp.json() : null;
+                fullOffer = data?.offer || null;
+              } catch {}
+            }
+            fullOffer = fullOffer || sparseOffer;
             setVehicleDetailOffer(fullOffer);
             setVehicleDetailBackTarget("advice");
             setEntryMode("vehicleDetail");

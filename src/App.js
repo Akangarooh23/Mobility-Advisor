@@ -5585,11 +5585,17 @@ export default function App() {
           dashboardValuations={dashboardValuations}
           userVehicleSections={userVehicleSections}
           userSolicitudes={userSolicitudes}
-          onOpenVehicleDetail={(offer) => {
-            setVehicleDetailOffer(offer);
+          onOpenVehicleDetail={(sparseOffer) => {
+            const targetUrl = sparseOffer.url || sparseOffer.searchUrl || "";
+            const fullOffer = targetUrl
+              ? ([...decisionMarketListings, ...portalVoOffersLive].find(
+                  (o) => (o.url || o.searchUrl) === targetUrl
+                ) || sparseOffer)
+              : sparseOffer;
+            setVehicleDetailOffer(fullOffer);
             setVehicleDetailBackTarget("advice");
             setEntryMode("vehicleDetail");
-            syncBrowserPath(buildVehicleDetailSharePath(offer), "push");
+            syncBrowserPath(buildVehicleDetailSharePath(fullOffer), "push");
             setStep(-1);
             if (typeof window !== "undefined") {
               window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);

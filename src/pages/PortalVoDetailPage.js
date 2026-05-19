@@ -98,16 +98,40 @@ export default function PortalVoDetailPage({
                   <span style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b" }}>{t("marketplace.modalityPurchase", "Compra")}</span>
                 </div>
               )}
-              {selectedPortalVoOffer.rentingAvailable && selectedPortalVoOffer.rentingMonthly > 0 && (
-                <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                  <span style={{ fontSize: selectedPortalVoOffer.availableForPurchase !== false ? 20 : 28, fontWeight: 800, color: isDark ? "#34d399" : "#059669" }}>
-                    {formatCurrency(selectedPortalVoOffer.rentingMonthly)}/mes
-                  </span>
-                  <span style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b" }}>
-                    {t("marketplace.modalityRenting", "Renting")} · {selectedPortalVoOffer.rentingMonths || 48} meses · {(selectedPortalVoOffer.rentingKmYear || 15000).toLocaleString("es-ES")} km/año
-                  </span>
-                </div>
-              )}
+              {selectedPortalVoOffer.rentingAvailable && (() => {
+                const plazos = [
+                  { label: "12 meses", value: selectedPortalVoOffer.renting12m },
+                  { label: "24 meses", value: selectedPortalVoOffer.renting24m },
+                  { label: "36 meses", value: selectedPortalVoOffer.renting36m },
+                  { label: "48 meses", value: selectedPortalVoOffer.renting48m },
+                  { label: "60 meses", value: selectedPortalVoOffer.renting60m },
+                ].filter((p) => p.value > 0);
+                if (!plazos.length) return null;
+                return (
+                  <div style={{ marginTop: 4 }}>
+                    <div style={{ fontSize: 11, color: isDark ? "#6ee7b7" : "#059669", fontWeight: 700, marginBottom: 6 }}>
+                      {t("marketplace.modalityRenting", "Renting")} · {(selectedPortalVoOffer.rentingKmYear || 15000).toLocaleString("es-ES")} km/año
+                    </div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      {plazos.map((p) => (
+                        <div
+                          key={p.label}
+                          style={{
+                            background: isDark ? "rgba(52,211,153,0.08)" : "rgba(5,150,105,0.06)",
+                            border: isDark ? "1px solid rgba(52,211,153,0.2)" : "1px solid rgba(5,150,105,0.18)",
+                            borderRadius: 10,
+                            padding: "6px 12px",
+                            textAlign: "center",
+                          }}
+                        >
+                          <div style={{ fontSize: 10, color: isDark ? "#6ee7b7" : "#059669", fontWeight: 600, marginBottom: 2 }}>{p.label}</div>
+                          <div style={{ fontSize: 15, fontWeight: 800, color: isDark ? "#34d399" : "#059669" }}>{formatCurrency(p.value)}/mes</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
             <p style={{ margin: "0 0 12px", fontSize: 13, color: bodyColor, lineHeight: 1.7 }}>
               {selectedPortalVoOffer.description}{" "}

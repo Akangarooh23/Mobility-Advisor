@@ -88,8 +88,26 @@ export default function PortalVoDetailPage({
               <span style={getOfferBadgeStyle("slate")}>{selectedPortalVoOffer.color}</span>
             </div>
 
-            <div style={{ fontSize: 28, fontWeight: 800, color: titleColor, marginBottom: 6 }}>
-              {formatCurrency(selectedPortalVoOffer.price)}
+            {/* Price / modality */}
+            <div style={{ marginBottom: 10 }}>
+              {selectedPortalVoOffer.availableForPurchase !== false && (
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: selectedPortalVoOffer.rentingAvailable ? 6 : 0 }}>
+                  <span style={{ fontSize: 28, fontWeight: 800, color: titleColor }}>
+                    {formatCurrency(selectedPortalVoOffer.price)}
+                  </span>
+                  <span style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b" }}>{t("marketplace.modalityPurchase", "Compra")}</span>
+                </div>
+              )}
+              {selectedPortalVoOffer.rentingAvailable && selectedPortalVoOffer.rentingMonthly > 0 && (
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                  <span style={{ fontSize: selectedPortalVoOffer.availableForPurchase !== false ? 20 : 28, fontWeight: 800, color: isDark ? "#34d399" : "#059669" }}>
+                    {formatCurrency(selectedPortalVoOffer.rentingMonthly)}/mes
+                  </span>
+                  <span style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b" }}>
+                    {t("marketplace.modalityRenting", "Renting")} · {selectedPortalVoOffer.rentingMonths || 48} meses · {(selectedPortalVoOffer.rentingKmYear || 15000).toLocaleString("es-ES")} km/año
+                  </span>
+                </div>
+              )}
             </div>
             <p style={{ margin: "0 0 12px", fontSize: 13, color: bodyColor, lineHeight: 1.7 }}>
               {selectedPortalVoOffer.description}{" "}

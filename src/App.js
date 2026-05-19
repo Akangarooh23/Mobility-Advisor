@@ -5585,6 +5585,16 @@ export default function App() {
           dashboardValuations={dashboardValuations}
           userVehicleSections={userVehicleSections}
           userSolicitudes={userSolicitudes}
+          onOpenVehicleDetail={(offer) => {
+            setVehicleDetailOffer(offer);
+            setVehicleDetailBackTarget("advice");
+            setEntryMode("vehicleDetail");
+            syncBrowserPath(buildVehicleDetailSharePath(offer), "push");
+            setStep(-1);
+            if (typeof window !== "undefined") {
+              window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
+            }
+          }}
           onNavigate={navigateToUserDashboardPage}
           onRestart={() => {
             restart();

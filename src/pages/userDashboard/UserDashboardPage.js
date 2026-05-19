@@ -134,6 +134,7 @@ export default function UserDashboardPage({
   dashboardValuations,
   userVehicleSections,
   userSolicitudes = [],
+  onOpenVehicleDetail,
   onNavigate,
   onRestart,
   onLogout,
@@ -602,6 +603,7 @@ export default function UserDashboardPage({
           panelStyle={panelStyle}
           getOfferBadgeStyle={getOfferBadgeStyle}
           userEmail={currentUser?.email || ""}
+          onOpenVehicleDetail={onOpenVehicleDetail}
         />
       )}
 

@@ -6,6 +6,7 @@ export default function UserDashboardSolicitudes({
   panelStyle,
   getOfferBadgeStyle,
   userEmail = "",
+  onOpenVehicleDetail,
 }) {
   const isDark = themeMode === "dark";
 
@@ -238,7 +239,22 @@ export default function UserDashboardSolicitudes({
                     <div style={{ fontSize: 14, fontWeight: 600, color: isDark ? "#f1f5f9" : "#0f172a", marginBottom: 3 }}>
                       {item.title || "Vehículo"}
                     </div>
-                    {meta.vehicle_url && (
+                    {meta.vehicle_url && onOpenVehicleDetail && (
+                      <button
+                        type="button"
+                        onClick={() => onOpenVehicleDetail({
+                          id: item.vehicle_id || "",
+                          title: item.title || "",
+                          url: meta.vehicle_url,
+                          searchUrl: meta.vehicle_url,
+                          portal: meta.portal || "",
+                        })}
+                        style={{ background: "none", border: "none", padding: 0, fontSize: 11, color: "#3b82f6", cursor: "pointer", textDecoration: "none" }}
+                      >
+                        Ver anuncio →
+                      </button>
+                    )}
+                    {meta.vehicle_url && !onOpenVehicleDetail && (
                       <a href={meta.vehicle_url} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: "#3b82f6", textDecoration: "none" }}>
                         Ver anuncio →
                       </a>

@@ -304,6 +304,16 @@ export default function PortalVoMarketplacePage({
                   <div style={{ fontSize: 11, color: isDark ? "#cbd5e1" : "#334155", lineHeight: 1.6 }}>
                     {offer.year} · {Number(offer.mileage).toLocaleString("es-ES")} km · {offer.location}
                   </div>
+                  {offer.hasStockManagement && isRenting && (
+                    <div style={{ marginTop: 6, display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                      <span style={{ fontSize: 11, color: isDark ? "#6ee7b7" : "#059669", fontWeight: 700 }}>
+                        {offer.unitsAvailable} ud{offer.unitsAvailable !== 1 ? "s" : ""} disponibles
+                      </span>
+                      {offer.availableColors?.map((c) => (
+                        <span key={c} style={getOfferBadgeStyle("info")}>{c}</span>
+                      ))}
+                    </div>
+                  )}
                   <p style={{ margin: "8px 0 0", fontSize: 12, color: isDark ? "#dbeafe" : "#334155", lineHeight: 1.6 }}>
                     {t("marketplace.offerAvailableIn", { title: offer.title, location: offer.location })}
                   </p>
@@ -368,6 +378,16 @@ export default function PortalVoMarketplacePage({
                   <div style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#64748b", lineHeight: 1.6, marginTop: 4 }}>
                     {offer.fuel} · {offer.power} · {t("marketplace.sellerLabel", { seller: offer.seller })}
                   </div>
+                  {offer.hasStockManagement && isRenting && (
+                    <div style={{ marginTop: 6, display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: offer.unitsAvailable > 0 ? (isDark ? "#6ee7b7" : "#059669") : (isDark ? "#94a3b8" : "#64748b") }}>
+                        {offer.unitsAvailable > 0 ? `${offer.unitsAvailable} uds disponibles` : "Sin stock"}
+                      </span>
+                      {offer.availableColors?.map((c) => (
+                        <span key={c} style={getOfferBadgeStyle("info")}>{c}</span>
+                      ))}
+                    </div>
+                  )}
                   <p style={{ margin: "8px 0 0", fontSize: 12, color: isDark ? "#e2e8f0" : "#334155", lineHeight: 1.6 }}>
                     {t("marketplace.offerAvailableIn", { title: offer.title, location: offer.location })}
                   </p>

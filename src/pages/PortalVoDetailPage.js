@@ -186,6 +186,35 @@ export default function PortalVoDetailPage({
                 );
               })()}
             </div>
+
+            {/* Units / color selector */}
+            {selectedPortalVoOffer.hasStockManagement && selectedPortalVoOffer.availableUnits?.length > 0 && (() => {
+              const byColor = selectedPortalVoOffer.availableUnits.reduce((acc, u) => {
+                const c = u.color || "Sin color";
+                if (!acc[c]) acc[c] = [];
+                acc[c].push(u);
+                return acc;
+              }, {});
+              return (
+                <div style={{ marginBottom: 14, padding: "12px 14px", background: isDark ? "rgba(52,211,153,0.07)" : "rgba(236,253,245,0.9)", border: isDark ? "1px solid rgba(52,211,153,0.18)" : "1px solid rgba(16,185,129,0.22)", borderRadius: 12 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: isDark ? "#6ee7b7" : "#059669", marginBottom: 8 }}>
+                    Unidades disponibles — elige color
+                  </div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {Object.entries(byColor).map(([color, us]) => (
+                      <div key={color} style={{ background: isDark ? "rgba(15,23,42,0.4)" : "#fff", border: isDark ? "1px solid rgba(52,211,153,0.25)" : "1px solid rgba(16,185,129,0.3)", borderRadius: 10, padding: "8px 14px", textAlign: "center" }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 2 }}>{color}</div>
+                        <div style={{ fontSize: 11, color: isDark ? "#6ee7b7" : "#059669" }}>{us.length} ud{us.length !== 1 ? "s" : ""}</div>
+                        <div style={{ fontSize: 10, color: isDark ? "#94a3b8" : "#64748b", marginTop: 2 }}>
+                          {us.map((u) => `${Number(u.mileage).toLocaleString("es-ES")} km`).join(" · ")}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
             <p style={{ margin: "0 0 12px", fontSize: 13, color: bodyColor, lineHeight: 1.7 }}>
               {selectedPortalVoOffer.description}{" "}
               {t("marketplace.detailLocation", {

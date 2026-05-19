@@ -1,6 +1,12 @@
 import { useTranslation } from "react-i18next";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
+
+function getMinRentingPrice(offer) {
+  const prices = [offer.renting12m, offer.renting24m, offer.renting36m, offer.renting48m, offer.renting60m]
+    .filter((p) => p > 0);
+  return prices.length ? Math.min(...prices) : null;
+}
 
 export default function PortalVoMarketplacePage({
   themeMode,
@@ -24,10 +30,19 @@ export default function PortalVoMarketplacePage({
 }) {
   const isDark = themeMode === "dark";
   const { t } = useTranslation();
+  const [modalityMode, setModalityMode] = useState("compra");
   const titleColor = isDark ? "#f1f5f9" : "#0f172a";
   const bodyColor = isDark ? "#94a3b8" : "#475569";
   const cardBg = isDark ? "rgba(15,23,42,0.34)" : "rgba(255,255,255,0.96)";
   const cardBorder = isDark ? "1px solid rgba(148,163,184,0.16)" : "1px solid rgba(148,163,184,0.26)";
+
+  const isRenting = modalityMode === "renting";
+  const modefeatured = featuredPortalVoOffers.filter((o) =>
+    isRenting ? o.rentingAvailable : o.availableForPurchase !== false
+  );
+  const modeOffers = infiniteScrollOffers.filter((o) =>
+    isRenting ? o.rentingAvailable : o.availableForPurchase !== false
+  );
 
   // Infinite scroll: observe sentinel
   const sentinelRef = useRef(null);
@@ -85,6 +100,43 @@ export default function PortalVoMarketplacePage({
         >
           {t("marketplace.backHome")}
         </button>
+      </div>
+
+      {/* Compra / Renting toggle */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+        {[
+          { key: "compra", label: "🛒 Compra" },
+          { key: "renting", label: "🔑 Renting" },
+        ].map(({ key, label }) => {
+          const active = modalityMode === key;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setModalityMode(key)}
+              style={{
+                padding: "10px 22px",
+                borderRadius: 12,
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
+                border: active
+                  ? "none"
+                  : isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(148,163,184,0.32)",
+                background: active
+                  ? (key === "renting"
+                      ? "linear-gradient(135deg,#059669,#10b981)"
+                      : "linear-gradient(135deg,#2563eb,#1d4ed8)")
+                  : (isDark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.92)"),
+                color: active ? "#fff" : (isDark ? "#94a3b8" : "#475569"),
+                boxShadow: active ? "0 6px 18px rgba(37,99,235,0.18)" : "none",
+                transition: "all 0.18s",
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       <div style={{ ...styles.panel, marginBottom: 18 }}>
@@ -197,9 +249,9 @@ export default function PortalVoMarketplacePage({
         <div style={{ fontSize: 10, color: isDark ? "#6ee7b7" : "#059669", marginBottom: 8, fontWeight: 800, letterSpacing: "0.6px" }}>
           {t("marketplace.featuredLabel")}
         </div>
-        {featuredPortalVoOffers.length > 0 ? (
+        {modefeatured.length > 0 ? (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 12 }}>
-            {featuredPortalVoOffers.map((offer) => (
+            {modefeatured.map((offer) => (
               <div
                 key={offer.id}
                 onClick={() => onOpenOffer(offer)}
@@ -245,7 +297,9 @@ export default function PortalVoMarketplacePage({
                     <span style={getOfferBadgeStyle("info")}>{t("marketplace.warrantyMonths", { months: offer.warrantyMonths })}</span>
                   </div>
                   <div style={{ fontSize: 22, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 6 }}>
-                    {formatCurrency(offer.price)}
+                    {isRenting
+                      ? (() => { const p = getMinRentingPrice(offer); return p ? `Desde ${formatCurrency(p)}/mes` : "—"; })()
+                      : formatCurrency(offer.price)}
                   </div>
                   <div style={{ fontSize: 11, color: isDark ? "#cbd5e1" : "#334155", lineHeight: 1.6 }}>
                     {offer.year} · {Number(offer.mileage).toLocaleString("es-ES")} km · {offer.location}
@@ -269,12 +323,12 @@ export default function PortalVoMarketplacePage({
           <div style={{ fontSize: 10, color: "#93c5fd", fontWeight: 800, letterSpacing: "0.6px" }}>
             {t("marketplace.allOffersLabel")}
           </div>
-          <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569" }}>{t("marketplace.resultsCount", { count: infiniteScrollOffers.length })}</div>
+          <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569" }}>{t("marketplace.resultsCount", { count: modeOffers.length })}</div>
         </div>
 
-        {infiniteScrollOffers.length > 0 ? (
+        {modeOffers.length > 0 ? (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 12 }}>
-            {infiniteScrollOffers.map((offer) => (
+            {modeOffers.map((offer) => (
               <div
                 key={offer.id}
                 onClick={() => onOpenOffer(offer)}
@@ -295,7 +349,11 @@ export default function PortalVoMarketplacePage({
                 <div style={{ padding: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>{offer.title}</div>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: isDark ? "#34d399" : "#059669" }}>{formatCurrency(offer.price)}</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: isDark ? "#34d399" : "#059669" }}>
+                      {isRenting
+                        ? (() => { const p = getMinRentingPrice(offer); return p ? `${formatCurrency(p)}/mes` : "—"; })()
+                        : formatCurrency(offer.price)}
+                    </div>
                   </div>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
                     <span style={getOfferBadgeStyle(offer.hasGuaranteeSeal ? "success" : "neutral")}>

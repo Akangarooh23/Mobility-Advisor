@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useState } from "react";
 
 export default function PortalVoDetailPage({
   themeMode,
@@ -18,6 +19,12 @@ export default function PortalVoDetailPage({
 }) {
   const isDark = themeMode === "dark";
   const { t } = useTranslation();
+  const [galleryIdx, setGalleryIdx] = useState(0);
+  const allImages = selectedPortalVoOffer.images?.length
+    ? selectedPortalVoOffer.images
+    : selectedPortalVoOffer.image
+    ? [selectedPortalVoOffer.image]
+    : [];
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
   const bodyColor = isDark ? "#dbeafe" : "#334155";
   const metaColor = isDark ? "#93c5fd" : "#1d4ed8";
@@ -72,11 +79,57 @@ export default function PortalVoDetailPage({
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 }}>
           <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(148,163,184,0.16)", background: isDark ? "rgba(2,6,23,0.45)" : "rgba(248,250,252,0.96)" }}>
-            <ResolvedOfferImage
-              offer={selectedPortalVoOffer}
-              alt={selectedPortalVoOffer.title}
-              style={{ width: "100%", height: 320, objectFit: "cover", display: "block" }}
-            />
+            {allImages.length > 0 ? (
+              <div>
+                <img
+                  src={allImages[galleryIdx]}
+                  alt={selectedPortalVoOffer.title}
+                  referrerPolicy="no-referrer"
+                  style={{ width: "100%", height: 320, objectFit: "cover", display: "block" }}
+                  onError={(e) => { e.target.style.display = "none"; }}
+                />
+                {allImages.length > 1 && (
+                  <div style={{ display: "flex", gap: 6, padding: "8px 10px", overflowX: "auto", background: isDark ? "rgba(2,6,23,0.6)" : "rgba(241,245,249,0.96)" }}>
+                    {allImages.map((url, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setGalleryIdx(idx)}
+                        style={{
+                          flexShrink: 0,
+                          width: 64,
+                          height: 48,
+                          padding: 0,
+                          border: idx === galleryIdx
+                            ? "2px solid #2563eb"
+                            : "2px solid transparent",
+                          borderRadius: 8,
+                          overflow: "hidden",
+                          cursor: "pointer",
+                          background: "none",
+                          opacity: idx === galleryIdx ? 1 : 0.65,
+                          transition: "opacity 0.15s, border-color 0.15s",
+                        }}
+                      >
+                        <img
+                          src={url}
+                          alt={`Foto ${idx + 1}`}
+                          referrerPolicy="no-referrer"
+                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                          onError={(e) => { e.target.parentElement.style.display = "none"; }}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <ResolvedOfferImage
+                offer={selectedPortalVoOffer}
+                alt={selectedPortalVoOffer.title}
+                style={{ width: "100%", height: 320, objectFit: "cover", display: "block" }}
+              />
+            )}
           </div>
 
           <div>

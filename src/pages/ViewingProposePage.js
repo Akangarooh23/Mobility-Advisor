@@ -1,14 +1,5 @@
 import React, { useEffect, useState } from "react";
 
-function formatSlot(iso) {
-  try {
-    return new Date(iso).toLocaleString("es-ES", {
-      weekday: "long", day: "numeric", month: "long", year: "numeric",
-      hour: "2-digit", minute: "2-digit", timeZone: "Europe/Madrid",
-    });
-  } catch { return iso; }
-}
-
 function StatusBanner({ status }) {
   if (status === "pending_buyer") {
     return (

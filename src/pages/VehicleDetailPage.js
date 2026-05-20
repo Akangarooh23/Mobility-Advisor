@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import ResolvedOfferImage from "../components/offers/ResolvedOfferImage";
 
 const VEHICLE_DETAIL_CSS = `
 /* ══ TOKENS ══ */
@@ -337,6 +336,11 @@ export default function VehicleDetailPage({ offer, onBack }) {
   const [alertModalOpen, setAlertModalOpen] = React.useState(false);
   const [alertSubmitted, setAlertSubmitted] = React.useState(false);
   const [alertSubmitting, setAlertSubmitting] = React.useState(false);
+  const [galleryImgFailed, setGalleryImgFailed] = React.useState(false);
+
+  useEffect(() => {
+    setGalleryImgFailed(false);
+  }, [offer]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -439,12 +443,26 @@ export default function VehicleDetailPage({ offer, onBack }) {
         <div className="vd-left-primary">
           {/* GALLERY */}
           <div className="vd-gallery">
-            <ResolvedOfferImage
-              offer={car}
-              alt={`${car.brand || ""} ${car.model || ""}`}
-              loading="eager"
-              style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 0 }}
-            />
+            {car.image && !galleryImgFailed ? (
+              <img
+                src={car.image}
+                alt={`${car.brand || ""} ${car.model || ""}`}
+                loading="eager"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                onError={() => setGalleryImgFailed(true)}
+              />
+            ) : (
+              <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,#1a1814 0%,#3a3020 100%)", display: "flex", alignItems: "flex-end", padding: "1rem 1.25rem" }}>
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#BA7517", marginBottom: 4 }}>
+                    {car.brand || ""}
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: "#f5f3ef" }}>
+                    {car.model || "Vehículo"}
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="vd-gallery-badge">{t("vehicleDetail.analysisLabel")}</div>
             <div className="vd-portal-source">{t("vehicleDetail.source")}: {portalLabel(car.portal)}</div>
           </div>

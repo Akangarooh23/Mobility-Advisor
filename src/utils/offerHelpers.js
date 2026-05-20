@@ -413,6 +413,8 @@ function shouldBypassImageProxy(url) {
         || host.endsWith(".milanuncios.com")
         || host.endsWith(".supabase.co")
         || host.endsWith(".carswiseai.com")
+        || host.endsWith(".flexicar.es")
+        || host === "flexicar.es"
       );
   } catch {
     return false;

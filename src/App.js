@@ -5748,6 +5748,15 @@ export default function App() {
             }
           }}
           onOpenRelatedOffer={openPortalVoOfferDetail}
+          onLeadCreated={async () => {
+            if (!currentUserEmail) return;
+            try {
+              const { response, data } = await (await import("./utils/apiClient")).getUserMobilityDataJson(currentUserEmail);
+              if (response.ok && Array.isArray(data?.solicitudes)) {
+                setUserSolicitudes(data.solicitudes);
+              }
+            } catch {}
+          }}
         />
       )}
 

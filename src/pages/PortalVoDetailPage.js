@@ -17,6 +17,7 @@ export default function PortalVoDetailPage({
   onBackToMarketplace,
   onGoHome,
   onOpenRelatedOffer,
+  onLeadCreated,
 }) {
   const isDark = themeMode === "dark";
   const { t } = useTranslation();
@@ -66,6 +67,7 @@ export default function PortalVoDetailPage({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error al enviar");
       setReqState("done");
+      if (onLeadCreated) onLeadCreated();
     } catch (err) {
       setReqState("error");
       setReqError(err.message || "No se pudo enviar la solicitud");

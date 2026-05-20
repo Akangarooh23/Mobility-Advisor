@@ -412,7 +412,7 @@ export default function PortalVoDetailPage({
 
                 {!isParticular && (
                   <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-                    {[["info","Información"],["visit","Visita"],["question","Consulta"]].map(([v, l]) => (
+                    {[["info","Información"],["visit","Visita"]].map(([v, l]) => (
                       <button
                         key={v} type="button"
                         onClick={() => setReqForm((f) => ({ ...f, type: v }))}

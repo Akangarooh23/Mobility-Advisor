@@ -11,6 +11,7 @@ export default function UserDashboardSolicitudes({
   const isDark = themeMode === "dark";
 
   const [localSolicitudes, setLocalSolicitudes] = useState(userSolicitudes);
+  const [activeTab, setActiveTab]        = useState("en_curso");
   const [cancelId, setCancelId]         = useState(null);
   const [rescheduleId, setRescheduleId] = useState(null);
   const [confirmId, setConfirmId]       = useState(null);
@@ -181,6 +182,24 @@ export default function UserDashboardSolicitudes({
     border: "1px solid", cursor: "pointer", transition: "opacity 0.15s",
   };
 
+  const EN_CURSO_STATUSES  = new Set(["Pendiente", "Contactado", "En proceso", "Reagendar solicitado", "pending_seller", "pending_buyer"]);
+  const FINALIZADAS_STATUSES = new Set(["Cita confirmada", "Cerrado", "confirmed"]);
+  const CANCELADAS_STATUSES  = new Set(["Cancelado", "Descartado"]);
+
+  const grouped = {
+    en_curso:   localSolicitudes.filter((s) => EN_CURSO_STATUSES.has(s.status)),
+    finalizadas: localSolicitudes.filter((s) => FINALIZADAS_STATUSES.has(s.status)),
+    canceladas:  localSolicitudes.filter((s) => CANCELADAS_STATUSES.has(s.status)),
+  };
+
+  const TABS = [
+    { key: "en_curso",    label: "En curso",    color: "#2563eb" },
+    { key: "finalizadas", label: "Finalizadas", color: "#059669" },
+    { key: "canceladas",  label: "Canceladas",  color: "#dc2626" },
+  ];
+
+  const visibleSolicitudes = grouped[activeTab] || [];
+
   return (
     <section style={{ ...panelStyle, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
@@ -192,15 +211,54 @@ export default function UserDashboardSolicitudes({
         <span style={{ ...getOfferBadgeStyle("blue"), fontSize: 11 }}>{localSolicitudes.length} solicitud{localSolicitudes.length !== 1 ? "es" : ""}</span>
       </div>
 
-      {localSolicitudes.length === 0 ? (
+      {/* Tabs */}
+      <div style={{ display: "flex", gap: 4, marginBottom: 16, borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "#e2e8f0"}`, paddingBottom: 0 }}>
+        {TABS.map((tab) => {
+          const count = grouped[tab.key].length;
+          const isActive = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              style={{
+                background: "none", border: "none", cursor: "pointer",
+                padding: "8px 14px", fontSize: 13, fontWeight: isActive ? 700 : 500,
+                color: isActive ? tab.color : (isDark ? "#64748b" : "#94a3b8"),
+                borderBottom: isActive ? `2px solid ${tab.color}` : "2px solid transparent",
+                marginBottom: -1, transition: "color 0.15s",
+                display: "flex", alignItems: "center", gap: 6,
+              }}
+            >
+              {tab.label}
+              {count > 0 && (
+                <span style={{
+                  fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 999,
+                  background: isActive ? tab.color : (isDark ? "rgba(255,255,255,0.1)" : "#e2e8f0"),
+                  color: isActive ? "#fff" : (isDark ? "#94a3b8" : "#64748b"),
+                }}>
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {visibleSolicitudes.length === 0 ? (
         <div style={{ textAlign: "center", padding: "2.5rem 1rem", color: isDark ? "#64748b" : "#94a3b8" }}>
-          <div style={{ fontSize: 32, marginBottom: 10 }}>📋</div>
-          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, color: isDark ? "#94a3b8" : "#64748b" }}>Sin solicitudes aún</div>
-          <div style={{ fontSize: 12 }}>Cuando solicites información o visita para un vehículo aparecerá aquí.</div>
+          <div style={{ fontSize: 32, marginBottom: 10 }}>
+            {activeTab === "finalizadas" ? "✅" : activeTab === "canceladas" ? "🚫" : "📋"}
+          </div>
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, color: isDark ? "#94a3b8" : "#64748b" }}>
+            {activeTab === "finalizadas" ? "Sin solicitudes finalizadas" : activeTab === "canceladas" ? "Sin solicitudes canceladas" : "Sin solicitudes activas"}
+          </div>
+          <div style={{ fontSize: 12 }}>
+            {activeTab === "en_curso" ? "Cuando solicites información o visita para un vehículo aparecerá aquí." : ""}
+          </div>
         </div>
       ) : (
         <div style={{ display: "grid", gap: 12 }}>
-          {localSolicitudes.map((item) => {
+          {visibleSolicitudes.map((item) => {
             const meta = parseMeta(item.meta);
             const typeStyle = TYPE_COLOR[item.type] || TYPE_COLOR.info;
             const statusStyle = STATUS_COLOR[item.status] || { bg: "rgba(100,116,139,0.10)", color: "#475569" };

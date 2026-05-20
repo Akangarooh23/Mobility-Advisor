@@ -281,17 +281,19 @@ export default function UserDashboardOperations({
         ];
 
   const operationRows = useMemo(() => {
-    const appointmentRows = (dashboardAppointments || []).map((item) => ({
-      ...item,
-      itemType: "appointment",
-      itemTypeLabel:
-        normalizeText(item?.type) === "maintenance"
-          ? text.maintenance
-          : normalizeText(item?.type) === "insurance"
-          ? text.insurance
-          : text.appointment,
-      stage: inferAppointmentStage(item),
-    }));
+    const appointmentRows = (dashboardAppointments || [])
+      .filter((item) => item.source === "booking" || !item.source)
+      .map((item) => ({
+        ...item,
+        itemType: "appointment",
+        itemTypeLabel:
+          normalizeText(item?.type) === "maintenance"
+            ? text.maintenance
+            : normalizeText(item?.type) === "insurance"
+            ? text.insurance
+            : text.appointment,
+        stage: inferAppointmentStage(item),
+      }));
 
     const valuationRows = (dashboardValuations || []).map((item) => ({
       ...item,
@@ -302,6 +304,18 @@ export default function UserDashboardOperations({
 
     return [...appointmentRows, ...valuationRows];
   }, [dashboardAppointments, dashboardValuations, text.appointment, text.insurance, text.maintenance, text.valuation]);
+
+  const calendarReminders = useMemo(
+    () => (dashboardAppointments || []).filter((item) => item.source === "calendar" || item.source === "suggestion"),
+    [dashboardAppointments]
+  );
+
+  const CALENDAR_TYPE_ICON = { maintenance: "🔧", insurance: "🛡️", suggestion: "💡" };
+  const CALENDAR_STATUS_COLOR = {
+    Pendiente: { bg: "rgba(245,158,11,0.10)", color: "#92400e" },
+    Activo:    { bg: "rgba(16,185,129,0.10)",  color: "#065f46" },
+    Vencido:   { bg: "rgba(239,68,68,0.10)",   color: "#b91c1c" },
+  };
 
   const filteredRows = operationRows.filter((item) => {
     if (activeTab === "all") {
@@ -439,7 +453,7 @@ export default function UserDashboardOperations({
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ ...getOfferBadgeStyle("amber"), fontSize: 11 }}>{dashboardAppointments.length} {text.appointmentsCountSuffix}</span>
+          <span style={{ ...getOfferBadgeStyle("amber"), fontSize: 11 }}>{operationRows.filter((r) => r.itemType === "appointment").length} {text.appointmentsCountSuffix}</span>
           <span style={{ ...getOfferBadgeStyle("slate"), fontSize: 11 }}>{dashboardValuations.length} {text.valuationsCountSuffix}</span>
         </div>
       </div>
@@ -748,6 +762,16 @@ export default function UserDashboardOperations({
         {valuationFeedback && <div style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>{valuationFeedback}</div>}
       </div>
 
+      {filteredRows.length === 0 && activeTab === "appointments" && (
+        <div style={{ textAlign: "center", padding: "1.5rem 1rem", background: isDark ? "rgba(255,255,255,0.03)" : "#fafafa", borderRadius: 10, border: `1px dashed ${isDark ? "rgba(255,255,255,0.1)" : "#e2e8f0"}`, marginBottom: 12 }}>
+          <div style={{ fontSize: 24, marginBottom: 6 }}>🔧</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? "#94a3b8" : "#64748b" }}>Sin citas solicitadas</div>
+          <div style={{ fontSize: 12, color: isDark ? "#64748b" : "#94a3b8", marginTop: 2 }}>
+            Usa "Nueva gestión" para solicitar cita en un taller o servicio.
+          </div>
+        </div>
+      )}
+
       {filteredRows.length > 0 ? (
         <div style={{ display: "grid", gap: 10 }}>
           {filteredRows.map((item) => (
@@ -794,6 +818,52 @@ export default function UserDashboardOperations({
       ) : (
         <div style={{ fontSize: 12, color: "#94a3b8" }}>
           {text.noOperationsYet}
+        </div>
+      )}
+
+      {calendarReminders.length > 0 && (
+        <div style={{ marginTop: 24 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <div style={{ flex: 1, height: 1, background: isDark ? "rgba(255,255,255,0.07)" : "#e2e8f0" }} />
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.5px", color: isDark ? "#64748b" : "#94a3b8", textTransform: "uppercase", whiteSpace: "nowrap" }}>
+              📅 Avisos del calendario
+            </div>
+            <div style={{ flex: 1, height: 1, background: isDark ? "rgba(255,255,255,0.07)" : "#e2e8f0" }} />
+          </div>
+
+          <div style={{ display: "grid", gap: 8 }}>
+            {calendarReminders.map((item) => {
+              const icon = CALENDAR_TYPE_ICON[item.type] || CALENDAR_TYPE_ICON[item.source] || "📋";
+              const statusStyle = CALENDAR_STATUS_COLOR[item.status] || { bg: "rgba(100,116,139,0.10)", color: "#475569" };
+              return (
+                <div
+                  key={item.id}
+                  style={{
+                    background: isDark ? "rgba(255,255,255,0.03)" : "#f8fafc",
+                    border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "#e2e8f0"}`,
+                    borderRadius: 10, padding: "10px 14px",
+                    display: "flex", alignItems: "flex-start", gap: 10,
+                  }}
+                >
+                  <span style={{ fontSize: 18, lineHeight: 1.4, flexShrink: 0 }}>{icon}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? "#f1f5f9" : "#1e293b" }}>{item.title}</div>
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 999, background: statusStyle.bg, color: statusStyle.color, whiteSpace: "nowrap" }}>
+                        {item.status}
+                      </span>
+                    </div>
+                    {item.meta && (
+                      <div style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b", marginTop: 2 }}>{item.meta}</div>
+                    )}
+                    {item.requestedAt && (
+                      <div style={{ fontSize: 11, color: isDark ? "#64748b" : "#94a3b8", marginTop: 2 }}>{item.requestedAt}</div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </section>

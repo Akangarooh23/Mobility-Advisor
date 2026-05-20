@@ -20,6 +20,7 @@ export function buildUserDashboardModel({
     ? [
         {
           id: "advisor-follow-up",
+          source: "suggestion",
           title: "Revisión personalizada CarsWise",
           meta: `${normalizeText(result?.solucion_principal?.titulo) || "Tu plan de movilidad"} · pendiente de reservar`,
           status: "Pendiente",
@@ -36,6 +37,7 @@ export function buildUserDashboardModel({
 
           return {
             id: normalizeText(item?.id),
+            source: "calendar",
             type: "maintenance",
             title: normalizeText(item?.title) || `Mantenimiento · ${vehicleLabel}`,
             meta: [vehicleLabel, notes].filter(Boolean).join(" · "),
@@ -56,6 +58,7 @@ export function buildUserDashboardModel({
 
           return {
             id: normalizeText(item?.id),
+            source: "calendar",
             type: "insurance",
             title: provider ? `Seguro · ${provider}` : `Seguro · ${vehicleLabel}`,
             meta: [vehicleLabel, notes].filter(Boolean).join(" · "),
@@ -67,7 +70,7 @@ export function buildUserDashboardModel({
     : [];
 
   const dashboardAppointments = [
-    ...userAppointments,
+    ...userAppointments.map((a) => ({ ...a, source: "booking" })),
     ...maintenanceAppointments,
     ...insuranceAppointments,
     ...advisorAppointments,

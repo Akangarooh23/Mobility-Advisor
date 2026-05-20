@@ -11,7 +11,7 @@ export default function UserDashboardSolicitudes({
   const isDark = themeMode === "dark";
 
   const [localSolicitudes, setLocalSolicitudes] = useState(userSolicitudes);
-  const [activeTab, setActiveTab]        = useState("en_curso");
+  const [activeTab, setActiveTab]        = useState("pendiente");
   const [cancelId, setCancelId]         = useState(null);
   const [rescheduleId, setRescheduleId] = useState(null);
   const [confirmId, setConfirmId]       = useState(null);
@@ -182,20 +182,40 @@ export default function UserDashboardSolicitudes({
     border: "1px solid", cursor: "pointer", transition: "opacity 0.15s",
   };
 
-  const EN_CURSO_STATUSES  = new Set(["Pendiente", "Contactado", "En proceso", "Reagendar solicitado", "pending_seller", "pending_buyer"]);
-  const FINALIZADAS_STATUSES = new Set(["Cita confirmada", "Cerrado", "confirmed"]);
-  const CANCELADAS_STATUSES  = new Set(["Cancelado", "Descartado"]);
+  // Returns true if dateStr (YYYY-MM-DD or ISO) is strictly before today
+  function isDatePast(dateStr) {
+    if (!dateStr) return false;
+    try {
+      const d = new Date(String(dateStr).slice(0, 10) + "T23:59:59");
+      return d < new Date();
+    } catch { return false; }
+  }
 
   const grouped = {
-    en_curso:   localSolicitudes.filter((s) => EN_CURSO_STATUSES.has(s.status)),
-    finalizadas: localSolicitudes.filter((s) => FINALIZADAS_STATUSES.has(s.status)),
-    canceladas:  localSolicitudes.filter((s) => CANCELADAS_STATUSES.has(s.status)),
+    pendiente: localSolicitudes.filter((s) =>
+      ["Pendiente", "Contactado", "En proceso", "Reagendar solicitado", "pending_seller", "pending_buyer"].includes(s.status)
+    ),
+    en_curso: localSolicitudes.filter((s) => {
+      const meta = parseMeta(s.meta);
+      if (s.status === "Cita confirmada") return !isDatePast(meta.appointment_date);
+      if (s.status === "confirmed")       return !isDatePast(meta.confirmed_slot);
+      return false;
+    }),
+    finalizadas: localSolicitudes.filter((s) => {
+      const meta = parseMeta(s.meta);
+      if (s.status === "Cerrado")         return true;
+      if (s.status === "Cita confirmada") return isDatePast(meta.appointment_date);
+      if (s.status === "confirmed")       return isDatePast(meta.confirmed_slot);
+      return false;
+    }),
+    canceladas: localSolicitudes.filter((s) => ["Cancelado", "Descartado"].includes(s.status)),
   };
 
   const TABS = [
-    { key: "en_curso",    label: "En curso",    color: "#2563eb" },
-    { key: "finalizadas", label: "Finalizadas", color: "#059669" },
-    { key: "canceladas",  label: "Canceladas",  color: "#dc2626" },
+    { key: "pendiente",   label: "Pendiente gestionar", color: "#d97706" },
+    { key: "en_curso",    label: "En curso",             color: "#2563eb" },
+    { key: "finalizadas", label: "Finalizadas",          color: "#059669" },
+    { key: "canceladas",  label: "Canceladas",           color: "#dc2626" },
   ];
 
   const visibleSolicitudes = grouped[activeTab] || [];
@@ -247,13 +267,16 @@ export default function UserDashboardSolicitudes({
       {visibleSolicitudes.length === 0 ? (
         <div style={{ textAlign: "center", padding: "2.5rem 1rem", color: isDark ? "#64748b" : "#94a3b8" }}>
           <div style={{ fontSize: 32, marginBottom: 10 }}>
-            {activeTab === "finalizadas" ? "✅" : activeTab === "canceladas" ? "🚫" : "📋"}
+            {activeTab === "finalizadas" ? "✅" : activeTab === "canceladas" ? "🚫" : activeTab === "en_curso" ? "📅" : "📋"}
           </div>
           <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, color: isDark ? "#94a3b8" : "#64748b" }}>
-            {activeTab === "finalizadas" ? "Sin solicitudes finalizadas" : activeTab === "canceladas" ? "Sin solicitudes canceladas" : "Sin solicitudes activas"}
+            {activeTab === "pendiente"   && "Sin solicitudes pendientes"}
+            {activeTab === "en_curso"    && "Sin citas próximas"}
+            {activeTab === "finalizadas" && "Sin solicitudes finalizadas"}
+            {activeTab === "canceladas"  && "Sin solicitudes canceladas"}
           </div>
           <div style={{ fontSize: 12 }}>
-            {activeTab === "en_curso" ? "Cuando solicites información o visita para un vehículo aparecerá aquí." : ""}
+            {activeTab === "pendiente" ? "Cuando solicites información o visita para un vehículo aparecerá aquí." : ""}
           </div>
         </div>
       ) : (

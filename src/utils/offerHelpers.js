@@ -411,6 +411,8 @@ function shouldBypassImageProxy(url) {
         || host.endsWith(".autoscout24.es")
         || host.endsWith(".wallapop.com")
         || host.endsWith(".milanuncios.com")
+        || host.endsWith(".supabase.co")
+        || host.endsWith(".carswiseai.com")
       );
   } catch {
     return false;

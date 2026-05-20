@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import ResolvedOfferImage from "../components/offers/ResolvedOfferImage";
 
 const VEHICLE_DETAIL_CSS = `
 /* ══ TOKENS ══ */
@@ -438,20 +439,12 @@ export default function VehicleDetailPage({ offer, onBack }) {
         <div className="vd-left-primary">
           {/* GALLERY */}
           <div className="vd-gallery">
-            {car.image ? (
-              <img
-                src={car.image}
-                alt={`${car.brand || ""} ${car.model || ""}`}
-                referrerPolicy="no-referrer"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              />
-            ) : (
-              <div style={{ width: "100%", height: "100%", background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", color: "#7a756c", fontSize: 13 }}>
-                {t("vehicleDetail.noImage")}
-              </div>
-            )}
+            <ResolvedOfferImage
+              offer={car}
+              alt={`${car.brand || ""} ${car.model || ""}`}
+              loading="eager"
+              style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 0 }}
+            />
             <div className="vd-gallery-badge">{t("vehicleDetail.analysisLabel")}</div>
             <div className="vd-portal-source">{t("vehicleDetail.source")}: {portalLabel(car.portal)}</div>
           </div>

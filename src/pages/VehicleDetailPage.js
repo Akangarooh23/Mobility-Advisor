@@ -330,16 +330,13 @@ function normalizeOffer(offer) {
 }
 
 function GalleryImage({ offer }) {
-  const candidates = React.useMemo(() => {
+  const [candidates] = useState(() => {
     const local = buildOfferLocalImageCandidates({ imageFolder: slugifyOfferFolderName(offer) });
     const direct = buildImageProxyUrl(offer?.image || offer?.imageUrl || "");
     const fallback = buildOfferPlaceholderImage(offer);
     return [...local, direct, fallback].filter((c, i, a) => c && a.indexOf(c) === i);
-  }, [offer]);
-
+  });
   const [idx, setIdx] = useState(0);
-  useEffect(() => { setIdx(0); }, [candidates]);
-
   const src = candidates[Math.min(idx, candidates.length - 1)];
   if (!src) return null;
   return (

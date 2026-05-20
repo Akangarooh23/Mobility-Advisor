@@ -1,13 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  buildImageProxyUrl,
-  buildImageSearchProxyUrl,
-  buildOfferImageSearchQuery,
-  buildOfferPlaceholderImage,
-  buildOfferLocalImageCandidates,
-  slugifyOfferFolderName,
-} from "../utils/offerHelpers";
+import ResolvedOfferImage from "../components/offers/ResolvedOfferImage";
 
 const VEHICLE_DETAIL_CSS = `
 /* ══ TOKENS ══ */
@@ -331,27 +324,6 @@ function normalizeOffer(offer) {
   };
 }
 
-function GalleryImage({ offer }) {
-  const [candidates] = useState(() => {
-    const direct = buildImageProxyUrl(offer?.image || offer?.imageUrl || "");
-    const aiSearch = buildImageSearchProxyUrl(buildOfferImageSearchQuery(offer));
-    const local = buildOfferLocalImageCandidates({ imageFolder: slugifyOfferFolderName(offer) });
-    const fallback = buildOfferPlaceholderImage(offer);
-    return [direct, aiSearch, ...local, fallback].filter((c, i, a) => c && a.indexOf(c) === i);
-  });
-  const [idx, setIdx] = useState(0);
-  const src = candidates[Math.min(idx, candidates.length - 1)];
-  if (!src) return null;
-  return (
-    <img
-      src={src}
-      alt={offer?.title || ""}
-      referrerPolicy="no-referrer"
-      onError={() => setIdx((i) => Math.min(i + 1, candidates.length - 1))}
-    />
-  );
-}
-
 export default function VehicleDetailPage({ offer, onBack }) {
   const { t } = useTranslation();
   const [modalOpen, setModalOpen] = React.useState(false);
@@ -467,7 +439,12 @@ export default function VehicleDetailPage({ offer, onBack }) {
         <div className="vd-left-primary">
           {/* GALLERY */}
           <div className="vd-gallery">
-            <GalleryImage offer={car} />
+            <ResolvedOfferImage
+              offer={car}
+              alt={`${car.brand || ""} ${car.model || ""}`}
+              loading="eager"
+              style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 0 }}
+            />
             <div className="vd-gallery-badge">{t("vehicleDetail.analysisLabel")}</div>
             <div className="vd-portal-source">{t("vehicleDetail.source")}: {portalLabel(car.portal)}</div>
           </div>

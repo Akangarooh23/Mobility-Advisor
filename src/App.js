@@ -5484,7 +5484,7 @@ export default function App() {
         <PricingPlansPage
           uiLanguage={uiLanguage}
           onStartFree={() => handleAuthAction("register")}
-          onStartPlus={() => void startSubscriptionCheckout("plata")}
+          onStartPlus={(billingMode) => void startSubscriptionCheckout("plus", { billingMode })}
           onOpenServices={() => {
             if (typeof window === "undefined") {
               return;

@@ -458,7 +458,7 @@ export default function PricingPlansPage({
             <div className="cw-plan-tagline">{copy.plusTagline}</div>
             <div className="cw-plan-price"><span className="cw-price-amount">{plusPrice}</span><span className="cw-price-period">{copy.plusPerMonth}</span></div>
             <div className="cw-price-annual">{plusAnnual}</div>
-            <button type="button" className="cw-plan-cta primary" onClick={handleStartPlus}>{copy.startPlus}</button>
+            <button type="button" className="cw-plan-cta primary" onClick={() => handleStartPlus(billingMode)}>{copy.startPlus}</button>
             <div className="cw-features-label">{copy.plusIncludesLabel}</div>
             <ul className="cw-feature-list">
               {copy.plusFeatures.map((item) => (

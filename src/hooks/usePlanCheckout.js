@@ -12,6 +12,7 @@ export function usePlanCheckout({
 }) {
   const startSubscriptionCheckout = useCallback(async (planId, options = {}) => {
     const normalizedPlanId = normalizeText(planId).toLowerCase();
+    const billingMode = normalizeText(options?.billingMode).toLowerCase() === "annual" ? "annual" : "monthly";
     const shouldSkipAuthGate = Boolean(options?.skipAuth);
 
     if (!normalizedPlanId) {
@@ -31,6 +32,7 @@ export function usePlanCheckout({
     try {
       const { data } = await postBillingCheckoutJson({
         planId: normalizedPlanId,
+        billingMode,
         origin: typeof window !== "undefined" ? window.location.origin : "",
         customerEmail: normalizeText(options?.customerEmail || currentUserEmail).toLowerCase(),
       });

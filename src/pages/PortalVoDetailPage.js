@@ -22,6 +22,62 @@ export default function PortalVoDetailPage({
   const { t } = useTranslation();
   const [galleryIdx, setGalleryIdx] = useState(0);
   const [galleryFailed, setGalleryFailed] = useState(false);
+  const [reqModal, setReqModal] = useState(false);
+  const [reqForm, setReqForm] = useState({ name: "", phone: "", email: "", when: "", type: "info", message: "" });
+  const [reqState, setReqState] = useState("idle"); // idle | submitting | done | error
+  const [reqError, setReqError] = useState("");
+
+  const isParticular = (selectedPortalVoOffer.sellerType || "").toLowerCase() === "particular";
+
+  async function handleReqSubmit(e) {
+    e.preventDefault();
+    setReqState("submitting");
+    setReqError("");
+    try {
+      let res;
+      if (isParticular) {
+        res = await fetch("/api/viewing-request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            offer_id: selectedPortalVoOffer.id,
+            buyer_name: reqForm.name,
+            buyer_email: reqForm.email,
+            buyer_message: reqForm.message,
+          }),
+        });
+      } else {
+        res = await fetch("/api/leads", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: reqForm.name,
+            phone: reqForm.phone,
+            email: reqForm.email,
+            when: reqForm.when,
+            type: reqForm.type,
+            vehicle_id: selectedPortalVoOffer.id,
+            vehicle_title: selectedPortalVoOffer.title,
+            vehicle_url: selectedPortalVoOffer.url || "",
+            portal: "marketplace-vo",
+          }),
+        });
+      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al enviar");
+      setReqState("done");
+    } catch (err) {
+      setReqState("error");
+      setReqError(err.message || "No se pudo enviar la solicitud");
+    }
+  }
+
+  function openReqModal() {
+    setReqForm({ name: "", phone: "", email: "", when: "", type: "info", message: "" });
+    setReqState("idle");
+    setReqError("");
+    setReqModal(true);
+  }
   // Real images from the offer (for thumbnail strip)
   const realImages = (selectedPortalVoOffer.images?.length
     ? selectedPortalVoOffer.images
@@ -260,6 +316,29 @@ export default function PortalVoDetailPage({
                 </div>
               ))}
             </div>
+
+            {/* CTA */}
+            <button
+              type="button"
+              onClick={openReqModal}
+              style={{
+                marginTop: 16,
+                width: "100%",
+                padding: "14px 0",
+                background: isParticular
+                  ? "linear-gradient(135deg,#0f172a,#1e3a5f)"
+                  : "linear-gradient(135deg,#2563eb,#1d4ed8)",
+                color: "#fff",
+                border: "none",
+                borderRadius: 12,
+                fontSize: 14,
+                fontWeight: 800,
+                cursor: "pointer",
+                letterSpacing: "0.02em",
+              }}
+            >
+              {isParticular ? "Solicitar visita al vendedor" : "Solicitar información"}
+            </button>
           </div>
         </div>
 
@@ -284,6 +363,122 @@ export default function PortalVoDetailPage({
           </div>
         </div>
       </div>
+
+      {/* REQUEST MODAL */}
+      {reqModal && (
+        <div
+          onClick={() => setReqModal(false)}
+          style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)",
+            display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, padding: 16,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: isDark ? "#0f172a" : "#fff",
+              border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(148,163,184,0.24)",
+              borderRadius: 16, padding: 28, width: "100%", maxWidth: 420,
+              boxShadow: "0 24px 64px rgba(0,0,0,0.3)",
+            }}
+          >
+            {reqState === "done" ? (
+              <div style={{ textAlign: "center", padding: "16px 0" }}>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 8 }}>
+                  {isParticular ? "¡Solicitud enviada al vendedor!" : "¡Solicitud recibida!"}
+                </div>
+                <div style={{ fontSize: 13, color: isDark ? "#94a3b8" : "#475569", lineHeight: 1.6 }}>
+                  {isParticular
+                    ? "El vendedor recibirá un email para proponerte fechas de visita."
+                    : "Te contactaremos en menos de 2 horas en el horario indicado."}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setReqModal(false)}
+                  style={{ marginTop: 20, padding: "10px 28px", background: "#2563eb", color: "#fff", border: "none", borderRadius: 10, fontWeight: 700, cursor: "pointer", fontSize: 13 }}
+                >
+                  Cerrar
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleReqSubmit}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 4 }}>
+                  {isParticular ? "Solicitar visita al vendedor" : "Solicitar información"}
+                </div>
+                <div style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b", marginBottom: 18 }}>
+                  {selectedPortalVoOffer.title}
+                </div>
+
+                {!isParticular && (
+                  <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+                    {[["info","Información"],["visit","Visita"],["question","Consulta"]].map(([v, l]) => (
+                      <button
+                        key={v} type="button"
+                        onClick={() => setReqForm((f) => ({ ...f, type: v }))}
+                        style={{
+                          flex: 1, padding: "8px 0", border: "1px solid",
+                          borderColor: reqForm.type === v ? "#2563eb" : (isDark ? "rgba(255,255,255,0.12)" : "#e2e8f0"),
+                          background: reqForm.type === v ? (isDark ? "rgba(37,99,235,0.18)" : "#eff6ff") : "transparent",
+                          color: reqForm.type === v ? "#2563eb" : (isDark ? "#94a3b8" : "#475569"),
+                          borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer",
+                        }}
+                      >{l}</button>
+                    ))}
+                  </div>
+                )}
+
+                {[
+                  ["name", "Nombre *", "text", true],
+                  ...(isParticular ? [] : [["phone", "Teléfono *", "tel", true]]),
+                  ["email", "Email *", "email", true],
+                  ...(isParticular
+                    ? [["message", "Mensaje (opcional)", "text", false]]
+                    : [["when", "¿Cuándo prefieres que te llamemos? (opcional)", "text", false]]),
+                ].map(([field, label, type, required]) => (
+                  <div key={field} style={{ marginBottom: 12 }}>
+                    <label style={{ fontSize: 11, fontWeight: 600, color: isDark ? "#94a3b8" : "#475569", display: "block", marginBottom: 4 }}>{label}</label>
+                    <input
+                      type={type}
+                      required={required}
+                      value={reqForm[field]}
+                      onChange={(e) => setReqForm((f) => ({ ...f, [field]: e.target.value }))}
+                      style={{
+                        width: "100%", padding: "9px 12px", borderRadius: 8,
+                        border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid #e2e8f0",
+                        background: isDark ? "rgba(255,255,255,0.05)" : "#f8fafc",
+                        color: isDark ? "#f8fafc" : "#0f172a", fontSize: 13, outline: "none",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  </div>
+                ))}
+
+                {reqError && (
+                  <div style={{ fontSize: 12, color: "#ef4444", marginBottom: 10 }}>{reqError}</div>
+                )}
+
+                <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                  <button
+                    type="button"
+                    onClick={() => setReqModal(false)}
+                    style={{ flex: 1, padding: "11px 0", border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid #e2e8f0", background: "transparent", color: isDark ? "#94a3b8" : "#475569", borderRadius: 10, fontSize: 13, cursor: "pointer" }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={reqState === "submitting"}
+                    style={{ flex: 2, padding: "11px 0", background: "linear-gradient(135deg,#2563eb,#1d4ed8)", color: "#fff", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 800, cursor: reqState === "submitting" ? "not-allowed" : "pointer", opacity: reqState === "submitting" ? 0.7 : 1 }}
+                  >
+                    {reqState === "submitting" ? "Enviando…" : "Enviar solicitud"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

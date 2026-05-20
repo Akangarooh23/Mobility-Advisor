@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { buildImageProxyUrl } from "../utils/offerHelpers";
 
 export default function PortalVoDetailPage({
   themeMode,
@@ -20,11 +21,13 @@ export default function PortalVoDetailPage({
   const isDark = themeMode === "dark";
   const { t } = useTranslation();
   const [galleryIdx, setGalleryIdx] = useState(0);
+  const [galleryFailed, setGalleryFailed] = useState(false);
   const allImages = selectedPortalVoOffer.images?.length
     ? selectedPortalVoOffer.images
     : selectedPortalVoOffer.image
     ? [selectedPortalVoOffer.image]
     : [];
+  useEffect(() => { setGalleryIdx(0); setGalleryFailed(false); }, [selectedPortalVoOffer.id]);
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
   const bodyColor = isDark ? "#dbeafe" : "#334155";
   const metaColor = isDark ? "#93c5fd" : "#1d4ed8";
@@ -79,14 +82,15 @@ export default function PortalVoDetailPage({
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 }}>
           <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(148,163,184,0.16)", background: isDark ? "rgba(2,6,23,0.45)" : "rgba(248,250,252,0.96)" }}>
-            {allImages.length > 0 ? (
+            {allImages.length > 0 && !galleryFailed ? (
               <div>
                 <img
-                  src={allImages[galleryIdx]}
+                  key={allImages[galleryIdx]}
+                  src={buildImageProxyUrl(allImages[galleryIdx]) || allImages[galleryIdx]}
                   alt={selectedPortalVoOffer.title}
                   referrerPolicy="no-referrer"
                   style={{ width: "100%", height: 320, objectFit: "cover", display: "block" }}
-                  onError={(e) => { e.target.style.display = "none"; }}
+                  onError={() => setGalleryFailed(true)}
                 />
                 {allImages.length > 1 && (
                   <div style={{ display: "flex", gap: 6, padding: "8px 10px", overflowX: "auto", background: isDark ? "rgba(2,6,23,0.6)" : "rgba(241,245,249,0.96)" }}>
@@ -94,7 +98,7 @@ export default function PortalVoDetailPage({
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => setGalleryIdx(idx)}
+                        onClick={() => { setGalleryIdx(idx); setGalleryFailed(false); }}
                         style={{
                           flexShrink: 0,
                           width: 64,
@@ -112,7 +116,7 @@ export default function PortalVoDetailPage({
                         }}
                       >
                         <img
-                          src={url}
+                          src={buildImageProxyUrl(url) || url}
                           alt={`Foto ${idx + 1}`}
                           referrerPolicy="no-referrer"
                           style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}

@@ -333,6 +333,15 @@ export default function UserDashboardSolicitudes({
                   </div>
                 )}
 
+                {/* Visit pending — no appointment assigned yet */}
+                {isVisit && !hasAppt && item.status === "Pendiente" && (
+                  <div style={{ background: isDark ? "rgba(148,163,184,0.07)" : "#f8fafc", border: "1px solid rgba(148,163,184,0.25)", borderRadius: 8, padding: "10px 12px" }}>
+                    <div style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b" }}>
+                      ⏳ Pendiente de asignación de cita — el equipo de CarsWise te contactará para concretar fecha y hora.
+                    </div>
+                  </div>
+                )}
+
                 {/* Non-visit response */}
                 {!isVisit && meta.erp_response && item.status !== "Cancelado" && (
                   <div style={{ background: isDark ? "rgba(37,99,235,0.12)" : "#eff6ff", border: `1px solid ${isDark ? "rgba(59,130,246,0.25)" : "#bfdbfe"}`, borderRadius: 8, padding: "10px 12px" }}>
@@ -379,7 +388,7 @@ export default function UserDashboardSolicitudes({
                 {/* Action buttons */}
                 {canAct && !isCancelConfirm && !isRescheduleForm && !isConfirmDialog && (
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    {isVisit && item.status !== "Reagendar solicitado" && (
+                    {isVisit && hasAppt && item.status !== "Reagendar solicitado" && (
                       <button
                         onClick={() => openReschedule(item.id)}
                         style={{ ...btnBase, background: isDark ? "rgba(59,130,246,0.1)" : "#eff6ff", color: "#2563eb", borderColor: "rgba(59,130,246,0.3)" }}

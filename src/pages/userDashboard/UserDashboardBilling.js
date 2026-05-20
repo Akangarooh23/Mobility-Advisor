@@ -31,21 +31,21 @@ function toInputDateLabel(value, t) {
 }
 
 const DEFAULT_AVAILABLE_PLANS = [
-  { id: "gratis", label: "Plan Gratis" },
-  { id: "bronce", label: "Plan Bronce" },
-  { id: "plata", label: "Plan Plata" },
-  { id: "oro", label: "Plan Oro" },
-  { id: "platino", label: "Plan Platino" },
+  { id: "free", label: "Free" },
+  { id: "plus", label: "Plus" },
 ];
 
 export default function UserDashboardBilling({ panelStyle, currentUser, themeMode, isMobile = false }) {
   const { t } = useTranslation();
   const planLabelMap = {
-    gratis: t("dashboard.billingPlanGratis"),
-    bronce: t("dashboard.billingPlanBronce"),
-    plata: t("dashboard.billingPlanPlata"),
-    oro: t("dashboard.billingPlanOro"),
-    platino: t("dashboard.billingPlanPlatino"),
+    free: "Free",
+    plus: "Plus",
+    // legacy IDs — map to closest equivalent
+    gratis: "Free",
+    bronce: "Plus",
+    plata: "Plus",
+    oro: "Plus",
+    platino: "Plus",
   };
   const subscriptionStatusMap = {
     activo: t("dashboard.billingStatusActivo"),
@@ -125,8 +125,8 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
 
   const [profileForm, setProfileForm] = useState(initialProfile);
   const [billingState, setBillingState] = useState({
-    planId: "gratis",
-    planLabel: "Plan Gratis",
+    planId: "free",
+    planLabel: "Free",
     status: "inactivo",
     nextBillingDate: "",
     stripeCustomerId: "",
@@ -172,8 +172,8 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
         };
 
         const nextBillingState = {
-          planId: normalizeText(account?.billingState?.planId) || "gratis",
-          planLabel: normalizeText(account?.billingState?.planLabel) || "Plan Gratis",
+          planId: normalizeText(account?.billingState?.planId) || "free",
+          planLabel: normalizeText(account?.billingState?.planLabel) || "Free",
           status: normalizeText(account?.billingState?.status) || "inactivo",
           nextBillingDate: normalizeText(account?.billingState?.nextBillingDate),
           stripeCustomerId: normalizeText(account?.billingState?.stripeCustomerId),

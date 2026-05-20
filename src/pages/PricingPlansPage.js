@@ -7,6 +7,8 @@ export default function PricingPlansPage({
   uiLanguage = "es",
   onStartFree,
   onStartPlus,
+  plusCheckoutLoading = false,
+  plusCheckoutFeedback = "",
   onOpenServices,
   onOpenSellManagement,
   onOpenMarketReport,
@@ -458,7 +460,20 @@ export default function PricingPlansPage({
             <div className="cw-plan-tagline">{copy.plusTagline}</div>
             <div className="cw-plan-price"><span className="cw-price-amount">{plusPrice}</span><span className="cw-price-period">{copy.plusPerMonth}</span></div>
             <div className="cw-price-annual">{plusAnnual}</div>
-            <button type="button" className="cw-plan-cta primary" onClick={() => handleStartPlus(billingMode)}>{copy.startPlus}</button>
+            <button
+              type="button"
+              className="cw-plan-cta primary"
+              onClick={() => handleStartPlus(billingMode)}
+              disabled={plusCheckoutLoading}
+              style={{ opacity: plusCheckoutLoading ? 0.7 : 1, cursor: plusCheckoutLoading ? "wait" : "pointer" }}
+            >
+              {plusCheckoutLoading ? "Cargando..." : copy.startPlus}
+            </button>
+            {plusCheckoutFeedback && (
+              <div style={{ fontSize: 12, color: "#dc2626", marginTop: 8, textAlign: "center", fontWeight: 600 }}>
+                {plusCheckoutFeedback}
+              </div>
+            )}
             <div className="cw-features-label">{copy.plusIncludesLabel}</div>
             <ul className="cw-feature-list">
               {copy.plusFeatures.map((item) => (

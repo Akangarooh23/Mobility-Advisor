@@ -1184,8 +1184,8 @@ export default function App() {
   const [saveFeedback, setSaveFeedback] = useState("");
   const [emailDigestFeedback, setEmailDigestFeedback] = useState("");
   const [emailDigestLoading, setEmailDigestLoading] = useState(false);
-  const [, setPlanCheckoutLoadingId] = useState("");
-  const [, setPlanCheckoutFeedback] = useState("");
+  const [planCheckoutLoadingId, setPlanCheckoutLoadingId] = useState("");
+  const [planCheckoutFeedback, setPlanCheckoutFeedback] = useState("");
   const [pendingPlanCheckoutId, setPendingPlanCheckoutId] = useState("");
   const [showAuthMenu, setShowAuthMenu] = useState(false);
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
@@ -5485,6 +5485,8 @@ export default function App() {
           uiLanguage={uiLanguage}
           onStartFree={() => handleAuthAction("register")}
           onStartPlus={(billingMode) => void startSubscriptionCheckout("plus", { billingMode })}
+          plusCheckoutLoading={planCheckoutLoadingId === "plus"}
+          plusCheckoutFeedback={planCheckoutFeedback}
           onOpenServices={() => {
             if (typeof window === "undefined") {
               return;

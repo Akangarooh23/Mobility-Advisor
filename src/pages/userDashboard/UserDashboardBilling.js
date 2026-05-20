@@ -577,17 +577,23 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                 ) : null}
               </div>
 
-              <label style={{ display: "block", fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>{t("dashboard.billingCheckoutPlan")}</label>
-              <select value={selectedPlanId} onChange={(event) => setSelectedPlanId(event.target.value)} style={{ ...inputStyle, marginBottom: 10 }}>
-                {availablePlans.map((plan) => (
-                  <option key={plan.id} value={plan.id}>{planLabelMap[plan.id] || plan.label}</option>
-                ))}
-              </select>
+              {!(billingState?.planId === "plus" && (billingState?.status === "activa" || billingState?.status === "trialing")) && (
+                <>
+                  <label style={{ display: "block", fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>{t("dashboard.billingCheckoutPlan")}</label>
+                  <select value={selectedPlanId} onChange={(event) => setSelectedPlanId(event.target.value)} style={{ ...inputStyle, marginBottom: 10 }}>
+                    {availablePlans.map((plan) => (
+                      <option key={plan.id} value={plan.id}>{planLabelMap[plan.id] || plan.label}</option>
+                    ))}
+                  </select>
+                </>
+              )}
 
               <div style={{ display: "grid", gap: 8 }}>
-                <button type="button" onClick={startCheckout} disabled={billingActionLoading} style={{ ...primaryButtonStyle, width: isMobile ? "100%" : "auto" }}>
-                  {billingActionLoading ? t("dashboard.billingProcessing") : t("dashboard.billingStartCheckout")}
-                </button>
+                {!(billingState?.planId === "plus" && (billingState?.status === "activa" || billingState?.status === "trialing")) && (
+                  <button type="button" onClick={startCheckout} disabled={billingActionLoading} style={{ ...primaryButtonStyle, width: isMobile ? "100%" : "auto" }}>
+                    {billingActionLoading ? t("dashboard.billingProcessing") : t("dashboard.billingStartCheckout")}
+                  </button>
+                )}
                 <button type="button" onClick={openCustomerPortal} disabled={billingActionLoading} style={{ ...secondaryButtonStyle, width: isMobile ? "100%" : "auto" }}>
                   {t("dashboard.billingManagePayment")}
                 </button>

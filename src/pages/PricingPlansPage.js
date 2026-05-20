@@ -398,11 +398,11 @@ export default function PricingPlansPage({
   }, []);
 
   const plusPrice = billingMode === "annual"
-    ? (uiLanguage === "en" ? "4.99 EUR" : "4,99 EUR")
+    ? (uiLanguage === "en" ? "4.67 EUR" : "4,67 EUR")
     : (uiLanguage === "en" ? "6.99 EUR" : "6,99 EUR");
   const plusAnnual = billingMode === "annual"
-    ? (uiLanguage === "en" ? "59.99 EUR/year - equivalent to 4.99 EUR/month" : "59,99 EUR/ano - equivale a 4,99 EUR/mes")
-    : (uiLanguage === "en" ? "or 59.99 EUR/year - 2 months free" : "o 59,99 EUR/ano - 2 meses gratis");
+    ? (uiLanguage === "en" ? "55.99 EUR/year - equivalent to 4.67 EUR/month" : "55,99 EUR/ano - equivale a 4,67 EUR/mes")
+    : (uiLanguage === "en" ? "or 55.99 EUR/year - 2 months free" : "o 55,99 EUR/ano - 2 meses gratis");
 
   return (
     <div className="cw-pricing-page">
@@ -432,7 +432,7 @@ export default function PricingPlansPage({
             className={`cw-billing-btn${billingMode === "annual" ? " active" : ""}`}
             onClick={() => setBillingMode("annual")}
           >
-            {copy.annual} <span className="cw-save-badge">-14%</span>
+            {copy.annual} <span className="cw-save-badge">-33%</span>
           </button>
         </div>
       </section>

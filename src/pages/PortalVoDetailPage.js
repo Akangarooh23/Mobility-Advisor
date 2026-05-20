@@ -432,14 +432,11 @@ export default function PortalVoDetailPage({
                   ["name", "Nombre *", "text", true],
                   ...(isParticular ? [] : [["phone", "Teléfono *", "tel", true]]),
                   ["email", "Email *", "email", true],
-                  ...(isParticular
-                    ? [["message", "Mensaje (opcional)", "text", false]]
-                    : [["when", "¿Cuándo prefieres que te llamemos? (opcional)", "text", false]]),
-                ].map(([field, label, type, required]) => (
+                ].map(([field, label, inputType, required]) => (
                   <div key={field} style={{ marginBottom: 12 }}>
                     <label style={{ fontSize: 11, fontWeight: 600, color: isDark ? "#94a3b8" : "#475569", display: "block", marginBottom: 4 }}>{label}</label>
                     <input
-                      type={type}
+                      type={inputType}
                       required={required}
                       value={reqForm[field]}
                       onChange={(e) => setReqForm((f) => ({ ...f, [field]: e.target.value }))}
@@ -453,6 +450,44 @@ export default function PortalVoDetailPage({
                     />
                   </div>
                 ))}
+
+                {/* Last field: depends on type */}
+                {isParticular ? (
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ fontSize: 11, fontWeight: 600, color: isDark ? "#94a3b8" : "#475569", display: "block", marginBottom: 4 }}>Mensaje (opcional)</label>
+                    <input
+                      type="text"
+                      value={reqForm.message}
+                      onChange={(e) => setReqForm((f) => ({ ...f, message: e.target.value }))}
+                      style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid #e2e8f0", background: isDark ? "rgba(255,255,255,0.05)" : "#f8fafc", color: isDark ? "#f8fafc" : "#0f172a", fontSize: 13, outline: "none", boxSizing: "border-box" }}
+                    />
+                  </div>
+                ) : reqForm.type === "visit" ? (
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ fontSize: 11, fontWeight: 600, color: isDark ? "#94a3b8" : "#475569", display: "block", marginBottom: 4 }}>¿Cuándo quieres ver el coche?</label>
+                    <select
+                      value={reqForm.when}
+                      onChange={(e) => setReqForm((f) => ({ ...f, when: e.target.value }))}
+                      style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid #e2e8f0", background: isDark ? "rgba(255,255,255,0.05)" : "#f8fafc", color: isDark ? "#f8fafc" : "#0f172a", fontSize: 13, outline: "none", boxSizing: "border-box", cursor: "pointer" }}
+                    >
+                      <option value="">Selecciona una opción</option>
+                      <option value="Lo antes posible">Lo antes posible</option>
+                      <option value="Esta semana">Esta semana</option>
+                      <option value="La próxima semana">La próxima semana</option>
+                      <option value="Me lo indican ellos">Me lo indican ellos</option>
+                    </select>
+                  </div>
+                ) : (
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ fontSize: 11, fontWeight: 600, color: isDark ? "#94a3b8" : "#475569", display: "block", marginBottom: 4 }}>¿Cuándo prefieres que te llamemos? (opcional)</label>
+                    <input
+                      type="text"
+                      value={reqForm.when}
+                      onChange={(e) => setReqForm((f) => ({ ...f, when: e.target.value }))}
+                      style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid #e2e8f0", background: isDark ? "rgba(255,255,255,0.05)" : "#f8fafc", color: isDark ? "#f8fafc" : "#0f172a", fontSize: 13, outline: "none", boxSizing: "border-box" }}
+                    />
+                  </div>
+                )}
 
                 {reqError && (
                   <div style={{ fontSize: 12, color: "#ef4444", marginBottom: 10 }}>{reqError}</div>

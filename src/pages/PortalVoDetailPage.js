@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
-import { buildImageProxyUrl } from "../utils/offerHelpers";
+import { buildImageProxyUrl, buildOfferLocalImageCandidates, slugifyOfferFolderName } from "../utils/offerHelpers";
 
 export default function PortalVoDetailPage({
   themeMode,
@@ -22,11 +22,17 @@ export default function PortalVoDetailPage({
   const { t } = useTranslation();
   const [galleryIdx, setGalleryIdx] = useState(0);
   const [galleryFailed, setGalleryFailed] = useState(false);
-  const allImages = selectedPortalVoOffer.images?.length
+  // Real images from the offer (for thumbnail strip)
+  const realImages = (selectedPortalVoOffer.images?.length
     ? selectedPortalVoOffer.images
     : selectedPortalVoOffer.image
     ? [selectedPortalVoOffer.image]
-    : [];
+    : []).map((u) => buildImageProxyUrl(u) || u);
+  // Local static images take priority over remote URLs
+  const localCandidates = buildOfferLocalImageCandidates(
+    { imageFolder: slugifyOfferFolderName(selectedPortalVoOffer) }
+  );
+  const allImages = [...localCandidates, ...realImages].filter((u, i, a) => u && a.indexOf(u) === i);
   useEffect(() => { setGalleryIdx(0); setGalleryFailed(false); }, [selectedPortalVoOffer.id]);
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
   const bodyColor = isDark ? "#dbeafe" : "#334155";
@@ -86,19 +92,19 @@ export default function PortalVoDetailPage({
               <div>
                 <img
                   key={allImages[galleryIdx]}
-                  src={buildImageProxyUrl(allImages[galleryIdx]) || allImages[galleryIdx]}
+                  src={allImages[galleryIdx]}
                   alt={selectedPortalVoOffer.title}
                   referrerPolicy="no-referrer"
                   style={{ width: "100%", height: 320, objectFit: "cover", display: "block" }}
                   onError={() => setGalleryFailed(true)}
                 />
-                {allImages.length > 1 && (
+                {realImages.length > 1 && (
                   <div style={{ display: "flex", gap: 6, padding: "8px 10px", overflowX: "auto", background: isDark ? "rgba(2,6,23,0.6)" : "rgba(241,245,249,0.96)" }}>
-                    {allImages.map((url, idx) => (
+                    {realImages.map((url, idx) => (
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => { setGalleryIdx(idx); setGalleryFailed(false); }}
+                        onClick={() => { setGalleryIdx(localCandidates.length + idx); setGalleryFailed(false); }}
                         style={{
                           flexShrink: 0,
                           width: 64,

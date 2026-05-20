@@ -264,21 +264,12 @@ export function writeUserBillingProfile(profile = null) {
 
 function getDefaultBillingState() {
   return {
-    planId: "gratis",
-    planLabel: "Plan Gratis",
+    planId: "free",
+    planLabel: "Free",
     status: "inactivo",
     nextBillingDate: "",
     stripeCustomerId: "",
-    invoices: [
-      {
-        id: "demo-invoice-001",
-        number: "MA-2026-001",
-        date: "2026-04-01",
-        amount: 0,
-        status: "Pagada",
-        pdfUrl: "",
-      },
-    ],
+    invoices: [],
   };
 }
 
@@ -309,8 +300,8 @@ export function readUserBillingState() {
       : [];
 
     return {
-      planId: normalizeText(parsed.planId) || "gratis",
-      planLabel: normalizeText(parsed.planLabel) || "Plan Gratis",
+      planId: normalizeText(parsed.planId) || "free",
+      planLabel: normalizeText(parsed.planLabel) || "Free",
       status: normalizeText(parsed.status) || "inactivo",
       nextBillingDate: normalizeText(parsed.nextBillingDate),
       stripeCustomerId: normalizeText(parsed.stripeCustomerId),
@@ -335,8 +326,8 @@ export function writeUserBillingState(state = {}) {
     window.localStorage.setItem(
       USER_BILLING_STATE_KEY,
       JSON.stringify({
-        planId: normalizeText(safeState.planId) || "gratis",
-        planLabel: normalizeText(safeState.planLabel) || "Plan Gratis",
+        planId: normalizeText(safeState.planId) || "free",
+        planLabel: normalizeText(safeState.planLabel) || "Free",
         status: normalizeText(safeState.status) || "inactivo",
         nextBillingDate: normalizeText(safeState.nextBillingDate),
         stripeCustomerId: normalizeText(safeState.stripeCustomerId),

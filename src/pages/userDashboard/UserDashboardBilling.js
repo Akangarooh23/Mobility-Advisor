@@ -6,7 +6,7 @@ import {
   postBillingCheckoutJson,
   postBillingPortalJson,
 } from "../../utils/apiClient";
-import { clearUserBillingCheckoutIntent, readUserBillingCheckoutIntent } from "../../utils/storage";
+import { clearUserBillingCheckoutIntent, readUserBillingCheckoutIntent, writeUserBillingState } from "../../utils/storage";
 
 function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -35,7 +35,7 @@ const DEFAULT_AVAILABLE_PLANS = [
   { id: "plus", label: "Plus" },
 ];
 
-export default function UserDashboardBilling({ panelStyle, currentUser, themeMode, isMobile = false }) {
+export default function UserDashboardBilling({ panelStyle, currentUser, themeMode, isMobile = false, onPlanChange }) {
   const { t } = useTranslation();
   const planLabelMap = {
     free: "Free",
@@ -197,6 +197,8 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
         setProfileForm(nextProfile);
         setBillingState(nextBillingState);
         setAvailablePlans(effectivePlans);
+        writeUserBillingState(nextBillingState);
+        if (onPlanChange) onPlanChange(nextBillingState.planId);
         setSelectedPlanId(
           nextBillingState.planId
             || effectivePlans.find((plan) => plan.checkoutEnabled)?.id

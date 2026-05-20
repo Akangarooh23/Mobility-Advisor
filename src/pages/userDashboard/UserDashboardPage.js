@@ -156,13 +156,16 @@ export default function UserDashboardPage({
 }) {
   const { t } = useTranslation();
   const planLabelMap = {
-    gratis: t("dashboard.billingPlanGratis"),
-    bronce: t("dashboard.billingPlanBronce"),
-    plata: t("dashboard.billingPlanPlata"),
-    oro: t("dashboard.billingPlanOro"),
-    platino: t("dashboard.billingPlanPlatino"),
+    free: "Free",
+    plus: "Plus",
+    // legacy IDs
+    gratis: "Free",
+    bronce: "Plus",
+    plata: "Plus",
+    oro: "Plus",
+    platino: "Plus",
   };
-  const [currentPlanId, setCurrentPlanId] = useState(() => readUserBillingState()?.planId || "gratis");
+  const [currentPlanId, setCurrentPlanId] = useState(() => readUserBillingState()?.planId || "free");
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === "undefined") {
       return false;
@@ -173,7 +176,7 @@ export default function UserDashboardPage({
   const [garageVehicleCount, setGarageVehicleCount] = useState(() => readGarageVehiclesCount(currentUser?.email || ""));
 
   useEffect(() => {
-    setCurrentPlanId(readUserBillingState()?.planId || "gratis");
+    setCurrentPlanId(readUserBillingState()?.planId || "free");
   }, [userDashboardPage]);
 
   useEffect(() => {
@@ -419,7 +422,7 @@ export default function UserDashboardPage({
                     padding: "4px 10px",
                   }}
                 >
-                  {planLabelMap[currentPlanId] || t("dashboard.billingPlanGratis")}
+                  {planLabelMap[currentPlanId] || "Free"}
                 </span>
                 <span
                   style={{
@@ -613,6 +616,7 @@ export default function UserDashboardPage({
           isMobile={isMobile}
           panelStyle={panelStyle}
           currentUser={currentUser}
+          onPlanChange={setCurrentPlanId}
         />
       )}
 

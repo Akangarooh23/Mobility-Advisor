@@ -31,7 +31,7 @@
     },
     {
       "source": "/api/billing-webhook",
-      "destination": "/api/billing?route=webhook"
+      "destination": "/api/billing-webhook"
     },
     {
       "source": "/api/user-saved",

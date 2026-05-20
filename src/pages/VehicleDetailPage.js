@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import ResolvedOfferImage from "../components/offers/ResolvedOfferImage";
+import { buildImageProxyUrl, buildOfferPlaceholderImage } from "../utils/offerHelpers";
 
 const VEHICLE_DETAIL_CSS = `
 /* ══ TOKENS ══ */
@@ -324,6 +324,20 @@ function normalizeOffer(offer) {
   };
 }
 
+function GalleryImage({ offer }) {
+  const [src, setSrc] = useState(() => buildImageProxyUrl(offer?.image || offer?.imageUrl || ""));
+  const placeholder = buildOfferPlaceholderImage(offer);
+  if (!src) return null;
+  return (
+    <img
+      src={src}
+      alt={offer?.title || ""}
+      referrerPolicy="no-referrer"
+      onError={() => { if (src !== placeholder) setSrc(placeholder); }}
+    />
+  );
+}
+
 export default function VehicleDetailPage({ offer, onBack }) {
   const { t } = useTranslation();
   const [modalOpen, setModalOpen] = React.useState(false);
@@ -439,12 +453,7 @@ export default function VehicleDetailPage({ offer, onBack }) {
         <div className="vd-left-primary">
           {/* GALLERY */}
           <div className="vd-gallery">
-            <ResolvedOfferImage
-              offer={car}
-              alt={`${car.brand || ""} ${car.model || ""}`}
-              loading="eager"
-              style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 0 }}
-            />
+            <GalleryImage offer={car} />
             <div className="vd-gallery-badge">{t("vehicleDetail.analysisLabel")}</div>
             <div className="vd-portal-source">{t("vehicleDetail.source")}: {portalLabel(car.portal)}</div>
           </div>

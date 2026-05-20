@@ -13,22 +13,13 @@
         "updatedAt": ""
       },
       "billingState": {
-        "planId": "plata",
-        "planLabel": "Plan Plata",
+        "planId": "plus",
+        "planLabel": "Plus",
         "status": "pendiente",
         "nextBillingDate": "",
         "stripeCustomerId": "",
         "stripeSubscriptionId": "",
-        "invoices": [
-          {
-            "id": "demo-invoice-001",
-            "number": "MA-2026-001",
-            "date": "2026-04-01",
-            "amount": 0,
-            "status": "Pagada",
-            "pdfUrl": ""
-          }
-        ]
+        "invoices": []
       },
       "updatedAt": "2026-04-12T20:14:59.081Z"
     },
@@ -45,22 +36,13 @@
         "updatedAt": ""
       },
       "billingState": {
-        "planId": "plata",
-        "planLabel": "Plan Plata",
+        "planId": "plus",
+        "planLabel": "Plus",
         "status": "pendiente",
         "nextBillingDate": "",
         "stripeCustomerId": "",
         "stripeSubscriptionId": "",
-        "invoices": [
-          {
-            "id": "demo-invoice-001",
-            "number": "MA-2026-001",
-            "date": "2026-04-01",
-            "amount": 0,
-            "status": "Pagada",
-            "pdfUrl": ""
-          }
-        ]
+        "invoices": []
       },
       "updatedAt": "2026-04-12T20:19:14.350Z"
     },
@@ -77,22 +59,13 @@
         "updatedAt": ""
       },
       "billingState": {
-        "planId": "plata",
-        "planLabel": "Plan Plata",
+        "planId": "plus",
+        "planLabel": "Plus",
         "status": "pendiente",
         "nextBillingDate": "",
         "stripeCustomerId": "",
         "stripeSubscriptionId": "",
-        "invoices": [
-          {
-            "id": "demo-invoice-001",
-            "number": "MA-2026-001",
-            "date": "2026-04-01",
-            "amount": 0,
-            "status": "Pagada",
-            "pdfUrl": ""
-          }
-        ]
+        "invoices": []
       },
       "garageVehicles": [
         {

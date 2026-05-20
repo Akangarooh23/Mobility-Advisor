@@ -331,10 +331,10 @@ function normalizeOffer(offer) {
 
 function GalleryImage({ offer }) {
   const [candidates] = useState(() => {
-    const local = buildOfferLocalImageCandidates({ imageFolder: slugifyOfferFolderName(offer) });
     const direct = buildImageProxyUrl(offer?.image || offer?.imageUrl || "");
+    const local = buildOfferLocalImageCandidates({ imageFolder: slugifyOfferFolderName(offer) });
     const fallback = buildOfferPlaceholderImage(offer);
-    return [...local, direct, fallback].filter((c, i, a) => c && a.indexOf(c) === i);
+    return [direct, ...local, fallback].filter((c, i, a) => c && a.indexOf(c) === i);
   });
   const [idx, setIdx] = useState(0);
   const src = candidates[Math.min(idx, candidates.length - 1)];

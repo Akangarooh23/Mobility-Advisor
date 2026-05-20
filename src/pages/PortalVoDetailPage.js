@@ -283,34 +283,6 @@ export default function PortalVoDetailPage({
             </div>
           </div>
         </div>
-
-        {relatedPortalVoOffers.length > 0 && (
-          <div style={{ marginTop: 16 }}>
-            <div style={{ fontSize: 11, color: isDark ? "#6ee7b7" : "#059669", fontWeight: 700, marginBottom: 8 }}>{t("marketplace.relatedLabel")}</div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 10 }}>
-              {relatedPortalVoOffers.map((offer) => (
-                <button
-                  key={offer.id}
-                  type="button"
-                  onClick={() => onOpenRelatedOffer(offer)}
-                  style={{
-                    textAlign: "left",
-                    background: panelCardBg,
-                    border: "1px solid rgba(148,163,184,0.14)",
-                    borderRadius: 12,
-                    padding: 12,
-                    cursor: "pointer",
-                    color: "inherit",
-                  }}
-                >
-                  <div style={{ fontSize: 12, fontWeight: 700, color: titleColor, marginBottom: 4 }}>{offer.title}</div>
-                  <div style={{ fontSize: 11, color: metaColor, marginBottom: 4 }}>{offer.year} · {offer.location}</div>
-                  <div style={{ fontSize: 13, color: isDark ? "#34d399" : "#059669", fontWeight: 800 }}>{formatCurrency(offer.price)}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

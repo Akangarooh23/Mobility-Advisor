@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   buildImageProxyUrl,
+  buildImageSearchProxyUrl,
+  buildOfferImageSearchQuery,
   buildOfferPlaceholderImage,
   buildOfferLocalImageCandidates,
   slugifyOfferFolderName,
@@ -332,9 +334,10 @@ function normalizeOffer(offer) {
 function GalleryImage({ offer }) {
   const [candidates] = useState(() => {
     const direct = buildImageProxyUrl(offer?.image || offer?.imageUrl || "");
+    const aiSearch = buildImageSearchProxyUrl(buildOfferImageSearchQuery(offer));
     const local = buildOfferLocalImageCandidates({ imageFolder: slugifyOfferFolderName(offer) });
     const fallback = buildOfferPlaceholderImage(offer);
-    return [direct, ...local, fallback].filter((c, i, a) => c && a.indexOf(c) === i);
+    return [direct, aiSearch, ...local, fallback].filter((c, i, a) => c && a.indexOf(c) === i);
   });
   const [idx, setIdx] = useState(0);
   const src = candidates[Math.min(idx, candidates.length - 1)];

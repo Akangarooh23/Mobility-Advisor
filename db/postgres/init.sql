@@ -874,3 +874,9 @@ CREATE TABLE IF NOT EXISTS moveadvisor_scraping_runs (
 );
 CREATE INDEX IF NOT EXISTS ix_scraping_runs_portal
   ON moveadvisor_scraping_runs (portal, started_at DESC);
+
+-- Plan de suscripción denormalizado en la tabla de usuarios para consultas rápidas.
+-- Fuente de verdad: billingStore (sincronizado por webhook de Stripe).
+ALTER TABLE moveadvisor_users ADD COLUMN IF NOT EXISTS plan_id VARCHAR(20) NOT NULL DEFAULT 'free';
+ALTER TABLE moveadvisor_users ADD COLUMN IF NOT EXISTS plan_status VARCHAR(20) NOT NULL DEFAULT 'inactivo';
+ALTER TABLE moveadvisor_users ADD COLUMN IF NOT EXISTS plan_updated_at TIMESTAMPTZ;

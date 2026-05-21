@@ -18,6 +18,7 @@ export default function PortalVoDetailPage({
   onGoHome,
   onOpenRelatedOffer,
   onLeadCreated,
+  isReserved = false,
 }) {
   const isDark = themeMode === "dark";
   const { t } = useTranslation();
@@ -320,26 +321,34 @@ export default function PortalVoDetailPage({
             </div>
 
             {/* CTA */}
+            {isReserved && (
+              <div style={{ marginTop: 16, padding: "10px 14px", background: "#fef9c3", border: "1.5px solid #fbbf24", borderRadius: 10, fontSize: 13, fontWeight: 700, color: "#92400e" }}>
+                🔒 Este vehículo está reservado para otro comprador
+              </div>
+            )}
             <button
               type="button"
               onClick={openReqModal}
+              disabled={isReserved}
               style={{
                 marginTop: 16,
                 width: "100%",
                 padding: "14px 0",
-                background: isParticular
-                  ? "linear-gradient(135deg,#0f172a,#1e3a5f)"
-                  : "linear-gradient(135deg,#2563eb,#1d4ed8)",
-                color: "#fff",
+                background: isReserved
+                  ? (isDark ? "rgba(255,255,255,0.06)" : "rgba(148,163,184,0.18)")
+                  : isParticular
+                    ? "linear-gradient(135deg,#0f172a,#1e3a5f)"
+                    : "linear-gradient(135deg,#2563eb,#1d4ed8)",
+                color: isReserved ? (isDark ? "#64748b" : "#94a3b8") : "#fff",
                 border: "none",
                 borderRadius: 12,
                 fontSize: 14,
                 fontWeight: 800,
-                cursor: "pointer",
+                cursor: isReserved ? "not-allowed" : "pointer",
                 letterSpacing: "0.02em",
               }}
             >
-              {isParticular ? "Solicitar visita al vendedor" : "Solicitar información"}
+              {isReserved ? "Vehículo reservado" : isParticular ? "Solicitar visita al vendedor" : "Solicitar información"}
             </button>
           </div>
         </div>

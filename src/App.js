@@ -1125,6 +1125,7 @@ export default function App() {
   const [selectedValuationVehicleSummary, setSelectedValuationVehicleSummary] = useState(null);
   const [portalVoFilters, setPortalVoFilters] = useState({ ...INITIAL_PORTAL_VO_FILTERS });
   const [selectedPortalVoOfferId, setSelectedPortalVoOfferId] = useState(null);
+  const [reservedVoUrls, setReservedVoUrls] = useState(new Set());
   const [vehicleDetailOffer, setVehicleDetailOffer] = useState(null);
   const [vehicleDetailBackTarget, setVehicleDetailBackTarget] = useState("decision");
   const [listingFilters, setListingFilters] = useState({
@@ -1679,6 +1680,15 @@ export default function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entryMode, portalVoFilters]);
+
+  // Fetch reserved marketplace VO URLs when entering the marketplace or a detail page
+  useEffect(() => {
+    if (entryMode !== "portalVo" && entryMode !== "portalVoDetail") return;
+    fetch("/api/leads?reserved=1")
+      .then((r) => r.json())
+      .then((d) => { if (d.ok && Array.isArray(d.reservedUrls)) setReservedVoUrls(new Set(d.reservedUrls)); })
+      .catch(() => {});
+  }, [entryMode]);
 
   // Fetch next page
   const loadMoreMarketplaceVoOffers = useCallback(() => {
@@ -5750,6 +5760,7 @@ export default function App() {
             }
           }}
           onOpenRelatedOffer={openPortalVoOfferDetail}
+          isReserved={reservedVoUrls.has(selectedPortalVoOffer?.url || "")}
           onLeadCreated={async () => {
             if (!currentUserEmail) return;
             try {
@@ -5782,6 +5793,7 @@ export default function App() {
           loadMoreOffers={loadMoreMarketplaceVoOffers}
           hasMoreOffers={marketplaceVoHasMore}
           loadingOffers={marketplaceVoLoading}
+          reservedVoUrls={reservedVoUrls}
         />
       )}
 

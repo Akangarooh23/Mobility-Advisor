@@ -27,6 +27,7 @@ export default function PortalVoMarketplacePage({
   loadMoreOffers,
   hasMoreOffers,
   loadingOffers,
+  reservedVoUrls = new Set(),
 }) {
   const isDark = themeMode === "dark";
   const { t } = useTranslation();
@@ -341,17 +342,20 @@ export default function PortalVoMarketplacePage({
 
         {modeOffers.length > 0 ? (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 12 }}>
-            {modeOffers.map((offer) => (
+            {modeOffers.map((offer) => {
+              const isReserved = offer.url && reservedVoUrls.has(offer.url);
+              return (
               <div
                 key={offer.id}
                 onClick={() => onOpenOffer(offer)}
                 title={t("marketplace.seeFullCard")}
                 style={{
                   background: cardBg,
-                  border: cardBorder,
+                  border: isReserved ? "1.5px solid #fbbf24" : cardBorder,
                   borderRadius: 14,
                   overflow: "hidden",
                   cursor: "pointer",
+                  opacity: isReserved ? 0.82 : 1,
                 }}
               >
                 <ResolvedOfferImage
@@ -362,11 +366,17 @@ export default function PortalVoMarketplacePage({
                 <div style={{ padding: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>{offer.title}</div>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: isDark ? "#34d399" : "#059669" }}>
-                      {isRenting
-                        ? (() => { const p = getMinRentingPrice(offer); return p ? `${formatCurrency(p)}/mes` : "—"; })()
-                        : formatCurrency(offer.price)}
-                    </div>
+                    {isReserved ? (
+                      <div style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 999, background: "#fef9c3", color: "#92400e", border: "1px solid #fbbf24", whiteSpace: "nowrap" }}>
+                        🔒 Reservado
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: 12, fontWeight: 800, color: isDark ? "#34d399" : "#059669" }}>
+                        {isRenting
+                          ? (() => { const p = getMinRentingPrice(offer); return p ? `${formatCurrency(p)}/mes` : "—"; })()
+                          : formatCurrency(offer.price)}
+                      </div>
+                    )}
                   </div>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
                     <span style={getOfferBadgeStyle(offer.hasGuaranteeSeal ? "success" : "neutral")}>
@@ -412,7 +422,8 @@ export default function PortalVoMarketplacePage({
                   )}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div style={styles.panel}>

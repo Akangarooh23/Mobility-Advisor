@@ -188,16 +188,9 @@ export default function DecisionPage({
   const [priceSortOrder, setPriceSortOrder] = useState("asc");
   const [offerPriceMin, setOfferPriceMin] = useState("");
   const [offerPriceMax, setOfferPriceMax] = useState("");
-  const [reservedUrls, setReservedUrls] = useState(new Set());
   useEffect(() => {
     setVisibleCount(VISIBLE_PAGE_SIZE);
   }, [decisionMarketListings]);
-  useEffect(() => {
-    fetch("/api/leads?reserved=1")
-      .then((r) => r.json())
-      .then((d) => { if (d.ok && Array.isArray(d.reservedUrls)) setReservedUrls(new Set(d.reservedUrls)); })
-      .catch(() => {});
-  }, []);
 
   const text = {
     marketOffers: t("decision.marketOffers"),

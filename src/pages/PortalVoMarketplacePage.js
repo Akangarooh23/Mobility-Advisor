@@ -28,6 +28,7 @@ export default function PortalVoMarketplacePage({
   hasMoreOffers,
   loadingOffers,
   reservedVoUrls = new Set(),
+  reservedMarketplaceIds = new Set(),
 }) {
   const isDark = themeMode === "dark";
   const { t } = useTranslation();
@@ -343,7 +344,7 @@ export default function PortalVoMarketplacePage({
         {modeOffers.length > 0 ? (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 12 }}>
             {modeOffers.map((offer) => {
-              const isReserved = offer.url && reservedVoUrls.has(offer.url);
+              const isReserved = (offer.url && reservedVoUrls.has(offer.url)) || (offer.id && reservedMarketplaceIds.has(offer.id));
               return (
               <div
                 key={offer.id}

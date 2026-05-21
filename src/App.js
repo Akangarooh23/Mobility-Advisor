@@ -1126,6 +1126,7 @@ export default function App() {
   const [portalVoFilters, setPortalVoFilters] = useState({ ...INITIAL_PORTAL_VO_FILTERS });
   const [selectedPortalVoOfferId, setSelectedPortalVoOfferId] = useState(null);
   const [reservedVoUrls, setReservedVoUrls] = useState(new Set());
+  const [reservedMarketplaceIds, setReservedMarketplaceIds] = useState(new Set());
   const [vehicleDetailOffer, setVehicleDetailOffer] = useState(null);
   const [vehicleDetailBackTarget, setVehicleDetailBackTarget] = useState("decision");
   const [listingFilters, setListingFilters] = useState({
@@ -1686,7 +1687,12 @@ export default function App() {
     if (entryMode !== "portalVo" && entryMode !== "portalVoDetail") return;
     fetch("/api/leads?reserved=1")
       .then((r) => r.json())
-      .then((d) => { if (d.ok && Array.isArray(d.reservedUrls)) setReservedVoUrls(new Set(d.reservedUrls)); })
+      .then((d) => {
+        if (d.ok) {
+          if (Array.isArray(d.reservedUrls)) setReservedVoUrls(new Set(d.reservedUrls));
+          if (Array.isArray(d.reservedMarketplaceIds)) setReservedMarketplaceIds(new Set(d.reservedMarketplaceIds));
+        }
+      })
       .catch(() => {});
   }, [entryMode]);
 
@@ -5760,7 +5766,10 @@ export default function App() {
             }
           }}
           onOpenRelatedOffer={openPortalVoOfferDetail}
-          isReserved={reservedVoUrls.has(selectedPortalVoOffer?.url || "")}
+          isReserved={
+            (selectedPortalVoOffer?.url && reservedVoUrls.has(selectedPortalVoOffer.url)) ||
+            (selectedPortalVoOffer?.id && reservedMarketplaceIds.has(selectedPortalVoOffer.id))
+          }
           onLeadCreated={async () => {
             if (!currentUserEmail) return;
             try {
@@ -5794,6 +5803,7 @@ export default function App() {
           hasMoreOffers={marketplaceVoHasMore}
           loadingOffers={marketplaceVoLoading}
           reservedVoUrls={reservedVoUrls}
+          reservedMarketplaceIds={reservedMarketplaceIds}
         />
       )}
 

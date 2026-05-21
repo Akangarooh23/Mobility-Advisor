@@ -331,20 +331,20 @@ export default function PortalVoDetailPage({
             </div>
 
             {/* Stats widget (compra) */}
-            {offerStats && (
-              <div style={{ marginTop: 16, padding: "12px 16px", background: isDark ? "rgba(30,41,59,0.7)" : "rgba(248,250,252,0.95)", border: isDark ? "1px solid rgba(148,163,184,0.14)" : "1px solid rgba(148,163,184,0.22)", borderRadius: 12 }}>
-                <div style={{ fontSize: 10, fontWeight: 800, color: isDark ? "#93c5fd" : "#2563eb", letterSpacing: "0.6px", marginBottom: 10 }}>INTERÉS EN ESTE VEHÍCULO</div>
-                <div style={{ display: "flex", gap: 20 }}>
+            {offerStats && (offerStats.viewCount > 0 || offerStats.contactCount > 0) && (
+              <div style={{ marginTop: 16, padding: "14px 16px", background: isDark ? "rgba(30,41,59,0.7)" : "rgba(248,250,252,0.95)", border: isDark ? "1px solid rgba(148,163,184,0.14)" : "1px solid rgba(148,163,184,0.22)", borderRadius: 12 }}>
+                <div style={{ fontSize: 10, fontWeight: 800, color: isDark ? "#93c5fd" : "#2563eb", letterSpacing: "0.6px", marginBottom: 12 }}>INTERÉS EN ESTE VEHÍCULO</div>
+                <div style={{ display: "flex", gap: 28 }}>
                   {offerStats.viewCount > 0 && (
-                    <div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 22, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>{offerStats.viewCount}</div>
-                      <div style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#64748b" }}>visitas</div>
+                    <div>
+                      <div style={{ fontSize: 24, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", lineHeight: 1 }}>{offerStats.viewCount}</div>
+                      <div style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#64748b", marginTop: 3 }}>visitas</div>
                     </div>
                   )}
                   {offerStats.contactCount > 0 && (
-                    <div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 22, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>{offerStats.contactCount}</div>
-                      <div style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#64748b" }}>contactos</div>
+                    <div>
+                      <div style={{ fontSize: 24, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", lineHeight: 1 }}>{offerStats.contactCount}</div>
+                      <div style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#64748b", marginTop: 3 }}>contactos</div>
                     </div>
                   )}
                 </div>

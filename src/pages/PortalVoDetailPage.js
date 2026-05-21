@@ -26,10 +26,20 @@ export default function PortalVoDetailPage({
   const [galleryFailed, setGalleryFailed] = useState(false);
   const [reqModal, setReqModal] = useState(false);
   const [reqForm, setReqForm] = useState({ name: "", phone: "", email: "", when: "", type: "info", message: "" });
-  const [reqState, setReqState] = useState("idle"); // idle | submitting | done | error
+  const [reqState, setReqState] = useState("idle");
   const [reqError, setReqError] = useState("");
+  const [offerStats, setOfferStats] = useState(null);
 
   const isParticular = (selectedPortalVoOffer.sellerType || "").toLowerCase() === "particular";
+  const isRentingReserved = isReserved && selectedPortalVoOffer.rentingAvailable && selectedPortalVoOffer.unitsAvailable <= 1 && !selectedPortalVoOffer.availableForPurchase;
+
+  useEffect(() => {
+    if (!selectedPortalVoOffer.id) return;
+    fetch(`/api/marketplace-vo?stats=1&vehicleId=${encodeURIComponent(selectedPortalVoOffer.id)}`)
+      .then((r) => r.json())
+      .then((d) => { if (d.ok) setOfferStats(d.stats); })
+      .catch(() => {});
+  }, [selectedPortalVoOffer.id]);
 
   async function handleReqSubmit(e) {
     e.preventDefault();
@@ -320,35 +330,56 @@ export default function PortalVoDetailPage({
               ))}
             </div>
 
+            {/* Stats widget (compra) */}
+            {offerStats && (
+              <div style={{ marginTop: 16, padding: "12px 16px", background: isDark ? "rgba(30,41,59,0.7)" : "rgba(248,250,252,0.95)", border: isDark ? "1px solid rgba(148,163,184,0.14)" : "1px solid rgba(148,163,184,0.22)", borderRadius: 12 }}>
+                <div style={{ fontSize: 10, fontWeight: 800, color: isDark ? "#93c5fd" : "#2563eb", letterSpacing: "0.6px", marginBottom: 10 }}>INTERÉS EN ESTE VEHÍCULO</div>
+                <div style={{ display: "flex", gap: 20 }}>
+                  {offerStats.viewCount > 0 && (
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: 22, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>{offerStats.viewCount}</div>
+                      <div style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#64748b" }}>visitas</div>
+                    </div>
+                  )}
+                  {offerStats.contactCount > 0 && (
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: 22, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>{offerStats.contactCount}</div>
+                      <div style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#64748b" }}>contactos</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* CTA */}
-            {isReserved && (
+            {isRentingReserved && (
               <div style={{ marginTop: 16, padding: "10px 14px", background: "#fef9c3", border: "1.5px solid #fbbf24", borderRadius: 10, fontSize: 13, fontWeight: 700, color: "#92400e" }}>
-                🔒 Este vehículo está reservado para otro comprador
+                🔒 Unidad en renting reservada para otro cliente
               </div>
             )}
             <button
               type="button"
               onClick={openReqModal}
-              disabled={isReserved}
+              disabled={isRentingReserved}
               style={{
                 marginTop: 16,
                 width: "100%",
                 padding: "14px 0",
-                background: isReserved
+                background: isRentingReserved
                   ? (isDark ? "rgba(255,255,255,0.06)" : "rgba(148,163,184,0.18)")
                   : isParticular
                     ? "linear-gradient(135deg,#0f172a,#1e3a5f)"
                     : "linear-gradient(135deg,#2563eb,#1d4ed8)",
-                color: isReserved ? (isDark ? "#64748b" : "#94a3b8") : "#fff",
+                color: isRentingReserved ? (isDark ? "#64748b" : "#94a3b8") : "#fff",
                 border: "none",
                 borderRadius: 12,
                 fontSize: 14,
                 fontWeight: 800,
-                cursor: isReserved ? "not-allowed" : "pointer",
+                cursor: isRentingReserved ? "not-allowed" : "pointer",
                 letterSpacing: "0.02em",
               }}
             >
-              {isReserved ? "Vehículo reservado" : isParticular ? "Solicitar visita al vendedor" : "Solicitar información"}
+              {isRentingReserved ? "Unidad reservada" : isParticular ? "Solicitar visita al vendedor" : "Solicitar información"}
             </button>
           </div>
         </div>

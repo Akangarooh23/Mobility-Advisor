@@ -344,7 +344,8 @@ export default function PortalVoMarketplacePage({
         {modeOffers.length > 0 ? (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 12 }}>
             {modeOffers.map((offer) => {
-              const isReserved = (offer.url && reservedVoUrls.has(offer.url)) || (offer.id && reservedMarketplaceIds.has(offer.id));
+              const hasReservedLead = (offer.url && reservedVoUrls.has(offer.url)) || (offer.id && reservedMarketplaceIds.has(offer.id));
+              const isReserved = isRenting && hasReservedLead && offer.unitsAvailable <= 1;
               return (
               <div
                 key={offer.id}

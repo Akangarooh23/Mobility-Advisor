@@ -58,17 +58,41 @@ async function downloadAndUpload(imageUrl, storagePath) {
 }
 
 /**
- * Scrapes la página de peritaje de DEKRA para encontrar URLs de imágenes,
- * luego descarga cada imagen y la sube a Supabase.
+ * Las URLs de peritaje de DEKRA tienen este formato:
+ *   verIntervencionSinImporte.htm?intervencionId=XXX&codigoAccesoSinImporte=YYY
+ * Las fotos están en una página distinta:
+ *   verFotosSinImportes.htm?intervencionId=XXX&codigoAcceso=YYY
+ * Esta función construye la URL de fotos a partir de la del peritaje.
+ */
+function buildFotosUrl(peritajeUrl) {
+  try {
+    const u = new URL(peritajeUrl);
+    const intervencionId = u.searchParams.get("intervencionId");
+    const codigoAcceso =
+      u.searchParams.get("codigoAccesoSinImporte") ||
+      u.searchParams.get("codigoAcceso");
+    if (!intervencionId || !codigoAcceso) return null;
+    return `${u.origin}/public/verFotosSinImportes.htm?intervencionId=${intervencionId}&codigoAcceso=${codigoAcceso}`;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Scrapes la página de FOTOGRAFÍAS de DEKRA (verFotosSinImportes.htm),
+ * descarga cada imagen y la sube a Supabase Storage.
  * Devuelve array de URLs públicas de Supabase.
  */
 async function fetchAndUploadDekraImages(peritajeUrl, vehicleId) {
   if (!peritajeUrl) return [];
 
+  // Construir URL de la galería de fotos (tab "Fotografías")
+  const fotosUrl = buildFotosUrl(peritajeUrl) || peritajeUrl;
+
   let candidateUrls = [];
 
   try {
-    const res = await fetch(peritajeUrl, {
+    const res = await fetch(fotosUrl, {
       headers: { "Accept-Language": "es", "User-Agent": "Mozilla/5.0" },
       signal: AbortSignal.timeout(12000),
       redirect: "follow",
@@ -78,7 +102,7 @@ async function fetchAndUploadDekraImages(peritajeUrl, vehicleId) {
 
     const contentType = res.headers.get("content-type") || "";
 
-    // Si la propia URL del peritaje es ya una imagen, la subimos directamente
+    // Si la propia URL ya es una imagen, la subimos directamente
     if (contentType.startsWith("image/")) {
       const buffer = Buffer.from(await res.arrayBuffer());
       const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
@@ -86,31 +110,31 @@ async function fetchAndUploadDekraImages(peritajeUrl, vehicleId) {
       return url ? [url] : [];
     }
 
-    // Es HTML — scrapeamos buscando URLs de imágenes DEKRA
+    // Es HTML — scrapeamos la galería
     const html = await res.text();
     const $ = cheerio.load(html);
 
     const seen = new Set();
     function addUrl(u) {
       if (!u) return;
-      const clean = u.trim();
+      const clean = u.startsWith("http") ? u.trim() : new URL(u.trim(), fotosUrl).href;
       if (clean && !seen.has(clean)) { seen.add(clean); candidateUrls.push(clean); }
     }
+
+    // Thumbnails descargarFoto.htm (el formato que usa idex-dekra.es)
+    $("img[src*='descargarFoto'], a[href*='descargarFoto']").each((_, el) => {
+      addUrl($(el).attr("src") || $(el).attr("href"));
+    });
 
     // Imágenes CDN directas de DEKRA
     $("img[src*='dis.dekra-automotivesolutions.com'], img[src*='dekra-automotivesolutions']").each((_, el) => {
       addUrl($(el).attr("src"));
     });
 
-    // Links de descarga descargarFoto.htm (idex-dekra)
-    $("img[src*='descargarFoto'], a[href*='descargarFoto'], img[src*='idex-dekra']").each((_, el) => {
-      addUrl($(el).attr("src") || $(el).attr("href"));
-    });
-
-    // Cualquier otra imagen embebida no relativa
-    $("img[src^='http']").each((_, el) => {
+    // Cualquier imagen con pinta de foto (fallback)
+    $("img[src]").each((_, el) => {
       const src = $(el).attr("src") || "";
-      if (src.includes("dekra") || src.includes("foto") || src.includes("photo")) addUrl(src);
+      if (src.includes("foto") || src.includes("photo") || src.includes("image")) addUrl(src);
     });
 
   } catch {

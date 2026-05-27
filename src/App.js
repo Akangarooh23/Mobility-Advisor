@@ -1482,9 +1482,13 @@ export default function App() {
 
   const mobileHeaderNavItems = useMemo(() => [
     ...headerNavItems.filter((item) => item.key !== "more" && item.key !== "plans"),
-    ...headerPlansNavItems,
+    {
+      key: "plans",
+      label: uiLanguage === "en" ? "Plans" : "Planes",
+      onClick: () => openPlansSection("planes"),
+    },
     ...headerMoreNavItems,
-  ], [headerMoreNavItems, headerNavItems, headerPlansNavItems]);
+  ], [headerMoreNavItems, headerNavItems, openPlansSection, uiLanguage]);
 
   const centerHeaderNavItems = headerNavItems;
 

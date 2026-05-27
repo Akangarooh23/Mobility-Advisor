@@ -3911,7 +3911,7 @@ export default function App() {
             >
               {"\uD83D\uDC64"}
             </span>
-            <span>{isUserLoggedIn ? (uiLanguage === "en" ? "My panel" : "Mi panel") : (uiLanguage === "en" ? "Sign in" : "Acceder")}</span>
+            <span className="cw-theme-label">{isUserLoggedIn ? (uiLanguage === "en" ? "My panel" : "Mi panel") : (uiLanguage === "en" ? "Sign in" : "Acceder")}</span>
           </button>
 
           {showAuthMenu && !isUserLoggedIn && (

@@ -3869,7 +3869,7 @@ export default function App() {
             }}
           >
             <span>{themeMode === "dark" ? "☀️" : "🌙"}</span>
-            <span>{themeMode === "dark" ? (uiLanguage === "en" ? "Light mode" : "Modo claro") : (uiLanguage === "en" ? "Dark mode" : "Modo oscuro")}</span>
+            <span className="cw-theme-label">{themeMode === "dark" ? (uiLanguage === "en" ? "Light mode" : "Modo claro") : (uiLanguage === "en" ? "Dark mode" : "Modo oscuro")}</span>
           </button>
 
           <button

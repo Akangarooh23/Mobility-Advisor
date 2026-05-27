@@ -22,3 +22,9 @@ code {
 .idcar-card-animated {
   animation: idcarBorderMove 3s ease-in-out infinite;
 }
+
+@media (max-width: 640px) {
+  .cw-theme-label {
+    display: none;
+  }
+}

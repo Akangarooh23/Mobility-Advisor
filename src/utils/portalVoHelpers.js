@@ -2,6 +2,8 @@ import { normalizeText } from "./offerHelpers";
 
 export const INITIAL_PORTAL_VO_FILTERS = {
   query: "",
+  brand: "",
+  model: "",
   maxPrice: "",
   minYear: "",
   maxMileage: "",
@@ -170,20 +172,29 @@ export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selec
   const safeOffers = Array.isArray(offers) ? offers : [];
   const query = normalizeText(filters.query).toLowerCase();
 
-  const portalVoLocations = [...new Set(safeOffers.map((offer) => offer.location))];
-  const portalVoColors = [...new Set(safeOffers.map((offer) => offer.color))];
+  const portalVoLocations = [...new Set(safeOffers.map((offer) => offer.location).filter(Boolean))].sort();
+  const portalVoColors    = [...new Set(safeOffers.map((offer) => offer.color).filter(Boolean))].sort();
+  const portalVoBrands    = [...new Set(safeOffers.map((offer) => offer.brand).filter(Boolean))].sort();
+  const portalVoModels    = [...new Set(
+    safeOffers
+      .filter((offer) => !filters.brand || normalizeText(offer.brand) === normalizeText(filters.brand))
+      .map((offer) => offer.model)
+      .filter(Boolean)
+  )].sort();
 
   const filteredPortalVoOffers = safeOffers
     .filter((offer) => {
       const searchText = normalizeText(
         `${offer.title} ${offer.brand} ${offer.model} ${offer.location} ${offer.color} ${offer.fuel}`
       ).toLowerCase();
-      const matchesQuery = !query || searchText.includes(query);
-      const matchesPrice = !filters.maxPrice || Number(offer.price || 0) <= Number(filters.maxPrice);
-      const matchesYear = !filters.minYear || Number(offer.year || 0) >= Number(filters.minYear);
-      const matchesMileage = !filters.maxMileage || Number(offer.mileage || 0) <= Number(filters.maxMileage);
+      const matchesQuery    = !query || searchText.includes(query);
+      const matchesBrand    = !filters.brand || normalizeText(offer.brand) === normalizeText(filters.brand);
+      const matchesModel    = !filters.model || normalizeText(offer.model) === normalizeText(filters.model);
+      const matchesPrice    = !filters.maxPrice || Number(offer.price || 0) <= Number(filters.maxPrice);
+      const matchesYear     = !filters.minYear || Number(offer.year || 0) >= Number(filters.minYear);
+      const matchesMileage  = !filters.maxMileage || Number(offer.mileage || 0) <= Number(filters.maxMileage);
       const matchesLocation = !filters.location || normalizeText(offer.location) === normalizeText(filters.location);
-      const matchesColor = !filters.color || normalizeText(offer.color) === normalizeText(filters.color);
+      const matchesColor    = !filters.color || normalizeText(offer.color) === normalizeText(filters.color);
       const displacement = Number(offer.displacement || 0);
       const matchesDisplacement =
         !filters.displacement ||
@@ -196,6 +207,8 @@ export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selec
 
       return (
         matchesQuery &&
+        matchesBrand &&
+        matchesModel &&
         matchesPrice &&
         matchesYear &&
         matchesMileage &&
@@ -222,6 +235,8 @@ export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selec
   return {
     portalVoLocations,
     portalVoColors,
+    portalVoBrands,
+    portalVoModels,
     filteredPortalVoOffers,
     featuredPortalVoOffers,
     selectedPortalVoOffer,

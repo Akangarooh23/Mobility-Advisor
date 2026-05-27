@@ -15,6 +15,9 @@ export default function PortalVoMarketplacePage({
   updatePortalVoFilter,
   portalVoLocations,
   portalVoColors,
+  portalVoBrands = [],
+  portalVoModels = [],
+  onUpdateBrandFilter,
   onResetFilters,
   featuredPortalVoOffers,
   filteredPortalVoOffers,
@@ -155,6 +158,23 @@ export default function PortalVoMarketplacePage({
             placeholder={t("marketplace.filterQuery")}
             style={styles.input}
           />
+          <select
+            value={portalVoFilters.brand}
+            onChange={(event) => onUpdateBrandFilter ? onUpdateBrandFilter(event.target.value) : updatePortalVoFilter("brand", event.target.value)}
+            style={styles.select}
+          >
+            <option value="">Marca</option>
+            {portalVoBrands.map((b) => <option key={b} value={b}>{b}</option>)}
+          </select>
+          <select
+            value={portalVoFilters.model}
+            onChange={(event) => updatePortalVoFilter("model", event.target.value)}
+            style={styles.select}
+            disabled={!portalVoFilters.brand}
+          >
+            <option value="">Modelo</option>
+            {portalVoModels.map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
           <select
             value={portalVoFilters.maxPrice}
             onChange={(event) => updatePortalVoFilter("maxPrice", event.target.value)}

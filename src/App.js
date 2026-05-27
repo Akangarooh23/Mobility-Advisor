@@ -3448,6 +3448,8 @@ export default function App() {
   const {
     portalVoLocations,
     portalVoColors,
+    portalVoBrands,
+    portalVoModels,
     filteredPortalVoOffers,
     featuredPortalVoOffers,
     selectedPortalVoOffer,
@@ -5794,6 +5796,9 @@ export default function App() {
           updatePortalVoFilter={updatePortalVoFilter}
           portalVoLocations={portalVoLocations}
           portalVoColors={portalVoColors}
+          portalVoBrands={portalVoBrands}
+          portalVoModels={portalVoModels}
+          onUpdateBrandFilter={(brand) => setPortalVoFilters((prev) => ({ ...prev, brand, model: "" }))}
           onResetFilters={() => setPortalVoFilters({ ...INITIAL_PORTAL_VO_FILTERS })}
           featuredPortalVoOffers={featuredPortalVoOffers}
           filteredPortalVoOffers={filteredPortalVoOffers}

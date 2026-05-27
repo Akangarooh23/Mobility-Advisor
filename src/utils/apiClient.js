@@ -183,9 +183,11 @@ export function getVehicleCatalogJson(options = {}) {
 }
 
 export function getMarketplaceVoJson(params = {}, options = {}) {
-  const { limit = 500, offset = 0, query = "", maxPrice = "", minYear = "", maxMileage = "", location = "", color = "", displacement = "", onlyGuaranteed = false } = params;
+  const { limit = 500, offset = 0, query = "", brand = "", model = "", maxPrice = "", minYear = "", maxMileage = "", location = "", color = "", displacement = "", onlyGuaranteed = false } = params;
   const qs = new URLSearchParams({ limit: String(limit || 500), offset: String(offset || 0) });
   if (query)         qs.set("query",         String(query));
+  if (brand)         qs.set("brand",         String(brand));
+  if (model)         qs.set("model",         String(model));
   if (maxPrice)      qs.set("maxPrice",       String(maxPrice));
   if (minYear)       qs.set("minYear",        String(minYear));
   if (maxMileage)    qs.set("maxMileage",     String(maxMileage));

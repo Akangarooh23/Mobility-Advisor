@@ -45,7 +45,7 @@ export default function PortalVoMarketplacePage({
   const modefeatured = featuredPortalVoOffers.filter((o) =>
     isRenting ? o.rentingAvailable : o.availableForPurchase !== false
   );
-  const modeOffers = infiniteScrollOffers.filter((o) =>
+  const modeOffers = filteredPortalVoOffers.filter((o) =>
     isRenting ? o.rentingAvailable : o.availableForPurchase !== false
   );
 

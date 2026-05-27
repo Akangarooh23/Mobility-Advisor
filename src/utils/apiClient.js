@@ -182,12 +182,19 @@ export function getVehicleCatalogJson(options = {}) {
   });
 }
 
-export function getMarketplaceVoJson({ limit = 500 } = {}, options = {}) {
-  const query = new URLSearchParams({
-    limit: String(limit || 500),
-  });
+export function getMarketplaceVoJson(params = {}, options = {}) {
+  const { limit = 500, offset = 0, query = "", maxPrice = "", minYear = "", maxMileage = "", location = "", color = "", displacement = "", onlyGuaranteed = false } = params;
+  const qs = new URLSearchParams({ limit: String(limit || 500), offset: String(offset || 0) });
+  if (query)         qs.set("query",         String(query));
+  if (maxPrice)      qs.set("maxPrice",       String(maxPrice));
+  if (minYear)       qs.set("minYear",        String(minYear));
+  if (maxMileage)    qs.set("maxMileage",     String(maxMileage));
+  if (location)      qs.set("location",       String(location));
+  if (color)         qs.set("color",          String(color));
+  if (displacement)  qs.set("displacement",   String(displacement));
+  if (onlyGuaranteed) qs.set("onlyGuaranteed", "true");
 
-  return getJson(`${MARKETPLACE_VO_API_ENDPOINT}?${query.toString()}`, {
+  return getJson(`${MARKETPLACE_VO_API_ENDPOINT}?${qs.toString()}`, {
     endpointLabel: "marketplace-vo",
     ...options,
   });

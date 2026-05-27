@@ -101,7 +101,9 @@ export default function PortalVoDetailPage({
   const localCandidates = buildOfferLocalImageCandidates(
     { imageFolder: slugifyOfferFolderName(selectedPortalVoOffer) }
   );
-  const allImages = [...localCandidates, ...realImages].filter((u, i, a) => u && a.indexOf(u) === i);
+  const allImages = realImages.length > 0
+    ? realImages
+    : localCandidates.filter(Boolean);
   useEffect(() => { setGalleryIdx(0); setGalleryFailed(false); }, [selectedPortalVoOffer.id]);
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
   const bodyColor = isDark ? "#dbeafe" : "#334155";
@@ -173,7 +175,7 @@ export default function PortalVoDetailPage({
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => { setGalleryIdx(localCandidates.length + idx); setGalleryFailed(false); }}
+                        onClick={() => { setGalleryIdx(idx); setGalleryFailed(false); }}
                         style={{
                           flexShrink: 0,
                           width: 64,

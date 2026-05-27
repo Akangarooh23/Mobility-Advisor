@@ -304,7 +304,7 @@ export default function PortalVoMarketplacePage({
                   <div style={{ fontSize: 22, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 6 }}>
                     {isRenting
                       ? (() => { const p = getMinRentingPrice(offer); return p ? `Desde ${formatCurrency(p)}/mes` : "—"; })()
-                      : formatCurrency(offer.price)}
+                      : formatCurrency(offer.salePrice ?? offer.price)}
                   </div>
                   <div style={{ fontSize: 11, color: isDark ? "#cbd5e1" : "#334155", lineHeight: 1.6 }}>
                     {offer.year} · {Number(offer.mileage).toLocaleString("es-ES")} km · {offer.location}
@@ -376,7 +376,7 @@ export default function PortalVoMarketplacePage({
                       <div style={{ fontSize: 12, fontWeight: 800, color: isDark ? "#34d399" : "#059669" }}>
                         {isRenting
                           ? (() => { const p = getMinRentingPrice(offer); return p ? `${formatCurrency(p)}/mes` : "—"; })()
-                          : formatCurrency(offer.price)}
+                          : formatCurrency(offer.salePrice ?? offer.price)}
                       </div>
                     )}
                   </div>

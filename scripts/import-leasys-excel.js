@@ -257,6 +257,7 @@ async function main() {
       portal: "marketplace-vo",
       isActive: true,
       availableForPurchase: true,
+      salePrice: Math.round((r.price + 1250) * 100) / 100,
       rentingAvailable: false,
       matricula: r.matricula,
     });

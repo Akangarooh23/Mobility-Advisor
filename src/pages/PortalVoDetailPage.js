@@ -225,7 +225,7 @@ export default function PortalVoDetailPage({
               {selectedPortalVoOffer.availableForPurchase !== false && (
                 <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: selectedPortalVoOffer.rentingAvailable ? 6 : 0 }}>
                   <span style={{ fontSize: 28, fontWeight: 800, color: titleColor }}>
-                    {formatCurrency(selectedPortalVoOffer.price)}
+                    {formatCurrency(selectedPortalVoOffer.salePrice ?? selectedPortalVoOffer.price)}
                   </span>
                   <span style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b" }}>{t("marketplace.modalityPurchase", "Compra")}</span>
                 </div>

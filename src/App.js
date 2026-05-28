@@ -1179,7 +1179,6 @@ export default function App() {
   // Infinite scroll state for marketplace offers
   const [portalVoOffersLive, setPortalVoOffersLive] = useState([]);
   const [marketplaceVoPage, setMarketplaceVoPage] = useState(0);
-  const [marketplaceVoHasMore, setMarketplaceVoHasMore] = useState(true);
   const [marketplaceVoTotal, setMarketplaceVoTotal] = useState(0);
   const [marketplaceVoLoading, setMarketplaceVoLoading] = useState(false);
   const { marketBrandsCatalog, matchedModelsByBrand, marketCatalogSource } = useMarketCatalog(portalVoOffersLive);
@@ -1666,18 +1665,15 @@ export default function App() {
       if (isDedicatedSource) {
         setPortalVoOffersLive(apiOffers);
         setMarketplaceVoTotal(Number(data?.totalUniverse || apiOffers.length));
-        setMarketplaceVoHasMore(apiOffers.length === MARKETPLACE_PAGE_SIZE);
       } else if (page === 0) {
         setPortalVoOffersLive([]);
         setMarketplaceVoTotal(0);
-        setMarketplaceVoHasMore(false);
       }
     } catch {
       if (page === 0) {
         setPortalVoOffersLive([]);
         setMarketplaceVoTotal(0);
       }
-      setMarketplaceVoHasMore(false);
     } finally {
       setMarketplaceVoLoading(false);
     }

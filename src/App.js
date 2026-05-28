@@ -1177,7 +1177,7 @@ export default function App() {
   const [marketAlerts, setMarketAlerts] = useState([]);
   const [marketAlertStatus, setMarketAlertStatus] = useState({});
   // Infinite scroll state for marketplace offers
-  const [portalVoOffersLive, setPortalVoOffersLive] = useState(PORTAL_VO_OFFERS);
+  const [portalVoOffersLive, setPortalVoOffersLive] = useState([]);
   const [marketplaceVoPage, setMarketplaceVoPage] = useState(0);
   const [marketplaceVoHasMore, setMarketplaceVoHasMore] = useState(true);
   const [marketplaceVoLoading, setMarketplaceVoLoading] = useState(false);
@@ -1655,7 +1655,9 @@ export default function App() {
     setMarketplaceVoLoading(true);
     try {
       const offset = page * MARKETPLACE_PAGE_SIZE;
-      const params = { offset, limit: MARKETPLACE_PAGE_SIZE, ...filters };
+      // model filter is applied client-side so the dropdown always shows all models for the brand
+      const { model: _model, ...serverFilters } = filters;
+      const params = { offset, limit: MARKETPLACE_PAGE_SIZE, ...serverFilters };
       const { data } = await getMarketplaceVoJson(params);
       const apiOffers = Array.isArray(data?.offers) ? data.offers : [];
       const source = String(data?.source || "").toLowerCase();
@@ -1664,12 +1666,12 @@ export default function App() {
         setPortalVoOffersLive((prev) => (page === 0 ? apiOffers : [...prev, ...apiOffers]));
         setMarketplaceVoHasMore(apiOffers.length === MARKETPLACE_PAGE_SIZE);
       } else if (page === 0) {
-        setPortalVoOffersLive(PORTAL_VO_OFFERS);
+        setPortalVoOffersLive([]);
         setMarketplaceVoHasMore(false);
       }
     } catch {
       if (page === 0) {
-        setPortalVoOffersLive(PORTAL_VO_OFFERS);
+        setPortalVoOffersLive([]);
       }
       setMarketplaceVoHasMore(false);
     } finally {

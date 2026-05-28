@@ -277,7 +277,7 @@ export function useAdvisorController({
     }
 
     setSelectedPortalVoOfferId(offer.id);
-    syncBrowserPath("/", "replace");
+    syncBrowserPath("/marketplace-vo", "push");
     setEntryMode("portalVoDetail");
 
     if (typeof window !== "undefined") {

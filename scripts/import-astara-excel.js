@@ -194,8 +194,19 @@ async function main() {
 
   console.log(`Filas leídas: ${rows.length}`);
 
-  const parsed = rows.map(parseRow).filter(Boolean);
-  console.log(`Filas válidas: ${parsed.length}`);
+  const parsedAll = rows.map(parseRow).filter(Boolean);
+  const dedupSeen = new Set();
+  const parsed = parsedAll.filter((r) => {
+    const key = `${r.marca}|${r.modelo}|${r.kms}|${r.price}|${r.color}`.toLowerCase();
+    if (dedupSeen.has(key)) return false;
+    dedupSeen.add(key);
+    return true;
+  });
+  if (parsedAll.length !== parsed.length) {
+    console.log(`Filas válidas: ${parsedAll.length} (${parsedAll.length - parsed.length} duplicados eliminados → ${parsed.length})`);
+  } else {
+    console.log(`Filas válidas: ${parsed.length}`);
+  }
 
   if (SKIP_IMAGES) {
     console.log("Modo --skip-images: se omite la descarga de fotos.");

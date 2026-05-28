@@ -231,7 +231,11 @@ export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selec
       );
     })
     .map(decoratePortalVoOffer)
-    .sort((a, b) => b.portalScore - a.portalScore || a.price - b.price);
+    .sort((a, b) => {
+      if (filters.sort === "price_asc")  return (a.salePrice ?? a.price) - (b.salePrice ?? b.price);
+      if (filters.sort === "price_desc") return (b.salePrice ?? b.price) - (a.salePrice ?? a.price);
+      return b.portalScore - a.portalScore || a.price - b.price;
+    });
 
   const featuredPortalVoOffers = filteredPortalVoOffers
     .filter((offer) => offer.hasGuaranteeSeal)

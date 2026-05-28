@@ -5,7 +5,7 @@
  * --skip-images  Importa sin descargar fotos (más rápido, útil para actualizar precios)
  */
 
-require("dotenv").config({ path: ".env.local" });
+require("dotenv").config({ path: require("path").join(__dirname, "..", ".env.local") });
 
 const fs = require("fs");
 const path = require("path");
@@ -15,6 +15,17 @@ const { upsertMarketplaceVoOffers } = require("../lib/inventoryStore");
 const { uploadBufferToSupabase } = require("../lib/supabaseStorage");
 
 const SKIP_IMAGES = process.argv.includes("--skip-images");
+
+const LEASYS_LOCATION_MAP = {
+  "CARPIO": "Córdoba",
+  "ALCOPA": "Madrid",
+  "SONI PARK ALCALA": "Madrid",
+};
+
+function mapLeasysLocation(campa) {
+  const key = String(campa || "").trim().toUpperCase();
+  return LEASYS_LOCATION_MAP[key] || campa || "";
+}
 
 function excelDateToYear(serial) {
   if (!serial || isNaN(serial)) return null;
@@ -239,13 +250,15 @@ async function main() {
       price: r.price,
       year: excelDateToYear(r.fechaMat),
       mileage: r.kms,
-      location: r.campa,
+      location: mapLeasysLocation(r.campa),
+      internalLocation: r.campa,
+      version: r.modelo,
       color: "",
       displacement: null,
       fuel: r.combustible,
       power: "",
       seller: "Leasys",
-      sellerType: "dealer",
+      sellerType: "professional",
       hasGuaranteeSeal: false,
       portalScore: 75,
       warrantyMonths: 0,

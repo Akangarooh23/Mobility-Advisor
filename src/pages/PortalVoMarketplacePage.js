@@ -15,6 +15,7 @@ export default function PortalVoMarketplacePage({
   updatePortalVoFilter,
   portalVoLocations,
   portalVoColors,
+  portalVoFuels = [],
   portalVoBrands = [],
   portalVoModels = [],
   onUpdateBrandFilter,
@@ -227,6 +228,16 @@ export default function PortalVoMarketplacePage({
             <option value="">{t("marketplace.filterColor")}</option>
             {portalVoColors.map((color) => (
               <option key={color} value={color}>{color}</option>
+            ))}
+          </select>
+          <select
+            value={portalVoFilters.fuel}
+            onChange={(event) => updatePortalVoFilter("fuel", event.target.value)}
+            style={styles.select}
+          >
+            <option value="">Combustible</option>
+            {portalVoFuels.map((f) => (
+              <option key={f} value={f}>{f}</option>
             ))}
           </select>
           <select

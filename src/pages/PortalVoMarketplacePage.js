@@ -1,6 +1,15 @@
 import { useTranslation } from "react-i18next";
+import { useState, useEffect } from "react";
 
-import { useState } from "react";
+function useWindowWidth() {
+  const [width, setWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
+  useEffect(() => {
+    const onResize = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return width;
+}
 
 function getMinRentingPrice(offer) {
   const prices = [offer.renting12m, offer.renting24m, offer.renting36m, offer.renting48m, offer.renting60m]
@@ -38,6 +47,8 @@ export default function PortalVoMarketplacePage({
 }) {
   const isDark = themeMode === "dark";
   const { t } = useTranslation();
+  const windowWidth = useWindowWidth();
+  const gridCols = windowWidth < 500 ? 1 : windowWidth < 750 ? 2 : windowWidth < 1050 ? 3 : 5;
   const [modalityMode, setModalityMode] = useState("compra");
   const [viewingModal, setViewingModal] = useState(null); // { offer }
   const [viewingForm, setViewingForm] = useState({ name: "", email: "", message: "" });
@@ -380,7 +391,7 @@ export default function PortalVoMarketplacePage({
         </div>
 
         {loadingOffers && modeOffers.length === 0 ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0,1fr))", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${gridCols}, minmax(0,1fr))`, gap: 12 }}>
             {Array.from({ length: 15 }).map((_, i) => (
               <div key={i} style={{ background: isDark ? "rgba(30,41,59,0.4)" : "rgba(241,245,249,0.9)", border: cardBorder, borderRadius: 14, overflow: "hidden" }}>
                 <div style={{ width: "100%", height: 150, background: isDark ? "rgba(51,65,85,0.5)" : "#e2e8f0", animation: "pulse 1.5s ease-in-out infinite" }} />
@@ -393,7 +404,7 @@ export default function PortalVoMarketplacePage({
             ))}
           </div>
         ) : modeOffers.length > 0 ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0,1fr))", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${gridCols}, minmax(0,1fr))`, gap: 12 }}>
             {modeOffers.map((offer) => {
               const hasReservedLead = (offer.url && reservedVoUrls.has(offer.url)) || (offer.id && reservedMarketplaceIds.has(offer.id));
               const isReserved = isRenting && hasReservedLead && offer.unitsAvailable <= 1;

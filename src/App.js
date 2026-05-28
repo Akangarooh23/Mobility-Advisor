@@ -1180,6 +1180,7 @@ export default function App() {
   const [portalVoOffersLive, setPortalVoOffersLive] = useState([]);
   const [marketplaceVoPage, setMarketplaceVoPage] = useState(0);
   const [marketplaceVoHasMore, setMarketplaceVoHasMore] = useState(true);
+  const [marketplaceVoTotal, setMarketplaceVoTotal] = useState(0);
   const [marketplaceVoLoading, setMarketplaceVoLoading] = useState(false);
   const { marketBrandsCatalog, matchedModelsByBrand, marketCatalogSource } = useMarketCatalog(portalVoOffersLive);
   const [questionnaireDraft, setQuestionnaireDraft] = useState(null);
@@ -1650,28 +1651,31 @@ export default function App() {
   const currentUserEmail = normalizeText(currentUser?.email).toLowerCase();
 
   // Infinite scroll: fetch offers page by page
-  const MARKETPLACE_PAGE_SIZE = 40;
+  const MARKETPLACE_PAGE_SIZE = 15;
   const fetchMarketplaceVoPage = useCallback(async (page = 0, filters = portalVoFilters) => {
     setMarketplaceVoLoading(true);
     try {
       const offset = page * MARKETPLACE_PAGE_SIZE;
-      // model filter is applied client-side so the dropdown always shows all models for the brand
-      const { model: _model, ...serverFilters } = filters;
+      // model and transmission are applied client-side so dropdowns always show all options for the brand
+      const { model: _model, transmission: _transmission, ...serverFilters } = filters;
       const params = { offset, limit: MARKETPLACE_PAGE_SIZE, ...serverFilters };
       const { data } = await getMarketplaceVoJson(params);
       const apiOffers = Array.isArray(data?.offers) ? data.offers : [];
       const source = String(data?.source || "").toLowerCase();
       const isDedicatedSource = source === "postgres-marketplace-table";
-      if (isDedicatedSource && apiOffers.length > 0) {
-        setPortalVoOffersLive((prev) => (page === 0 ? apiOffers : [...prev, ...apiOffers]));
+      if (isDedicatedSource) {
+        setPortalVoOffersLive(apiOffers);
+        setMarketplaceVoTotal(Number(data?.totalUniverse || apiOffers.length));
         setMarketplaceVoHasMore(apiOffers.length === MARKETPLACE_PAGE_SIZE);
       } else if (page === 0) {
         setPortalVoOffersLive([]);
+        setMarketplaceVoTotal(0);
         setMarketplaceVoHasMore(false);
       }
     } catch {
       if (page === 0) {
         setPortalVoOffersLive([]);
+        setMarketplaceVoTotal(0);
       }
       setMarketplaceVoHasMore(false);
     } finally {
@@ -1679,7 +1683,7 @@ export default function App() {
     }
   }, [portalVoFilters]);
 
-  // Reset and fetch first page on filter change or entry
+  // Reset to page 0 and fetch on filter change or entry
   useEffect(() => {
     if (entryMode === "portalVo") {
       setMarketplaceVoPage(0);
@@ -1702,13 +1706,12 @@ export default function App() {
       .catch(() => {});
   }, [entryMode]);
 
-  // Fetch next page
-  const loadMoreMarketplaceVoOffers = useCallback(() => {
-    if (marketplaceVoLoading || !marketplaceVoHasMore) return;
-    const nextPage = marketplaceVoPage + 1;
-    setMarketplaceVoPage(nextPage);
-    fetchMarketplaceVoPage(nextPage, portalVoFilters);
-  }, [marketplaceVoLoading, marketplaceVoHasMore, marketplaceVoPage, fetchMarketplaceVoPage, portalVoFilters]);
+  const goToMarketplacePage = useCallback((page) => {
+    if (marketplaceVoLoading) return;
+    setMarketplaceVoPage(page);
+    fetchMarketplaceVoPage(page, portalVoFilters);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [marketplaceVoLoading, fetchMarketplaceVoPage, portalVoFilters]);
 
   const { marketAlertMatches, newAlertMatchesCount, pendingAlertNotifications } = useMarketAlertInsights({
     marketAlerts,
@@ -5813,10 +5816,11 @@ export default function App() {
           formatCurrency={formatCurrency}
           onOpenOffer={openPortalVoOfferDetail}
           onGoHome={restart}
-          infiniteScrollOffers={portalVoOffersLive}
-          loadMoreOffers={loadMoreMarketplaceVoOffers}
-          hasMoreOffers={marketplaceVoHasMore}
           loadingOffers={marketplaceVoLoading}
+          totalUniverse={marketplaceVoTotal}
+          currentPage={marketplaceVoPage}
+          totalPages={Math.ceil(marketplaceVoTotal / MARKETPLACE_PAGE_SIZE) || 1}
+          onGoToPage={goToMarketplacePage}
           reservedVoUrls={reservedVoUrls}
           reservedMarketplaceIds={reservedMarketplaceIds}
         />

@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-import { useRef, useEffect, useState } from "react";
+import { useState } from "react";
 
 function getMinRentingPrice(offer) {
   const prices = [offer.renting12m, offer.renting24m, offer.renting36m, offer.renting48m, offer.renting60m]
@@ -28,10 +28,11 @@ export default function PortalVoMarketplacePage({
   formatCurrency,
   onOpenOffer,
   onGoHome,
-  infiniteScrollOffers = [],
-  loadMoreOffers,
-  hasMoreOffers,
   loadingOffers,
+  totalUniverse = 0,
+  currentPage = 0,
+  totalPages = 1,
+  onGoToPage,
   reservedVoUrls = new Set(),
   reservedMarketplaceIds = new Set(),
 }) {
@@ -53,26 +54,6 @@ export default function PortalVoMarketplacePage({
   const modeOffers = filteredPortalVoOffers.filter((o) =>
     isRenting ? o.rentingAvailable : o.availableForPurchase !== false
   );
-
-  // Infinite scroll: observe sentinel
-  const sentinelRef = useRef(null);
-  useEffect(() => {
-    if (!hasMoreOffers || loadingOffers) return;
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-    const observer = new window.IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          loadMoreOffers && loadMoreOffers();
-        }
-      },
-      { root: null, rootMargin: "0px", threshold: 1.0 }
-    );
-    observer.observe(sentinel);
-    return () => {
-      observer.unobserve(sentinel);
-    };
-  }, [hasMoreOffers, loadingOffers, loadMoreOffers]);
 
   return (
     <div style={styles.center}>
@@ -276,21 +257,32 @@ export default function PortalVoMarketplacePage({
             />
             {t("marketplace.filterOnlyGuaranteed")}
           </label>
-          <button
-            type="button"
-            onClick={onResetFilters}
-            style={{
-              background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.95)",
-              border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(148,163,184,0.32)",
-              color: isDark ? "#cbd5e1" : "#475569",
-              padding: "10px 14px",
-              borderRadius: 10,
-              fontSize: 12,
-              cursor: "pointer",
-            }}
-          >
-            {t("marketplace.filterReset")}
-          </button>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <select
+              value={portalVoFilters.sort || ""}
+              onChange={(event) => updatePortalVoFilter("sort", event.target.value)}
+              style={{ ...styles.select, minWidth: 180 }}
+            >
+              <option value="">Relevancia</option>
+              <option value="price_asc">Precio: más bajo primero</option>
+              <option value="price_desc">Precio: más alto primero</option>
+            </select>
+            <button
+              type="button"
+              onClick={onResetFilters}
+              style={{
+                background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.95)",
+                border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(148,163,184,0.32)",
+                color: isDark ? "#cbd5e1" : "#475569",
+                padding: "10px 14px",
+                borderRadius: 10,
+                fontSize: 12,
+                cursor: "pointer",
+              }}
+            >
+              {t("marketplace.filterReset")}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -382,7 +374,9 @@ export default function PortalVoMarketplacePage({
           <div style={{ fontSize: 10, color: "#93c5fd", fontWeight: 800, letterSpacing: "0.6px" }}>
             {t("marketplace.allOffersLabel")}
           </div>
-          <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569" }}>{t("marketplace.resultsCount", { count: modeOffers.length })}</div>
+          <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569" }}>
+            {modeOffers.length} {modeOffers.length !== totalUniverse ? `/ ${totalUniverse} ` : ""}resultados
+          </div>
         </div>
 
         {loadingOffers && modeOffers.length === 0 ? (
@@ -399,7 +393,7 @@ export default function PortalVoMarketplacePage({
             ))}
           </div>
         ) : modeOffers.length > 0 ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(190px,1fr))", gap: 12 }}>
             {modeOffers.map((offer) => {
               const hasReservedLead = (offer.url && reservedVoUrls.has(offer.url)) || (offer.id && reservedMarketplaceIds.has(offer.id));
               const isReserved = isRenting && hasReservedLead && offer.unitsAvailable <= 1;
@@ -489,16 +483,70 @@ export default function PortalVoMarketplacePage({
             {t("marketplace.noResults")}
           </div>
         )}
-        {/* Infinite scroll sentinel */}
-        <div ref={sentinelRef} style={{ height: 1 }} />
         {loadingOffers && (
           <div style={{ textAlign: "center", padding: 18, color: isDark ? "#60a5fa" : "#2563eb" }}>
-            {t("marketplace.loadingMore")}
+            Cargando…
           </div>
         )}
-        {!hasMoreOffers && infiniteScrollOffers.length > 0 && (
-          <div style={{ textAlign: "center", padding: 18, color: isDark ? "#a7f3d0" : "#059669" }}>
-            {t("marketplace.noMoreResults")}
+
+        {/* Pagination controls */}
+        {totalPages > 1 && !loadingOffers && (
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, marginTop: 24, flexWrap: "wrap" }}>
+            <button
+              onClick={() => onGoToPage(currentPage - 1)}
+              disabled={currentPage === 0}
+              style={{
+                padding: "8px 14px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: currentPage === 0 ? "default" : "pointer",
+                background: currentPage === 0 ? (isDark ? "rgba(255,255,255,0.05)" : "#f1f5f9") : (isDark ? "rgba(37,99,235,0.18)" : "#2563eb"),
+                color: currentPage === 0 ? (isDark ? "#475569" : "#94a3b8") : "#fff",
+                border: "none", opacity: currentPage === 0 ? 0.5 : 1,
+              }}
+            >
+              ← Anterior
+            </button>
+            {Array.from({ length: Math.min(totalPages, 7) }).map((_, i) => {
+              let page;
+              if (totalPages <= 7) {
+                page = i;
+              } else if (currentPage <= 3) {
+                page = i < 6 ? i : totalPages - 1;
+              } else if (currentPage >= totalPages - 4) {
+                page = i === 0 ? 0 : totalPages - 6 + i;
+              } else {
+                const offsets = [0, null, currentPage - 1, currentPage, currentPage + 1, null, totalPages - 1];
+                page = offsets[i];
+              }
+              if (page === null) return <span key={`sep-${i}`} style={{ color: isDark ? "#475569" : "#94a3b8", fontSize: 13 }}>…</span>;
+              const isActive = page === currentPage;
+              return (
+                <button
+                  key={page}
+                  onClick={() => !isActive && onGoToPage(page)}
+                  style={{
+                    padding: "8px 12px", borderRadius: 8, fontSize: 13, fontWeight: isActive ? 800 : 500,
+                    background: isActive ? (isDark ? "#2563eb" : "#2563eb") : (isDark ? "rgba(255,255,255,0.06)" : "#f8fafc"),
+                    color: isActive ? "#fff" : (isDark ? "#cbd5e1" : "#334155"),
+                    border: isActive ? "none" : (isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid #e2e8f0"),
+                    cursor: isActive ? "default" : "pointer",
+                    minWidth: 36,
+                  }}
+                >
+                  {page + 1}
+                </button>
+              );
+            })}
+            <button
+              onClick={() => onGoToPage(currentPage + 1)}
+              disabled={currentPage >= totalPages - 1}
+              style={{
+                padding: "8px 14px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: currentPage >= totalPages - 1 ? "default" : "pointer",
+                background: currentPage >= totalPages - 1 ? (isDark ? "rgba(255,255,255,0.05)" : "#f1f5f9") : (isDark ? "rgba(37,99,235,0.18)" : "#2563eb"),
+                color: currentPage >= totalPages - 1 ? (isDark ? "#475569" : "#94a3b8") : "#fff",
+                border: "none", opacity: currentPage >= totalPages - 1 ? 0.5 : 1,
+              }}
+            >
+              Siguiente →
+            </button>
           </div>
         )}
       </div>

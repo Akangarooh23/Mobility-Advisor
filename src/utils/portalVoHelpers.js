@@ -12,6 +12,7 @@ export const INITIAL_PORTAL_VO_FILTERS = {
   fuel: "",
   transmission: "",
   displacement: "",
+  sort: "",
   onlyGuaranteed: false,
 };
 

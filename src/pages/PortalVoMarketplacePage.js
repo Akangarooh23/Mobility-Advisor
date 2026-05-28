@@ -16,6 +16,7 @@ export default function PortalVoMarketplacePage({
   portalVoLocations,
   portalVoColors,
   portalVoFuels = [],
+  portalVoTransmissions = [],
   portalVoBrands = [],
   portalVoModels = [],
   onUpdateBrandFilter,
@@ -240,6 +241,18 @@ export default function PortalVoMarketplacePage({
               <option key={f} value={f}>{f}</option>
             ))}
           </select>
+          {portalVoTransmissions.length > 0 && (
+            <select
+              value={portalVoFilters.transmission}
+              onChange={(event) => updatePortalVoFilter("transmission", event.target.value)}
+              style={styles.select}
+            >
+              <option value="">Cambio</option>
+              {portalVoTransmissions.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          )}
           <select
             value={portalVoFilters.displacement}
             onChange={(event) => updatePortalVoFilter("displacement", event.target.value)}

@@ -10,6 +10,7 @@ export const INITIAL_PORTAL_VO_FILTERS = {
   location: "",
   color: "",
   fuel: "",
+  transmission: "",
   displacement: "",
   onlyGuaranteed: false,
 };
@@ -178,8 +179,9 @@ export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selec
 
   const portalVoLocations = [...new Set(safeOffers.map((offer) => offer.location).filter(Boolean))].sort();
   const portalVoColors    = [...new Set(safeOffers.map((offer) => offer.color).filter(Boolean))].sort();
-  const portalVoFuels     = [...new Set(safeOffers.map((offer) => offer.fuel).filter(Boolean))].sort();
-  const portalVoBrands    = [...new Set(safeOffers.map((offer) => offer.brand).filter(Boolean))].sort();
+  const portalVoFuels         = [...new Set(safeOffers.map((offer) => offer.fuel).filter(Boolean))].sort();
+  const portalVoTransmissions = [...new Set(safeOffers.map((offer) => offer.transmission).filter((t) => t && t !== "—"))].sort();
+  const portalVoBrands        = [...new Set(safeOffers.map((offer) => offer.brand).filter(Boolean))].sort();
   const portalVoModels    = [...new Set(
     safeOffers
       .filter((offer) => !filters.brand || normalizeText(offer.brand) === normalizeText(filters.brand))
@@ -200,7 +202,8 @@ export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selec
       const matchesMileage  = !filters.maxMileage || Number(offer.mileage || 0) <= Number(filters.maxMileage);
       const matchesLocation = !filters.location || normalizeText(offer.location) === normalizeText(filters.location);
       const matchesColor    = !filters.color || normalizeText(offer.color) === normalizeText(filters.color);
-      const matchesFuel     = !filters.fuel  || normalizeText(offer.fuel)  === normalizeText(filters.fuel);
+      const matchesFuel         = !filters.fuel         || normalizeText(offer.fuel)         === normalizeText(filters.fuel);
+      const matchesTransmission = !filters.transmission || normalizeText(offer.transmission) === normalizeText(filters.transmission);
       const displacement = Number(offer.displacement || 0);
       const matchesDisplacement =
         !filters.displacement ||
@@ -221,6 +224,7 @@ export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selec
         matchesLocation &&
         matchesColor &&
         matchesFuel &&
+        matchesTransmission &&
         matchesDisplacement &&
         matchesGuarantee
       );
@@ -243,6 +247,7 @@ export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selec
     portalVoLocations,
     portalVoColors,
     portalVoFuels,
+    portalVoTransmissions,
     portalVoBrands,
     portalVoModels,
     filteredPortalVoOffers,

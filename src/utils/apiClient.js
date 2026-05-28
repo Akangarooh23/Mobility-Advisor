@@ -183,7 +183,7 @@ export function getVehicleCatalogJson(options = {}) {
 }
 
 export function getMarketplaceVoJson(params = {}, options = {}) {
-  const { limit = 500, offset = 0, query = "", brand = "", model = "", maxPrice = "", minYear = "", maxMileage = "", location = "", color = "", fuel = "", displacement = "", onlyGuaranteed = false } = params;
+  const { limit = 500, offset = 0, query = "", brand = "", model = "", maxPrice = "", minYear = "", maxMileage = "", location = "", color = "", fuel = "", displacement = "", onlyGuaranteed = false, sort = "" } = params;
   const qs = new URLSearchParams({ limit: String(limit || 500), offset: String(offset || 0) });
   if (query)         qs.set("query",         String(query));
   if (brand)         qs.set("brand",         String(brand));
@@ -196,6 +196,7 @@ export function getMarketplaceVoJson(params = {}, options = {}) {
   if (fuel)          qs.set("fuel",           String(fuel));
   if (displacement)  qs.set("displacement",   String(displacement));
   if (onlyGuaranteed) qs.set("onlyGuaranteed", "true");
+  if (sort)          qs.set("sort",           String(sort));
 
   return getJson(`${MARKETPLACE_VO_API_ENDPOINT}?${qs.toString()}`, {
     endpointLabel: "marketplace-vo",

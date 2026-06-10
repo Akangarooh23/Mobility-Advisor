@@ -59,19 +59,19 @@
     },
     {
       "source": "/api/viewing-request",
-      "destination": "/api/viewing?route=request"
+      "destination": "/api/user?route=viewing-request"
     },
     {
       "source": "/api/viewing-propose",
-      "destination": "/api/viewing?route=propose"
+      "destination": "/api/user?route=viewing-propose"
     },
     {
       "source": "/api/viewing-confirm",
-      "destination": "/api/viewing?route=confirm"
+      "destination": "/api/user?route=viewing-confirm"
     },
     {
       "source": "/api/viewing-get",
-      "destination": "/api/viewing?route=get"
+      "destination": "/api/user?route=viewing-get"
     },
     {
       "source": "/api/(.*)",

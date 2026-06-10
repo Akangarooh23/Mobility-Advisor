@@ -40,9 +40,8 @@ const findListingHandler = require("./api/find-listing");
 const offerImageHandler = require("./api/offer-image");
 const sendAlertEmailHandler = require("./api/send-alert-email");
 const authHandler = require("./api/auth");
-const authStatusHandler = require("./api/auth-status");
 const vehicleCatalogHandler = require("./api/vehicle-catalog");
-const viewingHandler = require("./api/viewing");
+const viewingHandler = require("./lib/api/viewing-handler");
 const marketHandler = require("./api/market");
 const workshopsHandler = require("./api/workshops");
 
@@ -58,7 +57,7 @@ const handlers = {
   "/api/offer-image": offerImageHandler,
   "/api/send-alert-email": sendAlertEmailHandler,
   "/api/auth": authHandler,
-  "/api/auth-status": authStatusHandler,
+  "/api/auth-status": authHandler,
   "/api/vehicle-catalog": vehicleCatalogHandler,
   "/api/vehicle-publish": require("./lib/api/vehicle-publish-handler"),
   "/api/viewing-request": viewingHandler,

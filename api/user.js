@@ -4,6 +4,7 @@ const userPreferencesHandler = require("../lib/api/user-preferences-handler");
 const attachmentFileHandler = require("../lib/api/attachment-file-handler");
 const leadsHandler = require("../lib/api/leads-handler");
 const vehiclePublishHandler = require("../lib/api/vehicle-publish-handler");
+const viewingHandler = require("../lib/api/viewing-handler");
 
 function resolveRoute(req) {
   const explicitRoute = String(req.query?.route || "").trim().toLowerCase();
@@ -18,6 +19,10 @@ function resolveRoute(req) {
   if (url.includes("attachment-file")) return "attachment-file";
   if (url.includes("vehicle-publish")) return "vehicle-publish";
   if (url.includes("leads")) return "leads";
+  if (url.includes("viewing-request")) return "viewing-request";
+  if (url.includes("viewing-propose")) return "viewing-propose";
+  if (url.includes("viewing-confirm")) return "viewing-confirm";
+  if (url.includes("viewing-get"))     return "viewing-get";
   return "";
 }
 
@@ -35,6 +40,11 @@ module.exports = async function userRouter(req, res) {
       return vehiclePublishHandler(req, res);
     case "leads":
       return leadsHandler(req, res);
+    case "viewing-request":
+    case "viewing-propose":
+    case "viewing-confirm":
+    case "viewing-get":
+      return viewingHandler(req, res);
     default:
       return res.status(404).json({ error: "User route not found" });
   }

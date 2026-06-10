@@ -75,7 +75,7 @@ export default function PortalVoDetailPage({
             vehicle_id: selectedPortalVoOffer.id,
             vehicle_title: selectedPortalVoOffer.title,
             vehicle_url: selectedPortalVoOffer.url || "",
-            portal: "marketplace-vo",
+            portal: `marketplace-vo-${selectedPortalVoOffer.availableForPurchase === false && selectedPortalVoOffer.rentingAvailable ? "renting" : "compra"}`,
             ...getUtmPayload(),
           }),
         });

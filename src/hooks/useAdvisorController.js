@@ -298,7 +298,7 @@ export function useAdvisorController({
     if (typeof window !== "undefined") {
       window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
     }
-  }, [setEntryMode, setSelectedPortalVoOfferId, syncBrowserPath]);
+  }, [currentUser, setEntryMode, setSelectedPortalVoOfferId, syncBrowserPath]);
 
   const restart = useCallback(() => {
     clearQuestionnaireDraftFn?.();

@@ -28,7 +28,7 @@ export async function trackFunnelEvent({ event_type, user_id, user_email, offer_
       utm_campaign: utm.utm_campaign || "",
       utm_content:  utm.utm_content  || "",
       utm_term:     utm.utm_term     || "",
-      landing_url:  utm._landing_url || window.location.href,
+      landing_url:  window.location.href,
       offer_id:     offer_id    || null,
       offer_title:  offer_title || null,
     };

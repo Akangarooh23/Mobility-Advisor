@@ -147,6 +147,7 @@ import {
 } from "./data/marketData";
 import { PORTAL_VO_OFFERS } from "./data/portalVoOffers";
 import { captureUtmFromUrl } from "./utils/utmTracker";
+import { trackFunnelEvent } from "./utils/funnelTracker";
 import { BLOG_POSTS, getBlogPostBySlug } from "./data/blogPosts";
 import { STEPS, getQuestionnaireSteps } from "./data/questionnaireSteps";
 import { BLOCK_COLORS, BRAND_LOGOS } from "./ui/branding";
@@ -1277,6 +1278,7 @@ export default function App() {
 
   useEffect(() => {
     captureUtmFromUrl();
+    trackFunnelEvent({ event_type: "landing" });
   }, []);
 
   useEffect(() => {
@@ -1740,6 +1742,11 @@ export default function App() {
     if (entryMode === "portalVo") {
       setMarketplaceVoPage(0);
       fetchMarketplaceVoPage(0, portalVoFilters);
+      trackFunnelEvent({
+        event_type: "marketplace_view",
+        user_id:    currentUser?.id    || null,
+        user_email: currentUser?.email || null,
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entryMode, portalVoFilters]);
@@ -2191,6 +2198,13 @@ export default function App() {
       }
       setShowAuthMenu(false);
       setShowUserPanel(false);
+      if (mode === "register") {
+        trackFunnelEvent({
+          event_type: "register",
+          user_id:    nextUser.id    || null,
+          user_email: nextUser.email || null,
+        });
+      }
       setSaveFeedback(
         data?.message ||
           (mode === "register"
@@ -3350,6 +3364,7 @@ export default function App() {
       clearQuestionnaireDraft();
       setQuestionnaireDraft(null);
     },
+    currentUser,
     entryMode,
     isUserLoggedIn,
     listingFilters,

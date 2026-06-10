@@ -74,6 +74,10 @@
       "destination": "/api/user?route=viewing-get"
     },
     {
+      "source": "/api/funnel-event",
+      "destination": "/api/user?route=funnel-event"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

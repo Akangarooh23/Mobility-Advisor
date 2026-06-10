@@ -79,6 +79,7 @@ const handlers = {
   "/api/user-alerts": userHandler,
   "/api/user-preferences": userHandler,
   "/api/leads": userHandler,
+  "/api/funnel-event": userHandler,
 };
 
 function sendJson(res, statusCode, payload) {

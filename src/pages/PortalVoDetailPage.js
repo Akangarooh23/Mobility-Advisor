@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { buildImageProxyUrl, buildOfferLocalImageCandidates, slugifyOfferFolderName } from "../utils/offerHelpers";
 import { getUtmPayload } from "../utils/utmTracker";
 import { trackLead } from "../utils/metaPixel";
+import { trackFunnelEvent } from "../utils/funnelTracker";
 
 export default function PortalVoDetailPage({
   themeMode,
@@ -86,6 +87,12 @@ export default function PortalVoDetailPage({
         vehicleId: selectedPortalVoOffer.id,
         leadType: reqForm.type || "info",
         utm: getUtmPayload(),
+      });
+      trackFunnelEvent({
+        event_type:  "lead_request",
+        user_email:  reqForm.email || null,
+        offer_id:    selectedPortalVoOffer.id,
+        offer_title: selectedPortalVoOffer.title || "",
       });
       setReqState("done");
       if (onLeadCreated) onLeadCreated();

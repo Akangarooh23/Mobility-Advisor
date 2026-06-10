@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { getUserDashboardPageFromPath, getUserDashboardPath } from "../utils/offerHelpers";
 import { INITIAL_PORTAL_VO_FILTERS } from "../utils/portalVoHelpers";
 import { trackViewContent } from "../utils/metaPixel";
+import { trackFunnelEvent } from "../utils/funnelTracker";
 
 export function createInitialDecisionAnswers() {
   return {
@@ -106,6 +107,7 @@ function buildNextDecisionAnswers(prev, key, value) {
 
 export function useAdvisorController({
   clearQuestionnaireDraftFn,
+  currentUser,
   entryMode,
   isUserLoggedIn,
   listingFilters,
@@ -284,6 +286,13 @@ export function useAdvisorController({
       vehicleTitle: offer.title || "",
       vehicleId: offer.id,
       price: offer.salePrice || offer.price || 0,
+    });
+    trackFunnelEvent({
+      event_type: "offer_view",
+      user_id:    currentUser?.id    || null,
+      user_email: currentUser?.email || null,
+      offer_id:   offer.id,
+      offer_title: offer.title || "",
     });
 
     if (typeof window !== "undefined") {

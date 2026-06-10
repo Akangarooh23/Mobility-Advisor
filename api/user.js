@@ -5,6 +5,7 @@ const attachmentFileHandler = require("../lib/api/attachment-file-handler");
 const leadsHandler = require("../lib/api/leads-handler");
 const vehiclePublishHandler = require("../lib/api/vehicle-publish-handler");
 const viewingHandler = require("../lib/api/viewing-handler");
+const funnelEventHandler = require("../lib/api/funnel-event-handler");
 
 function resolveRoute(req) {
   const explicitRoute = String(req.query?.route || "").trim().toLowerCase();
@@ -23,6 +24,7 @@ function resolveRoute(req) {
   if (url.includes("viewing-propose")) return "viewing-propose";
   if (url.includes("viewing-confirm")) return "viewing-confirm";
   if (url.includes("viewing-get"))     return "viewing-get";
+  if (url.includes("funnel-event"))    return "funnel-event";
   return "";
 }
 
@@ -45,6 +47,8 @@ module.exports = async function userRouter(req, res) {
     case "viewing-confirm":
     case "viewing-get":
       return viewingHandler(req, res);
+    case "funnel-event":
+      return funnelEventHandler(req, res);
     default:
       return res.status(404).json({ error: "User route not found" });
   }

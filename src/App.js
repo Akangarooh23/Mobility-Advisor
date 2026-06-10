@@ -4515,6 +4515,7 @@ export default function App() {
                       Nombre
                       <input
                         type="text"
+                        autoComplete="given-name"
                         value={authForm.name}
                         onChange={(event) => setAuthForm((prev) => ({ ...prev, name: event.target.value }))}
                         placeholder="Tu nombre"
@@ -4525,6 +4526,7 @@ export default function App() {
                       Apellidos
                       <input
                         type="text"
+                        autoComplete="family-name"
                         value={authForm.apellidos}
                         onChange={(event) => setAuthForm((prev) => ({ ...prev, apellidos: event.target.value }))}
                         placeholder="Tus apellidos"
@@ -4536,6 +4538,7 @@ export default function App() {
                     Teléfono
                     <input
                       type="tel"
+                      autoComplete="tel"
                       value={authForm.phone}
                       onChange={(event) => setAuthForm((prev) => ({ ...prev, phone: event.target.value }))}
                       placeholder="Ej: 612 345 678"
@@ -4549,6 +4552,7 @@ export default function App() {
                 Correo electrónico
                 <input
                   type="email"
+                  autoComplete="email"
                   value={authForm.email}
                   onChange={(event) => setAuthForm((prev) => ({ ...prev, email: event.target.value }))}
                   placeholder="nombre@correo.com"
@@ -4560,6 +4564,7 @@ export default function App() {
                 {authRecoveryMode === "confirm" ? "Nueva contraseña" : "Contraseña"}
                 <input
                   type="password"
+                  autoComplete={authDialogMode === "register" ? "new-password" : "current-password"}
                   value={authForm.password}
                   onChange={(event) => setAuthForm((prev) => ({ ...prev, password: event.target.value }))}
                   placeholder={authRecoveryMode === "confirm" ? "Nueva contraseña (mínimo 6 caracteres)" : "Mínimo 6 caracteres"}

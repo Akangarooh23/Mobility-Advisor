@@ -1096,12 +1096,12 @@ function normalizeUiLanguage(lang) {
     if (typeof window !== "undefined") {
       const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
       // Only use stored value if it's a valid language code
-      lang = (stored === "en" || stored === "es") ? stored : "en";
+      lang = (stored === "en" || stored === "es") ? stored : "es";
     } else {
-      lang = "en";
+      lang = "es";
     }
   }
-  return ["en", "es"].includes(lang) ? lang : "en";
+  return ["en", "es"].includes(lang) ? lang : "es";
 }
 
 function clearLegacyTranslateCookies() {

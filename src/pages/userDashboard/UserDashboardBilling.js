@@ -111,17 +111,18 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
   );
 
   const initialProfile = useMemo(() => {
+    const nameParts = [normalizeText(currentUser?.name), normalizeText(currentUser?.apellidos)].filter(Boolean);
     return {
-      fullName: normalizeText(currentUser?.name),
+      fullName: nameParts.join(" "),
       email: resolvedUserEmail,
-      phone: "",
+      phone: normalizeText(currentUser?.phone),
       companyName: "",
       taxId: "",
       billingAddress: "",
       iban: "",
       updatedAt: "",
     };
-  }, [currentUser?.name, resolvedUserEmail]);
+  }, [currentUser?.name, currentUser?.apellidos, currentUser?.phone, resolvedUserEmail]);
 
   const [profileForm, setProfileForm] = useState(initialProfile);
   const [billingState, setBillingState] = useState({
@@ -160,10 +161,11 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
           return;
         }
 
+        const registrationFullName = [normalizeText(currentUser?.name), normalizeText(currentUser?.apellidos)].filter(Boolean).join(" ");
         const nextProfile = {
-          fullName: normalizeText(account?.profile?.fullName || currentUser?.name),
+          fullName: normalizeText(account?.profile?.fullName) || registrationFullName,
           email: normalizeText(account?.profile?.email || resolvedUserEmail).toLowerCase(),
-          phone: normalizeText(account?.profile?.phone),
+          phone: normalizeText(account?.profile?.phone) || normalizeText(currentUser?.phone),
           companyName: normalizeText(account?.profile?.companyName),
           taxId: normalizeText(account?.profile?.taxId),
           billingAddress: normalizeText(account?.profile?.billingAddress),

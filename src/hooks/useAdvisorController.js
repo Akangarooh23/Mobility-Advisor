@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { getUserDashboardPageFromPath, getUserDashboardPath } from "../utils/offerHelpers";
 import { INITIAL_PORTAL_VO_FILTERS } from "../utils/portalVoHelpers";
+import { trackViewContent } from "../utils/metaPixel";
 
 export function createInitialDecisionAnswers() {
   return {
@@ -279,6 +280,11 @@ export function useAdvisorController({
     setSelectedPortalVoOfferId(offer.id);
     syncBrowserPath(`/marketplace-vo/${encodeURIComponent(offer.id)}`, "push");
     setEntryMode("portalVoDetail");
+    trackViewContent({
+      vehicleTitle: offer.title || "",
+      vehicleId: offer.id,
+      price: offer.salePrice || offer.price || 0,
+    });
 
     if (typeof window !== "undefined") {
       window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);

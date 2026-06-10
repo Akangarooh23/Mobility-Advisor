@@ -1,6 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import { buildImageProxyUrl, buildOfferLocalImageCandidates, slugifyOfferFolderName } from "../utils/offerHelpers";
+import { getUtmPayload } from "../utils/utmTracker";
+import { trackLead } from "../utils/metaPixel";
 
 export default function PortalVoDetailPage({
   themeMode,
@@ -56,6 +58,7 @@ export default function PortalVoDetailPage({
             buyer_name: reqForm.name,
             buyer_email: reqForm.email,
             buyer_message: reqForm.message,
+            ...getUtmPayload(),
           }),
         });
       } else {
@@ -72,11 +75,18 @@ export default function PortalVoDetailPage({
             vehicle_title: selectedPortalVoOffer.title,
             vehicle_url: selectedPortalVoOffer.url || "",
             portal: "marketplace-vo",
+            ...getUtmPayload(),
           }),
         });
       }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error al enviar");
+      trackLead({
+        vehicleTitle: selectedPortalVoOffer.title,
+        vehicleId: selectedPortalVoOffer.id,
+        leadType: reqForm.type || "info",
+        utm: getUtmPayload(),
+      });
       setReqState("done");
       if (onLeadCreated) onLeadCreated();
     } catch (err) {

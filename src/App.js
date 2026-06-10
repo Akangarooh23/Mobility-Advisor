@@ -8,6 +8,7 @@ import DecisionPage from "./pages/DecisionPage";
 import LandingPage from "./pages/LandingPage";
 import PortalVoDetailPage from "./pages/PortalVoDetailPage";
 import PortalVoMarketplacePage from "./pages/PortalVoMarketplacePage";
+import PortalVoAuthGatePage from "./pages/PortalVoAuthGatePage";
 
 import SellPage from "./pages/SellPage";
 import ApiKeyMissingPage from "./pages/ApiKeyMissingPage";
@@ -145,6 +146,7 @@ import {
   TOTAL_PURCHASE_OPTIONS,
 } from "./data/marketData";
 import { PORTAL_VO_OFFERS } from "./data/portalVoOffers";
+import { captureUtmFromUrl } from "./utils/utmTracker";
 import { BLOG_POSTS, getBlogPostBySlug } from "./data/blogPosts";
 import { STEPS, getQuestionnaireSteps } from "./data/questionnaireSteps";
 import { BLOCK_COLORS, BRAND_LOGOS } from "./ui/branding";
@@ -1216,7 +1218,7 @@ export default function App() {
   const [authRecoveryFeedback, setAuthRecoveryFeedback] = useState("");
   const [authTargetPage, setAuthTargetPage] = useState("home");
   const [authTargetEntryMode, setAuthTargetEntryMode] = useState("");
-  const [authForm, setAuthForm] = useState({ name: "", email: "", password: "" });
+  const [authForm, setAuthForm] = useState({ name: "", apellidos: "", phone: "", email: "", password: "" });
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [showChangePasswordForm, setShowChangePasswordForm] = useState(false);
@@ -1271,6 +1273,10 @@ export default function App() {
     }
 
     clearLegacyTranslateCookies();
+  }, []);
+
+  useEffect(() => {
+    captureUtmFromUrl();
   }, []);
 
   useEffect(() => {
@@ -2086,7 +2092,7 @@ export default function App() {
         setAuthRecoveryMode("none");
         setAuthRecoveryCode("");
         setAuthTargetEntryMode("");
-        setAuthForm({ name: "", email: nextUser.email, password: "" });
+        setAuthForm({ name: "", apellidos: "", phone: "", email: nextUser.email, password: "" });
 
         const nextPendingPlanId = normalizeText(pendingPlanCheckoutId).toLowerCase();
 
@@ -2123,12 +2129,24 @@ export default function App() {
     const payload = {
       action: mode,
       name: normalizeText(authForm.name),
+      apellidos: normalizeText(authForm.apellidos),
+      phone: normalizeText(authForm.phone),
       email: normalizeText(authForm.email).toLowerCase(),
       password: String(authForm.password || ""),
     };
 
     if (mode === "register" && !payload.name) {
       setAuthError("Indica tu nombre para crear la cuenta.");
+      return;
+    }
+
+    if (mode === "register" && !payload.apellidos) {
+      setAuthError("Indica tus apellidos para crear la cuenta.");
+      return;
+    }
+
+    if (mode === "register" && !payload.phone) {
+      setAuthError("Indica tu número de teléfono para crear la cuenta.");
       return;
     }
 
@@ -4491,16 +4509,40 @@ export default function App() {
 
             <form onSubmit={submitAuthForm} style={{ display: "grid", gap: 12 }}>
               {authDialogMode === "register" && authRecoveryMode === "none" && (
-                <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
-                  Nombre
-                  <input
-                    type="text"
-                    value={authForm.name}
-                    onChange={(event) => setAuthForm((prev) => ({ ...prev, name: event.target.value }))}
-                    placeholder="Tu nombre"
-                    style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
-                  />
-                </label>
+                <>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
+                      Nombre
+                      <input
+                        type="text"
+                        value={authForm.name}
+                        onChange={(event) => setAuthForm((prev) => ({ ...prev, name: event.target.value }))}
+                        placeholder="Tu nombre"
+                        style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                      />
+                    </label>
+                    <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
+                      Apellidos
+                      <input
+                        type="text"
+                        value={authForm.apellidos}
+                        onChange={(event) => setAuthForm((prev) => ({ ...prev, apellidos: event.target.value }))}
+                        placeholder="Tus apellidos"
+                        style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                      />
+                    </label>
+                  </div>
+                  <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
+                    Teléfono
+                    <input
+                      type="tel"
+                      value={authForm.phone}
+                      onChange={(event) => setAuthForm((prev) => ({ ...prev, phone: event.target.value }))}
+                      placeholder="Ej: 612 345 678"
+                      style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                    />
+                  </label>
+                </>
               )}
 
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
@@ -5155,6 +5197,10 @@ export default function App() {
             setStep(-1);
           }}
           onSelectPortalVo={() => {
+            if (!isUserLoggedIn) {
+              openAuthDialog("register", { entryMode: "portalVo" });
+              return;
+            }
             setEntryMode("portalVo");
             setStep(-1);
             setPortalVoFilters({ ...INITIAL_PORTAL_VO_FILTERS });
@@ -5799,7 +5845,17 @@ export default function App() {
         />
       )}
 
-      {step === -1 && entryMode === "portalVoDetail" && selectedPortalVoOffer && (
+      {step === -1 && (entryMode === "portalVo" || entryMode === "portalVoDetail") && !isUserLoggedIn && (
+        <PortalVoAuthGatePage
+          themeMode={themeMode}
+          styles={s}
+          onRegister={() => openAuthDialog("register", { entryMode: "portalVo" })}
+          onLogin={() => openAuthDialog("login", { entryMode: "portalVo" })}
+          onGoHome={() => { setEntryMode(null); syncBrowserPath("/", "replace"); }}
+        />
+      )}
+
+      {step === -1 && entryMode === "portalVoDetail" && selectedPortalVoOffer && isUserLoggedIn && (
         <PortalVoDetailPage
           themeMode={themeMode}
           styles={s}
@@ -5842,7 +5898,7 @@ export default function App() {
         />
       )}
 
-      {step === -1 && entryMode === "portalVo" && (
+      {step === -1 && entryMode === "portalVo" && isUserLoggedIn && (
         <PortalVoMarketplacePage
           themeMode={themeMode}
           styles={s}
@@ -6116,7 +6172,7 @@ export default function App() {
               <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "USEFUL LINKS" : "ENLACES UTILES"}</div>
               <div style={{ display: "grid", gap: 7, fontSize: 12 }}>
                 <button type="button" onClick={restart} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>{uiLanguage === "en" ? "Home" : "Inicio"}</button>
-                <button type="button" onClick={() => openPublicPage("portalVo")} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Marketplace VO</button>
+                <button type="button" onClick={() => { if (!isUserLoggedIn) { openAuthDialog("register", { entryMode: "portalVo" }); return; } openPublicPage("portalVo"); }} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Marketplace VO</button>
                 <button type="button" onClick={() => openPublicPage("vehicleOptions")} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>{uiLanguage === "en" ? "Vehicle Advisor" : "Asesor de vehículo"}</button>
                 <button type="button" onClick={() => openPublicPage("blog")} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Blog</button>
                 <button type="button" onClick={() => openPublicPage("contact")} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>{uiLanguage === "en" ? "Contact" : "Contacto"}</button>

@@ -113,6 +113,8 @@ function sanitizeUser(user = {}) {
   return {
     id: normalizeText(user.id) || `user:${email}`,
     name: normalizeText(user.name) || email.split("@")[0] || "Usuario",
+    apellidos: normalizeText(user.apellidos) || "",
+    phone: normalizeText(user.phone) || "",
     email,
     createdAt: normalizeText(user.createdAt),
     lastLoginAt: normalizeText(user.lastLoginAt),
@@ -1031,6 +1033,11 @@ async function ensurePostgresSchema() {
     )
   `);
   await pool.query(`
+    ALTER TABLE moveadvisor_users
+      ADD COLUMN IF NOT EXISTS apellidos VARCHAR(160) NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS phone     VARCHAR(30)  NOT NULL DEFAULT ''
+  `);
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS moveadvisor_sessions (
       id           VARCHAR(64)  PRIMARY KEY,
       user_id      VARCHAR(64)  NOT NULL,
@@ -1069,7 +1076,7 @@ async function findUserByEmailPostgres(email) {
   await ensurePostgresSchema();
   const pool = getPgPool();
   const { rows } = await pool.query(
-    `SELECT id, name, email, password_salt AS "passwordSalt", password_hash AS "passwordHash",
+    `SELECT id, name, apellidos, phone, email, password_salt AS "passwordSalt", password_hash AS "passwordHash",
             created_at AS "createdAt", last_login_at AS "lastLoginAt"
      FROM moveadvisor_users WHERE email = $1 LIMIT 1`,
     [email]
@@ -1081,9 +1088,9 @@ async function createUserPostgres(user) {
   await ensurePostgresSchema();
   const pool = getPgPool();
   await pool.query(
-    `INSERT INTO moveadvisor_users (id, name, email, password_salt, password_hash, created_at, last_login_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-    [user.id, user.name, user.email, user.passwordSalt, user.passwordHash, user.createdAt, user.lastLoginAt]
+    `INSERT INTO moveadvisor_users (id, name, apellidos, phone, email, password_salt, password_hash, created_at, last_login_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    [user.id, user.name, user.apellidos || "", user.phone || "", user.email, user.passwordSalt, user.passwordHash, user.createdAt, user.lastLoginAt]
   );
   return findUserByEmailPostgres(user.email);
 }
@@ -1092,7 +1099,7 @@ async function findUserByIdPostgres(id) {
   await ensurePostgresSchema();
   const pool = getPgPool();
   const { rows } = await pool.query(
-    `SELECT id, name, email, password_salt AS "passwordSalt", password_hash AS "passwordHash",
+    `SELECT id, name, apellidos, phone, email, password_salt AS "passwordSalt", password_hash AS "passwordHash",
             created_at AS "createdAt", last_login_at AS "lastLoginAt"
      FROM moveadvisor_users WHERE id = $1 LIMIT 1`,
     [id]
@@ -1768,6 +1775,8 @@ async function _authHandlerInner(req, res) {
   const email = normalizeText(body.email).toLowerCase();
   const password = normalizeText(body.password);
   const name = normalizeText(body.name);
+  const apellidos = normalizeText(body.apellidos);
+  const phone = normalizeText(body.phone);
   const clientIp = getClientIp(req);
 
   if (!action) {
@@ -2149,6 +2158,8 @@ async function _authHandlerInner(req, res) {
     const user = {
       id: typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `user-${Date.now()}`,
       name,
+      apellidos,
+      phone,
       email,
       passwordSalt: salt,
       passwordHash: hashPassword(password, salt),

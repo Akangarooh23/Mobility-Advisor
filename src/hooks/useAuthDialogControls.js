@@ -27,6 +27,8 @@ export function useAuthDialogControls({
     setShowUserPanel(false);
     setAuthForm((prev) => ({
       name: mode === "register" ? prev.name : "",
+      apellidos: mode === "register" ? prev.apellidos : "",
+      phone: mode === "register" ? prev.phone : "",
       email: currentUserEmail || prev.email || "",
       password: "",
     }));
@@ -55,6 +57,8 @@ export function useAuthDialogControls({
     setAuthLoading(false);
     setAuthForm((prev) => ({
       name: "",
+      apellidos: "",
+      phone: "",
       email: currentUserEmail || prev.email || "",
       password: "",
     }));

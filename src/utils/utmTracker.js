@@ -1,15 +1,43 @@
 const UTM_SESSION_KEY = "cw_utm";
 const UTM_PARAMS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
 
-/**
- * Lee los UTM de la URL actual y los persiste en sessionStorage.
- * Sólo sobreescribe si la URL tiene al menos un parámetro UTM.
- * @returns {object|null} Los UTM capturados, o null si la URL no tenía ninguno.
- */
+const REFERRER_MAP = [
+  { pattern: /google\./i,     source: "google",    medium: "organic" },
+  { pattern: /bing\./i,       source: "bing",      medium: "organic" },
+  { pattern: /yahoo\./i,      source: "yahoo",     medium: "organic" },
+  { pattern: /duckduckgo\./i, source: "duckduckgo",medium: "organic" },
+  { pattern: /facebook\./i,   source: "facebook",  medium: "social"  },
+  { pattern: /instagram\./i,  source: "instagram", medium: "social"  },
+  { pattern: /t\.co\b/i,      source: "twitter",   medium: "social"  },
+  { pattern: /twitter\./i,    source: "twitter",   medium: "social"  },
+  { pattern: /linkedin\./i,   source: "linkedin",  medium: "social"  },
+  { pattern: /tiktok\./i,     source: "tiktok",    medium: "social"  },
+  { pattern: /youtube\./i,    source: "youtube",   medium: "social"  },
+  { pattern: /whatsapp\./i,   source: "whatsapp",  medium: "social"  },
+];
+
+function inferFromReferrer() {
+  try {
+    const ref = document.referrer;
+    if (!ref) return { utm_source: "direct", utm_medium: "none" };
+    for (const { pattern, source, medium } of REFERRER_MAP) {
+      if (pattern.test(ref)) return { utm_source: source, utm_medium: medium };
+    }
+    const hostname = new URL(ref).hostname.replace(/^www\./, "");
+    return { utm_source: hostname, utm_medium: "referral" };
+  } catch {
+    return { utm_source: "direct", utm_medium: "none" };
+  }
+}
+
 export function captureUtmFromUrl() {
   if (typeof window === "undefined") return null;
 
   try {
+    // If we already have a UTM captured this session, don't overwrite it
+    const existing = sessionStorage.getItem(UTM_SESSION_KEY);
+    if (existing) return JSON.parse(existing);
+
     const params = new URLSearchParams(window.location.search);
     const utm = {};
     for (const key of UTM_PARAMS) {
@@ -17,7 +45,10 @@ export function captureUtmFromUrl() {
       if (val) utm[key] = val;
     }
 
-    if (Object.keys(utm).length === 0) return null;
+    // No UTM params in URL — infer source from referrer
+    if (Object.keys(utm).length === 0) {
+      Object.assign(utm, inferFromReferrer());
+    }
 
     utm._captured_at = new Date().toISOString();
     utm._landing_url = window.location.href;

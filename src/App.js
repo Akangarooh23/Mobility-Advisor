@@ -906,7 +906,21 @@ function resolveEntryModeFromPublicPath(pathname = "") {
     return "vehicleDetail";
   }
 
+  const marketplaceVoBasePath = normalizePublicPath("/marketplace-vo");
+  if (normalizedPath.startsWith(`${marketplaceVoBasePath}/`)) {
+    return "portalVoDetail";
+  }
+
   return ENTRY_MODE_BY_PUBLIC_ROUTE[normalizedPath] || null;
+}
+
+function readMarketplaceVoIdFromPath(pathname = "") {
+  const base = "/marketplace-vo";
+  const raw = String(pathname || "").replace(/\/+$/, "");
+  if (!raw.toLowerCase().startsWith(`${base}/`)) return "";
+  const segment = raw.slice(base.length + 1).split("?")[0];
+  if (!segment) return "";
+  try { return decodeURIComponent(segment); } catch { return segment; }
 }
 
 function getPublicPathForEntryMode(entryMode = "") {
@@ -1563,6 +1577,42 @@ export default function App() {
 
     const applyRouteFromPath = () => {
       const pathEntryMode = resolveEntryModeFromPublicPath(window.location.pathname);
+
+      if (pathEntryMode === "portalVoDetail") {
+        const offerId = readMarketplaceVoIdFromPath(window.location.pathname);
+        if (!offerId) {
+          setEntryMode("portalVo");
+          setStep(-1);
+          return;
+        }
+        // Check if offer is already in the live cache
+        const cached = portalVoOffersLive.find(
+          (o) => normalizeText(String(o?.id || "")) === normalizeText(offerId)
+        );
+        if (cached) {
+          setSelectedPortalVoOfferId(cached.id);
+          setEntryMode("portalVoDetail");
+          setStep(-1);
+          return;
+        }
+        // Fetch offer by ID from API, then show detail
+        setEntryMode("portalVo");
+        setStep(-1);
+        import("./utils/apiClient").then(({ getMarketplaceVoOfferByIdJson }) =>
+          getMarketplaceVoOfferByIdJson(offerId)
+        ).then(({ response, data }) => {
+          const offer = data?.offer;
+          if (response.ok && offer?.id) {
+            setPortalVoOffersLive((prev) => {
+              const exists = prev.some((o) => o.id === offer.id);
+              return exists ? prev : [offer, ...prev];
+            });
+            setSelectedPortalVoOfferId(offer.id);
+            setEntryMode("portalVoDetail");
+          }
+        }).catch(() => {});
+        return;
+      }
 
       if (pathEntryMode === "vehicleDetail") {
         const deepLinkedOfferId = normalizeText(readVehicleDetailIdFromPath(window.location.pathname));
@@ -5764,6 +5814,7 @@ export default function App() {
           formatCurrency={formatCurrency}
           onBackToMarketplace={() => {
             setEntryMode("portalVo");
+            syncBrowserPath("/marketplace-vo", "push");
             if (typeof window !== "undefined") {
               setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
             }

@@ -1,5 +1,6 @@
-const marketPriceHandler = require("../lib/api/market-price-handler");
-const marketplaceVoHandler = require("../lib/api/marketplace-vo-handler");
+const marketPriceHandler    = require("../lib/api/market-price-handler");
+const marketplaceVoHandler  = require("../lib/api/marketplace-vo-handler");
+const marketplaceOgHandler  = require("../lib/api/marketplace-og-handler");
 
 function resolveRoute(req) {
   const explicitRoute = String(req.query?.route || "").trim().toLowerCase();
@@ -19,6 +20,8 @@ module.exports = async function marketRouter(req, res) {
       return marketPriceHandler(req, res);
     case "vo":
       return marketplaceVoHandler(req, res);
+    case "og":
+      return marketplaceOgHandler(req, res);
     default:
       return res.status(404).json({ error: "Market route not found" });
   }

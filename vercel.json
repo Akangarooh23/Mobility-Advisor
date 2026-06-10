@@ -78,6 +78,10 @@
       "destination": "/api/$1"
     },
     {
+      "source": "/marketplace-vo/:id",
+      "destination": "/api/market?route=og&id=:id"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getUserMobilityDataJson } from "../../utils/apiClient";
 
 export default function UserDashboardSolicitudes({
   themeMode,
@@ -18,6 +19,21 @@ export default function UserDashboardSolicitudes({
   const [proposals, setProposals]       = useState([{ date: "", time: "" }]);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError]   = useState("");
+
+  // Poll every 30s so the client sees status changes made by the operator in the ERP
+  useEffect(() => {
+    if (!userEmail) return;
+    const poll = async () => {
+      try {
+        const { response, data } = await getUserMobilityDataJson(userEmail);
+        if (response.ok && Array.isArray(data?.solicitudes)) {
+          setLocalSolicitudes(data.solicitudes);
+        }
+      } catch {}
+    };
+    const id = setInterval(poll, 30_000);
+    return () => clearInterval(id);
+  }, [userEmail]);
 
   const TYPE_LABEL = {
     info:            "Solicitar info",

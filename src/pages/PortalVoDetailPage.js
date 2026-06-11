@@ -4,6 +4,24 @@ import { buildImageProxyUrl, buildOfferLocalImageCandidates, slugifyOfferFolderN
 import { getUtmPayload } from "../utils/utmTracker";
 import { trackLead } from "../utils/metaPixel";
 import { trackFunnelEvent } from "../utils/funnelTracker";
+import { readAuthUser, readUserBillingProfile } from "../utils/storage";
+
+function getPrefilledForm() {
+  try {
+    const user = readAuthUser();
+    const billing = readUserBillingProfile();
+    return {
+      name:    user?.name    || billing?.fullName || "",
+      phone:   billing?.phone                    || "",
+      email:   user?.email                       || "",
+      when:    "",
+      type:    "info",
+      message: "",
+    };
+  } catch {
+    return { name: "", phone: "", email: "", when: "", type: "info", message: "" };
+  }
+}
 
 export default function PortalVoDetailPage({
   themeMode,
@@ -28,7 +46,11 @@ export default function PortalVoDetailPage({
   const [galleryIdx, setGalleryIdx] = useState(0);
   const [galleryFailed, setGalleryFailed] = useState(false);
   const [reqModal, setReqModal] = useState(false);
-  const [reqForm, setReqForm] = useState({ name: "", phone: "", email: "", when: "", type: "info", message: "" });
+  const [reqForm, setReqForm] = useState(getPrefilledForm);
+
+  useEffect(() => {
+    setReqForm(getPrefilledForm());
+  }, [selectedPortalVoOffer.id]);
   const [reqState, setReqState] = useState("idle");
   const [reqError, setReqError] = useState("");
   const [offerStats, setOfferStats] = useState(null);

@@ -125,7 +125,7 @@ export default function PortalVoDetailPage({
   }
 
   function openReqModal() {
-    setReqForm({ name: "", phone: "", email: "", when: "", type: "info", message: "" });
+    setReqForm({ ...getPrefilledForm(), when: "", type: "info", message: "" });
     setReqState("idle");
     setReqError("");
     setReqModal(true);

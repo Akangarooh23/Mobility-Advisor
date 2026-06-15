@@ -2206,13 +2206,11 @@ export default function App() {
       }
       setShowAuthMenu(false);
       setShowUserPanel(false);
-      if (mode === "register") {
-        trackFunnelEvent({
-          event_type: "register",
-          user_id:    nextUser.id    || null,
-          user_email: nextUser.email || null,
-        });
-      }
+      trackFunnelEvent({
+        event_type: mode === "register" ? "register" : "login",
+        user_id:    nextUser.id    || null,
+        user_email: nextUser.email || null,
+      });
       setSaveFeedback(
         data?.message ||
           (mode === "register"

@@ -83,7 +83,9 @@ export default function ResolvedOfferImage({ offer = {}, alt, loading = "lazy", 
   }, [offer?.images, offer?.image]);
 
   const imageCandidates = useMemo(() => {
-    const aiCandidate = buildImageSearchProxyUrl(searchQuery);
+    // Only use AI/Wikimedia search if the offer has NO real images (Supabase or local)
+    const hasRealImages = directImageCandidates.length > 0 || localCandidates.some(Boolean);
+    const aiCandidate = hasRealImages ? "" : buildImageSearchProxyUrl(searchQuery);
     return [
       ...localCandidates,
       ...(offer?.preferAiImage

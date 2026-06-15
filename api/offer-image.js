@@ -214,12 +214,8 @@ module.exports = async function handler(req, res) {
     res.status(200);
     res.setHeader("Content-Type", contentType);
     res.setHeader("Content-Length", String(buffer.length));
-    res.setHeader(
-      "Cache-Control",
-      upstreamCache && !/private|no-store/i.test(upstreamCache)
-        ? upstreamCache
-        : "public, max-age=86400, s-maxage=604800"
-    );
+    // Short cache for proxied images to avoid stale/wrong photos getting stuck in CDN
+    res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=3600");
 
     return res.end(buffer);
   } catch {

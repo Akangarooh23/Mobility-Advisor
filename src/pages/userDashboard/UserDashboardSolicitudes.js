@@ -476,9 +476,21 @@ export default function UserDashboardSolicitudes({
                 {item.status === "Reagendar solicitado" && (
                   <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 8, padding: "10px 12px" }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: "#92400e", marginBottom: 4 }}>🔄 Solicitud de cambio de fecha enviada</div>
-                    <div style={{ fontSize: 12, color: isDark ? "#d97706" : "#78350f" }}>
+                    <div style={{ fontSize: 12, color: isDark ? "#d97706" : "#78350f", marginBottom: parseMeta(item.meta).reschedule_proposals?.length > 0 ? 8 : 0 }}>
                       El equipo de CarsWise está procesando tu solicitud y te confirmará una nueva fecha pronto.
                     </div>
+                    {parseMeta(item.meta).reschedule_proposals?.length > 0 && (
+                      <div style={{ fontSize: 11, color: isDark ? "#92400e" : "#78350f" }}>
+                        <span style={{ fontWeight: 700 }}>Fechas que propusiste:</span>
+                        <ul style={{ margin: "4px 0 0 0", paddingLeft: 16, display: "flex", flexDirection: "column", gap: 2 }}>
+                          {parseMeta(item.meta).reschedule_proposals.map((p, i) => (
+                            <li key={i}>
+                              {formatAppointmentDate(p.date)}{p.time ? ` a las ${p.time}` : ""}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 )}
 

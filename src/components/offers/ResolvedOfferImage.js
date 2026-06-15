@@ -65,21 +65,33 @@ export default function ResolvedOfferImage({ offer = {}, alt, loading = "lazy", 
 
   const fallbackSrc = buildOfferPlaceholderImage(offer);
   const searchQuery = buildOfferImageSearchQuery(offer);
-  const directImage = buildImageProxyUrl(offer?.image);
   const localFolder = slugifyOfferFolderName(offer);
   const localCandidates = useMemo(
     () => buildOfferLocalImageCandidates({ imageFolder: localFolder }),
     [localFolder]
   );
+
+  // Build direct image candidates from offer.images (array) first, then offer.image as fallback
+  const directImageCandidates = useMemo(() => {
+    const fromImages = Array.isArray(offer?.images)
+      ? offer.images.map((u) => buildImageProxyUrl(u)).filter(Boolean)
+      : [];
+    const fromSingle = buildImageProxyUrl(offer?.image);
+    const combined = fromImages.length > 0 ? fromImages : (fromSingle ? [fromSingle] : []);
+    // Deduplicate
+    return [...new Set(combined)];
+  }, [offer?.images, offer?.image]);
+
   const imageCandidates = useMemo(() => {
     const aiCandidate = buildImageSearchProxyUrl(searchQuery);
-
     return [
       ...localCandidates,
-      ...(offer?.preferAiImage ? [aiCandidate, directImage] : [directImage, aiCandidate]),
+      ...(offer?.preferAiImage
+        ? [aiCandidate, ...directImageCandidates]
+        : [...directImageCandidates, aiCandidate]),
       fallbackSrc,
     ].filter((candidate, index, array) => candidate && array.indexOf(candidate) === index);
-  }, [searchQuery, directImage, offer?.preferAiImage, localCandidates, fallbackSrc]);
+  }, [searchQuery, directImageCandidates, offer?.preferAiImage, localCandidates, fallbackSrc]);
   const [candidateIndex, setCandidateIndex] = useState(0);
   const [fallbackBlocked, setFallbackBlocked] = useState(false);
 

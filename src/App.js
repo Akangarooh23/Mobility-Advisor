@@ -1765,6 +1765,14 @@ export default function App() {
       .catch(() => {});
   }, [entryMode]);
 
+  // Refetch when the user returns to the marketplace tab (e.g. after editing in ERP)
+  useEffect(() => {
+    if (entryMode !== "portalVo") return;
+    const onFocus = () => fetchMarketplaceVoPage(marketplaceVoPage, portalVoFilters);
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [entryMode, marketplaceVoPage, portalVoFilters, fetchMarketplaceVoPage]);
+
   const goToMarketplacePage = useCallback((page) => {
     if (marketplaceVoLoading) return;
     setMarketplaceVoPage(page);

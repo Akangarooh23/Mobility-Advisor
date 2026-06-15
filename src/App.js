@@ -5892,6 +5892,7 @@ export default function App() {
         <PortalVoDetailPage
           themeMode={themeMode}
           styles={s}
+          currentUser={currentUser}
           selectedPortalVoOffer={selectedPortalVoOffer}
           relatedPortalVoOffers={relatedPortalVoOffers}
           ResolvedOfferImage={ResolvedOfferImage}

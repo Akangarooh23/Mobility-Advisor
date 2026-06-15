@@ -161,6 +161,7 @@ export function readAuthUser() {
     return {
       id: normalizeText(parsed.id) || `user:${email}`,
       name: normalizeText(parsed.name) || email.split("@")[0],
+      phone: normalizeText(parsed.phone),
       email,
       createdAt: normalizeText(parsed.createdAt),
       lastLoginAt: normalizeText(parsed.lastLoginAt),
@@ -189,6 +190,7 @@ export function writeAuthUser(user = null) {
       JSON.stringify({
         id: normalizeText(safeUser.id) || `user:${email}`,
         name: normalizeText(safeUser.name) || email.split("@")[0],
+        phone: normalizeText(safeUser.phone),
         email,
         createdAt: normalizeText(safeUser.createdAt),
         lastLoginAt: normalizeText(safeUser.lastLoginAt),

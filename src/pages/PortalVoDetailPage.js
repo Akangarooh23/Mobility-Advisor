@@ -4,16 +4,15 @@ import { buildImageProxyUrl, buildOfferLocalImageCandidates, slugifyOfferFolderN
 import { getUtmPayload } from "../utils/utmTracker";
 import { trackLead } from "../utils/metaPixel";
 import { trackFunnelEvent } from "../utils/funnelTracker";
-import { readAuthUser, readUserBillingProfile } from "../utils/storage";
+import { readUserBillingProfile } from "../utils/storage";
 
-function getPrefilledForm() {
+function getPrefilledForm(currentUser) {
   try {
-    const user = readAuthUser();
     const billing = readUserBillingProfile();
     return {
-      name:    user?.name    || billing?.fullName || "",
-      phone:   billing?.phone                    || "",
-      email:   user?.email                       || "",
+      name:    currentUser?.name  || billing?.fullName || "",
+      phone:   currentUser?.phone || billing?.phone    || "",
+      email:   currentUser?.email || billing?.email    || "",
       when:    "",
       type:    "info",
       message: "",
@@ -26,6 +25,7 @@ function getPrefilledForm() {
 export default function PortalVoDetailPage({
   themeMode,
   styles,
+  currentUser,
   selectedPortalVoOffer,
   relatedPortalVoOffers,
   ResolvedOfferImage,
@@ -46,11 +46,11 @@ export default function PortalVoDetailPage({
   const [galleryIdx, setGalleryIdx] = useState(0);
   const [galleryFailed, setGalleryFailed] = useState(false);
   const [reqModal, setReqModal] = useState(false);
-  const [reqForm, setReqForm] = useState(getPrefilledForm);
+  const [reqForm, setReqForm] = useState(() => getPrefilledForm(currentUser));
 
   useEffect(() => {
-    setReqForm(getPrefilledForm());
-  }, [selectedPortalVoOffer.id]);
+    setReqForm(getPrefilledForm(currentUser));
+  }, [selectedPortalVoOffer.id, currentUser]);
   const [reqState, setReqState] = useState("idle");
   const [reqError, setReqError] = useState("");
   const [offerStats, setOfferStats] = useState(null);
@@ -125,7 +125,7 @@ export default function PortalVoDetailPage({
   }
 
   function openReqModal() {
-    setReqForm({ ...getPrefilledForm(), when: "", type: "info", message: "" });
+    setReqForm({ ...getPrefilledForm(currentUser), when: "", type: "info", message: "" });
     setReqState("idle");
     setReqError("");
     setReqModal(true);

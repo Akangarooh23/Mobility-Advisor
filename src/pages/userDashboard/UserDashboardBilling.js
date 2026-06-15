@@ -6,7 +6,7 @@ import {
   postBillingCheckoutJson,
   postBillingPortalJson,
 } from "../../utils/apiClient";
-import { clearUserBillingCheckoutIntent, readUserBillingCheckoutIntent, writeUserBillingState } from "../../utils/storage";
+import { clearUserBillingCheckoutIntent, readAuthUser, readUserBillingCheckoutIntent, writeAuthUser, writeUserBillingProfile, writeUserBillingState } from "../../utils/storage";
 
 function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -302,7 +302,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
         const account = data?.account || null;
 
         if (account?.profile) {
-          setProfileForm({
+          const savedProfile = {
             fullName: normalizeText(account.profile.fullName),
             email: normalizeText(account.profile.email).toLowerCase(),
             phone: normalizeText(account.profile.phone),
@@ -311,7 +311,11 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
             billingAddress: normalizeText(account.profile.billingAddress),
             iban: normalizeText(account.profile.iban),
             updatedAt: normalizeText(account.profile.updatedAt),
-          });
+          };
+          setProfileForm(savedProfile);
+          writeUserBillingProfile(savedProfile);
+          const existingAuth = readAuthUser();
+          writeAuthUser({ ...existingAuth, email: savedProfile.email || existingAuth?.email, name: savedProfile.fullName || existingAuth?.name, phone: savedProfile.phone });
         }
 
         setProfileFeedback(t("dashboard.billingDataSaved"));

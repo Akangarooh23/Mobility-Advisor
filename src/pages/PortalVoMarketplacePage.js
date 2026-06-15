@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
+import { readAuthUser, readUserBillingProfile } from "../utils/storage";
 
 function useWindowWidth() {
   const [width, setWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
@@ -471,7 +472,17 @@ export default function PortalVoMarketplacePage({
                   {offer.sellerType === "particular" && (
                     <button
                       type="button"
-                      onClick={e => { e.stopPropagation(); setViewingModal({ offer }); setViewingForm({ name: "", email: "", message: "" }); }}
+                      onClick={e => {
+                        e.stopPropagation();
+                        setViewingModal({ offer });
+                        try {
+                          const u = readAuthUser();
+                          const b = readUserBillingProfile();
+                          setViewingForm({ name: u?.name || b?.fullName || "", email: u?.email || b?.email || "", message: "" });
+                        } catch {
+                          setViewingForm({ name: "", email: "", message: "" });
+                        }
+                      }}
                       style={{
                         marginTop: 10, width: "100%", background: "#2563eb", color: "white",
                         border: "none", borderRadius: 7, padding: "8px 12px", fontSize: 12,

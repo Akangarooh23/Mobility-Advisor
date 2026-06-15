@@ -1603,9 +1603,9 @@ export default function App() {
           setStep(-1);
           return;
         }
-        // Fetch offer by ID from API, then show detail
-        setEntryMode("portalVo");
-        setStep(-1);
+        // Fetch offer by ID — do NOT set entryMode("portalVo") before fetching
+        // because that triggers fetchMarketplaceVoPage which replaces portalVoOffersLive
+        // and causes the route effect to loop indefinitely.
         import("./utils/apiClient").then(({ getMarketplaceVoOfferByIdJson }) =>
           getMarketplaceVoOfferByIdJson(offerId)
         ).then(({ response, data }) => {
@@ -1617,8 +1617,15 @@ export default function App() {
             });
             setSelectedPortalVoOfferId(offer.id);
             setEntryMode("portalVoDetail");
+            setStep(-1);
+          } else {
+            setEntryMode("portalVo");
+            setStep(-1);
           }
-        }).catch(() => {});
+        }).catch(() => {
+          setEntryMode("portalVo");
+          setStep(-1);
+        });
         return;
       }
 

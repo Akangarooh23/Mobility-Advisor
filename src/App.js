@@ -2284,6 +2284,7 @@ export default function App() {
     authRecoveryMode,
     authTargetEntryMode,
     authTargetPage,
+    entryMode,
     pendingPlanCheckoutId,
     startSubscriptionCheckout,
     syncBrowserPath,

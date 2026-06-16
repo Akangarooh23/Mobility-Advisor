@@ -314,7 +314,60 @@ export default function PortalVoDetailPage({
                   <span style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b" }}>{t("marketplace.modalityPurchase", "Compra")}</span>
                 </div>
               )}
-              {selectedPortalVoOffer.rentingAvailable && (() => {
+              {selectedPortalVoOffer.rentingAvailable && isRentingOffer && (() => {
+                const durations = getAvailableDurations(selectedPortalVoOffer);
+                const kmOptions = selectedPortalVoOffer.rentingPricesJson?.km_options || [selectedPortalVoOffer.rentingKmYear || 15000];
+                const selectedPrice = getRentingPriceForSelection(selectedPortalVoOffer, rentingDuration, rentingKm);
+                return (
+                  <div style={{ marginTop: 4 }}>
+                    <div style={{ fontSize: 11, color: isDark ? "#6ee7b7" : "#059669", fontWeight: 700, marginBottom: 8 }}>
+                      Renting — elige tu opción
+                    </div>
+                    {kmOptions.length > 1 && (
+                      <div style={{ marginBottom: 10 }}>
+                        <div style={{ fontSize: 10, color: isDark ? "#94a3b8" : "#64748b", fontWeight: 600, marginBottom: 4 }}>km/año</div>
+                        <select
+                          value={rentingKm}
+                          onChange={e => setRentingKm(Number(e.target.value))}
+                          style={{ padding: "7px 10px", borderRadius: 8, border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid #e2e8f0", background: isDark ? "rgba(255,255,255,0.05)" : "#f8fafc", color: isDark ? "#f8fafc" : "#0f172a", fontSize: 12, outline: "none", cursor: "pointer" }}
+                        >
+                          {kmOptions.map(km => (
+                            <option key={km} value={km}>{Number(km) >= 1000 ? `${(Number(km)/1000).toFixed(0)}.000 km/año` : `${km} km/año`}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      {durations.map(d => {
+                        const price = getRentingPriceForSelection(selectedPortalVoOffer, d, rentingKm);
+                        const isSelected = rentingDuration === d;
+                        return (
+                          <button
+                            key={d} type="button"
+                            onClick={() => setRentingDuration(d)}
+                            style={{
+                              background: isSelected ? (isDark ? "rgba(5,150,105,0.22)" : "#f0fdf4") : (isDark ? "rgba(52,211,153,0.05)" : "rgba(5,150,105,0.04)"),
+                              border: isSelected ? `2px solid #059669` : (isDark ? "1px solid rgba(52,211,153,0.2)" : "1px solid rgba(5,150,105,0.18)"),
+                              borderRadius: 10, padding: "8px 14px", textAlign: "center", cursor: "pointer",
+                              transform: isSelected ? "scale(1.03)" : "scale(1)",
+                              transition: "all 0.12s",
+                            }}
+                          >
+                            <div style={{ fontSize: 10, color: isDark ? "#6ee7b7" : "#059669", fontWeight: 600, marginBottom: 2 }}>{d.replace("m", " meses")}</div>
+                            <div style={{ fontSize: 15, fontWeight: 800, color: isDark ? "#34d399" : "#059669" }}>{price != null ? `${price} €/mes` : "—"}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {selectedPrice != null && (
+                      <div style={{ marginTop: 10, fontSize: 12, color: isDark ? "#6ee7b7" : "#059669", fontWeight: 600 }}>
+                        Seleccionado: {rentingDuration.replace("m", " meses")} · {Number(rentingKm) >= 1000 ? `${(Number(rentingKm)/1000).toFixed(0)}.000` : rentingKm} km/año · <strong>{selectedPrice} €/mes</strong>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+              {selectedPortalVoOffer.rentingAvailable && !isRentingOffer && (() => {
                 const plazos = [
                   { label: "12 meses", value: selectedPortalVoOffer.renting12m },
                   { label: "24 meses", value: selectedPortalVoOffer.renting24m },
@@ -330,16 +383,7 @@ export default function PortalVoDetailPage({
                     </div>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       {plazos.map((p) => (
-                        <div
-                          key={p.label}
-                          style={{
-                            background: isDark ? "rgba(52,211,153,0.08)" : "rgba(5,150,105,0.06)",
-                            border: isDark ? "1px solid rgba(52,211,153,0.2)" : "1px solid rgba(5,150,105,0.18)",
-                            borderRadius: 10,
-                            padding: "6px 12px",
-                            textAlign: "center",
-                          }}
-                        >
+                        <div key={p.label} style={{ background: isDark ? "rgba(52,211,153,0.08)" : "rgba(5,150,105,0.06)", border: isDark ? "1px solid rgba(52,211,153,0.2)" : "1px solid rgba(5,150,105,0.18)", borderRadius: 10, padding: "6px 12px", textAlign: "center" }}>
                           <div style={{ fontSize: 10, color: isDark ? "#6ee7b7" : "#059669", fontWeight: 600, marginBottom: 2 }}>{p.label}</div>
                           <div style={{ fontSize: 15, fontWeight: 800, color: isDark ? "#34d399" : "#059669" }}>{formatCurrency(p.value)}/mes</div>
                         </div>
@@ -559,49 +603,14 @@ export default function PortalVoDetailPage({
                 )}
 
                 {isRentingOffer && (() => {
-                  const durations = getAvailableDurations(selectedPortalVoOffer);
-                  const kmOptions = selectedPortalVoOffer.rentingPricesJson?.km_options || [10000,15000,20000,25000,30000];
                   const selectedPrice = getRentingPriceForSelection(selectedPortalVoOffer, rentingDuration, rentingKm);
+                  const kmLabel = Number(rentingKm) >= 1000 ? `${(Number(rentingKm)/1000).toFixed(0)}.000` : String(rentingKm);
                   return (
-                    <div style={{ marginBottom: 16 }}>
-                      {durations.length > 0 && (
-                        <div style={{ marginBottom: 12 }}>
-                          <label style={{ fontSize: 11, fontWeight: 600, color: isDark ? "#94a3b8" : "#475569", display: "block", marginBottom: 6 }}>Plazo</label>
-                          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                            {durations.map(d => (
-                              <button
-                                key={d} type="button"
-                                onClick={() => setRentingDuration(d)}
-                                style={{
-                                  padding: "7px 14px", border: "1px solid",
-                                  borderColor: rentingDuration === d ? "#059669" : (isDark ? "rgba(255,255,255,0.12)" : "#e2e8f0"),
-                                  background: rentingDuration === d ? (isDark ? "rgba(5,150,105,0.2)" : "#f0fdf4") : "transparent",
-                                  color: rentingDuration === d ? "#059669" : (isDark ? "#94a3b8" : "#475569"),
-                                  borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer",
-                                }}
-                              >{d}</button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      <div style={{ marginBottom: 12 }}>
-                        <label style={{ fontSize: 11, fontWeight: 600, color: isDark ? "#94a3b8" : "#475569", display: "block", marginBottom: 4 }}>km/año</label>
-                        <select
-                          value={rentingKm}
-                          onChange={e => setRentingKm(Number(e.target.value))}
-                          style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid #e2e8f0", background: isDark ? "rgba(255,255,255,0.05)" : "#f8fafc", color: isDark ? "#f8fafc" : "#0f172a", fontSize: 13, outline: "none", boxSizing: "border-box", cursor: "pointer" }}
-                        >
-                          {kmOptions.map(km => (
-                            <option key={km} value={km}>{Number(km) >= 1000 ? `${(Number(km)/1000).toFixed(0)}.000 km/año` : `${km} km/año`}</option>
-                          ))}
-                        </select>
+                    <div style={{ marginBottom: 16, background: isDark ? "rgba(5,150,105,0.12)" : "#f0fdf4", border: "1px solid #86efac", borderRadius: 10, padding: "10px 14px" }}>
+                      <div style={{ fontSize: 10, color: isDark ? "#6ee7b7" : "#065f46", fontWeight: 600, marginBottom: 4 }}>Opción seleccionada</div>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: "#059669" }}>
+                        {rentingDuration.replace("m", " meses")} · {kmLabel} km/año{selectedPrice != null ? ` · ${selectedPrice} €/mes` : ""}
                       </div>
-                      {selectedPrice != null && (
-                        <div style={{ background: isDark ? "rgba(5,150,105,0.14)" : "#f0fdf4", border: "1px solid #86efac", borderRadius: 10, padding: "10px 14px", textAlign: "center" }}>
-                          <span style={{ fontSize: 20, fontWeight: 800, color: "#059669" }}>{selectedPrice} €/mes</span>
-                          <span style={{ fontSize: 11, color: isDark ? "#6ee7b7" : "#065f46", marginLeft: 8 }}>{rentingDuration} · {Number(rentingKm) >= 1000 ? `${(Number(rentingKm)/1000).toFixed(0)}.000` : rentingKm} km/año</span>
-                        </div>
-                      )}
                     </div>
                   );
                 })()}

@@ -451,10 +451,10 @@ export default function UserDashboardSolicitudes({
                 {canConfirm && !isCancelConfirm && !isRescheduleForm && !isConfirmDialog && (
                   <div style={{ background: isDark ? "rgba(254,252,232,0.07)" : "#fefce8", border: "2px solid #fbbf24", borderRadius: 10, padding: "12px 14px" }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: "#92400e", marginBottom: 6 }}>
-                      ⚠️ Confirma tu cita para asegurar el hueco
+                      ⚠️ Confirma tu cita para asegurar el turno
                     </div>
                     <div style={{ fontSize: 12, color: isDark ? "#d97706" : "#78350f", marginBottom: 10 }}>
-                      Confirma la cita para que el hueco horario quede asignado a tu nombre. Si no confirmas, puede ser asignado a otro cliente.
+                      Confirma la cita para que el turno quede asignado a tu nombre. Si no confirmas, puede ser asignado a otro cliente.
                     </div>
                     <button
                       onClick={() => openConfirm(item.id)}
@@ -518,7 +518,7 @@ export default function UserDashboardSolicitudes({
                 {isConfirmDialog && (
                   <div style={{ background: isDark ? "rgba(5,150,105,0.1)" : "#f0fdf4", border: "1px solid #86efac", borderRadius: 8, padding: "12px 14px" }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "#065f46", marginBottom: 8 }}>
-                      ¿Confirmas la cita? El hueco horario quedará asignado a tu nombre.
+                      ¿Confirmas la cita? El turno quedará asignado a tu nombre.
                     </div>
                     {actionError && <div style={{ fontSize: 12, color: "#dc2626", marginBottom: 8 }}>{actionError}</div>}
                     <div style={{ display: "flex", gap: 8 }}>

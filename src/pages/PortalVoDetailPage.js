@@ -6,6 +6,27 @@ import { trackLead } from "../utils/metaPixel";
 import { trackFunnelEvent } from "../utils/funnelTracker";
 import { readUserBillingProfile } from "../utils/storage";
 
+function getAvailableDurations(offer) {
+  if (offer.rentingPricesJson?.km_options) {
+    return ['24m','36m','48m','60m'].filter(d => {
+      const prices = offer.rentingPricesJson[d];
+      return Array.isArray(prices) && prices.some(p => p != null && p > 0);
+    });
+  }
+  return ['24m','36m','48m','60m'].filter(d => (offer[`renting${d}`] || 0) > 0);
+}
+
+function getRentingPriceForSelection(offer, duration, km) {
+  if (offer.rentingPricesJson?.km_options) {
+    const kmIdx = offer.rentingPricesJson.km_options.indexOf(Number(km));
+    const prices = offer.rentingPricesJson[duration];
+    if (kmIdx >= 0 && Array.isArray(prices) && prices[kmIdx] != null) return prices[kmIdx];
+    return null;
+  }
+  if (Number(km) === 15000) return offer[`renting${duration}`] || null;
+  return null;
+}
+
 function getPrefilledForm(currentUser) {
   try {
     const billing = readUserBillingProfile();
@@ -56,7 +77,15 @@ export default function PortalVoDetailPage({
   const [offerStats, setOfferStats] = useState(null);
 
   const isParticular = (selectedPortalVoOffer.sellerType || "").toLowerCase() === "particular";
+  const isRentingOffer = !!(selectedPortalVoOffer.rentingAvailable && !selectedPortalVoOffer.availableForPurchase);
   const isRentingReserved = isReserved && selectedPortalVoOffer.rentingAvailable && selectedPortalVoOffer.unitsAvailable <= 1 && !selectedPortalVoOffer.availableForPurchase;
+  const [rentingDuration, setRentingDuration] = useState(() => {
+    const durations = getAvailableDurations(selectedPortalVoOffer);
+    return durations[0] || "36m";
+  });
+  const [rentingKm, setRentingKm] = useState(() => {
+    return selectedPortalVoOffer.rentingPricesJson?.km_options?.[1] || 15000;
+  });
 
   useEffect(() => {
     if (!selectedPortalVoOffer.id) return;
@@ -85,6 +114,14 @@ export default function PortalVoDetailPage({
           }),
         });
       } else {
+        let finalType = reqForm.type;
+        let finalWhen = reqForm.when;
+        if (isRentingOffer) {
+          finalType = "renting";
+          const price = getRentingPriceForSelection(selectedPortalVoOffer, rentingDuration, rentingKm);
+          const kmLabel = Number(rentingKm) >= 1000 ? `${(Number(rentingKm)/1000).toFixed(0)}.000` : String(rentingKm);
+          finalWhen = `Plazo: ${rentingDuration} · ${kmLabel} km/año${price ? ` · ${price} €/mes` : ""}`;
+        }
         res = await fetch("/api/leads", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -92,12 +129,12 @@ export default function PortalVoDetailPage({
             name: reqForm.name,
             phone: reqForm.phone,
             email: reqForm.email,
-            when: reqForm.when,
-            type: reqForm.type,
+            when: finalWhen,
+            type: finalType,
             vehicle_id: selectedPortalVoOffer.id,
             vehicle_title: selectedPortalVoOffer.title,
             vehicle_url: selectedPortalVoOffer.url || "",
-            portal: `marketplace-vo-${selectedPortalVoOffer.availableForPurchase === false && selectedPortalVoOffer.rentingAvailable ? "renting" : "compra"}`,
+            portal: isRentingOffer ? "marketplace-vo-renting" : "marketplace-vo-compra",
             ...getUtmPayload(),
           }),
         });
@@ -125,7 +162,13 @@ export default function PortalVoDetailPage({
   }
 
   function openReqModal() {
-    setReqForm({ ...getPrefilledForm(currentUser), when: "", type: "info", message: "" });
+    const defaultType = isRentingOffer ? "renting" : "info";
+    setReqForm({ ...getPrefilledForm(currentUser), when: "", type: defaultType, message: "" });
+    if (isRentingOffer) {
+      const durations = getAvailableDurations(selectedPortalVoOffer);
+      setRentingDuration(durations[0] || "36m");
+      setRentingKm(selectedPortalVoOffer.rentingPricesJson?.km_options?.[1] || 15000);
+    }
     setReqState("idle");
     setReqError("");
     setReqModal(true);
@@ -410,6 +453,8 @@ export default function PortalVoDetailPage({
                   ? (isDark ? "rgba(255,255,255,0.06)" : "rgba(148,163,184,0.18)")
                   : isParticular
                     ? "linear-gradient(135deg,#0f172a,#1e3a5f)"
+                    : isRentingOffer
+                    ? "linear-gradient(135deg,#059669,#047857)"
                     : "linear-gradient(135deg,#2563eb,#1d4ed8)",
                 color: isRentingReserved ? (isDark ? "#64748b" : "#94a3b8") : "#fff",
                 border: "none",
@@ -420,7 +465,7 @@ export default function PortalVoDetailPage({
                 letterSpacing: "0.02em",
               }}
             >
-              {isRentingReserved ? "Unidad reservada" : isParticular ? "Solicitar visita al vendedor" : "Solicitar información"}
+              {isRentingReserved ? "Unidad reservada" : isParticular ? "Solicitar visita al vendedor" : isRentingOffer ? "🔑 Solicitar esta oferta de renting" : "Solicitar información"}
             </button>
           </div>
         </div>
@@ -467,13 +512,15 @@ export default function PortalVoDetailPage({
           >
             {reqState === "done" ? (
               <div style={{ textAlign: "center", padding: "16px 0" }}>
-                <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>{isRentingOffer ? "🔑" : "✅"}</div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 8 }}>
-                  {isParticular ? "¡Solicitud enviada al vendedor!" : "¡Solicitud recibida!"}
+                  {isParticular ? "¡Solicitud enviada al vendedor!" : isRentingOffer ? "¡Solicitud de renting recibida!" : "¡Solicitud recibida!"}
                 </div>
                 <div style={{ fontSize: 13, color: isDark ? "#94a3b8" : "#475569", lineHeight: 1.6 }}>
                   {isParticular
                     ? "El vendedor recibirá un email para proponerte fechas de visita."
+                    : isRentingOffer
+                    ? "Te enviaremos un email de confirmación y nos pondremos en contacto contigo para gestionar tu contrato de renting."
                     : "Te contactaremos en menos de 2 horas en el horario indicado."}
                 </div>
                 <button
@@ -487,13 +534,13 @@ export default function PortalVoDetailPage({
             ) : (
               <form onSubmit={handleReqSubmit}>
                 <div style={{ fontSize: 15, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 4 }}>
-                  {isParticular ? "Solicitar visita al vendedor" : "Solicitar información"}
+                  {isParticular ? "Solicitar visita al vendedor" : isRentingOffer ? "🔑 Solicitar oferta de renting" : "Solicitar información"}
                 </div>
                 <div style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b", marginBottom: 18 }}>
                   {selectedPortalVoOffer.title}
                 </div>
 
-                {!isParticular && (
+                {!isParticular && !isRentingOffer && (
                   <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
                     {[["info","Información"],["visit","Visita"]].map(([v, l]) => (
                       <button
@@ -510,6 +557,54 @@ export default function PortalVoDetailPage({
                     ))}
                   </div>
                 )}
+
+                {isRentingOffer && (() => {
+                  const durations = getAvailableDurations(selectedPortalVoOffer);
+                  const kmOptions = selectedPortalVoOffer.rentingPricesJson?.km_options || [10000,15000,20000,25000,30000];
+                  const selectedPrice = getRentingPriceForSelection(selectedPortalVoOffer, rentingDuration, rentingKm);
+                  return (
+                    <div style={{ marginBottom: 16 }}>
+                      {durations.length > 0 && (
+                        <div style={{ marginBottom: 12 }}>
+                          <label style={{ fontSize: 11, fontWeight: 600, color: isDark ? "#94a3b8" : "#475569", display: "block", marginBottom: 6 }}>Plazo</label>
+                          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                            {durations.map(d => (
+                              <button
+                                key={d} type="button"
+                                onClick={() => setRentingDuration(d)}
+                                style={{
+                                  padding: "7px 14px", border: "1px solid",
+                                  borderColor: rentingDuration === d ? "#059669" : (isDark ? "rgba(255,255,255,0.12)" : "#e2e8f0"),
+                                  background: rentingDuration === d ? (isDark ? "rgba(5,150,105,0.2)" : "#f0fdf4") : "transparent",
+                                  color: rentingDuration === d ? "#059669" : (isDark ? "#94a3b8" : "#475569"),
+                                  borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer",
+                                }}
+                              >{d}</button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <div style={{ marginBottom: 12 }}>
+                        <label style={{ fontSize: 11, fontWeight: 600, color: isDark ? "#94a3b8" : "#475569", display: "block", marginBottom: 4 }}>km/año</label>
+                        <select
+                          value={rentingKm}
+                          onChange={e => setRentingKm(Number(e.target.value))}
+                          style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid #e2e8f0", background: isDark ? "rgba(255,255,255,0.05)" : "#f8fafc", color: isDark ? "#f8fafc" : "#0f172a", fontSize: 13, outline: "none", boxSizing: "border-box", cursor: "pointer" }}
+                        >
+                          {kmOptions.map(km => (
+                            <option key={km} value={km}>{Number(km) >= 1000 ? `${(Number(km)/1000).toFixed(0)}.000 km/año` : `${km} km/año`}</option>
+                          ))}
+                        </select>
+                      </div>
+                      {selectedPrice != null && (
+                        <div style={{ background: isDark ? "rgba(5,150,105,0.14)" : "#f0fdf4", border: "1px solid #86efac", borderRadius: 10, padding: "10px 14px", textAlign: "center" }}>
+                          <span style={{ fontSize: 20, fontWeight: 800, color: "#059669" }}>{selectedPrice} €/mes</span>
+                          <span style={{ fontSize: 11, color: isDark ? "#6ee7b7" : "#065f46", marginLeft: 8 }}>{rentingDuration} · {Number(rentingKm) >= 1000 ? `${(Number(rentingKm)/1000).toFixed(0)}.000` : rentingKm} km/año</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {[
                   ["name", "Nombre *", "text", true],
@@ -534,8 +629,8 @@ export default function PortalVoDetailPage({
                   </div>
                 ))}
 
-                {/* Last field: depends on type */}
-                {isParticular ? (
+                {/* Last field: depends on type (hidden for renting) */}
+                {isRentingOffer ? null : isParticular ? (
                   <div style={{ marginBottom: 12 }}>
                     <label style={{ fontSize: 11, fontWeight: 600, color: isDark ? "#94a3b8" : "#475569", display: "block", marginBottom: 4 }}>Mensaje (opcional)</label>
                     <input
@@ -587,9 +682,9 @@ export default function PortalVoDetailPage({
                   <button
                     type="submit"
                     disabled={reqState === "submitting"}
-                    style={{ flex: 2, padding: "11px 0", background: "linear-gradient(135deg,#2563eb,#1d4ed8)", color: "#fff", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 800, cursor: reqState === "submitting" ? "not-allowed" : "pointer", opacity: reqState === "submitting" ? 0.7 : 1 }}
+                    style={{ flex: 2, padding: "11px 0", background: isRentingOffer ? "linear-gradient(135deg,#059669,#047857)" : "linear-gradient(135deg,#2563eb,#1d4ed8)", color: "#fff", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 800, cursor: reqState === "submitting" ? "not-allowed" : "pointer", opacity: reqState === "submitting" ? 0.7 : 1 }}
                   >
-                    {reqState === "submitting" ? "Enviando…" : "Enviar solicitud"}
+                    {reqState === "submitting" ? "Enviando…" : isRentingOffer ? "🔑 Solicitar renting" : "Enviar solicitud"}
                   </button>
                 </div>
               </form>

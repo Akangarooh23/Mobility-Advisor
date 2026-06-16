@@ -2224,6 +2224,9 @@ export default function App() {
       if (nextTargetEntryMode) {
         setEntryMode(nextTargetEntryMode);
         syncBrowserPath("/", "replace");
+      } else if (entryMode && entryMode !== "userDashboard") {
+        // User was on a public page (offer detail, marketplace…) when auth was
+        // required by bootstrap — entryMode and URL are already correct, stay there.
       } else {
         setEntryMode("userDashboard");
         setUserDashboardPage(authTargetPage || "home");

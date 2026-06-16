@@ -152,6 +152,7 @@ export default function PortalVoDetailPage({
         user_email:  reqForm.email || null,
         offer_id:    selectedPortalVoOffer.id,
         offer_title: selectedPortalVoOffer.title || "",
+        modality:    isRentingOffer ? "renting" : "compra",
       });
       setReqState("done");
       if (onLeadCreated) onLeadCreated();

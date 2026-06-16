@@ -546,8 +546,8 @@ export default function UserDashboardSolicitudes({
                   </div>
                 )}
 
-                {/* Vendido confirmation */}
-                {item.status === "Vendido" && (
+                {/* Vendido / Cerrado confirmation */}
+                {(item.status === "Vendido" || item.status === "Cerrado") && (
                   <div style={{ background: isDark ? "rgba(5,150,105,0.1)" : "#f0fdf4", border: "1px solid #86efac", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "#065f46", fontWeight: 600 }}>
                     🎉 ¡Compra confirmada! El equipo de CarsWise se pondrá en contacto contigo para los próximos pasos.
                   </div>

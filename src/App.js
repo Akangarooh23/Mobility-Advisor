@@ -1288,7 +1288,7 @@ export default function App() {
     if (currentUser?.email) {
       trackFunnelEvent({ event_type: "identify", user_id: currentUser.id || null, user_email: currentUser.email });
     }
-  }, [currentUser?.email]);
+  }, [currentUser?.email, currentUser?.id]);
 
   useEffect(() => {
     applyUiLanguage(uiLanguage);

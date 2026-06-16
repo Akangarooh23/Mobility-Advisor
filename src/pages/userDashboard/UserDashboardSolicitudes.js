@@ -41,12 +41,14 @@ export default function UserDashboardSolicitudes({
     info:            "Solicitar info",
     visit:           "Agendar visita",
     question:        "Preguntar",
+    renting:         "🔑 Oferta de renting",
     viewing_seller:  "Solicitud de visita",
   };
   const TYPE_COLOR = {
     info:            { bg: "rgba(59,130,246,0.12)",  color: "#1d4ed8", border: "rgba(59,130,246,0.25)" },
     visit:           { bg: "rgba(16,185,129,0.12)",  color: "#065f46", border: "rgba(16,185,129,0.25)" },
     question:        { bg: "rgba(139,92,246,0.12)",  color: "#5b21b6", border: "rgba(139,92,246,0.25)" },
+    renting:         { bg: "rgba(5,150,105,0.12)",   color: "#065f46", border: "rgba(5,150,105,0.3)" },
     viewing_seller:  { bg: "rgba(234,88,12,0.12)",   color: "#c2410c", border: "rgba(234,88,12,0.25)" },
   };
   const STATUS_COLOR = {
@@ -331,6 +333,7 @@ export default function UserDashboardSolicitudes({
             const typeStyle = TYPE_COLOR[item.type] || TYPE_COLOR.info;
             const statusStyle = STATUS_COLOR[item.status] || { bg: "rgba(100,116,139,0.10)", color: "#475569" };
             const isVisit = item.type === "visit";
+            const isRenting = item.type === "renting" || meta.portal === "marketplace-vo-renting";
             const isViewingSeller = item.type === "viewing_seller";
             const hasAppt = isVisit && !!meta.appointment_date;
             const isReserved = item.status === "Cita confirmada";
@@ -406,6 +409,11 @@ export default function UserDashboardSolicitudes({
                     <div style={{ fontSize: 14, fontWeight: 600, color: isDark ? "#f1f5f9" : "#0f172a", marginBottom: 3 }}>
                       {item.title || "Vehículo"}
                     </div>
+                    {isRenting && meta.when && (
+                      <div style={{ fontSize: 12, color: "#059669", fontWeight: 600, marginBottom: 4 }}>
+                        🔑 {meta.when}
+                      </div>
+                    )}
                     {meta.vehicle_url && onOpenVehicleDetail && (
                       <button
                         type="button"
@@ -494,8 +502,8 @@ export default function UserDashboardSolicitudes({
                   </div>
                 )}
 
-                {/* Post-visit: client decides outcome */}
-                {item.status === "Visita realizada" && outcomeId !== item.id && (
+                {/* Post-visit: client decides outcome (not shown for renting) */}
+                {item.status === "Visita realizada" && outcomeId !== item.id && !isRenting && (
                   <div style={{ background: isDark ? "rgba(124,58,237,0.08)" : "#f5f3ff", border: "1px solid rgba(124,58,237,0.2)", borderRadius: 10, padding: "12px 14px" }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: "#5b21b6", marginBottom: 6 }}>
                       👋 ¿Te convenció el vehículo?
@@ -521,8 +529,8 @@ export default function UserDashboardSolicitudes({
                   </div>
                 )}
 
-                {/* Confirm purchase intent */}
-                {item.status === "Visita realizada" && outcomeId === item.id && (
+                {/* Confirm purchase intent (not shown for renting) */}
+                {item.status === "Visita realizada" && outcomeId === item.id && !isRenting && (
                   <div style={{ background: isDark ? "rgba(5,150,105,0.1)" : "#f0fdf4", border: "1px solid #86efac", borderRadius: 8, padding: "12px 14px" }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "#065f46", marginBottom: 8 }}>
                       Nos pondremos en contacto contigo para gestionar la compra. ¿Confirmamos?
@@ -549,7 +557,9 @@ export default function UserDashboardSolicitudes({
                 {/* Vendido / Cerrado confirmation */}
                 {(item.status === "Vendido" || item.status === "Cerrado") && (
                   <div style={{ background: isDark ? "rgba(5,150,105,0.1)" : "#f0fdf4", border: "1px solid #86efac", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "#065f46", fontWeight: 600 }}>
-                    🎉 ¡Compra confirmada! El equipo de CarsWise se pondrá en contacto contigo para los próximos pasos.
+                    {isRenting
+                      ? "🔑 ¡Renting confirmado! El equipo de CarsWise se pondrá en contacto contigo para gestionar tu contrato."
+                      : "🎉 ¡Compra confirmada! El equipo de CarsWise se pondrá en contacto contigo para los próximos pasos."}
                   </div>
                 )}
 
@@ -604,7 +614,7 @@ export default function UserDashboardSolicitudes({
                       onClick={() => openCancel(item.id)}
                       style={{ ...btnBase, background: isDark ? "rgba(239,68,68,0.08)" : "#fef2f2", color: "#dc2626", borderColor: "rgba(239,68,68,0.25)" }}
                     >
-                      Anular cita
+                      {isRenting ? "Anular solicitud" : "Anular cita"}
                     </button>
                   </div>
                 )}
@@ -639,8 +649,8 @@ export default function UserDashboardSolicitudes({
                 {isCancelConfirm && (
                   <div style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, padding: "12px 14px" }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "#b91c1c", marginBottom: 8 }}>
-                      ¿Seguro que quieres anular esta cita?
-                      {isReserved && <span style={{ display: "block", fontSize: 12, fontWeight: 400, marginTop: 4 }}>La reserva del vehículo también se cancelará.</span>}
+                      {isRenting ? "¿Seguro que quieres anular esta solicitud de renting?" : "¿Seguro que quieres anular esta cita?"}
+                      {isReserved && !isRenting && <span style={{ display: "block", fontSize: 12, fontWeight: 400, marginTop: 4 }}>La reserva del vehículo también se cancelará.</span>}
                     </div>
                     {actionError && <div style={{ fontSize: 12, color: "#dc2626", marginBottom: 8 }}>{actionError}</div>}
                     <div style={{ display: "flex", gap: 8 }}>

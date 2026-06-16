@@ -1282,6 +1282,13 @@ export default function App() {
     trackFunnelEvent({ event_type: "landing" });
   }, []);
 
+  // When auth resolves, enrich anonymous events from this session with the user email
+  useEffect(() => {
+    if (currentUser?.email) {
+      trackFunnelEvent({ event_type: "identify", user_id: currentUser.id || null, user_email: currentUser.email });
+    }
+  }, [currentUser?.email]);
+
   useEffect(() => {
     applyUiLanguage(uiLanguage);
   }, [applyUiLanguage, uiLanguage]);

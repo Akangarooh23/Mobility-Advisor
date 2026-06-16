@@ -53,6 +53,8 @@ export default function UserDashboardSolicitudes({
     "En proceso":           { bg: "rgba(139,92,246,0.12)",  color: "#5b21b6" },
     "Cita confirmada":      { bg: "rgba(16,185,129,0.15)",  color: "#065f46" },
     Cerrado:                { bg: "rgba(16,185,129,0.12)",  color: "#065f46" },
+    "Visita realizada":     { bg: "rgba(20,184,166,0.12)",  color: "#0f766e" },
+    Vendido:                { bg: "rgba(16,185,129,0.18)",  color: "#065f46" },
     Descartado:             { bg: "rgba(100,116,139,0.10)", color: "#475569" },
     "Reagendar solicitado": { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
     Cancelado:              { bg: "rgba(239,68,68,0.10)",   color: "#b91c1c" },
@@ -219,9 +221,11 @@ export default function UserDashboardSolicitudes({
     }),
     finalizadas: localSolicitudes.filter((s) => {
       const meta = parseMeta(s.meta);
-      if (s.status === "Cerrado")         return true;
-      if (s.status === "Cita confirmada") return isDatePast(meta.appointment_date);
-      if (s.status === "confirmed")       return isDatePast(meta.confirmed_slot);
+      if (s.status === "Cerrado")           return true;
+      if (s.status === "Visita realizada")  return true;
+      if (s.status === "Vendido")           return true;
+      if (s.status === "Cita confirmada")   return isDatePast(meta.appointment_date);
+      if (s.status === "confirmed")         return isDatePast(meta.confirmed_slot);
       return false;
     }),
     canceladas: localSolicitudes.filter((s) => ["Cancelado", "Descartado"].includes(s.status)),

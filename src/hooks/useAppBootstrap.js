@@ -32,6 +32,8 @@ export function useAppBootstrap({
   setIsUserLoggedIn,
   setCookiePreferences,
   setShowCookieGate,
+  setAuthRequired,
+  setAuthDialogMode,
 }) {
   useEffect(() => {
     const savedAuthUser = readAuthUser();
@@ -50,6 +52,12 @@ export function useAppBootstrap({
     const storedConsent = readCookieConsent();
     setCurrentUser(savedAuthUser);
     setIsUserLoggedIn(Boolean(savedAuthUser?.email));
+
+    // No cached user → require login immediately (sync, no flash)
+    if (!savedAuthUser?.email) {
+      setAuthRequired(true);
+      setAuthDialogMode("login");
+    }
 
     if (storedConsent?.preferences) {
       setCookiePreferences((prev) => ({
@@ -118,6 +126,9 @@ export function useAppBootstrap({
         clearAuthUser();
         setCurrentUser(null);
         setIsUserLoggedIn(false);
+        // Session expired → require login again
+        setAuthRequired(true);
+        setAuthDialogMode("login");
       } catch {
         // If backend session check fails, keep local state as fallback.
       }
@@ -134,5 +145,7 @@ export function useAppBootstrap({
     setThemeMode,
     setUserAppointments,
     themeStorageKey,
+    setAuthRequired,
+    setAuthDialogMode,
   ]);
 }

@@ -1209,6 +1209,7 @@ export default function App() {
   const [pendingPlanCheckoutId, setPendingPlanCheckoutId] = useState("");
   const [showAuthMenu, setShowAuthMenu] = useState(false);
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+  const [authRequired, setAuthRequired] = useState(false);
   const [showUserPanel, setShowUserPanel] = useState(false);
   const [showHeaderPlansNav, setShowHeaderPlansNav] = useState(false);
   const [showHeaderMoreNav, setShowHeaderMoreNav] = useState(false);
@@ -1584,6 +1585,8 @@ export default function App() {
     setIsUserLoggedIn,
     setCookiePreferences,
     setShowCookieGate,
+    setAuthRequired,
+    setAuthDialogMode,
   });
 
   useEffect(() => {
@@ -2125,6 +2128,7 @@ export default function App() {
         setShowUserPanel(false);
         setSaveFeedback(data?.message || "Contraseña actualizada y sesión iniciada.");
         setAuthDialogMode("");
+        setAuthRequired(false);
         setAuthRecoveryMode("none");
         setAuthRecoveryCode("");
         setAuthTargetEntryMode("");
@@ -2239,6 +2243,7 @@ export default function App() {
             : `Sesión iniciada para ${nextUser.email}.`)
       );
       setAuthDialogMode("");
+      setAuthRequired(false);
           setAuthTargetEntryMode("");
       setAuthForm({ name: "", email: nextUser.email, password: "" });
 
@@ -4533,20 +4538,27 @@ export default function App() {
                     ? "Tu email de acceso será el destinatario por defecto de los avisos y resúmenes."
                     : "Te enviaremos un código temporal para actualizar la contraseña de forma segura."}
                 </div>
+                {authRequired && authRecoveryMode === "none" && (
+                  <div style={{ fontSize: 12, color: "#fbbf24", fontWeight: 600, marginTop: 6, padding: "6px 10px", background: "rgba(251,191,36,0.08)", borderRadius: 8, border: "1px solid rgba(251,191,36,0.2)" }}>
+                    Necesitas iniciar sesión para acceder al marketplace.
+                  </div>
+                )}
               </div>
-              <button
-                type="button"
-                onClick={closeAuthDialog}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "#cbd5e1",
-                  fontSize: 20,
-                  cursor: "pointer",
-                }}
-              >
-                x
-              </button>
+              {!authRequired && (
+                <button
+                  type="button"
+                  onClick={closeAuthDialog}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "#cbd5e1",
+                    fontSize: 20,
+                    cursor: "pointer",
+                  }}
+                >
+                  x
+                </button>
+              )}
             </div>
 
             <form onSubmit={submitAuthForm} style={{ display: "grid", gap: 12 }}>

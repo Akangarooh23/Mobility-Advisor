@@ -370,7 +370,7 @@ export default function UserDashboardSolicitudes({
                       </span>
                       {isReserved && (
                         <span style={{ display: "inline-block", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: "rgba(16,185,129,0.15)", color: "#065f46", border: "1px solid rgba(16,185,129,0.3)" }}>
-                          🔒 Vehículo reservado
+                          ✅ Cita confirmada
                         </span>
                       )}
                     </div>
@@ -414,7 +414,7 @@ export default function UserDashboardSolicitudes({
                     borderRadius: 8, padding: "10px 12px",
                   }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: isReserved ? "#065f46" : "#1d4ed8", marginBottom: 6 }}>
-                      {isReserved ? "🎉 Cita confirmada — vehículo reservado" : "📅 Cita asignada por CarsWise"}
+                      {isReserved ? "🎉 Cita confirmada" : "📅 Cita asignada por CarsWise"}
                     </div>
                     <div style={{ fontSize: 13, color: isDark ? (isReserved ? "#86efac" : "#bfdbfe") : (isReserved ? "#166534" : "#1e40af"), display: "grid", gap: 3 }}>
                       <div>📅 {formatAppointmentDate(meta.appointment_date)}</div>
@@ -451,16 +451,16 @@ export default function UserDashboardSolicitudes({
                 {canConfirm && !isCancelConfirm && !isRescheduleForm && !isConfirmDialog && (
                   <div style={{ background: isDark ? "rgba(254,252,232,0.07)" : "#fefce8", border: "2px solid #fbbf24", borderRadius: 10, padding: "12px 14px" }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: "#92400e", marginBottom: 6 }}>
-                      ⚠️ Confirma tu cita para reservar el vehículo
+                      ⚠️ Confirma tu cita para asegurar el hueco
                     </div>
                     <div style={{ fontSize: 12, color: isDark ? "#d97706" : "#78350f", marginBottom: 10 }}>
-                      El vehículo no estará reservado hasta que confirmes. Sin confirmación, otro cliente podría adquirirlo.
+                      Confirma la cita para que el hueco horario quede asignado a tu nombre. Si no confirmas, puede ser asignado a otro cliente.
                     </div>
                     <button
                       onClick={() => openConfirm(item.id)}
                       style={{ ...btnBase, background: "#059669", color: "#fff", borderColor: "#059669", fontSize: 13, padding: "8px 18px" }}
                     >
-                      ✅ Confirmar cita y reservar vehículo
+                      ✅ Confirmar cita
                     </button>
                   </div>
                 )}
@@ -518,7 +518,7 @@ export default function UserDashboardSolicitudes({
                 {isConfirmDialog && (
                   <div style={{ background: isDark ? "rgba(5,150,105,0.1)" : "#f0fdf4", border: "1px solid #86efac", borderRadius: 8, padding: "12px 14px" }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "#065f46", marginBottom: 8 }}>
-                      ¿Confirmas la cita? El vehículo quedará reservado a tu nombre.
+                      ¿Confirmas la cita? El hueco horario quedará asignado a tu nombre.
                     </div>
                     {actionError && <div style={{ fontSize: 12, color: "#dc2626", marginBottom: 8 }}>{actionError}</div>}
                     <div style={{ display: "flex", gap: 8 }}>

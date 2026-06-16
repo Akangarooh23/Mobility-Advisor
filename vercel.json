@@ -6,6 +6,7 @@
       "schedule": "0 8 * * *"
     }
   ],
+
   "rewrites": [
     {
       "source": "/api/market-price",
@@ -82,6 +83,10 @@
     {
       "source": "/api/funnel-event",
       "destination": "/api/user?route=funnel-event"
+    },
+    {
+      "source": "/api/cron-appointment-reminders",
+      "destination": "/api/user?route=cron-appointment-reminders"
     },
     {
       "source": "/api/(.*)",

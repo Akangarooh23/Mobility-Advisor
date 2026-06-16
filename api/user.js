@@ -6,6 +6,7 @@ const leadsHandler = require("../lib/api/leads-handler");
 const vehiclePublishHandler = require("../lib/api/vehicle-publish-handler");
 const viewingHandler = require("../lib/api/viewing-handler");
 const funnelEventHandler = require("../lib/api/funnel-event-handler");
+const cronAppointmentRemindersHandler = require("../lib/api/cron-appointment-reminders-handler");
 
 function resolveRoute(req) {
   const explicitRoute = String(req.query?.route || "").trim().toLowerCase();
@@ -25,6 +26,7 @@ function resolveRoute(req) {
   if (url.includes("viewing-confirm")) return "viewing-confirm";
   if (url.includes("viewing-get"))     return "viewing-get";
   if (url.includes("funnel-event"))    return "funnel-event";
+  if (url.includes("cron-appointment-reminders")) return "cron-appointment-reminders";
   return "";
 }
 
@@ -49,6 +51,8 @@ module.exports = async function userRouter(req, res) {
       return viewingHandler(req, res);
     case "funnel-event":
       return funnelEventHandler(req, res);
+    case "cron-appointment-reminders":
+      return cronAppointmentRemindersHandler(req, res);
     default:
       return res.status(404).json({ error: "User route not found" });
   }

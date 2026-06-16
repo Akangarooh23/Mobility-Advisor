@@ -45,12 +45,13 @@ export default function PortalVoMarketplacePage({
   onGoToPage,
   reservedVoUrls = new Set(),
   reservedMarketplaceIds = new Set(),
+  modalityMode = "compra",
+  onModalityChange,
 }) {
   const isDark = themeMode === "dark";
   const { t } = useTranslation();
   const windowWidth = useWindowWidth();
   const gridCols = windowWidth < 500 ? 1 : windowWidth < 750 ? 2 : windowWidth < 1050 ? 3 : 5;
-  const [modalityMode, setModalityMode] = useState("compra");
   const [viewingModal, setViewingModal] = useState(null); // { offer }
   const [viewingForm, setViewingForm] = useState({ name: "", email: "", message: "" });
   const [viewingState, setViewingState] = useState({}); // { [offerId]: 'sent' | 'error' | 'sending' }
@@ -116,7 +117,7 @@ export default function PortalVoMarketplacePage({
             <button
               key={key}
               type="button"
-              onClick={() => setModalityMode(key)}
+              onClick={() => onModalityChange?.(key)}
               style={{
                 padding: "10px 22px",
                 borderRadius: 12,

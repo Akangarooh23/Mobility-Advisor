@@ -1198,6 +1198,7 @@ export default function App() {
   const [marketplaceVoPage, setMarketplaceVoPage] = useState(0);
   const [marketplaceVoTotal, setMarketplaceVoTotal] = useState(0);
   const [marketplaceVoLoading, setMarketplaceVoLoading] = useState(false);
+  const [portalVoModalityMode, setPortalVoModalityMode] = useState("compra");
   const { marketBrandsCatalog, matchedModelsByBrand, marketCatalogSource } = useMarketCatalog(portalVoOffersLive);
   const [questionnaireDraft, setQuestionnaireDraft] = useState(null);
   const [saveFeedback, setSaveFeedback] = useState("");
@@ -1716,13 +1717,13 @@ export default function App() {
 
   // Infinite scroll: fetch offers page by page
   const MARKETPLACE_PAGE_SIZE = 15;
-  const fetchMarketplaceVoPage = useCallback(async (page = 0, filters = portalVoFilters) => {
+  const fetchMarketplaceVoPage = useCallback(async (page = 0, filters = portalVoFilters, modality = portalVoModalityMode) => {
     setMarketplaceVoLoading(true);
     try {
       const offset = page * MARKETPLACE_PAGE_SIZE;
       // model and transmission are applied client-side so dropdowns always show all options for the brand
       const { model: _model, transmission: _transmission, ...serverFilters } = filters;
-      const params = { offset, limit: MARKETPLACE_PAGE_SIZE, ...serverFilters };
+      const params = { offset, limit: MARKETPLACE_PAGE_SIZE, ...serverFilters, modalityMode: modality };
       const { data } = await getMarketplaceVoJson(params);
       const apiOffers = Array.isArray(data?.offers) ? data.offers : [];
       const source = String(data?.source || "").toLowerCase();
@@ -1742,7 +1743,7 @@ export default function App() {
     } finally {
       setMarketplaceVoLoading(false);
     }
-  }, [portalVoFilters]);
+  }, [portalVoFilters, portalVoModalityMode]);
 
   // Reset to page 0 and fetch on filter change or entry
   useEffect(() => {
@@ -1783,9 +1784,15 @@ export default function App() {
   const goToMarketplacePage = useCallback((page) => {
     if (marketplaceVoLoading) return;
     setMarketplaceVoPage(page);
-    fetchMarketplaceVoPage(page, portalVoFilters);
+    fetchMarketplaceVoPage(page, portalVoFilters, portalVoModalityMode);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [marketplaceVoLoading, fetchMarketplaceVoPage, portalVoFilters]);
+  }, [marketplaceVoLoading, fetchMarketplaceVoPage, portalVoFilters, portalVoModalityMode]);
+
+  const handleMarketplaceModalityChange = useCallback((newModality) => {
+    setPortalVoModalityMode(newModality);
+    setMarketplaceVoPage(0);
+    fetchMarketplaceVoPage(0, portalVoFilters, newModality);
+  }, [fetchMarketplaceVoPage, portalVoFilters]);
 
   const { marketAlertMatches, newAlertMatchesCount, pendingAlertNotifications } = useMarketAlertInsights({
     marketAlerts,
@@ -5960,6 +5967,8 @@ export default function App() {
           onGoToPage={goToMarketplacePage}
           reservedVoUrls={reservedVoUrls}
           reservedMarketplaceIds={reservedMarketplaceIds}
+          modalityMode={portalVoModalityMode}
+          onModalityChange={handleMarketplaceModalityChange}
         />
       )}
 

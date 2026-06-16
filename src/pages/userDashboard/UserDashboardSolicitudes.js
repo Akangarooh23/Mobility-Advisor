@@ -19,6 +19,8 @@ export default function UserDashboardSolicitudes({
   const [proposals, setProposals]       = useState([{ date: "", time: "" }]);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError]   = useState("");
+  const [outcomeId, setOutcomeId]       = useState(null);
+  const [outcomeLoading, setOutcomeLoading] = useState(false);
 
   // Poll every 30s so the client sees status changes made by the operator in the ERP
   useEffect(() => {
@@ -54,6 +56,7 @@ export default function UserDashboardSolicitudes({
     "Cita confirmada":      { bg: "rgba(16,185,129,0.15)",  color: "#065f46" },
     Cerrado:                { bg: "rgba(16,185,129,0.12)",  color: "#065f46" },
     "Visita realizada":     { bg: "rgba(20,184,166,0.12)",  color: "#0f766e" },
+    Interesado:             { bg: "rgba(14,165,233,0.12)",  color: "#0369a1" },
     Vendido:                { bg: "rgba(16,185,129,0.18)",  color: "#065f46" },
     Descartado:             { bg: "rgba(100,116,139,0.10)", color: "#475569" },
     "Reagendar solicitado": { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
@@ -169,6 +172,27 @@ export default function UserDashboardSolicitudes({
     }
   }
 
+  async function handleOutcome(id, outcome) {
+    setOutcomeLoading(true);
+    try {
+      const res = await fetch("/api/leads", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, email: userEmail, action: "client_outcome", outcome }),
+      });
+      if (!res.ok) throw new Error("Error");
+      const data = await res.json();
+      setLocalSolicitudes((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, status: data.status } : s))
+      );
+      setOutcomeId(null);
+    } catch {
+      // silently fail — state will refresh on next poll
+    } finally {
+      setOutcomeLoading(false);
+    }
+  }
+
   function openReschedule(id) {
     setRescheduleId(id);
     setCancelId(null);
@@ -223,6 +247,7 @@ export default function UserDashboardSolicitudes({
       const meta = parseMeta(s.meta);
       if (s.status === "Cerrado")           return true;
       if (s.status === "Visita realizada")  return true;
+      if (s.status === "Interesado")        return true;
       if (s.status === "Vendido")           return true;
       if (s.status === "Cita confirmada")   return isDatePast(meta.appointment_date);
       if (s.status === "confirmed")         return isDatePast(meta.confirmed_slot);
@@ -466,6 +491,72 @@ export default function UserDashboardSolicitudes({
                     >
                       ✅ Confirmar cita
                     </button>
+                  </div>
+                )}
+
+                {/* Post-visit: client decides outcome */}
+                {item.status === "Visita realizada" && outcomeId !== item.id && (
+                  <div style={{ background: isDark ? "rgba(124,58,237,0.08)" : "#f5f3ff", border: "1px solid rgba(124,58,237,0.2)", borderRadius: 10, padding: "12px 14px" }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#5b21b6", marginBottom: 6 }}>
+                      👋 ¿Te convenció el vehículo?
+                    </div>
+                    <div style={{ fontSize: 12, color: isDark ? "#a78bfa" : "#6d28d9", marginBottom: 10 }}>
+                      Cuéntanos si quieres seguir adelante con la compra o si finalmente no es lo que buscabas.
+                    </div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <button
+                        onClick={() => setOutcomeId(item.id)}
+                        style={{ ...btnBase, background: "#059669", color: "#fff", borderColor: "#059669", fontSize: 12, padding: "7px 14px" }}
+                      >
+                        Quiero comprarlo
+                      </button>
+                      <button
+                        onClick={() => handleOutcome(item.id, "not_interested")}
+                        disabled={outcomeLoading}
+                        style={{ ...btnBase, background: isDark ? "rgba(100,116,139,0.1)" : "#f1f5f9", color: "#475569", borderColor: "rgba(100,116,139,0.25)", fontSize: 12, padding: "7px 14px", opacity: outcomeLoading ? 0.6 : 1 }}
+                      >
+                        No me convence
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Confirm purchase intent */}
+                {item.status === "Visita realizada" && outcomeId === item.id && (
+                  <div style={{ background: isDark ? "rgba(5,150,105,0.1)" : "#f0fdf4", border: "1px solid #86efac", borderRadius: 8, padding: "12px 14px" }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#065f46", marginBottom: 8 }}>
+                      Nos pondremos en contacto contigo para gestionar la compra. ¿Confirmamos?
+                    </div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button
+                        onClick={() => handleOutcome(item.id, "interested")}
+                        disabled={outcomeLoading}
+                        style={{ ...btnBase, background: "#059669", color: "#fff", borderColor: "#059669", opacity: outcomeLoading ? 0.6 : 1 }}
+                      >
+                        {outcomeLoading ? "Enviando…" : "Sí, quiero seguir adelante"}
+                      </button>
+                      <button
+                        onClick={() => setOutcomeId(null)}
+                        disabled={outcomeLoading}
+                        style={{ ...btnBase, background: "transparent", color: isDark ? "#94a3b8" : "#64748b", borderColor: isDark ? "rgba(255,255,255,0.15)" : "#e2e8f0" }}
+                      >
+                        Ahora no
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Vendido confirmation */}
+                {item.status === "Vendido" && (
+                  <div style={{ background: isDark ? "rgba(5,150,105,0.1)" : "#f0fdf4", border: "1px solid #86efac", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "#065f46", fontWeight: 600 }}>
+                    🎉 ¡Compra confirmada! El equipo de CarsWise se pondrá en contacto contigo para los próximos pasos.
+                  </div>
+                )}
+
+                {/* Interesado — waiting for operator */}
+                {item.status === "Interesado" && (
+                  <div style={{ background: isDark ? "rgba(14,165,233,0.08)" : "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "#0369a1" }}>
+                    ⏳ Hemos recibido tu interés. El equipo de CarsWise se pondrá en contacto contigo para gestionar la compra.
                   </div>
                 )}
 

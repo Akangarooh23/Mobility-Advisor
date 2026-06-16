@@ -149,6 +149,7 @@ export default function PortalVoDetailPage({
       });
       trackFunnelEvent({
         event_type:  "lead_request",
+        user_id:     currentUser?.id || null,
         user_email:  reqForm.email || null,
         offer_id:    selectedPortalVoOffer.id,
         offer_title: selectedPortalVoOffer.title || "",

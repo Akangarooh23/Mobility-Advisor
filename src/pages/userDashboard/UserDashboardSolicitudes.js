@@ -340,7 +340,7 @@ export default function UserDashboardSolicitudes({
             // appointment box shown when visit has date and not cancelled/reschedule-pending
             const showApptBox = hasAppt && item.status !== "Cancelado" && item.status !== "Reagendar solicitado";
             // action buttons shown when not cancelled and no open dialog
-            const canAct = item.status !== "Cancelado" && userEmail;
+            const canAct = !["Cancelado", "Cerrado", "Vendido", "Descartado"].includes(item.status) && userEmail;
             const isCancelConfirm = cancelId === item.id;
             const isRescheduleForm = rescheduleId === item.id;
             const isConfirmDialog = confirmId === item.id;
@@ -573,7 +573,7 @@ export default function UserDashboardSolicitudes({
                 {/* Cancelled */}
                 {item.status === "Cancelado" && (
                   <div style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, padding: "8px 12px", fontSize: 13, color: "#b91c1c" }}>
-                    ❌ Cita anulada
+                    {isRenting ? "❌ Solicitud de renting anulada" : "❌ Cita anulada"}
                   </div>
                 )}
 

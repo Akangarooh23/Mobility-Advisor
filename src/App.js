@@ -5004,7 +5004,7 @@ export default function App() {
         </div>
       )}
 
-      {showCookieGate && !authRequired && (
+      {showCookieGate && !authRequired && !["legalNotice", "privacyPolicy", "cookiePolicy", "termsConditions"].includes(entryMode) && (
         <div
           role="dialog"
           aria-modal="true"

@@ -1236,6 +1236,8 @@ export default function App() {
   const [userDashboardPage, setUserDashboardPage] = useState("home");
   const [showCookieGate, setShowCookieGate] = useState(false);
   const [showCookieSettings, setShowCookieSettings] = useState(false);
+  const [consentLegal, setConsentLegal] = useState(false);
+  const [consentMarketing, setConsentMarketing] = useState(false);
   const [themeMode, setThemeMode] = useState("light");
   const [uiLanguage, setUiLanguage] = useState(() => {
     return normalizeUiLanguage();
@@ -2166,6 +2168,12 @@ export default function App() {
     }
 
     const mode = authDialogMode === "register" ? "register" : "login";
+
+    if (showCookieGate && !consentLegal) {
+      setAuthError("Debes aceptar las Condiciones Generales y la Política de Privacidad para continuar.");
+      return;
+    }
+
     const payload = {
       action: mode,
       name: normalizeText(authForm.name),
@@ -2247,8 +2255,13 @@ export default function App() {
       );
       setAuthDialogMode("");
       setAuthRequired(false);
-          setAuthTargetEntryMode("");
+      setAuthTargetEntryMode("");
       setAuthForm({ name: "", email: nextUser.email, password: "" });
+      if (showCookieGate) {
+        saveCookieConsent(consentMarketing ? "all" : "necessary");
+        setConsentLegal(false);
+        setConsentMarketing(false);
+      }
 
       const nextPendingPlanId = normalizeText(pendingPlanCheckoutId).toLowerCase();
 
@@ -2284,8 +2297,12 @@ export default function App() {
     authRecoveryMode,
     authTargetEntryMode,
     authTargetPage,
+    consentLegal,
+    consentMarketing,
     entryMode,
     pendingPlanCheckoutId,
+    saveCookieConsent,
+    showCookieGate,
     startSubscriptionCheckout,
     syncBrowserPath,
   ]);
@@ -4655,6 +4672,73 @@ export default function App() {
                 </div>
               )}
 
+              {showCookieGate && authRecoveryMode === "none" && (
+                <div style={{ borderTop: "1px solid rgba(148,163,184,0.15)", paddingTop: 14, display: "grid", gap: 10 }}>
+                  <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.4px", textTransform: "uppercase" }}>
+                    Consentimientos
+                  </div>
+
+                  {/* Master toggle */}
+                  <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={consentLegal && consentMarketing}
+                      onChange={(e) => { setConsentLegal(e.target.checked); setConsentMarketing(e.target.checked); }}
+                      style={{ marginTop: 2, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
+                    />
+                    <span style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.5 }}>
+                      Acepto todos los consentimientos siguientes
+                    </span>
+                  </label>
+
+                  {/* Legal obligatorio */}
+                  <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
+                    <input
+                      type="checkbox"
+                      checked={consentLegal}
+                      onChange={(e) => { setConsentLegal(e.target.checked); if (!e.target.checked) setConsentMarketing(false); }}
+                      style={{ marginTop: 2, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
+                    />
+                    <span style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
+                      He leído y acepto las{" "}
+                      <a href="/terminos-condiciones" target="_blank" rel="noopener noreferrer"
+                        style={{ color: "#93c5fd", textDecoration: "underline" }}
+                        onClick={(e) => e.stopPropagation()}>
+                        Condiciones Generales
+                      </a>
+                      {" "}y la{" "}
+                      <a href="/politica-privacidad" target="_blank" rel="noopener noreferrer"
+                        style={{ color: "#93c5fd", textDecoration: "underline" }}
+                        onClick={(e) => e.stopPropagation()}>
+                        Política de Privacidad
+                      </a>
+                      {" "}de CarsWise.{" "}
+                      <span style={{ color: "#f87171", fontSize: 11 }}>(obligatorio)</span>
+                    </span>
+                  </label>
+
+                  {/* Marketing opcional */}
+                  <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
+                    <input
+                      type="checkbox"
+                      checked={consentMarketing}
+                      onChange={(e) => setConsentMarketing(e.target.checked)}
+                      style={{ marginTop: 2, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
+                    />
+                    <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
+                      Acepto recibir comunicaciones comerciales de CarsWise conforme a la{" "}
+                      <a href="/politica-privacidad" target="_blank" rel="noopener noreferrer"
+                        style={{ color: "#7dd3fc", textDecoration: "underline" }}
+                        onClick={(e) => e.stopPropagation()}>
+                        Política de Privacidad
+                      </a>
+                      .{" "}
+                      <span style={{ color: "#64748b", fontSize: 11 }}>(opcional)</span>
+                    </span>
+                  </label>
+                </div>
+              )}
+
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "space-between", alignItems: "center" }}>
                 <button
                   type="button"
@@ -4745,7 +4829,7 @@ export default function App() {
         </div>
       )}
 
-      {showCookieGate && (
+      {showCookieGate && !authRequired && (
         <div
           role="dialog"
           aria-modal="true"

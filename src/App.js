@@ -332,78 +332,100 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "1. Responsable del tratamiento",
         paragraphs: [
-          "Denominación: Carswiseai [PENDIENTE: forma jurídica]",
+          "Denominación: Carswiseai [PENDIENTE: forma jurídica, p. ej. S.L.]",
           "NIF/CIF: [PENDIENTE]",
-          "Domicilio: [PENDIENTE: dirección completa]",
-          "Correo electrónico de contacto (privacidad): soporte@carswiseai.com",
-          "Delegado de Protección de Datos (DPD/DPO): [PENDIENTE: indicar si existe o no aplica]",
+          "Domicilio social: [PENDIENTE: dirección completa, código postal, ciudad]",
+          "Correo electrónico de privacidad: soporte@carswiseai.com",
+          "Delegado de Protección de Datos (DPO): [PENDIENTE: nombre y contacto, o indicar 'no preceptivo conforme al art. 37 RGPD']",
         ],
       },
       {
         heading: "2. Datos personales que tratamos",
         bullets: [
-          "Datos de registro y cuenta: nombre, apellidos, teléfono y dirección de correo electrónico facilitados al crear la cuenta.",
-          "Datos de contacto y solicitudes: información proporcionada al rellenar formularios de solicitud de información, visita o renting (nombre, email, teléfono, fecha de cita, mensaje).",
-          "Datos de navegación y uso: eventos de sesión, páginas visitadas, ofertas consultadas, origen de la visita (UTM), identificador anónimo de sesión y dirección IP.",
-          "Datos de preferencias: configuración de alertas, filtros guardados y preferencias de idioma o tema.",
-          "Datos de facturación y pagos: en caso de contratación de planes de servicio, los datos necesarios para el procesamiento del pago a través del proveedor externo correspondiente.",
+          "Datos de registro y cuenta: nombre, apellidos, teléfono y correo electrónico facilitados al crear la cuenta.",
+          "Datos de solicitudes: información aportada en formularios de solicitud de información, visita, renting o consulta (nombre, email, teléfono, mensaje, fecha y hora de cita preferida).",
+          "Datos de navegación y uso: eventos de sesión, páginas y ofertas consultadas, fuente de la visita (UTM), identificador anónimo de sesión (cw_anon_id) y dirección IP.",
+          "Datos de preferencias: alertas guardadas, filtros de búsqueda y configuración de la cuenta.",
+          "Datos de facturación: en caso de contratación de planes de servicio, los datos necesarios para el procesamiento del pago a través de Stripe. Carswiseai no almacena datos de tarjetas.",
+          "Datos de solvencia: cuando el usuario consiente expresamente, Carswiseai puede solicitar a Experian Bureau de Crédito S.A. la consulta de información de solvencia patrimonial ante organismos públicos, con la única finalidad de valorar la viabilidad de una operación de renting o financiación.",
         ],
       },
       {
-        heading: "3. Finalidades y bases jurídicas del tratamiento",
+        heading: "3. Finalidades y bases jurídicas",
         bullets: [
-          "Gestión de la cuenta de usuario (alta, autenticación, mantenimiento y baja): base jurídica — ejecución del contrato (art. 6.1.b RGPD).",
-          "Tramitación de solicitudes de información, visita o renting enviadas a través del marketplace: base jurídica — ejecución de medidas precontractuales (art. 6.1.b RGPD).",
-          "Envío de comunicaciones operativas relacionadas con el estado de las solicitudes (confirmaciones, recordatorios, actualizaciones): base jurídica — ejecución del contrato (art. 6.1.b RGPD).",
-          "Análisis del comportamiento en la plataforma para mejorar el servicio y la experiencia de usuario: base jurídica — interés legítimo (art. 6.1.f RGPD).",
-          "Envío de comunicaciones comerciales de Carswiseai y/o de terceros: base jurídica — consentimiento expreso del interesado (art. 6.1.a RGPD), revocable en cualquier momento.",
-          "Consulta de solvencia o datos ante organismos públicos a través de Experian u otros proveedores autorizados, cuando el usuario lo solicite expresamente para operaciones de financiación o renting: base jurídica — consentimiento expreso (art. 6.1.a RGPD).",
-          "Cumplimiento de obligaciones legales (fiscales, contables, de seguridad): base jurídica — cumplimiento de obligación legal (art. 6.1.c RGPD).",
+          "Gestión de cuenta (alta, autenticación, mantenimiento y baja) — base: ejecución del contrato (art. 6.1.b RGPD).",
+          "Tramitación de solicitudes de información, visita o renting — base: medidas precontractuales (art. 6.1.b RGPD).",
+          "Comunicaciones operativas sobre el estado de solicitudes (confirmaciones, recordatorios, actualizaciones de estado) — base: ejecución del contrato (art. 6.1.b RGPD).",
+          "Análisis de uso de la plataforma para mejora del servicio — base: interés legítimo (art. 6.1.f RGPD).",
+          "Envío de comunicaciones comerciales propias de Carswiseai (novedades, ofertas, campañas de marketing) — base: consentimiento expreso (art. 6.1.a RGPD), revocable en cualquier momento sin coste.",
+          "Cesión de datos a terceros colaboradores (empresas del sector de movilidad, renting, financiación o seguros) para que realicen campañas de marketing propias dirigidas al usuario — base: consentimiento expreso (art. 6.1.a RGPD), revocable en cualquier momento. El usuario consiente expresamente que Carswiseai transmita su nombre, correo electrónico y perfil de interés a dichos terceros, quienes pasarán a ser responsables independientes del tratamiento para sus propias finalidades comerciales.",
+          "Consulta de solvencia ante organismos públicos a través de Experian, para operaciones de renting o financiación — base: consentimiento expreso (art. 6.1.a RGPD). Este consentimiento es voluntario; su denegación no impide el uso general de la plataforma.",
+          "Cumplimiento de obligaciones legales (fiscales, contables, de seguridad informática) — base: obligación legal (art. 6.1.c RGPD).",
         ],
       },
       {
-        heading: "4. Destinatarios y cesiones de datos",
+        heading: "4. Comunicaciones comerciales y marketing",
         paragraphs: [
-          "Sus datos podrán ser comunicados a los proveedores de vehículos (concesionarios, empresas de renting) con los que el usuario haya iniciado una solicitud de contacto, exclusivamente para la gestión de dicha solicitud.",
-          "Asimismo, Carswiseai se apoya en proveedores tecnológicos que actúan como encargados del tratamiento, entre otros: servicios de alojamiento en la nube (Vercel, Supabase), servicios de envío de correo electrónico (Resend), servicios de bases de datos (Neon/PostgreSQL) y servicios de pago (Stripe). Todos ellos cuentan con contratos de encargo del tratamiento que garantizan el cumplimiento del RGPD.",
-          "No se realizan transferencias internacionales de datos fuera del Espacio Económico Europeo salvo cuando los proveedores tecnológicos citados dispongan de garantías adecuadas (cláusulas contractuales tipo, decisiones de adecuación).",
-          "No se ceden datos a terceros con fines comerciales propios salvo consentimiento expreso del usuario.",
+          "Si el usuario presta consentimiento expreso, Carswiseai podrá enviarle comunicaciones comerciales por correo electrónico u otros canales digitales sobre nuevas ofertas de vehículos, campañas de renting, servicios de movilidad y contenidos de interés relacionados con el sector del automóvil.",
+          "Con consentimiento expreso, sus datos (nombre, correo electrónico y perfil de interés en vehículos) podrán cederse a terceros colaboradores del sector de la movilidad, financiación o seguros para que realicen campañas de marketing propias. En ese caso, dichos terceros actúan como responsables independientes del tratamiento y se rigen por sus propias políticas de privacidad. Carswiseai facilitará al usuario la identidad de dichos terceros cuando los datos vayan a ser cedidos.",
+          "El usuario puede revocar este consentimiento en cualquier momento haciendo clic en el enlace de baja incluido en cualquier comunicación, o escribiendo a soporte@carswiseai.com. La revocación no afecta a la licitud del tratamiento previo.",
+          "Actualmente los envíos de campañas se realizan mediante el servicio Resend. [PENDIENTE: actualizar si se integra una plataforma de email marketing específica como Mailchimp, Brevo, etc.]",
         ],
       },
       {
-        heading: "5. Plazos de conservación",
+        heading: "5. Experian y consulta de solvencia",
+        paragraphs: [
+          "Para determinadas operaciones de renting o financiación, y siempre con consentimiento previo y expreso del usuario, Carswiseai puede transmitir sus datos a Experian Bureau de Crédito S.A. (NIF [PENDIENTE], domiciliada en [PENDIENTE]) para consultar información de solvencia patrimonial en ficheros de información crediticia y ante organismos públicos.",
+          "La finalidad exclusiva de esta consulta es valorar la viabilidad económica de la operación solicitada. El usuario tiene derecho a conocer el resultado de la consulta y a ejercer sus derechos de acceso, rectificación y cancelación directamente ante Experian (www.experian.es).",
+          "Este consentimiento es independiente y revocable en cualquier momento. Su denegación únicamente puede afectar a la tramitación de la operación de renting o financiación concreta.",
+        ],
+      },
+      {
+        heading: "6. Destinatarios y encargados del tratamiento",
+        paragraphs: [
+          "Sus datos podrán comunicarse a los proveedores de vehículos (concesionarios, empresas de renting como Leasys o Astara) con los que el usuario haya iniciado una solicitud, exclusivamente para su gestión.",
+          "Carswiseai cuenta con los siguientes encargados del tratamiento que actúan bajo contrato de encargo conforme al art. 28 RGPD: Vercel Inc. (alojamiento web y serverless), Supabase Inc. (almacenamiento de archivos), Neon Inc. (base de datos PostgreSQL), Resend Inc. (envío de correo electrónico transaccional y comercial), Stripe Inc. (procesamiento de pagos).",
+          "Algunos de estos proveedores están establecidos fuera del Espacio Económico Europeo (EE. UU.). Las transferencias se amparan en las Cláusulas Contractuales Tipo aprobadas por la Comisión Europea o en decisiones de adecuación vigentes.",
+          "No se ceden datos a terceros con fines publicitarios propios salvo consentimiento expreso.",
+        ],
+      },
+      {
+        heading: "7. Plazos de conservación",
         bullets: [
-          "Datos de cuenta: durante la vigencia de la relación y hasta 5 años después de la baja para atender posibles reclamaciones.",
-          "Datos de solicitudes y leads: hasta 3 años desde el último contacto o cierre de la solicitud.",
-          "Datos de facturación y contratos: 6 años conforme a la legislación mercantil y fiscal española.",
+          "Datos de cuenta activa: durante toda la relación contractual.",
+          "Datos de cuenta tras baja: 5 años para atender posibles responsabilidades y reclamaciones.",
+          "Datos de solicitudes y leads: 3 años desde el cierre de la solicitud o el último contacto.",
+          "Datos de facturación y contratos: 6 años (art. 30 Código de Comercio y normativa fiscal).",
           "Datos de navegación y analítica: máximo 25 meses desde su captación.",
-          "Comunicaciones comerciales: hasta que el usuario revoque el consentimiento.",
+          "Comunicaciones comerciales y marketing: hasta que el usuario revoque el consentimiento.",
+          "Datos de consulta Experian: el mínimo imprescindible para la operación, con el límite legal aplicable.",
         ],
       },
       {
-        heading: "6. Derechos de los interesados",
+        heading: "8. Derechos de los interesados",
         paragraphs: [
-          "Puede ejercer en cualquier momento los derechos de acceso, rectificación, supresión ('derecho al olvido'), oposición, limitación del tratamiento y portabilidad de sus datos, así como el derecho a no ser objeto de decisiones automatizadas, dirigiéndose por escrito a soporte@carswiseai.com, indicando su nombre, apellidos y una copia de su documento de identidad.",
-          "Si considera que el tratamiento de sus datos no se ajusta a la normativa, puede presentar reclamación ante la Agencia Española de Protección de Datos (AEPD), www.aepd.es.",
+          "Puede ejercer en cualquier momento los siguientes derechos: acceso (conocer qué datos tratamos), rectificación (corregir datos inexactos), supresión (solicitar el borrado cuando proceda), oposición, limitación del tratamiento, portabilidad (recibir sus datos en formato estructurado) y derecho a no ser objeto de decisiones automatizadas con efectos significativos.",
+          "Para ejercer cualquiera de estos derechos, envíe un escrito a soporte@carswiseai.com indicando nombre, apellidos y copia de su DNI o documento equivalente. Responderemos en el plazo máximo de un mes, prorrogable a tres en casos complejos.",
+          "Si considera que sus derechos no han sido atendidos o que el tratamiento vulnera la normativa, puede presentar reclamación ante la Agencia Española de Protección de Datos (AEPD), www.aepd.es, C/ Jorge Juan 6, 28001 Madrid.",
         ],
       },
       {
-        heading: "7. Seguridad de los datos",
+        heading: "9. Seguridad",
         paragraphs: [
-          "Carswiseai aplica medidas técnicas y organizativas apropiadas para garantizar un nivel de seguridad adecuado al riesgo, incluyendo cifrado de datos en tránsito (TLS/HTTPS), control de accesos, autenticación segura y procedimientos de gestión de incidencias.",
-          "En caso de violación de seguridad que pueda afectar a sus derechos y libertades, Carswiseai notificará a las autoridades competentes y, cuando proceda, a los interesados afectados en los plazos legalmente establecidos.",
+          "Carswiseai aplica medidas técnicas y organizativas adecuadas al riesgo: cifrado de comunicaciones (TLS/HTTPS), control de accesos por roles, autenticación segura, copias de seguridad periódicas y procedimientos documentados de gestión de incidencias.",
+          "En caso de brecha de seguridad que pueda suponer un riesgo para los derechos y libertades de los interesados, Carswiseai notificará a la AEPD en un plazo máximo de 72 horas y, cuando el riesgo sea alto, comunicará el incidente a los afectados sin dilación indebida.",
         ],
       },
       {
-        heading: "8. Menores de edad",
+        heading: "10. Menores de edad",
         paragraphs: [
-          "Los servicios de Carswiseai están dirigidos a mayores de 18 años. Carswiseai no recaba conscientemente datos de menores. Si tuviéramos conocimiento de haber recibido datos de un menor sin consentimiento parental, procederemos a su eliminación inmediata.",
+          "Los servicios de Carswiseai están dirigidos exclusivamente a mayores de 18 años. No recabamos conscientemente datos de menores. Si detectáramos que hemos recibido datos de un menor sin consentimiento verificable de sus tutores legales, procederemos a su supresión inmediata.",
         ],
       },
       {
-        heading: "9. Cambios en esta política",
+        heading: "11. Actualizaciones de esta política",
         paragraphs: [
-          "Carswiseai puede actualizar esta Política de Privacidad para adaptarla a cambios normativos o del servicio. La versión vigente, con su fecha de actualización, estará siempre disponible en este sitio. Le recomendamos revisarla periódicamente.",
+          "Esta Política de Privacidad puede actualizarse para adaptarse a cambios normativos, jurisprudenciales o del propio servicio. La versión vigente, con su fecha de actualización, estará siempre disponible en carswiseai.com/politica-privacidad. Para cambios sustanciales, notificaremos a los usuarios registrados por correo electrónico.",
         ],
       },
     ],
@@ -506,15 +528,27 @@ const LEGAL_DOCUMENTS = {
         ],
       },
       {
-        heading: "5. Planes de servicio y pagos",
+        heading: "5. Planes de servicio, pagos y cancelación",
         paragraphs: [
-          "Carswiseai puede ofrecer planes de suscripción o servicios de valor añadido con coste. Los precios, condiciones y períodos de facturación se indicarán en el momento de la contratación.",
-          "El procesamiento de pagos se realiza a través de Stripe. Carswiseai no almacena datos de tarjetas de crédito o débito.",
-          "[PENDIENTE: desarrollar condiciones específicas de suscripción, cancelación y política de reembolso cuando aplique]",
+          "Carswiseai puede ofrecer planes de suscripción o servicios de valor añadido con coste. Los precios, condiciones y períodos de facturación se indicarán claramente antes de la contratación.",
+          "El procesamiento de pagos se realiza a través de Stripe Inc. Carswiseai no almacena datos de tarjetas de crédito o débito en sus sistemas.",
+          "Cancelación de suscripción: el usuario puede cancelar su plan en cualquier momento desde su área de cuenta. La cancelación tendrá efecto al finalizar el período de facturación en curso, sin derecho a reembolso proporcional del período restante, salvo que la ley de consumidores aplicable establezca lo contrario.",
+          "Derecho de desistimiento: los consumidores que contraten un plan de forma online disponen de un plazo de 14 días naturales desde la contratación para ejercer el derecho de desistimiento sin necesidad de justificación, conforme al art. 102 del Real Decreto Legislativo 1/2007 (TRLGDCU), salvo que el servicio haya comenzado a ejecutarse con consentimiento expreso del usuario antes de que expire dicho plazo.",
+          "Para ejercer el derecho de desistimiento o solicitar un reembolso, envíe un escrito a soporte@carswiseai.com indicando su nombre, número de cuenta/pedido y el motivo.",
+          "[PENDIENTE: especificar precios y planes concretos cuando estén definidos]",
         ],
       },
       {
-        heading: "6. Obligaciones del usuario",
+        heading: "6. Intermediación en renting y financiación",
+        paragraphs: [
+          "Carswiseai actúa como plataforma de intermediación que facilita el contacto entre el usuario y empresas proveedoras de renting (entre otras, Leasys Mobility S.L. y Astara). Carswiseai no es entidad financiera ni prestamista, y no concede financiación propia.",
+          "Las operaciones de renting se formalizan directamente entre el usuario y el proveedor de renting, que es quien evalúa la solvencia, establece las condiciones del contrato y asume los derechos y obligaciones derivados del mismo.",
+          "En caso de que la tramitación de una solicitud requiera la consulta de información de solvencia del usuario (con su consentimiento expreso), dicha consulta se realizará a través de Experian Bureau de Crédito S.A. conforme a lo establecido en la Política de Privacidad.",
+          "[PENDIENTE: indicar si Carswiseai está registrada como intermediario de crédito inmobiliario o de crédito al consumo ante el Banco de España, o si opera exclusivamente como generador de leads para las empresas de renting]",
+        ],
+      },
+      {
+        heading: "7. Obligaciones del usuario",
         bullets: [
           "Usar la plataforma de forma lícita, diligente y conforme a las presentes Condiciones y a la legislación vigente.",
           "Proporcionar información veraz en el registro y en los formularios de solicitud.",
@@ -525,7 +559,7 @@ const LEGAL_DOCUMENTS = {
         ],
       },
       {
-        heading: "7. Limitación de responsabilidad",
+        heading: "8. Limitación de responsabilidad",
         paragraphs: [
           "Carswiseai no garantiza la disponibilidad ininterrumpida del servicio. En la medida en que lo permita la ley, Carswiseai queda exonerada de responsabilidad por daños derivados de interrupciones técnicas, errores en la plataforma o ataques informáticos.",
           "Carswiseai no asume responsabilidad por el incumplimiento de las obligaciones contraídas entre el usuario y el proveedor del vehículo o servicio de renting.",
@@ -533,20 +567,20 @@ const LEGAL_DOCUMENTS = {
         ],
       },
       {
-        heading: "8. Propiedad intelectual",
+        heading: "9. Propiedad intelectual",
         paragraphs: [
           "Todos los derechos de propiedad intelectual e industrial sobre la plataforma, su código, diseño, contenidos y marca pertenecen a Carswiseai o a sus licenciantes. El usuario no adquiere ningún derecho sobre ellos por el mero uso del servicio.",
           "Queda prohibida la reproducción, copia, distribución, transformación o comunicación pública de los contenidos de la plataforma sin autorización expresa y por escrito de Carswiseai.",
         ],
       },
       {
-        heading: "9. Protección de datos",
+        heading: "10. Protección de datos",
         paragraphs: [
           "El tratamiento de los datos personales del usuario se rige por la Política de Privacidad de Carswiseai, disponible en carswiseai.com/politica-privacidad, que forma parte integrante de estas Condiciones.",
         ],
       },
       {
-        heading: "10. Legislación aplicable y resolución de disputas",
+        heading: "11. Legislación aplicable y resolución de disputas",
         paragraphs: [
           "Las presentes Condiciones se rigen por la legislación española. Para la resolución de conflictos, las partes se someten a la jurisdicción de los Juzgados y Tribunales del domicilio del usuario, salvo que la normativa de consumo establezca un fuero imperativo distinto.",
           "La Comisión Europea facilita una plataforma de resolución de litigios en línea (ODR) accesible en https://ec.europa.eu/consumers/odr para consumidores de la UE.",

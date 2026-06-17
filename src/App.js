@@ -5524,6 +5524,8 @@ export default function App() {
                 onClick={async () => {
                   setConsentReviewLoading(true);
                   try {
+                    let landing = {};
+                    try { landing = JSON.parse(window.localStorage.getItem("ma.landing") || "{}"); } catch {}
                     const { data } = await postAuthJson({
                       action: "save_consents",
                       consentLegal: consentReviewLegal,
@@ -5531,6 +5533,14 @@ export default function App() {
                       consentMarketingSms: consentReviewMarketingSms,
                       consentThirdPartyEmail: consentReviewThirdPartyEmail,
                       consentThirdPartySms: consentReviewThirdPartySms,
+                      language: landing.language || navigator.language || "",
+                      utmSource: landing.utms?.utm_source || "",
+                      utmMedium: landing.utms?.utm_medium || "",
+                      utmCampaign: landing.utms?.utm_campaign || "",
+                      utmContent: landing.utms?.utm_content || "",
+                      referer: landing.referer || "",
+                      landingUrl: landing.landingUrl || "",
+                      affiliateData: landing.affiliateData || null,
                     });
                     if (data?.user) { writeAuthUser(data.user); setCurrentUser(data.user); }
                   } catch {}
@@ -5546,6 +5556,8 @@ export default function App() {
                 onClick={async () => {
                   setConsentReviewLoading(true);
                   try {
+                    let landing = {};
+                    try { landing = JSON.parse(window.localStorage.getItem("ma.landing") || "{}"); } catch {}
                     await postAuthJson({
                       action: "save_consents",
                       consentLegal: false,
@@ -5553,6 +5565,14 @@ export default function App() {
                       consentMarketingSms: false,
                       consentThirdPartyEmail: false,
                       consentThirdPartySms: false,
+                      language: landing.language || navigator.language || "",
+                      utmSource: landing.utms?.utm_source || "",
+                      utmMedium: landing.utms?.utm_medium || "",
+                      utmCampaign: landing.utms?.utm_campaign || "",
+                      utmContent: landing.utms?.utm_content || "",
+                      referer: landing.referer || "",
+                      landingUrl: landing.landingUrl || "",
+                      affiliateData: landing.affiliateData || null,
                     });
                   } catch {}
                   setShowConsentReview(false);

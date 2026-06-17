@@ -1905,6 +1905,17 @@ async function _authHandlerInner(req, res) {
       // backward-compat aggregates: set if any sub-consent is given
       const marketingAt        = (body.consentMarketingEmail || body.consentMarketingSms) ? now : null;
       const experianAt         = (body.consentThirdPartyEmail || body.consentThirdPartySms) ? now : null;
+      // Tracking fields — only fill if currently empty (COALESCE + NULLIF)
+      const reviewIp       = clientIp || "";
+      const reviewUa       = clientUa || "";
+      const reviewLang     = normalizeText(body.language).slice(0, 20) || "";
+      const reviewUtmSrc   = normalizeText(body.utmSource);
+      const reviewUtmMed   = normalizeText(body.utmMedium);
+      const reviewUtmCamp  = normalizeText(body.utmCampaign);
+      const reviewUtmCont  = normalizeText(body.utmContent);
+      const reviewReferer  = normalizeText(body.referer).slice(0, 1000) || "";
+      const reviewLanding  = normalizeText(body.landingUrl).slice(0, 1000) || "";
+      const reviewAffiliate = body.affiliateData && typeof body.affiliateData === "object" ? body.affiliateData : null;
       const pool = getPgPool();
       await pool.query(
         `UPDATE moveadvisor_users
@@ -1915,9 +1926,28 @@ async function _authHandlerInner(req, res) {
              consent_marketing_sms_at      = COALESCE(consent_marketing_sms_at, $6),
              consent_thirdparty_email_at   = COALESCE(consent_thirdparty_email_at, $7),
              consent_thirdparty_sms_at     = COALESCE(consent_thirdparty_sms_at, $8),
-             consents_reviewed_at          = $9
+             consents_reviewed_at          = $9,
+             registration_ip               = COALESCE(NULLIF(registration_ip, ''), $10),
+             registration_ua               = COALESCE(NULLIF(registration_ua, ''), $11),
+             language                      = COALESCE(NULLIF(language, ''), $12),
+             utm_source                    = COALESCE(NULLIF(utm_source, ''), $13),
+             utm_medium                    = COALESCE(NULLIF(utm_medium, ''), $14),
+             utm_campaign                  = COALESCE(NULLIF(utm_campaign, ''), $15),
+             utm_content                   = COALESCE(NULLIF(utm_content, ''), $16),
+             referer                       = COALESCE(NULLIF(referer, ''), $17),
+             landing_url                   = COALESCE(NULLIF(landing_url, ''), $18),
+             affiliate_data                = COALESCE(affiliate_data, $19)
          WHERE id = $1`,
-        [sessionRow.userId, legalAt, marketingAt, experianAt, marketingEmailAt, marketingSmsAt, thirdPartyEmailAt, thirdPartySmsAt, now]
+        [
+          sessionRow.userId,
+          legalAt, marketingAt, experianAt,
+          marketingEmailAt, marketingSmsAt, thirdPartyEmailAt, thirdPartySmsAt,
+          now,
+          reviewIp, reviewUa, reviewLang,
+          reviewUtmSrc, reviewUtmMed, reviewUtmCamp, reviewUtmCont,
+          reviewReferer, reviewLanding,
+          reviewAffiliate ? JSON.stringify(reviewAffiliate) : null,
+        ]
       );
       const updated = await findUserByEmailPostgres(
         (await getPgPool().query(`SELECT email FROM moveadvisor_users WHERE id = $1`, [sessionRow.userId])).rows[0]?.email

@@ -1034,8 +1034,20 @@ async function ensurePostgresSchema() {
   `);
   await pool.query(`
     ALTER TABLE moveadvisor_users
-      ADD COLUMN IF NOT EXISTS apellidos VARCHAR(160) NOT NULL DEFAULT '',
-      ADD COLUMN IF NOT EXISTS phone     VARCHAR(30)  NOT NULL DEFAULT ''
+      ADD COLUMN IF NOT EXISTS apellidos            VARCHAR(160) NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS phone                VARCHAR(30)  NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS company_name         VARCHAR(200) NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS tax_id               VARCHAR(50)  NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS billing_address      TEXT         NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS iban                 VARCHAR(50)  NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS profile_updated_at   TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS plan_id              VARCHAR(30)  NOT NULL DEFAULT 'free',
+      ADD COLUMN IF NOT EXISTS plan_status          VARCHAR(30)  NOT NULL DEFAULT 'inactivo',
+      ADD COLUMN IF NOT EXISTS plan_updated_at      TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS stripe_customer_id       VARCHAR(64)  NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS stripe_subscription_id   VARCHAR(64)  NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS next_billing_date        TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS cancel_at_period_end     BOOLEAN      NOT NULL DEFAULT false
   `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS moveadvisor_sessions (

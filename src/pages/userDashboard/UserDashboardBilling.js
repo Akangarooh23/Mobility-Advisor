@@ -315,7 +315,10 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
           setProfileForm(savedProfile);
           writeUserBillingProfile(savedProfile);
           const existingAuth = readAuthUser();
-          writeAuthUser({ ...existingAuth, email: savedProfile.email || existingAuth?.email, name: savedProfile.fullName || existingAuth?.name, phone: savedProfile.phone });
+          const nameParts = (savedProfile.fullName || "").trim().split(/\s+/).filter(Boolean);
+          const firstName = nameParts[0] || existingAuth?.name || "";
+          const lastName = nameParts.slice(1).join(" ") || existingAuth?.apellidos || "";
+          writeAuthUser({ ...existingAuth, email: savedProfile.email || existingAuth?.email, name: firstName, apellidos: lastName, phone: savedProfile.phone });
         }
 
         setProfileFeedback(t("dashboard.billingDataSaved"));

@@ -263,43 +263,62 @@ const LEGAL_DOCUMENTS = {
   legalNotice: {
     title: "Aviso legal",
     summary:
-      "Información general de titularidad, alcance del servicio, propiedad intelectual y responsabilidades del uso de la plataforma.",
-    updatedAt: "13/04/2026",
+      "Información general de titularidad, condiciones de acceso, propiedad intelectual y responsabilidades del uso de la plataforma carswiseai.com.",
+    updatedAt: "17/06/2026",
     sections: [
       {
-        heading: "Datos identificativos",
+        heading: "1. Datos identificativos del titular",
         paragraphs: [
-          "CarsWise es una plataforma digital orientada al asesoramiento y operativa de movilidad en España.",
-          "A efectos de contacto general, soporte y gestión de incidencias puedes dirigirte a soporte@carswise.es.",
+          "En cumplimiento del artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y del Comercio Electrónico (LSSICE), se facilitan los datos del titular del sitio web:",
+          "Denominación social: Carswiseai [PENDIENTE: forma jurídica, S.L. / S.A. / autónomo]",
+          "NIF/CIF: [PENDIENTE]",
+          "Domicilio social: [PENDIENTE: dirección completa, código postal, ciudad, provincia]",
+          "Correo electrónico de contacto: soporte@carswiseai.com",
+          "Sitio web: https://www.carswiseai.com",
         ],
       },
       {
-        heading: "Objeto del sitio web",
+        heading: "2. Objeto y ámbito del sitio web",
         paragraphs: [
-          "El presente sitio facilita herramientas de recomendación, comparación y gestión de servicios de movilidad, así como funcionalidades de apoyo para usuarios registrados.",
-          "La información mostrada tiene carácter informativo y de apoyo a la decisión, sin constituir asesoramiento financiero, jurídico o fiscal vinculante.",
+          "Carswiseai opera una plataforma digital de intermediación y marketplace de vehículos de ocasión, renting y servicios de movilidad en España, accesible a través del dominio carswiseai.com.",
+          "La plataforma permite a los usuarios explorar ofertas de vehículos, solicitar información, agendar visitas y gestionar solicitudes de renting, conectándoles con los proveedores correspondientes.",
+          "La información y los contenidos publicados tienen carácter informativo y de apoyo a la decisión del usuario. Carswiseai actúa como intermediario y no es parte contratante en las operaciones de compraventa o renting que se formalicen entre el usuario y el proveedor del vehículo.",
         ],
       },
       {
-        heading: "Uso permitido y prohibiciones",
+        heading: "3. Condiciones de acceso y uso",
+        paragraphs: [
+          "El acceso y la navegación por este sitio web implican la aceptación expresa de las condiciones recogidas en el presente Aviso Legal, así como en la Política de Privacidad y en los Términos y Condiciones.",
+          "El usuario se compromete a hacer un uso diligente, lícito y correcto del sitio, de conformidad con la legislación vigente, la buena fe y el orden público.",
+        ],
         bullets: [
-          "El usuario se compromete a utilizar la plataforma conforme a la ley, la buena fe y el orden público.",
-          "Queda prohibido el uso fraudulento, la extracción automatizada no autorizada de datos y cualquier intento de alterar el funcionamiento del servicio.",
-          "CarsWise puede actualizar, mejorar o retirar funcionalidades para mantener seguridad, rendimiento y calidad de servicio.",
+          "Queda prohibida la reproducción, distribución o comunicación pública de los contenidos del sitio sin autorización previa y por escrito de Carswiseai.",
+          "Queda prohibido el uso de técnicas de scraping, crawling u otras formas de extracción automatizada de datos sin consentimiento expreso.",
+          "Queda prohibido introducir, almacenar o difundir mediante el sitio contenidos que sean ilícitos, dañinos, difamatorios o que vulneren derechos de terceros.",
+          "Carswiseai se reserva el derecho a denegar, restringir o cancelar el acceso a usuarios que incumplan estas condiciones.",
         ],
       },
       {
-        heading: "Propiedad intelectual",
+        heading: "4. Propiedad intelectual e industrial",
         paragraphs: [
-          "La marca CarsWise, el diseño de la plataforma, su arquitectura funcional, contenidos, código y elementos gráficos son titularidad de sus propietarios o licenciantes.",
-          "No se autoriza su reproducción, distribución o transformación sin autorización expresa salvo en los casos legalmente permitidos.",
+          "La marca, logotipos, denominación comercial Carswiseai, así como el diseño, estructura, código fuente, textos, imágenes, gráficos y demás elementos de la plataforma son titularidad de Carswiseai o de sus licenciantes, y están protegidos por la normativa española e internacional en materia de propiedad intelectual e industrial.",
+          "El usuario únicamente está autorizado a visualizar y hacer uso privado de los contenidos. Cualquier otro uso requiere autorización expresa y por escrito del titular.",
         ],
       },
       {
-        heading: "Responsabilidad",
+        heading: "5. Exclusión de responsabilidad",
         paragraphs: [
-          "CarsWise no garantiza la disponibilidad permanente e ininterrumpida del servicio, aunque aplica medidas razonables para mantener su continuidad.",
-          "Las decisiones finales de contratación o compra/venta corresponden al usuario y, en su caso, al tercero proveedor con quien formalice la operación.",
+          "Carswiseai no garantiza la disponibilidad permanente e ininterrumpida del sitio, aunque aplica medidas razonables para asegurar su continuidad. Se excluye la responsabilidad por daños derivados de interrupciones, errores técnicos o causas de fuerza mayor.",
+          "Los precios, disponibilidad y características de los vehículos publicados en el marketplace son proporcionados por los proveedores. Carswiseai no se responsabiliza de inexactitudes en dicha información.",
+          "Las decisiones de compra, contratación de renting o cualquier operación comercial son responsabilidad exclusiva del usuario y del proveedor con quien suscriba el acuerdo.",
+          "Carswiseai no asume responsabilidad por los contenidos de sitios web de terceros enlazados desde esta plataforma.",
+        ],
+      },
+      {
+        heading: "6. Legislación aplicable y jurisdicción",
+        paragraphs: [
+          "El presente Aviso Legal se rige por la legislación española. Para la resolución de cualquier controversia derivada del acceso o uso de este sitio web, las partes se someten a la jurisdicción de los Juzgados y Tribunales del domicilio del usuario, salvo que la ley disponga otro fuero imperativo.",
+          "En caso de conflicto entre versiones lingüísticas del presente Aviso, prevalecerá la versión en español.",
         ],
       },
     ],
@@ -307,54 +326,84 @@ const LEGAL_DOCUMENTS = {
   privacyPolicy: {
     title: "Política de privacidad",
     summary:
-      "Información sobre tratamiento de datos personales conforme al RGPD (UE 2016/679) y la LOPDGDD (Ley Orgánica 3/2018).",
-    updatedAt: "13/04/2026",
+      "Información sobre el tratamiento de sus datos personales por parte de Carswiseai, conforme al Reglamento (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018 (LOPDGDD).",
+    updatedAt: "17/06/2026",
     sections: [
       {
-        heading: "Categorías de datos tratados",
-        bullets: [
-          "Datos identificativos y de cuenta: nombre, correo electrónico, identificadores de usuario y sesión.",
-          "Datos de uso y navegación: interacciones con el asesor, preferencias, filtros, actividad y eventos funcionales.",
-          "Datos operativos aportados voluntariamente: solicitudes de servicio, alertas, datos de contacto y datos asociados a trámites dentro de la plataforma.",
-        ],
-      },
-      {
-        heading: "Finalidades del tratamiento",
-        bullets: [
-          "Gestionar el alta, autenticación y mantenimiento de cuentas de usuario.",
-          "Prestar funcionalidades de recomendación, comparación y gestión de movilidad.",
-          "Mantener la seguridad, prevenir abusos y optimizar el rendimiento del servicio.",
-          "Enviar comunicaciones operativas imprescindibles para la prestación del servicio.",
-        ],
-      },
-      {
-        heading: "Bases jurídicas",
-        bullets: [
-          "Ejecución de la relación contractual o precontractual cuando el usuario solicita funcionalidades del servicio.",
-          "Cumplimiento de obligaciones legales aplicables.",
-          "Interés legítimo en seguridad, continuidad del servicio y mejora de la plataforma.",
-          "Consentimiento cuando resulte exigible para determinadas finalidades (por ejemplo, determinadas cookies o comunicaciones).",
-        ],
-      },
-      {
-        heading: "Conservación de datos",
+        heading: "1. Responsable del tratamiento",
         paragraphs: [
-          "Los datos se conservan durante el tiempo necesario para cumplir la finalidad para la que fueron recabados y, posteriormente, durante los plazos legalmente exigibles.",
-          "Cuando proceda, los datos serán bloqueados y tratados exclusivamente para atender posibles responsabilidades legales.",
+          "Denominación: Carswiseai [PENDIENTE: forma jurídica]",
+          "NIF/CIF: [PENDIENTE]",
+          "Domicilio: [PENDIENTE: dirección completa]",
+          "Correo electrónico de contacto (privacidad): soporte@carswiseai.com",
+          "Delegado de Protección de Datos (DPD/DPO): [PENDIENTE: indicar si existe o no aplica]",
         ],
       },
       {
-        heading: "Destinatarios y transferencias",
-        paragraphs: [
-          "Con carácter general no se ceden datos a terceros salvo obligación legal o cuando sea necesario para la prestación de servicios tecnológicos vinculados a la plataforma.",
-          "En caso de proveedores fuera del Espacio Económico Europeo, se aplicarán garantías adecuadas conforme al RGPD.",
+        heading: "2. Datos personales que tratamos",
+        bullets: [
+          "Datos de registro y cuenta: nombre, apellidos, teléfono y dirección de correo electrónico facilitados al crear la cuenta.",
+          "Datos de contacto y solicitudes: información proporcionada al rellenar formularios de solicitud de información, visita o renting (nombre, email, teléfono, fecha de cita, mensaje).",
+          "Datos de navegación y uso: eventos de sesión, páginas visitadas, ofertas consultadas, origen de la visita (UTM), identificador anónimo de sesión y dirección IP.",
+          "Datos de preferencias: configuración de alertas, filtros guardados y preferencias de idioma o tema.",
+          "Datos de facturación y pagos: en caso de contratación de planes de servicio, los datos necesarios para el procesamiento del pago a través del proveedor externo correspondiente.",
         ],
       },
       {
-        heading: "Derechos de las personas usuarias",
+        heading: "3. Finalidades y bases jurídicas del tratamiento",
+        bullets: [
+          "Gestión de la cuenta de usuario (alta, autenticación, mantenimiento y baja): base jurídica — ejecución del contrato (art. 6.1.b RGPD).",
+          "Tramitación de solicitudes de información, visita o renting enviadas a través del marketplace: base jurídica — ejecución de medidas precontractuales (art. 6.1.b RGPD).",
+          "Envío de comunicaciones operativas relacionadas con el estado de las solicitudes (confirmaciones, recordatorios, actualizaciones): base jurídica — ejecución del contrato (art. 6.1.b RGPD).",
+          "Análisis del comportamiento en la plataforma para mejorar el servicio y la experiencia de usuario: base jurídica — interés legítimo (art. 6.1.f RGPD).",
+          "Envío de comunicaciones comerciales de Carswiseai y/o de terceros: base jurídica — consentimiento expreso del interesado (art. 6.1.a RGPD), revocable en cualquier momento.",
+          "Consulta de solvencia o datos ante organismos públicos a través de Experian u otros proveedores autorizados, cuando el usuario lo solicite expresamente para operaciones de financiación o renting: base jurídica — consentimiento expreso (art. 6.1.a RGPD).",
+          "Cumplimiento de obligaciones legales (fiscales, contables, de seguridad): base jurídica — cumplimiento de obligación legal (art. 6.1.c RGPD).",
+        ],
+      },
+      {
+        heading: "4. Destinatarios y cesiones de datos",
         paragraphs: [
-          "Puedes ejercer los derechos de acceso, rectificación, supresión, oposición, limitación del tratamiento y portabilidad escribiendo a soporte@carswise.es.",
-          "Si consideras que tus derechos no han sido atendidos correctamente, puedes presentar reclamación ante la Agencia Española de Protección de Datos (AEPD).",
+          "Sus datos podrán ser comunicados a los proveedores de vehículos (concesionarios, empresas de renting) con los que el usuario haya iniciado una solicitud de contacto, exclusivamente para la gestión de dicha solicitud.",
+          "Asimismo, Carswiseai se apoya en proveedores tecnológicos que actúan como encargados del tratamiento, entre otros: servicios de alojamiento en la nube (Vercel, Supabase), servicios de envío de correo electrónico (Resend), servicios de bases de datos (Neon/PostgreSQL) y servicios de pago (Stripe). Todos ellos cuentan con contratos de encargo del tratamiento que garantizan el cumplimiento del RGPD.",
+          "No se realizan transferencias internacionales de datos fuera del Espacio Económico Europeo salvo cuando los proveedores tecnológicos citados dispongan de garantías adecuadas (cláusulas contractuales tipo, decisiones de adecuación).",
+          "No se ceden datos a terceros con fines comerciales propios salvo consentimiento expreso del usuario.",
+        ],
+      },
+      {
+        heading: "5. Plazos de conservación",
+        bullets: [
+          "Datos de cuenta: durante la vigencia de la relación y hasta 5 años después de la baja para atender posibles reclamaciones.",
+          "Datos de solicitudes y leads: hasta 3 años desde el último contacto o cierre de la solicitud.",
+          "Datos de facturación y contratos: 6 años conforme a la legislación mercantil y fiscal española.",
+          "Datos de navegación y analítica: máximo 25 meses desde su captación.",
+          "Comunicaciones comerciales: hasta que el usuario revoque el consentimiento.",
+        ],
+      },
+      {
+        heading: "6. Derechos de los interesados",
+        paragraphs: [
+          "Puede ejercer en cualquier momento los derechos de acceso, rectificación, supresión ('derecho al olvido'), oposición, limitación del tratamiento y portabilidad de sus datos, así como el derecho a no ser objeto de decisiones automatizadas, dirigiéndose por escrito a soporte@carswiseai.com, indicando su nombre, apellidos y una copia de su documento de identidad.",
+          "Si considera que el tratamiento de sus datos no se ajusta a la normativa, puede presentar reclamación ante la Agencia Española de Protección de Datos (AEPD), www.aepd.es.",
+        ],
+      },
+      {
+        heading: "7. Seguridad de los datos",
+        paragraphs: [
+          "Carswiseai aplica medidas técnicas y organizativas apropiadas para garantizar un nivel de seguridad adecuado al riesgo, incluyendo cifrado de datos en tránsito (TLS/HTTPS), control de accesos, autenticación segura y procedimientos de gestión de incidencias.",
+          "En caso de violación de seguridad que pueda afectar a sus derechos y libertades, Carswiseai notificará a las autoridades competentes y, cuando proceda, a los interesados afectados en los plazos legalmente establecidos.",
+        ],
+      },
+      {
+        heading: "8. Menores de edad",
+        paragraphs: [
+          "Los servicios de Carswiseai están dirigidos a mayores de 18 años. Carswiseai no recaba conscientemente datos de menores. Si tuviéramos conocimiento de haber recibido datos de un menor sin consentimiento parental, procederemos a su eliminación inmediata.",
+        ],
+      },
+      {
+        heading: "9. Cambios en esta política",
+        paragraphs: [
+          "Carswiseai puede actualizar esta Política de Privacidad para adaptarla a cambios normativos o del servicio. La versión vigente, con su fecha de actualización, estará siempre disponible en este sitio. Le recomendamos revisarla periódicamente.",
         ],
       },
     ],
@@ -362,86 +411,146 @@ const LEGAL_DOCUMENTS = {
   cookiePolicy: {
     title: "Política de cookies",
     summary:
-      "Información sobre el uso de cookies y tecnologías similares, su finalidad y cómo gestionar el consentimiento.",
-    updatedAt: "13/04/2026",
+      "Información sobre las cookies y tecnologías similares utilizadas en carswiseai.com, su finalidad y cómo puede gestionar o revocar su consentimiento.",
+    updatedAt: "17/06/2026",
     sections: [
       {
-        heading: "Qué son las cookies",
+        heading: "1. ¿Qué son las cookies?",
         paragraphs: [
-          "Las cookies son ficheros que se almacenan en el dispositivo del usuario y permiten reconocer su navegación, recordar preferencias y mejorar la experiencia.",
+          "Las cookies son pequeños archivos de texto que los sitios web almacenan en el navegador o dispositivo del usuario durante la visita. Permiten al sitio recordar información sobre la visita, como el idioma preferido y otras opciones, facilitando la navegación y la experiencia de uso.",
+          "De forma análoga, se utilizan otras tecnologías de almacenamiento local (localStorage, sessionStorage) con fines similares.",
         ],
       },
       {
-        heading: "Tipos de cookies utilizadas",
+        heading: "2. Cookies utilizadas en carswiseai.com",
         bullets: [
-          "Cookies técnicas o necesarias: esenciales para el acceso, autenticación y funcionamiento base del servicio.",
-          "Cookies de preferencias: conservan configuraciones y elecciones del usuario para personalizar la experiencia.",
-          "Cookies analíticas: permiten evaluar el uso del servicio y mejorar funcionalidades.",
+          "Cookies técnicas / necesarias: imprescindibles para el funcionamiento del sitio. Incluyen la gestión de sesión de usuario autenticado, el almacenamiento del consentimiento de cookies y las preferencias de idioma o tema. No requieren consentimiento previo.",
+          "Cookies de personalización: almacenan preferencias del usuario (filtros guardados, alertas, configuración de la cuenta) para personalizar la experiencia en sucesivas visitas. Se activan con el consentimiento del usuario.",
+          "Cookies analíticas (propias): registran datos sobre el comportamiento de navegación (páginas vistas, tiempo de sesión, origen de la visita) de forma agregada para mejorar el servicio. Se activan con el consentimiento del usuario.",
+          "Cookies de marketing / terceros: permiten mostrar publicidad o comunicaciones relevantes en función del comportamiento de navegación, así como compartir información con plataformas de terceros para fines de retargeting. Se activan únicamente con consentimiento expreso.",
         ],
       },
       {
-        heading: "Base legal y consentimiento",
+        heading: "3. Identificadores de sesión propios",
         paragraphs: [
-          "Las cookies necesarias se utilizan para asegurar el funcionamiento de la plataforma. El resto se gestionan conforme al consentimiento del usuario cuando sea exigible.",
-          "Al primer acceso se solicita aceptación para habilitar la experiencia completa y registrar la preferencia de consentimiento.",
+          "Carswiseai utiliza un identificador anónimo de sesión (cw_anon_id) almacenado en localStorage para reconocer una misma sesión de navegación y mejorar la coherencia del servicio. Este identificador no contiene datos personales identificables por sí mismo y se asocia a un correo electrónico únicamente cuando el usuario se registra o inicia sesión.",
+          "Los parámetros de campaña (UTM) se almacenan en sessionStorage (cw_utm) durante la sesión activa para medir la eficacia de las acciones de marketing.",
         ],
       },
       {
-        heading: "Cómo revocar o modificar el consentimiento",
+        heading: "4. Base legal y gestión del consentimiento",
         paragraphs: [
-          "Puedes modificar la configuración de cookies desde los ajustes del navegador y, en su caso, desde los mecanismos que habilite la plataforma.",
-          "La desactivación de determinadas cookies puede afectar a la disponibilidad de algunas funcionalidades.",
+          "Las cookies técnicas se instalan sin necesidad de consentimiento previo al amparo del interés legítimo y la necesidad para la prestación del servicio. El resto de cookies requieren consentimiento previo, libre, específico, informado e inequívoco del usuario.",
+          "Al acceder por primera vez a carswiseai.com, se solicita el consentimiento mediante el panel de preferencias integrado en el formulario de acceso. El usuario puede aceptar todas las cookies, solo las necesarias, o configurar sus preferencias de forma granular.",
+          "El consentimiento otorgado queda registrado con fecha y versión de política. Puede revocarlo o modificarlo en cualquier momento desde el pie de página de la web.",
+        ],
+      },
+      {
+        heading: "5. Cookies de terceros",
+        paragraphs: [
+          "Carswiseai puede integrar servicios de terceros que instalan sus propias cookies. Estos terceros disponen de sus propias políticas de cookies a las que el usuario puede acceder en sus respectivos sitios web.",
+          "Los principales terceros cuyas tecnologías pueden estar presentes son: Stripe (procesamiento de pagos), Resend (envío de emails), Vercel (hosting y analítica de rendimiento). [PENDIENTE: revisar y completar la lista según integraciones activas].",
+        ],
+      },
+      {
+        heading: "6. Cómo configurar o eliminar las cookies",
+        paragraphs: [
+          "Puede configurar su navegador para bloquear o eliminar cookies. A continuación, los enlaces a las instrucciones de los principales navegadores: Chrome (Configuración › Privacidad › Cookies), Firefox (Preferencias › Privacidad), Safari (Preferencias › Privacidad), Edge (Configuración › Cookies).",
+          "Tenga en cuenta que la desactivación de cookies técnicas puede impedir el correcto funcionamiento de la plataforma, incluido el inicio de sesión.",
+        ],
+      },
+      {
+        heading: "7. Actualizaciones de esta política",
+        paragraphs: [
+          "Esta Política de Cookies puede actualizarse cuando se incorporen nuevas tecnologías o cambie la normativa aplicable. La fecha de última actualización figura al inicio del documento. Le recomendamos revisarla periódicamente.",
         ],
       },
     ],
   },
   termsConditions: {
-    title: "Términos y condiciones",
+    title: "Condiciones generales de uso",
     summary:
-      "Condiciones generales de uso del servicio, obligaciones de las partes y límites de responsabilidad.",
-    updatedAt: "13/04/2026",
+      "Condiciones que regulan el acceso, registro y uso de los servicios del marketplace y plataforma de movilidad de Carswiseai.",
+    updatedAt: "17/06/2026",
     sections: [
       {
-        heading: "Aceptación de términos",
+        heading: "1. Objeto y aceptación",
         paragraphs: [
-          "El acceso y uso de CarsWise implica la aceptación de estos términos y condiciones.",
-          "Si no estás de acuerdo con los términos, debes abstenerte de utilizar la plataforma.",
+          "Las presentes Condiciones Generales de Uso regulan el acceso y uso de la plataforma Carswiseai (carswiseai.com), incluyendo el marketplace de vehículos de ocasión, el servicio de renting, las herramientas de asesoramiento y todas las funcionalidades disponibles para usuarios registrados.",
+          "El acceso, registro o uso de cualquier servicio de Carswiseai implica la aceptación expresa e íntegra de estas Condiciones, así como de la Política de Privacidad y la Política de Cookies. Si no está de acuerdo, debe abstenerse de usar la plataforma.",
+          "Carswiseai se reserva el derecho a modificar estas Condiciones. Los cambios se publicarán con indicación de la fecha de actualización. El uso continuado de la plataforma tras la publicación de cambios implicará su aceptación.",
         ],
       },
       {
-        heading: "Alcance y naturaleza del servicio",
-        paragraphs: [
-          "CarsWise proporciona recomendaciones y herramientas de apoyo para decisiones de movilidad, compra, venta y servicios asociados.",
-          "La plataforma no sustituye la revisión contractual o técnica que el usuario deba realizar antes de cerrar operaciones con terceros.",
-        ],
-      },
-      {
-        heading: "Cuenta de usuario y seguridad",
+        heading: "2. Registro y cuenta de usuario",
         bullets: [
-          "El usuario es responsable de custodiar sus credenciales y de la actividad realizada en su cuenta.",
-          "Debe notificarse cualquier uso no autorizado o incidencia de seguridad en cuanto se detecte.",
+          "El acceso a las funcionalidades del marketplace requiere registro previo. El usuario debe ser mayor de 18 años y proporcionar información veraz, completa y actualizada.",
+          "El usuario es el único responsable de mantener la confidencialidad de sus credenciales de acceso y de toda la actividad realizada desde su cuenta.",
+          "Ante cualquier uso no autorizado de la cuenta o incidencia de seguridad, el usuario debe notificarlo inmediatamente a soporte@carswiseai.com.",
+          "Carswiseai puede suspender o cancelar cuentas que incumplan estas Condiciones o que realicen un uso fraudulento o abusivo del servicio.",
         ],
       },
       {
-        heading: "Obligaciones de uso",
+        heading: "3. Naturaleza del servicio de marketplace",
+        paragraphs: [
+          "Carswiseai actúa como plataforma de intermediación que conecta a usuarios interesados en vehículos con proveedores (concesionarios, empresas de renting u otros). Carswiseai no es parte en los contratos de compraventa o arrendamiento que se formalicen entre el usuario y el proveedor.",
+          "La información sobre vehículos (precio, características, disponibilidad, fotografías) es proporcionada por los proveedores. Carswiseai no garantiza la exactitud, completitud o vigencia de dicha información y no asume responsabilidad por errores u omisiones en los listados.",
+          "El envío de una solicitud de información, visita o renting a través de la plataforma no genera ningún compromiso contractual entre el usuario y Carswiseai ni entre el usuario y el proveedor hasta que ambas partes formalicen el contrato correspondiente.",
+        ],
+      },
+      {
+        heading: "4. Solicitudes de renting",
+        paragraphs: [
+          "Las solicitudes de renting tramitadas a través de Carswiseai son gestionadas por las empresas proveedoras de renting (Leasys, Astara u otras). La aprobación, condiciones y contrato definitivo dependen exclusivamente del proveedor y de los requisitos de solvencia del solicitante.",
+          "Carswiseai facilita el proceso de solicitud pero no garantiza la concesión del renting ni las condiciones ofertadas, que pueden variar según la política comercial y de riesgo del proveedor.",
+        ],
+      },
+      {
+        heading: "5. Planes de servicio y pagos",
+        paragraphs: [
+          "Carswiseai puede ofrecer planes de suscripción o servicios de valor añadido con coste. Los precios, condiciones y períodos de facturación se indicarán en el momento de la contratación.",
+          "El procesamiento de pagos se realiza a través de Stripe. Carswiseai no almacena datos de tarjetas de crédito o débito.",
+          "[PENDIENTE: desarrollar condiciones específicas de suscripción, cancelación y política de reembolso cuando aplique]",
+        ],
+      },
+      {
+        heading: "6. Obligaciones del usuario",
         bullets: [
-          "Utilizar el servicio de forma lícita, diligente y conforme a los presentes términos.",
-          "No manipular, interferir ni realizar acciones que comprometan seguridad, estabilidad o integridad del sistema.",
-          "No emplear el servicio para fines ilícitos o contrarios a derechos de terceros.",
+          "Usar la plataforma de forma lícita, diligente y conforme a las presentes Condiciones y a la legislación vigente.",
+          "Proporcionar información veraz en el registro y en los formularios de solicitud.",
+          "No suplantar la identidad de otras personas ni facilitar datos personales de terceros sin su consentimiento.",
+          "No realizar acciones que sobrecarguen, interfieran o dañen la infraestructura técnica de la plataforma.",
+          "No utilizar la plataforma con fines ilícitos, fraudulentos o contrarios a derechos de terceros.",
+          "No publicar, transmitir ni compartir contenidos ilícitos, difamatorios, obscenos o que vulneren derechos de propiedad intelectual.",
         ],
       },
       {
-        heading: "Limitación de responsabilidad",
+        heading: "7. Limitación de responsabilidad",
         paragraphs: [
-          "CarsWise no garantiza resultados económicos concretos ni asume responsabilidad por decisiones finales adoptadas por el usuario.",
-          "Las relaciones contractuales con terceros proveedores son responsabilidad directa de las partes intervinientes.",
+          "Carswiseai no garantiza la disponibilidad ininterrumpida del servicio. En la medida en que lo permita la ley, Carswiseai queda exonerada de responsabilidad por daños derivados de interrupciones técnicas, errores en la plataforma o ataques informáticos.",
+          "Carswiseai no asume responsabilidad por el incumplimiento de las obligaciones contraídas entre el usuario y el proveedor del vehículo o servicio de renting.",
+          "La responsabilidad máxima de Carswiseai frente al usuario, en cualquier caso, no podrá superar el importe abonado por este en los 12 meses anteriores al hecho causante del daño.",
         ],
       },
       {
-        heading: "Modificaciones y vigencia",
+        heading: "8. Propiedad intelectual",
         paragraphs: [
-          "CarsWise puede actualizar estos términos para adaptarlos a cambios normativos, técnicos o de servicio.",
-          "La versión vigente estará siempre disponible en el apartado legal de la plataforma.",
+          "Todos los derechos de propiedad intelectual e industrial sobre la plataforma, su código, diseño, contenidos y marca pertenecen a Carswiseai o a sus licenciantes. El usuario no adquiere ningún derecho sobre ellos por el mero uso del servicio.",
+          "Queda prohibida la reproducción, copia, distribución, transformación o comunicación pública de los contenidos de la plataforma sin autorización expresa y por escrito de Carswiseai.",
+        ],
+      },
+      {
+        heading: "9. Protección de datos",
+        paragraphs: [
+          "El tratamiento de los datos personales del usuario se rige por la Política de Privacidad de Carswiseai, disponible en carswiseai.com/politica-privacidad, que forma parte integrante de estas Condiciones.",
+        ],
+      },
+      {
+        heading: "10. Legislación aplicable y resolución de disputas",
+        paragraphs: [
+          "Las presentes Condiciones se rigen por la legislación española. Para la resolución de conflictos, las partes se someten a la jurisdicción de los Juzgados y Tribunales del domicilio del usuario, salvo que la normativa de consumo establezca un fuero imperativo distinto.",
+          "La Comisión Europea facilita una plataforma de resolución de litigios en línea (ODR) accesible en https://ec.europa.eu/consumers/odr para consumidores de la UE.",
+          "[PENDIENTE: indicar si la empresa está adherida a algún sistema de arbitraje de consumo]",
         ],
       },
     ],

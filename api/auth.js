@@ -118,6 +118,10 @@ function sanitizeUser(user = {}) {
     email,
     createdAt: normalizeText(user.createdAt),
     lastLoginAt: normalizeText(user.lastLoginAt),
+    consentLegalAt: user.consentLegalAt || null,
+    consentMarketingAt: user.consentMarketingAt || null,
+    consentExperianAt: user.consentExperianAt || null,
+    consentsReviewedAt: user.consentsReviewedAt || null,
   };
 }
 
@@ -1060,7 +1064,8 @@ async function ensurePostgresSchema() {
       ADD COLUMN IF NOT EXISTS affiliate_data           JSONB,
       ADD COLUMN IF NOT EXISTS referer                  TEXT         NOT NULL DEFAULT '',
       ADD COLUMN IF NOT EXISTS landing_url              TEXT         NOT NULL DEFAULT '',
-      ADD COLUMN IF NOT EXISTS language                 VARCHAR(20)  NOT NULL DEFAULT ''
+      ADD COLUMN IF NOT EXISTS language                 VARCHAR(20)  NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS consents_reviewed_at     TIMESTAMPTZ
   `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS moveadvisor_sessions (
@@ -1102,7 +1107,8 @@ async function findUserByEmailPostgres(email) {
   const pool = getPgPool();
   const { rows } = await pool.query(
     `SELECT id, name, apellidos, phone, email, password_salt AS "passwordSalt", password_hash AS "passwordHash",
-            created_at AS "createdAt", last_login_at AS "lastLoginAt"
+            created_at AS "createdAt", last_login_at AS "lastLoginAt",
+            consent_legal_at, consent_marketing_at, consent_experian_at, consents_reviewed_at
      FROM moveadvisor_users WHERE email = $1 LIMIT 1`,
     [email]
   );
@@ -1276,6 +1282,10 @@ function mapDbUser(foundUser = {}) {
     passwordHash: normalizeText(foundUser.PasswordHash || foundUser.passwordHash),
     createdAt: new Date(foundUser.CreatedAt || foundUser.createdAt || new Date()).toISOString(),
     lastLoginAt: new Date(foundUser.LastLoginAt || foundUser.lastLoginAt || new Date()).toISOString(),
+    consentLegalAt: foundUser.consent_legal_at || foundUser.consentLegalAt || null,
+    consentMarketingAt: foundUser.consent_marketing_at || foundUser.consentMarketingAt || null,
+    consentExperianAt: foundUser.consent_experian_at || foundUser.consentExperianAt || null,
+    consentsReviewedAt: foundUser.consents_reviewed_at || foundUser.consentsReviewedAt || null,
   };
 }
 
@@ -1851,6 +1861,38 @@ async function _authHandlerInner(req, res) {
 
     clearSessionCookie(res);
     return res.status(200).json({ ok: true, message: "SesiÃ³n cerrada." });
+  }
+
+  if (action === "save_consents") {
+    const parsedSession = parseSessionCookieFromRequest(req);
+    if (!parsedSession?.sessionId) {
+      return res.status(401).json({ error: "Sesión no válida." });
+    }
+    const sessionRow = usePostgres ? await findSessionByIdPostgres(parsedSession.sessionId) : null;
+    if (!sessionRow?.userId) {
+      return res.status(401).json({ error: "Sesión no válida." });
+    }
+    if (usePostgres) {
+      const now = new Date().toISOString();
+      const legalAt     = body.consentLegal     ? now : null;
+      const marketingAt = body.consentMarketing ? now : null;
+      const experianAt  = body.consentExperian  ? now : null;
+      const pool = getPgPool();
+      await pool.query(
+        `UPDATE moveadvisor_users
+         SET consent_legal_at     = COALESCE(consent_legal_at, $2),
+             consent_marketing_at = COALESCE(consent_marketing_at, $3),
+             consent_experian_at  = COALESCE(consent_experian_at, $4),
+             consents_reviewed_at = $5
+         WHERE id = $1`,
+        [sessionRow.userId, legalAt, marketingAt, experianAt, now]
+      );
+      const updated = await findUserByEmailPostgres(
+        (await getPgPool().query(`SELECT email FROM moveadvisor_users WHERE id = $1`, [sessionRow.userId])).rows[0]?.email
+      );
+      return res.status(200).json({ ok: true, user: sanitizeUser(mapDbUser(updated)) });
+    }
+    return res.status(200).json({ ok: true });
   }
 
   if (action === "change_password") {

@@ -1691,6 +1691,11 @@ export default function App() {
   const [consentLegal, setConsentLegal] = useState(false);
   const [consentMarketing, setConsentMarketing] = useState(false);
   const [consentExperian, setConsentExperian] = useState(false);
+  const [showConsentReview, setShowConsentReview] = useState(false);
+  const [consentReviewLegal, setConsentReviewLegal] = useState(false);
+  const [consentReviewMarketing, setConsentReviewMarketing] = useState(false);
+  const [consentReviewExperian, setConsentReviewExperian] = useState(false);
+  const [consentReviewLoading, setConsentReviewLoading] = useState(false);
   const [themeMode, setThemeMode] = useState("light");
   const [uiLanguage, setUiLanguage] = useState(() => {
     return normalizeUiLanguage();
@@ -2042,6 +2047,7 @@ export default function App() {
     setShowCookieGate,
     setAuthRequired,
     setAuthDialogMode,
+    setShowConsentReview,
   });
 
   useEffect(() => {
@@ -2736,6 +2742,10 @@ export default function App() {
         setConsentLegal(false);
         setConsentMarketing(false);
         setConsentExperian(false);
+      }
+      // Show consent review modal for existing users who never decided
+      if (mode === "login" && !nextUser.consentLegalAt && !nextUser.consentsReviewedAt) {
+        setShowConsentReview(true);
       }
 
       const nextPendingPlanId = normalizeText(pendingPlanCheckoutId).toLowerCase();
@@ -5376,6 +5386,86 @@ export default function App() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Consent review modal for existing users ── */}
+      {showConsentReview && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ background: "#0f172a", borderRadius: 20, padding: "32px 28px", maxWidth: 480, width: "100%", border: "1px solid rgba(148,163,184,0.15)" }}>
+            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color: "#67e8f9", marginBottom: 10 }}>Actualización de políticas</p>
+            <h3 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 800, color: "#f8fafc", lineHeight: 1.2 }}>Revisa y acepta nuestras políticas</h3>
+            <p style={{ margin: "0 0 20px", color: "#94a3b8", fontSize: 13, lineHeight: 1.6 }}>Hemos actualizado nuestras condiciones. Puedes aceptar o continuar sin aceptar — tu decisión quedará guardada.</p>
+
+            <div style={{ display: "grid", gap: 10, marginBottom: 24 }}>
+              {/* Checkbox 1 — obligatorio */}
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
+                <input type="checkbox" checked={consentReviewLegal} onChange={(e) => setConsentReviewLegal(e.target.checked)}
+                  style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
+                  He leído y acepto{" "}
+                  <a href="/terminos-condiciones" target="_blank" rel="noopener noreferrer" style={{ color: "#93c5fd", textDecoration: "underline" }}>Condiciones Generales</a>
+                  {", "}
+                  <a href="/politica-privacidad" target="_blank" rel="noopener noreferrer" style={{ color: "#93c5fd", textDecoration: "underline" }}>Política de Privacidad</a>.{" "}
+                  <span style={{ color: "#f87171", fontSize: 11 }}>(obligatorio)</span>
+                </span>
+              </label>
+
+              {/* Checkbox 2 — marketing */}
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
+                <input type="checkbox" checked={consentReviewMarketing} onChange={(e) => setConsentReviewMarketing(e.target.checked)}
+                  style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
+                  Acepto recibir comunicaciones comerciales conforme a la{" "}
+                  <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Política de Comunicaciones Comerciales</a>.
+                </span>
+              </label>
+
+              {/* Checkbox 3 — Experian */}
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
+                <input type="checkbox" checked={consentReviewExperian} onChange={(e) => setConsentReviewExperian(e.target.checked)}
+                  style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
+                  He leído y acepto las{" "}
+                  <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Condiciones del Servicio Experian</a>
+                  {" "}y la{" "}
+                  <a href="/politica-experian" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Política de Consulta de Solvencia</a>.
+                </span>
+              </label>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <button
+                disabled={consentReviewLoading}
+                onClick={async () => {
+                  setConsentReviewLoading(true);
+                  try {
+                    const { data } = await postAuthJson({ action: "save_consents", consentLegal: consentReviewLegal, consentMarketing: consentReviewMarketing, consentExperian: consentReviewExperian });
+                    if (data?.user) { writeAuthUser(data.user); setCurrentUser(data.user); }
+                  } catch {}
+                  setShowConsentReview(false);
+                  setConsentReviewLoading(false);
+                }}
+                style={{ width: "100%", padding: "12px", borderRadius: 10, background: "#2563eb", color: "#fff", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", opacity: consentReviewLoading ? 0.6 : 1 }}
+              >
+                {consentReviewLoading ? "Guardando…" : "Guardar selección y continuar"}
+              </button>
+              <button
+                disabled={consentReviewLoading}
+                onClick={async () => {
+                  setConsentReviewLoading(true);
+                  try {
+                    await postAuthJson({ action: "save_consents", consentLegal: false, consentMarketing: false, consentExperian: false });
+                  } catch {}
+                  setShowConsentReview(false);
+                  setConsentReviewLoading(false);
+                }}
+                style={{ width: "100%", padding: "10px", borderRadius: 10, background: "transparent", color: "#64748b", fontWeight: 500, fontSize: 13, border: "1px solid rgba(148,163,184,0.2)", cursor: "pointer" }}
+              >
+                Continuar sin aceptar
+              </button>
+            </div>
           </div>
         </div>
       )}

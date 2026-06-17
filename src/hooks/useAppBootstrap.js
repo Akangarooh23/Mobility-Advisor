@@ -34,6 +34,7 @@ export function useAppBootstrap({
   setShowCookieGate,
   setAuthRequired,
   setAuthDialogMode,
+  setShowConsentReview,
 }) {
   useEffect(() => {
     const savedAuthUser = readAuthUser();
@@ -106,6 +107,9 @@ export function useAppBootstrap({
           writeAuthUser(sessionUser);
           setCurrentUser(sessionUser);
           setIsUserLoggedIn(true);
+          if (!sessionUser.consentLegalAt && !sessionUser.consentsReviewedAt) {
+            setShowConsentReview(true);
+          }
 
           // Sync backend data into state; localStorage becomes fallback cache.
           void (async () => {
@@ -177,5 +181,6 @@ export function useAppBootstrap({
     themeStorageKey,
     setAuthRequired,
     setAuthDialogMode,
+    setShowConsentReview,
   ]);
 }

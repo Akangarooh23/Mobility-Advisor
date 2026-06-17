@@ -38,6 +38,8 @@ export function useAppBootstrap({
   useEffect(() => {
     const savedAuthUser = readAuthUser();
     const persistedTheme = typeof window !== "undefined" ? window.localStorage.getItem(themeStorageKey) : "";
+    const PUBLIC_PATHS = ["/aviso-legal", "/politica-privacidad", "/politica-cookies", "/terminos-condiciones"];
+    const isPublicRoute = typeof window !== "undefined" && PUBLIC_PATHS.some((p) => window.location.pathname === p || window.location.pathname.startsWith(p + "/"));
 
     if (persistedTheme === "dark" || persistedTheme === "light") {
       setThemeMode(persistedTheme);
@@ -54,7 +56,7 @@ export function useAppBootstrap({
     setIsUserLoggedIn(Boolean(savedAuthUser?.email));
 
     // No cached user → require login immediately (sync, no flash)
-    if (!savedAuthUser?.email) {
+    if (!savedAuthUser?.email && !isPublicRoute) {
       setAuthRequired(true);
       setAuthDialogMode("login");
     }
@@ -126,9 +128,11 @@ export function useAppBootstrap({
         clearAuthUser();
         setCurrentUser(null);
         setIsUserLoggedIn(false);
-        // Session expired → require login again
-        setAuthRequired(true);
-        setAuthDialogMode("login");
+        // Session expired → require login again (skip on public/legal pages)
+        if (!isPublicRoute) {
+          setAuthRequired(true);
+          setAuthDialogMode("login");
+        }
       } catch {
         // If backend session check fails, keep local state as fallback.
       }

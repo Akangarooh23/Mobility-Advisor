@@ -2770,6 +2770,7 @@ export default function App() {
     authTargetPage,
     consentLegal,
     consentMarketing,
+    consentExperian,
     entryMode,
     pendingPlanCheckoutId,
     saveCookieConsent,

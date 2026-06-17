@@ -5470,7 +5470,7 @@ export default function App() {
         </div>
       )}
 
-      {showCookieGate && !authRequired && !showConsentReview && !["legalNotice", "privacyPolicy", "cookiePolicy", "termsConditions", "marketingPolicy", "experianPolicy", "experianTerms"].includes(entryMode) && (
+      {showCookieGate && !isUserLoggedIn && !authRequired && !showConsentReview && !["legalNotice", "privacyPolicy", "cookiePolicy", "termsConditions", "marketingPolicy", "experianPolicy", "experianTerms"].includes(entryMode) && (
         <div
           role="dialog"
           aria-modal="true"

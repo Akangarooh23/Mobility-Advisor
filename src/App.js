@@ -1238,6 +1238,7 @@ export default function App() {
   const [showCookieSettings, setShowCookieSettings] = useState(false);
   const [consentLegal, setConsentLegal] = useState(false);
   const [consentMarketing, setConsentMarketing] = useState(false);
+  const [consentExperian, setConsentExperian] = useState(false);
   const [themeMode, setThemeMode] = useState("light");
   const [uiLanguage, setUiLanguage] = useState(() => {
     return normalizeUiLanguage();
@@ -2261,6 +2262,7 @@ export default function App() {
         saveCookieConsent(consentMarketing ? "all" : "necessary");
         setConsentLegal(false);
         setConsentMarketing(false);
+        setConsentExperian(false);
       }
 
       const nextPendingPlanId = normalizeText(pendingPlanCheckoutId).toLowerCase();
@@ -2297,6 +2299,7 @@ export default function App() {
     authRecoveryMode,
     authTargetEntryMode,
     authTargetPage,
+    consentExperian,
     consentLegal,
     consentMarketing,
     entryMode,
@@ -4674,66 +4677,96 @@ export default function App() {
 
               {showCookieGate && authRecoveryMode === "none" && (
                 <div style={{ borderTop: "1px solid rgba(148,163,184,0.15)", paddingTop: 14, display: "grid", gap: 10 }}>
-                  <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.4px", textTransform: "uppercase" }}>
-                    Consentimientos
-                  </div>
 
                   {/* Master toggle */}
-                  <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
-                    <input
-                      type="checkbox"
-                      checked={consentLegal && consentMarketing}
-                      onChange={(e) => { setConsentLegal(e.target.checked); setConsentMarketing(e.target.checked); }}
-                      style={{ marginTop: 2, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
-                    />
+                  <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+                    <div
+                      onClick={() => {
+                        const allOn = consentLegal && consentMarketing && consentExperian;
+                        setConsentLegal(!allOn);
+                        setConsentMarketing(!allOn);
+                        setConsentExperian(!allOn);
+                      }}
+                      style={{
+                        width: 36, height: 20, borderRadius: 999, flexShrink: 0, cursor: "pointer",
+                        background: consentLegal && consentMarketing && consentExperian ? "#2563eb" : "rgba(148,163,184,0.3)",
+                        position: "relative", transition: "background 0.2s",
+                      }}
+                    >
+                      <div style={{
+                        width: 14, height: 14, borderRadius: "50%", background: "#fff",
+                        position: "absolute", top: 3,
+                        left: consentLegal && consentMarketing && consentExperian ? 19 : 3,
+                        transition: "left 0.2s",
+                      }} />
+                    </div>
                     <span style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.5 }}>
-                      Acepto todos los consentimientos siguientes
+                      Acepto todos los consentimientos siguientes:
                     </span>
                   </label>
 
-                  {/* Legal obligatorio */}
+                  {/* 1. Legal + privacidad + SECCI — obligatorio */}
                   <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                     <input
                       type="checkbox"
                       checked={consentLegal}
-                      onChange={(e) => { setConsentLegal(e.target.checked); if (!e.target.checked) setConsentMarketing(false); }}
-                      style={{ marginTop: 2, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
+                      onChange={(e) => { setConsentLegal(e.target.checked); if (!e.target.checked) { setConsentMarketing(false); setConsentExperian(false); } }}
+                      style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
                     />
                     <span style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
-                      He leído y acepto las{" "}
+                      He leído y acepto{" "}
                       <a href="/terminos-condiciones" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "#93c5fd", textDecoration: "underline" }}
-                        onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "#93c5fd", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Condiciones Generales
                       </a>
-                      {" "}y la{" "}
+                      ,{" "}
                       <a href="/politica-privacidad" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "#93c5fd", textDecoration: "underline" }}
-                        onClick={(e) => e.stopPropagation()}>
-                        Política de Privacidad
+                        style={{ color: "#93c5fd", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        Política de Privacidad de Datos
                       </a>
-                      {" "}de CarsWise.{" "}
+                      .{" "}
                       <span style={{ color: "#f87171", fontSize: 11 }}>(obligatorio)</span>
                     </span>
                   </label>
 
-                  {/* Marketing opcional */}
+                  {/* 2. Comunicaciones de terceros — opcional */}
                   <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                     <input
                       type="checkbox"
                       checked={consentMarketing}
                       onChange={(e) => setConsentMarketing(e.target.checked)}
-                      style={{ marginTop: 2, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
+                      style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
                     />
                     <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                      Acepto recibir comunicaciones comerciales de CarsWise conforme a la{" "}
+                      Acepto recibir comunicaciones de terceros conforme a la{" "}
                       <a href="/politica-privacidad" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "#7dd3fc", textDecoration: "underline" }}
-                        onClick={(e) => e.stopPropagation()}>
-                        Política de Privacidad
+                        style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        Política de Privacidad de Datos
                       </a>
-                      .{" "}
-                      <span style={{ color: "#64748b", fontSize: 11 }}>(opcional)</span>
+                      .
+                    </span>
+                  </label>
+
+                  {/* 3. Experian — opcional */}
+                  <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
+                    <input
+                      type="checkbox"
+                      checked={consentExperian}
+                      onChange={(e) => setConsentExperian(e.target.checked)}
+                      style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
+                    />
+                    <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
+                      He leído y acepto las{" "}
+                      <a href="/terminos-condiciones" target="_blank" rel="noopener noreferrer"
+                        style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        Condiciones Generales
+                      </a>
+                      {" "}y la{" "}
+                      <a href="/politica-privacidad" target="_blank" rel="noopener noreferrer"
+                        style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        Política de Privacidad de Datos
+                      </a>
+                      {" "}de los servicios de Experian para consultar mis datos ante organismos públicos.
                     </span>
                   </label>
                 </div>

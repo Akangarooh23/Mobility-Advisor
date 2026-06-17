@@ -7149,6 +7149,9 @@ export default function App() {
                 [uiLanguage === "en" ? "Privacy" : "Privacidad", "privacyPolicy"],
                 ["Cookies", "cookiePolicy"],
                 [uiLanguage === "en" ? "Terms" : "Términos", "termsConditions"],
+                [uiLanguage === "en" ? "Marketing Policy" : "Comunicaciones", "marketingPolicy"],
+                [uiLanguage === "en" ? "Experian Policy" : "Política Experian", "experianPolicy"],
+                [uiLanguage === "en" ? "Experian Terms" : "Condiciones Experian", "experianTerms"],
               ].map(([label, key]) => (
                 <button
                   key={key}

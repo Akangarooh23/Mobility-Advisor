@@ -1047,7 +1047,17 @@ async function ensurePostgresSchema() {
       ADD COLUMN IF NOT EXISTS stripe_customer_id       VARCHAR(64)  NOT NULL DEFAULT '',
       ADD COLUMN IF NOT EXISTS stripe_subscription_id   VARCHAR(64)  NOT NULL DEFAULT '',
       ADD COLUMN IF NOT EXISTS next_billing_date        TIMESTAMPTZ,
-      ADD COLUMN IF NOT EXISTS cancel_at_period_end     BOOLEAN      NOT NULL DEFAULT false
+      ADD COLUMN IF NOT EXISTS cancel_at_period_end     BOOLEAN      NOT NULL DEFAULT false,
+      ADD COLUMN IF NOT EXISTS consent_legal_at         TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS consent_marketing_at     TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS consent_experian_at      TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS registration_ip          VARCHAR(64)  NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS registration_ua          TEXT         NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS utm_source               VARCHAR(200) NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS utm_medium               VARCHAR(200) NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS utm_campaign             VARCHAR(200) NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS utm_content              VARCHAR(200) NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS affiliate_data           JSONB
   `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS moveadvisor_sessions (
@@ -1100,9 +1110,19 @@ async function createUserPostgres(user) {
   await ensurePostgresSchema();
   const pool = getPgPool();
   await pool.query(
-    `INSERT INTO moveadvisor_users (id, name, apellidos, phone, email, password_salt, password_hash, created_at, last_login_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-    [user.id, user.name, user.apellidos || "", user.phone || "", user.email, user.passwordSalt, user.passwordHash, user.createdAt, user.lastLoginAt]
+    `INSERT INTO moveadvisor_users
+      (id, name, apellidos, phone, email, password_salt, password_hash, created_at, last_login_at,
+       consent_legal_at, consent_marketing_at, consent_experian_at,
+       registration_ip, registration_ua, utm_source, utm_medium, utm_campaign, utm_content, affiliate_data)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)`,
+    [
+      user.id, user.name, user.apellidos || "", user.phone || "", user.email,
+      user.passwordSalt, user.passwordHash, user.createdAt, user.lastLoginAt,
+      user.consentLegalAt || null, user.consentMarketingAt || null, user.consentExperianAt || null,
+      user.registrationIp || "", user.registrationUa || "",
+      user.utmSource || "", user.utmMedium || "", user.utmCampaign || "", user.utmContent || "",
+      user.affiliateData ? JSON.stringify(user.affiliateData) : null,
+    ]
   );
   return findUserByEmailPostgres(user.email);
 }
@@ -1792,6 +1812,15 @@ async function _authHandlerInner(req, res) {
   const apellidos = normalizeText(body.apellidos);
   const phone = normalizeText(body.phone);
   const clientIp = getClientIp(req);
+  const clientUa = (req.headers["user-agent"] || "").slice(0, 500);
+  const consentLegalAt = body.consentLegalAt ? new Date(body.consentLegalAt).toISOString() : null;
+  const consentMarketingAt = body.consentMarketingAt ? new Date(body.consentMarketingAt).toISOString() : null;
+  const consentExperianAt = body.consentExperianAt ? new Date(body.consentExperianAt).toISOString() : null;
+  const utmSource = normalizeText(body.utmSource);
+  const utmMedium = normalizeText(body.utmMedium);
+  const utmCampaign = normalizeText(body.utmCampaign);
+  const utmContent = normalizeText(body.utmContent);
+  const affiliateData = body.affiliateData && typeof body.affiliateData === "object" ? body.affiliateData : null;
 
   if (!action) {
     return res.status(400).json({ error: "Debes indicar la acciÃ³n de auth." });
@@ -2179,6 +2208,16 @@ async function _authHandlerInner(req, res) {
       passwordHash: hashPassword(password, salt),
       createdAt: now,
       lastLoginAt: now,
+      consentLegalAt,
+      consentMarketingAt,
+      consentExperianAt,
+      registrationIp: clientIp,
+      registrationUa: clientUa,
+      utmSource,
+      utmMedium,
+      utmCampaign,
+      utmContent,
+      affiliateData,
     };
 
     const savedUser = useMssql

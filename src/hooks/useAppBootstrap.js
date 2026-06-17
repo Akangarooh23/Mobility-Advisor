@@ -38,7 +38,18 @@ export function useAppBootstrap({
   useEffect(() => {
     const savedAuthUser = readAuthUser();
     const persistedTheme = typeof window !== "undefined" ? window.localStorage.getItem(themeStorageKey) : "";
-    const PUBLIC_PATHS = ["/aviso-legal", "/politica-privacidad", "/politica-cookies", "/terminos-condiciones"];
+    const PUBLIC_PATHS = ["/aviso-legal", "/politica-privacidad", "/politica-cookies", "/terminos-condiciones", "/politica-comunicaciones", "/politica-experian", "/condiciones-experian"];
+
+    // Capture UTM params from URL on first landing and persist for registration
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const utmKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
+      const captured = {};
+      utmKeys.forEach((k) => { const v = urlParams.get(k); if (v) captured[k] = v; });
+      if (Object.keys(captured).length > 0) {
+        window.localStorage.setItem("ma.utm", JSON.stringify(captured));
+      }
+    } catch {}
     const isPublicRoute = typeof window !== "undefined" && PUBLIC_PATHS.some((p) => window.location.pathname === p || window.location.pathname.startsWith(p + "/"));
 
     if (persistedTheme === "dark" || persistedTheme === "light") {

@@ -589,6 +589,192 @@ const LEGAL_DOCUMENTS = {
       },
     ],
   },
+  marketingPolicy: {
+    title: "Política de Comunicaciones Comerciales",
+    summary:
+      "Información sobre cómo utilizamos sus datos para enviarle comunicaciones comerciales de Carswiseai y socios seleccionados, y cómo puede cancelarlas en cualquier momento.",
+    updatedAt: "17/06/2026",
+    sections: [
+      {
+        heading: "1. ¿Qué son las comunicaciones comerciales?",
+        paragraphs: [
+          "Las comunicaciones comerciales son mensajes enviados por correo electrónico, SMS u otros canales digitales con el fin de informarle sobre novedades de Carswiseai, ofertas de vehículos, promociones de renting y servicios de socios comerciales relevantes para su experiencia de movilidad.",
+        ],
+      },
+      {
+        heading: "2. Base jurídica del tratamiento",
+        paragraphs: [
+          "El envío de comunicaciones comerciales propias de Carswiseai a usuarios registrados se basa en el interés legítimo de mantener informados a sus clientes sobre servicios similares a los contratados (art. 21.2 LSSI-CE).",
+          "El envío de comunicaciones de terceros socios requiere su consentimiento expreso, que puede otorgar a través del checkbox de comunicaciones en el formulario de registro.",
+        ],
+      },
+      {
+        heading: "3. Qué datos utilizamos",
+        bullets: [
+          "Nombre y dirección de correo electrónico.",
+          "Preferencias de búsqueda y tipo de vehículo declaradas durante el uso de la plataforma.",
+          "Historial de solicitudes e interacciones con el marketplace (solo para personalización).",
+          "Nunca compartimos su número de teléfono con socios comerciales sin consentimiento adicional.",
+        ],
+      },
+      {
+        heading: "4. Destinatarios de sus datos",
+        paragraphs: [
+          "Sus datos pueden ser compartidos con las siguientes categorías de socios para el envío de comunicaciones, únicamente si ha prestado su consentimiento:",
+        ],
+        bullets: [
+          "Empresas de renting (Leasys Mobility, Astara u otras) para el envío de ofertas de renting.",
+          "Concesionarios oficiales colaboradores de la plataforma.",
+          "Proveedores de servicios de email marketing (actualmente Resend Inc.) que actúan como encargados del tratamiento.",
+        ],
+      },
+      {
+        heading: "5. Cómo cancelar las comunicaciones",
+        paragraphs: [
+          "Puede retirar su consentimiento en cualquier momento, sin que ello afecte a la validez de los tratamientos previos:",
+        ],
+        bullets: [
+          "Haciendo clic en el enlace 'Darme de baja' incluido en cualquier comunicación comercial.",
+          "Desde el área de cuenta de Carswiseai, sección 'Notificaciones y privacidad'.",
+          "Enviando un correo a privacidad@carswiseai.com indicando su nombre y dirección de email.",
+        ],
+      },
+      {
+        heading: "6. Conservación de los datos",
+        paragraphs: [
+          "Sus datos se utilizarán con esta finalidad mientras mantenga una cuenta activa en Carswiseai o hasta que revoque su consentimiento. En todo caso, se suprimirán cuando cese la finalidad para la que fueron recabados.",
+        ],
+      },
+      {
+        heading: "7. Sus derechos",
+        paragraphs: [
+          "Puede ejercer los derechos de acceso, rectificación, supresión, oposición, limitación y portabilidad de sus datos enviando un escrito a privacidad@carswiseai.com con copia de su documento identificativo. Tiene derecho a presentar una reclamación ante la Agencia Española de Protección de Datos (www.aepd.es).",
+        ],
+      },
+    ],
+  },
+  experianPolicy: {
+    title: "Política de Consulta de Solvencia — Experian",
+    summary:
+      "Información sobre la consulta de datos de solvencia ante Experian Bureau de Crédito S.A. en el contexto de solicitudes de renting, y sus derechos como interesado.",
+    updatedAt: "17/06/2026",
+    sections: [
+      {
+        heading: "1. ¿Qué es Experian y para qué se usa?",
+        paragraphs: [
+          "Experian Bureau de Crédito S.A. es una entidad de información crediticia registrada en España. Carswiseai puede consultar datos de solvencia del solicitante ante Experian cuando lo requiera la empresa de renting o financiación, y siempre con el consentimiento expreso del interesado.",
+          "Esta consulta permite a las empresas de renting (Leasys Mobility, Astara u otras) evaluar la viabilidad de la solicitud antes de emitir una oferta vinculante.",
+        ],
+      },
+      {
+        heading: "2. Datos que se consultan",
+        bullets: [
+          "Datos identificativos: nombre completo, DNI/NIF, fecha de nacimiento.",
+          "Situación crediticia: historial de pagos, incidencias de impago registradas, nivel de endeudamiento.",
+          "Información de organismos públicos: CIRBE (Banco de España), Registro de Aceptaciones Impagadas (RAI), ASNEF u otros ficheros equivalentes.",
+        ],
+      },
+      {
+        heading: "3. Base jurídica",
+        paragraphs: [
+          "La consulta se basa en el consentimiento expreso del interesado (art. 6.1.a RGPD), otorgado de forma específica y separada a través del checkbox habilitado en el formulario de solicitud.",
+          "Sin dicho consentimiento, Carswiseai no realizará la consulta, lo que puede afectar a la aprobación por parte del proveedor de renting.",
+        ],
+      },
+      {
+        heading: "4. Responsabilidad de Experian",
+        paragraphs: [
+          "Experian Bureau de Crédito S.A. actúa como responsable independiente del tratamiento de los datos contenidos en sus ficheros. Para más información sobre cómo Experian trata sus datos, consulte la Política de Privacidad de Experian en www.experian.es.",
+          "Carswiseai actúa como remitente de la consulta, sin almacenar el contenido del informe de solvencia salvo en los términos acordados con el proveedor de renting.",
+        ],
+      },
+      {
+        heading: "5. Cómo revocar el consentimiento",
+        paragraphs: [
+          "Puede revocar su consentimiento antes de que la consulta se realice contactando con nosotros en privacidad@carswiseai.com. La revocación no afectará a consultas ya realizadas. Si revoca el consentimiento después de iniciada la tramitación, es posible que el proveedor no pueda continuar con la evaluación.",
+        ],
+      },
+      {
+        heading: "6. Sus derechos ante Experian",
+        paragraphs: [
+          "Puede ejercer sus derechos de acceso, rectificación y cancelación de los datos incluidos en los ficheros de Experian directamente ante Experian Bureau de Crédito S.A. en www.experian.es/derechos-arco.",
+          "Ante Carswiseai, puede ejercer sus derechos enviando un escrito a privacidad@carswiseai.com con copia de su documento identificativo.",
+        ],
+      },
+      {
+        heading: "7. Conservación",
+        paragraphs: [
+          "Los datos de la consulta quedarán registrados conforme a la normativa española y comunitaria de protección de datos, y podrán conservarse durante el tiempo necesario para la prestación del servicio o el cumplimiento de obligaciones legales.",
+        ],
+      },
+    ],
+  },
+  experianTerms: {
+    title: "Condiciones del Servicio de Consulta de Solvencia",
+    summary:
+      "Condiciones que regulan el uso del servicio de consulta de solvencia ante Experian Bureau de Crédito S.A. tramitado a través de la plataforma Carswiseai en el contexto de solicitudes de renting.",
+    updatedAt: "17/06/2026",
+    sections: [
+      {
+        heading: "1. Objeto del servicio",
+        paragraphs: [
+          "El presente servicio consiste en la tramitación, por parte de Carswiseai, de una consulta de solvencia del usuario ante Experian Bureau de Crédito S.A., a solicitud del proveedor de renting o financiación elegido por el usuario y con el consentimiento expreso de este.",
+          "La consulta tiene como única finalidad facilitar al proveedor de renting la evaluación de la viabilidad financiera de la solicitud. Carswiseai actúa exclusivamente como intermediario en la tramitación, sin tomar decisiones sobre la concesión ni las condiciones del renting.",
+        ],
+      },
+      {
+        heading: "2. Activación del servicio",
+        paragraphs: [
+          "El servicio se activa única y exclusivamente cuando el usuario otorga su consentimiento expreso a través del checkbox habilitado a tal efecto en el formulario de solicitud. Sin dicho consentimiento, Carswiseai no tramitará ninguna consulta ante Experian.",
+          "El usuario puede optar por no activar este servicio. En ese caso, el proveedor de renting podrá requerir que el usuario aporte directamente la documentación de solvencia que considere necesaria para evaluar la solicitud.",
+        ],
+      },
+      {
+        heading: "3. Obligaciones de Carswiseai",
+        bullets: [
+          "Tramitar la consulta únicamente con el consentimiento previo y expreso del usuario.",
+          "No utilizar el resultado de la consulta para ninguna finalidad distinta de la evaluación de la solicitud de renting concreta.",
+          "No compartir el resultado de la consulta con terceros ajenos al proceso de tramitación de la solicitud.",
+          "Informar al usuario de su derecho a revocar el consentimiento antes de que la consulta se ejecute.",
+        ],
+      },
+      {
+        heading: "4. Obligaciones del usuario",
+        bullets: [
+          "Proporcionar datos identificativos veraces y actualizados (nombre, DNI/NIF, fecha de nacimiento) para la correcta realización de la consulta.",
+          "No facilitar datos de terceros sin su consentimiento.",
+          "Aceptar que el resultado de la consulta puede condicionar la aprobación o las condiciones ofertadas por el proveedor de renting.",
+        ],
+      },
+      {
+        heading: "5. Resultado de la consulta",
+        paragraphs: [
+          "El resultado de la consulta de solvencia es gestionado directamente por el proveedor de renting para la evaluación interna de la solicitud. Carswiseai no tiene acceso al detalle del informe ni toma decisiones basadas en su contenido.",
+          "Una consulta con resultado negativo no implica necesariamente la denegación de la solicitud; el proveedor de renting puede solicitar documentación adicional o proponer condiciones alternativas.",
+        ],
+      },
+      {
+        heading: "6. Duración y revocación",
+        paragraphs: [
+          "El consentimiento para la consulta es válido exclusivamente para la solicitud de renting concreta en la que se otorga. No implica consentimiento para consultas futuras, que requerirán una nueva aceptación expresa.",
+          "El usuario puede revocar su consentimiento antes de que la consulta se realice efectivamente, contactando con Carswiseai en privacidad@carswiseai.com. Una vez ejecutada la consulta, la revocación no podrá retrotraer sus efectos.",
+        ],
+      },
+      {
+        heading: "7. Limitación de responsabilidad",
+        paragraphs: [
+          "Carswiseai no garantiza un resultado favorable de la consulta de solvencia ni la aprobación de la solicitud de renting por parte del proveedor.",
+          "Carswiseai no será responsable de los daños o perjuicios que pudieran derivarse de una resolución negativa del proveedor de renting basada en el resultado de la consulta.",
+        ],
+      },
+      {
+        heading: "8. Normativa aplicable",
+        paragraphs: [
+          "El presente servicio se rige por la legislación española, incluyendo el Reglamento (UE) 2016/679 (RGPD), la Ley Orgánica 3/2018 (LOPDGDD), y la normativa de ordenación del crédito al consumo y del crédito inmobiliario aplicable.",
+        ],
+      },
+    ],
+  },
 };
 
 const LEGAL_DOCUMENTS_EN = {
@@ -778,6 +964,126 @@ const LEGAL_DOCUMENTS_EN = {
       },
     ],
   },
+  marketingPolicy: {
+    title: "Commercial Communications Policy",
+    summary: "Information on how we use your data to send you commercial communications from Carswiseai and selected partners, and how you can opt out at any time.",
+    updatedAt: "17/06/2026",
+    sections: [
+      {
+        heading: "What are commercial communications?",
+        paragraphs: [
+          "Commercial communications are messages sent by email, SMS or other digital channels to inform you about Carswiseai news, vehicle offers, renting promotions and services of commercial partners relevant to your mobility experience.",
+        ],
+      },
+      {
+        heading: "Legal basis",
+        paragraphs: [
+          "Sending of Carswiseai's own commercial communications to registered users is based on legitimate interest in keeping clients informed about similar contracted services (art. 21.2 LSSI-CE). Sending communications from third-party partners requires your express consent.",
+        ],
+      },
+      {
+        heading: "How to unsubscribe",
+        bullets: [
+          "Click the 'Unsubscribe' link in any commercial communication.",
+          "From your Carswiseai account area, under 'Notifications and privacy'.",
+          "Send an email to privacidad@carswiseai.com with your name and email address.",
+        ],
+      },
+      {
+        heading: "Your rights",
+        paragraphs: [
+          "You may exercise rights of access, rectification, erasure, objection, restriction and portability by writing to privacidad@carswiseai.com with a copy of your identity document. You have the right to lodge a complaint with the Spanish Data Protection Agency (www.aepd.es).",
+        ],
+      },
+    ],
+  },
+  experianPolicy: {
+    title: "Creditworthiness Check Policy — Experian",
+    summary: "Information on the creditworthiness data check with Experian Bureau de Crédito S.A. in the context of renting applications, and your rights as a data subject.",
+    updatedAt: "17/06/2026",
+    sections: [
+      {
+        heading: "What is Experian and why is it used?",
+        paragraphs: [
+          "Experian Bureau de Crédito S.A. is a credit information entity registered in Spain. Carswiseai may check the applicant's creditworthiness with Experian when required by the renting or financing company, and always with the data subject's express consent.",
+        ],
+      },
+      {
+        heading: "Data checked",
+        bullets: [
+          "Identifying data: full name, DNI/NIF, date of birth.",
+          "Credit situation: payment history, registered defaults, level of indebtedness.",
+          "Public registry information: CIRBE (Banco de España), RAI, ASNEF or equivalent files.",
+        ],
+      },
+      {
+        heading: "Legal basis",
+        paragraphs: [
+          "The check is based on the data subject's express consent (art. 6.1.a GDPR), given specifically and separately through the checkbox in the application form. Without this consent, Carswiseai will not carry out the check.",
+        ],
+      },
+      {
+        heading: "How to revoke consent",
+        paragraphs: [
+          "You may revoke your consent before the check is carried out by contacting us at privacidad@carswiseai.com. You may exercise your rights directly with Experian at www.experian.es/derechos-arco, and with Carswiseai at privacidad@carswiseai.com.",
+        ],
+      },
+    ],
+  },
+  experianTerms: {
+    title: "Creditworthiness Check Service Terms",
+    summary: "Terms governing the use of the creditworthiness check service with Experian Bureau de Crédito S.A. processed through the Carswiseai platform in the context of renting applications.",
+    updatedAt: "17/06/2026",
+    sections: [
+      {
+        heading: "Purpose of the service",
+        paragraphs: [
+          "This service consists of Carswiseai processing a creditworthiness check on behalf of the user with Experian Bureau de Crédito S.A., at the request of the chosen renting or financing provider and with the user's express consent. Carswiseai acts solely as an intermediary and does not make decisions on the granting or terms of the renting.",
+        ],
+      },
+      {
+        heading: "Service activation",
+        paragraphs: [
+          "The service is activated only when the user gives express consent via the dedicated checkbox in the application form. Without this consent, no check will be processed. The user may opt out, in which case the renting provider may request solvency documentation directly.",
+        ],
+      },
+      {
+        heading: "Carswiseai obligations",
+        bullets: [
+          "Process the check only with prior express consent from the user.",
+          "Not use the result for any purpose other than evaluation of the specific renting application.",
+          "Not share the result with third parties outside the application process.",
+          "Inform the user of their right to revoke consent before the check is executed.",
+        ],
+      },
+      {
+        heading: "User obligations",
+        bullets: [
+          "Provide accurate and up-to-date identifying data (name, DNI/NIF, date of birth).",
+          "Not submit data belonging to third parties without their consent.",
+          "Accept that the check result may affect the approval or terms offered by the renting provider.",
+        ],
+      },
+      {
+        heading: "Check result",
+        paragraphs: [
+          "The creditworthiness check result is managed directly by the renting provider for internal evaluation. Carswiseai does not have access to the detail of the report and makes no decisions based on its content. A negative result does not necessarily mean the application is refused.",
+        ],
+      },
+      {
+        heading: "Duration and revocation",
+        paragraphs: [
+          "Consent is valid solely for the specific renting application in which it is given. Future applications require a new express acceptance. Consent may be revoked before the check is executed by contacting privacidad@carswiseai.com. Once the check has been carried out, revocation cannot be retroactive.",
+        ],
+      },
+      {
+        heading: "Limitation of liability",
+        paragraphs: [
+          "Carswiseai does not guarantee a favourable check result or approval of the renting application. Carswiseai is not liable for any negative decision made by the renting provider based on the check result.",
+        ],
+      },
+    ],
+  },
 };
 
 const SEO_STATIC_PAGES = {
@@ -911,6 +1217,9 @@ const PUBLIC_ROUTE_BY_ENTRY_MODE = {
   privacyPolicy: "/politica-privacidad",
   cookiePolicy: "/politica-cookies",
   termsConditions: "/terminos-condiciones",
+  marketingPolicy: "/politica-comunicaciones",
+  experianPolicy: "/politica-experian",
+  experianTerms: "/condiciones-experian",
 };
 
 const ENTRY_MODE_BY_PUBLIC_ROUTE = Object.entries(PUBLIC_ROUTE_BY_ENTRY_MODE).reduce((acc, [entryMode, path]) => {
@@ -2326,6 +2635,23 @@ export default function App() {
       email: normalizeText(authForm.email).toLowerCase(),
       password: String(authForm.password || ""),
     };
+
+    if (mode === "register") {
+      const now = new Date().toISOString();
+      if (consentLegal)     payload.consentLegalAt     = now;
+      if (consentMarketing) payload.consentMarketingAt = now;
+      if (consentExperian)  payload.consentExperianAt  = now;
+      try {
+        const stored = window.localStorage.getItem("ma.utm");
+        if (stored) {
+          const utms = JSON.parse(stored);
+          payload.utmSource   = utms.utm_source   || "";
+          payload.utmMedium   = utms.utm_medium   || "";
+          payload.utmCampaign = utms.utm_campaign || "";
+          payload.utmContent  = utms.utm_content  || "";
+        }
+      } catch {}
+    }
 
     if (mode === "register" && !payload.name) {
       setAuthError("Indica tu nombre para crear la cuenta.");
@@ -3884,7 +4210,7 @@ export default function App() {
   const s = useMemo(() => createAppStyles(progress, themeMode), [progress, themeMode]);
 
   // -------------------- LEGAL STANDALONE PAGE --------------------
-  const LEGAL_ENTRY_MODES = ["legalNotice", "privacyPolicy", "cookiePolicy", "termsConditions"];
+  const LEGAL_ENTRY_MODES = ["legalNotice", "privacyPolicy", "cookiePolicy", "termsConditions", "marketingPolicy", "experianPolicy", "experianTerms"];
   if (LEGAL_ENTRY_MODES.includes(entryMode) && activeLegalDocs[entryMode]) {
     const doc = activeLegalDocs[entryMode];
     const isDark = themeMode === "dark";
@@ -4925,10 +5251,10 @@ export default function App() {
                       style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
                     />
                     <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                      Acepto recibir comunicaciones de terceros conforme a la{" "}
-                      <a href="/politica-privacidad" target="_blank" rel="noopener noreferrer"
+                      Acepto recibir comunicaciones comerciales de Carswiseai y socios conforme a la{" "}
+                      <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer"
                         style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
-                        Política de Privacidad de Datos
+                        Política de Comunicaciones Comerciales
                       </a>
                       .
                     </span>
@@ -4944,16 +5270,16 @@ export default function App() {
                     />
                     <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
                       He leído y acepto las{" "}
-                      <a href="/terminos-condiciones" target="_blank" rel="noopener noreferrer"
+                      <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer"
                         style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
-                        Condiciones Generales
+                        Condiciones del Servicio Experian
                       </a>
                       {" "}y la{" "}
-                      <a href="/politica-privacidad" target="_blank" rel="noopener noreferrer"
+                      <a href="/politica-experian" target="_blank" rel="noopener noreferrer"
                         style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
-                        Política de Privacidad de Datos
+                        Política de Consulta de Solvencia de Experian
                       </a>
-                      {" "}de los servicios de Experian para consultar mis datos ante organismos públicos.
+                      {" "}para consultar mis datos ante organismos públicos.
                     </span>
                   </label>
                 </div>
@@ -5049,7 +5375,7 @@ export default function App() {
         </div>
       )}
 
-      {showCookieGate && !authRequired && !["legalNotice", "privacyPolicy", "cookiePolicy", "termsConditions"].includes(entryMode) && (
+      {showCookieGate && !authRequired && !["legalNotice", "privacyPolicy", "cookiePolicy", "termsConditions", "marketingPolicy", "experianPolicy", "experianTerms"].includes(entryMode) && (
         <div
           role="dialog"
           aria-modal="true"

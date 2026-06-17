@@ -2313,7 +2313,7 @@ export default function App() {
 
     const mode = authDialogMode === "register" ? "register" : "login";
 
-    if (showCookieGate && !consentLegal) {
+    if (showCookieGate && mode === "register" && !consentLegal) {
       setAuthError("Debes aceptar las Condiciones Generales y la Política de Privacidad para continuar.");
       return;
     }
@@ -2401,7 +2401,7 @@ export default function App() {
       setAuthRequired(false);
       setAuthTargetEntryMode("");
       setAuthForm({ name: "", email: nextUser.email, password: "" });
-      if (showCookieGate) {
+      if (showCookieGate && mode === "register") {
         saveCookieConsent(consentMarketing ? "all" : "necessary");
         setConsentLegal(false);
         setConsentMarketing(false);
@@ -4817,7 +4817,7 @@ export default function App() {
                 </div>
               )}
 
-              {showCookieGate && authRecoveryMode === "none" && (
+              {showCookieGate && authDialogMode === "register" && authRecoveryMode === "none" && (
                 <div style={{ borderTop: "1px solid rgba(148,163,184,0.15)", paddingTop: 14, display: "grid", gap: 10 }}>
 
                   {/* Master toggle */}

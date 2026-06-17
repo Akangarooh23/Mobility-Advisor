@@ -2642,13 +2642,17 @@ export default function App() {
       if (consentMarketing) payload.consentMarketingAt = now;
       if (consentExperian)  payload.consentExperianAt  = now;
       try {
-        const stored = window.localStorage.getItem("ma.utm");
+        const stored = window.localStorage.getItem("ma.landing");
         if (stored) {
-          const utms = JSON.parse(stored);
-          payload.utmSource   = utms.utm_source   || "";
-          payload.utmMedium   = utms.utm_medium   || "";
-          payload.utmCampaign = utms.utm_campaign || "";
-          payload.utmContent  = utms.utm_content  || "";
+          const landing = JSON.parse(stored);
+          payload.utmSource     = landing.utms?.utm_source   || "";
+          payload.utmMedium     = landing.utms?.utm_medium   || "";
+          payload.utmCampaign   = landing.utms?.utm_campaign || "";
+          payload.utmContent    = landing.utms?.utm_content  || "";
+          payload.affiliateData = landing.affiliateData || null;
+          payload.referer       = landing.referer    || "";
+          payload.landingUrl    = landing.landingUrl || "";
+          payload.language      = landing.language   || "";
         }
       } catch {}
     }

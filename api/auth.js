@@ -1057,7 +1057,10 @@ async function ensurePostgresSchema() {
       ADD COLUMN IF NOT EXISTS utm_medium               VARCHAR(200) NOT NULL DEFAULT '',
       ADD COLUMN IF NOT EXISTS utm_campaign             VARCHAR(200) NOT NULL DEFAULT '',
       ADD COLUMN IF NOT EXISTS utm_content              VARCHAR(200) NOT NULL DEFAULT '',
-      ADD COLUMN IF NOT EXISTS affiliate_data           JSONB
+      ADD COLUMN IF NOT EXISTS affiliate_data           JSONB,
+      ADD COLUMN IF NOT EXISTS referer                  TEXT         NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS landing_url              TEXT         NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS language                 VARCHAR(20)  NOT NULL DEFAULT ''
   `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS moveadvisor_sessions (
@@ -1113,8 +1116,9 @@ async function createUserPostgres(user) {
     `INSERT INTO moveadvisor_users
       (id, name, apellidos, phone, email, password_salt, password_hash, created_at, last_login_at,
        consent_legal_at, consent_marketing_at, consent_experian_at,
-       registration_ip, registration_ua, utm_source, utm_medium, utm_campaign, utm_content, affiliate_data)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)`,
+       registration_ip, registration_ua, utm_source, utm_medium, utm_campaign, utm_content,
+       affiliate_data, referer, landing_url, language)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
     [
       user.id, user.name, user.apellidos || "", user.phone || "", user.email,
       user.passwordSalt, user.passwordHash, user.createdAt, user.lastLoginAt,
@@ -1122,6 +1126,7 @@ async function createUserPostgres(user) {
       user.registrationIp || "", user.registrationUa || "",
       user.utmSource || "", user.utmMedium || "", user.utmCampaign || "", user.utmContent || "",
       user.affiliateData ? JSON.stringify(user.affiliateData) : null,
+      user.referer || "", user.landingUrl || "", user.language || "",
     ]
   );
   return findUserByEmailPostgres(user.email);
@@ -1821,6 +1826,9 @@ async function _authHandlerInner(req, res) {
   const utmCampaign = normalizeText(body.utmCampaign);
   const utmContent = normalizeText(body.utmContent);
   const affiliateData = body.affiliateData && typeof body.affiliateData === "object" ? body.affiliateData : null;
+  const referer = normalizeText(body.referer).slice(0, 1000);
+  const landingUrl = normalizeText(body.landingUrl).slice(0, 1000);
+  const language = normalizeText(body.language).slice(0, 20);
 
   if (!action) {
     return res.status(400).json({ error: "Debes indicar la acciÃ³n de auth." });
@@ -2218,6 +2226,9 @@ async function _authHandlerInner(req, res) {
       utmCampaign,
       utmContent,
       affiliateData,
+      referer,
+      landingUrl,
+      language,
     };
 
     const savedUser = useMssql

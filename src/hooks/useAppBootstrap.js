@@ -40,14 +40,29 @@ export function useAppBootstrap({
     const persistedTheme = typeof window !== "undefined" ? window.localStorage.getItem(themeStorageKey) : "";
     const PUBLIC_PATHS = ["/aviso-legal", "/politica-privacidad", "/politica-cookies", "/terminos-condiciones", "/politica-comunicaciones", "/politica-experian", "/condiciones-experian"];
 
-    // Capture UTM params from URL on first landing and persist for registration
+    // Capture landing data from URL on first visit and persist for registration
     try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const utmKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
-      const captured = {};
-      utmKeys.forEach((k) => { const v = urlParams.get(k); if (v) captured[k] = v; });
-      if (Object.keys(captured).length > 0) {
-        window.localStorage.setItem("ma.utm", JSON.stringify(captured));
+      const existing = window.localStorage.getItem("ma.landing");
+      if (!existing) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const utmKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
+        const utms = {};
+        utmKeys.forEach((k) => { const v = urlParams.get(k); if (v) utms[k] = v; });
+
+        // Collect all non-UTM params as affiliate data
+        const affiliateData = {};
+        urlParams.forEach((v, k) => {
+          if (!utmKeys.includes(k)) affiliateData[k] = v;
+        });
+
+        const landing = {
+          utms,
+          affiliateData: Object.keys(affiliateData).length > 0 ? affiliateData : null,
+          referer: document.referrer || "",
+          landingUrl: window.location.href,
+          language: navigator.language || "",
+        };
+        window.localStorage.setItem("ma.landing", JSON.stringify(landing));
       }
     } catch {}
     const isPublicRoute = typeof window !== "undefined" && PUBLIC_PATHS.some((p) => window.location.pathname === p || window.location.pathname.startsWith(p + "/"));

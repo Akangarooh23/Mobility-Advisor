@@ -3883,6 +3883,51 @@ export default function App() {
   // -------------------- STYLES --------------------
   const s = useMemo(() => createAppStyles(progress, themeMode), [progress, themeMode]);
 
+  // -------------------- LEGAL STANDALONE PAGE --------------------
+  const LEGAL_ENTRY_MODES = ["legalNotice", "privacyPolicy", "cookiePolicy", "termsConditions"];
+  if (LEGAL_ENTRY_MODES.includes(entryMode) && activeLegalDocs[entryMode]) {
+    const doc = activeLegalDocs[entryMode];
+    const isDark = themeMode === "dark";
+    const legalBg = isDark ? "#0f172a" : "#f8fafc";
+    const legalText = isDark ? "#e2e8f0" : "#0f172a";
+    const legalBorder = isDark ? "rgba(148,163,184,0.15)" : "rgba(148,163,184,0.22)";
+    return (
+      <div style={{ minHeight: "100vh", background: legalBg, color: legalText, fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" }}>
+        <div style={{
+          position: "sticky", top: 0, zIndex: 100,
+          background: isDark ? "rgba(15,23,42,0.96)" : "rgba(255,255,255,0.96)",
+          borderBottom: `1px solid ${legalBorder}`,
+          backdropFilter: "blur(10px)",
+          padding: "0 24px",
+          display: "flex", alignItems: "center", justifyContent: "space-between", height: 56,
+        }}>
+          <img src="/carswise-logo.png" alt="CarsWise AI" style={{ height: 34, width: "auto", objectFit: "contain" }} />
+          <button
+            type="button"
+            onClick={() => { if (window.history.length > 1) { window.history.back(); } else { window.close(); } }}
+            style={{
+              background: "transparent",
+              border: `1px solid ${legalBorder}`,
+              color: isDark ? "#94a3b8" : "#64748b",
+              borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer",
+            }}
+          >
+            ← Cerrar
+          </button>
+        </div>
+        <div style={{ maxWidth: 820, margin: "0 auto", padding: "48px 24px 80px" }}>
+          <LegalPolicyPage
+            title={doc.title}
+            summary={doc.summary}
+            updatedAt={doc.updatedAt}
+            sections={doc.sections}
+            themeMode={themeMode}
+          />
+        </div>
+      </div>
+    );
+  }
+
   // -------------------- RENDER --------------------
   return (
     <div

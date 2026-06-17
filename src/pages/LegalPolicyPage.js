@@ -1,91 +1,117 @@
 import { useTranslation } from "react-i18next";
 
 export default function LegalPolicyPage({
-  styles,
   title,
   summary,
   updatedAt,
   sections = [],
+  themeMode = "light",
+  // legacy props — ignored in standalone mode
+  styles,
   onGoBack,
   onGoHome,
 }) {
   const { t } = useTranslation();
+  const isDark = themeMode === "dark";
+
+  const titleColor   = isDark ? "#f1f5f9" : "#0f172a";
+  const summaryColor = isDark ? "#94a3b8"  : "#475569";
+  const metaColor    = isDark ? "#64748b"  : "#94a3b8";
+  const cardBg       = isDark ? "rgba(30,41,59,0.7)"  : "#ffffff";
+  const cardBorder   = isDark ? "rgba(148,163,184,0.18)" : "rgba(148,163,184,0.28)";
+  const headingColor = isDark ? "#e2e8f0"  : "#1e293b";
+  const bodyColor    = isDark ? "#cbd5e1"  : "#374151";
+  const badgeBg      = isDark ? "rgba(59,130,246,0.14)" : "rgba(59,130,246,0.08)";
+  const badgeBorder  = isDark ? "rgba(96,165,250,0.28)" : "rgba(59,130,246,0.22)";
+  const badgeColor   = isDark ? "#93c5fd" : "#2563eb";
+  const dividerColor = isDark ? "rgba(148,163,184,0.12)" : "rgba(148,163,184,0.2)";
+
   return (
-    <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
-        <button
-          type="button"
-          onClick={onGoBack}
-          style={{
-            border: "1px solid rgba(148,163,184,0.35)",
-            background: "rgba(15,23,42,0.5)",
-            color: "#cbd5e1",
-            borderRadius: 10,
-            padding: "8px 12px",
-            fontSize: 12,
-            fontWeight: 700,
-            cursor: "pointer",
-          }}
-        >
-          {t("legal.back")}
-        </button>
-        <button
-          type="button"
-          onClick={onGoHome}
-          style={{
-            border: "1px solid rgba(56,189,248,0.4)",
-            background: "rgba(14,116,144,0.2)",
-            color: "#bae6fd",
-            borderRadius: 10,
-            padding: "8px 12px",
-            fontSize: 12,
-            fontWeight: 700,
-            cursor: "pointer",
-          }}
-        >
-          {t("legal.goHome")}
-        </button>
+    <div>
+      {/* Badge */}
+      <div style={{
+        display: "inline-block",
+        background: badgeBg,
+        border: `1px solid ${badgeBorder}`,
+        color: badgeColor,
+        borderRadius: 999,
+        padding: "4px 12px",
+        fontSize: 11,
+        fontWeight: 700,
+        letterSpacing: "0.07em",
+        textTransform: "uppercase",
+        marginBottom: 20,
+      }}>
+        {t("legal.badge")}
       </div>
 
-      <div style={{ ...styles.blockBadge("Vinculación"), marginBottom: 10 }}>{t("legal.badge")}</div>
-      <h2 style={{ margin: "0 0 8px", fontSize: "clamp(28px,4vw,36px)", color: "#f8fafc", letterSpacing: "-0.9px" }}>
+      {/* Title */}
+      <h1 style={{
+        margin: "0 0 12px",
+        fontSize: "clamp(26px, 4vw, 38px)",
+        fontWeight: 800,
+        letterSpacing: "-0.03em",
+        lineHeight: 1.15,
+        color: titleColor,
+      }}>
         {title}
-      </h2>
-      <p style={{ margin: "0 0 8px", color: "#94a3b8", fontSize: 14, lineHeight: 1.7 }}>
-        {summary}
-      </p>
-      <p style={{ margin: "0 0 18px", color: "#64748b", fontSize: 12 }}>
+      </h1>
+
+      {/* Summary */}
+      {summary && (
+        <p style={{ margin: "0 0 8px", color: summaryColor, fontSize: 15, lineHeight: 1.7 }}>
+          {summary}
+        </p>
+      )}
+
+      {/* Updated date */}
+      <p style={{ margin: "0 0 36px", color: metaColor, fontSize: 12 }}>
         {t("legal.lastUpdated", { date: updatedAt })}
       </p>
 
-      <div style={{ display: "grid", gap: 12 }}>
+      <div style={{ height: 1, background: dividerColor, marginBottom: 32 }} />
+
+      {/* Sections */}
+      <div style={{ display: "grid", gap: 16 }}>
         {sections.map((section) => (
           <article
             key={section.heading}
-            className="ma-card-soft"
             style={{
-              border: "1px solid rgba(148,163,184,0.22)",
+              background: cardBg,
+              border: `1px solid ${cardBorder}`,
               borderRadius: 14,
-              background: "rgba(15,23,42,0.55)",
-              padding: "14px 12px",
+              padding: "20px 24px",
+              boxShadow: isDark
+                ? "0 2px 12px rgba(0,0,0,0.2)"
+                : "0 1px 6px rgba(15,23,42,0.06)",
             }}
           >
-            <h3 style={{ margin: "0 0 8px", color: "#e2e8f0", fontSize: 16, fontWeight: 800 }}>
+            <h2 style={{
+              margin: "0 0 12px",
+              color: headingColor,
+              fontSize: 15,
+              fontWeight: 700,
+              lineHeight: 1.4,
+              borderBottom: `1px solid ${dividerColor}`,
+              paddingBottom: 10,
+            }}>
               {section.heading}
-            </h3>
+            </h2>
+
             {Array.isArray(section.paragraphs) && section.paragraphs.length > 0 && (
-              <div style={{ display: "grid", gap: 8 }}>
-                {section.paragraphs.map((paragraph) => (
-                  <p key={paragraph} style={{ margin: 0, color: "#cbd5e1", fontSize: 13, lineHeight: 1.7 }}>
+              <div style={{ display: "grid", gap: 10 }}>
+                {section.paragraphs.map((paragraph, i) => (
+                  <p key={i} style={{ margin: 0, color: bodyColor, fontSize: 13.5, lineHeight: 1.75 }}>
                     {paragraph}
                   </p>
                 ))}
               </div>
             )}
+
             {Array.isArray(section.bullets) && section.bullets.length > 0 && (
-              <ul style={{ margin: "10px 0 0", paddingLeft: 18, display: "grid", gap: 6 }}>
-                {section.bullets.map((item) => (
-                  <li key={item} style={{ color: "#cbd5e1", fontSize: 13, lineHeight: 1.6 }}>
+              <ul style={{ margin: Array.isArray(section.paragraphs) && section.paragraphs.length ? "12px 0 0" : "0", paddingLeft: 20, display: "grid", gap: 7 }}>
+                {section.bullets.map((item, i) => (
+                  <li key={i} style={{ color: bodyColor, fontSize: 13.5, lineHeight: 1.7 }}>
                     {item}
                   </li>
                 ))}

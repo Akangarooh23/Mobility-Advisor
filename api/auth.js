@@ -121,6 +121,10 @@ function sanitizeUser(user = {}) {
     consentLegalAt: user.consentLegalAt || null,
     consentMarketingAt: user.consentMarketingAt || null,
     consentExperianAt: user.consentExperianAt || null,
+    consentMarketingEmailAt: user.consentMarketingEmailAt || null,
+    consentMarketingSmsAt: user.consentMarketingSmsAt || null,
+    consentThirdPartyEmailAt: user.consentThirdPartyEmailAt || null,
+    consentThirdPartySmsAt: user.consentThirdPartySmsAt || null,
     consentsReviewedAt: user.consentsReviewedAt || null,
   };
 }
@@ -1052,9 +1056,13 @@ async function ensurePostgresSchema() {
       ADD COLUMN IF NOT EXISTS stripe_subscription_id   VARCHAR(64)  NOT NULL DEFAULT '',
       ADD COLUMN IF NOT EXISTS next_billing_date        TIMESTAMPTZ,
       ADD COLUMN IF NOT EXISTS cancel_at_period_end     BOOLEAN      NOT NULL DEFAULT false,
-      ADD COLUMN IF NOT EXISTS consent_legal_at         TIMESTAMPTZ,
-      ADD COLUMN IF NOT EXISTS consent_marketing_at     TIMESTAMPTZ,
-      ADD COLUMN IF NOT EXISTS consent_experian_at      TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS consent_legal_at              TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS consent_marketing_at          TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS consent_experian_at           TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS consent_marketing_email_at    TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS consent_marketing_sms_at      TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS consent_thirdparty_email_at   TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS consent_thirdparty_sms_at     TIMESTAMPTZ,
       ADD COLUMN IF NOT EXISTS registration_ip          VARCHAR(64)  NOT NULL DEFAULT '',
       ADD COLUMN IF NOT EXISTS registration_ua          TEXT         NOT NULL DEFAULT '',
       ADD COLUMN IF NOT EXISTS utm_source               VARCHAR(200) NOT NULL DEFAULT '',
@@ -1108,7 +1116,10 @@ async function findUserByEmailPostgres(email) {
   const { rows } = await pool.query(
     `SELECT id, name, apellidos, phone, email, password_salt AS "passwordSalt", password_hash AS "passwordHash",
             created_at AS "createdAt", last_login_at AS "lastLoginAt",
-            consent_legal_at, consent_marketing_at, consent_experian_at, consents_reviewed_at
+            consent_legal_at, consent_marketing_at, consent_experian_at,
+            consent_marketing_email_at, consent_marketing_sms_at,
+            consent_thirdparty_email_at, consent_thirdparty_sms_at,
+            consents_reviewed_at
      FROM moveadvisor_users WHERE email = $1 LIMIT 1`,
     [email]
   );
@@ -1122,13 +1133,17 @@ async function createUserPostgres(user) {
     `INSERT INTO moveadvisor_users
       (id, name, apellidos, phone, email, password_salt, password_hash, created_at, last_login_at,
        consent_legal_at, consent_marketing_at, consent_experian_at,
+       consent_marketing_email_at, consent_marketing_sms_at,
+       consent_thirdparty_email_at, consent_thirdparty_sms_at,
        registration_ip, registration_ua, utm_source, utm_medium, utm_campaign, utm_content,
        affiliate_data, referer, landing_url, language)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26)`,
     [
       user.id, user.name, user.apellidos || "", user.phone || "", user.email,
       user.passwordSalt, user.passwordHash, user.createdAt, user.lastLoginAt,
       user.consentLegalAt || null, user.consentMarketingAt || null, user.consentExperianAt || null,
+      user.consentMarketingEmailAt || null, user.consentMarketingSmsAt || null,
+      user.consentThirdPartyEmailAt || null, user.consentThirdPartySmsAt || null,
       user.registrationIp || "", user.registrationUa || "",
       user.utmSource || "", user.utmMedium || "", user.utmCampaign || "", user.utmContent || "",
       user.affiliateData ? JSON.stringify(user.affiliateData) : null,
@@ -1285,6 +1300,10 @@ function mapDbUser(foundUser = {}) {
     consentLegalAt: foundUser.consent_legal_at || foundUser.consentLegalAt || null,
     consentMarketingAt: foundUser.consent_marketing_at || foundUser.consentMarketingAt || null,
     consentExperianAt: foundUser.consent_experian_at || foundUser.consentExperianAt || null,
+    consentMarketingEmailAt: foundUser.consent_marketing_email_at || foundUser.consentMarketingEmailAt || null,
+    consentMarketingSmsAt: foundUser.consent_marketing_sms_at || foundUser.consentMarketingSmsAt || null,
+    consentThirdPartyEmailAt: foundUser.consent_thirdparty_email_at || foundUser.consentThirdPartyEmailAt || null,
+    consentThirdPartySmsAt: foundUser.consent_thirdparty_sms_at || foundUser.consentThirdPartySmsAt || null,
     consentsReviewedAt: foundUser.consents_reviewed_at || foundUser.consentsReviewedAt || null,
   };
 }
@@ -1831,6 +1850,10 @@ async function _authHandlerInner(req, res) {
   const consentLegalAt = body.consentLegalAt ? new Date(body.consentLegalAt).toISOString() : null;
   const consentMarketingAt = body.consentMarketingAt ? new Date(body.consentMarketingAt).toISOString() : null;
   const consentExperianAt = body.consentExperianAt ? new Date(body.consentExperianAt).toISOString() : null;
+  const consentMarketingEmailAt = body.consentMarketingEmailAt ? new Date(body.consentMarketingEmailAt).toISOString() : null;
+  const consentMarketingSmsAt = body.consentMarketingSmsAt ? new Date(body.consentMarketingSmsAt).toISOString() : null;
+  const consentThirdPartyEmailAt = body.consentThirdPartyEmailAt ? new Date(body.consentThirdPartyEmailAt).toISOString() : null;
+  const consentThirdPartySmsAt = body.consentThirdPartySmsAt ? new Date(body.consentThirdPartySmsAt).toISOString() : null;
   const utmSource = normalizeText(body.utmSource);
   const utmMedium = normalizeText(body.utmMedium);
   const utmCampaign = normalizeText(body.utmCampaign);
@@ -1874,18 +1897,27 @@ async function _authHandlerInner(req, res) {
     }
     if (usePostgres) {
       const now = new Date().toISOString();
-      const legalAt     = body.consentLegal     ? now : null;
-      const marketingAt = body.consentMarketing ? now : null;
-      const experianAt  = body.consentExperian  ? now : null;
+      const legalAt            = body.consentLegal             ? now : null;
+      const marketingEmailAt   = body.consentMarketingEmail    ? now : null;
+      const marketingSmsAt     = body.consentMarketingSms      ? now : null;
+      const thirdPartyEmailAt  = body.consentThirdPartyEmail   ? now : null;
+      const thirdPartySmsAt    = body.consentThirdPartySms     ? now : null;
+      // backward-compat aggregates: set if any sub-consent is given
+      const marketingAt        = (body.consentMarketingEmail || body.consentMarketingSms) ? now : null;
+      const experianAt         = (body.consentThirdPartyEmail || body.consentThirdPartySms) ? now : null;
       const pool = getPgPool();
       await pool.query(
         `UPDATE moveadvisor_users
-         SET consent_legal_at     = COALESCE(consent_legal_at, $2),
-             consent_marketing_at = COALESCE(consent_marketing_at, $3),
-             consent_experian_at  = COALESCE(consent_experian_at, $4),
-             consents_reviewed_at = $5
+         SET consent_legal_at              = COALESCE(consent_legal_at, $2),
+             consent_marketing_at          = COALESCE(consent_marketing_at, $3),
+             consent_experian_at           = COALESCE(consent_experian_at, $4),
+             consent_marketing_email_at    = COALESCE(consent_marketing_email_at, $5),
+             consent_marketing_sms_at      = COALESCE(consent_marketing_sms_at, $6),
+             consent_thirdparty_email_at   = COALESCE(consent_thirdparty_email_at, $7),
+             consent_thirdparty_sms_at     = COALESCE(consent_thirdparty_sms_at, $8),
+             consents_reviewed_at          = $9
          WHERE id = $1`,
-        [sessionRow.userId, legalAt, marketingAt, experianAt, now]
+        [sessionRow.userId, legalAt, marketingAt, experianAt, marketingEmailAt, marketingSmsAt, thirdPartyEmailAt, thirdPartySmsAt, now]
       );
       const updated = await findUserByEmailPostgres(
         (await getPgPool().query(`SELECT email FROM moveadvisor_users WHERE id = $1`, [sessionRow.userId])).rows[0]?.email
@@ -2261,6 +2293,10 @@ async function _authHandlerInner(req, res) {
       consentLegalAt,
       consentMarketingAt,
       consentExperianAt,
+      consentMarketingEmailAt,
+      consentMarketingSmsAt,
+      consentThirdPartyEmailAt,
+      consentThirdPartySmsAt,
       registrationIp: clientIp,
       registrationUa: clientUa,
       utmSource,

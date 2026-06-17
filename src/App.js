@@ -1689,12 +1689,16 @@ export default function App() {
   const [showCookieGate, setShowCookieGate] = useState(false);
   const [showCookieSettings, setShowCookieSettings] = useState(false);
   const [consentLegal, setConsentLegal] = useState(false);
-  const [consentMarketing, setConsentMarketing] = useState(false);
-  const [consentExperian, setConsentExperian] = useState(false);
+  const [consentMarketingEmail, setConsentMarketingEmail] = useState(false);
+  const [consentMarketingSms, setConsentMarketingSms] = useState(false);
+  const [consentThirdPartyEmail, setConsentThirdPartyEmail] = useState(false);
+  const [consentThirdPartySms, setConsentThirdPartySms] = useState(false);
   const [showConsentReview, setShowConsentReview] = useState(false);
   const [consentReviewLegal, setConsentReviewLegal] = useState(false);
-  const [consentReviewMarketing, setConsentReviewMarketing] = useState(false);
-  const [consentReviewExperian, setConsentReviewExperian] = useState(false);
+  const [consentReviewMarketingEmail, setConsentReviewMarketingEmail] = useState(false);
+  const [consentReviewMarketingSms, setConsentReviewMarketingSms] = useState(false);
+  const [consentReviewThirdPartyEmail, setConsentReviewThirdPartyEmail] = useState(false);
+  const [consentReviewThirdPartySms, setConsentReviewThirdPartySms] = useState(false);
   const [consentReviewLoading, setConsentReviewLoading] = useState(false);
   const [themeMode, setThemeMode] = useState("light");
   const [uiLanguage, setUiLanguage] = useState(() => {
@@ -2644,9 +2648,13 @@ export default function App() {
 
     if (mode === "register") {
       const now = new Date().toISOString();
-      if (consentLegal)     payload.consentLegalAt     = now;
-      if (consentMarketing) payload.consentMarketingAt = now;
-      if (consentExperian)  payload.consentExperianAt  = now;
+      if (consentLegal)            payload.consentLegalAt            = now;
+      if (consentMarketingEmail)   payload.consentMarketingEmailAt   = now;
+      if (consentMarketingSms)     payload.consentMarketingSmsAt     = now;
+      if (consentThirdPartyEmail)  payload.consentThirdPartyEmailAt  = now;
+      if (consentThirdPartySms)    payload.consentThirdPartySmsAt    = now;
+      if (consentMarketingEmail || consentMarketingSms) payload.consentMarketingAt = now;
+      if (consentThirdPartyEmail || consentThirdPartySms) payload.consentExperianAt = now;
       try {
         const stored = window.localStorage.getItem("ma.landing");
         if (stored) {
@@ -2738,10 +2746,12 @@ export default function App() {
       setAuthTargetEntryMode("");
       setAuthForm({ name: "", email: nextUser.email, password: "" });
       if (showCookieGate && mode === "register") {
-        saveCookieConsent(consentMarketing ? "all" : "necessary");
+        saveCookieConsent((consentMarketingEmail || consentMarketingSms) ? "all" : "necessary");
         setConsentLegal(false);
-        setConsentMarketing(false);
-        setConsentExperian(false);
+        setConsentMarketingEmail(false);
+        setConsentMarketingSms(false);
+        setConsentThirdPartyEmail(false);
+        setConsentThirdPartySms(false);
       }
       // Show consent review modal for existing users who never decided
       if (mode === "login" && !nextUser.consentLegalAt && !nextUser.consentsReviewedAt) {
@@ -2783,8 +2793,10 @@ export default function App() {
     authTargetEntryMode,
     authTargetPage,
     consentLegal,
-    consentMarketing,
-    consentExperian,
+    consentMarketingEmail,
+    consentMarketingSms,
+    consentThirdPartyEmail,
+    consentThirdPartySms,
     entryMode,
     pendingPlanCheckoutId,
     saveCookieConsent,
@@ -5210,21 +5222,23 @@ export default function App() {
                   <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
                     <div
                       onClick={() => {
-                        const allOn = consentLegal && consentMarketing && consentExperian;
+                        const allOn = consentLegal && consentMarketingEmail && consentMarketingSms && consentThirdPartyEmail && consentThirdPartySms;
                         setConsentLegal(!allOn);
-                        setConsentMarketing(!allOn);
-                        setConsentExperian(!allOn);
+                        setConsentMarketingEmail(!allOn);
+                        setConsentMarketingSms(!allOn);
+                        setConsentThirdPartyEmail(!allOn);
+                        setConsentThirdPartySms(!allOn);
                       }}
                       style={{
                         width: 36, height: 20, borderRadius: 999, flexShrink: 0, cursor: "pointer",
-                        background: consentLegal && consentMarketing && consentExperian ? "#2563eb" : "rgba(148,163,184,0.3)",
+                        background: consentLegal && consentMarketingEmail && consentMarketingSms && consentThirdPartyEmail && consentThirdPartySms ? "#2563eb" : "rgba(148,163,184,0.3)",
                         position: "relative", transition: "background 0.2s",
                       }}
                     >
                       <div style={{
                         width: 14, height: 14, borderRadius: "50%", background: "#fff",
                         position: "absolute", top: 3,
-                        left: consentLegal && consentMarketing && consentExperian ? 19 : 3,
+                        left: consentLegal && consentMarketingEmail && consentMarketingSms && consentThirdPartyEmail && consentThirdPartySms ? 19 : 3,
                         transition: "left 0.2s",
                       }} />
                     </div>
@@ -5233,12 +5247,18 @@ export default function App() {
                     </span>
                   </label>
 
-                  {/* 1. Legal + privacidad + SECCI — obligatorio */}
+                  {/* 1. Legal + privacidad — obligatorio */}
                   <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                     <input
                       type="checkbox"
                       checked={consentLegal}
-                      onChange={(e) => { setConsentLegal(e.target.checked); if (!e.target.checked) { setConsentMarketing(false); setConsentExperian(false); } }}
+                      onChange={(e) => {
+                        setConsentLegal(e.target.checked);
+                        if (!e.target.checked) {
+                          setConsentMarketingEmail(false); setConsentMarketingSms(false);
+                          setConsentThirdPartyEmail(false); setConsentThirdPartySms(false);
+                        }
+                      }}
                       style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
                     />
                     <span style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
@@ -5247,54 +5267,95 @@ export default function App() {
                         style={{ color: "#93c5fd", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Condiciones Generales
                       </a>
-                      ,{" "}
+                      {" "}y la{" "}
                       <a href="/politica-privacidad" target="_blank" rel="noopener noreferrer"
                         style={{ color: "#93c5fd", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
-                        Política de Privacidad de Datos
+                        Política de Privacidad
                       </a>
                       .{" "}
                       <span style={{ color: "#f87171", fontSize: 11 }}>(obligatorio)</span>
                     </span>
                   </label>
 
-                  {/* 2. Comunicaciones de terceros — opcional */}
+                  {/* 2a. Marketing email — opcional */}
                   <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                     <input
                       type="checkbox"
-                      checked={consentMarketing}
-                      onChange={(e) => setConsentMarketing(e.target.checked)}
+                      checked={consentMarketingEmail}
+                      onChange={(e) => setConsentMarketingEmail(e.target.checked)}
                       style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
                     />
                     <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                      Acepto recibir comunicaciones comerciales de Carswiseai y socios conforme a la{" "}
+                      Acepto recibir comunicaciones comerciales por <strong style={{ color: "#cbd5e1" }}>email</strong> de Carswiseai y socios conforme a la{" "}
                       <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer"
                         style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
-                        Política de Comunicaciones Comerciales
+                        Política de Comunicaciones
                       </a>
                       .
                     </span>
                   </label>
 
-                  {/* 3. Experian — opcional */}
+                  {/* 2b. Marketing SMS — opcional */}
                   <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                     <input
                       type="checkbox"
-                      checked={consentExperian}
-                      onChange={(e) => setConsentExperian(e.target.checked)}
+                      checked={consentMarketingSms}
+                      onChange={(e) => setConsentMarketingSms(e.target.checked)}
                       style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
                     />
                     <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                      He leído y acepto las{" "}
+                      Acepto recibir comunicaciones comerciales por <strong style={{ color: "#cbd5e1" }}>SMS</strong> de Carswiseai y socios conforme a la{" "}
+                      <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer"
+                        style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        Política de Comunicaciones
+                      </a>
+                      .
+                    </span>
+                  </label>
+
+                  {/* 3a. Experian email — opcional */}
+                  <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
+                    <input
+                      type="checkbox"
+                      checked={consentThirdPartyEmail}
+                      onChange={(e) => setConsentThirdPartyEmail(e.target.checked)}
+                      style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
+                    />
+                    <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
+                      Acepto comunicaciones por <strong style={{ color: "#cbd5e1" }}>email</strong> de terceros conforme a las{" "}
                       <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer"
                         style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
-                        Condiciones del Servicio Experian
+                        Condiciones Experian
                       </a>
                       {" "}y la{" "}
                       <a href="/politica-experian" target="_blank" rel="noopener noreferrer"
                         style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
-                        Política de Consulta de Solvencia de Experian
+                        Política de Solvencia
                       </a>
-                      {" "}para consultar mis datos ante organismos públicos.
+                      .
+                    </span>
+                  </label>
+
+                  {/* 3b. Experian SMS — opcional */}
+                  <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
+                    <input
+                      type="checkbox"
+                      checked={consentThirdPartySms}
+                      onChange={(e) => setConsentThirdPartySms(e.target.checked)}
+                      style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
+                    />
+                    <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
+                      Acepto comunicaciones por <strong style={{ color: "#cbd5e1" }}>SMS</strong> de terceros conforme a las{" "}
+                      <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer"
+                        style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        Condiciones Experian
+                      </a>
+                      {" "}y la{" "}
+                      <a href="/politica-experian" target="_blank" rel="noopener noreferrer"
+                        style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        Política de Solvencia
+                      </a>
+                      .
                     </span>
                   </label>
                 </div>
@@ -5399,38 +5460,60 @@ export default function App() {
             <p style={{ margin: "0 0 20px", color: "#94a3b8", fontSize: 13, lineHeight: 1.6 }}>Hemos actualizado nuestras condiciones. Puedes aceptar o continuar sin aceptar — tu decisión quedará guardada.</p>
 
             <div style={{ display: "grid", gap: 10, marginBottom: 24 }}>
-              {/* Checkbox 1 — obligatorio */}
+              {/* Checkbox 1 — T&C obligatorio */}
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                 <input type="checkbox" checked={consentReviewLegal} onChange={(e) => setConsentReviewLegal(e.target.checked)}
                   style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }} />
                 <span style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
                   He leído y acepto{" "}
                   <a href="/terminos-condiciones" target="_blank" rel="noopener noreferrer" style={{ color: "#93c5fd", textDecoration: "underline" }}>Condiciones Generales</a>
-                  {", "}
+                  {" "}y la{" "}
                   <a href="/politica-privacidad" target="_blank" rel="noopener noreferrer" style={{ color: "#93c5fd", textDecoration: "underline" }}>Política de Privacidad</a>.{" "}
                   <span style={{ color: "#f87171", fontSize: 11 }}>(obligatorio)</span>
                 </span>
               </label>
 
-              {/* Checkbox 2 — marketing */}
+              {/* Checkbox 2a — marketing email */}
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
-                <input type="checkbox" checked={consentReviewMarketing} onChange={(e) => setConsentReviewMarketing(e.target.checked)}
+                <input type="checkbox" checked={consentReviewMarketingEmail} onChange={(e) => setConsentReviewMarketingEmail(e.target.checked)}
                   style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }} />
                 <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                  Acepto recibir comunicaciones comerciales conforme a la{" "}
-                  <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Política de Comunicaciones Comerciales</a>.
+                  Acepto comunicaciones comerciales por <strong style={{ color: "#cbd5e1" }}>email</strong> conforme a la{" "}
+                  <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Política de Comunicaciones</a>.
                 </span>
               </label>
 
-              {/* Checkbox 3 — Experian */}
+              {/* Checkbox 2b — marketing SMS */}
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
-                <input type="checkbox" checked={consentReviewExperian} onChange={(e) => setConsentReviewExperian(e.target.checked)}
+                <input type="checkbox" checked={consentReviewMarketingSms} onChange={(e) => setConsentReviewMarketingSms(e.target.checked)}
                   style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }} />
                 <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                  He leído y acepto las{" "}
-                  <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Condiciones del Servicio Experian</a>
+                  Acepto comunicaciones comerciales por <strong style={{ color: "#cbd5e1" }}>SMS</strong> conforme a la{" "}
+                  <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Política de Comunicaciones</a>.
+                </span>
+              </label>
+
+              {/* Checkbox 3a — Experian email */}
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
+                <input type="checkbox" checked={consentReviewThirdPartyEmail} onChange={(e) => setConsentReviewThirdPartyEmail(e.target.checked)}
+                  style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
+                  Acepto comunicaciones por <strong style={{ color: "#cbd5e1" }}>email</strong> de terceros conforme a las{" "}
+                  <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Condiciones Experian</a>
                   {" "}y la{" "}
-                  <a href="/politica-experian" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Política de Consulta de Solvencia</a>.
+                  <a href="/politica-experian" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Política de Solvencia</a>.
+                </span>
+              </label>
+
+              {/* Checkbox 3b — Experian SMS */}
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
+                <input type="checkbox" checked={consentReviewThirdPartySms} onChange={(e) => setConsentReviewThirdPartySms(e.target.checked)}
+                  style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
+                  Acepto comunicaciones por <strong style={{ color: "#cbd5e1" }}>SMS</strong> de terceros conforme a las{" "}
+                  <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Condiciones Experian</a>
+                  {" "}y la{" "}
+                  <a href="/politica-experian" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Política de Solvencia</a>.
                 </span>
               </label>
             </div>
@@ -5441,7 +5524,14 @@ export default function App() {
                 onClick={async () => {
                   setConsentReviewLoading(true);
                   try {
-                    const { data } = await postAuthJson({ action: "save_consents", consentLegal: consentReviewLegal, consentMarketing: consentReviewMarketing, consentExperian: consentReviewExperian });
+                    const { data } = await postAuthJson({
+                      action: "save_consents",
+                      consentLegal: consentReviewLegal,
+                      consentMarketingEmail: consentReviewMarketingEmail,
+                      consentMarketingSms: consentReviewMarketingSms,
+                      consentThirdPartyEmail: consentReviewThirdPartyEmail,
+                      consentThirdPartySms: consentReviewThirdPartySms,
+                    });
                     if (data?.user) { writeAuthUser(data.user); setCurrentUser(data.user); }
                   } catch {}
                   setShowConsentReview(false);
@@ -5456,7 +5546,14 @@ export default function App() {
                 onClick={async () => {
                   setConsentReviewLoading(true);
                   try {
-                    await postAuthJson({ action: "save_consents", consentLegal: false, consentMarketing: false, consentExperian: false });
+                    await postAuthJson({
+                      action: "save_consents",
+                      consentLegal: false,
+                      consentMarketingEmail: false,
+                      consentMarketingSms: false,
+                      consentThirdPartyEmail: false,
+                      consentThirdPartySms: false,
+                    });
                   } catch {}
                   setShowConsentReview(false);
                   setConsentReviewLoading(false);

@@ -1232,6 +1232,8 @@ function mapDbUser(foundUser = {}) {
   return {
     id: normalizeText(foundUser.Id || foundUser.id),
     name: normalizeText(foundUser.Name || foundUser.name),
+    apellidos: normalizeText(foundUser.Apellidos || foundUser.apellidos),
+    phone: normalizeText(foundUser.Phone || foundUser.phone),
     email: normalizeText(foundUser.Email || foundUser.email).toLowerCase(),
     passwordSalt: normalizeText(foundUser.PasswordSalt || foundUser.passwordSalt),
     passwordHash: normalizeText(foundUser.PasswordHash || foundUser.passwordHash),

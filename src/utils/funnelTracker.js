@@ -15,7 +15,7 @@ export function getAnonId() {
   }
 }
 
-export async function trackFunnelEvent({ event_type, user_id, user_email, offer_id, offer_title, modality }) {
+export async function trackFunnelEvent({ event_type, user_id, user_email, offer_id, offer_title, modality, section }) {
   try {
     const utm = getStoredUtm() || {};
     const body = {
@@ -32,6 +32,7 @@ export async function trackFunnelEvent({ event_type, user_id, user_email, offer_
       offer_id:     offer_id    || null,
       offer_title:  offer_title || null,
       modality:     modality    || null,
+      section:      section     || null,
     };
     await fetch("/api/funnel-event", {
       method:  "POST",

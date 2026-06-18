@@ -1754,6 +1754,12 @@ export default function App() {
     }
   }, [currentUser?.email, currentUser?.id]);
 
+  // Track page-level navigation across all sections (not only marketplace)
+  useEffect(() => {
+    if (!entryMode) return;
+    trackFunnelEvent({ event_type: "page_view", section: entryMode });
+  }, [entryMode]);
+
   useEffect(() => {
     applyUiLanguage(uiLanguage);
   }, [applyUiLanguage, uiLanguage]);

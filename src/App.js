@@ -2759,8 +2759,8 @@ export default function App() {
         setConsentThirdPartyEmail(false);
         setConsentThirdPartySms(false);
       }
-      // Show consent review modal for existing users who never decided
-      if (mode === "login" && !nextUser.consentLegalAt && !nextUser.consentsReviewedAt) {
+      // Show consent review modal for users who haven't accepted T&C (never reviewed or previously rejected)
+      if (mode === "login" && !nextUser.consentLegalAt) {
         setShowConsentReview(true);
       }
 

@@ -255,14 +255,12 @@ export default function UserDashboardPage({
       : "0 16px 34px rgba(15,23,42,0.10)",
     backdropFilter: "blur(8px)",
   };
-  const dashboardVehicleCount = userVehicleSections.reduce((acc, section) => acc + section.items.length, 0);
-  const totalVehiclesCount = dashboardVehicleCount + garageVehicleCount;
   const counts = {
     saved: savedComparisons.length + (Array.isArray(marketAlerts) ? marketAlerts.length : 0),
     alerts: Array.isArray(marketAlerts) ? marketAlerts.length : 0,
     appointments: dashboardAppointments.length,
     valuations: dashboardValuations.length,
-    vehicles: totalVehiclesCount,
+    vehicles: garageVehicleCount,
     solicitudes: userSolicitudes.length,
   };
   const sections = buildSections(counts, t, newAlertMatchesCount);

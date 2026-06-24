@@ -396,27 +396,47 @@ export default function PortalVoDetailPage({
               })()}
             </div>
 
-            {/* Units / color selector */}
-            {selectedPortalVoOffer.hasStockManagement && selectedPortalVoOffer.availableUnits?.length > 0 && (() => {
-              const byColor = selectedPortalVoOffer.availableUnits.reduce((acc, u) => {
-                const c = u.color || "Sin color";
-                if (!acc[c]) acc[c] = [];
-                acc[c].push(u);
-                return acc;
-              }, {});
+            {/* Units / color selector — shown for renting offers with stock data */}
+            {selectedPortalVoOffer.rentingAvailable &&
+             (selectedPortalVoOffer.availableUnits?.length > 0 || selectedPortalVoOffer.availableColors?.length > 0) &&
+             (() => {
+              const cardStyle = { background: isDark ? "rgba(15,23,42,0.4)" : "#fff", border: isDark ? "1px solid rgba(52,211,153,0.25)" : "1px solid rgba(16,185,129,0.3)", borderRadius: 10, padding: "8px 14px", textAlign: "center" };
+              const wrapStyle = { marginBottom: 14, padding: "12px 14px", background: isDark ? "rgba(52,211,153,0.07)" : "rgba(236,253,245,0.9)", border: isDark ? "1px solid rgba(52,211,153,0.18)" : "1px solid rgba(16,185,129,0.22)", borderRadius: 12 };
+              const titleStyle = { fontSize: 11, fontWeight: 700, color: isDark ? "#6ee7b7" : "#059669", marginBottom: 8 };
+              // Detailed data (loaded by ID): availableUnits = [{color, mileage}, ...]
+              if (selectedPortalVoOffer.availableUnits?.length > 0) {
+                const byColor = selectedPortalVoOffer.availableUnits.reduce((acc, u) => {
+                  const c = u.color || "Sin color";
+                  if (!acc[c]) acc[c] = [];
+                  acc[c].push(u);
+                  return acc;
+                }, {});
+                return (
+                  <div style={wrapStyle}>
+                    <div style={titleStyle}>
+                      {selectedPortalVoOffer.availableUnits.length} unidad{selectedPortalVoOffer.availableUnits.length !== 1 ? "es" : ""} disponible{selectedPortalVoOffer.availableUnits.length !== 1 ? "s" : ""}
+                    </div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      {Object.entries(byColor).map(([color, us]) => (
+                        <div key={color} style={cardStyle}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 2 }}>{color}</div>
+                          <div style={{ fontSize: 11, color: isDark ? "#6ee7b7" : "#059669" }}>{us.length} ud{us.length !== 1 ? "s" : ""}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
+              // Summary data (loaded from list): availableColors = ['Blanco', 'Negro'], unitsAvailable = 5
               return (
-                <div style={{ marginBottom: 14, padding: "12px 14px", background: isDark ? "rgba(52,211,153,0.07)" : "rgba(236,253,245,0.9)", border: isDark ? "1px solid rgba(52,211,153,0.18)" : "1px solid rgba(16,185,129,0.22)", borderRadius: 12 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: isDark ? "#6ee7b7" : "#059669", marginBottom: 8 }}>
-                    Unidades disponibles — elige color
+                <div style={wrapStyle}>
+                  <div style={titleStyle}>
+                    {selectedPortalVoOffer.unitsAvailable} unidad{selectedPortalVoOffer.unitsAvailable !== 1 ? "es" : ""} disponible{selectedPortalVoOffer.unitsAvailable !== 1 ? "s" : ""}
                   </div>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    {Object.entries(byColor).map(([color, us]) => (
-                      <div key={color} style={{ background: isDark ? "rgba(15,23,42,0.4)" : "#fff", border: isDark ? "1px solid rgba(52,211,153,0.25)" : "1px solid rgba(16,185,129,0.3)", borderRadius: 10, padding: "8px 14px", textAlign: "center" }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 2 }}>{color}</div>
-                        <div style={{ fontSize: 11, color: isDark ? "#6ee7b7" : "#059669" }}>{us.length} ud{us.length !== 1 ? "s" : ""}</div>
-                        <div style={{ fontSize: 10, color: isDark ? "#94a3b8" : "#64748b", marginTop: 2 }}>
-                          {us.map((u) => `${Number(u.mileage).toLocaleString("es-ES")} km`).join(" · ")}
-                        </div>
+                    {selectedPortalVoOffer.availableColors.map((c) => (
+                      <div key={c} style={cardStyle}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>{c}</div>
                       </div>
                     ))}
                   </div>

@@ -86,11 +86,7 @@ export default function PortalVoDetailPage({
   const [rentingKm, setRentingKm] = useState(() => {
     return selectedPortalVoOffer.rentingPricesJson?.km_options?.[1] || 15000;
   });
-  const [selectedColor, setSelectedColor] = useState(() => {
-    const colors = selectedPortalVoOffer.availableUnits?.map(u => u.color).filter(Boolean)
-      || selectedPortalVoOffer.availableColors || [];
-    return colors.length === 1 ? colors[0] : null;
-  });
+  const [colorQuantities, setColorQuantities] = useState({});
 
   useEffect(() => {
     if (!selectedPortalVoOffer.id) return;
@@ -125,7 +121,8 @@ export default function PortalVoDetailPage({
           finalType = "renting";
           const price = getRentingPriceForSelection(selectedPortalVoOffer, rentingDuration, rentingKm);
           const kmLabel = Number(rentingKm) >= 1000 ? `${(Number(rentingKm)/1000).toFixed(0)}.000` : String(rentingKm);
-          finalWhen = `Plazo: ${rentingDuration} · ${kmLabel} km/año${price ? ` · ${price} €/mes` : ""}${selectedColor ? ` · Color: ${selectedColor}` : ""}`;
+          const colorSummary = Object.entries(colorQuantities).filter(([,q]) => q > 0).map(([c,q]) => `${q}x ${c}`).join(" + ");
+          finalWhen = `Plazo: ${rentingDuration} · ${kmLabel} km/año${price ? ` · ${price} €/mes` : ""}${colorSummary ? ` · ${colorSummary}` : ""}`;
         }
         res = await fetch("/api/leads", {
           method: "POST",
@@ -366,7 +363,7 @@ export default function PortalVoDetailPage({
                         );
                       })}
                     </div>
-                    {/* Color selector */}
+                    {/* Color + quantity selector — one +/− per color */}
                     {(() => {
                       const colorMap = {};
                       if (selectedPortalVoOffer.availableUnits?.length > 0) {
@@ -379,30 +376,34 @@ export default function PortalVoDetailPage({
                       }
                       const colors = Object.keys(colorMap);
                       if (!colors.length) return null;
+                      const btnBase = { border: "none", background: "transparent", cursor: "pointer", fontWeight: 700, fontSize: 16, lineHeight: 1, padding: "0 6px", color: isDark ? "#94a3b8" : "#64748b" };
                       return (
                         <div style={{ marginTop: 14 }}>
-                          <div style={{ fontSize: 10, color: isDark ? "#94a3b8" : "#64748b", fontWeight: 700, letterSpacing: "0.04em", marginBottom: 6 }}>COLOR</div>
-                          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                          <div style={{ fontSize: 10, color: isDark ? "#94a3b8" : "#64748b", fontWeight: 700, letterSpacing: "0.04em", marginBottom: 8 }}>COLOR Y UNIDADES</div>
+                          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                             {colors.map(c => {
-                              const count = colorMap[c];
-                              const isSel = selectedColor === c;
+                              const maxQty = colorMap[c] ?? 99;
+                              const qty = colorQuantities[c] || 0;
+                              const isActive = qty > 0;
                               return (
-                                <button
-                                  key={c} type="button"
-                                  onClick={() => setSelectedColor(isSel ? null : c)}
-                                  style={{
-                                    background: isSel ? (isDark ? "rgba(5,150,105,0.22)" : "#f0fdf4") : (isDark ? "rgba(255,255,255,0.04)" : "#fff"),
-                                    border: isSel ? "2px solid #059669" : (isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid #e2e8f0"),
-                                    borderRadius: 10, padding: "8px 16px", textAlign: "center", cursor: "pointer",
-                                    transform: isSel ? "scale(1.03)" : "scale(1)",
-                                    transition: "all 0.12s",
-                                  }}
-                                >
-                                  <div style={{ fontSize: 13, fontWeight: 700, color: isSel ? (isDark ? "#34d399" : "#059669") : (isDark ? "#f8fafc" : "#0f172a") }}>{c}</div>
-                                  {count !== null && (
-                                    <div style={{ fontSize: 10, color: isDark ? "#6ee7b7" : "#059669", marginTop: 2 }}>{count} ud{count !== 1 ? "s" : ""}</div>
+                                <div key={c} style={{
+                                  background: isActive ? (isDark ? "rgba(5,150,105,0.18)" : "#f0fdf4") : (isDark ? "rgba(255,255,255,0.04)" : "#fff"),
+                                  border: isActive ? "2px solid #059669" : (isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid #e2e8f0"),
+                                  borderRadius: 12, padding: "10px 14px", textAlign: "center", minWidth: 90,
+                                  transition: "all 0.12s",
+                                }}>
+                                  <div style={{ fontSize: 13, fontWeight: 700, color: isActive ? (isDark ? "#34d399" : "#059669") : (isDark ? "#f8fafc" : "#0f172a"), marginBottom: 4 }}>{c}</div>
+                                  {maxQty !== null && (
+                                    <div style={{ fontSize: 10, color: isDark ? "#64748b" : "#94a3b8", marginBottom: 8 }}>{maxQty} disponible{maxQty !== 1 ? "s" : ""}</div>
                                   )}
-                                </button>
+                                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0 }}>
+                                    <button type="button" style={{ ...btnBase, opacity: qty <= 0 ? 0.3 : 1 }}
+                                      onClick={() => setColorQuantities(prev => ({ ...prev, [c]: Math.max(0, (prev[c] || 0) - 1) }))}>−</button>
+                                    <span style={{ minWidth: 22, textAlign: "center", fontSize: 15, fontWeight: 800, color: isActive ? (isDark ? "#34d399" : "#059669") : (isDark ? "#94a3b8" : "#64748b") }}>{qty}</span>
+                                    <button type="button" style={{ ...btnBase, opacity: qty >= maxQty ? 0.3 : 1 }}
+                                      onClick={() => setColorQuantities(prev => ({ ...prev, [c]: Math.min(maxQty ?? 99, (prev[c] || 0) + 1) }))}>+</button>
+                                  </div>
+                                </div>
                               );
                             })}
                           </div>
@@ -411,7 +412,10 @@ export default function PortalVoDetailPage({
                     })()}
                     {selectedPrice != null && (
                       <div style={{ marginTop: 12, fontSize: 12, color: isDark ? "#6ee7b7" : "#059669", fontWeight: 600 }}>
-                        Seleccionado: {rentingDuration.replace("m", " meses")} · {Number(rentingKm) >= 1000 ? `${(Number(rentingKm)/1000).toFixed(0)}.000` : rentingKm} km/año · <strong>{selectedPrice} €/mes</strong>{selectedColor ? ` · ${selectedColor}` : ""}
+                        {(() => {
+                          const colorSel = Object.entries(colorQuantities).filter(([,q]) => q > 0).map(([c,q]) => `${q}x ${c}`).join(" + ");
+                          return <>Seleccionado: {rentingDuration.replace("m", " meses")} · {Number(rentingKm) >= 1000 ? `${(Number(rentingKm)/1000).toFixed(0)}.000` : rentingKm} km/año · <strong>{selectedPrice} €/mes</strong>{colorSel ? ` · ${colorSel}` : ""}</>;
+                        })()}
                       </div>
                     )}
                   </div>

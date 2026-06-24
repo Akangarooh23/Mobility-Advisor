@@ -86,7 +86,8 @@ export default function PortalVoDetailPage({
   const [rentingKm, setRentingKm] = useState(() => {
     return selectedPortalVoOffer.rentingPricesJson?.km_options?.[1] || 15000;
   });
-  const [colorQuantities, setColorQuantities] = useState({});
+  const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
 
   useEffect(() => {
     if (!selectedPortalVoOffer.id) return;
@@ -121,8 +122,7 @@ export default function PortalVoDetailPage({
           finalType = "renting";
           const price = getRentingPriceForSelection(selectedPortalVoOffer, rentingDuration, rentingKm);
           const kmLabel = Number(rentingKm) >= 1000 ? `${(Number(rentingKm)/1000).toFixed(0)}.000` : String(rentingKm);
-          const colorSummary = Object.entries(colorQuantities).filter(([,q]) => q > 0).map(([c,q]) => `${q}x ${c}`).join(" + ");
-          finalWhen = `Plazo: ${rentingDuration} · ${kmLabel} km/año${price ? ` · ${price} €/mes` : ""}${colorSummary ? ` · ${colorSummary}` : ""}`;
+          finalWhen = `Plazo: ${rentingDuration} · ${kmLabel} km/año${price ? ` · ${price} €/mes` : ""}${selectedColor ? ` · ${selectedQuantity}x ${selectedColor}` : ""}`;
         }
         res = await fetch("/api/leads", {
           method: "POST",
@@ -363,7 +363,7 @@ export default function PortalVoDetailPage({
                         );
                       })}
                     </div>
-                    {/* Color + quantity selector — one +/− per color */}
+                    {/* Step 2: Color selector */}
                     {(() => {
                       const colorMap = {};
                       if (selectedPortalVoOffer.availableUnits?.length > 0) {
@@ -376,46 +376,59 @@ export default function PortalVoDetailPage({
                       }
                       const colors = Object.keys(colorMap);
                       if (!colors.length) return null;
-                      const btnBase = { border: "none", background: "transparent", cursor: "pointer", fontWeight: 700, fontSize: 16, lineHeight: 1, padding: "0 6px", color: isDark ? "#94a3b8" : "#64748b" };
+                      const maxForSelected = selectedColor ? (colorMap[selectedColor] ?? 1) : 1;
                       return (
-                        <div style={{ marginTop: 14 }}>
-                          <div style={{ fontSize: 10, color: isDark ? "#94a3b8" : "#64748b", fontWeight: 700, letterSpacing: "0.04em", marginBottom: 8 }}>COLOR Y UNIDADES</div>
-                          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                            {colors.map(c => {
-                              const maxQty = colorMap[c] ?? 99;
-                              const qty = colorQuantities[c] || 0;
-                              const isActive = qty > 0;
-                              return (
-                                <div key={c} style={{
-                                  background: isActive ? (isDark ? "rgba(5,150,105,0.18)" : "#f0fdf4") : (isDark ? "rgba(255,255,255,0.04)" : "#fff"),
-                                  border: isActive ? "2px solid #059669" : (isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid #e2e8f0"),
-                                  borderRadius: 12, padding: "10px 14px", textAlign: "center", minWidth: 90,
-                                  transition: "all 0.12s",
-                                }}>
-                                  <div style={{ fontSize: 13, fontWeight: 700, color: isActive ? (isDark ? "#34d399" : "#059669") : (isDark ? "#f8fafc" : "#0f172a"), marginBottom: 4 }}>{c}</div>
-                                  {maxQty !== null && (
-                                    <div style={{ fontSize: 10, color: isDark ? "#64748b" : "#94a3b8", marginBottom: 8 }}>{maxQty} disponible{maxQty !== 1 ? "s" : ""}</div>
-                                  )}
-                                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0 }}>
-                                    <button type="button" style={{ ...btnBase, opacity: qty <= 0 ? 0.3 : 1 }}
-                                      onClick={() => setColorQuantities(prev => ({ ...prev, [c]: Math.max(0, (prev[c] || 0) - 1) }))}>−</button>
-                                    <span style={{ minWidth: 22, textAlign: "center", fontSize: 15, fontWeight: 800, color: isActive ? (isDark ? "#34d399" : "#059669") : (isDark ? "#94a3b8" : "#64748b") }}>{qty}</span>
-                                    <button type="button" style={{ ...btnBase, opacity: qty >= maxQty ? 0.3 : 1 }}
-                                      onClick={() => setColorQuantities(prev => ({ ...prev, [c]: Math.min(maxQty ?? 99, (prev[c] || 0) + 1) }))}>+</button>
-                                  </div>
-                                </div>
-                              );
-                            })}
+                        <>
+                          {/* Color cards */}
+                          <div style={{ marginTop: 14 }}>
+                            <div style={{ fontSize: 10, color: isDark ? "#94a3b8" : "#64748b", fontWeight: 700, letterSpacing: "0.04em", marginBottom: 8 }}>COLOR</div>
+                            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                              {colors.map(c => {
+                                const avail = colorMap[c];
+                                const isSel = selectedColor === c;
+                                return (
+                                  <button key={c} type="button"
+                                    onClick={() => { setSelectedColor(isSel ? null : c); setSelectedQuantity(1); }}
+                                    style={{
+                                      background: isSel ? (isDark ? "rgba(5,150,105,0.22)" : "#f0fdf4") : (isDark ? "rgba(255,255,255,0.04)" : "#fff"),
+                                      border: isSel ? "2px solid #059669" : (isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid #e2e8f0"),
+                                      borderRadius: 10, padding: "8px 16px", textAlign: "center", cursor: "pointer",
+                                      transform: isSel ? "scale(1.03)" : "scale(1)", transition: "all 0.12s",
+                                    }}>
+                                    <div style={{ fontSize: 13, fontWeight: 700, color: isSel ? (isDark ? "#34d399" : "#059669") : (isDark ? "#f8fafc" : "#0f172a") }}>{c}</div>
+                                    {avail !== null && <div style={{ fontSize: 10, color: isDark ? "#6ee7b7" : "#059669", marginTop: 2 }}>{avail} ud{avail !== 1 ? "s" : ""}</div>}
+                                  </button>
+                                );
+                              })}
+                            </div>
                           </div>
-                        </div>
+
+                          {/* Step 3: Quantity selector — only when color selected */}
+                          {selectedColor && (
+                            <div style={{ marginTop: 12, padding: "10px 14px", background: isDark ? "rgba(255,255,255,0.03)" : "#f8fafc", border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e2e8f0", borderRadius: 10 }}>
+                              <div style={{ fontSize: 10, color: isDark ? "#94a3b8" : "#64748b", fontWeight: 700, letterSpacing: "0.04em", marginBottom: 8 }}>UNIDADES ({selectedColor})</div>
+                              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+                                  <button type="button"
+                                    onClick={() => setSelectedQuantity(q => Math.max(1, q - 1))}
+                                    disabled={selectedQuantity <= 1}
+                                    style={{ width: 34, height: 34, borderRadius: "8px 0 0 8px", border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid #d1d5db", background: isDark ? "rgba(255,255,255,0.06)" : "#fff", color: isDark ? "#f8fafc" : "#374151", fontSize: 20, fontWeight: 700, cursor: "pointer", opacity: selectedQuantity <= 1 ? 0.35 : 1 }}>−</button>
+                                  <div style={{ width: 48, height: 34, display: "flex", alignItems: "center", justifyContent: "center", border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid #d1d5db", borderLeft: "none", borderRight: "none", background: isDark ? "rgba(255,255,255,0.02)" : "#fff", fontSize: 16, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>{selectedQuantity}</div>
+                                  <button type="button"
+                                    onClick={() => setSelectedQuantity(q => Math.min(maxForSelected, q + 1))}
+                                    disabled={selectedQuantity >= maxForSelected}
+                                    style={{ width: 34, height: 34, borderRadius: "0 8px 8px 0", border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid #d1d5db", background: isDark ? "rgba(255,255,255,0.06)" : "#fff", color: isDark ? "#f8fafc" : "#374151", fontSize: 20, fontWeight: 700, cursor: "pointer", opacity: selectedQuantity >= maxForSelected ? 0.35 : 1 }}>+</button>
+                                </div>
+                                <span style={{ fontSize: 11, color: isDark ? "#64748b" : "#9ca3af" }}>máx. {maxForSelected} disponible{maxForSelected !== 1 ? "s" : ""}</span>
+                              </div>
+                            </div>
+                          )}
+                        </>
                       );
                     })()}
                     {selectedPrice != null && (
                       <div style={{ marginTop: 12, fontSize: 12, color: isDark ? "#6ee7b7" : "#059669", fontWeight: 600 }}>
-                        {(() => {
-                          const colorSel = Object.entries(colorQuantities).filter(([,q]) => q > 0).map(([c,q]) => `${q}x ${c}`).join(" + ");
-                          return <>Seleccionado: {rentingDuration.replace("m", " meses")} · {Number(rentingKm) >= 1000 ? `${(Number(rentingKm)/1000).toFixed(0)}.000` : rentingKm} km/año · <strong>{selectedPrice} €/mes</strong>{colorSel ? ` · ${colorSel}` : ""}</>;
-                        })()}
+                        Seleccionado: {rentingDuration.replace("m", " meses")} · {Number(rentingKm) >= 1000 ? `${(Number(rentingKm)/1000).toFixed(0)}.000` : rentingKm} km/año · <strong>{selectedPrice} €/mes</strong>{selectedColor ? ` · ${selectedQuantity}x ${selectedColor}` : ""}
                       </div>
                     )}
                   </div>

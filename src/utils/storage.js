@@ -5,6 +5,7 @@ const USER_INSURANCES_KEY   = "movilidad-advisor.userInsurances.v1";
 const USER_VALUATIONS_KEY   = "movilidad-advisor.userValuations.v1";
 const USER_VEHICLE_STATES_KEY = "movilidad-advisor.userVehicleStates.v1";
 const USER_SOLICITUDES_KEY  = "movilidad-advisor.userSolicitudes.v1";
+const GARAGE_VEHICLE_COUNT_KEY = "movilidad-advisor.garageVehicleCount.v1";
 const QUESTIONNAIRE_DRAFT_KEY = "movilidad-advisor.questionnaireDraft.v1";
 const MARKET_ALERTS_KEY = "movilidad-advisor.marketAlerts.v1";
 const MARKET_ALERT_STATUS_KEY = "movilidad-advisor.marketAlertStatus.v1";
@@ -92,6 +93,15 @@ export function readUserSolicitudes() {
 }
 export function writeUserSolicitudes(items = []) {
   writeCollection(USER_SOLICITUDES_KEY, items, 20);
+}
+
+export function readCachedGarageVehicleCount() {
+  if (typeof window === "undefined") return 0;
+  try { return parseInt(window.localStorage.getItem(GARAGE_VEHICLE_COUNT_KEY) || "0", 10) || 0; } catch { return 0; }
+}
+export function writeCachedGarageVehicleCount(count = 0) {
+  if (typeof window === "undefined") return;
+  try { window.localStorage.setItem(GARAGE_VEHICLE_COUNT_KEY, String(parseInt(count, 10) || 0)); } catch {}
 }
 
 export function readQuestionnaireDraft() {

@@ -8,6 +8,7 @@ import {
   writeUserValuations,
   writeUserVehicleStates,
   writeUserSolicitudes,
+  writeCachedGarageVehicleCount,
 } from "../utils/storage";
 
 export function useUserMobilitySync({
@@ -58,8 +59,9 @@ export function useUserMobilitySync({
         setUserValuations(nextValuations);
         setUserVehicleStates(nextVehicleStates);
         if (setUserSolicitudes) setUserSolicitudes(nextSolicitudes);
-        if (setGarageVehicleCount && typeof data?.garageVehicleCount === "number") {
-          setGarageVehicleCount(data.garageVehicleCount);
+        if (typeof data?.garageVehicleCount === "number") {
+          writeCachedGarageVehicleCount(data.garageVehicleCount);
+          if (setGarageVehicleCount) setGarageVehicleCount(data.garageVehicleCount);
         }
 
         writeSavedComparisons(nextSaved);

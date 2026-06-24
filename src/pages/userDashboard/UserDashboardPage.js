@@ -10,7 +10,7 @@ import UserDashboardValuations from "./UserDashboardValuations";
 import UserDashboardVehicles from "./UserDashboardVehicles";
 import UserDashboardSolicitudes from "./UserDashboardSolicitudes";
 import { getGarageVehiclesJson } from "../../utils/apiClient";
-import { readUserBillingState } from "../../utils/storage";
+import { readUserBillingState, readCachedGarageVehicleCount } from "../../utils/storage";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 
@@ -173,7 +173,10 @@ export default function UserDashboardPage({
 
     return window.innerWidth < 900;
   });
-  const [garageVehicleCount, setGarageVehicleCount] = useState(() => readGarageVehiclesCount(currentUser?.email || ""));
+  const [garageVehicleCount, setGarageVehicleCount] = useState(() => {
+    const cached = readCachedGarageVehicleCount();
+    return cached > 0 ? cached : readGarageVehiclesCount(currentUser?.email || "");
+  });
 
   useEffect(() => {
     setCurrentPlanId(readUserBillingState()?.planId || "free");

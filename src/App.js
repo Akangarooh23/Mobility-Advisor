@@ -2807,6 +2807,7 @@ export default function App() {
     authTargetEntryMode,
     authTargetPage,
     consentLegal,
+    clientType,
     consentMarketingEmail,
     consentMarketingSms,
     consentThirdPartyEmail,

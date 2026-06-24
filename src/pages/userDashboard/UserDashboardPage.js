@@ -230,14 +230,22 @@ export default function UserDashboardPage({
       }
     };
 
+    const garageCountListener = (event) => {
+      if (!disposed && event?.detail?.count != null) {
+        setGarageVehicleCount(event.detail.count);
+      }
+    };
+
     if (typeof window !== "undefined") {
       window.addEventListener("storage", storageListener);
+      window.addEventListener("garageVehicleCountChanged", garageCountListener);
     }
 
     return () => {
       disposed = true;
       if (typeof window !== "undefined") {
         window.removeEventListener("storage", storageListener);
+        window.removeEventListener("garageVehicleCountChanged", garageCountListener);
       }
     };
   }, [currentUser?.email]);

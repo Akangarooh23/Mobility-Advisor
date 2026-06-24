@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { writeCachedGarageVehicleCount } from "../../utils/storage";
 import {
   getGarageVehiclesJson,
   postGarageVehicleAddJson,
@@ -258,6 +259,8 @@ function writeGarageVehicles(currentUserEmail = "", items = []) {
   try {
     const safeItems = Array.isArray(items) ? items.slice(0, 20) : [];
     window.localStorage.setItem(getGarageStorageKey(currentUserEmail), JSON.stringify(safeItems));
+    writeCachedGarageVehicleCount(safeItems.length);
+    window.dispatchEvent(new CustomEvent("garageVehicleCountChanged", { detail: { count: safeItems.length } }));
   } catch {}
 }
 

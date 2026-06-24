@@ -260,7 +260,7 @@ export default function UserDashboardPage({
     alerts: Array.isArray(marketAlerts) ? marketAlerts.length : 0,
     appointments: dashboardAppointments.length,
     valuations: dashboardValuations.length,
-    vehicles: garageVehicleCount,
+    vehicles: garageVehicleCount || userVehicleSections.reduce((acc, s) => acc + s.items.length, 0),
     solicitudes: userSolicitudes.length,
   };
   const sections = buildSections(counts, t, newAlertMatchesCount);

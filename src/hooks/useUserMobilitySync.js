@@ -1,6 +1,14 @@
 import { useEffect } from "react";
 import { getUserMobilityDataJson } from "../utils/apiClient";
-import { writeSavedComparisons, writeUserAppointments } from "../utils/storage";
+import {
+  writeSavedComparisons,
+  writeUserAppointments,
+  writeUserMaintenances,
+  writeUserInsurances,
+  writeUserValuations,
+  writeUserVehicleStates,
+  writeUserSolicitudes,
+} from "../utils/storage";
 
 export function useUserMobilitySync({
   currentUserEmail,
@@ -11,6 +19,7 @@ export function useUserMobilitySync({
   setUserValuations,
   setUserVehicleStates,
   setUserSolicitudes,
+  setGarageVehicleCount,
 }) {
   useEffect(() => {
     let disposed = false;
@@ -49,9 +58,17 @@ export function useUserMobilitySync({
         setUserValuations(nextValuations);
         setUserVehicleStates(nextVehicleStates);
         if (setUserSolicitudes) setUserSolicitudes(nextSolicitudes);
+        if (setGarageVehicleCount && typeof data?.garageVehicleCount === "number") {
+          setGarageVehicleCount(data.garageVehicleCount);
+        }
 
         writeSavedComparisons(nextSaved);
         writeUserAppointments(nextAppointments);
+        writeUserMaintenances(nextMaintenances);
+        writeUserInsurances(nextInsurances);
+        writeUserValuations(nextValuations);
+        writeUserVehicleStates(nextVehicleStates);
+        writeUserSolicitudes(nextSolicitudes);
       } catch {
         // Keep local fallback if mobility API is unavailable.
       }
@@ -69,5 +86,6 @@ export function useUserMobilitySync({
     setUserValuations,
     setUserVehicleStates,
     setUserSolicitudes,
+    setGarageVehicleCount,
   ]);
 }

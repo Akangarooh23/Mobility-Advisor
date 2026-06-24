@@ -1,5 +1,10 @@
 const SAVED_COMPARISONS_KEY = "movilidad-advisor.savedComparisons.v1";
 const USER_APPOINTMENTS_KEY = "movilidad-advisor.userAppointments.v1";
+const USER_MAINTENANCES_KEY = "movilidad-advisor.userMaintenances.v1";
+const USER_INSURANCES_KEY   = "movilidad-advisor.userInsurances.v1";
+const USER_VALUATIONS_KEY   = "movilidad-advisor.userValuations.v1";
+const USER_VEHICLE_STATES_KEY = "movilidad-advisor.userVehicleStates.v1";
+const USER_SOLICITUDES_KEY  = "movilidad-advisor.userSolicitudes.v1";
 const QUESTIONNAIRE_DRAFT_KEY = "movilidad-advisor.questionnaireDraft.v1";
 const MARKET_ALERTS_KEY = "movilidad-advisor.marketAlerts.v1";
 const MARKET_ALERT_STATUS_KEY = "movilidad-advisor.marketAlertStatus.v1";
@@ -52,6 +57,41 @@ export function readUserAppointments() {
 
 export function writeUserAppointments(items = []) {
   writeCollection(USER_APPOINTMENTS_KEY, items, 8);
+}
+
+export function readUserMaintenances() {
+  return readCollection(USER_MAINTENANCES_KEY);
+}
+export function writeUserMaintenances(items = []) {
+  writeCollection(USER_MAINTENANCES_KEY, items, 12);
+}
+
+export function readUserInsurances() {
+  return readCollection(USER_INSURANCES_KEY);
+}
+export function writeUserInsurances(items = []) {
+  writeCollection(USER_INSURANCES_KEY, items, 8);
+}
+
+export function readUserValuations() {
+  return readCollection(USER_VALUATIONS_KEY);
+}
+export function writeUserValuations(items = []) {
+  writeCollection(USER_VALUATIONS_KEY, items, 12);
+}
+
+export function readUserVehicleStates() {
+  return readCollection(USER_VEHICLE_STATES_KEY);
+}
+export function writeUserVehicleStates(items = []) {
+  writeCollection(USER_VEHICLE_STATES_KEY, items, 30);
+}
+
+export function readUserSolicitudes() {
+  return readCollection(USER_SOLICITUDES_KEY);
+}
+export function writeUserSolicitudes(items = []) {
+  writeCollection(USER_SOLICITUDES_KEY, items, 20);
 }
 
 export function readQuestionnaireDraft() {

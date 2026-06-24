@@ -14,6 +14,11 @@ import {
   readQuestionnaireDraft,
   readSavedComparisons,
   readUserAppointments,
+  readUserMaintenances,
+  readUserInsurances,
+  readUserValuations,
+  readUserVehicleStates,
+  readUserSolicitudes,
   writeAuthUser,
   writeMarketAlerts,
   writeMarketAlertStatus,
@@ -25,6 +30,11 @@ export function useAppBootstrap({
   setThemeMode,
   setSavedComparisons,
   setUserAppointments,
+  setUserMaintenances,
+  setUserInsurances,
+  setUserValuations,
+  setUserVehicleStates,
+  setUserSolicitudes,
   setMarketAlerts,
   setMarketAlertStatus,
   setQuestionnaireDraft,
@@ -74,6 +84,11 @@ export function useAppBootstrap({
 
     setSavedComparisons(readSavedComparisons());
     setUserAppointments(readUserAppointments());
+    if (setUserMaintenances) setUserMaintenances(readUserMaintenances());
+    if (setUserInsurances) setUserInsurances(readUserInsurances());
+    if (setUserValuations) setUserValuations(readUserValuations());
+    if (setUserVehicleStates) setUserVehicleStates(readUserVehicleStates());
+    if (setUserSolicitudes) setUserSolicitudes(readUserSolicitudes());
     setMarketAlerts(readMarketAlerts());
     setMarketAlertStatus(readMarketAlertStatus());
     setQuestionnaireDraft(readQuestionnaireDraft());
@@ -175,6 +190,11 @@ export function useAppBootstrap({
     setShowCookieGate,
     setThemeMode,
     setUserAppointments,
+    setUserMaintenances,
+    setUserInsurances,
+    setUserValuations,
+    setUserVehicleStates,
+    setUserSolicitudes,
     themeStorageKey,
     setAuthRequired,
     setAuthDialogMode,

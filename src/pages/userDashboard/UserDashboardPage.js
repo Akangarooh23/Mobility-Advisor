@@ -585,7 +585,7 @@ export default function UserDashboardPage({
           isMobile={isMobile}
           dashboardAppointments={dashboardAppointments}
           userVehicleSections={userVehicleSections}
-          dashboardVehicleCount={dashboardVehicleCount}
+          dashboardVehicleCount={userVehicleSections.reduce((acc, s) => acc + s.items.length, 0)}
           panelStyle={panelStyle}
           getOfferBadgeStyle={getOfferBadgeStyle}
           onRequestAppointment={onRequestAppointment}

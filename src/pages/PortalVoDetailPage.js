@@ -86,6 +86,11 @@ export default function PortalVoDetailPage({
   const [rentingKm, setRentingKm] = useState(() => {
     return selectedPortalVoOffer.rentingPricesJson?.km_options?.[1] || 15000;
   });
+  const [selectedColor, setSelectedColor] = useState(() => {
+    const colors = selectedPortalVoOffer.availableUnits?.map(u => u.color).filter(Boolean)
+      || selectedPortalVoOffer.availableColors || [];
+    return colors.length === 1 ? colors[0] : null;
+  });
 
   useEffect(() => {
     if (!selectedPortalVoOffer.id) return;
@@ -120,7 +125,7 @@ export default function PortalVoDetailPage({
           finalType = "renting";
           const price = getRentingPriceForSelection(selectedPortalVoOffer, rentingDuration, rentingKm);
           const kmLabel = Number(rentingKm) >= 1000 ? `${(Number(rentingKm)/1000).toFixed(0)}.000` : String(rentingKm);
-          finalWhen = `Plazo: ${rentingDuration} · ${kmLabel} km/año${price ? ` · ${price} €/mes` : ""}`;
+          finalWhen = `Plazo: ${rentingDuration} · ${kmLabel} km/año${price ? ` · ${price} €/mes` : ""}${selectedColor ? ` · Color: ${selectedColor}` : ""}`;
         }
         res = await fetch("/api/leads", {
           method: "POST",
@@ -361,9 +366,52 @@ export default function PortalVoDetailPage({
                         );
                       })}
                     </div>
+                    {/* Color selector */}
+                    {(() => {
+                      const colorMap = {};
+                      if (selectedPortalVoOffer.availableUnits?.length > 0) {
+                        selectedPortalVoOffer.availableUnits.forEach(u => {
+                          const c = u.color || "Sin color";
+                          colorMap[c] = (colorMap[c] || 0) + 1;
+                        });
+                      } else if (selectedPortalVoOffer.availableColors?.length > 0) {
+                        selectedPortalVoOffer.availableColors.forEach(c => { colorMap[c] = null; });
+                      }
+                      const colors = Object.keys(colorMap);
+                      if (!colors.length) return null;
+                      return (
+                        <div style={{ marginTop: 14 }}>
+                          <div style={{ fontSize: 10, color: isDark ? "#94a3b8" : "#64748b", fontWeight: 700, letterSpacing: "0.04em", marginBottom: 6 }}>COLOR</div>
+                          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                            {colors.map(c => {
+                              const count = colorMap[c];
+                              const isSel = selectedColor === c;
+                              return (
+                                <button
+                                  key={c} type="button"
+                                  onClick={() => setSelectedColor(isSel ? null : c)}
+                                  style={{
+                                    background: isSel ? (isDark ? "rgba(5,150,105,0.22)" : "#f0fdf4") : (isDark ? "rgba(255,255,255,0.04)" : "#fff"),
+                                    border: isSel ? "2px solid #059669" : (isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid #e2e8f0"),
+                                    borderRadius: 10, padding: "8px 16px", textAlign: "center", cursor: "pointer",
+                                    transform: isSel ? "scale(1.03)" : "scale(1)",
+                                    transition: "all 0.12s",
+                                  }}
+                                >
+                                  <div style={{ fontSize: 13, fontWeight: 700, color: isSel ? (isDark ? "#34d399" : "#059669") : (isDark ? "#f8fafc" : "#0f172a") }}>{c}</div>
+                                  {count !== null && (
+                                    <div style={{ fontSize: 10, color: isDark ? "#6ee7b7" : "#059669", marginTop: 2 }}>{count} ud{count !== 1 ? "s" : ""}</div>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })()}
                     {selectedPrice != null && (
-                      <div style={{ marginTop: 10, fontSize: 12, color: isDark ? "#6ee7b7" : "#059669", fontWeight: 600 }}>
-                        Seleccionado: {rentingDuration.replace("m", " meses")} · {Number(rentingKm) >= 1000 ? `${(Number(rentingKm)/1000).toFixed(0)}.000` : rentingKm} km/año · <strong>{selectedPrice} €/mes</strong>
+                      <div style={{ marginTop: 12, fontSize: 12, color: isDark ? "#6ee7b7" : "#059669", fontWeight: 600 }}>
+                        Seleccionado: {rentingDuration.replace("m", " meses")} · {Number(rentingKm) >= 1000 ? `${(Number(rentingKm)/1000).toFixed(0)}.000` : rentingKm} km/año · <strong>{selectedPrice} €/mes</strong>{selectedColor ? ` · ${selectedColor}` : ""}
                       </div>
                     )}
                   </div>
@@ -396,53 +444,6 @@ export default function PortalVoDetailPage({
               })()}
             </div>
 
-            {/* Units / color selector — shown for renting offers with stock data */}
-            {selectedPortalVoOffer.rentingAvailable &&
-             (selectedPortalVoOffer.availableUnits?.length > 0 || selectedPortalVoOffer.availableColors?.length > 0) &&
-             (() => {
-              const cardStyle = { background: isDark ? "rgba(15,23,42,0.4)" : "#fff", border: isDark ? "1px solid rgba(52,211,153,0.25)" : "1px solid rgba(16,185,129,0.3)", borderRadius: 10, padding: "8px 14px", textAlign: "center" };
-              const wrapStyle = { marginBottom: 14, padding: "12px 14px", background: isDark ? "rgba(52,211,153,0.07)" : "rgba(236,253,245,0.9)", border: isDark ? "1px solid rgba(52,211,153,0.18)" : "1px solid rgba(16,185,129,0.22)", borderRadius: 12 };
-              const titleStyle = { fontSize: 11, fontWeight: 700, color: isDark ? "#6ee7b7" : "#059669", marginBottom: 8 };
-              // Detailed data (loaded by ID): availableUnits = [{color, mileage}, ...]
-              if (selectedPortalVoOffer.availableUnits?.length > 0) {
-                const byColor = selectedPortalVoOffer.availableUnits.reduce((acc, u) => {
-                  const c = u.color || "Sin color";
-                  if (!acc[c]) acc[c] = [];
-                  acc[c].push(u);
-                  return acc;
-                }, {});
-                return (
-                  <div style={wrapStyle}>
-                    <div style={titleStyle}>
-                      {selectedPortalVoOffer.availableUnits.length} unidad{selectedPortalVoOffer.availableUnits.length !== 1 ? "es" : ""} disponible{selectedPortalVoOffer.availableUnits.length !== 1 ? "s" : ""}
-                    </div>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      {Object.entries(byColor).map(([color, us]) => (
-                        <div key={color} style={cardStyle}>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 2 }}>{color}</div>
-                          <div style={{ fontSize: 11, color: isDark ? "#6ee7b7" : "#059669" }}>{us.length} ud{us.length !== 1 ? "s" : ""}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              }
-              // Summary data (loaded from list): availableColors = ['Blanco', 'Negro'], unitsAvailable = 5
-              return (
-                <div style={wrapStyle}>
-                  <div style={titleStyle}>
-                    {selectedPortalVoOffer.unitsAvailable} unidad{selectedPortalVoOffer.unitsAvailable !== 1 ? "es" : ""} disponible{selectedPortalVoOffer.unitsAvailable !== 1 ? "s" : ""}
-                  </div>
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    {selectedPortalVoOffer.availableColors.map((c) => (
-                      <div key={c} style={cardStyle}>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>{c}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })()}
 
             <p style={{ margin: "0 0 12px", fontSize: 13, color: bodyColor, lineHeight: 1.7 }}>
               {selectedPortalVoOffer.description}{" "}

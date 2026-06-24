@@ -9,6 +9,10 @@
 
   "rewrites": [
     {
+      "source": "/api/ping",
+      "destination": "/api/billing?route=ping"
+    },
+    {
       "source": "/api/market-price",
       "destination": "/api/market?route=price"
     },

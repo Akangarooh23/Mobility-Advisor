@@ -1673,7 +1673,8 @@ export default function App() {
   const [authRecoveryFeedback, setAuthRecoveryFeedback] = useState("");
   const [authTargetPage, setAuthTargetPage] = useState("home");
   const [authTargetEntryMode, setAuthTargetEntryMode] = useState("");
-  const [authForm, setAuthForm] = useState({ name: "", apellidos: "", phone: "", email: "", password: "" });
+  const [authForm, setAuthForm] = useState({ name: "", apellidos: "", phone: "", email: "", password: "", company_name: "" });
+  const [clientType, setClientType] = useState("individual");
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [showChangePasswordForm, setShowChangePasswordForm] = useState(false);
@@ -2645,11 +2646,13 @@ export default function App() {
 
     const payload = {
       action: mode,
-      name: normalizeText(authForm.name),
-      apellidos: normalizeText(authForm.apellidos),
+      name: normalizeText(clientType === "business" ? authForm.company_name : authForm.name),
+      apellidos: clientType === "business" ? "" : normalizeText(authForm.apellidos),
       phone: normalizeText(authForm.phone),
       email: normalizeText(authForm.email).toLowerCase(),
       password: String(authForm.password || ""),
+      clientType,
+      company_name: clientType === "business" ? normalizeText(authForm.company_name) : "",
     };
 
     if (mode === "register") {
@@ -2677,12 +2680,17 @@ export default function App() {
       } catch {}
     }
 
-    if (mode === "register" && !payload.name) {
+    if (mode === "register" && clientType === "business" && !authForm.company_name) {
+      setAuthError("Indica la razón social de tu empresa.");
+      return;
+    }
+
+    if (mode === "register" && clientType === "individual" && !payload.name) {
       setAuthError("Indica tu nombre para crear la cuenta.");
       return;
     }
 
-    if (mode === "register" && !payload.apellidos) {
+    if (mode === "register" && clientType === "individual" && !payload.apellidos) {
       setAuthError("Indica tus apellidos para crear la cuenta.");
       return;
     }
@@ -5134,30 +5142,74 @@ export default function App() {
             <form onSubmit={submitAuthForm} style={{ display: "grid", gap: 12 }}>
               {authDialogMode === "register" && authRecoveryMode === "none" && (
                 <>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                    <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
-                      Nombre
-                      <input
-                        type="text"
-                        autoComplete="given-name"
-                        value={authForm.name}
-                        onChange={(event) => setAuthForm((prev) => ({ ...prev, name: event.target.value }))}
-                        placeholder="Tu nombre"
-                        style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
-                      />
-                    </label>
-                    <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
-                      Apellidos
-                      <input
-                        type="text"
-                        autoComplete="family-name"
-                        value={authForm.apellidos}
-                        onChange={(event) => setAuthForm((prev) => ({ ...prev, apellidos: event.target.value }))}
-                        placeholder="Tus apellidos"
-                        style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
-                      />
-                    </label>
+                  {/* Tipo de cliente */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => { setClientType("individual"); setAuthForm((p) => ({ ...p, company_name: "" })); }}
+                      style={{
+                        padding: "9px 10px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer",
+                        border: clientType === "individual" ? "1.5px solid #3b82f6" : "1px solid rgba(255,255,255,0.12)",
+                        background: clientType === "individual" ? "rgba(59,130,246,0.12)" : "#0f1b2d",
+                        color: clientType === "individual" ? "#93c5fd" : "#64748b",
+                      }}
+                    >
+                      👤 Particular
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setClientType("business"); setAuthForm((p) => ({ ...p, name: "", apellidos: "" })); }}
+                      style={{
+                        padding: "9px 10px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer",
+                        border: clientType === "business" ? "1.5px solid #f59e0b" : "1px solid rgba(255,255,255,0.12)",
+                        background: clientType === "business" ? "rgba(245,158,11,0.10)" : "#0f1b2d",
+                        color: clientType === "business" ? "#fbbf24" : "#64748b",
+                      }}
+                    >
+                      🏢 Empresa
+                    </button>
                   </div>
+
+                  {/* Campos según tipo */}
+                  {clientType === "individual" ? (
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                      <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
+                        Nombre
+                        <input
+                          type="text"
+                          autoComplete="given-name"
+                          value={authForm.name}
+                          onChange={(event) => setAuthForm((prev) => ({ ...prev, name: event.target.value }))}
+                          placeholder="Tu nombre"
+                          style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                        />
+                      </label>
+                      <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
+                        Apellidos
+                        <input
+                          type="text"
+                          autoComplete="family-name"
+                          value={authForm.apellidos}
+                          onChange={(event) => setAuthForm((prev) => ({ ...prev, apellidos: event.target.value }))}
+                          placeholder="Tus apellidos"
+                          style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                        />
+                      </label>
+                    </div>
+                  ) : (
+                    <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#fde68a" }}>
+                      Razón social
+                      <input
+                        type="text"
+                        autoComplete="organization"
+                        value={authForm.company_name}
+                        onChange={(event) => setAuthForm((prev) => ({ ...prev, company_name: event.target.value }))}
+                        placeholder="Nombre de tu empresa"
+                        style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(245,158,11,0.35)", borderRadius: 10, padding: "11px 12px" }}
+                      />
+                    </label>
+                  )}
+
                   <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
                     Teléfono
                     <input

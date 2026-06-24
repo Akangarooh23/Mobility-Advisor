@@ -1045,6 +1045,7 @@ async function ensurePostgresSchema() {
       ADD COLUMN IF NOT EXISTS apellidos            VARCHAR(160) NOT NULL DEFAULT '',
       ADD COLUMN IF NOT EXISTS phone                VARCHAR(30)  NOT NULL DEFAULT '',
       ADD COLUMN IF NOT EXISTS company_name         VARCHAR(200) NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS client_type          VARCHAR(20)  NOT NULL DEFAULT 'individual',
       ADD COLUMN IF NOT EXISTS tax_id               VARCHAR(50)  NOT NULL DEFAULT '',
       ADD COLUMN IF NOT EXISTS billing_address      TEXT         NOT NULL DEFAULT '',
       ADD COLUMN IF NOT EXISTS iban                 VARCHAR(50)  NOT NULL DEFAULT '',
@@ -1136,8 +1137,9 @@ async function createUserPostgres(user) {
        consent_marketing_email_at, consent_marketing_sms_at,
        consent_thirdparty_email_at, consent_thirdparty_sms_at,
        registration_ip, registration_ua, utm_source, utm_medium, utm_campaign, utm_content,
-       affiliate_data, referer, landing_url, language)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26)`,
+       affiliate_data, referer, landing_url, language,
+       client_type, company_name)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28)`,
     [
       user.id, user.name, user.apellidos || "", user.phone || "", user.email,
       user.passwordSalt, user.passwordHash, user.createdAt, user.lastLoginAt,
@@ -1148,6 +1150,7 @@ async function createUserPostgres(user) {
       user.utmSource || "", user.utmMedium || "", user.utmCampaign || "", user.utmContent || "",
       user.affiliateData ? JSON.stringify(user.affiliateData) : null,
       user.referer || "", user.landingUrl || "", user.language || "",
+      user.clientType || "individual", user.company_name || "",
     ]
   );
   return findUserByEmailPostgres(user.email);
@@ -2285,7 +2288,9 @@ async function _authHandlerInner(req, res) {
   }
 
   if (action === "register") {
-    if (!name) {
+    const clientType = String(req.body?.clientType || "individual");
+    const company_name = String(req.body?.company_name || "");
+    if (!name && !(clientType === "business" && company_name)) {
       return res.status(400).json({ error: "Indica tu nombre para crear la cuenta." });
     }
 
@@ -2312,10 +2317,12 @@ async function _authHandlerInner(req, res) {
     const salt = crypto.randomBytes(16).toString("hex");
     const user = {
       id: typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `user-${Date.now()}`,
-      name,
-      apellidos,
+      name: clientType === "business" ? company_name : name,
+      apellidos: clientType === "business" ? "" : apellidos,
       phone,
       email,
+      clientType,
+      company_name: clientType === "business" ? company_name : "",
       passwordSalt: salt,
       passwordHash: hashPassword(password, salt),
       createdAt: now,

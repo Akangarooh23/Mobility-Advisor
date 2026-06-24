@@ -118,7 +118,11 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
       phone: normalizeText(currentUser?.phone),
       companyName: "",
       taxId: "",
+      billingStreet: "",
+      billingPostalCode: "",
+      billingProvince: "",
       billingAddress: "",
+      clientType: "individual",
       iban: "",
       updatedAt: "",
     };
@@ -168,7 +172,11 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
           phone: normalizeText(account?.profile?.phone) || normalizeText(currentUser?.phone),
           companyName: normalizeText(account?.profile?.companyName),
           taxId: normalizeText(account?.profile?.taxId),
+          billingStreet: normalizeText(account?.profile?.billingStreet),
+          billingPostalCode: normalizeText(account?.profile?.billingPostalCode),
+          billingProvince: normalizeText(account?.profile?.billingProvince),
           billingAddress: normalizeText(account?.profile?.billingAddress),
+          clientType: normalizeText(account?.profile?.clientType) || "individual",
           iban: normalizeText(account?.profile?.iban),
           updatedAt: normalizeText(account?.profile?.updatedAt),
         };
@@ -287,7 +295,11 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
         phone: normalizeText(profileForm.phone),
         companyName: normalizeText(profileForm.companyName),
         taxId: normalizeText(profileForm.taxId),
-        billingAddress: normalizeText(profileForm.billingAddress),
+        billingStreet: normalizeText(profileForm.billingStreet),
+        billingPostalCode: normalizeText(profileForm.billingPostalCode),
+        billingProvince: normalizeText(profileForm.billingProvince),
+        billingAddress: [profileForm.billingStreet, profileForm.billingPostalCode, profileForm.billingProvince].map(normalizeText).filter(Boolean).join(", "),
+        clientType: profileForm.clientType || "individual",
         iban: normalizeText(profileForm.iban),
         updatedAt: new Date().toISOString(),
       };
@@ -308,7 +320,11 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
             phone: normalizeText(account.profile.phone),
             companyName: normalizeText(account.profile.companyName),
             taxId: normalizeText(account.profile.taxId),
+            billingStreet: normalizeText(account.profile.billingStreet),
+            billingPostalCode: normalizeText(account.profile.billingPostalCode),
+            billingProvince: normalizeText(account.profile.billingProvince),
             billingAddress: normalizeText(account.profile.billingAddress),
+            clientType: normalizeText(account.profile.clientType) || "individual",
             iban: normalizeText(account.profile.iban),
             updatedAt: normalizeText(account.profile.updatedAt),
           };
@@ -549,13 +565,50 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
               }}
             >
               <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 8 }}>{t("dashboard.billingProfileTitle")}</div>
+
+              {/* Toggle particular / empresa */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
+                {[
+                  { key: "individual", label: "👤 Particular" },
+                  { key: "business",   label: "🏢 Empresa" },
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setProfileForm((p) => ({ ...p, clientType: key }))}
+                    style={{
+                      padding: "8px 10px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer",
+                      border: profileForm.clientType === key
+                        ? key === "business" ? "1.5px solid #f59e0b" : "1.5px solid #3b82f6"
+                        : "1px solid rgba(148,163,184,0.45)",
+                      background: profileForm.clientType === key
+                        ? key === "business" ? "rgba(245,158,11,0.08)" : "rgba(59,130,246,0.08)"
+                        : isDark ? "#0f1b2d" : "#ffffff",
+                      color: profileForm.clientType === key
+                        ? key === "business" ? "#d97706" : "#2563eb"
+                        : isDark ? "#94a3b8" : "#64748b",
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
               <div style={{ display: "grid", gap: 8 }}>
-                <input value={profileForm.fullName} onChange={handleProfileChange("fullName")} placeholder={t("dashboard.billingFullName")} style={inputStyle} />
+                {/* Nombre o razón social según tipo */}
+                {profileForm.clientType === "business" ? (
+                  <input value={profileForm.companyName} onChange={handleProfileChange("companyName")} placeholder="Razón social" style={inputStyle} />
+                ) : (
+                  <input value={profileForm.fullName} onChange={handleProfileChange("fullName")} placeholder={t("dashboard.billingFullName")} style={inputStyle} />
+                )}
                 <input value={profileForm.email} onChange={handleProfileChange("email")} placeholder={t("dashboard.billingEmailBilling")} style={inputStyle} />
                 <input value={profileForm.phone} onChange={handleProfileChange("phone")} placeholder={t("dashboard.billingPhone")} style={inputStyle} />
-                <input value={profileForm.companyName} onChange={handleProfileChange("companyName")} placeholder={t("dashboard.billingCompany")} style={inputStyle} />
                 <input value={profileForm.taxId} onChange={handleProfileChange("taxId")} placeholder={t("dashboard.billingTaxId")} style={inputStyle} />
-                <textarea value={profileForm.billingAddress} onChange={handleProfileChange("billingAddress")} placeholder={t("dashboard.billingAddress")} rows={2} style={{ ...inputStyle, resize: "vertical" }} />
+                <input value={profileForm.billingStreet} onChange={handleProfileChange("billingStreet")} placeholder="Dirección (calle, número, piso)" style={inputStyle} />
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  <input value={profileForm.billingPostalCode} onChange={handleProfileChange("billingPostalCode")} placeholder="Código postal" style={inputStyle} />
+                  <input value={profileForm.billingProvince} onChange={handleProfileChange("billingProvince")} placeholder="Provincia" style={inputStyle} />
+                </div>
                 <input value={profileForm.iban} onChange={handleProfileChange("iban")} placeholder={t("dashboard.billingIban")} style={inputStyle} />
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginTop: 10, flexWrap: "wrap" }}>

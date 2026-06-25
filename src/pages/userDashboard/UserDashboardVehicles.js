@@ -2083,7 +2083,18 @@ export default function UserDashboardVehicles({
             ) : null}
 
             {vehicleFeedback && (
-              <div style={{ marginTop: 10, fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>{vehicleFeedback}</div>
+              vehicleFeedback.startsWith("⚠️") ? (
+                <div style={{
+                  marginTop: 12, padding: "10px 14px", borderRadius: 8, fontSize: 13, fontWeight: 600,
+                  background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.35)", color: "#b91c1c",
+                  display: "flex", alignItems: "flex-start", gap: 8,
+                }}>
+                  <span style={{ flexShrink: 0, fontSize: 16 }}>⚠️</span>
+                  <span>{vehicleFeedback.replace(/^⚠️\s*/, "")}</span>
+                </div>
+              ) : (
+                <div style={{ marginTop: 10, fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>{vehicleFeedback}</div>
+              )
             )}
           </div>
           ) : null}

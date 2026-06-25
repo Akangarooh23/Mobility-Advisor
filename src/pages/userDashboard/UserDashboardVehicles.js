@@ -339,6 +339,7 @@ export default function UserDashboardVehicles({
   const [showNewVehicleForm, setShowNewVehicleForm] = useState(false);
   const [vehicleWorkspaceMode, setVehicleWorkspaceMode] = useState("list");
   const [managementVehicleId, setManagementVehicleId] = useState("");
+  const [overriddenMarketplaceStates, setOverriddenMarketplaceStates] = useState({});
   const [failedPhotoVehicleIds, setFailedPhotoVehicleIds] = useState({});
   const [myVehicles, setMyVehicles] = useState(() => readGarageVehicles(currentUserEmail));
   const [vehicleFeedback, setVehicleFeedback] = useState("");
@@ -1111,11 +1112,13 @@ export default function UserDashboardVehicles({
     });
 
     if (currentUserEmail && normalizeText(vehicle.id)) {
+      setOverriddenMarketplaceStates((s) => ({ ...s, [vehicle.id]: "active_sale" }));
       postVehicleStateUpsertJson(currentUserEmail, {
         vehicleId: vehicle.id,
         state: "active_sale",
         notes: `Precio publicado: ${marketplacePrice} EUR`,
       }).catch(() => {
+        setOverriddenMarketplaceStates((s) => ({ ...s, [vehicle.id]: "owned" }));
         setVehicleFeedback("⚠️ El vehículo se buscó en el marketplace pero no se pudo guardar el estado de publicación. Recarga para verificar.");
       });
     }
@@ -2328,11 +2331,12 @@ export default function UserDashboardVehicles({
                           >
                             {t("dashboard.vehManageInsurance")}
                           </button>
-                          {vehicle.marketplaceState === "active_sale" ? (
+                          {(overriddenMarketplaceStates[vehicle.id] ?? vehicle.marketplaceState) === "active_sale" ? (
                             <button
                               type="button"
                               onClick={() => {
                                 if (currentUserEmail && vehicle.id) {
+                                  setOverriddenMarketplaceStates((s) => ({ ...s, [vehicle.id]: "owned" }));
                                   postVehicleStateUpsertJson(currentUserEmail, { vehicleId: vehicle.id, state: "owned", notes: "" })
                                     .catch(() => {});
                                   setVehicleFeedback(`Vehículo ${vehicle.title || vehicle.brand} retirado del marketplace.`);

@@ -134,14 +134,14 @@ export function buildUserDashboardModel({
         status,
       });
 
-      // Ownership section — appears in Comprados whether listed or not
-      if (state === "owned" || state === "active_sale") {
+      // Ownership section — only state=owned goes in Comprados
+      if (state === "owned") {
         persistedSections.owned.push(makeItem("Vehiculo disponible"));
       } else if (state === "sold") {
         persistedSections.sold.push(makeItem("Operacion cerrada"));
       }
 
-      // Marketplace listing — independent; vehicle can be in both Comprados AND Activos en venta
+      // Marketplace listing — active_sale (legacy) OR is_listed=true
       if (isListed) {
         persistedSections["active-sale"].push(makeItem("Publicado en seguimiento"));
       }

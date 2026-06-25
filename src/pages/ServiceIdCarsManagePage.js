@@ -1238,10 +1238,8 @@ export default function ServiceIdCarsManagePage({
           </button>
         ) : (
           <button type="button"
-            onClick={() => handleMarketplaceToggle(vehicle, "active_sale")}
-            disabled={!vehiclePrice}
-            title={!vehiclePrice ? txt("Introduce un precio en la ficha para publicar", "Enter a price in the profile to publish") : ""}
-            style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.22)", color: "#047857", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: !vehiclePrice ? "not-allowed" : "pointer", opacity: !vehiclePrice ? 0.5 : 1 }}>
+            onClick={(e) => handleMarketplaceToggle(vehicle, "active_sale", e.currentTarget)}
+            style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.22)", color: "#047857", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
             {txt("Publicar Marketplace VO", "Publish to Marketplace")}
           </button>
         )}

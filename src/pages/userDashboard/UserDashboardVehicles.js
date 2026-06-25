@@ -1242,9 +1242,9 @@ export default function UserDashboardVehicles({
         })}
       </div>
 
-      {activeVehicleTab === "my-garage" && (
+      {(activeVehicleTab === "my-garage" || (activeVehicleTab !== "overview" && !!selectedSection)) && (
         <div style={{ display: "grid", gap: 12 }}>
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,minmax(0,1fr))" : "repeat(auto-fit,minmax(180px,1fr))", gap: 12 }}>
+          {activeVehicleTab === "my-garage" && <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,minmax(0,1fr))" : "repeat(auto-fit,minmax(180px,1fr))", gap: 12 }}>
             {[
               [t("dashboard.vehSectionLabel"), myVehicles.length, "#2563eb"],
               [t("dashboard.vehStatBought"), lifecycleTotals.owned, "#60a5fa"],
@@ -1278,9 +1278,9 @@ export default function UserDashboardVehicles({
                 <div style={{ fontSize: 24, fontWeight: 900, color: String(color), lineHeight: 1 }}>{value}</div>
               </div>
             ))}
-          </div>
+          </div>}
 
-          {vehicleWorkspaceMode === "list" ? (
+          {activeVehicleTab === "my-garage" && vehicleWorkspaceMode === "list" ? (
             <div
               style={{
                 background: isDark ? "rgba(15,23,42,0.7)" : "rgba(255,255,255,0.9)",
@@ -1318,7 +1318,7 @@ export default function UserDashboardVehicles({
             </div>
           ) : null}
 
-          {vehicleWorkspaceMode === "editor" ? (
+          {vehicleWorkspaceMode === "editor" && activeVehicleTab === "my-garage" ? (
           <div
             style={{
               background: isDark

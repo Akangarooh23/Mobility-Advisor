@@ -236,6 +236,17 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
           </button>
         </article>
       </div>
+
+      <p style={{ marginTop: 20, fontSize: 13, color: mutedColor, lineHeight: 1.6 }}>
+        También puedes publicar tu coche directamente en nuestro{" "}
+        <a
+          href="/marketplace-vo"
+          style={{ color: "#2563eb", fontWeight: 700, textDecoration: "underline" }}
+        >
+          Marketplace para particulares (IDCar)
+        </a>{" "}
+        y gestionar la venta tú mismo.
+      </p>
     </div>
   );
 }

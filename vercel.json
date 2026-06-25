@@ -45,6 +45,10 @@
       "destination": "/api/billing-webhook"
     },
     {
+      "source": "/api/invoice-pdf",
+      "destination": "/api/billing?route=invoice-pdf"
+    },
+    {
       "source": "/api/user-saved",
       "destination": "/api/user?route=saved"
     },

@@ -2,6 +2,7 @@ const billingAccountHandler = require("../lib/api/billing-account-handler");
 const billingCheckoutHandler = require("../lib/api/billing-checkout-handler");
 const billingPortalHandler = require("../lib/api/billing-portal-handler");
 const billingWebhookHandler = require("../lib/api/billing-webhook-handler");
+const invoicePdfHandler = require("../lib/api/invoice-pdf-handler");
 const { Pool } = require("pg");
 
 let _pingPool = null;
@@ -42,6 +43,7 @@ function resolveRoute(req) {
   if (url.includes("billing-checkout")) return "checkout";
   if (url.includes("billing-portal")) return "portal";
   if (url.includes("billing-webhook")) return "webhook";
+  if (url.includes("invoice-pdf")) return "invoice-pdf";
   return "";
 }
 
@@ -57,6 +59,8 @@ module.exports = async function billingRouter(req, res) {
       return billingPortalHandler(req, res);
     case "webhook":
       return billingWebhookHandler(req, res);
+    case "invoice-pdf":
+      return invoicePdfHandler(req, res);
     default:
       return res.status(404).json({ error: "Billing route not found" });
   }

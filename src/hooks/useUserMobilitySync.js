@@ -9,6 +9,8 @@ import {
   writeUserVehicleStates,
   writeUserSolicitudes,
   writeCachedGarageVehicleCount,
+  writeUserBillingState,
+  readUserBillingState,
 } from "../utils/storage";
 
 export function useUserMobilitySync({
@@ -21,6 +23,7 @@ export function useUserMobilitySync({
   setUserVehicleStates,
   setUserSolicitudes,
   setGarageVehicleCount,
+  setCurrentPlanId,
 }) {
   useEffect(() => {
     let disposed = false;
@@ -63,6 +66,13 @@ export function useUserMobilitySync({
           writeCachedGarageVehicleCount(data.garageVehicleCount);
           if (setGarageVehicleCount) setGarageVehicleCount(data.garageVehicleCount);
         }
+        if (data?.planId) {
+          writeUserBillingState({ ...(readUserBillingState() || {}), planId: data.planId });
+          if (setCurrentPlanId) setCurrentPlanId(data.planId);
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("planIdUpdated", { detail: { planId: data.planId } }));
+          }
+        }
 
         writeSavedComparisons(nextSaved);
         writeUserAppointments(nextAppointments);
@@ -89,5 +99,6 @@ export function useUserMobilitySync({
     setUserVehicleStates,
     setUserSolicitudes,
     setGarageVehicleCount,
+    setCurrentPlanId,
   ]);
 }

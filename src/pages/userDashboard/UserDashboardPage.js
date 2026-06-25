@@ -256,9 +256,16 @@ export default function UserDashboardPage({
       }
     };
 
+    const planIdListener = (event) => {
+      if (!disposed && event?.detail?.planId) {
+        setCurrentPlanId(event.detail.planId);
+      }
+    };
+
     if (typeof window !== "undefined") {
       window.addEventListener("storage", storageListener);
       window.addEventListener("garageVehicleCountChanged", garageCountListener);
+      window.addEventListener("planIdUpdated", planIdListener);
     }
 
     return () => {
@@ -266,6 +273,7 @@ export default function UserDashboardPage({
       if (typeof window !== "undefined") {
         window.removeEventListener("storage", storageListener);
         window.removeEventListener("garageVehicleCountChanged", garageCountListener);
+        window.removeEventListener("planIdUpdated", planIdListener);
       }
     };
   }, [currentUser?.email]);

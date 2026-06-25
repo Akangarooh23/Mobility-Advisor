@@ -623,6 +623,10 @@ export default function ServiceIdCarsManagePage({
         throw new Error(txt("Tu sesión no está activa. Inicia sesión de nuevo antes de guardar el IDCar.", "Your session is not active. Sign in again before saving the IDCar."));
       }
 
+      if (!normalizeText(form.brand) || !normalizeText(form.model)) {
+        throw new Error(txt("Debes introducir al menos la marca y el modelo del vehículo.", "You must enter at least the vehicle brand and model."));
+      }
+
       const baseVehicle = editingVehicleId ? vehicles.find((v) => v.id === editingVehicleId) || {} : {};
       const vehicleId = editingVehicleId || `veh-${Date.now()}`;
 
@@ -761,6 +765,8 @@ export default function ServiceIdCarsManagePage({
       setIsCreating(false);
       setForm(vehicleToForm(persistedVehicle));
       resetFileUploads();
+      // Re-fetch from server so photos/docs show Supabase URLs instead of base64
+      void loadVehicles();
       const uploadedFiles =
         photosPayload.length +
         technicalSheetDocumentsPayload.length +

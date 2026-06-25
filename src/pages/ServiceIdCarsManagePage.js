@@ -657,15 +657,13 @@ export default function ServiceIdCarsManagePage({
       showFeedback(txt("Introduce un precio antes de publicar.", "Enter a price before publishing."), "error");
       return;
     }
-    // If price was entered in modal, persist it to the vehicle
+    // If price was entered in modal, update local state only.
+    // The price will be persisted to backend when the user next clicks "Guardar" on the vehicle form.
     if (normalizeText(marketplacePublishDialog.modalPrice)) {
       const fullVehicle = vehicles.find((v) => normalizeText(v?.id) === vid);
       if (fullVehicle) {
-        const updatedVehicle = { ...fullVehicle, price: effectivePrice };
-        setVehicles((prev) => prev.map((v) => normalizeText(v?.id) === vid ? updatedVehicle : v));
+        setVehicles((prev) => prev.map((v) => normalizeText(v?.id) === vid ? { ...v, price: effectivePrice } : v));
         updateForm("price", effectivePrice);
-        // Save price to backend in background
-        void postGarageVehicleAddJson(normalizeText(currentUserEmail).toLowerCase(), updatedVehicle);
       }
     }
     setMarketplaceOverrides((s) => ({ ...s, [vid]: "active_sale" }));

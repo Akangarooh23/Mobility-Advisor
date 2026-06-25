@@ -1112,16 +1112,13 @@ export default function UserDashboardVehicles({
       return;
     }
 
-    // If price was entered in the modal, save it to the vehicle
+    // If price was entered in the modal, update local state only.
+    // The price will be persisted to backend when the user next clicks "Guardar" on the vehicle form.
     if (normalizeText(marketplacePublishDialog.modalPrice)) {
       updateVehicleForm("price", marketplacePublishDialog.modalPrice);
       setMyVehicles((prev) =>
         prev.map((v) => normalizeText(v?.id) === normalizeText(vehicle.id) ? { ...v, price: marketplacePublishDialog.modalPrice } : v)
       );
-      void postGarageVehicleAddJson(currentUserEmail, {
-        ...myVehicles.find((v) => normalizeText(v?.id) === normalizeText(vehicle.id)),
-        price: marketplacePublishDialog.modalPrice,
-      });
     }
 
     onBrowseMarketplace({

@@ -1706,6 +1706,7 @@
     "vehRequestVal": "Request valuation",
     "vehManageInsurance": "Manage insurance",
     "vehPublish": "Publish to VO Marketplace",
+    "vehUnpublish": "Remove from Marketplace",
     "vehEdit": "Edit",
     "vehRemove": "Remove",
     "vehNoPhoto": "No photo",

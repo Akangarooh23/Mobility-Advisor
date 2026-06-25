@@ -2328,13 +2328,29 @@ export default function UserDashboardVehicles({
                           >
                             {t("dashboard.vehManageInsurance")}
                           </button>
-                          <button
-                            type="button"
-                            onClick={(event) => handleVehicleAction("marketplace", vehicle, event.currentTarget)}
-                            style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.22)", color: isDark ? "#6ee7b7" : "#047857", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%" }}
-                          >
-                            {t("dashboard.vehPublish")}
-                          </button>
+                          {vehicle.marketplaceState === "active_sale" ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (currentUserEmail && vehicle.id) {
+                                  postVehicleStateUpsertJson(currentUserEmail, { vehicleId: vehicle.id, state: "owned", notes: "" })
+                                    .catch(() => {});
+                                  setVehicleFeedback(`Vehículo ${vehicle.title || vehicle.brand} retirado del marketplace.`);
+                                }
+                              }}
+                              style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.22)", color: "#dc2626", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%" }}
+                            >
+                              {t("dashboard.vehUnpublish")}
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(event) => handleVehicleAction("marketplace", vehicle, event.currentTarget)}
+                              style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.22)", color: isDark ? "#6ee7b7" : "#047857", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%" }}
+                            >
+                              {t("dashboard.vehPublish")}
+                            </button>
+                          )}
                         </div>
                       ) : null}
                     </div>

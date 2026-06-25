@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
-import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemoveJson, postVehicleStateUpsertJson } from "../utils/apiClient";
+import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemoveJson, postVehicleStateUpsertJson, getErpBrandsJson, getErpModelsJson, getErpVersionsJson, getErpVersionDetailJson } from "../utils/apiClient";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 const IDCAR_PENDING_ACTION_KEY = "movilidad-advisor.idcar.action";
@@ -327,6 +327,28 @@ function vehicleToForm(vehicle = {}) {
   };
 }
 
+function mapErpTransmission(rawTx = "") {
+  const v = String(rawTx).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  if (v.includes("auto") || v.includes("dsg") || v.includes("cvt") || v.includes("tiptronic")) return "automatico";
+  if (v.includes("manual")) return "manual";
+  return "";
+}
+
+function mapErpBodyType(c = "") {
+  const v = String(c).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  if (v.includes("todoterreno") || v.includes("4x4")) return "todoterreno";
+  if (v.includes("suv")) return "suv";
+  if (v.includes("berlina")) return "berlina";
+  if (v.includes("compacto") || v.includes("compacta")) return "compacto";
+  if (v.includes("familiar") || v.includes("break") || v.includes("estate")) return "familiar";
+  if (v.includes("coupe") || v.includes("coup")) return "coupe";
+  if (v.includes("cabrio") || v.includes("descapotable") || v.includes("roadster")) return "cabrio";
+  if (v.includes("monovolumen") || v.includes("mpv") || v.includes("minivan")) return "monovolumen";
+  if (v.includes("pickup") || v.includes("pick-up")) return "pickup";
+  if (v.includes("furgon") || v.includes("van")) return "furgoneta";
+  return "";
+}
+
 const SECTION_CARD_STYLE = {
   background: "#fff",
   borderRadius: 16,
@@ -413,6 +435,18 @@ export default function ServiceIdCarsManagePage({
   const [publishStates, setPublishStates] = useState({});
   const [openManagePanelId, setOpenManagePanelId] = useState("");
   const [marketplaceOverrides, setMarketplaceOverrides] = useState({});
+  const [marketplacePublishDialog, setMarketplacePublishDialog] = useState({ open: false, vehicle: null });
+
+  // ERP catalog
+  const [vehicleCatalogMode, setVehicleCatalogMode] = useState("erp");
+  const [erpBrands, setErpBrands] = useState([]);
+  const [erpModels, setErpModels] = useState([]);
+  const [erpVersions, setErpVersions] = useState([]);
+  const [erpBrandsLoading, setErpBrandsLoading] = useState(false);
+  const [erpModelsLoading, setErpModelsLoading] = useState(false);
+  const [erpVersionsLoading, setErpVersionsLoading] = useState(false);
+  const [erpSelectedBrandId, setErpSelectedBrandId] = useState("");
+  const [erpSelectedModelId, setErpSelectedModelId] = useState("");
   const [viewportWidth, setViewportWidth] = useState(() => (typeof window === "undefined" ? 1280 : window.innerWidth));
 
   const [pendingPhotos, setPendingPhotos] = useState([]);
@@ -431,6 +465,11 @@ export default function ServiceIdCarsManagePage({
     insuranceDocuments: [],
     maintenanceInvoices: [],
   });
+
+  const dragPhotoIdxRef = useRef(null);
+  const marketplacePublishDialogRef = useRef(null);
+  const marketplacePublishPrimaryBtnRef = useRef(null);
+  const marketplacePublishTriggerRef = useRef(null);
 
   const photoInputRef = useRef(null);
   const technicalSheetInputRef = useRef(null);
@@ -523,6 +562,50 @@ export default function ServiceIdCarsManagePage({
     setForm(vehicleToForm(selectedVehicle));
   }, [isDetailView, selectedVehicle]);
 
+  // Load ERP brands once
+  useEffect(() => {
+    let disposed = false;
+    setErpBrandsLoading(true);
+    getErpBrandsJson()
+      .then((r) => r.json())
+      .then((data) => { if (!disposed && Array.isArray(data?.brands)) setErpBrands(data.brands); })
+      .catch(() => {})
+      .finally(() => { if (!disposed) setErpBrandsLoading(false); });
+    return () => { disposed = true; };
+  }, []);
+
+  // Marketplace publish modal — keyboard trap & focus
+  useEffect(() => {
+    if (!marketplacePublishDialog.open) return;
+    const handleKey = (e) => {
+      if (e.key === "Escape") { closeMarketplacePublishDialog(); return; }
+      if (e.key !== "Tab") return;
+      const dialog = marketplacePublishDialogRef.current;
+      if (!dialog) return;
+      const els = Array.from(dialog.querySelectorAll("button,[href],input,select,textarea,[tabindex]:not([tabindex='-1'])")).filter((el) => !el.disabled);
+      if (!els.length) { e.preventDefault(); dialog.focus(); return; }
+      const first = els[0]; const last = els[els.length - 1];
+      const inside = dialog.contains(document.activeElement);
+      if (e.shiftKey) { if (!inside || document.activeElement === first) { e.preventDefault(); last.focus(); } }
+      else { if (!inside || document.activeElement === last) { e.preventDefault(); first.focus(); } }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [marketplacePublishDialog.open]);
+
+  useEffect(() => {
+    if (!marketplacePublishDialog.open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [marketplacePublishDialog.open]);
+
+  useEffect(() => {
+    if (!marketplacePublishDialog.open) return;
+    const id = window.requestAnimationFrame(() => marketplacePublishPrimaryBtnRef.current?.focus());
+    return () => window.cancelAnimationFrame(id);
+  }, [marketplacePublishDialog.open]);
+
   const updateForm = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
   const toggleSection = (key) => setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   const showFeedback = (message, tone = "info") => {
@@ -530,6 +613,55 @@ export default function ServiceIdCarsManagePage({
     setFeedbackTone(tone);
   };
   const feedbackColor = feedbackTone === "error" ? "#b91c1c" : feedbackTone === "success" ? "#047857" : "#1d4ed8";
+
+  // Photo reorder helpers
+  const updateActiveVehiclePhotos = (newPhotos) => {
+    setVehicles((prev) =>
+      prev.map((v) => normalizeText(v?.id) === normalizeText(editingVehicleId) ? { ...v, photos: newPhotos } : v)
+    );
+  };
+  const reorderStoredPhotos = (fromIdx, toIdx) => {
+    const activeVehicle = vehicles.find((v) => normalizeText(v?.id) === normalizeText(editingVehicleId));
+    const photos = Array.isArray(activeVehicle?.photos) ? [...activeVehicle.photos] : [];
+    const [moved] = photos.splice(fromIdx, 1);
+    photos.splice(toIdx, 0, moved);
+    updateActiveVehiclePhotos(photos);
+  };
+  const setStoredPhotoAsPrimary = (idx) => {
+    if (idx === 0) return;
+    const activeVehicle = vehicles.find((v) => normalizeText(v?.id) === normalizeText(editingVehicleId));
+    const photos = Array.isArray(activeVehicle?.photos) ? [...activeVehicle.photos] : [];
+    const [photo] = photos.splice(idx, 1);
+    updateActiveVehiclePhotos([photo, ...photos]);
+  };
+  const deleteStoredPhoto = (idx) => {
+    const activeVehicle = vehicles.find((v) => normalizeText(v?.id) === normalizeText(editingVehicleId));
+    const photos = Array.isArray(activeVehicle?.photos) ? [...activeVehicle.photos] : [];
+    photos.splice(idx, 1);
+    updateActiveVehiclePhotos(photos);
+  };
+
+  // Publish modal handlers
+  const closeMarketplacePublishDialog = () => {
+    setMarketplacePublishDialog({ open: false, vehicle: null });
+    const trigger = marketplacePublishTriggerRef.current;
+    if (trigger && typeof trigger.focus === "function") window.requestAnimationFrame(() => trigger.focus());
+    marketplacePublishTriggerRef.current = null;
+  };
+  const confirmMarketplacePublish = () => {
+    const vehicle = marketplacePublishDialog.vehicle;
+    if (!vehicle) { closeMarketplacePublishDialog(); return; }
+    const vid = normalizeText(vehicle.id);
+    setMarketplaceOverrides((s) => ({ ...s, [vid]: "active_sale" }));
+    postVehicleStateUpsertJson(normalizeText(currentUserEmail).toLowerCase(), {
+      vehicleId: vid, state: "active_sale", notes: `Precio publicado: ${normalizeText(vehicle.price)} EUR`,
+    }).catch(() => {
+      setMarketplaceOverrides((s) => ({ ...s, [vid]: "owned" }));
+      showFeedback(txt("No se pudo guardar el estado en el Marketplace.", "Could not save Marketplace status."), "error");
+    });
+    showFeedback(txt("¡Vehículo publicado en el Marketplace!", "Vehicle published in the Marketplace!"), "success");
+    closeMarketplacePublishDialog();
+  };
 
   const resetFileUploads = () => {
     setPendingPhotos([]); setPendingTechnicalSheetDocuments([]); setPendingOtherDocuments([]); setPendingCirculationPermitDocuments([]); setPendingItvDocuments([]);
@@ -947,6 +1079,53 @@ export default function ServiceIdCarsManagePage({
         </div>
       ) : null}
       {storedFiles.filter((file) => !isStoredAttachmentRemoved(storedGroupKey, file)).length ? (
+        storedGroupKey === "photos" ? (
+          /* Photo grid with drag-reorder and primary star */
+          <div style={{ border: "1px solid #e5e7eb", borderRadius: 10, background: "#fcfcfc", padding: "8px 10px" }}>
+            <div style={{ fontSize: 10, color: "#6b7280", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
+              {txt("Guardadas · arrastra para reordenar", "Saved · drag to reorder")}
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(72px,1fr))", gap: 6 }}>
+              {storedFiles
+                .filter((file) => !isStoredAttachmentRemoved(storedGroupKey, file))
+                .map((photo, idx) => {
+                  const src = resolvePhotoPreviewSrc(photo);
+                  if (!src) return null;
+                  return (
+                    <div key={`${getAttachmentIdentityKey(photo)}-${idx}`}
+                      draggable
+                      onDragStart={() => { dragPhotoIdxRef.current = idx; }}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        if (dragPhotoIdxRef.current !== null && dragPhotoIdxRef.current !== idx) {
+                          reorderStoredPhotos(dragPhotoIdxRef.current, idx);
+                        }
+                        dragPhotoIdxRef.current = null;
+                      }}
+                      onDragEnd={() => { dragPhotoIdxRef.current = null; }}
+                      style={{ position: "relative", cursor: "grab", borderRadius: 8, overflow: "hidden", border: idx === 0 ? "2px solid #f59e0b" : "1px solid rgba(0,0,0,0.1)" }}>
+                      <img src={src} alt="" style={{ width: "100%", aspectRatio: "1", objectFit: "cover", display: "block" }} />
+                      <div style={{ position: "absolute", top: 3, right: 3, background: "rgba(0,0,0,0.55)", color: "#fff", fontSize: 8, fontWeight: 800, borderRadius: 999, width: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        {idx + 1}
+                      </div>
+                      {idx === 0 && (
+                        <div style={{ position: "absolute", top: 3, left: 3, background: "#f59e0b", color: "#fff", fontSize: 7, fontWeight: 800, borderRadius: 999, padding: "2px 4px" }}>⭐</div>
+                      )}
+                      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.62)", display: "flex", gap: 3, padding: "3px 4px", justifyContent: "center" }}>
+                        {idx !== 0 && (
+                          <button type="button" onClick={() => setStoredPhotoAsPrimary(idx)} title={txt("Marcar como principal", "Set as primary")}
+                            style={{ background: "#f59e0b", color: "#fff", border: "none", borderRadius: 4, padding: "2px 5px", fontSize: 8, fontWeight: 700, cursor: "pointer" }}>★</button>
+                        )}
+                        <button type="button" onClick={() => deleteStoredPhoto(idx)} title={txt("Eliminar", "Delete")}
+                          style={{ background: "#ef4444", color: "#fff", border: "none", borderRadius: 4, padding: "2px 5px", fontSize: 8, fontWeight: 700, cursor: "pointer" }}>✕</button>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        ) : (
         <div style={{ border: "1px solid #e5e7eb", borderRadius: 10, background: "#fcfcfc", padding: "8px 10px" }}>
           <div style={{ fontSize: 10.5, color: "#6b7280", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
             {txt("Guardados en ficha", "Saved in profile")}
@@ -965,39 +1144,22 @@ export default function ServiceIdCarsManagePage({
                     </div>
                     <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
                     {(hasExternalLink || hasDataLink) ? (
-                      <button
-                        type="button"
-                        onClick={() => openAttachmentPreview(file)}
-                        title={txt("Abrir", "Open")}
-                        style={{ border: "1px solid #c7d2fe", background: "#eef2ff", color: "#3730a3", borderRadius: 6, fontSize: 13, lineHeight: 1, padding: "3px 7px", cursor: "pointer" }}
-                      >
-                        ↗
-                      </button>
+                      <button type="button" onClick={() => openAttachmentPreview(file)} title={txt("Abrir", "Open")}
+                        style={{ border: "1px solid #c7d2fe", background: "#eef2ff", color: "#3730a3", borderRadius: 6, fontSize: 13, lineHeight: 1, padding: "3px 7px", cursor: "pointer" }}>↗</button>
                     ) : null}
                     {(hasExternalLink || hasDataLink) ? (
-                      <button
-                        type="button"
-                        onClick={() => triggerAttachmentDownload(file)}
-                        title={txt("Descargar", "Download")}
-                        style={{ border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", borderRadius: 6, fontSize: 13, lineHeight: 1, padding: "3px 7px", cursor: "pointer" }}
-                      >
-                        ↓
-                      </button>
+                      <button type="button" onClick={() => triggerAttachmentDownload(file)} title={txt("Descargar", "Download")}
+                        style={{ border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", borderRadius: 6, fontSize: 13, lineHeight: 1, padding: "3px 7px", cursor: "pointer" }}>↓</button>
                     ) : null}
-                    <button
-                      type="button"
-                      onClick={() => markStoredAttachmentForRemoval(storedGroupKey, file)}
-                      title={txt("Eliminar", "Delete")}
-                      style={{ border: "1px solid #fecaca", background: "#fff1f2", color: "#b91c1c", borderRadius: 6, fontSize: 12, lineHeight: 1, padding: "3px 7px", cursor: "pointer", marginLeft: "auto" }}
-                    >
-                      ✕
-                    </button>
+                    <button type="button" onClick={() => markStoredAttachmentForRemoval(storedGroupKey, file)} title={txt("Eliminar", "Delete")}
+                      style={{ border: "1px solid #fecaca", background: "#fff1f2", color: "#b91c1c", borderRadius: 6, fontSize: 12, lineHeight: 1, padding: "3px 7px", cursor: "pointer", marginLeft: "auto" }}>✕</button>
                     </div>
                   </div>
                 );
               })}
           </div>
         </div>
+        )
       ) : null}
     </div>
   );
@@ -1016,29 +1178,29 @@ export default function ServiceIdCarsManagePage({
     return normalizeText(vehicle?.marketplaceState) === "active_sale";
   };
 
-  const handleMarketplaceToggle = async (vehicle, targetState) => {
-    const vid = normalizeText(vehicle?.id);
-    const prev = getIsPublished(vehicle) ? "active_sale" : "owned";
-    setMarketplaceOverrides((s) => ({ ...s, [vid]: targetState }));
-    try {
-      const notes = targetState === "active_sale"
-        ? `Precio publicado: ${normalizeText(vehicle?.price)} EUR`
-        : "";
-      await postVehicleStateUpsertJson(normalizeText(currentUserEmail).toLowerCase(), {
-        vehicleId: vid,
-        state: targetState,
-        notes,
+  const handleMarketplaceToggle = (vehicle, targetState, triggerElement) => {
+    if (targetState === "active_sale") {
+      // Show confirmation modal before publishing
+      marketplacePublishTriggerRef.current = triggerElement || null;
+      setMarketplacePublishDialog({
+        open: true,
+        vehicle: {
+          id: normalizeText(vehicle?.id),
+          title: [normalizeText(vehicle?.brand), normalizeText(vehicle?.model)].filter(Boolean).join(" ") || txt("Vehículo", "Vehicle"),
+          price: normalizeText(vehicle?.price),
+        },
       });
-      showFeedback(
-        targetState === "active_sale"
-          ? txt("¡Vehículo publicado en el Marketplace!", "Vehicle published in the Marketplace!")
-          : txt("Oferta retirada del Marketplace.", "Offer removed from Marketplace."),
-        targetState === "active_sale" ? "success" : "info"
-      );
-    } catch {
-      setMarketplaceOverrides((s) => ({ ...s, [vid]: prev }));
-      showFeedback(txt("No se pudo actualizar el estado en el Marketplace.", "Could not update Marketplace status."), "error");
+      return;
     }
+    // Unpublish directly — no confirmation needed
+    const vid = normalizeText(vehicle?.id);
+    setMarketplaceOverrides((s) => ({ ...s, [vid]: "owned" }));
+    postVehicleStateUpsertJson(normalizeText(currentUserEmail).toLowerCase(), { vehicleId: vid, state: "owned", notes: "" })
+      .then(() => showFeedback(txt("Oferta retirada del Marketplace.", "Offer removed from Marketplace."), "info"))
+      .catch(() => {
+        setMarketplaceOverrides((s) => ({ ...s, [vid]: "active_sale" }));
+        showFeedback(txt("No se pudo actualizar el estado en el Marketplace.", "Could not update Marketplace status."), "error");
+      });
   };
 
   const renderManagePanel = (vehicle) => {
@@ -1117,9 +1279,124 @@ export default function ServiceIdCarsManagePage({
         openLabel={txt("Abrir", "Open")} closeLabel={txt("Ocultar", "Hide")}>
         <div style={{ display: "grid", rowGap: 10, columnGap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>
           {renderField(txt("Alias / nombre", "Alias / name"), "nickname", { placeholder: txt("Coche familiar", "Family car") })}
-          {renderField(txt("Marca", "Brand"), "brand", { placeholder: "Opel" })}
-          {renderField(txt("Modelo", "Model"), "model", { placeholder: "Corsa" })}
-          {renderField(txt("Versión", "Version"), "version", { placeholder: "1.4 Color Edition 90 CV" })}
+        </div>
+
+        {/* ERP catalog mode toggle */}
+        <div style={{ margin: "10px 0 6px", display: "flex", gap: 6, alignItems: "center" }}>
+          <button type="button"
+            onClick={() => setVehicleCatalogMode("erp")}
+            style={{ fontSize: 11, fontWeight: 700, borderRadius: 8, padding: "5px 12px", border: "1px solid", cursor: "pointer",
+              background: vehicleCatalogMode === "erp" ? "#2563eb" : "transparent",
+              color: vehicleCatalogMode === "erp" ? "#fff" : "#6b7280",
+              borderColor: vehicleCatalogMode === "erp" ? "#2563eb" : "#d1d5db" }}>
+            {txt("Catálogo", "Catalog")}
+          </button>
+          <button type="button"
+            onClick={() => setVehicleCatalogMode("manual")}
+            style={{ fontSize: 11, fontWeight: 700, borderRadius: 8, padding: "5px 12px", border: "1px solid", cursor: "pointer",
+              background: vehicleCatalogMode === "manual" ? "#2563eb" : "transparent",
+              color: vehicleCatalogMode === "manual" ? "#fff" : "#6b7280",
+              borderColor: vehicleCatalogMode === "manual" ? "#2563eb" : "#d1d5db" }}>
+            {txt("Manual", "Manual")}
+          </button>
+          <span style={{ fontSize: 11, color: "#9ca3af" }}>
+            {vehicleCatalogMode === "erp"
+              ? txt("Selecciona desde catálogo para autocompletar datos", "Select from catalog to auto-fill data")
+              : txt("Introduce los datos manualmente", "Enter data manually")}
+          </span>
+        </div>
+
+        <div style={{ display: "grid", rowGap: 10, columnGap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>
+          {vehicleCatalogMode === "erp" ? (
+            <>
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#6b7280" }}>
+                {txt("Marca", "Brand")}
+                <select value={erpSelectedBrandId} disabled={erpBrandsLoading}
+                  onChange={(e) => {
+                    const brandId = e.target.value;
+                    const brand = erpBrands.find((b) => String(b.id) === String(brandId));
+                    setErpSelectedBrandId(brandId);
+                    setErpSelectedModelId("");
+                    setErpVersions([]);
+                    updateForm("brand", brand ? brand.name : "");
+                    updateForm("model", "");
+                    updateForm("version", "");
+                    if (brandId) {
+                      setErpModelsLoading(true);
+                      getErpModelsJson(brandId)
+                        .then((r) => r.json())
+                        .then((data) => { if (Array.isArray(data?.models)) setErpModels(data.models); })
+                        .catch(() => {})
+                        .finally(() => setErpModelsLoading(false));
+                    } else { setErpModels([]); }
+                  }}
+                  style={{ background: "#fff", border: "1px solid #d1d5db", borderRadius: 10, padding: "9px 10px", color: erpSelectedBrandId ? "#111827" : "#9ca3af", width: "100%", boxSizing: "border-box" }}>
+                  <option value="">{erpBrandsLoading ? txt("Cargando…", "Loading…") : txt("Selecciona marca", "Select brand")}</option>
+                  {erpBrands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                </select>
+              </label>
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#6b7280" }}>
+                {txt("Modelo", "Model")}
+                <select value={erpSelectedModelId} disabled={!erpSelectedBrandId || erpModelsLoading}
+                  onChange={(e) => {
+                    const modelId = e.target.value;
+                    const model = erpModels.find((m) => String(m.id) === String(modelId));
+                    setErpSelectedModelId(modelId);
+                    setErpVersions([]);
+                    updateForm("model", model ? model.name : "");
+                    updateForm("version", "");
+                    if (modelId) {
+                      setErpVersionsLoading(true);
+                      getErpVersionsJson(modelId, erpSelectedBrandId)
+                        .then((r) => r.json())
+                        .then((data) => { if (Array.isArray(data?.versions)) setErpVersions(data.versions); else setErpVersions([]); })
+                        .catch(() => { setErpVersions([]); })
+                        .finally(() => setErpVersionsLoading(false));
+                    } else { setErpVersions([]); }
+                  }}
+                  style={{ background: "#fff", border: "1px solid #d1d5db", borderRadius: 10, padding: "9px 10px", color: erpSelectedModelId ? "#111827" : "#9ca3af", width: "100%", boxSizing: "border-box" }}>
+                  <option value="">{erpModelsLoading ? txt("Cargando…", "Loading…") : !erpSelectedBrandId ? txt("Selecciona la marca antes", "Select brand first") : txt("Selecciona modelo", "Select model")}</option>
+                  {erpModels.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+                </select>
+              </label>
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#6b7280" }}>
+                {txt("Versión", "Version")}
+                <select value={form.version} disabled={!erpSelectedModelId || erpVersionsLoading || erpVersions.length === 0}
+                  onChange={(e) => {
+                    const codversion = e.target.value;
+                    updateForm("version", codversion);
+                    if (codversion) {
+                      getErpVersionDetailJson(codversion)
+                        .then((r) => r.json())
+                        .then((data) => {
+                          const d = data?.detail;
+                          if (!d) return;
+                          if (d.fuel) updateForm("fuel", d.fuel);
+                          if (d.cv) updateForm("cv", String(d.cv));
+                          if (d.doors) updateForm("doors", String(d.doors));
+                          if (d.seats) updateForm("seats", String(d.seats));
+                          if (d.co2) updateForm("co2", String(d.co2));
+                          const tx = mapErpTransmission(d.transmision || "");
+                          if (tx) updateForm("transmissionType", tx);
+                          const bt = mapErpBodyType(d.bodyType || "");
+                          if (bt) updateForm("bodyType", bt);
+                        })
+                        .catch(() => {});
+                    }
+                  }}
+                  style={{ background: "#fff", border: "1px solid #d1d5db", borderRadius: 10, padding: "9px 10px", color: form.version ? "#111827" : "#9ca3af", width: "100%", boxSizing: "border-box" }}>
+                  <option value="">{erpVersionsLoading ? txt("Cargando…", "Loading…") : !erpSelectedModelId ? txt("Selecciona el modelo antes", "Select model first") : erpVersions.length === 0 ? txt("Sin versiones en catálogo", "No versions in catalog") : txt("Selecciona versión", "Select version")}</option>
+                  {erpVersions.map((v) => <option key={v.codversion} value={v.codversion}>{v.label}</option>)}
+                </select>
+              </label>
+            </>
+          ) : (
+            <>
+              {renderField(txt("Marca", "Brand"), "brand", { placeholder: "Opel" })}
+              {renderField(txt("Modelo", "Model"), "model", { placeholder: "Corsa" })}
+              {renderField(txt("Versión", "Version"), "version", { placeholder: "1.4 Color Edition 90 CV" })}
+            </>
+          )}
           {renderField(txt("Tipo de cambio", "Transmission"), "transmissionType", { type: "select", options: [["manual", txt("Manual", "Manual")],["automatico", txt("Automático", "Automatic")]] })}
           {renderField(txt("Tipo de coche", "Body type"), "bodyType", { type: "select", options: [["berlina", txt("Berlina", "Sedan")],["suv", "SUV"],["familiar", txt("Familiar", "Estate")],["coupe", txt("Coupé", "Coupe")],["cabrio", txt("Cabrio", "Convertible")],["monovolumen", txt("Monovolumen", "Minivan")],["pickup", "Pickup"],["todoterreno", txt("Todoterreno", "Off-road")],["furgoneta", txt("Furgoneta", "Van")]] })}
           {renderField("CV", "cv", { placeholder: "90" })}
@@ -1266,6 +1543,7 @@ export default function ServiceIdCarsManagePage({
 
   // ─── render ──────────────────────────────────────────────────────────
   return (
+    <>
     <div style={{ width: "100%", maxWidth: 980, margin: "0 auto", color: "#1a1a1a", padding: "0 8px 18px" }}>
 
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
@@ -1631,5 +1909,46 @@ export default function ServiceIdCarsManagePage({
       ) : null}
 
     </div>
+
+    {/* Publish confirmation modal */}
+    {marketplacePublishDialog.open && marketplacePublishDialog.vehicle ? (
+      <div onClick={closeMarketplacePublishDialog}
+        style={{ position: "fixed", inset: 0, zIndex: 1200, background: "rgba(15,23,42,0.35)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+        <div onClick={(e) => e.stopPropagation()}
+          role="dialog" aria-modal="true" aria-label={txt("Confirmar publicación en marketplace", "Confirm marketplace listing")}
+          ref={marketplacePublishDialogRef} tabIndex={-1}
+          style={{ width: "min(480px,100%)", border: "1px solid #e5e7eb", borderRadius: 14, background: "#fff", boxShadow: "0 20px 50px rgba(0,0,0,0.18)", padding: 20, display: "grid", gap: 12 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "#111827" }}>
+            {txt("Confirmar publicación en Marketplace", "Confirm Marketplace listing")}
+          </div>
+          <div style={{ fontSize: 12, color: "#6b7280", display: "grid", gap: 5 }}>
+            <div><strong style={{ color: "#374151" }}>{txt("Vehículo:", "Vehicle:")} </strong>{marketplacePublishDialog.vehicle.title}</div>
+            <div><strong style={{ color: "#374151" }}>{txt("Precio:", "Price:")} </strong>
+              {marketplacePublishDialog.vehicle.price
+                ? `${marketplacePublishDialog.vehicle.price} EUR`
+                : <span style={{ color: "#dc2626" }}>{txt("Sin precio definido", "No price set")}</span>}
+            </div>
+            {!marketplacePublishDialog.vehicle.price && (
+              <div style={{ color: "#92400e", background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "8px 10px", fontSize: 11 }}>
+                {txt("Introduce un precio en la sección de mercado antes de publicar.", "Enter a price in the market section before publishing.")}
+              </div>
+            )}
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button ref={marketplacePublishPrimaryBtnRef} type="button"
+              onClick={confirmMarketplacePublish}
+              disabled={!marketplacePublishDialog.vehicle.price}
+              style={{ background: marketplacePublishDialog.vehicle.price ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "#d1d5db", color: "#fff", border: "none", borderRadius: 8, padding: "9px 16px", fontSize: 12, fontWeight: 700, cursor: marketplacePublishDialog.vehicle.price ? "pointer" : "not-allowed" }}>
+              {txt("🚀 Publicar", "🚀 Publish")}
+            </button>
+            <button type="button" onClick={closeMarketplacePublishDialog}
+              style={{ background: "rgba(148,163,184,0.14)", color: "#374151", border: "1px solid #e5e7eb", borderRadius: 8, padding: "9px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+              {txt("Cancelar", "Cancel")}
+            </button>
+          </div>
+        </div>
+      </div>
+    ) : null}
+    </>
   );
 }

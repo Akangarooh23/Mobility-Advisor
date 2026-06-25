@@ -6325,7 +6325,8 @@ export default function App() {
             setStep(-1);
           }}
           onSelectAutogestor={() => {
-            navigateToUserDashboardPage("vehicles");
+            setEntryMode("serviceAutogestor");
+            setStep(-1);
           }}
           onGoBack={() => {
             setEntryMode(null);

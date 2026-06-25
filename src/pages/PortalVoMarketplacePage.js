@@ -62,12 +62,26 @@ export default function PortalVoMarketplacePage({
   const cardBorder = isDark ? "1px solid rgba(148,163,184,0.16)" : "1px solid rgba(148,163,184,0.26)";
 
   const isRenting = modalityMode === "renting";
-  const modefeatured = featuredPortalVoOffers.filter((o) =>
+
+  const baseOffers = filteredPortalVoOffers.filter((o) =>
     isRenting ? o.rentingAvailable : o.availableForPurchase !== false
   );
-  const modeOffers = filteredPortalVoOffers.filter((o) =>
+  const baseFeatured = featuredPortalVoOffers.filter((o) =>
     isRenting ? o.rentingAvailable : o.availableForPurchase !== false
   );
+
+  // Per-tab filtering by sourceType
+  const modeOffers = !isRenting && compraTab === "particulares"
+    ? baseOffers.filter((o) => o.sourceType === "particulares")
+    : !isRenting && compraTab === "renting_empresa"
+      ? baseOffers.filter((o) => o.sourceType !== "particulares")
+      : baseOffers;
+
+  const modefeatured = !isRenting && compraTab === "particulares"
+    ? []
+    : !isRenting && compraTab === "renting_empresa"
+      ? baseFeatured.filter((o) => o.sourceType !== "particulares")
+      : baseFeatured;
 
   return (
     <div style={styles.center}>
@@ -190,8 +204,8 @@ export default function PortalVoMarketplacePage({
         </div>
       )}
 
-      {/* Próximamente panels for non-renting compra tabs */}
-      {!isRenting && compraTab !== "renting_empresa" && (
+      {/* Próximamente panels for tabs without real data yet */}
+      {!isRenting && compraTab !== "renting_empresa" && compraTab !== "particulares" && (
         <div style={{ ...styles.panel, marginBottom: 20, textAlign: "center", padding: "40px 24px" }}>
           {compraTab === "particulares" && (
             <>
@@ -264,8 +278,8 @@ export default function PortalVoMarketplacePage({
         </div>
       )}
 
-      {/* Filters + offers: only in Renting mode or VO Renting compra sub-tab */}
-      {(isRenting || compraTab === "renting_empresa") && (
+      {/* Filters + offers grid */}
+      {(isRenting || compraTab === "renting_empresa" || compraTab === "particulares") && (
       <>
 
       <div style={{ ...styles.panel, marginBottom: 18 }}>
@@ -628,7 +642,9 @@ export default function PortalVoMarketplacePage({
           </div>
         ) : (
           <div style={styles.panel}>
-            {t("marketplace.noResults")}
+            {!isRenting && compraTab === "particulares"
+              ? "Todavía ningún particular ha publicado su coche. Próximamente podrás hacerlo desde tu panel de vehículos."
+              : t("marketplace.noResults")}
           </div>
         )}
         {loadingOffers && (

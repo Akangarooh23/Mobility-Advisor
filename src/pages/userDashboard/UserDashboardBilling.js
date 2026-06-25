@@ -726,13 +726,16 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                       <td style={tableCellStyle}>{Number(invoice.amount || 0).toFixed(2)} EUR</td>
                       <td style={tableCellStyle}>{invoiceStatusMap[invoice.status?.toLowerCase()] || invoice.status || t("dashboard.billingInvoiceStatusPendiente")}</td>
                       <td style={tableCellStyle}>
-                        {invoice.pdfUrl ? (
-                          <a href={invoice.pdfUrl} target="_blank" rel="noreferrer" style={{ color: "#1d4ed8", fontWeight: 700 }}>
-                            {t("dashboard.billingDownloadPdf")}
-                          </a>
-                        ) : (
-                          <span style={{ color: isDark ? "#94a3b8" : "#64748b" }}>{t("dashboard.billingNotAvailable")}</span>
-                        )}
+                        {(() => {
+                          const pdfHref = invoice.pdfUrl || (invoice.id && resolvedUserEmail ? `/api/invoice-pdf?id=${encodeURIComponent(invoice.id)}&email=${encodeURIComponent(resolvedUserEmail)}` : null);
+                          return pdfHref ? (
+                            <a href={pdfHref} target="_blank" rel="noreferrer" style={{ color: "#1d4ed8", fontWeight: 700 }}>
+                              {t("dashboard.billingDownloadPdf")}
+                            </a>
+                          ) : (
+                            <span style={{ color: isDark ? "#94a3b8" : "#64748b" }}>{t("dashboard.billingNotAvailable")}</span>
+                          );
+                        })()}
                       </td>
                     </tr>
                   ))}

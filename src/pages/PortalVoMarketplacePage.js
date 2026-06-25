@@ -76,6 +76,12 @@ export default function PortalVoMarketplacePage({
       ? baseOffers.filter((o) => o.sourceType !== "particulares")
       : baseOffers;
 
+  // In "particulares" mode all user vehicles are loaded client-side — use modeOffers.length as truth
+  const isParticulares = !isRenting && compraTab === "particulares";
+  const effectiveTotalUniverse = isParticulares ? modeOffers.length : totalUniverse;
+  const PAGE_SIZE = 15;
+  const effectiveTotalPages = isParticulares ? Math.max(1, Math.ceil(modeOffers.length / PAGE_SIZE)) : totalPages;
+
   const modefeatured = !isRenting && compraTab === "particulares"
     ? []
     : !isRenting && compraTab === "renting_empresa"
@@ -526,7 +532,7 @@ export default function PortalVoMarketplacePage({
             {t("marketplace.allOffersLabel")}
           </div>
           <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569" }}>
-            {modeOffers.length} {modeOffers.length !== totalUniverse ? `/ ${totalUniverse} ` : ""}resultados
+            {modeOffers.length} {modeOffers.length !== effectiveTotalUniverse ? `/ ${effectiveTotalUniverse} ` : ""}resultados
           </div>
         </div>
 
@@ -630,7 +636,7 @@ export default function PortalVoMarketplacePage({
         )}
 
         {/* Pagination controls */}
-        {totalPages > 1 && !loadingOffers && (
+        {effectiveTotalPages > 1 && !loadingOffers && (
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, marginTop: 24, flexWrap: "wrap" }}>
             <button
               onClick={() => onGoToPage(currentPage - 1)}
@@ -644,16 +650,16 @@ export default function PortalVoMarketplacePage({
             >
               ← Anterior
             </button>
-            {Array.from({ length: Math.min(totalPages, 7) }).map((_, i) => {
+            {Array.from({ length: Math.min(effectiveTotalPages, 7) }).map((_, i) => {
               let page;
-              if (totalPages <= 7) {
+              if (effectiveTotalPages <= 7) {
                 page = i;
               } else if (currentPage <= 3) {
-                page = i < 6 ? i : totalPages - 1;
-              } else if (currentPage >= totalPages - 4) {
-                page = i === 0 ? 0 : totalPages - 6 + i;
+                page = i < 6 ? i : effectiveTotalPages - 1;
+              } else if (currentPage >= effectiveTotalPages - 4) {
+                page = i === 0 ? 0 : effectiveTotalPages - 6 + i;
               } else {
-                const offsets = [0, null, currentPage - 1, currentPage, currentPage + 1, null, totalPages - 1];
+                const offsets = [0, null, currentPage - 1, currentPage, currentPage + 1, null, effectiveTotalPages - 1];
                 page = offsets[i];
               }
               if (page === null) return <span key={`sep-${i}`} style={{ color: isDark ? "#475569" : "#94a3b8", fontSize: 13 }}>…</span>;
@@ -677,12 +683,12 @@ export default function PortalVoMarketplacePage({
             })}
             <button
               onClick={() => onGoToPage(currentPage + 1)}
-              disabled={currentPage >= totalPages - 1}
+              disabled={currentPage >= effectiveTotalPages - 1}
               style={{
-                padding: "8px 14px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: currentPage >= totalPages - 1 ? "default" : "pointer",
-                background: currentPage >= totalPages - 1 ? (isDark ? "rgba(255,255,255,0.05)" : "#f1f5f9") : (isDark ? "rgba(37,99,235,0.18)" : "#2563eb"),
-                color: currentPage >= totalPages - 1 ? (isDark ? "#475569" : "#94a3b8") : "#fff",
-                border: "none", opacity: currentPage >= totalPages - 1 ? 0.5 : 1,
+                padding: "8px 14px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: currentPage >= effectiveTotalPages - 1 ? "default" : "pointer",
+                background: currentPage >= effectiveTotalPages - 1 ? (isDark ? "rgba(255,255,255,0.05)" : "#f1f5f9") : (isDark ? "rgba(37,99,235,0.18)" : "#2563eb"),
+                color: currentPage >= effectiveTotalPages - 1 ? (isDark ? "#475569" : "#94a3b8") : "#fff",
+                border: "none", opacity: currentPage >= effectiveTotalPages - 1 ? 0.5 : 1,
               }}
             >
               Siguiente →

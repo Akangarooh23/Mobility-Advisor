@@ -443,6 +443,14 @@ export default function UserDashboardVehicles({
   const safeSections = useMemo(() => (Array.isArray(userVehicleSections) ? userVehicleSections : []), [userVehicleSections]);
   const totalVehiclesCount = dashboardVehicleCount + myVehicles.length;
 
+  const displayedVehicles = useMemo(() => {
+    if (activeVehicleTab === "my-garage") return myVehicles;
+    const section = safeSections.find((s) => s.key === activeVehicleTab);
+    if (!section) return myVehicles;
+    const sectionIds = new Set((section.items || []).map((item) => normalizeText(item?.id)).filter(Boolean));
+    return myVehicles.filter((v) => sectionIds.has(normalizeText(v?.id)));
+  }, [activeVehicleTab, myVehicles, safeSections]);
+
   useEffect(() => {
     let disposed = false;
     setErpBrandsLoading(true);
@@ -2186,9 +2194,9 @@ export default function UserDashboardVehicles({
           ) : null}
 
           {vehicleWorkspaceMode === "list" ? (
-            myVehicles.length > 0 ? (
+            displayedVehicles.length > 0 ? (
             <div style={{ display: "grid", gap: 10 }}>
-              {myVehicles.map((vehicle) => {
+              {displayedVehicles.map((vehicle) => {
                 const vehicleId = normalizeText(vehicle?.id);
                 const firstPhotoWithContent = (Array.isArray(vehicle?.photos) ? vehicle.photos : []).find((photo) => Boolean(resolvePhotoPreviewSrc(photo)));
                 const firstPhotoPreviewSrc = resolvePhotoPreviewSrc(firstPhotoWithContent);
@@ -2463,7 +2471,7 @@ export default function UserDashboardVehicles({
         </div>
       )}
 
-      {activeVehicleTab !== "overview" && selectedSection && (
+      {activeVehicleTab !== "overview" && selectedSection && displayedVehicles.length === 0 && (
         <div
           style={{
             background: cardBg,

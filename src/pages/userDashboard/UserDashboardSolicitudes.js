@@ -52,21 +52,26 @@ export default function UserDashboardSolicitudes({
     viewing_seller:  { bg: "rgba(234,88,12,0.12)",   color: "#c2410c", border: "rgba(234,88,12,0.25)" },
   };
   const STATUS_COLOR = {
-    Pendiente:              { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
-    Contactado:             { bg: "rgba(59,130,246,0.12)",  color: "#1d4ed8" },
-    "En proceso":           { bg: "rgba(139,92,246,0.12)",  color: "#5b21b6" },
-    "Cita confirmada":      { bg: "rgba(16,185,129,0.15)",  color: "#065f46" },
-    Cerrado:                { bg: "rgba(16,185,129,0.12)",  color: "#065f46" },
-    "Visita realizada":     { bg: "rgba(20,184,166,0.12)",  color: "#0f766e" },
-    Interesado:             { bg: "rgba(14,165,233,0.12)",  color: "#0369a1" },
-    Vendido:                { bg: "rgba(16,185,129,0.18)",  color: "#065f46" },
-    Descartado:             { bg: "rgba(100,116,139,0.10)", color: "#475569" },
-    "Reagendar solicitado": { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
-    Cancelado:              { bg: "rgba(239,68,68,0.10)",   color: "#b91c1c" },
-    pending_seller:         { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
-    pending_buyer:          { bg: "rgba(59,130,246,0.12)",  color: "#1d4ed8" },
-    confirmed:              { bg: "rgba(16,185,129,0.15)",  color: "#065f46" },
+    Pendiente:                  { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
+    Contactado:                 { bg: "rgba(59,130,246,0.12)",  color: "#1d4ed8" },
+    "En proceso":               { bg: "rgba(139,92,246,0.12)",  color: "#5b21b6" },
+    "Cita confirmada":          { bg: "rgba(16,185,129,0.15)",  color: "#065f46" },
+    Cerrado:                    { bg: "rgba(16,185,129,0.12)",  color: "#065f46" },
+    "Visita realizada":         { bg: "rgba(20,184,166,0.12)",  color: "#0f766e" },
+    Interesado:                 { bg: "rgba(14,165,233,0.12)",  color: "#0369a1" },
+    Vendido:                    { bg: "rgba(16,185,129,0.18)",  color: "#065f46" },
+    Comprado:                   { bg: "rgba(16,185,129,0.18)",  color: "#065f46" },
+    Contratado:                 { bg: "rgba(16,185,129,0.18)",  color: "#065f46" },
+    "Renting confirmado":       { bg: "rgba(5,150,105,0.18)",   color: "#065f46" },
+    Descartado:                 { bg: "rgba(100,116,139,0.10)", color: "#475569" },
+    "Reagendar solicitado":     { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
+    Cancelado:                  { bg: "rgba(239,68,68,0.10)",   color: "#b91c1c" },
+    pending_seller:             { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
+    pending_buyer:              { bg: "rgba(59,130,246,0.12)",  color: "#1d4ed8" },
+    confirmed:                  { bg: "rgba(16,185,129,0.15)",  color: "#065f46" },
   };
+
+  const CONTRACTED_STATUSES = ["Vendido", "Comprado", "Contratado", "Renting confirmado"];
   const VIEWING_STATUS_LABEL = {
     pending_seller: "Esperando tus fechas",
     pending_buyer:  "Comprador eligiendo fecha",
@@ -246,23 +251,25 @@ export default function UserDashboardSolicitudes({
       return false;
     }),
     finalizadas: localSolicitudes.filter((s) => {
+      if (CONTRACTED_STATUSES.includes(s.status)) return false;
       const meta = parseMeta(s.meta);
-      if (s.status === "Cerrado")           return true;
-      if (s.status === "Visita realizada")  return true;
-      if (s.status === "Interesado")        return true;
-      if (s.status === "Vendido")           return true;
-      if (s.status === "Cita confirmada")   return isDatePast(meta.appointment_date);
-      if (s.status === "confirmed")         return isDatePast(meta.confirmed_slot);
+      if (s.status === "Cerrado")          return true;
+      if (s.status === "Visita realizada") return true;
+      if (s.status === "Interesado")       return true;
+      if (s.status === "Cita confirmada")  return isDatePast(meta.appointment_date);
+      if (s.status === "confirmed")        return isDatePast(meta.confirmed_slot);
       return false;
     }),
+    contratadas: localSolicitudes.filter((s) => CONTRACTED_STATUSES.includes(s.status)),
     canceladas: localSolicitudes.filter((s) => ["Cancelado", "Descartado"].includes(s.status)),
   };
 
   const TABS = [
-    { key: "pendiente",   label: "Pendiente gestionar", color: "#d97706" },
-    { key: "en_curso",    label: "En curso",             color: "#2563eb" },
-    { key: "finalizadas", label: "Finalizadas",          color: "#059669" },
-    { key: "canceladas",  label: "Canceladas",           color: "#dc2626" },
+    { key: "pendiente",   label: "Pendiente",   color: "#d97706" },
+    { key: "en_curso",    label: "En curso",    color: "#2563eb" },
+    { key: "finalizadas", label: "Finalizadas", color: "#059669" },
+    { key: "contratadas", label: "Contratadas", color: "#7c3aed" },
+    { key: "canceladas",  label: "Canceladas",  color: "#dc2626" },
   ];
 
   const visibleSolicitudes = grouped[activeTab] || [];
@@ -279,7 +286,12 @@ export default function UserDashboardSolicitudes({
       </div>
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: 4, marginBottom: 16, borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "#e2e8f0"}`, paddingBottom: 0 }}>
+      <div style={{
+        display: "flex", gap: 0, marginBottom: 16,
+        borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "#e2e8f0"}`,
+        overflowX: "auto", WebkitOverflowScrolling: "touch",
+        msOverflowStyle: "none", scrollbarWidth: "none",
+      }}>
         {TABS.map((tab) => {
           const count = grouped[tab.key].length;
           const isActive = activeTab === tab.key;
@@ -288,18 +300,18 @@ export default function UserDashboardSolicitudes({
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               style={{
-                background: "none", border: "none", cursor: "pointer",
-                padding: "8px 14px", fontSize: 13, fontWeight: isActive ? 700 : 500,
+                background: "none", border: "none", cursor: "pointer", flexShrink: 0,
+                padding: "8px 12px", fontSize: 12, fontWeight: isActive ? 700 : 500,
                 color: isActive ? tab.color : (isDark ? "#64748b" : "#94a3b8"),
                 borderBottom: isActive ? `2px solid ${tab.color}` : "2px solid transparent",
-                marginBottom: -1, transition: "color 0.15s",
-                display: "flex", alignItems: "center", gap: 6,
+                marginBottom: -1, transition: "color 0.15s", whiteSpace: "nowrap",
+                display: "flex", alignItems: "center", gap: 5,
               }}
             >
               {tab.label}
               {count > 0 && (
                 <span style={{
-                  fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 999,
+                  fontSize: 10, fontWeight: 700, padding: "1px 5px", borderRadius: 999,
                   background: isActive ? tab.color : (isDark ? "rgba(255,255,255,0.1)" : "#e2e8f0"),
                   color: isActive ? "#fff" : (isDark ? "#94a3b8" : "#64748b"),
                 }}>
@@ -314,16 +326,18 @@ export default function UserDashboardSolicitudes({
       {visibleSolicitudes.length === 0 ? (
         <div style={{ textAlign: "center", padding: "2.5rem 1rem", color: isDark ? "#64748b" : "#94a3b8" }}>
           <div style={{ fontSize: 32, marginBottom: 10 }}>
-            {activeTab === "finalizadas" ? "✅" : activeTab === "canceladas" ? "🚫" : activeTab === "en_curso" ? "📅" : "📋"}
+            {activeTab === "finalizadas" ? "✅" : activeTab === "canceladas" ? "🚫" : activeTab === "en_curso" ? "📅" : activeTab === "contratadas" ? "🎉" : "📋"}
           </div>
           <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, color: isDark ? "#94a3b8" : "#64748b" }}>
             {activeTab === "pendiente"   && "Sin solicitudes pendientes"}
             {activeTab === "en_curso"    && "Sin citas próximas"}
             {activeTab === "finalizadas" && "Sin solicitudes finalizadas"}
+            {activeTab === "contratadas" && "Sin compras ni contratos aún"}
             {activeTab === "canceladas"  && "Sin solicitudes canceladas"}
           </div>
           <div style={{ fontSize: 12 }}>
-            {activeTab === "pendiente" ? "Cuando solicites información o visita para un vehículo aparecerá aquí." : ""}
+            {activeTab === "pendiente"   && "Cuando solicites información o visita para un vehículo aparecerá aquí."}
+            {activeTab === "contratadas" && "Aquí aparecerán los vehículos que hayas comprado o contratado en renting."}
           </div>
         </div>
       ) : (
@@ -340,7 +354,7 @@ export default function UserDashboardSolicitudes({
             // appointment box shown when visit has date and not cancelled/reschedule-pending
             const showApptBox = hasAppt && item.status !== "Cancelado" && item.status !== "Reagendar solicitado";
             // action buttons shown when not cancelled and no open dialog
-            const canAct = !["Cancelado", "Cerrado", "Vendido", "Descartado"].includes(item.status) && userEmail;
+            const canAct = !["Cancelado", "Cerrado", "Descartado", ...CONTRACTED_STATUSES].includes(item.status) && userEmail;
             const isCancelConfirm = cancelId === item.id;
             const isRescheduleForm = rescheduleId === item.id;
             const isConfirmDialog = confirmId === item.id;
@@ -554,10 +568,10 @@ export default function UserDashboardSolicitudes({
                   </div>
                 )}
 
-                {/* Vendido / Cerrado confirmation */}
-                {(item.status === "Vendido" || item.status === "Cerrado") && (
+                {/* Contratado / Vendido / Cerrado confirmation */}
+                {(CONTRACTED_STATUSES.includes(item.status) || item.status === "Cerrado") && (
                   <div style={{ background: isDark ? "rgba(5,150,105,0.1)" : "#f0fdf4", border: "1px solid #86efac", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "#065f46", fontWeight: 600 }}>
-                    {isRenting
+                    {(isRenting || item.status === "Renting confirmado")
                       ? "🔑 ¡Renting confirmado! El equipo de CarsWise se pondrá en contacto contigo para gestionar tu contrato."
                       : "🎉 ¡Compra confirmada! El equipo de CarsWise se pondrá en contacto contigo para los próximos pasos."}
                   </div>
@@ -680,24 +694,24 @@ export default function UserDashboardSolicitudes({
                     </div>
                     <div style={{ display: "grid", gap: 8, marginBottom: 10 }}>
                       {proposals.map((p, idx) => (
-                        <div key={idx} style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                          <span style={{ fontSize: 11, color: isDark ? "#64748b" : "#94a3b8", minWidth: 60 }}>Opción {idx + 1}</span>
+                        <div key={idx} style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+                          <span style={{ fontSize: 11, color: isDark ? "#64748b" : "#94a3b8", minWidth: 56, flexShrink: 0 }}>Opción {idx + 1}</span>
                           <input
                             type="date"
                             value={p.date}
                             onChange={(e) => updateProposal(idx, "date", e.target.value)}
-                            style={{ flex: 1, border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "#cbd5e1"}`, borderRadius: 6, padding: "5px 8px", fontSize: 12, background: isDark ? "rgba(15,23,42,0.5)" : "#fff", color: isDark ? "#f1f5f9" : "#0f172a" }}
+                            style={{ flex: "1 1 120px", minWidth: 120, border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "#cbd5e1"}`, borderRadius: 6, padding: "5px 8px", fontSize: 12, background: isDark ? "rgba(15,23,42,0.5)" : "#fff", color: isDark ? "#f1f5f9" : "#0f172a" }}
                           />
                           <input
                             type="time"
                             value={p.time}
                             onChange={(e) => updateProposal(idx, "time", e.target.value)}
-                            style={{ width: 90, border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "#cbd5e1"}`, borderRadius: 6, padding: "5px 8px", fontSize: 12, background: isDark ? "rgba(15,23,42,0.5)" : "#fff", color: isDark ? "#f1f5f9" : "#0f172a" }}
+                            style={{ flex: "1 1 80px", minWidth: 80, border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "#cbd5e1"}`, borderRadius: 6, padding: "5px 8px", fontSize: 12, background: isDark ? "rgba(15,23,42,0.5)" : "#fff", color: isDark ? "#f1f5f9" : "#0f172a" }}
                           />
                           {proposals.length > 1 && (
                             <button
                               onClick={() => setProposals((prev) => prev.filter((_, i) => i !== idx))}
-                              style={{ fontSize: 16, lineHeight: 1, background: "none", border: "none", cursor: "pointer", color: "#94a3b8", padding: "0 2px" }}
+                              style={{ fontSize: 16, lineHeight: 1, background: "none", border: "none", cursor: "pointer", color: "#94a3b8", padding: "0 4px", flexShrink: 0 }}
                             >
                               ×
                             </button>

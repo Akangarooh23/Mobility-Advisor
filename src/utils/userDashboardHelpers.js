@@ -31,7 +31,8 @@ export function buildUserDashboardModel({
   const maintenanceAppointments = Array.isArray(userMaintenances)
     ? userMaintenances
         .map((item) => {
-          const vehicleLabel = normalizeText(item?.vehicleTitle) || "Vehículo";
+          const vehiclePlate = normalizeText(item?.vehiclePlate);
+          const vehicleLabel = vehiclePlate || normalizeText(item?.vehicleTitle) || "Vehículo";
           const scheduleLabel = normalizeText(item?.scheduledAt);
           const notes = normalizeText(item?.notes);
 
@@ -51,7 +52,7 @@ export function buildUserDashboardModel({
   const insuranceAppointments = Array.isArray(userInsurances)
     ? userInsurances
         .map((item) => {
-          const vehicleLabel = normalizeText(item?.vehicleTitle) || "Vehículo";
+          const vehicleLabel = normalizeText(item?.vehiclePlate) || normalizeText(item?.vehicleTitle) || "Vehículo";
           const provider = normalizeText(item?.provider);
           const notes = normalizeText(item?.notes);
           const renewalAt = normalizeText(item?.renewalAt);

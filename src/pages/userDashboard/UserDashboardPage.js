@@ -153,6 +153,7 @@ export default function UserDashboardPage({
   getOfferBadgeStyle,
   formatCurrency,
   getSavedComparisonHref,
+  onVehicleStatesUpdated,
 }) {
   const { t } = useTranslation();
   const planLabelMap = {
@@ -610,6 +611,7 @@ export default function UserDashboardPage({
           onNavigate={onNavigate}
           onBrowseMarketplace={onBrowseMarketplace}
           currentUserEmail={currentUser?.email || ""}
+          onVehicleStatesUpdated={onVehicleStatesUpdated}
         />
       )}
 

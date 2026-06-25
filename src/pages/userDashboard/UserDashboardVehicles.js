@@ -280,6 +280,7 @@ export default function UserDashboardVehicles({
   onNavigate = () => {},
   onBrowseMarketplace = () => {},
   currentUserEmail = "",
+  onVehicleStatesUpdated = () => {},
 }) {
   const { t } = useTranslation();
   const isDark = themeMode === "dark";
@@ -1133,6 +1134,8 @@ export default function UserDashboardVehicles({
         vehicleId: vehicle.id,
         isListed: true,
         notes: `Precio publicado: ${marketplacePrice} EUR`,
+      }).then((res) => {
+        if (Array.isArray(res?.vehicleStates)) onVehicleStatesUpdated(res.vehicleStates);
       }).catch(() => {
         setOverriddenMarketplaceStates((s) => ({ ...s, [vehicle.id]: "owned" }));
         setVehicleFeedback("⚠️ El vehículo se buscó en el marketplace pero no se pudo guardar el estado de publicación. Recarga para verificar.");
@@ -2354,6 +2357,7 @@ export default function UserDashboardVehicles({
                                 if (currentUserEmail && vehicle.id) {
                                   setOverriddenMarketplaceStates((s) => ({ ...s, [vehicle.id]: "owned" }));
                                   postVehicleStateUpsertJson(currentUserEmail, { vehicleId: vehicle.id, isListed: false, notes: "" })
+                                    .then((res) => { if (Array.isArray(res?.vehicleStates)) onVehicleStatesUpdated(res.vehicleStates); })
                                     .catch(() => {});
                                   setVehicleFeedback(`Vehículo ${vehicle.title || vehicle.brand} retirado del marketplace.`);
                                 }

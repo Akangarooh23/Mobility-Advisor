@@ -6743,6 +6743,7 @@ export default function App() {
           getOfferBadgeStyle={getOfferBadgeStyle}
           formatCurrency={formatCurrency}
           getSavedComparisonHref={getSavedComparisonHref}
+          onVehicleStatesUpdated={setUserVehicleStates}
         />
       )}
 

@@ -652,9 +652,25 @@ export default function ServiceIdCarsManagePage({
     const vehicle = marketplacePublishDialog.vehicle;
     if (!vehicle) { closeMarketplacePublishDialog(); return; }
     const vid = normalizeText(vehicle.id);
+    const effectivePrice = normalizeText(marketplacePublishDialog.modalPrice) || normalizeText(vehicle.price);
+    if (!effectivePrice) {
+      showFeedback(txt("Introduce un precio antes de publicar.", "Enter a price before publishing."), "error");
+      return;
+    }
+    // If price was entered in modal, persist it to the vehicle
+    if (normalizeText(marketplacePublishDialog.modalPrice)) {
+      const fullVehicle = vehicles.find((v) => normalizeText(v?.id) === vid);
+      if (fullVehicle) {
+        const updatedVehicle = { ...fullVehicle, price: effectivePrice };
+        setVehicles((prev) => prev.map((v) => normalizeText(v?.id) === vid ? updatedVehicle : v));
+        updateForm("price", effectivePrice);
+        // Save price to backend in background
+        void postGarageVehicleAddJson(normalizeText(currentUserEmail).toLowerCase(), updatedVehicle);
+      }
+    }
     setMarketplaceOverrides((s) => ({ ...s, [vid]: "active_sale" }));
     postVehicleStateUpsertJson(normalizeText(currentUserEmail).toLowerCase(), {
-      vehicleId: vid, state: "active_sale", notes: `Precio publicado: ${normalizeText(vehicle.price)} EUR`,
+      vehicleId: vid, state: "active_sale", notes: `Precio publicado: ${effectivePrice} EUR`,
     }).catch(() => {
       setMarketplaceOverrides((s) => ({ ...s, [vid]: "owned" }));
       showFeedback(txt("No se pudo guardar el estado en el Marketplace.", "Could not save Marketplace status."), "error");
@@ -1205,7 +1221,6 @@ export default function ServiceIdCarsManagePage({
 
   const renderManagePanel = (vehicle) => {
     const isPublished = getIsPublished(vehicle);
-    const vehiclePrice = normalizeText(vehicle?.price);
     return (
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 7 }}>
         <button type="button"
@@ -1919,24 +1934,37 @@ export default function ServiceIdCarsManagePage({
           <div style={{ fontSize: 14, fontWeight: 800, color: "#111827" }}>
             {txt("Confirmar publicación en Marketplace", "Confirm Marketplace listing")}
           </div>
-          <div style={{ fontSize: 12, color: "#6b7280", display: "grid", gap: 5 }}>
+          <div style={{ fontSize: 12, color: "#6b7280", display: "grid", gap: 8 }}>
             <div><strong style={{ color: "#374151" }}>{txt("Vehículo:", "Vehicle:")} </strong>{marketplacePublishDialog.vehicle.title}</div>
-            <div><strong style={{ color: "#374151" }}>{txt("Precio:", "Price:")} </strong>
-              {marketplacePublishDialog.vehicle.price
-                ? `${marketplacePublishDialog.vehicle.price} EUR`
-                : <span style={{ color: "#dc2626" }}>{txt("Sin precio definido", "No price set")}</span>}
-            </div>
-            {!marketplacePublishDialog.vehicle.price && (
-              <div style={{ color: "#92400e", background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "8px 10px", fontSize: 11 }}>
-                {txt("Introduce un precio en la sección de mercado antes de publicar.", "Enter a price in the market section before publishing.")}
-              </div>
+            {marketplacePublishDialog.vehicle.price ? (
+              <div><strong style={{ color: "#374151" }}>{txt("Precio:", "Price:")} </strong>{marketplacePublishDialog.vehicle.price} EUR</div>
+            ) : (
+              <label style={{ display: "grid", gap: 5 }}>
+                <span style={{ fontWeight: 700, color: "#374151" }}>{txt("Precio de venta (€)", "Sale price (€)")}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <input
+                    type="number"
+                    min="0"
+                    step="100"
+                    placeholder="p.ej. 12500"
+                    value={marketplacePublishDialog.modalPrice || ""}
+                    onChange={(e) => setMarketplacePublishDialog((prev) => ({ ...prev, modalPrice: e.target.value }))}
+                    style={{ flex: 1, border: "1px solid #d1d5db", borderRadius: 8, padding: "8px 10px", fontSize: 13, color: "#111827", outline: "none" }}
+                    autoFocus
+                  />
+                  <span style={{ color: "#6b7280", fontSize: 12 }}>EUR</span>
+                </div>
+                <span style={{ fontSize: 11, color: "#6b7280" }}>
+                  {txt("Se guardará en la ficha del vehículo.", "Will be saved to the vehicle profile.")}
+                </span>
+              </label>
             )}
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button ref={marketplacePublishPrimaryBtnRef} type="button"
               onClick={confirmMarketplacePublish}
-              disabled={!marketplacePublishDialog.vehicle.price}
-              style={{ background: marketplacePublishDialog.vehicle.price ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "#d1d5db", color: "#fff", border: "none", borderRadius: 8, padding: "9px 16px", fontSize: 12, fontWeight: 700, cursor: marketplacePublishDialog.vehicle.price ? "pointer" : "not-allowed" }}>
+              disabled={!marketplacePublishDialog.vehicle.price && !marketplacePublishDialog.modalPrice}
+              style={{ background: (marketplacePublishDialog.vehicle.price || marketplacePublishDialog.modalPrice) ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "#d1d5db", color: "#fff", border: "none", borderRadius: 8, padding: "9px 16px", fontSize: 12, fontWeight: 700, cursor: (marketplacePublishDialog.vehicle.price || marketplacePublishDialog.modalPrice) ? "pointer" : "not-allowed" }}>
               {txt("🚀 Publicar", "🚀 Publish")}
             </button>
             <button type="button" onClick={closeMarketplacePublishDialog}

@@ -363,7 +363,7 @@ export default function UserDashboardVehicles({
     setFn(valid);
   };
   const [isSaving, setIsSaving] = useState(false);
-  const [marketplacePublishDialog, setMarketplacePublishDialog] = useState({ open: false, vehicle: null });
+  const [marketplacePublishDialog, setMarketplacePublishDialog] = useState({ open: false, vehicle: null, modalPrice: "" });
   const [expandedVehicleSections, setExpandedVehicleSections] = useState({
     characteristics: true,
     marketplace: false,
@@ -1099,7 +1099,7 @@ export default function UserDashboardVehicles({
 
     const vehicleLabel = vehicle.title || `${vehicle.brand || "Vehículo"} ${vehicle.model || ""}`.trim();
     const pricingMode = resolveMarketplacePricingMode(vehicle);
-    const marketplacePrice = normalizeText(vehicle.price);
+    const marketplacePrice = normalizeText(marketplacePublishDialog.modalPrice) || normalizeText(vehicle.price);
 
     if (pricingMode === "valuation" && !marketplacePrice) {
       requestValuationForVehicle(vehicle, `Antes de publicar ${vehicleLabel}, hemos iniciado la tasación para`);
@@ -1107,10 +1107,21 @@ export default function UserDashboardVehicles({
       return;
     }
 
-    if (pricingMode === "manual" && !marketplacePrice) {
-      setVehicleFeedback(`Para publicar ${vehicleLabel} debes indicar un precio o cambiar a modo tasación.`);
-      closeMarketplacePublishDialog();
+    if (!marketplacePrice) {
+      setVehicleFeedback(`Para publicar ${vehicleLabel} debes indicar un precio.`);
       return;
+    }
+
+    // If price was entered in the modal, save it to the vehicle
+    if (normalizeText(marketplacePublishDialog.modalPrice)) {
+      updateVehicleForm("price", marketplacePublishDialog.modalPrice);
+      setMyVehicles((prev) =>
+        prev.map((v) => normalizeText(v?.id) === normalizeText(vehicle.id) ? { ...v, price: marketplacePublishDialog.modalPrice } : v)
+      );
+      void postGarageVehicleAddJson(currentUserEmail, {
+        ...myVehicles.find((v) => normalizeText(v?.id) === normalizeText(vehicle.id)),
+        price: marketplacePublishDialog.modalPrice,
+      });
     }
 
     onBrowseMarketplace({
@@ -2407,39 +2418,51 @@ export default function UserDashboardVehicles({
                     <div style={{ fontSize: 13, fontWeight: 800, color: titleColor }}>
                       Confirmar publicación en marketplace
                     </div>
-                    <div style={{ fontSize: 11, color: bodyColor, display: "grid", gap: 4 }}>
+                    <div style={{ fontSize: 11, color: bodyColor, display: "grid", gap: 8 }}>
                       <div>Vehículo: {marketplacePublishDialog.vehicle.title}</div>
                       <div>
                         Estrategia: {marketplacePublishDialog.vehicle.marketplacePricingMode === "valuation" ? "Tasación previa" : "Precio manual"}
                       </div>
-                      <div>
-                        {t("dashboard.vehPublishPrice", { price: marketplacePublishDialog.vehicle.price ? `${marketplacePublishDialog.vehicle.price} EUR` : t("dashboard.vehPublishNoPrice") })}
-                      </div>
-                      {marketplacePublishDialog.vehicle.marketplacePricingMode === "valuation" && !marketplacePublishDialog.vehicle.price ? (
-                        <div style={{ color: "#0c4a6e", fontWeight: 700 }}>
-                          {t("dashboard.vehPublishOpenValuation")}
-                        </div>
-                      ) : null}
+                      {marketplacePublishDialog.vehicle.price ? (
+                        <div>{t("dashboard.vehPublishPrice", { price: `${marketplacePublishDialog.vehicle.price} EUR` })}</div>
+                      ) : (
+                        <label style={{ display: "grid", gap: 5 }}>
+                          <span style={{ fontWeight: 700, color: titleColor }}>Precio de venta (€)</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <input
+                              type="number"
+                              min="0"
+                              step="100"
+                              placeholder="p.ej. 12500"
+                              value={marketplacePublishDialog.modalPrice || ""}
+                              onChange={(e) => setMarketplacePublishDialog((prev) => ({ ...prev, modalPrice: e.target.value }))}
+                              style={{ flex: 1, background: inputBg, border: cardBorder, borderRadius: 8, padding: "8px 10px", fontSize: 12, color: titleColor, outline: "none" }}
+                              autoFocus
+                            />
+                            <span style={{ color: bodyColor, fontSize: 11 }}>EUR</span>
+                          </div>
+                          <span style={{ fontSize: 10, color: bodyColor }}>Se guardará en la ficha del vehículo.</span>
+                        </label>
+                      )}
                     </div>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       <button
                         ref={marketplacePublishPrimaryButtonRef}
                         type="button"
                         onClick={confirmMarketplacePublish}
+                        disabled={!marketplacePublishDialog.vehicle.price && !marketplacePublishDialog.modalPrice}
                         style={{
-                          background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
+                          background: (marketplacePublishDialog.vehicle.price || marketplacePublishDialog.modalPrice) ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "#d1d5db",
                           color: "#ffffff",
                           border: "none",
                           borderRadius: 8,
                           padding: "8px 12px",
                           fontSize: 11,
                           fontWeight: 700,
-                          cursor: "pointer",
+                          cursor: (marketplacePublishDialog.vehicle.price || marketplacePublishDialog.modalPrice) ? "pointer" : "not-allowed",
                         }}
                       >
-                        {marketplacePublishDialog.vehicle.marketplacePricingMode === "valuation" && !marketplacePublishDialog.vehicle.price
-                          ? t("dashboard.vehGoValuation")
-                          : t("dashboard.vehPublishConfirm")}
+                        {t("dashboard.vehPublishConfirm")}
                       </button>
                       <button
                         type="button"

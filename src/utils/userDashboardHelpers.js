@@ -118,11 +118,8 @@ export function buildUserDashboardModel({
   if (Array.isArray(userVehicleStates)) {
     userVehicleStates.forEach((item) => {
       const state = normalizeText(item?.state).toLowerCase();
-      const sectionKey = state === "active_sale" ? "active-sale" : state;
-
-      if (!persistedSections[sectionKey]) {
-        return;
-      }
+      // isListed is independent of ownership: a vehicle can be owned AND listed simultaneously
+      const isListed = item?.isListed === true || state === "active_sale";
 
       const title = normalizeText(item?.title)
         || `${normalizeText(item?.brand)} ${normalizeText(item?.model)}`.trim()
@@ -130,17 +127,24 @@ export function buildUserDashboardModel({
 
       const extraMeta = [normalizeText(item?.year), normalizeText(item?.notes)].filter(Boolean).join(" · ");
 
-      persistedSections[sectionKey].push({
+      const makeItem = (status) => ({
         id: normalizeText(item?.vehicleId),
         title,
         meta: extraMeta,
-        status:
-          sectionKey === "active-sale"
-            ? "Publicado en seguimiento"
-            : sectionKey === "sold"
-            ? "Operacion cerrada"
-            : "Vehiculo disponible",
+        status,
       });
+
+      // Ownership section — appears in Comprados whether listed or not
+      if (state === "owned" || state === "active_sale") {
+        persistedSections.owned.push(makeItem("Vehiculo disponible"));
+      } else if (state === "sold") {
+        persistedSections.sold.push(makeItem("Operacion cerrada"));
+      }
+
+      // Marketplace listing — independent; vehicle can be in both Comprados AND Activos en venta
+      if (isListed) {
+        persistedSections["active-sale"].push(makeItem("Publicado en seguimiento"));
+      }
     });
   }
 

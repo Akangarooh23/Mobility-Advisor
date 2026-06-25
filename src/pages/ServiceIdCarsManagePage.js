@@ -668,7 +668,7 @@ export default function ServiceIdCarsManagePage({
     }
     setMarketplaceOverrides((s) => ({ ...s, [vid]: "active_sale" }));
     postVehicleStateUpsertJson(normalizeText(currentUserEmail).toLowerCase(), {
-      vehicleId: vid, state: "active_sale", notes: `Precio publicado: ${effectivePrice} EUR`,
+      vehicleId: vid, isListed: true, notes: `Precio publicado: ${effectivePrice} EUR`,
     }).catch(() => {
       setMarketplaceOverrides((s) => ({ ...s, [vid]: "owned" }));
       showFeedback(txt("No se pudo guardar el estado en el Marketplace.", "Could not save Marketplace status."), "error");
@@ -1209,7 +1209,7 @@ export default function ServiceIdCarsManagePage({
     // Unpublish directly — no confirmation needed
     const vid = normalizeText(vehicle?.id);
     setMarketplaceOverrides((s) => ({ ...s, [vid]: "owned" }));
-    postVehicleStateUpsertJson(normalizeText(currentUserEmail).toLowerCase(), { vehicleId: vid, state: "owned", notes: "" })
+    postVehicleStateUpsertJson(normalizeText(currentUserEmail).toLowerCase(), { vehicleId: vid, isListed: false, notes: "" })
       .then(() => showFeedback(txt("Oferta retirada del Marketplace.", "Offer removed from Marketplace."), "info"))
       .catch(() => {
         setMarketplaceOverrides((s) => ({ ...s, [vid]: "active_sale" }));

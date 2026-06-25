@@ -1131,7 +1131,7 @@ export default function UserDashboardVehicles({
       setOverriddenMarketplaceStates((s) => ({ ...s, [vehicle.id]: "active_sale" }));
       postVehicleStateUpsertJson(currentUserEmail, {
         vehicleId: vehicle.id,
-        state: "active_sale",
+        isListed: true,
         notes: `Precio publicado: ${marketplacePrice} EUR`,
       }).catch(() => {
         setOverriddenMarketplaceStates((s) => ({ ...s, [vehicle.id]: "owned" }));
@@ -2353,7 +2353,7 @@ export default function UserDashboardVehicles({
                               onClick={() => {
                                 if (currentUserEmail && vehicle.id) {
                                   setOverriddenMarketplaceStates((s) => ({ ...s, [vehicle.id]: "owned" }));
-                                  postVehicleStateUpsertJson(currentUserEmail, { vehicleId: vehicle.id, state: "owned", notes: "" })
+                                  postVehicleStateUpsertJson(currentUserEmail, { vehicleId: vehicle.id, isListed: false, notes: "" })
                                     .catch(() => {});
                                   setVehicleFeedback(`Vehículo ${vehicle.title || vehicle.brand} retirado del marketplace.`);
                                 }

@@ -412,6 +412,32 @@ export default function UserDashboardVehicles({
   const marketplacePublishTriggerRef = useRef(null);
   const marketplacePublishPrimaryButtonRef = useRef(null);
   const marketplacePublishDialogRef = useRef(null);
+  const dragPhotoIdxRef = useRef(null);
+
+  function updateEditingVehiclePhotos(newPhotos) {
+    setMyVehicles((prev) =>
+      prev.map((v) =>
+        normalizeText(v?.id) === normalizeText(editingVehicleId) ? { ...v, photos: newPhotos } : v
+      )
+    );
+  }
+  function reorderStoredPhotos(fromIdx, toIdx) {
+    const photos = Array.isArray(editingVehicle?.photos) ? [...editingVehicle.photos] : [];
+    const [moved] = photos.splice(fromIdx, 1);
+    photos.splice(toIdx, 0, moved);
+    updateEditingVehiclePhotos(photos);
+  }
+  function setStoredPhotoAsPrimary(idx) {
+    if (idx === 0) return;
+    const photos = Array.isArray(editingVehicle?.photos) ? [...editingVehicle.photos] : [];
+    const [photo] = photos.splice(idx, 1);
+    updateEditingVehiclePhotos([photo, ...photos]);
+  }
+  function deleteStoredPhoto(idx) {
+    const photos = Array.isArray(editingVehicle?.photos) ? [...editingVehicle.photos] : [];
+    photos.splice(idx, 1);
+    updateEditingVehiclePhotos(photos);
+  }
 
   const safeSections = useMemo(() => (Array.isArray(userVehicleSections) ? userVehicleSections : []), [userVehicleSections]);
   const totalVehiclesCount = dashboardVehicleCount + myVehicles.length;
@@ -1791,7 +1817,64 @@ export default function UserDashboardVehicles({
                   <span style={{ fontSize: 11, opacity: 0.95 }}>{t("dashboard.vehPhotosSelected", { count: pendingPhotos.length })}</span>
                 </button>
                 <span style={{ fontSize: 11, color: "#1d4ed8", fontWeight: 700 }}>{t("dashboard.vehPhotosHint")}</span>
-                {renderStoredAttachmentPreview(storedPhotos)}
+                {storedPhotos.length > 0 && (
+                  <div style={{ marginTop: 4 }}>
+                    <div style={{ fontSize: 10, color: bodyColor, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
+                      Guardadas · arrastra para reordenar
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(72px,1fr))", gap: 6 }}>
+                      {storedPhotos.map((photo, idx) => {
+                        const src = resolvePhotoPreviewSrc(photo);
+                        if (!src) return null;
+                        return (
+                          <div
+                            key={idx}
+                            draggable
+                            onDragStart={() => { dragPhotoIdxRef.current = idx; }}
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              if (dragPhotoIdxRef.current !== null && dragPhotoIdxRef.current !== idx) {
+                                reorderStoredPhotos(dragPhotoIdxRef.current, idx);
+                              }
+                              dragPhotoIdxRef.current = null;
+                            }}
+                            onDragEnd={() => { dragPhotoIdxRef.current = null; }}
+                            style={{ position: "relative", cursor: "grab", borderRadius: 8, overflow: "hidden", border: idx === 0 ? "2px solid #f59e0b" : "1px solid rgba(0,0,0,0.1)" }}
+                          >
+                            <img src={src} alt="" style={{ width: "100%", aspectRatio: "1", objectFit: "cover", display: "block" }} />
+                            {/* Order badge */}
+                            <div style={{ position: "absolute", top: 3, right: 3, background: "rgba(0,0,0,0.55)", color: "#fff", fontSize: 8, fontWeight: 800, borderRadius: 999, width: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              {idx + 1}
+                            </div>
+                            {idx === 0 && (
+                              <div style={{ position: "absolute", top: 3, left: 3, background: "#f59e0b", color: "#fff", fontSize: 7, fontWeight: 800, borderRadius: 999, padding: "2px 4px" }}>
+                                ⭐
+                              </div>
+                            )}
+                            {/* Action bar */}
+                            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.62)", display: "flex", gap: 3, padding: "3px 4px", justifyContent: "center" }}>
+                              {idx !== 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => setStoredPhotoAsPrimary(idx)}
+                                  title="Marcar como principal"
+                                  style={{ background: "#f59e0b", color: "#fff", border: "none", borderRadius: 4, padding: "2px 5px", fontSize: 8, fontWeight: 700, cursor: "pointer" }}
+                                >★</button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => deleteStoredPhoto(idx)}
+                                title="Eliminar"
+                                style={{ background: "#ef4444", color: "#fff", border: "none", borderRadius: 4, padding: "2px 5px", fontSize: 8, fontWeight: 700, cursor: "pointer" }}
+                              >✕</button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
               <div style={{ display: "grid", gap: 7, fontSize: 12, color: bodyColor }}>
                 <div>Documentación (PDF/imagen)</div>

@@ -10,7 +10,13 @@ async function pingHandler(req, res) {
     if (!_pingPool) {
       const cs = process.env.DATABASE_URL || process.env.POSTGRES_URL;
       if (!cs) return res.status(200).json({ ok: true, db: false });
-      _pingPool = new Pool({ connectionString: cs, ssl: { rejectUnauthorized: false }, max: 1 });
+      _pingPool = new Pool({
+        connectionString: cs,
+        ssl: { rejectUnauthorized: false },
+        max: 1,
+        connectionTimeoutMillis: 7000,
+        idleTimeoutMillis: 10000,
+      });
     }
     await _pingPool.query("SELECT 1");
     return res.status(200).json({ ok: true, db: true });

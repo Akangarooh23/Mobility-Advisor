@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
-import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemoveJson } from "../utils/apiClient";
+import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemoveJson, postVehicleStateUpsertJson } from "../utils/apiClient";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 const IDCAR_PENDING_ACTION_KEY = "movilidad-advisor.idcar.action";
@@ -412,6 +412,7 @@ export default function ServiceIdCarsManagePage({
   const [isSaving, setIsSaving] = useState(false);
   const [publishStates, setPublishStates] = useState({});
   const [openManagePanelId, setOpenManagePanelId] = useState("");
+  const [marketplaceOverrides, setMarketplaceOverrides] = useState({});
   const [viewportWidth, setViewportWidth] = useState(() => (typeof window === "undefined" ? 1280 : window.innerWidth));
 
   const [pendingPhotos, setPendingPhotos] = useState([]);
@@ -1010,16 +1011,38 @@ export default function ServiceIdCarsManagePage({
   };
 
   const getIsPublished = (vehicle) => {
-    const sessionState = publishStates[normalizeText(vehicle?.id)]?.status;
-    if (sessionState === "published") return true;
-    if (sessionState === "unpublished") return false;
+    const vid = normalizeText(vehicle?.id);
+    if (vid in marketplaceOverrides) return marketplaceOverrides[vid] === "active_sale";
     return normalizeText(vehicle?.marketplaceState) === "active_sale";
   };
 
-  const renderManagePanel = (vehicle) => {
+  const handleMarketplaceToggle = async (vehicle, targetState) => {
     const vid = normalizeText(vehicle?.id);
+    const prev = getIsPublished(vehicle) ? "active_sale" : "owned";
+    setMarketplaceOverrides((s) => ({ ...s, [vid]: targetState }));
+    try {
+      const notes = targetState === "active_sale"
+        ? `Precio publicado: ${normalizeText(vehicle?.price)} EUR`
+        : "";
+      await postVehicleStateUpsertJson(normalizeText(currentUserEmail).toLowerCase(), {
+        vehicleId: vid,
+        state: targetState,
+        notes,
+      });
+      showFeedback(
+        targetState === "active_sale"
+          ? txt("¡Vehículo publicado en el Marketplace!", "Vehicle published in the Marketplace!")
+          : txt("Oferta retirada del Marketplace.", "Offer removed from Marketplace."),
+        targetState === "active_sale" ? "success" : "info"
+      );
+    } catch {
+      setMarketplaceOverrides((s) => ({ ...s, [vid]: prev }));
+      showFeedback(txt("No se pudo actualizar el estado en el Marketplace.", "Could not update Marketplace status."), "error");
+    }
+  };
+
+  const renderManagePanel = (vehicle) => {
     const isPublished = getIsPublished(vehicle);
-    const isPublishing = publishStates[vid]?.status === "loading";
     const vehiclePrice = normalizeText(vehicle?.price);
     return (
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 7 }}>
@@ -1047,17 +1070,17 @@ export default function ServiceIdCarsManagePage({
         </button>
         {isPublished ? (
           <button type="button"
-            onClick={() => handlePublish(vid, vehiclePrice, "unpublish")}
-            disabled={isPublishing}
+            onClick={() => handleMarketplaceToggle(vehicle, "owned")}
             style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.22)", color: "#dc2626", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
             {txt("Despublicar del Marketplace", "Remove from Marketplace")}
           </button>
         ) : (
           <button type="button"
-            onClick={() => handlePublish(vid, vehiclePrice, "publish")}
-            disabled={isPublishing || !vehiclePrice}
+            onClick={() => handleMarketplaceToggle(vehicle, "active_sale")}
+            disabled={!vehiclePrice}
+            title={!vehiclePrice ? txt("Introduce un precio en la ficha para publicar", "Enter a price in the profile to publish") : ""}
             style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.22)", color: "#047857", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: !vehiclePrice ? "not-allowed" : "pointer", opacity: !vehiclePrice ? 0.5 : 1 }}>
-            {isPublishing ? txt("Publicando...", "Publishing...") : txt("Publicar Marketplace VO", "Publish to Marketplace")}
+            {txt("Publicar Marketplace VO", "Publish to Marketplace")}
           </button>
         )}
       </div>
@@ -1378,7 +1401,7 @@ export default function ServiceIdCarsManagePage({
                     {docsCount > 0 && <span style={{ background: "rgba(37,99,235,0.07)", color: "#1d4ed8", border: "1px solid rgba(37,99,235,0.18)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>📄 {docsCount}</span>}
                     {insuranceDocs > 0 && <span style={{ background: "rgba(16,185,129,0.07)", color: "#047857", border: "1px solid rgba(16,185,129,0.18)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>🛡️ {insuranceDocs}</span>}
                     {maintenanceDocs > 0 && <span style={{ background: "rgba(251,146,60,0.08)", color: "#c2410c", border: "1px solid rgba(251,146,60,0.22)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>🔧 {maintenanceDocs}</span>}
-                    {publishStates[vehicle.id]?.status === "published" && <span style={{ background: "rgba(16,185,129,0.1)", color: "#047857", border: "1px solid rgba(16,185,129,0.3)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 700 }}>🟢 Marketplace</span>}
+                    {getIsPublished(vehicle) && <span style={{ background: "rgba(16,185,129,0.1)", color: "#047857", border: "1px solid rgba(16,185,129,0.3)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 700 }}>🟢 Marketplace</span>}
                   </div>
                   <div style={{ display: isCompactCard ? "grid" : "flex", gridTemplateColumns: isCompactCard ? "40px repeat(3,minmax(0,1fr))" : "none", gap: 6, flexShrink: 0 }}>
                     <button type="button" onClick={() => handleRemove(vehicle.id)}

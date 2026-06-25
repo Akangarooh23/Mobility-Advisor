@@ -9,8 +9,8 @@ import UserDashboardSaved from "./UserDashboardSaved";
 import UserDashboardValuations from "./UserDashboardValuations";
 import UserDashboardVehicles from "./UserDashboardVehicles";
 import UserDashboardSolicitudes from "./UserDashboardSolicitudes";
-import { getGarageVehiclesJson } from "../../utils/apiClient";
-import { readUserBillingState, readCachedGarageVehicleCount } from "../../utils/storage";
+import { getGarageVehiclesJson, getBillingAccountJson } from "../../utils/apiClient";
+import { readUserBillingState, readCachedGarageVehicleCount, writeUserBillingState } from "../../utils/storage";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 
@@ -181,6 +181,26 @@ export default function UserDashboardPage({
   useEffect(() => {
     setCurrentPlanId(readUserBillingState()?.planId || "free");
   }, [userDashboardPage]);
+
+  useEffect(() => {
+    const email = currentUser?.email;
+    if (!email) return;
+    let disposed = false;
+    void (async () => {
+      try {
+        const { data } = await getBillingAccountJson(email);
+        if (disposed) return;
+        const planId = data?.account?.billingState?.planId || "";
+        if (planId) {
+          writeUserBillingState({ ...(readUserBillingState() || {}), planId });
+          setCurrentPlanId(planId);
+        }
+      } catch {
+        // keep localStorage value on error
+      }
+    })();
+    return () => { disposed = true; };
+  }, [currentUser?.email]);
 
   useEffect(() => {
     if (typeof window === "undefined") {

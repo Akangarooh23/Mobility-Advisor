@@ -6,6 +6,9 @@ const { Pool } = require("pg");
 
 let _pingPool = null;
 async function pingHandler(req, res) {
+  const hardTimeout = new Promise((resolve) =>
+    setTimeout(() => resolve({ timedOut: true }), 8000)
+  );
   try {
     if (!_pingPool) {
       const cs = process.env.DATABASE_URL || process.env.POSTGRES_URL;
@@ -18,8 +21,11 @@ async function pingHandler(req, res) {
         idleTimeoutMillis: 10000,
       });
     }
-    await _pingPool.query("SELECT 1");
-    return res.status(200).json({ ok: true, db: true });
+    const result = await Promise.race([
+      _pingPool.query("SELECT 1").then(() => ({ db: true })),
+      hardTimeout,
+    ]);
+    return res.status(200).json({ ok: true, db: result.db === true });
   } catch {
     return res.status(200).json({ ok: true, db: false });
   }

@@ -609,29 +609,6 @@ export default function PortalVoMarketplacePage({
                   <p style={{ margin: "8px 0 0", fontSize: 12, color: isDark ? "#e2e8f0" : "#334155", lineHeight: 1.6 }}>
                     {t("marketplace.offerAvailableIn", { title: offer.title, location: offer.location })}
                   </p>
-                  {offer.sellerType === "particular" && (
-                    <button
-                      type="button"
-                      onClick={e => {
-                        e.stopPropagation();
-                        setViewingModal({ offer });
-                        try {
-                          const u = readAuthUser();
-                          const b = readUserBillingProfile();
-                          setViewingForm({ name: u?.name || b?.fullName || "", email: u?.email || b?.email || "", message: "" });
-                        } catch {
-                          setViewingForm({ name: "", email: "", message: "" });
-                        }
-                      }}
-                      style={{
-                        marginTop: 10, width: "100%", background: "#2563eb", color: "white",
-                        border: "none", borderRadius: 7, padding: "8px 12px", fontSize: 12,
-                        fontWeight: 600, cursor: "pointer",
-                      }}
-                    >
-                      📅 Solicitar visita al vendedor
-                    </button>
-                  )}
                   {viewingState[offer.id] === "sent" && (
                     <p style={{ fontSize: 11, color: "#16a34a", margin: "6px 0 0", fontWeight: 600 }}>✅ Solicitud enviada al vendedor</p>
                   )}

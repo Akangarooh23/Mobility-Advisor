@@ -386,6 +386,8 @@ export default function ServiceIdCarsManagePage({
   onOpenVehicle,
   onCreated,
   onCreateNew,
+  onRequestAppointment,
+  onRequestValuation,
   selectedVehicleId = "",
   startEditing = false,
   viewMode = "list",
@@ -409,6 +411,7 @@ export default function ServiceIdCarsManagePage({
   const [feedbackTone, setFeedbackTone] = useState("info");
   const [isSaving, setIsSaving] = useState(false);
   const [publishStates, setPublishStates] = useState({});
+  const [openManagePanelId, setOpenManagePanelId] = useState("");
   const [viewportWidth, setViewportWidth] = useState(() => (typeof window === "undefined" ? 1280 : window.innerWidth));
 
   const [pendingPhotos, setPendingPhotos] = useState([]);
@@ -1000,6 +1003,61 @@ export default function ServiceIdCarsManagePage({
     return "";
   };
 
+  const getIsPublished = (vehicle) => {
+    const sessionState = publishStates[normalizeText(vehicle?.id)]?.status;
+    if (sessionState === "published") return true;
+    if (sessionState === "unpublished") return false;
+    return normalizeText(vehicle?.marketplaceState) === "active_sale";
+  };
+
+  const renderManagePanel = (vehicle) => {
+    const vid = normalizeText(vehicle?.id);
+    const isPublished = getIsPublished(vehicle);
+    const isPublishing = publishStates[vid]?.status === "loading";
+    const vehiclePrice = normalizeText(vehicle?.price);
+    return (
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 7 }}>
+        <button type="button"
+          onClick={() => typeof onRequestAppointment === "function" && onRequestAppointment(vehicle)}
+          style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", color: "#b45309", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+          {txt("Pedir cita", "Request appointment")}
+        </button>
+        <button type="button"
+          onClick={() => typeof onRequestValuation === "function" && onRequestValuation(vehicle)}
+          style={{ background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.22)", color: "#1d4ed8", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+          {txt("Solicitar tasación", "Request valuation")}
+        </button>
+        <button type="button"
+          onClick={() => {
+            if (!isDetailView) {
+              openVehicleDetail(vehicle, true);
+            } else {
+              setIsEditMode(true);
+            }
+            setOpenSections((prev) => ({ ...prev, insurance: true }));
+          }}
+          style={{ background: "rgba(14,116,144,0.08)", border: "1px solid rgba(14,116,144,0.22)", color: "#0e7490", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+          {txt("Gestionar seguro", "Manage insurance")}
+        </button>
+        {isPublished ? (
+          <button type="button"
+            onClick={() => handlePublish(vid, vehiclePrice, "unpublish")}
+            disabled={isPublishing}
+            style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.22)", color: "#dc2626", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+            {txt("Despublicar del Marketplace", "Remove from Marketplace")}
+          </button>
+        ) : (
+          <button type="button"
+            onClick={() => handlePublish(vid, vehiclePrice, "publish")}
+            disabled={isPublishing || !vehiclePrice}
+            style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.22)", color: "#047857", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: !vehiclePrice ? "not-allowed" : "pointer", opacity: !vehiclePrice ? 0.5 : 1 }}>
+            {isPublishing ? txt("Publicando...", "Publishing...") : txt("Publicar Marketplace VO", "Publish to Marketplace")}
+          </button>
+        )}
+      </div>
+    );
+  };
+
   const renderVehicleEditor = () => {
     const activeVehicle = (editingVehicleId
       ? vehicles.find((vehicle) => normalizeText(vehicle?.id) === normalizeText(editingVehicleId))
@@ -1316,7 +1374,7 @@ export default function ServiceIdCarsManagePage({
                     {maintenanceDocs > 0 && <span style={{ background: "rgba(251,146,60,0.08)", color: "#c2410c", border: "1px solid rgba(251,146,60,0.22)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>🔧 {maintenanceDocs}</span>}
                     {publishStates[vehicle.id]?.status === "published" && <span style={{ background: "rgba(16,185,129,0.1)", color: "#047857", border: "1px solid rgba(16,185,129,0.3)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 700 }}>🟢 Marketplace</span>}
                   </div>
-                  <div style={{ display: isCompactCard ? "grid" : "flex", gridTemplateColumns: isCompactCard ? "40px repeat(2,minmax(0,1fr))" : "none", gap: 6, flexShrink: 0 }}>
+                  <div style={{ display: isCompactCard ? "grid" : "flex", gridTemplateColumns: isCompactCard ? "40px repeat(3,minmax(0,1fr))" : "none", gap: 6, flexShrink: 0 }}>
                     <button type="button" onClick={() => handleRemove(vehicle.id)}
                       title={txt("Quitar", "Remove")}
                       aria-label={txt("Quitar", "Remove")}
@@ -1331,10 +1389,20 @@ export default function ServiceIdCarsManagePage({
                       style={{ border: "1px solid rgba(59,130,246,0.3)", background: "rgba(59,130,246,0.08)", color: "#2563eb", borderRadius: 7, padding: isCompactCard ? "8px 8px" : "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", minHeight: isCompactCard ? 36 : "auto" }}>
                       {txt("Editar", "Edit")}
                     </button>
+                    <button type="button"
+                      onClick={() => setOpenManagePanelId((prev) => (prev === vehicle.id ? "" : vehicle.id))}
+                      style={{ border: "1px solid rgba(14,116,144,0.3)", background: openManagePanelId === vehicle.id ? "rgba(14,116,144,0.15)" : "rgba(14,116,144,0.07)", color: "#0e7490", borderRadius: 7, padding: isCompactCard ? "8px 8px" : "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", minHeight: isCompactCard ? 36 : "auto" }}>
+                      {openManagePanelId === vehicle.id ? txt("✕ Cerrar", "✕ Close") : txt("Gestionar", "Manage")}
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
+            {openManagePanelId === vehicle.id && (
+              <div style={{ borderTop: "1px solid #f1ede6", padding: "12px 16px", background: "#fafaf9" }}>
+                {renderManagePanel(vehicle)}
+              </div>
+            )}
           </section>
         );
       })}
@@ -1499,6 +1567,13 @@ export default function ServiceIdCarsManagePage({
                 </div>
               );
             })()}
+          </section>
+
+          <section style={{ ...SECTION_CARD_STYLE, padding: "14px 18px", marginBottom: 14 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#374151", marginBottom: 10 }}>
+              {txt("Acciones rápidas", "Quick actions")}
+            </div>
+            {renderManagePanel(selectedVehicle)}
           </section>
 
           {isEditMode ? renderVehicleEditor() : null}

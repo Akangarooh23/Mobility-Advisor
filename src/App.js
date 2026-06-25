@@ -6425,6 +6425,8 @@ export default function App() {
         <ServiceIdCarsManagePage
           currentUserEmail={currentUser?.email || ""}
           viewMode="list"
+          onRequestAppointment={() => { setEntryMode("serviceAppointment"); setStep(-1); }}
+          onRequestValuation={() => { navigateToUserDashboardPage("valuations"); }}
           onOpenVehicle={(vehicle, startEditing) => {
             setSelectedIdCarVehicleId(vehicle?.id || "");
             setSelectedIdCarOpenEditor(!!startEditing);
@@ -6452,6 +6454,8 @@ export default function App() {
           viewMode="detail"
           selectedVehicleId={selectedIdCarVehicleId}
           startEditing={selectedIdCarOpenEditor}
+          onRequestAppointment={() => { setEntryMode("serviceAppointment"); setStep(-1); }}
+          onRequestValuation={() => { navigateToUserDashboardPage("valuations"); }}
           onGoBack={() => {
             setEntryMode("idCarsManage");
             setStep(-1);
@@ -6464,6 +6468,8 @@ export default function App() {
         <ServiceIdCarsManagePage
           currentUserEmail={currentUser?.email || ""}
           viewMode="create"
+          onRequestAppointment={() => { setEntryMode("serviceAppointment"); setStep(-1); }}
+          onRequestValuation={() => { navigateToUserDashboardPage("valuations"); }}
           onCreated={(vehicle) => {
             setSelectedIdCarVehicleId(vehicle?.id || "");
             setSelectedIdCarOpenEditor(false);

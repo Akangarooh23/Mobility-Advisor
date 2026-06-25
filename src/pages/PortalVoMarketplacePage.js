@@ -55,6 +55,7 @@ export default function PortalVoMarketplacePage({
   const [viewingModal, setViewingModal] = useState(null); // { offer }
   const [viewingForm, setViewingForm] = useState({ name: "", email: "", message: "" });
   const [viewingState, setViewingState] = useState({}); // { [offerId]: 'sent' | 'error' | 'sending' }
+  const [compraTab, setCompraTab] = useState("renting_empresa");
   const titleColor = isDark ? "#f1f5f9" : "#0f172a";
   const bodyColor = isDark ? "#94a3b8" : "#475569";
   const cardBg = isDark ? "rgba(15,23,42,0.34)" : "rgba(255,255,255,0.96)";
@@ -142,6 +143,130 @@ export default function PortalVoMarketplacePage({
           );
         })}
       </div>
+
+      {/* Compra sub-tabs */}
+      {!isRenting && (
+        <div style={{
+          display: "flex", gap: 0, marginBottom: 20,
+          borderRadius: 14, overflow: "hidden",
+          border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(148,163,184,0.22)",
+          background: isDark ? "rgba(15,23,42,0.4)" : "rgba(248,250,252,0.9)",
+        }}>
+          {[
+            { key: "particulares", icon: "👤", label: "Particulares", color: "#7c3aed" },
+            { key: "importacion",  icon: "🌍", label: "Importación",  color: "#0891b2" },
+            { key: "renting_empresa", icon: "🏢", label: "VO Renting", color: "#2563eb" },
+            { key: "concesionarios", icon: "🏪", label: "Concesionarios", color: "#059669" },
+          ].map(({ key, icon, label, color }, idx, arr) => {
+            const active = compraTab === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setCompraTab(key)}
+                style={{
+                  flex: 1,
+                  padding: "11px 8px",
+                  border: "none",
+                  borderRight: idx < arr.length - 1 ? (isDark ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(148,163,184,0.18)") : "none",
+                  background: active ? color : "transparent",
+                  color: active ? "#fff" : (isDark ? "#94a3b8" : "#64748b"),
+                  fontWeight: active ? 700 : 500,
+                  fontSize: 11,
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 3,
+                  lineHeight: 1.2,
+                }}
+              >
+                <span style={{ fontSize: 16 }}>{icon}</span>
+                <span style={{ whiteSpace: "nowrap" }}>{label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Próximamente panels for non-renting compra tabs */}
+      {!isRenting && compraTab !== "renting_empresa" && (
+        <div style={{ ...styles.panel, marginBottom: 20, textAlign: "center", padding: "40px 24px" }}>
+          {compraTab === "particulares" && (
+            <>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>👤</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#7c3aed", marginBottom: 8 }}>Particulares CarsWise</div>
+              <div style={{ fontSize: 13, color: bodyColor, maxWidth: 440, margin: "0 auto 16px", lineHeight: 1.7 }}>
+                ¿Quieres vender tu coche? Nosotros lo publicamos, gestionamos las visitas y los trámites administrativos por ti.
+                Tú solo pones el coche.
+              </div>
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                background: isDark ? "rgba(124,58,237,0.12)" : "rgba(124,58,237,0.06)",
+                border: "1px solid rgba(124,58,237,0.22)", borderRadius: 10, padding: "10px 18px",
+                fontSize: 13, fontWeight: 700, color: "#7c3aed", marginBottom: 20,
+              }}>
+                Fee fijo de gestión · Sin sorpresas
+              </div>
+              <br />
+              <span style={{
+                display: "inline-block", padding: "6px 16px", borderRadius: 999,
+                background: isDark ? "rgba(255,255,255,0.06)" : "#f1f5f9",
+                color: isDark ? "#94a3b8" : "#64748b", fontSize: 12, fontWeight: 600,
+              }}>
+                Próximamente
+              </span>
+            </>
+          )}
+          {compraTab === "importacion" && (
+            <>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>🌍</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#0891b2", marginBottom: 8 }}>Vehículos de Importación</div>
+              <div style={{ fontSize: 13, color: bodyColor, maxWidth: 440, margin: "0 auto 16px", lineHeight: 1.7 }}>
+                Coches seleccionados de portales europeos y partners internacionales. Pagas una reserva y nosotros compramos,
+                registramos, pasamos la ITV y te lo entregamos en tu domicilio.
+              </div>
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                background: isDark ? "rgba(8,145,178,0.12)" : "rgba(8,145,178,0.06)",
+                border: "1px solid rgba(8,145,178,0.22)", borderRadius: 10, padding: "10px 18px",
+                fontSize: 13, fontWeight: 700, color: "#0891b2", marginBottom: 20,
+              }}>
+                Garantía incluida · Entrega a domicilio
+              </div>
+              <br />
+              <span style={{
+                display: "inline-block", padding: "6px 16px", borderRadius: 999,
+                background: isDark ? "rgba(255,255,255,0.06)" : "#f1f5f9",
+                color: isDark ? "#94a3b8" : "#64748b", fontSize: 12, fontWeight: 600,
+              }}>
+                Próximamente
+              </span>
+            </>
+          )}
+          {compraTab === "concesionarios" && (
+            <>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>🏪</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#059669", marginBottom: 8 }}>VO Concesionarios</div>
+              <div style={{ fontSize: 13, color: bodyColor, maxWidth: 440, margin: "0 auto 16px", lineHeight: 1.7 }}>
+                Vehículos de ocasión de concesionarios de confianza, con garantía y proceso de compra respaldado por CarsWise.
+              </div>
+              <span style={{
+                display: "inline-block", padding: "6px 16px", borderRadius: 999,
+                background: isDark ? "rgba(255,255,255,0.06)" : "#f1f5f9",
+                color: isDark ? "#94a3b8" : "#64748b", fontSize: 12, fontWeight: 600,
+              }}>
+                Próximamente
+              </span>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Filters + offers: only in Renting mode or VO Renting compra sub-tab */}
+      {(isRenting || compraTab === "renting_empresa") && (
+      <>
 
       <div style={{ ...styles.panel, marginBottom: 18 }}>
         <div style={{ fontSize: 11, color: "#60a5fa", marginBottom: 10, letterSpacing: "0.6px" }}>
@@ -573,6 +698,8 @@ export default function PortalVoMarketplacePage({
           </div>
         )}
       </div>
+
+      </> )}
 
       {/* Viewing request modal */}
       {viewingModal && (

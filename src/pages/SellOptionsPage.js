@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-export default function SellOptionsPage({ styles, onSelectCertificate, onSelectReport, onGoBack }) {
+export default function SellOptionsPage({ styles, onSelectCertificate, onSelectReport, onSelectIDCar, onGoBack }) {
   const { t } = useTranslation();
   const isDark = styles?.page?.color === "#e2e8f0";
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
@@ -239,12 +239,13 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
 
       <p style={{ marginTop: 20, fontSize: 13, color: mutedColor, lineHeight: 1.6 }}>
         También puedes publicar tu coche directamente en nuestro{" "}
-        <a
-          href="/panel/vehiculos"
-          style={{ color: "#2563eb", fontWeight: 700, textDecoration: "underline" }}
+        <button
+          type="button"
+          onClick={onSelectIDCar}
+          style={{ background: "none", border: "none", padding: 0, color: "#2563eb", fontWeight: 700, textDecoration: "underline", cursor: "pointer", fontSize: 13 }}
         >
           Marketplace para particulares (IDCar)
-        </a>{" "}
+        </button>{" "}
         y gestionar la venta tú mismo.
       </p>
     </div>

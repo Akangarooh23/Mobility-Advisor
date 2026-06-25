@@ -6293,6 +6293,10 @@ export default function App() {
             setEntryMode("sell");
             setStep(-1);
           }}
+          onSelectIDCar={() => {
+            setEntryMode("serviceAutogestor");
+            setStep(-1);
+          }}
           onGoBack={() => {
             setSellFlowType("");
             setEntryMode(null);

@@ -349,6 +349,18 @@ export default function UserDashboardVehicles({
   const [pendingIvtDocuments, setPendingIvtDocuments] = useState([]);
   const [pendingInsuranceDocuments, setPendingInsuranceDocuments] = useState([]);
   const [pendingMaintenanceInvoices, setPendingMaintenanceInvoices] = useState([]);
+
+  // File input helper: filters oversized files and shows feedback
+  const pickFiles = (setFn, maxMB = 10) => (event) => {
+    const files = Array.from(event.target.files || []);
+    const limit = maxMB * 1024 * 1024;
+    const oversized = files.filter((f) => f.size > limit);
+    const valid = files.filter((f) => f.size <= limit);
+    if (oversized.length > 0) {
+      setVehicleFeedback(`⚠️ ${oversized.map((f) => f.name).join(", ")} supera el límite de ${maxMB} MB y no se adjuntará.`);
+    }
+    setFn(valid);
+  };
   const [isSaving, setIsSaving] = useState(false);
   const [marketplacePublishDialog, setMarketplacePublishDialog] = useState({ open: false, vehicle: null });
   const [expandedVehicleSections, setExpandedVehicleSections] = useState({
@@ -949,6 +961,13 @@ export default function UserDashboardVehicles({
     setErpSelectedModelId("");
     setErpModels([]);
     setErpVersions([]);
+    setPendingPhotos([]);
+    setPendingDocuments([]);
+    setPendingTechnicalSheetDocuments([]);
+    setPendingCirculationPermitDocuments([]);
+    setPendingIvtDocuments([]);
+    setPendingInsuranceDocuments([]);
+    setPendingMaintenanceInvoices([]);
     setVehicleFeedback("Edición cancelada.");
   };
 
@@ -1066,11 +1085,13 @@ export default function UserDashboardVehicles({
     });
 
     if (currentUserEmail && normalizeText(vehicle.id)) {
-      void postVehicleStateUpsertJson(currentUserEmail, {
+      postVehicleStateUpsertJson(currentUserEmail, {
         vehicleId: vehicle.id,
         state: "active_sale",
         notes: `Precio publicado: ${marketplacePrice} EUR`,
-      }).catch(() => {});
+      }).catch(() => {
+        setVehicleFeedback("⚠️ El vehículo se buscó en el marketplace pero no se pudo guardar el estado de publicación. Recarga para verificar.");
+      });
     }
 
     setVehicleFeedback(`Vehículo ${vehicleLabel} preparado para marketplace con precio ${marketplacePrice} EUR.`);
@@ -1743,7 +1764,7 @@ export default function UserDashboardVehicles({
                   type="file"
                   multiple
                   accept="image/*"
-                  onChange={(event) => setPendingPhotos(Array.from(event.target.files || []))}
+                  onChange={pickFiles(setPendingPhotos, 10)}
                   style={{ display: "none" }}
                 />
                 <button
@@ -1779,7 +1800,7 @@ export default function UserDashboardVehicles({
                   type="file"
                   multiple
                   accept=".pdf,image/*"
-                  onChange={(event) => setPendingDocuments(Array.from(event.target.files || []))}
+                  onChange={pickFiles(setPendingDocuments, 2)}
                   style={{ display: "none" }}
                 />
                 <button
@@ -1815,7 +1836,7 @@ export default function UserDashboardVehicles({
                   type="file"
                   multiple
                   accept=".pdf,image/*"
-                  onChange={(event) => setPendingTechnicalSheetDocuments(Array.from(event.target.files || []))}
+                  onChange={pickFiles(setPendingTechnicalSheetDocuments, 2)}
                   style={{ display: "none" }}
                 />
                 <button
@@ -1835,7 +1856,7 @@ export default function UserDashboardVehicles({
                   type="file"
                   multiple
                   accept=".pdf,image/*"
-                  onChange={(event) => setPendingCirculationPermitDocuments(Array.from(event.target.files || []))}
+                  onChange={pickFiles(setPendingCirculationPermitDocuments, 2)}
                   style={{ display: "none" }}
                 />
                 <button
@@ -1855,7 +1876,7 @@ export default function UserDashboardVehicles({
                   type="file"
                   multiple
                   accept=".pdf,image/*"
-                  onChange={(event) => setPendingIvtDocuments(Array.from(event.target.files || []))}
+                  onChange={pickFiles(setPendingIvtDocuments, 2)}
                   style={{ display: "none" }}
                 />
                 <button
@@ -1910,7 +1931,7 @@ export default function UserDashboardVehicles({
                   type="file"
                   multiple
                   accept=".pdf,image/*"
-                  onChange={(event) => setPendingInsuranceDocuments(Array.from(event.target.files || []))}
+                  onChange={pickFiles(setPendingInsuranceDocuments, 2)}
                   style={{ display: "none" }}
                 />
                 <button
@@ -1968,7 +1989,7 @@ export default function UserDashboardVehicles({
                 type="file"
                 multiple
                 accept=".pdf,image/*"
-                onChange={(event) => setPendingMaintenanceInvoices(Array.from(event.target.files || []))}
+                onChange={pickFiles(setPendingMaintenanceInvoices, 2)}
                 style={{ display: "none" }}
               />
               <button

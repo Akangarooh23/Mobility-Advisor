@@ -1038,7 +1038,7 @@ export default function SellReportMarketPage({
                       gap: 8,
                     }}
                   >
-                    {checkoutLoading ? "Redirigiendo…" : "Solicitar tasación — 29 €"}
+                    {checkoutLoading ? "Redirigiendo…" : "Solicitar tasación — 10 €"}
                   </button>
                   <a
                     href="/ejemplo-informe-tasacion.pdf"

@@ -44,7 +44,7 @@ export default function HomePricingPlans({
         servicesDescription: "For selling, certifying and visibility boosts. No subscription.",
         servicesRows: [
           ["Boost listing", "9-19 EUR"],
-          ["Advanced market report", "29 EUR"],
+          ["Advanced market report", "10 EUR"],
           ["CarsWise guarantee seal", "29-49 EUR"],
           ["Insurance review", "Free"],
           ["Managed sale", "from 149 EUR"],
@@ -87,7 +87,7 @@ export default function HomePricingPlans({
       servicesDescription: "Para vender, certificar y destacar. Sin suscripcion.",
       servicesRows: [
         ["Destacar anuncio", "9-19 EUR"],
-        ["Informe de mercado", "29 EUR"],
+        ["Informe de mercado", "10 EUR"],
         ["Sello de Garantia CarsWise", "29-49 EUR"],
         ["Revision de seguro", "Gratis"],
         ["Gestion de venta", "desde 149 EUR"],

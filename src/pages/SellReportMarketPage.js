@@ -93,6 +93,7 @@ function buildIdCarLabel(vehicle = {}, fallbackIndex = 0) {
   return plate ? `${resolvedTitle} · ${plate}` : resolvedTitle;
 }
 
+// eslint-disable-next-line no-unused-vars
 function pickNumber(value, fallback) {
   if (typeof value === "number") {
     return Number.isFinite(value) && value > 0 ? value : fallback;
@@ -120,6 +121,7 @@ function pickNumber(value, fallback) {
   return Number.isFinite(numeric) && numeric > 0 ? numeric : fallback;
 }
 
+// eslint-disable-next-line no-unused-vars
 function parseEstimatedDays(value) {
   const text = String(value ?? "");
   if (!text.trim()) {
@@ -143,6 +145,7 @@ function parseEstimatedDays(value) {
   return Math.round(average);
 }
 
+// eslint-disable-next-line no-unused-vars
 function currencyEUR(value, formatCurrency) {
   if (typeof formatCurrency === "function") {
     return formatCurrency(value);
@@ -247,7 +250,7 @@ export default function SellReportMarketPage({
   const [erpSelectedBrandId, setErpSelectedBrandId] = useState("");
   const [erpSelectedModelId, setErpSelectedModelId] = useState("");
   const [garageVehicles, setGarageVehicles] = useState([]);
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [garageVehiclesLoading, setGarageVehiclesLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
@@ -296,179 +299,9 @@ export default function SellReportMarketPage({
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from({ length: currentYear - 2013 }, (_, index) => currentYear - index);
 
-  const normalizedYear = normalizeText(sellAnswers?.year).toLowerCase();
-  const normalizedFuel = normalizeMatchToken(sellAnswers?.fuel);
-  const normalizedDamageLevel = normalizeMatchToken(sellAnswers?.damageLevel);
-  const vehicleYear = normalizedYear === "anterior"
-    ? 2013
-    : pickNumber(sellAnswers?.year, currentYear);
-  const vehicleAge = Math.max(0, currentYear - vehicleYear);
-  const vehicleMileage = pickNumber(sellAnswers?.mileage, 0);
 
-  const fuelUnitsAdjust = normalizedFuel.includes("electric") || normalizedFuel.includes("electrico")
-    ? -16
-    : normalizedFuel.includes("phev")
-      ? -8
-      : normalizedFuel.includes("hybrid") || normalizedFuel.includes("hibrido")
-        ? -4
-        : normalizedFuel.includes("diesel")
-          ? 8
-          : 0;
 
-  const fuelDaysAdjust = normalizedFuel.includes("electric") || normalizedFuel.includes("electrico")
-    ? 10
-    : normalizedFuel.includes("phev")
-      ? 6
-      : normalizedFuel.includes("hybrid") || normalizedFuel.includes("hibrido")
-        ? -2
-        : normalizedFuel.includes("diesel")
-          ? 2
-          : 0;
 
-  const damageUnitsAdjust = normalizedDamageLevel.includes("major") || normalizedDamageLevel.includes("graves")
-    ? -16
-    : normalizedDamageLevel.includes("moderate") || normalizedDamageLevel.includes("moderados")
-      ? -10
-      : normalizedDamageLevel.includes("minor") || normalizedDamageLevel.includes("leves")
-        ? -5
-        : 0;
-
-  const damageDaysAdjust = normalizedDamageLevel.includes("major") || normalizedDamageLevel.includes("graves")
-    ? 18
-    : normalizedDamageLevel.includes("moderate") || normalizedDamageLevel.includes("moderados")
-      ? 11
-      : normalizedDamageLevel.includes("minor") || normalizedDamageLevel.includes("leves")
-        ? 5
-        : 0;
-
-  const derivedUnitsFromInputs = Math.max(
-    10,
-    Math.min(240, Math.round(170 - vehicleAge * 8 - vehicleMileage / 14000 + fuelUnitsAdjust + damageUnitsAdjust))
-  );
-  const derivedDaysFromInputs = Math.max(
-    10,
-    Math.min(140, Math.round(16 + vehicleAge * 2 + vehicleMileage / 18000 + fuelDaysAdjust + damageDaysAdjust))
-  );
-
-  const marketMean = pickNumber(sellEstimate?.targetPrice, 14850);
-  const marketLow = pickNumber(sellEstimate?.lowPrice, 12200);
-  const marketHigh = pickNumber(sellEstimate?.highPrice, 17500);
-  const estimateUnits = pickNumber(sellEstimate?.similarUnits, derivedUnitsFromInputs);
-  const aiUnits = pickNumber(
-    sellAiResult?.argumentos_clave?.length ? 140 + sellAiResult.argumentos_clave.length * 12 : 0,
-    0
-  );
-  const marketUnits = Math.max(
-    10,
-    Math.min(240, Math.round(estimateUnits * 0.45 + (aiUnits || derivedUnitsFromInputs) * 0.25 + derivedUnitsFromInputs * 0.3))
-  );
-  const marketDays = pickNumber(parseEstimatedDays(sellAiResult?.tiempo_estimado_venta), derivedDaysFromInputs);
-
-  const damagePriceFactor = normalizedDamageLevel.includes("major") || normalizedDamageLevel.includes("graves")
-    ? 0.84
-    : normalizedDamageLevel.includes("moderate") || normalizedDamageLevel.includes("moderados")
-      ? 0.91
-      : normalizedDamageLevel.includes("minor") || normalizedDamageLevel.includes("leves")
-        ? 0.97
-        : 1;
-  const damageUnitsFactor = normalizedDamageLevel.includes("major") || normalizedDamageLevel.includes("graves")
-    ? 0.72
-    : normalizedDamageLevel.includes("moderate") || normalizedDamageLevel.includes("moderados")
-      ? 0.84
-      : normalizedDamageLevel.includes("minor") || normalizedDamageLevel.includes("leves")
-        ? 0.93
-        : 1;
-  const damageDaysFactor = normalizedDamageLevel.includes("major") || normalizedDamageLevel.includes("graves")
-    ? 1.52
-    : normalizedDamageLevel.includes("moderate") || normalizedDamageLevel.includes("moderados")
-      ? 1.3
-      : normalizedDamageLevel.includes("minor") || normalizedDamageLevel.includes("leves")
-        ? 1.12
-        : 1;
-
-  const rawSnapshotMean = pickNumber(sellMarketSnapshot?.market?.mean, marketMean);
-  const rawSnapshotLow = pickNumber(sellMarketSnapshot?.market?.p25, marketLow);
-  const rawSnapshotHigh = pickNumber(sellMarketSnapshot?.market?.p75, marketHigh);
-  const rawSnapshotUnits = pickNumber(sellMarketSnapshot?.comparables, marketUnits);
-  const rawSnapshotDays = pickNumber(sellMarketSnapshot?.market?.daysOnMarketMedian, marketDays);
-
-  const snapshotMean = Math.max(2500, Math.round(rawSnapshotMean * damagePriceFactor));
-  const snapshotLowBase = Math.max(2200, Math.round(rawSnapshotLow * damagePriceFactor));
-  const snapshotHighBase = Math.max(snapshotLowBase + 400, Math.round(rawSnapshotHigh * damagePriceFactor));
-  const snapshotLow = Math.min(snapshotLowBase, snapshotHighBase - 200);
-  const snapshotHigh = Math.max(snapshotLow + 200, snapshotHighBase);
-  const snapshotUnits = Math.max(8, Math.round(rawSnapshotUnits * damageUnitsFactor));
-  const snapshotDays = Math.max(8, Math.round(rawSnapshotDays * damageDaysFactor));
-  const marketUpdatedAt = normalizeText(sellMarketSnapshot?.market?.updatedAt);
-  const marketSource = normalizeText(sellMarketSnapshot?.source);
-  const hasSnapshotPortals = Array.isArray(sellMarketSnapshot?.byPortal) && sellMarketSnapshot.byPortal.length > 0;
-  const hasSnapshotMean = pickNumber(sellMarketSnapshot?.market?.mean, 0) > 0;
-  const hasSnapshotUnits = pickNumber(sellMarketSnapshot?.comparables, 0) > 0;
-  const hasRealMarketSnapshot = Boolean(sellMarketSnapshot?.ok) && (hasSnapshotPortals || hasSnapshotMean || hasSnapshotUnits);
-  const updatedAtDate = marketUpdatedAt ? new Date(marketUpdatedAt) : null;
-  const hasValidUpdatedAt = updatedAtDate instanceof Date && !Number.isNaN(updatedAtDate.getTime());
-  const isEnglish = (i18n.resolvedLanguage || "").toLowerCase().startsWith("en");
-  const estimatedReferenceText = isEnglish
-    ? "Estimated reference (no live portal sample yet)."
-    : "Referencia estimada (sin muestra real de portales todavía).";
-  const realReferenceText = isEnglish
-    ? "Live market reference from comparables."
-    : "Referencia real obtenida de comparables de mercado.";
-  const daySuffix = isEnglish ? "d" : "d.";
-
-  const defaultPortalRows = [
-    {
-      key: "coches",
-      icon: "C",
-      iconColor: "#003087",
-      name: "Coches.net",
-      price: currencyEUR(Math.round(snapshotMean * 0.985), formatCurrency),
-      units: Math.max(30, Math.round(snapshotUnits * 0.45)),
-      toneClass: "blue",
-    },
-    {
-      key: "autoscout",
-      icon: "A",
-      iconColor: "#ff6600",
-      name: "AutoScout24",
-      price: currencyEUR(Math.round(snapshotMean * 1.02), formatCurrency),
-      units: Math.max(25, Math.round(snapshotUnits * 0.34)),
-      toneClass: "",
-    },
-    {
-      key: "milanuncios",
-      icon: "M",
-      iconColor: "#00a651",
-      name: "Milanuncios",
-      price: currencyEUR(Math.round(snapshotMean * 0.94), formatCurrency),
-      units: Math.max(15, Math.round(snapshotUnits * 0.21)),
-      toneClass: "green",
-    },
-  ];
-
-  const snapshotPortalRows = Array.isArray(sellMarketSnapshot?.byPortal)
-    ? sellMarketSnapshot.byPortal.slice(0, 3).map((item, index) => {
-        const portalName = normalizeText(item?.portal) || `Portal ${index + 1}`;
-        const initials = portalName.slice(0, 1).toUpperCase() || "P";
-        const avgPrice = pickNumber(item?.avgPrice, 0);
-        const units = pickNumber(item?.units, 0);
-        const toneClass = index === 0 ? "blue" : index === 2 ? "green" : "";
-
-        return {
-          key: `${portalName}-${index}`,
-          icon: initials,
-          iconColor: index === 0 ? "#003087" : index === 1 ? "#ff6600" : "#00a651",
-          name: portalName,
-          price: avgPrice > 0 ? currencyEUR(avgPrice, formatCurrency) : t("sell.noPrice"),
-          units,
-          toneClass,
-        };
-      })
-    : [];
-
-  const portalRows = hasRealMarketSnapshot
-    ? snapshotPortalRows
-    : defaultPortalRows;
 
   useEffect(() => {
     if (!normalizeText(currentUserEmail)) {

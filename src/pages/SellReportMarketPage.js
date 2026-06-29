@@ -1109,8 +1109,7 @@ export default function SellReportMarketPage({
                       setCheckoutError("");
                       setCheckoutLoading(true);
                       try {
-                        const res = await postBillingCheckoutJson({ planId: "valuation", origin: window.location.origin });
-                        const data = await res.json();
+                        const { data } = await postBillingCheckoutJson({ planId: "valuation", origin: window.location.origin });
                         if (data?.url) {
                           window.location.href = data.url;
                         } else {

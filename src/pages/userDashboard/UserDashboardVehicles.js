@@ -21,6 +21,13 @@ const MAX_ATTACHMENT_BYTES = 12 * 1024 * 1024;
 function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
+function toInputDate(val) {
+  if (!val) return "";
+  const ddmmyyyy = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(val));
+  if (ddmmyyyy) return `${ddmmyyyy[3]}-${ddmmyyyy[2]}-${ddmmyyyy[1]}`;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(String(val))) return String(val);
+  return "";
+}
 
 function normalizeAttachmentItem(input = {}) {
   let safeInput = input;
@@ -1666,18 +1673,18 @@ export default function UserDashboardVehicles({
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
                 {t("dashboard.vehLastItv")}
                 <input
-                  value={vehicleForm.lastIvt}
+                  type="date"
+                  value={toInputDate(vehicleForm.lastIvt)}
                   onChange={(event) => updateVehicleForm("lastIvt", event.target.value)}
-                  placeholder="2026-03-20"
                   style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor }}
                 />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
                 {t("dashboard.vehNextItv")}
                 <input
-                  value={vehicleForm.nextIvt}
+                  type="date"
+                  value={toInputDate(vehicleForm.nextIvt)}
                   onChange={(event) => updateVehicleForm("nextIvt", event.target.value)}
-                  placeholder="2027-03-20"
                   style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor }}
                 />
               </label>

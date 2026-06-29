@@ -10,6 +10,13 @@ const MAX_ATTACHMENT_BYTES = 12 * 1024 * 1024;
 function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
+function toInputDate(val) {
+  if (!val) return "";
+  const ddmmyyyy = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(val));
+  if (ddmmyyyy) return `${ddmmyyyy[3]}-${ddmmyyyy[2]}-${ddmmyyyy[1]}`;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(String(val))) return String(val);
+  return "";
+}
 
 function normalizeAttachmentItem(input = {}) {
   let safeInput = input;
@@ -975,6 +982,8 @@ export default function ServiceIdCarsManagePage({
           <option value="">{txt("Selecciona", "Select")}</option>
           {(opts.options || []).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
+      ) : opts.type === "date" ? (
+        <input type="date" value={toInputDate(form[key])} onChange={(e) => updateForm(key, e.target.value)} style={INPUT_STYLE} />
       ) : (
         <input value={form[key]} onChange={(e) => updateForm(key, e.target.value)} placeholder={opts.placeholder || ""} style={INPUT_STYLE} />
       )}
@@ -1417,8 +1426,8 @@ export default function ServiceIdCarsManagePage({
           {renderField(txt("Puertas", "Doors"), "doors", { placeholder: "5" })}
           {renderField(txt("Ubicación", "Location"), "location", { placeholder: txt("Madrid", "Madrid") })}
           {renderField(txt("Etiqueta ambiental", "Environmental label"), "environmentalLabel", { type: "select", options: [["0", txt("0 emisiones", "0 emissions")],["eco", "ECO"],["c", "C"],["b", "B"]] })}
-          {renderField(txt("Última ITV", "Last MOT"), "lastIvt", { placeholder: "2026-01-20" })}
-          {renderField(txt("Próxima ITV", "Next MOT"), "nextIvt", { placeholder: "2028-01-20" })}
+          {renderField(txt("Última ITV", "Last MOT"), "lastIvt", { type: "date" })}
+          {renderField(txt("Próxima ITV", "Next MOT"), "nextIvt", { type: "date" })}
           {renderField(txt("CO₂ (g/km)", "CO₂ (g/km)"), "co2", { placeholder: "120" })}
           {renderField(txt("Año", "Year"), "year", { placeholder: "2016" })}
           {renderField(txt("Matrícula", "Plate"), "plate", { placeholder: "9052JMM" })}

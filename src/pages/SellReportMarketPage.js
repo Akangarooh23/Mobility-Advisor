@@ -297,6 +297,12 @@ export default function SellReportMarketPage({
   const idCarSelectRef = useRef(null);
   const step2Ref = useRef(null);
 
+  // Fleet state
+  const [fleetOpen, setFleetOpen] = useState(false);
+  const [fleetSelected, setFleetSelected] = useState({});
+  const [fleetLoading, setFleetLoading] = useState(false);
+  const [fleetError, setFleetError] = useState("");
+
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from({ length: currentYear - 2013 }, (_, index) => currentYear - index);
 
@@ -1069,6 +1075,142 @@ export default function SellReportMarketPage({
           </div>
         </div>
       </div>
+
+      {/* Fleet section */}
+      {garageVehicles.length >= 2 && (() => {
+        const TIERS = [
+          { max: 1,  price: 10 },
+          { max: 4,  price: 9  },
+          { max: 9,  price: 8  },
+          { max: 19, price: 7  },
+          { max: 49, price: 6  },
+          { max: 99, price: 5  },
+        ];
+        function unitPrice(count) {
+          const tier = TIERS.find((t) => count <= t.max);
+          return tier ? tier.price : null;
+        }
+        const selectedIds = Object.keys(fleetSelected).filter((id) => fleetSelected[id]);
+        const count = selectedIds.length;
+        const up = unitPrice(count);
+        const total = up != null ? count * up : null;
+
+        return (
+          <div style={{ margin: "16px 0", border: "1.5px solid #e5e7eb", borderRadius: 14, overflow: "hidden", background: "#fff" }}>
+            <button
+              type="button"
+              onClick={() => setFleetOpen((o) => !o)}
+              style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", background: "none", border: "none", cursor: "pointer", gap: 8 }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 18 }}>🚗</span>
+                <div style={{ textAlign: "left" }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#1C2B33" }}>Tasar toda tu flota</div>
+                  <div style={{ fontSize: 12, color: "#6B7780" }}>Descuentos desde 2 vehículos · desde 9 €/unidad</div>
+                </div>
+              </div>
+              <span style={{ fontSize: 18, color: "#6B7780", transform: fleetOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>▾</span>
+            </button>
+
+            {fleetOpen && (
+              <div style={{ borderTop: "1px solid #f0f0f0", padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
+                {/* Pricing table */}
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {TIERS.map((t, i) => {
+                    const label = i === 0 ? "1 veh." : i === TIERS.length - 1 ? `${TIERS[i-1].max + 1}–99` : `${TIERS[i-1].max + 1}–${t.max}`;
+                    const active = count > 0 && unitPrice(count) === t.price;
+                    return (
+                      <div key={t.price} style={{ background: active ? "#0d9488" : "#f8f9fa", color: active ? "#fff" : "#46535C", borderRadius: 8, padding: "5px 10px", fontSize: 12, fontWeight: active ? 700 : 400, border: `1px solid ${active ? "#0d9488" : "#e5e7eb"}` }}>
+                        {label}: <strong>{t.price} €</strong>
+                      </div>
+                    );
+                  })}
+                  <div style={{ background: "#f8f9fa", color: "#46535C", borderRadius: 8, padding: "5px 10px", fontSize: 12, border: "1px solid #e5e7eb" }}>100+: <strong>comercial</strong></div>
+                </div>
+
+                {/* Vehicle list */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 260, overflowY: "auto" }}>
+                  <div style={{ display: "flex", gap: 8, marginBottom: 2 }}>
+                    <button type="button" onClick={() => {
+                      const all = {};
+                      garageVehicles.forEach((v) => { all[v.id] = true; });
+                      setFleetSelected(all);
+                    }} style={{ fontSize: 12, color: "#0d9488", background: "none", border: "none", cursor: "pointer", padding: 0, fontWeight: 600 }}>Seleccionar todos</button>
+                    <span style={{ color: "#e5e7eb" }}>·</span>
+                    <button type="button" onClick={() => setFleetSelected({})} style={{ fontSize: 12, color: "#6B7780", background: "none", border: "none", cursor: "pointer", padding: 0 }}>Limpiar</button>
+                  </div>
+                  {garageVehicles.map((v) => {
+                    const checked = !!fleetSelected[v.id];
+                    const label = [v.brand, v.model, v.year, v.plate ? `· ${v.plate}` : ""].filter(Boolean).join(" ");
+                    return (
+                      <label key={v.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", borderRadius: 8, border: `1.5px solid ${checked ? "#0d9488" : "#e5e7eb"}`, background: checked ? "#f0fafa" : "#fafafa", cursor: "pointer" }}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) => setFleetSelected((prev) => ({ ...prev, [v.id]: e.target.checked }))}
+                          style={{ accentColor: "#0d9488", width: 16, height: 16 }}
+                        />
+                        <span style={{ fontSize: 13, fontWeight: checked ? 600 : 400, color: "#1C2B33", flex: 1 }}>{label || v.id}</span>
+                        {v.mileage && <span style={{ fontSize: 11, color: "#9AA3AB" }}>{new Intl.NumberFormat("es-ES").format(v.mileage)} km</span>}
+                      </label>
+                    );
+                  })}
+                </div>
+
+                {/* Summary + CTA */}
+                {count > 0 && (
+                  <div style={{ background: "#f8fffe", border: "1.5px solid #0d9488", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                    <div>
+                      <div style={{ fontSize: 13, color: "#46535C" }}>{count} vehículo{count !== 1 ? "s" : ""} · {up} €/unidad</div>
+                      {total != null && <div style={{ fontSize: 22, fontWeight: 800, color: "#1C2B33" }}>{total} €</div>}
+                    </div>
+                    <button
+                      type="button"
+                      disabled={fleetLoading}
+                      onClick={async () => {
+                        setFleetError("");
+                        setFleetLoading(true);
+                        try {
+                          const vehicles = selectedIds.map((id) => garageVehicles.find((v) => v.id === id)).filter(Boolean);
+                          const { data } = await postBillingCheckoutJson({
+                            planId: "valuation_fleet",
+                            origin: window.location.origin,
+                            fleetVehicles: vehicles.map((v) => ({
+                              id:      v.id,
+                              brand:   v.brand   || "",
+                              model:   v.model   || "",
+                              version: v.version || "",
+                              year:    v.year    || "",
+                              mileage: v.mileage || "",
+                              fuel:    v.fuel    || "",
+                              plate:   v.plate   || "",
+                              province: v.province || v.location || "",
+                            })),
+                          });
+                          if (data?.url) {
+                            window.location.href = data.url;
+                          } else {
+                            setFleetError(data?.error || "No se pudo iniciar el pago.");
+                          }
+                        } catch {
+                          setFleetError("Error al conectar con el sistema de pago.");
+                        } finally {
+                          setFleetLoading(false);
+                        }
+                      }}
+                      style={{ background: "linear-gradient(135deg, #0d9488, #0f766e)", color: "#fff", border: "none", borderRadius: 10, padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: fleetLoading ? "not-allowed" : "pointer", opacity: fleetLoading ? 0.7 : 1, whiteSpace: "nowrap" }}
+                    >
+                      {fleetLoading ? "Redirigiendo…" : `Tasar ${count} vehículo${count !== 1 ? "s" : ""} — ${total} €`}
+                    </button>
+                  </div>
+                )}
+                {fleetError && <span style={{ fontSize: 12, color: "#dc2626" }}>{fleetError}</span>}
+                <span style={{ fontSize: 11, color: "#9AA3AB" }}>Pago único · Recibirás un informe PDF por cada vehículo en menos de 5 minutos</span>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {sellError ? <div className="sell-market-error">{sellError}</div> : null}
 

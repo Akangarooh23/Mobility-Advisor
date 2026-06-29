@@ -589,9 +589,9 @@ export default function PortalVoMarketplacePage({
                     )}
                   </div>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
-                    <span style={getOfferBadgeStyle(offer.hasGuaranteeSeal ? "success" : "neutral")}>
-                      {offer.hasGuaranteeSeal ? t("marketplace.guaranteePortal") : t("marketplace.postedByUser")}
-                    </span>
+                    {offer.hasGuaranteeSeal && (
+                      <span style={getOfferBadgeStyle("success")}>{t("marketplace.guaranteePortal")}</span>
+                    )}
                     <span style={getOfferBadgeStyle("info")}>{offer.color}</span>
                     <span style={getOfferBadgeStyle("info")}>{offer.displacement > 0 ? `${offer.displacement.toLocaleString("es-ES")} cc` : "EV"}</span>
                   </div>

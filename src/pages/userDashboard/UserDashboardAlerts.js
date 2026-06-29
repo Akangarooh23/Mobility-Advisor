@@ -319,7 +319,7 @@ export default function UserDashboardAlerts({
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: titleColor }}>{alert.title}</div>
                     <div style={{ fontSize: 11, color: bodyColor, marginTop: 3 }}>
-                      {alert.createdAt} · {alert.status || "Activa"}
+                      {alert.createdAt ? new Date(alert.createdAt).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" }) : ""} · {alert.status || "Activa"}
                     </div>
                     {alert.notifyByEmail && alertEmail && (
                       <div style={{ fontSize: 11, color: "#1d4ed8", marginTop: 4 }}>📧 {alertEmail}</div>

@@ -948,7 +948,7 @@ export default function UserDashboardSaved({
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: titleText }}>{alert.title}</div>
                       <div style={{ fontSize: 11, color: mutedText, marginTop: 3 }}>
-                        {alert.createdAt} · {alert.status || t("dashboard.alertStatusActive")}
+                        {alert.createdAt ? new Date(alert.createdAt).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" }) : ""} · {alert.status || t("dashboard.alertStatusActive")}
                       </div>
                       {alert.notifyByEmail && alertEmail && (
                         <div style={{ fontSize: 11, color: "#1d4ed8", marginTop: 4 }}>

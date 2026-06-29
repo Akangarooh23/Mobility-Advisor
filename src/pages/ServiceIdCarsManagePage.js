@@ -1452,7 +1452,7 @@ export default function ServiceIdCarsManagePage({
         </div>
       </SectionBlock>
 
-      <SectionBlock title={txt("Valor del Vehículo en el mercado", "Vehicle market value")} subtitle={txt("Valor manual definido", "Manual value")}
+      <SectionBlock title={txt("Precio de venta del vehículo en el Marketplace VO", "Sale price in Marketplace VO")} subtitle={txt("Valor manual definido", "Manual value")}
         open={openSections.marketplace} onToggle={() => toggleSection("marketplace")}
         openLabel={txt("Abrir", "Open")} closeLabel={txt("Ocultar", "Hide")}>
         <div style={{ display: "grid", rowGap: 10, columnGap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>

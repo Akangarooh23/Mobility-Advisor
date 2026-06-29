@@ -1526,7 +1526,11 @@ export default function UserDashboardVehicles({
                           const d = data?.detail;
                           if (!d) return;
                           if (d.fuel) updateVehicleForm("fuel", d.fuel);
-                          if (d.cv) updateVehicleForm("cv", String(d.cv));
+                          if (d.cv) {
+                            updateVehicleForm("cv", String(d.cv));
+                            const cvNum = parseFloat(d.cv);
+                            if (cvNum > 0) updateVehicleForm("horsepower", String(Math.round(cvNum / 1.3596)));
+                          }
                           if (d.doors) updateVehicleForm("doors", String(d.doors));
                           if (d.seats) updateVehicleForm("seats", String(d.seats));
                           if (d.co2) updateVehicleForm("co2", String(d.co2));

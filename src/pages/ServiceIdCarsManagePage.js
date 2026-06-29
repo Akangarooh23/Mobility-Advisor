@@ -1404,7 +1404,11 @@ export default function ServiceIdCarsManagePage({
                           const d = data?.detail;
                           if (!d) return;
                           if (d.fuel) updateForm("fuel", d.fuel);
-                          if (d.cv) updateForm("cv", String(d.cv));
+                          if (d.cv) {
+                            updateForm("cv", String(d.cv));
+                            const cvNum = parseFloat(d.cv);
+                            if (cvNum > 0) updateForm("horsepower", String(Math.round(cvNum / 1.3596)));
+                          }
                           if (d.doors) updateForm("doors", String(d.doors));
                           if (d.seats) updateForm("seats", String(d.seats));
                           if (d.co2) updateForm("co2", String(d.co2));

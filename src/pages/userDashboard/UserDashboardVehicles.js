@@ -231,7 +231,7 @@ function fileToBase64DataUrl(file) {
   });
 }
 
-async function filesToAttachmentPayload(files = []) {
+async function filesToAttachmentPayload(files = [], vehicleId = "", fileType = "documents") {
   const safeFiles = Array.isArray(files) ? files : [];
   const payload = [];
 
@@ -246,7 +246,7 @@ async function filesToAttachmentPayload(files = []) {
     let contentBase64 = "";
 
     if (size > 0 && size <= MAX_ATTACHMENT_BYTES) {
-      url = (await uploadFileDirect(file)) || "";
+      url = (await uploadFileDirect(file, vehicleId, fileType)) || "";
       if (!url && size <= 5 * 1024 * 1024) {
         contentBase64 = (await fileToBase64DataUrl(file)).split(",")[1] || "";
       }
@@ -779,20 +779,21 @@ export default function UserDashboardVehicles({
     const nickname = normalizeText(vehicleForm.nickname);
     const title = nickname || `${brand} ${model} ${version}`.trim();
 
-    const photosPayload = await filesToAttachmentPayload(pendingPhotos);
-    const documentsPayload = await filesToAttachmentPayload(pendingDocuments);
-    const technicalSheetDocumentsPayload = await filesToAttachmentPayload(pendingTechnicalSheetDocuments);
-    const circulationPermitDocumentsPayload = await filesToAttachmentPayload(pendingCirculationPermitDocuments);
-    const itvDocumentsPayload = await filesToAttachmentPayload(pendingIvtDocuments);
-    const insuranceDocumentsPayload = await filesToAttachmentPayload(pendingInsuranceDocuments);
-    const maintenanceInvoicesPayload = await filesToAttachmentPayload(pendingMaintenanceInvoices);
-
     const existingVehicle = editingVehicleId
       ? myVehicles.find((item) => normalizeText(item?.id) === normalizeText(editingVehicleId)) || null
       : null;
+    const vehicleId = normalizeText(existingVehicle?.id) || `garage-${Date.now()}`;
+
+    const photosPayload = await filesToAttachmentPayload(pendingPhotos, vehicleId, "photos");
+    const documentsPayload = await filesToAttachmentPayload(pendingDocuments, vehicleId, "documents");
+    const technicalSheetDocumentsPayload = await filesToAttachmentPayload(pendingTechnicalSheetDocuments, vehicleId, "technical-sheet");
+    const circulationPermitDocumentsPayload = await filesToAttachmentPayload(pendingCirculationPermitDocuments, vehicleId, "circulation-permit");
+    const itvDocumentsPayload = await filesToAttachmentPayload(pendingIvtDocuments, vehicleId, "itv");
+    const insuranceDocumentsPayload = await filesToAttachmentPayload(pendingInsuranceDocuments, vehicleId, "insurance");
+    const maintenanceInvoicesPayload = await filesToAttachmentPayload(pendingMaintenanceInvoices, vehicleId, "maintenance");
 
     const vehicle = {
-      id: existingVehicle?.id || `garage-${Date.now()}`,
+      id: vehicleId,
       title,
       brand,
       model,

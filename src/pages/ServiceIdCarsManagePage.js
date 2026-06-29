@@ -266,7 +266,7 @@ function getAttachmentDataUrl(file = {}) {
   return `data:${mimeType};base64,${rawContent}`;
 }
 
-async function filesToAttachmentPayload(files = [], label = "archivo") {
+async function filesToAttachmentPayload(files = [], label = "archivo", vehicleId = "", fileType = "documents") {
   const result = [];
   for (const file of files) {
     if (Number(file?.size || 0) > MAX_ATTACHMENT_BYTES) {
@@ -278,7 +278,7 @@ async function filesToAttachmentPayload(files = [], label = "archivo") {
     let contentBase64 = "";
 
     try {
-      url = (await uploadFileDirect(file)) || "";
+      url = (await uploadFileDirect(file, vehicleId, fileType)) || "";
       if (!url && size <= 5 * 1024 * 1024) {
         const dataUrl = await fileToBase64DataUrl(file);
         contentBase64 = dataUrl.split(",")[1] || "";
@@ -794,13 +794,13 @@ export default function ServiceIdCarsManagePage({
       const baseVehicle = editingVehicleId ? vehicles.find((v) => v.id === editingVehicleId) || {} : {};
       const vehicleId = editingVehicleId || `veh-${Date.now()}`;
 
-      const photosPayload = await filesToAttachmentPayload(pendingPhotos, "La foto del vehículo");
-      const technicalSheetDocumentsPayload = await filesToAttachmentPayload(pendingTechnicalSheetDocuments, "La ficha técnica");
-      const otherDocumentsPayload = await filesToAttachmentPayload(pendingOtherDocuments, "Otros documentos");
-      const circulationPermitDocumentsPayload = await filesToAttachmentPayload(pendingCirculationPermitDocuments, "El permiso de circulación");
-      const itvDocumentsPayload = await filesToAttachmentPayload(pendingItvDocuments, "La documentación ITV");
-      const insuranceDocumentsPayload = await filesToAttachmentPayload(pendingInsuranceDocuments, "El documento del seguro");
-      const maintenanceInvoicesPayload = await filesToAttachmentPayload(pendingMaintenanceInvoices, "La factura de mantenimiento");
+      const photosPayload = await filesToAttachmentPayload(pendingPhotos, "La foto del vehículo", vehicleId, "photos");
+      const technicalSheetDocumentsPayload = await filesToAttachmentPayload(pendingTechnicalSheetDocuments, "La ficha técnica", vehicleId, "technical-sheet");
+      const otherDocumentsPayload = await filesToAttachmentPayload(pendingOtherDocuments, "Otros documentos", vehicleId, "documents");
+      const circulationPermitDocumentsPayload = await filesToAttachmentPayload(pendingCirculationPermitDocuments, "El permiso de circulación", vehicleId, "circulation-permit");
+      const itvDocumentsPayload = await filesToAttachmentPayload(pendingItvDocuments, "La documentación ITV", vehicleId, "itv");
+      const insuranceDocumentsPayload = await filesToAttachmentPayload(pendingInsuranceDocuments, "El documento del seguro", vehicleId, "insurance");
+      const maintenanceInvoicesPayload = await filesToAttachmentPayload(pendingMaintenanceInvoices, "La factura de mantenimiento", vehicleId, "maintenance");
 
       const titleVal = normalizeText(form.nickname) || [normalizeText(form.brand), normalizeText(form.model)].filter(Boolean).join(" ") || txt("Vehículo", "Vehicle");
 

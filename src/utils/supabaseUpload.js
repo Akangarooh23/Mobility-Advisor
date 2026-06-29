@@ -1,4 +1,4 @@
-export async function uploadFileDirect(file) {
+export async function uploadFileDirect(file, vehicleId = "", fileType = "documents") {
   if (!file || !file.name || !file.size) return null;
 
   try {
@@ -9,6 +9,8 @@ export async function uploadFileDirect(file) {
       body: JSON.stringify({
         fileName: file.name,
         mimeType: file.type || "application/octet-stream",
+        vehicleId,
+        fileType,
       }),
     });
 

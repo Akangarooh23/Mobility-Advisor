@@ -2,10 +2,10 @@
   "buildCommand": "npm run build",
   "functions": {
     "api/billing.js": {
-      "includeFiles": "node_modules/pdfkit/**"
+      "includeFiles": "node_modules/{pdfkit,@noble,fontkit,js-md5,linebreak,png-js,@swc,brotli,clone,dfa,fast-deep-equal,restructure,tiny-inflate,unicode-properties,unicode-trie,base64-js,pako}/**"
     },
     "api/billing-webhook.js": {
-      "includeFiles": "node_modules/pdfkit/**"
+      "includeFiles": "node_modules/{pdfkit,@noble,fontkit,js-md5,linebreak,png-js,@swc,brotli,clone,dfa,fast-deep-equal,restructure,tiny-inflate,unicode-properties,unicode-trie,base64-js,pako}/**"
     }
   },
   "crons": [

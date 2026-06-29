@@ -1,7 +1,6 @@
 const billingAccountHandler = require("../lib/api/billing-account-handler");
 const billingCheckoutHandler = require("../lib/api/billing-checkout-handler");
 const billingPortalHandler = require("../lib/api/billing-portal-handler");
-const billingWebhookHandler = require("../lib/api/billing-webhook-handler");
 const invoicePdfHandler = require("../lib/api/invoice-pdf-handler");
 const { Pool } = require("pg");
 
@@ -57,8 +56,6 @@ module.exports = async function billingRouter(req, res) {
       return billingCheckoutHandler(req, res);
     case "portal":
       return billingPortalHandler(req, res);
-    case "webhook":
-      return billingWebhookHandler(req, res);
     case "invoice-pdf":
       return invoicePdfHandler(req, res);
     default:

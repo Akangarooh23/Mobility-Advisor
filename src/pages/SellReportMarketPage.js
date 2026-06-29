@@ -493,29 +493,6 @@ export default function SellReportMarketPage({
     void syncVehicleToErpSelectors(vehicle);
   }, [selectedIdCarId, erpBrands, garageVehicles, syncVehicleToErpSelectors]);
 
-  const handleAnalyzeClick = () => {
-    if (garageVehicles.length > 0 && !selectedIdCarId) {
-      setIdCarPromptVisible(true);
-      if (typeof idCarSelectRef.current?.scrollIntoView === "function") {
-        idCarSelectRef.current.scrollIntoView({ block: "center", behavior: "smooth" });
-      }
-      if (typeof idCarSelectRef.current?.focus === "function") {
-        idCarSelectRef.current.focus();
-      }
-      if (typeof idCarSelectRef.current?.scrollIntoView === "function") {
-        idCarSelectRef.current.scrollIntoView({ block: "center", behavior: "smooth" });
-      }
-      return;
-    }
-
-    setIdCarPromptVisible(false);
-    analyzeSellWithAI();
-    setTimeout(() => {
-      if (typeof step2Ref.current?.scrollIntoView === "function") {
-        step2Ref.current.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    }, 300);
-  };
 
   return (
     <div className="sell-market-root sell-market-wrap">
@@ -865,11 +842,7 @@ export default function SellReportMarketPage({
                     )}
                   </div>
 
-                  <div className="sell-market-inline-actions">
-                    <button className="btn-secondary" type="button" onClick={handleAnalyzeClick} disabled={sellLoading}>
-                      {sellLoading ? t("sell.loadingAnalyze") : t("sell.analyzeButton")}
-                    </button>
-                  </div>
+
                 </div>
               </div>
             </div>

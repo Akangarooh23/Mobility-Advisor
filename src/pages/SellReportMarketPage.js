@@ -295,6 +295,7 @@ export default function SellReportMarketPage({
   const [selectedIdCarId, setSelectedIdCarId] = useState("");
   const [idCarPromptVisible, setIdCarPromptVisible] = useState(false);
   const idCarSelectRef = useRef(null);
+  const step2Ref = useRef(null);
 
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from({ length: currentYear - 2013 }, (_, index) => currentYear - index);
@@ -495,6 +496,9 @@ export default function SellReportMarketPage({
   const handleAnalyzeClick = () => {
     if (garageVehicles.length > 0 && !selectedIdCarId) {
       setIdCarPromptVisible(true);
+      if (typeof idCarSelectRef.current?.scrollIntoView === "function") {
+        idCarSelectRef.current.scrollIntoView({ block: "center", behavior: "smooth" });
+      }
       if (typeof idCarSelectRef.current?.focus === "function") {
         idCarSelectRef.current.focus();
       }
@@ -506,6 +510,11 @@ export default function SellReportMarketPage({
 
     setIdCarPromptVisible(false);
     analyzeSellWithAI();
+    setTimeout(() => {
+      if (typeof step2Ref.current?.scrollIntoView === "function") {
+        step2Ref.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 300);
   };
 
   return (
@@ -865,7 +874,7 @@ export default function SellReportMarketPage({
               </div>
             </div>
 
-            <div className="step-block">
+            <div className="step-block" ref={step2Ref}>
               <div className="step-left">
                 <div className="step-circle">2</div>
               </div>

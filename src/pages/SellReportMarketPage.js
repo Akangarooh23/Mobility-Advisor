@@ -867,52 +867,122 @@ export default function SellReportMarketPage({
                   <div className="ref-feat">Estrategia según el estado y daños declarados de tu coche</div>
                 </div>
 
-                {/* Blurred preview */}
+                {/* Blurred report preview */}
                 <div style={{ position: "relative", marginBottom: 16 }}>
                   <div style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>Vista previa del informe</div>
-                  <div style={{ filter: "blur(4px)", pointerEvents: "none", userSelect: "none", borderRadius: 12, overflow: "hidden", border: "1px solid #e5e7eb" }}>
-                    <div className="result-section" style={{ margin: 0 }}>
-                      <div className="result-grid">
-                        <div className="rstat">
-                          <div className="rstat-num blue">14.850 €</div>
-                          <div className="rstat-lbl">Precio medio<br />del mercado</div>
+
+                  {/* ── blurred content ── */}
+                  <div style={{ filter: "blur(5px)", pointerEvents: "none", userSelect: "none", borderRadius: 12, overflow: "hidden", border: "1px solid #e5e7eb", background: "#fff" }}>
+
+                    {/* Veredicto de valor */}
+                    <div style={{ background: "linear-gradient(180deg,#FFFDFA 0%,#FBF4E9 100%)", border: "1.5px solid #BA7517", borderRadius: "10px 10px 0 0", padding: "16px 18px 14px" }}>
+                      <div style={{ fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "#BA7517", fontWeight: 700, marginBottom: 6 }}>Precio óptimo de venta</div>
+                      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
+                        <div>
+                          <div style={{ fontSize: 38, fontWeight: 800, color: "#1C2B33", letterSpacing: "-0.02em", lineHeight: 1 }}>17.400 <span style={{ fontSize: 20 }}>€</span></div>
+                          <div style={{ fontSize: 9, color: "#6B7780", marginTop: 4 }}>Basado en 248 comparables activos en portales</div>
                         </div>
-                        <div className="rstat">
-                          <div className="rstat-num grad-text">170</div>
-                          <div className="rstat-lbl">Unidades<br />en portales</div>
-                        </div>
-                        <div className="rstat">
-                          <div className="rstat-num green">16 d.</div>
-                          <div className="rstat-lbl">Tiempo medio<br />en venta</div>
-                        </div>
-                      </div>
-                      <div className="portal-list">
-                        <div className="portal-row">
-                          <div className="portal-name"><div className="portal-ico" style={{ background: "#2563eb" }}>C</div>Coches.net</div>
-                          <div className="portal-right"><span className="portal-price">14.627 €</span><span className="portal-units">· 77 uds.</span></div>
-                        </div>
-                        <div className="portal-row">
-                          <div className="portal-name"><div className="portal-ico" style={{ background: "#ea580c" }}>A</div>AutoScout24</div>
-                          <div className="portal-right"><span className="portal-price">15.147 €</span><span className="portal-units">· 58 uds.</span></div>
-                        </div>
-                        <div className="portal-row">
-                          <div className="portal-name"><div className="portal-ico" style={{ background: "#16a34a" }}>M</div>Milanuncios</div>
-                          <div className="portal-right"><span className="portal-price">13.959 €</span><span className="portal-units">· 36 uds.</span></div>
+                        <div style={{ textAlign: "center", borderLeft: "1px solid #EAD9BF", paddingLeft: 16 }}>
+                          <div style={{ fontSize: 28, fontWeight: 800, color: "#137370", lineHeight: 1 }}>83%</div>
+                          <div style={{ fontSize: 8, color: "#6B7780", marginTop: 3, textTransform: "uppercase", letterSpacing: "0.06em" }}>Confianza</div>
                         </div>
                       </div>
-                      <div className="price-range">
-                        <div className="pr-label">Rango de precios</div>
-                        <div className="pr-range">
-                          <span className="pr-val blue">12.200 €</span>
-                          <span className="pr-sep">—</span>
-                          <span className="pr-val green">17.500 €</span>
+                      {/* Range bar */}
+                      <div style={{ marginTop: 12 }}>
+                        <div style={{ position: "relative", height: 10, borderRadius: 6, background: "linear-gradient(90deg,#E7EFEF 0%,#BBD9D6 40%,#BA7517 50%,#BBD9D6 60%,#E7EFEF 100%)" }}>
+                          <div style={{ position: "absolute", top: -3, left: "50%", transform: "translateX(-50%)", width: 3, height: 16, background: "#1C2B33", borderRadius: 2 }} />
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 9, color: "#6B7780" }}>
+                          <span>15.200 €</span>
+                          <span style={{ color: "#BA7517", fontWeight: 700 }}>17.400 € óptimo</span>
+                          <span>19.800 €</span>
                         </div>
                       </div>
                     </div>
+
+                    {/* 3 KPIs */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, padding: "12px 14px 0" }}>
+                      {[
+                        { n: "248", l: "Unidades en\nportales", color: "#137370" },
+                        { n: "34 d.", l: "Tiempo medio\nde venta", color: "#137370" },
+                        { n: "ALTO", l: "Nivel de\ndemanda", color: "#BA7517" },
+                      ].map(({ n, l, color }) => (
+                        <div key={l} style={{ border: "1px solid #ECEEF0", borderRadius: 10, padding: "10px 8px", textAlign: "center", background: "#fff" }}>
+                          <div style={{ fontSize: 20, fontWeight: 800, color, lineHeight: 1 }}>{n}</div>
+                          <div style={{ fontSize: 8, color: "#6B7780", marginTop: 5, whiteSpace: "pre-line", lineHeight: 1.35 }}>{l}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Portal table */}
+                    <div style={{ margin: "12px 14px 0", borderRadius: 10, border: "1px solid #ECEEF0", overflow: "hidden" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", background: "#FAF7F2", borderBottom: "1px solid #ECE6DB", padding: "6px 12px" }}>
+                        {["Portal", "Uds.", "Precio medio"].map((h) => (
+                          <div key={h} style={{ fontSize: 8, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9AA3AB", fontWeight: 700, textAlign: h === "Portal" ? "left" : "right" }}>{h}</div>
+                        ))}
+                      </div>
+                      {[
+                        { letter: "F", bg: "#16a34a", name: "Flexicar", units: 89, price: "17.200 €" },
+                        { letter: "A", bg: "#2563eb", name: "Autohero", units: 74, price: "17.650 €" },
+                        { letter: "C", bg: "#ea580c", name: "Coches.net", units: 51, price: "16.900 €" },
+                        { letter: "W", bg: "#ca8a04", name: "Wallapop", units: 34, price: "15.800 €" },
+                      ].map(({ letter, bg, name, units, price }, i, arr) => (
+                        <div key={name} style={{ display: "grid", gridTemplateColumns: "1fr auto auto", alignItems: "center", padding: "8px 12px", borderBottom: i < arr.length - 1 ? "1px solid #F0F0F0" : "none" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 700, fontSize: 10.5 }}>
+                            <div style={{ width: 18, height: 18, borderRadius: 4, background: bg, color: "#fff", fontWeight: 800, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center" }}>{letter}</div>
+                            {name}
+                          </div>
+                          <div style={{ fontSize: 9, color: "#9AA3AB", fontWeight: 600, textAlign: "right", paddingRight: 16 }}>{units} uds.</div>
+                          <div style={{ fontSize: 10.5, fontWeight: 700, textAlign: "right" }}>{price}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Histogram */}
+                    <div style={{ margin: "12px 14px 0" }}>
+                      <div style={{ fontSize: 9, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9AA3AB", fontWeight: 700, marginBottom: 6 }}>Distribución de precios</div>
+                      {[
+                        { label: "14–15k", pct: 14, peak: false },
+                        { label: "15–16k", pct: 38, peak: false },
+                        { label: "16–17k", pct: 72, peak: false },
+                        { label: "17–18k", pct: 100, peak: true },
+                        { label: "18–19k", pct: 58, peak: false },
+                        { label: "19–20k", pct: 22, peak: false },
+                      ].map(({ label, pct, peak }) => (
+                        <div key={label} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                          <div style={{ width: 44, fontSize: 8, color: "#46535C", fontWeight: 600, flexShrink: 0 }}>{label}</div>
+                          <div style={{ flex: 1, height: 12, background: "#F4F4F5", borderRadius: 3, overflow: "hidden" }}>
+                            <div style={{ height: "100%", width: `${pct}%`, background: peak ? "#BA7517" : "#137370", borderRadius: 3 }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* 3 strategy cards */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, padding: "12px 14px 14px" }}>
+                      {[
+                        { tag: "Venta rápida", price: "15.200 €", days: "15–20 días", bg: "#F2F7F7", tc: "#137370", border: "#ECEEF0" },
+                        { tag: "Equilibrado ★", price: "17.400 €", days: "30–40 días", bg: "#FBF4E9", tc: "#BA7517", border: "#BA7517" },
+                        { tag: "Máximo valor", price: "19.800 €", days: "50–70 días", bg: "#F4F2F7", tc: "#5B4B8A", border: "#ECEEF0" },
+                      ].map(({ tag, price, days, bg, tc, border }) => (
+                        <div key={tag} style={{ border: `1.5px solid ${border}`, borderRadius: 10, overflow: "hidden" }}>
+                          <div style={{ background: bg, padding: "8px 10px 6px" }}>
+                            <div style={{ fontSize: 8, letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 700, color: tc }}>{tag}</div>
+                            <div style={{ fontSize: 18, fontWeight: 800, color: tc, marginTop: 2, letterSpacing: "-0.01em" }}>{price}</div>
+                          </div>
+                          <div style={{ padding: "6px 10px 8px", borderTop: "1px solid #F0ECE3", fontSize: 8, color: "#46535C" }}>{days} estimados</div>
+                        </div>
+                      ))}
+                    </div>
+
                   </div>
-                  <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                    <div style={{ background: "rgba(255,255,255,0.92)", borderRadius: 10, padding: "10px 18px", textAlign: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.10)" }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#0f766e" }}>Solicita tu informe para ver los datos reales de tu vehículo</div>
+
+                  {/* Overlay CTA */}
+                  <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ background: "rgba(255,255,255,0.95)", borderRadius: 12, padding: "14px 20px", textAlign: "center", boxShadow: "0 4px 24px rgba(0,0,0,0.13)", maxWidth: 240 }}>
+                      <div style={{ fontSize: 20 }}>🔒</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#1C2B33", marginTop: 4 }}>Datos reales de tu vehículo</div>
+                      <div style={{ fontSize: 11, color: "#6b7280", marginTop: 4 }}>Solicita el informe para ver tu precio exacto, portales y estrategia personalizada</div>
                     </div>
                   </div>
                 </div>

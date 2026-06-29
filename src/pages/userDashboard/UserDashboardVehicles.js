@@ -13,6 +13,7 @@ import {
   getErpVersionsJson,
   getErpVersionDetailJson,
 } from "../../utils/apiClient";
+import { uploadFileDirect } from "../../utils/supabaseUpload";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 const IDCAR_PENDING_ACTION_KEY = "movilidad-advisor.idcar.action";
@@ -236,23 +237,22 @@ async function filesToAttachmentPayload(files = []) {
 
   for (const file of safeFiles) {
     const name = normalizeText(file?.name);
-    if (!name) {
-      continue;
-    }
+    if (!name) continue;
 
     const size = Number(file?.size || 0);
     const mimeType = normalizeText(file?.type);
-    const contentBase64 = size > 0 && size <= MAX_ATTACHMENT_BYTES
-      ? (await fileToBase64DataUrl(file)).split(",")[1] || ""
-      : "";
 
-    payload.push({
-      name,
-      fileName: name,
-      size,
-      mimeType,
-      contentBase64,
-    });
+    let url = "";
+    let contentBase64 = "";
+
+    if (size > 0 && size <= MAX_ATTACHMENT_BYTES) {
+      url = (await uploadFileDirect(file)) || "";
+      if (!url && size <= 5 * 1024 * 1024) {
+        contentBase64 = (await fileToBase64DataUrl(file)).split(",")[1] || "";
+      }
+    }
+
+    payload.push({ name, fileName: name, size, mimeType, contentBase64, url });
   }
 
   return payload;

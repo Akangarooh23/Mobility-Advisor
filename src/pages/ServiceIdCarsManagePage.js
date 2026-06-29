@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
 import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemoveJson, postVehicleStateUpsertJson, getErpBrandsJson, getErpModelsJson, getErpVersionsJson, getErpVersionDetailJson } from "../utils/apiClient";
+import { uploadFileDirect } from "../utils/supabaseUpload";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 const IDCAR_PENDING_ACTION_KEY = "movilidad-advisor.idcar.action";
@@ -272,19 +273,28 @@ async function filesToAttachmentPayload(files = [], label = "archivo") {
       throw new Error(`${label}: "${file?.name || "archivo"}" supera el máximo permitido de ${formatBytes(MAX_ATTACHMENT_BYTES)}.`);
     }
 
+    const size = Number(file?.size || 0);
+    let url = "";
+    let contentBase64 = "";
+
     try {
-      const dataUrl = await fileToBase64DataUrl(file);
-      const base64 = dataUrl.split(",")[1] || "";
-      result.push({
-        name: file.name,
-        fileName: file.name,
-        mimeType: file.type || "application/octet-stream",
-        size: file.size,
-        contentBase64: base64,
-      });
+      url = (await uploadFileDirect(file)) || "";
+      if (!url && size <= 5 * 1024 * 1024) {
+        const dataUrl = await fileToBase64DataUrl(file);
+        contentBase64 = dataUrl.split(",")[1] || "";
+      }
     } catch (error) {
       throw error instanceof Error ? error : new Error(`No se pudo leer el ${label}.`);
     }
+
+    result.push({
+      name: file.name,
+      fileName: file.name,
+      mimeType: file.type || "application/octet-stream",
+      size,
+      contentBase64,
+      url,
+    });
   }
   return result;
 }

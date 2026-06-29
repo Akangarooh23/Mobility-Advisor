@@ -819,13 +819,13 @@ export default function UserDashboardVehicles({
       policyNumber: normalizeText(vehicleForm.policyNumber),
       coverageType: normalizeText(vehicleForm.coverageType),
       notes: normalizeText(vehicleForm.notes),
-      photos: [...(Array.isArray(existingVehicle?.photos) ? existingVehicle.photos : []), ...photosPayload],
-      documents: [...(Array.isArray(existingVehicle?.documents) ? existingVehicle.documents : []), ...documentsPayload],
-      technicalSheetDocuments: [...(Array.isArray(existingVehicle?.technicalSheetDocuments) ? existingVehicle.technicalSheetDocuments : []), ...technicalSheetDocumentsPayload],
-      circulationPermitDocuments: [...(Array.isArray(existingVehicle?.circulationPermitDocuments) ? existingVehicle.circulationPermitDocuments : []), ...circulationPermitDocumentsPayload],
-      itvDocuments: [...(Array.isArray(existingVehicle?.itvDocuments) ? existingVehicle.itvDocuments : []), ...itvDocumentsPayload],
-      insuranceDocuments: [...(Array.isArray(existingVehicle?.insuranceDocuments) ? existingVehicle.insuranceDocuments : []), ...insuranceDocumentsPayload],
-      maintenanceInvoices: [...(Array.isArray(existingVehicle?.maintenanceInvoices) ? existingVehicle.maintenanceInvoices : []), ...maintenanceInvoicesPayload],
+      photos: [...(Array.isArray(existingVehicle?.photos) ? existingVehicle.photos.map((d) => (d.url ? { ...d, contentBase64: "" } : d)) : []), ...photosPayload],
+      documents: [...(Array.isArray(existingVehicle?.documents) ? existingVehicle.documents.map((d) => (d.url ? { ...d, contentBase64: "" } : d)) : []), ...documentsPayload],
+      technicalSheetDocuments: [...(Array.isArray(existingVehicle?.technicalSheetDocuments) ? existingVehicle.technicalSheetDocuments.map((d) => (d.url ? { ...d, contentBase64: "" } : d)) : []), ...technicalSheetDocumentsPayload],
+      circulationPermitDocuments: [...(Array.isArray(existingVehicle?.circulationPermitDocuments) ? existingVehicle.circulationPermitDocuments.map((d) => (d.url ? { ...d, contentBase64: "" } : d)) : []), ...circulationPermitDocumentsPayload],
+      itvDocuments: [...(Array.isArray(existingVehicle?.itvDocuments) ? existingVehicle.itvDocuments.map((d) => (d.url ? { ...d, contentBase64: "" } : d)) : []), ...itvDocumentsPayload],
+      insuranceDocuments: [...(Array.isArray(existingVehicle?.insuranceDocuments) ? existingVehicle.insuranceDocuments.map((d) => (d.url ? { ...d, contentBase64: "" } : d)) : []), ...insuranceDocumentsPayload],
+      maintenanceInvoices: [...(Array.isArray(existingVehicle?.maintenanceInvoices) ? existingVehicle.maintenanceInvoices.map((d) => (d.url ? { ...d, contentBase64: "" } : d)) : []), ...maintenanceInvoicesPayload],
       initialMaintenance: {
         type: normalizeText(vehicleForm.maintenanceType || "maintenance"),
         title: normalizeText(vehicleForm.maintenanceTitle),
@@ -1912,7 +1912,7 @@ export default function UserDashboardVehicles({
                   type="file"
                   multiple
                   accept=".pdf,image/*"
-                  onChange={pickFiles(setPendingDocuments, 2)}
+                  onChange={pickFiles(setPendingDocuments, 10)}
                   style={{ display: "none" }}
                 />
                 <button
@@ -1948,7 +1948,7 @@ export default function UserDashboardVehicles({
                   type="file"
                   multiple
                   accept=".pdf,image/*"
-                  onChange={pickFiles(setPendingTechnicalSheetDocuments, 2)}
+                  onChange={pickFiles(setPendingTechnicalSheetDocuments, 10)}
                   style={{ display: "none" }}
                 />
                 <button
@@ -1968,7 +1968,7 @@ export default function UserDashboardVehicles({
                   type="file"
                   multiple
                   accept=".pdf,image/*"
-                  onChange={pickFiles(setPendingCirculationPermitDocuments, 2)}
+                  onChange={pickFiles(setPendingCirculationPermitDocuments, 10)}
                   style={{ display: "none" }}
                 />
                 <button
@@ -1988,7 +1988,7 @@ export default function UserDashboardVehicles({
                   type="file"
                   multiple
                   accept=".pdf,image/*"
-                  onChange={pickFiles(setPendingIvtDocuments, 2)}
+                  onChange={pickFiles(setPendingIvtDocuments, 10)}
                   style={{ display: "none" }}
                 />
                 <button
@@ -2043,7 +2043,7 @@ export default function UserDashboardVehicles({
                   type="file"
                   multiple
                   accept=".pdf,image/*"
-                  onChange={pickFiles(setPendingInsuranceDocuments, 2)}
+                  onChange={pickFiles(setPendingInsuranceDocuments, 10)}
                   style={{ display: "none" }}
                 />
                 <button
@@ -2101,7 +2101,7 @@ export default function UserDashboardVehicles({
                 type="file"
                 multiple
                 accept=".pdf,image/*"
-                onChange={pickFiles(setPendingMaintenanceInvoices, 2)}
+                onChange={pickFiles(setPendingMaintenanceInvoices, 10)}
                 style={{ display: "none" }}
               />
               <button

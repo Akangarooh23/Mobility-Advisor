@@ -796,7 +796,9 @@ export default function ServiceIdCarsManagePage({
 
       const filterPersisted = (groupKey, source) => {
         const items = Array.isArray(source) ? source : [];
-        return items.filter((item) => !isStoredAttachmentRemoved(groupKey, item));
+        return items
+          .filter((item) => !isStoredAttachmentRemoved(groupKey, item))
+          .map((item) => (item.url ? { ...item, contentBase64: "" } : item));
       };
 
       const persistedPhotos = filterPersisted("photos", baseVehicle.photos);

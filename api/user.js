@@ -8,6 +8,8 @@ const viewingHandler = require("../lib/api/viewing-handler");
 const funnelEventHandler = require("../lib/api/funnel-event-handler");
 const cronAppointmentRemindersHandler = require("../lib/api/cron-appointment-reminders-handler");
 
+module.exports.config = { api: { bodyParser: { sizeLimit: "20mb" } } };
+
 function resolveRoute(req) {
   const explicitRoute = String(req.query?.route || "").trim().toLowerCase();
   if (explicitRoute) {

@@ -305,6 +305,7 @@ export default function SellReportMarketPage({
   const [fleetMode, setFleetMode] = useState(false);
   const [fleetPage, setFleetPage] = useState(0);
   const [fleetDamages, setFleetDamages] = useState({});
+  const [fleetEdits, setFleetEdits] = useState({});
 
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from({ length: currentYear - 2013 }, (_, index) => currentYear - index);
@@ -627,17 +628,34 @@ export default function SellReportMarketPage({
                               {currentVeh.plate && <div style={{ fontSize: 12, color: "#9AA3AB", marginBottom: 10 }}>{currentVeh.plate}</div>}
                               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px 16px", marginBottom: 14 }}>
                                 {[
-                                  ["Año", currentVeh.year],
-                                  ["Kilómetros", currentVeh.mileage ? new Intl.NumberFormat("es-ES").format(currentVeh.mileage) + " km" : "–"],
-                                  ["Combustible", currentVeh.fuel || "–"],
-                                  ["Versión", currentVeh.version || "–"],
-                                  ["Provincia", currentVeh.province || currentVeh.location || "–"],
-                                ].map(([k, val]) => (
+                                  ["Año", "year", currentVeh.year, "number"],
+                                  ["Kilómetros", "mileage", currentVeh.mileage, "number"],
+                                  ["Combustible", "fuel", currentVeh.fuel, "text"],
+                                  ["Versión", "version", currentVeh.version, "text"],
+                                  ["Provincia", "province", currentVeh.province || currentVeh.location, "text"],
+                                ].map(([k, field, rawVal, inputType]) => {
+                                  const editedVal = fleetEdits[currentVeh.id]?.[field];
+                                  const displayVal = editedVal != null ? editedVal : rawVal;
+                                  const isEmpty = !displayVal;
+                                  return (
                                   <div key={k}>
-                                    <div style={{ fontSize: 10, color: "#9AA3AB", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 2 }}>{k}</div>
-                                    <div style={{ fontSize: 13, fontWeight: 600, color: "#1C2B33" }}>{val || "–"}</div>
+                                    <div style={{ fontSize: 10, color: isEmpty ? "#BA7517" : "#9AA3AB", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 2, fontWeight: isEmpty ? 700 : 400 }}>{k}{isEmpty ? " *" : ""}</div>
+                                    {isEmpty ? (
+                                      <input
+                                        type={inputType}
+                                        placeholder={`Añadir ${k.toLowerCase()}`}
+                                        style={{ width: "100%", border: "1.5px solid #BA7517", borderRadius: 6, padding: "4px 6px", fontSize: 12, color: "#1C2B33", background: "#FFFBF5", boxSizing: "border-box" }}
+                                        onChange={(e) => setFleetEdits((prev) => ({ ...prev, [currentVeh.id]: { ...(prev[currentVeh.id] || {}), [field]: e.target.value } }))}
+                                      />
+                                    ) : (
+                                      <div style={{ fontSize: 13, fontWeight: 600, color: "#1C2B33", display: "flex", alignItems: "center", gap: 4 }}>
+                                        {field === "mileage" ? new Intl.NumberFormat("es-ES").format(Number(displayVal)) + " km" : displayVal}
+                                        <button type="button" onClick={() => setFleetEdits((prev) => ({ ...prev, [currentVeh.id]: { ...(prev[currentVeh.id] || {}), [field]: "" } }))} style={{ fontSize: 10, color: "#9AA3AB", background: "none", border: "none", cursor: "pointer", padding: 0, lineHeight: 1 }} title="Editar">✎</button>
+                                      </div>
+                                    )}
                                   </div>
-                                ))}
+                                  );
+                                })}
                               </div>
                               {/* Damage selector per vehicle */}
                               <div>
@@ -1148,12 +1166,20 @@ export default function SellReportMarketPage({
                                 const { data } = await postBillingCheckoutJson({
                                   planId: "valuation_fleet",
                                   origin: window.location.origin,
-                                  fleetVehicles: vehicles.map((v) => ({
-                                    brand: v.brand || "", model: v.model || "", version: v.version || "",
-                                    year: v.year || "", mileage: v.mileage || "", fuel: v.fuel || "",
-                                    plate: v.plate || "", province: v.province || v.location || "",
-                                    damageLevel: fleetDamages[v.id] || "Sin daños",
-                                  })),
+                                  fleetVehicles: vehicles.map((v) => {
+                                    const edits = fleetEdits[v.id] || {};
+                                    return {
+                                      brand:    edits.brand    || v.brand    || "",
+                                      model:    edits.model    || v.model    || "",
+                                      version:  edits.version  || v.version  || "",
+                                      year:     edits.year     || v.year     || "",
+                                      mileage:  edits.mileage  || v.mileage  || "",
+                                      fuel:     edits.fuel     || v.fuel     || "",
+                                      plate:    v.plate || "",
+                                      province: edits.province || v.province || v.location || "",
+                                      damageLevel: fleetDamages[v.id] || "Sin daños",
+                                    };
+                                  }),
                                 });
                                 if (data?.url) window.location.href = data.url;
                                 else setFleetError(data?.error || "No se pudo iniciar el pago.");

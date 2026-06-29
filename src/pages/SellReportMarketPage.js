@@ -1007,6 +1007,20 @@ export default function SellReportMarketPage({
                         );
                       })}
                     </div>
+                    {(sellAnswers?.damageLevel && sellAnswers.damageLevel !== DAMAGE_OPTIONS[0]) && (
+                      <div style={{ marginTop: "0.6rem" }}>
+                        <label style={{ fontSize: 12, color: "#6b7280", display: "block", marginBottom: 4 }}>
+                          Describe los daños con detalle <span style={{ color: "#9ca3af" }}>(opcional, mejora la tasación)</span>
+                        </label>
+                        <textarea
+                          rows={3}
+                          placeholder="Ej: Arañazo en puerta trasera derecha, pequeño golpe en parachoques delantero..."
+                          value={sellAnswers?.damageDescription || ""}
+                          onChange={(event) => setSellAnswers((prev) => ({ ...prev, damageDescription: event.target.value }))}
+                          style={{ width: "100%", boxSizing: "border-box", border: "1px solid #d1d5db", borderRadius: 8, padding: "8px 10px", fontSize: 13, color: "#374151", resize: "vertical", fontFamily: "inherit" }}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   <div className="sell-market-inline-actions">
@@ -1021,87 +1035,75 @@ export default function SellReportMarketPage({
             <div className="step-block">
               <div className="step-left">
                 <div className="step-circle">2</div>
-                <div className="step-connector" />
               </div>
               <div className="step-right">
-                <div className="step-label">{t("sell.step2Label")}</div>
-                <div className="step-title">{t("sell.step2Title")}</div>
-                <div className="step-desc">{t("sell.step2Desc")}</div>
-                <div className="sell-market-idcar-hint" style={{ marginTop: "0.35rem", marginBottom: "0.5rem" }}>
-                  {hasRealMarketSnapshot ? realReferenceText : estimatedReferenceText}
-                </div>
-                <div className="result-section">
-                  <div className="result-grid">
-                    <div className="rstat">
-                      <div className="rstat-num blue">{currencyEUR(snapshotMean, formatCurrency)}</div>
-                      <div className="rstat-lbl">{t("sell.priceAverageLine1")}<br />{t("sell.priceAverageLine2")}</div>
-                    </div>
-                    <div className="rstat">
-                      <div className="rstat-num grad-text">{snapshotUnits}</div>
-                      <div className="rstat-lbl">{t("sell.unitsNowLine1")}<br />{t("sell.unitsNowLine2")}</div>
-                    </div>
-                    <div className="rstat">
-                      <div className="rstat-num green">{snapshotDays} {daySuffix}</div>
-                      <div className="rstat-lbl">{t("sell.timeOnMarketLine1")}<br />{t("sell.timeOnMarketLine2")}</div>
-                    </div>
-                  </div>
+                <div className="step-label">PASO 2</div>
+                <div className="step-title">Tu informe personalizado de tasación</div>
+                <div className="step-desc">Recibes por email un informe completo con precio óptimo, histórico de mercado y recomendación de momento de venta — generado con los datos específicos de tu vehículo.</div>
 
-                  {portalRows.length > 0 ? (
-                    <div className="portal-list">
-                      {portalRows.map((portal) => (
-                        <div key={portal.key} className="portal-row">
-                          <div className="portal-name">
-                            <div className="portal-ico" style={{ background: portal.iconColor }}>{portal.icon}</div>
-                            {portal.name}
-                          </div>
-                          <div className="portal-right">
-                            <span className={`portal-price ${portal.toneClass}`.trim()}>
-                              {portal.price}
-                            </span>
-                            <span className="portal-units">· {portal.units} {t("sell.unitsAbbreviation")}</span>
-                          </div>
+                {/* What's included */}
+                <div className="ref-box" style={{ marginTop: 14, marginBottom: 16 }}>
+                  <div className="ref-title">Qué incluye el informe</div>
+                  <div className="ref-feat">Precio medio actual del mercado para tu modelo exacto</div>
+                  <div className="ref-feat">Comparativa por portales (Coches.net, AutoScout24, Milanuncios)</div>
+                  <div className="ref-feat">Rango de precios mínimo y máximo</div>
+                  <div className="ref-feat">Tiempo medio de venta en portales</div>
+                  <div className="ref-feat">Recomendación de precio de salida para vender rápido</div>
+                  <div className="ref-feat">Estrategia según el estado y daños declarados de tu coche</div>
+                </div>
+
+                {/* Blurred preview */}
+                <div style={{ position: "relative", marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>Vista previa del informe</div>
+                  <div style={{ filter: "blur(4px)", pointerEvents: "none", userSelect: "none", borderRadius: 12, overflow: "hidden", border: "1px solid #e5e7eb" }}>
+                    <div className="result-section" style={{ margin: 0 }}>
+                      <div className="result-grid">
+                        <div className="rstat">
+                          <div className="rstat-num blue">14.850 €</div>
+                          <div className="rstat-lbl">Precio medio<br />del mercado</div>
                         </div>
-                      ))}
-                    </div>
-                  ) : null}
-
-                  <div className="price-range">
-                    <div className="pr-label">{t("sell.priceRangeLabel")}</div>
-                    <div className="pr-range">
-                      <span className="pr-val blue">{currencyEUR(snapshotLow, formatCurrency)}</span>
-                      <span className="pr-sep">—</span>
-                      <span className="pr-val green">{currencyEUR(snapshotHigh, formatCurrency)}</span>
+                        <div className="rstat">
+                          <div className="rstat-num grad-text">170</div>
+                          <div className="rstat-lbl">Unidades<br />en portales</div>
+                        </div>
+                        <div className="rstat">
+                          <div className="rstat-num green">16 d.</div>
+                          <div className="rstat-lbl">Tiempo medio<br />en venta</div>
+                        </div>
+                      </div>
+                      <div className="portal-list">
+                        <div className="portal-row">
+                          <div className="portal-name"><div className="portal-ico" style={{ background: "#2563eb" }}>C</div>Coches.net</div>
+                          <div className="portal-right"><span className="portal-price">14.627 €</span><span className="portal-units">· 77 uds.</span></div>
+                        </div>
+                        <div className="portal-row">
+                          <div className="portal-name"><div className="portal-ico" style={{ background: "#ea580c" }}>A</div>AutoScout24</div>
+                          <div className="portal-right"><span className="portal-price">15.147 €</span><span className="portal-units">· 58 uds.</span></div>
+                        </div>
+                        <div className="portal-row">
+                          <div className="portal-name"><div className="portal-ico" style={{ background: "#16a34a" }}>M</div>Milanuncios</div>
+                          <div className="portal-right"><span className="portal-price">13.959 €</span><span className="portal-units">· 36 uds.</span></div>
+                        </div>
+                      </div>
+                      <div className="price-range">
+                        <div className="pr-label">Rango de precios</div>
+                        <div className="pr-range">
+                          <span className="pr-val blue">12.200 €</span>
+                          <span className="pr-sep">—</span>
+                          <span className="pr-val green">17.500 €</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="sell-market-idcar-hint" style={{ marginTop: "0.75rem" }}>
-                    {sellMarketSnapshotLoading
-                      ? t("sell.loadingMarketComparables")
-                      : sellMarketSnapshotError
-                        ? `${t("sell.marketUnavailable")} ${sellMarketSnapshotError}`
-                        : marketSource
-                          ? `${t("sell.marketSource")} ${marketSource}${hasValidUpdatedAt ? ` · ${t("sell.marketUpdatedAt")} ${updatedAtDate.toLocaleString(i18n.resolvedLanguage || "es-ES")}` : ""}`
-                          : t("sell.currentReference")}
+                  <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                    <div style={{ background: "rgba(255,255,255,0.92)", borderRadius: 10, padding: "10px 18px", textAlign: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.10)" }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#0f766e" }}>Solicita tu informe para ver los datos reales de tu vehículo</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            <div className="step-block">
-              <div className="step-left">
-                <div className="step-circle">3</div>
-              </div>
-              <div className="step-right">
-                <div className="step-label">{t("sell.step3Label")}</div>
-                <div className="step-title">{t("sell.step3Title")}</div>
-                <div className="step-desc">{t("sell.step3Desc")}</div>
-                <div className="ref-box">
-                  <div className="ref-title">{t("sell.refTitle")}</div>
-                  <div className="ref-feat">{t("sell.refFeat1")}</div>
-                  <div className="ref-feat">{t("sell.refFeat2")}</div>
-                  <div className="ref-feat">{t("sell.refFeat3")}</div>
-                  <div className="ref-feat">{t("sell.refFeat4")}</div>
-                </div>
-                <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
+                {/* CTA */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
                   <button
                     type="button"
                     disabled={checkoutLoading}

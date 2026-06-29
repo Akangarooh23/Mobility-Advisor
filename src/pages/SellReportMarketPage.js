@@ -989,6 +989,7 @@ export default function SellReportMarketPage({
 
                 {/* CTA */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
                   <button
                     type="button"
                     disabled={checkoutLoading}
@@ -1025,6 +1026,27 @@ export default function SellReportMarketPage({
                   >
                     {checkoutLoading ? "Redirigiendo…" : "Solicitar tasación — 29 €"}
                   </button>
+                  <a
+                    href="/ejemplo-informe-tasacion.pdf"
+                    download="Ejemplo_Informe_Tasacion_CarsWise.pdf"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      border: "1.5px solid #0d9488",
+                      color: "#0d9488",
+                      background: "#fff",
+                      borderRadius: 10,
+                      padding: "11px 18px",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      textDecoration: "none",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Ver ejemplo
+                  </a>
+                  </div>
                   <span style={{ fontSize: 12, color: "#64748b" }}>Pago único · Entrega automática en menos de 5 minutos</span>
                   {checkoutError && <span style={{ fontSize: 12, color: "#dc2626" }}>{checkoutError}</span>}
                 </div>

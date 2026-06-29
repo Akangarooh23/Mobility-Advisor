@@ -481,7 +481,6 @@ export default function PortalVoDetailPage({
                 [t("marketplace.specTransmission"), getPortalVoTransmission(selectedPortalVoOffer)],
                 [t("marketplace.specDisplacement"), selectedPortalVoOffer.displacement > 0 ? `${selectedPortalVoOffer.displacement.toLocaleString("es-ES")} cc` : "EV"],
                 [t("marketplace.specLocation"), selectedPortalVoOffer.location],
-                [t("marketplace.specSeller"), selectedPortalVoOffer.seller],
               ].map(([label, value]) => (
                 <div
                   key={`${selectedPortalVoOffer.id}-${label}`}

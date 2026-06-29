@@ -599,7 +599,7 @@ export default function PortalVoMarketplacePage({
                     {offer.year} · {Number(offer.mileage).toLocaleString("es-ES")} km · {offer.location}
                   </div>
                   <div style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#64748b", lineHeight: 1.6, marginTop: 4 }}>
-                    {offer.fuel} · {offer.power} · {t("marketplace.sellerLabel", { seller: offer.seller })}
+                    {offer.fuel} · {offer.power}
                   </div>
                   {offer.hasStockManagement && isRenting && (
                     <div style={{ marginTop: 6, display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>

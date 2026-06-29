@@ -1,5 +1,13 @@
 {
   "buildCommand": "npm run build",
+  "functions": {
+    "api/billing.js": {
+      "includeFiles": "node_modules/pdfkit/**"
+    },
+    "api/billing-webhook.js": {
+      "includeFiles": "node_modules/pdfkit/**"
+    }
+  },
   "crons": [
     {
       "path": "/api/cron-appointment-reminders",

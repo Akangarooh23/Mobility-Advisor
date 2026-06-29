@@ -997,7 +997,21 @@ export default function SellReportMarketPage({
                       setCheckoutError("");
                       setCheckoutLoading(true);
                       try {
-                        const { data } = await postBillingCheckoutJson({ planId: "valuation", origin: window.location.origin });
+                        const selectedVehicle = garageVehicles.find((v) => normalizeText(v?.id) === normalizeText(selectedIdCarId));
+                        const { data } = await postBillingCheckoutJson({
+                          planId: "valuation",
+                          origin: window.location.origin,
+                          brand:   sellAnswers?.brand   || selectedVehicle?.brand   || "",
+                          model:   sellAnswers?.model   || selectedVehicle?.model   || "",
+                          version: sellAnswers?.version || selectedVehicle?.version || "",
+                          year:    sellAnswers?.year    || selectedVehicle?.year    || "",
+                          mileage: sellAnswers?.mileage || selectedVehicle?.mileage || "",
+                          fuel:    sellAnswers?.fuel    || selectedVehicle?.fuel    || "",
+                          plate:   sellAnswers?.plate   || selectedVehicle?.plate   || "",
+                          damageLevel:       sellAnswers?.damageLevel       || "",
+                          damageDescription: sellAnswers?.damageDescription || "",
+                          province: selectedVehicle?.province || selectedVehicle?.location || "",
+                        });
                         if (data?.url) {
                           window.location.href = data.url;
                         } else {

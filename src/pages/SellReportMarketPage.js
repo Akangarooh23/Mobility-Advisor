@@ -5,6 +5,7 @@ import {
   getErpModelsJson,
   getErpVersionsJson,
   getGarageVehicleSummariesJson,
+  postBillingCheckoutJson,
 } from "../utils/apiClient";
 import "./SellReportMarketPage.css";
 
@@ -248,6 +249,8 @@ export default function SellReportMarketPage({
   const [garageVehicles, setGarageVehicles] = useState([]);
   const { t, i18n } = useTranslation();
   const [garageVehiclesLoading, setGarageVehiclesLoading] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState("");
 
   const translateFuelOption = (fuel) => {
     const raw = normalizeText(fuel);
@@ -1097,6 +1100,47 @@ export default function SellReportMarketPage({
                   <div className="ref-feat">{t("sell.refFeat2")}</div>
                   <div className="ref-feat">{t("sell.refFeat3")}</div>
                   <div className="ref-feat">{t("sell.refFeat4")}</div>
+                </div>
+                <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
+                  <button
+                    type="button"
+                    disabled={checkoutLoading}
+                    onClick={async () => {
+                      setCheckoutError("");
+                      setCheckoutLoading(true);
+                      try {
+                        const res = await postBillingCheckoutJson({ planId: "valuation", origin: window.location.origin });
+                        const data = await res.json();
+                        if (data?.url) {
+                          window.location.href = data.url;
+                        } else {
+                          setCheckoutError(data?.error || "No se pudo iniciar el pago. Inténtalo de nuevo.");
+                        }
+                      } catch {
+                        setCheckoutError("Error al conectar con el sistema de pago.");
+                      } finally {
+                        setCheckoutLoading(false);
+                      }
+                    }}
+                    style={{
+                      background: "linear-gradient(135deg, #0d9488, #0f766e)",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 10,
+                      padding: "12px 24px",
+                      fontSize: 15,
+                      fontWeight: 700,
+                      cursor: checkoutLoading ? "not-allowed" : "pointer",
+                      opacity: checkoutLoading ? 0.7 : 1,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    {checkoutLoading ? "Redirigiendo…" : "Solicitar tasación — 29 €"}
+                  </button>
+                  <span style={{ fontSize: 12, color: "#64748b" }}>Pago único · Entrega automática en menos de 5 minutos</span>
+                  {checkoutError && <span style={{ fontSize: 12, color: "#dc2626" }}>{checkoutError}</span>}
                 </div>
               </div>
             </div>

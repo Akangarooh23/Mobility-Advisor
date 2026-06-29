@@ -17,6 +17,8 @@
     "json5": "^2.2.3",
     "jsonrepair": "^3.13.3",
     "mssql": "^12.2.1",
+    "pdf-lib": "^1.17.1",
+    "pdfkit": "^0.19.1",
     "pg": "^8.13.3",
     "playwright-core": "^1.59.1",
     "qrcode.react": "^4.2.0",

@@ -633,7 +633,7 @@ export default function SellReportMarketPage({
                                   ["Kilómetros", "mileage", currentVeh.mileage, "number"],
                                   ["Combustible", "fuel", currentVeh.fuel, "text"],
                                   ["Versión", "version", currentVeh.version, "text"],
-                                  ["Provincia", "province", currentVeh.province || currentVeh.location, "text"],
+                                  ["Provincia", "location", currentVeh.location, "text"],
                                 ].map(([k, field, rawVal, inputType]) => {
                                   const editedVal = fleetEdits[currentVeh.id]?.[field];
                                   const displayVal = editedVal != null ? editedVal : rawVal;
@@ -1185,7 +1185,7 @@ export default function SellReportMarketPage({
                                       mileage:  edits.mileage  || v.mileage  || "",
                                       fuel:     edits.fuel     || v.fuel     || "",
                                       plate:    v.plate || "",
-                                      province: edits.province || v.province || v.location || "",
+                                      location: edits.location || v.location || "",
                                       damageLevel: fleetDamages[v.id] || "Sin daños",
                                     };
                                   }),
@@ -1359,7 +1359,7 @@ export default function SellReportMarketPage({
                               mileage: v.mileage || "",
                               fuel:    v.fuel    || "",
                               plate:   v.plate   || "",
-                              province: v.province || v.location || "",
+                              location: v.location || "",
                             })),
                           });
                           if (data?.url) {

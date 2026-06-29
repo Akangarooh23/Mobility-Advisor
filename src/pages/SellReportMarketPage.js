@@ -302,6 +302,9 @@ export default function SellReportMarketPage({
   const [fleetSelected, setFleetSelected] = useState({});
   const [fleetLoading, setFleetLoading] = useState(false);
   const [fleetError, setFleetError] = useState("");
+  const [fleetMode, setFleetMode] = useState(false);
+  const [fleetPage, setFleetPage] = useState(0);
+  const [fleetDamages, setFleetDamages] = useState({});
 
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from({ length: currentYear - 2013 }, (_, index) => currentYear - index);
@@ -550,7 +553,132 @@ export default function SellReportMarketPage({
                 <div className="step-title">{t("sell.step1Title")}</div>
                 <div className="step-desc">{t("sell.step1Desc")}</div>
                 <div className="form-section">
-                  <div className="field-grid" style={{ marginBottom: "0.85rem" }}>
+                  {/* Mode toggle — only when 2+ garage vehicles */}
+                  {garageVehicles.length >= 2 && (
+                    <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+                      <button
+                        type="button"
+                        onClick={() => { setFleetMode(false); setFleetPage(0); }}
+                        style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: `1.5px solid ${!fleetMode ? "#0d9488" : "#e5e7eb"}`, background: !fleetMode ? "#f0fafa" : "#fafafa", color: !fleetMode ? "#0d9488" : "#6B7780", fontWeight: !fleetMode ? 700 : 400, cursor: "pointer", fontSize: 13 }}
+                      >
+                        Un vehículo
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setFleetMode(true); setFleetPage(0); }}
+                        style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: `1.5px solid ${fleetMode ? "#0d9488" : "#e5e7eb"}`, background: fleetMode ? "#f0fafa" : "#fafafa", color: fleetMode ? "#0d9488" : "#6B7780", fontWeight: fleetMode ? 700 : 400, cursor: "pointer", fontSize: 13 }}
+                      >
+                        Varios vehículos 🚗
+                      </button>
+                    </div>
+                  )}
+
+                  {/* ── FLEET MODE ── */}
+                  {fleetMode && garageVehicles.length >= 2 && (() => {
+                    const TIERS = [
+                      { max: 1,  price: 10 }, { max: 4,  price: 9 }, { max: 9,  price: 8 },
+                      { max: 19, price: 7  }, { max: 49, price: 6 }, { max: 99, price: 5 },
+                    ];
+                    function unitPrice(n) { const t = TIERS.find((x) => n <= x.max); return t ? t.price : null; }
+                    const selectedIds = Object.keys(fleetSelected).filter((id) => fleetSelected[id]);
+                    const count = selectedIds.length;
+                    const up = unitPrice(count);
+                    const total = up != null ? count * up : null;
+                    const safePage = Math.min(fleetPage, Math.max(0, count - 1));
+                    const currentVehId = selectedIds[safePage];
+                    const currentVeh = garageVehicles.find((v) => v.id === currentVehId);
+
+                    return (
+                      <div>
+                        {/* Vehicle cards grid */}
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+                          <div style={{ width: "100%", display: "flex", gap: 10, marginBottom: 4 }}>
+                            <button type="button" onClick={() => { const all = {}; garageVehicles.forEach((v) => { all[v.id] = true; }); setFleetSelected(all); setFleetPage(0); }} style={{ fontSize: 12, color: "#0d9488", background: "none", border: "none", cursor: "pointer", padding: 0, fontWeight: 600 }}>Seleccionar todos</button>
+                            <span style={{ color: "#ddd" }}>·</span>
+                            <button type="button" onClick={() => { setFleetSelected({}); setFleetPage(0); }} style={{ fontSize: 12, color: "#9AA3AB", background: "none", border: "none", cursor: "pointer", padding: 0 }}>Limpiar</button>
+                          </div>
+                          {garageVehicles.map((v) => {
+                            const checked = !!fleetSelected[v.id];
+                            const lbl = [v.brand, v.model, v.year].filter(Boolean).join(" ");
+                            return (
+                              <label key={v.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 8, border: `1.5px solid ${checked ? "#0d9488" : "#e5e7eb"}`, background: checked ? "#f0fafa" : "#fafafa", cursor: "pointer", minWidth: 160, flex: "1 1 160px" }}>
+                                <input type="checkbox" checked={checked} onChange={(e) => { setFleetSelected((prev) => ({ ...prev, [v.id]: e.target.checked })); if (e.target.checked) setFleetPage(Object.keys({ ...fleetSelected, [v.id]: true }).filter((id) => ({ ...fleetSelected, [v.id]: true })[id]).length - 1); }} style={{ accentColor: "#0d9488", width: 15, height: 15 }} />
+                                <div>
+                                  <div style={{ fontSize: 12, fontWeight: checked ? 700 : 400, color: "#1C2B33" }}>{lbl || "Vehículo"}</div>
+                                  {v.plate && <div style={{ fontSize: 11, color: "#9AA3AB" }}>{v.plate}</div>}
+                                </div>
+                              </label>
+                            );
+                          })}
+                        </div>
+
+                        {/* Pageable detail view */}
+                        {count > 0 && currentVeh && (
+                          <div style={{ border: "1.5px solid #e5e7eb", borderRadius: 12, overflow: "hidden", marginBottom: 14 }}>
+                            {/* Pager header */}
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", background: "#f8f9fa", borderBottom: "1px solid #e5e7eb" }}>
+                              <button type="button" disabled={safePage === 0} onClick={() => setFleetPage((p) => Math.max(0, p - 1))} style={{ background: "none", border: "none", cursor: safePage === 0 ? "default" : "pointer", color: safePage === 0 ? "#ccc" : "#0d9488", fontSize: 18, fontWeight: 700, padding: "0 4px" }}>‹</button>
+                              <span style={{ fontSize: 13, fontWeight: 600, color: "#1C2B33" }}>Vehículo {safePage + 1} de {count}</span>
+                              <button type="button" disabled={safePage === count - 1} onClick={() => setFleetPage((p) => Math.min(count - 1, p + 1))} style={{ background: "none", border: "none", cursor: safePage === count - 1 ? "default" : "pointer", color: safePage === count - 1 ? "#ccc" : "#0d9488", fontSize: 18, fontWeight: 700, padding: "0 4px" }}>›</button>
+                            </div>
+                            {/* Vehicle details */}
+                            <div style={{ padding: "16px 16px 12px" }}>
+                              <div style={{ fontSize: 15, fontWeight: 700, color: "#1C2B33", marginBottom: 2 }}>{[currentVeh.brand, currentVeh.model].filter(Boolean).join(" ") || "Vehículo"}</div>
+                              {currentVeh.plate && <div style={{ fontSize: 12, color: "#9AA3AB", marginBottom: 10 }}>{currentVeh.plate}</div>}
+                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px 16px", marginBottom: 14 }}>
+                                {[
+                                  ["Año", currentVeh.year],
+                                  ["Kilómetros", currentVeh.mileage ? new Intl.NumberFormat("es-ES").format(currentVeh.mileage) + " km" : "–"],
+                                  ["Combustible", currentVeh.fuel || "–"],
+                                  ["Versión", currentVeh.version || "–"],
+                                  ["Provincia", currentVeh.province || currentVeh.location || "–"],
+                                ].map(([k, val]) => (
+                                  <div key={k}>
+                                    <div style={{ fontSize: 10, color: "#9AA3AB", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 2 }}>{k}</div>
+                                    <div style={{ fontSize: 13, fontWeight: 600, color: "#1C2B33" }}>{val || "–"}</div>
+                                  </div>
+                                ))}
+                              </div>
+                              {/* Damage selector per vehicle */}
+                              <div>
+                                <div style={{ fontSize: 11, color: "#9AA3AB", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>Estado del vehículo</div>
+                                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                                  {["Sin daños", "Daños leves", "Daños moderados", "Daños graves"].map((lvl) => {
+                                    const active = (fleetDamages[currentVeh.id] || "Sin daños") === lvl;
+                                    return (
+                                      <button key={lvl} type="button" onClick={() => setFleetDamages((prev) => ({ ...prev, [currentVeh.id]: lvl }))} style={{ padding: "6px 12px", borderRadius: 20, border: `1.5px solid ${active ? "#0d9488" : "#e5e7eb"}`, background: active ? "#0d9488" : "#fafafa", color: active ? "#fff" : "#46535C", fontSize: 12, fontWeight: active ? 700 : 400, cursor: "pointer" }}>
+                                        {lvl}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Fleet price summary */}
+                        {count > 0 && (
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", background: "#f8fffe", border: "1.5px solid #0d9488", borderRadius: 10, gap: 8, flexWrap: "wrap" }}>
+                            <div>
+                              <div style={{ fontSize: 12, color: "#46535C" }}>{count} vehículo{count !== 1 ? "s" : ""} seleccionado{count !== 1 ? "s" : ""} · {up} €/unidad</div>
+                              {total != null && <div style={{ fontSize: 18, fontWeight: 800, color: "#1C2B33" }}>Total: {total} €</div>}
+                            </div>
+                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                              {TIERS.map((tier, i) => {
+                                const label = i === 0 ? "1" : `${TIERS[i-1].max + 1}–${tier.max}`;
+                                const active = up === tier.price;
+                                return <span key={tier.price} style={{ fontSize: 11, padding: "3px 8px", borderRadius: 6, background: active ? "#0d9488" : "#f0f0f0", color: active ? "#fff" : "#9AA3AB", fontWeight: active ? 700 : 400 }}>{label}: {tier.price}€</span>;
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+
+                  {/* ── SINGLE VEHICLE MODE ── */}
+                  {!fleetMode && (<><div className="field-grid" style={{ marginBottom: "0.85rem" }}>
                     <div className="field field-full-row">
                       <label>{t("sell.useIdCar")}</label>
                       <div className="sel-wrap">
@@ -847,7 +975,7 @@ export default function SellReportMarketPage({
                       </div>
                     )}
                   </div>
-
+                </>)}
 
                 </div>
               </div>
@@ -995,80 +1123,92 @@ export default function SellReportMarketPage({
 
                 {/* CTA */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-                  <button
-                    type="button"
-                    disabled={checkoutLoading}
-                    onClick={async () => {
-                      setCheckoutError("");
-                      setCheckoutLoading(true);
-                      try {
-                        const selectedVehicle = garageVehicles.find((v) => normalizeText(v?.id) === normalizeText(selectedIdCarId));
-                        const { data } = await postBillingCheckoutJson({
-                          planId: "valuation",
-                          origin: window.location.origin,
-                          brand:   sellAnswers?.brand   || selectedVehicle?.brand   || "",
-                          model:   sellAnswers?.model   || selectedVehicle?.model   || "",
-                          version: sellAnswers?.version || selectedVehicle?.version || "",
-                          year:    sellAnswers?.year    || selectedVehicle?.year    || "",
-                          mileage: sellAnswers?.mileage || selectedVehicle?.mileage || "",
-                          fuel:    sellAnswers?.fuel    || selectedVehicle?.fuel    || "",
-                          plate:   sellAnswers?.plate   || selectedVehicle?.plate   || "",
-                          damageLevel:       sellAnswers?.damageLevel       || "",
-                          damageDescription: sellAnswers?.damageDescription || "",
-                          province: selectedVehicle?.province || selectedVehicle?.location || "",
-                        });
-                        if (data?.url) {
-                          window.location.href = data.url;
-                        } else {
-                          setCheckoutError(data?.error || "No se pudo iniciar el pago. Inténtalo de nuevo.");
-                        }
-                      } catch {
-                        setCheckoutError("Error al conectar con el sistema de pago.");
-                      } finally {
-                        setCheckoutLoading(false);
-                      }
-                    }}
-                    style={{
-                      background: "linear-gradient(135deg, #0d9488, #0f766e)",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: 10,
-                      padding: "12px 24px",
-                      fontSize: 15,
-                      fontWeight: 700,
-                      cursor: checkoutLoading ? "not-allowed" : "pointer",
-                      opacity: checkoutLoading ? 0.7 : 1,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                    }}
-                  >
-                    {checkoutLoading ? "Redirigiendo…" : "Solicitar tasación — 10 €"}
-                  </button>
-                  <a
-                    href="/ejemplo-informe-tasacion.pdf"
-                    download="Ejemplo_Informe_Tasacion_CarsWise.pdf"
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 6,
-                      border: "1.5px solid #0d9488",
-                      color: "#0d9488",
-                      background: "#fff",
-                      borderRadius: 10,
-                      padding: "11px 18px",
-                      fontSize: 14,
-                      fontWeight: 600,
-                      textDecoration: "none",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    Ver ejemplo
-                  </a>
-                  </div>
-                  <span style={{ fontSize: 12, color: "#64748b" }}>Pago único · Entrega automática en menos de 5 minutos</span>
-                  {checkoutError && <span style={{ fontSize: 12, color: "#dc2626" }}>{checkoutError}</span>}
+                  {fleetMode ? (() => {
+                    const TIERS = [
+                      { max: 1, price: 10 }, { max: 4, price: 9 }, { max: 9, price: 8 },
+                      { max: 19, price: 7 }, { max: 49, price: 6 }, { max: 99, price: 5 },
+                    ];
+                    const selectedIds = Object.keys(fleetSelected).filter((id) => fleetSelected[id]);
+                    const count = selectedIds.length;
+                    const tier = TIERS.find((t) => count <= t.max);
+                    const up = tier ? tier.price : null;
+                    const total = up != null ? count * up : null;
+                    if (!count) return <span style={{ fontSize: 13, color: "#9AA3AB" }}>Selecciona al menos un vehículo en el Paso 1 para continuar.</span>;
+                    return (
+                      <>
+                        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+                          <button
+                            type="button"
+                            disabled={fleetLoading}
+                            onClick={async () => {
+                              setFleetError("");
+                              setFleetLoading(true);
+                              try {
+                                const vehicles = selectedIds.map((id) => garageVehicles.find((v) => v.id === id)).filter(Boolean);
+                                const { data } = await postBillingCheckoutJson({
+                                  planId: "valuation_fleet",
+                                  origin: window.location.origin,
+                                  fleetVehicles: vehicles.map((v) => ({
+                                    brand: v.brand || "", model: v.model || "", version: v.version || "",
+                                    year: v.year || "", mileage: v.mileage || "", fuel: v.fuel || "",
+                                    plate: v.plate || "", province: v.province || v.location || "",
+                                    damageLevel: fleetDamages[v.id] || "Sin daños",
+                                  })),
+                                });
+                                if (data?.url) window.location.href = data.url;
+                                else setFleetError(data?.error || "No se pudo iniciar el pago.");
+                              } catch { setFleetError("Error al conectar con el sistema de pago."); }
+                              finally { setFleetLoading(false); }
+                            }}
+                            style={{ background: "linear-gradient(135deg, #0d9488, #0f766e)", color: "#fff", border: "none", borderRadius: 10, padding: "12px 24px", fontSize: 15, fontWeight: 700, cursor: fleetLoading ? "not-allowed" : "pointer", opacity: fleetLoading ? 0.7 : 1 }}
+                          >
+                            {fleetLoading ? "Redirigiendo…" : `Tasar ${count} vehículo${count !== 1 ? "s" : ""} — ${total} €`}
+                          </button>
+                          <a href="/ejemplo-informe-tasacion.pdf" download="Ejemplo_Informe_Tasacion_CarsWise.pdf" style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1.5px solid #0d9488", color: "#0d9488", background: "#fff", borderRadius: 10, padding: "11px 18px", fontSize: 14, fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>Ver ejemplo</a>
+                        </div>
+                        <span style={{ fontSize: 12, color: "#64748b" }}>{count} vehículo{count !== 1 ? "s" : ""} · {up} €/unidad · Entrega automática en menos de 5 minutos</span>
+                        {fleetError && <span style={{ fontSize: 12, color: "#dc2626" }}>{fleetError}</span>}
+                      </>
+                    );
+                  })() : (
+                    <>
+                      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+                        <button
+                          type="button"
+                          disabled={checkoutLoading}
+                          onClick={async () => {
+                            setCheckoutError("");
+                            setCheckoutLoading(true);
+                            try {
+                              const selectedVehicle = garageVehicles.find((v) => normalizeText(v?.id) === normalizeText(selectedIdCarId));
+                              const { data } = await postBillingCheckoutJson({
+                                planId: "valuation", origin: window.location.origin,
+                                brand: sellAnswers?.brand || selectedVehicle?.brand || "",
+                                model: sellAnswers?.model || selectedVehicle?.model || "",
+                                version: sellAnswers?.version || selectedVehicle?.version || "",
+                                year: sellAnswers?.year || selectedVehicle?.year || "",
+                                mileage: sellAnswers?.mileage || selectedVehicle?.mileage || "",
+                                fuel: sellAnswers?.fuel || selectedVehicle?.fuel || "",
+                                plate: sellAnswers?.plate || selectedVehicle?.plate || "",
+                                damageLevel: sellAnswers?.damageLevel || "",
+                                damageDescription: sellAnswers?.damageDescription || "",
+                                province: selectedVehicle?.province || selectedVehicle?.location || "",
+                              });
+                              if (data?.url) window.location.href = data.url;
+                              else setCheckoutError(data?.error || "No se pudo iniciar el pago. Inténtalo de nuevo.");
+                            } catch { setCheckoutError("Error al conectar con el sistema de pago."); }
+                            finally { setCheckoutLoading(false); }
+                          }}
+                          style={{ background: "linear-gradient(135deg, #0d9488, #0f766e)", color: "#fff", border: "none", borderRadius: 10, padding: "12px 24px", fontSize: 15, fontWeight: 700, cursor: checkoutLoading ? "not-allowed" : "pointer", opacity: checkoutLoading ? 0.7 : 1 }}
+                        >
+                          {checkoutLoading ? "Redirigiendo…" : "Solicitar tasación — 10 €"}
+                        </button>
+                        <a href="/ejemplo-informe-tasacion.pdf" download="Ejemplo_Informe_Tasacion_CarsWise.pdf" style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1.5px solid #0d9488", color: "#0d9488", background: "#fff", borderRadius: 10, padding: "11px 18px", fontSize: 14, fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>Ver ejemplo</a>
+                      </div>
+                      <span style={{ fontSize: 12, color: "#64748b" }}>Pago único · Entrega automática en menos de 5 minutos</span>
+                      {checkoutError && <span style={{ fontSize: 12, color: "#dc2626" }}>{checkoutError}</span>}
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -1076,8 +1216,8 @@ export default function SellReportMarketPage({
         </div>
       </div>
 
-      {/* Fleet section */}
-      {garageVehicles.length >= 2 && (() => {
+      {/* Fleet section — removed, now integrated in Step 1 */}
+      {false && (() => {
         const TIERS = [
           { max: 1,  price: 10 },
           { max: 4,  price: 9  },

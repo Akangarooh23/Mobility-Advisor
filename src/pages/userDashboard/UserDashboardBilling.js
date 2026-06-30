@@ -208,6 +208,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
         setBillingState(nextBillingState);
         setAvailablePlans(effectivePlans);
         writeUserBillingState(nextBillingState);
+        writeUserBillingProfile(nextProfile);
         if (onPlanChange) onPlanChange(nextBillingState.planId);
         setSelectedPlanId(
           nextBillingState.planId

@@ -8,15 +8,20 @@ import {
   postBillingCheckoutJson,
   postGarageVehicleAddJson,
 } from "../utils/apiClient";
-import { readUserBillingProfile } from "../utils/storage";
+import { getBillingAccountJson } from "../utils/apiClient";
 import "./SellReportMarketPage.css";
 
-function checkBillingProfile() {
-  const p = readUserBillingProfile() || {};
-  const missing = [];
-  if (!normalizeText(p.taxId))         missing.push("NIF/CIF");
-  if (!normalizeText(p.billingStreet)) missing.push("dirección de facturación");
-  return missing;
+async function checkBillingProfile(currentUserEmail) {
+  try {
+    const { data } = await getBillingAccountJson(currentUserEmail);
+    const p = data?.account?.profile || {};
+    const missing = [];
+    if (!normalizeText(p.taxId))         missing.push("NIF/CIF");
+    if (!normalizeText(p.billingStreet)) missing.push("dirección de facturación");
+    return missing;
+  } catch {
+    return []; // on infra error allow checkout
+  }
 }
 
 function normalizeText(value) {
@@ -1178,7 +1183,7 @@ export default function SellReportMarketPage({
                             disabled={fleetLoading}
                             onClick={async () => {
                               setFleetError("");
-                              const missingFleet = checkBillingProfile();
+                              const missingFleet = await checkBillingProfile(currentUserEmail);
                               if (missingFleet.length) {
                                 setFleetError("PROFILE_INCOMPLETE:" + missingFleet.join(","));
                                 return;
@@ -1234,7 +1239,7 @@ export default function SellReportMarketPage({
                           disabled={checkoutLoading}
                           onClick={async () => {
                             setCheckoutError("");
-                            const missingFields = checkBillingProfile();
+                            const missingFields = await checkBillingProfile(currentUserEmail);
                             if (missingFields.length) {
                               setCheckoutError("PROFILE_INCOMPLETE:" + missingFields.join(","));
                               return;
@@ -1382,7 +1387,7 @@ export default function SellReportMarketPage({
                       disabled={fleetLoading}
                       onClick={async () => {
                         setFleetError("");
-                        const missingFleet2 = checkBillingProfile();
+                        const missingFleet2 = await checkBillingProfile(currentUserEmail);
                         if (missingFleet2.length) {
                           setFleetError("PROFILE_INCOMPLETE:" + missingFleet2.join(","));
                           return;

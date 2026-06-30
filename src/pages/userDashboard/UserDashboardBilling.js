@@ -305,11 +305,16 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
       };
 
       try {
-        const { data } = await postBillingAccountJson({
+        const { response, data } = await postBillingAccountJson({
           action: "update_profile",
           email: resolvedUserEmail,
           profile: nextProfile,
         });
+
+        if (!response.ok) {
+          setProfileFeedback("Error al guardar: " + (data?.error || "inténtalo de nuevo"));
+          return;
+        }
 
         const account = data?.account || null;
 

@@ -8,7 +8,16 @@ import {
   postBillingCheckoutJson,
   postGarageVehicleAddJson,
 } from "../utils/apiClient";
+import { readUserBillingProfile } from "../utils/storage";
 import "./SellReportMarketPage.css";
+
+function checkBillingProfile() {
+  const p = readUserBillingProfile() || {};
+  const missing = [];
+  if (!normalizeText(p.taxId))         missing.push("NIF/CIF");
+  if (!normalizeText(p.billingStreet)) missing.push("dirección de facturación");
+  return missing;
+}
 
 function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -1169,6 +1178,11 @@ export default function SellReportMarketPage({
                             disabled={fleetLoading}
                             onClick={async () => {
                               setFleetError("");
+                              const missingFleet = checkBillingProfile();
+                              if (missingFleet.length) {
+                                setFleetError("PROFILE_INCOMPLETE:" + missingFleet.join(","));
+                                return;
+                              }
                               setFleetLoading(true);
                               try {
                                 const vehicles = selectedIds.map((id) => garageVehicles.find((v) => v.id === id)).filter(Boolean);
@@ -1202,7 +1216,14 @@ export default function SellReportMarketPage({
                           <a href="/ejemplo-informe-tasacion.pdf" download="Ejemplo_Informe_Tasacion_CarsWise.pdf" style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1.5px solid #0d9488", color: "#0d9488", background: "#fff", borderRadius: 10, padding: "11px 18px", fontSize: 14, fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>Ver ejemplo</a>
                         </div>
                         <span style={{ fontSize: 12, color: "#64748b" }}>{count} vehículo{count !== 1 ? "s" : ""} · {up} €/unidad · Entrega automática en menos de 5 minutos</span>
-                        {fleetError && <span style={{ fontSize: 12, color: "#dc2626" }}>{fleetError}</span>}
+                        {fleetError && (
+                          fleetError.startsWith("PROFILE_INCOMPLETE:") ? (
+                            <div style={{ display: "flex", alignItems: "flex-start", gap: 8, background: "#fef3c7", border: "1px solid #f59e0b", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#92400e", maxWidth: 460 }}>
+                              <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
+                              <span>Para emitir la factura necesitas completar tu perfil ({fleetError.replace("PROFILE_INCOMPLETE:", "")}).{" "}<a href="/panel/cuenta" style={{ color: "#b45309", fontWeight: 700, textDecoration: "underline" }}>Ir a Mi cuenta →</a></span>
+                            </div>
+                          ) : <span style={{ fontSize: 12, color: "#dc2626" }}>{fleetError}</span>
+                        )}
                       </>
                     );
                   })() : (
@@ -1213,6 +1234,11 @@ export default function SellReportMarketPage({
                           disabled={checkoutLoading}
                           onClick={async () => {
                             setCheckoutError("");
+                            const missingFields = checkBillingProfile();
+                            if (missingFields.length) {
+                              setCheckoutError("PROFILE_INCOMPLETE:" + missingFields.join(","));
+                              return;
+                            }
                             setCheckoutLoading(true);
                             try {
                               const selectedVehicle = garageVehicles.find((v) => normalizeText(v?.id) === normalizeText(selectedIdCarId));
@@ -1241,7 +1267,19 @@ export default function SellReportMarketPage({
                         <a href="/ejemplo-informe-tasacion.pdf" download="Ejemplo_Informe_Tasacion_CarsWise.pdf" style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1.5px solid #0d9488", color: "#0d9488", background: "#fff", borderRadius: 10, padding: "11px 18px", fontSize: 14, fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>Ver ejemplo</a>
                       </div>
                       <span style={{ fontSize: 12, color: "#64748b" }}>Pago único · Entrega automática en menos de 5 minutos</span>
-                      {checkoutError && <span style={{ fontSize: 12, color: "#dc2626" }}>{checkoutError}</span>}
+                      {checkoutError && (
+                        checkoutError.startsWith("PROFILE_INCOMPLETE:") ? (
+                          <div style={{ display: "flex", alignItems: "flex-start", gap: 8, background: "#fef3c7", border: "1px solid #f59e0b", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#92400e", maxWidth: 460 }}>
+                            <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
+                            <span>
+                              Para emitir la factura necesitas completar tu perfil ({checkoutError.replace("PROFILE_INCOMPLETE:", "")}).{" "}
+                              <a href="/panel/cuenta" style={{ color: "#b45309", fontWeight: 700, textDecoration: "underline" }}>Ir a Mi cuenta →</a>
+                            </span>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: 12, color: "#dc2626" }}>{checkoutError}</span>
+                        )
+                      )}
                     </>
                   )}
                 </div>
@@ -1344,6 +1382,11 @@ export default function SellReportMarketPage({
                       disabled={fleetLoading}
                       onClick={async () => {
                         setFleetError("");
+                        const missingFleet2 = checkBillingProfile();
+                        if (missingFleet2.length) {
+                          setFleetError("PROFILE_INCOMPLETE:" + missingFleet2.join(","));
+                          return;
+                        }
                         setFleetLoading(true);
                         try {
                           const vehicles = selectedIds.map((id) => garageVehicles.find((v) => v.id === id)).filter(Boolean);
@@ -1379,7 +1422,14 @@ export default function SellReportMarketPage({
                     </button>
                   </div>
                 )}
-                {fleetError && <span style={{ fontSize: 12, color: "#dc2626" }}>{fleetError}</span>}
+                {fleetError && (
+                  fleetError.startsWith("PROFILE_INCOMPLETE:") ? (
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 8, background: "#fef3c7", border: "1px solid #f59e0b", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#92400e", maxWidth: 460 }}>
+                      <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
+                      <span>Para emitir la factura necesitas completar tu perfil ({fleetError.replace("PROFILE_INCOMPLETE:", "")}).{" "}<a href="/panel/cuenta" style={{ color: "#b45309", fontWeight: 700, textDecoration: "underline" }}>Ir a Mi cuenta →</a></span>
+                    </div>
+                  ) : <span style={{ fontSize: 12, color: "#dc2626" }}>{fleetError}</span>
+                )}
                 <span style={{ fontSize: 11, color: "#9AA3AB" }}>Pago único · Recibirás un informe PDF por cada vehículo en menos de 5 minutos</span>
               </div>
             )}

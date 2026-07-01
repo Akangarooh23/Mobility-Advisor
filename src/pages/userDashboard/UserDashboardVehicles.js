@@ -14,6 +14,7 @@ import {
   getErpVersionDetailJson,
 } from "../../utils/apiClient";
 import { uploadFileDirect } from "../../utils/supabaseUpload";
+import AvailabilityEditor from "../../components/AvailabilityEditor";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 const IDCAR_PENDING_ACTION_KEY = "movilidad-advisor.idcar.action";
@@ -2416,7 +2417,9 @@ export default function UserDashboardVehicles({
                     ref={marketplacePublishDialogRef}
                     tabIndex={-1}
                     style={{
-                      width: "min(520px, 100%)",
+                      width: "min(620px, 100%)",
+                      maxHeight: "90vh",
+                      overflowY: "auto",
                       border: panelBorder,
                       borderRadius: 14,
                       background: isDark
@@ -2458,6 +2461,10 @@ export default function UserDashboardVehicles({
                         </label>
                       )}
                     </div>
+                    <AvailabilityEditor
+                      offerId={`idcar-${marketplacePublishDialog.vehicle.id}`}
+                      source="marketplace"
+                    />
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       <button
                         ref={marketplacePublishPrimaryButtonRef}

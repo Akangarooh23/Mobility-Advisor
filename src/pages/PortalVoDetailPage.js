@@ -5,6 +5,7 @@ import { getUtmPayload } from "../utils/utmTracker";
 import { trackLead } from "../utils/metaPixel";
 import { trackFunnelEvent } from "../utils/funnelTracker";
 import { readUserBillingProfile } from "../utils/storage";
+import SlotPicker from "../components/SlotPicker";
 
 function getAvailableDurations(offer) {
   if (offer.rentingPricesJson?.km_options) {
@@ -593,16 +594,41 @@ export default function PortalVoDetailPage({
               boxShadow: "0 24px 64px rgba(0,0,0,0.3)",
             }}
           >
-            {reqState === "done" ? (
+            {/* SlotPicker for particular seller offers */}
+            {isParticular ? (
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 4 }}>
+                  Solicitar visita al vendedor
+                </div>
+                <div style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b", marginBottom: 16 }}>
+                  {selectedPortalVoOffer.title}
+                </div>
+                <SlotPicker
+                  offerId={selectedPortalVoOffer.id}
+                  vehicleTitle={selectedPortalVoOffer.title}
+                  sellerEmail={selectedPortalVoOffer.userEmail || selectedPortalVoOffer.sellerEmail || null}
+                  userEmail={reqForm.email || currentUser?.email || ""}
+                  userName={reqForm.name || currentUser?.name || ""}
+                  userPhone={reqForm.phone || currentUser?.phone || ""}
+                  source="marketplace"
+                  onBooked={() => {}}
+                />
+                <button
+                  type="button"
+                  onClick={() => setReqModal(false)}
+                  style={{ marginTop: 16, padding: "8px 20px", background: "none", border: "1.5px solid #e2e8f0", color: "#64748b", borderRadius: 8, fontWeight: 600, cursor: "pointer", fontSize: 13 }}
+                >
+                  Cerrar
+                </button>
+              </div>
+            ) : reqState === "done" ? (
               <div style={{ textAlign: "center", padding: "16px 0" }}>
                 <div style={{ fontSize: 40, marginBottom: 12 }}>{isRentingOffer ? "🔑" : "✅"}</div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 8 }}>
-                  {isParticular ? "¡Solicitud enviada al vendedor!" : isRentingOffer ? "¡Solicitud de renting recibida!" : "¡Solicitud recibida!"}
+                  {isRentingOffer ? "¡Solicitud de renting recibida!" : "¡Solicitud recibida!"}
                 </div>
                 <div style={{ fontSize: 13, color: isDark ? "#94a3b8" : "#475569", lineHeight: 1.6 }}>
-                  {isParticular
-                    ? "El vendedor recibirá un email para proponerte fechas de visita."
-                    : isRentingOffer
+                  {isRentingOffer
                     ? "Te enviaremos un email de confirmación y nos pondremos en contacto contigo para gestionar tu contrato de renting."
                     : "Te contactaremos en menos de 2 horas en el horario indicado."}
                 </div>

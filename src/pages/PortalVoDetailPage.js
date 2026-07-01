@@ -606,7 +606,12 @@ export default function PortalVoDetailPage({
                 <SlotPicker
                   offerId={selectedPortalVoOffer.id}
                   vehicleTitle={selectedPortalVoOffer.title}
-                  sellerEmail={selectedPortalVoOffer.userEmail || selectedPortalVoOffer.sellerEmail || null}
+                  sellerEmail={
+                    (selectedPortalVoOffer.seller?.includes?.("@") ? selectedPortalVoOffer.seller : null)
+                    || selectedPortalVoOffer.userEmail
+                    || selectedPortalVoOffer.sellerEmail
+                    || null
+                  }
                   userEmail={reqForm.email || currentUser?.email || ""}
                   userName={reqForm.name || currentUser?.name || ""}
                   userPhone={reqForm.phone || currentUser?.phone || ""}

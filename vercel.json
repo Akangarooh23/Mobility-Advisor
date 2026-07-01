@@ -22,11 +22,11 @@
     },
     {
       "source": "/api/workshops-nearby",
-      "destination": "/api/workshops?route=nearby"
+      "destination": "/api/market?route=nearby"
     },
     {
       "source": "/api/workshop-availability",
-      "destination": "/api/workshops?route=availability"
+      "destination": "/api/market?route=availability"
     },
     {
       "source": "/api/billing-account",

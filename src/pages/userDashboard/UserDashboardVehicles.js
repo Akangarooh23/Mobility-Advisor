@@ -374,6 +374,7 @@ export default function UserDashboardVehicles({
   const [isSaving, setIsSaving] = useState(false);
   const [marketplacePublishDialog, setMarketplacePublishDialog] = useState({ open: false, vehicle: null, modalPrice: "", dialogSlots: null });
   const [vehicleBookings, setVehicleBookings] = useState({});
+  const [slotsDialog, setSlotsDialog] = useState({ open: false, vehicleId: null });
   const [expandedVehicleSections, setExpandedVehicleSections] = useState({
     characteristics: true,
     marketplace: false,
@@ -1102,6 +1103,24 @@ export default function UserDashboardVehicles({
     } catch {
       // silent
     }
+  }
+
+  async function cancelSellerBooking(vehicleId, bookingId, token) {
+    if (!window.confirm("¿Cancelar esta visita? Se notificará al comprador.")) return;
+    try {
+      const r = await fetch("/api/visit-availability", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ route: "cancel", bookingId, token }),
+      });
+      const d = await r.json();
+      if (d.ok) {
+        setVehicleBookings((prev) => ({
+          ...prev,
+          [vehicleId]: (prev[vehicleId] || []).filter((b) => b.id !== bookingId),
+        }));
+      }
+    } catch { /* silent */ }
   }
 
   const closeMarketplacePublishDialog = () => {
@@ -2406,23 +2425,42 @@ export default function UserDashboardVehicles({
                               {t("dashboard.vehPublish")}
                             </button>
                           )}
+                          {(overriddenMarketplaceStates[vehicle.id] ?? vehicle.marketplaceState) === "active_sale" && (
+                            <button
+                              type="button"
+                              onClick={() => setSlotsDialog({ open: true, vehicleId: vehicle.id })}
+                              style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.22)", color: isDark ? "#a5b4fc" : "#4338ca", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%", marginTop: 4 }}
+                            >
+                              🗓 Gestionar franjas horarias
+                            </button>
+                          )}
                           {vehicle.marketplaceState === "active_sale" && vehicleBookings[vehicle.id] && vehicleBookings[vehicle.id].length > 0 && (
-                            <div style={{ marginTop: 8, padding: "10px 12px", background: "#f0f9ff", border: "1.5px solid #bae6fd", borderRadius: 10 }}>
-                              <div style={{ fontSize: 11, fontWeight: 700, color: "#0369a1", marginBottom: 6, textTransform: "uppercase", letterSpacing: ".4px" }}>
-                                Citas confirmadas ({vehicleBookings[vehicle.id].length})
+                            <div style={{ marginTop: 8, background: "#f0f9ff", border: "1.5px solid #bae6fd", borderRadius: 10, overflow: "hidden" }}>
+                              <div style={{ padding: "8px 12px", borderBottom: "1px solid #e0f2fe", fontSize: 11, fontWeight: 700, color: "#0369a1", textTransform: "uppercase", letterSpacing: ".4px" }}>
+                                📅 Citas confirmadas ({vehicleBookings[vehicle.id].length})
                               </div>
-                              {vehicleBookings[vehicle.id].slice(0, 3).map((b) => (
-                                <div key={b.id} style={{ fontSize: 11, color: "#1C2B33", marginBottom: 3 }}>
-                                  📅 {new Date(b.starts_at).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" })}
-                                  {" · "}
-                                  {new Date(b.starts_at).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
-                                  {" — "}
-                                  <span style={{ fontWeight: 600 }}>{b.buyer_name || b.buyer_email}</span>
+                              {vehicleBookings[vehicle.id].map((b) => (
+                                <div key={b.id} style={{ padding: "8px 12px", borderBottom: "1px solid #e0f2fe", display: "flex", alignItems: "center", gap: 6 }}>
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontSize: 11, fontWeight: 700, color: "#0c4a6e" }}>
+                                      {new Date(b.starts_at).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" })}
+                                      {" · "}
+                                      {new Date(b.starts_at).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
+                                    </div>
+                                    <div style={{ fontSize: 10, color: "#0369a1", marginTop: 1 }}>
+                                      {b.buyer_name || "—"}
+                                      {b.buyer_phone ? ` · ${b.buyer_phone}` : ""}
+                                    </div>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => cancelSellerBooking(vehicle.id, b.id, b.token_seller)}
+                                    style={{ flexShrink: 0, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", color: "#dc2626", borderRadius: 6, padding: "3px 7px", fontSize: 10, fontWeight: 700, cursor: "pointer" }}
+                                  >
+                                    Cancelar
+                                  </button>
                                 </div>
                               ))}
-                              {vehicleBookings[vehicle.id].length > 3 && (
-                                <div style={{ fontSize: 10, color: "#64748b" }}>+{vehicleBookings[vehicle.id].length - 3} más</div>
-                              )}
                             </div>
                           )}
                         </div>
@@ -2432,6 +2470,33 @@ export default function UserDashboardVehicles({
                 </div>;
               })}
 
+              {slotsDialog.open && (
+                <div
+                  onClick={() => setSlotsDialog({ open: false, vehicleId: null })}
+                  style={{ position: "fixed", inset: 0, zIndex: 1300, background: isDark ? "rgba(2,6,23,0.75)" : "rgba(15,23,42,0.4)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+                >
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ background: isDark ? "#0f172a" : "#fff", borderRadius: 14, padding: 24, width: "min(560px, 100%)", maxHeight: "85vh", overflowY: "auto", boxShadow: "0 8px 40px rgba(0,0,0,.18)" }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>🗓 Gestionar franjas horarias</div>
+                      <button
+                        type="button"
+                        onClick={() => setSlotsDialog({ open: false, vehicleId: null })}
+                        style={{ background: "none", border: "none", fontSize: 20, color: isDark ? "#94a3b8" : "#64748b", cursor: "pointer" }}
+                      >×</button>
+                    </div>
+                    <p style={{ fontSize: 13, color: isDark ? "#94a3b8" : "#64748b", marginBottom: 16, marginTop: 0 }}>
+                      Añade o elimina franjas horarias en las que los compradores pueden solicitar visitar tu vehículo.
+                    </p>
+                    <AvailabilityEditor
+                      offerId={`idcar-${slotsDialog.vehicleId}`}
+                      source="marketplace"
+                    />
+                  </div>
+                </div>
+              )}
               {marketplacePublishDialog.open && marketplacePublishDialog.vehicle ? (
                 <div
                   onClick={closeMarketplacePublishDialog}

@@ -32,6 +32,7 @@ import ServiceIdCarsManagePage from "./pages/ServiceIdCarsManagePage";
 import ViewingProposePage from "./pages/ViewingProposePage";
 import ViewingConfirmPage from "./pages/ViewingConfirmPage";
 import LegalPolicyPage from "./pages/LegalPolicyPage";
+import MiCitaPage from "./pages/MiCitaPage";
 import SeoStaticPage from "./pages/SeoStaticPage";
 import AboutCarswisePage from "./pages/AboutCarswisePage";
 import ContactCarswisePage from "./pages/ContactCarswisePage";
@@ -4255,6 +4256,11 @@ export default function App() {
 
   // -------------------- STYLES --------------------
   const s = useMemo(() => createAppStyles(progress, themeMode), [progress, themeMode]);
+
+  // -------------------- MI CITA STANDALONE PAGE --------------------
+  if (typeof window !== "undefined" && window.location.pathname === "/mi-cita") {
+    return <MiCitaPage />;
+  }
 
   // -------------------- LEGAL STANDALONE PAGE --------------------
   const LEGAL_ENTRY_MODES = ["legalNotice", "privacyPolicy", "cookiePolicy", "termsConditions", "marketingPolicy", "experianPolicy", "experianTerms"];

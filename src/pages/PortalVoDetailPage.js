@@ -549,7 +549,7 @@ export default function PortalVoDetailPage({
                 letterSpacing: "0.02em",
               }}
             >
-              {isRentingReserved ? "Unidad reservada" : isParticular ? "Solicitar visita al vendedor" : isRentingOffer ? "🔑 Solicitar esta oferta de renting" : "Solicitar información"}
+              {isRentingReserved ? "Unidad reservada" : !isRentingOffer ? "Solicitar visita" : "🔑 Solicitar esta oferta de renting"}
             </button>
           </div>
         </div>
@@ -594,11 +594,11 @@ export default function PortalVoDetailPage({
               boxShadow: "0 24px 64px rgba(0,0,0,0.3)",
             }}
           >
-            {/* SlotPicker for particular seller offers */}
-            {isParticular ? (
+            {/* SlotPicker for all non-renting offers */}
+            {!isRentingOffer ? (
               <div>
                 <div style={{ fontSize: 15, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 4 }}>
-                  Solicitar visita al vendedor
+                  Solicitar visita
                 </div>
                 <div style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b", marginBottom: 16 }}>
                   {selectedPortalVoOffer.title}
@@ -611,7 +611,10 @@ export default function PortalVoDetailPage({
                   userName={reqForm.name || currentUser?.name || ""}
                   userPhone={reqForm.phone || currentUser?.phone || ""}
                   source="marketplace"
-                  onBooked={() => {}}
+                  onBooked={(booking) => {
+                    trackLead({ content_name: selectedPortalVoOffer.title, content_ids: [selectedPortalVoOffer.id], currency: "EUR", value: selectedPortalVoOffer.price || 0 });
+                    trackFunnelEvent("booking_confirmed", { offer_id: selectedPortalVoOffer.id, offer_title: selectedPortalVoOffer.title });
+                  }}
                 />
                 <button
                   type="button"

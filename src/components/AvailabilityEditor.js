@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 
-const API = "/api/visit-availability";
-
 function fmtDate(iso) {
   return new Date(iso).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" });
 }
@@ -23,7 +21,8 @@ function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export default function AvailabilityEditor({ offerId, source }) {
+export default function AvailabilityEditor({ offerId, source, onSlotsChange, apiBase }) {
+  const API = apiBase || "/api/visit-availability";
   const [slots, setSlots]       = useState([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState("");
@@ -39,6 +38,7 @@ export default function AvailabilityEditor({ offerId, source }) {
       const r = await fetch(`${API}?offerId=${encodeURIComponent(offerId)}`);
       const d = await r.json();
       setSlots(d.slots || []);
+      if (onSlotsChange) onSlotsChange(d.slots || []);
     } catch {
       setError("No se pudo cargar la disponibilidad");
     }
@@ -63,7 +63,12 @@ export default function AvailabilityEditor({ offerId, source }) {
       });
       const d = await r.json();
       if (!d.ok) { setError(d.error || "Error al añadir"); }
-      else { setSuccess("Franja añadida"); setSlots((prev) => [...prev, d.slot].sort((a, b) => a.starts_at > b.starts_at ? 1 : -1)); }
+      else {
+        setSuccess("Franja añadida");
+        const updated = [...slots, d.slot].sort((a, b) => a.starts_at > b.starts_at ? 1 : -1);
+        setSlots(updated);
+        if (onSlotsChange) onSlotsChange(updated);
+      }
     } catch { setError("Error de conexión"); }
     setAdding(false);
   }
@@ -74,6 +79,7 @@ export default function AvailabilityEditor({ offerId, source }) {
     try {
       await fetch(`${API}?route=delete_slot&slotId=${slot.id}&offerId=${offerId}`, { method: "DELETE" });
       setSlots((prev) => prev.filter((s) => s.id !== slot.id));
+      if (onSlotsChange) onSlotsChange(slots.filter((s) => s.id !== slot.id));
     } catch { setError("Error al eliminar"); }
     setRemoving(null);
   }

@@ -372,7 +372,8 @@ export default function UserDashboardVehicles({
     setFn(valid);
   };
   const [isSaving, setIsSaving] = useState(false);
-  const [marketplacePublishDialog, setMarketplacePublishDialog] = useState({ open: false, vehicle: null, modalPrice: "" });
+  const [marketplacePublishDialog, setMarketplacePublishDialog] = useState({ open: false, vehicle: null, modalPrice: "", dialogSlots: null });
+  const [vehicleBookings, setVehicleBookings] = useState({});
   const [expandedVehicleSections, setExpandedVehicleSections] = useState({
     characteristics: true,
     marketplace: false,
@@ -484,6 +485,11 @@ export default function UserDashboardVehicles({
         const apiVehicles = await fetchGarageVehiclesFromApi(currentUserEmail);
         if (!disposed && Array.isArray(apiVehicles)) {
           setMyVehicles(apiVehicles);
+          apiVehicles.forEach((v) => {
+            if ((v.marketplaceState) === "active_sale") {
+              loadVehicleBookings(v.id);
+            }
+          });
         }
       } catch {
         // Keep local fallback when API is unavailable.
@@ -1087,6 +1093,17 @@ export default function UserDashboardVehicles({
     setVehicleFeedback(`${feedbackPrefix} ${vehicleLabel}.`);
   };
 
+  async function loadVehicleBookings(vehicleId) {
+    try {
+      const offerId = `idcar-${vehicleId}`;
+      const r = await fetch(`/api/visit-availability?route=bookings&offerId=${encodeURIComponent(offerId)}`);
+      const d = await r.json();
+      setVehicleBookings((prev) => ({ ...prev, [vehicleId]: d.bookings || [] }));
+    } catch {
+      // silent
+    }
+  }
+
   const closeMarketplacePublishDialog = () => {
     setMarketplacePublishDialog({ open: false, vehicle: null });
 
@@ -1177,6 +1194,7 @@ export default function UserDashboardVehicles({
 
       setMarketplacePublishDialog({
         open: true,
+        dialogSlots: null,
         vehicle: {
           id: normalizeText(vehicle?.id),
           title: vehicleLabel,
@@ -2388,6 +2406,25 @@ export default function UserDashboardVehicles({
                               {t("dashboard.vehPublish")}
                             </button>
                           )}
+                          {vehicle.marketplaceState === "active_sale" && vehicleBookings[vehicle.id] && vehicleBookings[vehicle.id].length > 0 && (
+                            <div style={{ marginTop: 8, padding: "10px 12px", background: "#f0f9ff", border: "1.5px solid #bae6fd", borderRadius: 10 }}>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: "#0369a1", marginBottom: 6, textTransform: "uppercase", letterSpacing: ".4px" }}>
+                                Citas confirmadas ({vehicleBookings[vehicle.id].length})
+                              </div>
+                              {vehicleBookings[vehicle.id].slice(0, 3).map((b) => (
+                                <div key={b.id} style={{ fontSize: 11, color: "#1C2B33", marginBottom: 3 }}>
+                                  📅 {new Date(b.starts_at).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" })}
+                                  {" · "}
+                                  {new Date(b.starts_at).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
+                                  {" — "}
+                                  <span style={{ fontWeight: 600 }}>{b.buyer_name || b.buyer_email}</span>
+                                </div>
+                              ))}
+                              {vehicleBookings[vehicle.id].length > 3 && (
+                                <div style={{ fontSize: 10, color: "#64748b" }}>+{vehicleBookings[vehicle.id].length - 3} más</div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       ) : null}
                     </div>
@@ -2464,43 +2501,58 @@ export default function UserDashboardVehicles({
                     <AvailabilityEditor
                       offerId={`idcar-${marketplacePublishDialog.vehicle.id}`}
                       source="marketplace"
+                      onSlotsChange={(slots) => setMarketplacePublishDialog((prev) => ({ ...prev, dialogSlots: slots }))}
                     />
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <button
-                        ref={marketplacePublishPrimaryButtonRef}
-                        type="button"
-                        onClick={confirmMarketplacePublish}
-                        disabled={!marketplacePublishDialog.vehicle.price && !marketplacePublishDialog.modalPrice}
-                        style={{
-                          background: (marketplacePublishDialog.vehicle.price || marketplacePublishDialog.modalPrice) ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "#d1d5db",
-                          color: "#ffffff",
-                          border: "none",
-                          borderRadius: 8,
-                          padding: "8px 12px",
-                          fontSize: 11,
-                          fontWeight: 700,
-                          cursor: (marketplacePublishDialog.vehicle.price || marketplacePublishDialog.modalPrice) ? "pointer" : "not-allowed",
-                        }}
-                      >
-                        {t("dashboard.vehPublishConfirm")}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={closeMarketplacePublishDialog}
-                        style={{
-                          background: "rgba(148,163,184,0.14)",
-                          color: titleColor,
-                          border: cardBorder,
-                          borderRadius: 8,
-                          padding: "8px 12px",
-                          fontSize: 11,
-                          fontWeight: 700,
-                          cursor: "pointer",
-                        }}
-                      >
-                        Cancelar
-                      </button>
-                    </div>
+                    {marketplacePublishDialog.dialogSlots !== null && marketplacePublishDialog.dialogSlots.length === 0 && (
+                      <div style={{ fontSize: 11, color: "#dc2626", fontWeight: 600, padding: "4px 0" }}>
+                        Añade al menos 1 franja horaria para poder publicar
+                      </div>
+                    )}
+                    {(() => {
+                      const canPublish = (marketplacePublishDialog.vehicle.price || marketplacePublishDialog.modalPrice)
+                        && !(marketplacePublishDialog.dialogSlots !== null && marketplacePublishDialog.dialogSlots.length === 0);
+                      return (
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                          <button
+                            ref={marketplacePublishPrimaryButtonRef}
+                            type="button"
+                            onClick={confirmMarketplacePublish}
+                            disabled={
+                              (!marketplacePublishDialog.vehicle.price && !marketplacePublishDialog.modalPrice) ||
+                              (marketplacePublishDialog.dialogSlots !== null && marketplacePublishDialog.dialogSlots.length === 0)
+                            }
+                            style={{
+                              background: canPublish ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "#d1d5db",
+                              color: "#ffffff",
+                              border: "none",
+                              borderRadius: 8,
+                              padding: "8px 12px",
+                              fontSize: 11,
+                              fontWeight: 700,
+                              cursor: canPublish ? "pointer" : "not-allowed",
+                            }}
+                          >
+                            {t("dashboard.vehPublishConfirm")}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={closeMarketplacePublishDialog}
+                            style={{
+                              background: "rgba(148,163,184,0.14)",
+                              color: titleColor,
+                              border: cardBorder,
+                              borderRadius: 8,
+                              padding: "8px 12px",
+                              fontSize: 11,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                            }}
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               ) : null}

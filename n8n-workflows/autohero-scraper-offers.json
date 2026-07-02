@@ -1,0 +1,714 @@
+{
+  "name": "Extraccion Autohero",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "54086f1f-73cc-44f9-8690-d11546a9e6fb",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.autohero.com/v1/retail-customer-gateway/graphql/searchAdV9AdsV2",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "*/*"
+            },
+            {
+              "name": "accept-language",
+              "value": "es,es-ES;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6"
+            },
+            {
+              "name": "origin",
+              "value": "https://www.autohero.com"
+            },
+            {
+              "name": "priority",
+              "value": "u=1, i"
+            },
+            {
+              "name": "referer",
+              "value": "https://www.autohero.com/es/v4/search/?utm_expid=.7pIhB8BjUbxXiLQO9nLvsI.1"
+            },
+            {
+              "name": "rq-sender",
+              "value": "search-0.0.768"
+            },
+            {
+              "name": "rq-sender-app",
+              "value": "web"
+            },
+            {
+              "name": "rq-sender-device-type",
+              "value": "mobile"
+            },
+            {
+              "name": "sec-ch-ua",
+              "value": "\"Microsoft Edge\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+            },
+            {
+              "name": "sec-ch-ua-mobile",
+              "value": "?1"
+            },
+            {
+              "name": "sec-ch-ua-platform",
+              "value": "\"Android\""
+            },
+            {
+              "name": "sec-fetch-dest",
+              "value": "empty"
+            },
+            {
+              "name": "sec-fetch-mode",
+              "value": "cors"
+            },
+            {
+              "name": "sec-fetch-site",
+              "value": "same-origin"
+            },
+            {
+              "name": "user-agent",
+              "value": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Mobile Safari/537.36 Edg/147.0.0.0"
+            },
+            {}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"operationName\": \"searchAdV9AdsV2\",\n  \"variables\": {\n    \"search\": {\n      \"offset\": {{ $json.offset }},\n      \"limit\": {{ $json.limit }},\n      \"sort\": \"most_popular\",\n      \"filter\": {\n        \"field\": \"countryCode\",\n        \"op\": \"eq\",\n        \"value\": \"ES\"\n      },\n      \"aggs\": [],\n      \"postFilter\": null,\n      \"fields\": [\n        \"registration\",\n        \"firstEligibleToBePurchasedAt\",\n        \"variablePositioning\"\n      ],\n      \"properties\": {\n        \"abTestViewParams\": null,\n        \"firstPublishedDays\": -30,\n        \"shuffleCategoryBResults\": true,\n        \"resultsCombiner\": \"abbabbc\",\n        \"filterByEligibleDate\": true,\n        \"includeProspective\": true\n      }\n    },\n    \"tradeInId\": null\n  },\n  \"query\": \"query searchAdV9AdsV2($search: EsSearchRequestProjectionInput!, $tradeInId: UUID) {\\n  searchAdV9AdsV2(search: $search, tradeInId: $tradeInId)\\n}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        624,
+        0
+      ],
+      "id": "244989b9-ff73-4e6b-b06a-a68eb1bd312f",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -16,
+        192
+      ],
+      "id": "6a216f28-d7bd-403e-b0ac-c81854a46843",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = [];\nconst now = new Date().toISOString();\n\nconst fuelMap = {\n  1040: 'Diesel', 1041: 'Gasolina', 1042: 'Eléctrico',\n  1043: 'Híbrido enchufable', 1044: 'Gas', 1039: 'Híbrido', 1046: 'Híbrido'\n};\nconst gearMap = { 1138: 'Manual', 1139: 'Automatica', 1140: 'Automatica', 1141: 'Automatica' };\n\nfunction normalizeTraction(raw) {\n  var s = String(raw || '').toLowerCase();\n  if (!s) return '';\n  if (s.indexOf('4x4') !== -1 || s.indexOf('4wd') !== -1 || s.indexOf('awd') !== -1 || s.indexOf('total') !== -1 || s.indexOf('integral') !== -1) return '4x4';\n  if (s.indexOf('tras') !== -1 || s.indexOf('rwd') !== -1 || s.indexOf('rear') !== -1) return 'Trasera';\n  if (s.indexOf('del') !== -1 || s.indexOf('fwd') !== -1 || s.indexOf('front') !== -1) return 'Delantera';\n  return '';\n}\n\nfunction normalizeLabel(raw) {\n  var s = String(raw || '').toLowerCase().trim();\n  if (!s) return '';\n  if (s === 'zero' || s === 'cero' || s === '0' || s.indexOf('0 emis') !== -1) return '0 Emisiones';\n  if (s === 'eco' || s === 'e') return 'ECO';\n  if (s === 'c' || s === 'green') return 'C';\n  if (s === 'b' || s === 'yellow') return 'B';\n  return String(raw).toUpperCase();\n}\n\nfor (const input of $input.all()) {\n  const cars = input.json?.data?.searchAdV9AdsV2?.data || [];\n\n  for (const car of cars) {\n    const price = car.offerPrice\n      ? Math.round(car.offerPrice.amountMinorUnits / car.offerPrice.conversionMajor)\n      : null;\n    const monthly = car.monthlyPayment\n      ? Math.round(car.monthlyPayment.amountMinorUnits / car.monthlyPayment.conversionMajor)\n      : null;\n\n    const city     = car.esBranch?.city || '';\n    const province = car.esBranch?.state || car.esBranch?.region || car.esBranch?.province || '';\n    const location = [city, province].filter(Boolean).join(', ');\n\n    let fuel = fuelMap[car.fuelType] || String(car.fuelType || '');\n    let envLabel = normalizeLabel(car.emissionSticker);\n    // PHEV: un híbrido con etiqueta 0 Emisiones es enchufable (los HEV normales son ECO)\n    if (fuel === 'Híbrido' && envLabel === '0 Emisiones') fuel = 'Híbrido enchufable';\n\n    items.push({ json: {\n      id: `ah_${car.id}`,\n      portal: 'autohero',\n      url: `https://www.autohero.com/es/${car.carUrlTitle || 'coche'}/id/${car.id}/`,\n      title: `${car.manufacturer} ${car.model} ${car.subType || ''}`.trim(),\n      brand: car.manufacturer || '',\n      model: car.model || '',\n      version: `${car.subType || ''} ${car.subTypeExtra || ''}`.trim(),\n      price,\n      monthly_price: monthly,\n      year: car.builtYear || car.firstRegistrationYear || null,\n      mileage: car.mileage?.distance || null,\n      fuel: fuel,\n      transmission: gearMap[car.gearType] || '',\n      image_url: (car.mainImageUrl || '').replace('{size}', '768x432-'),\n      power_kw: car.kw || null,\n      power_cv: car.kw ? Math.round(car.kw * 1.35962) : null,\n      city,\n      province,\n      location,\n      dealer_name: car.esBranch?.name || '',\n      co2: car.co2Value ? String(car.co2Value) : '',\n      displacement: car.ccm ? String(car.ccm) : '',\n      consumption: car.fuelConsumption?.combined || null,\n      listing_type: 'compra',\n      seller_type: 'profesional',\n      body_type: '',\n      environmental_label: envLabel,\n      doors: car.numberOfDoors || null,\n      seats: car.numberOfSeats || null,\n      warranty_months: null,\n      traction: normalizeTraction(car.driveTrain),\n      next_itv: null,\n      scraped_at: now,\n      last_seen_at: now,\n      first_seen_at: now\n    }});\n  }\n}\n\nreturn items;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "d122efd2-fa27-4301-a8d5-052617b750fc",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "moveadvisor_market_offers",
+          "mode": "list",
+          "cachedResultName": "moveadvisor_market_offers"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "year": "={{ $json.year }}",
+            "mileage": "={{ $json.mileage }}",
+            "finance_price": 0,
+            "doors": 0,
+            "seats": 0,
+            "power_cv": 0,
+            "warranty_months": 0,
+            "power_kw": 0,
+            "consumption": 0,
+            "id": "={{ $json.id }}",
+            "portal": "={{ $json.portal }}",
+            "url": "={{ $json.url }}",
+            "brand": "={{ $json.brand }}",
+            "model": "={{ $json.model }}",
+            "version": "={{ $json.version }}",
+            "price": "={{ $json.price }}",
+            "images": "={{ $json.image_url }}",
+            "scraped_at": "={{ $json.scraped_at }}",
+            "last_seen_at": "={{ $json.last_seen_at }}",
+            "first_seen_at": "={{ $json.first_seen_at }}",
+            "image_url": "={{ $json.image_url }}",
+            "title": "={{ $json.title }}",
+            "fuel": "={{ $json.fuel }}",
+            "transmission": "={{ $json.transmission }}",
+            "monthly_price": "={{ $json.monthly_price }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": true,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "portal",
+              "displayName": "portal",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "url",
+              "displayName": "url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "brand",
+              "displayName": "brand",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "model",
+              "displayName": "model",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "version",
+              "displayName": "version",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "year",
+              "displayName": "year",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "mileage",
+              "displayName": "mileage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "fuel",
+              "displayName": "fuel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "transmission",
+              "displayName": "transmission",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "color",
+              "displayName": "color",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "location",
+              "displayName": "location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "images",
+              "displayName": "images",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "raw_payload",
+              "displayName": "raw_payload",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "scraped_at",
+              "displayName": "scraped_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "listing_type",
+              "displayName": "listing_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "monthly_price",
+              "displayName": "monthly_price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "finance_price",
+              "displayName": "finance_price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "province",
+              "displayName": "province",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "city",
+              "displayName": "city",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "image_url",
+              "displayName": "image_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "listed_at",
+              "displayName": "listed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "source_updated_at",
+              "displayName": "source_updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "first_seen_at",
+              "displayName": "first_seen_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "last_seen_at",
+              "displayName": "last_seen_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "body_type",
+              "displayName": "body_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "environmental_label",
+              "displayName": "environmental_label",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "doors",
+              "displayName": "doors",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "seats",
+              "displayName": "seats",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "power_cv",
+              "displayName": "power_cv",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "seller_type",
+              "displayName": "seller_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "dealer_name",
+              "displayName": "dealer_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "warranty_months",
+              "displayName": "warranty_months",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "traction",
+              "displayName": "traction",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "displacement",
+              "displayName": "displacement",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "co2",
+              "displayName": "co2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "next_itv",
+              "displayName": "next_itv",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "power_kw",
+              "displayName": "power_kw",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "consumption",
+              "displayName": "consumption",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "82f3aa5c-f458-4343-a730-ca61368522de",
+      "name": "Insert or update rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const LIMIT = 100;\nconst TOTAL = 2800; // margen sobre 2734\n\nconst items = [];\nfor (let offset = 0; offset < TOTAL; offset += LIMIT) {\n  items.push({ json: { offset, limit: LIMIT } });\n}\nreturn items; // 28 items\n\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "0bf114a6-9c8e-4729-9eb1-4072841f84bc",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "11de703a-b76f-46c1-a7c4-f0767735b784",
+      "name": "Wait",
+      "webhookId": "0b3bb535-4796-418d-b668-8c9abcf62734"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 2
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -32,
+        -176
+      ],
+      "id": "58338c19-c714-4379-a3f1-213b1fafc5a1",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Insert or update rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert or update rows in a table": {
+      "main": [
+        []
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "9BwKOPMIzjj3owho",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "pinData": {},
+  "staticData": null,
+  "triggerCount": 0,
+  "tags": []
+}

@@ -3,11 +3,14 @@
   "nodes": [
     {
       "parameters": {},
-      "id": "node-manual-trigger",
+      "id": "fb4a78b7-e0d3-4362-ac9e-fe3d51c422ca",
       "name": "Ejecutar manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [0, 300]
+      "position": [
+        -2224,
+        32
+      ]
     },
     {
       "parameters": {
@@ -20,70 +23,102 @@
           ]
         }
       },
-      "id": "node-schedule-trigger",
+      "id": "59f7f3cf-dca1-4f10-b4fd-0659c47b7277",
       "name": "Cada día a las 3:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
-      "position": [0, 500]
+      "position": [
+        -2224,
+        224
+      ]
     },
     {
       "parameters": {
-        "language": "javaScript",
-        "jsCode": "const pages = [];\nfor (let i = 1; i <= 1020; i++) {\n  pages.push({ json: { page: i } });\n}\nreturn pages;"
+        "url": "=https://www.flexicar.es/coches-segunda-mano/",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 25000
+        }
       },
-      "id": "node-code-pages",
+      "id": "02bfefad-30f1-4417-82ba-185fe353b4d8",
+      "name": "HTTP: Home (buildId)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -1984,
+        128
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extraer el buildId actual de Next.js (cambia en cada despliegue de Flexicar).\n// Se usará para la vía JSON /_next/data/{buildId}/...\nconst html = typeof $input.item.json === 'string' ? $input.item.json\n  : String($input.item.json.data || $input.item.json.body || '');\nconst m = html.match(/\"buildId\":\"([^\"]+)\"/);\nconst buildId = m ? m[1] : '';\nconsole.log('[flexicar-scraper] buildId=' + buildId);\nreturn [{ json: { buildId: buildId } }];"
+      },
+      "id": "592a7761-db4d-450c-a563-e29347dec264",
+      "name": "Code: Extraer buildId",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1760,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Genera las páginas a recorrer, arrastrando el buildId a cada una.\n// ~22.338 coches / 12 por página ≈ 1.862 páginas. Techo amplio: el loop\n// se corta solo al primer page sin coches (early-exit del IF final).\nconst buildId = $input.item.json.buildId || '';\nconst pages = [];\nfor (let i = 1; i <= 2000; i++) {\n  pages.push({ json: { page: i, buildId: buildId } });\n}\nreturn pages;"
+      },
+      "id": "8681893a-38bd-400a-83ed-e75799352874",
       "name": "Code: Generar páginas",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [240, 400]
+      "position": [
+        -1536,
+        128
+      ]
     },
     {
       "parameters": {
-        "batchSize": 1,
         "options": {}
       },
-      "id": "node-loop-pages",
+      "id": "84b68704-44cb-4521-a5f8-10ad0dff70a1",
       "name": "Loop: página por página",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
-      "position": [480, 400]
+      "position": [
+        -1328,
+        128
+      ]
     },
     {
       "parameters": {
-        "method": "GET",
-        "url": "=https://services.flexicar.es/api/v1/vehicles?page={{ $json.page }}&size=24",
+        "url": "=https://www.flexicar.es/_next/data/{{ $json.buildId }}/coches-segunda-mano.json?page={{ $json.page }}",
         "options": {
-          "timeout": 20000,
-          "headers": {
-            "values": [
-              {
-                "name": "Accept",
-                "value": "application/json"
-              },
-              {
-                "name": "User-Agent",
-                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-              }
-            ]
-          }
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 25000
         }
       },
-      "id": "node-http-api",
-      "name": "HTTP: API Flexicar",
+      "id": "c7e4a07b-5282-4b7a-b910-e6ab597d8c39",
+      "name": "HTTP: JSON (rápido)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [720, 400]
-    },
-    {
-      "parameters": {
-        "language": "javaScript",
-        "jsCode": "const response = $input.item.json;\nconst vehicles = response.results || [];\n\nif (!vehicles.length) {\n  return [{ json: { sql: null, count: 0, skipped: true } }];\n}\n\nfunction normalizeFuel(raw) {\n  const s = String(raw || \"\").toLowerCase();\n  if (s.indexOf(\"diesel\") !== -1) return \"Diesel\";\n  if (s.indexOf(\"electr\") !== -1) return \"Eléctrico\";\n  if (s.indexOf(\"enchufable\") !== -1 || s.indexOf(\"plug\") !== -1) return \"Híbrido enchufable\";\n  if (s.indexOf(\"hibrido\") !== -1 || s.indexOf(\"híbrido\") !== -1 || s.indexOf(\"hybrid\") !== -1) return \"Híbrido\";\n  if (s.indexOf(\"gasolina\") !== -1 || s.indexOf(\"petrol\") !== -1) return \"Gasolina\";\n  if (s.indexOf(\"glp\") !== -1 || s.indexOf(\"gas\") !== -1) return \"Gas\";\n  return raw || \"\";\n}\n\nfunction normalizeGear(raw) {\n  const s = String(raw || \"\").toLowerCase();\n  if (s.indexOf(\"autom\") !== -1) return \"Automatica\";\n  if (s.indexOf(\"manual\") !== -1) return \"Manual\";\n  return raw || \"\";\n}\n\nfunction esc(v) {\n  if (v === null || v === undefined) return \"NULL\";\n  if (typeof v === \"number\") return isNaN(v) ? \"NULL\" : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\n\nconst rows = [];\nfor (const v of vehicles) {\n  const id = String(v.id);\n  const url = v.slug ? \"https://www.flexicar.es/coches-ocasion/\" + v.slug + \"/\" : \"\";\n  const brand = v.brand || \"\";\n  const model = v.model || \"\";\n  const version = v.version || \"\";\n  const kwMatch = version.match(/(\\d+)\\s*kW/i);\n  const cvMatch = version.match(/\\((\\d+)\\s*CV\\)/i);\n  const powerKw = kwMatch ? parseInt(kwMatch[1], 10) : null;\n  const powerCv = cvMatch ? parseInt(cvMatch[1], 10) : (kwMatch ? Math.round(parseInt(kwMatch[1], 10) * 1.3596) : null);\n  const year = (v.year != null) ? String(v.year) : \"NULL\";\n  const mileage = (v.km != null) ? String(v.km) : \"NULL\";\n  const fuel = normalizeFuel(v.fuel);\n  const transmission = normalizeGear(v.transmission);\n  const price = (v.price != null) ? String(v.price) : \"NULL\";\n  const financePrice = (v.quotaPrice != null) ? String(v.quotaPrice) : \"NULL\";\n  const imageUrl = v.image || \"\";\n  const imagesArr = Array.isArray(v.images) ? v.images.slice(0, 10) : (imageUrl ? [imageUrl] : []);\n  const imagesJson = JSON.stringify(imagesArr).replace(/'/g, \"''\");\n  const ecoSticker = v.ecuSticker || \"\";\n  const dealerRaw = v.carDealership || \"Flexicar\";\n  const dealerName = typeof dealerRaw === \"string\" ? dealerRaw : (dealerRaw.name || \"Flexicar\");\n  const city = typeof dealerRaw === \"string\" ? (dealerRaw.split(\" - \")[0] || \"\") : (dealerRaw.city || \"\");\n  const location = city || \"Toda España\";\n\n  const row = \"(\" +\n    esc(id) + \", \" + esc(url) + \", \" + esc(brand) + \", \" + esc(model) + \", \" +\n    esc(version) + \", \" + year + \", \" + mileage + \", \" +\n    esc(fuel) + \", \" + esc(transmission) + \", \" +\n    price + \", \" + financePrice + \", \" +\n    esc(imageUrl) + \", '\" + imagesJson + \"', \" +\n    esc(ecoSticker) + \", \" + esc(dealerName) + \", \" +\n    esc(city) + \", \" + esc(location) + \", \" +\n    \"'flexicar', 'profesional', 'compra', 12, \" + (powerCv !== null ? String(powerCv) : \"NULL\") + \", \" + (powerKw !== null ? String(powerKw) : \"NULL\") + \", NOW()\" +\n  \")\";\n  rows.push(row);\n}\n\nconst cols = \"id, url, brand, model, version, year, mileage, fuel, transmission, price, finance_price, image_url, images, environmental_label, dealer_name, city, location, portal, seller_type, listing_type, warranty_months, power_cv, power_kw, first_seen_at\";\n\nconst onConflict = \"ON CONFLICT (id) DO UPDATE SET \" +\n  \"url = EXCLUDED.url, \" +\n  \"price = EXCLUDED.price, \" +\n  \"mileage = EXCLUDED.mileage, \" +\n  \"finance_price = EXCLUDED.finance_price, \" +\n  \"image_url = COALESCE(NULLIF(moveadvisor_market_offers.image_url, ''), EXCLUDED.image_url), \" +\n  \"images = COALESCE(NULLIF(moveadvisor_market_offers.images, ''), EXCLUDED.images), \" +\n  \"environmental_label = COALESCE(NULLIF(moveadvisor_market_offers.environmental_label, ''), EXCLUDED.environmental_label), \" +\n  \"power_cv = EXCLUDED.power_cv, \" +\n  \"power_kw = EXCLUDED.power_kw, \" +\n  \"updated_at = NOW()\";\n\nconst sql = \"INSERT INTO moveadvisor_market_offers (\" + cols + \") VALUES \" + rows.join(\", \") + \" \" + onConflict;\n\nreturn [{ json: { sql: sql, count: vehicles.length } }];"
-      },
-      "id": "node-code-transform",
-      "name": "Code: Transformar vehículos",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [960, 400]
+      "position": [
+        -1104,
+        128
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "continueOnFail": true
     },
     {
       "parameters": {
@@ -91,7 +126,78 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict"
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cond-json-ok",
+              "leftValue": "={{ $json.data || '' }}",
+              "rightValue": "initialVehicles",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "01f8f587-3741-49df-9426-0f30afdb7f90",
+      "name": "IF: ¿JSON válido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://www.flexicar.es/coches-segunda-mano/?page={{ $('Loop: página por página').item.json.page }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 25000
+        }
+      },
+      "id": "93b520e3-4118-47e6-ae26-504b47aa8f30",
+      "name": "HTTP: HTML (respaldo)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -656,
+        288
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Digiere lo que venga: JSON del endpoint _next/data O HTML del listado.\nconst raw = $input.item.json;\nconst body = typeof raw === 'string' ? raw : String(raw.data || raw.body || '');\n\nlet pp = null;\n// 1) Intentar como JSON (vía rápida /_next/data)\ntry {\n  const j = JSON.parse(body);\n  pp = j.pageProps || (j.props && j.props.pageProps) || null;\n} catch (e) {\n  // 2) Es HTML (vía respaldo) → extraer __NEXT_DATA__\n  const m = body.match(/<script id=\"__NEXT_DATA__\"[^>]*>([\\s\\S]*?)<\\/script>/);\n  if (m) {\n    try { pp = JSON.parse(m[1]).props.pageProps; } catch (_) {}\n  }\n}\n\nconst vehicles = (pp && pp.initialVehicles) || [];\nif (!vehicles.length) {\n  return [{ json: { sql: null, count: 0 } }];\n}\n\nfunction normalizeFuel(raw) {\n  const s = String(raw || '').toLowerCase();\n  if (s.indexOf('diesel') !== -1 || s.indexOf('diésel') !== -1) return 'Diesel';\n  if (s.indexOf('electr') !== -1) return 'Eléctrico';\n  const enchufable = (s.indexOf('enchufable') !== -1 || s.indexOf('plug') !== -1) && s.indexOf('no enchufable') === -1;\n  if (s.indexOf('hibrido') !== -1 || s.indexOf('híbrido') !== -1 || s.indexOf('hybrid') !== -1 || s.indexOf('enchufable') !== -1) return enchufable ? 'Híbrido enchufable' : 'Híbrido';\n  if (s.indexOf('gasolina') !== -1 || s.indexOf('petrol') !== -1) return 'Gasolina';\n  if (s.indexOf('glp') !== -1 || s.indexOf('gnc') !== -1 || s.indexOf('gas') !== -1) return 'Gas';\n  return raw || '';\n}\n\nfunction normalizeGear(raw) {\n  const s = String(raw || '').toLowerCase();\n  if (s.indexOf('autom') !== -1) return 'Automatica';\n  if (s.indexOf('manual') !== -1) return 'Manual';\n  return raw || '';\n}\n\nfunction normalizeLabel(raw) {\n  var s = String(raw || '').toLowerCase().trim();\n  if (!s) return '';\n  if (s === 'zero' || s === 'cero' || s === '0' || s.indexOf('0 emis') !== -1) return '0 Emisiones';\n  if (s === 'eco' || s === 'e') return 'ECO';\n  if (s === 'c' || s === 'green') return 'C';\n  if (s === 'b' || s === 'yellow') return 'B';\n  return String(raw).toUpperCase();\n}\n\nfunction esc(v) {\n  if (v === null || v === undefined) return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\n\nconst rows = [];\nfor (const v of vehicles) {\n  const id = String(v.id);\n  const url = v.slug ? 'https://www.flexicar.es/coches-ocasion/' + v.slug + '/' : '';\n  const brand = v.brand || '';\n  const model = v.model || '';\n  const version = v.version || '';\n  const title = (brand + ' ' + model + ' ' + version).replace(/\\s+/g, ' ').trim();\n  const kwMatch = version.match(/(\\d+)\\s*kW/i);\n  const cvMatch = version.match(/\\((\\d+)\\s*CV\\)/i);\n  const powerKw = kwMatch ? parseInt(kwMatch[1], 10) : null;\n  const powerCv = cvMatch ? parseInt(cvMatch[1], 10) : (kwMatch ? Math.round(parseInt(kwMatch[1], 10) * 1.3596) : null);\n  const year = (v.year != null) ? String(v.year) : 'NULL';\n  const mileage = (v.km != null) ? String(v.km) : 'NULL';\n  const fuel = normalizeFuel(v.fuel);\n  const transmission = normalizeGear(v.transmission);\n  const contadoRaw = (v.cashPrice != null) ? v.cashPrice : v.price;\n  const price = (contadoRaw != null) ? String(contadoRaw) : 'NULL';\n  const financePrice = (v.price != null) ? String(v.price) : 'NULL';\n  const monthlyPrice = (v.quotaPrice != null) ? String(v.quotaPrice) : 'NULL';\n  const color = v.color || '';\n  const ecoSticker = normalizeLabel(v.ecoSticker);\n  const imageUrl = v.image || '';\n  const imagesArr = (Array.isArray(v.images) ? v.images : (imageUrl ? [imageUrl] : [])).filter(function(u){ return u && u.indexOf('/generic/') === -1 && u.indexOf('dealer_network') === -1; }).slice(0, 10);\n  const imagesJson = JSON.stringify(imagesArr).replace(/'/g, \"''\");\n  const rawPayload = JSON.stringify(v).replace(/'/g, \"''\");\n  const dealerName = 'Flexicar';\n  const dealershipRaw = v.carDealership || '';\n  const city = dealershipRaw.split(' - ')[0].trim();\n  const location = city || 'Toda España';\n\n  const row = '(' +\n    esc(id) + ', ' + esc(url) + ', ' + esc(title) + ', ' + esc(brand) + ', ' + esc(model) + ', ' +\n    esc(version) + ', ' + year + ', ' + mileage + ', ' +\n    price + ', ' + financePrice + ', ' + monthlyPrice + ', ' +\n    esc(fuel) + ', ' + esc(transmission) + ', ' + esc(color) + ', ' +\n    esc(imageUrl) + \", '\" + imagesJson + \"', \" +\n    esc(ecoSticker) + ', ' +\n    esc(dealerName) + ', ' + esc(city) + ', ' + esc(location) + ', ' +\n    \"'flexicar', 'profesional', 'compra', 12, \" + (powerCv !== null ? String(powerCv) : 'NULL') + ', ' + (powerKw !== null ? String(powerKw) : 'NULL') + \", '\" + rawPayload + \"', NOW(), NOW(), NOW()\" +\n  ')';\n  rows.push(row);\n}\n\nconst cols = 'id, url, title, brand, model, version, year, mileage, price, finance_price, monthly_price, fuel, transmission, color, image_url, images, environmental_label, dealer_name, city, location, portal, seller_type, listing_type, warranty_months, power_cv, power_kw, raw_payload, first_seen_at, scraped_at, last_seen_at';\n\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +\n  'url = EXCLUDED.url, ' +\n  'title = EXCLUDED.title, ' +\n  'price = EXCLUDED.price, ' +\n  'finance_price = EXCLUDED.finance_price, ' +\n  'monthly_price = EXCLUDED.monthly_price, ' +\n  'mileage = EXCLUDED.mileage, ' +\n  \"image_url = COALESCE(NULLIF(moveadvisor_market_offers.image_url, ''), EXCLUDED.image_url), \" +\n  \"images = COALESCE(NULLIF(moveadvisor_market_offers.images, ''), EXCLUDED.images), \" +\n  \"color = COALESCE(NULLIF(moveadvisor_market_offers.color, ''), EXCLUDED.color), \" +\n  \"environmental_label = COALESCE(NULLIF(moveadvisor_market_offers.environmental_label, ''), EXCLUDED.environmental_label), \" +\n  'power_cv = COALESCE(EXCLUDED.power_cv, moveadvisor_market_offers.power_cv), ' +\n  'power_kw = COALESCE(EXCLUDED.power_kw, moveadvisor_market_offers.power_kw), ' +\n  'raw_payload = EXCLUDED.raw_payload, ' +\n  'last_seen_at = NOW(), ' +\n  'updated_at = NOW()';\n\nconst sql = 'INSERT INTO moveadvisor_market_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;\n\nreturn [{ json: { sql: sql, count: vehicles.length } }];\n"
+      },
+      "id": "7989e368-e886-4cd1-b620-f209211ef265",
+      "name": "Code: Transformar vehículos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
           },
           "conditions": [
             {
@@ -108,101 +214,220 @@
         },
         "options": {}
       },
-      "id": "node-if-has-vehicles",
+      "id": "e16618f2-f825-452d-9ecc-7011350a91ba",
       "name": "IF: ¿hay vehículos?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1200, 400]
+      "position": [
+        -224,
+        128
+      ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "={{ $json.sql }}",
-        "additionalFields": {}
+        "query": "{{ $json.sql }}",
+        "options": {}
       },
-      "id": "node-pg-upsert",
+      "id": "6d0f89ea-5ac4-4f44-8e3f-a47eab11d20f",
       "name": "PG: Upsert ofertas",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
-      "position": [1440, 280],
+      "position": [
+        0,
+        0
+      ],
       "credentials": {
         "postgres": {
-          "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL",
-          "name": "Postgres Neon"
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
         }
       }
     },
     {
       "parameters": {
-        "amount": 1,
         "unit": "seconds"
       },
-      "id": "node-wait",
-      "name": "Esperar 0.5s (rate limit)",
+      "id": "270c46ad-7d0f-4ae8-86f7-e8686f16f6ca",
+      "name": "Esperar 1s (rate limit)",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1,
-      "position": [1680, 400],
+      "position": [
+        224,
+        128
+      ],
       "webhookId": "wait-flexicar-scraper"
     }
   ],
   "connections": {
     "Ejecutar manualmente": {
       "main": [
-        [{ "node": "Code: Generar páginas", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "HTTP: Home (buildId)",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Cada día a las 3:00": {
       "main": [
-        [{ "node": "Code: Generar páginas", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "HTTP: Home (buildId)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Home (buildId)": {
+      "main": [
+        [
+          {
+            "node": "Code: Extraer buildId",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Extraer buildId": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar páginas",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Code: Generar páginas": {
       "main": [
-        [{ "node": "Loop: página por página", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Loop: página por página": {
       "main": [
-        [{ "node": "HTTP: API Flexicar", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "HTTP: JSON (rápido)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: JSON (rápido)",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "HTTP: API Flexicar": {
+    "HTTP: JSON (rápido)": {
       "main": [
-        [{ "node": "Code: Transformar vehículos", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "IF: ¿JSON válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿JSON válido?": {
+      "main": [
+        [
+          {
+            "node": "Code: Transformar vehículos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: HTML (respaldo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: HTML (respaldo)": {
+      "main": [
+        [
+          {
+            "node": "Code: Transformar vehículos",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Code: Transformar vehículos": {
       "main": [
-        [{ "node": "IF: ¿hay vehículos?", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "IF: ¿hay vehículos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "IF: ¿hay vehículos?": {
       "main": [
-        [{ "node": "PG: Upsert ofertas", "type": "main", "index": 0 }],
-        [{ "node": "Esperar 0.5s (rate limit)", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "PG: Upsert ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "PG: Upsert ofertas": {
       "main": [
-        [{ "node": "Esperar 0.5s (rate limit)", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Esperar 1s (rate limit)",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Esperar 0.5s (rate limit)": {
+    "Esperar 1s (rate limit)": {
       "main": [
-        [{ "node": "Loop: página por página", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
-  "pinData": {},
   "settings": {
     "executionOrder": "v1",
-    "saveManualExecutions": true,
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "9BwKOPMIzjj3owho",
     "callerPolicy": "workflowsFromSameOwner",
-    "errorWorkflow": ""
+    "availableInMCP": false
   },
+  "pinData": {},
   "staticData": null,
-  "tags": [],
-  "triggerCount": 1,
-  "updatedAt": "2026-05-15T00:00:00.000Z",
-  "versionId": "1"
+  "triggerCount": 0,
+  "tags": []
 }

@@ -3,19 +3,25 @@
   "nodes": [
     {
       "parameters": {},
-      "id": "node-manual-trigger",
+      "id": "2449244a-5830-47d9-a76a-7ca04270ce10",
       "name": "Ejecutar manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [0, 300]
+      "position": [
+        -1488,
+        32
+      ]
     },
     {
       "parameters": {},
-      "id": "node-ewf-trigger",
+      "id": "c78aef5c-95dd-4c1e-8ecf-d553d5a89c75",
       "name": "Llamada desde workflow padre",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
-      "position": [0, 700]
+      "position": [
+        -1488,
+        432
+      ]
     },
     {
       "parameters": {
@@ -28,206 +34,262 @@
           ]
         }
       },
-      "id": "node-schedule-trigger",
+      "id": "0e48ec47-93d1-450c-9a19-ac8e2731d3b4",
       "name": "Cada día a las 4:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
-      "position": [0, 500]
+      "position": [
+        -1488,
+        224
+      ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id, url, brand, model,\n  COALESCE(image_url, '') AS image_url,\n  COALESCE(power_cv, 0)::int AS power_cv,\n  COALESCE(body_type, '') AS body_type,\n  COALESCE(color, '') AS color,\n  COALESCE(city, '') AS city,\n  COALESCE(location, '') AS location,\n  COALESCE(fuel, '') AS fuel,\n  COALESCE(transmission, '') AS transmission,\n  COALESCE(environmental_label, '') AS environmental_label,\n  COALESCE(doors, 0)::int AS doors,\n  COALESCE(seats, 0)::int AS seats,\n  COALESCE(displacement, '') AS displacement,\n  COALESCE(co2, '') AS co2,\n  COALESCE(consumption, 0) AS consumption,\n  COALESCE(traction, '') AS traction,\n  COALESCE(warranty_months, 0)::int AS warranty_months\nFROM moveadvisor_market_offers\nWHERE portal = 'autohero'\n  AND (\n    COALESCE(image_url, '') = ''\n    OR COALESCE(power_cv, 0) = 0\n    OR COALESCE(body_type, '') = ''\n    OR COALESCE(color, '') = ''\n    OR COALESCE(location, '') = ''\n    OR COALESCE(fuel, '') = ''\n    OR COALESCE(transmission, '') = ''\n    OR COALESCE(environmental_label, '') = ''\n    OR COALESCE(doors, 0) = 0\n    OR COALESCE(seats, 0) = 0\n    OR COALESCE(displacement, '') = ''\n    OR COALESCE(co2, '') = ''\n    OR COALESCE(consumption, 0) = 0\n    OR COALESCE(traction, '') = ''\n    OR COALESCE(warranty_months, 0) = 0\n  )\nORDER BY first_seen_at DESC\nLIMIT 500",
-        "additionalFields": {}
+        "query": "SELECT id, url, brand, model,\n  COALESCE(image_url, '') AS image_url,\n  COALESCE(power_cv, 0)::int AS power_cv,\n  COALESCE(body_type, '') AS body_type,\n  COALESCE(color, '') AS color,\n  COALESCE(city, '') AS city,\n  COALESCE(location, '') AS location,\n  COALESCE(fuel, '') AS fuel,\n  COALESCE(transmission, '') AS transmission,\n  COALESCE(environmental_label, '') AS environmental_label,\n  COALESCE(doors, 0)::int AS doors,\n  COALESCE(seats, 0)::int AS seats,\n  COALESCE(displacement, '') AS displacement,\n  COALESCE(co2, '') AS co2,\n  COALESCE(consumption, 0) AS consumption,\n  COALESCE(traction, '') AS traction,\n  COALESCE(warranty_months, 0)::int AS warranty_months\nFROM moveadvisor_market_offers\nWHERE portal = 'autohero'\n  AND enrich_tried_at IS NULL\n  AND (\n    COALESCE(image_url, '') = ''\n    OR COALESCE(power_cv, 0) = 0\n    OR COALESCE(body_type, '') = ''\n    OR COALESCE(color, '') = ''\n    OR COALESCE(location, '') = ''\n    OR COALESCE(fuel, '') = ''\n    OR COALESCE(transmission, '') = ''\n    OR COALESCE(environmental_label, '') = ''\n    OR COALESCE(doors, 0) = 0\n    OR COALESCE(seats, 0) = 0\n    OR COALESCE(displacement, '') = ''\n    OR COALESCE(co2, '') = ''\n    OR COALESCE(consumption, 0) = 0\n    OR COALESCE(traction, '') = ''\n    OR COALESCE(warranty_months, 0) = 0\n  )\nORDER BY first_seen_at DESC\nLIMIT 500\n",
+        "options": {}
       },
-      "id": "node-pg-select",
+      "id": "913709eb-d835-46dc-b543-5b728c7ccb1a",
       "name": "PG: Ofertas a enriquecer",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
-      "position": [280, 400],
+      "position": [
+        -1200,
+        128
+      ],
       "credentials": {
         "postgres": {
-          "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL",
-          "name": "Postgres Neon"
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
         }
       }
     },
     {
       "parameters": {
-        "batchSize": 1,
         "options": {}
       },
-      "id": "node-loop",
+      "id": "b866a5f1-3380-4136-9e4b-1445febe8dd2",
       "name": "Loop: oferta por oferta",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
-      "position": [520, 400]
+      "position": [
+        -960,
+        128
+      ]
     },
     {
       "parameters": {
-        "method": "GET",
         "url": "={{ $json.url }}",
         "options": {
-          "timeout": 15000,
           "response": {
             "response": {
               "responseFormat": "text"
             }
           },
-          "headers": {
-            "values": [
-              {
-                "name": "User-Agent",
-                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
-              },
-              {
-                "name": "Accept-Language",
-                "value": "es-ES,es;q=0.9"
-              }
-            ]
-          }
+          "timeout": 15000
         }
       },
-      "id": "node-http-detail",
+      "id": "81807dac-1b08-461d-9a8a-9b25bd0c3aa3",
       "name": "HTTP: Página de detalle Autohero",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [760, 400]
+      "position": [
+        -720,
+        128
+      ]
     },
     {
       "parameters": {
-        "language": "javaScript",
-        "jsCode": "// ─────────────────────────────────────────────────────────────────────────\n// NOTA: el nodo HTTP Request devuelve el HTML en $json.data (response text)\n//       Los datos originales de Postgres vienen del input anterior al HTTP.\n//       En n8n con SplitInBatches, el item tiene el json original más el\n//       resultado del HTTP. Ajusta 'html' según cómo recibas el body:\n//         - Si el HTTP node está configurado con responseFormat='text': $json.data\n//         - Si es la respuesta directa: $json.body o $json.data\n// ─────────────────────────────────────────────────────────────────────────\n\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const row = item.json;\n  // El campo 'data' es el HTML crudo devuelto por el nodo HTTP Request\n  const html = String(row.data || row.body || '');\n\n  // ── helpers ──────────────────────────────────────────────────────────\n  function tryJson(s) {\n    try { return JSON.parse(s); } catch { return null; }\n  }\n\n  function safeStr(v) { return v == null ? '' : String(v).trim(); }\n  function safeInt(v) { const n = parseInt(v, 10); return isNaN(n) ? null : n; }\n\n  function unesc(s) {\n    return String(s || '')\n      .replace(/\\\\\"/g, '\"')\n      .replace(/\\\\u002F/gi, '/')\n      .replace(/\\\\\\/g, '/');\n  }\n\n  function deepFind(obj, keys) {\n    if (!obj || typeof obj !== 'object') return undefined;\n    for (const key of keys) {\n      if (obj[key] !== undefined && obj[key] !== null && obj[key] !== '') return obj[key];\n    }\n    for (const val of Object.values(obj)) {\n      if (val && typeof val === 'object' && !Array.isArray(val)) {\n        const found = deepFind(val, keys);\n        if (found !== undefined) return found;\n      }\n    }\n    return undefined;\n  }\n\n  function normalizeBodyType(raw) {\n    const s = String(raw || '').toLowerCase();\n    if (!s) return '';\n    if (/suv|crossover|4x4/.test(s)) return 'SUV';\n    if (/berlina|sedan|saloon/.test(s)) return 'Berlina';\n    if (/familiar|estate|combi|wagon|avant/.test(s)) return 'Familiar';\n    if (/coupe|coupé/.test(s)) return 'Coupé';\n    if (/cabrio|convert/.test(s)) return 'Cabrio';\n    if (/mono|van|mpv/.test(s)) return 'Monovolumen';\n    if (/hatchback/.test(s)) return 'Berlina';\n    return raw.charAt(0).toUpperCase() + raw.slice(1);\n  }\n\n  function normalizeFuel(raw) {\n    const s = String(raw || '').toLowerCase();\n    if (!s) return '';\n    if (/diesel/.test(s)) return 'Diesel';\n    if (/gasolin|petrol/.test(s)) return 'Gasolina';\n    if (/el[eé]ctric/.test(s)) return 'Eléctrico';\n    if (/h[íi]brido|hybrid/.test(s)) return 'Híbrido';\n    return raw.charAt(0).toUpperCase() + raw.slice(1);\n  }\n\n  function normalizeGear(raw) {\n    const s = String(raw || '').toLowerCase();\n    if (!s) return '';\n    if (/auto|dct|cvt|dsg|tiptronic/.test(s)) return 'Automatica';\n    if (/manual/.test(s)) return 'Manual';\n    return raw.charAt(0).toUpperCase() + raw.slice(1);\n  }\n\n  // Escapa comillas simples para SQL inline\n  function esc(v) { return String(v || '').replace(/'/g, \"''\"); }\n\n  // ── extracción de la página ───────────────────────────────────────────\n  const ex = {};\n  const content = unesc(html);\n\n  // 1. __NEXT_DATA__\n  const nextMatch = html.match(/<script[^>]+id=[\"']__NEXT_DATA__[\"'][^>]*>([\\s\\S]*?)<\\/script>/i);\n  if (nextMatch) {\n    const nd = tryJson(nextMatch[1]);\n    if (nd) {\n      const props = nd?.props?.pageProps || nd?.props || {};\n      const vo = props.vehicle || props.car || props.listing || props.ad ||\n                 props.carDetails || props.initialData?.vehicle ||\n                 props.dehydratedState?.queries?.[0]?.state?.data || props.pageData;\n      if (vo) {\n        const ps  = deepFind(vo, ['powerPs', 'powerCV', 'powerCv', 'power_cv', 'ps']);\n        const kw  = deepFind(vo, ['powerKw', 'power_kw', 'kw']);\n        if (ps)  ex.powerCv = safeInt(ps);\n        if (kw)  ex.powerKw = safeInt(kw);\n        const bt = deepFind(vo, ['bodyType', 'body_type', 'carType', 'carBodyType']);\n        if (bt)  ex.bodyType = normalizeBodyType(bt);\n        const fu = deepFind(vo, ['fuelType', 'fuel_type', 'fuel']);\n        if (fu)  ex.fuel = normalizeFuel(fu);\n        const ge = deepFind(vo, ['gearType', 'transmission', 'gearbox']);\n        if (ge)  ex.transmission = normalizeGear(ge);\n        const ci = deepFind(vo, ['city', 'hub', 'hubName', 'deliveryCity']);\n        if (ci)  ex.city = safeStr(ci);\n        const col = deepFind(vo, ['color', 'colorName', 'colourId', 'exteriorColor', 'carColor']);\n        if (col) ex.color = safeStr(col);\n        const el = deepFind(vo, ['environmentalLabel', 'ecoLabel', 'emissionSticker', 'euroEmissionClass']);\n        if (el) ex.envLabel = safeStr(el);\n        const dr = deepFind(vo, ['doors', 'numberOfDoors', 'numDoors']);\n        if (dr) ex.doors = safeInt(dr);\n        const se = deepFind(vo, ['seats', 'numberOfSeats', 'numSeats', 'seatCount']);\n        if (se) ex.seats = safeInt(se);\n        const di = deepFind(vo, ['displacement', 'engineSize', 'cubicCapacity', 'engineDisplacement']);\n        if (di) ex.displacement = safeStr(di);\n        const c2 = deepFind(vo, ['co2', 'co2Emissions', 'co2Value', 'emissionCo2']);\n        if (c2) ex.co2 = safeStr(c2);\n        const cn = deepFind(vo, ['consumption', 'fuelConsumption', 'combinedConsumption', 'consumptionCombined']);\n        if (cn != null) ex.consumption = parseFloat(cn);\n        const tt = deepFind(vo, ['traction', 'driveType', 'drive', 'wheelDrive', 'drivetrain']);\n        if (tt) ex.traction = safeStr(tt);\n        const wm = deepFind(vo, ['warrantyMonths', 'warrantyDuration', 'warrantyPeriod']);\n        if (wm) ex.warrantyMonths = safeInt(wm);\n        const imgs = deepFind(vo, ['images', 'gallery', 'photos', 'imageUrls']);\n        if (Array.isArray(imgs) && imgs.length > 0) {\n          const urls = imgs.map(i => typeof i === 'string' ? i : i?.url || i?.src || '').filter(Boolean).slice(0, 10);\n          if (urls.length > 0) { ex.imageUrl = urls[0]; ex.images = urls; }\n        }\n      }\n    }\n  }\n\n  // 2. Patrones JSON inline\n  if (!ex.imageUrl) {\n    const m = content.match(/\"ahMainImageUrl\":\"([^\"]+)\"/i)?.[1] ||\n              content.match(/\"mainImageUrl\":\"([^\"]+)\"/i)?.[1] ||\n              content.match(/\"primaryImageUrl\":\"([^\"]+)\"/i)?.[1];\n    if (m) { ex.imageUrl = m.replace(/\\\\/g, ''); ex.images = [ex.imageUrl]; }\n  }\n  if (!ex.imageUrl) {\n    const g = [...content.matchAll(/\"(https:\\/\\/img-eu[^\"]+autohero[^\"]+)\"/gi)];\n    if (g.length > 0) {\n      const urls = [...new Set(g.map(m => m[1].replace(/\\\\/g, '')))].slice(0, 10);\n      ex.imageUrl = urls[0]; ex.images = urls;\n    }\n  }\n  if (!ex.powerCv) {\n    const m = content.match(/\"powerPs\":(\\d+)/i)?.[1] || content.match(/\"powerCv\":(\\d+)/i)?.[1];\n    if (m) ex.powerCv = safeInt(m);\n  }\n  if (!ex.powerKw) {\n    const m = content.match(/\"powerKw\":(\\d+)/i)?.[1];\n    if (m) ex.powerKw = safeInt(m);\n  }\n  if (!ex.bodyType) {\n    const m = content.match(/\"bodyType\":\"([^\"]+)\"/i)?.[1] || content.match(/\"carType\":\"([^\"]+)\"/i)?.[1];\n    if (m) ex.bodyType = normalizeBodyType(m);\n  }\n  if (!ex.fuel) {\n    const m = content.match(/\"fuelType\":\"([^\"]+)\"/i)?.[1];\n    if (m) ex.fuel = normalizeFuel(m);\n  }\n  if (!ex.transmission) {\n    const m = content.match(/\"gearType\":\"([^\"]+)\"/i)?.[1];\n    if (m) ex.transmission = normalizeGear(m);\n  }\n  if (!ex.city) {\n    const m = content.match(/\"hub(?:Name)?\":\"([^\"]+)\"/i)?.[1] || content.match(/\"city\":\"([^\"]+)\"/i)?.[1];\n    if (m) ex.city = safeStr(m);\n  }\n  if (!ex.color) {\n    const m = content.match(/\"color\":\"([^\"]+)\"/i)?.[1] ||\n              content.match(/\"colorName\":\"([^\"]+)\"/i)?.[1] ||\n              content.match(/\"exteriorColor\":\"([^\"]+)\"/i)?.[1];\n    if (m) ex.color = safeStr(m);\n  }\n\n  //── powerCv desde kW si no viene directo (1 kW = 1.3596 CV) ─────────\n  if (!ex.envLabel) {\n    const m = content.match(/\"environmentalLabel\":\"([^\"]+)\"/i)?.[1] ||\n              content.match(/\"ecoLabel\":\"([^\"]+)\"/i)?.[1] ||\n              content.match(/\"emissionSticker\":\"([^\"]+)\"/i)?.[1];\n    if (m) ex.envLabel = safeStr(m);\n  }\n  if (!ex.doors) {\n    const m = content.match(/\"(?:numberOfDoors|doors)\":(\\d+)/i)?.[1];\n    if (m) ex.doors = safeInt(m);\n  }\n  if (!ex.seats) {\n    const m = content.match(/\"(?:numberOfSeats|seats|seatCount)\":(\\d+)/i)?.[1];\n    if (m) ex.seats = safeInt(m);\n  }\n  if (!ex.displacement) {\n    const m = content.match(/\"(?:displacement|engineSize|cubicCapacity)\":\"([^\"]+)\"/i)?.[1] ||\n              content.match(/\"(?:displacement|engineSize|cubicCapacity)\":(\\d+)/i)?.[1];\n    if (m) ex.displacement = safeStr(m);\n  }\n  if (!ex.co2) {\n    const m = content.match(/\"co2(?:Emissions|Value)?\":(\\d+)/i)?.[1];\n    if (m) ex.co2 = m;\n  }\n  if (ex.consumption == null) {\n    const m = content.match(/\"(?:consumption|fuelConsumption|combinedConsumption)\":(\\d+\\.?\\d*)/i)?.[1];\n    if (m) ex.consumption = parseFloat(m);\n  }\n  if (!ex.traction) {\n    const m = content.match(/\"(?:driveType|drive|wheelDrive|drivetrain)\":\"([^\"]+)\"/i)?.[1];\n    if (m) ex.traction = safeStr(m);\n  }\n  if (!ex.warrantyMonths) {\n    const m = content.match(/\"(?:warrantyMonths|warrantyDuration)\":(\\d+)/i)?.[1];\n    if (m) ex.warrantyMonths = safeInt(m);\n  }\n  const finalPowerCv = ex.powerCv || (ex.powerKw ? Math.round(ex.powerKw * 1.3596) : null);\n\n  // ── construir SET clauses (solo campos que faltaban y ahora tienen valor) ─\n  const sets = [];\n\n  if (!row.image_url && ex.imageUrl) {\n    sets.push(`image_url = '${esc(ex.imageUrl)}'`);\n    sets.push(`images = '${esc(JSON.stringify(ex.images || [ex.imageUrl]))}'`);\n  }\n  if ((!row.power_cv || row.power_cv === 0) && finalPowerCv) {\n    sets.push(`power_cv = ${finalPowerCv}`);\n  }\n  if (ex.powerKw) {\n    sets.push(`power_kw = ${ex.powerKw}`);\n  }\n  if (!row.body_type && ex.bodyType) {\n    sets.push(`body_type = '${esc(ex.bodyType)}'`);\n  }\n  if (!row.city && ex.city) {\n    sets.push(`city = '${esc(ex.city)}'`);\n    sets.push(`province = '${esc(ex.city)}'`);\n    sets.push(`location = '${esc(ex.city)}'`);\n  } else if (!row.location) {\n    sets.push(`location = 'Toda España'`);\n  }\n  if (!row.color && ex.color) {\n    sets.push(`color = '${esc(ex.color)}'`);\n  }\n  if (!row.fuel && ex.fuel) {\n    sets.push(`fuel = '${esc(ex.fuel)}'`);\n  }\n  if (!row.transmission && ex.transmission) {\n    sets.push(`transmission = '${esc(ex.transmission)}'`);\n  }\n  if (!row.environmental_label && ex.envLabel) {\n    sets.push(`environmental_label = '${esc(ex.envLabel)}'`);\n  }\n  if ((!row.doors || row.doors === 0) && ex.doors) {\n    sets.push(`doors = ${ex.doors}`);\n  }\n  if ((!row.seats || row.seats === 0) && ex.seats) {\n    sets.push(`seats = ${ex.seats}`);\n  }\n  if (!row.displacement && ex.displacement) {\n    sets.push(`displacement = '${esc(ex.displacement)}'`);\n  }\n  if (!row.co2 && ex.co2) {\n    sets.push(`co2 = '${esc(ex.co2)}'`);\n  }\n  if ((!row.consumption || row.consumption === 0) && ex.consumption != null) {\n    sets.push(`consumption = ${ex.consumption}`);\n  }\n  if (!row.traction && ex.traction) {\n    sets.push(`traction = '${esc(ex.traction)}'`);\n  }\n  if ((!row.warranty_months || row.warranty_months === 0) && ex.warrantyMonths) {\n    sets.push(`warranty_months = ${ex.warrantyMonths}`);\n  }\n\n  const hasUpdates = sets.length > 0;\n  const updateSql = hasUpdates\n    ? `UPDATE moveadvisor_market_offers SET ${sets.join(', ')}, updated_at = NOW() WHERE id = '${esc(row.id)}'`\n    : null;\n\n  results.push({ json: { id: row.id, brand: row.brand, model: row.model, hasUpdates, updateSql } });\n}\n\nreturn results;"
+        "jsCode": "// ── Input data ────────────────────────────────────────────────\nconst row = $('Loop: oferta por oferta').item.json;\nconst html = String($input.item.json.data || $input.item.json.body || '');\n\n// ── JSON-LD extraction ────────────────────────────────────────\nlet ld = {};\nconst ldMatch = html.match(/<script[^>]+type=[\"']application\\/ld\\+json[\"'][^>]*>([\\s\\S]*?)<\\/script>/i);\nif (ldMatch && ldMatch[1]) {\n  try {\n    const parsed = JSON.parse(ldMatch[1].trim());\n    if (Array.isArray(parsed['@graph'])) {\n      ld = parsed['@graph'].find(function(n) {\n        return n['@type'] === 'Vehicle' || n['@type'] === 'Car';\n      }) || {};\n    } else {\n      ld = parsed;\n    }\n  } catch(e) { ld = {}; }\n}\n\nfunction safeStr(v) {\n  return (v !== null && v !== undefined) ? String(v).trim() : null;\n}\n\n// ── image_url / images ────────────────────────────────────────\nvar image_url = null;\nvar images_arr = [];\nif (ld['image']) {\n  if (Array.isArray(ld['image'])) {\n    images_arr = ld['image'].filter(function(i) { return typeof i === 'string' && i; });\n    if (images_arr.length === 0) {\n      images_arr = ld['image'].map(function(i) { return i && i.url ? i.url : null; }).filter(Boolean);\n    }\n    if (images_arr.length > 0) image_url = images_arr[0];\n  } else if (typeof ld['image'] === 'string' && ld['image']) {\n    image_url = ld['image'];\n    images_arr = [image_url];\n  } else if (ld['image'] && ld['image']['url']) {\n    image_url = ld['image']['url'];\n    images_arr = [image_url];\n  }\n}\nif (!image_url) {\n  var imgMatches = [...html.matchAll(/\"(https:\\/\\/(?:img[^\"]*autohero|cdn[^\"]*autohero)[^\"]+)\"/gi)];\n  if (imgMatches.length > 0) {\n    images_arr = [...new Set(imgMatches.map(function(m) { return m[1].replace(/\\\\/g, ''); }))].slice(0, 10);\n    image_url = images_arr[0];\n  }\n}\n\n// Galeria completa: normalizar todas las fotos al mismo tamano y deduplicar\nif (images_arr.length <= 1) {\n  var _galRaw = [...html.matchAll(/https:\\/\\/img-eu-c1\\.autohero\\.com\\/img\\/[a-z0-9]+\\/(?:exterior|interior)\\/\\d+\\/\\d+x\\d+-[a-z0-9]+\\.jpg/gi)].map(function(m){ return m[0]; });\n  var _seen = {}; var _gal = [];\n  for (var _gi = 0; _gi < _galRaw.length; _gi++) {\n    var _n = _galRaw[_gi].replace(/\\/\\d+x\\d+-/, '/768x432-');\n    if (!_seen[_n]) { _seen[_n] = 1; _gal.push(_n); }\n  }\n  if (_gal.length > 0) { images_arr = _gal.slice(0, 15); image_url = images_arr[0]; }\n}\n\nfunction normalizeBody(raw) {\n  var s = String(raw || '').toLowerCase();\n  if (!s) return '';\n  if (s.indexOf('suv') !== -1 || s.indexOf('4x4') !== -1 || s.indexOf('todo') !== -1) return 'SUV';\n  if (s.indexOf('pick') !== -1) return 'Pick Up';\n  if (s.indexOf('furgon') !== -1 || s.indexOf('van') !== -1 || s.indexOf('comercial') !== -1) return 'Furgoneta';\n  if (s.indexOf('familiar') !== -1 || s.indexOf('estate') !== -1 || s.indexOf('combi') !== -1) return 'Familiar';\n  if (s.indexOf('monovolum') !== -1 || s.indexOf('mpv') !== -1) return 'Monovolumen';\n  if (s.indexOf('coup') !== -1) return 'Coupé';\n  if (s.indexOf('cabrio') !== -1 || s.indexOf('descapotable') !== -1) return 'Cabrio';\n  if (s.indexOf('pequeñ') !== -1 || s.indexOf('pequen') !== -1 || s.indexOf('compact') !== -1 || s.indexOf('ciudad') !== -1 || s.indexOf('utilitario') !== -1) return 'Compacto';\n  if (s.indexOf('berlina') !== -1 || s.indexOf('sedan') !== -1 || s.indexOf('turismo') !== -1 || s.indexOf('hatchback') !== -1) return 'Berlina';\n  return raw;\n}\n\n// ── body_type ─────────────────────────────────────────────────\nvar body_type = normalizeBody(safeStr(ld['bodyType']));\n\n// ── doors ─────────────────────────────────────────────────────\nvar doors = null;\nvar doorsRaw = safeStr(ld['numberOfDoors']);\nif (doorsRaw) {\n  var d = parseInt(doorsRaw, 10);\n  if (!isNaN(d) && d > 0) doors = d;\n}\n\n// ── seats ─────────────────────────────────────────────────────\nvar seats = null;\nvar seatsRaw = safeStr(ld['seatingCapacity']);\nif (seatsRaw) {\n  var s = parseInt(seatsRaw, 10);\n  if (!isNaN(s) && s > 0) seats = s;\n}\n\n// ── color ─────────────────────────────────────────────────────\nvar color = safeStr(ld['vehicleInteriorColor']);\nif (!color) {\n  var metaMatch = html.match(/<meta[^>]+name=[\"']description[\"'][^>]+content=[\"']([^\"']+)[\"']/i);\n  if (!metaMatch) {\n    metaMatch = html.match(/<meta[^>]+content=[\"']([^\"']+)[\"'][^>]+name=[\"']description[\"']/i);\n  }\n  if (metaMatch && metaMatch[1]) {\n    var firstWord = metaMatch[1].trim().split(/\\s+/)[0];\n    if (firstWord && firstWord.length > 2) color = firstWord;\n  }\n}\n\n// ── fuel ──────────────────────────────────────────────────────\nvar fuel = null;\nvar fuelRaw = safeStr(ld['vehicleEngine'] && ld['vehicleEngine']['fuelType'] || ld['fuelType']);\nif (fuelRaw) {\n  var fuelLower = fuelRaw.toLowerCase();\n  if (fuelLower.includes('diesel') || fuelLower.includes('diésel'))  fuel = 'Diesel';\n  else if (fuelLower.includes('gasolin') || fuelLower.includes('petrol')) fuel = 'Gasolina';\n  else if (fuelLower.includes('electr'))                               fuel = 'Eléctrico';\n  else if (fuelLower.includes('hybrid') || fuelLower.includes('híbrid')) fuel = 'Híbrido';\n  else fuel = fuelRaw;\n}\nif (!fuel) {\n  var fuelMatch = html.match(/\"fuelType\"\\s*:\\s*\"([^\"]+)\"/i);\n  if (fuelMatch && fuelMatch[1]) {\n    var fl = fuelMatch[1].toLowerCase();\n    if (fl.includes('diesel') || fl.includes('diésel'))          fuel = 'Diesel';\n    else if (fl.includes('gasolin') || fl.includes('petrol'))    fuel = 'Gasolina';\n    else if (fl.includes('electr'))                              fuel = 'Eléctrico';\n    else if (fl.includes('hybrid') || fl.includes('híbrid'))    fuel = 'Híbrido';\n    else fuel = fuelMatch[1];\n  }\n}\n\n// ── transmission ──────────────────────────────────────────────\nvar transmission = null;\nvar transRaw = safeStr(ld['vehicleTransmission']);\nif (transRaw) {\n  var tl = transRaw.toLowerCase();\n  if (tl.includes('auto') || tl.includes('dct') || tl.includes('cvt') || tl.includes('dsg')) transmission = 'Automatica';\n  else if (tl.includes('manual')) transmission = 'Manual';\n  else transmission = transRaw;\n}\nif (!transmission) {\n  var transMatch = html.match(/\"vehicleTransmission\"\\s*:\\s*\"([^\"]+)\"/i) ||\n                   html.match(/\"gearType\"\\s*:\\s*\"([^\"]+)\"/i);\n  if (transMatch && transMatch[1]) {\n    var tl2 = transMatch[1].toLowerCase();\n    if (tl2.includes('auto') || tl2.includes('dct') || tl2.includes('dsg')) transmission = 'Automatica';\n    else if (tl2.includes('manual')) transmission = 'Manual';\n    else transmission = transMatch[1];\n  }\n}\n\n// ── power_cv / power_kw ───────────────────────────────────────\nvar power_cv = null;\nvar power_kw = null;\nvar engineObj = ld['vehicleEngine'] || {};\nvar powerRaw = safeStr(engineObj['enginePower']) || '';\nvar cvMatch = powerRaw.match(/(\\d+)\\s*(?:CV|PS|HP)/i);\nvar kwMatch = powerRaw.match(/(\\d+)\\s*kW/i);\nif (cvMatch && cvMatch[1]) power_cv = parseInt(cvMatch[1], 10);\nif (kwMatch && kwMatch[1]) power_kw = parseInt(kwMatch[1], 10);\n\n// ── displacement ──────────────────────────────────────────────\nvar displacement = null;\nvar dispRaw = safeStr(engineObj['engineDisplacement']) || '';\nvar dispMatch = dispRaw.match(/(\\d+)/);\nif (dispMatch && dispMatch[1]) displacement = parseInt(dispMatch[1], 10);\n\n// ── co2 ───────────────────────────────────────────────────────\nvar co2 = null;\nvar co2Raw = safeStr(ld['emissionsCO2']) || '';\nvar co2Match = co2Raw.match(/([\\d,\\.]+)\\s*g\\/km/i);\nif (co2Match && co2Match[1]) co2 = parseFloat(co2Match[1].replace(',', '.'));\n\n// ── consumption ───────────────────────────────────────────────\nvar consumption = null;\nvar consRaw = safeStr(ld['fuelConsumption']) || '';\nvar consMatch = consRaw.match(/([\\d,\\.]+)\\s*l\\/100/i);\nif (consMatch && consMatch[1]) consumption = parseFloat(consMatch[1].replace(',', '.'));\n\n// ── next_itv ──────────────────────────────────────────────────\nvar next_itv = null;\nvar itvMatch = html.match(/ITV\\s+v[áa]lida\\s+hasta[:\\s]*(\\d{1,2})\\/(\\d{1,2})\\/(\\d{2,4})/i);\nif (itvMatch) {\n  var itvDay   = itvMatch[1].padStart(2, '0');\n  var itvMonth = itvMatch[2].padStart(2, '0');\n  var itvYear  = itvMatch[3];\n  if (itvYear.length === 2) itvYear = '20' + itvYear;\n  next_itv = itvYear + '-' + itvMonth + '-' + itvDay;\n}\n\n// ── environmental_label — inferida de Euro + combustible ──────\nvar environmental_label = null;\nvar emStd = safeStr(ld['meetsEmissionStandard']) || '';\nvar euroMatch = emStd.match(/EURO\\s*(\\d+)/i);\nif (!euroMatch) euroMatch = html.match(/EURO\\s*(\\d+)/i);\nvar euroNum = euroMatch ? parseInt(euroMatch[1], 10) : null;\nvar fuelLow = (fuel || '').toLowerCase();\n\nif (fuelLow.includes('eléctr') || fuelLow.includes('electr')) {\n  environmental_label = '0 Emisiones';\n} else if (fuelLow.includes('híbrid') || fuelLow.includes('hibrid')) {\n  environmental_label = html.match(/plug.in|enchufable/i) ? 'ECO' : 'C';\n} else if (euroNum) {\n  if (fuelLow.includes('diesel') || fuelLow.includes('diésel')) {\n    if (euroNum >= 6)      environmental_label = 'C';\n    else if (euroNum >= 4) environmental_label = 'B';\n  } else {\n    if (euroNum >= 4)      environmental_label = 'C';\n    else if (euroNum === 3) environmental_label = 'B';\n  }\n}\n\n// ── traction ──────────────────────────────────────────────────\nvar traction = null;\nvar tracMatch = html.match(/\\b(4[Xx]4|4WD|AWD|FWD|RWD|delantera|trasera|tracción\\s+total|tracción\\s+integral)\\b/i);\nif (tracMatch && tracMatch[1]) {\n  var _tr = tracMatch[1].toLowerCase();\n  if (/4x4|4wd|awd|total|integral/.test(_tr)) traction = '4x4';\n  else if (/tras|rwd|rear/.test(_tr)) traction = 'Trasera';\n  else if (/del|fwd|front/.test(_tr)) traction = 'Delantera';\n}\n\n// ── city / location ───────────────────────────────────────────\nvar city = null;\nvar location = null;\nvar addrObj = {};\nif (ld['offers'] && ld['offers']['availableAtOrFrom']) {\n  addrObj = ld['offers']['availableAtOrFrom']['address'] || ld['offers']['availableAtOrFrom'] || {};\n} else if (ld['availableAtOrFrom']) {\n  addrObj = ld['availableAtOrFrom']['address'] || ld['availableAtOrFrom'] || {};\n}\nif (addrObj['addressLocality']) city     = String(addrObj['addressLocality']).trim();\nif (addrObj['addressRegion'])   location = String(addrObj['addressRegion']).trim();\nif (!city) {\n  var cityM = html.match(/\"addressLocality\"\\s*:\\s*\"([^\"]+)\"/);\n  if (cityM && cityM[1]) city = cityM[1].trim();\n}\nif (!location) {\n  var regionM = html.match(/\"addressRegion\"\\s*:\\s*\"([^\"]+)\"/);\n  if (regionM && regionM[1]) location = regionM[1].trim();\n}\n// Si Autohero no informa ubicación → nacional\nif (!location && !row.location) location = 'Toda España';\n// city = location como fallback\nif (!city && location)          city = location;\n\nvar province = location;\n\n// ── listed_at ─────────────────────────────────────────────────\nvar listed_at = null;\nvar datePosted = safeStr(ld['datePosted']);\nif (datePosted) {\n  var dpMatch = datePosted.match(/(\\d{4}-\\d{2}-\\d{2})/);\n  if (dpMatch) listed_at = dpMatch[1];\n}\nif (!listed_at) {\n  var dpHtml = html.match(/\"datePosted\"\\s*:\\s*\"([^\"]+)\"/);\n  if (dpHtml && dpHtml[1]) {\n    var dpMatch2 = dpHtml[1].match(/(\\d{4}-\\d{2}-\\d{2})/);\n    if (dpMatch2) listed_at = dpMatch2[1];\n  }\n}\n\n// ── finance_price ─────────────────────────────────────────────\nvar finance_price = null;\nvar finMatch = html.match(/(\\d[\\d.,]+)\\s*€\\s*\\/\\s*mes/i);\nif (!finMatch) finMatch = html.match(/cuota[^0-9]{0,30}(\\d[\\d.,]+)\\s*€/i);\nif (finMatch && finMatch[1]) {\n  finance_price = parseFloat(finMatch[1].replace(/\\./g, '').replace(',', '.'));\n  if (isNaN(finance_price)) finance_price = null;\n}\n\n// ── Hardcoded ─────────────────────────────────────────────────\nvar dealer_name       = 'Autohero';\nvar seller_type       = 'profesional';\nvar warranty_months   = 12;\nvar listing_type      = 'compra';\nvar source_updated_at = new Date().toISOString().slice(0, 10);\n\n// ── SQL builder ───────────────────────────────────────────────\nvar id = String(row.id || '');\nif (!id) return [{ json: { skipped: true, reason: 'no_id' } }];\n\nfunction esc(v) {\n  if (v === null || v === undefined || v === '') return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE';\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\n\nvar parts = [];\n\nif (image_url)              parts.push(\"image_url = \"           + esc(image_url));\nif (images_arr.length > 0)  parts.push(\"images = \"             + esc(JSON.stringify(images_arr)));\nif (body_type)              parts.push(\"body_type = \"           + esc(body_type));\nif (doors !== null)         parts.push(\"doors = \"               + esc(doors));\nif (seats !== null)         parts.push(\"seats = \"               + esc(seats));\nif (color)                  parts.push(\"color = \"               + esc(color));\nif (fuel && !row.fuel)      parts.push(\"fuel = \"                + esc(fuel));\nif (transmission)           parts.push(\"transmission = \"        + esc(transmission));\nif (power_cv !== null)      parts.push(\"power_cv = \"            + esc(power_cv));\nif (power_kw !== null)      parts.push(\"power_kw = \"            + esc(power_kw));\nif (displacement !== null)  parts.push(\"displacement = \"        + esc(displacement));\nif (co2 !== null)           parts.push(\"co2 = \"                 + esc(co2));\nif (consumption !== null)   parts.push(\"consumption = \"         + esc(consumption));\nif (next_itv)               parts.push(\"next_itv = \"            + esc(next_itv));\nif (environmental_label && !row.environmental_label) parts.push(\"environmental_label = \" + esc(environmental_label));\nif (traction)               parts.push(\"traction = \"            + esc(traction));\nif (city)                   parts.push(\"city = \"                + esc(city));\nif (location)               parts.push(\"location = \"            + esc(location));\nif (province)               parts.push(\"province = \"            + esc(province));\nif (listed_at)              parts.push(\"listed_at = \"           + esc(listed_at));\nif (finance_price !== null) parts.push(\"finance_price = \"       + esc(finance_price));\n\nparts.push(\"dealer_name = \"       + esc(dealer_name));\nparts.push(\"seller_type = \"       + esc(seller_type));\nparts.push(\"warranty_months = \"   + esc(warranty_months));\nparts.push(\"listing_type = \"      + esc(listing_type));\nparts.push(\"source_updated_at = \" + esc(source_updated_at));\n\n// Marcar SIEMPRE el intento para no re-scrapear cada noche las ofertas incompletables\nparts.push(\"enrich_tried_at = NOW()\");\n\nvar updateSql = 'UPDATE moveadvisor_market_offers SET ' + parts.join(', ') + \" WHERE id = '\" + id.replace(/'/g, \"''\") + \"'\";\n\nreturn [{\n  json: {\n    id: id,\n    updateSql: updateSql,\n    hasUpdates: true,\n    extracted: {\n      image_url: image_url, images: images_arr.length,\n      body_type: body_type, doors: doors, seats: seats, color: color,\n      fuel: fuel, transmission: transmission, power_cv: power_cv,\n      power_kw: power_kw, displacement: displacement, co2: co2,\n      consumption: consumption, next_itv: next_itv,\n      environmental_label: environmental_label, traction: traction,\n      city: city, location: location, listed_at: listed_at,\n      finance_price: finance_price\n    }\n  }\n}];\n"
       },
-      "id": "node-code-parse",
+      "id": "0df0975c-b3c3-42f8-ab79-a21004f4e1c8",
       "name": "Code: Extraer campos y generar SQL",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1000, 400]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict"
-          },
-          "conditions": [
-            {
-              "id": "cond-has-updates",
-              "leftValue": "={{ $json.hasUpdates }}",
-              "rightValue": true,
-              "operator": {
-                "type": "boolean",
-                "operation": "true"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "node-if-has-updates",
-      "name": "IF: ¿hay datos nuevos?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [1240, 400]
+      "position": [
+        -480,
+        128
+      ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "={{ $json.updateSql }}",
-        "additionalFields": {}
+        "query": "{{ $json.updateSql }}",
+        "options": {}
       },
-      "id": "node-pg-update",
+      "id": "e920f76a-e4fb-4bb2-bc1f-1c5fa2c2a413",
       "name": "PG: Actualizar oferta",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
-      "position": [1480, 280],
+      "position": [
+        0,
+        0
+      ],
       "credentials": {
         "postgres": {
-          "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL",
-          "name": "Postgres Neon"
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
         }
       }
     },
     {
       "parameters": {
-        "amount": 1200,
-        "unit": "milliseconds"
+        "amount": 2,
+        "unit": "seconds"
       },
-      "id": "node-wait",
+      "id": "838256ba-2c03-43a7-8d6b-b2d5b073d0f7",
       "name": "Esperar 1.2s (rate limit)",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1,
-      "position": [1720, 400],
+      "position": [
+        240,
+        128
+      ],
       "webhookId": "wait-autohero-enrich"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: {} }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1280,
+        432
+      ],
+      "id": "5a3b977e-57ea-4419-9d40-9f0a21d05659",
+      "name": "Code in JavaScript"
     }
   ],
   "connections": {
     "Ejecutar manualmente": {
       "main": [
-        [{ "node": "PG: Ofertas a enriquecer", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "PG: Ofertas a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Cada día a las 4:00": {
       "main": [
-        [{ "node": "PG: Ofertas a enriquecer", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "PG: Ofertas a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Llamada desde workflow padre": {
       "main": [
-        [{ "node": "PG: Ofertas a enriquecer", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "PG: Ofertas a enriquecer": {
       "main": [
-        [{ "node": "Loop: oferta por oferta", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Loop: oferta por oferta": {
       "main": [
-        [{ "node": "HTTP: Página de detalle Autohero", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "HTTP: Página de detalle Autohero",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Página de detalle Autohero",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "HTTP: Página de detalle Autohero": {
       "main": [
-        [{ "node": "Code: Extraer campos y generar SQL", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Code: Extraer campos y generar SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Code: Extraer campos y generar SQL": {
       "main": [
-        [{ "node": "IF: ¿hay datos nuevos?", "type": "main", "index": 0 }]
-      ]
-    },
-    "IF: ¿hay datos nuevos?": {
-      "main": [
-        [{ "node": "PG: Actualizar oferta", "type": "main", "index": 0 }],
-        [{ "node": "Esperar 1.2s (rate limit)", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "PG: Actualizar oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "PG: Actualizar oferta": {
       "main": [
-        [{ "node": "Esperar 1.2s (rate limit)", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Esperar 1.2s (rate limit)",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Esperar 1.2s (rate limit)": {
       "main": [
-        [{ "node": "Loop: oferta por oferta", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "PG: Ofertas a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
-  "pinData": {},
   "settings": {
     "executionOrder": "v1",
-    "saveManualExecutions": true,
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "9BwKOPMIzjj3owho",
     "callerPolicy": "workflowsFromSameOwner",
-    "errorWorkflow": ""
+    "availableInMCP": false
   },
+  "pinData": {},
   "staticData": null,
-  "tags": [],
-  "triggerCount": 1,
-  "updatedAt": "2026-05-14T00:00:00.000Z",
-  "versionId": "1"
+  "triggerCount": 0,
+  "tags": []
 }

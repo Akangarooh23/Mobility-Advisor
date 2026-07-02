@@ -1,0 +1,285 @@
+{
+  "name": "Coches.net – Enriquecer Ofertas (ficha)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "cne-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "cne-parent",
+      "name": "Llamada desde workflow padre",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 6 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cne-cron",
+      "name": "Cada día a las 6:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, url\nFROM moveadvisor_market_offers\nWHERE portal = 'cochesnet'\n  AND enrich_tried_at IS NULL\n  AND url <> ''\nORDER BY first_seen_at DESC\nLIMIT 1000",
+        "additionalFields": {}
+      },
+      "id": "cne-select",
+      "name": "PG: Ofertas a enriquecer",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        280,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "cne-loop",
+      "name": "Loop: oferta por oferta",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        520,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.url }}",
+        "options": {
+          "timeout": 25000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "headers": {
+            "values": [
+              {
+                "name": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+              },
+              {
+                "name": "Accept",
+                "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+              },
+              {
+                "name": "Accept-Language",
+                "value": "es-ES,es;q=0.9,en;q=0.8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "cne-http",
+      "name": "HTTP: Ficha coches.net",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        760,
+        400
+      ],
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// coches.net – enriquecer: ficha HTML → JSON-LD (Car) + __INITIAL_PROPS__.ad → UPDATE\nconst row = $('Loop: oferta por oferta').item.json;\nconst dbId = String(row.id || '');\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\n\nif (!dbId) return [{ json: { id: null, hasUpdates: false, updateSql: null } }];\n\nfunction esc(v) {\n  if (v === null || v === undefined || v === '') return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\nfunction normalizeBody(raw) {\n  var s = String(raw || '').toLowerCase();\n  if (!s) return '';\n  if (s.indexOf('suv') !== -1 || s.indexOf('4x4') !== -1 || s.indexOf('todo') !== -1) return 'SUV';\n  if (s.indexOf('pick') !== -1) return 'Pick Up';\n  if (s.indexOf('furgon') !== -1 || s.indexOf('van') !== -1 || s.indexOf('comercial') !== -1) return 'Furgoneta';\n  if (s.indexOf('familiar') !== -1 || s.indexOf('estate') !== -1 || s.indexOf('combi') !== -1) return 'Familiar';\n  if (s.indexOf('monovolum') !== -1 || s.indexOf('mpv') !== -1) return 'Monovolumen';\n  if (s.indexOf('coup') !== -1) return 'Coupé';\n  if (s.indexOf('cabrio') !== -1 || s.indexOf('descapotable') !== -1 || s.indexOf('convert') !== -1) return 'Cabrio';\n  if (s.indexOf('pequeñ') !== -1 || s.indexOf('pequen') !== -1 || s.indexOf('compact') !== -1 || s.indexOf('ciudad') !== -1 || s.indexOf('utilitario') !== -1) return 'Compacto';\n  if (s.indexOf('berlina') !== -1 || s.indexOf('sedan') !== -1 || s.indexOf('turismo') !== -1 || s.indexOf('hatchback') !== -1) return 'Berlina';\n  return raw || '';\n}\nfunction normalizeGear(raw) {\n  var s = String(raw || '').toLowerCase();\n  if (s.indexOf('autom') !== -1 || s.indexOf('dct') !== -1 || s.indexOf('cvt') !== -1 || s.indexOf('dsg') !== -1) return 'Automatica';\n  if (s.indexOf('manual') !== -1) return 'Manual';\n  return '';\n}\nfunction normalizeTraction(raw) {\n  var s = String(raw || '').toLowerCase();\n  if (!s) return '';\n  if (s.indexOf('4x4') !== -1 || s.indexOf('4wd') !== -1 || s.indexOf('awd') !== -1 || s.indexOf('all') !== -1 || s.indexOf('four') !== -1 || s.indexOf('total') !== -1 || s.indexOf('integral') !== -1) return '4x4';\n  if (s.indexOf('rear') !== -1 || s.indexOf('rwd') !== -1 || s.indexOf('tras') !== -1) return 'Trasera';\n  if (s.indexOf('front') !== -1 || s.indexOf('fwd') !== -1 || s.indexOf('del') !== -1) return 'Delantera';\n  return '';\n}\nfunction normalizeLabel(raw) {\n  var s = String(raw || '').toLowerCase().trim();\n  if (!s) return '';\n  if (s === 'zero' || s === 'cero' || s === '0' || s.indexOf('0 emis') !== -1) return '0 Emisiones';\n  if (s.indexOf('eco') !== -1 || s === 'e') return 'ECO';\n  if (s === 'c' || s === 'green') return 'C';\n  if (s === 'b' || s === 'yellow') return 'B';\n  return String(raw).toUpperCase();\n}\n\n// ── JSON-LD (Car) ──────────────────────────────────────────────\nvar veh = {};\ntry {\n  var blocks = [...html.matchAll(/<script[^>]*type=\"application\\/ld\\+json\"[^>]*>([\\s\\S]*?)<\\/script>/g)];\n  for (var bi = 0; bi < blocks.length; bi++) {\n    var o = null; try { o = JSON.parse(blocks[bi][1]); } catch (e) {}\n    if (!o) continue;\n    var arr = o['@graph'] || [o];\n    for (var ai = 0; ai < arr.length; ai++) {\n      var x = arr[ai];\n      if (x && (x['@type'] === 'Car' || x['@type'] === 'Vehicle' || x.bodyType || x.numberOfDoors)) veh = x;\n    }\n  }\n} catch (e) {}\n\n// ── __INITIAL_PROPS__.ad ───────────────────────────────────────\nvar ad = {};\ntry {\n  var mk = 'window.__INITIAL_PROPS__ = JSON.parse(';\n  var i = html.indexOf(mk);\n  if (i !== -1) {\n    var j = i + mk.length, k = j + 1, e = false;\n    for (; k < html.length; k++) { var c = html[k]; if (e) e = false; else if (c === '\\\\') e = true; else if (c === '\"') break; }\n    var props = JSON.parse(JSON.parse(html.slice(j, k + 1)));\n    ad = props.ad || {};\n  }\n} catch (e) {}\n\n// ── Campos ─────────────────────────────────────────────────────\nvar color = veh.color || '';\nvar body_type = normalizeBody(veh.bodyType || (ad.bodyType || ''));\nvar doors = (veh.numberOfDoors != null) ? parseInt(veh.numberOfDoors, 10) : null;\nvar seats = (veh.seatingCapacity != null) ? parseInt(veh.seatingCapacity, 10) : null;\nvar transmission = normalizeGear(veh.vehicleTransmission || ad.transmissionType || '');\nvar traction = normalizeTraction(ad.traction || '');\nvar environmental_label = normalizeLabel(ad.environmentalLabel || '');\nvar version = ad.version || '';\nvar warranty_months = (ad.warrantyMonths != null && ad.warrantyMonths > 0) ? parseInt(ad.warrantyMonths, 10) : null;\n\nvar displacement = null, consumption = null, power_cv = null;\nvar eng = veh.vehicleEngine || {};\nif (eng.engineDisplacement && eng.engineDisplacement.value) {\n  var dd = parseInt(String(eng.engineDisplacement.value).replace(/[.,\\s]/g, ''), 10);\n  if (!isNaN(dd) && dd > 0) displacement = dd;\n}\nif (eng.enginePower && eng.enginePower.value) {\n  var pc = parseInt(eng.enginePower.value, 10);\n  if (!isNaN(pc) && pc > 0) power_cv = pc;\n}\nif (veh.fuelEfficiency && veh.fuelEfficiency.value != null) {\n  var cs = parseFloat(veh.fuelEfficiency.value);\n  if (!isNaN(cs) && cs > 0) consumption = cs;\n}\nvar power_kw = power_cv ? Math.round(power_cv / 1.35962) : null;\n\n// ── SQL (COALESCE: solo rellena vacíos) ────────────────────────\nvar sets = [];\nif (color)                  sets.push(\"color = COALESCE(NULLIF(color,''), \" + esc(color) + \")\");\nif (body_type)              sets.push(\"body_type = COALESCE(NULLIF(body_type,''), \" + esc(body_type) + \")\");\nif (doors && doors > 0)     sets.push(\"doors = COALESCE(NULLIF(doors,0), \" + doors + \")\");\nif (seats && seats > 0)     sets.push(\"seats = COALESCE(NULLIF(seats,0), \" + seats + \")\");\nif (transmission)           sets.push(\"transmission = COALESCE(NULLIF(transmission,''), \" + esc(transmission) + \")\");\nif (traction)               sets.push(\"traction = COALESCE(NULLIF(traction,''), \" + esc(traction) + \")\");\nif (environmental_label)    sets.push(\"environmental_label = COALESCE(NULLIF(environmental_label,''), \" + esc(environmental_label) + \")\");\nif (version)                sets.push(\"version = COALESCE(NULLIF(version,''), \" + esc(version) + \")\");\nif (warranty_months)        sets.push(\"warranty_months = COALESCE(NULLIF(warranty_months,0), \" + warranty_months + \")\");\nif (displacement)           sets.push(\"displacement = COALESCE(NULLIF(displacement,''), '\" + displacement + \"')\");\nif (consumption)            sets.push(\"consumption = COALESCE(NULLIF(consumption,0), \" + consumption + \")\");\nif (power_cv)               sets.push(\"power_cv = COALESCE(NULLIF(power_cv,0), \" + power_cv + \")\");\nif (power_kw)               sets.push(\"power_kw = COALESCE(NULLIF(power_kw,0), \" + power_kw + \")\");\n\nsets.push('enrich_tried_at = NOW()');\n\nvar updateSql = 'UPDATE moveadvisor_market_offers SET ' + sets.join(', ') + ', updated_at = NOW() WHERE id = ' + esc(dbId);\n\nreturn [{ json: {\n  id: dbId, hasUpdates: true, updateSql: updateSql,\n  extracted: { color: color, body_type: body_type, doors: doors, seats: seats, transmission: transmission, traction: traction, environmental_label: environmental_label, version: version, displacement: displacement, consumption: consumption, power_cv: power_cv }\n} }];\n"
+      },
+      "id": "cne-code",
+      "name": "Code: Extraer campos y generar SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.updateSql }}",
+        "additionalFields": {}
+      },
+      "id": "cne-update",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1240,
+        280
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1200,
+        "unit": "milliseconds"
+      },
+      "id": "cne-wait",
+      "name": "Esperar 1.2s (rate limit)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1480,
+        400
+      ],
+      "webhookId": "wait-cochesnet-enrich"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Ofertas a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada día a las 6:00": {
+      "main": [
+        [
+          {
+            "node": "PG: Ofertas a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Llamada desde workflow padre": {
+      "main": [
+        [
+          {
+            "node": "PG: Ofertas a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Ofertas a enriquecer": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: oferta por oferta": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Ficha coches.net",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Ficha coches.net": {
+      "main": [
+        [
+          {
+            "node": "Code: Extraer campos y generar SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Extraer campos y generar SQL": {
+      "main": [
+        [
+          {
+            "node": "PG: Actualizar oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Actualizar oferta": {
+      "main": [
+        [
+          {
+            "node": "Esperar 1.2s (rate limit)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 1.2s (rate limit)": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "triggerCount": 1,
+  "tags": []
+}

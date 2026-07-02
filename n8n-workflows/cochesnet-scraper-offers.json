@@ -1,0 +1,299 @@
+{
+  "name": "Coches.net – Scraper (Importar Ofertas)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "cn-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 1 * * 0"
+            }
+          ]
+        }
+      },
+      "id": "cn-cron",
+      "name": "Cada domingo a la 1:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// coches.net: 30 coches/página, ~244k → ~8.135 páginas. Techo amplio;\n// el loop se corta solo al primer page sin coches (early-exit del IF).\nconst pages=[];\nfor(let i=1;i<=8300;i++){ pages.push({ json:{ page:i } }); }\nreturn pages;"
+      },
+      "id": "cn-gen",
+      "name": "Code: Generar páginas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "cn-loop",
+      "name": "Loop: página por página",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        480,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://www.coches.net/segunda-mano/?pg={{ $json.page }}",
+        "options": {
+          "timeout": 25000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "headers": {
+            "values": [
+              {
+                "name": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+              },
+              {
+                "name": "Accept",
+                "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+              },
+              {
+                "name": "Accept-Language",
+                "value": "es-ES,es;q=0.9,en;q=0.8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "cn-http",
+      "name": "HTTP: Listado coches.net",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        720,
+        400
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// coches.net – transform: HTML ?pg=N → __INITIAL_PROPS__.initialResults.items → UPSERT\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\n\n// Extraer window.__INITIAL_PROPS__ = JSON.parse(\"...\")\nlet items = [];\ntry {\n  const marker = 'window.__INITIAL_PROPS__ = JSON.parse(';\n  const i = html.indexOf(marker);\n  if (i !== -1) {\n    let j = i + marker.length;            // apunta a la \"\n    let k = j + 1, esc = false;\n    for (; k < html.length; k++) { const c = html[k]; if (esc) esc = false; else if (c === '\\\\') esc = true; else if (c === '\"') break; }\n    const props = JSON.parse(JSON.parse(html.slice(j, k + 1)));\n    items = (props.initialResults && props.initialResults.items) || [];\n  }\n} catch (e) { items = []; }\n\nif (!items.length) {\n  return [{ json: { sql: null, count: 0 } }];\n}\n\nfunction normalizeFuel(raw) {\n  const s = String(raw || '').toLowerCase();\n  if (s.indexOf('diesel') !== -1 || s.indexOf('diésel') !== -1) return 'Diesel';\n  if (s.indexOf('electr') !== -1) return 'Eléctrico';\n  const enchufable = (s.indexOf('enchufable') !== -1 || s.indexOf('plug') !== -1) && s.indexOf('no enchufable') === -1;\n  if (s.indexOf('hibrido') !== -1 || s.indexOf('híbrido') !== -1 || s.indexOf('hybrid') !== -1 || s.indexOf('enchufable') !== -1) return enchufable ? 'Híbrido enchufable' : 'Híbrido';\n  if (s.indexOf('gasolina') !== -1 || s.indexOf('petrol') !== -1) return 'Gasolina';\n  if (s.indexOf('glp') !== -1 || s.indexOf('gnc') !== -1 || s.indexOf('gas') !== -1) return 'Gas';\n  return raw || '';\n}\n\nfunction esc(v) {\n  if (v === null || v === undefined) return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\n\nconst rows = [];\nfor (const it of items) {\n  const id = 'cn_' + String(it.id);\n  const url = it.url ? ('https://www.coches.net' + it.url) : '';\n  const brand = it.make || '';\n  const model = it.model || '';\n  const title = it.title || (brand + ' ' + model).trim();\n  const year = (it.year != null) ? String(it.year) : 'NULL';\n  const mileage = (it.km != null) ? String(it.km) : 'NULL';\n  const fuel = normalizeFuel(it.fuelType);\n  const price = (it.price != null) ? String(it.price) : 'NULL';\n  const financePrice = (it.financedPrice != null) ? String(it.financedPrice) : 'NULL';\n  const powerCv = (it.hp != null && it.hp > 0) ? it.hp : null;\n  const powerKw = powerCv ? Math.round(powerCv / 1.35962) : null;\n  const imageUrl = it.imgUrl || it.img || '';\n  const photosArr = Array.isArray(it.photos) ? it.photos.filter(Boolean).slice(0, 15) : (imageUrl ? [imageUrl] : []);\n  const imagesJson = JSON.stringify(photosArr).replace(/'/g, \"''\");\n  const loc = it.location || {};\n  const province = loc.mainProvince || loc.regionLiteral || '';\n  const sellerType = it.isProfessional ? 'profesional' : 'particular';\n  const dealerName = (it.seller && (it.seller.name || it.seller.commercialName)) ? (it.seller.name || it.seller.commercialName) : '';\n  const warranty = (it.warrantyMonths != null && it.warrantyMonths > 0) ? String(it.warrantyMonths) : 'NULL';\n  const rawPayload = JSON.stringify(it).replace(/'/g, \"''\");\n\n  const row = '(' +\n    esc(id) + ', ' + \"'cochesnet', \" + esc(url) + ', ' + esc(title) + ', ' + esc(brand) + ', ' + esc(model) + ', ' +\n    year + ', ' + mileage + ', ' +\n    price + ', ' + financePrice + ', ' +\n    esc(fuel) + ', ' +\n    esc(imageUrl) + \", '\" + imagesJson + \"', \" +\n    esc(province) + ', ' + esc(province) + ', ' + esc(province) + ', ' +\n    esc(dealerName) + \", '\" + sellerType + \"', 'compra', \" + warranty + ', ' +\n    (powerCv !== null ? String(powerCv) : 'NULL') + ', ' + (powerKw !== null ? String(powerKw) : 'NULL') + ', ' +\n    \"'\" + rawPayload + \"', NOW(), NOW(), NOW()\" +\n  ')';\n  rows.push(row);\n}\n\nconst cols = 'id, portal, url, title, brand, model, year, mileage, price, finance_price, fuel, image_url, images, city, province, location, dealer_name, seller_type, listing_type, warranty_months, power_cv, power_kw, raw_payload, first_seen_at, scraped_at, last_seen_at';\n\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +\n  'url = EXCLUDED.url, ' +\n  'title = EXCLUDED.title, ' +\n  'price = EXCLUDED.price, ' +\n  'finance_price = EXCLUDED.finance_price, ' +\n  'mileage = EXCLUDED.mileage, ' +\n  \"image_url = COALESCE(NULLIF(moveadvisor_market_offers.image_url, ''), EXCLUDED.image_url), \" +\n  \"images = COALESCE(NULLIF(moveadvisor_market_offers.images, ''), EXCLUDED.images), \" +\n  'power_cv = COALESCE(EXCLUDED.power_cv, moveadvisor_market_offers.power_cv), ' +\n  'power_kw = COALESCE(EXCLUDED.power_kw, moveadvisor_market_offers.power_kw), ' +\n  'raw_payload = EXCLUDED.raw_payload, ' +\n  'last_seen_at = NOW(), ' +\n  'updated_at = NOW()';\n\nconst sql = 'INSERT INTO moveadvisor_market_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;\n\nreturn [{ json: { sql: sql, count: items.length } }];\n"
+      },
+      "id": "cn-transform",
+      "name": "Code: Transformar ofertas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.count }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "cn-if",
+      "name": "IF: ¿hay ofertas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "additionalFields": {}
+      },
+      "id": "cn-pg",
+      "name": "PG: Upsert ofertas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        280
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "cn-wait",
+      "name": "Esperar 1s (rate limit)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        400
+      ],
+      "webhookId": "wait-cochesnet-scraper"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar páginas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada domingo a la 1:00": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar páginas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Generar páginas": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: página por página": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Listado coches.net",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Listado coches.net": {
+      "main": [
+        [
+          {
+            "node": "Code: Transformar ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Transformar ofertas": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay ofertas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ofertas?": {
+      "main": [
+        [
+          {
+            "node": "PG: Upsert ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "PG: Upsert ofertas": {
+      "main": [
+        [
+          {
+            "node": "Esperar 1s (rate limit)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 1s (rate limit)": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "triggerCount": 1,
+  "tags": []
+}

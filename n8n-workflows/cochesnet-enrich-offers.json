@@ -157,11 +157,11 @@
     },
     {
       "parameters": {
-        "amount": 1200,
-        "unit": "milliseconds"
+        "amount": 2,
+        "unit": "seconds"
       },
       "id": "cne-wait",
-      "name": "Esperar 1.2s (rate limit)",
+      "name": "Esperar 2s (rate limit)",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1,
       "position": [
@@ -253,14 +253,14 @@
       "main": [
         [
           {
-            "node": "Esperar 1.2s (rate limit)",
+            "node": "Esperar 2s (rate limit)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Esperar 1.2s (rate limit)": {
+    "Esperar 2s (rate limit)": {
       "main": [
         [
           {

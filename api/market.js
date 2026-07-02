@@ -1,8 +1,9 @@
-const marketPriceHandler        = require("../lib/api/market-price-handler");
-const marketplaceVoHandler      = require("../lib/api/marketplace-vo-handler");
-const marketplaceOgHandler      = require("../lib/api/marketplace-og-handler");
-const workshopsNearbyHandler    = require("../lib/api/workshops-nearby-handler");
+const marketPriceHandler          = require("../lib/api/market-price-handler");
+const marketplaceVoHandler        = require("../lib/api/marketplace-vo-handler");
+const marketplaceOgHandler        = require("../lib/api/marketplace-og-handler");
+const workshopsNearbyHandler      = require("../lib/api/workshops-nearby-handler");
 const workshopAvailabilityHandler = require("../lib/api/workshop-availability-handler");
+const whatsappHandler             = require("../lib/api/whatsapp-handler");
 
 function resolveRoute(req) {
   const explicitRoute = String(req.query?.route || "").trim().toLowerCase();
@@ -23,6 +24,7 @@ module.exports = async function marketRouter(req, res) {
     case "og":          return marketplaceOgHandler(req, res);
     case "nearby":      return workshopsNearbyHandler(req, res);
     case "availability":return workshopAvailabilityHandler(req, res);
+    case "whatsapp":    return whatsappHandler(req, res);
     default:
       return res.status(404).json({ error: "Market route not found" });
   }

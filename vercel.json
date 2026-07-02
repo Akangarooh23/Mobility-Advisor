@@ -29,6 +29,10 @@
       "destination": "/api/market?route=availability"
     },
     {
+      "source": "/api/whatsapp",
+      "destination": "/api/market?route=whatsapp"
+    },
+    {
       "source": "/api/billing-account",
       "destination": "/api/billing?route=account"
     },

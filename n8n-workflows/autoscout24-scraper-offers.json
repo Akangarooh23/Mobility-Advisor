@@ -130,6 +130,7 @@
     },
     "Loop: segmento por segmento": {
       "main": [
+        [],
         [
           {
             "node": "Scrapear segmento (AutoScout24 – Segmento)",

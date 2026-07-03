@@ -18,13 +18,13 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 1 * * 6"
+              "expression": "0 1 * * *"
             }
           ]
         }
       },
       "id": "as-a-cron",
-      "name": "Cada sábado a la 1:00",
+      "name": "Cada dia a la 1:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
@@ -35,7 +35,7 @@
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "// Trocear por marca x precio para respetar el tope de 200 páginas de AutoScout24\nconst makes = [9,13,47,74,64,60,55,21,54,29,70,39,33,52,28,16360,65,73,46,31,16338,51802,38,15641,43,68,50,6,16415,37,57,51520,15525,67,66,48,19,20,16396,45,27,42,16355,35,14882];\nconst buckets = [[0,3000],[3000,5000],[5000,7000],[7000,9000],[9000,11000],[11000,13000],[13000,15000],[15000,18000],[18000,22000],[22000,27000],[27000,35000],[35000,50000],[50000,80000],[80000,99999999]];\nconst out = [];\nfor (const mk of makes) { for (const b of buckets) { out.push({ json: { mk: mk, pf: b[0], pt: b[1] } }); } }\nreturn out;"
+        "jsCode": "// Repartir las 45 marcas en 7 grupos (uno por dia de la semana) para no saturar disco/tiempo.\n// Cada dia procesa ~6-7 marcas x 14 tramos de precio. En 1 semana se cubre todo el catalogo.\nconst makes = [9,13,47,74,64,60,55,21,54,29,70,39,33,52,28,16360,65,73,46,31,16338,51802,38,15641,43,68,50,6,16415,37,57,51520,15525,67,66,48,19,20,16396,45,27,42,16355,35,14882];\nconst buckets = [[0,3000],[3000,5000],[5000,7000],[7000,9000],[9000,11000],[11000,13000],[13000,15000],[15000,18000],[18000,22000],[22000,27000],[27000,35000],[35000,50000],[50000,80000],[80000,99999999]];\nconst day = new Date().getDay(); // 0=domingo .. 6=sabado\nconst mine = makes.filter((mk, i) => i % 7 === day);\nconst out = [];\nfor (const mk of mine) { for (const b of buckets) { out.push({ json: { mk: mk, pf: b[0], pt: b[1] } }); } }\nreturn out;"
       },
       "id": "as-a-gen",
       "name": "Code: Generar segmentos (marca x precio)",
@@ -106,17 +106,6 @@
         ]
       ]
     },
-    "Cada sábado a la 1:00": {
-      "main": [
-        [
-          {
-            "node": "Code: Generar segmentos (marca x precio)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Code: Generar segmentos (marca x precio)": {
       "main": [
         [
@@ -156,6 +145,17 @@
         [
           {
             "node": "Loop: segmento por segmento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada dia a la 1:00": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar segmentos (marca x precio)",
             "type": "main",
             "index": 0
           }

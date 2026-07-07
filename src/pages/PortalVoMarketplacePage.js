@@ -73,8 +73,10 @@ export default function PortalVoMarketplacePage({
   const modeOffers = !isRenting && compraTab === "particulares"
     ? baseOffers.filter((o) => o.sourceType === "particulares")
     : !isRenting && compraTab === "renting_empresa"
-      ? baseOffers.filter((o) => o.sourceType !== "particulares")
-      : baseOffers;
+      ? baseOffers.filter((o) => o.sourceType !== "particulares" && o.sellerType !== "concesionario" && o.sellerType !== "importador")
+      : !isRenting && compraTab === "concesionarios"
+        ? baseOffers.filter((o) => o.sellerType === "concesionario" || o.sellerType === "importador")
+        : baseOffers;
 
   // In "particulares" mode all user vehicles are loaded client-side — use modeOffers.length as truth
   const isParticulares = !isRenting && compraTab === "particulares";
@@ -84,8 +86,10 @@ export default function PortalVoMarketplacePage({
 
   const modefeatured = !isRenting && compraTab === "particulares"
     ? []
+    : !isRenting && compraTab === "concesionarios"
+      ? baseFeatured.filter((o) => o.sellerType === "concesionario" || o.sellerType === "importador")
     : !isRenting && compraTab === "renting_empresa"
-      ? baseFeatured.filter((o) => o.sourceType !== "particulares")
+      ? baseFeatured.filter((o) => o.sourceType !== "particulares" && o.sellerType !== "concesionario" && o.sellerType !== "importador")
       : baseFeatured;
 
   return (
@@ -210,7 +214,7 @@ export default function PortalVoMarketplacePage({
       )}
 
       {/* Próximamente panels for tabs without real data yet */}
-      {!isRenting && compraTab !== "renting_empresa" && compraTab !== "particulares" && (
+      {!isRenting && compraTab !== "renting_empresa" && compraTab !== "particulares" && compraTab !== "concesionarios" && (
         <div style={{ ...styles.panel, marginBottom: 20, textAlign: "center", padding: "40px 24px" }}>
           {compraTab === "particulares" && (
             <>
@@ -284,7 +288,7 @@ export default function PortalVoMarketplacePage({
       )}
 
       {/* Filters + offers grid */}
-      {(isRenting || compraTab === "renting_empresa" || compraTab === "particulares") && (
+      {(isRenting || compraTab === "renting_empresa" || compraTab === "particulares" || compraTab === "concesionarios") && (
       <>
 
       <div style={{ ...styles.panel, marginBottom: 18 }}>

@@ -73,7 +73,7 @@ export default function PortalVoMarketplacePage({
   const modeOffers = !isRenting && compraTab === "particulares"
     ? baseOffers.filter((o) => o.sourceType === "particulares")
     : !isRenting && compraTab === "renting_empresa"
-      ? baseOffers.filter((o) => o.sourceType !== "particulares" && o.sellerType !== "concesionario" && o.sellerType !== "importador")
+      ? baseOffers.filter((o) => o.sourceType !== "particulares")
       : !isRenting && compraTab === "concesionarios"
         ? baseOffers.filter((o) => o.sellerType === "concesionario" || o.sellerType === "importador")
         : baseOffers;
@@ -89,7 +89,7 @@ export default function PortalVoMarketplacePage({
     : !isRenting && compraTab === "concesionarios"
       ? baseFeatured.filter((o) => o.sellerType === "concesionario" || o.sellerType === "importador")
     : !isRenting && compraTab === "renting_empresa"
-      ? baseFeatured.filter((o) => o.sourceType !== "particulares" && o.sellerType !== "concesionario" && o.sellerType !== "importador")
+      ? baseFeatured.filter((o) => o.sourceType !== "particulares")
       : baseFeatured;
 
   return (

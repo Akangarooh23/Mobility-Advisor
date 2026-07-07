@@ -7,37 +7,76 @@
       "name": "Ejecutar manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [0, 300]
+      "position": [
+        0,
+        300
+      ]
     },
     {
       "parameters": {
-        "rule": { "interval": [ { "field": "cronExpression", "expression": "0 0 7 * * *" } ] }
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 7 * * *"
+            }
+          ]
+        }
       },
       "id": "mant-cron",
       "name": "Cada día a las 7:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
-      "position": [0, 480]
+      "position": [
+        0,
+        480
+      ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "UPDATE moveadvisor_market_offers\nSET is_active = (\n  CASE\n    WHEN portal = 'autoscout24' THEN last_seen_at > NOW() - INTERVAL '9 days'\n    WHEN portal IN ('flexicar','autohero') THEN last_seen_at > NOW() - INTERVAL '3 days'\n    ELSE last_seen_at > NOW() - INTERVAL '7 days'\n  END\n), updated_at = NOW()\nWHERE is_active IS DISTINCT FROM (\n  CASE\n    WHEN portal = 'autoscout24' THEN last_seen_at > NOW() - INTERVAL '9 days'\n    WHEN portal IN ('flexicar','autohero') THEN last_seen_at > NOW() - INTERVAL '3 days'\n    ELSE last_seen_at > NOW() - INTERVAL '7 days'\n  END\n)",
+        "query": "UPDATE moveadvisor_market_offers\nSET is_active = (\n  CASE\n    WHEN portal = 'autoscout24' THEN last_seen_at > NOW() - INTERVAL '9 days'\n    WHEN portal IN ('flexicar','autohero','wallapop') THEN last_seen_at > NOW() - INTERVAL '3 days'\n    ELSE last_seen_at > NOW() - INTERVAL '7 days'\n  END\n), updated_at = NOW()\nWHERE is_active IS DISTINCT FROM (\n  CASE\n    WHEN portal = 'autoscout24' THEN last_seen_at > NOW() - INTERVAL '9 days'\n    WHEN portal IN ('flexicar','autohero','wallapop') THEN last_seen_at > NOW() - INTERVAL '3 days'\n    ELSE last_seen_at > NOW() - INTERVAL '7 days'\n  END\n)",
         "additionalFields": {}
       },
       "id": "mant-pg",
       "name": "PG: Recalcular is_active",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
-      "position": [260, 390],
+      "position": [
+        260,
+        390
+      ],
       "credentials": {
-        "postgres": { "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL", "name": "Postgres account" }
+        "postgres": {
+          "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL",
+          "name": "Postgres account"
+        }
       }
     }
   ],
   "connections": {
-    "Ejecutar manualmente": { "main": [ [ { "node": "PG: Recalcular is_active", "type": "main", "index": 0 } ] ] },
-    "Cada día a las 7:00": { "main": [ [ { "node": "PG: Recalcular is_active", "type": "main", "index": 0 } ] ] }
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Recalcular is_active",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada día a las 7:00": {
+      "main": [
+        [
+          {
+            "node": "PG: Recalcular is_active",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
   "pinData": {},
   "settings": {

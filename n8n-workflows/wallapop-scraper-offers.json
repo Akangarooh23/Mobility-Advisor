@@ -1,0 +1,237 @@
+{
+  "name": "Wallapop – Scraper (particulares)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "wp-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 6 * * *"
+            }
+          ]
+        }
+      },
+      "id": "wp-cron",
+      "name": "Cada día a las 6:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.wallapop.com/api/v3/search?category_ids=100&order_by=newest&latitude=40.4168&longitude=-3.7038&distance=600000&source=search_box",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            },
+            {
+              "name": "X-DeviceOS",
+              "value": "0"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "pagination": {
+            "pagination": {
+              "paginationMode": "updateAParameterInEachRequest",
+              "parameters": {
+                "parameters": [
+                  {
+                    "type": "qs",
+                    "name": "next_page",
+                    "value": "={{ $response.body.meta.next_page }}"
+                  }
+                ]
+              },
+              "paginationCompleteWhen": "other",
+              "completeExpression": "={{ !$response.body.meta.next_page }}",
+              "limitPagesFetched": true,
+              "maxRequests": 40,
+              "requestInterval": 1200
+            }
+          }
+        }
+      },
+      "id": "wp-http",
+      "name": "HTTP: Wallapop coches (paginado)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        240,
+        390
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Wallapop – transform: respuestas /api/v3/search (category_ids=100) → items cat 100 → UPSERT\n// Maneja varias páginas acumuladas (paginación integrada del HTTP node): $input.all()\nconst inputs = $input.all();\n\nfunction normalizeFuel(raw) {\n  const s = String(raw || '').toLowerCase();\n  if (s.indexOf('dies') !== -1 || s.indexOf('dié') !== -1 || s.indexOf('diã') !== -1) return 'Diesel';\n  const ench = (s.indexOf('enchufable') !== -1 || s.indexOf('plug') !== -1) && s.indexOf('no enchufable') === -1;\n  if (s.indexOf('hibrido') !== -1 || s.indexOf('híbrido') !== -1 || s.indexOf('hybrid') !== -1) return ench ? 'Híbrido enchufable' : 'Híbrido';\n  if (s.indexOf('eléctrico') !== -1 || s.indexOf('electrico') !== -1 || s.indexOf('electric') !== -1) return 'Eléctrico';\n  if (s.indexOf('gasolina') !== -1 || s.indexOf('petrol') !== -1) return 'Gasolina';\n  if (s.indexOf('glp') !== -1 || s.indexOf('gnc') !== -1 || s.indexOf('gas') !== -1) return 'Gas';\n  return raw || '';\n}\nfunction esc(v) {\n  if (v === null || v === undefined) return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\n\nlet raw = [];\nfor (const inp of inputs) {\n  const body = inp.json || {};\n  const items = (body.data && body.data.section && body.data.section.payload && body.data.section.payload.items) || [];\n  raw = raw.concat(items);\n}\n\n// dedupe por id + solo coches (cat 100 con atributos)\nconst seen = {};\nconst cars = [];\nfor (const it of raw) {\n  if (Number(it.category_id) !== 100) continue;\n  const ta = it.type_attributes;\n  if (!ta) continue;\n  if (seen[it.id]) continue;\n  seen[it.id] = 1;\n  cars.push(it);\n}\n\nif (!cars.length) return [{ json: { sql: null, count: 0 } }];\n\nconst rows = [];\nfor (const it of cars) {\n  const ta = it.type_attributes || {};\n  const id = 'wp_' + String(it.id);\n  const url = it.web_slug ? ('https://es.wallapop.com/item/' + it.web_slug) : '';\n  const brand = ta.brand || '';\n  const model = ta.model || '';\n  const version = ta.version || '';\n  const title = it.title || (brand + ' ' + model).trim();\n  const year = (ta.year != null && ta.year > 1900) ? String(ta.year) : 'NULL';\n  const mileage = (ta.km != null) ? String(parseInt(ta.km, 10)) : 'NULL';\n  const price = (it.price && it.price.amount != null) ? String(Math.round(it.price.amount)) : 'NULL';\n  const fuel = normalizeFuel(ta.engine);\n  const powerCv = (ta.horsepower != null && ta.horsepower > 0) ? Math.round(ta.horsepower) : null;\n  const powerKw = powerCv ? Math.round(powerCv / 1.35962) : null;\n\n  const imgs = Array.isArray(it.images) ? it.images.map(function (im) { return im && im.urls ? (im.urls.big || im.urls.medium || im.urls.small) : null; }).filter(Boolean).slice(0, 15) : [];\n  const imageUrl = imgs[0] || '';\n  const imagesJson = JSON.stringify(imgs).replace(/'/g, \"''\");\n  const loc = it.location || {};\n  const city = loc.city || '';\n  const province = loc.region2 || loc.region || '';\n  const sellerType = it.is_top_profile ? 'profesional' : 'particular';\n\n  const row = '(' +\n    esc(id) + \", 'wallapop', \" + esc(url) + ', ' + esc(title) + ', ' + esc(brand) + ', ' + esc(model) + ', ' + esc(version) + ', ' +\n    year + ', ' + mileage + ', ' + price + ', ' +\n    esc(fuel) + ', ' +\n    esc(imageUrl) + \", '\" + imagesJson + \"', \" +\n    esc(city) + ', ' + esc(province) + ', ' + esc(city) + ', ' +\n    \"'\" + sellerType + \"', 'compra', \" +\n    (powerCv !== null ? String(powerCv) : 'NULL') + ', ' + (powerKw !== null ? String(powerKw) : 'NULL') +\n    ', NOW(), NOW(), NOW()' +\n  ')';\n  rows.push(row);\n}\n\nconst cols = 'id, portal, url, title, brand, model, version, year, mileage, price, fuel, image_url, images, city, province, location, seller_type, listing_type, power_cv, power_kw, first_seen_at, scraped_at, last_seen_at';\n\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +\n  'url = EXCLUDED.url, title = EXCLUDED.title, price = EXCLUDED.price, mileage = EXCLUDED.mileage, ' +\n  \"image_url = COALESCE(NULLIF(moveadvisor_market_offers.image_url,''), EXCLUDED.image_url), \" +\n  \"images = COALESCE(NULLIF(moveadvisor_market_offers.images,''), EXCLUDED.images), \" +\n  'power_cv = COALESCE(EXCLUDED.power_cv, moveadvisor_market_offers.power_cv), ' +\n  'power_kw = COALESCE(EXCLUDED.power_kw, moveadvisor_market_offers.power_kw), ' +\n  'last_seen_at = NOW(), updated_at = NOW()';\n\nconst sql = 'INSERT INTO moveadvisor_market_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;\nreturn [{ json: { sql: sql, count: rows.length } }];\n"
+      },
+      "id": "wp-transform",
+      "name": "Code: Transformar ofertas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.count }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "wp-if",
+      "name": "IF: ¿hay ofertas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        700,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "additionalFields": {}
+      },
+      "id": "wp-pg",
+      "name": "PG: Upsert ofertas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        940,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Wallapop coches (paginado)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada día a las 6:00": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Wallapop coches (paginado)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Wallapop coches (paginado)": {
+      "main": [
+        [
+          {
+            "node": "Code: Transformar ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Transformar ofertas": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay ofertas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ofertas?": {
+      "main": [
+        [
+          {
+            "node": "PG: Upsert ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "triggerCount": 1,
+  "tags": []
+}

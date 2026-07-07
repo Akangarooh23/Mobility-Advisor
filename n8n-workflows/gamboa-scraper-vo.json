@@ -1,0 +1,304 @@
+{
+  "name": "Gamboa – Scraper VO (concesionario)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "gb-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 30 6 * * *"
+            }
+          ]
+        }
+      },
+      "id": "gb-cron",
+      "name": "Cada día a las 6:30",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Gamboa: crawl del listado maestro /coches-ocasion-madrid?pagina=N (24/pág, server-rendered).\n// ~463 coches = ~20 páginas. Ponemos 22 con margen; las de más devuelven vacío (skip).\nconst MAX_PAGES = 22;\nconst out = [];\nfor (let p = 1; p <= MAX_PAGES; p++) {\n  out.push({ json: { url: 'https://www.gamboaocasion.com/coches-ocasion-madrid?pagina=' + p } });\n}\nreturn out;"
+      },
+      "id": "gb-gen",
+      "name": "Code: Generar URLs (marca x página)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "gb-loop",
+      "name": "Loop: página por página",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        440,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.url }}",
+        "options": {
+          "timeout": 25000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "headers": {
+            "values": [
+              {
+                "name": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+              },
+              {
+                "name": "Accept-Language",
+                "value": "es-ES,es;q=0.9"
+              }
+            ]
+          }
+        }
+      },
+      "id": "gb-http",
+      "name": "HTTP: Listado Gamboa",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        660,
+        390
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Gamboa – transform: HTML de listado (?pagina=N) → tarjetas → UPSERT en moveadvisor_marketplace_vo_offers\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\nconst BASE = 'https://www.gamboaocasion.com';\n\nfunction esc(v) {\n  if (v === null || v === undefined) return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\nfunction normFuel(s) {\n  s = String(s || '').toLowerCase();\n  if (s.indexOf('eléctric') !== -1 || s.indexOf('electric') !== -1) return 'Eléctrico';\n  const ench = s.indexOf('enchufable') !== -1 && s.indexOf('no enchufable') === -1;\n  if (s.indexOf('híbrido') !== -1 || s.indexOf('hibrido') !== -1) return ench ? 'Híbrido enchufable' : 'Híbrido';\n  if (s.indexOf('diésel') !== -1 || s.indexOf('diesel') !== -1) return 'Diesel';\n  if (s.indexOf('gasolina') !== -1) return 'Gasolina';\n  if (s.indexOf('glp') !== -1 || s.indexOf('gnc') !== -1 || s.indexOf('gas ') !== -1) return 'Gas';\n  return '';\n}\nfunction normGear(s) {\n  s = String(s || '').toLowerCase();\n  if (s.indexOf('autom') !== -1) return 'Automatica';\n  if (s.indexOf('manual') !== -1) return 'Manual';\n  return '';\n}\n\n// localizar cada tarjeta por su <a title=\"Coche ...\" href=\"...-ID\">\nconst anchorRe = /<a title=\"Coche ([^\"]*?)\"\\s+href=\"(\\/[a-z0-9-]+-ocasion-madrid\\/[a-z0-9-]+-(\\d+))\"/gi;\nconst anchors = [];\nlet m;\nwhile ((m = anchorRe.exec(html)) !== null) anchors.push({ name: m[1].trim(), href: m[2], id: m[3], index: m.index });\n\nconst seen = {};\nconst rows = [];\nfor (let i = 0; i < anchors.length; i++) {\n  const a = anchors[i];\n  if (seen[a.id]) continue;\n  seen[a.id] = 1;\n  const block = html.slice(a.index, anchors[i + 1] ? anchors[i + 1].index : a.index + 2600);\n\n  const ctitle = (block.match(/<h3 class=\"card-title\">([^<]*)<\\/h3>/i) || [])[1] || '';\n  const brandModel = ctitle.replace(/\\s+/g, ' ').trim();\n  const sp = brandModel.indexOf(' ');\n  const brand = sp === -1 ? brandModel : brandModel.slice(0, sp);\n  const model = sp === -1 ? '' : brandModel.slice(sp + 1);\n  const version = ((block.match(/<p class=\"card-text\">([^<]*)<\\/p>/i) || [])[1] || '').replace(/\\s+/g, ' ').trim();\n  const title = (a.name || (brandModel + ' ' + version)).replace(/\\s+/g, ' ').trim();\n\n  const img = (block.match(/src=\"(\\/img\\/coches\\/\\d+\\/[^\"]+)\"/i) || [])[1] || '';\n  const imageUrl = img ? (BASE + img) : '';\n\n  const priceM = block.match(/€\\s*(\\d{1,3}(?:\\.\\d{3})+)/);\n  const price = priceM ? priceM[1].replace(/\\./g, '') : null;\n\n  const text = block.replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ');\n  const powerM = text.match(/(\\d{2,4})\\s*cv/i);\n  const power = powerM ? (powerM[1] + ' CV') : null;\n  const yearM = text.match(/\\b(20\\d{2}|19\\d{2})\\b/);\n  const year = yearM ? yearM[1] : null;\n  const kmM = text.match(/(\\d{1,3}(?:\\.\\d{3})*)\\s*km/i);\n  const mileage = kmM ? kmM[1].replace(/\\./g, '') : null;\n  const fuel = normFuel(text);\n  const transmission = normGear(text);\n\n  if (!price) continue; // sin precio no insertamos (obligatorio)\n\n  const id = 'gamboa_' + a.id;\n  const row = '(' +\n    esc(id) + ', ' + esc(title) + ', ' + esc(brand) + ', ' + esc(model) + ', ' + esc(version) + ', ' +\n    price + ', ' + (year || 'NULL') + ', ' + (mileage || 'NULL') + ', ' +\n    esc(fuel) + ', ' + esc(power) + ', ' + esc(transmission) + ', ' +\n    esc(imageUrl) + ', ' + esc(BASE + a.href) + ', ' +\n    \"'usado', 'concesionario', 'gamboa', 'Gamboa Ocasión', 'Madrid', 'Madrid', true, true, NOW(), NOW()\" +\n  ')';\n  rows.push(row);\n}\n\nif (!rows.length) return [{ json: { sql: null, count: 0 } }];\n\nconst cols = 'id, title, brand, model, version, price, year, mileage, fuel, power, transmission, ' +\n  'image_url, source_url, vehicle_condition, seller_type, portal, seller, location, provincia, ' +\n  'available_for_purchase, is_active, created_at, updated_at';\n\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +\n  'title = EXCLUDED.title, price = EXCLUDED.price, mileage = EXCLUDED.mileage, ' +\n  'version = EXCLUDED.version, fuel = EXCLUDED.fuel, power = EXCLUDED.power, ' +\n  'transmission = EXCLUDED.transmission, ' +\n  \"image_url = COALESCE(NULLIF(moveadvisor_marketplace_vo_offers.image_url,''), EXCLUDED.image_url), \" +\n  'source_url = EXCLUDED.source_url, is_active = TRUE, updated_at = NOW()';\n\nconst sql = 'INSERT INTO moveadvisor_marketplace_vo_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;\nreturn [{ json: { sql: sql, count: rows.length } }];\n"
+      },
+      "id": "gb-transform",
+      "name": "Code: Transformar ofertas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.count }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "gb-if",
+      "name": "IF: ¿hay ofertas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "additionalFields": {}
+      },
+      "id": "gb-pg",
+      "name": "PG: Upsert ofertas VO",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        280
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "gb-wait",
+      "name": "Esperar 1s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        390
+      ],
+      "webhookId": "wait-gamboa"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar URLs (marca x página)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada día a las 6:30": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar URLs (marca x página)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Generar URLs (marca x página)": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: página por página": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP: Listado Gamboa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Listado Gamboa": {
+      "main": [
+        [
+          {
+            "node": "Code: Transformar ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Transformar ofertas": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay ofertas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ofertas?": {
+      "main": [
+        [
+          {
+            "node": "PG: Upsert ofertas VO",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Upsert ofertas VO": {
+      "main": [
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 1s": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "triggerCount": 1,
+  "tags": []
+}

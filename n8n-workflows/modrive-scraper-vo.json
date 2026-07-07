@@ -1,0 +1,410 @@
+{
+  "name": "Modrive – Scraper VO (concesionario, gradual)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "md-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 45 6 * * *"
+            }
+          ]
+        }
+      },
+      "id": "md-cron",
+      "name": "Cada día a las 6:45",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.modrive.com/sitemap-vehicles.xml",
+        "options": {
+          "timeout": 25000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "headers": {
+            "values": [
+              {
+                "name": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+              },
+              {
+                "name": "Accept-Language",
+                "value": "es-ES,es;q=0.9"
+              }
+            ]
+          }
+        }
+      },
+      "id": "md-sitemap",
+      "name": "HTTP: Sitemap Modrive",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -20,
+        390
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Parsear sitemap-vehicles.xml → todas las URLs de coche (1 item con el array)\nconst httpOut = $input.item.json;\nconst xml = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\nconst urls = [];\nconst re = /<loc>(https:\\/\\/www\\.modrive\\.com\\/coches-[a-z0-9-]+\\/[a-z0-9-]+-(\\d+)\\/?)<\\/loc>/g;\nlet m;\nwhile ((m = re.exec(xml)) !== null) urls.push({ id: 'modrive_' + m[2], url: m[1] });\nreturn [{ json: { urls: urls, total: urls.length } }];"
+      },
+      "id": "md-extract",
+      "name": "Code: Extraer URLs del sitemap",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, EXTRACT(EPOCH FROM updated_at)::bigint AS upd FROM moveadvisor_marketplace_vo_offers WHERE portal = 'modrive'",
+        "additionalFields": {}
+      },
+      "id": "md-existing",
+      "name": "PG: IDs existentes",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        420,
+        390
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Elegir N fichas por ejecución: primero las que faltan en BD, luego las más antiguas\nconst N = 400;\nconst urls = $('Code: Extraer URLs del sitemap').first().json.urls || [];\nconst byId = {}; urls.forEach(function (u) { byId[u.id] = u.url; });\nconst existing = $input.all().map(function (i) { return i.json; }).filter(function (e) { return e && e.id; });\nconst has = {}; existing.forEach(function (e) { has[e.id] = true; });\nconst missing = urls.filter(function (u) { return !has[u.id]; });\nexisting.sort(function (a, b) { return (Number(a.upd) || 0) - (Number(b.upd) || 0); });\nconst stale = existing.filter(function (e) { return byId[e.id]; }).map(function (e) { return { url: byId[e.id] }; });\nconst pick = missing.map(function (u) { return { url: u.url }; }).concat(stale).slice(0, N);\nreturn pick.map(function (p) { return { json: { url: p.url } }; });"
+      },
+      "id": "md-select",
+      "name": "Code: Seleccionar N a procesar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "md-loop",
+      "name": "Loop: ficha por ficha",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        860,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.url }}",
+        "options": {
+          "timeout": 25000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "headers": {
+            "values": [
+              {
+                "name": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+              },
+              {
+                "name": "Accept-Language",
+                "value": "es-ES,es;q=0.9"
+              }
+            ]
+          }
+        }
+      },
+      "id": "md-ficha",
+      "name": "HTTP: Ficha Modrive",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1080,
+        390
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Modrive – transform: ficha HTML → JSON-LD Vehicle → UPSERT en moveadvisor_marketplace_vo_offers\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\n\nfunction esc(v) {\n  if (v === null || v === undefined || v === '') return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\nfunction normFuel(s) {\n  s = String(s || '').toLowerCase();\n  if (s.indexOf('electric') !== -1 && (s.indexOf('/') !== -1 || s.indexOf('hybrid') !== -1)) return 'Híbrido';\n  if (s.indexOf('electric') !== -1 || s.indexOf('eléctric') !== -1) return 'Eléctrico';\n  if (s.indexOf('hybrid') !== -1 || s.indexOf('híbrido') !== -1) return 'Híbrido';\n  if (s.indexOf('diesel') !== -1 || s.indexOf('diésel') !== -1) return 'Diesel';\n  if (s.indexOf('gasolin') !== -1 || s.indexOf('petrol') !== -1 || s.indexOf('gasoline') !== -1) return 'Gasolina';\n  if (s.indexOf('glp') !== -1 || s.indexOf('lpg') !== -1 || s.indexOf('gas') !== -1) return 'Gas';\n  return '';\n}\nfunction num(s) { const n = parseInt(String(s).replace(/[^\\d]/g, ''), 10); return isNaN(n) ? null : n; }\n\n// extraer el Vehicle del JSON-LD\nlet v = null;\nconst blocks = [...html.matchAll(/<script[^>]*type=\"application\\/ld\\+json\"[^>]*>([\\s\\S]*?)<\\/script>/g)];\nfor (const b of blocks) {\n  let o; try { o = JSON.parse(b[1]); } catch (e) { continue; }\n  const arr = o['@graph'] || (Array.isArray(o) ? o : [o]);\n  const find = (x) => { if (!x || typeof x !== 'object') return null; if (x['@type'] === 'Vehicle' || x['@type'] === 'Car') return x; for (const k in x) { const r = find(x[k]); if (r) return r; } return null; };\n  v = find(arr);\n  if (v) break;\n}\nif (!v) return [{ json: { sql: null, count: 0 } }];\n\nconst url = (v.offers && v.offers.url) || v.url || v['@id'] || '';\nconst idm = String(url).match(/-(\\d+)\\/?$/);\nconst id = idm ? ('modrive_' + idm[1]) : null;\nconst price = v.offers && v.offers.price ? num(v.offers.price) : null;\nif (!id || price === null) return [{ json: { sql: null, count: 0 } }];\n\nconst brand = (v.brand && (v.brand.name || v.brand)) || '';\nconst model = v.model || '';\nconst title = (v.name || (brand + ' ' + model)).replace(/\\s+/g, ' ').trim();\nconst version = v.vehicleConfiguration ? String(v.vehicleConfiguration).split(',')[0].trim() : '';\nconst year = (v.productionDate && String(v.productionDate).match(/(\\d{4})/)) ? String(v.productionDate).match(/(\\d{4})/)[1] : null;\nconst mileage = v.mileageFromOdometer ? num(v.mileageFromOdometer.value != null ? v.mileageFromOdometer.value : v.mileageFromOdometer) : null;\nconst fuel = normFuel(v.fuelType || (v.vehicleEngine && v.vehicleEngine.engineType));\nconst transmission = /manual/i.test(v.vehicleTransmission || '') ? 'Manual' : (/autom/i.test(v.vehicleTransmission || '') ? 'Automatica' : '');\nlet powerVal = null;\nif (v.vehicleEngine && v.vehicleEngine.enginePower && v.vehicleEngine.enginePower.value) powerVal = num(v.vehicleEngine.enginePower.value);\nconst power = powerVal ? (powerVal + ' CV') : null;\nconst bodyType = v.bodyType || '';\nconst doors = (v.numberOfDoors != null) ? parseInt(v.numberOfDoors, 10) : null;\nconst color = v.color || '';\nconst imgs = Array.isArray(v.image) ? v.image.filter(Boolean).slice(0, 15) : (v.image ? [v.image] : []);\nconst imageUrl = imgs[0] || '';\nconst imagesJson = JSON.stringify(imgs).replace(/'/g, \"''\");\nconst condition = (mileage !== null && mileage < 1000) ? 'nuevo' : 'usado';\n\nconst cols = 'id, title, brand, model, version, price, year, mileage, fuel, power, transmission, ' +\n  'color, image_url, image_urls, source_url, vehicle_condition, seller_type, portal, seller, ' +\n  'available_for_purchase, is_active, created_at, updated_at';\n\nconst vals = '(' +\n  esc(id) + ', ' + esc(title) + ', ' + esc(brand) + ', ' + esc(model) + ', ' + esc(version) + ', ' +\n  price + ', ' + (year || 'NULL') + ', ' + (mileage !== null ? mileage : 'NULL') + ', ' +\n  esc(fuel) + ', ' + esc(power) + ', ' + esc(transmission) + ', ' +\n  esc(color) + ', ' + esc(imageUrl) + \", '\" + imagesJson + \"', \" + esc(url) + ', ' +\n  esc(condition) + \", 'concesionario', 'modrive', 'Modrive', true, true, NOW(), NOW()\" +\n')';\n\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +\n  'title = EXCLUDED.title, price = EXCLUDED.price, mileage = EXCLUDED.mileage, ' +\n  'version = EXCLUDED.version, fuel = EXCLUDED.fuel, power = EXCLUDED.power, transmission = EXCLUDED.transmission, ' +\n  \"image_url = COALESCE(NULLIF(moveadvisor_marketplace_vo_offers.image_url,''), EXCLUDED.image_url), \" +\n  'image_urls = EXCLUDED.image_urls, vehicle_condition = EXCLUDED.vehicle_condition, ' +\n  'is_active = TRUE, updated_at = NOW()';\n\nconst sql = 'INSERT INTO moveadvisor_marketplace_vo_offers (' + cols + ') VALUES ' + vals + ' ' + onConflict;\nreturn [{ json: { sql: sql, count: 1, id: id } }];\n"
+      },
+      "id": "md-transform",
+      "name": "Code: Transformar oferta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.count }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "md-if",
+      "name": "IF: ¿oferta válida?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "additionalFields": {}
+      },
+      "id": "md-pg",
+      "name": "PG: Upsert oferta VO",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        280
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "md-wait",
+      "name": "Esperar 1s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1980,
+        390
+      ],
+      "webhookId": "wait-modrive"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Sitemap Modrive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada día a las 6:45": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Sitemap Modrive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Sitemap Modrive": {
+      "main": [
+        [
+          {
+            "node": "Code: Extraer URLs del sitemap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Extraer URLs del sitemap": {
+      "main": [
+        [
+          {
+            "node": "PG: IDs existentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: IDs existentes": {
+      "main": [
+        [
+          {
+            "node": "Code: Seleccionar N a procesar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Seleccionar N a procesar": {
+      "main": [
+        [
+          {
+            "node": "Loop: ficha por ficha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: ficha por ficha": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP: Ficha Modrive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Ficha Modrive": {
+      "main": [
+        [
+          {
+            "node": "Code: Transformar oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Transformar oferta": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿oferta válida?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿oferta válida?": {
+      "main": [
+        [
+          {
+            "node": "PG: Upsert oferta VO",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Upsert oferta VO": {
+      "main": [
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 1s": {
+      "main": [
+        [
+          {
+            "node": "Loop: ficha por ficha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "triggerCount": 1,
+  "tags": []
+}

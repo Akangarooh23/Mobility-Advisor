@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
+import { getMarketplaceVoJson } from "../utils/apiClient";
 
 function useWindowWidth() {
   const [width, setWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
@@ -55,6 +56,33 @@ export default function PortalVoMarketplacePage({
   const [viewingForm, setViewingForm] = useState({ name: "", email: "", message: "" });
   const [viewingState, setViewingState] = useState({}); // { [offerId]: 'sent' | 'error' | 'sending' }
   const [compraTab, setCompraTab] = useState("renting_empresa");
+  const [concesionariosOffers, setConcesionariosOffers] = useState([]);
+  const [concesionariosTotal, setConcesionariosTotal] = useState(0);
+  const [concesionariosLoading, setConcesionariosLoading] = useState(false);
+  const [concesionariosPage, setConcesionariosPage] = useState(0);
+  useEffect(() => {
+    if (compraTab !== "concesionarios") return;
+    let cancelled = false;
+    setConcesionariosLoading(true);
+    getMarketplaceVoJson({
+      seller_type: "concesionario,importador",
+      limit: 15,
+      offset: concesionariosPage * 15,
+      modalityMode: "compra",
+    }).then(({ data }) => {
+      if (cancelled) return;
+      const offers = Array.isArray(data?.offers) ? data.offers : [];
+      setConcesionariosOffers(offers);
+      setConcesionariosTotal(Number(data?.totalUniverse || offers.length));
+      setConcesionariosLoading(false);
+    }).catch(() => {
+      if (cancelled) return;
+      setConcesionariosOffers([]);
+      setConcesionariosTotal(0);
+      setConcesionariosLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [compraTab, concesionariosPage]);
   const titleColor = isDark ? "#f1f5f9" : "#0f172a";
   const bodyColor = isDark ? "#94a3b8" : "#475569";
   const cardBg = isDark ? "rgba(15,23,42,0.34)" : "rgba(255,255,255,0.96)";
@@ -72,25 +100,30 @@ export default function PortalVoMarketplacePage({
   // Per-tab filtering by sourceType
   const modeOffers = !isRenting && compraTab === "particulares"
     ? baseOffers.filter((o) => o.sourceType === "particulares")
-    : !isRenting && compraTab === "renting_empresa"
-      ? baseOffers.filter((o) => o.sourceType !== "particulares")
-      : !isRenting && compraTab === "concesionarios"
-        ? baseOffers.filter((o) => o.sellerType === "concesionario" || o.sellerType === "importador")
+    : !isRenting && compraTab === "concesionarios"
+      ? concesionariosOffers
+      : !isRenting && compraTab === "renting_empresa"
+        ? baseOffers.filter((o) => o.sourceType !== "particulares")
         : baseOffers;
 
   // In "particulares" mode all user vehicles are loaded client-side — use modeOffers.length as truth
   const isParticulares = !isRenting && compraTab === "particulares";
-  const effectiveTotalUniverse = isParticulares ? modeOffers.length : totalUniverse;
+  const isConcesionarios = !isRenting && compraTab === "concesionarios";
+  const effectiveTotalUniverse = isParticulares ? modeOffers.length : isConcesionarios ? concesionariosTotal : totalUniverse;
   const PAGE_SIZE = 15;
-  const effectiveTotalPages = isParticulares ? Math.max(1, Math.ceil(modeOffers.length / PAGE_SIZE)) : totalPages;
+  const effectiveTotalPages = isParticulares ? Math.max(1, Math.ceil(modeOffers.length / PAGE_SIZE)) : isConcesionarios ? Math.max(1, Math.ceil(concesionariosTotal / PAGE_SIZE)) : totalPages;
 
   const modefeatured = !isRenting && compraTab === "particulares"
     ? []
     : !isRenting && compraTab === "concesionarios"
-      ? baseFeatured.filter((o) => o.sellerType === "concesionario" || o.sellerType === "importador")
+      ? []
     : !isRenting && compraTab === "renting_empresa"
       ? baseFeatured.filter((o) => o.sourceType !== "particulares")
       : baseFeatured;
+
+  const effectiveLoadingOffers = isConcesionarios ? concesionariosLoading : loadingOffers;
+  const effectiveCurrentPage = isConcesionarios ? concesionariosPage : currentPage;
+  const effectiveGoToPage = isConcesionarios ? setConcesionariosPage : onGoToPage;
 
   return (
     <div style={styles.center}>
@@ -186,7 +219,7 @@ export default function PortalVoMarketplacePage({
               <button
                 key={key}
                 type="button"
-                onClick={() => setCompraTab(key)}
+                onClick={() => { setCompraTab(key); setConcesionariosPage(0); }}
                 style={{
                   flex: 1,
                   padding: "11px 8px",
@@ -540,7 +573,7 @@ export default function PortalVoMarketplacePage({
           </div>
         </div>
 
-        {loadingOffers && modeOffers.length === 0 ? (
+        {effectiveLoadingOffers && modeOffers.length === 0 ? (
           <div style={{ display: "grid", gridTemplateColumns: `repeat(${gridCols}, minmax(0,1fr))`, gap: 12 }}>
             {Array.from({ length: 15 }).map((_, i) => (
               <div key={i} style={{ background: isDark ? "rgba(30,41,59,0.4)" : "rgba(241,245,249,0.9)", border: cardBorder, borderRadius: 14, overflow: "hidden" }}>
@@ -633,23 +666,23 @@ export default function PortalVoMarketplacePage({
               : t("marketplace.noResults")}
           </div>
         )}
-        {loadingOffers && (
+        {effectiveLoadingOffers && (
           <div style={{ textAlign: "center", padding: 18, color: isDark ? "#60a5fa" : "#2563eb" }}>
             Cargando…
           </div>
         )}
 
         {/* Pagination controls */}
-        {effectiveTotalPages > 1 && !loadingOffers && (
+        {effectiveTotalPages > 1 && !effectiveLoadingOffers && (
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, marginTop: 24, flexWrap: "wrap" }}>
             <button
-              onClick={() => onGoToPage(currentPage - 1)}
-              disabled={currentPage === 0}
+              onClick={() => effectiveGoToPage(effectiveCurrentPage - 1)}
+              disabled={effectiveCurrentPage === 0}
               style={{
-                padding: "8px 14px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: currentPage === 0 ? "default" : "pointer",
-                background: currentPage === 0 ? (isDark ? "rgba(255,255,255,0.05)" : "#f1f5f9") : (isDark ? "rgba(37,99,235,0.18)" : "#2563eb"),
-                color: currentPage === 0 ? (isDark ? "#475569" : "#94a3b8") : "#fff",
-                border: "none", opacity: currentPage === 0 ? 0.5 : 1,
+                padding: "8px 14px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: effectiveCurrentPage === 0 ? "default" : "pointer",
+                background: effectiveCurrentPage === 0 ? (isDark ? "rgba(255,255,255,0.05)" : "#f1f5f9") : (isDark ? "rgba(37,99,235,0.18)" : "#2563eb"),
+                color: effectiveCurrentPage === 0 ? (isDark ? "#475569" : "#94a3b8") : "#fff",
+                border: "none", opacity: effectiveCurrentPage === 0 ? 0.5 : 1,
               }}
             >
               ← Anterior
@@ -658,20 +691,20 @@ export default function PortalVoMarketplacePage({
               let page;
               if (effectiveTotalPages <= 7) {
                 page = i;
-              } else if (currentPage <= 3) {
+              } else if (effectiveCurrentPage <= 3) {
                 page = i < 6 ? i : effectiveTotalPages - 1;
-              } else if (currentPage >= effectiveTotalPages - 4) {
+              } else if (effectiveCurrentPage >= effectiveTotalPages - 4) {
                 page = i === 0 ? 0 : effectiveTotalPages - 6 + i;
               } else {
-                const offsets = [0, null, currentPage - 1, currentPage, currentPage + 1, null, effectiveTotalPages - 1];
+                const offsets = [0, null, effectiveCurrentPage - 1, effectiveCurrentPage, effectiveCurrentPage + 1, null, effectiveTotalPages - 1];
                 page = offsets[i];
               }
               if (page === null) return <span key={`sep-${i}`} style={{ color: isDark ? "#475569" : "#94a3b8", fontSize: 13 }}>…</span>;
-              const isActive = page === currentPage;
+              const isActive = page === effectiveCurrentPage;
               return (
                 <button
                   key={page}
-                  onClick={() => !isActive && onGoToPage(page)}
+                  onClick={() => !isActive && effectiveGoToPage(page)}
                   style={{
                     padding: "8px 12px", borderRadius: 8, fontSize: 13, fontWeight: isActive ? 800 : 500,
                     background: isActive ? (isDark ? "#2563eb" : "#2563eb") : (isDark ? "rgba(255,255,255,0.06)" : "#f8fafc"),
@@ -686,13 +719,13 @@ export default function PortalVoMarketplacePage({
               );
             })}
             <button
-              onClick={() => onGoToPage(currentPage + 1)}
-              disabled={currentPage >= effectiveTotalPages - 1}
+              onClick={() => effectiveGoToPage(effectiveCurrentPage + 1)}
+              disabled={effectiveCurrentPage >= effectiveTotalPages - 1}
               style={{
-                padding: "8px 14px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: currentPage >= effectiveTotalPages - 1 ? "default" : "pointer",
-                background: currentPage >= effectiveTotalPages - 1 ? (isDark ? "rgba(255,255,255,0.05)" : "#f1f5f9") : (isDark ? "rgba(37,99,235,0.18)" : "#2563eb"),
-                color: currentPage >= effectiveTotalPages - 1 ? (isDark ? "#475569" : "#94a3b8") : "#fff",
-                border: "none", opacity: currentPage >= effectiveTotalPages - 1 ? 0.5 : 1,
+                padding: "8px 14px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: effectiveCurrentPage >= effectiveTotalPages - 1 ? "default" : "pointer",
+                background: effectiveCurrentPage >= effectiveTotalPages - 1 ? (isDark ? "rgba(255,255,255,0.05)" : "#f1f5f9") : (isDark ? "rgba(37,99,235,0.18)" : "#2563eb"),
+                color: effectiveCurrentPage >= effectiveTotalPages - 1 ? (isDark ? "#475569" : "#94a3b8") : "#fff",
+                border: "none", opacity: effectiveCurrentPage >= effectiveTotalPages - 1 ? 0.5 : 1,
               }}
             >
               Siguiente →

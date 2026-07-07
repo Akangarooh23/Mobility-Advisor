@@ -191,21 +191,23 @@ export function getMarketplaceVoOfferByIdJson(id, options = {}) {
 }
 
 export function getMarketplaceVoJson(params = {}, options = {}) {
-  const { limit = 500, offset = 0, query = "", brand = "", model = "", maxPrice = "", minYear = "", maxMileage = "", location = "", color = "", fuel = "", displacement = "", onlyGuaranteed = false, sort = "", modalityMode = "" } = params;
+  const { limit = 500, offset = 0, query = "", brand = "", model = "", maxPrice = "", minYear = "", maxMileage = "", location = "", color = "", fuel = "", displacement = "", onlyGuaranteed = false, sort = "", modalityMode = "", seller_type = "", exclude_seller_type = "" } = params;
   const qs = new URLSearchParams({ limit: String(limit || 500), offset: String(offset || 0) });
-  if (query)         qs.set("query",         String(query));
-  if (brand)         qs.set("brand",         String(brand));
-  if (model)         qs.set("model",         String(model));
-  if (maxPrice)      qs.set("maxPrice",       String(maxPrice));
-  if (minYear)       qs.set("minYear",        String(minYear));
-  if (maxMileage)    qs.set("maxMileage",     String(maxMileage));
-  if (location)      qs.set("location",       String(location));
-  if (color)         qs.set("color",          String(color));
-  if (fuel)          qs.set("fuel",           String(fuel));
-  if (displacement)  qs.set("displacement",   String(displacement));
-  if (onlyGuaranteed) qs.set("onlyGuaranteed", "true");
-  if (sort)          qs.set("sort",           String(sort));
-  if (modalityMode)  qs.set("modalityMode",   String(modalityMode));
+  if (query)              qs.set("query",              String(query));
+  if (brand)              qs.set("brand",              String(brand));
+  if (model)              qs.set("model",              String(model));
+  if (maxPrice)           qs.set("maxPrice",           String(maxPrice));
+  if (minYear)            qs.set("minYear",            String(minYear));
+  if (maxMileage)         qs.set("maxMileage",         String(maxMileage));
+  if (location)           qs.set("location",           String(location));
+  if (color)              qs.set("color",              String(color));
+  if (fuel)               qs.set("fuel",               String(fuel));
+  if (displacement)       qs.set("displacement",       String(displacement));
+  if (onlyGuaranteed)     qs.set("onlyGuaranteed",     "true");
+  if (sort)               qs.set("sort",               String(sort));
+  if (modalityMode)       qs.set("modalityMode",       String(modalityMode));
+  if (seller_type)        qs.set("seller_type",        String(seller_type));
+  if (exclude_seller_type) qs.set("exclude_seller_type", String(exclude_seller_type));
 
   return getJson(`${MARKETPLACE_VO_API_ENDPOINT}?${qs.toString()}`, {
     endpointLabel: "marketplace-vo",

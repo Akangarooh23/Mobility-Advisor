@@ -2211,7 +2211,7 @@ export default function App() {
       const offset = page * MARKETPLACE_PAGE_SIZE;
       // model and transmission are applied client-side so dropdowns always show all options for the brand
       const { model: _model, transmission: _transmission, ...serverFilters } = filters;
-      const params = { offset, limit: MARKETPLACE_PAGE_SIZE, ...serverFilters, modalityMode: modality };
+      const params = { offset, limit: MARKETPLACE_PAGE_SIZE, ...serverFilters, modalityMode: modality, exclude_seller_type: 'concesionario,importador' };
       const { data } = await getMarketplaceVoJson(params);
       const apiOffers = Array.isArray(data?.offers) ? data.offers : [];
       const source = String(data?.source || "").toLowerCase();

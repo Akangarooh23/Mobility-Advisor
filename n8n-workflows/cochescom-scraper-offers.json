@@ -1,0 +1,384 @@
+{
+  "name": "coches.com – Scraper (mercado)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "cc-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 3 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cc-cron",
+      "name": "Cada día a las 3:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -460,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Reparto de las 94 marcas en 7 grupos (uno por dia de semana). ~13 marcas/noche → catalogo semanal.\nconst brands = [\"peugeot\",\"mercedes\",\"kia\",\"citroen\",\"volkswagen\",\"ford\",\"opel\",\"renault\",\"audi\",\"seat\",\"bmw\",\"toyota\",\"nissan\",\"hyundai\",\"fiat\",\"mg\",\"skoda\",\"jeep\",\"volvo\",\"mazda\",\"ds\",\"cupra\",\"dacia\",\"mini\",\"mitsubishi\",\"lexus\",\"land-rover\",\"honda\",\"suzuki\",\"alfa-romeo\",\"ssangyong-kgm\",\"ebro\",\"omoda\",\"jaecoo\",\"lynk--co\",\"byd\",\"porsche\",\"jaguar\",\"subaru\",\"livan\",\"dr\",\"smart\",\"dfsk\",\"tesla\",\"iveco\",\"swm\",\"abarth\",\"leapmotor\",\"changan\",\"chevrolet\",\"maserati\",\"baic\",\"lancia\",\"maxus\",\"yudo\",\"infiniti\",\"evo\",\"bestune\",\"ferrari\",\"xpeng\",\"bentley\",\"foton\",\"geely\",\"chrysler\",\"polestar\",\"seres\",\"dodge\",\"alpine\",\"aston-martin\",\"sportequipe\",\"saab\",\"dongfeng\",\"ineos\",\"invicta\",\"mahindra\",\"rover\",\"aiways\",\"cadillac\",\"ich-x\",\"isuzu\",\"lamborghini\",\"man\",\"morgan\",\"austin\",\"daewoo\",\"lotus\",\"tiger\",\"corvette\",\"hummer\",\"levc\",\"maybach\",\"tata\",\"wartburg\",\"zhidou\"];\nconst day = new Date().getDay();\nconst mine = brands.filter(function (b, i) { return i % 7 === day; });\nconst out = [];\nfor (const b of mine) out.push({ json: { url: 'https://www.coches.com/coches-segunda-mano/' + b + '.htm' } });\nreturn out;"
+      },
+      "id": "cc-brands",
+      "name": "Code: Marcas del día",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.url }}",
+        "options": {
+          "timeout": 25000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "headers": {
+            "values": [
+              {
+                "name": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+              },
+              {
+                "name": "Accept-Language",
+                "value": "es-ES,es;q=0.9"
+              }
+            ]
+          },
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 400
+            }
+          }
+        }
+      },
+      "id": "cc-p1",
+      "name": "HTTP: Página 1 marca",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -20,
+        390
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// De cada pagina 1 de marca: leer classifieds.total → generar todas sus paginas (?page=N).\nconst inputs = $input.all();\nconst out = [];\nfor (const inp of inputs) {\n  const html = typeof inp.json === 'string' ? inp.json : String(inp.json.data || inp.json.body || '');\n  const m = html.match(/<script id=\"__NEXT_DATA__\" type=\"application/json\">([sS]*?)</script>/);\n  if (!m) continue;\n  let pp; try { pp = JSON.parse(m[1]).props.pageProps; } catch (e) { continue; }\n  const rawUrl = pp.rawUrl;\n  const total = (pp.classifieds && pp.classifieds.total) || 0;\n  if (!rawUrl || !total) continue;\n  const pages = Math.min(Math.ceil(total / 20), 250);\n  for (let p = 1; p <= pages; p++) out.push({ json: { url: 'https://www.coches.com' + rawUrl + '?page=' + p } });\n}\nreturn out;"
+      },
+      "id": "cc-genp",
+      "name": "Code: Generar páginas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "cc-loop",
+      "name": "Loop: página por página",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        420,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.url }}",
+        "options": {
+          "timeout": 25000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "headers": {
+            "values": [
+              {
+                "name": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+              },
+              {
+                "name": "Accept-Language",
+                "value": "es-ES,es;q=0.9"
+              }
+            ]
+          }
+        }
+      },
+      "id": "cc-http",
+      "name": "HTTP: Página coches.com",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        640,
+        390
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// coches.com – transform: HTML .htm → __NEXT_DATA__ classifieds.classifiedList → UPSERT market_offers\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\n\nlet list = [];\ntry {\n  const m = html.match(/<script id=\"__NEXT_DATA__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/);\n  if (m) {\n    const pp = JSON.parse(m[1]).props.pageProps;\n    list = (pp.classifieds && pp.classifieds.classifiedList) || [];\n  }\n} catch (e) { list = []; }\nif (!list.length) return [{ json: { sql: null, count: 0 } }];\n\nfunction esc(v) {\n  if (v === null || v === undefined) return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\nfunction titleCase(s) { return String(s || '').toLowerCase().replace(/\\b\\w/g, c => c.toUpperCase()); }\nfunction normFuel(s) {\n  s = String(s || '').toLowerCase();\n  const ench = (s.indexOf('enchufable') !== -1 || s.indexOf('plug') !== -1) && s.indexOf('no enchufable') === -1;\n  if (s.indexOf('diesel') !== -1 || s.indexOf('diésel') !== -1) return 'Diesel';\n  if (s.indexOf('híbrido') !== -1 || s.indexOf('hibrido') !== -1 || s.indexOf('hybrid') !== -1) return ench ? 'Híbrido enchufable' : 'Híbrido';\n  if (s.indexOf('eléctric') !== -1 || s.indexOf('electric') !== -1) return 'Eléctrico';\n  if (s.indexOf('gasolina') !== -1) return 'Gasolina';\n  if (s.indexOf('glp') !== -1 || s.indexOf('gnc') !== -1 || s.indexOf('gas') !== -1) return 'Gas';\n  return '';\n}\nfunction normGear(s) { s = String(s || '').toLowerCase(); if (s.indexOf('autom') !== -1) return 'Automatica'; if (s.indexOf('manual') !== -1) return 'Manual'; return ''; }\nfunction normLabel(s) {\n  s = String(s || '').toUpperCase().trim();\n  if (s === '0' || s.indexOf('0 EMIS') !== -1 || s === 'ZERO' || s === 'CERO') return '0 Emisiones';\n  if (s === 'ECO') return 'ECO';\n  if (s === 'C') return 'C';\n  if (s === 'B') return 'B';\n  return s || '';\n}\n\nconst rows = [];\nfor (const it of list) {\n  const vid = it.visibleId || it.id;\n  if (!vid) continue;\n  const id = 'cc_' + vid;\n  const brand = titleCase(it.make && it.make.name);\n  const model = (it.model && it.model.name) || '';\n  const version = (it.version && it.version.name) || '';\n  const title = (brand + ' ' + model + ' ' + version).replace(/\\s+/g, ' ').trim();\n  const year = (it.registration && it.registration.year) ? String(it.registration.year) : null;\n  const mileage = (it.mileage && it.mileage.amount != null) ? it.mileage.amount : null;\n  const price = (it.price && it.price.amount != null) ? it.price.amount : null;\n  if (price === null) continue;\n  const fuel = normFuel(it.fuel && it.fuel.name);\n  const transmission = normGear(it.transmission && it.transmission.name);\n  const powerCv = (it.engine && it.engine.powerCv) ? it.engine.powerCv : null;\n  const powerKw = powerCv ? Math.round(powerCv / 1.35962) : null;\n  const bodyType = (it.body && it.body.name) || '';\n  const doors = (it.measures && it.measures.bodyDoors) ? it.measures.bodyDoors : null;\n  const seats = (it.measures && it.measures.bodySeats) ? it.measures.bodySeats : null;\n  const color = (it.color && it.color.name) || '';\n  const envLabel = normLabel(it.pollutionTag);\n  const province = (it.currentProvince && it.currentProvince.name) || '';\n  const imageUrl = it.image || '';\n  const imgs = Array.isArray(it.imageList) ? it.imageList.map(im => im && im.name ? ('https://images.coches.com/_ccom_/' + im.name) : null).filter(Boolean).slice(0, 15) : (imageUrl ? [imageUrl] : []);\n  const imagesJson = JSON.stringify(imgs).replace(/'/g, \"''\");\n  const dealerName = (it.dealer && it.dealer.name) || '';\n  const sellerType = (it.dealer && /priv|particular/i.test(it.dealer.type || '')) ? 'particular' : 'profesional';\n  const url = 'https://www.coches.com/comprar/' + vid + '.htm';\n\n  const row = '(' +\n    esc(id) + \", 'cochescom', \" + esc(url) + ', ' + esc(title) + ', ' + esc(brand) + ', ' + esc(model) + ', ' + esc(version) + ', ' +\n    (year || 'NULL') + ', ' + (mileage !== null ? mileage : 'NULL') + ', ' + price + ', ' +\n    esc(fuel) + ', ' + esc(transmission) + ', ' + esc(color) + ', ' +\n    esc(imageUrl) + \", '\" + imagesJson + \"', \" + esc(envLabel) + ', ' + esc(dealerName) + ', ' +\n    esc(province) + ', ' + esc(province) + ', ' + esc(province) + ', ' +\n    \"'\" + sellerType + \"', 'compra', \" +\n    (powerCv !== null ? powerCv : 'NULL') + ', ' + (powerKw !== null ? powerKw : 'NULL') + ', ' +\n    esc(bodyType) + ', ' + (doors !== null ? doors : 'NULL') + ', ' + (seats !== null ? seats : 'NULL') +\n    ', NOW(), NOW(), NOW()' +\n  ')';\n  rows.push(row);\n}\nif (!rows.length) return [{ json: { sql: null, count: 0 } }];\n\nconst cols = 'id, portal, url, title, brand, model, version, year, mileage, price, fuel, transmission, color, ' +\n  'image_url, images, environmental_label, dealer_name, city, province, location, seller_type, listing_type, ' +\n  'power_cv, power_kw, body_type, doors, seats, first_seen_at, scraped_at, last_seen_at';\n\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +\n  'url = EXCLUDED.url, title = EXCLUDED.title, price = EXCLUDED.price, mileage = EXCLUDED.mileage, ' +\n  'year = COALESCE(EXCLUDED.year, moveadvisor_market_offers.year), ' +\n  \"image_url = COALESCE(NULLIF(moveadvisor_market_offers.image_url,''), EXCLUDED.image_url), \" +\n  \"images = COALESCE(NULLIF(moveadvisor_market_offers.images,''), EXCLUDED.images), \" +\n  'power_cv = COALESCE(EXCLUDED.power_cv, moveadvisor_market_offers.power_cv), ' +\n  'power_kw = COALESCE(EXCLUDED.power_kw, moveadvisor_market_offers.power_kw), ' +\n  'environmental_label = COALESCE(NULLIF(moveadvisor_market_offers.environmental_label,\\'\\'), EXCLUDED.environmental_label), ' +\n  'last_seen_at = NOW(), updated_at = NOW()';\n\nconst sql = 'INSERT INTO moveadvisor_market_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;\nreturn [{ json: { sql: sql, count: rows.length } }];\n"
+      },
+      "id": "cc-transform",
+      "name": "Code: Transformar ofertas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.count }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "cc-if",
+      "name": "IF: ¿hay ofertas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "additionalFields": {}
+      },
+      "id": "cc-pg",
+      "name": "PG: Upsert ofertas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        280
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "cc-wait",
+      "name": "Esperar 1s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        390
+      ],
+      "webhookId": "wait-cochescom"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "Code: Marcas del día",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada día a las 3:00": {
+      "main": [
+        [
+          {
+            "node": "Code: Marcas del día",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Marcas del día": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Página 1 marca",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Página 1 marca": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar páginas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Generar páginas": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: página por página": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP: Página coches.com",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Página coches.com": {
+      "main": [
+        [
+          {
+            "node": "Code: Transformar ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Transformar ofertas": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay ofertas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ofertas?": {
+      "main": [
+        [
+          {
+            "node": "PG: Upsert ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Upsert ofertas": {
+      "main": [
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 1s": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "triggerCount": 1,
+  "tags": []
+}

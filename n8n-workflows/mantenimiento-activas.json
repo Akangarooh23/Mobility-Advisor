@@ -35,7 +35,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "UPDATE moveadvisor_market_offers\nSET is_active = (\n  CASE\n    WHEN portal = 'autoscout24' THEN last_seen_at > NOW() - INTERVAL '9 days'\n    WHEN portal IN ('flexicar','autohero','wallapop') THEN last_seen_at > NOW() - INTERVAL '3 days'\n    ELSE last_seen_at > NOW() - INTERVAL '7 days'\n  END\n), updated_at = NOW()\nWHERE is_active IS DISTINCT FROM (\n  CASE\n    WHEN portal = 'autoscout24' THEN last_seen_at > NOW() - INTERVAL '9 days'\n    WHEN portal IN ('flexicar','autohero','wallapop') THEN last_seen_at > NOW() - INTERVAL '3 days'\n    ELSE last_seen_at > NOW() - INTERVAL '7 days'\n  END\n)",
+        "query": "UPDATE moveadvisor_market_offers\nSET is_active = (\n  CASE\n    WHEN portal IN ('autoscout24','cochescom') THEN last_seen_at > NOW() - INTERVAL '9 days'\n    WHEN portal IN ('flexicar','autohero','wallapop') THEN last_seen_at > NOW() - INTERVAL '3 days'\n    ELSE last_seen_at > NOW() - INTERVAL '7 days'\n  END\n), updated_at = NOW()\nWHERE is_active IS DISTINCT FROM (\n  CASE\n    WHEN portal IN ('autoscout24','cochescom') THEN last_seen_at > NOW() - INTERVAL '9 days'\n    WHEN portal IN ('flexicar','autohero','wallapop') THEN last_seen_at > NOW() - INTERVAL '3 days'\n    ELSE last_seen_at > NOW() - INTERVAL '7 days'\n  END\n)",
         "additionalFields": {}
       },
       "id": "mant-pg",

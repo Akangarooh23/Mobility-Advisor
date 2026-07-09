@@ -3648,18 +3648,32 @@ export default function App() {
       setDecisionMarketInsight(null);
 
       try {
-        const payload = await fetchDecisionListing({
-          decisionFlowReady: isDecisionMarketReady,
-          decisionAnswers,
-          refreshNonce: decisionMarketRefreshNonce,
-          excludeUrls: decisionMarketExcludeUrls,
-          excludeTitles: decisionMarketExcludeTitles,
-        });
-
-        if (isMounted) {
-          const listings = Array.isArray(payload?.listings) ? payload.listings : [];
-          setDecisionMarketListings(listings);
-          setDecisionMarketInsight(payload?.filterInsight || null);
+        // Brand-only (no model): direct marketplace query — fetchDecisionListing uses AI
+        // semantic search that needs a specific model to return useful results.
+        if (decisionAnswers.brand && !decisionAnswers.model) {
+          const { data } = await getMarketplaceVoJson({
+            brand: decisionAnswers.brand,
+            modalityMode: decisionAnswers.operation === "renting" ? "renting" : "compra",
+            limit: 50,
+            offset: 0,
+          });
+          if (isMounted) {
+            setDecisionMarketListings(Array.isArray(data?.offers) ? data.offers : []);
+            setDecisionMarketInsight(null);
+          }
+        } else {
+          const payload = await fetchDecisionListing({
+            decisionFlowReady: isDecisionMarketReady,
+            decisionAnswers,
+            refreshNonce: decisionMarketRefreshNonce,
+            excludeUrls: decisionMarketExcludeUrls,
+            excludeTitles: decisionMarketExcludeTitles,
+          });
+          if (isMounted) {
+            const listings = Array.isArray(payload?.listings) ? payload.listings : [];
+            setDecisionMarketListings(listings);
+            setDecisionMarketInsight(payload?.filterInsight || null);
+          }
         }
       } catch (err) {
         if (isMounted) {

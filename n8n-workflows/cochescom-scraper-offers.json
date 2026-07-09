@@ -93,7 +93,7 @@
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "// De cada pagina 1 de marca: leer classifieds.total → generar todas sus paginas (?page=N).\nconst inputs = $input.all();\nconst out = [];\nfor (const inp of inputs) {\n  const html = typeof inp.json === 'string' ? inp.json : String(inp.json.data || inp.json.body || '');\n  const m = html.match(/<script id=\"__NEXT_DATA__\" type=\"application/json\">([sS]*?)</script>/);\n  if (!m) continue;\n  let pp; try { pp = JSON.parse(m[1]).props.pageProps; } catch (e) { continue; }\n  const rawUrl = pp.rawUrl;\n  const total = (pp.classifieds && pp.classifieds.total) || 0;\n  if (!rawUrl || !total) continue;\n  const pages = Math.min(Math.ceil(total / 20), 250);\n  for (let p = 1; p <= pages; p++) out.push({ json: { url: 'https://www.coches.com' + rawUrl + '?page=' + p } });\n}\nreturn out;"
+        "jsCode": "// De cada página 1 de marca: leer classifieds.total → generar todas sus páginas (?page=N).\nconst inputs = $input.all();\nconst out = [];\nfor (const inp of inputs) {\n  const html = typeof inp.json === 'string' ? inp.json : String(inp.json.data || inp.json.body || '');\n  const m = html.match(/<script id=\"__NEXT_DATA__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/);\n  if (!m) continue;\n  let pp;\n  try { pp = JSON.parse(m[1]).props.pageProps; } catch (e) { continue; }\n  const rawUrl = pp.rawUrl;\n  const total = (pp.classifieds && pp.classifieds.total) || 0;\n  if (!rawUrl || !total) continue;\n  const pages = Math.min(Math.ceil(total / 20), 250);\n  for (let p = 1; p <= pages; p++) out.push({ json: { url: 'https://www.coches.com' + rawUrl + '?page=' + p } });\n}\nreturn out;\n"
       },
       "id": "cc-genp",
       "name": "Code: Generar páginas",

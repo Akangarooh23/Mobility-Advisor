@@ -2596,12 +2596,13 @@ export default function App() {
         setStep(-1);
         if (nextTargetEntryMode) {
           setEntryMode(nextTargetEntryMode);
-          syncBrowserPath("/", "replace");
-        } else {
+          syncBrowserPath(getPublicPathForEntryMode(nextTargetEntryMode), "replace");
+        } else if (authTargetPage && authTargetPage !== "home") {
           setEntryMode("userDashboard");
-          setUserDashboardPage(authTargetPage || "home");
-          syncBrowserPath(getUserDashboardPath(authTargetPage || "home"), "replace");
+          setUserDashboardPage(authTargetPage);
+          syncBrowserPath(getUserDashboardPath(authTargetPage), "replace");
         }
+        // else: stay on home page
         setShowAuthMenu(false);
         setShowUserPanel(false);
         setSaveFeedback(data?.message || "Contraseña actualizada y sesión iniciada.");
@@ -2739,15 +2740,19 @@ export default function App() {
       setStep(-1);
       if (nextTargetEntryMode) {
         setEntryMode(nextTargetEntryMode);
-        syncBrowserPath("/", "replace");
+        // Use the canonical public path for this mode (e.g. /marketplace-vo for portalVo)
+        // so applyRouteFromPath doesn't misread "/" and reset entryMode to null.
+        syncBrowserPath(getPublicPathForEntryMode(nextTargetEntryMode), "replace");
       } else if (entryMode && entryMode !== "userDashboard") {
         // User was on a public page (offer detail, marketplace…) when auth was
         // required by bootstrap — entryMode and URL are already correct, stay there.
-      } else {
+      } else if (authTargetPage && authTargetPage !== "home") {
+        // Explicit non-home dashboard target from a specific flow (plans, etc.)
         setEntryMode("userDashboard");
-        setUserDashboardPage(authTargetPage || "home");
-        syncBrowserPath(getUserDashboardPath(authTargetPage || "home"), "replace");
+        setUserDashboardPage(authTargetPage);
+        syncBrowserPath(getUserDashboardPath(authTargetPage), "replace");
       }
+      // else: user logged in from home page — stay on home, no redirect
       setShowAuthMenu(false);
       setShowUserPanel(false);
       trackFunnelEvent({

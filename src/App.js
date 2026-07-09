@@ -3628,8 +3628,7 @@ export default function App() {
 
   useEffect(() => {
     const isDecisionMarketReady =
-      decisionAnswers.brand &&
-      decisionAnswers.model;
+      !!decisionAnswers.brand;
 
     if (!isDecisionMarketReady || decisionAiResult) {
       setDecisionMarketListings((prev) => (prev.length ? [] : prev));
@@ -4081,8 +4080,7 @@ export default function App() {
   const needsFinanceAmount = false;
   const needsEntryAmount = false;
   const decisionMarketReady =
-    decisionAnswers.brand &&
-    decisionAnswers.model;
+    !!decisionAnswers.brand;
   const decisionFlowReady =
     decisionAnswers.operation &&
     decisionAnswers.brand &&

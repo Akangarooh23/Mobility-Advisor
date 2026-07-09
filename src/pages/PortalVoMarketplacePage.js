@@ -55,7 +55,7 @@ export default function PortalVoMarketplacePage({
   const [viewingModal, setViewingModal] = useState(null); // { offer }
   const [viewingForm, setViewingForm] = useState({ name: "", email: "", message: "" });
   const [viewingState, setViewingState] = useState({}); // { [offerId]: 'sent' | 'error' | 'sending' }
-  const [compraTab, setCompraTab] = useState("renting_empresa");
+  const [compraTab, setCompraTab] = useState("concesionarios");
   const [concesionariosOffers, setConcesionariosOffers] = useState([]);
   const [concesionariosTotal, setConcesionariosTotal] = useState(0);
   const [concesionariosLoading, setConcesionariosLoading] = useState(false);
@@ -209,10 +209,10 @@ export default function PortalVoMarketplacePage({
           background: isDark ? "rgba(15,23,42,0.4)" : "rgba(248,250,252,0.9)",
         }}>
           {[
-            { key: "particulares", icon: "👤", label: "Particulares", color: "#7c3aed" },
-            { key: "importacion",  icon: "🌍", label: "Importación",  color: "#0891b2" },
-            { key: "renting_empresa", icon: "🏢", label: "VO Renting", color: "#2563eb" },
-            { key: "concesionarios", icon: "🏪", label: "Concesionarios", color: "#059669" },
+            { key: "concesionarios",  icon: "🏪", label: "Concesionarios", color: "#059669" },
+            { key: "renting_empresa", icon: "🏢", label: "VO Renting",     color: "#2563eb" },
+            { key: "particulares",    icon: "👤", label: "Particulares",   color: "#7c3aed" },
+            { key: "importacion",     icon: "🌍", label: "Importación",    color: "#0891b2" },
           ].map(({ key, icon, label, color }, idx, arr) => {
             const active = compraTab === key;
             return (

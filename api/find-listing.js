@@ -2774,6 +2774,15 @@ function buildVehicleCandidates({ result, answers }) {
 
   const explicitBrand = normalizeText(answers?.marca_objetivo);
   const explicitModelObjective = normalizeText(answers?.modelo_objetivo);
+
+  // Brand-only: modelo_objetivo equals just the brand name (no specific model appended).
+  // Return brand as a search token BEFORE normalizedExplicitModelObjective is built,
+  // because that step concatenates brand+brand → "LEXUS LEXUS" → looksLikeSpecificModelName
+  // returns true → targeted query becomes LIKE '%lexus lexus%' → zero results.
+  if (explicitBrand && removeAccents(explicitModelObjective || "").toLowerCase() === removeAccents(explicitBrand).toLowerCase()) {
+    return [explicitBrand];
+  }
+
   const normalizedExplicitModelObjective = (() => {
     const brandLower = removeAccents(explicitBrand).toLowerCase();
     const modelLower = removeAccents(explicitModelObjective).toLowerCase();
@@ -2789,14 +2798,6 @@ function buildVehicleCandidates({ result, answers }) {
     return expandModelAliasVariants(normalizedExplicitModelObjective)
       .filter(looksLikeSpecificModelName)
       .slice(0, 3);
-  }
-
-  // Brand-only: modelo_objetivo is just the brand name (no specific model).
-  // Return brand as a search token so readPostgresInventory uses its targeted LIKE
-  // query (WHERE CONCAT(brand,model,version) LIKE '%brand%') instead of fetching
-  // 30k generic recent offers where the brand may not appear.
-  if (explicitBrand && removeAccents(explicitModelObjective || "").toLowerCase() === removeAccents(explicitBrand).toLowerCase()) {
-    return [explicitBrand];
   }
 
   const chinaForward = isChinaForwardPreference(result, answers);

@@ -18,13 +18,13 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 1 * * *"
+              "expression": "0 0 21 * * *"
             }
           ]
         }
       },
       "id": "as-a-cron",
-      "name": "Cada dia a la 1:00",
+      "name": "Cada día a las 21:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
@@ -151,7 +151,7 @@
         ]
       ]
     },
-    "Cada dia a la 1:00": {
+    "Cada día a las 21:00": {
       "main": [
         [
           {

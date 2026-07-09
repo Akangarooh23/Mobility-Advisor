@@ -132,6 +132,7 @@ export function useAdvisorController({
   setLoading,
   setMultiSelected,
   setPortalVoFilters,
+  setPortalVoOffersLive,
   setQuickValidationAnswers,
   setResult,
   setResultView,
@@ -279,6 +280,12 @@ export function useAdvisorController({
       return;
     }
 
+    // Ensure the offer is in the live cache so selectedPortalVoOffer resolves correctly
+    // (offers from the Concesionarios self-fetch are not in the main server-paginated feed)
+    if (setPortalVoOffersLive) {
+      setPortalVoOffersLive((prev) => prev.some((o) => o.id === offer.id) ? prev : [offer, ...prev]);
+    }
+
     setSelectedPortalVoOfferId(offer.id);
     syncBrowserPath(`/marketplace-vo/${encodeURIComponent(offer.id)}`, "push");
     setEntryMode("portalVoDetail");
@@ -298,7 +305,7 @@ export function useAdvisorController({
     if (typeof window !== "undefined") {
       window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
     }
-  }, [currentUser, setEntryMode, setSelectedPortalVoOfferId, syncBrowserPath]);
+  }, [currentUser, setEntryMode, setPortalVoOffersLive, setSelectedPortalVoOfferId, syncBrowserPath]);
 
   const restart = useCallback(() => {
     clearQuestionnaireDraftFn?.();

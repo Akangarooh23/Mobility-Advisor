@@ -3966,6 +3966,7 @@ export default function App() {
     setResultView,
     setSaveFeedback,
     setSelectedPortalVoOfferId,
+    setPortalVoOffersLive,
     setSellAiResult,
     setSellAnswers,
     setSellError,

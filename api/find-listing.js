@@ -2791,6 +2791,14 @@ function buildVehicleCandidates({ result, answers }) {
       .slice(0, 3);
   }
 
+  // Brand-only: modelo_objetivo is just the brand name (no specific model).
+  // Return brand as a search token so readPostgresInventory uses its targeted LIKE
+  // query (WHERE CONCAT(brand,model,version) LIKE '%brand%') instead of fetching
+  // 30k generic recent offers where the brand may not appear.
+  if (explicitBrand && removeAccents(explicitModelObjective || "").toLowerCase() === removeAccents(explicitBrand).toLowerCase()) {
+    return [explicitBrand];
+  }
+
   const chinaForward = isChinaForwardPreference(result, answers);
   const chinesePriorityModels = (() => {
     const propulsions = (Array.isArray(result?.propulsiones_viables) ? result.propulsiones_viables : [])

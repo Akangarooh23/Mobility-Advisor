@@ -248,7 +248,7 @@ async function filesToAttachmentPayload(files = [], vehicleId = "", fileType = "
 
     if (size > 0 && size <= MAX_ATTACHMENT_BYTES) {
       url = (await uploadFileDirect(file, vehicleId, fileType)) || "";
-      if (!url && size <= 5 * 1024 * 1024) {
+      if (!url && size <= 10 * 1024 * 1024) {
         contentBase64 = (await fileToBase64DataUrl(file)).split(",")[1] || "";
       }
     }

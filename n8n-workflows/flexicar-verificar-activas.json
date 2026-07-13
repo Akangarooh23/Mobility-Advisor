@@ -72,7 +72,8 @@
         "options": {
           "response": {
             "response": {
-              "responseFormat": "text"
+              "responseFormat": "text",
+              "neverError": true
             }
           },
           "timeout": 20000

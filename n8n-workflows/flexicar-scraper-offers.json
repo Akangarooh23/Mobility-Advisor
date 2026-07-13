@@ -71,7 +71,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Genera las páginas a recorrer, arrastrando el buildId a cada una.\n// ~22.338 coches / 12 por página ≈ 1.862 páginas. Techo amplio: el loop\n// se corta solo al primer page sin coches (early-exit del IF final).\nconst buildId = $input.item.json.buildId || '';\nconst pages = [];\nfor (let i = 1; i <= 500; i++) {\n  pages.push({ json: { page: i, buildId: buildId } });\n}\nreturn pages;"
+        "jsCode": "// Genera las páginas a recorrer, arrastrando el buildId a cada una.\n// ~22.338 coches / 12 por página ≈ 1.862 páginas. Techo amplio: el loop\n// se corta solo al primer page sin coches (early-exit del IF final).\nconst buildId = $input.item.json.buildId || '';\nconst pages = [];\nfor (let i = 1; i <= 1; i++) {\n  pages.push({ json: { page: i, buildId: buildId } });\n}\nreturn pages;"
       },
       "id": "8681893a-38bd-400a-83ed-e75799352874",
       "name": "Code: Generar páginas",

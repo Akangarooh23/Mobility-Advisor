@@ -1,0 +1,276 @@
+{
+  "name": "Flexicar – Verificar activas (fichas)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "fxv-ab2aad88-2915-4b6e-9804-10b9fcb131ba",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -6448,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 8 * * *"
+            }
+          ]
+        }
+      },
+      "id": "fxv-41bc7c64-6dde-4ab2-af04-bb89e749f708",
+      "name": "Cada día a las 8:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -6432,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, url\nFROM moveadvisor_market_offers\nWHERE portal = 'flexicar'\n  AND is_active = TRUE\n  AND url LIKE '%coches-ocasion%'\nORDER BY last_seen_at ASC NULLS FIRST\nLIMIT 800",
+        "options": {}
+      },
+      "id": "fxv-498522b0-3d3d-4213-a3c0-2a20802e94fd",
+      "name": "PG: Fichas a verificar",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -6144,
+        256
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "fxv-dcb5094d-ff88-45d3-8df7-3f6491399bc0",
+      "name": "Loop: oferta por oferta",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -5904,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 20000
+        }
+      },
+      "id": "fxv-51b9c089-a864-49f6-9a2f-6d2a1e8aacbe",
+      "name": "HTTP: Ficha HTML Flexicar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -5664,
+        256
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Verifica si la ficha de Flexicar sigue viva y actualiza is_active en consecuencia.\n// Viva  = HTML con JSON-LD Car/Vehicle (o __NEXT_DATA__ con vehículo) → is_active=TRUE + refresca last_seen_at.\n// Muerta= la ficha redirige a la home (307→404), sin datos de coche → is_active=FALSE (sale de la cola).\n// Vacía / error de red → NO se toca is_active (para no inactivar por un fallo transitorio).\nconst dbRecord = $('Loop: oferta por oferta').item.json;\nconst dbId = String(dbRecord.id || '');\nif (!dbId) {\n  await new Promise(r => setTimeout(r, 500));\n  return [{ json: { id: null, hasUpdates: false, updateSql: null } }];\n}\n\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : (httpOut && (httpOut.data || httpOut.body || httpOut.html) || '');\nconst idEsc = dbId.replace(/'/g, \"''\");\n\n// Respuesta vacía o demasiado corta = error/timeout → no cambiar is_active.\nif (!html || String(html).length < 500) {\n  await new Promise(r => setTimeout(r, 800));\n  return [{ json: { id: dbId, hasUpdates: false, updateSql: null } }];\n}\n\nconst s = String(html);\nconst exists = /\"@type\"\\s*:\\s*\"(Car|Vehicle)\"/i.test(s) || /initialVehicle|vehicleDetail/i.test(s);\n\nconst updateSql = exists\n  ? \"UPDATE moveadvisor_market_offers SET is_active = TRUE, last_seen_at = NOW(), updated_at = NOW() WHERE id = '\" + idEsc + \"'\"\n  : \"UPDATE moveadvisor_market_offers SET is_active = FALSE, updated_at = NOW() WHERE id = '\" + idEsc + \"'\";\n\nconsole.log('[flexicar-verif] id=' + dbId + ' existe=' + exists + ' html_len=' + s.length);\n\nawait new Promise(r => setTimeout(r, 800));\nreturn [{ json: { id: dbId, hasUpdates: true, updateSql: updateSql } }];\n"
+      },
+      "id": "fxv-d447652c-cb30-4d4c-a38f-d002b2b61a7c",
+      "name": "Code: Verificar ficha",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5424,
+        256
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cond-has-updates",
+              "leftValue": "={{ $json.hasUpdates }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fxv-193d74fb-f344-4152-bb88-8d5e0e3d82b8",
+      "name": "IF: ¿hay datos nuevos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -5184,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.updateSql }}",
+        "options": {}
+      },
+      "id": "fxv-35c5b927-f735-47f7-995a-a45e41dd019c",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -4944,
+        128
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Fichas a verificar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada día a las 8:00": {
+      "main": [
+        [
+          {
+            "node": "PG: Fichas a verificar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Fichas a verificar": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: oferta por oferta": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Ficha HTML Flexicar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Ficha HTML Flexicar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Ficha HTML Flexicar": {
+      "main": [
+        [
+          {
+            "node": "Code: Verificar ficha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Verificar ficha": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay datos nuevos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay datos nuevos?": {
+      "main": [
+        [
+          {
+            "node": "PG: Actualizar oferta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Actualizar oferta": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "9BwKOPMIzjj3owho",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "pinData": {},
+  "staticData": null,
+  "triggerCount": 0,
+  "tags": []
+}

@@ -99,7 +99,8 @@
       "position": [
         -5424,
         256
-      ]
+      ],
+      "continueOnFail": true
     },
     {
       "parameters": {

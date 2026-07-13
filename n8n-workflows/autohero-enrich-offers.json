@@ -96,7 +96,8 @@
       "position": [
         -720,
         128
-      ]
+      ],
+      "continueOnFail": true
     },
     {
       "parameters": {
@@ -109,7 +110,8 @@
       "position": [
         -480,
         128
-      ]
+      ],
+      "continueOnFail": true
     },
     {
       "parameters": {

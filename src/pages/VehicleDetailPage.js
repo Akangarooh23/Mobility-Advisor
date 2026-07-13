@@ -30,11 +30,18 @@ const VEHICLE_DETAIL_CSS = `
 .vd-left-primary,.vd-left-secondary{min-width:0}
 .vd-left-secondary{grid-column:1/2}
 /* GALLERY */
-.vd-gallery{border-radius:16px;overflow:hidden;background:#000;position:relative;margin-bottom:1.25rem;aspect-ratio:16/9}
-.vd-gallery img{width:100%;height:100%;object-fit:cover;display:block}
+.vd-gallery{border-radius:16px;overflow:hidden;background:#000;position:relative;margin-bottom:.75rem;aspect-ratio:16/9}
+.vd-gallery img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .18s}
 .vd-gallery-badge{position:absolute;top:1rem;left:1rem;background:var(--txt);color:#fff;font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:.3rem .75rem;border-radius:20px;display:flex;align-items:center;gap:.4rem}
 .vd-gallery-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--acc)}
 .vd-portal-source{position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-radius:6px;padding:.3rem .65rem;font-size:11px;font-weight:500;color:var(--muted)}
+.vd-gallery-counter{position:absolute;bottom:.75rem;right:.75rem;background:rgba(0,0,0,.55);color:#fff;font-size:11px;font-weight:500;padding:.2rem .55rem;border-radius:12px;backdrop-filter:blur(4px)}
+.vd-thumbs{display:flex;gap:.45rem;overflow-x:auto;margin-bottom:1.25rem;padding-bottom:.2rem;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.vd-thumbs::-webkit-scrollbar{height:3px}
+.vd-thumbs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.vd-thumb{flex:0 0 80px;height:54px;border-radius:8px;overflow:hidden;border:2px solid transparent;cursor:pointer;transition:border-color .15s,opacity .15s;opacity:.72}
+.vd-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.vd-thumb.active,.vd-thumb:hover{border-color:var(--acc);opacity:1}
 /* TITLE */
 .vd-car-brand{font-size:11px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--acc);margin-bottom:.4rem}
 .vd-car-name{font-family:'Playfair Display',serif;font-size:30px;font-weight:500;color:var(--txt);line-height:1.15;margin-bottom:.35rem}
@@ -337,9 +344,11 @@ export default function VehicleDetailPage({ offer, onBack }) {
   const [alertSubmitted, setAlertSubmitted] = React.useState(false);
   const [alertSubmitting, setAlertSubmitting] = React.useState(false);
   const [galleryImgFailed, setGalleryImgFailed] = React.useState(false);
+  const [galleryIdx, setGalleryIdx] = React.useState(0);
 
   useEffect(() => {
     setGalleryImgFailed(false);
+    setGalleryIdx(0);
   }, [offer]);
 
   useEffect(() => {
@@ -365,6 +374,11 @@ export default function VehicleDetailPage({ offer, onBack }) {
 
   const car = normalizeOffer(offer);
   const offerUrl = safeText(car.url || car.searchUrl);
+  const galleryImages = (() => {
+    const arr = Array.isArray(car.images) ? car.images.filter(Boolean) : [];
+    return arr.length > 0 ? arr : (car.image ? [car.image] : []);
+  })();
+  const mainImage = galleryImages[galleryIdx] || galleryImages[0] || "";
 
   const label = car.environmentalLabel || car.label || "C";
   const loc = [car.city, car.province].filter(Boolean).join(", ") || t("vehicleDetail.locationNA");
@@ -443,9 +457,10 @@ export default function VehicleDetailPage({ offer, onBack }) {
         <div className="vd-left-primary">
           {/* GALLERY */}
           <div className="vd-gallery">
-            {car.image && !galleryImgFailed ? (
+            {mainImage && !galleryImgFailed ? (
               <img
-                src={car.image}
+                key={mainImage}
+                src={mainImage}
                 alt={`${car.brand || ""} ${car.model || ""}`}
                 loading="eager"
                 style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
@@ -465,7 +480,26 @@ export default function VehicleDetailPage({ offer, onBack }) {
             )}
             <div className="vd-gallery-badge">{t("vehicleDetail.analysisLabel")}</div>
             <div className="vd-portal-source">{t("vehicleDetail.source")}: {portalLabel(car.portal)}</div>
+            {galleryImages.length > 1 && (
+              <div className="vd-gallery-counter">{galleryIdx + 1} / {galleryImages.length}</div>
+            )}
           </div>
+
+          {/* THUMBNAILS */}
+          {galleryImages.length > 1 && (
+            <div className="vd-thumbs">
+              {galleryImages.map((src, i) => (
+                <button
+                  key={i}
+                  className={`vd-thumb${i === galleryIdx ? " active" : ""}`}
+                  onClick={() => { setGalleryIdx(i); setGalleryImgFailed(false); }}
+                  aria-label={`Foto ${i + 1}`}
+                >
+                  <img src={src} alt="" loading="lazy" />
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* TITLE BLOCK */}
           <div style={{ marginBottom: "1.5rem" }}>

@@ -71,7 +71,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Genera las páginas a recorrer, arrastrando el buildId a cada una.\n// ~22.338 coches / 12 por página ≈ 1.862 páginas. Techo amplio: el loop\n// se corta solo al primer page sin coches (early-exit del IF final).\nconst buildId = $input.item.json.buildId || '';\nconst pages = [];\nfor (let i = 1; i <= 1; i++) {\n  pages.push({ json: { page: i, buildId: buildId } });\n}\nreturn pages;"
+        "jsCode": "// Flexicar rompió la paginación (?page=N da 403 / la ignora). Faceteo por categoría:\n// cada /{slug}/segunda-mano.json (vía _next/data) devuelve 12 coches destacados de esa\n// porción. Usando ~92 slices (marcas + carrocería + combustible + plazas + transmisión)\n// se descubren ~1.100 URLs/vuelta (con solapamiento) → capta altas nuevas y refresca activos.\nconst buildId = $input.item.json.buildId || '';\nconst slugs = [\n  \"peugeot\",\"audi\",\"bmw\",\"mercedes-benz\",\"citroen\",\"volkswagen\",\"ford\",\"opel\",\"seat\",\"renault\",\n  \"toyota\",\"kia\",\"fiat\",\"nissan\",\"hyundai\",\"skoda\",\"cupra\",\"dacia\",\"mini\",\"volvo\",\"mazda\",\"mg\",\n  \"jeep\",\"ds\",\"land-rover\",\"lexus\",\"suzuki\",\"honda\",\"alfa-romeo\",\"mitsubishi\",\"porsche\",\"jaguar\",\n  \"smart\",\"tesla\",\"abarth\",\"subaru\",\"maserati\",\"ssangyong\",\"iveco\",\"chevrolet\",\"lancia\",\"infiniti\",\n  \"dfsk\",\"byd\",\"ferrari\",\"bentley\",\"dodge\",\"chrysler\",\"polestar\",\"saab\",\"cadillac\",\"isuzu\",\"hummer\",\n  \"maxus\",\"omoda\",\"jaecoo\",\"leapmotor\",\"ebro\",\"evo\",\"dr-automobiles\",\"mahindra\",\"tata\",\"aiways\",\n  \"seres\",\"skywell\",\"swm\",\"xev\",\"xiaomi\",\"zhidou\",\"aston-martin\",\n  \"carroceria-suv-4x4\",\"carroceria-turismo\",\"carroceria-compacto\",\"carroceria-familiar\",\n  \"carroceria-monovolumen\",\"carroceria-furgoneta\",\"carroceria-cabrio\",\"carroceria-deportivo\",\n  \"carroceria-pick-up\",\"combustible-diesel\",\"combustible-gasolina\",\"combustible-electrico\",\n  \"combustible-hibrido-no-enchufable\",\"combustible-hibrido-enchufable\",\"combustible-glp\",\n  \"transmision-automatica\",\"transmision-manual\",\"plazas-7\",\"plazas-9\",\"plazas-6\",\"plazas-8\",\"plazas-10\"\n];\nconst out = [];\nfor (const s of slugs) {\n  out.push({ json: { url: 'https://www.flexicar.es/_next/data/' + buildId + '/' + s + '/segunda-mano.json' } });\n}\nreturn out;\n"
       },
       "id": "8681893a-38bd-400a-83ed-e75799352874",
       "name": "Code: Generar páginas",
@@ -97,7 +97,7 @@
     },
     {
       "parameters": {
-        "url": "=https://www.flexicar.es/_next/data/{{ $json.buildId }}/coches-segunda-mano.json?page={{ $json.page }}",
+        "url": "={{ $json.url }}",
         "options": {
           "response": {
             "response": {

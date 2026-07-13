@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
-import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemoveJson, postVehicleStateUpsertJson, getErpBrandsJson, getErpModelsJson, getErpVersionsJson, getErpVersionDetailJson } from "../utils/apiClient";
+import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemoveJson, postVehicleStateUpsertJson, postVehiclePublishJson, getErpBrandsJson, getErpModelsJson, getErpVersionsJson, getErpVersionDetailJson } from "../utils/apiClient";
 import { uploadFileDirect } from "../utils/supabaseUpload";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
@@ -690,6 +690,7 @@ export default function ServiceIdCarsManagePage({
       setMarketplaceOverrides((s) => ({ ...s, [vid]: "owned" }));
       showFeedback(txt("No se pudo guardar el estado en el Marketplace.", "Could not save Marketplace status."), "error");
     });
+    postVehiclePublishJson({ vehicleId: vid, price: effectivePrice, action: "publish" }).catch(() => {});
     showFeedback(txt("¡Vehículo publicado en el Marketplace!", "Vehicle published in the Marketplace!"), "success");
     closeMarketplacePublishDialog();
   };
@@ -1236,6 +1237,7 @@ export default function ServiceIdCarsManagePage({
         setMarketplaceOverrides((s) => ({ ...s, [vid]: "active_sale" }));
         showFeedback(txt("No se pudo actualizar el estado en el Marketplace.", "Could not update Marketplace status."), "error");
       });
+    postVehiclePublishJson({ vehicleId: vid, action: "unpublish" }).catch(() => {});
   };
 
   const renderManagePanel = (vehicle) => {

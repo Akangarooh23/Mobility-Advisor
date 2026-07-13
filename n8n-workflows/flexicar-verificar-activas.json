@@ -18,13 +18,13 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 0 8 * * *"
+              "expression": "0 0 8,11,14,17,20 * * *"
             }
           ]
         }
       },
       "id": "fxv-41bc7c64-6dde-4ab2-af04-bb89e749f708",
-      "name": "Cada día a las 8:00",
+      "name": "5 veces/día (8,11,14,17,20h)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
@@ -169,17 +169,6 @@
         ]
       ]
     },
-    "Cada día a las 8:00": {
-      "main": [
-        [
-          {
-            "node": "PG: Fichas a verificar",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "PG: Fichas a verificar": {
       "main": [
         [
@@ -254,6 +243,17 @@
         [
           {
             "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5 veces/día (8,11,14,17,20h)": {
+      "main": [
+        [
+          {
+            "node": "PG: Fichas a verificar",
             "type": "main",
             "index": 0
           }

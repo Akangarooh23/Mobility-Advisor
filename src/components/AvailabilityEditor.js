@@ -70,10 +70,10 @@ function generateSlots(selectedDays, timeStart, timeEnd, period) {
   let d = new Date(start);
   while (d <= end) {
     if (selectedDays.includes(d.getDay())) {
-      slots.push({
-        startsAt: `${dateStr(d)}T${timeStart}:00`,
-        endsAt:   `${dateStr(d)}T${timeEnd}:00`,
-      });
+      // Parse as LOCAL time (browser timezone) then convert to UTC for storage
+      const s = new Date(`${dateStr(d)}T${timeStart}:00`);
+      const e = new Date(`${dateStr(d)}T${timeEnd}:00`);
+      slots.push({ startsAt: s.toISOString(), endsAt: e.toISOString() });
     }
     d = addDays(d, 1);
   }
@@ -174,6 +174,12 @@ export default function AvailabilityEditor({ offerId, source, onSlotsChange, api
       else {
         const skippedMsg = d.skipped > 0 ? ` (${d.skipped} ya existían)` : "";
         setSuccess(`${d.inserted} franjas añadidas${skippedMsg}`);
+        // Immediately merge inserted slots into state so parent's onSlotsChange fires at once
+        const newSlots = d.slots || [];
+        const merged = [...slots, ...newSlots].sort((a, b) => (a.starts_at > b.starts_at ? 1 : -1));
+        setSlots(merged);
+        if (onSlotsChange) onSlotsChange(merged);
+        // Then reload for an accurate picture (handles duplicates etc.)
         await loadSlots();
       }
     } catch { setError("Error de conexión"); }
@@ -398,7 +404,7 @@ const styles = {
   errorMsg:    { color: "#dc2626", fontSize: 13, marginBottom: 8, marginTop: 6 },
   successMsg:  { color: "#16a34a", fontSize: 13, marginBottom: 8, marginTop: 6 },
   hint:        { color: "#94a3b8", fontSize: 13, padding: "8px 0" },
-  slotGrid:    { display: "flex", flexDirection: "column", gap: 6, marginTop: 8 },
+  slotGrid:    { display: "flex", flexDirection: "column", gap: 6, marginTop: 8, maxHeight: 260, overflowY: "auto", paddingRight: 2 },
   groupLabel:  { fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: ".5px" },
   slotRow:     { display: "flex", alignItems: "center", gap: 8, background: "#f8fafc", borderRadius: 8, padding: "8px 12px" },
   slotIcon:    { fontSize: 12 },

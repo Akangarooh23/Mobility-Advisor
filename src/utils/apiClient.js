@@ -366,6 +366,13 @@ export function postVehicleStateUpsertJson(email, vehicleState, options = {}) {
   });
 }
 
+export function postVehiclePublishJson(payload, options = {}) {
+  return postJson(`${API_BASE}/api/user?route=vehicle-publish`, payload, {
+    endpointLabel: "vehicle-publish",
+    ...options,
+  });
+}
+
 export function postSavedOfferAddJson(email, offer, options = {}) {
   return postJson(BILLING_ACCOUNT_API_ENDPOINT, {
     action: "saved_offer_add",

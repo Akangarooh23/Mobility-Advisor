@@ -8,6 +8,7 @@ import {
   postMaintenanceAddJson,
   postInsuranceUpsertJson,
   postVehicleStateUpsertJson,
+  postVehiclePublishJson,
   getErpBrandsJson,
   getErpModelsJson,
   getErpVersionsJson,
@@ -1185,6 +1186,8 @@ export default function UserDashboardVehicles({
         setOverriddenMarketplaceStates((s) => ({ ...s, [vehicle.id]: "owned" }));
         setVehicleFeedback("⚠️ El vehículo se buscó en el marketplace pero no se pudo guardar el estado de publicación. Recarga para verificar.");
       });
+      // Crear/actualizar el anuncio real en marketplace_vo_offers
+      postVehiclePublishJson({ vehicleId: vehicle.id, price: marketplacePrice, action: "publish" }).catch(() => {});
     }
 
     setVehicleFeedback(`Vehículo ${vehicleLabel} preparado para marketplace con precio ${marketplacePrice} EUR.`);
@@ -2409,6 +2412,7 @@ export default function UserDashboardVehicles({
                                   postVehicleStateUpsertJson(currentUserEmail, { vehicleId: vehicle.id, isListed: false, notes: "" })
                                     .then((res) => { if (Array.isArray(res?.vehicleStates)) onVehicleStatesUpdated(res.vehicleStates); })
                                     .catch(() => {});
+                                  postVehiclePublishJson({ vehicleId: vehicle.id, action: "unpublish" }).catch(() => {});
                                   setVehicleFeedback(`Vehículo ${vehicle.title || vehicle.brand} retirado del marketplace.`);
                                 }
                               }}

@@ -8,6 +8,7 @@ export const USER_DASHBOARD_ROUTE_MAP = {
   preferences: "/panel/preferencias",
   vehicles: "/panel/vehiculos",
   solicitudes: "/panel/solicitudes",
+  services: "/panel/servicios",
 };
 
 const OFFER_PROVIDER_ALIASES = {

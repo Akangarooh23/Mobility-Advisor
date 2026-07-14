@@ -11,14 +11,11 @@ const PARTNER_COLORS = {
 function buildUserIcon(L, isPrecise) {
   return L.divIcon({
     html: isPrecise
-      ? `<div style="position:relative;width:20px;height:20px">
-           <div style="position:absolute;inset:0;border-radius:50%;background:#1d4ed8;border:3px solid white;box-shadow:0 2px 10px rgba(29,78,216,0.6)"></div>
-           <div style="position:absolute;inset:-6px;border-radius:50%;border:2px solid #1d4ed8;opacity:0.4;animation:cwpulse 1.5s ease-out infinite"></div>
-         </div>`
-      : `<div style="width:14px;height:14px;border-radius:50%;background:white;border:2px dashed #1d4ed8;box-shadow:0 1px 4px rgba(0,0,0,0.3)"></div>`,
+      ? `<div style="width:18px;height:18px;border-radius:50%;background:#1d4ed8;border:3px solid white;box-shadow:0 0 0 5px rgba(29,78,216,0.25),0 2px 8px rgba(0,0,0,0.4)"></div>`
+      : `<div style="width:14px;height:14px;border-radius:50%;background:white;border:2.5px dashed #1d4ed8;box-shadow:0 1px 4px rgba(0,0,0,0.3)"></div>`,
     className: "",
-    iconSize: isPrecise ? [20, 20] : [14, 14],
-    iconAnchor: isPrecise ? [10, 10] : [7, 7],
+    iconSize: isPrecise ? [18, 18] : [14, 14],
+    iconAnchor: isPrecise ? [9, 9] : [7, 7],
   });
 }
 
@@ -134,30 +131,34 @@ export default function WorkshopMapModal({
 
   // ── Effect 2: update user location marker whenever userLocation changes ──
   useEffect(() => {
-    const L = LRef.current;
-    const map = leafletMapRef.current;
-    if (!L || !map || !userLocation?.lat) return;
+    if (!userLocation?.lat) return;
+    let disposed = false;
 
-    // Remove old user marker
-    if (userMarkerRef.current) {
-      userMarkerRef.current.remove();
-      userMarkerRef.current = null;
-    }
+    import("leaflet").then((L) => {
+      if (disposed) return;
+      const map = leafletMapRef.current;
+      if (!map) return; // map not ready yet — Effect 1 will draw it on init
 
-    const isPrecise = userLocation.source === "precise_geocode";
-    const icon = buildUserIcon(L, isPrecise);
-    const marker = L.marker([userLocation.lat, userLocation.lon], { icon })
-      .addTo(map)
-      .bindPopup(isPrecise
-        ? "<b>📍 Tu ubicación exacta</b>"
-        : "<b>📍 Ubicación aproximada</b><br><small>Usa '📍 Usar mi ubicación actual' para mayor precisión</small>"
-      );
-    userMarkerRef.current = marker;
+      if (userMarkerRef.current) {
+        userMarkerRef.current.remove();
+        userMarkerRef.current = null;
+      }
 
-    // Pan to the user's real position when we get precise coords
-    if (isPrecise) {
-      map.setView([userLocation.lat, userLocation.lon], map.getZoom(), { animate: true });
-    }
+      const isPrecise = userLocation.source === "precise_geocode";
+      const icon = buildUserIcon(L, isPrecise);
+      userMarkerRef.current = L.marker([userLocation.lat, userLocation.lon], { icon })
+        .addTo(map)
+        .bindPopup(isPrecise
+          ? "<b>📍 Tu ubicación exacta</b>"
+          : "<b>📍 Ubicación aproximada</b><br><small>Usa '📍 Usar mi ubicación actual' para mayor precisión</small>"
+        );
+
+      if (isPrecise) {
+        map.setView([userLocation.lat, userLocation.lon], Math.max(map.getZoom(), 13), { animate: true });
+      }
+    });
+
+    return () => { disposed = true; };
   }, [userLocation]);
 
   const withCoords = providers.filter((p) => p.workshop?.lat != null);
@@ -165,7 +166,6 @@ export default function WorkshopMapModal({
   return (
     <>
       <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-      <style>{`@keyframes cwpulse{0%{transform:scale(1);opacity:0.4}70%{transform:scale(2.2);opacity:0}100%{transform:scale(2.2);opacity:0}}`}</style>
 
       <div
         onClick={onClose}

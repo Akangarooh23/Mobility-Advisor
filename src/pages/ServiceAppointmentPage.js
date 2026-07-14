@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getGarageVehiclesJson, getNearbyWorkshopsJson } from "../utils/apiClient";
+import WorkshopMapModal from "../components/WorkshopMapModal";
 
 function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -464,8 +465,10 @@ export default function ServiceAppointmentPage({
   const [province, setProvince] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [nearbyProviders, setNearbyProviders] = useState([]);
+  const [userMapLocation, setUserMapLocation] = useState(null);
   const [isSearchingWorkshops, setIsSearchingWorkshops] = useState(false);
   const [workshopSearchError, setWorkshopSearchError] = useState("");
+  const [showMap, setShowMap] = useState(false);
   const [isSubmittingAppointment, setIsSubmittingAppointment] = useState(false);
   const [isSpecificOpen, setIsSpecificOpen] = useState(false);
   const [selectedSpecificSection, setSelectedSpecificSection] = useState("");
@@ -606,6 +609,7 @@ export default function ServiceAppointmentPage({
         if (!disposed) {
           if (response.ok && Array.isArray(data?.providers)) {
             setNearbyProviders(data.providers);
+            if (data.userLocation?.lat) setUserMapLocation(data.userLocation);
           } else {
             setNearbyProviders([]);
             setWorkshopSearchError(normalizeText(data?.error) || t("service.appointmentWorkshopsError"));
@@ -699,6 +703,15 @@ export default function ServiceAppointmentPage({
 
   return (
     <div style={{ width: "100%", maxWidth: 1040, margin: "0 auto", color: "#1a1a1a", padding: "0 8px 16px" }}>
+      {showMap && (
+        <WorkshopMapModal
+          providers={nearbyProviders}
+          userLocation={userMapLocation}
+          selectedProvider={selectedProvider}
+          onSelectProvider={setSelectedProvider}
+          onClose={() => setShowMap(false)}
+        />
+      )}
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
         <button
           type="button"
@@ -1014,8 +1027,23 @@ export default function ServiceAppointmentPage({
         </div>
 
         <div style={{ ...cardStyle, padding: 18, opacity: canChooseRevision ? 1 : 0.65 }}>
-          <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
-            {t("service.appointmentProviderSectionLabel")}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700 }}>
+              {t("service.appointmentProviderSectionLabel")}
+            </div>
+            {nearbyProviders.filter((p) => p.workshop?.lat != null).length > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowMap(true)}
+                style={{
+                  fontSize: 11, fontWeight: 700, color: "#7c3aed",
+                  background: "rgba(139,92,246,0.10)", border: "1px solid rgba(139,92,246,0.28)",
+                  borderRadius: 7, padding: "4px 10px", cursor: "pointer",
+                }}
+              >
+                🗺 Ver en mapa
+              </button>
+            )}
           </div>
           {isSearchingWorkshops ? (
             <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>

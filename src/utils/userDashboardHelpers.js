@@ -119,8 +119,7 @@ export function buildUserDashboardModel({
   if (Array.isArray(userVehicleStates)) {
     userVehicleStates.forEach((item) => {
       const state = normalizeText(item?.state).toLowerCase();
-      // isListed is independent of ownership: a vehicle can be owned AND listed simultaneously
-      const isListed = item?.isListed === true || state === "active_sale";
+      const isListed = item?.isListed === true;
 
       const title = normalizeText(item?.title)
         || `${normalizeText(item?.brand)} ${normalizeText(item?.model)}`.trim()
@@ -135,8 +134,8 @@ export function buildUserDashboardModel({
         status,
       });
 
-      // Ownership section — only state=owned goes in Comprados
-      if (state === "owned") {
+      // Comprados: owned vehicles not currently listed for sale
+      if (state === "owned" && !isListed) {
         persistedSections.owned.push(makeItem("Vehiculo disponible"));
       } else if (state === "sold") {
         persistedSections.sold.push(makeItem("Operacion cerrada"));

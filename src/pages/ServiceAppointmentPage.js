@@ -469,6 +469,7 @@ export default function ServiceAppointmentPage({
   const [userMapLocation, setUserMapLocation] = useState(null);
   const [preciseCoords, setPreciseCoords] = useState(null);
   const [isGeocoding, setIsGeocoding] = useState(false);
+  const [isGeolocating, setIsGeolocating] = useState(false);
   const [isSearchingWorkshops, setIsSearchingWorkshops] = useState(false);
   const [workshopSearchError, setWorkshopSearchError] = useState("");
   const [showMap, setShowMap] = useState(false);
@@ -587,7 +588,7 @@ export default function ServiceAppointmentPage({
   const hasValidPostalCode = /^\d{5}$/.test(normalizeText(postalCode));
   const hasLocationContext = Boolean(normalizeText(province)) && hasValidPostalCode;
 
-  // Geocode when street is provided alongside province + postalCode
+  // Geocode street → precise coords → triggers workshop re-search
   const geocodeAddress = async (streetVal, provinceVal, postalVal) => {
     if (!streetVal.trim() || !provinceVal.trim() || !/^\d{5}$/.test(postalVal)) return;
     setIsGeocoding(true);
@@ -599,13 +600,49 @@ export default function ServiceAppointmentPage({
       );
       const data = await res.json();
       if (data?.[0]) {
-        setPreciseCoords({ lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) });
+        const coords = { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+        setPreciseCoords(coords);
+        setUserMapLocation(coords); // update map dot immediately
       }
     } catch {
       // silently fall back to CP-centroid
     } finally {
       setIsGeocoding(false);
     }
+  };
+
+  // Browser geolocation — most precise option
+  const useMyLocation = () => {
+    if (!navigator.geolocation) return;
+    setIsGeolocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const coords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+        setPreciseCoords(coords);
+        setUserMapLocation(coords);
+        // Reverse geocode to fill province + CP fields
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${coords.lat}&lon=${coords.lon}&format=json&countrycodes=es`,
+            { headers: { "Accept-Language": "es" } }
+          );
+          const data = await res.json();
+          if (data?.address) {
+            const cp = data.address.postcode?.replace(/\s/g, "") || "";
+            const prov = data.address.state || data.address.province || "";
+            if (cp) setPostalCode(cp.slice(0, 5));
+            if (prov) setProvince(prov);
+            const streetParts = [data.address.road, data.address.house_number].filter(Boolean);
+            if (streetParts.length) setStreet(streetParts.join(" "));
+          }
+        } catch {
+          // coords are set; province/CP fill is best-effort
+        }
+        setIsGeolocating(false);
+      },
+      () => setIsGeolocating(false),
+      { timeout: 8000, maximumAge: 60000 }
+    );
   };
 
   useEffect(() => {
@@ -863,6 +900,22 @@ export default function ServiceAppointmentPage({
                 <option key={option.id} value={option.id}>{option.label}</option>
               ))}
             </select>
+
+            {/* Geolocation shortcut */}
+            <button
+              type="button"
+              onClick={useMyLocation}
+              disabled={isGeolocating}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                background: "none", border: "1px dashed rgba(139,92,246,0.4)",
+                borderRadius: 8, padding: "7px 12px", cursor: "pointer",
+                fontSize: 12, color: "#7c3aed", fontWeight: 700,
+                alignSelf: "start",
+              }}
+            >
+              {isGeolocating ? "Obteniendo ubicación…" : "📍 Usar mi ubicación actual"}
+            </button>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 8 }}>
               <label style={{ display: "grid", gap: 5 }}>

@@ -159,6 +159,7 @@ export default function UserDashboardPage({
   const planLabelMap = {
     free: "Free",
     plus: "Plus",
+    pro: "Pro",
     // legacy IDs
     gratis: "Free",
     bronce: "Plus",

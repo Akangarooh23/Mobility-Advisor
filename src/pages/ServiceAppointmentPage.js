@@ -637,37 +637,39 @@ export default function ServiceAppointmentPage({
   const selectedVehicle = garageVehicles.find((item) => normalizeText(item?.id) === vehicleId) || null;
   const selectedVehicleLabel = vehicleOptions.find((item) => item.id === vehicleId)?.label || "";
 
-  const selectedProviderLabel = selectedProvider === "midas" ? "MIDAS" : selectedProvider === "norauto" ? "Norauto" : t("service.appointmentProviderFallback");
   const selectedRevisionName = selectedAppointmentTypeName || t("service.appointmentRevisionFallback");
   const selectedCatalogServiceName = resolveCatalogServiceName(selectedAppointmentTypeName);
   const selectedServicePricing = SERVICE_PRICE_CATALOG[selectedCatalogServiceName] || null;
 
-  const providerOffers = [
-    {
-      key: "norauto",
-      name: "Norauto",
-      range: selectedServicePricing?.norauto || null,
-    },
-    {
-      key: "midas",
-      name: "MIDAS",
-      range: selectedServicePricing?.midas || null,
-    },
-  ].map((item) => {
-    const nearby = nearbyProviders.find((provider) => provider?.providerKey === item.key);
-    const particular = chooseParticularPrice(item.range);
-    const withCarsWise = chooseCarsWisePrice(item.range);
-    const savings = typeof particular === "number" && typeof withCarsWise === "number" ? Math.max(0, particular - withCarsWise) : null;
-    return {
-      ...item,
-      particular,
-      withCarsWise,
-      savings,
-      nearby,
-    };
-  });
+  // Build provider cards dynamically from API results — supports Norauto/MIDAS (with pricing)
+  // and independent talleres from the real workshop DB (price "a consultar")
+  const providerOffers = nearbyProviders
+    .filter((p) => p?.available)
+    .map((p) => {
+      const knownRange = selectedServicePricing?.[p.providerKey] || null;
+      const particular = chooseParticularPrice(knownRange);
+      const withCarsWise = chooseCarsWisePrice(knownRange);
+      const savings =
+        typeof particular === "number" && typeof withCarsWise === "number"
+          ? Math.max(0, particular - withCarsWise)
+          : null;
+      return {
+        key: p.providerKey,
+        name: p.providerName,
+        range: knownRange,
+        particular,
+        withCarsWise,
+        savings,
+        nearby: p,
+        isIndependent: p.isIndependent || false,
+      };
+    });
 
   const selectedProviderOffer = providerOffers.find((item) => item.key === selectedProvider) || null;
+  const selectedProviderLabel =
+    selectedProviderOffer?.name ||
+    nearbyProviders.find((p) => p.providerKey === selectedProvider)?.providerName ||
+    t("service.appointmentProviderFallback");
 
   const handleConfirmAppointment = async () => {
     if (!canContinueBooking || isSubmittingAppointment) {
@@ -1031,6 +1033,16 @@ export default function ServiceAppointmentPage({
             </div>
           ) : null}
           <div style={{ display: "grid", gap: 8 }}>
+            {!hasLocationContext && (
+              <div style={{ fontSize: 12, color: "#7c3aed", fontWeight: 700 }}>
+                {t("service.appointmentWorkshopCompleteLocation")}
+              </div>
+            )}
+            {hasLocationContext && !isSearchingWorkshops && providerOffers.length === 0 && (
+              <div style={{ fontSize: 12, color: "#6b7280" }}>
+                No se encontraron talleres en tu zona. Prueba con otro código postal.
+              </div>
+            )}
             {providerOffers.map((item) => (
               <button
                 key={item.key}
@@ -1047,20 +1059,35 @@ export default function ServiceAppointmentPage({
                   opacity: canChooseRevision ? 1 : 0.75,
                 }}
               >
-                <div style={{ fontSize: 14, fontWeight: 700, color: item.key === selectedProvider ? "#7c3aed" : "#3b3b3b" }}>{item.name}</div>
-                <div style={{ fontSize: 12, color: "#9a9a9a", marginTop: 2 }}>
-                  {item?.nearby?.available && item?.nearby?.workshop
-                    ? `${item.nearby.workshop.name} · ${item.nearby.workshop.distanceKm} km`
-                    : (hasLocationContext ? t("service.appointmentWorkshopNearText", { province, postalCode }) : t("service.appointmentWorkshopCompleteLocation"))}
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: item.key === selectedProvider ? "#7c3aed" : "#3b3b3b" }}>
+                    {item.name}
+                  </span>
+                  {item.isIndependent && (
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "#64748b", background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: 6, padding: "1px 6px" }}>
+                      Independiente
+                    </span>
+                  )}
                 </div>
-                {item?.nearby?.available && item?.nearby?.workshop ? (
+                <div style={{ fontSize: 12, color: "#9a9a9a", marginTop: 2 }}>
+                  {item?.nearby?.workshop
+                    ? `${item.nearby.workshop.distanceKm} km · ETA ${item.nearby.workshop.etaMinutes} min`
+                    : ""}
+                </div>
+                {item?.nearby?.workshop?.address ? (
                   <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
-                    {item.nearby.workshop.address} · ETA {item.nearby.workshop.etaMinutes} min
+                    {item.nearby.workshop.address}
                   </div>
                 ) : null}
-                <div style={{ fontSize: 12, color: "#8b5cf6", marginTop: 2, fontWeight: 700 }}>
-                  {t("service.appointmentPricingParticular", { price: formatPriceTag(item.particular, priceOptions) })} · {t("service.appointmentPricingCarsWise", { price: formatPriceTag(item.withCarsWise, priceOptions) })}
-                </div>
+                {item.isIndependent ? (
+                  <div style={{ fontSize: 12, color: "#8b5cf6", marginTop: 4, fontWeight: 700 }}>
+                    Precio a consultar · Tarifa CarsWise aplicable
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 12, color: "#8b5cf6", marginTop: 4, fontWeight: 700 }}>
+                    {t("service.appointmentPricingParticular", { price: formatPriceTag(item.particular, priceOptions) })} · {t("service.appointmentPricingCarsWise", { price: formatPriceTag(item.withCarsWise, priceOptions) })}
+                  </div>
+                )}
                 {item.savings !== null ? (
                   <div style={{ fontSize: 11, color: "#16a34a", marginTop: 2, fontWeight: 700 }}>
                     {t("service.appointmentSavings", { savings: item.savings })}

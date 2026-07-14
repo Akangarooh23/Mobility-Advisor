@@ -223,6 +223,10 @@ export default function UserDashboardPage({
 
     void refreshGarageCount();
 
+    // Re-read planId from localStorage in case the planIdUpdated event fired before this component mounted
+    const storedPlan = readUserBillingState()?.planId;
+    if (storedPlan && !disposed) setCurrentPlanId(storedPlan);
+
     const storageListener = (event) => {
       if (!event?.key || event.key === getGarageStorageKey(currentUserEmail)) {
         setGarageVehicleCount(readGarageVehiclesCount(currentUserEmail));

@@ -1032,7 +1032,7 @@ export default function ServiceAppointmentPage({
               {t("service.appointmentSelectProviderHint")}
             </div>
           ) : null}
-          <div style={{ display: "grid", gap: 8 }}>
+          <div style={{ display: "grid", gap: 8, maxHeight: providerOffers.length > 6 ? 420 : "none", overflowY: providerOffers.length > 6 ? "auto" : "visible", paddingRight: providerOffers.length > 6 ? 4 : 0 }}>
             {!hasLocationContext && (
               <div style={{ fontSize: 12, color: "#7c3aed", fontWeight: 700 }}>
                 {t("service.appointmentWorkshopCompleteLocation")}

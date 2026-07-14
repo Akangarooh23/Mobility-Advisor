@@ -18,13 +18,13 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 1 * * 0"
+              "expression": "30 8 * * *"
             }
           ]
         }
       },
       "id": "cn-cron",
-      "name": "Cada domingo a la 1:00",
+      "name": "Cada día a las 8:30",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
@@ -35,7 +35,7 @@
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "// coches.net: 30 coches/página, ~244k → ~8.135 páginas. Techo amplio;\n// el loop se corta solo al primer page sin coches (early-exit del IF).\nconst pages=[];\nfor(let i=1;i<=8300;i++){ pages.push({ json:{ page:i } }); }\nreturn pages;"
+        "jsCode": "// coches.net tiene DataDome (corta tras ~30 peticiones). Modo CONSERVADOR:\n// solo 8 páginas (~272 coches más recientes) al día → bajo el umbral de bloqueo.\n// Las páginas que caigan bloqueadas (sin items) el transform las salta (count:0).\nconst pages=[];\nfor(let i=1;i<=8;i++){ pages.push({ json:{ page:i } }); }\nreturn pages;"
       },
       "id": "cn-gen",
       "name": "Code: Generar páginas",
@@ -196,17 +196,6 @@
         ]
       ]
     },
-    "Cada domingo a la 1:00": {
-      "main": [
-        [
-          {
-            "node": "Code: Generar páginas",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Code: Generar páginas": {
       "main": [
         [
@@ -284,14 +273,27 @@
           }
         ]
       ]
+    },
+    "Cada día a las 8:30": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar páginas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "pinData": {},
   "settings": {
     "executionOrder": "v1",
-    "saveManualExecutions": true,
+    "saveManualExecutions": false,
     "callerPolicy": "workflowsFromSameOwner",
-    "errorWorkflow": ""
+    "errorWorkflow": "",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none"
   },
   "staticData": null,
   "triggerCount": 1,

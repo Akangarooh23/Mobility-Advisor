@@ -8,6 +8,19 @@ const PARTNER_COLORS = {
   kwik_fit: "#7c3aed",
 };
 
+function buildUserIcon(L, isPrecise) {
+  return L.divIcon({
+    html: isPrecise
+      ? `<div style="position:relative;width:20px;height:20px">
+           <div style="position:absolute;inset:0;border-radius:50%;background:#1d4ed8;border:3px solid white;box-shadow:0 2px 10px rgba(29,78,216,0.6)"></div>
+           <div style="position:absolute;inset:-6px;border-radius:50%;border:2px solid #1d4ed8;opacity:0.4;animation:cwpulse 1.5s ease-out infinite"></div>
+         </div>`
+      : `<div style="width:14px;height:14px;border-radius:50%;background:white;border:2px dashed #1d4ed8;box-shadow:0 1px 4px rgba(0,0,0,0.3)"></div>`,
+    className: "",
+    iconSize: isPrecise ? [20, 20] : [14, 14],
+    iconAnchor: isPrecise ? [10, 10] : [7, 7],
+  });
+}
 
 export default function WorkshopMapModal({
   providers = [],
@@ -18,14 +31,16 @@ export default function WorkshopMapModal({
 }) {
   const mapRef = useRef(null);
   const leafletMapRef = useRef(null);
-  const markersRef = useRef([]);
+  const userMarkerRef = useRef(null);
+  const LRef = useRef(null);
 
+  // ── Effect 1: initialize map + workshop markers (once) ──────────────────
   useEffect(() => {
     if (!mapRef.current || leafletMapRef.current) return;
 
-    // Dynamic import to avoid SSR issues
     import("leaflet").then((L) => {
-      // Fix default icon path issue with webpack
+      LRef.current = L;
+
       delete L.Icon.Default.prototype._getIconUrl;
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -35,7 +50,6 @@ export default function WorkshopMapModal({
 
       const centerLat = userLocation?.lat || 40.4168;
       const centerLon = userLocation?.lon || -3.7038;
-
       const map = L.map(mapRef.current, { zoomControl: true }).setView([centerLat, centerLon], 13);
       leafletMapRef.current = map;
 
@@ -43,28 +57,6 @@ export default function WorkshopMapModal({
         attribution: "© OpenStreetMap contributors",
         maxZoom: 19,
       }).addTo(map);
-
-      // User location marker — bigger + pulsing when precise, small/dashed when approximate
-      if (userLocation?.lat) {
-        const isPrecise = userLocation.source === "precise_geocode";
-        const userIcon = L.divIcon({
-          html: isPrecise
-            ? `<div style="position:relative;width:20px;height:20px">
-                <div style="position:absolute;inset:0;border-radius:50%;background:#1d4ed8;border:3px solid white;box-shadow:0 2px 10px rgba(29,78,216,0.6)"></div>
-                <div style="position:absolute;inset:-6px;border-radius:50%;border:2px solid #1d4ed8;opacity:0.4;animation:pulse 1.5s ease-out infinite"></div>
-               </div>`
-            : `<div style="width:14px;height:14px;border-radius:50%;background:white;border:2px dashed #1d4ed8;box-shadow:0 1px 4px rgba(0,0,0,0.3)"></div>`,
-          className: "",
-          iconSize: isPrecise ? [20, 20] : [14, 14],
-          iconAnchor: isPrecise ? [10, 10] : [7, 7],
-        });
-        L.marker([userLocation.lat, userLocation.lon], { icon: userIcon })
-          .addTo(map)
-          .bindPopup(isPrecise
-            ? "<b>📍 Tu ubicación exacta</b>"
-            : "<b>📍 Ubicación aproximada</b><br><small>Introduce tu calle o usa 'Usar mi ubicación' para mayor precisión</small>"
-          );
-      }
 
       // Workshop markers
       const workshopsWithCoords = providers.filter(
@@ -95,7 +87,9 @@ export default function WorkshopMapModal({
 
         const distText = workshop.distanceKm != null ? `${workshop.distanceKm} km · ETA ${workshop.etaMinutes} min` : "";
         const phoneText = workshop.phone ? `<br>📞 ${workshop.phone}` : "";
-        const badgeText = isIndependent ? `<span style="background:#e2e8f0;color:#475569;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700">Independiente</span>` : `<span style="background:${color}22;color:${color};font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700">${providerName}</span>`;
+        const badgeText = isIndependent
+          ? `<span style="background:#e2e8f0;color:#475569;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700">Independiente</span>`
+          : `<span style="background:${color}22;color:${color};font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700">${providerName}</span>`;
 
         const popup = L.popup({ maxWidth: 260 }).setContent(`
           <div style="font-family:system-ui,sans-serif;min-width:200px">
@@ -113,24 +107,17 @@ export default function WorkshopMapModal({
           </div>
         `);
 
-        const marker = L.marker([workshop.lat, workshop.lon], { icon })
-          .addTo(map)
-          .bindPopup(popup);
-
-        markersRef.current.push(marker);
+        L.marker([workshop.lat, workshop.lon], { icon }).addTo(map).bindPopup(popup);
       });
 
-      // Fit bounds to all markers
+      // Fit bounds including user location if known
       if (workshopsWithCoords.length > 0) {
-        const allPoints = [
-          ...(userLocation?.lat ? [[userLocation.lat, userLocation.lon]] : []),
-          ...workshopsWithCoords.map((p) => [p.workshop.lat, p.workshop.lon]),
-        ];
+        const userPt = userLocation?.lat ? [[userLocation.lat, userLocation.lon]] : [];
+        const allPoints = [...userPt, ...workshopsWithCoords.map((p) => [p.workshop.lat, p.workshop.lon])];
         map.fitBounds(allPoints, { padding: [40, 40], maxZoom: 14 });
       }
     });
 
-    // Expose select callback for popup button
     window.__cwSelectProvider = (key) => {
       onSelectProvider(key);
       onClose();
@@ -145,15 +132,41 @@ export default function WorkshopMapModal({
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Effect 2: update user location marker whenever userLocation changes ──
+  useEffect(() => {
+    const L = LRef.current;
+    const map = leafletMapRef.current;
+    if (!L || !map || !userLocation?.lat) return;
+
+    // Remove old user marker
+    if (userMarkerRef.current) {
+      userMarkerRef.current.remove();
+      userMarkerRef.current = null;
+    }
+
+    const isPrecise = userLocation.source === "precise_geocode";
+    const icon = buildUserIcon(L, isPrecise);
+    const marker = L.marker([userLocation.lat, userLocation.lon], { icon })
+      .addTo(map)
+      .bindPopup(isPrecise
+        ? "<b>📍 Tu ubicación exacta</b>"
+        : "<b>📍 Ubicación aproximada</b><br><small>Usa '📍 Usar mi ubicación actual' para mayor precisión</small>"
+      );
+    userMarkerRef.current = marker;
+
+    // Pan to the user's real position when we get precise coords
+    if (isPrecise) {
+      map.setView([userLocation.lat, userLocation.lon], map.getZoom(), { animate: true });
+    }
+  }, [userLocation]);
+
   const withCoords = providers.filter((p) => p.workshop?.lat != null);
 
   return (
     <>
-      {/* Leaflet CSS + pulse keyframe */}
       <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-      <style>{`@keyframes pulse{0%{transform:scale(1);opacity:0.4}70%{transform:scale(2.2);opacity:0}100%{transform:scale(2.2);opacity:0}}`}</style>
+      <style>{`@keyframes cwpulse{0%{transform:scale(1);opacity:0.4}70%{transform:scale(2.2);opacity:0}100%{transform:scale(2.2);opacity:0}}`}</style>
 
-      {/* Overlay */}
       <div
         onClick={onClose}
         style={{
@@ -170,16 +183,13 @@ export default function WorkshopMapModal({
             boxShadow: "0 24px 60px rgba(0,0,0,0.30)",
           }}
         >
-          {/* Header */}
           <div style={{
             padding: "14px 18px", borderBottom: "1px solid #e2e8f0",
             display: "flex", justifyContent: "space-between", alignItems: "center",
             background: "#f8fafc",
           }}>
             <div>
-              <span style={{ fontSize: 15, fontWeight: 800, color: "#0f172a" }}>
-                Talleres cercanos
-              </span>
+              <span style={{ fontSize: 15, fontWeight: 800, color: "#0f172a" }}>Talleres cercanos</span>
               <span style={{ fontSize: 12, color: "#64748b", marginLeft: 10 }}>
                 {withCoords.length} con ubicación disponible
               </span>
@@ -195,10 +205,8 @@ export default function WorkshopMapModal({
             </button>
           </div>
 
-          {/* Map */}
           <div ref={mapRef} style={{ flex: 1, minHeight: 0 }} />
 
-          {/* Legend */}
           <div style={{
             padding: "10px 16px", borderTop: "1px solid #e2e8f0", background: "#f8fafc",
             display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center",
@@ -209,9 +217,7 @@ export default function WorkshopMapModal({
               return (
                 <div key={key} style={{ display: "flex", alignItems: "center", gap: 5 }}>
                   <div style={{ width: 10, height: 10, borderRadius: "50%", background: color }} />
-                  <span style={{ fontSize: 11, color: "#475569", fontWeight: 600 }}>
-                    {found.providerName}
-                  </span>
+                  <span style={{ fontSize: 11, color: "#475569", fontWeight: 600 }}>{found.providerName}</span>
                 </div>
               );
             })}

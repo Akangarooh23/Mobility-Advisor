@@ -44,17 +44,26 @@ export default function WorkshopMapModal({
         maxZoom: 19,
       }).addTo(map);
 
-      // User location marker
+      // User location marker — bigger + pulsing when precise, small/dashed when approximate
       if (userLocation?.lat) {
+        const isPrecise = userLocation.source === "precise_geocode";
         const userIcon = L.divIcon({
-          html: `<div style="width:14px;height:14px;border-radius:50%;background:#1d4ed8;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4)"></div>`,
+          html: isPrecise
+            ? `<div style="position:relative;width:20px;height:20px">
+                <div style="position:absolute;inset:0;border-radius:50%;background:#1d4ed8;border:3px solid white;box-shadow:0 2px 10px rgba(29,78,216,0.6)"></div>
+                <div style="position:absolute;inset:-6px;border-radius:50%;border:2px solid #1d4ed8;opacity:0.4;animation:pulse 1.5s ease-out infinite"></div>
+               </div>`
+            : `<div style="width:14px;height:14px;border-radius:50%;background:white;border:2px dashed #1d4ed8;box-shadow:0 1px 4px rgba(0,0,0,0.3)"></div>`,
           className: "",
-          iconSize: [14, 14],
-          iconAnchor: [7, 7],
+          iconSize: isPrecise ? [20, 20] : [14, 14],
+          iconAnchor: isPrecise ? [10, 10] : [7, 7],
         });
         L.marker([userLocation.lat, userLocation.lon], { icon: userIcon })
           .addTo(map)
-          .bindPopup("<b>Tu ubicación aproximada</b>");
+          .bindPopup(isPrecise
+            ? "<b>📍 Tu ubicación exacta</b>"
+            : "<b>📍 Ubicación aproximada</b><br><small>Introduce tu calle o usa 'Usar mi ubicación' para mayor precisión</small>"
+          );
       }
 
       // Workshop markers
@@ -140,11 +149,9 @@ export default function WorkshopMapModal({
 
   return (
     <>
-      {/* Leaflet CSS */}
-      <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      />
+      {/* Leaflet CSS + pulse keyframe */}
+      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+      <style>{`@keyframes pulse{0%{transform:scale(1);opacity:0.4}70%{transform:scale(2.2);opacity:0}100%{transform:scale(2.2);opacity:0}}`}</style>
 
       {/* Overlay */}
       <div

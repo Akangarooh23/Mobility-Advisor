@@ -600,7 +600,7 @@ export default function ServiceAppointmentPage({
       );
       const data = await res.json();
       if (data?.[0]) {
-        const coords = { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+        const coords = { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon), source: "precise_geocode" };
         setPreciseCoords(coords);
         setUserMapLocation(coords); // update map dot immediately
       }
@@ -617,7 +617,7 @@ export default function ServiceAppointmentPage({
     setIsGeolocating(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
-        const coords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+        const coords = { lat: pos.coords.latitude, lon: pos.coords.longitude, source: "precise_geocode" };
         setPreciseCoords(coords);
         setUserMapLocation(coords);
         // Reverse geocode to fill province + CP fields
@@ -672,7 +672,12 @@ export default function ServiceAppointmentPage({
         if (!disposed) {
           if (response.ok && Array.isArray(data?.providers)) {
             setNearbyProviders(data.providers);
-            if (data.userLocation?.lat) setUserMapLocation(data.userLocation);
+            if (data.userLocation?.lat) {
+              // Only overwrite with centroid if we don't already have precise coords
+              if (data.userLocation.source === "precise_geocode" || !preciseCoords) {
+                setUserMapLocation(data.userLocation);
+              }
+            }
           } else {
             setNearbyProviders([]);
             setWorkshopSearchError(normalizeText(data?.error) || t("service.appointmentWorkshopsError"));

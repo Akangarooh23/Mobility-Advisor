@@ -8,16 +8,6 @@ const PARTNER_COLORS = {
   kwik_fit: "#7c3aed",
 };
 
-function makeIcon(color, isSelected) {
-  const size = isSelected ? 36 : 28;
-  const svg = encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24">
-      <circle cx="12" cy="10" r="7" fill="${color}" stroke="white" stroke-width="2"/>
-      <path d="M12 24 L12 17" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/>
-    </svg>
-  `);
-  return `data:image/svg+xml,${svg}`;
-}
 
 export default function WorkshopMapModal({
   providers = [],

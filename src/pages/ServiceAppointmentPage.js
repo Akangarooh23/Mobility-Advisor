@@ -464,8 +464,11 @@ export default function ServiceAppointmentPage({
   const [vehicleId, setVehicleId] = useState("");
   const [province, setProvince] = useState("");
   const [postalCode, setPostalCode] = useState("");
+  const [street, setStreet] = useState("");
   const [nearbyProviders, setNearbyProviders] = useState([]);
   const [userMapLocation, setUserMapLocation] = useState(null);
+  const [preciseCoords, setPreciseCoords] = useState(null);
+  const [isGeocoding, setIsGeocoding] = useState(false);
   const [isSearchingWorkshops, setIsSearchingWorkshops] = useState(false);
   const [workshopSearchError, setWorkshopSearchError] = useState("");
   const [showMap, setShowMap] = useState(false);
@@ -584,6 +587,27 @@ export default function ServiceAppointmentPage({
   const hasValidPostalCode = /^\d{5}$/.test(normalizeText(postalCode));
   const hasLocationContext = Boolean(normalizeText(province)) && hasValidPostalCode;
 
+  // Geocode when street is provided alongside province + postalCode
+  const geocodeAddress = async (streetVal, provinceVal, postalVal) => {
+    if (!streetVal.trim() || !provinceVal.trim() || !/^\d{5}$/.test(postalVal)) return;
+    setIsGeocoding(true);
+    try {
+      const q = encodeURIComponent(`${streetVal}, ${postalVal} ${provinceVal}, España`);
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1&countrycodes=es`,
+        { headers: { "Accept-Language": "es" } }
+      );
+      const data = await res.json();
+      if (data?.[0]) {
+        setPreciseCoords({ lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) });
+      }
+    } catch {
+      // silently fall back to CP-centroid
+    } finally {
+      setIsGeocoding(false);
+    }
+  };
+
   useEffect(() => {
     let disposed = false;
 
@@ -604,6 +628,8 @@ export default function ServiceAppointmentPage({
         const { response, data } = await getNearbyWorkshopsJson({
           postalCode,
           province,
+          lat: preciseCoords?.lat ?? null,
+          lon: preciseCoords?.lon ?? null,
         });
 
         if (!disposed) {
@@ -631,7 +657,7 @@ export default function ServiceAppointmentPage({
     return () => {
       disposed = true;
     };
-  }, [hasLocationContext, postalCode, province, t]);
+  }, [hasLocationContext, postalCode, province, preciseCoords, t]);
 
   const canChooseRevision = hasAnyVehicles && Boolean(vehicleId) && hasLocationContext;
   const selectedPopularRevisionName = selectedRevision >= 0 ? REVISION_TYPES[selectedRevision].id : "";
@@ -878,6 +904,40 @@ export default function ServiceAppointmentPage({
                 />
               </label>
             </div>
+
+            <label style={{ display: "grid", gap: 5 }}>
+              <span style={{ fontSize: 11, color: "#6d28d9", fontWeight: 700 }}>
+                Calle / dirección
+                <span style={{ fontWeight: 400, color: "#a78bfa", marginLeft: 6 }}>(opcional — mejora la precisión)</span>
+              </span>
+              <input
+                type="text"
+                value={street}
+                onChange={(e) => {
+                  setStreet(e.target.value);
+                  if (!e.target.value) setPreciseCoords(null);
+                }}
+                onBlur={() => geocodeAddress(street, province, postalCode)}
+                placeholder="Calle Mayor 12, Madrid"
+                style={{
+                  border: "1px solid rgba(139,92,246,0.32)",
+                  borderRadius: 10,
+                  background: "#fff",
+                  padding: "9px 11px",
+                  fontSize: 13,
+                  color: "#312e81",
+                  fontWeight: 600,
+                }}
+              />
+              {isGeocoding && (
+                <span style={{ fontSize: 11, color: "#a78bfa" }}>Localizando dirección…</span>
+              )}
+              {!isGeocoding && preciseCoords && (
+                <span style={{ fontSize: 11, color: "#16a34a", fontWeight: 700 }}>
+                  ✓ Ubicación precisa obtenida — talleres más exactos
+                </span>
+              )}
+            </label>
 
             {!hasLocationContext ? (
               <div style={{ fontSize: 11, color: "#7c3aed", fontWeight: 700 }}>

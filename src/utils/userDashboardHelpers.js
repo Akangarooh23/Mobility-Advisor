@@ -134,8 +134,8 @@ export function buildUserDashboardModel({
         status,
       });
 
-      // Comprados: not sold and not currently listed for sale
-      if (!isListed && state !== "sold") {
+      // Comprados: only vehicles explicitly in state "owned"
+      if (state === "owned") {
         persistedSections.owned.push(makeItem("Vehiculo disponible"));
       } else if (state === "sold") {
         persistedSections.sold.push(makeItem("Operacion cerrada"));

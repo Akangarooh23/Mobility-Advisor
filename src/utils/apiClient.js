@@ -466,3 +466,17 @@ export function putUserPreferencesJson(preferences, options = {}) {
   return postJson(USER_PREFERENCES_API_ENDPOINT, { preferences }, { endpointLabel: "user-preferences", ...options });
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Service requests  /api/service-requests
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const SERVICE_REQUESTS_API_ENDPOINT = `${API_BASE}/api/service-requests`;
+
+export function getServiceRequestsJson(options = {}) {
+  return getJson(SERVICE_REQUESTS_API_ENDPOINT, { endpointLabel: "service-requests", ...options });
+}
+
+export function postServiceRequestJson(payload, options = {}) {
+  return postJson(SERVICE_REQUESTS_API_ENDPOINT, payload, { endpointLabel: "service-requests", ...options });
+}
+

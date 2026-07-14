@@ -9,6 +9,7 @@ import UserDashboardSaved from "./UserDashboardSaved";
 import UserDashboardValuations from "./UserDashboardValuations";
 import UserDashboardVehicles from "./UserDashboardVehicles";
 import UserDashboardSolicitudes from "./UserDashboardSolicitudes";
+import UserDashboardServices from "./UserDashboardServices";
 import { getGarageVehiclesJson } from "../../utils/apiClient";
 import { readUserBillingState, readCachedGarageVehicleCount } from "../../utils/storage";
 
@@ -111,6 +112,14 @@ function buildSections(counts, t, newAlertMatchesCount = 0) {
       count: counts.solicitudes,
       title: "Mis solicitudes",
       description: "Información, visitas y consultas enviadas sobre vehículos.",
+    },
+    {
+      key: "services",
+      label: "Servicios Pro",
+      icon: "🔧",
+      count: null,
+      title: "Servicios con tarifa profesional",
+      description: "Accede a precios de taller negociados para flotas y profesionales.",
     },
   ];
 }
@@ -286,7 +295,7 @@ export default function UserDashboardPage({
     solicitudes: userSolicitudes.length,
   };
   const sections = buildSections(counts, t, newAlertMatchesCount);
-  const navMain = ["home", "saved", "alerts", "vehicles", "valuations", "appointments", "solicitudes"];
+  const navMain = ["home", "saved", "alerts", "vehicles", "valuations", "appointments", "solicitudes", "services"];
   const navAccount = ["billing", "preferences"];
   const navSectionsMain = sections.filter((section) => navMain.includes(section.key));
   const navSectionsAccount = sections.filter((section) => navAccount.includes(section.key));
@@ -628,6 +637,14 @@ export default function UserDashboardPage({
           getOfferBadgeStyle={getOfferBadgeStyle}
           userEmail={currentUser?.email || ""}
           onOpenVehicleDetail={onOpenVehicleDetail}
+        />
+      )}
+
+            {userDashboardPage === "services" && (
+        <UserDashboardServices
+          themeMode={themeMode}
+          panelStyle={panelStyle}
+          currentUser={currentUser}
         />
       )}
 

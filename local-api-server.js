@@ -44,6 +44,7 @@ const vehicleCatalogHandler = require("./api/vehicle-catalog");
 const viewingHandler = require("./lib/api/viewing-handler");
 const marketHandler = require("./api/market");
 const workshopsHandler = require("./api/workshops");
+const serviceRequestsHandler = require("./lib/api/service-requests-handler");
 
 const billingHandler = require("./api/billing");
 const erpCatalogHandler = require("./api/erp-catalog");
@@ -80,6 +81,7 @@ const handlers = {
   "/api/user-preferences": userHandler,
   "/api/leads": userHandler,
   "/api/funnel-event": userHandler,
+  "/api/service-requests": serviceRequestsHandler,
 };
 
 function sendJson(res, statusCode, payload) {

@@ -119,6 +119,7 @@ export default function UserDashboardOperations({
   getOfferBadgeStyle,
   onRequestAppointment,
   onGoToServiceAppointment = () => {},
+  onDeleteAppointment = () => {},
   onRequestValuation = () => {},
   onNavigate = () => {},
   currentUserEmail = "",
@@ -806,7 +807,7 @@ export default function UserDashboardOperations({
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-                <div>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: titleColor }}>{item.title}</div>
                   <div style={{ fontSize: 12, color: bodyColor, marginTop: 3 }}>{item.meta}</div>
                   <div
@@ -820,18 +821,34 @@ export default function UserDashboardOperations({
                     {item.requestedAt ? ` · ${item.requestedAt}` : ""}
                   </div>
                 </div>
-                <span
-                  style={{
-                    background: "rgba(148,163,184,0.14)",
-                    borderRadius: 999,
-                    padding: "5px 9px",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: isDark ? "#e2e8f0" : "#334155",
-                  }}
-                >
-                  {item.itemTypeLabel}
-                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                  <span
+                    style={{
+                      background: "rgba(148,163,184,0.14)",
+                      borderRadius: 999,
+                      padding: "5px 9px",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: isDark ? "#e2e8f0" : "#334155",
+                    }}
+                  >
+                    {item.itemTypeLabel}
+                  </span>
+                  {item.itemType === "appointment" && (
+                    <button
+                      type="button"
+                      title="Eliminar"
+                      onClick={() => onDeleteAppointment(item.id)}
+                      style={{
+                        background: "none", border: "none", cursor: "pointer",
+                        color: isDark ? "#64748b" : "#94a3b8", fontSize: 16,
+                        lineHeight: 1, padding: "2px 4px", borderRadius: 4,
+                      }}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}

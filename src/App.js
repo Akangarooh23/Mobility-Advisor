@@ -6762,6 +6762,11 @@ export default function App() {
           onLogout={handleLogout}
           onRequestAppointment={requestUserAppointment}
           onGoToServiceAppointment={() => { setEntryMode("serviceAppointment"); setStep(-1); }}
+          onDeleteAppointment={(id) => {
+            const next = userAppointments.filter((a) => a.id !== id);
+            writeUserAppointments(next);
+            setUserAppointments(next);
+          }}
           onUpdateAppointmentStatus={updateUserAppointmentStatus}
           onRequestValuation={openSellValuationFromOffers}
           onOpenOffer={openOfferInNewTab}

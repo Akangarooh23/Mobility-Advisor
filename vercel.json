@@ -49,14 +49,6 @@
       "destination": "/api/market?route=whatsapp"
     },
     {
-      "source": "/api/erp-appointment",
-      "destination": "/api/market?route=erp-appointment"
-    },
-    {
-      "source": "/api/user-erp-appointments",
-      "destination": "/api/market?route=user-erp-appointments"
-    },
-    {
       "source": "/api/billing-account",
       "destination": "/api/billing?route=account"
     },

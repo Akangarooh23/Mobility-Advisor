@@ -140,6 +140,7 @@ export default function UserDashboardPage({
   onLogout,
   onRequestAppointment,
   onGoToServiceAppointment,
+  onDeleteAppointment,
   onUpdateAppointmentStatus = () => {},
   onRequestValuation = () => {},
   onOpenOffer,
@@ -596,6 +597,7 @@ export default function UserDashboardPage({
           getOfferBadgeStyle={getOfferBadgeStyle}
           onRequestAppointment={onRequestAppointment}
           onGoToServiceAppointment={onGoToServiceAppointment}
+          onDeleteAppointment={onDeleteAppointment}
           onRequestValuation={onRequestValuation}
           onNavigate={onNavigate}
           currentUserEmail={currentUser?.email || ""}

@@ -304,6 +304,100 @@ const REVISION_TYPES = [
   { id: "Revision ITV", nameKey: "service.revisionITVName", subtitleKey: "service.revisionITVSubtitle" },
 ];
 
+// Maps each CarsWise service ID → service tag used for workshop ranking
+const SERVICE_TAG_MAP = {
+  // Popular revision types
+  "Revision menor":       "revision",
+  "Revision mayor":       "revision",
+  "Revision de frenos":   "frenos",
+  "Neumaticos":           "neumaticos",
+  "Revision ITV":         "itv",
+  // Sec 1 — Neumáticos
+  "Cambio de neumaticos":     "neumaticos",
+  "Equilibrado":              "neumaticos",
+  "Alineacion":               "neumaticos",
+  "Reparacion de pinchazos":  "neumaticos",
+  "Permutacion de ruedas":    "neumaticos",
+  "Diagnostico de neumaticos":"neumaticos",
+  // Sec 2 — Mecánica
+  "Frenos (pastillas, discos)":           "frenos",
+  "Suspension (amortiguadores, rotulas)": "general",
+  "Direccion":                            "general",
+  "Embrague":                             "general",
+  "Transmision":                          "general",
+  "Escapes":                              "general",
+  "Correa de distribucion":               "general",
+  "Reparaciones generales":               "general",
+  // Sec 3 — Mantenimiento
+  "Revision oficial (tipo fabricante)": "revision",
+  "Cambio de aceite":      "revision",
+  "Cambio de filtros":     "revision",
+  "Revision de niveles":   "revision",
+  "AdBlue":                "revision",
+  "Bateria":               "revision",
+  // Sec 4 — Climatización
+  "Recarga de aire acondicionado":          "climatizacion",
+  "Deteccion de averias":                   "climatizacion",
+  "Eliminacion de olores (tipo AirCare)":   "climatizacion",
+  // Sec 5 — Diagnóstico
+  "Diagnostico electronico":           "diagnostico",
+  "Diagnostico de bateria":            "diagnostico",
+  "Diagnostico de frenos":             "diagnostico",
+  "Diagnostico de amortiguadores":     "diagnostico",
+  "Diagnostico general del vehiculo":  "diagnostico",
+  // Sec 6 — ITV
+  "Revision Pre-ITV":               "itv",
+  "Servicio de pasar ITV por ti":   "itv",
+  // Sec 7 — Iluminación
+  "Cambio de bombillas":        "general",
+  "Reglaje de faros":           "general",
+  "Pulido de faros":            "general",
+  "Escobillas limpiaparabrisas":"general",
+  // Sec 8 — Especiales
+  "Descarbonizacion / limpieza de motor (MotorCare en Midas)": "general",
+  "Desinfeccion del habitaculo": "general",
+  "Eliminacion de olores":       "general",
+  // Sec 9 — Accesorios
+  "Matriculas":               "general",
+  "Accesorios y equipamiento":"general",
+  "Multimedia / radio":       "general",
+  "Enganches":                "general",
+  // Sec 10 — Moto
+  "Mantenimiento de moto":          "moto",
+  "Neumaticos moto":                "moto",
+  "Frenos moto":                    "moto",
+  "Bateria moto":                   "moto",
+  "Suspension y transmision moto":  "moto",
+};
+
+// Tags that "general" workshops also cover (avoids filtering them out for common services)
+const GENERAL_COVERS = new Set(["revision", "frenos", "diagnostico", "general", "climatizacion"]);
+
+// Service tags per partner brand (hardcoded from known capabilities)
+const PARTNER_SERVICE_TAGS = {
+  norauto:    ["general", "revision", "frenos", "neumaticos", "climatizacion", "diagnostico", "itv"],
+  midas:      ["general", "revision", "frenos", "neumaticos", "climatizacion", "diagnostico", "itv"],
+  euromaster: ["neumaticos", "frenos", "revision", "general"],
+  kwik_fit:   ["neumaticos", "frenos", "revision", "general"],
+  carglass:   ["cristales"],
+  aurgi:      ["general", "revision", "frenos", "neumaticos", "climatizacion", "diagnostico"],
+  feu_vert:   ["neumaticos", "revision", "general"],
+};
+
+function getServiceTag(serviceId) {
+  return SERVICE_TAG_MAP[serviceId] || null;
+}
+
+function serviceMatchScore(providerKey, isIndependent, workshopServiceTypes, serviceTag) {
+  if (!serviceTag) return 1;
+  const tags = isIndependent
+    ? (Array.isArray(workshopServiceTypes) ? workshopServiceTypes : ["general"])
+    : (PARTNER_SERVICE_TAGS[providerKey] || ["general"]);
+  if (tags.includes(serviceTag)) return 2;
+  if (GENERAL_COVERS.has(serviceTag) && tags.includes("general")) return 1;
+  return 0;
+}
+
 const SPECIFIC_APPOINTMENT_SECTIONS = [
   {
     title: "🔧 1. Neumaticos",
@@ -748,6 +842,7 @@ export default function ServiceAppointmentPage({
 
   // Build provider cards dynamically from API results — supports Norauto/MIDAS (with pricing)
   // and independent talleres from the real workshop DB (price "a consultar")
+  const activeServiceTag = getServiceTag(selectedAppointmentTypeName);
   const providerOffers = nearbyProviders
     .filter((p) => p?.available)
     .map((p) => {
@@ -758,6 +853,12 @@ export default function ServiceAppointmentPage({
         typeof particular === "number" && typeof withCarsWise === "number"
           ? Math.max(0, particular - withCarsWise)
           : null;
+      const matchScore = serviceMatchScore(
+        p.providerKey,
+        p.isIndependent || false,
+        p.workshop?.serviceTypes,
+        activeServiceTag
+      );
       return {
         key: p.providerKey,
         name: p.providerName,
@@ -767,7 +868,12 @@ export default function ServiceAppointmentPage({
         savings,
         nearby: p,
         isIndependent: p.isIndependent || false,
+        matchScore,
       };
+    })
+    .sort((a, b) => {
+      if (b.matchScore !== a.matchScore) return b.matchScore - a.matchScore;
+      return (a.nearby?.workshop?.distanceKm ?? 9999) - (b.nearby?.workshop?.distanceKm ?? 9999);
     });
 
   const selectedProviderOffer = providerOffers.find((item) => item.key === selectedProvider) || null;
@@ -1246,13 +1352,23 @@ export default function ServiceAppointmentPage({
                   opacity: canChooseRevision ? 1 : 0.75,
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2, flexWrap: "wrap" }}>
                   <span style={{ fontSize: 14, fontWeight: 700, color: item.key === selectedProvider ? "#7c3aed" : "#3b3b3b" }}>
                     {item.name}
                   </span>
                   {item.isIndependent && (
                     <span style={{ fontSize: 10, fontWeight: 700, color: "#64748b", background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: 6, padding: "1px 6px" }}>
                       Independiente
+                    </span>
+                  )}
+                  {activeServiceTag && item.matchScore === 2 && (
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "#15803d", background: "#dcfce7", border: "1px solid #bbf7d0", borderRadius: 6, padding: "1px 6px" }}>
+                      ✓ Especializado
+                    </span>
+                  )}
+                  {activeServiceTag && item.matchScore === 0 && (
+                    <span style={{ fontSize: 10, fontWeight: 600, color: "#92400e", background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 6, padding: "1px 6px" }}>
+                      Servicio no confirmado
                     </span>
                   )}
                 </div>

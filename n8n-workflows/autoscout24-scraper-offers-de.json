@@ -35,7 +35,7 @@
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "// Repartir las 45 marcas en 7 grupos (uno por dia de la semana) para no saturar disco/tiempo.\n// Cada dia procesa ~6-7 marcas x 14 tramos de precio. En 1 semana se cubre todo el catalogo.\nconst makes = [9,13,47,74,64,60,55,21,54,29,70,39,33,52,28,16360,65,73,46,31,16338,51802,38,15641,43,68,50,6,16415,37,57,51520,15525,67,66,48,19,20,16396,45,27,42,16355,35,14882];\nconst buckets = [[0,3000],[3000,5000],[5000,7000],[7000,9000],[9000,11000],[11000,13000],[13000,15000],[15000,18000],[18000,22000],[22000,27000],[27000,35000],[35000,50000],[50000,80000],[80000,99999999]];\nconst day = new Date().getDay(); // 0=domingo .. 6=sabado\nconst mine = makes.filter((mk, i) => i % 7 === day);\nconst out = [];\nfor (const mk of mine) { for (const b of buckets) { out.push({ json: { mk: mk, pf: b[0], pt: b[1] } }); } }\nreturn out;"
+        "jsCode": "// Alimentacion GRADUAL: procesa 1 marca por noche (sus 14 tramos de precio),\n// avanzando un cursor persistente. Cubre las 45 marcas en ~45 noches y luego\n// vuelve a empezar (refresco continuo). Sube MAKES_PER_NIGHT para ir mas rapido.\nconst makes = [9,13,47,74,64,60,55,21,54,29,70,39,33,52,28,16360,65,73,46,31,16338,51802,38,15641,43,68,50,6,16415,37,57,51520,15525,67,66,48,19,20,16396,45,27,42,16355,35,14882];\nconst buckets = [[0,3000],[3000,5000],[5000,7000],[7000,9000],[9000,11000],[11000,13000],[13000,15000],[15000,18000],[18000,22000],[22000,27000],[27000,35000],[35000,50000],[50000,80000],[80000,99999999]];\nconst MAKES_PER_NIGHT = 1;\nconst store = $getWorkflowStaticData('global');\nlet cursor = Number(store.deMakeCursor || 0);\nif (!(cursor >= 0) || cursor >= makes.length) cursor = 0;\nconst out = [];\nfor (let m = 0; m < MAKES_PER_NIGHT; m++) {\n  const mk = makes[(cursor + m) % makes.length];\n  for (const b of buckets) out.push({ json: { mk: mk, pf: b[0], pt: b[1] } });\n}\nstore.deMakeCursor = (cursor + MAKES_PER_NIGHT) % makes.length;\nreturn out;"
       },
       "id": "as-a-gen",
       "name": "Code: Generar segmentos (marca x precio)",
@@ -64,7 +64,7 @@
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "REEMPLAZA_CON_ID_DEL_SEGMENTO_DE",
+          "value": "2h0kGQXmyLto6YzO",
           "mode": "id"
         },
         "options": {}

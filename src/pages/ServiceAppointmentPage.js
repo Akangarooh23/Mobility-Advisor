@@ -1390,39 +1390,82 @@ export default function ServiceAppointmentPage({
         </div>
 
         <div style={{ ...cardStyle, padding: 18 }}>
-          <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
-            {t("service.appointmentPriceSectionLabel")}
-          </div>
-          <div style={{ border: "1px solid rgba(139,92,246,0.28)", borderRadius: 12, background: "rgba(139,92,246,0.08)", padding: 12, marginBottom: 12 }}>
-            <div style={{ fontSize: 12, color: "#a78bfa", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-              {selectedRevisionName} · {selectedProviderLabel}
-            </div>
-            <div style={{ fontSize: 13, color: "#b9b9b9", marginTop: 6 }}>
-              {t("service.appointmentPvpParticular", { price: formatPriceTag(selectedProviderOffer?.particular, priceOptions) })}
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 6 }}>
-              <div style={{ fontSize: 14, color: "#8b5cf6", fontWeight: 700 }}>
-                {t("service.appointmentWithCarsWise", { price: formatPriceTag(selectedProviderOffer?.withCarsWise, priceOptions) })}
+          {selectedProviderOffer?.withCarsWise != null ? (
+            <>
+              <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
+                {t("service.appointmentPriceSectionLabel")}
               </div>
-              <div style={{ fontSize: 24, color: "#7c3aed", fontWeight: 800, lineHeight: 1 }}>
-                {formatPriceTag(selectedProviderOffer?.withCarsWise, priceOptions)}
+              <div style={{ border: "1px solid rgba(139,92,246,0.28)", borderRadius: 12, background: "rgba(139,92,246,0.08)", padding: 12, marginBottom: 12 }}>
+                <div style={{ fontSize: 12, color: "#a78bfa", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                  {selectedRevisionName} · {selectedProviderLabel}
+                </div>
+                <div style={{ fontSize: 13, color: "#b9b9b9", marginTop: 6 }}>
+                  {t("service.appointmentPvpParticular", { price: formatPriceTag(selectedProviderOffer?.particular, priceOptions) })}
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 6 }}>
+                  <div style={{ fontSize: 14, color: "#8b5cf6", fontWeight: 700 }}>
+                    {t("service.appointmentWithCarsWise", { price: formatPriceTag(selectedProviderOffer?.withCarsWise, priceOptions) })}
+                  </div>
+                  <div style={{ fontSize: 24, color: "#7c3aed", fontWeight: 800, lineHeight: 1 }}>
+                    {formatPriceTag(selectedProviderOffer?.withCarsWise, priceOptions)}
+                  </div>
+                </div>
+                <div style={{ marginTop: 8, fontSize: 11, color: "#64748b", lineHeight: 1.45 }}>
+                  ℹ {pricingNotice}
+                </div>
               </div>
-            </div>
-            <div style={{ marginTop: 8, fontSize: 11, color: "#64748b", lineHeight: 1.45 }}>
-              ℹ {pricingNotice}
-            </div>
-          </div>
-          <div style={{ display: "grid", gap: 8 }}>
-            {[
-              t("service.appointmentFeature1"),
-              t("service.appointmentFeature2"),
-              t("service.appointmentFeature3"),
-              t("service.appointmentFeature4"),
-              t("service.appointmentFeature5"),
-            ].map((item) => (
-              <div key={item} style={{ fontSize: 14, color: "#636363", lineHeight: 1.35 }}>✓ {item}</div>
-            ))}
-          </div>
+              <div style={{ display: "grid", gap: 8 }}>
+                {[
+                  t("service.appointmentFeature1"),
+                  t("service.appointmentFeature2"),
+                  t("service.appointmentFeature3"),
+                  t("service.appointmentFeature4"),
+                  t("service.appointmentFeature5"),
+                ].map((item) => (
+                  <div key={item} style={{ fontSize: 14, color: "#636363", lineHeight: 1.35 }}>✓ {item}</div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 14 }}>
+                ¿Qué incluye tu cita?
+              </div>
+              <div style={{ border: "1px solid rgba(139,92,246,0.22)", borderRadius: 10, background: "rgba(139,92,246,0.06)", padding: "10px 12px", marginBottom: 14 }}>
+                <div style={{ fontSize: 13, color: "#7c3aed", fontWeight: 700 }}>
+                  {selectedRevisionName}
+                </div>
+                <div style={{ fontSize: 12, color: "#8b5cf6", marginTop: 2 }}>
+                  {selectedProviderLabel}
+                </div>
+                <div style={{ marginTop: 8, display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(22,163,74,0.1)", borderRadius: 6, padding: "3px 8px" }}>
+                  <span style={{ fontSize: 11, color: "#16a34a", fontWeight: 600 }}>✔ Taller verificado CarsWise</span>
+                </div>
+              </div>
+              <div style={{ display: "grid", gap: 9, marginBottom: 16 }}>
+                {[
+                  t("service.appointmentFeature1"),
+                  t("service.appointmentFeature2"),
+                  t("service.appointmentFeature3"),
+                  t("service.appointmentFeature4"),
+                  t("service.appointmentFeature5"),
+                ].map((item) => (
+                  <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 13, color: "#505050", lineHeight: 1.4 }}>
+                    <span style={{ color: "#7c3aed", fontWeight: 700, flexShrink: 0 }}>✓</span>
+                    {item}
+                  </div>
+                ))}
+              </div>
+              <div style={{ borderTop: "1px solid rgba(0,0,0,0.07)", paddingTop: 12 }}>
+                <div style={{ fontSize: 14, color: "#374151", fontWeight: 700 }}>
+                  Precio a confirmar con el taller
+                </div>
+                <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
+                  Recibirás confirmación en 24 h
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </section>
 

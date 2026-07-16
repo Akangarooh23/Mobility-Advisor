@@ -1,11 +1,11 @@
 const { Pool } = require("pg");
-const { randomUUID } = require("crypto");
 
 let pool;
 function getPool() {
   if (!pool) {
-    const cs = process.env.DATABASE_URL || process.env.POSTGRES_URL;
-    if (!cs) throw new Error("No DATABASE_URL configured");
+    // Must point to the ERP's own database, not the main app DB
+    const cs = process.env.ERP_DATABASE_URL || process.env.ERP_POSTGRES_URL;
+    if (!cs) throw new Error("ERP_DATABASE_URL not configured");
     pool = new Pool({
       connectionString: cs,
       ssl: { rejectUnauthorized: false },
@@ -14,23 +14,6 @@ function getPool() {
     });
   }
   return pool;
-}
-
-async function ensureTable(db) {
-  await db.query(`
-    CREATE TABLE IF NOT EXISTS erp_appointments (
-      id            TEXT PRIMARY KEY,
-      user_id       TEXT NOT NULL,
-      agent         TEXT,
-      workshop_name TEXT,
-      scheduled_at  TIMESTAMPTZ NOT NULL,
-      type          TEXT NOT NULL,
-      status        TEXT NOT NULL DEFAULT 'scheduled',
-      notes         TEXT,
-      created_at    TIMESTAMPTZ DEFAULT NOW(),
-      updated_at    TIMESTAMPTZ DEFAULT NOW()
-    )
-  `);
 }
 
 const TYPE_MAP = [
@@ -72,12 +55,12 @@ module.exports = async function erpAppointmentApi(req, res) {
 
   try {
     const db = getPool();
-    await ensureTable(db);
+    // Table is owned and created by the ERP's ensureSchema() — no CREATE TABLE here
     const result = await db.query(
-      `INSERT INTO erp_appointments (id, user_id, scheduled_at, type, notes, status, created_at)
-       VALUES ($1, $2, $3, $4, $5, 'scheduled', NOW())
+      `INSERT INTO erp_appointments (user_id, scheduled_at, type, workshop_name, notes, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, 'scheduled', NOW(), NOW())
        RETURNING id, status, created_at`,
-      [randomUUID(), String(userId).toLowerCase(), scheduledAt, type, notesStr]
+      [String(userId).toLowerCase(), scheduledAt, type, workshopName || null, notesStr]
     );
     return res.status(201).json({ ok: true, data: result.rows[0] });
   } catch (err) {

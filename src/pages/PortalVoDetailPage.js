@@ -759,8 +759,8 @@ export default function PortalVoDetailPage({
                   </div>
                 ))}
 
-                {/* Last field: depends on type (hidden for renting) */}
-                {isRentingOffer ? null : isParticular ? (
+                {/* Last field: depends on type (hidden for renting; importación = solo mensaje, sin agenda) */}
+                {isRentingOffer ? null : (isParticular || isImport) ? (
                   <div style={{ marginBottom: 12 }}>
                     <label style={{ fontSize: 11, fontWeight: 600, color: isDark ? "#94a3b8" : "#475569", display: "block", marginBottom: 4 }}>Mensaje (opcional)</label>
                     <input

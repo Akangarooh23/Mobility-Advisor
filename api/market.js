@@ -1,6 +1,7 @@
 const marketPriceHandler          = require("../lib/api/market-price-handler");
 const marketplaceVoHandler        = require("../lib/api/marketplace-vo-handler");
 const importOffersHandler         = require("../lib/api/import-offers-handler");
+const importLeadHandler           = require("../lib/api/import-lead-handler");
 const marketplaceOgHandler        = require("../lib/api/marketplace-og-handler");
 const workshopsNearbyHandler      = require("../lib/api/workshops-nearby-handler");
 const workshopAvailabilityHandler = require("../lib/api/workshop-availability-handler");
@@ -16,6 +17,7 @@ function resolveRoute(req) {
 
   const url = String(req.url || "").toLowerCase();
   if (url.includes("market-price")) return "price";
+  if (url.includes("import-lead")) return "import-lead";
   if (url.includes("import-offers")) return "import";
   if (url.includes("marketplace-vo")) return "vo";
   if (url.includes("workshops-nearby")) return "nearby";
@@ -30,6 +32,7 @@ module.exports = async function marketRouter(req, res) {
     case "price":       return marketPriceHandler(req, res);
     case "vo":          return marketplaceVoHandler(req, res);
     case "import":      return importOffersHandler(req, res);
+    case "import-lead": return importLeadHandler(req, res);
     case "og":          return marketplaceOgHandler(req, res);
     case "nearby":      return workshopsNearbyHandler(req, res);
     case "availability":return workshopAvailabilityHandler(req, res);

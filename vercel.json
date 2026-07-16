@@ -25,6 +25,10 @@
       "destination": "/api/market?route=import"
     },
     {
+      "source": "/api/import-lead",
+      "destination": "/api/market?route=import-lead"
+    },
+    {
       "source": "/api/workshops-nearby",
       "destination": "/api/market?route=nearby"
     },

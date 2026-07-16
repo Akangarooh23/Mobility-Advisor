@@ -64,6 +64,9 @@ export default function PortalVoMarketplacePage({
   const [importOffers, setImportOffers] = useState([]);
   const [importTotal, setImportTotal] = useState(0);
   const [importLoading, setImportLoading] = useState(false);
+  const [importDetail, setImportDetail] = useState(null); // oferta seleccionada para la ficha
+  const [importLeadForm, setImportLeadForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [importLeadState, setImportLeadState] = useState(""); // "" | "sending" | "sent" | mensaje de error
   useEffect(() => {
     if (compraTab !== "importacion") return;
     let cancelled = false;
@@ -362,11 +365,14 @@ export default function PortalVoMarketplacePage({
               </div>
               <div style={{ display: "grid", gridTemplateColumns: `repeat(${gridCols}, minmax(0,1fr))`, gap: 12 }}>
                 {importOffers.map((offer) => (
-                  <div key={offer.id} style={{
-                    background: isDark ? "#0f172a" : "#fff",
-                    border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(148,163,184,0.22)",
-                    borderRadius: 14, overflow: "hidden", display: "flex", flexDirection: "column",
-                  }}>
+                  <div key={offer.id}
+                    onClick={() => setImportDetail(offer)}
+                    title="Ver ficha completa"
+                    style={{
+                      background: isDark ? "#0f172a" : "#fff",
+                      border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(148,163,184,0.22)",
+                      borderRadius: 14, overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer",
+                    }}>
                     <div style={{ position: "relative" }}>
                       {offer.image_url
                         ? <img src={offer.image_url} alt={offer.title} referrerPolicy="no-referrer" style={{ width: "100%", height: 150, objectFit: "cover", display: "block" }} />
@@ -396,12 +402,9 @@ export default function PortalVoMarketplacePage({
                           </div>
                         </div>
                       )}
-                      <a
-                        href={`mailto:soporte@carswise.es?subject=${encodeURIComponent("Importación: " + offer.title)}&body=${encodeURIComponent("Me interesa importar este vehículo:\n" + offer.title + " (" + offer.year + ", " + (offer.mileage || "-") + " km)\nPrecio importado estimado: " + (offer.import_price || "-") + " EUR\n\nRef: " + offer.id)}`}
-                        style={{ marginTop: "auto", textAlign: "center", textDecoration: "none", fontSize: 12, fontWeight: 700, padding: "9px 12px", borderRadius: 10, background: "#0891b2", color: "#fff" }}
-                      >
-                        Solicitar importación
-                      </a>
+                      <div style={{ marginTop: "auto", textAlign: "center", fontSize: 11.5, fontWeight: 700, color: "#0891b2", paddingTop: 6 }}>
+                        Ver ficha →
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -892,6 +895,112 @@ export default function PortalVoMarketplacePage({
           </div>
         </div>
       )}
+
+      {/* Ficha de coche de importación */}
+      {importDetail && (() => {
+        const o = importDetail;
+        const deposit = o.import_price != null ? Math.round(Number(o.import_price) * 0.30) : null;
+        return (
+          <div
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, overflowY: "auto" }}
+            onClick={() => { setImportDetail(null); setImportLeadState(""); }}
+          >
+            <div
+              style={{ background: "#fff", borderRadius: 18, maxWidth: 620, width: "100%", boxShadow: "0 12px 48px rgba(0,0,0,0.22)", overflow: "hidden", margin: "20px 0" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ position: "relative" }}>
+                {o.image_url
+                  ? <img src={o.image_url} alt={o.title} referrerPolicy="no-referrer" style={{ width: "100%", height: 230, objectFit: "cover", display: "block" }} />
+                  : <div style={{ width: "100%", height: 230, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 44 }}>🚗</div>}
+                <span style={{ position: "absolute", top: 12, left: 12, fontSize: 11, fontWeight: 800, padding: "4px 10px", borderRadius: 999, background: "rgba(8,145,178,0.95)", color: "#fff" }}>🇩🇪 Importación · Alemania</span>
+                <button onClick={() => { setImportDetail(null); setImportLeadState(""); }}
+                  style={{ position: "absolute", top: 12, right: 12, width: 32, height: 32, borderRadius: 999, border: "none", background: "rgba(15,23,42,0.6)", color: "#fff", fontSize: 18, cursor: "pointer", lineHeight: 1 }}>×</button>
+              </div>
+
+              <div style={{ padding: "22px 26px" }}>
+                <h2 style={{ margin: "0 0 4px", fontSize: 20, color: "#0f172a" }}>{o.title}</h2>
+                <div style={{ fontSize: 13, color: "#64748b", marginBottom: 16 }}>
+                  {o.year} · {o.mileage != null ? `${Number(o.mileage).toLocaleString("es-ES")} km` : "—"}{o.fuel ? ` · ${o.fuel}` : ""}{o.transmission ? ` · ${o.transmission}` : ""}{o.color ? ` · ${o.color}` : ""}
+                </div>
+
+                <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 18 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: "#64748b" }}>Precio importado estimado</div>
+                    <div style={{ fontSize: 26, fontWeight: 800, color: "#0f172a" }}>{formatCurrency(o.import_price)}</div>
+                  </div>
+                  {o.savings != null && o.savings > 0 && (
+                    <span style={{ fontSize: 13, fontWeight: 800, padding: "5px 12px", borderRadius: 999, background: "#059669", color: "#fff" }}>Ahorras {Number(o.savings).toLocaleString("es-ES")} €</span>
+                  )}
+                </div>
+
+                {/* Beneficios / por qué es buena oferta */}
+                <div style={{ background: "rgba(5,150,105,0.06)", border: "1px solid rgba(5,150,105,0.22)", borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "#047857", marginBottom: 8 }}>Por qué es una buena oferta</div>
+                  <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: "#334155", lineHeight: 1.9 }}>
+                    {o.market_price_es != null && (
+                      <li>Se vende por <strong>debajo del mercado español</strong>: precio medio en España <strong>{Number(o.market_price_es).toLocaleString("es-ES")} €</strong>{o.savings != null && o.savings > 0 ? ` — ahorras ~${Number(o.savings).toLocaleString("es-ES")} €` : ""}.</li>
+                    )}
+                    {o.comparables != null && <li>Precio contrastado con <strong>{o.comparables} vehículos comparables</strong> del mercado español.</li>}
+                    <li>Lo <strong>compramos, importamos y matriculamos</strong> nosotros por ti.</li>
+                    <li><strong>Garantía incluida</strong> y <strong>entrega a domicilio</strong>.</li>
+                  </ul>
+                </div>
+
+                {/* Fianza 30% — muy destacado */}
+                {deposit != null && (
+                  <div style={{ background: "#fffbeb", border: "1.5px solid #fbbf24", borderRadius: 12, padding: "14px 16px", marginBottom: 18 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "#92400e", marginBottom: 4 }}>⚠️ Importante — Fianza del 30%</div>
+                    <div style={{ fontSize: 13, color: "#78350f", lineHeight: 1.6 }}>
+                      Para solicitar un coche de importación se debe dejar una <strong>fianza del 30% del valor del vehículo</strong>.
+                      Para este coche: <strong style={{ fontSize: 16 }}>{formatCurrency(deposit)}</strong>.
+                    </div>
+                  </div>
+                )}
+
+                {/* Formulario de solicitud */}
+                {importLeadState === "sent" ? (
+                  <div style={{ background: "#dcfce7", borderRadius: 12, padding: "16px 18px", textAlign: "center" }}>
+                    <div style={{ fontSize: 24 }}>✅</div>
+                    <strong style={{ color: "#166534" }}>Solicitud enviada</strong>
+                    <p style={{ margin: "6px 0 0", fontSize: 13, color: "#166534" }}>Te contactaremos para explicarte el proceso y la fianza del 30%.</p>
+                    <button onClick={() => { setImportDetail(null); setImportLeadState(""); }} style={{ marginTop: 12, background: "#16a34a", color: "#fff", border: "none", borderRadius: 8, padding: "9px 22px", cursor: "pointer", fontWeight: 700 }}>Cerrar</button>
+                  </div>
+                ) : (
+                  <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    setImportLeadState("sending");
+                    try {
+                      const res = await fetch("/api/import-lead", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ offer_id: o.id, name: importLeadForm.name, email: importLeadForm.email, phone: importLeadForm.phone, message: importLeadForm.message }),
+                      });
+                      const data = await res.json();
+                      if (data.ok) { setImportLeadState("sent"); setImportLeadForm({ name: "", email: "", phone: "", message: "" }); }
+                      else setImportLeadState(data.error || "Error al enviar");
+                    } catch { setImportLeadState("Error al enviar"); }
+                  }}>
+                    <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+                      <input required placeholder="Tu nombre *" value={importLeadForm.name} onChange={(e) => setImportLeadForm(f => ({ ...f, name: e.target.value }))} style={{ flex: 1, padding: "9px 12px", border: "1px solid #cbd5e1", borderRadius: 8, fontSize: 14, boxSizing: "border-box" }} />
+                      <input placeholder="Teléfono" value={importLeadForm.phone} onChange={(e) => setImportLeadForm(f => ({ ...f, phone: e.target.value }))} style={{ flex: 1, padding: "9px 12px", border: "1px solid #cbd5e1", borderRadius: 8, fontSize: 14, boxSizing: "border-box" }} />
+                    </div>
+                    <input required type="email" placeholder="Tu email *" value={importLeadForm.email} onChange={(e) => setImportLeadForm(f => ({ ...f, email: e.target.value }))} style={{ width: "100%", padding: "9px 12px", border: "1px solid #cbd5e1", borderRadius: 8, fontSize: 14, boxSizing: "border-box", marginBottom: 10 }} />
+                    <textarea placeholder="Mensaje (opcional)" value={importLeadForm.message} onChange={(e) => setImportLeadForm(f => ({ ...f, message: e.target.value }))} rows={2} style={{ width: "100%", padding: "9px 12px", border: "1px solid #cbd5e1", borderRadius: 8, fontSize: 14, boxSizing: "border-box", resize: "vertical", marginBottom: 12 }} />
+                    {importLeadState && importLeadState !== "sending" && (
+                      <p style={{ color: "#dc2626", fontSize: 13, margin: "0 0 10px" }}>{importLeadState}</p>
+                    )}
+                    <button type="submit" disabled={importLeadState === "sending"}
+                      style={{ width: "100%", background: "#0891b2", color: "#fff", border: "none", borderRadius: 10, padding: "12px", fontWeight: 800, fontSize: 14, cursor: "pointer", opacity: importLeadState === "sending" ? 0.7 : 1 }}>
+                      {importLeadState === "sending" ? "Enviando…" : "Solicitar importación"}
+                    </button>
+                  </form>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         <button

@@ -32,13 +32,22 @@ export function getErpVersionDetailJson(codversion, options = {}) {
   return fetch(`${ERP_CATALOG_API_ENDPOINT}?scope=version-detail&codversion=${encodeURIComponent(codversion)}`, { credentials: "include", ...options });
 }
 
-export function getNearbyWorkshopsJson({ postalCode = "", province = "" } = {}, options = {}) {
-  const query = new URLSearchParams({
-    postalCode: String(postalCode || ""),
-    province: String(province || ""),
-  });
-
-  return getJson(`${WORKSHOPS_NEARBY_API_ENDPOINT}?${query.toString()}`, {
+export function getNearbyWorkshopsJson({ postalCode = "", province = "", lat = null, lon = null, bbox = null } = {}, options = {}) {
+  const params = {};
+  if (bbox) {
+    params.bLatMin = String(bbox.latMin);
+    params.bLatMax = String(bbox.latMax);
+    params.bLonMin = String(bbox.lonMin);
+    params.bLonMax = String(bbox.lonMax);
+  } else {
+    params.postalCode = String(postalCode || "");
+    params.province   = String(province || "");
+    if (lat != null && lon != null) {
+      params.lat = String(lat);
+      params.lon = String(lon);
+    }
+  }
+  return getJson(`${WORKSHOPS_NEARBY_API_ENDPOINT}?${new URLSearchParams(params).toString()}`, {
     endpointLabel: "workshops-nearby",
     ...options,
   });

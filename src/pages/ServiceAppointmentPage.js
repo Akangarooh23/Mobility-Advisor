@@ -777,6 +777,14 @@ export default function ServiceAppointmentPage({
           userLocation={userMapLocation}
           selectedProvider={selectedProvider}
           onSelectProvider={setSelectedProvider}
+          onSearchHere={async (bbox) => {
+            try {
+              const { response, data } = await getNearbyWorkshopsJson({ bbox });
+              if (response.ok && Array.isArray(data?.providers)) {
+                setNearbyProviders(data.providers);
+              }
+            } catch { /* silently ignore */ }
+          }}
           onClose={() => setShowMap(false)}
         />
       )}

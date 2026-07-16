@@ -92,6 +92,7 @@ import {
   getSellMarketSnapshotJson,
   postAlertEmailDigestJson,
   postAppointmentAddJson,
+  postErpAppointmentJson,
   postAuthJson,
   postListingJson,
   postUserAlertJson,
@@ -3281,6 +3282,26 @@ export default function App() {
 
     writeUserAppointments(next);
     setUserAppointments(next);
+
+    // Crear cita en ERP CarsWise (Citas Mantenimiento) si es de tipo maintenance
+    if (type === "maintenance" && currentUserEmail && normalizeText(context?.selectedDateKey) && normalizeText(context?.selectedTime)) {
+      const dateKey  = normalizeText(context.selectedDateKey);  // YYYY-MM-DD
+      const timeStr  = normalizeText(context.selectedTime);     // HH:MM
+      const isoDate  = `${dateKey}T${timeStr}:00+01:00`;
+      const notesParts = [
+        normalizeText(context?.vehicleTitle) ? `Vehículo: ${normalizeText(context.vehicleTitle)}` : "",
+        normalizeText(context?.vehiclePlate) ? `Matrícula: ${normalizeText(context.vehiclePlate)}` : "",
+        normalizeText(context?.workshopAddress) ? `Dirección taller: ${normalizeText(context.workshopAddress)}` : "",
+        context?.quotedPrice != null ? `Precio CarsWise: ${context.quotedPrice}€` : "",
+      ].filter(Boolean).join(" · ");
+      postErpAppointmentJson({
+        userId:          currentUserEmail,
+        scheduledAt:     isoDate,
+        appointmentType: normalizeText(context?.appointmentType),
+        workshopName:    normalizeText(context?.workshopName) || normalizeText(context?.provider),
+        notes:           notesParts || undefined,
+      }).catch(() => { /* silencioso — no bloquear el flujo */ });
+    }
 
     if (type === "maintenance" && normalizeText(context?.vehicleId)) {
       setUserMaintenances((prev) => {

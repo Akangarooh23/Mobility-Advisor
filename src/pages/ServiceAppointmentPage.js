@@ -1443,16 +1443,6 @@ export default function ServiceAppointmentPage({
                     )}
                   </div>
                 )}
-                {workshopDetails.phone && (
-                  <div style={{ marginBottom: 8 }}>
-                    <a
-                      href={`tel:${workshopDetails.phone}`}
-                      style={{ fontSize: 14, fontWeight: 600, color: "#2563eb", textDecoration: "none" }}
-                    >
-                      📞 {workshopDetails.phone}
-                    </a>
-                  </div>
-                )}
                 {workshopDetails.weekdayText?.length > 0 && (() => {
                   const todayHours = getTodayHours(workshopDetails.weekdayText);
                   return todayHours ? (
@@ -1470,6 +1460,11 @@ export default function ServiceAppointmentPage({
                     </div>
                   ) : null;
                 })()}
+                {!workshopDetails.weekdayText?.length && workshopDetails.businessHours && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                    <span style={{ fontSize: 13, color: "#374151" }}>🕐 {workshopDetails.businessHours}</span>
+                  </div>
+                )}
                 {workshopDetails.website && (() => {
                   let host = workshopDetails.website;
                   try { host = new URL(workshopDetails.website).hostname.replace(/^www\./, ""); } catch {}

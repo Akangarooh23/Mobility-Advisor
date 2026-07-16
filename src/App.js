@@ -6611,7 +6611,7 @@ export default function App() {
                 workshopName:    normalizeText(draft?.workshopName) || normalizeText(draft?.provider),
                 notes:           notesParts || undefined,
               }).catch(() => null);
-              if (!erpResult?.data?.id) {
+              if (!erpResult?.data?.data?.id) {
                 throw new Error("La cita no pudo registrarse en el taller. Comprueba tu conexión e inténtalo de nuevo.");
               }
             }

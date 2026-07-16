@@ -131,14 +131,12 @@ export default function ServiceAppointmentCalendarPage({
       if (!workshopId) {
         if (!disposed) {
           setAvailabilityMap({});
-          setBookingError("");
           setIsLoadingAvailability(false);
         }
         return;
       }
 
       setIsLoadingAvailability(true);
-      setBookingError("");
 
       try {
         const { response, data } = await getWorkshopAvailabilityJson({
@@ -151,14 +149,14 @@ export default function ServiceAppointmentCalendarPage({
           if (response.ok && data?.availabilityByDate && typeof data.availabilityByDate === "object") {
             setAvailabilityMap(data.availabilityByDate);
           } else {
+            // Availability load failed — fall back to static slots silently
             setAvailabilityMap({});
-            setBookingError(normalizeText(data?.error) || t("service.appointmentCalLoadError"));
           }
         }
       } catch {
         if (!disposed) {
+          // Network/parse error on availability — use static slots, do not block booking
           setAvailabilityMap({});
-          setBookingError(t("service.appointmentCalLoadError"));
         }
       } finally {
         if (!disposed) {

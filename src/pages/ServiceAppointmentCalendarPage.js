@@ -75,9 +75,9 @@ export default function ServiceAppointmentCalendarPage({
   const [isSaving, setIsSaving] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [confirmedDetail, setConfirmedDetail] = useState("");
+  const [bookingError, setBookingError] = useState("");
   const [availabilityMap, setAvailabilityMap] = useState({});
   const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
-  const [availabilityError, setAvailabilityError] = useState("");
 
   const { t } = useTranslation();
 
@@ -131,14 +131,14 @@ export default function ServiceAppointmentCalendarPage({
       if (!workshopId) {
         if (!disposed) {
           setAvailabilityMap({});
-          setAvailabilityError("");
+          setBookingError("");
           setIsLoadingAvailability(false);
         }
         return;
       }
 
       setIsLoadingAvailability(true);
-      setAvailabilityError("");
+      setBookingError("");
 
       try {
         const { response, data } = await getWorkshopAvailabilityJson({
@@ -152,13 +152,13 @@ export default function ServiceAppointmentCalendarPage({
             setAvailabilityMap(data.availabilityByDate);
           } else {
             setAvailabilityMap({});
-            setAvailabilityError(normalizeText(data?.error) || t("service.appointmentCalLoadError"));
+            setBookingError(normalizeText(data?.error) || t("service.appointmentCalLoadError"));
           }
         }
       } catch {
         if (!disposed) {
           setAvailabilityMap({});
-          setAvailabilityError(t("service.appointmentCalLoadError"));
+          setBookingError(t("service.appointmentCalLoadError"));
         }
       } finally {
         if (!disposed) {
@@ -233,13 +233,14 @@ export default function ServiceAppointmentCalendarPage({
       setConfirmedDetail(detail);
       setIsConfirmed(true);
     } catch (error) {
-      setAvailabilityError(error instanceof Error ? error.message : t("service.appointmentCalReservationError"));
+      setBookingError(error instanceof Error ? error.message : t("service.appointmentCalReservationError"));
     } finally {
       setIsSaving(false);
     }
   };
 
-  if (isConfirmed) {
+  if (isConfirmed || bookingError) {
+    const isError = Boolean(bookingError);
     return (
       <div style={{
         position: "fixed", inset: 0, zIndex: 9999,
@@ -254,38 +255,52 @@ export default function ServiceAppointmentCalendarPage({
         }}>
           <div style={{
             width: 64, height: 64, borderRadius: "50%",
-            background: "linear-gradient(135deg,#7c3aed,#8b5cf6)",
+            background: isError
+              ? "linear-gradient(135deg,#dc2626,#ef4444)"
+              : "linear-gradient(135deg,#7c3aed,#8b5cf6)",
             display: "flex", alignItems: "center", justifyContent: "center",
             margin: "0 auto 16px",
           }}>
-            <span style={{ fontSize: 30, color: "#fff" }}>✓</span>
+            <span style={{ fontSize: 30, color: "#fff" }}>{isError ? "✕" : "✓"}</span>
           </div>
           <div style={{ fontSize: 22, fontWeight: 800, color: "#1e293b", marginBottom: 8 }}>
-            ¡Solicitud enviada!
+            {isError ? "Error al enviar" : "¡Solicitud enviada!"}
           </div>
-          <div style={{ fontSize: 14, color: "#64748b", marginBottom: 6, lineHeight: 1.5 }}>
-            <strong style={{ color: "#1e293b" }}>{appointmentType}</strong> en <strong style={{ color: "#1e293b" }}>{workshopName}</strong>
-          </div>
-          {confirmedDetail && (
-            <div style={{ fontSize: 13, color: "#7c3aed", fontWeight: 700, marginBottom: 4 }}>
-              {confirmedDetail}
+          {isError ? (
+            <div style={{ fontSize: 14, color: "#dc2626", marginBottom: 24, lineHeight: 1.5 }}>
+              {bookingError}
             </div>
+          ) : (
+            <>
+              <div style={{ fontSize: 14, color: "#64748b", marginBottom: 6, lineHeight: 1.5 }}>
+                <strong style={{ color: "#1e293b" }}>{appointmentType}</strong> en <strong style={{ color: "#1e293b" }}>{workshopName}</strong>
+              </div>
+              {confirmedDetail && (
+                <div style={{ fontSize: 13, color: "#7c3aed", fontWeight: 700, marginBottom: 4 }}>
+                  {confirmedDetail}
+                </div>
+              )}
+              <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 24 }}>
+                El taller verificará disponibilidad y te confirmará en 24 h.
+              </div>
+            </>
           )}
-          <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 24 }}>
-            El taller verificará disponibilidad y te confirmará en 24 h.
-          </div>
           <button
             type="button"
-            onClick={onGoHome}
+            onClick={isError ? () => setBookingError("") : onGoHome}
             style={{
               width: "100%", padding: "13px 0",
-              background: "linear-gradient(135deg,#7c3aed,#8b5cf6)",
+              background: isError
+                ? "linear-gradient(135deg,#dc2626,#ef4444)"
+                : "linear-gradient(135deg,#7c3aed,#8b5cf6)",
               color: "#fff", border: "none", borderRadius: 12,
               fontSize: 15, fontWeight: 700, cursor: "pointer",
-              boxShadow: "0 8px 20px rgba(124,58,237,0.3)",
+              boxShadow: isError
+                ? "0 8px 20px rgba(220,38,38,0.3)"
+                : "0 8px 20px rgba(124,58,237,0.3)",
             }}
           >
-            Ver mi solicitud en el panel →
+            {isError ? "Volver e intentarlo" : "Ver mi solicitud en el panel →"}
           </button>
         </div>
       </div>

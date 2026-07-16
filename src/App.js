@@ -6584,12 +6584,38 @@ export default function App() {
             setStep(-1);
           }}
           onConfirmBooking={async (booking = {}) => {
+            const draft = serviceAppointmentDraft || {};
+            const dateKey = normalizeText(booking?.selectedDateKey);
+            const timeStr = normalizeText(booking?.selectedTime);
+
+            // Save to billing DB + local state (skip internal ERP save — we do it explicitly below)
             await requestUserAppointment("maintenance", {
-              ...(serviceAppointmentDraft || {}),
+              ...draft,
               requestedAt: normalizeText(booking?.requestedAt),
-              selectedDateKey: normalizeText(booking?.selectedDateKey),
-              selectedTime: normalizeText(booking?.selectedTime),
+              selectedDateKey: dateKey,
+              selectedTime: timeStr,
+              skipErpSave: true,
             });
+
+            // Explicit awaitable ERP save so we can report success/failure in the popup
+            const isoDate = dateKey && timeStr ? `${dateKey}T${timeStr}:00+01:00` : null;
+            if (isoDate && currentUserEmail) {
+              const notesParts = [
+                normalizeText(draft?.vehicleTitle) ? `Vehículo: ${normalizeText(draft.vehicleTitle)}` : "",
+                normalizeText(draft?.vehiclePlate) ? `Matrícula: ${normalizeText(draft.vehiclePlate)}` : "",
+              ].filter(Boolean).join(" · ");
+              const erpResult = await postErpAppointmentJson({
+                userId:          currentUserEmail,
+                scheduledAt:     isoDate,
+                appointmentType: normalizeText(draft?.appointmentType),
+                workshopName:    normalizeText(draft?.workshopName) || normalizeText(draft?.provider),
+                notes:           notesParts || undefined,
+              }).catch(() => null);
+              if (!erpResult?.data?.id) {
+                throw new Error("La cita no pudo registrarse en el taller. Comprueba tu conexión e inténtalo de nuevo.");
+              }
+            }
+
             setServiceAppointmentDraft(null);
           }}
           onGoHome={() => navigateToUserDashboardPage("appointments")}

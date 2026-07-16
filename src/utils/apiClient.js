@@ -362,6 +362,17 @@ export function postAppointmentAddJson(email, appointment, options = {}) {
   });
 }
 
+export function postDeleteAppointmentJson(email, appointmentId, options = {}) {
+  return postJson(BILLING_ACCOUNT_API_ENDPOINT, {
+    action: "appointment_delete",
+    email,
+    appointmentId,
+  }, {
+    endpointLabel: "billing-account",
+    ...options,
+  });
+}
+
 export function postValuationAddJson(email, valuation, options = {}) {
   return postJson(BILLING_ACCOUNT_API_ENDPOINT, {
     action: "valuation_add",

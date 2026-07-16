@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getGarageVehiclesJson, getNearbyWorkshopsJson, enrichWorkshopJson, getWorkshopPhotoUrl } from "../utils/apiClient";
+import { getGarageVehiclesJson, getNearbyWorkshopsJson } from "../utils/apiClient";
 import WorkshopMapModal from "../components/WorkshopMapModal";
 
 function normalizeText(value) {
@@ -76,14 +76,6 @@ function normalizeToken(value) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
-function getTodayHours(weekdayText) {
-  if (!Array.isArray(weekdayText) || !weekdayText.length) return null;
-  // Google weekday_text[0]=Monday … [6]=Sunday; JS getDay() 0=Sunday, 1=Monday
-  const idx = (new Date().getDay() + 6) % 7;
-  const text = weekdayText[idx] || "";
-  const colon = text.indexOf(": ");
-  return colon >= 0 ? text.slice(colon + 2) : text || null;
-}
 
 function resolveRevisionIndex(revisionTypes = [], revisionTitle = "") {
   const target = normalizeToken(revisionTitle);
@@ -576,8 +568,6 @@ export default function ServiceAppointmentPage({
   const [isSearchingWorkshops, setIsSearchingWorkshops] = useState(false);
   const [workshopSearchError, setWorkshopSearchError] = useState("");
   const [showMap, setShowMap] = useState(false);
-  const [workshopDetails, setWorkshopDetails] = useState(null);
-  const [isEnrichingWorkshop, setIsEnrichingWorkshop] = useState(false);
   const [isSubmittingAppointment, setIsSubmittingAppointment] = useState(false);
   const [isSpecificOpen, setIsSpecificOpen] = useState(false);
   const [selectedSpecificSection, setSelectedSpecificSection] = useState("");
@@ -805,28 +795,6 @@ export default function ServiceAppointmentPage({
       disposed = true;
     };
   }, [hasLocationContext, postalCode, province, preciseCoords, t]);
-
-  useEffect(() => {
-    if (!selectedProvider) {
-      setWorkshopDetails(null);
-      return;
-    }
-    const workshop = nearbyProviders.find((p) => p.providerKey === selectedProvider)?.workshop;
-    if (!workshop?.id) return;
-
-    let disposed = false;
-    setIsEnrichingWorkshop(true);
-    setWorkshopDetails(null);
-
-    enrichWorkshopJson(workshop.id)
-      .then(({ data }) => {
-        if (!disposed && data?.ok && data?.enriched) setWorkshopDetails(data.enriched);
-      })
-      .catch(() => {})
-      .finally(() => { if (!disposed) setIsEnrichingWorkshop(false); });
-
-    return () => { disposed = true; };
-  }, [selectedProvider, nearbyProviders]);
 
   const canChooseRevision = hasAnyVehicles && Boolean(vehicleId) && hasLocationContext;
   const selectedPopularRevisionName = selectedRevision >= 0 ? REVISION_TYPES[selectedRevision].id : "";

@@ -14,7 +14,8 @@ export const WORKSHOPS_NEARBY_API_ENDPOINT = `${API_BASE}/api/workshops-nearby`;
 export const WORKSHOP_AVAILABILITY_API_ENDPOINT = `${API_BASE}/api/workshop-availability`;
 export const WORKSHOPS_ENRICH_API_ENDPOINT = `${API_BASE}/api/workshops-enrich`;
 export const WORKSHOPS_PHOTO_API_ENDPOINT = `${API_BASE}/api/workshops-photo`;
-export const ERP_APPOINTMENT_API_ENDPOINT = `${API_BASE}/api/erp-appointment`;
+export const ERP_APPOINTMENT_API_ENDPOINT      = `${API_BASE}/api/erp-appointment`;
+export const USER_ERP_APPOINTMENTS_API_ENDPOINT = `${API_BASE}/api/user-erp-appointments`;
 export const MARKET_PRICE_API_ENDPOINT = `${API_BASE}/api/market-price`;
 export const MARKETPLACE_VO_API_ENDPOINT = `${API_BASE}/api/marketplace-vo`;
 
@@ -319,6 +320,14 @@ export function getUserMobilityDataJson(email, options = {}) {
 
   return getJson(`${BILLING_ACCOUNT_API_ENDPOINT}?${query.toString()}`, {
     endpointLabel: "billing-account",
+    ...options,
+  });
+}
+
+export function getUserErpAppointmentsJson(userId, options = {}) {
+  const query = new URLSearchParams({ userId: String(userId).toLowerCase() });
+  return getJson(`${USER_ERP_APPOINTMENTS_API_ENDPOINT}?${query}`, {
+    endpointLabel: "user-erp-appointments",
     ...options,
   });
 }

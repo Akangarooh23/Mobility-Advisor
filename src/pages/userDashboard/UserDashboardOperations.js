@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getGarageVehiclesJson } from "../../utils/apiClient";
+import { getGarageVehiclesJson, getUserErpAppointmentsJson } from "../../utils/apiClient";
 import { readUserBillingState, writeUserBillingCheckoutIntent } from "../../utils/storage";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
@@ -207,6 +207,8 @@ export default function UserDashboardOperations({
   const [valuationFeedback, setValuationFeedback] = useState("");
   const [garageVehicles, setGarageVehicles] = useState(() => readGarageVehicles(currentUserEmail));
   const [billingPlanState, setBillingPlanState] = useState(() => readUserBillingState());
+  const [erpAppointments, setErpAppointments] = useState([]);
+  const [isLoadingErp, setIsLoadingErp] = useState(false);
 
   useEffect(() => {
     setActiveTab(initialTab);
@@ -243,6 +245,19 @@ export default function UserDashboardOperations({
       disposed = true;
     };
   }, [currentUserEmail]);
+
+  useEffect(() => {
+    if (!currentUserEmail || activeTab !== "appointments") return;
+    let disposed = false;
+    setIsLoadingErp(true);
+    getUserErpAppointmentsJson(currentUserEmail)
+      .then(({ data }) => {
+        if (!disposed && Array.isArray(data?.appointments)) setErpAppointments(data.appointments);
+      })
+      .catch(() => {})
+      .finally(() => { if (!disposed) setIsLoadingErp(false); });
+    return () => { disposed = true; };
+  }, [currentUserEmail, activeTab]);
 
   useEffect(() => {
     if (activeTab !== "appointments") {
@@ -818,6 +833,66 @@ export default function UserDashboardOperations({
       ) : (
         <div style={{ fontSize: 12, color: "#94a3b8" }}>
           {text.noOperationsYet}
+        </div>
+      )}
+
+      {activeTab === "appointments" && (isLoadingErp || erpAppointments.length > 0) && (
+        <div style={{ marginTop: 24 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <div style={{ flex: 1, height: 1, background: isDark ? "rgba(255,255,255,0.07)" : "#e2e8f0" }} />
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.5px", color: isDark ? "#64748b" : "#94a3b8", textTransform: "uppercase", whiteSpace: "nowrap" }}>
+              🔧 Citas de mantenimiento
+            </div>
+            <div style={{ flex: 1, height: 1, background: isDark ? "rgba(255,255,255,0.07)" : "#e2e8f0" }} />
+          </div>
+          {isLoadingErp && (
+            <div style={{ fontSize: 12, color: isDark ? "#64748b" : "#94a3b8", padding: "8px 0" }}>Cargando citas…</div>
+          )}
+          <div style={{ display: "grid", gap: 8 }}>
+            {erpAppointments.map((item) => {
+              const statusStyles = {
+                scheduled: { bg: "rgba(245,158,11,0.12)", color: "#92400e" },
+                confirmed:  { bg: "rgba(16,185,129,0.12)",  color: "#065f46" },
+                completed:  { bg: "rgba(100,116,139,0.12)", color: "#334155" },
+                cancelled:  { bg: "rgba(239,68,68,0.12)",   color: "#b91c1c" },
+                no_show:    { bg: "rgba(239,68,68,0.12)",   color: "#b91c1c" },
+              };
+              const ss = statusStyles[item.status] || statusStyles.scheduled;
+              const isPast = item.status === "completed" || item.status === "cancelled" || item.status === "no_show";
+              return (
+                <div
+                  key={item.id}
+                  style={{
+                    background: isDark ? "rgba(255,255,255,0.03)" : "#f8fafc",
+                    border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "#e2e8f0"}`,
+                    borderRadius: 10, padding: "10px 14px",
+                    opacity: isPast ? 0.7 : 1,
+                    display: "flex", alignItems: "flex-start", gap: 10,
+                  }}
+                >
+                  <span style={{ fontSize: 18, lineHeight: 1.4, flexShrink: 0 }}>🔧</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? "#f1f5f9" : "#1e293b" }}>
+                        {item.typeLabel}{item.workshopName ? ` · ${item.workshopName}` : ""}
+                      </div>
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: ss.bg, color: ss.color, whiteSpace: "nowrap" }}>
+                        {item.statusLabel}
+                      </span>
+                    </div>
+                    {item.scheduledAt && (
+                      <div style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b", marginTop: 3 }}>
+                        📅 {item.scheduledAt}
+                      </div>
+                    )}
+                    {item.notes && (
+                      <div style={{ fontSize: 11, color: isDark ? "#64748b" : "#94a3b8", marginTop: 2 }}>{item.notes}</div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

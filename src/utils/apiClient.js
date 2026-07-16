@@ -12,6 +12,8 @@ export const BILLING_ACCOUNT_API_ENDPOINT = `${API_BASE}/api/billing-account`;
 export const ERP_CATALOG_API_ENDPOINT = `${API_BASE}/api/erp-catalog`;
 export const WORKSHOPS_NEARBY_API_ENDPOINT = `${API_BASE}/api/workshops-nearby`;
 export const WORKSHOP_AVAILABILITY_API_ENDPOINT = `${API_BASE}/api/workshop-availability`;
+export const WORKSHOPS_ENRICH_API_ENDPOINT = `${API_BASE}/api/workshops-enrich`;
+export const WORKSHOPS_PHOTO_API_ENDPOINT = `${API_BASE}/api/workshops-photo`;
 export const MARKET_PRICE_API_ENDPOINT = `${API_BASE}/api/market-price`;
 export const MARKETPLACE_VO_API_ENDPOINT = `${API_BASE}/api/marketplace-vo`;
 
@@ -487,5 +489,20 @@ export function getServiceRequestsJson(options = {}) {
 
 export function postServiceRequestJson(payload, options = {}) {
   return postJson(SERVICE_REQUESTS_API_ENDPOINT, payload, { endpointLabel: "service-requests", ...options });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Workshop enrichment  /api/workshops-enrich + /api/workshops-photo
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function enrichWorkshopJson(workshopId, options = {}) {
+  return getJson(`${WORKSHOPS_ENRICH_API_ENDPOINT}?id=${encodeURIComponent(workshopId)}`, {
+    endpointLabel: "workshops-enrich",
+    ...options,
+  });
+}
+
+export function getWorkshopPhotoUrl(photoRef) {
+  return `${WORKSHOPS_PHOTO_API_ENDPOINT}?ref=${encodeURIComponent(photoRef)}`;
 }
 

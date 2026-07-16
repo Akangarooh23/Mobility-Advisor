@@ -25,6 +25,14 @@
       "destination": "/api/market?route=nearby"
     },
     {
+      "source": "/api/workshops-enrich",
+      "destination": "/api/market?route=enrich"
+    },
+    {
+      "source": "/api/workshops-photo",
+      "destination": "/api/market?route=photo"
+    },
+    {
       "source": "/api/workshop-availability",
       "destination": "/api/market?route=availability"
     },

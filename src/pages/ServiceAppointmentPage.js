@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getGarageVehiclesJson, getNearbyWorkshopsJson } from "../utils/apiClient";
+import { getGarageVehiclesJson, getNearbyWorkshopsJson, enrichWorkshopJson, getWorkshopPhotoUrl } from "../utils/apiClient";
 import WorkshopMapModal from "../components/WorkshopMapModal";
 
 function normalizeText(value) {
@@ -74,6 +74,15 @@ function normalizeToken(value) {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
+}
+
+function getTodayHours(weekdayText) {
+  if (!Array.isArray(weekdayText) || !weekdayText.length) return null;
+  // Google weekday_text[0]=Monday … [6]=Sunday; JS getDay() 0=Sunday, 1=Monday
+  const idx = (new Date().getDay() + 6) % 7;
+  const text = weekdayText[idx] || "";
+  const colon = text.indexOf(": ");
+  return colon >= 0 ? text.slice(colon + 2) : text || null;
 }
 
 function resolveRevisionIndex(revisionTypes = [], revisionTitle = "") {
@@ -473,6 +482,8 @@ export default function ServiceAppointmentPage({
   const [isSearchingWorkshops, setIsSearchingWorkshops] = useState(false);
   const [workshopSearchError, setWorkshopSearchError] = useState("");
   const [showMap, setShowMap] = useState(false);
+  const [workshopDetails, setWorkshopDetails] = useState(null);
+  const [isEnrichingWorkshop, setIsEnrichingWorkshop] = useState(false);
   const [isSubmittingAppointment, setIsSubmittingAppointment] = useState(false);
   const [isSpecificOpen, setIsSpecificOpen] = useState(false);
   const [selectedSpecificSection, setSelectedSpecificSection] = useState("");
@@ -700,6 +711,28 @@ export default function ServiceAppointmentPage({
       disposed = true;
     };
   }, [hasLocationContext, postalCode, province, preciseCoords, t]);
+
+  useEffect(() => {
+    if (!selectedProvider) {
+      setWorkshopDetails(null);
+      return;
+    }
+    const workshop = nearbyProviders.find((p) => p.providerKey === selectedProvider)?.workshop;
+    if (!workshop?.id) return;
+
+    let disposed = false;
+    setIsEnrichingWorkshop(true);
+    setWorkshopDetails(null);
+
+    enrichWorkshopJson(workshop.id)
+      .then(({ data }) => {
+        if (!disposed && data?.ok && data?.enriched) setWorkshopDetails(data.enriched);
+      })
+      .catch(() => {})
+      .finally(() => { if (!disposed) setIsEnrichingWorkshop(false); });
+
+    return () => { disposed = true; };
+  }, [selectedProvider, nearbyProviders]);
 
   const canChooseRevision = hasAnyVehicles && Boolean(vehicleId) && hasLocationContext;
   const selectedPopularRevisionName = selectedRevision >= 0 ? REVISION_TYPES[selectedRevision].id : "";
@@ -1254,6 +1287,82 @@ export default function ServiceAppointmentPage({
             ))}
           </div>
         </div>
+
+        {/* ── Enriched workshop details (loaded on selection) ─────────────── */}
+        {hasSelectedProvider && (isEnrichingWorkshop || workshopDetails) && (
+          <div style={{ ...cardStyle, padding: 16 }}>
+            {isEnrichingWorkshop && !workshopDetails && (
+              <div style={{ fontSize: 12, color: "#94a3b8" }}>Cargando información del taller…</div>
+            )}
+            {workshopDetails && (
+              <div>
+                {workshopDetails.photoRef && (
+                  <img
+                    src={getWorkshopPhotoUrl(workshopDetails.photoRef)}
+                    alt="Foto del taller"
+                    loading="lazy"
+                    style={{ width: "100%", maxHeight: 160, objectFit: "cover", borderRadius: 10, marginBottom: 14, display: "block" }}
+                  />
+                )}
+                {workshopDetails.rating != null && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+                    <span style={{ fontSize: 15, fontWeight: 800, color: "#1e293b" }}>
+                      ⭐ {workshopDetails.rating.toFixed(1)}
+                    </span>
+                    {workshopDetails.ratingCount != null && (
+                      <span style={{ fontSize: 12, color: "#64748b" }}>
+                        ({workshopDetails.ratingCount.toLocaleString("es-ES")} reseñas)
+                      </span>
+                    )}
+                  </div>
+                )}
+                {workshopDetails.phone && (
+                  <div style={{ marginBottom: 8 }}>
+                    <a
+                      href={`tel:${workshopDetails.phone}`}
+                      style={{ fontSize: 14, fontWeight: 600, color: "#2563eb", textDecoration: "none" }}
+                    >
+                      📞 {workshopDetails.phone}
+                    </a>
+                  </div>
+                )}
+                {workshopDetails.weekdayText?.length > 0 && (() => {
+                  const todayHours = getTodayHours(workshopDetails.weekdayText);
+                  return todayHours ? (
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                      <span style={{ fontSize: 13, color: "#374151" }}>🕐 Hoy: {todayHours}</span>
+                      {workshopDetails.openNow != null && (
+                        <span style={{
+                          fontSize: 11, fontWeight: 700, padding: "2px 7px", borderRadius: 5,
+                          background: workshopDetails.openNow ? "#dcfce7" : "#fee2e2",
+                          color: workshopDetails.openNow ? "#16a34a" : "#dc2626",
+                        }}>
+                          {workshopDetails.openNow ? "Abierto" : "Cerrado"}
+                        </span>
+                      )}
+                    </div>
+                  ) : null;
+                })()}
+                {workshopDetails.website && (() => {
+                  let host = workshopDetails.website;
+                  try { host = new URL(workshopDetails.website).hostname.replace(/^www\./, ""); } catch {}
+                  return (
+                    <div>
+                      <a
+                        href={workshopDetails.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ fontSize: 13, color: "#6366f1", textDecoration: "none" }}
+                      >
+                        🌐 {host}
+                      </a>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+        )}
 
         <div style={{ ...cardStyle, padding: 18 }}>
           <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>

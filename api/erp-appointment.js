@@ -3,9 +3,8 @@ const { Pool } = require("pg");
 let pool;
 function getPool() {
   if (!pool) {
-    // Must point to the ERP's own database, not the main app DB
-    const cs = process.env.ERP_DATABASE_URL || process.env.ERP_POSTGRES_URL;
-    if (!cs) throw new Error("ERP_DATABASE_URL not configured");
+    const cs = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+    if (!cs) throw new Error("No DATABASE_URL configured");
     pool = new Pool({
       connectionString: cs,
       ssl: { rejectUnauthorized: false },
@@ -55,7 +54,6 @@ module.exports = async function erpAppointmentApi(req, res) {
 
   try {
     const db = getPool();
-    // Table is owned and created by the ERP's ensureSchema() — no CREATE TABLE here
     const result = await db.query(
       `INSERT INTO erp_appointments (user_id, scheduled_at, type, workshop_name, notes, status, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, 'scheduled', NOW(), NOW())

@@ -92,6 +92,7 @@ import {
   getSellMarketSnapshotJson,
   postAlertEmailDigestJson,
   postAppointmentAddJson,
+  postDeleteAppointmentJson,
   postErpAppointmentJson,
   postAuthJson,
   postListingJson,
@@ -2109,8 +2110,22 @@ export default function App() {
             setEntryMode("portalVoDetail");
             setStep(-1);
           } else {
-            setEntryMode("portalVo");
-            setStep(-1);
+            // No está en VO: puede ser una oferta de importación (otra tabla)
+            fetch(`/api/import-offers?id=${encodeURIComponent(offerId)}`)
+              .then((r) => r.json())
+              .then((d) => {
+                const imp = d?.offer;
+                if (d?.ok && imp?.id) {
+                  setPortalVoOffersLive((prev) => prev.some((o) => o.id === imp.id) ? prev : [imp, ...prev]);
+                  setSelectedPortalVoOfferId(imp.id);
+                  setEntryMode("portalVoDetail");
+                  setStep(-1);
+                } else {
+                  setEntryMode("portalVo");
+                  setStep(-1);
+                }
+              })
+              .catch(() => { setEntryMode("portalVo"); setStep(-1); });
           }
         }).catch(() => {
           setEntryMode("portalVo");
@@ -3284,7 +3299,7 @@ export default function App() {
     setUserAppointments(next);
 
     // Crear cita en ERP CarsWise (Citas Mantenimiento) si es de tipo maintenance
-    if (type === "maintenance" && currentUserEmail && normalizeText(context?.selectedDateKey) && normalizeText(context?.selectedTime)) {
+    if (type === "maintenance" && !context?.skipErpSave && currentUserEmail && normalizeText(context?.selectedDateKey) && normalizeText(context?.selectedTime)) {
       const dateKey  = normalizeText(context.selectedDateKey);  // YYYY-MM-DD
       const timeStr  = normalizeText(context.selectedTime);     // HH:MM
       const isoDate  = `${dateKey}T${timeStr}:00+01:00`;
@@ -6765,6 +6780,9 @@ export default function App() {
             const next = userAppointments.filter((a) => a.id !== id);
             writeUserAppointments(next);
             setUserAppointments(next);
+            if (currentUserEmail) {
+              postDeleteAppointmentJson(currentUserEmail, id).catch(() => {});
+            }
           }}
           onUpdateAppointmentStatus={updateUserAppointmentStatus}
           onRequestValuation={openSellValuationFromOffers}

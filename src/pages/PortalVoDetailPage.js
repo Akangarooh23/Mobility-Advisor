@@ -78,6 +78,7 @@ export default function PortalVoDetailPage({
   const [offerStats, setOfferStats] = useState(null);
 
   const isParticular = (selectedPortalVoOffer.sellerType || "").toLowerCase() === "particular";
+  const isImport = !!selectedPortalVoOffer.isImport;
   const isRentingOffer = !!(selectedPortalVoOffer.rentingAvailable && !selectedPortalVoOffer.availableForPurchase);
   const isRentingReserved = isReserved && selectedPortalVoOffer.rentingAvailable && selectedPortalVoOffer.unitsAvailable <= 1 && !selectedPortalVoOffer.availableForPurchase;
   const [rentingDuration, setRentingDuration] = useState(() => {
@@ -104,7 +105,19 @@ export default function PortalVoDetailPage({
     setReqError("");
     try {
       let res;
-      if (isParticular) {
+      if (isImport) {
+        res = await fetch("/api/import-lead", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            offer_id: selectedPortalVoOffer.id,
+            name: reqForm.name,
+            email: reqForm.email,
+            phone: reqForm.phone,
+            message: reqForm.message,
+          }),
+        });
+      } else if (isParticular) {
         res = await fetch("/api/viewing-request", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -316,7 +329,37 @@ export default function PortalVoDetailPage({
                   <span style={{ fontSize: 28, fontWeight: 800, color: titleColor }}>
                     {formatCurrency(selectedPortalVoOffer.salePrice ?? selectedPortalVoOffer.price)}
                   </span>
-                  <span style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b" }}>{t("marketplace.modalityPurchase", "Compra")}</span>
+                  <span style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b" }}>{isImport ? "Importado estimado" : t("marketplace.modalityPurchase", "Compra")}</span>
+                </div>
+              )}
+              {isImport && (
+                <div style={{ marginTop: 6 }}>
+                  {selectedPortalVoOffer.importSavings > 0 && (
+                    <div style={{ display: "inline-block", fontSize: 13, fontWeight: 800, padding: "5px 12px", borderRadius: 999, background: "#059669", color: "#fff" }}>
+                      Ahorras ~{Number(selectedPortalVoOffer.importSavings).toLocaleString("es-ES")} €{selectedPortalVoOffer.importSavingsPct ? ` (${selectedPortalVoOffer.importSavingsPct}%)` : ""}
+                    </div>
+                  )}
+                  <div style={{ background: isDark ? "rgba(5,150,105,0.12)" : "rgba(5,150,105,0.06)", border: "1px solid rgba(5,150,105,0.25)", borderRadius: 12, padding: "12px 14px", marginTop: 12 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#34d399" : "#047857", marginBottom: 6 }}>Por qué es una buena oferta</div>
+                    <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: isDark ? "#cbd5e1" : "#334155", lineHeight: 1.8 }}>
+                      {selectedPortalVoOffer.marketPriceEs != null && (
+                        <li>Precio medio en España: <strong>{Number(selectedPortalVoOffer.marketPriceEs).toLocaleString("es-ES")} €</strong>{selectedPortalVoOffer.importSavings > 0 ? ` — ahorras ~${Number(selectedPortalVoOffer.importSavings).toLocaleString("es-ES")} €` : ""}.</li>
+                      )}
+                      {selectedPortalVoOffer.importComparables != null && (
+                        <li>Contrastado con <strong>{selectedPortalVoOffer.importComparables} vehículos comparables</strong> del mercado español.</li>
+                      )}
+                      <li>Lo <strong>compramos, importamos y matriculamos</strong> nosotros por ti.</li>
+                      <li><strong>Garantía incluida</strong> y <strong>entrega a domicilio</strong>.</li>
+                    </ul>
+                  </div>
+                  {selectedPortalVoOffer.importDeposit != null && (
+                    <div style={{ background: "#fffbeb", border: "1.5px solid #fbbf24", borderRadius: 12, padding: "12px 14px", marginTop: 10 }}>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: "#92400e", marginBottom: 4 }}>⚠️ Fianza del 30%</div>
+                      <div style={{ fontSize: 12.5, color: "#78350f", lineHeight: 1.6 }}>
+                        Para solicitar un coche de importación se debe dejar una <strong>fianza del 30% del valor del vehículo</strong>: <strong style={{ fontSize: 15 }}>{formatCurrency(selectedPortalVoOffer.importDeposit)}</strong>.
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
               {selectedPortalVoOffer.rentingAvailable && isRentingOffer && (() => {
@@ -549,7 +592,7 @@ export default function PortalVoDetailPage({
                 letterSpacing: "0.02em",
               }}
             >
-              {isRentingReserved ? "Unidad reservada" : !isRentingOffer ? "Solicitar visita" : "🔑 Solicitar esta oferta de renting"}
+              {isRentingReserved ? "Unidad reservada" : isImport ? "🌍 Solicitar importación" : !isRentingOffer ? "Solicitar visita" : "🔑 Solicitar esta oferta de renting"}
             </button>
           </div>
         </div>
@@ -651,13 +694,18 @@ export default function PortalVoDetailPage({
             ) : (
               <form onSubmit={handleReqSubmit}>
                 <div style={{ fontSize: 15, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 4 }}>
-                  {isParticular ? "Solicitar visita al vendedor" : isRentingOffer ? "🔑 Solicitar oferta de renting" : "Solicitar información"}
+                  {isImport ? "🌍 Solicitar importación" : isParticular ? "Solicitar visita al vendedor" : isRentingOffer ? "🔑 Solicitar oferta de renting" : "Solicitar información"}
                 </div>
                 <div style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b", marginBottom: 18 }}>
                   {selectedPortalVoOffer.title}
                 </div>
+                {isImport && selectedPortalVoOffer.importDeposit != null && (
+                  <div style={{ background: "#fffbeb", border: "1.5px solid #fbbf24", borderRadius: 10, padding: "10px 12px", marginBottom: 16, fontSize: 12.5, color: "#78350f", lineHeight: 1.6 }}>
+                    ⚠️ Para reservar este coche de importación se requiere una <strong>fianza del 30%</strong>: <strong>{formatCurrency(selectedPortalVoOffer.importDeposit)}</strong>. Te explicaremos el proceso al contactarte.
+                  </div>
+                )}
 
-                {!isParticular && !isRentingOffer && (
+                {!isParticular && !isRentingOffer && !isImport && (
                   <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
                     {[["info","Información"],["visit","Visita"]].map(([v, l]) => (
                       <button

@@ -6576,6 +6576,7 @@ export default function App() {
               selectedTime: normalizeText(booking?.selectedTime),
             });
             setServiceAppointmentDraft(null);
+            navigateToUserDashboardPage("appointments");
           }}
           onGoHome={restart}
         />

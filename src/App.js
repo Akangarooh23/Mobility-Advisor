@@ -6760,6 +6760,7 @@ export default function App() {
           }}
           onLogout={handleLogout}
           onRequestAppointment={requestUserAppointment}
+          onGoToServiceAppointment={() => { setEntryMode("serviceAppointment"); setStep(-1); }}
           onUpdateAppointmentStatus={updateUserAppointmentStatus}
           onRequestValuation={openSellValuationFromOffers}
           onOpenOffer={openOfferInNewTab}

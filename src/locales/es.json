@@ -117,7 +117,7 @@
     "appointmentWorkshopNearText": "Cerca de {{province}} ({{postalCode}})",
     "appointmentWorkshopCompleteLocation": "Completa ubicacion para buscar cerca",
     "appointmentPricingParticular": "Particular: {{price}}",
-    "appointmentPricingCarsWise": "Con CarsWise: {{price}}",
+    "appointmentPricingCarsWise": "Precio acordado CarsWise: {{price}}",
     "appointmentSavings": "Ahorras {{savings}}€ vs particular",
     "appointmentPricingOrientative": "ℹ Precio orientativo",
     "appointmentPriceSectionLabel": "Resumen de precio",

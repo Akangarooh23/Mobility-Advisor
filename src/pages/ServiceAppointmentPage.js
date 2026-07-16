@@ -1373,7 +1373,7 @@ export default function ServiceAppointmentPage({
                   </div>
                 ) : (
                   <div style={{ fontSize: 12, color: "#8b5cf6", marginTop: 4, fontWeight: 700 }}>
-                    {t("service.appointmentPricingParticular", { price: formatPriceTag(item.particular, priceOptions) })} · {t("service.appointmentPricingCarsWise", { price: formatPriceTag(item.withCarsWise, priceOptions) })}
+                    {t("service.appointmentPricingCarsWise", { price: formatPriceTag(item.withCarsWise, priceOptions) })}
                   </div>
                 )}
                 {item.savings !== null ? (

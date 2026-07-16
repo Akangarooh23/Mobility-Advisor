@@ -118,6 +118,7 @@ export default function UserDashboardOperations({
   panelStyle,
   getOfferBadgeStyle,
   onRequestAppointment,
+  onGoToServiceAppointment = () => {},
   onRequestValuation = () => {},
   onNavigate = () => {},
   currentUserEmail = "",
@@ -371,6 +372,10 @@ export default function UserDashboardOperations({
   };
 
   const openManagementWizard = async (type = activeTab === "valuations" ? "valuation" : "appointment") => {
+    if (type === "appointment") {
+      onGoToServiceAppointment();
+      return;
+    }
     const nextGarageVehicles = await refreshGarageVehicles();
     setManagementType(type);
     setManagementVehicleId(nextGarageVehicles[0]?.id || "");

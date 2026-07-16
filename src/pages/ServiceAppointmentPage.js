@@ -629,6 +629,12 @@ export default function ServiceAppointmentPage({
       return;
     }
 
+    // Auto-select when only one vehicle available and nothing selected yet
+    if (vehicleOptions.length === 1 && !vehicleId && !normalizedSelected) {
+      setVehicleId(vehicleOptions[0].id);
+      return;
+    }
+
     const hasSelectedFromContext = normalizedSelected && vehicleOptions.some((option) => option.id === normalizedSelected);
     if (hasSelectedFromContext) {
       setVehicleId(normalizedSelected);

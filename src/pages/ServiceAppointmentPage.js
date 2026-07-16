@@ -1376,6 +1376,17 @@ export default function ServiceAppointmentPage({
                   {item?.nearby?.workshop
                     ? `${item.nearby.workshop.distanceKm} km · ETA ${item.nearby.workshop.etaMinutes} min`
                     : ""}
+                {item?.nearby?.workshop?.rating != null && (
+                  <span style={{ marginLeft: 6 }}>
+                    <span style={{ color: "#f59e0b", letterSpacing: 1 }}>
+                      {"★".repeat(Math.round(item.nearby.workshop.rating))}{"☆".repeat(5 - Math.round(item.nearby.workshop.rating))}
+                    </span>
+                    <span style={{ fontSize: 11, color: "#64748b", marginLeft: 3 }}>
+                      {item.nearby.workshop.rating.toFixed(1)}
+                      {item.nearby.workshop.ratingCount ? ` (${item.nearby.workshop.ratingCount.toLocaleString("es-ES")})` : ""}
+                    </span>
+                  </span>
+                )}
                 </div>
                 {item?.nearby?.workshop?.address ? (
                   <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>

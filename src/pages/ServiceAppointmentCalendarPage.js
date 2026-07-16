@@ -209,16 +209,24 @@ export default function ServiceAppointmentCalendarPage({
     setIsSaving(true);
     try {
       if (workshopId) {
-        const { response, data } = await postWorkshopReservationJson({
-          workshopId,
-          provider: normalizeText(safeDraft?.provider),
-          dateKey: selectedDay.key,
-          time: selectedTime,
-        });
-
-        if (!response.ok) {
-          const message = normalizeText(data?.error) || t("service.appointmentCalSlotUnavailable");
-          throw new Error(message);
+        try {
+          const { response, data } = await postWorkshopReservationJson({
+            workshopId,
+            provider: normalizeText(safeDraft?.provider),
+            dateKey: selectedDay.key,
+            time: selectedTime,
+          });
+          if (!response.ok) {
+            const message = normalizeText(data?.error) || t("service.appointmentCalSlotUnavailable");
+            throw new Error(message);
+          }
+        } catch (reservationErr) {
+          // Reservation API unavailable — proceed with booking anyway
+          if (reservationErr?.code === "INVALID_API_RESPONSE" || reservationErr?.code === "NON_JSON_API_RESPONSE") {
+            // silently ignore: slot reservation is best-effort
+          } else {
+            throw reservationErr;
+          }
         }
       }
 

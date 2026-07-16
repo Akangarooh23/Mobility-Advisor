@@ -637,8 +637,8 @@ export default function PortalVoDetailPage({
               boxShadow: "0 24px 64px rgba(0,0,0,0.3)",
             }}
           >
-            {/* SlotPicker for all non-renting offers */}
-            {!isRentingOffer ? (
+            {/* SlotPicker para ofertas no-renting (importación NO: solicitud directa sin calendario) */}
+            {!isRentingOffer && !isImport ? (
               <div>
                 <div style={{ fontSize: 15, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 4 }}>
                   Solicitar visita

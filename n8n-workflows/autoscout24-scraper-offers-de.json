@@ -1,0 +1,177 @@
+{
+  "name": "AutoScout24 – Scraper DE (orquestador importación)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "as-a-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 3 * * *"
+            }
+          ]
+        }
+      },
+      "id": "as-a-cron",
+      "name": "Cada día a las 03:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Repartir las 45 marcas en 7 grupos (uno por dia de la semana) para no saturar disco/tiempo.\n// Cada dia procesa ~6-7 marcas x 14 tramos de precio. En 1 semana se cubre todo el catalogo.\nconst makes = [9,13,47,74,64,60,55,21,54,29,70,39,33,52,28,16360,65,73,46,31,16338,51802,38,15641,43,68,50,6,16415,37,57,51520,15525,67,66,48,19,20,16396,45,27,42,16355,35,14882];\nconst buckets = [[0,3000],[3000,5000],[5000,7000],[7000,9000],[9000,11000],[11000,13000],[13000,15000],[15000,18000],[18000,22000],[22000,27000],[27000,35000],[35000,50000],[50000,80000],[80000,99999999]];\nconst day = new Date().getDay(); // 0=domingo .. 6=sabado\nconst mine = makes.filter((mk, i) => i % 7 === day);\nconst out = [];\nfor (const mk of mine) { for (const b of buckets) { out.push({ json: { mk: mk, pf: b[0], pt: b[1] } }); } }\nreturn out;"
+      },
+      "id": "as-a-gen",
+      "name": "Code: Generar segmentos (marca x precio)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "as-a-loop",
+      "name": "Loop: segmento por segmento",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        480,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "REEMPLAZA_CON_ID_DEL_SEGMENTO_DE",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "as-a-exec",
+      "name": "Scrapear segmento (AutoScout24 – Segmento DE)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        720,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "as-a-wait",
+      "name": "Esperar 1s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        960,
+        400
+      ],
+      "webhookId": "wait-as24-orquestador-de"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar segmentos (marca x precio)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Generar segmentos (marca x precio)": {
+      "main": [
+        [
+          {
+            "node": "Loop: segmento por segmento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: segmento por segmento": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Scrapear segmento (AutoScout24 – Segmento DE)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrapear segmento (AutoScout24 – Segmento DE)": {
+      "main": [
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 1s": {
+      "main": [
+        [
+          {
+            "node": "Loop: segmento por segmento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada día a las 21:00": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar segmentos (marca x precio)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "triggerCount": 1,
+  "tags": []
+}

@@ -1,0 +1,377 @@
+{
+  "name": "AutoScout24 – Segmento DE (Importación)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "as-b-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -260,
+        300
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "as-b-parent",
+      "name": "Llamada desde orquestador",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -260,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const inp = $input.item.json || {};\nreturn [{ json: { mk: (inp.mk != null ? inp.mk : 74), pf: (inp.pf != null ? inp.pf : 0), pt: (inp.pt != null ? inp.pt : 3000) } }];"
+      },
+      "id": "as-b-params",
+      "name": "Params",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -20,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://www.autoscout24.es/lst?atype=C&ustate=N,U&sort=age&desc=1&cy=D&powertype=kw&mmvmk0={{ $json.mk }}&pricefrom={{ $json.pf }}&priceto={{ $json.pt }}&page=1",
+        "options": {
+          "timeout": 25000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "headers": {
+            "values": [
+              {
+                "name": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+              },
+              {
+                "name": "Accept",
+                "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+              },
+              {
+                "name": "Accept-Language",
+                "value": "es-ES,es;q=0.9,en;q=0.8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "as-b-count",
+      "name": "HTTP: Contar (pág 1)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        200,
+        400
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Leer numberOfPages de la respuesta de 'Contar' y generar 1..N (tope 200)\nconst seg = $('Params').item.json;\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\nvar totalPages = 0;\ntry {\n  const m = html.match(/<script id=\"__NEXT_DATA__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/);\n  if (m) { const pp = JSON.parse(m[1]).props.pageProps; totalPages = Math.min(pp.numberOfPages || 0, 200); }\n} catch (e) { totalPages = 0; }\nconst out = [];\nfor (let i = 1; i <= totalPages; i++) out.push({ json: { mk: seg.mk, pf: seg.pf, pt: seg.pt, page: i } });\nreturn out;"
+      },
+      "id": "as-b-gen",
+      "name": "Code: Generar páginas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "as-b-loop",
+      "name": "Loop: página por página",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        640,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://www.autoscout24.es/lst?atype=C&ustate=N,U&sort=age&desc=1&cy=D&powertype=kw&mmvmk0={{ $json.mk }}&pricefrom={{ $json.pf }}&priceto={{ $json.pt }}&page={{ $json.page }}",
+        "options": {
+          "timeout": 25000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "headers": {
+            "values": [
+              {
+                "name": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+              },
+              {
+                "name": "Accept",
+                "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+              },
+              {
+                "name": "Accept-Language",
+                "value": "es-ES,es;q=0.9,en;q=0.8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "as-b-http",
+      "name": "HTTP: Listado AutoScout24",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        860,
+        400
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// AutoScout24 – transform: HTML ?page=N → __NEXT_DATA__.pageProps.listings → UPSERT\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\n\nlet listings = [];\ntry {\n  const m = html.match(/<script id=\"__NEXT_DATA__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/);\n  if (m) {\n    const pp = JSON.parse(m[1]).props.pageProps;\n    listings = pp.listings || [];\n  }\n} catch (e) { listings = []; }\n\nif (!listings.length) {\n  return [{ json: { sql: null, count: 0 } }];\n}\n\nfunction normalizeFuel(raw) {\n  const s = String(raw || '').toLowerCase();\n  if (s.indexOf('electro/gasolina') !== -1 || s.indexOf('electro/di') !== -1 || (s.indexOf('electro') !== -1 && s.indexOf('/') !== -1)) return 'Híbrido';\n  if (s.indexOf('diesel') !== -1 || s.indexOf('diésel') !== -1) return 'Diesel';\n  if (s.indexOf('eléctrico') !== -1 || s.indexOf('electrico') !== -1 || s === 'electro') return 'Eléctrico';\n  if (s.indexOf('gasolina') !== -1) return 'Gasolina';\n  if (s.indexOf('glp') !== -1 || s.indexOf('gnc') !== -1 || s.indexOf('gas ') !== -1 || s.indexOf('gas licuado') !== -1 || s.indexOf('gas natural') !== -1) return 'Gas';\n  if (s.indexOf('híbrido') !== -1 || s.indexOf('hibrido') !== -1) return 'Híbrido';\n  return raw || '';\n}\nfunction normalizeGear(raw) {\n  const s = String(raw || '').toLowerCase();\n  if (s.indexOf('autom') !== -1) return 'Automatica';\n  if (s.indexOf('manual') !== -1) return 'Manual';\n  return '';\n}\nfunction esc(v) {\n  if (v === null || v === undefined) return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\nfunction num(s) { const n = parseInt(String(s).replace(/[^\\d]/g, ''), 10); return isNaN(n) ? null : n; }\n\nconst rows = [];\nfor (const it of listings) {\n  const v = it.vehicle || {};\n  const id = 'as_' + String(it.id || it.identifier || '');\n  if (id === 'as_') continue;\n  const url = it.url ? ('https://www.autoscout24.es' + it.url) : '';\n  const brand = v.make || '';\n  const model = v.model || '';\n  const version = v.modelVersionInput || v.variant || '';\n  const title = (brand + ' ' + model + ' ' + version).replace(/\\s+/g, ' ').trim();\n  const price = (it.price && it.price.priceRaw != null) ? String(it.price.priceRaw) : 'NULL';\n  const mileage = (num(v.mileageInKm) != null) ? String(num(v.mileageInKm)) : 'NULL';\n  const fuel = normalizeFuel(v.fuel);\n  const transmission = normalizeGear(v.transmission);\n\n  // año + potencia desde vehicleDetails\n  let year = 'NULL', powerCv = null, powerKw = null;\n  const det = Array.isArray(it.vehicleDetails) ? it.vehicleDetails : [];\n  for (const d of det) {\n    const lab = String(d.ariaLabel || '').toLowerCase();\n    const val = String(d.data || '');\n    if (lab.indexOf('año') !== -1 || lab.indexOf('ano') !== -1) { const y = (val.match(/(\\d{4})/) || [])[1]; if (y) year = y; }\n    if (lab.indexOf('potencia') !== -1) {\n      const kw = (val.match(/(\\d+)\\s*kW/i) || [])[1];\n      const cv = (val.match(/(\\d+)\\s*CV/i) || [])[1];\n      if (kw) powerKw = parseInt(kw, 10);\n      if (cv) powerCv = parseInt(cv, 10);\n    }\n  }\n  if (powerCv == null && powerKw != null) powerCv = Math.round(powerKw * 1.35962);\n  if (powerKw == null && powerCv != null) powerKw = Math.round(powerCv / 1.35962);\n\n  let displacement = null;\n  { const _cc = parseInt(String(v.engineDisplacementInCCM || '').replace(/[^d]/g, ''), 10); if (!isNaN(_cc) && _cc > 0) displacement = _cc; }\n\n  const imgsArr = Array.isArray(it.images) ? it.images.filter(Boolean).slice(0, 15) : [];\n  const imageUrl = imgsArr[0] || '';\n  const imagesJson = JSON.stringify(imgsArr).replace(/'/g, \"''\");\n  const loc = it.location || {};\n  const city = loc.city || '';\n  const seller = it.seller || {};\n  const dealerName = seller.companyName || '';\n  const sellerType = (seller.type === 'Dealer' || (seller.dealer)) ? 'profesional' : 'particular';\n  const rawPayload = JSON.stringify(it).replace(/'/g, \"''\");\n\n  // color desde el slug de la URL de AS24 (~98% fiable, sin petición extra)\n  let color = '';\n  { const CMAP = {blanco:'Blanco',negro:'Negro',gris:'Gris',antracita:'Gris',plata:'Plata',plateado:'Plata',azul:'Azul',rojo:'Rojo',verde:'Verde',amarillo:'Amarillo',naranja:'Naranja',marron:'Marrón',beige:'Beige',dorado:'Dorado',granate:'Granate',burdeos:'Granate',morado:'Morado',violeta:'Morado',rosa:'Rosa',cobre:'Cobre',bronce:'Bronce'};\n    const slug = String(it.url || '').replace(/-cat_.*$/, '').split('/').pop();\n    const toks = slug.split('-');\n    for (let i = toks.length - 1; i >= 0; i--) { if (CMAP[toks[i]]) { color = CMAP[toks[i]]; break; } }\n  }\n  const row = '(' +\n    esc(id) + \", 'autoscout24', \" + esc(url) + ', ' + esc(title) + ', ' + esc(brand) + ', ' + esc(model) + ', ' + esc(version) + ', ' +\n    year + ', ' + mileage + ', ' + price + ', ' +\n    esc(fuel) + ', ' + esc(transmission) + ', ' +\n    esc(imageUrl) + \", '\" + imagesJson + \"', \" +\n    esc(city) + ', ' + esc(city) + ', ' + esc(city) + ', ' +\n    esc(dealerName) + \", '\" + sellerType + \"', 'compra', \" +\n    (powerCv !== null ? String(powerCv) : 'NULL') + ', ' + (powerKw !== null ? String(powerKw) : 'NULL') + ', ' + (displacement !== null ? String(displacement) : 'NULL') + ', ' + esc(color) + \", 'DE', '\" + rawPayload + \"', NOW(), NOW(), NOW()\" +\n  ')';\n  rows.push(row);\n}\n\nif (!rows.length) return [{ json: { sql: null, count: 0 } }];\n\nconst cols = 'id, portal, url, title, brand, model, version, year, mileage, price, fuel, transmission, image_url, images, city, province, location, dealer_name, seller_type, listing_type, power_cv, power_kw, displacement, color, country, raw_payload, first_seen_at, scraped_at, last_seen_at';\n\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +\n  'url = EXCLUDED.url, title = EXCLUDED.title, price = EXCLUDED.price, mileage = EXCLUDED.mileage, ' +\n  \"image_url = COALESCE(NULLIF(moveadvisor_market_offers.image_url,''), EXCLUDED.image_url), \" +\n  \"images = COALESCE(NULLIF(moveadvisor_market_offers.images,''), EXCLUDED.images), \" +\n  'power_cv = COALESCE(EXCLUDED.power_cv, moveadvisor_market_offers.power_cv), ' +\n  'power_kw = COALESCE(EXCLUDED.power_kw, moveadvisor_market_offers.power_kw), ' +\n  'displacement = COALESCE(EXCLUDED.displacement, moveadvisor_market_offers.displacement), ' +\n  \"color = COALESCE(NULLIF(moveadvisor_market_offers.color,''''), EXCLUDED.color), \" +\n  '' +\n  'country = EXCLUDED.country, raw_payload = EXCLUDED.raw_payload, last_seen_at = NOW(), updated_at = NOW()';\n\nconst sql = 'INSERT INTO moveadvisor_market_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;\nreturn [{ json: { sql: sql, count: rows.length } }];\n"
+      },
+      "id": "as-b-transform",
+      "name": "Code: Transformar ofertas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.count }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "as-b-if",
+      "name": "IF: ¿hay ofertas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "additionalFields": {}
+      },
+      "id": "as-b-pg",
+      "name": "PG: Upsert ofertas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        280
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "as-b-wait",
+      "name": "Esperar 1s (rate limit)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1780,
+        400
+      ],
+      "webhookId": "wait-as24-segmento-de"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Llamada desde orquestador": {
+      "main": [
+        [
+          {
+            "node": "Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Params": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Contar (pág 1)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Contar (pág 1)": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar páginas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Generar páginas": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: página por página": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP: Listado AutoScout24",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Listado AutoScout24": {
+      "main": [
+        [
+          {
+            "node": "Code: Transformar ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Transformar ofertas": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay ofertas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ofertas?": {
+      "main": [
+        [
+          {
+            "node": "PG: Upsert ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 1s (rate limit)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Upsert ofertas": {
+      "main": [
+        [
+          {
+            "node": "Esperar 1s (rate limit)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 1s (rate limit)": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "triggerCount": 0,
+  "tags": []
+}

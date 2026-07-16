@@ -18,6 +18,18 @@ export const ERP_APPOINTMENT_API_ENDPOINT      = `${API_BASE}/api/erp-appointmen
 export const USER_ERP_APPOINTMENTS_API_ENDPOINT = `${API_BASE}/api/user-erp-appointments`;
 export const MARKET_PRICE_API_ENDPOINT = `${API_BASE}/api/market-price`;
 export const MARKETPLACE_VO_API_ENDPOINT = `${API_BASE}/api/marketplace-vo`;
+export const IMPORT_OFFERS_API_ENDPOINT = `${API_BASE}/api/import-offers`;
+
+export function getImportOffersJson(params = {}, options = {}) {
+  const { limit = 60, offset = 0, brand = "", query = "" } = params;
+  const qs = new URLSearchParams({ limit: String(limit || 60), offset: String(offset || 0) });
+  if (brand) qs.set("brand", String(brand));
+  if (query) qs.set("query", String(query));
+  return getJson(`${IMPORT_OFFERS_API_ENDPOINT}?${qs.toString()}`, {
+    endpointLabel: "import-offers",
+    ...options,
+  });
+}
 
 export function getErpBrandsJson(options = {}) {
   return fetch(`${ERP_CATALOG_API_ENDPOINT}?scope=brands`, { credentials: "include", ...options });

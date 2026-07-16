@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
-import { getMarketplaceVoJson } from "../utils/apiClient";
+import { getMarketplaceVoJson, getImportOffersJson } from "../utils/apiClient";
 
 function useWindowWidth() {
   const [width, setWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
@@ -60,6 +60,24 @@ export default function PortalVoMarketplacePage({
   const [concesionariosTotal, setConcesionariosTotal] = useState(0);
   const [concesionariosLoading, setConcesionariosLoading] = useState(false);
   const [concesionariosPage, setConcesionariosPage] = useState(0);
+  // Importación: coches DE auto-seleccionados por el motor de scoring (import_published)
+  const [importOffers, setImportOffers] = useState([]);
+  const [importTotal, setImportTotal] = useState(0);
+  const [importLoading, setImportLoading] = useState(false);
+  useEffect(() => {
+    if (compraTab !== "importacion") return;
+    let cancelled = false;
+    setImportLoading(true);
+    getImportOffersJson({ limit: 60 })
+      .then(({ data }) => {
+        if (cancelled) return;
+        setImportOffers(Array.isArray(data?.offers) ? data.offers : []);
+        setImportTotal(Number(data?.total || 0));
+      })
+      .catch(() => { if (!cancelled) { setImportOffers([]); setImportTotal(0); } })
+      .finally(() => { if (!cancelled) setImportLoading(false); });
+    return () => { cancelled = true; };
+  }, [compraTab]);
   useEffect(() => {
     if (compraTab !== "concesionarios") return;
     let cancelled = false;
@@ -247,7 +265,7 @@ export default function PortalVoMarketplacePage({
       )}
 
       {/* Próximamente panels for tabs without real data yet */}
-      {!isRenting && compraTab !== "renting_empresa" && compraTab !== "particulares" && compraTab !== "concesionarios" && (
+      {!isRenting && compraTab !== "renting_empresa" && compraTab !== "particulares" && compraTab !== "concesionarios" && compraTab !== "importacion" && (
         <div style={{ ...styles.panel, marginBottom: 20, textAlign: "center", padding: "40px 24px" }}>
           {compraTab === "particulares" && (
             <>
@@ -318,6 +336,79 @@ export default function PortalVoMarketplacePage({
             </>
           )}
         </div>
+      )}
+
+      {/* Importación: coches DE seleccionados por el motor + por qué es buena oferta */}
+      {compraTab === "importacion" && (
+        <>
+          <div style={{ ...styles.panel, marginBottom: 16, padding: "16px 18px" }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#0891b2", marginBottom: 4 }}>
+              🌍 Vehículos de Importación · seleccionados por precio
+            </div>
+            <div style={{ fontSize: 12.5, color: bodyColor, lineHeight: 1.6 }}>
+              Coches de Alemania que <strong>salen más baratos que su precio de mercado en España</strong>. Nosotros los compramos,
+              importamos, matriculamos y te los entregamos con garantía. Cada oferta muestra su ahorro frente a vehículos comparables españoles.
+            </div>
+          </div>
+
+          {importLoading ? (
+            <div style={{ textAlign: "center", padding: 24, color: isDark ? "#22d3ee" : "#0891b2" }}>Cargando oportunidades…</div>
+          ) : importOffers.length === 0 ? (
+            <div style={styles.panel}>Aún no hay coches de importación seleccionados. Vuelve pronto.</div>
+          ) : (
+            <>
+              <div style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b", marginBottom: 10 }}>
+                {importTotal.toLocaleString("es-ES")} oportunidades de importación seleccionadas
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: `repeat(${gridCols}, minmax(0,1fr))`, gap: 12 }}>
+                {importOffers.map((offer) => (
+                  <div key={offer.id} style={{
+                    background: isDark ? "#0f172a" : "#fff",
+                    border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(148,163,184,0.22)",
+                    borderRadius: 14, overflow: "hidden", display: "flex", flexDirection: "column",
+                  }}>
+                    <div style={{ position: "relative" }}>
+                      {offer.image_url
+                        ? <img src={offer.image_url} alt={offer.title} referrerPolicy="no-referrer" style={{ width: "100%", height: 150, objectFit: "cover", display: "block" }} />
+                        : <div style={{ width: "100%", height: 150, background: isDark ? "#1e293b" : "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30 }}>🚗</div>}
+                      <span style={{ position: "absolute", top: 8, left: 8, fontSize: 10, fontWeight: 800, padding: "3px 8px", borderRadius: 999, background: "rgba(8,145,178,0.92)", color: "#fff" }}>🇩🇪 Importación</span>
+                      {offer.savings_pct != null && offer.savings_pct > 0 && (
+                        <span style={{ position: "absolute", top: 8, right: 8, fontSize: 11, fontWeight: 800, padding: "3px 8px", borderRadius: 999, background: "#059669", color: "#fff" }}>−{offer.savings_pct}%</span>
+                      )}
+                    </div>
+                    <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 6, flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a", lineHeight: 1.3 }}>{offer.title}</div>
+                      <div style={{ fontSize: 11, color: isDark ? "#cbd5e1" : "#334155" }}>
+                        {offer.year} · {offer.mileage != null ? `${Number(offer.mileage).toLocaleString("es-ES")} km` : "—"}{offer.fuel ? ` · ${offer.fuel}` : ""}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 10.5, color: isDark ? "#94a3b8" : "#64748b" }}>Precio importado estimado</div>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>{formatCurrency(offer.import_price)}</div>
+                      </div>
+                      {offer.market_price_es != null && (
+                        <div style={{ background: isDark ? "rgba(5,150,105,0.12)" : "rgba(5,150,105,0.07)", border: "1px solid rgba(5,150,105,0.25)", borderRadius: 10, padding: "8px 10px", marginTop: 2 }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: isDark ? "#34d399" : "#047857", marginBottom: 3 }}>
+                            {offer.savings != null && offer.savings > 0 ? `Ahorras ~${Number(offer.savings).toLocaleString("es-ES")} €` : "Buen precio de mercado"}
+                          </div>
+                          <div style={{ fontSize: 10.5, color: isDark ? "#a7f3d0" : "#065f46", lineHeight: 1.5 }}>
+                            Precio medio en España: <strong>{Number(offer.market_price_es).toLocaleString("es-ES")} €</strong>
+                            {offer.comparables != null && <> · según {offer.comparables} vehículos comparables</>}
+                          </div>
+                        </div>
+                      )}
+                      <a
+                        href={`mailto:soporte@carswise.es?subject=${encodeURIComponent("Importación: " + offer.title)}&body=${encodeURIComponent("Me interesa importar este vehículo:\n" + offer.title + " (" + offer.year + ", " + (offer.mileage || "-") + " km)\nPrecio importado estimado: " + (offer.import_price || "-") + " EUR\n\nRef: " + offer.id)}`}
+                        style={{ marginTop: "auto", textAlign: "center", textDecoration: "none", fontSize: 12, fontWeight: 700, padding: "9px 12px", borderRadius: 10, background: "#0891b2", color: "#fff" }}
+                      >
+                        Solicitar importación
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </>
       )}
 
       {/* Filters + offers grid */}

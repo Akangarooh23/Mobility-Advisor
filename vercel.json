@@ -21,6 +21,10 @@
       "destination": "/api/market?route=vo"
     },
     {
+      "source": "/api/import-offers",
+      "destination": "/api/market?route=import"
+    },
+    {
       "source": "/api/workshops-nearby",
       "destination": "/api/market?route=nearby"
     },

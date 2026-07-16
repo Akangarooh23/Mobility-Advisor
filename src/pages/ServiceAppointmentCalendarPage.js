@@ -48,61 +48,16 @@ function toDateTimeLabel(date, timeText = "") {
   if (Number.isNaN(safe.getTime())) {
     return "";
   }
-
   const day = String(safe.getDate()).padStart(2, "0");
   const month = String(safe.getMonth() + 1).padStart(2, "0");
   const year = safe.getFullYear();
   return `${day}/${month}/${year} ${timeText}`.trim();
 }
 
-function hashText(value = "") {
-  let hash = 0;
-  const text = String(value || "");
-  for (let index = 0; index < text.length; index += 1) {
-    hash = (hash * 31 + text.charCodeAt(index)) % 1000003;
-  }
-  return hash;
-}
-
-function buildWorkshopProfile(workshopId = "", provider = "") {
-  const profileSeed = normalizeText(workshopId) || normalizeText(provider) || "carswise-workshop";
-  const hash = hashText(profileSeed);
-
-  return {
-    busySlotModulo: 3 + (hash % 3),
-    fullDayModulo: 5 + (hash % 4),
-    weekendOpenBias: hash % 2 === 0,
-    eveningOpenBias: hash % 5 <= 2,
-  };
-}
-
-function buildSlotsForDate(date, seed = "", profile = null) {
-  const weekday = date.getDay();
-  const weekend = weekday === 0 || weekday === 6;
-  const workshopProfile = profile || buildWorkshopProfile();
-
-  const baseSlots = weekend
-    ? (workshopProfile.weekendOpenBias
-      ? ["09:30", "11:00", "12:30", "16:00"]
-      : ["10:00", "11:30", "13:00"])
-    : (workshopProfile.eveningOpenBias
-      ? ["09:00", "10:30", "12:00", "13:30", "16:00", "17:30", "19:00"]
-      : ["08:30", "10:00", "11:30", "13:00", "15:30", "17:00"]);
-
-  return baseSlots.map((timeText) => {
-    const slotHash = hashText(`${seed}-${dateKeyFromDate(date)}-${timeText}`);
-    const available = slotHash % workshopProfile.busySlotModulo !== 0;
-    return {
-      time: timeText,
-      available,
-    };
-  });
-}
-
-function isDayFullyBooked(date, seed = "", profile = null) {
-  const workshopProfile = profile || buildWorkshopProfile();
-  const dayHash = hashText(`${seed}-${dateKeyFromDate(date)}-day`);
-  return dayHash % workshopProfile.fullDayModulo === 0;
+function getSlotsForWeekday(weekday) {
+  if (weekday === 0) return null; // Sunday — closed
+  if (weekday === 6) return ["09:00", "10:00", "11:00", "12:00", "13:00"]; // Saturday
+  return ["09:00", "10:00", "11:00", "12:00", "13:00", "16:00", "17:00", "18:00", "19:00"]; // Mon–Fri
 }
 
 export default function ServiceAppointmentCalendarPage({
@@ -134,17 +89,7 @@ export default function ServiceAppointmentCalendarPage({
   const safeDraft = bookingDraft && typeof bookingDraft === "object" ? bookingDraft : {};
   const workshopName = normalizeText(safeDraft?.workshopName) || normalizeText(safeDraft?.provider) || t("service.appointmentCalWorkshopFallback");
   const workshopId = normalizeText(safeDraft?.workshopId);
-  const workshopProfile = useMemo(
-    () => buildWorkshopProfile(workshopId, normalizeText(safeDraft?.provider)),
-    [workshopId, safeDraft?.provider]
-  );
   const appointmentType = normalizeText(safeDraft?.appointmentType) || t("service.appointmentCalTypeFallback");
-  const draftSeed = [
-    normalizeText(safeDraft?.vehicleId),
-    workshopId,
-    normalizeText(safeDraft?.provider),
-    normalizeText(safeDraft?.postalCode),
-  ].filter(Boolean).join("-") || "carswise";
 
   const monthCells = useMemo(() => buildMonthCells(monthCursor), [monthCursor]);
   const monthKey = `${monthCursor.getFullYear()}-${String(monthCursor.getMonth() + 1).padStart(2, "0")}`;
@@ -160,20 +105,22 @@ export default function ServiceAppointmentCalendarPage({
       dayStart.setHours(0, 0, 0, 0);
 
       const inPast = dayStart.getTime() < today.getTime();
-      const fullyBooked = !inPast && isDayFullyBooked(date, draftSeed, workshopProfile);
-      const slots = !inPast && !fullyBooked ? buildSlotsForDate(date, draftSeed, workshopProfile) : [];
-      const availableSlots = slots.filter((slot) => slot.available);
+      const weekday = date.getDay();
+      const isSunday = weekday === 0;
+      const slotTimes = !inPast && !isSunday ? (getSlotsForWeekday(weekday) || []) : [];
+      const slots = slotTimes.map((t) => ({ time: t, available: true }));
 
       map.set(cell.key, {
         inPast,
-        fullyBooked,
+        closed: isSunday,
+        fullyBooked: false,
         slots,
-        availableSlots,
+        availableSlots: slots,
       });
     });
 
     return map;
-  }, [monthCells, draftSeed, workshopProfile]);
+  }, [monthCells]);
 
   useEffect(() => {
     let disposed = false;
@@ -236,12 +183,13 @@ export default function ServiceAppointmentCalendarPage({
         }));
         map.set(cell.key, {
           inPast: false,
+          closed: Boolean(remote?.closed),
           fullyBooked: Boolean(remote?.fullyBooked),
           slots,
           availableSlots: slots.filter((slot) => slot.available),
         });
       } else {
-        map.set(cell.key, fallbackDayAvailability.get(cell.key) || { inPast: false, fullyBooked: false, slots: [], availableSlots: [] });
+        map.set(cell.key, fallbackDayAvailability.get(cell.key) || { inPast: false, closed: false, fullyBooked: false, slots: [], availableSlots: [] });
       }
     });
 
@@ -327,6 +275,14 @@ export default function ServiceAppointmentCalendarPage({
         </div>
       </section>
 
+      <section style={{ ...cardStyle, padding: "12px 16px", marginBottom: 12, display: "flex", alignItems: "flex-start", gap: 10 }}>
+        <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>ℹ️</span>
+        <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.55 }}>
+          <strong>Horario orientativo del taller.</strong> Selecciona el día y la franja que mejor te venga.
+          Una vez enviada tu solicitud, el taller verificará disponibilidad y te confirmará la cita en 24 h.
+        </div>
+      </section>
+
       <section style={{ ...cardStyle, padding: 16, marginBottom: 12 }}>
         {isLoadingAvailability ? (
           <div style={{ fontSize: 12, color: "#64748b", marginBottom: 8 }}>
@@ -368,26 +324,26 @@ export default function ServiceAppointmentCalendarPage({
           {monthCells.map((cell) => {
             const data = dayAvailability.get(cell.key);
             const isSelected = selectedDayKey === cell.key;
-            const isDisabled = data?.inPast;
-            const full = data?.fullyBooked;
-            const hasAnyAvailable = (data?.availableSlots || []).length > 0;
+            const isClosed = data?.closed;
+            const isDisabled = data?.inPast || isClosed;
+            const hasSlots = (data?.slots || []).length > 0;
 
             const background = isSelected
               ? "rgba(139,92,246,0.18)"
-              : full
-                ? "rgba(239,68,68,0.12)"
-                : hasAnyAvailable
-                  ? "rgba(34,197,94,0.12)"
-                  : "#fafaf9";
+              : isClosed
+                ? "#f1f5f9"
+                : data?.inPast
+                  ? "#fafaf9"
+                  : hasSlots
+                    ? "rgba(34,197,94,0.10)"
+                    : "#fafaf9";
 
             return (
               <button
                 key={cell.key}
                 type="button"
                 onClick={() => {
-                  if (isDisabled) {
-                    return;
-                  }
+                  if (isDisabled) return;
                   setSelectedDayKey(cell.key);
                   setSelectedTime("");
                 }}
@@ -397,21 +353,36 @@ export default function ServiceAppointmentCalendarPage({
                   borderRadius: 8,
                   border: isSelected ? "1px solid rgba(124,58,237,0.55)" : "1px solid rgba(148,163,184,0.2)",
                   background,
-                  color: isDisabled ? "#cbd5e1" : full ? "#b91c1c" : hasAnyAvailable ? "#166534" : "#64748b",
+                  color: data?.inPast ? "#cbd5e1" : isClosed ? "#94a3b8" : hasSlots ? "#166534" : "#64748b",
                   fontSize: 12,
                   fontWeight: 700,
                   cursor: isDisabled ? "not-allowed" : "pointer",
-                  opacity: cell.inCurrentMonth ? 1 : 0.55,
+                  opacity: cell.inCurrentMonth ? 1 : 0.45,
                   position: "relative",
                 }}
               >
                 {cell.day}
-                {full ? (
-                  <span style={{ position: "absolute", right: 4, top: 3, fontSize: 9, color: "#b91c1c", fontWeight: 800 }}>{t("service.appointmentCalDayFull")}</span>
+                {isClosed ? (
+                  <span style={{ position: "absolute", right: 3, top: 3, fontSize: 8, color: "#94a3b8", fontWeight: 700 }}>CERR</span>
                 ) : null}
               </button>
             );
           })}
+        </div>
+
+        <div style={{ display: "flex", gap: 16, marginTop: 12, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#64748b" }}>
+            <span style={{ width: 12, height: 12, borderRadius: 3, background: "rgba(34,197,94,0.20)", border: "1px solid rgba(34,197,94,0.3)", display: "inline-block" }} />
+            Disponible
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#64748b" }}>
+            <span style={{ width: 12, height: 12, borderRadius: 3, background: "#f1f5f9", border: "1px solid rgba(148,163,184,0.2)", display: "inline-block" }} />
+            Cerrado
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#64748b" }}>
+            <span style={{ width: 12, height: 12, borderRadius: 3, background: "rgba(139,92,246,0.18)", border: "1px solid rgba(124,58,237,0.4)", display: "inline-block" }} />
+            Seleccionado
+          </div>
         </div>
       </section>
 
@@ -421,33 +392,36 @@ export default function ServiceAppointmentCalendarPage({
         </div>
 
         {selectedDay ? (
-          selectedDayData?.fullyBooked ? (
-            <div style={{ fontSize: 12, color: "#b91c1c", fontWeight: 700 }}>
-              {t("service.appointmentCalDayFullMessage")}
+          selectedDayData?.closed ? (
+            <div style={{ fontSize: 13, color: "#64748b" }}>
+              El taller está cerrado los domingos. Elige otro día.
             </div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(120px,1fr))", gap: 8 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(100px,1fr))", gap: 8 }}>
               {(selectedDayData?.slots || []).map((slot) => {
                 const active = selectedTime === slot.time;
+                const isUnavailable = !slot.available;
                 return (
                   <button
                     key={slot.time}
                     type="button"
-                    onClick={() => slot.available && setSelectedTime(slot.time)}
-                    disabled={!slot.available}
+                    onClick={() => !isUnavailable && setSelectedTime(slot.time)}
+                    disabled={isUnavailable}
                     style={{
                       border: active ? "1px solid rgba(124,58,237,0.55)" : "1px solid rgba(148,163,184,0.25)",
                       borderRadius: 10,
-                      padding: "9px 10px",
-                      fontSize: 13,
+                      padding: "10px 8px",
+                      fontSize: 14,
                       fontWeight: 700,
-                      background: !slot.available ? "#f8fafc" : active ? "rgba(139,92,246,0.14)" : "#fff",
-                      color: !slot.available ? "#94a3b8" : active ? "#6d28d9" : "#334155",
-                      cursor: !slot.available ? "not-allowed" : "pointer",
+                      background: isUnavailable ? "#f8fafc" : active ? "rgba(139,92,246,0.14)" : "#fff",
+                      color: isUnavailable ? "#94a3b8" : active ? "#6d28d9" : "#334155",
+                      cursor: isUnavailable ? "not-allowed" : "pointer",
                     }}
                   >
                     {slot.time}
-                    {!slot.available ? ` ${t("service.appointmentCalSlotNotAvail")}` : ""}
+                    {isUnavailable ? (
+                      <div style={{ fontSize: 9, fontWeight: 600, color: "#94a3b8", marginTop: 2 }}>Ocupado</div>
+                    ) : null}
                   </button>
                 );
               })}

@@ -73,6 +73,8 @@ export default function ServiceAppointmentCalendarPage({
   const [selectedDayKey, setSelectedDayKey] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isConfirmed, setIsConfirmed] = useState(false);
+  const [confirmedDetail, setConfirmedDetail] = useState("");
   const [availabilityMap, setAvailabilityMap] = useState({});
   const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
   const [availabilityError, setAvailabilityError] = useState("");
@@ -222,18 +224,73 @@ export default function ServiceAppointmentCalendarPage({
         }
       }
 
+      const detail = toDateTimeLabel(selectedDay.date, selectedTime);
       await onConfirmBooking({
         selectedDateKey: selectedDay.key,
         selectedTime,
-        requestedAt: toDateTimeLabel(selectedDay.date, selectedTime),
+        requestedAt: detail,
       });
-      onGoHome();
+      setConfirmedDetail(detail);
+      setIsConfirmed(true);
     } catch (error) {
       setAvailabilityError(error instanceof Error ? error.message : t("service.appointmentCalReservationError"));
     } finally {
       setIsSaving(false);
     }
   };
+
+  if (isConfirmed) {
+    return (
+      <div style={{
+        position: "fixed", inset: 0, zIndex: 9999,
+        background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 16,
+      }}>
+        <div style={{
+          background: "#fff", borderRadius: 20, padding: "36px 28px",
+          maxWidth: 400, width: "100%", textAlign: "center",
+          boxShadow: "0 24px 48px rgba(0,0,0,0.18)",
+        }}>
+          <div style={{
+            width: 64, height: 64, borderRadius: "50%",
+            background: "linear-gradient(135deg,#7c3aed,#8b5cf6)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            margin: "0 auto 16px",
+          }}>
+            <span style={{ fontSize: 30, color: "#fff" }}>✓</span>
+          </div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: "#1e293b", marginBottom: 8 }}>
+            ¡Solicitud enviada!
+          </div>
+          <div style={{ fontSize: 14, color: "#64748b", marginBottom: 6, lineHeight: 1.5 }}>
+            <strong style={{ color: "#1e293b" }}>{appointmentType}</strong> en <strong style={{ color: "#1e293b" }}>{workshopName}</strong>
+          </div>
+          {confirmedDetail && (
+            <div style={{ fontSize: 13, color: "#7c3aed", fontWeight: 700, marginBottom: 4 }}>
+              {confirmedDetail}
+            </div>
+          )}
+          <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 24 }}>
+            El taller verificará disponibilidad y te confirmará en 24 h.
+          </div>
+          <button
+            type="button"
+            onClick={onGoHome}
+            style={{
+              width: "100%", padding: "13px 0",
+              background: "linear-gradient(135deg,#7c3aed,#8b5cf6)",
+              color: "#fff", border: "none", borderRadius: 12,
+              fontSize: 15, fontWeight: 700, cursor: "pointer",
+              boxShadow: "0 8px 20px rgba(124,58,237,0.3)",
+            }}
+          >
+            Ver mi solicitud en el panel →
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ width: "100%", maxWidth: 1040, margin: "0 auto", color: "#1a1a1a", padding: "0 8px 16px" }}>
@@ -289,11 +346,7 @@ export default function ServiceAppointmentCalendarPage({
             {t("service.appointmentCalLoadingAvailability")}
           </div>
         ) : null}
-        {availabilityError ? (
-          <div style={{ fontSize: 12, color: "#b91c1c", marginBottom: 8 }}>
-            {availabilityError}
-          </div>
-        ) : null}
+        {/* API availability error suppressed — fallback slots are used instead */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <button
             type="button"

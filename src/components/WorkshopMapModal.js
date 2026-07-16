@@ -166,7 +166,6 @@ export default function WorkshopMapModal({
           const isSelected = providerKey === selectedProvider;
 
           const distText   = workshop.distanceKm != null ? `${workshop.distanceKm} km · ETA ${workshop.etaMinutes} min` : "";
-          const phoneText  = workshop.phone ? `<br>📞 ${workshop.phone}` : "";
           const starsCount = workshop.rating != null ? Math.round(workshop.rating) : 0;
           const starsHtml  = workshop.rating != null
             ? `<br><span style="color:#f59e0b;letter-spacing:1px">${"★".repeat(starsCount)}${"☆".repeat(5 - starsCount)}</span> <span style="font-size:11px;color:#64748b">${workshop.rating.toFixed(1)}${workshop.ratingCount ? ` (${workshop.ratingCount.toLocaleString("es-ES")})` : ""}</span>`
@@ -182,7 +181,6 @@ export default function WorkshopMapModal({
               ${workshop.address ? `<div style="font-size:12px;color:#64748b;margin-bottom:4px">📍 ${workshop.address}</div>` : ""}
               ${distText ? `<div style="font-size:12px;color:#64748b;margin-bottom:4px">🚗 ${distText}</div>` : ""}
               ${starsHtml}
-              ${phoneText}
               <button onclick="window.__cwSelectProvider('${providerKey}')" style="
                 margin-top:10px;width:100%;padding:7px 0;border:none;border-radius:7px;
                 background:${color};color:white;font-size:12px;font-weight:700;cursor:pointer;

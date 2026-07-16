@@ -1,4 +1,5 @@
 const { Pool } = require("pg");
+const { randomUUID } = require("crypto");
 
 let pool;
 function getPool() {
@@ -74,9 +75,9 @@ module.exports = async function erpAppointmentApi(req, res) {
     await ensureTable(db);
     const result = await db.query(
       `INSERT INTO erp_appointments (id, user_id, scheduled_at, type, notes, status, created_at)
-       VALUES (gen_random_uuid()::text, $1, $2, $3, $4, 'scheduled', NOW())
+       VALUES ($1, $2, $3, $4, $5, 'scheduled', NOW())
        RETURNING id, status, created_at`,
-      [String(userId).toLowerCase(), scheduledAt, type, notesStr]
+      [randomUUID(), String(userId).toLowerCase(), scheduledAt, type, notesStr]
     );
     return res.status(201).json({ ok: true, data: result.rows[0] });
   } catch (err) {

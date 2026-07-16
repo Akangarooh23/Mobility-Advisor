@@ -6597,23 +6597,20 @@ export default function App() {
               skipErpSave: true,
             });
 
-            // Explicit awaitable ERP save so we can report success/failure in the popup
+            // Fire-and-forget ERP save (non-blocking — billing save above is authoritative)
             const isoDate = dateKey && timeStr ? `${dateKey}T${timeStr}:00+01:00` : null;
             if (isoDate && currentUserEmail) {
               const notesParts = [
                 normalizeText(draft?.vehicleTitle) ? `Vehículo: ${normalizeText(draft.vehicleTitle)}` : "",
                 normalizeText(draft?.vehiclePlate) ? `Matrícula: ${normalizeText(draft.vehiclePlate)}` : "",
               ].filter(Boolean).join(" · ");
-              const erpResult = await postErpAppointmentJson({
+              postErpAppointmentJson({
                 userId:          currentUserEmail,
                 scheduledAt:     isoDate,
                 appointmentType: normalizeText(draft?.appointmentType),
                 workshopName:    normalizeText(draft?.workshopName) || normalizeText(draft?.provider),
                 notes:           notesParts || undefined,
-              }).catch(() => null);
-              if (!erpResult?.data?.data?.id) {
-                throw new Error("La cita no pudo registrarse en el taller. Comprueba tu conexión e inténtalo de nuevo.");
-              }
+              }).catch(() => { /* silencioso — ERP sync best-effort */ });
             }
 
             setServiceAppointmentDraft(null);

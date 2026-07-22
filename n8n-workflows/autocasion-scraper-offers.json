@@ -1,0 +1,307 @@
+{
+  "name": "Autocasión – Scraper (gradual)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "ac-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 30 23 * * *"
+            }
+          ]
+        }
+      },
+      "id": "ac-cron",
+      "name": "Cada día a las 23:30",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -260,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Alimentacion GRADUAL de Autocasion: procesa un lote de paginas por ejecucion,\n// avanzando un cursor persistente sobre las paginas navegables (1..625, ~16k coches).\n// Al llegar al final vuelve a empezar (refresco continuo). Sube PAGES_PER_RUN para ir mas rapido.\nconst MAX_PAGE = 625;\nconst PAGES_PER_RUN = 25;\nconst store = $getWorkflowStaticData('global');\nlet cursor = Number(store.acPage || 1);\nif (!(cursor >= 1) || cursor > MAX_PAGE) cursor = 1;\nconst out = [];\nfor (let i = 0; i < PAGES_PER_RUN; i++) {\n  let p = cursor + i;\n  if (p > MAX_PAGE) p = ((p - 1) % MAX_PAGE) + 1;\n  out.push({ json: { page: p } });\n}\nlet next = cursor + PAGES_PER_RUN;\nif (next > MAX_PAGE) next = ((next - 1) % MAX_PAGE) + 1;\nstore.acPage = next;\nreturn out;"
+      },
+      "id": "ac-gen",
+      "name": "Code: Generar páginas (gradual)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -20,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "ac-loop",
+      "name": "Loop: página por página",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        220,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://www.autocasion.com/coches-ocasion?page={{ $json.page }}",
+        "options": {
+          "timeout": 25000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "headers": {
+            "values": [
+              {
+                "name": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+              },
+              {
+                "name": "Accept",
+                "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+              },
+              {
+                "name": "Accept-Language",
+                "value": "es-ES,es;q=0.9,en;q=0.8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "ac-http",
+      "name": "HTTP: Listado Autocasión",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        440,
+        400
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Autocasion - transform: HTML pagina -> JSON-LD (Product/Car) -> UPSERT\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\nlet items = [];\nconst blocks = [...html.matchAll(/<script[^>]*application\\/ld\\+json[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m => m[1].trim());\nfor (const b of blocks) {\n  try {\n    const j = JSON.parse(b);\n    const arr = Array.isArray(j) ? j : (j['@graph'] || [j]);\n    for (const o of arr) {\n      if (o && (o['@type'] === 'Product' || o['@type'] === 'Car')) items.push(o);\n      else if (o && o['@type'] === 'ItemList' && Array.isArray(o.itemListElement)) { for (const el of o.itemListElement) { const it = el.item || el; if (it) items.push(it); } }\n    }\n  } catch (e) {}\n}\nif (!items.length) return [{ json: { sql: null, count: 0 } }];\nfunction esc(v){ if(v===null||v===undefined) return 'NULL'; if(typeof v==='number') return isNaN(v)?'NULL':String(v); return \"'\"+String(v).replace(/'/g,\"''\")+\"'\"; }\nfunction num(s){ const n=parseInt(String(s).replace(/[^0-9]/g,''),10); return isNaN(n)?null:n; }\nfunction normGear(r){ const s=String(r||'').toLowerCase(); if(s.indexOf('autom')!==-1) return 'Automatica'; if(s.indexOf('manual')!==-1) return 'Manual'; return ''; }\nfunction reEsc(s){ return s.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&'); }\nfunction inferFuel(t){ const s=String(t||'').toLowerCase();\n  if(/eléctric|electric|\\be-tech electric\\b/.test(s)) return 'Eléctrico';\n  if(/híbrid|hibrid|phev|hev|hybrid|e-tech/.test(s)) return 'Híbrido';\n  if(/diésel|diesel|bluehdi|\\bhdi\\b|\\btdi\\b|\\bcdi\\b|\\bdci\\b|\\btdci\\b|bluetec|crdi|\\bjtd\\b|\\bcrdi\\b/.test(s)) return 'Diesel';\n  if(/gasolina|puretech|\\btsi\\b|\\btfsi\\b|\\btce\\b|\\bthp\\b|\\bvti\\b|\\bmpi\\b|t-gdi|\\bgdi\\b|\\bmhev\\b|firefly/.test(s)) return 'Gasolina';\n  return ''; }\nconst rows = [];\nfor (const it of items) {\n  const off = it.offers || {}, car = off.itemOffered || {};\n  const idf = car.identifier || (off.url ? (String(off.url).match(/ref(\\d+)/) || [])[1] : null);\n  if (!idf) continue;\n  const id = 'ac_' + String(idf);\n  const url = off.url || '';\n  const brand = (it.brand && it.brand.name) || car.manufacturer || '';\n  const model = car.model || '';\n  const title = it.name || car.name || (brand + ' ' + model).trim();\n  let version = title;\n  if (brand) version = version.replace(new RegExp(reEsc(brand), 'i'), '');\n  if (model) version = version.replace(new RegExp(reEsc(model), 'i'), '');\n  version = version.replace(/\\s+/g, ' ').trim();\n  const year = car.productionDate ? parseInt(car.productionDate, 10) : null;\n  const mileage = (car.mileageFromOdometer && car.mileageFromOdometer.value != null) ? num(car.mileageFromOdometer.value) : null;\n  const price = off.price != null ? num(off.price) : null;\n  const transmission = normGear(car.vehicleTransmission);\n  const fuel = inferFuel(title);\n  const color = car.color || it.color || '';\n  const bodyType = car.bodyType || '';\n  let cv = null; try { const ep = car.vehicleEngine && car.vehicleEngine.enginePower; if (ep && ep.value != null) cv = num(ep.value); } catch (e) {}\n  const imgs = Array.isArray(it.image) ? it.image : (Array.isArray(car.image) ? car.image : (it.image ? [it.image] : []));\n  const imageUrl = imgs[0] || '';\n  const imagesJson = JSON.stringify(imgs.slice(0, 15)).replace(/'/g, \"''\");\n  const rawPayload = JSON.stringify(it).replace(/'/g, \"''\");\n  const row = '(' +\n    esc(id) + \", 'autocasion', \" + esc(url) + ', ' + esc(title) + ', ' + esc(brand) + ', ' + esc(model) + ', ' + esc(version) + ', ' +\n    (year!=null?String(year):'NULL') + ', ' + (mileage!=null?String(mileage):'NULL') + ', ' + (price!=null?String(price):'NULL') + ', ' +\n    esc(fuel) + ', ' + esc(transmission) + ', ' + esc(imageUrl) + \", '\" + imagesJson + \"', \" +\n    esc(bodyType) + ', ' + (cv!=null?String(cv):'NULL') + ', ' + esc(color) + \", 'profesional', 'compra', '\" + rawPayload + \"', NOW(), NOW(), NOW()\" +\n  ')';\n  rows.push(row);\n}\nif (!rows.length) return [{ json: { sql: null, count: 0 } }];\nconst cols = 'id, portal, url, title, brand, model, version, year, mileage, price, fuel, transmission, image_url, images, body_type, power_cv, color, seller_type, listing_type, raw_payload, first_seen_at, scraped_at, last_seen_at';\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET url=EXCLUDED.url, title=EXCLUDED.title, price=EXCLUDED.price, mileage=EXCLUDED.mileage, ' +\n  \"image_url=COALESCE(NULLIF(moveadvisor_market_offers.image_url,''), EXCLUDED.image_url), \" +\n  \"images=COALESCE(NULLIF(moveadvisor_market_offers.images,''), EXCLUDED.images), \" +\n  'power_cv=COALESCE(EXCLUDED.power_cv, moveadvisor_market_offers.power_cv), ' +\n  \"color=COALESCE(NULLIF(moveadvisor_market_offers.color,''), EXCLUDED.color), \" +\n  'raw_payload=EXCLUDED.raw_payload, last_seen_at=NOW(), updated_at=NOW()';\nconst sql = 'INSERT INTO moveadvisor_market_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;\nreturn [{ json: { sql: sql, count: rows.length } }];"
+      },
+      "id": "ac-transform",
+      "name": "Code: Transformar ofertas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.count }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ac-if",
+      "name": "IF: ¿hay ofertas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        880,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "additionalFields": {}
+      },
+      "id": "ac-pg",
+      "name": "PG: Upsert ofertas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        280
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "ac-wait",
+      "name": "Esperar 1s (rate limit)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        400
+      ],
+      "webhookId": "wait-autocasion"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar páginas (gradual)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada día a las 23:30": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar páginas (gradual)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Generar páginas (gradual)": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: página por página": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP: Listado Autocasión",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Listado Autocasión": {
+      "main": [
+        [
+          {
+            "node": "Code: Transformar ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Transformar ofertas": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay ofertas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ofertas?": {
+      "main": [
+        [
+          {
+            "node": "PG: Upsert ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 1s (rate limit)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Upsert ofertas": {
+      "main": [
+        [
+          {
+            "node": "Esperar 1s (rate limit)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 1s (rate limit)": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "triggerCount": 0,
+  "tags": []
+}

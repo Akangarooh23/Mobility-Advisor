@@ -983,6 +983,46 @@ export default function SellReportMarketPage({
                     </div>
                   </div>
 
+                  <div className="field-grid-2" style={{ marginTop: "0.75rem" }}>
+                    <div className="field">
+                      <label>Transmisión <span style={{ color: "#9ca3af", fontWeight: 400 }}>(opcional)</span></label>
+                      <div className="sel-wrap">
+                        <select
+                          value={sellAnswers?.transmission || ""}
+                          onChange={(event) => setSellAnswers((prev) => ({ ...prev, transmission: event.target.value }))}
+                        >
+                          <option value="">Indiferente</option>
+                          <option value="manual">Manual</option>
+                          <option value="automatico">Automático</option>
+                        </select>
+                        <div className="sel-arrow">▾</div>
+                      </div>
+                    </div>
+                    <div className="field">
+                      <label>Color <span style={{ color: "#9ca3af", fontWeight: 400 }}>(opcional)</span></label>
+                      <div className="sel-wrap">
+                        <select
+                          value={sellAnswers?.color || ""}
+                          onChange={(event) => setSellAnswers((prev) => ({ ...prev, color: event.target.value }))}
+                        >
+                          <option value="">No indicar</option>
+                          <option value="blanco">Blanco</option>
+                          <option value="negro">Negro</option>
+                          <option value="plata">Plata / Gris claro</option>
+                          <option value="gris">Gris oscuro</option>
+                          <option value="azul">Azul</option>
+                          <option value="rojo">Rojo</option>
+                          <option value="verde">Verde</option>
+                          <option value="marron">Marrón</option>
+                          <option value="naranja">Naranja</option>
+                          <option value="amarillo">Amarillo</option>
+                          <option value="otro">Otro color</option>
+                        </select>
+                        <div className="sel-arrow">▾</div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="divider" />
                   <div className="field">
                     <label>{t("sell.sellFlowADamagesLabel")}</label>
@@ -1255,6 +1295,8 @@ export default function SellReportMarketPage({
                                 year: sellAnswers?.year || selectedVehicle?.year || "",
                                 mileage: sellAnswers?.mileage || selectedVehicle?.mileage || "",
                                 fuel: sellAnswers?.fuel || selectedVehicle?.fuel || "",
+                                transmission: sellAnswers?.transmission || "",
+                                color: sellAnswers?.color || "",
                                 plate: sellAnswers?.plate || selectedVehicle?.plate || "",
                                 damageLevel: sellAnswers?.damageLevel || "",
                                 damageDescription: sellAnswers?.damageDescription || "",

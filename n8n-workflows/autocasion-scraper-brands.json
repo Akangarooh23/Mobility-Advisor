@@ -1,0 +1,176 @@
+{
+  "name": "Autocasión – Scraper por marcas (orquestador)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "aco-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 22 * * *"
+            }
+          ]
+        }
+      },
+      "id": "aco-cron",
+      "name": "Cada día a las 22:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Alimentacion GRADUAL: procesa BRANDS_PER_NIGHT marcas por noche, cursor persistente.\n// Cada marca scrapea TODAS sus paginas. Cubre las 61 marcas en ~21 noches y refresca en bucle.\nconst brands = [\"audi\",\"aston-martin\",\"bmw\",\"cupra\",\"dacia\",\"honda\",\"hyundai\",\"kia\",\"lamborghini\",\"mercedes-benz\",\"mg\",\"peugeot\",\"porsche\",\"renault\",\"seat\",\"tesla\",\"toyota\",\"volkswagen\",\"abarth\",\"alfa-romeo\",\"alpine\",\"baic\",\"bentley\",\"byd\",\"changan\",\"citroen\",\"ds\",\"ebro\",\"ferrari\",\"fiat\",\"ford\",\"geely\",\"genesis\",\"gwm\",\"ineos\",\"isuzu\",\"jaguar\",\"jeep\",\"ssangyong\",\"lancia\",\"land-rover\",\"leapmotor\",\"lexus\",\"lotus\",\"maserati\",\"maxus\",\"mazda\",\"mini\",\"mitsubishi\",\"nissan\",\"omoda\",\"opel\",\"polestar\",\"seres\",\"skoda\",\"smart\",\"subaru\",\"suzuki\",\"volvo\",\"xpeng\",\"zeekr\"];\nconst BRANDS_PER_NIGHT = 3;\nconst store = $getWorkflowStaticData('global');\nlet cursor = Number(store.acBrandCursor || 0);\nif (!(cursor >= 0) || cursor >= brands.length) cursor = 0;\nconst out = [];\nfor (let i = 0; i < BRANDS_PER_NIGHT; i++) out.push({ json: { brand: brands[(cursor + i) % brands.length] } });\nstore.acBrandCursor = (cursor + BRANDS_PER_NIGHT) % brands.length;\nreturn out;"
+      },
+      "id": "aco-gen",
+      "name": "Code: Generar marcas (gradual)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "aco-loop",
+      "name": "Loop: marca por marca",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        480,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "REEMPLAZA_CON_ID_DEL_SEGMENTO_AC",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "aco-exec",
+      "name": "Scrapear marca (Autocasión – Segmento)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        720,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "aco-wait",
+      "name": "Esperar 1s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        960,
+        400
+      ],
+      "webhookId": "wait-autocasion-orquestador"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar marcas (gradual)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada día a las 22:00": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar marcas (gradual)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Generar marcas (gradual)": {
+      "main": [
+        [
+          {
+            "node": "Loop: marca por marca",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: marca por marca": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Scrapear marca (Autocasión – Segmento)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrapear marca (Autocasión – Segmento)": {
+      "main": [
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 1s": {
+      "main": [
+        [
+          {
+            "node": "Loop: marca por marca",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "triggerCount": 1,
+  "tags": []
+}

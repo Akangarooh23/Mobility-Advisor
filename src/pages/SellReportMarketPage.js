@@ -985,6 +985,39 @@ export default function SellReportMarketPage({
 
                   <div className="field-grid-2" style={{ marginTop: "0.75rem" }}>
                     <div className="field">
+                      <label>Propietarios anteriores <span style={{ color: "#9ca3af", fontWeight: 400 }}>(opcional)</span></label>
+                      <div className="sel-wrap">
+                        <select
+                          value={sellAnswers?.owners || ""}
+                          onChange={(event) => setSellAnswers((prev) => ({ ...prev, owners: event.target.value }))}
+                        >
+                          <option value="">No indicar</option>
+                          <option value="1">1 propietario</option>
+                          <option value="2">2 propietarios</option>
+                          <option value="3">3 o más</option>
+                        </select>
+                        <div className="sel-arrow">▾</div>
+                      </div>
+                    </div>
+                    <div className="field">
+                      <label>Historial de revisiones <span style={{ color: "#9ca3af", fontWeight: 400 }}>(opcional)</span></label>
+                      <div className="sel-wrap">
+                        <select
+                          value={sellAnswers?.serviceHistory || ""}
+                          onChange={(event) => setSellAnswers((prev) => ({ ...prev, serviceHistory: event.target.value }))}
+                        >
+                          <option value="">No indicar</option>
+                          <option value="oficial">Oficial completo</option>
+                          <option value="parcial">Parcial o multimarca</option>
+                          <option value="sin">Sin historial</option>
+                        </select>
+                        <div className="sel-arrow">▾</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="field-grid-2" style={{ marginTop: "0.75rem" }}>
+                    <div className="field">
                       <label>Transmisión <span style={{ color: "#9ca3af", fontWeight: 400 }}>(opcional)</span></label>
                       <div className="sel-wrap">
                         <select
@@ -1297,6 +1330,8 @@ export default function SellReportMarketPage({
                                 fuel: sellAnswers?.fuel || selectedVehicle?.fuel || "",
                                 transmission: sellAnswers?.transmission || "",
                                 color: sellAnswers?.color || "",
+                                owners: sellAnswers?.owners || "",
+                                serviceHistory: sellAnswers?.serviceHistory || "",
                                 plate: sellAnswers?.plate || selectedVehicle?.plate || "",
                                 damageLevel: sellAnswers?.damageLevel || "",
                                 damageDescription: sellAnswers?.damageDescription || "",

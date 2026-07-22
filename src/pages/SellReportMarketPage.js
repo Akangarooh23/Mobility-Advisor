@@ -1056,6 +1056,34 @@ export default function SellReportMarketPage({
                     </div>
                   </div>
 
+                  <div className="field-grid-2" style={{ marginTop: "0.75rem" }}>
+                    <div className="field">
+                      <label>Potencia <span style={{ color: "#9ca3af", fontWeight: 400 }}>(CV, opcional)</span></label>
+                      <input
+                        type="number"
+                        min="30"
+                        max="2000"
+                        placeholder="Ej: 120"
+                        value={sellAnswers?.powerCv || ""}
+                        onChange={(event) => setSellAnswers((prev) => ({ ...prev, powerCv: event.target.value }))}
+                      />
+                    </div>
+                    <div className="field">
+                      <label>Estado ITV <span style={{ color: "#9ca3af", fontWeight: 400 }}>(opcional)</span></label>
+                      <div className="sel-wrap">
+                        <select
+                          value={sellAnswers?.itvStatus || ""}
+                          onChange={(event) => setSellAnswers((prev) => ({ ...prev, itvStatus: event.target.value }))}
+                        >
+                          <option value="">En regla / No sé</option>
+                          <option value="pronto">Caduca en menos de 6 meses</option>
+                          <option value="caducada">Ya ha caducado</option>
+                        </select>
+                        <div className="sel-arrow">▾</div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="divider" />
                   <div className="field">
                     <label>{t("sell.sellFlowADamagesLabel")}</label>
@@ -1332,6 +1360,8 @@ export default function SellReportMarketPage({
                                 color: sellAnswers?.color || "",
                                 owners: sellAnswers?.owners || "",
                                 serviceHistory: sellAnswers?.serviceHistory || "",
+                                powerCv: sellAnswers?.powerCv || "",
+                                itvStatus: sellAnswers?.itvStatus || "",
                                 plate: sellAnswers?.plate || selectedVehicle?.plate || "",
                                 damageLevel: sellAnswers?.damageLevel || "",
                                 damageDescription: sellAnswers?.damageDescription || "",

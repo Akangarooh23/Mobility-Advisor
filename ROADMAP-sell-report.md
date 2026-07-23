@@ -160,8 +160,16 @@ Tras la corrección de frontera, los fixtures actuales cubren `buildReportData` 
 2. **`git add scripts/golden-tests/fixtures/`** — fijar la línea base ahora, antes del segundo capture
 3. Correr `capture.js` de nuevo → `git diff` del `_pool` debe ser vacío (o solo ruido de ofertas nuevas/retiradas en las ~horas de diferencia). Si hay diff estructural, el sort determinista o el límite 1500 no es estable — investigar antes de continuar
 4. Correr `run.js` → **debe salir 0 DRIFT** (0 PASS, 0 DRIFT, 0 MISSING). Eso ES el test: capture.js almacena en `expected` lo que `computeUsageImpact` calculó en vivo; run.js lo recalcula desde `_pool` y compara. Si coinciden → la frontera es correcta. Si hay DRIFT → **hay un bug en la frontera, no un "baseline reset"**: la recaptura y el re-cálculo deben producir el mismo resultado o la cadena está rota
-5. Tras verificar 0 DRIFT: correr `sweep-pool.js` → tabla real de ~1500 ofertas por config
-6. Elegir config de poolProximity con datos del sweep, no a ojo
+5. Tras verificar 0 DRIFT: correr `sweep-pool.js` → tabla con 8 filas por fixture (ver más abajo)
+6. Leer primero `yrPct` de la fila `mkt-full` (n=1500, sin truncar, sin kernel ni cuota) — esa responde la pregunta del diagnóstico antes de cualquier otra
+
+**Nota sobre determinismo de `_rank` y el scraper:**
+`_rank` viene de `updated_at DESC`. Si el scraper está escribiendo entre las dos capturas, algunas ofertas cambian de posición y arrastran a las demás — el diff mostrará cambios de `_rank` aunque el conjunto sea el mismo. Para el chequeo de determinismo: si el conjunto de ofertas es idéntico (mismos precios, mismas urls, misma cantidad) y solo cambian los `_rank` → es escritura concurrente, aceptable. Si aparecen o desaparecen ofertas o cambian precios → es movimiento de mercado real, también aceptable. Lo que señalaría un bug sería que la misma oferta tenga distinto precio en dos capturas consecutivas sin que el scraper haya corrido. Preferiblemente: **correr las dos capturas con el scraper parado** (o fuera de su ventana habitual).
+
+**Fila `mkt-full` — diagnóstico de causa raíz:**
+- `yrPct ≈ 0.50` → el mercado real es simétrico; el sesgo lo producía el corte `updated_at DESC LIMIT 400`. Solución mínima: kernel solo (filas `ker-0.5` / `ker-1.0`) o cambiar criterio de corte. La cuota puede no ser necesaria.
+- `yrPct ≈ 0.05` → el mercado tiene más coches recientes que antiguos. La cuota (filas `bal` / `k*+bal`) es lo que centra. El kernel solo no es suficiente.
+6. Elegir config con datos de la tabla, empezando por la columna `yrPct`
 
 **Consecuencia positiva:** a partir de esa recaptura, todos los cambios del módulo de regresión producirán drift legible en run.js.
 

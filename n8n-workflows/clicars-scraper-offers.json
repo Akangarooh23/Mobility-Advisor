@@ -1,0 +1,360 @@
+{
+  "name": "Clicars – Scraper",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "clc-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 30 1 * * *"
+            }
+          ]
+        }
+      },
+      "id": "clc-cron",
+      "name": "Cada día a las 01:30",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.clicars.com/coches-segunda-mano-ocasion",
+        "options": {
+          "timeout": 25000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "headers": {
+            "values": [
+              {
+                "name": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+              },
+              {
+                "name": "Accept",
+                "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+              },
+              {
+                "name": "Accept-Language",
+                "value": "es-ES,es;q=0.9"
+              }
+            ]
+          }
+        }
+      },
+      "id": "clc-count",
+      "name": "HTTP: Contar (pág 1)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -20,
+        400
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Lee el total de coches de la pagina 1 y cuenta coches/pagina -> genera 1..N\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\nlet total = 0; const m = html.match(/([0-9.]+)\\s*coches/i); if (m) total = parseInt(m[1].replace(/\\./g,''),10) || 0;\nconst perPage = ([...html.matchAll(/data-analytics-vehicle-maker=/g)].length) || 12;\nconst pages = Math.min(Math.max(Math.ceil(total / perPage), 1), 200);\nconst out = []; for (let p = 1; p <= pages; p++) out.push({ json: { page: p } });\nreturn out;"
+      },
+      "id": "clc-gen",
+      "name": "Code: Generar páginas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "clc-loop",
+      "name": "Loop: página por página",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        420,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://www.clicars.com/coches-segunda-mano-ocasion?page={{ $json.page }}",
+        "options": {
+          "timeout": 25000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "headers": {
+            "values": [
+              {
+                "name": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+              },
+              {
+                "name": "Accept",
+                "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+              },
+              {
+                "name": "Accept-Language",
+                "value": "es-ES,es;q=0.9"
+              }
+            ]
+          }
+        }
+      },
+      "id": "clc-http",
+      "name": "HTTP: Listado Clicars",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        640,
+        400
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Clicars - transform: HTML -> tarjetas (anchor data-analytics-vehicle-maker) -> UPSERT\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\nfunction num(s){ const n=parseInt(String(s).replace(/[^0-9]/g,''),10); return isNaN(n)?null:n; }\nfunction tagAttr(t,name){ const m=t.match(new RegExp(name+'=\"([^\"]*)\"','i')); return m?m[1]:''; }\nfunction esc(v){ if(v===null||v===undefined) return 'NULL'; if(typeof v==='number') return isNaN(v)?'NULL':String(v); return \"'\"+String(v).replace(/'/g,\"''\")+\"'\"; }\nfunction normFuel(s){ s=String(s).toLowerCase(); if(/gnc|glp|gas natural/.test(s)) return 'Gas'; if(/eléctric|electric/.test(s)) return 'Eléctrico'; if(/híbrid|hibrid/.test(s)) return 'Híbrido'; if(/diésel|diesel/.test(s)) return 'Diesel'; if(/gasolina/.test(s)) return 'Gasolina'; return ''; }\nfunction normGear(s){ s=String(s).toLowerCase(); if(/autom/.test(s)) return 'Automatica'; if(/manual/.test(s)) return 'Manual'; return ''; }\nconst anchors = [...html.matchAll(/<a\\b[^>]*data-analytics-vehicle-maker=\"[^\"]*\"[^>]*>/gi)];\nconst seen = new Set(); const rows = [];\nfor (let i=0;i<anchors.length;i++){\n  const tag=anchors[i][0];\n  const id=tagAttr(tag,'data-vehicle-web-id'); if(!id||seen.has(id)) continue; seen.add(id);\n  const brand=tagAttr(tag,'data-analytics-vehicle-maker');\n  const model=tagAttr(tag,'data-analytics-vehicle-model');\n  const href=tagAttr(tag,'href'); const url=href.startsWith('http')?href:('https://www.clicars.com'+href);\n  const start=anchors[i].index; const end=(i+1<anchors.length)?anchors[i+1].index:start+4000;\n  const body=html.slice(start,end);\n  const price=num(tagAttr(body,'data-price-web-offer'))||num(tagAttr(body,'data-price-web'));\n  const img=(body.match(/<img[^>]+src=\"(https:\\/\\/storage[^\"]+)\"/i)||[])[1]||'';\n  const text=body.replace(/<[^>]+>/g,' ').replace(/&amp;/g,'&').replace(/\\s+/g,' ').trim();\n  const year=(text.match(/\\b(20\\d{2}|19\\d{2})\\b/)||[])[1]||null;\n  const km=num((text.match(/([0-9.]+)\\s*km/i)||[])[1]);\n  const cv=num((text.match(/(\\d+)\\s*CV/i)||[])[1]);\n  const trans=normGear((text.match(/Manual|Autom[aá]tic[oa]/i)||[])[0]);\n  const fuel=normFuel((text.match(/GNC|GLP|Di[eé]sel|Gasolina|El[eé]ctric[oa]|H[ií]brid[oa]/i)||[])[0]);\n  let version='';\n  if(brand&&model){ const vm=text.match(new RegExp(brand+'\\\\s+'+model.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&')+'\\\\s+([^|0-9][^0-9]*?)\\\\s*(20\\\\d{2}|19\\\\d{2}|\\\\d[\\\\d.]*\\\\s*km)','i')); if(vm) version=vm[1].replace(/\\s+/g,' ').trim().slice(0,80); }\n  if(!price) continue;\n  const title=(brand+' '+model+' '+version).replace(/\\s+/g,' ').trim();\n  const imagesJson=(img?JSON.stringify([img]):'[]').replace(/'/g,\"''\");\n  const row='('+esc('clc_'+id)+\", 'clicars', \"+esc(url)+', '+esc(title)+', '+esc(brand)+', '+esc(model)+', '+esc(version)+', '+\n    (year!=null?String(year):'NULL')+', '+(km!=null?String(km):'NULL')+', '+(price!=null?String(price):'NULL')+', '+\n    esc(fuel)+', '+esc(trans)+', '+(cv!=null?String(cv):'NULL')+', '+esc(img)+\", '\"+imagesJson+\"', 'profesional', 'compra', NOW(), NOW(), NOW())\";\n  rows.push(row);\n}\nif(!rows.length) return [{ json:{ sql:null, count:0 } }];\nconst cols='id, portal, url, title, brand, model, version, year, mileage, price, fuel, transmission, power_cv, image_url, images, seller_type, listing_type, first_seen_at, scraped_at, last_seen_at';\nconst onConflict=\"ON CONFLICT (id) DO UPDATE SET url=EXCLUDED.url, title=EXCLUDED.title, price=EXCLUDED.price, mileage=EXCLUDED.mileage, image_url=COALESCE(NULLIF(moveadvisor_market_offers.image_url,''), EXCLUDED.image_url), power_cv=COALESCE(EXCLUDED.power_cv, moveadvisor_market_offers.power_cv), last_seen_at=NOW(), updated_at=NOW()\";\nconst sql='INSERT INTO moveadvisor_market_offers ('+cols+') VALUES '+rows.join(', ')+' '+onConflict;\nreturn [{ json:{ sql:sql, count:rows.length } }];"
+      },
+      "id": "clc-transform",
+      "name": "Code: Transformar ofertas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.count }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "clc-if",
+      "name": "IF: ¿hay ofertas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "additionalFields": {}
+      },
+      "id": "clc-pg",
+      "name": "PG: Upsert ofertas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        280
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "clc-wait",
+      "name": "Esperar 1s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        400
+      ],
+      "webhookId": "wait-clicars"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Contar (pág 1)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada día a las 01:30": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Contar (pág 1)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Contar (pág 1)": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar páginas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Generar páginas": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: página por página": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP: Listado Clicars",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Listado Clicars": {
+      "main": [
+        [
+          {
+            "node": "Code: Transformar ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Transformar ofertas": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay ofertas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ofertas?": {
+      "main": [
+        [
+          {
+            "node": "PG: Upsert ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Upsert ofertas": {
+      "main": [
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 1s": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "triggerCount": 0,
+  "tags": []
+}

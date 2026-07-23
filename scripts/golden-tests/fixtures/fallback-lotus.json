@@ -1,5 +1,5 @@
 {
-  "_capturedAt": "2026-07-23T13:35:14.894Z",
+  "_capturedAt": "2026-07-23T14:16:44.811Z",
   "_branch": "fallback",
   "_actualBranch": "fallback",
   "vehicle": {
@@ -37,8 +37,10 @@
       "daysOnMarketMedian": null,
       "updatedAt": "",
       "cv": null,
-      "kmImpact": 0,
-      "ageImpact": 0,
+      "usageImpact": 0,
+      "usageUsedDefault": null,
+      "slopeKm": null,
+      "slopeYear": null,
       "priceTrend": null,
       "absorptionRate": null,
       "privateMedian": null,
@@ -54,7 +56,7 @@
     "priceHistogram": [],
     "samples": []
   },
-  "referenceDate": "2026-07-23T13:35:14.894Z",
+  "referenceDate": "2026-07-23T14:16:44.811Z",
   "expected": {
     "priceOptimal": 7694,
     "priceLow": 7025,
@@ -64,7 +66,7 @@
     "usedFallback": true,
     "damageFactor": 1,
     "usageImpact": 0,
-    "usageUsedDefault": false,
+    "usageUsedDefault": null,
     "colorAdjFactor": 0.98,
     "colorAdjPct": -2,
     "ownerAdjFactor": 1.07,

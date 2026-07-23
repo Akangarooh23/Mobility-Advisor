@@ -1,0 +1,315 @@
+{
+  "name": "OcasionPlus – Enriquecer (color, carrocería, puertas, plazas, cilindrada, co2, etiqueta, tracción, consumo)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "ope-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 15 3 * * *"
+            }
+          ]
+        }
+      },
+      "id": "ope-cron",
+      "name": "Cada día a las 03:15",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, url FROM moveadvisor_market_offers WHERE portal='ocasionplus' AND COALESCE(url,'')<>'' ORDER BY (displacement IS NULL) DESC, last_seen_at DESC LIMIT 150",
+        "additionalFields": {}
+      },
+      "id": "ope-cola",
+      "name": "PG: Cola a enriquecer",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -20,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "ope-loop",
+      "name": "Loop: coche por coche",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        200,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.url }}",
+        "options": {
+          "timeout": 25000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "headers": {
+            "values": [
+              {
+                "name": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+              },
+              {
+                "name": "Accept",
+                "value": "text/html"
+              },
+              {
+                "name": "Accept-Language",
+                "value": "es-ES,es;q=0.9"
+              }
+            ]
+          }
+        }
+      },
+      "id": "ope-http",
+      "name": "HTTP: Ficha OcasionPlus",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        420,
+        400
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// OcasionPlus - enricher: ficha (Next.js RSC stream) -> vehicle object -> UPDATE\nconst httpOut = $input.item.json;\nlet html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\nconst id = $('Loop: coche por coche').item.json.id;\nfunction esc(v){ if(v===null||v===undefined||v==='') return null; return \"'\"+String(v).replace(/'/g,\"''\")+\"'\"; }\n// des-escapar el stream RSC\nconst un = html.replace(/\\\\\"/g,'\"').replace(/\\\\\\\\/g,'\\\\').replace(/\\\\u002F/gi,'/');\n// color (anclado en \"metallic\" para no coger la etiqueta i18n \"Color\")\nlet color=''; { const m=un.match(/\"color\"\\s*:\\s*\"([^\"]{1,40})\"\\s*,\\s*\"metallic\"/); if(m) color=m[1].trim(); }\n// carroceria\nlet body=''; { const m=un.match(/\"bodyStyle\"\\s*:\\s*\"([^\"]{1,40})\"/); if(m) body=m[1].trim(); }\n// puertas / plazas (numericos -> saltan la etiqueta string)\nlet doors=null; { const m=un.match(/\"doors\"\\s*:\\s*(\\d+)/); if(m) doors=parseInt(m[1],10); }\nlet seats=null; { const m=un.match(/\"seats\"\\s*:\\s*(\\d+)/); if(m) seats=parseInt(m[1],10); }\n// etiqueta medioambiental\nlet etiqueta=''; { const m=un.match(/\"environmentalLabel\"\\s*:\\s*\"([^\"]{1,20})\"/); if(m && !/undefined/i.test(m[1])) etiqueta=m[1].trim(); }\n// engine: cilindrada (cc), potencia (cv), traccion (drive bool)\nlet cc='', cv=null, drive=null;\n{ const em=un.match(/\"engine\"\\s*:\\s*\\{([^}]*)\\}/); if(em){ const e=em[1];\n    const mc=e.match(/\"cc\"\\s*:\\s*\"?(\\d+)\"?/); if(mc) cc=mc[1];\n    const mv=e.match(/\"cv\"\\s*:\\s*(\\d+)/); if(mv) cv=parseInt(mv[1],10);\n    const md=e.match(/\"drive\"\\s*:\\s*(true|false)/); if(md) drive=(md[1]==='true');\n} }\n// consumo (consumption.combined, L/100)\nlet consumo=null; { const m=un.match(/\"consumption\"\\s*:\\s*\\{[^}]*?\"combined\"\\s*:\\s*\"?([\\d.,]+)\"?/); if(m){ const n=parseFloat(String(m[1]).replace(',','.')); if(!isNaN(n)) consumo=n; } }\n// co2 (emissions.WLTP preferido, si no combustion)\nlet co2=''; { const m=un.match(/\"emissions\"\\s*:\\s*\\{([^}]*)\\}/); if(m){ const e=m[1];\n    const w=e.match(/\"WLTP\"\\s*:\\s*\"?(\\d+)\"?/); const cb=e.match(/\"combustion\"\\s*:\\s*\"?(\\d+)\"?/);\n    if(w && w[1]) co2=w[1]; else if(cb && cb[1]) co2=cb[1];\n} }\n// traccion: OcasionPlus solo expone flag 4x4 si/no (drive). Solo afirmamos 4x4 cuando es true.\nlet traction=''; if(drive===true) traction='4x4';\n// construir UPDATE\nconst sets=[];\nif(esc(color)) sets.push('color='+esc(color));\nif(esc(body)) sets.push('body_type='+esc(body));\nif(doors!=null) sets.push('doors='+doors);\nif(seats!=null) sets.push('seats='+seats);\nif(esc(cc)) sets.push('displacement='+esc(cc));\nif(cv!=null && cv>0) sets.push('power_cv='+cv);\nif(consumo!=null) sets.push('consumption='+consumo);\nif(esc(co2)) sets.push('co2='+esc(co2));\nif(esc(etiqueta)) sets.push('environmental_label='+esc(etiqueta));\nif(esc(traction)) sets.push('traction='+esc(traction));\nif(!sets.length) return [{ json:{ sql:null, count:0 } }];\nsets.push('last_seen_at=NOW()','updated_at=NOW()');\nconst sql='UPDATE moveadvisor_market_offers SET '+sets.join(', ')+' WHERE id='+esc(id);\nreturn [{ json:{ sql:sql, count:1 } }];"
+      },
+      "id": "ope-code",
+      "name": "Code: Enriquecer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.count }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ope-if",
+      "name": "IF: ¿hay datos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        860,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "additionalFields": {}
+      },
+      "id": "ope-pg",
+      "name": "PG: Update ficha",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        280
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "ope-wait",
+      "name": "Esperar 1s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1300,
+        400
+      ],
+      "webhookId": "wait-ocasionplus-enrich"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada día a las 03:15": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Cola a enriquecer": {
+      "main": [
+        [
+          {
+            "node": "Loop: coche por coche",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: coche por coche": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP: Ficha OcasionPlus",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Ficha OcasionPlus": {
+      "main": [
+        [
+          {
+            "node": "Code: Enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Enriquecer": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay datos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay datos?": {
+      "main": [
+        [
+          {
+            "node": "PG: Update ficha",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Update ficha": {
+      "main": [
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 1s": {
+      "main": [
+        [
+          {
+            "node": "Loop: coche por coche",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "triggerCount": 0,
+  "tags": []
+}

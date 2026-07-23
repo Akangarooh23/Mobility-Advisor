@@ -1,0 +1,308 @@
+{
+  "name": "OcasionPlus – Scraper (gradual)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "op-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 23 * * *"
+            }
+          ]
+        }
+      },
+      "id": "op-cron",
+      "name": "Cada día a las 23:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -260,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Alimentacion GRADUAL de OcasionPlus: procesa un lote de paginas por ejecucion,\n// avanzando un cursor persistente (1..678, ~13.5k coches).\n// OJO: la pagina 1 es la URL base; ?page=1 devuelve 404, por eso construimos la url aqui.\nconst BASE = 'https://www.ocasionplus.com/coches-segunda-mano';\nconst MAX_PAGE = 678;\nconst PAGES_PER_RUN = 40;\nconst store = $getWorkflowStaticData('global');\nlet cursor = Number(store.opPage || 1);\nif (!(cursor >= 1) || cursor > MAX_PAGE) cursor = 1;\nconst out = [];\nfor (let i = 0; i < PAGES_PER_RUN; i++) {\n  let p = cursor + i;\n  if (p > MAX_PAGE) p = ((p - 1) % MAX_PAGE) + 1;\n  out.push({ json: { page: p, url: p === 1 ? BASE : BASE + '?page=' + p } });\n}\nlet next = cursor + PAGES_PER_RUN;\nif (next > MAX_PAGE) next = ((next - 1) % MAX_PAGE) + 1;\nstore.opPage = next;\nreturn out;"
+      },
+      "id": "op-gen",
+      "name": "Code: Generar páginas (gradual)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -20,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "op-loop",
+      "name": "Loop: página por página",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        220,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.url }}",
+        "options": {
+          "timeout": 25000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "headers": {
+            "values": [
+              {
+                "name": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+              },
+              {
+                "name": "Accept",
+                "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+              },
+              {
+                "name": "Accept-Language",
+                "value": "es-ES,es;q=0.9,en;q=0.8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "op-http",
+      "name": "HTTP: Listado OcasionPlus",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        440,
+        400
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// OcasionPlus - transform: HTML pagina -> JSON-LD ItemList (Vehicle) -> UPSERT\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\nlet items = [];\nconst blocks = [...html.matchAll(/<script[^>]*application\\/ld\\+json[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m => m[1].trim());\nfor (const b of blocks) {\n  try {\n    const j = JSON.parse(b);\n    const arr = Array.isArray(j) ? j : (j['@graph'] || [j]);\n    for (const o of arr) {\n      if (o && o['@type'] === 'ItemList' && Array.isArray(o.itemListElement)) {\n        for (const el of o.itemListElement) { const it = el.item || el; if (it && (it['@type'] === 'Vehicle' || it['@type'] === 'Car' || it['@type'] === 'Product')) items.push(it); }\n      }\n    }\n  } catch (e) {}\n}\nif (!items.length) return [{ json: { sql: null, count: 0 } }];\nfunction esc(v){ if(v===null||v===undefined) return 'NULL'; if(typeof v==='number') return isNaN(v)?'NULL':String(v); return \"'\"+String(v).replace(/'/g,\"''\")+\"'\"; }\nfunction num(s){ const n=parseInt(String(s).replace(/[^0-9]/g,''),10); return isNaN(n)?null:n; }\nfunction reEsc(s){ return s.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&'); }\nfunction normGear(r){ const s=String(r||'').toLowerCase(); if(s.indexOf('auto')!==-1) return 'Automatica'; if(s.indexOf('manual')!==-1) return 'Manual'; return ''; }\nfunction normFuel(f){ const s=String(f||'').toLowerCase();\n  if(/el\\u00e9ctric|electric/.test(s)) return 'El\\u00e9ctrico';\n  if(/h\\u00edbrid|hibrid|phev|hev/.test(s)) return 'H\\u00edbrido';\n  if(/di\\u00e9sel|diesel/.test(s)) return 'Diesel';\n  if(/gasolina/.test(s)) return 'Gasolina';\n  if(/glp/.test(s)) return 'GLP';\n  if(/gnc|gas natural/.test(s)) return 'GNC';\n  return String(f||''); }\nconst rows = [];\nfor (const it of items) {\n  const off = it.offers || {};\n  const url = off.url || it.url || '';\n  const idm = String(url).match(/-([a-z0-9]+)\\/?$/i);\n  if (!idm) continue;\n  const id = 'op_' + idm[1];\n  const brand = (it.brand && it.brand.name) || it.manufacturer || '';\n  const shortName = it.name || '';\n  const full = it.model || shortName;\n  let model = shortName;\n  if (brand) model = model.replace(new RegExp(reEsc(brand), 'i'), '');\n  model = model.replace(/\\s+/g, ' ').trim();\n  let version = full;\n  if (shortName) version = version.replace(new RegExp(reEsc(shortName), 'i'), '');\n  version = version.replace(/\\s+/g, ' ').trim();\n  const title = full;\n  const year = it.productionDate ? (parseInt(String(it.productionDate), 10) || null) : null;\n  const mileage = (it.mileageFromOdometer && it.mileageFromOdometer.value != null) ? num(it.mileageFromOdometer.value) : null;\n  const price = off.price != null ? num(off.price) : null;\n  const transmission = normGear(it.vehicleTransmission);\n  const fuel = normFuel(it.fuelType);\n  let cv = null; { const m = full.match(/(\\d+)\\s*CV/i); if (m) cv = parseInt(m[1], 10); }\n  let seats = null; { const m = full.match(/(\\d+)\\s*Plazas/i); if (m) seats = parseInt(m[1], 10); }\n  const imgs = it.image ? (Array.isArray(it.image) ? it.image : [it.image]) : [];\n  const imageUrl = imgs[0] || '';\n  const imagesJson = JSON.stringify(imgs.slice(0, 15)).replace(/'/g, \"''\");\n  const rawPayload = JSON.stringify(it).replace(/'/g, \"''\");\n  const row = '(' +\n    esc(id) + \", 'ocasionplus', \" + esc(url) + ', ' + esc(title) + ', ' + esc(brand) + ', ' + esc(model) + ', ' + esc(version) + ', ' +\n    (year!=null?String(year):'NULL') + ', ' + (mileage!=null?String(mileage):'NULL') + ', ' + (price!=null?String(price):'NULL') + ', ' +\n    esc(fuel) + ', ' + esc(transmission) + ', ' + esc(imageUrl) + \", '\" + imagesJson + \"', \" +\n    (cv!=null?String(cv):'NULL') + ', ' + (seats!=null?String(seats):'NULL') + \", 'profesional', 'compra', '\" + rawPayload + \"', NOW(), NOW(), NOW()\" +\n  ')';\n  rows.push(row);\n}\nif (!rows.length) return [{ json: { sql: null, count: 0 } }];\nconst cols = 'id, portal, url, title, brand, model, version, year, mileage, price, fuel, transmission, image_url, images, power_cv, seats, seller_type, listing_type, raw_payload, first_seen_at, scraped_at, last_seen_at';\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET url=EXCLUDED.url, title=EXCLUDED.title, price=EXCLUDED.price, mileage=EXCLUDED.mileage, ' +\n  \"image_url=COALESCE(NULLIF(moveadvisor_market_offers.image_url,''), EXCLUDED.image_url), \" +\n  \"images=COALESCE(NULLIF(moveadvisor_market_offers.images,''), EXCLUDED.images), \" +\n  'power_cv=COALESCE(EXCLUDED.power_cv, moveadvisor_market_offers.power_cv), ' +\n  'seats=COALESCE(EXCLUDED.seats, moveadvisor_market_offers.seats), ' +\n  'raw_payload=EXCLUDED.raw_payload, last_seen_at=NOW(), updated_at=NOW()';\nconst sql = 'INSERT INTO moveadvisor_market_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;\nreturn [{ json: { sql: sql, count: rows.length } }];"
+      },
+      "id": "op-transform",
+      "name": "Code: Transformar ofertas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.count }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "op-if",
+      "name": "IF: ¿hay ofertas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        880,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "additionalFields": {}
+      },
+      "id": "op-pg",
+      "name": "PG: Upsert ofertas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        280
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "op-wait",
+      "name": "Esperar 1s (rate limit)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        400
+      ],
+      "webhookId": "wait-ocasionplus"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar páginas (gradual)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada día a las 23:00": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar páginas (gradual)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Generar páginas (gradual)": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: página por página": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP: Listado OcasionPlus",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Listado OcasionPlus": {
+      "main": [
+        [
+          {
+            "node": "Code: Transformar ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Transformar ofertas": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay ofertas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ofertas?": {
+      "main": [
+        [
+          {
+            "node": "PG: Upsert ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 1s (rate limit)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Upsert ofertas": {
+      "main": [
+        [
+          {
+            "node": "Esperar 1s (rate limit)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 1s (rate limit)": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "triggerCount": 0,
+  "tags": []
+}

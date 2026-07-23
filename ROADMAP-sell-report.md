@@ -254,68 +254,131 @@ Al eliminar el truncado (8ab1c69, `Math.max(400_000, 3 × userKm)`), la dimensi�
 
 **Por qué en commit propio:** alpha=0.5 modifica producción. Mezclarlo con cualquier otro cambio impide atribuir el drift. La separación no es ceremonial — es el mecanismo de diagnóstico.
 
-#### 1e. Penalización de confianza por profundidad de cascade — PENDIENTE
+#### 1e. Penalización de confianza por profundidad de cascade — BLOQUEADA por §1g
 
-`cascadeRelaxed` existe desde Ola 1 y registra qué filtros se relajaron para alcanzar n≥15. Ningún código lo consume para ajustar `confidence`. El informe actual declara la misma fiabilidad si el pool es exacto (`{power:false, fuel:false}`) que si requirió tres relajaciones (`{power:true, fuel:true, year:true}`). Un vehículo que necesita tres relajaciones tiene un pool objetivamente menos homogéneo que no ha ganado su nivel de confianza.
+**BLOQUEADA:** `cascadeRelaxed.fuel` y `cascadeRelaxed.year` nunca pueden activarse mientras fuel y año no sean filtros duros (§1g). Implementar esta penalización antes de §1g añadiría una rama muerta — `cascadeRelaxed.fuel=true` es inalcanzable porque fuel no estaba en la lógica de exclusión. El orden se invierte: §1g → §1e.
 
-**Fix propuesto:** en `buildReportData`, restar a `confidence` antes de fijar el tramo:
+Cuando §1g active el filtro de combustible, `cascadeRelaxed.fuel=true` se disparará en producción por primera vez. En ese momento §1e puede implementarse con señal real.
+
+**Fix propuesto (post §1g):** en `buildReportData`, restar a `confidence` antes de fijar el tramo:
 - `−5 pp` por relajación en `power` (variación de acabado dentro de la misma generación)
 - `−5 pp` por relajación en `transmission` (diferencia de precio ~800€, tolerable)
 - `−8 pp` por relajación en `year` (mezcla generaciones distintas)
 - `−15 pp` por relajación en `fuel` (**provisional — debería ser 20pp**; mezclar gasolina y diésel del mismo modelo introduce diferencias estructurales de 1.500-3.000€. `cascadeRelaxed` se diseñó como objeto en lugar de entero precisamente para poder diferenciar este caso. Si se arranca con 15pp por conservadurismo, revisarlo en la primera validación con datos reales y subirlo si los informes de cascada-fuel siguen sobreestimando confianza)
 - Cap: `confidence` no puede bajar del umbral del tramo inferior por esta causa sola
 
-**Cobertura:** las dos `cascade-*` fixtures driftarán (power+transmission → −10 pp en ambas). Radio bajo: solo `sellReportGenerator.js` + recaptura. Sin cambio de BD.
+**Cobertura (post §1g):** las dos `cascade-*` fixtures driftarán (power+transmission → −10 pp en ambas). Radio bajo: solo `sellReportGenerator.js` + recaptura. Sin cambio de BD.
 
-**Prerequisito:** run.js verde con los fixtures n_low establecidos (§ 1c).
+**Prerequisito:** §1g cerrada (filtro de combustible activo) + run.js verde.
 
-#### 1g. Anomalía de cascade: `fuel` nunca fue filtro duro — PENDIENTE
+#### 1g. Filtros duros vs blandos en `listInventoryOffers` — PENDIENTE
 
-**Hallazgo (2026-07-23):** BMW X2 Híbrido Automático 197cv da n=386 con `cascadeRelaxed={fuel:false}`. El cascade no relajó fuel — simplemente nunca lo filtró.
+**Origen del hallazgo:** BMW X2 Híbrido da n=386 con `cascadeRelaxed={fuel:false}`. El cascade no relajó fuel — no pudo hacerlo porque fuel nunca fue filtro. Esto disparó la auditoría de todos los filtros del Level 1.
 
-**Causa raíz:** en `listInventoryOffers`, `fuel` solo se usa como señal de puntuación (+2 a `_score`), nunca como filtro de exclusión. Comparar:
-- `transmission` (línea 1244): filtro duro — `if (normalizedTransmission && !normalizeToken(offer.transmission).includes(...)) return false`
-- `fuel` (línea 1355): solo scoring — `if (normalizedFuel && normalizeToken(offer.fuel).includes(...)) score += 2`
+---
 
-Cuando `getMarketPriceSnapshot` llama Level 1 con `fuel='Híbrido', transmission='Automatico', powerCv=147-246`, ocurre lo siguiente:
-1. Transmisión sí filtra: solo BMW X2 Automático pasa
-2. powerCv usa "sin dato = pasa" en el lado de la oferta: `Number.isFinite(offer.powerCv)` es false para las ~506 ofertas con `powerCv=""` → pasan todas
-3. Fuel no filtra: las 506 ofertas con `fuel=""` ni se excluyen ni se penalizan (solo las 6 con `fuel='Híbrido'` ganan +2)
-4. Todas reciben `_score > 0` por matching de modelo "x2" → pasan el `.filter(score > 0)`
-5. Level 1 devuelve ~386 BMW X2 Automático de todos los combustibles. `386 ≥ 10` → cascade nunca dispara
+**Auditoría completa — 5 filtros del Level 1 en `getMarketPriceSnapshot`:**
 
-`cascadeRelaxed={fuel:false}` es técnicamente exacto ("no relajé el filtro de fuel") pero semánticamente engañoso ("el filtro de fuel estaba activo"). No estaba activo.
+`readPostgresInventory` (línea 514) aplica un único filtro SQL: `WHERE CONCAT(brand, model, version) LIKE '%token%'`. Fuel, transmission, año y powerCv no están en el WHERE. Todo el filtrado real ocurre en JS dentro de `listInventoryOffers`.
 
-**Impacto:** el pool de BMW X2 Híbrido contiene todos los X2 Automático independientemente del combustible. El BMW X2 xDrive25e (híbrido) cotiza con prima de 3.000-8.000€ sobre las variantes gasolina. La mediana del pool mezcla ambas → infravaloración del híbrido. El mismo bug afecta cualquier modelo donde la variante de combustible tiene precio distinto y la mayoría de ofertas tienen `fuel=""` en la BD.
+| Filtro | Línea | Tipo | "Sin dato" en oferta | Diagnóstico |
+|--------|-------|------|----------------------|-------------|
+| Marca (`brand`) | 1241 | **DURO** | = falla (vacío excluido) | Correcto |
+| Transmisión | 1244 | **DURO** | = falla (vacío excluido) | Correcto |
+| Potencia ±25% | 1335-1339 | **DURO** | = pasa (null/vacío incluido) | Diseño intencional |
+| Combustible | 1355 | **BLANDO** (solo +2 score) | N/A — nunca excluye | **BUG** |
+| Año ±4 (`targetYear`) | 1364-1370 | **BLANDO** (solo +2 score) | N/A — nunca excluye | **BUG** (menor) |
+| Modelo | 1380 | BLANDO efectivo | N/A | Aceptable (respaldado por SQL pre-filtro + brand duro) |
 
-**Por qué `cascadeRelaxed.fuel` nunca era necesario:** si fuel nunca fue filtro duro, el nivel 3 del cascade ("relajar fuel") solo cambia que las 6 ofertas Híbrido dejan de recibir +2 de score — insignificante con 386 ofertas que ya pasan. El nivel 3 tenía condición `!offers.length && fuel` (cero resultados) precisamente porque el diseño asumía que fuel sí filtraba. Con el fix, esa condición vuelve a tener sentido.
+Nota sobre `selectBalancedPool`: se llama **dentro de `computeUsageImpact`** (para el OLS), no sobre las estadísticas de mercado. La mediana, P25/P75 e histograma se calculan sobre `computeOffers = offers.slice(0, 400)` sin balancear. La cuota de año y el kernel solo afectan al ajuste de uso (usageImpact), no al precio de referencia del mercado.
 
-**Contexto arquitectónico:** `listInventoryOffers` es función doble: Comprar-page y market-price-snapshot. Para la Comprar-page, "sin dato = pasa" en fuel es correcto (no excluir anuncios sin combustible declarado cuando el usuario filtra por híbrido). Para el snapshot de mercado, fuel debe ser filtro duro (los comparables deben ser del mismo combustible). La función no distingue el contexto.
+---
 
-**Fix propuesto:** en `getMarketPriceSnapshot`, tras cada llamada a `listInventoryOffers`, aplicar post-filtro de combustible:
+**BUG principal — combustible (severidad: alta):**
 
-```js
-function matchesFuelForPool(offer, nFuelToken) {
-  if (!nFuelToken) return true;
-  const offerFuel = normalizeToken(offer.fuel || '');
-  if (!offerFuel) return true;   // sin dato = pasa (no sabemos qué combustible es)
-  return offerFuel.includes(nFuelToken);
-}
+Las diferencias estructurales entre combustibles del mismo modelo son 1.500-3.000€ (gasolina/diésel) y 3.000-8.000€ (híbrido/gasolina). Todas las tasaciones hasta hoy con `fuel` especificado se han calculado sobre pools que mezclan combustibles. El informe muestra n=386 con confianza alta y precio como si fueran comparables homogéneos — no avisa de nada.
+
+`cascadeRelaxed.fuel=false` es técnicamente exacto ("el cascade no relajó fuel") pero engañoso ("el filtro estaba activo"). No estaba activo. El cascade Nivel 3 (`!offers.length && fuel`) tenía condición de cero resultados porque asumía que fuel sí filtraba. Con el fix, esa condición tendrá sentido por primera vez.
+
+**BUG secundario — año ±4 (`targetYear`, severidad: baja):**
+
+El año ±4 influye en el ranking (coches del año correcto puntúan más → más probables entre los top-400), pero no excluye. Un BMW X2 de 2010 en una búsqueda de 2019 pasa a través de todos los niveles del cascade sin obstáculo. El cascade Nivel 5 ("relax year", `targetYear: null`) nunca cambió nada: solo elimina el +2 de score por año cercano, lo que es irrelevante si el cascade ya lleva a n=386 desde el Nivel 1.
+
+Severidad menor porque: (a) el scoring sí sesga el ranking hacia el año correcto, y el `slice(0, 400)` recoge los mejor puntuados; (b) `selectBalancedPool` dentro de OLS centra el año adicionalmente; (c) el mercado de coches usados tiene correlación natural precio-año, así que incluso sin filtro de año la señal existe en la mediana.
+
+---
+
+**Impacto sistémico (los tres defectos de la misma familia):**
+
+Este es el tercer defecto sistemático en pool contaminado con apariencia de muestra abundante:
+1. Signo invertido (Ola 1): ajuste de uso al revés — coche con km alto recibía prima
+2. `maxMileage: userKm` (§1b): pool excluía coches con más km que el sujeto → mediana inflada
+3. Fuel sin filtrar (§1g): pool mezcla combustibles → mediana incoherente por tipo
+
+Los tres tenían en común que `run.js` no los detectaba: en los dos primeros porque los fixtures congelaban el resultado incorrecto; en el tercero porque el fix es aguas arriba de `_pool` → **run.js dará 0 DRIFT engañoso después del fix.** La evidencia solo aparece en el `git diff` de los fixtures tras recapturar.
+
+---
+
+**Distinción crítica en "sin dato = pasa":**
+
+Hay dos lados del filtro que no son el mismo problema:
+- **Lado sujeto** (el vehículo que se tasa): si el usuario no declara combustible, no podemos filtrar. "Sin dato = pasa" es inevitable aquí.
+- **Lado oferta** (las ofertas del pool): una oferta con `fuel=""` es un comparable de combustible desconocido. "Sin dato = pasa" aquí introduce elementos no homogéneos en un pool que existe para ser homogéneo.
+
+Para BMW X2 Híbrido: 6 ofertas con `fuel='Híbrido'` explícito + 506 con `fuel=""` (probablemente gasolina/diésel sin etiquetar). Incluir las 506 contamina el pool tanto como no filtrar por combustible.
+
+---
+
+**Opción intermedia — inferencia de combustible desde texto de versión:**
+
+Antes de decidir entre "incluir empty-fuel" y "excluir empty-fuel", una opción más barata: inferir el combustible de la columna `version` cuando `fuel=""`:
+
+```
+TDI, HDi, dCi, CDTi, BlueHDi, Blue dCi         → Diesel
+TSI, TFSI, THP, GTI, GTe (sin PHEV), Turbo      → Gasolina
+PHEV, e-TSI, Plug-in, 300h, 450h, Hybrid, HEV   → Híbrido
+BEV, EV, e-tron, i3, ID., ZOE, Leaf             → Eléctrico
 ```
 
-Con este filtro: BMW X2 Híbrido → 6 Híbrido + X empty-fuel Automático. El cascade evaluará cada nivel con la restricción de combustible real, y si el total es < 10 avanzará correctamente.
+Si el 30% de filas tiene `fuel=""`, la inferencia puede recuperar la mayoría y evitar elegir entre contaminación y pool famélico. Si el huecos es <5%, excluir y listo.
 
-**Pregunta abierta:** ¿debe "sin dato = pasa" aplicar también al lado de la oferta para el pool? Si las ~506 ofertas BMW X2 con `fuel=""` son mayoritariamente gasolina/diésel mal etiquetados, incluirlas contamina igualmente. La decisión depende de la calidad de los datos del scraper. Si los scrapers de Flexicar y AutoHero dejan `fuel=""` como dato real (no como error), incluirlas es incorrecto. Auditar antes de implementar.
+**Protocolo de decisión:**
+1. Auditar `fuel=""` por portal: `SELECT portal, COUNT(*) FILTER (WHERE COALESCE(fuel,'')=''), COUNT(*) FROM moveadvisor_market_offers WHERE is_active GROUP BY portal`
+2. Si huecos > 15%: implementar inferencia de combustible antes del fix de filtrado
+3. Si huecos ≤ 15%: excluir `fuel=""` del pool (filtro estricto, sin "sin dato = pasa")
 
-**Fix alternativo (más agresivo):** fuel como filtro duro estricto (sin "sin dato = pasa" en el pool) — solo incluir ofertas con `normalizeToken(offer.fuel)` no vacío y que coincida. Esto reduce el pool para modelos con datos de combustible pobres, pero garantiza comparables homogéneos. Si el pool cae por debajo de 10 → cascade avanza a relajar fuel explícitamente.
+---
 
-**Prerequisito del fix:** auditar qué fracción de ofertas tiene `fuel=""` por portal/marca. Si solo BMW X2 tiene este problema, es una anomalía del scraper. Si es generalizado, el fix estricto reduciría n en muchos modelos y cambiaría ramas (common → n_low) de forma generalizada.
+**Predicción del impacto al activar filtro de combustible:**
 
-**Prioridad:** alta. El bug afecta silenciosamente a cualquier modelo donde:
-1. La oferta tiene mala cobertura del campo `fuel`
-2. El vehículo a tasar es de combustible minoritario (híbrido, eléctrico, diésel de un modelo mayoritariamente gasolina)
+- Pools de modelos con datos buenos de combustible: n se divide aproximadamente en 2 (parque gasolina/diésel ~50/50 en España). Varios casos migran `common → n_low` o `n_low → fallback`.
+- Pools con datos pobres (tipo BMW X2): n cae drásticamente solo si se excluye `fuel=""`.
+- El cascade se disparará en producción por primera vez (hasta ahora Level 1 siempre devolvía n abundante artificialmente).
+- `cascadeRelaxed.fuel=true` aparecerá en logs reales → §1e puede implementarse con señal real.
 
-El informe no avisa del problema — muestra n=386 con confianza alta y precio mezclado como si fuera un resultado correcto.
+**Commit propio obligatorio. Predicción escrita antes de correr. Recapturar todos los fixtures después.**
+
+---
+
+**Fix propuesto — post-filtro en `getMarketPriceSnapshot`:**
+
+No tocar `listInventoryOffers` (el comportamiento blando es correcto para la Comprar-page). Aplicar filtro duro de combustible dentro de `getMarketPriceSnapshot` tras cada llamada al cascade, antes de evaluar si n es suficiente para avanzar:
+
+```js
+// Solo aplica cuando hay fuel declarado en el sujeto.
+// Excluye ofertas con combustible explícito distinto; incluye o no las de fuel="" según auditoría.
+const nFuelToken = normalizeFilterToken(fuel);
+offers = nFuelToken
+  ? offers.filter(o => {
+      const of = normalizeToken(o.fuel || '');
+      return !of || of.includes(nFuelToken);  // sin dato = pasa (revisar tras auditoría)
+    })
+  : offers;
+```
+
+**Prerequisito:** auditoría de cobertura del campo `fuel` por portal (SQL arriba) antes de decidir si `!of` incluye o excluye. Sin esa cifra el fix puede partir pools en dos o dejarlos casi igual.
+
+**Prioridad: alta.** Bloquea §1e y es el tercer defecto sistemático de pool contaminado.
 
 #### 2. Ponderación del pool por cercanía al vehículo (`listInventoryOffers`)
 

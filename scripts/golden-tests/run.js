@@ -24,7 +24,17 @@ const FIXTURES_DIR  = path.join(__dirname, "fixtures");
 
 const PRICE_TOLERANCE = 1; // €, margen por redondeo de enteros
 
-function pickKeyFields(rd, national) {
+function pickKeyFields(rd, national, entryBranch) {
+  // Replica branchFromResult de capture.js (necesita entryBranch para damage/unresolved_brand).
+  const cr = national.cascadeRelaxed || {};
+  const actualBranch =
+    entryBranch === "damage"           ? (rd.damageFactor < 1.00 ? "damage" : "damage_factor_wrong") :
+    entryBranch === "unresolved_brand" ? "unresolved_brand" :
+    (rd.usedFallback || (rd.comparables ?? 0) < 3) ? "fallback" :
+    (rd.comparables ?? 0) < 15                      ? "n_low" :
+    (cr.power || cr.transmission || cr.fuel || cr.year) ? "cascade_relaxed" :
+    "common";
+
   return {
     priceOptimal:     rd.priceOptimal       ?? null,
     priceLow:         rd.priceLow           ?? null,
@@ -41,6 +51,7 @@ function pickKeyFields(rd, national) {
     ownerAdjPct:      rd.ownerAdj?.pct      ?? null,
     combinedFactor:   (rd.colorAdj?.factor ?? 1) * (rd.ownerAdj?.factor ?? 1),
     cascadeRelaxed:   national.cascadeRelaxed ?? { power: false, transmission: false, fuel: false, year: false },
+    actualBranch,
   };
 }
 
@@ -115,6 +126,7 @@ function main() {
     const actual         = pickKeyFields(
       buildReportData(fixture.vehicle, national, null, referenceDate),
       national,
+      entry.branch,
     );
     const drifts = compare(entry.id, fixture.expected, actual);
 

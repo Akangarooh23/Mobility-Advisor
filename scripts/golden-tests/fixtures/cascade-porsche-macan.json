@@ -1,5 +1,5 @@
 {
-  "_capturedAt": "2026-07-23T14:16:35.038Z",
+  "_capturedAt": "2026-07-23T14:49:39.357Z",
   "_branch": "cascade_relaxed",
   "_actualBranch": "cascade_relaxed",
   "vehicle": {
@@ -281,6 +281,58 @@
         "transmission": "Automatica",
         "bodyType": "SUV",
         "environmentalLabel": "",
+        "year": 2016,
+        "mileage": 167000,
+        "doors": 5,
+        "seats": 5,
+        "powerCv": 340,
+        "price": 30999,
+        "monthlyPrice": null,
+        "financePrice": null,
+        "url": "https://www.coches.com/comprar/_KIY0s-Rng1c.htm",
+        "province": "Barcelona",
+        "city": "Barcelona",
+        "color": "gris",
+        "sellerType": "profesional",
+        "traction": "",
+        "displacement": "",
+        "co2": "",
+        "powerKw": "250",
+        "consumption": "",
+        "dealerName": "Garage Club",
+        "nextITV": "",
+        "warrantyMonths": null,
+        "image": "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/fa8d7d59-7965-4000-bf98-55a92f6cd5fb.jpg",
+        "images": [
+          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/fa8d7d59-7965-4000-bf98-55a92f6cd5fb.jpg",
+          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/a5798067-1161-42ee-aa25-7b686bf39165.jpg",
+          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/c796275c-ee93-402f-8d12-b24474d75d3b.jpg",
+          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/3330f4d4-25b4-4ccf-8532-5c1ae8a631dc.jpg",
+          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/3173e748-cdb9-4ff7-930f-8b49e5cc54ac.jpg",
+          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/1e76d9e3-36d7-4c55-9ebd-5cabcfc7f5f4.jpg",
+          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/3b8b4037-0fee-4df7-8a9c-7e25871e2e19.jpg",
+          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/74148a8a-7cde-4759-a073-09842f25c2db.jpg",
+          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/cfbd29d6-1ed3-46a9-ac8a-4c2b24c6527e.jpg",
+          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/b024fc22-b61e-449f-a485-9c7406114391.jpg",
+          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/838edc76-2125-4ef4-a8c9-dc903b68a298.jpg",
+          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/f17cc952-01ea-4a20-9480-d03bea61cffc.jpg",
+          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/1586f662-1099-4958-ac1e-4a49b31aa80a.jpg",
+          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/08673b37-6b39-4e90-ae6d-cd1a00f26e5c.jpg",
+          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/3ff720a1-df9d-405f-baf9-e6f85fe7e6ad.jpg"
+        ],
+        "updatedAt": "",
+        "listedAt": "",
+        "listingType": "compra"
+      },
+      {
+        "portal": "cochescom",
+        "brand": "Porsche",
+        "model": "Macan",
+        "version": "S Aut.",
+        "fuel": "Gasolina",
+        "transmission": "Automatica",
+        "bodyType": "SUV",
+        "environmentalLabel": "",
         "year": 2019,
         "mileage": 138000,
         "doors": 5,
@@ -371,58 +423,6 @@
           "https://images.coches.com/_ccom_/78a82d00-31a8-4470-9a77-8ae10e8059d4/b4880d9b-3035-4ac2-91b3-21ffb097a983.jpg",
           "https://images.coches.com/_ccom_/78a82d00-31a8-4470-9a77-8ae10e8059d4/c716bf60-21ba-41de-9e9a-7830e5ad3176.jpg",
           "https://images.coches.com/_ccom_/78a82d00-31a8-4470-9a77-8ae10e8059d4/2a3c7910-09fe-483e-94b2-8c67609657eb.jpg"
-        ],
-        "updatedAt": "",
-        "listedAt": "",
-        "listingType": "compra"
-      },
-      {
-        "portal": "cochescom",
-        "brand": "Porsche",
-        "model": "Macan",
-        "version": "S Aut.",
-        "fuel": "Gasolina",
-        "transmission": "Automatica",
-        "bodyType": "SUV",
-        "environmentalLabel": "",
-        "year": 2016,
-        "mileage": 167000,
-        "doors": 5,
-        "seats": 5,
-        "powerCv": 340,
-        "price": 30999,
-        "monthlyPrice": null,
-        "financePrice": null,
-        "url": "https://www.coches.com/comprar/_KIY0s-Rng1c.htm",
-        "province": "Barcelona",
-        "city": "Barcelona",
-        "color": "gris",
-        "sellerType": "profesional",
-        "traction": "",
-        "displacement": "",
-        "co2": "",
-        "powerKw": "250",
-        "consumption": "",
-        "dealerName": "Garage Club",
-        "nextITV": "",
-        "warrantyMonths": null,
-        "image": "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/fa8d7d59-7965-4000-bf98-55a92f6cd5fb.jpg",
-        "images": [
-          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/fa8d7d59-7965-4000-bf98-55a92f6cd5fb.jpg",
-          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/a5798067-1161-42ee-aa25-7b686bf39165.jpg",
-          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/c796275c-ee93-402f-8d12-b24474d75d3b.jpg",
-          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/3330f4d4-25b4-4ccf-8532-5c1ae8a631dc.jpg",
-          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/3173e748-cdb9-4ff7-930f-8b49e5cc54ac.jpg",
-          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/1e76d9e3-36d7-4c55-9ebd-5cabcfc7f5f4.jpg",
-          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/3b8b4037-0fee-4df7-8a9c-7e25871e2e19.jpg",
-          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/74148a8a-7cde-4759-a073-09842f25c2db.jpg",
-          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/cfbd29d6-1ed3-46a9-ac8a-4c2b24c6527e.jpg",
-          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/b024fc22-b61e-449f-a485-9c7406114391.jpg",
-          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/838edc76-2125-4ef4-a8c9-dc903b68a298.jpg",
-          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/f17cc952-01ea-4a20-9480-d03bea61cffc.jpg",
-          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/1586f662-1099-4958-ac1e-4a49b31aa80a.jpg",
-          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/08673b37-6b39-4e90-ae6d-cd1a00f26e5c.jpg",
-          "https://images.coches.com/_ccom_/9dfc35ab-8031-418d-87d4-e8fe68821f61/3ff720a1-df9d-405f-baf9-e6f85fe7e6ad.jpg"
         ],
         "updatedAt": "",
         "listedAt": "",
@@ -543,7 +543,7 @@
         "portal": "wallapop"
       },
       {
-        "_rank": 63,
+        "_rank": 62,
         "mileage": 201000,
         "year": 2015,
         "price": 25990,
@@ -552,7 +552,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 43,
+        "_rank": 42,
         "mileage": 295800,
         "year": 2014,
         "price": 27990,
@@ -579,7 +579,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 57,
+        "_rank": 55,
         "mileage": 178283,
         "year": 2014,
         "price": 29850,
@@ -588,7 +588,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 68,
+        "_rank": 67,
         "mileage": 188863,
         "year": 2014,
         "price": 29890,
@@ -606,7 +606,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 5,
+        "_rank": 3,
         "mileage": 167000,
         "year": 2016,
         "price": 30999,
@@ -624,7 +624,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 67,
+        "_rank": 68,
         "mileage": 155781,
         "year": 2015,
         "price": 33490,
@@ -669,7 +669,7 @@
         "portal": "wallapop"
       },
       {
-        "_rank": 55,
+        "_rank": 56,
         "mileage": 143000,
         "year": 2015,
         "price": 34500,
@@ -696,7 +696,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 65,
+        "_rank": 64,
         "mileage": 155781,
         "year": 2015,
         "price": 34990,
@@ -714,7 +714,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 56,
+        "_rank": 57,
         "mileage": 127000,
         "year": 2015,
         "price": 35490,
@@ -723,7 +723,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 19,
+        "_rank": 18,
         "mileage": 180095,
         "year": 2016,
         "price": 35990,
@@ -732,7 +732,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 35,
+        "_rank": 34,
         "mileage": 180095,
         "year": 2016,
         "price": 35990,
@@ -768,7 +768,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 26,
+        "_rank": 25,
         "mileage": 156000,
         "year": 2017,
         "price": 36990,
@@ -777,7 +777,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 52,
+        "_rank": 51,
         "mileage": 152000,
         "year": 2015,
         "price": 37900,
@@ -786,7 +786,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 37,
+        "_rank": 41,
         "mileage": 114214,
         "year": 2015,
         "price": 38300,
@@ -804,15 +804,6 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 28,
-        "mileage": 164000,
-        "year": 2017,
-        "price": 38750,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 29,
         "mileage": 164000,
         "year": 2017,
@@ -822,7 +813,16 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 18,
+        "_rank": 30,
+        "mileage": 164000,
+        "year": 2017,
+        "price": 38750,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "cochescom"
+      },
+      {
+        "_rank": 19,
         "mileage": 163000,
         "year": 2016,
         "price": 38990,
@@ -840,7 +840,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 51,
+        "_rank": 52,
         "mileage": 128000,
         "year": 2015,
         "price": 39900,
@@ -849,7 +849,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 30,
+        "_rank": 28,
         "mileage": 57000,
         "year": 2018,
         "price": 41900,
@@ -858,7 +858,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 64,
+        "_rank": 65,
         "mileage": 102435,
         "year": 2018,
         "price": 41990,
@@ -876,7 +876,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 33,
+        "_rank": 31,
         "mileage": 86612,
         "year": 2014,
         "price": 43990,
@@ -885,7 +885,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 31,
+        "_rank": 32,
         "mileage": 92941,
         "year": 2017,
         "price": 44790,
@@ -903,7 +903,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 62,
+        "_rank": 63,
         "mileage": 105677,
         "year": 2017,
         "price": 45900,
@@ -912,7 +912,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 36,
+        "_rank": 40,
         "mileage": 111255,
         "year": 2020,
         "price": 45990,
@@ -921,7 +921,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 3,
+        "_rank": 4,
         "mileage": 138000,
         "year": 2019,
         "price": 46990,
@@ -930,7 +930,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 38,
+        "_rank": 37,
         "mileage": 118120,
         "year": 2021,
         "price": 47590,
@@ -948,7 +948,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 39,
+        "_rank": 38,
         "mileage": 115659,
         "year": 2021,
         "price": 48990,
@@ -966,7 +966,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 25,
+        "_rank": 26,
         "mileage": 78000,
         "year": 2020,
         "price": 49390,
@@ -993,7 +993,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 41,
+        "_rank": 39,
         "mileage": 85936,
         "year": 2021,
         "price": 49890,
@@ -1029,7 +1029,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 32,
+        "_rank": 33,
         "mileage": 61929,
         "year": 2017,
         "price": 52900,
@@ -1038,7 +1038,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 4,
+        "_rank": 5,
         "mileage": 87625,
         "year": 2020,
         "price": 53990,
@@ -1047,7 +1047,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 34,
+        "_rank": 35,
         "mileage": 97825,
         "year": 2021,
         "price": 53990,
@@ -1155,7 +1155,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 40,
+        "_rank": 36,
         "mileage": 43000,
         "year": 2021,
         "price": 60900,
@@ -1164,7 +1164,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 42,
+        "_rank": 43,
         "mileage": 100000,
         "year": 2020,
         "price": 62900,
@@ -1254,7 +1254,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 81,
+        "_rank": 82,
         "mileage": 12000,
         "year": 2025,
         "price": 95700,
@@ -1263,7 +1263,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 82,
+        "_rank": 81,
         "mileage": 5500,
         "year": 2024,
         "price": 99000,
@@ -1300,7 +1300,7 @@
       }
     ]
   },
-  "referenceDate": "2026-07-23T14:16:35.038Z",
+  "referenceDate": "2026-07-23T14:49:39.357Z",
   "expected": {
     "priceOptimal": 45519,
     "priceLow": 35858,
@@ -1321,6 +1321,7 @@
       "transmission": true,
       "fuel": false,
       "year": false
-    }
+    },
+    "actualBranch": "cascade_relaxed"
   }
 }

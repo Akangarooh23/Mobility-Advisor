@@ -99,7 +99,7 @@ async function captureOne(entry) {
     vehicle,
     national,
     referenceDate: referenceDate.toISOString(),   // reinyectada en run.js
-    expected:      pickKeyFields(reportData, national),
+    expected:      { ...pickKeyFields(reportData, national), actualBranch: branchFromResult(reportData, national, entry) },
   };
 
   if (!fs.existsSync(FIXTURES_DIR)) fs.mkdirSync(FIXTURES_DIR, { recursive: true });

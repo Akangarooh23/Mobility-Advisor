@@ -258,8 +258,10 @@ La rama `n_low` (3 ≤ n < 15) gobierna prácticamente toda la producción: todo
 `cascadeRelaxed` existe desde Ola 1 y registra qué filtros se relajaron para alcanzar n≥15. Ningún código lo consume para ajustar `confidence`. El informe actual declara la misma fiabilidad si el pool es exacto (`{power:false, fuel:false}`) que si requirió tres relajaciones (`{power:true, fuel:true, year:true}`). Un vehículo que necesita tres relajaciones tiene un pool objetivamente menos homogéneo que no ha ganado su nivel de confianza.
 
 **Fix propuesto:** en `buildReportData`, restar a `confidence` antes de fijar el tramo:
-- `−5 pp` por cada relajación activa en `power`, `transmission`, `fuel`
-- `−8 pp` por relajación activa en `year` (mezcla generaciones — la más distorsionante)
+- `−5 pp` por relajación en `power` (variación de acabado dentro de la misma generación)
+- `−5 pp` por relajación en `transmission` (diferencia de precio ~800€, tolerable)
+- `−8 pp` por relajación en `year` (mezcla generaciones distintas)
+- `−15 pp` por relajación en `fuel` (**provisional — debería ser 20pp**; mezclar gasolina y diésel del mismo modelo introduce diferencias estructurales de 1.500-3.000€. `cascadeRelaxed` se diseñó como objeto en lugar de entero precisamente para poder diferenciar este caso. Si se arranca con 15pp por conservadurismo, revisarlo en la primera validación con datos reales y subirlo si los informes de cascada-fuel siguen sobreestimando confianza)
 - Cap: `confidence` no puede bajar del umbral del tramo inferior por esta causa sola
 
 **Cobertura:** las dos `cascade-*` fixtures driftarán (power+transmission → −10 pp en ambas). Radio bajo: solo `sellReportGenerator.js` + recaptura. Sin cambio de BD.
@@ -276,18 +278,21 @@ Añadir factor de proximidad al scoring: `scoreSimilarity = 1 / (1 + |userKm −
 
 **Protocolo de activación del OLS (obligatorio):** cuando el pool ponderado esté listo, **no activar el OLS directamente**. Ponerlo primero en shadow mode: calcular `slopeKm` y `slopeYear` reales, loggearlos junto al slope de segmento que se está aplicando, y no cambiar el precio. Validar en producción que los slopes reales pasan los guardarraíles y que la diferencia de precio vs. segmento por defecto es plausible. Solo entonces activar. Razonamiento: cuando el OLS empiece a sobrevivir los 12 fixtures driftarán a la vez — el drift más grande del proyecto, causa única. Encender pool + OLS en el mismo paso impide saber cuál causa qué. El patrón shadow-first ya funcionó con el shadow ratio en Ola 1.
 
-#### 2. Decisión explícita sobre el cap del ajuste unificado
+#### 1f. Decisión del cap del ajuste unificado — PENDIENTE
 
-**Retrato del modelo actual:** el ajuste por uso es `min(slopeSegmento × (user − median), capSegmento)`. Ni el OLS ni los datos de mercado participan en ningún punto — el modelo completo es una tabla de slopes + una tabla de caps, ambas escritas a mano. El cap es la segunda mitad del modelo real, a la altura de USAGE_DEFAULTS. En dos fixtures el cap está mordiendo con exactitud: Golf −2.673 ≈ 12% de su mediana (cap mainstream exacto), Alfa Stelvio −4.680 = 23.400 × 0.20 (cap premium_entry exacto).
+**Por qué tiene identificador propio:** el cap es la segunda mitad del modelo real, a la misma altura de USAGE_DEFAULTS. Sin identificador se cae de la lista con cada reordenación — ya ha pasado dos veces.
 
-**La decisión del cap debe tomarse DESPUÉS del pool re-centrado, no antes.** Con el pool mal centrado, userKm/userYear caen en la cola de la distribución y el impacto crudo es grande — por eso los caps muerden. Con el pool re-centrado alrededor del sujeto, (userKm − medKm) se encoge y el impacto crudo probablemente quede bajo los caps. Si los caps dejan de morder, la decisión puede desaparecer o simplificarse. Si siguen mordiendo con el pool corregido, la señal es genuina y merece una decisión consciente.
+**Retrato del modelo actual:** el ajuste por uso es `min(slopeSegmento × (user − median), capSegmento)`. Ni el OLS ni los datos de mercado participan. El cap actual es 12% para mainstream — heredado de la era con dos caps separados (km 12% + edad 10% ≈ 22% combinados), colapsado a la mitad sin decisión explícita. En dos fixtures el cap muerde con exactitud: Golf −2.673 ≈ 12% de su mediana (cap mainstream exacto), Alfa Stelvio −4.680 = 23.400 × 0.20 (cap premium_entry exacto).
 
-**Opciones a evaluar cuando el pool esté listo:**
-- ±12% por variable × 2 = ±24% total — preserva el rango del esquema viejo
-- Cap dinámico por segmento (ya existe vía `kmCap`) — escalar a varianza típica del segmento
+**La decisión debe tomarse después del pool re-centrado con alpha=0.5.** Con el pool mal centrado, (userKm − medKm) es grande y el cap muerde. Con el pool re-centrado, el término se encoge y puede que el cap deje de morder — en ese caso la decisión se simplifica o desaparece. Si sigue mordiendo, la señal es genuina y merece una decisión consciente.
+
+**Opciones a evaluar:**
+- 12% actual — mantener, documentar que es herencia
+- ±12% por variable × 2 = ±24% total — preserva el rango del esquema original
+- Cap dinámico por segmento (ya existe vía `kmCap`) — escalar a varianza típica
 - Cap fijo 20% para todos — compromiso simple
 
-**Prerequisito:** Prioridad 1 (ponderación del pool) cerrada y en producción.
+**Prerequisito:** § 1d (alpha=0.5 activado y pool re-centrado).
 
 #### 3. Calibrar el estimador de depreciación
 

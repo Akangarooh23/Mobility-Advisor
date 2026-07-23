@@ -209,7 +209,8 @@
           "id": "zoxD0jV8hxZqH0uY",
           "name": "Postgres account"
         }
-      }
+      },
+      "continueOnFail": true
     },
     {
       "parameters": {

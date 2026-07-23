@@ -1,5 +1,5 @@
 {
-  "_capturedAt": "2026-07-23T10:06:21.462Z",
+  "_capturedAt": "2026-07-23T12:51:51.100Z",
   "_branch": "fallback",
   "_actualBranch": "fallback",
   "vehicle": {
@@ -54,7 +54,7 @@
     "priceHistogram": [],
     "samples": []
   },
-  "referenceDate": "2026-07-23T10:06:21.462Z",
+  "referenceDate": "2026-07-23T12:51:51.100Z",
   "expected": {
     "priceOptimal": 7694,
     "priceLow": 7025,

@@ -117,7 +117,7 @@ function computeQuadRow(label, candidates, user, targetSize, relaxed, options) {
   }
 
   const diag = poolDiagnostics(pool, user, options);
-  return { _label: label, alpha: 0, balance: false, ...diag, relaxed, pq, rawQ };
+  return { _label: label, useProximity: false, balance: false, ...diag, relaxed, pq, rawQ };
 }
 
 // ─── Opción-A shadow ──────────────────────────────────────────────────────────
@@ -149,11 +149,13 @@ function shadowSegment(brand) {
   return USAGE_DEFAULTS.mainstream;
 }
 
-// Dos configs: producción actual (α=0) y §1d pendiente (α=0.5).
-// Con ambas se puede leer si alpha mueve priceBal lo suficiente para que §1d vaya junto a §1h.
+// Dos configs: §1h sin proximidad (referencia) y §1h + §1d con proximidad.
+// useProximity es booleano — cualquier valor positivo da idéntico ranking (ver poolProximity.js).
+// El shadow balancea sobre el POOL COMPLETO (_pool), no sobre el slice-400, porque
+// §1h mueve selectBalancedPool aguas arriba del slice en getMarketPriceSnapshot.
 const OPA_CONFIGS = [
-  { label: 'opA  α=0  bal', alpha: 0,   balance: true },
-  { label: 'opA α=0.5 bal', alpha: 0.5, balance: true },
+  { label: 'opA noprox bal', useProximity: false, balance: true },
+  { label: 'opA  prox  bal', useProximity: true,  balance: true },
 ];
 
 function computeOpAShadow(fixture, candidatesForSweep) {
@@ -161,8 +163,9 @@ function computeOpAShadow(fixture, candidatesForSweep) {
   const exp = fixture.expected;
   if (!v || !exp) return [];
 
-  // Replica computeOffers = offers.slice(0, 400), filtrado igual que computeUsageImpact
-  const computeBase = candidatesForSweep.slice(0, 400).filter(
+  // §1h plan: balance en getMarketPriceSnapshot sobre el pool completo, ANTES del slice-400.
+  // El shadow usa candidatesForSweep (fixture._pool completo) para replicar esto.
+  const fullCandidates = candidatesForSweep.filter(
     o => o.mileage >= 500 && o.year > 0 && Number.isFinite(o.price) && o.price > 0
   );
 
@@ -176,9 +179,9 @@ function computeOpAShadow(fixture, candidatesForSweep) {
 
   return OPA_CONFIGS.map(cfg => {
     const { pool: balPairs } = selectBalancedPool(
-      computeBase,
+      fullCandidates,
       { km: v.mileage, year: v.year },
-      { alpha: cfg.alpha, balance: cfg.balance, kmKey: 'mileage', yearKey: 'year' }
+      { useProximity: cfg.useProximity, balance: cfg.balance, kmKey: 'mileage', yearKey: 'year' }
     );
     if (!balPairs.length) return { label: cfg.label, error: 'pool vacío' };
 
@@ -208,9 +211,9 @@ function computeOpAShadow(fixture, candidatesForSweep) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-const COL = { lbl:10, alpha:6, bal:8, n:5, medKm:8, medYr:7, kmPct:7, yrPct:7, r:7, kappa:6, iqr:8, spr:6, rlx:5, quad:15 };
+const COL = { lbl:10, prox:5, bal:8, n:5, medKm:8, medYr:7, kmPct:7, yrPct:7, r:7, kappa:6, iqr:8, spr:6, rlx:5, quad:15 };
 const hdr = [
-  'label'.padEnd(COL.lbl), 'alpha'.padStart(COL.alpha), 'balance'.padStart(COL.bal),
+  'label'.padEnd(COL.lbl), 'prox'.padStart(COL.prox), 'balance'.padStart(COL.bal),
   'n'.padStart(COL.n), 'medKm'.padStart(COL.medKm), 'medYr'.padStart(COL.medYr),
   'kmPct'.padStart(COL.kmPct), 'yrPct'.padStart(COL.yrPct),
   'r'.padStart(COL.r), 'kappa'.padStart(COL.kappa),
@@ -254,15 +257,13 @@ for (const entry of targets) {
 
   // _label se propaga por sweepDiagnostics hasta el row; poolProximity lo ignora.
   // targetSize en mkt-full: n0 (todos los candidatos, sin truncar).
+  // useProximity es booleano — ker-prox sustituye ker-0.5/ker-1.0 (idénticos).
   const CONFIGS = [
-    { _label: 'prod    ', alpha: 0,   balance: false },
-    { _label: 'mkt-full', alpha: 0,   balance: false, targetSize: n0 },
-    { _label: 'ker-0.5 ', alpha: 0.5, balance: false },
-    { _label: 'ker-1.0 ', alpha: 1,   balance: false },
-    { _label: 'bal     ', alpha: 0,   balance: true  },
-    { _label: 'k0.5+bal', alpha: 0.5, balance: true  },
-    { _label: 'k1.0+bal', alpha: 1,   balance: true  },
-    { _label: 'k2.0+bal', alpha: 2,   balance: true  },
+    { _label: 'prod    ', useProximity: false, balance: false },
+    { _label: 'mkt-full', useProximity: false, balance: false, targetSize: n0 },
+    { _label: 'ker-prox', useProximity: true,  balance: false },
+    { _label: 'bal     ', useProximity: false, balance: true  },
+    { _label: 'prox+bal', useProximity: true,  balance: true  },
   ];
 
   const user    = { km: v.mileage, year: v.year };
@@ -280,7 +281,7 @@ for (const entry of targets) {
       : '';
     console.log([
       (row._label ?? '?').padEnd(COL.lbl),
-      fmt(row.alpha,    1,    COL.alpha),
+      (row.useProximity ? 'T' : 'F').padStart(COL.prox),
       fmt(row.balance,  null, COL.bal),
       fmt(row.n,        0,    COL.n),
       fmt(row.medKm,    0,    COL.medKm),

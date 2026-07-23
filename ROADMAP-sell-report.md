@@ -167,9 +167,17 @@ Tras la corrección de frontera, los fixtures actuales cubren `buildReportData` 
 `_rank` viene de `updated_at DESC`. Si el scraper está escribiendo entre las dos capturas, algunas ofertas cambian de posición y arrastran a las demás — el diff mostrará cambios de `_rank` aunque el conjunto sea el mismo. Para el chequeo de determinismo: si el conjunto de ofertas es idéntico (mismos precios, mismas urls, misma cantidad) y solo cambian los `_rank` → es escritura concurrente, aceptable. Si aparecen o desaparecen ofertas o cambian precios → es movimiento de mercado real, también aceptable. Lo que señalaría un bug sería que la misma oferta tenga distinto precio en dos capturas consecutivas sin que el scraper haya corrido. Preferiblemente: **correr las dos capturas con el scraper parado** (o fuera de su ventana habitual).
 
 **Fila `mkt-full` — diagnóstico de causa raíz:**
-- `yrPct ≈ 0.50` → el mercado real es simétrico; el sesgo lo producía el corte `updated_at DESC LIMIT 400`. Solución mínima: kernel solo (filas `ker-0.5` / `ker-1.0`) o cambiar criterio de corte. La cuota puede no ser necesaria.
-- `yrPct ≈ 0.05` → el mercado tiene más coches recientes que antiguos. La cuota (filas `bal` / `k*+bal`) es lo que centra. El kernel solo no es suficiente.
-6. Elegir config con datos de la tabla, empezando por la columna `yrPct`
+
+Leer `yrPct` y `yrSpread` / `kmIqr` juntos: un centrado con yrSpread=15-20 años puede venir de coches 2010 en la cola del pool, no de comparables 2018-2022. El percentil se equilibra numéricamente con basura. Centrado con dispersión razonable = mercado sano truncado mal. Centrado con dispersión enorme = el filtro año ±4 deja entrar cosas que no comparan.
+
+Regla de lectura (fijar antes de ver el número):
+- `yrPct ≥ 0.40` → el culpable es el corte por recencia (`updated_at DESC LIMIT 400`). Las filas `ker-*` (solo kernel, sin cuota) deberían bastar.
+- `yrPct ≤ 0.15` → el mercado tiene más coches recientes que antiguos; la cuota es necesaria. Leer filas `bal` / `k*+bal`.
+- `0.15 < yrPct < 0.40` → ambas cosas contribuyen. La decisión la toma la comparación `ker-1.0` vs `bal`: la que más acerque `yrPct` a 0.50 sin hundir `kmIqr`.
+
+Predicción revisada (post hallazgo `updated_at DESC`): menos confianza en "la cuota centra casi todo". Si el sesgo lo produce el truncado por recencia, `ker-*` puede centrar igual de bien con un mecanismo más simple — y sin necesidad de cuota ni parámetro nuevo.
+
+6. Elegir config con datos de la tabla, leyendo `yrPct` + `yrSpread` juntos
 
 **Consecuencia positiva:** a partir de esa recaptura, todos los cambios del módulo de regresión producirán drift legible en run.js.
 

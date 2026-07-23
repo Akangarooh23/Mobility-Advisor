@@ -35,7 +35,8 @@
 
 const fs   = require('fs');
 const path = require('path');
-const { sweepDiagnostics, poolDiagnostics } = require('../../lib/poolProximity');
+const { sweepDiagnostics, poolDiagnostics, selectBalancedPool } = require('../../lib/poolProximity');
+const { USAGE_DEFAULTS } = require('../../lib/inventoryStore');
 
 const FIXTURES_DIR  = path.join(__dirname, 'fixtures');
 const VEHICLES_FILE = path.join(__dirname, 'vehicles.json');
@@ -118,6 +119,94 @@ function computeQuadRow(label, candidates, user, targetSize, relaxed, options) {
   const diag = poolDiagnostics(pool, user, options);
   return { _label: label, alpha: 0, balance: false, ...diag, relaxed, pq, rawQ };
 }
+
+// ─── Opción-A shadow ──────────────────────────────────────────────────────────
+// Simula §1h (base del pool balanceado) offline sobre _pool congelado, sin BD.
+// Objetivo: medir priceBal antes de activar para decidir si §1d va en el mismo commit.
+//
+// Orden correcto: selectBalancedPool → Tukey sobre pool balanceado (no al revés).
+// Si Tukey se aplicara antes, los límites reflejarían la distribución de recencia y
+// podrían descartar justo los coches antiguos que la cuota importó.
+
+function pctile(sorted, p) {
+  if (!sorted.length) return null;
+  const i = (sorted.length - 1) * p;
+  const lo = Math.floor(i), hi = Math.ceil(i);
+  return lo === hi ? sorted[lo] : sorted[lo] + (sorted[hi] - sorted[lo]) * (i - lo);
+}
+
+function tukeyClean(sorted) {
+  if (sorted.length < 4) return sorted;
+  const q1 = pctile(sorted, 0.25), q3 = pctile(sorted, 0.75), iqr = q3 - q1;
+  return sorted.filter(v => v >= q1 - 1.5 * iqr && v <= q3 + 1.5 * iqr);
+}
+
+function shadowSegment(brand) {
+  const b = (brand || '').toLowerCase().trim();
+  for (const seg of Object.values(USAGE_DEFAULTS)) {
+    if (seg.brands.some(n => b.includes(n) || n.includes(b))) return seg;
+  }
+  return USAGE_DEFAULTS.mainstream;
+}
+
+// Dos configs: producción actual (α=0) y §1d pendiente (α=0.5).
+// Con ambas se puede leer si alpha mueve priceBal lo suficiente para que §1d vaya junto a §1h.
+const OPA_CONFIGS = [
+  { label: 'opA  α=0  bal', alpha: 0,   balance: true },
+  { label: 'opA α=0.5 bal', alpha: 0.5, balance: true },
+];
+
+function computeOpAShadow(fixture, candidatesForSweep) {
+  const v   = fixture.vehicle;
+  const exp = fixture.expected;
+  if (!v || !exp) return [];
+
+  // Replica computeOffers = offers.slice(0, 400), filtrado igual que computeUsageImpact
+  const computeBase = candidatesForSweep.slice(0, 400).filter(
+    o => o.mileage >= 500 && o.year > 0 && Number.isFinite(o.price) && o.price > 0
+  );
+
+  // effectiveFactor del fixture — el vehículo es el mismo, solo cambia el pool
+  const df  = exp.damageFactor     ?? 1;
+  const cf  = exp.colorAdjFactor   ?? 1;
+  const of_ = exp.ownerAdjFactor   ?? 1;
+  const effectiveFactor = Math.max(0.72, df * cf * of_);
+
+  const seg = shadowSegment(v.brand);
+
+  return OPA_CONFIGS.map(cfg => {
+    const { pool: balPairs } = selectBalancedPool(
+      computeBase,
+      { km: v.mileage, year: v.year },
+      { alpha: cfg.alpha, balance: cfg.balance, kmKey: 'mileage', yearKey: 'year' }
+    );
+    if (!balPairs.length) return { label: cfg.label, error: 'pool vacío' };
+
+    // Tukey SOBRE el pool balanceado (no sobre computeBase)
+    const rawPrices   = balPairs.map(o => o.price).sort((a, b) => a - b);
+    const cleanPrices = tukeyClean(rawPrices);
+    const baseBal     = pctile(cleanPrices, 0.5);
+    if (!baseBal) return { label: cfg.label, error: 'precios vacíos tras Tukey' };
+
+    const sortedKm = [...balPairs.map(o => o.mileage)].sort((a, b) => a - b);
+    const sortedYr = [...balPairs.map(o => o.year)].sort((a, b) => a - b);
+    const medKmBal = pctile(sortedKm, 0.5);
+    const medYrBal = pctile(sortedYr, 0.5);
+    const kmPctBal = balPairs.filter(o => o.mileage <= v.mileage).length / balPairs.length;
+    const yrPctBal = balPairs.filter(o => o.year    <= v.year).length    / balPairs.length;
+
+    // USAGE_DEFAULTS (producción usa este path porque OLS falla con n<15 o guardarraíles)
+    const cap            = baseBal * seg.kmCap;
+    const rawAdj         = seg.slopeKm * (v.mileage - medKmBal) + seg.slopeYear * (v.year - medYrBal);
+    const usageImpactBal = Math.round(Math.max(-cap, Math.min(cap, rawAdj)));
+
+    const priceBal = Math.max(0, Math.round((baseBal + usageImpactBal) * effectiveFactor));
+    const delta    = exp.priceOptimal != null ? priceBal - exp.priceOptimal : null;
+
+    return { label: cfg.label, n: balPairs.length, baseBal, medKmBal, medYrBal, kmPctBal, yrPctBal, usageImpactBal, priceBal, delta };
+  });
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 const COL = { lbl:10, alpha:6, bal:8, n:5, medKm:8, medYr:7, kmPct:7, yrPct:7, r:7, kappa:6, iqr:8, spr:6, rlx:5, quad:15 };
 const hdr = [
@@ -211,6 +300,34 @@ for (const entry of targets) {
   const rawQ = rows[rows.length - 1].rawQ;
   if (rawQ) {
     console.log(`  Q-raw (stored)  nl=${rawQ.new_lo}  nh=${rawQ.new_hi}  ol=${rawQ.old_lo}  oh=${rawQ.old_hi}`);
+  }
+
+  // opA-shadow: preview de Opción A antes de activarla.
+  // base_now = marketMedian actual (del pool sin balancear).
+  // priceBal = priceOptimal si base y referencia vinieran del pool balanceado.
+  // Δ = priceBal − priceOptimal_actual → signo positivo = Opción A da precio más alto.
+  const baseNow  = fixture.national?.market?.median ?? null;
+  const priceNow = fixture.expected?.priceOptimal   ?? null;
+  const shadows  = computeOpAShadow(fixture, candidatesForSweep);
+  if (shadows.length) {
+    console.log(`\n  opA-shadow  base_now=${baseNow != null ? Math.round(baseNow) : 'n/a'}  price_now=${priceNow ?? 'n/a'}`);
+    for (const s of shadows) {
+      if (s.error) {
+        console.log(`    ${s.label.padEnd(16)}: ${s.error}`);
+        continue;
+      }
+      const dSign = (s.delta ?? 0) >= 0 ? '+' : '';
+      console.log(
+        `    ${s.label.padEnd(16)}` +
+        `  n=${String(s.n).padStart(3)}` +
+        `  baseBal=${String(Math.round(s.baseBal)).padStart(6)}` +
+        `  medKm=${String(Math.round(s.medKmBal)).padStart(6)}` +
+        `  kmPct=${s.kmPctBal.toFixed(2)}  yrPct=${s.yrPctBal.toFixed(2)}` +
+        `  usageAdj=${String(s.usageImpactBal).padStart(7)}` +
+        `  priceBal=${String(s.priceBal).padStart(6)}` +
+        `  Δ=${dSign}${s.delta ?? 'n/a'}`
+      );
+    }
   }
 }
 console.log('');

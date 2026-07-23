@@ -117,14 +117,14 @@
       }
     },
     {
-      "id": "nlow-lincoln",
+      "id": "nlow-maserati-ghibli",
       "branch": "n_low",
-      "desc": "Lincoln Continental 2019 — n=11 tras relax transmission, branch=n_low (n<15 tiene prioridad sobre cascade)",
+      "desc": "Maserati Ghibli 2018 Diesel — n=4 tras relax transmission; n<15 tiene prioridad sobre cascade_relaxed",
       "vehicle": {
-        "brand": "Lincoln", "model": "Continental", "version": "",
-        "year": 2019, "mileage": 35000, "fuel": "Gasolina",
-        "transmission": "Manual", "powerCv": null,
-        "color": "negro", "owners": "1", "serviceHistory": "oficial",
+        "brand": "Maserati", "model": "Ghibli", "version": "",
+        "year": 2018, "mileage": 60000, "fuel": "Diesel",
+        "transmission": "Automatico", "powerCv": null,
+        "color": "gris", "owners": "2", "serviceHistory": "oficial",
         "damageLevel": "", "damageDescription": "", "itvStatus": ""
       }
     },

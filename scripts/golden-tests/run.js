@@ -25,27 +25,25 @@ const PRICE_TOLERANCE = 1; // €, margen por redondeo de enteros
 
 function pickKeyFields(rd, national) {
   return {
-    priceOptimal:   rd.priceOptimal   ?? null,
-    priceLow:       rd.priceLow       ?? null,
-    priceHigh:      rd.priceHigh      ?? null,
-    confidence:     rd.confidence     ?? null,
-    comparables:    rd.comparables    ?? null,
-    usedFallback:   rd.usedFallback   ?? null,
-    damageFactor:   rd.damageFactor   ?? null,
-    kmImpact:       rd.kmImpact       ?? null,
-    ageImpact:      rd.ageImpact      ?? null,
-    colorAdjFactor: rd.colorAdj?.factor  ?? null,
-    colorAdjPct:    rd.colorAdj?.pct     ?? null,
-    ownerAdjFactor: rd.ownerAdj?.factor  ?? null,
-    ownerAdjPct:    rd.ownerAdj?.pct     ?? null,
-    combinedFactor: (rd.colorAdj?.factor ?? 1) * (rd.ownerAdj?.factor ?? 1),
-    // Path assertion: viene del national congelado, no del cálculo — siempre coincide
-    // consigo mismo, pero documenta qué camino tomó y falla si el fixture se edita mal
-    cascadeRelaxed: national.cascadeRelaxed ?? { power: false, transmission: false, fuel: false, year: false },
+    priceOptimal:     rd.priceOptimal       ?? null,
+    priceLow:         rd.priceLow           ?? null,
+    priceHigh:        rd.priceHigh          ?? null,
+    confidence:       rd.confidence         ?? null,
+    comparables:      rd.comparables        ?? null,
+    usedFallback:     rd.usedFallback       ?? null,
+    damageFactor:     rd.damageFactor       ?? null,
+    usageImpact:      rd.usageImpact        ?? null,
+    usageUsedDefault: rd.usageUsedDefault   ?? null,
+    colorAdjFactor:   rd.colorAdj?.factor   ?? null,
+    colorAdjPct:      rd.colorAdj?.pct      ?? null,
+    ownerAdjFactor:   rd.ownerAdj?.factor   ?? null,
+    ownerAdjPct:      rd.ownerAdj?.pct      ?? null,
+    combinedFactor:   (rd.colorAdj?.factor ?? 1) * (rd.ownerAdj?.factor ?? 1),
+    cascadeRelaxed:   national.cascadeRelaxed ?? { power: false, transmission: false, fuel: false, year: false },
   };
 }
 
-const PRICE_KEYS = new Set(["priceOptimal", "priceLow", "priceHigh", "kmImpact", "ageImpact"]);
+const PRICE_KEYS = new Set(["priceOptimal", "priceLow", "priceHigh", "usageImpact"]);
 
 function compare(id, expected, actual) {
   const drifts = [];

@@ -38,13 +38,24 @@ El commit que incluye los fixtures de golden tests es el que cierra cada ola, no
 
 ---
 
-## OLA 1 — Módulo de regresión completo
+## OLA 1 — Módulo de regresión completo + fix unresolved-brand
 
-**Estado: PENDIENTE**
+**Estado: CERRADA** — 2026-07-23, 12 golden tests verdes, 6 ramas
 
-Prerrequisito: Ola 0 cerrada (commit con fixtures verdes).
+Prerrequisito: Ola 0 cerrada ✓ + baseline del bug congelada ✓ (commit 55948bc).
 
-### Cambios planificados
+### Cambios planificados (en el mismo commit)
+
+#### Fix — unresolved-brand (dos mecanismos complementarios)
+
+**Mecanismo 1 — fail-closed en resolución de marca** (`getMarketPriceSnapshot`):
+Si la marca no resuelve a ningún alias conocido Y no existe en `moveadvisor_market_offers` → devolver snapshot vacío (`comparables=0, source="unresolved-brand"`) → rama fallback con 35% de confianza. Ataja el modo de fallo: 0 entradas Postgres → JSON local → pool sin filtrar.
+
+**Mecanismo 2 — cross-check depreciación/mercado** (aplicado siempre, no solo en unresolved):
+Después de construir el pool: calcular `estimatePriceByDepreciation` como control cruzado. Si `medianMercado / estimadoDepreciación` cae fuera de la banda `[0.40, 2.50]` → pool no corresponde al vehículo → forzar `comparables=0`. Ataja el modo de fallo complementario (Lamborghini Huracan: 1 entrada Postgres real pero "huracan" token casa con 338 coches más).
+
+**Script de prevención** (en el mismo commit, en `scripts/`):
+`check-catalog-alias-gap.js` — diffeea vehicle-catalog.json vs aliases y lista las marcas sin cobertura. 20 líneas. Se corre antes de tocar el catálogo.
 
 - **OLS múltiple km+año** en lugar de dos regresiones univariadas — devuelto como factor único "ajuste por uso" (evita que dos filas con la misma correlación bailen entre informes)
 - **Umbral n≥15** para usar la regresión; por debajo: slope por defecto calibrado por segmento (`BRAND_TIERS`)
@@ -73,14 +84,16 @@ El drift por reordenamiento de df crece con el segmento y el kilometraje. No es 
 
 ### Flujo de trabajo
 
-1. `run.js` → estado verde (0 DRIFT, prerrequisito)
-2. Implementar `computeUsageImpact` con solver robusto en `inventoryStore.js`
-3. Actualizar `buildReportData`: leer `usageImpact`, restructurar `effectiveFactor` con cap
-4. PDF pág. 3: fusionar dos filas en "Ajuste por uso"
-5. Logging al final de `generateSellReport`
-6. `run.js` → leer drift con la tabla de predicción como guía
-7. `capture.js` para reasentar la línea base si el drift es el esperado
-8. Commit con bloque "drift aceptado" explicando cada categoría
+1. `run.js` → 12 PASS (ya verificado, prerrequisito ✓)
+2. `inventoryStore.js`: fail-closed en `getMarketPriceSnapshot` + cross-check depreciación en `computeUsageImpact`
+3. `inventoryStore.js`: `solveOLS2x2` + `computeUsageImpact` reemplaza `computeKmImpact` + `computeAgeImpact`
+4. `sellReportGenerator.js`: reordenamiento `base+usageImpact)*effectiveFactor` + cap 0.72
+5. PDF pág. 3: fusionar "Kilometraje" / "Antigüedad" → "Ajuste por uso"
+6. `generateSellReport`: logging de tupla diagnóstica
+7. `scripts/check-catalog-alias-gap.js`: script de prevención
+8. `run.js` → leer drift (tabla de predicción + DRIFT espectacular en unresolved-brand)
+9. `capture.js` → reasentar línea base (unresolved-brand: de n=351/81% a n=0/35%)
+10. Commit con bloque "drift aceptado" + "unresolved-brand: fix verificado"
 
 ---
 

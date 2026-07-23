@@ -1,5 +1,5 @@
 {
-  "_capturedAt": "2026-07-23T09:15:29.084Z",
+  "_capturedAt": "2026-07-23T10:06:21.462Z",
   "_branch": "fallback",
   "_actualBranch": "fallback",
   "vehicle": {
@@ -19,13 +19,13 @@
     "itvStatus": ""
   },
   "national": {
-    "source": "postgres",
-    "totalUniverse": 2,
+    "source": "unresolved-brand",
+    "totalUniverse": 0,
     "cascadeRelaxed": {
       "power": false,
-      "transmission": true,
-      "fuel": true,
-      "year": true
+      "transmission": false,
+      "fuel": false,
+      "year": false
     },
     "comparables": 0,
     "rawComparables": 0,
@@ -54,7 +54,7 @@
     "priceHistogram": [],
     "samples": []
   },
-  "referenceDate": "2026-07-23T09:15:29.084Z",
+  "referenceDate": "2026-07-23T10:06:21.462Z",
   "expected": {
     "priceOptimal": 7694,
     "priceLow": 7025,
@@ -63,8 +63,8 @@
     "comparables": 0,
     "usedFallback": true,
     "damageFactor": 1,
-    "kmImpact": 0,
-    "ageImpact": 0,
+    "usageImpact": 0,
+    "usageUsedDefault": false,
     "colorAdjFactor": 0.98,
     "colorAdjPct": -2,
     "ownerAdjFactor": 1.07,
@@ -72,9 +72,9 @@
     "combinedFactor": 1.0486,
     "cascadeRelaxed": {
       "power": false,
-      "transmission": true,
-      "fuel": true,
-      "year": true
+      "transmission": false,
+      "fuel": false,
+      "year": false
     }
   }
 }

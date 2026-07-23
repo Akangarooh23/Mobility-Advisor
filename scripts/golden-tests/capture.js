@@ -36,10 +36,11 @@ const FIXTURES_DIR  = path.join(__dirname, "fixtures");
 const KEY_FIELDS = [
   "priceOptimal", "priceLow", "priceHigh",
   "confidence", "comparables", "usedFallback",
-  "damageFactor", "kmImpact", "ageImpact",
+  "damageFactor", "usageImpact", "usageUsedDefault",
 ];
 // confidence is deliberately included: the unresolved_brand bug shows n≈400 with
 // confidence 88% — the most visible signal of the failure mode.
+// usageImpact replaces kmImpact + ageImpact (joint OLS from Ola 1 onwards).
 
 function pickKeyFields(rd, national) {
   const out = {};

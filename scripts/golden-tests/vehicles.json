@@ -1,0 +1,153 @@
+{
+  "_branches": {
+    "common":          ">=15 comparables, cascade sin relajar ningún filtro",
+    "cascade_relaxed": "cascade relajó al menos un filtro (power/transmission/fuel/year) para alcanzar muestra",
+    "damage":          "damageLevel declarado → damageFactor < 1.00 (validado por factor, no por ruta de mercado)",
+    "n_low":           "3-14 comparables — regresión no fiable, usa slope por defecto de segmento",
+    "fallback":        "<3 comparables o 0 — usa depreciación estándar, no mercado real"
+  },
+  "_instructions": [
+    "Cubre las 5 ramas antes del primer commit de golden tests.",
+    "Rama 'damage' se valida por damageFactor<1.00, no por la ruta de mercado — puede coexistir con cualquier otra rama.",
+    "Si un vehículo no activa la rama esperada, mira el log de capture.js y ajusta.",
+    "Para 'common': no incluir powerCv — cualquier powerCv específico puede trigger cascade en modelos populares.",
+    "Para 'n_low': necesita n entre 3 y 14 después de todo el cascade. Modelos exóticos o muy específicos.",
+    "Para 'fallback': necesita n=0-2 incluso después de relax total (brand+model sin fuel/year). Marcas no presentes en DB."
+  ],
+  "vehicles": [
+    {
+      "id": "common-seat-leon",
+      "branch": "common",
+      "desc": "Seat Leon diesel — masivo, alta rotación, sin filtro powerCv para evitar cascade",
+      "vehicle": {
+        "brand": "Seat", "model": "Leon", "version": "FR",
+        "year": 2019, "mileage": 70000, "fuel": "Diesel",
+        "transmission": "Manual", "powerCv": null,
+        "color": "negro", "owners": "2", "serviceHistory": "parcial",
+        "damageLevel": "", "damageDescription": "", "itvStatus": ""
+      }
+    },
+    {
+      "id": "common-vw-golf",
+      "branch": "common",
+      "desc": "VW Golf gasolina — muy común, sin powerCv para no trigger cascade",
+      "vehicle": {
+        "brand": "Volkswagen", "model": "Golf", "version": "1.5 TSI",
+        "year": 2020, "mileage": 50000, "fuel": "Gasolina",
+        "transmission": "Manual", "powerCv": null,
+        "color": "blanco", "owners": "1", "serviceHistory": "oficial",
+        "damageLevel": "", "damageDescription": "", "itvStatus": ""
+      }
+    },
+    {
+      "id": "common-renault-clio",
+      "branch": "common",
+      "desc": "Renault Clio — economy masivo, sin powerCv",
+      "vehicle": {
+        "brand": "Renault", "model": "Clio", "version": "",
+        "year": 2021, "mileage": 30000, "fuel": "Gasolina",
+        "transmission": "Manual", "powerCv": null,
+        "color": "gris", "owners": "1", "serviceHistory": "oficial",
+        "damageLevel": "", "damageDescription": "", "itvStatus": ""
+      }
+    },
+    {
+      "id": "cascade-alfa-stelvio",
+      "branch": "cascade_relaxed",
+      "desc": "Alfa Romeo Stelvio diesel — relajación de transmisión y/o potencia esperada",
+      "vehicle": {
+        "brand": "Alfa Romeo", "model": "Stelvio", "version": "2.2 Diesel",
+        "year": 2019, "mileage": 65000, "fuel": "Diesel",
+        "transmission": "Automatico", "powerCv": 210,
+        "color": "rojo", "owners": "1", "serviceHistory": "oficial",
+        "damageLevel": "", "damageDescription": "", "itvStatus": ""
+      }
+    },
+    {
+      "id": "cascade-porsche-macan",
+      "branch": "cascade_relaxed",
+      "desc": "Porsche Macan S — variante específica con relajación esperada",
+      "vehicle": {
+        "brand": "Porsche", "model": "Macan", "version": "S",
+        "year": 2017, "mileage": 85000, "fuel": "Gasolina",
+        "transmission": "Automatico", "powerCv": 340,
+        "color": "plata", "owners": "2", "serviceHistory": "oficial",
+        "damageLevel": "", "damageDescription": "", "itvStatus": ""
+      }
+    },
+    {
+      "id": "damage-golf-moderado",
+      "branch": "damage",
+      "desc": "Golf con daño moderado — damageFactor debe ser 0.91",
+      "vehicle": {
+        "brand": "Volkswagen", "model": "Golf", "version": "1.5 TSI",
+        "year": 2020, "mileage": 50000, "fuel": "Gasolina",
+        "transmission": "Manual", "powerCv": null,
+        "color": "blanco", "owners": "1", "serviceHistory": "oficial",
+        "damageLevel": "moderado", "damageDescription": "Golpe lateral puerta trasera derecha, sin afectacion mecanica",
+        "itvStatus": ""
+      }
+    },
+    {
+      "id": "damage-leon-leve",
+      "branch": "damage",
+      "desc": "Leon con daño leve — damageFactor debe ser 0.97",
+      "vehicle": {
+        "brand": "Seat", "model": "Leon", "version": "FR",
+        "year": 2019, "mileage": 70000, "fuel": "Diesel",
+        "transmission": "Manual", "powerCv": null,
+        "color": "negro", "owners": "1", "serviceHistory": "parcial",
+        "damageLevel": "leve", "damageDescription": "Rozones en paragolpes trasero",
+        "itvStatus": ""
+      }
+    },
+    {
+      "id": "nlow-abarth",
+      "branch": "n_low",
+      "desc": "Abarth 595 — marca nicho en BD española, 4 anuncios activos en primera captura",
+      "vehicle": {
+        "brand": "Abarth", "model": "595", "version": "",
+        "year": 2020, "mileage": 25000, "fuel": "Gasolina",
+        "transmission": "Manual", "powerCv": null,
+        "color": "rojo", "owners": "1", "serviceHistory": "oficial",
+        "damageLevel": "", "damageDescription": "", "itvStatus": ""
+      }
+    },
+    {
+      "id": "nlow-lincoln",
+      "branch": "n_low",
+      "desc": "Lincoln Continental 2019 — n=11 tras relax transmission, branch=n_low (n<15 tiene prioridad sobre cascade)",
+      "vehicle": {
+        "brand": "Lincoln", "model": "Continental", "version": "",
+        "year": 2019, "mileage": 35000, "fuel": "Gasolina",
+        "transmission": "Manual", "powerCv": null,
+        "color": "negro", "owners": "1", "serviceHistory": "oficial",
+        "damageLevel": "", "damageDescription": "", "itvStatus": ""
+      }
+    },
+    {
+      "id": "fallback-dodge",
+      "branch": "fallback",
+      "desc": "DODGE — 1 anuncio activo en BD, n<3 tras cascade → usedFallback=true",
+      "vehicle": {
+        "brand": "Dodge", "model": "Challenger", "version": "",
+        "year": 2019, "mileage": 30000, "fuel": "Gasolina",
+        "transmission": "Automatico", "powerCv": null,
+        "color": "negro", "owners": "1", "serviceHistory": "oficial",
+        "damageLevel": "", "damageDescription": "", "itvStatus": ""
+      }
+    },
+    {
+      "id": "fallback-lotus",
+      "branch": "fallback",
+      "desc": "Lotus Evora 2018 — n=2 tras relax transmission, comparables<3 → usedFallback=true",
+      "vehicle": {
+        "brand": "Lotus", "model": "Evora", "version": "",
+        "year": 2018, "mileage": 20000, "fuel": "Gasolina",
+        "transmission": "Manual", "powerCv": null,
+        "color": "verde", "owners": "1", "serviceHistory": "oficial",
+        "damageLevel": "", "damageDescription": "", "itvStatus": ""
+      }
+    }
+  ]
+}

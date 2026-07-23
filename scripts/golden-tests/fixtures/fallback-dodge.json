@@ -1,0 +1,80 @@
+{
+  "_capturedAt": "2026-07-23T09:15:23.632Z",
+  "_branch": "fallback",
+  "_actualBranch": "fallback",
+  "vehicle": {
+    "brand": "Dodge",
+    "model": "Challenger",
+    "version": "",
+    "year": 2019,
+    "mileage": 30000,
+    "fuel": "Gasolina",
+    "transmission": "Automatico",
+    "powerCv": null,
+    "color": "negro",
+    "owners": "1",
+    "serviceHistory": "oficial",
+    "damageLevel": "",
+    "damageDescription": "",
+    "itvStatus": ""
+  },
+  "national": {
+    "source": "postgres",
+    "totalUniverse": 1,
+    "cascadeRelaxed": {
+      "power": false,
+      "transmission": true,
+      "fuel": true,
+      "year": true
+    },
+    "comparables": 0,
+    "rawComparables": 0,
+    "market": {
+      "mean": null,
+      "median": null,
+      "p25": null,
+      "p75": null,
+      "daysOnMarketMedian": null,
+      "updatedAt": "",
+      "cv": null,
+      "kmImpact": 0,
+      "ageImpact": 0,
+      "priceTrend": null,
+      "absorptionRate": null,
+      "privateMedian": null,
+      "privateP25": null,
+      "privateP75": null,
+      "privateCount": 0,
+      "dealerMedian": null,
+      "dealerP25": null,
+      "dealerP75": null,
+      "dealerCount": 0
+    },
+    "byPortal": [],
+    "priceHistogram": [],
+    "samples": []
+  },
+  "referenceDate": "2026-07-23T09:15:23.632Z",
+  "expected": {
+    "priceOptimal": 9340,
+    "priceLow": 8528,
+    "priceHigh": 10152,
+    "confidence": 35,
+    "comparables": 0,
+    "usedFallback": true,
+    "damageFactor": 1,
+    "kmImpact": 0,
+    "ageImpact": 0,
+    "colorAdjFactor": 1,
+    "colorAdjPct": 0,
+    "ownerAdjFactor": 1.07,
+    "ownerAdjPct": 7,
+    "combinedFactor": 1.07,
+    "cascadeRelaxed": {
+      "power": false,
+      "transmission": true,
+      "fuel": true,
+      "year": true
+    }
+  }
+}

@@ -105,6 +105,18 @@
       }
     },
     {
+      "id": "nlow-lexus-nx-hibrido",
+      "branch": "n_low",
+      "desc": "Lexus NX 300h Híbrido — cambio de generación en 2022, mercado cerrado en la gen anterior (2018-2021). n_raw=6. Escasez estructural por diseño de producto.",
+      "vehicle": {
+        "brand": "Lexus", "model": "NX-Serie", "version": "300h",
+        "year": 2019, "mileage": 80000, "fuel": "Híbrido",
+        "transmission": "Automatico", "powerCv": 197,
+        "color": "negro", "owners": "1", "serviceHistory": "oficial",
+        "damageLevel": "", "damageDescription": "", "itvStatus": ""
+      }
+    },
+    {
       "id": "nlow-synthetic-golf",
       "branch": "n_low",
       "desc": "SINTÉTICO — Golf pool truncado a 8 ofertas. N fijo por construcción, inmune a recaptura (_synthetic: true). Mantiene cobertura de la rama n_low aunque el mercado gane oferta.",

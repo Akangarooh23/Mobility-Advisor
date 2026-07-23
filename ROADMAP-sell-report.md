@@ -229,15 +229,16 @@ Al eliminar el truncado (8ab1c69, `Math.max(400_000, 3 × userKm)`), la dimensi�
 
 **Reconciliación precio (2026-07-23):** identidad `priceOptimal = round((base + usageImpact) × effectiveFactor)` cierra a 0€ en los 9 fixtures con datos de mercado. La lectura de 8ab1c69 es sólida.
 
-#### 1c. Fixture n_low real + sintético — PENDIENTE
+#### 1c. Fixture n_low real + sintético — CERRADA
 
-La rama `n_low` (3 ≤ n < 15) gobierna prácticamente toda la producción: todos los fixtures tienen `usageUsedDefault=true` → USAGE_DEFAULTS es el modelo real, no un fallback. Los dos fixtures anteriores (`nlow-abarth`, `nlow-maserati`) migraron a `common` y `cascade_relaxed` tras el fix de km. La rama queda sin cobertura end-to-end.
+**Estado:** 14 PASS, 0 DRIFT, 0 MISSING. Dos fixtures:
 
-**Fixture real:** query `HAVING count BETWEEN 7 AND 10` (centro de la banda 3-15, lejos de ambas fronteras, objetivo n≈8-9). Candidato: modelo poco habitual, año reciente, pocas unidades en portales. Detecta cambios de mercado cuando el modelo gana oferta y sale de n_low.
+- `nlow-lexus-nx-hibrido` (real, n=7, cascade=[power,transmission]). Lexus NX 300h Híbrido 2019/80k km. Mercado cerrado: cambio de generación en 2022, la gen anterior no puede crecer hacia n=15. Cubre también la rama cascade (cuando entre §1e, driftará por penalización de confianza). Riesgo en el lado bajo: si cae por debajo de 3 → migra a fallback; el sintético ya cubre ese caso.
+- `nlow-synthetic-golf` (sintético, _synthetic:true, 8 ofertas 8.200-22.690€, años 2016-2024). Pool truncado de `common-vw-golf` — 1 oferta por cuartil de precio para preservar dispersión real y evitar CV≈0 (que activaría el bonus +5pp). `capture.js` lo salta en recapturas; regenerar con `generate-synthetic-nlow.js`. N fijo por construcción.
 
-**Fixture sintético:** vehículo conocido con `_pool` truncado a 8 ofertas en el JSON. N fijo por construcción, inmune a cambios de mercado futuros. La rama que gobierna producción no puede depender de que un modelo concreto siga siendo escaso.
+**Candidatos descartados:** Mitsubishi ASX (n_raw=11 pero n_efectivo=397 — el filtro de año±4 expone el modelo completo 2010-2023), DS7 Crossback (n=19, sobre el umbral de n_low), CUPRA León Híbrido (n=375 — el cascade fusiona todo el León). Lección: `n_raw` de la query `GROUP BY marca+modelo+combustible+transmisión` es mal predictor de `n_efectivo` porque no reproduce el cascade (año±4, relajación progresiva, fusión de grupos). Siempre verificar con `capture.js --id`.
 
-**Protocolo:** añadir ambos a `vehicles.json` + `capture.js` + verificar `run.js` 0 DRIFT + `expected.actualBranch = "n_low"` en ambos fixtures.
+**Nota sobre la investigación de candidatos:** el intento de capturar BMW X2 Híbrido como candidato adicional reveló una anomalía de arquitectura (6→386) que documenta §1g.
 
 #### 1d. Activar `alpha=0.5` en POOL_CONFIG — PENDIENTE
 
@@ -267,6 +268,54 @@ La rama `n_low` (3 ≤ n < 15) gobierna prácticamente toda la producción: todo
 **Cobertura:** las dos `cascade-*` fixtures driftarán (power+transmission → −10 pp en ambas). Radio bajo: solo `sellReportGenerator.js` + recaptura. Sin cambio de BD.
 
 **Prerequisito:** run.js verde con los fixtures n_low establecidos (§ 1c).
+
+#### 1g. Anomalía de cascade: `fuel` nunca fue filtro duro — PENDIENTE
+
+**Hallazgo (2026-07-23):** BMW X2 Híbrido Automático 197cv da n=386 con `cascadeRelaxed={fuel:false}`. El cascade no relajó fuel — simplemente nunca lo filtró.
+
+**Causa raíz:** en `listInventoryOffers`, `fuel` solo se usa como señal de puntuación (+2 a `_score`), nunca como filtro de exclusión. Comparar:
+- `transmission` (línea 1244): filtro duro — `if (normalizedTransmission && !normalizeToken(offer.transmission).includes(...)) return false`
+- `fuel` (línea 1355): solo scoring — `if (normalizedFuel && normalizeToken(offer.fuel).includes(...)) score += 2`
+
+Cuando `getMarketPriceSnapshot` llama Level 1 con `fuel='Híbrido', transmission='Automatico', powerCv=147-246`, ocurre lo siguiente:
+1. Transmisión sí filtra: solo BMW X2 Automático pasa
+2. powerCv usa "sin dato = pasa" en el lado de la oferta: `Number.isFinite(offer.powerCv)` es false para las ~506 ofertas con `powerCv=""` → pasan todas
+3. Fuel no filtra: las 506 ofertas con `fuel=""` ni se excluyen ni se penalizan (solo las 6 con `fuel='Híbrido'` ganan +2)
+4. Todas reciben `_score > 0` por matching de modelo "x2" → pasan el `.filter(score > 0)`
+5. Level 1 devuelve ~386 BMW X2 Automático de todos los combustibles. `386 ≥ 10` → cascade nunca dispara
+
+`cascadeRelaxed={fuel:false}` es técnicamente exacto ("no relajé el filtro de fuel") pero semánticamente engañoso ("el filtro de fuel estaba activo"). No estaba activo.
+
+**Impacto:** el pool de BMW X2 Híbrido contiene todos los X2 Automático independientemente del combustible. El BMW X2 xDrive25e (híbrido) cotiza con prima de 3.000-8.000€ sobre las variantes gasolina. La mediana del pool mezcla ambas → infravaloración del híbrido. El mismo bug afecta cualquier modelo donde la variante de combustible tiene precio distinto y la mayoría de ofertas tienen `fuel=""` en la BD.
+
+**Por qué `cascadeRelaxed.fuel` nunca era necesario:** si fuel nunca fue filtro duro, el nivel 3 del cascade ("relajar fuel") solo cambia que las 6 ofertas Híbrido dejan de recibir +2 de score — insignificante con 386 ofertas que ya pasan. El nivel 3 tenía condición `!offers.length && fuel` (cero resultados) precisamente porque el diseño asumía que fuel sí filtraba. Con el fix, esa condición vuelve a tener sentido.
+
+**Contexto arquitectónico:** `listInventoryOffers` es función doble: Comprar-page y market-price-snapshot. Para la Comprar-page, "sin dato = pasa" en fuel es correcto (no excluir anuncios sin combustible declarado cuando el usuario filtra por híbrido). Para el snapshot de mercado, fuel debe ser filtro duro (los comparables deben ser del mismo combustible). La función no distingue el contexto.
+
+**Fix propuesto:** en `getMarketPriceSnapshot`, tras cada llamada a `listInventoryOffers`, aplicar post-filtro de combustible:
+
+```js
+function matchesFuelForPool(offer, nFuelToken) {
+  if (!nFuelToken) return true;
+  const offerFuel = normalizeToken(offer.fuel || '');
+  if (!offerFuel) return true;   // sin dato = pasa (no sabemos qué combustible es)
+  return offerFuel.includes(nFuelToken);
+}
+```
+
+Con este filtro: BMW X2 Híbrido → 6 Híbrido + X empty-fuel Automático. El cascade evaluará cada nivel con la restricción de combustible real, y si el total es < 10 avanzará correctamente.
+
+**Pregunta abierta:** ¿debe "sin dato = pasa" aplicar también al lado de la oferta para el pool? Si las ~506 ofertas BMW X2 con `fuel=""` son mayoritariamente gasolina/diésel mal etiquetados, incluirlas contamina igualmente. La decisión depende de la calidad de los datos del scraper. Si los scrapers de Flexicar y AutoHero dejan `fuel=""` como dato real (no como error), incluirlas es incorrecto. Auditar antes de implementar.
+
+**Fix alternativo (más agresivo):** fuel como filtro duro estricto (sin "sin dato = pasa" en el pool) — solo incluir ofertas con `normalizeToken(offer.fuel)` no vacío y que coincida. Esto reduce el pool para modelos con datos de combustible pobres, pero garantiza comparables homogéneos. Si el pool cae por debajo de 10 → cascade avanza a relajar fuel explícitamente.
+
+**Prerequisito del fix:** auditar qué fracción de ofertas tiene `fuel=""` por portal/marca. Si solo BMW X2 tiene este problema, es una anomalía del scraper. Si es generalizado, el fix estricto reduciría n en muchos modelos y cambiaría ramas (common → n_low) de forma generalizada.
+
+**Prioridad:** alta. El bug afecta silenciosamente a cualquier modelo donde:
+1. La oferta tiene mala cobertura del campo `fuel`
+2. El vehículo a tasar es de combustible minoritario (híbrido, eléctrico, diésel de un modelo mayoritariamente gasolina)
+
+El informe no avisa del problema — muestra n=386 con confianza alta y precio mezclado como si fuera un resultado correcto.
 
 #### 2. Ponderación del pool por cercanía al vehículo (`listInventoryOffers`)
 

@@ -157,10 +157,10 @@ Tras la corrección de frontera, los fixtures actuales cubren `buildReportData` 
 
 **Protocolo:**
 1. Correr `capture.js` → nuevos fixtures con `_pool`
-2. Correr `capture.js` de nuevo sobre los mismos fixtures → verificar determinismo del pool (el conjunto de ofertas debe ser idéntico entre capturas; el orden da igual)
-3. Correr `run.js` → nuevo DRIFT en usageImpact (mezcla: mercado actual + estandarización + fix pivoteo)
-4. **NO intentar atribuir el drift** — el pool de las capturas anteriores no existe. Marcar en el commit: "baseline reset, no comparable con la línea base anterior; el pool nunca se almacenó"
-5. Tras aceptar: correr `sweep-pool.js` sobre los nuevos fixtures → tabla real de 395+ ofertas por config
+2. **`git add scripts/golden-tests/fixtures/`** — fijar la línea base ahora, antes del segundo capture
+3. Correr `capture.js` de nuevo → `git diff` del `_pool` debe ser vacío (o solo ruido de ofertas nuevas/retiradas en las ~horas de diferencia). Si hay diff estructural, el sort determinista o el límite 1500 no es estable — investigar antes de continuar
+4. Correr `run.js` → **debe salir 0 DRIFT** (0 PASS, 0 DRIFT, 0 MISSING). Eso ES el test: capture.js almacena en `expected` lo que `computeUsageImpact` calculó en vivo; run.js lo recalcula desde `_pool` y compara. Si coinciden → la frontera es correcta. Si hay DRIFT → **hay un bug en la frontera, no un "baseline reset"**: la recaptura y el re-cálculo deben producir el mismo resultado o la cadena está rota
+5. Tras verificar 0 DRIFT: correr `sweep-pool.js` → tabla real de ~1500 ofertas por config
 6. Elegir config de poolProximity con datos del sweep, no a ojo
 
 **Consecuencia positiva:** a partir de esa recaptura, todos los cambios del módulo de regresión producirán drift legible en run.js.

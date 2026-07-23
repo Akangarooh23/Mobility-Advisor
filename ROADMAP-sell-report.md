@@ -181,7 +181,38 @@ Predicción revisada (post hallazgo `updated_at DESC`): menos confianza en "la c
 
 **Consecuencia positiva:** a partir de esa recaptura, todos los cambios del módulo de regresión producirán drift legible en run.js.
 
-#### 1. Ponderación del pool por cercanía al vehículo (`listInventoryOffers`)
+#### 0.5 — Resultado del sweep + activación de `{alpha:0, balance:true}` (2026-07-23)
+
+**Diagnóstico confirmado:** todos los `mkt-full` con yrPct ≤ 0.12 (corregido con rango medio; antes inflado por empates de año entero). El mercado tiene genuinamente más coches recientes que antiguos — el LIMIT no era el culpable. `ker-*` solos no mueven yrPct significativamente (Golf: 0.12→0.13); la cuota mueve 3-5× más (Golf: 0.12→0.35, Clio: 0.04→0.37, León: 0.14→0.46). `alpha` no añade nada sobre la cuota. Decisión: `{alpha:0, balance:true}`.
+
+**Hallazgo de producción — filtro km estructural (no solo métrica):** `maxMileage: userKm` en `listInventoryOffers` garantiza que ninguna oferta del pool supera los km del sujeto. Consecuencia directa: `slopeKm × (userKm − medKm)` es siempre negativo (el guardarraíl 2 fuerza `slopeKm < 0`, y `medKm < userKm` por el filtro). El modelo no tiene forma de dar prima por km bajo — un coche bien conservado siempre recibe penalización.
+
+Segundo efecto: el pool excluye los coches con muchos km (los baratos), infla la mediana y sube la base. Base inflada + término km que siempre resta = dos errores opuestos con cancelación parcial de magnitud variable. No es ruido limpio: en un coche el sesgo domina, en otro la penalización.
+
+Interacción con `balance:true`: la cuota trae coches más antiguos del pool, pero el filtro solo deja pasar los que tienen ≤ userKm — coches viejos con km anormalmente bajo para su edad. Esto aplana o invierte la relación natural km-año dentro del pool (normalmente más viejo → más km; aquí los viejos son forzosamente de pocos km). Candidato probable al `slopeYear = −602` de Ola 1: un pool donde los coches antiguos son los mejor conservados no produce la pendiente esperable.
+
+**Criterio de aceptación para balance=true:** correr censo de `usageUsedDefault` tras la activación. Si sigue en 12/12 true, la cuota centró el año pero el truncado km sigue bloqueando el OLS. Si algún fixture pasa a false, el pool empieza a producir fits válidos y el shadow del OLS tiene sentido.
+
+**Asimetría residual esperada:** `bal` deja yrPct en 0.35-0.46, no en 0.50 — escasez de oferta antigua (la cuota toma `min(take, smaller × maxImbalance)` y no puede repartir lo que no existe). Vigilar `r` y `kappa` al activar.
+
+#### 1. Activar `{alpha:0, balance:true}` en POOL_CONFIG — ACTIVADO 2026-07-23
+
+**Estado:** activo. Ver criterio de aceptación arriba.
+
+#### 1b. Eliminar truncado de km — PENDIENTE (siguiente ítem, radio grande)
+
+**Problema:** `maxMileage: userKm` hace que (a) `slopeKm × Δkm` sea siempre negativo, (b) la mediana esté sesgada al alza al excluir coches baratos de muchos km, y (c) la cuota importe coches viejos con km anormalmente bajo.
+
+**Fix:** cambiar el criterio de corte por km. Opciones a evaluar:
+- No filtrar por km en absoluto — dejar que el OLS vea toda la distribución
+- Ampliar a `maxMileage: userKm × 2.0` o similar — cota generosa que no sesga
+- Filtrar solo outliers extremos (km > P95 del modelo) — preserva comparables
+
+**Radio del cambio:** afecta pool, mediana/P25/P75, base, `usageImpact` y potencialmente el KPI de "unidades en portales" visible al cliente. Cambio en su propio commit, con drift esperado en la mayoría de fixtures. El drift mostrará si la mediana bajó (más coches baratos de muchos km) y si `usageUsedDefault` baja más.
+
+**Prerequisito:** balanceo de año activado y validado (paso 1) — querer las dos lecturas de drift separadas.
+
+#### 2. Ponderación del pool por cercanía al vehículo (`listInventoryOffers`)
 
 Añadir factor de proximidad al scoring: `scoreSimilarity = 1 / (1 + |userKm − offerKm| / 20000 + |userYear − offerYear|)`. Combinar con el score léxico actual (producto o suma ponderada). El objetivo es que la mediana del pool refleje vehículos realmente comparables, no solo del mismo modelo.
 

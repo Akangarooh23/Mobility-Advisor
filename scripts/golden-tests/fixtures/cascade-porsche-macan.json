@@ -1,5 +1,5 @@
 {
-  "_capturedAt": "2026-07-23T12:51:41.355Z",
+  "_capturedAt": "2026-07-23T13:35:04.263Z",
   "_branch": "cascade_relaxed",
   "_actualBranch": "cascade_relaxed",
   "vehicle": {
@@ -37,7 +37,7 @@
       "daysOnMarketMedian": null,
       "updatedAt": "",
       "cv": 0.2531045175146169,
-      "usageImpact": -10860,
+      "usageImpact": -8953,
       "usageUsedDefault": true,
       "slopeKm": null,
       "slopeYear": null,
@@ -757,16 +757,16 @@
       }
     ]
   },
-  "referenceDate": "2026-07-23T12:51:41.355Z",
+  "referenceDate": "2026-07-23T13:35:04.263Z",
   "expected": {
-    "priceOptimal": 51041,
-    "priceLow": 48336,
-    "priceHigh": 66446,
+    "priceOptimal": 52986,
+    "priceLow": 49697,
+    "priceHigh": 68878,
     "confidence": 58,
     "comparables": 28,
     "usedFallback": false,
     "damageFactor": 1,
-    "usageImpact": -10860,
+    "usageImpact": -8953,
     "usageUsedDefault": true,
     "colorAdjFactor": 1,
     "colorAdjPct": 0,

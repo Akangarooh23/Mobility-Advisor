@@ -1,0 +1,315 @@
+{
+  "name": "Canalcar – Enriquecer (color, carrocería, CV, puertas, plazas, etiqueta)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "cne-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 45 2 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cne-cron",
+      "name": "Cada día a las 02:45",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, url FROM moveadvisor_market_offers WHERE portal='canalcar' AND COALESCE(url,'')<>'' ORDER BY (power_cv IS NULL) DESC, last_seen_at DESC LIMIT 300",
+        "additionalFields": {}
+      },
+      "id": "cne-cola",
+      "name": "PG: Cola a enriquecer",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -20,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "cne-loop",
+      "name": "Loop: coche por coche",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        200,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.url }}",
+        "options": {
+          "timeout": 25000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "headers": {
+            "values": [
+              {
+                "name": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+              },
+              {
+                "name": "Accept",
+                "value": "text/html"
+              },
+              {
+                "name": "Accept-Language",
+                "value": "es-ES,es;q=0.9"
+              }
+            ]
+          }
+        }
+      },
+      "id": "cne-http",
+      "name": "HTTP: Ficha Canalcar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        420,
+        400
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\nconst id = $('Loop: coche por coche').item.json.id;\nfunction esc(v){ if(v===null||v===undefined||v==='') return null; return \"'\"+String(v).replace(/'/g,\"''\")+\"'\"; }\n// --- JSON-LD @type Car ---\nlet v={};\nconst blocks=[...html.matchAll(/<script[^>]*application\\/ld\\+json[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m=>m[1].trim());\nfor(const b of blocks){ try{ const j=JSON.parse(b); const a=Array.isArray(j)?j:(j['@graph']||[j]); for(const o of a) if(o&&['Vehicle','Car','Product'].includes(o['@type'])) v=o; }catch(e){} }\nconst color=(v.color||'').trim();\nconst bodyType=(v.bodyType||'').trim();\nconst doors=v.numberOfDoors!=null?Number(v.numberOfDoors):null;\nconst seatsRaw=(v.seatingCapacity!=null?v.seatingCapacity:v.vehicleSeatingCapacity);\nconst seats=seatsRaw!=null?Number(seatsRaw):null;\nlet powerCv=null;\ntry{ let ep=v.vehicleEngine&&v.vehicleEngine.enginePower; if(Array.isArray(ep)) ep=ep[0]; const val=ep&&ep.value; if(val!=null) powerCv=Number(val); }catch(e){}\n// --- texto plano para etiqueta y tracción ---\nconst desc=String(v.description||'');\nconst text=html.replace(/<script[\\s\\S]*?<\\/script>/g,' ').replace(/<[^>]+>/g,' ').replace(/&amp;/g,'&').replace(/\\s+/g,' ').trim();\nlet etiqueta='';\n{ const m=(desc+' '+text).match(/distintivo ambiental\\s+(Cero|ECO|C|B|0)/i); if(m){ etiqueta=/cero/i.test(m[1])?'0':m[1].toUpperCase(); } }\n// --- construir UPDATE (tracción excluida: Canalcar solo publica un checklist genérico '4x4' idéntico en todas las fichas, no la tracción real) ---\nconst sets=[];\nif(esc(color)) sets.push('color='+esc(color));\nif(esc(bodyType)) sets.push('body_type='+esc(bodyType));\nif(powerCv!=null && powerCv>0) sets.push('power_cv='+powerCv);\nif(doors!=null) sets.push('doors='+doors);\nif(seats!=null) sets.push('seats='+seats);\nif(esc(etiqueta)) sets.push('environmental_label='+esc(etiqueta));\nif(!sets.length) return [{ json:{ sql:null, count:0 } }];\nsets.push('last_seen_at=NOW()','updated_at=NOW()');\nconst sql='UPDATE moveadvisor_market_offers SET '+sets.join(', ')+' WHERE id='+esc(id);\nreturn [{ json:{ sql:sql, count:1 } }];"
+      },
+      "id": "cne-code",
+      "name": "Code: Enriquecer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.count }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "cne-if",
+      "name": "IF: ¿hay datos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        860,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "additionalFields": {}
+      },
+      "id": "cne-pg",
+      "name": "PG: Update ficha",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        280
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "cne-wait",
+      "name": "Esperar 1s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1300,
+        400
+      ],
+      "webhookId": "wait-canalcar-enrich"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada día a las 02:45": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Cola a enriquecer": {
+      "main": [
+        [
+          {
+            "node": "Loop: coche por coche",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: coche por coche": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP: Ficha Canalcar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Ficha Canalcar": {
+      "main": [
+        [
+          {
+            "node": "Code: Enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Enriquecer": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay datos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay datos?": {
+      "main": [
+        [
+          {
+            "node": "PG: Update ficha",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Update ficha": {
+      "main": [
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 1s": {
+      "main": [
+        [
+          {
+            "node": "Loop: coche por coche",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "triggerCount": 0,
+  "tags": []
+}

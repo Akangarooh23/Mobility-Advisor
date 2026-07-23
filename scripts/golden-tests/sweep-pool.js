@@ -55,13 +55,14 @@ for (const entry of targets) {
 
   const fixture = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
   const v = fixture.vehicle;
-  const samples = (fixture.national?.samples || []).filter(
-    (o) => o.mileage > 0 && o.year > 0 && Number.isFinite(o.price) && o.price > 0,
-  );
+  // _pool: pool completo usado por computeUsageImpact (almacenado desde Ola 2).
+  // samples: solo 8 ofertas de display — no sirve para el sweep.
+  const pool = fixture.national?._pool || [];
 
-  const n0 = samples.length;
+  const n0 = pool.length;
   if (n0 === 0) {
-    console.log(`\n=== ${entry.id}  userKm=${v.mileage}  userYear=${v.year}  (n=0, fallback) ===`);
+    const reason = fixture.national?._pool ? 'n=0 en pool' : 'sin _pool (recaptura pendiente)';
+    console.log(`\n=== ${entry.id}  userKm=${v.mileage}  userYear=${v.year}  (${reason}) ===`);
     continue;
   }
 
@@ -69,7 +70,7 @@ for (const entry of targets) {
   console.log(hdr);
   console.log('-'.repeat(hdr.length));
 
-  const rows = sweepDiagnostics(samples, { km: v.mileage, year: v.year }, null, {
+  const rows = sweepDiagnostics(pool, { km: v.mileage, year: v.year }, null, {
     kmKey: 'mileage', yearKey: 'year',
   });
 

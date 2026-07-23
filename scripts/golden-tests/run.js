@@ -16,7 +16,8 @@
 const fs   = require("fs");
 const path = require("path");
 
-const { buildReportData } = require("../../lib/sellReportGenerator");
+const { buildReportData }    = require("../../lib/sellReportGenerator");
+const { computeUsageImpact } = require("../../lib/inventoryStore");
 
 const VEHICLES_FILE = path.join(__dirname, "vehicles.json");
 const FIXTURES_DIR  = path.join(__dirname, "fixtures");
@@ -91,9 +92,22 @@ function main() {
 
     const fixture        = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
     const referenceDate  = new Date(fixture.referenceDate);   // fecha congelada, no now()
+
+    // Frontera de test: re-ejecutar computeUsageImpact desde el pool almacenado.
+    // Sin _pool (fixtures pre-Ola-2): se lee el valor congelado (comportamiento anterior).
+    // Con _pool: la frontera sube a inventoryStore — el módulo de regresión ya está cubierto.
+    let national = fixture.national;
+    if (Array.isArray(national._pool) && national._pool.length > 0) {
+      const medianPrice = national.market?.median ?? 0;
+      const { usageImpact, usedDefault: usageUsedDefault, slopeKm, slopeYear } =
+        computeUsageImpact(national._pool, fixture.vehicle.mileage, fixture.vehicle.year,
+                           medianPrice, "price", fixture.vehicle.brand);
+      national = { ...national, market: { ...national.market, usageImpact, usageUsedDefault, slopeKm, slopeYear } };
+    }
+
     const actual         = pickKeyFields(
-      buildReportData(fixture.vehicle, fixture.national, null, referenceDate),
-      fixture.national,
+      buildReportData(fixture.vehicle, national, null, referenceDate),
+      national,
     );
     const drifts = compare(entry.id, fixture.expected, actual);
 

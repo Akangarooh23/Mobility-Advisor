@@ -137,6 +137,8 @@ Prerrequisito: Ola 1 cerrada ✓
 
 **Los tres guardarraíles del solver tienen cobertura cero en golden tests.** El guardarraíl 2 (signo) disparó una vez en el Golf durante la investigación del drift, pero los otros dos (finitud y magnitud) nunca han ejecutado. Añadir un test unitario directo sobre `solveOLS2x2` con matrices sintéticas: una singular → NaN, una con slopeYear<0 → guardarraíl 2, una con slopeKm<−0.30 → guardarraíl 3. Veinte minutos, cubre lo que los fixtures no pueden.
 
+**Corrección estructural de la frontera de test (2026-07-23):** `getMarketPriceSnapshot` congela `usageImpact` en el snapshot antes de que `run.js` lo lea. Toda la lógica de regresión — `computeUsageImpact`, `solveOLS2x2`, guardarraíles, `USAGE_DEFAULTS`, caps — vive aguas arriba de la frontera. Por tanto: (1) el fix de pivoteo y la estandarización jamás se ejecutaron en run.js; (2) el censo de `usedDefault` "re-confirmado" era comparar un valor consigo mismo; (3) cualquier cambio a inventoryStore.js habría dado 0 DRIFT por construcción, no por ser inocuo. Causa de fondo: en Ola 0 la frontera se puso en buildReportData (función pura del momento); en Ola 1 la regresión se metió en inventoryStore.js aguas arriba sin mover la frontera. La frontera tiene que estar por encima de lo que se está cambiando. Fix: (a) `getMarketPriceSnapshot` almacena `_pool` en el fixture; (b) `run.js` re-ejecuta `computeUsageImpact(_pool, ...)` e inyecta el resultado en national antes de llamar a `buildReportData`. Backward-compatible: fixtures sin `_pool` siguen usando el valor congelado. La cobertura real del módulo de regresión la da `test-solver.js`; run.js lo cubrirá end-to-end tras la recaptura.
+
 **Tests unitarios añadidos (commit 01fca9f, 2026-07-23):** 23 tests en `scripts/golden-tests/test-solver.js` cubriendo: guardarraíles G1/G2/G3, bordes exactos de las desigualdades, umbral n=14 vs n=15, pivoteo parcial (T1c), cap 12% pinado (T5a) y sincronía BRAND_TIERS↔USAGE_DEFAULTS (T6a/T6b). El mismo commit corrige el bug de pivoteo (retorno transpuesto) y exporta `USAGE_DEFAULTS` y `BRAND_TIERS`.
 
 **Census reconfirmado con solver arreglado (2026-07-23):** `run.js` re-ejecuta `computeUsageImpact` sobre el pool capturado en cada fixture — no compara la llamada almacenada, recomputa. 12 PASS 0 DRIFT con el solver corregido = el bug de pivoteo no contaminó la tasa de `usedDefault=true`. Razón geométrica: con variables centradas, `a11 = Σ(km−med)² ≈ n × (20.000)² ≈ 10⁸` frente a `|b| ≈ n × 20.000 × 2 ≈ 10⁴`. Cuatro órdenes de magnitud. El pivoteo es una rama sintéticamente testeable (T1c) pero inalcanzable con datos reales de km/año.
@@ -148,6 +150,20 @@ Prerrequisito: Ola 1 cerrada ✓
 ---
 
 ### Cambios planificados, por orden de prioridad
+
+#### 0. Recaptura de fixtures — PENDIENTE (prerequisito para todo lo demás)
+
+Tras la corrección de frontera, los fixtures actuales cubren `buildReportData` pero no el módulo de regresión. La recaptura almacenará `_pool` y moverá la frontera.
+
+**Protocolo:**
+1. Correr `capture.js` → nuevos fixtures con `_pool`
+2. Correr `capture.js` de nuevo sobre los mismos fixtures → verificar determinismo del pool (el conjunto de ofertas debe ser idéntico entre capturas; el orden da igual)
+3. Correr `run.js` → nuevo DRIFT en usageImpact (mezcla: mercado actual + estandarización + fix pivoteo)
+4. **NO intentar atribuir el drift** — el pool de las capturas anteriores no existe. Marcar en el commit: "baseline reset, no comparable con la línea base anterior; el pool nunca se almacenó"
+5. Tras aceptar: correr `sweep-pool.js` sobre los nuevos fixtures → tabla real de 395+ ofertas por config
+6. Elegir config de poolProximity con datos del sweep, no a ojo
+
+**Consecuencia positiva:** a partir de esa recaptura, todos los cambios del módulo de regresión producirán drift legible en run.js.
 
 #### 1. Ponderación del pool por cercanía al vehículo (`listInventoryOffers`)
 

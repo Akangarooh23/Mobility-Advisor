@@ -1,0 +1,93 @@
+'use strict';
+/**
+ * Barrido de configuraciones de pool sobre los 12 fixtures.
+ * NO modifica nada. Muestra qué pool saldría con cada config sin aplicar ninguna.
+ *
+ * Métricas clave:
+ *   yrPct / kmPct  — percentil del sujeto dentro del pool. Objetivo ~0.50.
+ *                    En Ola 1, Golf 2020 daba yrPct≈0.05 en un pool de 2023.
+ *   r              — correlación km-año. Tras estandarizar, κ=(1+|r|)/(1-|r|).
+ *                    Si al centrar sube, el condicionamiento empeora.
+ *   kmIqr          — dispersión del pool en km. Si cae mucho → pool estrecho.
+ *   yrSpread       — rango de años. Idem.
+ *
+ * Predicción (anotar antes de correr):
+ *   {alpha:0, balance:true} arregla el centrado casi por completo.
+ *   alpha añadirá poco más que estrechar (vigilar kmIqr / yrSpread).
+ *
+ * Uso:
+ *   node scripts/golden-tests/sweep-pool.js
+ *   node scripts/golden-tests/sweep-pool.js --id damage-golf-moderado
+ */
+
+const fs   = require('fs');
+const path = require('path');
+const { sweepDiagnostics } = require('../../lib/poolProximity');
+
+const FIXTURES_DIR  = path.join(__dirname, 'fixtures');
+const VEHICLES_FILE = path.join(__dirname, 'vehicles.json');
+
+const { vehicles } = JSON.parse(fs.readFileSync(VEHICLES_FILE, 'utf8'));
+const singleId = process.argv.find((a, i) => process.argv[i - 1] === '--id');
+const targets = singleId ? vehicles.filter((v) => v.id === singleId) : vehicles;
+
+const COL = { alpha:6, bal:8, n:5, medKm:8, medYr:7, kmPct:7, yrPct:7, r:7, kappa:6, iqr:8, spr:6, rlx:5 };
+const hdr = [
+  'alpha'.padStart(COL.alpha), 'balance'.padStart(COL.bal),
+  'n'.padStart(COL.n), 'medKm'.padStart(COL.medKm), 'medYr'.padStart(COL.medYr),
+  'kmPct'.padStart(COL.kmPct), 'yrPct'.padStart(COL.yrPct),
+  'r'.padStart(COL.r), 'kappa'.padStart(COL.kappa),
+  'kmIqr'.padStart(COL.iqr), 'yrSpr'.padStart(COL.spr), 'rlx'.padStart(COL.rlx),
+].join('  ');
+
+function fmt(v, d, w) {
+  if (v == null) return ' n/a'.padStart(w);
+  const s = typeof v === 'number' && d != null ? v.toFixed(d) : String(v);
+  return s.padStart(w);
+}
+
+for (const entry of targets) {
+  const fixturePath = path.join(FIXTURES_DIR, `${entry.id}.json`);
+  if (!fs.existsSync(fixturePath)) {
+    console.log(`\n=== ${entry.id} — sin fixture, ejecuta capture.js primero ===`);
+    continue;
+  }
+
+  const fixture = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
+  const v = fixture.vehicle;
+  const samples = (fixture.national?.samples || []).filter(
+    (o) => o.mileage > 0 && o.year > 0 && Number.isFinite(o.price) && o.price > 0,
+  );
+
+  const n0 = samples.length;
+  if (n0 === 0) {
+    console.log(`\n=== ${entry.id}  userKm=${v.mileage}  userYear=${v.year}  (n=0, fallback) ===`);
+    continue;
+  }
+
+  console.log(`\n=== ${entry.id}  userKm=${v.mileage}  userYear=${v.year}  candidates=${n0} ===`);
+  console.log(hdr);
+  console.log('-'.repeat(hdr.length));
+
+  const rows = sweepDiagnostics(samples, { km: v.mileage, year: v.year }, null, {
+    kmKey: 'mileage', yearKey: 'year',
+  });
+
+  for (const row of rows) {
+    console.log([
+      fmt(row.alpha,   1, COL.alpha),
+      fmt(row.balance, null, COL.bal),
+      fmt(row.n,       0, COL.n),
+      fmt(row.medKm,   0, COL.medKm),
+      fmt(row.medYr,   1, COL.medYr),
+      fmt(row.kmPct,   2, COL.kmPct),
+      fmt(row.yrPct,   2, COL.yrPct),
+      fmt(row.r,       3, COL.r),
+      fmt(row.kappa,   1, COL.kappa),
+      fmt(row.kmIqr,   0, COL.iqr),
+      fmt(row.yrSpread,0, COL.spr),
+      fmt(row.relaxed, null, COL.rlx),
+    ].join('  '));
+  }
+}
+console.log('');

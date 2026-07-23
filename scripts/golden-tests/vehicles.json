@@ -1,18 +1,21 @@
 {
   "_branches": {
-    "common":          ">=15 comparables, cascade sin relajar ningún filtro",
-    "cascade_relaxed": "cascade relajó al menos un filtro (power/transmission/fuel/year) para alcanzar muestra",
-    "damage":          "damageLevel declarado → damageFactor < 1.00 (validado por factor, no por ruta de mercado)",
-    "n_low":           "3-14 comparables — regresión no fiable, usa slope por defecto de segmento",
-    "fallback":        "<3 comparables o 0 — usa depreciación estándar, no mercado real"
+    "common":           ">=15 comparables, cascade sin relajar ningún filtro",
+    "cascade_relaxed":  "cascade relajó al menos un filtro (power/transmission/fuel/year) para alcanzar muestra",
+    "damage":           "damageLevel declarado → damageFactor < 1.00 (validado por factor, no por ruta de mercado)",
+    "n_low":            "3-14 comparables — regresión no fiable, usa slope por defecto de segmento",
+    "fallback":         "<3 comparables o 0 — usa depreciación estándar, no mercado real",
+    "unresolved_brand": "BUG — marca en catálogo UI sin alias; pool sin filtrar → n alto, confidence 88% sobre datos irrelevantes. Fixture congela el comportamiento roto; driftará espectacularmente cuando se aplique el fix fail-closed + cross-check depreciación"
   },
   "_instructions": [
-    "Cubre las 5 ramas antes del primer commit de golden tests.",
+    "Cubre las 6 ramas antes del commit de Ola 1.",
     "Rama 'damage' se valida por damageFactor<1.00, no por la ruta de mercado — puede coexistir con cualquier otra rama.",
+    "Rama 'unresolved_brand' siempre pasa en branchFromResult — documenta el bug, no el output correcto.",
     "Si un vehículo no activa la rama esperada, mira el log de capture.js y ajusta.",
     "Para 'common': no incluir powerCv — cualquier powerCv específico puede trigger cascade en modelos populares.",
     "Para 'n_low': necesita n entre 3 y 14 después de todo el cascade. Modelos exóticos o muy específicos.",
-    "Para 'fallback': necesita n=0-2 incluso después de relax total (brand+model sin fuel/year). Marcas no presentes en DB."
+    "Para 'fallback': necesita n=0-2 incluso después de relax total (brand+model sin fuel/year). Marcas no presentes en DB.",
+    "Para 'unresolved_brand': marca en vehicle-catalog.json sin entrada en moveadvisor_brand_aliases. Koenigsegg/Pagani son los casos confirmados."
   ],
   "vehicles": [
     {
@@ -146,6 +149,18 @@
         "year": 2018, "mileage": 20000, "fuel": "Gasolina",
         "transmission": "Manual", "powerCv": null,
         "color": "verde", "owners": "1", "serviceHistory": "oficial",
+        "damageLevel": "", "damageDescription": "", "itvStatus": ""
+      }
+    },
+    {
+      "id": "unresolved-brand-koenigsegg",
+      "branch": "unresolved_brand",
+      "desc": "BUG — Koenigsegg Jesko: en vehicle-catalog.json (seleccionable por usuario) pero sin alias en BD. Congela comportamiento roto: n alto + confidence 88% sobre pool arbitrario. Cuando se aplique el fix (Ola 1) este fixture driftará a n=0, confidence≈35%.",
+      "vehicle": {
+        "brand": "Koenigsegg", "model": "Jesko", "version": "",
+        "year": 2022, "mileage": 5000, "fuel": "Gasolina",
+        "transmission": "Automatico", "powerCv": null,
+        "color": "blanco", "owners": "1", "serviceHistory": "oficial",
         "damageLevel": "", "damageDescription": "", "itvStatus": ""
       }
     }

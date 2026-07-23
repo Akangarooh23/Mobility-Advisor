@@ -38,6 +38,8 @@ const KEY_FIELDS = [
   "confidence", "comparables", "usedFallback",
   "damageFactor", "kmImpact", "ageImpact",
 ];
+// confidence is deliberately included: the unresolved_brand bug shows n≈400 with
+// confidence 88% — the most visible signal of the failure mode.
 
 function pickKeyFields(rd, national) {
   const out = {};
@@ -58,6 +60,11 @@ function branchFromResult(rd, national, entry) {
   if (entry.branch === "damage") {
     return rd.damageFactor < 1.00 ? "damage" : "damage_factor_wrong";
   }
+  // "unresolved_brand" documents the bug: brand not in aliases →
+  // arbitrary pool → high n + high confidence on garbage data.
+  // Branch always passes to allow freezing the broken baseline.
+  // After the fix: this fixture will DRIFT from n≈400 confidence≈88% to n=0 confidence≈35%.
+  if (entry.branch === "unresolved_brand") return "unresolved_brand";
   if (rd.usedFallback || rd.comparables < 3)     return "fallback";
   if (rd.comparables < 15)                        return "n_low";
   const cr = national.cascadeRelaxed || {};
@@ -129,13 +136,13 @@ async function main() {
     }
   }
 
-  const REQUIRED_BRANCHES = ["common", "cascade_relaxed", "damage", "n_low", "fallback"];
+  const REQUIRED_BRANCHES = ["common", "cascade_relaxed", "damage", "n_low", "fallback", "unresolved_brand"];
   const missing = REQUIRED_BRANCHES.filter((b) => !branchCoverage.has(b));
   if (missing.length) {
     console.warn(`\n⚠  Ramas sin cobertura: ${missing.join(", ")}`);
-    console.warn("   Añade vehículos a vehicles.json hasta cubrir las 5 ramas.\n");
+    console.warn("   Añade vehículos a vehicles.json hasta cubrir las 6 ramas.\n");
   } else {
-    console.log("\n✓ Las 5 ramas están cubiertas.\n");
+    console.log("\n✓ Las 6 ramas están cubiertas.\n");
   }
 
   console.log("Verificación manual recomendada antes del commit:");

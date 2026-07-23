@@ -76,6 +76,16 @@ function branchFromResult(rd, national, entry) {
 async function captureOne(entry) {
   const { id, vehicle } = entry;
 
+  // Fixtures sintéticos tienen _pool fijo por construcción — no se recapturan.
+  const fixturePath0 = path.join(FIXTURES_DIR, `${id}.json`);
+  if (fs.existsSync(fixturePath0)) {
+    const existing = JSON.parse(fs.readFileSync(fixturePath0, 'utf8'));
+    if (existing._synthetic) {
+      console.log(`  ⏭  ${id.padEnd(28)} — sintético, skip (regenera con generate-synthetic-nlow.js)`);
+      return;
+    }
+  }
+
   const baseOptions = {
     desiredType:  "compra",
     brand:        String(vehicle.brand        || ""),

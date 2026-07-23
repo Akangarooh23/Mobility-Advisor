@@ -66,11 +66,17 @@ for (const entry of targets) {
     continue;
   }
 
-  console.log(`\n=== ${entry.id}  userKm=${v.mileage}  userYear=${v.year}  candidates=${n0} ===`);
+  const prodN = Math.min(n0, 400);
+  console.log(`\n=== ${entry.id}  userKm=${v.mileage}  userYear=${v.year}  stored=${n0}  prod=${prodN} ===`);
   console.log(hdr);
   console.log('-'.repeat(hdr.length));
 
-  const rows = sweepDiagnostics(pool, { km: v.mileage, year: v.year }, null, {
+  // La fila base {alpha:0, balance:false} hace candidates.slice(0, 400): necesita el array
+  // en orden de BD (updated_at DESC = _rank ASC) para reproducir el pool de producción.
+  // Las filas con alpha/balance reordenan por score, así que el orden de entrada no importa.
+  const candidatesForSweep = [...pool].sort((a, b) => (a._rank ?? 0) - (b._rank ?? 0));
+
+  const rows = sweepDiagnostics(candidatesForSweep, { km: v.mileage, year: v.year }, null, {
     kmKey: 'mileage', yearKey: 'year',
   });
 

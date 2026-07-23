@@ -99,8 +99,15 @@ function main() {
     let national = fixture.national;
     if (Array.isArray(national._pool) && national._pool.length > 0) {
       const medianPrice = national.market?.median ?? 0;
+      // Reproducir el pool de producción: sort por _rank (posición en updated_at DESC)
+      // y cortar a POOL_COMPUTE_LIMIT antes de llamar a computeUsageImpact.
+      // Esto garantiza 0 DRIFT: el mismo slice que usó capture.js en vivo.
+      const POOL_COMPUTE_LIMIT = 400;
+      const replayPool = [...national._pool]
+        .sort((a, b) => (a._rank ?? 0) - (b._rank ?? 0))
+        .slice(0, POOL_COMPUTE_LIMIT);
       const { usageImpact, usedDefault: usageUsedDefault, slopeKm, slopeYear } =
-        computeUsageImpact(national._pool, fixture.vehicle.mileage, fixture.vehicle.year,
+        computeUsageImpact(replayPool, fixture.vehicle.mileage, fixture.vehicle.year,
                            medianPrice, "price", fixture.vehicle.brand);
       national = { ...national, market: { ...national.market, usageImpact, usageUsedDefault, slopeKm, slopeYear } };
     }

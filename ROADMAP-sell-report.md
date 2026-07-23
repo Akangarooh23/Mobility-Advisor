@@ -40,9 +40,33 @@ El commit que incluye los fixtures de golden tests es el que cierra cada ola, no
 
 ## OLA 1 — Módulo de regresión completo + fix unresolved-brand
 
-**Estado: CERRADA** — 2026-07-23, 12 golden tests verdes, 6 ramas
+**Estado: CERRADA** — 2026-07-23, 12 golden tests verdes, 6 ramas. Línea base validada (ver post-mortem).
 
 Prerrequisito: Ola 0 cerrada ✓ + baseline del bug congelada ✓ (commit 55948bc).
+
+### Post-mortem — Contradicción del drift de damage (RESUELTA)
+
+El drift damage-golf-moderado −14,2% (22.352→19.185€) parecía contradecir tres efectos previstos que apuntaban al alza. La investigación reveló que **no hay bug**: las fórmulas antiguas tenían un error de signo económico, la nueva es correcta.
+
+**Causa raíz:**
+- `listInventoryOffers` entrega a `computeUsageImpact` los **395 Golf mejor puntuados** (no un pool histórico crudo). Esa muestra está dominada por Golf 1.5 TSI 2022-2023 con ~37k km — el mercado real actual.
+- `medianKm=37.029`, `medianYear=2023` en el pool puntuado (vs 102.500/2020 en el SQL crudo sin filtrar).
+- El Golf del usuario (2020/50k km) queda **por encima de km mediano y debajo de año mediano** → doble penalización, económicamente correcta.
+
+**El error histórico:**
+Las fórmulas antiguas `computeKmImpact` / `computeAgeImpact` usaban `slope × (xMean − userValue)` en lugar de `slope × (userValue − xMean)`:
+- km alto vs mercado → daban **prima** (en lugar de penalización)
+- año más antiguo que mercado → daban **prima** (en lugar de penalización)
+El precio de 22.352€ era inflación sistemática. El 19.185€ nuevo es correcto.
+
+**Verificación aritmética con datos reales:**
+`raw = −0.07×(50000−37029) + 800×(2020−2023) = −908 − 2400 = −3308` → capped a −2673
+`effectiveFactor = max(0.72, 0.91×1.0×1.07) = 0.9737` (cap 0.72 no activa)
+`priceOptimal = (22390−2673)×0.9737 = 19185€` ✓
+
+**nlow-maserati-ghibli:** fixture nacido en Ola 1 (nlow-lincoln fail-closea). No existe drift antes/después para esta rama — la línea base nace en commit e3b9928.
+
+**Shadow ratio Lincoln 29.31:** medido sobre el fixture PRE-fix (pre-fail-closed). En código actual Lincoln fail-closea → n=0 → shadow check no ejecuta. No es un false positive nuevo.
 
 ### Cambios planificados (en el mismo commit)
 
@@ -97,13 +121,78 @@ El drift por reordenamiento de df crece con el segmento y el kilometraje. No es 
 
 ---
 
-## OLA 2 — Cascade e IA
+## OLA 2 — Pool + motor de uso
 
 **Estado: PENDIENTE**
 
-Prerrequisito: Ola 1 cerrada.
+Prerrequisito: Ola 1 cerrada ✓
 
-### Cambios planificados
+### Diagnóstico heredado de Ola 1
+
+**OLS decorativo (verificado, 2026-07-23):** 10 de 10 fixtures con comparables tienen `usageUsedDefault=true`. Los 2 que dan false son puro fallback (n=0). El OLS nunca corre en producción. El modelo real es una tabla de segmentos con cap — resultado legítimo, pero hay que saberlo y decidirlo conscientemente.
+
+**Causa raíz:** `listInventoryOffers` puntúa por relevancia léxica, no por cercanía al vehículo del usuario. Para Golf 1.5 TSI 2020/50k, el pool retorna medKm=37.029 y medYr=2023 — tres años por delante del sujeto. El usuario cae en la cola de la distribución. Con tan poca varianza en año y colinealidad fuerte con km, el OLS extrapola y los slopes se vuelven sin sentido (slopeYear=−602 con n=395). El problema no es el solver — es el pool.
+
+**USAGE_DEFAULTS es el modelo, no un fallback.** Los 12 slopes (6 segmentos × slopeKm + slopeYear) se anotaron como "punto de partida a calibrar en Ola 3 contra transacciones reales". Pero como el OLS nunca corre, esos doce números provisionales escritos a mano son el 100% del ajuste de uso de todas las tasaciones actuales. Si Ola 3 se retrasa, eso sigue siendo el motor. Cambia su importancia: de red de seguridad a modelo en producción.
+
+**Los tres guardarraíles del solver tienen cobertura cero en golden tests.** El guardarraíl 2 (signo) disparó una vez en el Golf durante la investigación del drift, pero los otros dos (finitud y magnitud) nunca han ejecutado. Añadir un test unitario directo sobre `solveOLS2x2` con matrices sintéticas: una singular → NaN, una con slopeYear<0 → guardarraíl 2, una con slopeKm<−0.30 → guardarraíl 3. Veinte minutos, cubre lo que los fixtures no pueden.
+
+**Tests unitarios añadidos (commit 01fca9f, 2026-07-23):** 23 tests en `scripts/golden-tests/test-solver.js` cubriendo: guardarraíles G1/G2/G3, bordes exactos de las desigualdades, umbral n=14 vs n=15, pivoteo parcial (T1c), cap 12% pinado (T5a) y sincronía BRAND_TIERS↔USAGE_DEFAULTS (T6a/T6b). El mismo commit corrige el bug de pivoteo (retorno transpuesto) y exporta `USAGE_DEFAULTS` y `BRAND_TIERS`.
+
+**Census reconfirmado con solver arreglado (2026-07-23):** `run.js` re-ejecuta `computeUsageImpact` sobre el pool capturado en cada fixture — no compara la llamada almacenada, recomputa. 12 PASS 0 DRIFT con el solver corregido = el bug de pivoteo no contaminó la tasa de `usedDefault=true`. Razón geométrica: con variables centradas, `a11 = Σ(km−med)² ≈ n × (20.000)² ≈ 10⁸` frente a `|b| ≈ n × 20.000 × 2 ≈ 10⁴`. Cuatro órdenes de magnitud. El pivoteo es una rama sintéticamente testeable (T1c) pero inalcanzable con datos reales de km/año.
+
+**Typo "alfa romano" → "alfa romeo" (commit 01fca9f): producción-neutral.** `getUsageSegment` usa `b.includes(n) || n.includes(b)`. `"alfa romeo".includes("alfa")` → `true` → la entrada bare `"alfa"` ya resolvía a `premium_entry` antes del fix. El typo nunca afectó a ningún coche Alfa Romeo real. El fix añade un alias más específico; el comportamiento en producción era idéntico. Confirmado: zero drift en `cascade-alfa-stelvio` (usageImpact=−4680 ≈ cap de premium_entry con medianPrice≈23.400€).
+
+**Estandarización de predictores implementada (2026-07-23):** antes de llamar a `solveOLS2x2`, `computeUsageImpact` divide cada predictor centrado por su RMS (desviación típica con media cero). Número de condición pasa de ~10⁸ a ~O(1/|r|). Matemáticamente equivalente — las slopes se descalan a unidades originales después (`β_real = β_std / scale`). El pivoteo queda como código muerto con entradas estandarizadas (después de escalar, `a_std = Σz₁² = n` y `|b_std| = n·|r| ≤ n = a_std` siempre). El beneficio real es poder descartar el condicionamiento como sospechoso cuando se lean los slopes del pool nuevo en Ola 2.
+
+---
+
+### Cambios planificados, por orden de prioridad
+
+#### 1. Ponderación del pool por cercanía al vehículo (`listInventoryOffers`)
+
+Añadir factor de proximidad al scoring: `scoreSimilarity = 1 / (1 + |userKm − offerKm| / 20000 + |userYear − offerYear|)`. Combinar con el score léxico actual (producto o suma ponderada). El objetivo es que la mediana del pool refleje vehículos realmente comparables, no solo del mismo modelo.
+
+**Validar con:** antes/después de medKm y medYr para los 12 fixtures. Si medKm/medYr convergen hacia los valores del usuario, el OLS tendrá varianza útil y los slopes pasarán los guardarraíles. Capturar nuevos fixtures solo si la mediana drifta >5%.
+
+**Métricas de éxito:** reducir de 10/10 a <5/10 el `usageUsedDefault=true` en los golden tests. Si baja pero no llega, el umbral n≥15 o los guardarraíles son demasiado estrictos — ajustar secundariamente.
+
+**Protocolo de activación del OLS (obligatorio):** cuando el pool ponderado esté listo, **no activar el OLS directamente**. Ponerlo primero en shadow mode: calcular `slopeKm` y `slopeYear` reales, loggearlos junto al slope de segmento que se está aplicando, y no cambiar el precio. Validar en producción que los slopes reales pasan los guardarraíles y que la diferencia de precio vs. segmento por defecto es plausible. Solo entonces activar. Razonamiento: cuando el OLS empiece a sobrevivir los 12 fixtures driftarán a la vez — el drift más grande del proyecto, causa única. Encender pool + OLS en el mismo paso impide saber cuál causa qué. El patrón shadow-first ya funcionó con el shadow ratio en Ola 1.
+
+#### 2. Decisión explícita sobre el cap del ajuste unificado
+
+El cap actual del ±12% de `medianPrice` es una herencia sin decisión consciente. El esquema viejo permitía hasta ~22% combinado (km ±12% + edad ±10%). El cap actual ya mordió en el Golf: recortó −3.308 a −2.673, descartando el 19% de la señal para un coche 3 años más viejo y 13k km por encima de la mediana.
+
+**Opciones a evaluar:**
+- ±12% por variable × 2 = ±24% total — preserva el rango anterior
+- Cap dinámico por segmento: economy 12%, mainstream 18%, premium 25% — escalado al grado de varianza típico del segmento
+- Cap fijo 20% para todos los segmentos — compromiso simple
+
+Decidir y documentar antes de cerrar Ola 2. El valor elegido afecta a todas las tasaciones con uso desviado de la mediana.
+
+#### 3. Calibrar el estimador de depreciación
+
+Todos los falsos positivos del shadow ratio son unidireccionales >1 (Porsche Macan 3.29, Abarth 595 2.65). El estimador subestima sistemáticamente. Desde Ola 1, la depreciación es la ruta de 161 marcas sin alias — coches reales que la gente tasa, no exóticos de cola.
+
+Investigar: ¿los refPrice de BRAND_TIERS son precios de venta, no de publicación? ¿La curva de depreciación usa tasas medias del sector en lugar de tasas observadas? Verificar contra precios de mercado actuales para Porsche Macan, Abarth 595 y 2-3 marcas más del tier premium.
+
+#### 4. Cuantificar el alcance del signo invertido (incidente de producción)
+
+Las fórmulas `computeKmImpact` / `computeAgeImpact` tenían el signo económico invertido desde siempre (corregido en e3b9928). Todos los informes emitidos antes de ese commit llevan el ajuste de uso al revés: coches con km alto o más antiguos que su pool, sobrevalorados (~14% en el Golf); coches con km bajo y recientes, infravalorados.
+
+**Tarea:** query sobre logs de `generateSellReport` (o tabla de informes si existe) para contar informes históricos y clasificar por posición del sujeto respecto a la mediana del pool (userKm vs medKm, userYear vs medYear). Producir estimación del sesgo medio y distribución. No es necesariamente una notificación externa, pero la explicación tiene que estar escrita con números antes de que llegue un cliente con un PDF de hace tres meses.
+
+#### 5. Hypercar → valoración manual
+
+Para el tier hypercar (Koenigsegg, Pagani, Bugatti…) y luxury con n<3, sustituir el precio calculado (789.393€ para un Jesko real de ~3M€) por mensaje explícito: _"Mercado insuficiente para tasación automática. Se requiere valoración manual."_ El número con cuatro cifras significativas sin datos es peor producto que la ausencia de número.
+
+#### 6. Nota de trazabilidad: nlow-maserati sin baseline anterior
+
+El fixture `nlow-maserati-ghibli` nació en Ola 1 (reemplazó a `nlow-lincoln`, que fail-closea). No existe comparación antes/después para la rama n_low. Si en el futuro se observa drift en ese fixture, no hay referencia previa — el primer valor capturado es la línea base.
+
+---
+
+### Cambios de cascade e IA (sin prioridad de regresión, pero en esta ola)
 
 - Umbrales cascade consistentes (todos en `< 10`, eliminar los `=== 0`)
 - Combustible siempre el último en relajarse; `confidence -= 20` cuando ocurre, nota visible en PDF

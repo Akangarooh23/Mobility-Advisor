@@ -456,10 +456,22 @@ const { usageImpact, ... } = computeUsageImpact(balancedOffers, mileage, year, m
 
 ---
 
+**Protocolo de sombreado offline (antes de activar):**
+
+`_pool` está congelado en los fixtures — no hace falta BD. Calcular para cada fixture la mediana, P25/P75 y medKm del pool balanceado junto a los valores actuales, loguear ambos, no cambiar ningún precio. La tabla resultante (base nueva vs vieja, kmPct, usageImpact esperado) para los 12 fixtures decide dos cosas antes de exponerse al bias:
+
+1. Si la prima de km es ~200€ → §1d puede ir en commit separado.
+2. Si la prima de km es ~1.500€ → §1d va en el mismo commit que §1h.
+3. Si `usageImpact` nuevo ≈ 0 en todos los casos → §1f (cap) pasa a académico (ver más abajo).
+
+Implementar en `sweep-pool.js`: añadir fila `opA-shadow` que corra `selectBalancedPool` sobre el `_pool` congelado del fixture y reporte `baseBal`, `kmPctBal`, `usageImpactBal` junto a los valores actuales.
+
 **Relación con §1g y §1d:**
-- §1g (filtro de combustible): después de §1h. Con §1h, la reducción de pool que causará §1g es visible en base y referencia de forma coherente.
-- §1d (alpha=0.5): después de §1h y necesario bajo Opción A — sin centrar km, Opción A introduce prima sistemática. Alpha es parte del fix.
-- Orden correcto: **§1h → §1g → §1d → §1f → §1e**
+- §1d (alpha=0.5): en el mismo commit que §1h o justo después, según la magnitud de la prima de km que muestre el sombreado. Bajo Opción A, alpha pasa a ser parte del arreglo (no refinamiento).
+- §1g (filtro de combustible): después de §1h + §1d. §1g no depende de §1d, pero la ventana de sesgo garantizado (prima de km) debe durar el mínimo. Con §1d resolviendo el sesgo, §1g puede ir inmediatamente después sin dejar período intermedio con modelo roto.
+- Orden correcto: **§1h (+ §1d si la prima es grande) → §1d (si fue separado) → §1g → §1f → §1e**
+
+**Efecto sobre §1f (cap del ajuste unificado):** bajo Opción A con alpha activo, `usageImpact` será pequeño en general — el término de año colapsa y el de km queda centrado. El cap del 12% probablemente deja de morder en todos los fixtures. §1f sigue siendo un parámetro sin dueño explícito (no borrar), pero su urgencia baja: si el sombreado confirma que el cap no muerde, la decisión se vuelve académica hasta que el OLS active con slopes calibrados.
 
 **0 DRIFT engañoso:** el fix es aguas arriba de `_pool`. Run.js dará 0 DRIFT. Evidencia solo en `git diff` de fixtures tras recaptura.
 

@@ -141,9 +141,9 @@ Prerrequisito: Ola 1 cerrada ✓
 
 **Census reconfirmado con solver arreglado (2026-07-23):** `run.js` re-ejecuta `computeUsageImpact` sobre el pool capturado en cada fixture — no compara la llamada almacenada, recomputa. 12 PASS 0 DRIFT con el solver corregido = el bug de pivoteo no contaminó la tasa de `usedDefault=true`. Razón geométrica: con variables centradas, `a11 = Σ(km−med)² ≈ n × (20.000)² ≈ 10⁸` frente a `|b| ≈ n × 20.000 × 2 ≈ 10⁴`. Cuatro órdenes de magnitud. El pivoteo es una rama sintéticamente testeable (T1c) pero inalcanzable con datos reales de km/año.
 
-**Typo "alfa romano" → "alfa romeo" (commit 01fca9f): producción-neutral.** `getUsageSegment` usa `b.includes(n) || n.includes(b)`. `"alfa romeo".includes("alfa")` → `true` → la entrada bare `"alfa"` ya resolvía a `premium_entry` antes del fix. El typo nunca afectó a ningún coche Alfa Romeo real. El fix añade un alias más específico; el comportamiento en producción era idéntico. Confirmado: zero drift en `cascade-alfa-stelvio` (usageImpact=−4680 ≈ cap de premium_entry con medianPrice≈23.400€).
+**Typo "alfa romano" → "alfa romeo" (commit 01fca9f): producción-neutral, pero expone un defecto de fondo recurrente.** `getUsageSegment` usa `b.includes(n) || n.includes(b)`. `"alfa romeo".includes("alfa")` → `true` → la entrada bare `"alfa"` ya resolvía a `premium_entry` antes del fix. El typo nunca afectó a ningún coche Alfa Romeo real — nos salvó la laxitud del matching. Confirmado: zero drift en `cascade-alfa-stelvio` (usageImpact=−4680 = cap exacto de premium_entry con medianPrice≈23.400€). **Tercera aparición del mismo defecto de fondo (matching sin resolución exacta):** (1) Lamborghini Huracán sobre pool arbitrario, (2) fail-closed en Ola 1, (3) typo salvado por subcadena accidental. El mismo `check-catalog-alias-gap.js` podría extenderse para detectar colisiones de subcadena entre claves de tier (e.g. si "alfa" es subcadena de "alfa romeo" dentro del mismo segment dict, y la búsqueda es bidireccional, el orden de iteración decide el tier — silencioso).
 
-**Estandarización de predictores implementada (2026-07-23):** antes de llamar a `solveOLS2x2`, `computeUsageImpact` divide cada predictor centrado por su RMS (desviación típica con media cero). Número de condición pasa de ~10⁸ a ~O(1/|r|). Matemáticamente equivalente — las slopes se descalan a unidades originales después (`β_real = β_std / scale`). El pivoteo queda como código muerto con entradas estandarizadas (después de escalar, `a_std = Σz₁² = n` y `|b_std| = n·|r| ≤ n = a_std` siempre). El beneficio real es poder descartar el condicionamiento como sospechoso cuando se lean los slopes del pool nuevo en Ola 2.
+**Estandarización de predictores implementada (2026-07-23):** antes de llamar a `solveOLS2x2`, `computeUsageImpact` divide cada predictor centrado por su RMS (desviación típica con media cero). Número de condición pasa de ~10⁸ a κ = (1+|r|)/(1−|r|) — crece con colinealidad alta, no con la baja (r=0 → κ=1 óptimo; r=0.95 → κ≈39, todavía manejable). Matemáticamente equivalente — las slopes se descalan después. El pivoteo queda como código muerto en producción (`a_std = n ≥ |b_std| = n·|r|` siempre); T1c lo cubre como test de primitiva. **Consecuencia práctica:** tras estandarizar, el único riesgo numérico que queda es r. Loguear r junto a los slopes en shadow mode — si el pool re-centrado sube la correlación km-año, el condicionamiento empeora y los slopes se vuelven inestables; hay que distinguir eso de un problema de composición.
 
 ---
 
@@ -161,14 +161,16 @@ Añadir factor de proximidad al scoring: `scoreSimilarity = 1 / (1 + |userKm −
 
 #### 2. Decisión explícita sobre el cap del ajuste unificado
 
-El cap actual del ±12% de `medianPrice` es una herencia sin decisión consciente. El esquema viejo permitía hasta ~22% combinado (km ±12% + edad ±10%). El cap actual ya mordió en el Golf: recortó −3.308 a −2.673, descartando el 19% de la señal para un coche 3 años más viejo y 13k km por encima de la mediana.
+**Retrato del modelo actual:** el ajuste por uso es `min(slopeSegmento × (user − median), capSegmento)`. Ni el OLS ni los datos de mercado participan en ningún punto — el modelo completo es una tabla de slopes + una tabla de caps, ambas escritas a mano. El cap es la segunda mitad del modelo real, a la altura de USAGE_DEFAULTS. En dos fixtures el cap está mordiendo con exactitud: Golf −2.673 ≈ 12% de su mediana (cap mainstream exacto), Alfa Stelvio −4.680 = 23.400 × 0.20 (cap premium_entry exacto).
 
-**Opciones a evaluar:**
-- ±12% por variable × 2 = ±24% total — preserva el rango anterior
-- Cap dinámico por segmento: economy 12%, mainstream 18%, premium 25% — escalado al grado de varianza típico del segmento
-- Cap fijo 20% para todos los segmentos — compromiso simple
+**La decisión del cap debe tomarse DESPUÉS del pool re-centrado, no antes.** Con el pool mal centrado, userKm/userYear caen en la cola de la distribución y el impacto crudo es grande — por eso los caps muerden. Con el pool re-centrado alrededor del sujeto, (userKm − medKm) se encoge y el impacto crudo probablemente quede bajo los caps. Si los caps dejan de morder, la decisión puede desaparecer o simplificarse. Si siguen mordiendo con el pool corregido, la señal es genuina y merece una decisión consciente.
 
-Decidir y documentar antes de cerrar Ola 2. El valor elegido afecta a todas las tasaciones con uso desviado de la mediana.
+**Opciones a evaluar cuando el pool esté listo:**
+- ±12% por variable × 2 = ±24% total — preserva el rango del esquema viejo
+- Cap dinámico por segmento (ya existe vía `kmCap`) — escalar a varianza típica del segmento
+- Cap fijo 20% para todos — compromiso simple
+
+**Prerequisito:** Prioridad 1 (ponderación del pool) cerrada y en producción.
 
 #### 3. Calibrar el estimador de depreciación
 

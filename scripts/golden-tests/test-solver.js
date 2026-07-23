@@ -88,17 +88,18 @@ console.log("\n── solveOLS2x2 ──");
 }
 
 {
-  // Pivoteo parcial: |a|=6 < |b|=10 → swap de filas.
-  // Diseño verificado analíticamente: sum(x1)=sum(x2)=0, slopeKm=-1, slopeYear=10.
-  // a=6, b=10, d=150, e=94, f=1490.
-  // Sin fix: devuelve [slopeYear, slopeKm] = [10, -1]. Con fix: [-1, 10].
+  // Pivoteo parcial: |a|=6 < |b|=10 → swap de filas en solveOLS2x2 directamente.
+  // NOTA DE COBERTURA: computeUsageImpact estandariza antes de llamar al solver,
+  // lo que hace que a_std=n ≥ |b_std|=n·|r| siempre — el pivoteo es código muerto
+  // en el flujo de producción. Este test cubre la primitiva solveOLS2x2, no un path real.
+  // Si alguien llama al solver sin estandarizar, este test es la red de seguridad.
   const x1s = [ 1,  1, -1, -1,  1, -1];
   const x2s = [ 5,  5, -5, -5, -5,  5];
   const ys  = [1049, 1049, 951, 951, 949, 1051];
   const [sk, sy] = solveOLS2x2(x1s, x2s, ys);
   assert(
     near(sk, -1, 0.001) && near(sy, 10, 0.001),
-    `T1c: pivoteo parcial → slopeKm=${sk}, slopeYear=${sy} (esperado -1, 10)`,
+    `T1c: pivoteo parcial (primitiva) → slopeKm=${sk}, slopeYear=${sy} (esperado -1, 10)`,
   );
 }
 

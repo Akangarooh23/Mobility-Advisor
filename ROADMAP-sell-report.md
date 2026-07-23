@@ -240,9 +240,9 @@ Al eliminar el truncado (8ab1c69, `Math.max(400_000, 3 × userKm)`), la dimensi�
 
 **Nota sobre la investigación de candidatos:** el intento de capturar BMW X2 Híbrido como candidato adicional reveló una anomalía de arquitectura (6→386) que documenta §1g.
 
-#### 1d. Activar `alpha=0.5` en POOL_CONFIG — PENDIENTE
+#### 1d. Activar `alpha=0.5` en POOL_CONFIG — PENDIENTE (después de §1h)
 
-**Prerrequisito:** fixtures n_low establecidos (§ 1c) — la activación puede cambiar n si el kernel desplaza ofertas y la rama debe tener cobertura antes.
+**Prerrequisito:** §1c cerrada ✓. **Y §1h** — activar alpha antes de corregir la incoherencia base/referencia mide el efecto de alpha sobre una base incorrecta. Con la incoherencia, alpha cambia medYr del pool balanceado pero la base sigue siendo el mercado sin balancear; el drift en run.js refleja el cambio de penalización, no el cambio de precio de referencia. Después de §1h, alpha y base son coherentes y el drift es legible.
 
 **Cambio de producción:** `{ alpha: 0, balance: true }` → `{ alpha: 0.5, balance: true }`. Modifica la selección del pool → afecta mediana, medKm, medYr, P25/P75 y usageImpact. Es un cambio de cálculo con drift esperado en la mayoría de fixtures, en su propio commit.
 
@@ -254,22 +254,25 @@ Al eliminar el truncado (8ab1c69, `Math.max(400_000, 3 × userKm)`), la dimensi�
 
 **Por qué en commit propio:** alpha=0.5 modifica producción. Mezclarlo con cualquier otro cambio impide atribuir el drift. La separación no es ceremonial — es el mecanismo de diagnóstico.
 
-#### 1e. Penalización de confianza por profundidad de cascade — BLOQUEADA por §1g
+#### 1e. Penalización de confianza por profundidad de cascade — DOBLEMENTE BLOQUEADA
 
-**BLOQUEADA:** `cascadeRelaxed.fuel` y `cascadeRelaxed.year` nunca pueden activarse mientras fuel y año no sean filtros duros (§1g). Implementar esta penalización antes de §1g añadiría una rama muerta — `cascadeRelaxed.fuel=true` es inalcanzable porque fuel no estaba en la lógica de exclusión. El orden se invierte: §1g → §1e.
+**BLOQUEADA por §1g Y por §1h (año):**
+- `cascadeRelaxed.fuel=true` nunca puede activarse mientras fuel no sea filtro duro (§1g)
+- `cascadeRelaxed.year=true` nunca puede activarse mientras año±4 no sea filtro duro — el Nivel 5 del cascade (`targetYear: null`) solo elimina el +2 de score por año cercano, no baja n de 0 a algo. Si Nivel 5 se dispara, ya era porque n=0, no porque relajar año añadió comparables.
+- Implementar §1e ahora añadiría dos ramas muertas de cuatro.
 
-Cuando §1g active el filtro de combustible, `cascadeRelaxed.fuel=true` se disparará en producción por primera vez. En ese momento §1e puede implementarse con señal real.
+**Orden de desbloqueo:** §1h (incoherencia base/referencia) → §1g (filtro de combustible) → entonces §1e tiene señal real en fuel. La relajación de año±4 como filtro duro queda pendiente de decisión separada en §1g.
 
-**Fix propuesto (post §1g):** en `buildReportData`, restar a `confidence` antes de fijar el tramo:
-- `−5 pp` por relajación en `power` (variación de acabado dentro de la misma generación)
-- `−5 pp` por relajación en `transmission` (diferencia de precio ~800€, tolerable)
-- `−8 pp` por relajación en `year` (mezcla generaciones distintas)
-- `−15 pp` por relajación en `fuel` (**provisional — debería ser 20pp**; mezclar gasolina y diésel del mismo modelo introduce diferencias estructurales de 1.500-3.000€. `cascadeRelaxed` se diseñó como objeto en lugar de entero precisamente para poder diferenciar este caso. Si se arranca con 15pp por conservadurismo, revisarlo en la primera validación con datos reales y subirlo si los informes de cascada-fuel siguen sobreestimando confianza)
+**Fix propuesto (post §1g + §1h):** en `buildReportData`, restar a `confidence` antes de fijar el tramo:
+- `−5 pp` por relajación en `power`
+- `−5 pp` por relajación en `transmission`
+- `−8 pp` por relajación en `year` (pendiente de que año sea filtro duro)
+- `−15 pp` por relajación en `fuel` (provisional; subirlo a 20pp en primera validación)
 - Cap: `confidence` no puede bajar del umbral del tramo inferior por esta causa sola
 
-**Cobertura (post §1g):** las dos `cascade-*` fixtures driftarán (power+transmission → −10 pp en ambas). Radio bajo: solo `sellReportGenerator.js` + recaptura. Sin cambio de BD.
+**Cobertura (post §1g):** las dos `cascade-*` fixtures driftarán (power+transmission → −10 pp). Sin cambio de BD.
 
-**Prerequisito:** §1g cerrada (filtro de combustible activo) + run.js verde.
+**Prerequisito:** §1h cerrada + §1g cerrada (filtro de combustible activo) + run.js verde.
 
 #### 1g. Filtros duros vs blandos en `listInventoryOffers` — PENDIENTE
 
@@ -379,6 +382,72 @@ offers = nFuelToken
 **Prerequisito:** auditoría de cobertura del campo `fuel` por portal (SQL arriba) antes de decidir si `!of` incluye o excluye. Sin esa cifra el fix puede partir pools en dos o dejarlos casi igual.
 
 **Prioridad: alta.** Bloquea §1e y es el tercer defecto sistemático de pool contaminado.
+
+#### 1h. Incoherencia base/referencia: pool balanceado ≠ pool de mercado — PENDIENTE (PRIORIDAD 1)
+
+**Hallazgo (2026-07-23):** `priceOptimal = round((base + usageImpact) × effectiveFactor)`. `base` y `usageImpact` provienen de pools distintos. La inconsistencia sesga sistemáticamente hacia arriba todas las tasaciones de vehículos más antiguos que la mediana del mercado — que es casi cualquier sujeto real.
+
+**Evidencia en código:**
+- `marketMedian` (línea 1507): `percentile(prices, 0.5)` donde `prices` viene de `computeOffers = offers.slice(0, 400)` — pool sin balancear, dominado por `updated_at DESC` (coches más recientes)
+- `marketMedian` se pasa como parámetro a `computeUsageImpact` (línea 1534)
+- Dentro de `computeUsageImpact` (líneas 968-974): `selectBalancedPool(candidates, ...)` → `pairs` → `medianKm`/`medianYear` del pool balanceado
+- `usageImpact = slopeKm × (userKm − medianKm) + slopeYear × (userYear − medianYear)` usa `medianKm`/`medianYear` del pool balanceado
+
+`base` describe el mercado 2023. El punto de referencia del ajuste describe el pool 2021. Son preguntas distintas respondidas con datos distintos.
+
+**Aritmética con el Golf (slopeYear≈600 €/año, medianYear pool sin bal.≈2023, medianYear bal.≈2021, userYear=2020):**
+- Con la incoherencia actual: `usageImpact = 600 × (2020 − 2021) = −600€`. Base=22.390€ (mercado 2023)
+- Ajuste correcto para bajar de 2023 a 2020: `600 × (2020 − 2023) = −1.800€`
+- El modelo corrige un tercio de lo que debería. `priceOptimal` ≈ 21.790€ en vez de ≈ 20.590€. Error ~1.200€ en este caso.
+
+**Evidencia directa en los datos del sweep:** al activar `balance:true`, todos los precios subieron — Golf +358€, Clio +2.021€, Alfa +2.650€, León +2.227€. La interpretación correcta: `balance:true` tiró `medianYear` del pool balanceado de ~2025 hacia ~2021, lo que redujo la penalización de año a cero (userYear≈medianYear), pero dejó `base` intacta en el mercado sin balancear. El precio subió porque desapareció la penalización sin que bajara la base. No es que el balanceo mejorara el precio — es que el modelo no puede mejorar y empeorar al mismo tiempo desde pools distintos.
+
+**Dirección del sesgo:** cualquier vehículo más antiguo que la mediana del mercado sin balancear (que con el sesgo de recencia de `updated_at DESC` es casi todo sujeto real) recibe un `usageImpact` que corrige solo parcialmente la diferencia entre el mercado reciente y el año del sujeto. Sobrevalora sistemáticamente.
+
+---
+
+**Dos arquitecturas coherentes (hay que elegir una):**
+
+**Opción A — Todo balanceado:** base, P25/P75, medKm, medYr todos del pool balanceado. El pool ya representa vehículos similares al sujeto en año y km. `usageImpact` es un ajuste fino residual dentro del pool balanceado — por construcción pequeño (medKm≈userKm, medYr≈userYear). El OLS se vuelve casi irrelevante; la valoración se hace por comparables emparejados, no por regresión. Más robusto: no depende de pendientes sin calibrar.
+
+**Opción B — Todo sin balancear:** base, P25/P75, medKm, medYr todos del pool sin balancear (mercado completo). `usageImpact` hace toda la corrección hedónica. Depende enteramente de que las pendientes (USAGE_DEFAULTS) sean correctas — hoy son doce números escritos a mano sin calibración.
+
+**Consecuencia de Opción A sobre USAGE_DEFAULTS:** los slopes del segmento están calibrados para corregir diferencia sujeto-mediana-mercado. Con todo balanceado, corrigen diferencia sujeto-mediana-balanceada (≈0). Los slopes actuales sobrecompensarán. Habrá que recalibrar o reducir el rol de USAGE_DEFAULTS. Esto no es un bloqueador — es una consecuencia que se lee en el drift y se decide entonces.
+
+**Recomendación: Opción A (todo balanceado).** No depende de parámetros sin calibrar. El riesgo de pool mal balanceado (n insuficiente en cuadrante antiguo) está documentado y es preferible al riesgo de pendientes incorrectas.
+
+---
+
+**Implementación (Opción A):**
+
+Mover `selectBalancedPool` fuera de `computeUsageImpact` y ejecutarlo en `getMarketPriceSnapshot` sobre `computeOffers`. Calcular `marketMedian`, `p25`, `p75`, `cv` y todo lo demás sobre el pool balanceado. Pasar el pool balanceado a `computeUsageImpact` (que deja de llamar a `selectBalancedPool` internamente).
+
+```
+// getMarketPriceSnapshot — después de computeOffers = offers.slice(0, 400)
+const { pool: balancedOffers } = selectBalancedPool(
+  computeOffers.filter(o => o.mileage >= 500 && o.year > 0 && ...),
+  { km: mileage, year },
+  { ...POOL_CONFIG, kmKey: 'mileage', yearKey: 'year' }
+);
+// base, P25/P75, cv: de balancedOffers (no computeOffers)
+const marketMedian = percentile(balancedPrices, 0.5);
+...
+// computeUsageImpact recibe balancedOffers (ya balanceado; internamente ya no llama selectBalancedPool)
+const { usageImpact, ... } = computeUsageImpact(balancedOffers, mileage, year, marketMedian, ...);
+```
+
+**Alternativa mínima:** mantener la estructura actual pero computar `medianKm`/`medianYear` en `computeUsageImpact` desde el pool de entrada (sin `selectBalancedPool` interno), de forma que base y referencia vengan del mismo pool sin balancear. Esto es Opción B — coherente, pero depende de pendientes calibradas.
+
+---
+
+**Relación con §1g y §1d:**
+- §1g (filtro de combustible) debe hacerse **después** de §1h. Con §1h primero, la reducción de pool que causará §1g es visible en base y referencia de forma coherente. Sin §1h, §1g cambia el pool pero solo afecta al tamaño de `computeOffers` (base) sin cambiar la referencia del ajuste — el sesgo persiste con un pool más pequeño.
+- §1d (alpha=0.5) debe hacerse **después** de §1h. Alpha cambia la composición del pool balanceado; si base sigue siendo del pool sin balancear, el efecto de alpha es ilegible en run.js.
+- Orden correcto: **§1h → §1g → §1d → §1f → §1e**
+
+**0 DRIFT engañoso:** el fix es aguas arriba de `_pool`. Run.js dará 0 DRIFT. Evidencia solo en `git diff` de fixtures tras recaptura.
+
+**Radio del cambio:** alto. Afecta `base`, `priceLow`, `priceHigh`, `cv`, `usageImpact` y por tanto `priceOptimal` en todas las tasaciones con mercado. Commit propio. Predicción escrita antes de correr. Recapturar todos los fixtures.
 
 #### 2. Ponderación del pool por cercanía al vehículo (`listInventoryOffers`)
 

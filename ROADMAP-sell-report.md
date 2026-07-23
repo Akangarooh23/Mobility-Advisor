@@ -195,22 +195,76 @@ Interacción con `balance:true`: la cuota trae coches más antiguos del pool, pe
 
 **Asimetría residual esperada:** `bal` deja yrPct en 0.35-0.46, no en 0.50 — escasez de oferta antigua (la cuota toma `min(take, smaller × maxImbalance)` y no puede repartir lo que no existe). Vigilar `r` y `kappa` al activar.
 
+**Giro de arquitectura — alpha recupera señal tras eliminar truncado km (2026-07-23):** La decisión `{alpha:0}` fue correcta en su contexto: el sweep se corrió con `maxMileage: userKm` activo. Con ese filtro, todos los dkm del kernel caían del mismo lado (≤ userKm) y eran pequeños — el kernel solo penalizaba distancia en año, y la cuota ya centraba el año. Alpha no tenía nada que aportar.
+
+Al eliminar el truncado (8ab1c69, `Math.max(400_000, 3 × userKm)`), la dimensión km recupera rango real: la correlación natural km-año (más viejo → más km) reaparece con `r = −0.587` para Golf. El kernel pasa a operar en 2D con señal real. Nuevo sweep (c36ebe5) sobre el pool post-fix:
+
+| label    | kmPct | yrPct |      r | kappa |
+|----------|-------|-------|--------|-------|
+| prod     |  0.19 |  0.43 | −0.587 |   3.8 |
+| bal      |  0.16 |  0.50 | −0.529 |   3.2 |
+| k0.5+bal |  0.18 |  0.50 | −0.031 |   1.1 |
+
+`k0.5+bal` colapsa la correlación km-año a prácticamente cero (kappa 1.1). La cuota centra el año; el kernel selecciona 2D y rompe la colinealidad que desestabiliza el OLS. La decisión anterior `{alpha:0}` no era un error — era la correcta sobre el pool con el filtro km. La nueva decisión `{alpha:0.5}` es la correcta sobre el pool sin ese filtro.
+
+**Cuadrantes — descartados (c36ebe5, 2026-07-23):** El cuadrante `old_lo` (older AND low-km respecto al sujeto) es estructuralmente vacío en todos los fixtures: Golf=32, Clio=7, Alfa=3, Macan=0, Abarth=0. Los coches más viejos que el sujeto casi siempre tienen más km — la correlación km-año es real, no un artefacto del pool. Ningún esquema de cuota 2D puede balancear en km sin quedarse sin oferta en ese cuadrante. En Abarth, la cuota 2D produce `kmPct=0.04` (peor que producción). Arquitectura descartada. El kernel opera en 2D de forma continua y sin cuadrantes vacíos.
+
+**Forward: alpha=0.5 en su propio commit — ver § 1d.**
+
 #### 1. Activar `{alpha:0, balance:true}` en POOL_CONFIG — ACTIVADO 2026-07-23
 
 **Estado:** activo. Ver criterio de aceptación arriba.
 
-#### 1b. Eliminar truncado de km — PENDIENTE (siguiente ítem, radio grande)
+#### 1b. Eliminar truncado de km — ACTIVADO 2026-07-23 (8ab1c69 + commits adyacentes)
 
-**Problema:** `maxMileage: userKm` hace que (a) `slopeKm × Δkm` sea siempre negativo, (b) la mediana esté sesgada al alza al excluir coches baratos de muchos km, y (c) la cuota importe coches viejos con km anormalmente bajo.
+**Fix aplicado:** `maxMileage: userKm` → `Math.max(400_000, 3 * mileage)`. Cota de saneamiento pura: excluye outliers extremos sin sesgar el pool hacia km inferiores al sujeto.
 
-**Fix:** cambiar el criterio de corte por km. Opciones a evaluar:
-- No filtrar por km en absoluto — dejar que el OLS vea toda la distribución
-- Ampliar a `maxMileage: userKm × 2.0` o similar — cota generosa que no sesga
-- Filtrar solo outliers extremos (km > P95 del modelo) — preserva comparables
+**Efectos observados:**
+- `r` recupera el valor natural: Golf `−0.587` (con el pool truncado la correlación era artificial — los coches del pool tenían km ≤ userKm forzado → era candidato al `slopeYear=−602` de Ola 1)
+- κ = (1+|r|)/(1−|r|) = 3.8 para Golf — medible, controlable, mejorable con kernel (§ 1d)
+- OLS desbloqueado en Maserati: primer fit exitoso en producción (`slopeKm=−0.265 €/km, slopeYear=+2417 €/año`), aunque con n apenas encima de 15 — el régimen menos fiable
+- `medKm` cruza por encima de `userKm` en todos los casos (balance trae coches más viejos, que en general tienen más km) → `kmPct` pasa de 1.00 a 0.19-0.34; el término km puede dar prima por primera vez
+- `usageUsedDefault` semántica corregida: `null` = sin datos de mercado; `false` = OLS exitoso; `true` = USAGE_DEFAULTS aplicados
+- `_actualBranch` en KEY_FIELDS (160f5b0): migraciones de rama emergen como DRIFT en run.js
 
-**Radio del cambio:** afecta pool, mediana/P25/P75, base, `usageImpact` y potencialmente el KPI de "unidades en portales" visible al cliente. Cambio en su propio commit, con drift esperado en la mayoría de fixtures. El drift mostrará si la mediana bajó (más coches baratos de muchos km) y si `usageUsedDefault` baja más.
+**Reconciliación precio (2026-07-23):** identidad `priceOptimal = round((base + usageImpact) × effectiveFactor)` cierra a 0€ en los 9 fixtures con datos de mercado. La lectura de 8ab1c69 es sólida.
 
-**Prerequisito:** balanceo de año activado y validado (paso 1) — querer las dos lecturas de drift separadas.
+#### 1c. Fixture n_low real + sintético — PENDIENTE
+
+La rama `n_low` (3 ≤ n < 15) gobierna prácticamente toda la producción: todos los fixtures tienen `usageUsedDefault=true` → USAGE_DEFAULTS es el modelo real, no un fallback. Los dos fixtures anteriores (`nlow-abarth`, `nlow-maserati`) migraron a `common` y `cascade_relaxed` tras el fix de km. La rama queda sin cobertura end-to-end.
+
+**Fixture real:** query `HAVING count BETWEEN 7 AND 10` (centro de la banda 3-15, lejos de ambas fronteras, objetivo n≈8-9). Candidato: modelo poco habitual, año reciente, pocas unidades en portales. Detecta cambios de mercado cuando el modelo gana oferta y sale de n_low.
+
+**Fixture sintético:** vehículo conocido con `_pool` truncado a 8 ofertas en el JSON. N fijo por construcción, inmune a cambios de mercado futuros. La rama que gobierna producción no puede depender de que un modelo concreto siga siendo escaso.
+
+**Protocolo:** añadir ambos a `vehicles.json` + `capture.js` + verificar `run.js` 0 DRIFT + `expected.actualBranch = "n_low"` en ambos fixtures.
+
+#### 1d. Activar `alpha=0.5` en POOL_CONFIG — PENDIENTE
+
+**Prerrequisito:** fixtures n_low establecidos (§ 1c) — la activación puede cambiar n si el kernel desplaza ofertas y la rama debe tener cobertura antes.
+
+**Cambio de producción:** `{ alpha: 0, balance: true }` → `{ alpha: 0.5, balance: true }`. Modifica la selección del pool → afecta mediana, medKm, medYr, P25/P75 y usageImpact. Es un cambio de cálculo con drift esperado en la mayoría de fixtures, en su propio commit.
+
+**Protocolo (obligatorio, mismo esquema que balance=true):**
+1. Predicción escrita antes de correr: para Golf, kappa debe bajar de 3.2 (bal) a ~1.1 (k0.5+bal); kmPct ≈ 0.18; priceOptimal debería moverse poco si usageImpact se mueve en dirección correcta
+2. `run.js` → leer drift real vs predicción; justificar cualquier desviación
+3. Census de `usageUsedDefault`: si algún fixture pasa de `true` a `false`, el kernel desbloqueó el OLS — documentar cuál y por qué
+4. Commit con bloque "drift aceptado" + lectura de `r` y `kappa` post-activación
+
+**Por qué en commit propio:** alpha=0.5 modifica producción. Mezclarlo con cualquier otro cambio impide atribuir el drift. La separación no es ceremonial — es el mecanismo de diagnóstico.
+
+#### 1e. Penalización de confianza por profundidad de cascade — PENDIENTE
+
+`cascadeRelaxed` existe desde Ola 1 y registra qué filtros se relajaron para alcanzar n≥15. Ningún código lo consume para ajustar `confidence`. El informe actual declara la misma fiabilidad si el pool es exacto (`{power:false, fuel:false}`) que si requirió tres relajaciones (`{power:true, fuel:true, year:true}`). Un vehículo que necesita tres relajaciones tiene un pool objetivamente menos homogéneo que no ha ganado su nivel de confianza.
+
+**Fix propuesto:** en `buildReportData`, restar a `confidence` antes de fijar el tramo:
+- `−5 pp` por cada relajación activa en `power`, `transmission`, `fuel`
+- `−8 pp` por relajación activa en `year` (mezcla generaciones — la más distorsionante)
+- Cap: `confidence` no puede bajar del umbral del tramo inferior por esta causa sola
+
+**Cobertura:** las dos `cascade-*` fixtures driftarán (power+transmission → −10 pp en ambas). Radio bajo: solo `sellReportGenerator.js` + recaptura. Sin cambio de BD.
+
+**Prerequisito:** run.js verde con los fixtures n_low establecidos (§ 1c).
 
 #### 2. Ponderación del pool por cercanía al vehículo (`listInventoryOffers`)
 

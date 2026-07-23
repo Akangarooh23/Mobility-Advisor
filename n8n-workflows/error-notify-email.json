@@ -3,7 +3,7 @@
   "nodes": [
     {
       "parameters": {},
-      "id": "cc4c0023-61a6-4ed7-82f5-5695637d480c",
+      "id": "eh-trigger",
       "name": "Al fallar un workflow",
       "type": "n8n-nodes-base.errorTrigger",
       "typeVersion": 1,
@@ -14,9 +14,10 @@
     },
     {
       "parameters": {
-        "jsCode": "const d = $input.item.json || {};\nconst wf = d.workflow || {};\nconst ex = d.execution || {};\nconst err = ex.error || {};\n\nconst wfName = wf.name || '(desconocido)';\nconst node = ex.lastNodeExecuted || '(desconocido)';\nconst mode = ex.mode || '';\nconst url = ex.url || '';\nconst msg = err.message || err.description || '(sin mensaje)';\nconst stack = (err.stack || '').split('\\n').slice(0, 6).join('\\n');\n\nconst subject = '[n8n] Falló: ' + wfName + ' → ' + node;\n\nconst text = [\n  'Un workflow de n8n ha fallado.',\n  '',\n  'Workflow:   ' + wfName,\n  'Nodo:       ' + node,\n  'Modo:       ' + mode,\n  'Error:      ' + msg,\n  '',\n  'Traza:',\n  stack,\n  '',\n  url ? ('Ver ejecución: ' + url) : ''\n].join('\\n');\n\nreturn [{ json: { subject: subject, text: text } }];"
+        "language": "javaScript",
+        "jsCode": "const d = $input.item.json || {};\nconst wf = d.workflow || {};\nconst ex = d.execution || {};\nconst err = ex.error || {};\nconst wfName = wf.name || '(desconocido)';\nconst node = ex.lastNodeExecuted || '(desconocido)';\nconst msg = err.message || err.description || '(sin mensaje)';\nconst stack = String(err.stack || '').split('\\n').slice(0, 6).join('\\n');\nconst esc = (s) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');\nconst subject = '[n8n] Fallo: ' + wfName + ' -> ' + node;\nconst html = '<div style=\"font-family:sans-serif;color:#0f172a\">' +\n  '<h2 style=\"color:#dc2626\">Un workflow de n8n ha fallado</h2>' +\n  '<p><b>Workflow:</b> ' + esc(wfName) + '<br><b>Nodo:</b> ' + esc(node) + '<br><b>Error:</b> ' + esc(msg) + '</p>' +\n  '<pre style=\"background:#f5f5f5;padding:8px;font-size:12px;white-space:pre-wrap\">' + esc(stack) + '</pre></div>';\nreturn [{ json: { payload: { from: 'CarsWise n8n <onboarding@resend.dev>', to: 'akangarooh23@gmail.com', subject: subject, html: html } } }];"
       },
-      "id": "68c6bef2-b2be-4882-ad13-3c8c56db3b03",
+      "id": "eh-compose",
       "name": "Componer mensaje",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -27,27 +28,38 @@
     },
     {
       "parameters": {
-        "fromEmail": "carswiseai@gmail.com",
-        "toEmail": "carswiseai@gmail.com",
-        "subject": "={{ $json.subject }}",
-        "text": "={{ $json.text }}",
-        "options": {}
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REEMPLAZA_CON_TU_RESEND_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "timeout": 10000
+        }
       },
-      "id": "aa21bdb0-5122-4e81-b1b9-c27c70425641",
-      "name": "Enviar email de aviso",
-      "type": "n8n-nodes-base.emailSend",
-      "typeVersion": 2,
+      "id": "eh-http",
+      "name": "Enviar aviso (Resend)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
       "position": [
         480,
         0
       ],
-      "webhookId": "89ae632e-73d2-4196-acaf-e61770d1cb31",
-      "credentials": {
-        "smtp": {
-          "id": "aTkXlZJ3YA95OmPf",
-          "name": "SMTP account"
-        }
-      }
+      "continueOnFail": true,
+      "retryOnFail": false
     }
   ],
   "connections": {
@@ -66,7 +78,7 @@
       "main": [
         [
           {
-            "node": "Enviar email de aviso",
+            "node": "Enviar aviso (Resend)",
             "type": "main",
             "index": 0
           }
@@ -75,8 +87,7 @@
     }
   },
   "settings": {
-    "executionOrder": "v1",
-    "binaryMode": "separate"
+    "executionOrder": "v1"
   },
   "pinData": {},
   "staticData": null,

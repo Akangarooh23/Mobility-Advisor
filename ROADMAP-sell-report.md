@@ -408,41 +408,57 @@ offers = nFuelToken
 
 **Dos arquitecturas coherentes (hay que elegir una):**
 
-**Opción A — Todo balanceado:** base, P25/P75, medKm, medYr todos del pool balanceado. El pool ya representa vehículos similares al sujeto en año y km. `usageImpact` es un ajuste fino residual dentro del pool balanceado — por construcción pequeño (medKm≈userKm, medYr≈userYear). El OLS se vuelve casi irrelevante; la valoración se hace por comparables emparejados, no por regresión. Más robusto: no depende de pendientes sin calibrar.
+**Opción A — Balanceado para precio, sin balancear para mercado:** medianPrice, P25/P75, medKm, medYr del pool balanceado (los valores que alimentan `priceOptimal`). Las cifras descriptivas del informe — byPortal, daysOnMarket, absorptionRate, histograma de precios, split particular/profesional — se quedan en el pool sin balancear. El pool balanceado responde «¿cuánto vale este coche?»; el pool de mercado responde «¿cómo es el mercado?». Mezclarlos en el histograma mostraría al cliente un mercado con representación forzada de coches antiguos que no verá si entra en Coches.net. `usageImpact` pasa a ser un ajuste fino residual dentro del pool balanceado — pequeño por construcción (medKm≈userKm, medYr≈userYear). Más robusto: no depende de pendientes sin calibrar.
 
-**Opción B — Todo sin balancear:** base, P25/P75, medKm, medYr todos del pool sin balancear (mercado completo). `usageImpact` hace toda la corrección hedónica. Depende enteramente de que las pendientes (USAGE_DEFAULTS) sean correctas — hoy son doce números escritos a mano sin calibración.
+**Opción B — Todo sin balancear:** base, P25/P75, medKm, medYr del pool sin balancear (mercado completo). `usageImpact` hace toda la corrección hedónica. Depende enteramente de que las pendientes sean correctas — hoy son doce números sin calibración.
 
-**Consecuencia de Opción A sobre USAGE_DEFAULTS:** los slopes del segmento están calibrados para corregir diferencia sujeto-mediana-mercado. Con todo balanceado, corrigen diferencia sujeto-mediana-balanceada (≈0). Los slopes actuales sobrecompensarán. Habrá que recalibrar o reducir el rol de USAGE_DEFAULTS. Esto no es un bloqueador — es una consecuencia que se lee en el drift y se decide entonces.
+**Recomendación: Opción A.** No depende de parámetros sin calibrar.
 
-**Recomendación: Opción A (todo balanceado).** No depende de parámetros sin calibrar. El riesgo de pool mal balanceado (n insuficiente en cuadrante antiguo) está documentado y es preferible al riesgo de pendientes incorrectas.
+---
+
+**Consecuencias de Opción A sobre los slopes — dos efectos distintos:**
+
+**Término de año → colapsa (no sobrecorrige):** la cuota centra `medianYear` hacia `userYear` por construcción. `(userYear − medianYear) ≈ 0` → el término de año prácticamente desaparece. El slope no se aplica de más — deja de aplicarse. USAGE_DEFAULTS para año pierde relevancia por obsolescencia, no por error.
+
+**Término de km → prima sistemática al alza:** la cuota equilibra solo el eje de año. Con kmPct en 0,19-0,34, el sujeto queda sistemáticamente por debajo de la mediana de km del pool balanceado (el pool importa coches más antiguos que, en general, tienen más km). `(userKm − medKm) < 0` → `slopeKm × negativo = prima`. Y esa prima se suma a una base que ya incorpora esos coches más rodados. Doble contabilidad: la base baja por incluirlos **y** el término de km sube por compararse contra su mediana de km. Bajo la arquitectura mixta anterior, esto era «varianza de extrapolación»; bajo Opción A es **sesgo sistemático al alza**.
+
+Este sesgo de km es el argumento más fuerte para §1d (alpha=0.5). La cuota ya resuelve el eje de año; la contribución marginal del kernel es sobre el eje km, que es el que queda descentrado. Sin alpha, Opción A introduce prima sistemática. Alpha no es un refinamiento opcional — con Opción A activa, pasa a ser parte del arreglo.
 
 ---
 
 **Implementación (Opción A):**
 
-Mover `selectBalancedPool` fuera de `computeUsageImpact` y ejecutarlo en `getMarketPriceSnapshot` sobre `computeOffers`. Calcular `marketMedian`, `p25`, `p75`, `cv` y todo lo demás sobre el pool balanceado. Pasar el pool balanceado a `computeUsageImpact` (que deja de llamar a `selectBalancedPool` internamente).
+Mover `selectBalancedPool` fuera de `computeUsageImpact` y ejecutarlo en `getMarketPriceSnapshot` sobre `computeOffers`. Calcular `marketMedian`, `p25`, `p75`, `cv` del pool **balanceado** solamente — el resto de estadísticas (byPortal, daysOnMarket, absorptionRate, histograma) siguen sobre `computeOffers`. Pasar el pool balanceado a `computeUsageImpact` (que deja de llamar a `selectBalancedPool` internamente).
 
 ```
 // getMarketPriceSnapshot — después de computeOffers = offers.slice(0, 400)
+const computeCandidates = computeOffers.filter(o => o.mileage >= 500 && o.year > 0 && Number.isFinite(o[priceField]) && o[priceField] > 0);
 const { pool: balancedOffers } = selectBalancedPool(
-  computeOffers.filter(o => o.mileage >= 500 && o.year > 0 && ...),
-  { km: mileage, year },
+  computeCandidates, { km: mileage, year },
   { ...POOL_CONFIG, kmKey: 'mileage', yearKey: 'year' }
 );
-// base, P25/P75, cv: de balancedOffers (no computeOffers)
+
+// Precio de referencia: del pool balanceado
+const balancedPrices = removeOutliers(balancedOffers.map(o => o[priceField]).filter(...).sort(...));
 const marketMedian = percentile(balancedPrices, 0.5);
-...
-// computeUsageImpact recibe balancedOffers (ya balanceado; internamente ya no llama selectBalancedPool)
+const p25 = percentile(balancedPrices, 0.25);
+const p75 = percentile(balancedPrices, 0.75);
+
+// Estadísticas de mercado (descriptivas): del pool sin balancear
+// byPortal, daysValues, absorptionRate, priceHistogram: siguen sobre computeOffers
+// priceTrend: sigue sobre computeOffers
+
+// computeUsageImpact recibe el pool balanceado; internamente ya no llama selectBalancedPool
 const { usageImpact, ... } = computeUsageImpact(balancedOffers, mileage, year, marketMedian, ...);
 ```
 
-**Alternativa mínima:** mantener la estructura actual pero computar `medianKm`/`medianYear` en `computeUsageImpact` desde el pool de entrada (sin `selectBalancedPool` interno), de forma que base y referencia vengan del mismo pool sin balancear. Esto es Opción B — coherente, pero depende de pendientes calibradas.
+**Alternativa mínima (Opción B):** computar `medianKm`/`medianYear` en `computeUsageImpact` desde el pool de entrada (sin `selectBalancedPool` interno), de forma que base y referencia vengan del mismo pool sin balancear. Coherente, pero depende de pendientes calibradas.
 
 ---
 
 **Relación con §1g y §1d:**
-- §1g (filtro de combustible) debe hacerse **después** de §1h. Con §1h primero, la reducción de pool que causará §1g es visible en base y referencia de forma coherente. Sin §1h, §1g cambia el pool pero solo afecta al tamaño de `computeOffers` (base) sin cambiar la referencia del ajuste — el sesgo persiste con un pool más pequeño.
-- §1d (alpha=0.5) debe hacerse **después** de §1h. Alpha cambia la composición del pool balanceado; si base sigue siendo del pool sin balancear, el efecto de alpha es ilegible en run.js.
+- §1g (filtro de combustible): después de §1h. Con §1h, la reducción de pool que causará §1g es visible en base y referencia de forma coherente.
+- §1d (alpha=0.5): después de §1h y necesario bajo Opción A — sin centrar km, Opción A introduce prima sistemática. Alpha es parte del fix.
 - Orden correcto: **§1h → §1g → §1d → §1f → §1e**
 
 **0 DRIFT engañoso:** el fix es aguas arriba de `_pool`. Run.js dará 0 DRIFT. Evidencia solo en `git diff` de fixtures tras recaptura.

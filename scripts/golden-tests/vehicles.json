@@ -177,6 +177,18 @@
       }
     },
     {
+      "id": "infer-fuel-vw-golf-gasolina",
+      "branch": "common",
+      "desc": "SINTÉTICO — Golf gasolina con pool mezclado: 15 gas etiquetado + 6 TSI unlabeled + 3 sin token + 4 TDI unlabeled (excluidos) + 2 diesel etiquetado (excluidos). Ejercita inferFuelFromVersion via _preFilterPool. N fijo por construcción (_synthetic: true).",
+      "vehicle": {
+        "brand": "Volkswagen", "model": "Golf", "version": "1.5 TSI 150",
+        "year": 2020, "mileage": 50000, "fuel": "Gasolina",
+        "transmission": "Manual", "powerCv": 150,
+        "color": null, "owners": null, "serviceHistory": null,
+        "damageLevel": "", "damageDescription": "", "itvStatus": ""
+      }
+    },
+    {
       "id": "unresolved-brand-koenigsegg",
       "branch": "unresolved_brand",
       "desc": "BUG — Koenigsegg Jesko: en vehicle-catalog.json (seleccionable por usuario) pero sin alias en BD. Congela comportamiento roto: n alto + confidence 88% sobre pool arbitrario. Cuando se aplique el fix (Ola 1) este fixture driftará a n=0, confidence≈35%.",

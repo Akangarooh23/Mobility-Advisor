@@ -19,6 +19,28 @@ const path = require("path");
 const { buildReportData }    = require("../../lib/sellReportGenerator");
 const { computeUsageImpact } = require("../../lib/inventoryStore");
 const { selectBalancedPool } = require("../../lib/poolProximity");
+const { inferFuelFromVersion } = require("../../lib/inferFuelFromVersion");
+
+// Inline normalizeToken (mirrors inventoryStore — kept local to avoid importing the full module).
+function normalizeToken(v) {
+  return String(v || '').replace(/\s+/g, ' ').trim().toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+// Applies the §1g_combustible.2 subject-conditional fuel filter.
+// Used when a fixture has _preFilterPool to exercise the inferFuelFromVersion path.
+function applyFuelFilter(preFilterPool, vehicleFuel) {
+  const normalizedFuel = normalizeToken(vehicleFuel);
+  if (!normalizedFuel) return preFilterPool;
+  return preFilterPool.filter(offer => {
+    const offerFuelToken =
+      normalizeToken(offer.fuel) ||
+      ((normalizedFuel === 'gasolina' || normalizedFuel === 'diesel')
+        ? inferFuelFromVersion(offer.version)
+        : null);
+    return !(offerFuelToken && !offerFuelToken.includes(normalizedFuel));
+  });
+}
 
 const VEHICLES_FILE = path.join(__dirname, "vehicles.json");
 const FIXTURES_DIR  = path.join(__dirname, "fixtures");
@@ -108,7 +130,17 @@ function main() {
     // Frontera de test: re-ejecutar computeUsageImpact desde el pool almacenado.
     // Sin _pool (fixtures pre-Ola-2): se lee el valor congelado (comportamiento anterior).
     // Con _pool: la frontera sube a inventoryStore — el módulo de regresión ya está cubierto.
+    // Con _preFilterPool: la frontera sube a inferFuelFromVersion — ejercita el path de inferencia.
     let national = fixture.national;
+    if (Array.isArray(national._preFilterPool) && national._preFilterPool.length > 0) {
+      const filteredPool = applyFuelFilter(national._preFilterPool, fixture.vehicle.fuel);
+      national = {
+        ...national,
+        _pool: filteredPool,
+        comparables:    filteredPool.length,
+        rawComparables: filteredPool.length,
+      };
+    }
     if (Array.isArray(national._pool) && national._pool.length > 0) {
       const medianPrice = national.market?.median ?? 0;
       // §1h: reproducir balance por año (idéntico al path de producción).

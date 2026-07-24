@@ -22,3 +22,9 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Exports temporales de ofertas (generados por scripts, no versionar)
+/ofertas-mercado-*.csv
+/ofertas-mercado-*.xlsx
+# Fichero basura de redirects Windows (> nul)
+nul

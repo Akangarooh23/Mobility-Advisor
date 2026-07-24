@@ -1,5 +1,5 @@
 {
-  "_capturedAt": "2026-07-24T12:41:19.780Z",
+  "_capturedAt": "2026-07-24T13:16:51.631Z",
   "_branch": "cascade_relaxed",
   "_actualBranch": "cascade_relaxed",
   "vehicle": {
@@ -27,17 +27,17 @@
       "fuel": false,
       "year": false
     },
-    "comparables": 69,
-    "rawComparables": 69,
+    "comparables": 49,
+    "rawComparables": 49,
     "market": {
-      "mean": 42234,
-      "median": 38990,
-      "p25": 34500,
-      "p75": 49500,
+      "mean": 45089,
+      "median": 45990,
+      "p25": 36990,
+      "p75": 52900,
       "daysOnMarketMedian": null,
       "updatedAt": "",
-      "cv": 0.24599153677078017,
-      "usageImpact": 4162,
+      "cv": 0.23002292738468766,
+      "usageImpact": 990,
       "usageUsedDefault": true,
       "slopeKm": null,
       "slopeYear": null,
@@ -46,35 +46,29 @@
       "privateMedian": null,
       "privateP25": null,
       "privateP75": null,
-      "privateCount": 3,
-      "dealerMedian": 39445,
-      "dealerP25": 34765,
-      "dealerP75": 49498,
-      "dealerCount": 66
+      "privateCount": 2,
+      "dealerMedian": 45990,
+      "dealerP25": 36990,
+      "dealerP75": 51445,
+      "dealerCount": 47
     },
     "byPortal": [
       {
         "portal": "cochescom",
-        "units": 52,
-        "avgPrice": 42656,
+        "units": 38,
+        "avgPrice": 45399,
         "avgDays": null
       },
       {
         "portal": "flexicar",
-        "units": 9,
-        "avgPrice": 42646,
+        "units": 7,
+        "avgPrice": 44261,
         "avgDays": null
       },
       {
         "portal": "wallapop",
-        "units": 5,
-        "avgPrice": 35576,
-        "avgDays": null
-      },
-      {
-        "portal": "autocasion",
-        "units": 2,
-        "avgPrice": 42400,
+        "units": 3,
+        "avgPrice": 41630,
         "avgDays": null
       },
       {
@@ -93,22 +87,22 @@
       {
         "from": 22500,
         "to": 30000,
-        "count": 8
+        "count": 3
       },
       {
         "from": 30000,
         "to": 37500,
-        "count": 19
+        "count": 10
       },
       {
         "from": 37500,
         "to": 45000,
-        "count": 13
+        "count": 9
       },
       {
         "from": 45000,
         "to": 52500,
-        "count": 15
+        "count": 13
       },
       {
         "from": 52500,
@@ -480,49 +474,49 @@
         "portal": "cochescom",
         "brand": "Porsche",
         "model": "Macan",
-        "version": "S Diesel Aut.",
-        "fuel": "Diesel",
+        "version": "S Aut.",
+        "fuel": "Gasolina",
         "transmission": "Automatica",
         "bodyType": "SUV",
         "environmentalLabel": "",
-        "year": 2017,
-        "mileage": 105677,
+        "year": 2014,
+        "mileage": 170800,
         "doors": 5,
         "seats": 5,
-        "powerCv": 258,
-        "price": 45900,
+        "powerCv": 340,
+        "price": 28999,
         "monthlyPrice": null,
         "financePrice": null,
-        "url": "https://www.coches.com/comprar/7eyLlAI1t3Zt.htm",
-        "province": "Madrid",
-        "city": "Madrid",
-        "color": "azul",
+        "url": "https://www.coches.com/comprar/fHMRW4imAQ1d.htm",
+        "province": "Barcelona",
+        "city": "Barcelona",
+        "color": "gris",
         "sellerType": "profesional",
         "traction": "",
-        "displacement": "2967",
+        "displacement": "",
         "co2": "",
-        "powerKw": "190",
+        "powerKw": "250",
         "consumption": "",
-        "dealerName": "OcasionPlus",
+        "dealerName": "Garage Club",
         "nextITV": "",
         "warrantyMonths": null,
-        "image": "https://images.coches.com/_ccom_/d68bbd80-3d63-4864-a0dd-a08256a5c40f/eb413cfa-c2aa-4056-a31c-73d5229969cc.jpg",
+        "image": "https://images.coches.com/_ccom_/4ee9a93e-7e74-4e5f-8045-1514c4c8f1dc/65f2cf5f-6f40-45c2-8d28-c17b50913ae7.jpg",
         "images": [
-          "https://images.coches.com/_ccom_/d68bbd80-3d63-4864-a0dd-a08256a5c40f/eb413cfa-c2aa-4056-a31c-73d5229969cc.jpg",
-          "https://images.coches.com/_ccom_/d68bbd80-3d63-4864-a0dd-a08256a5c40f/59e04864-01f7-487f-9f0a-62d47e27fe15.jpg",
-          "https://images.coches.com/_ccom_/d68bbd80-3d63-4864-a0dd-a08256a5c40f/ab57497d-576c-4add-8f65-0efae8ec6ff8.jpg",
-          "https://images.coches.com/_ccom_/d68bbd80-3d63-4864-a0dd-a08256a5c40f/e16076cd-5a55-4b56-afcc-f8876b0afcde.jpg",
-          "https://images.coches.com/_ccom_/d68bbd80-3d63-4864-a0dd-a08256a5c40f/51d220af-ae87-4cf8-a668-1a5ca10fef1a.jpg",
-          "https://images.coches.com/_ccom_/d68bbd80-3d63-4864-a0dd-a08256a5c40f/f0d40dc4-a93f-4d2b-83f9-758482318357.jpg",
-          "https://images.coches.com/_ccom_/d68bbd80-3d63-4864-a0dd-a08256a5c40f/43fbe200-5af5-4c55-802b-c2f56305049c.jpg",
-          "https://images.coches.com/_ccom_/d68bbd80-3d63-4864-a0dd-a08256a5c40f/bb0f86b0-fb0c-40dc-a80f-aa8b93598363.jpg",
-          "https://images.coches.com/_ccom_/d68bbd80-3d63-4864-a0dd-a08256a5c40f/d8959d08-0c38-4a8f-8b5e-09005ec853b3.jpg",
-          "https://images.coches.com/_ccom_/d68bbd80-3d63-4864-a0dd-a08256a5c40f/60201b44-725a-4572-90f5-53de3f1a8bca.jpg",
-          "https://images.coches.com/_ccom_/d68bbd80-3d63-4864-a0dd-a08256a5c40f/8dfbe8b6-fe9c-4f8c-9abf-abc1d3a31f74.jpg",
-          "https://images.coches.com/_ccom_/d68bbd80-3d63-4864-a0dd-a08256a5c40f/86e8fe3b-d614-4515-93db-bac51eaff285.jpg",
-          "https://images.coches.com/_ccom_/d68bbd80-3d63-4864-a0dd-a08256a5c40f/607cacd9-5f42-46ab-aa3f-54e1347485fa.jpg",
-          "https://images.coches.com/_ccom_/d68bbd80-3d63-4864-a0dd-a08256a5c40f/9b9ef477-08ce-4de3-8f25-36330e31c865.jpg",
-          "https://images.coches.com/_ccom_/d68bbd80-3d63-4864-a0dd-a08256a5c40f/c4f4015d-63ac-4b60-bc64-c0375992337a.jpg"
+          "https://images.coches.com/_ccom_/4ee9a93e-7e74-4e5f-8045-1514c4c8f1dc/65f2cf5f-6f40-45c2-8d28-c17b50913ae7.jpg",
+          "https://images.coches.com/_ccom_/4ee9a93e-7e74-4e5f-8045-1514c4c8f1dc/25b90b35-5e30-4fc3-a56b-52f391858aec.jpg",
+          "https://images.coches.com/_ccom_/4ee9a93e-7e74-4e5f-8045-1514c4c8f1dc/a7fa9469-1878-4810-88f6-aed8a4ac3b3a.jpg",
+          "https://images.coches.com/_ccom_/4ee9a93e-7e74-4e5f-8045-1514c4c8f1dc/22976802-9b6e-44aa-b184-03c21da165b0.jpg",
+          "https://images.coches.com/_ccom_/4ee9a93e-7e74-4e5f-8045-1514c4c8f1dc/6f18618d-6e20-4c87-b7be-3147b2e32a04.jpg",
+          "https://images.coches.com/_ccom_/4ee9a93e-7e74-4e5f-8045-1514c4c8f1dc/c52f006b-fd8e-4135-b336-9a4807474f1a.jpg",
+          "https://images.coches.com/_ccom_/4ee9a93e-7e74-4e5f-8045-1514c4c8f1dc/5ab0b264-cc38-4db3-8370-0cbf1a254973.jpg",
+          "https://images.coches.com/_ccom_/4ee9a93e-7e74-4e5f-8045-1514c4c8f1dc/72fc7503-2fe8-483e-9051-2f37b527529e.jpg",
+          "https://images.coches.com/_ccom_/4ee9a93e-7e74-4e5f-8045-1514c4c8f1dc/3d2100ef-1eae-4cec-a4a9-63a44c1882f0.jpg",
+          "https://images.coches.com/_ccom_/4ee9a93e-7e74-4e5f-8045-1514c4c8f1dc/307b0b37-fb7f-442d-9188-7597ad3c9cb7.jpg",
+          "https://images.coches.com/_ccom_/4ee9a93e-7e74-4e5f-8045-1514c4c8f1dc/0fb1d2a7-a80b-4e44-b811-da82ad4d308f.jpg",
+          "https://images.coches.com/_ccom_/4ee9a93e-7e74-4e5f-8045-1514c4c8f1dc/2c46d451-6783-4333-84e3-454297bd1d54.jpg",
+          "https://images.coches.com/_ccom_/4ee9a93e-7e74-4e5f-8045-1514c4c8f1dc/1da6a3f3-4bb7-4e56-8e02-d8004731bd88.jpg",
+          "https://images.coches.com/_ccom_/4ee9a93e-7e74-4e5f-8045-1514c4c8f1dc/cff1b292-f0c1-474c-8063-3c0dea3c6cd6.jpg",
+          "https://images.coches.com/_ccom_/4ee9a93e-7e74-4e5f-8045-1514c4c8f1dc/a556ffc3-ac2f-45ad-b33a-08c2f4ed10c4.jpg"
         ],
         "updatedAt": "",
         "listedAt": "",
@@ -531,7 +525,7 @@
     ],
     "_pool": [
       {
-        "_rank": 14,
+        "_rank": 13,
         "mileage": 103000,
         "year": 2016,
         "price": 19900,
@@ -540,37 +534,10 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 50,
-        "mileage": 199000,
-        "year": 2015,
-        "price": 24990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "wallapop"
-      },
-      {
-        "_rank": 61,
-        "mileage": 201000,
-        "year": 2015,
-        "price": 25990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 44,
+        "_rank": 45,
         "mileage": 295800,
         "year": 2014,
         "price": 27990,
-        "sellerType": "particular",
-        "listedAt": "",
-        "portal": "wallapop"
-      },
-      {
-        "_rank": 51,
-        "mileage": 256000,
-        "year": 2018,
-        "price": 27999,
         "sellerType": "particular",
         "listedAt": "",
         "portal": "wallapop"
@@ -585,24 +552,6 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 57,
-        "mileage": 178283,
-        "year": 2014,
-        "price": 29850,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 65,
-        "mileage": 188863,
-        "year": 2014,
-        "price": 29890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 6,
         "mileage": 172000,
         "year": 2014,
@@ -612,7 +561,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 3,
+        "_rank": 4,
         "mileage": 167000,
         "year": 2016,
         "price": 30999,
@@ -628,33 +577,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "flexicar"
-      },
-      {
-        "_rank": 64,
-        "mileage": 155781,
-        "year": 2015,
-        "price": 33490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 60,
-        "mileage": 122000,
-        "year": 2017,
-        "price": 33900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 67,
-        "mileage": 122000,
-        "year": 2017,
-        "price": 33900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autocasion"
       },
       {
         "_rank": 22,
@@ -675,42 +597,6 @@
         "portal": "wallapop"
       },
       {
-        "_rank": 58,
-        "mileage": 143000,
-        "year": 2015,
-        "price": 34500,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 55,
-        "mileage": 145000,
-        "year": 2015,
-        "price": 34500,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 54,
-        "mileage": 187416,
-        "year": 2015,
-        "price": 34690,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 63,
-        "mileage": 155781,
-        "year": 2015,
-        "price": 34990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 8,
         "mileage": 156000,
         "year": 2017,
@@ -720,16 +606,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 56,
-        "mileage": 127000,
-        "year": 2015,
-        "price": 35490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 19,
+        "_rank": 20,
         "mileage": 180095,
         "year": 2016,
         "price": 35990,
@@ -783,16 +660,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 52,
-        "mileage": 152000,
-        "year": 2015,
-        "price": 37900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 41,
+        "_rank": 37,
         "mileage": 114214,
         "year": 2015,
         "price": 38300,
@@ -828,7 +696,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 20,
+        "_rank": 19,
         "mileage": 163000,
         "year": 2016,
         "price": 38990,
@@ -846,15 +714,6 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 53,
-        "mileage": 128000,
-        "year": 2015,
-        "price": 39900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 31,
         "mileage": 57000,
         "year": 2018,
@@ -864,25 +723,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 62,
-        "mileage": 102435,
-        "year": 2018,
-        "price": 41990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 66,
-        "mileage": 102435,
-        "year": 2018,
-        "price": 41990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
-      },
-      {
-        "_rank": 32,
+        "_rank": 34,
         "mileage": 86612,
         "year": 2014,
         "price": 43990,
@@ -891,7 +732,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 34,
+        "_rank": 33,
         "mileage": 92941,
         "year": 2017,
         "price": 44790,
@@ -909,16 +750,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 59,
-        "mileage": 105677,
-        "year": 2017,
-        "price": 45900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 40,
+        "_rank": 41,
         "mileage": 111255,
         "year": 2020,
         "price": 45990,
@@ -927,7 +759,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 4,
+        "_rank": 5,
         "mileage": 138000,
         "year": 2019,
         "price": 46990,
@@ -936,7 +768,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 37,
+        "_rank": 38,
         "mileage": 118120,
         "year": 2021,
         "price": 47590,
@@ -954,7 +786,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 38,
+        "_rank": 39,
         "mileage": 115659,
         "year": 2021,
         "price": 48990,
@@ -1008,7 +840,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 39,
+        "_rank": 40,
         "mileage": 85936,
         "year": 2021,
         "price": 49890,
@@ -1017,7 +849,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 16,
+        "_rank": 18,
         "mileage": 139840,
         "year": 2021,
         "price": 49990,
@@ -1026,7 +858,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 68,
+        "_rank": 50,
         "mileage": 102000,
         "year": 2020,
         "price": 50900,
@@ -1035,7 +867,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 33,
+        "_rank": 32,
         "mileage": 61929,
         "year": 2017,
         "price": 52900,
@@ -1044,7 +876,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 5,
+        "_rank": 3,
         "mileage": 87625,
         "year": 2020,
         "price": 53990,
@@ -1062,7 +894,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 18,
+        "_rank": 16,
         "mileage": 67300,
         "year": 2020,
         "price": 54900,
@@ -1125,7 +957,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 45,
+        "_rank": 44,
         "mileage": 100000,
         "year": 2020,
         "price": 62900,
@@ -1143,7 +975,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 13,
+        "_rank": 14,
         "mileage": 61889,
         "year": 2021,
         "price": 63990,
@@ -1153,16 +985,16 @@
       }
     ]
   },
-  "referenceDate": "2026-07-24T12:41:19.780Z",
+  "referenceDate": "2026-07-24T13:16:51.631Z",
   "expected": {
-    "priceOptimal": 44015,
-    "priceLow": 38161,
-    "priceHigh": 55797,
+    "priceOptimal": 47920,
+    "priceLow": 38437,
+    "priceHigh": 55221,
     "confidence": 71,
-    "comparables": 69,
+    "comparables": 49,
     "usedFallback": false,
     "damageFactor": 1,
-    "usageImpact": 4162,
+    "usageImpact": 990,
     "usageUsedDefault": true,
     "colorAdjFactor": 1,
     "colorAdjPct": 0,

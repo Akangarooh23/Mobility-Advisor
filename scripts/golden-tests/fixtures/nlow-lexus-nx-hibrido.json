@@ -1,5 +1,5 @@
 {
-  "_capturedAt": "2026-07-24T12:41:31.907Z",
+  "_capturedAt": "2026-07-24T13:17:02.396Z",
   "_branch": "n_low",
   "_actualBranch": "n_low",
   "vehicle": {
@@ -299,44 +299,6 @@
         "portal": "autohero",
         "brand": "Lexus",
         "model": "NX-Serie",
-        "version": "NX 300h E-Four Premium",
-        "fuel": "Híbrido",
-        "transmission": "Automatica",
-        "bodyType": "SUV",
-        "environmentalLabel": "",
-        "year": 2021,
-        "mileage": 117158,
-        "doors": 0,
-        "seats": 0,
-        "powerCv": 197,
-        "price": 30899,
-        "monthlyPrice": 414,
-        "financePrice": 0,
-        "url": "https://www.autohero.com/es/lexus-nx-serie/id/1e7b1adf-2843-4a25-8ae4-20c0bd392f0b/",
-        "province": "Toda España",
-        "city": "Toda España",
-        "color": "Gris",
-        "sellerType": "profesional",
-        "traction": "Delantera",
-        "displacement": "2494",
-        "co2": "169",
-        "powerKw": "145",
-        "consumption": "0.00",
-        "dealerName": "Autohero",
-        "nextITV": "2027-11-30",
-        "warrantyMonths": 0,
-        "image": "https://img-eu-c1.autohero.com/img/0fa90dc91d83a60fd84485a5ea31f0d0eec59fc345a1aa6d7405d40590f6150f/exterior/1/768x432-e61155c4a9a341b08271073bbf08119f.jpg",
-        "images": [
-          "https://img-eu-c1.autohero.com/img/0fa90dc91d83a60fd84485a5ea31f0d0eec59fc345a1aa6d7405d40590f6150f/exterior/1/768x432-e61155c4a9a341b08271073bbf08119f.jpg"
-        ],
-        "updatedAt": "",
-        "listedAt": "",
-        "listingType": "compra"
-      },
-      {
-        "portal": "autohero",
-        "brand": "Lexus",
-        "model": "NX-Serie",
         "version": "NX 300h Executive",
         "fuel": "Híbrido",
         "transmission": "Automatica",
@@ -370,11 +332,49 @@
         "updatedAt": "",
         "listedAt": "",
         "listingType": "compra"
+      },
+      {
+        "portal": "autohero",
+        "brand": "Lexus",
+        "model": "NX-Serie",
+        "version": "NX 300h E-Four Premium",
+        "fuel": "Híbrido",
+        "transmission": "Automatica",
+        "bodyType": "SUV",
+        "environmentalLabel": "",
+        "year": 2021,
+        "mileage": 117158,
+        "doors": 0,
+        "seats": 0,
+        "powerCv": 197,
+        "price": 30899,
+        "monthlyPrice": 414,
+        "financePrice": 0,
+        "url": "https://www.autohero.com/es/lexus-nx-serie/id/1e7b1adf-2843-4a25-8ae4-20c0bd392f0b/",
+        "province": "Toda España",
+        "city": "Toda España",
+        "color": "Gris",
+        "sellerType": "profesional",
+        "traction": "Delantera",
+        "displacement": "2494",
+        "co2": "169",
+        "powerKw": "145",
+        "consumption": "0.00",
+        "dealerName": "Autohero",
+        "nextITV": "2027-11-30",
+        "warrantyMonths": 0,
+        "image": "https://img-eu-c1.autohero.com/img/0fa90dc91d83a60fd84485a5ea31f0d0eec59fc345a1aa6d7405d40590f6150f/exterior/1/768x432-e61155c4a9a341b08271073bbf08119f.jpg",
+        "images": [
+          "https://img-eu-c1.autohero.com/img/0fa90dc91d83a60fd84485a5ea31f0d0eec59fc345a1aa6d7405d40590f6150f/exterior/1/768x432-e61155c4a9a341b08271073bbf08119f.jpg"
+        ],
+        "updatedAt": "",
+        "listedAt": "",
+        "listingType": "compra"
       }
     ],
     "_pool": [
       {
-        "_rank": 3,
+        "_rank": 1,
         "mileage": 121190,
         "year": 2019,
         "price": 22999,
@@ -383,7 +383,7 @@
         "portal": "autohero"
       },
       {
-        "_rank": 4,
+        "_rank": 2,
         "mileage": 145399,
         "year": 2019,
         "price": 22999,
@@ -392,7 +392,7 @@
         "portal": "autohero"
       },
       {
-        "_rank": 5,
+        "_rank": 4,
         "mileage": 90284,
         "year": 2018,
         "price": 23299,
@@ -401,7 +401,7 @@
         "portal": "autohero"
       },
       {
-        "_rank": 2,
+        "_rank": 3,
         "mileage": 84080,
         "year": 2016,
         "price": 24299,
@@ -419,7 +419,7 @@
         "portal": "autohero"
       },
       {
-        "_rank": 0,
+        "_rank": 5,
         "mileage": 117158,
         "year": 2021,
         "price": 30899,
@@ -428,7 +428,7 @@
         "portal": "autohero"
       },
       {
-        "_rank": 1,
+        "_rank": 0,
         "mileage": 72123,
         "year": 2021,
         "price": 32099,
@@ -438,7 +438,7 @@
       }
     ]
   },
-  "referenceDate": "2026-07-24T12:41:31.907Z",
+  "referenceDate": "2026-07-24T13:17:02.396Z",
   "expected": {
     "priceOptimal": 27320,
     "priceLow": 25694,

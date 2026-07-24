@@ -1,5 +1,5 @@
 {
-  "_capturedAt": "2026-07-24T12:41:22.588Z",
+  "_capturedAt": "2026-07-24T13:16:53.670Z",
   "_branch": "damage",
   "_actualBranch": "damage",
   "vehicle": {
@@ -27,16 +27,16 @@
       "fuel": false,
       "year": false
     },
-    "comparables": 381,
-    "rawComparables": 400,
+    "comparables": 376,
+    "rawComparables": 399,
     "market": {
-      "mean": 17222,
+      "mean": 17197,
       "median": 16490,
-      "p25": 15000,
-      "p75": 18890,
+      "p25": 15142,
+      "p75": 18790,
       "daysOnMarketMedian": null,
       "updatedAt": "",
-      "cv": 0.18274753236332852,
+      "cv": 0.17780469352336012,
       "usageImpact": 1979,
       "usageUsedDefault": true,
       "slopeKm": null,
@@ -48,33 +48,27 @@
       "privateP75": null,
       "privateCount": 0,
       "dealerMedian": 16490,
-      "dealerP25": 15000,
-      "dealerP75": 18890,
-      "dealerCount": 381
+      "dealerP25": 15142,
+      "dealerP75": 18790,
+      "dealerCount": 376
     },
     "byPortal": [
       {
         "portal": "autoscout24",
-        "units": 260,
-        "avgPrice": 17384,
+        "units": 265,
+        "avgPrice": 17411,
         "avgDays": null
       },
       {
         "portal": "cochescom",
-        "units": 102,
-        "avgPrice": 19447,
+        "units": 100,
+        "avgPrice": 19332,
         "avgDays": null
       },
       {
         "portal": "flexicar",
         "units": 25,
         "avgPrice": 15392,
-        "avgDays": null
-      },
-      {
-        "portal": "autohero",
-        "units": 4,
-        "avgPrice": 17649,
         "avgDays": null
       },
       {
@@ -98,39 +92,34 @@
     ],
     "priceHistogram": [
       {
-        "from": 6000,
-        "to": 9000,
-        "count": 1
+        "from": 10000,
+        "to": 12500,
+        "count": 18
       },
       {
-        "from": 9000,
-        "to": 12000,
-        "count": 15
-      },
-      {
-        "from": 12000,
+        "from": 12500,
         "to": 15000,
-        "count": 79
+        "count": 74
       },
       {
         "from": 15000,
-        "to": 18000,
-        "count": 175
+        "to": 17500,
+        "count": 148
       },
       {
-        "from": 18000,
-        "to": 21000,
-        "count": 52
+        "from": 17500,
+        "to": 20000,
+        "count": 73
       },
       {
-        "from": 21000,
-        "to": 24000,
-        "count": 49
+        "from": 20000,
+        "to": 22500,
+        "count": 25
       },
       {
-        "from": 24000,
-        "to": 27000,
-        "count": 10
+        "from": 22500,
+        "to": 25000,
+        "count": 38
       }
     ],
     "samples": [
@@ -552,15 +541,6 @@
     ],
     "_pool": [
       {
-        "_rank": 1491,
-        "mileage": 230000,
-        "year": 2016,
-        "price": 7995,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 1310,
         "mileage": 183000,
         "year": 2016,
@@ -588,7 +568,7 @@
         "portal": "canalcar"
       },
       {
-        "_rank": 353,
+        "_rank": 354,
         "mileage": 142000,
         "year": 2017,
         "price": 9000,
@@ -867,7 +847,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1303,
+        "_rank": 1302,
         "mileage": 134989,
         "year": 2019,
         "price": 9990,
@@ -894,15 +874,6 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1391,
-        "mileage": 139715,
-        "year": 2016,
-        "price": 10199,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autohero"
-      },
-      {
         "_rank": 1274,
         "mileage": 152000,
         "year": 2017,
@@ -912,16 +883,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1486,
-        "mileage": 199849,
-        "year": 2019,
-        "price": 10250,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 538,
+        "_rank": 537,
         "mileage": 200667,
         "year": 2018,
         "price": 10390,
@@ -1029,7 +991,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1302,
+        "_rank": 1303,
         "mileage": 141560,
         "year": 2018,
         "price": 10490,
@@ -1164,15 +1126,6 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 1382,
-        "mileage": 166886,
-        "year": 2016,
-        "price": 10990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "ocasionplus"
-      },
-      {
         "_rank": 1294,
         "mileage": 175000,
         "year": 2016,
@@ -1198,15 +1151,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1372,
-        "mileage": 109990,
-        "year": 2017,
-        "price": 11190,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
       },
       {
         "_rank": 1188,
@@ -1263,7 +1207,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1268,
+        "_rank": 1269,
         "mileage": 102400,
         "year": 2018,
         "price": 11290,
@@ -1290,7 +1234,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1257,
+        "_rank": 1259,
         "mileage": 108001,
         "year": 2018,
         "price": 11390,
@@ -1299,7 +1243,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1258,
+        "_rank": 1260,
         "mileage": 108001,
         "year": 2018,
         "price": 11390,
@@ -1317,34 +1261,34 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 1250,
-        "mileage": 145000,
-        "year": 2018,
-        "price": 11390,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 1251,
-        "mileage": 145000,
-        "year": 2018,
-        "price": 11390,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 1252,
-        "mileage": 145000,
-        "year": 2018,
-        "price": 11390,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
         "_rank": 1253,
+        "mileage": 145000,
+        "year": 2018,
+        "price": 11390,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 1254,
+        "mileage": 145000,
+        "year": 2018,
+        "price": 11390,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 1255,
+        "mileage": 145000,
+        "year": 2018,
+        "price": 11390,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 1256,
         "mileage": 145000,
         "year": 2018,
         "price": 11390,
@@ -1470,7 +1414,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1269,
+        "_rank": 1268,
         "mileage": 113900,
         "year": 2017,
         "price": 11470,
@@ -1497,7 +1441,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 848,
+        "_rank": 849,
         "mileage": 80000,
         "year": 2016,
         "price": 11490,
@@ -1542,7 +1486,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1256,
+        "_rank": 1250,
         "mileage": 90262,
         "year": 2018,
         "price": 11490,
@@ -1551,7 +1495,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 861,
+        "_rank": 862,
         "mileage": 111143,
         "year": 2019,
         "price": 11490,
@@ -1614,7 +1558,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 390,
+        "_rank": 391,
         "mileage": 147822,
         "year": 2018,
         "price": 11790,
@@ -1641,7 +1585,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1210,
+        "_rank": 1209,
         "mileage": 148464,
         "year": 2017,
         "price": 11806,
@@ -1650,7 +1594,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1248,
+        "_rank": 1247,
         "mileage": 148464,
         "year": 2017,
         "price": 11806,
@@ -1659,7 +1603,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 858,
+        "_rank": 857,
         "mileage": 175430,
         "year": 2020,
         "price": 11850,
@@ -1668,7 +1612,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 860,
+        "_rank": 859,
         "mileage": 175430,
         "year": 2020,
         "price": 11850,
@@ -1686,7 +1630,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1247,
+        "_rank": 1248,
         "mileage": 175430,
         "year": 2020,
         "price": 11850,
@@ -1704,7 +1648,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1254,
+        "_rank": 1252,
         "mileage": 175430,
         "year": 2020,
         "price": 11850,
@@ -1729,15 +1673,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1484,
-        "mileage": 167650,
-        "year": 2019,
-        "price": 11890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 1186,
@@ -2046,7 +1981,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 1235,
+        "_rank": 1236,
         "mileage": 130000,
         "year": 2018,
         "price": 11990,
@@ -2127,7 +2062,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 862,
+        "_rank": 861,
         "mileage": 130801,
         "year": 2018,
         "price": 11990,
@@ -2143,15 +2078,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "flexicar"
-      },
-      {
-        "_rank": 1380,
-        "mileage": 165532,
-        "year": 2018,
-        "price": 11990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "canalcar"
       },
       {
         "_rank": 1272,
@@ -2181,7 +2107,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1245,
+        "_rank": 1246,
         "mileage": 82000,
         "year": 2018,
         "price": 12000,
@@ -2217,7 +2143,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1209,
+        "_rank": 1210,
         "mileage": 114750,
         "year": 2016,
         "price": 12100,
@@ -2235,16 +2161,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 1459,
-        "mileage": 146661,
-        "year": 2016,
-        "price": 12190,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1236,
+        "_rank": 1235,
         "mileage": 219000,
         "year": 2017,
         "price": 12250,
@@ -2325,7 +2242,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1261,
+        "_rank": 1258,
         "mileage": 99231,
         "year": 2019,
         "price": 12390,
@@ -2370,15 +2287,6 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 1488,
-        "mileage": 109990,
-        "year": 2017,
-        "price": 12490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 1159,
         "mileage": 115300,
         "year": 2019,
@@ -2406,7 +2314,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 857,
+        "_rank": 858,
         "mileage": 134989,
         "year": 2019,
         "price": 12490,
@@ -2415,7 +2323,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 859,
+        "_rank": 860,
         "mileage": 134989,
         "year": 2019,
         "price": 12490,
@@ -2431,15 +2339,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1454,
-        "mileage": 155000,
-        "year": 2017,
-        "price": 12490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 356,
@@ -2505,16 +2404,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1461,
-        "mileage": 122117,
-        "year": 2016,
-        "price": 12700,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 513,
+        "_rank": 512,
         "mileage": 148464,
         "year": 2017,
         "price": 12750,
@@ -2640,7 +2530,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1246,
+        "_rank": 1245,
         "mileage": 134248,
         "year": 2018,
         "price": 12790,
@@ -2649,7 +2539,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 512,
+        "_rank": 513,
         "mileage": 145000,
         "year": 2018,
         "price": 12790,
@@ -2658,7 +2548,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 1260,
+        "_rank": 1261,
         "mileage": 90302,
         "year": 2017,
         "price": 12856,
@@ -2713,6 +2603,15 @@
       },
       {
         "_rank": 1220,
+        "mileage": 122193,
+        "year": 2017,
+        "price": 12890,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 1221,
         "mileage": 122193,
         "year": 2017,
         "price": 12890,
@@ -2793,15 +2692,6 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1230,
-        "mileage": 122193,
-        "year": 2017,
-        "price": 12890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
         "_rank": 1231,
         "mileage": 122193,
         "year": 2017,
@@ -2820,7 +2710,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 849,
+        "_rank": 848,
         "mileage": 141000,
         "year": 2018,
         "price": 12900,
@@ -2829,7 +2719,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1259,
+        "_rank": 1257,
         "mileage": 49600,
         "year": 2017,
         "price": 12950,
@@ -2883,7 +2773,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 1255,
+        "_rank": 1251,
         "mileage": 88478,
         "year": 2019,
         "price": 12990,
@@ -3036,15 +2926,6 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1485,
-        "mileage": 121000,
-        "year": 2018,
-        "price": 12990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 384,
         "mileage": 121542,
         "year": 2017,
@@ -3054,7 +2935,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 1221,
+        "_rank": 1230,
         "mileage": 139780,
         "year": 2021,
         "price": 12990,
@@ -3070,15 +2951,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "ocasionplus"
-      },
-      {
-        "_rank": 1414,
-        "mileage": 209000,
-        "year": 2019,
-        "price": 12990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 1115,
@@ -3216,7 +3088,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1103,
+        "_rank": 1104,
         "mileage": 82492,
         "year": 2018,
         "price": 13294,
@@ -3225,7 +3097,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 194,
+        "_rank": 196,
         "mileage": 104000,
         "year": 2020,
         "price": 13350,
@@ -3261,15 +3133,6 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 1490,
-        "mileage": 119138,
-        "year": 2021,
-        "price": 13450,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 1060,
         "mileage": 70709,
         "year": 2018,
@@ -3279,7 +3142,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1141,
+        "_rank": 1139,
         "mileage": 70709,
         "year": 2018,
         "price": 13473,
@@ -3315,15 +3178,6 @@
         "portal": "clicars"
       },
       {
-        "_rank": 1370,
-        "mileage": 103600,
-        "year": 2017,
-        "price": 13490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
-      },
-      {
         "_rank": 798,
         "mileage": 108001,
         "year": 2018,
@@ -3340,15 +3194,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1381,
-        "mileage": 109151,
-        "year": 2018,
-        "price": 13490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
       },
       {
         "_rank": 497,
@@ -3405,15 +3250,6 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 1389,
-        "mileage": 90302,
-        "year": 2017,
-        "price": 13499,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autohero"
-      },
-      {
         "_rank": 1132,
         "mileage": 110000,
         "year": 2019,
@@ -3432,24 +3268,6 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1421,
-        "mileage": 189000,
-        "year": 2019,
-        "price": 13500,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1487,
-        "mileage": 196160,
-        "year": 2021,
-        "price": 13500,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 796,
         "mileage": 90775,
         "year": 2020,
@@ -3459,7 +3277,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 804,
+        "_rank": 803,
         "mileage": 90775,
         "year": 2020,
         "price": 13546,
@@ -3504,15 +3322,6 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1439,
-        "mileage": 157706,
-        "year": 2018,
-        "price": 13550,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 343,
         "mileage": 122193,
         "year": 2017,
@@ -3522,7 +3331,7 @@
         "portal": "clicars"
       },
       {
-        "_rank": 530,
+        "_rank": 531,
         "mileage": 122193,
         "year": 2017,
         "price": 13590,
@@ -3657,15 +3466,6 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1427,
-        "mileage": 157343,
-        "year": 2019,
-        "price": 13885,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 942,
         "mileage": 79330,
         "year": 2020,
@@ -3729,7 +3529,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1151,
+        "_rank": 1150,
         "mileage": 111380,
         "year": 2016,
         "price": 13900,
@@ -3760,15 +3560,6 @@
         "mileage": 147557,
         "year": 2018,
         "price": 13900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1412,
-        "mileage": 169496,
-        "year": 2019,
-        "price": 13950,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "cochescom"
@@ -3882,7 +3673,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 494,
+        "_rank": 495,
         "mileage": 76349,
         "year": 2017,
         "price": 13990,
@@ -3900,7 +3691,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 544,
+        "_rank": 543,
         "mileage": 76349,
         "year": 2017,
         "price": 13990,
@@ -3918,7 +3709,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1095,
+        "_rank": 1096,
         "mileage": 76349,
         "year": 2017,
         "price": 13990,
@@ -3927,7 +3718,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1096,
+        "_rank": 1097,
         "mileage": 76349,
         "year": 2017,
         "price": 13990,
@@ -3945,7 +3736,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 565,
+        "_rank": 566,
         "mileage": 84545,
         "year": 2018,
         "price": 13990,
@@ -3963,7 +3754,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 437,
+        "_rank": 438,
         "mileage": 90000,
         "year": 2019,
         "price": 13990,
@@ -4026,7 +3817,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 492,
+        "_rank": 493,
         "mileage": 111202,
         "year": 2019,
         "price": 13990,
@@ -4083,24 +3874,6 @@
         "_rank": 458,
         "mileage": 130801,
         "year": 2018,
-        "price": 13990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1471,
-        "mileage": 140040,
-        "year": 2021,
-        "price": 13990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1430,
-        "mileage": 169000,
-        "year": 2020,
         "price": 13990,
         "sellerType": "profesional",
         "listedAt": "",
@@ -4170,7 +3943,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1104,
+        "_rank": 1103,
         "mileage": 86123,
         "year": 2020,
         "price": 14251,
@@ -4296,24 +4069,6 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 1383,
-        "mileage": 118289,
-        "year": 2019,
-        "price": 14290,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "ocasionplus"
-      },
-      {
-        "_rank": 1465,
-        "mileage": 118289,
-        "year": 2019,
-        "price": 14290,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 815,
         "mileage": 138632,
         "year": 2017,
@@ -4332,7 +4087,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 195,
+        "_rank": 194,
         "mileage": 129208,
         "year": 2020,
         "price": 14380,
@@ -4341,7 +4096,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 196,
+        "_rank": 195,
         "mileage": 129208,
         "year": 2020,
         "price": 14380,
@@ -4413,7 +4168,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1139,
+        "_rank": 1141,
         "mileage": 155000,
         "year": 2019,
         "price": 14390,
@@ -4474,15 +4229,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "canalcar"
-      },
-      {
-        "_rank": 1429,
-        "mileage": 169152,
-        "year": 2020,
-        "price": 14450,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 892,
@@ -4683,15 +4429,6 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1437,
-        "mileage": 75886,
-        "year": 2016,
-        "price": 14500,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 1072,
         "mileage": 98000,
         "year": 2020,
@@ -4728,7 +4465,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 487,
+        "_rank": 491,
         "mileage": 147435,
         "year": 2019,
         "price": 14500,
@@ -4737,7 +4474,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 493,
+        "_rank": 492,
         "mileage": 147435,
         "year": 2019,
         "price": 14500,
@@ -4755,7 +4492,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 424,
+        "_rank": 426,
         "mileage": 70709,
         "year": 2018,
         "price": 14550,
@@ -4771,15 +4508,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "cochescom"
-      },
-      {
-        "_rank": 1385,
-        "mileage": 121904,
-        "year": 2018,
-        "price": 14599,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autohero"
       },
       {
         "_rank": 355,
@@ -4809,7 +4537,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1081,
+        "_rank": 1080,
         "mileage": 92168,
         "year": 2018,
         "price": 14621,
@@ -4818,7 +4546,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1150,
+        "_rank": 1151,
         "mileage": 92168,
         "year": 2018,
         "price": 14621,
@@ -4893,15 +4621,6 @@
         "_rank": 516,
         "mileage": 99054,
         "year": 2018,
-        "price": 14690,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1472,
-        "mileage": 108000,
-        "year": 2019,
         "price": 14690,
         "sellerType": "profesional",
         "listedAt": "",
@@ -5034,7 +4753,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1080,
+        "_rank": 1081,
         "mileage": 138154,
         "year": 2021,
         "price": 14728,
@@ -5142,24 +4861,6 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1415,
-        "mileage": 103584,
-        "year": 2016,
-        "price": 14800,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1464,
-        "mileage": 121662,
-        "year": 2020,
-        "price": 14800,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 882,
         "mileage": 92498,
         "year": 2021,
@@ -5178,7 +4879,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 376,
+        "_rank": 377,
         "mileage": 115352,
         "year": 2019,
         "price": 14890,
@@ -5212,15 +4913,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1396,
-        "mileage": 145000,
-        "year": 2017,
-        "price": 14900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 333,
@@ -5322,7 +5014,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 803,
+        "_rank": 804,
         "mileage": 62301,
         "year": 2018,
         "price": 14990,
@@ -5412,27 +5104,9 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 1492,
-        "mileage": 103600,
-        "year": 2017,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 459,
         "mileage": 105000,
         "year": 2019,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1445,
-        "mileage": 118330,
-        "year": 2020,
         "price": 14990,
         "sellerType": "profesional",
         "listedAt": "",
@@ -5565,7 +5239,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1097,
+        "_rank": 1095,
         "mileage": 250000,
         "year": 2019,
         "price": 14990,
@@ -5608,15 +5282,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1392,
-        "mileage": 112726,
-        "year": 2019,
-        "price": 15099,
-        "sellerType": "",
-        "listedAt": "",
-        "portal": "autohero"
       },
       {
         "_rank": 219,
@@ -5844,15 +5509,6 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1431,
-        "mileage": 95501,
-        "year": 2017,
-        "price": 15400,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 327,
         "mileage": 170500,
         "year": 2020,
@@ -5907,7 +5563,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 501,
+        "_rank": 500,
         "mileage": 40235,
         "year": 2020,
         "price": 15490,
@@ -5932,15 +5588,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "flexicar"
-      },
-      {
-        "_rank": 1424,
-        "mileage": 63000,
-        "year": 2017,
-        "price": 15490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 227,
@@ -6177,15 +5824,6 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1407,
-        "mileage": 140489,
-        "year": 2018,
-        "price": 15490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 705,
         "mileage": 101711,
         "year": 2021,
@@ -6411,22 +6049,13 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 255,
+        "_rank": 254,
         "mileage": 116400,
         "year": 2020,
         "price": 15790,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1371,
-        "mileage": 87707,
-        "year": 2022,
-        "price": 15890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
       },
       {
         "_rank": 991,
@@ -6510,24 +6139,6 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1400,
-        "mileage": 128040,
-        "year": 2017,
-        "price": 15890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1394,
-        "mileage": 79241,
-        "year": 2018,
-        "price": 15899,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autohero"
-      },
-      {
         "_rank": 42,
         "mileage": 135403,
         "year": 2020,
@@ -6537,26 +6148,8 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 1387,
-        "mileage": 135403,
-        "year": 2020,
-        "price": 15899,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autohero"
-      },
-      {
         "_rank": 361,
         "mileage": 87172,
-        "year": 2017,
-        "price": 15900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1402,
-        "mileage": 131000,
         "year": 2017,
         "price": 15900,
         "sellerType": "profesional",
@@ -6582,7 +6175,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 718,
+        "_rank": 717,
         "mileage": 79458,
         "year": 2021,
         "price": 15985,
@@ -6618,7 +6211,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 956,
+        "_rank": 957,
         "mileage": 90425,
         "year": 2021,
         "price": 15985,
@@ -6636,7 +6229,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 441,
+        "_rank": 442,
         "mileage": 40294,
         "year": 2019,
         "price": 15990,
@@ -6690,7 +6283,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1000,
+        "_rank": 1001,
         "mileage": 91000,
         "year": 2022,
         "price": 15990,
@@ -6798,7 +6391,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 352,
+        "_rank": 353,
         "mileage": 160551,
         "year": 2019,
         "price": 15990,
@@ -6816,28 +6409,10 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 1390,
-        "mileage": 96840,
-        "year": 2018,
-        "price": 15999,
-        "sellerType": "",
-        "listedAt": "",
-        "portal": "autohero"
-      },
-      {
         "_rank": 63,
         "mileage": 96840,
         "year": 2019,
         "price": 15999,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1455,
-        "mileage": 91607,
-        "year": 2021,
-        "price": 16000,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "cochescom"
@@ -6852,7 +6427,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 975,
+        "_rank": 974,
         "mileage": 88000,
         "year": 2021,
         "price": 16065,
@@ -6868,15 +6443,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "cochescom"
-      },
-      {
-        "_rank": 1393,
-        "mileage": 135337,
-        "year": 2020,
-        "price": 16099,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autohero"
       },
       {
         "_rank": 952,
@@ -7003,15 +6569,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1476,
-        "mileage": 115184,
-        "year": 2022,
-        "price": 16290,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 32,
@@ -7203,15 +6760,6 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 1452,
-        "mileage": 155000,
-        "year": 2022,
-        "price": 16390,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 903,
         "mileage": 89363,
         "year": 2020,
@@ -7221,7 +6769,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 963,
+        "_rank": 964,
         "mileage": 109975,
         "year": 2021,
         "price": 16400,
@@ -7282,51 +6830,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1483,
-        "mileage": 78100,
-        "year": 2021,
-        "price": 16490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1482,
-        "mileage": 79323,
-        "year": 2021,
-        "price": 16490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1481,
-        "mileage": 81589,
-        "year": 2021,
-        "price": 16490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1478,
-        "mileage": 82175,
-        "year": 2021,
-        "price": 16490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1480,
-        "mileage": 82491,
-        "year": 2021,
-        "price": 16490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 172,
@@ -7392,15 +6895,6 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1475,
-        "mileage": 84564,
-        "year": 2021,
-        "price": 16490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 1344,
         "mileage": 91181,
         "year": 2022,
@@ -7419,15 +6913,6 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1374,
-        "mileage": 106611,
-        "year": 2021,
-        "price": 16490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "clicars"
-      },
-      {
         "_rank": 920,
         "mileage": 115023,
         "year": 2021,
@@ -7437,7 +6922,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 11,
+        "_rank": 10,
         "mileage": 118853,
         "year": 2019,
         "price": 16490,
@@ -7482,7 +6967,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 425,
+        "_rank": 424,
         "mileage": 49416,
         "year": 2019,
         "price": 16550,
@@ -7653,15 +7138,6 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 1451,
-        "mileage": 116000,
-        "year": 2021,
-        "price": 16690,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 981,
         "mileage": 55777,
         "year": 2021,
@@ -7671,22 +7147,13 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 964,
+        "_rank": 963,
         "mileage": 70200,
         "year": 2022,
         "price": 16790,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1479,
-        "mileage": 87707,
-        "year": 2022,
-        "price": 16790,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 181,
@@ -7815,7 +7282,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 970,
+        "_rank": 971,
         "mileage": 73340,
         "year": 2018,
         "price": 16900,
@@ -7842,7 +7309,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 971,
+        "_rank": 970,
         "mileage": 88000,
         "year": 2021,
         "price": 16900,
@@ -7858,15 +7325,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1466,
-        "mileage": 106000,
-        "year": 2021,
-        "price": 16900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 53,
@@ -7950,7 +7408,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 420,
+        "_rank": 422,
         "mileage": 90425,
         "year": 2021,
         "price": 16985,
@@ -7959,7 +7417,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 1001,
+        "_rank": 1000,
         "mileage": 108000,
         "year": 2019,
         "price": 16989,
@@ -8031,7 +7489,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 717,
+        "_rank": 718,
         "mileage": 88000,
         "year": 2021,
         "price": 16990,
@@ -8058,24 +7516,6 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1477,
-        "mileage": 103069,
-        "year": 2022,
-        "price": 16990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1373,
-        "mileage": 103116,
-        "year": 2022,
-        "price": 16990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "clicars"
-      },
-      {
         "_rank": 965,
         "mileage": 110103,
         "year": 2021,
@@ -8083,15 +7523,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1462,
-        "mileage": 126000,
-        "year": 2022,
-        "price": 16990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 508,
@@ -8301,31 +7732,13 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 270,
+        "_rank": 264,
         "mileage": 61000,
         "year": 2020,
         "price": 17300,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1419,
-        "mileage": 82710,
-        "year": 2016,
-        "price": 17350,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1469,
-        "mileage": 92264,
-        "year": 2021,
-        "price": 17390,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 5,
@@ -8337,25 +7750,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 1432,
-        "mileage": 67273,
-        "year": 2020,
-        "price": 17400,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1410,
-        "mileage": 91486,
-        "year": 2021,
-        "price": 17400,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 25,
+        "_rank": 26,
         "mileage": 128943,
         "year": 2021,
         "price": 17400,
@@ -8418,16 +7813,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1384,
-        "mileage": 59529,
-        "year": 2018,
-        "price": 17450,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "ocasionplus"
-      },
-      {
-        "_rank": 957,
+        "_rank": 956,
         "mileage": 13901,
         "year": 2023,
         "price": 17490,
@@ -8517,15 +7903,6 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 1489,
-        "mileage": 103116,
-        "year": 2022,
-        "price": 17490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 209,
         "mileage": 122181,
         "year": 2020,
@@ -8533,24 +7910,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1406,
-        "mileage": 151330,
-        "year": 2021,
-        "price": 17490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1395,
-        "mileage": 101067,
-        "year": 2020,
-        "price": 17499,
-        "sellerType": "",
-        "listedAt": "",
-        "portal": "autohero"
       },
       {
         "_rank": 79,
@@ -8562,7 +7921,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 254,
+        "_rank": 255,
         "mileage": 55970,
         "year": 2020,
         "price": 17500,
@@ -8578,15 +7937,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1438,
-        "mileage": 60800,
-        "year": 2018,
-        "price": 17500,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 899,
@@ -8715,15 +8065,6 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 1456,
-        "mileage": 129498,
-        "year": 2023,
-        "price": 17700,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 716,
         "mileage": 23293,
         "year": 2018,
@@ -8760,7 +8101,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 974,
+        "_rank": 975,
         "mileage": 51000,
         "year": 2021,
         "price": 17775,
@@ -8769,7 +8110,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 902,
+        "_rank": 901,
         "mileage": 55963,
         "year": 2020,
         "price": 17800,
@@ -8778,7 +8119,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 901,
+        "_rank": 902,
         "mileage": 63561,
         "year": 2020,
         "price": 17800,
@@ -8787,7 +8128,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 450,
+        "_rank": 448,
         "mileage": 88000,
         "year": 2021,
         "price": 17850,
@@ -8877,15 +8218,6 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 1433,
-        "mileage": 131100,
-        "year": 2022,
-        "price": 17890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 763,
         "mileage": 65891,
         "year": 2023,
@@ -8958,7 +8290,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 475,
+        "_rank": 473,
         "mileage": 80470,
         "year": 2021,
         "price": 17940,
@@ -9093,7 +8425,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 588,
+        "_rank": 591,
         "mileage": 49633,
         "year": 2023,
         "price": 17990,
@@ -9102,7 +8434,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 592,
+        "_rank": 596,
         "mileage": 49633,
         "year": 2023,
         "price": 17990,
@@ -9111,7 +8443,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1041,
+        "_rank": 1035,
         "mileage": 49633,
         "year": 2023,
         "price": 17990,
@@ -9120,7 +8452,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1045,
+        "_rank": 1039,
         "mileage": 49633,
         "year": 2023,
         "price": 17990,
@@ -9129,7 +8461,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1346,
+        "_rank": 1347,
         "mileage": 49633,
         "year": 2023,
         "price": 17990,
@@ -9138,17 +8470,8 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1349,
+        "_rank": 1348,
         "mileage": 49633,
-        "year": 2023,
-        "price": 17990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 599,
-        "mileage": 54912,
         "year": 2023,
         "price": 17990,
         "sellerType": "profesional",
@@ -9165,7 +8488,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1035,
+        "_rank": 601,
         "mileage": 54912,
         "year": 2023,
         "price": 17990,
@@ -9174,7 +8497,16 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1036,
+        "_rank": 1041,
+        "mileage": 54912,
+        "year": 2023,
+        "price": 17990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 1042,
         "mileage": 54912,
         "year": 2023,
         "price": 17990,
@@ -9219,7 +8551,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 601,
+        "_rank": 599,
         "mileage": 57445,
         "year": 2023,
         "price": 17990,
@@ -9228,7 +8560,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1033,
+        "_rank": 1043,
         "mileage": 57445,
         "year": 2023,
         "price": 17990,
@@ -9237,7 +8569,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1037,
+        "_rank": 1045,
         "mileage": 57445,
         "year": 2023,
         "price": 17990,
@@ -9246,7 +8578,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1347,
+        "_rank": 1346,
         "mileage": 57445,
         "year": 2023,
         "price": 17990,
@@ -9255,7 +8587,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1348,
+        "_rank": 1349,
         "mileage": 57445,
         "year": 2023,
         "price": 17990,
@@ -9264,7 +8596,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 593,
+        "_rank": 592,
         "mileage": 58105,
         "year": 2023,
         "price": 17990,
@@ -9273,7 +8605,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 596,
+        "_rank": 597,
         "mileage": 58105,
         "year": 2023,
         "price": 17990,
@@ -9282,7 +8614,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1034,
+        "_rank": 1036,
         "mileage": 58105,
         "year": 2023,
         "price": 17990,
@@ -9291,7 +8623,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1042,
+        "_rank": 1040,
         "mileage": 58105,
         "year": 2023,
         "price": 17990,
@@ -9300,7 +8632,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1360,
+        "_rank": 1358,
         "mileage": 58105,
         "year": 2023,
         "price": 17990,
@@ -9327,7 +8659,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 589,
+        "_rank": 588,
         "mileage": 60261,
         "year": 2023,
         "price": 17990,
@@ -9345,7 +8677,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1032,
+        "_rank": 1033,
         "mileage": 60261,
         "year": 2023,
         "price": 17990,
@@ -9354,7 +8686,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1039,
+        "_rank": 1044,
         "mileage": 60261,
         "year": 2023,
         "price": 17990,
@@ -9381,6 +8713,15 @@
         "portal": "autoscout24"
       },
       {
+        "_rank": 594,
+        "mileage": 61858,
+        "year": 2023,
+        "price": 17990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
         "_rank": 595,
         "mileage": 61858,
         "year": 2023,
@@ -9390,7 +8731,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 597,
+        "_rank": 1032,
         "mileage": 61858,
         "year": 2023,
         "price": 17990,
@@ -9399,25 +8740,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1038,
-        "mileage": 61858,
-        "year": 2023,
-        "price": 17990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 1040,
-        "mileage": 61858,
-        "year": 2023,
-        "price": 17990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 1358,
+        "_rank": 1034,
         "mileage": 61858,
         "year": 2023,
         "price": 17990,
@@ -9435,6 +8758,15 @@
         "portal": "autoscout24"
       },
       {
+        "_rank": 1360,
+        "mileage": 61858,
+        "year": 2023,
+        "price": 17990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
         "_rank": 782,
         "mileage": 63271,
         "year": 2023,
@@ -9444,7 +8776,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 788,
+        "_rank": 784,
         "mileage": 63271,
         "year": 2023,
         "price": 17990,
@@ -9471,7 +8803,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 785,
+        "_rank": 783,
         "mileage": 65615,
         "year": 2023,
         "price": 17990,
@@ -9489,7 +8821,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1007,
+        "_rank": 1011,
         "mileage": 65615,
         "year": 2023,
         "price": 17990,
@@ -9498,7 +8830,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1008,
+        "_rank": 1012,
         "mileage": 65615,
         "year": 2023,
         "price": 17990,
@@ -9534,7 +8866,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 783,
+        "_rank": 787,
         "mileage": 70000,
         "year": 2023,
         "price": 17990,
@@ -9543,7 +8875,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1009,
+        "_rank": 1007,
         "mileage": 70000,
         "year": 2023,
         "price": 17990,
@@ -9552,7 +8884,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1012,
+        "_rank": 1008,
         "mileage": 70000,
         "year": 2023,
         "price": 17990,
@@ -9561,7 +8893,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 784,
+        "_rank": 785,
         "mileage": 70242,
         "year": 2023,
         "price": 17990,
@@ -9570,7 +8902,16 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 787,
+        "_rank": 788,
+        "mileage": 70242,
+        "year": 2023,
+        "price": 17990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 1009,
         "mileage": 70242,
         "year": 2023,
         "price": 17990,
@@ -9580,15 +8921,6 @@
       },
       {
         "_rank": 1010,
-        "mileage": 70242,
-        "year": 2023,
-        "price": 17990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 1011,
         "mileage": 70242,
         "year": 2023,
         "price": 17990,
@@ -9624,7 +8956,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 591,
+        "_rank": 589,
         "mileage": 75370,
         "year": 2023,
         "price": 17990,
@@ -9633,7 +8965,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 594,
+        "_rank": 593,
         "mileage": 75370,
         "year": 2023,
         "price": 17990,
@@ -9642,7 +8974,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1043,
+        "_rank": 1037,
         "mileage": 75370,
         "year": 2023,
         "price": 17990,
@@ -9651,7 +8983,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1044,
+        "_rank": 1038,
         "mileage": 75370,
         "year": 2023,
         "price": 17990,
@@ -9687,33 +9019,6 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1440,
-        "mileage": 98700,
-        "year": 2021,
-        "price": 17990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1378,
-        "mileage": 99438,
-        "year": 2022,
-        "price": 17990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "clicars"
-      },
-      {
-        "_rank": 1457,
-        "mileage": 111457,
-        "year": 2022,
-        "price": 17990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 913,
         "mileage": 117000,
         "year": 2021,
@@ -9733,15 +9038,6 @@
       },
       {
         "_rank": 263,
-        "mileage": 127359,
-        "year": 2019,
-        "price": 17990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 264,
         "mileage": 127359,
         "year": 2019,
         "price": 17990,
@@ -9787,6 +9083,15 @@
       },
       {
         "_rank": 269,
+        "mileage": 127359,
+        "year": 2019,
+        "price": 17990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 270,
         "mileage": 127359,
         "year": 2019,
         "price": 17990,
@@ -9903,7 +9208,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 448,
+        "_rank": 450,
         "mileage": 129000,
         "year": 2022,
         "price": 18150,
@@ -9919,15 +9224,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1444,
-        "mileage": 103936,
-        "year": 2021,
-        "price": 18250,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 31,
@@ -10054,33 +9350,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1375,
-        "mileage": 75339,
-        "year": 2022,
-        "price": 18490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "clicars"
-      },
-      {
-        "_rank": 1474,
-        "mileage": 75339,
-        "year": 2022,
-        "price": 18490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1473,
-        "mileage": 80743,
-        "year": 2022,
-        "price": 18490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 65,
@@ -10245,7 +9514,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 155,
+        "_rank": 154,
         "mileage": 90000,
         "year": 2019,
         "price": 18500,
@@ -10380,15 +9649,6 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 1446,
-        "mileage": 107200,
-        "year": 2022,
-        "price": 18790,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 1341,
         "mileage": 72000,
         "year": 2022,
@@ -10405,24 +9665,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1441,
-        "mileage": 93703,
-        "year": 2021,
-        "price": 18850,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1470,
-        "mileage": 80005,
-        "year": 2022,
-        "price": 18890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 9,
@@ -10443,7 +9685,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 652,
+        "_rank": 651,
         "mileage": 29374,
         "year": 2023,
         "price": 18900,
@@ -10464,15 +9706,6 @@
         "_rank": 357,
         "mileage": 61000,
         "year": 2018,
-        "price": 18900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1408,
-        "mileage": 68403,
-        "year": 2021,
         "price": 18900,
         "sellerType": "profesional",
         "listedAt": "",
@@ -10515,7 +9748,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 354,
+        "_rank": 352,
         "mileage": 85100,
         "year": 2021,
         "price": 18900,
@@ -10596,7 +9829,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 566,
+        "_rank": 565,
         "mileage": 62206,
         "year": 2022,
         "price": 18990,
@@ -10614,7 +9847,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 583,
+        "_rank": 584,
         "mileage": 70000,
         "year": 2019,
         "price": 18990,
@@ -10630,51 +9863,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1377,
-        "mileage": 73626,
-        "year": 2022,
-        "price": 18990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "clicars"
-      },
-      {
-        "_rank": 1376,
-        "mileage": 75686,
-        "year": 2022,
-        "price": 18990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "clicars"
-      },
-      {
-        "_rank": 1467,
-        "mileage": 75686,
-        "year": 2022,
-        "price": 18990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1468,
-        "mileage": 80579,
-        "year": 2022,
-        "price": 18990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1460,
-        "mileage": 89499,
-        "year": 2022,
-        "price": 18990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 369,
@@ -10731,24 +9919,6 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 1386,
-        "mileage": 78185,
-        "year": 2021,
-        "price": 18999,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autohero"
-      },
-      {
-        "_rank": 1418,
-        "mileage": 92760,
-        "year": 2022,
-        "price": 19000,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 349,
         "mileage": 124768,
         "year": 2020,
@@ -10776,31 +9946,13 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 495,
+        "_rank": 494,
         "mileage": 34410,
         "year": 2021,
         "price": 19200,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "cochescom"
-      },
-      {
-        "_rank": 1458,
-        "mileage": 78827,
-        "year": 2022,
-        "price": 19200,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1379,
-        "mileage": 69492,
-        "year": 2022,
-        "price": 19290,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "clicars"
       },
       {
         "_rank": 135,
@@ -10875,15 +10027,6 @@
         "portal": "clicars"
       },
       {
-        "_rank": 1435,
-        "mileage": 110076,
-        "year": 2022,
-        "price": 19390,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 561,
         "mileage": 70200,
         "year": 2022,
@@ -10920,7 +10063,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 377,
+        "_rank": 376,
         "mileage": 91000,
         "year": 2022,
         "price": 19490,
@@ -10938,7 +10081,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 500,
+        "_rank": 501,
         "mileage": 111739,
         "year": 2021,
         "price": 19500,
@@ -10992,7 +10135,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 163,
+        "_rank": 162,
         "mileage": 72537,
         "year": 2022,
         "price": 19690,
@@ -11028,7 +10171,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 693,
+        "_rank": 695,
         "mileage": 51000,
         "year": 2021,
         "price": 19750,
@@ -11064,25 +10207,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1463,
-        "mileage": 69356,
-        "year": 2022,
-        "price": 19890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1403,
-        "mileage": 83709,
-        "year": 2021,
-        "price": 19900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 467,
+        "_rank": 469,
         "mileage": 104157,
         "year": 2022,
         "price": 19900,
@@ -11190,17 +10315,8 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 26,
+        "_rank": 25,
         "mileage": 70000,
-        "year": 2021,
-        "price": 19990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1425,
-        "mileage": 86793,
         "year": 2021,
         "price": 19990,
         "sellerType": "profesional",
@@ -11262,7 +10378,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 584,
+        "_rank": 583,
         "mileage": 59192,
         "year": 2018,
         "price": 20000,
@@ -11296,24 +10412,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1436,
-        "mileage": 21019,
-        "year": 2021,
-        "price": 20100,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1496,
-        "mileage": 60479,
-        "year": 2022,
-        "price": 20200,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 691,
@@ -11352,7 +10450,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 154,
+        "_rank": 155,
         "mileage": 52400,
         "year": 2021,
         "price": 20390,
@@ -11370,7 +10468,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 438,
+        "_rank": 437,
         "mileage": 30000,
         "year": 2023,
         "price": 20450,
@@ -11388,7 +10486,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 695,
+        "_rank": 693,
         "mileage": 30000,
         "year": 2023,
         "price": 20450,
@@ -11433,24 +10531,6 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 1448,
-        "mileage": 77994,
-        "year": 2022,
-        "price": 20490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1449,
-        "mileage": 77994,
-        "year": 2022,
-        "price": 20490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 923,
         "mileage": 82842,
         "year": 2022,
@@ -11458,15 +10538,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "flexicar"
-      },
-      {
-        "_rank": 1428,
-        "mileage": 94301,
-        "year": 2023,
-        "price": 20490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 1,
@@ -11478,7 +10549,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 162,
+        "_rank": 163,
         "mileage": 53000,
         "year": 2021,
         "price": 20500,
@@ -11518,24 +10589,6 @@
         "mileage": 128511,
         "year": 2017,
         "price": 20500,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1401,
-        "mileage": 149000,
-        "year": 2021,
-        "price": 20500,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1453,
-        "mileage": 73946,
-        "year": 2022,
-        "price": 20590,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "cochescom"
@@ -11586,7 +10639,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 391,
+        "_rank": 390,
         "mileage": 47750,
         "year": 2022,
         "price": 20800,
@@ -11604,24 +10657,6 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1447,
-        "mileage": 70156,
-        "year": 2022,
-        "price": 20890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1450,
-        "mileage": 70156,
-        "year": 2022,
-        "price": 20890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 674,
         "mileage": 37135,
         "year": 2022,
@@ -11634,15 +10669,6 @@
         "_rank": 364,
         "mileage": 51981,
         "year": 2020,
-        "price": 20900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1443,
-        "mileage": 92000,
-        "year": 2023,
         "price": 20900,
         "sellerType": "profesional",
         "listedAt": "",
@@ -11748,15 +10774,6 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 1388,
-        "mileage": 33931,
-        "year": 2020,
-        "price": 21099,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autohero"
-      },
-      {
         "_rank": 125,
         "mileage": 48300,
         "year": 2021,
@@ -11770,15 +10787,6 @@
         "mileage": 67054,
         "year": 2022,
         "price": 21290,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1497,
-        "mileage": 144500,
-        "year": 2017,
-        "price": 21300,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "cochescom"
@@ -11847,16 +10855,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1405,
-        "mileage": 35949,
-        "year": 2021,
-        "price": 21490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 442,
+        "_rank": 441,
         "mileage": 147965,
         "year": 2017,
         "price": 21490,
@@ -11872,15 +10871,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1422,
-        "mileage": 99800,
-        "year": 2023,
-        "price": 21500,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 156,
@@ -11919,7 +10909,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 651,
+        "_rank": 652,
         "mileage": 115000,
         "year": 2020,
         "price": 21750,
@@ -11928,7 +10918,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 23,
+        "_rank": 24,
         "mileage": 66049,
         "year": 2022,
         "price": 21786,
@@ -11982,7 +10972,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 537,
+        "_rank": 538,
         "mileage": 49996,
         "year": 2024,
         "price": 21890,
@@ -12009,24 +10999,6 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 1442,
-        "mileage": 54863,
-        "year": 2022,
-        "price": 21890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1399,
-        "mileage": 60963,
-        "year": 2021,
-        "price": 21890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 582,
         "mileage": 129000,
         "year": 2019,
@@ -12034,15 +11006,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1426,
-        "mileage": 41600,
-        "year": 2018,
-        "price": 21900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 556,
@@ -12081,7 +11044,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 543,
+        "_rank": 544,
         "mileage": 43948,
         "year": 2024,
         "price": 21950,
@@ -12090,7 +11053,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 426,
+        "_rank": 425,
         "mileage": 45526,
         "year": 2024,
         "price": 21950,
@@ -12108,16 +11071,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 1417,
-        "mileage": 59496,
-        "year": 2021,
-        "price": 21950,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 379,
+        "_rank": 378,
         "mileage": 25600,
         "year": 2022,
         "price": 21990,
@@ -12144,7 +11098,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 408,
+        "_rank": 404,
         "mileage": 45208,
         "year": 2024,
         "price": 21990,
@@ -12174,15 +11128,6 @@
         "_rank": 18,
         "mileage": 76000,
         "year": 2021,
-        "price": 21990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1420,
-        "mileage": 77000,
-        "year": 2022,
         "price": 21990,
         "sellerType": "profesional",
         "listedAt": "",
@@ -12225,7 +11170,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 414,
+        "_rank": 413,
         "mileage": 51103,
         "year": 2024,
         "price": 22100,
@@ -12234,7 +11179,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 400,
+        "_rank": 401,
         "mileage": 52142,
         "year": 2024,
         "price": 22200,
@@ -12333,7 +11278,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 477,
+        "_rank": 483,
         "mileage": 50208,
         "year": 2024,
         "price": 22290,
@@ -12369,7 +11314,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 422,
+        "_rank": 420,
         "mileage": 40450,
         "year": 2024,
         "price": 22390,
@@ -12378,7 +11323,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 536,
+        "_rank": 535,
         "mileage": 40450,
         "year": 2024,
         "price": 22390,
@@ -12396,7 +11341,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 488,
+        "_rank": 487,
         "mileage": 45232,
         "year": 2024,
         "price": 22390,
@@ -12408,15 +11353,6 @@
         "_rank": 529,
         "mileage": 45232,
         "year": 2024,
-        "price": 22390,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1434,
-        "mileage": 51870,
-        "year": 2022,
         "price": 22390,
         "sellerType": "profesional",
         "listedAt": "",
@@ -12450,7 +11386,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 486,
+        "_rank": 485,
         "mileage": 44695,
         "year": 2024,
         "price": 22480,
@@ -12459,7 +11395,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 531,
+        "_rank": 530,
         "mileage": 44695,
         "year": 2024,
         "price": 22480,
@@ -12486,7 +11422,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 535,
+        "_rank": 536,
         "mileage": 37029,
         "year": 2024,
         "price": 22490,
@@ -12495,7 +11431,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 404,
+        "_rank": 405,
         "mileage": 45834,
         "year": 2024,
         "price": 22490,
@@ -12504,7 +11440,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 523,
+        "_rank": 524,
         "mileage": 45834,
         "year": 2024,
         "price": 22490,
@@ -12513,7 +11449,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 399,
+        "_rank": 398,
         "mileage": 47585,
         "year": 2024,
         "price": 22490,
@@ -12549,7 +11485,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 464,
+        "_rank": 466,
         "mileage": 49996,
         "year": 2024,
         "price": 22570,
@@ -12558,7 +11494,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 483,
+        "_rank": 479,
         "mileage": 45208,
         "year": 2024,
         "price": 22590,
@@ -12567,7 +11503,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 470,
+        "_rank": 468,
         "mileage": 47585,
         "year": 2024,
         "price": 22590,
@@ -12594,7 +11530,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 405,
+        "_rank": 408,
         "mileage": 41379,
         "year": 2024,
         "price": 22650,
@@ -12612,7 +11548,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 468,
+        "_rank": 470,
         "mileage": 45526,
         "year": 2024,
         "price": 22670,
@@ -12621,7 +11557,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 469,
+        "_rank": 467,
         "mileage": 45630,
         "year": 2024,
         "price": 22670,
@@ -12630,7 +11566,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 401,
+        "_rank": 400,
         "mileage": 42757,
         "year": 2024,
         "price": 22680,
@@ -12657,7 +11593,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 485,
+        "_rank": 486,
         "mileage": 40332,
         "year": 2024,
         "price": 22690,
@@ -12693,7 +11629,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 482,
+        "_rank": 480,
         "mileage": 41379,
         "year": 2024,
         "price": 22690,
@@ -12711,7 +11647,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 479,
+        "_rank": 478,
         "mileage": 41560,
         "year": 2024,
         "price": 22690,
@@ -12720,7 +11656,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 525,
+        "_rank": 523,
         "mileage": 41560,
         "year": 2024,
         "price": 22690,
@@ -12738,7 +11674,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 478,
+        "_rank": 477,
         "mileage": 42205,
         "year": 2024,
         "price": 22690,
@@ -12747,7 +11683,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 524,
+        "_rank": 525,
         "mileage": 42205,
         "year": 2024,
         "price": 22690,
@@ -12765,7 +11701,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 473,
+        "_rank": 476,
         "mileage": 43941,
         "year": 2024,
         "price": 22690,
@@ -12774,7 +11710,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 474,
+        "_rank": 475,
         "mileage": 43948,
         "year": 2024,
         "price": 22690,
@@ -12792,7 +11728,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 480,
+        "_rank": 482,
         "mileage": 44206,
         "year": 2024,
         "price": 22690,
@@ -12810,7 +11746,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 466,
+        "_rank": 464,
         "mileage": 45834,
         "year": 2024,
         "price": 22690,
@@ -12819,7 +11755,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 398,
+        "_rank": 399,
         "mileage": 40450,
         "year": 2024,
         "price": 22890,
@@ -12846,7 +11782,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 24,
+        "_rank": 23,
         "mileage": 41600,
         "year": 2022,
         "price": 22900,
@@ -12864,52 +11800,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1423,
-        "mileage": 65000,
-        "year": 2023,
-        "price": 22900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1411,
-        "mileage": 69000,
-        "year": 2022,
-        "price": 22900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1409,
-        "mileage": 72248,
-        "year": 2022,
-        "price": 22900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1498,
-        "mileage": 88477,
-        "year": 2020,
-        "price": 22900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1499,
-        "mileage": 88477,
-        "year": 2020,
-        "price": 22900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 413,
+        "_rank": 414,
         "mileage": 32762,
         "year": 2024,
         "price": 22950,
@@ -12927,16 +11818,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 1495,
-        "mileage": 22689,
-        "year": 2021,
-        "price": 22990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 491,
+        "_rank": 488,
         "mileage": 32762,
         "year": 2024,
         "price": 22990,
@@ -13008,7 +11890,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 476,
+        "_rank": 474,
         "mileage": 37029,
         "year": 2024,
         "price": 22990,
@@ -13044,16 +11926,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1493,
-        "mileage": 103089,
-        "year": 2021,
-        "price": 22990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 578,
+        "_rank": 577,
         "mileage": 150000,
         "year": 2017,
         "price": 22990,
@@ -13080,7 +11953,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 619,
+        "_rank": 618,
         "mileage": 50000,
         "year": 2023,
         "price": 23000,
@@ -13089,16 +11962,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1404,
-        "mileage": 22689,
-        "year": 2021,
-        "price": 23200,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 618,
+        "_rank": 619,
         "mileage": 32100,
         "year": 2023,
         "price": 23500,
@@ -13260,7 +12124,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 647,
+        "_rank": 645,
         "mileage": 6447,
         "year": 2024,
         "price": 23790,
@@ -13350,7 +12214,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 577,
+        "_rank": 578,
         "mileage": 90000,
         "year": 2017,
         "price": 23990,
@@ -13566,24 +12430,6 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1416,
-        "mileage": 80031,
-        "year": 2022,
-        "price": 24890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1494,
-        "mileage": 54800,
-        "year": 2021,
-        "price": 24900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 94,
         "mileage": 53985,
         "year": 2021,
@@ -13629,7 +12475,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 10,
+        "_rank": 11,
         "mileage": 63100,
         "year": 2023,
         "price": 25250,
@@ -13638,7 +12484,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 378,
+        "_rank": 379,
         "mileage": 3992,
         "year": 2024,
         "price": 25550,
@@ -13764,7 +12610,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 645,
+        "_rank": 646,
         "mileage": 8110,
         "year": 2024,
         "price": 26790,
@@ -13773,7 +12619,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 646,
+        "_rank": 647,
         "mileage": 8110,
         "year": 2024,
         "price": 26790,
@@ -13831,15 +12677,6 @@
         "mileage": 90745,
         "year": 2017,
         "price": 26890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 1413,
-        "mileage": 27900,
-        "year": 2024,
-        "price": 26900,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "cochescom"
@@ -13989,15 +12826,6 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1398,
-        "mileage": 17000,
-        "year": 2024,
-        "price": 32250,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
         "_rank": 604,
         "mileage": 105000,
         "year": 2022,
@@ -14014,15 +12842,6 @@
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
-      },
-      {
-        "_rank": 1397,
-        "mileage": 23000,
-        "year": 2024,
-        "price": 33250,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
       },
       {
         "_rank": 612,
@@ -14053,13 +12872,13 @@
       }
     ]
   },
-  "referenceDate": "2026-07-24T12:41:22.588Z",
+  "referenceDate": "2026-07-24T13:16:53.670Z",
   "expected": {
     "priceOptimal": 17983,
-    "priceLow": 15954,
-    "priceHigh": 20802,
+    "priceLow": 16092,
+    "priceHigh": 20705,
     "confidence": 88,
-    "comparables": 381,
+    "comparables": 376,
     "usedFallback": false,
     "damageFactor": 0.91,
     "usageImpact": 1979,

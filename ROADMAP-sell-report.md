@@ -151,6 +151,8 @@ Prerrequisito: Ola 1 cerrada ✓
 
 ### Cambios planificados, por orden de prioridad
 
+**Orden de trabajo confirmado (2026-07-24):** §1g_año → §1h (+§1d bundled) → §1g_combustible → calibración estimador depreciación → §1e
+
 #### 0. Recaptura de fixtures — PENDIENTE (prerequisito para todo lo demás)
 
 Tras la corrección de frontera, los fixtures actuales cubren `buildReportData` pero no el módulo de regresión. La recaptura almacenará `_pool` y moverá la frontera.
@@ -240,41 +242,164 @@ Al eliminar el truncado (8ab1c69, `Math.max(400_000, 3 × userKm)`), la dimensi�
 
 **Nota sobre la investigación de candidatos:** el intento de capturar BMW X2 Híbrido como candidato adicional reveló una anomalía de arquitectura (6→386) que documenta §1g.
 
-#### 1d. Activar `alpha=0.5` en POOL_CONFIG — PENDIENTE (después de §1h)
+#### 1d. Activar `useProximity: true` en POOL_CONFIG — PENDIENTE (mismo commit que §1h)
 
-**Prerrequisito:** §1c cerrada ✓. **Y §1h** — activar alpha antes de corregir la incoherencia base/referencia mide el efecto de alpha sobre una base incorrecta. Con la incoherencia, alpha cambia medYr del pool balanceado pero la base sigue siendo el mercado sin balancear; el drift en run.js refleja el cambio de penalización, no el cambio de precio de referencia. Después de §1h, alpha y base son coherentes y el drift es legible.
+**Prerrequisito:** §1g_año cerrada ✓ + §1h. Activar useProximity antes de corregir la incoherencia base/referencia mide el efecto sobre una base incorrecta. Con §1h activa, pool y base son coherentes y el drift es legible.
 
-**Cambio de producción:** `{ alpha: 0, balance: true }` → `{ alpha: 0.5, balance: true }`. Modifica la selección del pool → afecta mediana, medKm, medYr, P25/P75 y usageImpact. Es un cambio de cálculo con drift esperado en la mayoría de fixtures, en su propio commit.
+**Validación shadow (2026-07-23):** 5/5 fixtures con comparables mueven kmPct en dirección correcta (hacia 0.50). Magnitud pequeña (~+0.05-0.10) pero consistente — véanse columnas `prox` vs `noprox` en la tabla del shadow de `sweep-pool.js`. useProximity es un booleano, no un knob numérico — ver docblock de `poolProximity.js` para la demostración de invarianza de α.
 
-**Protocolo (obligatorio, mismo esquema que balance=true):**
-1. Predicción escrita antes de correr: para Golf, kappa debe bajar de 3.2 (bal) a ~1.1 (k0.5+bal); kmPct ≈ 0.18; priceOptimal debería moverse poco si usageImpact se mueve en dirección correcta
-2. `run.js` → leer drift real vs predicción; justificar cualquier desviación
-3. Census de `usageUsedDefault`: si algún fixture pasa de `true` a `false`, el kernel desbloqueó el OLS — documentar cuál y por qué
-4. Commit con bloque "drift aceptado" + lectura de `r` y `kappa` post-activación
+**Cambio de producción:** `{ useProximity: false, balance: true }` → `{ useProximity: true, balance: true }`. Activa en el mismo commit que §1h porque bajo Opción A (§1h), useProximity no es refinamiento opcional: el pool balanceado importa coches más antiguos con más km → medKm>userKm → prima sistemática en el término km. useProximity la mitiga centrando km dentro de cada lado de la cuota.
 
-**Por qué en commit propio:** alpha=0.5 modifica producción. Mezclarlo con cualquier otro cambio impide atribuir el drift. La separación no es ceremonial — es el mecanismo de diagnóstico.
+**Commit separado solo si** el shadow post-§1g_año muestra que el Δ entre `prox+bal` y `noprox+bal` es ≤200€ en todos los fixtures mainstream — en ese caso es inocuo y puede ir en commit propio. En caso contrario, va bundled con §1h.
 
 #### 1e. Penalización de confianza por profundidad de cascade — DOBLEMENTE BLOQUEADA
 
-**BLOQUEADA por §1g Y por §1h (año):**
-- `cascadeRelaxed.fuel=true` nunca puede activarse mientras fuel no sea filtro duro (§1g)
-- `cascadeRelaxed.year=true` nunca puede activarse mientras año±4 no sea filtro duro — el Nivel 5 del cascade (`targetYear: null`) solo elimina el +2 de score por año cercano, no baja n de 0 a algo. Si Nivel 5 se dispara, ya era porque n=0, no porque relajar año añadió comparables.
-- Implementar §1e ahora añadiría dos ramas muertas de cuatro.
+**BLOQUEADA por §1g_año, §1g_combustible, §1h Y calibración del estimador de depreciación:**
+- `cascadeRelaxed.fuel=true` nunca puede activarse mientras fuel no sea filtro duro (§1g_combustible)
+- `cascadeRelaxed.year` nunca tomará valor `8` ni `'unbounded'` mientras año±4 no sea filtro duro en SQL (§1g_año) — hasta entonces el cascade no sabe cuándo el año se queda sin muestra, así que los nuevos niveles 4a/4b nunca se disparan y la penalización de §1e no tiene señal real de año.
+- El punto de conmutación a 35% asume que la estimación por depreciación es fiable. Hoy sabemos que no lo es: los tres falsos positivos del shadow ratio son unidireccionales (Porsche 3,29 · Abarth 2,65 · Lincoln 29,31) — el estimador infravalora sistemáticamente. Y el fail-closed lo convirtió en la ruta principal de 161 marcas sin calibración. Conmutar a una cifra que sabemos sesgada no es un suelo — es cambiar el problema de sitio. La calibración del estimador (§ Ola 2, prioridad 3) es prerequisito de §1e.
+- Implementar §1e ahora añadiría tres ramas muertas de cuatro.
 
-**Orden de desbloqueo:** §1h (incoherencia base/referencia) → §1g (filtro de combustible) → entonces §1e tiene señal real en fuel. La relajación de año±4 como filtro duro queda pendiente de decisión separada en §1g.
+**Orden de desbloqueo:** §1g_año → §1h (+§1d) → §1g_combustible → calibración estimador depreciación → §1e.
 
-**Fix propuesto (post §1g + §1h):** en `buildReportData`, restar a `confidence` antes de fijar el tramo:
+**Fix propuesto (post §1g_año + §1g_combustible + §1h):** en `buildReportData`, restar a `confidence` antes de fijar el tramo:
 - `−5 pp` por relajación en `power`
 - `−5 pp` por relajación en `transmission`
-- `−8 pp` por relajación en `year` (pendiente de que año sea filtro duro)
-- `−15 pp` por relajación en `fuel` (provisional; subirlo a 20pp en primera validación)
-- Cap: `confidence` no puede bajar del umbral del tramo inferior por esta causa sola
+- `−5 pp` por `cascadeRelaxed.year === 8` (año expandido a ±8)
+- `−10 pp` por `cascadeRelaxed.year === 'unbounded'` (año sin cota)
+- `−20 pp` por relajación en `fuel`
+
+Jerarquía de severidad: relajar año hasta sin cota (−10 pp) tiene corrección disponible (`slopeYear × (userYear − medYr)`). Relajar combustible (−20 pp) contamina la mediana sin ninguna maquinaria que lo absorba — diferencias estructurales de 1.500-3.000€ entre combustibles del mismo modelo entran directamente en la base. El doble de penalización refleja la ausencia total de corrección.
+
+**Suelo y punto de conmutación: 35 %**
+
+Las penalizaciones se acumulan sin suelo por penalización. Peor caso (power + transmission + año sin cota + fuel): −5 −5 −10 −20 = −40 pp. Partiendo de 65 % (n=15-39) → 25 %, y si CV > 0,35 se suman −15 pp adicionales → 10 %. Por debajo del 35 % fijo de la ruta de depreciación.
+
+Si el pool acumulado cae por debajo de 35 %, la ruta de mercado ya no aporta sobre la tabla de residuales. La decisión: **35 % es el suelo y el punto de conmutación**. Por debajo de ese umbral, caer a depreciación con su aviso correspondiente en lugar de publicar un precio de mercado con 10 % de confianza.
+
+Implementación: después de aplicar todas las penalizaciones, si `confidence < 35` → tratar como `usedFallback = true`, devolver precio de depreciación con nota explícita en PDF.
+
+**Diferencia con el cap 0,72 — no son el mismo mecanismo:**
+`max(0.72, df × cf × of)` acota: el valor deja de bajar pero el cálculo continúa por la misma ruta. El suelo del 35% conmuta de ruta: cambia no solo la confianza sino el precio, y por un método completamente distinto. Eso crea un **acantilado**: dos vehículos casi idénticos con 36% y 34% de confianza pueden recibir precios que difieren en órdenes de magnitud si la mediana de mercado y la estimación por depreciación no convergen. Es el mismo defecto que descartamos con el umbral α=n>200: una frontera binaria sobre una variable continua.
+
+**Test del acantilado con el shadow ratio (ya disponible):** si en la frontera (confidence ≈ 35%) la mediana de mercado y la estimación por depreciación convergen, conmutar es inocuo — el precio no salta. Si divergen, conmutar es sustituir un número dudoso por otro distinto. El shadow ratio compara exactamente esas dos cifras. Esto convierte la calibración del estimador en prerequisito de §1e por dos vías: (1) la ruta de fallback tiene que ser fiable antes de usarse como suelo, (2) el test del acantilado requiere saber si las dos rutas convergen en la frontera.
 
 **Cobertura (post §1g):** las dos `cascade-*` fixtures driftarán (power+transmission → −10 pp). Sin cambio de BD.
 
-**Prerequisito:** §1h cerrada + §1g cerrada (filtro de combustible activo) + run.js verde.
+**Prerequisito:** §1g_año cerrada + §1h cerrada + §1g_combustible cerrada + run.js verde.
 
-#### 1g. Filtros duros vs blandos en `listInventoryOffers` — PENDIENTE
+#### 1g_año. Filtro duro de año + reordenación de cascade — PENDIENTE (PRIORIDAD 0 — prerequisito de §1h)
+
+**Por qué va antes de §1h:** el shadow actual de §1h (Δ=−1.678 a −2.789€ sobre precios de 15-25k€) está calculado sobre el full pool sin acotar en año. Un León 2019 con año±4 blando incluye Leóns de 2016 en el pool — baratos, más rodados, no comparables reales. Con año±4 como filtro duro, el full pool queda acotado a 2015-2023 y el shadow Δ real (post-§1g_año) es el dato que decide si §1h se despliega sola o bundled. Sin este paso, el Δ no es interpretable.
+
+**Reordenación del cascade (decidida en Ola 2, no implementada todavía):**
+
+Combustible siempre relaja último, porque el modelo tiene `slopeYear × (userYear − medYr)` para absorber diferencias de año pero no tiene ningún término para diferencias de combustible. Un comparable de otro año entra con corrección aplicada; uno de otro combustible entra como contaminación pura de la mediana. Relajar año es barato; relajar combustible no tiene maquinaria.
+
+Orden actual (incorrecto — fuel adelantado a año):
+1. Exacto (fuel + transmission + año + potencia)
+2. Sin potencia
+3. Sin transmisión
+4. Sin fuel
+5. Sin año
+
+Orden correcto (año antes que fuel):
+1. Exacto (fuel + transmission + año±4 + potencia)
+2. Sin potencia
+3. Sin transmisión
+4. Año±8 (ampliación, no eliminación)
+5. Sin año (year unbounded)
+6. Sin fuel (siempre último; solo si fuel fue declarado)
+
+**Por qué ±8 como nivel intermedio, no salto binario:**
+- Evita que un Golf 2020 acabe comparándose con Golfs de 2010 al primer agotamiento
+- Convierte el salto brusco de nivel 5 (nunca probado en producción) en dos escalones suaves
+- §1e penalizará por magnitud: ±8 no debe costar lo mismo que sin cota
+
+**`cascadeRelaxed.year`: cambia de booleano a `false | 8 | 'unbounded'`**
+
+`false` = año±4 activo. `8` = expandido a ±8. `'unbounded'` = sin cota temporal. §1e usará este valor para graduar la penalización.
+
+**Fix: año en SQL WHERE, no post-filtro.**
+
+`listInventoryOffers` ya acepta `maxYearDistance` y lo traduce a `ABS([Year] - targetYear) <= maxYearDistance` en SQL (línea ~428 de inventoryStore.js). El post-filtro no es necesario — y sería incorrecto porque hereda el sesgo de recencia de `ORDER BY updated_at DESC LIMIT 1500`: esos 1500 slots se gastarían en coches de cualquier año y el año±4 solo filtraría lo que ya vino sesgado hacia lo reciente. Con el año en WHERE, los 1500 slots se gastan íntegramente dentro de la ventana relevante.
+
+Ironía del orden de hallazgos: el POOL_STORE_LIMIT subió de 400 a 1500 precisamente para alcanzar coches antiguos que se actualizan menos — el post-filtro habría comido esa ganancia. Y el ensanchado a ±8 sobre caché no buscaría coches nuevos, solo dejaría pasar más de los que ya venían sesgados. La caché no aplica: los tres niveles de año son tres consultas SQL distintas.
+
+```js
+// Nivel 1 (exacto):
+offers = await listInventoryOffers({ ...baseQuery, fuel, transmission, targetYear: year, maxYearDistance: 4, minPowerCv: powerCvMin, maxPowerCv: powerCvMax });
+
+// Nivel 2 (sin potencia):
+if (offers.length < 10 && powerCvMin) {
+  offers = await listInventoryOffers({ ...baseQuery, fuel, transmission, targetYear: year, maxYearDistance: 4 });
+  cascadeRelaxed.power = true;
+}
+
+// Nivel 3 (sin transmisión):
+if (offers.length < 10 && transmission) {
+  offers = await listInventoryOffers({ ...baseQuery, fuel, targetYear: year, maxYearDistance: 4 });
+  cascadeRelaxed.transmission = true;
+}
+
+// Nivel 4a (año ±8):
+if (offers.length < 10) {
+  offers = await listInventoryOffers({ ...baseQuery, fuel, targetYear: year, maxYearDistance: 8 });
+  cascadeRelaxed.year = 8;
+}
+
+// Nivel 4b (año sin cota):
+if (!offers.length) {
+  offers = await listInventoryOffers({ ...baseQuery, fuel, targetYear: null });
+  cascadeRelaxed.year = 'unbounded';
+}
+
+// Nivel 5 (sin fuel — siempre último):
+if (!offers.length && fuel) {
+  offers = await listInventoryOffers({ ...baseQuery, fuel: '', targetYear: null });
+  cascadeRelaxed.fuel = true;
+  // cascadeRelaxed.year ya marcado como 'unbounded' desde el nivel anterior
+}
+```
+
+**NO tocar `listInventoryOffers`**: el comportamiento blando actual (`targetYear` sin `maxYearDistance` = solo scoring, no filtro SQL) es correcto para la Comprar-page. El cascade de tasación es el único que pasa `maxYearDistance`.
+
+**Punto ciego estructural (no es bug, no hay nada que arreglar):** vehículos muy recientes (ej. año=2024 en 2026) tienen ventana ±4 = 2020-2028, pero el lado "más nuevo" (2025-2028) casi no existe en el mercado. `selectBalancedPool` calculará `take≈0` porque `smaller = min(older.length, newer.length) ≈ 0`. El pool quedará en `same` + relleno del minPool sin cuota. `yrPct` se quedará bajo por construcción — no porque el pool esté mal, sino porque el sujeto genuinamente es más reciente que el mercado. No intentar "arreglarlo" con maxImbalance.
+
+**Consecuencias en cadena esperadas (anticipadas, no son bugs):**
+- n cae en todos los fixtures con mercado profundo
+- Algunos cruzan umbrales de confianza hacia abajo (DRIFT esperado)
+- POOL_STORE_LIMIT=1500 deja de ser el límite vinculante en la mayoría de casos
+- `cascadeRelaxed.year` toma valor distinto de `false` por primera vez → §1e tiene señal real de año
+- Nivel 4a (±8) y Nivel 4b (unbounded) se prueban en producción por primera vez — predecir qué fixtures llegan a cada nivel antes de correr
+
+**Aserción de verificación post-fix** (en `sweep-pool.js`, barata):
+```js
+// Con año en SQL WHERE, la garantía la da la BD, no el post-filtro.
+// La aserción verifica que lo que llega en _pool es coherente con cascadeRelaxed.year.
+for (const o of fixture._pool) {
+  const yr = fixture.expected.cascadeRelaxed?.year;
+  const maxDist = yr === 'unbounded' ? Infinity : (yr === 8 ? 8 : 4);
+  const dy = Math.abs((o.year || 0) - fixture.vehicle.year);
+  if (dy > maxDist) console.error(`ASSERT [${fixture.id}]: year ${o.year} fuera de ±${maxDist} (cascadeRelaxed.year=${yr})`);
+}
+```
+
+**Protocolo:**
+1. Implementar en `getMarketPriceSnapshot` con el nuevo cascade
+2. Recapturar todos los fixtures → `_pool` cambiará
+3. `run.js` → DRIFT esperado en León, Golf, Clio (mercado de larga historia)
+4. `sweep-pool.js` post-§1g_año → nueva tabla shadow con pool acotado
+5. Leer Δ (priceOpA − price_now) en fixtures mainstream → dato que decide bundling de §1h
+6. Aserción de verificación antes de commitear
+
+**Commit propio obligatorio.** El fix de año es semánticamente independiente de la incoherencia base/referencia. Mezclarlos impide atribuir qué produjo qué.
+
+---
+
+#### 1g_combustible. Filtro duro de combustible — PENDIENTE (después de §1h + §1d)
+
+**(Anteriormente §1g. Renombrado 2026-07-24 al partir §1g en dos por prerequisitos.)**
 
 **Origen del hallazgo:** BMW X2 Híbrido da n=386 con `cascadeRelaxed={fuel:false}`. El cascade no relajó fuel — no pudo hacerlo porque fuel nunca fue filtro. Esto disparó la auditoría de todos los filtros del Level 1.
 
@@ -395,10 +520,11 @@ offers = nFuelToken
 
 `base` describe el mercado 2023. El punto de referencia del ajuste describe el pool 2021. Son preguntas distintas respondidas con datos distintos.
 
-**Aritmética con el Golf (slopeYear≈600 €/año, medianYear pool sin bal.≈2023, medianYear bal.≈2021, userYear=2020):**
-- Con la incoherencia actual: `usageImpact = 600 × (2020 − 2021) = −600€`. Base=22.390€ (mercado 2023)
-- Ajuste correcto para bajar de 2023 a 2020: `600 × (2020 − 2023) = −1.800€`
-- El modelo corrige un tercio de lo que debería. `priceOptimal` ≈ 21.790€ en vez de ≈ 20.590€. Error ~1.200€ en este caso.
+**Aritmética con el Golf (slopeYear=800 €/año mainstream, medianYear pool sin bal.≈2023, medianYear bal.≈2021, userYear=2020):**
+- Con la incoherencia actual: `usageImpact = 800 × (2020 − 2021) = −800€`. Base=22.390€ (mercado 2023)
+- Ajuste correcto para bajar de 2023 a 2020: `800 × (2020 − 2023) = −2.400€`
+- El modelo corrige un tercio de lo que debería. `priceOptimal` ≈ 21.590€ en vez de ≈ 19.990€. Error ~1.600€ en este caso.
+- **Nota: los 600 €/año que aparecen en el documento de síntesis original corresponden a economy (Dacia, MG); mainstream es 800. Si ese doc usa −0,050/600 para mainstream, toda la columna está desplazada un escalón.**
 
 **Evidencia directa en los datos del sweep:** al activar `balance:true`, todos los precios subieron — Golf +358€, Clio +2.021€, Alfa +2.650€, León +2.227€. La interpretación correcta: `balance:true` tiró `medianYear` del pool balanceado de ~2025 hacia ~2021, lo que redujo la penalización de año a cero (userYear≈medianYear), pero dejó `base` intacta en el mercado sin balancear. El precio subió porque desapareció la penalización sin que bajara la base. No es que el balanceo mejorara el precio — es que el modelo no puede mejorar y empeorar al mismo tiempo desde pools distintos.
 
@@ -418,7 +544,7 @@ offers = nFuelToken
 
 **Consecuencias de Opción A sobre los slopes — dos efectos distintos:**
 
-**Término de año → colapsa (no sobrecorrige):** la cuota centra `medianYear` hacia `userYear` por construcción. `(userYear − medianYear) ≈ 0` → el término de año prácticamente desaparece. El slope no se aplica de más — deja de aplicarse. USAGE_DEFAULTS para año pierde relevancia por obsolescencia, no por error.
+**Término de año → es exactamente cero, no aproximadamente.** La cuota selecciona `take` ofertas de años menores que `userYear`, `S` del mismo año, y `take` mayores. El índice de la mediana es `take + ⌊(S−1)/2⌋`, que cae dentro del bloque `S` siempre que haya al menos un comparable del mismo año. Por tanto `medianYear = userYear` exactamente, y `slopeYear × (userYear − userYear) = 0` — no una aproximación. `slopeYear` se computa (y el OLS lo estima controlando por año), pero nunca llega al precio. El ajuste por uso es hoy un ajuste por kilometraje; la etiqueta "antigüedad" en el PDF ya no describe lo que el modelo hace. USAGE_DEFAULTS para año pierde relevancia por obsolescencia de arquitectura, no por error de parámetro.
 
 **Término de km → prima sistemática al alza:** la cuota equilibra solo el eje de año. Con kmPct en 0,19-0,34, el sujeto queda sistemáticamente por debajo de la mediana de km del pool balanceado (el pool importa coches más antiguos que, en general, tienen más km). `(userKm − medKm) < 0` → `slopeKm × negativo = prima`. Y esa prima se suma a una base que ya incorpora esos coches más rodados. Doble contabilidad: la base baja por incluirlos **y** el término de km sube por compararse contra su mediana de km. Bajo la arquitectura mixta anterior, esto era «varianza de extrapolación»; bajo Opción A es **sesgo sistemático al alza**.
 
@@ -464,12 +590,32 @@ const { usageImpact, ... } = computeUsageImpact(balancedOffers, mileage, year, m
 2. Si la prima de km es ~1.500€ → §1d va en el mismo commit que §1h.
 3. Si `usageImpact` nuevo ≈ 0 en todos los casos → §1f (cap) pasa a académico (ver más abajo).
 
-Implementar en `sweep-pool.js`: añadir fila `opA-shadow` que corra `selectBalancedPool` sobre el `_pool` congelado del fixture y reporte `baseBal`, `kmPctBal`, `usageImpactBal` junto a los valores actuales.
+Implementar en `sweep-pool.js`: añadir fila `opA-shadow` que corra `selectBalancedPool` sobre el `_pool` congelado del fixture y reporte `baseBal`, `kmPctBal`, `usageImpactBal`, **`priceBal`** junto a los valores actuales.
 
-**Relación con §1g y §1d:**
-- §1d (alpha=0.5): en el mismo commit que §1h o justo después, según la magnitud de la prima de km que muestre el sombreado. Bajo Opción A, alpha pasa a ser parte del arreglo (no refinamiento).
-- §1g (filtro de combustible): después de §1h + §1d. §1g no depende de §1d, pero la ventana de sesgo garantizado (prima de km) debe durar el mínimo. Con §1d resolviendo el sesgo, §1g puede ir inmediatamente después sin dejar período intermedio con modelo roto.
-- Orden correcto: **§1h (+ §1d si la prima es grande) → §1d (si fue separado) → §1g → §1f → §1e**
+**Detalle 1 — Orden Tukey/balanceo:** en producción Tukey se aplica sobre `computeOffers` (sin balancear), los límites se fijan con la distribución dominada por recencia, y los outliers se descartan antes de computar estadísticas. Bajo Opción A los coches más antiguos que la cuota importa pueden caer por debajo de `Q1 − 1,5×IQR` del pool de recencia y descartarse justo cuando el balanceo los necesita. La decisión coherente es **balancear primero, aplicar Tukey sobre el pool balanceado**. El sombreado debe replicar este orden: `selectBalancedPool` → `removeOutliers` sobre el resultado → `percentile`. Si el sombreado aplicara Tukey antes, no estaría prediciendo lo que producción haría.
+
+**Detalle 2 — Reportar `priceBal`, no solo componentes:** `baseBal` baja y `usageImpactBal` sube (prima de km). Los componentes se mueven en direcciones opuestas y el neto ha salido distinto de lo predicho todas las veces que se razonó por separado. El sombreado debe incluir `priceBal = Math.max(0, Math.round((baseBal + usageImpactBal) × effectiveFactor))` con la fórmula completa. `effectiveFactor` se toma del fixture (`max(0.72, damageFactor × colorAdjFactor × ownerAdjFactor)`). Es la cifra que decide si §1d va separado o en el mismo commit — la única que responde «¿qué le pasa al cliente?».
+
+**Relación con §1g_año, §1d y §1g_combustible:**
+- §1g_año (filtro duro de año): **prerequisito de §1h**. El shadow actual (Δ=−1.678 a −2.789€, 10-15% de bajada) es un artefacto del pool sin acotar en año. El Δ real post-§1g_año será más pequeño y más significativo. §1h no puede evaluarse sin él.
+- §1d (useProximity: true): en el mismo commit que §1h salvo que el shadow post-§1g_año muestre Δ≤200€ entre `prox+bal` y `noprox+bal`. Ver §1d.
+- §1g_combustible (filtro duro de fuel): después de §1h + §1d.
+- Orden correcto: **§1g_año → §1h (+ §1d bundled) → §1g_combustible → §1f → §1e**
+
+---
+
+**Decisión de bundling — PENDIENTE (decidir antes de implementar §1h):**
+
+El shadow pre-§1g_año muestra Δ=−1.678 a −2.789€ en todos los fixtures mainstream — una bajada del 10-15%. Si el PDF está en producción, §1h sería el tercer movimiento de precio en pocas semanas (tras `balance:true` y el fix de km). Tres bajadas sucesivas erosionan más confianza que una sola bien explicada.
+
+**El Δ real es desconocido hasta §1g_año.** El full pool actual incluye comparables fuera del rango temporal que deprimen artificialmente la mediana. El Δ real será menor.
+
+**Opciones:**
+- **Bundle mínimo (recomendado si Δ post-§1g_año < 8%):** §1g_año + §1h + §1d en dos commits consecutivos (§1g_año primero, §1h+§1d inmediatamente después). Una bajada moderada explicada como "afinamiento del pool comparables" es creíble.
+- **Bundle completo (si Δ sigue siendo grande):** §1g_año + §1h + §1d + §1g_combustible en una misma ventana. La narrativa ("modelo recalibrado, comparables más precisos") absorbe el impacto como cambio de versión.
+- **No bundlear (descartado):** sin §1g_año, §1h dejaría precios caídos a esperas de un fix de año que no tiene fecha.
+
+**El dato que decide:** ejecutar §1g_año, recapturar, correr shadow de nuevo. Con ese Δ nuevo se elige entre "bundle mínimo" y "bundle completo" antes de abrir el commit de §1h.
 
 **Efecto sobre §1f (cap del ajuste unificado):** bajo Opción A con alpha activo, `usageImpact` será pequeño en general — el término de año colapsa y el de km queda centrado. El cap del 12% probablemente deja de morder en todos los fixtures. §1f sigue siendo un parámetro sin dueño explícito (no borrar), pero su urgencia baja: si el sombreado confirma que el cap no muerde, la decisión se vuelve académica hasta que el OLS active con slopes calibrados.
 
@@ -501,7 +647,7 @@ Añadir factor de proximidad al scoring: `scoreSimilarity = 1 / (1 + |userKm −
 - Cap dinámico por segmento (ya existe vía `kmCap`) — escalar a varianza típica
 - Cap fijo 20% para todos — compromiso simple
 
-**Prerequisito:** § 1d (alpha=0.5 activado y pool re-centrado).
+**Prerequisito:** §1d (useProximity:true activado y pool re-centrado).
 
 #### 3. Calibrar el estimador de depreciación
 
@@ -529,6 +675,7 @@ El fixture `nlow-maserati-ghibli` nació en Ola 1 (reemplazó a `nlow-lincoln`, 
 
 - Umbrales cascade consistentes (todos en `< 10`, eliminar los `=== 0`)
 - Combustible siempre el último en relajarse; `confidence -= 20` cuando ocurre, nota visible en PDF
+- Cascade reordenado: año(±4)→año(±8)→año(unbounded)→combustible — implementado en §1g_año. `cascadeRelaxed.year: false | 8 | 'unbounded'` (no booleano)
 - Potencia: relajación condicional — cae pronto **salvo** modelo con variante de prestaciones
   - Guardarraíl temporal: IQR con n≥5 pre-relajación (caza el 340i en la muestra del 320d)
   - Solución definitiva: normalización de versión por tier (base/mid/performance) vía Gemini

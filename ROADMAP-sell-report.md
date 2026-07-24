@@ -9,6 +9,7 @@ El commit que incluye los fixtures de golden tests es el que cierra cada ola, no
 
 - **Golden tests primero**: `run.js` antes de tocar cualquier cálculo. El diff de fixtures es la evidencia del cambio.
 - **No cambiar la misma cifra visible dos veces en poco tiempo**: espaciar con narrativa ("nuevo modelo", no "corrección").
+- **`SELL_REPORT_VERSION` sube con cada commit que mueve un precio**: misma regla que la recaptura de fixtures — si el cambio hace drift en los tests, la versión cambia. Una etiqueta que abarque §1e, el fix de "gas" y la calibración mezcla regímenes incompatibles en `sell_report_telemetry` y hace inanalizables los ratios.
 
 ---
 

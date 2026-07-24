@@ -1,5 +1,6 @@
 {
   "files.associations": {
-    "**/db/postgres/*.sql": "postgres"
+    "**/db/postgres/*.sql": "postgres",
+    "**/scripts/sql/*.sql": "postgres"
   }
 }

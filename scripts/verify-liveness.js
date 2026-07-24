@@ -17,6 +17,9 @@ const DB_URL = (env.match(/^DATABASE_URL=(.*)$/m) || [])[1].trim().replace(/^["'
 
 const BATCH = parseInt(process.env.BATCH || "500", 10);
 const PER_DOMAIN = parseInt(process.env.PER_DOMAIN || "10", 10);
+// DUE_HOURS > 0: solo verifica las que llevan sin comprobar > DUE_HOURS (o nunca).
+// Garantiza refresco de TODAS cada ~DUE_HOURS. 0 = verificar todas (modo "forzar", botón).
+const DUE_HOURS = Math.max(0, parseInt(process.env.DUE_HOURS || "0", 10));
 const DRY_RUN = process.env.DRY_RUN === "1";
 const HTTP_TIMEOUT = 12000;
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36";
@@ -98,9 +101,12 @@ async function withDb(fn) {
   const t0 = Date.now();
   // 1) LEER el lote y cerrar la conexión (no la mantenemos durante el HTTP, que tarda
   //    minutos y Neon cierra conexiones inactivas -> "Connection terminated").
+  const dueCond = DUE_HOURS > 0
+    ? `AND (last_checked_at IS NULL OR last_checked_at < NOW() - INTERVAL '${DUE_HOURS} hours')`
+    : '';
   const rows = await withDb((c) => c.query(
     `SELECT id, url, portal FROM moveadvisor_market_offers
-     WHERE COALESCE(url,'') <> '' AND portal <> 'flexicar'
+     WHERE COALESCE(url,'') <> '' AND portal <> 'flexicar' ${dueCond}
      ORDER BY last_checked_at ASC NULLS FIRST
      LIMIT $1`, [BATCH]).then((r) => r.rows));
   console.log(`${DRY_RUN ? "[DRY-RUN] " : ""}Verificando ${rows.length} ofertas (por dominio, ${PER_DOMAIN}/portal)...`);

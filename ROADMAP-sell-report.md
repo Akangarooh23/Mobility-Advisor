@@ -397,9 +397,19 @@ for (const o of fixture._pool) {
 
 ---
 
-#### 1g_combustible. Filtro duro de combustible — PENDIENTE (después de §1h + §1d)
+#### 1g_combustible. Filtro duro de combustible — CERRADA (commit 5780998, 2026-07-24)
 
 **(Anteriormente §1g. Renombrado 2026-07-24 al partir §1g en dos por prerequisitos.)**
+
+**Implementado:** filtro duro con "sin dato = pasa" en JS (`listInventoryOffers`) y OR-NULL en SQL (path SQLServer). Auditoría de cobertura: Autocasion 46,3% sin `fuel`, Clicars 21,1%, resto <1,5%. Impacto en pools: Maserati Diesel n=57→20 (+1.259€), Porsche Macan n=69→49 (+3.905€), León n=397→397 (estable — Autocasion sin dato pasa). 14 PASS 0 DRIFT.
+
+**Dos decisiones tomadas que quedan documentadas:**
+
+**1. Umbral n=0 para el Nivel 5 (sin combustible) — elección deliberada, no regresión a Ola 1.**
+La decisión de Ola 1 fue "cascade consistente: todos los umbrales a <10, combustible el último". El código implementado usa `!offers.length` (n=0) para el nivel de relajación de fuel, asimétrico con los <10 de los demás niveles. El argumento para mantenerlo: con 3-9 comparables del combustible correcto la confianza honesta es ~50%; relajar para llegar a 40 comparables contaminados da ~58% (78%−20pp de penalización de §1e futura) sobre datos peores. Puede ser la elección correcta. Si se cambia a <10 consistente, registrar el Δ de precio y confianza en los fixtures que queden entre 3-9.
+
+**2. Cobertura parcial — el 46% de Autocasion sigue entrando sin verificar.**
+"Sin dato = pasa" excluye las ofertas con combustible explícito distinto, pero las ~13k ofertas de Autocasion con `fuel=""` entran en cualquier pool independientemente del combustible del sujeto. El filtro elimina la contaminación declarada; no puede eliminar la contaminación silenciosa. El mecanismo que cierra este hueco está descrito en la sección de inferencia de versión más abajo — no es deuda adicional, es el siguiente paso natural del §1g_combustible.
 
 **Origen del hallazgo:** BMW X2 Híbrido da n=386 con `cascadeRelaxed={fuel:false}`. El cascade no relajó fuel — no pudo hacerlo porque fuel nunca fue filtro. Esto disparó la auditoría de todos los filtros del Level 1.
 
@@ -457,9 +467,9 @@ Para BMW X2 Híbrido: 6 ofertas con `fuel='Híbrido'` explícito + 506 con `fuel
 
 ---
 
-**Opción intermedia — inferencia de combustible desde texto de versión:**
+**Siguiente paso — inferencia de combustible desde texto de versión (§1g_combustible.2):**
 
-Antes de decidir entre "incluir empty-fuel" y "excluir empty-fuel", una opción más barata: inferir el combustible de la columna `version` cuando `fuel=""`:
+El filtro activo cubre contaminación declarada. Para cubrir el 46% de Autocasion sin dato, inferir el combustible de la columna `version` cuando `fuel=""`. Sin coste de cobertura — las ofertas sin dato que coincidan con el combustible del sujeto siguen en el pool; las que no coincidan se excluyen:
 
 ```
 TDI, HDi, dCi, CDTi, BlueHDi, Blue dCi         → Diesel
@@ -468,12 +478,9 @@ PHEV, e-TSI, Plug-in, 300h, 450h, Hybrid, HEV   → Híbrido
 BEV, EV, e-tron, i3, ID., ZOE, Leaf             → Eléctrico
 ```
 
-Si el 30% de filas tiene `fuel=""`, la inferencia puede recuperar la mayoría y evitar elegir entre contaminación y pool famélico. Si el huecos es <5%, excluir y listo.
+Autocasion tiene 46% sin dato — la inferencia recuperará la mayoría. Las ofertas sin dato que no resuelvan (versión genérica sin token reconocible) siguen con "sin dato = pasa", mismo comportamiento que hoy. Auditoría de cobertura ya hecha: Autocasion 46,3%, Clicars 21,1% — umbral de huecos superado, inferencia justificada.
 
-**Protocolo de decisión:**
-1. Auditar `fuel=""` por portal: `SELECT portal, COUNT(*) FILTER (WHERE COALESCE(fuel,'')=''), COUNT(*) FROM moveadvisor_market_offers WHERE is_active GROUP BY portal`
-2. Si huecos > 15%: implementar inferencia de combustible antes del fix de filtrado
-3. Si huecos ≤ 15%: excluir `fuel=""` del pool (filtro estricto, sin "sin dato = pasa")
+**Prerequisito:** ninguno. El filtro duro ya está activo. Este es un refinamiento de cobertura, no un fix de contaminación.
 
 ---
 

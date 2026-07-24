@@ -177,6 +177,18 @@
       }
     },
     {
+      "id": "bug-gas-seat-leon-gnc",
+      "branch": "common",
+      "desc": "SINTÉTICO — Seat Leon GNC (sujeto fuel='Gas'). Demuestra el bug 'gas ⊂ gasolina' en ambas direcciones: (A) 4 ofertas Gasolina que pasaban bajo viejo código → excluidas; (B) 6 ofertas GNC que eran excluidas → pasan con FUEL_COMPAT. DRIFT al regresar: comparables 24→22 (GNC pierde, Gasolina gana).",
+      "vehicle": {
+        "brand": "Seat", "model": "Leon", "version": "1.5 TGI GNC 130",
+        "year": 2020, "mileage": 50000, "fuel": "Gas",
+        "transmission": "Manual", "powerCv": 130,
+        "color": null, "owners": null, "serviceHistory": null,
+        "damageLevel": "", "damageDescription": "", "itvStatus": ""
+      }
+    },
+    {
       "id": "infer-fuel-vw-golf-gasolina",
       "branch": "common",
       "desc": "SINTÉTICO — Golf gasolina con pool mezclado: 15 gas etiquetado + 6 TSI unlabeled + 3 sin token + 4 TDI unlabeled (excluidos) + 2 diesel etiquetado (excluidos). Ejercita inferFuelFromVersion via _preFilterPool. N fijo por construcción (_synthetic: true).",

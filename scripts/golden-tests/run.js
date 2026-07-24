@@ -19,7 +19,7 @@ const path = require("path");
 const { buildReportData }    = require("../../lib/sellReportGenerator");
 const { computeUsageImpact } = require("../../lib/inventoryStore");
 const { selectBalancedPool } = require("../../lib/poolProximity");
-const { inferFuelFromVersion } = require("../../lib/inferFuelFromVersion");
+const { inferFuelFromVersion, isFuelCompatible } = require("../../lib/inferFuelFromVersion");
 
 // Inline normalizeToken (mirrors inventoryStore — kept local to avoid importing the full module).
 function normalizeToken(v) {
@@ -38,7 +38,7 @@ function applyFuelFilter(preFilterPool, vehicleFuel) {
       ((normalizedFuel === 'gasolina' || normalizedFuel === 'diesel')
         ? inferFuelFromVersion(offer.version)
         : null);
-    return !(offerFuelToken && !offerFuelToken.includes(normalizedFuel));
+    return !(offerFuelToken && !isFuelCompatible(offerFuelToken, normalizedFuel));
   });
 }
 

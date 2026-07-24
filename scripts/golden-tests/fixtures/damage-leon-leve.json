@@ -1,5 +1,5 @@
 {
-  "_capturedAt": "2026-07-24T12:29:27.461Z",
+  "_capturedAt": "2026-07-24T12:41:25.347Z",
   "_branch": "damage",
   "_actualBranch": "damage",
   "vehicle": {
@@ -27,75 +27,92 @@
       "fuel": false,
       "year": false
     },
-    "comparables": 383,
+    "comparables": 397,
     "rawComparables": 400,
     "market": {
-      "mean": 14583,
-      "median": 14590,
-      "p25": 13000,
-      "p75": 15945,
+      "mean": 13911,
+      "median": 13590,
+      "p25": 11950,
+      "p75": 15900,
       "daysOnMarketMedian": null,
       "updatedAt": "",
-      "cv": 0.1358399511112362,
-      "usageImpact": 1751,
-      "usageUsedDefault": true,
-      "slopeKm": null,
-      "slopeYear": null,
+      "cv": 0.1966460157389899,
+      "usageImpact": 1631,
+      "usageUsedDefault": false,
+      "slopeKm": -0.055898311295338565,
+      "slopeYear": 174.34467085314384,
       "priceTrend": null,
       "absorptionRate": null,
       "privateMedian": null,
       "privateP25": null,
       "privateP75": null,
       "privateCount": 0,
-      "dealerMedian": 14590,
-      "dealerP25": 13000,
-      "dealerP75": 15945,
-      "dealerCount": 383
+      "dealerMedian": 13590,
+      "dealerP25": 11950,
+      "dealerP75": 15900,
+      "dealerCount": 397
     },
     "byPortal": [
       {
         "portal": "autoscout24",
-        "units": 398,
-        "avgPrice": 14701,
+        "units": 390,
+        "avgPrice": 14012,
         "avgDays": null
       },
       {
         "portal": "flexicar",
+        "units": 7,
+        "avgPrice": 13363,
+        "avgDays": null
+      },
+      {
+        "portal": "canalcar",
         "units": 2,
-        "avgPrice": 15090,
+        "avgPrice": 11950,
+        "avgDays": null
+      },
+      {
+        "portal": "autohero",
+        "units": 1,
+        "avgPrice": 11699,
         "avgDays": null
       }
     ],
     "priceHistogram": [
       {
-        "from": 8000,
-        "to": 10000,
+        "from": 5000,
+        "to": 7500,
         "count": 4
       },
       {
+        "from": 7500,
+        "to": 10000,
+        "count": 24
+      },
+      {
         "from": 10000,
-        "to": 12000,
-        "count": 41
+        "to": 12500,
+        "count": 113
       },
       {
-        "from": 12000,
-        "to": 14000,
-        "count": 110
+        "from": 12500,
+        "to": 15000,
+        "count": 112
       },
       {
-        "from": 14000,
-        "to": 16000,
-        "count": 142
+        "from": 15000,
+        "to": 17500,
+        "count": 113
       },
       {
-        "from": 16000,
-        "to": 18000,
-        "count": 72
-      },
-      {
-        "from": 18000,
+        "from": 17500,
         "to": 20000,
-        "count": 14
+        "count": 22
+      },
+      {
+        "from": 20000,
+        "to": 22500,
+        "count": 9
       }
     ],
     "samples": [
@@ -103,92 +120,49 @@
         "portal": "autoscout24",
         "brand": "SEAT",
         "model": "Leon",
-        "version": "FR",
+        "version": "FR*Virtuell+Leder*",
         "fuel": "Diesel",
         "transmission": "Manual",
         "bodyType": "",
         "environmentalLabel": "",
-        "year": 2017,
-        "mileage": 235000,
-        "doors": 5,
-        "seats": 5,
-        "powerCv": 150,
-        "price": 10500,
-        "monthlyPrice": null,
-        "financePrice": null,
-        "url": "https://www.autoscout24.es/anuncios/seat-leon-fr-diesel-marron-cat_ma64mo15869-91183c3f-f1eb-40b2-bc4a-9f865db48ba8",
-        "province": "OLMEDO",
-        "city": "OLMEDO",
-        "color": "Marrón",
-        "sellerType": "profesional",
-        "traction": "",
-        "displacement": "1968",
-        "co2": "",
-        "powerKw": "110",
-        "consumption": "",
-        "dealerName": "RV AUTOMOVILES",
-        "nextITV": "",
-        "warrantyMonths": null,
-        "image": "https://prod.pictures.autoscout24.net/listing-images/91183c3f-f1eb-40b2-bc4a-9f865db48ba8_eb8d6b26-cfb8-4b1b-a044-6acbeb07a82a.jpg/250x188.webp",
-        "images": [
-          "https://prod.pictures.autoscout24.net/listing-images/91183c3f-f1eb-40b2-bc4a-9f865db48ba8_eb8d6b26-cfb8-4b1b-a044-6acbeb07a82a.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/91183c3f-f1eb-40b2-bc4a-9f865db48ba8_8be7a67c-54be-49a8-bcd0-5197b18871a1.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/91183c3f-f1eb-40b2-bc4a-9f865db48ba8_ad9c18f8-6c41-4b77-b33d-26c5d7dca5c6.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/91183c3f-f1eb-40b2-bc4a-9f865db48ba8_f336851b-8909-47e6-8e45-b475876f11e9.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/91183c3f-f1eb-40b2-bc4a-9f865db48ba8_06e606fb-eb97-44bf-bf8d-e6bf1aa8459f.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/91183c3f-f1eb-40b2-bc4a-9f865db48ba8_b6d96ed4-09d6-4fd8-ae91-d91e4324f4ed.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/91183c3f-f1eb-40b2-bc4a-9f865db48ba8_2fedf19b-61f8-4d18-ac2d-caa02fe2a996.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/91183c3f-f1eb-40b2-bc4a-9f865db48ba8_7843499f-e01c-4ff4-93a7-b110bd1eefff.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/91183c3f-f1eb-40b2-bc4a-9f865db48ba8_1f6b2eba-2acf-4d8e-874a-5bc199987bb1.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/91183c3f-f1eb-40b2-bc4a-9f865db48ba8_35ce1f08-25ac-40d0-a318-4300920baea0.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/91183c3f-f1eb-40b2-bc4a-9f865db48ba8_278bca10-c7bd-4d0a-ad0f-634f90c13e2d.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/91183c3f-f1eb-40b2-bc4a-9f865db48ba8_10efc69e-6082-43f2-8d08-01890c157005.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/91183c3f-f1eb-40b2-bc4a-9f865db48ba8_c632b84a-805b-4645-8710-99e8e5b3caf6.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/91183c3f-f1eb-40b2-bc4a-9f865db48ba8_c6b164ab-2169-46a1-b95d-6b0545bc48a6.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/91183c3f-f1eb-40b2-bc4a-9f865db48ba8_9529e33b-ba5a-41e1-9f7d-262d85bf960b.jpg/250x188.webp"
-        ],
-        "updatedAt": "",
-        "listedAt": "",
-        "listingType": "compra"
-      },
-      {
-        "portal": "autoscout24",
-        "brand": "SEAT",
-        "model": "Leon",
-        "version": "FR-Line 2.0 TDI",
-        "fuel": "Diesel",
-        "transmission": "Manual",
-        "bodyType": "",
-        "environmentalLabel": "",
-        "year": 2022,
-        "mileage": 58500,
+        "year": 2019,
+        "mileage": 146000,
         "doors": null,
         "seats": null,
         "powerCv": 150,
-        "price": 19888,
+        "price": 12999,
         "monthlyPrice": null,
         "financePrice": null,
-        "url": "https://www.autoscout24.es/anuncios/seat-leon-fr-line-2-0-tdi-diesel-rojo-cat_ma64mo15869-67de2159-bf29-4617-b536-a267245cfa94",
-        "province": "Freiburg",
-        "city": "Freiburg",
-        "color": "Rojo",
+        "url": "https://www.autoscout24.es/anuncios/seat-leon-fr-virtuell+leder-diesel-negro-cat_ma64mo15869-fb73a403-1684-4cd7-9ad0-12602a45670a",
+        "province": "Montabaur",
+        "city": "Montabaur",
+        "color": "Negro",
         "sellerType": "profesional",
         "traction": "",
         "displacement": "",
         "co2": "",
         "powerKw": "110",
         "consumption": "",
-        "dealerName": "Autohaus Engelhard GmbH",
+        "dealerName": "Demirci Automobile",
         "nextITV": "",
         "warrantyMonths": null,
-        "image": "https://prod.pictures.autoscout24.net/listing-images/67de2159-bf29-4617-b536-a267245cfa94_38de455e-825c-4435-9b1e-ecf1943009b2.jpg/250x188.webp",
+        "image": "https://prod.pictures.autoscout24.net/listing-images/fb73a403-1684-4cd7-9ad0-12602a45670a_68c43bb1-abc9-4c61-8e5a-046e5f5f22c2.jpg/250x188.webp",
         "images": [
-          "https://prod.pictures.autoscout24.net/listing-images/67de2159-bf29-4617-b536-a267245cfa94_38de455e-825c-4435-9b1e-ecf1943009b2.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/67de2159-bf29-4617-b536-a267245cfa94_35ae7576-17da-4360-814a-453509b3a2e6.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/67de2159-bf29-4617-b536-a267245cfa94_2fb112a9-bf3b-4d0a-930d-0c2c298e65e7.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/67de2159-bf29-4617-b536-a267245cfa94_6a8e3919-9bed-4617-99d2-20c28a88a5d8.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/67de2159-bf29-4617-b536-a267245cfa94_1cef8935-2910-4e03-bfbb-04e08d62798d.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/67de2159-bf29-4617-b536-a267245cfa94_f5539449-95b7-411b-9fec-ca94d97111df.jpg/250x188.webp"
+          "https://prod.pictures.autoscout24.net/listing-images/fb73a403-1684-4cd7-9ad0-12602a45670a_68c43bb1-abc9-4c61-8e5a-046e5f5f22c2.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/fb73a403-1684-4cd7-9ad0-12602a45670a_d946357a-b387-4b15-b826-bd01443305d7.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/fb73a403-1684-4cd7-9ad0-12602a45670a_06fa7ec3-da9e-47d0-8d44-e8af64ea7784.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/fb73a403-1684-4cd7-9ad0-12602a45670a_4e1acef0-69d3-41d6-83dc-64f26e86ffb0.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/fb73a403-1684-4cd7-9ad0-12602a45670a_03b879fc-d163-473a-9583-ce68f1c6e858.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/fb73a403-1684-4cd7-9ad0-12602a45670a_611f08b8-bac0-425f-b42f-b529ecf4dfbb.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/fb73a403-1684-4cd7-9ad0-12602a45670a_3b8748ac-0bc5-4ed3-a969-5d1bd9072df2.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/fb73a403-1684-4cd7-9ad0-12602a45670a_4e01cc85-99e8-4a01-9ca6-7f69012b11ce.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/fb73a403-1684-4cd7-9ad0-12602a45670a_26dd959b-f1e2-4224-b61b-7f817e92b2ab.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/fb73a403-1684-4cd7-9ad0-12602a45670a_3e8d88fc-a954-4ad9-9456-6b336d19b29f.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/fb73a403-1684-4cd7-9ad0-12602a45670a_23598221-9004-4869-bdcf-b7368834bc34.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/fb73a403-1684-4cd7-9ad0-12602a45670a_d60edc76-de94-4a5d-a89c-bdf372268b43.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/fb73a403-1684-4cd7-9ad0-12602a45670a_377527c2-a020-4d1e-a41a-441eb1d5a463.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/fb73a403-1684-4cd7-9ad0-12602a45670a_05688fcf-1ba7-45a1-9413-da54ce257953.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/fb73a403-1684-4cd7-9ad0-12602a45670a_72118d10-ff3a-439f-85e4-731a2b7420c6.jpg/250x188.webp"
         ],
         "updatedAt": "",
         "listedAt": "",
@@ -198,49 +172,143 @@
         "portal": "autoscout24",
         "brand": "SEAT",
         "model": "Leon",
-        "version": "FR 2.0 TDI /NAVI/LED/LHZ/PDC/GARANTIE/",
+        "version": "FR 2.0TDI NAVI CARPAY TEMPO DAB BT MFL HIFI",
         "fuel": "Diesel",
         "transmission": "Manual",
         "bodyType": "",
         "environmentalLabel": "",
-        "year": 2022,
-        "mileage": 66000,
+        "year": 2019,
+        "mileage": 122573,
         "doors": null,
         "seats": null,
-        "powerCv": 116,
-        "price": 20490,
+        "powerCv": 150,
+        "price": 11980,
         "monthlyPrice": null,
         "financePrice": null,
-        "url": "https://www.autoscout24.es/anuncios/seat-leon-fr-2-0-tdi-navi-led-lhz-pdc-garantie-diesel-plateado-cat_ma64mo15869-b7c52d70-951b-48a1-83ee-a77ed0448f31",
-        "province": "Bekond",
-        "city": "Bekond",
-        "color": "Plata",
+        "url": "https://www.autoscout24.es/anuncios/seat-leon-fr-2-0tdi-navi-carpay-tempo-dab-bt-mfl-hifi-diesel-blanco-cat_ma64mo15869-73dd96ad-b2b3-4e43-9b3e-cb5ac1abfc57",
+        "province": "Kleinblittersdorf",
+        "city": "Kleinblittersdorf",
+        "color": "Blanco",
+        "sellerType": "profesional",
+        "traction": "",
+        "displacement": "",
+        "co2": "",
+        "powerKw": "110",
+        "consumption": "",
+        "dealerName": "Laschinger",
+        "nextITV": "",
+        "warrantyMonths": null,
+        "image": "https://prod.pictures.autoscout24.net/listing-images/73dd96ad-b2b3-4e43-9b3e-cb5ac1abfc57_fe2e35fe-85b9-446e-bea5-4b4dcfe2a559.jpg/250x188.webp",
+        "images": [
+          "https://prod.pictures.autoscout24.net/listing-images/73dd96ad-b2b3-4e43-9b3e-cb5ac1abfc57_fe2e35fe-85b9-446e-bea5-4b4dcfe2a559.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/73dd96ad-b2b3-4e43-9b3e-cb5ac1abfc57_5097d36f-8827-44cb-b0bc-83cfcf8f45e8.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/73dd96ad-b2b3-4e43-9b3e-cb5ac1abfc57_b7ba6a8c-2d04-425a-ad05-03520439b27c.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/73dd96ad-b2b3-4e43-9b3e-cb5ac1abfc57_78de693c-da13-43e3-9aa2-db4decac6926.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/73dd96ad-b2b3-4e43-9b3e-cb5ac1abfc57_3dd84459-48be-489a-aa4e-57fb698ab2d9.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/73dd96ad-b2b3-4e43-9b3e-cb5ac1abfc57_a336bf3e-047a-4611-ba52-d0a6d975565b.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/73dd96ad-b2b3-4e43-9b3e-cb5ac1abfc57_aac37f82-7a25-43aa-ac84-86d9e5b1d2fd.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/73dd96ad-b2b3-4e43-9b3e-cb5ac1abfc57_99986cbf-80ea-4f9c-91c7-561a55a6d244.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/73dd96ad-b2b3-4e43-9b3e-cb5ac1abfc57_4b4357ba-e19d-47c5-9c88-2788782eb696.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/73dd96ad-b2b3-4e43-9b3e-cb5ac1abfc57_4ff3984c-d8b1-42bc-9616-49b41b1e152f.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/73dd96ad-b2b3-4e43-9b3e-cb5ac1abfc57_3e38b02f-3ddb-4880-a0b4-5e70e59a5f64.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/73dd96ad-b2b3-4e43-9b3e-cb5ac1abfc57_231e1a92-a624-4560-87d4-039749859a8a.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/73dd96ad-b2b3-4e43-9b3e-cb5ac1abfc57_37f7b54b-2ee2-4635-b746-bba482afaa5c.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/73dd96ad-b2b3-4e43-9b3e-cb5ac1abfc57_61066108-d058-4966-aa7c-73e4ae0d935e.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/73dd96ad-b2b3-4e43-9b3e-cb5ac1abfc57_3072b499-ce2a-4aa5-9539-9c77c55d5f81.jpg/250x188.webp"
+        ],
+        "updatedAt": "",
+        "listedAt": "",
+        "listingType": "compra"
+      },
+      {
+        "portal": "flexicar",
+        "brand": "Seat",
+        "model": "Leon",
+        "version": "1.6 TDI 85kW (115CV) St&Sp Style",
+        "fuel": "Diesel",
+        "transmission": "Manual",
+        "bodyType": "",
+        "environmentalLabel": "",
+        "year": 2019,
+        "mileage": 120233,
+        "doors": null,
+        "seats": 5,
+        "powerCv": null,
+        "price": 13590,
+        "monthlyPrice": null,
+        "financePrice": 212,
+        "url": "https://www.flexicar.es/coches-ocasion/seat-leon-16-tdi-85kw-115cv-st-ampsp-style-diesel-manual-pontevedra_903000000236697/",
+        "province": "",
+        "city": "Pontevedra",
+        "color": "",
+        "sellerType": "profesional",
+        "traction": "",
+        "displacement": "",
+        "co2": "",
+        "powerKw": "",
+        "consumption": "",
+        "dealerName": "Pontevedra",
+        "nextITV": "",
+        "warrantyMonths": 12,
+        "image": "https://www.flexicar.es/images/903000000236697/imp2f_Bm18FfPFa9__WhatsApp%20Image%202026-04-13%20at%2016.11.24.webp",
+        "images": [
+          "https://www.flexicar.es/images/903000000236697/imp2f_Bm18FfPFa9__WhatsApp%20Image%202026-04-13%20at%2016.11.24.webp",
+          "https://www.flexicar.es/images/903000000236697/imp2f_8HEVmRuYqW__WhatsApp%20Image%202026-04-13%20at%2016.11.23.webp",
+          "https://www.flexicar.es/images/903000000236697/imp2f_e4JVs4aGea__WhatsApp%20Image%202026-04-13%20at%2016.11.23%20(2).webp",
+          "https://www.flexicar.es/images/903000000236697/imp2f_JCtdjBlekJ__WhatsApp%20Image%202026-04-13%20at%2016.11.23%20(4).webp",
+          "https://www.flexicar.es/images/903000000236697/imp2f_fYqBS93R0D__WhatsApp%20Image%202026-04-13%20at%2016.11.23%20(1).webp"
+        ],
+        "updatedAt": "",
+        "listedAt": "",
+        "listingType": "compra"
+      },
+      {
+        "portal": "autoscout24",
+        "brand": "SEAT",
+        "model": "Leon",
+        "version": "1.6TDI CR S&S Style Visio",
+        "fuel": "Diesel",
+        "transmission": "Manual",
+        "bodyType": "",
+        "environmentalLabel": "",
+        "year": 2019,
+        "mileage": 64628,
+        "doors": null,
+        "seats": 5,
+        "powerCv": 116,
+        "price": 18500,
+        "monthlyPrice": null,
+        "financePrice": null,
+        "url": "https://www.autoscout24.es/anuncios/seat-leon-1-6tdi-cr-ss-style-visio-diesel-gris-cat_ma64mo15869-f9ac76cb-7fdf-4a65-af6d-54d19a72390e",
+        "province": "UBEDA",
+        "city": "UBEDA",
+        "color": "Gris",
         "sellerType": "profesional",
         "traction": "",
         "displacement": "",
         "co2": "",
         "powerKw": "85",
         "consumption": "",
-        "dealerName": "Automobile Trier",
+        "dealerName": "REYES Y MARTINEZ AUTOMOVILES",
         "nextITV": "",
         "warrantyMonths": null,
-        "image": "https://prod.pictures.autoscout24.net/listing-images/b7c52d70-951b-48a1-83ee-a77ed0448f31_ed369273-0fd1-4a6f-9634-a25b418fe23b.jpg/250x188.webp",
+        "image": "https://prod.pictures.autoscout24.net/listing-images/f9ac76cb-7fdf-4a65-af6d-54d19a72390e_5d0ae4ab-78fb-41e6-8ea9-4d5100c4749f.jpg/250x188.webp",
         "images": [
-          "https://prod.pictures.autoscout24.net/listing-images/b7c52d70-951b-48a1-83ee-a77ed0448f31_ed369273-0fd1-4a6f-9634-a25b418fe23b.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b7c52d70-951b-48a1-83ee-a77ed0448f31_a651345f-2ddb-42f6-b9dc-1aa67391d10f.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b7c52d70-951b-48a1-83ee-a77ed0448f31_3317e20c-53fb-4449-8a49-518fd7b9a072.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b7c52d70-951b-48a1-83ee-a77ed0448f31_312f2449-0ef2-4765-8c2f-93a19f9137e3.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b7c52d70-951b-48a1-83ee-a77ed0448f31_f1363d93-b90e-4f43-86fc-f4bbc24c0088.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b7c52d70-951b-48a1-83ee-a77ed0448f31_e64fbf47-aa7b-467b-9f07-5ecd1e897a22.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b7c52d70-951b-48a1-83ee-a77ed0448f31_17ad1587-f1e8-4373-972a-242131931dbf.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b7c52d70-951b-48a1-83ee-a77ed0448f31_449bc249-fdcc-4771-ad9d-fd5aa2ce902e.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b7c52d70-951b-48a1-83ee-a77ed0448f31_c9ce3457-175d-4906-98bf-3569d428b43c.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b7c52d70-951b-48a1-83ee-a77ed0448f31_0dd6a105-ec8a-44c0-9e4a-01e8ed1d36ab.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b7c52d70-951b-48a1-83ee-a77ed0448f31_5038202c-49b1-4a89-bcdf-84a6fbf88c5d.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b7c52d70-951b-48a1-83ee-a77ed0448f31_177d6b67-fcc9-43c8-b5b0-48cc740fe288.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b7c52d70-951b-48a1-83ee-a77ed0448f31_f54c8496-cd77-4510-a252-962c52b6dd14.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b7c52d70-951b-48a1-83ee-a77ed0448f31_88482e6a-e382-4f33-a038-3243ca261272.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b7c52d70-951b-48a1-83ee-a77ed0448f31_1223b3df-bf8b-4465-80b3-b869c0c6da6f.jpg/250x188.webp"
+          "https://prod.pictures.autoscout24.net/listing-images/f9ac76cb-7fdf-4a65-af6d-54d19a72390e_5d0ae4ab-78fb-41e6-8ea9-4d5100c4749f.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/f9ac76cb-7fdf-4a65-af6d-54d19a72390e_d68bf8b3-191f-44c9-97f1-594c0150fd08.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/f9ac76cb-7fdf-4a65-af6d-54d19a72390e_1fe9f02b-aac6-40fb-a44c-32c2537d9483.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/f9ac76cb-7fdf-4a65-af6d-54d19a72390e_8a3bf32e-7a52-4ab5-870c-80213c9037a6.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/f9ac76cb-7fdf-4a65-af6d-54d19a72390e_a2967962-204b-4214-a01b-e46e392ee082.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/f9ac76cb-7fdf-4a65-af6d-54d19a72390e_10821a10-803d-4990-ad20-bbb052655737.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/f9ac76cb-7fdf-4a65-af6d-54d19a72390e_cf85e87f-7468-410c-873f-4b8a3f543db5.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/f9ac76cb-7fdf-4a65-af6d-54d19a72390e_bde2a94d-5f8f-4b0e-a885-5d4eac33e728.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/f9ac76cb-7fdf-4a65-af6d-54d19a72390e_661b6c9f-8117-422a-8e13-ed908075083b.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/f9ac76cb-7fdf-4a65-af6d-54d19a72390e_6e65bf5a-f81c-4981-8906-00f33475ab14.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/f9ac76cb-7fdf-4a65-af6d-54d19a72390e_9b240ca8-0602-4369-b77b-f1a4fccf1afe.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/f9ac76cb-7fdf-4a65-af6d-54d19a72390e_cbf9fc40-e4bc-40ed-8ccd-48091e683192.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/f9ac76cb-7fdf-4a65-af6d-54d19a72390e_5a4181aa-99fb-411e-a2e0-4527a86f2aa0.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/f9ac76cb-7fdf-4a65-af6d-54d19a72390e_0654119e-43f3-4648-9692-637e60e657ef.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/f9ac76cb-7fdf-4a65-af6d-54d19a72390e_1abdb84f-260a-4b4a-996f-1d1c09b89863.jpg/250x188.webp"
         ],
         "updatedAt": "",
         "listedAt": "",
@@ -250,50 +318,34 @@
         "portal": "autoscout24",
         "brand": "SEAT",
         "model": "Leon",
-        "version": "FR Black Matt Edition DCC Pano Beats ACC etc.",
+        "version": "León ST 1.6TDI CR S&S Style 115",
         "fuel": "Diesel",
         "transmission": "Manual",
         "bodyType": "",
         "environmentalLabel": "",
-        "year": 2020,
-        "mileage": 71900,
+        "year": 2019,
+        "mileage": 102000,
         "doors": null,
-        "seats": null,
-        "powerCv": 150,
-        "price": 18290,
+        "seats": 5,
+        "powerCv": 116,
+        "price": 15300,
         "monthlyPrice": null,
         "financePrice": null,
-        "url": "https://www.autoscout24.es/anuncios/seat-leon-fr-black-matt-edition-dcc-pano-beats-acc-etc-diesel-gris-cat_ma64mo15869-7bcc6587-2a6f-46b4-9117-edb6cf248128",
-        "province": "Stommeln (Pulheim)",
-        "city": "Stommeln (Pulheim)",
-        "color": "Gris",
+        "url": "https://www.autoscout24.es/anuncios/seat-leon-leon-st-1-6tdi-cr-ss-style-115-diesel-cat_ma64mo15869-1ebb45f8-37d5-43bb-87c9-4267402bf820",
+        "province": "Úbeda",
+        "city": "Úbeda",
+        "color": "",
         "sellerType": "profesional",
         "traction": "",
         "displacement": "",
         "co2": "",
-        "powerKw": "110",
+        "powerKw": "85",
         "consumption": "",
         "dealerName": "",
         "nextITV": "",
         "warrantyMonths": null,
-        "image": "https://prod.pictures.autoscout24.net/listing-images/7bcc6587-2a6f-46b4-9117-edb6cf248128_9e1be53f-f21d-4eb2-8763-f697ef9d6b2e.jpg/250x188.webp",
-        "images": [
-          "https://prod.pictures.autoscout24.net/listing-images/7bcc6587-2a6f-46b4-9117-edb6cf248128_9e1be53f-f21d-4eb2-8763-f697ef9d6b2e.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/7bcc6587-2a6f-46b4-9117-edb6cf248128_448e810c-baef-440c-8840-3e2cd7fb1ef7.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/7bcc6587-2a6f-46b4-9117-edb6cf248128_8f0bc5f2-88de-4abc-88ea-0e5c864ffa05.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/7bcc6587-2a6f-46b4-9117-edb6cf248128_33b21c0f-faa8-4556-a985-55af6d6da21d.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/7bcc6587-2a6f-46b4-9117-edb6cf248128_f251b199-16ba-4789-86e9-5e2fc7b36025.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/7bcc6587-2a6f-46b4-9117-edb6cf248128_0f72f277-c9ec-48be-b6cf-63b889869b56.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/7bcc6587-2a6f-46b4-9117-edb6cf248128_4f52f189-97a6-4b19-9a2c-8f193fd574e8.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/7bcc6587-2a6f-46b4-9117-edb6cf248128_86cfc972-a0ce-42c1-a893-cbd08a098f2a.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/7bcc6587-2a6f-46b4-9117-edb6cf248128_508b4976-0344-48a8-9300-9aa6de8cfee1.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/7bcc6587-2a6f-46b4-9117-edb6cf248128_b07ef92f-1eb7-4753-9740-3732985094c7.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/7bcc6587-2a6f-46b4-9117-edb6cf248128_a9bcab69-fe33-4a85-bff1-6380b33e15fc.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/7bcc6587-2a6f-46b4-9117-edb6cf248128_b677a59f-8a00-4d41-b33e-87c34962bb1b.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/7bcc6587-2a6f-46b4-9117-edb6cf248128_0a04ade9-0b74-490b-8c4a-cfa860543b1b.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/7bcc6587-2a6f-46b4-9117-edb6cf248128_fba9f588-3921-4ddc-8baa-cd577adcc10f.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/7bcc6587-2a6f-46b4-9117-edb6cf248128_944a01bb-92fc-4fa6-bf1e-176bcf3290ef.jpg/250x188.webp"
-        ],
+        "image": "",
+        "images": [],
         "updatedAt": "",
         "listedAt": "",
         "listingType": "compra"
@@ -302,126 +354,22 @@
         "portal": "autoscout24",
         "brand": "SEAT",
         "model": "Leon",
-        "version": "FR 2.0 TDI AHK LED CarPlay SHZ",
+        "version": "1.6TDI CR S&S Style Visio",
         "fuel": "Diesel",
         "transmission": "Manual",
         "bodyType": "",
         "environmentalLabel": "",
-        "year": 2023,
-        "mileage": 103779,
+        "year": 2019,
+        "mileage": 80000,
         "doors": null,
-        "seats": null,
-        "powerCv": 150,
-        "price": 20660,
-        "monthlyPrice": null,
-        "financePrice": null,
-        "url": "https://www.autoscout24.es/anuncios/seat-leon-fr-2-0-tdi-ahk-led-carplay-shz-diesel-rojo-cat_ma64mo15869-f223ae37-7890-4927-aa49-a16e6ffd0482",
-        "province": "Schwalmstadt",
-        "city": "Schwalmstadt",
-        "color": "Rojo",
-        "sellerType": "profesional",
-        "traction": "",
-        "displacement": "",
-        "co2": "",
-        "powerKw": "110",
-        "consumption": "",
-        "dealerName": "Autohaus Ostmann GmbH & Co. KG",
-        "nextITV": "",
-        "warrantyMonths": null,
-        "image": "https://prod.pictures.autoscout24.net/listing-images/f223ae37-7890-4927-aa49-a16e6ffd0482_f3b422ea-70e4-494b-ba51-fdc0dd302dc8.jpg/250x188.webp",
-        "images": [
-          "https://prod.pictures.autoscout24.net/listing-images/f223ae37-7890-4927-aa49-a16e6ffd0482_f3b422ea-70e4-494b-ba51-fdc0dd302dc8.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/f223ae37-7890-4927-aa49-a16e6ffd0482_3aecfd6b-fba5-45b9-93b9-834f9c0f0c00.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/f223ae37-7890-4927-aa49-a16e6ffd0482_d1a1dd0c-469c-42ce-b722-e219b655fc46.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/f223ae37-7890-4927-aa49-a16e6ffd0482_2e0267e1-685f-4f8a-9ac0-1901ab82aba6.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/f223ae37-7890-4927-aa49-a16e6ffd0482_f1a73204-c72d-45f7-86b4-5beb64056b9d.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/f223ae37-7890-4927-aa49-a16e6ffd0482_cea896ef-e542-40f0-8a97-08aa1ce8f174.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/f223ae37-7890-4927-aa49-a16e6ffd0482_51c1d33a-e506-4735-bebe-9f5522fd3643.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/f223ae37-7890-4927-aa49-a16e6ffd0482_ccba7bed-bf9f-4b43-89e3-fd525209959c.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/f223ae37-7890-4927-aa49-a16e6ffd0482_48ff384c-a604-45c7-bc9c-4053e02f2747.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/f223ae37-7890-4927-aa49-a16e6ffd0482_d53fbf32-ddae-4313-8e02-5cc660966bae.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/f223ae37-7890-4927-aa49-a16e6ffd0482_fb4304e4-96b3-409f-81bc-2b00bcd911f7.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/f223ae37-7890-4927-aa49-a16e6ffd0482_7e1d5215-ee36-47b7-99f5-42e974cc76dc.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/f223ae37-7890-4927-aa49-a16e6ffd0482_ef53c91c-91f4-4541-90c7-043d0a67cb9a.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/f223ae37-7890-4927-aa49-a16e6ffd0482_03993099-5ba2-492e-bcc5-eed95b7bd436.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/f223ae37-7890-4927-aa49-a16e6ffd0482_0c5adcc7-b5df-4182-9167-d00fa2fc903c.jpg/250x188.webp"
-        ],
-        "updatedAt": "",
-        "listedAt": "",
-        "listingType": "compra"
-      },
-      {
-        "portal": "autoscout24",
-        "brand": "SEAT",
-        "model": "Leon",
-        "version": "FR 2.0 TDI*TEMPOMAT*LED*Alcantara*Virtual",
-        "fuel": "Diesel",
-        "transmission": "Manual",
-        "bodyType": "",
-        "environmentalLabel": "",
-        "year": 2022,
-        "mileage": 53748,
-        "doors": null,
-        "seats": null,
-        "powerCv": 150,
-        "price": 20490,
-        "monthlyPrice": null,
-        "financePrice": null,
-        "url": "https://www.autoscout24.es/anuncios/seat-leon-fr-2-0-tdi-tempomat-led-alcantara-virtual-diesel-gris-cat_ma64mo15869-24249831-dd44-4d20-91a4-5ea635f4babb",
-        "province": "Schmidgaden",
-        "city": "Schmidgaden",
-        "color": "Gris",
-        "sellerType": "profesional",
-        "traction": "",
-        "displacement": "",
-        "co2": "",
-        "powerKw": "110",
-        "consumption": "",
-        "dealerName": "Auto Imperium GmbH & Co. KG",
-        "nextITV": "",
-        "warrantyMonths": null,
-        "image": "https://prod.pictures.autoscout24.net/listing-images/24249831-dd44-4d20-91a4-5ea635f4babb_9e4cf914-ed61-4148-94ad-4fdc46724881.jpg/250x188.webp",
-        "images": [
-          "https://prod.pictures.autoscout24.net/listing-images/24249831-dd44-4d20-91a4-5ea635f4babb_9e4cf914-ed61-4148-94ad-4fdc46724881.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/24249831-dd44-4d20-91a4-5ea635f4babb_f5469db0-d122-4962-b79b-d674ff80d9bd.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/24249831-dd44-4d20-91a4-5ea635f4babb_c1c6360b-4319-4068-a492-4a079fae6505.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/24249831-dd44-4d20-91a4-5ea635f4babb_14031263-eb00-44c4-98bd-4f46b97eee74.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/24249831-dd44-4d20-91a4-5ea635f4babb_339c4fd9-521a-4577-a186-c023d8c4209f.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/24249831-dd44-4d20-91a4-5ea635f4babb_b19c0cdb-21a3-49b2-84e1-ba024c4b5e33.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/24249831-dd44-4d20-91a4-5ea635f4babb_adbe5742-0f08-4a16-ad20-dbcb991da8f6.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/24249831-dd44-4d20-91a4-5ea635f4babb_72b3a722-beac-4cc8-8222-d86511c9e49c.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/24249831-dd44-4d20-91a4-5ea635f4babb_6fe090c5-cc51-4e4c-a64e-f89af4f87470.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/24249831-dd44-4d20-91a4-5ea635f4babb_84af68ea-d8cc-4f90-bef0-accea31ca6c7.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/24249831-dd44-4d20-91a4-5ea635f4babb_2d6a6f3e-6610-456a-baa6-a671e2ef9a37.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/24249831-dd44-4d20-91a4-5ea635f4babb_e1f1b142-57c8-4bb5-820d-5f8a43a0ceaf.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/24249831-dd44-4d20-91a4-5ea635f4babb_11bc95b8-e127-45ca-bf69-e0580bd89e55.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/24249831-dd44-4d20-91a4-5ea635f4babb_acf306f6-990a-4772-9d7c-7d8dc3c57c2c.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/24249831-dd44-4d20-91a4-5ea635f4babb_51a50d8c-6ae5-41d0-9016-580123e8dc8d.jpg/250x188.webp"
-        ],
-        "updatedAt": "",
-        "listedAt": "",
-        "listingType": "compra"
-      },
-      {
-        "portal": "autoscout24",
-        "brand": "SEAT",
-        "model": "Leon",
-        "version": "FR 2.0TDI 6-Gang +Fahrschulwagen +LED+ACC",
-        "fuel": "Diesel",
-        "transmission": "Manual",
-        "bodyType": "",
-        "environmentalLabel": "",
-        "year": 2020,
-        "mileage": 88450,
-        "doors": null,
-        "seats": null,
+        "seats": 5,
         "powerCv": 116,
-        "price": 16900,
+        "price": 16500,
         "monthlyPrice": null,
         "financePrice": null,
-        "url": "https://www.autoscout24.es/anuncios/seat-leon-fr-2-0tdi-6-gang-+fahrschulwagen-+led+acc-diesel-blanco-cat_ma64mo15869-c0392016-8774-4b50-ad42-20a4f02a0c78",
-        "province": "Langwedel",
-        "city": "Langwedel",
+        "url": "https://www.autoscout24.es/anuncios/seat-leon-1-6tdi-cr-ss-style-visio-diesel-blanco-cat_ma64mo15869-25be0f2d-3695-4ed5-8126-701a68038c63",
+        "province": "TARREGA",
+        "city": "TARREGA",
         "color": "Blanco",
         "sellerType": "profesional",
         "traction": "",
@@ -429,26 +377,26 @@
         "co2": "",
         "powerKw": "85",
         "consumption": "",
-        "dealerName": "Autohaus Korte & Meyer GmbH & Co. KG",
+        "dealerName": "SOLCAR",
         "nextITV": "",
         "warrantyMonths": null,
-        "image": "https://prod.pictures.autoscout24.net/listing-images/c0392016-8774-4b50-ad42-20a4f02a0c78_33e49845-4857-49d5-9bff-7e4ebe2d0b7e.jpg/250x188.webp",
+        "image": "https://prod.pictures.autoscout24.net/listing-images/25be0f2d-3695-4ed5-8126-701a68038c63_eb17dbcd-8af9-49fd-8fbf-d0f08f90d721.jpg/250x188.webp",
         "images": [
-          "https://prod.pictures.autoscout24.net/listing-images/c0392016-8774-4b50-ad42-20a4f02a0c78_33e49845-4857-49d5-9bff-7e4ebe2d0b7e.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/c0392016-8774-4b50-ad42-20a4f02a0c78_9d881d50-77cd-4b38-8164-9c31bb4bd569.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/c0392016-8774-4b50-ad42-20a4f02a0c78_964627dc-9633-47f3-8cb2-0b76cf33cb1b.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/c0392016-8774-4b50-ad42-20a4f02a0c78_fd095cf9-3ad5-4144-be8e-22ed3ebd8aa1.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/c0392016-8774-4b50-ad42-20a4f02a0c78_ec9cf39a-bd58-4688-b081-7b7fe3818fdd.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/c0392016-8774-4b50-ad42-20a4f02a0c78_8ac4e52c-87c3-40e5-b931-686d543b4653.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/c0392016-8774-4b50-ad42-20a4f02a0c78_1abaa8bc-7fec-43e2-ab67-3ce26a575cec.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/c0392016-8774-4b50-ad42-20a4f02a0c78_65180eec-02d8-442b-b430-04524e8007e5.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/c0392016-8774-4b50-ad42-20a4f02a0c78_08cc2173-35f5-49e5-94ba-0f004633e83a.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/c0392016-8774-4b50-ad42-20a4f02a0c78_7708b535-150c-4b96-b984-900c71aaf520.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/c0392016-8774-4b50-ad42-20a4f02a0c78_934a33de-48c2-4411-8e08-e76cc6506726.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/c0392016-8774-4b50-ad42-20a4f02a0c78_bfae4469-dc14-4f2b-a668-9f73fceceb45.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/c0392016-8774-4b50-ad42-20a4f02a0c78_46aa2423-87be-4a49-8fe0-e59df74260a3.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/c0392016-8774-4b50-ad42-20a4f02a0c78_eb6a35d2-b430-4996-8168-415c12360972.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/c0392016-8774-4b50-ad42-20a4f02a0c78_eeddb4de-0ab9-42fb-a62f-60ee546757a3.jpg/250x188.webp"
+          "https://prod.pictures.autoscout24.net/listing-images/25be0f2d-3695-4ed5-8126-701a68038c63_eb17dbcd-8af9-49fd-8fbf-d0f08f90d721.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/25be0f2d-3695-4ed5-8126-701a68038c63_ab6c8ba3-e956-40fb-96c7-9693951d4b4c.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/25be0f2d-3695-4ed5-8126-701a68038c63_047718d6-424a-4eb7-9146-5b13f99bb030.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/25be0f2d-3695-4ed5-8126-701a68038c63_85d22777-e6b9-47f7-84d5-d661682a3821.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/25be0f2d-3695-4ed5-8126-701a68038c63_69dc7b89-a58a-43c4-a5ea-468c0a08a876.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/25be0f2d-3695-4ed5-8126-701a68038c63_a3c58d47-9679-4e4f-806a-e9de9565315f.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/25be0f2d-3695-4ed5-8126-701a68038c63_bd67cd77-23fc-4611-8d65-5ae7c19ceabd.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/25be0f2d-3695-4ed5-8126-701a68038c63_a09fa454-f71b-49a9-b282-785bfef3dad2.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/25be0f2d-3695-4ed5-8126-701a68038c63_5560e4d5-71ad-41e3-acd9-0495c0dadf8a.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/25be0f2d-3695-4ed5-8126-701a68038c63_d13d5352-478a-42a6-ba3c-3f09d7e18dd9.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/25be0f2d-3695-4ed5-8126-701a68038c63_0405f9c9-80fb-439e-af1e-84b768db3730.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/25be0f2d-3695-4ed5-8126-701a68038c63_313b8ece-01e8-45bf-b31b-2a2e31c86606.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/25be0f2d-3695-4ed5-8126-701a68038c63_674806f1-e3cd-4d33-9dc4-e1e57c12caa9.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/25be0f2d-3695-4ed5-8126-701a68038c63_95e65ea5-fced-406e-be6e-d865948656f1.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/25be0f2d-3695-4ed5-8126-701a68038c63_3dd6e86c-2441-44ac-b2f1-37127c12515b.jpg/250x188.webp"
         ],
         "updatedAt": "",
         "listedAt": "",
@@ -458,49 +406,101 @@
         "portal": "autoscout24",
         "brand": "SEAT",
         "model": "Leon",
-        "version": "FR, ACC,LED,Navi,Pano-Dach,Tempomat,DAB,PDC",
+        "version": "1.6 TDI Style Visio Edition",
         "fuel": "Diesel",
         "transmission": "Manual",
         "bodyType": "",
         "environmentalLabel": "",
-        "year": 2021,
-        "mileage": 74400,
+        "year": 2019,
+        "mileage": 43971,
         "doors": null,
-        "seats": null,
+        "seats": 5,
         "powerCv": 116,
-        "price": 16800,
+        "price": 14761,
         "monthlyPrice": null,
         "financePrice": null,
-        "url": "https://www.autoscout24.es/anuncios/seat-leon-fr-acc-led-navi-pano-dach-tempomat-dab-pdc-diesel-rojo-cat_ma64mo15869-bbcc4b1f-8692-44dd-be84-5e5ce7441259",
-        "province": "Wilkau-Haßlau",
-        "city": "Wilkau-Haßlau",
-        "color": "Rojo",
+        "url": "https://www.autoscout24.es/anuncios/seat-leon-1-6-tdi-style-visio-edition-diesel-gris-cat_ma64mo15869-df35d3c5-d223-4f8e-93de-987317d448b8",
+        "province": "MADRID",
+        "city": "MADRID",
+        "color": "Gris",
         "sellerType": "profesional",
         "traction": "",
         "displacement": "",
         "co2": "",
         "powerKw": "85",
         "consumption": "",
-        "dealerName": "Autoservice Demmler e.K.",
+        "dealerName": "AUTOHERO CENTER MADRID",
         "nextITV": "",
         "warrantyMonths": null,
-        "image": "https://prod.pictures.autoscout24.net/listing-images/bbcc4b1f-8692-44dd-be84-5e5ce7441259_6180e4bf-a605-409f-8b26-9b06d86de279.jpg/250x188.webp",
+        "image": "https://prod.pictures.autoscout24.net/listing-images/df35d3c5-d223-4f8e-93de-987317d448b8_83479a20-e646-4732-ab71-d1f4585ef3aa.jpg/250x188.webp",
         "images": [
-          "https://prod.pictures.autoscout24.net/listing-images/bbcc4b1f-8692-44dd-be84-5e5ce7441259_6180e4bf-a605-409f-8b26-9b06d86de279.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/bbcc4b1f-8692-44dd-be84-5e5ce7441259_2f7b096d-bf05-480d-b46f-016e60c73cef.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/bbcc4b1f-8692-44dd-be84-5e5ce7441259_8fb280ac-d0d8-4f48-a879-606649284955.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/bbcc4b1f-8692-44dd-be84-5e5ce7441259_4ef5be13-e3b4-436e-ab69-e896346153d8.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/bbcc4b1f-8692-44dd-be84-5e5ce7441259_8958c57a-6c87-4a9a-8401-d852726cbc88.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/bbcc4b1f-8692-44dd-be84-5e5ce7441259_6a165350-9b77-4cdf-b835-0c3c417ae261.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/bbcc4b1f-8692-44dd-be84-5e5ce7441259_d9475192-d4b0-457a-a4a8-e73abc43b8f7.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/bbcc4b1f-8692-44dd-be84-5e5ce7441259_47966b14-2c0e-4d00-8b52-947ef2bc8f84.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/bbcc4b1f-8692-44dd-be84-5e5ce7441259_128dafc8-b832-43c8-8dcc-53988d81025b.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/bbcc4b1f-8692-44dd-be84-5e5ce7441259_91b77fdf-4dda-4622-9372-00ae65e043dc.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/bbcc4b1f-8692-44dd-be84-5e5ce7441259_6a9191fd-1337-4a32-a553-bbaa8d41a8a1.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/bbcc4b1f-8692-44dd-be84-5e5ce7441259_59a33907-a878-49c6-984b-c56f231ec853.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/bbcc4b1f-8692-44dd-be84-5e5ce7441259_3802d0b1-9474-4327-b34b-1c6df6ad5db9.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/bbcc4b1f-8692-44dd-be84-5e5ce7441259_364ff544-881a-49f9-bfca-3c8142a4024d.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/bbcc4b1f-8692-44dd-be84-5e5ce7441259_a15bcb18-c6d0-468e-8cc2-991b23288d29.jpg/250x188.webp"
+          "https://prod.pictures.autoscout24.net/listing-images/df35d3c5-d223-4f8e-93de-987317d448b8_83479a20-e646-4732-ab71-d1f4585ef3aa.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/df35d3c5-d223-4f8e-93de-987317d448b8_afe54c6e-fd31-4148-834c-b86113dde220.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/df35d3c5-d223-4f8e-93de-987317d448b8_400bc37f-5c6f-447c-b314-3b86d8f84125.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/df35d3c5-d223-4f8e-93de-987317d448b8_a96fb507-9035-455d-9633-6b35122821ab.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/df35d3c5-d223-4f8e-93de-987317d448b8_b475d74c-b278-4fbe-9408-e07a0fba3037.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/df35d3c5-d223-4f8e-93de-987317d448b8_5e42b8ff-6149-4655-9489-e5de75b1ab42.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/df35d3c5-d223-4f8e-93de-987317d448b8_9504e0e6-c3b4-478c-9b58-8f22f50057cf.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/df35d3c5-d223-4f8e-93de-987317d448b8_798103fe-98d7-4d17-9528-4fb515bb455e.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/df35d3c5-d223-4f8e-93de-987317d448b8_f8ea99e3-05d1-4d95-831a-7d01dae4fabe.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/df35d3c5-d223-4f8e-93de-987317d448b8_879188d5-ff19-4146-adcc-62e8a9121dd2.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/df35d3c5-d223-4f8e-93de-987317d448b8_30ed9676-39ac-45ef-a5a0-24225f4756ee.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/df35d3c5-d223-4f8e-93de-987317d448b8_94243722-dffc-465d-b2ae-12ef4e9bae8f.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/df35d3c5-d223-4f8e-93de-987317d448b8_04a42dbc-9b8f-4f6e-92f1-13201613b94c.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/df35d3c5-d223-4f8e-93de-987317d448b8_10dc5c84-055d-479c-9040-162b289696fd.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/df35d3c5-d223-4f8e-93de-987317d448b8_5570f671-742c-4699-b344-4d9d76799224.jpg/250x188.webp"
+        ],
+        "updatedAt": "",
+        "listedAt": "",
+        "listingType": "compra"
+      },
+      {
+        "portal": "autoscout24",
+        "brand": "SEAT",
+        "model": "Leon",
+        "version": "1.6 TDI Style Visio Edition",
+        "fuel": "Diesel",
+        "transmission": "Manual",
+        "bodyType": "",
+        "environmentalLabel": "",
+        "year": 2019,
+        "mileage": 43971,
+        "doors": null,
+        "seats": 5,
+        "powerCv": 116,
+        "price": 14761,
+        "monthlyPrice": null,
+        "financePrice": null,
+        "url": "https://www.autoscout24.es/anuncios/seat-leon-1-6-tdi-style-visio-edition-diesel-gris-cat_ma64mo15869-1007946e-dee2-42ba-bcea-1eecd9a1ebf5",
+        "province": "MÁLAGA",
+        "city": "MÁLAGA",
+        "color": "Gris",
+        "sellerType": "profesional",
+        "traction": "",
+        "displacement": "",
+        "co2": "",
+        "powerKw": "85",
+        "consumption": "",
+        "dealerName": "AUTOHERO MÁLAGA",
+        "nextITV": "",
+        "warrantyMonths": null,
+        "image": "https://prod.pictures.autoscout24.net/listing-images/1007946e-dee2-42ba-bcea-1eecd9a1ebf5_98cd0b04-a3db-48cf-86db-a14420717e4e.jpg/250x188.webp",
+        "images": [
+          "https://prod.pictures.autoscout24.net/listing-images/1007946e-dee2-42ba-bcea-1eecd9a1ebf5_98cd0b04-a3db-48cf-86db-a14420717e4e.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/1007946e-dee2-42ba-bcea-1eecd9a1ebf5_1d8d778a-3407-4f1f-9b62-51513bd35c88.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/1007946e-dee2-42ba-bcea-1eecd9a1ebf5_19c497bd-47ca-49d9-a26e-2eaf65a6a8b1.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/1007946e-dee2-42ba-bcea-1eecd9a1ebf5_f9c67fd0-2475-44ca-9f32-0baa6cddeb0f.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/1007946e-dee2-42ba-bcea-1eecd9a1ebf5_6e7ba185-d9ec-4dc9-a20d-67043d45b191.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/1007946e-dee2-42ba-bcea-1eecd9a1ebf5_bdcbfbc4-0e6e-448c-84a6-7f13bd0a7de6.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/1007946e-dee2-42ba-bcea-1eecd9a1ebf5_29e05b03-f81b-417c-847e-0c7f52902f90.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/1007946e-dee2-42ba-bcea-1eecd9a1ebf5_cc147c45-761a-4235-9a4b-346364634bdf.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/1007946e-dee2-42ba-bcea-1eecd9a1ebf5_a98d6c43-2b4c-43f0-87b7-4a46432c2ea8.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/1007946e-dee2-42ba-bcea-1eecd9a1ebf5_b89bbe7c-e5d1-4c72-88e2-5ecab0e5e0b2.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/1007946e-dee2-42ba-bcea-1eecd9a1ebf5_6638b980-ecf7-4f5e-a139-f37431ddce9f.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/1007946e-dee2-42ba-bcea-1eecd9a1ebf5_7541a601-628c-4def-8616-ee434481b747.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/1007946e-dee2-42ba-bcea-1eecd9a1ebf5_38c062e4-23f0-4cdd-8053-3db1a130b9bb.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/1007946e-dee2-42ba-bcea-1eecd9a1ebf5_9c39dddb-416c-47c7-81e5-308ded1022d0.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/1007946e-dee2-42ba-bcea-1eecd9a1ebf5_1364021c-b0a8-42dd-a60c-8e3b8ff5a3a7.jpg/250x188.webp"
         ],
         "updatedAt": "",
         "listedAt": "",
@@ -572,7 +572,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 515,
+        "_rank": 514,
         "mileage": 287000,
         "year": 2016,
         "price": 5790,
@@ -590,7 +590,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1013,
+        "_rank": 1014,
         "mileage": 298526,
         "year": 2017,
         "price": 5950,
@@ -608,7 +608,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 514,
+        "_rank": 515,
         "mileage": 319000,
         "year": 2016,
         "price": 6190,
@@ -653,7 +653,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1009,
+        "_rank": 1010,
         "mileage": 231100,
         "year": 2018,
         "price": 6599,
@@ -716,7 +716,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1014,
+        "_rank": 1013,
         "mileage": 272300,
         "year": 2016,
         "price": 6900,
@@ -725,7 +725,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1010,
+        "_rank": 1009,
         "mileage": 196156,
         "year": 2019,
         "price": 6950,
@@ -806,7 +806,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 979,
+        "_rank": 978,
         "mileage": 150266,
         "year": 2015,
         "price": 7100,
@@ -869,7 +869,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 505,
+        "_rank": 503,
         "mileage": 269000,
         "year": 2016,
         "price": 7470,
@@ -887,7 +887,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 499,
+        "_rank": 500,
         "mileage": 190000,
         "year": 2016,
         "price": 7500,
@@ -959,7 +959,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 991,
+        "_rank": 990,
         "mileage": 205000,
         "year": 2016,
         "price": 7990,
@@ -1022,7 +1022,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 501,
+        "_rank": 499,
         "mileage": 234000,
         "year": 2018,
         "price": 8000,
@@ -1040,7 +1040,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 493,
+        "_rank": 492,
         "mileage": 162000,
         "year": 2015,
         "price": 8250,
@@ -1130,7 +1130,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 500,
+        "_rank": 501,
         "mileage": 200000,
         "year": 2016,
         "price": 8490,
@@ -1139,7 +1139,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 478,
+        "_rank": 480,
         "mileage": 251671,
         "year": 2016,
         "price": 8490,
@@ -1148,7 +1148,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 978,
+        "_rank": 979,
         "mileage": 130000,
         "year": 2016,
         "price": 8500,
@@ -1211,7 +1211,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 479,
+        "_rank": 478,
         "mileage": 226000,
         "year": 2019,
         "price": 8590,
@@ -1238,7 +1238,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 990,
+        "_rank": 991,
         "mileage": 183780,
         "year": 2020,
         "price": 8690,
@@ -1265,7 +1265,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 486,
+        "_rank": 487,
         "mileage": 238000,
         "year": 2016,
         "price": 8800,
@@ -1274,7 +1274,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 487,
+        "_rank": 486,
         "mileage": 155000,
         "year": 2015,
         "price": 8890,
@@ -1292,7 +1292,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 480,
+        "_rank": 479,
         "mileage": 184000,
         "year": 2018,
         "price": 8900,
@@ -1418,7 +1418,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 492,
+        "_rank": 493,
         "mileage": 190000,
         "year": 2016,
         "price": 8990,
@@ -1445,7 +1445,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 503,
+        "_rank": 505,
         "mileage": 172000,
         "year": 2015,
         "price": 8999,
@@ -1454,7 +1454,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 494,
+        "_rank": 495,
         "mileage": 198764,
         "year": 2021,
         "price": 8999,
@@ -1463,7 +1463,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 495,
+        "_rank": 494,
         "mileage": 289000,
         "year": 2021,
         "price": 8999,
@@ -1490,7 +1490,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 475,
+        "_rank": 476,
         "mileage": 161424,
         "year": 2015,
         "price": 9290,
@@ -1517,7 +1517,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 969,
+        "_rank": 970,
         "mileage": 158625,
         "year": 2016,
         "price": 9299,
@@ -1616,7 +1616,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 958,
+        "_rank": 960,
         "mileage": 163000,
         "year": 2015,
         "price": 9450,
@@ -1634,7 +1634,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 448,
+        "_rank": 449,
         "mileage": 129800,
         "year": 2015,
         "price": 9490,
@@ -1697,7 +1697,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 431,
+        "_rank": 430,
         "mileage": 151827,
         "year": 2015,
         "price": 9490,
@@ -1742,7 +1742,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 954,
+        "_rank": 953,
         "mileage": 165708,
         "year": 2016,
         "price": 9500,
@@ -1751,7 +1751,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 411,
+        "_rank": 410,
         "mileage": 171000,
         "year": 2015,
         "price": 9500,
@@ -1760,7 +1760,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 468,
+        "_rank": 469,
         "mileage": 183000,
         "year": 2018,
         "price": 9500,
@@ -1778,7 +1778,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 409,
+        "_rank": 411,
         "mileage": 231850,
         "year": 2018,
         "price": 9500,
@@ -1796,7 +1796,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 949,
+        "_rank": 948,
         "mileage": 156273,
         "year": 2017,
         "price": 9690,
@@ -1805,7 +1805,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 690,
+        "_rank": 689,
         "mileage": 212133,
         "year": 2017,
         "price": 9690,
@@ -1823,7 +1823,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 469,
+        "_rank": 468,
         "mileage": 249003,
         "year": 2021,
         "price": 9775,
@@ -1841,7 +1841,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 959,
+        "_rank": 958,
         "mileage": 94114,
         "year": 2016,
         "price": 9800,
@@ -1859,7 +1859,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 953,
+        "_rank": 954,
         "mileage": 107500,
         "year": 2017,
         "price": 9800,
@@ -1886,7 +1886,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 936,
+        "_rank": 935,
         "mileage": 99300,
         "year": 2016,
         "price": 9900,
@@ -1949,7 +1949,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 449,
+        "_rank": 448,
         "mileage": 178195,
         "year": 2022,
         "price": 9900,
@@ -1960,6 +1960,15 @@
       {
         "_rank": 694,
         "mileage": 178195,
+        "year": 2022,
+        "price": 9900,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 442,
+        "mileage": 188085,
         "year": 2022,
         "price": 9900,
         "sellerType": "profesional",
@@ -1985,7 +1994,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 445,
+        "_rank": 693,
         "mileage": 188085,
         "year": 2022,
         "price": 9900,
@@ -1994,16 +2003,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 692,
-        "mileage": 188085,
-        "year": 2022,
-        "price": 9900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 965,
+        "_rank": 966,
         "mileage": 121472,
         "year": 2017,
         "price": 9940,
@@ -2012,7 +2012,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 947,
+        "_rank": 950,
         "mileage": 119000,
         "year": 2017,
         "price": 9950,
@@ -2021,7 +2021,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 935,
+        "_rank": 934,
         "mileage": 171897,
         "year": 2019,
         "price": 9950,
@@ -2030,7 +2030,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 435,
+        "_rank": 434,
         "mileage": 149000,
         "year": 2016,
         "price": 9980,
@@ -2039,25 +2039,25 @@
         "portal": "autoscout24"
       },
       {
+        "_rank": 461,
+        "mileage": 204000,
+        "year": 2016,
+        "price": 9985,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 462,
+        "mileage": 204000,
+        "year": 2016,
+        "price": 9985,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
         "_rank": 463,
-        "mileage": 204000,
-        "year": 2016,
-        "price": 9985,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 464,
-        "mileage": 204000,
-        "year": 2016,
-        "price": 9985,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 465,
         "mileage": 204000,
         "year": 2016,
         "price": 9985,
@@ -2075,7 +2075,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 457,
+        "_rank": 456,
         "mileage": 114741,
         "year": 2019,
         "price": 9990,
@@ -2120,7 +2120,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 966,
+        "_rank": 965,
         "mileage": 143000,
         "year": 2017,
         "price": 9990,
@@ -2156,7 +2156,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 946,
+        "_rank": 945,
         "mileage": 189000,
         "year": 2016,
         "price": 9990,
@@ -2255,7 +2255,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 434,
+        "_rank": 435,
         "mileage": 200000,
         "year": 2019,
         "price": 9999,
@@ -2291,7 +2291,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 680,
+        "_rank": 679,
         "mileage": 132028,
         "year": 2017,
         "price": 10000,
@@ -2300,7 +2300,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 772,
+        "_rank": 773,
         "mileage": 132028,
         "year": 2017,
         "price": 10000,
@@ -2318,7 +2318,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 939,
+        "_rank": 941,
         "mileage": 183065,
         "year": 2019,
         "price": 10000,
@@ -2336,7 +2336,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1251,
+        "_rank": 1252,
         "mileage": 144000,
         "year": 2016,
         "price": 10190,
@@ -2354,7 +2354,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 470,
+        "_rank": 471,
         "mileage": 106845,
         "year": 2015,
         "price": 10300,
@@ -2381,7 +2381,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 679,
+        "_rank": 680,
         "mileage": 106845,
         "year": 2015,
         "price": 10300,
@@ -2399,7 +2399,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 773,
+        "_rank": 772,
         "mileage": 106845,
         "year": 2015,
         "price": 10300,
@@ -2435,7 +2435,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 970,
+        "_rank": 969,
         "mileage": 172000,
         "year": 2022,
         "price": 10490,
@@ -2471,7 +2471,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 940,
+        "_rank": 939,
         "mileage": 180000,
         "year": 2016,
         "price": 10500,
@@ -2480,7 +2480,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 410,
+        "_rank": 409,
         "mileage": 199000,
         "year": 2015,
         "price": 10500,
@@ -2507,7 +2507,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 456,
+        "_rank": 457,
         "mileage": 174500,
         "year": 2015,
         "price": 10600,
@@ -2543,7 +2543,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 941,
+        "_rank": 940,
         "mileage": 153750,
         "year": 2017,
         "price": 10690,
@@ -2651,7 +2651,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1152,
+        "_rank": 1155,
         "mileage": 156274,
         "year": 2017,
         "price": 10799,
@@ -2687,7 +2687,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 693,
+        "_rank": 692,
         "mileage": 175443,
         "year": 2022,
         "price": 10850,
@@ -2732,7 +2732,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 950,
+        "_rank": 947,
         "mileage": 117000,
         "year": 2018,
         "price": 10900,
@@ -2741,7 +2741,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1252,
+        "_rank": 1251,
         "mileage": 125250,
         "year": 2016,
         "price": 10900,
@@ -2795,7 +2795,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 19,
+        "_rank": 20,
         "mileage": 139260,
         "year": 2015,
         "price": 10950,
@@ -2813,7 +2813,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 945,
+        "_rank": 946,
         "mileage": 134980,
         "year": 2021,
         "price": 10980,
@@ -2822,7 +2822,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 20,
+        "_rank": 19,
         "mileage": 141158,
         "year": 2015,
         "price": 10980,
@@ -2831,7 +2831,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 960,
+        "_rank": 959,
         "mileage": 150722,
         "year": 2022,
         "price": 10980,
@@ -2849,7 +2849,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 442,
+        "_rank": 445,
         "mileage": 219000,
         "year": 2015,
         "price": 10980,
@@ -2975,7 +2975,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 461,
+        "_rank": 464,
         "mileage": 127000,
         "year": 2019,
         "price": 10990,
@@ -2984,7 +2984,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 462,
+        "_rank": 465,
         "mileage": 127000,
         "year": 2019,
         "price": 10990,
@@ -3011,7 +3011,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 471,
+        "_rank": 470,
         "mileage": 127000,
         "year": 2019,
         "price": 10990,
@@ -3056,7 +3056,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 689,
+        "_rank": 690,
         "mileage": 170324,
         "year": 2015,
         "price": 10990,
@@ -3065,7 +3065,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 476,
+        "_rank": 475,
         "mileage": 176975,
         "year": 2015,
         "price": 10990,
@@ -3119,7 +3119,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 430,
+        "_rank": 431,
         "mileage": 179799,
         "year": 2022,
         "price": 10990,
@@ -3128,7 +3128,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 934,
+        "_rank": 936,
         "mileage": 182154,
         "year": 2016,
         "price": 10990,
@@ -3155,7 +3155,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 948,
+        "_rank": 949,
         "mileage": 114047,
         "year": 2020,
         "price": 10995,
@@ -3461,7 +3461,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1233,
+        "_rank": 1232,
         "mileage": 135100,
         "year": 2015,
         "price": 11450,
@@ -3479,7 +3479,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 387,
+        "_rank": 386,
         "mileage": 197000,
         "year": 2021,
         "price": 11470,
@@ -3488,7 +3488,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 386,
+        "_rank": 387,
         "mileage": 216000,
         "year": 2022,
         "price": 11470,
@@ -3506,7 +3506,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 319,
+        "_rank": 320,
         "mileage": 176000,
         "year": 2018,
         "price": 11490,
@@ -3632,7 +3632,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1243,
+        "_rank": 1244,
         "mileage": 116300,
         "year": 2016,
         "price": 11600,
@@ -3650,7 +3650,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 342,
+        "_rank": 343,
         "mileage": 266000,
         "year": 2016,
         "price": 11600,
@@ -3659,7 +3659,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1232,
+        "_rank": 1233,
         "mileage": 100000,
         "year": 2016,
         "price": 11690,
@@ -3668,7 +3668,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1155,
+        "_rank": 1152,
         "mileage": 133602,
         "year": 2019,
         "price": 11699,
@@ -3677,7 +3677,7 @@
         "portal": "autohero"
       },
       {
-        "_rank": 910,
+        "_rank": 911,
         "mileage": 106900,
         "year": 2018,
         "price": 11700,
@@ -3713,7 +3713,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1244,
+        "_rank": 1243,
         "mileage": 114000,
         "year": 2018,
         "price": 11790,
@@ -3749,7 +3749,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 351,
+        "_rank": 350,
         "mileage": 129621,
         "year": 2017,
         "price": 11834,
@@ -4028,7 +4028,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 367,
+        "_rank": 366,
         "mileage": 216923,
         "year": 2016,
         "price": 11950,
@@ -4046,7 +4046,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 652,
+        "_rank": 653,
         "mileage": 216923,
         "year": 2016,
         "price": 11950,
@@ -4253,7 +4253,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 912,
+        "_rank": 910,
         "mileage": 144000,
         "year": 2017,
         "price": 12000,
@@ -4262,7 +4262,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 350,
+        "_rank": 351,
         "mileage": 162000,
         "year": 2017,
         "price": 12000,
@@ -4289,7 +4289,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 924,
+        "_rank": 925,
         "mileage": 111000,
         "year": 2020,
         "price": 12111,
@@ -4298,7 +4298,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 914,
+        "_rank": 915,
         "mileage": 127444,
         "year": 2022,
         "price": 12180,
@@ -4325,7 +4325,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 380,
+        "_rank": 379,
         "mileage": 110729,
         "year": 2018,
         "price": 12269,
@@ -4334,7 +4334,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 645,
+        "_rank": 644,
         "mileage": 110729,
         "year": 2018,
         "price": 12269,
@@ -4505,7 +4505,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1227,
+        "_rank": 1228,
         "mileage": 114496,
         "year": 2015,
         "price": 12390,
@@ -4559,7 +4559,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 658,
+        "_rank": 657,
         "mileage": 116746,
         "year": 2017,
         "price": 12490,
@@ -4568,7 +4568,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 918,
+        "_rank": 919,
         "mileage": 117990,
         "year": 2015,
         "price": 12490,
@@ -4586,7 +4586,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1228,
+        "_rank": 1227,
         "mileage": 127500,
         "year": 2018,
         "price": 12490,
@@ -4667,7 +4667,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 925,
+        "_rank": 924,
         "mileage": 159360,
         "year": 2021,
         "price": 12490,
@@ -4766,7 +4766,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 379,
+        "_rank": 380,
         "mileage": 124806,
         "year": 2016,
         "price": 12500,
@@ -4775,7 +4775,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 644,
+        "_rank": 645,
         "mileage": 124806,
         "year": 2016,
         "price": 12500,
@@ -4829,7 +4829,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1237,
+        "_rank": 1238,
         "mileage": 109100,
         "year": 2019,
         "price": 12550,
@@ -4838,7 +4838,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 911,
+        "_rank": 912,
         "mileage": 142990,
         "year": 2015,
         "price": 12550,
@@ -4919,7 +4919,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 366,
+        "_rank": 367,
         "mileage": 142177,
         "year": 2015,
         "price": 12700,
@@ -4928,7 +4928,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 653,
+        "_rank": 652,
         "mileage": 142177,
         "year": 2015,
         "price": 12700,
@@ -4955,7 +4955,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 1238,
+        "_rank": 1237,
         "mileage": 113100,
         "year": 2016,
         "price": 12790,
@@ -4964,7 +4964,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 915,
+        "_rank": 914,
         "mileage": 124984,
         "year": 2019,
         "price": 12790,
@@ -5045,7 +5045,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 919,
+        "_rank": 918,
         "mileage": 129900,
         "year": 2017,
         "price": 12900,
@@ -5081,7 +5081,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 343,
+        "_rank": 342,
         "mileage": 218000,
         "year": 2021,
         "price": 12900,
@@ -5090,7 +5090,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 657,
+        "_rank": 658,
         "mileage": 70511,
         "year": 2018,
         "price": 12945,
@@ -5099,7 +5099,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 320,
+        "_rank": 319,
         "mileage": 112000,
         "year": 2017,
         "price": 12950,
@@ -5513,7 +5513,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 270,
+        "_rank": 269,
         "mileage": 144584,
         "year": 2017,
         "price": 13047,
@@ -5522,7 +5522,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 308,
+        "_rank": 306,
         "mileage": 144584,
         "year": 2017,
         "price": 13047,
@@ -5558,15 +5558,6 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 215,
-        "mileage": 115000,
-        "year": 2021,
-        "price": 13190,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
         "_rank": 216,
         "mileage": 115000,
         "year": 2021,
@@ -5595,6 +5586,15 @@
       },
       {
         "_rank": 219,
+        "mileage": 115000,
+        "year": 2021,
+        "price": 13190,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 220,
         "mileage": 115000,
         "year": 2021,
         "price": 13190,
@@ -5693,7 +5693,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 300,
+        "_rank": 299,
         "mileage": 84100,
         "year": 2020,
         "price": 13364,
@@ -5711,7 +5711,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 892,
+        "_rank": 894,
         "mileage": 104300,
         "year": 2022,
         "price": 13400,
@@ -5729,7 +5729,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 884,
+        "_rank": 882,
         "mileage": 137430,
         "year": 2022,
         "price": 13400,
@@ -5918,7 +5918,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 876,
+        "_rank": 875,
         "mileage": 116154,
         "year": 2020,
         "price": 13490,
@@ -5990,7 +5990,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 299,
+        "_rank": 300,
         "mileage": 121816,
         "year": 2018,
         "price": 13490,
@@ -6008,7 +6008,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 1092,
+        "_rank": 1093,
         "mileage": 130869,
         "year": 2021,
         "price": 13490,
@@ -6089,7 +6089,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 276,
+        "_rank": 275,
         "mileage": 242000,
         "year": 2017,
         "price": 13490,
@@ -6143,7 +6143,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1210,
+        "_rank": 1209,
         "mileage": 85988,
         "year": 2016,
         "price": 13500,
@@ -6494,7 +6494,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1209,
+        "_rank": 1210,
         "mileage": 56500,
         "year": 2017,
         "price": 13790,
@@ -6665,6 +6665,15 @@
         "portal": "autoscout24"
       },
       {
+        "_rank": 210,
+        "mileage": 109540,
+        "year": 2021,
+        "price": 13790,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
         "_rank": 211,
         "mileage": 109540,
         "year": 2021,
@@ -6683,7 +6692,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 213,
+        "_rank": 276,
         "mileage": 109540,
         "year": 2021,
         "price": 13790,
@@ -6692,16 +6701,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 275,
-        "mileage": 109540,
-        "year": 2021,
-        "price": 13790,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 524,
+        "_rank": 525,
         "mileage": 84100,
         "year": 2020,
         "price": 13810,
@@ -6827,7 +6827,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 882,
+        "_rank": 883,
         "mileage": 144000,
         "year": 2022,
         "price": 13950,
@@ -7052,7 +7052,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 893,
+        "_rank": 892,
         "mileage": 121339,
         "year": 2022,
         "price": 13990,
@@ -7079,7 +7079,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 246,
+        "_rank": 247,
         "mileage": 123557,
         "year": 2017,
         "price": 13990,
@@ -7178,7 +7178,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1208,
+        "_rank": 1207,
         "mileage": 110000,
         "year": 2017,
         "price": 14000,
@@ -7349,7 +7349,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 306,
+        "_rank": 308,
         "mileage": 133357,
         "year": 2019,
         "price": 14390,
@@ -7367,7 +7367,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1154,
+        "_rank": 1153,
         "mileage": 129957,
         "year": 2018,
         "price": 14399,
@@ -7376,7 +7376,7 @@
         "portal": "autohero"
       },
       {
-        "_rank": 1093,
+        "_rank": 1092,
         "mileage": 115000,
         "year": 2021,
         "price": 14400,
@@ -7466,7 +7466,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 894,
+        "_rank": 893,
         "mileage": 137440,
         "year": 2023,
         "price": 14480,
@@ -7547,7 +7547,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 269,
+        "_rank": 270,
         "mileage": 104064,
         "year": 2015,
         "price": 14490,
@@ -7592,7 +7592,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 255,
+        "_rank": 251,
         "mileage": 119289,
         "year": 2021,
         "price": 14490,
@@ -7655,7 +7655,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 210,
+        "_rank": 213,
         "mileage": 77000,
         "year": 2018,
         "price": 14500,
@@ -7709,7 +7709,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 525,
+        "_rank": 524,
         "mileage": 168000,
         "year": 2017,
         "price": 14500,
@@ -8033,7 +8033,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 900,
+        "_rank": 899,
         "mileage": 96132,
         "year": 2022,
         "price": 14790,
@@ -8078,7 +8078,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 247,
+        "_rank": 246,
         "mileage": 91793,
         "year": 2021,
         "price": 14800,
@@ -8132,7 +8132,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 866,
+        "_rank": 867,
         "mileage": 98200,
         "year": 2018,
         "price": 14890,
@@ -8195,7 +8195,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 899,
+        "_rank": 900,
         "mileage": 110990,
         "year": 2022,
         "price": 14899,
@@ -8231,7 +8231,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 220,
+        "_rank": 215,
         "mileage": 131900,
         "year": 2016,
         "price": 14900,
@@ -8258,7 +8258,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 875,
+        "_rank": 876,
         "mileage": 144204,
         "year": 2018,
         "price": 14950,
@@ -8393,15 +8393,6 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 251,
-        "mileage": 123376,
-        "year": 2021,
-        "price": 14970,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
         "_rank": 252,
         "mileage": 123376,
         "year": 2021,
@@ -8421,6 +8412,15 @@
       },
       {
         "_rank": 254,
+        "mileage": 123376,
+        "year": 2021,
+        "price": 14970,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 255,
         "mileage": 123376,
         "year": 2021,
         "price": 14970,
@@ -8510,7 +8510,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 867,
+        "_rank": 866,
         "mileage": 110925,
         "year": 2022,
         "price": 14990,
@@ -8528,7 +8528,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 883,
+        "_rank": 884,
         "mileage": 122767,
         "year": 2017,
         "price": 14990,
@@ -8555,7 +8555,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1207,
+        "_rank": 1208,
         "mileage": 47800,
         "year": 2016,
         "price": 14999,
@@ -8582,7 +8582,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1153,
+        "_rank": 1154,
         "mileage": 150663,
         "year": 2021,
         "price": 15099,
@@ -8735,7 +8735,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1482,
+        "_rank": 1485,
         "mileage": 133367,
         "year": 2022,
         "price": 15364,
@@ -8780,7 +8780,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1485,
+        "_rank": 1483,
         "mileage": 82700,
         "year": 2021,
         "price": 15446,
@@ -9032,7 +9032,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 824,
+        "_rank": 826,
         "mileage": 135641,
         "year": 2023,
         "price": 15499,
@@ -9077,7 +9077,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 846,
+        "_rank": 845,
         "mileage": 103951,
         "year": 2023,
         "price": 15550,
@@ -9095,7 +9095,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 148,
+        "_rank": 146,
         "mileage": 122691,
         "year": 2022,
         "price": 15600,
@@ -9455,7 +9455,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 146,
+        "_rank": 147,
         "mileage": 63704,
         "year": 2022,
         "price": 15790,
@@ -9464,7 +9464,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 147,
+        "_rank": 148,
         "mileage": 63704,
         "year": 2022,
         "price": 15790,
@@ -9527,7 +9527,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 834,
+        "_rank": 835,
         "mileage": 107000,
         "year": 2017,
         "price": 15800,
@@ -9743,7 +9743,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1451,
+        "_rank": 1452,
         "mileage": 64669,
         "year": 2023,
         "price": 15890,
@@ -9752,7 +9752,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1452,
+        "_rank": 1453,
         "mileage": 64669,
         "year": 2023,
         "price": 15890,
@@ -9797,7 +9797,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 114,
+        "_rank": 115,
         "mileage": 94864,
         "year": 2021,
         "price": 15890,
@@ -9860,7 +9860,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 120,
+        "_rank": 122,
         "mileage": 94864,
         "year": 2021,
         "price": 15900,
@@ -9905,7 +9905,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 104,
+        "_rank": 103,
         "mileage": 107181,
         "year": 2020,
         "price": 15900,
@@ -9977,7 +9977,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 63,
+        "_rank": 64,
         "mileage": 149000,
         "year": 2021,
         "price": 15900,
@@ -9995,7 +9995,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 845,
+        "_rank": 846,
         "mileage": 91177,
         "year": 2023,
         "price": 15970,
@@ -10256,7 +10256,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 95,
+        "_rank": 93,
         "mileage": 94711,
         "year": 2022,
         "price": 16090,
@@ -10292,7 +10292,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 744,
+        "_rank": 746,
         "mileage": 94711,
         "year": 2022,
         "price": 16090,
@@ -10328,7 +10328,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 115,
+        "_rank": 114,
         "mileage": 119062,
         "year": 2021,
         "price": 16090,
@@ -10346,7 +10346,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 119,
+        "_rank": 121,
         "mileage": 119062,
         "year": 2021,
         "price": 16100,
@@ -10400,7 +10400,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1483,
+        "_rank": 1482,
         "mileage": 63728,
         "year": 2021,
         "price": 16190,
@@ -10409,7 +10409,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 103,
+        "_rank": 104,
         "mileage": 110537,
         "year": 2017,
         "price": 16204,
@@ -10436,7 +10436,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1453,
+        "_rank": 1451,
         "mileage": 124034,
         "year": 2018,
         "price": 16250,
@@ -10490,7 +10490,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1075,
+        "_rank": 1072,
         "mileage": 69166,
         "year": 2021,
         "price": 16300,
@@ -10643,6 +10643,24 @@
         "portal": "autoscout24"
       },
       {
+        "_rank": 1424,
+        "mileage": 70224,
+        "year": 2023,
+        "price": 16470,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 1425,
+        "mileage": 70224,
+        "year": 2023,
+        "price": 16470,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
         "_rank": 1426,
         "mileage": 70224,
         "year": 2023,
@@ -10671,24 +10689,6 @@
       },
       {
         "_rank": 1429,
-        "mileage": 70224,
-        "year": 2023,
-        "price": 16470,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 1430,
-        "mileage": 70224,
-        "year": 2023,
-        "price": 16470,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 1431,
         "mileage": 70224,
         "year": 2023,
         "price": 16470,
@@ -10796,7 +10796,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1073,
+        "_rank": 1075,
         "mileage": 75692,
         "year": 2021,
         "price": 16500,
@@ -10832,7 +10832,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1490,
+        "_rank": 1491,
         "mileage": 63569,
         "year": 2022,
         "price": 16546,
@@ -10895,7 +10895,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 121,
+        "_rank": 120,
         "mileage": 94711,
         "year": 2022,
         "price": 16600,
@@ -10904,7 +10904,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1070,
+        "_rank": 1073,
         "mileage": 94711,
         "year": 2022,
         "price": 16600,
@@ -10922,7 +10922,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1424,
+        "_rank": 1430,
         "mileage": 76950,
         "year": 2023,
         "price": 16690,
@@ -10931,7 +10931,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1425,
+        "_rank": 1431,
         "mileage": 76950,
         "year": 2023,
         "price": 16690,
@@ -11264,7 +11264,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1182,
+        "_rank": 1183,
         "mileage": 58318,
         "year": 2019,
         "price": 16890,
@@ -11363,7 +11363,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 64,
+        "_rank": 63,
         "mileage": 149000,
         "year": 2022,
         "price": 16900,
@@ -11381,7 +11381,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 835,
+        "_rank": 834,
         "mileage": 67549,
         "year": 2022,
         "price": 16980,
@@ -11408,7 +11408,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1380,
+        "_rank": 1381,
         "mileage": 73152,
         "year": 2022,
         "price": 16985,
@@ -11426,7 +11426,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 564,
+        "_rank": 565,
         "mileage": 45754,
         "year": 2021,
         "price": 16990,
@@ -11543,7 +11543,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 565,
+        "_rank": 564,
         "mileage": 102109,
         "year": 2021,
         "price": 16990,
@@ -11633,7 +11633,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 93,
+        "_rank": 94,
         "mileage": 74857,
         "year": 2022,
         "price": 17100,
@@ -11642,7 +11642,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 94,
+        "_rank": 95,
         "mileage": 74857,
         "year": 2022,
         "price": 17100,
@@ -11669,7 +11669,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 122,
+        "_rank": 119,
         "mileage": 74857,
         "year": 2022,
         "price": 17100,
@@ -11678,7 +11678,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 746,
+        "_rank": 744,
         "mileage": 74857,
         "year": 2022,
         "price": 17100,
@@ -11705,7 +11705,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 1072,
+        "_rank": 1070,
         "mileage": 63103,
         "year": 2021,
         "price": 17200,
@@ -11759,7 +11759,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 1491,
+        "_rank": 1490,
         "mileage": 63543,
         "year": 2022,
         "price": 17296,
@@ -11930,7 +11930,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1183,
+        "_rank": 1182,
         "mileage": 76500,
         "year": 2021,
         "price": 17390,
@@ -12074,7 +12074,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 827,
+        "_rank": 828,
         "mileage": 55293,
         "year": 2022,
         "price": 17690,
@@ -12218,7 +12218,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1381,
+        "_rank": 1380,
         "mileage": 117000,
         "year": 2017,
         "price": 17900,
@@ -12245,7 +12245,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 826,
+        "_rank": 824,
         "mileage": 56578,
         "year": 2021,
         "price": 17950,
@@ -12407,7 +12407,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 828,
+        "_rank": 827,
         "mileage": 106109,
         "year": 2022,
         "price": 17990,
@@ -12902,7 +12902,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1297,
+        "_rank": 1298,
         "mileage": 44000,
         "year": 2020,
         "price": 19000,
@@ -13118,7 +13118,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1300,
+        "_rank": 1301,
         "mileage": 61281,
         "year": 2021,
         "price": 19537,
@@ -13235,7 +13235,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1298,
+        "_rank": 1297,
         "mileage": 1960,
         "year": 2023,
         "price": 19985,
@@ -13316,7 +13316,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1356,
+        "_rank": 1355,
         "mileage": 64000,
         "year": 2022,
         "price": 20400,
@@ -13712,7 +13712,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 1301,
+        "_rank": 1300,
         "mileage": 7953,
         "year": 2022,
         "price": 21810,
@@ -13748,7 +13748,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1355,
+        "_rank": 1356,
         "mileage": 65818,
         "year": 2022,
         "price": 21819,
@@ -13811,7 +13811,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1285,
+        "_rank": 1286,
         "mileage": 96471,
         "year": 2018,
         "price": 22954,
@@ -13883,7 +13883,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 1286,
+        "_rank": 1285,
         "mileage": 96471,
         "year": 2018,
         "price": 23334,
@@ -14001,17 +14001,17 @@
       }
     ]
   },
-  "referenceDate": "2026-07-24T12:29:27.461Z",
+  "referenceDate": "2026-07-24T12:41:25.347Z",
   "expected": {
-    "priceOptimal": 16326,
-    "priceLow": 14213,
-    "priceHigh": 18118,
+    "priceOptimal": 15207,
+    "priceLow": 13080,
+    "priceHigh": 17923,
     "confidence": 88,
-    "comparables": 383,
+    "comparables": 397,
     "usedFallback": false,
     "damageFactor": 0.97,
-    "usageImpact": 1751,
-    "usageUsedDefault": true,
+    "usageImpact": 1631,
+    "usageUsedDefault": false,
     "colorAdjFactor": 1,
     "colorAdjPct": 0,
     "ownerAdjFactor": 1.03,

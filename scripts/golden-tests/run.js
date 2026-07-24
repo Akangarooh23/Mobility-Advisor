@@ -18,6 +18,7 @@ const path = require("path");
 
 const { buildReportData }    = require("../../lib/sellReportGenerator");
 const { computeUsageImpact } = require("../../lib/inventoryStore");
+const { selectBalancedPool } = require("../../lib/poolProximity");
 
 const VEHICLES_FILE = path.join(__dirname, "vehicles.json");
 const FIXTURES_DIR  = path.join(__dirname, "fixtures");
@@ -110,13 +111,19 @@ function main() {
     let national = fixture.national;
     if (Array.isArray(national._pool) && national._pool.length > 0) {
       const medianPrice = national.market?.median ?? 0;
-      // Reproducir el pool de producción: sort por _rank (posición en updated_at DESC)
-      // y cortar a POOL_COMPUTE_LIMIT antes de llamar a computeUsageImpact.
-      // Esto garantiza 0 DRIFT: el mismo slice que usó capture.js en vivo.
-      const POOL_COMPUTE_LIMIT = 400;
-      const replayPool = [...national._pool]
-        .sort((a, b) => (a._rank ?? 0) - (b._rank ?? 0))
-        .slice(0, POOL_COMPUTE_LIMIT);
+      // §1h: reproducir balance por año (idéntico al path de producción).
+      // _pool se almacena ordenado por price/mileage/year/_rank para diffs limpios.
+      // Restaurar el orden original (_rank = posición en listInventoryOffers score-DESC)
+      // antes de selectBalancedPool — useProximity=false hace el orden sensible al input.
+      const candidates = national._pool
+        .filter((o) => o.mileage >= 500 && Number.isFinite(o.year) && o.year > 0
+                      && Number.isFinite(o.price) && o.price > 0)
+        .sort((a, b) => (a._rank ?? 0) - (b._rank ?? 0));
+      const { pool: replayPool } = selectBalancedPool(
+        candidates,
+        { km: fixture.vehicle.mileage, year: fixture.vehicle.year },
+        { balance: true, kmKey: "mileage", yearKey: "year" }
+      );
       const { usageImpact, usedDefault: usageUsedDefault, slopeKm, slopeYear } =
         computeUsageImpact(replayPool, fixture.vehicle.mileage, fixture.vehicle.year,
                            medianPrice, "price", fixture.vehicle.brand);

@@ -94,7 +94,7 @@
     {
       "id": "damage-leon-leve",
       "branch": "damage",
-      "desc": "Leon con daño leve — damageFactor debe ser 0.97",
+      "desc": "Leon con daño leve — damageFactor debe ser 0.97. NOTA: este fixture NO aísla el daño a nivel de precio: owners='1' (ownerAdj=1.03) casi cancela el daño (df=0.97), efectiveFactor≈0.9991. El par Golf (ambos owners='1') es el medidor de impacto de daño. Este fixture solo verifica que el campo damageFactor=0.97 queda registrado.",
       "vehicle": {
         "brand": "Seat", "model": "Leon", "version": "FR",
         "year": 2019, "mileage": 70000, "fuel": "Diesel",
@@ -130,8 +130,8 @@
     },
     {
       "id": "nlow-abarth",
-      "branch": "n_low",
-      "desc": "Abarth 595 — marca nicho en BD española, 4 anuncios activos en primera captura",
+      "branch": "common",
+      "desc": "Abarth 595 — originalmente n_low (4 en primera captura); tras crecimiento de BD y §1g_año (year±4 duro) pasó a n=317/common. Mantiene cobertura de marca nicho aunque la rama cambió.",
       "vehicle": {
         "brand": "Abarth", "model": "595", "version": "",
         "year": 2020, "mileage": 25000, "fuel": "Gasolina",
@@ -142,8 +142,8 @@
     },
     {
       "id": "nlow-maserati-ghibli",
-      "branch": "n_low",
-      "desc": "Maserati Ghibli 2018 Diesel — n=4 tras relax transmission; n<15 tiene prioridad sobre cascade_relaxed",
+      "branch": "cascade_relaxed",
+      "desc": "Maserati Ghibli 2018 Diesel — originalmente n_low (n=4); tras crecimiento de BD y §1g_año pasó a n=94/cascade_relaxed (transmission relajada). Cubre segmento premium con cascade.",
       "vehicle": {
         "brand": "Maserati", "model": "Ghibli", "version": "",
         "year": 2018, "mileage": 60000, "fuel": "Diesel",

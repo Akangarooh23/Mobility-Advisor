@@ -104,11 +104,15 @@ async function withDb(fn) {
   const dueCond = DUE_HOURS > 0
     ? `AND (last_checked_at IS NULL OR last_checked_at < NOW() - INTERVAL '${DUE_HOURS} hours')`
     : '';
-  // Excluidos: flexicar (verificador propio) y autoscout24 (anti-bot: bloquea el
-  // check por URL ~98% -> su is_active lo gobierna el umbral de last_seen, no la URL).
+  // Excluido: autoscout24 (anti-bot bloquea el check por URL ~98% -> su is_active lo
+  // gobierna el umbral de last_seen). Flexicar SÍ se verifica aquí (su URL funciona y
+  // su verificador propio solo miraba activas, dejando falsos inactivos sin corregir).
+  // PORTAL (env, opcional) = verificar solo ese portal (para arreglos puntuales).
+  const PORTAL = (process.env.PORTAL || "").replace(/[^a-z0-9]/gi, "");
+  const portalCond = PORTAL ? `AND portal = '${PORTAL}'` : `AND portal <> 'autoscout24'`;
   const rows = await withDb((c) => c.query(
     `SELECT id, url, portal FROM moveadvisor_market_offers
-     WHERE COALESCE(url,'') <> '' AND portal NOT IN ('flexicar','autoscout24') ${dueCond}
+     WHERE COALESCE(url,'') <> '' ${portalCond} ${dueCond}
      ORDER BY last_checked_at ASC NULLS FIRST
      LIMIT $1`, [BATCH]).then((r) => r.rows));
   console.log(`${DRY_RUN ? "[DRY-RUN] " : ""}Verificando ${rows.length} ofertas (por dominio, ${PER_DOMAIN}/portal)...`);

@@ -467,18 +467,38 @@ Para BMW X2 Híbrido: 6 ofertas con `fuel='Híbrido'` explícito + 506 con `fuel
 
 ---
 
-**Siguiente paso — inferencia de combustible desde texto de versión (§1g_combustible.2):**
+**§1g_combustible.2 — inferencia de combustible desde texto de versión: IMPLEMENTADA (pendiente commit)**
 
-El filtro activo cubre contaminación declarada. Para cubrir el 46% de Autocasion sin dato, inferir el combustible de la columna `version` cuando `fuel=""`. Sin coste de cobertura — las ofertas sin dato que coincidan con el combustible del sujeto siguen en el pool; las que no coincidan se excluyen:
+**Implementación:** `lib/inferFuelFromVersion.js` (nuevo) + `lib/inventoryStore.js` línea 1251.
 
-```
-TDI, HDi, dCi, CDTi, BlueHDi, Blue dCi         → Diesel
-TSI, TFSI, THP, GTI, GTe (sin PHEV), Turbo      → Gasolina
-PHEV, e-TSI, Plug-in, 300h, 450h, Hybrid, HEV   → Híbrido
-BEV, EV, e-tron, i3, ID., ZOE, Leaf             → Eléctrico
-```
+**Decisión de despliegue: condicional por sujeto.** La inferencia solo dispara cuando el sujeto es `gasolina` o `diesel`. Para `hibrido`, `hibrido enchufable` y `electrico` el sujeto mantiene "sin dato = pasa".
 
-Autocasion tiene 46% sin dato — la inferencia recuperará la mayoría. Las ofertas sin dato que no resuelvan (versión genérica sin token reconocible) siguen con "sin dato = pasa", mismo comportamiento que hoy. Auditoría de cobertura ya hecha: Autocasion 46,3%, Clicars 21,1% — umbral de huecos superado, inferencia justificada.
+**Métrica de decisión correcta: tasa de exclusión falsa** (no precisión del token). La precisión del token inferido es informativa pero no predice el daño. Las dos clases de error bajo gating:
+- **Benigna:** oferta verdad=híbrido, inferida=gasolina → pasa, igual que "sin dato = pasa" hoy. Sin regresión.
+- **Dañina:** oferta verdad=gasolina/diesel, inferida=hibrido/enchufable/electrico → excluida cuando hoy pasaría. Pérdida silenciosa de comparables.
+
+Los errores dañinos viven en los grupos híbrido/enchufable/eléctrico (no en gasolina/diesel como se asumió inicialmente). La métrica es: de todas las ofertas cuya etiqueta real incluye el sujeto, ¿qué fracción excluiría la inferencia?
+
+**Resultado tras tuning (validación sobre 105.537 ofertas etiquetadas):**
+
+| Sujeto | Total en pool | Exclusiones falsas | Tasa | Umbral |
+|---|---|---|---|---|
+| gasolina | 58.280 | 189 | 0,32% | <0,50% ✓ |
+| diesel | 28.843 | 44 | 0,15% | <0,50% ✓ |
+
+**Tres fixes aplicados al descubrir las causas:**
+1. `Mild Hybrid` / `Mild-Hybrid` → grupo AMBIGUOUS (antes disparaban HEV→"hibrido" para ofertas etiquetadas "Gasolina"/"Diesel")
+2. `Micro Híbrido` (Renault 48V) → grupo AMBIGUOUS (mismo patrón)
+3. `\b\d+de\b` → `\b\d{3,}de\b` en PHEV: `"2.2DE"` (Mazda motor diésel) tenía word boundary tras el punto decimal y se clasificaba como PHEV Mercedes
+4. Orden evaluación: DIESEL antes de GASOLINE en la función — `"dCi 160 Twin Turbo"` disparaba "Turbo→gasolina" antes de llegar a dCi. Swap es seguro: ningún token gasolina (TSI, GTI, TFSI...) colisiona con patrones diésel.
+5. `polestar` → `polestar\s*[23456]`: Volvo V60/S60 "R-Design Polestar" (gasolina) se excluía como EV.
+
+**Exclusiones falsas residuales aceptadas (0.32% / 0.15%):**
+- Gasolina: "1.6 T-GDi HEV" (Kia Sportage) → inferred=hibrido; "N2008 Allure Hybrid 136" → inferred=hibrido. Portales que etiquetan full HEV como "Gasolina" por inconsistencia interna.
+- Diesel: "250 Híbrido VX" (Land Cruiser 250) → inferred=hibrido; "2.2 Skyactiv-D ... maletero eléctrico" → inferred=electrico por "electrico" como adjetivo del maletero. Ambos son errores de etiqueta de portal o features de texto libres.
+
+**BUG independiente — `"gas" ⊂ "gasolina"` en el comparador:**  
+`"gasolina".includes("gas") = true` → las ~852 ofertas con fuel="Gas" (LPG/GNC) en pools de gasolina. Preexistente, independiente de la inferencia. Fix requiere tabla de compatibilidad explícita (rompería el caso correcto `"hibrido".includes("hibrido enchufable")=true` si se cambia a igualdad). Commit separado con diseño propio.
 
 **Prerequisito:** ninguno. El filtro duro ya está activo. Este es un refinamiento de cobertura, no un fix de contaminación.
 

@@ -6971,6 +6971,7 @@ export default function App() {
           portalVoModels={portalVoModels}
           onUpdateBrandFilter={(brand) => setPortalVoFilters((prev) => ({ ...prev, brand, model: "" }))}
           onResetFilters={() => setPortalVoFilters({ ...INITIAL_PORTAL_VO_FILTERS })}
+          onCreateAlert={createMarketAlert}
           featuredPortalVoOffers={featuredPortalVoOffers}
           filteredPortalVoOffers={filteredPortalVoOffers}
           ResolvedOfferImage={ResolvedOfferImage}

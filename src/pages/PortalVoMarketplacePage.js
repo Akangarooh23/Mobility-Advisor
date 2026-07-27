@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
-import { getMarketplaceVoJson, getImportOffersJson } from "../utils/apiClient";
+import { getMarketplaceVoJson, getImportOffersJson, getVehicleCatalogJson } from "../utils/apiClient";
 
 function useWindowWidth() {
   const [width, setWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
@@ -47,6 +47,7 @@ export default function PortalVoMarketplacePage({
   reservedMarketplaceIds = new Set(),
   modalityMode = "compra",
   onModalityChange,
+  onCreateAlert,
 }) {
   const isDark = themeMode === "dark";
   const { t } = useTranslation();
@@ -56,6 +57,17 @@ export default function PortalVoMarketplacePage({
   const [viewingForm, setViewingForm] = useState({ name: "", email: "", message: "" });
   const [viewingState, setViewingState] = useState({}); // { [offerId]: 'sent' | 'error' | 'sending' }
   const [compraTab, setCompraTab] = useState("concesionarios");
+  // Catálogo completo (todas las marcas/modelos) para los desplegables — así se puede
+  // filtrar/alertar por una marca aunque no haya stock ahora mismo.
+  const [catalogBrands, setCatalogBrands] = useState([]); // [{ name, models: [] }]
+  const [alertSent, setAlertSent] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    getVehicleCatalogJson()
+      .then(({ data }) => { if (!cancelled) setCatalogBrands(Array.isArray(data?.brands) ? data.brands : []); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
   const [concesionariosOffers, setConcesionariosOffers] = useState([]);
   const [concesionariosTotal, setConcesionariosTotal] = useState(0);
   const [concesionariosLoading, setConcesionariosLoading] = useState(false);
@@ -78,6 +90,8 @@ export default function PortalVoMarketplacePage({
       .finally(() => { if (!cancelled) setImportLoading(false); });
     return () => { cancelled = true; };
   }, [compraTab]);
+  // Al cambiar los filtros, volver a la página 1 (los concesionarios se filtran en servidor).
+  useEffect(() => { setConcesionariosPage(0); setAlertSent(false); }, [portalVoFilters]);
   useEffect(() => {
     if (compraTab !== "concesionarios") return;
     let cancelled = false;
@@ -87,6 +101,20 @@ export default function PortalVoMarketplacePage({
       limit: 15,
       offset: concesionariosPage * 15,
       modalityMode: "compra",
+      // Filtros: el fetch de concesionarios los aplica en SERVIDOR (está paginado 15/pág,
+      // no se puede filtrar en cliente). El handler soporta todos estos.
+      query:          portalVoFilters.query,
+      brand:          portalVoFilters.brand,
+      model:          portalVoFilters.model,
+      maxPrice:       portalVoFilters.maxPrice,
+      minYear:        portalVoFilters.minYear,
+      maxMileage:     portalVoFilters.maxMileage,
+      location:       portalVoFilters.location,
+      color:          portalVoFilters.color,
+      fuel:           portalVoFilters.fuel,
+      displacement:   portalVoFilters.displacement,
+      onlyGuaranteed: portalVoFilters.onlyGuaranteed,
+      sort:           portalVoFilters.sort,
     }).then(({ data }) => {
       if (cancelled) return;
       const offers = Array.isArray(data?.offers) ? data.offers : [];
@@ -100,11 +128,21 @@ export default function PortalVoMarketplacePage({
       setConcesionariosLoading(false);
     });
     return () => { cancelled = true; };
-  }, [compraTab, concesionariosPage]);
+  }, [compraTab, concesionariosPage, portalVoFilters]);
   const titleColor = isDark ? "#f1f5f9" : "#0f172a";
   const bodyColor = isDark ? "#94a3b8" : "#475569";
   const cardBg = isDark ? "rgba(15,23,42,0.34)" : "rgba(255,255,255,0.96)";
   const cardBorder = isDark ? "1px solid rgba(148,163,184,0.16)" : "1px solid rgba(148,163,184,0.26)";
+
+  // Opciones de marca/modelo: catálogo completo si cargó; si no, las del pool cargado.
+  const normStr = (s) => String(s || "").trim().toLowerCase();
+  const brandOptions = catalogBrands.length ? catalogBrands.map((b) => b.name) : portalVoBrands;
+  const modelOptions = (() => {
+    if (!portalVoFilters.brand) return portalVoModels;
+    const found = catalogBrands.find((b) => normStr(b.name) === normStr(portalVoFilters.brand));
+    const catModels = found ? found.models : [];
+    return catModels.length ? [...new Set([...catModels, ...portalVoModels])] : portalVoModels;
+  })();
 
   const isRenting = modalityMode === "renting";
 
@@ -142,6 +180,27 @@ export default function PortalVoMarketplacePage({
   const effectiveLoadingOffers = isConcesionarios ? concesionariosLoading : loadingOffers;
   const effectiveCurrentPage = isConcesionarios ? concesionariosPage : currentPage;
   const effectiveGoToPage = isConcesionarios ? setConcesionariosPage : onGoToPage;
+
+  // "Generar alerta": cuando una búsqueda con marca/modelo no da resultados.
+  const currentOffersCount = compraTab === "importacion" ? importOffers.length : modeOffers.length;
+  const hasSpecificFilter = Boolean(portalVoFilters.brand || portalVoFilters.model || portalVoFilters.query);
+  const showAlertCta = !effectiveLoadingOffers && !importLoading && currentOffersCount === 0 && hasSpecificFilter;
+  const handleGenerarAlerta = () => {
+    if (typeof onCreateAlert !== "function") return;
+    // notifyByEmail:true -> si está logueado, la crea con su email; si no, devuelve null.
+    const created = onCreateAlert({
+      mode: isRenting ? "renting" : "compra",
+      brand: portalVoFilters.brand || "",
+      model: portalVoFilters.model || "",
+      maxPrice: portalVoFilters.maxPrice || "",
+      maxMileage: portalVoFilters.maxMileage || "",
+      fuel: portalVoFilters.fuel || "",
+      location: portalVoFilters.location || "",
+      color: portalVoFilters.color || "",
+      notifyByEmail: true,
+    });
+    setAlertSent(created ? "ok" : "login");
+  };
 
   return (
     <div style={styles.center}>
@@ -432,7 +491,7 @@ export default function PortalVoMarketplacePage({
             style={styles.select}
           >
             <option value="">Marca</option>
-            {portalVoBrands.map((b) => <option key={b} value={b}>{b}</option>)}
+            {brandOptions.map((b) => <option key={b} value={b}>{b}</option>)}
           </select>
           <select
             value={portalVoFilters.model}
@@ -441,7 +500,7 @@ export default function PortalVoMarketplacePage({
             disabled={!portalVoFilters.brand}
           >
             <option value="">Modelo</option>
-            {portalVoModels.map((m) => <option key={m} value={m}>{m}</option>)}
+            {modelOptions.map((m) => <option key={m} value={m}>{m}</option>)}
           </select>
           <select
             value={portalVoFilters.maxPrice}
@@ -570,6 +629,45 @@ export default function PortalVoMarketplacePage({
           </div>
         </div>
       </div>
+
+      {showAlertCta && (
+        <div style={{
+          ...styles.panel, marginBottom: 18, textAlign: "center", padding: "24px 20px",
+          border: `1px dashed ${isDark ? "rgba(96,165,250,0.45)" : "rgba(37,99,235,0.35)"}`,
+        }}>
+          <div style={{ fontSize: 30, marginBottom: 8 }}>🔔</div>
+          <div style={{ fontSize: 15, fontWeight: 800, color: isDark ? "#f1f5f9" : "#0f172a", marginBottom: 6 }}>
+            No hay ofertas para esta búsqueda
+          </div>
+          <div style={{ fontSize: 13, color: bodyColor, maxWidth: 440, margin: "0 auto 14px", lineHeight: 1.6 }}>
+            {(portalVoFilters.brand || portalVoFilters.model)
+              ? `No encontramos ${[portalVoFilters.brand, portalVoFilters.model].filter(Boolean).join(" ")} ahora mismo. Crea una alerta y te avisamos en cuanto aparezca.`
+              : "Crea una alerta con esta búsqueda y te avisamos en cuanto entre algo que encaje."}
+          </div>
+          {alertSent === "ok" ? (
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#059669" }}>✓ Alerta creada — te avisaremos por email</div>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={handleGenerarAlerta}
+                style={{
+                  background: "linear-gradient(135deg,#2563eb,#1d4ed8)", border: "none", color: "#fff",
+                  padding: "12px 22px", borderRadius: 12, fontSize: 13, fontWeight: 800, cursor: "pointer",
+                  boxShadow: "0 10px 24px rgba(37,99,235,0.2)",
+                }}
+              >
+                🔔 Generar alerta
+              </button>
+              {alertSent === "login" && (
+                <div style={{ marginTop: 10, fontSize: 12, color: "#b45309", fontWeight: 600 }}>
+                  Inicia sesión para guardar la alerta y recibir el aviso por email.
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 10, color: isDark ? "#6ee7b7" : "#059669", marginBottom: 8, fontWeight: 800, letterSpacing: "0.6px" }}>

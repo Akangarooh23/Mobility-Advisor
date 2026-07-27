@@ -28,3 +28,19 @@ yarn-error.log*
 /ofertas-mercado-*.xlsx
 # Fichero basura de redirects Windows (> nul)
 nul
+
+# Datos OSM crudos (>1 GB, no versionables)
+*.pbf
+
+# Archivos lock de Office (documento abierto)
+~$*
+
+# Logs y temporales de scripts
+tmp_*.log
+
+# Configuración local de Claude Code
+.claude/settings.local.json
+
+# Directorios ERP con node_modules propios
+carswise-erp-backoffice/node_modules/
+carswise-erp-backoffice-review/

@@ -202,12 +202,15 @@ export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selec
       const matchesYear     = !filters.minYear || Number(offer.year || 0) >= Number(filters.minYear);
       const matchesMileage  = !filters.maxMileage || Number(offer.mileage || 0) <= Number(filters.maxMileage);
       const matchesLocation = !filters.location || normalizeText(offer.location) === normalizeText(filters.location);
-      const matchesColor    = !filters.color || normalizeText(offer.color) === normalizeText(filters.color);
+      // "sin dato = pasa": las ofertas sin color no se excluyen al filtrar por color.
+      const matchesColor    = !filters.color || !normalizeText(offer.color) || normalizeText(offer.color) === normalizeText(filters.color);
       const matchesFuel         = !filters.fuel         || normalizeText(offer.fuel)         === normalizeText(filters.fuel);
       const matchesTransmission = !filters.transmission || normalizeText(offer.transmission) === normalizeText(filters.transmission);
+      const hasDisplacement = offer.displacement !== null && offer.displacement !== undefined && offer.displacement !== "";
       const displacement = Number(offer.displacement || 0);
       const matchesDisplacement =
         !filters.displacement ||
+        !hasDisplacement ||
         (filters.displacement === "electric" && displacement === 0) ||
         (filters.displacement === "0_1200" && displacement > 0 && displacement <= 1200) ||
         (filters.displacement === "1200_1600" && displacement > 1200 && displacement <= 1600) ||

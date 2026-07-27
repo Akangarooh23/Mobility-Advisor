@@ -21,10 +21,18 @@ export const MARKETPLACE_VO_API_ENDPOINT = `${API_BASE}/api/marketplace-vo`;
 export const IMPORT_OFFERS_API_ENDPOINT = `${API_BASE}/api/import-offers`;
 
 export function getImportOffersJson(params = {}, options = {}) {
-  const { limit = 60, offset = 0, brand = "", query = "" } = params;
+  const { limit = 60, offset = 0, brand = "", query = "", model = "", maxPrice = "", minYear = "", maxMileage = "", fuel = "", color = "", transmission = "", displacement = "" } = params;
   const qs = new URLSearchParams({ limit: String(limit || 60), offset: String(offset || 0) });
-  if (brand) qs.set("brand", String(brand));
-  if (query) qs.set("query", String(query));
+  if (brand)        qs.set("brand", String(brand));
+  if (query)        qs.set("query", String(query));
+  if (model)        qs.set("model", String(model));
+  if (maxPrice)     qs.set("maxPrice", String(maxPrice));
+  if (minYear)      qs.set("minYear", String(minYear));
+  if (maxMileage)   qs.set("maxMileage", String(maxMileage));
+  if (fuel)         qs.set("fuel", String(fuel));
+  if (color)        qs.set("color", String(color));
+  if (transmission) qs.set("transmission", String(transmission));
+  if (displacement) qs.set("displacement", String(displacement));
   return getJson(`${IMPORT_OFFERS_API_ENDPOINT}?${qs.toString()}`, {
     endpointLabel: "import-offers",
     ...options,

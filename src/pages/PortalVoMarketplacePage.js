@@ -80,7 +80,19 @@ export default function PortalVoMarketplacePage({
     if (compraTab !== "importacion") return;
     let cancelled = false;
     setImportLoading(true);
-    getImportOffersJson({ limit: 60 })
+    getImportOffersJson({
+      limit: 60,
+      query:        portalVoFilters.query,
+      brand:        portalVoFilters.brand,
+      model:        portalVoFilters.model,
+      maxPrice:     portalVoFilters.maxPrice,
+      minYear:      portalVoFilters.minYear,
+      maxMileage:   portalVoFilters.maxMileage,
+      fuel:         portalVoFilters.fuel,
+      color:        portalVoFilters.color,
+      transmission: portalVoFilters.transmission,
+      displacement: portalVoFilters.displacement,
+    })
       .then(({ data }) => {
         if (cancelled) return;
         setImportOffers(Array.isArray(data?.offers) ? data.offers : []);
@@ -89,7 +101,7 @@ export default function PortalVoMarketplacePage({
       .catch(() => { if (!cancelled) { setImportOffers([]); setImportTotal(0); } })
       .finally(() => { if (!cancelled) setImportLoading(false); });
     return () => { cancelled = true; };
-  }, [compraTab]);
+  }, [compraTab, portalVoFilters]);
   // Al cambiar los filtros, volver a la página 1 (los concesionarios se filtran en servidor).
   useEffect(() => { setConcesionariosPage(0); setAlertSent(false); }, [portalVoFilters]);
   useEffect(() => {
@@ -471,7 +483,7 @@ export default function PortalVoMarketplacePage({
       )}
 
       {/* Filters + offers grid */}
-      {(isRenting || compraTab === "renting_empresa" || compraTab === "particulares" || compraTab === "concesionarios") && (
+      {(isRenting || compraTab === "renting_empresa" || compraTab === "particulares" || compraTab === "concesionarios" || compraTab === "importacion") && (
       <>
 
       <div style={{ ...styles.panel, marginBottom: 18 }}>
@@ -669,6 +681,7 @@ export default function PortalVoMarketplacePage({
         </div>
       )}
 
+      {compraTab !== "importacion" && (<>
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 10, color: isDark ? "#6ee7b7" : "#059669", marginBottom: 8, fontWeight: 800, letterSpacing: "0.6px" }}>
           {t("marketplace.featuredLabel")}
@@ -922,6 +935,7 @@ export default function PortalVoMarketplacePage({
           </div>
         )}
       </div>
+      </>)}
 
       </> )}
 

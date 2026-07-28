@@ -356,7 +356,7 @@ export default function PortalVoDetailPage({
             )}
           </div>
 
-          <div>
+          <div style={isImport ? { display: "flex", flexDirection: "column", alignSelf: "stretch" } : undefined}>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
               <span style={getOfferBadgeStyle(selectedPortalVoOffer.hasGuaranteeSeal ? "green" : "slate")}>
                 {selectedPortalVoOffer.hasGuaranteeSeal ? t("marketplace.guaranteeLabel", { months: selectedPortalVoOffer.warrantyMonths }) : t("marketplace.postedByUser")}
@@ -602,7 +602,7 @@ export default function PortalVoDetailPage({
               onClick={openReqModal}
               disabled={isRentingReserved}
               style={{
-                marginTop: 16,
+                marginTop: isImport ? "auto" : 16,
                 width: "100%",
                 padding: "14px 0",
                 background: isRentingReserved

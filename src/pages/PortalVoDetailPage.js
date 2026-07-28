@@ -638,16 +638,6 @@ export default function PortalVoDetailPage({
               precio={precioFinanciable}
               isDark={isDark}
               onCuotaChange={setCuotaMensual}
-              onSolicitar={() => {
-                trackFunnelEvent({
-                  event_type: "financiacion_preaprobacion",
-                  offer_id: selectedPortalVoOffer.id,
-                  offer_title: selectedPortalVoOffer.title,
-                  modality: isRentingOffer ? "renting" : "compra",
-                  section: "financiacion",
-                });
-                setReqModal(true);
-              }}
             />
           </div>
         )}

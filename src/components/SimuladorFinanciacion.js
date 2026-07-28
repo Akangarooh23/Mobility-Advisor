@@ -57,15 +57,38 @@ const pct = (n) =>
 
 /* ------------------------------------------------------------------ */
 
+/* ==================================================================
+ *  ⚙️  CONFIGURACIÓN DE FINANCIACIÓN  ⚙️
+ *  Único sitio a editar para cambiar los tipos en TODA la web.
+ *  - tinPorPlazo: TIN anual por PLAZO (en meses). La lista de plazos
+ *    del simulador son las CLAVES de este objeto: añade/quita plazos
+ *    aquí (p.ej. 120: 0.115 para 120 meses) y cambian los botones y su TIN.
+ *  - A más plazo, algo más caro (mercado VO España 2026).
+ * ================================================================== */
+export const TIPOS_FINANCIACION = {
+  tinPorPlazo: {
+    48: 0.0875, // 8,75 %
+    60: 0.0925, // 9,25 %  (plazo más habitual)
+    72: 0.0975, // 9,75 %
+    84: 0.1025, // 10,25 %
+    96: 0.1075, // 10,75 %
+  },
+  comisionAperturaPct: 0.025, // 2,5 % comisión de apertura
+  vfgPct: 0.30,               // 30 % cuota final aplazada (solo si se activa la casilla)
+  entradaPorDefectoPct: 0.20, // entrada sugerida al abrir (20 %)
+  entradaMaxPct: 0.75,        // tope del slider de entrada (75 %)
+  plazoPorDefecto: 60,        // plazo preseleccionado
+};
+
 export default function SimuladorFinanciacion({
   precio,
   isDark = false,
-  tinPorPlazo = { 48: 0.0845, 60: 0.0895, 72: 0.0925, 84: 0.0955, 96: 0.0985 },
-  comisionAperturaPct = 0.0125,
-  vfgPct = 0.32,
-  entradaPorDefectoPct = 0.2,
-  entradaMaxPct = 0.75,
-  plazoPorDefecto = 60,
+  tinPorPlazo = TIPOS_FINANCIACION.tinPorPlazo,
+  comisionAperturaPct = TIPOS_FINANCIACION.comisionAperturaPct,
+  vfgPct = TIPOS_FINANCIACION.vfgPct,
+  entradaPorDefectoPct = TIPOS_FINANCIACION.entradaPorDefectoPct,
+  entradaMaxPct = TIPOS_FINANCIACION.entradaMaxPct,
+  plazoPorDefecto = TIPOS_FINANCIACION.plazoPorDefecto,
   onSolicitar,
   onCuotaChange,
 }) {

@@ -8,8 +8,8 @@ import { readUserBillingProfile } from "../utils/storage";
 import SlotPicker from "../components/SlotPicker";
 import SimuladorFinanciacion, { TIPOS_FINANCIACION_IMPORTACION } from "../components/SimuladorFinanciacion";
 
-// Número de WhatsApp de CarsWise (formato internacional sin +). Cambiar por el real.
-const CARSWISE_WHATSAPP = "34600000000";
+// Número de WhatsApp de CarsWise (formato internacional sin +).
+const CARSWISE_WHATSAPP = "34684717736";
 
 function getAvailableDurations(offer) {
   if (offer.rentingPricesJson?.km_options) {

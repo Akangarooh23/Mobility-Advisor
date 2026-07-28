@@ -6941,6 +6941,13 @@ export default function App() {
             }
           }}
           onOpenRelatedOffer={openPortalVoOfferDetail}
+          onTasar={() => {
+            setEntryMode("sell");
+            if (typeof window !== "undefined") {
+              setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
+            }
+          }}
+          onCreateAlert={createMarketAlert}
           isReserved={
             (selectedPortalVoOffer?.url && reservedVoUrls.has(selectedPortalVoOffer.url)) ||
             (selectedPortalVoOffer?.id && reservedMarketplaceIds.has(selectedPortalVoOffer.id))

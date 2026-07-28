@@ -8,6 +8,9 @@ import { readUserBillingProfile } from "../utils/storage";
 import SlotPicker from "../components/SlotPicker";
 import SimuladorFinanciacion, { TIPOS_FINANCIACION_IMPORTACION } from "../components/SimuladorFinanciacion";
 
+// Número de WhatsApp de CarsWise (formato internacional sin +). Cambiar por el real.
+const CARSWISE_WHATSAPP = "34600000000";
+
 function getAvailableDurations(offer) {
   if (offer.rentingPricesJson?.km_options) {
     return ['24m','36m','48m','60m'].filter(d => {
@@ -61,6 +64,8 @@ export default function PortalVoDetailPage({
   onBackToMarketplace,
   onGoHome,
   onOpenRelatedOffer,
+  onTasar,
+  onCreateAlert,
   onLeadCreated,
   isReserved = false,
 }) {
@@ -86,6 +91,18 @@ export default function PortalVoDetailPage({
   const fianzaImport = Number(selectedPortalVoOffer.importDeposit) || 0;
   const mostrarFinanciacion = precioFinanciable > 0;
   const [cuotaMensual, setCuotaMensual] = useState(null);
+  const [savedAlert, setSavedAlert] = useState(false);
+  const whatsappHref = `https://wa.me/${CARSWISE_WHATSAPP}?text=${encodeURIComponent(`Hola, me interesa el ${selectedPortalVoOffer.title} por ${formatCurrency(precioFinanciable)}. ¿Sigue disponible?`)}`;
+  const handleGuardarAlerta = () => {
+    const created = onCreateAlert?.({
+      mode: isRentingOffer ? "renting" : "compra",
+      brand: selectedPortalVoOffer.brand,
+      model: selectedPortalVoOffer.model,
+      maxPrice: precioFinanciable || undefined,
+      notifyByEmail: true,
+    });
+    setSavedAlert(created ? "ok" : "login");
+  };
   const isRentingOffer = !!(selectedPortalVoOffer.rentingAvailable && !selectedPortalVoOffer.availableForPurchase);
   const isRentingReserved = isReserved && selectedPortalVoOffer.rentingAvailable && selectedPortalVoOffer.unitsAvailable <= 1 && !selectedPortalVoOffer.availableForPurchase;
   const [rentingDuration, setRentingDuration] = useState(() => {
@@ -623,6 +640,33 @@ export default function PortalVoDetailPage({
             >
               {isRentingReserved ? "Unidad reservada" : isImport ? "🌍 Solicitar importación" : !isRentingOffer ? "Solicitar visita" : "🔑 Solicitar esta oferta de renting"}
             </button>
+            {!isImport && !isRentingReserved && (
+              <>
+                <a
+                  href={whatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackFunnelEvent({ event_type: "whatsapp_click", offer_id: selectedPortalVoOffer.id, offer_title: selectedPortalVoOffer.title, modality: isRentingOffer ? "renting" : "compra", section: "detalle" })}
+                  style={{ display: "block", textAlign: "center", boxSizing: "border-box", marginTop: 10, width: "100%", padding: "12px 0", background: isDark ? "rgba(255,255,255,0.04)" : "#fff", border: isDark ? "1px solid rgba(255,255,255,0.14)" : "1px solid #cbd5e1", color: isDark ? "#e2e8f0" : "#0f172a", borderRadius: 12, fontSize: 13.5, fontWeight: 700, textDecoration: "none" }}
+                >
+                  💬 Preguntar por WhatsApp
+                </a>
+                <div style={{ marginTop: 8, textAlign: "center", fontSize: 11, color: isDark ? "#64748b" : "#94a3b8" }}>
+                  Sin registro · Respuesta en menos de 24 h
+                </div>
+                <button
+                  type="button"
+                  onClick={handleGuardarAlerta}
+                  style={{ marginTop: 10, width: "100%", background: "none", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, color: isDark ? "#5eead4" : "#137370", textDecoration: "underline", textUnderlineOffset: 2 }}
+                >
+                  {savedAlert === "ok"
+                    ? "✓ Te avisaremos si baja de precio"
+                    : savedAlert === "login"
+                    ? "Inicia sesión para activar el aviso"
+                    : "Guardar y avisarme si baja de precio"}
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -668,6 +712,53 @@ export default function PortalVoDetailPage({
                   }
                 : {})}
             />
+          </div>
+        )}
+
+        {!isImport && (
+          <div style={{ marginTop: 16, borderRadius: 14, border: "1.5px solid #EF9F27", background: isDark ? "rgba(186,117,23,0.08)" : "#fffdf8", padding: 18 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 14 }}>
+              <div style={{ flex: "1 1 240px" }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: titleColor }}>¿Y el coche que tienes ahora?</div>
+                <div style={{ fontSize: 12.5, color: bodyColor, lineHeight: 1.6, marginTop: 4 }}>
+                  Si buscas venderlo, te ayudamos. Te decimos lo que vale hoy en el mercado real, gratis y en 30 segundos.
+                </div>
+              </div>
+              <button type="button" onClick={onTasar} style={{ flexShrink: 0, padding: "11px 22px", borderRadius: 10, border: "none", background: "#BA7517", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+                Tasar mi coche
+              </button>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 20px", borderTop: "1px solid rgba(148,163,184,0.2)", marginTop: 14, paddingTop: 12 }}>
+              {["Sin registro", "Precio de venta y de tasación", "Sin compromiso de venta"].map((txt) => (
+                <span key={txt} style={{ fontSize: 11.5, color: bodyColor, display: "flex", alignItems: "center", gap: 5 }}>
+                  <span style={{ color: "#BA7517", fontWeight: 800 }}>✓</span> {txt}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {!isImport && relatedPortalVoOffers?.length > 0 && (
+          <div style={{ marginTop: 24 }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: titleColor, marginBottom: 12 }}>Otros que encajan con tu búsqueda</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(210px,1fr))", gap: 12 }}>
+              {relatedPortalVoOffers.slice(0, 6).map((rel) => (
+                <button
+                  key={rel.id}
+                  type="button"
+                  onClick={() => onOpenRelatedOffer?.(rel)}
+                  style={{ textAlign: "left", padding: 0, background: isDark ? "rgba(15,23,42,0.4)" : "#fff", border: "1px solid rgba(148,163,184,0.22)", borderRadius: 14, overflow: "hidden", cursor: "pointer" }}
+                >
+                  <ResolvedOfferImage offer={rel} alt={rel.title} style={{ width: "100%", height: 120, objectFit: "cover", display: "block" }} />
+                  <div style={{ padding: 10 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: titleColor, lineHeight: 1.35, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{rel.title}</div>
+                    <div style={{ fontSize: 11, color: bodyColor, marginTop: 4 }}>
+                      {[rel.year, rel.mileage != null ? `${Number(rel.mileage).toLocaleString("es-ES")} km` : null, formatCurrency(rel.salePrice ?? rel.price)].filter(Boolean).join(" · ")}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>

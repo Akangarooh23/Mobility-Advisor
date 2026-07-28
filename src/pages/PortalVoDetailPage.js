@@ -6,7 +6,7 @@ import { trackLead } from "../utils/metaPixel";
 import { trackFunnelEvent } from "../utils/funnelTracker";
 import { readUserBillingProfile } from "../utils/storage";
 import SlotPicker from "../components/SlotPicker";
-import SimuladorFinanciacion from "../components/SimuladorFinanciacion";
+import SimuladorFinanciacion, { TIPOS_FINANCIACION_IMPORTACION } from "../components/SimuladorFinanciacion";
 
 function getAvailableDurations(offer) {
   if (offer.rentingPricesJson?.km_options) {
@@ -80,9 +80,11 @@ export default function PortalVoDetailPage({
 
   const isParticular = (selectedPortalVoOffer.sellerType || "").toLowerCase() === "particular";
   const isImport = !!selectedPortalVoOffer.isImport;
-  // Financiación: aplica a concesionarios, renting y particulares — NUNCA a importación.
+  // Financiación: concesionarios, renting y particulares usan la config estándar.
+  // Importación usa su variante (entrada mínima = fianza 30%, plazos 36-72, copys propios).
   const precioFinanciable = Number(selectedPortalVoOffer.salePrice ?? selectedPortalVoOffer.price) || 0;
-  const mostrarFinanciacion = !isImport && precioFinanciable > 0;
+  const fianzaImport = Number(selectedPortalVoOffer.importDeposit) || 0;
+  const mostrarFinanciacion = precioFinanciable > 0;
   const [cuotaMensual, setCuotaMensual] = useState(null);
   const isRentingOffer = !!(selectedPortalVoOffer.rentingAvailable && !selectedPortalVoOffer.availableForPurchase);
   const isRentingReserved = isReserved && selectedPortalVoOffer.rentingAvailable && selectedPortalVoOffer.unitsAvailable <= 1 && !selectedPortalVoOffer.availableForPurchase;
@@ -638,6 +640,20 @@ export default function PortalVoDetailPage({
               precio={precioFinanciable}
               isDark={isDark}
               onCuotaChange={setCuotaMensual}
+              {...(isImport
+                ? {
+                    tinPorPlazo: TIPOS_FINANCIACION_IMPORTACION.tinPorPlazo,
+                    comisionAperturaPct: TIPOS_FINANCIACION_IMPORTACION.comisionAperturaPct,
+                    entradaMaxPct: TIPOS_FINANCIACION_IMPORTACION.entradaMaxPct,
+                    plazoPorDefecto: TIPOS_FINANCIACION_IMPORTACION.plazoPorDefecto,
+                    entradaMinima: fianzaImport,
+                    entradaPorDefectoPct: 0.3,
+                    mostrarVfg: false,
+                    subtitulo: "Sobre el precio final matriculado. Tu reserva cuenta como entrada.",
+                    textoCta: "Estudiar mi financiación",
+                    nota: "El préstamo se firma cuando el coche ya está matriculado en España (semana 6). Podemos hacer el estudio de viabilidad antes de que reserves, sin coste y sin dejar rastro en tu historial crediticio.",
+                  }
+                : {})}
             />
           </div>
         )}

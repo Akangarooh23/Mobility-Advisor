@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 
 /* ------------------------------------------------------------------ */
-/*  Simulador de financiación — Marketplace VO (concesionarios,        */
-/*  renting y particulares). NO aplica a importación.                  */
+/*  Simulador de financiación — Marketplace VO.                        */
+/*  Estándar: concesionarios, renting y particulares.                  */
+/*  Importación: variante con entrada mínima = fianza (30%).           */
 /*  Estilos inline + theme-aware (isDark) para encajar con la ficha.   */
 /* ------------------------------------------------------------------ */
 
@@ -55,8 +56,6 @@ const pct = (n) =>
     maximumFractionDigits: 2,
   }).format(n * 100) + " %";
 
-/* ------------------------------------------------------------------ */
-
 /* ==================================================================
  *  ⚙️  CONFIGURACIÓN DE FINANCIACIÓN  ⚙️
  *  Único sitio a editar para cambiar los tipos en TODA la web.
@@ -80,6 +79,22 @@ export const TIPOS_FINANCIACION = {
   plazoPorDefecto: 60,        // plazo preseleccionado
 };
 
+/* Variante IMPORTACIÓN: la entrada mínima es la fianza (30% del precio final).
+ * Plazos más cortos (36-72). Mismos tipos realistas que la config estándar. */
+export const TIPOS_FINANCIACION_IMPORTACION = {
+  tinPorPlazo: {
+    36: 0.0850, // 8,50 %
+    48: 0.0875, // 8,75 %
+    60: 0.0925, // 9,25 %
+    72: 0.0975, // 9,75 %
+  },
+  comisionAperturaPct: 0.025, // 2,5 %
+  entradaMaxPct: 0.75,
+  plazoPorDefecto: 60,
+};
+
+/* ------------------------------------------------------------------ */
+
 export default function SimuladorFinanciacion({
   precio,
   isDark = false,
@@ -89,6 +104,11 @@ export default function SimuladorFinanciacion({
   entradaPorDefectoPct = TIPOS_FINANCIACION.entradaPorDefectoPct,
   entradaMaxPct = TIPOS_FINANCIACION.entradaMaxPct,
   plazoPorDefecto = TIPOS_FINANCIACION.plazoPorDefecto,
+  entradaMinima = 0,
+  mostrarVfg = true,
+  subtitulo = "Estimación orientativa, sin compromiso ni consulta de solvencia.",
+  textoCta = "Solicitar preaprobación",
+  nota = null,
   onSolicitar,
   onCuotaChange,
 }) {
@@ -105,7 +125,7 @@ export default function SimuladorFinanciacion({
 
   const plazos = Object.keys(tinPorPlazo).map(Number).sort((a, b) => a - b);
   const [entrada, setEntrada] = useState(
-    Math.round((precio * entradaPorDefectoPct) / 100) * 100
+    Math.max(entradaMinima, Math.round((precio * entradaPorDefectoPct) / 100) * 100)
   );
   const [meses, setMeses] = useState(plazoPorDefecto);
   const [conVfg, setConVfg] = useState(false);
@@ -115,20 +135,32 @@ export default function SimuladorFinanciacion({
     const capital = Math.max(precio - entrada, 0);
     const comision = capital * comisionAperturaPct;
     const financiado = capital + comision;
-    const valorFinal = conVfg ? precio * vfgPct : 0;
+    const valorFinal = conVfg && mostrarVfg ? precio * vfgPct : 0;
     const cuota = calcularCuota({ capital: financiado, tinAnual: tin, meses, valorFinal });
     const intereses = cuota * meses + valorFinal - financiado;
     const tae = calcularTae({ importeNeto: capital, cuota, meses, valorFinal });
     return { tin, capital, comision, financiado, valorFinal, cuota, intereses, tae };
-  }, [precio, entrada, meses, conVfg, comisionAperturaPct, vfgPct, tinPorPlazo]);
+  }, [precio, entrada, meses, conVfg, mostrarVfg, comisionAperturaPct, vfgPct, tinPorPlazo]);
 
   // Notifica hacia arriba para pintar el "o X €/mes" junto al precio
   useEffect(() => {
     onCuotaChange?.(r.cuota);
   }, [r.cuota, onCuotaChange]);
 
-  const entradaMax = Math.round((precio * entradaMaxPct) / 100) * 100;
+  const entradaMax = Math.max(
+    Math.round((precio * entradaMaxPct) / 100) * 100,
+    entradaMinima + 1000
+  );
   const entradaPctNum = precio > 0 ? Math.round((entrada / precio) * 100) : 0;
+
+  const filas = [
+    ["Importe financiado", eur(r.financiado)],
+    ["Comisión de apertura", eur(r.comision)],
+    ["Intereses totales", eur(r.intereses)],
+    ...(mostrarVfg ? [["Cuota final", r.valorFinal ? eur(r.valorFinal) : "—"]] : []),
+    ["TIN", pct(r.tin)],
+    ["TAE", pct(r.tae)],
+  ];
 
   return (
     <section
@@ -147,9 +179,7 @@ export default function SimuladorFinanciacion({
           <h2 id="fin-titulo" style={{ margin: 0, fontSize: 16, fontWeight: 800, color: C.ink }}>
             Calcula tu cuota mensual
           </h2>
-          <p style={{ margin: "2px 0 0", fontSize: 13, color: C.muted }}>
-            Estimación orientativa, sin compromiso ni consulta de solvencia.
-          </p>
+          <p style={{ margin: "2px 0 0", fontSize: 13, color: C.muted }}>{subtitulo}</p>
         </div>
       </header>
 
@@ -163,7 +193,7 @@ export default function SimuladorFinanciacion({
           <input
             id="fin-entrada"
             type="range"
-            min={0}
+            min={entradaMinima}
             max={entradaMax}
             step={100}
             value={entrada}
@@ -172,6 +202,7 @@ export default function SimuladorFinanciacion({
             aria-valuetext={`${eur(entrada)}, ${entradaPctNum} por ciento del precio`}
           />
           <p style={{ margin: "4px 0 0", fontSize: 12, color: C.muted }}>
+            {entradaMinima > 0 ? `Mínimo ${eur(entradaMinima)} · ` : ""}
             {entradaPctNum} % del precio · financias {eur(r.capital)}
           </p>
 
@@ -205,21 +236,30 @@ export default function SimuladorFinanciacion({
             })}
           </div>
 
-          <label style={{ display: "flex", alignItems: "flex-start", gap: 10, marginTop: 20, cursor: "pointer", fontSize: 13 }}>
-            <input
-              type="checkbox"
-              checked={conVfg}
-              onChange={(e) => setConVfg(e.target.checked)}
-              style={{ marginTop: 3, accentColor: C.amber }}
-            />
-            <span style={{ color: C.ink }}>
-              Cuota final aplazada
-              <span style={{ display: "block", fontSize: 12, color: C.muted, marginTop: 2 }}>
-                Pagas menos cada mes. Al terminar decides: cambiar de coche, devolverlo o pagar
-                la cuota final y quedártelo.
+          {mostrarVfg && (
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 10, marginTop: 20, cursor: "pointer", fontSize: 13 }}>
+              <input
+                type="checkbox"
+                checked={conVfg}
+                onChange={(e) => setConVfg(e.target.checked)}
+                style={{ marginTop: 3, accentColor: C.amber }}
+              />
+              <span style={{ color: C.ink }}>
+                Cuota final aplazada
+                <span style={{ display: "block", fontSize: 12, color: C.muted, marginTop: 2 }}>
+                  Pagas menos cada mes. Al terminar decides: cambiar de coche, devolverlo o pagar
+                  la cuota final y quedártelo.
+                </span>
               </span>
-            </span>
-          </label>
+            </label>
+          )}
+
+          {nota && (
+            <p style={{ display: "flex", gap: 8, marginTop: 20, padding: 12, borderRadius: 10, background: C.surfaceAlt, fontSize: 12, lineHeight: 1.6, color: C.muted }}>
+              <span aria-hidden="true">ℹ️</span>
+              <span>{nota}</span>
+            </p>
+          )}
         </div>
 
         {/* Resultado */}
@@ -233,14 +273,7 @@ export default function SimuladorFinanciacion({
           </p>
 
           <dl style={{ margin: 0, fontSize: 12 }}>
-            {[
-              ["Importe financiado", eur(r.financiado)],
-              ["Comisión de apertura", eur(r.comision)],
-              ["Intereses totales", eur(r.intereses)],
-              ["Cuota final", r.valorFinal ? eur(r.valorFinal) : "—"],
-              ["TIN", pct(r.tin)],
-              ["TAE", pct(r.tae)],
-            ].map(([k, val]) => (
+            {filas.map(([k, val]) => (
               <div
                 key={k}
                 style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, padding: "8px 0" }}
@@ -276,7 +309,7 @@ export default function SimuladorFinanciacion({
               cursor: "pointer",
             }}
           >
-            Solicitar preaprobación
+            {textoCta}
           </button>
 
           <p style={{ margin: "12px 0 0", display: "flex", gap: 8, fontSize: 11.5, lineHeight: 1.6, color: C.muted }}>

@@ -218,6 +218,35 @@ export default function PortalVoDetailPage({
   const panelCardBg = isDark ? "rgba(15,23,42,0.3)" : "rgba(241,245,249,0.92)";
   const specCardBg = isDark ? "rgba(15,23,42,0.34)" : "rgba(248,250,252,0.96)";
 
+  // Rejilla de especificaciones. En importación se pinta bajo la galería (para
+  // aprovechar el hueco de la columna izquierda); en el resto, en la columna derecha.
+  const specsGrid = (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 10 }}>
+      {[
+        [t("marketplace.specYear"), selectedPortalVoOffer.year],
+        [t("marketplace.specKm"), `${Number(selectedPortalVoOffer.mileage || 0).toLocaleString("es-ES")} km`],
+        [t("marketplace.specFuel"), selectedPortalVoOffer.fuel],
+        [t("marketplace.specPower"), selectedPortalVoOffer.power],
+        [t("marketplace.specTransmission"), getPortalVoTransmission(selectedPortalVoOffer)],
+        [t("marketplace.specDisplacement"), selectedPortalVoOffer.displacement > 0 ? `${selectedPortalVoOffer.displacement.toLocaleString("es-ES")} cc` : "EV"],
+        [t("marketplace.specLocation"), selectedPortalVoOffer.location],
+      ].map(([label, value]) => (
+        <div
+          key={`${selectedPortalVoOffer.id}-${label}`}
+          style={{
+            background: specCardBg,
+            border: "1px solid rgba(148,163,184,0.14)",
+            borderRadius: 12,
+            padding: "10px 12px",
+          }}
+        >
+          <div style={{ fontSize: 10, color: metaColor, marginBottom: 4 }}>{label}</div>
+          <div style={{ fontSize: 12, color: titleColor, fontWeight: 700 }}>{value}</div>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div style={styles.center}>
       <div style={{ ...styles.blockBadge("Vinculación"), marginBottom: 10 }}>{t("marketplace.detailBadge")}</div>
@@ -265,6 +294,7 @@ export default function PortalVoDetailPage({
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16, alignItems: "start" }}>
+          <div>
           <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(148,163,184,0.16)", background: isDark ? "rgba(2,6,23,0.45)" : "rgba(248,250,252,0.96)" }}>
             {allImages.length > 0 && !galleryFailed ? (
               <div>
@@ -317,6 +347,12 @@ export default function PortalVoDetailPage({
                 alt={selectedPortalVoOffer.title}
                 style={{ width: "100%", height: 320, objectFit: "cover", display: "block" }}
               />
+            )}
+          </div>
+            {isImport && (
+              <div style={{ marginTop: 12 }}>
+                {specsGrid}
+              </div>
             )}
           </div>
 
@@ -532,30 +568,7 @@ export default function PortalVoDetailPage({
               })}
             </p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 10 }}>
-              {[
-                [t("marketplace.specYear"), selectedPortalVoOffer.year],
-                [t("marketplace.specKm"), `${Number(selectedPortalVoOffer.mileage || 0).toLocaleString("es-ES")} km`],
-                [t("marketplace.specFuel"), selectedPortalVoOffer.fuel],
-                [t("marketplace.specPower"), selectedPortalVoOffer.power],
-                [t("marketplace.specTransmission"), getPortalVoTransmission(selectedPortalVoOffer)],
-                [t("marketplace.specDisplacement"), selectedPortalVoOffer.displacement > 0 ? `${selectedPortalVoOffer.displacement.toLocaleString("es-ES")} cc` : "EV"],
-                [t("marketplace.specLocation"), selectedPortalVoOffer.location],
-              ].map(([label, value]) => (
-                <div
-                  key={`${selectedPortalVoOffer.id}-${label}`}
-                  style={{
-                    background: specCardBg,
-                    border: "1px solid rgba(148,163,184,0.14)",
-                    borderRadius: 12,
-                    padding: "10px 12px",
-                  }}
-                >
-                  <div style={{ fontSize: 10, color: metaColor, marginBottom: 4 }}>{label}</div>
-                  <div style={{ fontSize: 12, color: titleColor, fontWeight: 700 }}>{value}</div>
-                </div>
-              ))}
-            </div>
+            {!isImport && specsGrid}
 
             {/* Stats widget (compra) */}
             {offerStats && (offerStats.viewCount > 0 || offerStats.contactCount > 0) && (

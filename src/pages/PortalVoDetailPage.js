@@ -6,6 +6,7 @@ import { trackLead } from "../utils/metaPixel";
 import { trackFunnelEvent } from "../utils/funnelTracker";
 import { readUserBillingProfile } from "../utils/storage";
 import SlotPicker from "../components/SlotPicker";
+import SimuladorFinanciacion from "../components/SimuladorFinanciacion";
 
 function getAvailableDurations(offer) {
   if (offer.rentingPricesJson?.km_options) {
@@ -79,6 +80,10 @@ export default function PortalVoDetailPage({
 
   const isParticular = (selectedPortalVoOffer.sellerType || "").toLowerCase() === "particular";
   const isImport = !!selectedPortalVoOffer.isImport;
+  // Financiación: aplica a concesionarios, renting y particulares — NUNCA a importación.
+  const precioFinanciable = Number(selectedPortalVoOffer.salePrice ?? selectedPortalVoOffer.price) || 0;
+  const mostrarFinanciacion = !isImport && precioFinanciable > 0;
+  const [cuotaMensual, setCuotaMensual] = useState(null);
   const isRentingOffer = !!(selectedPortalVoOffer.rentingAvailable && !selectedPortalVoOffer.availableForPurchase);
   const isRentingReserved = isReserved && selectedPortalVoOffer.rentingAvailable && selectedPortalVoOffer.unitsAvailable <= 1 && !selectedPortalVoOffer.availableForPurchase;
   const [rentingDuration, setRentingDuration] = useState(() => {
@@ -331,6 +336,15 @@ export default function PortalVoDetailPage({
                   </span>
                   <span style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b" }}>{isImport ? "Importado estimado" : t("marketplace.modalityPurchase", "Compra")}</span>
                 </div>
+              )}
+              {mostrarFinanciacion && cuotaMensual != null && (
+                <button
+                  type="button"
+                  onClick={() => document.getElementById("financiacion")?.scrollIntoView({ behavior: "smooth" })}
+                  style={{ display: "block", background: "none", border: "none", padding: 0, marginBottom: 6, fontSize: 13, color: isDark ? "#5eead4" : "#137370", cursor: "pointer", textAlign: "left" }}
+                >
+                  o <strong>{formatCurrency(cuotaMensual)}</strong>/mes financiado
+                </button>
               )}
               {isImport && (
                 <div style={{ marginTop: 6 }}>
@@ -617,6 +631,26 @@ export default function PortalVoDetailPage({
             </div>
           </div>
         </div>
+
+        {mostrarFinanciacion && (
+          <div style={{ marginTop: 16 }}>
+            <SimuladorFinanciacion
+              precio={precioFinanciable}
+              isDark={isDark}
+              onCuotaChange={setCuotaMensual}
+              onSolicitar={() => {
+                trackFunnelEvent({
+                  event_type: "financiacion_preaprobacion",
+                  offer_id: selectedPortalVoOffer.id,
+                  offer_title: selectedPortalVoOffer.title,
+                  modality: isRentingOffer ? "renting" : "compra",
+                  section: "financiacion",
+                });
+                setReqModal(true);
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* REQUEST MODAL */}

@@ -239,7 +239,7 @@
 .lp-demo-car-banner {
   position: relative;
   width: 100%;
-  height: 240px;
+  height: 320px;
   overflow: hidden;
   border-radius: 20px 20px 0 0;
 }
@@ -736,7 +736,7 @@
 /* ── RESPONSIVE ──────────────────────────────────────────────── */
 @media (max-width: 1000px) {
   .lp-hero { grid-template-columns: 1fr; min-height: auto; padding-top: 80px; gap: 36px; }
-  .lp-hero-right { order: -1; }
+  .lp-hero-right { order: 1; }
   .lp-offers-grid { grid-template-columns: repeat(2, 1fr); }
   .lp-stats-inner { grid-template-columns: repeat(2, 1fr); }
   .lp-paths-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }

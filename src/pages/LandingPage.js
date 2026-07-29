@@ -447,6 +447,70 @@ export default function LandingPage({
         </div>
       </section>
 
+      {/* ══════════════ TRES CAMINOS ═════════════════════════════ */}
+      <section className="lp-paths-section">
+        <div className="lp-paths-inner">
+          <p className="lp-paths-title">TRES CAMINOS. UNA DECISIÓN INTELIGENTE.</p>
+          <h2 className="lp-paths-subtitle" style={{ display: "none" }}>Elige tu camino</h2>
+
+          <div className="lp-paths-grid">
+            {/* Comprar */}
+            <div className="lp-path-card">
+              <div className="lp-path-icon" style={{ background: "#f0fdf4", color: "#16a34a" }}>
+                <IcoCart size={20} />
+              </div>
+              <div className="lp-path-name">Quiero comprar</div>
+              <div className="lp-path-desc">Encuentra el coche adecuado al precio correcto.</div>
+              <ul className="lp-path-features">
+                {["Precio justo de mercado", "Alertas de bajadas de precio", "Comparación objetiva"].map((f) => (
+                  <li key={f} className="lp-path-feature"><IcoCheck size={16} />{f}</li>
+                ))}
+              </ul>
+              <img src="/images/car-white.png" alt="" className="lp-path-car" aria-hidden="true" />
+              <button className="lp-path-cta" style={{ background: "#16a34a", color: "white" }} onClick={handleBuy}>
+                Buscar coche <IcoArrow size={14} />
+              </button>
+            </div>
+
+            {/* Vender */}
+            <div className="lp-path-card">
+              <div className="lp-path-icon" style={{ background: "#fff7ed", color: "#ea580c" }}>
+                <IcoTag size={20} />
+              </div>
+              <div className="lp-path-name">Quiero vender</div>
+              <div className="lp-path-desc">Sabe cuánto vale tu coche y véndelo mejor y más rápido.</div>
+              <ul className="lp-path-features">
+                {["Tasación basada en datos reales", "Consejos para vender mejor", "Más visibilidad para tu anuncio"].map((f) => (
+                  <li key={f} className="lp-path-feature"><IcoCheck size={16} />{f}</li>
+                ))}
+              </ul>
+              <img src="/images/car-white.png" alt="" className="lp-path-car" aria-hidden="true" style={{ transform: "scaleX(-1)" }} />
+              <button className="lp-path-cta" style={{ background: "#ea580c", color: "white" }} onClick={handleSell}>
+                Valorar mi coche <IcoArrow size={14} />
+              </button>
+            </div>
+
+            {/* Ya tengo coche */}
+            <div className="lp-path-card">
+              <div className="lp-path-icon" style={{ background: "#eff6ff", color: "#2563eb" }}>
+                <IcoShield size={20} />
+              </div>
+              <div className="lp-path-name">Ya tengo coche</div>
+              <div className="lp-path-desc">Gestiona todo lo que importa y ahorra en cada kilómetro.</div>
+              <ul className="lp-path-features">
+                {["Recordatorios inteligentes", "Mantenimientos con descuento", "Documentación siempre al día"].map((f) => (
+                  <li key={f} className="lp-path-feature"><IcoCheck size={16} />{f}</li>
+                ))}
+              </ul>
+              <img src="/images/phone-mockup.png" alt="" className="lp-path-car" aria-hidden="true" />
+              <button className="lp-path-cta" style={{ background: "#2563eb", color: "white" }} onClick={handleService}>
+                Ir a mi coche <IcoArrow size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ══════════════ STATS BAR ════════════════════════════════ */}
       <div className="lp-stats-bar">
         <div className="lp-stats-inner">
@@ -509,76 +573,6 @@ export default function LandingPage({
                 </div>
               </article>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════ TRES CAMINOS ═════════════════════════════ */}
-      <section className="lp-paths-section">
-        <div className="lp-paths-inner">
-          <p className="lp-paths-title">TRES CAMINOS. UNA DECISIÓN INTELIGENTE.</p>
-          <h2 className="lp-paths-subtitle" style={{ display: "none" }}>Elige tu camino</h2>
-
-          <div className="lp-paths-grid">
-            {/* Comprar */}
-            <div className="lp-path-card">
-              <div className="lp-path-icon" style={{ background: "#f0fdf4", color: "#16a34a" }}>
-                <IcoCart size={20} />
-              </div>
-              <div className="lp-path-name">Quiero comprar</div>
-              <div className="lp-path-desc">Encuentra el coche adecuado al precio correcto.</div>
-              <ul className="lp-path-features">
-                {["Precio justo de mercado", "Alertas de bajadas de precio", "Comparación objetiva"].map((f) => (
-                  <li key={f} className="lp-path-feature"><IcoCheck size={16} />{f}</li>
-                ))}
-              </ul>
-              <img src="/images/car-white.png" alt="" className="lp-path-car" aria-hidden="true" />
-              <button className="lp-path-cta" style={{ background: "#16a34a", color: "white" }} onClick={handleBuy}>
-                Buscar coche <IcoArrow size={14} />
-              </button>
-            </div>
-
-            {/* Vender */}
-            <div className="lp-path-card">
-              <div className="lp-path-icon" style={{ background: "#fff7ed", color: "#ea580c" }}>
-                <IcoTag size={20} />
-              </div>
-              <div className="lp-path-name">Quiero vender</div>
-              <div className="lp-path-desc">Sabe cuánto vale tu coche y véndelo mejor y más rápido.</div>
-              <ul className="lp-path-features">
-                {["Tasación basada en datos reales", "Consejos para vender mejor", "Más visibilidad para tu anuncio"].map((f) => (
-                  <li key={f} className="lp-path-feature"><IcoCheck size={16} />{f}</li>
-                ))}
-              </ul>
-              <img
-                src="/images/car-white.png"
-                alt=""
-                className="lp-path-car"
-                aria-hidden="true"
-                style={{ transform: "scaleX(-1)" }}
-              />
-              <button className="lp-path-cta" style={{ background: "#ea580c", color: "white" }} onClick={handleSell}>
-                Valorar mi coche <IcoArrow size={14} />
-              </button>
-            </div>
-
-            {/* Ya tengo coche */}
-            <div className="lp-path-card">
-              <div className="lp-path-icon" style={{ background: "#eff6ff", color: "#2563eb" }}>
-                <IcoShield size={20} />
-              </div>
-              <div className="lp-path-name">Ya tengo coche</div>
-              <div className="lp-path-desc">Gestiona todo lo que importa y ahorra en cada kilómetro.</div>
-              <ul className="lp-path-features">
-                {["Recordatorios inteligentes", "Mantenimientos con descuento", "Documentación siempre al día"].map((f) => (
-                  <li key={f} className="lp-path-feature"><IcoCheck size={16} />{f}</li>
-                ))}
-              </ul>
-              <img src="/images/phone-mockup.png" alt="" className="lp-path-car" aria-hidden="true" />
-              <button className="lp-path-cta" style={{ background: "#2563eb", color: "white" }} onClick={handleService}>
-                Ir a mi coche <IcoArrow size={14} />
-              </button>
-            </div>
           </div>
         </div>
       </section>

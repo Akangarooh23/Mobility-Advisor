@@ -4364,16 +4364,7 @@ export default function App() {
       }}
     >
       {/* HEADER — hidden on landing page so its own nav shows */}
-      {!(step === -1 && !entryMode) && <header
-        style={{
-          ...s.header,
-          minHeight: 104,
-          paddingTop: 8,
-          paddingBottom: 8,
-          justifyContent: "flex-start",
-          gap: 0,
-        }}
-      >
+      {!(step === -1 && !entryMode) && <header style={{ ...s.header }}>
       {structuredDataSchemas.map((schema, index) => (
         <script
           key={`schema-${index}`}
@@ -4382,34 +4373,16 @@ export default function App() {
         />
       ))}
 
-        <div style={{ display: "flex", alignItems: "center", gap: 0, width: "100%" }}>
+        <div style={{ display: "flex", alignItems: "center", height: 68, padding: "0 24px", maxWidth: 1400, margin: "0 auto", width: "100%", position: "relative", gap: 0 }}>
           <button
             type="button"
             onClick={restart}
-            style={{
-              height: 84,
-              background: "transparent",
-              border: "none",
-              padding: 0,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-start",
-            }}
+            style={{ background: "transparent", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}
             title="Ir al home"
             aria-label="Ir al home"
           >
-            <img
-              src="/carswise-logo.png"
-              alt="CarsWise"
-              style={{
-                height: 84,
-                width: "auto",
-                objectFit: "contain",
-                objectPosition: "left center",
-                display: "block",
-              }}
-            />
+            <img src="/carswise-logo.png" alt="CarsWise" style={{ height: 52, width: "auto", objectFit: "contain", display: "block" }} />
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", whiteSpace: "nowrap", letterSpacing: "-0.2px" }}>CarsWise AI</span>
           </button>
           <nav
             className="cw-header-nav"
@@ -4559,7 +4532,7 @@ export default function App() {
               );
             })}
           </nav>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, position: "relative" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, position: "relative", flexShrink: 0, marginLeft: "auto" }}>
           {step >= 0 && step < totalSteps && (
             <div style={{ fontSize: 12, color: "#475569" }}>
               {step + 1} / {totalSteps}
@@ -4586,19 +4559,7 @@ export default function App() {
             type="button"
             onClick={() => setUiLanguage((prev) => (prev === "es" ? "en" : "es"))}
             title={uiLanguage === "es" ? "Cambiar a inglés" : "Cambiar a español"}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              background: themeMode === "dark" ? "rgba(15,23,42,0.7)" : "rgba(241,245,249,0.95)",
-              border: themeMode === "dark" ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.34)",
-              color: themeMode === "dark" ? "#e2e8f0" : "#334155",
-              padding: "7px 11px",
-              borderRadius: 999,
-              cursor: "pointer",
-              fontSize: 11,
-              fontWeight: 700,
-            }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "none", border: "1px solid #e2e8f0", color: "#374151", padding: "6px 12px", borderRadius: 20, cursor: "pointer", fontSize: 12, fontWeight: 500, whiteSpace: "nowrap" }}
           >
             <span>🌐</span>
             <span>{uiLanguage === "es" ? "ES" : "EN"}</span>
@@ -4608,19 +4569,7 @@ export default function App() {
             type="button"
             onClick={() => setThemeMode((prev) => (prev === "dark" ? "light" : "dark"))}
             title={themeMode === "dark" ? (uiLanguage === "en" ? "Switch to light mode" : "Cambiar a modo claro") : (uiLanguage === "en" ? "Switch to dark mode" : "Cambiar a modo oscuro")}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              background: themeMode === "dark" ? "rgba(15,23,42,0.7)" : "rgba(241,245,249,0.95)",
-              border: themeMode === "dark" ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.34)",
-              color: themeMode === "dark" ? "#e2e8f0" : "#334155",
-              padding: "7px 11px",
-              borderRadius: 999,
-              cursor: "pointer",
-              fontSize: 11,
-              fontWeight: 700,
-            }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "none", border: "1px solid #e2e8f0", color: "#374151", padding: "6px 12px", borderRadius: 20, cursor: "pointer", fontSize: 12, fontWeight: 500, whiteSpace: "nowrap" }}
           >
             <span>{themeMode === "dark" ? "☀️" : "🌙"}</span>
             <span className="cw-theme-label">{themeMode === "dark" ? (uiLanguage === "en" ? "Light mode" : "Modo claro") : (uiLanguage === "en" ? "Dark mode" : "Modo oscuro")}</span>
@@ -4630,33 +4579,15 @@ export default function App() {
             type="button"
             onClick={handleUserAccessClick}
             title={isUserLoggedIn ? (uiLanguage === "en" ? "Open my panel" : "Abrir mi panel") : (uiLanguage === "en" ? "Sign in or register" : "Acceder o registrarse")}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              background: isUserLoggedIn ? "rgba(16,185,129,0.12)" : "rgba(14,165,233,0.08)",
-              border: isUserLoggedIn
-                ? "1px solid rgba(110,231,183,0.26)"
-                : "1px solid rgba(125,211,252,0.24)",
-              color: themeMode === "dark" ? "#e0f2fe" : "#0c4a6e",
-              padding: "7px 12px",
-              borderRadius: 999,
-              cursor: "pointer",
-              fontSize: 12,
-              fontWeight: 700,
-            }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "#0f172a", border: "none", color: "white", padding: "7px 16px", borderRadius: 20, cursor: "pointer", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}
           >
             <span
               style={{
-                width: 24,
-                height: 24,
-                borderRadius: "50%",
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                background: isUserLoggedIn ? "rgba(16,185,129,0.2)" : "rgba(37,99,235,0.22)",
                 fontSize: 13,
-                color: themeMode === "dark" ? "#e2e8f0" : "#0f172a",
+                color: "white",
               }}
             >
               {"\uD83D\uDC64"}
@@ -5113,6 +5044,7 @@ export default function App() {
             })}
           </div>
         )}
+        <div style={{ height: 3, background: "linear-gradient(to right, #1d4ed8 50%, #16a34a 50%)" }} />
       </header>}
 
       {authDialogMode && (

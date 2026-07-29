@@ -13,16 +13,16 @@ export function createAppStyles(progress = 0, themeMode = "light") {
       color: isDark ? "#e2e8f0" : "#0f172a",
     },
     header: {
-      padding: "12px 10px 12px 2px", // minimal left padding
       display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
+      flexDirection: "column",
+      alignItems: "stretch",
       borderBottom: "none",
       position: "sticky",
       top: 0,
-      background: isDark ? "rgba(6,13,26,0.92)" : "rgba(255,255,255,0.95)",
+      background: isDark ? "rgba(6,13,26,0.95)" : "#ffffff",
       backdropFilter: "blur(12px)",
       zIndex: 100,
+      boxShadow: isDark ? "0 1px 0 rgba(255,255,255,0.06)" : "0 1px 6px rgba(0,0,0,0.06)",
     },
     progressBar: {
       height: 4,

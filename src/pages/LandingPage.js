@@ -228,9 +228,9 @@ function MiniLineChart() {
 // ── Social icon helper ────────────────────────────────────────
 function SocialIcon({ label, children }) {
   return (
-    <a href="#" className="lp-social-link" aria-label={label} onClick={(e) => e.preventDefault()}>
+    <button type="button" className="lp-social-link" aria-label={label}>
       {children}
-    </a>
+    </button>
   );
 }
 
@@ -296,7 +296,7 @@ export default function LandingPage({
           </button>
 
           {!isMobile && (
-            <ul className="lp-nav-links" role="list">
+            <ul className="lp-nav-links">
               <li><button className="lp-nav-link" onClick={handleBuy}>Comprar</button></li>
               <li><button className="lp-nav-link" onClick={handleSell}>Vender</button></li>
               <li><button className="lp-nav-link" onClick={handleService}>Mi coche</button></li>
@@ -522,7 +522,7 @@ export default function LandingPage({
               </div>
               <div className="lp-path-name">Quiero comprar</div>
               <div className="lp-path-desc">Encuentra el coche adecuado al precio correcto.</div>
-              <ul className="lp-path-features" role="list">
+              <ul className="lp-path-features">
                 {["Precio justo de mercado", "Alertas de bajadas de precio", "Comparación objetiva"].map((f) => (
                   <li key={f} className="lp-path-feature"><IcoCheck size={16} />{f}</li>
                 ))}
@@ -540,7 +540,7 @@ export default function LandingPage({
               </div>
               <div className="lp-path-name">Quiero vender</div>
               <div className="lp-path-desc">Sabe cuánto vale tu coche y véndelo mejor y más rápido.</div>
-              <ul className="lp-path-features" role="list">
+              <ul className="lp-path-features">
                 {["Tasación basada en datos reales", "Consejos para vender mejor", "Más visibilidad para tu anuncio"].map((f) => (
                   <li key={f} className="lp-path-feature"><IcoCheck size={16} />{f}</li>
                 ))}
@@ -564,7 +564,7 @@ export default function LandingPage({
               </div>
               <div className="lp-path-name">Ya tengo coche</div>
               <div className="lp-path-desc">Gestiona todo lo que importa y ahorra en cada kilómetro.</div>
-              <ul className="lp-path-features" role="list">
+              <ul className="lp-path-features">
                 {["Recordatorios inteligentes", "Mantenimientos con descuento", "Documentación siempre al día"].map((f) => (
                   <li key={f} className="lp-path-feature"><IcoCheck size={16} />{f}</li>
                 ))}
@@ -652,7 +652,7 @@ export default function LandingPage({
             ].map(({ title, links }) => (
               <div key={title}>
                 <div className="lp-footer-col-title">{title}</div>
-                <ul className="lp-footer-links" role="list">
+                <ul className="lp-footer-links">
                   {links.map((l) => (
                     <li key={l}><button className="lp-footer-link">{l}</button></li>
                   ))}

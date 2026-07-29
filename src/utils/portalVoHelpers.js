@@ -248,7 +248,7 @@ export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selec
   const selectedPortalVoOffer = found ? decoratePortalVoOffer(found) : null;
 
   const relatedPortalVoOffers = selectedPortalVoOffer
-    ? filteredPortalVoOffers.filter((offer) => offer.id !== selectedPortalVoOffer.id).slice(0, 3)
+    ? filteredPortalVoOffers.filter((offer) => offer.id !== selectedPortalVoOffer.id).slice(0, 6)
     : [];
 
   return {

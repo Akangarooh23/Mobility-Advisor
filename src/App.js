@@ -7113,7 +7113,7 @@ export default function App() {
       {/* ERROR */}
       {error && <ErrorStatePage error={error} onRetry={() => analyzeWithAI(answers)} />}
 
-      <footer
+      {!(step === -1 && !entryMode) && <footer
         style={{
           marginTop: "auto",
           position: "relative",
@@ -7275,7 +7275,7 @@ export default function App() {
             </div>
           </div>
         </div>
-      </footer>
+      </footer>}
 
       {/* GLOBAL STYLES */}
       <style>{`

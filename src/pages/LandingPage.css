@@ -99,12 +99,11 @@
 .lp-hero {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 100px 24px 64px;
+  padding: 84px 24px 40px;
   display: grid;
   grid-template-columns: 5fr 7fr;
-  gap: 56px;
+  gap: 48px;
   align-items: center;
-  min-height: 100vh;
 }
 .lp-hero-left {
   display: flex;
@@ -492,7 +491,7 @@
 /* ── TRES CAMINOS ────────────────────────────────────────────── */
 .lp-paths-section {
   background: #f8fafc;
-  padding: 64px 24px;
+  padding: 40px 24px;
 }
 .lp-paths-inner { max-width: 1200px; margin: 0 auto; }
 .lp-paths-title {

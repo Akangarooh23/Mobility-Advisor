@@ -382,7 +382,7 @@ export default function LandingPage({
 
             {/* Imagen del coche */}
             <img
-              src="/images/hero-bmw-dark.png"
+              src="/images/hero-bmw-dark_2.png"
               alt="BMW Serie 3 – ejemplo de análisis CarsWise"
               className="lp-demo-car-img"
             />

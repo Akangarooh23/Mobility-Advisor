@@ -334,9 +334,6 @@ export default function LandingPage({
             La plataforma que te da criterio objetivo para comprar, mantener y vender tu coche de ocasión.
           </p>
 
-          <button className="lp-btn-primary" onClick={handleStart}>
-            Ver precio justo <IcoArrow size={16} />
-          </button>
 
           <div className="lp-trust-badges">
             {[

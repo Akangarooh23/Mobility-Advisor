@@ -226,13 +226,6 @@ function MiniLineChart() {
 }
 
 // ── Social icon helper ────────────────────────────────────────
-function SocialIcon({ label, children }) {
-  return (
-    <button type="button" className="lp-social-link" aria-label={label}>
-      {children}
-    </button>
-  );
-}
 
 // ════════════════════════════════════════════════════════════════
 //  MAIN COMPONENT
@@ -628,52 +621,65 @@ export default function LandingPage({
       </div>
 
       {/* ══════════════ FOOTER ═══════════════════════════════════ */}
-      <footer className="lp-footer">
-        <div className="lp-footer-inner">
-          <div className="lp-footer-top">
+      <footer style={{ marginTop: "auto", position: "relative", zIndex: 5, borderTop: "1px solid rgba(148,163,184,0.22)", background: "radial-gradient(120% 100% at 8% 0%, rgba(56,189,248,0.1), rgba(56,189,248,0) 45%), linear-gradient(180deg, rgba(2,6,23,0.9), rgba(2,6,23,0.98))" }}>
+        <div style={{ maxWidth: 1380, margin: "0 auto", padding: "30px 24px", display: "grid", gap: 18 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 14, textAlign: "left" }}>
+
             {/* Columna logo */}
-            <div>
-              <div className="lp-footer-logo-row">
-                <img src="/carswise-logo.png" alt="CarsWise AI" />
+            <div style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <img src="/carswise-logo.png" alt="CarsWise" style={{ width: 98, height: 40, objectFit: "contain", display: "block" }} />
+                <div style={{ fontWeight: 800, fontSize: 14, color: "#f8fafc" }}>CarsWise</div>
               </div>
-              <p className="lp-footer-tagline">
-                Plataforma de datos para comprar, mantener y vender coches de ocasión con criterio.
-              </p>
-              <div className="lp-footer-socials">
-                <SocialIcon label="Instagram">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/></svg>
-                </SocialIcon>
-                <SocialIcon label="YouTube">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22.54 6.42a2.78 2.78 0 00-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 00-1.95 1.96A29 29 0 001 12a29 29 0 00.46 5.58A2.78 2.78 0 003.41 19.54C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 001.95-1.96A29 29 0 0023 12a29 29 0 00-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/></svg>
-                </SocialIcon>
-                <SocialIcon label="TikTok">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.19 8.19 0 004.78 1.52V6.76a4.84 4.84 0 01-1.01-.07z"/></svg>
-                </SocialIcon>
-                <SocialIcon label="LinkedIn">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2zm2-3a2 2 0 100-4 2 2 0 000 4z"/></svg>
-                </SocialIcon>
+              <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
+                Plataforma de movilidad para comprar mejor, vender mejor y reducir el coste total de tu vehículo.
               </div>
             </div>
 
-            {/* Columnas de links */}
-            {[
-              { title: "PLATAFORMA", links: ["Cómo funciona", "Preguntas frecuentes", "Blog", "Contacto"] },
-              { title: "SERVICIOS",  links: ["Todos los servicios", "Talleres partner", "Análisis de tu seguro"] },
-              { title: "LEGAL",      links: ["Términos y condiciones", "Privacidad", "Aviso legal", "Política de cookies"] },
-            ].map(({ title, links }) => (
-              <div key={title}>
-                <div className="lp-footer-col-title">{title}</div>
-                <ul className="lp-footer-links">
-                  {links.map((l) => (
-                    <li key={l}><button className="lp-footer-link">{l}</button></li>
-                  ))}
-                </ul>
+            {/* Contacto */}
+            <div style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
+              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>CONTACTO</div>
+              <div style={{ display: "grid", gap: 6, fontSize: 12 }}>
+                <a href="mailto:soporte@carswise.es" style={{ color: "#e2e8f0", textDecoration: "none" }}>soporte@carswise.es</a>
+                <a href="tel:+34910000000" style={{ color: "#e2e8f0", textDecoration: "none" }}>+34 910 000 000</a>
+                <div style={{ color: "#94a3b8" }}>L-V 09:00 a 18:00 (España)</div>
               </div>
-            ))}
+            </div>
+
+            {/* Enlaces útiles */}
+            <div style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
+              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>ENLACES UTILES</div>
+              <div style={{ display: "grid", gap: 7, fontSize: 12 }}>
+                <button type="button" onClick={handleStart} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Inicio</button>
+                <button type="button" onClick={handleOffers} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Marketplace VO</button>
+                <button type="button" onClick={handleBuy} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Asesor de vehículo</button>
+                <button type="button" style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Blog</button>
+                <button type="button" style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Contacto</button>
+                <button type="button" onClick={handleService} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Servicios</button>
+              </div>
+            </div>
+
+            {/* Redes sociales */}
+            <div style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
+              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>REDES SOCIALES</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {[["LinkedIn","https://www.linkedin.com"],["Instagram","https://www.instagram.com"],["X","https://x.com"],["YouTube","https://www.youtube.com"]].map(([label, href]) => (
+                  <a key={label} href={href} target="_blank" rel="noreferrer" style={{ border: "1px solid rgba(148,163,184,0.24)", borderRadius: 999, padding: "6px 10px", fontSize: 11, fontWeight: 700, color: "#e2e8f0", textDecoration: "none", background: "rgba(15,23,42,0.55)" }}>
+                    {label}
+                  </a>
+                ))}
+              </div>
+            </div>
           </div>
 
-          <div className="lp-footer-bottom">
-            © 2026 CarsWise AI. Todos los derechos reservados.
+          {/* Barra inferior */}
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 10, borderTop: "1px solid rgba(148,163,184,0.2)", paddingTop: 12, fontSize: 11, color: "#94a3b8" }}>
+            <div>© {new Date().getFullYear()} CarsWise. Todos los derechos reservados.</div>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              {["Aviso legal","Privacidad","Cookies","Términos","Comunicaciones","Política Experian","Condiciones Experian"].map((label) => (
+                <button key={label} type="button" style={{ background: "transparent", border: "none", color: "#cbd5e1", padding: 0, cursor: "pointer", fontSize: 11 }}>{label}</button>
+              ))}
+            </div>
           </div>
         </div>
       </footer>

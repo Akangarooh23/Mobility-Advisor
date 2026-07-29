@@ -262,6 +262,7 @@ export default function LandingPage({
   onSelectServiceInsurance,
   uiLanguage,
   onOpenPlansSection,
+  onOpenDashboard,
 }) {
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined" ? window.innerWidth < 1000 : false
@@ -278,12 +279,13 @@ export default function LandingPage({
 
   const go = (fn) => () => { if (typeof fn === "function") fn(); };
 
-  const handleBuy     = go(onSelectBuyStart || onSelectVehicle);
-  const handleSell    = go(onSelectSell);
-  const handleService = go(onSelectService);
-  const handlePlans   = go(onOpenPlans);
-  const handleStart   = go(onSelectAdvice || onSelectBuyStart);
-  const handleOffers  = go(onSelectPortalVo);
+  const handleBuy       = go(onSelectBuyStart || onSelectVehicle);
+  const handleSell      = go(onSelectSell);
+  const handleService   = go(onSelectService);
+  const handlePlans     = go(onOpenPlans);
+  const handleStart     = go(onSelectAdvice || onSelectBuyStart);
+  const handleOffers    = go(onSelectPortalVo);
+  const handleDashboard = go(onOpenDashboard);
 
   return (
     <div className="lp-root">
@@ -301,21 +303,33 @@ export default function LandingPage({
           {/* Nav central */}
           {!isMobile && (
             <nav className="lp-nav-center" aria-label="Navegación principal">
-              <button className="lp-nav-link" onClick={handleBuy}>Comprar</button>
-              <button className="lp-nav-link" onClick={handleSell}>Vender</button>
-              <button className="lp-nav-link" onClick={handleService}>Mi coche</button>
-              <button className="lp-nav-link" onClick={handlePlans}>Precios</button>
+              <button className="lp-nav-link lp-nav-link--active" onClick={handleStart}>Inicio</button>
+              <button className="lp-nav-link" onClick={handleBuy}>Quiero Comprar</button>
+              <button className="lp-nav-link" onClick={handleService}>Contratar un Servicio</button>
+              <button className="lp-nav-link" onClick={handleSell}>Vender mi Coche</button>
+              <button className="lp-nav-link" onClick={handleOffers}>Marketplace de VO</button>
+              <button className="lp-nav-link lp-nav-link--arrow" onClick={handlePlans}>Planes ▾</button>
+              <button className="lp-nav-link lp-nav-link--arrow">Más ▾</button>
             </nav>
           )}
 
           {/* Acciones derecha */}
           <div className="lp-nav-actions">
-            <button className="lp-btn-panel" onClick={handleStart}>
+            <button className="lp-nav-util" aria-label="Idioma">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
+              ES
+            </button>
+            <button className="lp-nav-util" aria-label="Modo oscuro">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+              Modo oscuro
+            </button>
+            <button className="lp-btn-panel" onClick={handleDashboard}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               Mi panel
             </button>
           </div>
         </div>
+        <div className="lp-nav-gradient" aria-hidden="true" />
       </header>
 
       {/* ══════════════ HERO ═════════════════════════════════════ */}

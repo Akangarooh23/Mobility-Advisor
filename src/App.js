@@ -6218,6 +6218,13 @@ export default function App() {
             setStep(-1);
           }}
           onOpenPlansSection={openPlansSection}
+          onOpenDashboard={() => {
+            if (!isUserLoggedIn) {
+              openAuthDialog("login", { entryMode: "userDashboard", routePage: "home" });
+              return;
+            }
+            openUserDashboard();
+          }}
         />
       )}
 

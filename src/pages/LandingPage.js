@@ -304,10 +304,9 @@ export default function LandingPage({
           {!isMobile && (
             <nav className="lp-nav-center" aria-label="Navegación principal">
               <button className="lp-nav-link lp-nav-link--active" onClick={handleStart}>Inicio</button>
-              <button className="lp-nav-link" onClick={handleBuy}>Quiero Comprar</button>
-              <button className="lp-nav-link" onClick={handleService}>Contratar un Servicio</button>
-              <button className="lp-nav-link" onClick={handleSell}>Vender mi Coche</button>
-              <button className="lp-nav-link" onClick={handleOffers}>Marketplace de VO</button>
+              <button className="lp-nav-link" onClick={handleBuy}>Comprar</button>
+              <button className="lp-nav-link" onClick={handleSell}>Vender</button>
+              <button className="lp-nav-link" onClick={handleService}>Mi coche</button>
               <button className="lp-nav-link lp-nav-link--arrow" onClick={handlePlans}>Planes ▾</button>
               <button className="lp-nav-link lp-nav-link--arrow">Más ▾</button>
             </nav>

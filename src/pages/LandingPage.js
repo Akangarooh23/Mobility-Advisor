@@ -363,10 +363,19 @@ export default function LandingPage({
         <div className="lp-hero-right">
           <div className="lp-demo-card">
 
-            {/* Cabecera tarjeta */}
+            {/* Imagen banner superior */}
+            <div className="lp-demo-car-banner">
+              <img
+                src="/images/hero-bmw-dark_2.png"
+                alt="BMW Serie 3 – ejemplo de análisis CarsWise"
+                className="lp-demo-car-img"
+              />
+              <span className="lp-demo-label lp-demo-label-overlay">EJEMPLO</span>
+            </div>
+
+            {/* Cabecera debajo de la imagen */}
             <div className="lp-demo-card-top">
               <div>
-                <span className="lp-demo-label">EJEMPLO</span>
                 <div className="lp-demo-car-name">
                   BMW SERIE 3{" "}
                   <span style={{ fontWeight: 400, color: "#6b7280" }}>320d</span>
@@ -379,13 +388,6 @@ export default function LandingPage({
                 <div className="lp-demo-price-change">+1,2% vs. semana anterior</div>
               </div>
             </div>
-
-            {/* Imagen del coche */}
-            <img
-              src="/images/hero-bmw-dark_2.png"
-              alt="BMW Serie 3 – ejemplo de análisis CarsWise"
-              className="lp-demo-car-img"
-            />
 
             {/* Rango de mercado */}
             <div className="lp-demo-range">

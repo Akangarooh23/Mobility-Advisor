@@ -4363,8 +4363,8 @@ export default function App() {
           : null),
       }}
     >
-      {/* HEADER */}
-      <header
+      {/* HEADER — hidden on landing page so its own nav shows */}
+      {!(step === -1 && !entryMode) && <header
         style={{
           ...s.header,
           minHeight: 104,
@@ -5113,7 +5113,7 @@ export default function App() {
             })}
           </div>
         )}
-      </header>
+      </header>}
 
       {authDialogMode && (
         <div
@@ -6120,11 +6120,6 @@ export default function App() {
             setStep(-1);
           }}
           onSelectSell={() => {
-            if (!isUserLoggedIn) {
-              setPlanCheckoutFeedback("Inicia sesión o regístrate para sincronizar este flujo con tu portal.");
-              openAuthDialog("login", { entryMode: "sellOptions", routePage: "home" });
-              return;
-            }
             setSellFlowType("");
             setEntryMode("sellOptions");
             setStep(-1);
@@ -6154,11 +6149,6 @@ export default function App() {
             setStep(-1);
           }}
           onSelectService={() => {
-            if (!isUserLoggedIn) {
-              setPlanCheckoutFeedback("Inicia sesión o regístrate para sincronizar este flujo con tu portal.");
-              openAuthDialog("login", { entryMode: "serviceOptions", routePage: "home" });
-              return;
-            }
             setEntryMode("serviceOptions");
             setStep(-1);
           }}

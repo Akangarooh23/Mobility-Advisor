@@ -289,29 +289,34 @@ export default function LandingPage({
     <div className="lp-root">
 
       {/* ══════════════ NAV ══════════════════════════════════════ */}
-      <nav className="lp-nav" role="navigation" aria-label="Navegación principal">
+      <header className="lp-nav" role="banner">
         <div className="lp-nav-inner">
+
+          {/* Logo */}
           <button className="lp-logo" onClick={handleStart} aria-label="CarsWise AI – Inicio">
-            <img src="/carswise-logo.png" alt="CarsWise AI" />
+            <img src="/carswise-logo.png" alt="" />
+            <span className="lp-logo-text">CarsWise AI</span>
           </button>
 
+          {/* Nav central */}
           {!isMobile && (
-            <ul className="lp-nav-links">
-              <li><button className="lp-nav-link" onClick={handleBuy}>Comprar</button></li>
-              <li><button className="lp-nav-link" onClick={handleSell}>Vender</button></li>
-              <li><button className="lp-nav-link" onClick={handleService}>Mi coche</button></li>
-              <li><button className="lp-nav-link" onClick={handlePlans}>Precios</button></li>
-            </ul>
+            <nav className="lp-nav-center" aria-label="Navegación principal">
+              <button className="lp-nav-link" onClick={handleBuy}>Comprar</button>
+              <button className="lp-nav-link" onClick={handleSell}>Vender</button>
+              <button className="lp-nav-link" onClick={handleService}>Mi coche</button>
+              <button className="lp-nav-link" onClick={handlePlans}>Precios</button>
+            </nav>
           )}
 
+          {/* Acciones derecha */}
           <div className="lp-nav-actions">
             <button className="lp-btn-panel" onClick={handleStart}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               Mi panel
             </button>
           </div>
         </div>
-      </nav>
+      </header>
 
       {/* ══════════════ HERO ═════════════════════════════════════ */}
       <section className="lp-hero">

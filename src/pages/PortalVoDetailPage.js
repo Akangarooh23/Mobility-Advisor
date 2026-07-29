@@ -53,7 +53,6 @@ export default function PortalVoDetailPage({
   styles,
   currentUser,
   selectedPortalVoOffer,
-  relatedPortalVoOffers,
   ResolvedOfferImage,
   getOfferBadgeStyle,
   getPortalVoEcoLabel,
@@ -63,7 +62,7 @@ export default function PortalVoDetailPage({
   formatCurrency,
   onBackToMarketplace,
   onGoHome,
-  onOpenRelatedOffer,
+  onOpenSection,
   onTasar,
   onCreateAlert,
   onLeadCreated,
@@ -122,6 +121,14 @@ export default function PortalVoDetailPage({
       .then((d) => { if (d.ok) setOfferStats(d.stats); })
       .catch(() => {});
   }, [selectedPortalVoOffer.id]);
+
+  const [sectionShowcase, setSectionShowcase] = useState([]);
+  useEffect(() => {
+    fetch("/api/marketplace-vo?showcase=1")
+      .then((r) => r.json())
+      .then((d) => { if (d.ok && Array.isArray(d.sections)) setSectionShowcase(d.sections); })
+      .catch(() => {});
+  }, []);
 
   async function handleReqSubmit(e) {
     e.preventDefault();
@@ -723,23 +730,27 @@ export default function PortalVoDetailPage({
           </div>
         )}
 
-        {!isImport && relatedPortalVoOffers?.length > 0 && (
+        {!isImport && sectionShowcase.length > 0 && (
           <div style={{ marginTop: 24 }}>
             <div style={{ fontSize: 14, fontWeight: 800, color: titleColor, marginBottom: 12 }}>Otros que encajan con tu búsqueda</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(210px,1fr))", gap: 12 }}>
-              {relatedPortalVoOffers.slice(0, 6).map((rel) => (
+              {sectionShowcase.map((s) => (
                 <button
-                  key={rel.id}
+                  key={s.key}
                   type="button"
-                  onClick={() => onOpenRelatedOffer?.(rel)}
-                  style={{ textAlign: "left", padding: 0, background: isDark ? "rgba(15,23,42,0.4)" : "#fff", border: "1px solid rgba(148,163,184,0.22)", borderRadius: 14, overflow: "hidden", cursor: "pointer" }}
+                  onClick={() => onOpenSection?.(s.nav)}
+                  title={`Ir a ${s.label}`}
+                  style={{ textAlign: "left", padding: 0, background: isDark ? "rgba(15,23,42,0.4)" : "#fff", border: "1px solid rgba(148,163,184,0.22)", borderRadius: 14, overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column" }}
                 >
-                  <ResolvedOfferImage offer={rel} alt={rel.title} style={{ width: "100%", height: 120, objectFit: "cover", display: "block" }} />
-                  <div style={{ padding: 10 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 700, color: titleColor, lineHeight: 1.35, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{rel.title}</div>
-                    <div style={{ fontSize: 11, color: bodyColor, marginTop: 4 }}>
-                      {[rel.year, rel.mileage != null ? `${Number(rel.mileage).toLocaleString("es-ES")} km` : null, formatCurrency(rel.salePrice ?? rel.price)].filter(Boolean).join(" · ")}
+                  {s.offer.image
+                    ? <img src={s.offer.image} alt={s.offer.title} referrerPolicy="no-referrer" style={{ width: "100%", height: 120, objectFit: "cover", display: "block" }} onError={(e) => { e.target.style.display = "none"; }} />
+                    : <div style={{ width: "100%", height: 120, background: isDark ? "#1e293b" : "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26 }}>🚗</div>}
+                  <div style={{ padding: 10, display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: titleColor, lineHeight: 1.35, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.offer.title}</div>
+                    <div style={{ fontSize: 11, color: bodyColor }}>
+                      {[s.offer.year, s.offer.mileage != null ? `${Number(s.offer.mileage).toLocaleString("es-ES")} km` : null, s.offer.price != null ? (s.offer.monthly ? `desde ${formatCurrency(s.offer.price)}/mes` : formatCurrency(s.offer.price)) : null].filter(Boolean).join(" · ")}
                     </div>
+                    <div style={{ marginTop: "auto", paddingTop: 6, fontSize: 10.5, fontWeight: 800, color: isDark ? "#5eead4" : "#137370", letterSpacing: "0.2px" }}>{s.label} →</div>
                   </div>
                 </button>
               ))}

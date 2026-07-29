@@ -1651,6 +1651,7 @@ export default function App() {
   // Infinite scroll state for marketplace offers
   const [portalVoOffersLive, setPortalVoOffersLive] = useState([]);
   const [marketplaceVoPage, setMarketplaceVoPage] = useState(0);
+  const [marketplaceInitialTab, setMarketplaceInitialTab] = useState("concesionarios");
   const [marketplaceVoTotal, setMarketplaceVoTotal] = useState(0);
   const [marketplaceVoLoading, setMarketplaceVoLoading] = useState(false);
   const [portalVoModalityMode, setPortalVoModalityMode] = useState("compra");
@@ -4151,7 +4152,6 @@ export default function App() {
     filteredPortalVoOffers,
     featuredPortalVoOffers,
     selectedPortalVoOffer,
-    relatedPortalVoOffers,
   } = useMemo(
     () =>
       buildPortalVoMarketplaceModel({
@@ -6919,7 +6919,6 @@ export default function App() {
           styles={s}
           currentUser={currentUser}
           selectedPortalVoOffer={selectedPortalVoOffer}
-          relatedPortalVoOffers={relatedPortalVoOffers}
           ResolvedOfferImage={ResolvedOfferImage}
           getOfferBadgeStyle={getOfferBadgeStyle}
           getPortalVoEcoLabel={getPortalVoEcoLabel}
@@ -6940,7 +6939,19 @@ export default function App() {
               setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
             }
           }}
-          onOpenRelatedOffer={openPortalVoOfferDetail}
+          onOpenSection={(nav) => {
+            if (!nav) return;
+            const scrollTop = () => { if (typeof window !== "undefined") setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60); };
+            if (nav.type === "marketplace-vo") {
+              setMarketplaceInitialTab(nav.tab || "concesionarios");
+              setEntryMode("portalVo");
+              syncBrowserPath("/marketplace-vo", "push");
+              scrollTop();
+            } else if (nav.type === "buy-known") {
+              setEntryMode("decision");
+              scrollTop();
+            }
+          }}
           onTasar={() => {
             setEntryMode("sell");
             if (typeof window !== "undefined") {
@@ -6968,6 +6979,7 @@ export default function App() {
         <PortalVoMarketplacePage
           themeMode={themeMode}
           styles={s}
+          initialCompraTab={marketplaceInitialTab}
           portalVoFilters={portalVoFilters}
           updatePortalVoFilter={updatePortalVoFilter}
           portalVoLocations={portalVoLocations}

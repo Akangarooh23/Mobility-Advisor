@@ -48,6 +48,7 @@ export default function PortalVoMarketplacePage({
   modalityMode = "compra",
   onModalityChange,
   onCreateAlert,
+  initialCompraTab = "concesionarios",
 }) {
   const isDark = themeMode === "dark";
   const { t } = useTranslation();
@@ -56,7 +57,7 @@ export default function PortalVoMarketplacePage({
   const [viewingModal, setViewingModal] = useState(null); // { offer }
   const [viewingForm, setViewingForm] = useState({ name: "", email: "", message: "" });
   const [viewingState, setViewingState] = useState({}); // { [offerId]: 'sent' | 'error' | 'sending' }
-  const [compraTab, setCompraTab] = useState("concesionarios");
+  const [compraTab, setCompraTab] = useState(initialCompraTab || "concesionarios");
   // Catálogo completo (todas las marcas/modelos) para los desplegables — así se puede
   // filtrar/alertar por una marca aunque no haya stock ahora mismo.
   const [catalogBrands, setCatalogBrands] = useState([]); // [{ name, models: [] }]

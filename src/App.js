@@ -1912,23 +1912,18 @@ export default function App() {
     },
     {
       key: "buy",
-      label: uiLanguage === "en" ? "Buy a Car" : "Quiero Comprar",
+      label: uiLanguage === "en" ? "Buy" : "Comprar",
       onClick: () => openInternalLandingFlow("buyOptions"),
     },
     {
-      key: "services",
-      label: uiLanguage === "en" ? "Hire a Service" : "Contratar un Servicio",
-      onClick: () => openInternalLandingFlow("serviceOptions"),
-    },
-    {
       key: "sell",
-      label: uiLanguage === "en" ? "Sell my Car" : "Vender mi Coche",
+      label: uiLanguage === "en" ? "Sell" : "Vender",
       onClick: () => openInternalLandingFlow("sellOptions"),
     },
     {
-      key: "marketplaceVo",
-      label: uiLanguage === "en" ? "VO Marketplace" : "Marketplace de VO",
-      onClick: () => goToPublicHeaderPage("portalVo"),
+      key: "services",
+      label: uiLanguage === "en" ? "My Car" : "Mi coche",
+      onClick: () => openInternalLandingFlow("serviceOptions"),
     },
     {
       key: "plans",
@@ -1948,7 +1943,7 @@ export default function App() {
         setShowHeaderMoreNav((prev) => !prev);
       },
     },
-  ], [goToHomeHeaderPage, goToPublicHeaderPage, openInternalLandingFlow, uiLanguage]);
+  ], [goToHomeHeaderPage, openInternalLandingFlow, uiLanguage]);
 
   const headerPlansNavItems = useMemo(() => [
     {

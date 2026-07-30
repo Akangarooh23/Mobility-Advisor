@@ -211,16 +211,41 @@ function DonutChart({ segments, size = 72 }) {
 
 // ── Mini depreciación line ────────────────────────────────────
 function MiniLineChart() {
+  const LINE = "M4,6 C38,7 65,27 100,39 C132,49 165,53 196,56";
+  const AREA = `${LINE} L196,63 L4,63 Z`;
   return (
-    <svg width="86" height="32" viewBox="0 0 86 32" aria-hidden="true">
-      <path
-        d="M0,4 L17,8 L34,13 L51,19 L68,24 L86,28"
-        fill="none"
-        stroke="#ef4444"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg width="100%" height="74" viewBox="0 0 200 74" aria-hidden="true" style={{ display: "block", marginTop: 2 }}>
+      <defs>
+        <linearGradient id="depAreaGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ef4444" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id="depLineGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#fca5a5" />
+          <stop offset="100%" stopColor="#dc2626" />
+        </linearGradient>
+      </defs>
+      {/* Baseline 0% */}
+      <line x1="4" y1="6" x2="196" y2="6" stroke="#e5e7eb" strokeWidth="1" strokeDasharray="3 3" />
+      {/* Bottom axis */}
+      <line x1="4" y1="63" x2="196" y2="63" stroke="#f3f4f6" strokeWidth="1" />
+      {/* Tick marks */}
+      {[52, 100, 148].map((x) => (
+        <line key={x} x1={x} y1="60" x2={x} y2="63" stroke="#e5e7eb" strokeWidth="1" />
+      ))}
+      {/* Area fill */}
+      <path d={AREA} fill="url(#depAreaGrad)" />
+      {/* Curve */}
+      <path d={LINE} fill="none" stroke="url(#depLineGrad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      {/* Start dot */}
+      <circle cx="4" cy="6" r="2.5" fill="#fca5a5" />
+      {/* End dot */}
+      <circle cx="196" cy="56" r="4" fill="#dc2626" />
+      <circle cx="196" cy="56" r="7" fill="#dc2626" fillOpacity="0.15" />
+      {/* Month labels */}
+      {[["0", 4], ["6m", 52], ["12m", 100], ["18m", 148], ["24m", 196]].map(([label, x]) => (
+        <text key={label} x={x} y="73" fontSize="7.5" fill="#9ca3af" textAnchor="middle">{label}</text>
+      ))}
     </svg>
   );
 }

@@ -6225,8 +6225,7 @@ export default function App() {
           onOpenMarketplace={() => {
             setAdvisorContext("buy");
             setSelectedPortalVoOfferId(null);
-            setEntryMode("portalVo");
-            setStep(-1);
+            openPublicPage("portalVo");
           }}
           onGoBack={() => {
             setAdvisorContext(null);

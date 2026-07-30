@@ -55,6 +55,16 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
 
   return (
     <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
+      <style>{`
+        @keyframes goldMove {
+          0%   { background-position: 0% 50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @media (max-width: 580px) {
+          .buy-options-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       <button
         type="button"
         onClick={onGoBack}
@@ -88,9 +98,10 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
       </p>
 
       <div
+        className="buy-options-grid"
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,320px),1fr))",
+          gridTemplateColumns: "repeat(2, 1fr)",
           gap: 14,
           alignItems: "stretch",
         }}
@@ -283,13 +294,15 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
 
         {/* ── OPCIÓN C: Marketplace VO ── */}
         <article
-          className="ma-card-interactive ma-fade-stagger"
+          className="ma-card-interactive"
           style={{
             position: "relative",
-            border: cardBorder,
             borderRadius: 12,
-            background: cardBackground,
-            boxShadow: isDark ? "none" : "0 8px 22px rgba(15,23,42,0.05)",
+            border: "none",
+            background: "linear-gradient(135deg, #fbbf24, #d97706, #f59e0b, #92400e, #fbbf24)",
+            backgroundSize: "300% 300%",
+            animation: "goldMove 5s ease infinite",
+            boxShadow: "0 8px 28px rgba(217,119,6,0.35)",
             padding: "24px 22px 20px",
             textAlign: "left",
             display: "flex",
@@ -298,8 +311,8 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             justifyContent: "flex-start",
             gap: 10,
             minHeight: "clamp(148px, 20vw, 178px)",
-            animationDelay: "240ms",
             cursor: "pointer",
+            gridColumn: "1 / -1",
           }}
           role="button"
           tabIndex={0}
@@ -317,9 +330,9 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               alignItems: "center",
               padding: "3px 10px",
               borderRadius: 20,
-              border: "1px solid rgba(22,163,74,0.28)",
-              background: "rgba(22,163,74,0.1)",
-              color: "#16a34a",
+              border: "1px solid rgba(28,16,3,0.28)",
+              background: "rgba(28,16,3,0.15)",
+              color: "#1c1003",
               fontSize: 9,
               letterSpacing: "0.12em",
               textTransform: "uppercase",
@@ -337,8 +350,8 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               width: 24,
               height: 24,
               borderRadius: "50%",
-              border: "1px solid rgba(148,163,184,0.35)",
-              color: "#64748b",
+              border: "1px solid rgba(28,16,3,0.3)",
+              color: "#1c1003",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
@@ -347,10 +360,10 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           >
             &gt;
           </span>
-          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
+          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: "#1c1003" }}>
             Marketplace VO
           </div>
-          <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
+          <div style={{ fontSize: 12, color: "#3d1f02", lineHeight: 1.45 }}>
             Coches únicos de nuestro portal. Encuentra ofertas de concesionarios, rentings, vehículos de importación y coches vendidos por usuarios de CarsWise.
           </div>
           <button
@@ -358,9 +371,9 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             onClick={(event) => { event.stopPropagation(); if (onOpenMarketplace) onOpenMarketplace(); }}
             style={{
               marginTop: 2,
-              border: "1px solid rgba(22,163,74,0.3)",
-              background: "rgba(22,163,74,0.08)",
-              color: "#16a34a",
+              border: "1px solid rgba(28,16,3,0.35)",
+              background: "rgba(28,16,3,0.15)",
+              color: "#1c1003",
               borderRadius: 10,
               padding: "8px 12px",
               fontSize: 12,

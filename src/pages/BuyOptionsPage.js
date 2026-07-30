@@ -106,193 +106,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           alignItems: "stretch",
         }}
       >
-        <article
-          className="ma-card-interactive ma-fade-stagger"
-          style={{
-            position: "relative",
-            border: cardBorder,
-            borderRadius: 12,
-            background: cardBackground,
-            boxShadow: isDark ? "none" : "0 8px 22px rgba(15,23,42,0.05)",
-            padding: "24px 22px 20px",
-            textAlign: "left",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            justifyContent: "flex-start",
-            gap: 10,
-            minHeight: "clamp(148px, 20vw, 178px)",
-            animationDelay: "60ms",
-            cursor: "pointer",
-          }}
-          role="button"
-          tabIndex={0}
-          onClick={onSelectKnownModel}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              onSelectKnownModel();
-            }
-          }}
-        >
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              padding: "3px 10px",
-              borderRadius: 20,
-              border: "1px solid rgba(37,99,235,0.24)",
-              background: "rgba(37,99,235,0.1)",
-              color: "#2563eb",
-              fontSize: 9,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              fontWeight: 700,
-              marginBottom: 4,
-            }}
-          >
-            {t("buyOptions.optionABadge")}
-          </span>
-          <span
-            style={{
-              position: "absolute",
-              top: 22,
-              right: 20,
-              width: 24,
-              height: 24,
-              borderRadius: "50%",
-              border: "1px solid rgba(148,163,184,0.35)",
-              color: "#64748b",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 15,
-            }}
-          >
-            &gt;
-          </span>
-          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
-            {t("buyOptions.optionATitle")}
-          </div>
-          <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
-            {t("buyOptions.optionADesc")}
-          </div>
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              toggleFlow("a");
-            }}
-            style={{
-              marginTop: 2,
-              border: "1px solid rgba(37,99,235,0.28)",
-              background: "rgba(37,99,235,0.08)",
-              color: "#1d4ed8",
-              borderRadius: 10,
-              padding: "8px 12px",
-              fontSize: 12,
-              fontWeight: 700,
-              cursor: "pointer",
-            }}
-          >
-            {openFlow === "a" ? t("buyOptions.hideButton") : t("buyOptions.showMore")}
-          </button>
-        </article>
-
-        <article
-          className="ma-card-interactive ma-fade-stagger"
-          style={{
-            position: "relative",
-            border: cardBorder,
-            borderRadius: 12,
-            background: cardBackground,
-            boxShadow: isDark ? "none" : "0 8px 22px rgba(15,23,42,0.05)",
-            padding: "24px 22px 20px",
-            textAlign: "left",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            justifyContent: "flex-start",
-            gap: 10,
-            minHeight: "clamp(148px, 20vw, 178px)",
-            animationDelay: "150ms",
-            cursor: "pointer",
-          }}
-          role="button"
-          tabIndex={0}
-          onClick={onSelectAdvisor}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              onSelectAdvisor();
-            }
-          }}
-        >
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              padding: "3px 10px",
-              borderRadius: 20,
-              border: "1px solid rgba(37,99,235,0.24)",
-              background: "rgba(37,99,235,0.1)",
-              color: "#2563eb",
-              fontSize: 9,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              fontWeight: 700,
-              marginBottom: 4,
-            }}
-          >
-            {t("buyOptions.optionBBadge")}
-          </span>
-          <span
-            style={{
-              position: "absolute",
-              top: 22,
-              right: 20,
-              width: 24,
-              height: 24,
-              borderRadius: "50%",
-              border: "1px solid rgba(148,163,184,0.35)",
-              color: "#64748b",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 15,
-            }}
-          >
-            &gt;
-          </span>
-          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
-            {t("buyOptions.optionBTitle")}
-          </div>
-          <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
-            {t("buyOptions.optionBDesc")}
-          </div>
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              toggleFlow("b");
-            }}
-            style={{
-              marginTop: 2,
-              border: "1px solid rgba(37,99,235,0.28)",
-              background: "rgba(37,99,235,0.08)",
-              color: "#1d4ed8",
-              borderRadius: 10,
-              padding: "8px 12px",
-              fontSize: 12,
-              fontWeight: 700,
-              cursor: "pointer",
-            }}
-          >
-            {openFlow === "b" ? t("buyOptions.hideButton") : t("buyOptions.showMore")}
-          </button>
-        </article>
-
-        {/* ── OPCIÓN C: Marketplace VO ── */}
+        {/* ── Marketplace VO — primero, ancho completo ── */}
         <article
           className="ma-card-interactive"
           style={{
@@ -302,7 +116,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             background: "linear-gradient(135deg, #fef9c3, #fde68a, #fef3c7, #fde68a, #fef9c3)",
             backgroundSize: "300% 300%",
             animation: "goldMove 5s ease infinite",
-            boxShadow: "0 8px 28px rgba(217,119,6,0.35)",
+            boxShadow: "0 8px 28px rgba(217,119,6,0.25)",
             padding: "24px 22px 20px",
             textAlign: "left",
             display: "flex",
@@ -324,24 +138,6 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             }
           }}
         >
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              padding: "3px 10px",
-              borderRadius: 20,
-              border: "1px solid rgba(120,53,15,0.3)",
-              background: "rgba(120,53,15,0.1)",
-              color: "#78350f",
-              fontSize: 9,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              fontWeight: 700,
-              marginBottom: 4,
-            }}
-          >
-            OPCIÓN C
-          </span>
           <span
             style={{
               position: "absolute",
@@ -382,6 +178,152 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             }}
           >
             Ver más
+          </button>
+        </article>
+
+        {/* ── Ya sé qué modelo ── */}
+        <article
+          className="ma-card-interactive ma-fade-stagger"
+          style={{
+            position: "relative",
+            border: cardBorder,
+            borderRadius: 12,
+            background: cardBackground,
+            boxShadow: isDark ? "none" : "0 8px 22px rgba(15,23,42,0.05)",
+            padding: "24px 22px 20px",
+            textAlign: "left",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            justifyContent: "flex-start",
+            gap: 10,
+            minHeight: "clamp(148px, 20vw, 178px)",
+            animationDelay: "60ms",
+            cursor: "pointer",
+          }}
+          role="button"
+          tabIndex={0}
+          onClick={onSelectKnownModel}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              onSelectKnownModel();
+            }
+          }}
+        >
+          <span
+            style={{
+              position: "absolute",
+              top: 22,
+              right: 20,
+              width: 24,
+              height: 24,
+              borderRadius: "50%",
+              border: "1px solid rgba(148,163,184,0.35)",
+              color: "#64748b",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 15,
+            }}
+          >
+            &gt;
+          </span>
+          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
+            {t("buyOptions.optionATitle")}
+          </div>
+          <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
+            {t("buyOptions.optionADesc")}
+          </div>
+          <button
+            type="button"
+            onClick={(event) => { event.stopPropagation(); toggleFlow("a"); }}
+            style={{
+              marginTop: 2,
+              border: "1px solid rgba(37,99,235,0.28)",
+              background: "rgba(37,99,235,0.08)",
+              color: "#1d4ed8",
+              borderRadius: 10,
+              padding: "8px 12px",
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            {openFlow === "a" ? t("buyOptions.hideButton") : t("buyOptions.showMore")}
+          </button>
+        </article>
+
+        {/* ── Ayúdame a encontrar ── */}
+        <article
+          className="ma-card-interactive ma-fade-stagger"
+          style={{
+            position: "relative",
+            border: cardBorder,
+            borderRadius: 12,
+            background: cardBackground,
+            boxShadow: isDark ? "none" : "0 8px 22px rgba(15,23,42,0.05)",
+            padding: "24px 22px 20px",
+            textAlign: "left",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            justifyContent: "flex-start",
+            gap: 10,
+            minHeight: "clamp(148px, 20vw, 178px)",
+            animationDelay: "150ms",
+            cursor: "pointer",
+          }}
+          role="button"
+          tabIndex={0}
+          onClick={onSelectAdvisor}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              onSelectAdvisor();
+            }
+          }}
+        >
+          <span
+            style={{
+              position: "absolute",
+              top: 22,
+              right: 20,
+              width: 24,
+              height: 24,
+              borderRadius: "50%",
+              border: "1px solid rgba(148,163,184,0.35)",
+              color: "#64748b",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 15,
+            }}
+          >
+            &gt;
+          </span>
+          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
+            {t("buyOptions.optionBTitle")}
+          </div>
+          <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
+            {t("buyOptions.optionBDesc")}
+          </div>
+          <button
+            type="button"
+            onClick={(event) => { event.stopPropagation(); toggleFlow("b"); }}
+            style={{
+              marginTop: 2,
+              border: "1px solid rgba(37,99,235,0.28)",
+              background: "rgba(37,99,235,0.08)",
+              color: "#1d4ed8",
+              borderRadius: 10,
+              padding: "8px 12px",
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            {openFlow === "b" ? t("buyOptions.hideButton") : t("buyOptions.showMore")}
           </button>
         </article>
       </div>

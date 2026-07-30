@@ -157,7 +157,9 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               Marketplace VO
             </div>
             <div style={{ fontSize: 14, color: mutedColor, lineHeight: 1.55 }}>
-              Coches únicos de nuestro portal. Encuentra ofertas de concesionarios, rentings, vehículos de importación y coches vendidos por usuarios de CarsWise.
+              {uiLanguage === "en"
+                ? "Unique cars on our portal. Find offers from dealerships, rentals, imported vehicles and cars sold by CarsWise users."
+                : "Coches únicos de nuestro portal. Encuentra ofertas de concesionarios, rentings, vehículos de importación y coches vendidos por usuarios de CarsWise."}
             </div>
           </div>
           <button
@@ -176,7 +178,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               flexShrink: 0,
             }}
           >
-            Ver Marketplace →
+            {uiLanguage === "en" ? "Go to Marketplace →" : "Ver Marketplace →"}
           </button>
         </article>
 

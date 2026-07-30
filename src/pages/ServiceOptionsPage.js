@@ -9,7 +9,8 @@ export default function ServiceOptionsPage({
   onSelectAutogestor,
   onGoBack,
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const uiLanguage = i18n.language === "en" ? "en" : "es";
   const isDark = styles?.page?.color === "#e2e8f0";
   const titleColor = isDark ? "#f8fafc" : "#000000";
   const mutedColor = isDark ? "#cbd5e1" : "#94a3b8";
@@ -189,7 +190,7 @@ export default function ServiceOptionsPage({
             flexShrink: 0,
           }}
         >
-          Crear mi IDCar →
+          {uiLanguage === "en" ? "Create my IDCar →" : "Crear mi IDCar →"}
         </div>
       </button>
 

@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
 
 export default function SellOptionsPage({ styles, onSelectCertificate, onSelectReport, onSelectIDCar, onGoBack }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const uiLanguage = i18n.language === "en" ? "en" : "es";
   const isDark = styles?.page?.color === "#e2e8f0";
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
   const mutedColor = isDark ? "#cbd5e1" : "#475569";
@@ -255,10 +256,12 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
         <span style={{ fontSize: 30, lineHeight: 1 }}>🏪</span>
         <div style={{ flex: 1, minWidth: 180 }}>
           <div style={{ fontWeight: 700, fontSize: 14, color: titleColor, marginBottom: 3 }}>
-            ¿Prefieres gestionarlo tú mismo?
+            {uiLanguage === "en" ? "Prefer to manage it yourself?" : "¿Prefieres gestionarlo tú mismo?"}
           </div>
           <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.5 }}>
-            Publica tu coche en nuestro <strong>Marketplace para particulares</strong> y lleva la venta a tu ritmo.
+            {uiLanguage === "en"
+              ? <>Publish your car on our <strong>Marketplace for private sellers</strong> and sell at your own pace.</>
+              : <>Publica tu coche en nuestro <strong>Marketplace para particulares</strong> y lleva la venta a tu ritmo.</>}
           </div>
         </div>
         <button
@@ -276,7 +279,7 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
             whiteSpace: "nowrap",
           }}
         >
-          Publicar con IDCar →
+          {uiLanguage === "en" ? "Publish with IDCar →" : "Publicar con IDCar →"}
         </button>
       </div>
     </div>

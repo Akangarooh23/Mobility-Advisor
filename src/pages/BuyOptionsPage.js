@@ -37,7 +37,7 @@ const FLOW_B_EN = [
   { title: "We find you the best financing" },
 ];
 
-export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownModel, onGoBack }) {
+export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownModel, onOpenMarketplace, onGoBack }) {
   const { t, i18n } = useTranslation();
   const uiLanguage = i18n.language === "en" ? "en" : "es";
   const FLOW_A = uiLanguage === "en" ? FLOW_A_EN : FLOW_A_ES;
@@ -278,6 +278,97 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             }}
           >
             {openFlow === "b" ? t("buyOptions.hideButton") : t("buyOptions.showMore")}
+          </button>
+        </article>
+
+        {/* ── OPCIÓN C: Marketplace VO ── */}
+        <article
+          className="ma-card-interactive ma-fade-stagger"
+          style={{
+            position: "relative",
+            border: cardBorder,
+            borderRadius: 12,
+            background: cardBackground,
+            boxShadow: isDark ? "none" : "0 8px 22px rgba(15,23,42,0.05)",
+            padding: "24px 22px 20px",
+            textAlign: "left",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            justifyContent: "flex-start",
+            gap: 10,
+            minHeight: "clamp(148px, 20vw, 178px)",
+            animationDelay: "240ms",
+            cursor: "pointer",
+          }}
+          role="button"
+          tabIndex={0}
+          onClick={onOpenMarketplace}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              if (onOpenMarketplace) onOpenMarketplace();
+            }
+          }}
+        >
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "3px 10px",
+              borderRadius: 20,
+              border: "1px solid rgba(22,163,74,0.28)",
+              background: "rgba(22,163,74,0.1)",
+              color: "#16a34a",
+              fontSize: 9,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              fontWeight: 700,
+              marginBottom: 4,
+            }}
+          >
+            OPCIÓN C
+          </span>
+          <span
+            style={{
+              position: "absolute",
+              top: 22,
+              right: 20,
+              width: 24,
+              height: 24,
+              borderRadius: "50%",
+              border: "1px solid rgba(148,163,184,0.35)",
+              color: "#64748b",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 15,
+            }}
+          >
+            &gt;
+          </span>
+          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
+            Marketplace VO
+          </div>
+          <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
+            Coches únicos de nuestro portal. Encuentra ofertas de concesionarios, rentings, vehículos de importación y coches vendidos por usuarios de CarsWise.
+          </div>
+          <button
+            type="button"
+            onClick={(event) => { event.stopPropagation(); if (onOpenMarketplace) onOpenMarketplace(); }}
+            style={{
+              marginTop: 2,
+              border: "1px solid rgba(22,163,74,0.3)",
+              background: "rgba(22,163,74,0.08)",
+              color: "#16a34a",
+              borderRadius: 10,
+              padding: "8px 12px",
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            Ver más
           </button>
         </article>
       </div>

@@ -177,6 +177,61 @@ export function buildMarketAlertMatches({ alerts = [], offers = [] }) {
   }, {});
 }
 
+export const PORTAL_VO_PROVINCES = [
+  "A Coruña",
+  "Álava",
+  "Albacete",
+  "Alicante",
+  "Almería",
+  "Asturias",
+  "Ávila",
+  "Badajoz",
+  "Barcelona",
+  "Burgos",
+  "Cáceres",
+  "Cádiz",
+  "Cantabria",
+  "Castellón",
+  "Ceuta",
+  "Ciudad Real",
+  "Córdoba",
+  "Cuenca",
+  "Girona",
+  "Granada",
+  "Guadalajara",
+  "Guipúzcoa",
+  "Huelva",
+  "Huesca",
+  "Illes Balears",
+  "Jaén",
+  "La Rioja",
+  "Las Palmas",
+  "León",
+  "Lleida",
+  "Lugo",
+  "Madrid",
+  "Málaga",
+  "Melilla",
+  "Murcia",
+  "Navarra",
+  "Ourense",
+  "Palencia",
+  "Pontevedra",
+  "Salamanca",
+  "Santa Cruz de Tenerife",
+  "Segovia",
+  "Sevilla",
+  "Soria",
+  "Tarragona",
+  "Teruel",
+  "Toledo",
+  "Valencia",
+  "Valladolid",
+  "Vizcaya",
+  "Zamora",
+  "Zaragoza",
+];
+
 export const PORTAL_VO_COLORS = [
   "Amarillo",
   "Azul",
@@ -200,7 +255,7 @@ export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selec
   const safeOffers = Array.isArray(offers) ? offers : [];
   const query = normalizeText(filters.query).toLowerCase();
 
-  const portalVoLocations = [...new Set(safeOffers.map((offer) => offer.location).filter(Boolean))].sort();
+  const portalVoLocations = PORTAL_VO_PROVINCES;
   const portalVoColors    = PORTAL_VO_COLORS;
   const portalVoFuels         = [...new Set(safeOffers.map((offer) => offer.fuel).filter(Boolean))].sort();
   const portalVoTransmissions = [...new Set(safeOffers.map((offer) => offer.transmission).filter((t) => t && t !== "—"))].sort();
@@ -223,7 +278,7 @@ export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selec
       const matchesPrice    = !filters.maxPrice || Number(offer.price || 0) <= Number(filters.maxPrice);
       const matchesYear     = !filters.minYear || Number(offer.year || 0) >= Number(filters.minYear);
       const matchesMileage  = !filters.maxMileage || Number(offer.mileage || 0) <= Number(filters.maxMileage);
-      const matchesLocation = !filters.location || normalizeText(offer.location) === normalizeText(filters.location);
+      const matchesLocation = !filters.location || normalizeText(offer.location).toLowerCase() === normalizeText(filters.location).toLowerCase();
       // "sin dato = pasa": las ofertas sin color no se excluyen al filtrar por color.
       const matchesColor    = !filters.color || !normalizeText(offer.color) || normalizeText(offer.color).toLowerCase() === normalizeText(filters.color).toLowerCase();
       const matchesFuel         = !filters.fuel         || normalizeText(offer.fuel)         === normalizeText(filters.fuel);

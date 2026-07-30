@@ -149,6 +149,8 @@ export default function PortalVoMarketplacePage({
   const cardBg = isDark ? "rgba(15,23,42,0.34)" : "rgba(255,255,255,0.96)";
   const cardBorder = isDark ? "1px solid rgba(148,163,184,0.16)" : "1px solid rgba(148,163,184,0.26)";
 
+  const PRICE_STEPS = Array.from({ length: 80 }, (_, i) => (i + 1) * 2500); // 2500 … 200000
+
   // Opciones de marca/modelo: catálogo completo si cargó; si no, las del pool cargado.
   const normStr = (s) => String(s || "").trim().toLowerCase();
   const brandOptions = catalogBrands.length ? catalogBrands.map((b) => b.name) : portalVoBrands;
@@ -485,16 +487,24 @@ export default function PortalVoMarketplacePage({
             {modelOptions.map((m) => <option key={m} value={m}>{m}</option>)}
           </select>
           <select
-            value={portalVoFilters.maxPrice}
+            value={portalVoFilters.minPrice || ""}
+            onChange={(event) => updatePortalVoFilter("minPrice", event.target.value)}
+            style={styles.select}
+          >
+            <option value="">Precio mínimo</option>
+            {PRICE_STEPS.filter((p) => !portalVoFilters.maxPrice || p < Number(portalVoFilters.maxPrice)).map((p) => (
+              <option key={p} value={p}>{p.toLocaleString("es-ES")} €</option>
+            ))}
+          </select>
+          <select
+            value={portalVoFilters.maxPrice || ""}
             onChange={(event) => updatePortalVoFilter("maxPrice", event.target.value)}
             style={styles.select}
           >
-            <option value="">{t("marketplace.filterMaxPrice")}</option>
-            <option value="15000">{t("marketplace.filterMaxPrice15")}</option>
-            <option value="20000">{t("marketplace.filterMaxPrice20")}</option>
-            <option value="25000">{t("marketplace.filterMaxPrice25")}</option>
-            <option value="30000">{t("marketplace.filterMaxPrice30")}</option>
-            <option value="40000">{t("marketplace.filterMaxPrice40")}</option>
+            <option value="">Precio máximo</option>
+            {PRICE_STEPS.filter((p) => !portalVoFilters.minPrice || p > Number(portalVoFilters.minPrice)).map((p) => (
+              <option key={p} value={p}>{p.toLocaleString("es-ES")} €</option>
+            ))}
           </select>
           <select
             value={portalVoFilters.minYear}

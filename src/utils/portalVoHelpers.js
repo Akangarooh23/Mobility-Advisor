@@ -4,6 +4,7 @@ export const INITIAL_PORTAL_VO_FILTERS = {
   query: "",
   brand: "",
   model: "",
+  minPrice: "",
   maxPrice: "",
   minYear: "",
   maxMileage: "",

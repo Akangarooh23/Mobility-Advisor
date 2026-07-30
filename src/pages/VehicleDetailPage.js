@@ -330,7 +330,7 @@ function normalizeOffer(offer) {
   };
 }
 
-export default function VehicleDetailPage({ offer, onBack }) {
+export default function VehicleDetailPage({ offer, onBack, isUserLoggedIn, onRequireLogin }) {
   const { t } = useTranslation();
   const [modalOpen, setModalOpen] = React.useState(false);
   const [modalType, setModalType] = React.useState("info");
@@ -587,13 +587,22 @@ export default function VehicleDetailPage({ offer, onBack }) {
               </>
             ) : (
               <>
-                <button className="vd-btn-primary" onClick={() => { setModalType("info"); setModalOpen(true); }}>
+                <button className="vd-btn-primary" onClick={() => {
+                  if (!isUserLoggedIn) { onRequireLogin?.(); return; }
+                  setModalType("info"); setModalOpen(true);
+                }}>
                   {t("vehicleDetail.requestInfo")}
                 </button>
-                <button className="vd-btn-secondary" onClick={() => { setModalType("visit"); setModalOpen(true); }}>
+                <button className="vd-btn-secondary" onClick={() => {
+                  if (!isUserLoggedIn) { onRequireLogin?.(); return; }
+                  setModalType("visit"); setModalOpen(true);
+                }}>
                   {t("vehicleDetail.scheduleVisit")}
                 </button>
-                <button className="vd-btn-secondary" onClick={() => { setModalType("question"); setModalOpen(true); }}>
+                <button className="vd-btn-secondary" onClick={() => {
+                  if (!isUserLoggedIn) { onRequireLogin?.(); return; }
+                  setModalType("question"); setModalOpen(true);
+                }}>
                   {t("vehicleDetail.askAboutCar")}
                 </button>
               </>

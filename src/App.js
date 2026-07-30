@@ -6807,6 +6807,8 @@ export default function App() {
       {step === -1 && entryMode === "vehicleDetail" && vehicleDetailOffer && (
         <VehicleDetailPage
           offer={vehicleDetailOffer}
+          isUserLoggedIn={isUserLoggedIn}
+          onRequireLogin={() => openAuthDialog("login")}
           onBack={() => {
             setEntryMode(vehicleDetailBackTarget === "advice" ? null : "decision");
             syncBrowserPath("/", "replace");

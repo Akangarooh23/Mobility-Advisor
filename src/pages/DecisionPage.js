@@ -182,7 +182,7 @@ export default function DecisionPage({
   onSwitchToAdvice,
   onRestart,
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const VISIBLE_PAGE_SIZE = 100;
   const [visibleCount, setVisibleCount] = useState(VISIBLE_PAGE_SIZE);
   const [priceSortOrder, setPriceSortOrder] = useState("asc");
@@ -326,7 +326,7 @@ export default function DecisionPage({
     { value: "4x4", label: t("decision.traction4x4") },
   ];
 
-  const showAllBrands = true;
+  const [showAllBrands, setShowAllBrands] = useState(false);
   const [priceFromIndex, setPriceFromIndex] = useState(() => getIndexFromMarkValue(PRICE_MARKS, decisionAnswers.priceMin, 0));
   const [priceToIndex, setPriceToIndex] = useState(() =>
     Number.isFinite(Number(decisionAnswers.priceMax))
@@ -1027,6 +1027,27 @@ export default function DecisionPage({
                 </select>
                 <div className="cw-sel-arrow">▾</div>
               </div>
+              {otherBrands.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllBrands((v) => !v)}
+                  style={{
+                    marginTop: 6,
+                    background: "none",
+                    border: "none",
+                    padding: "2px 0",
+                    fontSize: 12,
+                    color: "#0ea5e9",
+                    cursor: "pointer",
+                    textDecoration: "underline",
+                    textUnderlineOffset: 2,
+                  }}
+                >
+                  {showAllBrands
+                    ? (i18n.language === "en" ? "Show fewer brands ▲" : "Ver menos marcas ▲")
+                    : (i18n.language === "en" ? "Show more brands ▼" : "Ver más marcas ▼")}
+                </button>
+              )}
             </div>
 
             {/* 3. MODEL */}

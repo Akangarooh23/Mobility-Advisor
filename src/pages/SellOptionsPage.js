@@ -237,17 +237,48 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
         </article>
       </div>
 
-      <p style={{ marginTop: 20, fontSize: 13, color: mutedColor, lineHeight: 1.6 }}>
-        También puedes publicar tu coche directamente en nuestro{" "}
+      <div
+        style={{
+          marginTop: 20,
+          border: "1px solid rgba(37,99,235,0.18)",
+          borderRadius: 14,
+          background: isDark
+            ? "rgba(37,99,235,0.08)"
+            : "linear-gradient(135deg, rgba(37,99,235,0.05) 0%, rgba(99,102,241,0.07) 100%)",
+          padding: "18px 22px",
+          display: "flex",
+          alignItems: "center",
+          gap: 16,
+          flexWrap: "wrap",
+        }}
+      >
+        <span style={{ fontSize: 30, lineHeight: 1 }}>🏪</span>
+        <div style={{ flex: 1, minWidth: 180 }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: titleColor, marginBottom: 3 }}>
+            ¿Prefieres gestionarlo tú mismo?
+          </div>
+          <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.5 }}>
+            Publica tu coche en nuestro <strong>Marketplace para particulares</strong> y lleva la venta a tu ritmo.
+          </div>
+        </div>
         <button
           type="button"
           onClick={onSelectIDCar}
-          style={{ background: "none", border: "none", padding: 0, color: "#2563eb", fontWeight: 700, textDecoration: "underline", cursor: "pointer", fontSize: 13 }}
+          style={{
+            border: "1px solid rgba(37,99,235,0.3)",
+            background: "linear-gradient(135deg, #2563eb, #3b82f6)",
+            color: "#ffffff",
+            borderRadius: 10,
+            padding: "10px 18px",
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+          }}
         >
-          Marketplace para particulares (IDCar)
-        </button>{" "}
-        y gestionar la venta tú mismo.
-      </p>
+          Publicar con IDCar →
+        </button>
+      </div>
     </div>
   );
 }

@@ -4222,7 +4222,7 @@ export default function App() {
           sameAs: [
             "https://www.linkedin.com",
             "https://x.com",
-            "https://www.instagram.com",
+            "https://www.instagram.com/carswiseai/",
             "https://www.youtube.com",
           ],
         },
@@ -7187,7 +7187,7 @@ export default function App() {
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {[
                   ["LinkedIn", "https://www.linkedin.com"],
-                  ["Instagram", "https://www.instagram.com"],
+                  ["Instagram", "https://www.instagram.com/carswiseai/"],
                   ["X", "https://x.com"],
                   ["YouTube", "https://www.youtube.com"],
                 ].map(([label, href]) => (

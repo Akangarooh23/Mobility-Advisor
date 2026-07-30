@@ -723,7 +723,7 @@ export default function LandingPage({
             <div style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
               <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>REDES SOCIALES</div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {[["LinkedIn","https://www.linkedin.com"],["Instagram","https://www.instagram.com"],["X","https://x.com"],["YouTube","https://www.youtube.com"]].map(([label, href]) => (
+                {[["LinkedIn","https://www.linkedin.com"],["Instagram","https://www.instagram.com/carswiseai/"],["X","https://x.com"],["YouTube","https://www.youtube.com"]].map(([label, href]) => (
                   <a key={label} href={href} target="_blank" rel="noreferrer" style={{ border: "1px solid rgba(148,163,184,0.24)", borderRadius: 999, padding: "6px 10px", fontSize: 11, fontWeight: 700, color: "#e2e8f0", textDecoration: "none", background: "rgba(15,23,42,0.55)" }}>
                     {label}
                   </a>

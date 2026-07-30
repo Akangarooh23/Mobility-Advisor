@@ -232,6 +232,17 @@ export const PORTAL_VO_PROVINCES = [
   "Zaragoza",
 ];
 
+export const PORTAL_VO_FUELS = [
+  "Gasolina",
+  "Diésel",
+  "Eléctrico",
+  "Híbrido",
+  "Híbrido enchufable",
+  "GLP",
+  "GNC",
+  "Hidrógeno",
+];
+
 export const PORTAL_VO_COLORS = [
   "Amarillo",
   "Azul",
@@ -257,7 +268,7 @@ export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selec
 
   const portalVoLocations = PORTAL_VO_PROVINCES;
   const portalVoColors    = PORTAL_VO_COLORS;
-  const portalVoFuels         = [...new Set(safeOffers.map((offer) => offer.fuel).filter(Boolean))].sort();
+  const portalVoFuels         = PORTAL_VO_FUELS;
   const portalVoTransmissions = [...new Set(safeOffers.map((offer) => offer.transmission).filter((t) => t && t !== "—"))].sort();
   const portalVoBrands        = [...new Set(safeOffers.map((offer) => offer.brand).filter(Boolean))].sort();
   const portalVoModels    = [...new Set(

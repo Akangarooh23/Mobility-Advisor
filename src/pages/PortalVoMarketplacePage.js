@@ -438,7 +438,8 @@ export default function PortalVoMarketplacePage({
         <div style={{ fontSize: 11, color: "#60a5fa", marginBottom: 10, letterSpacing: "0.6px" }}>
           {t("marketplace.filtersLabel")}
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12 }}>
+        {/* Row 1: query, marca, modelo, precio, año, km, ubicación */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12, alignItems: "start" }}>
           <input
             value={portalVoFilters.query}
             onChange={(event) => updatePortalVoFilter("query", event.target.value)}
@@ -527,6 +528,10 @@ export default function PortalVoMarketplacePage({
               <option key={location} value={location}>{location}</option>
             ))}
           </select>
+        </div>
+
+        {/* Row 2: color, combustible, cambio, cilindrada */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12, marginTop: 20 }}>
           <select
             value={portalVoFilters.color}
             onChange={(event) => updatePortalVoFilter("color", event.target.value)}

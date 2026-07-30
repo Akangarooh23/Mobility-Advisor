@@ -6,6 +6,7 @@ export default function PortalVoAuthGatePage({
   onLogin,
   onRegister,
   onGoHome,
+  offer,
 }) {
   const isDark = themeMode === "dark";
   const { t } = useTranslation();
@@ -14,6 +15,7 @@ export default function PortalVoAuthGatePage({
   const titleColor = isDark ? "#f8fafc" : "#0f172a";
   const bodyColor = isDark ? "#cbd5e1" : "#475569";
   const accentColor = isDark ? "#38bdf8" : "#0284c7";
+  const mutedColor = isDark ? "#94a3b8" : "#64748b";
 
   const features = [
     { icon: "🚗", text: t("marketplaceGate.feature1", "Cientos de vehículos de ocasión verificados") },
@@ -22,8 +24,69 @@ export default function PortalVoAuthGatePage({
     { icon: "📞", text: t("marketplaceGate.feature4", "Contacto directo con el vendedor en 1 clic") },
   ];
 
+  const hasOffer = Boolean(offer?.brand || offer?.title);
+  const offerTitle = offer?.title || [offer?.brand, offer?.model].filter(Boolean).join(" ") || "";
+  const offerPrice = offer?.price != null ? Number(offer.price).toLocaleString("es-ES") : null;
+  const offerImage = offer?.image || offer?.image_url || offer?.imageUrl || "";
+  const offerSpecs = [offer?.year, offer?.mileage != null ? `${Number(offer.mileage).toLocaleString("es-ES")} km` : null]
+    .filter(Boolean).join(" · ");
+
   return (
     <div style={{ ...styles.center, paddingTop: 32, paddingBottom: 48 }}>
+
+      {/* ── Teaser del vehículo cuando viene de una ficha concreta ── */}
+      {hasOffer && (
+        <div
+          style={{
+            maxWidth: 520,
+            width: "100%",
+            margin: "0 auto 16px",
+            borderRadius: 16,
+            overflow: "hidden",
+            border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(14,165,233,0.18)",
+            boxShadow: isDark ? "none" : "0 4px 20px rgba(14,165,233,0.08)",
+            position: "relative",
+          }}
+        >
+          {offerImage && (
+            <div style={{ width: "100%", height: 180, overflow: "hidden", position: "relative" }}>
+              <img
+                src={offerImage}
+                alt={offerTitle}
+                referrerPolicy="no-referrer"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "blur(3px) brightness(0.75)", transform: "scale(1.05)" }}
+              />
+              <div style={{
+                position: "absolute", inset: 0,
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                gap: 4, padding: "0 16px", textAlign: "center",
+              }}>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", textShadow: "0 1px 6px rgba(0,0,0,0.6)", lineHeight: 1.2 }}>
+                  {offerTitle}
+                </div>
+                {offerSpecs && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.82)", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>{offerSpecs}</div>}
+                {offerPrice && <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", textShadow: "0 1px 6px rgba(0,0,0,0.6)", marginTop: 4 }}>{offerPrice} €</div>}
+              </div>
+              <div style={{
+                position: "absolute", bottom: 0, left: 0, right: 0,
+                background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)",
+                height: 60,
+              }} />
+            </div>
+          )}
+          <div style={{
+            background: isDark ? "rgba(15,23,42,0.85)" : "rgba(239,246,255,0.95)",
+            padding: "12px 18px",
+            display: "flex", alignItems: "center", gap: 10,
+          }}>
+            <div style={{ fontSize: 18 }}>🔒</div>
+            <div style={{ fontSize: 13, color: mutedColor, lineHeight: 1.4 }}>
+              <strong style={{ color: titleColor }}>Inicia sesión</strong> para ver la ficha completa y contactar al vendedor.
+            </div>
+          </div>
+        </div>
+      )}
+
       <div
         style={{
           maxWidth: 520,
@@ -52,7 +115,9 @@ export default function PortalVoAuthGatePage({
             {t("marketplaceGate.badge", "Marketplace de Vehículos de Ocasión")}
           </div>
           <div style={{ fontSize: 26, fontWeight: 800, color: titleColor, lineHeight: 1.2, marginBottom: 12 }}>
-            {t("marketplaceGate.title", "Encuentra tu próximo coche")}
+            {hasOffer
+              ? "Crea tu cuenta para ver esta oferta"
+              : t("marketplaceGate.title", "Encuentra tu próximo coche")}
           </div>
           <div style={{ fontSize: 14, color: bodyColor, lineHeight: 1.6 }}>
             {t("marketplaceGate.subtitle", "Crea tu cuenta gratuita o inicia sesión para ver todas las ofertas del Marketplace VO.")}

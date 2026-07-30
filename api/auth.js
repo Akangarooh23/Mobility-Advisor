@@ -16,7 +16,7 @@ if (!process.env.POSTGRES_URL && process.env.DATABASE_URL) {
 const USERS_DB_PATH = path.join(__dirname, "..", "data", "local-users.json");
 const SESSIONS_DB_PATH = path.join(__dirname, "..", "data", "local-sessions.json");
 const SESSION_COOKIE_NAME = "moveadvisor_session";
-const SESSION_TTL_HOURS = Math.max(Number(process.env.AUTH_SESSION_TTL_HOURS || 24), 1);
+const SESSION_TTL_HOURS = Math.max(Number(process.env.AUTH_SESSION_TTL_HOURS || 720), 1);
 const SESSION_CLEANUP_PROBABILITY = Math.min(Math.max(Number(process.env.AUTH_SESSION_CLEANUP_PROBABILITY || 0.2), 0), 1);
 const SESSION_SECRET = normalizeText(process.env.AUTH_SESSION_SECRET) || "moveadvisor-local-session-secret";
 const RESET_REQUEST_WINDOW_MS = Math.max(Number(process.env.AUTH_RESET_REQUEST_WINDOW_MS || 15 * 60 * 1000), 1_000);
@@ -1205,6 +1205,15 @@ async function updateSessionLastSeenPostgres(id) {
   await pool.query(`UPDATE moveadvisor_sessions SET last_seen_at = $1 WHERE id = $2`, [new Date().toISOString(), id]);
 }
 
+async function extendSessionExpiryPostgres(id, newExpiresAt) {
+  await ensurePostgresSchema();
+  const pool = getPgPool();
+  await pool.query(
+    `UPDATE moveadvisor_sessions SET expires_at = $1, last_seen_at = $2 WHERE id = $3`,
+    [newExpiresAt, new Date().toISOString(), id]
+  );
+}
+
 async function deleteSessionByIdPostgres(id) {
   await ensurePostgresSchema();
   const pool = getPgPool();
@@ -1737,18 +1746,20 @@ async function resolveSessionUser({ req, useMssql, useSqlcmdWindows, usePostgres
     return null;
   }
 
-  if (useMssql) {
+  // Sliding session: extend expiry on each valid access
+  const newExpiresAt = getSessionExpiryIso();
+  if (usePostgres) {
+    await extendSessionExpiryPostgres(session.id, newExpiresAt);
+  } else if (useMssql) {
     await updateSessionLastSeenMssql(session.id);
   } else if (useSqlcmdWindows) {
     updateSessionLastSeenSqlcmd(session.id);
-  } else if (usePostgres) {
-    await updateSessionLastSeenPostgres(session.id);
   } else {
     updateSessionLastSeenLocal(session.id);
   }
 
   return {
-    session,
+    session: { ...session, expiresAt: newExpiresAt },
     user: mapDbUser(foundUser),
   };
 }
@@ -1824,6 +1835,14 @@ async function _authHandlerInner(req, res) {
     if (!sessionPayload?.user) {
       clearSessionCookie(res);
       return res.status(200).json({ ok: true, authenticated: false });
+    }
+
+    // Refresh cookie so the browser window stays alive for another TTL period
+    const rawSession = parseSessionCookieFromRequest(req);
+    if (rawSession?.sessionId && rawSession?.token) {
+      setSessionCookie(res, `${rawSession.sessionId}.${rawSession.token}`, {
+        maxAgeSeconds: SESSION_TTL_HOURS * 60 * 60,
+      });
     }
 
     return res.status(200).json({

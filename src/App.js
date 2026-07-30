@@ -6142,6 +6142,7 @@ export default function App() {
             }
             openUserDashboard();
           }}
+          onToggleLanguage={() => setUiLanguage((prev) => (prev === "es" ? "en" : "es"))}
         />
       )}
 
@@ -6820,6 +6821,7 @@ export default function App() {
         <PortalVoAuthGatePage
           themeMode={themeMode}
           styles={s}
+          offer={entryMode === "portalVoDetail" ? selectedPortalVoOffer : null}
           onRegister={() => openAuthDialog("register", { entryMode: "portalVo" })}
           onLogin={() => openAuthDialog("login", { entryMode: "portalVo" })}
           onGoHome={() => { setEntryMode(null); syncBrowserPath("/", "replace"); }}

@@ -1,8 +1,104 @@
+import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useState, useEffect } from "react";
 import { getMarketplaceVoJson, getImportOffersJson, getVehicleCatalogJson } from "../utils/apiClient";
 import { getBrandOptionSegments } from "../utils/brandCatalog";
 
+function FilterSelect({ value, onChange, style = {}, disabled, children }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  const options = React.Children.toArray(children)
+    .filter((c) => c && c.type === "option")
+    .map((c) => ({ value: c.props.value ?? "", label: String(c.props.children ?? "") }));
+
+  const displayLabel =
+    options.find((o) => String(o.value) === String(value ?? ""))?.label ??
+    options[0]?.label ??
+    "";
+
+  const isDarkBg = String(style.background ?? "").includes("0f1b2d");
+  const selectedBg = isDarkBg ? "rgba(255,255,255,0.12)" : "rgba(14,165,233,0.10)";
+  const hoverBg    = isDarkBg ? "rgba(255,255,255,0.07)" : "rgba(14,165,233,0.06)";
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+
+  return (
+    <div ref={ref} style={{ position: "relative", width: style.width ?? "100%" }}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setOpen((v) => !v)}
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 8,
+          textAlign: "left",
+          cursor: disabled ? "not-allowed" : "pointer",
+          opacity: disabled ? 0.6 : 1,
+          background: style.background,
+          color: style.color,
+          border: style.border,
+          borderRadius: style.borderRadius,
+          padding: style.padding,
+          boxShadow: style.boxShadow,
+          outline: "none",
+          boxSizing: "border-box",
+          fontFamily: "inherit",
+          fontSize: 14,
+        }}
+      >
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
+          {displayLabel}
+        </span>
+        <span style={{ fontSize: 9, flexShrink: 0, opacity: 0.6, marginLeft: 2 }}>▾</span>
+      </button>
+      {open && !disabled && (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 4px)",
+            left: 0,
+            right: 0,
+            zIndex: 9999,
+            background: style.background ?? "#ffffff",
+            border: style.border ?? "1px solid rgba(148,163,184,0.3)",
+            borderRadius: style.borderRadius ?? 10,
+            boxShadow: "0 8px 24px rgba(0,0,0,0.16)",
+            maxHeight: 260,
+            overflowY: "auto",
+          }}
+        >
+          {options.map((opt, i) => (
+            <div
+              key={i}
+              onMouseDown={() => { onChange({ target: { value: opt.value } }); setOpen(false); }}
+              onMouseEnter={(e) => { if (String(opt.value) !== String(value ?? "")) e.currentTarget.style.background = hoverBg; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = String(opt.value) === String(value ?? "") ? selectedBg : "transparent"; }}
+              style={{
+                padding: "9px 14px",
+                cursor: "pointer",
+                color: style.color ?? "#0f172a",
+                fontSize: 14,
+                background: String(opt.value) === String(value ?? "") ? selectedBg : "transparent",
+              }}
+            >
+              {opt.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 function useWindowWidth() {
   const [width, setWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
   useEffect(() => {
@@ -449,14 +545,14 @@ export default function PortalVoMarketplacePage({
             style={styles.input}
           />
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <select
+            <FilterSelect
               value={portalVoFilters.brand}
               onChange={(event) => onUpdateBrandFilter ? onUpdateBrandFilter(event.target.value) : updatePortalVoFilter("brand", event.target.value)}
               style={styles.select}
             >
               <option value="">Marca</option>
               {visibleVoBrands.map((b) => <option key={b} value={b}>{b}</option>)}
-            </select>
+            </FilterSelect>
             {voOtherBrands.length > 0 && (
               <button
                 type="button"
@@ -477,7 +573,7 @@ export default function PortalVoMarketplacePage({
               </button>
             )}
           </div>
-          <select
+          <FilterSelect
             value={portalVoFilters.model}
             onChange={(event) => updatePortalVoFilter("model", event.target.value)}
             style={styles.select}
@@ -485,8 +581,8 @@ export default function PortalVoMarketplacePage({
           >
             <option value="">Modelo</option>
             {modelOptions.map((m) => <option key={m} value={m}>{m}</option>)}
-          </select>
-          <select
+          </FilterSelect>
+          <FilterSelect
             value={portalVoFilters.minPrice || ""}
             onChange={(event) => updatePortalVoFilter("minPrice", event.target.value)}
             style={styles.select}
@@ -495,8 +591,8 @@ export default function PortalVoMarketplacePage({
             {PRICE_STEPS.filter((p) => !portalVoFilters.maxPrice || p < Number(portalVoFilters.maxPrice)).map((p) => (
               <option key={p} value={p}>{p.toLocaleString("es-ES")} €</option>
             ))}
-          </select>
-          <select
+          </FilterSelect>
+          <FilterSelect
             value={portalVoFilters.maxPrice || ""}
             onChange={(event) => updatePortalVoFilter("maxPrice", event.target.value)}
             style={styles.select}
@@ -505,8 +601,8 @@ export default function PortalVoMarketplacePage({
             {PRICE_STEPS.filter((p) => !portalVoFilters.minPrice || p > Number(portalVoFilters.minPrice)).map((p) => (
               <option key={p} value={p}>{p.toLocaleString("es-ES")} €</option>
             ))}
-          </select>
-          <select
+          </FilterSelect>
+          <FilterSelect
             value={portalVoFilters.minYear || ""}
             onChange={(event) => updatePortalVoFilter("minYear", event.target.value)}
             style={styles.select}
@@ -517,8 +613,8 @@ export default function PortalVoMarketplacePage({
               .map((year) => (
                 <option key={year} value={year}>{year}</option>
               ))}
-          </select>
-          <select
+          </FilterSelect>
+          <FilterSelect
             value={portalVoFilters.maxYear || ""}
             onChange={(event) => updatePortalVoFilter("maxYear", event.target.value)}
             style={styles.select}
@@ -529,8 +625,8 @@ export default function PortalVoMarketplacePage({
               .map((year) => (
                 <option key={year} value={year}>{year}</option>
               ))}
-          </select>
-          <select
+          </FilterSelect>
+          <FilterSelect
             value={portalVoFilters.minMileage || ""}
             onChange={(event) => updatePortalVoFilter("minMileage", event.target.value)}
             style={styles.select}
@@ -541,8 +637,8 @@ export default function PortalVoMarketplacePage({
               .map((k) => (
                 <option key={k} value={k}>{k.toLocaleString("es-ES")} km</option>
               ))}
-          </select>
-          <select
+          </FilterSelect>
+          <FilterSelect
             value={portalVoFilters.maxMileage || ""}
             onChange={(event) => updatePortalVoFilter("maxMileage", event.target.value)}
             style={styles.select}
@@ -553,8 +649,8 @@ export default function PortalVoMarketplacePage({
               .map((k) => (
                 <option key={k} value={k}>{k.toLocaleString("es-ES")} km</option>
               ))}
-          </select>
-          <select
+          </FilterSelect>
+          <FilterSelect
             value={portalVoFilters.location}
             onChange={(event) => updatePortalVoFilter("location", event.target.value)}
             style={styles.select}
@@ -563,8 +659,8 @@ export default function PortalVoMarketplacePage({
             {portalVoLocations.map((location) => (
               <option key={location} value={location}>{location}</option>
             ))}
-          </select>
-          <select
+          </FilterSelect>
+          <FilterSelect
             value={portalVoFilters.color}
             onChange={(event) => updatePortalVoFilter("color", event.target.value)}
             style={styles.select}
@@ -573,8 +669,8 @@ export default function PortalVoMarketplacePage({
             {portalVoColors.map((color) => (
               <option key={color} value={color}>{color}</option>
             ))}
-          </select>
-          <select
+          </FilterSelect>
+          <FilterSelect
             value={portalVoFilters.fuel}
             onChange={(event) => updatePortalVoFilter("fuel", event.target.value)}
             style={styles.select}
@@ -583,20 +679,20 @@ export default function PortalVoMarketplacePage({
             {portalVoFuels.map((f) => (
               <option key={f} value={f}>{f}</option>
             ))}
-          </select>
+          </FilterSelect>
           {portalVoTransmissions.length > 0 && (
-            <select
+            <FilterSelect
               value={portalVoFilters.transmission}
               onChange={(event) => updatePortalVoFilter("transmission", event.target.value)}
               style={styles.select}
             >
               <option value="">Cambio</option>
-              {portalVoTransmissions.map((t) => (
-                <option key={t} value={t}>{t}</option>
+              {portalVoTransmissions.map((tr) => (
+                <option key={tr} value={tr}>{tr}</option>
               ))}
-            </select>
+            </FilterSelect>
           )}
-          <select
+          <FilterSelect
             value={portalVoFilters.displacement}
             onChange={(event) => updatePortalVoFilter("displacement", event.target.value)}
             style={styles.select}
@@ -607,7 +703,7 @@ export default function PortalVoMarketplacePage({
             <option value="1200_1600">{t("marketplace.filterDisplacement1200_1600")}</option>
             <option value="1600_2000">{t("marketplace.filterDisplacement1600_2000")}</option>
             <option value="2000_plus">{t("marketplace.filterDisplacement2000plus")}</option>
-          </select>
+          </FilterSelect>
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginTop: 12 }}>
@@ -620,7 +716,7 @@ export default function PortalVoMarketplacePage({
             {t("marketplace.filterOnlyGuaranteed")}
           </label>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-            <select
+            <FilterSelect
               value={portalVoFilters.sort || ""}
               onChange={(event) => updatePortalVoFilter("sort", event.target.value)}
               style={{ ...styles.select, minWidth: 180 }}
@@ -628,7 +724,7 @@ export default function PortalVoMarketplacePage({
               <option value="">Relevancia</option>
               <option value="price_asc">Precio: más bajo primero</option>
               <option value="price_desc">Precio: más alto primero</option>
-            </select>
+            </FilterSelect>
             <button
               type="button"
               onClick={onResetFilters}

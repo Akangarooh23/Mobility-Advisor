@@ -108,15 +108,101 @@ export default function ServiceOptionsPage({
         {t("service.subtitle")}
       </p>
 
+      {/* ── Hero: IDCar ── */}
+      <button
+        type="button"
+        onClick={serviceCards[0].onClick}
+        className="ma-card-interactive ma-fade-stagger"
+        style={{
+          width: "100%",
+          border: "1.5px solid rgba(37,99,235,0.35)",
+          background: isDark
+            ? "linear-gradient(135deg, rgba(37,99,235,0.18), rgba(99,102,241,0.12))"
+            : "linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%)",
+          borderRadius: 16,
+          boxShadow: isDark ? "none" : "0 12px 32px rgba(37,99,235,0.10)",
+          padding: "28px 32px",
+          textAlign: "left",
+          display: "flex",
+          alignItems: "center",
+          gap: 28,
+          flexWrap: "wrap",
+          cursor: "pointer",
+          color: titleColor,
+          animationDelay: "60ms",
+          marginBottom: 16,
+        }}
+      >
+        <div
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: 14,
+            border: "1.5px solid rgba(37,99,235,0.35)",
+            background: "rgba(37,99,235,0.12)",
+            color: "#2563eb",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <path d="M3 9h18M9 21V9" />
+          </svg>
+        </div>
+        <div style={{ flex: 1, minWidth: 200 }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "2px 10px",
+              borderRadius: 999,
+              background: "rgba(37,99,235,0.12)",
+              color: "#1d4ed8",
+              fontSize: 10,
+              fontWeight: 800,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              marginBottom: 8,
+            }}
+          >
+            {serviceCards[0].badge}
+          </div>
+          <div style={{ fontWeight: 800, fontSize: "clamp(22px,3vw,30px)", lineHeight: 1.15, color: titleColor, marginBottom: 6 }}>
+            {serviceCards[0].title}
+          </div>
+          <div style={{ fontSize: 14, color: mutedColor, lineHeight: 1.55 }}>
+            {serviceCards[0].description}
+          </div>
+        </div>
+        <div
+          style={{
+            background: "linear-gradient(135deg, #2563eb, #3b82f6)",
+            color: "#fff",
+            borderRadius: 12,
+            padding: "12px 22px",
+            fontSize: 14,
+            fontWeight: 700,
+            whiteSpace: "nowrap",
+            flexShrink: 0,
+          }}
+        >
+          Crear mi IDCar →
+        </div>
+      </button>
+
+      {/* ── Resto de servicios ── */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
-          gap: 18,
+          gridTemplateColumns: "repeat(2, 1fr)",
+          gap: 14,
           alignItems: "stretch",
         }}
       >
-        {serviceCards.map((card, idx) => (
+        {serviceCards.slice(1).map((card, idx) => (
           <button
             key={card.id}
             type="button"
@@ -126,7 +212,7 @@ export default function ServiceOptionsPage({
               border: isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.3)",
               background: isDark ? "rgba(15,23,42,0.52)" : "#ffffff",
               borderRadius: 14,
-              boxShadow: isDark ? "none" : "0 8px 24px rgba(15,23,42,0.08)",
+              boxShadow: isDark ? "none" : "0 8px 24px rgba(15,23,42,0.06)",
               padding: "18px 18px 16px",
               textAlign: "left",
               display: "flex",
@@ -134,11 +220,10 @@ export default function ServiceOptionsPage({
               alignItems: "flex-start",
               justifyContent: "flex-start",
               gap: 10,
-              minHeight: "clamp(190px, 24vw, 240px)",
-              animationDelay: `${60 + idx * 70}ms`,
+              minHeight: 180,
+              animationDelay: `${130 + idx * 70}ms`,
               cursor: "pointer",
               color: titleColor,
-              gridColumn: idx < 3 ? "span 2" : "span 3",
             }}
           >
             <div
@@ -172,10 +257,10 @@ export default function ServiceOptionsPage({
             >
               {card.badge}
             </div>
-            <div style={{ fontWeight: 800, fontSize: "clamp(20px,2.4vw,33px)", lineHeight: 1.2, color: titleColor }}>
+            <div style={{ fontWeight: 800, fontSize: "clamp(16px,2vw,22px)", lineHeight: 1.2, color: titleColor }}>
               {card.title}
             </div>
-            <div style={{ fontSize: 16, color: mutedColor, lineHeight: 1.55 }}>
+            <div style={{ fontSize: 13, color: mutedColor, lineHeight: 1.5 }}>
               {card.description}
             </div>
           </button>

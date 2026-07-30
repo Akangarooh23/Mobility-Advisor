@@ -576,26 +576,6 @@ export default function LandingPage({
         </div>
       </section>
 
-      {/* ══════════════ STATS BAR ════════════════════════════════ */}
-      <div className="lp-stats-bar">
-        <div className="lp-stats-inner">
-          {[
-            { ico: <IcoDatabase size={16} />, val: "1,2 M analizados desde enero",         desc: "Anuncios de 15 portales procesados" },
-            { ico: <IcoActivity size={16} />, val: "156.842 anuncios vivos",               desc: "Stock actualizado en tiempo real" },
-            { ico: <IcoClock size={16} />,    val: `Datos actualizados hoy a las ${timeStr}`, desc: "" },
-            { ico: <IcoInfo size={16} />,     val: "Metodología propia y transparente",    desc: "Motor de precios CarsWise AI" },
-          ].map(({ ico, val, desc }) => (
-            <div key={val} className="lp-stat-item">
-              <div className="lp-stat-icon">{ico}</div>
-              <div>
-                <div className="lp-stat-val">{val}</div>
-                {desc && <div className="lp-stat-desc">{desc}</div>}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* ══════════════ OFERTAS EXCLUSIVAS ═══════════════════════ */}
       <section>
         <div className="lp-offers-wrap">
@@ -641,6 +621,26 @@ export default function LandingPage({
           </div>
         </div>
       </section>
+
+      {/* ══════════════ STATS BAR ════════════════════════════════ */}
+      <div className="lp-stats-bar">
+        <div className="lp-stats-inner">
+          {[
+            { ico: <IcoDatabase size={16} />, val: "1,2 M analizados desde enero",         desc: "Anuncios de 15 portales procesados" },
+            { ico: <IcoActivity size={16} />, val: "156.842 anuncios vivos",               desc: "Stock actualizado en tiempo real" },
+            { ico: <IcoClock size={16} />,    val: `Datos actualizados hoy a las ${timeStr}`, desc: "" },
+            { ico: <IcoInfo size={16} />,     val: "Metodología propia y transparente",    desc: "Motor de precios CarsWise AI" },
+          ].map(({ ico, val, desc }) => (
+            <div key={val} className="lp-stat-item">
+              <div className="lp-stat-icon">{ico}</div>
+              <div>
+                <div className="lp-stat-val">{val}</div>
+                {desc && <div className="lp-stat-desc">{desc}</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* ══════════════ SERVICIOS ════════════════════════════════ */}
       <div className="lp-services-outer">

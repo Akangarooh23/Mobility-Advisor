@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import { getMarketplaceVoJson, getImportOffersJson, getVehicleCatalogJson } from "../utils/apiClient";
+import { getBrandOptionSegments } from "../utils/brandCatalog";
 
 function useWindowWidth() {
   const [width, setWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
@@ -54,6 +55,7 @@ export default function PortalVoMarketplacePage({
   const { t } = useTranslation();
   const windowWidth = useWindowWidth();
   const gridCols = windowWidth < 500 ? 1 : windowWidth < 750 ? 2 : windowWidth < 1050 ? 3 : 5;
+  const [showAllVoBrands, setShowAllVoBrands] = useState(false);
   const [viewingModal, setViewingModal] = useState(null); // { offer }
   const [viewingForm, setViewingForm] = useState({ name: "", email: "", message: "" });
   const [viewingState, setViewingState] = useState({}); // { [offerId]: 'sent' | 'error' | 'sending' }
@@ -150,6 +152,11 @@ export default function PortalVoMarketplacePage({
   // Opciones de marca/modelo: catálogo completo si cargó; si no, las del pool cargado.
   const normStr = (s) => String(s || "").trim().toLowerCase();
   const brandOptions = catalogBrands.length ? catalogBrands.map((b) => b.name) : portalVoBrands;
+  const { knownBrands: voKnownBrands, otherBrands: voOtherBrands } = getBrandOptionSegments(
+    Object.fromEntries(brandOptions.map((b) => [b, true]))
+  );
+  const hasUnknownVoBrand = Boolean(portalVoFilters.brand && !voKnownBrands.includes(portalVoFilters.brand));
+  const visibleVoBrands = (showAllVoBrands || hasUnknownVoBrand) ? [...voKnownBrands, ...voOtherBrands] : voKnownBrands;
   const modelOptions = (() => {
     if (!portalVoFilters.brand) return portalVoModels;
     const found = catalogBrands.find((b) => normStr(b.name) === normStr(portalVoFilters.brand));
@@ -438,14 +445,35 @@ export default function PortalVoMarketplacePage({
             placeholder={t("marketplace.filterQuery")}
             style={styles.input}
           />
-          <select
-            value={portalVoFilters.brand}
-            onChange={(event) => onUpdateBrandFilter ? onUpdateBrandFilter(event.target.value) : updatePortalVoFilter("brand", event.target.value)}
-            style={styles.select}
-          >
-            <option value="">Marca</option>
-            {brandOptions.map((b) => <option key={b} value={b}>{b}</option>)}
-          </select>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <select
+              value={portalVoFilters.brand}
+              onChange={(event) => onUpdateBrandFilter ? onUpdateBrandFilter(event.target.value) : updatePortalVoFilter("brand", event.target.value)}
+              style={styles.select}
+            >
+              <option value="">Marca</option>
+              {visibleVoBrands.map((b) => <option key={b} value={b}>{b}</option>)}
+            </select>
+            {voOtherBrands.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowAllVoBrands((v) => !v)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: "2px 0",
+                  fontSize: 11,
+                  color: "#0ea5e9",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                  textUnderlineOffset: 2,
+                  textAlign: "left",
+                }}
+              >
+                {showAllVoBrands ? "Ver menos marcas ▲" : "Ver más marcas ▼"}
+              </button>
+            )}
+          </div>
           <select
             value={portalVoFilters.model}
             onChange={(event) => updatePortalVoFilter("model", event.target.value)}

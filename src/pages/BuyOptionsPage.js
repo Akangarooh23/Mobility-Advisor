@@ -299,7 +299,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             position: "relative",
             borderRadius: 12,
             border: "none",
-            background: "linear-gradient(135deg, #fbbf24, #d97706, #f59e0b, #92400e, #fbbf24)",
+            background: "linear-gradient(135deg, #fef9c3, #fde68a, #fef3c7, #fde68a, #fef9c3)",
             backgroundSize: "300% 300%",
             animation: "goldMove 5s ease infinite",
             boxShadow: "0 8px 28px rgba(217,119,6,0.35)",
@@ -330,9 +330,9 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               alignItems: "center",
               padding: "3px 10px",
               borderRadius: 20,
-              border: "1px solid rgba(28,16,3,0.28)",
-              background: "rgba(28,16,3,0.15)",
-              color: "#1c1003",
+              border: "1px solid rgba(120,53,15,0.3)",
+              background: "rgba(120,53,15,0.1)",
+              color: "#78350f",
               fontSize: 9,
               letterSpacing: "0.12em",
               textTransform: "uppercase",
@@ -350,8 +350,8 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               width: 24,
               height: 24,
               borderRadius: "50%",
-              border: "1px solid rgba(28,16,3,0.3)",
-              color: "#1c1003",
+              border: "1px solid rgba(120,53,15,0.3)",
+              color: "#78350f",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
@@ -360,10 +360,10 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           >
             &gt;
           </span>
-          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: "#1c1003" }}>
+          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: "#78350f" }}>
             Marketplace VO
           </div>
-          <div style={{ fontSize: 12, color: "#3d1f02", lineHeight: 1.45 }}>
+          <div style={{ fontSize: 12, color: "#92400e", lineHeight: 1.45 }}>
             Coches únicos de nuestro portal. Encuentra ofertas de concesionarios, rentings, vehículos de importación y coches vendidos por usuarios de CarsWise.
           </div>
           <button
@@ -371,9 +371,9 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             onClick={(event) => { event.stopPropagation(); if (onOpenMarketplace) onOpenMarketplace(); }}
             style={{
               marginTop: 2,
-              border: "1px solid rgba(28,16,3,0.35)",
-              background: "rgba(28,16,3,0.15)",
-              color: "#1c1003",
+              border: "1px solid rgba(120,53,15,0.35)",
+              background: "rgba(120,53,15,0.12)",
+              color: "#78350f",
               borderRadius: 10,
               padding: "8px 12px",
               fontSize: 12,

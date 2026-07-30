@@ -177,12 +177,31 @@ export function buildMarketAlertMatches({ alerts = [], offers = [] }) {
   }, {});
 }
 
+export const PORTAL_VO_COLORS = [
+  "Amarillo",
+  "Azul",
+  "Beige",
+  "Blanco",
+  "Bronce",
+  "Burdeos",
+  "Dorado",
+  "Gris",
+  "Marrón",
+  "Naranja",
+  "Negro",
+  "Plata",
+  "Rojo",
+  "Rosa",
+  "Verde",
+  "Violeta",
+];
+
 export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selectedOfferId = null }) {
   const safeOffers = Array.isArray(offers) ? offers : [];
   const query = normalizeText(filters.query).toLowerCase();
 
   const portalVoLocations = [...new Set(safeOffers.map((offer) => offer.location).filter(Boolean))].sort();
-  const portalVoColors    = [...new Set(safeOffers.map((offer) => offer.color).filter(Boolean))].sort();
+  const portalVoColors    = PORTAL_VO_COLORS;
   const portalVoFuels         = [...new Set(safeOffers.map((offer) => offer.fuel).filter(Boolean))].sort();
   const portalVoTransmissions = [...new Set(safeOffers.map((offer) => offer.transmission).filter((t) => t && t !== "—"))].sort();
   const portalVoBrands        = [...new Set(safeOffers.map((offer) => offer.brand).filter(Boolean))].sort();
@@ -206,7 +225,7 @@ export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selec
       const matchesMileage  = !filters.maxMileage || Number(offer.mileage || 0) <= Number(filters.maxMileage);
       const matchesLocation = !filters.location || normalizeText(offer.location) === normalizeText(filters.location);
       // "sin dato = pasa": las ofertas sin color no se excluyen al filtrar por color.
-      const matchesColor    = !filters.color || !normalizeText(offer.color) || normalizeText(offer.color) === normalizeText(filters.color);
+      const matchesColor    = !filters.color || !normalizeText(offer.color) || normalizeText(offer.color).toLowerCase() === normalizeText(filters.color).toLowerCase();
       const matchesFuel         = !filters.fuel         || normalizeText(offer.fuel)         === normalizeText(filters.fuel);
       const matchesTransmission = !filters.transmission || normalizeText(offer.transmission) === normalizeText(filters.transmission);
       const hasDisplacement = offer.displacement !== null && offer.displacement !== undefined && offer.displacement !== "";

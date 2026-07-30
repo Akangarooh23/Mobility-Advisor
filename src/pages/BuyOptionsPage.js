@@ -56,11 +56,6 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
   return (
     <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
       <style>{`
-        @keyframes goldMove {
-          0%   { background-position: 0% 50%; }
-          50%  { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
         @media (max-width: 580px) {
           .buy-options-grid { grid-template-columns: 1fr !important; }
         }
@@ -108,25 +103,24 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
       >
         {/* ── Marketplace VO — primero, ancho completo ── */}
         <article
-          className="ma-card-interactive"
+          className="ma-card-interactive ma-fade-stagger"
           style={{
             position: "relative",
-            borderRadius: 12,
-            border: "none",
-            background: "linear-gradient(135deg, #fef9c3, #fde68a, #fef3c7, #fde68a, #fef9c3)",
-            backgroundSize: "300% 300%",
-            animation: "goldMove 5s ease infinite",
-            boxShadow: "0 8px 28px rgba(217,119,6,0.25)",
-            padding: "24px 22px 20px",
+            borderRadius: 16,
+            border: isDark ? "1.5px solid rgba(37,99,235,0.35)" : "1.5px solid rgba(37,99,235,0.35)",
+            background: isDark
+              ? "linear-gradient(135deg, rgba(37,99,235,0.18), rgba(99,102,241,0.12))"
+              : "linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%)",
+            boxShadow: isDark ? "none" : "0 12px 32px rgba(37,99,235,0.10)",
+            padding: "28px 32px",
             textAlign: "left",
             display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            justifyContent: "flex-start",
-            gap: 10,
-            minHeight: "clamp(148px, 20vw, 178px)",
+            alignItems: "center",
+            gap: 28,
+            flexWrap: "wrap",
             cursor: "pointer",
             gridColumn: "1 / -1",
+            animationDelay: "60ms",
           }}
           role="button"
           tabIndex={0}
@@ -138,46 +132,51 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             }
           }}
         >
-          <span
+          <div
             style={{
-              position: "absolute",
-              top: 22,
-              right: 20,
-              width: 24,
-              height: 24,
-              borderRadius: "50%",
-              border: "1px solid rgba(120,53,15,0.3)",
-              color: "#78350f",
+              width: 56,
+              height: 56,
+              borderRadius: 14,
+              border: "1.5px solid rgba(37,99,235,0.35)",
+              background: "rgba(37,99,235,0.12)",
+              color: "#2563eb",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: 15,
+              flexShrink: 0,
             }}
           >
-            &gt;
-          </span>
-          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: "#78350f" }}>
-            Marketplace VO
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M3 9l1-5h16l1 5" />
+              <path d="M3 9h18v11a1 1 0 01-1 1H4a1 1 0 01-1-1V9z" />
+              <path d="M9 21V12h6v9" />
+            </svg>
           </div>
-          <div style={{ fontSize: 12, color: "#92400e", lineHeight: 1.45 }}>
-            Coches únicos de nuestro portal. Encuentra ofertas de concesionarios, rentings, vehículos de importación y coches vendidos por usuarios de CarsWise.
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <div style={{ fontWeight: 800, fontSize: "clamp(22px,3vw,30px)", lineHeight: 1.15, color: titleColor, marginBottom: 6 }}>
+              Marketplace VO
+            </div>
+            <div style={{ fontSize: 14, color: mutedColor, lineHeight: 1.55 }}>
+              Coches únicos de nuestro portal. Encuentra ofertas de concesionarios, rentings, vehículos de importación y coches vendidos por usuarios de CarsWise.
+            </div>
           </div>
           <button
             type="button"
             onClick={(event) => { event.stopPropagation(); if (onOpenMarketplace) onOpenMarketplace(); }}
             style={{
-              marginTop: 2,
-              border: "1px solid rgba(120,53,15,0.35)",
-              background: "rgba(120,53,15,0.12)",
-              color: "#78350f",
-              borderRadius: 10,
-              padding: "8px 12px",
-              fontSize: 12,
+              background: "linear-gradient(135deg, #2563eb, #3b82f6)",
+              color: "#fff",
+              border: "1px solid rgba(37,99,235,0.3)",
+              borderRadius: 12,
+              padding: "12px 22px",
+              fontSize: 14,
               fontWeight: 700,
               cursor: "pointer",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
             }}
           >
-            Ver más
+            Ver Marketplace →
           </button>
         </article>
 

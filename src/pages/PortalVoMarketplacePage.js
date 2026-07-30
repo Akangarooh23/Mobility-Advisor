@@ -531,16 +531,28 @@ export default function PortalVoMarketplacePage({
               ))}
           </select>
           <select
-            value={portalVoFilters.maxMileage}
+            value={portalVoFilters.minMileage || ""}
+            onChange={(event) => updatePortalVoFilter("minMileage", event.target.value)}
+            style={styles.select}
+          >
+            <option value="">Km mínimo</option>
+            {Array.from({ length: 40 }, (_, i) => (i + 1) * 5000)
+              .filter((k) => !portalVoFilters.maxMileage || k < Number(portalVoFilters.maxMileage))
+              .map((k) => (
+                <option key={k} value={k}>{k.toLocaleString("es-ES")} km</option>
+              ))}
+          </select>
+          <select
+            value={portalVoFilters.maxMileage || ""}
             onChange={(event) => updatePortalVoFilter("maxMileage", event.target.value)}
             style={styles.select}
           >
-            <option value="">{t("marketplace.filterMaxMileage")}</option>
-            <option value="20000">{t("marketplace.filterMaxMileage20")}</option>
-            <option value="40000">{t("marketplace.filterMaxMileage40")}</option>
-            <option value="60000">{t("marketplace.filterMaxMileage60")}</option>
-            <option value="80000">{t("marketplace.filterMaxMileage80")}</option>
-            <option value="120000">{t("marketplace.filterMaxMileage120")}</option>
+            <option value="">Km máximo</option>
+            {Array.from({ length: 40 }, (_, i) => (i + 1) * 5000)
+              .filter((k) => !portalVoFilters.minMileage || k > Number(portalVoFilters.minMileage))
+              .map((k) => (
+                <option key={k} value={k}>{k.toLocaleString("es-ES")} km</option>
+              ))}
           </select>
           <select
             value={portalVoFilters.location}

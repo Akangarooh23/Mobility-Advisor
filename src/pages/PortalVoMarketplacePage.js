@@ -564,10 +564,6 @@ export default function PortalVoMarketplacePage({
               <option key={location} value={location}>{location}</option>
             ))}
           </select>
-        </div>
-
-        {/* Row 2: color, combustible, cambio, cilindrada */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12, marginTop: 20 }}>
           <select
             value={portalVoFilters.color}
             onChange={(event) => updatePortalVoFilter("color", event.target.value)}
@@ -578,6 +574,10 @@ export default function PortalVoMarketplacePage({
               <option key={color} value={color}>{color}</option>
             ))}
           </select>
+        </div>
+
+        {/* Row 2: combustible, cambio, cilindrada */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12, marginTop: 20 }}>
           <select
             value={portalVoFilters.fuel}
             onChange={(event) => updatePortalVoFilter("fuel", event.target.value)}

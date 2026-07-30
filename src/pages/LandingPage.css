@@ -120,6 +120,60 @@
 }
 .lp-btn-panel:hover { background: #1e293b; }
 
+/* ── HAMBURGER (móvil) ────────────────────────────────────────── */
+.lp-hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+.lp-hamburger span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: #374151;
+  border-radius: 2px;
+}
+
+/* ── DROPDOWN MÓVIL ───────────────────────────────────────────── */
+.lp-mobile-nav {
+  position: absolute;
+  top: calc(100% - 3px); /* just above the gradient line */
+  left: 16px;
+  right: 16px;
+  display: grid;
+  gap: 6px;
+  background: rgba(255,255,255,0.98);
+  border: 1px solid rgba(148,163,184,0.26);
+  border-radius: 14px;
+  box-shadow: 0 14px 34px rgba(15,23,42,0.16);
+  padding: 10px;
+  z-index: 180;
+}
+.lp-mobile-nav-link {
+  width: 100%;
+  border: 1px solid rgba(148,163,184,0.24);
+  background: transparent;
+  color: #1f2937;
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.lp-mobile-nav-link:hover { background: #f1f5f9; }
+
 /* ── HERO ─────────────────────────────────────────────────────── */
 .lp-hero {
   max-width: 1200px;

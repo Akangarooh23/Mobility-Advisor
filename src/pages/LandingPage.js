@@ -260,9 +260,13 @@ export default function LandingPage({
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined" ? window.innerWidth < 1000 : false
   );
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   useEffect(() => {
-    const fn = () => setIsMobile(window.innerWidth < 1000);
+    const fn = () => {
+      setIsMobile(window.innerWidth < 1000);
+      if (window.innerWidth >= 1000) setShowMobileMenu(false);
+    };
     window.addEventListener("resize", fn);
     return () => window.removeEventListener("resize", fn);
   }, []);
@@ -293,7 +297,7 @@ export default function LandingPage({
             <span className="lp-logo-text">CarsWise AI</span>
           </button>
 
-          {/* Nav central */}
+          {/* Nav central — solo desktop */}
           {!isMobile && (
             <nav className="lp-nav-center" aria-label="Navegación principal">
               <button className="lp-nav-link lp-nav-link--active" onClick={handleStart}>Inicio</button>
@@ -307,16 +311,51 @@ export default function LandingPage({
 
           {/* Acciones derecha */}
           <div className="lp-nav-actions">
-            <button className="lp-nav-util" aria-label="Idioma">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
-              ES
-            </button>
-<button className="lp-btn-panel" onClick={handleDashboard}>
+            {!isMobile && (
+              <button className="lp-nav-util" aria-label="Idioma">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
+                ES
+              </button>
+            )}
+            <button className="lp-btn-panel" onClick={handleDashboard}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               Mi panel
             </button>
+            {/* Hamburger — solo móvil */}
+            {isMobile && (
+              <button
+                className="lp-hamburger"
+                onClick={() => setShowMobileMenu((prev) => !prev)}
+                aria-label="Abrir menú"
+                aria-expanded={showMobileMenu}
+              >
+                <span /><span /><span />
+              </button>
+            )}
           </div>
         </div>
+
+        {/* Dropdown móvil */}
+        {isMobile && showMobileMenu && (
+          <nav className="lp-mobile-nav" aria-label="Menú móvil">
+            {[
+              ["Inicio", handleStart],
+              ["Comprar", handleBuy],
+              ["Vender", handleSell],
+              ["Mi coche", handleService],
+              ["Planes", handlePlans],
+            ].map(([label, handler]) => (
+              <button
+                key={label}
+                className="lp-mobile-nav-link"
+                onClick={() => { handler(); setShowMobileMenu(false); }}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
+        )}
+
         <div className="lp-nav-gradient" aria-hidden="true" />
       </header>
 

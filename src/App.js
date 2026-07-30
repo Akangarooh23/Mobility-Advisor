@@ -4560,17 +4560,7 @@ export default function App() {
             <span>{uiLanguage === "es" ? "ES" : "EN"}</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => setThemeMode((prev) => (prev === "dark" ? "light" : "dark"))}
-            title={themeMode === "dark" ? (uiLanguage === "en" ? "Switch to light mode" : "Cambiar a modo claro") : (uiLanguage === "en" ? "Switch to dark mode" : "Cambiar a modo oscuro")}
-            style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "none", border: "1px solid #e2e8f0", color: "#374151", padding: "6px 12px", borderRadius: 20, cursor: "pointer", fontSize: 12, fontWeight: 500, whiteSpace: "nowrap" }}
-          >
-            <span>{themeMode === "dark" ? "☀️" : "🌙"}</span>
-            <span className="cw-theme-label">{themeMode === "dark" ? (uiLanguage === "en" ? "Light mode" : "Modo claro") : (uiLanguage === "en" ? "Dark mode" : "Modo oscuro")}</span>
-          </button>
-
-          <button
+<button
             type="button"
             onClick={handleUserAccessClick}
             title={isUserLoggedIn ? (uiLanguage === "en" ? "Open my panel" : "Abrir mi panel") : (uiLanguage === "en" ? "Sign in or register" : "Acceder o registrarse")}

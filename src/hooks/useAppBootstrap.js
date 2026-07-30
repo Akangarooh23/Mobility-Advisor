@@ -49,7 +49,7 @@ export function useAppBootstrap({
   useEffect(() => {
     const savedAuthUser = readAuthUser();
     const persistedTheme = typeof window !== "undefined" ? window.localStorage.getItem(themeStorageKey) : "";
-    const PUBLIC_PATHS = ["/aviso-legal", "/politica-privacidad", "/politica-cookies", "/terminos-condiciones", "/politica-comunicaciones", "/politica-experian", "/condiciones-experian"];
+    const PUBLIC_PATHS = ["/", "/aviso-legal", "/politica-privacidad", "/politica-cookies", "/terminos-condiciones", "/politica-comunicaciones", "/politica-experian", "/condiciones-experian"];
 
     // Capture landing data from URL on first visit and persist for registration
     try {

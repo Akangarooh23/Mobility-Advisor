@@ -507,14 +507,28 @@ export default function PortalVoMarketplacePage({
             ))}
           </select>
           <select
-            value={portalVoFilters.minYear}
+            value={portalVoFilters.minYear || ""}
             onChange={(event) => updatePortalVoFilter("minYear", event.target.value)}
             style={styles.select}
           >
-            <option value="">{t("marketplace.filterMinYear")}</option>
-            {[2024, 2023, 2022, 2021, 2020, 2019].map((year) => (
-              <option key={year} value={year}>{year}</option>
-            ))}
+            <option value="">Año mínimo</option>
+            {Array.from({ length: 27 }, (_, i) => 2026 - i)
+              .filter((y) => !portalVoFilters.maxYear || y <= Number(portalVoFilters.maxYear))
+              .map((year) => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+          </select>
+          <select
+            value={portalVoFilters.maxYear || ""}
+            onChange={(event) => updatePortalVoFilter("maxYear", event.target.value)}
+            style={styles.select}
+          >
+            <option value="">Año máximo</option>
+            {Array.from({ length: 27 }, (_, i) => 2026 - i)
+              .filter((y) => !portalVoFilters.minYear || y >= Number(portalVoFilters.minYear))
+              .map((year) => (
+                <option key={year} value={year}>{year}</option>
+              ))}
           </select>
           <select
             value={portalVoFilters.maxMileage}

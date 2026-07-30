@@ -7,6 +7,7 @@ export const INITIAL_PORTAL_VO_FILTERS = {
   minPrice: "",
   maxPrice: "",
   minYear: "",
+  maxYear: "",
   maxMileage: "",
   location: "",
   color: "",

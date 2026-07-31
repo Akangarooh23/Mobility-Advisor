@@ -264,6 +264,9 @@ export default function SellReportMarketPage({
   const [erpVersionsLoading, setErpVersionsLoading] = useState(false);
   const [erpSelectedBrandId, setErpSelectedBrandId] = useState("");
   const [erpSelectedModelId, setErpSelectedModelId] = useState("");
+  const [brandManual, setBrandManual] = useState(false);
+  const [modelManual, setModelManual] = useState(false);
+  const [versionManual, setVersionManual] = useState(false);
   const [garageVehicles, setGarageVehicles] = useState([]);
   const { t } = useTranslation();
   const [garageVehiclesLoading, setGarageVehiclesLoading] = useState(false);
@@ -781,162 +784,251 @@ export default function SellReportMarketPage({
                     </div>
                     <div className="field">
                       <label>{t("sell.sellFlowABrandLabel")}</label>
-                      <div className="sel-wrap">
-                        <select
-                          value={erpSelectedBrandId}
-                          disabled={erpBrandsLoading}
-                          onChange={(event) => {
-                            const brandId = event.target.value;
-                            const brand = erpBrands.find((item) => String(item.id) === String(brandId));
-                            setErpSelectedBrandId(brandId);
+                      {brandManual ? (
+                        <input
+                          type="text"
+                          placeholder="Escribe la marca"
+                          value={sellAnswers?.brand || ""}
+                          autoFocus
+                          onChange={(e) => setSellAnswers((prev) => ({ ...prev, brand: e.target.value }))}
+                        />
+                      ) : (
+                        <div className="sel-wrap">
+                          <select
+                            value={erpSelectedBrandId}
+                            disabled={erpBrandsLoading}
+                            onChange={(event) => {
+                              const brandId = event.target.value;
+                              const brand = erpBrands.find((item) => String(item.id) === String(brandId));
+                              setErpSelectedBrandId(brandId);
+                              setErpSelectedModelId("");
+                              setErpModels([]);
+                              setErpVersions([]);
+                              setSellAnswers((prev) => ({
+                                ...prev,
+                                brand: brand?.name || "",
+                                model: "",
+                                version: "",
+                                erpBrandId: brandId,
+                                erpModelId: "",
+                                erpVersionCode: "",
+                              }));
+
+                              if (!brandId) {
+                                return;
+                              }
+
+                              // Check cache first
+                              const cachedModels = getCachedModels(brandId);
+                              if (cachedModels) {
+                                setErpModels(cachedModels);
+                                return;
+                              }
+
+                              setErpModelsLoading(true);
+                              getErpModelsJson(brandId)
+                                .then((response) => response.json())
+                                .then((data) => {
+                                  const models = Array.isArray(data?.models) ? data.models : [];
+                                  setCachedModels(brandId, models);
+                                  setErpModels(models);
+                                })
+                                .catch(() => {
+                                  setErpModels([]);
+                                })
+                                .finally(() => {
+                                  setErpModelsLoading(false);
+                                });
+                            }}
+                          >
+                            <option value="">{erpBrandsLoading ? t("sell.loadingBrands") : "Selecciona una marca"}</option>
+                            {erpBrands.map((brand) => (
+                              <option key={brand.id} value={brand.id}>{brand.name}</option>
+                            ))}
+                          </select>
+                          <div className="sel-arrow">▾</div>
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        className="sel-manual-toggle"
+                        onClick={() => {
+                          if (!brandManual) {
+                            setErpSelectedBrandId("");
                             setErpSelectedModelId("");
                             setErpModels([]);
                             setErpVersions([]);
-                            setSellAnswers((prev) => ({
-                              ...prev,
-                              brand: brand?.name || "",
-                              model: "",
-                              version: "",
-                              erpBrandId: brandId,
-                              erpModelId: "",
-                              erpVersionCode: "",
-                            }));
-
-                            if (!brandId) {
-                              return;
-                            }
-
-                            // Check cache first
-                            const cachedModels = getCachedModels(brandId);
-                            if (cachedModels) {
-                              setErpModels(cachedModels);
-                              return;
-                            }
-
-                            setErpModelsLoading(true);
-                            getErpModelsJson(brandId)
-                              .then((response) => response.json())
-                              .then((data) => {
-                                const models = Array.isArray(data?.models) ? data.models : [];
-                                setCachedModels(brandId, models);
-                                setErpModels(models);
-                              })
-                              .catch(() => {
-                                setErpModels([]);
-                              })
-                              .finally(() => {
-                                setErpModelsLoading(false);
-                              });
-                          }}
-                        >
-                          <option value="">{erpBrandsLoading ? t("sell.loadingBrands") : "Selecciona una marca"}</option>
-                          {erpBrands.map((brand) => (
-                            <option key={brand.id} value={brand.id}>{brand.name}</option>
-                          ))}
-                        </select>
-                        <div className="sel-arrow">▾</div>
-                      </div>
+                            setBrandManual(true);
+                            setModelManual(true);
+                            setVersionManual(true);
+                            setSellAnswers((prev) => ({ ...prev, brand: "", model: "", version: "", erpBrandId: "", erpModelId: "", erpVersionCode: "" }));
+                          } else {
+                            setBrandManual(false);
+                            setModelManual(false);
+                            setVersionManual(false);
+                            setSellAnswers((prev) => ({ ...prev, brand: "", model: "", version: "", erpBrandId: "", erpModelId: "", erpVersionCode: "" }));
+                          }
+                        }}
+                      >
+                        {brandManual ? "← Buscar en catálogo" : "No encuentro mi marca"}
+                      </button>
                     </div>
                   </div>
 
                   <div className="field-grid">
                     <div className="field">
                       <label>{t("sell.sellFlowAModelLabel")}</label>
-                      <div className="sel-wrap">
-                        <select
-                          value={erpSelectedModelId}
-                          disabled={!erpSelectedBrandId || erpModelsLoading}
-                          onChange={(event) => {
-                            const modelId = event.target.value;
-                            const model = erpModels.find((item) => String(item.id) === String(modelId));
-                            setErpSelectedModelId(modelId);
-                            setErpVersions([]);
-                            setSellAnswers((prev) => ({
-                              ...prev,
-                              model: model?.name || "",
-                              version: "",
-                              erpModelId: modelId,
-                              erpVersionCode: "",
-                            }));
+                      {modelManual ? (
+                        <input
+                          type="text"
+                          placeholder="Escribe el modelo"
+                          value={sellAnswers?.model || ""}
+                          onChange={(e) => setSellAnswers((prev) => ({ ...prev, model: e.target.value }))}
+                        />
+                      ) : (
+                        <div className="sel-wrap">
+                          <select
+                            value={erpSelectedModelId}
+                            disabled={!erpSelectedBrandId || erpModelsLoading}
+                            onChange={(event) => {
+                              const modelId = event.target.value;
+                              const model = erpModels.find((item) => String(item.id) === String(modelId));
+                              setErpSelectedModelId(modelId);
+                              setErpVersions([]);
+                              setSellAnswers((prev) => ({
+                                ...prev,
+                                model: model?.name || "",
+                                version: "",
+                                erpModelId: modelId,
+                                erpVersionCode: "",
+                              }));
 
-                            if (!modelId) {
-                              return;
-                            }
-
-                            // Check cache first - but only if we have a valid brandId
-                            if (erpSelectedBrandId) {
-                              const cachedVersions = getCachedVersions(modelId, erpSelectedBrandId);
-                              if (cachedVersions && Array.isArray(cachedVersions)) {
-                                setErpVersions(cachedVersions);
+                              if (!modelId) {
                                 return;
                               }
-                            }
 
-                            setErpVersionsLoading(true);
-                            getErpVersionsJson(modelId, erpSelectedBrandId)
-                              .then((response) => response.json())
-                              .then((data) => {
-                                const versions = Array.isArray(data?.versions) ? data.versions : [];
-                                if (erpSelectedBrandId) {
-                                  setCachedVersions(modelId, erpSelectedBrandId, versions);
+                              // Check cache first - but only if we have a valid brandId
+                              if (erpSelectedBrandId) {
+                                const cachedVersions = getCachedVersions(modelId, erpSelectedBrandId);
+                                if (cachedVersions && Array.isArray(cachedVersions)) {
+                                  setErpVersions(cachedVersions);
+                                  return;
                                 }
-                                setErpVersions(versions);
-                              })
-                              .catch(() => {
-                                setErpVersions([]);
-                              })
-                              .finally(() => {
-                                setErpVersionsLoading(false);
-                              });
+                              }
+
+                              setErpVersionsLoading(true);
+                              getErpVersionsJson(modelId, erpSelectedBrandId)
+                                .then((response) => response.json())
+                                .then((data) => {
+                                  const versions = Array.isArray(data?.versions) ? data.versions : [];
+                                  if (erpSelectedBrandId) {
+                                    setCachedVersions(modelId, erpSelectedBrandId, versions);
+                                  }
+                                  setErpVersions(versions);
+                                })
+                                .catch(() => {
+                                  setErpVersions([]);
+                                })
+                                .finally(() => {
+                                  setErpVersionsLoading(false);
+                                });
+                            }}
+                          >
+                            <option value="">
+                              {erpModelsLoading
+                                ? t("sell.loadingModels")
+                                : !erpSelectedBrandId
+                                  ? t("sell.firstSelectBrand")
+                                  : "Selecciona un modelo"}
+                            </option>
+                            {erpModels.map((model) => (
+                              <option key={model.id} value={model.id}>{model.name}</option>
+                            ))}
+                          </select>
+                          <div className="sel-arrow">▾</div>
+                        </div>
+                      )}
+                      {!brandManual && (
+                        <button
+                          type="button"
+                          className="sel-manual-toggle"
+                          onClick={() => {
+                            if (!modelManual) {
+                              setErpSelectedModelId("");
+                              setErpVersions([]);
+                              setModelManual(true);
+                              setVersionManual(true);
+                              setSellAnswers((prev) => ({ ...prev, model: "", version: "", erpModelId: "", erpVersionCode: "" }));
+                            } else {
+                              setModelManual(false);
+                              setVersionManual(false);
+                              setSellAnswers((prev) => ({ ...prev, model: "", version: "", erpModelId: "", erpVersionCode: "" }));
+                            }
                           }}
                         >
-                          <option value="">
-                            {erpModelsLoading
-                              ? t("sell.loadingModels")
-                              : !erpSelectedBrandId
-                                ? t("sell.firstSelectBrand")
-                                : "Selecciona un modelo"}
-                          </option>
-                          {erpModels.map((model) => (
-                            <option key={model.id} value={model.id}>{model.name}</option>
-                          ))}
-                        </select>
-                        <div className="sel-arrow">▾</div>
-                      </div>
+                          {modelManual ? "← Buscar en catálogo" : "No encuentro mi modelo"}
+                        </button>
+                      )}
                     </div>
                     <div className="field">
                       <label>
                         {t("sell.sellFlowAVersionLabel")} <span style={{ fontWeight: 300, textTransform: "none", letterSpacing: 0, color: "#ccc" }}>— {t("sell.optional")}</span>
                       </label>
-                      <div className="sel-wrap">
-                        <select
-                          value={sellAnswers?.erpVersionCode || ""}
-                          disabled={!erpSelectedModelId || erpVersionsLoading || erpVersions.length === 0}
-                          onChange={(event) => {
-                            const versionCode = event.target.value;
-                            const version = erpVersions.find((item) => String(item.codversion) === String(versionCode));
-                            setSellAnswers((prev) => ({
-                              ...prev,
-                              version: version?.label || "",
-                              erpVersionCode: versionCode,
-                            }));
+                      {versionManual ? (
+                        <input
+                          type="text"
+                          placeholder="Escribe la versión (opcional)"
+                          value={sellAnswers?.version || ""}
+                          onChange={(e) => setSellAnswers((prev) => ({ ...prev, version: e.target.value }))}
+                        />
+                      ) : (
+                        <div className="sel-wrap">
+                          <select
+                            value={sellAnswers?.erpVersionCode || ""}
+                            disabled={!erpSelectedModelId || erpVersionsLoading || erpVersions.length === 0}
+                            onChange={(event) => {
+                              const versionCode = event.target.value;
+                              const version = erpVersions.find((item) => String(item.codversion) === String(versionCode));
+                              setSellAnswers((prev) => ({
+                                ...prev,
+                                version: version?.label || "",
+                                erpVersionCode: versionCode,
+                              }));
+                            }}
+                          >
+                            <option value="">
+                              {erpVersionsLoading
+                                ? t("sell.loadingVersions")
+                                : !erpSelectedModelId
+                                  ? t("sell.firstSelectModel")
+                                  : erpVersions.length === 0
+                                    ? t("sell.noVersions")
+                                    : "Selecciona una versión"}
+                            </option>
+                            {erpVersions.map((version) => (
+                              <option key={version.codversion} value={version.codversion}>{version.label}</option>
+                            ))}
+                          </select>
+                          <div className="sel-arrow">▾</div>
+                        </div>
+                      )}
+                      {!modelManual && (
+                        <button
+                          type="button"
+                          className="sel-manual-toggle"
+                          onClick={() => {
+                            if (!versionManual) {
+                              setSellAnswers((prev) => ({ ...prev, version: "", erpVersionCode: "" }));
+                              setVersionManual(true);
+                            } else {
+                              setVersionManual(false);
+                              setSellAnswers((prev) => ({ ...prev, version: "", erpVersionCode: "" }));
+                            }
                           }}
                         >
-                          <option value="">
-                            {erpVersionsLoading
-                              ? t("sell.loadingVersions")
-                              : !erpSelectedModelId
-                                ? t("sell.firstSelectModel")
-                                : erpVersions.length === 0
-                                  ? t("sell.noVersions")
-                                  : "Selecciona una versión"}
-                          </option>
-                          {erpVersions.map((version) => (
-                            <option key={version.codversion} value={version.codversion}>{version.label}</option>
-                          ))}
-                        </select>
-                        <div className="sel-arrow">▾</div>
-                      </div>
+                          {versionManual ? "← Buscar en catálogo" : "No encuentro mi versión"}
+                        </button>
+                      )}
                     </div>
                   </div>
 

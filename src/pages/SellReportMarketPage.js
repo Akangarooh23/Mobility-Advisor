@@ -24,6 +24,48 @@ function normalizeBrands(brands) {
   return brands.map((b) => ({ ...b, name: canonicalBrandName(b.name) }));
 }
 
+function DownSelect({ value, onChange, disabled, options, placeholder }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const selected = (options || []).find((o) => String(o.value) === String(value ?? ""));
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="sel-wrap">
+      <button
+        type="button"
+        disabled={disabled}
+        className="sel-down-btn"
+        onClick={() => !disabled && setOpen((v) => !v)}
+      >
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {selected?.label ?? placeholder ?? ""}
+        </span>
+      </button>
+      <div className="sel-arrow">▾</div>
+      {open && !disabled && (
+        <div className="sel-down-list">
+          {(options || []).map((opt, i) => (
+            <div
+              key={i}
+              className={`sel-down-item${String(opt.value) === String(value ?? "") ? " selected" : ""}`}
+              onMouseDown={() => { onChange(opt.value); setOpen(false); }}
+            >
+              {opt.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 async function checkBillingProfile(currentUserEmail) {
   try {
     const { data } = await getBillingAccountJson(currentUserEmail);
@@ -1073,27 +1115,23 @@ export default function SellReportMarketPage({
                           </button>
                         </>
                       ) : (
-                        <div className="sel-wrap">
-                          <select
-                            value={sellAnswers?.year || ""}
-                            onChange={(event) => {
-                              const year = event.target.value;
-                              if (year === "anterior") {
-                                setYearManual(true);
-                                setSellAnswers((prev) => ({ ...prev, year: "" }));
-                              } else {
-                                setSellAnswers((prev) => ({ ...prev, year }));
-                              }
-                            }}
-                          >
-                            <option value="">{t("sell.yearPlaceholder")}</option>
-                            {yearOptions.map((year) => (
-                              <option key={year} value={String(year)}>{year}</option>
-                            ))}
-                            <option value="anterior">Anterior a 2000</option>
-                          </select>
-                          <div className="sel-arrow">▾</div>
-                        </div>
+                        <DownSelect
+                          value={sellAnswers?.year || ""}
+                          placeholder={t("sell.yearPlaceholder")}
+                          options={[
+                            { value: "", label: t("sell.yearPlaceholder") },
+                            ...yearOptions.map((y) => ({ value: String(y), label: String(y) })),
+                            { value: "anterior", label: "Anterior a 2000" },
+                          ]}
+                          onChange={(val) => {
+                            if (val === "anterior") {
+                              setYearManual(true);
+                              setSellAnswers((prev) => ({ ...prev, year: "" }));
+                            } else {
+                              setSellAnswers((prev) => ({ ...prev, year: val }));
+                            }
+                          }}
+                        />
                       )}
                     </div>
                     <div className="field">

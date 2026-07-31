@@ -152,9 +152,6 @@ export default function PortalVoMarketplacePage({
   const windowWidth = useWindowWidth();
   const gridCols = windowWidth < 500 ? 1 : windowWidth < 750 ? 2 : windowWidth < 1050 ? 3 : 5;
   const [showAllVoBrands, setShowAllVoBrands] = useState(false);
-  const [viewingModal, setViewingModal] = useState(null); // { offer }
-  const [viewingForm, setViewingForm] = useState({ name: "", email: "", message: "" });
-  const [viewingState, setViewingState] = useState({}); // { [offerId]: 'sent' | 'error' | 'sending' }
   const [compraTab, setCompraTab] = useState(initialCompraTab || "concesionarios");
   // Catálogo completo (todas las marcas/modelos) para los desplegables — así se puede
   // filtrar/alertar por una marca aunque no haya stock ahora mismo.
@@ -184,8 +181,11 @@ export default function PortalVoMarketplacePage({
       query:        portalVoFilters.query,
       brand:        portalVoFilters.brand,
       model:        portalVoFilters.model,
+      minPrice:     portalVoFilters.minPrice,
       maxPrice:     portalVoFilters.maxPrice,
       minYear:      portalVoFilters.minYear,
+      maxYear:      portalVoFilters.maxYear,
+      minMileage:   portalVoFilters.minMileage,
       maxMileage:   portalVoFilters.maxMileage,
       fuel:         portalVoFilters.fuel,
       color:        portalVoFilters.color,
@@ -217,8 +217,11 @@ export default function PortalVoMarketplacePage({
       query:          portalVoFilters.query,
       brand:          portalVoFilters.brand,
       model:          portalVoFilters.model,
+      minPrice:       portalVoFilters.minPrice,
       maxPrice:       portalVoFilters.maxPrice,
       minYear:        portalVoFilters.minYear,
+      maxYear:        portalVoFilters.maxYear,
+      minMileage:     portalVoFilters.minMileage,
       maxMileage:     portalVoFilters.maxMileage,
       location:       portalVoFilters.location,
       color:          portalVoFilters.color,
@@ -441,79 +444,6 @@ export default function PortalVoMarketplacePage({
         </div>
       )}
 
-      {/* Próximamente panels for tabs without real data yet */}
-      {!isRenting && compraTab !== "renting_empresa" && compraTab !== "particulares" && compraTab !== "concesionarios" && compraTab !== "importacion" && (
-        <div style={{ ...styles.panel, marginBottom: 20, textAlign: "center", padding: "40px 24px" }}>
-          {compraTab === "particulares" && (
-            <>
-              <div style={{ fontSize: 36, marginBottom: 12 }}>👤</div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "#7c3aed", marginBottom: 8 }}>Particulares CarsWise</div>
-              <div style={{ fontSize: 13, color: bodyColor, maxWidth: 440, margin: "0 auto 16px", lineHeight: 1.7 }}>
-                ¿Quieres vender tu coche? Nosotros lo publicamos, gestionamos las visitas y los trámites administrativos por ti.
-                Tú solo pones el coche.
-              </div>
-              <div style={{
-                display: "inline-flex", alignItems: "center", gap: 8,
-                background: isDark ? "rgba(124,58,237,0.12)" : "rgba(124,58,237,0.06)",
-                border: "1px solid rgba(124,58,237,0.22)", borderRadius: 10, padding: "10px 18px",
-                fontSize: 13, fontWeight: 700, color: "#7c3aed", marginBottom: 20,
-              }}>
-                Fee fijo de gestión · Sin sorpresas
-              </div>
-              <br />
-              <span style={{
-                display: "inline-block", padding: "6px 16px", borderRadius: 999,
-                background: isDark ? "rgba(255,255,255,0.06)" : "#f1f5f9",
-                color: isDark ? "#94a3b8" : "#64748b", fontSize: 12, fontWeight: 600,
-              }}>
-                Próximamente
-              </span>
-            </>
-          )}
-          {compraTab === "importacion" && (
-            <>
-              <div style={{ fontSize: 36, marginBottom: 12 }}>🌍</div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "#0891b2", marginBottom: 8 }}>Vehículos de Importación</div>
-              <div style={{ fontSize: 13, color: bodyColor, maxWidth: 440, margin: "0 auto 16px", lineHeight: 1.7 }}>
-                Coches seleccionados de portales europeos y partners internacionales. Pagas una reserva y nosotros compramos,
-                registramos, pasamos la ITV y te lo entregamos en tu domicilio.
-              </div>
-              <div style={{
-                display: "inline-flex", alignItems: "center", gap: 8,
-                background: isDark ? "rgba(8,145,178,0.12)" : "rgba(8,145,178,0.06)",
-                border: "1px solid rgba(8,145,178,0.22)", borderRadius: 10, padding: "10px 18px",
-                fontSize: 13, fontWeight: 700, color: "#0891b2", marginBottom: 20,
-              }}>
-                Garantía incluida · Entrega a domicilio
-              </div>
-              <br />
-              <span style={{
-                display: "inline-block", padding: "6px 16px", borderRadius: 999,
-                background: isDark ? "rgba(255,255,255,0.06)" : "#f1f5f9",
-                color: isDark ? "#94a3b8" : "#64748b", fontSize: 12, fontWeight: 600,
-              }}>
-                Próximamente
-              </span>
-            </>
-          )}
-          {compraTab === "concesionarios" && (
-            <>
-              <div style={{ fontSize: 36, marginBottom: 12 }}>🏪</div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "#059669", marginBottom: 8 }}>VO Concesionarios</div>
-              <div style={{ fontSize: 13, color: bodyColor, maxWidth: 440, margin: "0 auto 16px", lineHeight: 1.7 }}>
-                Vehículos de ocasión de concesionarios de confianza, con garantía y proceso de compra respaldado por CarsWise.
-              </div>
-              <span style={{
-                display: "inline-block", padding: "6px 16px", borderRadius: 999,
-                background: isDark ? "rgba(255,255,255,0.06)" : "#f1f5f9",
-                color: isDark ? "#94a3b8" : "#64748b", fontSize: 12, fontWeight: 600,
-              }}>
-                Próximamente
-              </span>
-            </>
-          )}
-        </div>
-      )}
 
       {/* Importación: coches DE seleccionados por el motor + por qué es buena oferta */}
       {compraTab === "importacion" && (
@@ -680,18 +610,16 @@ export default function PortalVoMarketplacePage({
               <option key={f} value={f}>{f}</option>
             ))}
           </FilterSelect>
-          {portalVoTransmissions.length > 0 && (
-            <FilterSelect
-              value={portalVoFilters.transmission}
-              onChange={(event) => updatePortalVoFilter("transmission", event.target.value)}
-              style={styles.select}
-            >
-              <option value="">Cambio</option>
-              {portalVoTransmissions.map((tr) => (
-                <option key={tr} value={tr}>{tr}</option>
-              ))}
-            </FilterSelect>
-          )}
+          <FilterSelect
+            value={portalVoFilters.transmission}
+            onChange={(event) => updatePortalVoFilter("transmission", event.target.value)}
+            style={styles.select}
+          >
+            <option value="">Cambio</option>
+            {portalVoTransmissions.map((tr) => (
+              <option key={tr} value={tr}>{tr}</option>
+            ))}
+          </FilterSelect>
           <FilterSelect
             value={portalVoFilters.displacement}
             onChange={(event) => updatePortalVoFilter("displacement", event.target.value)}
@@ -1015,9 +943,6 @@ export default function PortalVoMarketplacePage({
                   <p style={{ margin: "8px 0 0", fontSize: 12, color: isDark ? "#e2e8f0" : "#334155", lineHeight: 1.6 }}>
                     {t("marketplace.offerAvailableIn", { title: offer.title, location: offer.location })}
                   </p>
-                  {viewingState[offer.id] === "sent" && (
-                    <p style={{ fontSize: 11, color: "#16a34a", margin: "6px 0 0", fontWeight: 600 }}>✅ Solicitud enviada al vendedor</p>
-                  )}
                 </div>
               </div>
               );
@@ -1101,71 +1026,6 @@ export default function PortalVoMarketplacePage({
 
       </> )}
 
-      {/* Viewing request modal */}
-      {viewingModal && (
-        <div
-          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
-          onClick={() => setViewingModal(null)}
-        >
-          <div
-            style={{ background: "white", borderRadius: 16, padding: "28px 32px", maxWidth: 460, width: "100%", boxShadow: "0 8px 40px rgba(0,0,0,0.18)" }}
-            onClick={e => e.stopPropagation()}
-          >
-            <h3 style={{ margin: "0 0 4px", color: "#0f172a", fontSize: 18 }}>📅 Solicitar visita</h3>
-            <p style={{ margin: "0 0 16px", fontSize: 13, color: "#64748b" }}>{viewingModal.offer.title}</p>
-            {viewingState[viewingModal.offer.id] === "sent" ? (
-              <div style={{ background: "#dcfce7", borderRadius: 10, padding: "14px 18px", textAlign: "center" }}>
-                <div style={{ fontSize: 20 }}>✅</div>
-                <strong style={{ color: "#166534" }}>Solicitud enviada</strong>
-                <p style={{ margin: "6px 0 0", fontSize: 13, color: "#166534" }}>El vendedor recibirá un email para proponerte fechas disponibles.</p>
-                <button onClick={() => setViewingModal(null)} style={{ marginTop: 12, background: "#16a34a", color: "white", border: "none", borderRadius: 8, padding: "8px 20px", cursor: "pointer", fontWeight: 600 }}>Cerrar</button>
-              </div>
-            ) : (
-              <form onSubmit={async e => {
-                e.preventDefault();
-                setViewingState(s => ({ ...s, [viewingModal.offer.id]: "sending" }));
-                try {
-                  const res = await fetch("/api/viewing-request", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ offer_id: viewingModal.offer.id, buyer_email: viewingForm.email, buyer_name: viewingForm.name, buyer_message: viewingForm.message }),
-                  });
-                  const data = await res.json();
-                  if (data.ok) {
-                    setViewingState(s => ({ ...s, [viewingModal.offer.id]: "sent" }));
-                  } else {
-                    setViewingState(s => ({ ...s, [viewingModal.offer.id]: data.error || "Error" }));
-                  }
-                } catch {
-                  setViewingState(s => ({ ...s, [viewingModal.offer.id]: "Error al enviar" }));
-                }
-              }}>
-                <div style={{ marginBottom: 12 }}>
-                  <label style={{ fontSize: 13, color: "#64748b", display: "block", marginBottom: 4 }}>Tu nombre *</label>
-                  <input required value={viewingForm.name} onChange={e => setViewingForm(f => ({ ...f, name: e.target.value }))} style={{ width: "100%", padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: 8, fontSize: 14, boxSizing: "border-box" }} />
-                </div>
-                <div style={{ marginBottom: 12 }}>
-                  <label style={{ fontSize: 13, color: "#64748b", display: "block", marginBottom: 4 }}>Tu email *</label>
-                  <input required type="email" value={viewingForm.email} onChange={e => setViewingForm(f => ({ ...f, email: e.target.value }))} style={{ width: "100%", padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: 8, fontSize: 14, boxSizing: "border-box" }} />
-                </div>
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ fontSize: 13, color: "#64748b", display: "block", marginBottom: 4 }}>Mensaje (opcional)</label>
-                  <textarea value={viewingForm.message} onChange={e => setViewingForm(f => ({ ...f, message: e.target.value }))} rows={3} placeholder="Ej: Me interesa el coche, ¿podemos quedar esta semana?" style={{ width: "100%", padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: 8, fontSize: 14, boxSizing: "border-box", resize: "vertical" }} />
-                </div>
-                {typeof viewingState[viewingModal.offer.id] === "string" && viewingState[viewingModal.offer.id] !== "sending" && viewingState[viewingModal.offer.id] !== "sent" && (
-                  <p style={{ color: "#dc2626", fontSize: 13, marginBottom: 10 }}>{viewingState[viewingModal.offer.id]}</p>
-                )}
-                <div style={{ display: "flex", gap: 10 }}>
-                  <button type="button" onClick={() => setViewingModal(null)} style={{ flex: 1, background: "#f1f5f9", color: "#475569", border: "none", borderRadius: 8, padding: "10px", cursor: "pointer" }}>Cancelar</button>
-                  <button type="submit" disabled={viewingState[viewingModal.offer.id] === "sending"} style={{ flex: 2, background: "#2563eb", color: "white", border: "none", borderRadius: 8, padding: "10px", fontWeight: 600, cursor: "pointer", opacity: viewingState[viewingModal.offer.id] === "sending" ? 0.7 : 1 }}>
-                    {viewingState[viewingModal.offer.id] === "sending" ? "Enviando…" : "Enviar solicitud"}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
 
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>

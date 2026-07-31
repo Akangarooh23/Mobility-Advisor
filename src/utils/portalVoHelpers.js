@@ -232,6 +232,12 @@ export const PORTAL_VO_PROVINCES = [
   "Zaragoza",
 ];
 
+export const PORTAL_VO_TRANSMISSIONS = [
+  "Automático",
+  "Manual",
+  "Secuencial",
+];
+
 export const PORTAL_VO_FUELS = [
   "Gasolina",
   "Diésel",
@@ -269,7 +275,7 @@ export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selec
   const portalVoLocations = PORTAL_VO_PROVINCES;
   const portalVoColors    = PORTAL_VO_COLORS;
   const portalVoFuels         = PORTAL_VO_FUELS;
-  const portalVoTransmissions = [...new Set(safeOffers.map((offer) => offer.transmission).filter((t) => t && t !== "—"))].sort();
+  const portalVoTransmissions = PORTAL_VO_TRANSMISSIONS;
   const portalVoBrands        = [...new Set(safeOffers.map((offer) => offer.brand).filter(Boolean))].sort();
   const portalVoModels    = [...new Set(
     safeOffers
@@ -286,9 +292,15 @@ export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selec
       const matchesQuery    = !query || searchText.includes(query);
       const matchesBrand    = !filters.brand || normalizeText(offer.brand) === normalizeText(filters.brand);
       const matchesModel    = !filters.model || normalizeText(offer.model) === normalizeText(filters.model);
-      const matchesPrice    = !filters.maxPrice || Number(offer.price || 0) <= Number(filters.maxPrice);
-      const matchesYear     = !filters.minYear || Number(offer.year || 0) >= Number(filters.minYear);
-      const matchesMileage  = !filters.maxMileage || Number(offer.mileage || 0) <= Number(filters.maxMileage);
+      const offerPrice = Number(offer.salePrice ?? offer.price ?? 0);
+      const matchesPrice    = (!filters.minPrice || offerPrice >= Number(filters.minPrice))
+                           && (!filters.maxPrice || offerPrice <= Number(filters.maxPrice));
+      const offerYear = Number(offer.year || 0);
+      const matchesYear     = (!filters.minYear || offerYear >= Number(filters.minYear))
+                           && (!filters.maxYear || offerYear <= Number(filters.maxYear));
+      const offerMileage = Number(offer.mileage || 0);
+      const matchesMileage  = (!filters.minMileage || offerMileage >= Number(filters.minMileage))
+                           && (!filters.maxMileage || offerMileage <= Number(filters.maxMileage));
       const matchesLocation = !filters.location || normalizeText(offer.location).toLowerCase() === normalizeText(filters.location).toLowerCase();
       // "sin dato = pasa": las ofertas sin color no se excluyen al filtrar por color.
       const matchesColor    = !filters.color || !normalizeText(offer.color) || normalizeText(offer.color).toLowerCase() === normalizeText(filters.color).toLowerCase();

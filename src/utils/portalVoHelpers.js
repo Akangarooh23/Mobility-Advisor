@@ -232,6 +232,12 @@ export const PORTAL_VO_PROVINCES = [
   "Zaragoza",
 ];
 
+export function getMinRentingPrice(offer) {
+  const prices = [offer.renting12m, offer.renting24m, offer.renting36m, offer.renting48m, offer.renting60m]
+    .filter((p) => p > 0);
+  return prices.length ? Math.min(...prices) : null;
+}
+
 // Búsqueda "Híbrido" incluye "Híbrido enchufable"; gas/gnc/glp son intercambiables.
 const FUEL_COMPAT_BROWSE = {
   'híbrido':  ['híbrido', 'híbrido enchufable'],
@@ -284,7 +290,7 @@ export const PORTAL_VO_COLORS = [
   "Violeta",
 ];
 
-export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selectedOfferId = null }) {
+export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selectedOfferId = null, modalityMode = "compra" }) {
   const safeOffers = Array.isArray(offers) ? offers : [];
   const query = normalizeText(filters.query).toLowerCase();
 
@@ -318,8 +324,8 @@ export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selec
       const matchesMileage  = (!filters.minMileage || offerMileage >= Number(filters.minMileage))
                            && (!filters.maxMileage || offerMileage <= Number(filters.maxMileage));
       const matchesLocation = !filters.location || normalizeText(offer.location).toLowerCase() === normalizeText(filters.location).toLowerCase();
-      // "sin dato = pasa": las ofertas sin color no se excluyen al filtrar por color.
-      const matchesColor    = !filters.color || !normalizeText(offer.color) || normalizeText(offer.color).toLowerCase() === normalizeText(filters.color).toLowerCase();
+      // "sin dato = pasa" + startsWith para que "Azul Marino" aparezca al filtrar "Azul".
+      const matchesColor    = !filters.color || !normalizeText(offer.color) || normalizeText(offer.color).toLowerCase().startsWith(normalizeText(filters.color).toLowerCase());
       const matchesFuel         = fuelMatchesFilter(offer.fuel, filters.fuel);
       const matchesTransmission = !filters.transmission || normalizeText(offer.transmission) === normalizeText(filters.transmission);
       const hasDisplacement = offer.displacement !== null && offer.displacement !== undefined && offer.displacement !== "";
@@ -351,8 +357,10 @@ export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selec
     })
     .map(decoratePortalVoOffer)
     .sort((a, b) => {
-      if (filters.sort === "price_asc")  return (a.salePrice ?? a.price) - (b.salePrice ?? b.price);
-      if (filters.sort === "price_desc") return (b.salePrice ?? b.price) - (a.salePrice ?? a.price);
+      const isRenting = modalityMode === "renting";
+      const priceOf = (o) => isRenting ? (getMinRentingPrice(o) ?? o.price ?? 0) : (o.salePrice ?? o.price ?? 0);
+      if (filters.sort === "price_asc")  return priceOf(a) - priceOf(b);
+      if (filters.sort === "price_desc") return priceOf(b) - priceOf(a);
       return b.portalScore - a.portalScore || a.price - b.price;
     });
 

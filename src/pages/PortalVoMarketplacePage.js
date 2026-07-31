@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { getMarketplaceVoJson, getImportOffersJson, getVehicleCatalogJson } from "../utils/apiClient";
 import { getBrandOptionSegments } from "../utils/brandCatalog";
+import { getMinRentingPrice } from "../utils/portalVoHelpers";
 
 function FilterSelect({ value, onChange, style = {}, disabled, children }) {
   const [open, setOpen] = useState(false);
@@ -107,12 +108,6 @@ function useWindowWidth() {
     return () => window.removeEventListener("resize", onResize);
   }, []);
   return width;
-}
-
-function getMinRentingPrice(offer) {
-  const prices = [offer.renting12m, offer.renting24m, offer.renting36m, offer.renting48m, offer.renting60m]
-    .filter((p) => p > 0);
-  return prices.length ? Math.min(...prices) : null;
 }
 
 export default function PortalVoMarketplacePage({
@@ -226,6 +221,7 @@ export default function PortalVoMarketplacePage({
       location:       portalVoFilters.location,
       color:          portalVoFilters.color,
       fuel:           portalVoFilters.fuel,
+      transmission:   portalVoFilters.transmission,
       displacement:   portalVoFilters.displacement,
       onlyGuaranteed: portalVoFilters.onlyGuaranteed,
       sort:           portalVoFilters.sort,

@@ -251,6 +251,37 @@ const DAMAGE_OPTIONS = [
   "sell.damageMajor",
 ];
 
+const DAMAGE_KEYWORDS = [
+  {
+    label: "Zona",
+    tags: [
+      "Parachoques delantero", "Parachoques trasero",
+      "Puerta delantera dcha", "Puerta delantera izda",
+      "Puerta trasera dcha", "Puerta trasera izda",
+      "Capó", "Maletero", "Aleta delantera", "Aleta trasera",
+      "Techo", "Parabrisas", "Luneta trasera", "Cristal lateral", "Retrovisor",
+    ],
+  },
+  {
+    label: "Tipo de daño",
+    tags: [
+      "Arañazo superficial", "Arañazo profundo",
+      "Abolladura pequeña", "Abolladura grande",
+      "Golpe", "Rotura", "Fisura", "Oxidación", "Pintura desconchada",
+      "Deformación de chapa", "Rayón en pintura",
+    ],
+  },
+  {
+    label: "Mecánica / Interior",
+    tags: [
+      "Fallo motor", "Ruido motor", "Caja de cambios",
+      "Suspensión", "Frenos desgastados", "Airbags desplegados",
+      "Climatización averiada", "Tapicería dañada", "Cuadro de mandos",
+      "Fuga de aceite", "Batería de tracción",
+    ],
+  },
+];
+
 // ERP Catalog cache to avoid re-fetching the same data
 const ERP_CATALOG_CACHE = {
   brands: null,
@@ -1325,6 +1356,52 @@ export default function SellReportMarketPage({
                           onChange={(event) => setSellAnswers((prev) => ({ ...prev, damageDescription: event.target.value }))}
                           style={{ width: "100%", boxSizing: "border-box", border: "1px solid #d1d5db", borderRadius: 8, padding: "8px 10px", fontSize: 13, color: "#374151", resize: "vertical", fontFamily: "inherit" }}
                         />
+                        <div style={{ marginTop: "0.5rem" }}>
+                          <div style={{ fontSize: 10, color: "#9ca3af", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: "0.35rem" }}>
+                            Añadir al texto
+                          </div>
+                          {DAMAGE_KEYWORDS.map((group) => {
+                            const desc = sellAnswers?.damageDescription || "";
+                            return (
+                              <div key={group.label} style={{ marginBottom: "0.4rem" }}>
+                                <div style={{ fontSize: 10, color: "#bbb", marginBottom: "0.2rem", fontWeight: 600, letterSpacing: "0.04em" }}>{group.label}</div>
+                                <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                                  {group.tags.map((tag) => {
+                                    const active = desc.toLowerCase().includes(tag.toLowerCase());
+                                    return (
+                                      <button
+                                        key={tag}
+                                        type="button"
+                                        onClick={() => {
+                                          if (active) return;
+                                          setSellAnswers((prev) => {
+                                            const cur = (prev.damageDescription || "").trimEnd();
+                                            const sep = cur.length === 0 ? "" : cur.endsWith(",") ? " " : ", ";
+                                            return { ...prev, damageDescription: cur + sep + tag };
+                                          });
+                                        }}
+                                        style={{
+                                          padding: "3px 9px",
+                                          borderRadius: 20,
+                                          border: `1px solid ${active ? "#0d9488" : "#e5e7eb"}`,
+                                          background: active ? "#f0fafa" : "#fafaf9",
+                                          color: active ? "#0d9488" : "#6b7280",
+                                          fontSize: 11,
+                                          cursor: active ? "default" : "pointer",
+                                          fontFamily: "inherit",
+                                          transition: "all 0.12s",
+                                          opacity: active ? 0.8 : 1,
+                                        }}
+                                      >
+                                        {active ? "✓ " : ""}{tag}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </div>

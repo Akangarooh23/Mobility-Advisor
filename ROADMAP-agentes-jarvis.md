@@ -312,3 +312,39 @@ primero, es una simulación que miente.
   VS Code (Windows) con Remote-WSL, Claude Code nativo dentro de WSL.
 - Trigger.dev + Langfuse + n8n en Docker.
 - **La app puede seguir corriendo como `neondb_owner`; los AGENTES usan `carswise_readonly`.**
+
+---
+
+## 13. Acceso remoto / móvil (Jarvis en el bolsillo)
+
+**Modelo mental:** quien trabaja 24/7 es el **mini PC** (servidor); el móvil es solo un
+**mando a distancia**. Cuando le pides a Jarvis "revísame X", él (en el mini PC) consulta la
+BD / lee código / lanza un agente de solo lectura y te contesta. Funciona **aunque tu portátil
+esté apagado**; la única condición es que el **mini PC esté encendido** (por eso el auto-arranque
+de pm2 y el uptime externo del invariante 9.7).
+
+**Dos superficies desde el móvil:**
+1. **Chat (Jarvis):** hablarle por texto o voz desde Telegram/WhatsApp — ya viven en el móvil.
+   Estado de agentes, "para/lanza el agente X", y sobre todo la **puerta de aprobación**: Jarvis
+   te empuja *"el arqueólogo propone mergear alias, ¿apruebas?"* y respondes **sí/no** desde donde
+   estés (encaja perfecto con el invariante 9.4).
+2. **Dashboard (la Oficina):** web responsive; abres la URL en el navegador del móvil y ves salas,
+   `tasks` y aprobaciones en vivo.
+
+**Cómo llega el móvil de forma segura (sin exponer el mini PC):**
+
+| Superficie | Acceso | Exposición de red |
+|---|---|---|
+| **Bot Jarvis** | Telegram/WhatsApp hacen de intermediario; el bot *sale* a buscarlos | **Cero** — no se abre ningún puerto |
+| **Dashboard interno** | **Tailscale** (o WireGuard): VPN privada móvil↔mini PC. *(Es el `…tail…ts.net` que aparecía en el vídeo de referencia.)* Alternativa: desplegar solo el frontend en Vercel leyendo la BD de solo lectura | **Cero** al internet público |
+
+**Qué se puede "gestionar" desde el móvil (dentro de los guardarraíles):**
+- ✅ Ver estado de agentes y de `tasks`.
+- ✅ **Aprobar/rechazar** propuestas (merges, correos, campañas).
+- ✅ **Pausar/reanudar** un agente; lanzar tareas de **solo lectura** ("ve y averigua X").
+- 🔒 Lo **irreversible** (escribir en producción, cobrar, gastar en Meta) sigue **detrás de tu
+  aprobación** — que es precisamente lo que haces desde el móvil con un toque.
+
+En una frase: **Jarvis en el bolsillo + la oficina por Tailscale.** La sensación de "lo controlo
+todo desde el teléfono" de los vídeos, pero con Jarvis que **te informa y te pide permiso**, no
+que actúa solo.

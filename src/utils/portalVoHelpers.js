@@ -126,37 +126,66 @@ function offerMatchesAlert(offer = {}, alert = {}) {
   const rentingMonthly = Number(offer?.rentingMonthly || offer?.renting?.monthly || 0);
   const supportsRenting = Boolean(offer?.rentingAvailable || offer?.renting?.available || rentingMonthly > 0);
 
+  if (alertMode === "renting" && !supportsRenting) return false;
+  if (alertMode === "compra" && !Number(offer.price || 0)) return false;
+
   const searchText = normalizeText(
     `${offer.title} ${offer.brand} ${offer.model} ${offer.location} ${offer.color} ${offer.fuel}`
   ).toLowerCase();
   const brandQuery = normalizeText(alert?.brand).toLowerCase();
   const modelQuery = normalizeText(alert?.model).toLowerCase();
-  const fuelQuery = normalizeText(alert?.fuel).toLowerCase();
   const locationQuery = normalizeText(alert?.location).toLowerCase();
   const colorQuery = normalizeText(alert?.color).toLowerCase();
 
-  const matchesBrand = !brandQuery || includesNormalizedValue(searchText, brandQuery);
-  const matchesModel = !modelQuery || includesNormalizedValue(searchText, modelQuery);
-  const matchesFuel = !fuelQuery || includesNormalizedValue(offer.fuel, fuelQuery);
+  const matchesBrand    = !brandQuery    || includesNormalizedValue(searchText, brandQuery);
+  const matchesModel    = !modelQuery    || includesNormalizedValue(searchText, modelQuery);
+  const matchesFuel     = fuelMatchesFilter(offer.fuel, alert?.fuel);
   const matchesLocation = !locationQuery || includesNormalizedValue(offer.location, locationQuery);
-  const matchesColor = !colorQuery || includesNormalizedValue(offer.color, colorQuery);
+  const matchesColor    = !colorQuery    || includesNormalizedValue(offer.color, colorQuery);
+  const matchesQuery    = !alert?.query  || searchText.includes(normalizeText(alert.query).toLowerCase());
+  const matchesTransmission = !alert?.transmission || normalizeText(offer.transmission).toLowerCase() === normalizeText(alert.transmission).toLowerCase();
+
+  const offerPrice = alertMode === "renting" ? rentingMonthly : Number(offer.salePrice ?? offer.price ?? 0);
+  const minBudget = Number(alert?.minPrice || 0);
   const maxBudget = Number(alert?.maxPrice || 0);
   const matchesPrice =
-    !maxBudget ||
-    (alertMode === "renting"
-      ? rentingMonthly > 0 && rentingMonthly <= maxBudget
-      : Number(offer.price || 0) <= maxBudget);
-  const matchesMileage = !alert?.maxMileage || Number(offer.mileage || 0) <= Number(alert.maxMileage);
+    (!minBudget || (offerPrice > 0 && offerPrice >= minBudget)) &&
+    (!maxBudget || (offerPrice > 0 && offerPrice <= maxBudget));
 
-  if (alertMode === "renting" && !supportsRenting) {
-    return false;
-  }
+  const offerYear = Number(offer.year || 0);
+  const matchesYear =
+    (!alert?.minYear || offerYear >= Number(alert.minYear)) &&
+    (!alert?.maxYear || offerYear <= Number(alert.maxYear));
 
-  if (alertMode === "compra" && !Number(offer.price || 0)) {
-    return false;
-  }
+  const offerMileage = Number(offer.mileage || 0);
+  const matchesMileage =
+    (!alert?.minMileage || offerMileage >= Number(alert.minMileage)) &&
+    (!alert?.maxMileage || offerMileage <= Number(alert.maxMileage));
 
-  return matchesBrand && matchesModel && matchesFuel && matchesLocation && matchesColor && matchesPrice && matchesMileage;
+  const hasOfferDisplacement = offer.displacement !== null && offer.displacement !== undefined && offer.displacement !== "";
+  const displacement = Number(offer.displacement || 0);
+  const matchesDisplacement =
+    !alert?.displacement ||
+    !hasOfferDisplacement ||
+    (alert.displacement === "electric"    && displacement === 0) ||
+    (alert.displacement === "0_1200"      && displacement > 0    && displacement <= 1200) ||
+    (alert.displacement === "1200_1600"   && displacement > 1200 && displacement <= 1600) ||
+    (alert.displacement === "1600_2000"   && displacement > 1600 && displacement <= 2000) ||
+    (alert.displacement === "2000_plus"   && displacement > 2000);
+
+  return (
+    matchesBrand &&
+    matchesModel &&
+    matchesFuel &&
+    matchesLocation &&
+    matchesColor &&
+    matchesQuery &&
+    matchesTransmission &&
+    matchesPrice &&
+    matchesYear &&
+    matchesMileage &&
+    matchesDisplacement
+  );
 }
 
 export function buildMarketAlertMatches({ alerts = [], offers = [] }) {

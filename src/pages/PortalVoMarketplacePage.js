@@ -306,14 +306,8 @@ export default function PortalVoMarketplacePage({
     if (typeof onCreateAlert !== "function") return;
     // notifyByEmail:true -> si está logueado, la crea con su email; si no, devuelve null.
     const created = onCreateAlert({
+      ...portalVoFilters,
       mode: isRenting ? "renting" : "compra",
-      brand: portalVoFilters.brand || "",
-      model: portalVoFilters.model || "",
-      maxPrice: portalVoFilters.maxPrice || "",
-      maxMileage: portalVoFilters.maxMileage || "",
-      fuel: portalVoFilters.fuel || "",
-      location: portalVoFilters.location || "",
-      color: portalVoFilters.color || "",
       notifyByEmail: true,
     });
     setAlertSent(created ? "ok" : "login");

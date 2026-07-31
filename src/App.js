@@ -2854,9 +2854,16 @@ export default function App() {
       mode: normalizeText(filters?.mode) || "ambos",
       brand: normalizeText(filters?.brand),
       model: normalizeText(filters?.model),
+      query: normalizeText(filters?.query) || null,
+      minPrice: Number(filters?.minPrice || 0) || null,
       maxPrice: Number(filters?.maxPrice || 0) || null,
+      minYear: Number(filters?.minYear || 0) || null,
+      maxYear: Number(filters?.maxYear || 0) || null,
+      minMileage: Number(filters?.minMileage || 0) || null,
       maxMileage: Number(filters?.maxMileage || 0) || null,
       fuel: normalizeText(filters?.fuel),
+      transmission: normalizeText(filters?.transmission) || null,
+      displacement: normalizeText(filters?.displacement) || null,
       location: normalizeText(filters?.location),
       color: normalizeText(filters?.color),
       notifyByEmail,
@@ -2874,14 +2881,26 @@ export default function App() {
         : normalizedAlert.mode === "renting"
         ? "Renting"
         : "Compra o renting";
-    const titleParts = [modeLabel, normalizedAlert.brand, normalizedAlert.model].filter(Boolean);
+    const yearRange = normalizedAlert.minYear && normalizedAlert.maxYear
+      ? `${normalizedAlert.minYear}–${normalizedAlert.maxYear}`
+      : normalizedAlert.minYear ? `≥${normalizedAlert.minYear}`
+      : normalizedAlert.maxYear ? `≤${normalizedAlert.maxYear}`
+      : null;
+    const titleParts = [modeLabel, normalizedAlert.brand, normalizedAlert.model, normalizedAlert.fuel || null, yearRange].filter(Boolean);
     const alertId = [
       normalizedAlert.mode,
       normalizedAlert.brand,
       normalizedAlert.model,
+      normalizedAlert.query,
+      normalizedAlert.minPrice,
       normalizedAlert.maxPrice,
+      normalizedAlert.minYear,
+      normalizedAlert.maxYear,
+      normalizedAlert.minMileage,
       normalizedAlert.maxMileage,
       normalizedAlert.fuel,
+      normalizedAlert.transmission,
+      normalizedAlert.displacement,
       normalizedAlert.location,
       normalizedAlert.color,
     ]

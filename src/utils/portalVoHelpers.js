@@ -232,6 +232,22 @@ export const PORTAL_VO_PROVINCES = [
   "Zaragoza",
 ];
 
+// Búsqueda "Híbrido" incluye "Híbrido enchufable"; gas/gnc/glp son intercambiables.
+const FUEL_COMPAT_BROWSE = {
+  'híbrido':  ['híbrido', 'híbrido enchufable'],
+  'gas':      ['gas', 'gnc', 'glp'],
+  'gnc':      ['gas', 'gnc', 'glp'],
+  'glp':      ['gas', 'gnc', 'glp'],
+};
+
+function fuelMatchesFilter(offerFuel, filterFuel) {
+  if (!filterFuel) return true;
+  const fl = filterFuel.toLowerCase();
+  const ol = (offerFuel || '').toLowerCase();
+  const compat = FUEL_COMPAT_BROWSE[fl];
+  return compat ? compat.includes(ol) : ol === fl;
+}
+
 export const PORTAL_VO_TRANSMISSIONS = [
   "Automático",
   "Manual",
@@ -304,7 +320,7 @@ export function buildPortalVoMarketplaceModel({ offers = [], filters = {}, selec
       const matchesLocation = !filters.location || normalizeText(offer.location).toLowerCase() === normalizeText(filters.location).toLowerCase();
       // "sin dato = pasa": las ofertas sin color no se excluyen al filtrar por color.
       const matchesColor    = !filters.color || !normalizeText(offer.color) || normalizeText(offer.color).toLowerCase() === normalizeText(filters.color).toLowerCase();
-      const matchesFuel         = !filters.fuel         || normalizeText(offer.fuel)         === normalizeText(filters.fuel);
+      const matchesFuel         = fuelMatchesFilter(offer.fuel, filters.fuel);
       const matchesTransmission = !filters.transmission || normalizeText(offer.transmission) === normalizeText(filters.transmission);
       const hasDisplacement = offer.displacement !== null && offer.displacement !== undefined && offer.displacement !== "";
       const displacement = Number(offer.displacement || 0);

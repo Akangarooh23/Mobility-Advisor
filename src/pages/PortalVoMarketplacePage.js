@@ -301,7 +301,7 @@ export default function PortalVoMarketplacePage({
   // "Generar alerta": cuando una búsqueda con marca/modelo no da resultados.
   const currentOffersCount = compraTab === "importacion" ? importOffers.length : modeOffers.length;
   const hasSpecificFilter = Boolean(portalVoFilters.brand || portalVoFilters.model || portalVoFilters.query);
-  const showAlertCta = !effectiveLoadingOffers && !importLoading && currentOffersCount === 0 && hasSpecificFilter;
+  const showAlertCta = !effectiveLoadingOffers && !importLoading && currentOffersCount === 0 && hasSpecificFilter && compraTab !== "importacion";
   const handleGenerarAlerta = () => {
     if (typeof onCreateAlert !== "function") return;
     // notifyByEmail:true -> si está logueado, la crea con su email; si no, devuelve null.
@@ -404,7 +404,7 @@ export default function PortalVoMarketplacePage({
         }}>
           {[
             { key: "concesionarios",  icon: "🏪", label: "Concesionarios", color: "#059669" },
-            { key: "renting_empresa", icon: "🏢", label: "VO Renting",     color: "#2563eb" },
+            { key: "renting_empresa", icon: "🏢", label: "Ex-Renting",     color: "#2563eb" },
             { key: "particulares",    icon: "👤", label: "Particulares",   color: "#7c3aed" },
             { key: "importacion",     icon: "🌍", label: "Importación",    color: "#0891b2" },
           ].map(({ key, icon, label, color }, idx, arr) => {

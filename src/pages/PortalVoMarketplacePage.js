@@ -301,7 +301,7 @@ export default function PortalVoMarketplacePage({
   // "Generar alerta": cuando una búsqueda con marca/modelo no da resultados.
   const currentOffersCount = compraTab === "importacion" ? importOffers.length : modeOffers.length;
   const hasSpecificFilter = Boolean(portalVoFilters.brand || portalVoFilters.model || portalVoFilters.query);
-  const showAlertCta = !effectiveLoadingOffers && !importLoading && currentOffersCount === 0 && hasSpecificFilter && compraTab !== "importacion";
+  const showAlertCta = !effectiveLoadingOffers && !importLoading && currentOffersCount === 0 && hasSpecificFilter;
   const handleGenerarAlerta = () => {
     if (typeof onCreateAlert !== "function") return;
     // notifyByEmail:true -> si está logueado, la crea con su email; si no, devuelve null.

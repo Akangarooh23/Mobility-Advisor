@@ -9,7 +9,20 @@ import {
   postBillingCheckoutJson,
   postGarageVehicleAddJson,
 } from "../utils/apiClient";
+import { KNOWN_BRANDS, stripAccents } from "../utils/brandCatalog";
 import "./SellReportMarketPage.css";
+
+// Mapa normalizado → nombre canónico (construido una vez al cargar el módulo)
+const KNOWN_BRAND_CANONICAL = new Map(KNOWN_BRANDS.map((n) => [stripAccents(n), n]));
+
+function canonicalBrandName(raw) {
+  const key = stripAccents(raw);
+  return KNOWN_BRAND_CANONICAL.get(key) || raw;
+}
+
+function normalizeBrands(brands) {
+  return brands.map((b) => ({ ...b, name: canonicalBrandName(b.name) }));
+}
 
 async function checkBillingProfile(currentUserEmail) {
   try {
@@ -385,7 +398,7 @@ export default function SellReportMarketPage({
     // Check cache first
     const cachedBrands = getCachedBrands();
     if (cachedBrands) {
-      setErpBrands(cachedBrands);
+      setErpBrands(normalizeBrands(cachedBrands));
       return;
     }
 
@@ -394,7 +407,7 @@ export default function SellReportMarketPage({
       .then((response) => response.json())
       .then((data) => {
         if (!cancelled) {
-          const brands = Array.isArray(data?.brands) ? data.brands : [];
+          const brands = normalizeBrands(Array.isArray(data?.brands) ? data.brands : []);
           setCachedBrands(brands);
           setErpBrands(brands);
         }

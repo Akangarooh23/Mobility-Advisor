@@ -1,6 +1,6 @@
 // Orden de marcas destacadas (se muestran primero, alfabético en el bloque de "otras").
 // Las claves son el nombre canónico de display; el matching ignora tildes y mayúsculas.
-const KNOWN_BRANDS = [
+export const KNOWN_BRANDS = [
   "Alfa Romeo",
   "Alpine",
   "Audi",
@@ -42,7 +42,7 @@ const KNOWN_BRANDS = [
 ];
 
 // Strip diacritics + uppercase para matching tolerante a tildes y codificaciones rotas.
-function stripAccents(s) {
+export function stripAccents(s) {
   return String(s || "")
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")

@@ -301,7 +301,14 @@ export default function PortalVoMarketplacePage({
 
   // "Generar alerta": cuando una búsqueda con marca/modelo no da resultados.
   const currentOffersCount = compraTab === "importacion" ? importOffers.length : modeOffers.length;
-  const hasSpecificFilter = Boolean(portalVoFilters.brand || portalVoFilters.model || portalVoFilters.query);
+  const hasSpecificFilter = Boolean(
+    portalVoFilters.brand || portalVoFilters.model || portalVoFilters.query ||
+    portalVoFilters.fuel || portalVoFilters.minPrice || portalVoFilters.maxPrice ||
+    portalVoFilters.minYear || portalVoFilters.maxYear ||
+    portalVoFilters.minMileage || portalVoFilters.maxMileage ||
+    portalVoFilters.location || portalVoFilters.color ||
+    portalVoFilters.transmission || portalVoFilters.displacement
+  );
   const showAlertCta = !effectiveLoadingOffers && !importLoading && currentOffersCount === 0 && hasSpecificFilter;
   const handleGenerarAlerta = async () => {
     if (typeof onCreateAlert !== "function") {
@@ -531,7 +538,7 @@ export default function PortalVoMarketplacePage({
             style={styles.select}
           >
             <option value="">Año mínimo</option>
-            {Array.from({ length: 27 }, (_, i) => 2026 - i)
+            {Array.from({ length: new Date().getFullYear() - 1999 }, (_, i) => new Date().getFullYear() - i)
               .filter((y) => !portalVoFilters.maxYear || y <= Number(portalVoFilters.maxYear))
               .map((year) => (
                 <option key={year} value={year}>{year}</option>
@@ -543,7 +550,7 @@ export default function PortalVoMarketplacePage({
             style={styles.select}
           >
             <option value="">Año máximo</option>
-            {Array.from({ length: 27 }, (_, i) => 2026 - i)
+            {Array.from({ length: new Date().getFullYear() - 1999 }, (_, i) => new Date().getFullYear() - i)
               .filter((y) => !portalVoFilters.minYear || y >= Number(portalVoFilters.minYear))
               .map((year) => (
                 <option key={year} value={year}>{year}</option>
@@ -914,14 +921,14 @@ export default function PortalVoMarketplacePage({
                     {offer.hasGuaranteeSeal && (
                       <span style={getOfferBadgeStyle("success")}>{t("marketplace.guaranteePortal")}</span>
                     )}
-                    <span style={getOfferBadgeStyle("info")}>{offer.color}</span>
+                    {offer.color ? <span style={getOfferBadgeStyle("info")}>{offer.color}</span> : null}
                     <span style={getOfferBadgeStyle("info")}>{offer.displacement > 0 ? `${offer.displacement.toLocaleString("es-ES")} cc` : "EV"}</span>
                   </div>
                   <div style={{ fontSize: 11, color: isDark ? "#cbd5e1" : "#334155", lineHeight: 1.6 }}>
                     {offer.year} · {Number(offer.mileage).toLocaleString("es-ES")} km · {offer.location}
                   </div>
                   <div style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#64748b", lineHeight: 1.6, marginTop: 4 }}>
-                    {offer.fuel} · {offer.power}
+                    {offer.fuel}{offer.power ? ` · ${offer.power}` : ""}
                   </div>
                   {offer.hasStockManagement && isRenting && (
                     <div style={{ marginTop: 6, display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>

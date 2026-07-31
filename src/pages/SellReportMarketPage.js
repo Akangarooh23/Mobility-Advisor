@@ -355,6 +355,7 @@ export default function SellReportMarketPage({
   const [versionManual, setVersionManual] = useState(false);
   const [yearManual, setYearManual] = useState(false);
   const [colorManual, setColorManual] = useState(false);
+  const [pendingDamageZone, setPendingDamageZone] = useState(null);
   const [garageVehicles, setGarageVehicles] = useState([]);
   const { t } = useTranslation();
   const [garageVehiclesLoading, setGarageVehiclesLoading] = useState(false);
@@ -1337,7 +1338,7 @@ export default function SellReportMarketPage({
                             key={option}
                             type="button"
                             className={`damage-opt${selected ? " sel" : ""}`}
-                            onClick={() => setSellAnswers((prev) => ({ ...prev, damageLevel: option }))}
+                            onClick={() => { setSellAnswers((prev) => ({ ...prev, damageLevel: option })); if (option === DAMAGE_OPTIONS[0]) setPendingDamageZone(null); }}
                           >
                             {t(option)}
                           </button>
@@ -1358,38 +1359,93 @@ export default function SellReportMarketPage({
                         />
                         <div style={{ marginTop: "0.5rem" }}>
                           <div style={{ fontSize: 10, color: "#9ca3af", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: "0.35rem" }}>
-                            Añadir al texto
+                            Añadir al texto — elige zona y luego tipo de daño
                           </div>
                           {DAMAGE_KEYWORDS.map((group) => {
                             const desc = sellAnswers?.damageDescription || "";
+                            const isZone = group.label === "Zona";
+                            const isType = group.label === "Tipo de daño";
+                            const appendToDesc = (phrase) => {
+                              setSellAnswers((prev) => {
+                                const cur = (prev.damageDescription || "").trimEnd();
+                                const sep = cur.length === 0 ? "" : cur.endsWith(",") ? " " : ", ";
+                                return { ...prev, damageDescription: cur + sep + phrase };
+                              });
+                            };
                             return (
-                              <div key={group.label} style={{ marginBottom: "0.4rem" }}>
+                              <div key={group.label} style={{ marginBottom: "0.5rem" }}>
+                                {isType && pendingDamageZone && (
+                                  <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11, color: "#0d9488", background: "#f0fafa", border: "1px solid #99e6de", borderRadius: 6, padding: "3px 8px", marginBottom: "0.35rem" }}>
+                                    <span>📍 <strong>{pendingDamageZone}</strong> — ahora elige el tipo de daño</span>
+                                    <button type="button" onClick={() => setPendingDamageZone(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", fontSize: 13, padding: 0, lineHeight: 1 }}>✕</button>
+                                  </div>
+                                )}
                                 <div style={{ fontSize: 10, color: "#bbb", marginBottom: "0.2rem", fontWeight: 600, letterSpacing: "0.04em" }}>{group.label}</div>
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
                                   {group.tags.map((tag) => {
+                                    if (isZone) {
+                                      const isPending = pendingDamageZone === tag;
+                                      return (
+                                        <button
+                                          key={tag}
+                                          type="button"
+                                          onClick={() => setPendingDamageZone(isPending ? null : tag)}
+                                          style={{
+                                            padding: "3px 9px", borderRadius: 20, fontSize: 11, fontFamily: "inherit", cursor: "pointer", transition: "all 0.12s",
+                                            border: `1px solid ${isPending ? "#0d9488" : "#e5e7eb"}`,
+                                            background: isPending ? "#0d9488" : "#fafaf9",
+                                            color: isPending ? "#fff" : "#6b7280",
+                                            fontWeight: isPending ? 700 : 400,
+                                          }}
+                                        >
+                                          {isPending ? "📍 " : ""}{tag}
+                                        </button>
+                                      );
+                                    }
+                                    if (isType) {
+                                      const phrase = pendingDamageZone
+                                        ? `${tag} en ${pendingDamageZone.toLowerCase()}`
+                                        : tag;
+                                      const active = desc.toLowerCase().includes(phrase.toLowerCase());
+                                      return (
+                                        <button
+                                          key={tag}
+                                          type="button"
+                                          onClick={() => {
+                                            if (active) return;
+                                            appendToDesc(phrase);
+                                            setPendingDamageZone(null);
+                                          }}
+                                          style={{
+                                            padding: "3px 9px", borderRadius: 20, fontSize: 11, fontFamily: "inherit", transition: "all 0.12s",
+                                            cursor: active ? "default" : "pointer",
+                                            border: `1px solid ${active ? "#0d9488" : pendingDamageZone ? "#6366f1" : "#e5e7eb"}`,
+                                            background: active ? "#f0fafa" : pendingDamageZone ? "#f5f5ff" : "#fafaf9",
+                                            color: active ? "#0d9488" : pendingDamageZone ? "#6366f1" : "#6b7280",
+                                            fontWeight: pendingDamageZone && !active ? 600 : 400,
+                                            opacity: active ? 0.8 : 1,
+                                          }}
+                                        >
+                                          {active ? "✓ " : ""}{tag}
+                                          {pendingDamageZone && !active && (
+                                            <span style={{ fontSize: 10, opacity: 0.7, marginLeft: 3 }}>→ en {pendingDamageZone.toLowerCase().split(" ").slice(0, 2).join(" ")}</span>
+                                          )}
+                                        </button>
+                                      );
+                                    }
+                                    // Mecánica — append directamente
                                     const active = desc.toLowerCase().includes(tag.toLowerCase());
                                     return (
                                       <button
                                         key={tag}
                                         type="button"
-                                        onClick={() => {
-                                          if (active) return;
-                                          setSellAnswers((prev) => {
-                                            const cur = (prev.damageDescription || "").trimEnd();
-                                            const sep = cur.length === 0 ? "" : cur.endsWith(",") ? " " : ", ";
-                                            return { ...prev, damageDescription: cur + sep + tag };
-                                          });
-                                        }}
+                                        onClick={() => { if (!active) appendToDesc(tag); }}
                                         style={{
-                                          padding: "3px 9px",
-                                          borderRadius: 20,
+                                          padding: "3px 9px", borderRadius: 20, fontSize: 11, fontFamily: "inherit", transition: "all 0.12s",
+                                          cursor: active ? "default" : "pointer",
                                           border: `1px solid ${active ? "#0d9488" : "#e5e7eb"}`,
                                           background: active ? "#f0fafa" : "#fafaf9",
                                           color: active ? "#0d9488" : "#6b7280",
-                                          fontSize: 11,
-                                          cursor: active ? "default" : "pointer",
-                                          fontFamily: "inherit",
-                                          transition: "all 0.12s",
                                           opacity: active ? 0.8 : 1,
                                         }}
                                       >

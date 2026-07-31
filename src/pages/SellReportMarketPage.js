@@ -267,6 +267,7 @@ export default function SellReportMarketPage({
   const [brandManual, setBrandManual] = useState(false);
   const [modelManual, setModelManual] = useState(false);
   const [versionManual, setVersionManual] = useState(false);
+  const [yearManual, setYearManual] = useState(false);
   const [garageVehicles, setGarageVehicles] = useState([]);
   const { t } = useTranslation();
   const [garageVehiclesLoading, setGarageVehiclesLoading] = useState(false);
@@ -326,7 +327,7 @@ export default function SellReportMarketPage({
   const [fleetEdits, setFleetEdits] = useState({});
 
   const currentYear = new Date().getFullYear();
-  const yearOptions = Array.from({ length: currentYear - 2013 }, (_, index) => currentYear - index);
+  const yearOptions = Array.from({ length: currentYear - 1999 }, (_, index) => currentYear - index);
 
 
 
@@ -1035,19 +1036,51 @@ export default function SellReportMarketPage({
                   <div className="field-grid-3">
                     <div className="field">
                       <label>{t("sell.sellFlowARegistrationLabel")}</label>
-                      <div className="sel-wrap">
-                        <select
-                          value={sellAnswers?.year || ""}
-                          onChange={(event) => setSellAnswers((prev) => ({ ...prev, year: event.target.value }))}
-                        >
-                          <option value="">{t("sell.yearPlaceholder")}</option>
-                          {yearOptions.map((year) => (
-                            <option key={year} value={String(year)}>{year}</option>
-                          ))}
-                          <option value="anterior">{t("sell.yearOlder")}</option>
-                        </select>
-                        <div className="sel-arrow">▾</div>
-                      </div>
+                      {yearManual ? (
+                        <>
+                          <input
+                            type="number"
+                            placeholder="Ej: 1998"
+                            min="1900"
+                            max="1999"
+                            value={sellAnswers?.year || ""}
+                            autoFocus
+                            onChange={(e) => setSellAnswers((prev) => ({ ...prev, year: e.target.value }))}
+                          />
+                          <button
+                            type="button"
+                            className="sel-manual-toggle"
+                            onClick={() => {
+                              setYearManual(false);
+                              setSellAnswers((prev) => ({ ...prev, year: "" }));
+                            }}
+                          >
+                            ← Volver al selector
+                          </button>
+                        </>
+                      ) : (
+                        <div className="sel-wrap">
+                          <select
+                            value={sellAnswers?.year || ""}
+                            onChange={(event) => {
+                              const year = event.target.value;
+                              if (year === "anterior") {
+                                setYearManual(true);
+                                setSellAnswers((prev) => ({ ...prev, year: "" }));
+                              } else {
+                                setSellAnswers((prev) => ({ ...prev, year }));
+                              }
+                            }}
+                          >
+                            <option value="">{t("sell.yearPlaceholder")}</option>
+                            {yearOptions.map((year) => (
+                              <option key={year} value={String(year)}>{year}</option>
+                            ))}
+                            <option value="anterior">Anterior a 2000</option>
+                          </select>
+                          <div className="sel-arrow">▾</div>
+                        </div>
+                      )}
                     </div>
                     <div className="field">
                       <label>{t("sell.sellFlowAMileageLabel")}</label>

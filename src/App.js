@@ -132,8 +132,6 @@ import { buildUserDashboardModel } from "./utils/userDashboardHelpers";
 import {
   clearQuestionnaireDraft,
   writeAuthUser,
-  writeMarketAlerts,
-  writeMarketAlertStatus,
   writeUserAppointments,
 } from "./utils/storage";
 import {
@@ -2841,13 +2839,12 @@ export default function App() {
     syncBrowserPath,
   ]);
 
-  const createMarketAlert = (filters = {}) => {
-    const notifyByEmail = Boolean(filters?.notifyByEmail);
+  const createMarketAlert = async (filters = {}) => {
+    if (!currentUserEmail) return null;
+
+    const notifyByEmail = true;
     const resolvedAlertEmail = resolveAlertRecipientEmail(
-      {
-        notifyByEmail,
-        email: filters?.email,
-      },
+      { notifyByEmail, email: filters?.email },
       currentUserEmail
     );
     const normalizedAlert = {
@@ -2923,22 +2920,32 @@ export default function App() {
       }),
     };
 
-    const next = [alert, ...marketAlerts.filter((item) => item.id !== alert.id)].slice(0, 20);
-    writeMarketAlerts(next);
-    setMarketAlerts(next);
-    void postUserAlertJson(alert).catch(() => {});
+    // Optimistic update
+    setMarketAlerts((prev) => [alert, ...prev.filter((a) => a.id !== alert.id)].slice(0, 20));
+
+    try {
+      const { data } = await postUserAlertJson(alert);
+      if (data?.ok && Array.isArray(data.alerts)) {
+        setMarketAlerts(data.alerts);
+        if (data.alertStatus) setMarketAlertStatus((prev) => ({ ...prev, ...data.alertStatus }));
+      }
+    } catch {
+      // Optimistic state already set — silently continue
+    }
+
     return alert;
   };
 
-  const removeMarketAlert = (id) => {
-    const next = marketAlerts.filter((item) => item.id !== id);
-    const nextStatus = { ...marketAlertStatus };
-    delete nextStatus[id];
-    writeMarketAlerts(next);
-    writeMarketAlertStatus(nextStatus);
-    setMarketAlerts(next);
-    setMarketAlertStatus(nextStatus);
-    void deleteUserAlertJson(id).catch(() => {});
+  const removeMarketAlert = async (id) => {
+    setMarketAlerts((prev) => prev.filter((item) => item.id !== id));
+    setMarketAlertStatus((prev) => { const next = { ...prev }; delete next[id]; return next; });
+    try {
+      const { data } = await deleteUserAlertJson(id);
+      if (data?.ok && Array.isArray(data.alerts)) {
+        setMarketAlerts(data.alerts);
+        if (data.alertStatus) setMarketAlertStatus(data.alertStatus);
+      }
+    } catch {}
   };
 
   const markMarketAlertSeen = useCallback((id, count = 0) => {
@@ -2946,19 +2953,11 @@ export default function App() {
       return;
     }
 
-    setMarketAlertStatus((prev) => {
-      const nextStatus = {
-        ...prev,
-        [id]: {
-          seenCount: Number(count || 0),
-          updatedAt: new Date().toISOString(),
-        },
-      };
-
-      writeMarketAlertStatus(nextStatus);
-      void postUserAlertStatusJson(id, Number(count || 0)).catch(() => {});
-      return nextStatus;
-    });
+    setMarketAlertStatus((prev) => ({
+      ...prev,
+      [id]: { seenCount: Number(count || 0), updatedAt: new Date().toISOString() },
+    }));
+    void postUserAlertStatusJson(id, Number(count || 0)).catch(() => {});
   }, []);
 
   const markAllMarketAlertsSeen = useCallback(() => {
@@ -2977,7 +2976,6 @@ export default function App() {
         }
       });
 
-      writeMarketAlertStatus(nextStatus);
       return nextStatus;
     });
   }, [marketAlertMatches, marketAlerts]);
@@ -3064,7 +3062,6 @@ export default function App() {
           };
         });
 
-        writeMarketAlertStatus(nextStatus);
         return nextStatus;
       });
 

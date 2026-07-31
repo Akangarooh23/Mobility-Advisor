@@ -140,6 +140,7 @@ export default function PortalVoMarketplacePage({
   modalityMode = "compra",
   onModalityChange,
   onCreateAlert,
+  onRequestLogin,
   initialCompraTab = "concesionarios",
 }) {
   const isDark = themeMode === "dark";
@@ -302,15 +303,17 @@ export default function PortalVoMarketplacePage({
   const currentOffersCount = compraTab === "importacion" ? importOffers.length : modeOffers.length;
   const hasSpecificFilter = Boolean(portalVoFilters.brand || portalVoFilters.model || portalVoFilters.query);
   const showAlertCta = !effectiveLoadingOffers && !importLoading && currentOffersCount === 0 && hasSpecificFilter;
-  const handleGenerarAlerta = () => {
-    if (typeof onCreateAlert !== "function") return;
-    // notifyByEmail:true -> si está logueado, la crea con su email; si no, devuelve null.
-    const created = onCreateAlert({
+  const handleGenerarAlerta = async () => {
+    if (typeof onCreateAlert !== "function") {
+      if (typeof onRequestLogin === "function") onRequestLogin();
+      return;
+    }
+    const created = await onCreateAlert({
       ...portalVoFilters,
       mode: isRenting ? "renting" : "compra",
       notifyByEmail: true,
     });
-    setAlertSent(created ? "ok" : "login");
+    setAlertSent(created ? "ok" : "error");
   };
 
   return (
@@ -691,9 +694,9 @@ export default function PortalVoMarketplacePage({
               >
                 🔔 Generar alerta
               </button>
-              {alertSent === "login" && (
+              {alertSent === "error" && (
                 <div style={{ marginTop: 10, fontSize: 12, color: "#b45309", fontWeight: 600 }}>
-                  Inicia sesión para guardar la alerta y recibir el aviso por email.
+                  No se pudo guardar la alerta. Inténtalo de nuevo.
                 </div>
               )}
             </>

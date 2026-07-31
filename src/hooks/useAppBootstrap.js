@@ -20,8 +20,6 @@ import {
   readUserVehicleStates,
   readUserSolicitudes,
   writeAuthUser,
-  writeMarketAlerts,
-  writeMarketAlertStatus,
   writeSavedComparisons,
 } from "../utils/storage";
 
@@ -145,8 +143,6 @@ export function useAppBootstrap({
                   ? alertsRes.value.data.alerts
                   : [];
                 const alertStatus = alertsRes.value.data.alertStatus || {};
-                writeMarketAlerts(alerts);
-                writeMarketAlertStatus(alertStatus);
                 setMarketAlerts(alerts);
                 setMarketAlertStatus(alertStatus);
               }

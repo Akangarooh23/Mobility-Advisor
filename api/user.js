@@ -7,6 +7,7 @@ const vehiclePublishHandler = require("../lib/api/vehicle-publish-handler");
 const viewingHandler = require("../lib/api/viewing-handler");
 const funnelEventHandler = require("../lib/api/funnel-event-handler");
 const cronAppointmentRemindersHandler = require("../lib/api/cron-appointment-reminders-handler");
+const cronAlertCheckHandler = require("../lib/api/cron-alert-check-handler");
 const storagePresignHandler = require("../lib/api/storage-presign-handler");
 
 module.exports.config = { api: { bodyParser: { sizeLimit: "20mb" } } };
@@ -30,6 +31,7 @@ function resolveRoute(req) {
   if (url.includes("viewing-get"))     return "viewing-get";
   if (url.includes("funnel-event"))    return "funnel-event";
   if (url.includes("cron-appointment-reminders")) return "cron-appointment-reminders";
+  if (url.includes("cron-alert-check"))           return "cron-alert-check";
   return "";
 }
 
@@ -56,6 +58,8 @@ module.exports = async function userRouter(req, res) {
       return funnelEventHandler(req, res);
     case "cron-appointment-reminders":
       return cronAppointmentRemindersHandler(req, res);
+    case "cron-alert-check":
+      return cronAlertCheckHandler(req, res);
     case "storage-presign":
       return storagePresignHandler(req, res);
     default:

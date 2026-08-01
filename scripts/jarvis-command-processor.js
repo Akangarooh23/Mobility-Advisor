@@ -59,89 +59,108 @@ async function jarvis(pathname, body) {
  * agente no puede saltárselo porque no es él quien lo ejecuta.
  */
 function goldenTestsPass() {
+  const inicio = Date.now();
   const runner = path.join(__dirname, "golden-tests", "run.js");
   const result = spawnSync(process.execPath, [runner], {
     cwd: path.join(__dirname, ".."),
     encoding: "utf8",
     timeout: 5 * 60 * 1000,
   });
+  const ms = Date.now() - inicio;
 
   if (result.error) {
-    return { ok: false, reason: `no se pudo ejecutar el runner: ${result.error.message}` };
+    return { ok: false, ms, reason: `no se pudo ejecutar el runner: ${result.error.message}` };
   }
   if (result.status !== 0) {
     const tail = String(result.stdout || result.stderr || "").split("\n").slice(-15).join("\n");
-    return { ok: false, reason: `golden tests en rojo (exit ${result.status})`, tail };
+    return { ok: false, ms, reason: `golden tests en rojo (exit ${result.status})`, tail };
   }
-  return { ok: true };
+  return { ok: true, ms };
 }
 
-/** Misma normalización que resolveBrandWithAliases en lib/inventoryStore.js. */
-function aliasKey(text) {
-  return String(text || "")
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "");
-}
+/** De dónde vino la fila. Queda en la propia tabla del dominio, no solo en el audit de Jarvis. */
+const SOURCE = "jarvis-agent";
 
 /**
  * Aplica el merge en NUESTRAS tablas, en una transacción.
  *
- * Idempotente a propósito: si el alias ya apunta al canónico correcto, no es un
- * error, es que el trabajo ya estaba hecho. Un procesador que muere después de
- * aplicar y antes de informar tiene que poder reintentar sin romper nada.
+ * Nada de normalizar en JavaScript: `alias_key`, `canonical_key` y `brand_key`
+ * son columnas GENERADAS por `normalize_alias_token()`. Se escribe el nombre
+ * legible y la base calcula la clave. Duplicar esa lógica aquí sería tener dos
+ * definiciones de "el mismo alias" que algún día divergirían.
+ *
+ * Idempotente por construcción: el ON CONFLICT se apoya en los índices únicos
+ * reales del dominio — `alias_key` en marcas, `(brand_key, alias_key)` en
+ * modelos. Un procesador que muere después de aplicar y antes de informar puede
+ * reintentar sin romper nada.
  */
 async function applyAliasMerge(pool, payload, { active }) {
-  const key = aliasKey(payload.alias);
-  if (!key) throw new Error(`alias "${payload.alias}" se normaliza a vacío`);
+  const esModelo = payload.kind === "model";
+
+  if (esModelo && !payload.brand) {
+    // El dominio indexa los alias de modelo por (marca, alias): "Ateca" solo
+    // significa algo dentro de Seat.
+    throw new Error('Un alias de modelo necesita "brand" (marca canónica).');
+  }
 
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
 
-    if (payload.kind === "brand") {
-      const existing = await client.query(
-        "SELECT canonical_name, is_active FROM moveadvisor_brand_aliases WHERE alias_key = $1",
-        [key]
-      );
+    let result;
 
-      if (existing.rows.length === 0) {
-        await client.query(
-          `INSERT INTO moveadvisor_brand_aliases (alias_key, canonical_name, is_active)
-           VALUES ($1, $2, $3)`,
-          [key, payload.canonical, active]
-        );
-      } else {
-        await client.query(
-          "UPDATE moveadvisor_brand_aliases SET canonical_name = $2, is_active = $3 WHERE alias_key = $1",
-          [key, payload.canonical, active]
-        );
-      }
+    if (!esModelo) {
+      result = active
+        ? await client.query(
+            `INSERT INTO moveadvisor_brand_aliases (alias_name, canonical_name, source, is_active)
+             VALUES ($1, $2, $3, TRUE)
+             ON CONFLICT (alias_key) DO UPDATE
+               SET canonical_name = EXCLUDED.canonical_name,
+                   source         = EXCLUDED.source,
+                   is_active      = TRUE,
+                   updated_at     = now()
+             RETURNING id, alias_key, canonical_name, is_active`,
+            [payload.alias, payload.canonical, SOURCE]
+          )
+        : await client.query(
+            `UPDATE moveadvisor_brand_aliases
+                SET is_active = FALSE, updated_at = now()
+              WHERE alias_key = normalize_alias_token($1)
+              RETURNING id, alias_key, canonical_name, is_active`,
+            [payload.alias]
+          );
     } else {
-      const brandKey = aliasKey(payload.canonical);
-      const existing = await client.query(
-        "SELECT canonical_name FROM moveadvisor_model_aliases WHERE brand_key = $1 AND alias_key = $2",
-        [brandKey, key]
-      );
+      result = active
+        ? await client.query(
+            `INSERT INTO moveadvisor_model_aliases
+               (brand_canonical_name, alias_name, canonical_name, source, is_active)
+             VALUES ($1, $2, $3, $4, TRUE)
+             ON CONFLICT (brand_key, alias_key) DO UPDATE
+               SET canonical_name = EXCLUDED.canonical_name,
+                   source         = EXCLUDED.source,
+                   is_active      = TRUE,
+                   updated_at     = now()
+             RETURNING id, brand_key, alias_key, canonical_name, is_active`,
+            [payload.brand, payload.alias, payload.canonical, SOURCE]
+          )
+        : await client.query(
+            `UPDATE moveadvisor_model_aliases
+                SET is_active = FALSE, updated_at = now()
+              WHERE brand_key = normalize_alias_token($1)
+                AND alias_key = normalize_alias_token($2)
+              RETURNING id, brand_key, alias_key, canonical_name, is_active`,
+            [payload.brand, payload.alias]
+          );
+    }
 
-      if (existing.rows.length === 0) {
-        await client.query(
-          `INSERT INTO moveadvisor_model_aliases (brand_key, alias_key, canonical_name, is_active)
-           VALUES ($1, $2, $3, $4)`,
-          [brandKey, key, payload.canonical, active]
-        );
-      } else {
-        await client.query(
-          `UPDATE moveadvisor_model_aliases SET canonical_name = $3, is_active = $4
-           WHERE brand_key = $1 AND alias_key = $2`,
-          [brandKey, key, payload.canonical, active]
-        );
-      }
+    // Desactivar algo que no existe no es "ya estaba hecho": es que el comando
+    // habla de una fila que nunca se creó. Mejor fallar y que se vea.
+    if (result.rowCount === 0) {
+      throw new Error(`No existe el alias "${payload.alias}" que se pretende desactivar.`);
     }
 
     await client.query("COMMIT");
-    return { aliasKey: key, canonical: payload.canonical, active };
+    return { ...result.rows[0], applied: active ? "merged" : "unmerged" };
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;
@@ -163,6 +182,12 @@ async function processOne(pool, command) {
   }
 
   const golden = goldenTestsPass();
+  // El invariante 1 tiene que verse en el log. Un gate silencioso es
+  // indistinguible de un gate que no se ejecuta.
+  log(golden.ok ? "invariante 1: golden tests en verde" : "invariante 1: golden tests EN ROJO", {
+    id: command.id,
+    ms: golden.ms,
+  });
   if (!golden.ok) {
     await jarvis(`/api/domain-commands/${command.id}/settle`, {
       status: "rejected",

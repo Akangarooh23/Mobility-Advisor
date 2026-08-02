@@ -1652,6 +1652,10 @@ export default function App() {
   const [marketplaceInitialTab, setMarketplaceInitialTab] = useState("concesionarios");
   const [marketplaceVoTotal, setMarketplaceVoTotal] = useState(0);
   const [marketplaceVoLoading, setMarketplaceVoLoading] = useState(false);
+  // "No hay ofertas" y "no he podido cargarlas" son cosas distintas y hasta
+  // ahora se pintaban igual: lista vacía. Con la base caída, la web invitaba a
+  // crear una alerta para coches que sí existían.
+  const [marketplaceVoUnavailable, setMarketplaceVoUnavailable] = useState(false);
   const [portalVoModalityMode, setPortalVoModalityMode] = useState("compra");
   const { marketBrandsCatalog, matchedModelsByBrand, marketCatalogSource } = useMarketCatalog(portalVoOffersLive);
   const [questionnaireDraft, setQuestionnaireDraft] = useState(null);
@@ -2227,14 +2231,19 @@ export default function App() {
       if (isDedicatedSource) {
         setPortalVoOffersLive(apiOffers);
         setMarketplaceVoTotal(Number(data?.totalUniverse || apiOffers.length));
+        setMarketplaceVoUnavailable(false);
       } else if (page === 0) {
         setPortalVoOffersLive([]);
         setMarketplaceVoTotal(0);
+        // Llegar aquí ya significaba que algo había fallado — el `source` no
+        // era el bueno — pero se pintaba igual que una búsqueda sin resultados.
+        setMarketplaceVoUnavailable(true);
       }
     } catch {
       if (page === 0) {
         setPortalVoOffersLive([]);
         setMarketplaceVoTotal(0);
+        setMarketplaceVoUnavailable(true);
       }
     } finally {
       setMarketplaceVoLoading(false);
@@ -6931,6 +6940,7 @@ export default function App() {
           onOpenOffer={openPortalVoOfferDetail}
           onGoHome={restart}
           loadingOffers={marketplaceVoLoading}
+          offersUnavailable={marketplaceVoUnavailable}
           totalUniverse={marketplaceVoTotal}
           currentPage={marketplaceVoPage}
           totalPages={Math.ceil(marketplaceVoTotal / MARKETPLACE_PAGE_SIZE) || 1}

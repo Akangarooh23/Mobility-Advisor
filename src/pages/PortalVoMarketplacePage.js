@@ -131,6 +131,7 @@ export default function PortalVoMarketplacePage({
   onOpenOffer,
   onGoHome,
   loadingOffers,
+  offersUnavailable = false,
   totalUniverse = 0,
   currentPage = 0,
   totalPages = 1,
@@ -309,7 +310,11 @@ export default function PortalVoMarketplacePage({
     portalVoFilters.location || portalVoFilters.color ||
     portalVoFilters.transmission || portalVoFilters.displacement
   );
-  const showAlertCta = !effectiveLoadingOffers && !importLoading && currentOffersCount === 0 && hasSpecificFilter;
+  const sinCargar = offersUnavailable && !effectiveLoadingOffers && !importLoading;
+  // Si el catálogo no se ha podido cargar, ofrecer una alerta es peor que no
+  // ofrecer nada: invita a esperar por unos coches que probablemente ya están
+  // ahí. La alerta solo se propone cuando de verdad no hay resultados.
+  const showAlertCta = !sinCargar && !effectiveLoadingOffers && !importLoading && currentOffersCount === 0 && hasSpecificFilter;
   const handleGenerarAlerta = async () => {
     if (typeof onCreateAlert !== "function") {
       if (typeof onRequestLogin === "function") onRequestLogin();
@@ -671,6 +676,38 @@ export default function PortalVoMarketplacePage({
           </div>
         </div>
       </div>
+
+      {/*
+        Decir que no se ha podido cargar, en vez de decir que no hay nada.
+        Son dos frases distintas porque son dos situaciones distintas, y hasta
+        hoy la web daba la segunda cuando la cierta era la primera.
+      */}
+      {sinCargar && (
+        <div style={{
+          ...styles.panel, marginBottom: 18, textAlign: "center", padding: "24px 20px",
+          border: `1px dashed ${isDark ? "rgba(251,191,36,0.45)" : "rgba(217,119,6,0.35)"}`,
+        }}>
+          <div style={{ fontSize: 30, marginBottom: 8 }}>⚠️</div>
+          <div style={{ fontSize: 15, fontWeight: 800, color: isDark ? "#f1f5f9" : "#0f172a", marginBottom: 6 }}>
+            No hemos podido cargar el catálogo
+          </div>
+          <div style={{ fontSize: 13, color: bodyColor, maxWidth: 440, margin: "0 auto 14px", lineHeight: 1.6 }}>
+            No es que no haya coches: es que ahora mismo no podemos consultarlos. Vuelve a intentarlo en
+            un momento.
+          </div>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            style={{
+              background: "linear-gradient(135deg,#2563eb,#1d4ed8)", border: "none", color: "#fff",
+              padding: "12px 22px", borderRadius: 12, fontSize: 13, fontWeight: 800, cursor: "pointer",
+              boxShadow: "0 10px 24px rgba(37,99,235,0.2)",
+            }}
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
 
       {showAlertCta && (
         <div style={{

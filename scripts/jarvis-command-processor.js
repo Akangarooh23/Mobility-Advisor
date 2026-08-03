@@ -31,6 +31,8 @@ const SUPPORTED = new Set([
   "alias.unmerge.v1",
   "brand.create.v1",
   "brand.deactivate.v1",
+  "catalog.extend.v1",
+  "catalog.retract.v1",
 ]);
 
 function log(message, extra) {
@@ -262,6 +264,91 @@ async function applyBrandCreate(pool, payload, { active }) {
   }
 }
 
+/**
+ * Ampliar el catálogo de una marca con modelos observados en producción.
+ *
+ * **El catálogo nunca aprende del scraper. Solo de una decisión aprobada.**
+ *
+ * Es la regla que hace falta escribir aquí y no en Jarvis, porque aquí es donde
+ * están las tablas y donde se rompería. El catálogo es NORMATIVO —dice qué
+ * modelos existen— y el scraper es DESCRIPTIVO —dice qué texto ha visto—. Si
+ * algún día un importador escribe directamente en `moveadvisor_vehicle_models`,
+ * una errata repetida trescientas veces se convierte en un modelo oficial y ya
+ * no hay manera de distinguir el catálogo de un volcado.
+ *
+ * Hoy la frontera está intacta: los únicos caminos de escritura son el `seed`
+ * (solo con la tabla vacía) y la acción de administración. Esta función es el
+ * tercero, y no nace de un agente — nace de una aprobación humana que un agente
+ * se ha limitado a preparar.
+ *
+ * La marca tiene que EXISTIR. Crearla al vuelo aquí sería colar un alta de
+ * marca dentro de una operación de riesgo bajo, y las dos decisiones no se
+ * parecen: una amplía un desplegable, la otra abre la puerta a valorar coches
+ * de algo que quizá no exista.
+ */
+async function applyCatalogExtend(pool, payload, { active }) {
+  if (!payload || typeof payload.brand !== "string" || !Array.isArray(payload.models)) {
+    throw new Error("El comando de catálogo necesita marca y lista de modelos.");
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const brand = await client.query(
+      `SELECT id FROM moveadvisor_vehicle_brands WHERE name = $1 AND is_active = TRUE LIMIT 1`,
+      [payload.brand]
+    );
+    const brandId = brand.rows[0]?.id;
+
+    if (!brandId) {
+      throw new Error(
+        `La marca "${payload.brand}" no está activa en el catálogo: una ampliación no la crea.`
+      );
+    }
+
+    const tocados = [];
+
+    for (const model of payload.models) {
+      const r = active
+        ? await client.query(
+            `INSERT INTO moveadvisor_vehicle_models (brand_id, name, is_active)
+             VALUES ($1, $2, TRUE)
+             ON CONFLICT (brand_id, name) DO UPDATE SET is_active = TRUE
+             RETURNING id, name`,
+            [brandId, model]
+          )
+        : await client.query(
+            `UPDATE moveadvisor_vehicle_models SET is_active = FALSE
+              WHERE brand_id = $1 AND name = $2 RETURNING id, name`,
+            [brandId, model]
+          );
+
+      if (r.rowCount > 0) tocados.push(model);
+    }
+
+    // Compensar algo que no existe no es "ya estaba hecho": es que el comando
+    // habla de filas que nunca se crearon. Mejor fallar y que se vea.
+    if (!active && tocados.length === 0) {
+      throw new Error(`Ningún modelo de "${payload.brand}" existía para desactivar.`);
+    }
+
+    await client.query("COMMIT");
+
+    return {
+      brand: payload.brand,
+      models: tocados.length,
+      pedidos: payload.models.length,
+      applied: active ? "extended" : "retracted",
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 async function processOne(pool, command) {
   if (!SUPPORTED.has(command.type)) {
     // Rechazar lo desconocido en vez de ignorarlo: un comando que nadie procesa
@@ -291,14 +378,29 @@ async function processOne(pool, command) {
   }
 
   try {
-    // Las compensaciones son el mismo comando con `active: false`. No se borra
-    // ninguna fila: el histórico del dominio también tiene derecho a ser cierto.
-    const esMarca = command.type.startsWith("brand.");
-    const active = command.type === "alias.merge.v1" || command.type === "brand.create.v1";
+    /*
+      Una tabla, no una cadena de condicionales.
 
-    const result = esMarca
-      ? await applyBrandCreate(pool, command.payload, { active })
-      : await applyAliasMerge(pool, command.payload, { active });
+      Cada tipo dice qué función lo aplica y si es la operación o su
+      compensación (`active: false`). Con dos tipos cabía un ternario; con seis
+      ya no, y el modo en que ese ternario habría crecido —añadiendo un
+      `startsWith` por familia— es exactamente cómo un comando nuevo acaba
+      cayendo en el aplicador equivocado sin que nada falle.
+
+      No se borra ninguna fila en ningún caso: el histórico del dominio también
+      tiene derecho a ser cierto.
+    */
+    const APLICADORES = {
+      "alias.merge.v1": [applyAliasMerge, true],
+      "alias.unmerge.v1": [applyAliasMerge, false],
+      "brand.create.v1": [applyBrandCreate, true],
+      "brand.deactivate.v1": [applyBrandCreate, false],
+      "catalog.extend.v1": [applyCatalogExtend, true],
+      "catalog.retract.v1": [applyCatalogExtend, false],
+    };
+
+    const [aplicar, active] = APLICADORES[command.type];
+    const result = await aplicar(pool, command.payload, { active });
 
     await jarvis(`/api/domain-commands/${command.id}/settle`, { status: "applied", result });
     log("aplicado", { id: command.id, type: command.type, ...result });

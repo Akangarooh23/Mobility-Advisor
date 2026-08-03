@@ -26,7 +26,12 @@ const PROCESSOR_ID = process.env.JARVIS_PROCESSOR_ID || "carswise-processor";
 const POLL_MS = Number(process.env.JARVIS_POLL_MS || 10000);
 const BATCH = Number(process.env.JARVIS_BATCH || 10);
 
-const SUPPORTED = new Set(["alias.merge.v1", "alias.unmerge.v1"]);
+const SUPPORTED = new Set([
+  "alias.merge.v1",
+  "alias.unmerge.v1",
+  "brand.create.v1",
+  "brand.deactivate.v1",
+]);
 
 function log(message, extra) {
   const stamp = new Date().toISOString();
@@ -169,6 +174,94 @@ async function applyAliasMerge(pool, payload, { active }) {
   }
 }
 
+/**
+ * Dar de alta una marca: catálogo y alias, o ninguna de las dos.
+ *
+ * Son dos tablas y una sola verdad. `moveadvisor_vehicle_brands` es lo que ve
+ * una persona en un desplegable; `moveadvisor_brand_aliases` es lo que consulta
+ * `isBrandKnownInAliases()` antes de dejar entrar una oferta en el pool de
+ * valoración. Insertar solo en la primera deja la oferta exactamente igual de
+ * sin tasar — lo comprobamos leyendo el código antes de escribir esto, no
+ * después de aprobar doce propuestas inútiles.
+ *
+ * Por eso van en la MISMA transacción. Una marca en el catálogo sin su alias es
+ * peor que ninguna marca: aparece en la interfaz, parece resuelta y no valora.
+ *
+ * El auto-alias no es un invento nuestro: las 74 marcas del catálogo lo tienen,
+ * con `source = 'catalog-self'`. Aquí se marca con `jarvis-agent` para que
+ * dentro de seis meses se pueda responder a "¿qué filas nacieron de un agente?".
+ */
+async function applyBrandCreate(pool, payload, { active }) {
+  if (!payload || typeof payload.name !== "string" || !payload.name.trim()) {
+    throw new Error("El comando de alta de marca necesita un nombre.");
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    let brand;
+    let alias;
+
+    if (active) {
+      brand = await client.query(
+        `INSERT INTO moveadvisor_vehicle_brands (name, is_active)
+         VALUES ($1, TRUE)
+         ON CONFLICT (name) DO UPDATE SET is_active = TRUE
+         RETURNING id, name, is_active`,
+        [payload.name]
+      );
+
+      // El auto-alias: la marca resolviéndose a sí misma. Sin esto, el alta no
+      // cambia nada de lo que el comando promete arreglar.
+      alias = await client.query(
+        `INSERT INTO moveadvisor_brand_aliases (alias_name, canonical_name, source, is_active)
+         VALUES ($1, $1, $2, TRUE)
+         ON CONFLICT (alias_key) DO UPDATE
+           SET canonical_name = EXCLUDED.canonical_name,
+               source         = EXCLUDED.source,
+               is_active      = TRUE,
+               updated_at     = now()
+         RETURNING id, alias_key, canonical_name, is_active`,
+        [payload.name, SOURCE]
+      );
+    } else {
+      // Compensar desactiva; no borra. Una marca que estuvo activa dos días es
+      // un hecho del histórico, no un error que convenga esconder.
+      brand = await client.query(
+        `UPDATE moveadvisor_vehicle_brands SET is_active = FALSE
+          WHERE name = $1 RETURNING id, name, is_active`,
+        [payload.name]
+      );
+
+      alias = await client.query(
+        `UPDATE moveadvisor_brand_aliases
+            SET is_active = FALSE, updated_at = now()
+          WHERE alias_key = normalize_alias_token($1)
+          RETURNING id, alias_key, canonical_name, is_active`,
+        [payload.name]
+      );
+
+      if (brand.rowCount === 0 && alias.rowCount === 0) {
+        throw new Error(`No existe la marca "${payload.name}" que se pretende desactivar.`);
+      }
+    }
+
+    await client.query("COMMIT");
+
+    return {
+      brand: brand.rows[0] ?? null,
+      alias: alias.rows[0] ?? null,
+      applied: active ? "created" : "deactivated",
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 async function processOne(pool, command) {
   if (!SUPPORTED.has(command.type)) {
     // Rechazar lo desconocido en vez de ignorarlo: un comando que nadie procesa
@@ -198,10 +291,14 @@ async function processOne(pool, command) {
   }
 
   try {
-    // unmerge = el mismo alias desactivado. No se borra la fila: el histórico
-    // del dominio también tiene derecho a ser cierto.
-    const active = command.type === "alias.merge.v1";
-    const result = await applyAliasMerge(pool, command.payload, { active });
+    // Las compensaciones son el mismo comando con `active: false`. No se borra
+    // ninguna fila: el histórico del dominio también tiene derecho a ser cierto.
+    const esMarca = command.type.startsWith("brand.");
+    const active = command.type === "alias.merge.v1" || command.type === "brand.create.v1";
+
+    const result = esMarca
+      ? await applyBrandCreate(pool, command.payload, { active })
+      : await applyAliasMerge(pool, command.payload, { active });
 
     await jarvis(`/api/domain-commands/${command.id}/settle`, { status: "applied", result });
     log("aplicado", { id: command.id, type: command.type, ...result });

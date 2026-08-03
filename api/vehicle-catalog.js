@@ -711,6 +711,10 @@ module.exports = async function vehicleCatalogHandler(req, res) {
       matchedModelsByBrand: {},
     });
   } catch (error) {
+    // Este ya era honesto: cae al fichero local y lo DICE, con `source` y
+    // `warning`. Lo único que faltaba era dejar rastro para poder enterarse
+    // sin que alguien mire una respuesta JSON.
+    console.error("[vehicle-catalog] fallo leyendo el catalogo de la base, uso el fichero local:", error?.message);
     return res.status(200).json({
       ok: true,
       provider,

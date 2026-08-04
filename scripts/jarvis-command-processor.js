@@ -33,6 +33,7 @@ const SUPPORTED = new Set([
   "brand.deactivate.v1",
   "catalog.extend.v1",
   "catalog.retract.v1",
+  "offer.field.set.v1",
 ]);
 
 function log(message, extra) {
@@ -349,6 +350,66 @@ async function applyCatalogExtend(pool, payload, { active }) {
   }
 }
 
+/**
+ * Escribir en una oferta un dato que solo sabía una persona.
+ *
+ * Y dejar constancia de QUIÉN lo dijo, que es la mitad importante.
+ *
+ * moveadvisor_field_overrides guarda que este valor lo puso un humano. Sin esa
+ * fila, la siguiente pasada del scraper lo pisa y el trabajo de contestar cien
+ * preguntas se borra solo la semana que viene. Con ella, la ingesta tiene con
+ * qué respetarlo.
+ *
+ * AVISO HONESTO, escrito aquí para que no se pierda: la tabla se escribe, pero
+ * la INGESTA todavía no la consulta. Hasta que los workflows de n8n la miren
+ * antes de escribir, un re-scrape puede sobreescribir lo que Ana contestó. Está
+ * en PENDIENTES y es lo que falta para cerrar el círculo.
+ */
+async function applyOfferFieldSet(pool, payload) {
+  const CAMPOS = new Set(["color", "body_type", "fuel", "transmission", "environmental_label", "seats", "doors"]);
+  if (!CAMPOS.has(payload.field)) {
+    throw new Error('Campo no permitido: "' + payload.field + '". Un comando no abre la tabla entera.');
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    await client.query(
+      "CREATE TABLE IF NOT EXISTS moveadvisor_field_overrides (" +
+        "offer_id TEXT NOT NULL, field TEXT NOT NULL, value TEXT NOT NULL, " +
+        "fuente TEXT NOT NULL, set_by TEXT NOT NULL, " +
+        "set_at TIMESTAMPTZ NOT NULL DEFAULT now(), PRIMARY KEY (offer_id, field))"
+    );
+
+    // El nombre de columna sale de una lista cerrada comprobada arriba, no del
+    // payload: interpolarlo sin esa comprobación sería una inyección con pasos.
+    const r = await client.query(
+      'UPDATE moveadvisor_market_offers SET "' + payload.field + '" = $1, updated_at = now() WHERE id = $2 RETURNING id',
+      [payload.value, payload.offerId]
+    );
+
+    if (r.rowCount === 0) {
+      throw new Error("No existe la oferta " + payload.offerId + ": puede haberse dado de baja mientras se contestaba.");
+    }
+
+    await client.query(
+      "INSERT INTO moveadvisor_field_overrides (offer_id, field, value, fuente, set_by) VALUES ($1,$2,$3,$4,$5) " +
+        "ON CONFLICT (offer_id, field) DO UPDATE SET value = EXCLUDED.value, fuente = EXCLUDED.fuente, " +
+        "set_by = EXCLUDED.set_by, set_at = now()",
+      [payload.offerId, payload.field, payload.value, payload.fuente, SOURCE]
+    );
+
+    await client.query("COMMIT");
+    return { offerId: payload.offerId, field: payload.field, value: payload.value, applied: "set" };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 async function processOne(pool, command) {
   if (!SUPPORTED.has(command.type)) {
     // Rechazar lo desconocido en vez de ignorarlo: un comando que nadie procesa
@@ -397,6 +458,9 @@ async function processOne(pool, command) {
       "brand.deactivate.v1": [applyBrandCreate, false],
       "catalog.extend.v1": [applyCatalogExtend, true],
       "catalog.retract.v1": [applyCatalogExtend, false],
+      // No tiene compensacion: deshacer un color escrito por Ana seria volver a
+      // dejarlo vacio, y eso no es deshacer un error, es perder un dato.
+      "offer.field.set.v1": [applyOfferFieldSet, true],
     };
 
     const [aplicar, active] = APLICADORES[command.type];

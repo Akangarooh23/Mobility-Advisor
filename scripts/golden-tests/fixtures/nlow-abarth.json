@@ -1,5 +1,5 @@
 {
-  "_capturedAt": "2026-07-24T13:17:03.891Z",
+  "_capturedAt": "2026-08-13T17:18:04.388Z",
   "_branch": "common",
   "_actualBranch": "common",
   "vehicle": {
@@ -20,25 +20,29 @@
   },
   "national": {
     "source": "postgres",
-    "totalUniverse": 450,
+    "totalUniverse": 368,
     "cascadeRelaxed": {
       "power": false,
       "transmission": false,
       "fuel": false,
       "year": false
     },
-    "comparables": 285,
-    "rawComparables": 303,
+    "comparables": 241,
+    "rawComparables": 258,
     "market": {
-      "mean": 16356,
-      "median": 16490,
-      "p25": 15290,
-      "p75": 17490,
+      "mean": 17388,
+      "median": 17290,
+      "p25": 15750,
+      "p75": 18500,
       "daysOnMarketMedian": null,
       "updatedAt": "",
-      "cv": 0.11943706750044919,
-      "usageImpact": 1643,
+      "cv": 0.14050577692341976,
+      "usageImpact": 2075,
+      "rawUsageImpact": 2330,
+      "usageMedianKm": 64000,
+      "usageMedianYr": 2020.5,
       "usageUsedDefault": true,
+      "kmAdvantagePct": 97,
       "slopeKm": null,
       "slopeYear": null,
       "priceTrend": null,
@@ -46,35 +50,47 @@
       "privateMedian": null,
       "privateP25": null,
       "privateP75": null,
-      "privateCount": 1,
-      "dealerMedian": 16490,
-      "dealerP25": 15290,
-      "dealerP75": 17490,
-      "dealerCount": 284
+      "privateCount": 0,
+      "dealerMedian": 17290,
+      "dealerP25": 15750,
+      "dealerP75": 18500,
+      "dealerCount": 241
     },
     "byPortal": [
       {
-        "portal": "autoscout24",
-        "units": 218,
-        "avgPrice": 16450,
+        "portal": "autocasion",
+        "units": 88,
+        "avgPrice": 18890,
         "avgDays": null
       },
       {
         "portal": "cochescom",
-        "units": 68,
-        "avgPrice": 18316,
+        "units": 61,
+        "avgPrice": 18186,
+        "avgDays": null
+      },
+      {
+        "portal": "autoscout24",
+        "units": 60,
+        "avgPrice": 16754,
         "avgDays": null
       },
       {
         "portal": "flexicar",
-        "units": 16,
-        "avgPrice": 15423,
+        "units": 33,
+        "avgPrice": 17520,
         "avgDays": null
       },
       {
         "portal": "ocasionplus",
+        "units": 15,
+        "avgPrice": 16849,
+        "avgDays": null
+      },
+      {
+        "portal": "wallapop",
         "units": 1,
-        "avgPrice": 16490,
+        "avgPrice": 14500,
         "avgDays": null
       }
     ],
@@ -82,32 +98,37 @@
       {
         "from": 10000,
         "to": 12000,
-        "count": 10
+        "count": 3
       },
       {
         "from": 12000,
         "to": 14000,
-        "count": 31
+        "count": 18
       },
       {
         "from": 14000,
         "to": 16000,
-        "count": 80
+        "count": 49
       },
       {
         "from": 16000,
         "to": 18000,
-        "count": 113
+        "count": 91
       },
       {
         "from": 18000,
         "to": 20000,
-        "count": 45
+        "count": 48
       },
       {
         "from": 20000,
         "to": 22000,
-        "count": 6
+        "count": 21
+      },
+      {
+        "from": 22000,
+        "to": 24000,
+        "count": 11
       }
     ],
     "samples": [
@@ -115,255 +136,49 @@
         "portal": "cochescom",
         "brand": "Abarth",
         "model": "595",
-        "version": "1.4T JET PISTA 118KW",
+        "version": "1.4T JET 121KW",
         "fuel": "Gasolina",
         "transmission": "Manual",
         "bodyType": "Compacto",
         "environmentalLabel": "",
-        "year": 2020,
-        "mileage": 89859,
-        "doors": 3,
-        "seats": 4,
-        "powerCv": 160,
-        "price": 20890,
-        "monthlyPrice": null,
-        "financePrice": null,
-        "url": "https://www.coches.com/coches-segunda-mano/ocasion-abarth-595.htm?id=DFQBPI2DDUC4",
-        "province": "Badajoz",
-        "city": "Badajoz",
-        "color": "negro",
-        "sellerType": "profesional",
-        "traction": "",
-        "displacement": "",
-        "co2": "",
-        "powerKw": "118",
-        "consumption": "",
-        "dealerName": "Flexicar",
-        "nextITV": "",
-        "warrantyMonths": null,
-        "image": "https://images.coches.com/_ccom_/772e2c2b-57c4-4cb3-8380-d8edb7f439a2/6e69237b-8b0c-4e7d-9e60-f6759205c531.jpg",
-        "images": [
-          "https://images.coches.com/_ccom_/772e2c2b-57c4-4cb3-8380-d8edb7f439a2/6e69237b-8b0c-4e7d-9e60-f6759205c531.jpg",
-          "https://images.coches.com/_ccom_/772e2c2b-57c4-4cb3-8380-d8edb7f439a2/0948523c-d651-4ae3-baef-3690948bcc6c.jpg",
-          "https://images.coches.com/_ccom_/772e2c2b-57c4-4cb3-8380-d8edb7f439a2/688ebdab-1e6d-45f9-ade4-5b43dd046564.jpg",
-          "https://images.coches.com/_ccom_/772e2c2b-57c4-4cb3-8380-d8edb7f439a2/0ec5774e-d59d-44b8-accd-a99d1e21e791.jpg",
-          "https://images.coches.com/_ccom_/772e2c2b-57c4-4cb3-8380-d8edb7f439a2/61850fa3-9868-43d5-8e9b-6ebabdfe1a14.jpg",
-          "https://images.coches.com/_ccom_/772e2c2b-57c4-4cb3-8380-d8edb7f439a2/353bbd82-2ba2-49a0-9a0e-93cbc703ade1.jpg",
-          "https://images.coches.com/_ccom_/772e2c2b-57c4-4cb3-8380-d8edb7f439a2/b3a63760-2c66-4921-b98b-8652c83e3758.jpg",
-          "https://images.coches.com/_ccom_/772e2c2b-57c4-4cb3-8380-d8edb7f439a2/cecca89b-ff05-4bd9-966e-6d6749a99863.jpg",
-          "https://images.coches.com/_ccom_/772e2c2b-57c4-4cb3-8380-d8edb7f439a2/1ea725d6-5240-47af-bbc7-dbf30353bd8e.jpg",
-          "https://images.coches.com/_ccom_/772e2c2b-57c4-4cb3-8380-d8edb7f439a2/70bac4d3-be70-415b-aa91-f21bdd9672d2.jpg",
-          "https://images.coches.com/_ccom_/772e2c2b-57c4-4cb3-8380-d8edb7f439a2/fc8f9772-7cbe-40a5-a629-e7d10120157f.jpg",
-          "https://images.coches.com/_ccom_/772e2c2b-57c4-4cb3-8380-d8edb7f439a2/00865ee7-ae56-4334-bdfc-8004740aa47e.jpg",
-          "https://images.coches.com/_ccom_/772e2c2b-57c4-4cb3-8380-d8edb7f439a2/04f4f651-1d35-4eaa-975f-f31fa120c115.jpg",
-          "https://images.coches.com/_ccom_/772e2c2b-57c4-4cb3-8380-d8edb7f439a2/5f5e34a2-7d9c-49bf-ade4-9fb8ef170259.jpg",
-          "https://images.coches.com/_ccom_/772e2c2b-57c4-4cb3-8380-d8edb7f439a2/666a4e24-93e7-4a37-82ae-4bb005506691.jpg"
-        ],
-        "updatedAt": "",
-        "listedAt": "",
-        "listingType": "compra"
-      },
-      {
-        "portal": "cochescom",
-        "brand": "Abarth",
-        "model": "595",
-        "version": "1.4T JET PISTA 118KW",
-        "fuel": "Gasolina",
-        "transmission": "Manual",
-        "bodyType": "Compacto",
-        "environmentalLabel": "",
-        "year": 2020,
-        "mileage": 98000,
-        "doors": 3,
-        "seats": 4,
-        "powerCv": 160,
-        "price": 18990,
-        "monthlyPrice": null,
-        "financePrice": null,
-        "url": "https://www.coches.com/coches-segunda-mano/ocasion-abarth-595.htm?id=XPF0LOe563CE",
-        "province": "Palmas, Las",
-        "city": "Palmas, Las",
-        "color": "blanco",
-        "sellerType": "profesional",
-        "traction": "",
-        "displacement": "",
-        "co2": "",
-        "powerKw": "118",
-        "consumption": "",
-        "dealerName": "Flexicar",
-        "nextITV": "",
-        "warrantyMonths": null,
-        "image": "https://images.coches.com/_ccom_/165ff45e-6268-44ca-a885-f797879d88f2/771e759d-86c5-4bc9-b996-e09856065c72.jpg",
-        "images": [
-          "https://images.coches.com/_ccom_/165ff45e-6268-44ca-a885-f797879d88f2/771e759d-86c5-4bc9-b996-e09856065c72.jpg",
-          "https://images.coches.com/_ccom_/165ff45e-6268-44ca-a885-f797879d88f2/c2087b49-6b7f-4eaa-85b7-45740fccf9f8.jpg",
-          "https://images.coches.com/_ccom_/165ff45e-6268-44ca-a885-f797879d88f2/126444d8-b7a9-4343-b003-e43b43e2d61d.jpg",
-          "https://images.coches.com/_ccom_/165ff45e-6268-44ca-a885-f797879d88f2/71203945-82bf-4be2-a7c3-5f0a69c0fd79.jpg",
-          "https://images.coches.com/_ccom_/165ff45e-6268-44ca-a885-f797879d88f2/3c507ae2-3eab-49ae-b3cb-1f788873e608.jpg",
-          "https://images.coches.com/_ccom_/165ff45e-6268-44ca-a885-f797879d88f2/1d1388fe-fa61-40fb-a5b0-4d484c5d0068.jpg",
-          "https://images.coches.com/_ccom_/165ff45e-6268-44ca-a885-f797879d88f2/d2658ba8-dc00-4868-88ba-80050d71ae32.jpg",
-          "https://images.coches.com/_ccom_/165ff45e-6268-44ca-a885-f797879d88f2/8eac660b-3b21-4012-9aab-6261a733c8cc.jpg",
-          "https://images.coches.com/_ccom_/165ff45e-6268-44ca-a885-f797879d88f2/a2332860-ac2e-4d12-8fe6-d34f41199c95.jpg",
-          "https://images.coches.com/_ccom_/165ff45e-6268-44ca-a885-f797879d88f2/c6c01244-af45-4085-aa68-b6d9fd1aa95f.jpg",
-          "https://images.coches.com/_ccom_/165ff45e-6268-44ca-a885-f797879d88f2/78fbfaad-81ab-478e-9b2f-09f8d51afabf.jpg",
-          "https://images.coches.com/_ccom_/165ff45e-6268-44ca-a885-f797879d88f2/8048dbd3-6732-4871-9827-4e74b54ff91e.jpg",
-          "https://images.coches.com/_ccom_/165ff45e-6268-44ca-a885-f797879d88f2/5ab0350c-7639-4301-a657-d02688aa7cd6.jpg"
-        ],
-        "updatedAt": "",
-        "listedAt": "",
-        "listingType": "compra"
-      },
-      {
-        "portal": "cochescom",
-        "brand": "Abarth",
-        "model": "595",
-        "version": "1.4T JET PISTA 118KW",
-        "fuel": "Gasolina",
-        "transmission": "Manual",
-        "bodyType": "Compacto",
-        "environmentalLabel": "",
-        "year": 2020,
-        "mileage": 48200,
-        "doors": 3,
-        "seats": 4,
-        "powerCv": 160,
-        "price": 16790,
-        "monthlyPrice": null,
-        "financePrice": null,
-        "url": "https://www.coches.com/coches-segunda-mano/ocasion-abarth-595.htm?id=g3qGR7nrt6ih",
-        "province": "Tarragona",
-        "city": "Tarragona",
-        "color": "blanco",
-        "sellerType": "profesional",
-        "traction": "",
-        "displacement": "",
-        "co2": "",
-        "powerKw": "118",
-        "consumption": "",
-        "dealerName": "Flexicar",
-        "nextITV": "",
-        "warrantyMonths": null,
-        "image": "https://images.coches.com/_ccom_/6803389c-0cbb-479d-a260-c886bb0ed7c7/ffc40773-63a6-4693-aea2-9f2cfec92066.jpg",
-        "images": [
-          "https://images.coches.com/_ccom_/6803389c-0cbb-479d-a260-c886bb0ed7c7/ffc40773-63a6-4693-aea2-9f2cfec92066.jpg",
-          "https://images.coches.com/_ccom_/6803389c-0cbb-479d-a260-c886bb0ed7c7/00e5e636-00ad-495d-8de3-28f897c350b5.jpg",
-          "https://images.coches.com/_ccom_/6803389c-0cbb-479d-a260-c886bb0ed7c7/c3d0dc19-4d95-406c-9d4b-5f1699eb2092.jpg",
-          "https://images.coches.com/_ccom_/6803389c-0cbb-479d-a260-c886bb0ed7c7/c07ca261-3938-437e-b871-1ba88d7a4567.jpg",
-          "https://images.coches.com/_ccom_/6803389c-0cbb-479d-a260-c886bb0ed7c7/e1baea7d-c966-4b5d-809b-09841fe7f97c.jpg",
-          "https://images.coches.com/_ccom_/6803389c-0cbb-479d-a260-c886bb0ed7c7/c12704c2-5011-4e06-94b5-6bdc3cdb76f3.jpg",
-          "https://images.coches.com/_ccom_/6803389c-0cbb-479d-a260-c886bb0ed7c7/b02b6e9b-2b43-46a5-92bf-3309efa59f87.jpg",
-          "https://images.coches.com/_ccom_/6803389c-0cbb-479d-a260-c886bb0ed7c7/7bfb9434-1b62-4ef7-898e-4a6dec30d0eb.jpg",
-          "https://images.coches.com/_ccom_/6803389c-0cbb-479d-a260-c886bb0ed7c7/b7fb355b-e5dd-4d39-a671-71d4a0837a56.jpg",
-          "https://images.coches.com/_ccom_/6803389c-0cbb-479d-a260-c886bb0ed7c7/9c7395b0-f764-431e-a3b6-30343f6723d3.jpg",
-          "https://images.coches.com/_ccom_/6803389c-0cbb-479d-a260-c886bb0ed7c7/e4d437d5-73b9-44ec-a425-4f9cd562e891.jpg",
-          "https://images.coches.com/_ccom_/6803389c-0cbb-479d-a260-c886bb0ed7c7/9ec642e0-1010-4af5-ada6-d69bb37ddc75.jpg",
-          "https://images.coches.com/_ccom_/6803389c-0cbb-479d-a260-c886bb0ed7c7/f74f2207-c99b-47cd-942f-44a966c597c8.jpg",
-          "https://images.coches.com/_ccom_/6803389c-0cbb-479d-a260-c886bb0ed7c7/559b339f-a22c-4cae-80cd-b3166fca428c.jpg",
-          "https://images.coches.com/_ccom_/6803389c-0cbb-479d-a260-c886bb0ed7c7/fabe1aa4-2667-4a08-8f7c-4bf96204ed19.jpg"
-        ],
-        "updatedAt": "",
-        "listedAt": "",
-        "listingType": "compra"
-      },
-      {
-        "portal": "cochescom",
-        "brand": "Abarth",
-        "model": "595",
-        "version": "1.4T JET PISTA 118KW",
-        "fuel": "Gasolina",
-        "transmission": "Manual",
-        "bodyType": "Compacto",
-        "environmentalLabel": "",
-        "year": 2020,
-        "mileage": 70000,
-        "doors": 3,
-        "seats": 4,
-        "powerCv": 160,
-        "price": 18290,
-        "monthlyPrice": null,
-        "financePrice": null,
-        "url": "https://www.coches.com/coches-segunda-mano/ocasion-abarth-595.htm?id=bn6KaCu4ZIgX",
-        "province": "Barcelona",
-        "city": "Barcelona",
-        "color": "gris",
-        "sellerType": "profesional",
-        "traction": "",
-        "displacement": "",
-        "co2": "",
-        "powerKw": "118",
-        "consumption": "",
-        "dealerName": "Flexicar",
-        "nextITV": "",
-        "warrantyMonths": null,
-        "image": "https://images.coches.com/_ccom_/ea9fc10c-568c-4536-bfa5-15876c8fd5ef/72f44d50-97db-47f8-bd38-23799cbdca68.jpg",
-        "images": [
-          "https://images.coches.com/_ccom_/ea9fc10c-568c-4536-bfa5-15876c8fd5ef/72f44d50-97db-47f8-bd38-23799cbdca68.jpg",
-          "https://images.coches.com/_ccom_/ea9fc10c-568c-4536-bfa5-15876c8fd5ef/11288d92-ca32-463c-9ae4-2185f095de6f.jpg",
-          "https://images.coches.com/_ccom_/ea9fc10c-568c-4536-bfa5-15876c8fd5ef/7e6394cf-e6c4-41bd-be9f-6a186dd8f2e5.jpg",
-          "https://images.coches.com/_ccom_/ea9fc10c-568c-4536-bfa5-15876c8fd5ef/76fbb173-07ec-4a75-8922-6ac6b48f20eb.jpg",
-          "https://images.coches.com/_ccom_/ea9fc10c-568c-4536-bfa5-15876c8fd5ef/bb81fbfd-032a-4bf9-be14-7903c3584a4f.jpg",
-          "https://images.coches.com/_ccom_/ea9fc10c-568c-4536-bfa5-15876c8fd5ef/f7e1ce43-ce03-4033-95d4-d356b45f20de.jpg",
-          "https://images.coches.com/_ccom_/ea9fc10c-568c-4536-bfa5-15876c8fd5ef/9deb3b90-5454-457b-8183-00b14c836888.jpg",
-          "https://images.coches.com/_ccom_/ea9fc10c-568c-4536-bfa5-15876c8fd5ef/1257a668-083f-4937-a677-2f07eb40f471.jpg",
-          "https://images.coches.com/_ccom_/ea9fc10c-568c-4536-bfa5-15876c8fd5ef/842f4815-681b-44e8-bbd0-b747357d380f.jpg",
-          "https://images.coches.com/_ccom_/ea9fc10c-568c-4536-bfa5-15876c8fd5ef/aed16440-de45-4b80-9e01-e0e0d03ead03.jpg",
-          "https://images.coches.com/_ccom_/ea9fc10c-568c-4536-bfa5-15876c8fd5ef/14bf7b23-6cfc-4890-8709-f26a68a302ca.jpg",
-          "https://images.coches.com/_ccom_/ea9fc10c-568c-4536-bfa5-15876c8fd5ef/c1f9b0ec-90ee-4cd8-86f9-e03d854a5733.jpg",
-          "https://images.coches.com/_ccom_/ea9fc10c-568c-4536-bfa5-15876c8fd5ef/ab73c449-56a7-4921-88e1-0ac55548fb82.jpg",
-          "https://images.coches.com/_ccom_/ea9fc10c-568c-4536-bfa5-15876c8fd5ef/686ef877-fe64-4357-b79c-8092bc8a436f.jpg",
-          "https://images.coches.com/_ccom_/ea9fc10c-568c-4536-bfa5-15876c8fd5ef/083e6afd-275b-4a54-8b90-f0426a40b41c.jpg"
-        ],
-        "updatedAt": "",
-        "listedAt": "",
-        "listingType": "compra"
-      },
-      {
-        "portal": "cochescom",
-        "brand": "Abarth",
-        "model": "595",
-        "version": "1.4T JET MONSTER ENERGY YAMAHA 121KW",
-        "fuel": "Gasolina",
-        "transmission": "Manual",
-        "bodyType": "Compacto",
-        "environmentalLabel": "",
-        "year": 2020,
-        "mileage": 62373,
+        "year": 2024,
+        "mileage": 25100,
         "doors": 3,
         "seats": 4,
         "powerCv": 165,
-        "price": 18490,
+        "price": 27900,
         "monthlyPrice": null,
         "financePrice": null,
-        "url": "https://www.coches.com/coches-segunda-mano/ocasion-abarth-595.htm?id=bRVb0KO1EeqD",
-        "province": "Tarragona",
-        "city": "Tarragona",
-        "color": "rojo",
+        "url": "https://www.coches.com/coches-segunda-mano/ocasion-abarth-595.htm?id=uRWa2vM3skVJ",
+        "province": "Álava",
+        "city": "Álava",
+        "color": "negro",
         "sellerType": "profesional",
         "traction": "",
         "displacement": "",
         "co2": "",
         "powerKw": "121",
         "consumption": "",
-        "dealerName": "Flexicar",
+        "dealerName": "Videinsa",
         "nextITV": "",
         "warrantyMonths": null,
-        "image": "https://images.coches.com/_ccom_/a39d49a3-f611-4c78-b3a8-d0fb79fa42af/d6e6b795-a389-4782-a0a1-0ee7f6f2d00d.jpg",
+        "image": "https://images.coches.com/_ccom_/5ba417d6-b57a-488f-9824-598c2249d057/fa9957d7-f40f-4c30-bc7d-c18a3f518e16.jpg",
         "images": [
-          "https://images.coches.com/_ccom_/a39d49a3-f611-4c78-b3a8-d0fb79fa42af/d6e6b795-a389-4782-a0a1-0ee7f6f2d00d.jpg",
-          "https://images.coches.com/_ccom_/a39d49a3-f611-4c78-b3a8-d0fb79fa42af/faa7b73f-f453-41c6-a72a-340e4c41c84f.jpg",
-          "https://images.coches.com/_ccom_/a39d49a3-f611-4c78-b3a8-d0fb79fa42af/b66fe1ed-1506-4240-b7ec-ca248f953ed2.jpg",
-          "https://images.coches.com/_ccom_/a39d49a3-f611-4c78-b3a8-d0fb79fa42af/a8e8e29e-2e5b-42b7-b252-929aefdf4549.jpg",
-          "https://images.coches.com/_ccom_/a39d49a3-f611-4c78-b3a8-d0fb79fa42af/c55aeff1-830f-49e9-a1ea-c8e554332e53.jpg",
-          "https://images.coches.com/_ccom_/a39d49a3-f611-4c78-b3a8-d0fb79fa42af/e3c622fe-2618-4013-8240-782ef9beb42b.jpg",
-          "https://images.coches.com/_ccom_/a39d49a3-f611-4c78-b3a8-d0fb79fa42af/d03bc203-f31d-4bd7-a9c8-f75805aa714c.jpg",
-          "https://images.coches.com/_ccom_/a39d49a3-f611-4c78-b3a8-d0fb79fa42af/c01204eb-d1e9-405e-ba99-eb8b0d22811d.jpg",
-          "https://images.coches.com/_ccom_/a39d49a3-f611-4c78-b3a8-d0fb79fa42af/ffd79811-4ecd-4518-8605-f1fced138ab2.jpg",
-          "https://images.coches.com/_ccom_/a39d49a3-f611-4c78-b3a8-d0fb79fa42af/cee9f833-78dc-4d16-8e6f-b605a2d3c2e9.jpg",
-          "https://images.coches.com/_ccom_/a39d49a3-f611-4c78-b3a8-d0fb79fa42af/3e72d4c2-1d25-4f25-872e-e7a3100eafb6.jpg",
-          "https://images.coches.com/_ccom_/a39d49a3-f611-4c78-b3a8-d0fb79fa42af/8a0d3659-0ffc-4333-bc45-d6ebafd23721.jpg",
-          "https://images.coches.com/_ccom_/a39d49a3-f611-4c78-b3a8-d0fb79fa42af/5f7a33fc-52a3-47c7-bae8-37bc4e7156b3.jpg",
-          "https://images.coches.com/_ccom_/a39d49a3-f611-4c78-b3a8-d0fb79fa42af/2fd1a226-6409-47a3-b2f3-706d65eba463.jpg",
-          "https://images.coches.com/_ccom_/a39d49a3-f611-4c78-b3a8-d0fb79fa42af/85a0b8b0-3108-4fad-9795-931e4e484cde.jpg"
+          "https://images.coches.com/_ccom_/5ba417d6-b57a-488f-9824-598c2249d057/fa9957d7-f40f-4c30-bc7d-c18a3f518e16.jpg",
+          "https://images.coches.com/_ccom_/5ba417d6-b57a-488f-9824-598c2249d057/9cba1d8c-c0ec-4dde-bc79-c48b8983b3ea.jpg",
+          "https://images.coches.com/_ccom_/5ba417d6-b57a-488f-9824-598c2249d057/65127f7a-e720-4004-9c68-69b645aff44c.jpg",
+          "https://images.coches.com/_ccom_/5ba417d6-b57a-488f-9824-598c2249d057/8d404f09-466b-46a7-995b-2b6d7d39c949.jpg",
+          "https://images.coches.com/_ccom_/5ba417d6-b57a-488f-9824-598c2249d057/a2915f92-2179-4686-bf42-0ca63bb14ccd.jpg",
+          "https://images.coches.com/_ccom_/5ba417d6-b57a-488f-9824-598c2249d057/043b7b94-c43c-48d2-9e86-fd6ba9e38e6b.jpg",
+          "https://images.coches.com/_ccom_/5ba417d6-b57a-488f-9824-598c2249d057/2afde19c-7cfd-41ef-9578-c35d181fde17.jpg",
+          "https://images.coches.com/_ccom_/5ba417d6-b57a-488f-9824-598c2249d057/930bf6d7-eebc-4e5a-ab84-d06460100d02.jpg",
+          "https://images.coches.com/_ccom_/5ba417d6-b57a-488f-9824-598c2249d057/348bb286-11fa-4c1f-9d68-4044170a4f9b.jpg",
+          "https://images.coches.com/_ccom_/5ba417d6-b57a-488f-9824-598c2249d057/b53f290d-e6a9-4d75-a614-d7d8ec354c8d.jpg",
+          "https://images.coches.com/_ccom_/5ba417d6-b57a-488f-9824-598c2249d057/d1503b76-e0a1-411f-a806-46c31d510528.jpg",
+          "https://images.coches.com/_ccom_/5ba417d6-b57a-488f-9824-598c2249d057/dee989b8-2eaf-4dd9-a6f6-809a741e3316.jpg",
+          "https://images.coches.com/_ccom_/5ba417d6-b57a-488f-9824-598c2249d057/dcb63ef9-3c56-4459-9942-fd1dbc740fb4.jpg",
+          "https://images.coches.com/_ccom_/5ba417d6-b57a-488f-9824-598c2249d057/44da0d12-21de-4987-bb52-81b525e5d06c.jpg",
+          "https://images.coches.com/_ccom_/5ba417d6-b57a-488f-9824-598c2249d057/e99dbb2a-0112-4aa5-8434-93fd11a43ca2.jpg"
         ],
         "updatedAt": "",
         "listedAt": "",
@@ -373,49 +188,101 @@
         "portal": "cochescom",
         "brand": "Abarth",
         "model": "595",
-        "version": "1.4T JET COMPETIZIONE 132KW",
+        "version": "1.4T JET 121KW",
         "fuel": "Gasolina",
         "transmission": "Manual",
         "bodyType": "Compacto",
         "environmentalLabel": "",
-        "year": 2020,
-        "mileage": 80000,
+        "year": 2024,
+        "mileage": 25100,
         "doors": 3,
         "seats": 4,
-        "powerCv": 180,
-        "price": 19490,
+        "powerCv": 165,
+        "price": 27900,
         "monthlyPrice": null,
         "financePrice": null,
-        "url": "https://www.coches.com/coches-segunda-mano/ocasion-abarth-595.htm?id=ZhYubnVwmgBW",
-        "province": "Málaga",
-        "city": "Málaga",
-        "color": "gris",
+        "url": "https://www.coches.com/coches-segunda-mano/ocasion-abarth-595.htm?id=PxHsl_jydA0C",
+        "province": "Álava",
+        "city": "Álava",
+        "color": "negro",
+        "sellerType": "profesional",
+        "traction": "",
+        "displacement": "",
+        "co2": "",
+        "powerKw": "121",
+        "consumption": "",
+        "dealerName": "Garaje Barazar - Autos Anton",
+        "nextITV": "",
+        "warrantyMonths": null,
+        "image": "https://images.coches.com/_ccom_/23548d22-c029-4509-b468-21aa5b2617f8/c6177aef-e6b0-43da-8b3c-5d21a0d415c1.jpg",
+        "images": [
+          "https://images.coches.com/_ccom_/23548d22-c029-4509-b468-21aa5b2617f8/c6177aef-e6b0-43da-8b3c-5d21a0d415c1.jpg",
+          "https://images.coches.com/_ccom_/23548d22-c029-4509-b468-21aa5b2617f8/47811948-f83e-4dac-96f7-acbf6c2b360c.jpg",
+          "https://images.coches.com/_ccom_/23548d22-c029-4509-b468-21aa5b2617f8/76ffe917-a5f7-4c18-b811-1bd15f72ecdd.jpg",
+          "https://images.coches.com/_ccom_/23548d22-c029-4509-b468-21aa5b2617f8/1d57bcfc-89c0-4f5c-a9ae-7df8d91d6fce.jpg",
+          "https://images.coches.com/_ccom_/23548d22-c029-4509-b468-21aa5b2617f8/db965b76-4286-490f-a491-08fd3ff5335d.jpg",
+          "https://images.coches.com/_ccom_/23548d22-c029-4509-b468-21aa5b2617f8/1c2fbca7-8f5f-4a37-8299-0ac17c8a9dcf.jpg",
+          "https://images.coches.com/_ccom_/23548d22-c029-4509-b468-21aa5b2617f8/93736f28-4756-44d5-b75f-3f4e50222745.jpg",
+          "https://images.coches.com/_ccom_/23548d22-c029-4509-b468-21aa5b2617f8/2298a5f6-1668-42b2-b823-430f24ecbb82.jpg",
+          "https://images.coches.com/_ccom_/23548d22-c029-4509-b468-21aa5b2617f8/992d493e-e5d6-4b01-97aa-3ee83f6feb29.jpg",
+          "https://images.coches.com/_ccom_/23548d22-c029-4509-b468-21aa5b2617f8/7e5f455b-5aca-4735-8a68-f64aff8193d5.jpg",
+          "https://images.coches.com/_ccom_/23548d22-c029-4509-b468-21aa5b2617f8/7382652d-bc9d-4be5-b299-e02d70d19475.jpg",
+          "https://images.coches.com/_ccom_/23548d22-c029-4509-b468-21aa5b2617f8/97b9ca1b-4a4a-40eb-8a04-00b64a4e0262.jpg",
+          "https://images.coches.com/_ccom_/23548d22-c029-4509-b468-21aa5b2617f8/52aacef0-4f6b-4b6f-8a09-4bc7214dce57.jpg",
+          "https://images.coches.com/_ccom_/23548d22-c029-4509-b468-21aa5b2617f8/1651f99e-693d-4ab8-99c0-62751622c372.jpg",
+          "https://images.coches.com/_ccom_/23548d22-c029-4509-b468-21aa5b2617f8/1ea394ee-d628-495a-89ae-b6e179c52e60.jpg"
+        ],
+        "updatedAt": "",
+        "listedAt": "",
+        "listingType": "compra"
+      },
+      {
+        "portal": "autoscout24",
+        "brand": "Abarth",
+        "model": "595C",
+        "version": "1.4T JET COMPETIZIONE 180",
+        "fuel": "Gasolina",
+        "transmission": "Manual",
+        "bodyType": "",
+        "environmentalLabel": "",
+        "year": 2017,
+        "mileage": 26500,
+        "doors": null,
+        "seats": null,
+        "powerCv": 179,
+        "price": 18990,
+        "monthlyPrice": null,
+        "financePrice": null,
+        "url": "https://www.autoscout24.es/anuncios/abarth-595c-1-4t-jet-competizione-180-gasolina-amarillo-cat_ma16396mo20387-20037695-f1b3-44db-8dea-e1ac8c5a5662",
+        "province": "L'Hospitalet de Llobregat",
+        "city": "L'Hospitalet de Llobregat",
+        "color": "Amarillo",
         "sellerType": "profesional",
         "traction": "",
         "displacement": "",
         "co2": "",
         "powerKw": "132",
         "consumption": "",
-        "dealerName": "Miña Car",
+        "dealerName": "FLEXICAR GRUPO BARCELONA.",
         "nextITV": "",
         "warrantyMonths": null,
-        "image": "https://images.coches.com/_ccom_/9e718c15-8fdb-45c3-b114-523f7a582766/1a8bc9a2-7dda-4854-8044-4cda050c1ec5",
+        "image": "https://prod.pictures.autoscout24.net/listing-images/20037695-f1b3-44db-8dea-e1ac8c5a5662_c6b80e53-cc9a-49ae-be68-e9a79ac41190.jpg/250x188.webp",
         "images": [
-          "https://images.coches.com/_ccom_/9e718c15-8fdb-45c3-b114-523f7a582766/1a8bc9a2-7dda-4854-8044-4cda050c1ec5",
-          "https://images.coches.com/_ccom_/9e718c15-8fdb-45c3-b114-523f7a582766/cab058e7-1fe1-4b71-ade8-74b4d5c66037",
-          "https://images.coches.com/_ccom_/9e718c15-8fdb-45c3-b114-523f7a582766/01ca61dc-0dac-4078-afea-7f6a2b963a4e",
-          "https://images.coches.com/_ccom_/9e718c15-8fdb-45c3-b114-523f7a582766/69b396f9-c0f0-4d3a-817a-70ab3c504129",
-          "https://images.coches.com/_ccom_/9e718c15-8fdb-45c3-b114-523f7a582766/609f4c9d-7c1f-4c37-b55d-292430b799a5",
-          "https://images.coches.com/_ccom_/9e718c15-8fdb-45c3-b114-523f7a582766/837368c4-af3d-444f-8b1e-630d88443db9",
-          "https://images.coches.com/_ccom_/9e718c15-8fdb-45c3-b114-523f7a582766/78caefbb-4ae2-4096-ad3a-a455f091983f",
-          "https://images.coches.com/_ccom_/9e718c15-8fdb-45c3-b114-523f7a582766/4e6f922d-6a37-4a8a-b960-4d936926cb99",
-          "https://images.coches.com/_ccom_/9e718c15-8fdb-45c3-b114-523f7a582766/0e0104c3-9b7c-4b5d-968c-36707b6c825b",
-          "https://images.coches.com/_ccom_/9e718c15-8fdb-45c3-b114-523f7a582766/5c01c7a2-6f4c-4f09-9102-1943b818baa2",
-          "https://images.coches.com/_ccom_/9e718c15-8fdb-45c3-b114-523f7a582766/027e4286-3068-4317-8a6e-9ff6122c03e8",
-          "https://images.coches.com/_ccom_/9e718c15-8fdb-45c3-b114-523f7a582766/b8148fb7-68c9-4994-8ede-a7e1eb15efda",
-          "https://images.coches.com/_ccom_/9e718c15-8fdb-45c3-b114-523f7a582766/8db327c5-c8be-4a51-a83f-b81c626d4592",
-          "https://images.coches.com/_ccom_/9e718c15-8fdb-45c3-b114-523f7a582766/8d08e126-7522-41e1-99f2-6fb0efbd1d44",
-          "https://images.coches.com/_ccom_/9e718c15-8fdb-45c3-b114-523f7a582766/2e2ac94f-0348-413e-bb33-9682fd804ec0"
+          "https://prod.pictures.autoscout24.net/listing-images/20037695-f1b3-44db-8dea-e1ac8c5a5662_c6b80e53-cc9a-49ae-be68-e9a79ac41190.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/20037695-f1b3-44db-8dea-e1ac8c5a5662_36b61f69-f267-4bad-a7e6-fa50f3269af5.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/20037695-f1b3-44db-8dea-e1ac8c5a5662_1d759a95-9430-4104-87cf-d508009c7ed7.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/20037695-f1b3-44db-8dea-e1ac8c5a5662_d5da4d60-799a-44d6-bdf3-8750fa38d717.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/20037695-f1b3-44db-8dea-e1ac8c5a5662_fe56fead-588b-4e67-9497-2e4da4ed77ab.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/20037695-f1b3-44db-8dea-e1ac8c5a5662_cc9f7833-475d-4a30-804d-7175904e13d0.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/20037695-f1b3-44db-8dea-e1ac8c5a5662_f8fa80fc-c485-4457-89d8-df9b6cf37b6d.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/20037695-f1b3-44db-8dea-e1ac8c5a5662_8be60850-26cc-4cc9-8438-22af71f4c34e.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/20037695-f1b3-44db-8dea-e1ac8c5a5662_a79a6d4b-161e-40aa-98cf-c2fa31b2c78b.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/20037695-f1b3-44db-8dea-e1ac8c5a5662_8b500a2f-503b-438d-aef7-20936e58f02e.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/20037695-f1b3-44db-8dea-e1ac8c5a5662_0742d7dc-1699-4e52-b02b-71ade4eeb4b8.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/20037695-f1b3-44db-8dea-e1ac8c5a5662_8007fb93-1d1e-42bb-a8cb-394e41ca87aa.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/20037695-f1b3-44db-8dea-e1ac8c5a5662_bbac0bea-47e3-4f35-b145-4415546dc6b9.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/20037695-f1b3-44db-8dea-e1ac8c5a5662_2d6b769f-48b0-4db9-a47b-d0236e693d7e.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/20037695-f1b3-44db-8dea-e1ac8c5a5662_9230605a-475c-4810-85da-18ced8b42d2c.jpg/250x188.webp"
         ],
         "updatedAt": "",
         "listedAt": "",
@@ -424,102 +291,220 @@
       {
         "portal": "cochescom",
         "brand": "Abarth",
-        "model": "595",
-        "version": "1.4T JET PISTA 118KW",
+        "model": "500",
+        "version": "595C 1.4T JET COMPETIZIONE 180",
         "fuel": "Gasolina",
         "transmission": "Manual",
-        "bodyType": "Compacto",
+        "bodyType": "Deportivo",
         "environmentalLabel": "",
-        "year": 2020,
-        "mileage": 28614,
-        "doors": 3,
+        "year": 2017,
+        "mileage": 26500,
+        "doors": 2,
         "seats": 4,
-        "powerCv": 160,
-        "price": 18790,
+        "powerCv": 180,
+        "price": 20990,
         "monthlyPrice": null,
         "financePrice": null,
-        "url": "https://www.coches.com/coches-segunda-mano/ocasion-abarth-595.htm?id=LVzDCoYbrrxz",
-        "province": "Madrid",
-        "city": "Madrid",
-        "color": "blanco",
+        "url": "https://www.coches.com/coches-segunda-mano/ocasion-abarth-500.htm?id=zlrJH-YE1XUZ",
+        "province": "Alicante",
+        "city": "Alicante",
+        "color": "amarillo",
         "sellerType": "profesional",
         "traction": "",
         "displacement": "",
         "co2": "",
-        "powerKw": "118",
-        "consumption": "",
-        "dealerName": "Jamega Motor",
-        "nextITV": "",
-        "warrantyMonths": null,
-        "image": "https://images.coches.com/_ccom_/3f11fb12-c8d0-42b3-9bba-b8a8950b32f0/5c798b73-5c0f-4c87-95d9-8e3cdb3a19fa.jpeg",
-        "images": [
-          "https://images.coches.com/_ccom_/3f11fb12-c8d0-42b3-9bba-b8a8950b32f0/5c798b73-5c0f-4c87-95d9-8e3cdb3a19fa.jpeg",
-          "https://images.coches.com/_ccom_/3f11fb12-c8d0-42b3-9bba-b8a8950b32f0/8189650c-e542-43a1-ac04-208eabe8c7c2.jpeg",
-          "https://images.coches.com/_ccom_/3f11fb12-c8d0-42b3-9bba-b8a8950b32f0/83b430c3-b630-4563-bc56-466fbefa3695.jpeg",
-          "https://images.coches.com/_ccom_/3f11fb12-c8d0-42b3-9bba-b8a8950b32f0/e5b070db-a42d-47c1-8ea8-cc93511fc5c6.jpeg",
-          "https://images.coches.com/_ccom_/3f11fb12-c8d0-42b3-9bba-b8a8950b32f0/8c6c13b1-e96b-49fd-a0f8-ff06e652958e.jpeg",
-          "https://images.coches.com/_ccom_/3f11fb12-c8d0-42b3-9bba-b8a8950b32f0/06b5b3ed-c693-4597-948f-41a9862eaa3a.jpeg",
-          "https://images.coches.com/_ccom_/3f11fb12-c8d0-42b3-9bba-b8a8950b32f0/9e30d6df-c5e6-4d05-b15b-c7065df6a0bc.jpeg",
-          "https://images.coches.com/_ccom_/3f11fb12-c8d0-42b3-9bba-b8a8950b32f0/b7750050-a756-47ff-b380-e0bc75c3401d.jpeg",
-          "https://images.coches.com/_ccom_/3f11fb12-c8d0-42b3-9bba-b8a8950b32f0/d73f2f22-60d0-4af3-b07e-378253be8732.jpeg",
-          "https://images.coches.com/_ccom_/3f11fb12-c8d0-42b3-9bba-b8a8950b32f0/247679b9-29d6-4218-9c8a-1b06fc96ac58.jpeg",
-          "https://images.coches.com/_ccom_/3f11fb12-c8d0-42b3-9bba-b8a8950b32f0/f6ebb8ef-1dea-4fc2-abfa-f7b194502d1d.jpeg",
-          "https://images.coches.com/_ccom_/3f11fb12-c8d0-42b3-9bba-b8a8950b32f0/3bb5d08b-f766-4b36-85b7-09a79ecf112c.jpeg",
-          "https://images.coches.com/_ccom_/3f11fb12-c8d0-42b3-9bba-b8a8950b32f0/3b0aff98-3741-49d0-9d32-0b4d37976f73.jpeg",
-          "https://images.coches.com/_ccom_/3f11fb12-c8d0-42b3-9bba-b8a8950b32f0/f02920b5-c9ac-4830-9f33-ddb5d238356f.jpeg",
-          "https://images.coches.com/_ccom_/3f11fb12-c8d0-42b3-9bba-b8a8950b32f0/5247b2ac-b4d3-48ee-a25e-1e43cf0c3a71.jpeg"
-        ],
-        "updatedAt": "",
-        "listedAt": "",
-        "listingType": "compra"
-      },
-      {
-        "portal": "cochescom",
-        "brand": "Abarth",
-        "model": "595",
-        "version": "1.4T JET PISTA 118KW",
-        "fuel": "Gasolina",
-        "transmission": "Manual",
-        "bodyType": "Pequeño",
-        "environmentalLabel": "",
-        "year": 2020,
-        "mileage": 72500,
-        "doors": 3,
-        "seats": 4,
-        "powerCv": 160,
-        "price": 16990,
-        "monthlyPrice": null,
-        "financePrice": null,
-        "url": "https://www.coches.com/coches-segunda-mano/ocasion-abarth-595.htm?id=et0ZQYMO_au1",
-        "province": "Barcelona",
-        "city": "Barcelona",
-        "color": "blanco",
-        "sellerType": "profesional",
-        "traction": "",
-        "displacement": "",
-        "co2": "",
-        "powerKw": "118",
+        "powerKw": "132",
         "consumption": "",
         "dealerName": "Flexicar",
         "nextITV": "",
         "warrantyMonths": null,
-        "image": "https://images.coches.com/_ccom_/04c2501d-5766-4b88-aeb5-d9a34e7a75bf/414977f2-a808-4362-8978-eebbcb38944f.jpg",
+        "image": "https://images.coches.com/_ccom_/c1a57238-8419-4252-abf6-8098b03225d5/3a42244c-5cea-4ea7-a440-6067759b6f38.jpg",
         "images": [
-          "https://images.coches.com/_ccom_/04c2501d-5766-4b88-aeb5-d9a34e7a75bf/414977f2-a808-4362-8978-eebbcb38944f.jpg",
-          "https://images.coches.com/_ccom_/04c2501d-5766-4b88-aeb5-d9a34e7a75bf/f85b3178-0aa6-4568-b429-0bba63409c96.jpg",
-          "https://images.coches.com/_ccom_/04c2501d-5766-4b88-aeb5-d9a34e7a75bf/323042e5-34c2-46af-a803-3126c80ea788.jpg",
-          "https://images.coches.com/_ccom_/04c2501d-5766-4b88-aeb5-d9a34e7a75bf/68f2d523-f39e-4ff1-8bad-e349fc1aeb6c.jpg",
-          "https://images.coches.com/_ccom_/04c2501d-5766-4b88-aeb5-d9a34e7a75bf/26877e01-05ba-49c1-a9b9-4ac994688868.jpg",
-          "https://images.coches.com/_ccom_/04c2501d-5766-4b88-aeb5-d9a34e7a75bf/ac95e426-def6-4cc2-9223-c78083e2d77e.jpg",
-          "https://images.coches.com/_ccom_/04c2501d-5766-4b88-aeb5-d9a34e7a75bf/54b6d817-3390-4dd7-8bcd-a0c9b98f99a4.jpg",
-          "https://images.coches.com/_ccom_/04c2501d-5766-4b88-aeb5-d9a34e7a75bf/01a137a2-149f-42c5-9358-585af2cd69eb.jpg",
-          "https://images.coches.com/_ccom_/04c2501d-5766-4b88-aeb5-d9a34e7a75bf/42c259d8-0a1e-4ccc-b5d3-c69da3948021.jpg",
-          "https://images.coches.com/_ccom_/04c2501d-5766-4b88-aeb5-d9a34e7a75bf/cec22bbc-0ec3-4d19-893d-ba12dba63511.jpg",
-          "https://images.coches.com/_ccom_/04c2501d-5766-4b88-aeb5-d9a34e7a75bf/7cdc8645-bbb5-4e7f-bab6-b1227fa35087.jpg",
-          "https://images.coches.com/_ccom_/04c2501d-5766-4b88-aeb5-d9a34e7a75bf/34e62ecf-7499-43e0-abdf-4a92ff5afd2c.jpg",
-          "https://images.coches.com/_ccom_/04c2501d-5766-4b88-aeb5-d9a34e7a75bf/78cc1265-7b9a-451d-b04a-11535fce90ab.jpg",
-          "https://images.coches.com/_ccom_/04c2501d-5766-4b88-aeb5-d9a34e7a75bf/cd7dc7bc-0337-43d0-be84-95aa4ef1e86c.jpg",
-          "https://images.coches.com/_ccom_/04c2501d-5766-4b88-aeb5-d9a34e7a75bf/9083f88b-07d3-45fa-a742-13ab2928cc88.jpg"
+          "https://images.coches.com/_ccom_/c1a57238-8419-4252-abf6-8098b03225d5/3a42244c-5cea-4ea7-a440-6067759b6f38.jpg",
+          "https://images.coches.com/_ccom_/c1a57238-8419-4252-abf6-8098b03225d5/6eaf93a1-1ee1-4efe-9d79-884ecb91d5dc.jpg",
+          "https://images.coches.com/_ccom_/c1a57238-8419-4252-abf6-8098b03225d5/8a1764f2-141e-4ca5-bb63-63c94706ec08.jpg",
+          "https://images.coches.com/_ccom_/c1a57238-8419-4252-abf6-8098b03225d5/d78b2308-a1c8-47fe-8bbc-802189a7754b.jpg",
+          "https://images.coches.com/_ccom_/c1a57238-8419-4252-abf6-8098b03225d5/688e7515-6560-460b-81af-9975b2f40d01.jpg",
+          "https://images.coches.com/_ccom_/c1a57238-8419-4252-abf6-8098b03225d5/ade871f9-7707-437b-8ccf-9b20cce3b38f.jpg",
+          "https://images.coches.com/_ccom_/c1a57238-8419-4252-abf6-8098b03225d5/fd5cbd64-fe4e-44d3-8c80-256ee5fe00f9.jpg",
+          "https://images.coches.com/_ccom_/c1a57238-8419-4252-abf6-8098b03225d5/5c5a4463-42c0-4ee3-9fa4-f7a4eaf1b14f.jpg",
+          "https://images.coches.com/_ccom_/c1a57238-8419-4252-abf6-8098b03225d5/14dd3069-2721-43a7-9e0a-e568db687003.jpg",
+          "https://images.coches.com/_ccom_/c1a57238-8419-4252-abf6-8098b03225d5/85ac1599-55ae-4263-b004-09739a8ba9ee.jpg",
+          "https://images.coches.com/_ccom_/c1a57238-8419-4252-abf6-8098b03225d5/3acdeef3-2d4a-4a1e-9270-93649239c03c.jpg",
+          "https://images.coches.com/_ccom_/c1a57238-8419-4252-abf6-8098b03225d5/90189e31-5367-4352-bf65-63be8d381cd7.jpg",
+          "https://images.coches.com/_ccom_/c1a57238-8419-4252-abf6-8098b03225d5/1c98d3d0-33eb-4a29-beae-c2172a637a9e.jpg",
+          "https://images.coches.com/_ccom_/c1a57238-8419-4252-abf6-8098b03225d5/1f6d09de-f248-4232-beca-0b51e4a01334.jpg",
+          "https://images.coches.com/_ccom_/c1a57238-8419-4252-abf6-8098b03225d5/1fb313d9-90cd-48ce-b0eb-44e7ef4561ed.jpg"
+        ],
+        "updatedAt": "",
+        "listedAt": "",
+        "listingType": "compra"
+      },
+      {
+        "portal": "flexicar",
+        "brand": "Abarth",
+        "model": "500",
+        "version": "595C Competizione 1.4 16v T-Jet 132kW E6",
+        "fuel": "Gasolina",
+        "transmission": "Manual",
+        "bodyType": "Cabrio",
+        "environmentalLabel": "",
+        "year": 2017,
+        "mileage": 26500,
+        "doors": 2,
+        "seats": 4,
+        "powerCv": 179,
+        "price": 20990,
+        "monthlyPrice": 313,
+        "financePrice": 18990,
+        "url": "https://www.flexicar.es/coches-ocasion/abarth-500-595c-competizione-14-16v-t-jet-132kw-e6-gasolina-manual-denia_903000000277660/",
+        "province": "",
+        "city": "Denia",
+        "color": "Amarillo",
+        "sellerType": "profesional",
+        "traction": "4x4",
+        "displacement": "1368",
+        "co2": "",
+        "powerKw": "132",
+        "consumption": "6.00",
+        "dealerName": "Flexicar",
+        "nextITV": "",
+        "warrantyMonths": 12,
+        "image": "https://www.flexicar.es/images/903000000277660/imp2f_jZ4TqsAOfE__img-d1500902-48d0-446f-9f9c-d4f5d055862e.webp",
+        "images": [
+          "https://www.flexicar.es/images/903000000277660/imp2f_jZ4TqsAOfE__img-d1500902-48d0-446f-9f9c-d4f5d055862e.webp",
+          "https://www.flexicar.es/images/903000000277660/imp2f_C4LAvOJEJq__img-1bdea63f-c396-4a50-93e2-9c521af97da6.webp",
+          "https://www.flexicar.es/images/903000000277660/imp2f_JxJ4lhSio6__img-dee031f0-5afb-4d23-b882-b6efb773e0ce.webp",
+          "https://www.flexicar.es/images/903000000277660/imp2f_75DK7NoDPC__img-4d0c8d27-6308-4680-895e-a4113eec35ea.webp",
+          "https://www.flexicar.es/images/903000000277660/imp2f_b5Hdjy4fP8__img-a2db38fa-5e10-456c-b761-1467c7ab3100.webp"
+        ],
+        "updatedAt": "",
+        "listedAt": "",
+        "listingType": "compra"
+      },
+      {
+        "portal": "autocasion",
+        "brand": "ABARTH",
+        "model": "500",
+        "version": "595C 1.4T JET COMPETIZIONE 180",
+        "fuel": "",
+        "transmission": "Manual",
+        "bodyType": "Descapotable o convertible",
+        "environmentalLabel": "",
+        "year": 2017,
+        "mileage": 26500,
+        "doors": null,
+        "seats": null,
+        "powerCv": 180,
+        "price": 20990,
+        "monthlyPrice": null,
+        "financePrice": null,
+        "url": "https://www.autocasion.com/coches-segunda-mano/abarth-500-ocasion/abarth-595c-1-4t-jet-competizione180-ref20896719",
+        "province": "",
+        "city": "",
+        "color": "Amarillo",
+        "sellerType": "profesional",
+        "traction": "",
+        "displacement": "",
+        "co2": "",
+        "powerKw": "",
+        "consumption": "",
+        "dealerName": "",
+        "nextITV": "",
+        "warrantyMonths": null,
+        "image": "https://images0.autocasion.com/unsafe/500x/filters:watermark(watermark.png,-30,-30,0):format(jpeg):quality(80)/api-car/1971865/925-3637639-0/29072026/a48a236b-d199-4c71-98ed-884668aa8941.jpg",
+        "images": [
+          "https://images0.autocasion.com/unsafe/500x/filters:watermark(watermark.png,-30,-30,0):format(jpeg):quality(80)/api-car/1971865/925-3637639-0/29072026/a48a236b-d199-4c71-98ed-884668aa8941.jpg"
+        ],
+        "updatedAt": "",
+        "listedAt": "",
+        "listingType": "compra"
+      },
+      {
+        "portal": "autocasion",
+        "brand": "ABARTH",
+        "model": "500",
+        "version": "595 1.4T JET COMPETIZIONE 180",
+        "fuel": "",
+        "transmission": "Manual",
+        "bodyType": "Pequeño",
+        "environmentalLabel": "",
+        "year": 2021,
+        "mileage": 26800,
+        "doors": null,
+        "seats": null,
+        "powerCv": 180,
+        "price": 18500,
+        "monthlyPrice": null,
+        "financePrice": null,
+        "url": "https://www.autocasion.com/coches-segunda-mano/abarth-500-ocasion/abarth-595-1-4t-jet-competizione-180-ref18818614",
+        "province": "",
+        "city": "",
+        "color": "Gris",
+        "sellerType": "profesional",
+        "traction": "",
+        "displacement": "",
+        "co2": "",
+        "powerKw": "",
+        "consumption": "",
+        "dealerName": "",
+        "nextITV": "",
+        "warrantyMonths": null,
+        "image": "https://images0.autocasion.com/unsafe/500x/filters:watermark(watermark.png,-30,-30,0):format(jpeg):quality(80)/api-car/1883978/2e99514d-e6d7-460c-8b6d-6f35d146baaf/09122025/18e0d5bc-8cae-45e6-974e-eafa265717dc.jpg",
+        "images": [
+          "https://images0.autocasion.com/unsafe/500x/filters:watermark(watermark.png,-30,-30,0):format(jpeg):quality(80)/api-car/1883978/2e99514d-e6d7-460c-8b6d-6f35d146baaf/09122025/18e0d5bc-8cae-45e6-974e-eafa265717dc.jpg"
+        ],
+        "updatedAt": "",
+        "listedAt": "",
+        "listingType": "compra"
+      },
+      {
+        "portal": "autoscout24",
+        "brand": "Abarth",
+        "model": "595",
+        "version": "1.4T JET 121KW",
+        "fuel": "Gasolina",
+        "transmission": "Manual",
+        "bodyType": "",
+        "environmentalLabel": "",
+        "year": 2023,
+        "mileage": 26830,
+        "doors": null,
+        "seats": null,
+        "powerCv": 165,
+        "price": 18490,
+        "monthlyPrice": null,
+        "financePrice": null,
+        "url": "https://www.autoscout24.es/anuncios/abarth-595-1-4t-jet-121kw-gasolina-gris-cat_ma16396mo21170-ba2e3d0f-d01c-494c-b6d5-c73079e9dcfe",
+        "province": "Leganés",
+        "city": "Leganés",
+        "color": "Gris",
+        "sellerType": "profesional",
+        "traction": "",
+        "displacement": "",
+        "co2": "",
+        "powerKw": "121",
+        "consumption": "",
+        "dealerName": "MUY CAR MADRID - LEGANÉS",
+        "nextITV": "",
+        "warrantyMonths": null,
+        "image": "https://prod.pictures.autoscout24.net/listing-images/ba2e3d0f-d01c-494c-b6d5-c73079e9dcfe_9980a91a-3bdc-49a3-8768-0229aa9e5813.jpg/250x188.webp",
+        "images": [
+          "https://prod.pictures.autoscout24.net/listing-images/ba2e3d0f-d01c-494c-b6d5-c73079e9dcfe_9980a91a-3bdc-49a3-8768-0229aa9e5813.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/ba2e3d0f-d01c-494c-b6d5-c73079e9dcfe_8ed2823f-4368-42ce-9331-f694e4cebc9c.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/ba2e3d0f-d01c-494c-b6d5-c73079e9dcfe_d58317af-7e73-4a2f-9ee7-47cc564cd606.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/ba2e3d0f-d01c-494c-b6d5-c73079e9dcfe_e81e6fe7-09d1-490e-b661-0145ccf5dbc8.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/ba2e3d0f-d01c-494c-b6d5-c73079e9dcfe_71b9a38a-4a34-47d3-a3cf-433657ff1529.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/ba2e3d0f-d01c-494c-b6d5-c73079e9dcfe_5416dd3c-721d-45ae-a59b-3b46a7c39872.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/ba2e3d0f-d01c-494c-b6d5-c73079e9dcfe_a96ec7dd-73cd-4c7d-adf8-45d99e65e4d9.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/ba2e3d0f-d01c-494c-b6d5-c73079e9dcfe_202d29dd-c9e7-4788-801a-72836f9d2c8f.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/ba2e3d0f-d01c-494c-b6d5-c73079e9dcfe_48c01a17-6156-48f5-84b2-253c80f4803c.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/ba2e3d0f-d01c-494c-b6d5-c73079e9dcfe_b7bbec31-395f-4e77-a2fe-46c12271eb45.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/ba2e3d0f-d01c-494c-b6d5-c73079e9dcfe_5957ca4d-e4d7-495c-a7f1-e2fe1237304a.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/ba2e3d0f-d01c-494c-b6d5-c73079e9dcfe_a3dc0cde-2b09-4f24-8f54-e305ffbb960d.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/ba2e3d0f-d01c-494c-b6d5-c73079e9dcfe_158fa6e3-9110-4df5-8cec-3a43f8c4f0d3.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/ba2e3d0f-d01c-494c-b6d5-c73079e9dcfe_52a3e7b9-5ff4-4473-98c1-122c5113f5f7.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/ba2e3d0f-d01c-494c-b6d5-c73079e9dcfe_e82a9688-9b58-4cc9-b120-1398ff4dd9b1.jpg/250x188.webp"
         ],
         "updatedAt": "",
         "listedAt": "",
@@ -528,7 +513,7 @@
     ],
     "_pool": [
       {
-        "_rank": 182,
+        "_rank": 83,
         "mileage": 54898,
         "year": 2020,
         "price": 8800,
@@ -537,7 +522,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 328,
+        "_rank": 223,
         "mileage": 116848,
         "year": 2018,
         "price": 11470,
@@ -546,259 +531,97 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 302,
-        "mileage": 116074,
-        "year": 2017,
-        "price": 11990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
-      },
-      {
-        "_rank": 172,
-        "mileage": 144895,
-        "year": 2018,
-        "price": 11990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 173,
-        "mileage": 144895,
-        "year": 2018,
-        "price": 11990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 174,
-        "mileage": 144895,
-        "year": 2018,
-        "price": 11990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 175,
-        "mileage": 144895,
-        "year": 2018,
-        "price": 11990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 178,
-        "mileage": 144895,
-        "year": 2018,
-        "price": 11990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 179,
-        "mileage": 144895,
-        "year": 2018,
-        "price": 11990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 180,
-        "mileage": 144895,
-        "year": 2018,
-        "price": 11990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 181,
-        "mileage": 144895,
-        "year": 2018,
-        "price": 11990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 177,
-        "mileage": 118000,
+        "_rank": 82,
+        "mileage": 100000,
         "year": 2016,
-        "price": 12000,
+        "price": 11500,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 300,
-        "mileage": 80000,
-        "year": 2020,
-        "price": 12290,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
-      },
-      {
-        "_rank": 168,
-        "mileage": 114598,
-        "year": 2016,
-        "price": 12490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 169,
-        "mileage": 114598,
-        "year": 2016,
-        "price": 12490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 170,
-        "mileage": 114598,
-        "year": 2016,
-        "price": 12490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 171,
-        "mileage": 114598,
-        "year": 2016,
-        "price": 12490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 176,
+        "_rank": 182,
         "mileage": 148000,
         "year": 2018,
-        "price": 12490,
+        "price": 11990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
-        "_rank": 320,
-        "mileage": 86700,
-        "year": 2021,
-        "price": 12990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
-      },
-      {
-        "_rank": 46,
+        "_rank": 41,
         "mileage": 92404,
         "year": 2016,
-        "price": 13099,
+        "price": 12499,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "cochescom"
       },
       {
-        "_rank": 268,
-        "mileage": 108000,
-        "year": 2018,
-        "price": 13290,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 272,
-        "mileage": 108000,
-        "year": 2018,
-        "price": 13290,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 273,
-        "mileage": 108000,
-        "year": 2018,
-        "price": 13290,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 274,
-        "mileage": 108000,
-        "year": 2018,
-        "price": 13290,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 275,
-        "mileage": 108000,
-        "year": 2018,
-        "price": 13290,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 276,
-        "mileage": 108000,
-        "year": 2018,
-        "price": 13290,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 292,
-        "mileage": 108000,
-        "year": 2018,
-        "price": 13290,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 325,
-        "mileage": 114598,
+        "_rank": 81,
+        "mileage": 120670,
         "year": 2016,
-        "price": 13390,
+        "price": 12790,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "flexicar"
+        "portal": "autoscout24"
       },
       {
-        "_rank": 166,
+        "_rank": 91,
+        "mileage": 120670,
+        "year": 2016,
+        "price": 12790,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "cochescom"
+      },
+      {
+        "_rank": 203,
         "mileage": 96000,
         "year": 2016,
         "price": 13400,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
-        "_rank": 287,
-        "mileage": 90000,
-        "year": 2018,
-        "price": 13490,
+        "_rank": 77,
+        "mileage": 71000,
+        "year": 2020,
+        "price": 13450,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 190,
+        "_rank": 131,
+        "mileage": 146399,
+        "year": 2018,
+        "price": 13490,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "flexicar"
+      },
+      {
+        "_rank": 75,
+        "mileage": 134787,
+        "year": 2016,
+        "price": 13690,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 93,
+        "mileage": 134787,
+        "year": 2016,
+        "price": 13690,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "cochescom"
+      },
+      {
+        "_rank": 92,
         "mileage": 114598,
         "year": 2016,
         "price": 13790,
@@ -807,106 +630,70 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 263,
-        "mileage": 69148,
-        "year": 2022,
-        "price": 13890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 265,
-        "mileage": 69148,
-        "year": 2022,
-        "price": 13890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 266,
-        "mileage": 69148,
-        "year": 2022,
-        "price": 13890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 267,
-        "mileage": 69148,
-        "year": 2022,
-        "price": 13890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 277,
-        "mileage": 69148,
-        "year": 2022,
-        "price": 13890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 279,
-        "mileage": 69148,
-        "year": 2022,
-        "price": 13890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 284,
-        "mileage": 69148,
-        "year": 2022,
-        "price": 13890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 288,
-        "mileage": 69148,
-        "year": 2022,
-        "price": 13890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 164,
-        "mileage": 99720,
+        "_rank": 162,
+        "mileage": 114598,
         "year": 2016,
-        "price": 13985,
+        "price": 13790,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "flexicar"
       },
       {
-        "_rank": 165,
-        "mileage": 99720,
+        "_rank": 189,
+        "mileage": 114598,
         "year": 2016,
-        "price": 13985,
+        "price": 13790,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 80,
+        "mileage": 111875,
+        "year": 2018,
+        "price": 13880,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 188,
+        "_rank": 109,
+        "mileage": 81931,
+        "year": 2019,
+        "price": 13990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 111,
+        "mileage": 81931,
+        "year": 2019,
+        "price": 13990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 147,
         "mileage": 134787,
         "year": 2016,
         "price": 13990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "ocasionplus"
       },
       {
-        "_rank": 191,
+        "_rank": 211,
+        "mileage": 134787,
+        "year": 2016,
+        "price": 13990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 143,
         "mileage": 146399,
         "year": 2018,
         "price": 13990,
@@ -915,485 +702,323 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 153,
-        "mileage": 134787,
-        "year": 2016,
-        "price": 14200,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 162,
-        "mileage": 134787,
-        "year": 2016,
-        "price": 14200,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 163,
-        "mileage": 134787,
-        "year": 2016,
-        "price": 14200,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 301,
-        "mileage": 63269,
-        "year": 2022,
-        "price": 14480,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
-      },
-      {
-        "_rank": 280,
-        "mileage": 71500,
-        "year": 2022,
-        "price": 14490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 281,
-        "mileage": 71500,
-        "year": 2022,
-        "price": 14490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 283,
-        "mileage": 71500,
-        "year": 2022,
-        "price": 14490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 285,
-        "mileage": 71500,
-        "year": 2022,
-        "price": 14490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 286,
-        "mileage": 102590,
-        "year": 2019,
-        "price": 14900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 161,
-        "mileage": 129000,
-        "year": 2017,
-        "price": 14900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 160,
-        "mileage": 97000,
-        "year": 2016,
-        "price": 14980,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 189,
-        "mileage": 99720,
-        "year": 2016,
-        "price": 14985,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 167,
-        "mileage": 28459,
-        "year": 2016,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 299,
-        "mileage": 45000,
-        "year": 2019,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
-      },
-      {
-        "_rank": 264,
-        "mileage": 45141,
-        "year": 2022,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 269,
-        "mileage": 45141,
-        "year": 2022,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 270,
-        "mileage": 45141,
-        "year": 2022,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 271,
-        "mileage": 45141,
-        "year": 2022,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 289,
-        "mileage": 45141,
-        "year": 2022,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 278,
-        "mileage": 47200,
-        "year": 2022,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 282,
-        "mileage": 47200,
-        "year": 2022,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 290,
-        "mileage": 47200,
-        "year": 2022,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 291,
-        "mileage": 47200,
-        "year": 2022,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 293,
-        "mileage": 47200,
-        "year": 2022,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 294,
-        "mileage": 47200,
-        "year": 2022,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 295,
-        "mileage": 47200,
-        "year": 2022,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 155,
-        "mileage": 48200,
-        "year": 2020,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 156,
-        "mileage": 48200,
-        "year": 2020,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 157,
-        "mileage": 48200,
-        "year": 2020,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 158,
-        "mileage": 48200,
-        "year": 2020,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 159,
-        "mileage": 48200,
-        "year": 2020,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 39,
-        "mileage": 90000,
+        "_rank": 185,
+        "mileage": 146399,
         "year": 2018,
-        "price": 14990,
+        "price": 13990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "autocasion"
       },
       {
-        "_rank": 186,
-        "mileage": 90000,
-        "year": 2018,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
-      },
-      {
-        "_rank": 10,
-        "mileage": 108000,
-        "year": 2018,
-        "price": 14990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 154,
-        "mileage": 88027,
-        "year": 2019,
-        "price": 14995,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 207,
-        "mileage": 66075,
-        "year": 2022,
-        "price": 15290,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 209,
-        "mileage": 66075,
-        "year": 2022,
-        "price": 15290,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 214,
-        "mileage": 66075,
-        "year": 2022,
-        "price": 15290,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 217,
-        "mileage": 66075,
-        "year": 2022,
-        "price": 15290,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 225,
-        "mileage": 66075,
-        "year": 2022,
-        "price": 15290,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 326,
-        "mileage": 108000,
-        "year": 2018,
-        "price": 15290,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
-      },
-      {
-        "_rank": 107,
+        "_rank": 76,
         "mileage": 91620,
         "year": 2018,
-        "price": 15325,
+        "price": 14121,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 109,
-        "mileage": 91620,
-        "year": 2018,
-        "price": 15325,
+        "_rank": 118,
+        "mileage": 69148,
+        "year": 2022,
+        "price": 14390,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 119,
+        "mileage": 69148,
+        "year": 2022,
+        "price": 14390,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 113,
+        "mileage": 70052,
+        "year": 2022,
+        "price": 14490,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
         "_rank": 114,
+        "mileage": 70052,
+        "year": 2022,
+        "price": 14490,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 129,
+        "mileage": 108000,
+        "year": 2018,
+        "price": 14490,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "flexicar"
+      },
+      {
+        "_rank": 117,
+        "mileage": 102590,
+        "year": 2019,
+        "price": 14500,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 132,
+        "mileage": 102590,
+        "year": 2019,
+        "price": 14500,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "wallapop"
+      },
+      {
+        "_rank": 238,
+        "mileage": 102590,
+        "year": 2019,
+        "price": 14500,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 74,
+        "mileage": 39139,
+        "year": 2022,
+        "price": 14628,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 115,
+        "mileage": 82397,
+        "year": 2019,
+        "price": 14690,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 116,
+        "mileage": 82397,
+        "year": 2019,
+        "price": 14690,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 78,
+        "mileage": 72500,
+        "year": 2020,
+        "price": 14790,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 79,
+        "mileage": 72500,
+        "year": 2020,
+        "price": 14790,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 40,
+        "mileage": 90000,
+        "year": 2018,
+        "price": 14790,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "cochescom"
+      },
+      {
+        "_rank": 149,
+        "mileage": 90000,
+        "year": 2018,
+        "price": 14790,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "flexicar"
+      },
+      {
+        "_rank": 249,
+        "mileage": 90000,
+        "year": 2018,
+        "price": 14790,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 257,
+        "mileage": 90000,
+        "year": 2018,
+        "price": 14790,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 209,
+        "mileage": 129000,
+        "year": 2017,
+        "price": 14900,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 110,
+        "mileage": 45141,
+        "year": 2022,
+        "price": 14990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 112,
+        "mileage": 45141,
+        "year": 2022,
+        "price": 14990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 198,
+        "mileage": 97000,
+        "year": 2016,
+        "price": 14990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 86,
+        "mileage": 108000,
+        "year": 2018,
+        "price": 14990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "cochescom"
+      },
+      {
+        "_rank": 236,
+        "mileage": 108000,
+        "year": 2018,
+        "price": 14990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 245,
+        "mileage": 108000,
+        "year": 2018,
+        "price": 14990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 12,
+        "mileage": 111875,
+        "year": 2018,
+        "price": 14990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "cochescom"
+      },
+      {
+        "_rank": 120,
+        "mileage": 111875,
+        "year": 2018,
+        "price": 14990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "ocasionplus"
+      },
+      {
+        "_rank": 73,
+        "mileage": 69511,
+        "year": 2022,
+        "price": 14991,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 23,
         "mileage": 91620,
         "year": 2018,
-        "price": 15325,
+        "price": 15250,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "cochescom"
+      },
+      {
+        "_rank": 65,
+        "mileage": 104649,
+        "year": 2019,
+        "price": 15410,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 208,
-        "mileage": 70000,
+        "_rank": 63,
+        "mileage": 40447,
         "year": 2022,
+        "price": 15446,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 72,
+        "mileage": 98000,
+        "year": 2018,
         "price": 15490,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 212,
-        "mileage": 70000,
-        "year": 2022,
+        "_rank": 195,
+        "mileage": 99000,
+        "year": 2018,
         "price": 15490,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
-        "_rank": 230,
-        "mileage": 70000,
-        "year": 2022,
-        "price": 15490,
+        "_rank": 36,
+        "mileage": 104336,
+        "year": 2017,
+        "price": 15499,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "cochescom"
       },
       {
-        "_rank": 231,
-        "mileage": 70000,
-        "year": 2022,
-        "price": 15490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 216,
-        "mileage": 70052,
-        "year": 2022,
-        "price": 15490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 221,
-        "mileage": 70052,
-        "year": 2022,
-        "price": 15490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 224,
-        "mileage": 70052,
-        "year": 2022,
-        "price": 15490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 228,
-        "mileage": 70052,
-        "year": 2022,
-        "price": 15490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 229,
-        "mileage": 70052,
-        "year": 2022,
-        "price": 15490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 89,
-        "mileage": 102000,
+        "_rank": 62,
+        "mileage": 64000,
         "year": 2017,
         "price": 15500,
         "sellerType": "profesional",
@@ -1401,25 +1026,16 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 315,
-        "mileage": 46785,
+        "_rank": 42,
+        "mileage": 57621,
         "year": 2022,
-        "price": 15590,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
-      },
-      {
-        "_rank": 56,
-        "mileage": 47051,
-        "year": 2017,
-        "price": 15690,
+        "price": 15599,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "cochescom"
       },
       {
-        "_rank": 185,
+        "_rank": 154,
         "mileage": 47051,
         "year": 2017,
         "price": 15690,
@@ -1428,160 +1044,88 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 306,
-        "mileage": 47195,
-        "year": 2022,
-        "price": 15690,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
-      },
-      {
-        "_rank": 317,
-        "mileage": 70052,
-        "year": 2022,
-        "price": 15690,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
-      },
-      {
-        "_rank": 123,
-        "mileage": 70000,
-        "year": 2020,
-        "price": 15790,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 127,
-        "mileage": 70000,
-        "year": 2020,
-        "price": 15790,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 130,
-        "mileage": 70000,
-        "year": 2020,
-        "price": 15790,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 133,
-        "mileage": 70000,
-        "year": 2020,
-        "price": 15790,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 90,
-        "mileage": 99870,
+        "_rank": 71,
+        "mileage": 46900,
         "year": 2019,
-        "price": 15800,
+        "price": 15700,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 126,
-        "mileage": 69511,
+        "_rank": 68,
+        "mileage": 36476,
         "year": 2022,
-        "price": 15864,
+        "price": 15719,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 131,
-        "mileage": 69511,
-        "year": 2022,
-        "price": 15864,
+        "_rank": 105,
+        "mileage": 55147,
+        "year": 2019,
+        "price": 15750,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 132,
-        "mileage": 69511,
-        "year": 2022,
-        "price": 15864,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 152,
-        "mileage": 98000,
+        "_rank": 141,
+        "mileage": 91620,
         "year": 2018,
+        "price": 15750,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "ocasionplus"
+      },
+      {
+        "_rank": 212,
+        "mileage": 91620,
+        "year": 2018,
+        "price": 15750,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 96,
+        "mileage": 37171,
+        "year": 2021,
+        "price": 15790,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 106,
+        "mileage": 47995,
+        "year": 2022,
+        "price": 15790,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 108,
+        "mileage": 45300,
+        "year": 2022,
         "price": 15890,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 307,
-        "mileage": 33105,
-        "year": 2021,
-        "price": 15970,
+        "_rank": 173,
+        "mileage": 71000,
+        "year": 2020,
+        "price": 15950,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "flexicar"
+        "portal": "autocasion"
       },
       {
-        "_rank": 205,
-        "mileage": 33105,
-        "year": 2021,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 218,
-        "mileage": 33105,
-        "year": 2021,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 219,
-        "mileage": 33105,
-        "year": 2021,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 220,
-        "mileage": 33105,
-        "year": 2021,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 226,
-        "mileage": 33105,
-        "year": 2021,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 305,
+        "_rank": 156,
         "mileage": 45141,
         "year": 2022,
         "price": 15990,
@@ -1590,178 +1134,25 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 204,
-        "mileage": 45300,
-        "year": 2022,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 206,
-        "mileage": 45300,
-        "year": 2022,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 210,
-        "mileage": 45300,
-        "year": 2022,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 211,
-        "mileage": 45300,
-        "year": 2022,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 213,
-        "mileage": 45300,
-        "year": 2022,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 245,
-        "mileage": 45300,
-        "year": 2022,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 252,
-        "mileage": 47995,
-        "year": 2022,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 253,
-        "mileage": 47995,
-        "year": 2022,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 254,
-        "mileage": 47995,
-        "year": 2022,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 255,
-        "mileage": 47995,
-        "year": 2022,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 256,
-        "mileage": 47995,
-        "year": 2022,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 257,
-        "mileage": 47995,
-        "year": 2022,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 258,
-        "mileage": 47995,
-        "year": 2022,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 260,
-        "mileage": 47995,
-        "year": 2022,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 261,
-        "mileage": 47995,
-        "year": 2022,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 310,
-        "mileage": 71500,
-        "year": 2022,
-        "price": 15990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
-      },
-      {
-        "_rank": 148,
+        "_rank": 192,
         "mileage": 73000,
         "year": 2017,
         "price": 15990,
         "sellerType": "profesional",
         "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 70,
+        "mileage": 63748,
+        "year": 2021,
+        "price": 15991,
+        "sellerType": "profesional",
+        "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 25,
-        "mileage": 34456,
-        "year": 2022,
-        "price": 16090,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 318,
-        "mileage": 37325,
-        "year": 2022,
-        "price": 16090,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
-      },
-      {
-        "_rank": 36,
+        "_rank": 39,
         "mileage": 39139,
         "year": 2022,
         "price": 16090,
@@ -1770,232 +1161,61 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 297,
-        "mileage": 54800,
-        "year": 2019,
-        "price": 16140,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
-      },
-      {
-        "_rank": 20,
-        "mileage": 91620,
-        "year": 2018,
-        "price": 16150,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 111,
-        "mileage": 79995,
-        "year": 2018,
-        "price": 16297,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 112,
-        "mileage": 79995,
-        "year": 2018,
-        "price": 16297,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 150,
-        "mileage": 79995,
-        "year": 2018,
-        "price": 16297,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 92,
-        "mileage": 47000,
-        "year": 2020,
-        "price": 16300,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 144,
-        "mileage": 63748,
-        "year": 2021,
-        "price": 16355,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 146,
-        "mileage": 63748,
-        "year": 2021,
-        "price": 16355,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 149,
-        "mileage": 63748,
-        "year": 2021,
-        "price": 16355,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 116,
-        "mileage": 44123,
+        "_rank": 135,
+        "mileage": 39139,
         "year": 2022,
-        "price": 16427,
+        "price": 16090,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "ocasionplus"
       },
       {
-        "_rank": 99,
-        "mileage": 34456,
+        "_rank": 196,
+        "mileage": 39139,
         "year": 2022,
-        "price": 16446,
+        "price": 16090,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
         "_rank": 104,
-        "mileage": 34456,
+        "mileage": 37325,
         "year": 2022,
-        "price": 16446,
+        "price": 16290,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 106,
-        "mileage": 34456,
-        "year": 2022,
-        "price": 16446,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 94,
-        "mileage": 39139,
-        "year": 2022,
-        "price": 16446,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 102,
-        "mileage": 39139,
-        "year": 2022,
-        "price": 16446,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 147,
-        "mileage": 39139,
-        "year": 2022,
-        "price": 16446,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 233,
-        "mileage": 28000,
+        "_rank": 64,
+        "mileage": 79995,
         "year": 2018,
-        "price": 16490,
+        "price": 16297,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 234,
-        "mileage": 37171,
-        "year": 2021,
-        "price": 16490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 235,
-        "mileage": 37171,
-        "year": 2021,
-        "price": 16490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 236,
-        "mileage": 37171,
-        "year": 2021,
-        "price": 16490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 237,
-        "mileage": 37171,
-        "year": 2021,
-        "price": 16490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 240,
-        "mileage": 37171,
-        "year": 2021,
-        "price": 16490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 215,
-        "mileage": 45759,
+        "_rank": 24,
+        "mileage": 69148,
         "year": 2022,
-        "price": 16490,
+        "price": 16390,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "cochescom"
       },
       {
-        "_rank": 223,
-        "mileage": 45759,
+        "_rank": 125,
+        "mileage": 69148,
         "year": 2022,
-        "price": 16490,
+        "price": 16390,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "flexicar"
       },
       {
-        "_rank": 227,
-        "mileage": 45759,
-        "year": 2022,
-        "price": 16490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 26,
+        "_rank": 31,
         "mileage": 47200,
         "year": 2022,
         "price": 16490,
@@ -2004,22 +1224,22 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 183,
-        "mileage": 47995,
+        "_rank": 255,
+        "mileage": 47200,
         "year": 2022,
         "price": 16490,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "flexicar"
+        "portal": "autocasion"
       },
       {
-        "_rank": 33,
+        "_rank": 247,
         "mileage": 69148,
         "year": 2022,
         "price": 16490,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "autocasion"
       },
       {
         "_rank": 34,
@@ -2031,7 +1251,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 184,
+        "_rank": 165,
         "mileage": 69511,
         "year": 2022,
         "price": 16490,
@@ -2040,116 +1260,53 @@
         "portal": "ocasionplus"
       },
       {
-        "_rank": 139,
-        "mileage": 39248,
-        "year": 2021,
-        "price": 16719,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 140,
-        "mileage": 39248,
-        "year": 2021,
-        "price": 16719,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 142,
-        "mileage": 39248,
-        "year": 2021,
-        "price": 16719,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 124,
-        "mileage": 46916,
+        "_rank": 210,
+        "mileage": 69511,
         "year": 2022,
-        "price": 16719,
+        "price": 16490,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
-        "_rank": 128,
-        "mileage": 46916,
+        "_rank": 127,
+        "mileage": 70052,
         "year": 2022,
-        "price": 16719,
+        "price": 16690,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 129,
-        "mileage": 46916,
-        "year": 2022,
-        "price": 16719,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 95,
-        "mileage": 40447,
-        "year": 2022,
-        "price": 16773,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 100,
-        "mileage": 40447,
-        "year": 2022,
-        "price": 16773,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 101,
-        "mileage": 40447,
-        "year": 2022,
-        "price": 16773,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 91,
-        "mileage": 43123,
-        "year": 2022,
-        "price": 16773,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 93,
-        "mileage": 43123,
-        "year": 2022,
-        "price": 16773,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 96,
-        "mileage": 43123,
-        "year": 2022,
-        "price": 16773,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "flexicar"
       },
       {
         "_rank": 15,
-        "mileage": 48200,
+        "mileage": 82397,
+        "year": 2019,
+        "price": 16690,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "cochescom"
+      },
+      {
+        "_rank": 138,
+        "mileage": 82397,
+        "year": 2019,
+        "price": 16690,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "flexicar"
+      },
+      {
+        "_rank": 3,
+        "mileage": 46900,
+        "year": 2019,
+        "price": 16700,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "cochescom"
+      },
+      {
+        "_rank": 85,
+        "mileage": 72500,
         "year": 2020,
         "price": 16790,
         "sellerType": "profesional",
@@ -2157,97 +1314,34 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 312,
-        "mileage": 69148,
-        "year": 2022,
-        "price": 16790,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
-      },
-      {
-        "_rank": 298,
-        "mileage": 70000,
-        "year": 2019,
-        "price": 16790,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
-      },
-      {
-        "_rank": 125,
-        "mileage": 44123,
-        "year": 2022,
-        "price": 16792,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 138,
-        "mileage": 44123,
-        "year": 2022,
-        "price": 16792,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 241,
-        "mileage": 28614,
+        "_rank": 137,
+        "mileage": 72500,
         "year": 2020,
-        "price": 16830,
+        "price": 16790,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "flexicar"
+      },
+      {
+        "_rank": 67,
+        "mileage": 97821,
+        "year": 2018,
+        "price": 16806,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 135,
+        "_rank": 206,
         "mileage": 67000,
         "year": 2018,
         "price": 16890,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
-        "_rank": 246,
-        "mileage": 33000,
-        "year": 2022,
-        "price": 16900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 97,
-        "mileage": 36476,
-        "year": 2022,
-        "price": 16900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 98,
-        "mileage": 36476,
-        "year": 2022,
-        "price": 16900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 115,
-        "mileage": 36476,
-        "year": 2022,
-        "price": 16900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 6,
+        "_rank": 9,
         "mileage": 51650,
         "year": 2019,
         "price": 16900,
@@ -2256,16 +1350,34 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 120,
+        "_rank": 205,
         "mileage": 98000,
         "year": 2021,
+        "price": 16900,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 69,
+        "mileage": 120000,
+        "year": 2017,
         "price": 16900,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 53,
+        "_rank": 184,
+        "mileage": 120000,
+        "year": 2017,
+        "price": 16900,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 17,
         "mileage": 104649,
         "year": 2019,
         "price": 16950,
@@ -2274,43 +1386,52 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 122,
+        "_rank": 151,
+        "mileage": 104649,
+        "year": 2019,
+        "price": 16950,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "ocasionplus"
+      },
+      {
+        "_rank": 180,
+        "mileage": 104649,
+        "year": 2019,
+        "price": 16950,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 204,
         "mileage": 128000,
         "year": 2016,
         "price": 16950,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
-        "_rank": 331,
-        "mileage": 40196,
-        "year": 2022,
-        "price": 16970,
+        "_rank": 48,
+        "mileage": 33105,
+        "year": 2021,
+        "price": 16990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "flexicar"
+        "portal": "cochescom"
       },
       {
-        "_rank": 319,
-        "mileage": 37929,
-        "year": 2019,
+        "_rank": 123,
+        "mileage": 33105,
+        "year": 2021,
         "price": 16990,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "flexicar"
       },
       {
-        "_rank": 330,
-        "mileage": 40000,
-        "year": 2022,
-        "price": 16990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
-      },
-      {
-        "_rank": 23,
+        "_rank": 29,
         "mileage": 40447,
         "year": 2022,
         "price": 16990,
@@ -2319,25 +1440,25 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 313,
-        "mileage": 42698,
+        "_rank": 134,
+        "mileage": 40447,
         "year": 2022,
         "price": 16990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "flexicar"
+        "portal": "ocasionplus"
       },
       {
-        "_rank": 27,
-        "mileage": 43123,
+        "_rank": 216,
+        "mileage": 40447,
         "year": 2022,
         "price": 16990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "autocasion"
       },
       {
-        "_rank": 28,
+        "_rank": 30,
         "mileage": 45141,
         "year": 2022,
         "price": 16990,
@@ -2346,25 +1467,34 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 222,
+        "_rank": 246,
         "mileage": 45141,
         "year": 2022,
         "price": 16990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
-        "_rank": 24,
+        "_rank": 148,
         "mileage": 46916,
         "year": 2022,
         "price": 16990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "ocasionplus"
       },
       {
-        "_rank": 321,
+        "_rank": 175,
+        "mileage": 46916,
+        "year": 2022,
+        "price": 16990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 159,
         "mileage": 48200,
         "year": 2020,
         "price": 16990,
@@ -2373,52 +1503,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 232,
-        "mileage": 62373,
-        "year": 2020,
-        "price": 16990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 238,
-        "mileage": 62373,
-        "year": 2020,
-        "price": 16990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 239,
-        "mileage": 62373,
-        "year": 2020,
-        "price": 16990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 242,
-        "mileage": 62373,
-        "year": 2020,
-        "price": 16990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 244,
-        "mileage": 62373,
-        "year": 2020,
-        "price": 16990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 57,
+        "_rank": 88,
         "mileage": 71500,
         "year": 2022,
         "price": 16990,
@@ -2427,25 +1512,34 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 55,
+        "_rank": 157,
+        "mileage": 71500,
+        "year": 2022,
+        "price": 16990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "flexicar"
+      },
+      {
+        "_rank": 226,
+        "mileage": 71500,
+        "year": 2022,
+        "price": 16990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 193,
         "mileage": 72500,
         "year": 2020,
         "price": 16990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "autocasion"
       },
       {
-        "_rank": 113,
-        "mileage": 76000,
-        "year": 2017,
-        "price": 16990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 323,
+        "_rank": 160,
         "mileage": 81931,
         "year": 2019,
         "price": 16990,
@@ -2454,52 +1548,61 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 54,
+        "_rank": 254,
         "mileage": 82397,
         "year": 2019,
         "price": 16990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "autocasion"
       },
       {
-        "_rank": 192,
-        "mileage": 116165,
-        "year": 2017,
+        "_rank": 97,
+        "mileage": 101000,
+        "year": 2019,
         "price": 16990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 141,
-        "mileage": 64000,
-        "year": 2016,
-        "price": 16995,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 41,
-        "mileage": 57621,
-        "year": 2022,
-        "price": 17099,
+        "_rank": 100,
+        "mileage": 101000,
+        "year": 2019,
+        "price": 16990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "autoscout24"
       },
       {
-        "_rank": 327,
-        "mileage": 45759,
-        "year": 2022,
-        "price": 17190,
+        "_rank": 228,
+        "mileage": 101000,
+        "year": 2019,
+        "price": 16990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "flexicar"
+        "portal": "autocasion"
       },
       {
-        "_rank": 30,
+        "_rank": 229,
+        "mileage": 101000,
+        "year": 2019,
+        "price": 16990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 66,
+        "mileage": 158000,
+        "year": 2017,
+        "price": 17000,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 28,
         "mileage": 36476,
         "year": 2022,
         "price": 17290,
@@ -2508,25 +1611,43 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 31,
+        "_rank": 133,
+        "mileage": 36476,
+        "year": 2022,
+        "price": 17290,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "ocasionplus"
+      },
+      {
+        "_rank": 191,
+        "mileage": 36476,
+        "year": 2022,
+        "price": 17290,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 144,
         "mileage": 74222,
         "year": 2022,
         "price": 17290,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "ocasionplus"
       },
       {
-        "_rank": 145,
-        "mileage": 80000,
-        "year": 2020,
-        "price": 17325,
+        "_rank": 107,
+        "mileage": 118936,
+        "year": 2022,
+        "price": 17300,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 42,
+        "_rank": 43,
         "mileage": 45300,
         "year": 2022,
         "price": 17390,
@@ -2535,7 +1656,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 316,
+        "_rank": 126,
         "mileage": 45300,
         "year": 2022,
         "price": 17390,
@@ -2544,97 +1665,43 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 37,
-        "mileage": 33105,
-        "year": 2021,
-        "price": 17490,
+        "_rank": 243,
+        "mileage": 45300,
+        "year": 2022,
+        "price": 17390,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "autocasion"
       },
       {
-        "_rank": 247,
-        "mileage": 57000,
+        "_rank": 101,
+        "mileage": 80228,
         "year": 2021,
-        "price": 17490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 248,
-        "mileage": 57000,
-        "year": 2021,
-        "price": 17490,
+        "price": 17390,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 249,
-        "mileage": 57000,
+        "_rank": 103,
+        "mileage": 80228,
         "year": 2021,
-        "price": 17490,
+        "price": 17390,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
         "_rank": 250,
-        "mileage": 57000,
+        "mileage": 33105,
         "year": 2021,
         "price": 17490,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
-        "_rank": 251,
-        "mileage": 57000,
-        "year": 2021,
-        "price": 17490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 117,
-        "mileage": 62000,
-        "year": 2021,
-        "price": 17490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 118,
-        "mileage": 62000,
-        "year": 2021,
-        "price": 17490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 119,
-        "mileage": 62000,
-        "year": 2021,
-        "price": 17490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 121,
-        "mileage": 62000,
-        "year": 2021,
-        "price": 17490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 29,
+        "_rank": 33,
         "mileage": 66075,
         "year": 2022,
         "price": 17490,
@@ -2643,8 +1710,8 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 329,
-        "mileage": 70000,
+        "_rank": 130,
+        "mileage": 66075,
         "year": 2022,
         "price": 17490,
         "sellerType": "profesional",
@@ -2652,16 +1719,34 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 61,
+        "_rank": 98,
+        "mileage": 68994,
+        "year": 2019,
+        "price": 17490,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 99,
+        "mileage": 68994,
+        "year": 2019,
+        "price": 17490,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 253,
         "mileage": 70052,
         "year": 2022,
         "price": 17490,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "autocasion"
       },
       {
-        "_rank": 0,
+        "_rank": 2,
         "mileage": 67000,
         "year": 2019,
         "price": 17500,
@@ -2670,16 +1755,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 136,
-        "mileage": 80000,
-        "year": 2021,
-        "price": 17540,
-        "sellerType": "particular",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 18,
+        "_rank": 38,
         "mileage": 63748,
         "year": 2021,
         "price": 17590,
@@ -2688,7 +1764,34 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 7,
+        "_rank": 164,
+        "mileage": 63748,
+        "year": 2021,
+        "price": 17590,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "ocasionplus"
+      },
+      {
+        "_rank": 208,
+        "mileage": 63748,
+        "year": 2021,
+        "price": 17590,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 87,
+        "mileage": 58636,
+        "year": 2021,
+        "price": 17599,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "cochescom"
+      },
+      {
+        "_rank": 37,
         "mileage": 79995,
         "year": 2018,
         "price": 17600,
@@ -2697,106 +1800,115 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 110,
-        "mileage": 40000,
+        "_rank": 142,
+        "mileage": 79995,
         "year": 2018,
-        "price": 17750,
+        "price": 17600,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "ocasionplus"
       },
       {
-        "_rank": 134,
-        "mileage": 97821,
+        "_rank": 217,
+        "mileage": 79995,
         "year": 2018,
-        "price": 17769,
+        "price": 17600,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
-        "_rank": 137,
-        "mileage": 97821,
-        "year": 2018,
-        "price": 17769,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 143,
-        "mileage": 18055,
+        "_rank": 49,
+        "mileage": 37171,
         "year": 2021,
         "price": 17790,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "cochescom"
       },
       {
-        "_rank": 308,
-        "mileage": 70000,
-        "year": 2020,
+        "_rank": 136,
+        "mileage": 37171,
+        "year": 2021,
         "price": 17790,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "flexicar"
       },
       {
-        "_rank": 311,
-        "mileage": 66075,
+        "_rank": 32,
+        "mileage": 47995,
+        "year": 2022,
+        "price": 17790,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "cochescom"
+      },
+      {
+        "_rank": 128,
+        "mileage": 47995,
+        "year": 2022,
+        "price": 17790,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "flexicar"
+      },
+      {
+        "_rank": 26,
+        "mileage": 70000,
+        "year": 2022,
+        "price": 17790,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "cochescom"
+      },
+      {
+        "_rank": 13,
+        "mileage": 37915,
+        "year": 2019,
+        "price": 17800,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "cochescom"
+      },
+      {
+        "_rank": 258,
+        "mileage": 47995,
         "year": 2022,
         "price": 17890,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "flexicar"
+        "portal": "autocasion"
       },
       {
-        "_rank": 103,
-        "mileage": 77500,
-        "year": 2021,
-        "price": 17900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 105,
-        "mileage": 87100,
-        "year": 2017,
-        "price": 17900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 44,
+        "_rank": 234,
         "mileage": 37171,
         "year": 2021,
         "price": 17990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "autocasion"
       },
       {
-        "_rank": 14,
+        "_rank": 242,
+        "mileage": 37171,
+        "year": 2021,
+        "price": 17990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 221,
         "mileage": 39248,
         "year": 2021,
         "price": 17990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "ocasionplus"
       },
       {
-        "_rank": 35,
-        "mileage": 47995,
-        "year": 2022,
-        "price": 17990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 259,
+        "_rank": 102,
         "mileage": 55000,
         "year": 2020,
         "price": 17990,
@@ -2805,25 +1917,43 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 262,
+        "_rank": 244,
         "mileage": 55000,
-        "year": 2021,
+        "year": 2020,
         "price": 17990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
-        "_rank": 21,
+        "_rank": 256,
+        "mileage": 66075,
+        "year": 2022,
+        "price": 17990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 163,
         "mileage": 70000,
         "year": 2022,
         "price": 17990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "flexicar"
       },
       {
-        "_rank": 52,
+        "_rank": 237,
+        "mileage": 70000,
+        "year": 2022,
+        "price": 17990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 16,
         "mileage": 81931,
         "year": 2019,
         "price": 17990,
@@ -2832,43 +1962,70 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 243,
-        "mileage": 98000,
-        "year": 2020,
+        "_rank": 252,
+        "mileage": 81931,
+        "year": 2019,
         "price": 17990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
-        "_rank": 108,
-        "mileage": 85000,
-        "year": 2020,
-        "price": 18000,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 151,
-        "mileage": 119000,
-        "year": 2016,
-        "price": 18000,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 58,
-        "mileage": 58636,
-        "year": 2021,
-        "price": 18099,
+        "_rank": 94,
+        "mileage": 97821,
+        "year": 2018,
+        "price": 18150,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "cochescom"
       },
       {
-        "_rank": 38,
+        "_rank": 188,
+        "mileage": 97821,
+        "year": 2018,
+        "price": 18150,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 220,
+        "mileage": 97821,
+        "year": 2018,
+        "price": 18150,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "ocasionplus"
+      },
+      {
+        "_rank": 61,
+        "mileage": 35737,
+        "year": 2022,
+        "price": 18250,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 27,
+        "mileage": 37325,
+        "year": 2022,
+        "price": 18290,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "cochescom"
+      },
+      {
+        "_rank": 121,
+        "mileage": 37325,
+        "year": 2022,
+        "price": 18290,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "flexicar"
+      },
+      {
+        "_rank": 45,
         "mileage": 70000,
         "year": 2020,
         "price": 18290,
@@ -2877,106 +2034,61 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 83,
-        "mileage": 34858,
-        "year": 2022,
-        "price": 18300,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 322,
-        "mileage": 37171,
-        "year": 2021,
-        "price": 18490,
+        "_rank": 124,
+        "mileage": 70000,
+        "year": 2020,
+        "price": 18290,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "flexicar"
       },
       {
-        "_rank": 194,
-        "mileage": 37325,
-        "year": 2022,
+        "_rank": 218,
+        "mileage": 70000,
+        "year": 2020,
+        "price": 18290,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 58,
+        "mileage": 26830,
+        "year": 2023,
         "price": 18490,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 195,
-        "mileage": 37325,
-        "year": 2022,
+        "_rank": 60,
+        "mileage": 26830,
+        "year": 2023,
         "price": 18490,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 197,
+        "_rank": 235,
+        "mileage": 28614,
+        "year": 2020,
+        "price": 18490,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 251,
         "mileage": 37325,
         "year": 2022,
         "price": 18490,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
-        "_rank": 198,
-        "mileage": 37325,
-        "year": 2022,
-        "price": 18490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 199,
-        "mileage": 37325,
-        "year": 2022,
-        "price": 18490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 200,
-        "mileage": 37325,
-        "year": 2022,
-        "price": 18490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 201,
-        "mileage": 37325,
-        "year": 2022,
-        "price": 18490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 202,
-        "mileage": 37325,
-        "year": 2022,
-        "price": 18490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 203,
-        "mileage": 37325,
-        "year": 2022,
-        "price": 18490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 43,
+        "_rank": 44,
         "mileage": 45759,
         "year": 2022,
         "price": 18490,
@@ -2985,7 +2097,25 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 40,
+        "_rank": 146,
+        "mileage": 45759,
+        "year": 2022,
+        "price": 18490,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "flexicar"
+      },
+      {
+        "_rank": 225,
+        "mileage": 45759,
+        "year": 2022,
+        "price": 18490,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 46,
         "mileage": 62373,
         "year": 2020,
         "price": 18490,
@@ -2994,7 +2124,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 314,
+        "_rank": 158,
         "mileage": 62373,
         "year": 2020,
         "price": 18490,
@@ -3003,43 +2133,52 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 72,
+        "_rank": 239,
+        "mileage": 62373,
+        "year": 2020,
+        "price": 18490,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 178,
         "mileage": 26800,
         "year": 2021,
+        "price": 18500,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 59,
+        "mileage": 45000,
+        "year": 2017,
         "price": 18500,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 196,
-        "mileage": 32000,
-        "year": 2023,
+        "_rank": 140,
+        "mileage": 44123,
+        "year": 2022,
         "price": 18590,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "ocasionplus"
       },
       {
-        "_rank": 62,
-        "mileage": 58636,
-        "year": 2021,
-        "price": 18599,
+        "_rank": 213,
+        "mileage": 44123,
+        "year": 2022,
+        "price": 18590,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "autocasion"
       },
       {
-        "_rank": 187,
-        "mileage": 97821,
-        "year": 2018,
-        "price": 18690,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 49,
+        "_rank": 47,
         "mileage": 28614,
         "year": 2020,
         "price": 18790,
@@ -3048,76 +2187,40 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 85,
-        "mileage": 26830,
-        "year": 2023,
-        "price": 18890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 88,
-        "mileage": 26830,
-        "year": 2023,
-        "price": 18890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 32,
-        "mileage": 44123,
+        "_rank": 232,
+        "mileage": 33000,
         "year": 2022,
-        "price": 18890,
+        "price": 18800,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "autocasion"
       },
       {
-        "_rank": 77,
-        "mileage": 50700,
-        "year": 2021,
-        "price": 18890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 78,
-        "mileage": 50700,
-        "year": 2021,
-        "price": 18890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 80,
-        "mileage": 50700,
-        "year": 2021,
-        "price": 18890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 81,
-        "mileage": 50700,
-        "year": 2021,
-        "price": 18890,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 48,
+        "_rank": 89,
         "mileage": 78422,
         "year": 2022,
         "price": 18950,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "cochescom"
+      },
+      {
+        "_rank": 194,
+        "mileage": 18055,
+        "year": 2021,
+        "price": 18990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 57,
+        "mileage": 26500,
+        "year": 2017,
+        "price": 18990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
       },
       {
         "_rank": 22,
@@ -3129,16 +2232,25 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 84,
-        "mileage": 57841,
+        "_rank": 21,
+        "mileage": 57000,
         "year": 2021,
         "price": 18990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "cochescom"
       },
       {
-        "_rank": 9,
+        "_rank": 139,
+        "mileage": 57000,
+        "year": 2021,
+        "price": 18990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "flexicar"
+      },
+      {
+        "_rank": 10,
         "mileage": 98000,
         "year": 2020,
         "price": 18990,
@@ -3147,16 +2259,16 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 63,
-        "mileage": 80000,
+        "_rank": 233,
+        "mileage": 98000,
         "year": 2020,
-        "price": 19250,
+        "price": 18990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "autocasion"
       },
       {
-        "_rank": 324,
+        "_rank": 161,
         "mileage": 32000,
         "year": 2023,
         "price": 19290,
@@ -3165,7 +2277,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 50,
+        "_rank": 5,
         "mileage": 68994,
         "year": 2019,
         "price": 19290,
@@ -3174,43 +2286,43 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 86,
-        "mileage": 21995,
-        "year": 2022,
-        "price": 19311,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 74,
-        "mileage": 37865,
+        "_rank": 122,
+        "mileage": 68994,
         "year": 2019,
-        "price": 19480,
+        "price": 19290,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "flexicar"
       },
       {
-        "_rank": 17,
+        "_rank": 227,
+        "mileage": 68994,
+        "year": 2019,
+        "price": 19290,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 14,
+        "mileage": 80228,
+        "year": 2021,
+        "price": 19390,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "cochescom"
+      },
+      {
+        "_rank": 240,
         "mileage": 57000,
         "year": 2021,
         "price": 19490,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "autocasion"
       },
       {
-        "_rank": 45,
-        "mileage": 62000,
-        "year": 2021,
-        "price": 19490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 309,
+        "_rank": 222,
         "mileage": 62000,
         "year": 2021,
         "price": 19490,
@@ -3219,7 +2331,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 47,
+        "_rank": 35,
         "mileage": 80000,
         "year": 2020,
         "price": 19490,
@@ -3228,43 +2340,43 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 5,
-        "mileage": 64690,
-        "year": 2019,
-        "price": 19690,
+        "_rank": 219,
+        "mileage": 80228,
+        "year": 2021,
+        "price": 19490,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "flexicar"
       },
       {
-        "_rank": 75,
-        "mileage": 45000,
-        "year": 2019,
-        "price": 19800,
+        "_rank": 230,
+        "mileage": 80228,
+        "year": 2021,
+        "price": 19490,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
-        "_rank": 79,
+        "_rank": 201,
         "mileage": 79000,
         "year": 2022,
         "price": 19900,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
-        "_rank": 19,
-        "mileage": 37325,
-        "year": 2022,
+        "_rank": 231,
+        "mileage": 28000,
+        "year": 2018,
         "price": 19990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "autocasion"
       },
       {
-        "_rank": 304,
+        "_rank": 155,
         "mileage": 57841,
         "year": 2021,
         "price": 19990,
@@ -3273,43 +2385,70 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 73,
+        "_rank": 200,
+        "mileage": 75000,
+        "year": 2017,
+        "price": 19990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 181,
         "mileage": 51000,
         "year": 2019,
         "price": 19995,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
-        "_rank": 303,
-        "mileage": 34112,
-        "year": 2022,
-        "price": 20490,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "flexicar"
-      },
-      {
-        "_rank": 87,
-        "mileage": 61000,
-        "year": 2020,
-        "price": 20500,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 3,
+        "_rank": 6,
         "mileage": 89859,
         "year": 2020,
-        "price": 20890,
+        "price": 20290,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "cochescom"
       },
       {
-        "_rank": 12,
+        "_rank": 174,
+        "mileage": 34972,
+        "year": 2022,
+        "price": 20300,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 25,
+        "mileage": 71000,
+        "year": 2021,
+        "price": 20399,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "cochescom"
+      },
+      {
+        "_rank": 55,
+        "mileage": 62193,
+        "year": 2020,
+        "price": 20890,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 56,
+        "mileage": 62193,
+        "year": 2020,
+        "price": 20890,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 18,
         "mileage": 80603,
         "year": 2022,
         "price": 20900,
@@ -3318,16 +2457,34 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 82,
-        "mileage": 26830,
-        "year": 2023,
-        "price": 21490,
+        "_rank": 90,
+        "mileage": 26500,
+        "year": 2017,
+        "price": 20990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "cochescom"
       },
       {
-        "_rank": 11,
+        "_rank": 145,
+        "mileage": 26500,
+        "year": 2017,
+        "price": 20990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "flexicar"
+      },
+      {
+        "_rank": 167,
+        "mileage": 26500,
+        "year": 2017,
+        "price": 20990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 84,
         "mileage": 50700,
         "year": 2021,
         "price": 21490,
@@ -3336,7 +2493,25 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 8,
+        "_rank": 153,
+        "mileage": 50700,
+        "year": 2021,
+        "price": 21490,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "flexicar"
+      },
+      {
+        "_rank": 176,
+        "mileage": 50700,
+        "year": 2021,
+        "price": 21490,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 11,
         "mileage": 57841,
         "year": 2021,
         "price": 21490,
@@ -3345,7 +2520,52 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 13,
+        "_rank": 177,
+        "mileage": 57841,
+        "year": 2021,
+        "price": 21490,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 215,
+        "mileage": 61000,
+        "year": 2020,
+        "price": 21900,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 170,
+        "mileage": 26830,
+        "year": 2023,
+        "price": 21990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 171,
+        "mileage": 26830,
+        "year": 2023,
+        "price": 21990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 172,
+        "mileage": 26830,
+        "year": 2023,
+        "price": 21990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 20,
         "mileage": 32000,
         "year": 2023,
         "price": 21990,
@@ -3354,44 +2574,98 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 76,
-        "mileage": 65000,
-        "year": 2020,
-        "price": 22000,
+        "_rank": 241,
+        "mileage": 32000,
+        "year": 2023,
+        "price": 21990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
-        "_rank": 71,
-        "mileage": 32500,
-        "year": 2020,
-        "price": 22350,
+        "_rank": 248,
+        "mileage": 32000,
+        "year": 2023,
+        "price": 21990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
-        "_rank": 68,
+        "_rank": 207,
+        "mileage": 43000,
+        "year": 2022,
+        "price": 22490,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 197,
+        "mileage": 22278,
+        "year": 2024,
+        "price": 22890,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 1,
+        "mileage": 62193,
+        "year": 2020,
+        "price": 22890,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "cochescom"
+      },
+      {
+        "_rank": 152,
+        "mileage": 62193,
+        "year": 2020,
+        "price": 22890,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "flexicar"
+      },
+      {
+        "_rank": 183,
+        "mileage": 62193,
+        "year": 2020,
+        "price": 22890,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 214,
         "mileage": 41000,
         "year": 2020,
         "price": 22900,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
-        "_rank": 66,
-        "mileage": 84000,
-        "year": 2018,
-        "price": 22900,
+        "_rank": 53,
+        "mileage": 12289,
+        "year": 2023,
+        "price": 22990,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 70,
-        "mileage": 54000,
+        "_rank": 179,
+        "mileage": 12289,
+        "year": 2023,
+        "price": 22990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 51,
+        "mileage": 52000,
         "year": 2020,
         "price": 22990,
         "sellerType": "profesional",
@@ -3399,16 +2673,25 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 69,
-        "mileage": 54000,
-        "year": 2021,
+        "_rank": 168,
+        "mileage": 52000,
+        "year": 2020,
+        "price": 22990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 52,
+        "mileage": 64000,
+        "year": 2020,
         "price": 22990,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
       },
       {
-        "_rank": 16,
+        "_rank": 19,
         "mileage": 7,
         "year": 2023,
         "price": 23850,
@@ -3417,16 +2700,16 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 60,
-        "mileage": 10,
-        "year": 2023,
-        "price": 23850,
+        "_rank": 95,
+        "mileage": 46927,
+        "year": 2021,
+        "price": 24550,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "autoscout24"
       },
       {
-        "_rank": 1,
+        "_rank": 0,
         "mileage": 59900,
         "year": 2022,
         "price": 24900,
@@ -3435,7 +2718,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 193,
+        "_rank": 50,
         "mileage": 59900,
         "year": 2022,
         "price": 24900,
@@ -3444,16 +2727,25 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 59,
-        "mileage": 6154,
-        "year": 2023,
+        "_rank": 166,
+        "mileage": 59900,
+        "year": 2022,
+        "price": 24900,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 187,
+        "mileage": 64000,
+        "year": 2020,
         "price": 24990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
+        "portal": "autocasion"
       },
       {
-        "_rank": 296,
+        "_rank": 150,
         "mileage": 40000,
         "year": 2019,
         "price": 24999,
@@ -3462,34 +2754,61 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 67,
+        "_rank": 54,
+        "mileage": 69000,
+        "year": 2017,
+        "price": 25500,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
+      },
+      {
+        "_rank": 202,
         "mileage": 5500,
         "year": 2021,
         "price": 25950,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
-        "_rank": 51,
-        "mileage": 9985,
-        "year": 2024,
-        "price": 26990,
+        "_rank": 224,
+        "mileage": 46660,
+        "year": 2021,
+        "price": 26350,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 2,
-        "mileage": 25100,
-        "year": 2024,
-        "price": 27900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
+        "portal": "autocasion"
       },
       {
         "_rank": 4,
+        "mileage": 9985,
+        "year": 2024,
+        "price": 26690,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "cochescom"
+      },
+      {
+        "_rank": 190,
+        "mileage": 36700,
+        "year": 2021,
+        "price": 27490,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 199,
+        "mileage": 6000,
+        "year": 2024,
+        "price": 27900,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 7,
         "mileage": 25100,
         "year": 2024,
         "price": 27900,
@@ -3498,35 +2817,44 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 65,
+        "_rank": 8,
+        "mileage": 25100,
+        "year": 2024,
+        "price": 27900,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "cochescom"
+      },
+      {
+        "_rank": 169,
         "mileage": 14000,
         "year": 2023,
         "price": 27990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       },
       {
-        "_rank": 64,
+        "_rank": 186,
         "mileage": 11500,
         "year": 2022,
         "price": 29990,
         "sellerType": "profesional",
         "listedAt": "",
-        "portal": "autoscout24"
+        "portal": "autocasion"
       }
     ]
   },
-  "referenceDate": "2026-07-24T13:17:03.891Z",
+  "referenceDate": "2026-08-13T17:18:04.388Z",
   "expected": {
-    "priceOptimal": 19208,
-    "priceLow": 17415,
-    "priceHigh": 20703,
+    "priceOptimal": 20513,
+    "priceLow": 18223,
+    "priceHigh": 22345,
     "confidence": 88,
-    "comparables": 285,
+    "comparables": 241,
     "usedFallback": false,
     "damageFactor": 1,
-    "usageImpact": 1643,
+    "usageImpact": 2075,
     "usageUsedDefault": true,
     "colorAdjFactor": 0.99,
     "colorAdjPct": -1,

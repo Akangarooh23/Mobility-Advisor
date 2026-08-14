@@ -1,93 +1,79 @@
 -- ============================================================================
---  Un coche publicado varias veces deja de contarse varias veces
---  2026-08-14 · REVISAR ANTES DE APLICAR
+--  Qué anuncios son el mismo coche
+--  2026-08-14
 -- ============================================================================
 --
---  No borra nada, no modifica ninguna fila existente y no toca ninguna columna
---  que escriba otro proceso. Solo añade tres columnas nulas y sus índices.
+--  ── Por qué una tabla aparte y no columnas en las ofertas ───────────────────
 --
---  ── Por qué columnas nuevas y no `is_active` ────────────────────────────────
+--  La primera versión añadía `duplicate_of`, `ubicaciones` y `apariciones` a
+--  `moveadvisor_market_offers`. Se descartó por cuatro motivos, y el primero es
+--  el que decide:
 --
---  Marcar las copias como inactivas sería lo evidente y NO aguanta: dos
---  procesos de n8n devuelven `is_active` a `true` solos.
+--   1. El proceso corre CADA NOCHE y tendría que limpiar y volver a marcar:
+--      600.000 filas reescritas cada madrugada en la tabla más caliente del
+--      sistema. Postgres no actualiza en sitio —crea una versión nueva y deja
+--      la vieja muerta—, así que hincharía la tabla que usan la web y la
+--      tasación. Con esta tabla es TRUNCATE más 220.000 inserciones en algo
+--      pequeño, y la grande no se toca.
 --
---    · `mantenimiento-activas` corre cada día a las 07:00 y lo RECALCULA para
---      todas las ofertas a partir de `last_seen_at`.
---    · `flexicar-verificar-activas` lo pone a `TRUE` cada vez que comprueba que
---      la ficha sigue publicada.
+--   2. Los scrapers son dueños de `moveadvisor_market_offers`. Cada columna
+--      añadida ahí es una apuesta a que ningún workflow futuro la incluya en su
+--      upsert, y esas apuestas se pierden en silencio.
 --
---  La marca duraría menos de un día, y se desharía en silencio: el marketplace
---  volvería a enseñar los duplicados sin que nada avisara.
+--   3. Es una INFERENCIA nuestra, no un dato del portal. Separadas, siempre se
+--      puede contestar "¿qué dijo el portal exactamente?" sin desenredar nada.
 --
---  Además son dos preguntas distintas. `is_active` contesta "¿sigue vivo el
---  anuncio?"; `duplicate_of` contesta "¿es una copia de otro?". Fundirlas
---  dejaría sin saber por qué está oculta cada oferta.
+--   4. La huella va a cambiar —quedan 29.610 grupos entre portales con precio
+--      distinto—. Rehacer una tabla pequeña es barato; reescribir la grande no.
 --
---  ── Por qué sobreviven a los scrapers ───────────────────────────────────────
---
---  El upsert de n8n enumera sus columnas una a una en el `DO UPDATE SET`, así
---  que lo que no está en esa lista no se toca. De ahí una regla que conviene
---  que quede escrita: **ningún workflow debe añadir estas tres columnas a su
---  upsert.** Si alguna vez se hace, la deduplicación se borra cada noche.
---
---  ── Qué se oculta, medido el 14 de agosto ───────────────────────────────────
---
---    autoscout24   377.261 activas · 155.965 copias · 41,3 %
---    cochescom      81.981 activas ·   6.157 copias ·  7,5 %
---    milanuncios     4.739 activas ·      64 copias ·  1,4 %
---
---  Por marca el reparto es parejo —entre el 24 % y el 45 %— y ninguna se queda
---  sin catálogo. autocasion NO aparece: no publica `dealer_name`, así que sus
---  ofertas no entran en la huella y sus copias siguen visibles. Es un hueco
---  declarado, no un cero.
+--  Y de propina la migración deja de dar miedo: crear una tabla vacía y sus
+--  índices no bloquea a nadie, así que ni siquiera hace falta CONCURRENTLY.
 -- ============================================================================
 
-BEGIN;
+CREATE TABLE IF NOT EXISTS moveadvisor_offer_duplicates (
+  -- Cada anuncio del grupo, incluido el canónico, que se apunta a sí mismo.
+  -- Que el canónico esté también permite responder "¿cuál es el grupo de éste?"
+  -- con una sola consulta, sin casos especiales.
+  offer_id      TEXT PRIMARY KEY,
 
--- A quién representa esta oferta. NULL = es el canónico, o no tiene copias.
--- Se guarda el id de la oferta canónica, que es el id del portal.
-ALTER TABLE moveadvisor_market_offers
-  ADD COLUMN IF NOT EXISTS duplicate_of TEXT;
+  -- A quién representa. Si offer_id = canonical_id, éste ES el canónico.
+  canonical_id  TEXT NOT NULL,
 
--- Todas las ubicaciones del grupo, solo en el canónico.
---
--- Se materializa a propósito, y no choca con "no tengas el mismo dato dos
--- veces": lo escribe UN solo proceso en el mismo momento en que decide el
--- grupo, así que no hay dos fuentes que puedan discrepar. Y el filtro por
--- ubicación de la web tiene que seguir siendo rápido sobre 600.000 filas.
-ALTER TABLE moveadvisor_market_offers
-  ADD COLUMN IF NOT EXISTS ubicaciones TEXT[];
+  -- La clave que los agrupó. Guardarla permite auditar POR QUÉ se unieron sin
+  -- tener que reconstruir la huella a mano tres meses después.
+  huella        TEXT NOT NULL,
 
--- Dónde está publicada cada copia: portal, url, vendedor y ciudad.
--- Es lo que la ficha del canónico enseña como "también está en...".
-ALTER TABLE moveadvisor_market_offers
-  ADD COLUMN IF NOT EXISTS apariciones JSONB;
+  -- Solo en el canónico: todas las ubicaciones del grupo, para que el filtro
+  -- de la web devuelva el coche por cualquiera de ellas.
+  ubicaciones   TEXT[],
 
--- Para "dame los canónicos" y para encontrar el grupo de uno dado.
-CREATE INDEX IF NOT EXISTS ix_offers_duplicate_of
-  ON moveadvisor_market_offers (duplicate_of);
+  -- Solo en el canónico: portal, url, vendedor, ciudad y precio de cada copia.
+  -- Es lo que la ficha enseña como "también está en...".
+  apariciones   JSONB,
 
--- Parcial: la consulta que de verdad se hace es "activas y no copia".
-CREATE INDEX IF NOT EXISTS ix_offers_canonicas
-  ON moveadvisor_market_offers (is_active)
-  WHERE duplicate_of IS NULL;
+  agrupado_en   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  -- 'huella.v1' o el email de quien lo decidió a mano. Un grupo decidido por
+  -- una persona no se puede deshacer por una pasada automática.
+  agrupado_por  TEXT NOT NULL
+);
 
--- GIN para que `'Málaga' = ANY(ubicaciones)` no recorra la tabla.
-CREATE INDEX IF NOT EXISTS ix_offers_ubicaciones
-  ON moveadvisor_market_offers USING GIN (ubicaciones);
+-- "Dame el grupo de este canónico"
+CREATE INDEX IF NOT EXISTS ix_dups_canonical
+  ON moveadvisor_offer_duplicates (canonical_id);
 
-COMMIT;
+-- "Dame solo los canónicos" — la consulta del marketplace
+CREATE INDEX IF NOT EXISTS ix_dups_solo_canonicos
+  ON moveadvisor_offer_duplicates (offer_id)
+  WHERE offer_id = canonical_id;
+
+-- Para que `'Málaga' = ANY(ubicaciones)` no recorra la tabla
+CREATE INDEX IF NOT EXISTS ix_dups_ubicaciones
+  ON moveadvisor_offer_duplicates USING GIN (ubicaciones);
+
+-- Sin FOREIGN KEY a propósito: un ON DELETE CASCADE se llevaría filas por
+-- delante sin dejar rastro si un scraper borrara una oferta, y el proceso
+-- nocturno reconstruye esta tabla entera de todas formas.
 
 -- ============================================================================
---  Para deshacerla, si hiciera falta. No pierde nada que no se pueda recalcular.
+--  Para deshacerla:  DROP TABLE moveadvisor_offer_duplicates;
 -- ============================================================================
---
---  BEGIN;
---    DROP INDEX IF EXISTS ix_offers_ubicaciones;
---    DROP INDEX IF EXISTS ix_offers_canonicas;
---    DROP INDEX IF EXISTS ix_offers_duplicate_of;
---    ALTER TABLE moveadvisor_market_offers
---      DROP COLUMN IF EXISTS apariciones,
---      DROP COLUMN IF EXISTS ubicaciones,
---      DROP COLUMN IF EXISTS duplicate_of;
---  COMMIT;

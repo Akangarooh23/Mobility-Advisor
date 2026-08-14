@@ -196,7 +196,21 @@ async function main() {
       FROM grupos g
       LEFT JOIN (
         SELECT canonico,
-               array_agg(DISTINCT sitio) FILTER (WHERE sitio <> '') AS ubicaciones,
+               /*
+                 NORMALIZADAS: minúsculas y sin acentos.
+
+                 La primera versión guardaba la ciudad tal cual y salían doce
+                 entradas para siete ciudades — "CORDOBA" y "Córdoba", "MADRID"
+                 y "Madrid". Eso rompe justo lo que este array existe para
+                 permitir: si la web filtra por "Córdoba" y aquí pone "CORDOBA",
+                 el coche no sale por esa ubicación.
+
+                 Este array es para BUSCAR. Los nombres tal y como los escribe
+                 cada portal se conservan en "apariciones", que es de donde los
+                 lee la ficha — así el filtro casa y la pantalla sigue diciendo
+                 "Córdoba" y no "cordoba".
+               */
+               array_agg(DISTINCT lower(unaccent(sitio))) FILTER (WHERE sitio <> '') AS ubicaciones,
                jsonb_agg(DISTINCT jsonb_build_object(
                  'portal', portal, 'ciudad', city, 'vendedor', dealer_name,
                  'precio', price, 'url', url))                       AS apariciones

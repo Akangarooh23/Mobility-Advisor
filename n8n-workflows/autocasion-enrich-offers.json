@@ -1,0 +1,186 @@
+{
+  "name": "Autocasión – Enriquecer Ofertas",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "ace-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-6448, 560]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 6 * * *"
+            }
+          ]
+        }
+      },
+      "id": "ace-cron",
+      "name": "Cada día a las 6:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [-6432, 352]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id,\n  COALESCE(url, '') AS url,\n  COALESCE(color, '') AS color,\n  COALESCE(doors, 0)::int AS doors,\n  COALESCE(seats, 0)::int AS seats,\n  COALESCE(power_cv, 0)::int AS power_cv,\n  COALESCE(body_type, '') AS body_type,\n  COALESCE(traction, '') AS traction,\n  COALESCE(co2, '') AS co2\nFROM moveadvisor_market_offers\nWHERE portal = 'autocasion'\n  AND (enrich_tried_at IS NULL OR enrich_tried_at < NOW() - INTERVAL '7 days')\n  AND last_seen_at > NOW() - INTERVAL '60 days'\n  AND (\n    COALESCE(color, '') = ''\n    OR COALESCE(doors, 0) = 0\n    OR COALESCE(seats, 0) = 0\n    OR COALESCE(body_type, '') = ''\n  )\nORDER BY enrich_tried_at ASC NULLS FIRST\nLIMIT 300",
+        "options": {}
+      },
+      "id": "ace-pg-select",
+      "name": "PG: Ofertas a enriquecer",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [-6144, 256],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "ace-loop",
+      "name": "Loop: oferta por oferta",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [-5904, 256]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "User-Agent", "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36" },
+            { "name": "Accept", "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" },
+            { "name": "Accept-Language", "value": "es-ES,es;q=0.9" }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 20000
+        }
+      },
+      "id": "ace-http",
+      "name": "HTTP: Ficha HTML Autocasión",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [-5664, 256],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const dbRecord = $('Loop: oferta por oferta').item.json;\nconst dbId = String(dbRecord.id || '');\nconst dbUrl = String(dbRecord.url || '');\n\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut\n  : (httpOut.data || httpOut.body || httpOut.html || '');\n\nconsole.log('[ac-enrich] id=' + dbId + ' url=' + dbUrl + ' html_len=' + String(html).length);\n\nif (!dbId) {\n  await new Promise(r => setTimeout(r, 800));\n  return [{ json: { id: null, hasUpdates: false, updateSql: null } }];\n}\n\nfunction esc(v) {\n  if (v === null || v === undefined) return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\n\nfunction normalizeBody(raw) {\n  const s = String(raw || '').toLowerCase();\n  if (!s) return '';\n  if (s.indexOf('suv') !== -1 || s.indexOf('4x4') !== -1 || s.indexOf('todo') !== -1 || s.indexOf('todoterreno') !== -1 || s.indexOf('terreno') !== -1) return 'SUV';\n  if (s.indexOf('pick') !== -1) return 'Pick Up';\n  if (s.indexOf('furgon') !== -1 || s.indexOf('van') !== -1 || s.indexOf('comercial') !== -1) return 'Furgoneta';\n  if (s.indexOf('familiar') !== -1 || s.indexOf('estate') !== -1 || s.indexOf('combi') !== -1) return 'Familiar';\n  if (s.indexOf('monovolumen') !== -1 || s.indexOf('mpv') !== -1) return 'Monovolumen';\n  if (s.indexOf('coupe') !== -1 || s.indexOf('coupé') !== -1) return 'Coupé';\n  if (s.indexOf('cabrio') !== -1 || s.indexOf('convert') !== -1 || s.indexOf('descapotable') !== -1) return 'Cabrio';\n  if (s.indexOf('compact') !== -1 || s.indexOf('peque') !== -1 || s.indexOf('utilitario') !== -1) return 'Compacto';\n  if (s.indexOf('berlina') !== -1 || s.indexOf('sedan') !== -1 || s.indexOf('turismo') !== -1 || s.indexOf('hatchback') !== -1) return 'Berlina';\n  return raw || '';\n}\n\n// ── Extraer JSON-LD de la ficha ────────────────────────────────────────────\nlet vehicle = null;\nconst htmlStr = String(html);\n\ntry {\n  const blocks = [...htmlStr.matchAll(/<script[^>]*application\\/ld\\+json[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m => m[1].trim());\n  for (const b of blocks) {\n    try {\n      const j = JSON.parse(b);\n      const arr = Array.isArray(j) ? j : (j['@graph'] || [j]);\n      for (const o of arr) {\n        if (o && (o['@type'] === 'Car' || o['@type'] === 'Product')) {\n          // La ficha suele tener más datos que el listado\n          const candidate = o.offers ? (o.offers.itemOffered || o) : o;\n          if (candidate.color || candidate.numberOfDoors || candidate.vehicleSeatingCapacity) {\n            vehicle = o;\n            break;\n          }\n          // Guardar como candidato aunque no tenga color aún\n          if (!vehicle) vehicle = o;\n        }\n      }\n      if (vehicle) break;\n    } catch (e) {}\n  }\n} catch(e) {\n  console.log('[ac-enrich] parse error: ' + e.message);\n}\n\nif (vehicle) {\n  const off = vehicle.offers || {};\n  const car = off.itemOffered || vehicle;\n  console.log('[ac-enrich] vehicle type=' + vehicle['@type'] + ' car keys=' + Object.keys(car).join(','));\n} else {\n  console.log('[ac-enrich] no JSON-LD vehicle found in html (len=' + htmlStr.length + ')');\n}\n\n// ── Extraer campos ─────────────────────────────────────────────────────────\nlet colorVal = '', doorsVal = 0, seatsVal = 0, hpVal = 0;\nlet bodyVal = '', tractionVal = '', co2Val = '';\n\nif (vehicle) {\n  const off = vehicle.offers || {};\n  const car = off.itemOffered || vehicle;\n\n  colorVal = car.color || vehicle.color || car.colour || vehicle.colour || '';\n\n  const rawDoors = car.numberOfDoors || vehicle.numberOfDoors || car.doors || vehicle.doors || 0;\n  doorsVal = parseInt(String(rawDoors).replace(/[^0-9]/g, ''), 10) || 0;\n\n  const rawSeats = car.vehicleSeatingCapacity || vehicle.vehicleSeatingCapacity || car.seats || vehicle.seats || 0;\n  seatsVal = parseInt(String(rawSeats).replace(/[^0-9]/g, ''), 10) || 0;\n\n  try {\n    const ep = car.vehicleEngine && car.vehicleEngine.enginePower;\n    if (ep && ep.value != null) hpVal = parseInt(String(ep.value).replace(/[^0-9]/g, ''), 10) || 0;\n  } catch(e) {}\n\n  bodyVal = car.bodyType || vehicle.bodyType || car.carBodyType || vehicle.carBodyType || '';\n  tractionVal = car.driveWheelConfiguration || vehicle.driveWheelConfiguration || car.traction || vehicle.traction || '';\n\n  const co2Raw = car.emissionsCO2 || vehicle.emissionsCO2 || car.co2Emissions || vehicle.co2Emissions || '';\n  co2Val = String(co2Raw).replace(/[^0-9]/g, '');\n\n  console.log('[ac-enrich] extracted color=' + colorVal + ' doors=' + doorsVal + ' seats=' + seatsVal + ' body=' + bodyVal);\n} else {\n  // Fallback: regex sobre el HTML\n  const mColor = htmlStr.match(/\"color\"\\s*:\\s*\"([^\"]+)\"/i);\n  if (mColor) colorVal = mColor[1];\n  const mDoors = htmlStr.match(/\"numberOfDoors\"\\s*:\\s*(\\d+)/);\n  if (mDoors) doorsVal = parseInt(mDoors[1], 10);\n  const mSeats = htmlStr.match(/\"vehicleSeatingCapacity\"\\s*:\\s*\"?(\\d+)\"?/);\n  if (mSeats) seatsVal = parseInt(mSeats[1], 10);\n  const mBody = htmlStr.match(/\"bodyType\"\\s*:\\s*\"([^\"]+)\"/i);\n  if (mBody) bodyVal = mBody[1];\n  console.log('[ac-enrich] regex fallback: color=' + colorVal + ' doors=' + doorsVal);\n}\n\n// ── Construir SQL ──────────────────────────────────────────────────────────\nconst sets = [];\n\nif (colorVal)              sets.push('color = COALESCE(NULLIF(color,\\'\\'), ' + esc(colorVal) + ')');\nif (Number(doorsVal) > 0)  sets.push('doors = COALESCE(NULLIF(doors,0), ' + Number(doorsVal) + ')');\nif (Number(seatsVal) > 0)  sets.push('seats = COALESCE(NULLIF(seats,0), ' + Number(seatsVal) + ')');\nif (Number(hpVal) > 0)     sets.push('power_cv = COALESCE(NULLIF(power_cv,0), ' + Number(hpVal) + ')');\nif (bodyVal)               sets.push('body_type = COALESCE(NULLIF(body_type,\\'\\'), ' + esc(normalizeBody(bodyVal)) + ')');\nif (co2Val && /^\\d+$/.test(co2Val)) sets.push('co2 = COALESCE(NULLIF(co2,\\'\\'), ' + esc(co2Val) + ')');\n\nsets.push('enrich_tried_at = NOW()');\n\nconst hasUpdates = sets.length > 1;\nconst updateSql = 'UPDATE moveadvisor_market_offers SET ' + sets.join(', ') + ', updated_at = NOW() WHERE id = ' + esc(dbId);\n\nconsole.log('[ac-enrich] sets=' + sets.length + ' hasUpdates=' + hasUpdates);\n\nawait new Promise(r => setTimeout(r, 600));\n\nreturn [{ json: { id: dbId, hasUpdates: hasUpdates, updateSql: updateSql } }];\n"
+      },
+      "id": "ace-code",
+      "name": "Code: Extraer campos y generar SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-5424, 256],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cond-has-updates",
+              "leftValue": "={{ $json.hasUpdates }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ace-if",
+      "name": "IF: ¿hay datos nuevos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-5184, 256]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.updateSql }}",
+        "options": {}
+      },
+      "id": "ace-pg-update",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [-4944, 128],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [[{ "node": "PG: Ofertas a enriquecer", "type": "main", "index": 0 }]]
+    },
+    "Cada día a las 6:00": {
+      "main": [[{ "node": "PG: Ofertas a enriquecer", "type": "main", "index": 0 }]]
+    },
+    "PG: Ofertas a enriquecer": {
+      "main": [[{ "node": "Loop: oferta por oferta", "type": "main", "index": 0 }]]
+    },
+    "Loop: oferta por oferta": {
+      "main": [
+        [{ "node": "HTTP: Ficha HTML Autocasión", "type": "main", "index": 0 }],
+        [{ "node": "HTTP: Ficha HTML Autocasión", "type": "main", "index": 0 }]
+      ]
+    },
+    "HTTP: Ficha HTML Autocasión": {
+      "main": [[{ "node": "Code: Extraer campos y generar SQL", "type": "main", "index": 0 }]]
+    },
+    "Code: Extraer campos y generar SQL": {
+      "main": [[{ "node": "IF: ¿hay datos nuevos?", "type": "main", "index": 0 }]]
+    },
+    "IF: ¿hay datos nuevos?": {
+      "main": [
+        [{ "node": "PG: Actualizar oferta", "type": "main", "index": 0 }],
+        [{ "node": "Loop: oferta por oferta", "type": "main", "index": 0 }]
+      ]
+    },
+    "PG: Actualizar oferta": {
+      "main": [[{ "node": "Loop: oferta por oferta", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "pinData": {},
+  "staticData": null,
+  "triggerCount": 0,
+  "tags": []
+}

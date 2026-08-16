@@ -47,7 +47,7 @@ const APLICAR    = process.argv.includes("--aplicar");
 const LIMIT_IDX  = process.argv.indexOf("--limit");
 const LIMIT      = LIMIT_IDX !== -1
   ? (Number(process.argv[LIMIT_IDX + 1]) || 0)
-  : 50000;   // sin --limit: hasta 50k (prácticamente sin límite)
+  : 0;       // sin --limit: procesar todo (111k+ pares)
 
 // ── consulta ───────────────────────────────────────────────────────────────
 //
@@ -70,7 +70,7 @@ WITH as24 AS (
   WHERE portal       = 'autoscout24'
     AND COALESCE(is_active, TRUE)
     AND price        > 0
-    AND finance_price IS NULL
+    AND (finance_price IS NULL OR finance_price = price)   -- no corregida aún
     AND version      IS NOT NULL AND version <> ''
     AND year         IS NOT NULL
     AND mileage      > 1000
@@ -127,7 +127,7 @@ SET  finance_price = $2,
      updated_at    = NOW()
 WHERE id = $1
   AND portal       = 'autoscout24'
-  AND finance_price IS NULL
+  AND (finance_price IS NULL OR finance_price = price)   -- no corregida aún
 `;
 
 // ── main ───────────────────────────────────────────────────────────────────

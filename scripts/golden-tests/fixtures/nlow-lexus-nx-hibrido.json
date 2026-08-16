@@ -1,5 +1,5 @@
 {
-  "_capturedAt": "2026-08-13T17:18:02.183Z",
+  "_capturedAt": "2026-08-14T13:01:12.471Z",
   "_branch": "n_low",
   "_actualBranch": "n_low",
   "vehicle": {
@@ -375,7 +375,7 @@
         "portal": "autohero"
       },
       {
-        "_rank": 3,
+        "_rank": 5,
         "mileage": 88337,
         "year": 2016,
         "price": 22999,
@@ -384,7 +384,7 @@
         "portal": "autohero"
       },
       {
-        "_rank": 5,
+        "_rank": 4,
         "mileage": 121190,
         "year": 2019,
         "price": 22999,
@@ -411,7 +411,7 @@
         "portal": "autohero"
       },
       {
-        "_rank": 4,
+        "_rank": 3,
         "mileage": 117158,
         "year": 2021,
         "price": 30899,
@@ -430,7 +430,7 @@
       }
     ]
   },
-  "referenceDate": "2026-08-13T17:18:02.183Z",
+  "referenceDate": "2026-08-14T13:01:12.471Z",
   "expected": {
     "priceOptimal": 26214,
     "priceLow": 25358,

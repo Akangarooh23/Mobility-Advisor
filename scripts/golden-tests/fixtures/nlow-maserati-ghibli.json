@@ -1,5 +1,5 @@
 {
-  "_capturedAt": "2026-08-13T17:18:08.694Z",
+  "_capturedAt": "2026-08-14T13:01:19.519Z",
   "_branch": "cascade_relaxed",
   "_actualBranch": "cascade_relaxed",
   "vehicle": {
@@ -20,7 +20,7 @@
   },
   "national": {
     "source": "postgres",
-    "totalUniverse": 131,
+    "totalUniverse": 132,
     "cascadeRelaxed": {
       "power": false,
       "transmission": true,
@@ -30,19 +30,19 @@
     "comparables": 28,
     "rawComparables": 32,
     "market": {
-      "mean": 28553,
-      "median": 26990,
-      "p25": 24990,
-      "p75": 32547,
+      "mean": 29721,
+      "median": 28895,
+      "p25": 26490,
+      "p75": 32993,
       "daysOnMarketMedian": null,
       "updatedAt": "",
-      "cv": 0.1593777721169451,
-      "usageImpact": 6748,
-      "rawUsageImpact": 9836,
-      "usageMedianKm": 141968,
+      "cv": 0.14513777406973102,
+      "usageImpact": 6480,
+      "rawUsageImpact": 6480,
+      "usageMedianKm": 114000,
       "usageMedianYr": 2018,
       "usageUsedDefault": true,
-      "kmAdvantagePct": 91,
+      "kmAdvantagePct": 88,
       "slopeKm": null,
       "slopeYear": null,
       "priceTrend": null,
@@ -51,22 +51,16 @@
       "privateP25": null,
       "privateP75": null,
       "privateCount": 0,
-      "dealerMedian": 26990,
-      "dealerP25": 24990,
-      "dealerP75": 32547,
+      "dealerMedian": 28895,
+      "dealerP25": 26490,
+      "dealerP75": 32993,
       "dealerCount": 28
     },
     "byPortal": [
       {
-        "portal": "cochescom",
-        "units": 11,
-        "avgPrice": 25938,
-        "avgDays": null
-      },
-      {
         "portal": "autoscout24",
-        "units": 9,
-        "avgPrice": 30083,
+        "units": 19,
+        "avgPrice": 29514,
         "avgDays": null
       },
       {
@@ -82,6 +76,12 @@
         "avgDays": null
       },
       {
+        "portal": "cochescom",
+        "units": 1,
+        "avgPrice": 27990,
+        "avgDays": null
+      },
+      {
         "portal": "ocasionplus",
         "units": 1,
         "avgPrice": 34990,
@@ -92,17 +92,17 @@
       {
         "from": 21000,
         "to": 24000,
-        "count": 4
+        "count": 2
       },
       {
         "from": 24000,
         "to": 27000,
-        "count": 11
+        "count": 6
       },
       {
         "from": 27000,
         "to": 30000,
-        "count": 4
+        "count": 9
       },
       {
         "from": 30000,
@@ -112,7 +112,7 @@
       {
         "from": 33000,
         "to": 36000,
-        "count": 3
+        "count": 5
       },
       {
         "from": 36000,
@@ -201,6 +201,104 @@
         "portal": "autoscout24",
         "brand": "Maserati",
         "model": "Ghibli",
+        "version": "Ghibli Diesel Aut. 275",
+        "fuel": "Diesel",
+        "transmission": "Automatica",
+        "bodyType": "Coupé",
+        "environmentalLabel": "",
+        "year": 2017,
+        "mileage": 71000,
+        "doors": 4,
+        "seats": 5,
+        "powerCv": 275,
+        "price": 34900,
+        "monthlyPrice": null,
+        "financePrice": null,
+        "url": "https://www.autoscout24.es/anuncios/maserati-ghibli-ghibli-diesel-aut-275-diesel-gris-cat_ma45mo15189-8560716f-d540-46ac-9080-ea8a6a108aa0",
+        "province": "Pallejà",
+        "city": "Pallejà",
+        "color": "Gris",
+        "sellerType": "profesional",
+        "traction": "",
+        "displacement": "2987",
+        "co2": "",
+        "powerKw": "202",
+        "consumption": "",
+        "dealerName": "",
+        "nextITV": "",
+        "warrantyMonths": null,
+        "image": "https://prod.pictures.autoscout24.net/listing-images/8560716f-d540-46ac-9080-ea8a6a108aa0_67d715d7-0d37-433e-99d3-d4c8f18e3c85.jpg/250x188.webp",
+        "images": [
+          "https://prod.pictures.autoscout24.net/listing-images/8560716f-d540-46ac-9080-ea8a6a108aa0_67d715d7-0d37-433e-99d3-d4c8f18e3c85.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8560716f-d540-46ac-9080-ea8a6a108aa0_edb6c40f-07e3-4f5f-a418-ee4e389f279f.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8560716f-d540-46ac-9080-ea8a6a108aa0_3e9038f1-08b0-47db-afe5-6526c4d12846.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8560716f-d540-46ac-9080-ea8a6a108aa0_10a26da9-83a6-4098-881b-e7c37bb401ae.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8560716f-d540-46ac-9080-ea8a6a108aa0_61a96150-cc04-427f-8cd3-6d6dfe5b6f7a.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8560716f-d540-46ac-9080-ea8a6a108aa0_d3b1925f-69c1-497f-9f45-ff9a1f23438e.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8560716f-d540-46ac-9080-ea8a6a108aa0_14655feb-2e9f-4f1b-9b81-d48987cf83f3.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8560716f-d540-46ac-9080-ea8a6a108aa0_f07aa395-4e77-4af5-8a86-77f037cc289e.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8560716f-d540-46ac-9080-ea8a6a108aa0_8ff8ad13-1385-4651-9c7a-d513f6ee6202.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8560716f-d540-46ac-9080-ea8a6a108aa0_576c02fe-d078-4da3-8b10-5a7df0ca1a82.jpg/250x188.webp"
+        ],
+        "updatedAt": "",
+        "listedAt": "",
+        "listingType": "compra"
+      },
+      {
+        "portal": "autoscout24",
+        "brand": "Maserati",
+        "model": "Ghibli",
+        "version": "3.0 V6 DS RWD",
+        "fuel": "Diesel",
+        "transmission": "Automatica",
+        "bodyType": "Berlina",
+        "environmentalLabel": "",
+        "year": 2016,
+        "mileage": 73500,
+        "doors": 4,
+        "seats": 5,
+        "powerCv": 275,
+        "price": 28890,
+        "monthlyPrice": null,
+        "financePrice": null,
+        "url": "https://www.autoscout24.es/anuncios/maserati-ghibli-3-0-v6-ds-rwd-diesel-negro-cat_ma45mo15189-a8772a8e-9538-4255-a662-f6d2aaa74477",
+        "province": "MALAGA",
+        "city": "MALAGA",
+        "color": "Negro",
+        "sellerType": "profesional",
+        "traction": "",
+        "displacement": "2987",
+        "co2": "",
+        "powerKw": "202",
+        "consumption": "",
+        "dealerName": "AUTOGRADO",
+        "nextITV": "",
+        "warrantyMonths": null,
+        "image": "https://prod.pictures.autoscout24.net/listing-images/a8772a8e-9538-4255-a662-f6d2aaa74477_6de999a6-0dc0-4c7b-a64a-836a3bea36c1.jpg/250x188.webp",
+        "images": [
+          "https://prod.pictures.autoscout24.net/listing-images/a8772a8e-9538-4255-a662-f6d2aaa74477_6de999a6-0dc0-4c7b-a64a-836a3bea36c1.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a8772a8e-9538-4255-a662-f6d2aaa74477_eeecd45d-289e-4c02-8e57-909e138fb423.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a8772a8e-9538-4255-a662-f6d2aaa74477_92ff12f9-4456-412b-8595-95cdff18ece7.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a8772a8e-9538-4255-a662-f6d2aaa74477_852a7a6a-2604-44e9-b90c-7841bb51aa8c.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a8772a8e-9538-4255-a662-f6d2aaa74477_a97e4e2b-cdf5-4a3c-94fc-6ad1a056c1c3.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a8772a8e-9538-4255-a662-f6d2aaa74477_b6cb8141-c12d-4889-a730-8293be997749.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a8772a8e-9538-4255-a662-f6d2aaa74477_01832c6d-5d08-4eb0-98d6-32d4b2c1d042.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a8772a8e-9538-4255-a662-f6d2aaa74477_7bc5b2a1-e5de-4848-9da1-1d8166789448.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a8772a8e-9538-4255-a662-f6d2aaa74477_fcc0361e-c8f2-4302-a59e-6ec1541c3c0e.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a8772a8e-9538-4255-a662-f6d2aaa74477_f0525466-4da7-4b24-bbde-c95837c8c734.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a8772a8e-9538-4255-a662-f6d2aaa74477_4fd702f1-0d95-42ac-a2f5-26ef42b12c36.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a8772a8e-9538-4255-a662-f6d2aaa74477_2c3f3b81-758c-43bf-8c33-ffbcc09c6562.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a8772a8e-9538-4255-a662-f6d2aaa74477_d1f21992-d0de-4d0f-ade7-67621e0d03a2.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a8772a8e-9538-4255-a662-f6d2aaa74477_0a860ef3-25fe-4549-9809-b542a4e82cd6.jpg/250x188.webp"
+        ],
+        "updatedAt": "",
+        "listedAt": "",
+        "listingType": "compra"
+      },
+      {
+        "portal": "autoscout24",
+        "brand": "Maserati",
+        "model": "Ghibli",
         "version": "Diesel GranSport Aut. 275",
         "fuel": "Diesel",
         "transmission": "Automatica",
@@ -217,7 +315,7 @@
         "url": "https://www.autoscout24.es/anuncios/maserati-ghibli-diesel-gransport-aut-275-diesel-cat_ma45mo15189-bd5c0eba-838c-440f-b6ee-6d36b3ff096f",
         "province": "València",
         "city": "València",
-        "color": "",
+        "color": "Gris",
         "sellerType": "profesional",
         "traction": "",
         "displacement": "2987",
@@ -242,6 +340,108 @@
           "https://prod.pictures.autoscout24.net/listing-images/bd5c0eba-838c-440f-b6ee-6d36b3ff096f_ec1dbb33-4b9f-4641-9e80-a600f2d365cc.jpg/250x188.webp",
           "https://prod.pictures.autoscout24.net/listing-images/bd5c0eba-838c-440f-b6ee-6d36b3ff096f_77f03fc6-d53b-49a3-be2f-b11666e7a22a.jpg/250x188.webp",
           "https://prod.pictures.autoscout24.net/listing-images/bd5c0eba-838c-440f-b6ee-6d36b3ff096f_4b736e08-9e91-4bb0-8db5-e70a59c45ed7.jpg/250x188.webp"
+        ],
+        "updatedAt": "",
+        "listedAt": "",
+        "listingType": "compra"
+      },
+      {
+        "portal": "autoscout24",
+        "brand": "Maserati",
+        "model": "Ghibli",
+        "version": "Diesel Aut. 275",
+        "fuel": "Diesel",
+        "transmission": "Automatica",
+        "bodyType": "Coupé",
+        "environmentalLabel": "",
+        "year": 2015,
+        "mileage": 84000,
+        "doors": 4,
+        "seats": 5,
+        "powerCv": 275,
+        "price": 29000,
+        "monthlyPrice": null,
+        "financePrice": null,
+        "url": "https://www.autoscout24.es/anuncios/maserati-ghibli-diesel-aut-275-diesel-cat_ma45mo15189-a1e51b1d-e615-4935-865a-a391412f5cb2",
+        "province": "Madrid",
+        "city": "Madrid",
+        "color": "",
+        "sellerType": "profesional",
+        "traction": "",
+        "displacement": "2987",
+        "co2": "",
+        "powerKw": "202",
+        "consumption": "",
+        "dealerName": "",
+        "nextITV": "",
+        "warrantyMonths": null,
+        "image": "https://prod.pictures.autoscout24.net/listing-images/a1e51b1d-e615-4935-865a-a391412f5cb2_57572924-7721-4d4b-abeb-4fcbf4424622.jpg/250x188.webp",
+        "images": [
+          "https://prod.pictures.autoscout24.net/listing-images/a1e51b1d-e615-4935-865a-a391412f5cb2_57572924-7721-4d4b-abeb-4fcbf4424622.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a1e51b1d-e615-4935-865a-a391412f5cb2_71aefce3-afa2-4d71-8a37-99cedf2b8a63.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a1e51b1d-e615-4935-865a-a391412f5cb2_60bbb64a-9b93-4be4-9cd0-c522a28ed021.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a1e51b1d-e615-4935-865a-a391412f5cb2_58257f22-fafe-4692-b7a4-ef1260be2afd.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a1e51b1d-e615-4935-865a-a391412f5cb2_23e13b8e-6b0c-4b93-905c-3538bd84adda.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a1e51b1d-e615-4935-865a-a391412f5cb2_08e9ee9b-1ace-44bb-b6d1-c477436aeab8.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a1e51b1d-e615-4935-865a-a391412f5cb2_93b8b141-5fc8-4692-9dad-f3e38e015196.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a1e51b1d-e615-4935-865a-a391412f5cb2_16b65bdf-a8b9-43a5-88b4-9b95f8132d17.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a1e51b1d-e615-4935-865a-a391412f5cb2_dda31a57-7b9e-4784-bff0-347443eced20.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a1e51b1d-e615-4935-865a-a391412f5cb2_1f9bb28a-1e09-45e7-923b-5a30a2094b67.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a1e51b1d-e615-4935-865a-a391412f5cb2_fc648f04-89bc-4ead-b2ff-7e0f7b078070.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a1e51b1d-e615-4935-865a-a391412f5cb2_caa6e6ec-c479-4004-b2da-d44a2653a14a.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a1e51b1d-e615-4935-865a-a391412f5cb2_3354f74d-bb01-4bc8-b4c3-afcb471ad94b.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/a1e51b1d-e615-4935-865a-a391412f5cb2_626acdcf-3d13-4396-8aed-4cf8b8f4b3fe.jpg/250x188.webp"
+        ],
+        "updatedAt": "",
+        "listedAt": "",
+        "listingType": "compra"
+      },
+      {
+        "portal": "autoscout24",
+        "brand": "Maserati",
+        "model": "Ghibli",
+        "version": "Diesel Automatik",
+        "fuel": "Diesel",
+        "transmission": "Automatica",
+        "bodyType": "Coupé",
+        "environmentalLabel": "",
+        "year": 2015,
+        "mileage": 86000,
+        "doors": 4,
+        "seats": 5,
+        "powerCv": 275,
+        "price": 27550,
+        "monthlyPrice": null,
+        "financePrice": null,
+        "url": "https://www.autoscout24.es/anuncios/maserati-ghibli-diesel-automatik-diesel-cat_ma45mo15189-8acf055f-82f8-4a4e-8367-22cca5a5431e",
+        "province": "Бенальмадена",
+        "city": "Бенальмадена",
+        "color": "",
+        "sellerType": "profesional",
+        "traction": "",
+        "displacement": "2987",
+        "co2": "",
+        "powerKw": "202",
+        "consumption": "",
+        "dealerName": "",
+        "nextITV": "",
+        "warrantyMonths": null,
+        "image": "https://prod.pictures.autoscout24.net/listing-images/8acf055f-82f8-4a4e-8367-22cca5a5431e_b0e913e9-c2d8-4b2a-b17c-eb530acf7ad6.jpg/250x188.webp",
+        "images": [
+          "https://prod.pictures.autoscout24.net/listing-images/8acf055f-82f8-4a4e-8367-22cca5a5431e_b0e913e9-c2d8-4b2a-b17c-eb530acf7ad6.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8acf055f-82f8-4a4e-8367-22cca5a5431e_3c40743e-b41d-4fb8-8627-765372878584.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8acf055f-82f8-4a4e-8367-22cca5a5431e_26f891ec-e0c0-4064-b234-7bf902711353.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8acf055f-82f8-4a4e-8367-22cca5a5431e_8927fa95-f0ce-43dd-923c-99831ebb822a.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8acf055f-82f8-4a4e-8367-22cca5a5431e_9f644b34-5355-4ed8-9417-b8374f783a6d.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8acf055f-82f8-4a4e-8367-22cca5a5431e_ad1e7db0-21aa-424c-8800-8a8d3d1ba672.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8acf055f-82f8-4a4e-8367-22cca5a5431e_f62e3ba9-0f6f-4901-8484-ca120d28fb09.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8acf055f-82f8-4a4e-8367-22cca5a5431e_5bdb85db-24ca-4b59-a52b-fa2eb4846832.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8acf055f-82f8-4a4e-8367-22cca5a5431e_6ab1be18-ada4-4672-8807-bc54137d0db4.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8acf055f-82f8-4a4e-8367-22cca5a5431e_25028039-de24-48e8-af70-a3701a9ab4db.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8acf055f-82f8-4a4e-8367-22cca5a5431e_0cc040a2-2c7e-4c96-8a2a-863d2dfecac9.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8acf055f-82f8-4a4e-8367-22cca5a5431e_36601b8a-4c09-4b91-ad48-e329860a3b25.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8acf055f-82f8-4a4e-8367-22cca5a5431e_4a70700f-9e80-4868-806b-0c6e3e9a93c1.jpg/250x188.webp",
+          "https://prod.pictures.autoscout24.net/listing-images/8acf055f-82f8-4a4e-8367-22cca5a5431e_63fac0d8-3063-4e3d-b037-5ce9e759a3b1.jpg/250x188.webp"
         ],
         "updatedAt": "",
         "listedAt": "",
@@ -284,181 +484,11 @@
         "updatedAt": "",
         "listedAt": "",
         "listingType": "compra"
-      },
-      {
-        "portal": "autocasion",
-        "brand": "MASERATI",
-        "model": "Ghibli",
-        "version": "Ghibli Grandsport Aut. 330",
-        "fuel": "",
-        "transmission": "Automatica",
-        "bodyType": "Deportivo o coupé",
-        "environmentalLabel": "",
-        "year": 2021,
-        "mileage": 92800,
-        "doors": null,
-        "seats": null,
-        "powerCv": 330,
-        "price": 49600,
-        "monthlyPrice": null,
-        "financePrice": null,
-        "url": "https://www.autocasion.com/coches-segunda-mano/maserati-ghibli-ocasion/ghibli-grandsport-aut-330-ref20619191",
-        "province": "",
-        "city": "",
-        "color": "Gris",
-        "sellerType": "profesional",
-        "traction": "",
-        "displacement": "",
-        "co2": "",
-        "powerKw": "",
-        "consumption": "",
-        "dealerName": "",
-        "nextITV": "",
-        "warrantyMonths": null,
-        "image": "https://images0.autocasion.com/unsafe/500x/filters:watermark(watermark.png,-30,-30,0):format(jpeg):quality(80)/ad/13/1392/5cf8cebecbd927eb6389e19153fabb1fa2a32d0b.jpg",
-        "images": [
-          "https://images0.autocasion.com/unsafe/500x/filters:watermark(watermark.png,-30,-30,0):format(jpeg):quality(80)/ad/13/1392/5cf8cebecbd927eb6389e19153fabb1fa2a32d0b.jpg"
-        ],
-        "updatedAt": "",
-        "listedAt": "",
-        "listingType": "compra"
-      },
-      {
-        "portal": "ocasionplus",
-        "brand": "Maserati",
-        "model": "Ghibli",
-        "version": "Gransport V6 HP D RWD (275 CV)",
-        "fuel": "Diesel",
-        "transmission": "Automatica",
-        "bodyType": "",
-        "environmentalLabel": "",
-        "year": 2018,
-        "mileage": 103379,
-        "doors": null,
-        "seats": null,
-        "powerCv": 275,
-        "price": 34990,
-        "monthlyPrice": null,
-        "financePrice": null,
-        "url": "https://www.ocasionplus.com/coches-segunda-mano/maserati-ghibli-v6-275-hp-d-rwd-con-103379km-2018-qpb5hqaf",
-        "province": "",
-        "city": "",
-        "color": "",
-        "sellerType": "profesional",
-        "traction": "",
-        "displacement": "",
-        "co2": "",
-        "powerKw": "",
-        "consumption": "",
-        "dealerName": "",
-        "nextITV": "",
-        "warrantyMonths": null,
-        "image": "https://img.ocasionplus.com/WMS2g1F7JAlB7UNe4evGn0i9xti78Lg_MuzI7ot-gRw/mobilex2ao_auto/aHR0cHM6Ly9mb3Rvcy5lc3RhdGljb3NtZi5jb20vZm90b3NfYW51bmNpb3MvMDAvMTMvNDMvOTkvMzIvMy94MDEuanBnPzE1MjA5MDk4Mjkx",
-        "images": [
-          "https://img.ocasionplus.com/WMS2g1F7JAlB7UNe4evGn0i9xti78Lg_MuzI7ot-gRw/mobilex2ao_auto/aHR0cHM6Ly9mb3Rvcy5lc3RhdGljb3NtZi5jb20vZm90b3NfYW51bmNpb3MvMDAvMTMvNDMvOTkvMzIvMy94MDEuanBnPzE1MjA5MDk4Mjkx"
-        ],
-        "updatedAt": "",
-        "listedAt": "",
-        "listingType": "compra"
-      },
-      {
-        "portal": "autoscout24",
-        "brand": "Maserati",
-        "model": "Ghibli",
-        "version": "Diesel GranSport Aut. 275",
-        "fuel": "Diesel",
-        "transmission": "Automatica",
-        "bodyType": "Berlina",
-        "environmentalLabel": "",
-        "year": 2018,
-        "mileage": 103379,
-        "doors": 4,
-        "seats": 5,
-        "powerCv": 275,
-        "price": 32399,
-        "monthlyPrice": null,
-        "financePrice": null,
-        "url": "https://www.autoscout24.es/anuncios/maserati-ghibli-diesel-gransport-aut-275-diesel-blanco-cat_ma45mo15189-e3fa21fd-af60-4fe6-aa63-84354808c3ab",
-        "province": "GETAFE",
-        "city": "GETAFE",
-        "color": "Blanco",
-        "sellerType": "profesional",
-        "traction": "",
-        "displacement": "2987",
-        "co2": "",
-        "powerKw": "202",
-        "consumption": "",
-        "dealerName": "OCASION PLUS GETAFE",
-        "nextITV": "",
-        "warrantyMonths": null,
-        "image": "https://prod.pictures.autoscout24.net/listing-images/e3fa21fd-af60-4fe6-aa63-84354808c3ab_07ce3c18-a7d3-4d63-b289-9dbd3bf7bc6b.jpg/250x188.webp",
-        "images": [
-          "https://prod.pictures.autoscout24.net/listing-images/e3fa21fd-af60-4fe6-aa63-84354808c3ab_07ce3c18-a7d3-4d63-b289-9dbd3bf7bc6b.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/e3fa21fd-af60-4fe6-aa63-84354808c3ab_8cc84c4f-6b4e-430c-9040-ba3ad1d96331.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/e3fa21fd-af60-4fe6-aa63-84354808c3ab_db11b605-3765-4c3d-9cf4-01940b42938b.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/e3fa21fd-af60-4fe6-aa63-84354808c3ab_0dd87834-f802-4a5e-987d-7a78fbc22b6b.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/e3fa21fd-af60-4fe6-aa63-84354808c3ab_5e53f186-41a3-4032-aecc-0009e3916aa1.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/e3fa21fd-af60-4fe6-aa63-84354808c3ab_4ee9a6a0-d16d-47a1-8204-9b38d8456d5f.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/e3fa21fd-af60-4fe6-aa63-84354808c3ab_48a619e7-b335-43cf-8d89-229dd546e963.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/e3fa21fd-af60-4fe6-aa63-84354808c3ab_2293b8bf-c59f-4afe-b7b2-8d57e7efbc80.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/e3fa21fd-af60-4fe6-aa63-84354808c3ab_d264e519-0f37-45c0-a0df-9829af75c9d1.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/e3fa21fd-af60-4fe6-aa63-84354808c3ab_1988b945-1fe0-4e13-95f6-dafc7a83df94.jpg/250x188.webp"
-        ],
-        "updatedAt": "",
-        "listedAt": "",
-        "listingType": "compra"
-      },
-      {
-        "portal": "autoscout24",
-        "brand": "Maserati",
-        "model": "Ghibli",
-        "version": "Diesel GranSport Aut. 275",
-        "fuel": "Diesel",
-        "transmission": "Automatica",
-        "bodyType": "",
-        "environmentalLabel": "",
-        "year": 2018,
-        "mileage": 103379,
-        "doors": null,
-        "seats": null,
-        "powerCv": 275,
-        "price": 32399,
-        "monthlyPrice": null,
-        "financePrice": null,
-        "url": "https://www.autoscout24.es/anuncios/maserati-ghibli-diesel-gransport-aut-275-diesel-blanco-cat_ma45mo15189-b3d10e99-ef81-4075-83aa-10f836af483d",
-        "province": "SANT ANDREU",
-        "city": "SANT ANDREU",
-        "color": "",
-        "sellerType": "profesional",
-        "traction": "",
-        "displacement": "",
-        "co2": "",
-        "powerKw": "202",
-        "consumption": "",
-        "dealerName": "OCASIONPLUS LA MAQUINISTA II",
-        "nextITV": "",
-        "warrantyMonths": null,
-        "image": "https://prod.pictures.autoscout24.net/listing-images/b3d10e99-ef81-4075-83aa-10f836af483d_878e62b4-358a-47a9-b7da-047fe61be856.jpg/250x188.webp",
-        "images": [
-          "https://prod.pictures.autoscout24.net/listing-images/b3d10e99-ef81-4075-83aa-10f836af483d_878e62b4-358a-47a9-b7da-047fe61be856.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b3d10e99-ef81-4075-83aa-10f836af483d_231d51dc-e008-41db-9ce1-addb0582f560.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b3d10e99-ef81-4075-83aa-10f836af483d_d0e5fa4a-f683-490c-bcc4-f7be037829b2.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b3d10e99-ef81-4075-83aa-10f836af483d_3d0f5902-ed0d-42e0-a7b2-08faee0e0167.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b3d10e99-ef81-4075-83aa-10f836af483d_b3960399-62b1-4336-86c1-33fff331021c.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b3d10e99-ef81-4075-83aa-10f836af483d_108db2dd-599c-415c-9ccc-312a24af11f7.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b3d10e99-ef81-4075-83aa-10f836af483d_69e558ed-5690-410d-bafc-67bdef93faab.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b3d10e99-ef81-4075-83aa-10f836af483d_b7de2847-7855-4aa3-9b34-deb9059dda02.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b3d10e99-ef81-4075-83aa-10f836af483d_46d8925b-0d0d-41e2-8481-3e43ce6fdb62.jpg/250x188.webp",
-          "https://prod.pictures.autoscout24.net/listing-images/b3d10e99-ef81-4075-83aa-10f836af483d_6e408805-9fe8-44fd-b79f-0ff26efc82a9.jpg/250x188.webp"
-        ],
-        "updatedAt": "",
-        "listedAt": "",
-        "listingType": "compra"
       }
     ],
     "_pool": [
       {
-        "_rank": 51,
+        "_rank": 32,
         "mileage": 138936,
         "year": 2016,
         "price": 19470,
@@ -467,7 +497,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 52,
+        "_rank": 34,
         "mileage": 138936,
         "year": 2016,
         "price": 19470,
@@ -476,7 +506,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 48,
+        "_rank": 28,
         "mileage": 188506,
         "year": 2015,
         "price": 21475,
@@ -485,7 +515,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 49,
+        "_rank": 29,
         "mileage": 105000,
         "year": 2016,
         "price": 21990,
@@ -494,7 +524,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 50,
+        "_rank": 30,
         "mileage": 105000,
         "year": 2016,
         "price": 21990,
@@ -503,7 +533,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 53,
+        "_rank": 31,
         "mileage": 105000,
         "year": 2016,
         "price": 21990,
@@ -512,7 +542,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 54,
+        "_rank": 33,
         "mileage": 105000,
         "year": 2016,
         "price": 21990,
@@ -521,7 +551,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 55,
+        "_rank": 35,
         "mileage": 105000,
         "year": 2016,
         "price": 21990,
@@ -539,7 +569,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 12,
+        "_rank": 46,
         "mileage": 138936,
         "year": 2016,
         "price": 22490,
@@ -548,16 +578,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 22,
-        "mileage": 173000,
-        "year": 2015,
-        "price": 22900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autocasion"
-      },
-      {
-        "_rank": 35,
+        "_rank": 14,
         "mileage": 173000,
         "year": 2015,
         "price": 22900,
@@ -566,7 +587,16 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 8,
+        "_rank": 55,
+        "mileage": 173000,
+        "year": 2015,
+        "price": 22900,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 41,
         "mileage": 188506,
         "year": 2015,
         "price": 22950,
@@ -575,7 +605,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 83,
+        "_rank": 85,
         "mileage": 188506,
         "year": 2015,
         "price": 22950,
@@ -584,16 +614,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 15,
-        "mileage": 242000,
-        "year": 2015,
-        "price": 23000,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autocasion"
-      },
-      {
-        "_rank": 47,
+        "_rank": 26,
         "mileage": 242000,
         "year": 2015,
         "price": 23000,
@@ -602,7 +623,16 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 4,
+        "_rank": 49,
+        "mileage": 242000,
+        "year": 2015,
+        "price": 23000,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 37,
         "mileage": 199000,
         "year": 2015,
         "price": 23495,
@@ -611,7 +641,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 38,
+        "_rank": 19,
         "mileage": 104000,
         "year": 2015,
         "price": 23990,
@@ -620,7 +650,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 79,
+        "_rank": 77,
         "mileage": 104000,
         "year": 2015,
         "price": 23990,
@@ -629,16 +659,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 14,
-        "mileage": 144000,
-        "year": 2017,
-        "price": 23990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autocasion"
-      },
-      {
-        "_rank": 40,
+        "_rank": 18,
         "mileage": 144000,
         "year": 2017,
         "price": 23990,
@@ -647,7 +668,16 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 60,
+        "_rank": 47,
+        "mileage": 144000,
+        "year": 2017,
+        "price": 23990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 59,
         "mileage": 190000,
         "year": 2017,
         "price": 24000,
@@ -656,7 +686,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 37,
+        "_rank": 17,
         "mileage": 123200,
         "year": 2014,
         "price": 24400,
@@ -665,7 +695,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 44,
+        "_rank": 27,
         "mileage": 100000,
         "year": 2015,
         "price": 24800,
@@ -674,7 +704,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 69,
+        "_rank": 68,
         "mileage": 100000,
         "year": 2015,
         "price": 24800,
@@ -683,22 +713,22 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 21,
-        "mileage": 170000,
-        "year": 2014,
-        "price": 24900,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autocasion"
-      },
-      {
-        "_rank": 46,
+        "_rank": 24,
         "mileage": 170000,
         "year": 2014,
         "price": 24900,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autoscout24"
+      },
+      {
+        "_rank": 54,
+        "mileage": 170000,
+        "year": 2014,
+        "price": 24900,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
       },
       {
         "_rank": 1,
@@ -710,7 +740,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 13,
+        "_rank": 45,
         "mileage": 105000,
         "year": 2016,
         "price": 24990,
@@ -728,7 +758,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 67,
+        "_rank": 66,
         "mileage": 149000,
         "year": 2017,
         "price": 24990,
@@ -737,7 +767,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 36,
+        "_rank": 15,
         "mileage": 153000,
         "year": 2018,
         "price": 24990,
@@ -746,7 +776,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 41,
+        "_rank": 21,
         "mileage": 153000,
         "year": 2018,
         "price": 24990,
@@ -755,7 +785,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 42,
+        "_rank": 22,
         "mileage": 153000,
         "year": 2018,
         "price": 24990,
@@ -764,7 +794,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 43,
+        "_rank": 23,
         "mileage": 153000,
         "year": 2018,
         "price": 24990,
@@ -773,7 +803,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 20,
+        "_rank": 53,
         "mileage": 123200,
         "year": 2014,
         "price": 25400,
@@ -782,7 +812,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 39,
+        "_rank": 20,
         "mileage": 130484,
         "year": 2016,
         "price": 26475,
@@ -791,7 +821,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 61,
+        "_rank": 60,
         "mileage": 130484,
         "year": 2016,
         "price": 26775,
@@ -800,7 +830,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 45,
+        "_rank": 25,
         "mileage": 145000,
         "year": 2017,
         "price": 26989,
@@ -809,7 +839,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 5,
+        "_rank": 38,
         "mileage": 145000,
         "year": 2017,
         "price": 26990,
@@ -818,7 +848,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 6,
+        "_rank": 39,
         "mileage": 145000,
         "year": 2017,
         "price": 26990,
@@ -827,7 +857,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 7,
+        "_rank": 40,
         "mileage": 145000,
         "year": 2017,
         "price": 26990,
@@ -836,7 +866,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 9,
+        "_rank": 42,
         "mileage": 145000,
         "year": 2017,
         "price": 26990,
@@ -845,7 +875,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 10,
+        "_rank": 43,
         "mileage": 145000,
         "year": 2017,
         "price": 26990,
@@ -863,16 +893,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 18,
-        "mileage": 199000,
-        "year": 2015,
-        "price": 26990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autocasion"
-      },
-      {
-        "_rank": 34,
+        "_rank": 16,
         "mileage": 199000,
         "year": 2015,
         "price": 26990,
@@ -881,7 +902,16 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 29,
+        "_rank": 50,
+        "mileage": 199000,
+        "year": 2015,
+        "price": 26990,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 9,
         "mileage": 86000,
         "year": 2015,
         "price": 27550,
@@ -899,7 +929,7 @@
         "portal": "flexicar"
       },
       {
-        "_rank": 11,
+        "_rank": 44,
         "mileage": 153000,
         "year": 2018,
         "price": 27990,
@@ -908,7 +938,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 85,
+        "_rank": 83,
         "mileage": 153000,
         "year": 2018,
         "price": 27990,
@@ -917,7 +947,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 26,
+        "_rank": 4,
         "mileage": 130000,
         "year": 2015,
         "price": 27995,
@@ -926,7 +956,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 71,
+        "_rank": 72,
         "mileage": 129700,
         "year": 2015,
         "price": 27999,
@@ -935,7 +965,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 75,
+        "_rank": 73,
         "mileage": 100000,
         "year": 2014,
         "price": 28000,
@@ -944,7 +974,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 3,
+        "_rank": 36,
         "mileage": 130484,
         "year": 2016,
         "price": 28450,
@@ -953,7 +983,7 @@
         "portal": "cochescom"
       },
       {
-        "_rank": 80,
+        "_rank": 79,
         "mileage": 130484,
         "year": 2016,
         "price": 28450,
@@ -962,16 +992,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 57,
-        "mileage": 130484,
-        "year": 2016,
-        "price": 28750,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "cochescom"
-      },
-      {
-        "_rank": 31,
+        "_rank": 12,
         "mileage": 73500,
         "year": 2016,
         "price": 28890,
@@ -980,7 +1001,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 33,
+        "_rank": 10,
         "mileage": 91000,
         "year": 2015,
         "price": 28900,
@@ -989,7 +1010,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 81,
+        "_rank": 80,
         "mileage": 91000,
         "year": 2015,
         "price": 28900,
@@ -998,7 +1019,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 28,
+        "_rank": 8,
         "mileage": 84000,
         "year": 2015,
         "price": 29000,
@@ -1007,7 +1028,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 73,
+        "_rank": 71,
         "mileage": 147000,
         "year": 2015,
         "price": 29500,
@@ -1016,7 +1037,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 30,
+        "_rank": 11,
         "mileage": 123000,
         "year": 2017,
         "price": 29900,
@@ -1034,7 +1055,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 89,
+        "_rank": 87,
         "mileage": 131900,
         "year": 2015,
         "price": 29990,
@@ -1043,7 +1064,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 63,
+        "_rank": 62,
         "mileage": 50699,
         "year": 2016,
         "price": 31320,
@@ -1052,7 +1073,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 72,
+        "_rank": 69,
         "mileage": 105000,
         "year": 2016,
         "price": 31990,
@@ -1061,13 +1082,22 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 66,
+        "_rank": 65,
         "mileage": 92545,
         "year": 2017,
         "price": 32000,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autocasion"
+      },
+      {
+        "_rank": 57,
+        "mileage": 103379,
+        "year": 2018,
+        "price": 32399,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autoscout24"
       },
       {
         "_rank": 58,
@@ -1079,16 +1109,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 59,
-        "mileage": 103379,
-        "year": 2018,
-        "price": 32399,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autoscout24"
-      },
-      {
-        "_rank": 64,
+        "_rank": 67,
         "mileage": 73500,
         "year": 2016,
         "price": 32890,
@@ -1097,7 +1118,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 65,
+        "_rank": 64,
         "mileage": 75900,
         "year": 2015,
         "price": 32900,
@@ -1106,16 +1127,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 19,
-        "mileage": 160000,
-        "year": 2018,
-        "price": 32990,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autocasion"
-      },
-      {
-        "_rank": 27,
+        "_rank": 7,
         "mileage": 160000,
         "year": 2018,
         "price": 32990,
@@ -1124,16 +1136,16 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 17,
-        "mileage": 30600,
-        "year": 2016,
-        "price": 33000,
+        "_rank": 52,
+        "mileage": 160000,
+        "year": 2018,
+        "price": 32990,
         "sellerType": "profesional",
         "listedAt": "",
         "portal": "autocasion"
       },
       {
-        "_rank": 25,
+        "_rank": 6,
         "mileage": 30600,
         "year": 2016,
         "price": 33000,
@@ -1142,7 +1154,16 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 87,
+        "_rank": 51,
+        "mileage": 30600,
+        "year": 2016,
+        "price": 33000,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 88,
         "mileage": 61531,
         "year": 2018,
         "price": 33990,
@@ -1151,7 +1172,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 62,
+        "_rank": 61,
         "mileage": 49900,
         "year": 2017,
         "price": 34900,
@@ -1160,7 +1181,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 32,
+        "_rank": 13,
         "mileage": 71000,
         "year": 2017,
         "price": 34900,
@@ -1187,7 +1208,7 @@
         "portal": "ocasionplus"
       },
       {
-        "_rank": 24,
+        "_rank": 3,
         "mileage": 43000,
         "year": 2020,
         "price": 35000,
@@ -1196,7 +1217,7 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 68,
+        "_rank": 63,
         "mileage": 158486,
         "year": 2016,
         "price": 35000,
@@ -1205,16 +1226,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 16,
-        "mileage": 138000,
-        "year": 2019,
-        "price": 38000,
-        "sellerType": "profesional",
-        "listedAt": "",
-        "portal": "autocasion"
-      },
-      {
-        "_rank": 23,
+        "_rank": 5,
         "mileage": 138000,
         "year": 2019,
         "price": 38000,
@@ -1223,7 +1235,16 @@
         "portal": "autoscout24"
       },
       {
-        "_rank": 88,
+        "_rank": 48,
+        "mileage": 138000,
+        "year": 2019,
+        "price": 38000,
+        "sellerType": "profesional",
+        "listedAt": "",
+        "portal": "autocasion"
+      },
+      {
+        "_rank": 86,
         "mileage": 98121,
         "year": 2015,
         "price": 38490,
@@ -1241,7 +1262,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 82,
+        "_rank": 81,
         "mileage": 92800,
         "year": 2021,
         "price": 49600,
@@ -1250,7 +1271,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 86,
+        "_rank": 82,
         "mileage": 11197,
         "year": 2021,
         "price": 68500,
@@ -1259,7 +1280,7 @@
         "portal": "autocasion"
       },
       {
-        "_rank": 77,
+        "_rank": 75,
         "mileage": 68000,
         "year": 2021,
         "price": 78900,
@@ -1269,16 +1290,16 @@
       }
     ]
   },
-  "referenceDate": "2026-08-13T17:18:08.694Z",
+  "referenceDate": "2026-08-14T13:01:19.519Z",
   "expected": {
-    "priceOptimal": 34069,
-    "priceLow": 30005,
-    "priceHigh": 41384,
+    "priceOptimal": 35722,
+    "priceLow": 31330,
+    "priceHigh": 41496,
     "confidence": 65,
     "comparables": 28,
     "usedFallback": false,
     "damageFactor": 1,
-    "usageImpact": 6748,
+    "usageImpact": 6480,
     "usageUsedDefault": true,
     "colorAdjFactor": 0.99,
     "colorAdjPct": -1,

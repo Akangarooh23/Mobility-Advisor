@@ -1,5 +1,5 @@
 {
-  "_capturedAt": "2026-08-13T17:18:08.803Z",
+  "_capturedAt": "2026-08-14T13:01:19.694Z",
   "_branch": "unresolved_brand",
   "_actualBranch": "unresolved_brand",
   "vehicle": {
@@ -56,7 +56,7 @@
     "priceHistogram": [],
     "samples": []
   },
-  "referenceDate": "2026-08-13T17:18:08.803Z",
+  "referenceDate": "2026-08-14T13:01:19.694Z",
   "expected": {
     "priceOptimal": 789393,
     "priceLow": 710748,

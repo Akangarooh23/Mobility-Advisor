@@ -1,0 +1,169 @@
+{
+  "name": "AutoScout24 – Verificar ofertas activas",
+  "nodes": [
+    {
+      "id": "as24v-01-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 300],
+      "parameters": {}
+    },
+    {
+      "id": "as24v-02-schedule",
+      "name": "3 veces/día (9,14,19h)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 160],
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "cronExpression", "expression": "0 0 9,14,19 * * *" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "as24v-03-pg-select",
+      "name": "PG: Fichas a verificar",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [220, 220],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, url\nFROM moveadvisor_market_offers\nWHERE portal = 'autoscout24'\n  AND is_active = TRUE\n  AND url IS NOT NULL AND url <> ''\n  AND (last_checked_at IS NULL OR last_checked_at < NOW() - INTERVAL '7 days')\nORDER BY last_checked_at ASC NULLS FIRST\nLIMIT 150",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": { "id": "1", "name": "Postgres" }
+      }
+    },
+    {
+      "id": "as24v-04-loop",
+      "name": "Loop: oferta por oferta",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [440, 220],
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      }
+    },
+    {
+      "id": "as24v-05-http",
+      "name": "HTTP: Ficha HTML AS24",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 140],
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text",
+              "neverError": true
+            }
+          },
+          "timeout": 20000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true,
+              "maxRedirects": 5
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "as24v-06-code",
+      "name": "Code: Verificar ficha",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, 140],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// AutoScout24 – verificar si la ficha sigue activa.\n//\n// VIVA   = HTML contiene 'listingDetails' (__NEXT_DATA__) o JSON-LD Car/Vehicle\n//          → is_active=TRUE, refresca last_seen_at y last_checked_at\n//\n// MUERTA = HTML dice 'ya no está disponible' / 'no longer available'\n//          O   HTML largo pero sin datos de ficha (redirect a búsqueda /lst/)\n//          → is_active=FALSE, actualiza last_checked_at\n//\n// ERROR  = HTML < 500 chars (timeout, CAPTCHA, red) → no tocar is_active\n\nconst dbRecord = $('Loop: oferta por oferta').item.json;\nconst dbId = String(dbRecord.id || '');\n\nif (!dbId) {\n  return { json: { id: null, hasUpdates: false, updateSql: null } };\n}\n\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut\n  : (httpOut && (httpOut.data || httpOut.body || httpOut.html) || '');\nconst s = String(html);\nconst idEsc = dbId.replace(/'/g, \"''\");\n\nif (s.length < 500) {\n  // Error de red, CAPTCHA o respuesta vacía — no cambiar is_active\n  console.log('[as24-verif] id=' + dbId + ' ERROR html_len=' + s.length);\n  return { json: { id: dbId, hasUpdates: false, updateSql: null } };\n}\n\n// ── Detección de oferta inactiva ──────────────────────────────────────────\nconst isUnavailable =\n  s.includes('ya no est\\u00e1 disponible') ||\n  s.includes('no longer available') ||\n  s.includes('nicht mehr verf\\u00fcgbar');\n\n// Redirect a página de búsqueda: tiene 'listings' pero no 'listingDetails'\nconst isSearchPage =\n  /\"listings\"\\s*:\\s*\\[/.test(s) &&\n  !s.includes('listingDetails');\n\n// ── Detección de ficha viva ───────────────────────────────────────────────\nconst hasListingData =\n  s.includes('listingDetails') ||\n  /\"@type\"\\s*:\\s*\"(Car|Vehicle)\"/.test(s);\n\nconst isDead = isUnavailable || isSearchPage;\nconst isAlive = !isDead && hasListingData;\n\nconsole.log('[as24-verif] id=' + dbId +\n  ' html=' + s.length +\n  ' unavail=' + isUnavailable +\n  ' searchPage=' + isSearchPage +\n  ' alive=' + isAlive);\n\nif (!isAlive && !isDead) {\n  // Ni viva ni muerta confirmadas (ej. CAPTCHA con HTML largo) — no tocar\n  return { json: { id: dbId, hasUpdates: false, updateSql: null } };\n}\n\nconst updateSql = isAlive\n  ? \"UPDATE moveadvisor_market_offers SET is_active = TRUE, last_seen_at = NOW(), last_checked_at = NOW(), updated_at = NOW() WHERE id = '\" + idEsc + \"'\"\n  : \"UPDATE moveadvisor_market_offers SET is_active = FALSE, last_checked_at = NOW(), updated_at = NOW() WHERE id = '\" + idEsc + \"'\";\n\nreturn { json: { id: dbId, hasUpdates: true, updateSql: updateSql, alive: isAlive } };"
+      }
+    },
+    {
+      "id": "as24v-07-if",
+      "name": "IF: ¿hay datos nuevos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1100, 140],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cond-has-updates",
+              "leftValue": "={{ $json.hasUpdates }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "as24v-08-pg-update",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1320, 80],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.updateSql }}",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": { "id": "1", "name": "Postgres" }
+      }
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [[{ "node": "PG: Fichas a verificar", "type": "main", "index": 0 }]]
+    },
+    "3 veces/día (9,14,19h)": {
+      "main": [[{ "node": "PG: Fichas a verificar", "type": "main", "index": 0 }]]
+    },
+    "PG: Fichas a verificar": {
+      "main": [[{ "node": "Loop: oferta por oferta", "type": "main", "index": 0 }]]
+    },
+    "Loop: oferta por oferta": {
+      "main": [
+        [{ "node": "HTTP: Ficha HTML AS24", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "HTTP: Ficha HTML AS24": {
+      "main": [[{ "node": "Code: Verificar ficha", "type": "main", "index": 0 }]]
+    },
+    "Code: Verificar ficha": {
+      "main": [[{ "node": "IF: ¿hay datos nuevos?", "type": "main", "index": 0 }]]
+    },
+    "IF: ¿hay datos nuevos?": {
+      "main": [
+        [{ "node": "PG: Actualizar oferta", "type": "main", "index": 0 }],
+        [{ "node": "Loop: oferta por oferta", "type": "main", "index": 0 }]
+      ]
+    },
+    "PG: Actualizar oferta": {
+      "main": [[{ "node": "Loop: oferta por oferta", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

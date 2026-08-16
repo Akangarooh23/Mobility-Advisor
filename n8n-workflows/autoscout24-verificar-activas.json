@@ -43,7 +43,7 @@
       ],
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id, url\nFROM moveadvisor_market_offers\nWHERE portal = 'autoscout24'\n  AND is_active = TRUE\n  AND url IS NOT NULL AND url <> ''\n  AND (last_checked_at IS NULL OR last_checked_at < NOW() - INTERVAL '7 days')\nORDER BY last_checked_at ASC NULLS FIRST\nLIMIT 150",
+        "query": "SELECT id, url\nFROM moveadvisor_market_offers\nWHERE portal = 'autoscout24'\n  AND is_active = TRUE\n  AND url IS NOT NULL AND url <> ''\n  AND (last_checked_at IS NULL OR last_checked_at < NOW() - INTERVAL '7 days')\nORDER BY last_checked_at ASC NULLS FIRST\nLIMIT 50",
         "options": {}
       },
       "credentials": {

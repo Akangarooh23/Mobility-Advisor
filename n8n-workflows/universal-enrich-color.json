@@ -7,7 +7,10 @@
       "name": "Ejecutar manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [-6448, 560]
+      "position": [
+        -6448,
+        560
+      ]
     },
     {
       "parameters": {
@@ -24,7 +27,10 @@
       "name": "Cada día a las 7:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
-      "position": [-6432, 352]
+      "position": [
+        -6432,
+        352
+      ]
     },
     {
       "parameters": {
@@ -36,7 +42,10 @@
       "name": "PG: Ofertas sin color",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
-      "position": [-6144, 256],
+      "position": [
+        -6144,
+        256
+      ],
       "credentials": {
         "postgres": {
           "id": "zoxD0jV8hxZqH0uY",
@@ -52,7 +61,10 @@
       "name": "Loop: oferta por oferta",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
-      "position": [-5904, 256]
+      "position": [
+        -5904,
+        256
+      ]
     },
     {
       "parameters": {
@@ -60,9 +72,18 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "User-Agent", "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36" },
-            { "name": "Accept", "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" },
-            { "name": "Accept-Language", "value": "es-ES,es;q=0.9" }
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
           ]
         },
         "options": {
@@ -78,19 +99,25 @@
       "name": "HTTP: Ficha del portal",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [-5664, 256],
+      "position": [
+        -5664,
+        256
+      ],
       "continueOnFail": true
     },
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "const dbRecord = $('Loop: oferta por oferta').item.json;\nconst dbId     = String(dbRecord.id     || '');\nconst dbUrl    = String(dbRecord.url    || '');\nconst dbPortal = String(dbRecord.portal || '');\n\nconst httpOut = $input.item.json;\nconst html    = typeof httpOut === 'string' ? httpOut\n  : (httpOut.data || httpOut.body || httpOut.html || '');\nconst htmlStr = String(html);\n\nconsole.log('[enrich-color] id=' + dbId + ' portal=' + dbPortal + ' html_len=' + htmlStr.length);\n\nfunction esc(v) {\n  if (v === null || v === undefined) return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\n\n// Filtra valores que NO son colores: versiones, acabados, combustibles, etc.\nfunction isPlausibleColor(s) {\n  if (!s) return false;\n  const v = String(s).trim();\n  if (v.length < 2 || v.length > 35) return false;\n  if (/^\\d+$/.test(v)) return false; // solo números\n  if (/^#[0-9a-fA-F]{3,8}$/.test(v)) return false; // hex CSS\n  if (/^rgba?\\s*\\(/.test(v)) return false; // rgb/rgba CSS\n  const lc = v.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');\n  const notColors = [\n    'color','colour','color exterior','sin color','no especificado','no especificada',\n    'serie','series','basic','style','premium','edition','limited','executive',\n    'elegance','sport','advance','active','comfort','luxury','select','dynamic',\n    'business','design','motion','trend','urban','plus','pro','line','tech',\n    'hybrid','electrico','diesel','gasolina','auto','manual','life','play',\n    'move','cool','live','go','feel','energy','evolution','innovation','vision',\n    'cross','allure','intens','attraction','ambition','gt','r-line','s-line',\n    'titanium','ghia','ambiente','confort','reference','expression','initiale'\n  ];\n  if (notColors.some(function(w) {\n    return lc === w || lc === w + 's' || lc.startsWith(w + ' ') || lc.endsWith(' ' + w);\n  })) return false;\n  return true;\n}\n\nif (!dbId) {\n  return { json: { id: null, colorFound: false, updateSql: null } };\n}\nif (htmlStr.length < 500) {\n  // HTTP fallido o CAPTCHA — marcar enrich_tried_at para no reintentar 7 días\n  const sql = 'UPDATE moveadvisor_market_offers SET enrich_tried_at = NOW(), updated_at = NOW() WHERE id = ' + esc(dbId);\n  return { json: { id: dbId, colorFound: false, updateSql: sql } };\n}\n\nlet colorVal = '';\nlet buildId  = '';\n\ntry {\n\n// ── ESTRATEGIA 1: JSON-LD (application/ld+json) ───────────────────────────\ntry {\n  const blocks = [...htmlStr.matchAll(/<script[^>]*application\\/ld\\+json[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m => m[1].trim());\n  console.log('[enrich-color] JSON-LD blocks=' + blocks.length);\n  for (const b of blocks) {\n    try {\n      const j = JSON.parse(b);\n      const arr = Array.isArray(j) ? j : (j['@graph'] || [j]);\n      for (const o of arr) {\n        if (!o) continue;\n        const t = o['@type'] || '';\n        const isVehicle = t === 'Car' || t === 'Product' || t === 'Vehicle'\n          || t === 'Automobile' || t === 'MotorizedVehicle';\n        if (!isVehicle) continue;\n        const car = (o.offers && o.offers.itemOffered) || o;\n        // Campo directo\n        const c = car.color || o.color || car.colour || o.colour\n          || car.colorName || o.colorName || car.exteriorColor || o.exteriorColor || '';\n        if (c && isPlausibleColor(c)) { colorVal = c; break; }\n        // additionalProperty [{name:'Color', value:'Rojo'}, ...] — patrón schema.org muy usado\n        const props = [].concat(car.additionalProperty || o.additionalProperty || []);\n        for (const p of props) {\n          const pn = String(p.name || p.propertyID || '').toLowerCase();\n          if (pn === 'color' || pn === 'colour' || pn === 'color exterior' || pn === 'color exterior') {\n            const pv = String(p.value || '');\n            if (isPlausibleColor(pv)) { colorVal = pv; break; }\n          }\n        }\n        if (colorVal) break;\n      }\n      if (colorVal) break;\n    } catch(e) { console.log('[enrich-color] JSON-LD block parse err: ' + e.message.slice(0,60)); }\n  }\n  if (colorVal) console.log('[enrich-color] JSON-LD color=' + colorVal);\n  else if (blocks.length > 0) console.log('[enrich-color] JSON-LD no color. First block snippet: ' + blocks[0].slice(0, 200));\n} catch(e) {\n  console.log('[enrich-color] JSON-LD error: ' + e.message);\n}\n\n// ── ESTRATEGIA 2: __NEXT_DATA__ (Next.js SSR) ─────────────────────────────\n// Funciona en: Flexicar, Autohero, y otros portales Next.js\nif (!colorVal) {\n  try {\n    const ndMatch = htmlStr.match(/<script id=\"__NEXT_DATA__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/);\n    if (ndMatch) {\n      const nd  = JSON.parse(ndMatch[1]);\n      buildId   = nd.buildId || '';\n      const pp  = (nd.props || {}).pageProps || {};\n\n      // AutoScout24: bodyColor está en listingDetails.vehicle, no en pageProps directamente\n      const as24v = ((pp.listingDetails || {}).vehicle || {});\n      const as24c = as24v.bodyColor || as24v.bodyColorOriginal || '';\n      if (as24c && isPlausibleColor(as24c)) {\n        colorVal = as24c;\n        console.log('[enrich-color] __NEXT_DATA__ as24 bodyColor=' + colorVal);\n      }\n\n      let v = pp.vehicle || pp.car || pp.data || pp.offer || pp.vehicleData || pp.detail || null;\n      if (!v) {\n        const is = (nd.props || {}).initialState || {};\n        v = is.vehicle || is.car || null;\n      }\n      // TanStack / React Query dehydratedState\n      if (!v && pp.dehydratedState) {\n        const queries = (pp.dehydratedState.queries || []);\n        for (const q of queries) {\n          const d = (q.state || {}).data;\n          if (!d) continue;\n          if (d.color !== undefined || d.brand !== undefined) { v = d; break; }\n          const nested = d.vehicle || d.car || d.data || null;\n          if (nested && (nested.color !== undefined || nested.brand !== undefined)) { v = nested; break; }\n          if (Array.isArray(d) && d.length > 0 && d[0].brand !== undefined) { v = d[0]; break; }\n        }\n      }\n      if (v) {\n        const cnd = v.color || v.colorName || v.colour || v.colorExterior\n          || v.colorValue || v.exteriorColor || v.paintColor || '';\n        colorVal = isPlausibleColor(cnd) ? cnd : '';\n        if (colorVal) console.log('[enrich-color] __NEXT_DATA__ color=' + colorVal);\n      }\n    }\n  } catch(e) {\n    console.log('[enrich-color] __NEXT_DATA__ error: ' + e.message);\n  }\n}\n\n// ── ESTRATEGIA 3: _next/data JSON (solo Flexicar, si buildId disponible) ──\nif (!colorVal && dbPortal === 'flexicar' && buildId && dbUrl) {\n  try {\n    const slug    = dbUrl.split('/').filter(Boolean).pop() || '';\n    const jsonUrl = 'https://www.flexicar.es/_next/data/' + buildId + '/coches-ocasion/' + slug + '.json';\n    console.log('[enrich-color] flexicar _next/data: ' + jsonUrl);\n    const jr   = await $helpers.httpRequest({\n      method: 'GET',\n      url: jsonUrl,\n      headers: {\n        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',\n        'Accept': 'application/json'\n      }\n    });\n    const jRaw = typeof jr === 'string' ? JSON.parse(jr) : jr;\n    const jpp  = (jRaw && jRaw.pageProps) ? jRaw.pageProps : {};\n    const jv   = jpp.vehicle || jpp.car || jpp.data || jpp.offer || jpp.vehicleData || null;\n    if (jv) {\n      const cfx = jv.color || jv.colorName || jv.colour || jv.colorExterior\n        || jv.colorValue || jv.exteriorColor || '';\n      colorVal = isPlausibleColor(cfx) ? cfx : '';\n      console.log('[enrich-color] flexicar _next/data color=' + colorVal);\n    } else {\n      console.log('[enrich-color] flexicar _next/data pp keys=' + Object.keys(jpp).join(','));\n    }\n  } catch(e) {\n    console.log('[enrich-color] flexicar _next/data error: ' + e.message);\n  }\n}\n\n// ── ESTRATEGIA 4: Regex genérico ──────────────────────────────────────────\nif (!colorVal) {\n  // 4a: todos los campos JSON \"color\":\"...\" — buscar el primero plausible\n  const all1 = [...htmlStr.matchAll(/\"color\"\\s*:\\s*\"([^\"]{2,40})\"/gi)];\n  for (const m of all1) {\n    const v = m[1].trim();\n    if (!v.startsWith('#') && !/^rgb/i.test(v) && isPlausibleColor(v)) { colorVal = v; break; }\n  }\n}\nif (!colorVal) {\n  // 4b: microdata itemprop=\"color\" — <span itemprop=\"color\">Azul</span> o content=\"...\"\n  const m2a = htmlStr.match(/itemprop\\s*=\\s*[\"']color[\"'][^>]*content\\s*=\\s*[\"']([^\"']{2,40})[\"']/i);\n  const m2b = htmlStr.match(/itemprop\\s*=\\s*[\"']color[\"'][^>]*>([^<]{2,40})<\\//i);\n  const mVal = (m2a && m2a[1]) || (m2b && m2b[1]) || '';\n  if (mVal && isPlausibleColor(mVal.trim())) colorVal = mVal.trim();\n}\nif (!colorVal) {\n  // 4c: data-label / aria-label=\"Color\" seguido de valor\n  const m3 = htmlStr.match(/(?:data-label|aria-label)\\s*=\\s*[\"']Color[\"'][^>]*>([^<]{2,35})<\\//i);\n  if (m3 && isPlausibleColor(m3[1].trim())) colorVal = m3[1].trim();\n}\nif (!colorVal) {\n  // 4d: patrón HTML etiqueta «Color» → siguiente elemento → valor\n  // Maneja: <td>Color</td><td>Azul</td>  y  <span>Color</span><span class=...>Azul</span>\n  const m4 = htmlStr.match(/[Cc]olor\\s*<\\/[a-z]+>\\s*<[^>]{0,100}>\\s*([A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñA-ZÁÉÍÓÚÜÑ\\s\\-]{1,30})\\s*<\\//);\n  if (m4 && isPlausibleColor(m4[1].trim())) colorVal = m4[1].trim();\n}\nif (!colorVal) {\n  // 4e: JSON escapado en HTML — portales que embeben JSON con \\\"color\\\":\\\"Blanco\\\"\n  // (OcasionPlus, y otros que JSON.stringify dentro de un atributo HTML)\n  const unesc4e = htmlStr.replace(/\\\\\"/g, '\"');\n  const all4e = [...unesc4e.matchAll(/\"color\"\\s*:\\s*\"([^\"]{2,40})\"/gi)];\n  for (const m of all4e) {\n    const v = m[1].trim();\n    if (!v.startsWith('#') && !/^rgb/i.test(v) && isPlausibleColor(v)) { colorVal = v; break; }\n  }\n}\nif (colorVal) console.log('[enrich-color] regex fallback color=' + colorVal);\nelse console.log('[enrich-color] no color encontrado con ninguna estrategia');\n\nconsole.log('[enrich-color] FINAL portal=' + dbPortal + ' color=' + colorVal);\n\n// ── SQL ────────────────────────────────────────────────────────────────────\nconst sets = ['enrich_tried_at = NOW()'];\nif (colorVal) sets.push('color = COALESCE(NULLIF(color,\\'\\'), ' + esc(colorVal) + ')');\n\nconst updateSql = 'UPDATE moveadvisor_market_offers SET '\n  + sets.join(', ') + ', updated_at = NOW() WHERE id = ' + esc(dbId);\n\nreturn { json: { id: dbId, colorFound: !!colorVal, updateSql: updateSql } };\n\n} catch(fatalErr) {\n  console.log('[enrich-color] EXCEPCION FATAL id=' + dbId + ': ' + fatalErr.message);\n  const fallbackSql = 'UPDATE moveadvisor_market_offers SET enrich_tried_at = NOW(), updated_at = NOW() WHERE id = ' + esc(dbId);\n  return { json: { id: dbId, colorFound: false, updateSql: dbId ? fallbackSql : null, error: fatalErr.message } };\n}\n"
+        "jsCode": "const dbRecord = $('Loop: oferta por oferta').item.json;\nconst dbId     = String(dbRecord.id     || '');\nconst dbUrl    = String(dbRecord.url    || '');\nconst dbPortal = String(dbRecord.portal || '');\n\nconst httpOut = $input.item.json;\nconst html    = typeof httpOut === 'string' ? httpOut\n  : (httpOut.data || httpOut.body || httpOut.html || '');\nconst htmlStr = String(html);\n\nconsole.log('[enrich-color] id=' + dbId + ' portal=' + dbPortal + ' html_len=' + htmlStr.length);\n\nfunction esc(v) {\n  if (v === null || v === undefined) return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\n\n// Filtra valores que NO son colores: versiones, acabados, combustibles, etc.\nfunction isPlausibleColor(s) {\n  if (!s) return false;\n  const v = String(s).trim();\n  if (v.length < 2 || v.length > 35) return false;\n  if (/^\\d+$/.test(v)) return false; // solo números\n  if (/^#[0-9a-fA-F]{3,8}$/.test(v)) return false; // hex CSS\n  if (/^rgba?\\s*\\(/.test(v)) return false; // rgb/rgba CSS\n  const lc = v.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');\n  const notColors = [\n    'color','colour','color exterior','sin color','no especificado','no especificada',\n    'serie','series','basic','style','premium','edition','limited','executive',\n    'elegance','sport','advance','active','comfort','luxury','select','dynamic',\n    'business','design','motion','trend','urban','plus','pro','line','tech',\n    'hybrid','electrico','diesel','gasolina','auto','manual','life','play',\n    'move','cool','live','go','feel','energy','evolution','innovation','vision',\n    'cross','allure','intens','attraction','ambition','gt','r-line','s-line',\n    'titanium','ghia','ambiente','confort','reference','expression','initiale'\n  ];\n  if (notColors.some(function(w) {\n    return lc === w || lc === w + 's' || lc.startsWith(w + ' ') || lc.endsWith(' ' + w);\n  })) return false;\n  return true;\n}\n\nif (!dbId) {\n  return { json: { id: null, colorFound: false, updateSql: null } };\n}\nif (htmlStr.length < 500) {\n  // HTTP fallido o CAPTCHA — marcar enrich_tried_at para no reintentar 7 días\n  const sql = 'UPDATE moveadvisor_market_offers SET enrich_tried_at = NOW(), updated_at = NOW() WHERE id = ' + esc(dbId);\n  return { json: { id: dbId, colorFound: false, updateSql: sql } };\n}\n\n// ── AS24: detectar oferta ya no disponible ───────────────────────────────\nif (dbPortal === 'autoscout24' && htmlStr.length >= 500 && (\n  htmlStr.includes('ya no está disponible') ||\n  htmlStr.includes('no longer available') ||\n  htmlStr.includes('nicht mehr verfügbar')\n)) {\n  console.log('[enrich-color] AS24 oferta inactiva id=' + dbId);\n  const sql = 'UPDATE moveadvisor_market_offers SET is_active = false, last_checked_at = NOW(), enrich_tried_at = NOW(), updated_at = NOW() WHERE id = ' + esc(dbId);\n  return { json: { id: dbId, colorFound: false, updateSql: sql, inactive: true } };\n}\n\nlet colorVal = '';\nlet buildId  = '';\n\ntry {\n\n// ── ESTRATEGIA 1: JSON-LD (application/ld+json) ───────────────────────────\ntry {\n  const blocks = [...htmlStr.matchAll(/<script[^>]*application\\/ld\\+json[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m => m[1].trim());\n  console.log('[enrich-color] JSON-LD blocks=' + blocks.length);\n  for (const b of blocks) {\n    try {\n      const j = JSON.parse(b);\n      const arr = Array.isArray(j) ? j : (j['@graph'] || [j]);\n      for (const o of arr) {\n        if (!o) continue;\n        const t = o['@type'] || '';\n        const isVehicle = t === 'Car' || t === 'Product' || t === 'Vehicle'\n          || t === 'Automobile' || t === 'MotorizedVehicle';\n        if (!isVehicle) continue;\n        const car = (o.offers && o.offers.itemOffered) || o;\n        // Campo directo\n        const c = car.color || o.color || car.colour || o.colour\n          || car.colorName || o.colorName || car.exteriorColor || o.exteriorColor || '';\n        if (c && isPlausibleColor(c)) { colorVal = c; break; }\n        // additionalProperty [{name:'Color', value:'Rojo'}, ...] — patrón schema.org muy usado\n        const props = [].concat(car.additionalProperty || o.additionalProperty || []);\n        for (const p of props) {\n          const pn = String(p.name || p.propertyID || '').toLowerCase();\n          if (pn === 'color' || pn === 'colour' || pn === 'color exterior' || pn === 'color exterior') {\n            const pv = String(p.value || '');\n            if (isPlausibleColor(pv)) { colorVal = pv; break; }\n          }\n        }\n        if (colorVal) break;\n      }\n      if (colorVal) break;\n    } catch(e) { console.log('[enrich-color] JSON-LD block parse err: ' + e.message.slice(0,60)); }\n  }\n  if (colorVal) console.log('[enrich-color] JSON-LD color=' + colorVal);\n  else if (blocks.length > 0) console.log('[enrich-color] JSON-LD no color. First block snippet: ' + blocks[0].slice(0, 200));\n} catch(e) {\n  console.log('[enrich-color] JSON-LD error: ' + e.message);\n}\n\n// ── ESTRATEGIA 2: __NEXT_DATA__ (Next.js SSR) ─────────────────────────────\n// Funciona en: Flexicar, Autohero, y otros portales Next.js\nif (!colorVal) {\n  try {\n    const ndMatch = htmlStr.match(/<script id=\"__NEXT_DATA__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/);\n    if (ndMatch) {\n      const nd  = JSON.parse(ndMatch[1]);\n      buildId   = nd.buildId || '';\n      const pp  = (nd.props || {}).pageProps || {};\n\n      // AutoScout24: bodyColor está en listingDetails.vehicle, no en pageProps directamente\n      const as24v = ((pp.listingDetails || {}).vehicle || {});\n      const as24c = as24v.bodyColor || as24v.bodyColorOriginal || '';\n      if (as24c && isPlausibleColor(as24c)) {\n        colorVal = as24c;\n        console.log('[enrich-color] __NEXT_DATA__ as24 bodyColor=' + colorVal);\n      }\n\n      let v = pp.vehicle || pp.car || pp.data || pp.offer || pp.vehicleData || pp.detail || null;\n      if (!v) {\n        const is = (nd.props || {}).initialState || {};\n        v = is.vehicle || is.car || null;\n      }\n      // TanStack / React Query dehydratedState\n      if (!v && pp.dehydratedState) {\n        const queries = (pp.dehydratedState.queries || []);\n        for (const q of queries) {\n          const d = (q.state || {}).data;\n          if (!d) continue;\n          if (d.color !== undefined || d.brand !== undefined) { v = d; break; }\n          const nested = d.vehicle || d.car || d.data || null;\n          if (nested && (nested.color !== undefined || nested.brand !== undefined)) { v = nested; break; }\n          if (Array.isArray(d) && d.length > 0 && d[0].brand !== undefined) { v = d[0]; break; }\n        }\n      }\n      if (v) {\n        const cnd = v.color || v.colorName || v.colour || v.colorExterior\n          || v.colorValue || v.exteriorColor || v.paintColor || '';\n        colorVal = isPlausibleColor(cnd) ? cnd : '';\n        if (colorVal) console.log('[enrich-color] __NEXT_DATA__ color=' + colorVal);\n      }\n    }\n  } catch(e) {\n    console.log('[enrich-color] __NEXT_DATA__ error: ' + e.message);\n  }\n}\n\n// ── ESTRATEGIA 3: _next/data JSON (solo Flexicar, si buildId disponible) ──\nif (!colorVal && dbPortal === 'flexicar' && buildId && dbUrl) {\n  try {\n    const slug    = dbUrl.split('/').filter(Boolean).pop() || '';\n    const jsonUrl = 'https://www.flexicar.es/_next/data/' + buildId + '/coches-ocasion/' + slug + '.json';\n    console.log('[enrich-color] flexicar _next/data: ' + jsonUrl);\n    const jr   = await $helpers.httpRequest({\n      method: 'GET',\n      url: jsonUrl,\n      headers: {\n        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',\n        'Accept': 'application/json'\n      }\n    });\n    const jRaw = typeof jr === 'string' ? JSON.parse(jr) : jr;\n    const jpp  = (jRaw && jRaw.pageProps) ? jRaw.pageProps : {};\n    const jv   = jpp.vehicle || jpp.car || jpp.data || jpp.offer || jpp.vehicleData || null;\n    if (jv) {\n      const cfx = jv.color || jv.colorName || jv.colour || jv.colorExterior\n        || jv.colorValue || jv.exteriorColor || '';\n      colorVal = isPlausibleColor(cfx) ? cfx : '';\n      console.log('[enrich-color] flexicar _next/data color=' + colorVal);\n    } else {\n      console.log('[enrich-color] flexicar _next/data pp keys=' + Object.keys(jpp).join(','));\n    }\n  } catch(e) {\n    console.log('[enrich-color] flexicar _next/data error: ' + e.message);\n  }\n}\n\n// ── ESTRATEGIA 4: Regex genérico ──────────────────────────────────────────\nif (!colorVal) {\n  // 4a: todos los campos JSON \"color\":\"...\" — buscar el primero plausible\n  const all1 = [...htmlStr.matchAll(/\"color\"\\s*:\\s*\"([^\"]{2,40})\"/gi)];\n  for (const m of all1) {\n    const v = m[1].trim();\n    if (!v.startsWith('#') && !/^rgb/i.test(v) && isPlausibleColor(v)) { colorVal = v; break; }\n  }\n}\nif (!colorVal) {\n  // 4b: microdata itemprop=\"color\" — <span itemprop=\"color\">Azul</span> o content=\"...\"\n  const m2a = htmlStr.match(/itemprop\\s*=\\s*[\"']color[\"'][^>]*content\\s*=\\s*[\"']([^\"']{2,40})[\"']/i);\n  const m2b = htmlStr.match(/itemprop\\s*=\\s*[\"']color[\"'][^>]*>([^<]{2,40})<\\//i);\n  const mVal = (m2a && m2a[1]) || (m2b && m2b[1]) || '';\n  if (mVal && isPlausibleColor(mVal.trim())) colorVal = mVal.trim();\n}\nif (!colorVal) {\n  // 4c: data-label / aria-label=\"Color\" seguido de valor\n  const m3 = htmlStr.match(/(?:data-label|aria-label)\\s*=\\s*[\"']Color[\"'][^>]*>([^<]{2,35})<\\//i);\n  if (m3 && isPlausibleColor(m3[1].trim())) colorVal = m3[1].trim();\n}\nif (!colorVal) {\n  // 4d: patrón HTML etiqueta «Color» → siguiente elemento → valor\n  // Maneja: <td>Color</td><td>Azul</td>  y  <span>Color</span><span class=...>Azul</span>\n  const m4 = htmlStr.match(/[Cc]olor\\s*<\\/[a-z]+>\\s*<[^>]{0,100}>\\s*([A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñA-ZÁÉÍÓÚÜÑ\\s\\-]{1,30})\\s*<\\//);\n  if (m4 && isPlausibleColor(m4[1].trim())) colorVal = m4[1].trim();\n}\nif (!colorVal) {\n  // 4e: JSON escapado en HTML — portales que embeben JSON con \\\"color\\\":\\\"Blanco\\\"\n  // (OcasionPlus, y otros que JSON.stringify dentro de un atributo HTML)\n  const unesc4e = htmlStr.replace(/\\\\\"/g, '\"');\n  const all4e = [...unesc4e.matchAll(/\"color\"\\s*:\\s*\"([^\"]{2,40})\"/gi)];\n  for (const m of all4e) {\n    const v = m[1].trim();\n    if (!v.startsWith('#') && !/^rgb/i.test(v) && isPlausibleColor(v)) { colorVal = v; break; }\n  }\n}\nif (colorVal) console.log('[enrich-color] regex fallback color=' + colorVal);\nelse console.log('[enrich-color] no color encontrado con ninguna estrategia');\n\nconsole.log('[enrich-color] FINAL portal=' + dbPortal + ' color=' + colorVal);\n\n// ── SQL ────────────────────────────────────────────────────────────────────\nconst sets = ['enrich_tried_at = NOW()'];\nif (colorVal) sets.push('color = COALESCE(NULLIF(color,\\'\\'), ' + esc(colorVal) + ')');\n\nconst updateSql = 'UPDATE moveadvisor_market_offers SET '\n  + sets.join(', ') + ', updated_at = NOW() WHERE id = ' + esc(dbId);\n\nreturn { json: { id: dbId, colorFound: !!colorVal, updateSql: updateSql } };\n\n} catch(fatalErr) {\n  console.log('[enrich-color] EXCEPCION FATAL id=' + dbId + ': ' + fatalErr.message);\n  const fallbackSql = 'UPDATE moveadvisor_market_offers SET enrich_tried_at = NOW(), updated_at = NOW() WHERE id = ' + esc(dbId);\n  return { json: { id: dbId, colorFound: false, updateSql: dbId ? fallbackSql : null, error: fatalErr.message } };\n}\n"
       },
       "id": "uc-code",
       "name": "Code: Extraer color",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-5424, 256],
+      "position": [
+        -5424,
+        256
+      ],
       "continueOnFail": true
     },
     {
@@ -121,7 +148,10 @@
       "name": "IF: ¿hay SQL?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [-5184, 256]
+      "position": [
+        -5184,
+        256
+      ]
     },
     {
       "parameters": {
@@ -133,7 +163,10 @@
       "name": "PG: Actualizar color",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
-      "position": [-4944, 128],
+      "position": [
+        -4944,
+        128
+      ],
       "credentials": {
         "postgres": {
           "id": "zoxD0jV8hxZqH0uY",
@@ -144,34 +177,100 @@
   ],
   "connections": {
     "Ejecutar manualmente": {
-      "main": [[{ "node": "PG: Ofertas sin color", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "PG: Ofertas sin color",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Cada día a las 7:00": {
-      "main": [[{ "node": "PG: Ofertas sin color", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "PG: Ofertas sin color",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "PG: Ofertas sin color": {
-      "main": [[{ "node": "Loop: oferta por oferta", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Loop: oferta por oferta": {
       "main": [
-        [{ "node": "HTTP: Ficha del portal", "type": "main", "index": 0 }],
+        [
+          {
+            "node": "HTTP: Ficha del portal",
+            "type": "main",
+            "index": 0
+          }
+        ],
         []
       ]
     },
     "HTTP: Ficha del portal": {
-      "main": [[{ "node": "Code: Extraer color", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Code: Extraer color",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Code: Extraer color": {
-      "main": [[{ "node": "IF: ¿hay SQL?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay SQL?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "IF: ¿hay SQL?": {
       "main": [
-        [{ "node": "PG: Actualizar color", "type": "main", "index": 0 }],
-        [{ "node": "Loop: oferta por oferta", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "PG: Actualizar color",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "PG: Actualizar color": {
-      "main": [[{ "node": "Loop: oferta por oferta", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {

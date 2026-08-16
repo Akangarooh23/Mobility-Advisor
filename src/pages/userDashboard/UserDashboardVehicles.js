@@ -1184,7 +1184,7 @@ export default function UserDashboardVehicles({
     }
 
     if (INFORME_OBLIGATORIO && !resumenInforme(vehicle.id).hecho) {
-      setVehicleFeedback(`Para publicar ${vehicleLabel} hace falta el informe de estado.`);
+      setVehicleFeedback(`El informe de estado de ${vehicleLabel} no está terminado.`);
       return;
     }
 
@@ -2645,9 +2645,14 @@ export default function UserDashboardVehicles({
                             </div>
                             {!informe.hecho && (
                               <>
+                                {INFORME_OBLIGATORIO && (
+                                  <div style={{ fontSize: 11, color: "#dc2626", fontWeight: 700 }}>
+                                    El informe de estado no está terminado
+                                  </div>
+                                )}
                                 <span style={{ fontSize: 10, color: bodyColor, lineHeight: 1.5 }}>
                                   {INFORME_OBLIGATORIO
-                                    ? "Hace falta el informe de estado para publicar. Son 16 fotos guiadas desde el móvil, unos 10 minutos."
+                                    ? "Termínalo para poder publicar. Son 16 fotos guiadas desde el móvil, unos 10 minutos."
                                     : "Recomendado. Un anuncio con el estado del coche documentado da al comprador algo que verificar a distancia."}
                                 </span>
                                 <button type="button" disabled={abriendo}

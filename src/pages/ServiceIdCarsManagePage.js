@@ -693,7 +693,7 @@ export default function ServiceIdCarsManagePage({
     }
     if (INFORME_OBLIGATORIO && !resumenInforme(vid).hecho) {
       showFeedback(
-        txt("Hace falta el informe de estado antes de publicar.", "A condition report is required before publishing."),
+        txt("El informe de estado no está terminado.", "The condition report is not finished."),
         "error"
       );
       return;
@@ -2165,11 +2165,16 @@ export default function ServiceIdCarsManagePage({
 
                   {!informe.hecho && (
                     <>
+                      {INFORME_OBLIGATORIO && (
+                        <div style={{ fontSize: 11.5, color: "#dc2626", fontWeight: 700 }}>
+                          {txt("El informe de estado no está terminado", "The condition report is not finished")}
+                        </div>
+                      )}
                       <span style={{ fontSize: 11, color: "#6b7280", lineHeight: 1.5 }}>
                         {INFORME_OBLIGATORIO
                           ? txt(
-                              "Hace falta el informe de estado para publicar. Son 16 fotos guiadas desde el móvil, unos 10 minutos.",
-                              "A condition report is required to publish. It is 16 guided photos from your phone, about 10 minutes."
+                              "Termínalo para poder publicar. Son 16 fotos guiadas desde el móvil, unos 10 minutos.",
+                              "Finish it to publish. It is 16 guided photos from your phone, about 10 minutes."
                             )
                           : txt(
                               "Recomendado. Un anuncio con el estado del coche documentado da al comprador algo que verificar a distancia.",

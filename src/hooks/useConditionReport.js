@@ -14,15 +14,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
  */
 
 /**
- * Con `true`, no se puede publicar en el Marketplace sin informe de estado.
+ * Con `true`, no se puede publicar en el Marketplace sin informe de estado
+ * terminado. Decisión de producto: un anuncio sin estado documentado es lo que
+ * hace que el comprador no pueda verificar nada a distancia.
  *
- * Tiene que seguir en `false` hasta que la captura funcione de punta a punta
- * —cámara, subida, anonimizado y análisis—. El candado antes que la llave
- * dejaría el Marketplace sin poder publicar ni un coche, porque hoy nadie
- * puede llegar a tener informe. Mientras tanto se enseña como recomendación,
- * con su botón para hacerlo.
+ * OJO mientras dure el desarrollo: la captura todavía no funciona de punta a
+ * punta —faltan cámara, subida, anonimizado y análisis—, así que hoy ningún
+ * coche puede alcanzar `informe_listo` y **no se puede publicar nada**. Es
+ * deliberado y no hay usuarios reales. Ponerlo a `false` devuelve el requisito
+ * a recomendación en los dos puntos de publicación a la vez.
  */
-export const INFORME_OBLIGATORIO = false;
+export const INFORME_OBLIGATORIO = true;
 
 /** Estados en los que ya hay un informe utilizable. */
 const LISTO = new Set(["informe_listo", "verificada", "publicada"]);

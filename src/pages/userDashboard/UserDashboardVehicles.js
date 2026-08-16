@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { writeCachedGarageVehicleCount } from "../../utils/storage";
 import {
@@ -2533,7 +2534,13 @@ export default function UserDashboardVehicles({
                 </div>;
               })}
 
-              {slotsDialog.open && (
+              {/* En `document.body`: estos diálogos se renderizan dentro de la
+                  tarjeta del vehículo, y basta con que un ancestro tenga
+                  `transform`, `filter` o `will-change` para que un
+                  `position: fixed` se coloque respecto a él en vez de a la
+                  pantalla. En el móvil eso los dejaba arriba del contenedor,
+                  fuera de lo que se ve. */}
+              {slotsDialog.open && createPortal(
                 <div
                   onClick={() => setSlotsDialog({ open: false, vehicleId: null })}
                   style={{ position: "fixed", inset: 0, zIndex: 1300, background: isDark ? "rgba(2,6,23,0.75)" : "rgba(15,23,42,0.4)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, overflowY: "auto", overscrollBehavior: "contain" }}
@@ -2558,9 +2565,10 @@ export default function UserDashboardVehicles({
                       source="marketplace"
                     />
                   </div>
-                </div>
+                </div>,
+                document.body
               )}
-              {marketplacePublishDialog.open && marketplacePublishDialog.vehicle ? (
+              {marketplacePublishDialog.open && marketplacePublishDialog.vehicle ? createPortal(
                 <div
                   onClick={closeMarketplacePublishDialog}
                   style={{
@@ -2735,7 +2743,8 @@ export default function UserDashboardVehicles({
                       );
                     })()}
                   </div>
-                </div>
+                </div>,
+                document.body
               ) : null}
             </div>
             ) : (

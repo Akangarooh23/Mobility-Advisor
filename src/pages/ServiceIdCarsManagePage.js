@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
 import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemoveJson, postVehicleStateUpsertJson, postVehiclePublishJson, getErpBrandsJson, getErpModelsJson, getErpVersionsJson, getErpVersionDetailJson } from "../utils/apiClient";
@@ -2108,12 +2109,16 @@ export default function ServiceIdCarsManagePage({
 
     </div>
 
-    {/* Confirmación de publicación.
+    {/* Confirmación de publicación, montada en `document.body`.
+        Un `position: fixed` deja de referirse a la pantalla si algún ancestro
+        tiene `transform`, `filter`, `backdrop-filter` o `will-change`: pasa a
+        colocarse dentro de ese ancestro, que es lo que hacía que en el móvil
+        el diálogo apareciera arriba del contenedor y fuera de la vista. El
+        portal lo saca del árbol y ya no depende de qué haya por encima.
+
         `alignItems: flex-start` con `margin: auto` en el diálogo: centra
-        cuando cabe y deja desplazar cuando no. Con `center` a secas, en
-        vertical de móvil el diálogo desborda y se corta por arriba sin
-        posibilidad de llegar a lo que sobra. */}
-    {marketplacePublishDialog.open && marketplacePublishDialog.vehicle ? (
+        cuando cabe y deja desplazar cuando no. */}
+    {marketplacePublishDialog.open && marketplacePublishDialog.vehicle ? createPortal(
       <div onClick={closeMarketplacePublishDialog}
         style={{ position: "fixed", inset: 0, zIndex: 1200, background: "rgba(15,23,42,0.35)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, overflowY: "auto", overscrollBehavior: "contain" }}>
         <div onClick={(e) => e.stopPropagation()}
@@ -2239,7 +2244,8 @@ export default function ServiceIdCarsManagePage({
             </button>
           </div>
         </div>
-      </div>
+      </div>,
+      document.body
     ) : null}
     </>
   );

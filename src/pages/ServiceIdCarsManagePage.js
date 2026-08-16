@@ -8,6 +8,20 @@ const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 const IDCAR_PENDING_ACTION_KEY = "movilidad-advisor.idcar.action";
 const MAX_ATTACHMENT_BYTES = 12 * 1024 * 1024;
 
+/**
+ * Con `true`, no se puede publicar en el Marketplace sin informe de estado.
+ *
+ * Tiene que seguir en `false` hasta que la captura funcione de punta a punta
+ * —cámara, subida, anonimizado y análisis—. El candado antes que la llave
+ * dejaría el Marketplace sin poder publicar ni un coche, porque hoy nadie
+ * puede llegar a tener informe. Mientras tanto el diálogo lo enseña como
+ * recomendación, con su botón para hacerlo.
+ */
+const INFORME_OBLIGATORIO = false;
+
+/** Estados en los que ya hay un informe utilizable. */
+const INFORME_LISTO = new Set(["informe_listo", "verificada", "publicada"]);
+
 function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -455,10 +469,11 @@ export default function ServiceIdCarsManagePage({
   const [marketplaceOverrides, setMarketplaceOverrides] = useState({});
   const [marketplacePublishDialog, setMarketplacePublishDialog] = useState({ open: false, vehicle: null });
 
-  // Informe de estado (CarsWise Check). Aquí solo se guarda la referencia:
-  // el expediente vive en captura.carswiseai.com.
-  const [conditionReports, setConditionReports] = useState([]);
-  const [conditionState, setConditionState] = useState({ status: "idle", message: "" });
+  // Informe de estado (CarsWise Check), indexado por vehículo: lo consultan la
+  // sección del editor, el panel de acciones rápidas y el diálogo de publicar.
+  // Aquí solo se guarda la referencia; el expediente vive en la otra aplicación.
+  const [conditionReports, setConditionReports] = useState({});
+  const [conditionState, setConditionState] = useState({});
   const captureWindowRef = useRef(null);
   const captureOriginRef = useRef("");
 
@@ -683,6 +698,13 @@ export default function ServiceIdCarsManagePage({
     const effectivePrice = normalizeText(marketplacePublishDialog.modalPrice) || normalizeText(vehicle.price);
     if (!effectivePrice) {
       showFeedback(txt("Introduce un precio antes de publicar.", "Enter a price before publishing."), "error");
+      return;
+    }
+    if (INFORME_OBLIGATORIO && !resumenInforme(vid).hecho) {
+      showFeedback(
+        txt("Hace falta el informe de estado antes de publicar.", "A condition report is required before publishing."),
+        "error"
+      );
       return;
     }
     // If price was entered in modal, update local state only.
@@ -999,30 +1021,64 @@ export default function ServiceIdCarsManagePage({
 
   // ─── informe de estado (CarsWise Check) ─────────────────────────────
   const loadConditionReports = useCallback(async (vehicleId) => {
-    if (!vehicleId) return;
-    setConditionState({ status: "loading", message: "" });
+    const vid = normalizeText(vehicleId);
+    if (!vid) return;
+    setConditionState((prev) => ({ ...prev, [vid]: { status: "loading", message: "" } }));
     try {
-      const res = await fetch(`/api/market?route=condition-report&vehicleId=${encodeURIComponent(vehicleId)}`, {
+      const res = await fetch(`/api/market?route=condition-report&vehicleId=${encodeURIComponent(vid)}`, {
         credentials: "include",
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setConditionState({ status: "error", message: normalizeText(data?.error) });
+        setConditionState((prev) => ({ ...prev, [vid]: { status: "error", message: normalizeText(data?.error) } }));
         return;
       }
-      setConditionReports(Array.isArray(data?.informes) ? data.informes : []);
-      setConditionState({ status: "ready", message: "" });
+      setConditionReports((prev) => ({ ...prev, [vid]: Array.isArray(data?.informes) ? data.informes : [] }));
+      setConditionState((prev) => ({ ...prev, [vid]: { status: "ready", message: "" } }));
     } catch (err) {
-      setConditionState({ status: "error", message: normalizeText(err?.message) });
+      setConditionState((prev) => ({ ...prev, [vid]: { status: "error", message: normalizeText(err?.message) } }));
     }
   }, []);
 
-  // Se carga al abrir la sección, no al abrir el coche: es una llamada de red
-  // que la mayoría de las visitas no necesita.
+  /** Lo que necesitan saber los tres sitios que pintan el informe de estado. */
+  const resumenInforme = (vehicleId) => {
+    const vid = normalizeText(vehicleId);
+    const lista = conditionReports[vid] || [];
+    const estadoCarga = conditionState[vid] || { status: "idle", message: "" };
+    const hecho = lista.some((r) => INFORME_LISTO.has(normalizeText(r.status)));
+    return {
+      lista,
+      carga: estadoCarga,
+      hecho,
+      // Hay sesión abierta pero todavía no informe: se puede retomar.
+      enCurso: !hecho && lista.some((r) => normalizeText(r.capture_url)),
+      enlace: normalizeText(lista.find((r) => normalizeText(r.capture_url))?.capture_url),
+      ultimoEstado: normalizeText(lista[0]?.status),
+    };
+  };
+
+  // La ficha de un coche necesita el informe aunque la sección esté plegada:
+  // lo consultan también las acciones rápidas. En el listado solo se pide si
+  // el usuario abre la sección, para no lanzar una petición por cada coche.
   useEffect(() => {
-    if (!openSections.conditionReport || !activeVehicleId) return;
+    if (!activeVehicleId) return;
+    if (!isDetailView && !openSections.conditionReport) return;
     void loadConditionReports(activeVehicleId);
-  }, [openSections.conditionReport, activeVehicleId, loadConditionReports]);
+  }, [activeVehicleId, isDetailView, openSections.conditionReport, loadConditionReports]);
+
+  useEffect(() => {
+    const vid = normalizeText(marketplacePublishDialog.vehicle?.id);
+    if (!marketplacePublishDialog.open || !vid) return;
+    void loadConditionReports(vid);
+  }, [marketplacePublishDialog.open, marketplacePublishDialog.vehicle, loadConditionReports]);
+
+  /** Refresca los coches que el usuario tiene a la vista, no todos. */
+  const refrescarInformesVisibles = useCallback(() => {
+    const vistos = new Set(
+      [activeVehicleId, normalizeText(marketplacePublishDialog.vehicle?.id)].filter(Boolean)
+    );
+    vistos.forEach((vid) => { void loadConditionReports(vid); });
+  }, [activeVehicleId, marketplacePublishDialog.vehicle, loadConditionReports]);
 
   /**
    * La captura avisa por `postMessage` cuando termina. La pestaña se abre sin
@@ -1033,13 +1089,13 @@ export default function ServiceIdCarsManagePage({
     const alRecibirMensaje = (evento) => {
       if (!captureOriginRef.current || evento.origin !== captureOriginRef.current) return;
       if (evento.data?.tipo !== "carswise-check:fin") return;
-      if (activeVehicleId) void loadConditionReports(activeVehicleId);
+      refrescarInformesVisibles();
       setFeedback("Captura terminada. El informe de estado ya está en tu IDCar.");
       setFeedbackTone("success");
     };
     window.addEventListener("message", alRecibirMensaje);
     return () => window.removeEventListener("message", alRecibirMensaje);
-  }, [activeVehicleId, loadConditionReports]);
+  }, [refrescarInformesVisibles]);
 
   // Red de seguridad: cerrar la pestaña no significa haber terminado, pero sí
   // que conviene refrescar por si el mensaje no llegó.
@@ -1048,24 +1104,26 @@ export default function ServiceIdCarsManagePage({
       const ventana = captureWindowRef.current;
       if (!ventana || !ventana.closed) return;
       captureWindowRef.current = null;
-      if (activeVehicleId) void loadConditionReports(activeVehicleId);
+      refrescarInformesVisibles();
     }, 1500);
     return () => window.clearInterval(temporizador);
-  }, [activeVehicleId, loadConditionReports]);
+  }, [refrescarInformesVisibles]);
 
   const startConditionCapture = async (vehicleId) => {
-    if (!vehicleId) return;
-    setConditionState({ status: "opening", message: "" });
+    const vid = normalizeText(vehicleId);
+    if (!vid) return;
+    const marcar = (estado) => setConditionState((prev) => ({ ...prev, [vid]: estado }));
+    marcar({ status: "opening", message: "" });
     try {
       const res = await fetch("/api/market?route=condition-report", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ vehicleId }),
+        body: JSON.stringify({ vehicleId: vid }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !normalizeText(data?.capture_url)) {
-        setConditionState({
+        marcar({
           status: "error",
           message: normalizeText(data?.error) || txt("No se ha podido abrir la captura.", "Could not open the capture."),
         });
@@ -1075,16 +1133,16 @@ export default function ServiceIdCarsManagePage({
       captureOriginRef.current = new URL(data.capture_url).origin;
       captureWindowRef.current = window.open(data.capture_url, "carswise-check");
       if (!captureWindowRef.current) {
-        setConditionState({
+        marcar({
           status: "error",
           message: txt("El navegador ha bloqueado la ventana. Permite las ventanas emergentes de este sitio.", "The browser blocked the window. Allow pop-ups for this site."),
         });
         return;
       }
-      setConditionState({ status: "ready", message: "" });
-      await loadConditionReports(vehicleId);
+      marcar({ status: "ready", message: "" });
+      await loadConditionReports(vid);
     } catch (err) {
-      setConditionState({ status: "error", message: normalizeText(err?.message) });
+      marcar({ status: "error", message: normalizeText(err?.message) });
     }
   };
 
@@ -1356,8 +1414,27 @@ export default function ServiceIdCarsManagePage({
 
   const renderManagePanel = (vehicle) => {
     const isPublished = getIsPublished(vehicle);
+    // Fotografiar el coche no es editar su ficha, así que la acción vive aquí
+    // y no escondida detrás del botón de editar.
+    const informe = resumenInforme(vehicle?.id);
+    const abriendo = informe.carga.status === "opening";
     return (
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 7 }}>
+        <button type="button"
+          disabled={abriendo}
+          onClick={() => { void startConditionCapture(vehicle?.id); }}
+          style={{ background: "rgba(20,184,166,0.10)", border: "1px solid rgba(15,118,110,0.25)", color: "#0f766e", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: abriendo ? "not-allowed" : "pointer", opacity: abriendo ? 0.7 : 1 }}>
+          {abriendo
+            ? txt("Abriendo...", "Opening...")
+            : informe.hecho
+              // Abre una captura nueva, no el informe existente: el visor y la
+              // descarga llegan con la rebanada 8. Rehacerlo es legítimo, el
+              // coche cambia; lo que no vale es prometer algo que no hace.
+              ? txt("Repetir el informe de estado", "Redo condition report")
+              : informe.enCurso
+                ? txt("Continuar el informe de estado", "Continue condition report")
+                : txt("Hacer el informe de estado", "Get condition report")}
+        </button>
         <button type="button"
           onClick={() => typeof onRequestAppointment === "function" && onRequestAppointment(vehicle)}
           style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", color: "#b45309", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
@@ -1653,8 +1730,8 @@ export default function ServiceIdCarsManagePage({
             );
           }
 
-          const abierto = conditionReports.find((r) => normalizeText(r.capture_url));
-          const ocupado = conditionState.status === "opening" || conditionState.status === "loading";
+          const informe = resumenInforme(vehicleId);
+          const ocupado = informe.carga.status === "opening" || informe.carga.status === "loading";
 
           return (
             <div style={{ display: "grid", gap: 12 }}>
@@ -1675,11 +1752,13 @@ export default function ServiceIdCarsManagePage({
                   }}>
                   {ocupado
                     ? txt("Abriendo...", "Opening...")
-                    : abierto
+                    : informe.enCurso
                       ? txt("Continuar la captura", "Continue the capture")
-                      : txt("Abrir la captura guiada", "Open guided capture")}
+                      : informe.hecho
+                        ? txt("Repetir la captura", "Redo the capture")
+                        : txt("Abrir la captura guiada", "Open guided capture")}
                 </button>
-                {conditionReports.length > 0 && (
+                {informe.lista.length > 0 && (
                   <button type="button" onClick={() => { void loadConditionReports(vehicleId); }}
                     style={{ border: "1px solid #e5e7eb", borderRadius: 10, background: "#fff", color: "#6b7280", padding: "10px 14px", fontSize: 12.5, fontWeight: 700, cursor: "pointer" }}>
                     {txt("Actualizar estado", "Refresh status")}
@@ -1687,27 +1766,27 @@ export default function ServiceIdCarsManagePage({
                 )}
               </div>
 
-              {conditionState.status === "error" && (
-                <p style={{ fontSize: 12, color: "#b91c1c", margin: 0 }}>⚠️ {conditionState.message}</p>
+              {informe.carga.status === "error" && (
+                <p style={{ fontSize: 12, color: "#b91c1c", margin: 0 }}>⚠️ {informe.carga.message}</p>
               )}
 
-              {conditionReports.length === 0 && conditionState.status === "ready" && (
+              {informe.lista.length === 0 && informe.carga.status === "ready" && (
                 <p style={{ fontSize: 12, color: "#9ca3af", margin: 0 }}>
                   {txt("Todavía no hay ninguna captura para este coche.", "No capture yet for this car.")}
                 </p>
               )}
 
-              {conditionReports.length > 0 && (
+              {informe.lista.length > 0 && (
                 <div style={{ display: "grid", gap: 6 }}>
-                  {conditionReports.map((informe) => (
-                    <div key={informe.session_id}
+                  {informe.lista.map((expediente) => (
+                    <div key={expediente.session_id}
                       style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", border: "1px solid #f1ede6", borderRadius: 10, padding: "9px 12px" }}>
                       <span style={{ fontSize: 12.5, color: "#1f2937", fontWeight: 600 }}>
-                        {CONDITION_STATUS_LABELS[informe.status] || informe.status}
+                        {CONDITION_STATUS_LABELS[expediente.status] || expediente.status}
                       </span>
                       <span style={{ fontSize: 11.5, color: "#9ca3af" }}>
-                        {informe.created_at
-                          ? new Date(informe.created_at).toLocaleDateString(isEn ? "en-GB" : "es-ES")
+                        {expediente.created_at
+                          ? new Date(expediente.created_at).toLocaleDateString(isEn ? "en-GB" : "es-ES")
                           : ""}
                       </span>
                     </div>
@@ -2185,14 +2264,67 @@ export default function ServiceIdCarsManagePage({
                 </span>
               </label>
             )}
+
+            {(() => {
+              const informe = resumenInforme(marketplacePublishDialog.vehicle.id);
+              const abriendo = informe.carga.status === "opening";
+              return (
+                <div style={{ display: "grid", gap: 6, borderTop: "1px solid #f1ede6", paddingTop: 10 }}>
+                  <div>
+                    <strong style={{ color: "#374151" }}>{txt("Informe de estado:", "Condition report:")} </strong>
+                    {informe.carga.status === "loading" ? (
+                      <span>{txt("comprobando...", "checking...")}</span>
+                    ) : informe.hecho ? (
+                      <span style={{ color: "#047857", fontWeight: 700 }}>{txt("hecho", "done")}</span>
+                    ) : informe.enCurso ? (
+                      <span style={{ color: "#b45309", fontWeight: 700 }}>{txt("a medias", "in progress")}</span>
+                    ) : (
+                      <span style={{ color: "#b45309", fontWeight: 700 }}>{txt("sin hacer", "not done")}</span>
+                    )}
+                  </div>
+
+                  {!informe.hecho && (
+                    <>
+                      <span style={{ fontSize: 11, color: "#6b7280", lineHeight: 1.5 }}>
+                        {INFORME_OBLIGATORIO
+                          ? txt(
+                              "Hace falta el informe de estado para publicar. Son 16 fotos guiadas desde el móvil, unos 10 minutos.",
+                              "A condition report is required to publish. It is 16 guided photos from your phone, about 10 minutes."
+                            )
+                          : txt(
+                              "Recomendado. Un anuncio con el estado del coche documentado da al comprador algo que verificar a distancia.",
+                              "Recommended. A listing with a documented condition gives the buyer something to verify remotely."
+                            )}
+                      </span>
+                      <button type="button" disabled={abriendo}
+                        onClick={() => { void startConditionCapture(marketplacePublishDialog.vehicle.id); }}
+                        style={{ justifySelf: "start", background: "rgba(20,184,166,0.10)", border: "1px solid rgba(15,118,110,0.25)", color: "#0f766e", borderRadius: 8, padding: "8px 12px", fontSize: 12, fontWeight: 700, cursor: abriendo ? "not-allowed" : "pointer", opacity: abriendo ? 0.7 : 1 }}>
+                        {abriendo
+                          ? txt("Abriendo...", "Opening...")
+                          : informe.enCurso
+                            ? txt("Continuar el informe de estado", "Continue condition report")
+                            : txt("Hacer el informe de estado", "Get condition report")}
+                      </button>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button ref={marketplacePublishPrimaryBtnRef} type="button"
-              onClick={confirmMarketplacePublish}
-              disabled={!marketplacePublishDialog.vehicle.price && !marketplacePublishDialog.modalPrice}
-              style={{ background: (marketplacePublishDialog.vehicle.price || marketplacePublishDialog.modalPrice) ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "#d1d5db", color: "#fff", border: "none", borderRadius: 8, padding: "9px 16px", fontSize: 12, fontWeight: 700, cursor: (marketplacePublishDialog.vehicle.price || marketplacePublishDialog.modalPrice) ? "pointer" : "not-allowed" }}>
-              {txt("🚀 Publicar", "🚀 Publish")}
-            </button>
+            {(() => {
+              const hayPrecio = Boolean(marketplacePublishDialog.vehicle.price || marketplacePublishDialog.modalPrice);
+              const hayInforme = resumenInforme(marketplacePublishDialog.vehicle.id).hecho;
+              const puedePublicar = hayPrecio && (!INFORME_OBLIGATORIO || hayInforme);
+              return (
+                <button ref={marketplacePublishPrimaryBtnRef} type="button"
+                  onClick={confirmMarketplacePublish}
+                  disabled={!puedePublicar}
+                  style={{ background: puedePublicar ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "#d1d5db", color: "#fff", border: "none", borderRadius: 8, padding: "9px 16px", fontSize: 12, fontWeight: 700, cursor: puedePublicar ? "pointer" : "not-allowed" }}>
+                  {txt("🚀 Publicar", "🚀 Publish")}
+                </button>
+              );
+            })()}
             <button type="button" onClick={closeMarketplacePublishDialog}
               style={{ background: "rgba(148,163,184,0.14)", color: "#374151", border: "1px solid #e5e7eb", borderRadius: 8, padding: "9px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
               {txt("Cancelar", "Cancel")}

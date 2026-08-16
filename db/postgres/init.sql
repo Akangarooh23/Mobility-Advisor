@@ -809,6 +809,36 @@ CREATE TABLE IF NOT EXISTS moveadvisor_user_preferences (
   updated_at             TIMESTAMPTZ   NOT NULL DEFAULT NOW()
 );
 
+-- Informe de estado (CarsWise Check): espejo de referencia, no copia.
+--
+-- El expediente —grados, daños, fotos anonimizadas— vive en la base de
+-- CarsWise Check, cuyo esquema impide afirmar mecánica sin verificación física
+-- y ata cada daño a una pieza de una lista cerrada. Aquí solo se recuerda que
+-- un coche tiene expediente y en qué punto va. Sin informe, sin ficheros y sin
+-- precio: la captura analiza daños, no tasa el vehículo.
+CREATE TABLE IF NOT EXISTS moveadvisor_vehicle_condition_reports (
+  id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  vehicle_id           VARCHAR(64) NOT NULL REFERENCES moveadvisor_user_vehicles(id) ON DELETE CASCADE,
+  -- UUID v5 del vehicle_id local: es como lo identifica CarsWise Check.
+  capture_vehicle_uuid UUID NOT NULL,
+  capture_session_id   UUID NOT NULL UNIQUE,
+  -- Lleva el token de la sesión. Se vacía en cuanto la sesión se cierra.
+  capture_url          TEXT NOT NULL DEFAULT '',
+  status               VARCHAR(32) NOT NULL DEFAULT 'iniciada',
+  created_by_email     VARCHAR(255),
+  expires_at           TIMESTAMPTZ,
+  status_checked_at    TIMESTAMPTZ,
+  created_at           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at           TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS ix_moveadvisor_condition_reports_vehicle
+  ON moveadvisor_vehicle_condition_reports (vehicle_id, created_at DESC);
+
+-- La tabla anterior guardaba el informe entero en un JSONB y URLs públicas de
+-- ficheros crudos. Se retira: duplicaba el expediente fuera de sus salvaguardas
+-- y exponía originales sin difuminar.
+DROP TABLE IF EXISTS moveadvisor_vehicle_prediagnosticos;
+
 -- Tablas de inventario scrapeado
 CREATE TABLE IF NOT EXISTS moveadvisor_market_offers (
   id                   VARCHAR(40)   NOT NULL PRIMARY KEY,

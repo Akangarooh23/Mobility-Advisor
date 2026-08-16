@@ -10,6 +10,7 @@ const workshopsPhotoHandler       = require("../lib/api/workshops-photo-handler"
 const whatsappHandler             = require("../lib/api/whatsapp-handler");
 const erpAppointmentHandler        = require("../lib/api/erp-appointment-handler");
 const userErpAppointmentsHandler   = require("../lib/api/user-erp-appointments-handler");
+const conditionReportHandler       = require("../lib/api/condition-report-handler");
 
 function resolveRoute(req) {
   const explicitRoute = String(req.query?.route || "").trim().toLowerCase();
@@ -41,6 +42,7 @@ module.exports = async function marketRouter(req, res) {
     case "whatsapp":    return whatsappHandler(req, res);
     case "erp-appointment":       return erpAppointmentHandler(req, res);
     case "user-erp-appointments": return userErpAppointmentsHandler(req, res);
+    case "condition-report":      return conditionReportHandler(req, res);
     default:
       return res.status(404).json({ error: "Market route not found" });
   }

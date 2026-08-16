@@ -444,7 +444,8 @@ export default function ServiceIdCarsManagePage({
   const [form, setForm] = useState(createEmptyForm());
   const [openSections, setOpenSections] = useState({
     characteristics: true, marketplace: false,
-    vehicleDocuments: false, insurance: false, maintenance: false, notes: false,
+    vehicleDocuments: false, conditionReport: false,
+    insurance: false, maintenance: false, notes: false,
   });
   const [feedback, setFeedback] = useState("");
   const [feedbackTone, setFeedbackTone] = useState("info");
@@ -453,6 +454,13 @@ export default function ServiceIdCarsManagePage({
   const [openManagePanelId, setOpenManagePanelId] = useState("");
   const [marketplaceOverrides, setMarketplaceOverrides] = useState({});
   const [marketplacePublishDialog, setMarketplacePublishDialog] = useState({ open: false, vehicle: null });
+
+  // Informe de estado (CarsWise Check). Aquí solo se guarda la referencia:
+  // el expediente vive en captura.carswiseai.com.
+  const [conditionReports, setConditionReports] = useState([]);
+  const [conditionState, setConditionState] = useState({ status: "idle", message: "" });
+  const captureWindowRef = useRef(null);
+  const captureOriginRef = useRef("");
 
   // ERP catalog
   const [vehicleCatalogMode, setVehicleCatalogMode] = useState("erp");
@@ -517,6 +525,9 @@ export default function ServiceIdCarsManagePage({
     }
     return sortedVehicles;
   }, [isDetailView, selectedVehicle, sortedVehicles]);
+
+  /** El coche que se está viendo o editando. Vacío mientras se crea uno nuevo. */
+  const activeVehicleId = normalizeText(editingVehicleId) || normalizeText(selectedVehicle?.id) || "";
 
   const loadVehicles = useCallback(async () => {
     const normalizedEmail = normalizeText(currentUserEmail).toLowerCase();
@@ -984,6 +995,109 @@ export default function ServiceIdCarsManagePage({
     } catch (err) {
       setPublishStates((prev) => ({ ...prev, [vehicleId]: { status: "error", message: err.message } }));
     }
+  };
+
+  // ─── informe de estado (CarsWise Check) ─────────────────────────────
+  const loadConditionReports = useCallback(async (vehicleId) => {
+    if (!vehicleId) return;
+    setConditionState({ status: "loading", message: "" });
+    try {
+      const res = await fetch(`/api/market?route=condition-report&vehicleId=${encodeURIComponent(vehicleId)}`, {
+        credentials: "include",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setConditionState({ status: "error", message: normalizeText(data?.error) });
+        return;
+      }
+      setConditionReports(Array.isArray(data?.informes) ? data.informes : []);
+      setConditionState({ status: "ready", message: "" });
+    } catch (err) {
+      setConditionState({ status: "error", message: normalizeText(err?.message) });
+    }
+  }, []);
+
+  // Se carga al abrir la sección, no al abrir el coche: es una llamada de red
+  // que la mayoría de las visitas no necesita.
+  useEffect(() => {
+    if (!openSections.conditionReport || !activeVehicleId) return;
+    void loadConditionReports(activeVehicleId);
+  }, [openSections.conditionReport, activeVehicleId, loadConditionReports]);
+
+  /**
+   * La captura avisa por `postMessage` cuando termina. La pestaña se abre sin
+   * `noopener` a propósito: sin `window.opener` no hay canal de vuelta. El
+   * origen se comprueba siempre antes de hacer caso al mensaje.
+   */
+  useEffect(() => {
+    const alRecibirMensaje = (evento) => {
+      if (!captureOriginRef.current || evento.origin !== captureOriginRef.current) return;
+      if (evento.data?.tipo !== "carswise-check:fin") return;
+      if (activeVehicleId) void loadConditionReports(activeVehicleId);
+      setFeedback("Captura terminada. El informe de estado ya está en tu IDCar.");
+      setFeedbackTone("success");
+    };
+    window.addEventListener("message", alRecibirMensaje);
+    return () => window.removeEventListener("message", alRecibirMensaje);
+  }, [activeVehicleId, loadConditionReports]);
+
+  // Red de seguridad: cerrar la pestaña no significa haber terminado, pero sí
+  // que conviene refrescar por si el mensaje no llegó.
+  useEffect(() => {
+    const temporizador = window.setInterval(() => {
+      const ventana = captureWindowRef.current;
+      if (!ventana || !ventana.closed) return;
+      captureWindowRef.current = null;
+      if (activeVehicleId) void loadConditionReports(activeVehicleId);
+    }, 1500);
+    return () => window.clearInterval(temporizador);
+  }, [activeVehicleId, loadConditionReports]);
+
+  const startConditionCapture = async (vehicleId) => {
+    if (!vehicleId) return;
+    setConditionState({ status: "opening", message: "" });
+    try {
+      const res = await fetch("/api/market?route=condition-report", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vehicleId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !normalizeText(data?.capture_url)) {
+        setConditionState({
+          status: "error",
+          message: normalizeText(data?.error) || txt("No se ha podido abrir la captura.", "Could not open the capture."),
+        });
+        return;
+      }
+
+      captureOriginRef.current = new URL(data.capture_url).origin;
+      captureWindowRef.current = window.open(data.capture_url, "carswise-check");
+      if (!captureWindowRef.current) {
+        setConditionState({
+          status: "error",
+          message: txt("El navegador ha bloqueado la ventana. Permite las ventanas emergentes de este sitio.", "The browser blocked the window. Allow pop-ups for this site."),
+        });
+        return;
+      }
+      setConditionState({ status: "ready", message: "" });
+      await loadConditionReports(vehicleId);
+    } catch (err) {
+      setConditionState({ status: "error", message: normalizeText(err?.message) });
+    }
+  };
+
+  const CONDITION_STATUS_LABELS = {
+    iniciada: txt("Sesión abierta, sin fotos todavía", "Session open, no photos yet"),
+    capturando: txt("Captura en curso", "Capture in progress"),
+    subida_completa: txt("Fotos subidas", "Photos uploaded"),
+    procesando: txt("Analizando las fotos", "Analysing the photos"),
+    informe_listo: txt("Informe de estado listo", "Condition report ready"),
+    verificada: txt("Verificado en taller", "Verified at a workshop"),
+    publicada: txt("Expediente publicado", "File published"),
+    caducada: txt("Enlace caducado", "Link expired"),
+    anulada: txt("Sesión cancelada", "Session cancelled"),
   };
 
   // ─── render helpers ─────────────────────────────────────────────────
@@ -1523,6 +1637,93 @@ export default function ServiceIdCarsManagePage({
           {renderFileUpload(txt("Otros documentos", "Other documents"), pendingOtherDocuments, setPendingOtherDocuments, otherDocInputRef, ".pdf,image/*,.doc,.docx", "#7c3aed", storedOtherDocuments, "documents")}
           {renderFileUpload(txt("Documentación ITV", "MOT documentation"), pendingItvDocuments, setPendingItvDocuments, itvInputRef, ".pdf,image/*", "#0f766e", storedItvDocuments, "itvDocuments")}
         </div>
+      </SectionBlock>
+
+      <SectionBlock title={txt("Informe de estado", "Condition report")}
+        subtitle={txt("Captura guiada con el móvil y estado aparente del coche", "Guided capture with your phone and the car's apparent condition")}
+        open={openSections.conditionReport} onToggle={() => toggleSection("conditionReport")}
+        openLabel={txt("Abrir", "Open")} closeLabel={txt("Ocultar", "Hide")}>
+        {(() => {
+          const vehicleId = normalizeText(activeVehicle?.id);
+          if (!vehicleId) {
+            return (
+              <p style={{ fontSize: 12.5, color: "#9ca3af", margin: 0 }}>
+                {txt("Guarda el vehículo antes de empezar la captura.", "Save the vehicle before starting the capture.")}
+              </p>
+            );
+          }
+
+          const abierto = conditionReports.find((r) => normalizeText(r.capture_url));
+          const ocupado = conditionState.status === "opening" || conditionState.status === "loading";
+
+          return (
+            <div style={{ display: "grid", gap: 12 }}>
+              <p style={{ fontSize: 12.5, color: "#6b7280", margin: 0, lineHeight: 1.5 }}>
+                {txt(
+                  "Se abre una pestaña que te guía para hacer 16 fotos del coche. Al terminar tendrás un informe de estado aparente con los daños situados sobre un esquema del vehículo.",
+                  "A new tab guides you through 16 photos of the car. When you finish you get an apparent-condition report with the damage placed on a diagram of the vehicle."
+                )}
+              </p>
+
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                <button type="button" disabled={ocupado}
+                  onClick={() => { void startConditionCapture(vehicleId); }}
+                  style={{
+                    border: "none", borderRadius: 10, padding: "10px 16px", fontSize: 13, fontWeight: 700,
+                    background: "linear-gradient(135deg,#0f766e,#14b8a6)", color: "#fff",
+                    cursor: ocupado ? "not-allowed" : "pointer", opacity: ocupado ? 0.7 : 1,
+                  }}>
+                  {ocupado
+                    ? txt("Abriendo...", "Opening...")
+                    : abierto
+                      ? txt("Continuar la captura", "Continue the capture")
+                      : txt("Abrir la captura guiada", "Open guided capture")}
+                </button>
+                {conditionReports.length > 0 && (
+                  <button type="button" onClick={() => { void loadConditionReports(vehicleId); }}
+                    style={{ border: "1px solid #e5e7eb", borderRadius: 10, background: "#fff", color: "#6b7280", padding: "10px 14px", fontSize: 12.5, fontWeight: 700, cursor: "pointer" }}>
+                    {txt("Actualizar estado", "Refresh status")}
+                  </button>
+                )}
+              </div>
+
+              {conditionState.status === "error" && (
+                <p style={{ fontSize: 12, color: "#b91c1c", margin: 0 }}>⚠️ {conditionState.message}</p>
+              )}
+
+              {conditionReports.length === 0 && conditionState.status === "ready" && (
+                <p style={{ fontSize: 12, color: "#9ca3af", margin: 0 }}>
+                  {txt("Todavía no hay ninguna captura para este coche.", "No capture yet for this car.")}
+                </p>
+              )}
+
+              {conditionReports.length > 0 && (
+                <div style={{ display: "grid", gap: 6 }}>
+                  {conditionReports.map((informe) => (
+                    <div key={informe.session_id}
+                      style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", border: "1px solid #f1ede6", borderRadius: 10, padding: "9px 12px" }}>
+                      <span style={{ fontSize: 12.5, color: "#1f2937", fontWeight: 600 }}>
+                        {CONDITION_STATUS_LABELS[informe.status] || informe.status}
+                      </span>
+                      <span style={{ fontSize: 11.5, color: "#9ca3af" }}>
+                        {informe.created_at
+                          ? new Date(informe.created_at).toLocaleDateString(isEn ? "en-GB" : "es-ES")
+                          : ""}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <p style={{ fontSize: 11.5, color: "#9ca3af", margin: 0, lineHeight: 1.5 }}>
+                {txt(
+                  "Es una estimación visual sobre fotografías: no sustituye una revisión mecánica ni pone precio al coche. Las matrículas y las caras se difuminan antes de que nada sea visible en público.",
+                  "This is a visual estimate from photographs: it does not replace a mechanical inspection and does not price the car. Number plates and faces are blurred before anything becomes publicly visible."
+                )}
+              </p>
+            </div>
+          );
+        })()}
       </SectionBlock>
 
       <SectionBlock title={txt("Seguros", "Insurance")} subtitle={`${storedInsuranceDocuments.length} ${txt("guardados", "saved")} · ${pendingInsuranceDocuments.length} ${txt("documentos de seguro preparados", "insurance docs prepared")}`}

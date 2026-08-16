@@ -3,24 +3,12 @@ import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
 import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemoveJson, postVehicleStateUpsertJson, postVehiclePublishJson, getErpBrandsJson, getErpModelsJson, getErpVersionsJson, getErpVersionDetailJson } from "../utils/apiClient";
 import { uploadFileDirect } from "../utils/supabaseUpload";
+import AvailabilityEditor from "../components/AvailabilityEditor";
+import { useConditionReport, INFORME_OBLIGATORIO, etiquetaEstado } from "../hooks/useConditionReport";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 const IDCAR_PENDING_ACTION_KEY = "movilidad-advisor.idcar.action";
 const MAX_ATTACHMENT_BYTES = 12 * 1024 * 1024;
-
-/**
- * Con `true`, no se puede publicar en el Marketplace sin informe de estado.
- *
- * Tiene que seguir en `false` hasta que la captura funcione de punta a punta
- * —cámara, subida, anonimizado y análisis—. El candado antes que la llave
- * dejaría el Marketplace sin poder publicar ni un coche, porque hoy nadie
- * puede llegar a tener informe. Mientras tanto el diálogo lo enseña como
- * recomendación, con su botón para hacerlo.
- */
-const INFORME_OBLIGATORIO = false;
-
-/** Estados en los que ya hay un informe utilizable. */
-const INFORME_LISTO = new Set(["informe_listo", "verificada", "publicada"]);
 
 function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -469,13 +457,16 @@ export default function ServiceIdCarsManagePage({
   const [marketplaceOverrides, setMarketplaceOverrides] = useState({});
   const [marketplacePublishDialog, setMarketplacePublishDialog] = useState({ open: false, vehicle: null });
 
-  // Informe de estado (CarsWise Check), indexado por vehículo: lo consultan la
-  // sección del editor, el panel de acciones rápidas y el diálogo de publicar.
-  // Aquí solo se guarda la referencia; el expediente vive en la otra aplicación.
-  const [conditionReports, setConditionReports] = useState({});
-  const [conditionState, setConditionState] = useState({});
-  const captureWindowRef = useRef(null);
-  const captureOriginRef = useRef("");
+  // Informe de estado (CarsWise Check). La lógica vive en el hook porque el
+  // panel de vehículos publica también y el requisito tiene que ser el mismo.
+  const {
+    cargar: cargarInforme,
+    abrirCaptura: startConditionCapture,
+    resumen: resumenInforme,
+  } = useConditionReport(() => {
+    setFeedback("Captura terminada. El informe de estado ya está en tu IDCar.");
+    setFeedbackTone("success");
+  });
 
   // ERP catalog
   const [vehicleCatalogMode, setVehicleCatalogMode] = useState("erp");
@@ -703,6 +694,14 @@ export default function ServiceIdCarsManagePage({
     if (INFORME_OBLIGATORIO && !resumenInforme(vid).hecho) {
       showFeedback(
         txt("Hace falta el informe de estado antes de publicar.", "A condition report is required before publishing."),
+        "error"
+      );
+      return;
+    }
+    const franjas = marketplacePublishDialog.dialogSlots;
+    if (Array.isArray(franjas) && franjas.length === 0) {
+      showFeedback(
+        txt("Añade al menos una franja horaria antes de publicar.", "Add at least one time slot before publishing."),
         "error"
       );
       return;
@@ -1020,143 +1019,20 @@ export default function ServiceIdCarsManagePage({
   };
 
   // ─── informe de estado (CarsWise Check) ─────────────────────────────
-  const loadConditionReports = useCallback(async (vehicleId) => {
-    const vid = normalizeText(vehicleId);
-    if (!vid) return;
-    setConditionState((prev) => ({ ...prev, [vid]: { status: "loading", message: "" } }));
-    try {
-      const res = await fetch(`/api/market?route=condition-report&vehicleId=${encodeURIComponent(vid)}`, {
-        credentials: "include",
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setConditionState((prev) => ({ ...prev, [vid]: { status: "error", message: normalizeText(data?.error) } }));
-        return;
-      }
-      setConditionReports((prev) => ({ ...prev, [vid]: Array.isArray(data?.informes) ? data.informes : [] }));
-      setConditionState((prev) => ({ ...prev, [vid]: { status: "ready", message: "" } }));
-    } catch (err) {
-      setConditionState((prev) => ({ ...prev, [vid]: { status: "error", message: normalizeText(err?.message) } }));
-    }
-  }, []);
-
-  /** Lo que necesitan saber los tres sitios que pintan el informe de estado. */
-  const resumenInforme = (vehicleId) => {
-    const vid = normalizeText(vehicleId);
-    const lista = conditionReports[vid] || [];
-    const estadoCarga = conditionState[vid] || { status: "idle", message: "" };
-    const hecho = lista.some((r) => INFORME_LISTO.has(normalizeText(r.status)));
-    return {
-      lista,
-      carga: estadoCarga,
-      hecho,
-      // Hay sesión abierta pero todavía no informe: se puede retomar.
-      enCurso: !hecho && lista.some((r) => normalizeText(r.capture_url)),
-      enlace: normalizeText(lista.find((r) => normalizeText(r.capture_url))?.capture_url),
-      ultimoEstado: normalizeText(lista[0]?.status),
-    };
-  };
-
   // La ficha de un coche necesita el informe aunque la sección esté plegada:
   // lo consultan también las acciones rápidas. En el listado solo se pide si
   // el usuario abre la sección, para no lanzar una petición por cada coche.
   useEffect(() => {
     if (!activeVehicleId) return;
     if (!isDetailView && !openSections.conditionReport) return;
-    void loadConditionReports(activeVehicleId);
-  }, [activeVehicleId, isDetailView, openSections.conditionReport, loadConditionReports]);
+    void cargarInforme(activeVehicleId);
+  }, [activeVehicleId, isDetailView, openSections.conditionReport, cargarInforme]);
 
   useEffect(() => {
     const vid = normalizeText(marketplacePublishDialog.vehicle?.id);
     if (!marketplacePublishDialog.open || !vid) return;
-    void loadConditionReports(vid);
-  }, [marketplacePublishDialog.open, marketplacePublishDialog.vehicle, loadConditionReports]);
-
-  /** Refresca los coches que el usuario tiene a la vista, no todos. */
-  const refrescarInformesVisibles = useCallback(() => {
-    const vistos = new Set(
-      [activeVehicleId, normalizeText(marketplacePublishDialog.vehicle?.id)].filter(Boolean)
-    );
-    vistos.forEach((vid) => { void loadConditionReports(vid); });
-  }, [activeVehicleId, marketplacePublishDialog.vehicle, loadConditionReports]);
-
-  /**
-   * La captura avisa por `postMessage` cuando termina. La pestaña se abre sin
-   * `noopener` a propósito: sin `window.opener` no hay canal de vuelta. El
-   * origen se comprueba siempre antes de hacer caso al mensaje.
-   */
-  useEffect(() => {
-    const alRecibirMensaje = (evento) => {
-      if (!captureOriginRef.current || evento.origin !== captureOriginRef.current) return;
-      if (evento.data?.tipo !== "carswise-check:fin") return;
-      refrescarInformesVisibles();
-      setFeedback("Captura terminada. El informe de estado ya está en tu IDCar.");
-      setFeedbackTone("success");
-    };
-    window.addEventListener("message", alRecibirMensaje);
-    return () => window.removeEventListener("message", alRecibirMensaje);
-  }, [refrescarInformesVisibles]);
-
-  // Red de seguridad: cerrar la pestaña no significa haber terminado, pero sí
-  // que conviene refrescar por si el mensaje no llegó.
-  useEffect(() => {
-    const temporizador = window.setInterval(() => {
-      const ventana = captureWindowRef.current;
-      if (!ventana || !ventana.closed) return;
-      captureWindowRef.current = null;
-      refrescarInformesVisibles();
-    }, 1500);
-    return () => window.clearInterval(temporizador);
-  }, [refrescarInformesVisibles]);
-
-  const startConditionCapture = async (vehicleId) => {
-    const vid = normalizeText(vehicleId);
-    if (!vid) return;
-    const marcar = (estado) => setConditionState((prev) => ({ ...prev, [vid]: estado }));
-    marcar({ status: "opening", message: "" });
-    try {
-      const res = await fetch("/api/market?route=condition-report", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ vehicleId: vid }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !normalizeText(data?.capture_url)) {
-        marcar({
-          status: "error",
-          message: normalizeText(data?.error) || txt("No se ha podido abrir la captura.", "Could not open the capture."),
-        });
-        return;
-      }
-
-      captureOriginRef.current = new URL(data.capture_url).origin;
-      captureWindowRef.current = window.open(data.capture_url, "carswise-check");
-      if (!captureWindowRef.current) {
-        marcar({
-          status: "error",
-          message: txt("El navegador ha bloqueado la ventana. Permite las ventanas emergentes de este sitio.", "The browser blocked the window. Allow pop-ups for this site."),
-        });
-        return;
-      }
-      marcar({ status: "ready", message: "" });
-      await loadConditionReports(vid);
-    } catch (err) {
-      marcar({ status: "error", message: normalizeText(err?.message) });
-    }
-  };
-
-  const CONDITION_STATUS_LABELS = {
-    iniciada: txt("Sesión abierta, sin fotos todavía", "Session open, no photos yet"),
-    capturando: txt("Captura en curso", "Capture in progress"),
-    subida_completa: txt("Fotos subidas", "Photos uploaded"),
-    procesando: txt("Analizando las fotos", "Analysing the photos"),
-    informe_listo: txt("Informe de estado listo", "Condition report ready"),
-    verificada: txt("Verificado en taller", "Verified at a workshop"),
-    publicada: txt("Expediente publicado", "File published"),
-    caducada: txt("Enlace caducado", "Link expired"),
-    anulada: txt("Sesión cancelada", "Session cancelled"),
-  };
+    void cargarInforme(vid);
+  }, [marketplacePublishDialog.open, marketplacePublishDialog.vehicle, cargarInforme]);
 
   // ─── render helpers ─────────────────────────────────────────────────
   const renderField = (label, key, opts = {}) => (
@@ -1392,6 +1268,10 @@ export default function ServiceIdCarsManagePage({
       marketplacePublishTriggerRef.current = triggerElement || null;
       setMarketplacePublishDialog({
         open: true,
+        modalPrice: "",
+        // `null` mientras el editor de franjas no ha cargado: no se puede
+        // decidir que faltan franjas antes de saber cuántas hay.
+        dialogSlots: null,
         vehicle: {
           id: normalizeText(vehicle?.id),
           title: [normalizeText(vehicle?.brand), normalizeText(vehicle?.model)].filter(Boolean).join(" ") || txt("Vehículo", "Vehicle"),
@@ -1759,7 +1639,7 @@ export default function ServiceIdCarsManagePage({
                         : txt("Abrir la captura guiada", "Open guided capture")}
                 </button>
                 {informe.lista.length > 0 && (
-                  <button type="button" onClick={() => { void loadConditionReports(vehicleId); }}
+                  <button type="button" onClick={() => { void cargarInforme(vehicleId); }}
                     style={{ border: "1px solid #e5e7eb", borderRadius: 10, background: "#fff", color: "#6b7280", padding: "10px 14px", fontSize: 12.5, fontWeight: 700, cursor: "pointer" }}>
                     {txt("Actualizar estado", "Refresh status")}
                   </button>
@@ -1782,7 +1662,7 @@ export default function ServiceIdCarsManagePage({
                     <div key={expediente.session_id}
                       style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", border: "1px solid #f1ede6", borderRadius: 10, padding: "9px 12px" }}>
                       <span style={{ fontSize: 12.5, color: "#1f2937", fontWeight: 600 }}>
-                        {CONDITION_STATUS_LABELS[expediente.status] || expediente.status}
+                        {etiquetaEstado(expediente.status, isEn)}
                       </span>
                       <span style={{ fontSize: 11.5, color: "#9ca3af" }}>
                         {expediente.created_at
@@ -2311,11 +2191,30 @@ export default function ServiceIdCarsManagePage({
               );
             })()}
           </div>
+
+          {/* Mismo requisito que en el panel de vehículos: sin franjas no hay
+              forma de que un comprador proponga visita. */}
+          <AvailabilityEditor
+            offerId={`idcar-${marketplacePublishDialog.vehicle.id}`}
+            source="marketplace"
+            onSlotsChange={(slots) => setMarketplacePublishDialog((prev) => ({ ...prev, dialogSlots: slots }))}
+          />
+          {marketplacePublishDialog.dialogSlots !== null
+            && marketplacePublishDialog.dialogSlots !== undefined
+            && marketplacePublishDialog.dialogSlots.length === 0 && (
+            <div style={{ fontSize: 11.5, color: "#dc2626", fontWeight: 600 }}>
+              {txt("Añade al menos 1 franja horaria para poder publicar", "Add at least 1 time slot to publish")}
+            </div>
+          )}
+
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {(() => {
               const hayPrecio = Boolean(marketplacePublishDialog.vehicle.price || marketplacePublishDialog.modalPrice);
               const hayInforme = resumenInforme(marketplacePublishDialog.vehicle.id).hecho;
-              const puedePublicar = hayPrecio && (!INFORME_OBLIGATORIO || hayInforme);
+              const faltanFranjas = marketplacePublishDialog.dialogSlots !== null
+                && marketplacePublishDialog.dialogSlots !== undefined
+                && marketplacePublishDialog.dialogSlots.length === 0;
+              const puedePublicar = hayPrecio && !faltanFranjas && (!INFORME_OBLIGATORIO || hayInforme);
               return (
                 <button ref={marketplacePublishPrimaryBtnRef} type="button"
                   onClick={confirmMarketplacePublish}

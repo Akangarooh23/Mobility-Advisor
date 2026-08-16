@@ -16,6 +16,7 @@ import {
 } from "../../utils/apiClient";
 import { uploadFileDirect } from "../../utils/supabaseUpload";
 import AvailabilityEditor from "../../components/AvailabilityEditor";
+import { useConditionReport, INFORME_OBLIGATORIO } from "../../hooks/useConditionReport";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 const IDCAR_PENDING_ACTION_KEY = "movilidad-advisor.idcar.action";
@@ -376,6 +377,16 @@ export default function UserDashboardVehicles({
   const [marketplacePublishDialog, setMarketplacePublishDialog] = useState({ open: false, vehicle: null, modalPrice: "", dialogSlots: null });
   const [vehicleBookings, setVehicleBookings] = useState({});
   const [slotsDialog, setSlotsDialog] = useState({ open: false, vehicleId: null });
+
+  // Informe de estado (CarsWise Check). Mismo hook que el IDCar: publicar tiene
+  // que exigir lo mismo se entre por donde se entre.
+  const {
+    cargar: cargarInforme,
+    abrirCaptura: abrirCapturaInforme,
+    resumen: resumenInforme,
+  } = useConditionReport(() => {
+    setVehicleFeedback("Captura terminada. El informe de estado ya está en tu vehículo.");
+  });
   const [expandedVehicleSections, setExpandedVehicleSections] = useState({
     characteristics: true,
     marketplace: false,
@@ -613,6 +624,19 @@ export default function UserDashboardVehicles({
       window.cancelAnimationFrame(rafId);
     };
   }, [marketplacePublishDialog.open]);
+
+  // El informe hace falta en dos momentos: al desplegar la gestión del coche,
+  // para saber qué dice el botón, y al abrir el diálogo de publicar.
+  useEffect(() => {
+    if (!managementVehicleId) return;
+    void cargarInforme(managementVehicleId);
+  }, [managementVehicleId, cargarInforme]);
+
+  useEffect(() => {
+    const vid = normalizeText(marketplacePublishDialog.vehicle?.id);
+    if (!marketplacePublishDialog.open || !vid) return;
+    void cargarInforme(vid);
+  }, [marketplacePublishDialog.open, marketplacePublishDialog.vehicle, cargarInforme]);
 
   const selectedSection = safeSections.find((section) => section.key === activeVehicleTab) || null;
 
@@ -1156,6 +1180,17 @@ export default function UserDashboardVehicles({
 
     if (!marketplacePrice) {
       setVehicleFeedback(`Para publicar ${vehicleLabel} debes indicar un precio.`);
+      return;
+    }
+
+    if (INFORME_OBLIGATORIO && !resumenInforme(vehicle.id).hecho) {
+      setVehicleFeedback(`Para publicar ${vehicleLabel} hace falta el informe de estado.`);
+      return;
+    }
+
+    const franjas = marketplacePublishDialog.dialogSlots;
+    if (Array.isArray(franjas) && franjas.length === 0) {
+      setVehicleFeedback(`Para publicar ${vehicleLabel} añade al menos una franja horaria.`);
       return;
     }
 
@@ -2382,6 +2417,30 @@ export default function UserDashboardVehicles({
 
                       {isManagementOpen ? (
                         <div style={{ display: "grid", gap: 6, border: isDark ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(99,102,241,0.1)", borderRadius: 10, background: isDark ? "rgba(15,23,42,0.5)" : "rgba(248,250,252,0.85)", padding: 8 }}>
+                          {(() => {
+                            // Fotografiar el coche no es editar su ficha: la
+                            // acción va aquí, no dentro del formulario.
+                            const informe = resumenInforme(vehicle.id);
+                            const abriendo = informe.carga.status === "opening";
+                            return (
+                              <button
+                                type="button"
+                                disabled={abriendo}
+                                onClick={() => { void abrirCapturaInforme(vehicle.id); }}
+                                style={{ background: "rgba(20,184,166,0.12)", border: "1px solid rgba(15,118,110,0.25)", color: isDark ? "#5eead4" : "#0f766e", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: abriendo ? "not-allowed" : "pointer", textAlign: "center", width: "100%", opacity: abriendo ? 0.7 : 1 }}
+                              >
+                                {abriendo
+                                  ? "Abriendo..."
+                                  : informe.hecho
+                                    // Abre una captura nueva, no un visor: el
+                                    // visor y la descarga son la rebanada 8.
+                                    ? "Repetir el informe de estado"
+                                    : informe.enCurso
+                                      ? "Continuar el informe de estado"
+                                      : "Hacer el informe de estado"}
+                              </button>
+                            );
+                          })()}
                           <button
                             type="button"
                             onClick={() => handleVehicleAction("appointment", vehicle)}
@@ -2566,6 +2625,45 @@ export default function UserDashboardVehicles({
                           <span style={{ fontSize: 10, color: bodyColor }}>Se guardará en la ficha del vehículo.</span>
                         </label>
                       )}
+
+                      {(() => {
+                        const informe = resumenInforme(marketplacePublishDialog.vehicle.id);
+                        const abriendo = informe.carga.status === "opening";
+                        return (
+                          <div style={{ display: "grid", gap: 6, borderTop: cardBorder, paddingTop: 8 }}>
+                            <div>
+                              <strong style={{ color: titleColor }}>Informe de estado: </strong>
+                              {informe.carga.status === "loading" ? (
+                                <span>comprobando...</span>
+                              ) : informe.hecho ? (
+                                <span style={{ color: "#047857", fontWeight: 700 }}>hecho</span>
+                              ) : informe.enCurso ? (
+                                <span style={{ color: "#b45309", fontWeight: 700 }}>a medias</span>
+                              ) : (
+                                <span style={{ color: "#b45309", fontWeight: 700 }}>sin hacer</span>
+                              )}
+                            </div>
+                            {!informe.hecho && (
+                              <>
+                                <span style={{ fontSize: 10, color: bodyColor, lineHeight: 1.5 }}>
+                                  {INFORME_OBLIGATORIO
+                                    ? "Hace falta el informe de estado para publicar. Son 16 fotos guiadas desde el móvil, unos 10 minutos."
+                                    : "Recomendado. Un anuncio con el estado del coche documentado da al comprador algo que verificar a distancia."}
+                                </span>
+                                <button type="button" disabled={abriendo}
+                                  onClick={() => { void abrirCapturaInforme(marketplacePublishDialog.vehicle.id); }}
+                                  style={{ justifySelf: "start", background: "rgba(20,184,166,0.12)", border: "1px solid rgba(15,118,110,0.25)", color: isDark ? "#5eead4" : "#0f766e", borderRadius: 8, padding: "7px 11px", fontSize: 11, fontWeight: 700, cursor: abriendo ? "not-allowed" : "pointer", opacity: abriendo ? 0.7 : 1 }}>
+                                  {abriendo
+                                    ? "Abriendo..."
+                                    : informe.enCurso
+                                      ? "Continuar el informe de estado"
+                                      : "Hacer el informe de estado"}
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                     <AvailabilityEditor
                       offerId={`idcar-${marketplacePublishDialog.vehicle.id}`}
@@ -2578,18 +2676,19 @@ export default function UserDashboardVehicles({
                       </div>
                     )}
                     {(() => {
-                      const canPublish = (marketplacePublishDialog.vehicle.price || marketplacePublishDialog.modalPrice)
-                        && !(marketplacePublishDialog.dialogSlots !== null && marketplacePublishDialog.dialogSlots.length === 0);
+                      const faltanFranjas = marketplacePublishDialog.dialogSlots !== null
+                        && marketplacePublishDialog.dialogSlots.length === 0;
+                      const faltaInforme = INFORME_OBLIGATORIO
+                        && !resumenInforme(marketplacePublishDialog.vehicle.id).hecho;
+                      const canPublish = Boolean(marketplacePublishDialog.vehicle.price || marketplacePublishDialog.modalPrice)
+                        && !faltanFranjas && !faltaInforme;
                       return (
                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                           <button
                             ref={marketplacePublishPrimaryButtonRef}
                             type="button"
                             onClick={confirmMarketplacePublish}
-                            disabled={
-                              (!marketplacePublishDialog.vehicle.price && !marketplacePublishDialog.modalPrice) ||
-                              (marketplacePublishDialog.dialogSlots !== null && marketplacePublishDialog.dialogSlots.length === 0)
-                            }
+                            disabled={!canPublish}
                             style={{
                               background: canPublish ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "#d1d5db",
                               color: "#ffffff",

@@ -2536,11 +2536,11 @@ export default function UserDashboardVehicles({
               {slotsDialog.open && (
                 <div
                   onClick={() => setSlotsDialog({ open: false, vehicleId: null })}
-                  style={{ position: "fixed", inset: 0, zIndex: 1300, background: isDark ? "rgba(2,6,23,0.75)" : "rgba(15,23,42,0.4)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+                  style={{ position: "fixed", inset: 0, zIndex: 1300, background: isDark ? "rgba(2,6,23,0.75)" : "rgba(15,23,42,0.4)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, overflowY: "auto", overscrollBehavior: "contain" }}
                 >
                   <div
                     onClick={(e) => e.stopPropagation()}
-                    style={{ background: isDark ? "#0f172a" : "#fff", borderRadius: 14, padding: 24, width: "min(560px, 100%)", maxHeight: "85vh", overflowY: "auto", boxShadow: "0 8px 40px rgba(0,0,0,.18)" }}
+                    style={{ background: isDark ? "#0f172a" : "#fff", borderRadius: 14, padding: 24, width: "min(560px, 100%)", margin: "auto", boxShadow: "0 8px 40px rgba(0,0,0,.18)" }}
                   >
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                       <div style={{ fontSize: 16, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>🗓 Gestionar franjas horarias</div>
@@ -2569,9 +2569,14 @@ export default function UserDashboardVehicles({
                     zIndex: 1200,
                     background: isDark ? "rgba(2,6,23,0.7)" : "rgba(15,23,42,0.35)",
                     display: "flex",
-                    alignItems: "center",
+                    // Centrado con `margin: auto` en el diálogo, no con
+                    // `alignItems: center`: así el que no cabe se desplaza en
+                    // vez de cortarse por arriba.
+                    alignItems: "flex-start",
                     justifyContent: "center",
                     padding: 16,
+                    overflowY: "auto",
+                    overscrollBehavior: "contain",
                   }}
                 >
                   <div
@@ -2583,8 +2588,11 @@ export default function UserDashboardVehicles({
                     tabIndex={-1}
                     style={{
                       width: "min(620px, 100%)",
-                      maxHeight: "90vh",
-                      overflowY: "auto",
+                      // Sin `maxHeight` en unidades de viewport: en Safari de
+                      // iOS `90vh` cuenta la barra de direcciones y el diálogo
+                      // acaba más abajo de lo que se ve. Lo alto lo resuelve el
+                      // desplazamiento del fondo.
+                      margin: "auto",
                       border: panelBorder,
                       borderRadius: 14,
                       background: isDark

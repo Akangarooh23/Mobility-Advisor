@@ -2108,14 +2108,18 @@ export default function ServiceIdCarsManagePage({
 
     </div>
 
-    {/* Publish confirmation modal */}
+    {/* Confirmación de publicación.
+        `alignItems: flex-start` con `margin: auto` en el diálogo: centra
+        cuando cabe y deja desplazar cuando no. Con `center` a secas, en
+        vertical de móvil el diálogo desborda y se corta por arriba sin
+        posibilidad de llegar a lo que sobra. */}
     {marketplacePublishDialog.open && marketplacePublishDialog.vehicle ? (
       <div onClick={closeMarketplacePublishDialog}
-        style={{ position: "fixed", inset: 0, zIndex: 1200, background: "rgba(15,23,42,0.35)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+        style={{ position: "fixed", inset: 0, zIndex: 1200, background: "rgba(15,23,42,0.35)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, overflowY: "auto", overscrollBehavior: "contain" }}>
         <div onClick={(e) => e.stopPropagation()}
           role="dialog" aria-modal="true" aria-label={txt("Confirmar publicación en marketplace", "Confirm marketplace listing")}
           ref={marketplacePublishDialogRef} tabIndex={-1}
-          style={{ width: "min(480px,100%)", border: "1px solid #e5e7eb", borderRadius: 14, background: "#fff", boxShadow: "0 20px 50px rgba(0,0,0,0.18)", padding: 20, display: "grid", gap: 12 }}>
+          style={{ width: "min(480px,100%)", margin: "auto", border: "1px solid #e5e7eb", borderRadius: 14, background: "#fff", boxShadow: "0 20px 50px rgba(0,0,0,0.18)", padding: 20, display: "grid", gap: 12 }}>
           <div style={{ fontSize: 14, fontWeight: 800, color: "#111827" }}>
             {txt("Confirmar publicación en Marketplace", "Confirm Marketplace listing")}
           </div>

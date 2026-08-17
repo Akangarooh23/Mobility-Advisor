@@ -140,7 +140,7 @@ export function useConditionReport(alTerminar) {
       .find((u) => u !== "");
 
     if (conocida) {
-      const abierta = window.open(conocida, "carswise-check");
+      const abierta = window.open(conocida, "_blank");
       if (!abierta) {
         marcar({
           status: "error",
@@ -156,13 +156,9 @@ export function useConditionReport(alTerminar) {
       return;
     }
 
-    const ventana = window.open("", "carswise-check");
+    const ventana = window.open("", "_blank");
     if (ventana) {
       ventanaRef.current = ventana;
-      // La ventana tiene nombre, así que si ya hay una captura abierta se
-      // reutiliza en vez de duplicarla. Reutilizarla no la trae al frente:
-      // sin esto el usuario ve que no pasa nada mientras la pestaña de detrás
-      // hace todo el trabajo.
       try { ventana.focus(); } catch { /* algunos navegadores lo ignoran */ }
       try {
         ventana.document.write(

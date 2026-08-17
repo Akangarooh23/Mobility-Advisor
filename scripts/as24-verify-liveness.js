@@ -24,6 +24,7 @@ const BATCH      = parseInt(process.env.BATCH      || "2000", 10);
 const PER_DOMAIN = parseInt(process.env.PER_DOMAIN || "5",    10);  // concurrencia baja = respeto anti-bot
 const DUE_HOURS  = Math.max(0, parseInt(process.env.DUE_HOURS || "720", 10)); // 30 días por defecto
 const DRY_RUN    = process.env.DRY_RUN === "1";
+const DEBUG      = process.env.DEBUG === "1";
 const HTTP_TIMEOUT = 15000; // 15s: AS24 carga JSON pesado en cada ficha
 
 const HEADERS = {
@@ -45,44 +46,66 @@ async function verifyAs24(url) {
     status   = r.status;
     finalUrl = r.url || url;
     if (status === 200) body = await r.text();
-  } catch (_) {
+  } catch (e) {
+    if (DEBUG) console.log(`  ERROR fetch ${url}: ${e.message}`);
     status = 0;
   }
 
-  // Códigos HTTP definitivos
-  if (status === 404 || status === 410 || status === 451) return "gone";
-  if (status === 0 || status === 403 || status === 429 || status >= 500) return "skip";
+  let verdict;
 
-  if (status === 200) {
+  // Códigos HTTP definitivos
+  if (status === 404 || status === 410 || status === 451) {
+    verdict = "gone";
+  } else if (status === 0 || status === 403 || status === 429 || status >= 500) {
+    verdict = "skip";
+  } else if (status === 200) {
     // Redirigió a búsqueda/categoría (cambio de pathname)
     try {
       const f = new URL(finalUrl);
-      if (f.pathname.includes("/lst") || f.pathname === "/es" || f.pathname === "/") return "gone";
+      if (f.pathname.includes("/lst") || f.pathname === "/es" || f.pathname === "/") {
+        verdict = "gone";
+      }
     } catch (_) {}
 
-    // Texto explícito de ficha ya no disponible
-    if (
-      body.includes("ya no está disponible") ||
-      body.includes("no longer available") ||
-      body.includes("nicht mehr verfügbar") ||
-      body.includes("offer-not-found")
-    ) return "gone";
-
-    // JSON de resultados de búsqueda embebido: redirigió a búsqueda inline
-    if (
-      body.includes('"listings":[') &&
-      !body.includes('"listingDetails"') &&
-      !body.includes('"@type":"Car"')
-    ) return "gone";
-
-    // Tiene datos de ficha → viva
-    if (body.includes('"listingDetails"') || body.includes('"@type":"Car"')) return "alive";
-
-    // 200 pero no reconocible → conservador, no tocar
-    return "skip";
+    if (!verdict) {
+      // Texto explícito de ficha ya no disponible
+      if (
+        body.includes("ya no está disponible") ||
+        body.includes("no longer available") ||
+        body.includes("nicht mehr verfügbar") ||
+        body.includes("offer-not-found")
+      ) {
+        verdict = "gone";
+      // JSON de resultados de búsqueda embebido: redirigió a búsqueda inline
+      } else if (
+        body.includes('"listings":[') &&
+        !body.includes('"listingDetails"') &&
+        !body.includes('"@type":"Car"')
+      ) {
+        verdict = "gone";
+      // Tiene datos de ficha → viva
+      } else if (body.includes('"listingDetails"') || body.includes('"@type":"Car"')) {
+        verdict = "alive";
+      } else {
+        verdict = "skip";
+      }
+    }
+  } else {
+    verdict = "skip";
   }
 
-  return "skip";
+  if (DEBUG) {
+    const reason = status !== 200 ? `HTTP ${status}`
+      : finalUrl !== url ? `redir→${new URL(finalUrl).pathname.slice(0, 40)}`
+      : body.includes("ya no está disponible") ? "texto-muerta"
+      : body.includes('"listingDetails"') ? "listingDetails"
+      : body.includes('"@type":"Car"') ? "@type:Car"
+      : body.includes('"listings":[') ? "listings-json"
+      : `body ${body.length}b sin patrón`;
+    console.log(`  [${verdict.toUpperCase().padEnd(5)}] ${reason.padEnd(45)} ${url.slice(0, 70)}`);
+  }
+
+  return verdict;
 }
 
 // Pool de N workers sobre una lista de items

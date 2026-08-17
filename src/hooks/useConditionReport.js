@@ -66,6 +66,13 @@ export function useConditionReport(alTerminar) {
   const conocidosRef = useRef(new Set());
   const alTerminarRef = useRef(alTerminar);
   alTerminarRef.current = alTerminar;
+  /**
+   * Espejo de `porVehiculo` para leerlo desde `abrirCaptura` sin meterlo en sus
+   * dependencias: si la función se recreara en cada consulta, los botones que
+   * la tienen capturada abrirían con datos viejos.
+   */
+  const datosRef = useRef({});
+  datosRef.current = porVehiculo;
 
   const cargar = useCallback(async (vehicleId) => {
     const vid = texto(vehicleId);
@@ -110,6 +117,36 @@ export function useConditionReport(alTerminar) {
     const vid = texto(vehicleId);
     if (!vid) return;
     const marcar = (estado) => setCarga((prev) => ({ ...prev, [vid]: estado }));
+
+    /**
+     * Si ya sabemos adónde ir, se va y punto.
+     *
+     * Cuando el informe está a medias, la consulta que pinta ese aviso ya trae
+     * el enlace de la sesión abierta. Preguntarle otra vez al servidor solo
+     * servía para meter un `await` entre el clic y el `window.open`, que es
+     * justo lo que hace que el navegador lo bloquee. Sin espera, la apertura
+     * ocurre dentro del gesto del usuario y no hay bloqueador que la pare.
+     */
+    const conocida = (datosRef.current[vid] || [])
+      .map((r) => texto(r.capture_url))
+      .find((u) => u !== "");
+
+    if (conocida) {
+      const abierta = window.open(conocida, "carswise-check");
+      if (!abierta) {
+        marcar({
+          status: "error",
+          message: "El navegador ha bloqueado la ventana. Permite las ventanas emergentes de este sitio.",
+        });
+        return;
+      }
+      origenRef.current = new URL(conocida).origin;
+      ventanaRef.current = abierta;
+      try { abierta.focus(); } catch { /* algunos navegadores lo ignoran */ }
+      marcar({ status: "ready", message: "" });
+      void cargar(vid);
+      return;
+    }
 
     const ventana = window.open("", "carswise-check");
     if (ventana) {

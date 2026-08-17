@@ -114,6 +114,11 @@ export function useConditionReport(alTerminar) {
     const ventana = window.open("", "carswise-check");
     if (ventana) {
       ventanaRef.current = ventana;
+      // La ventana tiene nombre, así que si ya hay una captura abierta se
+      // reutiliza en vez de duplicarla. Reutilizarla no la trae al frente:
+      // sin esto el usuario ve que no pasa nada mientras la pestaña de detrás
+      // hace todo el trabajo.
+      try { ventana.focus(); } catch { /* algunos navegadores lo ignoran */ }
       try {
         ventana.document.write(
           '<!doctype html><meta charset="utf-8">' +
@@ -156,6 +161,7 @@ export function useConditionReport(alTerminar) {
       }
       // `replace` para que el atrás del móvil no vuelva a la pestaña en blanco.
       ventana.location.replace(data.capture_url);
+      try { ventana.focus(); } catch { /* algunos navegadores lo ignoran */ }
       marcar({ status: "ready", message: "" });
       await cargar(vid);
     } catch (err) {

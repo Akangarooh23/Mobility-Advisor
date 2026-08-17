@@ -29,6 +29,25 @@ export const INFORME_OBLIGATORIO = true;
 /** Estados en los que ya hay un informe utilizable. */
 const LISTO = new Set(["informe_listo", "verificada", "publicada"]);
 
+/**
+ * Cuánto ha avanzado una sesión abierta.
+ *
+ * Se retoma la más avanzada, no la más reciente. Un coche puede acabar con
+ * varias sesiones —se abre otra si la anterior se dio por cerrada— y ofrecer la
+ * última por ser la última manda al usuario a una pantalla vacía teniendo las
+ * dieciséis fotos hechas en otra. Con empate, la más nueva.
+ */
+const AVANCE = { iniciada: 1, capturando: 2, subida_completa: 3, procesando: 4 };
+
+/** La sesión abierta que conviene retomar, o `null` si no hay ninguna. */
+function mejorAbierta(lista) {
+  const abiertas = (Array.isArray(lista) ? lista : []).filter((r) => texto(r.capture_url) !== "");
+  if (abiertas.length === 0) return null;
+  return abiertas.reduce((mejor, actual) =>
+    (AVANCE[texto(actual.status)] || 0) > (AVANCE[texto(mejor.status)] || 0) ? actual : mejor
+  );
+}
+
 function texto(valor) {
   return typeof valor === "string" ? valor.trim() : "";
 }
@@ -135,9 +154,7 @@ export function useConditionReport(alTerminar) {
      * justo lo que hace que el navegador lo bloquee. Sin espera, la apertura
      * ocurre dentro del gesto del usuario y no hay bloqueador que la pare.
      */
-    const conocida = (datosRef.current[vid] || [])
-      .map((r) => texto(r.capture_url))
-      .find((u) => u !== "");
+    const conocida = texto(mejorAbierta(datosRef.current[vid])?.capture_url);
 
     if (conocida) {
       const abierta = window.open(conocida, "_blank");
@@ -246,7 +263,7 @@ export function useConditionReport(alTerminar) {
     const vid = texto(vehicleId);
     const lista = porVehiculo[vid] || [];
     const hecho = lista.some((r) => LISTO.has(texto(r.status)));
-    const url = lista.map((r) => texto(r.capture_url)).find((u) => u !== "") || "";
+    const url = texto(mejorAbierta(lista)?.capture_url);
     return {
       lista,
       carga: carga[vid] || { status: "idle", message: "" },

@@ -88,7 +88,15 @@ export function useConditionReport(alTerminar) {
         setCarga((prev) => ({ ...prev, [vid]: { status: "error", message: texto(data?.error) } }));
         return;
       }
-      setPorVehiculo((prev) => ({ ...prev, [vid]: Array.isArray(data?.informes) ? data.informes : [] }));
+      const informes = Array.isArray(data?.informes) ? data.informes : [];
+      // El origen se aprende aquí y no al abrir: con el enlace directo no pasa
+      // nadie por `abrirCaptura`, y sin origen conocido se descartaría el aviso
+      // de que la captura ha terminado.
+      const conUrl = informes.map((r) => texto(r.capture_url)).find((u) => u !== "");
+      if (conUrl) {
+        try { origenRef.current = new URL(conUrl).origin; } catch { /* enlace ilegible */ }
+      }
+      setPorVehiculo((prev) => ({ ...prev, [vid]: informes }));
       setCarga((prev) => ({ ...prev, [vid]: { status: "ready", message: "" } }));
     } catch (err) {
       setCarga((prev) => ({ ...prev, [vid]: { status: "error", message: texto(err?.message) } }));
@@ -242,12 +250,19 @@ export function useConditionReport(alTerminar) {
     const vid = texto(vehicleId);
     const lista = porVehiculo[vid] || [];
     const hecho = lista.some((r) => LISTO.has(texto(r.status)));
+    const url = lista.map((r) => texto(r.capture_url)).find((u) => u !== "") || "";
     return {
       lista,
       carga: carga[vid] || { status: "idle", message: "" },
       hecho,
       // Hay sesión abierta pero todavía no informe: se puede retomar.
-      enCurso: !hecho && lista.some((r) => texto(r.capture_url)),
+      enCurso: !hecho && url !== "",
+      /**
+       * Enlace de la sesión abierta, si la hay. Que la pantalla lo tenga es lo
+       * que permite ofrecer un enlace de verdad en vez de abrir por script.
+       * Vacío cuando el informe ya está hecho: repetirlo abre sesión nueva.
+       */
+      url: hecho ? "" : url,
     };
   }, [porVehiculo, carga]);
 

@@ -19,6 +19,7 @@ import { uploadFileDirect } from "../../utils/supabaseUpload";
 import AvailabilityEditor from "../../components/AvailabilityEditor";
 import { useConditionReport, INFORME_OBLIGATORIO } from "../../hooks/useConditionReport";
 import ConditionReportError from "../../components/ConditionReportError";
+import ConditionReportAction from "../../components/ConditionReportAction";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 const IDCAR_PENDING_ACTION_KEY = "movilidad-advisor.idcar.action";
@@ -2426,8 +2427,8 @@ export default function UserDashboardVehicles({
                             const abriendo = informe.carga.status === "opening";
                             return (
                               <>
-                              <button
-                                type="button"
+                              <ConditionReportAction
+                                url={informe.url}
                                 disabled={abriendo}
                                 onClick={() => { void abrirCapturaInforme(vehicle.id); }}
                                 style={{ background: "rgba(20,184,166,0.12)", border: "1px solid rgba(15,118,110,0.25)", color: isDark ? "#5eead4" : "#0f766e", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: abriendo ? "not-allowed" : "pointer", textAlign: "center", width: "100%", opacity: abriendo ? 0.7 : 1 }}
@@ -2441,7 +2442,7 @@ export default function UserDashboardVehicles({
                                     : informe.enCurso
                                       ? "Continuar el informe de estado"
                                       : "Hacer el informe de estado"}
-                              </button>
+                              </ConditionReportAction>
                                 <ConditionReportError carga={informe.carga} />
                               </>
                             );
@@ -2675,7 +2676,9 @@ export default function UserDashboardVehicles({
                                     ? "Termínalo para poder publicar. Son 16 fotos guiadas desde el móvil, unos 10 minutos."
                                     : "Recomendado. Un anuncio con el estado del coche documentado da al comprador algo que verificar a distancia."}
                                 </span>
-                                <button type="button" disabled={abriendo}
+                                <ConditionReportAction
+                                  url={informe.url}
+                                  disabled={abriendo}
                                   onClick={() => { void abrirCapturaInforme(marketplacePublishDialog.vehicle.id); }}
                                   style={{ justifySelf: "start", background: "rgba(20,184,166,0.12)", border: "1px solid rgba(15,118,110,0.25)", color: isDark ? "#5eead4" : "#0f766e", borderRadius: 8, padding: "7px 11px", fontSize: 11, fontWeight: 700, cursor: abriendo ? "not-allowed" : "pointer", opacity: abriendo ? 0.7 : 1 }}>
                                   {abriendo
@@ -2683,7 +2686,7 @@ export default function UserDashboardVehicles({
                                     : informe.enCurso
                                       ? "Continuar el informe de estado"
                                       : "Hacer el informe de estado"}
-                                </button>
+                                </ConditionReportAction>
                                 <ConditionReportError carga={informe.carga} />
                               </>
                             )}

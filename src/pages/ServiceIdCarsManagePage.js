@@ -7,6 +7,7 @@ import { uploadFileDirect } from "../utils/supabaseUpload";
 import AvailabilityEditor from "../components/AvailabilityEditor";
 import { useConditionReport, INFORME_OBLIGATORIO, etiquetaEstado } from "../hooks/useConditionReport";
 import ConditionReportError from "../components/ConditionReportError";
+import ConditionReportAction from "../components/ConditionReportAction";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 const IDCAR_PENDING_ACTION_KEY = "movilidad-advisor.idcar.action";
@@ -1302,7 +1303,8 @@ export default function ServiceIdCarsManagePage({
     const abriendo = informe.carga.status === "opening";
     return (
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 7 }}>
-        <button type="button"
+        <ConditionReportAction
+          url={informe.url}
           disabled={abriendo}
           onClick={() => { void startConditionCapture(vehicle?.id); }}
           style={{ background: "rgba(20,184,166,0.10)", border: "1px solid rgba(15,118,110,0.25)", color: "#0f766e", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: abriendo ? "not-allowed" : "pointer", opacity: abriendo ? 0.7 : 1 }}>
@@ -1316,7 +1318,7 @@ export default function ServiceIdCarsManagePage({
               : informe.enCurso
                 ? txt("Continuar el informe de estado", "Continue condition report")
                 : txt("Hacer el informe de estado", "Get condition report")}
-        </button>
+        </ConditionReportAction>
         <ConditionReportError carga={informe.carga} anchoCompleto />
         <button type="button"
           onClick={() => typeof onRequestAppointment === "function" && onRequestAppointment(vehicle)}
@@ -2192,7 +2194,9 @@ export default function ServiceIdCarsManagePage({
                               "Recommended. A listing with a documented condition gives the buyer something to verify remotely."
                             )}
                       </span>
-                      <button type="button" disabled={abriendo}
+                      <ConditionReportAction
+                        url={informe.url}
+                        disabled={abriendo}
                         onClick={() => { void startConditionCapture(marketplacePublishDialog.vehicle.id); }}
                         style={{ justifySelf: "start", background: "rgba(20,184,166,0.10)", border: "1px solid rgba(15,118,110,0.25)", color: "#0f766e", borderRadius: 8, padding: "8px 12px", fontSize: 12, fontWeight: 700, cursor: abriendo ? "not-allowed" : "pointer", opacity: abriendo ? 0.7 : 1 }}>
                         {abriendo
@@ -2200,7 +2204,7 @@ export default function ServiceIdCarsManagePage({
                           : informe.enCurso
                             ? txt("Continuar el informe de estado", "Continue condition report")
                             : txt("Hacer el informe de estado", "Get condition report")}
-                      </button>
+                      </ConditionReportAction>
                       <ConditionReportError carga={informe.carga} />
                     </>
                   )}

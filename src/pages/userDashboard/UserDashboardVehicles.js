@@ -18,6 +18,7 @@ import {
 import { uploadFileDirect } from "../../utils/supabaseUpload";
 import AvailabilityEditor from "../../components/AvailabilityEditor";
 import { useConditionReport, INFORME_OBLIGATORIO } from "../../hooks/useConditionReport";
+import ConditionReportError from "../../components/ConditionReportError";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 const IDCAR_PENDING_ACTION_KEY = "movilidad-advisor.idcar.action";
@@ -2424,6 +2425,7 @@ export default function UserDashboardVehicles({
                             const informe = resumenInforme(vehicle.id);
                             const abriendo = informe.carga.status === "opening";
                             return (
+                              <>
                               <button
                                 type="button"
                                 disabled={abriendo}
@@ -2440,6 +2442,8 @@ export default function UserDashboardVehicles({
                                       ? "Continuar el informe de estado"
                                       : "Hacer el informe de estado"}
                               </button>
+                                <ConditionReportError carga={informe.carga} />
+                              </>
                             );
                           })()}
                           <button
@@ -2680,6 +2684,7 @@ export default function UserDashboardVehicles({
                                       ? "Continuar el informe de estado"
                                       : "Hacer el informe de estado"}
                                 </button>
+                                <ConditionReportError carga={informe.carga} />
                               </>
                             )}
                           </div>

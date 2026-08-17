@@ -95,6 +95,13 @@ export function useConditionReport(alTerminar) {
   /**
    * Abre la captura en una pestaña nueva.
    *
+   * La pestaña se abre **en el clic**, vacía, y se lleva a su destino cuando el
+   * servidor responde. No es rebuscado: un `window.open` después de un `await`
+   * ya no está dentro del gesto del usuario y el navegador lo bloquea —en el
+   * móvil, siempre—, así que el botón se quedaba en "Abriendo..." sin abrir
+   * nada. Abrir primero y navegar después es lo único que sobrevive al
+   * bloqueador, y de paso el usuario ve enseguida que algo pasa.
+   *
    * Sin `noopener` a propósito: sin `window.opener` no hay canal de vuelta y
    * la captura no podría avisar de que ha terminado. El origen del mensaje se
    * comprueba siempre antes de hacerle caso.
@@ -103,6 +110,23 @@ export function useConditionReport(alTerminar) {
     const vid = texto(vehicleId);
     if (!vid) return;
     const marcar = (estado) => setCarga((prev) => ({ ...prev, [vid]: estado }));
+
+    const ventana = window.open("", "carswise-check");
+    if (ventana) {
+      ventanaRef.current = ventana;
+      try {
+        ventana.document.write(
+          '<!doctype html><meta charset="utf-8">' +
+            '<title>Abriendo la captura</title>' +
+            '<body style="margin:0;display:grid;place-items:center;height:100vh;' +
+            'font:16px system-ui,sans-serif;color:#334155">Abriendo la captura…</body>'
+        );
+        ventana.document.close();
+      } catch {
+        // Un navegador quisquilloso con about:blank no es motivo para parar.
+      }
+    }
+
     marcar({ status: "opening", message: "" });
     try {
       const res = await fetch("/api/market?route=condition-report", {
@@ -110,26 +134,40 @@ export function useConditionReport(alTerminar) {
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ vehicleId: vid }),
+        // El servidor encadena hasta dos llamadas a la captura, de ocho
+        // segundos cada una. Pasado eso hay que decirlo, no seguir girando.
+        signal: AbortSignal.timeout(25000),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !texto(data?.capture_url)) {
+        if (ventana) ventana.close();
+        ventanaRef.current = null;
         marcar({ status: "error", message: texto(data?.error) || "No se ha podido abrir la captura." });
         return;
       }
 
       origenRef.current = new URL(data.capture_url).origin;
-      ventanaRef.current = window.open(data.capture_url, "carswise-check");
-      if (!ventanaRef.current) {
+      if (!ventana) {
         marcar({
           status: "error",
           message: "El navegador ha bloqueado la ventana. Permite las ventanas emergentes de este sitio.",
         });
         return;
       }
+      // `replace` para que el atrás del móvil no vuelva a la pestaña en blanco.
+      ventana.location.replace(data.capture_url);
       marcar({ status: "ready", message: "" });
       await cargar(vid);
     } catch (err) {
-      marcar({ status: "error", message: texto(err?.message) });
+      if (ventana) ventana.close();
+      ventanaRef.current = null;
+      const agotado = err?.name === "TimeoutError" || err?.name === "AbortError";
+      marcar({
+        status: "error",
+        message: agotado
+          ? "La captura ha tardado demasiado en responder. Vuelve a intentarlo."
+          : texto(err?.message) || "No se ha podido abrir la captura.",
+      });
     }
   }, [cargar]);
 

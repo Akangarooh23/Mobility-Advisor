@@ -6,6 +6,7 @@ import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemov
 import { uploadFileDirect } from "../utils/supabaseUpload";
 import AvailabilityEditor from "../components/AvailabilityEditor";
 import { useConditionReport, INFORME_OBLIGATORIO, etiquetaEstado } from "../hooks/useConditionReport";
+import ConditionReportError from "../components/ConditionReportError";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 const IDCAR_PENDING_ACTION_KEY = "movilidad-advisor.idcar.action";
@@ -1316,6 +1317,7 @@ export default function ServiceIdCarsManagePage({
                 ? txt("Continuar el informe de estado", "Continue condition report")
                 : txt("Hacer el informe de estado", "Get condition report")}
         </button>
+        <ConditionReportError carga={informe.carga} anchoCompleto />
         <button type="button"
           onClick={() => typeof onRequestAppointment === "function" && onRequestAppointment(vehicle)}
           style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", color: "#b45309", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
@@ -1648,7 +1650,7 @@ export default function ServiceIdCarsManagePage({
               </div>
 
               {informe.carga.status === "error" && (
-                <p style={{ fontSize: 12, color: "#b91c1c", margin: 0 }}>⚠️ {informe.carga.message}</p>
+                <ConditionReportError carga={informe.carga} />
               )}
 
               {informe.lista.length === 0 && informe.carga.status === "ready" && (
@@ -2199,6 +2201,7 @@ export default function ServiceIdCarsManagePage({
                             ? txt("Continuar el informe de estado", "Continue condition report")
                             : txt("Hacer el informe de estado", "Get condition report")}
                       </button>
+                      <ConditionReportError carga={informe.carga} />
                     </>
                   )}
                 </div>

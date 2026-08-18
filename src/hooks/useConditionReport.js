@@ -18,11 +18,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
  * terminado. Decisión de producto: un anuncio sin estado documentado es lo que
  * hace que el comprador no pueda verificar nada a distancia.
  *
- * OJO mientras dure el desarrollo: la captura todavía no funciona de punta a
- * punta —faltan cámara, subida, anonimizado y análisis—, así que hoy ningún
- * coche puede alcanzar `informe_listo` y **no se puede publicar nada**. Es
- * deliberado y no hay usuarios reales. Ponerlo a `false` devuelve el requisito
- * a recomendación en los dos puntos de publicación a la vez.
+ * Ya se sostiene: desde el 18/08/2026 el camino funciona de punta a punta
+ * —captura, subida, anonimizado, informe y documento descargable—, así que un
+ * coche puede alcanzar `informe_listo` de verdad. Antes esto bloqueaba toda
+ * publicación, y era deliberado porque no había usuarios reales.
+ *
+ * Ponerlo a `false` devuelve el requisito a recomendación en los dos puntos de
+ * publicación a la vez.
  */
 export const INFORME_OBLIGATORIO = true;
 

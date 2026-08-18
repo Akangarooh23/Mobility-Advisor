@@ -8,6 +8,7 @@ import AvailabilityEditor from "../components/AvailabilityEditor";
 import { useConditionReport, INFORME_OBLIGATORIO, etiquetaEstado } from "../hooks/useConditionReport";
 import ConditionReportError from "../components/ConditionReportError";
 import ConditionReportAction from "../components/ConditionReportAction";
+import ConditionReportDownload from "../components/ConditionReportDownload";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 const IDCAR_PENDING_ACTION_KEY = "movilidad-advisor.idcar.action";
@@ -1319,6 +1320,7 @@ export default function ServiceIdCarsManagePage({
                 ? txt("Continuar el informe de estado", "Continue condition report")
                 : txt("Hacer el informe de estado", "Get condition report")}
         </ConditionReportAction>
+        <ConditionReportDownload url={informe.descargaUrl} />
         <ConditionReportError carga={informe.carga} anchoCompleto />
         <button type="button"
           onClick={() => typeof onRequestAppointment === "function" && onRequestAppointment(vehicle)}
@@ -2205,6 +2207,7 @@ export default function ServiceIdCarsManagePage({
                             ? txt("Continuar el informe de estado", "Continue condition report")
                             : txt("Hacer el informe de estado", "Get condition report")}
                       </ConditionReportAction>
+                      <ConditionReportDownload url={informe.descargaUrl} />
                       <ConditionReportError carga={informe.carga} />
                     </>
                   )}

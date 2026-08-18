@@ -264,7 +264,8 @@ export function useConditionReport(alTerminar) {
   const resumen = useCallback((vehicleId) => {
     const vid = texto(vehicleId);
     const lista = porVehiculo[vid] || [];
-    const hecho = lista.some((r) => LISTO.has(texto(r.status)));
+    const terminado = lista.find((r) => LISTO.has(texto(r.status)));
+    const hecho = Boolean(terminado);
     const url = texto(mejorAbierta(lista)?.capture_url);
     return {
       lista,
@@ -278,6 +279,16 @@ export function useConditionReport(alTerminar) {
        * Vacío cuando el informe ya está hecho: repetirlo abre sesión nueva.
        */
       url: hecho ? "" : url,
+      /**
+       * Descarga del informe terminado, servida por este backend.
+       *
+       * No apunta a CarsWise Check: el navegador no tiene el token de la
+       * sesión de captura. Nuestra API comprueba que el coche es del usuario y
+       * pide el documento con la clave de servicio.
+       */
+      descargaUrl: terminado
+        ? `/api/market?route=condition-report&vehicleId=${encodeURIComponent(vid)}&descargar=${encodeURIComponent(texto(terminado.session_id))}`
+        : "",
     };
   }, [porVehiculo, carga]);
 

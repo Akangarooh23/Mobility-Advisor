@@ -1519,11 +1519,16 @@ module.exports = async function handler(req, res) {
       .map((model) => model.name)
       .filter(Boolean);
 
+    // Alias, no versiones. Los cuatro nombres que había aquí -2.0-flash,
+    // 2.0-flash-lite, 1.5-flash y 1.5-pro- fueron retirados por Google y
+    // ninguno existe ya: la lista entera quedaba vacía y solo salvaba la
+    // llamada el descubrimiento de más abajo. Los "-latest" siguen al modelo
+    // vigente y no caducan.
     const preferredModels = [
-      "models/gemini-2.0-flash",
-      "models/gemini-2.0-flash-lite",
-      "models/gemini-1.5-flash",
-      "models/gemini-1.5-pro",
+      "models/gemini-flash-latest",
+      "models/gemini-2.5-flash",
+      "models/gemini-flash-lite-latest",
+      "models/gemini-2.5-flash-lite",
     ];
 
     const orderedModels = [

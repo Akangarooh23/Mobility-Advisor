@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemoveJson, postVehicleStateUpsertJson, postVehiclePublishJson, getErpBrandsJson, getErpModelsJson, getErpVersionsJson, getErpVersionDetailJson } from "../utils/apiClient";
 import { uploadFileDirect } from "../utils/supabaseUpload";
 import AvailabilityEditor from "../components/AvailabilityEditor";
-import { useConditionReport, INFORME_OBLIGATORIO, etiquetaEstado } from "../hooks/useConditionReport";
+import { useConditionReport, INFORME_OBLIGATORIO, etiquetaEstado, informeUtilizable, urlDeDescarga } from "../hooks/useConditionReport";
 import ConditionReportError from "../components/ConditionReportError";
 import ConditionReportAction from "../components/ConditionReportAction";
 import ConditionReportDownload from "../components/ConditionReportDownload";
@@ -1671,10 +1671,17 @@ export default function ServiceIdCarsManagePage({
                       <span style={{ fontSize: 12.5, color: "#1f2937", fontWeight: 600 }}>
                         {etiquetaEstado(expediente.status, isEn)}
                       </span>
-                      <span style={{ fontSize: 11.5, color: "#9ca3af" }}>
-                        {expediente.created_at
-                          ? new Date(expediente.created_at).toLocaleDateString(isEn ? "en-GB" : "es-ES")
-                          : ""}
+                      <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        {/* La descarga va por expediente y no una sola arriba:
+                            un coche puede tener varios y solo alguno terminado. */}
+                        {informeUtilizable(expediente.status) && (
+                          <ConditionReportDownload url={urlDeDescarga(vehicleId, expediente.session_id)} />
+                        )}
+                        <span style={{ fontSize: 11.5, color: "#9ca3af" }}>
+                          {expediente.created_at
+                            ? new Date(expediente.created_at).toLocaleDateString(isEn ? "en-GB" : "es-ES")
+                            : ""}
+                        </span>
                       </span>
                     </div>
                   ))}

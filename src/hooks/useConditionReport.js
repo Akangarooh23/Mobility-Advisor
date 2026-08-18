@@ -66,6 +66,25 @@ const ETIQUETAS = {
   anulada: ["Sesión cancelada", "Session cancelled"],
 };
 
+/** ¿Ese expediente tiene ya un informe que se pueda leer y descargar? */
+export function informeUtilizable(status) {
+  return LISTO.has(texto(status));
+}
+
+/**
+ * Dirección de descarga de un expediente concreto.
+ *
+ * Apunta a nuestra API y no a CarsWise Check: el navegador no tiene el token de
+ * la sesión de captura. Este backend comprueba que el coche es del usuario y
+ * que el expediente es de ese coche antes de pedir el documento.
+ */
+export function urlDeDescarga(vehicleId, sessionId) {
+  const vid = texto(vehicleId);
+  const sid = texto(sessionId);
+  if (!vid || !sid) return "";
+  return `/api/market?route=condition-report&vehicleId=${encodeURIComponent(vid)}&descargar=${encodeURIComponent(sid)}`;
+}
+
 /** El panel es solo en español; el IDCar es bilingüe. De ahí el parámetro. */
 export function etiquetaEstado(status, enIngles = false) {
   const par = ETIQUETAS[texto(status)];

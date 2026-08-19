@@ -2073,6 +2073,24 @@ export default function App() {
     }
 
     const applyRouteFromPath = () => {
+      /**
+       * Vuelta desde la captura de CarsWise Check.
+       *
+       * La captura vive en otro dominio y al terminar devuelve aquí al usuario.
+       * Sin esto aterrizaría en la portada y tendría que volver a buscar su
+       * coche, que es la peor manera de cerrar un proceso de diez minutos.
+       *
+       * La URL se limpia después: recargar la página no debe volver a forzar
+       * esta pantalla, ni quedarse el parámetro pegado al compartir el enlace.
+       */
+      const parametrosDeVuelta = new URLSearchParams(window.location.search);
+      if (parametrosDeVuelta.get("volver") === "idcar") {
+        setEntryMode("idCarsManage");
+        setStep(-1);
+        window.history.replaceState({}, "", window.location.pathname);
+        return;
+      }
+
       const pathEntryMode = resolveEntryModeFromPublicPath(window.location.pathname);
 
       if (pathEntryMode === "portalVoDetail") {

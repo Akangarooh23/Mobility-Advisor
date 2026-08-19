@@ -390,7 +390,7 @@ export default function UserDashboardVehicles({
     resumen: resumenInforme,
   } = useConditionReport(() => {
     setVehicleFeedback("Captura terminada. El informe de estado ya está en tu vehículo.");
-  });
+  }, "panel");
   const [expandedVehicleSections, setExpandedVehicleSections] = useState({
     characteristics: true,
     marketplace: false,

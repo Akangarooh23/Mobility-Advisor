@@ -96,8 +96,12 @@ export function etiquetaEstado(status, enIngles = false) {
  * @param alTerminar Se llama cuando la captura avisa de que ha terminado, por
  *   si la pantalla quiere decir algo. Se guarda en una referencia para que
  *   pasar una función nueva en cada render no reenganche el escuchador.
+ * @param origen Desde qué pantalla se abre: `idcar` o `panel`. Decide a dónde
+ *   vuelve el usuario al terminar, porque abrir desde el panel y aterrizar en
+ *   el IDCar desorienta. Se manda el origen y no la dirección: es una palabra
+ *   de una lista de dos, así que el navegador no puede elegir destino.
  */
-export function useConditionReport(alTerminar) {
+export function useConditionReport(alTerminar, origen = "idcar") {
   const [porVehiculo, setPorVehiculo] = useState({});
   const [carga, setCarga] = useState({});
   const ventanaRef = useRef(null);
@@ -217,7 +221,7 @@ export function useConditionReport(alTerminar) {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ vehicleId: vid }),
+        body: JSON.stringify({ vehicleId: vid, origen }),
         // El servidor encadena hasta dos llamadas a la captura, de ocho
         // segundos cada una. Pasado eso hay que decirlo, no seguir girando.
         signal: AbortSignal.timeout(25000),
@@ -254,7 +258,7 @@ export function useConditionReport(alTerminar) {
           : texto(err?.message) || "No se ha podido abrir la captura.",
       });
     }
-  }, [cargar]);
+  }, [cargar, origen]);
 
   useEffect(() => {
     const alRecibirMensaje = (evento) => {

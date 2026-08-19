@@ -2084,8 +2084,9 @@ export default function App() {
        * esta pantalla, ni quedarse el parámetro pegado al compartir el enlace.
        */
       const parametrosDeVuelta = new URLSearchParams(window.location.search);
-      if (parametrosDeVuelta.get("volver") === "idcar") {
-        setEntryMode("idCarsManage");
+      const vuelta = parametrosDeVuelta.get("volver");
+      if (vuelta === "idcar" || vuelta === "panel") {
+        setEntryMode(vuelta === "panel" ? "userDashboard" : "idCarsManage");
         setStep(-1);
         window.history.replaceState({}, "", window.location.pathname);
         return;

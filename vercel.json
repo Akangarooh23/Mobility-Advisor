@@ -8,9 +8,12 @@
     {
       "path": "/api/cron-alert-check",
       "schedule": "0 9,17 * * *"
+    },
+    {
+      "path": "/api/cron-condition-report-ready",
+      "schedule": "*/15 * * * *"
     }
   ],
-
   "rewrites": [
     {
       "source": "/api/ping",
@@ -123,6 +126,10 @@
     {
       "source": "/api/cron-alert-check",
       "destination": "/api/user?route=cron-alert-check"
+    },
+    {
+      "source": "/api/cron-condition-report-ready",
+      "destination": "/api/user?route=cron-condition-report-ready"
     },
     {
       "source": "/api/(.*)",

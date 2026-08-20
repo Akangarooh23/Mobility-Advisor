@@ -7,6 +7,7 @@ const vehiclePublishHandler = require("../lib/api/vehicle-publish-handler");
 const viewingHandler = require("../lib/api/viewing-handler");
 const funnelEventHandler = require("../lib/api/funnel-event-handler");
 const cronAppointmentRemindersHandler = require("../lib/api/cron-appointment-reminders-handler");
+const cronConditionReportReadyHandler = require("../lib/api/cron-condition-report-ready-handler");
 const cronAlertCheckHandler = require("../lib/api/cron-alert-check-handler");
 const storagePresignHandler = require("../lib/api/storage-presign-handler");
 
@@ -32,6 +33,7 @@ function resolveRoute(req) {
   if (url.includes("funnel-event"))    return "funnel-event";
   if (url.includes("cron-appointment-reminders")) return "cron-appointment-reminders";
   if (url.includes("cron-alert-check"))           return "cron-alert-check";
+  if (url.includes("cron-condition-report-ready")) return "cron-condition-report-ready";
   return "";
 }
 

@@ -62,6 +62,8 @@ module.exports = async function userRouter(req, res) {
       return cronAppointmentRemindersHandler(req, res);
     case "cron-alert-check":
       return cronAlertCheckHandler(req, res);
+    case "cron-condition-report-ready":
+      return cronConditionReportReadyHandler(req, res);
     case "storage-presign":
       return storagePresignHandler(req, res);
     default:

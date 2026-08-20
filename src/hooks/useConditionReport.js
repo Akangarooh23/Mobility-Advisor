@@ -85,6 +85,14 @@ export function urlDeDescarga(vehicleId, sessionId) {
   return `/api/market?route=condition-report&vehicleId=${encodeURIComponent(vid)}&descargar=${encodeURIComponent(sid)}`;
 }
 
+/** Raíz del modelo 3D de un expediente concreto. Ver `modelo3dBase`. */
+export function baseDelModelo3d(vehicleId, sessionId) {
+  const vid = texto(vehicleId);
+  const sid = texto(sessionId);
+  if (!vid || !sid) return "";
+  return `/api/informe-3d/${encodeURIComponent(vid)}/${encodeURIComponent(sid)}`;
+}
+
 /** El panel es solo en español; el IDCar es bilingüe. De ahí el parámetro. */
 export function etiquetaEstado(status, enIngles = false) {
   const par = ETIQUETAS[texto(status)];
@@ -311,6 +319,17 @@ export function useConditionReport(alTerminar, origen = "idcar") {
        */
       descargaUrl: terminado
         ? `/api/market?route=condition-report&vehicleId=${encodeURIComponent(vid)}&descargar=${encodeURIComponent(texto(terminado.session_id))}`
+        : "",
+      /**
+       * Raíz de la vista en realidad aumentada; el componente le añade
+       * `/coche.usdz` o `/coche.glb` según el móvil.
+       *
+       * Con la extensión de verdad al final y no como parámetro: iOS decide si
+       * abre su visor mirando cómo termina la dirección. Dos reescrituras de
+       * `vercel.json` la traen a la misma función que sirve el PDF.
+       */
+      modelo3dBase: terminado
+        ? `/api/informe-3d/${encodeURIComponent(vid)}/${encodeURIComponent(texto(terminado.session_id))}`
         : "",
     };
   }, [porVehiculo, carga]);

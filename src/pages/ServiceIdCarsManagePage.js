@@ -5,10 +5,11 @@ import { useTranslation } from "react-i18next";
 import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemoveJson, postVehicleStateUpsertJson, postVehiclePublishJson, getErpBrandsJson, getErpModelsJson, getErpVersionsJson, getErpVersionDetailJson } from "../utils/apiClient";
 import { uploadFileDirect } from "../utils/supabaseUpload";
 import AvailabilityEditor from "../components/AvailabilityEditor";
-import { useConditionReport, INFORME_OBLIGATORIO, etiquetaEstado, informeUtilizable, urlDeDescarga } from "../hooks/useConditionReport";
+import { useConditionReport, INFORME_OBLIGATORIO, etiquetaEstado, informeUtilizable, urlDeDescarga, baseDelModelo3d } from "../hooks/useConditionReport";
 import ConditionReportError from "../components/ConditionReportError";
 import ConditionReportAction from "../components/ConditionReportAction";
 import ConditionReportDownload from "../components/ConditionReportDownload";
+import ConditionReportAr from "../components/ConditionReportAr";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 const IDCAR_PENDING_ACTION_KEY = "movilidad-advisor.idcar.action";
@@ -1321,6 +1322,7 @@ export default function ServiceIdCarsManagePage({
                 : txt("Hacer el informe de estado", "Get condition report")}
         </ConditionReportAction>
         <ConditionReportDownload url={informe.descargaUrl} />
+        <ConditionReportAr base={informe.modelo3dBase} />
         <ConditionReportError carga={informe.carga} anchoCompleto />
         <button type="button"
           onClick={() => typeof onRequestAppointment === "function" && onRequestAppointment(vehicle)}
@@ -1675,7 +1677,10 @@ export default function ServiceIdCarsManagePage({
                         {/* La descarga va por expediente y no una sola arriba:
                             un coche puede tener varios y solo alguno terminado. */}
                         {informeUtilizable(expediente.status) && (
-                          <ConditionReportDownload url={urlDeDescarga(vehicleId, expediente.session_id)} />
+                          <>
+                            <ConditionReportDownload url={urlDeDescarga(vehicleId, expediente.session_id)} />
+                            <ConditionReportAr base={baseDelModelo3d(vehicleId, expediente.session_id)} />
+                          </>
                         )}
                         <span style={{ fontSize: 11.5, color: "#9ca3af" }}>
                           {expediente.created_at
@@ -2215,6 +2220,7 @@ export default function ServiceIdCarsManagePage({
                             : txt("Hacer el informe de estado", "Get condition report")}
                       </ConditionReportAction>
                       <ConditionReportDownload url={informe.descargaUrl} />
+                      <ConditionReportAr base={informe.modelo3dBase} />
                       <ConditionReportError carga={informe.carga} />
                     </>
                   )}

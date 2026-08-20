@@ -21,6 +21,7 @@ import { useConditionReport, INFORME_OBLIGATORIO } from "../../hooks/useConditio
 import ConditionReportError from "../../components/ConditionReportError";
 import ConditionReportAction from "../../components/ConditionReportAction";
 import ConditionReportDownload from "../../components/ConditionReportDownload";
+import ConditionReportAr from "../../components/ConditionReportAr";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 const IDCAR_PENDING_ACTION_KEY = "movilidad-advisor.idcar.action";
@@ -2445,6 +2446,7 @@ export default function UserDashboardVehicles({
                                       : "Hacer el informe de estado"}
                               </ConditionReportAction>
                                 <ConditionReportDownload url={informe.descargaUrl} compacto />
+                                <ConditionReportAr base={informe.modelo3dBase} compacto />
                                 <ConditionReportError carga={informe.carga} />
                               </>
                             );
@@ -2690,6 +2692,7 @@ export default function UserDashboardVehicles({
                                       : "Hacer el informe de estado"}
                                 </ConditionReportAction>
                                 <ConditionReportDownload url={informe.descargaUrl} />
+                                <ConditionReportAr base={informe.modelo3dBase} />
                                 <ConditionReportError carga={informe.carga} />
                               </>
                             )}

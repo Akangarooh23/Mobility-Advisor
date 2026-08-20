@@ -132,6 +132,14 @@
       "destination": "/api/user?route=cron-condition-report-ready"
     },
     {
+      "source": "/api/informe-3d/:vehicleId/:sessionId/coche.glb",
+      "destination": "/api/market?route=condition-report&vehicleId=:vehicleId&descargar=:sessionId&modelo=glb"
+    },
+    {
+      "source": "/api/informe-3d/:vehicleId/:sessionId/coche.usdz",
+      "destination": "/api/market?route=condition-report&vehicleId=:vehicleId&descargar=:sessionId&modelo=usdz"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

@@ -13,8 +13,11 @@ import React from "react";
  * en iOS, Scene Viewer en Android— y se abren con un enlace. Cada uno lee un
  * formato distinto y no hay atajo, de ahí `.usdz` y `.glb` del mismo modelo.
  *
- * En ordenador no se pinta nada. La realidad aumentada necesita la cámara del
- * teléfono; un botón que no hace nada es peor que no ponerlo.
+ * En ordenador no hay botón —la realidad aumentada necesita la cámara del
+ * teléfono— pero sí un aviso de que existe. Antes no se pintaba nada, y eso
+ * hacía la función invisible: quien entra desde el escritorio no tiene forma de
+ * saber que en el móvil hay algo más, así que nunca lo prueba. Un botón muerto
+ * es peor que nada; un renglón que dice dónde se abre, no.
  */
 
 /** El rótulo dibujado, porque en iOS el enlace no admite texto suelto (ver abajo). */
@@ -47,7 +50,24 @@ export default function ConditionReportAr({ base, titulo = "Esquema de daños", 
   if (typeof base !== "string" || base.trim() === "") return null;
 
   const sistema = detectarSistema();
-  if (sistema === "ninguno") return null;
+
+  if (sistema === "ninguno") {
+    return (
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+          fontSize: compacto ? 11 : 11.5,
+          color: "#6b7280",
+          lineHeight: 1.35,
+          width: compacto ? "100%" : undefined,
+        }}
+      >
+        Vista en 3D sobre el suelo de tu garaje: se abre desde el móvil, en esta misma pantalla
+      </span>
+    );
+  }
 
   const raiz = typeof window !== "undefined" ? window.location.origin : "";
   const usdz = `${raiz}${base}/coche.usdz`;

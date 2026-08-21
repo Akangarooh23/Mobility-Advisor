@@ -8,6 +8,7 @@ import { readUserBillingProfile } from "../utils/storage";
 import SlotPicker from "../components/SlotPicker";
 import SimuladorFinanciacion, { TIPOS_FINANCIACION_IMPORTACION } from "../components/SimuladorFinanciacion";
 import ConditionReportAr from "../components/ConditionReportAr";
+import ConditionReportDownload from "../components/ConditionReportDownload";
 
 // Número de WhatsApp de CarsWise (formato internacional sin +).
 const CARSWISE_WHATSAPP = "34684717736";
@@ -121,6 +122,24 @@ export default function PortalVoDetailPage({
       .then((r) => r.json())
       .then((d) => { if (d.ok) setOfferStats(d.stats); })
       .catch(() => {});
+  }, [selectedPortalVoOffer.id]);
+
+  /**
+   * ¿Este coche tiene informe de estado publicado?
+   *
+   * Se pregunta antes de pintar la descarga y el botón de realidad aumentada:
+   * la mayoría de los anuncios no tendrán informe, y ofrecer una descarga que
+   * devuelve un 404 es peor que no ofrecer nada.
+   */
+  const [tieneInforme, setTieneInforme] = useState(false);
+  useEffect(() => {
+    if (!selectedPortalVoOffer.id) return;
+    let vivo = true;
+    fetch(`/api/modelo-3d/${encodeURIComponent(selectedPortalVoOffer.id)}/info`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (vivo) setTieneInforme(Boolean(d?.informe)); })
+      .catch(() => {});
+    return () => { vivo = false; };
   }, [selectedPortalVoOffer.id]);
 
   const [sectionShowcase, setSectionShowcase] = useState([]);
@@ -647,16 +666,24 @@ export default function PortalVoDetailPage({
                 <div style={{ marginTop: 8, textAlign: "center", fontSize: 11, color: isDark ? "#64748b" : "#94a3b8" }}>
                   Sin registro · Respuesta en menos de 24 h
                 </div>
-                {/* La vista en 3D va aquí, junto a la visita y el WhatsApp:
-                    forma parte de decidir si vale la pena moverse a verlo. */}
-                <div style={{ marginTop: 10 }}>
-                  <ConditionReportAr
-                    base={`/api/modelo-3d/${encodeURIComponent(selectedPortalVoOffer.id)}`}
-                    titulo={selectedPortalVoOffer.title || "Vehículo"}
-                    etiqueta="Ver Realidad Aumentada"
-                    compacto
-                  />
-                </div>
+                {/* El informe y la vista en 3D van aquí, junto a la visita y el
+                    WhatsApp: forman parte de decidir si vale la pena moverse a
+                    verlo. Solo si el coche tiene informe — pintarlos siempre
+                    dejaba al visitante con una descarga rota y un visor vacío. */}
+                {tieneInforme && (
+                  <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
+                    <ConditionReportDownload
+                      url={`/api/informe-publico/${encodeURIComponent(selectedPortalVoOffer.id)}/informe-de-estado.pdf`}
+                      compacto
+                    />
+                    <ConditionReportAr
+                      base={`/api/modelo-3d/${encodeURIComponent(selectedPortalVoOffer.id)}`}
+                      titulo={selectedPortalVoOffer.title || "Vehículo"}
+                      etiqueta="Ver Realidad Aumentada"
+                      compacto
+                    />
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={handleGuardarAlerta}

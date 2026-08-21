@@ -1205,6 +1205,7 @@ const PUBLIC_ROUTE_BY_ENTRY_MODE = {
   aboutCarswise: "/sobre-carswise",
   plans: "/planes",
   portalVo: "/marketplace-vo",
+  // (la apertura temporal de la ficha VO está justo debajo de este mapa)
   vehicleDetail: "/ficha-vehiculo",
   vehicleOptions: "/asesor-vehiculo",
   servicesSeo: "/servicios",
@@ -1222,6 +1223,24 @@ const PUBLIC_ROUTE_BY_ENTRY_MODE = {
   experianPolicy: "/politica-experian",
   experianTerms: "/condiciones-experian",
 };
+
+/**
+ * Apertura temporal de la ficha de un vehículo sin iniciar sesión.
+ *
+ * Pedida para poder enseñar un anuncio concreto a gente sin cuenta. Solo afecta
+ * a la **ficha** —el listado sigue pidiendo sesión— y solo a lo que se pinta:
+ * los datos del anuncio ya eran públicos, los sirve la misma API sin
+ * credenciales, así que esto no destapa nada nuevo.
+ *
+ * **Se cierra sola.** La fecha está aquí en lugar de un interruptor porque un
+ * interruptor hay que acordarse de volver a poner, y esto nació como «solo por
+ * hoy». Pasada esa hora, la puerta vuelve sin tocar nada ni desplegar.
+ *
+ * Para prorrogarlo, mueve la fecha. Para cerrarlo antes, ponla en el pasado.
+ */
+const FICHA_VO_ABIERTA_HASTA = new Date("2026-08-21T23:59:59+02:00");
+const FICHA_VO_ABIERTA = Date.now() < FICHA_VO_ABIERTA_HASTA.getTime();
+
 
 const ENTRY_MODE_BY_PUBLIC_ROUTE = Object.entries(PUBLIC_ROUTE_BY_ENTRY_MODE).reduce((acc, [entryMode, path]) => {
   acc[path] = entryMode;
@@ -6862,7 +6881,7 @@ export default function App() {
         />
       )}
 
-      {step === -1 && (entryMode === "portalVo" || entryMode === "portalVoDetail") && !isUserLoggedIn && (
+      {step === -1 && (entryMode === "portalVo" || (entryMode === "portalVoDetail" && !FICHA_VO_ABIERTA)) && !isUserLoggedIn && (
         <PortalVoAuthGatePage
           themeMode={themeMode}
           styles={s}
@@ -6873,7 +6892,7 @@ export default function App() {
         />
       )}
 
-      {step === -1 && entryMode === "portalVoDetail" && selectedPortalVoOffer && isUserLoggedIn && (
+      {step === -1 && entryMode === "portalVoDetail" && selectedPortalVoOffer && (isUserLoggedIn || FICHA_VO_ABIERTA) && (
         <PortalVoDetailPage
           themeMode={themeMode}
           styles={s}

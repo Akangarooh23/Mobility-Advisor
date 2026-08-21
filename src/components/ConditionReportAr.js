@@ -20,8 +20,17 @@ import React from "react";
  * es peor que nada; un renglón que dice dónde se abre, no.
  */
 
-/** El rótulo dibujado, porque en iOS el enlace no admite texto suelto (ver abajo). */
-const ROTULO = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 22">
+/** Lo que dice el botón. Cada pantalla lo llama a su manera. */
+const ETIQUETA_POR_DEFECTO = "Ver el coche en tu espacio";
+
+/**
+ * El rótulo, dibujado como imagen.
+ *
+ * En iOS el enlace de realidad aumentada no admite texto suelto (ver abajo),
+ * así que la palabra va dentro del SVG. De ahí que sea una función: el texto
+ * cambia según la pantalla y hay que redibujarlo.
+ */
+const rotulo = (texto) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 22">
   <g fill="none" stroke="#0f766e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
     <path d="M3 6.8V4.4A1.5 1.5 0 0 1 4.4 3H6.8"/>
     <path d="M15.2 3h2.4A1.5 1.5 0 0 1 19 4.4v2.4"/>
@@ -31,10 +40,11 @@ const ROTULO = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 22">
     <path d="M11 11 14.6 9.2M11 11 7.4 9.2M11 11v3.6"/>
   </g>
   <text x="27" y="15" fill="#0f766e" font-size="12" font-weight="700"
-        font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">Ver el coche en tu espacio</text>
+        font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">${texto}</text>
 </svg>`;
 
-const ROTULO_URI = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(ROTULO)}`;
+const rotuloUri = (texto) =>
+  `data:image/svg+xml;charset=utf-8,${encodeURIComponent(rotulo(texto))}`;
 
 function detectarSistema() {
   if (typeof navigator === "undefined") return "ninguno";
@@ -46,7 +56,12 @@ function detectarSistema() {
   return "ninguno";
 }
 
-export default function ConditionReportAr({ base, titulo = "Esquema de daños", compacto = false }) {
+export default function ConditionReportAr({
+  base,
+  titulo = "Esquema de daños",
+  compacto = false,
+  etiqueta = ETIQUETA_POR_DEFECTO,
+}) {
   if (typeof base !== "string" || base.trim() === "") return null;
 
   const sistema = detectarSistema();
@@ -106,15 +121,15 @@ export default function ConditionReportAr({ base, titulo = "Esquema de daños", 
      * como una descarga cualquiera, así que el rótulo va dentro de la imagen.
      */
     return (
-      <a rel="ar" href={usdz} style={estilo} aria-label="Ver el coche en tu espacio">
-        <img src={ROTULO_URI} alt="Ver el coche en tu espacio" style={{ height: 20 }} />
+      <a rel="ar" href={usdz} style={estilo} aria-label={etiqueta}>
+        <img src={rotuloUri(etiqueta)} alt={etiqueta} style={{ height: 20 }} />
       </a>
     );
   }
 
   return (
     <a href={escena} style={estilo}>
-      Ver el coche en tu espacio
+      {etiqueta}
     </a>
   );
 }

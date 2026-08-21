@@ -653,6 +653,7 @@ export default function PortalVoDetailPage({
                   <ConditionReportAr
                     base={`/api/modelo-3d/${encodeURIComponent(selectedPortalVoOffer.id)}`}
                     titulo={selectedPortalVoOffer.title || "Vehículo"}
+                    etiqueta="Ver Realidad Aumentada"
                     compacto
                   />
                 </div>

@@ -5,6 +5,7 @@ const importLeadHandler           = require("../lib/api/import-lead-handler");
 const marketplaceOgHandler        = require("../lib/api/marketplace-og-handler");
 const workshopsNearbyHandler      = require("../lib/api/workshops-nearby-handler");
 const workshopAvailabilityHandler = require("../lib/api/workshop-availability-handler");
+const vehicleModelPublicHandler = require("../lib/api/vehicle-model-public-handler");
 const workshopsEnrichHandler      = require("../lib/api/workshops-enrich-handler");
 const workshopsPhotoHandler       = require("../lib/api/workshops-photo-handler");
 const whatsappHandler             = require("../lib/api/whatsapp-handler");
@@ -32,6 +33,7 @@ module.exports = async function marketRouter(req, res) {
   switch (resolveRoute(req)) {
     case "price":       return marketPriceHandler(req, res);
     case "vo":          return marketplaceVoHandler(req, res);
+    case "modelo-3d":   return vehicleModelPublicHandler(req, res);
     case "import":      return importOffersHandler(req, res);
     case "import-lead": return importLeadHandler(req, res);
     case "og":          return marketplaceOgHandler(req, res);

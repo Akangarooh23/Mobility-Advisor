@@ -132,6 +132,14 @@
       "destination": "/api/user?route=cron-condition-report-ready"
     },
     {
+      "source": "/api/modelo-3d/:vehicleId/coche.glb",
+      "destination": "/api/market?route=modelo-3d&vehicleId=:vehicleId&formato=glb"
+    },
+    {
+      "source": "/api/modelo-3d/:vehicleId/coche.usdz",
+      "destination": "/api/market?route=modelo-3d&vehicleId=:vehicleId&formato=usdz"
+    },
+    {
       "source": "/api/informe-3d/:vehicleId/:sessionId/coche.glb",
       "destination": "/api/market?route=condition-report&vehicleId=:vehicleId&descargar=:sessionId&modelo=glb"
     },

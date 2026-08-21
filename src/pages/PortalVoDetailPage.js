@@ -7,6 +7,7 @@ import { trackFunnelEvent } from "../utils/funnelTracker";
 import { readUserBillingProfile } from "../utils/storage";
 import SlotPicker from "../components/SlotPicker";
 import SimuladorFinanciacion, { TIPOS_FINANCIACION_IMPORTACION } from "../components/SimuladorFinanciacion";
+import ConditionReportAr from "../components/ConditionReportAr";
 
 // Número de WhatsApp de CarsWise (formato internacional sin +).
 const CARSWISE_WHATSAPP = "34684717736";
@@ -645,6 +646,15 @@ export default function PortalVoDetailPage({
                 </a>
                 <div style={{ marginTop: 8, textAlign: "center", fontSize: 11, color: isDark ? "#64748b" : "#94a3b8" }}>
                   Sin registro · Respuesta en menos de 24 h
+                </div>
+                {/* La vista en 3D va aquí, junto a la visita y el WhatsApp:
+                    forma parte de decidir si vale la pena moverse a verlo. */}
+                <div style={{ marginTop: 10 }}>
+                  <ConditionReportAr
+                    base={`/api/modelo-3d/${encodeURIComponent(selectedPortalVoOffer.id)}`}
+                    titulo={selectedPortalVoOffer.title || "Vehículo"}
+                    compacto
+                  />
                 </div>
                 <button
                   type="button"

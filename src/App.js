@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import { FICHA_VO_ABIERTA } from "./utils/aperturaTemporal";
 import i18next from "i18next";
 import { useTranslation } from "react-i18next";
 import "./App.css";
@@ -1224,22 +1225,6 @@ const PUBLIC_ROUTE_BY_ENTRY_MODE = {
   experianTerms: "/condiciones-experian",
 };
 
-/**
- * Apertura temporal de la ficha de un vehículo sin iniciar sesión.
- *
- * Pedida para poder enseñar un anuncio concreto a gente sin cuenta. Solo afecta
- * a la **ficha** —el listado sigue pidiendo sesión— y solo a lo que se pinta:
- * los datos del anuncio ya eran públicos, los sirve la misma API sin
- * credenciales, así que esto no destapa nada nuevo.
- *
- * **Se cierra sola.** La fecha está aquí en lugar de un interruptor porque un
- * interruptor hay que acordarse de volver a poner, y esto nació como «solo por
- * hoy». Pasada esa hora, la puerta vuelve sin tocar nada ni desplegar.
- *
- * Para prorrogarlo, mueve la fecha. Para cerrarlo antes, ponla en el pasado.
- */
-const FICHA_VO_ABIERTA_HASTA = new Date("2026-08-21T23:59:59+02:00");
-const FICHA_VO_ABIERTA = Date.now() < FICHA_VO_ABIERTA_HASTA.getTime();
 
 
 const ENTRY_MODE_BY_PUBLIC_ROUTE = Object.entries(PUBLIC_ROUTE_BY_ENTRY_MODE).reduce((acc, [entryMode, path]) => {

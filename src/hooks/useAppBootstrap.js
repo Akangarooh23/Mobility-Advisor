@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { esFichaVoAbierta } from "../utils/aperturaTemporal";
 import {
   getAuthSessionJson,
   getUserAlertsJson,
@@ -74,7 +75,13 @@ export function useAppBootstrap({
         window.localStorage.setItem("ma.landing", JSON.stringify(landing));
       }
     } catch {}
-    const isPublicRoute = typeof window !== "undefined" && PUBLIC_PATHS.some((p) => window.location.pathname === p || window.location.pathname.startsWith(p + "/"));
+    const isPublicRoute =
+      typeof window !== "undefined" &&
+      (PUBLIC_PATHS.some((p) => window.location.pathname === p || window.location.pathname.startsWith(p + "/")) ||
+        // Apertura temporal de la ficha de un vehículo: sin esto el arranque
+        // levanta el diálogo de sesión por encima de la página, y da igual que
+        // la página se haya abierto.
+        esFichaVoAbierta(window.location.pathname));
 
     if (persistedTheme === "dark" || persistedTheme === "light") {
       setThemeMode(persistedTheme);

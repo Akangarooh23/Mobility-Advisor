@@ -71,7 +71,30 @@ const MARCAS_EQUIVALENTES = {
   alfaromeo: "Alfa Romeo",
   citroen: "Citroën",
   skoda: "Škoda",
+  // El nombre corto y el largo de la misma marca.
+  ds: "DS Automobiles",
+  // Erratas que llegan en los datos de origen y salían como marcas propias.
+  madza: "Mazda",
+  suzuky: "Suzuki",
+  linkco: "Lynk & Co",
 };
+
+/**
+ * Marcas que se parecen de escritura y **no** son la misma. No se tocan.
+ *
+ * Se anotan porque el parecido invita a unirlas y conviene que la próxima
+ * persona que lo mire sepa que ya se miró:
+ *
+ *   Dr Automobiles / DS Automobiles   italiana la una, francesa la otra
+ *   Lifan / Livan                     emparentadas, hoy distintas
+ *   Hymer / Hummer                    autocaravanas contra todoterrenos
+ *   Merkur / Mercury                  dos marcas de Ford, distintas
+ *   Baic / Buick, Ebro / Evo, Yudo / Yugo, Dfsk / DS
+ *
+ * Queda sin resolver el grupo Yoodoo —«Yoodoo», «Yoodooo», «Yooudoo»,
+ * «Yooudoo 6», con un modelo cada uno, y «Yudo» con cinco—: son erratas de algo,
+ * pero no está claro de qué, y unirlas al bulto podría esconder una marca real.
+ */
 
 /**
  * Deshace las entidades HTML que llegan en los datos de origen.

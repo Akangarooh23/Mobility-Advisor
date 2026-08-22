@@ -44,6 +44,66 @@ function claveComparable(valor) {
     .toLowerCase();
 }
 
+/** Y para las marcas, además, sin puntuación: «Land-Rover» es «Land Rover». */
+function claveDeMarca(valor) {
+  return claveComparable(valor).replace(/[^a-z0-9]/g, "");
+}
+
+/**
+ * Marcas que son la misma con otro nombre.
+ *
+ * Esto no se deduce de la cadena: hay que saber que SsangYong pasó a llamarse
+ * KGM y que quien escribe «Vw» se refiere a Volkswagen. Por eso es una lista
+ * corta y explícita en lugar de una regla lista — adivinando se acaba juntando
+ * DS con Citroën, que fueron la misma casa y hoy son marcas distintas.
+ *
+ * La clave va sin puntuación ni acentos; el valor es el nombre que se enseña.
+ */
+const MARCAS_EQUIVALENTES = {
+  vw: "Volkswagen",
+  mercedes: "Mercedes-Benz",
+  mercedesbenz: "Mercedes-Benz",
+  ssangyong: "SsangYong KGM",
+  kgm: "SsangYong KGM",
+  kgmssangyong: "SsangYong KGM",
+  ssangyongkgm: "SsangYong KGM",
+  landrover: "Land Rover",
+  alfaromeo: "Alfa Romeo",
+  citroen: "Citroën",
+  skoda: "Škoda",
+};
+
+/**
+ * Deshace las entidades HTML que llegan en los datos de origen.
+ *
+ * Algunos anuncios vienen con el texto ya escapado —«Lynk &amp; Co»— y eso
+ * acababa siendo una marca aparte de «Lynk & Co», además de leerse fatal en el
+ * desplegable. Solo las cuatro que aparecen de verdad; un decodificador
+ * completo aquí sería resolver un problema que no tenemos.
+ */
+function decodificarHtml(valor) {
+  return normalizeText(valor)
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#0?39;|&apos;/gi, "'")
+    .replace(/&nbsp;/gi, " ");
+}
+
+/**
+ * Umbrales para absorber una marca dentro de otra que empieza por su nombre.
+ *
+ * Sirven para la basura del tipo «Audi A5» o «Renault Megane 1.9 dci 120cv»:
+ * el modelo se coló en el campo de la marca en origen y acaba en el desplegable
+ * como si fuera un fabricante.
+ *
+ * Son prudentes a propósito. Solo absorbe una marca con muchos modelos, y solo
+ * a una con muy pocos: con «Falcon» (1 modelo) y «Falcon Motors» (4) no se toca
+ * nada, porque ahí no está claro cuál es la buena y equivocarse sería esconder
+ * una marca de verdad.
+ */
+const MINIMO_PARA_ABSORBER = 10;
+const MAXIMO_ABSORBIBLE = 3;
+
 /**
  * De las formas en que viene escrita una marca, la que se le enseña al usuario.
  *
@@ -85,25 +145,56 @@ function mergeCatalogMaps(primaryMap = {}, secondaryMap = {}) {
 
   const acumular = (mapa) => {
     for (const [nombreBruto, modelos] of Object.entries(mapa || {})) {
-      const nombre = normalizeText(nombreBruto);
-      const clave = claveComparable(nombre);
+      const nombre = decodificarHtml(nombreBruto);
+      const clave = claveDeMarca(nombre);
       if (!clave) continue;
 
-      const entrada = porMarca.get(clave) || { nombre, modelos: new Map() };
-      entrada.nombre = mejorNombreDeMarca(entrada.nombre, nombre);
+      // Un alias fija tanto el grupo como el nombre que se enseña.
+      const equivalente = MARCAS_EQUIVALENTES[clave];
+      const claveFinal = equivalente ? claveDeMarca(equivalente) : clave;
+
+      const entrada = porMarca.get(claveFinal) || { nombre, modelos: new Map() };
+      entrada.nombre = equivalente || mejorNombreDeMarca(entrada.nombre, nombre);
       for (const modeloBruto of Array.isArray(modelos) ? modelos : []) {
-        const modelo = normalizeText(modeloBruto);
+        const modelo = decodificarHtml(modeloBruto);
         const claveModelo = claveComparable(modelo);
         if (!claveModelo) continue;
         entrada.modelos.set(claveModelo, mejorNombreDeMarca(entrada.modelos.get(claveModelo), modelo));
       }
-      porMarca.set(clave, entrada);
+      porMarca.set(claveFinal, entrada);
     }
   };
 
   // Primero el secundario, para que el principal mande al elegir la grafía.
   acumular(secondaryMap);
   acumular(primaryMap);
+
+  /**
+   * Y por último, el modelo que se coló en el campo de la marca.
+   *
+   * «Audi A5» o «Renault Megane 1.9 dci 120cv» no son fabricantes: son un error
+   * de origen que llegaba al desplegable como una marca más, con un solo modelo
+   * dentro. Se meten en la marca de la que salieron, con sus modelos.
+   */
+  const claves = [...porMarca.keys()];
+  for (const hija of claves) {
+    const entradaHija = porMarca.get(hija);
+    if (!entradaHija || entradaHija.modelos.size > MAXIMO_ABSORBIBLE) continue;
+
+    const madre = claves.find(
+      (otra) =>
+        otra !== hija &&
+        hija.startsWith(otra) &&
+        (porMarca.get(otra)?.modelos.size || 0) >= MINIMO_PARA_ABSORBER
+    );
+    if (!madre) continue;
+
+    const entradaMadre = porMarca.get(madre);
+    for (const [claveModelo, modelo] of entradaHija.modelos) {
+      if (!entradaMadre.modelos.has(claveModelo)) entradaMadre.modelos.set(claveModelo, modelo);
+    }
+    porMarca.delete(hija);
+  }
 
   const merged = {};
   for (const { nombre, modelos } of porMarca.values()) {

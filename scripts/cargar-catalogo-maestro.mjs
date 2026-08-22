@@ -290,7 +290,12 @@ try {
   const { rows: todas } = await cliente.query('SELECT id, name FROM moveadvisor_vehicle_brands')
   const grupos = new Map()
   for (const fila of todas) {
-    const k = claveDeMarca(fila.name)
+    // Agrupando por la clave **ya pasada por los alias**. Sin esto, la fila
+    // vieja «DS» sobrevivía al lado de «DS Automobiles» y «KGM» al lado de
+    // «SsangYong KGM»: son la misma marca pero su cadena no se parece, así que
+    // comparar los nombres no las junta.
+    const bruta = claveDeMarca(fila.name)
+    const k = EQUIVALENTES[bruta] ? claveDeMarca(EQUIVALENTES[bruta]) : bruta
     if (!grupos.has(k)) grupos.set(k, [])
     grupos.get(k).push(fila)
   }
@@ -318,9 +323,36 @@ try {
     }
   }
 
+  /**
+   * Y los modelos repetidos dentro de una misma marca.
+   *
+   * «Mégane» y «Megane» son el mismo coche escrito con y sin acento, y en el
+   * desplegable salían dos veces seguidas. Se queda el que tiene la grafía más
+   * cuidada — el que lleva los acentos — y se borra el otro.
+   */
+  const { rows: dobles } = await cliente.query(`
+    SELECT brand_id, id, name FROM moveadvisor_vehicle_models ORDER BY brand_id, id`)
+  const porMarcaModelo = new Map()
+  let modelosBorrados = 0
+  for (const m of dobles) {
+    const k = `${m.brand_id}|${clave(m.name)}`
+    const previo = porMarcaModelo.get(k)
+    if (!previo) {
+      porMarcaModelo.set(k, m)
+      continue
+    }
+    // Se conserva el que no sea pura ASCII: es el que trae los acentos.
+    const conAcentos = (v) => v.normalize('NFD').replace(/[̀-ͯ]/g, '') !== v
+    const sobra = conAcentos(m.name) && !conAcentos(previo.name) ? previo : m
+    const queda = sobra === m ? previo : m
+    await cliente.query('DELETE FROM moveadvisor_vehicle_models WHERE id = $1', [sobra.id])
+    porMarcaModelo.set(k, queda)
+    modelosBorrados += 1
+  }
+
   await cliente.query('COMMIT')
   console.log(`Copia de seguridad: *_copia_${sello}`)
-  console.log(`Filas duplicadas consolidadas: ${consolidadas}`)
+  console.log(`Filas duplicadas consolidadas: ${consolidadas} marcas · ${modelosBorrados} modelos`)
   console.log(`Marcas nuevas: ${marcasNuevas} · renombradas: ${marcasRenombradas} · modelos nuevos: ${modelosNuevos}`)
 } catch (error) {
   await cliente.query('ROLLBACK')

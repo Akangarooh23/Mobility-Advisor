@@ -693,11 +693,26 @@ module.exports = async function vehicleCatalogHandler(req, res) {
     if (provider === "postgres") {
       const catalogMap = await getCatalogFromPostgres(defaultCatalogMap);
       const matchedModelsByBrand = await getModelCoverageFromPostgres().catch(() => ({}));
-      const mergedCatalogMap = mergeCatalogMaps(catalogMap, defaultCatalogMap);
+
+      /**
+       * La base manda. El fichero local es red, no añadido.
+       *
+       * Antes se sumaban en cada petición, y eso tenía una consecuencia mala:
+       * podías corregir el catálogo maestro y seguir viendo lo viejo, porque el
+       * fichero se le ponía encima. Todo lo que traía —106 marcas y casi dos
+       * mil modelos de fabricantes pequeños— está ya cargado en la base, así
+       * que no se pierde nada.
+       *
+       * Se sigue usando cuando la consulta no devuelve nada: sin él, un fallo
+       * de base dejaría los desplegables vacíos y nadie podría ni buscar ni
+       * pedir que le avisen.
+       */
+      const hayCatalogo = Object.keys(catalogMap || {}).length > 0;
+      const mergedCatalogMap = hayCatalogo ? catalogMap : defaultCatalogMap;
       return res.status(200).json({
         ok: true,
         provider,
-        source: "database+local-file",
+        source: hayCatalogo ? "database" : "local-file-fallback",
         brands: mapToBrandRows(mergedCatalogMap),
         matchedModelsByBrand,
       });

@@ -157,7 +157,25 @@ for (const fila of csv) anotar(fila.make_name, fila.model_name, 'csv')
 const trasCsv = marcas.size
 console.log(`CSV            ${csv.length} filas · ${trasCsv} marcas`)
 
-// 2 · lo que ya está en la base
+// 2 · el fichero local, que hasta ahora se sumaba al catálogo en cada petición
+//
+// Trae marcas y modelos que no están en ninguna otra parte —fabricantes
+// pequeños, clásicos americanos— y el objetivo es que el cliente pueda elegir
+// cualquier cosa aunque no haya ofertas, así que no se pierde nada: se
+// incorpora. Lo que deja de pasar es que se sume por encima en caliente, que
+// era lo que impedía que la base fuera la única fuente.
+const localJson = JSON.parse(
+  readFileSync(new URL('../src/data/vehicle-catalog.json', import.meta.url), 'utf8'),
+)
+let deFicheroLocal = 0
+for (const [marca, modelos] of Object.entries(localJson)) {
+  for (const modelo of Array.isArray(modelos) ? modelos : []) {
+    if (anotar(marca, modelo, 'fichero')) deFicheroLocal += 1
+  }
+}
+console.log(`fichero local  ${deFicheroLocal} filas`)
+
+// 3 · lo que ya está en la base
 const { rows: enBase } = await cliente.query(
   `SELECT b.name AS marca, m.name AS modelo
      FROM moveadvisor_vehicle_brands b

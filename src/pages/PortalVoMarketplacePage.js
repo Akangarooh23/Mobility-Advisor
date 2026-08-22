@@ -283,11 +283,24 @@ export default function PortalVoMarketplacePage({
     Object.fromEntries(brandOptionsUnicas.map((b) => [b, true])),
     marcasConAnuncios
   );
-  const modelOptions = (() => {
-    if (!portalVoFilters.brand) return portalVoModels;
+  /**
+   * Los modelos de la marca elegida, en dos bloques como las marcas: primero
+   * los que tienen coches ahora mismo, después el resto del catálogo.
+   *
+   * Todos seleccionables. Elegir un modelo del que no hay nada es una petición
+   * legítima —«avísame cuando entre un Taigo»— y para eso hace falta poder
+   * seleccionarlo.
+   */
+  const { modelosConCoches, modelosResto } = (() => {
     const found = catalogBrands.find((b) => normStr(b.name) === normStr(portalVoFilters.brand));
-    const catModels = found ? found.models : [];
-    return catModels.length ? [...new Set([...catModels, ...portalVoModels])] : portalVoModels;
+    const delCatalogo = portalVoFilters.brand && found ? found.models || [] : [];
+    const conCoches = [...new Set(portalVoModels.map((m) => String(m || "").trim()).filter(Boolean))];
+    const vistos = new Set(conCoches.map(normStr));
+    const resto = delCatalogo
+      .map((m) => String(m || "").trim())
+      .filter((m) => m && !vistos.has(normStr(m)));
+    const alfabetico = (l) => [...l].sort((a, b) => a.localeCompare(b, "es"));
+    return { modelosConCoches: alfabetico(conCoches), modelosResto: alfabetico(resto) };
   })();
 
   const isRenting = modalityMode === "renting";
@@ -535,7 +548,16 @@ export default function PortalVoMarketplacePage({
             disabled={!portalVoFilters.brand}
           >
             <option value="">Modelo</option>
-            {modelOptions.map((m) => <option key={m} value={m}>{m}</option>)}
+            {modelosConCoches.length > 0 && (
+              <optgroup label="Con coches disponibles">
+                {modelosConCoches.map((m) => <option key={`hay-${m}`} value={m}>{m}</option>)}
+              </optgroup>
+            )}
+            {modelosResto.length > 0 && (
+              <optgroup label="Resto del catálogo">
+                {modelosResto.map((m) => <option key={`resto-${m}`} value={m}>{m}</option>)}
+              </optgroup>
+            )}
           </FilterSelect>
           <FilterSelect
             value={portalVoFilters.minPrice || ""}

@@ -119,6 +119,24 @@ const SIGLAS = new Set([
 ]);
 
 /**
+ * Lo que llega en el campo de la marca y no es una marca.
+ *
+ * La misma lista que usa el cargador del catálogo maestro. Hace falta también
+ * aquí porque el desplegable no se alimenta solo del catálogo: mezcla las
+ * marcas que aparecen en anuncios reales, y ahí siguen llegando en crudo. Sin
+ * esto, «A5» y «Test» salían los primeros del bloque de marcas con coches.
+ *
+ * Escrita a mano y no deducida: esconder una marca de verdad por adivinar mal
+ * es peor que dejar una entrada rara.
+ */
+const NO_SON_MARCAS = new Set([
+  "a5", "audia5", "bwm", "citroenc1", "corvette", "ducato", "golf",
+  "golfmontion4v6", "ichx", "ml", "t5", "touran", "test", "otrasmarcas",
+  "otroscoches", "renault400", "renaultmegane19dci120cv", "fiatelliot",
+  "fordtransitdreamerd51automatica", "dongfengsokondong", "1955custombelair",
+]);
+
+/**
  * Deshace las entidades HTML que llegan en los datos de origen.
  *
  * Algunos anuncios vienen con el texto ya escapado —«Lynk &amp; Co»— y eso
@@ -220,7 +238,7 @@ function mergeCatalogMaps(primaryMap = {}, secondaryMap = {}) {
     for (const [nombreBruto, modelos] of Object.entries(mapa || {})) {
       const nombre = decodificarHtml(nombreBruto);
       const clave = claveDeMarca(nombre);
-      if (!clave) continue;
+      if (!clave || NO_SON_MARCAS.has(clave)) continue;
 
       // Un alias fija tanto el grupo como el nombre que se enseña.
       const equivalente = MARCAS_EQUIVALENTES[clave];

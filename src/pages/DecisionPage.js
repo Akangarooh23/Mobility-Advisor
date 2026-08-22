@@ -170,6 +170,8 @@ export default function DecisionPage({
   decisionAnswers,
   updateDecisionAnswer,
   MARKET_BRANDS,
+  /** Marcas con anuncios: deciden cuáles van primero en el desplegable. */
+  MARCAS_CON_ANUNCIOS,
   decisionTopModels = [],
   decisionOtherModels = [],
   decisionFlowReady,
@@ -424,10 +426,11 @@ export default function DecisionPage({
     window.localStorage.setItem(ADVANCED_FILTERS_STORAGE_KEY, showAdvancedFilters ? "1" : "0");
   }, [showAdvancedFilters]);
 
-  const { knownBrands, otherBrands, knownBrandSet } = getBrandOptionSegments(MARKET_BRANDS);
+  const { knownBrands, otherBrands, knownBrandSet } = getBrandOptionSegments(MARKET_BRANDS, MARCAS_CON_ANUNCIOS);
   const hasUnknownSelectedBrand = Boolean(decisionAnswers.brand && !knownBrandSet.has(decisionAnswers.brand));
+  // Los dos bloques se pintan por separado, así que ya no hace falta juntarlos
+  // en una lista: `shouldShowAllBrands` decide si se enseña el segundo.
   const shouldShowAllBrands = showAllBrands || hasUnknownSelectedBrand;
-  const visibleBrands = shouldShowAllBrands ? [...knownBrands, ...otherBrands] : knownBrands;
 
   useEffect(() => {
     if (decisionAnswers.operation !== "comprar") {
@@ -1019,11 +1022,31 @@ export default function DecisionPage({
                   }}
                 >
                   <option value="">{text.selectBrand}</option>
-                  {visibleBrands.map((brand) => (
-                    <option key={brand} value={brand}>
-                      {brand}
-                    </option>
-                  ))}
+                  {/* Dos bloques, cada uno de la A a la Z: primero las marcas
+                      de las que hay coches, después el resto del catálogo. Sin
+                      la separación, al desplegar «ver más» quedaba una única
+                      lista de trescientas donde no se sabía dónde acababa una
+                      cosa y empezaba la otra. */}
+                  <optgroup
+                    label={i18n.language === "en" ? "With cars available" : "Con coches disponibles"}
+                  >
+                    {knownBrands.map((brand) => (
+                      <option key={`hay-${brand}`} value={brand}>
+                        {brand}
+                      </option>
+                    ))}
+                  </optgroup>
+                  {shouldShowAllBrands && otherBrands.length > 0 && (
+                    <optgroup
+                      label={i18n.language === "en" ? "Rest of the catalogue" : "Resto del catálogo"}
+                    >
+                      {otherBrands.map((brand) => (
+                        <option key={`resto-${brand}`} value={brand}>
+                          {brand}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
                 </select>
                 <div className="cw-sel-arrow">▾</div>
               </div>

@@ -6802,6 +6802,7 @@ export default function App() {
           decisionAnswers={decisionAnswers}
           updateDecisionAnswer={updateDecisionAnswer}
           MARKET_BRANDS={marketBrandsCatalog}
+          MARCAS_CON_ANUNCIOS={matchedModelsByBrand}
           marketCatalogSource={marketCatalogSource}
           decisionTopModels={decisionMatchedModels}
           decisionOtherModels={decisionOtherModels}
@@ -6984,6 +6985,7 @@ export default function App() {
           sellAnswers={sellAnswers}
           setSellAnswers={setSellAnswers}
           MARKET_BRANDS={marketBrandsCatalog}
+          MARCAS_CON_ANUNCIOS={matchedModelsByBrand}
           sellModels={sellModels}
           SELL_FUEL_OPTIONS={SELL_FUEL_OPTIONS}
           analyzeSellWithAI={analyzeSellWithAI}

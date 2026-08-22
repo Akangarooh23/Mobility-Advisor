@@ -26,25 +26,90 @@ function buildFallbackMarketCatalogFromOffers(offers = []) {
   }, {});
 }
 
+/**
+ * Para comparar marcas y modelos: sin mayúsculas, acentos ni espacios de más.
+ *
+ * Los acentos hacen falta tanto como las mayúsculas. En datos de coches
+ * conviven «Citroën» y «CITROEN», «Škoda» y «Skoda», y para una cadena de texto
+ * son marcas distintas — el desplegable las enseñaba por separado, cada una con
+ * la mitad de los modelos.
+ */
+function claveComparable(valor) {
+  return normalizeText(valor)
+    .normalize("NFD")
+    // Los diacríticos, por su código: escritos como caracteres sueltos son
+    // invisibles en el editor y cualquiera los borra sin darse cuenta.
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+}
+
+/**
+ * De las formas en que viene escrita una marca, la que se le enseña al usuario.
+ *
+ * Las fuentes no se ponen de acuerdo: el catálogo dice «Volkswagen», la
+ * cobertura de inventario «VOLKSWAGEN» y algún anuncio suelto «volkswagen» o
+ * «Vw». Se prefiere la que ya viene con mayúsculas y minúsculas mezcladas, que
+ * es la escrita por una persona; si solo hay gritadas o en minúscula, se
+ * capitaliza a mano.
+ */
+function mejorNombreDeMarca(a, b) {
+  if (!a) return b;
+  if (!b) return a;
+  const mezclada = (v) => v !== v.toUpperCase() && v !== v.toLowerCase();
+  if (mezclada(a) && !mezclada(b)) return a;
+  if (mezclada(b) && !mezclada(a)) return b;
+  return a.length >= b.length ? a : b;
+}
+
+function capitalizar(valor) {
+  if (valor !== valor.toUpperCase() && valor !== valor.toLowerCase()) return valor;
+  return valor
+    .toLowerCase()
+    .replace(/(^|[\s-])([a-záéíóúñ])/g, (_, sep, letra) => sep + letra.toUpperCase());
+}
+
+/**
+ * Fusiona dos catálogos agrupando por marca **sin distinguir mayúsculas**.
+ *
+ * Antes se agrupaba por la cadena exacta, y eso partía una misma marca en
+ * varias entradas del desplegable: «Volkswagen» con 133 modelos, «VOLKSWAGEN»
+ * con 78, «Vw» con 2. Quien eligiera la equivocada no encontraba su coche —un
+ * Taigo con seis anuncios activos no aparecía— sin ninguna pista de por qué.
+ *
+ * Los modelos se juntan igual: «Taigo» y «TAIGO» son el mismo coche y salían
+ * dos veces seguidas en la lista.
+ */
 function mergeCatalogMaps(primaryMap = {}, secondaryMap = {}) {
-  const merged = {};
-  const allBrands = new Set([...Object.keys(secondaryMap || {}), ...Object.keys(primaryMap || {})]);
+  const porMarca = new Map();
 
-  for (const brandName of allBrands) {
-    const primaryModels = Array.isArray(primaryMap?.[brandName]) ? primaryMap[brandName] : [];
-    const secondaryModels = Array.isArray(secondaryMap?.[brandName]) ? secondaryMap[brandName] : [];
-    const mergedModels = Array.from(
-      new Set([
-        ...secondaryModels.map((name) => normalizeText(name)).filter(Boolean),
-        ...primaryModels.map((name) => normalizeText(name)).filter(Boolean),
-      ])
-    );
+  const acumular = (mapa) => {
+    for (const [nombreBruto, modelos] of Object.entries(mapa || {})) {
+      const nombre = normalizeText(nombreBruto);
+      const clave = claveComparable(nombre);
+      if (!clave) continue;
 
-    if (mergedModels.length > 0) {
-      merged[brandName] = mergedModels;
+      const entrada = porMarca.get(clave) || { nombre, modelos: new Map() };
+      entrada.nombre = mejorNombreDeMarca(entrada.nombre, nombre);
+      for (const modeloBruto of Array.isArray(modelos) ? modelos : []) {
+        const modelo = normalizeText(modeloBruto);
+        const claveModelo = claveComparable(modelo);
+        if (!claveModelo) continue;
+        entrada.modelos.set(claveModelo, mejorNombreDeMarca(entrada.modelos.get(claveModelo), modelo));
+      }
+      porMarca.set(clave, entrada);
     }
-  }
+  };
 
+  // Primero el secundario, para que el principal mande al elegir la grafía.
+  acumular(secondaryMap);
+  acumular(primaryMap);
+
+  const merged = {};
+  for (const { nombre, modelos } of porMarca.values()) {
+    if (modelos.size === 0) continue;
+    merged[capitalizar(nombre)] = [...modelos.values()];
+  }
   return merged;
 }
 

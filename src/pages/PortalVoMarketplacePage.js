@@ -153,11 +153,17 @@ export default function PortalVoMarketplacePage({
   // Catálogo completo (todas las marcas/modelos) para los desplegables — así se puede
   // filtrar/alertar por una marca aunque no haya stock ahora mismo.
   const [catalogBrands, setCatalogBrands] = useState([]); // [{ name, models: [] }]
+  // Marcas con anuncios: ordenan el desplegable, igual que en el asesor.
+  const [marcasConAnuncios, setMarcasConAnuncios] = useState(null);
   const [alertSent, setAlertSent] = useState(false);
   useEffect(() => {
     let cancelled = false;
     getVehicleCatalogJson()
-      .then(({ data }) => { if (!cancelled) setCatalogBrands(Array.isArray(data?.brands) ? data.brands : []); })
+      .then(({ data }) => {
+        if (cancelled) return;
+        setCatalogBrands(Array.isArray(data?.brands) ? data.brands : []);
+        setMarcasConAnuncios(data?.matchedModelsByBrand || null);
+      })
       .catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -251,8 +257,32 @@ export default function PortalVoMarketplacePage({
   // Opciones de marca/modelo: catálogo completo si cargó; si no, las del pool cargado.
   const normStr = (s) => String(s || "").trim().toLowerCase();
   const brandOptions = catalogBrands.length ? catalogBrands.map((b) => b.name) : portalVoBrands;
+  /**
+   * Sin repetir la misma marca escrita de dos formas.
+   *
+   * El catálogo llega de la unión de varias fuentes y trae «Volkswagen» y
+   * «VOLKSWAGEN» como entradas distintas. Se agrupan ignorando mayúsculas y
+   * acentos, conservando la grafía escrita por una persona.
+   */
+  const brandOptionsUnicas = (() => {
+    const porClave = new Map();
+    const mezclada = (v) => v !== v.toUpperCase() && v !== v.toLowerCase();
+    for (const b of brandOptions) {
+      const nombre = String(b || "").trim();
+      const k = nombre
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
+      if (!k) continue;
+      const previa = porClave.get(k);
+      if (!previa || (mezclada(nombre) && !mezclada(previa))) porClave.set(k, nombre);
+    }
+    return [...porClave.values()];
+  })();
   const { knownBrands: voKnownBrands, otherBrands: voOtherBrands } = getBrandOptionSegments(
-    Object.fromEntries(brandOptions.map((b) => [b, true]))
+    Object.fromEntries(brandOptionsUnicas.map((b) => [b, true])),
+    marcasConAnuncios
   );
   const hasUnknownVoBrand = Boolean(portalVoFilters.brand && !voKnownBrands.includes(portalVoFilters.brand));
   const visibleVoBrands = (showAllVoBrands || hasUnknownVoBrand) ? [...voKnownBrands, ...voOtherBrands] : voKnownBrands;

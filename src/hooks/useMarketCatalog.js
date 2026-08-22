@@ -102,6 +102,23 @@ const MARCAS_EQUIVALENTES = {
  */
 
 /**
+ * Marcas que se escriben en mayúsculas porque son siglas.
+ *
+ * Sacada del catálogo de referencia, no inventada: son exactamente las que él
+ * escribe así. Hace falta porque la regla general —preferir la grafía mixta,
+ * que suele ser la escrita por una persona— aquí se equivoca: entre «BMW» y
+ * «Bmw» gana la segunda y queda mal.
+ *
+ * Y no se puede decidir por la longitud: «SEAT» y «Kia» tienen las mismas
+ * letras y se escriben distinto.
+ */
+const SIGLAS = new Set([
+  "amc", "baic", "bmw", "byd", "dfsk", "ds", "ebro", "faw", "fso", "gac",
+  "gaz", "gmc", "ineos", "jac", "kgm", "ktm", "ldv", "levc", "mg", "nsu",
+  "pgo", "seat", "swm", "tvr", "uaz", "zaz",
+]);
+
+/**
  * Deshace las entidades HTML que llegan en los datos de origen.
  *
  * Algunos anuncios vienen con el texto ya escapado —«Lynk &amp; Co»— y eso
@@ -145,16 +162,44 @@ function mejorNombreDeMarca(a, b) {
   if (!a) return b;
   if (!b) return a;
   const mezclada = (v) => v !== v.toUpperCase() && v !== v.toLowerCase();
+
+  // Los acrónimos van al revés: entre «BMW» y «Bmw» gana la gritada.
+  if (SIGLAS.has(claveDeMarca(a))) {
+    const gritada = (v) => v === v.toUpperCase();
+    if (gritada(a) && !gritada(b)) return a;
+    if (gritada(b) && !gritada(a)) return b;
+  }
+
   if (mezclada(a) && !mezclada(b)) return a;
   if (mezclada(b) && !mezclada(a)) return b;
   return a.length >= b.length ? a : b;
 }
 
+/**
+ * Pone en caja una marca gritada, **salvo que sea un acrónimo**.
+ *
+ * La versión anterior bajaba a minúsculas todo lo que viniera en mayúsculas, y
+ * eso convertía `BMW` en «Bmw», `MG` en «Mg» y `KTM` en «Ktm». Los acrónimos se
+ * escriben en mayúsculas y así los trae el catálogo de referencia: `BMW`,
+ * `SEAT`, `DS`, `INEOS`, frente a `Kia` o `Jeep`, que van mixtas.
+ *
+ * La regla es la longitud de cada palabra: cuatro letras o menos en mayúsculas
+ * se deja como está. `INEOS` son cinco y aun así es acrónimo, pero viene bien
+ * escrito del catálogo y esto solo actúa cuando no hay una grafía mejor.
+ */
 function capitalizar(valor) {
   if (valor !== valor.toUpperCase() && valor !== valor.toLowerCase()) return valor;
   return valor
-    .toLowerCase()
-    .replace(/(^|[\s-])([a-záéíóúñ])/g, (_, sep, letra) => sep + letra.toUpperCase());
+    .split(" ")
+    .map((palabra) => {
+      if (palabra === palabra.toUpperCase() && palabra.replace(/[^A-Z0-9]/g, "").length <= 4) {
+        return palabra;
+      }
+      return palabra
+        .toLowerCase()
+        .replace(/(^|[\s-])([a-záéíóúñ])/g, (_, sep, letra) => sep + letra.toUpperCase());
+    })
+    .join(" ");
 }
 
 /**

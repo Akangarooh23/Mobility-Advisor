@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getBrandOptionSegments } from "../utils/brandCatalog";
 import SellReportMarketPage from "./SellReportMarketPage";
@@ -11,6 +10,8 @@ export default function SellPage({
   sellAnswers,
   setSellAnswers,
   MARKET_BRANDS,
+  /** Marcas con anuncios: ordenan el desplegable. */
+  MARCAS_CON_ANUNCIOS,
   sellModels,
   SELL_FUEL_OPTIONS,
   analyzeSellWithAI,
@@ -94,11 +95,9 @@ export default function SellPage({
   const pageDescription = isCertificateFlow
     ? text.pageDescriptionCertificate
     : text.pageDescriptionReport;
-  const [showAllBrands, setShowAllBrands] = useState(true);
-  const { knownBrands, otherBrands, knownBrandSet } = getBrandOptionSegments(MARKET_BRANDS);
-  const hasUnknownSelectedBrand = Boolean(sellAnswers.brand && !knownBrandSet.has(sellAnswers.brand));
-  const shouldShowAllBrands = showAllBrands || hasUnknownSelectedBrand;
-  const visibleBrands = shouldShowAllBrands ? [...knownBrands, ...otherBrands] : knownBrands;
+  // El catálogo entero, en dos bloques: primero las marcas con coches en el
+  // marketplace, después el resto. Cada uno de la A a la Z.
+  const { knownBrands, otherBrands } = getBrandOptionSegments(MARKET_BRANDS, MARCAS_CON_ANUNCIOS);
   const modelOptions = sellAnswers.model && !sellModels.includes(sellAnswers.model) ? [sellAnswers.model, ...sellModels] : sellModels;
   const currentYear = new Date().getFullYear();
   const minYear = 1990;
@@ -195,24 +194,26 @@ export default function SellPage({
           <select
             value={sellAnswers.brand}
             onChange={(event) => {
-              if (event.target.value === "__SHOW_MORE_BRANDS__") {
-                setShowAllBrands(true);
-                setSellAnswers((prev) => ({ ...prev, brand: "", model: "" }));
-                return;
-              }
-
               setSellAnswers((prev) => ({ ...prev, brand: event.target.value, model: "" }));
             }}
             style={styles.select}
           >
             <option value="">{text.selectBrand}</option>
-            {visibleBrands.map((brand) => (
-              <option key={brand} value={brand}>
-                {brand}
-              </option>
-            ))}
-            {!shouldShowAllBrands && otherBrands.length > 0 && (
-              <option value="__SHOW_MORE_BRANDS__">{text.moreBrands} ({otherBrands.length})</option>
+            <optgroup label="Con coches disponibles">
+              {knownBrands.map((brand) => (
+                <option key={`hay-${brand}`} value={brand}>
+                  {brand}
+                </option>
+              ))}
+            </optgroup>
+            {otherBrands.length > 0 && (
+              <optgroup label="Resto del catálogo">
+                {otherBrands.map((brand) => (
+                  <option key={`resto-${brand}`} value={brand}>
+                    {brand}
+                  </option>
+                ))}
+              </optgroup>
             )}
           </select>
         </div>

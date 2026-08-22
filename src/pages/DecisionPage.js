@@ -328,7 +328,6 @@ export default function DecisionPage({
     { value: "4x4", label: t("decision.traction4x4") },
   ];
 
-  const [showAllBrands, setShowAllBrands] = useState(false);
   const [priceFromIndex, setPriceFromIndex] = useState(() => getIndexFromMarkValue(PRICE_MARKS, decisionAnswers.priceMin, 0));
   const [priceToIndex, setPriceToIndex] = useState(() =>
     Number.isFinite(Number(decisionAnswers.priceMax))
@@ -426,11 +425,15 @@ export default function DecisionPage({
     window.localStorage.setItem(ADVANCED_FILTERS_STORAGE_KEY, showAdvancedFilters ? "1" : "0");
   }, [showAdvancedFilters]);
 
-  const { knownBrands, otherBrands, knownBrandSet } = getBrandOptionSegments(MARKET_BRANDS, MARCAS_CON_ANUNCIOS);
-  const hasUnknownSelectedBrand = Boolean(decisionAnswers.brand && !knownBrandSet.has(decisionAnswers.brand));
-  // Los dos bloques se pintan por separado, así que ya no hace falta juntarlos
-  // en una lista: `shouldShowAllBrands` decide si se enseña el segundo.
-  const shouldShowAllBrands = showAllBrands || hasUnknownSelectedBrand;
+  /**
+   * El catálogo entero, en dos bloques y los dos siempre visibles: primero las
+   * marcas con coches, después el resto, cada uno de la A a la Z.
+   *
+   * Ya no hay «ver más marcas». Ocultar media lista obligaba a saber que había
+   * más, y quien buscaba una marca sin inventario concluía que no la
+   * trabajamos, en vez de poder elegirla y pedir aviso cuando entre alguna.
+   */
+  const { knownBrands, otherBrands } = getBrandOptionSegments(MARKET_BRANDS, MARCAS_CON_ANUNCIOS);
 
   useEffect(() => {
     if (decisionAnswers.operation !== "comprar") {
@@ -1036,7 +1039,7 @@ export default function DecisionPage({
                       </option>
                     ))}
                   </optgroup>
-                  {shouldShowAllBrands && otherBrands.length > 0 && (
+                  {otherBrands.length > 0 && (
                     <optgroup
                       label={i18n.language === "en" ? "Rest of the catalogue" : "Resto del catálogo"}
                     >
@@ -1050,27 +1053,11 @@ export default function DecisionPage({
                 </select>
                 <div className="cw-sel-arrow">▾</div>
               </div>
-              {otherBrands.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setShowAllBrands((v) => !v)}
-                  style={{
-                    marginTop: 6,
-                    background: "none",
-                    border: "none",
-                    padding: "2px 0",
-                    fontSize: 12,
-                    color: "#0ea5e9",
-                    cursor: "pointer",
-                    textDecoration: "underline",
-                    textUnderlineOffset: 2,
-                  }}
-                >
-                  {showAllBrands
-                    ? (i18n.language === "en" ? "Show fewer brands ▲" : "Ver menos marcas ▲")
-                    : (i18n.language === "en" ? "Show more brands ▼" : "Ver más marcas ▼")}
-                </button>
-              )}
+              {/* Sin «ver más marcas»: el catálogo entero está siempre en el
+                  desplegable. Ocultar media lista obligaba a saber que había
+                  más, y quien buscaba una marca sin coches concluía que no
+                  existía en lugar de poder pedir que le avisen cuando llegue
+                  alguno. */}
             </div>
 
             {/* 3. MODEL */}

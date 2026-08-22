@@ -148,7 +148,6 @@ export default function PortalVoMarketplacePage({
   const { t } = useTranslation();
   const windowWidth = useWindowWidth();
   const gridCols = windowWidth < 500 ? 1 : windowWidth < 750 ? 2 : windowWidth < 1050 ? 3 : 5;
-  const [showAllVoBrands, setShowAllVoBrands] = useState(false);
   const [compraTab, setCompraTab] = useState(initialCompraTab || "concesionarios");
   // Catálogo completo (todas las marcas/modelos) para los desplegables — así se puede
   // filtrar/alertar por una marca aunque no haya stock ahora mismo.
@@ -284,8 +283,6 @@ export default function PortalVoMarketplacePage({
     Object.fromEntries(brandOptionsUnicas.map((b) => [b, true])),
     marcasConAnuncios
   );
-  const hasUnknownVoBrand = Boolean(portalVoFilters.brand && !voKnownBrands.includes(portalVoFilters.brand));
-  const visibleVoBrands = (showAllVoBrands || hasUnknownVoBrand) ? [...voKnownBrands, ...voOtherBrands] : voKnownBrands;
   const modelOptions = (() => {
     if (!portalVoFilters.brand) return portalVoModels;
     const found = catalogBrands.find((b) => normStr(b.name) === normStr(portalVoFilters.brand));
@@ -516,27 +513,20 @@ export default function PortalVoMarketplacePage({
               style={styles.select}
             >
               <option value="">Marca</option>
-              {visibleVoBrands.map((b) => <option key={b} value={b}>{b}</option>)}
+              {/* El catálogo entero, en dos bloques: primero las marcas de las
+                  que hay coches, después el resto, cada uno de la A a la Z.
+                  Todas seleccionables — quien elija una sin ofertas verá que no
+                  hay y podrá pedir aviso cuando entre alguna, que es mejor
+                  respuesta que no encontrarla en la lista. */}
+              <optgroup label="Con coches disponibles">
+                {voKnownBrands.map((b) => <option key={`hay-${b}`} value={b}>{b}</option>)}
+              </optgroup>
+              {voOtherBrands.length > 0 && (
+                <optgroup label="Resto del catálogo">
+                  {voOtherBrands.map((b) => <option key={`resto-${b}`} value={b}>{b}</option>)}
+                </optgroup>
+              )}
             </FilterSelect>
-            {voOtherBrands.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setShowAllVoBrands((v) => !v)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  padding: "2px 0",
-                  fontSize: 11,
-                  color: "#0ea5e9",
-                  cursor: "pointer",
-                  textDecoration: "underline",
-                  textUnderlineOffset: 2,
-                  textAlign: "left",
-                }}
-              >
-                {showAllVoBrands ? "Ver menos marcas ▲" : "Ver más marcas ▼"}
-              </button>
-            )}
           </div>
           <FilterSelect
             value={portalVoFilters.model}

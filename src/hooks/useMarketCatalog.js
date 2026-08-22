@@ -77,6 +77,11 @@ const MARCAS_EQUIVALENTES = {
   madza: "Mazda",
   suzuky: "Suzuki",
   linkco: "Lynk & Co",
+  // Yudo llegaba escrita de cinco formas, con un modelo suelto en cada una.
+  yoodoo: "Yudo",
+  yoodooo: "Yudo",
+  yooudoo: "Yudo",
+  yooudoo6: "Yudo",
 };
 
 /**
@@ -91,9 +96,9 @@ const MARCAS_EQUIVALENTES = {
  *   Merkur / Mercury                  dos marcas de Ford, distintas
  *   Baic / Buick, Ebro / Evo, Yudo / Yugo, Dfsk / DS
  *
- * Queda sin resolver el grupo Yoodoo —«Yoodoo», «Yoodooo», «Yooudoo»,
- * «Yooudoo 6», con un modelo cada uno, y «Yudo» con cinco—: son erratas de algo,
- * pero no está claro de qué, y unirlas al bulto podría esconder una marca real.
+ * Ojo con la última: Yudo y Yugo se parecen y son distintas —una es china y
+ * eléctrica, la otra yugoslava—, mientras que «Yoodoo» y sus variantes sí son
+ * Yudo mal escrita. El parecido de letras no decide nada por sí solo.
  */
 
 /**

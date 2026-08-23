@@ -44,3 +44,6 @@ tmp_*.log
 # Directorios ERP con node_modules propios
 carswise-erp-backoffice/node_modules/
 carswise-erp-backoffice-review/
+
+# Vercel: el enlace local con el proyecto, que crea `vercel link`.
+.vercel

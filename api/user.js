@@ -37,8 +37,27 @@ function resolveRoute(req) {
   return "";
 }
 
+// Las tres tareas programadas están declaradas en vercel.json, y ese fichero
+// viaja con el repositorio: cualquier proyecto de Vercel que lo despliegue las
+// ejecuta. Con dos proyectos (CarsWise y PopCar) contra la misma base, eso son
+// dos recordatorios por cita y dos correos con el mismo informe. Este
+// interruptor decide quién las corre de verdad. Por omisión están apagadas, así
+// que un despliegue nuevo nace sin poder duplicar nada: hay que encenderlo a
+// mano en el proyecto que toque, y solo en uno.
+const RUTAS_CRON = new Set([
+  "cron-appointment-reminders",
+  "cron-alert-check",
+  "cron-condition-report-ready",
+]);
+
 module.exports = async function userRouter(req, res) {
-  switch (resolveRoute(req)) {
+  const ruta = resolveRoute(req);
+
+  if (RUTAS_CRON.has(ruta) && process.env.CRON_ACTIVO !== "1") {
+    return res.status(204).end();
+  }
+
+  switch (ruta) {
     case "saved":
       return userSavedHandler(req, res);
     case "alerts":

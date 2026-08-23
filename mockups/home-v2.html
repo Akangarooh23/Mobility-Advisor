@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CarsWise — home v2</title>
+
+<!--
+  Inter autoalojada, como en la aplicación. No se carga de un CDN a propósito:
+  una petición a fonts.gstatic.com transfiere la IP del visitante a Google, y
+  docs/DESIGN.md lo prohíbe explícitamente por el material que maneja el
+  producto. El mockup original la traía de Google Fonts.
+-->
+<style>
+@font-face{font-family:'Inter';font-style:normal;font-weight:400 700;font-display:swap;
+  src:url('/fonts/inter-latin.woff2') format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Inter';font-style:normal;font-weight:400 700;font-display:swap;
+  src:url('/fonts/inter-latin-ext.woff2') format('woff2');
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+
+/* Copia literal de src/styles/tokens.css. No se inventan valores aquí. */
+:root{
+  --navy:#12233F; --navy-soft:#1E3557;
+  --blue:#5BA9E8; --blue-dark:#3A87C4; --blue-tint:#E8F2FB;
+  --amber:#BA7517;   /* SOLO acción principal */
+  --teal:#137370;    /* SOLO estados verificados */
+  --ink:#12233F; --ink-muted:#5C6B80; --ink-faint:#8FA0B5;
+  --line:#DCE4ED; --surface:#FFFFFF; --surface-alt:#F5F8FB;
+  --danger:#A32D2D;
+  --radius:10px; --radius-card:14px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+     color:var(--ink);background:var(--surface);line-height:1.55;-webkit-font-smoothing:antialiased}
+/* Pesos 400 y 500. El 700 es la excepción del logotipo. */
+h1,h2,h3,h4{font-weight:500;line-height:1.15;letter-spacing:-0.015em;color:var(--navy)}
+.wrap{max-width:1140px;margin:0 auto;padding:0 28px}
+a{color:inherit;text-decoration:none}
+.muted{color:var(--ink-muted)}
+
+.note{background:var(--navy);color:#fff;font-size:12px;text-align:center;padding:9px 16px}
+.note b{color:var(--blue);font-weight:500}
+
+/* Marcas de revisión. Van en azul, no en ámbar: el ámbar es solo la acción. */
+.chg{font-size:12px;color:var(--blue-dark);border:1px dashed var(--blue);border-radius:var(--radius);
+     padding:4px 11px;display:inline-block;margin-bottom:22px;background:var(--blue-tint)}
+.chg.out{color:var(--danger);border-color:#E4C2C2;background:#FBF1F1}
+
+nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:66px}
+.logo{font-weight:700;font-size:21px;letter-spacing:-0.02em;color:var(--navy)}
+.logo span{color:var(--blue)}
+.nav-links{display:flex;gap:28px;font-size:15px}
+.nav-links a{color:var(--ink-muted)}
+.nav-links a:hover{color:var(--blue-dark)}
+.nav-cta{display:flex;gap:10px;align-items:center}
+
+.btn{font-family:inherit;font-weight:500;font-size:15px;padding:11px 20px;border-radius:var(--radius);
+     cursor:pointer;border:1px solid transparent;display:inline-block;transition:background .18s,border-color .18s}
+.btn-amber{background:var(--amber);color:#fff}
+.btn-amber:hover{background:#A3660F}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-navy:hover{background:var(--navy-soft)}
+.btn-ghost{background:transparent;color:var(--navy);border-color:var(--line)}
+.btn-ghost:hover{border-color:var(--blue)}
+
+.hero{padding:64px 0 52px}
+.hero-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:52px;align-items:center}
+.eyebrow{font-size:13px;color:var(--blue-dark);margin-bottom:16px}
+.hero h1{font-size:46px;margin-bottom:20px;letter-spacing:-0.03em}
+.hero p.lead{font-size:17px;color:var(--ink-muted);max-width:520px;margin-bottom:28px}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+.hero-cta .btn{padding:13px 24px}
+.trust{display:flex;gap:18px;font-size:13px;color:var(--ink-muted);align-items:center;flex-wrap:wrap}
+.trust b{color:var(--navy);font-weight:500}
+.trust .dot{width:4px;height:4px;border-radius:50%;background:var(--blue)}
+
+.proof{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-card);padding:22px;
+       box-shadow:0 18px 44px -28px rgba(18,35,63,.35)}
+.proof-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;gap:12px}
+.proof h4{font-size:20px}
+.proof .plate{font-size:13px;color:var(--ink-muted);margin-top:2px}
+.sello{display:inline-flex;align-items:center;gap:6px;background:#E7F1F0;color:var(--teal);
+       font-size:12px;padding:5px 11px;border-radius:20px;white-space:nowrap}
+.sello::before{content:"✓"}
+.diagram{background:var(--surface-alt);border:1px solid var(--line);border-radius:var(--radius);padding:8px;margin-bottom:14px}
+.grades{display:grid;grid-template-columns:1fr auto;font-size:15px}
+.grades div{padding:7px 0;border-bottom:1px solid var(--line)}
+.grades div:nth-child(2n){text-align:right;font-weight:500}
+.grades .nodata{color:var(--ink-faint);font-style:italic}
+.proof-foot{margin-top:14px;font-size:12px;color:var(--ink-muted);line-height:1.5;
+            border-left:3px solid var(--amber);padding-left:12px}
+
+section{padding:64px 0}
+.sec-head{max-width:680px;margin-bottom:38px}
+.sec-head h2{font-size:32px;margin-bottom:14px}
+.sec-head p{font-size:17px;color:var(--ink-muted)}
+
+.split{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.split-card{border-radius:var(--radius-card);padding:34px;border:1px solid var(--line);background:var(--surface)}
+.split-card.buy{background:var(--surface-alt)}
+.split-card .ic{width:42px;height:42px;border-radius:var(--radius);background:var(--blue-tint);color:var(--blue-dark);
+                display:flex;align-items:center;justify-content:center;font-size:19px;margin-bottom:18px}
+.split-card h3{font-size:22px;margin-bottom:10px}
+.split-card p{color:var(--ink-muted);font-size:15px;margin-bottom:18px}
+.split-card ul{list-style:none;margin-bottom:22px}
+.split-card li{font-size:15px;padding:6px 0 6px 22px;position:relative}
+.split-card li::before{content:"—";position:absolute;left:0;color:var(--blue)}
+
+.how{background:var(--navy);color:#fff;border-radius:var(--radius-card);padding:48px}
+.how .eyebrow{color:var(--blue)}
+.how h2{color:#fff;font-size:30px;margin-bottom:12px;max-width:620px}
+.how .intro{color:#A9BCD0;font-size:16px;max-width:640px;margin-bottom:36px}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
+.step .n{width:34px;height:34px;border-radius:50%;border:1px solid var(--blue);color:var(--blue);
+         display:flex;align-items:center;justify-content:center;font-size:14px;margin-bottom:12px}
+.step.key .n{background:var(--teal);border-color:var(--teal);color:#fff}
+.step h4{font-size:15px;color:#fff;margin-bottom:5px;font-weight:500}
+.step p{font-size:13px;color:#94A9C0;line-height:1.5}
+.limit{margin-top:34px;padding:18px 20px;border-radius:var(--radius);background:rgba(255,255,255,.05);
+       border-left:3px solid var(--amber);font-size:15px;color:#CBD8E4;max-width:780px}
+.limit b{color:#fff;font-weight:500}
+
+.cat{display:grid;grid-template-columns:.9fr 1.1fr;gap:44px;align-items:center}
+.cat-visual{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-card);padding:28px}
+.matrix{position:relative;aspect-ratio:1.3;border:1px solid var(--line);border-radius:var(--radius)}
+.matrix .ln{position:absolute;background:var(--line)}
+.matrix .lnv{width:1px;height:100%;left:50%}
+.matrix .lnh{height:1px;width:100%;top:50%}
+.q{position:absolute;font-size:13px;color:var(--ink-muted);text-align:center;width:44%;line-height:1.35}
+.q.tr{top:12%;right:3%}.q.bl{bottom:12%;left:3%}.q.br{bottom:12%;right:3%}
+.q-us{position:absolute;top:11%;left:6%;width:40%;background:var(--navy);color:#fff;border-radius:var(--radius);
+      padding:11px;font-weight:500;font-size:14px}
+.axis{font-size:12px;color:var(--ink-faint);position:absolute}
+.axis.x{bottom:-24px;width:100%;text-align:center}
+.axis.y{top:50%;left:-58px;transform:rotate(-90deg)}
+
+.meta{border:1px solid var(--line);background:var(--blue-tint);border-radius:var(--radius-card);
+      padding:30px 34px;display:flex;justify-content:space-between;align-items:center;gap:28px}
+.meta h3{font-size:21px;margin-bottom:7px}
+.meta p{color:var(--ink-muted);font-size:15px;max-width:640px}
+
+.tasa{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center;
+      border:1px solid var(--line);background:var(--surface);border-radius:var(--radius-card);padding:28px 32px}
+.tasa h3{font-size:20px;margin-bottom:6px}
+.tasa p{font-size:15px;color:var(--ink-muted);max-width:640px}
+
+.red{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.red-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-card);padding:22px}
+.red-card h4{font-size:17px;margin-bottom:6px}
+.red-card p{font-size:15px;color:var(--ink-muted)}
+.estado{display:inline-block;font-size:12px;padding:3px 10px;border-radius:20px;margin-bottom:12px}
+.estado.ok{background:#E7F1F0;color:var(--teal)}
+.estado.wip{background:var(--blue-tint);color:var(--blue-dark)}
+
+.b2b{background:var(--surface-alt);border-radius:var(--radius-card);padding:46px;
+     display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;border:1px solid var(--line)}
+.b2b h2{font-size:28px;margin-bottom:14px}
+.b2b p{color:var(--ink-muted);font-size:16px;margin-bottom:18px}
+.b2b-cards{display:grid;gap:12px}
+.b2b-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px}
+.b2b-card h4{font-size:16px;margin-bottom:4px}
+.b2b-card p{font-size:14px;margin-bottom:0}
+
+footer{background:var(--navy);color:#fff;padding:52px 0 28px;margin-top:16px}
+.foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:36px;margin-bottom:38px}
+.foot-grid .logo{color:#fff}.foot-grid .logo span{color:var(--blue)}
+.foot-grid p{font-size:14px;color:#94A9C0;margin-top:10px;max-width:270px}
+.foot-col h5{font-size:13px;color:var(--blue);margin-bottom:14px;font-weight:500}
+.foot-col a{display:block;font-size:14px;color:#C2D0DE;margin-bottom:9px}
+.foot-col a:hover{color:#fff}
+.foot-bottom{border-top:1px solid rgba(255,255,255,.12);padding-top:20px;font-size:12px;color:#8296AC;
+             display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+.anexo{background:var(--surface);border:1px dashed var(--line);border-radius:var(--radius-card);padding:32px}
+.tree{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:8px}
+.tree-col h4{font-size:16px;padding-bottom:9px;border-bottom:2px solid var(--blue);margin-bottom:11px}
+.tree-col .pg{font-size:15px;padding:7px 0;border-bottom:1px solid var(--line)}
+.tree-col .pg span{display:block;font-size:12px;color:var(--ink-muted);margin-top:2px}
+
+@media(max-width:920px){
+  .hero-grid,.cat,.b2b,.split,.tasa{grid-template-columns:1fr}
+  .steps,.red{grid-template-columns:1fr 1fr;gap:20px}
+  .tree{grid-template-columns:1fr 1fr}
+  .hero h1{font-size:34px}.nav-links{display:none}
+  .foot-grid{grid-template-columns:1fr 1fr}
+  .meta{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<div class="note">Home v2 · tokens y tipografía tomados de <b>docs/DESIGN.md</b>. Las etiquetas en azul marcan qué cambia respecto a la v1.</div>
+
+<nav>
+  <div class="wrap nav-in">
+    <div class="logo">Cars<span>Wise</span></div>
+    <div class="nav-links">
+      <a href="#vender">Vender</a>
+      <a href="#comprar">Comprar</a>
+      <a href="#como">El sello</a>
+      <a href="#categoria">Por qué existe</a>
+      <a href="#b2b">Empresas</a>
+    </div>
+    <div class="nav-cta">
+      <a class="btn btn-ghost" href="#">Entrar</a>
+      <a class="btn btn-navy" href="#vender">Vender mi coche</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">Compraventa entre particulares, sin el riesgo</div>
+      <h1>El coche de un particular, con la confianza de un profesional.</h1>
+      <p class="lead">Cada coche llega con un informe de estado hecho con sus propias fotos: los daños, señalados sobre el esquema del vehículo, y lo que no se puede saber, dicho con esas palabras.</p>
+      <div class="hero-cta">
+        <!-- Una sola acción en ámbar. La regla de color no admite dos. -->
+        <a class="btn btn-amber" href="#vender">Vender mi coche</a>
+        <a class="btn btn-ghost" href="#comprar">Buscar coche</a>
+      </div>
+      <div class="trust">
+        <span><b>18</b> tomas guiadas desde el móvil</span><span class="dot"></span>
+        <span><b>Matrículas y caras</b> difuminadas</span><span class="dot"></span>
+        <span><b>Informe</b> descargable</span>
+      </div>
+    </div>
+
+    <div class="proof">
+      <div class="proof-top">
+        <div>
+          <h4>Informe de estado</h4>
+          <div class="plate">Volkswagen T-Roc · 2022 · 30.127 km</div>
+        </div>
+        <span class="sello">Verificado</span>
+      </div>
+
+      <div class="diagram">
+        <svg viewBox="0 0 420 150" width="100%" height="126" role="img" aria-label="Esquema del vehículo con dos daños señalados">
+          <path d="M40 108 L34 86 L46 66 L92 58 L138 36 L226 32 L272 44 L320 58 L370 70 L382 88 L378 108 Z"
+                fill="#E8F2FB" stroke="#B9D4EC" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M140 40 L222 37 L262 47 L146 52 Z" fill="#CBE0F3"/>
+          <circle cx="120" cy="108" r="20" fill="#12233F"/><circle cx="120" cy="108" r="7.5" fill="#8FA0B5"/>
+          <circle cx="300" cy="108" r="20" fill="#12233F"/><circle cx="300" cy="108" r="7.5" fill="#8FA0B5"/>
+          <circle cx="46" cy="92" r="10.5" fill="#BA7517"/>
+          <text x="46" y="96" text-anchor="middle" font-size="11" font-weight="500" fill="#fff">2</text>
+          <circle cx="300" cy="128" r="10.5" fill="#A32D2D"/>
+          <text x="300" y="132" text-anchor="middle" font-size="11" font-weight="500" fill="#fff">4</text>
+          <text x="46" y="130" text-anchor="middle" font-size="10" fill="#5C6B80">paragolpes</text>
+          <text x="300" y="20" text-anchor="middle" font-size="10" fill="#5C6B80">neumático tras. dcho.</text>
+        </svg>
+      </div>
+
+      <div class="grades">
+        <div>Carrocería</div><div>B+</div>
+        <div>Llantas</div><div>B+</div>
+        <div>Neumáticos</div><div>C</div>
+        <div>Interior</div><div>A</div>
+        <div>Cristales</div><div>A</div>
+        <div>Mecánica</div><div class="nodata">sin datos</div>
+      </div>
+
+      <div class="proof-foot">
+        La mecánica figura como «sin datos» porque no se ha revisado el coche en un taller. No se deduce de una fotografía, y no vamos a fingir que sí.
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="vender">
+  <div class="wrap">
+    <span class="chg">Cambio · promesas del hero sustituidas por hechos comprobables</span>
+    <div class="sec-head">
+      <div class="eyebrow">Para quién es</div>
+      <h2>Dos formas de usar CarsWise</h2>
+      <p>El vendedor deja de perder margen. El comprador deja de comprar a ciegas. Nosotros nos ocupamos de la confianza que hay en medio.</p>
+    </div>
+    <div class="split">
+      <div class="split-card">
+        <div class="ic">↑</div>
+        <h3>Vendo mi coche</h3>
+        <p>Diez minutos con el móvil y tu coche queda documentado. Solo cobramos si se vende.</p>
+        <ul>
+          <li>Fotografías el coche siguiendo instrucciones en pantalla</li>
+          <li>Recibes un informe de estado con los daños señalados</li>
+          <li>Lo publicamos con su expediente visual y su código QR</li>
+          <li>Tramitamos transferencia y cobro seguro</li>
+        </ul>
+        <a class="btn btn-navy" href="#">Empezar</a>
+      </div>
+      <div class="split-card buy" id="comprar">
+        <div class="ic">↓</div>
+        <h3>Compro un coche</h3>
+        <p>Coches de particular, al precio de particular, con el estado documentado antes de que te muevas de casa.</p>
+        <ul>
+          <li>Informe de estado descargable de cada coche</li>
+          <li>Los daños, situados sobre el esquema del vehículo</li>
+          <li>Puedes verlo a tamaño real en tu plaza de garaje</li>
+          <li>Financiación a medida si la necesitas</li>
+        </ul>
+        <a class="btn btn-ghost" href="#">Ver coches con informe</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="como">
+  <div class="wrap">
+    <span class="chg">Cambio · los pasos son los del producto real, y la tasación sale de aquí</span>
+    <div class="how">
+      <div class="eyebrow">Cómo funciona</div>
+      <h2>Cinco pasos, y uno de ellos es admitir lo que no sabemos</h2>
+      <p class="intro">El sello no dice que el coche esté bien. Dice qué se ha mirado, cómo, y qué queda sin mirar.</p>
+      <div class="steps">
+        <div class="step"><div class="n">1</div><h4>Captura guiada</h4><p>Dieciocho tomas y una vuelta en vídeo, con instrucciones en pantalla.</p></div>
+        <div class="step"><div class="n">2</div><h4>Anonimizado</h4><p>Matrículas y caras se tapan antes de que nada sea visible en público.</p></div>
+        <div class="step"><div class="n">3</div><h4>Informe de estado</h4><p>Los daños, situados sobre el esquema del coche y graduados del 1 al 5.</p></div>
+        <div class="step key"><div class="n">4</div><h4>Taller</h4><p>Lo único que puede hablar de mecánica. Sin esto, no se afirma nada.</p></div>
+        <div class="step"><div class="n">5</div><h4>Venta</h4><p>Pago seguro y traspaso, con el expediente adjunto.</p></div>
+      </div>
+      <div class="limit">
+        <b>Lo que el sello no hace.</b> Motor, embrague, DPF, bimasa y estructura no se deducen de una fotografía. Mientras no haya una revisión física, el informe dice «sin datos» — y eso no es una laguna, es la parte honesta.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tasacion" style="padding-top:0">
+  <div class="wrap">
+    <span class="chg">Cambio · la tasación era el paso 1 del sello; es otro producto</span>
+    <div class="tasa">
+      <div>
+        <h3>¿Y cuánto vale tu coche?</h3>
+        <p>Eso se calcula aparte, con datos de mercado. No sale del informe de estado ni de las fotos: son dos cosas distintas y mezclarlas haría que ninguna de las dos fuera creíble.</p>
+      </div>
+      <a class="btn btn-ghost" href="#" style="white-space:nowrap">Calcular precio de salida</a>
+    </div>
+  </div>
+</section>
+
+<section id="categoria">
+  <div class="wrap">
+    <span class="chg">Cambio · fuera el nombre del competidor del cuadrante</span>
+    <div class="cat">
+      <div>
+        <div class="eyebrow">Una categoría nueva</div>
+        <h2 style="font-size:30px;margin-bottom:14px">El «particular certificado»</h2>
+        <p class="muted" style="font-size:16px;margin-bottom:16px">Hasta hoy tenías que elegir: o el precio de un particular, comprando a ciegas, o la tranquilidad de un concesionario, pagando de más.</p>
+        <p style="font-size:16px">CarsWise quita esa elección: precio de particular y el estado del coche documentado antes de verlo.</p>
+      </div>
+      <div class="cat-visual">
+        <div class="matrix">
+          <div class="ln lnv"></div><div class="ln lnh"></div>
+          <div class="q-us">CarsWise</div>
+          <div class="q tr">Concesionario<br>caro, pero responde</div>
+          <div class="q bl">Anuncios entre particulares<br>barato, sin saber qué compras</div>
+          <div class="q br">Plataformas mixtas<br>ni una cosa ni otra</div>
+          <div class="axis x">precio particular → precio concesionario</div>
+          <div class="axis y">sin respaldo → con respaldo</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <span class="chg">Cambio · el buscador aparecía dos veces; ahora solo aquí</span>
+    <div class="meta">
+      <div>
+        <h3>¿Todavía no sabes qué coche quieres?</h3>
+        <p>El buscador del transporte ideal te ayuda a decidir entre comprar y rentar, y compara todo el mercado. Gratis y sin registro. <span class="muted">Ahí verás coches de todas partes, no solo los que llevan nuestro informe.</span></p>
+      </div>
+      <a class="btn btn-navy" href="#" style="white-space:nowrap">Abrir el buscador</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="chg out">Cambio · fuera los logos de socios que aún no están firmados</span>
+    <div class="sec-head">
+      <div class="eyebrow">En qué punto estamos</div>
+      <h2>Lo que ya funciona y lo que estamos montando</h2>
+      <p>Preferimos decirlo así antes que enseñar logotipos de acuerdos que todavía no existen.</p>
+    </div>
+    <div class="red">
+      <div class="red-card">
+        <span class="estado ok">Funcionando</span>
+        <h4>Informe de estado</h4>
+        <p>Captura guiada, anonimizado, daños sobre el esquema y documento descargable. Probado con coches reales.</p>
+      </div>
+      <div class="red-card">
+        <span class="estado ok">Funcionando</span>
+        <h4>Expediente público</h4>
+        <p>Ficha con su código QR y vista del coche a tamaño real en tu propio garaje, desde el móvil.</p>
+      </div>
+      <div class="red-card">
+        <span class="estado wip">En marcha</span>
+        <h4>Red de talleres</h4>
+        <p>La verificación física que asienta la mecánica y habilita garantía y financiación. Es lo próximo.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="b2b">
+  <div class="wrap">
+    <span class="chg">Sin cambios · la puerta B2B estaba bien donde estaba</span>
+    <div class="b2b">
+      <div>
+        <div class="eyebrow">Para empresas</div>
+        <h2>La capa de certificación del coche usado</h2>
+        <p>Bancos, aseguradoras y profesionales pueden apoyarse en el expediente de CarsWise para conocer el estado de un vehículo y decidir con datos.</p>
+        <a class="btn btn-navy" href="#">Hablar con nosotros</a>
+      </div>
+      <div class="b2b-cards">
+        <div class="b2b-card"><h4>Bancos</h4><p>El coche como garantía con su estado documentado, sin concesionario de por medio.</p></div>
+        <div class="b2b-card"><h4>Aseguradoras</h4><p>Tarificar sobre el estado real del vehículo y no sobre la media de su segmento.</p></div>
+        <div class="b2b-card"><h4>Talleres</h4><p>La verificación física de la red, con trabajo recurrente y sin captación.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="chg out">Cambio · el mapa del sitio no es una sección de la web; queda como anexo</span>
+    <div class="anexo">
+      <div class="sec-head" style="margin-bottom:22px">
+        <h2 style="font-size:24px">Anexo de trabajo · estructura del sitio</h2>
+        <p style="font-size:15px">No se publica. El inventario propio siempre separado del metabuscador.</p>
+      </div>
+      <div class="tree">
+        <div class="tree-col">
+          <h4>Vender</h4>
+          <div class="pg">Cómo funciona<span>los cinco pasos</span></div>
+          <div class="pg">Precio de salida<span>tasación, producto aparte</span></div>
+          <div class="pg">Qué ganas frente a un compraventa</div>
+          <div class="pg">Mi expediente<span>área privada</span></div>
+        </div>
+        <div class="tree-col">
+          <h4>Comprar</h4>
+          <div class="pg">Coches con informe<span>inventario propio</span></div>
+          <div class="pg">Ficha del coche<span>informe, QR, vista en 3D</span></div>
+          <div class="pg">Simulador de cuota</div>
+          <div class="pg">Buscador del transporte ideal<span>todo el mercado</span></div>
+        </div>
+        <div class="tree-col">
+          <h4>El sello</h4>
+          <div class="pg">Qué mira y qué no<span>los límites, por delante</span></div>
+          <div class="pg">Cómo se hace el informe</div>
+          <div class="pg">Anonimizado y privacidad</div>
+          <div class="pg">Verificación en taller</div>
+        </div>
+        <div class="tree-col">
+          <h4>Empresas</h4>
+          <div class="pg">Bancos</div>
+          <div class="pg">Aseguradoras</div>
+          <div class="pg">Profesionales</div>
+          <div class="pg">Talleres colaboradores</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="logo">Cars<span>Wise</span></div>
+        <p>La capa de confianza del coche usado. Precio de particular, estado documentado.</p>
+      </div>
+      <div class="foot-col">
+        <h5>Producto</h5>
+        <a href="#">Vender</a><a href="#">Comprar</a><a href="#">El sello</a><a href="#">Precio de salida</a>
+      </div>
+      <div class="foot-col">
+        <h5>Empresas</h5>
+        <a href="#">Bancos</a><a href="#">Aseguradoras</a><a href="#">Profesionales</a><a href="#">Talleres</a>
+      </div>
+      <div class="foot-col">
+        <h5>CarsWise</h5>
+        <a href="#">Sobre nosotros</a><a href="#">Blog</a><a href="#">Contacto</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 CarsWise · nombre provisional</span>
+      <span>Aviso legal · Privacidad · Cookies</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

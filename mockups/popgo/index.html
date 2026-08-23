@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PopCar — Tu coche. Todo, más fácil. Compra, vende o gestiona tu coche en una sola plataforma.">
+  <title>PopCar — Tu coche. Todo, más fácil.</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="#"><span>Pop</span>Car</a>
+    <nav>
+      <a href="#comprar">Comprar</a>
+      <a href="#vender">Vender</a>
+      <a href="#gestionar">Gestionar</a>
+      <a href="#idcar">IdCar</a>
+      <a href="#como-funciona">¿Cómo funciona?</a>
+      <a href="#blog">Blog</a>
+    </nav>
+    <div class="header-actions">
+      <button class="btn btn-outline">Iniciar sesión</button>
+      <button class="btn btn-yellow">Regístrate</button>
+    </div>
+    <button class="mobile-menu" aria-label="Abrir menú">☰</button>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">MOVILIDAD INTELIGENTE</p>
+        <h1>Tu coche.<br><span>Todo, más fácil.</span></h1>
+        <p class="hero-text">
+          Compra, vende o gestiona tu coche en una sola plataforma.
+          Con IA para ahorrarte tiempo y ayudarte en cada paso.
+        </p>
+
+        <div class="hero-features">
+          <article><div class="icon">⌕</div><div><b>Encuentra tu coche ideal</b><small>Ofertas personalizadas que se adaptan a ti.</small></div></article>
+          <article><div class="icon">◇</div><div><b>Vende al mejor precio</b><small>Tasación, informe de daños y gestión de venta.</small></div></article>
+          <article><div class="icon">✓</div><div><b>Gestiona tu coche</b><small>Seguros, mantenimientos, talleres y más.</small></div></article>
+        </div>
+
+        <div class="hero-actions">
+          <a class="btn btn-yellow btn-large" href="#comprar">Empieza ahora <span>→</span></a>
+          <a class="btn btn-outline btn-large" href="#idcar">Descubre IdCar <span>→</span></a>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <img src="/assets/beetle.png" alt="Volkswagen Beetle blanco rotulado, visto de tres cuartos delantero">
+        <div class="ai-card">
+          <span>Valoración inteligente<br>con IA <sup>*</sup></span>
+          <strong>12.450€</strong>
+          <div class="range"><i></i></div>
+          <div class="range-h"><span>11.900€</span><span>13.100€</span></div>
+        </div>
+      </div>
+      <p class="note"><b>* Estimación orientativa.</b> Sale de comparar operaciones
+        recientes de coches parecidos. No es una oferta de compra ni una tasación:
+        el precio real depende del estado del coche, y eso lo fija el informe.</p>
+    </section>
+
+    <section class="trust">
+      <div><b>◈</b><span>Informe de estado en cada coche</span></div>
+      <div><b>◍</b><span>Ni matrículas ni caras: se tapan antes de publicar</span></div>
+      <div><b>✓</b><span>La mecánica solo la firma un taller</span></div>
+    </section>
+
+    <section class="ways">
+      <div class="section-heading">
+        <h2>Tres formas de <span>ayudarte</span></h2>
+        <p>Elige lo que necesitas y PopCar se encarga del resto.</p>
+      </div>
+
+      <div class="ways-grid">
+        <article class="way-card" id="comprar">
+          <span class="pill">Comprar</span>
+          <h3>Buscamos por ti</h3>
+          <p>Nuestra IA encuentra las mejores opciones según tu estilo de vida y presupuesto.</p>
+          <div class="card-bottom"><span>→</span><div class="car-placeholder">SUV</div></div>
+        </article>
+
+        <article class="way-card" id="vender">
+          <span class="pill">Vender</span>
+          <h3>Te ayudamos a vender</h3>
+          <p>Tasamos tu coche, generamos el informe de daños y gestionamos todo por ti.</p>
+          <div class="phone-mini"><div>PopCar</div><strong>Mi coche</strong><small>Valoración · 24.850€</small></div>
+        </article>
+
+        <article class="way-card" id="gestionar">
+          <span class="pill">Gestionar</span>
+          <h3>Tu coche, siempre al día</h3>
+          <p>Todo lo que necesitas para el día a día de tu coche, en un solo lugar.</p>
+          <div class="phone-mini dark"><div>IdCar</div><strong>Todo al día</strong><small>Seguro · ITV · Mantenimiento</small></div>
+        </article>
+
+        <article class="idcar-card" id="idcar">
+          <div>
+            <h3><span>Id</span>Car</h3>
+            <p>Tu coche, tu identidad digital.</p>
+            <p class="muted">Sube tu coche a IdCar y gestiónalo o véndelo cuando quieras.</p>
+            <a class="btn btn-white" href="#">Quiero subir mi coche</a>
+          </div>
+          <div class="idcar-phone">
+            <div class="phone-screen">
+              <b>Mi IdCar</b>
+              <strong>Audi A4 Avant</strong>
+              <span class="ok">✓ Todo al día</span>
+              <span>◉ Seguro</span>
+              <span>⌁ Mantenimiento</span>
+              <span class="warning">! ITV</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="easy" id="como-funciona">
+      <div class="section-heading">
+        <h2>Así de <span>fácil</span></h2>
+        <p>PopCar usa IA y tecnología para ahorrarte tiempo en cada paso.</p>
+      </div>
+      <div class="steps">
+        <article><div class="step-icon">☏</div><h3>Cuéntanos qué necesitas</h3><p>Dinos qué buscas o qué quieres hacer con tu coche.</p></article>
+        <div class="arrow">→</div>
+        <article><div class="step-icon">✣</div><h3>Nuestra IA trabaja por ti</h3><p>Buscamos, analizamos y comparamos las mejores opciones.</p></article>
+        <div class="arrow">→</div>
+        <article><div class="step-icon">☷</div><h3>Recibe recomendaciones</h3><p>Te mostramos lo que realmente encaja contigo.</p></article>
+        <div class="arrow">→</div>
+        <article><div class="step-icon">✓</div><h3>Tú decides, nosotros nos encargamos</h3><p>Gestionamos todo para que tú solo tengas que disfrutar.</p></article>
+      </div>
+    </section>
+
+    <section class="management">
+      <div class="management-copy">
+        <h2>Todo lo que tu coche necesita,<br><span>en un solo lugar.</span></h2>
+        <div class="checks">
+          <p>✓ <b>Seguros</b><small>Compara y contrata tu seguro ideal.</small></p>
+          <p>✓ <b>Documentación</b><small>Ten toda la documentación siempre a mano.</small></p>
+          <p>✓ <b>Mantenimientos</b><small>Controla revisiones, kilometraje y próximos servicios.</small></p>
+          <p>✓ <b>Alertas inteligentes</b><small>Te avisamos de todo lo importante.</small></p>
+          <p>✓ <b>Talleres</b><small>Encuentra talleres recomendados cerca de ti.</small></p>
+          <p>✓ <b>Historial completo</b><small>Consulta el historial de tu coche en segundos.</small></p>
+        </div>
+      </div>
+      <div class="management-visual">
+        <div class="fake-phone">
+          <b>Mi IdCar</b>
+          <strong>Audi A4 Avant</strong>
+          <span class="ok">✓ Todo al día</span>
+          <span>✓ Seguro</span>
+          <span>⌁ Mantenimiento</span>
+          <span class="warning">! ITV</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="app-banner">
+      <div class="app-phone">
+        <b>PopCar</b>
+        <p>¡Hola! ¿Qué necesitas hoy?</p>
+        <span>⌕ Buscar coche</span>
+        <span>◇ Vender mi coche</span>
+        <span>✓ Gestionar mi coche</span>
+      </div>
+      <div>
+        <h2>PopCar en tu móvil</h2>
+        <p>La captura se hace con la cámara del móvil, desde el navegador.</p>
+        <div class="stores"><span>Sin instalar nada</span><span>Se abre en el navegador</span></div>
+      </div>
+      <div class="app-symbol">Pop<span>Car</span></div>
+    </section>
+
+    <section class="newsletter">
+      <div><span class="mail">✉</span><div><b>¿Quieres estar al día?</b><small>Recibe consejos, novedades y ofertas exclusivas.</small></div></div>
+      <form><input type="email" placeholder="Tu email"><button>Suscribirme</button></form>
+    </section>
+  </main>
+
+  <footer id="blog">
+    <div class="footer-top">
+      <div><a class="logo footer-logo" href="#"><span>Pop</span>Car</a><p>Tu coche. Todo, más fácil.</p><div class="social">◎ ● ▶ in</div></div>
+      <div><h4>Comprar</h4><a>Buscar coches</a><a>Ofertas destacadas</a><a>Cómo funciona</a></div>
+      <div><h4>Vender</h4><a>Tasación</a><a>Informe de daños</a><a>Cómo vendemos tu coche</a></div>
+      <div><h4>Gestionar</h4><a>Seguros</a><a>Mantenimientos</a><a>Talleres</a></div>
+      <div><h4>IdCar</h4><a>Qué es IdCar</a><a>Subir mi coche</a><a>Preguntas frecuentes</a></div>
+      <div><h4>Nosotros</h4><a>Blog</a><a>Sobre PopCar</a><a>Contacto</a></div>
+    </div>
+    <div class="footer-bottom"><span>© 2026 PopCar · Todos los derechos reservados</span><span>Aviso legal · Privacidad · Cookies</span></div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

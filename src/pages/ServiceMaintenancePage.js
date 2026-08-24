@@ -555,7 +555,7 @@ export default function ServiceMaintenancePage({
   const cardStyle = {
     background: "#ffffff",
     borderRadius: 16,
-    border: "1px solid #ece8df",
+    border: "1px solid var(--gris-200)",
     boxShadow: "0 1px 3px rgba(0,0,0,0.05),0 4px 20px rgba(0,0,0,0.04)",
   };
 
@@ -870,7 +870,7 @@ export default function ServiceMaintenancePage({
           type="button"
           onClick={onGoBack}
           style={{
-            border: "1px solid #ece8df",
+            border: "1px solid var(--gris-200)",
             background: "#ffffff",
             borderRadius: 8,
             padding: "7px 12px",
@@ -922,7 +922,7 @@ export default function ServiceMaintenancePage({
                   fontWeight: 600,
                   color: "#a0a0a0",
                   border: "1px solid #efebe4",
-                  background: "#fafaf9",
+                  background: "var(--gris-50)",
                   padding: "5px 12px",
                   borderRadius: 30,
                 }}
@@ -938,7 +938,7 @@ export default function ServiceMaintenancePage({
               value={vehicleFilter}
               onChange={(event) => setVehicleFilter(event.target.value)}
               style={{
-                border: "1px solid #ece8df",
+                border: "1px solid var(--gris-200)",
                 background: "#fff",
                 borderRadius: 10,
                 padding: "8px 10px",
@@ -964,12 +964,12 @@ export default function ServiceMaintenancePage({
               gap: 10,
               flexWrap: "wrap",
               fontSize: 12,
-              color: "#6b7280",
+              color: "var(--gris-500)",
             }}
           >
             <span style={{ fontWeight: 700, color: "var(--gris-600)" }}>{t("service.maintenanceLegend")}</span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <span style={{ width: 10, height: 10, borderRadius: 99, background: "#60a5fa", border: "1px solid rgba(37,99,235,0.5)" }} />
+              <span style={{ width: 10, height: 10, borderRadius: 99, background: "var(--gris-400)", border: "1px solid rgba(37,99,235,0.5)" }} />
               {t("service.maintenanceLegendAlertNotice")}
             </span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
@@ -1034,9 +1034,9 @@ export default function ServiceMaintenancePage({
                         alignItems: "center",
                         justifyContent: "space-between",
                         gap: 10,
-                        border: isActive ? "1px solid var(--gris-300)" : "1px solid #ece8df",
+                        border: isActive ? "1px solid var(--gris-300)" : "1px solid var(--gris-200)",
                         borderRadius: 10,
-                        background: isActive ? "var(--gris-50)" : "#fafaf9",
+                        background: isActive ? "var(--gris-50)" : "var(--gris-50)",
                         padding: "10px 12px",
                         cursor: "pointer",
                         textAlign: "left",
@@ -1097,7 +1097,7 @@ export default function ServiceMaintenancePage({
                         ? "rgba(34,197,94,0.12)"
                         : hasPendingAlerts
                           ? "rgba(59,130,246,0.12)"
-                          : "#fafaf9";
+                          : "var(--gris-50)";
 
                     const normalColor = isToday
                       ? "#fff"
@@ -1125,7 +1125,7 @@ export default function ServiceMaintenancePage({
                           fontWeight: hasAlerts || isToday ? 700 : 600,
                           background: isSelected ? selectedBackground : normalBackground,
                           color: isSelected
-                            ? (hasScheduledAlerts ? "#166534" : hasPendingAlerts ? "#1e40af" : "var(--gris-700)")
+                            ? (hasScheduledAlerts ? "#166534" : hasPendingAlerts ? "var(--gris-900)" : "var(--gris-700)")
                             : normalColor,
                           cursor: "pointer",
                           position: "relative",
@@ -1163,7 +1163,7 @@ export default function ServiceMaintenancePage({
                       }}
                     >
                       <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
-                        <div style={{ fontSize: 13, color: "#1f2937", fontWeight: 700 }}>{alert.title}</div>
+                        <div style={{ fontSize: 13, color: "var(--gris-800)", fontWeight: 700 }}>{alert.title}</div>
                         <span style={{
                           fontSize: 10,
                           fontWeight: 800,
@@ -1175,7 +1175,7 @@ export default function ServiceMaintenancePage({
                           {isAlertScheduled(alert) ? t("service.maintenanceButtonScheduled") : t("service.maintenanceButtonSchedule")}
                         </span>
                       </div>
-                      <div style={{ fontSize: 12, color: "#6b7280" }}>{alert.vehicleName}</div>
+                      <div style={{ fontSize: 12, color: "var(--gris-500)" }}>{alert.vehicleName}</div>
                       <div style={{ fontSize: 12, color: "#9a9a9a" }}>{alert.subtitle}</div>
                     </button>
                   ))}
@@ -1255,7 +1255,7 @@ export default function ServiceMaintenancePage({
             style={{
               width: "min(560px, 100%)",
               borderRadius: 14,
-              border: "1px solid #e5e7eb",
+              border: "1px solid var(--gris-200)",
               background: "#ffffff",
               boxShadow: "0 20px 40px rgba(15,23,42,0.2)",
               padding: 16,
@@ -1291,7 +1291,7 @@ export default function ServiceMaintenancePage({
             </div>
 
             {canEditSelectedAppointment ? (
-              <div style={{ border: "1px solid #dbeafe", borderRadius: 10, background: "#f8fbff", padding: 10, display: "grid", gap: 10 }}>
+              <div style={{ border: "1px solid var(--acento-tenue)", borderRadius: 10, background: "#f8fbff", padding: 10, display: "grid", gap: 10 }}>
                 <div style={{ fontSize: 12, color: "var(--marca-oscuro)", fontWeight: 700 }}>{t("service.maintenanceAppointmentManagement")}</div>
                 <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                   {t("service.maintenanceRescheduleLabel")}
@@ -1369,7 +1369,7 @@ export default function ServiceMaintenancePage({
               </div>
             ) : (
               <div style={{ border: "1px solid rgba(59,130,246,0.28)", borderRadius: 10, background: "rgba(239,246,255,0.8)", padding: 10, display: "grid", gap: 8 }}>
-                <div style={{ fontSize: 12, color: "#1e3a8a", fontWeight: 700 }}>
+                <div style={{ fontSize: 12, color: "var(--gris-900)", fontWeight: 700 }}>
                   {canScheduleSelectedAlert ? t("service.maintenanceNoScheduledAppointmentMessage") : t("service.maintenanceInformativeAlertMessage")}
                 </div>
                 {canScheduleSelectedAlert ? (

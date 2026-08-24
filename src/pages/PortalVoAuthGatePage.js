@@ -14,7 +14,7 @@ export default function PortalVoAuthGatePage({
   const cardBg = isDark ? "rgba(15,23,42,0.6)" : "rgba(255,255,255,0.95)";
   const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
   const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
-  const accentColor = isDark ? "#38bdf8" : "#0284c7";
+  const accentColor = isDark ? "var(--gris-500)" : "var(--gris-900)";
   const mutedColor = isDark ? "var(--gris-400)" : "var(--gris-500)";
 
   const features = [
@@ -148,7 +148,7 @@ export default function PortalVoAuthGatePage({
             type="button"
             onClick={onRegister}
             style={{
-              background: "linear-gradient(135deg, #0ea5e9, var(--marca))",
+              background: "linear-gradient(135deg, var(--gris-700), var(--marca))",
               color: "#fff",
               border: "none",
               borderRadius: 12,

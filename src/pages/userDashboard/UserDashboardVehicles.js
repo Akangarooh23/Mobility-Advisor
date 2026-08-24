@@ -308,7 +308,7 @@ export default function UserDashboardVehicles({
   const cardBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(37,99,235,0.3)";
   const elevatedShadow = isDark ? "0 18px 30px rgba(2,6,23,0.4)" : "0 14px 28px rgba(15,23,42,0.08)";
   const subtleShadow = isDark ? "0 8px 16px rgba(2,6,23,0.28)" : "0 8px 18px rgba(15,23,42,0.06)";
-  const inputBg = isDark ? "#0f1b2d" : "#ffffff";
+  const inputBg = isDark ? "var(--gris-900)" : "#ffffff";
   const sectionFrame = {
     background: isDark ? "rgba(2,6,23,0.34)" : "rgba(248,250,252,0.86)",
     border: isDark ? "1px solid rgba(148,163,184,0.22)" : "1px solid rgba(148,163,184,0.24)",
@@ -1347,7 +1347,7 @@ export default function UserDashboardVehicles({
           {activeVehicleTab === "my-garage" && <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,minmax(0,1fr))" : "repeat(auto-fit,minmax(180px,1fr))", gap: 12 }}>
             {[
               [t("dashboard.vehSectionLabel"), myVehicles.length, "var(--marca)"],
-              [t("dashboard.vehStatBought"), lifecycleTotals.owned, "#60a5fa"],
+              [t("dashboard.vehStatBought"), lifecycleTotals.owned, "var(--gris-400)"],
               [t("dashboard.vehStatActive"), lifecycleTotals.activeSale, "#f59e0b"],
               [t("dashboard.vehStatSold"), lifecycleTotals.sold, "#34d399"],
             ].map(([label, value, color]) => (
@@ -1861,7 +1861,7 @@ export default function UserDashboardVehicles({
                         }
                       }}
                       style={{
-                        background: vehicleForm.marketplacePricingMode === "valuation" ? "linear-gradient(135deg,#0ea5e9,#0284c7)" : "rgba(14,165,233,0.08)",
+                        background: vehicleForm.marketplacePricingMode === "valuation" ? "linear-gradient(135deg,var(--gris-700),var(--gris-900))" : "rgba(14,165,233,0.08)",
                         color: vehicleForm.marketplacePricingMode === "valuation" ? "#ffffff" : "#0c4a6e",
                         border: vehicleForm.marketplacePricingMode === "valuation" ? "none" : cardBorder,
                         borderRadius: 999,
@@ -2461,7 +2461,7 @@ export default function UserDashboardVehicles({
                           <button
                             type="button"
                             onClick={() => handleVehicleAction("valuation", vehicle)}
-                            style={{ background: "rgba(37,99,235,0.1)", border: "1px solid rgba(37,99,235,0.22)", color: isDark ? "#93c5fd" : "var(--marca-oscuro)", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%" }}
+                            style={{ background: "rgba(37,99,235,0.1)", border: "1px solid rgba(37,99,235,0.22)", color: isDark ? "var(--gris-300)" : "var(--marca-oscuro)", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%" }}
                           >
                             {t("dashboard.vehRequestValuation")}
                           </button>
@@ -2509,7 +2509,7 @@ export default function UserDashboardVehicles({
                           )}
                           {vehicle.marketplaceState === "active_sale" && vehicleBookings[vehicle.id] && vehicleBookings[vehicle.id].length > 0 && (
                             <div style={{ marginTop: 8, background: "#f0f9ff", border: "1.5px solid #bae6fd", borderRadius: 10, overflow: "hidden" }}>
-                              <div style={{ padding: "8px 12px", borderBottom: "1px solid #e0f2fe", fontSize: 11, fontWeight: 700, color: "#0369a1", textTransform: "uppercase", letterSpacing: ".4px" }}>
+                              <div style={{ padding: "8px 12px", borderBottom: "1px solid #e0f2fe", fontSize: 11, fontWeight: 700, color: "var(--gris-800)", textTransform: "uppercase", letterSpacing: ".4px" }}>
                                 📅 Citas confirmadas ({vehicleBookings[vehicle.id].length})
                               </div>
                               {vehicleBookings[vehicle.id].map((b) => (
@@ -2520,7 +2520,7 @@ export default function UserDashboardVehicles({
                                       {" · "}
                                       {new Date(b.starts_at).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
                                     </div>
-                                    <div style={{ fontSize: 10, color: "#0369a1", marginTop: 1 }}>
+                                    <div style={{ fontSize: 10, color: "var(--gris-800)", marginTop: 1 }}>
                                       {b.buyer_name || "—"}
                                       {b.buyer_phone ? ` · ${b.buyer_phone}` : ""}
                                     </div>
@@ -2725,7 +2725,7 @@ export default function UserDashboardVehicles({
                             onClick={confirmMarketplacePublish}
                             disabled={!canPublish}
                             style={{
-                              background: canPublish ? "linear-gradient(135deg,var(--marca),var(--marca-oscuro))" : "#d1d5db",
+                              background: canPublish ? "linear-gradient(135deg,var(--marca),var(--marca-oscuro))" : "var(--gris-300)",
                               color: "#ffffff",
                               border: "none",
                               borderRadius: 8,

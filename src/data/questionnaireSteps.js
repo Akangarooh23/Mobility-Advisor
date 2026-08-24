@@ -172,7 +172,7 @@ export const STEPS = [
         desc: "Muy buena reputación en consumo y durabilidad",
         brandChips: [
           { short: "TY", tone: "#ef4444", label: "Toyota" },
-          { short: "HY", tone: "#0ea5e9", label: "Hyundai" },
+          { short: "HY", tone: "var(--gris-700)", label: "Hyundai" },
           { short: "KI", tone: "#dc2626", label: "Kia" },
           { short: "NS", tone: "var(--gris-500)", label: "Nissan" },
         ],
@@ -184,8 +184,8 @@ export const STEPS = [
         desc: "Imagen, tecnología y coste superior de mantenimiento",
         brandChips: [
           { short: "BM", tone: "var(--marca)", label: "BMW" },
-          { short: "MB", tone: "#111827", label: "Mercedes" },
-          { short: "AU", tone: "#6b7280", label: "Audi" },
+          { short: "MB", tone: "var(--gris-900)", label: "Mercedes" },
+          { short: "AU", tone: "var(--gris-500)", label: "Audi" },
         ],
       },
       {
@@ -193,7 +193,7 @@ export const STEPS = [
         label: "Premium escandinava",
         icon: "❄️",
         desc: "Seguridad y confort como prioridad",
-        brandChips: [{ short: "VO", tone: "#0284c7", label: "Volvo" }],
+        brandChips: [{ short: "VO", tone: "var(--gris-900)", label: "Volvo" }],
       },
       {
         value: "nueva_china",
@@ -203,7 +203,7 @@ export const STEPS = [
         brandChips: [
           { short: "BY", tone: "#dc2626", label: "BYD" },
           { short: "MG", tone: "#ef4444", label: "MG" },
-          { short: "XP", tone: "#111827", label: "XPeng" },
+          { short: "XP", tone: "var(--gris-900)", label: "XPeng" },
         ],
       },
       {

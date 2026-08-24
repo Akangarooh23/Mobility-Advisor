@@ -307,10 +307,10 @@ export default function DecisionPage({
     { value: "beige", label: t("decision.colorBeige"), dot: "#d6c7b4" },
     { value: "blanco", label: t("decision.colorBlanco"), dot: "#ffffff" },
     { value: "granate", label: t("decision.colorGranate"), dot: "#991b1b" },
-    { value: "gris", label: t("decision.colorGris"), dot: "#9ca3af" },
+    { value: "gris", label: t("decision.colorGris"), dot: "var(--gris-400)" },
     { value: "marron", label: t("decision.colorMarron"), dot: "#92400e" },
     { value: "naranja", label: t("decision.colorNaranja"), dot: "#f97316" },
-    { value: "negro", label: t("decision.colorNegro"), dot: "#111827" },
+    { value: "negro", label: t("decision.colorNegro"), dot: "var(--gris-900)" },
     { value: "rojo", label: t("decision.colorRojo"), dot: "#ef4444" },
     { value: "rosa", label: t("decision.colorRosa"), dot: "#f9a8d4" },
     { value: "verde", label: t("decision.colorVerde"), dot: "#22c55e" },
@@ -909,7 +909,7 @@ export default function DecisionPage({
           .cw-active-bar { padding: 0.65rem 2rem; background: linear-gradient(90deg, rgba(59,130,246,0.05), rgba(59,130,246,0.02)); border-bottom: 1px solid rgba(59,130,246,0.1); display: none; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
           .cw-active-bar.show { display: flex; }
           .cw-ab-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--marca-claro); margin-right: 0.25rem; white-space: nowrap; }
-          .cw-a-chip { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); color: #1e40af; font-size: 11px; font-weight: 500; padding: 0.2rem 0.65rem; border-radius: 20px; display: inline-flex; align-items: center; gap: 0.3rem; }
+          .cw-a-chip { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); color: var(--gris-900); font-size: 11px; font-weight: 500; padding: 0.2rem 0.65rem; border-radius: 20px; display: inline-flex; align-items: center; gap: 0.3rem; }
           .cw-ab-clear { margin-left: auto; font-size: 11px; color: #aaa; background: none; border: none; cursor: pointer; font-family: Inter, sans-serif; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
           .cw-ab-clear:hover { color: #666; }
           .cw-filters { padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
@@ -917,10 +917,10 @@ export default function DecisionPage({
           .cw-f-lbl { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #ccc; margin-bottom: 0.7rem; display: flex; align-items: center; gap: 0.5rem; }
           .cw-f-lbl-n { width: 17px; height: 17px; border-radius: 50%; background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(59,130,246,0.08)); color: var(--marca-claro); font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
           .cw-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
-          .cw-chip { font-size: 12px; font-weight: 400; padding: 0.4rem 0.9rem; border-radius: 30px; border: 1px solid #ebebeb; background: #fafaf9; color: #999; cursor: pointer; font-family: Inter, sans-serif; transition: all 0.15s; white-space: nowrap; }
+          .cw-chip { font-size: 12px; font-weight: 400; padding: 0.4rem 0.9rem; border-radius: 30px; border: 1px solid #ebebeb; background: var(--gris-50); color: #999; cursor: pointer; font-family: Inter, sans-serif; transition: all 0.15s; white-space: nowrap; }
           .cw-chip:hover { border-color: #ddd; color: #555; background: #fff; }
           .cw-chip.sel { background: linear-gradient(135deg, var(--marca-claro), var(--marca)); border-color: transparent; color: #fff; font-weight: 500; box-shadow: 0 2px 10px rgba(59,130,246,0.35); }
-          .cw-range-box { background: #fafaf9; border: 1px solid #eee; border-radius: 12px; padding: 0.8rem 0.9rem; }
+          .cw-range-box { background: var(--gris-50); border: 1px solid #eee; border-radius: 12px; padding: 0.8rem 0.9rem; }
           .cw-range-values { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--gris-500); margin-bottom: 0.45rem; }
           .cw-range-values strong { color: var(--gris-900); font-weight: 600; }
           .cw-range-box input[type="range"] { width: 100%; accent-color: var(--marca-claro); }
@@ -930,13 +930,13 @@ export default function DecisionPage({
           .cw-range-manual input:focus { border-color: rgba(59,130,246,0.6); box-shadow: 0 0 0 2px rgba(59,130,246,0.12); }
           .cw-plain-manual { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; }
           .cw-plain-manual label { display: flex; flex-direction: column; gap: 0.2rem; font-size: 10px; color: var(--gris-400); text-transform: uppercase; letter-spacing: 0.06em; }
-          .cw-plain-manual input { background: #fafaf9; border: 1px solid var(--gris-200); border-radius: 8px; padding: 0.5rem 0.55rem; font-size: 12px; color: var(--gris-900); outline: none; }
+          .cw-plain-manual input { background: var(--gris-50); border: 1px solid var(--gris-200); border-radius: 8px; padding: 0.5rem 0.55rem; font-size: 12px; color: var(--gris-900); outline: none; }
           .cw-plain-manual input:focus { border-color: rgba(59,130,246,0.6); box-shadow: 0 0 0 2px rgba(59,130,246,0.12); }
-          .cw-plain-manual .cw-sel-wrap select { background: #fafaf9; border: 1px solid var(--gris-200); border-radius: 8px; padding: 0.5rem 1.8rem 0.5rem 0.55rem; font-size: 12px; color: var(--gris-900); }
+          .cw-plain-manual .cw-sel-wrap select { background: var(--gris-50); border: 1px solid var(--gris-200); border-radius: 8px; padding: 0.5rem 1.8rem 0.5rem 0.55rem; font-size: 12px; color: var(--gris-900); }
           .cw-plain-manual .cw-sel-wrap .cw-sel-arrow { right: 0.55rem; }
           .cw-color-grid { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-          .cw-color-chip { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid #dbe3ef; background: #fafaf9; border-radius: 999px; padding: 0.35rem 0.6rem; font-size: 12px; color: var(--gris-600); cursor: pointer; transition: all 0.15s ease; }
-          .cw-color-chip:hover { border-color: #93c5fd; background: #fff; }
+          .cw-color-chip { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid #dbe3ef; background: var(--gris-50); border-radius: 999px; padding: 0.35rem 0.6rem; font-size: 12px; color: var(--gris-600); cursor: pointer; transition: all 0.15s ease; }
+          .cw-color-chip:hover { border-color: var(--gris-300); background: #fff; }
           .cw-color-chip.sel { border-color: var(--marca-claro); box-shadow: 0 0 0 2px rgba(59,130,246,0.16); color: var(--gris-900); }
           .cw-color-dot { width: 12px; height: 12px; border-radius: 999px; border: 1px solid rgba(15,23,42,0.18); }
           .cw-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
@@ -946,7 +946,7 @@ export default function DecisionPage({
           .cw-advanced-toggle:hover { background: #eef4ff; border-color: #bfd4fb; }
           .cw-advanced-wrap { display: flex; flex-direction: column; gap: 1.5rem; }
           .cw-sel-wrap { position: relative; }
-          .cw-sel-wrap select { appearance: none; width: 100%; background: #fafaf9; border: 1px solid #eee; border-radius: 12px; padding: 0.62rem 2.2rem 0.62rem 1rem; font-size: 13px; color: #666; font-family: Inter, sans-serif; cursor: pointer; outline: none; }
+          .cw-sel-wrap select { appearance: none; width: 100%; background: var(--gris-50); border: 1px solid #eee; border-radius: 12px; padding: 0.62rem 2.2rem 0.62rem 1rem; font-size: 13px; color: #666; font-family: Inter, sans-serif; cursor: pointer; outline: none; }
           .cw-sel-wrap select:focus { border-color: rgba(59,130,246,0.4); background: #fff; box-shadow: 0 0 0 3px rgba(59,130,246,0.07); }
           .cw-sel-arrow { position: absolute; right: 0.8rem; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 10px; color: #bbb; }
           .cw-loc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
@@ -1921,7 +1921,7 @@ export default function DecisionPage({
               </div>
             )}
             {!decisionMarketError && decisionMarketInsight && (
-              <div style={{background:"rgba(59,130,246,0.08)",border:"1px solid rgba(59,130,246,0.2)",borderRadius:12,padding:12,color:"#1e3a8a",fontSize:12}}>
+              <div style={{background:"rgba(59,130,246,0.08)",border:"1px solid rgba(59,130,246,0.2)",borderRadius:12,padding:12,color:"var(--gris-900)",fontSize:12}}>
                 {decisionMarketInsight}
               </div>
             )}
@@ -1932,24 +1932,24 @@ export default function DecisionPage({
                   placeholder="Precio mín €"
                   value={offerPriceMin}
                   onChange={(e) => { setOfferPriceMin(e.target.value); setVisibleCount(VISIBLE_PAGE_SIZE); }}
-                  style={{width:110,padding:"6px 10px",borderRadius:8,border:"1px solid #d1d5db",fontSize:13,outline:"none"}}
+                  style={{width:110,padding:"6px 10px",borderRadius:8,border:"1px solid var(--gris-300)",fontSize:13,outline:"none"}}
                 />
                 <input
                   type="number"
                   placeholder="Precio máx €"
                   value={offerPriceMax}
                   onChange={(e) => { setOfferPriceMax(e.target.value); setVisibleCount(VISIBLE_PAGE_SIZE); }}
-                  style={{width:110,padding:"6px 10px",borderRadius:8,border:"1px solid #d1d5db",fontSize:13,outline:"none"}}
+                  style={{width:110,padding:"6px 10px",borderRadius:8,border:"1px solid var(--gris-300)",fontSize:13,outline:"none"}}
                 />
                 <button
                   onClick={() => setPriceSortOrder("asc")}
-                  style={{padding:"6px 14px",borderRadius:8,border:`1px solid ${priceSortOrder==="asc"?"var(--marca-claro)":"#d1d5db"}`,background:priceSortOrder==="asc"?"#eff6ff":"#fff",color:priceSortOrder==="asc"?"var(--marca-oscuro)":"#374151",fontSize:13,fontWeight:priceSortOrder==="asc"?600:400,cursor:"pointer"}}
+                  style={{padding:"6px 14px",borderRadius:8,border:`1px solid ${priceSortOrder==="asc"?"var(--marca-claro)":"var(--gris-300)"}`,background:priceSortOrder==="asc"?"var(--acento-tenue)":"#fff",color:priceSortOrder==="asc"?"var(--marca-oscuro)":"var(--gris-700)",fontSize:13,fontWeight:priceSortOrder==="asc"?600:400,cursor:"pointer"}}
                 >
                   ↑ Menor precio
                 </button>
                 <button
                   onClick={() => setPriceSortOrder("desc")}
-                  style={{padding:"6px 14px",borderRadius:8,border:`1px solid ${priceSortOrder==="desc"?"var(--marca-claro)":"#d1d5db"}`,background:priceSortOrder==="desc"?"#eff6ff":"#fff",color:priceSortOrder==="desc"?"var(--marca-oscuro)":"#374151",fontSize:13,fontWeight:priceSortOrder==="desc"?600:400,cursor:"pointer"}}
+                  style={{padding:"6px 14px",borderRadius:8,border:`1px solid ${priceSortOrder==="desc"?"var(--marca-claro)":"var(--gris-300)"}`,background:priceSortOrder==="desc"?"var(--acento-tenue)":"#fff",color:priceSortOrder==="desc"?"var(--marca-oscuro)":"var(--gris-700)",fontSize:13,fontWeight:priceSortOrder==="desc"?600:400,cursor:"pointer"}}
                 >
                   ↓ Mayor precio
                 </button>
@@ -1960,7 +1960,7 @@ export default function DecisionPage({
                 <span style={{fontSize:14,color:"#666"}}>{text.noOffers}</span>
                 <button
                   disabled
-                  style={{marginTop:4,padding:"9px 20px",borderRadius:8,border:"1px solid #d1d5db",background:"#f3f4f6",color:"#9ca3af",fontSize:13,cursor:"not-allowed",fontWeight:500}}
+                  style={{marginTop:4,padding:"9px 20px",borderRadius:8,border:"1px solid var(--gris-300)",background:"var(--gris-100)",color:"var(--gris-400)",fontSize:13,cursor:"not-allowed",fontWeight:500}}
                 >
                   {text.requestAlert}
                 </button>
@@ -2016,12 +2016,12 @@ export default function DecisionPage({
                 </div>
                 {visibleCount < sortedDecisionMarketListings.length && (
                   <div style={{ textAlign: "center", margin: "16px 0 8px" }}>
-                    <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>
+                    <div style={{ fontSize: 12, color: "var(--gris-500)", marginBottom: 8 }}>
                       {text.showing} {Math.min(visibleCount, sortedDecisionMarketListings.length)} {text.of} {sortedDecisionMarketListings.length} {text.availableOffers}
                     </div>
                     <button
                       onClick={() => setVisibleCount((c) => c + VISIBLE_PAGE_SIZE)}
-                      style={{ padding: "9px 24px", borderRadius: 8, border: "1px solid var(--marca-claro)", background: "#eff6ff", color: "var(--marca-oscuro)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+                      style={{ padding: "9px 24px", borderRadius: 8, border: "1px solid var(--marca-claro)", background: "var(--acento-tenue)", color: "var(--marca-oscuro)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
                     >
                       {text.showMore}
                     </button>

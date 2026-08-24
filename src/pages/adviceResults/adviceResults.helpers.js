@@ -208,7 +208,7 @@ export function buildAdviceResultsViewModel({
   };
   const tcoBreakdownItems = [
     { key: "base_mensual", label: tcoDetail.concepto_base || txt("Base mensual", "Monthly base"), color: "#fbbf24" },
-    { key: "seguro", label: txt("Seguro", "Insurance"), color: "#60a5fa" },
+    { key: "seguro", label: txt("Seguro", "Insurance"), color: "var(--gris-400)" },
     { key: "energia", label: txt("Energía / combustible", "Energy / fuel"), color: "#34d399" },
     { key: "mantenimiento", label: txt("Mantenimiento", "Maintenance"), color: "#c084fc" },
     { key: "extras", label: txt("Extras / colchón", "Extras / cushion"), color: "#f472b6" },
@@ -221,7 +221,7 @@ export function buildAdviceResultsViewModel({
     ? txt("Antes de cerrar una compra o financiación, conviene estimar cuánto te puede aportar tu coche actual como entrega.", "Before closing a purchase or financing, it is worth estimating how much your current car can contribute as trade-in.")
     : txt("Si vas a vender tu coche por separado, te conviene revisar su tasación para compararla con estas ofertas con el coste real completo.", "If you plan to sell your car separately, review its valuation to compare it against these offers with full real cost.");
   const scoreBreakdownEntries = [
-    { key: "encaje_uso", label: txt("Encaje con tu uso", "Fit with your usage"), max: 25, color: "#38bdf8" },
+    { key: "encaje_uso", label: txt("Encaje con tu uso", "Fit with your usage"), max: 25, color: "var(--gris-500)" },
     { key: "coste_total", label: txt("Coste total", "Total cost"), max: 20, color: "#34d399" },
     { key: "flexibilidad", label: txt("Flexibilidad", "Flexibility"), max: 20, color: "#a78bfa" },
     { key: "viabilidad_real", label: txt("Viabilidad real", "Real-world viability"), max: 20, color: "#f59e0b" },

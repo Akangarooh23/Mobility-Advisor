@@ -327,7 +327,7 @@ export default function UserDashboardPage({
             style={{
               fontSize: 11,
               fontWeight: 700,
-              color: isActive ? "var(--marca-oscuro)" : (isDark ? "#bfdbfe" : "var(--gris-700)"),
+              color: isActive ? "var(--marca-oscuro)" : (isDark ? "var(--gris-200)" : "var(--gris-700)"),
             }}
           >
             {section.count}

@@ -103,7 +103,7 @@ export default function UserDashboardPreferences({
 
   const inputStyle = {
     width: "100%",
-    background: isDark ? "#0f1b2d" : "#ffffff",
+    background: isDark ? "var(--gris-900)" : "#ffffff",
     border: cardBorder,
     borderRadius: 8,
     color: isDark ? "var(--gris-50)" : "var(--gris-900)",

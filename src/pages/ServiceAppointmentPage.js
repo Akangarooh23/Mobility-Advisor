@@ -548,7 +548,7 @@ export default function ServiceAppointmentPage({
   const cardStyle = {
     background: "#ffffff",
     borderRadius: 16,
-    border: "1px solid #ece8df",
+    border: "1px solid var(--gris-200)",
     boxShadow: "0 1px 3px rgba(0,0,0,0.05),0 4px 20px rgba(0,0,0,0.04)",
   };
 
@@ -906,7 +906,7 @@ export default function ServiceAppointmentPage({
           type="button"
           onClick={onGoBack}
           style={{
-            border: "1px solid #ece8df",
+            border: "1px solid var(--gris-200)",
             background: "#ffffff",
             borderRadius: 8,
             padding: "7px 12px",
@@ -962,7 +962,7 @@ export default function ServiceAppointmentPage({
                   fontWeight: 600,
                   color: "#a0a0a0",
                   border: "1px solid #efebe4",
-                  background: "#fafaf9",
+                  background: "var(--gris-50)",
                   padding: "5px 12px",
                   borderRadius: 30,
                 }}
@@ -980,10 +980,10 @@ export default function ServiceAppointmentPage({
         </div>
 
         {isLoadingVehicles ? (
-          <div style={{ fontSize: 13, color: "#6b7280" }}>{t("service.appointmentLoadingIdCars")}</div>
+          <div style={{ fontSize: 13, color: "var(--gris-500)" }}>{t("service.appointmentLoadingIdCars")}</div>
         ) : !hasAnyVehicles ? (
           <>
-            <div style={{ fontSize: 13, color: "#6b7280", lineHeight: 1.6, marginBottom: 10 }}>
+            <div style={{ fontSize: 13, color: "var(--gris-500)", lineHeight: 1.6, marginBottom: 10 }}>
               {t("service.appointmentNoIdCarMessage")}
             </div>
             <button
@@ -1149,9 +1149,9 @@ export default function ServiceAppointmentPage({
                 }}
                 disabled={!canChooseRevision}
                 style={{
-                  border: idx === selectedRevision ? "2px solid rgba(139,92,246,0.7)" : "1px solid #ece8df",
+                  border: idx === selectedRevision ? "2px solid rgba(139,92,246,0.7)" : "1px solid var(--gris-200)",
                   borderRadius: 10,
-                  background: idx === selectedRevision ? "rgba(139,92,246,0.07)" : "#fafaf9",
+                  background: idx === selectedRevision ? "rgba(139,92,246,0.07)" : "var(--gris-50)",
                   textAlign: "left",
                   padding: "10px 12px",
                   cursor: canChooseRevision ? "pointer" : "not-allowed",
@@ -1285,7 +1285,7 @@ export default function ServiceAppointmentPage({
             )}
           </div>
           {isSearchingWorkshops ? (
-            <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>
+            <div style={{ fontSize: 12, color: "var(--gris-500)", marginBottom: 8 }}>
               {t("service.appointmentLoadingWorkshops")}
             </div>
           ) : null}
@@ -1306,7 +1306,7 @@ export default function ServiceAppointmentPage({
               </div>
             )}
             {hasLocationContext && !isSearchingWorkshops && providerOffers.length === 0 && (
-              <div style={{ fontSize: 12, color: "#6b7280" }}>
+              <div style={{ fontSize: 12, color: "var(--gris-500)" }}>
                 No se encontraron talleres en tu zona. Prueba con otro código postal.
               </div>
             )}
@@ -1317,9 +1317,9 @@ export default function ServiceAppointmentPage({
                 onClick={() => setSelectedProvider(item.key)}
                 disabled={!canChooseRevision}
                 style={{
-                  border: item.key === selectedProvider ? "1px solid rgba(139,92,246,0.35)" : "1px solid #ece8df",
+                  border: item.key === selectedProvider ? "1px solid rgba(139,92,246,0.35)" : "1px solid var(--gris-200)",
                   borderRadius: 10,
-                  background: item.key === selectedProvider ? "rgba(139,92,246,0.08)" : "#fafaf9",
+                  background: item.key === selectedProvider ? "rgba(139,92,246,0.08)" : "var(--gris-50)",
                   textAlign: "left",
                   padding: "10px 12px",
                   cursor: canChooseRevision ? "pointer" : "not-allowed",
@@ -1457,10 +1457,10 @@ export default function ServiceAppointmentPage({
                 ))}
               </div>
               <div style={{ borderTop: "1px solid rgba(0,0,0,0.07)", paddingTop: 12 }}>
-                <div style={{ fontSize: 14, color: "#374151", fontWeight: 700 }}>
+                <div style={{ fontSize: 14, color: "var(--gris-700)", fontWeight: 700 }}>
                   Precio a confirmar con el taller
                 </div>
-                <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
+                <div style={{ fontSize: 12, color: "var(--gris-500)", marginTop: 4 }}>
                   Recibirás confirmación en 24 h
                 </div>
               </div>

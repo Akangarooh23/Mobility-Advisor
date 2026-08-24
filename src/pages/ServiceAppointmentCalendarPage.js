@@ -84,7 +84,7 @@ export default function ServiceAppointmentCalendarPage({
   const cardStyle = {
     background: "#ffffff",
     borderRadius: 16,
-    border: "1px solid #ece8df",
+    border: "1px solid var(--gris-200)",
     boxShadow: "0 1px 3px rgba(0,0,0,0.05),0 4px 20px rgba(0,0,0,0.04)",
   };
 
@@ -320,7 +320,7 @@ export default function ServiceAppointmentCalendarPage({
           type="button"
           onClick={onBack}
           style={{
-            border: "1px solid #ece8df",
+            border: "1px solid var(--gris-200)",
             background: "#ffffff",
             borderRadius: 8,
             padding: "7px 12px",
@@ -346,7 +346,7 @@ export default function ServiceAppointmentCalendarPage({
           <div style={{ fontSize: 24, lineHeight: 1.2, color: "#111", fontWeight: 800 }}>
             {t("service.appointmentCalTitle")}
           </div>
-          <div style={{ marginTop: 8, fontSize: 13, color: "#6b7280", lineHeight: 1.55 }}>
+          <div style={{ marginTop: 8, fontSize: 13, color: "var(--gris-500)", lineHeight: 1.55 }}>
             {appointmentType} · {workshopName}
             {normalizeText(safeDraft?.workshopDistanceKm) ? ` · ${safeDraft.workshopDistanceKm} km` : ""}
           </div>
@@ -355,7 +355,7 @@ export default function ServiceAppointmentCalendarPage({
 
       <section style={{ ...cardStyle, padding: "12px 16px", marginBottom: 12, display: "flex", alignItems: "flex-start", gap: 10 }}>
         <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>ℹ️</span>
-        <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.55 }}>
+        <div style={{ fontSize: 13, color: "var(--gris-700)", lineHeight: 1.55 }}>
           <strong>Horario orientativo del taller.</strong> Selecciona el día y la franja que mejor te venga.
           Una vez enviada tu solicitud, el taller verificará disponibilidad y te confirmará la cita en 24 h.
         </div>
@@ -372,7 +372,7 @@ export default function ServiceAppointmentCalendarPage({
           <button
             type="button"
             onClick={() => setMonthCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
-            style={{ border: "1px solid #e5e7eb", background: "#fff", borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontWeight: 700, color: "var(--gris-500)" }}
+            style={{ border: "1px solid var(--gris-200)", background: "#fff", borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontWeight: 700, color: "var(--gris-500)" }}
           >
             {t("service.appointmentCalPrevMonth")}
           </button>
@@ -382,7 +382,7 @@ export default function ServiceAppointmentCalendarPage({
           <button
             type="button"
             onClick={() => setMonthCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
-            style={{ border: "1px solid #e5e7eb", background: "#fff", borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontWeight: 700, color: "var(--gris-500)" }}
+            style={{ border: "1px solid var(--gris-200)", background: "#fff", borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontWeight: 700, color: "var(--gris-500)" }}
           >
             {t("service.appointmentCalNextMonth")}
           </button>
@@ -407,10 +407,10 @@ export default function ServiceAppointmentCalendarPage({
               : isClosed
                 ? "var(--gris-100)"
                 : data?.inPast
-                  ? "#fafaf9"
+                  ? "var(--gris-50)"
                   : hasSlots
                     ? "rgba(34,197,94,0.10)"
-                    : "#fafaf9";
+                    : "var(--gris-50)";
 
             return (
               <button
@@ -518,7 +518,7 @@ export default function ServiceAppointmentCalendarPage({
           <div style={{ fontSize: 18, color: "#303030", fontWeight: 700, marginBottom: 3 }}>
             {t("service.appointmentCalConfirmTitle")}
           </div>
-          <div style={{ fontSize: 13, color: "#6b7280", lineHeight: 1.45 }}>
+          <div style={{ fontSize: 13, color: "var(--gris-500)", lineHeight: 1.45 }}>
             {selectedDay && selectedTime
               ? t("service.appointmentCalConfirmDetail", { type: appointmentType, datetime: toDateTimeLabel(selectedDay.date, selectedTime), workshop: workshopName })
               : t("service.appointmentCalConfirmHint")}

@@ -110,7 +110,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             border: isDark ? "1.5px solid rgba(37,99,235,0.35)" : "1.5px solid rgba(37,99,235,0.35)",
             background: isDark
               ? "linear-gradient(135deg, rgba(37,99,235,0.18), rgba(99,102,241,0.12))"
-              : "linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%)",
+              : "linear-gradient(135deg, var(--acento-tenue) 0%, #eef2ff 100%)",
             boxShadow: isDark ? "none" : "0 12px 32px rgba(37,99,235,0.10)",
             padding: "28px 32px",
             textAlign: "left",

@@ -93,7 +93,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
     }),
     select: {
       width: "100%",
-      background: isDark ? "#0f1b2d" : "#ffffff",
+      background: isDark ? "var(--gris-900)" : "#ffffff",
       color: isDark ? "var(--gris-50)" : "var(--gris-900)",
       border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(148,163,184,0.3)",
       borderRadius: 10,
@@ -103,7 +103,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
     },
     input: {
       width: "100%",
-      background: isDark ? "#0f1b2d" : "#ffffff",
+      background: isDark ? "var(--gris-900)" : "#ffffff",
       color: isDark ? "var(--gris-50)" : "var(--gris-900)",
       border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(148,163,184,0.3)",
       borderRadius: 10,

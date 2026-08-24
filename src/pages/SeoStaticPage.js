@@ -96,7 +96,7 @@ export default function SeoStaticPage({ styles, badge = "Informacion", title, de
                       {card.title}
                     </div>
                     {card.subtitle ? (
-                      <div style={{ color: isDark ? "#7dd3fc" : "var(--marca)", fontSize: 12, fontWeight: 700, marginBottom: 8 }}>
+                      <div style={{ color: isDark ? "var(--gris-300)" : "var(--marca)", fontSize: 12, fontWeight: 700, marginBottom: 8 }}>
                         {card.subtitle}
                       </div>
                     ) : null}

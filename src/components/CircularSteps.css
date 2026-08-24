@@ -112,7 +112,7 @@
   font-size: 1.45rem;
   font-weight: 700;
   line-height: 1.1;
-  color: #1f2937;
+  color: var(--gris-800);
 }
 
 .cw-process-copy p {

@@ -75,7 +75,7 @@ export default function UserDashboardSaved({
   const cardBg = isDark
     ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
     : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))";
-  const inputBg = isDark ? "#0f1b2d" : "#ffffff";
+  const inputBg = isDark ? "var(--gris-900)" : "#ffffff";
   const inputText = isDark ? "var(--gris-50)" : "var(--gris-900)";
   const mutedText = isDark ? "var(--gris-300)" : "var(--gris-600)";
   const titleText = isDark ? "var(--gris-50)" : "var(--gris-900)";
@@ -274,7 +274,7 @@ export default function UserDashboardSaved({
     <section id="user-dashboard-saved" style={{ ...panelStyle, ...sectionFrame, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
-          <div style={{ fontSize: 11, color: "#60a5fa", letterSpacing: "0.6px" }}>{t("dashboard.savedSectionLabel")}</div>
+          <div style={{ fontSize: 11, color: "var(--gris-400)", letterSpacing: "0.6px" }}>{t("dashboard.savedSectionLabel")}</div>
           <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: titleText }}>{t("dashboard.savedTitle")}</div>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -310,7 +310,7 @@ export default function UserDashboardSaved({
                   ? "rgba(15,23,42,0.88)"
                   : "rgba(255,255,255,0.95)",
                 border: isActive ? "none" : cardBorder,
-                color: isActive ? "#eff6ff" : isDark ? "var(--gris-200)" : "var(--gris-700)",
+                color: isActive ? "var(--acento-tenue)" : isDark ? "var(--gris-200)" : "var(--gris-700)",
                 borderRadius: 999,
                 padding: "8px 12px",
                 fontSize: 12,
@@ -350,7 +350,7 @@ export default function UserDashboardSaved({
         >
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(150px,1fr))", gap: 10 }}>
             {[
-              [t("dashboard.savedStatSaved"), savedComparisons.length, "#60a5fa"],
+              [t("dashboard.savedStatSaved"), savedComparisons.length, "var(--gris-400)"],
               [t("dashboard.savedStatAlerts"), marketAlerts.length, "#34d399"],
               [t("dashboard.savedStatNews"), totalNewMatches, "#f59e0b"],
             ].map(([label, value, color]) => (
@@ -393,7 +393,7 @@ export default function UserDashboardSaved({
               style={{
                 background: "rgba(37,99,235,0.14)",
                 border: "1px solid rgba(96,165,250,0.24)",
-                color: "#1e3a8a",
+                color: "var(--gris-900)",
                 padding: "10px 12px",
                 borderRadius: 10,
                 fontSize: 12,
@@ -489,7 +489,7 @@ export default function UserDashboardSaved({
                         style={{
                           background: "rgba(37,99,235,0.12)",
                           border: "1px solid rgba(96,165,250,0.2)",
-                          color: "#1e3a8a",
+                          color: "var(--gris-900)",
                           padding: "8px 10px",
                           borderRadius: 10,
                           fontSize: 11,
@@ -658,7 +658,7 @@ export default function UserDashboardSaved({
                 style={{
                   background: "rgba(37,99,235,0.14)",
                   border: "1px solid rgba(96,165,250,0.24)",
-                  color: "#1e3a8a",
+                  color: "var(--gris-900)",
                   padding: "8px 10px",
                   borderRadius: 10,
                   fontSize: 11,
@@ -884,7 +884,7 @@ export default function UserDashboardSaved({
               style={{
                 background: "rgba(37,99,235,0.14)",
                 border: "1px solid rgba(96,165,250,0.24)",
-                color: "#1e3a8a",
+                color: "var(--gris-900)",
                 padding: "9px 12px",
                 borderRadius: 10,
                 fontSize: 12,
@@ -992,7 +992,7 @@ export default function UserDashboardSaved({
                             style={{
                               background: "rgba(37,99,235,0.10)",
                               border: "1px solid rgba(96,165,250,0.18)",
-                              color: "#1e3a8a",
+                              color: "var(--gris-900)",
                               padding: "4px 8px",
                               borderRadius: 999,
                               fontSize: 11,
@@ -1063,7 +1063,7 @@ export default function UserDashboardSaved({
                                   style={{
                                     background: "rgba(37,99,235,0.12)",
                                     border: "1px solid rgba(96,165,250,0.2)",
-                                    color: "#1e3a8a",
+                                    color: "var(--gris-900)",
                                     padding: "8px 10px",
                                     borderRadius: 10,
                                     fontSize: 11,

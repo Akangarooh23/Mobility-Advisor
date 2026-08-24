@@ -45,7 +45,7 @@
 .cw-header-nav-link {
   background: transparent;
   border: none;
-  color: var(--cw-nav-color, #374151);
+  color: var(--cw-nav-color, var(--gris-700));
   border-radius: 20px;
   padding: 6px 11px;
   font-size: 13px;
@@ -62,7 +62,7 @@
 
 .cw-header-nav-link.is-active {
   color: var(--cw-nav-active-color, var(--marca-oscuro));
-  background: var(--cw-nav-active-bg, #dbeafe);
+  background: var(--cw-nav-active-bg, var(--acento-tenue));
   font-weight: 600;
 }
 
@@ -96,7 +96,7 @@
   width: 100%;
   border: 1px solid rgba(148, 163, 184, 0.24);
   background: transparent;
-  color: #1f2937;
+  color: var(--gris-800);
   border-radius: 10px;
   padding: 9px 10px;
   text-align: left;

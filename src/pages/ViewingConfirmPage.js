@@ -129,7 +129,7 @@ export default function ViewingConfirmPage() {
                 onClick={() => setSelected(slot)}
                 style={{
                   display: "block", width: "100%", textAlign: "left",
-                  background: selected === slot ? "#dbeafe" : "var(--gris-50)",
+                  background: selected === slot ? "var(--acento-tenue)" : "var(--gris-50)",
                   border: selected === slot ? "2px solid var(--marca)" : "1px solid var(--gris-200)",
                   borderRadius: 10, padding: "12px 16px", marginBottom: 10,
                   cursor: "pointer", fontSize: 15, fontWeight: selected === slot ? 600 : 400,

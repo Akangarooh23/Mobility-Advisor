@@ -160,13 +160,13 @@ export default function ResolvedOfferImage({ offer = {}, alt, loading = "lazy", 
             alignItems: "flex-start",
             justifyContent: "flex-end",
             padding: "14px 16px",
-            background: "linear-gradient(135deg,var(--gris-900) 0%,#0ea5e9 100%)",
+            background: "linear-gradient(135deg,var(--gris-900) 0%,var(--gris-700) 100%)",
             color: "var(--gris-50)",
             lineHeight: 1.3,
             fontFamily: "DM Sans, sans-serif",
           }}
         >
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#7dd3fc", marginBottom: 6 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--gris-300)", marginBottom: 6 }}>
             Imagen orientativa no disponible
           </div>
           <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 2 }}>

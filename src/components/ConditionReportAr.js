@@ -74,7 +74,7 @@ export default function ConditionReportAr({
           alignItems: "center",
           gap: 6,
           fontSize: compacto ? 11 : 11.5,
-          color: "#6b7280",
+          color: "var(--gris-500)",
           lineHeight: 1.35,
           width: compacto ? "100%" : undefined,
         }}

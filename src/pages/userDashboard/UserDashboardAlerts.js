@@ -218,7 +218,7 @@ export default function UserDashboardAlerts({
             <div style={{ display: "grid", gap: 10, gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(180px,1fr))" }}>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                 {t("dashboard.alertTypeLabel")}
-                <select value={alertForm.mode} onChange={(event) => updateAlertField("mode", event.target.value)} style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "#0f1b2d" : "#fff", color: titleColor }}>
+                <select value={alertForm.mode} onChange={(event) => updateAlertField("mode", event.target.value)} style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "var(--gris-900)" : "#fff", color: titleColor }}>
                   <option value="ambos">{t("dashboard.alertTypeBoth")}</option>
                   <option value="compra">{t("dashboard.alertTypeBuy")}</option>
                   <option value="renting">{t("dashboard.alertTypeRent")}</option>
@@ -226,31 +226,31 @@ export default function UserDashboardAlerts({
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                 {t("dashboard.alertBrand")}
-                <input value={alertForm.brand} onChange={(event) => updateAlertField("brand", event.target.value)} placeholder="Toyota, BMW..." style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "#0f1b2d" : "#fff", color: titleColor }} />
+                <input value={alertForm.brand} onChange={(event) => updateAlertField("brand", event.target.value)} placeholder="Toyota, BMW..." style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "var(--gris-900)" : "#fff", color: titleColor }} />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                 {t("dashboard.alertModel")}
-                <input value={alertForm.model} onChange={(event) => updateAlertField("model", event.target.value)} placeholder="Corolla, X1..." style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "#0f1b2d" : "#fff", color: titleColor }} />
+                <input value={alertForm.model} onChange={(event) => updateAlertField("model", event.target.value)} placeholder="Corolla, X1..." style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "var(--gris-900)" : "#fff", color: titleColor }} />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                 {t("dashboard.alertMaxPrice")}
-                <input type="number" value={alertForm.maxPrice} onChange={(event) => updateAlertField("maxPrice", event.target.value)} placeholder="25000" style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "#0f1b2d" : "#fff", color: titleColor }} />
+                <input type="number" value={alertForm.maxPrice} onChange={(event) => updateAlertField("maxPrice", event.target.value)} placeholder="25000" style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "var(--gris-900)" : "#fff", color: titleColor }} />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                 {t("dashboard.alertMaxMileage")}
-                <input type="number" value={alertForm.maxMileage} onChange={(event) => updateAlertField("maxMileage", event.target.value)} placeholder="60000" style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "#0f1b2d" : "#fff", color: titleColor }} />
+                <input type="number" value={alertForm.maxMileage} onChange={(event) => updateAlertField("maxMileage", event.target.value)} placeholder="60000" style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "var(--gris-900)" : "#fff", color: titleColor }} />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                 {t("dashboard.alertFuel")}
-                <input value={alertForm.fuel} onChange={(event) => updateAlertField("fuel", event.target.value)} placeholder="Diésel, Híbrido..." style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "#0f1b2d" : "#fff", color: titleColor }} />
+                <input value={alertForm.fuel} onChange={(event) => updateAlertField("fuel", event.target.value)} placeholder="Diésel, Híbrido..." style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "var(--gris-900)" : "#fff", color: titleColor }} />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                 {t("dashboard.alertLocation")}
-                <input value={alertForm.location} onChange={(event) => updateAlertField("location", event.target.value)} placeholder="Madrid, Valencia..." style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "#0f1b2d" : "#fff", color: titleColor }} />
+                <input value={alertForm.location} onChange={(event) => updateAlertField("location", event.target.value)} placeholder="Madrid, Valencia..." style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "var(--gris-900)" : "#fff", color: titleColor }} />
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                 {t("dashboard.alertColor")}
-                <input value={alertForm.color} onChange={(event) => updateAlertField("color", event.target.value)} placeholder="Blanco, gris..." style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "#0f1b2d" : "#fff", color: titleColor }} />
+                <input value={alertForm.color} onChange={(event) => updateAlertField("color", event.target.value)} placeholder="Blanco, gris..." style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "var(--gris-900)" : "#fff", color: titleColor }} />
               </label>
             </div>
 
@@ -265,7 +265,7 @@ export default function UserDashboardAlerts({
                 value={alertForm.email}
                 onChange={(event) => updateAlertField("email", event.target.value)}
                 placeholder={normalizedCurrentUserEmail || "nombre@correo.com"}
-                style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "#0f1b2d" : "#fff", color: titleColor }}
+                style={{ border: cardBorder, borderRadius: 10, padding: "9px 10px", background: isDark ? "var(--gris-900)" : "#fff", color: titleColor }}
               />
             )}
 
@@ -275,7 +275,7 @@ export default function UserDashboardAlerts({
               style={{
                 background: "rgba(37,99,235,0.14)",
                 border: "1px solid rgba(96,165,250,0.24)",
-                color: "#1e3a8a",
+                color: "var(--gris-900)",
                 padding: "9px 12px",
                 borderRadius: 10,
                 fontSize: 12,
@@ -331,7 +331,7 @@ export default function UserDashboardAlerts({
                           style={{
                             background: "rgba(37,99,235,0.10)",
                             border: "1px solid rgba(96,165,250,0.18)",
-                            color: "#1e3a8a",
+                            color: "var(--gris-900)",
                             padding: "4px 8px",
                             borderRadius: 999,
                             fontSize: 11,
@@ -458,7 +458,7 @@ export default function UserDashboardAlerts({
                             style={{
                               background: "rgba(37,99,235,0.12)",
                               border: "1px solid rgba(96,165,250,0.2)",
-                              color: "#1e3a8a",
+                              color: "var(--gris-900)",
                               padding: "8px 10px",
                               borderRadius: 10,
                               fontSize: 11,

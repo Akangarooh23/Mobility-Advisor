@@ -4432,8 +4432,8 @@ export default function App() {
             aria-label="Navegacion principal CarsWise"
             style={{
               "--cw-nav-color": themeMode === "dark" ? "var(--gris-300)" : "#5b6b82",
-              "--cw-nav-hover-color": themeMode === "dark" ? "#dbeafe" : "var(--gris-700)",
-              "--cw-nav-active-color": themeMode === "dark" ? "#7dd3fc" : "var(--marca-claro)",
+              "--cw-nav-hover-color": themeMode === "dark" ? "var(--acento-tenue)" : "var(--gris-700)",
+              "--cw-nav-active-color": themeMode === "dark" ? "var(--gris-300)" : "var(--marca-claro)",
               "--cw-nav-active-bg": themeMode === "dark" ? "rgba(125,211,252,0.18)" : "rgba(59,130,246,0.12)",
                 justifyContent: "center",
                 marginLeft: 18,
@@ -4602,7 +4602,7 @@ export default function App() {
             type="button"
             onClick={() => setUiLanguage((prev) => (prev === "es" ? "en" : "es"))}
             title={uiLanguage === "es" ? "Cambiar a inglés" : "Cambiar a español"}
-            style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "none", border: "1px solid var(--gris-200)", color: "#374151", padding: "6px 12px", borderRadius: 20, cursor: "pointer", fontSize: 12, fontWeight: 500, whiteSpace: "nowrap" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "none", border: "1px solid var(--gris-200)", color: "var(--gris-700)", padding: "6px 12px", borderRadius: 20, cursor: "pointer", fontSize: 12, fontWeight: 500, whiteSpace: "nowrap" }}
           >
             <span>🌐</span>
             <span>{uiLanguage === "es" ? "ES" : "EN"}</span>
@@ -4653,7 +4653,7 @@ export default function App() {
                   width: "100%",
                   background: "rgba(37,99,235,0.14)",
                   border: "1px solid rgba(96,165,250,0.24)",
-                  color: "#dbeafe",
+                  color: "var(--acento-tenue)",
                   padding: "9px 10px",
                   borderRadius: 10,
                   cursor: "pointer",
@@ -4708,7 +4708,7 @@ export default function App() {
                     Mi espacio CarsWise
                   </div>
                   {currentUser?.email && (
-                    <div style={{ fontSize: 11, color: "#bfdbfe", marginTop: 4 }}>
+                    <div style={{ fontSize: 11, color: "var(--gris-200)", marginTop: 4 }}>
                       {currentUser.name || "Usuario"} · {currentUser.email}
                     </div>
                   )}
@@ -4787,21 +4787,21 @@ export default function App() {
                         value={changePasswordForm.currentPassword}
                         onChange={(event) => setChangePasswordForm((prev) => ({ ...prev, currentPassword: event.target.value }))}
                         placeholder="Contraseña actual"
-                        style={{ background: "#0f1b2d", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
+                        style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
                       />
                       <input
                         type="password"
                         value={changePasswordForm.newPassword}
                         onChange={(event) => setChangePasswordForm((prev) => ({ ...prev, newPassword: event.target.value }))}
                         placeholder="Nueva contraseña (mínimo 6 caracteres)"
-                        style={{ background: "#0f1b2d", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
+                        style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
                       />
                       <input
                         type="password"
                         value={changePasswordForm.confirmPassword}
                         onChange={(event) => setChangePasswordForm((prev) => ({ ...prev, confirmPassword: event.target.value }))}
                         placeholder="Confirmar nueva contraseña"
-                        style={{ background: "#0f1b2d", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
+                        style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
                       />
 
                       {changePasswordError && (
@@ -4815,7 +4815,7 @@ export default function App() {
                         disabled={changePasswordLoading}
                         style={{
                           justifySelf: "start",
-                          background: "linear-gradient(135deg,#0ea5e9,#0284c7)",
+                          background: "linear-gradient(135deg,var(--gris-700),var(--gris-900))",
                           border: "none",
                           color: "#ffffff",
                           borderRadius: 9,
@@ -4839,7 +4839,7 @@ export default function App() {
                 <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gris-50)" }}>Mis recomendaciones guardadas</div>
-                    <span style={{ fontSize: 11, color: "#93c5fd" }}>{dashboardSavedComparisons.length}</span>
+                    <span style={{ fontSize: 11, color: "var(--gris-300)" }}>{dashboardSavedComparisons.length}</span>
                   </div>
                   {dashboardSavedComparisons.length > 0 ? (
                     dashboardSavedComparisons.map((item) => {
@@ -4893,13 +4893,13 @@ export default function App() {
                           {item.monthlyTotal > 0 ? `${formatCurrency(item.monthlyTotal)}/mes` : item.budgetLabel || "Sin cuota definida"}
                         </div>
                         {(item.sourceLabel || item.listingPrice) && (
-                          <div style={{ fontSize: 11, color: "#bfdbfe", marginTop: 2 }}>
+                          <div style={{ fontSize: 11, color: "var(--gris-200)", marginTop: 2 }}>
                             {item.sourceLabel || "Oferta guardada"}
                             {item.listingPrice ? ` ${"\u00B7"} ${item.listingPrice}` : ""}
                           </div>
                         )}
                         {savedOfferHref && (
-                          <div style={{ fontSize: 11, color: "#7dd3fc", marginTop: 4, fontWeight: 700 }}>
+                          <div style={{ fontSize: 11, color: "var(--gris-300)", marginTop: 4, fontWeight: 700 }}>
                             Abrir oferta {"\u2197"}
                           </div>
                         )}
@@ -4964,7 +4964,7 @@ export default function App() {
                           <div style={{ fontSize: 12, fontWeight: 600, color: "var(--gris-200)" }}>{item.title}</div>
                           <div style={{ fontSize: 11, color: "var(--gris-400)", marginTop: 2 }}>{summaryLine}</div>
                           {detailLine ? (
-                            <div style={{ fontSize: 11, color: "#7dd3fc", marginTop: 2, fontWeight: 700 }}>
+                            <div style={{ fontSize: 11, color: "var(--gris-300)", marginTop: 2, fontWeight: 700 }}>
                               Taller {"\u00B7"} {detailLine}
                             </div>
                           ) : null}
@@ -5023,7 +5023,7 @@ export default function App() {
                         }}
                       >
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: "#dbeafe" }}>{section.title}</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: "var(--acento-tenue)" }}>{section.title}</span>
                           <span style={{ fontSize: 11, color: "var(--gris-400)" }}>{section.items.length}</span>
                         </div>
                         {section.items.length > 0 ? (
@@ -5110,7 +5110,7 @@ export default function App() {
           >
             <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start", marginBottom: 12 }}>
               <div>
-                <div style={{ fontSize: 11, color: authDialogMode === "register" ? "#6ee7b7" : "#93c5fd", letterSpacing: "0.6px" }}>
+                <div style={{ fontSize: 11, color: authDialogMode === "register" ? "#6ee7b7" : "var(--gris-300)", letterSpacing: "0.6px" }}>
                   {authRecoveryMode === "request"
                     ? "RECUPERACION"
                     : authRecoveryMode === "confirm"
@@ -5167,8 +5167,8 @@ export default function App() {
                       style={{
                         padding: "9px 10px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer",
                         border: clientType === "individual" ? "1.5px solid var(--marca-claro)" : "1px solid rgba(255,255,255,0.12)",
-                        background: clientType === "individual" ? "rgba(59,130,246,0.12)" : "#0f1b2d",
-                        color: clientType === "individual" ? "#93c5fd" : "var(--gris-500)",
+                        background: clientType === "individual" ? "rgba(59,130,246,0.12)" : "var(--gris-900)",
+                        color: clientType === "individual" ? "var(--gris-300)" : "var(--gris-500)",
                       }}
                     >
                       👤 Particular
@@ -5179,7 +5179,7 @@ export default function App() {
                       style={{
                         padding: "9px 10px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer",
                         border: clientType === "business" ? "1.5px solid #f59e0b" : "1px solid rgba(255,255,255,0.12)",
-                        background: clientType === "business" ? "rgba(245,158,11,0.10)" : "#0f1b2d",
+                        background: clientType === "business" ? "rgba(245,158,11,0.10)" : "var(--gris-900)",
                         color: clientType === "business" ? "#fbbf24" : "var(--gris-500)",
                       }}
                     >
@@ -5190,7 +5190,7 @@ export default function App() {
                   {/* Campos según tipo */}
                   {clientType === "individual" ? (
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                      <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
+                      <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--acento-tenue)" }}>
                         Nombre
                         <input
                           type="text"
@@ -5198,10 +5198,10 @@ export default function App() {
                           value={authForm.name}
                           onChange={(event) => setAuthForm((prev) => ({ ...prev, name: event.target.value }))}
                           placeholder="Tu nombre"
-                          style={{ background: "#0f1b2d", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                          style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
                         />
                       </label>
-                      <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
+                      <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--acento-tenue)" }}>
                         Apellidos
                         <input
                           type="text"
@@ -5209,7 +5209,7 @@ export default function App() {
                           value={authForm.apellidos}
                           onChange={(event) => setAuthForm((prev) => ({ ...prev, apellidos: event.target.value }))}
                           placeholder="Tus apellidos"
-                          style={{ background: "#0f1b2d", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                          style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
                         />
                       </label>
                     </div>
@@ -5222,12 +5222,12 @@ export default function App() {
                         value={authForm.company_name}
                         onChange={(event) => setAuthForm((prev) => ({ ...prev, company_name: event.target.value }))}
                         placeholder="Nombre de tu empresa"
-                        style={{ background: "#0f1b2d", color: "var(--gris-50)", border: "1px solid rgba(245,158,11,0.35)", borderRadius: 10, padding: "11px 12px" }}
+                        style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(245,158,11,0.35)", borderRadius: 10, padding: "11px 12px" }}
                       />
                     </label>
                   )}
 
-                  <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
+                  <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--acento-tenue)" }}>
                     Teléfono
                     <input
                       type="tel"
@@ -5235,13 +5235,13 @@ export default function App() {
                       value={authForm.phone}
                       onChange={(event) => setAuthForm((prev) => ({ ...prev, phone: event.target.value }))}
                       placeholder="Ej: 612 345 678"
-                      style={{ background: "#0f1b2d", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                      style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
                     />
                   </label>
                 </>
               )}
 
-              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--acento-tenue)" }}>
                 Correo electrónico
                 <input
                   type="email"
@@ -5249,11 +5249,11 @@ export default function App() {
                   value={authForm.email}
                   onChange={(event) => setAuthForm((prev) => ({ ...prev, email: event.target.value }))}
                   placeholder="nombre@correo.com"
-                  style={{ background: "#0f1b2d", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                  style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
                 />
               </label>
 
-              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--acento-tenue)" }}>
                 {authRecoveryMode === "confirm" ? "Nueva contraseña" : "Contraseña"}
                 <input
                   type="password"
@@ -5261,25 +5261,25 @@ export default function App() {
                   value={authForm.password}
                   onChange={(event) => setAuthForm((prev) => ({ ...prev, password: event.target.value }))}
                   placeholder={authRecoveryMode === "confirm" ? "Nueva contraseña (mínimo 6 caracteres)" : "Mínimo 6 caracteres"}
-                  style={{ background: "#0f1b2d", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                  style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
                 />
               </label>
 
               {authRecoveryMode === "confirm" && (
-                <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
+                <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--acento-tenue)" }}>
                   Código de recuperación
                   <input
                     type="text"
                     value={authRecoveryCode}
                     onChange={(event) => setAuthRecoveryCode(event.target.value)}
                     placeholder="Ejemplo: A1B2C3D4"
-                    style={{ background: "#0f1b2d", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                    style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
                   />
                 </label>
               )}
 
               {authRecoveryFeedback && (
-                <div style={{ fontSize: 12, color: "#93c5fd", fontWeight: 700 }}>
+                <div style={{ fontSize: 12, color: "var(--gris-300)", fontWeight: 700 }}>
                   {authRecoveryFeedback}
                 </div>
               )}
@@ -5339,12 +5339,12 @@ export default function App() {
                     <span style={{ fontSize: 12, color: "var(--gris-300)", lineHeight: 1.6 }}>
                       He leído y acepto{" "}
                       <a href="/terminos-condiciones" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "#93c5fd", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-300)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Condiciones Generales
                       </a>
                       {" "}y la{" "}
                       <a href="/politica-privacidad" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "#93c5fd", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-300)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Política de Privacidad
                       </a>
                       .{" "}
@@ -5363,7 +5363,7 @@ export default function App() {
                     <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
                       Acepto recibir comunicaciones comerciales por <strong style={{ color: "var(--gris-300)" }}>email</strong> de Carswiseai y socios conforme a la{" "}
                       <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-300)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Política de Comunicaciones
                       </a>
                       .
@@ -5381,7 +5381,7 @@ export default function App() {
                     <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
                       Acepto recibir comunicaciones comerciales por <strong style={{ color: "var(--gris-300)" }}>SMS</strong> de Carswiseai y socios conforme a la{" "}
                       <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-300)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Política de Comunicaciones
                       </a>
                       .
@@ -5399,12 +5399,12 @@ export default function App() {
                     <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
                       Acepto comunicaciones por <strong style={{ color: "var(--gris-300)" }}>email</strong> de terceros conforme a las{" "}
                       <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-300)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Condiciones Experian
                       </a>
                       {" "}y la{" "}
                       <a href="/politica-experian" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-300)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Política de Solvencia
                       </a>
                       .
@@ -5422,12 +5422,12 @@ export default function App() {
                     <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
                       Acepto comunicaciones por <strong style={{ color: "var(--gris-300)" }}>SMS</strong> de terceros conforme a las{" "}
                       <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-300)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Condiciones Experian
                       </a>
                       {" "}y la{" "}
                       <a href="/politica-experian" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-300)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Política de Solvencia
                       </a>
                       .
@@ -5496,7 +5496,7 @@ export default function App() {
                   style={{
                     background:
                       authRecoveryMode !== "none"
-                        ? "linear-gradient(135deg,#0ea5e9,#0284c7)"
+                        ? "linear-gradient(135deg,var(--gris-700),var(--gris-900))"
                         : authDialogMode === "register"
                         ? "linear-gradient(135deg,#10b981,#059669)"
                         : "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
@@ -5541,9 +5541,9 @@ export default function App() {
                   style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
                 <span style={{ fontSize: 12, color: "var(--gris-300)", lineHeight: 1.6 }}>
                   He leído y acepto{" "}
-                  <a href="/terminos-condiciones" target="_blank" rel="noopener noreferrer" style={{ color: "#93c5fd", textDecoration: "underline" }}>Condiciones Generales</a>
+                  <a href="/terminos-condiciones" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-300)", textDecoration: "underline" }}>Condiciones Generales</a>
                   {" "}y la{" "}
-                  <a href="/politica-privacidad" target="_blank" rel="noopener noreferrer" style={{ color: "#93c5fd", textDecoration: "underline" }}>Política de Privacidad</a>.{" "}
+                  <a href="/politica-privacidad" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-300)", textDecoration: "underline" }}>Política de Privacidad</a>.{" "}
                   <span style={{ color: "#f87171", fontSize: 11 }}>(obligatorio)</span>
                 </span>
               </label>
@@ -5554,7 +5554,7 @@ export default function App() {
                   style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
                 <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
                   Acepto comunicaciones comerciales por <strong style={{ color: "var(--gris-300)" }}>email</strong> conforme a la{" "}
-                  <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Política de Comunicaciones</a>.
+                  <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-300)", textDecoration: "underline" }}>Política de Comunicaciones</a>.
                 </span>
               </label>
 
@@ -5564,7 +5564,7 @@ export default function App() {
                   style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
                 <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
                   Acepto comunicaciones comerciales por <strong style={{ color: "var(--gris-300)" }}>SMS</strong> conforme a la{" "}
-                  <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Política de Comunicaciones</a>.
+                  <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-300)", textDecoration: "underline" }}>Política de Comunicaciones</a>.
                 </span>
               </label>
 
@@ -5574,9 +5574,9 @@ export default function App() {
                   style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
                 <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
                   Acepto comunicaciones por <strong style={{ color: "var(--gris-300)" }}>email</strong> de terceros conforme a las{" "}
-                  <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Condiciones Experian</a>
+                  <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-300)", textDecoration: "underline" }}>Condiciones Experian</a>
                   {" "}y la{" "}
-                  <a href="/politica-experian" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Política de Solvencia</a>.
+                  <a href="/politica-experian" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-300)", textDecoration: "underline" }}>Política de Solvencia</a>.
                 </span>
               </label>
 
@@ -5586,9 +5586,9 @@ export default function App() {
                   style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
                 <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
                   Acepto comunicaciones por <strong style={{ color: "var(--gris-300)" }}>SMS</strong> de terceros conforme a las{" "}
-                  <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Condiciones Experian</a>
+                  <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-300)", textDecoration: "underline" }}>Condiciones Experian</a>
                   {" "}y la{" "}
-                  <a href="/politica-experian" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Política de Solvencia</a>.
+                  <a href="/politica-experian" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-300)", textDecoration: "underline" }}>Política de Solvencia</a>.
                 </span>
               </label>
             </div>
@@ -5823,7 +5823,7 @@ export default function App() {
                   border: "none",
                   borderRadius: 10,
                   padding: "10px 14px",
-                  background: "linear-gradient(135deg,var(--marca),#0ea5e9)",
+                  background: "linear-gradient(135deg,var(--marca),var(--gris-700))",
                   color: "#ffffff",
                   fontSize: 12,
                   fontWeight: 800,
@@ -5878,7 +5878,7 @@ export default function App() {
                   borderRadius: 10,
                   padding: "10px 14px",
                   background: "transparent",
-                  color: "#93c5fd",
+                  color: "var(--gris-300)",
                   fontSize: 12,
                   fontWeight: 700,
                   cursor: "pointer",
@@ -7209,7 +7209,7 @@ export default function App() {
             </div>
 
             <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
-              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "CONTACT" : "CONTACTO"}</div>
+              <div style={{ fontSize: 11, color: "var(--gris-300)", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "CONTACT" : "CONTACTO"}</div>
               <div style={{ display: "grid", gap: 6, fontSize: 12 }}>
                 <a href="mailto:soporte@carswise.es" style={{ color: "var(--gris-200)", textDecoration: "none" }}>soporte@carswise.es</a>
                 <a href="tel:+34910000000" style={{ color: "var(--gris-200)", textDecoration: "none" }}>+34 910 000 000</a>
@@ -7218,7 +7218,7 @@ export default function App() {
             </div>
 
             <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
-              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "USEFUL LINKS" : "ENLACES UTILES"}</div>
+              <div style={{ fontSize: 11, color: "var(--gris-300)", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "USEFUL LINKS" : "ENLACES UTILES"}</div>
               <div style={{ display: "grid", gap: 7, fontSize: 12 }}>
                 <button type="button" onClick={restart} style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}>{uiLanguage === "en" ? "Home" : "Inicio"}</button>
                 <button type="button" onClick={() => { if (!isUserLoggedIn) { openAuthDialog("register", { entryMode: "portalVo" }); return; } openPublicPage("portalVo"); }} style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}>Marketplace VO</button>
@@ -7238,7 +7238,7 @@ export default function App() {
             </div>
 
             <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
-              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "SOCIAL MEDIA" : "REDES SOCIALES"}</div>
+              <div style={{ fontSize: 11, color: "var(--gris-300)", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "SOCIAL MEDIA" : "REDES SOCIALES"}</div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {[
                   ["LinkedIn", "https://www.linkedin.com"],
@@ -7349,7 +7349,7 @@ export default function App() {
           color-scheme: ${themeMode === "dark" ? "dark" : "light"};
         }
         select option {
-          background: ${themeMode === "dark" ? "#0f1b2d" : "#ffffff"};
+          background: ${themeMode === "dark" ? "var(--gris-900)" : "#ffffff"};
           color: ${themeMode === "dark" ? "var(--gris-50)" : "var(--gris-900)"};
         }
         ::-webkit-scrollbar { width: 4px; }

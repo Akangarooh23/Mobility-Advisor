@@ -7,7 +7,7 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
   const cardStyle = {
     background: "#ffffff",
     borderRadius: 16,
-    border: "1px solid #ece8df",
+    border: "1px solid var(--gris-200)",
     boxShadow: "0 1px 3px rgba(0,0,0,0.05),0 4px 20px rgba(0,0,0,0.04)",
   };
 
@@ -27,7 +27,7 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
           type="button"
           onClick={onGoBack}
           style={{
-            border: "1px solid #ece8df",
+            border: "1px solid var(--gris-200)",
             background: "#ffffff",
             borderRadius: 8,
             padding: "7px 12px",
@@ -83,7 +83,7 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
                   fontWeight: 600,
                   color: "#a0a0a0",
                   border: "1px solid #efebe4",
-                  background: "#fafaf9",
+                  background: "var(--gris-50)",
                   padding: "5px 12px",
                   borderRadius: 30,
                 }}
@@ -107,16 +107,16 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
                 type="button"
                 onClick={() => setSelectedPlan(idx)}
                 style={{
-                  border: idx === selectedPlan ? "2px solid rgba(217,119,6,0.6)" : "1px solid #ece8df",
+                  border: idx === selectedPlan ? "2px solid rgba(217,119,6,0.6)" : "1px solid var(--gris-200)",
                   borderRadius: 10,
-                  background: idx === selectedPlan ? "rgba(217,119,6,0.08)" : "#fafaf9",
+                  background: idx === selectedPlan ? "rgba(217,119,6,0.08)" : "var(--gris-50)",
                   padding: "11px 8px",
                   textAlign: "center",
                   cursor: "pointer",
                 }}
               >
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#4b4b4b" }}>{t(plan.nameKey)}</div>
-                <div style={{ fontSize: 30, fontWeight: 800, color: "#1f2937", lineHeight: 1.1 }}>{plan.price}€</div>
+                <div style={{ fontSize: 30, fontWeight: 800, color: "var(--gris-800)", lineHeight: 1.1 }}>{plan.price}€</div>
                 <div style={{ fontSize: 12, color: "#aaa" }}>/{t("service.monthlyPeriod")}</div>
               </button>
             ))}
@@ -164,7 +164,7 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
               [t("service.monthlyInclude4Title"), t("service.monthlyInclude4Desc")],
               [t("service.monthlyInclude5Title"), t("service.monthlyInclude5Desc")],
             ].map(([title, sub]) => (
-              <div key={title} style={{ border: "1px solid #ece8df", borderRadius: 10, background: "#fafaf9", padding: "10px 12px" }}>
+              <div key={title} style={{ border: "1px solid var(--gris-200)", borderRadius: 10, background: "var(--gris-50)", padding: "10px 12px" }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#4b4b4b", marginBottom: 2 }}>✓ {title}</div>
                 <div style={{ fontSize: 13, color: "#9a9a9a" }}>{sub}</div>
               </div>

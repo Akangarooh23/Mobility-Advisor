@@ -223,7 +223,7 @@ export default function SlotPicker({ offerId, vehicleTitle, sellerEmail, userEma
                     style={{
                       ...S.dayTab,
                       ...(isActive ? S.dayTabActive : {}),
-                      ...(today && !isActive ? { borderColor: "#0ea5e9", color: "#0ea5e9" } : {}),
+                      ...(today && !isActive ? { borderColor: "var(--gris-700)", color: "var(--gris-700)" } : {}),
                     }}
                   >
                     <span style={S.dayTabWeekday}>{today ? "Hoy" : weekday}</span>
@@ -288,16 +288,16 @@ function SlotButton({ slot, selected, onSelect }) {
 // ── Styles ────────────────────────────────────────────────────────────────────
 const S = {
   loading:       { display: "flex", alignItems: "center", gap: 10, color: "var(--gris-500)", fontSize: 14, padding: "24px 0" },
-  spinner:       { width: 16, height: 16, border: "2px solid var(--gris-200)", borderTopColor: "#0ea5e9", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block", flexShrink: 0 },
+  spinner:       { width: 16, height: 16, border: "2px solid var(--gris-200)", borderTopColor: "var(--gris-700)", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block", flexShrink: 0 },
 
   wrap:          { fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" },
-  pickerTitle:   { fontSize: 15, fontWeight: 700, color: "#1C2B33", marginBottom: 14 },
+  pickerTitle:   { fontSize: 15, fontWeight: 700, color: "var(--gris-900)", marginBottom: 14 },
   noSlots:       { color: "var(--gris-400)", fontSize: 13, textAlign: "center", padding: "20px 0", lineHeight: 1.6 },
 
   dayTabsWrap:   { overflowX: "auto", marginBottom: 18, paddingBottom: 4, WebkitOverflowScrolling: "touch" },
   dayTabs:       { display: "flex", gap: 8, minWidth: "max-content" },
   dayTab:        { background: "#fff", border: "1.5px solid var(--gris-200)", borderRadius: 10, padding: "8px 12px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 1, minWidth: 56, transition: "all .15s", color: "var(--gris-600)" },
-  dayTabActive:  { background: "#0ea5e9", borderColor: "#0ea5e9", color: "#fff" },
+  dayTabActive:  { background: "var(--gris-700)", borderColor: "var(--gris-700)", color: "#fff" },
   dayTabWeekday: { fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".4px", opacity: 0.7 },
   dayTabNum:     { fontSize: 18, fontWeight: 800, lineHeight: 1 },
   dayTabMonth:   { fontSize: 10, opacity: 0.65 },
@@ -305,20 +305,20 @@ const S = {
   slotSection:   { },
   periodLabel:   { fontSize: 11, fontWeight: 700, color: "var(--gris-400)", textTransform: "uppercase", letterSpacing: ".5px", marginBottom: 8 },
   slotGrid:      { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(72px, 1fr))", gap: 8 },
-  slotBtn:       { background: "#f0f9ff", border: "1.5px solid #bae6fd", color: "#0369a1", borderRadius: 8, padding: "9px 6px", fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "all .12s", textAlign: "center" },
-  slotBtnActive: { background: "#0ea5e9", borderColor: "#0ea5e9", color: "#fff", transform: "scale(1.04)" },
+  slotBtn:       { background: "#f0f9ff", border: "1.5px solid #bae6fd", color: "var(--gris-800)", borderRadius: 8, padding: "9px 6px", fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "all .12s", textAlign: "center" },
+  slotBtnActive: { background: "var(--gris-700)", borderColor: "var(--gris-700)", color: "#fff", transform: "scale(1.04)" },
 
   // Confirm step
   confirmWrap:   { fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" },
-  backLink:      { background: "none", border: "none", color: "#0ea5e9", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 16, display: "flex", alignItems: "center", gap: 4 },
+  backLink:      { background: "none", border: "none", color: "var(--gris-700)", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 16, display: "flex", alignItems: "center", gap: 4 },
   selectedBadge: { display: "flex", alignItems: "center", gap: 12, background: "#f0fdf4", border: "1.5px solid #86efac", borderRadius: 12, padding: "14px 16px", marginBottom: 20 },
   selectedIcon:  { fontSize: 22, flexShrink: 0 },
   selectedDate:  { fontSize: 14, fontWeight: 700, color: "#166534" },
   selectedTime:  { fontSize: 13, color: "#15803d", marginTop: 2 },
   field:         { marginBottom: 14 },
   label:         { display: "block", fontSize: 12, fontWeight: 700, color: "var(--gris-600)", marginBottom: 5, textTransform: "uppercase", letterSpacing: ".3px" },
-  input:         { width: "100%", border: "1.5px solid var(--gris-200)", borderRadius: 8, padding: "10px 13px", fontSize: 14, color: "#1C2B33", boxSizing: "border-box", outline: "none", fontFamily: "inherit", transition: "border-color .15s" },
-  confirmBtn:    { width: "100%", background: "linear-gradient(135deg, #0ea5e9, #0284c7)", border: "none", color: "#fff", borderRadius: 10, padding: "13px 0", fontSize: 15, fontWeight: 800, cursor: "pointer", marginTop: 4, letterSpacing: ".2px", transition: "all .15s" },
+  input:         { width: "100%", border: "1.5px solid var(--gris-200)", borderRadius: 8, padding: "10px 13px", fontSize: 14, color: "var(--gris-900)", boxSizing: "border-box", outline: "none", fontFamily: "inherit", transition: "border-color .15s" },
+  confirmBtn:    { width: "100%", background: "linear-gradient(135deg, var(--gris-700), var(--gris-900))", border: "none", color: "#fff", borderRadius: 10, padding: "13px 0", fontSize: 15, fontWeight: 800, cursor: "pointer", marginTop: 4, letterSpacing: ".2px", transition: "all .15s" },
   errMsg:        { background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", borderRadius: 8, padding: "10px 14px", fontSize: 13, marginBottom: 14 },
 
   // Done step

@@ -289,7 +289,7 @@ export default function UserDashboardHome({
             style={{
               background: "rgba(37,99,235,0.10)",
               border: "1px solid rgba(96,165,250,0.28)",
-              color: "#1e3a8a",
+              color: "var(--gris-900)",
               padding: "9px 12px",
               borderRadius: 10,
               fontSize: 12,

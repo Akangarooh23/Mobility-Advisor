@@ -46,7 +46,7 @@ export default function RentingOptionsPage({ styles, onSelectAdvisor, onSelectKn
             border-radius: 12px;
             border: 1px solid rgba(71,85,105,0.55);
             background: rgba(15,23,42,0.72);
-            color: #dbeafe;
+            color: var(--acento-tenue);
             opacity: 0;
             transform: translateY(12px);
             animation: rentingFlowIn 0.45s ease forwards;
@@ -206,7 +206,7 @@ export default function RentingOptionsPage({ styles, onSelectAdvisor, onSelectKn
         }}
         className="renting-flow-card ma-card-soft ma-fade-stagger"
       >
-        <div style={{ fontSize: 12, color: "#93c5fd", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 10 }}>
+        <div style={{ fontSize: 12, color: "var(--gris-300)", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 10 }}>
           {t("renting.howItWorks")}
         </div>
         <div style={{ position: "relative", display: "grid", gap: 9 }}>
@@ -218,7 +218,7 @@ export default function RentingOptionsPage({ styles, onSelectAdvisor, onSelectKn
               style={{ animationDelay: `${index * 90}ms` }}
             >
               <div className="renting-flow-dot" />
-              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, marginBottom: 3 }}>{t("renting.stepLabel")} {index + 1}</div>
+              <div style={{ fontSize: 11, color: "var(--gris-300)", fontWeight: 800, marginBottom: 3 }}>{t("renting.stepLabel")} {index + 1}</div>
               <div style={{ fontSize: 13, color: "var(--gris-300)", lineHeight: 1.45 }}>{label}</div>
             </div>
           ))}

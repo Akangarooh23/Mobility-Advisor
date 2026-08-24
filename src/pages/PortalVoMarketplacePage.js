@@ -508,7 +508,7 @@ export default function PortalVoMarketplacePage({
       <>
 
       <div style={{ ...styles.panel, marginBottom: 18 }}>
-        <div style={{ fontSize: 11, color: "#60a5fa", marginBottom: 10, letterSpacing: "0.6px" }}>
+        <div style={{ fontSize: 11, color: "var(--gris-400)", marginBottom: 10, letterSpacing: "0.6px" }}>
           {t("marketplace.filtersLabel")}
         </div>
         {/* Row 1: query, marca, modelo, precio, año, km, ubicación */}
@@ -682,7 +682,7 @@ export default function PortalVoMarketplacePage({
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginTop: 12 }}>
-          <label style={{ display: "inline-flex", gap: 8, alignItems: "center", fontSize: 12, color: isDark ? "#dbeafe" : "var(--gris-700)", cursor: "pointer" }}>
+          <label style={{ display: "inline-flex", gap: 8, alignItems: "center", fontSize: 12, color: isDark ? "var(--acento-tenue)" : "var(--gris-700)", cursor: "pointer" }}>
             <input
               type="checkbox"
               checked={portalVoFilters.onlyGuaranteed}
@@ -920,7 +920,7 @@ export default function PortalVoMarketplacePage({
                       ))}
                     </div>
                   )}
-                  <p style={{ margin: "8px 0 0", fontSize: 12, color: isDark ? "#dbeafe" : "var(--gris-700)", lineHeight: 1.6 }}>
+                  <p style={{ margin: "8px 0 0", fontSize: 12, color: isDark ? "var(--acento-tenue)" : "var(--gris-700)", lineHeight: 1.6 }}>
                     {t("marketplace.offerAvailableIn", { title: offer.title, location: offer.location })}
                   </p>
                 </div>
@@ -936,7 +936,7 @@ export default function PortalVoMarketplacePage({
       {/* Infinite scroll offers grid */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 10 }}>
-          <div style={{ fontSize: 10, color: "#93c5fd", fontWeight: 800, letterSpacing: "0.6px" }}>
+          <div style={{ fontSize: 10, color: "var(--gris-300)", fontWeight: 800, letterSpacing: "0.6px" }}>
             {t("marketplace.allOffersLabel")}
           </div>
           <div style={{ fontSize: 12, color: isDark ? "var(--gris-300)" : "var(--gris-600)" }}>
@@ -1035,7 +1035,7 @@ export default function PortalVoMarketplacePage({
           </div>
         )}
         {effectiveLoadingOffers && (
-          <div style={{ textAlign: "center", padding: 18, color: isDark ? "#60a5fa" : "var(--marca)" }}>
+          <div style={{ textAlign: "center", padding: 18, color: isDark ? "var(--gris-400)" : "var(--marca)" }}>
             Cargando…
           </div>
         )}

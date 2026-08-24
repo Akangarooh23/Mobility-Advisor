@@ -81,7 +81,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
   };
   const inputStyle = {
     width: "100%",
-    background: isDark ? "#0f1b2d" : "#ffffff",
+    background: isDark ? "var(--gris-900)" : "#ffffff",
     border: "1px solid rgba(148,163,184,0.45)",
     borderRadius: 8,
     color: isDark ? "var(--gris-50)" : "var(--gris-900)",
@@ -469,7 +469,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
             padding: "5px 9px",
             fontSize: 11,
             fontWeight: 700,
-            color: "#1e3a8a",
+            color: "var(--gris-900)",
           }}
         >
           {planLabelMap[billingState?.planId] || billingState?.planLabel || t("dashboard.billingPlanGratis")}
@@ -503,7 +503,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                   ? "rgba(15,23,42,0.88)"
                   : "rgba(255,255,255,0.95)",
                 border: isActive ? "none" : cardBorder,
-                color: isActive ? "#eff6ff" : isDark ? "var(--gris-200)" : "var(--gris-700)",
+                color: isActive ? "var(--acento-tenue)" : isDark ? "var(--gris-200)" : "var(--gris-700)",
                 borderRadius: 999,
                 padding: "8px 12px",
                 fontSize: 12,
@@ -539,7 +539,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,minmax(0,1fr))" : "repeat(auto-fit,minmax(170px,1fr))", gap: 12, marginBottom: 14 }}>
           {[
             [t("dashboard.billingCurrentPlan"), planLabelMap[billingState?.planId] || billingState?.planLabel || t("dashboard.billingPlanGratis"), "var(--marca)"],
-            [t("dashboard.billingStatus"), subscriptionStatusMap[billingState?.status?.toLowerCase()] || billingState?.status || t("dashboard.billingStatusInactivo"), "#0ea5e9"],
+            [t("dashboard.billingStatus"), subscriptionStatusMap[billingState?.status?.toLowerCase()] || billingState?.status || t("dashboard.billingStatusInactivo"), "var(--gris-700)"],
             [t("dashboard.billingPaidInvoices"), paidInvoicesCount, "#10b981"],
             [t("dashboard.billingPendingInvoices"), pendingInvoicesCount, "#f59e0b"],
           ].map(([label, value, color]) => (
@@ -589,7 +589,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                         : "1px solid rgba(148,163,184,0.45)",
                       background: profileForm.clientType === key
                         ? key === "business" ? "rgba(245,158,11,0.08)" : "rgba(59,130,246,0.08)"
-                        : isDark ? "#0f1b2d" : "#ffffff",
+                        : isDark ? "var(--gris-900)" : "#ffffff",
                       color: profileForm.clientType === key
                         ? key === "business" ? "#d97706" : "var(--marca)"
                         : isDark ? "var(--gris-400)" : "var(--gris-500)",

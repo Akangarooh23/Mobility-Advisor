@@ -96,7 +96,7 @@ export default function UserDashboardAppointments({
                   <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>{item.title}</div>
                   <div style={{ fontSize: 12, color: isDark ? "var(--gris-300)" : "var(--gris-600)", marginTop: 3 }}>{parsed.summary}</div>
                   {parsed.details && (
-                    <div style={{ fontSize: 11, color: isDark ? "#93c5fd" : "var(--marca-oscuro)", marginTop: 4, fontWeight: 700 }}>
+                    <div style={{ fontSize: 11, color: isDark ? "var(--gris-300)" : "var(--marca-oscuro)", marginTop: 4, fontWeight: 700 }}>
                       {t("dashboard.apptWorkshopMeta")}{parsed.details}
                     </div>
                   )}

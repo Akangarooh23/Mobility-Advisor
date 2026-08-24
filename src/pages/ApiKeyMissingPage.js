@@ -84,7 +84,7 @@ export default function ApiKeyMissingPage({ styles, totalSteps, answers, steps, 
           padding: "12px 18px",
           fontFamily: "monospace",
           fontSize: 12,
-          color: "#7dd3fc",
+          color: "var(--gris-300)",
           textAlign: "left",
           marginBottom: 28,
           maxWidth: 480,
@@ -95,7 +95,7 @@ export default function ApiKeyMissingPage({ styles, totalSteps, answers, steps, 
         <span style={{ color: "var(--gris-600)" }}>{"Variable local (.env.local)"}</span>
         <br />
         <span style={{ color: "var(--gris-200)" }}>GEMINI_API_KEY</span>{" "}
-        <span style={{ color: "#60a5fa" }}>= </span>
+        <span style={{ color: "var(--gris-400)" }}>= </span>
         <span style={{ color: "#34d399" }}>
           "AIza..."
         </span>
@@ -158,7 +158,7 @@ export default function ApiKeyMissingPage({ styles, totalSteps, answers, steps, 
             return (
               <div key={s.id} style={{ fontSize: 11 }}>
                 <span style={{ color: "var(--gris-700)" }}>{s.blockIcon} </span>
-                <span style={{ color: "#60a5fa" }}>{display}</span>
+                <span style={{ color: "var(--gris-400)" }}>{display}</span>
               </div>
             );
           })}

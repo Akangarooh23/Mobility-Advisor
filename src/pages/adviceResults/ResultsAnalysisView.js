@@ -158,7 +158,7 @@ export default function ResultsAnalysisView({
             onClick={onExportLogicDocument}
             disabled={logicExportLoading}
             style={{
-              background: logicExportLoading ? "rgba(14,165,233,0.12)" : "linear-gradient(135deg,#0ea5e9,#0284c7)",
+              background: logicExportLoading ? "rgba(14,165,233,0.12)" : "linear-gradient(135deg,var(--gris-700),var(--gris-900))",
               border: "1px solid rgba(125,211,252,0.28)",
               color: "#f0f9ff",
               padding: "10px 14px",
@@ -175,7 +175,7 @@ export default function ResultsAnalysisView({
         </div>
 
         {logicExportFeedback && (
-          <div style={{ marginBottom: 12, fontSize: 12, color: "#0369a1" }}>
+          <div style={{ marginBottom: 12, fontSize: 12, color: "var(--gris-800)" }}>
             {logicExportFeedback}
           </div>
         )}
@@ -216,7 +216,7 @@ export default function ResultsAnalysisView({
               boxShadow: "0 8px 20px rgba(3,105,161,0.08)",
             }}
           >
-            <div style={{ fontSize: 10, color: "#0369a1", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
+            <div style={{ fontSize: 10, color: "var(--gris-800)", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
               {text.scoreBreakdown}
             </div>
             <div style={{ display: "grid", gap: 8 }}>
@@ -559,7 +559,7 @@ export default function ResultsAnalysisView({
                       </span>
                     </div>
                     <div style={{ display: "grid", gap: 5 }}>
-                      <div style={{ fontSize: 11, color: "#1e3a8a", lineHeight: 1.5 }}><strong>{text.selectedOption}:</strong> {row.opcion_principal}</div>
+                      <div style={{ fontSize: 11, color: "var(--gris-900)", lineHeight: 1.5 }}><strong>{text.selectedOption}:</strong> {row.opcion_principal}</div>
                       {row.alternativa_1 && (
                         <div style={{ fontSize: 11, color: "var(--gris-600)", lineHeight: 1.5 }}><strong>{text.alternative1}:</strong> {row.alternativa_1}</div>
                       )}
@@ -690,7 +690,7 @@ export default function ResultsAnalysisView({
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
-          <div style={{ fontSize: 10, color: "#0369a1", fontWeight: 700, letterSpacing: "0.6px" }}>
+          <div style={{ fontSize: 10, color: "var(--gris-800)", fontWeight: 700, letterSpacing: "0.6px" }}>
             {text.marketRadar}
           </div>
           <button
@@ -711,7 +711,7 @@ export default function ResultsAnalysisView({
           </button>
         </div>
 
-        <p style={{ margin: "0 0 10px", fontSize: 12, color: "#1e3a8a", lineHeight: 1.6 }}>{marketRadar.objetivo}</p>
+        <p style={{ margin: "0 0 10px", fontSize: 12, color: "var(--gris-900)", lineHeight: 1.6 }}>{marketRadar.objetivo}</p>
 
         <div
           style={{
@@ -722,7 +722,7 @@ export default function ResultsAnalysisView({
           }}
         >
           <div>
-            <div style={{ fontSize: 10, color: "#075985", marginBottom: 6, letterSpacing: "0.5px" }}>{text.enterSignals}</div>
+            <div style={{ fontSize: 10, color: "var(--gris-800)", marginBottom: 6, letterSpacing: "0.5px" }}>{text.enterSignals}</div>
             <div style={{ display: "grid", gap: 5 }}>
               {marketRadar.senales_verdes.map((item, index) => (
                 <div key={`radar-green-${index}`} style={{ fontSize: 11, color: "#0c4a6e", lineHeight: 1.5 }}>
@@ -747,7 +747,7 @@ export default function ResultsAnalysisView({
 
         {savedComparisonItems.length > 0 && (
           <div>
-            <div style={{ fontSize: 10, color: "#075985", marginBottom: 8, letterSpacing: "0.5px" }}>{text.latestComparisons}</div>
+            <div style={{ fontSize: 10, color: "var(--gris-800)", marginBottom: 8, letterSpacing: "0.5px" }}>{text.latestComparisons}</div>
             <div style={{ display: "grid", gap: 8 }}>
               {savedComparisonItems.map((item) => {
                 const savedOfferHref =
@@ -807,7 +807,7 @@ export default function ResultsAnalysisView({
                       {item.listingTitle ? ` · ${text.reference}: ${item.listingTitle}` : ""}
                       {item.listingPrice ? ` · ${item.listingPrice}` : ""}
                     </div>
-                    {savedOfferHref && <div style={{ fontSize: 11, color: "#0369a1", marginTop: 5, fontWeight: 700 }}>{text.openOffer}</div>}
+                    {savedOfferHref && <div style={{ fontSize: 11, color: "var(--gris-800)", marginTop: 5, fontWeight: 700 }}>{text.openOffer}</div>}
                   </div>
                 );
               })}

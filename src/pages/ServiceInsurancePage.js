@@ -5,7 +5,7 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
   const cardStyle = {
     background: "#ffffff",
     borderRadius: 16,
-    border: "1px solid #ece8df",
+    border: "1px solid var(--gris-200)",
     boxShadow: "0 1px 3px rgba(0,0,0,0.05),0 4px 20px rgba(0,0,0,0.04)",
   };
 
@@ -25,11 +25,11 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
 
   const bars = [
     [t("service.insuranceCovLabel1"), 100, t("service.insuranceCovScore1"), "#22c55e"],
-    [t("service.insuranceCovLabel2"), 62, t("service.insuranceCovScore2"), "#38bdf8"],
+    [t("service.insuranceCovLabel2"), 62, t("service.insuranceCovScore2"), "var(--gris-500)"],
     [t("service.insuranceCovLabel3"), 83, t("service.insuranceCovScore3"), "#22d3ee"],
     [t("service.insuranceCovLabel4"), 40, t("service.insuranceCovScore4"), "#f59e0b"],
     [t("service.insuranceCovLabel5"), 18, t("service.insuranceCovScore5"), "#ef4444"],
-    [t("service.insuranceCovLabel6"), 70, t("service.insuranceCovScore6"), "#38bdf8"],
+    [t("service.insuranceCovLabel6"), 70, t("service.insuranceCovScore6"), "var(--gris-500)"],
   ];
 
   return (
@@ -39,7 +39,7 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
           type="button"
           onClick={onGoBack}
           style={{
-            border: "1px solid #ece8df",
+            border: "1px solid var(--gris-200)",
             background: "#ffffff",
             borderRadius: 8,
             padding: "7px 12px",
@@ -95,7 +95,7 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
                   fontWeight: 600,
                   color: "#a0a0a0",
                   border: "1px solid #efebe4",
-                  background: "#fafaf9",
+                  background: "var(--gris-50)",
                   padding: "5px 12px",
                   borderRadius: 30,
                 }}
@@ -163,7 +163,7 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
                   fontSize: 12,
                   fontWeight: 700,
                   border: "1px solid #e6e6e6",
-                  background: active ? "rgba(6,182,212,0.08)" : "#fafaf9",
+                  background: active ? "rgba(6,182,212,0.08)" : "var(--gris-50)",
                   color: active ? "#0891b2" : "#b2b2b2",
                 }}
               >

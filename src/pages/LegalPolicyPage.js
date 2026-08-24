@@ -20,10 +20,10 @@ export default function LegalPolicyPage({
   const cardBg       = isDark ? "rgba(30,41,59,0.7)"  : "#ffffff";
   const cardBorder   = isDark ? "rgba(148,163,184,0.18)" : "rgba(148,163,184,0.28)";
   const headingColor = isDark ? "var(--gris-200)"  : "var(--gris-800)";
-  const bodyColor    = isDark ? "var(--gris-300)"  : "#374151";
+  const bodyColor    = isDark ? "var(--gris-300)"  : "var(--gris-700)";
   const badgeBg      = isDark ? "rgba(59,130,246,0.14)" : "rgba(59,130,246,0.08)";
   const badgeBorder  = isDark ? "rgba(96,165,250,0.28)" : "rgba(59,130,246,0.22)";
-  const badgeColor   = isDark ? "#93c5fd" : "var(--marca)";
+  const badgeColor   = isDark ? "var(--gris-300)" : "var(--marca)";
   const dividerColor = isDark ? "rgba(148,163,184,0.12)" : "rgba(148,163,184,0.2)";
 
   return (

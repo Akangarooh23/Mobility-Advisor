@@ -264,7 +264,7 @@ export default function ResultsOffersView({
             style={{
               border: isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.22)",
               background: isDark ? "rgba(15,23,42,0.9)" : "#ffffff",
-              color: isDark ? "var(--gris-200)" : "#1f2937",
+              color: isDark ? "var(--gris-200)" : "var(--gris-800)",
               borderRadius: 8,
               padding: "6px 10px",
               fontSize: 12,
@@ -330,7 +330,7 @@ export default function ResultsOffersView({
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
-              <div style={{ fontSize: 10, color: "#0369a1", fontWeight: 700, letterSpacing: "0.7px" }}>
+              <div style={{ fontSize: 10, color: "var(--gris-800)", fontWeight: 700, letterSpacing: "0.7px" }}>
                 {text.bestOffers}
               </div>
               <button
@@ -339,7 +339,7 @@ export default function ResultsOffersView({
                 disabled={!canSearchListing || listingLoading}
                 style={{
                   background: canSearchListing && !listingLoading
-                    ? "linear-gradient(135deg,#0ea5e9,var(--marca))"
+                    ? "linear-gradient(135deg,var(--gris-700),var(--marca))"
                     : "rgba(148,163,184,0.2)",
                   border: "none",
                   color: "white",
@@ -368,7 +368,7 @@ export default function ResultsOffersView({
                   padding: 10,
                   marginBottom: 10,
                   fontSize: 11,
-                  color: isDark ? "#7dd3fc" : "#0369a1",
+                  color: isDark ? "var(--gris-300)" : "var(--gris-800)",
                   lineHeight: 1.6,
                 }}
               >
@@ -467,7 +467,7 @@ export default function ResultsOffersView({
                   </div>
 
                   <div>
-                    <div style={{ fontSize: 10, color: "#0369a1", marginBottom: 6, fontWeight: 700, letterSpacing: "0.6px" }}>
+                    <div style={{ fontSize: 10, color: "var(--gris-800)", marginBottom: 6, fontWeight: 700, letterSpacing: "0.6px" }}>
                       {text.featuredOffer} · {text.position} #{featuredOffer.rankPosition || 1}
                       {Number.isFinite(Number(featuredOffer.rankingScore ?? featuredOffer.profileScore))
                         ? ` · ${text.fit} ${Number(featuredOffer.rankingScore ?? featuredOffer.profileScore)}/100`
@@ -489,7 +489,7 @@ export default function ResultsOffersView({
                         </div>
                       )}
                     </div>
-                    <p style={{ margin: "0 0 8px", fontSize: 11, color: "#1e3a8a", lineHeight: 1.6 }}>
+                    <p style={{ margin: "0 0 8px", fontSize: 11, color: "var(--gris-900)", lineHeight: 1.6 }}>
                       <strong>{text.whyFirst}:</strong> {featuredOffer.positionReason || featuredOffer.matchReason}
                     </p>
 
@@ -520,7 +520,7 @@ export default function ResultsOffersView({
                           style={{
                             background: "rgba(37,99,235,0.1)",
                             border: "1px solid rgba(96,165,250,0.22)",
-                            color: "#1e3a8a",
+                            color: "var(--gris-900)",
                             padding: "4px 8px",
                             borderRadius: 999,
                             fontSize: 10,
@@ -599,7 +599,7 @@ export default function ResultsOffersView({
                           border: featuredOfferSaved
                             ? "1px solid rgba(244,114,182,0.28)"
                             : "1px solid rgba(100,116,139,0.35)",
-                          color: featuredOfferSaved ? "#9d174d" : "#1f2937",
+                          color: featuredOfferSaved ? "#9d174d" : "var(--gris-800)",
                           padding: "9px 13px",
                           borderRadius: 10,
                           fontSize: 12,
@@ -619,7 +619,7 @@ export default function ResultsOffersView({
                         style={{
                           background: "rgba(241,245,249,0.9)",
                           border: "1px solid rgba(100,116,139,0.35)",
-                          color: "#1f2937",
+                          color: "var(--gris-800)",
                           padding: "9px 13px",
                           borderRadius: 10,
                           fontSize: 12,
@@ -636,7 +636,7 @@ export default function ResultsOffersView({
 
             {otherOffers.length > 0 && (
               <div>
-                <div style={{ fontSize: 10, color: "#0369a1", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
+                <div style={{ fontSize: 10, color: "var(--gris-800)", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
                   {text.otherFittingOffers}
                 </div>
                 <div style={{ display: "grid", gap: 8 }}>
@@ -728,7 +728,7 @@ export default function ResultsOffersView({
                                   style={{
                                     background: "rgba(37,99,235,0.1)",
                                     border: "1px solid rgba(96,165,250,0.22)",
-                                    color: "#1e3a8a",
+                                    color: "var(--gris-900)",
                                     padding: "3px 7px",
                                     borderRadius: 999,
                                     fontSize: 10,
@@ -748,7 +748,7 @@ export default function ResultsOffersView({
                                     openOfferSheet(offer);
                                   }}
                                   style={{
-                                    color: offerAction.exact ? "#0369a1" : "#b45309",
+                                    color: offerAction.exact ? "var(--gris-800)" : "#b45309",
                                     background: "transparent",
                                     border: "none",
                                     fontSize: 11,
@@ -769,7 +769,7 @@ export default function ResultsOffersView({
                                   style={{
                                     background: "transparent",
                                     border: "none",
-                                    color: "#0369a1",
+                                    color: "var(--gris-800)",
                                     textDecoration: "none",
                                     fontSize: 11,
                                     fontWeight: 700,
@@ -790,7 +790,7 @@ export default function ResultsOffersView({
                                 style={{
                                   background: isRecommendationSaved(offer) ? "rgba(236,72,153,0.14)" : "transparent",
                                   border: "none",
-                                  color: isRecommendationSaved(offer) ? "#9d174d" : "#1f2937",
+                                  color: isRecommendationSaved(offer) ? "#9d174d" : "var(--gris-800)",
                                   fontSize: 11,
                                   fontWeight: 700,
                                   cursor: "pointer",

@@ -397,7 +397,7 @@ export default function QuestionnairePage({
     return ranks.length === metrics.length && new Set(ranks).size === metrics.length;
   };
 
-  const renderTimelineField = (fieldKey, fieldConfig, selectedValue, tone = "#38bdf8") => {
+  const renderTimelineField = (fieldKey, fieldConfig, selectedValue, tone = "var(--gris-500)") => {
     const options = Array.isArray(fieldConfig?.options) ? fieldConfig.options : [];
     if (options.length === 0) {
       return null;
@@ -458,7 +458,7 @@ export default function QuestionnairePage({
               borderRadius: 999,
               background: "rgba(37,99,235,0.12)",
               border: "1px solid rgba(125,211,252,0.25)",
-              color: "#1e3a8a",
+              color: "var(--gris-900)",
               fontSize: 12,
               fontWeight: 700,
               marginBottom: 12,
@@ -483,7 +483,7 @@ export default function QuestionnairePage({
                       : (isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.9)"),
                     border: `1px solid ${isSelected ? "rgba(125,211,252,0.52)" : "rgba(148,163,184,0.22)"}`,
                     borderRadius: 10,
-                    color: isSelected ? (isDark ? "#bfdbfe" : "#1e3a8a") : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
+                    color: isSelected ? (isDark ? "var(--gris-200)" : "var(--gris-900)") : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
                     fontSize: 11,
                     fontWeight: isSelected ? 800 : 600,
                     padding: "8px 6px",
@@ -535,7 +535,7 @@ export default function QuestionnairePage({
                       : (isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.9)"),
                     border: `1px solid ${isSelected ? "rgba(125,211,252,0.52)" : "rgba(148,163,184,0.22)"}`,
                     borderRadius: 10,
-                    color: isSelected ? (isDark ? "#bfdbfe" : "#1e3a8a") : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
+                    color: isSelected ? (isDark ? "var(--gris-200)" : "var(--gris-900)") : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
                     fontSize: 12,
                     fontWeight: isSelected ? 800 : 600,
                     padding: "10px 8px",
@@ -610,7 +610,7 @@ export default function QuestionnairePage({
             borderRadius: 999,
             background: "rgba(37,99,235,0.12)",
             border: "1px solid rgba(125,211,252,0.25)",
-            color: "#1e3a8a",
+            color: "var(--gris-900)",
             fontSize: 12,
             fontWeight: 700,
             marginBottom: 12,
@@ -709,7 +709,7 @@ export default function QuestionnairePage({
                     : (isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.9)"),
                   border: `1px solid ${isEdge ? "rgba(125,211,252,0.52)" : isWithinRange ? "rgba(96,165,250,0.28)" : "rgba(148,163,184,0.22)"}`,
                   borderRadius: 10,
-                  color: isWithinRange ? (isDark ? "#bfdbfe" : "#1e3a8a") : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
+                  color: isWithinRange ? (isDark ? "var(--gris-200)" : "var(--gris-900)") : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
                   fontSize: 11,
                   fontWeight: isEdge ? 800 : isWithinRange ? 700 : 600,
                   padding: "8px 6px",
@@ -778,7 +778,7 @@ export default function QuestionnairePage({
             style={{
               background: advancedMode ? "rgba(20,184,166,0.14)" : "rgba(37,99,235,0.12)",
               border: `1px solid ${advancedMode ? "rgba(153,246,228,0.4)" : "rgba(147,197,253,0.35)"}`,
-              color: advancedMode ? (isDark ? "#99f6e4" : "#0f766e") : (isDark ? "#bfdbfe" : "#1e3a8a"),
+              color: advancedMode ? (isDark ? "#99f6e4" : "#0f766e") : (isDark ? "var(--gris-200)" : "var(--gris-900)"),
               padding: "8px 12px",
               borderRadius: 10,
               fontSize: 12,
@@ -802,10 +802,10 @@ export default function QuestionnairePage({
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-          <div style={{ fontSize: 12, color: isDark ? "#bae6fd" : "#0369a1", fontWeight: 600 }}>
+          <div style={{ fontSize: 12, color: isDark ? "#bae6fd" : "var(--gris-800)", fontWeight: 600 }}>
             ✅ {t("questionnaire.remaining", { count: remainingQuestions })}
           </div>
-          <div style={{ fontSize: 12, color: isDark ? "#7dd3fc" : "#0ea5e9" }}>
+          <div style={{ fontSize: 12, color: isDark ? "var(--gris-300)" : "var(--gris-700)" }}>
             {completionPct}% {t("questionnaire.completed")}
           </div>
         </div>
@@ -842,7 +842,7 @@ export default function QuestionnairePage({
               borderRadius: 10,
               border: "1px solid rgba(37,99,235,0.24)",
               background: isDark ? "rgba(37,99,235,0.18)" : "rgba(219,234,254,0.7)",
-              color: isDark ? "#bfdbfe" : "var(--marca-oscuro)",
+              color: isDark ? "var(--gris-200)" : "var(--marca-oscuro)",
               fontSize: 12,
               fontWeight: 700,
               cursor: "pointer",
@@ -1111,7 +1111,7 @@ export default function QuestionnairePage({
                 border: "1px solid rgba(125,211,252,0.25)",
                 borderRadius: 10,
                 padding: "10px 14px",
-                color: isDark ? "#93c5fd" : "#1e3a8a",
+                color: isDark ? "var(--gris-300)" : "var(--gris-900)",
                 fontSize: 12,
                 lineHeight: 1.5,
               }}
@@ -1325,7 +1325,7 @@ export default function QuestionnairePage({
           onClick={onTellMeNow}
           disabled={answeredSteps === 0}
           style={{
-            background: "linear-gradient(135deg,#0ea5e9,var(--marca))",
+            background: "linear-gradient(135deg,var(--gris-700),var(--marca))",
             border: "none",
             color: "white",
             padding: "9px 14px",

@@ -523,7 +523,7 @@ export function getOfferBadgeStyle(tone = "slate") {
     info: {
       background: "rgba(37,99,235,0.14)",
       border: "1px solid rgba(96,165,250,0.28)",
-      color: "#1e3a8a",
+      color: "var(--gris-900)",
     },
     neutral: {
       background: "rgba(148,163,184,0.1)",

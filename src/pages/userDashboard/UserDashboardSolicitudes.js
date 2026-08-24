@@ -58,7 +58,7 @@ export default function UserDashboardSolicitudes({
     "Cita confirmada":          { bg: "rgba(16,185,129,0.15)",  color: "#065f46" },
     Cerrado:                    { bg: "rgba(16,185,129,0.12)",  color: "#065f46" },
     "Visita realizada":         { bg: "rgba(20,184,166,0.12)",  color: "#0f766e" },
-    Interesado:                 { bg: "rgba(14,165,233,0.12)",  color: "#0369a1" },
+    Interesado:                 { bg: "rgba(14,165,233,0.12)",  color: "var(--gris-800)" },
     Vendido:                    { bg: "rgba(16,185,129,0.18)",  color: "#065f46" },
     Comprado:                   { bg: "rgba(16,185,129,0.18)",  color: "#065f46" },
     Contratado:                 { bg: "rgba(16,185,129,0.18)",  color: "#065f46" },
@@ -396,7 +396,7 @@ export default function UserDashboardSolicitudes({
                 key={item.id}
                 style={{
                   background: isDark ? "rgba(15,23,42,0.7)" : "#ffffff",
-                  border: `1px solid ${isReserved ? (isDark ? "rgba(16,185,129,0.4)" : "#86efac") : showApptBox ? (isDark ? "rgba(59,130,246,0.3)" : "#bfdbfe") : (isDark ? "rgba(255,255,255,0.07)" : "var(--gris-200)")}`,
+                  border: `1px solid ${isReserved ? (isDark ? "rgba(16,185,129,0.4)" : "#86efac") : showApptBox ? (isDark ? "rgba(59,130,246,0.3)" : "var(--gris-200)") : (isDark ? "rgba(255,255,255,0.07)" : "var(--gris-200)")}`,
                   borderRadius: 12,
                   padding: "14px 16px",
                   display: "flex",
@@ -460,21 +460,21 @@ export default function UserDashboardSolicitudes({
                 {/* Appointment box */}
                 {showApptBox && (
                   <div style={{
-                    background: isReserved ? (isDark ? "rgba(16,185,129,0.1)" : "#f0fdf4") : (isDark ? "rgba(37,99,235,0.12)" : "#eff6ff"),
-                    border: `1px solid ${isReserved ? (isDark ? "rgba(16,185,129,0.3)" : "#86efac") : (isDark ? "rgba(59,130,246,0.25)" : "#bfdbfe")}`,
+                    background: isReserved ? (isDark ? "rgba(16,185,129,0.1)" : "#f0fdf4") : (isDark ? "rgba(37,99,235,0.12)" : "var(--acento-tenue)"),
+                    border: `1px solid ${isReserved ? (isDark ? "rgba(16,185,129,0.3)" : "#86efac") : (isDark ? "rgba(59,130,246,0.25)" : "var(--gris-200)")}`,
                     borderRadius: 8, padding: "10px 12px",
                   }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: isReserved ? "#065f46" : "var(--marca-oscuro)", marginBottom: 6 }}>
                       {isReserved ? "🎉 Cita confirmada" : "📅 Cita asignada por CarsWise"}
                     </div>
-                    <div style={{ fontSize: 13, color: isDark ? (isReserved ? "#86efac" : "#bfdbfe") : (isReserved ? "#166534" : "#1e40af"), display: "grid", gap: 3 }}>
+                    <div style={{ fontSize: 13, color: isDark ? (isReserved ? "#86efac" : "var(--gris-200)") : (isReserved ? "#166534" : "var(--gris-900)"), display: "grid", gap: 3 }}>
                       <div>📅 {formatAppointmentDate(meta.appointment_date)}</div>
                       {meta.appointment_time && <div>⏰ {meta.appointment_time}</div>}
                       {meta.appointment_address && <div>📍 {meta.appointment_address}</div>}
                       {meta.appointment_contact && <div>👤 Pregunta por <strong>{meta.appointment_contact}</strong></div>}
                     </div>
                     {meta.erp_response && (
-                      <div style={{ marginTop: 8, fontSize: 12, color: isDark ? "#93c5fd" : "#1e40af", borderTop: `1px solid ${isDark ? "rgba(59,130,246,0.2)" : "#bfdbfe"}`, paddingTop: 8 }}>
+                      <div style={{ marginTop: 8, fontSize: 12, color: isDark ? "var(--gris-300)" : "var(--gris-900)", borderTop: `1px solid ${isDark ? "rgba(59,130,246,0.2)" : "var(--gris-200)"}`, paddingTop: 8 }}>
                         {meta.erp_response}
                       </div>
                     )}
@@ -492,9 +492,9 @@ export default function UserDashboardSolicitudes({
 
                 {/* Non-visit response */}
                 {!isVisit && meta.erp_response && item.status !== "Cancelado" && (
-                  <div style={{ background: isDark ? "rgba(37,99,235,0.12)" : "#eff6ff", border: `1px solid ${isDark ? "rgba(59,130,246,0.25)" : "#bfdbfe"}`, borderRadius: 8, padding: "10px 12px" }}>
+                  <div style={{ background: isDark ? "rgba(37,99,235,0.12)" : "var(--acento-tenue)", border: `1px solid ${isDark ? "rgba(59,130,246,0.25)" : "var(--gris-200)"}`, borderRadius: 8, padding: "10px 12px" }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: "var(--marca-oscuro)", marginBottom: 4 }}>💬 Respuesta de CarsWise</div>
-                    <div style={{ fontSize: 13, color: isDark ? "#bfdbfe" : "#1e40af", whiteSpace: "pre-wrap" }}>{meta.erp_response}</div>
+                    <div style={{ fontSize: 13, color: isDark ? "var(--gris-200)" : "var(--gris-900)", whiteSpace: "pre-wrap" }}>{meta.erp_response}</div>
                   </div>
                 )}
 
@@ -579,7 +579,7 @@ export default function UserDashboardSolicitudes({
 
                 {/* Interesado — waiting for operator */}
                 {item.status === "Interesado" && (
-                  <div style={{ background: isDark ? "rgba(14,165,233,0.08)" : "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "#0369a1" }}>
+                  <div style={{ background: isDark ? "rgba(14,165,233,0.08)" : "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "var(--gris-800)" }}>
                     ⏳ Hemos recibido tu interés. El equipo de CarsWise se pondrá en contacto contigo para gestionar la compra.
                   </div>
                 )}
@@ -619,7 +619,7 @@ export default function UserDashboardSolicitudes({
                     {isVisit && hasAppt && item.status !== "Reagendar solicitado" && (
                       <button
                         onClick={() => openReschedule(item.id)}
-                        style={{ ...btnBase, background: isDark ? "rgba(59,130,246,0.1)" : "#eff6ff", color: "var(--marca)", borderColor: "rgba(59,130,246,0.3)" }}
+                        style={{ ...btnBase, background: isDark ? "rgba(59,130,246,0.1)" : "var(--acento-tenue)", color: "var(--marca)", borderColor: "rgba(59,130,246,0.3)" }}
                       >
                         📅 Solicitar cambio de fecha
                       </button>
@@ -689,7 +689,7 @@ export default function UserDashboardSolicitudes({
                 {/* Reschedule form */}
                 {isRescheduleForm && (
                   <div style={{ background: isDark ? "rgba(59,130,246,0.07)" : "#f0f9ff", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 8, padding: "12px 14px" }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "#93c5fd" : "var(--marca-oscuro)", marginBottom: 10 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "var(--gris-300)" : "var(--marca-oscuro)", marginBottom: 10 }}>
                       📅 Propón hasta 3 opciones de fecha y hora
                     </div>
                     <div style={{ display: "grid", gap: 8, marginBottom: 10 }}>

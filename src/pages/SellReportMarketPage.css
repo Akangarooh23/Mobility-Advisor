@@ -129,7 +129,7 @@
   font-size: 11px;
   font-weight: 500;
   color: #999;
-  background: #fafaf9;
+  background: var(--gris-50);
   border: 1px solid #eee;
   padding: 0.28rem 0.75rem;
   border-radius: 20px;
@@ -182,7 +182,7 @@
   gap: 1rem;
   align-items: start;
   padding: 1.1rem 1.25rem;
-  background: #fafaf9;
+  background: var(--gris-50);
   border: 1px solid #f0ece4;
   border-radius: 14px;
   transition: all 0.2s;
@@ -297,7 +297,7 @@
 
 .sell-market-root .field input,
 .sell-market-root .field select {
-  background: #fafaf9;
+  background: var(--gris-50);
   border: 1px solid #eee;
   border-radius: 9px;
   padding: 0.55rem 0.85rem;
@@ -342,7 +342,7 @@
   width: 100%;
   display: flex;
   align-items: center;
-  background: #fafaf9;
+  background: var(--gris-50);
   border: 1px solid #eee;
   border-radius: 9px;
   padding: 0.55rem 1.75rem 0.55rem 0.85rem;
@@ -374,7 +374,7 @@
   right: 0;
   z-index: 9999;
   background: #fff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--gris-200);
   border-radius: 9px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
   max-height: 220px;
@@ -422,7 +422,7 @@
   padding: 0.3rem 0.75rem;
   border-radius: 20px;
   border: 1px solid #eee;
-  background: #fafaf9;
+  background: var(--gris-50);
   color: #999;
   cursor: pointer;
   transition: all 0.15s;
@@ -464,7 +464,7 @@
 .sell-market-root .rstat {
   text-align: center;
   padding: 0.85rem 0.5rem;
-  background: #fafaf9;
+  background: var(--gris-50);
   border: 1px solid #f0ece4;
   border-radius: 10px;
 }
@@ -508,7 +508,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.5rem 0.75rem;
-  background: #fafaf9;
+  background: var(--gris-50);
   border: 1px solid #f0ece4;
   border-radius: 9px;
 }
@@ -673,7 +673,7 @@
 }
 
 .sell-market-root .btn-secondary {
-  background: #fafaf9;
+  background: var(--gris-50);
   border: 1px solid #eee;
   border-radius: 12px;
   padding: 0.65rem 1.25rem;

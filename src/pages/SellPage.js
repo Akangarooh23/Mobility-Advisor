@@ -300,7 +300,7 @@ export default function SellPage({
             marginBottom: 18,
           }}
         >
-          <div style={{ fontSize: 11, color: "#60a5fa", letterSpacing: "0.6px", marginBottom: 8 }}>
+          <div style={{ fontSize: 11, color: "var(--gris-400)", letterSpacing: "0.6px", marginBottom: 8 }}>
             {text.aiValuation}
           </div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -316,7 +316,7 @@ export default function SellPage({
             >
               {sellLoading ? text.valuing : text.valueWithAi}
             </button>
-            <span style={{ fontSize: 12, color: "#bfdbfe", alignSelf: "center" }}>
+            <span style={{ fontSize: 12, color: "var(--gris-200)", alignSelf: "center" }}>
               {text.aiHint}
             </span>
           </div>
@@ -355,13 +355,13 @@ export default function SellPage({
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 12 }}>
             <div style={styles.panel}>
-              <div style={{ fontSize: 11, color: "#60a5fa", marginBottom: 6, letterSpacing: "0.6px" }}>
+              <div style={{ fontSize: 11, color: "var(--gris-400)", marginBottom: 6, letterSpacing: "0.6px" }}>
                 {text.estimatedDemand}
               </div>
               <div style={{ fontSize: 18, fontWeight: 800, color: "#000000" }}>{sellAiResult.nivel_demanda || text.average}</div>
             </div>
             <div style={styles.panel}>
-              <div style={{ fontSize: 11, color: "#60a5fa", marginBottom: 6, letterSpacing: "0.6px" }}>
+              <div style={{ fontSize: 11, color: "var(--gris-400)", marginBottom: 6, letterSpacing: "0.6px" }}>
                 {text.estimatedSaleTime}
               </div>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#000000" }}>{sellAiResult.tiempo_estimado_venta || text.saleTimeFallback}</div>
@@ -407,7 +407,7 @@ export default function SellPage({
               >
                 {sellListingLoading ? text.searchingComparable : text.viewComparable}
               </button>
-              <span style={{ fontSize: 12, color: "#bfdbfe", alignSelf: "center" }}>
+              <span style={{ fontSize: 12, color: "var(--gris-200)", alignSelf: "center" }}>
                 {text.comparableHint}
               </span>
             </div>

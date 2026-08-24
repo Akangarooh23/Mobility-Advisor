@@ -257,8 +257,8 @@ export default function PortalVoDetailPage({
     : localCandidates.filter(Boolean);
   useEffect(() => { setGalleryIdx(0); setGalleryFailed(false); }, [selectedPortalVoOffer.id]);
   const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
-  const bodyColor = isDark ? "#dbeafe" : "var(--gris-700)";
-  const metaColor = isDark ? "#93c5fd" : "var(--marca-oscuro)";
+  const bodyColor = isDark ? "var(--acento-tenue)" : "var(--gris-700)";
+  const metaColor = isDark ? "var(--gris-300)" : "var(--marca-oscuro)";
   const panelCardBg = isDark ? "rgba(15,23,42,0.3)" : "rgba(241,245,249,0.92)";
   const specCardBg = isDark ? "rgba(15,23,42,0.34)" : "rgba(248,250,252,0.96)";
 
@@ -297,7 +297,7 @@ export default function PortalVoDetailPage({
       <div style={{ ...styles.panel, marginBottom: 18, overflow: "hidden" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
           <div>
-            <div style={{ fontSize: 10, color: isDark ? "#67e8f9" : "#0284c7", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 4 }}>
+            <div style={{ fontSize: 10, color: isDark ? "#67e8f9" : "var(--gris-900)", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 4 }}>
               {t("marketplace.detailSubBadge")}
             </div>
             <div style={{ fontSize: 22, fontWeight: 800, color: titleColor }}>{selectedPortalVoOffer.title}</div>
@@ -557,14 +557,14 @@ export default function PortalVoDetailPage({
                                   <button type="button"
                                     onClick={() => setSelectedQuantity(q => Math.max(1, q - 1))}
                                     disabled={selectedQuantity <= 1}
-                                    style={{ width: 34, height: 34, borderRadius: "8px 0 0 8px", border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid #d1d5db", background: isDark ? "rgba(255,255,255,0.06)" : "#fff", color: isDark ? "var(--gris-50)" : "#374151", fontSize: 20, fontWeight: 700, cursor: "pointer", opacity: selectedQuantity <= 1 ? 0.35 : 1 }}>−</button>
-                                  <div style={{ width: 48, height: 34, display: "flex", alignItems: "center", justifyContent: "center", border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid #d1d5db", borderLeft: "none", borderRight: "none", background: isDark ? "rgba(255,255,255,0.02)" : "#fff", fontSize: 16, fontWeight: 800, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>{selectedQuantity}</div>
+                                    style={{ width: 34, height: 34, borderRadius: "8px 0 0 8px", border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid var(--gris-300)", background: isDark ? "rgba(255,255,255,0.06)" : "#fff", color: isDark ? "var(--gris-50)" : "var(--gris-700)", fontSize: 20, fontWeight: 700, cursor: "pointer", opacity: selectedQuantity <= 1 ? 0.35 : 1 }}>−</button>
+                                  <div style={{ width: 48, height: 34, display: "flex", alignItems: "center", justifyContent: "center", border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid var(--gris-300)", borderLeft: "none", borderRight: "none", background: isDark ? "rgba(255,255,255,0.02)" : "#fff", fontSize: 16, fontWeight: 800, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>{selectedQuantity}</div>
                                   <button type="button"
                                     onClick={() => setSelectedQuantity(q => Math.min(maxForSelected, q + 1))}
                                     disabled={selectedQuantity >= maxForSelected}
-                                    style={{ width: 34, height: 34, borderRadius: "0 8px 8px 0", border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid #d1d5db", background: isDark ? "rgba(255,255,255,0.06)" : "#fff", color: isDark ? "var(--gris-50)" : "#374151", fontSize: 20, fontWeight: 700, cursor: "pointer", opacity: selectedQuantity >= maxForSelected ? 0.35 : 1 }}>+</button>
+                                    style={{ width: 34, height: 34, borderRadius: "0 8px 8px 0", border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid var(--gris-300)", background: isDark ? "rgba(255,255,255,0.06)" : "#fff", color: isDark ? "var(--gris-50)" : "var(--gris-700)", fontSize: 20, fontWeight: 700, cursor: "pointer", opacity: selectedQuantity >= maxForSelected ? 0.35 : 1 }}>+</button>
                                 </div>
-                                <span style={{ fontSize: 11, color: isDark ? "var(--gris-500)" : "#9ca3af" }}>máx. {maxForSelected} disponible{maxForSelected !== 1 ? "s" : ""}</span>
+                                <span style={{ fontSize: 11, color: isDark ? "var(--gris-500)" : "var(--gris-400)" }}>máx. {maxForSelected} disponible{maxForSelected !== 1 ? "s" : ""}</span>
                               </div>
                             </div>
                           )}
@@ -702,7 +702,7 @@ export default function PortalVoDetailPage({
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 12, marginTop: 16 }}>
           <div style={{ background: panelCardBg, border: "1px solid rgba(148,163,184,0.14)", borderRadius: 12, padding: 14 }}>
-            <div style={{ fontSize: 11, color: isDark ? "#60a5fa" : "#0369a1", fontWeight: 700, marginBottom: 8 }}>{t("marketplace.keyPointsLabel")}</div>
+            <div style={{ fontSize: 11, color: isDark ? "var(--gris-400)" : "var(--gris-800)", fontWeight: 700, marginBottom: 8 }}>{t("marketplace.keyPointsLabel")}</div>
             <ul style={{ margin: 0, paddingLeft: 18, color: bodyColor, fontSize: 12, lineHeight: 1.7 }}>
               {buildPortalVoHighlights(selectedPortalVoOffer).map((item) => (
                 <li key={`${selectedPortalVoOffer.id}-${item}`}>{item}</li>
@@ -710,7 +710,7 @@ export default function PortalVoDetailPage({
             </ul>
           </div>
           <div style={{ background: panelCardBg, border: "1px solid rgba(148,163,184,0.14)", borderRadius: 12, padding: 14 }}>
-            <div style={{ fontSize: 11, color: isDark ? "#60a5fa" : "#0369a1", fontWeight: 700, marginBottom: 8 }}>{t("marketplace.featuresLabel")}</div>
+            <div style={{ fontSize: 11, color: isDark ? "var(--gris-400)" : "var(--gris-800)", fontWeight: 700, marginBottom: 8 }}>{t("marketplace.featuresLabel")}</div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {buildPortalVoEquipment(selectedPortalVoOffer).map((item) => (
                 <span key={`${selectedPortalVoOffer.id}-feature-${item}`} style={getOfferBadgeStyle("slate")}>
@@ -892,7 +892,7 @@ export default function PortalVoDetailPage({
                         style={{
                           flex: 1, padding: "8px 0", border: "1px solid",
                           borderColor: reqForm.type === v ? "var(--marca)" : (isDark ? "rgba(255,255,255,0.12)" : "var(--gris-200)"),
-                          background: reqForm.type === v ? (isDark ? "rgba(37,99,235,0.18)" : "#eff6ff") : "transparent",
+                          background: reqForm.type === v ? (isDark ? "rgba(37,99,235,0.18)" : "var(--acento-tenue)") : "transparent",
                           color: reqForm.type === v ? "var(--marca)" : (isDark ? "var(--gris-400)" : "var(--gris-600)"),
                           borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer",
                         }}

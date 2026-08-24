@@ -6,7 +6,7 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
   const cardStyle = {
     background: "#ffffff",
     borderRadius: 16,
-    border: "1px solid #ece8df",
+    border: "1px solid var(--gris-200)",
     boxShadow: "0 1px 3px rgba(0,0,0,0.05),0 4px 20px rgba(0,0,0,0.04)",
   };
 
@@ -33,7 +33,7 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
           type="button"
           onClick={onGoBack}
           style={{
-            border: "1px solid #ece8df",
+            border: "1px solid var(--gris-200)",
             background: "#ffffff",
             borderRadius: 8,
             padding: "7px 12px",
@@ -85,7 +85,7 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
                   fontWeight: 600,
                   color: "#a0a0a0",
                   border: "1px solid #efebe4",
-                  background: "#fafaf9",
+                  background: "var(--gris-50)",
                   padding: "5px 12px",
                   borderRadius: 30,
                 }}
@@ -110,9 +110,9 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
                   display: "flex",
                   alignItems: "center",
                   gap: 10,
-                  border: "1px solid #ece8df",
+                  border: "1px solid var(--gris-200)",
                   borderRadius: 10,
-                  background: "#fafaf9",
+                  background: "var(--gris-50)",
                   padding: "10px 12px",
                 }}
               >
@@ -161,7 +161,7 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
               <span>{t("autogestor.completeness")}</span>
               <span style={{ color: "var(--marca-claro)" }}>45%</span>
             </div>
-            <div style={{ height: 6, background: "#ece8df", borderRadius: 3, overflow: "hidden", marginBottom: 12 }}>
+            <div style={{ height: 6, background: "var(--gris-200)", borderRadius: 3, overflow: "hidden", marginBottom: 12 }}>
               <div style={{ width: "45%", height: 6, background: "var(--marca-claro)" }} />
             </div>
             <div style={{ display: "grid", gap: 7, marginBottom: 10 }}>

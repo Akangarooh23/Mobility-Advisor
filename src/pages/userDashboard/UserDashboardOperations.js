@@ -512,7 +512,7 @@ export default function UserDashboardOperations({
               style={{
                 background: isActive ? "linear-gradient(135deg,var(--marca),var(--marca-oscuro))" : "transparent",
                 border: isActive ? "none" : cardBorder,
-                color: isActive ? "#eff6ff" : isDark ? "var(--gris-300)" : "var(--gris-700)",
+                color: isActive ? "var(--acento-tenue)" : isDark ? "var(--gris-300)" : "var(--gris-700)",
                 padding: "7px 11px",
                 borderRadius: 999,
                 fontSize: 11,
@@ -586,7 +586,7 @@ export default function UserDashboardOperations({
                 style={{
                   background: managementType === "valuation" ? "linear-gradient(135deg,var(--marca),var(--marca-oscuro))" : "transparent",
                   border: managementType === "valuation" ? "none" : cardBorder,
-                  color: managementType === "valuation" ? "#eff6ff" : isDark ? "var(--gris-300)" : "var(--gris-700)",
+                  color: managementType === "valuation" ? "var(--acento-tenue)" : isDark ? "var(--gris-300)" : "var(--gris-700)",
                   padding: "8px 10px",
                   borderRadius: 999,
                   fontSize: 11,
@@ -605,7 +605,7 @@ export default function UserDashboardOperations({
                   value={managementVehicleId}
                   onChange={(event) => setManagementVehicleId(event.target.value)}
                   style={{
-                    background: isDark ? "#0f1b2d" : "#ffffff",
+                    background: isDark ? "var(--gris-900)" : "#ffffff",
                     border: cardBorder,
                     borderRadius: 10,
                     padding: "9px 10px",
@@ -633,7 +633,7 @@ export default function UserDashboardOperations({
                     value={managementAppointmentType}
                     onChange={(event) => setManagementAppointmentType(event.target.value)}
                     style={{
-                      background: isDark ? "#0f1b2d" : "#ffffff",
+                      background: isDark ? "var(--gris-900)" : "#ffffff",
                       border: cardBorder,
                       borderRadius: 10,
                       padding: "9px 10px",
@@ -655,7 +655,7 @@ export default function UserDashboardOperations({
                     value={managementValuationSource}
                     onChange={(event) => setManagementValuationSource(event.target.value)}
                     style={{
-                      background: isDark ? "#0f1b2d" : "#ffffff",
+                      background: isDark ? "var(--gris-900)" : "#ffffff",
                       border: cardBorder,
                       borderRadius: 10,
                       padding: "9px 10px",
@@ -706,7 +706,7 @@ export default function UserDashboardOperations({
                   style={{
                     background: "rgba(37,99,235,0.12)",
                     border: "1px solid rgba(96,165,250,0.24)",
-                    color: "#1e3a8a",
+                    color: "var(--gris-900)",
                     padding: "8px 10px",
                     borderRadius: 10,
                     fontSize: 12,
@@ -744,7 +744,7 @@ export default function UserDashboardOperations({
                   type="button"
                   onClick={goToBillingForManagement}
                   style={{
-                    background: "linear-gradient(135deg,#0ea5e9,#0284c7)",
+                    background: "linear-gradient(135deg,var(--gris-700),var(--gris-900))",
                     border: "none",
                     color: "#ffffff",
                     padding: "9px 12px",

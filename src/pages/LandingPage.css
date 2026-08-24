@@ -113,7 +113,7 @@
 }
 .pc-rasgos b { display: block; font-size: 13px; margin-bottom: 5px; }
 .pc-rasgos small { display: block; color: var(--gris-500); font-size: 11.5px; line-height: 1.45; }
-.pc-hero-acciones { display: flex; gap: 13px; flex-wrap: wrap; }
+.pc-hero-acciones { display: flex; gap: 13px; flex-wrap: wrap; margin-bottom: 34px; }
 
 /* Reserva sitio a la derecha para la tarjeta de valoracion: antes se ponia
    encima del coche y le tapaba media carroceria. */
@@ -142,7 +142,7 @@
 /* La llamada del asterisco, a la vista y no en el pie: si no, la cifra afirma
    sola algo que no puede sostener. */
 .pc-nota {
-  grid-column: 1 / -1; margin-top: 64px; font-size: 12px; line-height: 1.55;
+  grid-column: 1 / -1; margin-top: 4px; font-size: 12px; line-height: 1.55;
   color: var(--gris-500); max-width: 72ch;
   border-left: 2px solid var(--acento); padding-left: 12px;
 }

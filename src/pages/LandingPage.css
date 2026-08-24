@@ -142,7 +142,7 @@
 /* La llamada del asterisco, a la vista y no en el pie: si no, la cifra afirma
    sola algo que no puede sostener. */
 .pc-nota {
-  grid-column: 1 / -1; margin-top: 10px; font-size: 12px; line-height: 1.55;
+  grid-column: 1 / -1; margin-top: 38px; font-size: 12px; line-height: 1.55;
   color: var(--gris-500); max-width: 72ch;
   border-left: 2px solid var(--acento); padding-left: 12px;
 }

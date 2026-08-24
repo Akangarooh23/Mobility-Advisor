@@ -303,6 +303,31 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           >
             &gt;
           </span>
+          {/* Distintivo del test: dice de un vistazo que esta opcion no es
+              un buscador, es un cuestionario que recomienda. */}
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              background: "var(--acento-tenue)",
+              color: "var(--acento-texto)",
+              border: "1px solid rgba(255,196,0,0.45)",
+              borderRadius: 999,
+              padding: "5px 11px 5px 8px",
+              fontSize: 11.5,
+              fontWeight: 700,
+              lineHeight: 1,
+            }}
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M9.5 2.5h5" />
+              <path d="M10.5 2.5v6.2L5.6 17.4a2.4 2.4 0 0 0 2.1 3.6h8.6a2.4 2.4 0 0 0 2.1-3.6L13.5 8.7V2.5" />
+              <path d="M7.6 14.5h8.8" />
+            </svg>
+            {t("buyOptions.optionBTag")}
+          </span>
           <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
             {t("buyOptions.optionBTitle")}
           </div>

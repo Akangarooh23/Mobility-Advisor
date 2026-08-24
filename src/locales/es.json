@@ -745,17 +745,18 @@
     "badgeLabel": "Compra",
     "pageSubtitle": "Dinos cuanto sabes ya sobre lo que quieres y empezamos desde ahi. Analizamos el mercado en tiempo real para encontrar las mejores opciones.",
     "optionABadge": "Opción A",
-    "optionATitle": "Ya sé qué modelo me interesa",
+    "optionATitle": "Buscar coche",
     "optionADesc": "Si tienes claro que modelo quieres, cuéntanos la zona, rango de precio y kilómetros. Analizamos las ofertas actuales bajo esos parámetros.",
     "optionBBadge": "Opción B",
-    "optionBTitle": "Ayúdame a encontrar los modelos que mejor se adapten a mí",
+    "optionBTitle": "Descubre tu coche",
     "optionBDesc": "Realiza nuestro test para conocernos y ayudarte a elegir el coche que encaje con tu estilo de vida y desplazamientos.",
     "hideButton": "Ocultar",
     "showMore": "Ver más",
     "flowAHeader": "Flujo A - Modelo conocido - 6 pasos",
     "flowBHeader": "Flujo B - Test CarsWise - selección personalizada",
     "accessButton": "Acceder",
-    "minimizeButton": "Minimizar"
+    "minimizeButton": "Minimizar",
+    "optionBTag": "Test inteligente según tus necesidades"
   },
   "sell": {
     "goBack": "← Volver",
@@ -1834,7 +1835,7 @@
     "badge": "MARKETPLACE DEL PORTAL VO",
     "title": "Ofertas VO únicas de nuestro portal",
     "subtitle": "Aquí ves un escaparate con vehículos publicados por usuarios del portal. Arriba priorizamos las unidades con mejor puntuación y <1>sello de garantía CarsWise</1>.",
-    "backHome": "\u2302 Volver al home",
+    "backHome": "⌂ Volver al home",
     "filtersLabel": "FILTROS DEL MARKETPLACE",
     "filterQuery": "Marca, modelo o versión",
     "filterMaxPrice": "Precio máximo",
@@ -1860,23 +1861,23 @@
     "filterDisplacement2000plus": "Más de 2.000 cc",
     "filterOnlyGuaranteed": "Solo con sello de garantía",
     "filterReset": "Limpiar filtros",
-    "featuredLabel": "\u2b50 MEJOR PUNTUADOS CON SELLO CARSWISE",
+    "featuredLabel": "⭐ MEJOR PUNTUADOS CON SELLO CARSWISE",
     "noFeatured": "No hay vehículos con sello para esos filtros ahora mismo.",
     "guaranteeSeal": "Sello de garantía",
     "warrantyMonths": "{{months}} meses",
-    "allOffersLabel": "\ud83d\ude97 TODAS LAS OFERTAS DEL PORTAL",
+    "allOffersLabel": "🚗 TODAS LAS OFERTAS DEL PORTAL",
     "resultsCount": "{{count}} resultados",
     "guaranteePortal": "Garantía portal",
     "postedByUser": "Publicado por usuario",
     "offerAvailableIn": "{{title}} disponible en {{location}}.",
     "noResults": "No hemos encontrado resultados con esos filtros. Prueba a ampliar precio, kilometraje o ubicación.",
-    "backHomeBottom": "\u2302 Volver al home",
+    "backHomeBottom": "⌂ Volver al home",
     "seeFullCard": "Ver ficha completa",
     "sellerLabel": "vendedor: {{seller}}",
-    "detailBadge": "\ud83d\ude97 FICHA DEL VEHÍCULO",
+    "detailBadge": "🚗 FICHA DEL VEHÍCULO",
     "detailSubBadge": "DETALLE DEL VEHÍCULO VO",
-    "backToMarketplace": "\u2190 Volver al marketplace",
-    "backToHome": "\u2302 Volver al inicio",
+    "backToMarketplace": "← Volver al marketplace",
+    "backToHome": "⌂ Volver al inicio",
     "detailLocation": "Unidad ubicada en {{location}}, con {{mileage}} km y motorización {{fuel}}{{power}}.",
     "detailPower": " de {{power}}",
     "specYear": "Año",
@@ -1894,48 +1895,48 @@
   },
   "blog": {
     "badge": "BLOG DE MOVILIDAD",
-    "title": "Gu\u00edas pr\u00e1cticas para decidir mejor",
-    "subtitle": "Art\u00edculos \u00fatiles sobre compra, renting, coste total y operativa de movilidad en Espa\u00f1a.",
+    "title": "Guías prácticas para decidir mejor",
+    "subtitle": "Artículos útiles sobre compra, renting, coste total y operativa de movilidad en España.",
     "goHome": "Volver al inicio",
-    "readArticle": "Leer art\u00edculo",
-    "goBack": "\u2190 Volver al blog",
-    "goToHome": "\u2302 Ir al inicio"
+    "readArticle": "Leer artículo",
+    "goBack": "← Volver al blog",
+    "goToHome": "⌂ Ir al inicio"
   },
   "legal": {
-    "back": "\u2190 Volver",
-    "goHome": "\u2302 Ir al inicio",
-    "badge": "DOCUMENTACI\u00d3N LEGAL",
-    "lastUpdated": "\u00daltima actualizaci\u00f3n: {{date}}"
+    "back": "← Volver",
+    "goHome": "⌂ Ir al inicio",
+    "badge": "DOCUMENTACIÓN LEGAL",
+    "lastUpdated": "Última actualización: {{date}}"
   },
   "cookies": {
     "badge": "CONFIGURACION INICIAL",
-    "title": "Antes de entrar, acepta nuestra pol\u00edtica de cookies",
-    "description": "Utilizamos cookies necesarias para el funcionamiento y, si t\u00fa quieres, cookies anal\u00edticas, de personalizaci\u00f3n y marketing para mejorar tu experiencia.",
-    "note": "Puedes aceptar todas, rechazar las opcionales o configurar tus preferencias por categor\u00eda.",
-    "advancedMessage": "Configuraci\u00f3n avanzada activa. Cuando termines, pulsa Guardar selecci\u00f3n.",
+    "title": "Antes de entrar, acepta nuestra política de cookies",
+    "description": "Utilizamos cookies necesarias para el funcionamiento y, si tú quieres, cookies analíticas, de personalización y marketing para mejorar tu experiencia.",
+    "note": "Puedes aceptar todas, rechazar las opcionales o configurar tus preferencias por categoría.",
+    "advancedMessage": "Configuración avanzada activa. Cuando termines, pulsa Guardar selección.",
     "necessary": {
       "title": "Cookies necesarias",
-      "description": "Imprescindibles para acceder, mantener sesi\u00f3n y navegar correctamente."
+      "description": "Imprescindibles para acceder, mantener sesión y navegar correctamente."
     },
     "analytics": {
-      "title": "Cookies anal\u00edticas",
+      "title": "Cookies analíticas",
       "description": "Nos ayudan a medir uso y rendimiento para mejorar la plataforma."
     },
     "personalization": {
-      "title": "Cookies de personalizaci\u00f3n",
+      "title": "Cookies de personalización",
       "description": "Guardan preferencias para adaptar contenido y experiencia."
     },
     "marketing": {
       "title": "Cookies de marketing",
-      "description": "Permiten comunicaciones y campa\u00f1as m\u00e1s relevantes."
+      "description": "Permiten comunicaciones y campañas más relevantes."
     },
     "alwaysActive": "Siempre activas",
     "enabled": "Activadas",
     "disabled": "Desactivadas",
     "acceptAll": "Aceptar todas",
     "necessaryOnly": "Solo necesarias",
-    "saveSelection": "Guardar selecci\u00f3n",
+    "saveSelection": "Guardar selección",
     "showSettings": "Configurar cookies",
-    "hideSettings": "Ocultar configuraci\u00f3n"
+    "hideSettings": "Ocultar configuración"
   }
 }

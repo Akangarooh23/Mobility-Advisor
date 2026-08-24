@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="PopCar">
+  <!--
+    Icono cuadrado de PopCar, para la pestaña del navegador.
+
+    Va en SVG y no en PNG por dos motivos: se ve nítido a cualquier tamaño y no
+    hace falta una herramienta de imagen para generarlo. El logotipo de la marca
+    es apaisado (3:1) y no sirve para un icono, así que aquí se reduce a la «P».
+
+    Fondo amarillo y letra negra, y no al revés: a 16 píxeles, en una barra de
+    pestañas llena, el amarillo es lo que hace que se encuentre.
+  -->
+  <rect width="64" height="64" rx="14" fill="#FFC400"/>
+  <g fill="#111111">
+    <rect x="19" y="13" width="10" height="38" rx="5"/>
+    <circle cx="35" cy="25" r="13"/>
+  </g>
+  <circle cx="35" cy="25" r="5.4" fill="#FFC400"/>
+</svg>

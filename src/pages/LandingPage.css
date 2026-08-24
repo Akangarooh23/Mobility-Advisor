@@ -118,10 +118,10 @@
 /* Reserva sitio a la derecha para la tarjeta de valoracion: antes se ponia
    encima del coche y le tapaba media carroceria. */
 .pc-hero-visual { position: relative; display: flex; align-items: center; justify-content: center; padding-right: 120px; }
-/* La foto viene con fondo blanco de estudio; multiply lo funde con la página y
-   el coche queda recortado sin tener que recortarlo. Por eso detrás no puede
-   haber nada de color: teñiría la chapa. */
-.pc-hero-visual img { width: 100%; max-width: 720px; height: auto; mix-blend-mode: multiply; }
+/* La foto viene recortada, con transparencia de verdad: no hace falta fundir
+   ningun fondo. El ancho maximo esta ajustado para que el coche salga del
+   mismo tamano que con la foto anterior, que traia mas margen blanco. */
+.pc-hero-visual img { width: 100%; max-width: 640px; height: auto; }
 
 .pc-tarjeta-ia {
   position: absolute; right: -80px; top: 40px; z-index: 3;

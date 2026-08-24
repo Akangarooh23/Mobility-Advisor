@@ -8,7 +8,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
       minHeight: "100vh",
       background: isDark
         ? "linear-gradient(160deg,#060d1a 0%,#0a1628 50%,#050e1c 100%)"
-        : "linear-gradient(180deg,#ffffff 0%,var(--gris-50) 100%)",
+        : "var(--blanco)",   // el fondo de la web es blanco, sin degradado
       fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
       color: isDark ? "var(--gris-200)" : "var(--gris-900)",
     },

@@ -115,14 +115,16 @@
 .pc-rasgos small { display: block; color: var(--gris-500); font-size: 11.5px; line-height: 1.45; }
 .pc-hero-acciones { display: flex; gap: 13px; flex-wrap: wrap; }
 
-.pc-hero-visual { position: relative; display: flex; align-items: center; justify-content: center; }
+/* Reserva sitio a la derecha para la tarjeta de valoracion: antes se ponia
+   encima del coche y le tapaba media carroceria. */
+.pc-hero-visual { position: relative; display: flex; align-items: center; justify-content: center; padding-right: 120px; }
 /* La foto viene con fondo blanco de estudio; multiply lo funde con la página y
    el coche queda recortado sin tener que recortarlo. Por eso detrás no puede
    haber nada de color: teñiría la chapa. */
 .pc-hero-visual img { width: 100%; max-width: 720px; height: auto; mix-blend-mode: multiply; }
 
 .pc-tarjeta-ia {
-  position: absolute; right: 0; top: 40px; z-index: 3;
+  position: absolute; right: -80px; top: 40px; z-index: 3;
   background: var(--blanco); border: 1px solid var(--gris-200);
   border-radius: 18px; padding: 18px 20px; width: 200px;
   box-shadow: 0 18px 50px rgba(0, 0, 0, .10);
@@ -286,6 +288,10 @@
 .pc-boletin button:hover { background: var(--acento-oscuro); }
 
 /* ── Adaptación ──────────────────────────────────────────────────────────── */
+@media (max-width: 1280px) {
+  .pc-hero-visual { padding-right: 210px; }
+  .pc-tarjeta-ia { right: 0; }
+}
 @media (max-width: 1000px) {
   .pc-hero { grid-template-columns: 1fr; padding-top: 44px; }
   .pc-hero-visual { order: -1; }
@@ -303,6 +309,7 @@
   .pc-hero-acciones { flex-direction: column; }
   .pc-hero-acciones .pc-btn { width: 100%; }
   .pc-tarjeta-ia { position: static; width: auto; margin-top: 16px; }
+  .pc-hero-visual { padding-right: 0; flex-direction: column; }
   .pc-confianza { grid-template-columns: 1fr; gap: 16px; }
   .pc-confianza > div { border-right: 0; border-bottom: 1px solid var(--gris-200); padding-bottom: 16px; }
   .pc-confianza > div:last-child { border-bottom: 0; padding-bottom: 0; }

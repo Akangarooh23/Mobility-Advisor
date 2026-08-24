@@ -22,7 +22,7 @@ import "./LandingPage.css";
 
 const TEXTOS = {
   es: {
-    nav: { comprar: "Comprar", vender: "Vender", gestionar: "Gestionar", idcar: "IdCar", como: "Cómo funciona", ofertas: "Ofertas" },
+    nav: { comprar: "Comprar", vender: "Vender", gestionar: "Gestionar", idcar: "IdCar", como: "Cómo funciona", empresas: "Empresas" },
     entrar: "Iniciar sesión",
     registro: "Regístrate",
     panel: "Mi panel",
@@ -94,7 +94,7 @@ const TEXTOS = {
     legal: "Aviso legal · Privacidad · Cookies",
   },
   en: {
-    nav: { comprar: "Buy", vender: "Sell", gestionar: "Manage", idcar: "IdCar", como: "How it works", ofertas: "Listings" },
+    nav: { comprar: "Buy", vender: "Sell", gestionar: "Manage", idcar: "IdCar", como: "How it works", empresas: "Business" },
     entrar: "Log in",
     registro: "Sign up",
     panel: "My dashboard",
@@ -194,6 +194,7 @@ export default function LandingPage({
   onSelectSell,
   onSelectService,
   onSelectPortalVo,
+  onSelectContact,
   onOpenPlans,
   // Props que sigue pasando App.js y esta vista no usa
   styles,
@@ -244,6 +245,7 @@ export default function LandingPage({
   const irPlanes    = go(onOpenPlans);
   const irInicio    = go(onSelectAdvice || onSelectBuyStart);
   const irOfertas   = go(onSelectPortalVo);
+  const irContacto  = go(onSelectContact);
   const irPanel     = go(onOpenDashboard);
 
   const Logotipo = ({ tono = "oscuro", size = 32 }) => (
@@ -257,7 +259,7 @@ export default function LandingPage({
     [t.nav.vender, irVender],
     [t.nav.gestionar, irGestionar],
     [t.nav.idcar, irGestionar],
-    [t.nav.ofertas, irOfertas],
+    [t.nav.empresas, irContacto],
   ];
 
   const iconosRasgo = [IcoLupa, IcoEtiq, IcoCheck];

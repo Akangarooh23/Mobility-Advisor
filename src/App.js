@@ -1882,8 +1882,8 @@ export default function App() {
     if (entryMode === "idCarsManage" || entryMode === "idCarDetail" || entryMode === "idCarCreate") {
       return "idcar";
     }
-    if (entryMode === "portalVo") {
-      return "offers";
+    if (entryMode === "contact") {
+      return "business";
     }
 
     if (entryMode === "sellOptions" || entryMode === "sell") {
@@ -1942,9 +1942,9 @@ export default function App() {
       onClick: () => openInternalLandingFlow("idCarsManage"),
     },
     {
-      key: "offers",
-      label: uiLanguage === "en" ? "Listings" : "Ofertas",
-      onClick: () => openPublicPage("portalVo"),
+      key: "business",
+      label: uiLanguage === "en" ? "Business" : "Empresas",
+      onClick: () => openPublicPage("contact"),
     },
   ], [goToHomeHeaderPage, openInternalLandingFlow, openPublicPage, uiLanguage]);
 
@@ -5072,7 +5072,6 @@ export default function App() {
             })}
           </div>
         )}
-        <div style={{ height: 3, background: "linear-gradient(to right, var(--marca-oscuro) 50%, #16a34a 50%)" }} />
       </header>}
 
       {authDialogMode && (
@@ -5984,7 +5983,7 @@ export default function App() {
           }
 
           .ma-header-progress {
-            background: linear-gradient(90deg, var(--marca) 0%, #22c55e 100%);
+            background: linear-gradient(90deg, var(--acento) 0%, var(--acento-texto) 100%);
             background-size: 180% 100%;
             animation: maHeaderLineShift 4.8s linear infinite;
             box-shadow: 0 1px 8px rgba(255, 196, 0, 0.2);
@@ -6057,6 +6056,7 @@ export default function App() {
       {/* LANDING */}
       {step === -1 && !entryMode && (
         <LandingPage
+          onSelectContact={() => openPublicPage("contact")}
           styles={s}
           totalSteps={totalSteps}
           blockColors={BLOCK_COLORS}

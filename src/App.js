@@ -1872,15 +1872,18 @@ export default function App() {
       entryMode === "serviceInsurance" ||
       entryMode === "serviceMaintenance" ||
       entryMode === "serviceAutogestor" ||
-      entryMode === "idCarsManage" ||
-      entryMode === "idCarDetail" ||
-      entryMode === "idCarCreate" ||
       entryMode === "serviceAppointment" ||
       entryMode === "serviceAppointmentCalendar" ||
       entryMode === "serviceMonthlyPlan" ||
       entryMode === "servicesSeo"
     ) {
       return "services";
+    }
+    if (entryMode === "idCarsManage" || entryMode === "idCarDetail" || entryMode === "idCarCreate") {
+      return "idcar";
+    }
+    if (entryMode === "portalVo") {
+      return "offers";
     }
 
     if (entryMode === "sellOptions" || entryMode === "sell") {
@@ -1930,28 +1933,20 @@ export default function App() {
     },
     {
       key: "services",
-      label: uiLanguage === "en" ? "My Car" : "Mi coche",
+      label: uiLanguage === "en" ? "Manage" : "Gestionar",
       onClick: () => openInternalLandingFlow("serviceOptions"),
     },
     {
-      key: "plans",
-      label: uiLanguage === "en" ? "Plans ▾" : "Planes ▾",
-      onClick: () => {
-        setShowHeaderMobileNav(false);
-        setShowHeaderMoreNav(false);
-        setShowHeaderPlansNav((prev) => !prev);
-      },
+      key: "idcar",
+      label: "IdCar",
+      onClick: () => openInternalLandingFlow("idCarsManage"),
     },
     {
-      key: "more",
-      label: uiLanguage === "en" ? "More ▾" : "Más ▾",
-      onClick: () => {
-        setShowHeaderMobileNav(false);
-        setShowHeaderPlansNav(false);
-        setShowHeaderMoreNav((prev) => !prev);
-      },
+      key: "offers",
+      label: uiLanguage === "en" ? "Listings" : "Ofertas",
+      onClick: () => openPublicPage("portalVo"),
     },
-  ], [goToHomeHeaderPage, openInternalLandingFlow, uiLanguage]);
+  ], [goToHomeHeaderPage, openInternalLandingFlow, openPublicPage, uiLanguage]);
 
   const headerPlansNavItems = useMemo(() => [
     {
@@ -4600,16 +4595,6 @@ export default function App() {
             </button>
           )}
 
-          <button
-            type="button"
-            onClick={() => setUiLanguage((prev) => (prev === "es" ? "en" : "es"))}
-            title={uiLanguage === "es" ? "Cambiar a inglés" : "Cambiar a español"}
-            style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "none", border: "1px solid var(--gris-200)", color: "var(--gris-700)", padding: "6px 12px", borderRadius: 20, cursor: "pointer", fontSize: 12, fontWeight: 500, whiteSpace: "nowrap" }}
-          >
-            <span>🌐</span>
-            <span>{uiLanguage === "es" ? "ES" : "EN"}</span>
-          </button>
-
           {isUserLoggedIn ? (
             <button
               type="button"
@@ -6062,10 +6047,12 @@ export default function App() {
         `}
       </style>
 
-      {/* PROGRESS */}
-      <div className="ma-header-progress" style={s.progressBar}>
-        <div className="ma-header-progress-fill" style={s.progressFill} />
-      </div>
+      {/* PROGRESO — solo durante el cuestionario */}
+      {step >= 0 && (
+        <div className="ma-header-progress" style={s.progressBar}>
+          <div className="ma-header-progress-fill" style={s.progressFill} />
+        </div>
+      )}
 
       {/* LANDING */}
       {step === -1 && !entryMode && (

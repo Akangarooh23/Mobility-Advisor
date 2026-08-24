@@ -462,7 +462,7 @@ export default function ServiceIdCarsManagePage({
   const [marketplaceOverrides, setMarketplaceOverrides] = useState({});
   const [marketplacePublishDialog, setMarketplacePublishDialog] = useState({ open: false, vehicle: null });
 
-  // Informe de estado (CarsWise Check). La lógica vive en el hook porque el
+  // Informe de estado (PopCar Check). La lógica vive en el hook porque el
   // panel de vehículos publica también y el requisito tiene que ser el mismo.
   const {
     cargar: cargarInforme,
@@ -1023,7 +1023,7 @@ export default function ServiceIdCarsManagePage({
     }
   };
 
-  // ─── informe de estado (CarsWise Check) ─────────────────────────────
+  // ─── informe de estado (PopCar Check) ─────────────────────────────
   // La ficha de un coche necesita el informe aunque la sección esté plegada:
   // lo consultan también las acciones rápidas. En el listado solo se pide si
   // el usuario abre la sección, para no lanzar una petición por cada coche.
@@ -1550,7 +1550,7 @@ export default function ServiceIdCarsManagePage({
           return (
             <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 8 }}>
               <p style={{ fontSize: 12, color: "var(--gris-500)", margin: 0 }}>
-                {txt("Publica tu vehículo en el Marketplace de CarsWise para que otros usuarios puedan comprarlo.", "Publish your vehicle in the CarsWise Marketplace so other users can buy it.")}
+                {txt("Publica tu vehículo en el Marketplace de PopCar para que otros usuarios puedan comprarlo.", "Publish your vehicle in the PopCar Marketplace so other users can buy it.")}
               </p>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
                 {!isPublished && !isUnpublished && (

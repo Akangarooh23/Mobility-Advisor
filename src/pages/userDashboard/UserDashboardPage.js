@@ -359,7 +359,7 @@ export default function UserDashboardPage({
             }}
           >
             <div style={{ fontSize: 18, fontWeight: 800, color: "var(--marca)", marginBottom: 14 }}>
-              CarsWise
+              PopCar
             </div>
 
             <div style={{ fontSize: 11, letterSpacing: "0.08em", color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginBottom: 8 }}>
@@ -430,7 +430,7 @@ export default function UserDashboardPage({
               }}
             >
               <div style={{ fontSize: 12, color: bodyColor }}>
-                carswise.es/panel
+                popcar.tech/panel
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span

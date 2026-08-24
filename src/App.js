@@ -268,26 +268,26 @@ const LEGAL_DOCUMENTS = {
   legalNotice: {
     title: "Aviso legal",
     summary:
-      "Información general de titularidad, condiciones de acceso, propiedad intelectual y responsabilidades del uso de la plataforma carswiseai.com.",
+      "Información general de titularidad, condiciones de acceso, propiedad intelectual y responsabilidades del uso de la plataforma popcar.tech.",
     updatedAt: "17/06/2026",
     sections: [
       {
         heading: "1. Datos identificativos del titular",
         paragraphs: [
           "En cumplimiento del artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y del Comercio Electrónico (LSSICE), se facilitan los datos del titular del sitio web:",
-          "Denominación social: Carswiseai [PENDIENTE: forma jurídica, S.L. / S.A. / autónomo]",
+          "Denominación social: PopCar [PENDIENTE: forma jurídica, S.L. / S.A. / autónomo]",
           "NIF/CIF: [PENDIENTE]",
           "Domicilio social: [PENDIENTE: dirección completa, código postal, ciudad, provincia]",
           "Correo electrónico de contacto: soporte@carswiseai.com",
-          "Sitio web: https://www.carswiseai.com",
+          "Sitio web: https://www.popcar.tech",
         ],
       },
       {
         heading: "2. Objeto y ámbito del sitio web",
         paragraphs: [
-          "Carswiseai opera una plataforma digital de intermediación y marketplace de vehículos de ocasión, renting y servicios de movilidad en España, accesible a través del dominio carswiseai.com.",
+          "PopCar opera una plataforma digital de intermediación y marketplace de vehículos de ocasión, renting y servicios de movilidad en España, accesible a través del dominio popcar.tech.",
           "La plataforma permite a los usuarios explorar ofertas de vehículos, solicitar información, agendar visitas y gestionar solicitudes de renting, conectándoles con los proveedores correspondientes.",
-          "La información y los contenidos publicados tienen carácter informativo y de apoyo a la decisión del usuario. Carswiseai actúa como intermediario y no es parte contratante en las operaciones de compraventa o renting que se formalicen entre el usuario y el proveedor del vehículo.",
+          "La información y los contenidos publicados tienen carácter informativo y de apoyo a la decisión del usuario. PopCar actúa como intermediario y no es parte contratante en las operaciones de compraventa o renting que se formalicen entre el usuario y el proveedor del vehículo.",
         ],
       },
       {
@@ -297,26 +297,26 @@ const LEGAL_DOCUMENTS = {
           "El usuario se compromete a hacer un uso diligente, lícito y correcto del sitio, de conformidad con la legislación vigente, la buena fe y el orden público.",
         ],
         bullets: [
-          "Queda prohibida la reproducción, distribución o comunicación pública de los contenidos del sitio sin autorización previa y por escrito de Carswiseai.",
+          "Queda prohibida la reproducción, distribución o comunicación pública de los contenidos del sitio sin autorización previa y por escrito de PopCar.",
           "Queda prohibido el uso de técnicas de scraping, crawling u otras formas de extracción automatizada de datos sin consentimiento expreso.",
           "Queda prohibido introducir, almacenar o difundir mediante el sitio contenidos que sean ilícitos, dañinos, difamatorios o que vulneren derechos de terceros.",
-          "Carswiseai se reserva el derecho a denegar, restringir o cancelar el acceso a usuarios que incumplan estas condiciones.",
+          "PopCar se reserva el derecho a denegar, restringir o cancelar el acceso a usuarios que incumplan estas condiciones.",
         ],
       },
       {
         heading: "4. Propiedad intelectual e industrial",
         paragraphs: [
-          "La marca, logotipos, denominación comercial Carswiseai, así como el diseño, estructura, código fuente, textos, imágenes, gráficos y demás elementos de la plataforma son titularidad de Carswiseai o de sus licenciantes, y están protegidos por la normativa española e internacional en materia de propiedad intelectual e industrial.",
+          "La marca, logotipos, denominación comercial PopCar, así como el diseño, estructura, código fuente, textos, imágenes, gráficos y demás elementos de la plataforma son titularidad de PopCar o de sus licenciantes, y están protegidos por la normativa española e internacional en materia de propiedad intelectual e industrial.",
           "El usuario únicamente está autorizado a visualizar y hacer uso privado de los contenidos. Cualquier otro uso requiere autorización expresa y por escrito del titular.",
         ],
       },
       {
         heading: "5. Exclusión de responsabilidad",
         paragraphs: [
-          "Carswiseai no garantiza la disponibilidad permanente e ininterrumpida del sitio, aunque aplica medidas razonables para asegurar su continuidad. Se excluye la responsabilidad por daños derivados de interrupciones, errores técnicos o causas de fuerza mayor.",
-          "Los precios, disponibilidad y características de los vehículos publicados en el marketplace son proporcionados por los proveedores. Carswiseai no se responsabiliza de inexactitudes en dicha información.",
+          "PopCar no garantiza la disponibilidad permanente e ininterrumpida del sitio, aunque aplica medidas razonables para asegurar su continuidad. Se excluye la responsabilidad por daños derivados de interrupciones, errores técnicos o causas de fuerza mayor.",
+          "Los precios, disponibilidad y características de los vehículos publicados en el marketplace son proporcionados por los proveedores. PopCar no se responsabiliza de inexactitudes en dicha información.",
           "Las decisiones de compra, contratación de renting o cualquier operación comercial son responsabilidad exclusiva del usuario y del proveedor con quien suscriba el acuerdo.",
-          "Carswiseai no asume responsabilidad por los contenidos de sitios web de terceros enlazados desde esta plataforma.",
+          "PopCar no asume responsabilidad por los contenidos de sitios web de terceros enlazados desde esta plataforma.",
         ],
       },
       {
@@ -331,13 +331,13 @@ const LEGAL_DOCUMENTS = {
   privacyPolicy: {
     title: "Política de privacidad",
     summary:
-      "Información sobre el tratamiento de sus datos personales por parte de Carswiseai, conforme al Reglamento (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018 (LOPDGDD).",
+      "Información sobre el tratamiento de sus datos personales por parte de PopCar, conforme al Reglamento (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018 (LOPDGDD).",
     updatedAt: "17/06/2026",
     sections: [
       {
         heading: "1. Responsable del tratamiento",
         paragraphs: [
-          "Denominación: Carswiseai [PENDIENTE: forma jurídica, p. ej. S.L.]",
+          "Denominación: PopCar [PENDIENTE: forma jurídica, p. ej. S.L.]",
           "NIF/CIF: [PENDIENTE]",
           "Domicilio social: [PENDIENTE: dirección completa, código postal, ciudad]",
           "Correo electrónico de privacidad: soporte@carswiseai.com",
@@ -351,8 +351,8 @@ const LEGAL_DOCUMENTS = {
           "Datos de solicitudes: información aportada en formularios de solicitud de información, visita, renting o consulta (nombre, email, teléfono, mensaje, fecha y hora de cita preferida).",
           "Datos de navegación y uso: eventos de sesión, páginas y ofertas consultadas, fuente de la visita (UTM), identificador anónimo de sesión (cw_anon_id) y dirección IP.",
           "Datos de preferencias: alertas guardadas, filtros de búsqueda y configuración de la cuenta.",
-          "Datos de facturación: en caso de contratación de planes de servicio, los datos necesarios para el procesamiento del pago a través de Stripe. Carswiseai no almacena datos de tarjetas.",
-          "Datos de solvencia: cuando el usuario consiente expresamente, Carswiseai puede solicitar a Experian Bureau de Crédito S.A. la consulta de información de solvencia patrimonial ante organismos públicos, con la única finalidad de valorar la viabilidad de una operación de renting o financiación.",
+          "Datos de facturación: en caso de contratación de planes de servicio, los datos necesarios para el procesamiento del pago a través de Stripe. PopCar no almacena datos de tarjetas.",
+          "Datos de solvencia: cuando el usuario consiente expresamente, PopCar puede solicitar a Experian Bureau de Crédito S.A. la consulta de información de solvencia patrimonial ante organismos públicos, con la única finalidad de valorar la viabilidad de una operación de renting o financiación.",
         ],
       },
       {
@@ -362,8 +362,8 @@ const LEGAL_DOCUMENTS = {
           "Tramitación de solicitudes de información, visita o renting — base: medidas precontractuales (art. 6.1.b RGPD).",
           "Comunicaciones operativas sobre el estado de solicitudes (confirmaciones, recordatorios, actualizaciones de estado) — base: ejecución del contrato (art. 6.1.b RGPD).",
           "Análisis de uso de la plataforma para mejora del servicio — base: interés legítimo (art. 6.1.f RGPD).",
-          "Envío de comunicaciones comerciales propias de Carswiseai (novedades, ofertas, campañas de marketing) — base: consentimiento expreso (art. 6.1.a RGPD), revocable en cualquier momento sin coste.",
-          "Cesión de datos a terceros colaboradores (empresas del sector de movilidad, renting, financiación o seguros) para que realicen campañas de marketing propias dirigidas al usuario — base: consentimiento expreso (art. 6.1.a RGPD), revocable en cualquier momento. El usuario consiente expresamente que Carswiseai transmita su nombre, correo electrónico y perfil de interés a dichos terceros, quienes pasarán a ser responsables independientes del tratamiento para sus propias finalidades comerciales.",
+          "Envío de comunicaciones comerciales propias de PopCar (novedades, ofertas, campañas de marketing) — base: consentimiento expreso (art. 6.1.a RGPD), revocable en cualquier momento sin coste.",
+          "Cesión de datos a terceros colaboradores (empresas del sector de movilidad, renting, financiación o seguros) para que realicen campañas de marketing propias dirigidas al usuario — base: consentimiento expreso (art. 6.1.a RGPD), revocable en cualquier momento. El usuario consiente expresamente que PopCar transmita su nombre, correo electrónico y perfil de interés a dichos terceros, quienes pasarán a ser responsables independientes del tratamiento para sus propias finalidades comerciales.",
           "Consulta de solvencia ante organismos públicos a través de Experian, para operaciones de renting o financiación — base: consentimiento expreso (art. 6.1.a RGPD). Este consentimiento es voluntario; su denegación no impide el uso general de la plataforma.",
           "Cumplimiento de obligaciones legales (fiscales, contables, de seguridad informática) — base: obligación legal (art. 6.1.c RGPD).",
         ],
@@ -371,8 +371,8 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "4. Comunicaciones comerciales y marketing",
         paragraphs: [
-          "Si el usuario presta consentimiento expreso, Carswiseai podrá enviarle comunicaciones comerciales por correo electrónico u otros canales digitales sobre nuevas ofertas de vehículos, campañas de renting, servicios de movilidad y contenidos de interés relacionados con el sector del automóvil.",
-          "Con consentimiento expreso, sus datos (nombre, correo electrónico y perfil de interés en vehículos) podrán cederse a terceros colaboradores del sector de la movilidad, financiación o seguros para que realicen campañas de marketing propias. En ese caso, dichos terceros actúan como responsables independientes del tratamiento y se rigen por sus propias políticas de privacidad. Carswiseai facilitará al usuario la identidad de dichos terceros cuando los datos vayan a ser cedidos.",
+          "Si el usuario presta consentimiento expreso, PopCar podrá enviarle comunicaciones comerciales por correo electrónico u otros canales digitales sobre nuevas ofertas de vehículos, campañas de renting, servicios de movilidad y contenidos de interés relacionados con el sector del automóvil.",
+          "Con consentimiento expreso, sus datos (nombre, correo electrónico y perfil de interés en vehículos) podrán cederse a terceros colaboradores del sector de la movilidad, financiación o seguros para que realicen campañas de marketing propias. En ese caso, dichos terceros actúan como responsables independientes del tratamiento y se rigen por sus propias políticas de privacidad. PopCar facilitará al usuario la identidad de dichos terceros cuando los datos vayan a ser cedidos.",
           "El usuario puede revocar este consentimiento en cualquier momento haciendo clic en el enlace de baja incluido en cualquier comunicación, o escribiendo a soporte@carswiseai.com. La revocación no afecta a la licitud del tratamiento previo.",
           "Actualmente los envíos de campañas se realizan mediante el servicio Resend. [PENDIENTE: actualizar si se integra una plataforma de email marketing específica como Mailchimp, Brevo, etc.]",
         ],
@@ -380,7 +380,7 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "5. Experian y consulta de solvencia",
         paragraphs: [
-          "Para determinadas operaciones de renting o financiación, y siempre con consentimiento previo y expreso del usuario, Carswiseai puede transmitir sus datos a Experian Bureau de Crédito S.A. (NIF [PENDIENTE], domiciliada en [PENDIENTE]) para consultar información de solvencia patrimonial en ficheros de información crediticia y ante organismos públicos.",
+          "Para determinadas operaciones de renting o financiación, y siempre con consentimiento previo y expreso del usuario, PopCar puede transmitir sus datos a Experian Bureau de Crédito S.A. (NIF [PENDIENTE], domiciliada en [PENDIENTE]) para consultar información de solvencia patrimonial en ficheros de información crediticia y ante organismos públicos.",
           "La finalidad exclusiva de esta consulta es valorar la viabilidad económica de la operación solicitada. El usuario tiene derecho a conocer el resultado de la consulta y a ejercer sus derechos de acceso, rectificación y cancelación directamente ante Experian (www.experian.es).",
           "Este consentimiento es independiente y revocable en cualquier momento. Su denegación únicamente puede afectar a la tramitación de la operación de renting o financiación concreta.",
         ],
@@ -389,7 +389,7 @@ const LEGAL_DOCUMENTS = {
         heading: "6. Destinatarios y encargados del tratamiento",
         paragraphs: [
           "Sus datos podrán comunicarse a los proveedores de vehículos (concesionarios, empresas de renting como Leasys o Astara) con los que el usuario haya iniciado una solicitud, exclusivamente para su gestión.",
-          "Carswiseai cuenta con los siguientes encargados del tratamiento que actúan bajo contrato de encargo conforme al art. 28 RGPD: Vercel Inc. (alojamiento web y serverless), Supabase Inc. (almacenamiento de archivos), Neon Inc. (base de datos PostgreSQL), Resend Inc. (envío de correo electrónico transaccional y comercial), Stripe Inc. (procesamiento de pagos).",
+          "PopCar cuenta con los siguientes encargados del tratamiento que actúan bajo contrato de encargo conforme al art. 28 RGPD: Vercel Inc. (alojamiento web y serverless), Supabase Inc. (almacenamiento de archivos), Neon Inc. (base de datos PostgreSQL), Resend Inc. (envío de correo electrónico transaccional y comercial), Stripe Inc. (procesamiento de pagos).",
           "Algunos de estos proveedores están establecidos fuera del Espacio Económico Europeo (EE. UU.). Las transferencias se amparan en las Cláusulas Contractuales Tipo aprobadas por la Comisión Europea o en decisiones de adecuación vigentes.",
           "No se ceden datos a terceros con fines publicitarios propios salvo consentimiento expreso.",
         ],
@@ -417,20 +417,20 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "9. Seguridad",
         paragraphs: [
-          "Carswiseai aplica medidas técnicas y organizativas adecuadas al riesgo: cifrado de comunicaciones (TLS/HTTPS), control de accesos por roles, autenticación segura, copias de seguridad periódicas y procedimientos documentados de gestión de incidencias.",
-          "En caso de brecha de seguridad que pueda suponer un riesgo para los derechos y libertades de los interesados, Carswiseai notificará a la AEPD en un plazo máximo de 72 horas y, cuando el riesgo sea alto, comunicará el incidente a los afectados sin dilación indebida.",
+          "PopCar aplica medidas técnicas y organizativas adecuadas al riesgo: cifrado de comunicaciones (TLS/HTTPS), control de accesos por roles, autenticación segura, copias de seguridad periódicas y procedimientos documentados de gestión de incidencias.",
+          "En caso de brecha de seguridad que pueda suponer un riesgo para los derechos y libertades de los interesados, PopCar notificará a la AEPD en un plazo máximo de 72 horas y, cuando el riesgo sea alto, comunicará el incidente a los afectados sin dilación indebida.",
         ],
       },
       {
         heading: "10. Menores de edad",
         paragraphs: [
-          "Los servicios de Carswiseai están dirigidos exclusivamente a mayores de 18 años. No recabamos conscientemente datos de menores. Si detectáramos que hemos recibido datos de un menor sin consentimiento verificable de sus tutores legales, procederemos a su supresión inmediata.",
+          "Los servicios de PopCar están dirigidos exclusivamente a mayores de 18 años. No recabamos conscientemente datos de menores. Si detectáramos que hemos recibido datos de un menor sin consentimiento verificable de sus tutores legales, procederemos a su supresión inmediata.",
         ],
       },
       {
         heading: "11. Actualizaciones de esta política",
         paragraphs: [
-          "Esta Política de Privacidad puede actualizarse para adaptarse a cambios normativos, jurisprudenciales o del propio servicio. La versión vigente, con su fecha de actualización, estará siempre disponible en carswiseai.com/politica-privacidad. Para cambios sustanciales, notificaremos a los usuarios registrados por correo electrónico.",
+          "Esta Política de Privacidad puede actualizarse para adaptarse a cambios normativos, jurisprudenciales o del propio servicio. La versión vigente, con su fecha de actualización, estará siempre disponible en popcar.tech/politica-privacidad. Para cambios sustanciales, notificaremos a los usuarios registrados por correo electrónico.",
         ],
       },
     ],
@@ -438,7 +438,7 @@ const LEGAL_DOCUMENTS = {
   cookiePolicy: {
     title: "Política de cookies",
     summary:
-      "Información sobre las cookies y tecnologías similares utilizadas en carswiseai.com, su finalidad y cómo puede gestionar o revocar su consentimiento.",
+      "Información sobre las cookies y tecnologías similares utilizadas en popcar.tech, su finalidad y cómo puede gestionar o revocar su consentimiento.",
     updatedAt: "17/06/2026",
     sections: [
       {
@@ -449,7 +449,7 @@ const LEGAL_DOCUMENTS = {
         ],
       },
       {
-        heading: "2. Cookies utilizadas en carswiseai.com",
+        heading: "2. Cookies utilizadas en popcar.tech",
         bullets: [
           "Cookies técnicas / necesarias: imprescindibles para el funcionamiento del sitio. Incluyen la gestión de sesión de usuario autenticado, el almacenamiento del consentimiento de cookies y las preferencias de idioma o tema. No requieren consentimiento previo.",
           "Cookies de personalización: almacenan preferencias del usuario (filtros guardados, alertas, configuración de la cuenta) para personalizar la experiencia en sucesivas visitas. Se activan con el consentimiento del usuario.",
@@ -460,7 +460,7 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "3. Identificadores de sesión propios",
         paragraphs: [
-          "Carswiseai utiliza un identificador anónimo de sesión (cw_anon_id) almacenado en localStorage para reconocer una misma sesión de navegación y mejorar la coherencia del servicio. Este identificador no contiene datos personales identificables por sí mismo y se asocia a un correo electrónico únicamente cuando el usuario se registra o inicia sesión.",
+          "PopCar utiliza un identificador anónimo de sesión (cw_anon_id) almacenado en localStorage para reconocer una misma sesión de navegación y mejorar la coherencia del servicio. Este identificador no contiene datos personales identificables por sí mismo y se asocia a un correo electrónico únicamente cuando el usuario se registra o inicia sesión.",
           "Los parámetros de campaña (UTM) se almacenan en sessionStorage (cw_utm) durante la sesión activa para medir la eficacia de las acciones de marketing.",
         ],
       },
@@ -468,14 +468,14 @@ const LEGAL_DOCUMENTS = {
         heading: "4. Base legal y gestión del consentimiento",
         paragraphs: [
           "Las cookies técnicas se instalan sin necesidad de consentimiento previo al amparo del interés legítimo y la necesidad para la prestación del servicio. El resto de cookies requieren consentimiento previo, libre, específico, informado e inequívoco del usuario.",
-          "Al acceder por primera vez a carswiseai.com, se solicita el consentimiento mediante el panel de preferencias integrado en el formulario de acceso. El usuario puede aceptar todas las cookies, solo las necesarias, o configurar sus preferencias de forma granular.",
+          "Al acceder por primera vez a popcar.tech, se solicita el consentimiento mediante el panel de preferencias integrado en el formulario de acceso. El usuario puede aceptar todas las cookies, solo las necesarias, o configurar sus preferencias de forma granular.",
           "El consentimiento otorgado queda registrado con fecha y versión de política. Puede revocarlo o modificarlo en cualquier momento desde el pie de página de la web.",
         ],
       },
       {
         heading: "5. Cookies de terceros",
         paragraphs: [
-          "Carswiseai puede integrar servicios de terceros que instalan sus propias cookies. Estos terceros disponen de sus propias políticas de cookies a las que el usuario puede acceder en sus respectivos sitios web.",
+          "PopCar puede integrar servicios de terceros que instalan sus propias cookies. Estos terceros disponen de sus propias políticas de cookies a las que el usuario puede acceder en sus respectivos sitios web.",
           "Los principales terceros cuyas tecnologías pueden estar presentes son: Stripe (procesamiento de pagos), Resend (envío de emails), Vercel (hosting y analítica de rendimiento). [PENDIENTE: revisar y completar la lista según integraciones activas].",
         ],
       },
@@ -497,15 +497,15 @@ const LEGAL_DOCUMENTS = {
   termsConditions: {
     title: "Condiciones generales de uso",
     summary:
-      "Condiciones que regulan el acceso, registro y uso de los servicios del marketplace y plataforma de movilidad de Carswiseai.",
+      "Condiciones que regulan el acceso, registro y uso de los servicios del marketplace y plataforma de movilidad de PopCar.",
     updatedAt: "17/06/2026",
     sections: [
       {
         heading: "1. Objeto y aceptación",
         paragraphs: [
-          "Las presentes Condiciones Generales de Uso regulan el acceso y uso de la plataforma Carswiseai (carswiseai.com), incluyendo el marketplace de vehículos de ocasión, el servicio de renting, las herramientas de asesoramiento y todas las funcionalidades disponibles para usuarios registrados.",
-          "El acceso, registro o uso de cualquier servicio de Carswiseai implica la aceptación expresa e íntegra de estas Condiciones, así como de la Política de Privacidad y la Política de Cookies. Si no está de acuerdo, debe abstenerse de usar la plataforma.",
-          "Carswiseai se reserva el derecho a modificar estas Condiciones. Los cambios se publicarán con indicación de la fecha de actualización. El uso continuado de la plataforma tras la publicación de cambios implicará su aceptación.",
+          "Las presentes Condiciones Generales de Uso regulan el acceso y uso de la plataforma PopCar (popcar.tech), incluyendo el marketplace de vehículos de ocasión, el servicio de renting, las herramientas de asesoramiento y todas las funcionalidades disponibles para usuarios registrados.",
+          "El acceso, registro o uso de cualquier servicio de PopCar implica la aceptación expresa e íntegra de estas Condiciones, así como de la Política de Privacidad y la Política de Cookies. Si no está de acuerdo, debe abstenerse de usar la plataforma.",
+          "PopCar se reserva el derecho a modificar estas Condiciones. Los cambios se publicarán con indicación de la fecha de actualización. El uso continuado de la plataforma tras la publicación de cambios implicará su aceptación.",
         ],
       },
       {
@@ -514,29 +514,29 @@ const LEGAL_DOCUMENTS = {
           "El acceso a las funcionalidades del marketplace requiere registro previo. El usuario debe ser mayor de 18 años y proporcionar información veraz, completa y actualizada.",
           "El usuario es el único responsable de mantener la confidencialidad de sus credenciales de acceso y de toda la actividad realizada desde su cuenta.",
           "Ante cualquier uso no autorizado de la cuenta o incidencia de seguridad, el usuario debe notificarlo inmediatamente a soporte@carswiseai.com.",
-          "Carswiseai puede suspender o cancelar cuentas que incumplan estas Condiciones o que realicen un uso fraudulento o abusivo del servicio.",
+          "PopCar puede suspender o cancelar cuentas que incumplan estas Condiciones o que realicen un uso fraudulento o abusivo del servicio.",
         ],
       },
       {
         heading: "3. Naturaleza del servicio de marketplace",
         paragraphs: [
-          "Carswiseai actúa como plataforma de intermediación que conecta a usuarios interesados en vehículos con proveedores (concesionarios, empresas de renting u otros). Carswiseai no es parte en los contratos de compraventa o arrendamiento que se formalicen entre el usuario y el proveedor.",
-          "La información sobre vehículos (precio, características, disponibilidad, fotografías) es proporcionada por los proveedores. Carswiseai no garantiza la exactitud, completitud o vigencia de dicha información y no asume responsabilidad por errores u omisiones en los listados.",
-          "El envío de una solicitud de información, visita o renting a través de la plataforma no genera ningún compromiso contractual entre el usuario y Carswiseai ni entre el usuario y el proveedor hasta que ambas partes formalicen el contrato correspondiente.",
+          "PopCar actúa como plataforma de intermediación que conecta a usuarios interesados en vehículos con proveedores (concesionarios, empresas de renting u otros). PopCar no es parte en los contratos de compraventa o arrendamiento que se formalicen entre el usuario y el proveedor.",
+          "La información sobre vehículos (precio, características, disponibilidad, fotografías) es proporcionada por los proveedores. PopCar no garantiza la exactitud, completitud o vigencia de dicha información y no asume responsabilidad por errores u omisiones en los listados.",
+          "El envío de una solicitud de información, visita o renting a través de la plataforma no genera ningún compromiso contractual entre el usuario y PopCar ni entre el usuario y el proveedor hasta que ambas partes formalicen el contrato correspondiente.",
         ],
       },
       {
         heading: "4. Solicitudes de renting",
         paragraphs: [
-          "Las solicitudes de renting tramitadas a través de Carswiseai son gestionadas por las empresas proveedoras de renting (Leasys, Astara u otras). La aprobación, condiciones y contrato definitivo dependen exclusivamente del proveedor y de los requisitos de solvencia del solicitante.",
-          "Carswiseai facilita el proceso de solicitud pero no garantiza la concesión del renting ni las condiciones ofertadas, que pueden variar según la política comercial y de riesgo del proveedor.",
+          "Las solicitudes de renting tramitadas a través de PopCar son gestionadas por las empresas proveedoras de renting (Leasys, Astara u otras). La aprobación, condiciones y contrato definitivo dependen exclusivamente del proveedor y de los requisitos de solvencia del solicitante.",
+          "PopCar facilita el proceso de solicitud pero no garantiza la concesión del renting ni las condiciones ofertadas, que pueden variar según la política comercial y de riesgo del proveedor.",
         ],
       },
       {
         heading: "5. Planes de servicio, pagos y cancelación",
         paragraphs: [
-          "Carswiseai puede ofrecer planes de suscripción o servicios de valor añadido con coste. Los precios, condiciones y períodos de facturación se indicarán claramente antes de la contratación.",
-          "El procesamiento de pagos se realiza a través de Stripe Inc. Carswiseai no almacena datos de tarjetas de crédito o débito en sus sistemas.",
+          "PopCar puede ofrecer planes de suscripción o servicios de valor añadido con coste. Los precios, condiciones y períodos de facturación se indicarán claramente antes de la contratación.",
+          "El procesamiento de pagos se realiza a través de Stripe Inc. PopCar no almacena datos de tarjetas de crédito o débito en sus sistemas.",
           "Cancelación de suscripción: el usuario puede cancelar su plan en cualquier momento desde su área de cuenta. La cancelación tendrá efecto al finalizar el período de facturación en curso, sin derecho a reembolso proporcional del período restante, salvo que la ley de consumidores aplicable establezca lo contrario.",
           "Derecho de desistimiento: los consumidores que contraten un plan de forma online disponen de un plazo de 14 días naturales desde la contratación para ejercer el derecho de desistimiento sin necesidad de justificación, conforme al art. 102 del Real Decreto Legislativo 1/2007 (TRLGDCU), salvo que el servicio haya comenzado a ejecutarse con consentimiento expreso del usuario antes de que expire dicho plazo.",
           "Para ejercer el derecho de desistimiento o solicitar un reembolso, envíe un escrito a soporte@carswiseai.com indicando su nombre, número de cuenta/pedido y el motivo.",
@@ -546,10 +546,10 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "6. Intermediación en renting y financiación",
         paragraphs: [
-          "Carswiseai actúa como plataforma de intermediación que facilita el contacto entre el usuario y empresas proveedoras de renting (entre otras, Leasys Mobility S.L. y Astara). Carswiseai no es entidad financiera ni prestamista, y no concede financiación propia.",
+          "PopCar actúa como plataforma de intermediación que facilita el contacto entre el usuario y empresas proveedoras de renting (entre otras, Leasys Mobility S.L. y Astara). PopCar no es entidad financiera ni prestamista, y no concede financiación propia.",
           "Las operaciones de renting se formalizan directamente entre el usuario y el proveedor de renting, que es quien evalúa la solvencia, establece las condiciones del contrato y asume los derechos y obligaciones derivados del mismo.",
           "En caso de que la tramitación de una solicitud requiera la consulta de información de solvencia del usuario (con su consentimiento expreso), dicha consulta se realizará a través de Experian Bureau de Crédito S.A. conforme a lo establecido en la Política de Privacidad.",
-          "[PENDIENTE: indicar si Carswiseai está registrada como intermediario de crédito inmobiliario o de crédito al consumo ante el Banco de España, o si opera exclusivamente como generador de leads para las empresas de renting]",
+          "[PENDIENTE: indicar si PopCar está registrada como intermediario de crédito inmobiliario o de crédito al consumo ante el Banco de España, o si opera exclusivamente como generador de leads para las empresas de renting]",
         ],
       },
       {
@@ -566,22 +566,22 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "8. Limitación de responsabilidad",
         paragraphs: [
-          "Carswiseai no garantiza la disponibilidad ininterrumpida del servicio. En la medida en que lo permita la ley, Carswiseai queda exonerada de responsabilidad por daños derivados de interrupciones técnicas, errores en la plataforma o ataques informáticos.",
-          "Carswiseai no asume responsabilidad por el incumplimiento de las obligaciones contraídas entre el usuario y el proveedor del vehículo o servicio de renting.",
-          "La responsabilidad máxima de Carswiseai frente al usuario, en cualquier caso, no podrá superar el importe abonado por este en los 12 meses anteriores al hecho causante del daño.",
+          "PopCar no garantiza la disponibilidad ininterrumpida del servicio. En la medida en que lo permita la ley, PopCar queda exonerada de responsabilidad por daños derivados de interrupciones técnicas, errores en la plataforma o ataques informáticos.",
+          "PopCar no asume responsabilidad por el incumplimiento de las obligaciones contraídas entre el usuario y el proveedor del vehículo o servicio de renting.",
+          "La responsabilidad máxima de PopCar frente al usuario, en cualquier caso, no podrá superar el importe abonado por este en los 12 meses anteriores al hecho causante del daño.",
         ],
       },
       {
         heading: "9. Propiedad intelectual",
         paragraphs: [
-          "Todos los derechos de propiedad intelectual e industrial sobre la plataforma, su código, diseño, contenidos y marca pertenecen a Carswiseai o a sus licenciantes. El usuario no adquiere ningún derecho sobre ellos por el mero uso del servicio.",
-          "Queda prohibida la reproducción, copia, distribución, transformación o comunicación pública de los contenidos de la plataforma sin autorización expresa y por escrito de Carswiseai.",
+          "Todos los derechos de propiedad intelectual e industrial sobre la plataforma, su código, diseño, contenidos y marca pertenecen a PopCar o a sus licenciantes. El usuario no adquiere ningún derecho sobre ellos por el mero uso del servicio.",
+          "Queda prohibida la reproducción, copia, distribución, transformación o comunicación pública de los contenidos de la plataforma sin autorización expresa y por escrito de PopCar.",
         ],
       },
       {
         heading: "10. Protección de datos",
         paragraphs: [
-          "El tratamiento de los datos personales del usuario se rige por la Política de Privacidad de Carswiseai, disponible en carswiseai.com/politica-privacidad, que forma parte integrante de estas Condiciones.",
+          "El tratamiento de los datos personales del usuario se rige por la Política de Privacidad de PopCar, disponible en popcar.tech/politica-privacidad, que forma parte integrante de estas Condiciones.",
         ],
       },
       {
@@ -597,19 +597,19 @@ const LEGAL_DOCUMENTS = {
   marketingPolicy: {
     title: "Política de Comunicaciones Comerciales",
     summary:
-      "Información sobre cómo utilizamos sus datos para enviarle comunicaciones comerciales de Carswiseai y socios seleccionados, y cómo puede cancelarlas en cualquier momento.",
+      "Información sobre cómo utilizamos sus datos para enviarle comunicaciones comerciales de PopCar y socios seleccionados, y cómo puede cancelarlas en cualquier momento.",
     updatedAt: "17/06/2026",
     sections: [
       {
         heading: "1. ¿Qué son las comunicaciones comerciales?",
         paragraphs: [
-          "Las comunicaciones comerciales son mensajes enviados por correo electrónico, SMS u otros canales digitales con el fin de informarle sobre novedades de Carswiseai, ofertas de vehículos, promociones de renting y servicios de socios comerciales relevantes para su experiencia de movilidad.",
+          "Las comunicaciones comerciales son mensajes enviados por correo electrónico, SMS u otros canales digitales con el fin de informarle sobre novedades de PopCar, ofertas de vehículos, promociones de renting y servicios de socios comerciales relevantes para su experiencia de movilidad.",
         ],
       },
       {
         heading: "2. Base jurídica del tratamiento",
         paragraphs: [
-          "El envío de comunicaciones comerciales propias de Carswiseai a usuarios registrados se basa en el interés legítimo de mantener informados a sus clientes sobre servicios similares a los contratados (art. 21.2 LSSI-CE).",
+          "El envío de comunicaciones comerciales propias de PopCar a usuarios registrados se basa en el interés legítimo de mantener informados a sus clientes sobre servicios similares a los contratados (art. 21.2 LSSI-CE).",
           "El envío de comunicaciones de terceros socios requiere su consentimiento expreso, que puede otorgar a través del checkbox de comunicaciones en el formulario de registro.",
         ],
       },
@@ -640,14 +640,14 @@ const LEGAL_DOCUMENTS = {
         ],
         bullets: [
           "Haciendo clic en el enlace 'Darme de baja' incluido en cualquier comunicación comercial.",
-          "Desde el área de cuenta de Carswiseai, sección 'Notificaciones y privacidad'.",
+          "Desde el área de cuenta de PopCar, sección 'Notificaciones y privacidad'.",
           "Enviando un correo a privacidad@carswiseai.com indicando su nombre y dirección de email.",
         ],
       },
       {
         heading: "6. Conservación de los datos",
         paragraphs: [
-          "Sus datos se utilizarán con esta finalidad mientras mantenga una cuenta activa en Carswiseai o hasta que revoque su consentimiento. En todo caso, se suprimirán cuando cese la finalidad para la que fueron recabados.",
+          "Sus datos se utilizarán con esta finalidad mientras mantenga una cuenta activa en PopCar o hasta que revoque su consentimiento. En todo caso, se suprimirán cuando cese la finalidad para la que fueron recabados.",
         ],
       },
       {
@@ -667,7 +667,7 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "1. ¿Qué es Experian y para qué se usa?",
         paragraphs: [
-          "Experian Bureau de Crédito S.A. es una entidad de información crediticia registrada en España. Carswiseai puede consultar datos de solvencia del solicitante ante Experian cuando lo requiera la empresa de renting o financiación, y siempre con el consentimiento expreso del interesado.",
+          "Experian Bureau de Crédito S.A. es una entidad de información crediticia registrada en España. PopCar puede consultar datos de solvencia del solicitante ante Experian cuando lo requiera la empresa de renting o financiación, y siempre con el consentimiento expreso del interesado.",
           "Esta consulta permite a las empresas de renting (Leasys Mobility, Astara u otras) evaluar la viabilidad de la solicitud antes de emitir una oferta vinculante.",
         ],
       },
@@ -683,14 +683,14 @@ const LEGAL_DOCUMENTS = {
         heading: "3. Base jurídica",
         paragraphs: [
           "La consulta se basa en el consentimiento expreso del interesado (art. 6.1.a RGPD), otorgado de forma específica y separada a través del checkbox habilitado en el formulario de solicitud.",
-          "Sin dicho consentimiento, Carswiseai no realizará la consulta, lo que puede afectar a la aprobación por parte del proveedor de renting.",
+          "Sin dicho consentimiento, PopCar no realizará la consulta, lo que puede afectar a la aprobación por parte del proveedor de renting.",
         ],
       },
       {
         heading: "4. Responsabilidad de Experian",
         paragraphs: [
           "Experian Bureau de Crédito S.A. actúa como responsable independiente del tratamiento de los datos contenidos en sus ficheros. Para más información sobre cómo Experian trata sus datos, consulte la Política de Privacidad de Experian en www.experian.es.",
-          "Carswiseai actúa como remitente de la consulta, sin almacenar el contenido del informe de solvencia salvo en los términos acordados con el proveedor de renting.",
+          "PopCar actúa como remitente de la consulta, sin almacenar el contenido del informe de solvencia salvo en los términos acordados con el proveedor de renting.",
         ],
       },
       {
@@ -703,7 +703,7 @@ const LEGAL_DOCUMENTS = {
         heading: "6. Sus derechos ante Experian",
         paragraphs: [
           "Puede ejercer sus derechos de acceso, rectificación y cancelación de los datos incluidos en los ficheros de Experian directamente ante Experian Bureau de Crédito S.A. en www.experian.es/derechos-arco.",
-          "Ante Carswiseai, puede ejercer sus derechos enviando un escrito a privacidad@carswiseai.com con copia de su documento identificativo.",
+          "Ante PopCar, puede ejercer sus derechos enviando un escrito a privacidad@carswiseai.com con copia de su documento identificativo.",
         ],
       },
       {
@@ -717,25 +717,25 @@ const LEGAL_DOCUMENTS = {
   experianTerms: {
     title: "Condiciones del Servicio de Consulta de Solvencia",
     summary:
-      "Condiciones que regulan el uso del servicio de consulta de solvencia ante Experian Bureau de Crédito S.A. tramitado a través de la plataforma Carswiseai en el contexto de solicitudes de renting.",
+      "Condiciones que regulan el uso del servicio de consulta de solvencia ante Experian Bureau de Crédito S.A. tramitado a través de la plataforma PopCar en el contexto de solicitudes de renting.",
     updatedAt: "17/06/2026",
     sections: [
       {
         heading: "1. Objeto del servicio",
         paragraphs: [
-          "El presente servicio consiste en la tramitación, por parte de Carswiseai, de una consulta de solvencia del usuario ante Experian Bureau de Crédito S.A., a solicitud del proveedor de renting o financiación elegido por el usuario y con el consentimiento expreso de este.",
-          "La consulta tiene como única finalidad facilitar al proveedor de renting la evaluación de la viabilidad financiera de la solicitud. Carswiseai actúa exclusivamente como intermediario en la tramitación, sin tomar decisiones sobre la concesión ni las condiciones del renting.",
+          "El presente servicio consiste en la tramitación, por parte de PopCar, de una consulta de solvencia del usuario ante Experian Bureau de Crédito S.A., a solicitud del proveedor de renting o financiación elegido por el usuario y con el consentimiento expreso de este.",
+          "La consulta tiene como única finalidad facilitar al proveedor de renting la evaluación de la viabilidad financiera de la solicitud. PopCar actúa exclusivamente como intermediario en la tramitación, sin tomar decisiones sobre la concesión ni las condiciones del renting.",
         ],
       },
       {
         heading: "2. Activación del servicio",
         paragraphs: [
-          "El servicio se activa única y exclusivamente cuando el usuario otorga su consentimiento expreso a través del checkbox habilitado a tal efecto en el formulario de solicitud. Sin dicho consentimiento, Carswiseai no tramitará ninguna consulta ante Experian.",
+          "El servicio se activa única y exclusivamente cuando el usuario otorga su consentimiento expreso a través del checkbox habilitado a tal efecto en el formulario de solicitud. Sin dicho consentimiento, PopCar no tramitará ninguna consulta ante Experian.",
           "El usuario puede optar por no activar este servicio. En ese caso, el proveedor de renting podrá requerir que el usuario aporte directamente la documentación de solvencia que considere necesaria para evaluar la solicitud.",
         ],
       },
       {
-        heading: "3. Obligaciones de Carswiseai",
+        heading: "3. Obligaciones de PopCar",
         bullets: [
           "Tramitar la consulta únicamente con el consentimiento previo y expreso del usuario.",
           "No utilizar el resultado de la consulta para ninguna finalidad distinta de la evaluación de la solicitud de renting concreta.",
@@ -754,7 +754,7 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "5. Resultado de la consulta",
         paragraphs: [
-          "El resultado de la consulta de solvencia es gestionado directamente por el proveedor de renting para la evaluación interna de la solicitud. Carswiseai no tiene acceso al detalle del informe ni toma decisiones basadas en su contenido.",
+          "El resultado de la consulta de solvencia es gestionado directamente por el proveedor de renting para la evaluación interna de la solicitud. PopCar no tiene acceso al detalle del informe ni toma decisiones basadas en su contenido.",
           "Una consulta con resultado negativo no implica necesariamente la denegación de la solicitud; el proveedor de renting puede solicitar documentación adicional o proponer condiciones alternativas.",
         ],
       },
@@ -762,14 +762,14 @@ const LEGAL_DOCUMENTS = {
         heading: "6. Duración y revocación",
         paragraphs: [
           "El consentimiento para la consulta es válido exclusivamente para la solicitud de renting concreta en la que se otorga. No implica consentimiento para consultas futuras, que requerirán una nueva aceptación expresa.",
-          "El usuario puede revocar su consentimiento antes de que la consulta se realice efectivamente, contactando con Carswiseai en privacidad@carswiseai.com. Una vez ejecutada la consulta, la revocación no podrá retrotraer sus efectos.",
+          "El usuario puede revocar su consentimiento antes de que la consulta se realice efectivamente, contactando con PopCar en privacidad@carswiseai.com. Una vez ejecutada la consulta, la revocación no podrá retrotraer sus efectos.",
         ],
       },
       {
         heading: "7. Limitación de responsabilidad",
         paragraphs: [
-          "Carswiseai no garantiza un resultado favorable de la consulta de solvencia ni la aprobación de la solicitud de renting por parte del proveedor.",
-          "Carswiseai no será responsable de los daños o perjuicios que pudieran derivarse de una resolución negativa del proveedor de renting basada en el resultado de la consulta.",
+          "PopCar no garantiza un resultado favorable de la consulta de solvencia ni la aprobación de la solicitud de renting por parte del proveedor.",
+          "PopCar no será responsable de los daños o perjuicios que pudieran derivarse de una resolución negativa del proveedor de renting basada en el resultado de la consulta.",
         ],
       },
       {
@@ -792,7 +792,7 @@ const LEGAL_DOCUMENTS_EN = {
       {
         heading: "Identifying information",
         paragraphs: [
-          "CarsWise is a digital platform focused on mobility advisory and operations in Spain.",
+          "PopCar is a digital platform focused on mobility advisory and operations in Spain.",
           "For general contact, support and incident management you can reach us at soporte@carswise.es.",
         ],
       },
@@ -808,20 +808,20 @@ const LEGAL_DOCUMENTS_EN = {
         bullets: [
           "The user agrees to use the platform in accordance with the law, good faith and public order.",
           "Fraudulent use, unauthorised automated data extraction and any attempt to alter the functioning of the service are prohibited.",
-          "CarsWise may update, improve or withdraw features to maintain security, performance and quality of service.",
+          "PopCar may update, improve or withdraw features to maintain security, performance and quality of service.",
         ],
       },
       {
         heading: "Intellectual property",
         paragraphs: [
-          "The CarsWise brand, the platform design, its functional architecture, content, code and graphic elements are owned by their owners or licensors.",
+          "The PopCar brand, the platform design, its functional architecture, content, code and graphic elements are owned by their owners or licensors.",
           "Their reproduction, distribution or transformation without express authorisation is not permitted except where legally allowed.",
         ],
       },
       {
         heading: "Liability",
         paragraphs: [
-          "CarsWise does not guarantee permanent and uninterrupted availability of the service, although it applies reasonable measures to maintain continuity.",
+          "PopCar does not guarantee permanent and uninterrupted availability of the service, although it applies reasonable measures to maintain continuity.",
           "Final contracting or buying/selling decisions rest with the user and, where applicable, the third-party provider with whom they formalise the transaction.",
         ],
       },
@@ -927,14 +927,14 @@ const LEGAL_DOCUMENTS_EN = {
       {
         heading: "Acceptance of terms",
         paragraphs: [
-          "Access to and use of CarsWise implies acceptance of these terms and conditions.",
+          "Access to and use of PopCar implies acceptance of these terms and conditions.",
           "If you do not agree with the terms, you must refrain from using the platform.",
         ],
       },
       {
         heading: "Scope and nature of the service",
         paragraphs: [
-          "CarsWise provides recommendations and support tools for mobility, buying, selling and associated service decisions.",
+          "PopCar provides recommendations and support tools for mobility, buying, selling and associated service decisions.",
           "The platform does not replace the contractual or technical review that the user must carry out before closing transactions with third parties.",
         ],
       },
@@ -956,14 +956,14 @@ const LEGAL_DOCUMENTS_EN = {
       {
         heading: "Limitation of liability",
         paragraphs: [
-          "CarsWise does not guarantee specific financial results and accepts no liability for final decisions made by the user.",
+          "PopCar does not guarantee specific financial results and accepts no liability for final decisions made by the user.",
           "Contractual relationships with third-party providers are the direct responsibility of the parties involved.",
         ],
       },
       {
         heading: "Amendments and validity",
         paragraphs: [
-          "CarsWise may update these terms to adapt them to regulatory, technical or service changes.",
+          "PopCar may update these terms to adapt them to regulatory, technical or service changes.",
           "The current version will always be available in the legal section of the platform.",
         ],
       },
@@ -971,26 +971,26 @@ const LEGAL_DOCUMENTS_EN = {
   },
   marketingPolicy: {
     title: "Commercial Communications Policy",
-    summary: "Information on how we use your data to send you commercial communications from Carswiseai and selected partners, and how you can opt out at any time.",
+    summary: "Information on how we use your data to send you commercial communications from PopCar and selected partners, and how you can opt out at any time.",
     updatedAt: "17/06/2026",
     sections: [
       {
         heading: "What are commercial communications?",
         paragraphs: [
-          "Commercial communications are messages sent by email, SMS or other digital channels to inform you about Carswiseai news, vehicle offers, renting promotions and services of commercial partners relevant to your mobility experience.",
+          "Commercial communications are messages sent by email, SMS or other digital channels to inform you about PopCar news, vehicle offers, renting promotions and services of commercial partners relevant to your mobility experience.",
         ],
       },
       {
         heading: "Legal basis",
         paragraphs: [
-          "Sending of Carswiseai's own commercial communications to registered users is based on legitimate interest in keeping clients informed about similar contracted services (art. 21.2 LSSI-CE). Sending communications from third-party partners requires your express consent.",
+          "Sending of PopCar's own commercial communications to registered users is based on legitimate interest in keeping clients informed about similar contracted services (art. 21.2 LSSI-CE). Sending communications from third-party partners requires your express consent.",
         ],
       },
       {
         heading: "How to unsubscribe",
         bullets: [
           "Click the 'Unsubscribe' link in any commercial communication.",
-          "From your Carswiseai account area, under 'Notifications and privacy'.",
+          "From your PopCar account area, under 'Notifications and privacy'.",
           "Send an email to privacidad@carswiseai.com with your name and email address.",
         ],
       },
@@ -1010,7 +1010,7 @@ const LEGAL_DOCUMENTS_EN = {
       {
         heading: "What is Experian and why is it used?",
         paragraphs: [
-          "Experian Bureau de Crédito S.A. is a credit information entity registered in Spain. Carswiseai may check the applicant's creditworthiness with Experian when required by the renting or financing company, and always with the data subject's express consent.",
+          "Experian Bureau de Crédito S.A. is a credit information entity registered in Spain. PopCar may check the applicant's creditworthiness with Experian when required by the renting or financing company, and always with the data subject's express consent.",
         ],
       },
       {
@@ -1024,26 +1024,26 @@ const LEGAL_DOCUMENTS_EN = {
       {
         heading: "Legal basis",
         paragraphs: [
-          "The check is based on the data subject's express consent (art. 6.1.a GDPR), given specifically and separately through the checkbox in the application form. Without this consent, Carswiseai will not carry out the check.",
+          "The check is based on the data subject's express consent (art. 6.1.a GDPR), given specifically and separately through the checkbox in the application form. Without this consent, PopCar will not carry out the check.",
         ],
       },
       {
         heading: "How to revoke consent",
         paragraphs: [
-          "You may revoke your consent before the check is carried out by contacting us at privacidad@carswiseai.com. You may exercise your rights directly with Experian at www.experian.es/derechos-arco, and with Carswiseai at privacidad@carswiseai.com.",
+          "You may revoke your consent before the check is carried out by contacting us at privacidad@carswiseai.com. You may exercise your rights directly with Experian at www.experian.es/derechos-arco, and with PopCar at privacidad@carswiseai.com.",
         ],
       },
     ],
   },
   experianTerms: {
     title: "Creditworthiness Check Service Terms",
-    summary: "Terms governing the use of the creditworthiness check service with Experian Bureau de Crédito S.A. processed through the Carswiseai platform in the context of renting applications.",
+    summary: "Terms governing the use of the creditworthiness check service with Experian Bureau de Crédito S.A. processed through the PopCar platform in the context of renting applications.",
     updatedAt: "17/06/2026",
     sections: [
       {
         heading: "Purpose of the service",
         paragraphs: [
-          "This service consists of Carswiseai processing a creditworthiness check on behalf of the user with Experian Bureau de Crédito S.A., at the request of the chosen renting or financing provider and with the user's express consent. Carswiseai acts solely as an intermediary and does not make decisions on the granting or terms of the renting.",
+          "This service consists of PopCar processing a creditworthiness check on behalf of the user with Experian Bureau de Crédito S.A., at the request of the chosen renting or financing provider and with the user's express consent. PopCar acts solely as an intermediary and does not make decisions on the granting or terms of the renting.",
         ],
       },
       {
@@ -1053,7 +1053,7 @@ const LEGAL_DOCUMENTS_EN = {
         ],
       },
       {
-        heading: "Carswiseai obligations",
+        heading: "PopCar obligations",
         bullets: [
           "Process the check only with prior express consent from the user.",
           "Not use the result for any purpose other than evaluation of the specific renting application.",
@@ -1072,7 +1072,7 @@ const LEGAL_DOCUMENTS_EN = {
       {
         heading: "Check result",
         paragraphs: [
-          "The creditworthiness check result is managed directly by the renting provider for internal evaluation. Carswiseai does not have access to the detail of the report and makes no decisions based on its content. A negative result does not necessarily mean the application is refused.",
+          "The creditworthiness check result is managed directly by the renting provider for internal evaluation. PopCar does not have access to the detail of the report and makes no decisions based on its content. A negative result does not necessarily mean the application is refused.",
         ],
       },
       {
@@ -1084,7 +1084,7 @@ const LEGAL_DOCUMENTS_EN = {
       {
         heading: "Limitation of liability",
         paragraphs: [
-          "Carswiseai does not guarantee a favourable check result or approval of the renting application. Carswiseai is not liable for any negative decision made by the renting provider based on the check result.",
+          "PopCar does not guarantee a favourable check result or approval of the renting application. PopCar is not liable for any negative decision made by the renting provider based on the check result.",
         ],
       },
     ],
@@ -1093,10 +1093,10 @@ const LEGAL_DOCUMENTS_EN = {
 
 const SEO_STATIC_PAGES = {
   aboutCarswise: {
-    badge: "Sobre CarsWise",
-    title: "Quienes somos en CarsWise",
+    badge: "Sobre PopCar",
+    title: "Quienes somos en PopCar",
     description:
-      "CarsWise nace para que cualquier persona compre, gestione y venda su coche con informacion neutral y criterio financiero real.",
+      "PopCar nace para que cualquier persona compre, gestione y venda su coche con informacion neutral y criterio financiero real.",
     sections: [
       {
         heading: "Mision",
@@ -1136,7 +1136,7 @@ const SEO_STATIC_PAGES = {
             subtitle: "Cofundadora · Tecnologia y Producto",
             lines: [
               "Especialista en software, datos y arquitectura de producto digital.",
-              "Dirige la hoja de ruta tecnica y la calidad de la experiencia CarsWise.",
+              "Dirige la hoja de ruta tecnica y la calidad de la experiencia PopCar.",
             ],
           },
         ],
@@ -1181,7 +1181,7 @@ const SEO_STATIC_PAGES = {
   },
   contact: {
     badge: "Contacto",
-    title: "Contacto CarsWise",
+    title: "Contacto PopCar",
     description:
       "Si necesitas ayuda para compra, renting, venta o servicios de movilidad, te atendemos por email y telefono.",
     sections: [
@@ -1206,7 +1206,7 @@ const SEO_STATIC_PAGES = {
 };
 
 const PUBLIC_ROUTE_BY_ENTRY_MODE = {
-  aboutCarswise: "/sobre-carswise",
+  aboutCarswise: "/sobre-popcar",
   plans: "/planes",
   portalVo: "/marketplace-vo",
   // (la apertura temporal de la ficha VO está justo debajo de este mapa)
@@ -1238,80 +1238,80 @@ const ENTRY_MODE_BY_PUBLIC_ROUTE = Object.entries(PUBLIC_ROUTE_BY_ENTRY_MODE).re
 
 const SEO_META_BY_ENTRY_MODE = {
   home: {
-    title: "CarsWise AI | Asesor de movilidad para comprar, renting y vender mejor",
+    title: "PopCar | Asesor de movilidad para comprar, renting y vender mejor",
     description:
-      "CarsWise te ayuda a decidir mejor en compra, renting, venta y servicios del coche con analisis de coste total.",
+      "PopCar te ayuda a decidir mejor en compra, renting, venta y servicios del coche con analisis de coste total.",
   },
   aboutCarswise: {
-    title: "Sobre CarsWise | Quienes somos y que construimos",
+    title: "Sobre PopCar | Quienes somos y que construimos",
     description:
-      "Conoce al equipo fundador de CarsWise y nuestra vision para comprar, gestionar y vender coche con mejor informacion.",
+      "Conoce al equipo fundador de PopCar y nuestra vision para comprar, gestionar y vender coche con mejor informacion.",
   },
   plans: {
-    title: "Planes y precios | CarsWise",
+    title: "Planes y precios | PopCar",
     description:
       "Consulta planes de suscripcion y servicios premium bajo demanda para gestionar mejor tu coche.",
   },
   portalVo: {
-    title: "Marketplace VO | Coches de ocasion con enfoque de coste total | CarsWise",
+    title: "Marketplace VO | Coches de ocasion con enfoque de coste total | PopCar",
     description:
       "Explora ofertas de vehiculo de ocasion y compara opciones con enfoque de coste total y decision informada.",
   },
   vehicleDetail: {
-    title: "Ficha de vehiculo | CarsWise",
+    title: "Ficha de vehiculo | PopCar",
     description:
       "Consulta la ficha de una oferta concreta con sus datos clave, analisis y contexto de mercado.",
   },
   vehicleOptions: {
-    title: "Asesor de vehiculo | Descubre la mejor operacion para tu caso | CarsWise",
+    title: "Asesor de vehiculo | Descubre la mejor operacion para tu caso | PopCar",
     description:
       "Compara escenarios de compra y renting segun presupuesto, kilometros, uso y objetivos de movilidad.",
   },
   servicesSeo: {
-    title: "Servicios de movilidad | Seguro, mantenimiento y gestion | CarsWise",
+    title: "Servicios de movilidad | Seguro, mantenimiento y gestion | PopCar",
     description:
       "Centraliza servicios de movilidad para reducir imprevistos y optimizar el coste total de tu vehiculo.",
   },
   blog: {
-    title: "Blog de movilidad | Guias utiles de compra, renting y ahorro | CarsWise",
+    title: "Blog de movilidad | Guias utiles de compra, renting y ahorro | PopCar",
     description:
       "Consejos practicos y comparativas para tomar mejores decisiones de movilidad en Espana.",
   },
   blogCompraUsado: {
-    title: "Guia 2026: comprar coche usado en Espana | CarsWise",
+    title: "Guia 2026: comprar coche usado en Espana | PopCar",
     description:
       "Checklist practico para comprar coche de segunda mano con menos riesgo tecnico, legal y financiero.",
   },
   blogRentingCompra: {
-    title: "Renting vs compra 2026: que conviene segun tu uso | CarsWise",
+    title: "Renting vs compra 2026: que conviene segun tu uso | PopCar",
     description:
       "Analisis claro para elegir entre renting y compra segun kilometraje, liquidez y horizonte de uso.",
   },
   contact: {
-    title: "Contacto | CarsWise",
+    title: "Contacto | PopCar",
     description:
-      "Contacta con CarsWise para ayuda en compra, renting, venta y servicios de movilidad.",
+      "Contacta con PopCar para ayuda en compra, renting, venta y servicios de movilidad.",
   },
   legalNotice: {
-    title: "Aviso legal | CarsWise",
+    title: "Aviso legal | PopCar",
     description: "Informacion legal sobre titularidad, uso del servicio y responsabilidades.",
   },
   privacyPolicy: {
-    title: "Politica de privacidad | CarsWise",
-    description: "Como tratamos y protegemos tus datos personales en CarsWise.",
+    title: "Politica de privacidad | PopCar",
+    description: "Como tratamos y protegemos tus datos personales en PopCar.",
   },
   cookiePolicy: {
-    title: "Politica de cookies | CarsWise",
+    title: "Politica de cookies | PopCar",
     description: "Informacion sobre cookies, consentimiento y configuracion de preferencias.",
   },
   termsConditions: {
-    title: "Terminos y condiciones | CarsWise",
-    description: "Condiciones generales de uso de la plataforma CarsWise.",
+    title: "Terminos y condiciones | PopCar",
+    description: "Condiciones generales de uso de la plataforma PopCar.",
   },
 };
 
-const SITE_URL = "https://www.carswiseai.com";
-const SITE_NAME = "CarsWise AI";
+const SITE_URL = "https://www.popcar.tech";
+const SITE_NAME = "PopCar";
 const SITE_LOGO_URL = `${SITE_URL}/popcar-logo.png`;
 const SITE_IMAGE_URL = `${SITE_URL}/CarWise_app.jpg?v=20260418b`;
 
@@ -2077,7 +2077,7 @@ export default function App() {
 
     const applyRouteFromPath = () => {
       /**
-       * Vuelta desde la captura de CarsWise Check.
+       * Vuelta desde la captura de PopCar Check.
        *
        * La captura vive en otro dominio y al terminar devuelve aquí al usuario.
        * Sin esto aterrizaría en la portada y tendría que volver a buscar su
@@ -2211,7 +2211,7 @@ export default function App() {
     const effectiveEntryMode = entryMode || "home";
     const meta = SEO_META_BY_ENTRY_MODE[effectiveEntryMode] || SEO_META_BY_ENTRY_MODE.home;
     const canonicalPath = effectiveEntryMode === "home" ? "/" : getPublicPathForEntryMode(effectiveEntryMode);
-    const canonicalUrl = `https://www.carswiseai.com${canonicalPath}`;
+    const canonicalUrl = `https://www.popcar.tech${canonicalPath}`;
 
     document.title = meta.title;
 
@@ -3068,8 +3068,8 @@ export default function App() {
         to: emailTargets,
         subject:
           emailTargets.length === 1
-            ? "CarsWise · Tu resumen de alertas"
-            : `CarsWise · ${emailTargets.length} resúmenes de alertas`,
+            ? "PopCar · Tu resumen de alertas"
+            : `PopCar · ${emailTargets.length} resúmenes de alertas`,
         notifications: notificationsToSend,
       });
 
@@ -3289,7 +3289,7 @@ export default function App() {
         ? `Zona: ${normalizeText(context.province)} ${normalizeText(context.postalCode)}`.trim()
         : "",
       context?.quotedPrice !== undefined && context?.quotedPrice !== null && context?.quotedPrice !== ""
-        ? `Precio CarsWise: ${typeof context.quotedPrice === "number" ? `${context.quotedPrice}€` : String(context.quotedPrice)}`
+        ? `Precio PopCar: ${typeof context.quotedPrice === "number" ? `${context.quotedPrice}€` : String(context.quotedPrice)}`
         : "",
       vehicleMeta,
     ].filter(Boolean);
@@ -3339,7 +3339,7 @@ export default function App() {
     writeUserAppointments(next);
     setUserAppointments(next);
 
-    // Crear cita en ERP CarsWise (Citas Mantenimiento) si es de tipo maintenance
+    // Crear cita en ERP PopCar (Citas Mantenimiento) si es de tipo maintenance
     if (type === "maintenance" && !context?.skipErpSave && currentUserEmail && normalizeText(context?.selectedDateKey) && normalizeText(context?.selectedTime)) {
       const dateKey  = normalizeText(context.selectedDateKey);  // YYYY-MM-DD
       const timeStr  = normalizeText(context.selectedTime);     // HH:MM
@@ -3348,7 +3348,7 @@ export default function App() {
         normalizeText(context?.vehicleTitle) ? `Vehículo: ${normalizeText(context.vehicleTitle)}` : "",
         normalizeText(context?.vehiclePlate) ? `Matrícula: ${normalizeText(context.vehiclePlate)}` : "",
         normalizeText(context?.workshopAddress) ? `Dirección taller: ${normalizeText(context.workshopAddress)}` : "",
-        context?.quotedPrice != null ? `Precio CarsWise: ${context.quotedPrice}€` : "",
+        context?.quotedPrice != null ? `Precio PopCar: ${context.quotedPrice}€` : "",
       ].filter(Boolean).join(" · ");
       postErpAppointmentJson({
         userId:          currentUserEmail,
@@ -4268,7 +4268,7 @@ export default function App() {
           sameAs: [
             "https://www.linkedin.com",
             "https://x.com",
-            "https://www.instagram.com/carswiseai/",
+            "https://www.instagram.com/popcar/",
             "https://www.youtube.com",
           ],
         },
@@ -4287,7 +4287,7 @@ export default function App() {
         {
           "@context": "https://schema.org",
           "@type": "Blog",
-          name: "Blog CarsWise",
+          name: "Blog PopCar",
           url: `${SITE_URL}/blog`,
           inLanguage: "es-ES",
           publisher: {
@@ -4428,7 +4428,7 @@ export default function App() {
           </button>
           <nav
             className="cw-header-nav"
-            aria-label="Navegacion principal CarsWise"
+            aria-label="Navegacion principal PopCar"
             style={{
               "--cw-nav-color": themeMode === "dark" ? "var(--gris-300)" : "var(--gris-500)",
               "--cw-nav-hover-color": themeMode === "dark" ? "var(--acento-tenue)" : "var(--gris-700)",
@@ -4702,7 +4702,7 @@ export default function App() {
                     PANEL DE USUARIO
                   </div>
                   <div style={{ fontSize: 16, fontWeight: 700, color: "var(--gris-50)" }}>
-                    Mi espacio CarsWise
+                    Mi espacio PopCar
                   </div>
                   {currentUser?.email && (
                     <div style={{ fontSize: 11, color: "var(--gris-200)", marginTop: 4 }}>
@@ -5357,7 +5357,7 @@ export default function App() {
                       style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
                     <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
-                      Acepto recibir comunicaciones comerciales por <strong style={{ color: "var(--gris-300)" }}>email</strong> de Carswiseai y socios conforme a la{" "}
+                      Acepto recibir comunicaciones comerciales por <strong style={{ color: "var(--gris-300)" }}>email</strong> de PopCar y socios conforme a la{" "}
                       <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer"
                         style={{ color: "var(--gris-300)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Política de Comunicaciones
@@ -5375,7 +5375,7 @@ export default function App() {
                       style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
                     <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
-                      Acepto recibir comunicaciones comerciales por <strong style={{ color: "var(--gris-300)" }}>SMS</strong> de Carswiseai y socios conforme a la{" "}
+                      Acepto recibir comunicaciones comerciales por <strong style={{ color: "var(--gris-300)" }}>SMS</strong> de PopCar y socios conforme a la{" "}
                       <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer"
                         style={{ color: "var(--gris-300)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Política de Comunicaciones

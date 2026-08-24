@@ -26,12 +26,12 @@ function isMorning(iso) {
 function buildIcsBlob(booking) {
   function dt(iso) { return new Date(iso).toISOString().replace(/[-:]/g, "").split(".")[0] + "Z"; }
   const lines = [
-    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//CarsWise AI//ES", "METHOD:REQUEST",
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//PopCar//ES", "METHOD:REQUEST",
     "BEGIN:VEVENT",
     `DTSTART:${dt(booking.starts_at)}`, `DTEND:${dt(booking.ends_at)}`,
     `SUMMARY:Visita: ${booking.vehicle_title || "Vehículo"}`,
     `DESCRIPTION:Cita confirmada.\\nID: ${booking.id}`,
-    `UID:${booking.id}@carswiseai.com`, "STATUS:CONFIRMED",
+    `UID:${booking.id}@popcar.tech`, "STATUS:CONFIRMED",
     "END:VEVENT", "END:VCALENDAR",
   ];
   return new Blob([lines.join("\r\n")], { type: "text/calendar" });
@@ -106,7 +106,7 @@ export default function SlotPicker({ offerId, vehicleTitle, sellerEmail, userEma
     if (!booking) return;
     const url = URL.createObjectURL(buildIcsBlob(booking));
     const a = document.createElement("a");
-    a.href = url; a.download = "cita-carswise.ics"; a.click();
+    a.href = url; a.download = "cita-popcar.ics"; a.click();
     URL.revokeObjectURL(url);
   }
 

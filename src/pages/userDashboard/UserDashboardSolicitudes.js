@@ -465,7 +465,7 @@ export default function UserDashboardSolicitudes({
                     borderRadius: 8, padding: "10px 12px",
                   }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: isReserved ? "#065f46" : "var(--marca-oscuro)", marginBottom: 6 }}>
-                      {isReserved ? "🎉 Cita confirmada" : "📅 Cita asignada por CarsWise"}
+                      {isReserved ? "🎉 Cita confirmada" : "📅 Cita asignada por PopCar"}
                     </div>
                     <div style={{ fontSize: 13, color: isDark ? (isReserved ? "#86efac" : "var(--gris-200)") : (isReserved ? "#166534" : "var(--gris-900)"), display: "grid", gap: 3 }}>
                       <div>📅 {formatAppointmentDate(meta.appointment_date)}</div>
@@ -485,7 +485,7 @@ export default function UserDashboardSolicitudes({
                 {isVisit && !hasAppt && item.status === "Pendiente" && (
                   <div style={{ background: isDark ? "rgba(150,150,143,0.07)" : "var(--gris-50)", border: "1px solid rgba(150,150,143,0.25)", borderRadius: 8, padding: "10px 12px" }}>
                     <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "var(--gris-500)" }}>
-                      ⏳ Pendiente de asignación de cita — el equipo de CarsWise te contactará para concretar fecha y hora.
+                      ⏳ Pendiente de asignación de cita — el equipo de PopCar te contactará para concretar fecha y hora.
                     </div>
                   </div>
                 )}
@@ -493,7 +493,7 @@ export default function UserDashboardSolicitudes({
                 {/* Non-visit response */}
                 {!isVisit && meta.erp_response && item.status !== "Cancelado" && (
                   <div style={{ background: isDark ? "rgba(255,196,0,0.12)" : "var(--acento-tenue)", border: `1px solid ${isDark ? "rgba(255,196,0,0.25)" : "var(--gris-200)"}`, borderRadius: 8, padding: "10px 12px" }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--marca-oscuro)", marginBottom: 4 }}>💬 Respuesta de CarsWise</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--marca-oscuro)", marginBottom: 4 }}>💬 Respuesta de PopCar</div>
                     <div style={{ fontSize: 13, color: isDark ? "var(--gris-200)" : "var(--gris-900)", whiteSpace: "pre-wrap" }}>{meta.erp_response}</div>
                   </div>
                 )}
@@ -572,15 +572,15 @@ export default function UserDashboardSolicitudes({
                 {(CONTRACTED_STATUSES.includes(item.status) || item.status === "Cerrado") && (
                   <div style={{ background: isDark ? "rgba(5,150,105,0.1)" : "var(--gris-50)", border: "1px solid #86efac", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "#065f46", fontWeight: 600 }}>
                     {(isRenting || item.status === "Renting confirmado")
-                      ? "🔑 ¡Renting confirmado! El equipo de CarsWise se pondrá en contacto contigo para gestionar tu contrato."
-                      : "🎉 ¡Compra confirmada! El equipo de CarsWise se pondrá en contacto contigo para los próximos pasos."}
+                      ? "🔑 ¡Renting confirmado! El equipo de PopCar se pondrá en contacto contigo para gestionar tu contrato."
+                      : "🎉 ¡Compra confirmada! El equipo de PopCar se pondrá en contacto contigo para los próximos pasos."}
                   </div>
                 )}
 
                 {/* Interesado — waiting for operator */}
                 {item.status === "Interesado" && (
                   <div style={{ background: isDark ? "rgba(255,196,0,0.08)" : "var(--gris-50)", border: "1px solid var(--gris-200)", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "var(--gris-800)" }}>
-                    ⏳ Hemos recibido tu interés. El equipo de CarsWise se pondrá en contacto contigo para gestionar la compra.
+                    ⏳ Hemos recibido tu interés. El equipo de PopCar se pondrá en contacto contigo para gestionar la compra.
                   </div>
                 )}
 
@@ -596,7 +596,7 @@ export default function UserDashboardSolicitudes({
                   <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 8, padding: "10px 12px" }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: "#92400e", marginBottom: 4 }}>🔄 Solicitud de cambio de fecha enviada</div>
                     <div style={{ fontSize: 12, color: isDark ? "#d97706" : "#78350f", marginBottom: parseMeta(item.meta).reschedule_proposals?.length > 0 ? 8 : 0 }}>
-                      El equipo de CarsWise está procesando tu solicitud y te confirmará una nueva fecha pronto.
+                      El equipo de PopCar está procesando tu solicitud y te confirmará una nueva fecha pronto.
                     </div>
                     {parseMeta(item.meta).reschedule_proposals?.length > 0 && (
                       <div style={{ fontSize: 11, color: isDark ? "#92400e" : "#78350f" }}>

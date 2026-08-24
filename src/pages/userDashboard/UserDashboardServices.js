@@ -166,7 +166,7 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
         }}
       >
         <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.09em", color: "var(--gris-500)", marginBottom: 6 }}>
-          TARIFA PROFESIONAL CARSWISE
+          TARIFA PROFESIONAL POPCAR
         </div>
         <div style={{ fontSize: 17, fontWeight: 800, color: isDark ? "var(--gris-200)" : "var(--gris-800)", marginBottom: 6 }}>
           Precios de taller para profesionales y flotas

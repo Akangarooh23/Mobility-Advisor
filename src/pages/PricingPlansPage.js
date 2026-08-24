@@ -53,7 +53,7 @@ export default function PricingPlansPage({
         heroTitleA: "Your car,",
         heroTitleB: "always under control",
         heroTitleC: ". No surprises.",
-        heroSub: "Start free. Control, save and sell better with CarsWise AI.",
+        heroSub: "Start free. Control, save and sell better with PopCar.",
         monthly: "Monthly",
         annual: "Yearly",
         startFree: "Start free",
@@ -89,7 +89,7 @@ export default function PricingPlansPage({
         servicesList: [
           ["Boost listing", "9-19 EUR"],
           ["Advanced market report", "10 EUR"],
-          ["CarsWise guarantee seal", "29-49 EUR"],
+          ["PopCar guarantee seal", "29-49 EUR"],
           ["Insurance review", "Free"],
           ["Managed sale", "from 149 EUR"],
         ],
@@ -120,7 +120,7 @@ export default function PricingPlansPage({
           sell: {
             tag: "Resolution - High ticket",
             title: "Full sale management",
-            desc: "CarsWise handles valuation, listing, buyers and closing.",
+            desc: "PopCar handles valuation, listing, buyers and closing.",
             price: "149-249 EUR",
             sub: "fixed fee or 2-3%",
             cta: "Request managed sale",
@@ -155,12 +155,12 @@ export default function PricingPlansPage({
           },
           seal: {
             tag: "Trust",
-            title: "CarsWise guarantee seal",
+            title: "PopCar guarantee seal",
             desc: "Workshop inspection and verified badge in your ad.",
             price: "29-49 EUR",
             sub: "per vehicle",
             cta: "Certify my car",
-            note: "Coordinated with CarsWise workshop network.",
+            note: "Coordinated with PopCar workshop network.",
           },
           publish: {
             tag: "Enhanced profile",
@@ -177,7 +177,7 @@ export default function PricingPlansPage({
         faqItems: [
           {
             q: "What is an IDCar?",
-            a: "Your digital vehicle profile in CarsWise with key dates, documents and alerts.",
+            a: "Your digital vehicle profile in PopCar with key dates, documents and alerts.",
           },
           {
             q: "Can I cancel Plus anytime?",
@@ -208,7 +208,7 @@ export default function PricingPlansPage({
       heroTitleA: "Tu coche,",
       heroTitleB: "siempre bajo control",
       heroTitleC: ". Sin sorpresas.",
-      heroSub: "Empieza gratis. Controla, ahorra y vende mejor con CarsWise AI.",
+      heroSub: "Empieza gratis. Controla, ahorra y vende mejor con PopCar.",
       monthly: "Mensual",
       annual: "Anual",
       startFree: "Empezar gratis",
@@ -275,7 +275,7 @@ export default function PricingPlansPage({
         sell: {
           tag: "Resolucion · Mayor ticket",
           title: "Gestion integral de venta",
-          desc: "CarsWise gestiona valoracion, anuncio, compradores y cierre.",
+          desc: "PopCar gestiona valoracion, anuncio, compradores y cierre.",
           price: "149-249 EUR",
           sub: "fee fijo o 2-3%",
           cta: "Solicitar gestion",
@@ -310,12 +310,12 @@ export default function PricingPlansPage({
         },
         seal: {
           tag: "Confianza",
-          title: "Sello de Garantia CarsWise",
+          title: "Sello de Garantia PopCar",
           desc: "Inspeccion en taller y badge verificado en tu anuncio.",
           price: "29-49 EUR",
           sub: "por vehiculo",
           cta: "Certificar mi coche",
-          note: "Coordinacion con red de talleres CarsWise.",
+          note: "Coordinacion con red de talleres PopCar.",
         },
         publish: {
           tag: "Ficha ampliada",
@@ -332,7 +332,7 @@ export default function PricingPlansPage({
       faqItems: [
         {
           q: "Que es una IDCar?",
-          a: "La IDCar es la ficha digital de tu vehiculo en CarsWise con alertas, documentos e hitos clave.",
+          a: "La IDCar es la ficha digital de tu vehiculo en PopCar con alertas, documentos e hitos clave.",
         },
         {
           q: "Puedo cancelar Plus cuando quiera?",

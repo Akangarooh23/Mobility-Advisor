@@ -112,7 +112,7 @@ export default function SimuladorFinanciacion({
   onSolicitar,
   onCuotaChange,
 }) {
-  // Paleta CarsWise AI, adaptada a claro/oscuro
+  // Paleta PopCar, adaptada a claro/oscuro
   const C = {
     amber: "#BA7517",
     teal: isDark ? "#5eead4" : "#137370",

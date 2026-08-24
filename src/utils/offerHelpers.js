@@ -413,7 +413,7 @@ function shouldBypassImageProxy(url) {
         || host.endsWith(".wallapop.com")
         || host.endsWith(".milanuncios.com")
         || host.endsWith(".supabase.co")
-        || host.endsWith(".carswiseai.com")
+        || host.endsWith(".popcar.tech")
         || host.endsWith(".flexicar.es")
         || host === "flexicar.es"
       );

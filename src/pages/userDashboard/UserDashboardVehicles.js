@@ -383,7 +383,7 @@ export default function UserDashboardVehicles({
   const [vehicleBookings, setVehicleBookings] = useState({});
   const [slotsDialog, setSlotsDialog] = useState({ open: false, vehicleId: null });
 
-  // Informe de estado (CarsWise Check). Mismo hook que el IDCar: publicar tiene
+  // Informe de estado (PopCar Check). Mismo hook que el IDCar: publicar tiene
   // que exigir lo mismo se entre por donde se entre.
   const {
     cargar: cargarInforme,

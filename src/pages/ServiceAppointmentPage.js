@@ -267,7 +267,7 @@ function chooseParticularPrice(range) {
   return range.max ?? range.mid ?? range.min ?? null;
 }
 
-function chooseCarsWisePrice(range) {
+function choosePopCarPrice(range) {
   if (!range) {
     return null;
   }
@@ -296,7 +296,7 @@ const REVISION_TYPES = [
   { id: "Revision ITV", nameKey: "service.revisionITVName", subtitleKey: "service.revisionITVSubtitle" },
 ];
 
-// Maps each CarsWise service ID → service tag used for workshop ranking
+// Maps each PopCar service ID → service tag used for workshop ranking
 const SERVICE_TAG_MAP = {
   // Popular revision types
   "Revision menor":       "revision",
@@ -822,10 +822,10 @@ export default function ServiceAppointmentPage({
     .map((p) => {
       const knownRange = selectedServicePricing?.[p.providerKey] || null;
       const particular = chooseParticularPrice(knownRange);
-      const withCarsWise = chooseCarsWisePrice(knownRange);
+      const withPopCar = choosePopCarPrice(knownRange);
       const savings =
-        typeof particular === "number" && typeof withCarsWise === "number"
-          ? Math.max(0, particular - withCarsWise)
+        typeof particular === "number" && typeof withPopCar === "number"
+          ? Math.max(0, particular - withPopCar)
           : null;
       const matchScore = serviceMatchScore(
         p.providerKey,
@@ -838,7 +838,7 @@ export default function ServiceAppointmentPage({
         name: p.providerName,
         range: knownRange,
         particular,
-        withCarsWise,
+        withPopCar,
         savings,
         nearby: p,
         isIndependent: p.isIndependent || false,
@@ -875,7 +875,7 @@ export default function ServiceAppointmentPage({
         workshopDistanceKm: selectedProviderOffer?.nearby?.workshop?.distanceKm,
         province: normalizeText(province),
         postalCode: normalizeText(postalCode),
-        quotedPrice: selectedProviderOffer?.withCarsWise,
+        quotedPrice: selectedProviderOffer?.withPopCar,
       });
     } finally {
       setIsSubmittingAppointment(false);
@@ -1369,11 +1369,11 @@ export default function ServiceAppointmentPage({
                 ) : null}
                 {item.isIndependent ? (
                   <div style={{ fontSize: 12, color: "var(--gris-500)", marginTop: 4, fontWeight: 700 }}>
-                    Precio a consultar · Tarifa CarsWise aplicable
+                    Precio a consultar · Tarifa PopCar aplicable
                   </div>
                 ) : (
                   <div style={{ fontSize: 12, color: "var(--gris-500)", marginTop: 4, fontWeight: 700 }}>
-                    {t("service.appointmentPricingCarsWise", { price: formatPriceTag(item.withCarsWise, priceOptions) })}
+                    {t("service.appointmentPricingPopCar", { price: formatPriceTag(item.withPopCar, priceOptions) })}
                   </div>
                 )}
                 {item.savings !== null ? (
@@ -1390,7 +1390,7 @@ export default function ServiceAppointmentPage({
         </div>
 
         <div style={{ ...cardStyle, padding: 18 }}>
-          {selectedProviderOffer?.withCarsWise != null ? (
+          {selectedProviderOffer?.withPopCar != null ? (
             <>
               <div style={{ fontSize: 10, color: "var(--gris-300)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
                 {t("service.appointmentPriceSectionLabel")}
@@ -1404,10 +1404,10 @@ export default function ServiceAppointmentPage({
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 6 }}>
                   <div style={{ fontSize: 14, color: "var(--gris-500)", fontWeight: 700 }}>
-                    {t("service.appointmentWithCarsWise", { price: formatPriceTag(selectedProviderOffer?.withCarsWise, priceOptions) })}
+                    {t("service.appointmentWithPopCar", { price: formatPriceTag(selectedProviderOffer?.withPopCar, priceOptions) })}
                   </div>
                   <div style={{ fontSize: 24, color: "var(--gris-500)", fontWeight: 800, lineHeight: 1 }}>
-                    {formatPriceTag(selectedProviderOffer?.withCarsWise, priceOptions)}
+                    {formatPriceTag(selectedProviderOffer?.withPopCar, priceOptions)}
                   </div>
                 </div>
                 <div style={{ marginTop: 8, fontSize: 11, color: "var(--gris-500)", lineHeight: 1.45 }}>
@@ -1439,7 +1439,7 @@ export default function ServiceAppointmentPage({
                   {selectedProviderLabel}
                 </div>
                 <div style={{ marginTop: 8, display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(22,163,74,0.1)", borderRadius: 6, padding: "3px 8px" }}>
-                  <span style={{ fontSize: 11, color: "#16a34a", fontWeight: 600 }}>✔ Taller verificado CarsWise</span>
+                  <span style={{ fontSize: 11, color: "#16a34a", fontWeight: 600 }}>✔ Taller verificado PopCar</span>
                 </div>
               </div>
               <div style={{ display: "grid", gap: 9, marginBottom: 16 }}>
@@ -1484,7 +1484,7 @@ export default function ServiceAppointmentPage({
             {t("service.appointmentConfirmTitle", { workshop: selectedProviderOffer?.nearby?.workshop?.name || selectedProviderLabel })}
           </div>
           <div style={{ fontSize: 13, color: "var(--gris-400)", lineHeight: 1.45 }}>
-            {selectedRevisionName}{selectedVehicleLabel ? ` · ${selectedVehicleLabel}` : ""} · {formatPriceTag(selectedProviderOffer?.withCarsWise, priceOptions)} {t("service.appointmentIncludesVat")}{selectedProviderOffer?.nearby?.workshop?.distanceKm ? ` · ${selectedProviderOffer.nearby.workshop.distanceKm} km` : ""}
+            {selectedRevisionName}{selectedVehicleLabel ? ` · ${selectedVehicleLabel}` : ""} · {formatPriceTag(selectedProviderOffer?.withPopCar, priceOptions)} {t("service.appointmentIncludesVat")}{selectedProviderOffer?.nearby?.workshop?.distanceKm ? ` · ${selectedProviderOffer.nearby.workshop.distanceKm} km` : ""}
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>

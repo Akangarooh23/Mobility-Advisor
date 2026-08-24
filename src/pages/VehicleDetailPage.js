@@ -741,7 +741,7 @@ export default function VehicleDetailPage({ offer, onBack, isUserLoggedIn, onReq
             </div>
           </div>
 
-          {/* CARSWISE ANALYSIS */}
+          {/* POPCAR ANALYSIS */}
           <div className="vd-analysis-box">
             <div className="vd-ab-title">{t("vehicleDetail.analysisTitle")}</div>
             <div className="vd-ab-rows">

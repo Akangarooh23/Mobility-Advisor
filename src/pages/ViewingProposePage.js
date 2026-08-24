@@ -94,7 +94,7 @@ export default function ViewingProposePage() {
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
           <span style={{ fontSize: 24 }}>🚗</span>
           <div>
-            <div style={{ fontSize: 12, color: "var(--gris-400)", textTransform: "uppercase", letterSpacing: 1 }}>CarsWise · Solicitud de visita</div>
+            <div style={{ fontSize: 12, color: "var(--gris-400)", textTransform: "uppercase", letterSpacing: 1 }}>PopCar · Solicitud de visita</div>
             <div style={{ fontWeight: 700, fontSize: 18, color: "var(--gris-900)" }}>{appointment.vehicle_title}</div>
           </div>
         </div>
@@ -146,7 +146,7 @@ export default function ViewingProposePage() {
         )}
 
         <p style={{ fontSize: 12, color: "var(--gris-400)", marginTop: 20, textAlign: "center" }}>
-          ¿Dudas? Contacta con CarsWise · <a href="mailto:hola@carswiseai.com" style={{ color: "var(--marca)" }}>hola@carswiseai.com</a>
+          ¿Dudas? Contacta con PopCar · <a href="mailto:hola@carswiseai.com" style={{ color: "var(--marca)" }}>hola@carswiseai.com</a>
         </p>
       </div>
     </div>

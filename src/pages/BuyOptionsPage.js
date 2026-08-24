@@ -20,7 +20,7 @@ const FLOW_A_EN = [
 ];
 
 const FLOW_B_ES = [
-  { title: "Test CarsWise", sub: "Estilo de vida, desplazamientos, entorno legal" },
+  { title: "Test PopCar", sub: "Estilo de vida, desplazamientos, entorno legal" },
   { title: "Establece tus límites geográficos y de precio" },
   { title: "Analizamos anuncios en tiempo real" },
   { title: "Te ofrecemos las 5 mejores opciones" },
@@ -29,7 +29,7 @@ const FLOW_B_ES = [
 ];
 
 const FLOW_B_EN = [
-  { title: "CarsWise Test", sub: "Lifestyle, commuting, legal environment" },
+  { title: "PopCar Test", sub: "Lifestyle, commuting, legal environment" },
   { title: "Set your geographic and price limits" },
   { title: "We analyze listings in real time" },
   { title: "We offer you the 5 best options" },
@@ -158,8 +158,8 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             </div>
             <div style={{ fontSize: 14, color: mutedColor, lineHeight: 1.55 }}>
               {uiLanguage === "en"
-                ? "Unique cars on our portal. Find offers from dealerships, rentals, imported vehicles and cars sold by CarsWise users."
-                : "Coches únicos de nuestro portal. Encuentra ofertas de concesionarios, rentings, vehículos de importación y coches vendidos por usuarios de CarsWise."}
+                ? "Unique cars on our portal. Find offers from dealerships, rentals, imported vehicles and cars sold by PopCar users."
+                : "Coches únicos de nuestro portal. Encuentra ofertas de concesionarios, rentings, vehículos de importación y coches vendidos por usuarios de PopCar."}
             </div>
           </div>
           <button

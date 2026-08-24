@@ -12,7 +12,7 @@ export default function HomePricingPlans({
   const copy = useMemo(() => {
     if (isEnglish) {
       return {
-        helperText: "Start free. Control, save and sell better with CarsWise AI.",
+        helperText: "Start free. Control, save and sell better with PopCar.",
         monthly: "Monthly",
         yearly: "Yearly",
         save: "-14%",
@@ -45,7 +45,7 @@ export default function HomePricingPlans({
         servicesRows: [
           ["Boost listing", "9-19 EUR"],
           ["Advanced market report", "10 EUR"],
-          ["CarsWise guarantee seal", "29-49 EUR"],
+          ["PopCar guarantee seal", "29-49 EUR"],
           ["Insurance review", "Free"],
           ["Managed sale", "from 149 EUR"],
         ],
@@ -55,7 +55,7 @@ export default function HomePricingPlans({
     }
 
     return {
-      helperText: "Empieza gratis. Controla, ahorra y vende mejor con CarsWise AI.",
+      helperText: "Empieza gratis. Controla, ahorra y vende mejor con PopCar.",
       monthly: "Mensual",
       yearly: "Anual",
       save: "-14%",
@@ -88,7 +88,7 @@ export default function HomePricingPlans({
       servicesRows: [
         ["Destacar anuncio", "9-19 EUR"],
         ["Informe de mercado", "10 EUR"],
-        ["Sello de Garantia CarsWise", "29-49 EUR"],
+        ["Sello de Garantia PopCar", "29-49 EUR"],
         ["Revision de seguro", "Gratis"],
         ["Gestion de venta", "desde 149 EUR"],
       ],

@@ -5,7 +5,7 @@ import React from "react";
  *
  * Está aquí, junto a la descarga del PDF, porque es el único sitio al que el
  * usuario llega cuando el informe ya está hecho. La pantalla del informe en
- * CarsWise Check vive detrás del enlace de captura, y ese enlace deja de
+ * PopCar Check vive detrás del enlace de captura, y ese enlace deja de
  * ofrecerse en cuanto la sesión termina — a propósito, para que nadie reabra un
  * expediente cerrado. Sin esta puerta, la vista en 3D no tenía ninguna.
  *

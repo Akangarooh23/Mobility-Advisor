@@ -1663,7 +1663,7 @@ export default function SellReportMarketPage({
                           >
                             {fleetLoading ? "Redirigiendo…" : `Tasar ${count} vehículo${count !== 1 ? "s" : ""} — ${total} €`}
                           </button>
-                          <a href="/ejemplo-informe-tasacion.pdf" download="Ejemplo_Informe_Tasacion_CarsWise.pdf" style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1.5px solid #0d9488", color: "#0d9488", background: "#fff", borderRadius: 10, padding: "11px 18px", fontSize: 14, fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>Ver ejemplo</a>
+                          <a href="/ejemplo-informe-tasacion.pdf" download="Ejemplo_Informe_Tasacion_PopCar.pdf" style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1.5px solid #0d9488", color: "#0d9488", background: "#fff", borderRadius: 10, padding: "11px 18px", fontSize: 14, fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>Ver ejemplo</a>
                         </div>
                         <span style={{ fontSize: 12, color: "var(--gris-500)" }}>{count} vehículo{count !== 1 ? "s" : ""} · {up} €/unidad · Entrega automática en menos de 5 minutos</span>
                         {fleetError && (
@@ -1720,7 +1720,7 @@ export default function SellReportMarketPage({
                         >
                           {checkoutLoading ? "Redirigiendo…" : "Solicitar tasación — 10 €"}
                         </button>
-                        <a href="/ejemplo-informe-tasacion.pdf" download="Ejemplo_Informe_Tasacion_CarsWise.pdf" style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1.5px solid #0d9488", color: "#0d9488", background: "#fff", borderRadius: 10, padding: "11px 18px", fontSize: 14, fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>Ver ejemplo</a>
+                        <a href="/ejemplo-informe-tasacion.pdf" download="Ejemplo_Informe_Tasacion_PopCar.pdf" style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1.5px solid #0d9488", color: "#0d9488", background: "#fff", borderRadius: 10, padding: "11px 18px", fontSize: 14, fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>Ver ejemplo</a>
                       </div>
                       <span style={{ fontSize: 12, color: "var(--gris-500)" }}>Pago único · Entrega automática en menos de 5 minutos</span>
                       {checkoutError && (

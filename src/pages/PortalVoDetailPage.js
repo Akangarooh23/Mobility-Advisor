@@ -10,7 +10,7 @@ import SimuladorFinanciacion, { TIPOS_FINANCIACION_IMPORTACION } from "../compon
 import ConditionReportAr from "../components/ConditionReportAr";
 import ConditionReportDownload from "../components/ConditionReportDownload";
 
-// Número de WhatsApp de CarsWise (formato internacional sin +).
+// Número de WhatsApp de PopCar (formato internacional sin +).
 const CARSWISE_WHATSAPP = "34684717736";
 
 function getAvailableDurations(offer) {

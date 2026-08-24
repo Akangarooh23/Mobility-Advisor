@@ -6059,6 +6059,8 @@ export default function App() {
       {step === -1 && !entryMode && (
         <LandingPage
           onSelectEmpresas={() => openPublicPage("empresas")}
+          onSelectAbout={goToAboutHeaderPage}
+          onSelectContact={() => openPublicPage("contact")}
           styles={s}
           totalSteps={totalSteps}
           blockColors={BLOCK_COLORS}
@@ -7186,9 +7188,11 @@ export default function App() {
             {
               titulo: uiLanguage === "en" ? "About" : "Nosotros",
               enlaces: [
+                { texto: uiLanguage === "en" ? "About PopCar" : "Sobre PopCar", onClick: goToAboutHeaderPage },
                 { texto: uiLanguage === "en" ? "Home" : "Inicio", onClick: restart },
                 { texto: "Blog", onClick: () => openPublicPage("blog") },
                 { texto: uiLanguage === "en" ? "Contact" : "Contacto", onClick: () => openPublicPage("contact") },
+                { texto: uiLanguage === "en" ? "Plans" : "Planes", onClick: () => openPlansSection("planes") },
               ],
             },
           ]}

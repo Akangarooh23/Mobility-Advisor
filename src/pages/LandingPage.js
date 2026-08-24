@@ -195,6 +195,8 @@ export default function LandingPage({
   onSelectService,
   onSelectPortalVo,
   onSelectEmpresas,
+  onSelectAbout,
+  onSelectContact,
   onOpenPlans,
   // Props que sigue pasando App.js y esta vista no usa
   styles,
@@ -246,6 +248,8 @@ export default function LandingPage({
   const irInicio    = go(onSelectAdvice || onSelectBuyStart);
   const irOfertas   = go(onSelectPortalVo);
   const irContacto  = go(onSelectEmpresas);
+  const irSobre     = go(onSelectAbout);
+  const irContactar = go(onSelectContact);
   const irPanel     = go(onOpenDashboard);
 
   const Logotipo = ({ tono = "oscuro", size = 32 }) => (
@@ -518,7 +522,7 @@ export default function LandingPage({
           { titulo: t.pie.vender[0],    enlaces: t.pie.vender[1].map((x)       => ({ texto: x, onClick: irVender })) },
           { titulo: t.pie.gestionar[0], enlaces: t.pie.gestionar[1].map((x)    => ({ texto: x, onClick: irGestionar })) },
           { titulo: t.pie.idcar[0],     enlaces: t.pie.idcar[1].map((x)        => ({ texto: x, onClick: irGestionar })) },
-          { titulo: t.pie.nosotros[0],  enlaces: t.pie.nosotros[1].map((x, i)  => ({ texto: x, onClick: [irInicio, irInicio, irPlanes][i] })) },
+          { titulo: t.pie.nosotros[0],  enlaces: t.pie.nosotros[1].map((x, i)  => ({ texto: x, onClick: [irSobre, irContactar, irPlanes][i] })) },
         ]}
         legales={t.legal.split(" · ").map((x) => ({ texto: x }))}
       />

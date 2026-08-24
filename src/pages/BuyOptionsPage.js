@@ -191,7 +191,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             borderRadius: 12,
             background: cardBackground,
             boxShadow: isDark ? "none" : "0 8px 22px rgba(17,17,17,0.05)",
-            padding: "24px 22px 20px",
+            padding: "58px 22px 20px",
             textAlign: "left",
             display: "flex",
             flexDirection: "column",
@@ -230,7 +230,12 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           >
             &gt;
           </span>
-          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
+            <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="var(--acento-texto)"
+                 strokeWidth="2.1" strokeLinecap="round" aria-hidden="true" style={{ flex: "none" }}>
+              <circle cx="10.8" cy="10.8" r="6.4" />
+              <path d="M15.6 15.6 20.4 20.4" />
+            </svg>
             {t("buyOptions.optionATitle")}
           </div>
           <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
@@ -264,7 +269,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             borderRadius: 12,
             background: cardBackground,
             boxShadow: isDark ? "none" : "0 8px 22px rgba(17,17,17,0.05)",
-            padding: "24px 22px 20px",
+            padding: "58px 22px 20px",
             textAlign: "left",
             display: "flex",
             flexDirection: "column",
@@ -307,6 +312,9 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               un buscador, es un cuestionario que recomienda. */}
           <span
             style={{
+              position: "absolute",
+              top: 19,
+              left: 22,
               display: "inline-flex",
               alignItems: "center",
               gap: 7,
@@ -328,7 +336,11 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             </svg>
             {t("buyOptions.optionBTag")}
           </span>
-          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
+            <svg viewBox="0 0 24 24" width="21" height="21" fill="var(--acento-texto)" aria-hidden="true" style={{ flex: "none" }}>
+              <path d="M13.2 2.4a.5.5 0 0 0-.95 0l-1.2 4.1a4 4 0 0 1-2.75 2.75l-4.1 1.2a.5.5 0 0 0 0 .95l4.1 1.2a4 4 0 0 1 2.75 2.75l1.2 4.1a.5.5 0 0 0 .95 0l1.2-4.1a4 4 0 0 1 2.75-2.75l4.1-1.2a.5.5 0 0 0 0-.95l-4.1-1.2a4 4 0 0 1-2.75-2.75z" />
+              <path d="M5.6 15.9a.3.3 0 0 0-.57 0l-.42 1.45a1.6 1.6 0 0 1-1.1 1.1l-1.45.42a.3.3 0 0 0 0 .57l1.45.42a1.6 1.6 0 0 1 1.1 1.1l.42 1.45a.3.3 0 0 0 .57 0l.42-1.45a1.6 1.6 0 0 1 1.1-1.1l1.45-.42a.3.3 0 0 0 0-.57l-1.45-.42a1.6 1.6 0 0 1-1.1-1.1z" opacity=".55" />
+            </svg>
             {t("buyOptions.optionBTitle")}
           </div>
           <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>

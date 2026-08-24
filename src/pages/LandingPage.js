@@ -194,7 +194,7 @@ export default function LandingPage({
   onSelectSell,
   onSelectService,
   onSelectPortalVo,
-  onSelectContact,
+  onSelectEmpresas,
   onOpenPlans,
   // Props que sigue pasando App.js y esta vista no usa
   styles,
@@ -245,7 +245,7 @@ export default function LandingPage({
   const irPlanes    = go(onOpenPlans);
   const irInicio    = go(onSelectAdvice || onSelectBuyStart);
   const irOfertas   = go(onSelectPortalVo);
-  const irContacto  = go(onSelectContact);
+  const irContacto  = go(onSelectEmpresas);
   const irPanel     = go(onOpenDashboard);
 
   const Logotipo = ({ tono = "oscuro", size = 32 }) => (

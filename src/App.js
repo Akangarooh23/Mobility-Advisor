@@ -37,6 +37,7 @@ import MiCitaPage from "./pages/MiCitaPage";
 import SeoStaticPage from "./pages/SeoStaticPage";
 import AboutCarswisePage from "./pages/AboutCarswisePage";
 import ContactCarswisePage from "./pages/ContactCarswisePage";
+import EmpresasPage from "./pages/EmpresasPage";
 import BlogIndexPage from "./pages/BlogIndexPage";
 import BlogArticlePage from "./pages/BlogArticlePage";
 import PricingPlansPage from "./pages/PricingPlansPage";
@@ -1217,6 +1218,7 @@ const PUBLIC_ROUTE_BY_ENTRY_MODE = {
   blogRentingCompra: "/blog/renting-vs-compra-2026-que-conviene-segun-tu-uso",
   viewingPropose: "/cita/proponer",
   viewingConfirm: "/cita/confirmar",
+  empresas: "/empresas",
   contact: "/contacto",
   legalNotice: "/aviso-legal",
   privacyPolicy: "/politica-privacidad",
@@ -1882,7 +1884,7 @@ export default function App() {
     if (entryMode === "idCarsManage" || entryMode === "idCarDetail" || entryMode === "idCarCreate") {
       return "idcar";
     }
-    if (entryMode === "contact") {
+    if (entryMode === "empresas") {
       return "business";
     }
 
@@ -1944,7 +1946,7 @@ export default function App() {
     {
       key: "business",
       label: uiLanguage === "en" ? "Business" : "Empresas",
-      onClick: () => openPublicPage("contact"),
+      onClick: () => openPublicPage("empresas"),
     },
   ], [goToHomeHeaderPage, openInternalLandingFlow, openPublicPage, uiLanguage]);
 
@@ -6056,7 +6058,7 @@ export default function App() {
       {/* LANDING */}
       {step === -1 && !entryMode && (
         <LandingPage
-          onSelectContact={() => openPublicPage("contact")}
+          onSelectEmpresas={() => openPublicPage("empresas")}
           styles={s}
           totalSteps={totalSteps}
           blockColors={BLOCK_COLORS}
@@ -6655,6 +6657,10 @@ export default function App() {
             setStep(-1);
           }}
         />
+      )}
+
+      {step === -1 && entryMode === "empresas" && (
+        <EmpresasPage onGoHome={restart} uiLanguage={uiLanguage} />
       )}
 
       {step === -1 && entryMode === "contact" && (

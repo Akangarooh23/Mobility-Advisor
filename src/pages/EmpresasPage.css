@@ -1,0 +1,109 @@
+/**
+ * Empresas. Los colores salen de los tokens, así que un ajuste de paleta no
+ * obliga a volver aquí.
+ */
+
+.emp-root {
+  background: var(--blanco);
+  color: var(--gris-900);
+  font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  padding: 34px 20px 90px;
+}
+.emp-ancho { max-width: 1100px; margin: 0 auto; }
+
+.emp-volver {
+  background: var(--gris-50); border: 1px solid var(--gris-200); color: var(--gris-700);
+  border-radius: 10px; padding: 8px 14px; font-size: 13px; cursor: pointer; margin-bottom: 26px;
+}
+.emp-volver:hover { border-color: var(--gris-400); }
+
+.emp-eyebrow {
+  margin: 0 0 10px; font-size: 12px; font-weight: 700; letter-spacing: .16em; color: var(--gris-400);
+}
+.emp-titulo {
+  margin: 0 0 16px; font-size: clamp(30px, 4.4vw, 46px); font-weight: 800;
+  letter-spacing: -.035em; line-height: 1.06; max-width: 20ch;
+}
+.emp-entrada { margin: 0 0 58px; font-size: 17px; line-height: 1.6; color: var(--gris-600); max-width: 68ch; }
+
+.emp-h2 {
+  margin: 0 0 22px; font-size: clamp(22px, 2.6vw, 30px); font-weight: 800; letter-spacing: -.03em;
+}
+
+/* ── Servicios ───────────────────────────────────────────────────────────── */
+.emp-servicios { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 64px; }
+.emp-servicio {
+  border: 1px solid var(--gris-200); border-radius: 18px; padding: 26px 24px; background: var(--blanco);
+  transition: transform .22s, box-shadow .22s, border-color .22s;
+}
+.emp-servicio:hover {
+  transform: translateY(-3px); border-color: var(--gris-300);
+  box-shadow: 0 16px 36px -18px rgba(0, 0, 0, .22);
+}
+.emp-ico {
+  display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 14px;
+  background: var(--acento-tenue); color: var(--acento-texto); margin-bottom: 16px;
+}
+.emp-servicio h3 { margin: 0 0 8px; font-size: 19px; font-weight: 800; letter-spacing: -.02em; }
+.emp-servicio p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--gris-600); }
+
+/* ── Pasos ───────────────────────────────────────────────────────────────── */
+.emp-pasos {
+  list-style: none; margin: 0 0 70px; padding: 0;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
+}
+.emp-pasos li { display: block; }
+.emp-num {
+  display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
+  background: var(--acento); color: var(--gris-900); font-size: 14px; font-weight: 800; margin-bottom: 14px;
+}
+.emp-pasos b { display: block; font-size: 15px; margin-bottom: 6px; }
+.emp-pasos span { font-size: 13px; line-height: 1.55; color: var(--gris-600); }
+
+/* ── Formulario ──────────────────────────────────────────────────────────── */
+.emp-form {
+  display: grid; grid-template-columns: .85fr 1.15fr; gap: 40px; align-items: start;
+  background: var(--gris-50); border: 1px solid var(--gris-200); border-radius: 22px; padding: 38px 36px;
+}
+.emp-form-texto h2 { margin: 0 0 10px; font-size: 26px; font-weight: 800; letter-spacing: -.03em; }
+.emp-form-texto p { margin: 0 0 14px; font-size: 15px; line-height: 1.6; color: var(--gris-600); }
+/* El aviso va a la vista y no en letra pequeña al pie: si el formulario no
+   entrega, quien lo rellena tiene que enterarse antes de escribir. */
+.emp-aviso {
+  border-left: 2px solid var(--acento); padding-left: 12px;
+  font-size: 12.5px !important; color: var(--gris-500) !important;
+}
+
+.emp-form form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.emp-form label {
+  display: grid; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--gris-700);
+}
+.emp-total { grid-column: 1 / -1; }
+.emp-form input, .emp-form select, .emp-form textarea {
+  font: inherit; font-size: 14px; font-weight: 400; color: var(--gris-900);
+  background: var(--blanco); border: 1px solid var(--gris-300); border-radius: 10px;
+  padding: 11px 13px; outline: none; width: 100%;
+  transition: border-color .18s, box-shadow .18s;
+}
+.emp-form textarea { resize: vertical; }
+.emp-form input:focus, .emp-form select:focus, .emp-form textarea:focus {
+  border-color: var(--acento); box-shadow: 0 0 0 3px rgba(255, 196, 0, .28);
+}
+/* Texto negro sobre el amarillo: en blanco no se lee. */
+.emp-enviar {
+  grid-column: 1 / -1; justify-self: start;
+  background: var(--acento); color: var(--gris-900); border: 1px solid var(--acento);
+  border-radius: 999px; padding: 13px 30px; font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: background .18s;
+}
+.emp-enviar:hover { background: var(--acento-oscuro); }
+
+@media (max-width: 900px) {
+  .emp-servicios { grid-template-columns: 1fr; }
+  .emp-pasos { grid-template-columns: 1fr 1fr; }
+  .emp-form { grid-template-columns: 1fr; gap: 26px; padding: 28px 22px; }
+}
+@media (max-width: 560px) {
+  .emp-pasos { grid-template-columns: 1fr; }
+  .emp-form form { grid-template-columns: 1fr; }
+}

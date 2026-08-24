@@ -3,9 +3,9 @@ import { useTranslation } from "react-i18next";
 export default function VehicleOptionsPage({ styles, onSelectBuy, onSelectRenting, onSelectGuide, onGoHome }) {
   const { t } = useTranslation();
 
-  const isDark = styles?.page?.color === "#e2e8f0";
-  const titleColor = isDark ? "#f8fafc" : "#000000";
-  const mutedColor = isDark ? "#cbd5e1" : "#94a3b8";
+  const isDark = styles?.page?.color === "var(--gris-200)";
+  const titleColor = isDark ? "var(--gris-50)" : "#000000";
+  const mutedColor = isDark ? "var(--gris-300)" : "var(--gris-400)";
 
   return (
     <div
@@ -22,7 +22,7 @@ export default function VehicleOptionsPage({ styles, onSelectBuy, onSelectRentin
         style={{
           border: "1px solid rgba(148,163,184,0.35)",
           background: "rgba(15,23,42,0.5)",
-          color: "#cbd5e1",
+          color: "var(--gris-300)",
           borderRadius: 10,
           padding: "8px 12px",
           fontSize: 12,
@@ -58,7 +58,7 @@ export default function VehicleOptionsPage({ styles, onSelectBuy, onSelectRentin
             padding: 18,
             border: "1px solid rgba(37,99,235,0.32)",
             background: "rgba(37,99,235,0.12)",
-            color: "#f1f5f9",
+            color: "var(--gris-100)",
             textAlign: "left",
             display: "flex",
             flexDirection: "column",
@@ -84,7 +84,7 @@ export default function VehicleOptionsPage({ styles, onSelectBuy, onSelectRentin
             padding: 18,
             border: "1px solid rgba(14,165,233,0.34)",
             background: "rgba(14,165,233,0.12)",
-            color: "#f1f5f9",
+            color: "var(--gris-100)",
             textAlign: "left",
             display: "flex",
             flexDirection: "column",
@@ -110,7 +110,7 @@ export default function VehicleOptionsPage({ styles, onSelectBuy, onSelectRentin
             padding: 18,
             border: "1px solid rgba(16,185,129,0.34)",
             background: "rgba(16,185,129,0.12)",
-            color: "#f1f5f9",
+            color: "var(--gris-100)",
             textAlign: "left",
             display: "flex",
             flexDirection: "column",

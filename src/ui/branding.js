@@ -45,7 +45,7 @@ export function XPengLogo({ size = 14 }) {
 }
 
 export const BLOCK_COLORS = {
-  Perfil: "#2563EB",
+  Perfil: "var(--marca)",
   "Uso real": "#059669",
   Capacidad: "#D97706",
   Preferencias: "#7C3AED",
@@ -65,8 +65,8 @@ export const BRAND_LOGOS = {
   Toyota: { icon: SiToyota, color: "#ef4444" },
   Hyundai: { icon: SiHyundai, color: "#0ea5e9" },
   Kia: { icon: SiKia, color: "#dc2626" },
-  Nissan: { icon: SiNissan, color: "#64748b" },
-  BMW: { icon: SiBmw, color: "#2563eb" },
+  Nissan: { icon: SiNissan, color: "var(--gris-500)" },
+  BMW: { icon: SiBmw, color: "var(--marca)" },
   Mercedes: { icon: MercedesLogo, color: "#111827" },
   Audi: { icon: SiAudi, color: "#6b7280" },
   Volvo: { icon: SiVolvo, color: "#0284c7" },

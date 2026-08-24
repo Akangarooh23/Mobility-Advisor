@@ -992,7 +992,7 @@ export default function ServiceAppointmentPage({
               style={{
                 border: "none",
                 borderRadius: 10,
-                background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
+                background: "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
                 color: "#fff",
                 padding: "9px 13px",
                 fontSize: 13,
@@ -1331,7 +1331,7 @@ export default function ServiceAppointmentPage({
                     {item.name}
                   </span>
                   {item.isIndependent && (
-                    <span style={{ fontSize: 10, fontWeight: 700, color: "#64748b", background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: 6, padding: "1px 6px" }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "var(--gris-500)", background: "var(--gris-100)", border: "1px solid var(--gris-200)", borderRadius: 6, padding: "1px 6px" }}>
                       Independiente
                     </span>
                   )}
@@ -1355,7 +1355,7 @@ export default function ServiceAppointmentPage({
                     <span style={{ color: "#f59e0b", letterSpacing: 1 }}>
                       {"★".repeat(Math.round(item.nearby.workshop.rating))}{"☆".repeat(5 - Math.round(item.nearby.workshop.rating))}
                     </span>
-                    <span style={{ fontSize: 11, color: "#64748b", marginLeft: 3 }}>
+                    <span style={{ fontSize: 11, color: "var(--gris-500)", marginLeft: 3 }}>
                       {item.nearby.workshop.rating.toFixed(1)}
                       {item.nearby.workshop.ratingCount ? ` (${item.nearby.workshop.ratingCount.toLocaleString("es-ES")})` : ""}
                     </span>
@@ -1363,7 +1363,7 @@ export default function ServiceAppointmentPage({
                 )}
                 </div>
                 {item?.nearby?.workshop?.address ? (
-                  <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
+                  <div style={{ fontSize: 11, color: "var(--gris-500)", marginTop: 2 }}>
                     {item.nearby.workshop.address}
                   </div>
                 ) : null}
@@ -1381,7 +1381,7 @@ export default function ServiceAppointmentPage({
                     {t("service.appointmentSavings", { savings: item.savings })}
                   </div>
                 ) : null}
-                <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }} title={pricingNotice}>
+                <div style={{ fontSize: 10, color: "var(--gris-400)", marginTop: 4 }} title={pricingNotice}>
                   {t("service.appointmentPricingOrientative")}
                 </div>
               </button>
@@ -1410,7 +1410,7 @@ export default function ServiceAppointmentPage({
                     {formatPriceTag(selectedProviderOffer?.withCarsWise, priceOptions)}
                   </div>
                 </div>
-                <div style={{ marginTop: 8, fontSize: 11, color: "#64748b", lineHeight: 1.45 }}>
+                <div style={{ marginTop: 8, fontSize: 11, color: "var(--gris-500)", lineHeight: 1.45 }}>
                   ℹ {pricingNotice}
                 </div>
               </div>

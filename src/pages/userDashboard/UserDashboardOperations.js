@@ -183,8 +183,8 @@ export default function UserDashboardOperations({
   };
 
   const isDark = themeMode === "dark";
-  const titleColor = isDark ? "#f8fafc" : "#0f172a";
-  const bodyColor = isDark ? "#cbd5e1" : "#475569";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
   const cardBg = isDark
     ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
     : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))";
@@ -483,7 +483,7 @@ export default function UserDashboardOperations({
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,minmax(0,1fr))" : "repeat(auto-fit,minmax(160px,1fr))", gap: 10, marginBottom: 12 }}>
         {[
           [text.pending, stageSummary.pending, "#f59e0b"],
-          [text.active, stageSummary.active, "#2563eb"],
+          [text.active, stageSummary.active, "var(--marca)"],
           [text.closed, stageSummary.closed, "#059669"],
         ].map(([label, value, color]) => (
           <div
@@ -510,9 +510,9 @@ export default function UserDashboardOperations({
               type="button"
               onClick={() => setActiveTab(String(tabKey))}
               style={{
-                background: isActive ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "transparent",
+                background: isActive ? "linear-gradient(135deg,var(--marca),var(--marca-oscuro))" : "transparent",
                 border: isActive ? "none" : cardBorder,
-                color: isActive ? "#eff6ff" : isDark ? "#cbd5e1" : "#334155",
+                color: isActive ? "#eff6ff" : isDark ? "var(--gris-300)" : "var(--gris-700)",
                 padding: "7px 11px",
                 borderRadius: 999,
                 fontSize: 11,
@@ -532,7 +532,7 @@ export default function UserDashboardOperations({
             type="button"
             onClick={() => openManagementWizard(activeTab === "valuations" ? "valuation" : "appointment")}
             style={{
-              background: activeTab === "valuations" ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "linear-gradient(135deg,#f59e0b,#d97706)",
+              background: activeTab === "valuations" ? "linear-gradient(135deg,var(--marca),var(--marca-oscuro))" : "linear-gradient(135deg,#f59e0b,#d97706)",
               border: "none",
               color: "#ffffff",
               padding: "9px 12px",
@@ -570,7 +570,7 @@ export default function UserDashboardOperations({
                 style={{
                   background: managementType === "appointment" ? "linear-gradient(135deg,#f59e0b,#d97706)" : "transparent",
                   border: managementType === "appointment" ? "none" : cardBorder,
-                  color: managementType === "appointment" ? "#ffffff" : isDark ? "#cbd5e1" : "#334155",
+                  color: managementType === "appointment" ? "#ffffff" : isDark ? "var(--gris-300)" : "var(--gris-700)",
                   padding: "8px 10px",
                   borderRadius: 999,
                   fontSize: 11,
@@ -584,9 +584,9 @@ export default function UserDashboardOperations({
                 type="button"
                 onClick={() => setManagementType("valuation")}
                 style={{
-                  background: managementType === "valuation" ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "transparent",
+                  background: managementType === "valuation" ? "linear-gradient(135deg,var(--marca),var(--marca-oscuro))" : "transparent",
                   border: managementType === "valuation" ? "none" : cardBorder,
-                  color: managementType === "valuation" ? "#eff6ff" : isDark ? "#cbd5e1" : "#334155",
+                  color: managementType === "valuation" ? "#eff6ff" : isDark ? "var(--gris-300)" : "var(--gris-700)",
                   padding: "8px 10px",
                   borderRadius: 999,
                   fontSize: 11,
@@ -726,9 +726,9 @@ export default function UserDashboardOperations({
                 onClick={submitManagementWizard}
                 disabled={garageVehiclesForValuation.length === 0}
                 style={{
-                  background: garageVehiclesForValuation.length > 0 ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "rgba(148,163,184,0.24)",
+                  background: garageVehiclesForValuation.length > 0 ? "linear-gradient(135deg,var(--marca),var(--marca-oscuro))" : "rgba(148,163,184,0.24)",
                   border: "none",
-                  color: garageVehiclesForValuation.length > 0 ? "#ffffff" : "#64748b",
+                  color: garageVehiclesForValuation.length > 0 ? "#ffffff" : "var(--gris-500)",
                   padding: "9px 12px",
                   borderRadius: 10,
                   fontSize: 12,
@@ -765,7 +765,7 @@ export default function UserDashboardOperations({
                 style={{
                   background: "rgba(148,163,184,0.14)",
                   border: cardBorder,
-                  color: isDark ? "#e2e8f0" : "#334155",
+                  color: isDark ? "var(--gris-200)" : "var(--gris-700)",
                   padding: "9px 12px",
                   borderRadius: 10,
                   fontSize: 12,
@@ -780,15 +780,15 @@ export default function UserDashboardOperations({
           </div>
         )}
 
-        {appointmentFeedback && <div style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>{appointmentFeedback}</div>}
-        {valuationFeedback && <div style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>{valuationFeedback}</div>}
+        {appointmentFeedback && <div style={{ fontSize: 12, color: "var(--marca-oscuro)", fontWeight: 700 }}>{appointmentFeedback}</div>}
+        {valuationFeedback && <div style={{ fontSize: 12, color: "var(--marca-oscuro)", fontWeight: 700 }}>{valuationFeedback}</div>}
       </div>
 
       {filteredRows.length === 0 && activeTab === "appointments" && (
-        <div style={{ textAlign: "center", padding: "1.5rem 1rem", background: isDark ? "rgba(255,255,255,0.03)" : "#fafafa", borderRadius: 10, border: `1px dashed ${isDark ? "rgba(255,255,255,0.1)" : "#e2e8f0"}`, marginBottom: 12 }}>
+        <div style={{ textAlign: "center", padding: "1.5rem 1rem", background: isDark ? "rgba(255,255,255,0.03)" : "#fafafa", borderRadius: 10, border: `1px dashed ${isDark ? "rgba(255,255,255,0.1)" : "var(--gris-200)"}`, marginBottom: 12 }}>
           <div style={{ fontSize: 24, marginBottom: 6 }}>🔧</div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? "#94a3b8" : "#64748b" }}>Sin citas solicitadas</div>
-          <div style={{ fontSize: 12, color: isDark ? "#64748b" : "#94a3b8", marginTop: 2 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? "var(--gris-400)" : "var(--gris-500)" }}>Sin citas solicitadas</div>
+          <div style={{ fontSize: 12, color: isDark ? "var(--gris-500)" : "var(--gris-400)", marginTop: 2 }}>
             Usa "Nueva gestión" para solicitar cita en un taller o servicio.
           </div>
         </div>
@@ -813,7 +813,7 @@ export default function UserDashboardOperations({
                   <div
                     style={{
                       fontSize: 11,
-                      color: item.stage === "closed" ? "#059669" : item.stage === "active" ? "#1d4ed8" : "#b45309",
+                      color: item.stage === "closed" ? "#059669" : item.stage === "active" ? "var(--marca-oscuro)" : "#b45309",
                       marginTop: 3,
                     }}
                   >
@@ -829,7 +829,7 @@ export default function UserDashboardOperations({
                       padding: "5px 9px",
                       fontSize: 11,
                       fontWeight: 700,
-                      color: isDark ? "#e2e8f0" : "#334155",
+                      color: isDark ? "var(--gris-200)" : "var(--gris-700)",
                     }}
                   >
                     {item.itemTypeLabel}
@@ -841,7 +841,7 @@ export default function UserDashboardOperations({
                       onClick={() => onDeleteAppointment(item.id)}
                       style={{
                         background: "none", border: "none", cursor: "pointer",
-                        color: isDark ? "#64748b" : "#94a3b8", fontSize: 16,
+                        color: isDark ? "var(--gris-500)" : "var(--gris-400)", fontSize: 16,
                         lineHeight: 1, padding: "2px 4px", borderRadius: 4,
                       }}
                     >
@@ -854,7 +854,7 @@ export default function UserDashboardOperations({
           ))}
         </div>
       ) : (
-        <div style={{ fontSize: 12, color: "#94a3b8" }}>
+        <div style={{ fontSize: 12, color: "var(--gris-400)" }}>
           {text.noOperationsYet}
         </div>
       )}
@@ -862,21 +862,21 @@ export default function UserDashboardOperations({
       {activeTab === "appointments" && (isLoadingErp || erpAppointments.length > 0) && (
         <div style={{ marginTop: 24 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-            <div style={{ flex: 1, height: 1, background: isDark ? "rgba(255,255,255,0.07)" : "#e2e8f0" }} />
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.5px", color: isDark ? "#64748b" : "#94a3b8", textTransform: "uppercase", whiteSpace: "nowrap" }}>
+            <div style={{ flex: 1, height: 1, background: isDark ? "rgba(255,255,255,0.07)" : "var(--gris-200)" }} />
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.5px", color: isDark ? "var(--gris-500)" : "var(--gris-400)", textTransform: "uppercase", whiteSpace: "nowrap" }}>
               🔧 Citas de mantenimiento
             </div>
-            <div style={{ flex: 1, height: 1, background: isDark ? "rgba(255,255,255,0.07)" : "#e2e8f0" }} />
+            <div style={{ flex: 1, height: 1, background: isDark ? "rgba(255,255,255,0.07)" : "var(--gris-200)" }} />
           </div>
           {isLoadingErp && (
-            <div style={{ fontSize: 12, color: isDark ? "#64748b" : "#94a3b8", padding: "8px 0" }}>Cargando citas…</div>
+            <div style={{ fontSize: 12, color: isDark ? "var(--gris-500)" : "var(--gris-400)", padding: "8px 0" }}>Cargando citas…</div>
           )}
           <div style={{ display: "grid", gap: 8 }}>
             {erpAppointments.map((item) => {
               const statusStyles = {
                 scheduled: { bg: "rgba(245,158,11,0.12)", color: "#92400e" },
                 confirmed:  { bg: "rgba(16,185,129,0.12)",  color: "#065f46" },
-                completed:  { bg: "rgba(100,116,139,0.12)", color: "#334155" },
+                completed:  { bg: "rgba(100,116,139,0.12)", color: "var(--gris-700)" },
                 cancelled:  { bg: "rgba(239,68,68,0.12)",   color: "#b91c1c" },
                 no_show:    { bg: "rgba(239,68,68,0.12)",   color: "#b91c1c" },
               };
@@ -886,8 +886,8 @@ export default function UserDashboardOperations({
                 <div
                   key={item.id}
                   style={{
-                    background: isDark ? "rgba(255,255,255,0.03)" : "#f8fafc",
-                    border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "#e2e8f0"}`,
+                    background: isDark ? "rgba(255,255,255,0.03)" : "var(--gris-50)",
+                    border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "var(--gris-200)"}`,
                     borderRadius: 10, padding: "10px 14px",
                     opacity: isPast ? 0.7 : 1,
                     display: "flex", alignItems: "flex-start", gap: 10,
@@ -896,7 +896,7 @@ export default function UserDashboardOperations({
                   <span style={{ fontSize: 18, lineHeight: 1.4, flexShrink: 0 }}>🔧</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? "#f1f5f9" : "#1e293b" }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? "var(--gris-100)" : "var(--gris-800)" }}>
                         {item.typeLabel}{item.workshopName ? ` · ${item.workshopName}` : ""}
                       </div>
                       <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: ss.bg, color: ss.color, whiteSpace: "nowrap" }}>
@@ -904,12 +904,12 @@ export default function UserDashboardOperations({
                       </span>
                     </div>
                     {item.scheduledAt && (
-                      <div style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b", marginTop: 3 }}>
+                      <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginTop: 3 }}>
                         📅 {item.scheduledAt}
                       </div>
                     )}
                     {item.notes && (
-                      <div style={{ fontSize: 11, color: isDark ? "#64748b" : "#94a3b8", marginTop: 2 }}>{item.notes}</div>
+                      <div style={{ fontSize: 11, color: isDark ? "var(--gris-500)" : "var(--gris-400)", marginTop: 2 }}>{item.notes}</div>
                     )}
                   </div>
                 </div>
@@ -926,10 +926,10 @@ export default function UserDashboardOperations({
             onClick={() => setShowCalendarReminders((v) => !v)}
             style={{
               display: "flex", alignItems: "center", gap: 8,
-              background: "none", border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "#e2e8f0"}`,
+              background: "none", border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "var(--gris-200)"}`,
               borderRadius: 8, padding: "7px 12px", cursor: "pointer",
               fontSize: 12, fontWeight: 600,
-              color: isDark ? "#94a3b8" : "#64748b",
+              color: isDark ? "var(--gris-400)" : "var(--gris-500)",
               width: "100%",
             }}
           >
@@ -942,13 +942,13 @@ export default function UserDashboardOperations({
             <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
               {calendarReminders.map((item) => {
                 const icon = CALENDAR_TYPE_ICON[item.type] || CALENDAR_TYPE_ICON[item.source] || "📋";
-                const statusStyle = CALENDAR_STATUS_COLOR[item.status] || { bg: "rgba(100,116,139,0.10)", color: "#475569" };
+                const statusStyle = CALENDAR_STATUS_COLOR[item.status] || { bg: "rgba(100,116,139,0.10)", color: "var(--gris-600)" };
                 return (
                   <div
                     key={item.id}
                     style={{
-                      background: isDark ? "rgba(255,255,255,0.03)" : "#f8fafc",
-                      border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "#e2e8f0"}`,
+                      background: isDark ? "rgba(255,255,255,0.03)" : "var(--gris-50)",
+                      border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "var(--gris-200)"}`,
                       borderRadius: 10, padding: "10px 14px",
                       display: "flex", alignItems: "flex-start", gap: 10,
                     }}
@@ -956,16 +956,16 @@ export default function UserDashboardOperations({
                     <span style={{ fontSize: 18, lineHeight: 1.4, flexShrink: 0 }}>{icon}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? "#f1f5f9" : "#1e293b" }}>{item.title}</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? "var(--gris-100)" : "var(--gris-800)" }}>{item.title}</div>
                         <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 999, background: statusStyle.bg, color: statusStyle.color, whiteSpace: "nowrap" }}>
                           {item.status}
                         </span>
                       </div>
                       {item.meta && (
-                        <div style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b", marginTop: 2 }}>{item.meta}</div>
+                        <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginTop: 2 }}>{item.meta}</div>
                       )}
                       {item.requestedAt && (
-                        <div style={{ fontSize: 11, color: isDark ? "#64748b" : "#94a3b8", marginTop: 2 }}>{item.requestedAt}</div>
+                        <div style={{ fontSize: 11, color: isDark ? "var(--gris-500)" : "var(--gris-400)", marginTop: 2 }}>{item.requestedAt}</div>
                       )}
                     </div>
                   </div>

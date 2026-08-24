@@ -79,7 +79,7 @@ export const SERVICE_PLANS = [
     name: "Plan Plata",
     nameEn: "Silver Plan",
     monthlyPrice: "79",
-    accent: "#94a3b8",
+    accent: "var(--gris-400)",
     background: "rgba(148,163,184,0.10)",
     border: "rgba(148,163,184,0.28)",
     badge: "Más equilibrado",

@@ -445,7 +445,7 @@ export default function QuestionnairePage({
             padding: 14,
           }}
         >
-          <div style={{ fontSize: 12, color: isDark ? "#e2e8f0" : "#334155", fontWeight: 700, marginBottom: 10 }}>
+          <div style={{ fontSize: 12, color: isDark ? "var(--gris-200)" : "var(--gris-700)", fontWeight: 700, marginBottom: 10 }}>
             {getFieldTitleText(fieldKey, fieldConfig?.title)}
           </div>
 
@@ -483,7 +483,7 @@ export default function QuestionnairePage({
                       : (isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.9)"),
                     border: `1px solid ${isSelected ? "rgba(125,211,252,0.52)" : "rgba(148,163,184,0.22)"}`,
                     borderRadius: 10,
-                    color: isSelected ? (isDark ? "#bfdbfe" : "#1e3a8a") : (isDark ? "#cbd5e1" : "#475569"),
+                    color: isSelected ? (isDark ? "#bfdbfe" : "#1e3a8a") : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
                     fontSize: 11,
                     fontWeight: isSelected ? 800 : 600,
                     padding: "8px 6px",
@@ -516,7 +516,7 @@ export default function QuestionnairePage({
             padding: 14,
           }}
         >
-          <div style={{ fontSize: 12, color: isDark ? "#e2e8f0" : "#334155", fontWeight: 700, marginBottom: 10 }}>
+          <div style={{ fontSize: 12, color: isDark ? "var(--gris-200)" : "var(--gris-700)", fontWeight: 700, marginBottom: 10 }}>
             {getFieldTitleText(fieldKey, fieldConfig?.title)}
           </div>
 
@@ -535,7 +535,7 @@ export default function QuestionnairePage({
                       : (isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.9)"),
                     border: `1px solid ${isSelected ? "rgba(125,211,252,0.52)" : "rgba(148,163,184,0.22)"}`,
                     borderRadius: 10,
-                    color: isSelected ? (isDark ? "#bfdbfe" : "#1e3a8a") : (isDark ? "#cbd5e1" : "#475569"),
+                    color: isSelected ? (isDark ? "#bfdbfe" : "#1e3a8a") : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
                     fontSize: 12,
                     fontWeight: isSelected ? 800 : 600,
                     padding: "10px 8px",
@@ -597,7 +597,7 @@ export default function QuestionnairePage({
           padding: 14,
         }}
       >
-        <div style={{ fontSize: 12, color: isDark ? "#e2e8f0" : "#334155", fontWeight: 700, marginBottom: 10 }}>
+        <div style={{ fontSize: 12, color: isDark ? "var(--gris-200)" : "var(--gris-700)", fontWeight: 700, marginBottom: 10 }}>
           {fieldConfig?.title}
         </div>
 
@@ -640,7 +640,7 @@ export default function QuestionnairePage({
               width: `${Math.max(rightPct - leftPct, 0)}%`,
               height: 6,
               borderRadius: 999,
-              background: `linear-gradient(90deg, ${tone}, #2563eb)`,
+              background: `linear-gradient(90deg, ${tone}, var(--marca))`,
               transition: "left 0.22s ease, width 0.22s ease",
             }}
           />
@@ -709,7 +709,7 @@ export default function QuestionnairePage({
                     : (isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.9)"),
                   border: `1px solid ${isEdge ? "rgba(125,211,252,0.52)" : isWithinRange ? "rgba(96,165,250,0.28)" : "rgba(148,163,184,0.22)"}`,
                   borderRadius: 10,
-                  color: isWithinRange ? (isDark ? "#bfdbfe" : "#1e3a8a") : (isDark ? "#cbd5e1" : "#475569"),
+                  color: isWithinRange ? (isDark ? "#bfdbfe" : "#1e3a8a") : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
                   fontSize: 11,
                   fontWeight: isEdge ? 800 : isWithinRange ? 700 : 600,
                   padding: "8px 6px",
@@ -733,7 +733,7 @@ export default function QuestionnairePage({
       <div style={styles.blockBadge(currentStep.block)}>
         {currentStep.blockIcon} {getLocalizedBlockName(currentStep.block).toUpperCase()}
       </div>
-      <div style={{ fontSize: 11, color: isDark ? "#cbd5e1" : "#334155", letterSpacing: "1px", marginBottom: 6 }}>
+      <div style={{ fontSize: 11, color: isDark ? "var(--gris-300)" : "var(--gris-700)", letterSpacing: "1px", marginBottom: 6 }}>
         {t("questionnaire.questionOf", { step: step + 1, total: totalSteps })}
       </div>
       <h2
@@ -742,13 +742,13 @@ export default function QuestionnairePage({
           fontWeight: 700,
           letterSpacing: "-0.6px",
           margin: "0 0 8px",
-          color: isDark ? "#f8fafc" : "#0f172a",
+          color: isDark ? "var(--gris-50)" : "var(--gris-900)",
           lineHeight: 1.3,
         }}
       >
         {getStepText("question", currentStep.question)}
       </h2>
-      <p style={{ color: isDark ? "#cbd5e1" : "#64748b", fontSize: 14, margin: "0 0 24px", lineHeight: 1.6 }}>
+      <p style={{ color: isDark ? "var(--gris-300)" : "var(--gris-500)", fontSize: 14, margin: "0 0 24px", lineHeight: 1.6 }}>
         {getStepText("subtitle", currentStep.subtitle)}
       </p>
 
@@ -822,7 +822,7 @@ export default function QuestionnairePage({
             style={{
               width: `${completionPct}%`,
               height: "100%",
-              background: "linear-gradient(90deg,#22d3ee,#2563eb)",
+              background: "linear-gradient(90deg,#22d3ee,var(--marca))",
               transition: "width 0.35s ease",
             }}
           />
@@ -842,7 +842,7 @@ export default function QuestionnairePage({
               borderRadius: 10,
               border: "1px solid rgba(37,99,235,0.24)",
               background: isDark ? "rgba(37,99,235,0.18)" : "rgba(219,234,254,0.7)",
-              color: isDark ? "#bfdbfe" : "#1d4ed8",
+              color: isDark ? "#bfdbfe" : "var(--marca-oscuro)",
               fontSize: 12,
               fontWeight: 700,
               cursor: "pointer",
@@ -881,7 +881,7 @@ export default function QuestionnairePage({
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>
                     {localizedHelpInfo.title}
                   </div>
                   <button
@@ -890,7 +890,7 @@ export default function QuestionnairePage({
                     style={{
                       border: "1px solid rgba(148,163,184,0.3)",
                       background: "transparent",
-                      color: isDark ? "#e2e8f0" : "#334155",
+                      color: isDark ? "var(--gris-200)" : "var(--gris-700)",
                       borderRadius: 8,
                       padding: "6px 10px",
                       fontSize: 12,
@@ -906,15 +906,15 @@ export default function QuestionnairePage({
                     style={{
                       width: "100%",
                       fontSize: 11,
-                      color: isDark ? "#cbd5e1" : "#475569",
+                      color: isDark ? "var(--gris-300)" : "var(--gris-600)",
                       borderCollapse: "collapse",
                     }}
                   >
                     <thead>
                       <tr style={{ borderBottom: "1px solid rgba(148,163,184,0.35)" }}>
-                        <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>{t("questionnaire.tableType")}</th>
-                        <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>{t("questionnaire.tableConsumption")}</th>
-                        <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a" }}>{t("questionnaire.tableCost")}</th>
+                        <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>{t("questionnaire.tableType")}</th>
+                        <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>{t("questionnaire.tableConsumption")}</th>
+                        <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>{t("questionnaire.tableCost")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -926,7 +926,7 @@ export default function QuestionnairePage({
                             background: idx % 2 === 0 ? (isDark ? "rgba(255,255,255,0.02)" : "rgba(148,163,184,0.06)") : "transparent",
                           }}
                         >
-                          <td style={{ padding: "6px 8px", color: isDark ? "#e2e8f0" : "#334155" }}>{row.type}</td>
+                          <td style={{ padding: "6px 8px", color: isDark ? "var(--gris-200)" : "var(--gris-700)" }}>{row.type}</td>
                           <td style={{ padding: "6px 8px" }}>{row.consumption}</td>
                           <td style={{ padding: "6px 8px", fontWeight: 700, color: "#16a34a" }}>{row.cost}</td>
                         </tr>
@@ -957,7 +957,7 @@ export default function QuestionnairePage({
                 ? "linear-gradient(145deg, rgba(219,234,254,0.9), rgba(191,219,254,0.75))"
                 : isDark
                 ? "linear-gradient(145deg, rgba(15,23,42,0.95), rgba(30,41,59,0.92))"
-                : "linear-gradient(145deg, #ffffff, #f8fafc)",
+                : "linear-gradient(145deg, #ffffff, var(--gris-50))",
               border: selected
                 ? "1px solid rgba(59,130,246,0.38)"
                 : isHovered
@@ -985,13 +985,13 @@ export default function QuestionnairePage({
                 style={{
                   fontWeight: 600,
                   fontSize: 14,
-                  color: selected ? "#2563eb" : isDark ? "#f8fafc" : "#0f172a",
+                  color: selected ? "var(--marca)" : isDark ? "var(--gris-50)" : "var(--gris-900)",
                 }}
               >
                 {getOptionText(opt, "label")}
               </div>
               {opt.desc && (
-                <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569", marginTop: 2 }}>{getOptionText(opt, "desc")}</div>
+                <div style={{ fontSize: 12, color: isDark ? "var(--gris-300)" : "var(--gris-600)", marginTop: 2 }}>{getOptionText(opt, "desc")}</div>
               )}
               {Array.isArray(opt.brandChips) && opt.brandChips.length > 0 && (
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
@@ -1013,9 +1013,9 @@ export default function QuestionnairePage({
                           fontSize: 10,
                           fontWeight: 700,
                           letterSpacing: "0.2px",
-                          color: logo?.color || chip.tone || "#334155",
+                          color: logo?.color || chip.tone || "var(--gris-700)",
                           background: "#ffffff",
-                          border: "1px solid #e2e8f0",
+                          border: "1px solid var(--gris-200)",
                         }}
                       >
                         {LogoIcon ? <LogoIcon size={14} /> : chip.short}
@@ -1030,7 +1030,7 @@ export default function QuestionnairePage({
                 style={{
                   width: 20,
                   height: 20,
-                  background: "#2563EB",
+                  background: "var(--marca)",
                   borderRadius: "50%",
                   display: "flex",
                   alignItems: "center",
@@ -1154,7 +1154,7 @@ export default function QuestionnairePage({
                   }}
                 >
                   {/* drag handle */}
-                  <span style={{ color: isDark ? "#64748b" : "#94a3b8", fontSize: 16, lineHeight: 1, flexShrink: 0 }}>⠿</span>
+                  <span style={{ color: isDark ? "var(--gris-500)" : "var(--gris-400)", fontSize: 16, lineHeight: 1, flexShrink: 0 }}>⠿</span>
                   {/* rank badge */}
                   <span
                     style={{
@@ -1162,7 +1162,7 @@ export default function QuestionnairePage({
                       height: 26,
                       borderRadius: "50%",
                       background: rank === metrics.length ? "rgba(37,99,235,0.85)" : isDark ? "rgba(51,65,85,0.8)" : "rgba(226,232,240,0.9)",
-                      color: rank === metrics.length ? "#fff" : isDark ? "#94a3b8" : "#475569",
+                      color: rank === metrics.length ? "#fff" : isDark ? "var(--gris-400)" : "var(--gris-600)",
                       display: "inline-flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -1174,7 +1174,7 @@ export default function QuestionnairePage({
                     {pos + 1}
                   </span>
                   <span style={{ fontSize: 18, flexShrink: 0 }}>{metric.icon || "•"}</span>
-                  <span style={{ color: isDark ? "#f8fafc" : "#0f172a", fontSize: 13, fontWeight: 600, flex: 1 }}>{getMetricLabel(metric)}</span>
+                  <span style={{ color: isDark ? "var(--gris-50)" : "var(--gris-900)", fontSize: 13, fontWeight: 600, flex: 1 }}>{getMetricLabel(metric)}</span>
                   <div style={{ display: "inline-flex", gap: 6, flexShrink: 0 }}>
                     <button
                       type="button"
@@ -1191,7 +1191,7 @@ export default function QuestionnairePage({
                         borderRadius: 8,
                         border: "1px solid rgba(148,163,184,0.35)",
                         background: isDark ? "rgba(30,41,59,0.8)" : "rgba(255,255,255,0.92)",
-                        color: isDark ? "#e2e8f0" : "#334155",
+                        color: isDark ? "var(--gris-200)" : "var(--gris-700)",
                         fontSize: 14,
                         cursor: pos === 0 ? "not-allowed" : "pointer",
                         opacity: pos === 0 ? 0.4 : 1,
@@ -1214,7 +1214,7 @@ export default function QuestionnairePage({
                         borderRadius: 8,
                         border: "1px solid rgba(148,163,184,0.35)",
                         background: isDark ? "rgba(30,41,59,0.8)" : "rgba(255,255,255,0.92)",
-                        color: isDark ? "#e2e8f0" : "#334155",
+                        color: isDark ? "var(--gris-200)" : "var(--gris-700)",
                         fontSize: 14,
                         cursor: pos === metrics.length - 1 ? "not-allowed" : "pointer",
                         opacity: pos === metrics.length - 1 ? 0.4 : 1,
@@ -1295,7 +1295,7 @@ export default function QuestionnairePage({
           style={{
             background: isDark ? "rgba(30,41,59,0.86)" : "rgba(241,245,249,0.9)",
             border: isDark ? "1px solid rgba(148,163,184,0.36)" : "1px solid rgba(148,163,184,0.28)",
-            color: isDark ? "#e2e8f0" : "#334155",
+            color: isDark ? "var(--gris-200)" : "var(--gris-700)",
             padding: "9px 14px",
             borderRadius: 9,
             fontSize: 12,
@@ -1325,7 +1325,7 @@ export default function QuestionnairePage({
           onClick={onTellMeNow}
           disabled={answeredSteps === 0}
           style={{
-            background: "linear-gradient(135deg,#0ea5e9,#2563eb)",
+            background: "linear-gradient(135deg,#0ea5e9,var(--marca))",
             border: "none",
             color: "white",
             padding: "9px 14px",

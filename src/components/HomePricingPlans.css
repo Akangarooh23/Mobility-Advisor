@@ -592,7 +592,7 @@
   line-height: 1.18;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: #0f172a;
+  color: var(--gris-900);
   margin: 0 auto 22px;
   max-width: 980px;
 }
@@ -612,7 +612,7 @@
 .cw-home-plans-toggle-btn {
   border: 0;
   background: transparent;
-  color: #64748b;
+  color: var(--gris-500);
   font-size: 13px;
   font-weight: 700;
   padding: 7px 14px;
@@ -622,7 +622,7 @@
 
 .cw-home-plans-toggle-btn.active {
   background: #ffffff;
-  color: #0f172a;
+  color: var(--gris-900);
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.14);
 }
 
@@ -656,7 +656,7 @@
 }
 
 .cw-home-plan-card.services {
-  background: #f8fafc;
+  background: var(--gris-50);
   border-style: dashed;
 }
 
@@ -674,7 +674,7 @@
 }
 
 .cw-home-plan-tag {
-  color: #64748b;
+  color: var(--gris-500);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.11em;
@@ -686,7 +686,7 @@
 }
 
 .cw-home-plan-name {
-  color: #0f172a;
+  color: var(--gris-900);
   font-size: 42px;
   line-height: 1;
   margin: 16px 0 8px;
@@ -694,7 +694,7 @@
 }
 
 .cw-home-plan-description {
-  color: #475569;
+  color: var(--gris-600);
   font-size: 15px;
   line-height: 1.5;
   margin: 0 0 12px;
@@ -707,14 +707,14 @@
 }
 
 .cw-home-plan-price {
-  color: #0f172a;
+  color: var(--gris-900);
   font-size: 54px;
   line-height: 1.04;
   font-family: "DM Serif Display", serif;
 }
 
 .cw-home-plan-period {
-  color: #64748b;
+  color: var(--gris-500);
   font-size: 13px;
   font-weight: 700;
 }
@@ -728,9 +728,9 @@
 
 .cw-home-plan-cta {
   width: 100%;
-  border: 2px solid #0f172a;
+  border: 2px solid var(--gris-900);
   background: #ffffff;
-  color: #0f172a;
+  color: var(--gris-900);
   border-radius: 14px;
   padding: 11px 12px;
   font-size: 15px;
@@ -747,7 +747,7 @@
 }
 
 .cw-home-plan-includes {
-  color: #64748b;
+  color: var(--gris-500);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.1em;
@@ -764,7 +764,7 @@
 }
 
 .cw-home-plan-list li {
-  color: #0f172a;
+  color: var(--gris-900);
   font-size: 15px;
   display: flex;
   align-items: flex-start;
@@ -825,8 +825,8 @@
 }
 
 .cw-home-plans-footer-cta {
-  border: 2px solid #0f172a;
-  color: #0f172a;
+  border: 2px solid var(--gris-900);
+  color: var(--gris-900);
   background: #ffffff;
   border-radius: 14px;
   padding: 12px 18px;

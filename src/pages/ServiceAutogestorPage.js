@@ -46,18 +46,18 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
           {t("autogestor.back")}
         </button>
         <div style={{ fontSize: 12, color: "#b8b8b8" }}>
-          {t("autogestor.breadcrumbServices")} › <span style={{ color: "#2563eb", fontWeight: 700 }}>{t("autogestor.breadcrumbAutogestor")}</span>
+          {t("autogestor.breadcrumbServices")} › <span style={{ color: "var(--marca)", fontWeight: 700 }}>{t("autogestor.breadcrumbAutogestor")}</span>
         </div>
       </div>
 
       <section style={{ ...cardStyle, overflow: "hidden", marginBottom: 12 }}>
-        <div style={{ height: 4, background: "#3b82f6" }} />
+        <div style={{ height: 4, background: "var(--marca-claro)" }} />
         <div style={{ padding: "26px 28px" }}>
           <div
             style={{
               display: "inline-flex",
               border: "1px solid rgba(59,130,246,0.3)",
-              color: "#2563eb",
+              color: "var(--marca)",
               background: "rgba(59,130,246,0.08)",
               borderRadius: 20,
               padding: "4px 11px",
@@ -123,7 +123,7 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
                     fontSize: 10,
                     borderRadius: 20,
                     padding: "3px 9px",
-                    color: doc.active ? "#2563eb" : "#aaa",
+                    color: doc.active ? "var(--marca)" : "#aaa",
                     border: doc.active ? "1px solid rgba(59,130,246,0.35)" : "1px solid #eee",
                     background: doc.active ? "rgba(59,130,246,0.1)" : "#f7f7f7",
                     fontWeight: 700,
@@ -159,10 +159,10 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: "#666", marginBottom: 6, fontWeight: 600 }}>
               <span>{t("autogestor.completeness")}</span>
-              <span style={{ color: "#3b82f6" }}>45%</span>
+              <span style={{ color: "var(--marca-claro)" }}>45%</span>
             </div>
             <div style={{ height: 6, background: "#ece8df", borderRadius: 3, overflow: "hidden", marginBottom: 12 }}>
-              <div style={{ width: "45%", height: 6, background: "#3b82f6" }} />
+              <div style={{ width: "45%", height: 6, background: "var(--marca-claro)" }} />
             </div>
             <div style={{ display: "grid", gap: 7, marginBottom: 10 }}>
               {profileChecks.map((item) => (
@@ -177,7 +177,7 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
                 background: "rgba(59,130,246,0.08)",
                 borderRadius: 12,
                 padding: "12px 13px",
-                color: "#3b82f6",
+                color: "var(--marca-claro)",
                 fontSize: 13,
                 lineHeight: 1.5,
                 fontWeight: 600,
@@ -199,7 +199,7 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
               ].map(([label, value]) => (
                 <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
                   <span style={{ color: "#666", fontWeight: 600 }}>{label}</span>
-                  <span style={{ color: value === t("autogestor.notRegistered") ? "#b9b9b9" : "#3b82f6", fontWeight: 700 }}>{value}</span>
+                  <span style={{ color: value === t("autogestor.notRegistered") ? "#b9b9b9" : "var(--marca-claro)", fontWeight: 700 }}>{value}</span>
                 </div>
               ))}
             </div>
@@ -244,7 +244,7 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
               border: "1px solid rgba(59,130,246,0.35)",
               borderRadius: 12,
               background: "rgba(59,130,246,0.08)",
-              color: "#2563eb",
+              color: "var(--marca)",
               padding: "11px 16px",
               fontSize: 14,
               fontWeight: 700,
@@ -265,7 +265,7 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
             style={{
               border: "none",
               borderRadius: 14,
-              background: "linear-gradient(135deg,#2563eb,#3b82f6)",
+              background: "linear-gradient(135deg,var(--marca),var(--marca-claro))",
               color: "#fff",
               padding: "12px 20px",
               fontSize: 16,

@@ -11,9 +11,9 @@ export default function ServiceOptionsPage({
 }) {
   const { t, i18n } = useTranslation();
   const uiLanguage = i18n.language === "en" ? "en" : "es";
-  const isDark = styles?.page?.color === "#e2e8f0";
-  const titleColor = isDark ? "#f8fafc" : "#000000";
-  const mutedColor = isDark ? "#cbd5e1" : "#94a3b8";
+  const isDark = styles?.page?.color === "var(--gris-200)";
+  const titleColor = isDark ? "var(--gris-50)" : "#000000";
+  const mutedColor = isDark ? "var(--gris-300)" : "var(--gris-400)";
 
   const serviceCards = [
     {
@@ -90,7 +90,7 @@ export default function ServiceOptionsPage({
         style={{
           border: "1px solid rgba(148,163,184,0.35)",
           background: "rgba(15,23,42,0.5)",
-          color: "#cbd5e1",
+          color: "var(--gris-300)",
           borderRadius: 10,
           padding: "8px 12px",
           fontSize: 12,
@@ -141,7 +141,7 @@ export default function ServiceOptionsPage({
             borderRadius: 14,
             border: "1.5px solid rgba(37,99,235,0.35)",
             background: "rgba(37,99,235,0.12)",
-            color: "#2563eb",
+            color: "var(--marca)",
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
@@ -161,7 +161,7 @@ export default function ServiceOptionsPage({
               padding: "2px 10px",
               borderRadius: 999,
               background: "rgba(37,99,235,0.12)",
-              color: "#1d4ed8",
+              color: "var(--marca-oscuro)",
               fontSize: 10,
               fontWeight: 800,
               letterSpacing: "0.1em",
@@ -180,7 +180,7 @@ export default function ServiceOptionsPage({
         </div>
         <div
           style={{
-            background: "linear-gradient(135deg, #2563eb, #3b82f6)",
+            background: "linear-gradient(135deg, var(--marca), var(--marca-claro))",
             color: "#fff",
             borderRadius: 12,
             padding: "12px 22px",
@@ -234,7 +234,7 @@ export default function ServiceOptionsPage({
                 borderRadius: 8,
                 border: "1px solid rgba(37,99,235,0.3)",
                 background: "rgba(37,99,235,0.08)",
-                color: "#2563eb",
+                color: "var(--marca)",
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -249,7 +249,7 @@ export default function ServiceOptionsPage({
                 padding: "2px 10px",
                 borderRadius: 999,
                 background: "rgba(37,99,235,0.1)",
-                color: "#1d4ed8",
+                color: "var(--marca-oscuro)",
                 fontSize: 10,
                 fontWeight: 800,
                 letterSpacing: "0.1em",

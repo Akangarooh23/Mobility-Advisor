@@ -45,9 +45,9 @@ const STATUS_LABELS = {
 const STATUS_COLORS = {
   pending:    { bg: "rgba(245,158,11,0.12)", color: "#92400e" },
   in_review:  { bg: "rgba(139,92,246,0.12)", color: "#5b21b6" },
-  contacted:  { bg: "rgba(59,130,246,0.12)", color: "#1d4ed8" },
+  contacted:  { bg: "rgba(59,130,246,0.12)", color: "var(--marca-oscuro)" },
   scheduled:  { bg: "rgba(16,185,129,0.15)", color: "#065f46" },
-  closed:     { bg: "rgba(100,116,139,0.12)", color: "#475569" },
+  closed:     { bg: "rgba(100,116,139,0.12)", color: "var(--gris-600)" },
 };
 
 function formatDate(iso) {
@@ -58,8 +58,8 @@ function formatDate(iso) {
 
 export default function UserDashboardServices({ themeMode, panelStyle, currentUser }) {
   const isDark = themeMode === "dark";
-  const titleColor = isDark ? "#f8fafc" : "#0f172a";
-  const bodyColor = isDark ? "#cbd5e1" : "#475569";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
   const cardBg = isDark ? "rgba(15,23,42,0.70)" : "rgba(255,255,255,0.96)";
   const cardBorder = isDark ? "1px solid rgba(148,163,184,0.18)" : "1px solid rgba(148,163,184,0.26)";
 
@@ -142,9 +142,9 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
     boxSizing: "border-box",
     padding: "9px 12px",
     borderRadius: 8,
-    border: isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid #cbd5e1",
+    border: isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid var(--gris-300)",
     background: isDark ? "rgba(15,23,42,0.60)" : "#fff",
-    color: isDark ? "#e2e8f0" : "#0f172a",
+    color: isDark ? "var(--gris-200)" : "var(--gris-900)",
     fontSize: 14,
     outline: "none",
   };
@@ -193,7 +193,7 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
               borderRadius: 8,
               border: tab === t.key
                 ? "1px solid rgba(99,102,241,0.40)"
-                : (isDark ? "1px solid rgba(148,163,184,0.18)" : "1px solid #e2e8f0"),
+                : (isDark ? "1px solid rgba(148,163,184,0.18)" : "1px solid var(--gris-200)"),
               background: tab === t.key
                 ? (isDark ? "rgba(99,102,241,0.22)" : "rgba(224,231,255,0.9)")
                 : (isDark ? "rgba(15,23,42,0.60)" : "#fff"),
@@ -228,7 +228,7 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
                 Recibirás confirmación por email en <strong>24–48h hábiles</strong>.
                 Nuestro equipo gestionará precio y disponibilidad con el taller.
               </div>
-              <div style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b", marginBottom: 20 }}>
+              <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginBottom: 20 }}>
                 Ref: {submitted.id}
               </div>
               <button
@@ -264,10 +264,10 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
                         borderRadius: 10,
                         border: serviceType === s.key
                           ? "2px solid #6366f1"
-                          : (isDark ? "1px solid rgba(148,163,184,0.22)" : "1px solid #e2e8f0"),
+                          : (isDark ? "1px solid rgba(148,163,184,0.22)" : "1px solid var(--gris-200)"),
                         background: serviceType === s.key
                           ? (isDark ? "rgba(99,102,241,0.28)" : "rgba(224,231,255,0.95)")
-                          : (isDark ? "rgba(15,23,42,0.50)" : "#f8fafc"),
+                          : (isDark ? "rgba(15,23,42,0.50)" : "var(--gris-50)"),
                         color: serviceType === s.key ? "#4338ca" : bodyColor,
                         fontSize: 12,
                         fontWeight: serviceType === s.key ? 800 : 600,
@@ -418,7 +418,7 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
                           {r.vehicle_title}
                         </div>
                       )}
-                      <div style={{ fontSize: 12, color: isDark ? "#64748b" : "#94a3b8" }}>
+                      <div style={{ fontSize: 12, color: isDark ? "var(--gris-500)" : "var(--gris-400)" }}>
                         {[r.preferred_partner, r.preferred_province].filter(Boolean).join(" · ")}{" "}
                         · {formatDate(r.created_at)}
                       </div>

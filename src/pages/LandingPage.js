@@ -56,7 +56,7 @@ const EXCLUSIVE_OFFERS = [
 
 // Breakdown coste de uso anual (demo hardcoded)
 const COST_SEGMENTS = [
-  { label: "Combustible",   labelEN: "Fuel",        value: 1360, color: "#3b82f6" },
+  { label: "Combustible",   labelEN: "Fuel",        value: 1360, color: "var(--marca-claro)" },
   { label: "Mantenimiento", labelEN: "Maintenance", value: 590,  color: "#22c55e" },
   { label: "Seguro",        labelEN: "Insurance",   value: 640,  color: "#f59e0b" },
   { label: "Impuestos",     labelEN: "Taxes",       value: 190,  color: "#a855f7" },
@@ -579,7 +579,7 @@ export default function LandingPage({
 
             {/* Ya tengo coche */}
             <div className="lp-path-card">
-              <div className="lp-path-icon" style={{ background: "#eff6ff", color: "#2563eb" }}>
+              <div className="lp-path-icon" style={{ background: "#eff6ff", color: "var(--marca)" }}>
                 <IcoShield size={20} />
               </div>
               <div className="lp-path-name">{isEN ? "I already have a car" : "Ya tengo coche"}</div>
@@ -593,7 +593,7 @@ export default function LandingPage({
                 ))}
               </ul>
               <img src="/images/phone-mockup.png" alt="" className="lp-path-car" aria-hidden="true" />
-              <button className="lp-path-cta" style={{ background: "#2563eb", color: "white" }} onClick={handleService}>
+              <button className="lp-path-cta" style={{ background: "var(--marca)", color: "white" }} onClick={handleService}>
                 {isEN ? "Go to my car" : "Ir a mi coche"} <IcoArrow size={14} />
               </button>
             </div>
@@ -714,9 +714,9 @@ export default function LandingPage({
             <div style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                 <img src="/carswise-logo.png" alt="CarsWise" style={{ width: 98, height: 40, objectFit: "contain", display: "block" }} />
-                <div style={{ fontWeight: 800, fontSize: 14, color: "#f8fafc" }}>CarsWise</div>
+                <div style={{ fontWeight: 800, fontSize: 14, color: "var(--gris-50)" }}>CarsWise</div>
               </div>
-              <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
+              <div style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
                 {isEN ? "Mobility platform to buy better, sell better and reduce your total vehicle cost." : "Plataforma de movilidad para comprar mejor, vender mejor y reducir el coste total de tu vehículo."}
               </div>
             </div>
@@ -725,9 +725,9 @@ export default function LandingPage({
             <div style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
               <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{isEN ? "CONTACT" : "CONTACTO"}</div>
               <div style={{ display: "grid", gap: 6, fontSize: 12 }}>
-                <a href="mailto:soporte@carswise.es" style={{ color: "#e2e8f0", textDecoration: "none" }}>soporte@carswise.es</a>
-                <a href="tel:+34910000000" style={{ color: "#e2e8f0", textDecoration: "none" }}>+34 910 000 000</a>
-                <div style={{ color: "#94a3b8" }}>{isEN ? "Mon–Fri 09:00–18:00 (Spain)" : "L-V 09:00 a 18:00 (España)"}</div>
+                <a href="mailto:soporte@carswise.es" style={{ color: "var(--gris-200)", textDecoration: "none" }}>soporte@carswise.es</a>
+                <a href="tel:+34910000000" style={{ color: "var(--gris-200)", textDecoration: "none" }}>+34 910 000 000</a>
+                <div style={{ color: "var(--gris-400)" }}>{isEN ? "Mon–Fri 09:00–18:00 (Spain)" : "L-V 09:00 a 18:00 (España)"}</div>
               </div>
             </div>
 
@@ -735,12 +735,12 @@ export default function LandingPage({
             <div style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
               <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{isEN ? "USEFUL LINKS" : "ENLACES UTILES"}</div>
               <div style={{ display: "grid", gap: 7, fontSize: 12 }}>
-                <button type="button" onClick={handleStart} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>{isEN ? "Home" : "Inicio"}</button>
-                <button type="button" onClick={handleOffers} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Marketplace VO</button>
-                <button type="button" onClick={handleBuy} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>{isEN ? "Vehicle advisor" : "Asesor de vehículo"}</button>
-                <button type="button" style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Blog</button>
-                <button type="button" style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>{isEN ? "Contact" : "Contacto"}</button>
-                <button type="button" onClick={handleService} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>{isEN ? "Services" : "Servicios"}</button>
+                <button type="button" onClick={handleStart} style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}>{isEN ? "Home" : "Inicio"}</button>
+                <button type="button" onClick={handleOffers} style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}>Marketplace VO</button>
+                <button type="button" onClick={handleBuy} style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}>{isEN ? "Vehicle advisor" : "Asesor de vehículo"}</button>
+                <button type="button" style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}>Blog</button>
+                <button type="button" style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}>{isEN ? "Contact" : "Contacto"}</button>
+                <button type="button" onClick={handleService} style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}>{isEN ? "Services" : "Servicios"}</button>
               </div>
             </div>
 
@@ -749,7 +749,7 @@ export default function LandingPage({
               <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{isEN ? "SOCIAL MEDIA" : "REDES SOCIALES"}</div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {[["LinkedIn","https://www.linkedin.com"],["Instagram","https://www.instagram.com/carswiseai/"],["X","https://x.com"],["YouTube","https://www.youtube.com"]].map(([label, href]) => (
-                  <a key={label} href={href} target="_blank" rel="noreferrer" style={{ border: "1px solid rgba(148,163,184,0.24)", borderRadius: 999, padding: "6px 10px", fontSize: 11, fontWeight: 700, color: "#e2e8f0", textDecoration: "none", background: "rgba(15,23,42,0.55)" }}>
+                  <a key={label} href={href} target="_blank" rel="noreferrer" style={{ border: "1px solid rgba(148,163,184,0.24)", borderRadius: 999, padding: "6px 10px", fontSize: 11, fontWeight: 700, color: "var(--gris-200)", textDecoration: "none", background: "rgba(15,23,42,0.55)" }}>
                     {label}
                   </a>
                 ))}
@@ -758,14 +758,14 @@ export default function LandingPage({
           </div>
 
           {/* Barra inferior */}
-          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 10, borderTop: "1px solid rgba(148,163,184,0.2)", paddingTop: 12, fontSize: 11, color: "#94a3b8" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 10, borderTop: "1px solid rgba(148,163,184,0.2)", paddingTop: 12, fontSize: 11, color: "var(--gris-400)" }}>
             <div>© {new Date().getFullYear()} CarsWise. {isEN ? "All rights reserved." : "Todos los derechos reservados."}</div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               {(isEN
                 ? ["Legal notice","Privacy","Cookies","Terms","Communications","Experian Policy","Experian Conditions"]
                 : ["Aviso legal","Privacidad","Cookies","Términos","Comunicaciones","Política Experian","Condiciones Experian"]
               ).map((label) => (
-                <button key={label} type="button" style={{ background: "transparent", border: "none", color: "#cbd5e1", padding: 0, cursor: "pointer", fontSize: 11 }}>{label}</button>
+                <button key={label} type="button" style={{ background: "transparent", border: "none", color: "var(--gris-300)", padding: 0, cursor: "pointer", fontSize: 11 }}>{label}</button>
               ))}
             </div>
           </div>

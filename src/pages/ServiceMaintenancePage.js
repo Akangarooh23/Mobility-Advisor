@@ -967,7 +967,7 @@ export default function ServiceMaintenancePage({
               color: "#6b7280",
             }}
           >
-            <span style={{ fontWeight: 700, color: "#475569" }}>{t("service.maintenanceLegend")}</span>
+            <span style={{ fontWeight: 700, color: "var(--gris-600)" }}>{t("service.maintenanceLegend")}</span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
               <span style={{ width: 10, height: 10, borderRadius: 99, background: "#60a5fa", border: "1px solid rgba(37,99,235,0.5)" }} />
               {t("service.maintenanceLegendAlertNotice")}
@@ -994,7 +994,7 @@ export default function ServiceMaintenancePage({
             style={{
               border: "none",
               borderRadius: 10,
-              background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
+              background: "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
               color: "#fff",
               padding: "10px 14px",
               fontSize: 13,
@@ -1034,9 +1034,9 @@ export default function ServiceMaintenancePage({
                         alignItems: "center",
                         justifyContent: "space-between",
                         gap: 10,
-                        border: isActive ? "1px solid #cbd5e1" : "1px solid #ece8df",
+                        border: isActive ? "1px solid var(--gris-300)" : "1px solid #ece8df",
                         borderRadius: 10,
-                        background: isActive ? "#f8fafc" : "#fafaf9",
+                        background: isActive ? "var(--gris-50)" : "#fafaf9",
                         padding: "10px 12px",
                         cursor: "pointer",
                         textAlign: "left",
@@ -1046,7 +1046,7 @@ export default function ServiceMaintenancePage({
                         <div style={{ fontSize: 14, fontWeight: 700, color: "#2d2d2d", marginBottom: 2 }}>{bucket.label}</div>
                         <div style={{ fontSize: 12, color: "#909090" }}>{bucket.alerts.length} {t("service.maintenanceAlertsSuffix")}</div>
                       </div>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: isActive ? "#475569" : "#b0b0b0" }}>{index + 1}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: isActive ? "var(--gris-600)" : "#b0b0b0" }}>{index + 1}</span>
                     </button>
                   );
                 })}
@@ -1077,7 +1077,7 @@ export default function ServiceMaintenancePage({
                     const hasPendingAlerts = cellAlerts.some((alert) => !isAlertScheduled(alert));
                     const isToday = cell.key === dateKeyFromDate(new Date());
 
-                    const dayDotColor = hasScheduledAlerts ? "#16a34a" : hasPendingAlerts ? "#3b82f6" : "transparent";
+                    const dayDotColor = hasScheduledAlerts ? "#16a34a" : hasPendingAlerts ? "var(--marca-claro)" : "transparent";
 
                     const selectedBackground = hasScheduledAlerts
                       ? "rgba(34,197,94,0.18)"
@@ -1104,7 +1104,7 @@ export default function ServiceMaintenancePage({
                       : hasScheduledAlerts
                         ? "#15803d"
                         : hasPendingAlerts
-                          ? "#1d4ed8"
+                          ? "var(--marca-oscuro)"
                           : cell.inCurrentMonth
                             ? "#b2b2b2"
                             : "#d5d5d5";
@@ -1125,7 +1125,7 @@ export default function ServiceMaintenancePage({
                           fontWeight: hasAlerts || isToday ? 700 : 600,
                           background: isSelected ? selectedBackground : normalBackground,
                           color: isSelected
-                            ? (hasScheduledAlerts ? "#166534" : hasPendingAlerts ? "#1e40af" : "#334155")
+                            ? (hasScheduledAlerts ? "#166534" : hasPendingAlerts ? "#1e40af" : "var(--gris-700)")
                             : normalColor,
                           cursor: "pointer",
                           position: "relative",
@@ -1170,7 +1170,7 @@ export default function ServiceMaintenancePage({
                           borderRadius: 999,
                           padding: "3px 7px",
                           background: isAlertScheduled(alert) ? "rgba(21,128,61,0.22)" : "rgba(59,130,246,0.2)",
-                          color: isAlertScheduled(alert) ? "#14532d" : "#1d4ed8",
+                          color: isAlertScheduled(alert) ? "#14532d" : "var(--marca-oscuro)",
                         }}>
                           {isAlertScheduled(alert) ? t("service.maintenanceButtonScheduled") : t("service.maintenanceButtonSchedule")}
                         </span>
@@ -1265,41 +1265,41 @@ export default function ServiceMaintenancePage({
           >
             <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "start" }}>
               <div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a" }}>{selectedAlert.title}</div>
-                <div style={{ fontSize: 12, color: "#475569", marginTop: 4 }}>{selectedAlert.vehicleName}</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "var(--gris-900)" }}>{selectedAlert.title}</div>
+                <div style={{ fontSize: 12, color: "var(--gris-600)", marginTop: 4 }}>{selectedAlert.vehicleName}</div>
               </div>
               <button
                 type="button"
                 onClick={closeAlertModal}
-                style={{ border: "none", background: "transparent", fontSize: 20, color: "#94a3b8", cursor: "pointer", lineHeight: 1 }}
+                style={{ border: "none", background: "transparent", fontSize: 20, color: "var(--gris-400)", cursor: "pointer", lineHeight: 1 }}
               >
                 ×
               </button>
             </div>
 
-            <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>{selectedAlert.subtitle}</div>
+            <div style={{ fontSize: 13, color: "var(--gris-500)", lineHeight: 1.6 }}>{selectedAlert.subtitle}</div>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 10 }}>
-              <div style={{ border: "1px solid #e2e8f0", borderRadius: 10, padding: "8px 10px" }}>
-                <div style={{ fontSize: 10, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>{t("service.maintenanceDateLabel")}</div>
-                <div style={{ fontSize: 13, color: "#0f172a", fontWeight: 700, marginTop: 2 }}>{toLocalizedDateTimeText(selectedAlert.date, locale)}</div>
+              <div style={{ border: "1px solid var(--gris-200)", borderRadius: 10, padding: "8px 10px" }}>
+                <div style={{ fontSize: 10, color: "var(--gris-400)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>{t("service.maintenanceDateLabel")}</div>
+                <div style={{ fontSize: 13, color: "var(--gris-900)", fontWeight: 700, marginTop: 2 }}>{toLocalizedDateTimeText(selectedAlert.date, locale)}</div>
               </div>
-              <div style={{ border: "1px solid #e2e8f0", borderRadius: 10, padding: "8px 10px" }}>
-                <div style={{ fontSize: 10, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>{t("service.maintenanceStatusLabel")}</div>
-                <div style={{ fontSize: 13, color: "#0f172a", fontWeight: 700, marginTop: 2 }}>{translateAlertStatus(selectedAlert?.status, t)}</div>
+              <div style={{ border: "1px solid var(--gris-200)", borderRadius: 10, padding: "8px 10px" }}>
+                <div style={{ fontSize: 10, color: "var(--gris-400)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>{t("service.maintenanceStatusLabel")}</div>
+                <div style={{ fontSize: 13, color: "var(--gris-900)", fontWeight: 700, marginTop: 2 }}>{translateAlertStatus(selectedAlert?.status, t)}</div>
               </div>
             </div>
 
             {canEditSelectedAppointment ? (
               <div style={{ border: "1px solid #dbeafe", borderRadius: 10, background: "#f8fbff", padding: 10, display: "grid", gap: 10 }}>
-                <div style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>{t("service.maintenanceAppointmentManagement")}</div>
-                <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#334155" }}>
+                <div style={{ fontSize: 12, color: "var(--marca-oscuro)", fontWeight: 700 }}>{t("service.maintenanceAppointmentManagement")}</div>
+                <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                   {t("service.maintenanceRescheduleLabel")}
                   <input
                     type="datetime-local"
                     value={rescheduleAt}
                     onChange={(event) => setRescheduleAt(event.target.value)}
-                    style={{ border: "1px solid #cbd5e1", borderRadius: 8, padding: "8px 9px", fontSize: 12 }}
+                    style={{ border: "1px solid var(--gris-300)", borderRadius: 8, padding: "8px 9px", fontSize: 12 }}
                   />
                 </label>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -1310,7 +1310,7 @@ export default function ServiceMaintenancePage({
                     style={{
                       border: "none",
                       borderRadius: 9,
-                      background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
+                      background: "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
                       color: "#fff",
                       padding: "8px 12px",
                       fontSize: 12,
@@ -1379,7 +1379,7 @@ export default function ServiceMaintenancePage({
                     style={{
                       border: "none",
                       borderRadius: 9,
-                      background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
+                      background: "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
                       color: "#fff",
                       padding: "8px 12px",
                       fontSize: 12,
@@ -1394,21 +1394,21 @@ export default function ServiceMaintenancePage({
               </div>
             )}
 
-            <div style={{ border: "1px solid #e2e8f0", borderRadius: 10, background: "#f8fafc", padding: 10, display: "grid", gap: 8 }}>
-              <div style={{ fontSize: 12, color: "#334155", fontWeight: 700 }}>{t("service.maintenanceAppointmentHistory")}</div>
+            <div style={{ border: "1px solid var(--gris-200)", borderRadius: 10, background: "var(--gris-50)", padding: 10, display: "grid", gap: 8 }}>
+              <div style={{ fontSize: 12, color: "var(--gris-700)", fontWeight: 700 }}>{t("service.maintenanceAppointmentHistory")}</div>
               {selectedAlertHistory.length ? (
                 <div style={{ display: "grid", gap: 6 }}>
                   {selectedAlertHistory.map((item, index) => (
-                    <div key={`${item.changedAt}-${item.nextStatus}-${index}`} style={{ border: "1px solid #e2e8f0", borderRadius: 8, background: "#fff", padding: "7px 9px", display: "grid", gap: 2 }}>
-                      <div style={{ fontSize: 12, color: "#0f172a", fontWeight: 700 }}>
+                    <div key={`${item.changedAt}-${item.nextStatus}-${index}`} style={{ border: "1px solid var(--gris-200)", borderRadius: 8, background: "#fff", padding: "7px 9px", display: "grid", gap: 2 }}>
+                      <div style={{ fontSize: 12, color: "var(--gris-900)", fontWeight: 700 }}>
                         {item.previousStatus ? `${item.previousStatus} → ` : ""}{item.nextStatus || t("service.maintenanceUpdateFallback")}
                       </div>
-                      <div style={{ fontSize: 11, color: "#64748b" }}>{item.changedAt || t("service.maintenanceNoDate")}</div>
+                      <div style={{ fontSize: 11, color: "var(--gris-500)" }}>{item.changedAt || t("service.maintenanceNoDate")}</div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div style={{ fontSize: 12, color: "#64748b" }}>{t("service.maintenanceNoChangesRecorded")}</div>
+                <div style={{ fontSize: 12, color: "var(--gris-500)" }}>{t("service.maintenanceNoChangesRecorded")}</div>
               )}
             </div>
           </div>

@@ -1,15 +1,15 @@
 .cw-home-process {
-  --surface: #f8fafc;
+  --surface: var(--gris-50);
   --card: #ffffff;
-  --card-h: #f8fafc;
+  --card-h: var(--gris-50);
   --b: rgba(15, 23, 42, 0.1);
   --bh: rgba(15, 23, 42, 0.2);
-  --acc: #2563eb;
+  --acc: var(--marca);
   --acc-bg: rgba(37, 99, 235, 0.08);
   --acc-b: rgba(37, 99, 235, 0.22);
-  --txt: #0f172a;
-  --muted: #475569;
-  --subtle: #64748b;
+  --txt: var(--gris-900);
+  --muted: var(--gris-600);
+  --subtle: var(--gris-500);
   --r: 12px;
   --rs: 6px;
   margin-top: 0;

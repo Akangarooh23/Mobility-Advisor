@@ -8,9 +8,9 @@ export function createAppStyles(progress = 0, themeMode = "light") {
       minHeight: "100vh",
       background: isDark
         ? "linear-gradient(160deg,#060d1a 0%,#0a1628 50%,#050e1c 100%)"
-        : "linear-gradient(180deg,#ffffff 0%,#f8fafc 100%)",
+        : "linear-gradient(180deg,#ffffff 0%,var(--gris-50) 100%)",
       fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
-      color: isDark ? "#e2e8f0" : "#0f172a",
+      color: isDark ? "var(--gris-200)" : "var(--gris-900)",
     },
     header: {
       display: "flex",
@@ -26,7 +26,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
     },
     progressBar: {
       height: 4,
-      background: "linear-gradient(90deg, #2563eb 0%, #22c55e 100%)",
+      background: "linear-gradient(90deg, var(--marca) 0%, #22c55e 100%)",
       boxShadow: "0 1px 8px rgba(37,99,235,0.2)",
       overflow: "hidden",
     },
@@ -44,7 +44,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
       padding: "clamp(22px,5vw,40px) 10px clamp(48px,10vw,72px)",
     },
     btn: {
-      background: "linear-gradient(135deg,#2563EB,#1d4ed8)",
+      background: "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
       border: "none",
       color: "white",
       padding: "14px 36px",
@@ -81,9 +81,9 @@ export function createAppStyles(progress = 0, themeMode = "light") {
       display: "inline-flex",
       alignItems: "center",
       gap: 6,
-      background: `${BLOCK_COLORS[block] || "#2563EB"}18`,
-      border: `1px solid ${BLOCK_COLORS[block] || "#2563EB"}30`,
-      color: BLOCK_COLORS[block] || "#2563EB",
+      background: `${BLOCK_COLORS[block] || "var(--marca)"}18`,
+      border: `1px solid ${BLOCK_COLORS[block] || "var(--marca)"}30`,
+      color: BLOCK_COLORS[block] || "var(--marca)",
       padding: "4px 12px",
       borderRadius: 100,
       fontSize: 11,
@@ -94,7 +94,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
     select: {
       width: "100%",
       background: isDark ? "#0f1b2d" : "#ffffff",
-      color: isDark ? "#f8fafc" : "#0f172a",
+      color: isDark ? "var(--gris-50)" : "var(--gris-900)",
       border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(148,163,184,0.3)",
       borderRadius: 10,
       padding: "12px 14px",
@@ -104,7 +104,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
     input: {
       width: "100%",
       background: isDark ? "#0f1b2d" : "#ffffff",
-      color: isDark ? "#f8fafc" : "#0f172a",
+      color: isDark ? "var(--gris-50)" : "var(--gris-900)",
       border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(148,163,184,0.3)",
       borderRadius: 10,
       padding: "12px 14px",

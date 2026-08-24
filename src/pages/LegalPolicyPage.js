@@ -14,16 +14,16 @@ export default function LegalPolicyPage({
   const { t } = useTranslation();
   const isDark = themeMode === "dark";
 
-  const titleColor   = isDark ? "#f1f5f9" : "#0f172a";
-  const summaryColor = isDark ? "#94a3b8"  : "#475569";
-  const metaColor    = isDark ? "#64748b"  : "#94a3b8";
+  const titleColor   = isDark ? "var(--gris-100)" : "var(--gris-900)";
+  const summaryColor = isDark ? "var(--gris-400)"  : "var(--gris-600)";
+  const metaColor    = isDark ? "var(--gris-500)"  : "var(--gris-400)";
   const cardBg       = isDark ? "rgba(30,41,59,0.7)"  : "#ffffff";
   const cardBorder   = isDark ? "rgba(148,163,184,0.18)" : "rgba(148,163,184,0.28)";
-  const headingColor = isDark ? "#e2e8f0"  : "#1e293b";
-  const bodyColor    = isDark ? "#cbd5e1"  : "#374151";
+  const headingColor = isDark ? "var(--gris-200)"  : "var(--gris-800)";
+  const bodyColor    = isDark ? "var(--gris-300)"  : "#374151";
   const badgeBg      = isDark ? "rgba(59,130,246,0.14)" : "rgba(59,130,246,0.08)";
   const badgeBorder  = isDark ? "rgba(96,165,250,0.28)" : "rgba(59,130,246,0.22)";
-  const badgeColor   = isDark ? "#93c5fd" : "#2563eb";
+  const badgeColor   = isDark ? "#93c5fd" : "var(--marca)";
   const dividerColor = isDark ? "rgba(148,163,184,0.12)" : "rgba(148,163,184,0.2)";
 
   return (

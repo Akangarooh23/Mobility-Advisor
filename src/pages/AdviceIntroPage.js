@@ -2,9 +2,9 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 export default function AdviceIntroPage({ styles, pillars, onStart, onRestart }) {
-  const isDark = styles?.page?.color === "#e2e8f0";
-  const titleColor = isDark ? "#f8fafc" : "#0f172a";
-  const mutedColor = isDark ? "#cbd5e1" : "#334155";
+  const isDark = styles?.page?.color === "var(--gris-200)";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const mutedColor = isDark ? "var(--gris-300)" : "var(--gris-700)";
   const cardBackground = isDark ? "rgba(15,23,42,0.62)" : "rgba(255,255,255,0.92)";
   const cardBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(15,23,42,0.14)";
   const [showAnalysis, setShowAnalysis] = useState(false);
@@ -72,7 +72,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
 
       <div className="cw-advice-intro-grid">
         <div>
-          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.16em", color: "#0f172a", textTransform: "uppercase", marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.16em", color: "var(--gris-900)", textTransform: "uppercase", marginBottom: 16 }}>
             {t("advice.beforeStart")}
           </div>
 
@@ -87,7 +87,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
               maxWidth: 620,
             }}
           >
-            {t("advice.introTitleStart")} <span style={{ color: "#2563eb" }}>{t("advice.introTitleAccent")}</span>
+            {t("advice.introTitleStart")} <span style={{ color: "var(--marca)" }}>{t("advice.introTitleAccent")}</span>
             <br />
             {t("advice.introTitleEnd")}
           </h2>
@@ -108,12 +108,12 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
                   borderRadius: 999,
                   border: cardBorder,
                   background: "rgba(255,255,255,0.9)",
-                  color: "#0f172a",
+                  color: "var(--gris-900)",
                   fontSize: 12,
                   fontWeight: 700,
                 }}
               >
-                <span style={{ fontSize: 11, color: "#64748b" }}>◌</span>
+                <span style={{ fontSize: 11, color: "var(--gris-500)" }}>◌</span>
                 {badge}
               </span>
             ))}
@@ -125,7 +125,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
               onClick={onStart}
               style={{
                 border: "1px solid rgba(37,99,235,0.24)",
-                background: "linear-gradient(135deg,#2563eb,#14b8a6)",
+                background: "linear-gradient(135deg,var(--marca),#14b8a6)",
                 color: "#ffffff",
                 borderRadius: 12,
                 padding: "14px 18px",
@@ -169,7 +169,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
               boxShadow: isDark ? "none" : "0 10px 26px rgba(15,23,42,0.06)",
             }}
           >
-            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: "#0f172a", marginBottom: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--gris-900)", marginBottom: 14 }}>
               {t("advice.testIncludes")}
             </div>
             <div style={{ display: "grid", gap: 10 }}>
@@ -182,7 +182,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
                       borderRadius: "50%",
                       border: "1px solid rgba(37,99,235,0.28)",
                       background: "rgba(37,99,235,0.08)",
-                      color: "#2563eb",
+                      color: "var(--marca)",
                       display: "inline-flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -217,7 +217,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
               boxShadow: isDark ? "none" : "0 10px 24px rgba(15,23,42,0.05)",
             }}
           >
-            <span style={{ color: "#64748b", fontSize: 13 }}>◌</span>
+            <span style={{ color: "var(--gris-500)", fontSize: 13 }}>◌</span>
             <span>{t("advice.howAnalysisWorks")}</span>
             <span style={{ color: "#0f766e" }}>{showAnalysis ? "−" : "+"}</span>
           </button>
@@ -228,7 +228,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
         <div className="cw-advice-analysis-grid">
           {pillars.map((pillar) => (
             <article key={pillar.title} className="cw-advice-analysis-card">
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "var(--gris-900)", marginBottom: 8 }}>
                 {pillar.title}
               </div>
               <p style={{ margin: 0, fontSize: 12.5, color: mutedColor, lineHeight: 1.65 }}>

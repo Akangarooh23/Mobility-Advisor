@@ -33,7 +33,7 @@ function TrendIndicator({ estimateValue, isDark }) {
       >
         {isUp ? "↑" : "↓"} {Math.abs(trend).toFixed(1)}%
       </span>
-      <span style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#64748b" }}>{t("dashboard.valLastDays")}</span>
+      <span style={{ fontSize: 11, color: isDark ? "var(--gris-400)" : "var(--gris-500)" }}>{t("dashboard.valLastDays")}</span>
     </div>
   );
 }
@@ -41,13 +41,13 @@ function TrendIndicator({ estimateValue, isDark }) {
 function ValuationCard({ item, isDark, cardBg, onRequestValuation, onNavigate }) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
-  const titleColor = isDark ? "#f8fafc" : "#0f172a";
-  const bodyColor = isDark ? "#cbd5e1" : "#475569";
-  const mutedColor = isDark ? "#94a3b8" : "#64748b";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
+  const mutedColor = isDark ? "var(--gris-400)" : "var(--gris-500)";
   const btnSecondary = {
     background: isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)",
     border: "1px solid rgba(148,163,184,0.4)",
-    color: isDark ? "#e2e8f0" : "#334155",
+    color: isDark ? "var(--gris-200)" : "var(--gris-700)",
     borderRadius: 8,
     fontSize: 11,
     fontWeight: 700,
@@ -114,7 +114,7 @@ function ValuationCard({ item, isDark, cardBg, onRequestValuation, onNavigate })
         >
           <div>
             <div style={{ fontSize: 10, color: mutedColor, marginBottom: 2, letterSpacing: "0.4px" }}>{t("dashboard.valEstimatedPrice")}</div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", letterSpacing: "-0.04em" }}>
+            <div style={{ fontSize: 22, fontWeight: 800, color: isDark ? "var(--gris-50)" : "var(--gris-900)", letterSpacing: "-0.04em" }}>
               {fmt(item.estimateValue)}€
             </div>
             <div style={{ fontSize: 11, color: mutedColor, marginTop: 2 }}>
@@ -195,8 +195,8 @@ export default function UserDashboardValuations({
 }) {
   const { t } = useTranslation();
   const isDark = themeMode === "dark";
-  const titleColor = isDark ? "#f8fafc" : "#0f172a";
-  const bodyColor = isDark ? "#cbd5e1" : "#475569";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
   const cardBg = isDark
     ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
     : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))";
@@ -262,7 +262,7 @@ export default function UserDashboardValuations({
           style={{
             textAlign: "center",
             padding: "28px 16px",
-            color: isDark ? "#94a3b8" : "#64748b",
+            color: isDark ? "var(--gris-400)" : "var(--gris-500)",
             fontSize: 13,
           }}
         >

@@ -84,7 +84,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
     background: isDark ? "#0f1b2d" : "#ffffff",
     border: "1px solid rgba(148,163,184,0.45)",
     borderRadius: 8,
-    color: isDark ? "#f8fafc" : "#0f172a",
+    color: isDark ? "var(--gris-50)" : "var(--gris-900)",
     padding: "8px 10px",
     fontSize: 12,
     boxSizing: "border-box",
@@ -92,7 +92,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
   const secondaryButtonStyle = {
     background: isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)",
     border: cardBorder,
-    color: isDark ? "#e2e8f0" : "#334155",
+    color: isDark ? "var(--gris-200)" : "var(--gris-700)",
     borderRadius: 10,
     fontSize: 12,
     fontWeight: 700,
@@ -102,7 +102,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
   const tableCellStyle = {
     padding: "8px",
     fontSize: 12,
-    color: isDark ? "#cbd5e1" : "#334155",
+    color: isDark ? "var(--gris-300)" : "var(--gris-700)",
     borderBottom: "1px solid rgba(148,163,184,0.2)",
   };
   const resolvedUserEmail = useMemo(
@@ -458,8 +458,8 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
     <section id="user-dashboard-billing" style={{ ...panelStyle, ...sectionFrame, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
-          <div style={{ fontSize: 11, color: "#2563eb", letterSpacing: "0.6px" }}>{t("dashboard.billingSectionLabel")}</div>
-          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>{t("dashboard.billingTitle")}</div>
+          <div style={{ fontSize: 11, color: "var(--marca)", letterSpacing: "0.6px" }}>{t("dashboard.billingSectionLabel")}</div>
+          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>{t("dashboard.billingTitle")}</div>
         </div>
         <span
           style={{
@@ -498,12 +498,12 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                 alignItems: "center",
                 gap: 8,
                 background: isActive
-                  ? "linear-gradient(135deg,#2563eb,#1d4ed8)"
+                  ? "linear-gradient(135deg,var(--marca),var(--marca-oscuro))"
                   : isDark
                   ? "rgba(15,23,42,0.88)"
                   : "rgba(255,255,255,0.95)",
                 border: isActive ? "none" : cardBorder,
-                color: isActive ? "#eff6ff" : isDark ? "#e2e8f0" : "#334155",
+                color: isActive ? "#eff6ff" : isDark ? "var(--gris-200)" : "var(--gris-700)",
                 borderRadius: 999,
                 padding: "8px 12px",
                 fontSize: 12,
@@ -530,7 +530,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
       </div>
 
       {loadingAccount && (
-        <div style={{ fontSize: 12, color: "#2563eb", marginBottom: 10 }}>
+        <div style={{ fontSize: 12, color: "var(--marca)", marginBottom: 10 }}>
           {t("dashboard.billingLoading")}
         </div>
       )}
@@ -538,7 +538,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
       {activeAccountTab === "overview" && (
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,minmax(0,1fr))" : "repeat(auto-fit,minmax(170px,1fr))", gap: 12, marginBottom: 14 }}>
           {[
-            [t("dashboard.billingCurrentPlan"), planLabelMap[billingState?.planId] || billingState?.planLabel || t("dashboard.billingPlanGratis"), "#2563eb"],
+            [t("dashboard.billingCurrentPlan"), planLabelMap[billingState?.planId] || billingState?.planLabel || t("dashboard.billingPlanGratis"), "var(--marca)"],
             [t("dashboard.billingStatus"), subscriptionStatusMap[billingState?.status?.toLowerCase()] || billingState?.status || t("dashboard.billingStatusInactivo"), "#0ea5e9"],
             [t("dashboard.billingPaidInvoices"), paidInvoicesCount, "#10b981"],
             [t("dashboard.billingPendingInvoices"), pendingInvoicesCount, "#f59e0b"],
@@ -553,7 +553,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
               }}
             >
               <div style={{ fontSize: 16, fontWeight: 800, color: String(color) }}>{value}</div>
-              <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#334155", marginTop: 4 }}>{label}</div>
+              <div style={{ fontSize: 12, color: isDark ? "var(--gris-300)" : "var(--gris-700)", marginTop: 4 }}>{label}</div>
             </div>
           ))}
         </div>
@@ -570,7 +570,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                 padding: 12,
               }}
             >
-              <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 8 }}>{t("dashboard.billingProfileTitle")}</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "var(--gris-50)" : "var(--gris-900)", marginBottom: 8 }}>{t("dashboard.billingProfileTitle")}</div>
 
               {/* Toggle particular / empresa */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
@@ -585,14 +585,14 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                     style={{
                       padding: "8px 10px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer",
                       border: profileForm.clientType === key
-                        ? key === "business" ? "1.5px solid #f59e0b" : "1.5px solid #3b82f6"
+                        ? key === "business" ? "1.5px solid #f59e0b" : "1.5px solid var(--marca-claro)"
                         : "1px solid rgba(148,163,184,0.45)",
                       background: profileForm.clientType === key
                         ? key === "business" ? "rgba(245,158,11,0.08)" : "rgba(59,130,246,0.08)"
                         : isDark ? "#0f1b2d" : "#ffffff",
                       color: profileForm.clientType === key
-                        ? key === "business" ? "#d97706" : "#2563eb"
-                        : isDark ? "#94a3b8" : "#64748b",
+                        ? key === "business" ? "#d97706" : "var(--marca)"
+                        : isDark ? "var(--gris-400)" : "var(--gris-500)",
                     }}
                   >
                     {label}
@@ -621,9 +621,9 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                 <button type="button" onClick={saveProfile} style={{ ...primaryButtonStyle, width: isMobile ? "100%" : "auto" }} disabled={savingProfile}>
                   {savingProfile ? t("dashboard.billingSaving") : t("dashboard.billingSaveData")}
                 </button>
-                <span style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#94a3b8" }}>{profileForm.updatedAt ? t("dashboard.billingUpdated", { date: toInputDateLabel(profileForm.updatedAt, t) }) : t("dashboard.billingNotSaved")}</span>
+                <span style={{ fontSize: 11, color: isDark ? "var(--gris-400)" : "var(--gris-400)" }}>{profileForm.updatedAt ? t("dashboard.billingUpdated", { date: toInputDateLabel(profileForm.updatedAt, t) }) : t("dashboard.billingNotSaved")}</span>
               </div>
-              {profileFeedback && <div style={{ marginTop: 8, fontSize: 12, color: "#1d4ed8" }}>{profileFeedback}</div>}
+              {profileFeedback && <div style={{ marginTop: 8, fontSize: 12, color: "var(--marca-oscuro)" }}>{profileFeedback}</div>}
             </div>
           )}
 
@@ -636,8 +636,8 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                 padding: 12,
               }}
             >
-              <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 8 }}>{t("dashboard.billingSubscriptionTitle")}</div>
-              <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#334155", lineHeight: 1.65, marginBottom: 10 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "var(--gris-50)" : "var(--gris-900)", marginBottom: 8 }}>{t("dashboard.billingSubscriptionTitle")}</div>
+              <div style={{ fontSize: 12, color: isDark ? "var(--gris-300)" : "var(--gris-700)", lineHeight: 1.65, marginBottom: 10 }}>
                 {t("dashboard.billingStatusLabel")} <strong>{billingState?.status || "inactivo"}</strong><br />
                 {t("dashboard.billingNextRenewal")} <strong>{toInputDateLabel(billingState?.nextBillingDate, t)}</strong>
                 {billingState?.cancelAtPeriodEnd ? (
@@ -647,7 +647,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
 
               {!(billingState?.planId === "plus" && (billingState?.status === "activa" || billingState?.status === "trialing")) && (
                 <>
-                  <label style={{ display: "block", fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>{t("dashboard.billingCheckoutPlan")}</label>
+                  <label style={{ display: "block", fontSize: 12, color: "var(--gris-400)", marginBottom: 6 }}>{t("dashboard.billingCheckoutPlan")}</label>
                   <select value={selectedPlanId} onChange={(event) => setSelectedPlanId(event.target.value)} style={{ ...inputStyle, marginBottom: 10 }}>
                     {availablePlans.map((plan) => (
                       <option key={plan.id} value={plan.id}>{planLabelMap[plan.id] || plan.label}</option>
@@ -675,10 +675,10 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                 </button>
               </div>
 
-              <div style={{ marginTop: 8, fontSize: 11, color: "#94a3b8" }}>
+              <div style={{ marginTop: 8, fontSize: 11, color: "var(--gris-400)" }}>
                 {t("dashboard.billingStripeNote")}
               </div>
-              {billingFeedback && <div style={{ marginTop: 8, fontSize: 12, color: "#1d4ed8" }}>{billingFeedback}</div>}
+              {billingFeedback && <div style={{ marginTop: 8, fontSize: 12, color: "var(--marca-oscuro)" }}>{billingFeedback}</div>}
             </div>
           )}
         </div>
@@ -693,10 +693,10 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
             padding: 12,
           }}
         >
-          <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 8 }}>{t("dashboard.billingInvoicesTitle")}</div>
+          <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "var(--gris-50)" : "var(--gris-900)", marginBottom: 8 }}>{t("dashboard.billingInvoicesTitle")}</div>
 
           {invoices.length === 0 ? (
-            <div style={{ fontSize: 12, color: "#94a3b8" }}>{t("dashboard.billingNoInvoices")}</div>
+            <div style={{ fontSize: 12, color: "var(--gris-400)" }}>{t("dashboard.billingNoInvoices")}</div>
           ) : (
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", minWidth: isMobile ? 460 : 580 }}>
@@ -714,7 +714,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                         style={{
                           textAlign: "left",
                           fontSize: 11,
-                          color: "#1d4ed8",
+                          color: "var(--marca-oscuro)",
                           padding: "7px 8px",
                           borderBottom: "1px solid rgba(148,163,184,0.18)",
                         }}
@@ -735,11 +735,11 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                         {(() => {
                           const pdfHref = invoice.pdfUrl || (invoice.id && resolvedUserEmail ? `/api/invoice-pdf?id=${encodeURIComponent(invoice.id)}&email=${encodeURIComponent(resolvedUserEmail)}` : null);
                           return pdfHref ? (
-                            <a href={pdfHref} target="_blank" rel="noreferrer" style={{ color: "#1d4ed8", fontWeight: 700 }}>
+                            <a href={pdfHref} target="_blank" rel="noreferrer" style={{ color: "var(--marca-oscuro)", fontWeight: 700 }}>
                               {t("dashboard.billingDownloadPdf")}
                             </a>
                           ) : (
-                            <span style={{ color: isDark ? "#94a3b8" : "#64748b" }}>{t("dashboard.billingNotAvailable")}</span>
+                            <span style={{ color: isDark ? "var(--gris-400)" : "var(--gris-500)" }}>{t("dashboard.billingNotAvailable")}</span>
                           );
                         })()}
                       </td>
@@ -756,7 +756,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
 }
 
 const primaryButtonStyle = {
-  background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
+  background: "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
   border: "none",
   color: "#ffffff",
   borderRadius: 10,

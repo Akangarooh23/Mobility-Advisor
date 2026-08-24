@@ -40,8 +40,8 @@ export default function UserDashboardPreferences({
 }) {
   const { t } = useTranslation();
   const isDark = themeMode === "dark";
-  const titleColor = isDark ? "#f8fafc" : "#0f172a";
-  const bodyColor = isDark ? "#cbd5e1" : "#475569";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
   const cardBg = isDark
     ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
     : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))";
@@ -106,7 +106,7 @@ export default function UserDashboardPreferences({
     background: isDark ? "#0f1b2d" : "#ffffff",
     border: cardBorder,
     borderRadius: 8,
-    color: isDark ? "#f8fafc" : "#0f172a",
+    color: isDark ? "var(--gris-50)" : "var(--gris-900)",
     padding: "8px 10px",
     fontSize: 12,
     boxSizing: "border-box",
@@ -115,7 +115,7 @@ export default function UserDashboardPreferences({
   const toggleButton = (checked) => ({
     background: checked ? "rgba(16,185,129,0.16)" : "rgba(148,163,184,0.12)",
     border: checked ? "1px solid rgba(110,231,183,0.24)" : "1px solid rgba(148,163,184,0.2)",
-    color: checked ? "#065f46" : (isDark ? "#cbd5e1" : "#475569"),
+    color: checked ? "#065f46" : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
     borderRadius: 999,
     padding: "5px 10px",
     fontSize: 11,
@@ -127,7 +127,7 @@ export default function UserDashboardPreferences({
     <section id="user-dashboard-preferences" style={{ ...panelStyle, ...sectionFrame, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", letterSpacing: "0.6px" }}>{t("dashboard.prefSectionLabel")}</div>
+          <div style={{ fontSize: 11, color: "var(--gris-500)", letterSpacing: "0.6px" }}>{t("dashboard.prefSectionLabel")}</div>
           <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: titleColor }}>{t("dashboard.prefTitle")}</div>
           <div style={{ fontSize: 12, color: bodyColor, marginTop: 4 }}>
             {t("dashboard.prefDesc")}
@@ -194,7 +194,7 @@ export default function UserDashboardPreferences({
           type="button"
           onClick={save}
           style={{
-            background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
+            background: "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
             border: "none",
             color: "#ffffff",
             borderRadius: 10,
@@ -206,7 +206,7 @@ export default function UserDashboardPreferences({
         >
           {t("dashboard.prefSave")}
         </button>
-        {feedback && <span style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>{feedback}</span>}
+        {feedback && <span style={{ fontSize: 12, color: "var(--marca-oscuro)", fontWeight: 700 }}>{feedback}</span>}
       </div>
     </section>
   );

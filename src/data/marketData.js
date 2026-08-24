@@ -17,7 +17,7 @@ export const MONTHLY_BUDGET_OPTIONS = [
 ];
 
 export const MOBILITY_TYPES = {
-  compra_contado: { label: "Compra al Contado", icon: "🔑", color: "#2563EB" },
+  compra_contado: { label: "Compra al Contado", icon: "🔑", color: "var(--marca)" },
   compra_financiada: { label: "Compra Financiada", icon: "📝", color: "#7C3AED" },
   renting_largo: { label: "Renting a Largo Plazo", icon: "📅", color: "#059669" },
   renting_corto: { label: "Renting a Corto Plazo", icon: "🗓️", color: "#D97706" },

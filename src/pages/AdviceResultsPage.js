@@ -26,7 +26,7 @@ function AnalysisAccordion({ themeMode, children }) {
           justifyContent: "space-between",
           alignItems: "center",
           cursor: "pointer",
-          color: isDark ? "#e2e8f0" : "#0f172a",
+          color: isDark ? "var(--gris-200)" : "var(--gris-900)",
           fontSize: 14,
           fontWeight: 700,
           boxShadow: isDark ? "0 12px 26px rgba(2,6,23,0.3)" : "0 12px 26px rgba(37,99,235,0.08)",

@@ -43,7 +43,7 @@ export function buildAdviceResultsViewModel({
     MOBILITY_TYPES[result.solucion_principal?.tipo] || {
       label: txt("Movilidad", "Mobility"),
       icon: "🚗",
-      color: "#2563EB",
+      color: "var(--marca)",
     };
   const solutionType = result.solucion_principal?.tipo;
   const isBuyOrFinanceOutcome = ["compra_contado", "compra_financiada"].includes(solutionType);

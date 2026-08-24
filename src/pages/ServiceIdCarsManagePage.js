@@ -413,7 +413,7 @@ function SectionBlock({ title, subtitle, open, onToggle, children, openLabel = "
           {subtitle ? <div style={{ fontSize: 11.5, color: "#9ca3af", marginTop: 2, fontWeight: 400 }}>{subtitle}</div> : null}
         </div>
         <span style={{
-          fontSize: 11, fontWeight: 700, color: "#2563eb",
+          fontSize: 11, fontWeight: 700, color: "var(--marca)",
           background: "rgba(37,99,235,0.07)", borderRadius: 8, padding: "4px 10px",
           border: "1px solid rgba(37,99,235,0.14)", whiteSpace: "nowrap",
         }}>
@@ -651,7 +651,7 @@ export default function ServiceIdCarsManagePage({
     setFeedback(message);
     setFeedbackTone(tone);
   };
-  const feedbackColor = feedbackTone === "error" ? "#b91c1c" : feedbackTone === "success" ? "#047857" : "#1d4ed8";
+  const feedbackColor = feedbackTone === "error" ? "#b91c1c" : feedbackTone === "success" ? "#047857" : "var(--marca-oscuro)";
 
   // Photo reorder helpers
   const updateActiveVehiclePhotos = (newPhotos) => {
@@ -1238,7 +1238,7 @@ export default function ServiceIdCarsManagePage({
                     ) : null}
                     {(hasExternalLink || hasDataLink) ? (
                       <button type="button" onClick={() => triggerAttachmentDownload(file)} title={txt("Descargar", "Download")}
-                        style={{ border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", borderRadius: 6, fontSize: 13, lineHeight: 1, padding: "3px 7px", cursor: "pointer" }}>↓</button>
+                        style={{ border: "1px solid #bfdbfe", background: "#eff6ff", color: "var(--marca-oscuro)", borderRadius: 6, fontSize: 13, lineHeight: 1, padding: "3px 7px", cursor: "pointer" }}>↓</button>
                     ) : null}
                     <button type="button" onClick={() => markStoredAttachmentForRemoval(storedGroupKey, file)} title={txt("Eliminar", "Delete")}
                       style={{ border: "1px solid #fecaca", background: "#fff1f2", color: "#b91c1c", borderRadius: 6, fontSize: 12, lineHeight: 1, padding: "3px 7px", cursor: "pointer", marginLeft: "auto" }}>✕</button>
@@ -1331,7 +1331,7 @@ export default function ServiceIdCarsManagePage({
         </button>
         <button type="button"
           onClick={() => typeof onRequestValuation === "function" && onRequestValuation(vehicle)}
-          style={{ background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.22)", color: "#1d4ed8", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+          style={{ background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.22)", color: "var(--marca-oscuro)", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
           {txt("Solicitar tasación", "Request valuation")}
         </button>
         <button type="button"
@@ -1400,17 +1400,17 @@ export default function ServiceIdCarsManagePage({
           <button type="button"
             onClick={() => setVehicleCatalogMode("erp")}
             style={{ fontSize: 11, fontWeight: 700, borderRadius: 8, padding: "5px 12px", border: "1px solid", cursor: "pointer",
-              background: vehicleCatalogMode === "erp" ? "#2563eb" : "transparent",
+              background: vehicleCatalogMode === "erp" ? "var(--marca)" : "transparent",
               color: vehicleCatalogMode === "erp" ? "#fff" : "#6b7280",
-              borderColor: vehicleCatalogMode === "erp" ? "#2563eb" : "#d1d5db" }}>
+              borderColor: vehicleCatalogMode === "erp" ? "var(--marca)" : "#d1d5db" }}>
             {txt("Catálogo", "Catalog")}
           </button>
           <button type="button"
             onClick={() => setVehicleCatalogMode("manual")}
             style={{ fontSize: 11, fontWeight: 700, borderRadius: 8, padding: "5px 12px", border: "1px solid", cursor: "pointer",
-              background: vehicleCatalogMode === "manual" ? "#2563eb" : "transparent",
+              background: vehicleCatalogMode === "manual" ? "var(--marca)" : "transparent",
               color: vehicleCatalogMode === "manual" ? "#fff" : "#6b7280",
-              borderColor: vehicleCatalogMode === "manual" ? "#2563eb" : "#d1d5db" }}>
+              borderColor: vehicleCatalogMode === "manual" ? "var(--marca)" : "#d1d5db" }}>
             {txt("Manual", "Manual")}
           </button>
           <span style={{ fontSize: 11, color: "#9ca3af" }}>
@@ -1557,7 +1557,7 @@ export default function ServiceIdCarsManagePage({
                   <button type="button"
                     disabled={isPublishing || !normalizeText(form.price)}
                     onClick={() => handlePublish(vid, form.price, "publish")}
-                    style={{ border: "none", borderRadius: 9, background: isPublishing ? "#93c5fd" : "linear-gradient(135deg,#2563eb,#3b82f6)", color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: isPublishing || !normalizeText(form.price) ? "not-allowed" : "pointer", opacity: !normalizeText(form.price) ? 0.5 : 1 }}>
+                    style={{ border: "none", borderRadius: 9, background: isPublishing ? "#93c5fd" : "linear-gradient(135deg,var(--marca),var(--marca-claro))", color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: isPublishing || !normalizeText(form.price) ? "not-allowed" : "pointer", opacity: !normalizeText(form.price) ? 0.5 : 1 }}>
                     {isPublishing ? txt("Publicando…", "Publishing…") : txt("🚀 Publicar en Marketplace", "🚀 Publish to Marketplace")}
                   </button>
                 )}
@@ -1576,7 +1576,7 @@ export default function ServiceIdCarsManagePage({
                 {isUnpublished && (
                   <button type="button"
                     onClick={() => handlePublish(vid, form.price, "publish")}
-                    style={{ border: "none", borderRadius: 9, background: "linear-gradient(135deg,#2563eb,#3b82f6)", color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                    style={{ border: "none", borderRadius: 9, background: "linear-gradient(135deg,var(--marca),var(--marca-claro))", color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
                     {txt("🚀 Volver a publicar", "🚀 Republish")}
                   </button>
                 )}
@@ -1597,7 +1597,7 @@ export default function ServiceIdCarsManagePage({
         open={openSections.vehicleDocuments} onToggle={() => toggleSection("vehicleDocuments")}
         openLabel={txt("Abrir", "Open")} closeLabel={txt("Ocultar", "Hide")}>
         <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))" }}>
-          {renderFileUpload(txt("Fotos del vehículo", "Vehicle photos"), pendingPhotos, setPendingPhotos, photoInputRef, "image/*", "#2563eb", storedPhotos, "photos")}
+          {renderFileUpload(txt("Fotos del vehículo", "Vehicle photos"), pendingPhotos, setPendingPhotos, photoInputRef, "image/*", "var(--marca)", storedPhotos, "photos")}
           {renderFileUpload(txt("Ficha técnica", "Technical sheet"), pendingTechnicalSheetDocuments, setPendingTechnicalSheetDocuments, technicalSheetInputRef, ".pdf,image/*", "#0f766e", storedTechnicalSheetDocuments, "technicalSheetDocuments")}
           {renderFileUpload(txt("Permiso de circulación", "Circulation permit"), pendingCirculationPermitDocuments, setPendingCirculationPermitDocuments, circulationPermitInputRef, ".pdf,image/*", "#0f766e", storedCirculationPermitDocuments, "circulationPermitDocuments")}
           {renderFileUpload(txt("Otros documentos", "Other documents"), pendingOtherDocuments, setPendingOtherDocuments, otherDocInputRef, ".pdf,image/*,.doc,.docx", "#7c3aed", storedOtherDocuments, "documents")}
@@ -1746,7 +1746,7 @@ export default function ServiceIdCarsManagePage({
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 4, padding: "10px 0" }}>
         <button type="button" onClick={handleSave} disabled={isSaving}
-          style={{ border: "none", borderRadius: 10, background: "linear-gradient(135deg,#2563eb,#3b82f6)", color: "#fff", padding: "11px 18px", fontSize: 13.5, fontWeight: 700, cursor: isSaving ? "not-allowed" : "pointer", opacity: isSaving ? 0.78 : 1 }}>
+          style={{ border: "none", borderRadius: 10, background: "linear-gradient(135deg,var(--marca),var(--marca-claro))", color: "#fff", padding: "11px 18px", fontSize: 13.5, fontWeight: 700, cursor: isSaving ? "not-allowed" : "pointer", opacity: isSaving ? 0.78 : 1 }}>
           {isSaving ? txt("Guardando...", "Saving...") : txt("Guardar cambios", "Save changes")}
         </button>
         <button type="button" onClick={cancelEdit}
@@ -1769,7 +1769,7 @@ export default function ServiceIdCarsManagePage({
           {txt("← Volver", "← Back")}
         </button>
         <div style={{ fontSize: 12, color: "#b8b8b8" }}>
-          {txt("Servicios", "Services")} › <span style={{ color: "#2563eb", fontWeight: 700 }}>
+          {txt("Servicios", "Services")} › <span style={{ color: "var(--marca)", fontWeight: 700 }}>
             {isCreateView ? txt("Crear IDCar", "Create IDCar") : isDetailView ? buildVehicleTitle(selectedVehicle || {}) : txt("Mis IDCars", "My IDCars")}
           </span>
         </div>
@@ -1779,7 +1779,7 @@ export default function ServiceIdCarsManagePage({
       {isCreateView ? (
         <>
           <section style={{ ...SECTION_CARD_STYLE, padding: "18px 20px", marginBottom: 12 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#2563eb", background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 20, padding: "4px 12px", marginBottom: 10 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--marca)", background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 20, padding: "4px 12px", marginBottom: 10 }}>
               {txt("🚗 Nuevo IDCar", "🚗 New IDCar")}
             </div>
             <h2 style={{ margin: "0 0 5px", fontSize: 22, fontWeight: 700, color: "#111", letterSpacing: "-0.02em" }}>{txt("Crear mi IDCar", "Create my IDCar")}</h2>
@@ -1802,7 +1802,7 @@ export default function ServiceIdCarsManagePage({
         </p>
         {!isDetailView && !editingVehicleId && !isCreating ? (
           <button type="button" onClick={startCreate}
-            style={{ border: "none", borderRadius: 12, background: "linear-gradient(135deg,#2563eb,#3b82f6)", color: "#fff", padding: "10px 16px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+            style={{ border: "none", borderRadius: 12, background: "linear-gradient(135deg,var(--marca),var(--marca-claro))", color: "#fff", padding: "10px 16px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
             {txt("Crear nuevo IDCar", "Create new IDCar")}
           </button>
         ) : null}
@@ -1893,7 +1893,7 @@ export default function ServiceIdCarsManagePage({
                 {/* Doc badges + actions row */}
                 <div style={{ display: "flex", flexDirection: isCompactCard ? "column" : "row", alignItems: isCompactCard ? "stretch" : "center", justifyContent: "space-between", gap: 8, marginTop: 8 }}>
                   <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                    {docsCount > 0 && <span style={{ background: "rgba(37,99,235,0.07)", color: "#1d4ed8", border: "1px solid rgba(37,99,235,0.18)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>📄 {docsCount}</span>}
+                    {docsCount > 0 && <span style={{ background: "rgba(37,99,235,0.07)", color: "var(--marca-oscuro)", border: "1px solid rgba(37,99,235,0.18)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>📄 {docsCount}</span>}
                     {insuranceDocs > 0 && <span style={{ background: "rgba(16,185,129,0.07)", color: "#047857", border: "1px solid rgba(16,185,129,0.18)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>🛡️ {insuranceDocs}</span>}
                     {maintenanceDocs > 0 && <span style={{ background: "rgba(251,146,60,0.08)", color: "#c2410c", border: "1px solid rgba(251,146,60,0.22)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>🔧 {maintenanceDocs}</span>}
                     {getIsPublished(vehicle) && <span style={{ background: "rgba(16,185,129,0.1)", color: "#047857", border: "1px solid rgba(16,185,129,0.3)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 700 }}>🟢 Marketplace</span>}
@@ -1910,7 +1910,7 @@ export default function ServiceIdCarsManagePage({
                       {txt("Ver ficha", "View profile")}
                     </button>
                     <button type="button" onClick={() => openVehicleDetail(vehicle, true)}
-                      style={{ border: "1px solid rgba(59,130,246,0.3)", background: "rgba(59,130,246,0.08)", color: "#2563eb", borderRadius: 7, padding: isCompactCard ? "8px 8px" : "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", minHeight: isCompactCard ? 36 : "auto" }}>
+                      style={{ border: "1px solid rgba(59,130,246,0.3)", background: "rgba(59,130,246,0.08)", color: "var(--marca)", borderRadius: 7, padding: isCompactCard ? "8px 8px" : "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", minHeight: isCompactCard ? 36 : "auto" }}>
                       {txt("Editar", "Edit")}
                     </button>
                     <button type="button"
@@ -1972,7 +1972,7 @@ export default function ServiceIdCarsManagePage({
                 <div style={{ display: "flex", gap: 8 }}>
                   {!isEditMode ? (
                     <button type="button" onClick={() => setIsEditMode(true)}
-                      style={{ border: "none", borderRadius: 10, background: "linear-gradient(135deg,#2563eb,#3b82f6)", color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 2px 12px rgba(37,99,235,0.4)" }}>
+                      style={{ border: "none", borderRadius: 10, background: "linear-gradient(135deg,var(--marca),var(--marca-claro))", color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 2px 12px rgba(37,99,235,0.4)" }}>
                       {txt("✏️ Editar ficha", "✏️ Edit profile")}
                     </button>
                   ) : (
@@ -2022,8 +2022,8 @@ export default function ServiceIdCarsManagePage({
               if (!docCount && !insCount && !mntCount && !photoCount) return null;
               return (
                 <div style={{ padding: "0 20px 16px", display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {photoCount > 0 && <span style={{ background: "rgba(37,99,235,0.08)", color: "#1d4ed8", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📷 {photoCount} {txt(`foto${photoCount !== 1 ? "s" : ""}`, `photo${photoCount !== 1 ? "s" : ""}`)}</span>}
-                  {docCount > 0 && <span style={{ background: "rgba(37,99,235,0.08)", color: "#1d4ed8", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📄 {docCount} {txt(`doc${docCount !== 1 ? "s" : ""}`, `doc${docCount !== 1 ? "s" : ""}`)}</span>}
+                  {photoCount > 0 && <span style={{ background: "rgba(37,99,235,0.08)", color: "var(--marca-oscuro)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📷 {photoCount} {txt(`foto${photoCount !== 1 ? "s" : ""}`, `photo${photoCount !== 1 ? "s" : ""}`)}</span>}
+                  {docCount > 0 && <span style={{ background: "rgba(37,99,235,0.08)", color: "var(--marca-oscuro)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📄 {docCount} {txt(`doc${docCount !== 1 ? "s" : ""}`, `doc${docCount !== 1 ? "s" : ""}`)}</span>}
                   {insCount > 0 && <span style={{ background: "rgba(16,185,129,0.08)", color: "#047857", border: "1px solid rgba(16,185,129,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>🛡️ {insCount} {txt(`seguro${insCount !== 1 ? "s" : ""}`, `insurance${insCount !== 1 ? "s" : ""}`)}</span>}
                   {mntCount > 0 && <span style={{ background: "rgba(251,146,60,0.1)", color: "#c2410c", border: "1px solid rgba(251,146,60,0.25)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>🔧 {mntCount} mant.</span>}
                   {normalizeText(selectedVehicle.notes) ? <span style={{ background: "rgba(107,114,128,0.08)", color: "#6b7280", border: "1px solid rgba(107,114,128,0.18)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📝 {txt("Notas", "Notes")}</span> : null}
@@ -2033,7 +2033,7 @@ export default function ServiceIdCarsManagePage({
 
             {(() => {
               const sections = [
-                { key: "photos", title: txt("Fotos del vehículo", "Vehicle photos"), items: Array.isArray(selectedVehicle.photos) ? selectedVehicle.photos : [], color: "#1d4ed8" },
+                { key: "photos", title: txt("Fotos del vehículo", "Vehicle photos"), items: Array.isArray(selectedVehicle.photos) ? selectedVehicle.photos : [], color: "var(--marca-oscuro)" },
                 {
                   key: "technical-sheet",
                   title: txt("Ficha técnica", "Technical sheet"),
@@ -2074,7 +2074,7 @@ export default function ServiceIdCarsManagePage({
                                   type="button"
                                   onClick={() => triggerAttachmentDownload(file)}
                                   title={txt("Descargar", "Download")}
-                                  style={{ border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", borderRadius: 6, padding: "2px 6px", fontSize: 13, lineHeight: 1, cursor: "pointer", flexShrink: 0 }}
+                                  style={{ border: "1px solid #bfdbfe", background: "#eff6ff", color: "var(--marca-oscuro)", borderRadius: 6, padding: "2px 6px", fontSize: 13, lineHeight: 1, cursor: "pointer", flexShrink: 0 }}
                                 >
                                   ↓
                                 </button>
@@ -2110,7 +2110,7 @@ export default function ServiceIdCarsManagePage({
         <section style={{ ...SECTION_CARD_STYLE, padding: "20px 16px" }}>
           <div style={{ fontSize: 14, color: "#6b7280", marginBottom: 10 }}>{txt("Aún no tienes IDCars creados.", "You do not have any IDCars yet.")}</div>
           <button type="button" onClick={startCreate}
-            style={{ border: "none", borderRadius: 10, background: "linear-gradient(135deg,#2563eb,#3b82f6)", color: "#fff", padding: "10px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+            style={{ border: "none", borderRadius: 10, background: "linear-gradient(135deg,var(--marca),var(--marca-claro))", color: "#fff", padding: "10px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
             {txt("Crear mi primer IDCar", "Create my first IDCar")}
           </button>
         </section>
@@ -2256,7 +2256,7 @@ export default function ServiceIdCarsManagePage({
                 <button ref={marketplacePublishPrimaryBtnRef} type="button"
                   onClick={confirmMarketplacePublish}
                   disabled={!puedePublicar}
-                  style={{ background: puedePublicar ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "#d1d5db", color: "#fff", border: "none", borderRadius: 8, padding: "9px 16px", fontSize: 12, fontWeight: 700, cursor: puedePublicar ? "pointer" : "not-allowed" }}>
+                  style={{ background: puedePublicar ? "linear-gradient(135deg,var(--marca),var(--marca-oscuro))" : "#d1d5db", color: "#fff", border: "none", borderRadius: 8, padding: "9px 16px", fontSize: 12, fontWeight: 700, cursor: puedePublicar ? "pointer" : "not-allowed" }}>
                   {txt("🚀 Publicar", "🚀 Publish")}
                 </button>
               );

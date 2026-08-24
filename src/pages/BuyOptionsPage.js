@@ -42,9 +42,9 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
   const uiLanguage = i18n.language === "en" ? "en" : "es";
   const FLOW_A = uiLanguage === "en" ? FLOW_A_EN : FLOW_A_ES;
   const FLOW_B = uiLanguage === "en" ? FLOW_B_EN : FLOW_B_ES;
-  const isDark = styles?.page?.color === "#e2e8f0";
-  const titleColor = isDark ? "#f8fafc" : "#0f172a";
-  const mutedColor = isDark ? "#cbd5e1" : "#475569";
+  const isDark = styles?.page?.color === "var(--gris-200)";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const mutedColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
   const cardBackground = isDark ? "rgba(15,23,42,0.55)" : "#ffffff";
   const cardBorder = isDark ? "1px solid rgba(148,163,184,0.26)" : "1px solid rgba(15,23,42,0.12)";
   const [openFlow, setOpenFlow] = useState(null);
@@ -66,7 +66,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
         style={{
           border: "1px solid rgba(148,163,184,0.35)",
           background: isDark ? "rgba(15,23,42,0.5)" : "rgba(148,163,184,0.16)",
-          color: isDark ? "#cbd5e1" : "#475569",
+          color: isDark ? "var(--gris-300)" : "var(--gris-600)",
           borderRadius: 10,
           padding: "8px 12px",
           fontSize: 12,
@@ -79,7 +79,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
       </button>
 
       <div style={{ marginBottom: 10, marginTop: 4, display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ fontSize: 10, letterSpacing: "0.18em", fontWeight: 800, color: "#2563eb", textTransform: "uppercase" }}>
+        <span style={{ fontSize: 10, letterSpacing: "0.18em", fontWeight: 800, color: "var(--marca)", textTransform: "uppercase" }}>
           {t("buyOptions.badgeLabel")}
         </span>
         <span style={{ width: 34, height: 1, background: "rgba(37,99,235,0.5)" }} />
@@ -139,7 +139,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               borderRadius: 14,
               border: "1.5px solid rgba(37,99,235,0.35)",
               background: "rgba(37,99,235,0.12)",
-              color: "#2563eb",
+              color: "var(--marca)",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
@@ -166,7 +166,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             type="button"
             onClick={(event) => { event.stopPropagation(); if (onOpenMarketplace) onOpenMarketplace(); }}
             style={{
-              background: "linear-gradient(135deg, #2563eb, #3b82f6)",
+              background: "linear-gradient(135deg, var(--marca), var(--marca-claro))",
               color: "#fff",
               border: "1px solid rgba(37,99,235,0.3)",
               borderRadius: 12,
@@ -221,7 +221,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               height: 24,
               borderRadius: "50%",
               border: "1px solid rgba(148,163,184,0.35)",
-              color: "#64748b",
+              color: "var(--gris-500)",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
@@ -243,7 +243,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               marginTop: 2,
               border: "1px solid rgba(37,99,235,0.28)",
               background: "rgba(37,99,235,0.08)",
-              color: "#1d4ed8",
+              color: "var(--marca-oscuro)",
               borderRadius: 10,
               padding: "8px 12px",
               fontSize: 12,
@@ -294,7 +294,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               height: 24,
               borderRadius: "50%",
               border: "1px solid rgba(148,163,184,0.35)",
-              color: "#64748b",
+              color: "var(--gris-500)",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
@@ -316,7 +316,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               marginTop: 2,
               border: "1px solid rgba(37,99,235,0.28)",
               background: "rgba(37,99,235,0.08)",
-              color: "#1d4ed8",
+              color: "var(--marca-oscuro)",
               borderRadius: 10,
               padding: "8px 12px",
               fontSize: 12,
@@ -334,18 +334,18 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           style={{
             marginTop: 14,
             border: cardBorder,
-            background: isDark ? "rgba(15,23,42,0.7)" : "#f8fafc",
+            background: isDark ? "rgba(15,23,42,0.7)" : "var(--gris-50)",
             borderRadius: 12,
             padding: "14px 14px 12px",
           }}
         >
-          <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700, color: "#64748b", marginBottom: 10 }}>
+          <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700, color: "var(--gris-500)", marginBottom: 10 }}>
             {t("buyOptions.flowAHeader")}
           </div>
           <div style={{ display: "grid", gap: 8 }}>
             {FLOW_A.map((item, index) => (
               <div key={`a-${item.title}`} style={{ border: cardBorder, borderRadius: 10, background: cardBackground, padding: "9px 10px" }}>
-                <div style={{ fontSize: 11, color: "#2563eb", fontWeight: 700, marginBottom: 2 }}>{t("buyOptions.step")} {index + 1}</div>
+                <div style={{ fontSize: 11, color: "var(--marca)", fontWeight: 700, marginBottom: 2 }}>{t("buyOptions.step")} {index + 1}</div>
                 <div style={{ fontSize: 13, color: titleColor, fontWeight: 700, lineHeight: 1.35 }}>{item.title}</div>
                 {item.sub ? <div style={{ fontSize: 12, color: mutedColor, marginTop: 2 }}>{item.sub}</div> : null}
               </div>
@@ -357,7 +357,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               onClick={onSelectKnownModel}
               style={{
                 border: "1px solid rgba(37,99,235,0.25)",
-                background: "linear-gradient(135deg,#2563eb,#3b82f6)",
+                background: "linear-gradient(135deg,var(--marca),var(--marca-claro))",
                 color: "#ffffff",
                 borderRadius: 10,
                 padding: "9px 14px",
@@ -374,7 +374,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               style={{
                 border: "1px solid rgba(37,99,235,0.25)",
                 background: "rgba(37,99,235,0.08)",
-                color: "#1d4ed8",
+                color: "var(--marca-oscuro)",
                 borderRadius: 10,
                 padding: "9px 14px",
                 fontSize: 12,
@@ -393,18 +393,18 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           style={{
             marginTop: 14,
             border: cardBorder,
-            background: isDark ? "rgba(15,23,42,0.7)" : "#f8fafc",
+            background: isDark ? "rgba(15,23,42,0.7)" : "var(--gris-50)",
             borderRadius: 12,
             padding: "14px 14px 12px",
           }}
         >
-          <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700, color: "#64748b", marginBottom: 10 }}>
+          <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700, color: "var(--gris-500)", marginBottom: 10 }}>
             {t("buyOptions.flowBHeader")}
           </div>
           <div style={{ display: "grid", gap: 8 }}>
             {FLOW_B.map((item, index) => (
               <div key={`b-${item.title}`} style={{ border: cardBorder, borderRadius: 10, background: cardBackground, padding: "9px 10px" }}>
-                <div style={{ fontSize: 11, color: "#2563eb", fontWeight: 700, marginBottom: 2 }}>{t("buyOptions.step")} {index + 1}</div>
+                <div style={{ fontSize: 11, color: "var(--marca)", fontWeight: 700, marginBottom: 2 }}>{t("buyOptions.step")} {index + 1}</div>
                 <div style={{ fontSize: 13, color: titleColor, fontWeight: 700, lineHeight: 1.35 }}>{item.title}</div>
                 {item.sub ? <div style={{ fontSize: 12, color: mutedColor, marginTop: 2 }}>{item.sub}</div> : null}
               </div>
@@ -416,7 +416,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               onClick={onSelectAdvisor}
               style={{
                 border: "1px solid rgba(37,99,235,0.25)",
-                background: "linear-gradient(135deg,#2563eb,#3b82f6)",
+                background: "linear-gradient(135deg,var(--marca),var(--marca-claro))",
                 color: "#ffffff",
                 borderRadius: 10,
                 padding: "9px 14px",
@@ -433,7 +433,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               style={{
                 border: "1px solid rgba(37,99,235,0.25)",
                 background: "rgba(37,99,235,0.08)",
-                color: "#1d4ed8",
+                color: "var(--marca-oscuro)",
                 borderRadius: 10,
                 padding: "9px 14px",
                 fontSize: 12,

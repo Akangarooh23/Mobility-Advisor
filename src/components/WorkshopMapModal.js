@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 const PARTNER_COLORS = {
-  norauto:    "#2563eb",
+  norauto:    "var(--marca)",
   midas:      "#dc2626",
   carglass:   "#059669",
   euromaster: "#d97706",
@@ -11,8 +11,8 @@ const PARTNER_COLORS = {
 function buildUserIcon(L, isPrecise) {
   return L.divIcon({
     html: isPrecise
-      ? `<div style="width:18px;height:18px;border-radius:50%;background:#1d4ed8;border:3px solid white;box-shadow:0 0 0 5px rgba(29,78,216,0.25),0 2px 8px rgba(0,0,0,0.4)"></div>`
-      : `<div style="width:14px;height:14px;border-radius:50%;background:white;border:2.5px dashed #1d4ed8;box-shadow:0 1px 4px rgba(0,0,0,0.3)"></div>`,
+      ? `<div style="width:18px;height:18px;border-radius:50%;background:var(--marca-oscuro);border:3px solid white;box-shadow:0 0 0 5px rgba(29,78,216,0.25),0 2px 8px rgba(0,0,0,0.4)"></div>`
+      : `<div style="width:14px;height:14px;border-radius:50%;background:white;border:2.5px dashed var(--marca-oscuro);box-shadow:0 1px 4px rgba(0,0,0,0.3)"></div>`,
     className: "",
     iconSize:   isPrecise ? [18, 18] : [14, 14],
     iconAnchor: isPrecise ? [9, 9]   : [7, 7],
@@ -162,24 +162,24 @@ export default function WorkshopMapModal({
         .filter((p) => p.workshop?.lat != null && p.workshop?.lon != null)
         .forEach((provider) => {
           const { workshop, providerKey, providerName, isIndependent } = provider;
-          const color      = isIndependent ? "#475569" : (PARTNER_COLORS[providerKey] || "#6366f1");
+          const color      = isIndependent ? "var(--gris-600)" : (PARTNER_COLORS[providerKey] || "#6366f1");
           const isSelected = providerKey === selectedProvider;
 
           const distText   = workshop.distanceKm != null ? `${workshop.distanceKm} km · ETA ${workshop.etaMinutes} min` : "";
           const starsCount = workshop.rating != null ? Math.round(workshop.rating) : 0;
           const starsHtml  = workshop.rating != null
-            ? `<br><span style="color:#f59e0b;letter-spacing:1px">${"★".repeat(starsCount)}${"☆".repeat(5 - starsCount)}</span> <span style="font-size:11px;color:#64748b">${workshop.rating.toFixed(1)}${workshop.ratingCount ? ` (${workshop.ratingCount.toLocaleString("es-ES")})` : ""}</span>`
+            ? `<br><span style="color:#f59e0b;letter-spacing:1px">${"★".repeat(starsCount)}${"☆".repeat(5 - starsCount)}</span> <span style="font-size:11px;color:var(--gris-500)">${workshop.rating.toFixed(1)}${workshop.ratingCount ? ` (${workshop.ratingCount.toLocaleString("es-ES")})` : ""}</span>`
             : "";
           const badge     = isIndependent
-            ? `<span style="background:#e2e8f0;color:#475569;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700">Independiente</span>`
+            ? `<span style="background:var(--gris-200);color:var(--gris-600);font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700">Independiente</span>`
             : `<span style="background:${color}22;color:${color};font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700">${providerName}</span>`;
 
           const popup = L.popup({ maxWidth: 260 }).setContent(`
             <div style="font-family:system-ui,sans-serif;min-width:200px">
               <div style="margin-bottom:6px">${badge}</div>
-              <div style="font-weight:700;font-size:14px;color:#0f172a;margin-bottom:4px">${workshop.name || providerName}</div>
-              ${workshop.address ? `<div style="font-size:12px;color:#64748b;margin-bottom:4px">📍 ${workshop.address}</div>` : ""}
-              ${distText ? `<div style="font-size:12px;color:#64748b;margin-bottom:4px">🚗 ${distText}</div>` : ""}
+              <div style="font-weight:700;font-size:14px;color:var(--gris-900);margin-bottom:4px">${workshop.name || providerName}</div>
+              ${workshop.address ? `<div style="font-size:12px;color:var(--gris-500);margin-bottom:4px">📍 ${workshop.address}</div>` : ""}
+              ${distText ? `<div style="font-size:12px;color:var(--gris-500);margin-bottom:4px">🚗 ${distText}</div>` : ""}
               ${starsHtml}
               <button onclick="window.__cwSelectProvider('${providerKey}')" style="
                 margin-top:10px;width:100%;padding:7px 0;border:none;border-radius:7px;
@@ -214,12 +214,12 @@ export default function WorkshopMapModal({
           style={{ background: "#fff", borderRadius: 16, overflow: "hidden", width: "min(860px, 96vw)", height: "min(600px, 92vh)", display: "flex", flexDirection: "column", zIndex: 9999, boxShadow: "0 24px 60px rgba(0,0,0,0.30)" }}
         >
           {/* Header */}
-          <div style={{ padding: "14px 18px", borderBottom: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#f8fafc" }}>
+          <div style={{ padding: "14px 18px", borderBottom: "1px solid var(--gris-200)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--gris-50)" }}>
             <div>
-              <span style={{ fontSize: 15, fontWeight: 800, color: "#0f172a" }}>Talleres cercanos</span>
-              <span style={{ fontSize: 12, color: "#64748b", marginLeft: 10 }}>{withCoords.length} con ubicación disponible</span>
+              <span style={{ fontSize: 15, fontWeight: 800, color: "var(--gris-900)" }}>Talleres cercanos</span>
+              <span style={{ fontSize: 12, color: "var(--gris-500)", marginLeft: 10 }}>{withCoords.length} con ubicación disponible</span>
             </div>
-            <button onClick={onClose} style={{ border: "1px solid #e2e8f0", borderRadius: 8, background: "#fff", padding: "5px 12px", fontSize: 13, cursor: "pointer", color: "#475569" }}>
+            <button onClick={onClose} style={{ border: "1px solid var(--gris-200)", borderRadius: 8, background: "#fff", padding: "5px 12px", fontSize: 13, cursor: "pointer", color: "var(--gris-600)" }}>
               ✕ Cerrar
             </button>
           </div>
@@ -238,9 +238,9 @@ export default function WorkshopMapModal({
                 style={{
                   position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)",
                   zIndex: 1000, padding: "8px 18px", borderRadius: 20,
-                  background: "#fff", border: "1px solid #cbd5e1",
+                  background: "#fff", border: "1px solid var(--gris-300)",
                   boxShadow: "0 2px 10px rgba(0,0,0,0.18)",
-                  fontSize: 13, fontWeight: 700, color: "#1e293b",
+                  fontSize: 13, fontWeight: 700, color: "var(--gris-800)",
                   cursor: "pointer", whiteSpace: "nowrap",
                 }}
               >
@@ -250,24 +250,24 @@ export default function WorkshopMapModal({
           </div>
 
           {/* Legend */}
-          <div style={{ padding: "10px 16px", borderTop: "1px solid #e2e8f0", background: "#f8fafc", display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
+          <div style={{ padding: "10px 16px", borderTop: "1px solid var(--gris-200)", background: "var(--gris-50)", display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
             {Object.entries(PARTNER_COLORS).map(([key, color]) => {
               const found = providers.find((p) => p.providerKey === key);
               if (!found) return null;
               return (
                 <div key={key} style={{ display: "flex", alignItems: "center", gap: 5 }}>
                   <div style={{ width: 10, height: 10, borderRadius: "50%", background: color }} />
-                  <span style={{ fontSize: 11, color: "#475569", fontWeight: 600 }}>{found.providerName}</span>
+                  <span style={{ fontSize: 11, color: "var(--gris-600)", fontWeight: 600 }}>{found.providerName}</span>
                 </div>
               );
             })}
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#475569" }} />
-              <span style={{ fontSize: 11, color: "#475569", fontWeight: 600 }}>Independiente</span>
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--gris-600)" }} />
+              <span style={{ fontSize: 11, color: "var(--gris-600)", fontWeight: 600 }}>Independiente</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#1d4ed8", border: "2px solid white", boxShadow: "0 0 0 2px #1d4ed8" }} />
-              <span style={{ fontSize: 11, color: "#475569", fontWeight: 600 }}>Tu ubicación</span>
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--marca-oscuro)", border: "2px solid white", boxShadow: "0 0 0 2px var(--marca-oscuro)" }} />
+              <span style={{ fontSize: 11, color: "var(--gris-600)", fontWeight: 600 }}>Tu ubicación</span>
             </div>
           </div>
         </div>

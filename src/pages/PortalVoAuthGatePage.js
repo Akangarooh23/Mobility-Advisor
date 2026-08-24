@@ -12,10 +12,10 @@ export default function PortalVoAuthGatePage({
   const { t } = useTranslation();
 
   const cardBg = isDark ? "rgba(15,23,42,0.6)" : "rgba(255,255,255,0.95)";
-  const titleColor = isDark ? "#f8fafc" : "#0f172a";
-  const bodyColor = isDark ? "#cbd5e1" : "#475569";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
   const accentColor = isDark ? "#38bdf8" : "#0284c7";
-  const mutedColor = isDark ? "#94a3b8" : "#64748b";
+  const mutedColor = isDark ? "var(--gris-400)" : "var(--gris-500)";
 
   const features = [
     { icon: "🚗", text: t("marketplaceGate.feature1", "Cientos de vehículos de ocasión verificados") },
@@ -148,7 +148,7 @@ export default function PortalVoAuthGatePage({
             type="button"
             onClick={onRegister}
             style={{
-              background: "linear-gradient(135deg, #0ea5e9, #2563eb)",
+              background: "linear-gradient(135deg, #0ea5e9, var(--marca))",
               color: "#fff",
               border: "none",
               borderRadius: 12,
@@ -184,7 +184,7 @@ export default function PortalVoAuthGatePage({
             style={{
               background: "transparent",
               border: "none",
-              color: isDark ? "#64748b" : "#94a3b8",
+              color: isDark ? "var(--gris-500)" : "var(--gris-400)",
               fontSize: 12,
               cursor: "pointer",
               marginTop: 4,

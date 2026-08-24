@@ -1,6 +1,6 @@
 .cw-about-page {
   background: #ffffff;
-  color: #0f172a;
+  color: var(--gris-900);
   min-height: 100%;
   position: relative;
   overflow: hidden;
@@ -79,11 +79,11 @@
   line-height: 0.94;
   letter-spacing: -0.04em;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--gris-900);
 }
 
 .cw-about-title-accent {
-  background: linear-gradient(120deg, #3b82f6, #06b6d4);
+  background: linear-gradient(120deg, var(--marca-claro), #06b6d4);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -94,14 +94,14 @@
   max-width: 720px;
   font-size: 18px;
   line-height: 1.7;
-  color: #475569;
+  color: var(--gris-600);
 }
 
 .cw-about-hero-cta {
   margin-top: 26px;
   border: 1px solid #93c5fd;
   background: linear-gradient(180deg, #eff6ff, #dbeafe);
-  color: #1d4ed8;
+  color: var(--marca-oscuro);
   border-radius: 12px;
   padding: 10px 14px;
   font-size: 12px;
@@ -112,8 +112,8 @@
 }
 
 .cw-about-stats {
-  border-top: 1px solid #e2e8f0;
-  border-bottom: 1px solid #e2e8f0;
+  border-top: 1px solid var(--gris-200);
+  border-bottom: 1px solid var(--gris-200);
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
@@ -130,7 +130,7 @@
   line-height: 1;
   letter-spacing: -0.04em;
   font-weight: 800;
-  background: linear-gradient(120deg, #3b82f6, #14b8a6);
+  background: linear-gradient(120deg, var(--marca-claro), #14b8a6);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -139,13 +139,13 @@
 .cw-about-stat-label {
   margin-top: 6px;
   font-size: 12px;
-  color: #64748b;
+  color: var(--gris-500);
   letter-spacing: 0.04em;
 }
 
 .cw-about-divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, #cbd5e1, transparent);
+  background: linear-gradient(90deg, transparent, var(--gris-300), transparent);
 }
 
 .cw-about-section {
@@ -189,7 +189,7 @@
 .cw-about-mission-text {
   margin: 0;
   font-size: 22px;
-  color: #0f172a;
+  color: var(--gris-900);
   line-height: 1.58;
 }
 
@@ -241,7 +241,7 @@
 }
 
 .cw-about-feature-tag.is-buy {
-  color: #2563eb;
+  color: var(--marca);
 }
 
 .cw-about-feature-tag.is-manage {
@@ -255,14 +255,14 @@
 .cw-about-feature-title {
   margin: 0 0 8px;
   font-size: 18px;
-  color: #0f172a;
+  color: var(--gris-900);
 }
 
 .cw-about-feature-text {
   margin: 0;
   font-size: 14px;
   line-height: 1.65;
-  color: #475569;
+  color: var(--gris-600);
 }
 
 .cw-about-team-avatar {
@@ -296,7 +296,7 @@
 
 .cw-about-team-avatar.is-1 {
   background: #dbeafe;
-  color: #1d4ed8;
+  color: var(--marca-oscuro);
 }
 
 .cw-about-team-avatar.is-2 {
@@ -312,7 +312,7 @@
 .cw-about-team-name {
   margin: 0;
   font-size: 20px;
-  color: #0f172a;
+  color: var(--gris-900);
 }
 
 .cw-about-team-role {
@@ -320,19 +320,19 @@
   font-size: 12px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #2563eb;
+  color: var(--marca);
   font-weight: 700;
 }
 
 .cw-about-team-divider {
   height: 1px;
-  background: #e2e8f0;
+  background: var(--gris-200);
   margin: 14px 0;
 }
 
 .cw-about-team-bio {
   margin: 0;
-  color: #475569;
+  color: var(--gris-600);
   font-size: 14px;
   line-height: 1.65;
 }
@@ -347,7 +347,7 @@
   font-weight: 700;
   border-radius: 999px;
   border: 1px solid #bfdbfe;
-  color: #1d4ed8;
+  color: var(--marca-oscuro);
   background: #eff6ff;
   padding: 5px 10px;
 }
@@ -364,12 +364,12 @@
 .cw-about-value-title {
   margin: 10px 0 8px;
   font-size: 18px;
-  color: #0f172a;
+  color: var(--gris-900);
 }
 
 .cw-about-value-text {
   margin: 0;
-  color: #475569;
+  color: var(--gris-600);
   font-size: 14px;
   line-height: 1.65;
 }

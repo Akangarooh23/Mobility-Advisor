@@ -1,14 +1,14 @@
 export default function SeoStaticPage({ styles, badge = "Informacion", title, description, sections = [], onGoHome }) {
-  const isDark = styles?.page?.color === "#e2e8f0";
-  const titleColor = isDark ? "#f8fafc" : "#0f172a";
-  const descriptionColor = isDark ? "#cbd5e1" : "#475569";
+  const isDark = styles?.page?.color === "var(--gris-200)";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const descriptionColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
   const panelBg = isDark
     ? "linear-gradient(180deg, rgba(15,23,42,0.72), rgba(8,15,30,0.72))"
     : "linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.94))";
   const panelBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(148,163,184,0.26)";
   const panelShadow = isDark ? "0 12px 30px rgba(2,6,23,0.28)" : "0 10px 28px rgba(15,23,42,0.08)";
-  const sectionTitleColor = isDark ? "#e2e8f0" : "#0f172a";
-  const bodyColor = isDark ? "#cbd5e1" : "#334155";
+  const sectionTitleColor = isDark ? "var(--gris-200)" : "var(--gris-900)";
+  const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-700)";
 
   return (
     <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
@@ -24,7 +24,7 @@ export default function SeoStaticPage({ styles, badge = "Informacion", title, de
           style={{
             border: isDark ? "1px solid rgba(148,163,184,0.34)" : "1px solid rgba(148,163,184,0.28)",
             background: isDark ? "rgba(15,23,42,0.52)" : "rgba(255,255,255,0.9)",
-            color: isDark ? "#cbd5e1" : "#334155",
+            color: isDark ? "var(--gris-300)" : "var(--gris-700)",
             borderRadius: 12,
             padding: "10px 12px",
             fontSize: 12,
@@ -96,7 +96,7 @@ export default function SeoStaticPage({ styles, badge = "Informacion", title, de
                       {card.title}
                     </div>
                     {card.subtitle ? (
-                      <div style={{ color: isDark ? "#7dd3fc" : "#2563eb", fontSize: 12, fontWeight: 700, marginBottom: 8 }}>
+                      <div style={{ color: isDark ? "#7dd3fc" : "var(--marca)", fontSize: 12, fontWeight: 700, marginBottom: 8 }}>
                         {card.subtitle}
                       </div>
                     ) : null}

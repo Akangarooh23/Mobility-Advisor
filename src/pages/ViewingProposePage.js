@@ -69,7 +69,7 @@ export default function ViewingProposePage() {
   }
 
   const containerStyle = {
-    minHeight: "100vh", background: "#f8fafc", display: "flex", alignItems: "center",
+    minHeight: "100vh", background: "var(--gris-50)", display: "flex", alignItems: "center",
     justifyContent: "center", padding: "20px", fontFamily: "Arial, sans-serif",
   };
   const cardStyle = {
@@ -83,7 +83,7 @@ export default function ViewingProposePage() {
     <div style={containerStyle}>
       <div style={cardStyle}>
         <h2 style={{ color: "#dc2626" }}>⚠️ Error</h2>
-        <p style={{ color: "#475569" }}>{error}</p>
+        <p style={{ color: "var(--gris-600)" }}>{error}</p>
       </div>
     </div>
   );
@@ -94,15 +94,15 @@ export default function ViewingProposePage() {
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
           <span style={{ fontSize: 24 }}>🚗</span>
           <div>
-            <div style={{ fontSize: 12, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1 }}>CarsWise · Solicitud de visita</div>
-            <div style={{ fontWeight: 700, fontSize: 18, color: "#0f172a" }}>{appointment.vehicle_title}</div>
+            <div style={{ fontSize: 12, color: "var(--gris-400)", textTransform: "uppercase", letterSpacing: 1 }}>CarsWise · Solicitud de visita</div>
+            <div style={{ fontWeight: 700, fontSize: 18, color: "var(--gris-900)" }}>{appointment.vehicle_title}</div>
           </div>
         </div>
 
-        <div style={{ background: "#f1f5f9", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 14 }}>
+        <div style={{ background: "var(--gris-100)", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 14 }}>
           <div><strong>Interesado:</strong> {appointment.buyer_name || "—"}</div>
           {appointment.buyer_message && (
-            <div style={{ marginTop: 6, color: "#475569", fontStyle: "italic" }}>"{appointment.buyer_message}"</div>
+            <div style={{ marginTop: 6, color: "var(--gris-600)", fontStyle: "italic" }}>"{appointment.buyer_message}"</div>
           )}
         </div>
 
@@ -110,12 +110,12 @@ export default function ViewingProposePage() {
 
         {appointment.status === "pending_seller" && !done && (
           <form onSubmit={handleSubmit}>
-            <p style={{ fontSize: 15, color: "#334155", marginBottom: 16 }}>
+            <p style={{ fontSize: 15, color: "var(--gris-700)", marginBottom: 16 }}>
               Propón hasta <strong>3 franjas horarias</strong> para que el comprador elija la que mejor le venga:
             </p>
             {slots.map((slot, i) => (
               <div key={i} style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 13, color: "#64748b", display: "block", marginBottom: 4 }}>
+                <label style={{ fontSize: 13, color: "var(--gris-500)", display: "block", marginBottom: 4 }}>
                   Opción {i + 1}{i === 0 ? " *" : ""}
                 </label>
                 <input
@@ -124,7 +124,7 @@ export default function ViewingProposePage() {
                   onChange={e => setSlots(prev => prev.map((s, j) => j === i ? e.target.value : s))}
                   required={i === 0}
                   style={{
-                    width: "100%", padding: "8px 12px", border: "1px solid #cbd5e1",
+                    width: "100%", padding: "8px 12px", border: "1px solid var(--gris-300)",
                     borderRadius: 8, fontSize: 14, boxSizing: "border-box",
                   }}
                 />
@@ -134,7 +134,7 @@ export default function ViewingProposePage() {
               type="submit"
               disabled={submitting || !slots[0]}
               style={{
-                width: "100%", background: "#2563eb", color: "white", border: "none",
+                width: "100%", background: "var(--marca)", color: "white", border: "none",
                 borderRadius: 8, padding: "12px 20px", fontSize: 15, fontWeight: 600,
                 cursor: submitting ? "not-allowed" : "pointer", marginTop: 8,
                 opacity: submitting ? 0.7 : 1,
@@ -145,8 +145,8 @@ export default function ViewingProposePage() {
           </form>
         )}
 
-        <p style={{ fontSize: 12, color: "#94a3b8", marginTop: 20, textAlign: "center" }}>
-          ¿Dudas? Contacta con CarsWise · <a href="mailto:hola@carswiseai.com" style={{ color: "#2563eb" }}>hola@carswiseai.com</a>
+        <p style={{ fontSize: 12, color: "var(--gris-400)", marginTop: 20, textAlign: "center" }}>
+          ¿Dudas? Contacta con CarsWise · <a href="mailto:hola@carswiseai.com" style={{ color: "var(--marca)" }}>hola@carswiseai.com</a>
         </p>
       </div>
     </div>

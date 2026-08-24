@@ -581,7 +581,7 @@ export default function VehicleDetailPage({ offer, onBack, isUserLoggedIn, onReq
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#92400e", marginBottom: 4 }}>🔒 Vehículo temporalmente reservado</div>
                   <div style={{ fontSize: 12, color: "#78350f", lineHeight: 1.5 }}>Este vehículo tiene una cita confirmada. Si la reserva se cancela, te avisaremos.</div>
                 </div>
-                <button className="vd-btn-secondary" onClick={() => setAlertModalOpen(true)} style={{ borderColor: "#3b82f6", color: "#2563eb" }}>
+                <button className="vd-btn-secondary" onClick={() => setAlertModalOpen(true)} style={{ borderColor: "var(--marca-claro)", color: "var(--marca)" }}>
                   🔔 Avisarme si vuelve a estar disponible
                 </button>
               </>

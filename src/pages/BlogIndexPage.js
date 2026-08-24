@@ -9,10 +9,10 @@ export default function BlogIndexPage({ styles, onOpenPost, onGoHome }) {
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
         <div>
           <div style={{ ...styles.blockBadge("Contenido"), marginBottom: 8 }}>{t("blog.badge")}</div>
-          <h2 style={{ margin: "0 0 6px", fontSize: "clamp(28px, 4vw, 36px)", color: "#f8fafc" }}>
+          <h2 style={{ margin: "0 0 6px", fontSize: "clamp(28px, 4vw, 36px)", color: "var(--gris-50)" }}>
             {t("blog.title")}
           </h2>
-          <p style={{ margin: 0, color: "#94a3b8", fontSize: 14, lineHeight: 1.7 }}>
+          <p style={{ margin: 0, color: "var(--gris-400)", fontSize: 14, lineHeight: 1.7 }}>
             {t("blog.subtitle")}
           </p>
         </div>
@@ -22,7 +22,7 @@ export default function BlogIndexPage({ styles, onOpenPost, onGoHome }) {
           style={{
             border: "1px solid rgba(148,163,184,0.34)",
             background: "rgba(15,23,42,0.52)",
-            color: "#cbd5e1",
+            color: "var(--gris-300)",
             borderRadius: 10,
             padding: "10px 12px",
             fontSize: 12,
@@ -49,12 +49,12 @@ export default function BlogIndexPage({ styles, onOpenPost, onGoHome }) {
           >
             <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 8 }}>
               <span style={{ fontSize: 11, color: "#67e8f9", fontWeight: 800, letterSpacing: "0.5px" }}>{post.category}</span>
-              <span style={{ fontSize: 11, color: "#94a3b8" }}>{post.publishedAt} · {post.readTime}</span>
+              <span style={{ fontSize: 11, color: "var(--gris-400)" }}>{post.publishedAt} · {post.readTime}</span>
             </div>
-            <h3 style={{ margin: "0 0 8px", color: "#e2e8f0", fontSize: 20, lineHeight: 1.35 }}>
+            <h3 style={{ margin: "0 0 8px", color: "var(--gris-200)", fontSize: 20, lineHeight: 1.35 }}>
               {post.title}
             </h3>
-            <p style={{ margin: "0 0 12px", color: "#cbd5e1", fontSize: 13, lineHeight: 1.7 }}>
+            <p style={{ margin: "0 0 12px", color: "var(--gris-300)", fontSize: 13, lineHeight: 1.7 }}>
               {post.description}
             </p>
             <button

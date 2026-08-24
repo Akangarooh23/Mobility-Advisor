@@ -159,7 +159,7 @@ export default function SellPage({
       >
         {pageTitle}
       </h2>
-      <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.7, margin: "0 0 24px" }}>
+      <p style={{ color: "var(--gris-400)", fontSize: 14, lineHeight: 1.7, margin: "0 0 24px" }}>
         {pageDescription}
       </p>
 
@@ -175,14 +175,14 @@ export default function SellPage({
             gap: 4,
           }}
         >
-          <div style={{ fontSize: 11, color: "#1d4ed8", fontWeight: 800, letterSpacing: "0.3px" }}>
+          <div style={{ fontSize: 11, color: "var(--marca-oscuro)", fontWeight: 800, letterSpacing: "0.3px" }}>
             {text.selectedFromPlate}
           </div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gris-900)" }}>
             {selectedValuationVehicleSummary.plate || text.noPlate}
             {selectedValuationVehicleSummary.title ? ` · ${selectedValuationVehicleSummary.title}` : ""}
           </div>
-          <div style={{ fontSize: 12, color: "#475569" }}>
+          <div style={{ fontSize: 12, color: "var(--gris-600)" }}>
             {`${selectedValuationVehicleSummary.brand || ""} ${selectedValuationVehicleSummary.model || ""}`.trim()}
             {selectedValuationVehicleSummary.year ? ` · ${selectedValuationVehicleSummary.year}` : ""}
           </div>
@@ -191,7 +191,7 @@ export default function SellPage({
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 12, marginBottom: 24 }}>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.brand}</div>
+          <div style={{ fontSize: 11, color: "var(--gris-500)", marginBottom: 8 }}>{text.brand}</div>
           <select
             value={sellAnswers.brand}
             onChange={(event) => {
@@ -217,7 +217,7 @@ export default function SellPage({
           </select>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.model}</div>
+          <div style={{ fontSize: 11, color: "var(--gris-500)", marginBottom: 8 }}>{text.model}</div>
           <select
             value={sellAnswers.model}
             onChange={(event) => setSellAnswers((prev) => ({ ...prev, model: event.target.value }))}
@@ -233,7 +233,7 @@ export default function SellPage({
           </select>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.year}</div>
+          <div style={{ fontSize: 11, color: "var(--gris-500)", marginBottom: 8 }}>{text.year}</div>
           <select
             value={sellAnswers.year}
             onChange={(event) => setSellAnswers((prev) => ({ ...prev, year: event.target.value }))}
@@ -248,7 +248,7 @@ export default function SellPage({
           </select>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.mileage}</div>
+          <div style={{ fontSize: 11, color: "var(--gris-500)", marginBottom: 8 }}>{text.mileage}</div>
           <select
             value={sellAnswers.mileage}
             onChange={(event) => setSellAnswers((prev) => ({ ...prev, mileage: event.target.value }))}
@@ -263,7 +263,7 @@ export default function SellPage({
           </select>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.fuel}</div>
+          <div style={{ fontSize: 11, color: "var(--gris-500)", marginBottom: 8 }}>{text.fuel}</div>
           <select
             value={sellAnswers.fuel}
             onChange={(event) => setSellAnswers((prev) => ({ ...prev, fuel: event.target.value }))}
@@ -277,7 +277,7 @@ export default function SellPage({
           </select>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.salesChannel}</div>
+          <div style={{ fontSize: 11, color: "var(--gris-500)", marginBottom: 8 }}>{text.salesChannel}</div>
           <select
             value={sellAnswers.sellerType}
             onChange={(event) => setSellAnswers((prev) => ({ ...prev, sellerType: event.target.value }))}
@@ -348,7 +348,7 @@ export default function SellPage({
             <div style={{ fontSize: 28, fontWeight: 800, color: "#000000", marginBottom: 8 }}>
               {sellAiResult.precio_objetivo}
             </div>
-            <p style={{ margin: 0, fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--gris-400)", lineHeight: 1.6 }}>
               {text.reasonableRange} {sellAiResult.rango_publicacion.min} y {sellAiResult.rango_publicacion.max}.
             </p>
           </div>
@@ -372,13 +372,13 @@ export default function SellPage({
             <div style={{ fontSize: 11, color: "#34d399", marginBottom: 6, letterSpacing: "0.6px" }}>
               {text.aiSummary}
             </div>
-            <p style={{ margin: "0 0 10px", fontSize: 13, color: "#94a3b8", lineHeight: 1.7 }}>
+            <p style={{ margin: "0 0 10px", fontSize: 13, color: "var(--gris-400)", lineHeight: 1.7 }}>
               {sellAiResult.resumen}
             </p>
             {sellAiResult.argumentos_clave.length > 0 && (
               <div style={{ display: "grid", gap: 5, marginBottom: 10 }}>
                 {sellAiResult.argumentos_clave.map((item) => (
-                  <div key={item} style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.5 }}>• {item}</div>
+                  <div key={item} style={{ fontSize: 12, color: "var(--gris-300)", lineHeight: 1.5 }}>• {item}</div>
                 ))}
               </div>
             )}
@@ -389,7 +389,7 @@ export default function SellPage({
                 ))}
               </div>
             )}
-            <p style={{ margin: "0 0 12px", fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
+            <p style={{ margin: "0 0 12px", fontSize: 12, color: "var(--gris-300)", lineHeight: 1.6 }}>
               <strong>{text.strategy}:</strong> {sellAiResult.estrategia_publicacion}
             </p>
 
@@ -445,7 +445,7 @@ export default function SellPage({
                     <div style={{ fontSize: 16, fontWeight: 700, color: "#000000", marginBottom: 6 }}>
                       {sellListingResult.title}
                     </div>
-                    <p style={{ margin: 0, fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
+                    <p style={{ margin: 0, fontSize: 12, color: "var(--gris-300)", lineHeight: 1.6 }}>
                       {sellListingResult.description || text.comparableDescriptionFallback}
                     </p>
                   </div>
@@ -488,7 +488,7 @@ export default function SellPage({
             <div style={{ fontSize: 28, fontWeight: 800, color: "#000000", marginBottom: 8 }}>
               {formatCurrency(sellEstimate.targetPrice)}
             </div>
-            <p style={{ margin: 0, fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--gris-400)", lineHeight: 1.6 }}>
               {text.indicativeRange} {formatCurrency(sellEstimate.lowPrice)} y {formatCurrency(sellEstimate.highPrice)} {text.whileAiRuns}
             </p>
           </div>

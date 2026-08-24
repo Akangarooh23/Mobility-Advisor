@@ -264,8 +264,8 @@ export default function UserDashboardPage({
   }, [currentUser?.email]);
 
   const isDark = themeMode === "dark";
-  const titleColor = isDark ? "#f8fafc" : "#0f172a";
-  const bodyColor = isDark ? "#cbd5e1" : "#475569";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
   const shellBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(148,163,184,0.26)";
   const shellBackground = isDark
     ? "linear-gradient(160deg, rgba(8,15,30,0.98), rgba(15,23,42,0.94))"
@@ -314,7 +314,7 @@ export default function UserDashboardPage({
           background: isActive
             ? (isDark ? "rgba(37,99,235,0.20)" : "rgba(37,99,235,0.10)")
             : (isDark ? "rgba(15,23,42,0.76)" : "rgba(255,255,255,0.84)"),
-          color: isActive ? "#1d4ed8" : (isDark ? "#e2e8f0" : "#334155"),
+          color: isActive ? "var(--marca-oscuro)" : (isDark ? "var(--gris-200)" : "var(--gris-700)"),
           textAlign: "left",
           cursor: "pointer",
         }}
@@ -327,7 +327,7 @@ export default function UserDashboardPage({
             style={{
               fontSize: 11,
               fontWeight: 700,
-              color: isActive ? "#1d4ed8" : (isDark ? "#bfdbfe" : "#334155"),
+              color: isActive ? "var(--marca-oscuro)" : (isDark ? "#bfdbfe" : "var(--gris-700)"),
             }}
           >
             {section.count}
@@ -358,11 +358,11 @@ export default function UserDashboardPage({
               padding: isMobile ? 12 : 16,
             }}
           >
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#2563eb", marginBottom: 14 }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "var(--marca)", marginBottom: 14 }}>
               CarsWise
             </div>
 
-            <div style={{ fontSize: 11, letterSpacing: "0.08em", color: isDark ? "#94a3b8" : "#64748b", marginBottom: 8 }}>
+            <div style={{ fontSize: 11, letterSpacing: "0.08em", color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginBottom: 8 }}>
               MI PANEL
             </div>
             <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>
@@ -371,7 +371,7 @@ export default function UserDashboardPage({
 
             <div style={{ height: 1, background: isDark ? "rgba(148,163,184,0.22)" : "rgba(148,163,184,0.26)", margin: "12px 0" }} />
 
-            <div style={{ fontSize: 11, letterSpacing: "0.08em", color: isDark ? "#94a3b8" : "#64748b", marginBottom: 8 }}>
+            <div style={{ fontSize: 11, letterSpacing: "0.08em", color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginBottom: 8 }}>
               CUENTA
             </div>
             <div style={{ display: "grid", gap: 8 }}>
@@ -386,7 +386,7 @@ export default function UserDashboardPage({
                   borderRadius: 10,
                   border: isDark ? "1px solid rgba(148,163,184,0.18)" : "1px solid rgba(148,163,184,0.24)",
                   background: isDark ? "rgba(15,23,42,0.76)" : "rgba(255,255,255,0.84)",
-                  color: isDark ? "#e2e8f0" : "#334155",
+                  color: isDark ? "var(--gris-200)" : "var(--gris-700)",
                   cursor: "pointer",
                   fontSize: 13,
                 }}
@@ -437,7 +437,7 @@ export default function UserDashboardPage({
                   style={{
                     fontSize: 12,
                     fontWeight: 700,
-                    color: "#1d4ed8",
+                    color: "var(--marca-oscuro)",
                     background: "rgba(59,130,246,0.12)",
                     border: "1px solid rgba(59,130,246,0.24)",
                     borderRadius: 999,
@@ -455,7 +455,7 @@ export default function UserDashboardPage({
                     placeItems: "center",
                     fontSize: 12,
                     fontWeight: 800,
-                    color: "#1d4ed8",
+                    color: "var(--marca-oscuro)",
                     background: "rgba(59,130,246,0.14)",
                     border: "1px solid rgba(59,130,246,0.26)",
                   }}

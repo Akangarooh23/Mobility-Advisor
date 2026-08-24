@@ -124,7 +124,7 @@ export default function MiCitaPage() {
     <div style={F.page}>
       <div style={F.card}>
         <Logo />
-        <div style={{ textAlign: "center", padding: "32px 0", color: "#94a3b8", fontSize: 14 }}>Cargando tu cita…</div>
+        <div style={{ textAlign: "center", padding: "32px 0", color: "var(--gris-400)", fontSize: 14 }}>Cargando tu cita…</div>
       </div>
     </div>
   );
@@ -199,9 +199,9 @@ export default function MiCitaPage() {
           <div style={F.sub}>Selecciona el nuevo horario para tu visita.</div>
 
           {slotsLoading ? (
-            <div style={{ textAlign: "center", color: "#94a3b8", padding: "32px 0", fontSize: 14 }}>Cargando horarios…</div>
+            <div style={{ textAlign: "center", color: "var(--gris-400)", padding: "32px 0", fontSize: 14 }}>Cargando horarios…</div>
           ) : slots.length === 0 ? (
-            <div style={{ textAlign: "center", color: "#94a3b8", padding: "32px 0", fontSize: 14 }}>
+            <div style={{ textAlign: "center", color: "var(--gris-400)", padding: "32px 0", fontSize: 14 }}>
               <div style={{ fontSize: 28, marginBottom: 8 }}>🗓</div>
               No hay otros horarios disponibles en este momento.
             </div>
@@ -220,10 +220,10 @@ export default function MiCitaPage() {
                         onClick={() => { setActiveDay(day); setSelectedSlot(null); }}
                         style={{
                           background: isActive ? "#0ea5e9" : "#fff",
-                          border: `1.5px solid ${isActive ? "#0ea5e9" : today ? "#0ea5e9" : "#e2e8f0"}`,
+                          border: `1.5px solid ${isActive ? "#0ea5e9" : today ? "#0ea5e9" : "var(--gris-200)"}`,
                           borderRadius: 10, padding: "8px 12px", cursor: "pointer",
                           display: "flex", flexDirection: "column", alignItems: "center", gap: 1,
-                          minWidth: 56, color: isActive ? "#fff" : today ? "#0ea5e9" : "#475569",
+                          minWidth: 56, color: isActive ? "#fff" : today ? "#0ea5e9" : "var(--gris-600)",
                           transition: "all .15s",
                         }}
                       >
@@ -266,7 +266,7 @@ export default function MiCitaPage() {
                   <div style={{ fontSize: 14, fontWeight: 700, color: "#0c4a6e" }}>{fmtDateLong(selectedSlot.starts_at)}</div>
                   <div style={{ fontSize: 13, color: "#0369a1" }}>{fmtTime(selectedSlot.starts_at)} – {fmtTime(selectedSlot.ends_at)}</div>
                 </div>
-                <button onClick={() => setSelectedSlot(null)} style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: 20 }}>×</button>
+                <button onClick={() => setSelectedSlot(null)} style={{ background: "none", border: "none", color: "var(--gris-400)", cursor: "pointer", fontSize: 20 }}>×</button>
               </div>
               <button
                 onClick={confirmReschedule}
@@ -311,7 +311,7 @@ export default function MiCitaPage() {
           <div style={F.detail}><span style={F.detailLabel}>Reserva a nombre de</span> {booking.buyer_name}</div>
         )}
         {booking.notes && (
-          <div style={{ ...F.detail, fontStyle: "italic", color: "#64748b" }}><span style={F.detailLabel}>Notas</span> {booking.notes}</div>
+          <div style={{ ...F.detail, fontStyle: "italic", color: "var(--gris-500)" }}><span style={F.detailLabel}>Notas</span> {booking.notes}</div>
         )}
 
         {/* Actions */}
@@ -339,7 +339,7 @@ export default function MiCitaPage() {
 function Logo() {
   return (
     <div style={{ marginBottom: 24, display: "flex", alignItems: "center", gap: 8 }}>
-      <span style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-.3px" }}>
+      <span style={{ fontSize: 20, fontWeight: 800, color: "var(--gris-900)", letterSpacing: "-.3px" }}>
         Cars<span style={{ color: "#0ea5e9" }}>Wise</span>
       </span>
     </div>
@@ -365,11 +365,11 @@ function RescheduleSlotBtn({ slot, selected, onSelect }) {
 }
 
 const styles = {
-  page:           { minHeight: "100vh", background: "linear-gradient(135deg, #f0f9ff 0%, #f8fafc 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" },
+  page:           { minHeight: "100vh", background: "linear-gradient(135deg, #f0f9ff 0%, var(--gris-50) 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" },
   card:           { background: "#fff", borderRadius: 20, boxShadow: "0 8px 48px rgba(0,0,0,.1)", padding: "32px 28px", maxWidth: 440, width: "100%" },
-  title:          { fontSize: 22, fontWeight: 800, color: "#0f172a", marginBottom: 6, textAlign: "center" },
-  sub:            { fontSize: 14, color: "#64748b", marginBottom: 20, lineHeight: 1.6, textAlign: "center" },
-  vehicleTitle:   { fontSize: 16, fontWeight: 700, color: "#0f172a", textAlign: "center", marginBottom: 16 },
+  title:          { fontSize: 22, fontWeight: 800, color: "var(--gris-900)", marginBottom: 6, textAlign: "center" },
+  sub:            { fontSize: 14, color: "var(--gris-500)", marginBottom: 20, lineHeight: 1.6, textAlign: "center" },
+  vehicleTitle:   { fontSize: 16, fontWeight: 700, color: "var(--gris-900)", textAlign: "center", marginBottom: 16 },
 
   badgeConfirmed: { display: "inline-block", background: "#f0fdf4", color: "#16a34a", fontSize: 13, fontWeight: 700, borderRadius: 20, padding: "5px 14px", border: "1.5px solid #86efac" },
   badgeCancelled: { display: "inline-block", background: "#fef2f2", color: "#dc2626", fontSize: 13, fontWeight: 700, borderRadius: 20, padding: "5px 14px", border: "1.5px solid #fecaca" },
@@ -377,20 +377,20 @@ const styles = {
   dateCard:       { background: "linear-gradient(135deg, #eff6ff, #f0f9ff)", border: "1.5px solid #bfdbfe", borderRadius: 14, padding: "20px", marginBottom: 14, textAlign: "center" },
   dateCardLabel:  { fontSize: 11, fontWeight: 700, color: "#93c5fd", textTransform: "uppercase", letterSpacing: ".5px", marginBottom: 6 },
   dateCardDate:   { fontSize: 15, fontWeight: 700, color: "#1e40af", marginBottom: 4 },
-  dateCardTime:   { fontSize: 26, fontWeight: 800, color: "#0f172a" },
+  dateCardTime:   { fontSize: 26, fontWeight: 800, color: "var(--gris-900)" },
 
-  detail:         { fontSize: 13, color: "#475569", marginBottom: 6 },
-  detailLabel:    { fontWeight: 700, color: "#94a3b8", marginRight: 6 },
+  detail:         { fontSize: 13, color: "var(--gris-600)", marginBottom: 6 },
+  detailLabel:    { fontWeight: 700, color: "var(--gris-400)", marginRight: 6 },
 
   btnPrimary:     { display: "block", width: "100%", background: "linear-gradient(135deg, #0ea5e9, #0284c7)", color: "#fff", textDecoration: "none", padding: "13px 0", borderRadius: 10, fontWeight: 800, fontSize: 15, textAlign: "center", border: "none", cursor: "pointer", boxSizing: "border-box", marginTop: 4 },
-  btnReschedule:  { width: "100%", background: "#eff6ff", border: "1.5px solid #bfdbfe", color: "#1d4ed8", borderRadius: 10, padding: "12px 0", fontSize: 14, fontWeight: 700, cursor: "pointer" },
+  btnReschedule:  { width: "100%", background: "#eff6ff", border: "1.5px solid #bfdbfe", color: "var(--marca-oscuro)", borderRadius: 10, padding: "12px 0", fontSize: 14, fontWeight: 700, cursor: "pointer" },
   btnCancel:      { width: "100%", background: "#fef2f2", border: "1.5px solid #fecaca", color: "#dc2626", borderRadius: 10, padding: "11px 0", fontSize: 13, fontWeight: 700, cursor: "pointer", transition: "all .15s" },
 
-  linkBack:       { display: "block", textAlign: "center", color: "#94a3b8", textDecoration: "none", fontSize: 13, marginTop: 20 },
+  linkBack:       { display: "block", textAlign: "center", color: "var(--gris-400)", textDecoration: "none", fontSize: 13, marginTop: 20 },
   backBtn:        { background: "none", border: "none", color: "#0ea5e9", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: "0 0 16px", display: "block" },
 
   // Reschedule
-  periodLabel:    { fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: ".5px", marginBottom: 8 },
+  periodLabel:    { fontSize: 11, fontWeight: 700, color: "var(--gris-400)", textTransform: "uppercase", letterSpacing: ".5px", marginBottom: 8 },
   slotGrid:       { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(72px, 1fr))", gap: 8 },
   selectedPreview:{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#eff6ff", border: "1.5px solid #bfdbfe", borderRadius: 10, padding: "12px 16px", marginBottom: 12 },
   errMsg:         { background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", borderRadius: 8, padding: "10px 14px", fontSize: 13, marginTop: 14 },

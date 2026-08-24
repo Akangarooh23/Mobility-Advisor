@@ -4349,8 +4349,8 @@ export default function App() {
   if (LEGAL_ENTRY_MODES.includes(entryMode) && activeLegalDocs[entryMode]) {
     const doc = activeLegalDocs[entryMode];
     const isDark = themeMode === "dark";
-    const legalBg = isDark ? "#0f172a" : "#f8fafc";
-    const legalText = isDark ? "#e2e8f0" : "#0f172a";
+    const legalBg = isDark ? "var(--gris-900)" : "var(--gris-50)";
+    const legalText = isDark ? "var(--gris-200)" : "var(--gris-900)";
     const legalBorder = isDark ? "rgba(148,163,184,0.15)" : "rgba(148,163,184,0.22)";
     return (
       <div style={{ minHeight: "100vh", background: legalBg, color: legalText, fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" }}>
@@ -4369,7 +4369,7 @@ export default function App() {
             style={{
               background: "transparent",
               border: `1px solid ${legalBorder}`,
-              color: isDark ? "#94a3b8" : "#64748b",
+              color: isDark ? "var(--gris-400)" : "var(--gris-500)",
               borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer",
             }}
           >
@@ -4400,7 +4400,7 @@ export default function App() {
         ...((themeMode === "light" && step === -1) || isAdviceFlowLightBackground
           ? {
               background: "#ffffff",
-              color: "#0f172a",
+              color: "var(--gris-900)",
             }
           : null),
       }}
@@ -4424,15 +4424,15 @@ export default function App() {
             aria-label="Ir al home"
           >
             <img src="/carswise-logo.png" alt="CarsWise" style={{ height: 52, width: "auto", objectFit: "contain", display: "block" }} />
-            <span style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", whiteSpace: "nowrap", letterSpacing: "-0.2px" }}>CarsWise AI</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "var(--gris-900)", whiteSpace: "nowrap", letterSpacing: "-0.2px" }}>CarsWise AI</span>
           </button>
           <nav
             className="cw-header-nav"
             aria-label="Navegacion principal CarsWise"
             style={{
-              "--cw-nav-color": themeMode === "dark" ? "#cbd5e1" : "#5b6b82",
-              "--cw-nav-hover-color": themeMode === "dark" ? "#dbeafe" : "#334155",
-              "--cw-nav-active-color": themeMode === "dark" ? "#7dd3fc" : "#3b82f6",
+              "--cw-nav-color": themeMode === "dark" ? "var(--gris-300)" : "#5b6b82",
+              "--cw-nav-hover-color": themeMode === "dark" ? "#dbeafe" : "var(--gris-700)",
+              "--cw-nav-active-color": themeMode === "dark" ? "#7dd3fc" : "var(--marca-claro)",
               "--cw-nav-active-bg": themeMode === "dark" ? "rgba(125,211,252,0.18)" : "rgba(59,130,246,0.12)",
                 justifyContent: "center",
                 marginLeft: 18,
@@ -4486,7 +4486,7 @@ export default function App() {
                               border: "1px solid rgba(148,163,184,0.28)",
                               borderRadius: 10,
                               background: "#ffffff",
-                              color: "#0f172a",
+                              color: "var(--gris-900)",
                               fontSize: 12,
                               fontWeight: 700,
                               padding: "8px 10px",
@@ -4546,7 +4546,7 @@ export default function App() {
                               border: "1px solid rgba(148,163,184,0.28)",
                               borderRadius: 10,
                               background: "#ffffff",
-                              color: "#0f172a",
+                              color: "var(--gris-900)",
                               fontSize: 12,
                               fontWeight: 700,
                               padding: "8px 10px",
@@ -4576,7 +4576,7 @@ export default function App() {
           </nav>
           <div style={{ display: "flex", alignItems: "center", gap: 6, position: "relative", flexShrink: 0, marginLeft: "auto" }}>
           {step >= 0 && step < totalSteps && (
-            <div style={{ fontSize: 12, color: "#475569" }}>
+            <div style={{ fontSize: 12, color: "var(--gris-600)" }}>
               {step + 1} / {totalSteps}
             </div>
           )}
@@ -4586,7 +4586,7 @@ export default function App() {
               style={{
                 background: themeMode === "dark" ? "rgba(255,255,255,0.04)" : "rgba(241,245,249,0.92)",
                 border: themeMode === "dark" ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(148,163,184,0.32)",
-                color: themeMode === "dark" ? "#94a3b8" : "#334155",
+                color: themeMode === "dark" ? "var(--gris-400)" : "var(--gris-700)",
                 padding: "5px 13px",
                 borderRadius: 7,
                 cursor: "pointer",
@@ -4601,7 +4601,7 @@ export default function App() {
             type="button"
             onClick={() => setUiLanguage((prev) => (prev === "es" ? "en" : "es"))}
             title={uiLanguage === "es" ? "Cambiar a inglés" : "Cambiar a español"}
-            style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "none", border: "1px solid #e2e8f0", color: "#374151", padding: "6px 12px", borderRadius: 20, cursor: "pointer", fontSize: 12, fontWeight: 500, whiteSpace: "nowrap" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "none", border: "1px solid var(--gris-200)", color: "#374151", padding: "6px 12px", borderRadius: 20, cursor: "pointer", fontSize: 12, fontWeight: 500, whiteSpace: "nowrap" }}
           >
             <span>🌐</span>
             <span>{uiLanguage === "es" ? "ES" : "EN"}</span>
@@ -4611,7 +4611,7 @@ export default function App() {
             type="button"
             onClick={handleUserAccessClick}
             title={isUserLoggedIn ? (uiLanguage === "en" ? "Open my panel" : "Abrir mi panel") : (uiLanguage === "en" ? "Sign in or register" : "Acceder o registrarse")}
-            style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "#0f172a", border: "none", color: "white", padding: "7px 16px", borderRadius: 20, cursor: "pointer", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "var(--gris-900)", border: "none", color: "white", padding: "7px 16px", borderRadius: 20, cursor: "pointer", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}
           >
             <span
               style={{
@@ -4642,7 +4642,7 @@ export default function App() {
                 zIndex: 120,
               }}
             >
-              <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 8 }}>
+              <div style={{ fontSize: 11, color: "var(--gris-400)", marginBottom: 8 }}>
                 Área de usuario
               </div>
               <button
@@ -4703,7 +4703,7 @@ export default function App() {
                   <div style={{ fontSize: 11, color: "#6ee7b7", letterSpacing: "0.4px" }}>
                     PANEL DE USUARIO
                   </div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: "#f8fafc" }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "var(--gris-50)" }}>
                     Mi espacio CarsWise
                   </div>
                   {currentUser?.email && (
@@ -4717,7 +4717,7 @@ export default function App() {
                     type="button"
                     onClick={openUserDashboard}
                     style={{
-                      background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
+                      background: "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
                       border: "none",
                       color: "#ffffff",
                       borderRadius: 9,
@@ -4735,7 +4735,7 @@ export default function App() {
                     style={{
                       background: "rgba(255,255,255,0.05)",
                       border: "1px solid rgba(255,255,255,0.08)",
-                      color: "#cbd5e1",
+                      color: "var(--gris-300)",
                       borderRadius: 9,
                       padding: "6px 9px",
                       cursor: "pointer",
@@ -4750,7 +4750,7 @@ export default function App() {
               <div style={{ display: "grid", gap: 10 }}>
                 <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, gap: 8 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#f8fafc" }}>Seguridad de cuenta</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gris-50)" }}>Seguridad de cuenta</div>
                     <button
                       type="button"
                       onClick={() => {
@@ -4786,21 +4786,21 @@ export default function App() {
                         value={changePasswordForm.currentPassword}
                         onChange={(event) => setChangePasswordForm((prev) => ({ ...prev, currentPassword: event.target.value }))}
                         placeholder="Contraseña actual"
-                        style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
+                        style={{ background: "#0f1b2d", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
                       />
                       <input
                         type="password"
                         value={changePasswordForm.newPassword}
                         onChange={(event) => setChangePasswordForm((prev) => ({ ...prev, newPassword: event.target.value }))}
                         placeholder="Nueva contraseña (mínimo 6 caracteres)"
-                        style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
+                        style={{ background: "#0f1b2d", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
                       />
                       <input
                         type="password"
                         value={changePasswordForm.confirmPassword}
                         onChange={(event) => setChangePasswordForm((prev) => ({ ...prev, confirmPassword: event.target.value }))}
                         placeholder="Confirmar nueva contraseña"
-                        style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
+                        style={{ background: "#0f1b2d", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
                       />
 
                       {changePasswordError && (
@@ -4829,7 +4829,7 @@ export default function App() {
                       </button>
                     </form>
                   ) : (
-                    <div style={{ fontSize: 11, color: "#94a3b8" }}>
+                    <div style={{ fontSize: 11, color: "var(--gris-400)" }}>
                       Puedes actualizar tu contraseña sin cerrar sesión.
                     </div>
                   )}
@@ -4837,7 +4837,7 @@ export default function App() {
 
                 <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#f8fafc" }}>Mis recomendaciones guardadas</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gris-50)" }}>Mis recomendaciones guardadas</div>
                     <span style={{ fontSize: 11, color: "#93c5fd" }}>{dashboardSavedComparisons.length}</span>
                   </div>
                   {dashboardSavedComparisons.length > 0 ? (
@@ -4865,7 +4865,7 @@ export default function App() {
                         }}
                       >
                         <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{item.title}</div>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--gris-200)" }}>{item.title}</div>
                           <button
                             type="button"
                             onClick={(event) => {
@@ -4885,10 +4885,10 @@ export default function App() {
                             Quitar
                           </button>
                         </div>
-                        <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>
+                        <div style={{ fontSize: 11, color: "var(--gris-400)", marginTop: 2 }}>
                           {item.typeLabel} {"\u00B7"} {item.savedAt}
                         </div>
-                        <div style={{ fontSize: 11, color: "#cbd5e1", marginTop: 2 }}>
+                        <div style={{ fontSize: 11, color: "var(--gris-300)", marginTop: 2 }}>
                           {item.monthlyTotal > 0 ? `${formatCurrency(item.monthlyTotal)}/mes` : item.budgetLabel || "Sin cuota definida"}
                         </div>
                         {(item.sourceLabel || item.listingPrice) && (
@@ -4905,7 +4905,7 @@ export default function App() {
                       </div>
                     );})
                   ) : (
-                    <div style={{ fontSize: 11, color: "#94a3b8" }}>
+                    <div style={{ fontSize: 11, color: "var(--gris-400)" }}>
                       Cuando guardes una comparativa aparecerá aquí automáticamente.
                     </div>
                   )}
@@ -4913,7 +4913,7 @@ export default function App() {
 
                 <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#f8fafc" }}>Citas</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gris-50)" }}>Citas</div>
                     <span style={{ fontSize: 11, color: "#fbbf24" }}>{dashboardAppointments.length}</span>
                   </div>
 
@@ -4960,15 +4960,15 @@ export default function App() {
 
                       return (
                         <div key={item.id} style={{ paddingTop: 6 }}>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{item.title}</div>
-                          <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{summaryLine}</div>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--gris-200)" }}>{item.title}</div>
+                          <div style={{ fontSize: 11, color: "var(--gris-400)", marginTop: 2 }}>{summaryLine}</div>
                           {detailLine ? (
                             <div style={{ fontSize: 11, color: "#7dd3fc", marginTop: 2, fontWeight: 700 }}>
                               Taller {"\u00B7"} {detailLine}
                             </div>
                           ) : null}
                           {addressPart ? (
-                            <div style={{ fontSize: 11, color: "#cbd5e1", marginTop: 2 }}>
+                            <div style={{ fontSize: 11, color: "var(--gris-300)", marginTop: 2 }}>
                               Dirección {"\u00B7"} {addressPart.replace(/^Direccion:\s*/, "")}
                             </div>
                           ) : null}
@@ -4980,7 +4980,7 @@ export default function App() {
                       );
                     })
                   ) : (
-                    <div style={{ fontSize: 11, color: "#94a3b8" }}>
+                    <div style={{ fontSize: 11, color: "var(--gris-400)" }}>
                       Aún no tienes citas programadas. Cuando reserves una, se verá aquí.
                     </div>
                   )}
@@ -4988,26 +4988,26 @@ export default function App() {
 
                 <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#f8fafc" }}>Mis tasaciones</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gris-50)" }}>Mis tasaciones</div>
                     <span style={{ fontSize: 11, color: "#c084fc" }}>{dashboardValuations.length}</span>
                   </div>
                   {dashboardValuations.length > 0 ? (
                     dashboardValuations.map((item) => (
                       <div key={item.id} style={{ paddingTop: 6 }}>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{item.title}</div>
-                        <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{item.meta}</div>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--gris-200)" }}>{item.title}</div>
+                        <div style={{ fontSize: 11, color: "var(--gris-400)", marginTop: 2 }}>{item.meta}</div>
                         <div style={{ fontSize: 11, color: "#c084fc", marginTop: 2 }}>{item.status}</div>
                       </div>
                     ))
                   ) : (
-                    <div style={{ fontSize: 11, color: "#94a3b8" }}>
+                    <div style={{ fontSize: 11, color: "var(--gris-400)" }}>
                       Cuando hagas una tasación de tu coche, la verás aquí guardada.
                     </div>
                   )}
                 </div>
 
                 <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 12 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#f8fafc", marginBottom: 8 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gris-50)", marginBottom: 8 }}>
                     Mis vehículos
                   </div>
                   <div style={{ display: "grid", gap: 8 }}>
@@ -5023,18 +5023,18 @@ export default function App() {
                       >
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
                           <span style={{ fontSize: 12, fontWeight: 700, color: "#dbeafe" }}>{section.title}</span>
-                          <span style={{ fontSize: 11, color: "#94a3b8" }}>{section.items.length}</span>
+                          <span style={{ fontSize: 11, color: "var(--gris-400)" }}>{section.items.length}</span>
                         </div>
                         {section.items.length > 0 ? (
                           section.items.map((vehicle, index) => (
-                            <div key={`${section.key}-${index}`} style={{ fontSize: 11, color: "#cbd5e1", marginTop: 6 }}>
-                              <div style={{ fontWeight: 600, color: "#e2e8f0" }}>{vehicle.title}</div>
+                            <div key={`${section.key}-${index}`} style={{ fontSize: 11, color: "var(--gris-300)", marginTop: 6 }}>
+                              <div style={{ fontWeight: 600, color: "var(--gris-200)" }}>{vehicle.title}</div>
                               <div style={{ marginTop: 2 }}>{vehicle.meta}</div>
                               <div style={{ marginTop: 2, color: "#6ee7b7" }}>{vehicle.status}</div>
                             </div>
                           ))
                         ) : (
-                          <div style={{ fontSize: 11, color: "#94a3b8" }}>{section.empty}</div>
+                          <div style={{ fontSize: 11, color: "var(--gris-400)" }}>{section.empty}</div>
                         )}
                       </div>
                     ))}
@@ -5076,7 +5076,7 @@ export default function App() {
             })}
           </div>
         )}
-        <div style={{ height: 3, background: "linear-gradient(to right, #1d4ed8 50%, #16a34a 50%)" }} />
+        <div style={{ height: 3, background: "linear-gradient(to right, var(--marca-oscuro) 50%, #16a34a 50%)" }} />
       </header>}
 
       {authDialogMode && (
@@ -5118,7 +5118,7 @@ export default function App() {
                     ? "REGISTRO"
                     : "ACCESO"}
                 </div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: "#f8fafc" }}>
+                <div style={{ fontSize: 22, fontWeight: 800, color: "var(--gris-50)" }}>
                   {authRecoveryMode === "request"
                     ? "Recuperar contraseña"
                     : authRecoveryMode === "confirm"
@@ -5127,7 +5127,7 @@ export default function App() {
                     ? "Crear tu cuenta"
                     : "Iniciar sesión"}
                 </div>
-                <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>
+                <div style={{ fontSize: 12, color: "var(--gris-400)", marginTop: 4 }}>
                   {authRecoveryMode === "none"
                     ? "Tu email de acceso será el destinatario por defecto de los avisos y resúmenes."
                     : "Te enviaremos un código temporal para actualizar la contraseña de forma segura."}
@@ -5145,7 +5145,7 @@ export default function App() {
                   style={{
                     background: "transparent",
                     border: "none",
-                    color: "#cbd5e1",
+                    color: "var(--gris-300)",
                     fontSize: 20,
                     cursor: "pointer",
                   }}
@@ -5165,9 +5165,9 @@ export default function App() {
                       onClick={() => { setClientType("individual"); setAuthForm((p) => ({ ...p, company_name: "" })); }}
                       style={{
                         padding: "9px 10px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer",
-                        border: clientType === "individual" ? "1.5px solid #3b82f6" : "1px solid rgba(255,255,255,0.12)",
+                        border: clientType === "individual" ? "1.5px solid var(--marca-claro)" : "1px solid rgba(255,255,255,0.12)",
                         background: clientType === "individual" ? "rgba(59,130,246,0.12)" : "#0f1b2d",
-                        color: clientType === "individual" ? "#93c5fd" : "#64748b",
+                        color: clientType === "individual" ? "#93c5fd" : "var(--gris-500)",
                       }}
                     >
                       👤 Particular
@@ -5179,7 +5179,7 @@ export default function App() {
                         padding: "9px 10px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer",
                         border: clientType === "business" ? "1.5px solid #f59e0b" : "1px solid rgba(255,255,255,0.12)",
                         background: clientType === "business" ? "rgba(245,158,11,0.10)" : "#0f1b2d",
-                        color: clientType === "business" ? "#fbbf24" : "#64748b",
+                        color: clientType === "business" ? "#fbbf24" : "var(--gris-500)",
                       }}
                     >
                       🏢 Empresa
@@ -5197,7 +5197,7 @@ export default function App() {
                           value={authForm.name}
                           onChange={(event) => setAuthForm((prev) => ({ ...prev, name: event.target.value }))}
                           placeholder="Tu nombre"
-                          style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                          style={{ background: "#0f1b2d", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
                         />
                       </label>
                       <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
@@ -5208,7 +5208,7 @@ export default function App() {
                           value={authForm.apellidos}
                           onChange={(event) => setAuthForm((prev) => ({ ...prev, apellidos: event.target.value }))}
                           placeholder="Tus apellidos"
-                          style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                          style={{ background: "#0f1b2d", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
                         />
                       </label>
                     </div>
@@ -5221,7 +5221,7 @@ export default function App() {
                         value={authForm.company_name}
                         onChange={(event) => setAuthForm((prev) => ({ ...prev, company_name: event.target.value }))}
                         placeholder="Nombre de tu empresa"
-                        style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(245,158,11,0.35)", borderRadius: 10, padding: "11px 12px" }}
+                        style={{ background: "#0f1b2d", color: "var(--gris-50)", border: "1px solid rgba(245,158,11,0.35)", borderRadius: 10, padding: "11px 12px" }}
                       />
                     </label>
                   )}
@@ -5234,7 +5234,7 @@ export default function App() {
                       value={authForm.phone}
                       onChange={(event) => setAuthForm((prev) => ({ ...prev, phone: event.target.value }))}
                       placeholder="Ej: 612 345 678"
-                      style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                      style={{ background: "#0f1b2d", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
                     />
                   </label>
                 </>
@@ -5248,7 +5248,7 @@ export default function App() {
                   value={authForm.email}
                   onChange={(event) => setAuthForm((prev) => ({ ...prev, email: event.target.value }))}
                   placeholder="nombre@correo.com"
-                  style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                  style={{ background: "#0f1b2d", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
                 />
               </label>
 
@@ -5260,7 +5260,7 @@ export default function App() {
                   value={authForm.password}
                   onChange={(event) => setAuthForm((prev) => ({ ...prev, password: event.target.value }))}
                   placeholder={authRecoveryMode === "confirm" ? "Nueva contraseña (mínimo 6 caracteres)" : "Mínimo 6 caracteres"}
-                  style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                  style={{ background: "#0f1b2d", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
                 />
               </label>
 
@@ -5272,7 +5272,7 @@ export default function App() {
                     value={authRecoveryCode}
                     onChange={(event) => setAuthRecoveryCode(event.target.value)}
                     placeholder="Ejemplo: A1B2C3D4"
-                    style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                    style={{ background: "#0f1b2d", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
                   />
                 </label>
               )}
@@ -5305,7 +5305,7 @@ export default function App() {
                       }}
                       style={{
                         width: 36, height: 20, borderRadius: 999, flexShrink: 0, cursor: "pointer",
-                        background: consentLegal && consentMarketingEmail && consentMarketingSms && consentThirdPartyEmail && consentThirdPartySms ? "#2563eb" : "rgba(148,163,184,0.3)",
+                        background: consentLegal && consentMarketingEmail && consentMarketingSms && consentThirdPartyEmail && consentThirdPartySms ? "var(--marca)" : "rgba(148,163,184,0.3)",
                         position: "relative", transition: "background 0.2s",
                       }}
                     >
@@ -5316,7 +5316,7 @@ export default function App() {
                         transition: "left 0.2s",
                       }} />
                     </div>
-                    <span style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.5 }}>
+                    <span style={{ fontSize: 12, color: "var(--gris-300)", lineHeight: 1.5 }}>
                       Acepto todos los consentimientos siguientes:
                     </span>
                   </label>
@@ -5333,9 +5333,9 @@ export default function App() {
                           setConsentThirdPartyEmail(false); setConsentThirdPartySms(false);
                         }
                       }}
-                      style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
+                      style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
-                    <span style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
+                    <span style={{ fontSize: 12, color: "var(--gris-300)", lineHeight: 1.6 }}>
                       He leído y acepto{" "}
                       <a href="/terminos-condiciones" target="_blank" rel="noopener noreferrer"
                         style={{ color: "#93c5fd", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
@@ -5357,10 +5357,10 @@ export default function App() {
                       type="checkbox"
                       checked={consentMarketingEmail}
                       onChange={(e) => setConsentMarketingEmail(e.target.checked)}
-                      style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
+                      style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
-                    <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                      Acepto recibir comunicaciones comerciales por <strong style={{ color: "#cbd5e1" }}>email</strong> de Carswiseai y socios conforme a la{" "}
+                    <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
+                      Acepto recibir comunicaciones comerciales por <strong style={{ color: "var(--gris-300)" }}>email</strong> de Carswiseai y socios conforme a la{" "}
                       <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer"
                         style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Política de Comunicaciones
@@ -5375,10 +5375,10 @@ export default function App() {
                       type="checkbox"
                       checked={consentMarketingSms}
                       onChange={(e) => setConsentMarketingSms(e.target.checked)}
-                      style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
+                      style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
-                    <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                      Acepto recibir comunicaciones comerciales por <strong style={{ color: "#cbd5e1" }}>SMS</strong> de Carswiseai y socios conforme a la{" "}
+                    <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
+                      Acepto recibir comunicaciones comerciales por <strong style={{ color: "var(--gris-300)" }}>SMS</strong> de Carswiseai y socios conforme a la{" "}
                       <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer"
                         style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Política de Comunicaciones
@@ -5393,10 +5393,10 @@ export default function App() {
                       type="checkbox"
                       checked={consentThirdPartyEmail}
                       onChange={(e) => setConsentThirdPartyEmail(e.target.checked)}
-                      style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
+                      style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
-                    <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                      Acepto comunicaciones por <strong style={{ color: "#cbd5e1" }}>email</strong> de terceros conforme a las{" "}
+                    <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
+                      Acepto comunicaciones por <strong style={{ color: "var(--gris-300)" }}>email</strong> de terceros conforme a las{" "}
                       <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer"
                         style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Condiciones Experian
@@ -5416,10 +5416,10 @@ export default function App() {
                       type="checkbox"
                       checked={consentThirdPartySms}
                       onChange={(e) => setConsentThirdPartySms(e.target.checked)}
-                      style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
+                      style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
-                    <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                      Acepto comunicaciones por <strong style={{ color: "#cbd5e1" }}>SMS</strong> de terceros conforme a las{" "}
+                    <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
+                      Acepto comunicaciones por <strong style={{ color: "var(--gris-300)" }}>SMS</strong> de terceros conforme a las{" "}
                       <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer"
                         style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Condiciones Experian
@@ -5452,7 +5452,7 @@ export default function App() {
                   style={{
                     background: "rgba(255,255,255,0.04)",
                     border: "1px solid rgba(255,255,255,0.08)",
-                    color: "#cbd5e1",
+                    color: "var(--gris-300)",
                     borderRadius: 10,
                     padding: "10px 12px",
                     cursor: "pointer",
@@ -5498,7 +5498,7 @@ export default function App() {
                         ? "linear-gradient(135deg,#0ea5e9,#0284c7)"
                         : authDialogMode === "register"
                         ? "linear-gradient(135deg,#10b981,#059669)"
-                        : "linear-gradient(135deg,#2563eb,#1d4ed8)",
+                        : "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
                     border: "none",
                     color: "#ffffff",
                     borderRadius: 10,
@@ -5528,17 +5528,17 @@ export default function App() {
       {/* ── Consent review modal for existing users ── */}
       {showConsentReview && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ background: "#0f172a", borderRadius: 20, padding: "32px 28px", maxWidth: 480, width: "100%", border: "1px solid rgba(148,163,184,0.15)" }}>
+          <div style={{ background: "var(--gris-900)", borderRadius: 20, padding: "32px 28px", maxWidth: 480, width: "100%", border: "1px solid rgba(148,163,184,0.15)" }}>
             <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color: "#67e8f9", marginBottom: 10 }}>Actualización de políticas</p>
-            <h3 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 800, color: "#f8fafc", lineHeight: 1.2 }}>Revisa y acepta nuestras políticas</h3>
-            <p style={{ margin: "0 0 20px", color: "#94a3b8", fontSize: 13, lineHeight: 1.6 }}>Hemos actualizado nuestras condiciones. Puedes aceptar o continuar sin aceptar — tu decisión quedará guardada.</p>
+            <h3 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 800, color: "var(--gris-50)", lineHeight: 1.2 }}>Revisa y acepta nuestras políticas</h3>
+            <p style={{ margin: "0 0 20px", color: "var(--gris-400)", fontSize: 13, lineHeight: 1.6 }}>Hemos actualizado nuestras condiciones. Puedes aceptar o continuar sin aceptar — tu decisión quedará guardada.</p>
 
             <div style={{ display: "grid", gap: 10, marginBottom: 24 }}>
               {/* Checkbox 1 — T&C obligatorio */}
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                 <input type="checkbox" checked={consentReviewLegal} onChange={(e) => setConsentReviewLegal(e.target.checked)}
-                  style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
+                  style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "var(--gris-300)", lineHeight: 1.6 }}>
                   He leído y acepto{" "}
                   <a href="/terminos-condiciones" target="_blank" rel="noopener noreferrer" style={{ color: "#93c5fd", textDecoration: "underline" }}>Condiciones Generales</a>
                   {" "}y la{" "}
@@ -5550,9 +5550,9 @@ export default function App() {
               {/* Checkbox 2a — marketing email */}
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                 <input type="checkbox" checked={consentReviewMarketingEmail} onChange={(e) => setConsentReviewMarketingEmail(e.target.checked)}
-                  style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                  Acepto comunicaciones comerciales por <strong style={{ color: "#cbd5e1" }}>email</strong> conforme a la{" "}
+                  style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
+                  Acepto comunicaciones comerciales por <strong style={{ color: "var(--gris-300)" }}>email</strong> conforme a la{" "}
                   <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Política de Comunicaciones</a>.
                 </span>
               </label>
@@ -5560,9 +5560,9 @@ export default function App() {
               {/* Checkbox 2b — marketing SMS */}
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                 <input type="checkbox" checked={consentReviewMarketingSms} onChange={(e) => setConsentReviewMarketingSms(e.target.checked)}
-                  style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                  Acepto comunicaciones comerciales por <strong style={{ color: "#cbd5e1" }}>SMS</strong> conforme a la{" "}
+                  style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
+                  Acepto comunicaciones comerciales por <strong style={{ color: "var(--gris-300)" }}>SMS</strong> conforme a la{" "}
                   <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Política de Comunicaciones</a>.
                 </span>
               </label>
@@ -5570,9 +5570,9 @@ export default function App() {
               {/* Checkbox 3a — Experian email */}
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                 <input type="checkbox" checked={consentReviewThirdPartyEmail} onChange={(e) => setConsentReviewThirdPartyEmail(e.target.checked)}
-                  style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                  Acepto comunicaciones por <strong style={{ color: "#cbd5e1" }}>email</strong> de terceros conforme a las{" "}
+                  style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
+                  Acepto comunicaciones por <strong style={{ color: "var(--gris-300)" }}>email</strong> de terceros conforme a las{" "}
                   <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Condiciones Experian</a>
                   {" "}y la{" "}
                   <a href="/politica-experian" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Política de Solvencia</a>.
@@ -5582,9 +5582,9 @@ export default function App() {
               {/* Checkbox 3b — Experian SMS */}
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                 <input type="checkbox" checked={consentReviewThirdPartySms} onChange={(e) => setConsentReviewThirdPartySms(e.target.checked)}
-                  style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                  Acepto comunicaciones por <strong style={{ color: "#cbd5e1" }}>SMS</strong> de terceros conforme a las{" "}
+                  style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
+                  Acepto comunicaciones por <strong style={{ color: "var(--gris-300)" }}>SMS</strong> de terceros conforme a las{" "}
                   <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Condiciones Experian</a>
                   {" "}y la{" "}
                   <a href="/politica-experian" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Política de Solvencia</a>.
@@ -5621,7 +5621,7 @@ export default function App() {
                   setShowConsentReview(false);
                   setConsentReviewLoading(false);
                 }}
-                style={{ width: "100%", padding: "12px", borderRadius: 10, background: "#2563eb", color: "#fff", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", opacity: consentReviewLoading ? 0.6 : 1 }}
+                style={{ width: "100%", padding: "12px", borderRadius: 10, background: "var(--marca)", color: "#fff", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", opacity: consentReviewLoading ? 0.6 : 1 }}
               >
                 {consentReviewLoading ? "Guardando…" : "Guardar selección y continuar"}
               </button>
@@ -5652,7 +5652,7 @@ export default function App() {
                   setShowConsentReview(false);
                   setConsentReviewLoading(false);
                 }}
-                style={{ width: "100%", padding: "10px", borderRadius: 10, background: "transparent", color: "#64748b", fontWeight: 500, fontSize: 13, border: "1px solid rgba(148,163,184,0.2)", cursor: "pointer" }}
+                style={{ width: "100%", padding: "10px", borderRadius: 10, background: "transparent", color: "var(--gris-500)", fontWeight: 500, fontSize: 13, border: "1px solid rgba(148,163,184,0.2)", cursor: "pointer" }}
               >
                 Continuar sin aceptar
               </button>
@@ -5693,13 +5693,13 @@ export default function App() {
             <div style={{ fontSize: 11, color: "#67e8f9", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 8 }}>
               {t("cookies.badge")}
             </div>
-            <h3 style={{ margin: "0 0 8px", fontSize: "clamp(22px,4vw,28px)", color: "#f8fafc" }}>
+            <h3 style={{ margin: "0 0 8px", fontSize: "clamp(22px,4vw,28px)", color: "var(--gris-50)" }}>
               {t("cookies.title")}
             </h3>
-            <p style={{ margin: "0 0 8px", color: "#cbd5e1", fontSize: 13, lineHeight: 1.65 }}>
+            <p style={{ margin: "0 0 8px", color: "var(--gris-300)", fontSize: 13, lineHeight: 1.65 }}>
               {t("cookies.description")}
             </p>
-            <p style={{ margin: "0 0 14px", color: "#94a3b8", fontSize: 12, lineHeight: 1.6 }}>
+            <p style={{ margin: "0 0 14px", color: "var(--gris-400)", fontSize: 12, lineHeight: 1.6 }}>
               {t("cookies.note")}
             </p>
 
@@ -5743,8 +5743,8 @@ export default function App() {
                     }}
                   >
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 13, color: "#f8fafc", fontWeight: 700 }}>{item.title}</div>
-                      <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2, lineHeight: 1.5 }}>
+                      <div style={{ fontSize: 13, color: "var(--gris-50)", fontWeight: 700 }}>{item.title}</div>
+                      <div style={{ fontSize: 12, color: "var(--gris-400)", marginTop: 2, lineHeight: 1.5 }}>
                         {item.description}
                       </div>
                     </div>
@@ -5782,7 +5782,7 @@ export default function App() {
                           background: enabled
                             ? "rgba(16,185,129,0.14)"
                             : "rgba(15,23,42,0.7)",
-                          color: enabled ? "#86efac" : "#cbd5e1",
+                          color: enabled ? "#86efac" : "var(--gris-300)",
                           padding: "6px 10px",
                           fontSize: 11,
                           fontWeight: 700,
@@ -5822,7 +5822,7 @@ export default function App() {
                   border: "none",
                   borderRadius: 10,
                   padding: "10px 14px",
-                  background: "linear-gradient(135deg,#2563eb,#0ea5e9)",
+                  background: "linear-gradient(135deg,var(--marca),#0ea5e9)",
                   color: "#ffffff",
                   fontSize: 12,
                   fontWeight: 800,
@@ -5840,7 +5840,7 @@ export default function App() {
                   borderRadius: 10,
                   padding: "10px 14px",
                   background: "rgba(15,23,42,0.72)",
-                  color: "#e2e8f0",
+                  color: "var(--gris-200)",
                   fontSize: 12,
                   fontWeight: 700,
                   cursor: "pointer",
@@ -5888,7 +5888,7 @@ export default function App() {
               </button>
             </div>
 
-            <div style={{ marginTop: 10, fontSize: 12, color: "#94a3b8" }}>
+            <div style={{ marginTop: 10, fontSize: 12, color: "var(--gris-400)" }}>
               Puedes revisar los detalles en la política de cookies desde el footer.
             </div>
           </div>
@@ -5988,7 +5988,7 @@ export default function App() {
           }
 
           .ma-header-progress {
-            background: linear-gradient(90deg, #2563eb 0%, #22c55e 100%);
+            background: linear-gradient(90deg, var(--marca) 0%, #22c55e 100%);
             background-size: 180% 100%;
             animation: maHeaderLineShift 4.8s linear infinite;
             box-shadow: 0 1px 8px rgba(37, 99, 235, 0.2);
@@ -7200,9 +7200,9 @@ export default function App() {
                     }}
                   />
                 </div>
-                <div style={{ fontWeight: 800, fontSize: 14, color: "#f8fafc" }}>CarsWise</div>
+                <div style={{ fontWeight: 800, fontSize: 14, color: "var(--gris-50)" }}>CarsWise</div>
               </div>
-              <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
+              <div style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
                 {uiLanguage === "en" ? "Mobility platform to buy better, sell better and reduce your vehicle's total cost." : "Plataforma de movilidad para comprar mejor, vender mejor y reducir el coste total de tu vehículo."}
               </div>
             </div>
@@ -7210,26 +7210,26 @@ export default function App() {
             <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
               <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "CONTACT" : "CONTACTO"}</div>
               <div style={{ display: "grid", gap: 6, fontSize: 12 }}>
-                <a href="mailto:soporte@carswise.es" style={{ color: "#e2e8f0", textDecoration: "none" }}>soporte@carswise.es</a>
-                <a href="tel:+34910000000" style={{ color: "#e2e8f0", textDecoration: "none" }}>+34 910 000 000</a>
-                <div style={{ color: "#94a3b8" }}>{uiLanguage === "en" ? "M-F 09:00 to 18:00 (Spain)" : "L-V 09:00 a 18:00 (España)"}</div>
+                <a href="mailto:soporte@carswise.es" style={{ color: "var(--gris-200)", textDecoration: "none" }}>soporte@carswise.es</a>
+                <a href="tel:+34910000000" style={{ color: "var(--gris-200)", textDecoration: "none" }}>+34 910 000 000</a>
+                <div style={{ color: "var(--gris-400)" }}>{uiLanguage === "en" ? "M-F 09:00 to 18:00 (Spain)" : "L-V 09:00 a 18:00 (España)"}</div>
               </div>
             </div>
 
             <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
               <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "USEFUL LINKS" : "ENLACES UTILES"}</div>
               <div style={{ display: "grid", gap: 7, fontSize: 12 }}>
-                <button type="button" onClick={restart} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>{uiLanguage === "en" ? "Home" : "Inicio"}</button>
-                <button type="button" onClick={() => { if (!isUserLoggedIn) { openAuthDialog("register", { entryMode: "portalVo" }); return; } openPublicPage("portalVo"); }} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Marketplace VO</button>
-                <button type="button" onClick={() => openPublicPage("vehicleOptions")} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>{uiLanguage === "en" ? "Vehicle Advisor" : "Asesor de vehículo"}</button>
-                <button type="button" onClick={() => openPublicPage("blog")} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Blog</button>
-                <button type="button" onClick={() => openPublicPage("contact")} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>{uiLanguage === "en" ? "Contact" : "Contacto"}</button>
+                <button type="button" onClick={restart} style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}>{uiLanguage === "en" ? "Home" : "Inicio"}</button>
+                <button type="button" onClick={() => { if (!isUserLoggedIn) { openAuthDialog("register", { entryMode: "portalVo" }); return; } openPublicPage("portalVo"); }} style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}>Marketplace VO</button>
+                <button type="button" onClick={() => openPublicPage("vehicleOptions")} style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}>{uiLanguage === "en" ? "Vehicle Advisor" : "Asesor de vehículo"}</button>
+                <button type="button" onClick={() => openPublicPage("blog")} style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}>Blog</button>
+                <button type="button" onClick={() => openPublicPage("contact")} style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}>{uiLanguage === "en" ? "Contact" : "Contacto"}</button>
                 <button
                   type="button"
                   onClick={() => {
                     openPublicPage("servicesSeo");
                   }}
-                  style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}
+                  style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}
                 >
                   {uiLanguage === "en" ? "Services" : "Servicios"}
                 </button>
@@ -7257,7 +7257,7 @@ export default function App() {
                       padding: "6px 10px",
                       fontSize: 11,
                       fontWeight: 700,
-                      color: "#e2e8f0",
+                      color: "var(--gris-200)",
                       textDecoration: "none",
                       background: "rgba(15,23,42,0.55)",
                     }}
@@ -7278,7 +7278,7 @@ export default function App() {
               borderTop: "1px solid rgba(148,163,184,0.2)",
               paddingTop: 12,
               fontSize: 11,
-              color: "#94a3b8",
+              color: "var(--gris-400)",
               textAlign: "left",
             }}
           >
@@ -7300,7 +7300,7 @@ export default function App() {
                   style={{
                     background: "transparent",
                     border: "none",
-                    color: "#cbd5e1",
+                    color: "var(--gris-300)",
                     textDecoration: "none",
                     padding: 0,
                     cursor: "pointer",
@@ -7349,7 +7349,7 @@ export default function App() {
         }
         select option {
           background: ${themeMode === "dark" ? "#0f1b2d" : "#ffffff"};
-          color: ${themeMode === "dark" ? "#f8fafc" : "#0f172a"};
+          color: ${themeMode === "dark" ? "var(--gris-50)" : "var(--gris-900)"};
         }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }

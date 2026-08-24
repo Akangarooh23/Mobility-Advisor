@@ -168,8 +168,8 @@ export default function ResultsOffersView({
   }, []);
   const isDark = themeMode === "dark";
   const cardBg = isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)";
-  const titleColor = isDark ? "#f8fafc" : "#0f172a";
-  const bodyColor = isDark ? "#cbd5e1" : "#475569";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
 
   const formatOfferPrice = (rawPrice) => {
     const value = String(rawPrice || "").trim();
@@ -225,7 +225,7 @@ export default function ResultsOffersView({
       >
         {isRentingOutcome && MONTHLY_BUDGET_OPTIONS.length > 0 && (
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 10, color: isDark ? "#94a3b8" : "#64748b", fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap" }}>
+            <span style={{ fontSize: 10, color: isDark ? "var(--gris-400)" : "var(--gris-500)", fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap" }}>
               CUOTA
             </span>
             {MONTHLY_BUDGET_OPTIONS.map((option) => {
@@ -238,7 +238,7 @@ export default function ResultsOffersView({
                   style={{
                     background: selected ? (isDark ? "rgba(16,185,129,0.2)" : "rgba(16,185,129,0.12)") : "transparent",
                     border: selected ? "1px solid rgba(16,185,129,0.4)" : (isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.22)"),
-                    color: selected ? (isDark ? "#6ee7b7" : "#047857") : (isDark ? "#cbd5e1" : "#475569"),
+                    color: selected ? (isDark ? "#6ee7b7" : "#047857") : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
                     padding: "4px 10px",
                     borderRadius: 100,
                     fontSize: 11,
@@ -255,7 +255,7 @@ export default function ResultsOffersView({
         )}
 
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 10, color: isDark ? "#94a3b8" : "#64748b", fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap" }}>
+          <span style={{ fontSize: 10, color: isDark ? "var(--gris-400)" : "var(--gris-500)", fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap" }}>
             {text.location}
           </span>
           <select
@@ -264,7 +264,7 @@ export default function ResultsOffersView({
             style={{
               border: isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.22)",
               background: isDark ? "rgba(15,23,42,0.9)" : "#ffffff",
-              color: isDark ? "#e2e8f0" : "#1f2937",
+              color: isDark ? "var(--gris-200)" : "#1f2937",
               borderRadius: 8,
               padding: "6px 10px",
               fontSize: 12,
@@ -281,7 +281,7 @@ export default function ResultsOffersView({
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 10, color: isDark ? "#94a3b8" : "#64748b", fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap" }}>
+          <span style={{ fontSize: 10, color: isDark ? "var(--gris-400)" : "var(--gris-500)", fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap" }}>
             {text.priceRange}
           </span>
           {PRICE_RANGE_OPTIONS.map((option) => {
@@ -294,7 +294,7 @@ export default function ResultsOffersView({
                 style={{
                   background: selected ? (isDark ? "rgba(167,139,250,0.2)" : "rgba(124,58,237,0.1)") : "transparent",
                   border: selected ? "1px solid rgba(167,139,250,0.4)" : (isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.22)"),
-                  color: selected ? (isDark ? "#c4b5fd" : "#5b21b6") : (isDark ? "#cbd5e1" : "#475569"),
+                  color: selected ? (isDark ? "#c4b5fd" : "#5b21b6") : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
                   padding: "4px 10px",
                   borderRadius: 100,
                   fontSize: 11,
@@ -339,7 +339,7 @@ export default function ResultsOffersView({
                 disabled={!canSearchListing || listingLoading}
                 style={{
                   background: canSearchListing && !listingLoading
-                    ? "linear-gradient(135deg,#0ea5e9,#2563eb)"
+                    ? "linear-gradient(135deg,#0ea5e9,var(--marca))"
                     : "rgba(148,163,184,0.2)",
                   border: "none",
                   color: "white",
@@ -480,7 +480,7 @@ export default function ResultsOffersView({
                       {featuredOffer.description || text.featuredFallback}
                     </p>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
-                      <div style={{ fontSize: 12, color: "#1d4ed8" }}>
+                      <div style={{ fontSize: 12, color: "var(--marca-oscuro)" }}>
                         {featuredOffer.source || text.externalWeb}
                       </div>
                       {featuredOffer.price && (
@@ -551,7 +551,7 @@ export default function ResultsOffersView({
                           }}
                           style={{
                             background: featuredOfferAction.exact
-                              ? "linear-gradient(135deg,#2563eb,#1d4ed8)"
+                              ? "linear-gradient(135deg,var(--marca),var(--marca-oscuro))"
                               : "rgba(245,158,11,0.16)",
                             border: featuredOfferAction.exact
                               ? "none"
@@ -691,7 +691,7 @@ export default function ResultsOffersView({
                               </div>
                               {offer.price && <div style={{ fontSize: 13, fontWeight: 800, color: "#047857" }}>{formatOfferPrice(offer.price)}</div>}
                             </div>
-                            <div style={{ fontSize: 11, color: "#1d4ed8", marginBottom: 6 }}>
+                            <div style={{ fontSize: 11, color: "var(--marca-oscuro)", marginBottom: 6 }}>
                               {offer.source || text.externalWeb}
                               {Number.isFinite(Number(offer.rankingScore ?? offer.profileScore))
                                 ? ` · ${Number(offer.rankingScore ?? offer.profileScore)}/100`

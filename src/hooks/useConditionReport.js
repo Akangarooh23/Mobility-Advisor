@@ -215,7 +215,7 @@ export function useConditionReport(alTerminar, origen = "idcar") {
           '<!doctype html><meta charset="utf-8">' +
             '<title>Abriendo la captura</title>' +
             '<body style="margin:0;display:grid;place-items:center;height:100vh;' +
-            'font:16px system-ui,sans-serif;color:#334155">Abriendo la captura…</body>'
+            'font:16px system-ui,sans-serif;color:var(--gris-700)">Abriendo la captura…</body>'
         );
         ventana.document.close();
       } catch {

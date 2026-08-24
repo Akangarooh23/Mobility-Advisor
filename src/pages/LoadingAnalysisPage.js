@@ -11,7 +11,7 @@ export default function LoadingAnalysisPage({ styles, loadingTexts, loadingPhase
           width: 80,
           height: 80,
           borderRadius: 22,
-          background: "linear-gradient(135deg,#2563EB,#059669)",
+          background: "linear-gradient(135deg,var(--marca),#059669)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -23,10 +23,10 @@ export default function LoadingAnalysisPage({ styles, loadingTexts, loadingPhase
       >
         🧠
       </div>
-      <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8, letterSpacing: "-0.5px", color: isDark ? "#f8fafc" : "#0f172a" }}>
+      <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8, letterSpacing: "-0.5px", color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>
         {t("loading.title")}
       </h2>
-      <p style={{ color: isDark ? "#cbd5e1" : "#64748b", fontSize: 14, marginBottom: 32 }}>
+      <p style={{ color: isDark ? "var(--gris-300)" : "var(--gris-500)", fontSize: 14, marginBottom: 32 }}>
         {t("loading.subtitle")}
       </p>
 
@@ -45,7 +45,7 @@ export default function LoadingAnalysisPage({ styles, loadingTexts, loadingPhase
         }}
       >
         <span style={{ fontSize: 16 }}>⚙️</span>
-        <span style={{ fontSize: 13, color: isDark ? "#e2e8f0" : "#475569" }}>{loadingTexts[loadingPhase]}</span>
+        <span style={{ fontSize: 13, color: isDark ? "var(--gris-200)" : "var(--gris-600)" }}>{loadingTexts[loadingPhase]}</span>
       </div>
 
       <div style={{ textAlign: "left", maxWidth: 320, margin: "0 auto 32px" }}>
@@ -66,10 +66,10 @@ export default function LoadingAnalysisPage({ styles, loadingTexts, loadingPhase
               transition: "opacity 0.5s",
             }}
           >
-            <span style={{ color: loadingPhase > i ? "#34d399" : isDark ? "#94a3b8" : "#475569", fontSize: 14 }}>
+            <span style={{ color: loadingPhase > i ? "#34d399" : isDark ? "var(--gris-400)" : "var(--gris-600)", fontSize: 14 }}>
               {loadingPhase > i ? "✓" : "○"}
             </span>
-            <span style={{ fontSize: 13, color: loadingPhase > i ? (isDark ? "#e2e8f0" : "#334155") : isDark ? "#94a3b8" : "#64748b" }}>
+            <span style={{ fontSize: 13, color: loadingPhase > i ? (isDark ? "var(--gris-200)" : "var(--gris-700)") : isDark ? "var(--gris-400)" : "var(--gris-500)" }}>
               {item}
             </span>
           </div>
@@ -84,7 +84,7 @@ export default function LoadingAnalysisPage({ styles, loadingTexts, loadingPhase
               width: 7,
               height: 7,
               borderRadius: "50%",
-              background: "#2563EB",
+              background: "var(--marca)",
               animation: `bounce 1.2s ${i * 0.2}s ease-in-out infinite`,
             }}
           />

@@ -159,8 +159,8 @@ export const STEPS = [
         icon: "🔧",
         desc: "Precio equilibrado y red de talleres amplia",
         brandChips: [
-          { short: "VW", tone: "#1d4ed8", label: "Volkswagen" },
-          { short: "SE", tone: "#0f172a", label: "Seat" },
+          { short: "VW", tone: "var(--marca-oscuro)", label: "Volkswagen" },
+          { short: "SE", tone: "var(--gris-900)", label: "Seat" },
           { short: "RE", tone: "#f59e0b", label: "Renault" },
           { short: "SK", tone: "#16a34a", label: "Skoda" },
         ],
@@ -174,7 +174,7 @@ export const STEPS = [
           { short: "TY", tone: "#ef4444", label: "Toyota" },
           { short: "HY", tone: "#0ea5e9", label: "Hyundai" },
           { short: "KI", tone: "#dc2626", label: "Kia" },
-          { short: "NS", tone: "#64748b", label: "Nissan" },
+          { short: "NS", tone: "var(--gris-500)", label: "Nissan" },
         ],
       },
       {
@@ -183,7 +183,7 @@ export const STEPS = [
         icon: "⭐",
         desc: "Imagen, tecnología y coste superior de mantenimiento",
         brandChips: [
-          { short: "BM", tone: "#2563eb", label: "BMW" },
+          { short: "BM", tone: "var(--marca)", label: "BMW" },
           { short: "MB", tone: "#111827", label: "Mercedes" },
           { short: "AU", tone: "#6b7280", label: "Audi" },
         ],

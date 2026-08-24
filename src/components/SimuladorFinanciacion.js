@@ -116,8 +116,8 @@ export default function SimuladorFinanciacion({
   const C = {
     amber: "#BA7517",
     teal: isDark ? "#5eead4" : "#137370",
-    ink: isDark ? "#f1f5f9" : "#1B1B18",
-    muted: isDark ? "#94a3b8" : "#6B6A64",
+    ink: isDark ? "var(--gris-100)" : "#1B1B18",
+    muted: isDark ? "var(--gris-400)" : "#6B6A64",
     line: isDark ? "rgba(148,163,184,0.18)" : "#E7E5DE",
     surface: isDark ? "rgba(15,23,42,0.45)" : "#FFFFFF",
     surfaceAlt: isDark ? "rgba(255,255,255,0.04)" : "#F7F6F2",

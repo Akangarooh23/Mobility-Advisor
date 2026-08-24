@@ -58,7 +58,7 @@ export default function ViewingConfirmPage() {
   }
 
   const containerStyle = {
-    minHeight: "100vh", background: "#f8fafc", display: "flex", alignItems: "center",
+    minHeight: "100vh", background: "var(--gris-50)", display: "flex", alignItems: "center",
     justifyContent: "center", padding: "20px", fontFamily: "Arial, sans-serif",
   };
   const cardStyle = {
@@ -71,7 +71,7 @@ export default function ViewingConfirmPage() {
     <div style={containerStyle}>
       <div style={cardStyle}>
         <h2 style={{ color: "#dc2626" }}>⚠️ Error</h2>
-        <p style={{ color: "#475569" }}>{error}</p>
+        <p style={{ color: "var(--gris-600)" }}>{error}</p>
       </div>
     </div>
   );
@@ -82,18 +82,18 @@ export default function ViewingConfirmPage() {
         <div style={{ textAlign: "center", marginBottom: 24 }}>
           <div style={{ fontSize: 48 }}>✅</div>
           <h2 style={{ color: "#16a34a", margin: "8px 0" }}>Cita confirmada</h2>
-          <p style={{ color: "#475569", fontSize: 14 }}>Recibirás un email de confirmación en breve.</p>
+          <p style={{ color: "var(--gris-600)", fontSize: 14 }}>Recibirás un email de confirmación en breve.</p>
         </div>
-        <div style={{ background: "#f1f5f9", borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
-          <div style={{ fontSize: 13, color: "#64748b" }}>Vehículo</div>
+        <div style={{ background: "var(--gris-100)", borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
+          <div style={{ fontSize: 13, color: "var(--gris-500)" }}>Vehículo</div>
           <div style={{ fontWeight: 600 }}>{appointment?.vehicle_title}</div>
         </div>
         <div style={{ background: "#dcfce7", borderRadius: 10, padding: "14px 16px" }}>
           <div style={{ fontSize: 13, color: "#166534" }}>Fecha y hora</div>
           <div style={{ fontWeight: 700, color: "#166534", fontSize: 16 }}>📅 {formatSlot(confirmed)}</div>
         </div>
-        <p style={{ fontSize: 12, color: "#94a3b8", marginTop: 20, textAlign: "center" }}>
-          ¿Necesitas cambiar la cita? Contacta con CarsWise · <a href="mailto:hola@carswiseai.com" style={{ color: "#2563eb" }}>hola@carswiseai.com</a>
+        <p style={{ fontSize: 12, color: "var(--gris-400)", marginTop: 20, textAlign: "center" }}>
+          ¿Necesitas cambiar la cita? Contacta con CarsWise · <a href="mailto:hola@carswiseai.com" style={{ color: "var(--marca)" }}>hola@carswiseai.com</a>
         </p>
       </div>
     </div>
@@ -107,8 +107,8 @@ export default function ViewingConfirmPage() {
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
           <span style={{ fontSize: 24 }}>🚗</span>
           <div>
-            <div style={{ fontSize: 12, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1 }}>CarsWise · Confirmar visita</div>
-            <div style={{ fontWeight: 700, fontSize: 18, color: "#0f172a" }}>{appointment.vehicle_title}</div>
+            <div style={{ fontSize: 12, color: "var(--gris-400)", textTransform: "uppercase", letterSpacing: 1 }}>CarsWise · Confirmar visita</div>
+            <div style={{ fontWeight: 700, fontSize: 18, color: "var(--gris-900)" }}>{appointment.vehicle_title}</div>
           </div>
         </div>
 
@@ -117,10 +117,10 @@ export default function ViewingConfirmPage() {
             Esta solicitud ya no está disponible para confirmar.
           </div>
         ) : slots.length === 0 ? (
-          <p style={{ color: "#475569" }}>El vendedor aún no ha propuesto fechas. Te avisaremos por email cuando lo haga.</p>
+          <p style={{ color: "var(--gris-600)" }}>El vendedor aún no ha propuesto fechas. Te avisaremos por email cuando lo haga.</p>
         ) : (
           <>
-            <p style={{ fontSize: 15, color: "#334155", marginBottom: 16 }}>
+            <p style={{ fontSize: 15, color: "var(--gris-700)", marginBottom: 16 }}>
               El vendedor propone las siguientes fechas. Elige la que más te convenga:
             </p>
             {slots.map((slot, i) => (
@@ -129,11 +129,11 @@ export default function ViewingConfirmPage() {
                 onClick={() => setSelected(slot)}
                 style={{
                   display: "block", width: "100%", textAlign: "left",
-                  background: selected === slot ? "#dbeafe" : "#f8fafc",
-                  border: selected === slot ? "2px solid #2563eb" : "1px solid #e2e8f0",
+                  background: selected === slot ? "#dbeafe" : "var(--gris-50)",
+                  border: selected === slot ? "2px solid var(--marca)" : "1px solid var(--gris-200)",
                   borderRadius: 10, padding: "12px 16px", marginBottom: 10,
                   cursor: "pointer", fontSize: 15, fontWeight: selected === slot ? 600 : 400,
-                  color: selected === slot ? "#1d4ed8" : "#334155",
+                  color: selected === slot ? "var(--marca-oscuro)" : "var(--gris-700)",
                 }}
               >
                 📅 {formatSlot(slot)}
@@ -154,8 +154,8 @@ export default function ViewingConfirmPage() {
           </>
         )}
 
-        <p style={{ fontSize: 12, color: "#94a3b8", marginTop: 20, textAlign: "center" }}>
-          ¿Dudas? Contacta con CarsWise · <a href="mailto:hola@carswiseai.com" style={{ color: "#2563eb" }}>hola@carswiseai.com</a>
+        <p style={{ fontSize: 12, color: "var(--gris-400)", marginTop: 20, textAlign: "center" }}>
+          ¿Dudas? Contacta con CarsWise · <a href="mailto:hola@carswiseai.com" style={{ color: "var(--marca)" }}>hola@carswiseai.com</a>
         </p>
       </div>
     </div>

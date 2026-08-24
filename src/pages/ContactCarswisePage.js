@@ -147,7 +147,7 @@ export default function ContactCarswisePage() {
           formData.message,
         ].join("\n"),
         html: `
-          <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a;max-width:680px;margin:0 auto;">
+          <div style="font-family:Arial,sans-serif;line-height:1.6;color:var(--gris-900);max-width:680px;margin:0 auto;">
             <h2>Nuevo contacto web de CarsWise</h2>
             <p><strong>Tema:</strong> ${topicLabel}</p>
             <p><strong>Nombre:</strong> ${fullName || "No indicado"}<br />
@@ -193,7 +193,7 @@ export default function ContactCarswisePage() {
           value,
         ].join("\n"),
         html: `
-          <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a;max-width:680px;margin:0 auto;">
+          <div style="font-family:Arial,sans-serif;line-height:1.6;color:var(--gris-900);max-width:680px;margin:0 auto;">
             <h2>Nueva consulta desde el chat web de CarsWise</h2>
             <p><strong>Consulta:</strong></p>
             <p>${String(value).replace(/\n/g, "<br />")}</p>

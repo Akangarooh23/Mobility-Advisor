@@ -97,8 +97,8 @@ export default function ResultsAnalysisView({
   const isDark = themeMode === "dark";
   const cardBg = isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)";
   const cardBorder = isDark ? "rgba(148,163,184,0.32)" : "rgba(31,41,55,0.1)";
-  const titleColor = isDark ? "#f8fafc" : "#0f172a";
-  const bodyColor = isDark ? "#cbd5e1" : "#475569";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
 
   return (
     <div style={{ display: "grid", gap: 12 }}>
@@ -143,7 +143,7 @@ export default function ResultsAnalysisView({
             <h3 style={{ margin: "0 0 6px", fontSize: 18, fontWeight: 700, color: titleColor }}>
               {displayResult.solucion_principal?.titulo}
             </h3>
-            <p style={{ margin: 0, color: isDark ? "#cbd5e1" : "#64748b", fontSize: 13, lineHeight: 1.6 }}>
+            <p style={{ margin: 0, color: isDark ? "var(--gris-300)" : "var(--gris-500)", fontSize: 13, lineHeight: 1.6 }}>
               {displayResult.solucion_principal?.resumen}
             </p>
           </div>
@@ -359,7 +359,7 @@ export default function ResultsAnalysisView({
           <div style={{ fontSize: 10, color: "#b91c1c", marginBottom: 6, fontWeight: 600, letterSpacing: "0.6px" }}>
             {text.profileTension}
           </div>
-          <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
+          <p style={{ margin: 0, fontSize: 12, color: "var(--gris-600)", lineHeight: 1.6 }}>
             {displayResult.solucion_principal.tension_principal}
           </p>
         </div>
@@ -406,7 +406,7 @@ export default function ResultsAnalysisView({
                 ≈ {formatCurrency(Number(tcoDetail.total_anual || 0))} / {text.annual}
               </div>
               {Number(tcoDetail.entrada_inicial || 0) > 0 && (
-                <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.5 }}>
+                <div style={{ fontSize: 12, color: "var(--gris-600)", lineHeight: 1.5 }}>
                   {text.downPayment}: <strong>{formatCurrency(Number(tcoDetail.entrada_inicial || 0))}</strong>
                 </div>
               )}
@@ -430,7 +430,7 @@ export default function ResultsAnalysisView({
                   const total = Math.max(1, Number(tcoDetail.total_mensual || 0));
                   return (
                     <div key={item.key}>
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 11, color: "#475569", marginBottom: 4 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 11, color: "var(--gris-600)", marginBottom: 4 }}>
                         <span>{item.label}</span>
                         <span style={{ color: item.color, fontWeight: 700 }}>{formatCurrency(value)}</span>
                       </div>
@@ -452,7 +452,7 @@ export default function ResultsAnalysisView({
           </div>
 
           {displayResult.tco_aviso && (
-            <p style={{ margin: "0 0 6px", fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
+            <p style={{ margin: "0 0 6px", fontSize: 12, color: "var(--gris-600)", lineHeight: 1.6 }}>
               {displayResult.tco_aviso}
             </p>
           )}
@@ -476,7 +476,7 @@ export default function ResultsAnalysisView({
           const mt2 = MOBILITY_TYPES[alt.tipo] || {
             label: alt.tipo,
             icon: "🚗",
-            color: "#64748b",
+            color: "var(--gris-500)",
           };
           return (
             <div
@@ -504,7 +504,7 @@ export default function ResultsAnalysisView({
                   <div style={{ fontSize: 11, color: mt2.color }}>{alt.score}% coincidencia</div>
                 </div>
               </div>
-              <p style={{ margin: 0, fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>{alt.razon}</p>
+              <p style={{ margin: 0, fontSize: 12, color: "var(--gris-500)", lineHeight: 1.5 }}>{alt.razon}</p>
             </div>
           );
         })}
@@ -528,7 +528,7 @@ export default function ResultsAnalysisView({
                 padding: 16,
               }}
             >
-              <div style={{ fontSize: 10, color: "#1d4ed8", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
+              <div style={{ fontSize: 10, color: "var(--marca-oscuro)", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
                 {text.finalComparator}
               </div>
               <div style={{ display: "grid", gap: 10 }}>
@@ -561,10 +561,10 @@ export default function ResultsAnalysisView({
                     <div style={{ display: "grid", gap: 5 }}>
                       <div style={{ fontSize: 11, color: "#1e3a8a", lineHeight: 1.5 }}><strong>{text.selectedOption}:</strong> {row.opcion_principal}</div>
                       {row.alternativa_1 && (
-                        <div style={{ fontSize: 11, color: "#475569", lineHeight: 1.5 }}><strong>{text.alternative1}:</strong> {row.alternativa_1}</div>
+                        <div style={{ fontSize: 11, color: "var(--gris-600)", lineHeight: 1.5 }}><strong>{text.alternative1}:</strong> {row.alternativa_1}</div>
                       )}
                       {row.alternativa_2 && (
-                        <div style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.5 }}><strong>{text.alternative2}:</strong> {row.alternativa_2}</div>
+                        <div style={{ fontSize: 11, color: "var(--gris-400)", lineHeight: 1.5 }}><strong>{text.alternative2}:</strong> {row.alternativa_2}</div>
                       )}
                     </div>
                   </div>
@@ -799,7 +799,7 @@ export default function ResultsAnalysisView({
                         {text.remove}
                       </button>
                     </div>
-                    <div style={{ fontSize: 11, color: "#1d4ed8", marginBottom: 4 }}>
+                    <div style={{ fontSize: 11, color: "var(--marca-oscuro)", marginBottom: 4 }}>
                       {item.typeLabel} · {item.score}% · {text.confidence} {String(item.confidence || "media").toUpperCase()} · {item.savedAt}
                     </div>
                     <div style={{ fontSize: 11, color: bodyColor, lineHeight: 1.5 }}>
@@ -836,7 +836,7 @@ export default function ResultsAnalysisView({
           <div style={{ fontSize: 10, color: "#eab308", marginBottom: 7, fontWeight: 600, letterSpacing: "0.6px" }}>
             {text.expertTip}
           </div>
-          <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.6 }}>{displayResult.consejo_experto}</p>
+          <p style={{ margin: 0, fontSize: 12, color: "var(--gris-600)", lineHeight: 1.6 }}>{displayResult.consejo_experto}</p>
         </div>
         <div
           style={{
@@ -850,7 +850,7 @@ export default function ResultsAnalysisView({
           <div style={{ fontSize: 10, color: "#047857", marginBottom: 7, fontWeight: 600, letterSpacing: "0.6px" }}>
             {listingResult ? text.realOfferReady : text.realOfferSearch}
           </div>
-          <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
+          <p style={{ margin: 0, fontSize: 12, color: "var(--gris-600)", lineHeight: 1.6 }}>
             {listingResult
               ? `${listingResult.title}${listingResult.price ? ` · ${listingResult.price}` : ""}`
               : text.realOfferHelp}

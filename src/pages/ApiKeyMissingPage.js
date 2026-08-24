@@ -20,7 +20,7 @@ export default function ApiKeyMissingPage({ styles, totalSteps, answers, steps, 
       <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 10, letterSpacing: "-0.5px" }}>
         Falta la API Key de Gemini
       </h2>
-      <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.7, maxWidth: 420, margin: "0 auto 28px" }}>
+      <p style={{ color: "var(--gris-400)", fontSize: 14, lineHeight: 1.7, maxWidth: 420, margin: "0 auto 28px" }}>
         El análisis de IA está listo pero necesita tu clave de API para funcionar. Hemos procesado
         correctamente tus {totalSteps} respuestas — solo falta conectar el motor de inteligencia artificial.
       </p>
@@ -71,7 +71,7 @@ export default function ApiKeyMissingPage({ styles, totalSteps, answers, steps, 
             >
               {n}
             </div>
-            <span style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.5 }}>{text}</span>
+            <span style={{ fontSize: 13, color: "var(--gris-400)", lineHeight: 1.5 }}>{text}</span>
           </div>
         ))}
       </div>
@@ -92,9 +92,9 @@ export default function ApiKeyMissingPage({ styles, totalSteps, answers, steps, 
           overflowX: "auto",
         }}
       >
-        <span style={{ color: "#475569" }}>{"Variable local (.env.local)"}</span>
+        <span style={{ color: "var(--gris-600)" }}>{"Variable local (.env.local)"}</span>
         <br />
-        <span style={{ color: "#e2e8f0" }}>GEMINI_API_KEY</span>{" "}
+        <span style={{ color: "var(--gris-200)" }}>GEMINI_API_KEY</span>{" "}
         <span style={{ color: "#60a5fa" }}>= </span>
         <span style={{ color: "#34d399" }}>
           "AIza..."
@@ -112,7 +112,7 @@ export default function ApiKeyMissingPage({ styles, totalSteps, answers, steps, 
           style={{
             background: "rgba(255,255,255,0.05)",
             border: "1px solid rgba(255,255,255,0.1)",
-            color: "#94a3b8",
+            color: "var(--gris-400)",
             padding: "12px 22px",
             borderRadius: 10,
             fontSize: 14,
@@ -140,7 +140,7 @@ export default function ApiKeyMissingPage({ styles, totalSteps, answers, steps, 
         }}
       >
         <div
-          style={{ fontSize: 11, color: "#475569", fontWeight: 600, marginBottom: 12, letterSpacing: "0.6px" }}
+          style={{ fontSize: 11, color: "var(--gris-600)", fontWeight: 600, marginBottom: 12, letterSpacing: "0.6px" }}
         >
           ✅ TUS {totalSteps} RESPUESTAS ESTÁN GUARDADAS
         </div>
@@ -157,7 +157,7 @@ export default function ApiKeyMissingPage({ styles, totalSteps, answers, steps, 
             const display = Array.isArray(val) ? val.join(", ") : val;
             return (
               <div key={s.id} style={{ fontSize: 11 }}>
-                <span style={{ color: "#334155" }}>{s.blockIcon} </span>
+                <span style={{ color: "var(--gris-700)" }}>{s.blockIcon} </span>
                 <span style={{ color: "#60a5fa" }}>{display}</span>
               </div>
             );

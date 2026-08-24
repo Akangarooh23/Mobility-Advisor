@@ -287,23 +287,23 @@ function SlotButton({ slot, selected, onSelect }) {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const S = {
-  loading:       { display: "flex", alignItems: "center", gap: 10, color: "#64748b", fontSize: 14, padding: "24px 0" },
-  spinner:       { width: 16, height: 16, border: "2px solid #e2e8f0", borderTopColor: "#0ea5e9", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block", flexShrink: 0 },
+  loading:       { display: "flex", alignItems: "center", gap: 10, color: "var(--gris-500)", fontSize: 14, padding: "24px 0" },
+  spinner:       { width: 16, height: 16, border: "2px solid var(--gris-200)", borderTopColor: "#0ea5e9", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block", flexShrink: 0 },
 
   wrap:          { fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" },
   pickerTitle:   { fontSize: 15, fontWeight: 700, color: "#1C2B33", marginBottom: 14 },
-  noSlots:       { color: "#94a3b8", fontSize: 13, textAlign: "center", padding: "20px 0", lineHeight: 1.6 },
+  noSlots:       { color: "var(--gris-400)", fontSize: 13, textAlign: "center", padding: "20px 0", lineHeight: 1.6 },
 
   dayTabsWrap:   { overflowX: "auto", marginBottom: 18, paddingBottom: 4, WebkitOverflowScrolling: "touch" },
   dayTabs:       { display: "flex", gap: 8, minWidth: "max-content" },
-  dayTab:        { background: "#fff", border: "1.5px solid #e2e8f0", borderRadius: 10, padding: "8px 12px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 1, minWidth: 56, transition: "all .15s", color: "#475569" },
+  dayTab:        { background: "#fff", border: "1.5px solid var(--gris-200)", borderRadius: 10, padding: "8px 12px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 1, minWidth: 56, transition: "all .15s", color: "var(--gris-600)" },
   dayTabActive:  { background: "#0ea5e9", borderColor: "#0ea5e9", color: "#fff" },
   dayTabWeekday: { fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".4px", opacity: 0.7 },
   dayTabNum:     { fontSize: 18, fontWeight: 800, lineHeight: 1 },
   dayTabMonth:   { fontSize: 10, opacity: 0.65 },
 
   slotSection:   { },
-  periodLabel:   { fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: ".5px", marginBottom: 8 },
+  periodLabel:   { fontSize: 11, fontWeight: 700, color: "var(--gris-400)", textTransform: "uppercase", letterSpacing: ".5px", marginBottom: 8 },
   slotGrid:      { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(72px, 1fr))", gap: 8 },
   slotBtn:       { background: "#f0f9ff", border: "1.5px solid #bae6fd", color: "#0369a1", borderRadius: 8, padding: "9px 6px", fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "all .12s", textAlign: "center" },
   slotBtnActive: { background: "#0ea5e9", borderColor: "#0ea5e9", color: "#fff", transform: "scale(1.04)" },
@@ -316,18 +316,18 @@ const S = {
   selectedDate:  { fontSize: 14, fontWeight: 700, color: "#166534" },
   selectedTime:  { fontSize: 13, color: "#15803d", marginTop: 2 },
   field:         { marginBottom: 14 },
-  label:         { display: "block", fontSize: 12, fontWeight: 700, color: "#475569", marginBottom: 5, textTransform: "uppercase", letterSpacing: ".3px" },
-  input:         { width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 8, padding: "10px 13px", fontSize: 14, color: "#1C2B33", boxSizing: "border-box", outline: "none", fontFamily: "inherit", transition: "border-color .15s" },
+  label:         { display: "block", fontSize: 12, fontWeight: 700, color: "var(--gris-600)", marginBottom: 5, textTransform: "uppercase", letterSpacing: ".3px" },
+  input:         { width: "100%", border: "1.5px solid var(--gris-200)", borderRadius: 8, padding: "10px 13px", fontSize: 14, color: "#1C2B33", boxSizing: "border-box", outline: "none", fontFamily: "inherit", transition: "border-color .15s" },
   confirmBtn:    { width: "100%", background: "linear-gradient(135deg, #0ea5e9, #0284c7)", border: "none", color: "#fff", borderRadius: 10, padding: "13px 0", fontSize: 15, fontWeight: 800, cursor: "pointer", marginTop: 4, letterSpacing: ".2px", transition: "all .15s" },
   errMsg:        { background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", borderRadius: 8, padding: "10px 14px", fontSize: 13, marginBottom: 14 },
 
   // Done step
   doneWrap:      { textAlign: "center", padding: "12px 0", fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" },
   doneIcon:      { fontSize: 44, marginBottom: 10 },
-  doneTitle:     { fontSize: 20, fontWeight: 800, color: "#0f172a", marginBottom: 12 },
+  doneTitle:     { fontSize: 20, fontWeight: 800, color: "var(--gris-900)", marginBottom: 12 },
   doneCard:      { background: "#f0fdf4", border: "1.5px solid #86efac", borderRadius: 12, padding: "16px 20px", marginBottom: 14, display: "inline-block", minWidth: 220 },
   doneDate:      { fontSize: 15, fontWeight: 700, color: "#166534", marginBottom: 4 },
-  doneTime:      { fontSize: 20, fontWeight: 800, color: "#0f172a" },
-  doneHint:      { fontSize: 13, color: "#64748b", lineHeight: 1.6, marginBottom: 16 },
-  icsBtn:        { background: "#f8fafc", border: "1.5px solid #e2e8f0", color: "#475569", borderRadius: 8, padding: "10px 20px", fontSize: 13, fontWeight: 700, cursor: "pointer" },
+  doneTime:      { fontSize: 20, fontWeight: 800, color: "var(--gris-900)" },
+  doneHint:      { fontSize: 13, color: "var(--gris-500)", lineHeight: 1.6, marginBottom: 16 },
+  icsBtn:        { background: "var(--gris-50)", border: "1.5px solid var(--gris-200)", color: "var(--gris-600)", borderRadius: 8, padding: "10px 20px", fontSize: 13, fontWeight: 700, cursor: "pointer" },
 };

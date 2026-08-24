@@ -155,6 +155,7 @@ import { STEPS, getQuestionnaireSteps } from "./data/questionnaireSteps";
 import { BLOCK_COLORS, BRAND_LOGOS } from "./ui/branding";
 import { createAppStyles } from "./ui/appStyles";
 import LogoPopCar from "./ui/LogoPopCar";
+import PiePopCar from "./ui/PiePopCar";
 
 function hasAnsweredValue(value) {
   if (Array.isArray(value)) {
@@ -4609,25 +4610,33 @@ export default function App() {
             <span>{uiLanguage === "es" ? "ES" : "EN"}</span>
           </button>
 
-<button
-            type="button"
-            onClick={handleUserAccessClick}
-            title={isUserLoggedIn ? (uiLanguage === "en" ? "Open my panel" : "Abrir mi panel") : (uiLanguage === "en" ? "Sign in or register" : "Acceder o registrarse")}
-            style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "var(--gris-900)", border: "none", color: "white", padding: "7px 16px", borderRadius: 20, cursor: "pointer", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}
-          >
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 13,
-                color: "white",
-              }}
+          {isUserLoggedIn ? (
+            <button
+              type="button"
+              onClick={handleUserAccessClick}
+              title={uiLanguage === "en" ? "Open my panel" : "Abrir mi panel"}
+              className="cw-btn-acento"
             >
-              {"\uD83D\uDC64"}
-            </span>
-            <span className="cw-theme-label">{isUserLoggedIn ? (uiLanguage === "en" ? "My panel" : "Mi panel") : (uiLanguage === "en" ? "Sign in" : "Acceder")}</span>
-          </button>
+              {uiLanguage === "en" ? "My dashboard" : "Mi panel"}
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={handleUserAccessClick}
+                className="cw-btn-contorno"
+              >
+                {uiLanguage === "en" ? "Log in" : "Iniciar sesión"}
+              </button>
+              <button
+                type="button"
+                onClick={handleUserAccessClick}
+                className="cw-btn-acento"
+              >
+                {uiLanguage === "en" ? "Sign up" : "Regístrate"}
+              </button>
+            </>
+          )}
 
           {showAuthMenu && !isUserLoggedIn && (
             <div
@@ -7153,149 +7162,52 @@ export default function App() {
       {/* ERROR */}
       {error && <ErrorStatePage error={error} onRetry={() => analyzeWithAI(answers)} />}
 
-      {!(step === -1 && !entryMode) && <footer
-        style={{
-          marginTop: "auto",
-          position: "relative",
-          zIndex: 5,
-          borderTop: "1px solid rgba(150,150,143,0.22)",
-          background:
-            "radial-gradient(120% 100% at 8% 0%, rgba(150,150,143,0.1), rgba(150,150,143,0) 45%), linear-gradient(180deg, rgba(5,5,5,0.9), rgba(5,5,5,0.98))",
-        }}
-      >
-        <div
-          style={{
-            ...s.center,
-            paddingTop: 30,
-            paddingBottom: 30,
-            display: "grid",
-            gap: 18,
-          }}
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))",
-              gap: 14,
-              textAlign: "left",
-            }}
-          >
-            <div className="ma-card-soft" style={{ border: "1px solid rgba(150,150,143,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(17,17,17,0.45)" }}>
-              <div style={{ marginBottom: 10 }}>
-                <LogoPopCar size={24} tono="claro" />
-              </div>
-              <div style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
-                {uiLanguage === "en" ? "Mobility platform to buy better, sell better and reduce your vehicle's total cost." : "Plataforma de movilidad para comprar mejor, vender mejor y reducir el coste total de tu vehículo."}
-              </div>
-            </div>
-
-            <div className="ma-card-soft" style={{ border: "1px solid rgba(150,150,143,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(17,17,17,0.45)" }}>
-              <div style={{ fontSize: 11, color: "var(--gris-300)", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "CONTACT" : "CONTACTO"}</div>
-              <div style={{ display: "grid", gap: 6, fontSize: 12 }}>
-                <a href="mailto:soporte@carswise.es" style={{ color: "var(--gris-200)", textDecoration: "none" }}>soporte@carswise.es</a>
-                <a href="tel:+34910000000" style={{ color: "var(--gris-200)", textDecoration: "none" }}>+34 910 000 000</a>
-                <div style={{ color: "var(--gris-400)" }}>{uiLanguage === "en" ? "M-F 09:00 to 18:00 (Spain)" : "L-V 09:00 a 18:00 (España)"}</div>
-              </div>
-            </div>
-
-            <div className="ma-card-soft" style={{ border: "1px solid rgba(150,150,143,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(17,17,17,0.45)" }}>
-              <div style={{ fontSize: 11, color: "var(--gris-300)", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "USEFUL LINKS" : "ENLACES UTILES"}</div>
-              <div style={{ display: "grid", gap: 7, fontSize: 12 }}>
-                <button type="button" onClick={restart} style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}>{uiLanguage === "en" ? "Home" : "Inicio"}</button>
-                <button type="button" onClick={() => { if (!isUserLoggedIn) { openAuthDialog("register", { entryMode: "portalVo" }); return; } openPublicPage("portalVo"); }} style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}>Marketplace VO</button>
-                <button type="button" onClick={() => openPublicPage("vehicleOptions")} style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}>{uiLanguage === "en" ? "Vehicle Advisor" : "Asesor de vehículo"}</button>
-                <button type="button" onClick={() => openPublicPage("blog")} style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}>Blog</button>
-                <button type="button" onClick={() => openPublicPage("contact")} style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}>{uiLanguage === "en" ? "Contact" : "Contacto"}</button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    openPublicPage("servicesSeo");
-                  }}
-                  style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}
-                >
-                  {uiLanguage === "en" ? "Services" : "Servicios"}
-                </button>
-              </div>
-            </div>
-
-            <div className="ma-card-soft" style={{ border: "1px solid rgba(150,150,143,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(17,17,17,0.45)" }}>
-              <div style={{ fontSize: 11, color: "var(--gris-300)", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "SOCIAL MEDIA" : "REDES SOCIALES"}</div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {[
-                  ["LinkedIn", "https://www.linkedin.com"],
-                  ["Instagram", "https://www.instagram.com/carswiseai/"],
-                  ["X", "https://x.com"],
-                  ["YouTube", "https://www.youtube.com"],
-                ].map(([label, href]) => (
-                  <a
-                    key={label}
-                    href={href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="ma-card-soft"
-                    style={{
-                      border: "1px solid rgba(150,150,143,0.24)",
-                      borderRadius: 999,
-                      padding: "6px 10px",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      color: "var(--gris-200)",
-                      textDecoration: "none",
-                      background: "rgba(17,17,17,0.55)",
-                    }}
-                  >
-                    {label}
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "space-between",
-              gap: 10,
-              borderTop: "1px solid rgba(150,150,143,0.2)",
-              paddingTop: 12,
-              fontSize: 11,
-              color: "var(--gris-400)",
-              textAlign: "left",
-            }}
-          >
-            <div>© {new Date().getFullYear()} CarsWise. {uiLanguage === "en" ? "All rights reserved." : "Todos los derechos reservados."}</div>
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              {[
-                [uiLanguage === "en" ? "Legal Notice" : "Aviso legal", "legalNotice"],
-                [uiLanguage === "en" ? "Privacy" : "Privacidad", "privacyPolicy"],
-                ["Cookies", "cookiePolicy"],
-                [uiLanguage === "en" ? "Terms" : "Términos", "termsConditions"],
-                [uiLanguage === "en" ? "Marketing Policy" : "Comunicaciones", "marketingPolicy"],
-                [uiLanguage === "en" ? "Experian Policy" : "Política Experian", "experianPolicy"],
-                [uiLanguage === "en" ? "Experian Terms" : "Condiciones Experian", "experianTerms"],
-              ].map(([label, key]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => openLegalDocument(key)}
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    color: "var(--gris-300)",
-                    textDecoration: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                    fontSize: 11,
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </footer>}
+      {!(step === -1 && !entryMode) && (
+        <PiePopCar
+          lema={uiLanguage === "en" ? "Your car. All of it, easier." : "Tu coche. Todo, más fácil."}
+          derechos={uiLanguage === "en" ? "All rights reserved." : "Todos los derechos reservados."}
+          onLogo={restart}
+          columnas={[
+            {
+              titulo: uiLanguage === "en" ? "Buy" : "Comprar",
+              enlaces: [
+                { texto: uiLanguage === "en" ? "Search cars" : "Buscar coches", onClick: () => openPublicPage("vehicleOptions") },
+                { texto: "Marketplace VO", onClick: () => { if (!isUserLoggedIn) { openAuthDialog("register", { entryMode: "portalVo" }); return; } openPublicPage("portalVo"); } },
+                { texto: uiLanguage === "en" ? "Vehicle advisor" : "Asesor de vehículo", onClick: () => openPublicPage("vehicleOptions") },
+              ],
+            },
+            {
+              titulo: uiLanguage === "en" ? "Sell" : "Vender",
+              enlaces: [
+                { texto: uiLanguage === "en" ? "Sell my car" : "Vender mi coche", onClick: () => openPublicPage("sellOptions") },
+                { texto: uiLanguage === "en" ? "Damage report" : "Informe de daños", onClick: () => openPublicPage("sellOptions") },
+              ],
+            },
+            {
+              titulo: uiLanguage === "en" ? "Manage" : "Gestionar",
+              enlaces: [
+                { texto: uiLanguage === "en" ? "Services" : "Servicios", onClick: () => openPublicPage("serviceOptions") },
+                { texto: uiLanguage === "en" ? "My car" : "Mi coche", onClick: () => openPublicPage("serviceOptions") },
+              ],
+            },
+            {
+              titulo: uiLanguage === "en" ? "About" : "Nosotros",
+              enlaces: [
+                { texto: uiLanguage === "en" ? "Home" : "Inicio", onClick: restart },
+                { texto: "Blog", onClick: () => openPublicPage("blog") },
+                { texto: uiLanguage === "en" ? "Contact" : "Contacto", onClick: () => openPublicPage("contact") },
+              ],
+            },
+          ]}
+          legales={[
+            [uiLanguage === "en" ? "Legal Notice" : "Aviso legal", "legalNotice"],
+            [uiLanguage === "en" ? "Privacy" : "Privacidad", "privacyPolicy"],
+            ["Cookies", "cookiePolicy"],
+            [uiLanguage === "en" ? "Terms" : "Términos", "termsConditions"],
+            [uiLanguage === "en" ? "Marketing Policy" : "Comunicaciones", "marketingPolicy"],
+          ].map(([texto, clave]) => ({ texto, onClick: () => openLegalDocument(clave) }))}
+        />
+      )}
 
       {/* GLOBAL STYLES */}
       <style>{`

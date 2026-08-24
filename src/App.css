@@ -42,29 +42,44 @@
   scrollbar-width: none !important;
 }
 
+/* Mismo aspecto que la navegacion del home: sin pastilla de fondo, el mismo
+   tamano de letra y un subrayado amarillo que crece al pasar el cursor. */
 .cw-header-nav-link {
+  position: relative;
   background: transparent;
   border: none;
   color: var(--cw-nav-color, var(--gris-700));
-  border-radius: 20px;
-  padding: 6px 11px;
-  font-size: 13px;
+  border-radius: 0;
+  padding: 6px 2px;
+  margin: 0 9px;
+  font-size: 14.5px;
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.15s, color 0.15s;
+  transition: color 0.18s;
+}
+
+.cw-header-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 100%; bottom: 0;
+  height: 2px;
+  background: var(--acento);
+  transition: right 0.22s;
 }
 
 .cw-header-nav-link:hover {
-  background: var(--gris-100);
+  background: transparent;
   color: var(--cw-nav-hover-color, var(--gris-900));
 }
+.cw-header-nav-link:hover::after { right: 0; }
 
 .cw-header-nav-link.is-active {
-  color: var(--cw-nav-active-color, var(--marca-oscuro));
-  background: var(--cw-nav-active-bg, var(--acento-tenue));
+  color: var(--cw-nav-active-color, var(--gris-900));
+  background: transparent;
   font-weight: 600;
 }
+.cw-header-nav-link.is-active::after { right: 0; }
 
 .cw-header-mobile-toggle {
   display: none;
@@ -176,3 +191,20 @@ body {
     transform: rotate(360deg);
   }
 }
+
+/* Los dos botones de la derecha de la cabecera, iguales que en el home. */
+.cw-btn-contorno, .cw-btn-acento {
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s, border-color 0.18s, transform 0.18s;
+}
+.cw-btn-contorno { background: transparent; color: var(--gris-900); border: 1px solid var(--gris-300); }
+.cw-btn-contorno:hover { border-color: var(--gris-900); background: var(--gris-50); }
+/* Texto negro sobre el amarillo: en blanco no se lee. */
+.cw-btn-acento { background: var(--acento); color: var(--gris-900); border: 1px solid var(--acento); }
+.cw-btn-acento:hover { background: var(--acento-oscuro); border-color: var(--acento-oscuro); }
+.cw-btn-contorno:active, .cw-btn-acento:active { transform: translateY(1px); }

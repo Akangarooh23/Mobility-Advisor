@@ -26,7 +26,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
     },
     progressBar: {
       height: 4,
-      background: "linear-gradient(90deg, var(--marca) 0%, #22c55e 100%)",
+      background: "linear-gradient(90deg, var(--acento) 0%, var(--acento-texto) 100%)",
       boxShadow: "0 1px 8px rgba(255,196,0,0.2)",
       overflow: "hidden",
     },

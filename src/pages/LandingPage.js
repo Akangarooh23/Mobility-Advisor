@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import LogoPopCar from "../ui/LogoPopCar";
+import PiePopCar from "../ui/PiePopCar";
 import "./LandingPage.css";
 
 /**
@@ -506,33 +507,19 @@ export default function LandingPage({
         </section>
       </main>
 
-      {/* ─────────── Pie ─────────── */}
-      <footer className="pc-pie">
-        <div className="pc-pie-rejilla">
-          <div>
-            <Logotipo tono="claro" size={26} />
-            <p>{t.lemaPie}</p>
-          </div>
-          {[
-            [t.pie.comprar, [irComprar, irOfertas, irInicio]],
-            [t.pie.vender, [irVender, irVender, irVender]],
-            [t.pie.gestionar, [irGestionar, irGestionar, irGestionar]],
-            [t.pie.idcar, [irGestionar, irGestionar, irGestionar]],
-            [t.pie.nosotros, [irInicio, irInicio, irPlanes]],
-          ].map(([[titulo, enlaces], acciones]) => (
-            <div key={titulo}>
-              <h4>{titulo}</h4>
-              {enlaces.map((e, i) => (
-                <button key={e} type="button" onClick={acciones[i]}>{e}</button>
-              ))}
-            </div>
-          ))}
-        </div>
-        <div className="pc-pie-abajo">
-          <span>© {new Date().getFullYear()} PopCar · {t.derechos}</span>
-          <span>{t.legal}</span>
-        </div>
-      </footer>
+      <PiePopCar
+        lema={t.lemaPie}
+        derechos={t.derechos}
+        onLogo={irInicio}
+        columnas={[
+          { titulo: t.pie.comprar[0],   enlaces: t.pie.comprar[1].map((x, i)   => ({ texto: x, onClick: [irComprar, irOfertas, irInicio][i] })) },
+          { titulo: t.pie.vender[0],    enlaces: t.pie.vender[1].map((x)       => ({ texto: x, onClick: irVender })) },
+          { titulo: t.pie.gestionar[0], enlaces: t.pie.gestionar[1].map((x)    => ({ texto: x, onClick: irGestionar })) },
+          { titulo: t.pie.idcar[0],     enlaces: t.pie.idcar[1].map((x)        => ({ texto: x, onClick: irGestionar })) },
+          { titulo: t.pie.nosotros[0],  enlaces: t.pie.nosotros[1].map((x, i)  => ({ texto: x, onClick: [irInicio, irInicio, irPlanes][i] })) },
+        ]}
+        legales={t.legal.split(" · ").map((x) => ({ texto: x }))}
+      />
     </div>
   );
 }

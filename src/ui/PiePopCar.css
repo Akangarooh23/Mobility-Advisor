@@ -9,8 +9,11 @@
 /* ── Pie ─────────────────────────────────────────────────────────────────── */
 .pc-pie {
   background: var(--gris-900); color: var(--blanco);
-  max-width: 1300px; margin: 0 auto 20px; border-radius: 26px; padding: 46px 42px 20px;
+  width: 100%; margin: 0; border-radius: 0; padding: 56px 42px 22px;
 }
+/* El contenido si se queda centrado y con el mismo ancho que el resto de la
+   pagina; lo que llega de borde a borde es solo el fondo. */
+.pc-pie-rejilla, .pc-pie-abajo { max-width: 1300px; margin-left: auto; margin-right: auto; }
 .pc-pie-rejilla { display: grid; grid-template-columns: 1.5fr repeat(5, 1fr); gap: 26px; }
 .pc-pie > .pc-pie-rejilla p { color: var(--gris-400); font-size: 12px; margin-top: 10px; }
 .pc-pie h4 { font-size: 12px; margin-bottom: 16px; }
@@ -37,7 +40,7 @@
 
 @media (max-width: 1000px) { .pc-pie-rejilla { grid-template-columns: 1fr 1fr 1fr; } }
 @media (max-width: 650px) {
-  .pc-pie { margin: 0 10px 10px; border-radius: 20px; padding: 34px 24px 18px; }
+  .pc-pie { padding: 34px 24px 18px; }
   .pc-pie-rejilla { grid-template-columns: 1fr 1fr; }
   .pc-pie-rejilla > div:first-child { grid-column: 1 / -1; }
   .pc-pie-abajo { display: block; }

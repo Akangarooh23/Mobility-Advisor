@@ -22,7 +22,7 @@ const TEXTOS = {
     entrada:
       "Trabajamos con concesionarios, rentadoras, empresas con flota propia y gestores de renting. " +
       "El mismo informe que hacemos coche a coche, aplicado a cientos de vehículos a la vez.",
-    serviciosTitulo: "Qué hacemos con una flota",
+    serviciosTitulo: "Servicios para grandes flotas",
     servicios: [
       ["Tasación de flotas",
         "Valoramos el parque completo con precios de mercado reales, no de tabla. Sirve para cerrar un ejercicio, negociar una renovación o decidir qué se vende y qué se queda."],
@@ -63,7 +63,7 @@ const TEXTOS = {
     entrada:
       "We work with dealers, rental companies, businesses running their own fleet and leasing managers. " +
       "The same report we produce car by car, applied to hundreds of vehicles at once.",
-    serviciosTitulo: "What we do with a fleet",
+    serviciosTitulo: "Services for large fleets",
     servicios: [
       ["Fleet valuation",
         "We value the whole fleet at real market prices, not book values. Useful to close a financial year, negotiate a renewal or decide what to sell and what to keep."],

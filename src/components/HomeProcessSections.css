@@ -1,6 +1,6 @@
 .cw-home-process {
   --surface: var(--gris-50);
-  --card: #ffffff;
+  --card: var(--blanco);
   --card-h: var(--gris-50);
   --b: rgba(15, 23, 42, 0.1);
   --bh: rgba(15, 23, 42, 0.2);
@@ -361,7 +361,7 @@
 .cw-home-flow-access-btn {
   border: 1px solid var(--acc-b);
   background: linear-gradient(135deg, rgba(37, 99, 235, 0.95), rgba(59, 130, 246, 0.92));
-  color: #ffffff;
+  color: var(--blanco);
   border-radius: 10px;
   padding: 9px 14px;
   font-size: 12px;

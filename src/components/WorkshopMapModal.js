@@ -5,7 +5,7 @@ const PARTNER_COLORS = {
   midas:      "#dc2626",
   carglass:   "#059669",
   euromaster: "#d97706",
-  kwik_fit:   "#7c3aed",
+  kwik_fit:   "var(--gris-500)",
 };
 
 function buildUserIcon(L, isPrecise) {
@@ -162,7 +162,7 @@ export default function WorkshopMapModal({
         .filter((p) => p.workshop?.lat != null && p.workshop?.lon != null)
         .forEach((provider) => {
           const { workshop, providerKey, providerName, isIndependent } = provider;
-          const color      = isIndependent ? "var(--gris-600)" : (PARTNER_COLORS[providerKey] || "#6366f1");
+          const color      = isIndependent ? "var(--gris-600)" : (PARTNER_COLORS[providerKey] || "var(--gris-500)");
           const isSelected = providerKey === selectedProvider;
 
           const distText   = workshop.distanceKm != null ? `${workshop.distanceKm} km · ETA ${workshop.etaMinutes} min` : "";

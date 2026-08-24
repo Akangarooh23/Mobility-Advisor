@@ -140,7 +140,7 @@ export const SERVICE_PLANS = [
     name: "Plan Platino",
     nameEn: "Platinum Plan",
     monthlyPrice: "299",
-    accent: "#22d3ee",
+    accent: "var(--gris-300)",
     background: "rgba(34,211,238,0.10)",
     border: "rgba(34,211,238,0.30)",
     badge: "Integral",

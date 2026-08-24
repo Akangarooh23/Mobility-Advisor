@@ -802,7 +802,7 @@ export default function QuestionnairePage({
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-          <div style={{ fontSize: 12, color: isDark ? "#bae6fd" : "var(--gris-800)", fontWeight: 600 }}>
+          <div style={{ fontSize: 12, color: isDark ? "var(--gris-200)" : "var(--gris-800)", fontWeight: 600 }}>
             ✅ {t("questionnaire.remaining", { count: remainingQuestions })}
           </div>
           <div style={{ fontSize: 12, color: isDark ? "var(--gris-300)" : "var(--gris-700)" }}>
@@ -822,7 +822,7 @@ export default function QuestionnairePage({
             style={{
               width: `${completionPct}%`,
               height: "100%",
-              background: "linear-gradient(90deg,#22d3ee,var(--marca))",
+              background: "linear-gradient(90deg,var(--gris-300),var(--marca))",
               transition: "width 0.35s ease",
             }}
           />
@@ -875,7 +875,7 @@ export default function QuestionnairePage({
                   overflow: "auto",
                   borderRadius: 14,
                   border: isDark ? "1px solid rgba(148,163,184,0.34)" : "1px solid rgba(148,163,184,0.25)",
-                  background: isDark ? "rgba(15,23,42,0.98)" : "#ffffff",
+                  background: isDark ? "rgba(15,23,42,0.98)" : "var(--blanco)",
                   boxShadow: "0 20px 48px rgba(15,23,42,0.28)",
                   padding: 16,
                 }}
@@ -957,7 +957,7 @@ export default function QuestionnairePage({
                 ? "linear-gradient(145deg, rgba(219,234,254,0.9), rgba(191,219,254,0.75))"
                 : isDark
                 ? "linear-gradient(145deg, rgba(15,23,42,0.95), rgba(30,41,59,0.92))"
-                : "linear-gradient(145deg, #ffffff, var(--gris-50))",
+                : "linear-gradient(145deg, var(--blanco), var(--gris-50))",
               border: selected
                 ? "1px solid rgba(59,130,246,0.38)"
                 : isHovered
@@ -1014,7 +1014,7 @@ export default function QuestionnairePage({
                           fontWeight: 700,
                           letterSpacing: "0.2px",
                           color: logo?.color || chip.tone || "var(--gris-700)",
-                          background: "#ffffff",
+                          background: "var(--blanco)",
                           border: "1px solid var(--gris-200)",
                         }}
                       >
@@ -1052,7 +1052,7 @@ export default function QuestionnairePage({
             "horizonte_tenencia",
             currentStep.fields?.horizonte_tenencia,
             dualTimelineSelection?.horizonte_tenencia,
-            "#06b6d4"
+            "var(--gris-400)"
           )}
           {renderTimelineField(
             "antiguedad_vehiculo_buscada",

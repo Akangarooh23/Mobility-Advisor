@@ -45,7 +45,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
   const isDark = styles?.page?.color === "var(--gris-200)";
   const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
   const mutedColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
-  const cardBackground = isDark ? "rgba(15,23,42,0.55)" : "#ffffff";
+  const cardBackground = isDark ? "rgba(15,23,42,0.55)" : "var(--blanco)";
   const cardBorder = isDark ? "1px solid rgba(148,163,184,0.26)" : "1px solid rgba(15,23,42,0.12)";
   const [openFlow, setOpenFlow] = useState(null);
 
@@ -110,7 +110,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             border: isDark ? "1.5px solid rgba(37,99,235,0.35)" : "1.5px solid rgba(37,99,235,0.35)",
             background: isDark
               ? "linear-gradient(135deg, rgba(37,99,235,0.18), rgba(99,102,241,0.12))"
-              : "linear-gradient(135deg, var(--acento-tenue) 0%, #eef2ff 100%)",
+              : "linear-gradient(135deg, var(--acento-tenue) 0%, var(--gris-100) 100%)",
             boxShadow: isDark ? "none" : "0 12px 32px rgba(37,99,235,0.10)",
             padding: "28px 32px",
             textAlign: "left",
@@ -358,7 +358,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               style={{
                 border: "1px solid rgba(37,99,235,0.25)",
                 background: "linear-gradient(135deg,var(--marca),var(--marca-claro))",
-                color: "#ffffff",
+                color: "var(--blanco)",
                 borderRadius: 10,
                 padding: "9px 14px",
                 fontSize: 12,
@@ -417,7 +417,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               style={{
                 border: "1px solid rgba(37,99,235,0.25)",
                 background: "linear-gradient(135deg,var(--marca),var(--marca-claro))",
-                color: "#ffffff",
+                color: "var(--blanco)",
                 borderRadius: 10,
                 padding: "9px 14px",
                 fontSize: 12,

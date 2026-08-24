@@ -44,7 +44,7 @@ const STATUS_LABELS = {
 };
 const STATUS_COLORS = {
   pending:    { bg: "rgba(245,158,11,0.12)", color: "#92400e" },
-  in_review:  { bg: "rgba(139,92,246,0.12)", color: "#5b21b6" },
+  in_review:  { bg: "rgba(139,92,246,0.12)", color: "var(--gris-600)" },
   contacted:  { bg: "rgba(59,130,246,0.12)", color: "var(--marca-oscuro)" },
   scheduled:  { bg: "rgba(16,185,129,0.15)", color: "#065f46" },
   closed:     { bg: "rgba(100,116,139,0.12)", color: "var(--gris-600)" },
@@ -165,13 +165,13 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
           marginBottom: 18,
         }}
       >
-        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.09em", color: "#6366f1", marginBottom: 6 }}>
+        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.09em", color: "var(--gris-500)", marginBottom: 6 }}>
           TARIFA PROFESIONAL CARSWISE
         </div>
-        <div style={{ fontSize: 17, fontWeight: 800, color: isDark ? "#e0e7ff" : "#1e1b4b", marginBottom: 6 }}>
+        <div style={{ fontSize: 17, fontWeight: 800, color: isDark ? "var(--gris-200)" : "var(--gris-800)", marginBottom: 6 }}>
           Precios de taller para profesionales y flotas
         </div>
-        <div style={{ fontSize: 13, color: isDark ? "#a5b4fc" : "#4338ca", lineHeight: 1.5 }}>
+        <div style={{ fontSize: 13, color: isDark ? "var(--gris-300)" : "var(--gris-600)", lineHeight: 1.5 }}>
           Accede a tarifas negociadas para flotas y gestores de flota — normalmente un{" "}
           <strong>15–30% por debajo del precio de mostrador</strong>. Nuestro equipo gestiona
           la cita y el precio directamente con el taller.
@@ -197,7 +197,7 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
               background: tab === t.key
                 ? (isDark ? "rgba(99,102,241,0.22)" : "rgba(224,231,255,0.9)")
                 : (isDark ? "rgba(15,23,42,0.60)" : "#fff"),
-              color: tab === t.key ? "#4338ca" : bodyColor,
+              color: tab === t.key ? "var(--gris-600)" : bodyColor,
               fontSize: 13,
               fontWeight: 700,
               cursor: "pointer",
@@ -239,7 +239,7 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
                   borderRadius: 8,
                   border: "1px solid rgba(99,102,241,0.40)",
                   background: isDark ? "rgba(99,102,241,0.18)" : "rgba(224,231,255,0.9)",
-                  color: "#4338ca",
+                  color: "var(--gris-600)",
                   fontSize: 13,
                   fontWeight: 700,
                   cursor: "pointer",
@@ -263,12 +263,12 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
                         padding: "10px 8px",
                         borderRadius: 10,
                         border: serviceType === s.key
-                          ? "2px solid #6366f1"
+                          ? "2px solid var(--gris-500)"
                           : (isDark ? "1px solid rgba(148,163,184,0.22)" : "1px solid var(--gris-200)"),
                         background: serviceType === s.key
                           ? (isDark ? "rgba(99,102,241,0.28)" : "rgba(224,231,255,0.95)")
                           : (isDark ? "rgba(15,23,42,0.50)" : "var(--gris-50)"),
-                        color: serviceType === s.key ? "#4338ca" : bodyColor,
+                        color: serviceType === s.key ? "var(--gris-600)" : bodyColor,
                         fontSize: 12,
                         fontWeight: serviceType === s.key ? 800 : 600,
                         cursor: "pointer",
@@ -355,7 +355,7 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
                   border: "none",
                   background: submitting || !serviceType
                     ? (isDark ? "rgba(99,102,241,0.30)" : "rgba(99,102,241,0.35)")
-                    : "linear-gradient(135deg,#4f46e5,#7c3aed)",
+                    : "linear-gradient(135deg,var(--gris-500),var(--gris-500))",
                   color: "#fff",
                   fontSize: 14,
                   fontWeight: 800,

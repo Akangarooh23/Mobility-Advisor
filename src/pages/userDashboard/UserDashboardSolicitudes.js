@@ -47,14 +47,14 @@ export default function UserDashboardSolicitudes({
   const TYPE_COLOR = {
     info:            { bg: "rgba(59,130,246,0.12)",  color: "var(--marca-oscuro)", border: "rgba(59,130,246,0.25)" },
     visit:           { bg: "rgba(16,185,129,0.12)",  color: "#065f46", border: "rgba(16,185,129,0.25)" },
-    question:        { bg: "rgba(139,92,246,0.12)",  color: "#5b21b6", border: "rgba(139,92,246,0.25)" },
+    question:        { bg: "rgba(139,92,246,0.12)",  color: "var(--gris-600)", border: "rgba(139,92,246,0.25)" },
     renting:         { bg: "rgba(5,150,105,0.12)",   color: "#065f46", border: "rgba(5,150,105,0.3)" },
     viewing_seller:  { bg: "rgba(234,88,12,0.12)",   color: "#c2410c", border: "rgba(234,88,12,0.25)" },
   };
   const STATUS_COLOR = {
     Pendiente:                  { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
     Contactado:                 { bg: "rgba(59,130,246,0.12)",  color: "var(--marca-oscuro)" },
-    "En proceso":               { bg: "rgba(139,92,246,0.12)",  color: "#5b21b6" },
+    "En proceso":               { bg: "rgba(139,92,246,0.12)",  color: "var(--gris-600)" },
     "Cita confirmada":          { bg: "rgba(16,185,129,0.15)",  color: "#065f46" },
     Cerrado:                    { bg: "rgba(16,185,129,0.12)",  color: "#065f46" },
     "Visita realizada":         { bg: "rgba(20,184,166,0.12)",  color: "#0f766e" },
@@ -268,7 +268,7 @@ export default function UserDashboardSolicitudes({
     { key: "pendiente",   label: "Pendiente",   color: "#d97706" },
     { key: "en_curso",    label: "En curso",    color: "var(--marca)" },
     { key: "finalizadas", label: "Finalizadas", color: "#059669" },
-    { key: "contratadas", label: "Contratadas", color: "#7c3aed" },
+    { key: "contratadas", label: "Contratadas", color: "var(--gris-500)" },
     { key: "canceladas",  label: "Canceladas",  color: "#dc2626" },
   ];
 
@@ -395,7 +395,7 @@ export default function UserDashboardSolicitudes({
               <div
                 key={item.id}
                 style={{
-                  background: isDark ? "rgba(15,23,42,0.7)" : "#ffffff",
+                  background: isDark ? "rgba(15,23,42,0.7)" : "var(--blanco)",
                   border: `1px solid ${isReserved ? (isDark ? "rgba(16,185,129,0.4)" : "#86efac") : showApptBox ? (isDark ? "rgba(59,130,246,0.3)" : "var(--gris-200)") : (isDark ? "rgba(255,255,255,0.07)" : "var(--gris-200)")}`,
                   borderRadius: 12,
                   padding: "14px 16px",
@@ -460,7 +460,7 @@ export default function UserDashboardSolicitudes({
                 {/* Appointment box */}
                 {showApptBox && (
                   <div style={{
-                    background: isReserved ? (isDark ? "rgba(16,185,129,0.1)" : "#f0fdf4") : (isDark ? "rgba(37,99,235,0.12)" : "var(--acento-tenue)"),
+                    background: isReserved ? (isDark ? "rgba(16,185,129,0.1)" : "var(--gris-50)") : (isDark ? "rgba(37,99,235,0.12)" : "var(--acento-tenue)"),
                     border: `1px solid ${isReserved ? (isDark ? "rgba(16,185,129,0.3)" : "#86efac") : (isDark ? "rgba(59,130,246,0.25)" : "var(--gris-200)")}`,
                     borderRadius: 8, padding: "10px 12px",
                   }}>
@@ -518,11 +518,11 @@ export default function UserDashboardSolicitudes({
 
                 {/* Post-visit: client decides outcome (not shown for renting) */}
                 {item.status === "Visita realizada" && outcomeId !== item.id && !isRenting && (
-                  <div style={{ background: isDark ? "rgba(124,58,237,0.08)" : "#f5f3ff", border: "1px solid rgba(124,58,237,0.2)", borderRadius: 10, padding: "12px 14px" }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#5b21b6", marginBottom: 6 }}>
+                  <div style={{ background: isDark ? "rgba(124,58,237,0.08)" : "var(--gris-100)", border: "1px solid rgba(124,58,237,0.2)", borderRadius: 10, padding: "12px 14px" }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gris-600)", marginBottom: 6 }}>
                       👋 ¿Te convenció el vehículo?
                     </div>
-                    <div style={{ fontSize: 12, color: isDark ? "#a78bfa" : "#6d28d9", marginBottom: 10 }}>
+                    <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginBottom: 10 }}>
                       Cuéntanos si quieres seguir adelante con la compra o si finalmente no es lo que buscabas.
                     </div>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -545,7 +545,7 @@ export default function UserDashboardSolicitudes({
 
                 {/* Confirm purchase intent (not shown for renting) */}
                 {item.status === "Visita realizada" && outcomeId === item.id && !isRenting && (
-                  <div style={{ background: isDark ? "rgba(5,150,105,0.1)" : "#f0fdf4", border: "1px solid #86efac", borderRadius: 8, padding: "12px 14px" }}>
+                  <div style={{ background: isDark ? "rgba(5,150,105,0.1)" : "var(--gris-50)", border: "1px solid #86efac", borderRadius: 8, padding: "12px 14px" }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "#065f46", marginBottom: 8 }}>
                       Nos pondremos en contacto contigo para gestionar la compra. ¿Confirmamos?
                     </div>
@@ -570,7 +570,7 @@ export default function UserDashboardSolicitudes({
 
                 {/* Contratado / Vendido / Cerrado confirmation */}
                 {(CONTRACTED_STATUSES.includes(item.status) || item.status === "Cerrado") && (
-                  <div style={{ background: isDark ? "rgba(5,150,105,0.1)" : "#f0fdf4", border: "1px solid #86efac", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "#065f46", fontWeight: 600 }}>
+                  <div style={{ background: isDark ? "rgba(5,150,105,0.1)" : "var(--gris-50)", border: "1px solid #86efac", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "#065f46", fontWeight: 600 }}>
                     {(isRenting || item.status === "Renting confirmado")
                       ? "🔑 ¡Renting confirmado! El equipo de CarsWise se pondrá en contacto contigo para gestionar tu contrato."
                       : "🎉 ¡Compra confirmada! El equipo de CarsWise se pondrá en contacto contigo para los próximos pasos."}
@@ -579,7 +579,7 @@ export default function UserDashboardSolicitudes({
 
                 {/* Interesado — waiting for operator */}
                 {item.status === "Interesado" && (
-                  <div style={{ background: isDark ? "rgba(14,165,233,0.08)" : "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "var(--gris-800)" }}>
+                  <div style={{ background: isDark ? "rgba(14,165,233,0.08)" : "var(--gris-50)", border: "1px solid var(--gris-200)", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "var(--gris-800)" }}>
                     ⏳ Hemos recibido tu interés. El equipo de CarsWise se pondrá en contacto contigo para gestionar la compra.
                   </div>
                 )}
@@ -626,7 +626,7 @@ export default function UserDashboardSolicitudes({
                     )}
                     <button
                       onClick={() => openCancel(item.id)}
-                      style={{ ...btnBase, background: isDark ? "rgba(239,68,68,0.08)" : "#fef2f2", color: "#dc2626", borderColor: "rgba(239,68,68,0.25)" }}
+                      style={{ ...btnBase, background: isDark ? "rgba(239,68,68,0.08)" : "var(--gris-100)", color: "#dc2626", borderColor: "rgba(239,68,68,0.25)" }}
                     >
                       {isRenting ? "Anular solicitud" : "Anular cita"}
                     </button>
@@ -635,7 +635,7 @@ export default function UserDashboardSolicitudes({
 
                 {/* Confirm dialog */}
                 {isConfirmDialog && (
-                  <div style={{ background: isDark ? "rgba(5,150,105,0.1)" : "#f0fdf4", border: "1px solid #86efac", borderRadius: 8, padding: "12px 14px" }}>
+                  <div style={{ background: isDark ? "rgba(5,150,105,0.1)" : "var(--gris-50)", border: "1px solid #86efac", borderRadius: 8, padding: "12px 14px" }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "#065f46", marginBottom: 8 }}>
                       ¿Confirmas la cita? El turno quedará asignado a tu nombre.
                     </div>
@@ -688,7 +688,7 @@ export default function UserDashboardSolicitudes({
 
                 {/* Reschedule form */}
                 {isRescheduleForm && (
-                  <div style={{ background: isDark ? "rgba(59,130,246,0.07)" : "#f0f9ff", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 8, padding: "12px 14px" }}>
+                  <div style={{ background: isDark ? "rgba(59,130,246,0.07)" : "var(--gris-50)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 8, padding: "12px 14px" }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "var(--gris-300)" : "var(--marca-oscuro)", marginBottom: 10 }}>
                       📅 Propón hasta 3 opciones de fecha y hora
                     </div>

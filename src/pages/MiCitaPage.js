@@ -263,7 +263,7 @@ export default function MiCitaPage() {
               <div style={F.selectedPreview}>
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "var(--gris-800)", textTransform: "uppercase", marginBottom: 2 }}>Nueva hora seleccionada</div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#0c4a6e" }}>{fmtDateLong(selectedSlot.starts_at)}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--gris-600)" }}>{fmtDateLong(selectedSlot.starts_at)}</div>
                   <div style={{ fontSize: 13, color: "var(--gris-800)" }}>{fmtTime(selectedSlot.starts_at)} – {fmtTime(selectedSlot.ends_at)}</div>
                 </div>
                 <button onClick={() => setSelectedSlot(null)} style={{ background: "none", border: "none", color: "var(--gris-400)", cursor: "pointer", fontSize: 20 }}>×</button>
@@ -352,8 +352,8 @@ function RescheduleSlotBtn({ slot, selected, onSelect }) {
     <button
       onClick={onSelect}
       style={{
-        background: isActive ? "var(--gris-700)" : "#f0f9ff",
-        border: `1.5px solid ${isActive ? "var(--gris-700)" : "#bae6fd"}`,
+        background: isActive ? "var(--gris-700)" : "var(--gris-50)",
+        border: `1.5px solid ${isActive ? "var(--gris-700)" : "var(--gris-200)"}`,
         color: isActive ? "#fff" : "var(--gris-800)",
         borderRadius: 8, padding: "9px 6px", fontSize: 14, fontWeight: 700,
         cursor: "pointer", transition: "all .12s", textAlign: "center",
@@ -365,16 +365,16 @@ function RescheduleSlotBtn({ slot, selected, onSelect }) {
 }
 
 const styles = {
-  page:           { minHeight: "100vh", background: "linear-gradient(135deg, #f0f9ff 0%, var(--gris-50) 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" },
+  page:           { minHeight: "100vh", background: "linear-gradient(135deg, var(--gris-50) 0%, var(--gris-50) 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" },
   card:           { background: "#fff", borderRadius: 20, boxShadow: "0 8px 48px rgba(0,0,0,.1)", padding: "32px 28px", maxWidth: 440, width: "100%" },
   title:          { fontSize: 22, fontWeight: 800, color: "var(--gris-900)", marginBottom: 6, textAlign: "center" },
   sub:            { fontSize: 14, color: "var(--gris-500)", marginBottom: 20, lineHeight: 1.6, textAlign: "center" },
   vehicleTitle:   { fontSize: 16, fontWeight: 700, color: "var(--gris-900)", textAlign: "center", marginBottom: 16 },
 
-  badgeConfirmed: { display: "inline-block", background: "#f0fdf4", color: "#16a34a", fontSize: 13, fontWeight: 700, borderRadius: 20, padding: "5px 14px", border: "1.5px solid #86efac" },
-  badgeCancelled: { display: "inline-block", background: "#fef2f2", color: "#dc2626", fontSize: 13, fontWeight: 700, borderRadius: 20, padding: "5px 14px", border: "1.5px solid #fecaca" },
+  badgeConfirmed: { display: "inline-block", background: "var(--gris-50)", color: "#16a34a", fontSize: 13, fontWeight: 700, borderRadius: 20, padding: "5px 14px", border: "1.5px solid #86efac" },
+  badgeCancelled: { display: "inline-block", background: "var(--gris-100)", color: "#dc2626", fontSize: 13, fontWeight: 700, borderRadius: 20, padding: "5px 14px", border: "1.5px solid #fecaca" },
 
-  dateCard:       { background: "linear-gradient(135deg, var(--acento-tenue), #f0f9ff)", border: "1.5px solid var(--gris-200)", borderRadius: 14, padding: "20px", marginBottom: 14, textAlign: "center" },
+  dateCard:       { background: "linear-gradient(135deg, var(--acento-tenue), var(--gris-50))", border: "1.5px solid var(--gris-200)", borderRadius: 14, padding: "20px", marginBottom: 14, textAlign: "center" },
   dateCardLabel:  { fontSize: 11, fontWeight: 700, color: "var(--gris-300)", textTransform: "uppercase", letterSpacing: ".5px", marginBottom: 6 },
   dateCardDate:   { fontSize: 15, fontWeight: 700, color: "var(--gris-900)", marginBottom: 4 },
   dateCardTime:   { fontSize: 26, fontWeight: 800, color: "var(--gris-900)" },
@@ -384,7 +384,7 @@ const styles = {
 
   btnPrimary:     { display: "block", width: "100%", background: "linear-gradient(135deg, var(--gris-700), var(--gris-900))", color: "#fff", textDecoration: "none", padding: "13px 0", borderRadius: 10, fontWeight: 800, fontSize: 15, textAlign: "center", border: "none", cursor: "pointer", boxSizing: "border-box", marginTop: 4 },
   btnReschedule:  { width: "100%", background: "var(--acento-tenue)", border: "1.5px solid var(--gris-200)", color: "var(--marca-oscuro)", borderRadius: 10, padding: "12px 0", fontSize: 14, fontWeight: 700, cursor: "pointer" },
-  btnCancel:      { width: "100%", background: "#fef2f2", border: "1.5px solid #fecaca", color: "#dc2626", borderRadius: 10, padding: "11px 0", fontSize: 13, fontWeight: 700, cursor: "pointer", transition: "all .15s" },
+  btnCancel:      { width: "100%", background: "var(--gris-100)", border: "1.5px solid #fecaca", color: "#dc2626", borderRadius: 10, padding: "11px 0", fontSize: 13, fontWeight: 700, cursor: "pointer", transition: "all .15s" },
 
   linkBack:       { display: "block", textAlign: "center", color: "var(--gris-400)", textDecoration: "none", fontSize: 13, marginTop: 20 },
   backBtn:        { background: "none", border: "none", color: "var(--gris-700)", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: "0 0 16px", display: "block" },
@@ -393,5 +393,5 @@ const styles = {
   periodLabel:    { fontSize: 11, fontWeight: 700, color: "var(--gris-400)", textTransform: "uppercase", letterSpacing: ".5px", marginBottom: 8 },
   slotGrid:       { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(72px, 1fr))", gap: 8 },
   selectedPreview:{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--acento-tenue)", border: "1.5px solid var(--gris-200)", borderRadius: 10, padding: "12px 16px", marginBottom: 12 },
-  errMsg:         { background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", borderRadius: 8, padding: "10px 14px", fontSize: 13, marginTop: 14 },
+  errMsg:         { background: "var(--gris-100)", border: "1px solid #fecaca", color: "#dc2626", borderRadius: 8, padding: "10px 14px", fontSize: 13, marginTop: 14 },
 };

@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
   const { t } = useTranslation();
   const cardStyle = {
-    background: "#ffffff",
+    background: "var(--blanco)",
     borderRadius: 16,
     border: "1px solid var(--gris-200)",
     boxShadow: "0 1px 3px rgba(0,0,0,0.05),0 4px 20px rgba(0,0,0,0.04)",
@@ -26,21 +26,21 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
   const bars = [
     [t("service.insuranceCovLabel1"), 100, t("service.insuranceCovScore1"), "#22c55e"],
     [t("service.insuranceCovLabel2"), 62, t("service.insuranceCovScore2"), "var(--gris-500)"],
-    [t("service.insuranceCovLabel3"), 83, t("service.insuranceCovScore3"), "#22d3ee"],
+    [t("service.insuranceCovLabel3"), 83, t("service.insuranceCovScore3"), "var(--gris-300)"],
     [t("service.insuranceCovLabel4"), 40, t("service.insuranceCovScore4"), "#f59e0b"],
     [t("service.insuranceCovLabel5"), 18, t("service.insuranceCovScore5"), "#ef4444"],
     [t("service.insuranceCovLabel6"), 70, t("service.insuranceCovScore6"), "var(--gris-500)"],
   ];
 
   return (
-    <div style={{ width: "100%", maxWidth: 1040, margin: "0 auto", color: "#1a1a1a", padding: "0 8px 16px" }}>
+    <div style={{ width: "100%", maxWidth: 1040, margin: "0 auto", color: "var(--gris-800)", padding: "0 8px 16px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
         <button
           type="button"
           onClick={onGoBack}
           style={{
             border: "1px solid var(--gris-200)",
-            background: "#ffffff",
+            background: "var(--blanco)",
             borderRadius: 8,
             padding: "7px 12px",
             fontSize: 12,
@@ -51,19 +51,19 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
         >
           {t("service.insuranceBack")}
         </button>
-        <div style={{ fontSize: 12, color: "#b8b8b8" }}>
-          {t("service.insuranceBreadcrumbParent")} › <span style={{ color: "#06b6d4", fontWeight: 700 }}>{t("service.insuranceBreadcrumb")}</span>
+        <div style={{ fontSize: 12, color: "var(--gris-300)" }}>
+          {t("service.insuranceBreadcrumbParent")} › <span style={{ color: "var(--gris-400)", fontWeight: 700 }}>{t("service.insuranceBreadcrumb")}</span>
         </div>
       </div>
 
       <section style={{ ...cardStyle, overflow: "hidden", marginBottom: 12 }}>
-        <div style={{ height: 4, background: "#06b6d4" }} />
+        <div style={{ height: 4, background: "var(--gris-400)" }} />
         <div style={{ padding: "26px 28px" }}>
           <div
             style={{
               display: "inline-flex",
               border: "1px solid rgba(6,182,212,0.3)",
-              color: "#0891b2",
+              color: "var(--gris-400)",
               background: "rgba(6,182,212,0.08)",
               borderRadius: 20,
               padding: "4px 11px",
@@ -79,7 +79,7 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
           <h2 style={{ margin: "0 0 8px", fontSize: "clamp(30px,3.1vw,40px)", letterSpacing: "-0.03em", lineHeight: 1.15, color: "#111" }}>
             {t("service.insuranceTitle")}
           </h2>
-          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: "#868686", maxWidth: 760 }}>
+          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: "var(--gris-400)", maxWidth: 760 }}>
             {t("service.insurancePageDesc")}
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 18 }}>
@@ -93,8 +93,8 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
                 style={{
                   fontSize: 11,
                   fontWeight: 600,
-                  color: "#a0a0a0",
-                  border: "1px solid #efebe4",
+                  color: "var(--gris-400)",
+                  border: "1px solid var(--gris-100)",
                   background: "var(--gris-50)",
                   padding: "5px 12px",
                   borderRadius: 30,
@@ -110,33 +110,33 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
       <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 12, marginBottom: 12 }}>
         <div style={{ display: "grid", gap: 12 }}>
           <div style={{ ...cardStyle, padding: 22 }}>
-            <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
+            <div style={{ fontSize: 10, color: "var(--gris-300)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
               {t("service.insuranceUploadLabel")}
             </div>
             <div
               style={{
-                border: "1.5px dashed #e5e0d8",
+                border: "1.5px dashed var(--gris-200)",
                 borderRadius: 14,
                 padding: "44px 20px",
                 textAlign: "center",
-                background: "#fdfcfa",
+                background: "var(--gris-50)",
               }}
             >
               <div style={{ fontSize: 34, marginBottom: 10 }}>📄</div>
               <div style={{ fontSize: 20, color: "#777", fontWeight: 700, marginBottom: 4 }}>{t("service.insuranceDragTitle")}</div>
-              <div style={{ fontSize: 13, color: "#b2b2b2", marginBottom: 8 }}>{t("service.insuranceDragSubtitle")}</div>
+              <div style={{ fontSize: 13, color: "var(--gris-400)", marginBottom: 8 }}>{t("service.insuranceDragSubtitle")}</div>
               <div style={{ fontSize: 12, color: "#bbb", fontWeight: 700 }}>{t("service.insuranceDragFormats")}</div>
             </div>
           </div>
 
           <div style={{ ...cardStyle, padding: 22 }}>
-            <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
+            <div style={{ fontSize: 10, color: "var(--gris-300)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
               {t("service.insuranceCoverageLabel")}
             </div>
             {bars.map(([label, val, score, color]) => (
               <div key={label} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 9 }}>
                 <div style={{ width: 118, fontSize: 13, color: "#888" }}>{label}</div>
-                <div style={{ flex: 1, height: 6, background: "#f0ece4", borderRadius: 3, overflow: "hidden" }}>
+                <div style={{ flex: 1, height: 6, background: "var(--gris-100)", borderRadius: 3, overflow: "hidden" }}>
                   <div style={{ width: `${val}%`, height: 6, background: color }} />
                 </div>
                 <div style={{ width: 42, textAlign: "right", fontSize: 13, fontWeight: 700, color: "#777" }}>{score}</div>
@@ -146,7 +146,7 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
         </div>
 
         <div style={{ ...cardStyle, padding: 22 }}>
-          <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
+          <div style={{ fontSize: 10, color: "var(--gris-300)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
             {t("service.insuranceSummaryLabel")}
           </div>
           <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
@@ -162,9 +162,9 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
                   padding: "5px 11px",
                   fontSize: 12,
                   fontWeight: 700,
-                  border: "1px solid #e6e6e6",
+                  border: "1px solid var(--gris-200)",
                   background: active ? "rgba(6,182,212,0.08)" : "var(--gris-50)",
-                  color: active ? "#0891b2" : "#b2b2b2",
+                  color: active ? "var(--gris-400)" : "var(--gris-400)",
                 }}
               >
                 {label}
@@ -176,7 +176,7 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
             <div style={{ fontSize: 16, fontWeight: 800, color: "#22c55e", marginBottom: 6 }}>{t("service.insuranceStrengthsHeader")}</div>
             <div style={{ display: "grid", gap: 8 }}>
               {strengths.map((item) => (
-                <div key={item} style={{ fontSize: 14, color: "#5f5f5f", lineHeight: 1.45 }}>✓ {item}</div>
+                <div key={item} style={{ fontSize: 14, color: "var(--gris-500)", lineHeight: 1.45 }}>✓ {item}</div>
               ))}
             </div>
           </div>
@@ -196,7 +196,7 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
               background: "rgba(6,182,212,0.08)",
               borderRadius: 12,
               padding: "12px 13px",
-              color: "#0e7490",
+              color: "var(--gris-500)",
               fontSize: 13,
               lineHeight: 1.5,
               fontWeight: 600,
@@ -218,8 +218,8 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
         }}
       >
         <div>
-          <div style={{ fontSize: 18, color: "#303030", fontWeight: 700, marginBottom: 3 }}>{t("service.insuranceCtaTitle")}</div>
-          <div style={{ fontSize: 13, color: "#a2a2a2", lineHeight: 1.45 }}>
+          <div style={{ fontSize: 18, color: "var(--gris-700)", fontWeight: 700, marginBottom: 3 }}>{t("service.insuranceCtaTitle")}</div>
+          <div style={{ fontSize: 13, color: "var(--gris-400)", lineHeight: 1.45 }}>
             {t("service.insuranceCtaDesc")}
           </div>
         </div>
@@ -237,7 +237,7 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
             style={{
               border: "none",
               borderRadius: 14,
-              background: "linear-gradient(135deg,#06b6d4,#22d3ee)",
+              background: "linear-gradient(135deg,var(--gris-400),var(--gris-300))",
               color: "#fff",
               padding: "12px 20px",
               fontSize: 16,

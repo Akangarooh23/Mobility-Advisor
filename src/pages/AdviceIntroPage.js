@@ -126,7 +126,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
               style={{
                 border: "1px solid rgba(37,99,235,0.24)",
                 background: "linear-gradient(135deg,var(--marca),#14b8a6)",
-                color: "#ffffff",
+                color: "var(--blanco)",
                 borderRadius: 12,
                 padding: "14px 18px",
                 fontSize: 14,
@@ -145,7 +145,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
               onClick={onRestart}
               style={{
                 border: "1px solid rgba(20,184,166,0.24)",
-                background: "#ffffff",
+                background: "var(--blanco)",
                 color: "#0f766e",
                 borderRadius: 12,
                 padding: "14px 18px",
@@ -203,7 +203,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
             onClick={() => setShowAnalysis((prev) => !prev)}
             style={{
               border: cardBorder,
-              background: "#ffffff",
+              background: "var(--blanco)",
               color: titleColor,
               borderRadius: 14,
               padding: "16px 18px",

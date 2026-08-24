@@ -5,7 +5,7 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
   const { t } = useTranslation();
 
   const cardStyle = {
-    background: "#ffffff",
+    background: "var(--blanco)",
     borderRadius: 16,
     border: "1px solid var(--gris-200)",
     boxShadow: "0 1px 3px rgba(0,0,0,0.05),0 4px 20px rgba(0,0,0,0.04)",
@@ -21,14 +21,14 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
   const selected = plans[selectedPlan];
 
   return (
-    <div style={{ width: "100%", maxWidth: 1040, margin: "0 auto", color: "#1a1a1a", padding: "0 8px 16px" }}>
+    <div style={{ width: "100%", maxWidth: 1040, margin: "0 auto", color: "var(--gris-800)", padding: "0 8px 16px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
         <button
           type="button"
           onClick={onGoBack}
           style={{
             border: "1px solid var(--gris-200)",
-            background: "#ffffff",
+            background: "var(--blanco)",
             borderRadius: 8,
             padding: "7px 12px",
             fontSize: 12,
@@ -39,7 +39,7 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
         >
           {t("common.backArrow")}
         </button>
-        <div style={{ fontSize: 12, color: "#b8b8b8" }}>
+        <div style={{ fontSize: 12, color: "var(--gris-300)" }}>
           {t("service.monthlyPageBreadcrumbParent")} › <span style={{ color: "#d97706", fontWeight: 700 }}>{t("service.monthlyPageBreadcrumb")}</span>
         </div>
       </div>
@@ -67,7 +67,7 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
           <h2 style={{ margin: "0 0 8px", fontSize: "clamp(30px,3.1vw,40px)", letterSpacing: "-0.03em", lineHeight: 1.15, color: "#111" }}>
             {t("service.serviceMonthlyTitle")}
           </h2>
-          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: "#868686", maxWidth: 760 }}>
+          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: "var(--gris-400)", maxWidth: 760 }}>
             {t("service.monthlyPageDesc")}
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 18 }}>
@@ -81,8 +81,8 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
                 style={{
                   fontSize: 11,
                   fontWeight: 600,
-                  color: "#a0a0a0",
-                  border: "1px solid #efebe4",
+                  color: "var(--gris-400)",
+                  border: "1px solid var(--gris-100)",
                   background: "var(--gris-50)",
                   padding: "5px 12px",
                   borderRadius: 30,
@@ -97,7 +97,7 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
 
       <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 12, marginBottom: 12 }}>
         <div style={{ ...cardStyle, padding: 18 }}>
-          <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
+          <div style={{ fontSize: 10, color: "var(--gris-300)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
             {t("service.monthlyChoosePlan")}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 12 }}>
@@ -115,7 +115,7 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
                   cursor: "pointer",
                 }}
               >
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#4b4b4b" }}>{t(plan.nameKey)}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--gris-600)" }}>{t(plan.nameKey)}</div>
                 <div style={{ fontSize: 30, fontWeight: 800, color: "var(--gris-800)", lineHeight: 1.1 }}>{plan.price}€</div>
                 <div style={{ fontSize: 12, color: "#aaa" }}>/{t("service.monthlyPeriod")}</div>
               </button>
@@ -153,7 +153,7 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
         </div>
 
         <div style={{ ...cardStyle, padding: 18 }}>
-          <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
+          <div style={{ fontSize: 10, color: "var(--gris-300)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
             {t("service.monthlyIncludedHeader")}
           </div>
           <div style={{ display: "grid", gap: 8, marginBottom: 12 }}>
@@ -165,8 +165,8 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
               [t("service.monthlyInclude5Title"), t("service.monthlyInclude5Desc")],
             ].map(([title, sub]) => (
               <div key={title} style={{ border: "1px solid var(--gris-200)", borderRadius: 10, background: "var(--gris-50)", padding: "10px 12px" }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#4b4b4b", marginBottom: 2 }}>✓ {title}</div>
-                <div style={{ fontSize: 13, color: "#9a9a9a" }}>{sub}</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--gris-600)", marginBottom: 2 }}>✓ {title}</div>
+                <div style={{ fontSize: 13, color: "var(--gris-400)" }}>{sub}</div>
               </div>
             ))}
           </div>
@@ -204,10 +204,10 @@ export default function ServiceMonthlyPlanPage({ onGoBack, onGoHome }) {
         }}
       >
           <div>
-          <div style={{ fontSize: 18, color: "#303030", fontWeight: 700, marginBottom: 3 }}>
+          <div style={{ fontSize: 18, color: "var(--gris-700)", fontWeight: 700, marginBottom: 3 }}>
             {t("service.monthlyCtaTitle", { name: t(selected.nameKey).toLowerCase(), price: selected.price })}
           </div>
-          <div style={{ fontSize: 13, color: "#a2a2a2", lineHeight: 1.45 }}>
+          <div style={{ fontSize: 13, color: "var(--gris-400)", lineHeight: 1.45 }}>
             {t("service.monthlyCtaDesc")}
           </div>
         </div>

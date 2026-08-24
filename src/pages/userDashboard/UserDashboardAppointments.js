@@ -113,7 +113,7 @@ export default function UserDashboardAppointments({
             })}
           </div>
         ) : (
-          <div style={{ textAlign: "center", padding: "1.5rem 1rem", background: isDark ? "rgba(255,255,255,0.03)" : "#fafafa", borderRadius: 10, border: `1px dashed ${isDark ? "rgba(255,255,255,0.1)" : "var(--gris-200)"}` }}>
+          <div style={{ textAlign: "center", padding: "1.5rem 1rem", background: isDark ? "rgba(255,255,255,0.03)" : "var(--gris-50)", borderRadius: 10, border: `1px dashed ${isDark ? "rgba(255,255,255,0.1)" : "var(--gris-200)"}` }}>
             <div style={{ fontSize: 24, marginBottom: 6 }}>🔧</div>
             <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? "var(--gris-400)" : "var(--gris-500)" }}>Sin citas solicitadas</div>
             <div style={{ fontSize: 12, color: isDark ? "var(--gris-500)" : "var(--gris-400)", marginTop: 2 }}>

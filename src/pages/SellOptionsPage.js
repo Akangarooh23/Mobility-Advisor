@@ -6,7 +6,7 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
   const isDark = styles?.page?.color === "var(--gris-200)";
   const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
   const mutedColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
-  const cardBackground = isDark ? "rgba(15,23,42,0.55)" : "#ffffff";
+  const cardBackground = isDark ? "rgba(15,23,42,0.55)" : "var(--blanco)";
   const cardBorder = isDark ? "1px solid rgba(148,163,184,0.26)" : "1px solid rgba(15,23,42,0.12)";
 
   return (
@@ -270,7 +270,7 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
           style={{
             border: "1px solid rgba(37,99,235,0.3)",
             background: "linear-gradient(135deg, var(--marca), var(--marca-claro))",
-            color: "#ffffff",
+            color: "var(--blanco)",
             borderRadius: 10,
             padding: "10px 18px",
             fontSize: 13,

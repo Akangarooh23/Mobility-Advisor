@@ -1,5 +1,5 @@
 .cw-about-page {
-  background: #ffffff;
+  background: var(--blanco);
   color: var(--gris-900);
   min-height: 100%;
   position: relative;
@@ -83,7 +83,7 @@
 }
 
 .cw-about-title-accent {
-  background: linear-gradient(120deg, var(--marca-claro), #06b6d4);
+  background: linear-gradient(120deg, var(--marca-claro), var(--gris-400));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -181,7 +181,7 @@
 .cw-about-mission {
   border: 1px solid var(--acento-tenue);
   border-radius: 22px;
-  background: linear-gradient(180deg, #ffffff, #f8fbff);
+  background: linear-gradient(180deg, var(--blanco), var(--gris-50));
   padding: 32px;
   box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
 }
@@ -204,7 +204,7 @@
 .cw-about-value-card {
   border: 1px solid var(--acento-tenue);
   border-radius: 16px;
-  background: #ffffff;
+  background: var(--blanco);
   padding: 22px;
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
 }

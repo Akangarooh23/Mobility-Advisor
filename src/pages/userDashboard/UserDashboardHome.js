@@ -55,7 +55,7 @@ function ActivityLog({ isDark, isMobile, panelStyle, cardBg, cardBorder, titleTe
   const typeColor = {
     alert: "var(--marca)",
     garage: "#0f766e",
-    valuation: "#7c3aed",
+    valuation: "var(--gris-500)",
     saved: "#d97706",
   };
 
@@ -144,7 +144,7 @@ export default function UserDashboardHome({
 
   const stats = [
     { label: t("dashboard.homeStatAlerts"), value: counts.alerts, color: "var(--marca)", key: "alerts" },
-    { label: t("dashboard.homeStatValuations"), value: counts.valuations, color: "#7c3aed", key: "valuations" },
+    { label: t("dashboard.homeStatValuations"), value: counts.valuations, color: "var(--gris-500)", key: "valuations" },
     { label: t("dashboard.homeStatVehicles"), value: counts.vehicles, color: "#0f766e", key: "vehicles" },
   ];
   const emailTargets = Array.from(
@@ -307,7 +307,7 @@ export default function UserDashboardHome({
               style={{
                 background: "rgba(99,102,241,0.16)",
                 border: "1px solid rgba(165,180,252,0.24)",
-                color: "#3730a3",
+                color: "var(--gris-600)",
                 padding: "9px 12px",
                 borderRadius: 10,
                 fontSize: 12,

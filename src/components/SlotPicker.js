@@ -305,13 +305,13 @@ const S = {
   slotSection:   { },
   periodLabel:   { fontSize: 11, fontWeight: 700, color: "var(--gris-400)", textTransform: "uppercase", letterSpacing: ".5px", marginBottom: 8 },
   slotGrid:      { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(72px, 1fr))", gap: 8 },
-  slotBtn:       { background: "#f0f9ff", border: "1.5px solid #bae6fd", color: "var(--gris-800)", borderRadius: 8, padding: "9px 6px", fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "all .12s", textAlign: "center" },
+  slotBtn:       { background: "var(--gris-50)", border: "1.5px solid var(--gris-200)", color: "var(--gris-800)", borderRadius: 8, padding: "9px 6px", fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "all .12s", textAlign: "center" },
   slotBtnActive: { background: "var(--gris-700)", borderColor: "var(--gris-700)", color: "#fff", transform: "scale(1.04)" },
 
   // Confirm step
   confirmWrap:   { fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" },
   backLink:      { background: "none", border: "none", color: "var(--gris-700)", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 16, display: "flex", alignItems: "center", gap: 4 },
-  selectedBadge: { display: "flex", alignItems: "center", gap: 12, background: "#f0fdf4", border: "1.5px solid #86efac", borderRadius: 12, padding: "14px 16px", marginBottom: 20 },
+  selectedBadge: { display: "flex", alignItems: "center", gap: 12, background: "var(--gris-50)", border: "1.5px solid #86efac", borderRadius: 12, padding: "14px 16px", marginBottom: 20 },
   selectedIcon:  { fontSize: 22, flexShrink: 0 },
   selectedDate:  { fontSize: 14, fontWeight: 700, color: "#166534" },
   selectedTime:  { fontSize: 13, color: "#15803d", marginTop: 2 },
@@ -319,13 +319,13 @@ const S = {
   label:         { display: "block", fontSize: 12, fontWeight: 700, color: "var(--gris-600)", marginBottom: 5, textTransform: "uppercase", letterSpacing: ".3px" },
   input:         { width: "100%", border: "1.5px solid var(--gris-200)", borderRadius: 8, padding: "10px 13px", fontSize: 14, color: "var(--gris-900)", boxSizing: "border-box", outline: "none", fontFamily: "inherit", transition: "border-color .15s" },
   confirmBtn:    { width: "100%", background: "linear-gradient(135deg, var(--gris-700), var(--gris-900))", border: "none", color: "#fff", borderRadius: 10, padding: "13px 0", fontSize: 15, fontWeight: 800, cursor: "pointer", marginTop: 4, letterSpacing: ".2px", transition: "all .15s" },
-  errMsg:        { background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", borderRadius: 8, padding: "10px 14px", fontSize: 13, marginBottom: 14 },
+  errMsg:        { background: "var(--gris-100)", border: "1px solid #fecaca", color: "#dc2626", borderRadius: 8, padding: "10px 14px", fontSize: 13, marginBottom: 14 },
 
   // Done step
   doneWrap:      { textAlign: "center", padding: "12px 0", fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" },
   doneIcon:      { fontSize: 44, marginBottom: 10 },
   doneTitle:     { fontSize: 20, fontWeight: 800, color: "var(--gris-900)", marginBottom: 12 },
-  doneCard:      { background: "#f0fdf4", border: "1.5px solid #86efac", borderRadius: 12, padding: "16px 20px", marginBottom: 14, display: "inline-block", minWidth: 220 },
+  doneCard:      { background: "var(--gris-50)", border: "1.5px solid #86efac", borderRadius: 12, padding: "16px 20px", marginBottom: 14, display: "inline-block", minWidth: 220 },
   doneDate:      { fontSize: 15, fontWeight: 700, color: "#166534", marginBottom: 4 },
   doneTime:      { fontSize: 20, fontWeight: 800, color: "var(--gris-900)" },
   doneHint:      { fontSize: 13, color: "var(--gris-500)", lineHeight: 1.6, marginBottom: 16 },

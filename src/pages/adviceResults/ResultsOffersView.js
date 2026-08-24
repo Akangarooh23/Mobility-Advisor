@@ -263,7 +263,7 @@ export default function ResultsOffersView({
             onChange={(event) => updateListingFilter("location", event.target.value)}
             style={{
               border: isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.22)",
-              background: isDark ? "rgba(15,23,42,0.9)" : "#ffffff",
+              background: isDark ? "rgba(15,23,42,0.9)" : "var(--blanco)",
               color: isDark ? "var(--gris-200)" : "var(--gris-800)",
               borderRadius: 8,
               padding: "6px 10px",
@@ -294,7 +294,7 @@ export default function ResultsOffersView({
                 style={{
                   background: selected ? (isDark ? "rgba(167,139,250,0.2)" : "rgba(124,58,237,0.1)") : "transparent",
                   border: selected ? "1px solid rgba(167,139,250,0.4)" : (isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.22)"),
-                  color: selected ? (isDark ? "#c4b5fd" : "#5b21b6") : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
+                  color: selected ? (isDark ? "var(--gris-300)" : "var(--gris-600)") : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
                   padding: "4px 10px",
                   borderRadius: 100,
                   fontSize: 11,
@@ -556,7 +556,7 @@ export default function ResultsOffersView({
                             border: featuredOfferAction.exact
                               ? "none"
                               : "1px solid rgba(245,158,11,0.35)",
-                            color: featuredOfferAction.exact ? "#ffffff" : "#92400e",
+                            color: featuredOfferAction.exact ? "var(--blanco)" : "#92400e",
                             padding: "9px 13px",
                             borderRadius: 10,
                             fontSize: 12,

@@ -87,7 +87,7 @@ function ValuationCard({ item, isDark, cardBg, onRequestValuation, onNavigate })
             letterSpacing: "0.5px",
             background: "rgba(124,58,237,0.12)",
             border: "1px solid rgba(167,139,250,0.25)",
-            color: "#7c3aed",
+            color: "var(--gris-500)",
             borderRadius: 999,
             padding: "4px 10px",
             whiteSpace: "nowrap",
@@ -212,7 +212,7 @@ export default function UserDashboardValuations({
       {/* Section header */}
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 14 }}>
         <div>
-          <div style={{ fontSize: 11, color: "#c084fc", letterSpacing: "0.6px" }}>{t("dashboard.valSectionLabel")}</div>
+          <div style={{ fontSize: 11, color: "var(--gris-400)", letterSpacing: "0.6px" }}>{t("dashboard.valSectionLabel")}</div>
           <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: titleColor }}>
             {t("dashboard.valTitle")}
           </div>
@@ -230,7 +230,7 @@ export default function UserDashboardValuations({
             style={{
               background: "rgba(124,58,237,0.12)",
               border: "1px solid rgba(167,139,250,0.3)",
-              color: "#7c3aed",
+              color: "var(--gris-500)",
               borderRadius: 8,
               fontSize: 11,
               fontWeight: 700,
@@ -277,7 +277,7 @@ export default function UserDashboardValuations({
             style={{
               background: "rgba(124,58,237,0.12)",
               border: "1px solid rgba(167,139,250,0.3)",
-              color: "#7c3aed",
+              color: "var(--gris-500)",
               borderRadius: 8,
               fontSize: 12,
               fontWeight: 700,

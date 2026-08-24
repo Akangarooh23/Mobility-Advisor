@@ -1,7 +1,7 @@
 .cw-contact-page {
   position: relative;
   min-height: 100%;
-  background: #ffffff;
+  background: var(--blanco);
   color: var(--gris-900);
   overflow: hidden;
 }
@@ -151,7 +151,7 @@
 }
 
 .cw-contact-title-accent {
-  background: linear-gradient(120deg, var(--marca-claro), #06b6d4);
+  background: linear-gradient(120deg, var(--marca-claro), var(--gris-400));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -226,7 +226,7 @@
 .cw-contact-form-card {
   border: 1px solid var(--gris-200);
   border-radius: 24px;
-  background: #ffffff;
+  background: var(--blanco);
   box-shadow: 0 16px 40px rgba(15, 23, 42, 0.1);
   padding: 26px;
 }
@@ -254,7 +254,7 @@
 }
 
 .cw-contact-mode-tab.is-active {
-  background: #ffffff;
+  background: var(--blanco);
   color: var(--gris-900);
   box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
 }
@@ -335,7 +335,7 @@
 .cw-contact-field textarea:focus {
   border-color: var(--marca-claro);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
-  background: #ffffff;
+  background: var(--blanco);
 }
 
 .cw-contact-topic-hint {
@@ -350,7 +350,7 @@
   border: none;
   border-radius: 12px;
   background: var(--marca);
-  color: #ffffff;
+  color: var(--blanco);
   cursor: pointer;
   font-size: 15px;
   font-weight: 700;
@@ -414,13 +414,13 @@
 
 .cw-contact-chat-msg.is-bot .cw-contact-chat-bubble {
   border: 1px solid var(--acento-tenue);
-  background: #ffffff;
+  background: var(--blanco);
   color: var(--gris-700);
 }
 
 .cw-contact-chat-msg.is-user .cw-contact-chat-bubble {
   background: var(--marca);
-  color: #ffffff;
+  color: var(--blanco);
 }
 
 .cw-contact-chat-input-row {
@@ -443,7 +443,7 @@
 .cw-contact-chat-send {
   border: none;
   background: var(--marca);
-  color: #ffffff;
+  color: var(--blanco);
   border-radius: 10px;
   padding: 0 14px;
   font-size: 13px;
@@ -555,7 +555,7 @@
   width: 100%;
   text-align: left;
   border: 1px solid var(--gris-200);
-  background: #ffffff;
+  background: var(--blanco);
   border-radius: 12px;
   padding: 12px;
   cursor: pointer;
@@ -576,7 +576,7 @@
 
 .cw-contact-promise-list {
   border: 1px solid var(--gris-200);
-  background: #ffffff;
+  background: var(--blanco);
   border-radius: 14px;
   padding: 14px;
   display: grid;

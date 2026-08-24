@@ -1,15 +1,15 @@
 .cw-pricing-page {
-  --cw-navy: #0d1f3c;
+  --cw-navy: var(--gris-800);
   --cw-teal: #0b6e5a;
   --cw-teal-l: #0f8f73;
   --cw-teal-xl: #e0f4ee;
   --cw-amber: #c97b2a;
   --cw-amber-l: #fdf3e3;
-  --cw-slate: #3d5068;
-  --cw-mist: #f2f6fa;
-  --cw-white: #ffffff;
-  --cw-ink: #1a2b3c;
-  --cw-smoke: #6b7e90;
+  --cw-slate: var(--gris-600);
+  --cw-mist: var(--gris-100);
+  --cw-white: var(--blanco);
+  --cw-ink: var(--gris-800);
+  --cw-smoke: var(--gris-500);
   --cw-border: rgba(13, 31, 60, 0.1);
 }
 
@@ -72,7 +72,7 @@
 .cw-pricing-hero {
   text-align: center;
   padding: 80px 2rem 60px;
-  background: linear-gradient(180deg, #f0f7ff 0%, var(--cw-white) 100%);
+  background: linear-gradient(180deg, var(--gris-50) 0%, var(--cw-white) 100%);
 }
 
 .cw-pricing-badge {
@@ -180,7 +180,7 @@
 .cw-plan-card.featured {
   border-color: var(--cw-teal);
   border-width: 2px;
-  background: #fafffe;
+  background: var(--blanco);
 }
 
 .cw-plan-card.featured::before {
@@ -332,8 +332,8 @@
 }
 
 .cw-feature-check.no {
-  background: #f0f2f5;
-  color: #b0bac5;
+  background: var(--gris-100);
+  color: var(--gris-300);
 }
 
 .cw-feature-check.phase {
@@ -589,7 +589,7 @@
 }
 
 .cw-row-section td {
-  background: #f5f7fa;
+  background: var(--gris-50);
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -664,7 +664,7 @@
 .cw-cta-section {
   padding: 80px 2rem;
   text-align: center;
-  background: linear-gradient(135deg, #e8f5f1 0%, #f0f7ff 100%);
+  background: linear-gradient(135deg, var(--gris-100) 0%, var(--gris-50) 100%);
 }
 
 .cw-cta-section h2 {

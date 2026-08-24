@@ -103,7 +103,7 @@ export default function UserDashboardPreferences({
 
   const inputStyle = {
     width: "100%",
-    background: isDark ? "var(--gris-900)" : "#ffffff",
+    background: isDark ? "var(--gris-900)" : "var(--blanco)",
     border: cardBorder,
     borderRadius: 8,
     color: isDark ? "var(--gris-50)" : "var(--gris-900)",
@@ -196,7 +196,7 @@ export default function UserDashboardPreferences({
           style={{
             background: "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
             border: "none",
-            color: "#ffffff",
+            color: "var(--blanco)",
             borderRadius: 10,
             fontSize: 12,
             fontWeight: 700,

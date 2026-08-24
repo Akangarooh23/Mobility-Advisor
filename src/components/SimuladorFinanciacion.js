@@ -116,11 +116,11 @@ export default function SimuladorFinanciacion({
   const C = {
     amber: "#BA7517",
     teal: isDark ? "#5eead4" : "#137370",
-    ink: isDark ? "var(--gris-100)" : "#1B1B18",
-    muted: isDark ? "var(--gris-400)" : "#6B6A64",
-    line: isDark ? "rgba(148,163,184,0.18)" : "#E7E5DE",
-    surface: isDark ? "rgba(15,23,42,0.45)" : "#FFFFFF",
-    surfaceAlt: isDark ? "rgba(255,255,255,0.04)" : "#F7F6F2",
+    ink: isDark ? "var(--gris-100)" : "var(--gris-800)",
+    muted: isDark ? "var(--gris-400)" : "var(--gris-500)",
+    line: isDark ? "rgba(148,163,184,0.18)" : "var(--gris-200)",
+    surface: isDark ? "rgba(15,23,42,0.45)" : "var(--blanco)",
+    surfaceAlt: isDark ? "rgba(255,255,255,0.04)" : "var(--gris-50)",
   };
 
   const plazos = Object.keys(tinPorPlazo).map(Number).sort((a, b) => a - b);
@@ -222,7 +222,7 @@ export default function SimuladorFinanciacion({
                     borderRadius: 10,
                     border: `1px solid ${activo ? C.amber : C.line}`,
                     background: activo ? C.amber : "transparent",
-                    color: activo ? "#FFFFFF" : C.ink,
+                    color: activo ? "var(--blanco)" : C.ink,
                     padding: "8px 12px",
                     fontSize: 13,
                     fontWeight: 700,

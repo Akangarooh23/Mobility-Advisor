@@ -50,7 +50,7 @@ function OfferGuaranteeSeal({ months = 12, size = 54 }) {
           <path
             d="M20 6.5 9.5 17 4 11.5"
             fill="none"
-            stroke="#050505"
+            stroke="#111111"
             strokeWidth="3.5"
             strokeLinecap="round"
             strokeLinejoin="round"

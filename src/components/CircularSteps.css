@@ -14,13 +14,13 @@
   font-family: "Sora", sans-serif;
   font-size: 1.2rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--gris-800);
 }
 
 .cw-process-header p {
   margin: 8px 0 0;
   font-size: 0.95rem;
-  color: #5b6470;
+  color: var(--gris-500);
 }
 
 .cw-process-visual {
@@ -119,7 +119,7 @@
   margin: 0;
   font-size: 0.92rem;
   line-height: 1.55;
-  color: #4b5563;
+  color: var(--gris-600);
 }
 
 .cw-process-copy.is-active,
@@ -168,7 +168,7 @@
   height: 72px;
   border-radius: 50%;
   border: 2px solid rgba(148, 163, 184, 0.24);
-  background: #ffffff;
+  background: var(--blanco);
   font-size: 1.45rem;
   display: grid;
   place-items: center;
@@ -198,7 +198,7 @@
     border: 1px solid rgba(148, 163, 184, 0.22);
     border-radius: 12px;
     padding: 12px;
-    background: #ffffff;
+    background: var(--blanco);
     opacity: 1;
     transform: none;
   }

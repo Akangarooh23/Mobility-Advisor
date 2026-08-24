@@ -546,7 +546,7 @@ export default function ServiceAppointmentPage({
   };
 
   const cardStyle = {
-    background: "#ffffff",
+    background: "var(--blanco)",
     borderRadius: 16,
     border: "1px solid var(--gris-200)",
     boxShadow: "0 1px 3px rgba(0,0,0,0.05),0 4px 20px rgba(0,0,0,0.04)",
@@ -883,7 +883,7 @@ export default function ServiceAppointmentPage({
   };
 
   return (
-    <div style={{ width: "100%", maxWidth: 1040, margin: "0 auto", color: "#1a1a1a", padding: "0 8px 16px" }}>
+    <div style={{ width: "100%", maxWidth: 1040, margin: "0 auto", color: "var(--gris-800)", padding: "0 8px 16px" }}>
       {showMap && (
         <WorkshopMapModal
           providers={nearbyProviders}
@@ -907,7 +907,7 @@ export default function ServiceAppointmentPage({
           onClick={onGoBack}
           style={{
             border: "1px solid var(--gris-200)",
-            background: "#ffffff",
+            background: "var(--blanco)",
             borderRadius: 8,
             padding: "7px 12px",
             fontSize: 12,
@@ -918,19 +918,19 @@ export default function ServiceAppointmentPage({
         >
           {t("common.backArrow")}
         </button>
-        <div style={{ fontSize: 12, color: "#b8b8b8" }}>
-          {t("common.breadcrumbServices")} › <span style={{ color: "#8b5cf6", fontWeight: 700 }}>{t("service.appointmentBreadcrumb")}</span>
+        <div style={{ fontSize: 12, color: "var(--gris-300)" }}>
+          {t("common.breadcrumbServices")} › <span style={{ color: "var(--gris-500)", fontWeight: 700 }}>{t("service.appointmentBreadcrumb")}</span>
         </div>
       </div>
 
       <section style={{ ...cardStyle, overflow: "hidden", marginBottom: 12 }}>
-        <div style={{ height: 4, background: "#8b5cf6" }} />
+        <div style={{ height: 4, background: "var(--gris-500)" }} />
         <div style={{ padding: "26px 28px" }}>
           <div
             style={{
               display: "inline-flex",
               border: "1px solid rgba(139,92,246,0.3)",
-              color: "#7c3aed",
+              color: "var(--gris-500)",
               background: "rgba(139,92,246,0.08)",
               borderRadius: 20,
               padding: "4px 11px",
@@ -946,7 +946,7 @@ export default function ServiceAppointmentPage({
           <h2 style={{ margin: "0 0 8px", fontSize: "clamp(30px,3.1vw,40px)", letterSpacing: "-0.03em", lineHeight: 1.15, color: "#111" }}>
             {t("service.appointmentPageTitle")}
           </h2>
-          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: "#868686", maxWidth: 760 }}>
+          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: "var(--gris-400)", maxWidth: 760 }}>
             {t("service.appointmentPageDescription")}
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 18 }}>
@@ -960,8 +960,8 @@ export default function ServiceAppointmentPage({
                 style={{
                   fontSize: 11,
                   fontWeight: 600,
-                  color: "#a0a0a0",
-                  border: "1px solid #efebe4",
+                  color: "var(--gris-400)",
+                  border: "1px solid var(--gris-100)",
                   background: "var(--gris-50)",
                   padding: "5px 12px",
                   borderRadius: 30,
@@ -975,7 +975,7 @@ export default function ServiceAppointmentPage({
       </section>
 
       <section style={{ ...cardStyle, padding: 18, marginBottom: 12, border: "1px solid rgba(139,92,246,0.22)", background: "rgba(250,245,255,0.6)" }}>
-        <div style={{ fontSize: 10, color: "#a78bfa", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 10 }}>
+        <div style={{ fontSize: 10, color: "var(--gris-400)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 10 }}>
           {t("service.appointmentIdCarSectionLabel")}
         </div>
 
@@ -1005,7 +1005,7 @@ export default function ServiceAppointmentPage({
           </>
         ) : (
           <div style={{ display: "grid", gap: 8 }}>
-            <div style={{ fontSize: 13, color: "#5b21b6", fontWeight: 700 }}>
+            <div style={{ fontSize: 13, color: "var(--gris-600)", fontWeight: 700 }}>
               {t("service.appointmentSelectIdCarHint")}
             </div>
             <select
@@ -1017,7 +1017,7 @@ export default function ServiceAppointmentPage({
                 background: "#fff",
                 padding: "9px 11px",
                 fontSize: 13,
-                color: "#312e81",
+                color: "var(--gris-700)",
                 fontWeight: 700,
               }}
             >
@@ -1036,7 +1036,7 @@ export default function ServiceAppointmentPage({
                 display: "flex", alignItems: "center", gap: 6,
                 background: "none", border: "1px dashed rgba(139,92,246,0.4)",
                 borderRadius: 8, padding: "7px 12px", cursor: "pointer",
-                fontSize: 12, color: "#7c3aed", fontWeight: 700,
+                fontSize: 12, color: "var(--gris-500)", fontWeight: 700,
                 alignSelf: "start",
               }}
             >
@@ -1045,7 +1045,7 @@ export default function ServiceAppointmentPage({
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 8 }}>
               <label style={{ display: "grid", gap: 5 }}>
-                <span style={{ fontSize: 11, color: "#6d28d9", fontWeight: 700 }}>{t("service.appointmentProvinceLabel")}</span>
+                <span style={{ fontSize: 11, color: "var(--gris-500)", fontWeight: 700 }}>{t("service.appointmentProvinceLabel")}</span>
                 <input
                   type="text"
                   value={province}
@@ -1057,14 +1057,14 @@ export default function ServiceAppointmentPage({
                     background: "#fff",
                     padding: "9px 11px",
                     fontSize: 13,
-                    color: "#312e81",
+                    color: "var(--gris-700)",
                     fontWeight: 600,
                   }}
                 />
               </label>
 
               <label style={{ display: "grid", gap: 5 }}>
-                <span style={{ fontSize: 11, color: "#6d28d9", fontWeight: 700 }}>{t("service.appointmentPostalCodeLabel")}</span>
+                <span style={{ fontSize: 11, color: "var(--gris-500)", fontWeight: 700 }}>{t("service.appointmentPostalCodeLabel")}</span>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -1077,7 +1077,7 @@ export default function ServiceAppointmentPage({
                     background: "#fff",
                     padding: "9px 11px",
                     fontSize: 13,
-                    color: "#312e81",
+                    color: "var(--gris-700)",
                     fontWeight: 700,
                   }}
                 />
@@ -1085,9 +1085,9 @@ export default function ServiceAppointmentPage({
             </div>
 
             <label style={{ display: "grid", gap: 5 }}>
-              <span style={{ fontSize: 11, color: "#6d28d9", fontWeight: 700 }}>
+              <span style={{ fontSize: 11, color: "var(--gris-500)", fontWeight: 700 }}>
                 Calle / dirección
-                <span style={{ fontWeight: 400, color: "#a78bfa", marginLeft: 6 }}>(opcional — mejora la precisión)</span>
+                <span style={{ fontWeight: 400, color: "var(--gris-400)", marginLeft: 6 }}>(opcional — mejora la precisión)</span>
               </span>
               <input
                 type="text"
@@ -1104,12 +1104,12 @@ export default function ServiceAppointmentPage({
                   background: "#fff",
                   padding: "9px 11px",
                   fontSize: 13,
-                  color: "#312e81",
+                  color: "var(--gris-700)",
                   fontWeight: 600,
                 }}
               />
               {isGeocoding && (
-                <span style={{ fontSize: 11, color: "#a78bfa" }}>Localizando dirección…</span>
+                <span style={{ fontSize: 11, color: "var(--gris-400)" }}>Localizando dirección…</span>
               )}
               {!isGeocoding && preciseCoords && (
                 <span style={{ fontSize: 11, color: "#16a34a", fontWeight: 700 }}>
@@ -1119,7 +1119,7 @@ export default function ServiceAppointmentPage({
             </label>
 
             {!hasLocationContext ? (
-              <div style={{ fontSize: 11, color: "#7c3aed", fontWeight: 700 }}>
+              <div style={{ fontSize: 11, color: "var(--gris-500)", fontWeight: 700 }}>
                 {t("service.appointmentLocationHint")}
               </div>
             ) : null}
@@ -1129,11 +1129,11 @@ export default function ServiceAppointmentPage({
 
       <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 12, marginBottom: 12 }}>
         <div style={{ ...cardStyle, padding: 18, opacity: canChooseRevision ? 1 : 0.65 }}>
-          <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
+          <div style={{ fontSize: 10, color: "var(--gris-300)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
             {t("service.appointmentRevisionSectionLabel")}
           </div>
           {!canChooseRevision ? (
-            <div style={{ fontSize: 12, color: "#7c3aed", fontWeight: 700, marginBottom: 8 }}>
+            <div style={{ fontSize: 12, color: "var(--gris-500)", fontWeight: 700, marginBottom: 8 }}>
               {t("service.appointmentSelectIdCarFirst")}
             </div>
           ) : null}
@@ -1158,8 +1158,8 @@ export default function ServiceAppointmentPage({
                   opacity: canChooseRevision ? 1 : 0.75,
                 }}
               >
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#3b3b3b" }}>{t(item.nameKey)}</div>
-                <div style={{ fontSize: 12, color: "#9a9a9a" }}>{t(item.subtitleKey)}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--gris-700)" }}>{t(item.nameKey)}</div>
+                <div style={{ fontSize: 12, color: "var(--gris-400)" }}>{t(item.subtitleKey)}</div>
               </button>
             ))}
           </div>
@@ -1173,7 +1173,7 @@ export default function ServiceAppointmentPage({
                 border: "1px solid rgba(139,92,246,0.32)",
                 borderRadius: 10,
                 background: "rgba(139,92,246,0.08)",
-                color: "#6d28d9",
+                color: "var(--gris-500)",
                 fontSize: 12,
                 fontWeight: 800,
                 letterSpacing: "0.06em",
@@ -1199,7 +1199,7 @@ export default function ServiceAppointmentPage({
                 }}
               >
                 <div style={{ display: "grid", gap: 6 }}>
-                  <label style={{ fontSize: 12, color: "#6d28d9", fontWeight: 700 }}>{t("service.appointmentSpecificSectionLabel")}</label>
+                  <label style={{ fontSize: 12, color: "var(--gris-500)", fontWeight: 700 }}>{t("service.appointmentSpecificSectionLabel")}</label>
                   <select
                     value={selectedSpecificSection}
                     onChange={(event) => {
@@ -1213,7 +1213,7 @@ export default function ServiceAppointmentPage({
                       background: "#fff",
                       padding: "9px 10px",
                       fontSize: 13,
-                      color: "#4c1d95",
+                      color: "var(--gris-700)",
                       fontWeight: 700,
                     }}
                   >
@@ -1227,7 +1227,7 @@ export default function ServiceAppointmentPage({
                 {selectedSpecificSectionModel ? (
                   <>
                     <div style={{ display: "grid", gap: 6 }}>
-                      <label style={{ fontSize: 12, color: "#6d28d9", fontWeight: 700 }}>{t("service.appointmentSpecificTypeLabel")}</label>
+                      <label style={{ fontSize: 12, color: "var(--gris-500)", fontWeight: 700 }}>{t("service.appointmentSpecificTypeLabel")}</label>
                       <select
                         value={selectedSpecificType}
                         onChange={(event) => {
@@ -1242,7 +1242,7 @@ export default function ServiceAppointmentPage({
                           background: "#fff",
                           padding: "9px 10px",
                           fontSize: 13,
-                          color: "#4c1d95",
+                          color: "var(--gris-700)",
                           fontWeight: 700,
                         }}
                       >
@@ -1254,7 +1254,7 @@ export default function ServiceAppointmentPage({
                     </div>
 
                     {selectedSpecificSectionModel.noteKey ? (
-                      <div style={{ fontSize: 11, color: "#6d28d9", fontWeight: 700 }}>
+                      <div style={{ fontSize: 11, color: "var(--gris-500)", fontWeight: 700 }}>
                         👉 {t(selectedSpecificSectionModel.noteKey)}
                       </div>
                     ) : null}
@@ -1267,7 +1267,7 @@ export default function ServiceAppointmentPage({
 
         <div style={{ ...cardStyle, padding: 18, opacity: canChooseRevision ? 1 : 0.65 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700 }}>
+            <div style={{ fontSize: 10, color: "var(--gris-300)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700 }}>
               {t("service.appointmentProviderSectionLabel")}
             </div>
             {nearbyProviders.filter((p) => p.workshop?.lat != null).length > 0 && (
@@ -1275,7 +1275,7 @@ export default function ServiceAppointmentPage({
                 type="button"
                 onClick={() => setShowMap(true)}
                 style={{
-                  fontSize: 11, fontWeight: 700, color: "#7c3aed",
+                  fontSize: 11, fontWeight: 700, color: "var(--gris-500)",
                   background: "rgba(139,92,246,0.10)", border: "1px solid rgba(139,92,246,0.28)",
                   borderRadius: 7, padding: "4px 10px", cursor: "pointer",
                 }}
@@ -1295,13 +1295,13 @@ export default function ServiceAppointmentPage({
             </div>
           ) : null}
           {!hasSelectedProvider ? (
-            <div style={{ fontSize: 12, color: "#7c3aed", marginBottom: 8, fontWeight: 700 }}>
+            <div style={{ fontSize: 12, color: "var(--gris-500)", marginBottom: 8, fontWeight: 700 }}>
               {t("service.appointmentSelectProviderHint")}
             </div>
           ) : null}
           <div style={{ display: "grid", gap: 8, maxHeight: providerOffers.length > 6 ? 420 : "none", overflowY: providerOffers.length > 6 ? "auto" : "visible", paddingRight: providerOffers.length > 6 ? 4 : 0 }}>
             {!hasLocationContext && (
-              <div style={{ fontSize: 12, color: "#7c3aed", fontWeight: 700 }}>
+              <div style={{ fontSize: 12, color: "var(--gris-500)", fontWeight: 700 }}>
                 {t("service.appointmentWorkshopCompleteLocation")}
               </div>
             )}
@@ -1327,7 +1327,7 @@ export default function ServiceAppointmentPage({
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: item.key === selectedProvider ? "#7c3aed" : "#3b3b3b" }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: item.key === selectedProvider ? "var(--gris-500)" : "var(--gris-700)" }}>
                     {item.name}
                   </span>
                   {item.isIndependent && (
@@ -1346,7 +1346,7 @@ export default function ServiceAppointmentPage({
                     </span>
                   )}
                 </div>
-                <div style={{ fontSize: 12, color: "#9a9a9a", marginTop: 2 }}>
+                <div style={{ fontSize: 12, color: "var(--gris-400)", marginTop: 2 }}>
                   {item?.nearby?.workshop
                     ? `${item.nearby.workshop.distanceKm} km · ETA ${item.nearby.workshop.etaMinutes} min`
                     : ""}
@@ -1368,11 +1368,11 @@ export default function ServiceAppointmentPage({
                   </div>
                 ) : null}
                 {item.isIndependent ? (
-                  <div style={{ fontSize: 12, color: "#8b5cf6", marginTop: 4, fontWeight: 700 }}>
+                  <div style={{ fontSize: 12, color: "var(--gris-500)", marginTop: 4, fontWeight: 700 }}>
                     Precio a consultar · Tarifa CarsWise aplicable
                   </div>
                 ) : (
-                  <div style={{ fontSize: 12, color: "#8b5cf6", marginTop: 4, fontWeight: 700 }}>
+                  <div style={{ fontSize: 12, color: "var(--gris-500)", marginTop: 4, fontWeight: 700 }}>
                     {t("service.appointmentPricingCarsWise", { price: formatPriceTag(item.withCarsWise, priceOptions) })}
                   </div>
                 )}
@@ -1392,21 +1392,21 @@ export default function ServiceAppointmentPage({
         <div style={{ ...cardStyle, padding: 18 }}>
           {selectedProviderOffer?.withCarsWise != null ? (
             <>
-              <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
+              <div style={{ fontSize: 10, color: "var(--gris-300)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
                 {t("service.appointmentPriceSectionLabel")}
               </div>
               <div style={{ border: "1px solid rgba(139,92,246,0.28)", borderRadius: 12, background: "rgba(139,92,246,0.08)", padding: 12, marginBottom: 12 }}>
-                <div style={{ fontSize: 12, color: "#a78bfa", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                <div style={{ fontSize: 12, color: "var(--gris-400)", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>
                   {selectedRevisionName} · {selectedProviderLabel}
                 </div>
-                <div style={{ fontSize: 13, color: "#b9b9b9", marginTop: 6 }}>
+                <div style={{ fontSize: 13, color: "var(--gris-300)", marginTop: 6 }}>
                   {t("service.appointmentPvpParticular", { price: formatPriceTag(selectedProviderOffer?.particular, priceOptions) })}
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 6 }}>
-                  <div style={{ fontSize: 14, color: "#8b5cf6", fontWeight: 700 }}>
+                  <div style={{ fontSize: 14, color: "var(--gris-500)", fontWeight: 700 }}>
                     {t("service.appointmentWithCarsWise", { price: formatPriceTag(selectedProviderOffer?.withCarsWise, priceOptions) })}
                   </div>
-                  <div style={{ fontSize: 24, color: "#7c3aed", fontWeight: 800, lineHeight: 1 }}>
+                  <div style={{ fontSize: 24, color: "var(--gris-500)", fontWeight: 800, lineHeight: 1 }}>
                     {formatPriceTag(selectedProviderOffer?.withCarsWise, priceOptions)}
                   </div>
                 </div>
@@ -1422,20 +1422,20 @@ export default function ServiceAppointmentPage({
                   t("service.appointmentFeature4"),
                   t("service.appointmentFeature5"),
                 ].map((item) => (
-                  <div key={item} style={{ fontSize: 14, color: "#636363", lineHeight: 1.35 }}>✓ {item}</div>
+                  <div key={item} style={{ fontSize: 14, color: "var(--gris-500)", lineHeight: 1.35 }}>✓ {item}</div>
                 ))}
               </div>
             </>
           ) : (
             <>
-              <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 14 }}>
+              <div style={{ fontSize: 10, color: "var(--gris-300)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 14 }}>
                 ¿Qué incluye tu cita?
               </div>
               <div style={{ border: "1px solid rgba(139,92,246,0.22)", borderRadius: 10, background: "rgba(139,92,246,0.06)", padding: "10px 12px", marginBottom: 14 }}>
-                <div style={{ fontSize: 13, color: "#7c3aed", fontWeight: 700 }}>
+                <div style={{ fontSize: 13, color: "var(--gris-500)", fontWeight: 700 }}>
                   {selectedRevisionName}
                 </div>
-                <div style={{ fontSize: 12, color: "#8b5cf6", marginTop: 2 }}>
+                <div style={{ fontSize: 12, color: "var(--gris-500)", marginTop: 2 }}>
                   {selectedProviderLabel}
                 </div>
                 <div style={{ marginTop: 8, display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(22,163,74,0.1)", borderRadius: 6, padding: "3px 8px" }}>
@@ -1450,8 +1450,8 @@ export default function ServiceAppointmentPage({
                   t("service.appointmentFeature4"),
                   t("service.appointmentFeature5"),
                 ].map((item) => (
-                  <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 13, color: "#505050", lineHeight: 1.4 }}>
-                    <span style={{ color: "#7c3aed", fontWeight: 700, flexShrink: 0 }}>✓</span>
+                  <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 13, color: "var(--gris-600)", lineHeight: 1.4 }}>
+                    <span style={{ color: "var(--gris-500)", fontWeight: 700, flexShrink: 0 }}>✓</span>
                     {item}
                   </div>
                 ))}
@@ -1480,10 +1480,10 @@ export default function ServiceAppointmentPage({
         }}
       >
           <div>
-          <div style={{ fontSize: 18, color: "#303030", fontWeight: 700, marginBottom: 3 }}>
+          <div style={{ fontSize: 18, color: "var(--gris-700)", fontWeight: 700, marginBottom: 3 }}>
             {t("service.appointmentConfirmTitle", { workshop: selectedProviderOffer?.nearby?.workshop?.name || selectedProviderLabel })}
           </div>
-          <div style={{ fontSize: 13, color: "#a2a2a2", lineHeight: 1.45 }}>
+          <div style={{ fontSize: 13, color: "var(--gris-400)", lineHeight: 1.45 }}>
             {selectedRevisionName}{selectedVehicleLabel ? ` · ${selectedVehicleLabel}` : ""} · {formatPriceTag(selectedProviderOffer?.withCarsWise, priceOptions)} {t("service.appointmentIncludesVat")}{selectedProviderOffer?.nearby?.workshop?.distanceKm ? ` · ${selectedProviderOffer.nearby.workshop.distanceKm} km` : ""}
           </div>
         </div>
@@ -1502,7 +1502,7 @@ export default function ServiceAppointmentPage({
             style={{
               border: "none",
               borderRadius: 14,
-              background: "linear-gradient(135deg,#7c3aed,#8b5cf6)",
+              background: "linear-gradient(135deg,var(--gris-500),var(--gris-500))",
               color: "#fff",
               padding: "12px 20px",
               fontSize: 16,

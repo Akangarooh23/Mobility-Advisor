@@ -410,5 +410,5 @@ const styles = {
   slotIcon:    { fontSize: 12 },
   slotText:    { flex: 1, fontSize: 13, color: "var(--gris-900)" },
   removeBtn:   { background: "none", border: "none", color: "var(--gris-400)", cursor: "pointer", fontSize: 14, padding: "0 4px", fontWeight: 700 },
-  bookedTag:   { fontSize: 11, fontWeight: 600, color: "var(--gris-800)", background: "#e0f2fe", borderRadius: 6, padding: "2px 8px" },
+  bookedTag:   { fontSize: 11, fontWeight: 600, color: "var(--gris-800)", background: "var(--gris-100)", borderRadius: 6, padding: "2px 8px" },
 };

@@ -75,7 +75,7 @@ export default function UserDashboardSaved({
   const cardBg = isDark
     ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
     : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))";
-  const inputBg = isDark ? "var(--gris-900)" : "#ffffff";
+  const inputBg = isDark ? "var(--gris-900)" : "var(--blanco)";
   const inputText = isDark ? "var(--gris-50)" : "var(--gris-900)";
   const mutedText = isDark ? "var(--gris-300)" : "var(--gris-600)";
   const titleText = isDark ? "var(--gris-50)" : "var(--gris-900)";
@@ -376,7 +376,7 @@ export default function UserDashboardSaved({
               style={{
                 background: "linear-gradient(135deg,#10b981,#059669)",
                 border: "none",
-                color: "#ffffff",
+                color: "var(--blanco)",
                 padding: "10px 12px",
                 borderRadius: 10,
                 fontSize: 12,
@@ -452,7 +452,7 @@ export default function UserDashboardSaved({
                       <div style={{ display: "flex", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
                         {[
                           { label: "TCO", value: item.tco, color: "var(--marca)" },
-                          { label: "Flexib.", value: item.flexibilidad, color: "#7c3aed" },
+                          { label: "Flexib.", value: item.flexibilidad, color: "var(--gris-500)" },
                           { label: "Riesgo", value: item.riesgo, color: item.riesgo > 60 ? "#dc2626" : "#059669", invert: true },
                         ].filter((m) => m.value > 0).map((metric) => (
                           <div key={metric.label} style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 56 }}>
@@ -559,7 +559,7 @@ export default function UserDashboardSaved({
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
           <div>
-            <div style={{ fontSize: 11, color: "#7c3aed", letterSpacing: "0.6px" }}>{t("dashboard.savedCatalogLabel")}</div>
+            <div style={{ fontSize: 11, color: "var(--gris-500)", letterSpacing: "0.6px" }}>{t("dashboard.savedCatalogLabel")}</div>
             <div style={{ fontSize: 15, fontWeight: 800, color: titleText }}>{t("dashboard.savedCatalogTitle")}</div>
           </div>
           <button
@@ -568,7 +568,7 @@ export default function UserDashboardSaved({
             style={{
               background: "rgba(124,58,237,0.16)",
               border: "1px solid rgba(196,181,253,0.24)",
-              color: "#5b21b6",
+              color: "var(--gris-600)",
               padding: "9px 11px",
               borderRadius: 10,
               fontSize: 12,
@@ -706,7 +706,7 @@ export default function UserDashboardSaved({
             </div>
 
             {catalogAdminFeedback && (
-              <div style={{ fontSize: 12, color: "#6d28d9" }}>{catalogAdminFeedback}</div>
+              <div style={{ fontSize: 12, color: "var(--gris-500)" }}>{catalogAdminFeedback}</div>
             )}
           </div>
         )}
@@ -741,7 +741,7 @@ export default function UserDashboardSaved({
               style={{
                 background: emailAlertCount > 0 ? "rgba(99,102,241,0.16)" : "rgba(148,163,184,0.12)",
                 border: emailAlertCount > 0 ? "1px solid rgba(165,180,252,0.24)" : "1px solid rgba(148,163,184,0.18)",
-                color: emailAlertCount > 0 ? "#312e81" : "var(--gris-500)",
+                color: emailAlertCount > 0 ? "var(--gris-700)" : "var(--gris-500)",
                 padding: "10px 12px",
                 borderRadius: 10,
                 fontSize: 12,

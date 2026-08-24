@@ -4,13 +4,13 @@ import { useTranslation } from "react-i18next";
 const VEHICLE_DETAIL_CSS = `
 /* ══ TOKENS ══ */
 .vd-root{
-  --bg:#f5f3ef;--bg2:#ffffff;--surface:#faf9f7;--border:#e8e4dc;
-  --border2:rgba(0,0,0,.07);--txt:#1a1814;--muted:#7a756c;--subtle:#b0aca4;
+  --bg:var(--gris-100);--bg2:var(--blanco);--surface:var(--gris-50);--border:var(--gris-200);
+  --border2:rgba(0,0,0,.07);--txt:var(--gris-900);--muted:var(--gris-500);--subtle:var(--gris-400);
   --acc:#BA7517;--acc2:#9a6010;--acc-bg:rgba(186,117,23,.08);
   --acc-border:rgba(186,117,23,.2);
-  --eco-bg:#e8f5e9;--eco-txt:#2e7d32;
+  --eco-bg:var(--gris-100);--eco-txt:#2e7d32;
   --c-bg:#fff8e7;--c-txt:#7a5c00;
-  --ev-bg:#e3f2fd;--ev-txt:#1565c0;
+  --ev-bg:var(--gris-100);--ev-txt:var(--gris-500);
   --r:12px;--rs:8px;
   font-family:'DM Sans',sans-serif;
   font-weight:300;
@@ -75,7 +75,7 @@ const VEHICLE_DETAIL_CSS = `
 .vd-co2-marker{position:absolute;top:-4px;width:14px;height:14px;border-radius:50%;background:var(--txt);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);transform:translateX(-50%)}
 .vd-co2-val{font-size:12px;font-weight:600;color:var(--txt);white-space:nowrap}
 /* ANALYSIS BOX */
-.vd-analysis-box{background:linear-gradient(135deg,var(--txt) 0%,#2a2520 100%);border-radius:var(--r);padding:1.5rem;margin-bottom:1rem;color:#fff}
+.vd-analysis-box{background:linear-gradient(135deg,var(--txt) 0%,var(--gris-800) 100%);border-radius:var(--r);padding:1.5rem;margin-bottom:1rem;color:#fff}
 .vd-ab-title{font-family:'Playfair Display',serif;font-size:16px;color:#fff;margin-bottom:1rem}
 .vd-ab-rows{display:flex;flex-direction:column;gap:.5rem}
 .vd-ab-row{display:flex;align-items:center;gap:.75rem;font-size:12.5px;padding:.5rem .75rem;background:rgba(255,255,255,.07);border-radius:8px}
@@ -467,12 +467,12 @@ export default function VehicleDetailPage({ offer, onBack, isUserLoggedIn, onReq
                 onError={() => setGalleryImgFailed(true)}
               />
             ) : (
-              <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,#1a1814 0%,#3a3020 100%)", display: "flex", alignItems: "flex-end", padding: "1rem 1.25rem" }}>
+              <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,var(--gris-900) 0%,#3a3020 100%)", display: "flex", alignItems: "flex-end", padding: "1rem 1.25rem" }}>
                 <div>
                   <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#BA7517", marginBottom: 4 }}>
                     {car.brand || ""}
                   </div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: "#f5f3ef" }}>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gris-100)" }}>
                     {car.model || "Vehículo"}
                   </div>
                 </div>

@@ -160,7 +160,7 @@ export default function ResultsAnalysisView({
             style={{
               background: logicExportLoading ? "rgba(14,165,233,0.12)" : "linear-gradient(135deg,var(--gris-700),var(--gris-900))",
               border: "1px solid rgba(125,211,252,0.28)",
-              color: "#f0f9ff",
+              color: "var(--gris-50)",
               padding: "10px 14px",
               borderRadius: 10,
               fontSize: 12,
@@ -699,7 +699,7 @@ export default function ResultsAnalysisView({
             style={{
               background: "rgba(14,165,233,0.18)",
               border: "1px solid rgba(125,211,252,0.28)",
-              color: "#0c4a6e",
+              color: "var(--gris-600)",
               padding: "6px 10px",
               borderRadius: 10,
               fontSize: 11,
@@ -725,7 +725,7 @@ export default function ResultsAnalysisView({
             <div style={{ fontSize: 10, color: "var(--gris-800)", marginBottom: 6, letterSpacing: "0.5px" }}>{text.enterSignals}</div>
             <div style={{ display: "grid", gap: 5 }}>
               {marketRadar.senales_verdes.map((item, index) => (
-                <div key={`radar-green-${index}`} style={{ fontSize: 11, color: "#0c4a6e", lineHeight: 1.5 }}>
+                <div key={`radar-green-${index}`} style={{ fontSize: 11, color: "var(--gris-600)", lineHeight: 1.5 }}>
                   • {item}
                 </div>
               ))}
@@ -743,7 +743,7 @@ export default function ResultsAnalysisView({
           </div>
         </div>
 
-        {saveFeedback && <div style={{ fontSize: 11, color: "#0c4a6e", marginBottom: 10 }}>{saveFeedback}</div>}
+        {saveFeedback && <div style={{ fontSize: 11, color: "var(--gris-600)", marginBottom: 10 }}>{saveFeedback}</div>}
 
         {savedComparisonItems.length > 0 && (
           <div>

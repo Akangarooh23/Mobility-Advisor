@@ -12,7 +12,7 @@ export default function ServiceOptionsPage({
   const { t, i18n } = useTranslation();
   const uiLanguage = i18n.language === "en" ? "en" : "es";
   const isDark = styles?.page?.color === "var(--gris-200)";
-  const titleColor = isDark ? "var(--gris-50)" : "#000000";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
   const mutedColor = isDark ? "var(--gris-300)" : "var(--gris-400)";
 
   const serviceCards = [
@@ -119,7 +119,7 @@ export default function ServiceOptionsPage({
           border: "1.5px solid rgba(37,99,235,0.35)",
           background: isDark
             ? "linear-gradient(135deg, rgba(37,99,235,0.18), rgba(99,102,241,0.12))"
-            : "linear-gradient(135deg, var(--acento-tenue) 0%, #eef2ff 100%)",
+            : "linear-gradient(135deg, var(--acento-tenue) 0%, var(--gris-100) 100%)",
           borderRadius: 16,
           boxShadow: isDark ? "none" : "0 12px 32px rgba(37,99,235,0.10)",
           padding: "28px 32px",
@@ -211,7 +211,7 @@ export default function ServiceOptionsPage({
             className="ma-card-interactive ma-fade-stagger"
             style={{
               border: isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.3)",
-              background: isDark ? "rgba(15,23,42,0.52)" : "#ffffff",
+              background: isDark ? "rgba(15,23,42,0.52)" : "var(--blanco)",
               borderRadius: 14,
               boxShadow: isDark ? "none" : "0 8px 24px rgba(15,23,42,0.06)",
               padding: "18px 18px 16px",

@@ -182,7 +182,7 @@ export default function UserDashboardAlerts({
               style={{
                 background: emailAlertCount > 0 ? "rgba(99,102,241,0.16)" : "rgba(148,163,184,0.12)",
                 border: emailAlertCount > 0 ? "1px solid rgba(165,180,252,0.24)" : "1px solid rgba(148,163,184,0.18)",
-                color: emailAlertCount > 0 ? "#312e81" : "var(--gris-500)",
+                color: emailAlertCount > 0 ? "var(--gris-700)" : "var(--gris-500)",
                 padding: "9px 11px",
                 borderRadius: 10,
                 fontSize: 12,
@@ -199,7 +199,7 @@ export default function UserDashboardAlerts({
               style={{
                 background: "linear-gradient(135deg,#10b981,#059669)",
                 border: "none",
-                color: "#ffffff",
+                color: "var(--blanco)",
                 padding: "9px 11px",
                 borderRadius: 10,
                 fontSize: 12,

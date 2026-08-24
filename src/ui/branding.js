@@ -48,17 +48,17 @@ export const BLOCK_COLORS = {
   Perfil: "var(--marca)",
   "Uso real": "#059669",
   Capacidad: "#D97706",
-  Preferencias: "#7C3AED",
-  Energía: "#0891B2",
+  Preferencias: "var(--gris-500)",
+  Energía: "var(--gris-400)",
   Financiero: "#DC2626",
-  Restricciones: "#9333EA",
+  Restricciones: "var(--gris-500)",
   Vinculación: "#E11D48",
   Riesgo: "#65A30D",
   Avanzado: "#14B8A6",
 };
 
 export const BRAND_LOGOS = {
-  Volkswagen: { icon: SiVolkswagen, color: "#0a58ca" },
+  Volkswagen: { icon: SiVolkswagen, color: "var(--gris-500)" },
   Seat: { icon: SiSeat, color: "var(--gris-500)" },
   Renault: { icon: SiRenault, color: "#f59e0b" },
   Skoda: { icon: SiSkoda, color: "#16a34a" },

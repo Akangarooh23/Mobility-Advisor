@@ -420,7 +420,7 @@ function SectionBlock({ title, subtitle, open, onToggle, children, openLabel = "
           {open ? closeLabel : openLabel}
         </span>
       </button>
-      {open ? <div style={{ borderTop: "1px solid #f1ede6", padding: "14px 16px" }}>{children}</div> : null}
+      {open ? <div style={{ borderTop: "1px solid var(--gris-100)", padding: "14px 16px" }}>{children}</div> : null}
     </div>
   );
 }
@@ -1170,7 +1170,7 @@ export default function ServiceIdCarsManagePage({
       {storedFiles.filter((file) => !isStoredAttachmentRemoved(storedGroupKey, file)).length ? (
         storedGroupKey === "photos" ? (
           /* Photo grid with drag-reorder and primary star */
-          <div style={{ border: "1px solid var(--gris-200)", borderRadius: 10, background: "#fcfcfc", padding: "8px 10px" }}>
+          <div style={{ border: "1px solid var(--gris-200)", borderRadius: 10, background: "var(--gris-50)", padding: "8px 10px" }}>
             <div style={{ fontSize: 10, color: "var(--gris-500)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
               {txt("Guardadas · arrastra para reordenar", "Saved · drag to reorder")}
             </div>
@@ -1215,7 +1215,7 @@ export default function ServiceIdCarsManagePage({
             </div>
           </div>
         ) : (
-        <div style={{ border: "1px solid var(--gris-200)", borderRadius: 10, background: "#fcfcfc", padding: "8px 10px" }}>
+        <div style={{ border: "1px solid var(--gris-200)", borderRadius: 10, background: "var(--gris-50)", padding: "8px 10px" }}>
           <div style={{ fontSize: 10.5, color: "var(--gris-500)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
             {txt("Guardados en ficha", "Saved in profile")}
           </div>
@@ -1227,21 +1227,21 @@ export default function ServiceIdCarsManagePage({
                 const hasDataLink = Boolean(getAttachmentDataUrl(file));
                 const fileName = normalizeText(file?.name) || `${txt("Archivo", "File")} ${index + 1}`;
                 return (
-                  <div key={`${getAttachmentIdentityKey(file)}-${index}`} style={{ border: "1px solid #eef2f7", borderRadius: 8, padding: "6px 8px", background: "#fff" }}>
+                  <div key={`${getAttachmentIdentityKey(file)}-${index}`} style={{ border: "1px solid var(--gris-100)", borderRadius: 8, padding: "6px 8px", background: "#fff" }}>
                     <div style={{ fontSize: 11.5, color: "var(--gris-700)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: 600, marginBottom: 5 }}>
                       {fileName}
                     </div>
                     <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
                     {(hasExternalLink || hasDataLink) ? (
                       <button type="button" onClick={() => openAttachmentPreview(file)} title={txt("Abrir", "Open")}
-                        style={{ border: "1px solid #c7d2fe", background: "#eef2ff", color: "#3730a3", borderRadius: 6, fontSize: 13, lineHeight: 1, padding: "3px 7px", cursor: "pointer" }}>↗</button>
+                        style={{ border: "1px solid var(--gris-300)", background: "var(--gris-100)", color: "var(--gris-600)", borderRadius: 6, fontSize: 13, lineHeight: 1, padding: "3px 7px", cursor: "pointer" }}>↗</button>
                     ) : null}
                     {(hasExternalLink || hasDataLink) ? (
                       <button type="button" onClick={() => triggerAttachmentDownload(file)} title={txt("Descargar", "Download")}
                         style={{ border: "1px solid var(--gris-200)", background: "var(--acento-tenue)", color: "var(--marca-oscuro)", borderRadius: 6, fontSize: 13, lineHeight: 1, padding: "3px 7px", cursor: "pointer" }}>↓</button>
                     ) : null}
                     <button type="button" onClick={() => markStoredAttachmentForRemoval(storedGroupKey, file)} title={txt("Eliminar", "Delete")}
-                      style={{ border: "1px solid #fecaca", background: "#fff1f2", color: "#b91c1c", borderRadius: 6, fontSize: 12, lineHeight: 1, padding: "3px 7px", cursor: "pointer", marginLeft: "auto" }}>✕</button>
+                      style={{ border: "1px solid #fecaca", background: "var(--gris-100)", color: "#b91c1c", borderRadius: 6, fontSize: 12, lineHeight: 1, padding: "3px 7px", cursor: "pointer", marginLeft: "auto" }}>✕</button>
                     </div>
                   </div>
                 );
@@ -1343,7 +1343,7 @@ export default function ServiceIdCarsManagePage({
             }
             setOpenSections((prev) => ({ ...prev, insurance: true }));
           }}
-          style={{ background: "rgba(14,116,144,0.08)", border: "1px solid rgba(14,116,144,0.22)", color: "#0e7490", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+          style={{ background: "rgba(14,116,144,0.08)", border: "1px solid rgba(14,116,144,0.22)", color: "var(--gris-500)", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
           {txt("Gestionar seguro", "Manage insurance")}
         </button>
         {isPublished ? (
@@ -1600,7 +1600,7 @@ export default function ServiceIdCarsManagePage({
           {renderFileUpload(txt("Fotos del vehículo", "Vehicle photos"), pendingPhotos, setPendingPhotos, photoInputRef, "image/*", "var(--marca)", storedPhotos, "photos")}
           {renderFileUpload(txt("Ficha técnica", "Technical sheet"), pendingTechnicalSheetDocuments, setPendingTechnicalSheetDocuments, technicalSheetInputRef, ".pdf,image/*", "#0f766e", storedTechnicalSheetDocuments, "technicalSheetDocuments")}
           {renderFileUpload(txt("Permiso de circulación", "Circulation permit"), pendingCirculationPermitDocuments, setPendingCirculationPermitDocuments, circulationPermitInputRef, ".pdf,image/*", "#0f766e", storedCirculationPermitDocuments, "circulationPermitDocuments")}
-          {renderFileUpload(txt("Otros documentos", "Other documents"), pendingOtherDocuments, setPendingOtherDocuments, otherDocInputRef, ".pdf,image/*,.doc,.docx", "#7c3aed", storedOtherDocuments, "documents")}
+          {renderFileUpload(txt("Otros documentos", "Other documents"), pendingOtherDocuments, setPendingOtherDocuments, otherDocInputRef, ".pdf,image/*,.doc,.docx", "var(--gris-500)", storedOtherDocuments, "documents")}
           {renderFileUpload(txt("Documentación ITV", "MOT documentation"), pendingItvDocuments, setPendingItvDocuments, itvInputRef, ".pdf,image/*", "#0f766e", storedItvDocuments, "itvDocuments")}
         </div>
       </SectionBlock>
@@ -1669,7 +1669,7 @@ export default function ServiceIdCarsManagePage({
                 <div style={{ display: "grid", gap: 6 }}>
                   {informe.lista.map((expediente) => (
                     <div key={expediente.session_id}
-                      style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", border: "1px solid #f1ede6", borderRadius: 10, padding: "9px 12px" }}>
+                      style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", border: "1px solid var(--gris-100)", borderRadius: 10, padding: "9px 12px" }}>
                       <span style={{ fontSize: 12.5, color: "var(--gris-800)", fontWeight: 600 }}>
                         {etiquetaEstado(expediente.status, isEn)}
                       </span>
@@ -1761,14 +1761,14 @@ export default function ServiceIdCarsManagePage({
   // ─── render ──────────────────────────────────────────────────────────
   return (
     <>
-    <div style={{ width: "100%", maxWidth: 980, margin: "0 auto", color: "#1a1a1a", padding: "0 8px 18px" }}>
+    <div style={{ width: "100%", maxWidth: 980, margin: "0 auto", color: "var(--gris-800)", padding: "0 8px 18px" }}>
 
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
         <button type="button" onClick={isCreateView ? onGoBack : onGoBack}
           style={{ border: "1px solid var(--gris-200)", background: "#fff", borderRadius: 8, padding: "7px 12px", fontSize: 12, color: "#888", cursor: "pointer", fontWeight: 600 }}>
           {txt("← Volver", "← Back")}
         </button>
-        <div style={{ fontSize: 12, color: "#b8b8b8" }}>
+        <div style={{ fontSize: 12, color: "var(--gris-300)" }}>
           {txt("Servicios", "Services")} › <span style={{ color: "var(--marca)", fontWeight: 700 }}>
             {isCreateView ? txt("Crear IDCar", "Create IDCar") : isDetailView ? buildVehicleTitle(selectedVehicle || {}) : txt("Mis IDCars", "My IDCars")}
           </span>
@@ -1850,7 +1850,7 @@ export default function ServiceIdCarsManagePage({
             <div style={{ display: "flex", flexWrap: isCompactCard ? "wrap" : "nowrap", minHeight: isCompactCard ? 0 : 148 }}>
               {/* QR column — full square */}
               {!isCompactCard ? (
-                <div style={{ flex: "0 0 120px", width: 120, height: 148, background: "#ffffff", borderRight: "1px solid #f1ede6", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ flex: "0 0 120px", width: 120, height: 148, background: "var(--blanco)", borderRight: "1px solid var(--gris-100)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <QRCodeSVG
                     value={`https://movilidad-advisor.vercel.app/idcar/${vehicle.id}`}
                     size={104}
@@ -1861,11 +1861,11 @@ export default function ServiceIdCarsManagePage({
               ) : null}
 
               {/* Photo column — wider */}
-              <div style={{ position: "relative", flex: isCompactCard ? "1 1 0%" : "0 0 220px", width: isCompactCard ? "auto" : 220, minWidth: 0, height: isCompactCard ? 124 : 148, background: "#f1ede6", overflow: "hidden", borderRight: isCompactCard ? "none" : "1px solid #f1ede6" }}>
+              <div style={{ position: "relative", flex: isCompactCard ? "1 1 0%" : "0 0 220px", width: isCompactCard ? "auto" : 220, minWidth: 0, height: isCompactCard ? 124 : 148, background: "var(--gris-100)", overflow: "hidden", borderRight: isCompactCard ? "none" : "1px solid var(--gris-100)" }}>
                 {firstPhoto ? (
                   <img src={firstPhoto} alt={buildVehicleTitle(vehicle)} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block" }} />
                 ) : (
-                  <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, color: "#d0cbc5" }}>🚗</div>
+                  <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, color: "var(--gris-300)" }}>🚗</div>
                 )}
                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.52) 0%, transparent 50%)" }} />
                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "4px 6px" }}>
@@ -1881,11 +1881,11 @@ export default function ServiceIdCarsManagePage({
               </div>
 
               {/* Specs column — rectangular */}
-              <div style={{ flex: isCompactCard ? "1 1 100%" : "1 1 0%", background: "#fff", padding: isCompactCard ? "10px 10px 11px" : "9px 10px", display: "flex", flexDirection: "column", justifyContent: "space-between", overflow: "hidden", borderTop: isCompactCard ? "1px solid #f1ede6" : "none" }}>
+              <div style={{ flex: isCompactCard ? "1 1 100%" : "1 1 0%", background: "#fff", padding: isCompactCard ? "10px 10px 11px" : "9px 10px", display: "flex", flexDirection: "column", justifyContent: "space-between", overflow: "hidden", borderTop: isCompactCard ? "1px solid var(--gris-100)" : "none" }}>
                 <div style={{ display: "grid", gridTemplateColumns: isCompactCard ? "repeat(2,minmax(0,1fr))" : "repeat(3,minmax(0,1fr))", gap: isCompactCard ? "7px 9px" : "6px 10px" }}>
                   {specGrid.slice(0, 9).map(({ label, value }) => (
                     <div key={label} style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.06em", color: "#b8b1aa", fontWeight: 700 }}>{label}</div>
+                      <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--gris-400)", fontWeight: 700 }}>{label}</div>
                       <div style={{ fontSize: 12.5, color: "var(--gris-700)", fontWeight: 700, lineHeight: 1.25, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{value}</div>
                     </div>
                   ))}
@@ -1915,7 +1915,7 @@ export default function ServiceIdCarsManagePage({
                     </button>
                     <button type="button"
                       onClick={() => setOpenManagePanelId((prev) => (prev === vehicle.id ? "" : vehicle.id))}
-                      style={{ border: "1px solid rgba(14,116,144,0.3)", background: openManagePanelId === vehicle.id ? "rgba(14,116,144,0.15)" : "rgba(14,116,144,0.07)", color: "#0e7490", borderRadius: 7, padding: isCompactCard ? "8px 8px" : "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", minHeight: isCompactCard ? 36 : "auto" }}>
+                      style={{ border: "1px solid rgba(14,116,144,0.3)", background: openManagePanelId === vehicle.id ? "rgba(14,116,144,0.15)" : "rgba(14,116,144,0.07)", color: "var(--gris-500)", borderRadius: 7, padding: isCompactCard ? "8px 8px" : "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", minHeight: isCompactCard ? 36 : "auto" }}>
                       {openManagePanelId === vehicle.id ? txt("✕ Cerrar", "✕ Close") : txt("Gestionar", "Manage")}
                     </button>
                   </div>
@@ -1923,7 +1923,7 @@ export default function ServiceIdCarsManagePage({
               </div>
             </div>
             {openManagePanelId === vehicle.id && (
-              <div style={{ borderTop: "1px solid #f1ede6", padding: "12px 16px", background: "var(--gris-50)" }}>
+              <div style={{ borderTop: "1px solid var(--gris-100)", padding: "12px 16px", background: "var(--gris-50)" }}>
                 {renderManagePanel(vehicle)}
               </div>
             )}
@@ -1935,11 +1935,11 @@ export default function ServiceIdCarsManagePage({
         <>
           {/* Portal-style hero */}
           <section style={{ ...SECTION_CARD_STYLE, marginBottom: 14, overflow: "hidden" }}>
-            <div style={{ position: "relative", height: 320, background: "#f1ede6", overflow: "hidden" }}>
+            <div style={{ position: "relative", height: 320, background: "var(--gris-100)", overflow: "hidden" }}>
               {getFirstPhotoSrc(selectedVehicle) ? (
                 <img src={getFirstPhotoSrc(selectedVehicle)} alt={buildVehicleTitle(selectedVehicle)} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
               ) : (
-                <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 96, color: "#d0cbc5" }}>🚗</div>
+                <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 96, color: "var(--gris-300)" }}>🚗</div>
               )}
               <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0) 20%, rgba(0,0,0,0.85) 100%)" }} />
               {normalizeText(selectedVehicle.environmentalLabel) ? (() => {
@@ -2005,7 +2005,7 @@ export default function ServiceIdCarsManagePage({
                 [txt("Cobertura", "Coverage"), selectedVehicle.coverageType],
               ].filter(([, value]) => normalizeText(value)).map(([label, value]) => (
                 <div key={label} style={{ border: "1px solid var(--gris-200)", borderRadius: 10, background: "var(--gris-50)", padding: "8px 10px" }}>
-                  <div style={{ fontSize: 9.5, textTransform: "uppercase", letterSpacing: "0.09em", color: "#b3b3b3", fontWeight: 700, marginBottom: 3 }}>{label}</div>
+                  <div style={{ fontSize: 9.5, textTransform: "uppercase", letterSpacing: "0.09em", color: "var(--gris-400)", fontWeight: 700, marginBottom: 3 }}>{label}</div>
                   <div style={{ fontSize: 12.5, color: "var(--gris-700)", fontWeight: 600 }}>{value}</div>
                 </div>
               ))}
@@ -2042,7 +2042,7 @@ export default function ServiceIdCarsManagePage({
                 },
                 { key: "circulation-permit", title: txt("Permiso de circulación", "Circulation permit"), items: Array.isArray(selectedVehicle.circulationPermitDocuments) ? selectedVehicle.circulationPermitDocuments : [], color: "#0f766e" },
                 { key: "itv", title: txt("Documentación ITV", "MOT documentation"), items: Array.isArray(selectedVehicle.itvDocuments) ? selectedVehicle.itvDocuments : [], color: "#0f766e" },
-                { key: "other-documents", title: txt("Otros documentos", "Other documents"), items: Array.isArray(selectedVehicle.documents) ? selectedVehicle.documents : [], color: "#7c3aed" },
+                { key: "other-documents", title: txt("Otros documentos", "Other documents"), items: Array.isArray(selectedVehicle.documents) ? selectedVehicle.documents : [], color: "var(--gris-500)" },
                 { key: "insurance", title: txt("Documentos de seguro", "Insurance documents"), items: Array.isArray(selectedVehicle.insuranceDocuments) ? selectedVehicle.insuranceDocuments : [], color: "#047857" },
                 { key: "maintenance", title: txt("Facturas de mantenimiento", "Maintenance invoices"), items: Array.isArray(selectedVehicle.maintenanceInvoices) ? selectedVehicle.maintenanceInvoices : [], color: "#c2410c" },
               ];
@@ -2176,7 +2176,7 @@ export default function ServiceIdCarsManagePage({
               const informe = resumenInforme(marketplacePublishDialog.vehicle.id);
               const abriendo = informe.carga.status === "opening";
               return (
-                <div style={{ display: "grid", gap: 6, borderTop: "1px solid #f1ede6", paddingTop: 10 }}>
+                <div style={{ display: "grid", gap: 6, borderTop: "1px solid var(--gris-100)", paddingTop: 10 }}>
                   <div>
                     <strong style={{ color: "var(--gris-700)" }}>{txt("Informe de estado:", "Condition report:")} </strong>
                     {informe.carga.status === "loading" ? (

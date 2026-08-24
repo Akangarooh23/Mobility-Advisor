@@ -81,7 +81,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
   };
   const inputStyle = {
     width: "100%",
-    background: isDark ? "var(--gris-900)" : "#ffffff",
+    background: isDark ? "var(--gris-900)" : "var(--blanco)",
     border: "1px solid rgba(148,163,184,0.45)",
     borderRadius: 8,
     color: isDark ? "var(--gris-50)" : "var(--gris-900)",
@@ -589,7 +589,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                         : "1px solid rgba(148,163,184,0.45)",
                       background: profileForm.clientType === key
                         ? key === "business" ? "rgba(245,158,11,0.08)" : "rgba(59,130,246,0.08)"
-                        : isDark ? "var(--gris-900)" : "#ffffff",
+                        : isDark ? "var(--gris-900)" : "var(--blanco)",
                       color: profileForm.clientType === key
                         ? key === "business" ? "#d97706" : "var(--marca)"
                         : isDark ? "var(--gris-400)" : "var(--gris-500)",
@@ -758,7 +758,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
 const primaryButtonStyle = {
   background: "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
   border: "none",
-  color: "#ffffff",
+  color: "var(--blanco)",
   borderRadius: 10,
   fontSize: 12,
   fontWeight: 700,

@@ -70,7 +70,7 @@ function FilterSelect({ value, onChange, style = {}, disabled, children }) {
             left: 0,
             right: 0,
             zIndex: 9999,
-            background: style.background ?? "#ffffff",
+            background: style.background ?? "var(--blanco)",
             border: style.border ?? "1px solid rgba(148,163,184,0.3)",
             borderRadius: style.borderRadius ?? 10,
             boxShadow: "0 8px 24px rgba(0,0,0,0.16)",
@@ -393,7 +393,7 @@ export default function PortalVoMarketplacePage({
           style={{
             background: "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
             border: "none",
-            color: "#ffffff",
+            color: "var(--blanco)",
             padding: "11px 16px",
             borderRadius: 10,
             fontSize: 12,
@@ -454,8 +454,8 @@ export default function PortalVoMarketplacePage({
           {[
             { key: "concesionarios",  icon: "🏪", label: "Concesionarios", color: "#059669" },
             { key: "renting_empresa", icon: "🏢", label: "Ex-Renting",     color: "var(--marca)" },
-            { key: "particulares",    icon: "👤", label: "Particulares",   color: "#7c3aed" },
-            { key: "importacion",     icon: "🌍", label: "Importación",    color: "#0891b2" },
+            { key: "particulares",    icon: "👤", label: "Particulares",   color: "var(--gris-500)" },
+            { key: "importacion",     icon: "🌍", label: "Importación",    color: "var(--gris-400)" },
           ].map(({ key, icon, label, color }, idx, arr) => {
             const active = compraTab === key;
             return (
@@ -493,7 +493,7 @@ export default function PortalVoMarketplacePage({
       {/* Importación: coches DE seleccionados por el motor + por qué es buena oferta */}
       {compraTab === "importacion" && (
         <div style={{ ...styles.panel, marginBottom: 16, padding: "16px 18px" }}>
-          <div style={{ fontSize: 15, fontWeight: 800, color: "#0891b2", marginBottom: 4 }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: "var(--gris-400)", marginBottom: 4 }}>
             🌍 Vehículos de Importación · seleccionados por precio
           </div>
           <div style={{ fontSize: 12.5, color: bodyColor, lineHeight: 1.6 }}>
@@ -792,7 +792,7 @@ export default function PortalVoMarketplacePage({
 
       {compraTab === "importacion" && (
         importLoading ? (
-          <div style={{ textAlign: "center", padding: 24, color: isDark ? "#22d3ee" : "#0891b2" }}>Cargando oportunidades…</div>
+          <div style={{ textAlign: "center", padding: 24, color: isDark ? "var(--gris-300)" : "var(--gris-400)" }}>Cargando oportunidades…</div>
         ) : importOffers.length === 0 ? (
           <div style={styles.panel}>Aún no hay coches de importación seleccionados. Vuelve pronto.</div>
         ) : (
@@ -839,7 +839,7 @@ export default function PortalVoMarketplacePage({
                         </div>
                       </div>
                     )}
-                    <div style={{ marginTop: "auto", textAlign: "center", fontSize: 11.5, fontWeight: 700, color: "#0891b2", paddingTop: 6 }}>
+                    <div style={{ marginTop: "auto", textAlign: "center", fontSize: 11.5, fontWeight: 700, color: "var(--gris-400)", paddingTop: 6 }}>
                       Ver ficha →
                     </div>
                   </div>

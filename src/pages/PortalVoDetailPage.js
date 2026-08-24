@@ -297,7 +297,7 @@ export default function PortalVoDetailPage({
       <div style={{ ...styles.panel, marginBottom: 18, overflow: "hidden" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
           <div>
-            <div style={{ fontSize: 10, color: isDark ? "#67e8f9" : "var(--gris-900)", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 4 }}>
+            <div style={{ fontSize: 10, color: isDark ? "var(--gris-300)" : "var(--gris-900)", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 4 }}>
               {t("marketplace.detailSubBadge")}
             </div>
             <div style={{ fontSize: 22, fontWeight: 800, color: titleColor }}>{selectedPortalVoOffer.title}</div>
@@ -324,7 +324,7 @@ export default function PortalVoDetailPage({
               style={{
                 background: "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
                 border: "none",
-                color: "#ffffff",
+                color: "var(--blanco)",
                 padding: "10px 14px",
                 borderRadius: 10,
                 fontSize: 12,
@@ -495,7 +495,7 @@ export default function PortalVoDetailPage({
                             key={d} type="button"
                             onClick={() => setRentingDuration(d)}
                             style={{
-                              background: isSelected ? (isDark ? "rgba(5,150,105,0.22)" : "#f0fdf4") : (isDark ? "rgba(52,211,153,0.05)" : "rgba(5,150,105,0.04)"),
+                              background: isSelected ? (isDark ? "rgba(5,150,105,0.22)" : "var(--gris-50)") : (isDark ? "rgba(52,211,153,0.05)" : "rgba(5,150,105,0.04)"),
                               border: isSelected ? `2px solid #059669` : (isDark ? "1px solid rgba(52,211,153,0.2)" : "1px solid rgba(5,150,105,0.18)"),
                               borderRadius: 10, padding: "8px 14px", textAlign: "center", cursor: "pointer",
                               transform: isSelected ? "scale(1.03)" : "scale(1)",
@@ -535,7 +535,7 @@ export default function PortalVoDetailPage({
                                   <button key={c} type="button"
                                     onClick={() => { setSelectedColor(isSel ? null : c); setSelectedQuantity(1); }}
                                     style={{
-                                      background: isSel ? (isDark ? "rgba(5,150,105,0.22)" : "#f0fdf4") : (isDark ? "rgba(255,255,255,0.04)" : "#fff"),
+                                      background: isSel ? (isDark ? "rgba(5,150,105,0.22)" : "var(--gris-50)") : (isDark ? "rgba(255,255,255,0.04)" : "#fff"),
                                       border: isSel ? "2px solid #059669" : (isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid var(--gris-200)"),
                                       borderRadius: 10, padding: "8px 16px", textAlign: "center", cursor: "pointer",
                                       transform: isSel ? "scale(1.03)" : "scale(1)", transition: "all 0.12s",
@@ -637,7 +637,7 @@ export default function PortalVoDetailPage({
                 background: isRentingReserved
                   ? (isDark ? "rgba(255,255,255,0.06)" : "rgba(148,163,184,0.18)")
                   : isParticular
-                    ? "linear-gradient(135deg,var(--gris-900),#1e3a5f)"
+                    ? "linear-gradient(135deg,var(--gris-900),var(--gris-700))"
                     : isRentingOffer
                     ? "linear-gradient(135deg,#059669,#047857)"
                     : "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
@@ -746,7 +746,7 @@ export default function PortalVoDetailPage({
         )}
 
         {!isImport && (
-          <div style={{ marginTop: 16, borderRadius: 14, border: "1.5px solid #EF9F27", background: isDark ? "rgba(186,117,23,0.08)" : "#fffdf8", padding: 18 }}>
+          <div style={{ marginTop: 16, borderRadius: 14, border: "1.5px solid #EF9F27", background: isDark ? "rgba(186,117,23,0.08)" : "var(--blanco)", padding: 18 }}>
             <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 14 }}>
               <div style={{ flex: "1 1 240px" }}>
                 <div style={{ fontSize: 14, fontWeight: 800, color: titleColor }}>¿Y el coche que tienes ahora?</div>
@@ -905,7 +905,7 @@ export default function PortalVoDetailPage({
                   const selectedPrice = getRentingPriceForSelection(selectedPortalVoOffer, rentingDuration, rentingKm);
                   const kmLabel = Number(rentingKm) >= 1000 ? `${(Number(rentingKm)/1000).toFixed(0)}.000` : String(rentingKm);
                   return (
-                    <div style={{ marginBottom: 16, background: isDark ? "rgba(5,150,105,0.12)" : "#f0fdf4", border: "1px solid #86efac", borderRadius: 10, padding: "10px 14px" }}>
+                    <div style={{ marginBottom: 16, background: isDark ? "rgba(5,150,105,0.12)" : "var(--gris-50)", border: "1px solid #86efac", borderRadius: 10, padding: "10px 14px" }}>
                       <div style={{ fontSize: 10, color: isDark ? "#6ee7b7" : "#065f46", fontWeight: 600, marginBottom: 4 }}>Opción seleccionada</div>
                       <div style={{ fontSize: 14, fontWeight: 800, color: "#059669" }}>
                         {rentingDuration.replace("m", " meses")} · {kmLabel} km/año{selectedPrice != null ? ` · ${selectedPrice} €/mes` : ""}

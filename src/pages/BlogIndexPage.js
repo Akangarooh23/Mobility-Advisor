@@ -48,7 +48,7 @@ export default function BlogIndexPage({ styles, onOpenPost, onGoHome }) {
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 8 }}>
-              <span style={{ fontSize: 11, color: "#67e8f9", fontWeight: 800, letterSpacing: "0.5px" }}>{post.category}</span>
+              <span style={{ fontSize: 11, color: "var(--gris-300)", fontWeight: 800, letterSpacing: "0.5px" }}>{post.category}</span>
               <span style={{ fontSize: 11, color: "var(--gris-400)" }}>{post.publishedAt} · {post.readTime}</span>
             </div>
             <h3 style={{ margin: "0 0 8px", color: "var(--gris-200)", fontSize: 20, lineHeight: 1.35 }}>
@@ -63,7 +63,7 @@ export default function BlogIndexPage({ styles, onOpenPost, onGoHome }) {
               style={{
                 border: "1px solid rgba(125,211,252,0.36)",
                 background: "rgba(14,165,233,0.12)",
-                color: "#bae6fd",
+                color: "var(--gris-200)",
                 borderRadius: 10,
                 padding: "8px 11px",
                 fontSize: 12,

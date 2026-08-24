@@ -7,7 +7,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
     page: {
       minHeight: "100vh",
       background: isDark
-        ? "linear-gradient(160deg,#060d1a 0%,#0a1628 50%,#050e1c 100%)"
+        ? "var(--gris-900)"
         : "var(--blanco)",   // el fondo de la web es blanco, sin degradado
       fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
       color: isDark ? "var(--gris-200)" : "var(--gris-900)",
@@ -19,7 +19,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
       borderBottom: "none",
       position: "sticky",
       top: 0,
-      background: isDark ? "rgba(6,13,26,0.95)" : "#ffffff",
+      background: isDark ? "rgba(6,13,26,0.95)" : "var(--blanco)",
       backdropFilter: "blur(12px)",
       zIndex: 100,
       boxShadow: isDark ? "0 1px 0 rgba(255,255,255,0.06)" : "0 1px 6px rgba(0,0,0,0.06)",
@@ -93,7 +93,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
     }),
     select: {
       width: "100%",
-      background: isDark ? "var(--gris-900)" : "#ffffff",
+      background: isDark ? "var(--gris-900)" : "var(--blanco)",
       color: isDark ? "var(--gris-50)" : "var(--gris-900)",
       border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(148,163,184,0.3)",
       borderRadius: 10,
@@ -103,7 +103,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
     },
     input: {
       width: "100%",
-      background: isDark ? "var(--gris-900)" : "#ffffff",
+      background: isDark ? "var(--gris-900)" : "var(--blanco)",
       color: isDark ? "var(--gris-50)" : "var(--gris-900)",
       border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(148,163,184,0.3)",
       borderRadius: 10,

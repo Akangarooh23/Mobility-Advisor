@@ -17,7 +17,7 @@ export default function LegalPolicyPage({
   const titleColor   = isDark ? "var(--gris-100)" : "var(--gris-900)";
   const summaryColor = isDark ? "var(--gris-400)"  : "var(--gris-600)";
   const metaColor    = isDark ? "var(--gris-500)"  : "var(--gris-400)";
-  const cardBg       = isDark ? "rgba(30,41,59,0.7)"  : "#ffffff";
+  const cardBg       = isDark ? "rgba(30,41,59,0.7)"  : "var(--blanco)";
   const cardBorder   = isDark ? "rgba(148,163,184,0.18)" : "rgba(148,163,184,0.28)";
   const headingColor = isDark ? "var(--gris-200)"  : "var(--gris-800)";
   const bodyColor    = isDark ? "var(--gris-300)"  : "var(--gris-700)";

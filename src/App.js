@@ -4399,7 +4399,7 @@ export default function App() {
         minHeight: "100vh",
         ...((themeMode === "light" && step === -1) || isAdviceFlowLightBackground
           ? {
-              background: "#ffffff",
+              background: "var(--blanco)",
               color: "var(--gris-900)",
             }
           : null),
@@ -4431,7 +4431,7 @@ export default function App() {
             className="cw-header-nav"
             aria-label="Navegacion principal CarsWise"
             style={{
-              "--cw-nav-color": themeMode === "dark" ? "var(--gris-300)" : "#5b6b82",
+              "--cw-nav-color": themeMode === "dark" ? "var(--gris-300)" : "var(--gris-500)",
               "--cw-nav-hover-color": themeMode === "dark" ? "var(--acento-tenue)" : "var(--gris-700)",
               "--cw-nav-active-color": themeMode === "dark" ? "var(--gris-300)" : "var(--marca-claro)",
               "--cw-nav-active-bg": themeMode === "dark" ? "rgba(125,211,252,0.18)" : "rgba(59,130,246,0.12)",
@@ -4486,7 +4486,7 @@ export default function App() {
                               textAlign: "left",
                               border: "1px solid rgba(148,163,184,0.28)",
                               borderRadius: 10,
-                              background: "#ffffff",
+                              background: "var(--blanco)",
                               color: "var(--gris-900)",
                               fontSize: 12,
                               fontWeight: 700,
@@ -4546,7 +4546,7 @@ export default function App() {
                               textAlign: "left",
                               border: "1px solid rgba(148,163,184,0.28)",
                               borderRadius: 10,
-                              background: "#ffffff",
+                              background: "var(--blanco)",
                               color: "var(--gris-900)",
                               fontSize: 12,
                               fontWeight: 700,
@@ -4720,7 +4720,7 @@ export default function App() {
                     style={{
                       background: "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
                       border: "none",
-                      color: "#ffffff",
+                      color: "var(--blanco)",
                       borderRadius: 9,
                       padding: "6px 10px",
                       cursor: "pointer",
@@ -4762,7 +4762,7 @@ export default function App() {
                       style={{
                         background: "rgba(14,165,233,0.1)",
                         border: "1px solid rgba(125,211,252,0.18)",
-                        color: "#bae6fd",
+                        color: "var(--gris-200)",
                         borderRadius: 999,
                         padding: "5px 10px",
                         fontSize: 11,
@@ -4817,7 +4817,7 @@ export default function App() {
                           justifySelf: "start",
                           background: "linear-gradient(135deg,var(--gris-700),var(--gris-900))",
                           border: "none",
-                          color: "#ffffff",
+                          color: "var(--blanco)",
                           borderRadius: 9,
                           padding: "8px 12px",
                           fontSize: 12,
@@ -4990,14 +4990,14 @@ export default function App() {
                 <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gris-50)" }}>Mis tasaciones</div>
-                    <span style={{ fontSize: 11, color: "#c084fc" }}>{dashboardValuations.length}</span>
+                    <span style={{ fontSize: 11, color: "var(--gris-400)" }}>{dashboardValuations.length}</span>
                   </div>
                   {dashboardValuations.length > 0 ? (
                     dashboardValuations.map((item) => (
                       <div key={item.id} style={{ paddingTop: 6 }}>
                         <div style={{ fontSize: 12, fontWeight: 600, color: "var(--gris-200)" }}>{item.title}</div>
                         <div style={{ fontSize: 11, color: "var(--gris-400)", marginTop: 2 }}>{item.meta}</div>
-                        <div style={{ fontSize: 11, color: "#c084fc", marginTop: 2 }}>{item.status}</div>
+                        <div style={{ fontSize: 11, color: "var(--gris-400)", marginTop: 2 }}>{item.status}</div>
                       </div>
                     ))
                   ) : (
@@ -5479,7 +5479,7 @@ export default function App() {
                     style={{
                       background: "rgba(14,165,233,0.08)",
                       border: "1px solid rgba(125,211,252,0.18)",
-                      color: "#bae6fd",
+                      color: "var(--gris-200)",
                       borderRadius: 10,
                       padding: "10px 12px",
                       cursor: "pointer",
@@ -5501,7 +5501,7 @@ export default function App() {
                         ? "linear-gradient(135deg,#10b981,#059669)"
                         : "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
                     border: "none",
-                    color: "#ffffff",
+                    color: "var(--blanco)",
                     borderRadius: 10,
                     padding: "10px 14px",
                     cursor: authLoading ? "progress" : "pointer",
@@ -5530,7 +5530,7 @@ export default function App() {
       {showConsentReview && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ background: "var(--gris-900)", borderRadius: 20, padding: "32px 28px", maxWidth: 480, width: "100%", border: "1px solid rgba(148,163,184,0.15)" }}>
-            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color: "#67e8f9", marginBottom: 10 }}>Actualización de políticas</p>
+            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--gris-300)", marginBottom: 10 }}>Actualización de políticas</p>
             <h3 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 800, color: "var(--gris-50)", lineHeight: 1.2 }}>Revisa y acepta nuestras políticas</h3>
             <p style={{ margin: "0 0 20px", color: "var(--gris-400)", fontSize: 13, lineHeight: 1.6 }}>Hemos actualizado nuestras condiciones. Puedes aceptar o continuar sin aceptar — tu decisión quedará guardada.</p>
 
@@ -5691,7 +5691,7 @@ export default function App() {
               overflowY: "auto",
             }}
           >
-            <div style={{ fontSize: 11, color: "#67e8f9", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 8 }}>
+            <div style={{ fontSize: 11, color: "var(--gris-300)", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 8 }}>
               {t("cookies.badge")}
             </div>
             <h3 style={{ margin: "0 0 8px", fontSize: "clamp(22px,4vw,28px)", color: "var(--gris-50)" }}>
@@ -5808,7 +5808,7 @@ export default function App() {
                   borderRadius: 10,
                   padding: "9px 11px",
                   fontSize: 12,
-                  color: "#bae6fd",
+                  color: "var(--gris-200)",
                 }}
               >
                 {t("cookies.advancedMessage")}
@@ -5824,7 +5824,7 @@ export default function App() {
                   borderRadius: 10,
                   padding: "10px 14px",
                   background: "linear-gradient(135deg,var(--marca),var(--gris-700))",
-                  color: "#ffffff",
+                  color: "var(--blanco)",
                   fontSize: 12,
                   fontWeight: 800,
                   cursor: "pointer",
@@ -7349,7 +7349,7 @@ export default function App() {
           color-scheme: ${themeMode === "dark" ? "dark" : "light"};
         }
         select option {
-          background: ${themeMode === "dark" ? "var(--gris-900)" : "#ffffff"};
+          background: ${themeMode === "dark" ? "var(--gris-900)" : "var(--blanco)"};
           color: ${themeMode === "dark" ? "var(--gris-50)" : "var(--gris-900)"};
         }
         ::-webkit-scrollbar { width: 4px; }

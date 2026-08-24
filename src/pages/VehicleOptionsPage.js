@@ -4,7 +4,7 @@ export default function VehicleOptionsPage({ styles, onSelectBuy, onSelectRentin
   const { t } = useTranslation();
 
   const isDark = styles?.page?.color === "var(--gris-200)";
-  const titleColor = isDark ? "var(--gris-50)" : "#000000";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
   const mutedColor = isDark ? "var(--gris-300)" : "var(--gris-400)";
 
   return (

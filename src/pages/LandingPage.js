@@ -331,7 +331,7 @@ export default function LandingPage({
 
           {/* Logo */}
           <button className="lp-logo" onClick={handleStart} aria-label="CarsWise AI – Inicio">
-            <img src="/carswise-logo.png" alt="" />
+            <img src="/popcar-logo.png" alt="" />
             <span className="lp-logo-text">CarsWise AI</span>
           </button>
 
@@ -713,7 +713,7 @@ export default function LandingPage({
             {/* Columna logo */}
             <div style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <img src="/carswise-logo.png" alt="CarsWise" style={{ width: 98, height: 40, objectFit: "contain", display: "block" }} />
+                <img src="/popcar-logo.png" alt="PopCar" style={{ width: 98, height: 40, objectFit: "contain", display: "block" }} />
                 <div style={{ fontWeight: 800, fontSize: 14, color: "var(--gris-50)" }}>CarsWise</div>
               </div>
               <div style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>

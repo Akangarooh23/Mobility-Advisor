@@ -1308,7 +1308,7 @@ const SEO_META_BY_ENTRY_MODE = {
 
 const SITE_URL = "https://www.carswiseai.com";
 const SITE_NAME = "CarsWise AI";
-const SITE_LOGO_URL = `${SITE_URL}/carswise-logo.png`;
+const SITE_LOGO_URL = `${SITE_URL}/popcar-logo.png`;
 const SITE_IMAGE_URL = `${SITE_URL}/CarWise_app.jpg?v=20260418b`;
 
 function buildBreadcrumbSchema(items = []) {
@@ -4362,7 +4362,7 @@ export default function App() {
           padding: "0 24px",
           display: "flex", alignItems: "center", justifyContent: "space-between", height: 56,
         }}>
-          <img src="/carswise-logo.png" alt="CarsWise AI" style={{ height: 34, width: "auto", objectFit: "contain" }} />
+          <img src="/popcar-logo.png" alt="PopCar" style={{ height: 34, width: "auto", objectFit: "contain" }} />
           <button
             type="button"
             onClick={() => { if (window.history.length > 1) { window.history.back(); } else { window.close(); } }}
@@ -4423,8 +4423,9 @@ export default function App() {
             title="Ir al home"
             aria-label="Ir al home"
           >
-            <img src="/carswise-logo.png" alt="CarsWise" style={{ height: 52, width: "auto", objectFit: "contain", display: "block" }} />
-            <span style={{ fontSize: 14, fontWeight: 700, color: "var(--gris-900)", whiteSpace: "nowrap", letterSpacing: "-0.2px" }}>CarsWise AI</span>
+            {/* El logotipo ya dice el nombre: el rótulo de al lado sobra y antes
+                repetía la marca dos veces. */}
+            <img src="/popcar-logo.png" alt="PopCar" style={{ height: 44, width: "auto", objectFit: "contain", display: "block" }} />
           </button>
           <nav
             className="cw-header-nav"
@@ -7189,8 +7190,8 @@ export default function App() {
                   }}
                 >
                   <img
-                    src="/carswise-logo.png"
-                    alt="CarsWise"
+                    src="/popcar-logo.png"
+                    alt="PopCar"
                     style={{
                       width: "100%",
                       height: "100%",

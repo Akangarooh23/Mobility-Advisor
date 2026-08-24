@@ -438,9 +438,9 @@ export default function QuestionnairePage({
         <div
           style={{
             background: isDark
-              ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
-              : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
-            border: isDark ? "1px solid rgba(148,163,184,0.34)" : "1px solid rgba(148,163,184,0.22)",
+              ? "linear-gradient(160deg, rgba(17,17,17,0.9), rgba(31,31,29,0.82))"
+              : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(242,242,237,0.92))",
+            border: isDark ? "1px solid rgba(150,150,143,0.34)" : "1px solid rgba(150,150,143,0.22)",
             borderRadius: 14,
             padding: 14,
           }}
@@ -456,8 +456,8 @@ export default function QuestionnairePage({
               gap: 8,
               padding: "6px 10px",
               borderRadius: 999,
-              background: "rgba(37,99,235,0.12)",
-              border: "1px solid rgba(125,211,252,0.25)",
+              background: "rgba(255,196,0,0.12)",
+              border: "1px solid rgba(207,207,200,0.25)",
               color: "var(--gris-900)",
               fontSize: 12,
               fontWeight: 700,
@@ -479,9 +479,9 @@ export default function QuestionnairePage({
                   onClick={() => toggleMultiValue(opt.value)}
                   style={{
                     background: isSelected
-                      ? (isDark ? "rgba(37,99,235,0.3)" : "rgba(37,99,235,0.12)")
-                      : (isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.9)"),
-                    border: `1px solid ${isSelected ? "rgba(125,211,252,0.52)" : "rgba(148,163,184,0.22)"}`,
+                      ? (isDark ? "rgba(255,196,0,0.3)" : "rgba(255,196,0,0.12)")
+                      : (isDark ? "rgba(17,17,17,0.88)" : "rgba(255,255,255,0.9)"),
+                    border: `1px solid ${isSelected ? "rgba(207,207,200,0.52)" : "rgba(150,150,143,0.22)"}`,
                     borderRadius: 10,
                     color: isSelected ? (isDark ? "var(--gris-200)" : "var(--gris-900)") : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
                     fontSize: 11,
@@ -509,9 +509,9 @@ export default function QuestionnairePage({
         <div
           style={{
             background: isDark
-              ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
-              : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
-            border: isDark ? "1px solid rgba(148,163,184,0.34)" : "1px solid rgba(148,163,184,0.22)",
+              ? "linear-gradient(160deg, rgba(17,17,17,0.9), rgba(31,31,29,0.82))"
+              : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(242,242,237,0.92))",
+            border: isDark ? "1px solid rgba(150,150,143,0.34)" : "1px solid rgba(150,150,143,0.22)",
             borderRadius: 14,
             padding: 14,
           }}
@@ -531,9 +531,9 @@ export default function QuestionnairePage({
                   onClick={() => onHandleDualTimelineSelect(fieldKey, [opt.value, opt.value])}
                   style={{
                     background: isSelected
-                      ? (isDark ? "rgba(37,99,235,0.3)" : "rgba(37,99,235,0.12)")
-                      : (isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.9)"),
-                    border: `1px solid ${isSelected ? "rgba(125,211,252,0.52)" : "rgba(148,163,184,0.22)"}`,
+                      ? (isDark ? "rgba(255,196,0,0.3)" : "rgba(255,196,0,0.12)")
+                      : (isDark ? "rgba(17,17,17,0.88)" : "rgba(255,255,255,0.9)"),
+                    border: `1px solid ${isSelected ? "rgba(207,207,200,0.52)" : "rgba(150,150,143,0.22)"}`,
                     borderRadius: 10,
                     color: isSelected ? (isDark ? "var(--gris-200)" : "var(--gris-900)") : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
                     fontSize: 12,
@@ -590,9 +590,9 @@ export default function QuestionnairePage({
       <div
         style={{
           background: isDark
-            ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
-            : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))",
-          border: isDark ? "1px solid rgba(148,163,184,0.34)" : "1px solid rgba(148,163,184,0.22)",
+            ? "linear-gradient(160deg, rgba(17,17,17,0.9), rgba(31,31,29,0.82))"
+            : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(242,242,237,0.92))",
+          border: isDark ? "1px solid rgba(150,150,143,0.34)" : "1px solid rgba(150,150,143,0.22)",
           borderRadius: 14,
           padding: 14,
         }}
@@ -608,8 +608,8 @@ export default function QuestionnairePage({
             gap: 8,
             padding: "6px 10px",
             borderRadius: 999,
-            background: "rgba(37,99,235,0.12)",
-            border: "1px solid rgba(125,211,252,0.25)",
+            background: "rgba(255,196,0,0.12)",
+            border: "1px solid rgba(207,207,200,0.25)",
             color: "var(--gris-900)",
             fontSize: 12,
             fontWeight: 700,
@@ -629,7 +629,7 @@ export default function QuestionnairePage({
               right: 4,
               height: 6,
               borderRadius: 999,
-              background: "rgba(148,163,184,0.24)",
+              background: "rgba(150,150,143,0.24)",
             }}
           />
           <div
@@ -705,9 +705,9 @@ export default function QuestionnairePage({
                 onClick={() => onHandleDualTimelineSelect(fieldKey, [opt.value, opt.value])}
                 style={{
                   background: isWithinRange
-                    ? (isDark ? "rgba(37,99,235,0.3)" : "rgba(37,99,235,0.12)")
-                    : (isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.9)"),
-                  border: `1px solid ${isEdge ? "rgba(125,211,252,0.52)" : isWithinRange ? "rgba(96,165,250,0.28)" : "rgba(148,163,184,0.22)"}`,
+                    ? (isDark ? "rgba(255,196,0,0.3)" : "rgba(255,196,0,0.12)")
+                    : (isDark ? "rgba(17,17,17,0.88)" : "rgba(255,255,255,0.9)"),
+                  border: `1px solid ${isEdge ? "rgba(207,207,200,0.52)" : isWithinRange ? "rgba(255,196,0,0.28)" : "rgba(150,150,143,0.22)"}`,
                   borderRadius: 10,
                   color: isWithinRange ? (isDark ? "var(--gris-200)" : "var(--gris-900)") : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
                   fontSize: 11,
@@ -776,8 +776,8 @@ export default function QuestionnairePage({
             type="button"
             onClick={toggleAdvancedMode}
             style={{
-              background: advancedMode ? "rgba(20,184,166,0.14)" : "rgba(37,99,235,0.12)",
-              border: `1px solid ${advancedMode ? "rgba(153,246,228,0.4)" : "rgba(147,197,253,0.35)"}`,
+              background: advancedMode ? "rgba(20,184,166,0.14)" : "rgba(255,196,0,0.12)",
+              border: `1px solid ${advancedMode ? "rgba(153,246,228,0.4)" : "rgba(255,196,0,0.35)"}`,
               color: advancedMode ? (isDark ? "#99f6e4" : "#0f766e") : (isDark ? "var(--gris-200)" : "var(--gris-900)"),
               padding: "8px 12px",
               borderRadius: 10,
@@ -794,8 +794,8 @@ export default function QuestionnairePage({
 
       <div
         style={{
-          background: isDark ? "rgba(3,105,161,0.24)" : "rgba(14,165,233,0.08)",
-          border: isDark ? "1px solid rgba(125,211,252,0.28)" : "1px solid rgba(14,165,233,0.2)",
+          background: isDark ? "rgba(94,94,89,0.24)" : "rgba(255,196,0,0.08)",
+          border: isDark ? "1px solid rgba(207,207,200,0.28)" : "1px solid rgba(255,196,0,0.2)",
           borderRadius: 12,
           padding: 12,
           marginBottom: 18,
@@ -840,8 +840,8 @@ export default function QuestionnairePage({
               gap: 8,
               padding: "9px 12px",
               borderRadius: 10,
-              border: "1px solid rgba(37,99,235,0.24)",
-              background: isDark ? "rgba(37,99,235,0.18)" : "rgba(219,234,254,0.7)",
+              border: "1px solid rgba(255,196,0,0.24)",
+              background: isDark ? "rgba(255,196,0,0.18)" : "rgba(255,246,217,0.7)",
               color: isDark ? "var(--gris-200)" : "var(--marca-oscuro)",
               fontSize: 12,
               fontWeight: 700,
@@ -860,7 +860,7 @@ export default function QuestionnairePage({
               style={{
                 position: "fixed",
                 inset: 0,
-                background: "rgba(15,23,42,0.45)",
+                background: "rgba(17,17,17,0.45)",
                 display: "grid",
                 placeItems: "center",
                 zIndex: 1000,
@@ -874,9 +874,9 @@ export default function QuestionnairePage({
                   maxHeight: "80vh",
                   overflow: "auto",
                   borderRadius: 14,
-                  border: isDark ? "1px solid rgba(148,163,184,0.34)" : "1px solid rgba(148,163,184,0.25)",
-                  background: isDark ? "rgba(15,23,42,0.98)" : "var(--blanco)",
-                  boxShadow: "0 20px 48px rgba(15,23,42,0.28)",
+                  border: isDark ? "1px solid rgba(150,150,143,0.34)" : "1px solid rgba(150,150,143,0.25)",
+                  background: isDark ? "rgba(17,17,17,0.98)" : "var(--blanco)",
+                  boxShadow: "0 20px 48px rgba(17,17,17,0.28)",
                   padding: 16,
                 }}
               >
@@ -888,7 +888,7 @@ export default function QuestionnairePage({
                     type="button"
                     onClick={() => setShowHelpInfoModal(false)}
                     style={{
-                      border: "1px solid rgba(148,163,184,0.3)",
+                      border: "1px solid rgba(150,150,143,0.3)",
                       background: "transparent",
                       color: isDark ? "var(--gris-200)" : "var(--gris-700)",
                       borderRadius: 8,
@@ -911,7 +911,7 @@ export default function QuestionnairePage({
                     }}
                   >
                     <thead>
-                      <tr style={{ borderBottom: "1px solid rgba(148,163,184,0.35)" }}>
+                      <tr style={{ borderBottom: "1px solid rgba(150,150,143,0.35)" }}>
                         <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>{t("questionnaire.tableType")}</th>
                         <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>{t("questionnaire.tableConsumption")}</th>
                         <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>{t("questionnaire.tableCost")}</th>
@@ -922,8 +922,8 @@ export default function QuestionnairePage({
                         <tr
                           key={idx}
                           style={{
-                            borderBottom: "1px solid rgba(148,163,184,0.15)",
-                            background: idx % 2 === 0 ? (isDark ? "rgba(255,255,255,0.02)" : "rgba(148,163,184,0.06)") : "transparent",
+                            borderBottom: "1px solid rgba(150,150,143,0.15)",
+                            background: idx % 2 === 0 ? (isDark ? "rgba(255,255,255,0.02)" : "rgba(150,150,143,0.06)") : "transparent",
                           }}
                         >
                           <td style={{ padding: "6px 8px", color: isDark ? "var(--gris-200)" : "var(--gris-700)" }}>{row.type}</td>
@@ -954,22 +954,22 @@ export default function QuestionnairePage({
             style={{
               ...styles.card(selected),
               background: selected
-                ? "linear-gradient(145deg, rgba(219,234,254,0.9), rgba(191,219,254,0.75))"
+                ? "linear-gradient(145deg, rgba(255,246,217,0.9), rgba(255,246,217,0.75))"
                 : isDark
-                ? "linear-gradient(145deg, rgba(15,23,42,0.95), rgba(30,41,59,0.92))"
+                ? "linear-gradient(145deg, rgba(17,17,17,0.95), rgba(31,31,29,0.92))"
                 : "linear-gradient(145deg, var(--blanco), var(--gris-50))",
               border: selected
-                ? "1px solid rgba(59,130,246,0.38)"
+                ? "1px solid rgba(255,196,0,0.38)"
                 : isHovered
-                ? "1px solid rgba(96,165,250,0.35)"
+                ? "1px solid rgba(255,196,0,0.35)"
                 : isDark
-                ? "1px solid rgba(148,163,184,0.3)"
-                : "1px solid rgba(148,163,184,0.22)",
+                ? "1px solid rgba(150,150,143,0.3)"
+                : "1px solid rgba(150,150,143,0.22)",
               boxShadow: selected
-                ? "0 14px 30px rgba(37,99,235,0.16)"
+                ? "0 14px 30px rgba(255,196,0,0.16)"
                 : isHovered
-                ? "0 10px 24px rgba(15,23,42,0.08)"
-                : "0 4px 12px rgba(15,23,42,0.05)",
+                ? "0 10px 24px rgba(17,17,17,0.08)"
+                : "0 4px 12px rgba(17,17,17,0.05)",
               transform: isHovered ? "translateY(-1px)" : "translateY(0)",
               transition: "all 0.2s ease",
             }}
@@ -1107,8 +1107,8 @@ export default function QuestionnairePage({
           <div style={{ display: "grid", gap: 10 }}>
             <div
               style={{
-                background: isDark ? "rgba(37,99,235,0.12)" : "rgba(219,234,254,0.6)",
-                border: "1px solid rgba(125,211,252,0.25)",
+                background: isDark ? "rgba(255,196,0,0.12)" : "rgba(255,246,217,0.6)",
+                border: "1px solid rgba(207,207,200,0.25)",
                 borderRadius: 10,
                 padding: "10px 14px",
                 color: isDark ? "var(--gris-300)" : "var(--gris-900)",
@@ -1136,13 +1136,13 @@ export default function QuestionnairePage({
                     alignItems: "center",
                     gap: 12,
                     background: isBeingDragged
-                      ? isDark ? "rgba(37,99,235,0.22)" : "rgba(219,234,254,0.85)"
+                      ? isDark ? "rgba(255,196,0,0.22)" : "rgba(255,246,217,0.85)"
                       : isDark
-                        ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
-                        : "linear-gradient(160deg, rgba(255,255,255,0.97), rgba(241,245,249,0.95))",
+                        ? "linear-gradient(160deg, rgba(17,17,17,0.9), rgba(31,31,29,0.82))"
+                        : "linear-gradient(160deg, rgba(255,255,255,0.97), rgba(242,242,237,0.95))",
                     border: isBeingDragged
-                      ? "2px dashed rgba(99,102,241,0.6)"
-                      : isDark ? "1px solid rgba(148,163,184,0.34)" : "1px solid rgba(148,163,184,0.22)",
+                      ? "2px dashed rgba(255,196,0,0.6)"
+                      : isDark ? "1px solid rgba(150,150,143,0.34)" : "1px solid rgba(150,150,143,0.22)",
                     borderRadius: 14,
                     padding: "12px 14px",
                     cursor: "grab",
@@ -1150,7 +1150,7 @@ export default function QuestionnairePage({
                     touchAction: "manipulation",
                     opacity: isBeingDragged ? 0.55 : 1,
                     transition: "box-shadow 0.15s",
-                    boxShadow: isBeingDragged ? "0 4px 18px rgba(99,102,241,0.18)" : "none",
+                    boxShadow: isBeingDragged ? "0 4px 18px rgba(255,196,0,0.18)" : "none",
                   }}
                 >
                   {/* drag handle */}
@@ -1161,7 +1161,7 @@ export default function QuestionnairePage({
                       width: 26,
                       height: 26,
                       borderRadius: "50%",
-                      background: rank === metrics.length ? "rgba(37,99,235,0.85)" : isDark ? "rgba(51,65,85,0.8)" : "rgba(226,232,240,0.9)",
+                      background: rank === metrics.length ? "rgba(255,196,0,0.85)" : isDark ? "rgba(51,51,48,0.8)" : "rgba(228,228,223,0.9)",
                       color: rank === metrics.length ? "#fff" : isDark ? "var(--gris-400)" : "var(--gris-600)",
                       display: "inline-flex",
                       alignItems: "center",
@@ -1189,8 +1189,8 @@ export default function QuestionnairePage({
                         width: 28,
                         height: 28,
                         borderRadius: 8,
-                        border: "1px solid rgba(148,163,184,0.35)",
-                        background: isDark ? "rgba(30,41,59,0.8)" : "rgba(255,255,255,0.92)",
+                        border: "1px solid rgba(150,150,143,0.35)",
+                        background: isDark ? "rgba(31,31,29,0.8)" : "rgba(255,255,255,0.92)",
                         color: isDark ? "var(--gris-200)" : "var(--gris-700)",
                         fontSize: 14,
                         cursor: pos === 0 ? "not-allowed" : "pointer",
@@ -1212,8 +1212,8 @@ export default function QuestionnairePage({
                         width: 28,
                         height: 28,
                         borderRadius: 8,
-                        border: "1px solid rgba(148,163,184,0.35)",
-                        background: isDark ? "rgba(30,41,59,0.8)" : "rgba(255,255,255,0.92)",
+                        border: "1px solid rgba(150,150,143,0.35)",
+                        background: isDark ? "rgba(31,31,29,0.8)" : "rgba(255,255,255,0.92)",
                         color: isDark ? "var(--gris-200)" : "var(--gris-700)",
                         fontSize: 14,
                         cursor: pos === metrics.length - 1 ? "not-allowed" : "pointer",
@@ -1293,8 +1293,8 @@ export default function QuestionnairePage({
           onClick={onGoPrevious}
           disabled={step === 0}
           style={{
-            background: isDark ? "rgba(30,41,59,0.86)" : "rgba(241,245,249,0.9)",
-            border: isDark ? "1px solid rgba(148,163,184,0.36)" : "1px solid rgba(148,163,184,0.28)",
+            background: isDark ? "rgba(31,31,29,0.86)" : "rgba(242,242,237,0.9)",
+            border: isDark ? "1px solid rgba(150,150,143,0.36)" : "1px solid rgba(150,150,143,0.28)",
             color: isDark ? "var(--gris-200)" : "var(--gris-700)",
             padding: "9px 14px",
             borderRadius: 9,

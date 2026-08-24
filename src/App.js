@@ -154,6 +154,7 @@ import { BLOG_POSTS, getBlogPostBySlug } from "./data/blogPosts";
 import { STEPS, getQuestionnaireSteps } from "./data/questionnaireSteps";
 import { BLOCK_COLORS, BRAND_LOGOS } from "./ui/branding";
 import { createAppStyles } from "./ui/appStyles";
+import LogoPopCar from "./ui/LogoPopCar";
 
 function hasAnsweredValue(value) {
   if (Array.isArray(value)) {
@@ -4351,18 +4352,18 @@ export default function App() {
     const isDark = themeMode === "dark";
     const legalBg = isDark ? "var(--gris-900)" : "var(--gris-50)";
     const legalText = isDark ? "var(--gris-200)" : "var(--gris-900)";
-    const legalBorder = isDark ? "rgba(148,163,184,0.15)" : "rgba(148,163,184,0.22)";
+    const legalBorder = isDark ? "rgba(150,150,143,0.15)" : "rgba(150,150,143,0.22)";
     return (
       <div style={{ minHeight: "100vh", background: legalBg, color: legalText, fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" }}>
         <div style={{
           position: "sticky", top: 0, zIndex: 100,
-          background: isDark ? "rgba(15,23,42,0.96)" : "rgba(255,255,255,0.96)",
+          background: isDark ? "rgba(17,17,17,0.96)" : "rgba(255,255,255,0.96)",
           borderBottom: `1px solid ${legalBorder}`,
           backdropFilter: "blur(10px)",
           padding: "0 24px",
           display: "flex", alignItems: "center", justifyContent: "space-between", height: 56,
         }}>
-          <img src="/popcar-logo.png" alt="PopCar" style={{ height: 34, width: "auto", objectFit: "contain" }} />
+          <LogoPopCar size={26} />
           <button
             type="button"
             onClick={() => { if (window.history.length > 1) { window.history.back(); } else { window.close(); } }}
@@ -4425,7 +4426,7 @@ export default function App() {
           >
             {/* El logotipo ya dice el nombre: el rótulo de al lado sobra y antes
                 repetía la marca dos veces. */}
-            <img src="/popcar-logo.png" alt="PopCar" style={{ height: 44, width: "auto", objectFit: "contain", display: "block" }} />
+            <LogoPopCar size={30} />
           </button>
           <nav
             className="cw-header-nav"
@@ -4434,7 +4435,7 @@ export default function App() {
               "--cw-nav-color": themeMode === "dark" ? "var(--gris-300)" : "var(--gris-500)",
               "--cw-nav-hover-color": themeMode === "dark" ? "var(--acento-tenue)" : "var(--gris-700)",
               "--cw-nav-active-color": themeMode === "dark" ? "var(--gris-300)" : "var(--marca-claro)",
-              "--cw-nav-active-bg": themeMode === "dark" ? "rgba(125,211,252,0.18)" : "rgba(59,130,246,0.12)",
+              "--cw-nav-active-bg": themeMode === "dark" ? "rgba(207,207,200,0.18)" : "rgba(255,196,0,0.12)",
                 justifyContent: "center",
                 marginLeft: 18,
                 marginRight: 18,
@@ -4466,9 +4467,9 @@ export default function App() {
                           right: 0,
                           minWidth: 210,
                           background: "rgba(255,255,255,0.98)",
-                          border: "1px solid rgba(148,163,184,0.34)",
+                          border: "1px solid rgba(150,150,143,0.34)",
                           borderRadius: 12,
-                          boxShadow: "0 12px 30px rgba(15,23,42,0.16)",
+                          boxShadow: "0 12px 30px rgba(17,17,17,0.16)",
                           padding: 8,
                           zIndex: 140,
                           display: "grid",
@@ -4484,7 +4485,7 @@ export default function App() {
                             style={{
                               width: "100%",
                               textAlign: "left",
-                              border: "1px solid rgba(148,163,184,0.28)",
+                              border: "1px solid rgba(150,150,143,0.28)",
                               borderRadius: 10,
                               background: "var(--blanco)",
                               color: "var(--gris-900)",
@@ -4526,9 +4527,9 @@ export default function App() {
                           right: 0,
                           minWidth: 190,
                           background: "rgba(255,255,255,0.98)",
-                          border: "1px solid rgba(148,163,184,0.34)",
+                          border: "1px solid rgba(150,150,143,0.34)",
                           borderRadius: 12,
-                          boxShadow: "0 12px 30px rgba(15,23,42,0.16)",
+                          boxShadow: "0 12px 30px rgba(17,17,17,0.16)",
                           padding: 8,
                           zIndex: 140,
                           display: "grid",
@@ -4544,7 +4545,7 @@ export default function App() {
                             style={{
                               width: "100%",
                               textAlign: "left",
-                              border: "1px solid rgba(148,163,184,0.28)",
+                              border: "1px solid rgba(150,150,143,0.28)",
                               borderRadius: 10,
                               background: "var(--blanco)",
                               color: "var(--gris-900)",
@@ -4585,8 +4586,8 @@ export default function App() {
             <button
               onClick={restart}
               style={{
-                background: themeMode === "dark" ? "rgba(255,255,255,0.04)" : "rgba(241,245,249,0.92)",
-                border: themeMode === "dark" ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(148,163,184,0.32)",
+                background: themeMode === "dark" ? "rgba(255,255,255,0.04)" : "rgba(242,242,237,0.92)",
+                border: themeMode === "dark" ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(150,150,143,0.32)",
                 color: themeMode === "dark" ? "var(--gris-400)" : "var(--gris-700)",
                 padding: "5px 13px",
                 borderRadius: 7,
@@ -4635,10 +4636,10 @@ export default function App() {
                 top: "calc(100% + 10px)",
                 right: 0,
                 minWidth: 220,
-                background: "rgba(8,15,30,0.96)",
-                border: "1px solid rgba(125,211,252,0.18)",
+                background: "rgba(17,17,17,0.96)",
+                border: "1px solid rgba(207,207,200,0.18)",
                 borderRadius: 14,
-                boxShadow: "0 18px 40px rgba(2,6,23,0.42)",
+                boxShadow: "0 18px 40px rgba(5,5,5,0.42)",
                 padding: 12,
                 zIndex: 120,
               }}
@@ -4651,8 +4652,8 @@ export default function App() {
                 onClick={() => handleAuthAction("login")}
                 style={{
                   width: "100%",
-                  background: "rgba(37,99,235,0.14)",
-                  border: "1px solid rgba(96,165,250,0.24)",
+                  background: "rgba(255,196,0,0.14)",
+                  border: "1px solid rgba(255,196,0,0.24)",
                   color: "var(--acento-tenue)",
                   padding: "9px 10px",
                   borderRadius: 10,
@@ -4691,10 +4692,10 @@ export default function App() {
                 top: "calc(100% + 10px)",
                 right: 0,
                 width: "min(380px, calc(100vw - 36px))",
-                background: "rgba(8,15,30,0.98)",
+                background: "rgba(17,17,17,0.98)",
                 border: "1px solid rgba(110,231,183,0.18)",
                 borderRadius: 16,
-                boxShadow: "0 18px 40px rgba(2,6,23,0.42)",
+                boxShadow: "0 18px 40px rgba(5,5,5,0.42)",
                 padding: 14,
                 zIndex: 120,
               }}
@@ -4760,8 +4761,8 @@ export default function App() {
                         setChangePasswordSuccess("");
                       }}
                       style={{
-                        background: "rgba(14,165,233,0.1)",
-                        border: "1px solid rgba(125,211,252,0.18)",
+                        background: "rgba(255,196,0,0.1)",
+                        border: "1px solid rgba(207,207,200,0.18)",
                         color: "var(--gris-200)",
                         borderRadius: 999,
                         padding: "5px 10px",
@@ -5016,7 +5017,7 @@ export default function App() {
                       <div
                         key={section.key}
                         style={{
-                          background: "rgba(15,23,42,0.7)",
+                          background: "rgba(17,17,17,0.7)",
                           border: "1px solid rgba(255,255,255,0.05)",
                           borderRadius: 10,
                           padding: 10,
@@ -5088,7 +5089,7 @@ export default function App() {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(2,6,23,0.7)",
+            background: "rgba(5,5,5,0.7)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -5101,10 +5102,10 @@ export default function App() {
               width: "min(460px, 100%)",
               maxHeight: "92vh",
               overflowY: "auto",
-              background: "rgba(8,15,30,0.98)",
-              border: "1px solid rgba(96,165,250,0.18)",
+              background: "rgba(17,17,17,0.98)",
+              border: "1px solid rgba(255,196,0,0.18)",
               borderRadius: 18,
-              boxShadow: "0 24px 60px rgba(2,6,23,0.42)",
+              boxShadow: "0 24px 60px rgba(5,5,5,0.42)",
               padding: 18,
             }}
           >
@@ -5167,7 +5168,7 @@ export default function App() {
                       style={{
                         padding: "9px 10px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer",
                         border: clientType === "individual" ? "1.5px solid var(--marca-claro)" : "1px solid rgba(255,255,255,0.12)",
-                        background: clientType === "individual" ? "rgba(59,130,246,0.12)" : "var(--gris-900)",
+                        background: clientType === "individual" ? "rgba(255,196,0,0.12)" : "var(--gris-900)",
                         color: clientType === "individual" ? "var(--gris-300)" : "var(--gris-500)",
                       }}
                     >
@@ -5291,7 +5292,7 @@ export default function App() {
               )}
 
               {showCookieGate && authDialogMode === "register" && authRecoveryMode === "none" && (
-                <div style={{ borderTop: "1px solid rgba(148,163,184,0.15)", paddingTop: 14, display: "grid", gap: 10 }}>
+                <div style={{ borderTop: "1px solid rgba(150,150,143,0.15)", paddingTop: 14, display: "grid", gap: 10 }}>
 
                   {/* Master toggle */}
                   <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
@@ -5306,7 +5307,7 @@ export default function App() {
                       }}
                       style={{
                         width: 36, height: 20, borderRadius: 999, flexShrink: 0, cursor: "pointer",
-                        background: consentLegal && consentMarketingEmail && consentMarketingSms && consentThirdPartyEmail && consentThirdPartySms ? "var(--marca)" : "rgba(148,163,184,0.3)",
+                        background: consentLegal && consentMarketingEmail && consentMarketingSms && consentThirdPartyEmail && consentThirdPartySms ? "var(--marca)" : "rgba(150,150,143,0.3)",
                         position: "relative", transition: "background 0.2s",
                       }}
                     >
@@ -5477,8 +5478,8 @@ export default function App() {
                       setAuthError("");
                     }}
                     style={{
-                      background: "rgba(14,165,233,0.08)",
-                      border: "1px solid rgba(125,211,252,0.18)",
+                      background: "rgba(255,196,0,0.08)",
+                      border: "1px solid rgba(207,207,200,0.18)",
                       color: "var(--gris-200)",
                       borderRadius: 10,
                       padding: "10px 12px",
@@ -5529,7 +5530,7 @@ export default function App() {
       {/* ── Consent review modal for existing users ── */}
       {showConsentReview && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ background: "var(--gris-900)", borderRadius: 20, padding: "32px 28px", maxWidth: 480, width: "100%", border: "1px solid rgba(148,163,184,0.15)" }}>
+          <div style={{ background: "var(--gris-900)", borderRadius: 20, padding: "32px 28px", maxWidth: 480, width: "100%", border: "1px solid rgba(150,150,143,0.15)" }}>
             <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--gris-300)", marginBottom: 10 }}>Actualización de políticas</p>
             <h3 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 800, color: "var(--gris-50)", lineHeight: 1.2 }}>Revisa y acepta nuestras políticas</h3>
             <p style={{ margin: "0 0 20px", color: "var(--gris-400)", fontSize: 13, lineHeight: 1.6 }}>Hemos actualizado nuestras condiciones. Puedes aceptar o continuar sin aceptar — tu decisión quedará guardada.</p>
@@ -5653,7 +5654,7 @@ export default function App() {
                   setShowConsentReview(false);
                   setConsentReviewLoading(false);
                 }}
-                style={{ width: "100%", padding: "10px", borderRadius: 10, background: "transparent", color: "var(--gris-500)", fontWeight: 500, fontSize: 13, border: "1px solid rgba(148,163,184,0.2)", cursor: "pointer" }}
+                style={{ width: "100%", padding: "10px", borderRadius: 10, background: "transparent", color: "var(--gris-500)", fontWeight: 500, fontSize: 13, border: "1px solid rgba(150,150,143,0.2)", cursor: "pointer" }}
               >
                 Continuar sin aceptar
               </button>
@@ -5670,7 +5671,7 @@ export default function App() {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(2,6,23,0.8)",
+            background: "rgba(5,5,5,0.8)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -5682,10 +5683,10 @@ export default function App() {
             style={{
               width: "min(680px, 100%)",
               maxHeight: "min(92vh, 820px)",
-              background: "rgba(8,15,30,0.98)",
-              border: "1px solid rgba(103,232,249,0.28)",
+              background: "rgba(17,17,17,0.98)",
+              border: "1px solid rgba(207,207,200,0.28)",
               borderRadius: 18,
-              boxShadow: "0 24px 60px rgba(2,6,23,0.45)",
+              boxShadow: "0 24px 60px rgba(5,5,5,0.45)",
               padding: 18,
               textAlign: "left",
               overflowY: "auto",
@@ -5733,9 +5734,9 @@ export default function App() {
                   <div
                     key={item.key}
                     style={{
-                      border: "1px solid rgba(148,163,184,0.24)",
+                      border: "1px solid rgba(150,150,143,0.24)",
                       borderRadius: 12,
-                      background: "rgba(15,23,42,0.5)",
+                      background: "rgba(17,17,17,0.5)",
                       padding: "10px 12px",
                       display: "flex",
                       gap: 10,
@@ -5779,10 +5780,10 @@ export default function App() {
                           borderRadius: 999,
                           border: enabled
                             ? "1px solid rgba(110,231,183,0.35)"
-                            : "1px solid rgba(148,163,184,0.3)",
+                            : "1px solid rgba(150,150,143,0.3)",
                           background: enabled
                             ? "rgba(16,185,129,0.14)"
-                            : "rgba(15,23,42,0.7)",
+                            : "rgba(17,17,17,0.7)",
                           color: enabled ? "#86efac" : "var(--gris-300)",
                           padding: "6px 10px",
                           fontSize: 11,
@@ -5803,8 +5804,8 @@ export default function App() {
               <div
                 style={{
                   marginBottom: 12,
-                  border: "1px solid rgba(125,211,252,0.24)",
-                  background: "rgba(2,132,199,0.1)",
+                  border: "1px solid rgba(207,207,200,0.24)",
+                  background: "rgba(230,176,0,0.1)",
                   borderRadius: 10,
                   padding: "9px 11px",
                   fontSize: 12,
@@ -5837,10 +5838,10 @@ export default function App() {
                 type="button"
                 onClick={() => saveCookieConsent("necessary")}
                 style={{
-                  border: "1px solid rgba(148,163,184,0.34)",
+                  border: "1px solid rgba(150,150,143,0.34)",
                   borderRadius: 10,
                   padding: "10px 14px",
-                  background: "rgba(15,23,42,0.72)",
+                  background: "rgba(17,17,17,0.72)",
                   color: "var(--gris-200)",
                   fontSize: 12,
                   fontWeight: 700,
@@ -5902,7 +5903,7 @@ export default function App() {
             position: relative;
             overflow: hidden;
             isolation: isolate;
-            box-shadow: 0 14px 30px rgba(2,6,23,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
+            box-shadow: 0 14px 30px rgba(5,5,5,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
             transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 240ms ease, border-color 240ms ease, background 240ms ease, filter 240ms ease;
             will-change: transform;
           }
@@ -5916,8 +5917,8 @@ export default function App() {
             content: "";
             position: absolute;
             inset: -1px;
-            background: radial-gradient(120% 90% at 8% 10%, rgba(59,130,246,0.26), rgba(59,130,246,0) 55%),
-              radial-gradient(90% 75% at 92% 12%, rgba(16,185,129,0.2), rgba(16,185,129,0) 55%);
+            background: radial-gradient(120% 90% at 8% 10%, rgba(255,196,0,0.26), rgba(255,196,0,0) 55%),
+              radial-gradient(90% 75% at 92% 12%, rgba(107,82,0,0.16), rgba(107,82,0,0) 55%);
             opacity: 0;
             transition: opacity 220ms ease;
             pointer-events: none;
@@ -5939,15 +5940,15 @@ export default function App() {
           }
 
           .ma-card-interactive:focus-visible {
-            outline: 2px solid rgba(125,211,252,0.7);
+            outline: 2px solid rgba(207,207,200,0.7);
             outline-offset: 2px;
           }
 
           .ma-card-interactive:hover,
           .ma-card-interactive:focus-visible {
             transform: translateY(-6px) scale(1.01);
-            box-shadow: 0 24px 46px rgba(2,6,23,0.34), 0 0 0 1px rgba(125,211,252,0.18), 0 0 24px rgba(56,189,248,0.14);
-            border-color: rgba(125,211,252,0.64) !important;
+            box-shadow: 0 24px 46px rgba(5,5,5,0.34), 0 0 0 1px rgba(207,207,200,0.18), 0 0 24px rgba(150,150,143,0.14);
+            border-color: rgba(207,207,200,0.64) !important;
             filter: saturate(1.08) brightness(1.03);
           }
 
@@ -5972,13 +5973,13 @@ export default function App() {
           .ma-card-soft:hover,
           .ma-card-soft:focus-visible {
             transform: translateY(-3px);
-            box-shadow: 0 16px 34px rgba(2,6,23,0.26), 0 0 18px rgba(56,189,248,0.1);
-            border-color: rgba(125,211,252,0.5);
+            box-shadow: 0 16px 34px rgba(5,5,5,0.26), 0 0 18px rgba(150,150,143,0.1);
+            border-color: rgba(207,207,200,0.5);
             filter: saturate(1.04);
           }
 
           .ma-card-soft:focus-visible {
-            outline: 2px solid rgba(125,211,252,0.65);
+            outline: 2px solid rgba(207,207,200,0.65);
             outline-offset: 2px;
           }
 
@@ -5992,7 +5993,7 @@ export default function App() {
             background: linear-gradient(90deg, var(--marca) 0%, #22c55e 100%);
             background-size: 180% 100%;
             animation: maHeaderLineShift 4.8s linear infinite;
-            box-shadow: 0 1px 8px rgba(37, 99, 235, 0.2);
+            box-shadow: 0 1px 8px rgba(255, 196, 0, 0.2);
           }
 
           .ma-header-progress-fill {
@@ -6702,14 +6703,14 @@ export default function App() {
           panelStyle={{
             ...s.panel,
             background: themeMode === "dark"
-              ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
-              : "linear-gradient(160deg, rgba(255,255,255,0.97), rgba(241,245,249,0.94))",
+              ? "linear-gradient(160deg, rgba(17,17,17,0.9), rgba(31,31,29,0.82))"
+              : "linear-gradient(160deg, rgba(255,255,255,0.97), rgba(242,242,237,0.94))",
             border: themeMode === "dark"
-              ? "1px solid rgba(148,163,184,0.34)"
-              : "1px solid rgba(148,163,184,0.24)",
+              ? "1px solid rgba(150,150,143,0.34)"
+              : "1px solid rgba(150,150,143,0.24)",
             boxShadow: themeMode === "dark"
-              ? "0 10px 28px rgba(2,6,23,0.34)"
-              : "0 10px 28px rgba(15,23,42,0.08)",
+              ? "0 10px 28px rgba(5,5,5,0.34)"
+              : "0 10px 28px rgba(17,17,17,0.08)",
           }}
           userDashboardPage={userDashboardPage}
           savedComparisons={savedComparisons}
@@ -7157,9 +7158,9 @@ export default function App() {
           marginTop: "auto",
           position: "relative",
           zIndex: 5,
-          borderTop: "1px solid rgba(148,163,184,0.22)",
+          borderTop: "1px solid rgba(150,150,143,0.22)",
           background:
-            "radial-gradient(120% 100% at 8% 0%, rgba(56,189,248,0.1), rgba(56,189,248,0) 45%), linear-gradient(180deg, rgba(2,6,23,0.9), rgba(2,6,23,0.98))",
+            "radial-gradient(120% 100% at 8% 0%, rgba(150,150,143,0.1), rgba(150,150,143,0) 45%), linear-gradient(180deg, rgba(5,5,5,0.9), rgba(5,5,5,0.98))",
         }}
       >
         <div
@@ -7179,36 +7180,16 @@ export default function App() {
               textAlign: "left",
             }}
           >
-            <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <div
-                  style={{
-                    width: 98,
-                    height: 40,
-                    borderRadius: 6,
-                    flexShrink: 0,
-                  }}
-                >
-                  <img
-                    src="/popcar-logo.png"
-                    alt="PopCar"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "contain",
-                      objectPosition: "center center",
-                      display: "block",
-                    }}
-                  />
-                </div>
-                <div style={{ fontWeight: 800, fontSize: 14, color: "var(--gris-50)" }}>CarsWise</div>
+            <div className="ma-card-soft" style={{ border: "1px solid rgba(150,150,143,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(17,17,17,0.45)" }}>
+              <div style={{ marginBottom: 10 }}>
+                <LogoPopCar size={24} tono="claro" />
               </div>
               <div style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
                 {uiLanguage === "en" ? "Mobility platform to buy better, sell better and reduce your vehicle's total cost." : "Plataforma de movilidad para comprar mejor, vender mejor y reducir el coste total de tu vehículo."}
               </div>
             </div>
 
-            <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
+            <div className="ma-card-soft" style={{ border: "1px solid rgba(150,150,143,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(17,17,17,0.45)" }}>
               <div style={{ fontSize: 11, color: "var(--gris-300)", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "CONTACT" : "CONTACTO"}</div>
               <div style={{ display: "grid", gap: 6, fontSize: 12 }}>
                 <a href="mailto:soporte@carswise.es" style={{ color: "var(--gris-200)", textDecoration: "none" }}>soporte@carswise.es</a>
@@ -7217,7 +7198,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
+            <div className="ma-card-soft" style={{ border: "1px solid rgba(150,150,143,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(17,17,17,0.45)" }}>
               <div style={{ fontSize: 11, color: "var(--gris-300)", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "USEFUL LINKS" : "ENLACES UTILES"}</div>
               <div style={{ display: "grid", gap: 7, fontSize: 12 }}>
                 <button type="button" onClick={restart} style={{ background: "transparent", border: "none", color: "var(--gris-200)", textAlign: "left", padding: 0, cursor: "pointer" }}>{uiLanguage === "en" ? "Home" : "Inicio"}</button>
@@ -7237,7 +7218,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
+            <div className="ma-card-soft" style={{ border: "1px solid rgba(150,150,143,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(17,17,17,0.45)" }}>
               <div style={{ fontSize: 11, color: "var(--gris-300)", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "SOCIAL MEDIA" : "REDES SOCIALES"}</div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {[
@@ -7253,14 +7234,14 @@ export default function App() {
                     rel="noreferrer"
                     className="ma-card-soft"
                     style={{
-                      border: "1px solid rgba(148,163,184,0.24)",
+                      border: "1px solid rgba(150,150,143,0.24)",
                       borderRadius: 999,
                       padding: "6px 10px",
                       fontSize: 11,
                       fontWeight: 700,
                       color: "var(--gris-200)",
                       textDecoration: "none",
-                      background: "rgba(15,23,42,0.55)",
+                      background: "rgba(17,17,17,0.55)",
                     }}
                   >
                     {label}
@@ -7276,7 +7257,7 @@ export default function App() {
               flexWrap: "wrap",
               justifyContent: "space-between",
               gap: 10,
-              borderTop: "1px solid rgba(148,163,184,0.2)",
+              borderTop: "1px solid rgba(150,150,143,0.2)",
               paddingTop: 12,
               fontSize: 11,
               color: "var(--gris-400)",
@@ -7323,8 +7304,8 @@ export default function App() {
           40% { transform: translateY(-8px); }
         }
         @keyframes pulse {
-          0%, 100% { box-shadow: 0 0 40px rgba(37,99,235,0.3); }
-          50% { box-shadow: 0 0 60px rgba(37,99,235,0.55); }
+          0%, 100% { box-shadow: 0 0 40px rgba(255,196,0,0.3); }
+          50% { box-shadow: 0 0 60px rgba(255,196,0,0.55); }
         }
         @keyframes portalGlowGreen {
           0%, 100% {

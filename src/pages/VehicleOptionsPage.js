@@ -20,8 +20,8 @@ export default function VehicleOptionsPage({ styles, onSelectBuy, onSelectRentin
         type="button"
         onClick={onGoHome}
         style={{
-          border: "1px solid rgba(148,163,184,0.35)",
-          background: "rgba(15,23,42,0.5)",
+          border: "1px solid rgba(150,150,143,0.35)",
+          background: "rgba(17,17,17,0.5)",
           color: "var(--gris-300)",
           borderRadius: 10,
           padding: "8px 12px",
@@ -56,8 +56,8 @@ export default function VehicleOptionsPage({ styles, onSelectBuy, onSelectRentin
           style={{
             ...styles.card(false),
             padding: 18,
-            border: "1px solid rgba(37,99,235,0.32)",
-            background: "rgba(37,99,235,0.12)",
+            border: "1px solid rgba(255,196,0,0.32)",
+            background: "rgba(255,196,0,0.12)",
             color: "var(--gris-100)",
             textAlign: "left",
             display: "flex",
@@ -82,8 +82,8 @@ export default function VehicleOptionsPage({ styles, onSelectBuy, onSelectRentin
           style={{
             ...styles.card(false),
             padding: 18,
-            border: "1px solid rgba(14,165,233,0.34)",
-            background: "rgba(14,165,233,0.12)",
+            border: "1px solid rgba(255,196,0,0.34)",
+            background: "rgba(255,196,0,0.12)",
             color: "var(--gris-100)",
             textAlign: "left",
             display: "flex",

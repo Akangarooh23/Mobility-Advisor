@@ -118,8 +118,8 @@ export default function SimuladorFinanciacion({
     teal: isDark ? "#5eead4" : "#137370",
     ink: isDark ? "var(--gris-100)" : "var(--gris-800)",
     muted: isDark ? "var(--gris-400)" : "var(--gris-500)",
-    line: isDark ? "rgba(148,163,184,0.18)" : "var(--gris-200)",
-    surface: isDark ? "rgba(15,23,42,0.45)" : "var(--blanco)",
+    line: isDark ? "rgba(150,150,143,0.18)" : "var(--gris-200)",
+    surface: isDark ? "rgba(17,17,17,0.45)" : "var(--blanco)",
     surfaceAlt: isDark ? "rgba(255,255,255,0.04)" : "var(--gris-50)",
   };
 

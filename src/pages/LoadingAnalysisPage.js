@@ -17,7 +17,7 @@ export default function LoadingAnalysisPage({ styles, loadingTexts, loadingPhase
           justifyContent: "center",
           fontSize: 36,
           margin: "0 auto 28px",
-          boxShadow: "0 0 40px rgba(37,99,235,0.3)",
+          boxShadow: "0 0 40px rgba(255,196,0,0.3)",
           animation: "pulse 2s ease-in-out infinite",
         }}
       >
@@ -32,8 +32,8 @@ export default function LoadingAnalysisPage({ styles, loadingTexts, loadingPhase
 
       <div
         style={{
-          background: isDark ? "rgba(15,23,42,0.85)" : "rgba(255,255,255,0.95)",
-          border: isDark ? "1px solid rgba(148,163,184,0.34)" : "1px solid rgba(148,163,184,0.24)",
+          background: isDark ? "rgba(17,17,17,0.85)" : "rgba(255,255,255,0.95)",
+          border: isDark ? "1px solid rgba(150,150,143,0.34)" : "1px solid rgba(150,150,143,0.24)",
           borderRadius: 12,
           padding: "14px 20px",
           marginBottom: 28,

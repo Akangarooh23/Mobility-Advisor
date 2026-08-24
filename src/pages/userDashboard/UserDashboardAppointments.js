@@ -44,8 +44,8 @@ export default function UserDashboardAppointments({
   ];
 
   const cardBg = isDark
-    ? "linear-gradient(160deg,rgba(15,23,42,0.9),rgba(30,41,59,0.82))"
-    : "linear-gradient(160deg,rgba(255,255,255,0.96),rgba(241,245,249,0.92))";
+    ? "linear-gradient(160deg,rgba(17,17,17,0.9),rgba(31,31,29,0.82))"
+    : "linear-gradient(160deg,rgba(255,255,255,0.96),rgba(242,242,237,0.92))";
 
   return (
     <section id="user-dashboard-appointments" style={{ ...panelStyle, marginBottom: 16 }}>
@@ -92,7 +92,7 @@ export default function UserDashboardAppointments({
             {bookings.map((item) => {
               const parsed = parseAppointmentMeta(item.meta);
               return (
-                <div key={item.id} style={{ background: cardBg, border: "1px solid rgba(148,163,184,0.26)", borderRadius: 12, padding: 12 }}>
+                <div key={item.id} style={{ background: cardBg, border: "1px solid rgba(150,150,143,0.26)", borderRadius: 12, padding: 12 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>{item.title}</div>
                   <div style={{ fontSize: 12, color: isDark ? "var(--gris-300)" : "var(--gris-600)", marginTop: 3 }}>{parsed.summary}</div>
                   {parsed.details && (
@@ -137,7 +137,7 @@ export default function UserDashboardAppointments({
           <div style={{ display: "grid", gap: 8 }}>
             {reminders.map((item) => {
               const icon = TYPE_ICON[item.type] || TYPE_ICON[item.source] || "📋";
-              const statusStyle = CALENDAR_STATUS_COLOR[item.status] || { bg: "rgba(100,116,139,0.10)", color: "var(--gris-600)" };
+              const statusStyle = CALENDAR_STATUS_COLOR[item.status] || { bg: "rgba(94,94,89,0.10)", color: "var(--gris-600)" };
               return (
                 <div
                   key={item.id}

@@ -19,7 +19,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
       borderBottom: "none",
       position: "sticky",
       top: 0,
-      background: isDark ? "rgba(6,13,26,0.95)" : "var(--blanco)",
+      background: isDark ? "rgba(17,17,17,0.95)" : "var(--blanco)",
       backdropFilter: "blur(12px)",
       zIndex: 100,
       boxShadow: isDark ? "0 1px 0 rgba(255,255,255,0.06)" : "0 1px 6px rgba(0,0,0,0.06)",
@@ -27,7 +27,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
     progressBar: {
       height: 4,
       background: "linear-gradient(90deg, var(--marca) 0%, #22c55e 100%)",
-      boxShadow: "0 1px 8px rgba(37,99,235,0.2)",
+      boxShadow: "0 1px 8px rgba(255,196,0,0.2)",
       overflow: "hidden",
     },
     progressFill: {
@@ -56,15 +56,15 @@ export function createAppStyles(progress = 0, themeMode = "light") {
     },
     card: (selected) => ({
       background: selected
-        ? "rgba(37,99,235,0.12)"
+        ? "rgba(255,196,0,0.12)"
         : isDark
           ? "rgba(255,255,255,0.025)"
           : "rgba(255,255,255,0.92)",
       border: selected
-        ? "1px solid rgba(37,99,235,0.45)"
+        ? "1px solid rgba(255,196,0,0.45)"
         : isDark
           ? "1px solid rgba(255,255,255,0.07)"
-          : "1px solid rgba(148,163,184,0.24)",
+          : "1px solid rgba(150,150,143,0.24)",
       borderRadius: 13,
       padding: "14px 18px",
       cursor: "pointer",
@@ -95,7 +95,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
       width: "100%",
       background: isDark ? "var(--gris-900)" : "var(--blanco)",
       color: isDark ? "var(--gris-50)" : "var(--gris-900)",
-      border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(148,163,184,0.3)",
+      border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(150,150,143,0.3)",
       borderRadius: 10,
       padding: "12px 14px",
       outline: "none",
@@ -105,7 +105,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
       width: "100%",
       background: isDark ? "var(--gris-900)" : "var(--blanco)",
       color: isDark ? "var(--gris-50)" : "var(--gris-900)",
-      border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(148,163,184,0.3)",
+      border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(150,150,143,0.3)",
       borderRadius: 10,
       padding: "12px 14px",
       outline: "none",
@@ -113,7 +113,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
     },
     panel: {
       background: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.92)",
-      border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(148,163,184,0.24)",
+      border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(150,150,143,0.24)",
       borderRadius: 16,
       padding: 18,
     },

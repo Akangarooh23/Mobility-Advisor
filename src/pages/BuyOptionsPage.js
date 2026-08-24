@@ -45,8 +45,8 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
   const isDark = styles?.page?.color === "var(--gris-200)";
   const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
   const mutedColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
-  const cardBackground = isDark ? "rgba(15,23,42,0.55)" : "var(--blanco)";
-  const cardBorder = isDark ? "1px solid rgba(148,163,184,0.26)" : "1px solid rgba(15,23,42,0.12)";
+  const cardBackground = isDark ? "rgba(17,17,17,0.55)" : "var(--blanco)";
+  const cardBorder = isDark ? "1px solid rgba(150,150,143,0.26)" : "1px solid rgba(17,17,17,0.12)";
   const [openFlow, setOpenFlow] = useState(null);
 
   const toggleFlow = (flowKey) => {
@@ -64,8 +64,8 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
         type="button"
         onClick={onGoBack}
         style={{
-          border: "1px solid rgba(148,163,184,0.35)",
-          background: isDark ? "rgba(15,23,42,0.5)" : "rgba(148,163,184,0.16)",
+          border: "1px solid rgba(150,150,143,0.35)",
+          background: isDark ? "rgba(17,17,17,0.5)" : "rgba(150,150,143,0.16)",
           color: isDark ? "var(--gris-300)" : "var(--gris-600)",
           borderRadius: 10,
           padding: "8px 12px",
@@ -82,7 +82,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
         <span style={{ fontSize: 10, letterSpacing: "0.18em", fontWeight: 800, color: "var(--marca)", textTransform: "uppercase" }}>
           {t("buyOptions.badgeLabel")}
         </span>
-        <span style={{ width: 34, height: 1, background: "rgba(37,99,235,0.5)" }} />
+        <span style={{ width: 34, height: 1, background: "rgba(255,196,0,0.5)" }} />
       </div>
 
       <h2 style={{ margin: "0 0 8px", fontSize: "clamp(28px,4vw,38px)", color: titleColor, letterSpacing: "-0.9px" }}>
@@ -107,11 +107,11 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           style={{
             position: "relative",
             borderRadius: 16,
-            border: isDark ? "1.5px solid rgba(37,99,235,0.35)" : "1.5px solid rgba(37,99,235,0.35)",
+            border: isDark ? "1.5px solid rgba(255,196,0,0.35)" : "1.5px solid rgba(255,196,0,0.35)",
             background: isDark
-              ? "linear-gradient(135deg, rgba(37,99,235,0.18), rgba(99,102,241,0.12))"
+              ? "linear-gradient(135deg, rgba(255,196,0,0.18), rgba(255,196,0,0.12))"
               : "linear-gradient(135deg, var(--acento-tenue) 0%, var(--gris-100) 100%)",
-            boxShadow: isDark ? "none" : "0 12px 32px rgba(37,99,235,0.10)",
+            boxShadow: isDark ? "none" : "0 12px 32px rgba(255,196,0,0.10)",
             padding: "28px 32px",
             textAlign: "left",
             display: "flex",
@@ -137,8 +137,8 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               width: 56,
               height: 56,
               borderRadius: 14,
-              border: "1.5px solid rgba(37,99,235,0.35)",
-              background: "rgba(37,99,235,0.12)",
+              border: "1.5px solid rgba(255,196,0,0.35)",
+              background: "rgba(255,196,0,0.12)",
               color: "var(--marca)",
               display: "inline-flex",
               alignItems: "center",
@@ -168,7 +168,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             style={{
               background: "linear-gradient(135deg, var(--marca), var(--marca-claro))",
               color: "#fff",
-              border: "1px solid rgba(37,99,235,0.3)",
+              border: "1px solid rgba(255,196,0,0.3)",
               borderRadius: 12,
               padding: "12px 22px",
               fontSize: 14,
@@ -190,7 +190,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             border: cardBorder,
             borderRadius: 12,
             background: cardBackground,
-            boxShadow: isDark ? "none" : "0 8px 22px rgba(15,23,42,0.05)",
+            boxShadow: isDark ? "none" : "0 8px 22px rgba(17,17,17,0.05)",
             padding: "24px 22px 20px",
             textAlign: "left",
             display: "flex",
@@ -220,7 +220,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               width: 24,
               height: 24,
               borderRadius: "50%",
-              border: "1px solid rgba(148,163,184,0.35)",
+              border: "1px solid rgba(150,150,143,0.35)",
               color: "var(--gris-500)",
               display: "inline-flex",
               alignItems: "center",
@@ -241,8 +241,8 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             onClick={(event) => { event.stopPropagation(); toggleFlow("a"); }}
             style={{
               marginTop: 2,
-              border: "1px solid rgba(37,99,235,0.28)",
-              background: "rgba(37,99,235,0.08)",
+              border: "1px solid rgba(255,196,0,0.28)",
+              background: "rgba(255,196,0,0.08)",
               color: "var(--marca-oscuro)",
               borderRadius: 10,
               padding: "8px 12px",
@@ -263,7 +263,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             border: cardBorder,
             borderRadius: 12,
             background: cardBackground,
-            boxShadow: isDark ? "none" : "0 8px 22px rgba(15,23,42,0.05)",
+            boxShadow: isDark ? "none" : "0 8px 22px rgba(17,17,17,0.05)",
             padding: "24px 22px 20px",
             textAlign: "left",
             display: "flex",
@@ -293,7 +293,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               width: 24,
               height: 24,
               borderRadius: "50%",
-              border: "1px solid rgba(148,163,184,0.35)",
+              border: "1px solid rgba(150,150,143,0.35)",
               color: "var(--gris-500)",
               display: "inline-flex",
               alignItems: "center",
@@ -314,8 +314,8 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             onClick={(event) => { event.stopPropagation(); toggleFlow("b"); }}
             style={{
               marginTop: 2,
-              border: "1px solid rgba(37,99,235,0.28)",
-              background: "rgba(37,99,235,0.08)",
+              border: "1px solid rgba(255,196,0,0.28)",
+              background: "rgba(255,196,0,0.08)",
               color: "var(--marca-oscuro)",
               borderRadius: 10,
               padding: "8px 12px",
@@ -334,7 +334,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           style={{
             marginTop: 14,
             border: cardBorder,
-            background: isDark ? "rgba(15,23,42,0.7)" : "var(--gris-50)",
+            background: isDark ? "rgba(17,17,17,0.7)" : "var(--gris-50)",
             borderRadius: 12,
             padding: "14px 14px 12px",
           }}
@@ -356,7 +356,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               type="button"
               onClick={onSelectKnownModel}
               style={{
-                border: "1px solid rgba(37,99,235,0.25)",
+                border: "1px solid rgba(255,196,0,0.25)",
                 background: "linear-gradient(135deg,var(--marca),var(--marca-claro))",
                 color: "var(--blanco)",
                 borderRadius: 10,
@@ -372,8 +372,8 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               type="button"
               onClick={() => setOpenFlow(null)}
               style={{
-                border: "1px solid rgba(37,99,235,0.25)",
-                background: "rgba(37,99,235,0.08)",
+                border: "1px solid rgba(255,196,0,0.25)",
+                background: "rgba(255,196,0,0.08)",
                 color: "var(--marca-oscuro)",
                 borderRadius: 10,
                 padding: "9px 14px",
@@ -393,7 +393,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           style={{
             marginTop: 14,
             border: cardBorder,
-            background: isDark ? "rgba(15,23,42,0.7)" : "var(--gris-50)",
+            background: isDark ? "rgba(17,17,17,0.7)" : "var(--gris-50)",
             borderRadius: 12,
             padding: "14px 14px 12px",
           }}
@@ -415,7 +415,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               type="button"
               onClick={onSelectAdvisor}
               style={{
-                border: "1px solid rgba(37,99,235,0.25)",
+                border: "1px solid rgba(255,196,0,0.25)",
                 background: "linear-gradient(135deg,var(--marca),var(--marca-claro))",
                 color: "var(--blanco)",
                 borderRadius: 10,
@@ -431,8 +431,8 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               type="button"
               onClick={() => setOpenFlow(null)}
               style={{
-                border: "1px solid rgba(37,99,235,0.25)",
-                background: "rgba(37,99,235,0.08)",
+                border: "1px solid rgba(255,196,0,0.25)",
+                background: "rgba(255,196,0,0.08)",
                 color: "var(--marca-oscuro)",
                 borderRadius: 10,
                 padding: "9px 14px",

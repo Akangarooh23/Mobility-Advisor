@@ -51,17 +51,17 @@ export default function UserDashboardAlerts({
   const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
   const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
   const cardBg = isDark
-    ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
-    : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))";
-  const panelBorder = isDark ? "1px solid rgba(148,163,184,0.26)" : "1px solid rgba(59,130,246,0.34)";
-  const cardBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(37,99,235,0.3)";
+    ? "linear-gradient(160deg, rgba(17,17,17,0.9), rgba(31,31,29,0.82))"
+    : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(242,242,237,0.92))";
+  const panelBorder = isDark ? "1px solid rgba(150,150,143,0.26)" : "1px solid rgba(255,196,0,0.34)";
+  const cardBorder = isDark ? "1px solid rgba(150,150,143,0.24)" : "1px solid rgba(255,196,0,0.3)";
   const sectionFrame = {
-    background: isDark ? "rgba(2,6,23,0.34)" : "rgba(248,250,252,0.86)",
-    border: isDark ? "1px solid rgba(148,163,184,0.22)" : "1px solid rgba(148,163,184,0.24)",
+    background: isDark ? "rgba(5,5,5,0.34)" : "rgba(250,250,248,0.86)",
+    border: isDark ? "1px solid rgba(150,150,143,0.22)" : "1px solid rgba(150,150,143,0.24)",
     borderRadius: 14,
     boxShadow: isDark
-      ? "0 14px 26px rgba(2,6,23,0.28)"
-      : "0 10px 20px rgba(15,23,42,0.06)",
+      ? "0 14px 26px rgba(5,5,5,0.28)"
+      : "0 10px 20px rgba(17,17,17,0.06)",
   };
 
   const normalizedCurrentUserEmail = String(currentUserEmail || "").trim().toLowerCase();
@@ -180,8 +180,8 @@ export default function UserDashboardAlerts({
               onClick={onSendAlertEmailDigest}
               disabled={emailAlertCount === 0 || emailDigestLoading}
               style={{
-                background: emailAlertCount > 0 ? "rgba(99,102,241,0.16)" : "rgba(148,163,184,0.12)",
-                border: emailAlertCount > 0 ? "1px solid rgba(165,180,252,0.24)" : "1px solid rgba(148,163,184,0.18)",
+                background: emailAlertCount > 0 ? "rgba(255,196,0,0.16)" : "rgba(150,150,143,0.12)",
+                border: emailAlertCount > 0 ? "1px solid rgba(207,207,200,0.24)" : "1px solid rgba(150,150,143,0.18)",
                 color: emailAlertCount > 0 ? "var(--gris-700)" : "var(--gris-500)",
                 padding: "9px 11px",
                 borderRadius: 10,
@@ -273,8 +273,8 @@ export default function UserDashboardAlerts({
               type="button"
               onClick={handleCreateAlert}
               style={{
-                background: "rgba(37,99,235,0.14)",
-                border: "1px solid rgba(96,165,250,0.24)",
+                background: "rgba(255,196,0,0.14)",
+                border: "1px solid rgba(255,196,0,0.24)",
                 color: "var(--gris-900)",
                 padding: "9px 12px",
                 borderRadius: 10,
@@ -329,8 +329,8 @@ export default function UserDashboardAlerts({
                         <span
                           key={`${alert.id}-${chip}`}
                           style={{
-                            background: "rgba(37,99,235,0.10)",
-                            border: "1px solid rgba(96,165,250,0.18)",
+                            background: "rgba(255,196,0,0.10)",
+                            border: "1px solid rgba(255,196,0,0.18)",
                             color: "var(--gris-900)",
                             padding: "4px 8px",
                             borderRadius: 999,
@@ -406,7 +406,7 @@ export default function UserDashboardAlerts({
                 <div
                   style={{
                     marginTop: 10,
-                    background: isDark ? "rgba(15,23,42,0.86)" : "rgba(255,255,255,0.9)",
+                    background: isDark ? "rgba(17,17,17,0.86)" : "rgba(255,255,255,0.9)",
                     border: cardBorder,
                     borderRadius: 10,
                     padding: 10,
@@ -426,8 +426,8 @@ export default function UserDashboardAlerts({
                             gap: 10,
                             flexWrap: "wrap",
                             alignItems: "center",
-                            background: isDark ? "rgba(15,23,42,0.88)" : "rgba(241,245,249,0.9)",
-                            border: isDark ? "1px solid rgba(148,163,184,0.24)" : cardBorder,
+                            background: isDark ? "rgba(17,17,17,0.88)" : "rgba(242,242,237,0.9)",
+                            border: isDark ? "1px solid rgba(150,150,143,0.24)" : cardBorder,
                             borderRadius: 10,
                             padding: "8px 10px",
                           }}
@@ -456,8 +456,8 @@ export default function UserDashboardAlerts({
                               onBrowseMarketplace(alert);
                             }}
                             style={{
-                              background: "rgba(37,99,235,0.12)",
-                              border: "1px solid rgba(96,165,250,0.2)",
+                              background: "rgba(255,196,0,0.12)",
+                              border: "1px solid rgba(255,196,0,0.2)",
                               color: "var(--gris-900)",
                               padding: "8px 10px",
                               borderRadius: 10,

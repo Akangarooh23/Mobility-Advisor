@@ -186,17 +186,17 @@ export default function UserDashboardOperations({
   const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
   const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
   const cardBg = isDark
-    ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
-    : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))";
-  const panelBorder = isDark ? "1px solid rgba(148,163,184,0.26)" : "1px solid rgba(59,130,246,0.34)";
-  const cardBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(37,99,235,0.3)";
+    ? "linear-gradient(160deg, rgba(17,17,17,0.9), rgba(31,31,29,0.82))"
+    : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(242,242,237,0.92))";
+  const panelBorder = isDark ? "1px solid rgba(150,150,143,0.26)" : "1px solid rgba(255,196,0,0.34)";
+  const cardBorder = isDark ? "1px solid rgba(150,150,143,0.24)" : "1px solid rgba(255,196,0,0.3)";
   const sectionFrame = {
-    background: isDark ? "rgba(2,6,23,0.34)" : "rgba(248,250,252,0.86)",
-    border: isDark ? "1px solid rgba(148,163,184,0.22)" : "1px solid rgba(148,163,184,0.24)",
+    background: isDark ? "rgba(5,5,5,0.34)" : "rgba(250,250,248,0.86)",
+    border: isDark ? "1px solid rgba(150,150,143,0.22)" : "1px solid rgba(150,150,143,0.24)",
     borderRadius: 14,
     boxShadow: isDark
-      ? "0 14px 26px rgba(2,6,23,0.28)"
-      : "0 10px 20px rgba(15,23,42,0.06)",
+      ? "0 14px 26px rgba(5,5,5,0.28)"
+      : "0 10px 20px rgba(17,17,17,0.06)",
   };
 
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -540,7 +540,7 @@ export default function UserDashboardOperations({
               fontSize: 12,
               fontWeight: 800,
               cursor: "pointer",
-              boxShadow: activeTab === "valuations" ? "0 10px 18px rgba(37,99,235,0.24)" : "0 10px 18px rgba(217,119,6,0.24)",
+              boxShadow: activeTab === "valuations" ? "0 10px 18px rgba(255,196,0,0.24)" : "0 10px 18px rgba(217,119,6,0.24)",
               width: isMobile ? "100%" : "auto",
             }}
           >
@@ -704,8 +704,8 @@ export default function UserDashboardOperations({
                   type="button"
                   onClick={() => onNavigate("vehicles")}
                   style={{
-                    background: "rgba(37,99,235,0.12)",
-                    border: "1px solid rgba(96,165,250,0.24)",
+                    background: "rgba(255,196,0,0.12)",
+                    border: "1px solid rgba(255,196,0,0.24)",
                     color: "var(--gris-900)",
                     padding: "8px 10px",
                     borderRadius: 10,
@@ -726,7 +726,7 @@ export default function UserDashboardOperations({
                 onClick={submitManagementWizard}
                 disabled={garageVehiclesForValuation.length === 0}
                 style={{
-                  background: garageVehiclesForValuation.length > 0 ? "linear-gradient(135deg,var(--marca),var(--marca-oscuro))" : "rgba(148,163,184,0.24)",
+                  background: garageVehiclesForValuation.length > 0 ? "linear-gradient(135deg,var(--marca),var(--marca-oscuro))" : "rgba(150,150,143,0.24)",
                   border: "none",
                   color: garageVehiclesForValuation.length > 0 ? "var(--blanco)" : "var(--gris-500)",
                   padding: "9px 12px",
@@ -753,7 +753,7 @@ export default function UserDashboardOperations({
                     fontWeight: 800,
                     cursor: "pointer",
                     width: isMobile ? "100%" : "auto",
-                    boxShadow: "0 10px 18px rgba(2,132,199,0.22)",
+                    boxShadow: "0 10px 18px rgba(230,176,0,0.22)",
                   }}
                 >
                   {text.buyOperation}
@@ -763,7 +763,7 @@ export default function UserDashboardOperations({
                 type="button"
                 onClick={() => setShowManagementWizard(false)}
                 style={{
-                  background: "rgba(148,163,184,0.14)",
+                  background: "rgba(150,150,143,0.14)",
                   border: cardBorder,
                   color: isDark ? "var(--gris-200)" : "var(--gris-700)",
                   padding: "9px 12px",
@@ -824,7 +824,7 @@ export default function UserDashboardOperations({
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                   <span
                     style={{
-                      background: "rgba(148,163,184,0.14)",
+                      background: "rgba(150,150,143,0.14)",
                       borderRadius: 999,
                       padding: "5px 9px",
                       fontSize: 11,
@@ -876,7 +876,7 @@ export default function UserDashboardOperations({
               const statusStyles = {
                 scheduled: { bg: "rgba(245,158,11,0.12)", color: "#92400e" },
                 confirmed:  { bg: "rgba(16,185,129,0.12)",  color: "#065f46" },
-                completed:  { bg: "rgba(100,116,139,0.12)", color: "var(--gris-700)" },
+                completed:  { bg: "rgba(94,94,89,0.12)", color: "var(--gris-700)" },
                 cancelled:  { bg: "rgba(239,68,68,0.12)",   color: "#b91c1c" },
                 no_show:    { bg: "rgba(239,68,68,0.12)",   color: "#b91c1c" },
               };
@@ -942,7 +942,7 @@ export default function UserDashboardOperations({
             <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
               {calendarReminders.map((item) => {
                 const icon = CALENDAR_TYPE_ICON[item.type] || CALENDAR_TYPE_ICON[item.source] || "📋";
-                const statusStyle = CALENDAR_STATUS_COLOR[item.status] || { bg: "rgba(100,116,139,0.10)", color: "var(--gris-600)" };
+                const statusStyle = CALENDAR_STATUS_COLOR[item.status] || { bg: "rgba(94,94,89,0.10)", color: "var(--gris-600)" };
                 return (
                   <div
                     key={item.id}

@@ -303,7 +303,7 @@ export default function ServiceAppointmentCalendarPage({
               fontSize: 15, fontWeight: 700, cursor: "pointer",
               boxShadow: isError
                 ? "0 8px 20px rgba(220,38,38,0.3)"
-                : "0 8px 20px rgba(124,58,237,0.3)",
+                : "0 8px 20px rgba(94,94,89,0.3)",
             }}
           >
             {isError ? "Volver e intentarlo" : "Ver mi solicitud en el panel →"}
@@ -403,7 +403,7 @@ export default function ServiceAppointmentCalendarPage({
             const hasSlots = (data?.slots || []).length > 0;
 
             const background = isSelected
-              ? "rgba(139,92,246,0.18)"
+              ? "rgba(94,94,89,0.18)"
               : isClosed
                 ? "var(--gris-100)"
                 : data?.inPast
@@ -425,7 +425,7 @@ export default function ServiceAppointmentCalendarPage({
                 style={{
                   height: 44,
                   borderRadius: 8,
-                  border: isSelected ? "1px solid rgba(124,58,237,0.55)" : "1px solid rgba(148,163,184,0.2)",
+                  border: isSelected ? "1px solid rgba(94,94,89,0.55)" : "1px solid rgba(150,150,143,0.2)",
                   background,
                   color: data?.inPast ? "var(--gris-300)" : isClosed ? "var(--gris-400)" : hasSlots ? "#166534" : "var(--gris-500)",
                   fontSize: 12,
@@ -450,11 +450,11 @@ export default function ServiceAppointmentCalendarPage({
             Disponible
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "var(--gris-500)" }}>
-            <span style={{ width: 12, height: 12, borderRadius: 3, background: "var(--gris-100)", border: "1px solid rgba(148,163,184,0.2)", display: "inline-block" }} />
+            <span style={{ width: 12, height: 12, borderRadius: 3, background: "var(--gris-100)", border: "1px solid rgba(150,150,143,0.2)", display: "inline-block" }} />
             Cerrado
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "var(--gris-500)" }}>
-            <span style={{ width: 12, height: 12, borderRadius: 3, background: "rgba(139,92,246,0.18)", border: "1px solid rgba(124,58,237,0.4)", display: "inline-block" }} />
+            <span style={{ width: 12, height: 12, borderRadius: 3, background: "rgba(94,94,89,0.18)", border: "1px solid rgba(94,94,89,0.4)", display: "inline-block" }} />
             Seleccionado
           </div>
         </div>
@@ -482,12 +482,12 @@ export default function ServiceAppointmentCalendarPage({
                     onClick={() => !isUnavailable && setSelectedTime(slot.time)}
                     disabled={isUnavailable}
                     style={{
-                      border: active ? "1px solid rgba(124,58,237,0.55)" : "1px solid rgba(148,163,184,0.25)",
+                      border: active ? "1px solid rgba(94,94,89,0.55)" : "1px solid rgba(150,150,143,0.25)",
                       borderRadius: 10,
                       padding: "10px 8px",
                       fontSize: 14,
                       fontWeight: 700,
-                      background: isUnavailable ? "var(--gris-50)" : active ? "rgba(139,92,246,0.14)" : "#fff",
+                      background: isUnavailable ? "var(--gris-50)" : active ? "rgba(94,94,89,0.14)" : "#fff",
                       color: isUnavailable ? "var(--gris-400)" : active ? "var(--gris-500)" : "var(--gris-700)",
                       cursor: isUnavailable ? "not-allowed" : "pointer",
                     }}
@@ -546,7 +546,7 @@ export default function ServiceAppointmentCalendarPage({
               fontWeight: 700,
               cursor: !canConfirm ? "not-allowed" : "pointer",
               opacity: !canConfirm ? 0.65 : 1,
-              boxShadow: "0 8px 20px rgba(124,58,237,0.3)",
+              boxShadow: "0 8px 20px rgba(94,94,89,0.3)",
             }}
           >
             {isSaving ? t("service.appointmentCalConfirming") : t("service.appointmentCalConfirm")}

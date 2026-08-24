@@ -166,8 +166,8 @@ export default function SellPage({
       {selectedValuationVehicleSummary ? (
         <div
           style={{
-            background: "rgba(37,99,235,0.08)",
-            border: "1px solid rgba(37,99,235,0.2)",
+            background: "rgba(255,196,0,0.08)",
+            border: "1px solid rgba(255,196,0,0.2)",
             borderRadius: 12,
             padding: 12,
             marginBottom: 16,
@@ -293,8 +293,8 @@ export default function SellPage({
       {sellAnswers.brand && sellAnswers.model && sellAnswers.year && sellAnswers.mileage && (
         <div
           style={{
-            background: "rgba(37,99,235,0.08)",
-            border: "1px solid rgba(37,99,235,0.18)",
+            background: "rgba(255,196,0,0.08)",
+            border: "1px solid rgba(255,196,0,0.18)",
             borderRadius: 14,
             padding: 16,
             marginBottom: 18,
@@ -431,8 +431,8 @@ export default function SellPage({
             {sellListingResult && (
               <div
                 style={{
-                  background: "rgba(2,6,23,0.42)",
-                  border: "1px solid rgba(96,165,250,0.22)",
+                  background: "rgba(5,5,5,0.42)",
+                  border: "1px solid rgba(255,196,0,0.22)",
                   borderRadius: 14,
                   padding: 14,
                 }}

@@ -259,8 +259,8 @@ export default function PortalVoDetailPage({
   const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
   const bodyColor = isDark ? "var(--acento-tenue)" : "var(--gris-700)";
   const metaColor = isDark ? "var(--gris-300)" : "var(--marca-oscuro)";
-  const panelCardBg = isDark ? "rgba(15,23,42,0.3)" : "rgba(241,245,249,0.92)";
-  const specCardBg = isDark ? "rgba(15,23,42,0.34)" : "rgba(248,250,252,0.96)";
+  const panelCardBg = isDark ? "rgba(17,17,17,0.3)" : "rgba(242,242,237,0.92)";
+  const specCardBg = isDark ? "rgba(17,17,17,0.34)" : "rgba(250,250,248,0.96)";
 
   // Rejilla de especificaciones. En importación se pinta bajo la galería (para
   // aprovechar el hueco de la columna izquierda); en el resto, en la columna derecha.
@@ -279,7 +279,7 @@ export default function PortalVoDetailPage({
           key={`${selectedPortalVoOffer.id}-${label}`}
           style={{
             background: specCardBg,
-            border: "1px solid rgba(148,163,184,0.14)",
+            border: "1px solid rgba(150,150,143,0.14)",
             borderRadius: 12,
             padding: "10px 12px",
           }}
@@ -308,7 +308,7 @@ export default function PortalVoDetailPage({
               onClick={onBackToMarketplace}
               style={{
                 background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.95)",
-                border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(148,163,184,0.32)",
+                border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(150,150,143,0.32)",
                 color: isDark ? "var(--gris-300)" : "var(--gris-600)",
                 padding: "10px 14px",
                 borderRadius: 10,
@@ -339,7 +339,7 @@ export default function PortalVoDetailPage({
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16, alignItems: "start" }}>
           <div>
-          <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(148,163,184,0.16)", background: isDark ? "rgba(2,6,23,0.45)" : "rgba(248,250,252,0.96)" }}>
+          <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(150,150,143,0.16)", background: isDark ? "rgba(5,5,5,0.45)" : "rgba(250,250,248,0.96)" }}>
             {allImages.length > 0 && !galleryFailed ? (
               <div>
                 <img
@@ -351,7 +351,7 @@ export default function PortalVoDetailPage({
                   onError={() => setGalleryFailed(true)}
                 />
                 {realImages.length > 1 && (
-                  <div style={{ display: "flex", gap: 6, padding: "8px 10px", overflowX: "auto", background: isDark ? "rgba(2,6,23,0.6)" : "rgba(241,245,249,0.96)" }}>
+                  <div style={{ display: "flex", gap: 6, padding: "8px 10px", overflowX: "auto", background: isDark ? "rgba(5,5,5,0.6)" : "rgba(242,242,237,0.96)" }}>
                     {realImages.map((url, idx) => (
                       <button
                         key={idx}
@@ -635,7 +635,7 @@ export default function PortalVoDetailPage({
                 width: "100%",
                 padding: "14px 0",
                 background: isRentingReserved
-                  ? (isDark ? "rgba(255,255,255,0.06)" : "rgba(148,163,184,0.18)")
+                  ? (isDark ? "rgba(255,255,255,0.06)" : "rgba(150,150,143,0.18)")
                   : isParticular
                     ? "linear-gradient(135deg,var(--gris-900),var(--gris-700))"
                     : isRentingOffer
@@ -701,7 +701,7 @@ export default function PortalVoDetailPage({
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 12, marginTop: 16 }}>
-          <div style={{ background: panelCardBg, border: "1px solid rgba(148,163,184,0.14)", borderRadius: 12, padding: 14 }}>
+          <div style={{ background: panelCardBg, border: "1px solid rgba(150,150,143,0.14)", borderRadius: 12, padding: 14 }}>
             <div style={{ fontSize: 11, color: isDark ? "var(--gris-400)" : "var(--gris-800)", fontWeight: 700, marginBottom: 8 }}>{t("marketplace.keyPointsLabel")}</div>
             <ul style={{ margin: 0, paddingLeft: 18, color: bodyColor, fontSize: 12, lineHeight: 1.7 }}>
               {buildPortalVoHighlights(selectedPortalVoOffer).map((item) => (
@@ -709,7 +709,7 @@ export default function PortalVoDetailPage({
               ))}
             </ul>
           </div>
-          <div style={{ background: panelCardBg, border: "1px solid rgba(148,163,184,0.14)", borderRadius: 12, padding: 14 }}>
+          <div style={{ background: panelCardBg, border: "1px solid rgba(150,150,143,0.14)", borderRadius: 12, padding: 14 }}>
             <div style={{ fontSize: 11, color: isDark ? "var(--gris-400)" : "var(--gris-800)", fontWeight: 700, marginBottom: 8 }}>{t("marketplace.featuresLabel")}</div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {buildPortalVoEquipment(selectedPortalVoOffer).map((item) => (
@@ -758,7 +758,7 @@ export default function PortalVoDetailPage({
                 Tasar mi coche
               </button>
             </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 20px", borderTop: "1px solid rgba(148,163,184,0.2)", marginTop: 14, paddingTop: 12 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 20px", borderTop: "1px solid rgba(150,150,143,0.2)", marginTop: 14, paddingTop: 12 }}>
               {["Sin registro", "Precio de venta y de tasación", "Sin compromiso de venta"].map((txt) => (
                 <span key={txt} style={{ fontSize: 11.5, color: bodyColor, display: "flex", alignItems: "center", gap: 5 }}>
                   <span style={{ color: "#BA7517", fontWeight: 800 }}>✓</span> {txt}
@@ -778,7 +778,7 @@ export default function PortalVoDetailPage({
                   type="button"
                   onClick={() => onOpenSection?.(s.nav)}
                   title={`Ir a ${s.label}`}
-                  style={{ textAlign: "left", padding: 0, background: isDark ? "rgba(15,23,42,0.4)" : "#fff", border: "1px solid rgba(148,163,184,0.22)", borderRadius: 14, overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column" }}
+                  style={{ textAlign: "left", padding: 0, background: isDark ? "rgba(17,17,17,0.4)" : "#fff", border: "1px solid rgba(150,150,143,0.22)", borderRadius: 14, overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column" }}
                 >
                   {s.offer.image
                     ? <img src={s.offer.image} alt={s.offer.title} referrerPolicy="no-referrer" style={{ width: "100%", height: 120, objectFit: "cover", display: "block" }} onError={(e) => { e.target.style.display = "none"; }} />
@@ -810,7 +810,7 @@ export default function PortalVoDetailPage({
             onClick={(e) => e.stopPropagation()}
             style={{
               background: isDark ? "var(--gris-900)" : "#fff",
-              border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(148,163,184,0.24)",
+              border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(150,150,143,0.24)",
               borderRadius: 16, padding: 28, width: "100%", maxWidth: 420,
               boxShadow: "0 24px 64px rgba(0,0,0,0.3)",
             }}
@@ -892,7 +892,7 @@ export default function PortalVoDetailPage({
                         style={{
                           flex: 1, padding: "8px 0", border: "1px solid",
                           borderColor: reqForm.type === v ? "var(--marca)" : (isDark ? "rgba(255,255,255,0.12)" : "var(--gris-200)"),
-                          background: reqForm.type === v ? (isDark ? "rgba(37,99,235,0.18)" : "var(--acento-tenue)") : "transparent",
+                          background: reqForm.type === v ? (isDark ? "rgba(255,196,0,0.18)" : "var(--acento-tenue)") : "transparent",
                           color: reqForm.type === v ? "var(--marca)" : (isDark ? "var(--gris-400)" : "var(--gris-600)"),
                           borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer",
                         }}

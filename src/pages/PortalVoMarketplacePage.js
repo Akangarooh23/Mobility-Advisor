@@ -18,8 +18,8 @@ function FilterSelect({ value, onChange, style = {}, disabled, children }) {
     "";
 
   const isDarkBg = String(style.background ?? "").includes("0f1b2d");
-  const selectedBg = isDarkBg ? "rgba(255,255,255,0.12)" : "rgba(14,165,233,0.10)";
-  const hoverBg    = isDarkBg ? "rgba(255,255,255,0.07)" : "rgba(14,165,233,0.06)";
+  const selectedBg = isDarkBg ? "rgba(255,255,255,0.12)" : "rgba(255,196,0,0.10)";
+  const hoverBg    = isDarkBg ? "rgba(255,255,255,0.07)" : "rgba(255,196,0,0.06)";
 
   useEffect(() => {
     if (!open) return;
@@ -71,7 +71,7 @@ function FilterSelect({ value, onChange, style = {}, disabled, children }) {
             right: 0,
             zIndex: 9999,
             background: style.background ?? "var(--blanco)",
-            border: style.border ?? "1px solid rgba(148,163,184,0.3)",
+            border: style.border ?? "1px solid rgba(150,150,143,0.3)",
             borderRadius: style.borderRadius ?? 10,
             boxShadow: "0 8px 24px rgba(0,0,0,0.16)",
             maxHeight: 260,
@@ -248,8 +248,8 @@ export default function PortalVoMarketplacePage({
   }, [compraTab, concesionariosPage, portalVoFilters]);
   const titleColor = isDark ? "var(--gris-100)" : "var(--gris-900)";
   const bodyColor = isDark ? "var(--gris-400)" : "var(--gris-600)";
-  const cardBg = isDark ? "rgba(15,23,42,0.34)" : "rgba(255,255,255,0.96)";
-  const cardBorder = isDark ? "1px solid rgba(148,163,184,0.16)" : "1px solid rgba(148,163,184,0.26)";
+  const cardBg = isDark ? "rgba(17,17,17,0.34)" : "rgba(255,255,255,0.96)";
+  const cardBorder = isDark ? "1px solid rgba(150,150,143,0.16)" : "1px solid rgba(150,150,143,0.26)";
 
   const PRICE_STEPS = Array.from({ length: 80 }, (_, i) => (i + 1) * 2500); // 2500 … 200000
 
@@ -399,7 +399,7 @@ export default function PortalVoMarketplacePage({
             fontSize: 12,
             fontWeight: 800,
             cursor: "pointer",
-            boxShadow: "0 10px 24px rgba(37,99,235,0.18)",
+            boxShadow: "0 10px 24px rgba(255,196,0,0.18)",
           }}
         >
           {t("marketplace.backHome")}
@@ -426,14 +426,14 @@ export default function PortalVoMarketplacePage({
                 cursor: "pointer",
                 border: active
                   ? "none"
-                  : isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(148,163,184,0.32)",
+                  : isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(150,150,143,0.32)",
                 background: active
                   ? (key === "renting"
                       ? "linear-gradient(135deg,#059669,#10b981)"
                       : "linear-gradient(135deg,var(--marca),var(--marca-oscuro))")
                   : (isDark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.92)"),
                 color: active ? "#fff" : (isDark ? "var(--gris-400)" : "var(--gris-600)"),
-                boxShadow: active ? "0 6px 18px rgba(37,99,235,0.18)" : "none",
+                boxShadow: active ? "0 6px 18px rgba(255,196,0,0.18)" : "none",
                 transition: "all 0.18s",
               }}
             >
@@ -448,8 +448,8 @@ export default function PortalVoMarketplacePage({
         <div style={{
           display: "flex", gap: 0, marginBottom: 20,
           borderRadius: 14, overflow: "hidden",
-          border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(148,163,184,0.22)",
-          background: isDark ? "rgba(15,23,42,0.4)" : "rgba(248,250,252,0.9)",
+          border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(150,150,143,0.22)",
+          background: isDark ? "rgba(17,17,17,0.4)" : "rgba(250,250,248,0.9)",
         }}>
           {[
             { key: "concesionarios",  icon: "🏪", label: "Concesionarios", color: "#059669" },
@@ -467,7 +467,7 @@ export default function PortalVoMarketplacePage({
                   flex: 1,
                   padding: "11px 8px",
                   border: "none",
-                  borderRight: idx < arr.length - 1 ? (isDark ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(148,163,184,0.18)") : "none",
+                  borderRight: idx < arr.length - 1 ? (isDark ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(150,150,143,0.18)") : "none",
                   background: active ? color : "transparent",
                   color: active ? "#fff" : (isDark ? "var(--gris-400)" : "var(--gris-500)"),
                   fontWeight: active ? 700 : 500,
@@ -705,7 +705,7 @@ export default function PortalVoMarketplacePage({
               onClick={onResetFilters}
               style={{
                 background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.95)",
-                border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(148,163,184,0.32)",
+                border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(150,150,143,0.32)",
                 color: isDark ? "var(--gris-300)" : "var(--gris-600)",
                 padding: "10px 14px",
                 borderRadius: 10,
@@ -743,7 +743,7 @@ export default function PortalVoMarketplacePage({
             style={{
               background: "linear-gradient(135deg,var(--marca),var(--marca-oscuro))", border: "none", color: "#fff",
               padding: "12px 22px", borderRadius: 12, fontSize: 13, fontWeight: 800, cursor: "pointer",
-              boxShadow: "0 10px 24px rgba(37,99,235,0.2)",
+              boxShadow: "0 10px 24px rgba(255,196,0,0.2)",
             }}
           >
             Reintentar
@@ -754,7 +754,7 @@ export default function PortalVoMarketplacePage({
       {showAlertCta && (
         <div style={{
           ...styles.panel, marginBottom: 18, textAlign: "center", padding: "24px 20px",
-          border: `1px dashed ${isDark ? "rgba(96,165,250,0.45)" : "rgba(37,99,235,0.35)"}`,
+          border: `1px dashed ${isDark ? "rgba(255,196,0,0.45)" : "rgba(255,196,0,0.35)"}`,
         }}>
           <div style={{ fontSize: 30, marginBottom: 8 }}>🔔</div>
           <div style={{ fontSize: 15, fontWeight: 800, color: isDark ? "var(--gris-100)" : "var(--gris-900)", marginBottom: 6 }}>
@@ -775,7 +775,7 @@ export default function PortalVoMarketplacePage({
                 style={{
                   background: "linear-gradient(135deg,var(--marca),var(--marca-oscuro))", border: "none", color: "#fff",
                   padding: "12px 22px", borderRadius: 12, fontSize: 13, fontWeight: 800, cursor: "pointer",
-                  boxShadow: "0 10px 24px rgba(37,99,235,0.2)",
+                  boxShadow: "0 10px 24px rgba(255,196,0,0.2)",
                 }}
               >
                 🔔 Generar alerta
@@ -807,14 +807,14 @@ export default function PortalVoMarketplacePage({
                   title="Ver ficha completa"
                   style={{
                     background: isDark ? "var(--gris-900)" : "#fff",
-                    border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(148,163,184,0.22)",
+                    border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(150,150,143,0.22)",
                     borderRadius: 14, overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer",
                   }}>
                   <div style={{ position: "relative" }}>
                     {offer.image
                       ? <img src={offer.image} alt={offer.title} referrerPolicy="no-referrer" style={{ width: "100%", height: 150, objectFit: "cover", display: "block" }} />
                       : <div style={{ width: "100%", height: 150, background: isDark ? "var(--gris-800)" : "var(--gris-100)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30 }}>🚗</div>}
-                    <span style={{ position: "absolute", top: 8, left: 8, fontSize: 10, fontWeight: 800, padding: "3px 8px", borderRadius: 999, background: "rgba(8,145,178,0.92)", color: "#fff" }}>🇩🇪 Importación</span>
+                    <span style={{ position: "absolute", top: 8, left: 8, fontSize: 10, fontWeight: 800, padding: "3px 8px", borderRadius: 999, background: "rgba(150,150,143,0.92)", color: "#fff" }}>🇩🇪 Importación</span>
                     {offer.importSavingsPct != null && offer.importSavingsPct > 0 && (
                       <span style={{ position: "absolute", top: 8, right: 8, fontSize: 11, fontWeight: 800, padding: "3px 8px", borderRadius: 999, background: "#059669", color: "#fff" }}>−{offer.importSavingsPct}%</span>
                     )}
@@ -947,12 +947,12 @@ export default function PortalVoMarketplacePage({
         {effectiveLoadingOffers && modeOffers.length === 0 ? (
           <div style={{ display: "grid", gridTemplateColumns: `repeat(${gridCols}, minmax(0,1fr))`, gap: 12 }}>
             {Array.from({ length: 15 }).map((_, i) => (
-              <div key={i} style={{ background: isDark ? "rgba(30,41,59,0.4)" : "rgba(241,245,249,0.9)", border: cardBorder, borderRadius: 14, overflow: "hidden" }}>
-                <div style={{ width: "100%", height: 150, background: isDark ? "rgba(51,65,85,0.5)" : "var(--gris-200)", animation: "pulse 1.5s ease-in-out infinite" }} />
+              <div key={i} style={{ background: isDark ? "rgba(31,31,29,0.4)" : "rgba(242,242,237,0.9)", border: cardBorder, borderRadius: 14, overflow: "hidden" }}>
+                <div style={{ width: "100%", height: 150, background: isDark ? "rgba(51,51,48,0.5)" : "var(--gris-200)", animation: "pulse 1.5s ease-in-out infinite" }} />
                 <div style={{ padding: 12 }}>
-                  <div style={{ height: 14, borderRadius: 6, background: isDark ? "rgba(51,65,85,0.5)" : "var(--gris-200)", marginBottom: 8, width: "70%" }} />
-                  <div style={{ height: 12, borderRadius: 6, background: isDark ? "rgba(51,65,85,0.4)" : "var(--gris-100)", marginBottom: 6, width: "50%" }} />
-                  <div style={{ height: 12, borderRadius: 6, background: isDark ? "rgba(51,65,85,0.4)" : "var(--gris-100)", width: "60%" }} />
+                  <div style={{ height: 14, borderRadius: 6, background: isDark ? "rgba(51,51,48,0.5)" : "var(--gris-200)", marginBottom: 8, width: "70%" }} />
+                  <div style={{ height: 12, borderRadius: 6, background: isDark ? "rgba(51,51,48,0.4)" : "var(--gris-100)", marginBottom: 6, width: "50%" }} />
+                  <div style={{ height: 12, borderRadius: 6, background: isDark ? "rgba(51,51,48,0.4)" : "var(--gris-100)", width: "60%" }} />
                 </div>
               </div>
             ))}
@@ -1048,7 +1048,7 @@ export default function PortalVoMarketplacePage({
               disabled={effectiveCurrentPage === 0}
               style={{
                 padding: "8px 14px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: effectiveCurrentPage === 0 ? "default" : "pointer",
-                background: effectiveCurrentPage === 0 ? (isDark ? "rgba(255,255,255,0.05)" : "var(--gris-100)") : (isDark ? "rgba(37,99,235,0.18)" : "var(--marca)"),
+                background: effectiveCurrentPage === 0 ? (isDark ? "rgba(255,255,255,0.05)" : "var(--gris-100)") : (isDark ? "rgba(255,196,0,0.18)" : "var(--marca)"),
                 color: effectiveCurrentPage === 0 ? (isDark ? "var(--gris-600)" : "var(--gris-400)") : "#fff",
                 border: "none", opacity: effectiveCurrentPage === 0 ? 0.5 : 1,
               }}
@@ -1091,7 +1091,7 @@ export default function PortalVoMarketplacePage({
               disabled={effectiveCurrentPage >= effectiveTotalPages - 1}
               style={{
                 padding: "8px 14px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: effectiveCurrentPage >= effectiveTotalPages - 1 ? "default" : "pointer",
-                background: effectiveCurrentPage >= effectiveTotalPages - 1 ? (isDark ? "rgba(255,255,255,0.05)" : "var(--gris-100)") : (isDark ? "rgba(37,99,235,0.18)" : "var(--marca)"),
+                background: effectiveCurrentPage >= effectiveTotalPages - 1 ? (isDark ? "rgba(255,255,255,0.05)" : "var(--gris-100)") : (isDark ? "rgba(255,196,0,0.18)" : "var(--marca)"),
                 color: effectiveCurrentPage >= effectiveTotalPages - 1 ? (isDark ? "var(--gris-600)" : "var(--gris-400)") : "#fff",
                 border: "none", opacity: effectiveCurrentPage >= effectiveTotalPages - 1 ? 0.5 : 1,
               }}
@@ -1112,7 +1112,7 @@ export default function PortalVoMarketplacePage({
           onClick={onGoHome}
           style={{
             background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.95)",
-            border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(148,163,184,0.32)",
+            border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(150,150,143,0.32)",
             color: isDark ? "var(--gris-400)" : "var(--gris-600)",
             padding: "12px 20px",
             borderRadius: 10,

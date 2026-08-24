@@ -125,7 +125,7 @@ export default function CircularSteps({ onSelectBuy, onSelectService, onSelectSe
             const iconStyle = {
               left: `${step.iconPoint.x}px`,
               top: `${step.iconPoint.y}px`,
-              borderColor: isActive ? step.color : "rgba(148,163,184,0.28)",
+              borderColor: isActive ? step.color : "rgba(150,150,143,0.28)",
               color: step.color,
             };
 

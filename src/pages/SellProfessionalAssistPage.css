@@ -189,7 +189,7 @@
 }
 
 .sell-pro-assist-root .step-block:hover {
-  border-color: rgba(59, 74, 122, 0.2);
+  border-color: rgba(74, 74, 69, 0.2);
   background: var(--gris-50);
 }
 
@@ -212,7 +212,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(26, 26, 46, 0.25);
+  box-shadow: 0 2px 8px rgba(31,31,29, 0.25);
   flex-shrink: 0;
 }
 
@@ -272,7 +272,7 @@
   margin-top: 0.85rem;
   padding: 0.85rem 1rem;
   background: #fff;
-  border: 1px solid rgba(59, 74, 122, 0.12);
+  border: 1px solid rgba(74, 74, 69, 0.12);
   border-radius: 11px;
 }
 
@@ -329,7 +329,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  box-shadow: 0 4px 24px rgba(26, 26, 46, 0.22);
+  box-shadow: 0 4px 24px rgba(31,31,29, 0.22);
   margin-bottom: 2rem;
 }
 

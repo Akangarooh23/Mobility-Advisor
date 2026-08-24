@@ -10,7 +10,7 @@
   --cw-white: var(--blanco);
   --cw-ink: var(--gris-800);
   --cw-smoke: var(--gris-500);
-  --cw-border: rgba(13, 31, 60, 0.1);
+  --cw-border: rgba(31,31,29, 0.1);
 }
 
 .cw-pricing-page *,
@@ -174,7 +174,7 @@
 
 .cw-plan-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(13, 31, 60, 0.1);
+  box-shadow: 0 12px 40px rgba(31,31,29, 0.1);
 }
 
 .cw-plan-card.featured {

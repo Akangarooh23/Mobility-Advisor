@@ -414,8 +414,8 @@ function SectionBlock({ title, subtitle, open, onToggle, children, openLabel = "
         </div>
         <span style={{
           fontSize: 11, fontWeight: 700, color: "var(--marca)",
-          background: "rgba(37,99,235,0.07)", borderRadius: 8, padding: "4px 10px",
-          border: "1px solid rgba(37,99,235,0.14)", whiteSpace: "nowrap",
+          background: "rgba(255,196,0,0.07)", borderRadius: 8, padding: "4px 10px",
+          border: "1px solid rgba(255,196,0,0.14)", whiteSpace: "nowrap",
         }}>
           {open ? closeLabel : openLabel}
         </span>
@@ -1331,7 +1331,7 @@ export default function ServiceIdCarsManagePage({
         </button>
         <button type="button"
           onClick={() => typeof onRequestValuation === "function" && onRequestValuation(vehicle)}
-          style={{ background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.22)", color: "var(--marca-oscuro)", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+          style={{ background: "rgba(255,196,0,0.08)", border: "1px solid rgba(255,196,0,0.22)", color: "var(--marca-oscuro)", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
           {txt("Solicitar tasación", "Request valuation")}
         </button>
         <button type="button"
@@ -1343,7 +1343,7 @@ export default function ServiceIdCarsManagePage({
             }
             setOpenSections((prev) => ({ ...prev, insurance: true }));
           }}
-          style={{ background: "rgba(14,116,144,0.08)", border: "1px solid rgba(14,116,144,0.22)", color: "var(--gris-500)", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+          style={{ background: "rgba(94,94,89,0.08)", border: "1px solid rgba(94,94,89,0.22)", color: "var(--gris-500)", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
           {txt("Gestionar seguro", "Manage insurance")}
         </button>
         {isPublished ? (
@@ -1779,7 +1779,7 @@ export default function ServiceIdCarsManagePage({
       {isCreateView ? (
         <>
           <section style={{ ...SECTION_CARD_STYLE, padding: "18px 20px", marginBottom: 12 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--marca)", background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 20, padding: "4px 12px", marginBottom: 10 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--marca)", background: "rgba(255,196,0,0.08)", border: "1px solid rgba(255,196,0,0.2)", borderRadius: 20, padding: "4px 12px", marginBottom: 10 }}>
               {txt("🚗 Nuevo IDCar", "🚗 New IDCar")}
             </div>
             <h2 style={{ margin: "0 0 5px", fontSize: 22, fontWeight: 700, color: "#111", letterSpacing: "-0.02em" }}>{txt("Crear mi IDCar", "Create my IDCar")}</h2>
@@ -1893,7 +1893,7 @@ export default function ServiceIdCarsManagePage({
                 {/* Doc badges + actions row */}
                 <div style={{ display: "flex", flexDirection: isCompactCard ? "column" : "row", alignItems: isCompactCard ? "stretch" : "center", justifyContent: "space-between", gap: 8, marginTop: 8 }}>
                   <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                    {docsCount > 0 && <span style={{ background: "rgba(37,99,235,0.07)", color: "var(--marca-oscuro)", border: "1px solid rgba(37,99,235,0.18)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>📄 {docsCount}</span>}
+                    {docsCount > 0 && <span style={{ background: "rgba(255,196,0,0.07)", color: "var(--marca-oscuro)", border: "1px solid rgba(255,196,0,0.18)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>📄 {docsCount}</span>}
                     {insuranceDocs > 0 && <span style={{ background: "rgba(16,185,129,0.07)", color: "#047857", border: "1px solid rgba(16,185,129,0.18)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>🛡️ {insuranceDocs}</span>}
                     {maintenanceDocs > 0 && <span style={{ background: "rgba(251,146,60,0.08)", color: "#c2410c", border: "1px solid rgba(251,146,60,0.22)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>🔧 {maintenanceDocs}</span>}
                     {getIsPublished(vehicle) && <span style={{ background: "rgba(16,185,129,0.1)", color: "#047857", border: "1px solid rgba(16,185,129,0.3)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 700 }}>🟢 Marketplace</span>}
@@ -1910,12 +1910,12 @@ export default function ServiceIdCarsManagePage({
                       {txt("Ver ficha", "View profile")}
                     </button>
                     <button type="button" onClick={() => openVehicleDetail(vehicle, true)}
-                      style={{ border: "1px solid rgba(59,130,246,0.3)", background: "rgba(59,130,246,0.08)", color: "var(--marca)", borderRadius: 7, padding: isCompactCard ? "8px 8px" : "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", minHeight: isCompactCard ? 36 : "auto" }}>
+                      style={{ border: "1px solid rgba(255,196,0,0.3)", background: "rgba(255,196,0,0.08)", color: "var(--marca)", borderRadius: 7, padding: isCompactCard ? "8px 8px" : "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", minHeight: isCompactCard ? 36 : "auto" }}>
                       {txt("Editar", "Edit")}
                     </button>
                     <button type="button"
                       onClick={() => setOpenManagePanelId((prev) => (prev === vehicle.id ? "" : vehicle.id))}
-                      style={{ border: "1px solid rgba(14,116,144,0.3)", background: openManagePanelId === vehicle.id ? "rgba(14,116,144,0.15)" : "rgba(14,116,144,0.07)", color: "var(--gris-500)", borderRadius: 7, padding: isCompactCard ? "8px 8px" : "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", minHeight: isCompactCard ? 36 : "auto" }}>
+                      style={{ border: "1px solid rgba(94,94,89,0.3)", background: openManagePanelId === vehicle.id ? "rgba(94,94,89,0.15)" : "rgba(94,94,89,0.07)", color: "var(--gris-500)", borderRadius: 7, padding: isCompactCard ? "8px 8px" : "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", minHeight: isCompactCard ? 36 : "auto" }}>
                       {openManagePanelId === vehicle.id ? txt("✕ Cerrar", "✕ Close") : txt("Gestionar", "Manage")}
                     </button>
                   </div>
@@ -1972,7 +1972,7 @@ export default function ServiceIdCarsManagePage({
                 <div style={{ display: "flex", gap: 8 }}>
                   {!isEditMode ? (
                     <button type="button" onClick={() => setIsEditMode(true)}
-                      style={{ border: "none", borderRadius: 10, background: "linear-gradient(135deg,var(--marca),var(--marca-claro))", color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 2px 12px rgba(37,99,235,0.4)" }}>
+                      style={{ border: "none", borderRadius: 10, background: "linear-gradient(135deg,var(--marca),var(--marca-claro))", color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 2px 12px rgba(255,196,0,0.4)" }}>
                       {txt("✏️ Editar ficha", "✏️ Edit profile")}
                     </button>
                   ) : (
@@ -2022,11 +2022,11 @@ export default function ServiceIdCarsManagePage({
               if (!docCount && !insCount && !mntCount && !photoCount) return null;
               return (
                 <div style={{ padding: "0 20px 16px", display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {photoCount > 0 && <span style={{ background: "rgba(37,99,235,0.08)", color: "var(--marca-oscuro)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📷 {photoCount} {txt(`foto${photoCount !== 1 ? "s" : ""}`, `photo${photoCount !== 1 ? "s" : ""}`)}</span>}
-                  {docCount > 0 && <span style={{ background: "rgba(37,99,235,0.08)", color: "var(--marca-oscuro)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📄 {docCount} {txt(`doc${docCount !== 1 ? "s" : ""}`, `doc${docCount !== 1 ? "s" : ""}`)}</span>}
+                  {photoCount > 0 && <span style={{ background: "rgba(255,196,0,0.08)", color: "var(--marca-oscuro)", border: "1px solid rgba(255,196,0,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📷 {photoCount} {txt(`foto${photoCount !== 1 ? "s" : ""}`, `photo${photoCount !== 1 ? "s" : ""}`)}</span>}
+                  {docCount > 0 && <span style={{ background: "rgba(255,196,0,0.08)", color: "var(--marca-oscuro)", border: "1px solid rgba(255,196,0,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📄 {docCount} {txt(`doc${docCount !== 1 ? "s" : ""}`, `doc${docCount !== 1 ? "s" : ""}`)}</span>}
                   {insCount > 0 && <span style={{ background: "rgba(16,185,129,0.08)", color: "#047857", border: "1px solid rgba(16,185,129,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>🛡️ {insCount} {txt(`seguro${insCount !== 1 ? "s" : ""}`, `insurance${insCount !== 1 ? "s" : ""}`)}</span>}
                   {mntCount > 0 && <span style={{ background: "rgba(251,146,60,0.1)", color: "#c2410c", border: "1px solid rgba(251,146,60,0.25)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>🔧 {mntCount} mant.</span>}
-                  {normalizeText(selectedVehicle.notes) ? <span style={{ background: "rgba(107,114,128,0.08)", color: "var(--gris-500)", border: "1px solid rgba(107,114,128,0.18)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📝 {txt("Notas", "Notes")}</span> : null}
+                  {normalizeText(selectedVehicle.notes) ? <span style={{ background: "rgba(94,94,89,0.08)", color: "var(--gris-500)", border: "1px solid rgba(94,94,89,0.18)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📝 {txt("Notas", "Notes")}</span> : null}
                 </div>
               );
             })()}
@@ -2138,7 +2138,7 @@ export default function ServiceIdCarsManagePage({
         cuando cabe y deja desplazar cuando no. */}
     {marketplacePublishDialog.open && marketplacePublishDialog.vehicle ? createPortal(
       <div onClick={closeMarketplacePublishDialog}
-        style={{ position: "fixed", inset: 0, zIndex: 1200, background: "rgba(15,23,42,0.35)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, overflowY: "auto", overscrollBehavior: "contain" }}>
+        style={{ position: "fixed", inset: 0, zIndex: 1200, background: "rgba(17,17,17,0.35)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, overflowY: "auto", overscrollBehavior: "contain" }}>
         <div onClick={(e) => e.stopPropagation()}
           role="dialog" aria-modal="true" aria-label={txt("Confirmar publicación en marketplace", "Confirm marketplace listing")}
           ref={marketplacePublishDialogRef} tabIndex={-1}
@@ -2262,7 +2262,7 @@ export default function ServiceIdCarsManagePage({
               );
             })()}
             <button type="button" onClick={closeMarketplacePublishDialog}
-              style={{ background: "rgba(148,163,184,0.14)", color: "var(--gris-700)", border: "1px solid var(--gris-200)", borderRadius: 8, padding: "9px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+              style={{ background: "rgba(150,150,143,0.14)", color: "var(--gris-700)", border: "1px solid var(--gris-200)", borderRadius: 8, padding: "9px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
               {txt("Cancelar", "Cancel")}
             </button>
           </div>

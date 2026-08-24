@@ -13,8 +13,8 @@ export default function BlogArticlePage({ styles, article, onGoBlog, onGoHome })
           type="button"
           onClick={onGoBlog}
           style={{
-            border: "1px solid rgba(148,163,184,0.34)",
-            background: "rgba(15,23,42,0.52)",
+            border: "1px solid rgba(150,150,143,0.34)",
+            background: "rgba(17,17,17,0.52)",
             color: "var(--gris-300)",
             borderRadius: 10,
             padding: "8px 12px",
@@ -29,8 +29,8 @@ export default function BlogArticlePage({ styles, article, onGoBlog, onGoHome })
           type="button"
           onClick={onGoHome}
           style={{
-            border: "1px solid rgba(125,211,252,0.36)",
-            background: "rgba(14,165,233,0.12)",
+            border: "1px solid rgba(207,207,200,0.36)",
+            background: "rgba(255,196,0,0.12)",
             color: "var(--gris-200)",
             borderRadius: 10,
             padding: "8px 12px",
@@ -43,7 +43,7 @@ export default function BlogArticlePage({ styles, article, onGoBlog, onGoHome })
         </button>
       </div>
 
-      <article className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.22)", borderRadius: 16, background: "rgba(15,23,42,0.55)", padding: "16px 14px" }}>
+      <article className="ma-card-soft" style={{ border: "1px solid rgba(150,150,143,0.22)", borderRadius: 16, background: "rgba(17,17,17,0.55)", padding: "16px 14px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 8 }}>
           <span style={{ fontSize: 11, color: "var(--gris-300)", fontWeight: 800, letterSpacing: "0.5px" }}>{article.category}</span>
           <span style={{ fontSize: 11, color: "var(--gris-400)" }}>{article.publishedAt} · {article.readTime}</span>
@@ -57,7 +57,7 @@ export default function BlogArticlePage({ styles, article, onGoBlog, onGoHome })
 
         <div style={{ display: "grid", gap: 12 }}>
           {article.sections.map((section) => (
-            <section key={section.heading} style={{ borderTop: "1px solid rgba(148,163,184,0.2)", paddingTop: 10 }}>
+            <section key={section.heading} style={{ borderTop: "1px solid rgba(150,150,143,0.2)", paddingTop: 10 }}>
               <h2 style={{ margin: "0 0 8px", color: "var(--gris-200)", fontSize: 18 }}>{section.heading}</h2>
               {Array.isArray(section.paragraphs) && section.paragraphs.length > 0 && (
                 <div style={{ display: "grid", gap: 8 }}>

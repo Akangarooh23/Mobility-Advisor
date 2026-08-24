@@ -8,9 +8,9 @@
   --c2: #1a9c6b;
   --grad: linear-gradient(90deg, var(--gris-500), #1a9c6b);
   --grad-btn: linear-gradient(135deg, var(--gris-500), #22a88a);
-  --c1-light: rgba(29, 111, 164, 0.07);
-  --c1-border: rgba(29, 111, 164, 0.2);
-  --c1-glow: rgba(29, 111, 164, 0.3);
+  --c1-light: rgba(74, 74, 69, 0.07);
+  --c1-border: rgba(74, 74, 69, 0.2);
+  --c1-glow: rgba(74, 74, 69, 0.3);
   max-width: 860px;
   margin: 0 auto;
   display: flex;
@@ -189,7 +189,7 @@
 }
 
 .sell-market-root .step-block:hover {
-  border-color: rgba(29, 111, 164, 0.2);
+  border-color: rgba(74, 74, 69, 0.2);
   background: var(--gris-50);
 }
 
@@ -219,7 +219,7 @@
 .sell-market-root .step-connector {
   width: 1.5px;
   height: 24px;
-  background: linear-gradient(180deg, rgba(29, 111, 164, 0.2), transparent);
+  background: linear-gradient(180deg, rgba(74, 74, 69, 0.2), transparent);
 }
 
 .sell-market-root .step-label {
@@ -252,7 +252,7 @@
   margin-top: 1rem;
   padding: 1rem 1.25rem;
   background: #fff;
-  border: 1px solid rgba(29, 111, 164, 0.12);
+  border: 1px solid rgba(74, 74, 69, 0.12);
   border-radius: 12px;
 }
 
@@ -391,7 +391,7 @@
 
 .sell-market-root .sel-down-item:hover,
 .sell-market-root .sel-down-item.selected {
-  background: rgba(14, 165, 233, 0.08);
+  background: rgba(255, 196, 0, 0.08);
 }
 
 .sell-market-root .sel-manual-toggle {
@@ -557,8 +557,8 @@
   gap: 0.65rem;
   margin-top: 0.75rem;
   padding: 0.75rem 1rem;
-  background: linear-gradient(135deg, rgba(29, 111, 164, 0.05), rgba(26, 156, 107, 0.05));
-  border: 1px solid rgba(29, 111, 164, 0.1);
+  background: linear-gradient(135deg, rgba(74, 74, 69, 0.05), rgba(26, 156, 107, 0.05));
+  border: 1px solid rgba(74, 74, 69, 0.1);
   border-radius: 10px;
 }
 
@@ -586,7 +586,7 @@
 }
 
 .sell-market-root .ref-box {
-  background: linear-gradient(135deg, rgba(29, 111, 164, 0.05), rgba(26, 156, 107, 0.05));
+  background: linear-gradient(135deg, rgba(74, 74, 69, 0.05), rgba(26, 156, 107, 0.05));
 }
 
 .sell-market-root .ref-title {
@@ -709,7 +709,7 @@
 
 .sell-market-root .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 22px rgba(29, 111, 164, 0.45);
+  box-shadow: 0 6px 22px rgba(74, 74, 69, 0.45);
 }
 
 .sell-market-root .btn-primary svg {

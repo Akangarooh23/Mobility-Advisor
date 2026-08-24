@@ -61,7 +61,7 @@ export default function ResultsHeader({
             gap: 12,
             flexWrap: "wrap",
             alignItems: "center",
-            boxShadow: isDark ? "0 12px 26px rgba(2,6,23,0.3)" : "0 12px 26px rgba(217,119,6,0.1)",
+            boxShadow: isDark ? "0 12px 26px rgba(5,5,5,0.3)" : "0 12px 26px rgba(217,119,6,0.1)",
           }}
         >
           <div style={{ flex: 1, minWidth: 240 }}>

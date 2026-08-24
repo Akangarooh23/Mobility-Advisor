@@ -5,8 +5,8 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
   const isDark = styles?.page?.color === "var(--gris-200)";
   const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
   const mutedColor = isDark ? "var(--gris-300)" : "var(--gris-700)";
-  const cardBackground = isDark ? "rgba(15,23,42,0.62)" : "rgba(255,255,255,0.92)";
-  const cardBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(15,23,42,0.14)";
+  const cardBackground = isDark ? "rgba(17,17,17,0.62)" : "rgba(255,255,255,0.92)";
+  const cardBorder = isDark ? "1px solid rgba(150,150,143,0.24)" : "1px solid rgba(17,17,17,0.14)";
   const [showAnalysis, setShowAnalysis] = useState(false);
 
   const { t } = useTranslation();
@@ -41,17 +41,17 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
           .cw-advice-analysis-card {
             border-radius: 18px;
             padding: 16px 16px 14px;
-            border: 1px solid rgba(125, 211, 252, 0.34);
+            border: 1px solid rgba(207,207,200, 0.34);
             background: linear-gradient(145deg, rgba(255,255,255,0.96), rgba(239,246,255,0.92));
-            box-shadow: 0 14px 34px rgba(37,99,235,0.08);
+            box-shadow: 0 14px 34px rgba(255,196,0,0.08);
           }
 
           .cw-advice-analysis-card:nth-child(3n + 1) {
-            background: linear-gradient(145deg, rgba(255,255,255,0.96), rgba(219,234,254,0.92));
+            background: linear-gradient(145deg, rgba(255,255,255,0.96), rgba(255,246,217,0.92));
           }
 
           .cw-advice-analysis-card:nth-child(3n + 2) {
-            background: linear-gradient(145deg, rgba(255,255,255,0.96), rgba(224,242,254,0.92));
+            background: linear-gradient(145deg, rgba(255,255,255,0.96), rgba(242,242,237,0.92));
           }
 
           .cw-advice-analysis-card:nth-child(3n + 3) {
@@ -124,7 +124,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
               type="button"
               onClick={onStart}
               style={{
-                border: "1px solid rgba(37,99,235,0.24)",
+                border: "1px solid rgba(255,196,0,0.24)",
                 background: "linear-gradient(135deg,var(--marca),#14b8a6)",
                 color: "var(--blanco)",
                 borderRadius: 12,
@@ -134,7 +134,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
                 cursor: "pointer",
                 minWidth: 194,
                 textAlign: "left",
-                boxShadow: "0 12px 26px rgba(37,99,235,0.18)",
+                boxShadow: "0 12px 26px rgba(255,196,0,0.18)",
               }}
             >
               {t("advice.startTest")}
@@ -166,7 +166,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
               background: cardBackground,
               borderRadius: 16,
               padding: "18px 18px 16px",
-              boxShadow: isDark ? "none" : "0 10px 26px rgba(15,23,42,0.06)",
+              boxShadow: isDark ? "none" : "0 10px 26px rgba(17,17,17,0.06)",
             }}
           >
             <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--gris-900)", marginBottom: 14 }}>
@@ -180,8 +180,8 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
                       width: 22,
                       height: 22,
                       borderRadius: "50%",
-                      border: "1px solid rgba(37,99,235,0.28)",
-                      background: "rgba(37,99,235,0.08)",
+                      border: "1px solid rgba(255,196,0,0.28)",
+                      background: "rgba(255,196,0,0.08)",
                       color: "var(--marca)",
                       display: "inline-flex",
                       alignItems: "center",
@@ -214,7 +214,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
               cursor: "pointer",
               fontSize: 15,
               fontWeight: 800,
-              boxShadow: isDark ? "none" : "0 10px 24px rgba(15,23,42,0.05)",
+              boxShadow: isDark ? "none" : "0 10px 24px rgba(17,17,17,0.05)",
             }}
           >
             <span style={{ color: "var(--gris-500)", fontSize: 13 }}>◌</span>
@@ -239,7 +239,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
         </div>
       )}
 
-      <div style={{ marginTop: 34, paddingTop: 14, borderTop: "1px solid rgba(148,163,184,0.2)", display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
+      <div style={{ marginTop: 34, paddingTop: 14, borderTop: "1px solid rgba(150,150,143,0.2)", display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 8, color: mutedColor, fontSize: 13, fontWeight: 600 }}>
           <span style={{ fontSize: 11 }}>◌</span>
           {t("advice.dataPrivacy")}
@@ -252,7 +252,7 @@ export default function AdviceIntroPage({ styles, pillars, onStart, onRestart })
                 width: 7,
                 height: 7,
                 borderRadius: "50%",
-                background: index === 0 ? "#0f766e" : "rgba(148,163,184,0.35)",
+                background: index === 0 ? "#0f766e" : "rgba(150,150,143,0.35)",
                 display: "inline-block",
               }}
             />

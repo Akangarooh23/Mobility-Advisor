@@ -11,7 +11,7 @@ const PARTNER_COLORS = {
 function buildUserIcon(L, isPrecise) {
   return L.divIcon({
     html: isPrecise
-      ? `<div style="width:18px;height:18px;border-radius:50%;background:var(--marca-oscuro);border:3px solid white;box-shadow:0 0 0 5px rgba(29,78,216,0.25),0 2px 8px rgba(0,0,0,0.4)"></div>`
+      ? `<div style="width:18px;height:18px;border-radius:50%;background:var(--marca-oscuro);border:3px solid white;box-shadow:0 0 0 5px rgba(230,176,0,0.25),0 2px 8px rgba(0,0,0,0.4)"></div>`
       : `<div style="width:14px;height:14px;border-radius:50%;background:white;border:2.5px dashed var(--marca-oscuro);box-shadow:0 1px 4px rgba(0,0,0,0.3)"></div>`,
     className: "",
     iconSize:   isPrecise ? [18, 18] : [14, 14],

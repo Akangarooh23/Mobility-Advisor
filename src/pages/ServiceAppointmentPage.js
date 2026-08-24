@@ -929,9 +929,9 @@ export default function ServiceAppointmentPage({
           <div
             style={{
               display: "inline-flex",
-              border: "1px solid rgba(139,92,246,0.3)",
+              border: "1px solid rgba(94,94,89,0.3)",
               color: "var(--gris-500)",
-              background: "rgba(139,92,246,0.08)",
+              background: "rgba(94,94,89,0.08)",
               borderRadius: 20,
               padding: "4px 11px",
               fontSize: 10,
@@ -974,7 +974,7 @@ export default function ServiceAppointmentPage({
         </div>
       </section>
 
-      <section style={{ ...cardStyle, padding: 18, marginBottom: 12, border: "1px solid rgba(139,92,246,0.22)", background: "rgba(250,245,255,0.6)" }}>
+      <section style={{ ...cardStyle, padding: 18, marginBottom: 12, border: "1px solid rgba(94,94,89,0.22)", background: "rgba(250,245,255,0.6)" }}>
         <div style={{ fontSize: 10, color: "var(--gris-400)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 10 }}>
           {t("service.appointmentIdCarSectionLabel")}
         </div>
@@ -1012,7 +1012,7 @@ export default function ServiceAppointmentPage({
               value={vehicleId}
               onChange={(event) => setVehicleId(event.target.value)}
               style={{
-                border: "1px solid rgba(139,92,246,0.32)",
+                border: "1px solid rgba(94,94,89,0.32)",
                 borderRadius: 10,
                 background: "#fff",
                 padding: "9px 11px",
@@ -1034,7 +1034,7 @@ export default function ServiceAppointmentPage({
               disabled={isGeolocating}
               style={{
                 display: "flex", alignItems: "center", gap: 6,
-                background: "none", border: "1px dashed rgba(139,92,246,0.4)",
+                background: "none", border: "1px dashed rgba(94,94,89,0.4)",
                 borderRadius: 8, padding: "7px 12px", cursor: "pointer",
                 fontSize: 12, color: "var(--gris-500)", fontWeight: 700,
                 alignSelf: "start",
@@ -1052,7 +1052,7 @@ export default function ServiceAppointmentPage({
                   onChange={(event) => setProvince(event.target.value)}
                   placeholder={t("service.appointmentProvincePlaceholder")}
                   style={{
-                    border: "1px solid rgba(139,92,246,0.32)",
+                    border: "1px solid rgba(94,94,89,0.32)",
                     borderRadius: 10,
                     background: "#fff",
                     padding: "9px 11px",
@@ -1072,7 +1072,7 @@ export default function ServiceAppointmentPage({
                   onChange={(event) => setPostalCode(String(event.target.value || "").replace(/\D/g, "").slice(0, 5))}
                   placeholder="28001"
                   style={{
-                    border: "1px solid rgba(139,92,246,0.32)",
+                    border: "1px solid rgba(94,94,89,0.32)",
                     borderRadius: 10,
                     background: "#fff",
                     padding: "9px 11px",
@@ -1099,7 +1099,7 @@ export default function ServiceAppointmentPage({
                 onBlur={() => geocodeAddress(street, province, postalCode)}
                 placeholder="Calle Mayor 12, Madrid"
                 style={{
-                  border: "1px solid rgba(139,92,246,0.32)",
+                  border: "1px solid rgba(94,94,89,0.32)",
                   borderRadius: 10,
                   background: "#fff",
                   padding: "9px 11px",
@@ -1149,9 +1149,9 @@ export default function ServiceAppointmentPage({
                 }}
                 disabled={!canChooseRevision}
                 style={{
-                  border: idx === selectedRevision ? "2px solid rgba(139,92,246,0.7)" : "1px solid var(--gris-200)",
+                  border: idx === selectedRevision ? "2px solid rgba(94,94,89,0.7)" : "1px solid var(--gris-200)",
                   borderRadius: 10,
-                  background: idx === selectedRevision ? "rgba(139,92,246,0.07)" : "var(--gris-50)",
+                  background: idx === selectedRevision ? "rgba(94,94,89,0.07)" : "var(--gris-50)",
                   textAlign: "left",
                   padding: "10px 12px",
                   cursor: canChooseRevision ? "pointer" : "not-allowed",
@@ -1170,9 +1170,9 @@ export default function ServiceAppointmentPage({
               onClick={() => setIsSpecificOpen((prev) => !prev)}
               disabled={!canChooseRevision}
               style={{
-                border: "1px solid rgba(139,92,246,0.32)",
+                border: "1px solid rgba(94,94,89,0.32)",
                 borderRadius: 10,
-                background: "rgba(139,92,246,0.08)",
+                background: "rgba(94,94,89,0.08)",
                 color: "var(--gris-500)",
                 fontSize: 12,
                 fontWeight: 800,
@@ -1190,9 +1190,9 @@ export default function ServiceAppointmentPage({
             {isSpecificOpen ? (
               <div
                 style={{
-                  border: "1px solid rgba(139,92,246,0.2)",
+                  border: "1px solid rgba(94,94,89,0.2)",
                   borderRadius: 12,
-                  background: "rgba(139,92,246,0.05)",
+                  background: "rgba(94,94,89,0.05)",
                   padding: 12,
                   display: "grid",
                   gap: 10,
@@ -1208,7 +1208,7 @@ export default function ServiceAppointmentPage({
                       setSelectedRevision(-1);
                     }}
                     style={{
-                      border: "1px solid rgba(139,92,246,0.35)",
+                      border: "1px solid rgba(94,94,89,0.35)",
                       borderRadius: 10,
                       background: "#fff",
                       padding: "9px 10px",
@@ -1237,7 +1237,7 @@ export default function ServiceAppointmentPage({
                           }
                         }}
                         style={{
-                          border: "1px solid rgba(139,92,246,0.35)",
+                          border: "1px solid rgba(94,94,89,0.35)",
                           borderRadius: 10,
                           background: "#fff",
                           padding: "9px 10px",
@@ -1276,7 +1276,7 @@ export default function ServiceAppointmentPage({
                 onClick={() => setShowMap(true)}
                 style={{
                   fontSize: 11, fontWeight: 700, color: "var(--gris-500)",
-                  background: "rgba(139,92,246,0.10)", border: "1px solid rgba(139,92,246,0.28)",
+                  background: "rgba(94,94,89,0.10)", border: "1px solid rgba(94,94,89,0.28)",
                   borderRadius: 7, padding: "4px 10px", cursor: "pointer",
                 }}
               >
@@ -1317,9 +1317,9 @@ export default function ServiceAppointmentPage({
                 onClick={() => setSelectedProvider(item.key)}
                 disabled={!canChooseRevision}
                 style={{
-                  border: item.key === selectedProvider ? "1px solid rgba(139,92,246,0.35)" : "1px solid var(--gris-200)",
+                  border: item.key === selectedProvider ? "1px solid rgba(94,94,89,0.35)" : "1px solid var(--gris-200)",
                   borderRadius: 10,
-                  background: item.key === selectedProvider ? "rgba(139,92,246,0.08)" : "var(--gris-50)",
+                  background: item.key === selectedProvider ? "rgba(94,94,89,0.08)" : "var(--gris-50)",
                   textAlign: "left",
                   padding: "10px 12px",
                   cursor: canChooseRevision ? "pointer" : "not-allowed",
@@ -1395,7 +1395,7 @@ export default function ServiceAppointmentPage({
               <div style={{ fontSize: 10, color: "var(--gris-300)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
                 {t("service.appointmentPriceSectionLabel")}
               </div>
-              <div style={{ border: "1px solid rgba(139,92,246,0.28)", borderRadius: 12, background: "rgba(139,92,246,0.08)", padding: 12, marginBottom: 12 }}>
+              <div style={{ border: "1px solid rgba(94,94,89,0.28)", borderRadius: 12, background: "rgba(94,94,89,0.08)", padding: 12, marginBottom: 12 }}>
                 <div style={{ fontSize: 12, color: "var(--gris-400)", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>
                   {selectedRevisionName} · {selectedProviderLabel}
                 </div>
@@ -1431,7 +1431,7 @@ export default function ServiceAppointmentPage({
               <div style={{ fontSize: 10, color: "var(--gris-300)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 14 }}>
                 ¿Qué incluye tu cita?
               </div>
-              <div style={{ border: "1px solid rgba(139,92,246,0.22)", borderRadius: 10, background: "rgba(139,92,246,0.06)", padding: "10px 12px", marginBottom: 14 }}>
+              <div style={{ border: "1px solid rgba(94,94,89,0.22)", borderRadius: 10, background: "rgba(94,94,89,0.06)", padding: "10px 12px", marginBottom: 14 }}>
                 <div style={{ fontSize: 13, color: "var(--gris-500)", fontWeight: 700 }}>
                   {selectedRevisionName}
                 </div>
@@ -1509,7 +1509,7 @@ export default function ServiceAppointmentPage({
               fontWeight: 700,
               cursor: !canContinueBooking || isSubmittingAppointment ? "not-allowed" : "pointer",
               opacity: !canContinueBooking || isSubmittingAppointment ? 0.65 : 1,
-              boxShadow: "0 8px 20px rgba(124,58,237,0.3)",
+              boxShadow: "0 8px 20px rgba(94,94,89,0.3)",
             }}
           >
             {isSubmittingAppointment ? t("service.appointmentSubmitting") : t("service.appointmentSubmit")}

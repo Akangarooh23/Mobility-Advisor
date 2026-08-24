@@ -43,17 +43,17 @@ export default function UserDashboardPreferences({
   const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
   const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
   const cardBg = isDark
-    ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
-    : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))";
-  const panelBorder = isDark ? "1px solid rgba(148,163,184,0.26)" : "1px solid rgba(59,130,246,0.34)";
-  const cardBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(37,99,235,0.3)";
+    ? "linear-gradient(160deg, rgba(17,17,17,0.9), rgba(31,31,29,0.82))"
+    : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(242,242,237,0.92))";
+  const panelBorder = isDark ? "1px solid rgba(150,150,143,0.26)" : "1px solid rgba(255,196,0,0.34)";
+  const cardBorder = isDark ? "1px solid rgba(150,150,143,0.24)" : "1px solid rgba(255,196,0,0.3)";
   const sectionFrame = {
-    background: isDark ? "rgba(2,6,23,0.34)" : "rgba(248,250,252,0.86)",
-    border: isDark ? "1px solid rgba(148,163,184,0.22)" : "1px solid rgba(148,163,184,0.24)",
+    background: isDark ? "rgba(5,5,5,0.34)" : "rgba(250,250,248,0.86)",
+    border: isDark ? "1px solid rgba(150,150,143,0.22)" : "1px solid rgba(150,150,143,0.24)",
     borderRadius: 14,
     boxShadow: isDark
-      ? "0 14px 26px rgba(2,6,23,0.28)"
-      : "0 10px 20px rgba(15,23,42,0.06)",
+      ? "0 14px 26px rgba(5,5,5,0.28)"
+      : "0 10px 20px rgba(17,17,17,0.06)",
   };
 
   const initialState = useMemo(
@@ -113,8 +113,8 @@ export default function UserDashboardPreferences({
   };
 
   const toggleButton = (checked) => ({
-    background: checked ? "rgba(16,185,129,0.16)" : "rgba(148,163,184,0.12)",
-    border: checked ? "1px solid rgba(110,231,183,0.24)" : "1px solid rgba(148,163,184,0.2)",
+    background: checked ? "rgba(16,185,129,0.16)" : "rgba(150,150,143,0.12)",
+    border: checked ? "1px solid rgba(110,231,183,0.24)" : "1px solid rgba(150,150,143,0.2)",
     color: checked ? "#065f46" : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
     borderRadius: 999,
     padding: "5px 10px",

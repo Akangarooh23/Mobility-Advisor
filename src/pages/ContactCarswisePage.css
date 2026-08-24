@@ -12,8 +12,8 @@
   z-index: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(59, 130, 246, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(59, 130, 246, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(255, 196, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 196, 0, 0.04) 1px, transparent 1px);
   background-size: 44px 44px;
 }
 
@@ -91,8 +91,8 @@
 }
 
 .cw-contact-pill {
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(255, 196, 0, 0.3);
+  background: rgba(255, 196, 0, 0.08);
   color: var(--marca-oscuro);
   border-radius: 999px;
   font-size: 11px;
@@ -185,7 +185,7 @@
 
 .cw-contact-info-card:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 22px rgba(17, 17, 17, 0.08);
 }
 
 .cw-contact-info-icon {
@@ -227,7 +227,7 @@
   border: 1px solid var(--gris-200);
   border-radius: 24px;
   background: var(--blanco);
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.1);
+  box-shadow: 0 16px 40px rgba(17, 17, 17, 0.1);
   padding: 26px;
 }
 
@@ -256,7 +256,7 @@
 .cw-contact-mode-tab.is-active {
   background: var(--blanco);
   color: var(--gris-900);
-  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 4px 10px rgba(17, 17, 17, 0.08);
 }
 
 .cw-contact-form-title {
@@ -294,8 +294,8 @@
 
 .cw-contact-topic-btn.is-active,
 .cw-contact-topic-btn:hover {
-  border-color: rgba(59, 130, 246, 0.4);
-  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(255, 196, 0, 0.4);
+  background: rgba(255, 196, 0, 0.08);
   color: var(--marca-oscuro);
 }
 
@@ -334,7 +334,7 @@
 .cw-contact-field input:focus,
 .cw-contact-field textarea:focus {
   border-color: var(--marca-claro);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+  box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.12);
   background: var(--blanco);
 }
 
@@ -361,7 +361,7 @@
 .cw-contact-submit-btn:hover {
   background: var(--marca-oscuro);
   transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.28);
+  box-shadow: 0 10px 22px rgba(255, 196, 0, 0.28);
 }
 
 .cw-contact-chip-row {

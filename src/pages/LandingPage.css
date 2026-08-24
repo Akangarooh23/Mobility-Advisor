@@ -59,18 +59,9 @@
   z-index: 30;
   border-bottom: 1px solid transparent;
 }
-.pc-logo {
-  background: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  font-size: 32px;
-  font-weight: 800;
-  letter-spacing: -0.06em;
-  color: var(--gris-900);
-  line-height: 1;
-}
-.pc-logo span { color: var(--acento); }
+/* El color y la tipografia del logotipo viven en el componente LogoPopCar;
+   aqui solo se le quita el aspecto de boton. */
+.pc-logo { background: none; border: 0; padding: 0; cursor: pointer; line-height: 1; display: inline-flex; }
 .pc-nav { display: flex; gap: 30px; }
 .pc-nav button {
   background: none; border: 0; padding: 6px 0; cursor: pointer;
@@ -303,7 +294,6 @@
   max-width: 1300px; margin: 0 auto 20px; border-radius: 26px; padding: 46px 42px 20px;
 }
 .pc-pie-rejilla { display: grid; grid-template-columns: 1.5fr repeat(5, 1fr); gap: 26px; }
-.pc-logo-pie { color: var(--blanco); font-size: 28px; }
 .pc-pie > .pc-pie-rejilla p { color: var(--gris-400); font-size: 12px; margin-top: 10px; }
 .pc-pie h4 { font-size: 12px; margin-bottom: 16px; }
 .pc-pie-rejilla button {

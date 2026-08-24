@@ -167,7 +167,7 @@ export default function ResultsOffersView({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
   const isDark = themeMode === "dark";
-  const cardBg = isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)";
+  const cardBg = isDark ? "rgba(17,17,17,0.88)" : "rgba(255,255,255,0.95)";
   const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
   const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
 
@@ -212,8 +212,8 @@ export default function ResultsOffersView({
     <>
       <div
         style={{
-          background: isDark ? "rgba(15,23,42,0.7)" : "rgba(255,255,255,0.88)",
-          border: isDark ? "1px solid rgba(148,163,184,0.22)" : "1px solid rgba(148,163,184,0.18)",
+          background: isDark ? "rgba(17,17,17,0.7)" : "rgba(255,255,255,0.88)",
+          border: isDark ? "1px solid rgba(150,150,143,0.22)" : "1px solid rgba(150,150,143,0.18)",
           borderRadius: 12,
           padding: "10px 14px",
           marginBottom: 14,
@@ -237,7 +237,7 @@ export default function ResultsOffersView({
                   onClick={() => updateListingFilter("budget", selected ? "" : option.value)}
                   style={{
                     background: selected ? (isDark ? "rgba(16,185,129,0.2)" : "rgba(16,185,129,0.12)") : "transparent",
-                    border: selected ? "1px solid rgba(16,185,129,0.4)" : (isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.22)"),
+                    border: selected ? "1px solid rgba(16,185,129,0.4)" : (isDark ? "1px solid rgba(150,150,143,0.28)" : "1px solid rgba(150,150,143,0.22)"),
                     color: selected ? (isDark ? "#6ee7b7" : "#047857") : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
                     padding: "4px 10px",
                     borderRadius: 100,
@@ -262,8 +262,8 @@ export default function ResultsOffersView({
             value={listingFilters.location || ""}
             onChange={(event) => updateListingFilter("location", event.target.value)}
             style={{
-              border: isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.22)",
-              background: isDark ? "rgba(15,23,42,0.9)" : "var(--blanco)",
+              border: isDark ? "1px solid rgba(150,150,143,0.28)" : "1px solid rgba(150,150,143,0.22)",
+              background: isDark ? "rgba(17,17,17,0.9)" : "var(--blanco)",
               color: isDark ? "var(--gris-200)" : "var(--gris-800)",
               borderRadius: 8,
               padding: "6px 10px",
@@ -292,8 +292,8 @@ export default function ResultsOffersView({
                 type="button"
                 onClick={() => updateListingFilter("priceRange", option.value)}
                 style={{
-                  background: selected ? (isDark ? "rgba(167,139,250,0.2)" : "rgba(124,58,237,0.1)") : "transparent",
-                  border: selected ? "1px solid rgba(167,139,250,0.4)" : (isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.22)"),
+                  background: selected ? (isDark ? "rgba(150,150,143,0.2)" : "rgba(94,94,89,0.1)") : "transparent",
+                  border: selected ? "1px solid rgba(150,150,143,0.4)" : (isDark ? "1px solid rgba(150,150,143,0.28)" : "1px solid rgba(150,150,143,0.22)"),
                   color: selected ? (isDark ? "var(--gris-300)" : "var(--gris-600)") : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
                   padding: "4px 10px",
                   borderRadius: 100,
@@ -323,10 +323,10 @@ export default function ResultsOffersView({
           <div
             style={{
               background: cardBg,
-              border: isDark ? "1px solid rgba(125,211,252,0.28)" : "1px solid rgba(3,105,161,0.24)",
+              border: isDark ? "1px solid rgba(207,207,200,0.28)" : "1px solid rgba(94,94,89,0.24)",
               borderRadius: 16,
               padding: 18,
-              boxShadow: isDark ? "0 14px 30px rgba(2,6,23,0.34)" : "0 14px 30px rgba(3,105,161,0.1)",
+              boxShadow: isDark ? "0 14px 30px rgba(5,5,5,0.34)" : "0 14px 30px rgba(94,94,89,0.1)",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
@@ -340,7 +340,7 @@ export default function ResultsOffersView({
                 style={{
                   background: canSearchListing && !listingLoading
                     ? "linear-gradient(135deg,var(--gris-700),var(--marca))"
-                    : "rgba(148,163,184,0.2)",
+                    : "rgba(150,150,143,0.2)",
                   border: "none",
                   color: "white",
                   padding: "8px 12px",
@@ -362,8 +362,8 @@ export default function ResultsOffersView({
             {listingCoverageSummary && (
               <div
                 style={{
-                  background: isDark ? "rgba(15,23,42,0.86)" : "rgba(255,255,255,0.95)",
-                  border: isDark ? "1px solid rgba(125,211,252,0.3)" : "1px solid rgba(3,105,161,0.2)",
+                  background: isDark ? "rgba(17,17,17,0.86)" : "rgba(255,255,255,0.95)",
+                  border: isDark ? "1px solid rgba(207,207,200,0.3)" : "1px solid rgba(94,94,89,0.2)",
                   borderRadius: 12,
                   padding: 10,
                   marginBottom: 10,
@@ -398,7 +398,7 @@ export default function ResultsOffersView({
               <div
                 style={{
                   background: cardBg,
-                  border: isDark ? "1px dashed rgba(148,163,184,0.36)" : "1px dashed rgba(148,163,184,0.24)",
+                  border: isDark ? "1px dashed rgba(150,150,143,0.36)" : "1px dashed rgba(150,150,143,0.24)",
                   borderRadius: 12,
                   padding: 14,
                   fontSize: 12,
@@ -421,15 +421,15 @@ export default function ResultsOffersView({
                 style={{
                   background: cardBg,
                   border: hoveredCard === "featured"
-                    ? "1px solid rgba(37,99,235,0.3)"
-                    : "1px solid rgba(3,105,161,0.15)",
+                    ? "1px solid rgba(255,196,0,0.3)"
+                    : "1px solid rgba(94,94,89,0.15)",
                   borderRadius: 14,
                   padding: 14,
                   marginBottom: 12,
                   cursor: featuredOffer ? "pointer" : "default",
                   boxShadow: hoveredCard === "featured"
-                    ? "0 18px 36px rgba(37,99,235,0.16)"
-                    : "0 10px 24px rgba(15,23,42,0.08)",
+                    ? "0 18px 36px rgba(255,196,0,0.16)"
+                    : "0 10px 24px rgba(17,17,17,0.08)",
                   transform: hoveredCard === "featured" ? "translateY(-2px)" : "translateY(0)",
                   transition: "all 0.2s ease",
                 }}
@@ -448,8 +448,8 @@ export default function ResultsOffersView({
                       overflow: "hidden",
                       minHeight: isMobileOffersView ? 190 : 170,
                       height: isMobileOffersView ? 190 : undefined,
-                      background: "rgba(241,245,249,0.5)",
-                      border: "1px solid rgba(148,163,184,0.14)",
+                      background: "rgba(242,242,237,0.5)",
+                      border: "1px solid rgba(150,150,143,0.14)",
                     }}
                   >
                     <ResolvedOfferImage
@@ -518,8 +518,8 @@ export default function ResultsOffersView({
                         <span
                           key={`${featuredOffer.url || featuredOffer.title || "featured"}-signal-${signal}`}
                           style={{
-                            background: "rgba(37,99,235,0.1)",
-                            border: "1px solid rgba(96,165,250,0.22)",
+                            background: "rgba(255,196,0,0.1)",
+                            border: "1px solid rgba(255,196,0,0.22)",
                             color: "var(--gris-900)",
                             padding: "4px 8px",
                             borderRadius: 999,
@@ -595,10 +595,10 @@ export default function ResultsOffersView({
                           toggleSavedRecommendation(featuredOffer);
                         }}
                         style={{
-                          background: featuredOfferSaved ? "rgba(236,72,153,0.16)" : "rgba(241,245,249,0.9)",
+                          background: featuredOfferSaved ? "rgba(236,72,153,0.16)" : "rgba(242,242,237,0.9)",
                           border: featuredOfferSaved
                             ? "1px solid rgba(244,114,182,0.28)"
-                            : "1px solid rgba(100,116,139,0.35)",
+                            : "1px solid rgba(94,94,89,0.35)",
                           color: featuredOfferSaved ? "#9d174d" : "var(--gris-800)",
                           padding: "9px 13px",
                           borderRadius: 10,
@@ -617,8 +617,8 @@ export default function ResultsOffersView({
                           searchRealListing(listingFilters, quickValidationAnswers, { forceRefresh: true });
                         }}
                         style={{
-                          background: "rgba(241,245,249,0.9)",
-                          border: "1px solid rgba(100,116,139,0.35)",
+                          background: "rgba(242,242,237,0.9)",
+                          border: "1px solid rgba(94,94,89,0.35)",
                           color: "var(--gris-800)",
                           padding: "9px 13px",
                           borderRadius: 10,
@@ -653,14 +653,14 @@ export default function ResultsOffersView({
                         style={{
                           background: cardBg,
                           border: hoveredCard === `other-${index}`
-                            ? "1px solid rgba(59,130,246,0.3)"
-                            : "1px solid rgba(148,163,184,0.16)",
+                            ? "1px solid rgba(255,196,0,0.3)"
+                            : "1px solid rgba(150,150,143,0.16)",
                           borderRadius: 12,
                           padding: 12,
                           cursor: offer ? "pointer" : "default",
                           boxShadow: hoveredCard === `other-${index}`
-                            ? "0 14px 30px rgba(59,130,246,0.14)"
-                            : "0 8px 18px rgba(15,23,42,0.06)",
+                            ? "0 14px 30px rgba(255,196,0,0.14)"
+                            : "0 8px 18px rgba(17,17,17,0.06)",
                           transform: hoveredCard === `other-${index}` ? "translateY(-2px)" : "translateY(0)",
                           transition: "all 0.2s ease",
                         }}
@@ -670,8 +670,8 @@ export default function ResultsOffersView({
                             style={{
                               borderRadius: 10,
                               overflow: "hidden",
-                              background: "rgba(241,245,249,0.55)",
-                              border: "1px solid rgba(148,163,184,0.14)",
+                              background: "rgba(242,242,237,0.55)",
+                              border: "1px solid rgba(150,150,143,0.14)",
                               minHeight: isMobileOffersView ? 170 : 78,
                               height: isMobileOffersView ? 170 : undefined,
                             }}
@@ -726,8 +726,8 @@ export default function ResultsOffersView({
                                 <span
                                   key={`${offer.url || offer.searchUrl || offer.title}-signal-${signal}`}
                                   style={{
-                                    background: "rgba(37,99,235,0.1)",
-                                    border: "1px solid rgba(96,165,250,0.22)",
+                                    background: "rgba(255,196,0,0.1)",
+                                    border: "1px solid rgba(255,196,0,0.22)",
                                     color: "var(--gris-900)",
                                     padding: "3px 7px",
                                     borderRadius: 999,

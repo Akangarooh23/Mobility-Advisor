@@ -62,9 +62,9 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
           <div
             style={{
               display: "inline-flex",
-              border: "1px solid rgba(6,182,212,0.3)",
+              border: "1px solid rgba(150,150,143,0.3)",
               color: "var(--gris-400)",
-              background: "rgba(6,182,212,0.08)",
+              background: "rgba(150,150,143,0.08)",
               borderRadius: 20,
               padding: "4px 11px",
               fontSize: 10,
@@ -163,7 +163,7 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
                   fontSize: 12,
                   fontWeight: 700,
                   border: "1px solid var(--gris-200)",
-                  background: active ? "rgba(6,182,212,0.08)" : "var(--gris-50)",
+                  background: active ? "rgba(150,150,143,0.08)" : "var(--gris-50)",
                   color: active ? "var(--gris-400)" : "var(--gris-400)",
                 }}
               >
@@ -192,8 +192,8 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
 
           <div
             style={{
-              border: "1px solid rgba(6,182,212,0.35)",
-              background: "rgba(6,182,212,0.08)",
+              border: "1px solid rgba(150,150,143,0.35)",
+              background: "rgba(150,150,143,0.08)",
               borderRadius: 12,
               padding: "12px 13px",
               color: "var(--gris-500)",
@@ -243,7 +243,7 @@ export default function ServiceInsurancePage({ onGoBack, onGoHome }) {
               fontSize: 16,
               fontWeight: 700,
               cursor: "pointer",
-              boxShadow: "0 8px 20px rgba(6,182,212,0.3)",
+              boxShadow: "0 8px 20px rgba(150,150,143,0.3)",
             }}
           >
             {t("service.insuranceCtaButton")}

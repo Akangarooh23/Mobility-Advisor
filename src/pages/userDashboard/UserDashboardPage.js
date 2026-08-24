@@ -266,17 +266,17 @@ export default function UserDashboardPage({
   const isDark = themeMode === "dark";
   const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
   const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
-  const shellBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(148,163,184,0.26)";
+  const shellBorder = isDark ? "1px solid rgba(150,150,143,0.24)" : "1px solid rgba(150,150,143,0.26)";
   const shellBackground = isDark
-    ? "linear-gradient(160deg, rgba(8,15,30,0.98), rgba(15,23,42,0.94))"
-    : "linear-gradient(160deg, rgba(255,255,255,0.99), rgba(248,250,252,0.96))";
+    ? "linear-gradient(160deg, rgba(17,17,17,0.98), rgba(17,17,17,0.94))"
+    : "linear-gradient(160deg, rgba(255,255,255,0.99), rgba(250,250,248,0.96))";
   const sectionShell = {
     ...panelStyle,
     border: shellBorder,
     borderRadius: 18,
     boxShadow: isDark
-      ? "0 24px 44px rgba(2,6,23,0.42)"
-      : "0 16px 34px rgba(15,23,42,0.10)",
+      ? "0 24px 44px rgba(5,5,5,0.42)"
+      : "0 16px 34px rgba(17,17,17,0.10)",
     backdropFilter: "blur(8px)",
   };
   const counts = {
@@ -309,11 +309,11 @@ export default function UserDashboardPage({
           padding: "10px 12px",
           borderRadius: 10,
           border: isActive
-            ? "1px solid rgba(59,130,246,0.40)"
-            : (isDark ? "1px solid rgba(148,163,184,0.14)" : "1px solid rgba(148,163,184,0.24)"),
+            ? "1px solid rgba(255,196,0,0.40)"
+            : (isDark ? "1px solid rgba(150,150,143,0.14)" : "1px solid rgba(150,150,143,0.24)"),
           background: isActive
-            ? (isDark ? "rgba(37,99,235,0.20)" : "rgba(37,99,235,0.10)")
-            : (isDark ? "rgba(15,23,42,0.76)" : "rgba(255,255,255,0.84)"),
+            ? (isDark ? "rgba(255,196,0,0.20)" : "rgba(255,196,0,0.10)")
+            : (isDark ? "rgba(17,17,17,0.76)" : "rgba(255,255,255,0.84)"),
           color: isActive ? "var(--marca-oscuro)" : (isDark ? "var(--gris-200)" : "var(--gris-700)"),
           textAlign: "left",
           cursor: "pointer",
@@ -354,7 +354,7 @@ export default function UserDashboardPage({
             style={{
               borderRight: isMobile ? "none" : shellBorder,
               borderBottom: isMobile ? shellBorder : "none",
-              background: isDark ? "rgba(2,6,23,0.46)" : "rgba(248,250,252,0.92)",
+              background: isDark ? "rgba(5,5,5,0.46)" : "rgba(250,250,248,0.92)",
               padding: isMobile ? 12 : 16,
             }}
           >
@@ -369,7 +369,7 @@ export default function UserDashboardPage({
               {navSectionsMain.map(renderNavItem)}
             </div>
 
-            <div style={{ height: 1, background: isDark ? "rgba(148,163,184,0.22)" : "rgba(148,163,184,0.26)", margin: "12px 0" }} />
+            <div style={{ height: 1, background: isDark ? "rgba(150,150,143,0.22)" : "rgba(150,150,143,0.26)", margin: "12px 0" }} />
 
             <div style={{ fontSize: 11, letterSpacing: "0.08em", color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginBottom: 8 }}>
               CUENTA
@@ -384,8 +384,8 @@ export default function UserDashboardPage({
                   textAlign: "left",
                   padding: "10px 12px",
                   borderRadius: 10,
-                  border: isDark ? "1px solid rgba(148,163,184,0.18)" : "1px solid rgba(148,163,184,0.24)",
-                  background: isDark ? "rgba(15,23,42,0.76)" : "rgba(255,255,255,0.84)",
+                  border: isDark ? "1px solid rgba(150,150,143,0.18)" : "1px solid rgba(150,150,143,0.24)",
+                  background: isDark ? "rgba(17,17,17,0.76)" : "rgba(255,255,255,0.84)",
                   color: isDark ? "var(--gris-200)" : "var(--gris-700)",
                   cursor: "pointer",
                   fontSize: 13,
@@ -419,7 +419,7 @@ export default function UserDashboardPage({
               style={{
                 border: shellBorder,
                 borderRadius: 14,
-                background: isDark ? "rgba(15,23,42,0.70)" : "rgba(255,255,255,0.96)",
+                background: isDark ? "rgba(17,17,17,0.70)" : "rgba(255,255,255,0.96)",
                 padding: isMobile ? 10 : "10px 14px",
                 display: "flex",
                 justifyContent: "space-between",
@@ -438,8 +438,8 @@ export default function UserDashboardPage({
                     fontSize: 12,
                     fontWeight: 700,
                     color: "var(--marca-oscuro)",
-                    background: "rgba(59,130,246,0.12)",
-                    border: "1px solid rgba(59,130,246,0.24)",
+                    background: "rgba(255,196,0,0.12)",
+                    border: "1px solid rgba(255,196,0,0.24)",
                     borderRadius: 999,
                     padding: "4px 10px",
                   }}
@@ -456,8 +456,8 @@ export default function UserDashboardPage({
                     fontSize: 12,
                     fontWeight: 800,
                     color: "var(--marca-oscuro)",
-                    background: "rgba(59,130,246,0.14)",
-                    border: "1px solid rgba(59,130,246,0.26)",
+                    background: "rgba(255,196,0,0.14)",
+                    border: "1px solid rgba(255,196,0,0.26)",
                   }}
                 >
                   {(currentUser?.name || "U").slice(0, 1).toUpperCase()}

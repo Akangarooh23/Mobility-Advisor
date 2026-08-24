@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import LogoPopCar from "../ui/LogoPopCar";
 import "./LandingPage.css";
 
 /**
@@ -244,9 +245,9 @@ export default function LandingPage({
   const irOfertas   = go(onSelectPortalVo);
   const irPanel     = go(onOpenDashboard);
 
-  const Logotipo = ({ clase = "pc-logo" }) => (
-    <button type="button" className={clase} onClick={irInicio} aria-label={`PopCar – ${isEN ? "Home" : "Inicio"}`}>
-      <span>Pop</span>Car
+  const Logotipo = ({ tono = "oscuro", size = 32 }) => (
+    <button type="button" className="pc-logo" onClick={irInicio} aria-label={`PopCar – ${isEN ? "Home" : "Inicio"}`}>
+      <LogoPopCar size={size} tono={tono} />
     </button>
   );
 
@@ -509,7 +510,7 @@ export default function LandingPage({
       <footer className="pc-pie">
         <div className="pc-pie-rejilla">
           <div>
-            <Logotipo clase="pc-logo pc-logo-pie" />
+            <Logotipo tono="claro" size={26} />
             <p>{t.lemaPie}</p>
           </div>
           {[

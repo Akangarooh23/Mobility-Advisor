@@ -95,8 +95,8 @@ export default function ResultsAnalysisView({
   };
   const [hoveredCard, setHoveredCard] = useState(null);
   const isDark = themeMode === "dark";
-  const cardBg = isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)";
-  const cardBorder = isDark ? "rgba(148,163,184,0.32)" : "rgba(31,41,55,0.1)";
+  const cardBg = isDark ? "rgba(17,17,17,0.88)" : "rgba(255,255,255,0.95)";
+  const cardBorder = isDark ? "rgba(150,150,143,0.32)" : "rgba(31,31,29,0.1)";
   const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
   const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
 
@@ -109,7 +109,7 @@ export default function ResultsAnalysisView({
           borderRadius: 18,
           padding: 24,
           marginBottom: 14,
-          boxShadow: "0 14px 30px rgba(15,23,42,0.1)",
+          boxShadow: "0 14px 30px rgba(17,17,17,0.1)",
         }}
       >
         <div style={{ display: "flex", gap: 14, marginBottom: 16 }}>
@@ -158,8 +158,8 @@ export default function ResultsAnalysisView({
             onClick={onExportLogicDocument}
             disabled={logicExportLoading}
             style={{
-              background: logicExportLoading ? "rgba(14,165,233,0.12)" : "linear-gradient(135deg,var(--gris-700),var(--gris-900))",
-              border: "1px solid rgba(125,211,252,0.28)",
+              background: logicExportLoading ? "rgba(255,196,0,0.12)" : "linear-gradient(135deg,var(--gris-700),var(--gris-900))",
+              border: "1px solid rgba(207,207,200,0.28)",
               color: "var(--gris-50)",
               padding: "10px 14px",
               borderRadius: 10,
@@ -167,7 +167,7 @@ export default function ResultsAnalysisView({
               fontWeight: 800,
               cursor: logicExportLoading ? "progress" : "pointer",
               opacity: logicExportLoading ? 0.82 : 1,
-              boxShadow: logicExportLoading ? "none" : "0 10px 24px rgba(14,165,233,0.16)",
+              boxShadow: logicExportLoading ? "none" : "0 10px 24px rgba(255,196,0,0.16)",
             }}
           >
             {logicExportLoading ? text.exporting : text.exportWord}
@@ -183,7 +183,7 @@ export default function ResultsAnalysisView({
         <div
           style={{
             height: 5,
-            background: isDark ? "rgba(148,163,184,0.26)" : "rgba(255,255,255,0.07)",
+            background: isDark ? "rgba(150,150,143,0.26)" : "rgba(255,255,255,0.07)",
             borderRadius: 3,
             overflow: "hidden",
             marginBottom: 18,
@@ -210,10 +210,10 @@ export default function ResultsAnalysisView({
           <div
             style={{
               background: cardBg,
-              border: isDark ? "1px solid rgba(125,211,252,0.22)" : "1px solid rgba(3,105,161,0.1)",
+              border: isDark ? "1px solid rgba(207,207,200,0.22)" : "1px solid rgba(94,94,89,0.1)",
               borderRadius: 12,
               padding: 12,
-              boxShadow: "0 8px 20px rgba(3,105,161,0.08)",
+              boxShadow: "0 8px 20px rgba(94,94,89,0.08)",
             }}
           >
             <div style={{ fontSize: 10, color: "var(--gris-800)", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
@@ -228,7 +228,7 @@ export default function ResultsAnalysisView({
                       <span>{item.label}</span>
                       <span style={{ color: item.color, fontWeight: 700 }}>{value}/{item.max}</span>
                     </div>
-                    <div style={{ height: 5, background: "rgba(31,41,55,0.08)", borderRadius: 999, overflow: "hidden" }}>
+                    <div style={{ height: 5, background: "rgba(31,31,29,0.08)", borderRadius: 999, overflow: "hidden" }}>
                       <div
                         style={{
                           height: "100%",
@@ -434,7 +434,7 @@ export default function ResultsAnalysisView({
                         <span>{item.label}</span>
                         <span style={{ color: item.color, fontWeight: 700 }}>{formatCurrency(value)}</span>
                       </div>
-                      <div style={{ height: 5, background: "rgba(31,41,55,0.08)", borderRadius: 999, overflow: "hidden" }}>
+                      <div style={{ height: 5, background: "rgba(31,31,29,0.08)", borderRadius: 999, overflow: "hidden" }}>
                         <div
                           style={{
                             height: "100%",
@@ -486,13 +486,13 @@ export default function ResultsAnalysisView({
               style={{
                 background: cardBg,
                 border: hoveredCard === `alt-${i}`
-                  ? "1px solid rgba(59,130,246,0.32)"
-                  : "1px solid rgba(31,41,55,0.1)",
+                  ? "1px solid rgba(255,196,0,0.32)"
+                  : "1px solid rgba(31,31,29,0.1)",
                 borderRadius: 12,
                 padding: 14,
                 boxShadow: hoveredCard === `alt-${i}`
-                  ? "0 14px 30px rgba(59,130,246,0.14)"
-                  : "0 8px 18px rgba(15,23,42,0.06)",
+                  ? "0 14px 30px rgba(255,196,0,0.14)"
+                  : "0 8px 18px rgba(17,17,17,0.06)",
                 transform: hoveredCard === `alt-${i}` ? "translateY(-2px)" : "translateY(0)",
                 transition: "all 0.2s ease",
               }}
@@ -522,8 +522,8 @@ export default function ResultsAnalysisView({
           {comparatorRows.length > 0 && (
             <div
               style={{
-                background: "rgba(37,99,235,0.07)",
-                border: "1px solid rgba(96,165,250,0.18)",
+                background: "rgba(255,196,0,0.07)",
+                border: "1px solid rgba(255,196,0,0.18)",
                 borderRadius: 12,
                 padding: 16,
               }}
@@ -537,7 +537,7 @@ export default function ResultsAnalysisView({
                     key={`compare-${row.criterio || index}`}
                     style={{
                       background: cardBg,
-                      border: "1px solid rgba(148,163,184,0.12)",
+                      border: "1px solid rgba(150,150,143,0.12)",
                       borderRadius: 10,
                       padding: 10,
                     }}
@@ -682,8 +682,8 @@ export default function ResultsAnalysisView({
 
       <div
         style={{
-          background: "rgba(14,165,233,0.07)",
-          border: "1px solid rgba(125,211,252,0.18)",
+          background: "rgba(255,196,0,0.07)",
+          border: "1px solid rgba(207,207,200,0.18)",
           borderRadius: 12,
           padding: 16,
           marginBottom: 14,
@@ -697,8 +697,8 @@ export default function ResultsAnalysisView({
             type="button"
             onClick={saveCurrentComparison}
             style={{
-              background: "rgba(14,165,233,0.18)",
-              border: "1px solid rgba(125,211,252,0.28)",
+              background: "rgba(255,196,0,0.18)",
+              border: "1px solid rgba(207,207,200,0.28)",
               color: "var(--gris-600)",
               padding: "6px 10px",
               borderRadius: 10,
@@ -771,14 +771,14 @@ export default function ResultsAnalysisView({
                     style={{
                       background: cardBg,
                       border: hoveredCard === `saved-${item.id}`
-                        ? "1px solid rgba(59,130,246,0.3)"
-                        : "1px solid rgba(148,163,184,0.14)",
+                        ? "1px solid rgba(255,196,0,0.3)"
+                        : "1px solid rgba(150,150,143,0.14)",
                       borderRadius: 10,
                       padding: 10,
                       cursor: savedOfferHref ? "pointer" : "default",
                       boxShadow: hoveredCard === `saved-${item.id}`
-                        ? "0 14px 30px rgba(59,130,246,0.14)"
-                        : "0 8px 18px rgba(15,23,42,0.06)",
+                        ? "0 14px 30px rgba(255,196,0,0.14)"
+                        : "0 8px 18px rgba(17,17,17,0.06)",
                       transform: hoveredCard === `saved-${item.id}` ? "translateY(-2px)" : "translateY(0)",
                       transition: "all 0.2s ease",
                     }}

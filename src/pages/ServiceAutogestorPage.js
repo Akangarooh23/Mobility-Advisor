@@ -56,9 +56,9 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
           <div
             style={{
               display: "inline-flex",
-              border: "1px solid rgba(59,130,246,0.3)",
+              border: "1px solid rgba(255,196,0,0.3)",
               color: "var(--marca)",
-              background: "rgba(59,130,246,0.08)",
+              background: "rgba(255,196,0,0.08)",
               borderRadius: 20,
               padding: "4px 11px",
               fontSize: 10,
@@ -124,8 +124,8 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
                     borderRadius: 20,
                     padding: "3px 9px",
                     color: doc.active ? "var(--marca)" : "#aaa",
-                    border: doc.active ? "1px solid rgba(59,130,246,0.35)" : "1px solid #eee",
-                    background: doc.active ? "rgba(59,130,246,0.1)" : "var(--gris-50)",
+                    border: doc.active ? "1px solid rgba(255,196,0,0.35)" : "1px solid #eee",
+                    background: doc.active ? "rgba(255,196,0,0.1)" : "var(--gris-50)",
                     fontWeight: 700,
                   }}
                 >
@@ -173,8 +173,8 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
             </div>
             <div
               style={{
-                border: "1px solid rgba(59,130,246,0.3)",
-                background: "rgba(59,130,246,0.08)",
+                border: "1px solid rgba(255,196,0,0.3)",
+                background: "rgba(255,196,0,0.08)",
                 borderRadius: 12,
                 padding: "12px 13px",
                 color: "var(--marca-claro)",
@@ -241,9 +241,9 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
               onGoHome();
             }}
             style={{
-              border: "1px solid rgba(59,130,246,0.35)",
+              border: "1px solid rgba(255,196,0,0.35)",
               borderRadius: 12,
-              background: "rgba(59,130,246,0.08)",
+              background: "rgba(255,196,0,0.08)",
               color: "var(--marca)",
               padding: "11px 16px",
               fontSize: 14,
@@ -271,7 +271,7 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
               fontSize: 16,
               fontWeight: 700,
               cursor: "pointer",
-              boxShadow: "0 8px 20px rgba(37,99,235,0.32)",
+              boxShadow: "0 8px 20px rgba(255,196,0,0.32)",
             }}
           >
             {t("autogestor.createIdCar")}

@@ -969,7 +969,7 @@ export default function ServiceMaintenancePage({
           >
             <span style={{ fontWeight: 700, color: "var(--gris-600)" }}>{t("service.maintenanceLegend")}</span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <span style={{ width: 10, height: 10, borderRadius: 99, background: "var(--gris-400)", border: "1px solid rgba(37,99,235,0.5)" }} />
+              <span style={{ width: 10, height: 10, borderRadius: 99, background: "var(--gris-400)", border: "1px solid rgba(255,196,0,0.5)" }} />
               {t("service.maintenanceLegendAlertNotice")}
             </span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
@@ -1082,21 +1082,21 @@ export default function ServiceMaintenancePage({
                     const selectedBackground = hasScheduledAlerts
                       ? "rgba(34,197,94,0.18)"
                       : hasPendingAlerts
-                        ? "rgba(59,130,246,0.18)"
-                        : "rgba(148,163,184,0.16)";
+                        ? "rgba(255,196,0,0.18)"
+                        : "rgba(150,150,143,0.16)";
 
                     const selectedBorder = hasScheduledAlerts
                       ? "1px solid rgba(34,197,94,0.5)"
                       : hasPendingAlerts
-                        ? "1px solid rgba(59,130,246,0.5)"
-                        : "1px solid rgba(148,163,184,0.45)";
+                        ? "1px solid rgba(255,196,0,0.5)"
+                        : "1px solid rgba(150,150,143,0.45)";
 
                     const normalBackground = isToday
                       ? "rgba(186,117,23,0.92)"
                       : hasScheduledAlerts
                         ? "rgba(34,197,94,0.12)"
                         : hasPendingAlerts
-                          ? "rgba(59,130,246,0.12)"
+                          ? "rgba(255,196,0,0.12)"
                           : "var(--gris-50)";
 
                     const normalColor = isToday
@@ -1150,11 +1150,11 @@ export default function ServiceMaintenancePage({
                       style={{
                         border: isAlertScheduled(alert)
                           ? "1px solid rgba(21,128,61,0.55)"
-                          : "1px solid rgba(59,130,246,0.35)",
+                          : "1px solid rgba(255,196,0,0.35)",
                         borderRadius: 10,
                         background: isAlertScheduled(alert)
                           ? "linear-gradient(135deg, rgba(21,128,61,0.18), rgba(22,163,74,0.09))"
-                          : "linear-gradient(135deg, rgba(59,130,246,0.16), rgba(191,219,254,0.45))",
+                          : "linear-gradient(135deg, rgba(255,196,0,0.16), rgba(255,246,217,0.45))",
                         padding: "9px 11px",
                         display: "grid",
                         gap: 2,
@@ -1169,7 +1169,7 @@ export default function ServiceMaintenancePage({
                           fontWeight: 800,
                           borderRadius: 999,
                           padding: "3px 7px",
-                          background: isAlertScheduled(alert) ? "rgba(21,128,61,0.22)" : "rgba(59,130,246,0.2)",
+                          background: isAlertScheduled(alert) ? "rgba(21,128,61,0.22)" : "rgba(255,196,0,0.2)",
                           color: isAlertScheduled(alert) ? "#14532d" : "var(--marca-oscuro)",
                         }}>
                           {isAlertScheduled(alert) ? t("service.maintenanceButtonScheduled") : t("service.maintenanceButtonSchedule")}
@@ -1240,7 +1240,7 @@ export default function ServiceMaintenancePage({
             position: "fixed",
             inset: 0,
             zIndex: 1200,
-            background: "rgba(15,23,42,0.38)",
+            background: "rgba(17,17,17,0.38)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1257,7 +1257,7 @@ export default function ServiceMaintenancePage({
               borderRadius: 14,
               border: "1px solid var(--gris-200)",
               background: "var(--blanco)",
-              boxShadow: "0 20px 40px rgba(15,23,42,0.2)",
+              boxShadow: "0 20px 40px rgba(17,17,17,0.2)",
               padding: 16,
               display: "grid",
               gap: 12,
@@ -1368,7 +1368,7 @@ export default function ServiceMaintenancePage({
                 ) : null}
               </div>
             ) : (
-              <div style={{ border: "1px solid rgba(59,130,246,0.28)", borderRadius: 10, background: "rgba(239,246,255,0.8)", padding: 10, display: "grid", gap: 8 }}>
+              <div style={{ border: "1px solid rgba(255,196,0,0.28)", borderRadius: 10, background: "rgba(239,246,255,0.8)", padding: 10, display: "grid", gap: 8 }}>
                 <div style={{ fontSize: 12, color: "var(--gris-900)", fontWeight: 700 }}>
                   {canScheduleSelectedAlert ? t("service.maintenanceNoScheduledAppointmentMessage") : t("service.maintenanceInformativeAlertMessage")}
                 </div>

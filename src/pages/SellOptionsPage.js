@@ -6,8 +6,8 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
   const isDark = styles?.page?.color === "var(--gris-200)";
   const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
   const mutedColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
-  const cardBackground = isDark ? "rgba(15,23,42,0.55)" : "var(--blanco)";
-  const cardBorder = isDark ? "1px solid rgba(148,163,184,0.26)" : "1px solid rgba(15,23,42,0.12)";
+  const cardBackground = isDark ? "rgba(17,17,17,0.55)" : "var(--blanco)";
+  const cardBorder = isDark ? "1px solid rgba(150,150,143,0.26)" : "1px solid rgba(17,17,17,0.12)";
 
   return (
     <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
@@ -15,8 +15,8 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
         type="button"
         onClick={onGoBack}
         style={{
-          border: "1px solid rgba(148,163,184,0.35)",
-          background: isDark ? "rgba(15,23,42,0.5)" : "rgba(148,163,184,0.16)",
+          border: "1px solid rgba(150,150,143,0.35)",
+          background: isDark ? "rgba(17,17,17,0.5)" : "rgba(150,150,143,0.16)",
           color: isDark ? "var(--gris-300)" : "var(--gris-600)",
           borderRadius: 10,
           padding: "8px 12px",
@@ -33,7 +33,7 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
         <span style={{ fontSize: 10, letterSpacing: "0.18em", fontWeight: 800, color: "var(--marca)", textTransform: "uppercase" }}>
           {t("sell.badgeLabel")}
         </span>
-        <span style={{ width: 34, height: 1, background: "rgba(37,99,235,0.5)" }} />
+        <span style={{ width: 34, height: 1, background: "rgba(255,196,0,0.5)" }} />
       </div>
 
       <h2 style={{ margin: "0 0 8px", fontSize: "clamp(28px,4vw,38px)", color: titleColor, letterSpacing: "-0.9px" }}>
@@ -58,7 +58,7 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
             border: cardBorder,
             borderRadius: 12,
             background: cardBackground,
-            boxShadow: isDark ? "none" : "0 8px 22px rgba(15,23,42,0.05)",
+            boxShadow: isDark ? "none" : "0 8px 22px rgba(17,17,17,0.05)",
             padding: "24px 22px 20px",
             textAlign: "left",
             display: "flex",
@@ -86,8 +86,8 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
               alignItems: "center",
               padding: "3px 10px",
               borderRadius: 20,
-              border: "1px solid rgba(37,99,235,0.24)",
-              background: "rgba(37,99,235,0.1)",
+              border: "1px solid rgba(255,196,0,0.24)",
+              background: "rgba(255,196,0,0.1)",
               color: "var(--marca)",
               fontSize: 9,
               letterSpacing: "0.12em",
@@ -106,7 +106,7 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
               width: 24,
               height: 24,
               borderRadius: "50%",
-              border: "1px solid rgba(148,163,184,0.35)",
+              border: "1px solid rgba(150,150,143,0.35)",
               color: "var(--gris-500)",
               display: "inline-flex",
               alignItems: "center",
@@ -130,8 +130,8 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
             }}
             style={{
               marginTop: 2,
-              border: "1px solid rgba(37,99,235,0.28)",
-              background: "rgba(37,99,235,0.08)",
+              border: "1px solid rgba(255,196,0,0.28)",
+              background: "rgba(255,196,0,0.08)",
               color: "var(--marca-oscuro)",
               borderRadius: 10,
               padding: "8px 12px",
@@ -151,7 +151,7 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
             border: cardBorder,
             borderRadius: 12,
             background: cardBackground,
-            boxShadow: isDark ? "none" : "0 8px 22px rgba(15,23,42,0.05)",
+            boxShadow: isDark ? "none" : "0 8px 22px rgba(17,17,17,0.05)",
             padding: "24px 22px 20px",
             textAlign: "left",
             display: "flex",
@@ -179,8 +179,8 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
               alignItems: "center",
               padding: "3px 10px",
               borderRadius: 20,
-              border: "1px solid rgba(37,99,235,0.24)",
-              background: "rgba(37,99,235,0.1)",
+              border: "1px solid rgba(255,196,0,0.24)",
+              background: "rgba(255,196,0,0.1)",
               color: "var(--marca)",
               fontSize: 9,
               letterSpacing: "0.12em",
@@ -199,7 +199,7 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
               width: 24,
               height: 24,
               borderRadius: "50%",
-              border: "1px solid rgba(148,163,184,0.35)",
+              border: "1px solid rgba(150,150,143,0.35)",
               color: "var(--gris-500)",
               display: "inline-flex",
               alignItems: "center",
@@ -223,8 +223,8 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
             }}
             style={{
               marginTop: 2,
-              border: "1px solid rgba(37,99,235,0.28)",
-              background: "rgba(37,99,235,0.08)",
+              border: "1px solid rgba(255,196,0,0.28)",
+              background: "rgba(255,196,0,0.08)",
               color: "var(--marca-oscuro)",
               borderRadius: 10,
               padding: "8px 12px",
@@ -241,11 +241,11 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
       <div
         style={{
           marginTop: 20,
-          border: "1px solid rgba(37,99,235,0.18)",
+          border: "1px solid rgba(255,196,0,0.18)",
           borderRadius: 14,
           background: isDark
-            ? "rgba(37,99,235,0.08)"
-            : "linear-gradient(135deg, rgba(37,99,235,0.05) 0%, rgba(99,102,241,0.07) 100%)",
+            ? "rgba(255,196,0,0.08)"
+            : "linear-gradient(135deg, rgba(255,196,0,0.05) 0%, rgba(255,196,0,0.07) 100%)",
           padding: "18px 22px",
           display: "flex",
           alignItems: "center",
@@ -268,7 +268,7 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
           type="button"
           onClick={onSelectIDCar}
           style={{
-            border: "1px solid rgba(37,99,235,0.3)",
+            border: "1px solid rgba(255,196,0,0.3)",
             background: "linear-gradient(135deg, var(--marca), var(--marca-claro))",
             color: "var(--blanco)",
             borderRadius: 10,

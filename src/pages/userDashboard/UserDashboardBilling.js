@@ -67,22 +67,22 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
   };
   const isDark = themeMode === "dark";
   const cardBg = isDark
-    ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
-    : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))";
-  const panelBorder = isDark ? "1px solid rgba(148,163,184,0.26)" : "1px solid rgba(59,130,246,0.34)";
-  const cardBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(37,99,235,0.3)";
+    ? "linear-gradient(160deg, rgba(17,17,17,0.9), rgba(31,31,29,0.82))"
+    : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(242,242,237,0.92))";
+  const panelBorder = isDark ? "1px solid rgba(150,150,143,0.26)" : "1px solid rgba(255,196,0,0.34)";
+  const cardBorder = isDark ? "1px solid rgba(150,150,143,0.24)" : "1px solid rgba(255,196,0,0.3)";
   const sectionFrame = {
-    background: isDark ? "rgba(2,6,23,0.34)" : "rgba(248,250,252,0.86)",
-    border: isDark ? "1px solid rgba(148,163,184,0.22)" : "1px solid rgba(148,163,184,0.24)",
+    background: isDark ? "rgba(5,5,5,0.34)" : "rgba(250,250,248,0.86)",
+    border: isDark ? "1px solid rgba(150,150,143,0.22)" : "1px solid rgba(150,150,143,0.24)",
     borderRadius: 14,
     boxShadow: isDark
-      ? "0 14px 26px rgba(2,6,23,0.28)"
-      : "0 10px 20px rgba(15,23,42,0.06)",
+      ? "0 14px 26px rgba(5,5,5,0.28)"
+      : "0 10px 20px rgba(17,17,17,0.06)",
   };
   const inputStyle = {
     width: "100%",
     background: isDark ? "var(--gris-900)" : "var(--blanco)",
-    border: "1px solid rgba(148,163,184,0.45)",
+    border: "1px solid rgba(150,150,143,0.45)",
     borderRadius: 8,
     color: isDark ? "var(--gris-50)" : "var(--gris-900)",
     padding: "8px 10px",
@@ -90,7 +90,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
     boxSizing: "border-box",
   };
   const secondaryButtonStyle = {
-    background: isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)",
+    background: isDark ? "rgba(17,17,17,0.88)" : "rgba(255,255,255,0.95)",
     border: cardBorder,
     color: isDark ? "var(--gris-200)" : "var(--gris-700)",
     borderRadius: 10,
@@ -103,7 +103,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
     padding: "8px",
     fontSize: 12,
     color: isDark ? "var(--gris-300)" : "var(--gris-700)",
-    borderBottom: "1px solid rgba(148,163,184,0.2)",
+    borderBottom: "1px solid rgba(150,150,143,0.2)",
   };
   const resolvedUserEmail = useMemo(
     () => normalizeText(currentUser?.email).toLowerCase(),
@@ -463,8 +463,8 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
         </div>
         <span
           style={{
-            background: "rgba(37,99,235,0.16)",
-            border: "1px solid rgba(96,165,250,0.24)",
+            background: "rgba(255,196,0,0.16)",
+            border: "1px solid rgba(255,196,0,0.24)",
             borderRadius: 999,
             padding: "5px 9px",
             fontSize: 11,
@@ -483,7 +483,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
           flexWrap: "wrap",
           marginBottom: 12,
           paddingBottom: 12,
-          borderBottom: "1px solid rgba(148,163,184,0.2)",
+          borderBottom: "1px solid rgba(150,150,143,0.2)",
         }}
       >
         {accountTabs.map((tab) => {
@@ -500,7 +500,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                 background: isActive
                   ? "linear-gradient(135deg,var(--marca),var(--marca-oscuro))"
                   : isDark
-                  ? "rgba(15,23,42,0.88)"
+                  ? "rgba(17,17,17,0.88)"
                   : "rgba(255,255,255,0.95)",
                 border: isActive ? "none" : cardBorder,
                 color: isActive ? "var(--acento-tenue)" : isDark ? "var(--gris-200)" : "var(--gris-700)",
@@ -515,7 +515,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
               {tab.count !== null && (
                 <span
                   style={{
-                    background: isActive ? "rgba(255,255,255,0.16)" : "rgba(148,163,184,0.14)",
+                    background: isActive ? "rgba(255,255,255,0.16)" : "rgba(150,150,143,0.14)",
                     borderRadius: 999,
                     padding: "2px 7px",
                     fontSize: 11,
@@ -586,9 +586,9 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                       padding: "8px 10px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer",
                       border: profileForm.clientType === key
                         ? key === "business" ? "1.5px solid #f59e0b" : "1.5px solid var(--marca-claro)"
-                        : "1px solid rgba(148,163,184,0.45)",
+                        : "1px solid rgba(150,150,143,0.45)",
                       background: profileForm.clientType === key
-                        ? key === "business" ? "rgba(245,158,11,0.08)" : "rgba(59,130,246,0.08)"
+                        ? key === "business" ? "rgba(245,158,11,0.08)" : "rgba(255,196,0,0.08)"
                         : isDark ? "var(--gris-900)" : "var(--blanco)",
                       color: profileForm.clientType === key
                         ? key === "business" ? "#d97706" : "var(--marca)"
@@ -716,7 +716,7 @@ export default function UserDashboardBilling({ panelStyle, currentUser, themeMod
                           fontSize: 11,
                           color: "var(--marca-oscuro)",
                           padding: "7px 8px",
-                          borderBottom: "1px solid rgba(148,163,184,0.18)",
+                          borderBottom: "1px solid rgba(150,150,143,0.18)",
                         }}
                       >
                         {cell}

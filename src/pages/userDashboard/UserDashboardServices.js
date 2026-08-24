@@ -44,10 +44,10 @@ const STATUS_LABELS = {
 };
 const STATUS_COLORS = {
   pending:    { bg: "rgba(245,158,11,0.12)", color: "#92400e" },
-  in_review:  { bg: "rgba(139,92,246,0.12)", color: "var(--gris-600)" },
-  contacted:  { bg: "rgba(59,130,246,0.12)", color: "var(--marca-oscuro)" },
+  in_review:  { bg: "rgba(94,94,89,0.12)", color: "var(--gris-600)" },
+  contacted:  { bg: "rgba(255,196,0,0.12)", color: "var(--marca-oscuro)" },
   scheduled:  { bg: "rgba(16,185,129,0.15)", color: "#065f46" },
-  closed:     { bg: "rgba(100,116,139,0.12)", color: "var(--gris-600)" },
+  closed:     { bg: "rgba(94,94,89,0.12)", color: "var(--gris-600)" },
 };
 
 function formatDate(iso) {
@@ -60,8 +60,8 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
   const isDark = themeMode === "dark";
   const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
   const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
-  const cardBg = isDark ? "rgba(15,23,42,0.70)" : "rgba(255,255,255,0.96)";
-  const cardBorder = isDark ? "1px solid rgba(148,163,184,0.18)" : "1px solid rgba(148,163,184,0.26)";
+  const cardBg = isDark ? "rgba(17,17,17,0.70)" : "rgba(255,255,255,0.96)";
+  const cardBorder = isDark ? "1px solid rgba(150,150,143,0.18)" : "1px solid rgba(150,150,143,0.26)";
 
   const [tab, setTab] = useState("new");
   const [vehicles, setVehicles] = useState([]);
@@ -142,8 +142,8 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
     boxSizing: "border-box",
     padding: "9px 12px",
     borderRadius: 8,
-    border: isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid var(--gris-300)",
-    background: isDark ? "rgba(15,23,42,0.60)" : "#fff",
+    border: isDark ? "1px solid rgba(150,150,143,0.28)" : "1px solid var(--gris-300)",
+    background: isDark ? "rgba(17,17,17,0.60)" : "#fff",
     color: isDark ? "var(--gris-200)" : "var(--gris-900)",
     fontSize: 14,
     outline: "none",
@@ -157,9 +157,9 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
       <div
         style={{
           background: isDark
-            ? "linear-gradient(135deg,rgba(30,64,175,0.36),rgba(79,70,229,0.28))"
-            : "linear-gradient(135deg,rgba(219,234,254,0.9),rgba(224,231,255,0.7))",
-          border: isDark ? "1px solid rgba(99,102,241,0.30)" : "1px solid rgba(99,102,241,0.22)",
+            ? "linear-gradient(135deg,rgba(17,17,17,0.36),rgba(94,94,89,0.28))"
+            : "linear-gradient(135deg,rgba(255,246,217,0.9),rgba(228,228,223,0.7))",
+          border: isDark ? "1px solid rgba(255,196,0,0.30)" : "1px solid rgba(255,196,0,0.22)",
           borderRadius: 14,
           padding: "20px 22px",
           marginBottom: 18,
@@ -192,11 +192,11 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
               padding: "7px 14px",
               borderRadius: 8,
               border: tab === t.key
-                ? "1px solid rgba(99,102,241,0.40)"
-                : (isDark ? "1px solid rgba(148,163,184,0.18)" : "1px solid var(--gris-200)"),
+                ? "1px solid rgba(255,196,0,0.40)"
+                : (isDark ? "1px solid rgba(150,150,143,0.18)" : "1px solid var(--gris-200)"),
               background: tab === t.key
-                ? (isDark ? "rgba(99,102,241,0.22)" : "rgba(224,231,255,0.9)")
-                : (isDark ? "rgba(15,23,42,0.60)" : "#fff"),
+                ? (isDark ? "rgba(255,196,0,0.22)" : "rgba(228,228,223,0.9)")
+                : (isDark ? "rgba(17,17,17,0.60)" : "#fff"),
               color: tab === t.key ? "var(--gris-600)" : bodyColor,
               fontSize: 13,
               fontWeight: 700,
@@ -237,8 +237,8 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
                 style={{
                   padding: "9px 20px",
                   borderRadius: 8,
-                  border: "1px solid rgba(99,102,241,0.40)",
-                  background: isDark ? "rgba(99,102,241,0.18)" : "rgba(224,231,255,0.9)",
+                  border: "1px solid rgba(255,196,0,0.40)",
+                  background: isDark ? "rgba(255,196,0,0.18)" : "rgba(228,228,223,0.9)",
                   color: "var(--gris-600)",
                   fontSize: 13,
                   fontWeight: 700,
@@ -264,10 +264,10 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
                         borderRadius: 10,
                         border: serviceType === s.key
                           ? "2px solid var(--gris-500)"
-                          : (isDark ? "1px solid rgba(148,163,184,0.22)" : "1px solid var(--gris-200)"),
+                          : (isDark ? "1px solid rgba(150,150,143,0.22)" : "1px solid var(--gris-200)"),
                         background: serviceType === s.key
-                          ? (isDark ? "rgba(99,102,241,0.28)" : "rgba(224,231,255,0.95)")
-                          : (isDark ? "rgba(15,23,42,0.50)" : "var(--gris-50)"),
+                          ? (isDark ? "rgba(255,196,0,0.28)" : "rgba(228,228,223,0.95)")
+                          : (isDark ? "rgba(17,17,17,0.50)" : "var(--gris-50)"),
                         color: serviceType === s.key ? "var(--gris-600)" : bodyColor,
                         fontSize: 12,
                         fontWeight: serviceType === s.key ? 800 : 600,
@@ -354,7 +354,7 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
                   borderRadius: 10,
                   border: "none",
                   background: submitting || !serviceType
-                    ? (isDark ? "rgba(99,102,241,0.30)" : "rgba(99,102,241,0.35)")
+                    ? (isDark ? "rgba(255,196,0,0.30)" : "rgba(255,196,0,0.35)")
                     : "linear-gradient(135deg,var(--gris-500),var(--gris-500))",
                   color: "#fff",
                   fontSize: 14,

@@ -18,7 +18,7 @@
 .cw-about-bg-orb-1 {
   width: 380px;
   height: 380px;
-  background: radial-gradient(circle at 30% 30%, rgba(59,130,246,0.26), rgba(59,130,246,0));
+  background: radial-gradient(circle at 30% 30%, rgba(255,196,0,0.26), rgba(255,196,0,0));
   top: -120px;
   left: -90px;
 }
@@ -36,8 +36,8 @@
   inset: 0;
   z-index: 0;
   background-image:
-    linear-gradient(rgba(148,163,184,0.09) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148,163,184,0.09) 1px, transparent 1px);
+    linear-gradient(rgba(150,150,143,0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(150,150,143,0.09) 1px, transparent 1px);
   background-size: 34px 34px;
   mask-image: radial-gradient(circle at 35% 12%, rgba(0,0,0,0.32), rgba(0,0,0,0.06) 58%, transparent 82%);
   pointer-events: none;
@@ -108,7 +108,7 @@
   font-weight: 800;
   letter-spacing: 0.03em;
   cursor: pointer;
-  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.14);
+  box-shadow: 0 10px 20px rgba(255, 196, 0, 0.14);
 }
 
 .cw-about-stats {
@@ -183,7 +183,7 @@
   border-radius: 22px;
   background: linear-gradient(180deg, var(--blanco), var(--gris-50));
   padding: 32px;
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 14px 30px rgba(17, 17, 17, 0.06);
 }
 
 .cw-about-mission-text {
@@ -206,7 +206,7 @@
   border-radius: 16px;
   background: var(--blanco);
   padding: 22px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+  box-shadow: 0 12px 28px rgba(17, 17, 17, 0.05);
 }
 
 .cw-about-feature-icon {

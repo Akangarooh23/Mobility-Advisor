@@ -88,8 +88,8 @@ export default function ServiceOptionsPage({
         type="button"
         onClick={onGoBack}
         style={{
-          border: "1px solid rgba(148,163,184,0.35)",
-          background: "rgba(15,23,42,0.5)",
+          border: "1px solid rgba(150,150,143,0.35)",
+          background: "rgba(17,17,17,0.5)",
           color: "var(--gris-300)",
           borderRadius: 10,
           padding: "8px 12px",
@@ -116,12 +116,12 @@ export default function ServiceOptionsPage({
         className="ma-card-interactive ma-fade-stagger"
         style={{
           width: "100%",
-          border: "1.5px solid rgba(37,99,235,0.35)",
+          border: "1.5px solid rgba(255,196,0,0.35)",
           background: isDark
-            ? "linear-gradient(135deg, rgba(37,99,235,0.18), rgba(99,102,241,0.12))"
+            ? "linear-gradient(135deg, rgba(255,196,0,0.18), rgba(255,196,0,0.12))"
             : "linear-gradient(135deg, var(--acento-tenue) 0%, var(--gris-100) 100%)",
           borderRadius: 16,
-          boxShadow: isDark ? "none" : "0 12px 32px rgba(37,99,235,0.10)",
+          boxShadow: isDark ? "none" : "0 12px 32px rgba(255,196,0,0.10)",
           padding: "28px 32px",
           textAlign: "left",
           display: "flex",
@@ -139,8 +139,8 @@ export default function ServiceOptionsPage({
             width: 56,
             height: 56,
             borderRadius: 14,
-            border: "1.5px solid rgba(37,99,235,0.35)",
-            background: "rgba(37,99,235,0.12)",
+            border: "1.5px solid rgba(255,196,0,0.35)",
+            background: "rgba(255,196,0,0.12)",
             color: "var(--marca)",
             display: "inline-flex",
             alignItems: "center",
@@ -160,7 +160,7 @@ export default function ServiceOptionsPage({
               alignItems: "center",
               padding: "2px 10px",
               borderRadius: 999,
-              background: "rgba(37,99,235,0.12)",
+              background: "rgba(255,196,0,0.12)",
               color: "var(--marca-oscuro)",
               fontSize: 10,
               fontWeight: 800,
@@ -210,10 +210,10 @@ export default function ServiceOptionsPage({
             onClick={card.onClick}
             className="ma-card-interactive ma-fade-stagger"
             style={{
-              border: isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.3)",
-              background: isDark ? "rgba(15,23,42,0.52)" : "var(--blanco)",
+              border: isDark ? "1px solid rgba(150,150,143,0.28)" : "1px solid rgba(150,150,143,0.3)",
+              background: isDark ? "rgba(17,17,17,0.52)" : "var(--blanco)",
               borderRadius: 14,
-              boxShadow: isDark ? "none" : "0 8px 24px rgba(15,23,42,0.06)",
+              boxShadow: isDark ? "none" : "0 8px 24px rgba(17,17,17,0.06)",
               padding: "18px 18px 16px",
               textAlign: "left",
               display: "flex",
@@ -232,8 +232,8 @@ export default function ServiceOptionsPage({
                 width: 34,
                 height: 34,
                 borderRadius: 8,
-                border: "1px solid rgba(37,99,235,0.3)",
-                background: "rgba(37,99,235,0.08)",
+                border: "1px solid rgba(255,196,0,0.3)",
+                background: "rgba(255,196,0,0.08)",
                 color: "var(--marca)",
                 display: "inline-flex",
                 alignItems: "center",
@@ -248,7 +248,7 @@ export default function ServiceOptionsPage({
                 alignItems: "center",
                 padding: "2px 10px",
                 borderRadius: 999,
-                background: "rgba(37,99,235,0.1)",
+                background: "rgba(255,196,0,0.1)",
                 color: "var(--marca-oscuro)",
                 fontSize: 10,
                 fontWeight: 800,

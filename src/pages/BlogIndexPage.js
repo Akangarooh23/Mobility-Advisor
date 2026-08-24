@@ -20,8 +20,8 @@ export default function BlogIndexPage({ styles, onOpenPost, onGoHome }) {
           type="button"
           onClick={onGoHome}
           style={{
-            border: "1px solid rgba(148,163,184,0.34)",
-            background: "rgba(15,23,42,0.52)",
+            border: "1px solid rgba(150,150,143,0.34)",
+            background: "rgba(17,17,17,0.52)",
             color: "var(--gris-300)",
             borderRadius: 10,
             padding: "10px 12px",
@@ -41,9 +41,9 @@ export default function BlogIndexPage({ styles, onOpenPost, onGoHome }) {
             key={post.slug}
             className="ma-card-soft"
             style={{
-              border: "1px solid rgba(148,163,184,0.22)",
+              border: "1px solid rgba(150,150,143,0.22)",
               borderRadius: 14,
-              background: "rgba(15,23,42,0.55)",
+              background: "rgba(17,17,17,0.55)",
               padding: "14px 12px",
             }}
           >
@@ -61,8 +61,8 @@ export default function BlogIndexPage({ styles, onOpenPost, onGoHome }) {
               type="button"
               onClick={() => onOpenPost(post.slug)}
               style={{
-                border: "1px solid rgba(125,211,252,0.36)",
-                background: "rgba(14,165,233,0.12)",
+                border: "1px solid rgba(207,207,200,0.36)",
+                background: "rgba(255,196,0,0.12)",
                 color: "var(--gris-200)",
                 borderRadius: 10,
                 padding: "8px 11px",

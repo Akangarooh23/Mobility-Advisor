@@ -17,14 +17,14 @@ export default function LegalPolicyPage({
   const titleColor   = isDark ? "var(--gris-100)" : "var(--gris-900)";
   const summaryColor = isDark ? "var(--gris-400)"  : "var(--gris-600)";
   const metaColor    = isDark ? "var(--gris-500)"  : "var(--gris-400)";
-  const cardBg       = isDark ? "rgba(30,41,59,0.7)"  : "var(--blanco)";
-  const cardBorder   = isDark ? "rgba(148,163,184,0.18)" : "rgba(148,163,184,0.28)";
+  const cardBg       = isDark ? "rgba(31,31,29,0.7)"  : "var(--blanco)";
+  const cardBorder   = isDark ? "rgba(150,150,143,0.18)" : "rgba(150,150,143,0.28)";
   const headingColor = isDark ? "var(--gris-200)"  : "var(--gris-800)";
   const bodyColor    = isDark ? "var(--gris-300)"  : "var(--gris-700)";
-  const badgeBg      = isDark ? "rgba(59,130,246,0.14)" : "rgba(59,130,246,0.08)";
-  const badgeBorder  = isDark ? "rgba(96,165,250,0.28)" : "rgba(59,130,246,0.22)";
+  const badgeBg      = isDark ? "rgba(255,196,0,0.14)" : "rgba(255,196,0,0.08)";
+  const badgeBorder  = isDark ? "rgba(255,196,0,0.28)" : "rgba(255,196,0,0.22)";
   const badgeColor   = isDark ? "var(--gris-300)" : "var(--marca)";
-  const dividerColor = isDark ? "rgba(148,163,184,0.12)" : "rgba(148,163,184,0.2)";
+  const dividerColor = isDark ? "rgba(150,150,143,0.12)" : "rgba(150,150,143,0.2)";
 
   return (
     <div>
@@ -83,7 +83,7 @@ export default function LegalPolicyPage({
               padding: "20px 24px",
               boxShadow: isDark
                 ? "0 2px 12px rgba(0,0,0,0.2)"
-                : "0 1px 6px rgba(15,23,42,0.06)",
+                : "0 1px 6px rgba(17,17,17,0.06)",
             }}
           >
             <h2 style={{

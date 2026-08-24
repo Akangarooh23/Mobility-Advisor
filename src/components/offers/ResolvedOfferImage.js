@@ -24,7 +24,7 @@ function OfferGuaranteeSeal({ months = 12, size = 54 }) {
         height: size,
         zIndex: 2,
         pointerEvents: "none",
-        filter: "drop-shadow(0 6px 10px rgba(15,23,42,0.22))",
+        filter: "drop-shadow(0 6px 10px rgba(17,17,17,0.22))",
       }}
     >
       <div

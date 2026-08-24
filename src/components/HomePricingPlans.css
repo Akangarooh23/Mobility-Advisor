@@ -13,7 +13,7 @@
   align-items: center;
   gap: 0.45rem;
   background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(99, 179, 237, 0.4);
+  border: 1px solid rgba(255, 196, 0, 0.4);
   border-radius: 30px;
   padding: 0.35rem 1rem;
   font-size: 11px;
@@ -140,7 +140,7 @@
   padding-top: 2.25rem;
   padding-bottom: 2.25rem;
   border-color: transparent;
-  box-shadow: 0 8px 40px rgba(49, 130, 206, 0.18);
+  box-shadow: 0 8px 40px rgba(150,150,143, 0.18);
   transform: translateY(-10px);
   z-index: 2;
 }
@@ -396,7 +396,7 @@
 .cw-plans-feedback {
   margin: 0 auto 1.5rem;
   max-width: 1240px;
-  border: 1px solid rgba(49, 130, 206, 0.28);
+  border: 1px solid rgba(150,150,143, 0.28);
   background: rgba(235, 248, 255, 0.95);
   color: var(--gris-500);
   border-radius: 12px;
@@ -604,7 +604,7 @@
   align-items: center;
   gap: 8px;
   background: var(--gris-100);
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  border: 1px solid rgba(150, 150, 143, 0.35);
   border-radius: 999px;
   padding: 5px;
 }
@@ -623,7 +623,7 @@
 .cw-home-plans-toggle-btn.active {
   background: var(--blanco);
   color: var(--gris-900);
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.14);
+  box-shadow: 0 2px 8px rgba(17, 17, 17, 0.14);
 }
 
 .cw-home-plans-save {

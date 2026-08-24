@@ -400,3 +400,15 @@
     font-size: 19px;
   }
 }
+
+/* El equipo pasa a dos personas: la rejilla se ajusta para que las tarjetas no
+   se queden anchas y descolgadas a un lado. */
+.cw-about-grid-dos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  max-width: 760px;
+}
+@media (max-width: 780px) {
+  .cw-about-grid-dos { grid-template-columns: 1fr; }
+}

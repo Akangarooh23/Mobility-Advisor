@@ -117,7 +117,7 @@ export default function AboutCarswisePage() {
         <section className="cw-about-section">
           <div className="cw-about-section-label">{t("about.teamLabel")}</div>
           <h2 className="cw-about-section-title">{t("about.teamTitle")}</h2>
-          <div className="cw-about-grid-three">
+          <div className="cw-about-grid-dos">
             <article className="cw-about-team-card">
               <FounderAvatar
                 className="cw-about-team-avatar is-1"
@@ -139,29 +139,6 @@ export default function AboutCarswisePage() {
               <div className="cw-about-team-divider" />
               <p className="cw-about-team-bio">{t("about.founder1Bio")}</p>
               <span className="cw-about-team-tag">{t("about.founder1Tag")}</span>
-            </article>
-
-            <article className="cw-about-team-card">
-              <FounderAvatar
-                className="cw-about-team-avatar is-2"
-                initials="JL"
-                alt="Javier Linares"
-                candidates={[
-                  "/team/javier.png",
-                  "/team/javier.jpg",
-                  "/team/javier.jpeg",
-                  "/team/javier.webp",
-                  "/team/imagen2.png",
-                  "/team/imagen2.jpg",
-                  "/team/imagen2.jpeg",
-                  "/team/imagen2.webp",
-                ]}
-              />
-              <h3 className="cw-about-team-name">Javier Linares</h3>
-              <div className="cw-about-team-role">{t("about.founder2Role")}</div>
-              <div className="cw-about-team-divider" />
-              <p className="cw-about-team-bio">{t("about.founder2Bio")}</p>
-              <span className="cw-about-team-tag">{t("about.founder2Tag")}</span>
             </article>
 
             <article className="cw-about-team-card">

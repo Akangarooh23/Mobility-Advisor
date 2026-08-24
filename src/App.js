@@ -1124,14 +1124,6 @@ const SEO_STATIC_PAGES = {
             ],
           },
           {
-            title: "Javier Linares",
-            subtitle: "Cofundador · Operaciones y Finanzas",
-            lines: [
-              "Experiencia en VO, gestion de flotas y operaciones estructuradas.",
-              "Lidera pricing, unit economics y control financiero de la plataforma.",
-            ],
-          },
-          {
             title: "Ana Picazo",
             subtitle: "Cofundadora · Tecnologia y Producto",
             lines: [

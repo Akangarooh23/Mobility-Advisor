@@ -31,12 +31,12 @@ const MERCADO = { unidades: 2638, media: 20739, desde: 16900, hasta: 22690 };
 
 /**
  * Las tres puertas de entrada de cada bloque, con lo que hay detras de verdad.
+ * Las seis existen y funcionan.
  *
- * En comprar las tres existen y funcionan. En vender, dos: el informe de
- * mercado y la venta gestionada. La tercera tarjeta de la web dice «publica tu
- * coche en nuestro Marketplace para particulares», pero ese flujo no existe en
- * ninguna parte —su boton lleva a crear el IdCar—, asi que aqui se cuenta lo
- * que pasa: documentas el coche para venderlo por tu cuenta.
+ * La de vender por tu cuenta pasa por el IdCar: el boton de la web dice
+ * «publicar con IdCar» y lleva a crear la ficha, y desde la ficha se publica en
+ * el Marketplace. Al publicar se crea la oferta `idcar-<id>` en la base, asi
+ * que el recorrido llega hasta el final.
  */
 const CAMINOS = {
   comprar: [
@@ -129,6 +129,43 @@ function Cerebro() {
     </svg>
   );
 }
+
+/**
+ * Los seis apartados que hay que completar para crear un IdCar, con el nombre y
+ * el subtítulo que llevan en la ficha real, y en el orden en que aparecen.
+ *
+ * El primero se lleva la mayor parte: son los veintiún campos del coche, y se
+ * rellenan casi solos si eliges marca, modelo y versión del catálogo.
+ */
+const PASOS_IDCAR = [
+  { titulo: "Características del vehículo", pie: "Marca, modelo y versión del catálogo; lo demás se autocompleta", sello: "21 campos" },
+  { titulo: "Documentos del vehículo", pie: "Fotos, ficha técnica, permiso de circulación e ITV", sello: "Papeles" },
+  { titulo: "Informe de estado", pie: "Captura guiada con el móvil y estado aparente del coche", sello: "Informe de estado" },
+  { titulo: "Seguros", pie: "Aseguradora, póliza y cobertura", sello: "Seguro" },
+  { titulo: "Mantenimientos", pie: "Facturas y qué se le ha hecho al coche", sello: "Facturas" },
+  { titulo: "Notas internas", pie: "Lo que quieras recordar de este coche", sello: "Notas" },
+];
+
+/**
+ * Lo que pide la aplicación antes de dejar publicar en el Marketplace. No son
+ * recomendaciones: sin las tres, el botón devuelve un error y no publica.
+ */
+const REQUISITOS = [
+  { titulo: "Un precio de salida", pie: "Lo pones tú" },
+  { titulo: "El informe de estado terminado", pie: "El comprador lo ve" },
+  { titulo: "Al menos una franja horaria", pie: "Para las visitas" },
+];
+
+/** Los cuatro pasos de la venta gestionada, con la etiqueta que lleva cada uno. */
+const PASOS_GESTIONADA = [
+  { titulo: "Revisamos el estado real del coche", pie: "Opcional según el caso" },
+  { titulo: "Definimos el precio contigo", pie: "Análisis incluido" },
+  { titulo: "Publicamos y filtramos las llamadas", pie: "Solo compradores reales" },
+  { titulo: "Te acompañamos hasta el cierre", pie: "Trámites incluidos" },
+];
+
+/** Los portales donde se publica en la venta gestionada. */
+const PORTALES = ["Coches.net", "AutoScout24", "Milanuncios", "Wallapop"];
 
 /** Los seis datos que pide el formulario de venta, en su orden. */
 const DATOS_VENTA = [
@@ -319,25 +356,122 @@ export default function ComoFuncionaPage({ onGoHome }) {
         });
 
         /* ── 02 Vender ────────────────────────────────────────────────────
-           Los seis datos entran uno a uno, la ficha se retira y en su sitio se
-           abre el informe con los comparables alrededor. */
+           Igual que comprar, pero con un prólogo: primero se crea el IdCar y
+           solo después aparecen las tres puertas. Es el orden de verdad —las
+           tres pasan por la ficha— y además es lo que hay que entender antes de
+           elegir nada. */
+        const ACTOS_V = [0.03, 0.36, 0.58, 0.79];
+        const tramo = (i) => {
+          const ini = ACTOS_V[i];
+          const fin = i < ACTOS_V.length - 1 ? ACTOS_V[i + 1] - RELEVO : 1;
+          return { ini, largo: fin - ini, en: (t) => ini + (fin - ini) * t };
+        };
+
         const vender = gsap.timeline({
-          scrollTrigger: { trigger: "#vender", start: "top top", end: "bottom bottom", scrub: 0.6 },
+          scrollTrigger: { trigger: "#vender", start: "top top", end: "bottom bottom", scrub: 0.5 },
         });
+
+        // El prólogo ocupa la cabecera hasta que le toca ceder el sitio.
+        vender
+          .fromTo("#vender .cf-preludio",
+            { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, ease: "none", duration: 0.02 }, 0.005)
+          .to("#vender .cf-preludio",
+            { autoAlpha: 0, y: -16, ease: "none", duration: 0.02 }, ACTOS_V[1] - RELEVO - 0.01);
+
         gsap.utils.toArray("#vender .cf-camino").forEach((c, i) => {
-          vender.fromTo(c, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, ease: "none", duration: 0.06 }, 0.02 + i * 0.06);
+          vender.fromTo(c,
+            { autoAlpha: 0, y: 18 },
+            { autoAlpha: 1, y: 0, ease: "none", duration: 0.02 },
+            ACTOS_V[1] - RELEVO + 0.005 + i * 0.012);
+          vender.to(c, { "--activa": 1, scale: 1.02, ease: "none", duration: 0.02 }, ACTOS_V[i + 1]);
+          if (i < 2) vender.to(c, { "--activa": 0, scale: 1, ease: "none", duration: 0.02 }, ACTOS_V[i + 2] - RELEVO);
         });
-        vender.to("#vender .cf-caminos", { autoAlpha: 0, y: -26, ease: "none", duration: 0.07 }, 0.26);
+
+        gsap.utils.toArray("#vender .cf-acto").forEach((acto, i) => {
+          const { ini } = tramo(i);
+          vender.fromTo(acto, { autoAlpha: 0 }, { autoAlpha: 1, ease: "none", duration: RELEVO * 0.6 }, ini - RELEVO * 0.4);
+          if (i < 3) vender.to(acto, { autoAlpha: 0, ease: "none", duration: RELEVO * 0.6 }, ACTOS_V[i + 1] - RELEVO);
+        });
+
+        /* Acto 0 · el IdCar. Se abre un apartado, se rellena y se sella en la
+           ficha. El sello llega después del paso, no a la vez: primero se hace
+           el trabajo y luego se ve el resultado. */
+        const idcar = tramo(0);
+        gsap.utils.toArray("#vender .cf-paso-idcar").forEach((paso, i) => {
+          vender.fromTo(paso,
+            { autoAlpha: 0.25, x: -18 },
+            { autoAlpha: 1, x: 0, ease: "none", duration: idcar.largo * 0.07 },
+            idcar.en(0.05 + i * 0.13));
+        });
+        gsap.utils.toArray("#vender .cf-sello").forEach((sello, i) => {
+          vender.fromTo(sello,
+            { autoAlpha: 0, scale: 0.8 },
+            { autoAlpha: 1, scale: 1, ease: "none", duration: idcar.largo * 0.05 },
+            idcar.en(0.12 + i * 0.13));
+        });
+        vender.fromTo("#vender .cf-idcar-listo",
+          { autoAlpha: 0, y: 10 },
+          { autoAlpha: 1, y: 0, ease: "none", duration: idcar.largo * 0.08 },
+          idcar.en(0.9));
+
+        /* Acto 1 · el informe. Los seis datos entran uno a uno, la ficha se
+           aparta y en su sitio se abre el informe con los comparables. */
+        const informe = tramo(1);
         gsap.utils.toArray("#vender .cf-dato").forEach((dato, i) => {
-          vender.fromTo(dato, { autoAlpha: 0, y: 26 }, { autoAlpha: 1, y: 0, ease: "none", duration: 0.05 }, 0.32 + i * 0.04);
+          vender.fromTo(dato,
+            { autoAlpha: 0, y: 22 },
+            { autoAlpha: 1, y: 0, ease: "none", duration: informe.largo * 0.08 },
+            informe.en(0.05 + i * 0.07));
         });
         vender
-          .fromTo(".cf-informe", { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, ease: "none", duration: 0.09 }, 0.58)
-          .fromTo(".cf-barra i", { scaleX: 0 }, { scaleX: 1, ease: "none", duration: 0.18 }, 0.64)
-          .to(".cf-ficha-venta", { y: -26, scale: 0.94, ease: "none", duration: 0.24 }, 0.66);
+          .fromTo("#vender .cf-ficha-fuente",
+            { autoAlpha: 0 }, { autoAlpha: 1, ease: "none", duration: informe.largo * 0.06 }, informe.en(0.5))
+          .fromTo("#vender .cf-informe",
+            { autoAlpha: 0, y: 36 },
+            { autoAlpha: 1, y: 0, ease: "none", duration: informe.largo * 0.14 }, informe.en(0.55))
+          .fromTo("#vender .cf-barra i",
+            { scaleX: 0 }, { scaleX: 1, ease: "none", duration: informe.largo * 0.24 }, informe.en(0.62))
+          .to("#vender .cf-ficha-venta",
+            { y: -22, scale: 0.94, ease: "none", duration: informe.largo * 0.3 }, informe.en(0.6));
         gsap.utils.toArray("#vender .cf-comparable").forEach((b, i) => {
-          vender.fromTo(b, { autoAlpha: 0, scale: 0.8 }, { autoAlpha: 1, scale: 1, ease: "none", duration: 0.08 }, 0.6 + i * 0.05);
+          vender.fromTo(b,
+            { autoAlpha: 0, scale: 0.8 },
+            { autoAlpha: 1, scale: 1, ease: "none", duration: informe.largo * 0.1 },
+            informe.en(0.6 + i * 0.07));
         });
+
+        /* Acto 2 · publicar. Los tres requisitos se van cumpliendo y solo
+           entonces aparece el anuncio: sin ellos, la aplicación tampoco deja. */
+        const anuncio = tramo(2);
+        gsap.utils.toArray("#vender .cf-requisito").forEach((r, i) => {
+          vender.fromTo(r,
+            { autoAlpha: 0.25, x: -16 },
+            { autoAlpha: 1, x: 0, ease: "none", duration: anuncio.largo * 0.1 },
+            anuncio.en(0.06 + i * 0.16));
+          vender.to(r, { "--hecho": 1, ease: "none", duration: anuncio.largo * 0.05 }, anuncio.en(0.14 + i * 0.16));
+        });
+        vender.fromTo("#vender .cf-anuncio",
+          { autoAlpha: 0, y: 30, scale: 0.94 },
+          { autoAlpha: 1, y: 0, scale: 1, ease: "none", duration: anuncio.largo * 0.14 },
+          anuncio.en(0.62));
+        vender.fromTo("#vender .cf-anuncio-estado",
+          { autoAlpha: 0, scale: 0.7 },
+          { autoAlpha: 1, scale: 1, ease: "none", duration: anuncio.largo * 0.08 },
+          anuncio.en(0.82));
+
+        /* Acto 3 · la venta gestionada, paso a paso, y los portales cuando toca
+           publicar. */
+        const gest = tramo(3);
+        gsap.utils.toArray("#vender .cf-paso-venta").forEach((p, i) => {
+          vender.fromTo(p,
+            { autoAlpha: 0.22, y: 20 },
+            { autoAlpha: 1, y: 0, ease: "none", duration: gest.largo * 0.1 },
+            gest.en(0.05 + i * 0.2));
+        });
+        vender.fromTo("#vender .cf-portales li",
+          { autoAlpha: 0, y: 8 },
+          { autoAlpha: 1, y: 0, ease: "none", duration: gest.largo * 0.06, stagger: gest.largo * 0.03 },
+          gest.en(0.52));
 
         /* ── 03 Gestionar ─────────────────────────────────────────────────
            Los cuatro servicios se acercan y al final se apagan mientras sube
@@ -411,7 +545,7 @@ export default function ComoFuncionaPage({ onGoHome }) {
             <h2>Encuentra<br /><span>el tuyo.</span></h2>
             <p className="cf-apoyo">Todo el mercado, hasta los que encajan contigo.</p>
           </div>
-          <div className="cf-escena cf-escena-comprar">
+          <div className="cf-escena cf-escena-actos">
             {/* Las tres puertas se quedan arriba todo el bloque y se va marcando
                 la que toca. Antes compartían sitio con la escena y las dos se
                 veían a medias: no se leía ninguna. */}
@@ -516,46 +650,142 @@ export default function ComoFuncionaPage({ onGoHome }) {
             <p className="cf-apoyo">Lo que pide hoy el mercado por un coche como el tuyo.</p>
           </div>
 
-          <div className="cf-escena cf-escena-venta">
-            <ul className="cf-caminos">
-              {CAMINOS.vender.map((c) => (
-                <li className={`cf-camino cf-camino-${c.id}`} key={c.id}>
-                  <strong>{c.titulo}</strong>
-                  <small>{c.destino}</small>
-                </li>
-              ))}
-            </ul>
-
-            <div className="cf-ficha-venta">
-              <p className="cf-ficha-titulo">Tu coche</p>
-              <dl className="cf-datos">
-                {DATOS_VENTA.map((d) => (
-                  <div className="cf-dato" key={d.etiqueta}>
-                    <dt>{d.etiqueta}</dt>
-                    <dd>{d.valor}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-
-            <div className="cf-informe">
-              <p className="cf-informe-etq">Precio medio del mercado</p>
-              <p className="cf-informe-cifra">{num(MERCADO.media)} €</p>
-              <p className="cf-informe-pie">{num(MERCADO.unidades)} unidades similares a la venta</p>
-              <div className="cf-barra"><i /></div>
-              <p className="cf-informe-rango">
-                <span>{num(MERCADO.desde)} €</span>
-                <span>{num(MERCADO.hasta)} €</span>
+          <div className="cf-escena cf-escena-actos">
+            {/* Antes de las tres puertas va el IdCar, porque las tres pasan por
+                él: el informe lo puede leer de ahí, el anuncio sale de ahí y la
+                venta gestionada empieza mirándolo. El prólogo y las tarjetas
+                comparten sitio, y el relevo lo hace el scroll. */}
+            <div className="cf-cabecera">
+              <p className="cf-preludio">
+                <strong>Todo empieza por el IdCar</strong>
+                <small>La ficha de tu coche: datos, papeles y estado</small>
               </p>
-              {/* No es una tasación y no puede parecerlo: la cifra es del
-                  mercado, nunca del coche del usuario. */}
-              <p className="cf-limite">Información de mercado. PopCar no tasa tu coche.</p>
+              <ul className="cf-caminos">
+                {CAMINOS.vender.map((c) => (
+                  <li className={`cf-camino cf-camino-${c.id}`} key={c.id}>
+                    <strong>{c.titulo}</strong>
+                    <small>{c.destino}</small>
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            <span className="cf-comparable cf-comparable-1">18.400 €</span>
-            <span className="cf-comparable cf-comparable-2">21.900 €</span>
-            <span className="cf-comparable cf-comparable-3">16.950 €</span>
-            <span className="cf-comparable cf-comparable-4">22.500 €</span>
+            <div className="cf-tablero">
+              {/* Acto 0 · cómo se crea el IdCar. A la izquierda los seis
+                  apartados que hay que completar; a la derecha la ficha, que se
+                  va sellando con lo que acaba de rellenarse. */}
+              <div className="cf-acto cf-acto-idcar">
+                <p className="cf-acto-etq">Se crea una vez y sirve para todo</p>
+                <div className="cf-creacion">
+                  <ol className="cf-pasos-idcar">
+                    {PASOS_IDCAR.map((p, i) => (
+                      <li className="cf-paso-idcar" key={p.titulo}>
+                        <b>{i + 1}</b>
+                        <span>
+                          <strong>{p.titulo}</strong>
+                          <small>{p.pie}</small>
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                  <article className="cf-ficha-idcar">
+                    <p className="cf-ficha-titulo">IdCar</p>
+                    <p className="cf-idcar-resumen">Volkswagen Golf · 1234 KLM</p>
+                    <ul className="cf-sellos">
+                      {PASOS_IDCAR.map((p) => <li className="cf-sello" key={p.sello}>{p.sello}</li>)}
+                    </ul>
+                    <p className="cf-idcar-listo">Hecho. Ya no se vuelve a pedir.</p>
+                  </article>
+                </div>
+                <p className="cf-acto-pie">Es tuyo y se queda contigo, vendas ahora o dentro de tres años.</p>
+              </div>
+
+              {/* Acto 1 · el informe de mercado. */}
+              <div className="cf-acto cf-acto-informe">
+                <p className="cf-acto-etq">Lo que pide hoy el mercado por uno como el tuyo</p>
+                <div className="cf-escena-venta">
+                  <div className="cf-ficha-venta">
+                    <p className="cf-ficha-titulo">Tu coche</p>
+                    <dl className="cf-datos">
+                      {DATOS_VENTA.map((d) => (
+                        <div className="cf-dato" key={d.etiqueta}>
+                          <dt>{d.etiqueta}</dt>
+                          <dd>{d.valor}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                    {/* Y si ya hay IdCar, ni eso: se elige y viene relleno. */}
+                    <p className="cf-ficha-fuente">O usar un IdCar guardado</p>
+                  </div>
+
+                  <div className="cf-informe">
+                    <p className="cf-informe-etq">Precio medio del mercado</p>
+                    <p className="cf-informe-cifra">{num(MERCADO.media)} €</p>
+                    <p className="cf-informe-pie">{num(MERCADO.unidades)} unidades similares a la venta</p>
+                    <div className="cf-barra"><i /></div>
+                    <p className="cf-informe-rango">
+                      <span>{num(MERCADO.desde)} €</span>
+                      <span>{num(MERCADO.hasta)} €</span>
+                    </p>
+                    {/* No es una tasación y no puede parecerlo: la cifra es del
+                        mercado, nunca del coche del usuario. */}
+                    <p className="cf-limite">Información de mercado. PopCar no tasa tu coche.</p>
+                  </div>
+
+                  <span className="cf-comparable cf-comparable-1">18.400 €</span>
+                  <span className="cf-comparable cf-comparable-2">21.900 €</span>
+                  <span className="cf-comparable cf-comparable-3">16.950 €</span>
+                  <span className="cf-comparable cf-comparable-4">22.500 €</span>
+                </div>
+              </div>
+
+              {/* Acto 2 · publicar por tu cuenta. Los tres requisitos no son
+                  consejos: sin ellos el botón devuelve un error. */}
+              <div className="cf-acto cf-acto-anuncio">
+                <p className="cf-acto-etq">Tres cosas y tu coche está publicado</p>
+                <div className="cf-publicar">
+                  <ul className="cf-requisitos">
+                    {REQUISITOS.map((r) => (
+                      <li className="cf-requisito" key={r.titulo}>
+                        <i aria-hidden="true" />
+                        <span>
+                          <strong>{r.titulo}</strong>
+                          <small>{r.pie}</small>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <article className="cf-anuncio">
+                    <p className="cf-anuncio-estado">Publicado</p>
+                    <div className="cf-anuncio-foto" aria-hidden="true" />
+                    <p className="cf-anuncio-titulo">Volkswagen Golf</p>
+                    <p className="cf-anuncio-datos">1.5 TSI Life · 2021 · 48.300 km</p>
+                    <p className="cf-anuncio-precio">19.900 €</p>
+                  </article>
+                </div>
+                <p className="cf-acto-pie">En el Marketplace de PopCar, y los compradores escriben a tu anuncio.</p>
+              </div>
+
+              {/* Acto 3 · la venta gestionada, con sus cuatro pasos reales. */}
+              <div className="cf-acto cf-acto-gestionada">
+                <p className="cf-acto-etq">O lo llevamos nosotros de principio a fin</p>
+                <ol className="cf-gestionada">
+                  {PASOS_GESTIONADA.map((p, i) => (
+                    <li className="cf-paso-venta" key={p.titulo}>
+                      <b>{i + 1}</b>
+                      <strong>{p.titulo}</strong>
+                      <small>{p.pie}</small>
+                      {i === 2 && (
+                        <ul className="cf-portales">
+                          {PORTALES.map((portal) => <li key={portal}>{portal}</li>)}
+                        </ul>
+                      )}
+                    </li>
+                  ))}
+                </ol>
+                <p className="cf-acto-pie">Tú solo estás cuando llega el comprador.</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>

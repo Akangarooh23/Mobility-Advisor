@@ -74,9 +74,12 @@ test("dice que no es una tasación, y eso no es negociable", () => {
 });
 
 test("gestionar enseña los cuatro servicios con su nombre real", () => {
-  montar();
+  // Se busca dentro del bloque: «Seguro» también es uno de los apartados que se
+  // rellenan al crear el IdCar, en vender.
+  const { container } = montar();
+  const gestionar = container.querySelector("#gestionar");
   ["Crea tu garaje", "Recordatorio inteligente", "Cita de mantenimiento", "Seguro"]
-    .forEach((nombre) => expect(screen.getByText(nombre)).toBeInTheDocument());
+    .forEach((nombre) => expect(within(gestionar).getByText(nombre)).toBeInTheDocument());
 });
 
 test("los iconos van en SVG, no en emoji", () => {
@@ -126,12 +129,62 @@ test("cada bloque abre con sus tres puertas de entrada", () => {
 });
 
 test("vender ofrece el marketplace para particulares", () => {
-  /* Aviso para quien lea esto: hoy ese flujo NO existe en la aplicacion. La
-     frase solo aparece en la tarjeta de SellOptionsPage y su boton lleva a
-     crear el IdCar. Se enseña porque es decision de producto; el dia que se
-     implemente, esta prueba ya lo cubre. */
-  const { container } = montar();
+  /* Ese camino existe y llega hasta el final: el boton de la web lleva a crear
+     el IdCar y desde la ficha se publica, lo que da de alta la oferta
+     `idcar-<id>` en la base. */
+  montar();
   expect(screen.getByText("Marketplace para particulares")).toBeInTheDocument();
+});
+
+test("vender empieza por el IdCar, antes de las tres puertas", () => {
+  /* Las tres opciones pasan por la ficha: el informe la puede leer, el anuncio
+     sale de ella y la venta gestionada empieza mirándola. Si el prólogo
+     desaparece, el bloque cuenta el final antes que el principio. */
+  const { container } = montar();
+  const vender = container.querySelector("#vender");
+  expect(within(vender).getByText("Todo empieza por el IdCar")).toBeInTheDocument();
+  const actos = vender.querySelectorAll(".cf-acto");
+  expect(actos).toHaveLength(4);
+  expect(actos[0]).toHaveClass("cf-acto-idcar");
+});
+
+test("el IdCar se explica por sus seis apartados reales", () => {
+  // Son los de la ficha, con su nombre y en su orden. Si alguien inventa un
+  // paso que no existe, la página promete algo que la aplicación no pide.
+  const { container } = montar();
+  const pasos = [...container.querySelectorAll("#vender .cf-paso-idcar strong")].map((n) => n.textContent);
+  expect(pasos).toEqual([
+    "Características del vehículo",
+    "Documentos del vehículo",
+    "Informe de estado",
+    "Seguros",
+    "Mantenimientos",
+    "Notas internas",
+  ]);
+  // Y la ficha se sella con lo que se acaba de rellenar, uno por apartado.
+  expect(container.querySelectorAll("#vender .cf-sello")).toHaveLength(pasos.length);
+});
+
+test("publicar pide las tres cosas que pide la aplicación", () => {
+  /* No son consejos: sin precio, sin informe terminado o sin una franja
+     horaria, el botón de publicar devuelve un error y no publica. */
+  const { container } = montar();
+  const requisitos = [...container.querySelectorAll("#vender .cf-requisito strong")].map((n) => n.textContent);
+  expect(requisitos).toEqual([
+    "Un precio de salida",
+    "El informe de estado terminado",
+    "Al menos una franja horaria",
+  ]);
+});
+
+test("la venta gestionada enseña sus cuatro pasos y los portales", () => {
+  const { container } = montar();
+  const pasos = container.querySelectorAll("#vender .cf-paso-venta");
+  expect(pasos).toHaveLength(4);
+  const portales = [...container.querySelectorAll("#vender .cf-portales li")].map((n) => n.textContent);
+  expect(portales).toEqual(["Coches.net", "AutoScout24", "Milanuncios", "Wallapop"]);
+  // Los portales van dentro del paso en el que se publica, no sueltos al final.
+  expect(pasos[2].querySelector(".cf-portales")).toBeInTheDocument();
 });
 
 test("gestionar enseña primero el IdCar y después lo que se hace con él", () => {

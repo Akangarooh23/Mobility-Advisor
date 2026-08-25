@@ -114,7 +114,7 @@
 /* Comprar necesita mas: son tres opciones y cada una se recorre entera. El
    embudo solo ya pide cuatro pantallas para sus siete filtros, y las otras dos
    tienen ahora su propio recorrido —comparar y analizar— en vez de una lamina. */
-#comprar { min-height: 1150svh; }
+#comprar, #vender { min-height: 1150svh; }
 .cf-bloque-claro { background: var(--gris-50); }
 
 .cf-fijo {
@@ -162,7 +162,7 @@
 /* ── 01 Comprar ───────────────────────────────────────────────────────── */
 /* Las tarjetas arriba y la escena debajo, cada una en su sitio. Compartir
    espacio era el error: las dos se veían a medias y no se leía ninguna. */
-.cf-escena-comprar { display: grid; gap: 30px; align-content: center; }
+.cf-escena-actos { display: grid; gap: 30px; align-content: center; }
 .cf-tablero { position: relative; min-height: clamp(320px, 52svh, 470px); }
 .cf-acto {
   position: absolute;
@@ -370,14 +370,10 @@
   display: grid;
   gap: 10px;
 }
-/* En vender siguen ocupando la escena entera: allí solo hay una escena y el
-   relevo es limpio. */
-#vender .cf-caminos { position: absolute; inset: 0; z-index: 4; align-content: center; }
 @media (min-width: 760px) {
   .cf-caminos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  #vender .cf-caminos { align-content: center; }
 }
-#comprar .cf-camino { padding: 14px 16px; }
+#comprar .cf-camino, #vender .cf-camino { padding: 14px 16px; }
 .cf-camino {
   --activa: 0;
   background: var(--blanco);
@@ -414,7 +410,202 @@
 
 
 /* ── 02 Vender ────────────────────────────────────────────────────────── */
-.cf-escena-venta { min-height: clamp(360px, 56svh, 500px); }
+/* La cabecera guarda dos cosas en el mismo hueco: el prólogo del IdCar y, al
+   acabar, las tres puertas. Van apiladas en la misma celda para que el relevo
+   no mueva de sitio lo que hay debajo. */
+.cf-cabecera { display: grid; align-items: center; min-height: 96px; }
+.cf-cabecera > * { grid-area: 1 / 1; }
+.cf-preludio {
+  margin: 0;
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  padding: 18px 22px;
+  background: var(--blanco);
+  border: 1px solid var(--acento);
+  border-radius: 16px;
+  box-shadow: 0 24px 58px -32px rgba(0, 0, 0, 0.26);
+}
+.cf-preludio strong { font-size: clamp(17px, 1.8vw, 21px); font-weight: 800; letter-spacing: -0.03em; }
+.cf-preludio small { font-size: 12.5px; color: var(--gris-500); }
+
+/* El IdCar, apartado por apartado, y la ficha sellándose al lado. */
+.cf-creacion {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+}
+.cf-pasos-idcar { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.cf-paso-idcar { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; align-items: start; }
+.cf-paso-idcar > b {
+  width: 20px; height: 20px;
+  display: grid; place-items: center;
+  border-radius: 999px;
+  background: var(--acento);
+  color: var(--acento-texto);
+  font-size: 10px;
+  font-weight: 800;
+}
+.cf-paso-idcar strong { display: block; font-size: 12.5px; font-weight: 800; letter-spacing: -0.015em; }
+.cf-paso-idcar small { display: block; font-size: 10.5px; line-height: 1.35; color: var(--gris-500); }
+
+.cf-ficha-idcar {
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 16px;
+  padding: 15px 16px 16px;
+  box-shadow: 0 26px 62px -34px rgba(0, 0, 0, 0.3);
+}
+.cf-ficha-idcar .cf-ficha-titulo { margin-bottom: 4px; }
+.cf-sellos {
+  margin: 12px 0 0; padding: 0; list-style: none;
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.cf-sello {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--acento-texto);
+  background: var(--acento-tenue);
+  border-radius: 999px;
+  padding: 5px 10px;
+}
+.cf-idcar-listo {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--gris-200);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--gris-600);
+}
+
+/* Publicar por tu cuenta: los tres requisitos y el anuncio. */
+.cf-publicar {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: center;
+}
+.cf-requisitos { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.cf-requisito {
+  --hecho: 0;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 11px;
+  align-items: center;
+}
+/* La marca de cumplido la enciende la línea de tiempo, no una clase: así sube y
+   baja con el scroll sin que haya que acordarse de quitarla. */
+.cf-requisito > i {
+  width: 22px; height: 22px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--acento) calc(var(--hecho) * 100%), var(--gris-300));
+  background: color-mix(in srgb, var(--acento) calc(var(--hecho) * 100%), transparent);
+  position: relative;
+}
+.cf-requisito > i::after {
+  content: "";
+  position: absolute;
+  left: 6px; top: 5px;
+  width: 6px; height: 10px;
+  border: solid var(--acento-texto);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  opacity: var(--hecho);
+}
+.cf-requisito strong { display: block; font-size: 13.5px; font-weight: 800; letter-spacing: -0.02em; }
+.cf-requisito small { display: block; font-size: 11px; color: var(--gris-500); }
+
+.cf-anuncio {
+  position: relative;
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 16px;
+  padding: 12px 13px 14px;
+  box-shadow: 0 26px 62px -34px rgba(0, 0, 0, 0.3);
+}
+.cf-anuncio-estado {
+  position: absolute;
+  top: 20px; right: 21px;
+  margin: 0;
+  z-index: 1;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--acento-texto);
+  background: var(--acento);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+.cf-anuncio-foto {
+  aspect-ratio: 16 / 10;
+  border-radius: 10px;
+  background: linear-gradient(140deg, var(--gris-100), var(--gris-200));
+  margin-bottom: 10px;
+}
+.cf-anuncio-titulo { margin: 0; font-size: 14px; font-weight: 800; letter-spacing: -0.02em; }
+.cf-anuncio-datos { margin: 2px 0 0; font-size: 11px; color: var(--gris-500); }
+.cf-anuncio-precio {
+  margin: 6px 0 0;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* La venta gestionada, con sus cuatro pasos y los portales del tercero. */
+.cf-gestionada {
+  margin: 0; padding: 0; list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.cf-paso-venta {
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 14px;
+  padding: 14px 14px 16px;
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  box-shadow: 0 20px 44px -34px rgba(0, 0, 0, 0.28);
+}
+.cf-paso-venta > b {
+  width: 22px; height: 22px;
+  display: grid; place-items: center;
+  border-radius: 999px;
+  background: var(--acento);
+  color: var(--acento-texto);
+  font-size: 10.5px;
+  font-weight: 800;
+}
+.cf-paso-venta strong { font-size: 13px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.25; }
+.cf-paso-venta > small {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--gris-500);
+}
+.cf-portales { margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px; }
+.cf-portales li {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--gris-600);
+  background: var(--gris-100);
+  border-radius: 999px;
+  padding: 3px 7px;
+}
+
+.cf-escena-venta { position: relative; flex: 1; min-height: 0; }
+.cf-ficha-fuente {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--gris-200);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--acento-texto);
+}
 
 .cf-ficha-titulo {
   margin: 0 0 12px;
@@ -630,7 +821,13 @@
   /* Menos recorrido por bloque: la narración es la misma, lo que baja es el
      kilometraje del dedo. */
   .cf-bloque { min-height: 240svh; }
-  #comprar { min-height: 700svh; }
+  #comprar, #vender { min-height: 700svh; }
+  /* Los cuatro pasos de la venta gestionada en fila no caben; en dos columnas
+     sí, y siguen leyéndose en orden. */
+  .cf-gestionada { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cf-creacion, .cf-publicar { grid-template-columns: 1fr; gap: 12px; }
+  .cf-paso-idcar small { display: none; }
+  .cf-cabecera { min-height: 0; }
   /* Tres fichas no se leen en un móvil: se enseñan dos y el rótulo sigue
      diciendo cuántas caben a la vez. */
   .cf-comparados { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -659,11 +856,16 @@
   /* Sin animación no hay quien encienda los actos, así que se enseñan los tres
      seguidos y ya resueltos. Antes se quedaban en opacidad cero: quien pide no
      moverse veía el bloque de comprar en blanco. */
-  #comprar { min-height: 0; }
+  #comprar, #vender { min-height: 0; }
   /* Y el panel deja de pegarse y de recortar, o los actos apilados se irían
      por debajo del corte. */
-  #comprar .cf-fijo { position: static; min-height: 0; overflow: visible; padding: 60px clamp(20px, 6vw, 76px); }
+  #comprar .cf-fijo, #vender .cf-fijo { position: static; min-height: 0; overflow: visible; padding: 60px clamp(20px, 6vw, 76px); }
   .cf-tablero { min-height: 0; display: grid; gap: 44px; }
   .cf-acto { position: relative; inset: auto; opacity: 1; }
   .cf-acto-embudo .em-root { position: relative; inset: auto; min-height: clamp(300px, 48svh, 440px); }
+  /* El prólogo y las tres puertas ya no se relevan: se leen uno debajo del otro. */
+  .cf-cabecera { grid-template-rows: auto auto; gap: 16px; }
+  .cf-cabecera > * { grid-area: auto; }
+  .cf-escena-venta { min-height: clamp(360px, 56svh, 500px); }
+  .cf-requisito { --hecho: 1; }
 }

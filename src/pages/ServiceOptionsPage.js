@@ -22,8 +22,10 @@ export default function ServiceOptionsPage({
       onClick: onSelectAutogestor,
       icon: (
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <rect x="3" y="3" width="18" height="18" rx="2" />
-          <path d="M3 9h18M9 21V9" />
+          <path d="M4.2 13.4 6 8.9a2 2 0 0 1 1.86-1.25h8.28A2 2 0 0 1 18 8.9l1.8 4.5" />
+          <path d="M2.8 13.4h18.4v3.2a1 1 0 0 1-1 1h-1.3a1 1 0 0 1-1-1v-.7H6.1v.7a1 1 0 0 1-1 1H3.8a1 1 0 0 1-1-1z" />
+          <circle cx="7.4" cy="15.4" r="1" />
+          <circle cx="16.6" cy="15.4" r="1" />
         </svg>
       ),
     },
@@ -34,7 +36,9 @@ export default function ServiceOptionsPage({
       onClick: onSelectMaintenance,
       icon: (
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          <circle cx="12" cy="12.8" r="8.2" />
+          <path d="M12 8.2v4.6l3 2" strokeLinecap="round" />
+          <path d="M9.2 2.4h5.6" strokeLinecap="round" />
         </svg>
       ),
     },
@@ -131,8 +135,10 @@ export default function ServiceOptionsPage({
           }}
         >
           <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <path d="M3 9h18M9 21V9" />
+            <path d="M4.2 13.4 6 8.9a2 2 0 0 1 1.86-1.25h8.28A2 2 0 0 1 18 8.9l1.8 4.5" />
+            <path d="M2.8 13.4h18.4v3.2a1 1 0 0 1-1 1h-1.3a1 1 0 0 1-1-1v-.7H6.1v.7a1 1 0 0 1-1 1H3.8a1 1 0 0 1-1-1z" />
+            <circle cx="7.4" cy="15.4" r="1" />
+            <circle cx="16.6" cy="15.4" r="1" />
           </svg>
         </div>
         <div style={{ flex: 1, minWidth: 200 }}>

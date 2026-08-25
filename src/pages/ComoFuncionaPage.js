@@ -125,6 +125,35 @@ const RAMAS = [
  * sin medir nada, y sale igual de bien en un contorno largo que en una rama
  * corta.
  */
+/**
+ * El coche del informe, en planta.
+ *
+ * Es el esquema sobre el que se sitúan los daños: capó, parabrisas, techo,
+ * luneta, portón, las cuatro ruedas y los retrovisores. Va en planta porque es
+ * la vista que deja marcar cualquier pieza sin girar el dibujo.
+ */
+function CocheEnPlanta() {
+  return (
+    <g className="cf-coche-cuerpo">
+      <rect x="15" y="6" width="66" height="178" rx="22" />
+      {/* Parabrisas, techo y luneta */}
+      <path d="M25 52H71L66 70H30Z" />
+      <rect x="28" y="70" width="40" height="48" rx="5" />
+      <path d="M30 118H66L71 136H25Z" />
+      {/* Corte de las puertas, a los dos lados */}
+      <path d="M15 70H28M15 104H28M15 136H28M81 70H68M81 104H68M81 136H68" />
+      {/* Retrovisores */}
+      <rect x="5" y="62" width="10" height="8" rx="3" />
+      <rect x="81" y="62" width="10" height="8" rx="3" />
+      {/* Ruedas */}
+      <rect x="4" y="30" width="11" height="24" rx="4" />
+      <rect x="81" y="30" width="11" height="24" rx="4" />
+      <rect x="4" y="128" width="11" height="24" rx="4" />
+      <rect x="81" y="128" width="11" height="24" rx="4" />
+    </g>
+  );
+}
+
 function Cerebro() {
   return (
     <svg className="cf-cerebro-svg" viewBox="0 0 120 120" fill="none" aria-hidden="true">
@@ -164,6 +193,36 @@ const REQUISITOS = [
   { titulo: "Un precio de salida", pie: "Lo pones tú" },
   { titulo: "El informe de estado terminado", pie: "El comprador lo ve" },
   { titulo: "Al menos una franja horaria", pie: "Para las visitas" },
+];
+
+/**
+ * El informe de estado, que es lo que se le enseña al comprador.
+ *
+ * Los seis grados son los de `condition_reports`, con la escala A · B+ · B · C ·
+ * D. La mecánica va aparte y siempre sin datos: no se deduce de una foto, y solo
+ * una verificación física en un taller de la red puede asentarla. Eso no es un
+ * detalle de redacción, es un CHECK en la base.
+ */
+const GRADOS = [
+  { parte: "Carrocería", grado: "B+" },
+  { parte: "Llantas", grado: "B" },
+  { parte: "Neumáticos", grado: "B+" },
+  { parte: "Cristales", grado: "A" },
+  { parte: "Interior", grado: "A" },
+  { parte: "Mecánica", grado: "Sin datos", sinDatos: true },
+];
+
+/**
+ * Los hallazgos del ejemplo. Cada uno cae sobre una pieza de la lista cerrada
+ * —puerta delantera derecha, paragolpes trasero, llanta delantera izquierda—,
+ * nunca sobre un punto libre del dibujo: el análisis sabe la pieza, no la
+ * coordenada, y un aspa colocada con falsa precisión afirmaría más de lo que se
+ * puede sostener.
+ */
+const HALLAZGOS = [
+  { n: 1, tipo: "Arañazo", pieza: "Puerta delantera derecha", x: 81, y: 88 },
+  { n: 2, tipo: "Rozadura", pieza: "Paragolpes trasero", x: 48, y: 176 },
+  { n: 3, tipo: "Bordillazo", pieza: "Llanta delantera izquierda", x: 12, y: 42 },
 ];
 
 /** Los cuatro pasos de la venta gestionada, con la etiqueta que lleva cada uno. */
@@ -521,18 +580,38 @@ export default function ComoFuncionaPage({ onGoHome }) {
         gsap.utils.toArray("#vender .cf-requisito").forEach((r, i) => {
           vender.fromTo(r,
             { autoAlpha: 0.25, x: -16 },
-            { autoAlpha: 1, x: 0, ease: "none", duration: anuncio.largo * 0.1 },
-            anuncio.en(0.06 + i * 0.16));
-          vender.to(r, { "--hecho": 1, ease: "none", duration: anuncio.largo * 0.05 }, anuncio.en(0.14 + i * 0.16));
+            { autoAlpha: 1, x: 0, ease: "none", duration: anuncio.largo * 0.08 },
+            anuncio.en(0.04 + i * 0.11));
+          vender.to(r, { "--hecho": 1, ease: "none", duration: anuncio.largo * 0.04 }, anuncio.en(0.11 + i * 0.11));
         });
+        /* El informe se abre en medio: primero el esquema, después los daños que
+           se han encontrado y por último los grados. */
+        vender.fromTo("#vender .cf-informe-estado",
+          { autoAlpha: 0, y: 26 },
+          { autoAlpha: 1, y: 0, ease: "none", duration: anuncio.largo * 0.09 },
+          anuncio.en(0.4));
+        gsap.utils.toArray("#vender .cf-marca").forEach((m, i) => {
+          vender.fromTo(m,
+            { autoAlpha: 0, scale: 0 },
+            { autoAlpha: 1, scale: 1, ease: "none", duration: anuncio.largo * 0.05 },
+            anuncio.en(0.5 + i * 0.05));
+          vender.fromTo(`#vender .cf-hallazgo:nth-child(${i + 1})`,
+            { autoAlpha: 0, x: 12 },
+            { autoAlpha: 1, x: 0, ease: "none", duration: anuncio.largo * 0.05 },
+            anuncio.en(0.52 + i * 0.05));
+        });
+        vender.fromTo("#vender .cf-grado",
+          { autoAlpha: 0, y: 8 },
+          { autoAlpha: 1, y: 0, ease: "none", duration: anuncio.largo * 0.04, stagger: anuncio.largo * 0.015 },
+          anuncio.en(0.66));
         vender.fromTo("#vender .cf-anuncio",
           { autoAlpha: 0, y: 30, scale: 0.94 },
-          { autoAlpha: 1, y: 0, scale: 1, ease: "none", duration: anuncio.largo * 0.14 },
-          anuncio.en(0.62));
+          { autoAlpha: 1, y: 0, scale: 1, ease: "none", duration: anuncio.largo * 0.12 },
+          anuncio.en(0.78));
         vender.fromTo("#vender .cf-anuncio-estado",
           { autoAlpha: 0, scale: 0.7 },
-          { autoAlpha: 1, scale: 1, ease: "none", duration: anuncio.largo * 0.08 },
-          anuncio.en(0.82));
+          { autoAlpha: 1, scale: 1, ease: "none", duration: anuncio.largo * 0.07 },
+          anuncio.en(0.9));
 
         /* Acto 2 · la venta gestionada, paso a paso, y los portales cuando toca
            publicar. */
@@ -909,6 +988,48 @@ export default function ComoFuncionaPage({ onGoHome }) {
                       </li>
                     ))}
                   </ul>
+                  {/* En medio, el informe: es lo que hace que el anuncio de un
+                      particular se pueda mirar con criterio. */}
+                  <article className="cf-informe-estado">
+                    <p className="cf-estado-etq">Informe de estado</p>
+                    <div className="cf-estado-cuerpo">
+                      <svg className="cf-coche-esquema" viewBox="0 0 96 190" aria-hidden="true">
+                        <CocheEnPlanta />
+                        {HALLAZGOS.map((h) => (
+                          <g className="cf-marca" key={h.n}>
+                            <circle cx={h.x} cy={h.y} r="8" />
+                            <text x={h.x} y={h.y}>{h.n}</text>
+                          </g>
+                        ))}
+                      </svg>
+                      <ul className="cf-hallazgos">
+                        {HALLAZGOS.map((h) => (
+                          <li className="cf-hallazgo" key={h.n}>
+                            <b>{h.n}</b>
+                            <span>
+                              <strong>{h.tipo}</strong>
+                              <small>{h.pieza}</small>
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <ul className="cf-grados">
+                      {GRADOS.map((g) => (
+                        <li className={`cf-grado${g.sinDatos ? " es-sin-datos" : ""}`} key={g.parte}>
+                          <span>{g.parte}</span>
+                          <b>{g.grado}</b>
+                        </li>
+                      ))}
+                    </ul>
+                    {/* La mecánica no se afirma nunca desde una foto: solo una
+                        verificación física en un taller de la red puede asentar
+                        un grado, y entonces ya no viene de la foto. */}
+                    <p className="cf-limite">
+                      Estado aparente, desde 16 fotos guiadas. La mecánica solo con verificación en taller.
+                    </p>
+                  </article>
+
                   <article className="cf-anuncio">
                     <p className="cf-anuncio-estado">Publicado</p>
                     <div className="cf-anuncio-foto">
@@ -919,7 +1040,9 @@ export default function ComoFuncionaPage({ onGoHome }) {
                     <p className="cf-anuncio-precio">19.900 €</p>
                   </article>
                 </div>
-                <p className="cf-acto-pie">En el Marketplace de PopCar, y los compradores escriben a tu anuncio.</p>
+                <p className="cf-acto-pie">
+                  Comprobamos el estado de cada coche publicado en nuestro Marketplace VO de particulares.
+                </p>
               </div>
 
               {/* Acto 2 · la venta gestionada, con sus cuatro pasos reales. */}

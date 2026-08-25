@@ -161,6 +161,38 @@ test("publicar pide las tres cosas que pide la aplicación", () => {
   ]);
 });
 
+test("el informe de estado se ve, con el coche y sus grados", () => {
+  /* Es lo que hace que el anuncio de un particular se pueda mirar con criterio,
+     así que va entre los requisitos y el anuncio. */
+  const { container } = montar();
+  const informe = container.querySelector("#vender .cf-informe-estado");
+  expect(informe.querySelector(".cf-coche-esquema")).toBeInTheDocument();
+  // Un aspa por hallazgo, y cada aspa con su entrada en la lista.
+  expect(informe.querySelectorAll(".cf-marca")).toHaveLength(3);
+  const piezas = [...informe.querySelectorAll(".cf-hallazgo small")].map((n) => n.textContent);
+  expect(piezas).toEqual([
+    "Puerta delantera derecha", "Paragolpes trasero", "Llanta delantera izquierda",
+  ]);
+});
+
+test("la mecánica nunca se afirma desde una foto", () => {
+  /* Es requisito legal y de producto, y un CHECK en la base: el grado mecánico
+     solo puede asentarlo una verificación física en taller. Si alguien pone
+     aquí una letra, la página promete algo que el sistema no puede sostener. */
+  const { container } = montar();
+  const grados = [...container.querySelectorAll("#vender .cf-grado")].map((n) => ({
+    parte: n.querySelector("span").textContent,
+    grado: n.querySelector("b").textContent,
+  }));
+  expect(grados.map((g) => g.parte)).toEqual([
+    "Carrocería", "Llantas", "Neumáticos", "Cristales", "Interior", "Mecánica",
+  ]);
+  const mecanica = grados.find((g) => g.parte === "Mecánica");
+  expect(mecanica.grado).toBe("Sin datos");
+  expect(container.querySelector("#vender .cf-informe-estado .cf-limite").textContent)
+    .toMatch(/verificación en taller/i);
+});
+
 test("los comparables van juntos y con su rótulo", () => {
   /* Sueltos por la escena eran cuatro precios a los que les faltaba algo: no
      decían de qué eran. El rótulo es lo que los convierte en información. */

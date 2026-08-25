@@ -463,11 +463,13 @@
   color: var(--gris-600);
 }
 
-/* Publicar por tu cuenta: los tres requisitos y el anuncio. */
+/* Publicar por tu cuenta: los requisitos, el informe de estado y el anuncio. El
+   informe va en medio porque es lo que une las dos cosas: es el requisito que
+   más pesa y es lo que acompaña al anuncio publicado. */
 .cf-publicar {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-  gap: 20px;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.15fr) minmax(0, 0.95fr);
+  gap: 18px;
   align-items: center;
 }
 .cf-requisitos { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
@@ -499,6 +501,72 @@
 }
 .cf-requisito strong { display: block; font-size: 13.5px; font-weight: 800; letter-spacing: -0.02em; }
 .cf-requisito small { display: block; font-size: 11px; color: var(--gris-500); }
+
+/* El informe de estado: el coche en planta con los daños encontrados y los
+   grados por parte. */
+.cf-informe-estado {
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 16px;
+  padding: 14px 15px 15px;
+  box-shadow: 0 26px 62px -34px rgba(0, 0, 0, 0.3);
+}
+.cf-estado-etq {
+  margin: 0 0 12px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--acento-texto);
+}
+.cf-estado-cuerpo { display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 14px; align-items: center; }
+.cf-coche-esquema { width: 100%; height: auto; display: block; }
+.cf-coche-cuerpo {
+  fill: none;
+  stroke: var(--gris-400);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.cf-coche-cuerpo > rect:first-child { fill: var(--gris-100); }
+/* El aspa marca la pieza, nunca un punto suelto del dibujo: el análisis sabe
+   qué pieza es, no en qué milímetro. */
+.cf-marca circle { fill: var(--acento); stroke: var(--blanco); stroke-width: 2; }
+.cf-marca text {
+  fill: var(--acento-texto);
+  font-size: 9px;
+  font-weight: 800;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.cf-hallazgos { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.cf-hallazgo { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 8px; align-items: center; }
+.cf-hallazgo > b {
+  width: 16px; height: 16px;
+  display: grid; place-items: center;
+  border-radius: 999px;
+  background: var(--acento);
+  color: var(--acento-texto);
+  font-size: 9px;
+  font-weight: 800;
+}
+.cf-hallazgo strong { display: block; font-size: 11.5px; font-weight: 800; }
+.cf-hallazgo small { display: block; font-size: 10px; color: var(--gris-500); }
+
+.cf-grados {
+  margin: 13px 0 0; padding: 12px 0 0;
+  border-top: 1px solid var(--gris-200);
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px 14px;
+}
+.cf-grado { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.cf-grado > span { font-size: 10.5px; color: var(--gris-600); }
+.cf-grado > b { font-size: 12px; font-weight: 800; letter-spacing: -0.01em; }
+/* La mecánica se queda en gris y sin letra: no hay grado que dar. */
+.cf-grado.es-sin-datos > b { font-size: 10px; font-weight: 700; color: var(--gris-400); }
 
 .cf-anuncio {
   position: relative;
@@ -1102,6 +1170,10 @@
      sí, y siguen leyéndose en orden. */
   .cf-gestionada { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .cf-creacion, .cf-publicar { grid-template-columns: 1fr; gap: 12px; }
+  /* En movil el informe se lee de un vistazo: el esquema y los grados bastan,
+     el detalle de cada hallazgo se queda para la pantalla grande. */
+  .cf-hallazgos { display: none; }
+  .cf-estado-cuerpo { grid-template-columns: 70px minmax(0, 1fr); }
   .cf-paso-idcar small { display: none; }
   /* Tres fichas no se leen en un móvil: se enseñan dos y el rótulo sigue
      diciendo cuántas caben a la vez. */

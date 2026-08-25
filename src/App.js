@@ -6646,7 +6646,20 @@ export default function App() {
       )}
 
       {step === -1 && entryMode === "buscarCoche" && (
-        <BuscarCochePage onGoBack={() => openPublicPage("buyOptions")} uiLanguage={uiLanguage} />
+        <BuscarCochePage
+          uiLanguage={uiLanguage}
+          onGoBack={() => openPublicPage("buyOptions")}
+          onOpenOffer={(offer) => {
+            setVehicleDetailOffer(offer);
+            setVehicleDetailBackTarget("buscarCoche");
+            setEntryMode("vehicleDetail");
+            syncBrowserPath(buildVehicleDetailSharePath(offer), "push");
+            setStep(-1);
+            if (typeof window !== "undefined") {
+              window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
+            }
+          }}
+        />
       )}
 
       {step === -1 && entryMode === "comparador" && (
@@ -6856,6 +6869,10 @@ export default function App() {
           isUserLoggedIn={isUserLoggedIn}
           onRequireLogin={() => openAuthDialog("login")}
           onBack={() => {
+            if (vehicleDetailBackTarget === "buscarCoche") {
+              openPublicPage("buscarCoche", "replace");
+              return;
+            }
             setEntryMode(vehicleDetailBackTarget === "advice" ? null : "decision");
             syncBrowserPath("/", "replace");
             if (typeof window !== "undefined") {

@@ -51,7 +51,7 @@ const TEXTOS = {
     ninguna: "Ninguna oferta cumple estos filtros.",
     ningunaAyuda: "Prueba a quitar alguno.",
     verMas: "Ver más ofertas",
-    verEn: "Ver en", km: "km", cv: "CV", alMes: "/mes",
+    verFicha: "Ver ficha", km: "km", cv: "CV", alMes: "/mes",
     error: "No se han podido cargar las ofertas.",
   },
   en: {
@@ -77,14 +77,17 @@ const TEXTOS = {
     ninguna: "No listing matches these filters.",
     ningunaAyuda: "Try removing one.",
     verMas: "Show more listings",
-    verEn: "View on", km: "km", cv: "HP", alMes: "/mo",
+    verFicha: "View details", km: "km", cv: "HP", alMes: "/mo",
     error: "The listings could not be loaded.",
   },
 };
 
-const num = (n) => (n === null || n === undefined ? "" : Number(n).toLocaleString("es-ES"));
+const num = (n) =>
+  n === null || n === undefined || n === ""
+    ? ""
+    : String(Math.round(Number(n))).replace(/B(?=(d{3})+(?!d))/g, ".");
 
-export default function BuscarCochePage({ onGoBack, uiLanguage = "es" }) {
+export default function BuscarCochePage({ onGoBack, onOpenOffer, uiLanguage = "es" }) {
   const t = uiLanguage === "en" ? TEXTOS.en : TEXTOS.es;
 
   const [filtros, setFiltros] = useState(VACIO);
@@ -295,30 +298,37 @@ export default function BuscarCochePage({ onGoBack, uiLanguage = "es" }) {
 
             <div className="bc-rejilla">
               {ofertas.map((o) => (
-                <article key={o.id} className="bc-oferta">
+                <article
+                  key={o.id}
+                  className="bc-oferta"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onOpenOffer && onOpenOffer(o)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpenOffer && onOpenOffer(o); }
+                  }}
+                >
                   <div className="bc-foto">
-                    {o.imagen
-                      ? <img src={o.imagen} alt="" loading="lazy" />
+                    {o.image
+                      ? <img src={o.image} alt="" loading="lazy" />
                       : <div className="bc-sinfoto" aria-hidden="true" />}
                     {o.portal ? <span className="bc-portal">{o.portal}</span> : null}
                   </div>
                   <div className="bc-cuerpo">
-                    <h3>{o.marca} {o.modelo}</h3>
+                    <h3>{o.brand} {o.model}</h3>
                     {o.version ? <p className="bc-version">{o.version}</p> : null}
                     <p className="bc-datos">
-                      {[o.anio, o.km !== null ? `${num(o.km)} ${t.km}` : "", o.potencia ? `${o.potencia} ${t.cv}` : "", o.combustible, o.cambio]
+                      {[o.year, o.mileage !== null ? `${num(o.mileage)} ${t.km}` : "", o.powerCv ? `${o.powerCv} ${t.cv}` : "", o.fuel, o.transmission]
                         .filter(Boolean).join(" · ")}
                     </p>
                     <div className="bc-pie">
                       <div className="bc-precio">
-                        {o.precio !== null ? <b>{num(o.precio)} €</b> : <b>—</b>}
-                        {o.precioMensual ? <small>{num(o.precioMensual)} €{t.alMes}</small> : null}
+                        {o.price !== null ? <b>{num(o.price)} €</b> : <b>—</b>}
+                        {o.monthlyPrice ? <small>{num(o.monthlyPrice)} €{t.alMes}</small> : null}
                       </div>
-                      {o.url ? (
-                        <a href={o.url} target="_blank" rel="noopener noreferrer">{t.verEn} {o.portal || "el portal"} →</a>
-                      ) : null}
+                      <span className="bc-ver">{t.verFicha} →</span>
                     </div>
-                    {o.provincia ? <p className="bc-provincia">{o.provincia}</p> : null}
+                    {o.province ? <p className="bc-provincia">{o.province}</p> : null}
                   </div>
                 </article>
               ))}

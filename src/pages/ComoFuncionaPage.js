@@ -1,5 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import gsap from "gsap";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import CapituloHistoria from "../components/historia/CapituloHistoria";
 import ProgresoHistoria from "../components/historia/ProgresoHistoria";
@@ -297,6 +296,12 @@ export default function ComoFuncionaPage({ onGoHome }) {
   // pasar por el estado, porque esto se llama en cada fotograma.
   const escena3d = useRef(null);
   const registrarEscena = useCallback((fn) => { escena3d.current = fn; }, []);
+  // Cada capitulo mueve la camara durante su propio tramo. Es la unica forma de
+  // que el encuadre y lo que se lee vayan juntos: los capitulos miden entre tres
+  // y ocho pantallas y un reparto global los desincroniza.
+  const moverCamara = useCallback((indice, avance) => {
+    escena3d.current?.(indice, avance);
+  }, []);
 
   // Estable: si cambiara en cada render, cada capitulo volveria a montar su
   const marcarActivo = useCallback((indice) => {
@@ -318,43 +323,6 @@ export default function ComoFuncionaPage({ onGoHome }) {
       // `gsap.context`. Barrerlos todos desde el padre se llevaría por delante
       // los de cualquier otro componente que use ScrollTrigger el día de mañana.
     };
-  }, []);
-
-  /**
-   * La línea de tiempo maestra.
-   *
-   * Un solo ScrollTrigger sobre todo el recorrido, que traduce el scroll global
-   * en el avance de la escena 3D. Los capítulos siguen teniendo el suyo para su
-   * texto y sus escenas, pero el coche no es de ninguno: es de la página, y por
-   * eso su avance se mide de punta a punta.
-   */
-  useLayoutEffect(() => {
-    const el = contenedor.current;
-    if (!el) return undefined;
-
-    const ctx = gsap.context(() => {
-      const mm = gsap.matchMedia();
-      mm.add(
-        { anima: "(prefers-reduced-motion: no-preference)" },
-        (contexto) => {
-          if (!contexto.conditions.anima) {
-            // Sin movimiento, el coche se queda montado y de tres cuartos: el
-            // estado en el que mejor se entiende de un solo vistazo.
-            escena3d.current?.(0.12);
-            return;
-          }
-          ScrollTrigger.create({
-            trigger: el,
-            start: "top top",
-            end: "bottom bottom",
-            scrub: 0.4,
-            onUpdate: (self) => { escena3d.current?.(self.progress); },
-          });
-        }
-      );
-    }, contenedor);
-
-    return () => ctx.revert();
   }, []);
 
   const irACapitulo = useCallback((indice) => {
@@ -389,6 +357,7 @@ export default function ComoFuncionaPage({ onGoHome }) {
           capitulo={capitulo}
           indice={i}
           onActivo={marcarActivo}
+          onAvance={moverCamara}
         >
           {(escena, indiceEscena, registrar) => (escena.propia ? (
             <EscenaMercado registrar={registrar} indice={indiceEscena} />

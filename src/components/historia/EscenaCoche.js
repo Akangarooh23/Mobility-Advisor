@@ -146,12 +146,17 @@ export default function EscenaCoche({ registrarEscena }) {
       camara.updateProjectionMatrix();
     };
 
-    /** Coloca cámara, coche y piezas para un avance global de 0 a 1. */
-    const aplicar = (p) => {
-      const total = ENCUADRES.length;
-      const enCaps = acotar(p) * total;
-      const i = Math.min(total - 1, Math.floor(enCaps));
-      const t = suave(enCaps - i);
+    /**
+     * Coloca camara, coche y piezas para un capitulo y su avance dentro de el.
+     *
+     * Recibe el capitulo desde fuera y no lo deduce de un porcentaje global a
+     * proposito: los capitulos miden entre tres y ocho pantallas, y repartir el
+     * scroll en ocho partes iguales dejaba la camara hasta catorce puntos por
+     * delante de lo que se estaba leyendo.
+     */
+    const aplicar = (indice, avance) => {
+      const i = Math.max(0, Math.min(ENCUADRES.length - 1, indice));
+      const t = suave(acotar(avance));
       const cuadro = ENCUADRES[i];
 
       camara.position.set(
@@ -168,7 +173,7 @@ export default function EscenaCoche({ registrarEscena }) {
 
       if (cargado) {
         // Capítulo 01: las piezas se encienden por grupos, una tanda por filtro.
-        const montaje = i === 0 ? enCaps - i : 1;
+        const montaje = i === 0 ? acotar(avance) : 1;
         GRUPOS_MONTAJE.forEach((grupo, g) => {
           const puesto = montaje * GRUPOS_MONTAJE.length > g;
           grupo.forEach((material) => {
@@ -188,7 +193,7 @@ export default function EscenaCoche({ registrarEscena }) {
 
     // Se declara antes del cargador: la devolucion de llamada lo usa, y tenerlo
     // detras solo funciona por casualidad de que la carga sea asincrona.
-    const ultimo = { current: 0 };
+    const ultimo = { capitulo: 0, avance: 0 };
 
     api.current = { aplicar };
 
@@ -246,18 +251,22 @@ export default function EscenaCoche({ registrarEscena }) {
 
         coche.add(orientado);
         cargado = true;
-        aplicar(ultimo.current);
+        aplicar(ultimo.capitulo, ultimo.avance);
       },
       undefined,
       () => { /* sin modelo, la página sigue: se queda sin coche */ }
     );
 
-    const conMemoria = (p) => { ultimo.current = p; aplicar(p); };
+    const conMemoria = (indice, avance) => {
+      ultimo.capitulo = indice;
+      ultimo.avance = avance;
+      aplicar(indice, avance);
+    };
     registrarEscena(conMemoria);
 
-    const alRedimensionar = () => { medir(); aplicar(ultimo.current); };
+    const alRedimensionar = () => { medir(); aplicar(ultimo.capitulo, ultimo.avance); };
     medir();
-    aplicar(0);
+    aplicar(0, 0);
     window.addEventListener("resize", alRedimensionar);
 
     return () => {

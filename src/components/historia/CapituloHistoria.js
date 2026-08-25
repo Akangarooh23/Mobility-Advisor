@@ -27,6 +27,7 @@ export default function CapituloHistoria({
   capitulo,
   indice,
   onActivo,
+  onAvance,
   children,
 }) {
   const seccion = useRef(null);
@@ -106,6 +107,12 @@ export default function CapituloHistoria({
                 // cambia en cada fotograma y no merece un repintado del arbol.
                 if (riel) riel.style.transform = `scaleX(${self.progress})`;
 
+                // La camara del coche va atada al capitulo, no a un reparto
+                // global: los capitulos miden entre 3 y 8 pantallas, y repartir
+                // el scroll en ocho partes iguales dejaba el encuadre hasta 14
+                // puntos por delante de lo que se estaba leyendo.
+                onAvance?.(indice, self.progress);
+
                 // A cada escena se le pasa su propio avance, de 0 a 1 dentro de
                 // su tramo. Asi la del mercado sabe por donde va su embudo sin
                 // enterarse de que hay un capitulo alrededor.
@@ -168,7 +175,7 @@ export default function CapituloHistoria({
     }, seccion);
 
     return () => ctx.revert();
-  }, [indice, onActivo, pesos, pantallas]);
+  }, [indice, onActivo, onAvance, pesos, pantallas]);
 
   return (
     <section

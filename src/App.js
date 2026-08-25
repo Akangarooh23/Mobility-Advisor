@@ -4673,9 +4673,10 @@ export default function App() {
                 onClick={() => handleAuthAction("register")}
                 style={{
                   width: "100%",
-                  background: "linear-gradient(135deg,#10b981,#059669)",
+                  // Sobre el amarillo el texto va en negro: en blanco no se lee.
+                  background: "linear-gradient(135deg,var(--acento),var(--acento-oscuro))",
                   border: "none",
-                  color: "white",
+                  color: "var(--gris-900)",
                   padding: "9px 10px",
                   borderRadius: 10,
                   cursor: "pointer",
@@ -4705,7 +4706,7 @@ export default function App() {
             >
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 12 }}>
                 <div>
-                  <div style={{ fontSize: 11, color: "#6ee7b7", letterSpacing: "0.4px" }}>
+                  <div style={{ fontSize: 11, color: "var(--acento)", letterSpacing: "0.4px" }}>
                     PANEL DE USUARIO
                   </div>
                   <div style={{ fontSize: 16, fontWeight: 700, color: "var(--gris-50)" }}>
@@ -5113,7 +5114,7 @@ export default function App() {
           >
             <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start", marginBottom: 12 }}>
               <div>
-                <div style={{ fontSize: 11, color: authDialogMode === "register" ? "#6ee7b7" : "var(--gris-300)", letterSpacing: "0.6px" }}>
+                <div style={{ fontSize: 11, color: authDialogMode === "register" ? "var(--acento)" : "var(--gris-300)", letterSpacing: "0.6px" }}>
                   {authRecoveryMode === "request"
                     ? "RECUPERACION"
                     : authRecoveryMode === "confirm"
@@ -5137,7 +5138,7 @@ export default function App() {
                     : "Te enviaremos un código temporal para actualizar la contraseña de forma segura."}
                 </div>
                 {authRequired && authRecoveryMode === "none" && (
-                  <div style={{ fontSize: 12, color: "#fbbf24", fontWeight: 600, marginTop: 6, padding: "6px 10px", background: "rgba(251,191,36,0.08)", borderRadius: 8, border: "1px solid rgba(251,191,36,0.2)" }}>
+                  <div style={{ fontSize: 12, color: "var(--acento)", fontWeight: 600, marginTop: 6, padding: "6px 10px", background: "rgba(255,196,0,0.08)", borderRadius: 8, border: "1px solid rgba(255,196,0,0.2)" }}>
                     Necesitas iniciar sesión para acceder al marketplace.
                   </div>
                 )}
@@ -5169,9 +5170,9 @@ export default function App() {
                       onClick={() => { setClientType("individual"); setAuthForm((p) => ({ ...p, company_name: "" })); }}
                       style={{
                         padding: "9px 10px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer",
-                        border: clientType === "individual" ? "1.5px solid var(--marca-claro)" : "1px solid rgba(255,255,255,0.12)",
+                        border: clientType === "individual" ? "1.5px solid var(--acento)" : "1px solid rgba(255,255,255,0.12)",
                         background: clientType === "individual" ? "rgba(255,196,0,0.12)" : "var(--gris-900)",
-                        color: clientType === "individual" ? "var(--gris-300)" : "var(--gris-500)",
+                        color: clientType === "individual" ? "var(--acento)" : "var(--gris-500)",
                       }}
                     >
                       👤 Particular
@@ -5181,9 +5182,9 @@ export default function App() {
                       onClick={() => { setClientType("business"); setAuthForm((p) => ({ ...p, name: "", apellidos: "" })); }}
                       style={{
                         padding: "9px 10px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer",
-                        border: clientType === "business" ? "1.5px solid #f59e0b" : "1px solid rgba(255,255,255,0.12)",
-                        background: clientType === "business" ? "rgba(245,158,11,0.10)" : "var(--gris-900)",
-                        color: clientType === "business" ? "#fbbf24" : "var(--gris-500)",
+                        border: clientType === "business" ? "1.5px solid var(--acento)" : "1px solid rgba(255,255,255,0.12)",
+                        background: clientType === "business" ? "rgba(255,196,0,0.12)" : "var(--gris-900)",
+                        color: clientType === "business" ? "var(--acento)" : "var(--gris-500)",
                       }}
                     >
                       🏢 Empresa
@@ -5217,7 +5218,7 @@ export default function App() {
                       </label>
                     </div>
                   ) : (
-                    <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#fde68a" }}>
+                    <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--acento-tenue)" }}>
                       Razón social
                       <input
                         type="text"
@@ -5225,7 +5226,7 @@ export default function App() {
                         value={authForm.company_name}
                         onChange={(event) => setAuthForm((prev) => ({ ...prev, company_name: event.target.value }))}
                         placeholder="Nombre de tu empresa"
-                        style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(245,158,11,0.35)", borderRadius: 10, padding: "11px 12px" }}
+                        style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
                       />
                     </label>
                   )}
@@ -5501,10 +5502,14 @@ export default function App() {
                       authRecoveryMode !== "none"
                         ? "linear-gradient(135deg,var(--gris-700),var(--gris-900))"
                         : authDialogMode === "register"
-                        ? "linear-gradient(135deg,#10b981,#059669)"
+                        ? "linear-gradient(135deg,var(--acento),var(--acento-oscuro))"
                         : "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
                     border: "none",
-                    color: "var(--blanco)",
+                    // Crear cuenta va sobre amarillo, y ahi el texto tiene que
+                    // ser negro; los otros dos fondos son oscuros y piden blanco.
+                    color: authRecoveryMode === "none" && authDialogMode === "register"
+                      ? "var(--gris-900)"
+                      : "var(--blanco)",
                     borderRadius: 10,
                     padding: "10px 14px",
                     cursor: authLoading ? "progress" : "pointer",

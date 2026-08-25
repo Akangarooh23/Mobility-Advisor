@@ -890,23 +890,6 @@ export default function ServiceMaintenancePage({
       <section style={{ ...cardStyle, overflow: "hidden", marginBottom: 12 }}>
         <div style={{ height: 4, background: "#22c55e" }} />
         <div style={{ padding: "26px 28px" }}>
-          <div
-            style={{
-              display: "inline-flex",
-              border: "1px solid rgba(34,197,94,0.3)",
-              color: "#16a34a",
-              background: "rgba(34,197,94,0.08)",
-              borderRadius: 20,
-              padding: "4px 11px",
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              marginBottom: 14,
-            }}
-          >
-            {t("service.maintenanceBadge")}
-          </div>
           <h2 style={{ margin: "0 0 8px", fontSize: "clamp(30px,3.1vw,40px)", letterSpacing: "-0.03em", lineHeight: 1.15, color: "#111" }}>
             {t("service.maintenanceTitle")}
           </h2>

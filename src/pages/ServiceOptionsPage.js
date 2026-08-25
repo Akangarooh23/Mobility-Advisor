@@ -17,7 +17,6 @@ export default function ServiceOptionsPage({
   const serviceCards = [
     {
       id: "autogestor",
-      badge: t("service.autogestorBadge"),
       title: t("service.autogestorTitle"),
       description: t("service.autogestorDescription"),
       onClick: onSelectAutogestor,
@@ -30,7 +29,6 @@ export default function ServiceOptionsPage({
     },
     {
       id: "mantenimientos",
-      badge: t("service.maintenanceBadge"),
       title: t("service.maintenanceTitle"),
       description: t("service.maintenanceDescription"),
       onClick: onSelectMaintenance,
@@ -42,7 +40,6 @@ export default function ServiceOptionsPage({
     },
     {
       id: "cita",
-      badge: t("service.appointmentBadge"),
       title: t("service.appointmentTitle"),
       description: t("service.appointmentDescription"),
       onClick: onSelectAppointment,
@@ -55,7 +52,6 @@ export default function ServiceOptionsPage({
     },
     {
       id: "insurance",
-      badge: t("service.insuranceBadge"),
       title: t("service.insuranceTitle"),
       description: t("service.insuranceDescription"),
       onClick: onSelectInsurance,
@@ -140,23 +136,6 @@ export default function ServiceOptionsPage({
           </svg>
         </div>
         <div style={{ flex: 1, minWidth: 200 }}>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              padding: "2px 10px",
-              borderRadius: 999,
-              background: "rgba(255,196,0,0.12)",
-              color: "var(--marca-oscuro)",
-              fontSize: 10,
-              fontWeight: 800,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              marginBottom: 8,
-            }}
-          >
-            {serviceCards[0].badge}
-          </div>
           <div style={{ fontWeight: 800, fontSize: "clamp(22px,3vw,30px)", lineHeight: 1.15, color: titleColor, marginBottom: 6 }}>
             {serviceCards[0].title}
           </div>
@@ -227,22 +206,6 @@ export default function ServiceOptionsPage({
               }}
             >
               {card.icon}
-            </div>
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                padding: "2px 10px",
-                borderRadius: 999,
-                background: "rgba(255,196,0,0.1)",
-                color: "var(--marca-oscuro)",
-                fontSize: 10,
-                fontWeight: 800,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-              }}
-            >
-              {card.badge}
             </div>
             <div style={{ fontWeight: 800, fontSize: "clamp(16px,2vw,22px)", lineHeight: 1.2, color: titleColor }}>
               {card.title}

@@ -3,6 +3,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import CapituloHistoria from "../components/historia/CapituloHistoria";
 import ProgresoHistoria from "../components/historia/ProgresoHistoria";
 import IdCarHilo from "../components/historia/IdCarHilo";
+import EscenaMercado from "../components/historia/EscenaMercado";
 import "./ComoFuncionaPage.css";
 
 /**
@@ -34,10 +35,12 @@ const CAPITULOS = [
     escenas: [
       {
         id: "busca-todo",
+        pantallas: 5,
+        propia: true,
         paso: "Paso 01",
-        titulo: "Empiezas con todo",
+        titulo: "Encuentra tu próximo coche",
         texto:
-          "569.691 ofertas activas de España, de ocho portales. Sin contestar nada: entras y están todas.",
+          "Empiezas con todo el mercado. Cada filtro apaga la parte que no es para ti.",
         componente: "BuscarCochePage · rejilla de ofertas",
         datos: ["569.691 ofertas", "137 marcas", "8 portales"],
       },
@@ -343,7 +346,9 @@ export default function ComoFuncionaPage({ onGoHome }) {
           indice={i}
           onActivo={marcarActivo}
         >
-          {(escena) => (
+          {(escena, indiceEscena, registrar) => (escena.propia ? (
+            <EscenaMercado registrar={registrar} indice={indiceEscena} />
+          ) : (
             /* Hueco de la escena. Lleva el nombre del componente real que va a
                ocuparlo y los datos que enseñara, para que se vea que esta
                pendiente en vez de parecer una maqueta terminada. */
@@ -353,7 +358,7 @@ export default function ComoFuncionaPage({ onGoHome }) {
                 {escena.datos.map((dato) => <li key={dato}>{dato}</li>)}
               </ul>
             </div>
-          )}
+          ))}
         </CapituloHistoria>
       ))}
 

@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from "react";
+import React, { useLayoutEffect, useMemo, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -31,8 +31,24 @@ export default function CapituloHistoria({
 }) {
   const seccion = useRef(null);
   const escenas = useRef([]);
+  // Cada escena puede pedir que le avisen de su propio avance. Se guarda aquí y
+  // se llama desde `onUpdate`, nunca desde el estado de React: esto cambia en
+  // cada fotograma y repintar el arbol a esa velocidad no lo aguanta nadie.
+  const suscritas = useRef({});
 
-  const numEscenas = capitulo.escenas.length;
+  // Una escena puede pedir más recorrido que otra. La del mercado necesita
+  // varias pantallas para que el embudo se lea; una que solo enseña una ficha,
+  // con una basta. Los pesos reparten la línea de tiempo en proporción.
+  //
+  // Van memorizados porque entran en las dependencias del efecto: recreados en
+  // cada render, cada render desmontaria y volveria a montar el ScrollTrigger.
+  const pesos = useMemo(
+    () => capitulo.escenas.map((e) => e.pantallas || 1),
+    [capitulo.escenas]
+  );
+  const pantallas = useMemo(() => pesos.reduce((a, b) => a + b, 0), [pesos]);
+
+  const registrar = useRef((i, fn) => { suscritas.current[i] = fn; }).current;
 
   useLayoutEffect(() => {
     const el = seccion.current;
@@ -56,6 +72,9 @@ export default function CapituloHistoria({
           if (!anima) {
             gsap.set(partes, { autoAlpha: 1, y: 0, clearProps: "transform" });
             el.dataset.quieto = "si";
+            // Las escenas con animación propia se pintan en su estado final:
+            // es el que cuenta la historia entera de un vistazo.
+            Object.values(suscritas.current).forEach((fn) => fn && fn(1));
             return;
           }
           delete el.dataset.quieto;
@@ -65,6 +84,16 @@ export default function CapituloHistoria({
           gsap.set(partes[0], { autoAlpha: 1, y: 0 });
           if (riel) gsap.set(riel, { scaleX: 0 });
 
+          // Los cortes se calculan antes de crear la línea de tiempo:
+          // ScrollTrigger puede llamar a `onUpdate` nada más nacer, y leerlos
+          // después seria un error en tiempo de ejecución.
+          let acumulado = 0;
+          const cortes = pesos.map((peso) => {
+            const inicio = acumulado / pantallas;
+            acumulado += peso;
+            return { inicio, fin: acumulado / pantallas };
+          });
+
           const linea = gsap.timeline({
             scrollTrigger: {
               trigger: el,
@@ -73,22 +102,30 @@ export default function CapituloHistoria({
               scrub: 0.5,
               onToggle: (self) => { if (self.isActive) onActivo(indice); },
               onUpdate: (self) => {
-                // El riel se escribe en el DOM, no en el estado de React: cambia
-                // en cada fotograma y no merece un repintado del arbol.
+                // Todo esto se escribe en el DOM, no en el estado de React:
+                // cambia en cada fotograma y no merece un repintado del arbol.
                 if (riel) riel.style.transform = `scaleX(${self.progress})`;
+
+                // A cada escena se le pasa su propio avance, de 0 a 1 dentro de
+                // su tramo. Asi la del mercado sabe por donde va su embudo sin
+                // enterarse de que hay un capitulo alrededor.
+                for (let i = 0; i < cortes.length; i += 1) {
+                  const fn = suscritas.current[i];
+                  if (!fn) continue;
+                  const { inicio, fin } = cortes[i];
+                  const local = (self.progress - inicio) / (fin - inicio);
+                  fn(local < 0 ? 0 : local > 1 ? 1 : local);
+                }
               },
             },
           });
 
-          // Cada escena ocupa una fracción igual de la línea de tiempo. El relevo
-          // entre dos escenas se solapa un poco para que no haya un hueco en
-          // blanco entre ellas.
-          const paso = 1 / numEscenas;
-          const relevo = paso * 0.42;
-
+          // El relevo entre dos escenas se solapa un poco para que no quede un
+          // hueco en blanco entre ellas.
           partes.forEach((parte, i) => {
             if (i === 0) return;
-            const inicio = i * paso - relevo / 2;
+            const relevo = Math.min(0.12, (cortes[i].fin - cortes[i].inicio) * 0.4);
+            const inicio = cortes[i].inicio - relevo / 2;
             linea.to(partes[i - 1], { autoAlpha: 0, y: -28, ease: "none", duration: relevo }, inicio);
             linea.fromTo(
               parte,
@@ -98,21 +135,21 @@ export default function CapituloHistoria({
             );
           });
 
-          // Un hueco al final para que la última escena se quede a la vista
-          // mientras se recorre el ultimo tramo, en vez de irse antes de tiempo.
-          linea.to({}, { duration: paso * 0.5 });
+          // La línea llega hasta 1 aunque el último relevo termine antes, para
+          // que el avance que recibe cada escena cubra su tramo entero.
+          linea.to({}, { duration: 0.001 }, 1);
         }
       );
     }, seccion);
 
     return () => ctx.revert();
-  }, [indice, numEscenas, onActivo]);
+  }, [indice, onActivo, pesos, pantallas]);
 
   return (
     <section
       ref={seccion}
       className="cf-capitulo"
-      style={{ "--escenas": numEscenas }}
+      style={{ "--escenas": pantallas }}
       aria-labelledby={`cap-${capitulo.id}`}
     >
       <div className="cf-capitulo-fijo">
@@ -140,7 +177,9 @@ export default function CapituloHistoria({
                 <h3 className="cf-escena-titulo">{escena.titulo}</h3>
                 <p className="cf-escena-texto">{escena.texto}</p>
                 <div className="cf-escena-visual">
-                  {children ? children(escena, i) : null}
+                  {/* La escena recibe `registrar` para pedir que le avisen de
+                      su propio avance, si es de las que se anima sola. */}
+                  {children ? children(escena, i, registrar) : null}
                 </div>
               </div>
             ))}

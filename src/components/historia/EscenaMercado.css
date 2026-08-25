@@ -1,0 +1,172 @@
+/**
+ * Escena 01 · el mercado reduciéndose.
+ *
+ * Dos capas en el mismo sitio: el mercado —cifra, campo de puntos y filtros— y
+ * los resultados. La segunda entra cuando la primera se retira, y las dos
+ * ocupan la misma caja para que el relevo no mueva nada de sitio.
+ *
+ * La cifra manda: es lo único que crece hasta donde deja el ancho. Todo lo
+ * demás se mantiene callado a su alrededor.
+ */
+
+.em-root {
+  position: relative;
+  min-height: clamp(300px, 48svh, 440px);
+}
+
+.em-mercado,
+.em-resultados {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  will-change: opacity, transform;
+}
+.em-mercado { gap: 18px; }
+.em-resultados { opacity: 0; gap: 12px; }
+
+/* ── La cifra ─────────────────────────────────────────────────────────────── */
+.em-cifra {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.em-cifra strong {
+  font-size: clamp(46px, 8.4vw, 104px);
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  /* Sin esto la cifra baila de ancho al cambiar de dígitos, y con un número que
+     no para de moverse eso se nota muchísimo. */
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+.em-cifra span {
+  font-size: clamp(12px, 1.3vw, 14px);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--gris-500);
+}
+
+/* ── El campo de puntos ───────────────────────────────────────────────────── */
+.em-lienzo {
+  display: block;
+  width: 100%;
+  height: clamp(88px, 15svh, 132px);
+}
+
+/* ── Los filtros ──────────────────────────────────────────────────────────── */
+.em-filtros {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.em-filtro {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  border: 1px solid var(--gris-200);
+  border-radius: 999px;
+  padding: 5px 11px;
+  background: var(--blanco);
+  /* Apagado: está ahí, pero todavía no cuenta. */
+  opacity: 0.42;
+  transition: opacity 0.35s ease, border-color 0.35s ease, background 0.35s ease;
+}
+.em-filtro.es-puesto {
+  opacity: 1;
+  border-color: var(--acento);
+  background: var(--acento-tenue);
+}
+.em-filtro-nombre {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gris-500);
+}
+.em-filtro.es-puesto .em-filtro-nombre { color: var(--acento-texto); }
+.em-filtro-valor {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--gris-900);
+}
+
+/* ── Los resultados ───────────────────────────────────────────────────────── */
+.em-resultados-cab {
+  margin: 0;
+  font-size: 14px;
+  color: var(--gris-600);
+}
+.em-resultados-cab strong {
+  font-size: clamp(26px, 3.4vw, 38px);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  color: var(--gris-900);
+  margin-right: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.em-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+.em-oferta {
+  border: 1px solid var(--gris-200);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--blanco);
+  display: flex;
+  flex-direction: column;
+}
+.em-oferta-foto {
+  aspect-ratio: 4 / 3;
+  background: var(--gris-100);
+}
+.em-oferta-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.em-oferta-cuerpo { padding: 9px 10px 11px; display: grid; gap: 2px; }
+.em-oferta-cuerpo h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+.em-oferta-version {
+  margin: 0;
+  font-size: 10.5px;
+  color: var(--gris-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.em-oferta-datos { margin: 0; font-size: 10.5px; color: var(--gris-600); }
+.em-oferta-precio {
+  margin: 3px 0 0;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.em-resultados-pie {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--gris-400);
+}
+
+/* ── Pantallas pequeñas ───────────────────────────────────────────────────── */
+@media (max-width: 760px) {
+  .em-lienzo { height: clamp(64px, 11svh, 96px); }
+  /* Con dos tarjetas basta para entender que son resultados reales; cuatro en
+     una pantalla de móvil no se leen. */
+  .em-rejilla { grid-template-columns: repeat(2, 1fr); }
+  .em-oferta:nth-child(n + 3) { display: none; }
+  .em-filtro:nth-child(n + 6) { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .em-filtro { transition: none; }
+}

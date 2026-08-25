@@ -293,6 +293,10 @@ export default function EscenaMercado({ registrar, indice }) {
         // Las fichas entran cuando los puntos ya han llegado a su sitio.
         const entrada = remate < 0.55 ? 0 : (remate - 0.55) / 0.45;
         bloqueResultados.current.style.opacity = String(entrada);
+        // Las fotos entran algo mas grandes y se asientan. Aqui la expansion no
+        // es un efecto: es el instante en que los puntos que sobrevivieron al
+        // filtrado se convierten en coches con cara, y conviene que se note.
+        bloqueResultados.current.style.setProperty("--zoom", String(1 + (1 - entrada) * 0.16));
         bloqueResultados.current.style.pointerEvents = entrada > 0.6 ? "auto" : "none";
       }
     };

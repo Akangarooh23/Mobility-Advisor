@@ -120,6 +120,31 @@ export default function CapituloHistoria({
             },
           });
 
+          /* Profundidad. La cabecera se desplaza mientras el lienzo casi no se
+             mueve, así que el texto pasa de largo y lo que se enseña se queda.
+             No es adorno: es la jerarquía de la página puesta en movimiento
+             —manda lo que se ve, el texto solo acompaña—, y de paso el capítulo
+             deja de sentirse como una diapositiva quieta.
+
+             Los números son cortos a propósito. Un parallax que se nota es un
+             parallax mal puesto. */
+          const cabecera = el.querySelector(".cf-capitulo-cab");
+          const lienzoEl = el.querySelector(".cf-capitulo-lienzo");
+          if (cabecera) linea.fromTo(cabecera, { y: 0 }, { y: -46, ease: "none" }, 0);
+          if (lienzoEl) linea.fromTo(lienzoEl, { y: 0 }, { y: -12, ease: "none" }, 0);
+
+          /* Entrada y salida del capítulo. Un acercamiento mínimo al empezar y
+             una retirada al acabar, para que los capítulos se sucedan como
+             planos y no como cortes secos. Se hace con escala y opacidad y no
+             con desenfoque: un `filter: blur` a pantalla completa cuesta caro en
+             móvil y aquí no aporta nada que no dé la escala. */
+          const bloque = el.querySelector(".cf-capitulo-ancho");
+          if (bloque) {
+            linea
+              .fromTo(bloque, { scale: 0.986, opacity: 0.55 }, { scale: 1, opacity: 1, ease: "none", duration: 0.09 }, 0)
+              .to(bloque, { scale: 0.986, opacity: 0.55, ease: "none", duration: 0.09 }, 0.91);
+          }
+
           // El relevo entre dos escenas se solapa un poco para que no quede un
           // hueco en blanco entre ellas.
           partes.forEach((parte, i) => {

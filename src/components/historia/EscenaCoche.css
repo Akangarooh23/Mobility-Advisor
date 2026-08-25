@@ -1,0 +1,22 @@
+/**
+ * El lienzo del coche.
+ *
+ * Fijo, a pantalla completa y detrás de todo. Va fijo y no dentro de un capítulo
+ * porque el coche tiene que sobrevivir al paso de un capítulo al siguiente: si
+ * viviera dentro de uno, cada cambio sería un relevo.
+ *
+ * No recibe pulsaciones: todo lo que se toca —los capítulos, el progreso, el
+ * IdCar— está por encima.
+ */
+.cf-escena3d {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.cf-escena3d canvas { display: block; width: 100%; height: 100%; }
+
+/* El contenido del recorrido va por delante del coche. */
+.cf-portada,
+.cf-capitulo,
+.cf-cierre { position: relative; z-index: 1; }

@@ -1,9 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import CapituloHistoria from "../components/historia/CapituloHistoria";
 import ProgresoHistoria from "../components/historia/ProgresoHistoria";
 import IdCarHilo from "../components/historia/IdCarHilo";
 import EscenaMercado from "../components/historia/EscenaMercado";
+import EscenaCoche from "../components/historia/EscenaCoche";
 import "./ComoFuncionaPage.css";
 
 /**
@@ -291,6 +293,10 @@ export default function ComoFuncionaPage({ onGoHome }) {
   const [activo, setActivo] = useState(0);
   const [hiloVisible, setHiloVisible] = useState(false);
   const contenedor = useRef(null);
+  // La escena 3D se suscribe aqui. Igual que las escenas: por referencia y sin
+  // pasar por el estado, porque esto se llama en cada fotograma.
+  const escena3d = useRef(null);
+  const registrarEscena = useCallback((fn) => { escena3d.current = fn; }, []);
 
   // Estable: si cambiara en cada render, cada capitulo volveria a montar su
   const marcarActivo = useCallback((indice) => {
@@ -314,6 +320,43 @@ export default function ComoFuncionaPage({ onGoHome }) {
     };
   }, []);
 
+  /**
+   * La línea de tiempo maestra.
+   *
+   * Un solo ScrollTrigger sobre todo el recorrido, que traduce el scroll global
+   * en el avance de la escena 3D. Los capítulos siguen teniendo el suyo para su
+   * texto y sus escenas, pero el coche no es de ninguno: es de la página, y por
+   * eso su avance se mide de punta a punta.
+   */
+  useLayoutEffect(() => {
+    const el = contenedor.current;
+    if (!el) return undefined;
+
+    const ctx = gsap.context(() => {
+      const mm = gsap.matchMedia();
+      mm.add(
+        { anima: "(prefers-reduced-motion: no-preference)" },
+        (contexto) => {
+          if (!contexto.conditions.anima) {
+            // Sin movimiento, el coche se queda montado y de tres cuartos: el
+            // estado en el que mejor se entiende de un solo vistazo.
+            escena3d.current?.(0.12);
+            return;
+          }
+          ScrollTrigger.create({
+            trigger: el,
+            start: "top top",
+            end: "bottom bottom",
+            scrub: 0.4,
+            onUpdate: (self) => { escena3d.current?.(self.progress); },
+          });
+        }
+      );
+    }, contenedor);
+
+    return () => ctx.revert();
+  }, []);
+
   const irACapitulo = useCallback((indice) => {
     const seccion = contenedor.current?.querySelectorAll(".cf-capitulo")[indice];
     if (!seccion) return;
@@ -323,6 +366,7 @@ export default function ComoFuncionaPage({ onGoHome }) {
 
   return (
     <div className="cf-root" ref={contenedor}>
+      <EscenaCoche registrarEscena={registrarEscena} />
       <ProgresoHistoria capitulos={CAPITULOS} activo={activo} onIr={irACapitulo} />
       <IdCarHilo capitulo={activo} visible={hiloVisible} />
 

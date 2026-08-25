@@ -5105,8 +5105,8 @@ export default function App() {
               width: "min(460px, 100%)",
               maxHeight: "92vh",
               overflowY: "auto",
-              background: "rgba(17,17,17,0.98)",
-              border: "1px solid rgba(255,196,0,0.18)",
+              background: "var(--blanco)",
+              border: "1px solid var(--gris-200)",
               borderRadius: 18,
               boxShadow: "0 24px 60px rgba(5,5,5,0.42)",
               padding: 18,
@@ -5114,7 +5114,7 @@ export default function App() {
           >
             <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start", marginBottom: 12 }}>
               <div>
-                <div style={{ fontSize: 11, color: authDialogMode === "register" ? "var(--acento)" : "var(--gris-300)", letterSpacing: "0.6px" }}>
+                <div style={{ fontSize: 11, color: authDialogMode === "register" ? "var(--acento-texto)" : "var(--gris-600)", letterSpacing: "0.6px" }}>
                   {authRecoveryMode === "request"
                     ? "RECUPERACION"
                     : authRecoveryMode === "confirm"
@@ -5123,7 +5123,7 @@ export default function App() {
                     ? "REGISTRO"
                     : "ACCESO"}
                 </div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: "var(--gris-50)" }}>
+                <div style={{ fontSize: 22, fontWeight: 800, color: "var(--gris-900)" }}>
                   {authRecoveryMode === "request"
                     ? "Recuperar contraseña"
                     : authRecoveryMode === "confirm"
@@ -5132,13 +5132,13 @@ export default function App() {
                     ? "Crear tu cuenta"
                     : "Iniciar sesión"}
                 </div>
-                <div style={{ fontSize: 12, color: "var(--gris-400)", marginTop: 4 }}>
+                <div style={{ fontSize: 12, color: "var(--gris-500)", marginTop: 4 }}>
                   {authRecoveryMode === "none"
                     ? "Tu email de acceso será el destinatario por defecto de los avisos y resúmenes."
                     : "Te enviaremos un código temporal para actualizar la contraseña de forma segura."}
                 </div>
                 {authRequired && authRecoveryMode === "none" && (
-                  <div style={{ fontSize: 12, color: "var(--acento)", fontWeight: 600, marginTop: 6, padding: "6px 10px", background: "rgba(255,196,0,0.08)", borderRadius: 8, border: "1px solid rgba(255,196,0,0.2)" }}>
+                  <div style={{ fontSize: 12, color: "var(--acento-texto)", fontWeight: 600, marginTop: 6, padding: "6px 10px", background: "rgba(255,196,0,0.08)", borderRadius: 8, border: "1px solid rgba(255,196,0,0.2)" }}>
                     Necesitas iniciar sesión para acceder al marketplace.
                   </div>
                 )}
@@ -5150,7 +5150,7 @@ export default function App() {
                   style={{
                     background: "transparent",
                     border: "none",
-                    color: "var(--gris-300)",
+                    color: "var(--gris-600)",
                     fontSize: 20,
                     cursor: "pointer",
                   }}
@@ -5170,9 +5170,9 @@ export default function App() {
                       onClick={() => { setClientType("individual"); setAuthForm((p) => ({ ...p, company_name: "" })); }}
                       style={{
                         padding: "9px 10px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer",
-                        border: clientType === "individual" ? "1.5px solid var(--acento)" : "1px solid rgba(255,255,255,0.12)",
-                        background: clientType === "individual" ? "rgba(255,196,0,0.12)" : "var(--gris-900)",
-                        color: clientType === "individual" ? "var(--acento)" : "var(--gris-500)",
+                        border: clientType === "individual" ? "1.5px solid var(--acento)" : "1px solid var(--gris-300)",
+                        background: clientType === "individual" ? "rgba(255,196,0,0.12)" : "var(--blanco)",
+                        color: clientType === "individual" ? "var(--acento-texto)" : "var(--gris-500)",
                       }}
                     >
                       👤 Particular
@@ -5182,9 +5182,9 @@ export default function App() {
                       onClick={() => { setClientType("business"); setAuthForm((p) => ({ ...p, name: "", apellidos: "" })); }}
                       style={{
                         padding: "9px 10px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer",
-                        border: clientType === "business" ? "1.5px solid var(--acento)" : "1px solid rgba(255,255,255,0.12)",
-                        background: clientType === "business" ? "rgba(255,196,0,0.12)" : "var(--gris-900)",
-                        color: clientType === "business" ? "var(--acento)" : "var(--gris-500)",
+                        border: clientType === "business" ? "1.5px solid var(--acento)" : "1px solid var(--gris-300)",
+                        background: clientType === "business" ? "rgba(255,196,0,0.12)" : "var(--blanco)",
+                        color: clientType === "business" ? "var(--acento-texto)" : "var(--gris-500)",
                       }}
                     >
                       🏢 Empresa
@@ -5194,7 +5194,7 @@ export default function App() {
                   {/* Campos según tipo */}
                   {clientType === "individual" ? (
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                      <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--acento-tenue)" }}>
+                      <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                         Nombre
                         <input
                           type="text"
@@ -5202,10 +5202,10 @@ export default function App() {
                           value={authForm.name}
                           onChange={(event) => setAuthForm((prev) => ({ ...prev, name: event.target.value }))}
                           placeholder="Tu nombre"
-                          style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                          style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                         />
                       </label>
-                      <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--acento-tenue)" }}>
+                      <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                         Apellidos
                         <input
                           type="text"
@@ -5213,12 +5213,12 @@ export default function App() {
                           value={authForm.apellidos}
                           onChange={(event) => setAuthForm((prev) => ({ ...prev, apellidos: event.target.value }))}
                           placeholder="Tus apellidos"
-                          style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                          style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                         />
                       </label>
                     </div>
                   ) : (
-                    <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--acento-tenue)" }}>
+                    <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                       Razón social
                       <input
                         type="text"
@@ -5226,12 +5226,12 @@ export default function App() {
                         value={authForm.company_name}
                         onChange={(event) => setAuthForm((prev) => ({ ...prev, company_name: event.target.value }))}
                         placeholder="Nombre de tu empresa"
-                        style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                        style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                       />
                     </label>
                   )}
 
-                  <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--acento-tenue)" }}>
+                  <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                     Teléfono
                     <input
                       type="tel"
@@ -5239,13 +5239,13 @@ export default function App() {
                       value={authForm.phone}
                       onChange={(event) => setAuthForm((prev) => ({ ...prev, phone: event.target.value }))}
                       placeholder="Ej: 612 345 678"
-                      style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                      style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                     />
                   </label>
                 </>
               )}
 
-              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--acento-tenue)" }}>
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                 Correo electrónico
                 <input
                   type="email"
@@ -5253,11 +5253,11 @@ export default function App() {
                   value={authForm.email}
                   onChange={(event) => setAuthForm((prev) => ({ ...prev, email: event.target.value }))}
                   placeholder="nombre@correo.com"
-                  style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                  style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                 />
               </label>
 
-              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--acento-tenue)" }}>
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                 {authRecoveryMode === "confirm" ? "Nueva contraseña" : "Contraseña"}
                 <input
                   type="password"
@@ -5265,31 +5265,31 @@ export default function App() {
                   value={authForm.password}
                   onChange={(event) => setAuthForm((prev) => ({ ...prev, password: event.target.value }))}
                   placeholder={authRecoveryMode === "confirm" ? "Nueva contraseña (mínimo 6 caracteres)" : "Mínimo 6 caracteres"}
-                  style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                  style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                 />
               </label>
 
               {authRecoveryMode === "confirm" && (
-                <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--acento-tenue)" }}>
+                <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                   Código de recuperación
                   <input
                     type="text"
                     value={authRecoveryCode}
                     onChange={(event) => setAuthRecoveryCode(event.target.value)}
                     placeholder="Ejemplo: A1B2C3D4"
-                    style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                    style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                   />
                 </label>
               )}
 
               {authRecoveryFeedback && (
-                <div style={{ fontSize: 12, color: "var(--gris-300)", fontWeight: 700 }}>
+                <div style={{ fontSize: 12, color: "var(--gris-600)", fontWeight: 700 }}>
                   {authRecoveryFeedback}
                 </div>
               )}
 
               {authError && (
-                <div style={{ fontSize: 12, color: "#fca5a5", fontWeight: 700 }}>
+                <div style={{ fontSize: 12, color: "#A32D2D", fontWeight: 700 }}>
                   {authError}
                 </div>
               )}
@@ -5310,7 +5310,7 @@ export default function App() {
                       }}
                       style={{
                         width: 36, height: 20, borderRadius: 999, flexShrink: 0, cursor: "pointer",
-                        background: consentLegal && consentMarketingEmail && consentMarketingSms && consentThirdPartyEmail && consentThirdPartySms ? "var(--marca)" : "rgba(150,150,143,0.3)",
+                        background: consentLegal && consentMarketingEmail && consentMarketingSms && consentThirdPartyEmail && consentThirdPartySms ? "var(--marca)" : "var(--gris-300)",
                         position: "relative", transition: "background 0.2s",
                       }}
                     >
@@ -5321,7 +5321,7 @@ export default function App() {
                         transition: "left 0.2s",
                       }} />
                     </div>
-                    <span style={{ fontSize: 12, color: "var(--gris-300)", lineHeight: 1.5 }}>
+                    <span style={{ fontSize: 12, color: "var(--gris-600)", lineHeight: 1.5 }}>
                       Acepto todos los consentimientos siguientes:
                     </span>
                   </label>
@@ -5340,19 +5340,19 @@ export default function App() {
                       }}
                       style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
-                    <span style={{ fontSize: 12, color: "var(--gris-300)", lineHeight: 1.6 }}>
+                    <span style={{ fontSize: 12, color: "var(--gris-600)", lineHeight: 1.6 }}>
                       He leído y acepto{" "}
                       <a href="/terminos-condiciones" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "var(--gris-300)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-600)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Condiciones Generales
                       </a>
                       {" "}y la{" "}
                       <a href="/politica-privacidad" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "var(--gris-300)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-600)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Política de Privacidad
                       </a>
                       .{" "}
-                      <span style={{ color: "#f87171", fontSize: 11 }}>(obligatorio)</span>
+                      <span style={{ color: "#A32D2D", fontSize: 11 }}>(obligatorio)</span>
                     </span>
                   </label>
 
@@ -5364,10 +5364,10 @@ export default function App() {
                       onChange={(e) => setConsentMarketingEmail(e.target.checked)}
                       style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
-                    <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
-                      Acepto recibir comunicaciones comerciales por <strong style={{ color: "var(--gris-300)" }}>email</strong> de PopCar y socios conforme a la{" "}
+                    <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
+                      Acepto recibir comunicaciones comerciales por <strong style={{ color: "var(--gris-600)" }}>email</strong> de PopCar y socios conforme a la{" "}
                       <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "var(--gris-300)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-600)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Política de Comunicaciones
                       </a>
                       .
@@ -5382,10 +5382,10 @@ export default function App() {
                       onChange={(e) => setConsentMarketingSms(e.target.checked)}
                       style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
-                    <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
-                      Acepto recibir comunicaciones comerciales por <strong style={{ color: "var(--gris-300)" }}>SMS</strong> de PopCar y socios conforme a la{" "}
+                    <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
+                      Acepto recibir comunicaciones comerciales por <strong style={{ color: "var(--gris-600)" }}>SMS</strong> de PopCar y socios conforme a la{" "}
                       <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "var(--gris-300)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-600)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Política de Comunicaciones
                       </a>
                       .
@@ -5400,15 +5400,15 @@ export default function App() {
                       onChange={(e) => setConsentThirdPartyEmail(e.target.checked)}
                       style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
-                    <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
-                      Acepto comunicaciones por <strong style={{ color: "var(--gris-300)" }}>email</strong> de terceros conforme a las{" "}
+                    <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
+                      Acepto comunicaciones por <strong style={{ color: "var(--gris-600)" }}>email</strong> de terceros conforme a las{" "}
                       <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "var(--gris-300)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-600)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Condiciones Experian
                       </a>
                       {" "}y la{" "}
                       <a href="/politica-experian" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "var(--gris-300)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-600)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Política de Solvencia
                       </a>
                       .
@@ -5423,15 +5423,15 @@ export default function App() {
                       onChange={(e) => setConsentThirdPartySms(e.target.checked)}
                       style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
-                    <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
-                      Acepto comunicaciones por <strong style={{ color: "var(--gris-300)" }}>SMS</strong> de terceros conforme a las{" "}
+                    <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
+                      Acepto comunicaciones por <strong style={{ color: "var(--gris-600)" }}>SMS</strong> de terceros conforme a las{" "}
                       <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "var(--gris-300)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-600)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Condiciones Experian
                       </a>
                       {" "}y la{" "}
                       <a href="/politica-experian" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "var(--gris-300)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-600)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Política de Solvencia
                       </a>
                       .
@@ -5455,9 +5455,9 @@ export default function App() {
                     setAuthDialogMode((prev) => (prev === "register" ? "login" : "register"));
                   }}
                   style={{
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    color: "var(--gris-300)",
+                    background: "var(--gris-50)",
+                    border: "1px solid var(--gris-200)",
+                    color: "var(--gris-600)",
                     borderRadius: 10,
                     padding: "10px 12px",
                     cursor: "pointer",
@@ -5482,8 +5482,8 @@ export default function App() {
                     }}
                     style={{
                       background: "rgba(255,196,0,0.08)",
-                      border: "1px solid rgba(207,207,200,0.18)",
-                      color: "var(--gris-200)",
+                      border: "1px solid var(--gris-200)",
+                      color: "var(--gris-600)",
                       borderRadius: 10,
                       padding: "10px 12px",
                       cursor: "pointer",

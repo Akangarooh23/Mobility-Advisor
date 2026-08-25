@@ -7,9 +7,14 @@
 .pc-logo { background: none; border: 0; padding: 0; cursor: pointer; line-height: 1; display: inline-flex; }
 
 /* ── Pie ─────────────────────────────────────────────────────────────────── */
+/* `margin-top: auto` es lo que manda el pie al fondo cuando la pantalla tiene
+   poco contenido: la aplicacion es una columna flexible de 100vh de alto, y sin
+   esto el pie se queda pegado a lo ultimo que haya y deja un claro blanco
+   debajo. Donde el contenedor no es flexible el valor vale cero, asi que no
+   estorba en ningun sitio. */
 .pc-pie {
   background: var(--gris-900); color: var(--blanco);
-  width: 100%; margin: 0; border-radius: 0; padding: 56px 42px 22px;
+  width: 100%; margin: auto 0 0; border-radius: 0; padding: 56px 42px 22px;
 }
 /* El contenido si se queda centrado y con el mismo ancho que el resto de la
    pagina; lo que llega de borde a borde es solo el fondo. */

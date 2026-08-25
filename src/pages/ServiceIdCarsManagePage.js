@@ -1761,7 +1761,9 @@ export default function ServiceIdCarsManagePage({
   // ─── render ──────────────────────────────────────────────────────────
   return (
     <>
-    <div style={{ width: "100%", maxWidth: 980, margin: "0 auto", color: "var(--gris-800)", padding: "0 8px 18px" }}>
+    {/* El aire de arriba separa del header, que antes quedaba pegado; el de
+        abajo evita que el ultimo boton muera contra el pie. */}
+    <div style={{ width: "100%", maxWidth: 980, margin: "0 auto", color: "var(--gris-800)", padding: "32px 8px 72px" }}>
 
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
         <button type="button" onClick={isCreateView ? onGoBack : onGoBack}

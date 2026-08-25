@@ -1,117 +1,112 @@
 /**
  * La página de «Cómo funciona».
  *
- * Aquí no se comprueba la animación: jsdom no maqueta ni hace scroll, así que
- * afirmar que una escena se desvanece seria mentir. Lo que sí se puede afirmar
- * —y es lo que más se rompe— es que la arquitectura está entera: los ocho
- * capítulos, sus escenas, el hilo del IdCar y el progreso; que montar y
- * desmontar no deja ScrollTrigger vivos, que es de donde salen las fugas y los
- * disparadores duplicados; y que el contenido no promete funcionalidades que la
- * aplicación no tiene.
+ * jsdom no maqueta ni hace scroll, así que aquí no se comprueba la animación.
+ * Lo que sí se comprueba —y es lo que se rompe— es que la estructura está
+ * entera, que lo que se enseña son datos y nombres de la aplicación, que el
+ * texto sigue siendo poco, y que el aviso de que esto no es una tasación no
+ * desaparece en un retoque de copy.
  */
 import React from "react";
 import { render, screen, within } from "@testing-library/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ComoFuncionaPage from "./ComoFuncionaPage";
-import { CAMPOS_IDCAR, ADJUNTOS_IDCAR } from "../components/historia/IdCarHilo";
-
-const CAPITULOS = [
-  "Busca", "Descubre", "Decide", "Compra",
-  "Cuéntanos tu coche", "Conoce el mercado", "Vende con PopCar", "Gestiona tu coche",
-];
 
 beforeEach(() => {
   ScrollTrigger.getAll().forEach((st) => st.kill());
-});
-
-test("monta los ocho capítulos, en orden", () => {
-  const { container } = render(<ComoFuncionaPage onGoHome={() => {}} />);
-  const secciones = container.querySelectorAll(".cf-capitulo");
-  expect(secciones).toHaveLength(8);
-
-  const progreso = screen.getByRole("navigation", { name: "Capítulos" });
-  const botones = within(progreso).getAllByRole("button");
-  expect(botones.map((b) => b.textContent.replace(/^\d+/, ""))).toEqual(CAPITULOS);
-});
-
-test("cada capítulo reserva scroll en proporción al que piden sus escenas", () => {
-  // Es lo que hace que el ritmo sea parejo. Una escena vale una pantalla salvo
-  // que pida más: la del mercado pide cinco, porque su embudo no se lee en una.
-  const { container } = render(<ComoFuncionaPage onGoHome={() => {}} />);
-  const secciones = container.querySelectorAll(".cf-capitulo");
-
-  secciones.forEach((seccion) => {
-    const escenas = seccion.querySelectorAll(".cf-escena").length;
-    const pantallas = Number(seccion.style.getPropertyValue("--escenas"));
-    expect(escenas).toBeGreaterThan(0);
-    // Nunca menos de una pantalla por escena.
-    expect(pantallas).toBeGreaterThanOrEqual(escenas);
-  });
-
-  // El capítulo de Busca son 3 escenas, pero la primera pide 5: 5 + 1 + 1.
-  expect(Number(secciones[0].style.getPropertyValue("--escenas"))).toBe(7);
-});
-
-test("el IdCar empieza vacío y con todos sus campos a la vista", () => {
-  const { container } = render(<ComoFuncionaPage onGoHome={() => {}} />);
-  const idcar = container.querySelector(".cf-idcar");
-  expect(idcar).toBeInTheDocument();
-  // Sin capítulo activo todavia, ninguno esta relleno.
-  expect(idcar.querySelectorAll(".cf-idcar-campo")).toHaveLength(CAMPOS_IDCAR.length);
-  expect(idcar.querySelectorAll(".cf-idcar-campo.es-lleno")).toHaveLength(
-    CAMPOS_IDCAR.filter((c) => c.desde === 0).length
+  global.fetch = jest.fn(() =>
+    Promise.resolve({ json: () => Promise.resolve({ ok: true, total: 20, ofertas: [] }) })
   );
-  // Los adjuntos son del ultimo capitulo: todavia no.
-  expect(idcar.querySelector(".cf-idcar-adjuntos")).toBeNull();
 });
 
-test("los campos del IdCar son los que guarda un IdCar de verdad", () => {
-  // Si alguien añade aqui un campo inventado, el hilo conductor deja de ser la
-  // ficha real y pasa a ser un dibujo.
-  const reales = [
-    "marca", "modelo", "anio", "km", "combustible", "version",
-    "cv", "cambio", "matricula", "color", "etiqueta", "itv",
-  ];
-  expect(CAMPOS_IDCAR.map((c) => c.clave)).toEqual(reales);
-  expect(ADJUNTOS_IDCAR.map((a) => a.clave)).toEqual([
-    "fotos", "docs", "itv", "seguro", "facturas",
+const montar = () => render(<ComoFuncionaPage onGoHome={() => {}} />);
+
+test("son tres bloques: comprar, vender y gestionar", () => {
+  const { container } = montar();
+  const bloques = container.querySelectorAll(".cf-bloque");
+  expect(bloques).toHaveLength(3);
+  expect([...bloques].map((b) => b.id)).toEqual(["comprar", "vender", "gestionar"]);
+});
+
+test("cada bloque reserva scroll para que la escena se recorra", () => {
+  // Sin altura de sobra no hay recorrido: la escena se resolvería de golpe.
+  const { container } = montar();
+  container.querySelectorAll(".cf-bloque").forEach((bloque) => {
+    expect(bloque.querySelector(".cf-fijo")).toBeInTheDocument();
+  });
+});
+
+test("comprar enseña el embudo del mercado, no una maqueta", () => {
+  const { container } = montar();
+  const comprar = container.querySelector("#comprar");
+  expect(within(comprar).getByText("568.358")).toBeInTheDocument();
+  expect(comprar.querySelectorAll(".em-filtro")).toHaveLength(7);
+});
+
+test("vender pide los seis datos que pide el formulario real", () => {
+  const { container } = montar();
+  const vender = container.querySelector("#vender");
+  const etiquetas = [...vender.querySelectorAll(".cf-dato dt")].map((n) => n.textContent);
+  expect(etiquetas).toEqual([
+    "Matrícula", "Marca", "Modelo", "Versión", "Año", "Kilómetros",
   ]);
 });
 
-test("cada campo aparece en el capítulo donde el usuario lo consigue", () => {
-  // La matricula no puede salir antes de «Cuéntanos tu coche»: hasta ese
-  // momento PopCar no la tiene, y enseñarla seria prometer que la adivina.
-  const porClave = Object.fromEntries(CAMPOS_IDCAR.map((c) => [c.clave, c.desde]));
-  expect(porClave.matricula).toBe(4);
-  expect(porClave.marca).toBe(0);
-  expect(porClave.itv).toBe(7);
+test("las cifras de mercado son las medidas, no unas redondas", () => {
+  // Si alguien las retoca para que queden mas bonitas, la pagina deja de contar
+  // lo que pasa de verdad en el mercado.
+  const { container } = montar();
+  expect(screen.getByText("20.739 €")).toBeInTheDocument();
+  /* La cifra y su rótulo son nodos distintos, así que se lee el párrafo entero.
+     Y va sin punto de millar a propósito: en español los números de cuatro
+     cifras no se agrupan, y `toLocaleString("es-ES")` aplica bien esa regla.
+     «2.638» sería el error, no «2638». */
+  expect(container.querySelector(".cf-informe-pie").textContent)
+    .toMatch(/2638 unidades similares/);
+  expect(container.querySelector(".cf-informe-rango").textContent)
+    .toMatch(/16\.900.*22\.690/);
 });
 
-test("no promete la venta gestionada como un flujo automático", () => {
-  // Hoy ese servicio se solicita por contacto y lo lleva una persona.
-  // El aviso sale dos veces a proposito: en el texto de la escena y como dato
-  // suelto, para que no dependa de que alguien lea el parrafo entero.
-  render(<ComoFuncionaPage onGoHome={() => {}} />);
-  expect(screen.getAllByText(/se solicita por contacto/i).length).toBeGreaterThan(0);
-  expect(screen.getByText(/no es un flujo automático dentro de la web/i)).toBeInTheDocument();
+test("dice que no es una tasación, y eso no es negociable", () => {
+  montar();
+  expect(screen.getByText(/PopCar no tasa tu coche/i)).toBeInTheDocument();
+  expect(screen.getByText(/Precio medio del mercado/i)).toBeInTheDocument();
 });
 
-test("dice que el informe de mercado no es una tasación", () => {
-  render(<ComoFuncionaPage onGoHome={() => {}} />);
-  expect(screen.getByText(/No es una tasación ni una oferta de compra/i)).toBeInTheDocument();
+test("gestionar enseña los cuatro servicios con su nombre real", () => {
+  montar();
+  ["Crea tu garaje", "Recordatorio inteligente", "Cita de mantenimiento", "Seguro"]
+    .forEach((nombre) => expect(screen.getByText(nombre)).toBeInTheDocument());
 });
 
-test("al desmontar no deja ningún ScrollTrigger vivo", () => {
-  const { unmount } = render(<ComoFuncionaPage onGoHome={() => {}} />);
+test("los iconos van en SVG, no en emoji", () => {
+  // En Windows varios emoji salen como un cuadrado vacío; ya paso en el home.
+  const { container } = montar();
+  expect(container.querySelectorAll(".cf-servicio-icono svg")).toHaveLength(4);
+  expect(container.textContent).not.toMatch(/[\u{1F300}-\u{1FAFF}]/u);
+});
+
+test("el texto se mantiene corto", () => {
+  // La regla de la pagina es que se entienda sin leer. Si esto empieza a
+  // crecer, es que hemos vuelto a explicar con parrafos.
+  const { container } = montar();
+  const palabras = [...container.querySelectorAll(".cf-rotulo, .cf-hero-texto, .cf-intro, .cf-final")]
+    .map((n) => n.textContent.trim().split(/\s+/).length)
+    .reduce((a, b) => a + b, 0);
+  expect(palabras).toBeLessThan(90);
+});
+
+test("al desmontar no deja ScrollTriggers vivos", () => {
+  const { unmount } = montar();
   unmount();
   expect(ScrollTrigger.getAll()).toHaveLength(0);
 });
 
 test("montar dos veces no duplica disparadores", () => {
-  const primera = render(<ComoFuncionaPage onGoHome={() => {}} />);
-  const tras1 = ScrollTrigger.getAll().length;
+  const primera = montar();
+  const tras = ScrollTrigger.getAll().length;
   primera.unmount();
-  const segunda = render(<ComoFuncionaPage onGoHome={() => {}} />);
-  expect(ScrollTrigger.getAll()).toHaveLength(tras1);
+  const segunda = montar();
+  expect(ScrollTrigger.getAll()).toHaveLength(tras);
   segunda.unmount();
 });

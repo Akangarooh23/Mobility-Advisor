@@ -1,18 +1,18 @@
 /**
- * Cómo funciona — arquitectura visual.
+ * Cómo funciona.
  *
- * El pin lo hace `position: sticky`, no ScrollTrigger: el navegador lo resuelve
- * sin insertar espaciadores ni recalcular el documento, y con ocho capítulos
- * encadenados eso es la diferencia entre un recorrido liso y uno que da saltos
- * al entrar y salir de cada uno.
+ * Tres bloques altos con el contenido quieto dentro: la sección mide tres
+ * pantallas y lo de dentro se queda pegado arriba, así el scroll avanza la
+ * escena sin que nada se mueva de sitio.
  *
- * La altura de cada capítulo sale de su número de escenas —una pantalla de
- * scroll por escena, más una de margen— así que el ritmo es parejo entre
- * capítulos sin ajustarlo a mano. Esa cuenta vive en `--escenas`, que la escribe
- * el componente.
+ * El pin lo hace `position: sticky` y no ScrollTrigger. El navegador lo resuelve
+ * sin insertar espaciadores ni recalcular el documento, y con tres bloques
+ * encadenados esa es la diferencia entre un recorrido liso y uno que salta al
+ * entrar y salir de cada uno.
  *
- * Colores y tipografía son los de la aplicación. Aquí no se estrena paleta: lo
- * que cambia es la escala y el aire.
+ * Colores y tipografía son los de la aplicación: el amarillo es #FFC400 y la
+ * letra, Inter. Aquí no se estrena paleta ni familia; lo que cambia es la escala
+ * y el aire.
  */
 
 .cf-root {
@@ -22,468 +22,365 @@
   overflow-x: clip;
 }
 
-/* ── Portada ──────────────────────────────────────────────────────────────── */
-.cf-portada {
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 22px;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 0 clamp(20px, 5vw, 64px);
-}
-.cf-portada-eyebrow {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 700;
+.cf-eyebrow {
+  margin: 0 0 16px;
+  font-size: 11px;
+  font-weight: 800;
   letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--gris-400);
-}
-.cf-portada-titulo {
-  margin: 0;
-  font-size: clamp(38px, 7.4vw, 88px);
-  font-weight: 800;
-  line-height: 0.98;
-  letter-spacing: -0.04em;
-  text-wrap: balance;
-}
-.cf-portada-entrada {
-  margin: 0;
-  max-width: 56ch;
-  font-size: clamp(16px, 1.5vw, 19px);
-  line-height: 1.65;
-  color: var(--gris-600);
-}
-.cf-portada-pista {
-  margin: 26px 0 0;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--gris-400);
-}
-
-/* ── Capítulo ─────────────────────────────────────────────────────────────── */
-.cf-capitulo {
-  /* Una pantalla de recorrido por escena, más una de holgura. */
-  min-height: calc((var(--escenas, 2) + 1) * 100svh);
-  position: relative;
-}
-.cf-capitulo-fijo {
-  position: sticky;
-  top: 0;
-  height: 100svh;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-}
-.cf-capitulo-ancho {
-  width: 100%;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 0 clamp(20px, 5vw, 64px);
-  display: grid;
-  gap: clamp(24px, 4vw, 56px);
-  align-items: center;
-}
-@media (min-width: 1000px) {
-  .cf-capitulo-ancho { grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr); }
-}
-
-.cf-capitulo-cab { max-width: 46ch; }
-.cf-capitulo-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0 0 18px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--gris-500);
 }
-.cf-capitulo-n {
-  font-variant-numeric: tabular-nums;
-  color: var(--gris-900);
-  background: var(--acento);
-  border-radius: 3px;
-  padding: 3px 7px;
-  letter-spacing: 0.06em;
+
+/* ── Portada ──────────────────────────────────────────────────────────── */
+.cf-hero {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  text-align: center;
+  padding: 0 24px;
 }
-.cf-capitulo-titular {
-  margin: 0 0 16px;
-  font-size: clamp(28px, 3.9vw, 46px);
+.cf-manchas { position: absolute; inset: 0; pointer-events: none; }
+.cf-mancha {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--acento);
+  /* Muy tenues: son fondo, no ilustración. Con la opacidad alta el titular deja
+     de leerse y la portada se convierte en un cartel de otra cosa. */
+  opacity: 0.28;
+}
+.cf-mancha-1 { width: 340px; height: 340px; top: 12%; left: 8%; }
+.cf-mancha-2 { width: 180px; height: 180px; top: 24%; right: 13%; }
+.cf-mancha-3 { width: 110px; height: 110px; bottom: 18%; left: 28%; }
+
+.cf-hero-texto { position: relative; z-index: 1; max-width: 900px; }
+.cf-hero h1 {
+  margin: 0;
+  font-size: clamp(46px, 8.4vw, 112px);
   font-weight: 800;
-  line-height: 1.06;
-  letter-spacing: -0.032em;
+  line-height: 0.92;
+  letter-spacing: -0.05em;
   text-wrap: balance;
 }
-.cf-capitulo-entrada {
-  margin: 0;
-  font-size: clamp(15px, 1.35vw, 17px);
-  line-height: 1.68;
-  color: var(--gris-600);
-}
-.cf-capitulo-riel {
-  display: block;
-  height: 2px;
-  margin-top: 26px;
-  background: var(--gris-200);
-  border-radius: 2px;
-  overflow: hidden;
-}
-.cf-capitulo-riel i {
-  display: block;
-  height: 100%;
-  background: var(--acento);
-  transform: scaleX(0);
-  transform-origin: left center;
-}
-
-/* ── Escenas ──────────────────────────────────────────────────────────────── */
-.cf-capitulo-lienzo {
-  position: relative;
-  min-height: clamp(300px, 46svh, 440px);
-}
-.cf-escena {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 10px;
-}
-.cf-escena-paso {
-  margin: 0;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--acento-texto);
-}
-.cf-escena-titulo {
-  margin: 0;
-  font-size: clamp(20px, 2.1vw, 26px);
-  font-weight: 800;
-  letter-spacing: -0.022em;
-  line-height: 1.16;
-}
-.cf-escena-texto {
-  margin: 0;
-  max-width: 48ch;
-  font-size: 15px;
-  line-height: 1.66;
-  color: var(--gris-600);
-}
-.cf-escena-visual { margin-top: 10px; }
-
-/* Hueco de escena pendiente de vestir. Se marca a propósito: es más honesto que
-   una maqueta que parezca terminada sin serlo. */
-.cf-hueco {
-  border: 1px dashed var(--gris-300);
-  border-radius: 14px;
-  padding: 18px 20px;
-  background: var(--gris-50);
-}
-.cf-hueco-marca {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--acento-texto);
-  background: var(--acento-tenue);
-  border-radius: 999px;
-  padding: 4px 10px;
-  margin-bottom: 12px;
-}
-.cf-hueco-datos {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.cf-hueco-datos li {
-  font-size: 12.5px;
-  color: var(--gris-700);
-  background: var(--blanco);
-  border: 1px solid var(--gris-200);
-  border-radius: 8px;
-  padding: 5px 10px;
-}
-
-/* Sin movimiento: se suelta el pin y las escenas se leen seguidas. */
-.cf-capitulo[data-quieto="si"] { min-height: 0; }
-.cf-capitulo[data-quieto="si"] .cf-capitulo-fijo {
-  position: static;
-  height: auto;
-  padding: 64px 0;
-}
-.cf-capitulo[data-quieto="si"] .cf-capitulo-lienzo {
-  min-height: 0;
-  display: grid;
-  gap: 34px;
-}
-.cf-capitulo[data-quieto="si"] .cf-escena { position: static; inset: auto; }
-
-/* ── Progreso ─────────────────────────────────────────────────────────────── */
-.cf-progreso {
-  position: fixed;
-  right: clamp(12px, 2vw, 26px);
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 30;
-}
-.cf-progreso ol {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 4px;
-}
-.cf-progreso button {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  background: none;
-  border: 0;
-  padding: 6px 4px;
-  cursor: pointer;
-  text-align: left;
-  color: var(--gris-400);
-  transition: color 0.25s;
-}
-.cf-progreso button:hover { color: var(--gris-900); }
-.cf-progreso button:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; border-radius: 6px; }
-.cf-progreso-n {
-  font-size: 10.5px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.06em;
-}
-.cf-progreso-riel {
-  display: block;
-  width: 26px;
-  height: 2px;
-  background: var(--gris-200);
-  border-radius: 2px;
-  overflow: hidden;
-  flex: none;
-}
-.cf-progreso-riel i {
-  display: block;
-  height: 100%;
-  background: var(--acento);
-  transform: scaleX(0);
-  transform-origin: left center;
-}
-.cf-progreso-titulo {
-  font-size: 12px;
+.cf-hero h1 span { color: var(--gris-400); }
+.cf-hero-pie {
+  margin: 30px 0 0;
+  font-size: clamp(16px, 1.6vw, 19px);
   font-weight: 600;
-  white-space: nowrap;
-  opacity: 0;
-  transform: translateX(-4px);
-  transition: opacity 0.25s, transform 0.25s;
+  color: var(--gris-600);
 }
-.cf-progreso-item.es-actual .cf-progreso-titulo,
-.cf-progreso:hover .cf-progreso-titulo { opacity: 1; transform: none; }
-.cf-progreso-item.es-actual button { color: var(--gris-900); }
-.cf-progreso-item.es-visto .cf-progreso-riel i { transform: scaleX(1); }
-.cf-progreso-item.es-visto button { color: var(--gris-500); }
+.cf-baja {
+  margin: 64px 0 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gris-400);
+}
+.cf-baja-linea {
+  display: block;
+  width: 1px;
+  height: 52px;
+  margin: 14px auto 0;
+  background: var(--gris-300);
+}
 
-/* ── El IdCar que acompaña ────────────────────────────────────────────────── */
-.cf-idcar {
-  position: fixed;
-  left: clamp(12px, 2vw, 26px);
-  bottom: clamp(12px, 2vw, 26px);
-  z-index: 30;
-  width: 236px;
-  background: var(--blanco);
-  border: 1px solid var(--gris-200);
-  border-radius: 16px;
-  padding: 14px 15px;
-  box-shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.3);
-  opacity: 0;
-  transform: translateY(14px);
-  transition: opacity 0.5s, transform 0.5s, border-color 0.5s;
-  pointer-events: none;
+/* ── Entradilla ───────────────────────────────────────────────────────── */
+.cf-intro {
+  min-height: 72svh;
+  display: grid;
+  place-items: center;
+  background: var(--gris-900);
+  color: var(--blanco);
+  text-align: center;
+  padding: 0 24px;
 }
-.cf-idcar.es-visible { opacity: 1; transform: none; }
-.cf-idcar.es-completo { border-color: var(--acento); }
+.cf-intro .cf-eyebrow { color: var(--gris-400); }
+.cf-intro h2 {
+  margin: 0;
+  font-size: clamp(40px, 7vw, 92px);
+  font-weight: 800;
+  line-height: 0.94;
+  letter-spacing: -0.05em;
+  text-wrap: balance;
+}
+.cf-intro h2 span { color: var(--acento); }
 
-.cf-idcar-cab {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 10px;
+/* ── Bloques ──────────────────────────────────────────────────────────── */
+.cf-bloque { position: relative; min-height: 300svh; }
+.cf-bloque-claro { background: var(--gris-50); }
+
+.cf-fijo {
+  position: sticky;
+  top: 0;
+  min-height: 100svh;
+  display: grid;
+  align-items: center;
+  gap: clamp(26px, 4vw, 60px);
+  padding: 0 clamp(20px, 6vw, 76px);
+  overflow: hidden;
 }
-.cf-idcar-marca {
+@media (min-width: 1000px) {
+  .cf-fijo { grid-template-columns: minmax(0, 34%) minmax(0, 66%); }
+}
+
+.cf-rotulo { max-width: 420px; }
+.cf-paso {
+  margin: 0 0 22px;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.cf-idcar-cuenta {
-  font-size: 11px;
+  color: var(--gris-300);
   font-variant-numeric: tabular-nums;
-  color: var(--gris-400);
 }
-.cf-idcar-campos {
+.cf-rotulo h2 {
   margin: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px 10px;
-}
-.cf-idcar-campo { min-width: 0; }
-.cf-idcar-campo dt {
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--gris-400);
-}
-.cf-idcar-campo dd {
-  margin: 1px 0 0;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--gris-900);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-height: 15px;
-}
-/* Un campo aún sin rellenar se ve como un hueco esperando, no como un vacío. */
-.cf-idcar-campo:not(.es-lleno) dd {
-  background: var(--gris-100);
-  border-radius: 3px;
-}
-.cf-idcar-campo.es-lleno dd { animation: cf-entra 0.45s ease both; }
-
-@keyframes cf-entra {
-  from { opacity: 0; transform: translateY(3px); }
-  to { opacity: 1; transform: none; }
-}
-
-.cf-idcar-sellos { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
-.cf-idcar-sello {
-  font-size: 10.5px;
-  font-weight: 700;
-  color: var(--acento-texto);
-  background: var(--acento-tenue);
-  border-radius: 999px;
-  padding: 3px 8px;
-  animation: cf-entra 0.45s ease both;
-}
-.cf-idcar-adjuntos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--gris-200);
-}
-.cf-idcar-adjunto {
-  font-size: 10.5px;
-  color: var(--gris-600);
-  animation: cf-entra 0.45s ease both;
-}
-.cf-idcar-adjunto b { color: var(--gris-900); font-variant-numeric: tabular-nums; }
-
-/* ── Cierre ───────────────────────────────────────────────────────────────── */
-.cf-cierre {
-  min-height: 78svh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 18px;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 0 clamp(20px, 5vw, 64px) 90px;
-}
-.cf-cierre-titulo {
-  margin: 0;
-  font-size: clamp(28px, 4.6vw, 54px);
+  font-size: clamp(42px, 5.6vw, 84px);
   font-weight: 800;
-  letter-spacing: -0.035em;
-  line-height: 1.04;
+  line-height: 0.92;
+  letter-spacing: -0.05em;
   text-wrap: balance;
 }
-.cf-cierre-texto {
-  margin: 0;
-  max-width: 54ch;
-  font-size: clamp(15px, 1.4vw, 18px);
-  line-height: 1.68;
+.cf-rotulo h2 span { color: var(--gris-400); }
+.cf-apoyo {
+  margin: 26px 0 0;
+  max-width: 34ch;
+  font-size: 16px;
+  line-height: 1.6;
   color: var(--gris-600);
 }
-.cf-cierre-boton {
-  align-self: flex-start;
-  margin-top: 10px;
+
+.cf-escena { position: relative; width: 100%; }
+
+/* ── 02 Vender ────────────────────────────────────────────────────────── */
+.cf-escena-venta { min-height: clamp(330px, 52svh, 470px); }
+
+.cf-ficha-titulo {
+  margin: 0 0 12px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gris-500);
+}
+.cf-ficha-venta {
+  position: relative;
+  z-index: 2;
+  width: min(360px, 100%);
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 18px;
+  padding: 20px 22px;
+  box-shadow: 0 28px 70px -34px rgba(0, 0, 0, 0.28);
+}
+.cf-datos { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; }
+.cf-dato dt {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gris-400);
+}
+.cf-dato dd { margin: 2px 0 0; font-size: 14px; font-weight: 700; }
+
+.cf-informe {
+  position: absolute;
+  right: 0;
+  top: 6%;
+  z-index: 3;
+  width: min(310px, 92%);
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 18px;
+  padding: 22px 24px;
+  box-shadow: 0 34px 80px -34px rgba(0, 0, 0, 0.32);
+}
+.cf-informe-etq {
+  margin: 0;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--acento-texto);
+}
+.cf-informe-cifra {
+  margin: 8px 0 2px;
+  font-size: clamp(30px, 3.4vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+}
+.cf-informe-pie { margin: 0; font-size: 12.5px; color: var(--gris-500); }
+.cf-barra {
+  margin: 18px 0 8px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--gris-200);
+  overflow: hidden;
+}
+.cf-barra i {
+  display: block;
+  height: 100%;
+  background: var(--acento);
+  border-radius: 999px;
+  transform-origin: left center;
+}
+.cf-informe-rango {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: var(--gris-500);
+  font-variant-numeric: tabular-nums;
+}
+.cf-limite {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--gris-200);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--gris-500);
+}
+
+.cf-comparable {
+  position: absolute;
+  z-index: 1;
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gris-600);
+  box-shadow: 0 14px 34px -18px rgba(0, 0, 0, 0.24);
+  font-variant-numeric: tabular-nums;
+}
+.cf-comparable-1 { left: 4%; top: 2%; }
+.cf-comparable-2 { right: 34%; bottom: 6%; }
+.cf-comparable-3 { left: 30%; bottom: 0; }
+.cf-comparable-4 { right: 6%; bottom: 26%; }
+
+/* ── 03 Gestionar ─────────────────────────────────────────────────────── */
+.cf-escena-servicios { min-height: clamp(340px, 54svh, 480px); }
+
+.cf-servicio {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 999px;
+  padding: 12px 20px 12px 14px;
+  box-shadow: 0 20px 50px -26px rgba(0, 0, 0, 0.28);
+  white-space: nowrap;
+}
+.cf-servicio-icono {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--acento-tenue);
+  color: var(--acento-texto);
+}
+.cf-servicio-icono svg { width: 18px; height: 18px; }
+.cf-servicio-texto { display: grid; gap: 1px; }
+.cf-servicio strong { font-size: 13.5px; font-weight: 800; letter-spacing: -0.01em; }
+.cf-servicio small { font-size: 11px; color: var(--gris-500); }
+
+.cf-servicio-garaje { top: 2%; left: 0; }
+.cf-servicio-aviso { top: 16%; right: 2%; }
+.cf-servicio-taller { bottom: 20%; left: 2%; }
+.cf-servicio-seguro { bottom: 4%; right: 12%; }
+
+.cf-idcar-lleno {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(320px, 88%);
+  background: var(--blanco);
+  border: 1px solid var(--acento);
+  border-radius: 18px;
+  padding: 20px 22px;
+  box-shadow: 0 34px 80px -34px rgba(0, 0, 0, 0.32);
+  z-index: 2;
+}
+.cf-idcar-resumen { margin: 0 0 14px; font-size: 15px; font-weight: 800; letter-spacing: -0.02em; }
+.cf-idcar-adjuntos {
+  margin: 0;
+  padding: 14px 0 0;
+  border-top: 1px solid var(--gris-200);
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 11.5px;
+  color: var(--gris-600);
+}
+.cf-idcar-adjuntos b { color: var(--gris-900); font-variant-numeric: tabular-nums; }
+
+/* ── Cierre ───────────────────────────────────────────────────────────── */
+.cf-final {
+  min-height: 92svh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  background: var(--acento);
+  padding: 0 24px;
+}
+.cf-final .cf-eyebrow { color: var(--acento-texto); }
+.cf-final h2 {
+  margin: 0;
+  font-size: clamp(46px, 8.6vw, 116px);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.055em;
+  text-wrap: balance;
+}
+/* Sobre el amarillo, el blanco de la segunda línea funciona porque es un
+   titular enorme; en texto pequeño no llegaría a contraste. */
+.cf-final h2 span { color: var(--blanco); }
+.cf-final-pie {
+  margin: 30px 0 0;
+  font-size: clamp(15px, 1.5vw, 18px);
+  font-weight: 600;
+  color: var(--acento-texto);
+}
+.cf-final-boton {
+  margin-top: 30px;
   background: var(--gris-900);
   color: var(--blanco);
   border: 1px solid var(--gris-900);
   border-radius: 999px;
-  padding: 14px 30px;
+  padding: 15px 36px;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.18s;
 }
-.cf-cierre-boton:hover { background: #000; }
+.cf-final-boton:hover { background: #000; }
+.cf-final-boton:focus-visible { outline: 3px solid var(--gris-900); outline-offset: 3px; }
 
-/* ── Pantallas medianas y pequeñas ────────────────────────────────────────── */
+/* ── Pantallas pequeñas ───────────────────────────────────────────────── */
 @media (max-width: 999px) {
-  .cf-capitulo-ancho { align-content: center; gap: 22px; }
-  .cf-capitulo-lienzo { min-height: clamp(260px, 40svh, 360px); }
-}
-
-@media (max-width: 760px) {
-  /* El recorrido se acorta: dos tercios de pantalla por escena en vez de una
-     entera. La narración es la misma; lo que baja es el kilometraje del dedo. */
-  .cf-capitulo { min-height: calc((var(--escenas, 2) * 0.7 + 1) * 100svh); }
-
-  .cf-progreso {
-    top: auto;
-    bottom: 0;
-    right: 0;
-    left: 0;
-    transform: none;
-    background: rgba(255, 255, 255, 0.94);
-    backdrop-filter: blur(8px);
-    border-top: 1px solid var(--gris-200);
-    padding: 8px 10px;
-  }
-  .cf-progreso ol { grid-auto-flow: column; grid-auto-columns: 1fr; gap: 5px; }
-  .cf-progreso button { flex-direction: column; gap: 5px; padding: 2px; align-items: stretch; }
-  .cf-progreso-n, .cf-progreso-titulo { display: none; }
-  .cf-progreso-riel { width: 100%; }
-
-  /* En móvil el IdCar no cabe al lado: se convierte en una banda sobre la barra
-     de progreso, y enseña solo la cuenta y los sellos. */
-  .cf-idcar {
-    left: 10px;
-    right: 10px;
-    bottom: 52px;
-    width: auto;
-    padding: 10px 12px;
-    border-radius: 12px;
-  }
-  .cf-idcar-campos { display: none; }
-  .cf-idcar-adjuntos { display: none; }
-  .cf-idcar-cab { margin-bottom: 6px; }
-  .cf-idcar-sellos { margin-top: 0; }
-  .cf-idcar-sello:nth-child(n + 3) { display: none; }
+  /* Menos recorrido por bloque: la narración es la misma, lo que baja es el
+     kilometraje del dedo. */
+  .cf-bloque { min-height: 240svh; }
+  .cf-fijo { align-content: center; gap: 20px; padding-top: 76px; padding-bottom: 40px; }
+  .cf-rotulo h2 { font-size: clamp(34px, 8vw, 52px); }
+  .cf-apoyo { display: none; }
+  .cf-informe { position: relative; right: auto; top: auto; margin-top: 16px; width: 100%; }
+  .cf-escena-venta { min-height: 0; }
+  .cf-comparable { display: none; }
+  .cf-servicio { position: relative; inset: auto; margin-bottom: 8px; }
+  .cf-escena-servicios { min-height: 0; display: grid; gap: 8px; }
+  .cf-idcar-lleno { position: relative; left: auto; top: auto; transform: none; width: 100%; margin-top: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cf-idcar,
-  .cf-progreso button,
-  .cf-progreso-titulo,
-  .cf-cierre-boton { transition: none; }
-  .cf-idcar-campo.es-lleno dd,
-  .cf-idcar-sello,
-  .cf-idcar-adjunto { animation: none; }
+  .cf-final-boton { transition: none; }
 }

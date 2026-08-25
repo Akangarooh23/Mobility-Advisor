@@ -198,6 +198,8 @@ export default function LandingPage({
   onSelectAbout,
   onSelectContact,
   onOpenPlans,
+  onEntrar,
+  onRegistro,
   // Props que sigue pasando App.js y esta vista no usa
   styles,
   totalSteps,
@@ -245,7 +247,16 @@ export default function LandingPage({
   const irVender    = go(onSelectSell);
   const irGestionar = go(onSelectService);
   const irPlanes    = go(onOpenPlans);
-  const irInicio    = go(onSelectAdvice || onSelectBuyStart);
+  /* Se llamaba `irInicio` y no lleva al inicio: abre el asesor de compra. Con
+     ese nombre acabo puesto en el logotipo y en los dos botones de sesion, que
+     es como pulsar «Iniciar sesion» terminaba en el cuestionario de comprar. */
+  const irAsesor    = go(onSelectAdvice || onSelectBuyStart);
+  const irEntrar    = go(onEntrar);
+  const irRegistro  = go(onRegistro);
+  // Estando ya en el inicio, el logotipo sube arriba del todo.
+  const irArriba    = go(() => {
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  });
   const irOfertas   = go(onSelectPortalVo);
   const irContacto  = go(onSelectEmpresas);
   const irSobre     = go(onSelectAbout);
@@ -253,7 +264,7 @@ export default function LandingPage({
   const irPanel     = go(onOpenDashboard);
 
   const Logotipo = ({ tono = "oscuro", size = 32 }) => (
-    <button type="button" className="pc-logo" onClick={irInicio} aria-label={`PopCar – ${isEN ? "Home" : "Inicio"}`}>
+    <button type="button" className="pc-logo" onClick={irArriba} aria-label={`PopCar – ${isEN ? "Home" : "Inicio"}`}>
       <LogoPopCar size={size} tono={tono} />
     </button>
   );
@@ -291,8 +302,8 @@ export default function LandingPage({
               <button className="pc-btn pc-btn-amarillo" onClick={irPanel}>{t.panel}</button>
             ) : (
               <>
-                <button className="pc-btn pc-btn-linea" onClick={irInicio}>{t.entrar}</button>
-                <button className="pc-btn pc-btn-amarillo" onClick={irInicio}>{t.registro}</button>
+                <button className="pc-btn pc-btn-linea" onClick={irEntrar}>{t.entrar}</button>
+                <button className="pc-btn pc-btn-amarillo" onClick={irRegistro}>{t.registro}</button>
               </>
             )}
           </div>
@@ -318,7 +329,7 @@ export default function LandingPage({
           <div className="pc-menu-acciones">
             {isUserLoggedIn
               ? <button className="pc-btn pc-btn-amarillo" onClick={irPanel}>{t.panel}</button>
-              : <button className="pc-btn pc-btn-amarillo" onClick={irInicio}>{t.registro}</button>}
+              : <button className="pc-btn pc-btn-amarillo" onClick={irRegistro}>{t.registro}</button>}
           </div>
         </div>
       )}
@@ -516,9 +527,9 @@ export default function LandingPage({
       <PiePopCar
         lema={t.lemaPie}
         derechos={t.derechos}
-        onLogo={irInicio}
+        onLogo={irArriba}
         columnas={[
-          { titulo: t.pie.comprar[0],   enlaces: t.pie.comprar[1].map((x, i)   => ({ texto: x, onClick: [irComprar, irOfertas, irInicio][i] })) },
+          { titulo: t.pie.comprar[0],   enlaces: t.pie.comprar[1].map((x, i)   => ({ texto: x, onClick: [irComprar, irOfertas, irAsesor][i] })) },
           { titulo: t.pie.vender[0],    enlaces: t.pie.vender[1].map((x)       => ({ texto: x, onClick: irVender })) },
           { titulo: t.pie.gestionar[0], enlaces: t.pie.gestionar[1].map((x)    => ({ texto: x, onClick: irGestionar })) },
           { titulo: t.pie.idcar[0],     enlaces: t.pie.idcar[1].map((x)        => ({ texto: x, onClick: irGestionar })) },

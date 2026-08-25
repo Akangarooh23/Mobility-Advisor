@@ -6057,6 +6057,13 @@ export default function App() {
           onSelectEmpresas={() => openPublicPage("empresas")}
           onSelectAbout={goToAboutHeaderPage}
           onSelectContact={() => openPublicPage("contact")}
+          // El home esconde la cabecera de la aplicacion y pinta la suya, asi que
+          // sus botones de sesion necesitan su propio manejador. Se abre el
+          // dialogo, que se pinta fuera de la cabecera y por eso si se ve aqui;
+          // el menu desplegable de la cabecera no serviria. Sin destino: entrar
+          // desde el home devuelve al home, no a un flujo.
+          onEntrar={() => openAuthDialog("login")}
+          onRegistro={() => openAuthDialog("register")}
           styles={s}
           totalSteps={totalSteps}
           blockColors={BLOCK_COLORS}

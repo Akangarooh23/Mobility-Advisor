@@ -110,3 +110,36 @@ test("montar dos veces no duplica disparadores", () => {
   expect(ScrollTrigger.getAll()).toHaveLength(tras);
   segunda.unmount();
 });
+
+test("cada bloque abre con sus tres puertas de entrada", () => {
+  // Es lo primero que ve el usuario: por dónde entrar según dónde esté. Si se
+  // pierden, la página vuelve a decidir por él.
+  const { container } = montar();
+  const comprar = [...container.querySelectorAll("#comprar .cf-camino strong")].map((n) => n.textContent);
+  expect(comprar).toEqual([
+    "Sé qué modelo quiero", "Dudo entre varios", "No sé qué me conviene",
+  ]);
+  const vender = [...container.querySelectorAll("#vender .cf-camino strong")].map((n) => n.textContent);
+  expect(vender).toEqual([
+    "Saber lo que vale hoy", "Venderlo por mi cuenta", "Que lo vendáis vosotros",
+  ]);
+});
+
+test("no promete publicar el coche en un marketplace", () => {
+  /* La tercera tarjeta de la web de vender dice «publica tu coche en nuestro
+     Marketplace para particulares», pero ese flujo no existe: su botón lleva a
+     crear el IdCar. Aquí se cuenta lo que pasa de verdad. */
+  const { container } = montar();
+  expect(container.textContent).not.toMatch(/marketplace/i);
+  expect(screen.getByText("Documentarlo con IdCar")).toBeInTheDocument();
+});
+
+test("gestionar enseña primero el IdCar y después lo que se hace con él", () => {
+  // Sin ficha no hay avisos, ni cita, ni historial. Enseñarlos antes sería
+  // contarlo al revés.
+  const { container } = montar();
+  const gestionar = container.querySelector("#gestionar");
+  const orden = [...gestionar.querySelectorAll(".cf-idcar-lleno, .cf-servicio")];
+  expect(orden[0]).toHaveClass("cf-idcar-lleno");
+  expect(orden).toHaveLength(5);
+});

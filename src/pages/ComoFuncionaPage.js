@@ -29,6 +29,28 @@ gsap.registerPlugin(ScrollTrigger);
 /** Informe de mercado del Golf 2020-2022, contado en la base el 26/08/2026. */
 const MERCADO = { unidades: 2638, media: 20739, desde: 16900, hasta: 22690 };
 
+/**
+ * Las tres puertas de entrada de cada bloque, con lo que hay detras de verdad.
+ *
+ * En comprar las tres existen y funcionan. En vender, dos: el informe de
+ * mercado y la venta gestionada. La tercera tarjeta de la web dice «publica tu
+ * coche en nuestro Marketplace para particulares», pero ese flujo no existe en
+ * ninguna parte —su boton lleva a crear el IdCar—, asi que aqui se cuenta lo
+ * que pasa: documentas el coche para venderlo por tu cuenta.
+ */
+const CAMINOS = {
+  comprar: [
+    { id: "claro", titulo: "Sé qué modelo quiero", destino: "Buscar coche" },
+    { id: "dudo", titulo: "Dudo entre varios", destino: "Comparador" },
+    { id: "nose", titulo: "No sé qué me conviene", destino: "Test PopCar" },
+  ],
+  vender: [
+    { id: "precio", titulo: "Saber lo que vale hoy", destino: "Informe de mercado" },
+    { id: "yo", titulo: "Venderlo por mi cuenta", destino: "Documentarlo con IdCar" },
+    { id: "vosotros", titulo: "Que lo vendáis vosotros", destino: "Venta gestionada" },
+  ],
+};
+
 /** Los seis datos que pide el formulario de venta, en su orden. */
 const DATOS_VENTA = [
   { etiqueta: "Matrícula", valor: "1234 KLM" },
@@ -110,13 +132,33 @@ export default function ComoFuncionaPage({ onGoHome }) {
            El scroll del bloque mueve el embudo: medio millón de ofertas,
            siete filtros y las que quedan, con sus fichas reales. La
            transformación la hace la escena; aquí solo se le dice por dónde va. */
-        ScrollTrigger.create({
-          trigger: "#comprar",
-          start: "top top",
-          end: "bottom bottom",
-          scrub: 0.5,
-          onUpdate: (self) => { embudo.current?.(self.progress); },
+        const ARRANQUE = 0.3;   // lo que ocupan las tres puertas antes del embudo
+
+        const comprar = gsap.timeline({
+          scrollTrigger: {
+            trigger: "#comprar",
+            start: "top top",
+            end: "bottom bottom",
+            scrub: 0.5,
+            onUpdate: (self) => {
+              // El embudo no arranca hasta que las tres puertas han salido: son
+              // dos ideas distintas y pisarlas a la vez no deja leer ninguna.
+              const p = self.progress;
+              embudo.current?.(p <= ARRANQUE ? 0 : (p - ARRANQUE) / (1 - ARRANQUE));
+            },
+          },
         });
+        gsap.utils.toArray("#comprar .cf-camino").forEach((c, i) => {
+          comprar.fromTo(c,
+            { autoAlpha: 0, y: 24 },
+            { autoAlpha: 1, y: 0, ease: "none", duration: 0.06 },
+            0.02 + i * 0.06);
+        });
+        comprar
+          // Las puertas se retiran arriba y el embudo ocupa su sitio: se entra
+          // por una de las tres, pero detrás pasa lo mismo en las tres.
+          .to("#comprar .cf-caminos", { autoAlpha: 0, y: -26, ease: "none", duration: 0.08 }, ARRANQUE - 0.04)
+          .fromTo(".cf-embudo", { autoAlpha: 0 }, { autoAlpha: 1, ease: "none", duration: 0.08 }, ARRANQUE - 0.02);
 
         /* ── 02 Vender ────────────────────────────────────────────────────
            Los seis datos entran uno a uno, la ficha se retira y en su sitio se
@@ -124,13 +166,17 @@ export default function ComoFuncionaPage({ onGoHome }) {
         const vender = gsap.timeline({
           scrollTrigger: { trigger: "#vender", start: "top top", end: "bottom bottom", scrub: 0.6 },
         });
+        gsap.utils.toArray("#vender .cf-camino").forEach((c, i) => {
+          vender.fromTo(c, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, ease: "none", duration: 0.06 }, 0.02 + i * 0.06);
+        });
+        vender.to("#vender .cf-caminos", { autoAlpha: 0, y: -26, ease: "none", duration: 0.07 }, 0.26);
         gsap.utils.toArray("#vender .cf-dato").forEach((dato, i) => {
-          vender.fromTo(dato, { autoAlpha: 0, y: 26 }, { autoAlpha: 1, y: 0, ease: "none", duration: 0.06 }, 0.04 + i * 0.055);
+          vender.fromTo(dato, { autoAlpha: 0, y: 26 }, { autoAlpha: 1, y: 0, ease: "none", duration: 0.05 }, 0.32 + i * 0.04);
         });
         vender
-          .fromTo(".cf-informe", { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, ease: "none", duration: 0.1 }, 0.44)
-          .fromTo(".cf-barra i", { scaleX: 0 }, { scaleX: 1, ease: "none", duration: 0.22 }, 0.52)
-          .to(".cf-ficha-venta", { y: -26, scale: 0.94, ease: "none", duration: 0.3 }, 0.55);
+          .fromTo(".cf-informe", { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, ease: "none", duration: 0.09 }, 0.58)
+          .fromTo(".cf-barra i", { scaleX: 0 }, { scaleX: 1, ease: "none", duration: 0.18 }, 0.64)
+          .to(".cf-ficha-venta", { y: -26, scale: 0.94, ease: "none", duration: 0.24 }, 0.66);
         gsap.utils.toArray("#vender .cf-comparable").forEach((b, i) => {
           vender.fromTo(b, { autoAlpha: 0, scale: 0.8 }, { autoAlpha: 1, scale: 1, ease: "none", duration: 0.08 }, 0.6 + i * 0.05);
         });
@@ -141,15 +187,20 @@ export default function ComoFuncionaPage({ onGoHome }) {
         const gestionar = gsap.timeline({
           scrollTrigger: { trigger: "#gestionar", start: "top top", end: "bottom bottom", scrub: 0.6 },
         });
+        /* Primero el IdCar y después lo que se puede hacer con él: es el orden
+           en que ocurre de verdad. Sin ficha no hay avisos, ni cita, ni
+           historial, y enseñarlos antes sería contarlo al revés. */
+        gestionar
+          .fromTo(".cf-idcar-lleno", { autoAlpha: 0, y: 30, scale: 0.94 }, { autoAlpha: 1, y: 0, scale: 1, ease: "none", duration: 0.1 }, 0.02);
+        gsap.utils.toArray("#gestionar .cf-idcar-adjuntos li").forEach((a, i) => {
+          gestionar.fromTo(a, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, ease: "none", duration: 0.04 }, 0.14 + i * 0.035);
+        });
         gsap.utils.toArray("#gestionar .cf-servicio").forEach((s, i) => {
           gestionar.fromTo(s,
-            { autoAlpha: 0, scale: 0.86, x: i % 2 ? 60 : -60 },
-            { autoAlpha: 1, scale: 1, x: 0, ease: "none", duration: 0.12 },
-            0.06 + i * 0.13);
+            { autoAlpha: 0, scale: 0.86, x: i % 2 ? 70 : -70 },
+            { autoAlpha: 1, scale: 1, x: 0, ease: "none", duration: 0.11 },
+            0.4 + i * 0.13);
         });
-        gestionar
-          .fromTo(".cf-idcar-lleno", { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, ease: "none", duration: 0.14 }, 0.62)
-          .to("#gestionar .cf-servicio", { scale: 0.82, autoAlpha: 0.4, ease: "none", duration: 0.16 }, 0.74);
 
         /* ── Profundidad ──────────────────────────────────────────────────
            El rótulo sube más que la escena. Deja claro quién manda: la escena
@@ -203,7 +254,20 @@ export default function ComoFuncionaPage({ onGoHome }) {
             <p className="cf-apoyo">Todo el mercado, hasta los que encajan contigo.</p>
           </div>
           <div className="cf-escena">
-            <EscenaMercado registrar={registrarEmbudo} indice={0} />
+            {/* Las tres puertas primero: se entra por donde uno está, no por
+                donde le digan. Después el embudo, que es lo que pasa detrás de
+                cualquiera de las tres. */}
+            <ul className="cf-caminos">
+              {CAMINOS.comprar.map((c) => (
+                <li className={`cf-camino cf-camino-${c.id}`} key={c.id}>
+                  <strong>{c.titulo}</strong>
+                  <small>{c.destino}</small>
+                </li>
+              ))}
+            </ul>
+            <div className="cf-embudo">
+              <EscenaMercado registrar={registrarEmbudo} indice={0} />
+            </div>
           </div>
         </div>
       </section>
@@ -219,6 +283,15 @@ export default function ComoFuncionaPage({ onGoHome }) {
           </div>
 
           <div className="cf-escena cf-escena-venta">
+            <ul className="cf-caminos">
+              {CAMINOS.vender.map((c) => (
+                <li className={`cf-camino cf-camino-${c.id}`} key={c.id}>
+                  <strong>{c.titulo}</strong>
+                  <small>{c.destino}</small>
+                </li>
+              ))}
+            </ul>
+
             <div className="cf-ficha-venta">
               <p className="cf-ficha-titulo">Tu coche</p>
               <dl className="cf-datos">
@@ -264,16 +337,6 @@ export default function ComoFuncionaPage({ onGoHome }) {
           </div>
 
           <div className="cf-escena cf-escena-servicios">
-            {SERVICIOS.map((s) => (
-              <article className={`cf-servicio cf-servicio-${s.id}`} key={s.id}>
-                <span className="cf-servicio-icono"><Icono nombre={s.icono} /></span>
-                <span className="cf-servicio-texto">
-                  <strong>{s.titulo}</strong>
-                  <small>{s.pie}</small>
-                </span>
-              </article>
-            ))}
-
             <div className="cf-idcar-lleno">
               <p className="cf-ficha-titulo">IdCar</p>
               <p className="cf-idcar-resumen">Volkswagen Golf · 1234 KLM</p>
@@ -285,6 +348,16 @@ export default function ComoFuncionaPage({ onGoHome }) {
                 <li><b>6</b> facturas</li>
               </ul>
             </div>
+
+            {SERVICIOS.map((s) => (
+              <article className={`cf-servicio cf-servicio-${s.id}`} key={s.id}>
+                <span className="cf-servicio-icono"><Icono nombre={s.icono} /></span>
+                <span className="cf-servicio-texto">
+                  <strong>{s.titulo}</strong>
+                  <small>{s.pie}</small>
+                </span>
+              </article>
+            ))}
           </div>
         </div>
       </section>

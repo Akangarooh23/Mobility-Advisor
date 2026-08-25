@@ -518,6 +518,9 @@
 
 .cf-anuncio {
   position: relative;
+  width: 100%;
+  max-width: 290px;
+  justify-self: end;
   background: var(--blanco);
   border: 1px solid var(--gris-200);
   border-radius: 16px;
@@ -539,11 +542,13 @@
   padding: 4px 10px;
 }
 .cf-anuncio-foto {
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 4 / 3;
   border-radius: 10px;
+  overflow: hidden;
   background: linear-gradient(140deg, var(--gris-100), var(--gris-200));
   margin-bottom: 10px;
 }
+.cf-anuncio-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .cf-anuncio-titulo { margin: 0; font-size: 14px; font-weight: 800; letter-spacing: -0.02em; }
 .cf-anuncio-datos { margin: 2px 0 0; font-size: 11px; color: var(--gris-500); }
 .cf-anuncio-precio {
@@ -597,7 +602,15 @@
   padding: 3px 7px;
 }
 
-.cf-escena-venta { position: relative; flex: 1; min-height: 0; }
+/* La ficha y el informe, uno al lado del otro. Antes el informe iba suelto en
+   coordenadas y con el acto más alto se quedaba descolgado a media escena. */
+.cf-escena-venta {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+}
 .cf-ficha-fuente {
   margin: 12px 0 0;
   padding-top: 10px;
@@ -618,7 +631,8 @@
 .cf-ficha-venta {
   position: relative;
   z-index: 2;
-  width: min(360px, 100%);
+  width: 100%;
+  max-width: 360px;
   background: var(--blanco);
   border: 1px solid var(--gris-200);
   border-radius: 18px;
@@ -636,11 +650,11 @@
 .cf-dato dd { margin: 2px 0 0; font-size: 14px; font-weight: 700; }
 
 .cf-informe {
-  position: absolute;
-  right: 0;
-  top: 6%;
+  position: relative;
   z-index: 3;
-  width: min(310px, 92%);
+  justify-self: end;
+  width: 100%;
+  max-width: 340px;
   background: var(--blanco);
   border: 1px solid var(--gris-200);
   border-radius: 18px;
@@ -694,23 +708,28 @@
   color: var(--gris-500);
 }
 
+/* Los anuncios con los que se compara, juntos y con su rótulo. Sueltos por la
+   escena parecían cuatro números a los que les faltaba algo. */
+.cf-comparables { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.cf-comparables ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+.cf-comparables-etq {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gris-400);
+}
 .cf-comparable {
-  position: absolute;
-  z-index: 1;
   background: var(--blanco);
   border: 1px solid var(--gris-200);
   border-radius: 999px;
-  padding: 8px 14px;
+  padding: 7px 13px;
   font-size: 12px;
   font-weight: 700;
   color: var(--gris-600);
-  box-shadow: 0 14px 34px -18px rgba(0, 0, 0, 0.24);
+  box-shadow: 0 14px 34px -22px rgba(0, 0, 0, 0.24);
   font-variant-numeric: tabular-nums;
 }
-.cf-comparable-1 { left: 4%; top: 2%; }
-.cf-comparable-2 { right: 34%; bottom: 6%; }
-.cf-comparable-3 { left: 30%; bottom: 0; }
-.cf-comparable-4 { right: 6%; bottom: 26%; }
 
 /* ── 03 Gestionar ─────────────────────────────────────────────────────── */
 .cf-escena-servicios { min-height: clamp(340px, 54svh, 480px); }
@@ -841,9 +860,12 @@
   .cf-fijo { align-content: center; gap: 20px; padding-top: 76px; padding-bottom: 40px; }
   .cf-rotulo h2 { font-size: clamp(34px, 8vw, 52px); }
   .cf-apoyo { display: none; }
-  .cf-informe { position: relative; right: auto; top: auto; margin-top: 16px; width: 100%; }
-  .cf-escena-venta { min-height: 0; }
-  .cf-comparable { display: none; }
+  .cf-informe { max-width: none; justify-self: stretch; margin-top: 4px; }
+  .cf-escena-venta { grid-template-columns: 1fr; gap: 12px; }
+  .cf-ficha-venta { max-width: none; }
+  .cf-anuncio { max-width: none; justify-self: stretch; }
+  /* La fila de comparables se cae: en un movil ya hay bastante con la cifra. */
+  .cf-comparables { display: none; }
   .cf-caminos { position: relative; inset: auto; margin-bottom: 14px; }
   .cf-camino { padding: 14px 16px; }
   .cf-servicio { position: relative; inset: auto; margin-bottom: 8px; }
@@ -866,6 +888,5 @@
   /* El prólogo y las tres puertas ya no se relevan: se leen uno debajo del otro. */
   .cf-cabecera { grid-template-rows: auto auto; gap: 16px; }
   .cf-cabecera > * { grid-area: auto; }
-  .cf-escena-venta { min-height: clamp(360px, 56svh, 500px); }
   .cf-requisito { --hecho: 1; }
 }

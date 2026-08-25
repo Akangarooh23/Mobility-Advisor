@@ -8,7 +8,7 @@
  * desaparece en un retoque de copy.
  */
 import React from "react";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ComoFuncionaPage from "./ComoFuncionaPage";
 
@@ -175,6 +175,32 @@ test("publicar pide las tres cosas que pide la aplicación", () => {
     "El informe de estado terminado",
     "Al menos una franja horaria",
   ]);
+});
+
+test("los comparables van juntos y con su rótulo", () => {
+  /* Sueltos por la escena eran cuatro precios a los que les faltaba algo: no
+     decían de qué eran. El rótulo es lo que los convierte en información. */
+  const { container } = montar();
+  expect(container.querySelector("#vender .cf-comparables-etq").textContent).toBe("Anuncios parecidos hoy");
+  expect(container.querySelectorAll("#vender .cf-comparable")).toHaveLength(4);
+});
+
+test("el anuncio publicado enseña una foto de verdad", async () => {
+  // Sin foto no parece un anuncio, parece un hueco. Sale del mismo buscador que
+  // las ofertas del embudo.
+  global.fetch = jest.fn(() =>
+    Promise.resolve({
+      json: () => Promise.resolve({
+        ok: true,
+        total: 20,
+        ofertas: [{ id: "x", image: "https://ejemplo.test/golf.jpg", brand: "Volkswagen", model: "Golf" }],
+      }),
+    })
+  );
+  const { container } = montar();
+  await waitFor(() => {
+    expect(container.querySelector("#vender .cf-anuncio-foto img")).toBeInTheDocument();
+  });
 });
 
 test("la venta gestionada enseña sus cuatro pasos y los portales", () => {

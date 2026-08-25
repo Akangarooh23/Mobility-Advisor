@@ -1,7 +1,8 @@
-import React, { useCallback, useLayoutEffect, useRef } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import EscenaMercado from "../components/historia/EscenaMercado";
+import { SEARCH_OFFERS_API_ENDPOINT } from "../utils/apiClient";
 import "./ComoFuncionaPage.css";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -28,6 +29,8 @@ gsap.registerPlugin(ScrollTrigger);
 
 /** Informe de mercado del Golf 2020-2022, contado en la base el 26/08/2026. */
 const MERCADO = { unidades: 2638, media: 20739, desde: 16900, hasta: 22690 };
+/** Cuatro anuncios del mismo tramo, para ver el precio medio en su contexto. */
+const COMPARABLES = [16950, 18400, 21900, 22500];
 
 /**
  * Las tres puertas de entrada de cada bloque, con lo que hay detras de verdad.
@@ -209,6 +212,9 @@ function Icono({ nombre }) {
   return (<svg {...comun}><path d="M12 3l7 3v5.5c0 4.3-3 8.2-7 9.5-4-1.3-7-5.2-7-9.5V6l7-3Z" /></svg>);
 }
 
+/** El coche del ejemplo, para pedir su foto al mismo sitio que las ofertas. */
+const CONSULTA_ANUNCIO = "brand=Volkswagen&model=Golf&fuel=Gasolina&minYear=2021&limit=1";
+
 export default function ComoFuncionaPage({ onGoHome }) {
   const raiz = useRef(null);
   const embudo = useRef(null);
@@ -216,6 +222,24 @@ export default function ComoFuncionaPage({ onGoHome }) {
   // La escena del mercado se mueve por referencia: su avance cambia en cada
   // fotograma y no puede pasar por el estado de React.
   const registrarEmbudo = useCallback((_, fn) => { embudo.current = fn; }, []);
+
+  /* La foto del anuncio sale del buscador, como las del embudo. Un Golf de
+     verdad, no un rectángulo gris: el anuncio publicado es lo que se enseña en
+     ese acto y sin foto no parece un anuncio. Si la llamada falla se queda el
+     hueco, que es lo que había antes. */
+  const [fotoAnuncio, setFotoAnuncio] = useState("");
+  useEffect(() => {
+    let vivo = true;
+    fetch(`${SEARCH_OFFERS_API_ENDPOINT}?${CONSULTA_ANUNCIO}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (!vivo || !d?.ok) return;
+        const foto = d.ofertas?.[0]?.image;
+        if (foto) setFotoAnuncio(foto);
+      })
+      .catch(() => {});
+    return () => { vivo = false; };
+  }, []);
 
   useLayoutEffect(() => {
     const el = raiz.current;
@@ -732,10 +756,16 @@ export default function ComoFuncionaPage({ onGoHome }) {
                     <p className="cf-limite">Información de mercado. PopCar no tasa tu coche.</p>
                   </div>
 
-                  <span className="cf-comparable cf-comparable-1">18.400 €</span>
-                  <span className="cf-comparable cf-comparable-2">21.900 €</span>
-                  <span className="cf-comparable cf-comparable-3">16.950 €</span>
-                  <span className="cf-comparable cf-comparable-4">22.500 €</span>
+                </div>
+
+                {/* Antes eran cuatro precios sueltos flotando por la escena, sin
+                    nada que dijera de qué eran. Ahora van juntos y con su
+                    rótulo: son los anuncios con los que se compara. */}
+                <div className="cf-comparables">
+                  <span className="cf-comparables-etq">Anuncios parecidos hoy</span>
+                  <ul>
+                    {COMPARABLES.map((p) => <li className="cf-comparable" key={p}>{num(p)} €</li>)}
+                  </ul>
                 </div>
               </div>
 
@@ -757,7 +787,9 @@ export default function ComoFuncionaPage({ onGoHome }) {
                   </ul>
                   <article className="cf-anuncio">
                     <p className="cf-anuncio-estado">Publicado</p>
-                    <div className="cf-anuncio-foto" aria-hidden="true" />
+                    <div className="cf-anuncio-foto">
+                      {fotoAnuncio ? <img src={fotoAnuncio} alt="" loading="lazy" /> : null}
+                    </div>
                     <p className="cf-anuncio-titulo">Volkswagen Golf</p>
                     <p className="cf-anuncio-datos">1.5 TSI Life · 2021 · 48.300 km</p>
                     <p className="cf-anuncio-precio">19.900 €</p>

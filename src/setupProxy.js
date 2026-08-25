@@ -1,5 +1,6 @@
 const analyzeHandler = require("../api/analyze");
 const compareCarsHandler = require("../api/compare-cars");
+const searchOffersHandler = require("../api/search-offers");
 const findListingHandler = require("../api/find-listing");
 const sendAlertEmailHandler = require("../api/send-alert-email");
 const authHandler = require("../api/auth");
@@ -46,6 +47,16 @@ module.exports = function setupProxy(app) {
         });
       }
     });
+  });
+
+  // Este va por GET: los filtros viajan en la direccion, para que una busqueda
+  // se pueda compartir y volver atras funcione.
+  app.get("/api/search-offers", async (req, res) => {
+    try {
+      await searchOffersHandler(req, res);
+    } catch (error) {
+      res.status(500).json({ ok: false, error: error?.message || "Local API proxy error" });
+    }
   });
 
   app.get("/api/auth-status", async (req, res) => {

@@ -1,0 +1,131 @@
+/**
+ * Comprar › Buscar coche. Los colores salen de los tokens.
+ */
+
+.bc-root {
+  background: var(--blanco);
+  color: var(--gris-900);
+  font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  padding: 34px 20px 90px;
+}
+.bc-ancho { max-width: 1240px; margin: 0 auto; }
+
+.bc-volver {
+  background: var(--gris-50); border: 1px solid var(--gris-200); color: var(--gris-700);
+  border-radius: 10px; padding: 8px 14px; font-size: 13px; cursor: pointer; margin-bottom: 24px;
+}
+.bc-volver:hover { border-color: var(--gris-400); }
+.bc-eyebrow { margin: 0 0 10px; font-size: 12px; font-weight: 700; letter-spacing: .16em; color: var(--gris-400); }
+.bc-titulo { margin: 0 0 12px; font-size: clamp(28px, 3.8vw, 40px); font-weight: 800; letter-spacing: -.035em; }
+.bc-entrada { margin: 0 0 30px; font-size: 16px; line-height: 1.6; color: var(--gris-600); max-width: 66ch; }
+
+.bc-columnas { display: grid; grid-template-columns: 272px 1fr; gap: 26px; align-items: start; }
+
+/* ── Filtros ─────────────────────────────────────────────────────────────── */
+.bc-filtros {
+  position: sticky; top: 20px;
+  border: 1px solid var(--gris-200); border-radius: 18px; padding: 20px 18px; background: var(--gris-50);
+}
+.bc-filtros-cabecera { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
+.bc-filtros-cabecera h2 { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
+.bc-filtros-cabecera button {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  font-size: 12px; color: var(--gris-500); text-decoration: underline;
+}
+.bc-filtros-cabecera button:hover { color: var(--gris-900); }
+
+.bc-campo { display: grid; gap: 6px; margin-bottom: 14px; }
+.bc-campo > span { font-size: 12px; font-weight: 600; color: var(--gris-700); }
+.bc-campo select, .bc-campo input, .bc-rango input, .bc-orden select {
+  font: inherit; font-size: 13.5px; font-weight: 400; color: var(--gris-900);
+  background: var(--blanco); border: 1px solid var(--gris-300); border-radius: 10px;
+  padding: 10px 11px; outline: none; width: 100%;
+  transition: border-color .18s, box-shadow .18s;
+}
+.bc-campo select:focus, .bc-campo input:focus, .bc-rango input:focus, .bc-orden select:focus {
+  border-color: var(--acento); box-shadow: 0 0 0 3px rgba(255, 196, 0, .28);
+}
+.bc-campo select:disabled { background: var(--gris-100); color: var(--gris-400); cursor: not-allowed; }
+
+.bc-rango { display: grid; gap: 6px; margin-bottom: 14px; }
+.bc-rango > span { font-size: 12px; font-weight: 600; color: var(--gris-700); }
+.bc-rango > div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.bc-mas {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 7px;
+  background: var(--blanco); border: 1px solid var(--gris-300); border-radius: 10px;
+  padding: 10px; font-size: 13px; font-weight: 700; color: var(--gris-800); cursor: pointer;
+  margin-top: 4px; transition: border-color .18s, background .18s;
+}
+.bc-mas:hover { border-color: var(--gris-900); }
+.bc-mas-panel { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--gris-200); }
+
+/* ── Resultados ──────────────────────────────────────────────────────────── */
+.bc-barra {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  flex-wrap: wrap; margin-bottom: 16px;
+}
+.bc-total { margin: 0; font-size: 14px; color: var(--gris-600); }
+.bc-total b { font-size: 19px; font-weight: 800; color: var(--gris-900); letter-spacing: -.02em; }
+.bc-orden { display: flex; align-items: center; gap: 9px; }
+.bc-orden > span { font-size: 12.5px; color: var(--gris-600); white-space: nowrap; }
+.bc-orden select { width: auto; min-width: 200px; }
+
+.bc-error { margin: 0 0 16px; font-size: 13.5px; color: #A32D2D; font-weight: 600; }
+.bc-vacio {
+  border: 1px dashed var(--gris-300); border-radius: 16px; padding: 40px 24px; text-align: center;
+}
+.bc-vacio b { display: block; font-size: 16px; margin-bottom: 6px; }
+.bc-vacio span { font-size: 13.5px; color: var(--gris-500); }
+
+.bc-rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+.bc-oferta {
+  border: 1px solid var(--gris-200); border-radius: 16px; overflow: hidden; background: var(--blanco);
+  display: flex; flex-direction: column;
+  transition: transform .2s, box-shadow .2s, border-color .2s;
+}
+.bc-oferta:hover { transform: translateY(-3px); border-color: var(--gris-300); box-shadow: 0 16px 34px -18px rgba(0,0,0,.24); }
+
+.bc-foto { position: relative; aspect-ratio: 4 / 3; background: var(--gris-100); }
+.bc-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.bc-sinfoto { width: 100%; height: 100%; background: linear-gradient(135deg, var(--gris-100), var(--gris-200)); }
+.bc-portal {
+  position: absolute; left: 10px; bottom: 10px;
+  background: rgba(17,17,17,.82); color: var(--blanco);
+  border-radius: 999px; padding: 4px 10px; font-size: 10.5px; font-weight: 700; text-transform: capitalize;
+}
+
+.bc-cuerpo { padding: 14px 15px 15px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.bc-cuerpo h3 { margin: 0; font-size: 15.5px; font-weight: 800; letter-spacing: -.015em; }
+.bc-version {
+  margin: 0; font-size: 12px; color: var(--gris-500); line-height: 1.4;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.bc-datos { margin: 0; font-size: 12px; color: var(--gris-600); line-height: 1.45; }
+.bc-pie {
+  margin-top: auto; padding-top: 10px; display: flex; align-items: flex-end;
+  justify-content: space-between; gap: 10px; flex-wrap: wrap;
+}
+.bc-precio b { display: block; font-size: 19px; font-weight: 800; letter-spacing: -.025em; }
+.bc-precio small { font-size: 11.5px; color: var(--gris-500); }
+.bc-pie a {
+  font-size: 12px; font-weight: 700; color: var(--gris-900);
+  border-bottom: 2px solid var(--acento); text-decoration: none; padding-bottom: 1px; white-space: nowrap;
+}
+.bc-pie a:hover { border-bottom-color: var(--gris-900); }
+.bc-provincia { margin: 0; font-size: 11.5px; color: var(--gris-400); }
+
+.bc-cargando { margin: 20px 0 0; font-size: 13.5px; color: var(--gris-500); text-align: center; }
+.bc-verMas {
+  display: block; margin: 26px auto 0;
+  background: var(--gris-900); color: var(--blanco); border: 1px solid var(--gris-900);
+  border-radius: 999px; padding: 13px 32px; font-size: 14.5px; font-weight: 700; cursor: pointer;
+  transition: background .18s;
+}
+.bc-verMas:hover { background: #000; }
+
+@media (max-width: 900px) {
+  .bc-columnas { grid-template-columns: 1fr; }
+  .bc-filtros { position: static; }
+  .bc-orden select { min-width: 0; }
+}

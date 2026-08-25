@@ -28,6 +28,10 @@
       "destination": "/api/market?route=vo"
     },
     {
+      "source": "/api/search-offers",
+      "destination": "/api/search-offers"
+    },
+    {
       "source": "/api/import-offers",
       "destination": "/api/market?route=import"
     },

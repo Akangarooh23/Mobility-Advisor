@@ -39,6 +39,7 @@ import AboutCarswisePage from "./pages/AboutCarswisePage";
 import ContactCarswisePage from "./pages/ContactCarswisePage";
 import EmpresasPage from "./pages/EmpresasPage";
 import ComparadorPage from "./pages/ComparadorPage";
+import BuscarCochePage from "./pages/BuscarCochePage";
 import BlogIndexPage from "./pages/BlogIndexPage";
 import BlogArticlePage from "./pages/BlogArticlePage";
 import PricingPlansPage from "./pages/PricingPlansPage";
@@ -1213,6 +1214,7 @@ const PUBLIC_ROUTE_BY_ENTRY_MODE = {
   viewingConfirm: "/cita/confirmar",
   empresas: "/empresas",
   comparador: "/comparador",
+  buscarCoche: "/buscar-coche",
   contact: "/contacto",
   legalNotice: "/aviso-legal",
   privacyPolicy: "/politica-privacidad",
@@ -6253,20 +6255,7 @@ export default function App() {
             setEntryMode("consejo");
             setStep(-1);
           }}
-          onSelectKnownModel={() => {
-            setAdvisorContext("buy");
-            setDecisionAnswers({
-              ...createInitialDecisionAnswers(),
-              operation: "comprar",
-              acquisition: "contado",
-              hasBrand: "si",
-              cashBudget: "mas_150000",
-              ageFilter: "all",
-              mileageFilter: "all",
-            });
-            setEntryMode("decision");
-            setStep(-1);
-          }}
+          onSelectKnownModel={() => openPublicPage("buscarCoche")}
           onOpenMarketplace={() => {
             setAdvisorContext("buy");
             setSelectedPortalVoOfferId(null);
@@ -6654,6 +6643,10 @@ export default function App() {
             setStep(-1);
           }}
         />
+      )}
+
+      {step === -1 && entryMode === "buscarCoche" && (
+        <BuscarCochePage onGoBack={() => openPublicPage("buyOptions")} uiLanguage={uiLanguage} />
       )}
 
       {step === -1 && entryMode === "comparador" && (

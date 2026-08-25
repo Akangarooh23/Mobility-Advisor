@@ -5,8 +5,8 @@
  * lista hacia arriba con cientos de opciones. El cambio solo sale a cuenta si
  * lo propio hace todo lo que hacia el nativo, y eso es lo que se comprueba
  * aqui: escribir para filtrar, recorrer con las flechas, Intro, Escape, y que
- * el separador de «Mas marcas» sea un rotulo y no una opcion que se pueda
- * elegir sin querer.
+ * los rotulos de tramo —«Marcas principales», «Mas marcas»— no sean opciones
+ * que se puedan elegir sin querer.
  *
  * Que la lista caiga hacia abajo es cuestion de CSS y no se puede afirmar
  * desde aqui: jsdom no hace maquetacion. Lo que si se afirma es que la lista
@@ -16,6 +16,7 @@ import React from "react";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import { Desplegable } from "./BuscarCochePage";
 
+const PRINCIPALES = [{ nombre: "SEAT", n: 28586 }, { nombre: "Toyota", n: 20397 }];
 const CON = [
   { nombre: "Audi", n: 37442 },
   { nombre: "BMW", n: 37302 },
@@ -23,15 +24,27 @@ const CON = [
 ];
 const SIN = [{ nombre: "Acura", n: 0 }, { nombre: "Zenos", n: 0 }];
 
-function montar(extra = {}) {
-  const onChange = jest.fn();
-  const utils = render(
+const ROTULO_PRINCIPALES = "──── Marcas principales ────";
+const ROTULO_OTRAS = "──── Otras marcas ────";
+const ROTULO_MAS = "──── Más marcas ────";
+
+// 1 de «todas las marcas» + 2 principales + 3 otras + 2 sin ofertas.
+const TOTAL = 8;
+
+function grupos() {
+  return [
+    { separador: ROTULO_PRINCIPALES, opciones: PRINCIPALES },
+    { separador: ROTULO_OTRAS, opciones: CON },
+    { separador: ROTULO_MAS, opciones: SIN },
+  ];
+}
+
+function pintar(extra, onChange) {
+  return (
     <Desplegable
       etiqueta="Marca"
       valor=""
-      conOfertas={CON}
-      sinOfertas={SIN}
-      separador="──── Más marcas ────"
+      grupos={grupos()}
       vacio="Todas las marcas"
       filtrarPh="Escribe para filtrar…"
       nadaCoincide="Nada coincide"
@@ -39,7 +52,12 @@ function montar(extra = {}) {
       {...extra}
     />
   );
-  return { ...utils, onChange, campo: screen.getByRole("combobox") };
+}
+
+function montar(extra = {}) {
+  const onChange = jest.fn();
+  const utils = render(pintar(extra, onChange));
+  return { ...utils, onChange, campo: screen.getByRole("combobox"), pintar };
 }
 
 function abrir() {
@@ -53,28 +71,46 @@ test("cerrado no ensena la lista", () => {
   expect(screen.queryByRole("listbox")).toBeNull();
 });
 
-test("al abrir salen las marcas con ofertas y las de «Mas marcas»", () => {
+test("al abrir salen los tres tramos con sus rotulos", () => {
   abrir();
   const lista = screen.getByRole("listbox");
-  const opciones = within(lista).getAllByRole("option");
-  // 3 con ofertas + 2 sin + la de «todas las marcas».
-  expect(opciones).toHaveLength(6);
-  expect(opciones[0]).toHaveTextContent("Todas las marcas");
-  expect(within(lista).getByText("──── Más marcas ────")).toBeInTheDocument();
+  expect(within(lista).getAllByRole("option")).toHaveLength(TOTAL);
+  expect(within(lista).getByText(ROTULO_PRINCIPALES)).toBeInTheDocument();
+  expect(within(lista).getByText(ROTULO_OTRAS)).toBeInTheDocument();
+  expect(within(lista).getByText(ROTULO_MAS)).toBeInTheDocument();
 });
 
-test("el separador es un rotulo, no una opcion elegible", () => {
+test("las principales van primero y en el orden que se les da", () => {
+  abrir();
+  const opciones = screen.getAllByRole("option");
+  expect(opciones[0]).toHaveTextContent("Todas las marcas");
+  expect(opciones[1]).toHaveTextContent("SEAT");
+  expect(opciones[2]).toHaveTextContent("Toyota");
+  expect(opciones[3]).toHaveTextContent("Audi");
+});
+
+test("los rotulos son rotulos, no opciones elegibles", () => {
   const { onChange } = abrir();
-  const rotulo = screen.getByText("──── Más marcas ────");
-  expect(rotulo).toHaveAttribute("role", "presentation");
-  fireEvent.click(rotulo);
+  for (const texto of [ROTULO_PRINCIPALES, ROTULO_OTRAS, ROTULO_MAS]) {
+    const rotulo = screen.getByText(texto);
+    expect(rotulo).toHaveAttribute("role", "presentation");
+    fireEvent.click(rotulo);
+  }
   expect(onChange).not.toHaveBeenCalled();
+});
+
+test("un tramo que el filtro deja vacio se lleva su rotulo", () => {
+  // Sin esto quedaria un «Otras marcas» presidiendo la nada.
+  const t = abrir();
+  fireEvent.change(t.campo, { target: { value: "seat" } });
+  expect(screen.getByText(ROTULO_PRINCIPALES)).toBeInTheDocument();
+  expect(screen.queryByText(ROTULO_OTRAS)).toBeNull();
+  expect(screen.queryByText(ROTULO_MAS)).toBeNull();
 });
 
 test("la lista vive dentro del campo, que es lo que la ancla debajo", () => {
   const { container } = abrir();
-  const campo = container.querySelector(".bc-combo");
-  expect(campo).toContainElement(screen.getByRole("listbox"));
+  expect(container.querySelector(".bc-combo")).toContainElement(screen.getByRole("listbox"));
 });
 
 test("escribir filtra, y el recuento sigue a la vista", () => {
@@ -93,6 +129,15 @@ test("el filtro no distingue mayusculas ni busca solo por el principio", () => {
   expect(screen.getAllByRole("option")[0]).toHaveTextContent("BMW");
 });
 
+test("el filtro atraviesa los tres tramos a la vez", () => {
+  const t = abrir();
+  fireEvent.change(t.campo, { target: { value: "a" } });
+  const nombres = screen.getAllByRole("option").map((o) => o.textContent);
+  expect(nombres.some((n) => n.startsWith("SEAT"))).toBe(true);   // principales
+  expect(nombres.some((n) => n.startsWith("Audi"))).toBe(true);   // otras
+  expect(nombres.some((n) => n.startsWith("Acura"))).toBe(true);  // sin ofertas
+});
+
 test("sin coincidencias lo dice, y no deja una lista vacia", () => {
   const t = abrir();
   fireEvent.change(t.campo, { target: { value: "zzzz" } });
@@ -102,10 +147,17 @@ test("sin coincidencias lo dice, y no deja una lista vacia", () => {
 
 test("las flechas recorren la lista e Intro elige lo marcado", () => {
   const t = abrir();
-  fireEvent.keyDown(t.campo, { key: "ArrowDown" }); // de «todas» a Audi
-  fireEvent.keyDown(t.campo, { key: "ArrowDown" }); // a BMW
+  fireEvent.keyDown(t.campo, { key: "ArrowDown" }); // de «todas» a SEAT
+  fireEvent.keyDown(t.campo, { key: "ArrowDown" }); // a Toyota
   fireEvent.keyDown(t.campo, { key: "Enter" });
-  expect(t.onChange).toHaveBeenCalledWith("BMW");
+  expect(t.onChange).toHaveBeenCalledWith("Toyota");
+});
+
+test("las flechas cruzan de un tramo al siguiente sin saltarse nada", () => {
+  const t = abrir();
+  for (let i = 0; i < 3; i += 1) fireEvent.keyDown(t.campo, { key: "ArrowDown" });
+  fireEvent.keyDown(t.campo, { key: "Enter" });
+  expect(t.onChange).toHaveBeenCalledWith("Audi"); // la primera del tramo siguiente
 });
 
 test("las flechas tambien alcanzan las marcas sin ofertas", () => {
@@ -148,7 +200,7 @@ test("al cerrar se olvida el filtro escrito", () => {
   fireEvent.change(t.campo, { target: { value: "yud" } });
   fireEvent.keyDown(t.campo, { key: "Escape" });
   fireEvent.focus(t.campo);
-  expect(screen.getAllByRole("option")).toHaveLength(6);
+  expect(screen.getAllByRole("option")).toHaveLength(TOTAL);
 });
 
 test("con la marca elegida se ve su nombre y se puede quitar", () => {
@@ -170,20 +222,7 @@ test("quitar la marca cierra la lista de modelos que estuviera abierta", () => {
   // pantalla sepa representar.
   const t = abrir();
   expect(screen.getByRole("listbox")).toBeInTheDocument();
-  t.rerender(
-    <Desplegable
-      etiqueta="Marca"
-      valor=""
-      conOfertas={CON}
-      sinOfertas={SIN}
-      separador="──── Más marcas ────"
-      vacio="Elige antes una marca"
-      filtrarPh="Escribe para filtrar…"
-      nadaCoincide="Nada coincide"
-      deshabilitado
-      onChange={t.onChange}
-    />
-  );
+  t.rerender(pintar({ deshabilitado: true, vacio: "Elige antes una marca" }, t.onChange));
   expect(screen.queryByRole("listbox")).toBeNull();
 });
 

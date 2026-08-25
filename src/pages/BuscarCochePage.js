@@ -37,6 +37,7 @@ const TEXTOS = {
     limpiar: "Quitar filtros",
     marca: "Marca", modelo: "Modelo",
     todasMarcas: "Todas las marcas", todosModelos: "Todos los modelos",
+    principales: "──── Marcas principales ────", otrasMarcas: "──── Otras marcas ────",
     masMarcas: "──── Más marcas ────", masModelos: "──── Más modelos ────",
     eligeMarca: "Elige antes una marca",
     filtrarPh: "Escribe para filtrar…", nadaCoincide: "Nada coincide",
@@ -65,6 +66,7 @@ const TEXTOS = {
     limpiar: "Clear filters",
     marca: "Make", modelo: "Model",
     todasMarcas: "All makes", todosModelos: "All models",
+    principales: "──── Main makes ────", otrasMarcas: "──── Other makes ────",
     masMarcas: "──── More makes ────", masModelos: "──── More models ────",
     eligeMarca: "Pick a make first",
     filtrarPh: "Type to filter…", nadaCoincide: "No matches",
@@ -113,7 +115,7 @@ function num(n) {
  * no es un anadido: sin eso una lista de 472 nombres no hay quien la use.
  */
 export function Desplegable({
-  etiqueta, valor, conOfertas, sinOfertas, separador, vacio,
+  etiqueta, valor, grupos, vacio,
   deshabilitado, onChange, filtrarPh, nadaCoincide,
 }) {
   const [abierto, setAbierto] = useState(false);
@@ -123,20 +125,27 @@ export function Desplegable({
   const entrada = useRef(null);
   const lista = useRef(null);
 
-  // Las dos mitades —con ofertas y sin ellas— viajan juntas en una sola lista
-  // para que las flechas recorran exactamente lo que se ve, separador incluido.
+  /* Los tramos —principales, otras, y las que no tienen ninguna oferta— viajan
+   * juntos en una sola lista para que las flechas recorran exactamente lo que
+   * ve el ojo. El rotulo de cada tramo va colgado de su primera opcion, asi que
+   * un tramo que el filtro deja vacio se lleva su rotulo con el: no queda un
+   * «Otras marcas» presidiendo la nada. */
   const opciones = useMemo(() => {
     const q = filtro.trim().toLowerCase();
     const pasa = (o) => !q || String(o.nombre).toLowerCase().includes(q);
-    const con = (conOfertas || []).filter(pasa);
-    const sin = (sinOfertas || []).filter(pasa);
 
     const salida = [];
     if (!q) salida.push({ valor: "", texto: vacio, n: null });
-    con.forEach((o) => salida.push({ valor: o.nombre, texto: o.nombre, n: o.n }));
-    sin.forEach((o, i) => salida.push({ valor: o.nombre, texto: o.nombre, n: 0, separa: i === 0 }));
+    for (const grupo of (grupos || [])) {
+      (grupo.opciones || []).filter(pasa).forEach((o, i) => salida.push({
+        valor: o.nombre,
+        texto: o.nombre,
+        n: o.n,
+        separa: i === 0 ? (grupo.separador || null) : null,
+      }));
+    }
     return salida;
-  }, [conOfertas, sinOfertas, filtro, vacio]);
+  }, [grupos, filtro, vacio]);
 
   const cerrar = useCallback(() => {
     setAbierto(false);
@@ -247,7 +256,7 @@ export function Desplegable({
               <React.Fragment key={(o.separa ? "s-" : "c-") + o.valor + "-" + i}>
                 {/* El corte es un rotulo, no una opcion: ni se pulsa ni lo
                     recorren las flechas ni lo anuncia un lector. */}
-                {o.separa ? <li className="bc-combo-sep" role="presentation">{separador}</li> : null}
+                {o.separa ? <li className="bc-combo-sep" role="presentation">{o.separa}</li> : null}
                 <li
                   role="option"
                   aria-selected={o.valor === valor}
@@ -284,7 +293,7 @@ export default function BuscarCochePage({ onGoBack, onOpenOffer, uiLanguage = "e
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
 
-  const [marcas, setMarcas] = useState({ conOfertas: [], sinOfertas: [] });
+  const [marcas, setMarcas] = useState({ principales: [], conOfertas: [], sinOfertas: [] });
   const [modelos, setModelos] = useState({ conOfertas: [], sinOfertas: [] });
   const [extra, setExtra] = useState({ combustible: [], cambio: [], carroceria: [], provincia: [] });
 
@@ -321,7 +330,13 @@ export default function BuscarCochePage({ onGoBack, onOpenOffer, uiLanguage = "e
     const p = parametros({ facets: "brands", brand: "", model: "" });
     fetch(`${SEARCH_OFFERS_API_ENDPOINT}?${p}`)
       .then((r) => r.json())
-      .then((d) => { if (d?.ok) setMarcas({ conOfertas: d.conOfertas || [], sinOfertas: d.sinOfertas || [] }); })
+      .then((d) => {
+        if (d?.ok) setMarcas({
+          principales: d.principales || [],
+          conOfertas: d.conOfertas || [],
+          sinOfertas: d.sinOfertas || [],
+        });
+      })
       .catch(() => {});
   }, [parametros]);
 
@@ -360,6 +375,28 @@ export default function BuscarCochePage({ onGoBack, onOpenOffer, uiLanguage = "e
     [filtros]
   );
 
+  /* Las marcas van en tres tramos: primero las principales, que es una decision
+   * de producto y no un recuento; luego el resto de las que tienen ofertas; y al
+   * final las del catalogo que hoy no tienen ninguna, que se pueden elegir
+   * igual. Los tres, cada uno de la A a la Z. */
+  const gruposMarca = useMemo(() => [
+    { separador: t.principales, opciones: marcas.principales },
+    { separador: t.otrasMarcas, opciones: marcas.conOfertas },
+    { separador: t.masMarcas, opciones: marcas.sinOfertas },
+  ], [marcas, t]);
+
+  const gruposModelo = useMemo(() => [
+    { opciones: modelos.conOfertas },
+    { separador: t.masModelos, opciones: modelos.sinOfertas },
+  ], [modelos, t]);
+
+  // Los demas filtros tienen un solo tramo y ningun rotulo.
+  const gruposExtra = useMemo(() => ({
+    combustible: [{ opciones: extra.combustible }],
+    cambio: [{ opciones: extra.cambio }],
+    carroceria: [{ opciones: extra.carroceria }],
+    provincia: [{ opciones: extra.provincia }],
+  }), [extra]);
 
   return (
     <div className="bc-root">
@@ -383,15 +420,13 @@ export default function BuscarCochePage({ onGoBack, onOpenOffer, uiLanguage = "e
 
             <Desplegable
               etiqueta={t.marca} valor={filtros.brand}
-              conOfertas={marcas.conOfertas} sinOfertas={marcas.sinOfertas}
-              separador={t.masMarcas} vacio={t.todasMarcas}
+              grupos={gruposMarca} vacio={t.todasMarcas}
               filtrarPh={t.filtrarPh} nadaCoincide={t.nadaCoincide}
               onChange={(v) => cambiar("brand", v)}
             />
             <Desplegable
               etiqueta={t.modelo} valor={filtros.model}
-              conOfertas={modelos.conOfertas} sinOfertas={modelos.sinOfertas}
-              separador={t.masModelos}
+              grupos={gruposModelo}
               vacio={filtros.brand ? t.todosModelos : t.eligeMarca}
               deshabilitado={!filtros.brand}
               filtrarPh={t.filtrarPh} nadaCoincide={t.nadaCoincide}
@@ -447,10 +482,10 @@ export default function BuscarCochePage({ onGoBack, onOpenOffer, uiLanguage = "e
                          onChange={(e) => cambiar("minPower", e.target.value.replace(/[^0-9]/g, ""))} />
                 </label>
 
-                <Desplegable etiqueta={t.combustible} valor={filtros.fuel} conOfertas={extra.combustible} vacio={t.cualquiera} onChange={(v) => cambiar("fuel", v)} />
-                <Desplegable etiqueta={t.cambio} valor={filtros.transmission} conOfertas={extra.cambio} vacio={t.cualquiera} onChange={(v) => cambiar("transmission", v)} />
-                <Desplegable etiqueta={t.carroceria} valor={filtros.bodyType} conOfertas={extra.carroceria} vacio={t.cualquiera} onChange={(v) => cambiar("bodyType", v)} />
-                <Desplegable etiqueta={t.provincia} valor={filtros.province} conOfertas={extra.provincia} vacio={t.cualquiera} onChange={(v) => cambiar("province", v)} />
+                <Desplegable etiqueta={t.combustible} valor={filtros.fuel} grupos={gruposExtra.combustible} vacio={t.cualquiera} onChange={(v) => cambiar("fuel", v)} />
+                <Desplegable etiqueta={t.cambio} valor={filtros.transmission} grupos={gruposExtra.cambio} vacio={t.cualquiera} onChange={(v) => cambiar("transmission", v)} />
+                <Desplegable etiqueta={t.carroceria} valor={filtros.bodyType} grupos={gruposExtra.carroceria} vacio={t.cualquiera} onChange={(v) => cambiar("bodyType", v)} />
+                <Desplegable etiqueta={t.provincia} valor={filtros.province} grupos={gruposExtra.provincia} vacio={t.cualquiera} onChange={(v) => cambiar("province", v)} />
               </div>
             )}
           </aside>

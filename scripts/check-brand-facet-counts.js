@@ -39,15 +39,40 @@ function llamar(consulta) {
     process.exit(1);
   }
 
-  const marcas = respuesta.conOfertas;
-  console.log("marcas con ofertas: " + marcas.length);
+  // Los tres tramos se comprueban juntos. Mirar solo `conOfertas` dejaria fuera
+  // precisamente las principales, que son las marcas mas grandes.
+  const principales = respuesta.principales || [];
+  const otras = respuesta.conOfertas || [];
+  const sinOfertas = respuesta.sinOfertas || [];
+  const marcas = [...principales, ...otras].filter((m) => m.n > 0);
+  console.log(
+    "principales: " + principales.length +
+    " · otras: " + otras.length +
+    " · sin ofertas: " + sinOfertas.length +
+    "   (se comprueban " + marcas.length + ")"
+  );
 
-  // Ninguna marca puede salir arriba y otra vez abajo en «Mas marcas».
-  const arriba = new Set(marcas.map((m) => m.nombre.toLowerCase()));
-  const repetidas = respuesta.sinOfertas.filter((m) => arriba.has(m.nombre.toLowerCase()));
-  if (repetidas.length) {
-    console.log("SALEN DOS VECES: " + repetidas.map((m) => m.nombre).join(", "));
+  // Ninguna marca puede salir en dos tramos a la vez.
+  const repetidas = [];
+  const vistas = new Map();
+  for (const [tramo, lista] of [["principales", principales], ["otras", otras], ["sin ofertas", sinOfertas]]) {
+    for (const m of lista) {
+      const k = m.nombre.toLowerCase();
+      if (vistas.has(k)) repetidas.push("«" + m.nombre + "» en " + vistas.get(k) + " y en " + tramo);
+      else vistas.set(k, tramo);
+    }
   }
+  if (repetidas.length) {
+    console.log("SALEN DOS VECES:");
+    repetidas.forEach((r) => console.log("   " + r));
+  }
+
+  const ordenada = (lista) =>
+    lista.every((m, i) => i === 0 ||
+      String(m.nombre).localeCompare(String(lista[i - 1].nombre), "es", { sensitivity: "base" }) >= 0);
+  const desordenados = [["principales", principales], ["otras", otras], ["sin ofertas", sinOfertas]]
+    .filter(([, l]) => !ordenada(l)).map(([n]) => n);
+  if (desordenados.length) console.log("NO VAN DE LA A A LA Z: " + desordenados.join(", "));
 
   // De doce en doce: en serie tarda demasiado y de golpe agota el pool.
   const fallos = [];
@@ -92,7 +117,7 @@ function llamar(consulta) {
   }
   console.log("modelos comprobados en: " + MARCAS_MUESTRA.join(", "));
 
-  if (fallos.length === 0 && repetidas.length === 0 && fallosModelo.length === 0) {
+  if (fallos.length === 0 && repetidas.length === 0 && fallosModelo.length === 0 && desordenados.length === 0) {
     console.log("todas cuadran: el recuento es el numero de ofertas que salen");
     process.exit(0);
   }

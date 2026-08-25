@@ -4357,7 +4357,18 @@ export default function App() {
           padding: "0 24px",
           display: "flex", alignItems: "center", justifyContent: "space-between", height: 56,
         }}>
-          <LogoPopCar size={26} />
+          {/* En los documentos legales el logotipo era solo el dibujo, sin
+              pulsar: la unica salida era el boton de cerrar. Aqui tambien lleva
+              al inicio, como en el resto de la aplicacion. */}
+          <button
+            type="button"
+            onClick={restart}
+            style={{ background: "transparent", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center" }}
+            title="Ir al inicio"
+            aria-label="Ir al inicio"
+          >
+            <LogoPopCar size={26} />
+          </button>
           <button
             type="button"
             onClick={() => { if (window.history.length > 1) { window.history.back(); } else { window.close(); } }}

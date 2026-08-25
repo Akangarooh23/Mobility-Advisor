@@ -91,6 +91,37 @@ test("los filtros se van poniendo uno a uno, sin saltos", () => {
   expect(anterior).toBe(EMBUDO.length - 1);
 });
 
+test("el filtro aparece primero y después cae el número", () => {
+  // Es lo que hace que el chip se lea como la causa y no como un adorno que
+  // sale a la vez. Justo al entrar en el tramo de «Modelo», el chip ya está
+  // puesto y el contador sigue en la cifra que dejó «Marca».
+  const t = montar();
+  const RESPIRO = 0.1;
+  const UTIL = 0.7;
+  const pasos = EMBUDO.length - 1;
+
+  // Apenas dentro del segundo tramo.
+  t.mover(RESPIRO + (1.05 / pasos) * UTIL);
+  expect(puestos()).toBe(2);                        // Marca y Modelo
+  expect(cifra()).toBe("36.310");                   // todavía sin caer
+
+  // Ya pasada la pausa, el número se ha movido.
+  t.mover(RESPIRO + (1.7 / pasos) * UTIL);
+  expect(Number(cifra().replace(/\./g, ""))).toBeLessThan(36310);
+});
+
+test("las fichas no asoman hasta el aterrizaje", () => {
+  // Si aparecieran antes, el viaje de los puntos hasta ellas no se entendería.
+  const t = montar();
+  const bloque = document.querySelector(".em-resultados");
+  t.mover(0.5);
+  expect(Number(bloque.style.opacity)).toBe(0);
+  t.mover(0.9);
+  expect(Number(bloque.style.opacity)).toBe(0);
+  t.mover(1);
+  expect(Number(bloque.style.opacity)).toBeCloseTo(1, 1);
+});
+
 test("al final el texto cambia de mercado a resultados", () => {
   const t = montar();
   t.mover(1);

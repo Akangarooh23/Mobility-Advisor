@@ -6,25 +6,37 @@ import "./EscenaMercado.css";
  * Escena 01 · el mercado reduciéndose.
  *
  * Lo que cuenta: hay medio millón de coches a la venta y casi ninguno es para
- * ti. Cada filtro apaga una parte del mercado, y al final quedan los que
- * encajan.
+ * ti. Cada filtro apaga una parte del mercado, y al final los que quedan se
+ * convierten en las ofertas de verdad.
  *
  * Los números no son de adorno. Salen de contar en la base con estos filtros
- * exactos, en cascada, y el estado final lo devuelve la misma API que usa el
- * buscador: al llegar abajo se piden las ofertas de verdad y se pintan con la
- * tarjeta real del listado. Si el mercado cambia, la escena cambia con él.
+ * exactos, en cascada, y el final lo devuelve la misma API que usa el buscador:
+ * al llegar abajo se piden las ofertas reales y se pintan. Si el mercado cambia,
+ * la escena cambia con él.
  *
  * Los filtros son los que existen en el buscador, con su nombre tal cual:
  * Marca, Modelo, Combustible, Año, Kilómetros como máximo, Provincia y Cambio.
  *
- * Sobre el campo de puntos. Cada punto es una parcela del mercado, no un
- * adorno: se apagan en un orden fijo —cada uno tiene su umbral— así que bajar y
- * subir con el scroll enciende y apaga siempre los mismos, sin parpadeos. Los
- * apagados no desaparecen: se quedan en gris muy claro, porque siguen siendo
- * mercado, solo que no el tuyo. Va en Canvas porque son novecientos puntos
- * repintándose en cada fotograma y el DOM ahí se atraganta.
+ * Tres decisiones sostienen la escena:
  *
- * Nada de esto pasa por el estado de React. El avance llega por `registrar` y se
+ *  - **El filtro provoca la caída.** Dentro del tramo de cada filtro, el primer
+ *    tercio lo dedica a aparecer con el número quieto, y en los dos tercios
+ *    restantes el número baja. Sin esa pausa el número no para nunca y el chip
+ *    parece que sale porque sí, en vez de ser la causa.
+ *
+ *  - **Los puntos acaban siendo los coches.** Durante casi toda la escena cada
+ *    punto es una parcela del mercado y se apagan por proporción. En el último
+ *    tramo dejan de representar proporción y pasan a ser exactamente las ofertas
+ *    que hay: veinte puntos, que vuelan hasta las fichas y se convierten en
+ *    ellas. Ahí es donde el dato abstracto se vuelve un coche que puedes abrir.
+ *
+ *  - **Se apagan en un orden fijo.** Cada punto tiene su sitio en la cola, así
+ *    que subir y bajar con el scroll enciende y apaga siempre los mismos, sin
+ *    parpadeos. Los apagados no desaparecen: quedan en gris claro, porque siguen
+ *    siendo mercado, solo que no el tuyo.
+ *
+ * Va en Canvas porque son novecientos puntos repintándose en cada fotograma. Y
+ * nada de esto pasa por el estado de React: el avance llega por `registrar` y se
  * escribe directamente en el lienzo y en el texto.
  */
 
@@ -47,42 +59,52 @@ const CONSULTA_FINAL =
 
 const PUNTOS = 900;
 const COLUMNAS = 45;
+/** Parte del tramo de cada filtro en la que el chip aparece y el número espera. */
+const PAUSA = 0.32;
 
 const num = (n) => Math.round(n).toLocaleString("es-ES");
+const suave = (t) => t * t * (3 - 2 * t);
+const entre = (a, b, t) => a + (b - a) * t;
 
-/** Umbral fijo por punto: define en qué orden se apagan. Estable entre renders. */
-function sembrarUmbrales(total) {
-  const umbrales = new Array(total);
-  // Congruencial simple: hace falta que sea repartido y siempre igual, no que
-  // sea criptográfico.
+/**
+ * Orden fijo en el que se van apagando los puntos. Repartido pero siempre el
+ * mismo: hace falta que no parpadee al subir y bajar, no que sea criptográfico.
+ */
+function sembrarOrden(total) {
+  const claves = new Array(total);
   let semilla = 20260825;
   for (let i = 0; i < total; i += 1) {
     semilla = (semilla * 1103515245 + 12345) % 2147483648;
-    umbrales[i] = semilla / 2147483648;
+    claves[i] = { i, k: semilla / 2147483648 };
   }
-  return umbrales;
+  claves.sort((a, b) => a.k - b.k);
+  // orden[p] = índice del punto que ocupa la posición p de la cola. Los
+  // primeros son los últimos en apagarse: los supervivientes.
+  return claves.map((c) => c.i);
 }
 
 export default function EscenaMercado({ registrar, indice }) {
   const lienzo = useRef(null);
+  const banda = useRef(null);
   const cifra = useRef(null);
   const pie = useRef(null);
   const chips = useRef([]);
   const bloqueMercado = useRef(null);
   const bloqueResultados = useRef(null);
-  const umbrales = useRef(sembrarUmbrales(PUNTOS));
+  const rejilla = useRef(null);
+  const orden = useRef(sembrarOrden(PUNTOS));
 
   const [ofertas, setOfertas] = useState([]);
   const [totalReal, setTotalReal] = useState(null);
-  // El mismo número que la API acaba de devolver, al alcance del lienzo. Sin
-  // esto el contador terminaría en el 20 de la instantánea mientras la cabecera
-  // de resultados enseña el de hoy, y bastaría una oferta nueva para que la
-  // escena se contradijera a sí misma.
+  // El número que la API acaba de devolver, al alcance del lienzo. Sin esto el
+  // contador terminaría en el 20 de la instantánea mientras la cabecera de
+  // resultados enseña el de hoy.
   const finalVivo = useRef(null);
+  // El avance vive fuera del efecto: cuando llegan las ofertas el efecto se
+  // rehace, y si la memoria estuviera dentro la escena daria un salto al
+  // principio justo cuando termina la llamada.
+  const avanceActual = useRef(0);
 
-  // Las ofertas del final son las que devuelve el buscador ahora mismo con esos
-  // filtros. Si la llamada falla, la escena sigue funcionando: se queda con el
-  // recuento de la cascada y sin tarjetas, que es mejor que inventarlas.
   useEffect(() => {
     let vivo = true;
     fetch(`${SEARCH_OFFERS_API_ENDPOINT}?${CONSULTA_FINAL}`)
@@ -99,65 +121,124 @@ export default function EscenaMercado({ registrar, indice }) {
   useLayoutEffect(() => {
     const cv = lienzo.current;
     if (!cv) return undefined;
-    // Sin contexto 2D —jsdom, navegadores muy viejos, impresión— la escena no
-    // se queda muerta: se pierde el campo de puntos, no la cifra ni los filtros.
+    // Sin contexto 2D —jsdom, navegadores viejos, impresión— la escena no muere:
+    // se pierde el campo de puntos, no la cifra ni los filtros.
     const ctx2d = typeof cv.getContext === "function" ? cv.getContext("2d") : null;
+
     let ancho = 0;
     let alto = 0;
-    let radio = 0;
-    let sepX = 0;
-    let sepY = 0;
+    let radio = 2;
+    const rejillaPuntos = [];   // posición de cada punto en reposo
+    let destinos = [];          // rectángulos de las fichas, para el aterrizaje
 
     const medir = () => {
       if (!ctx2d) return;
       const caja = cv.getBoundingClientRect();
-      // El lienzo se dibuja a la densidad real de la pantalla, pero se limita a
-      // 2: por encima de ahí no se nota y sí se paga.
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       ancho = caja.width;
       alto = caja.height;
       cv.width = Math.round(ancho * dpr);
       cv.height = Math.round(alto * dpr);
       ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      // El campo de puntos ocupa la franja que le reserva el maquetado, no una
+      // medida inventada aquí: así el CSS sigue mandando sobre la composición.
+      const zona = banda.current?.getBoundingClientRect();
+      const x0 = (zona?.left ?? caja.left) - caja.left;
+      const y0 = (zona?.top ?? caja.top) - caja.top;
+      const w = zona?.width ?? ancho;
+      const h = zona?.height ?? alto;
+
       const filas = Math.ceil(PUNTOS / COLUMNAS);
-      sepX = ancho / COLUMNAS;
-      sepY = alto / filas;
-      radio = Math.max(1.4, Math.min(sepX, sepY) * 0.19);
+      const sepX = w / COLUMNAS;
+      const sepY = h / filas;
+      radio = Math.max(1.3, Math.min(sepX, sepY) * 0.2);
+
+      rejillaPuntos.length = 0;
+      for (let i = 0; i < PUNTOS; i += 1) {
+        rejillaPuntos.push({
+          x: x0 + sepX * ((i % COLUMNAS) + 0.5),
+          y: y0 + sepY * (Math.floor(i / COLUMNAS) + 0.5),
+        });
+      }
+
+      // Las fichas están en el DOM aunque todavía no se vean: de ahí salen los
+      // destinos exactos, en vez de calcular posiciones a mano que luego no
+      // cuadran con lo que se pinta encima.
+      const tarjetas = rejilla.current?.querySelectorAll(".em-oferta") || [];
+      destinos = Array.from(tarjetas).map((t) => {
+        const r = t.getBoundingClientRect();
+        return { x: r.left - caja.left, y: r.top - caja.top, w: r.width, h: r.height };
+      });
     };
 
-    const pintar = (fraccion, remate) => {
+    const pintar = (encendidos, remate) => {
       if (!ctx2d) return;
       ctx2d.clearRect(0, 0, ancho, alto);
-      for (let i = 0; i < PUNTOS; i += 1) {
-        const col = i % COLUMNAS;
-        const fil = Math.floor(i / COLUMNAS);
-        const x = sepX * (col + 0.5);
-        const y = sepY * (fil + 0.5);
-        const vivo = umbrales.current[i] < fraccion;
-        if (vivo) {
-          // En el último tramo los que quedan son ya «los tuyos»: se marcan.
-          ctx2d.fillStyle = remate > 0 ? "#FFC400" : "#111111";
-          ctx2d.beginPath();
-          ctx2d.arc(x, y, radio * (1 + remate * 1.6), 0, Math.PI * 2);
-          ctx2d.fill();
-        } else {
+      const t = suave(remate);
+
+      for (let p = 0; p < PUNTOS; p += 1) {
+        const i = orden.current[p];
+        const casa = rejillaPuntos[i];
+        if (!casa) continue;
+        const vivo = p < encendidos;
+
+        if (!vivo) {
+          // Apagado, pero presente: sigue siendo mercado.
+          ctx2d.globalAlpha = 1 - t;          // en el aterrizaje se retira
           ctx2d.fillStyle = "#E4E4DF";
           ctx2d.beginPath();
-          ctx2d.arc(x, y, radio * 0.72, 0, Math.PI * 2);
+          ctx2d.arc(casa.x, casa.y, radio * 0.72, 0, Math.PI * 2);
           ctx2d.fill();
+          continue;
         }
+
+        let x = casa.x;
+        let y = casa.y;
+        let r = radio;
+
+        if (t > 0 && destinos.length) {
+          // Los supervivientes vuelan a su ficha y se reparten dentro de ella.
+          const destino = destinos[p % destinos.length];
+          const fila = Math.floor(p / destinos.length);
+          const dx = destino.x + destino.w * (0.22 + 0.56 * ((fila % 3) / 2));
+          const dy = destino.y + destino.h * (0.24 + 0.52 * ((Math.floor(fila / 3) % 3) / 2));
+          x = entre(casa.x, dx, t);
+          y = entre(casa.y, dy, t);
+          r = entre(radio, radio * 2.2, t);
+        }
+
+        ctx2d.globalAlpha = 1;
+        ctx2d.fillStyle = remate > 0 ? "#FFC400" : "#111111";
+        ctx2d.beginPath();
+        ctx2d.arc(x, y, r, 0, Math.PI * 2);
+        ctx2d.fill();
       }
+
+      // Ya juntos, los puntos cuajan en la silueta de cada ficha. Es el paso que
+      // convierte el dato en un coche que se puede abrir.
+      if (t > 0.45 && destinos.length) {
+        const cuaje = (t - 0.45) / 0.55;
+        ctx2d.globalAlpha = cuaje;
+        ctx2d.fillStyle = "#FFC400";
+        destinos.forEach((d) => {
+          const radioCaja = 12;
+          ctx2d.beginPath();
+          if (ctx2d.roundRect) ctx2d.roundRect(d.x, d.y, d.w, d.h, radioCaja);
+          else ctx2d.rect(d.x, d.y, d.w, d.h);
+          ctx2d.fill();
+        });
+      }
+      ctx2d.globalAlpha = 1;
     };
 
     /**
-     * Reparte el avance de la escena entre los pasos del embudo.
-     *
-     * El primer tramo es de respiro —se ve el mercado entero, sin tocar nada— y
-     * el último deja los resultados a la vista. En medio, un tramo por filtro.
+     * Reparte el avance de la escena: un respiro con el mercado entero, un tramo
+     * por filtro, y el aterrizaje en las fichas.
      */
     const aplicar = (p) => {
-      const RESPIRO = 0.12;
-      const CIERRE = 0.16;
+      const RESPIRO = 0.1;
+      const CIERRE = 0.2;
       const pasos = EMBUDO.length - 1;
       const util = 1 - RESPIRO - CIERRE;
 
@@ -166,65 +247,61 @@ export default function EscenaMercado({ registrar, indice }) {
 
       const enPasos = avance * pasos;
       const i = Math.min(pasos - 1, Math.floor(enPasos));
-      const dentro = enPasos - i;
+      // Dentro del tramo: primero el chip, con el número quieto; después baja.
+      const bruto = enPasos - i;
+      const dentro = bruto <= PAUSA ? 0 : (bruto - PAUSA) / (1 - PAUSA);
 
       const desde = EMBUDO[i].ofertas;
       const hasta = i + 1 === pasos && finalVivo.current != null
         ? Math.max(1, finalVivo.current)
         : EMBUDO[i + 1].ofertas;
-      // Interpolación en escala logarítmica: de 568.358 a 20 en lineal, el
-      // número se desploma en el primer suspiro y luego no se mueve. En
-      // logarítmica cada filtro se nota lo mismo, que es justo lo que cuenta la
-      // escena: todos recortan.
-      const valor = Math.exp(Math.log(desde) + (Math.log(hasta) - Math.log(desde)) * dentro);
+      // Escala logarítmica: en lineal, de 568.358 a 20 el número se desploma en
+      // el primer suspiro y los seis filtros siguientes no se notan.
+      const valor = Math.exp(entre(Math.log(desde), Math.log(hasta), suave(dentro)));
 
       const total = EMBUDO[0].ofertas;
-      const fraccion = valor / total;
-      // Suelo para que en la recta final quede algo encendido que mirar.
-      const conSuelo = Math.max(fraccion, avance >= 1 ? 0.004 : 0);
       const remate = p > 1 - CIERRE ? Math.min(1, (p - (1 - CIERRE)) / CIERRE) : 0;
 
-      pintar(conSuelo, remate);
+      // Los puntos encendidos son la proporción del mercado que queda… hasta el
+      // aterrizaje, donde pasan a ser exactamente las ofertas que hay.
+      const resultados = Math.max(1, Math.round(finalVivo.current ?? EMBUDO[pasos].ofertas));
+      const porProporcion = Math.round((valor / total) * PUNTOS);
+      const encendidos = remate > 0
+        ? Math.round(entre(porProporcion, resultados, suave(remate)))
+        : Math.max(porProporcion, avance >= 1 ? resultados : 0);
+
+      pintar(Math.max(0, Math.min(PUNTOS, encendidos)), remate);
 
       if (cifra.current) cifra.current.textContent = num(valor);
       if (pie.current) {
-        // Se mira el tramo, no el número: la interpolación logarítmica devuelve
-        // 568.357,999… en el arranque y un `===` contra el total nunca acierta.
         pie.current.textContent =
-          avance >= 1
-            ? "coches encontrados"
-            : avance <= 0
-            ? "coches a la venta ahora mismo"
+          avance >= 1 ? "coches encontrados"
+            : avance <= 0 ? "coches a la venta ahora mismo"
             : "coches siguen encajando";
       }
 
-      // Los filtros se marcan según los va aplicando el embudo.
       chips.current.forEach((chip, k) => {
-        if (!chip) return;
-        const activo = enPasos > k;
-        chip.classList.toggle("es-puesto", activo);
+        if (chip) chip.classList.toggle("es-puesto", enPasos > k);
       });
 
-      // Del mercado a los resultados: el campo se retira y entran las fichas.
       if (bloqueMercado.current) {
-        bloqueMercado.current.style.opacity = String(1 - remate);
-        bloqueMercado.current.style.transform = `scale(${1 - remate * 0.06})`;
+        // La cifra y los filtros se retiran; el campo de puntos no, que es quien
+        // hace el viaje hasta las fichas.
+        bloqueMercado.current.style.opacity = String(1 - suave(remate));
       }
       if (bloqueResultados.current) {
-        bloqueResultados.current.style.opacity = String(remate);
-        bloqueResultados.current.style.transform = `translateY(${(1 - remate) * 24}px)`;
-        bloqueResultados.current.style.pointerEvents = remate > 0.5 ? "auto" : "none";
+        // Las fichas entran cuando los puntos ya han llegado a su sitio.
+        const entrada = remate < 0.55 ? 0 : (remate - 0.55) / 0.45;
+        bloqueResultados.current.style.opacity = String(entrada);
+        bloqueResultados.current.style.pointerEvents = entrada > 0.6 ? "auto" : "none";
       }
     };
 
-    // Se recuerda el último avance para poder repintar al redimensionar sin
-    // perder el sitio: si no, girar el móvil devolvería la escena al principio.
-    const ultimo = { valor: 0 };
-    const conMemoria = (p) => { ultimo.valor = p; aplicar(p); };
-    const alRedimensionar = () => { medir(); aplicar(ultimo.valor); };
+    const conMemoria = (p) => { avanceActual.current = p; aplicar(p); };
+    const alRedimensionar = () => { medir(); aplicar(avanceActual.current); };
 
     medir();
-    conMemoria(0);
+    aplicar(avanceActual.current);
     registrar(indice, conMemoria);
 
     window.addEventListener("resize", alRedimensionar);
@@ -232,18 +309,20 @@ export default function EscenaMercado({ registrar, indice }) {
       window.removeEventListener("resize", alRedimensionar);
       registrar(indice, null);
     };
-  }, [registrar, indice]);
+  }, [registrar, indice, ofertas.length]);
 
   const totalPortada = totalReal ?? EMBUDO[EMBUDO.length - 1].ofertas;
 
   return (
     <div className="em-root">
+      <canvas ref={lienzo} className="em-lienzo" aria-hidden="true" />
+
       <div className="em-mercado" ref={bloqueMercado}>
         <div className="em-cifra">
           <strong ref={cifra}>{num(EMBUDO[0].ofertas)}</strong>
           <span ref={pie}>coches a la venta ahora mismo</span>
         </div>
-        <canvas ref={lienzo} className="em-lienzo" aria-hidden="true" />
+        <div className="em-banda" ref={banda} aria-hidden="true" />
         <ul className="em-filtros">
           {EMBUDO.slice(1).map((paso, k) => (
             <li
@@ -262,19 +341,19 @@ export default function EscenaMercado({ registrar, indice }) {
         <p className="em-resultados-cab">
           <strong>{num(totalPortada)}</strong> coches encontrados
         </p>
-        <div className="em-rejilla">
-          {ofertas.slice(0, 4).map((o) => (
-            <article key={o.id} className="em-oferta">
+        <div className="em-rejilla" ref={rejilla}>
+          {(ofertas.length ? ofertas.slice(0, 4) : [null, null, null, null]).map((o, k) => (
+            <article key={o ? o.id : `hueco-${k}`} className="em-oferta">
               <div className="em-oferta-foto">
-                {o.image ? <img src={o.image} alt="" loading="lazy" /> : <span />}
+                {o?.image ? <img src={o.image} alt="" loading="lazy" /> : <span />}
               </div>
               <div className="em-oferta-cuerpo">
-                <h4>{o.brand} {o.model}</h4>
-                <p className="em-oferta-version">{o.version}</p>
+                <h4>{o ? `${o.brand} ${o.model}` : ""}</h4>
+                <p className="em-oferta-version">{o?.version || ""}</p>
                 <p className="em-oferta-datos">
-                  {o.year} · {num(o.mileage)} km · {o.fuel}
+                  {o ? `${o.year} · ${num(o.mileage)} km · ${o.fuel}` : ""}
                 </p>
-                <p className="em-oferta-precio">{o.priceText}</p>
+                <p className="em-oferta-precio">{o?.priceText || ""}</p>
               </div>
             </article>
           ))}

@@ -23,8 +23,8 @@
   justify-content: center;
   will-change: opacity, transform;
 }
-.em-mercado { gap: 18px; }
-.em-resultados { opacity: 0; gap: 12px; }
+.em-mercado { gap: 18px; z-index: 1; }
+.em-resultados { opacity: 0; gap: 12px; z-index: 2; }
 
 /* ── La cifra ─────────────────────────────────────────────────────────────── */
 .em-cifra {
@@ -50,9 +50,19 @@
 }
 
 /* ── El campo de puntos ───────────────────────────────────────────────────── */
+/* El lienzo cubre la escena entera y va detrás: los puntos tienen que poder
+   viajar desde su franja hasta donde estarán las fichas. */
 .em-lienzo {
-  display: block;
+  position: absolute;
+  inset: 0;
   width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* La franja donde descansa el campo de puntos. No pinta nada: solo reserva el
+   sitio, para que la composición la siga mandando el maquetado. */
+.em-banda {
   height: clamp(88px, 15svh, 132px);
 }
 
@@ -159,7 +169,7 @@
 
 /* ── Pantallas pequeñas ───────────────────────────────────────────────────── */
 @media (max-width: 760px) {
-  .em-lienzo { height: clamp(64px, 11svh, 96px); }
+  .em-banda { height: clamp(64px, 11svh, 96px); }
   /* Con dos tarjetas basta para entender que son resultados reales; cuatro en
      una pantalla de móvil no se leen. */
   .em-rejilla { grid-template-columns: repeat(2, 1fr); }

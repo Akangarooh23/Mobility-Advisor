@@ -200,6 +200,16 @@ const AVISOS = [
 ];
 
 /**
+ * Octubre de 2026 cae en jueves, así que la primera fila arranca con tres
+ * huecos. El aviso y la cita del ejemplo van el 7 y el 20.
+ */
+const DIAS_SEMANA = ["L", "M", "X", "J", "V", "S", "D"];
+const HUECOS_OCTUBRE = 3;
+const DIAS_OCTUBRE = 31;
+const DIA_AVISO = 7;
+const DIA_CITA = 20;
+
+/**
  * La cita, con los precios del catálogo de la aplicación: cambio de aceite y
  * filtro en Norauto va de 60 a 110 €, y el precio acordado es el medio. La web
  * enseña el alto como PVP particular y el medio como precio PopCar, que es
@@ -207,6 +217,34 @@ const AVISOS = [
  */
 const CITA = { servicio: "Cambio de aceite + filtro", taller: "Norauto", particular: 110, popcar: 75 };
 const PASOS_CITA = ["IdCar", "Provincia y código postal", "Tipo de revisión", "Taller cercano"];
+
+/**
+ * Los talleres alrededor de la ubicación, en tanto por ciento del mapa ya
+ * acercado. Norauto y MIDAS son los proveedores con precio en el catálogo; los
+ * otros dos son talleres independientes, que es lo que devuelve la búsqueda por
+ * código postal junto a ellos.
+ */
+const TALLERES = [
+  { nombre: "Taller", x: 32, y: 30 },
+  { nombre: "Norauto", x: 64, y: 24, elegido: true },
+  { nombre: "MIDAS", x: 27, y: 66 },
+  { nombre: "Taller", x: 71, y: 62 },
+];
+
+/**
+ * España, dibujada desde coordenadas reales de la costa y de la frontera, con
+ * la corrección del coseno de la latitud —sin ella el país sale estirado de
+ * norte a sur—. Es una silueta, no una carta náutica: sirve para situar, y por
+ * eso va sin provincias ni nombres.
+ */
+const ESPANA = "M11.4 7.3L20.0 0.9L27.6 4.7L37.8 4.4L44.3 4.7L58.2 7.0L66.6 6.1L76.2 7.3L85.8 8.3L90.7 7.6L103.2 14.0L120.6 17.9L130.8 21.1L139.8 21.8L148.8 22.2L151.6 23.9L150.6 30.4L144.0 34.3L138.2 38.5L127.2 42.6L122.6 48.8L112.6 60.4L108.2 68.5L115.0 79.9L106.4 86.0L104.0 91.6L103.8 97.0L93.6 99.8L85.9 111.2L69.8 111.2L59.2 111.2L48.1 120.1L45.0 122.3L36.7 114.2L36.0 110.1L28.9 103.6L23.4 104.1L25.2 92.8L28.2 88.1L28.8 74.1L28.2 65.5L29.4 56.9L30.0 44.5L36.6 37.4L33.0 33.5L28.2 29.6L17.4 30.4L13.8 28.1L5.8 30.9L6.0 24.2L3.6 19.5L0.8 14.8L2.0 10.1Z";
+const ISLAS = [
+  "M140.4 67.1L145.2 70.2L153.6 64.4L150.0 60.8L144.0 61.6Z",
+  "M158.0 61.3L163.8 59.3L162.8 58.2L158.4 59.7Z",
+  "M126.8 77.7L130.8 76.4L129.2 74.1L126.8 75.7Z",
+];
+/** Madrid, en las mismas coordenadas: es hacia donde se acerca el mapa. */
+const MADRID = { x: 67.8, y: 53.5 };
 
 /**
  * Las seis coberturas que lee el análisis de la póliza, con el nivel que da a
@@ -578,21 +616,55 @@ export default function ComoFuncionaPage({ onGoHome }) {
             avisos.en(0.3 + i * 0.14));
         });
 
-        /* Acto 2 · la cita: los cuatro pasos y, al final, la diferencia. */
+        /* Acto 2 · la cita. El mapa se acerca a la provincia, aparece dónde
+           estás, salen los talleres de alrededor y al elegir uno llega su
+           precio. Es el orden de la pantalla: sin código postal no hay talleres,
+           y sin taller no hay precio.
+
+           El acercamiento se hace con `svgOrigin` en Madrid, así la escala no
+           lo mueve de sitio y solo hace falta centrarlo después. */
         const cita = tramoG(2);
+        const centrar = { x: 84 - MADRID.x, y: 63 - MADRID.y };
         gsap.utils.toArray("#gestionar .cf-pasos-cita li").forEach((p, i) => {
           gestionar.fromTo(p,
-            { autoAlpha: 0.22, x: -16 },
-            { autoAlpha: 1, x: 0, ease: "none", duration: cita.largo * 0.09 },
-            cita.en(0.05 + i * 0.13));
+            { autoAlpha: 0.22, y: 10 },
+            { autoAlpha: 1, y: 0, ease: "none", duration: cita.largo * 0.06 },
+            cita.en(0.03 + i * 0.06));
         });
         gestionar
+          .fromTo("#gestionar .cf-mapa",
+            { autoAlpha: 0 }, { autoAlpha: 1, ease: "none", duration: cita.largo * 0.06 }, cita.en(0.04))
+          .fromTo("#gestionar .cf-mapa-zoom",
+            { scale: 1, x: 0, y: 0 },
+            {
+              scale: 4.6, x: centrar.x, y: centrar.y,
+              svgOrigin: `${MADRID.x} ${MADRID.y}`, ease: "none", duration: cita.largo * 0.34,
+            },
+            cita.en(0.12))
+          .fromTo("#gestionar .cf-ubicacion",
+            { autoAlpha: 0, scale: 0 },
+            { autoAlpha: 1, scale: 1, ease: "none", duration: cita.largo * 0.08 }, cita.en(0.44));
+        gsap.utils.toArray("#gestionar .cf-taller").forEach((t, i) => {
+          gestionar.fromTo(t,
+            { autoAlpha: 0, y: 10 },
+            { autoAlpha: 1, y: 0, ease: "none", duration: cita.largo * 0.06 },
+            cita.en(0.5 + i * 0.05));
+        });
+        gestionar
+          // Se elige uno, y solo entonces hay precio que enseñar.
+          .to("#gestionar .cf-taller.es-elegido",
+            { "--elegido": 1, scale: 1.14, ease: "none", duration: cita.largo * 0.06 }, cita.en(0.7))
+          .to("#gestionar .cf-taller:not(.es-elegido)",
+            { autoAlpha: 0.45, ease: "none", duration: cita.largo * 0.06 }, cita.en(0.7))
           .fromTo("#gestionar .cf-presupuesto",
             { autoAlpha: 0, y: 26 },
-            { autoAlpha: 1, y: 0, ease: "none", duration: cita.largo * 0.12 }, cita.en(0.55))
+            { autoAlpha: 1, y: 0, ease: "none", duration: cita.largo * 0.1 }, cita.en(0.74))
           .fromTo("#gestionar .cf-ahorro",
             { autoAlpha: 0, scale: 0.86 },
-            { autoAlpha: 1, scale: 1, ease: "none", duration: cita.largo * 0.1 }, cita.en(0.78));
+            { autoAlpha: 1, scale: 1, ease: "none", duration: cita.largo * 0.08 }, cita.en(0.86))
+          .fromTo("#gestionar .cf-boton-pintado",
+            { autoAlpha: 0, y: 10 },
+            { autoAlpha: 1, y: 0, ease: "none", duration: cita.largo * 0.08 }, cita.en(0.92));
 
         /* Acto 3 · el seguro: cae la póliza y se van midiendo las coberturas. */
         const seguro = tramoG(3);
@@ -937,13 +1009,16 @@ export default function ComoFuncionaPage({ onGoHome }) {
                 <div className="cf-recordatorio">
                   <div className="cf-mes">
                     <p className="cf-mes-etq">Octubre</p>
+                    <ul className="cf-semana" aria-hidden="true">
+                      {DIAS_SEMANA.map((d, i) => <li key={`${d}-${i}`}>{d}</li>)}
+                    </ul>
                     <ul className="cf-calendario" aria-hidden="true">
-                      {Array.from({ length: 35 }, (_, i) => (
-                        <li
-                          className={i === 9 ? "es-aviso" : i === 22 ? "es-cita" : ""}
-                          key={i}
-                        />
-                      ))}
+                      {Array.from({ length: 35 }, (_, i) => {
+                        const dia = i - HUECOS_OCTUBRE + 1;
+                        if (dia < 1 || dia > DIAS_OCTUBRE) return <li className="es-vacio" key={i} />;
+                        const marca = dia === DIA_AVISO ? "es-aviso" : dia === DIA_CITA ? "es-cita" : "";
+                        return <li className={marca} key={i}>{dia}</li>;
+                      })}
                     </ul>
                     <p className="cf-leyenda">
                       <span className="cf-leyenda-aviso">Aviso para pedir cita</span>
@@ -969,14 +1044,37 @@ export default function ComoFuncionaPage({ onGoHome }) {
                   el alto es el de particular y el medio, el acordado. */}
               <div className="cf-acto cf-acto-cita">
                 <p className="cf-acto-etq">Con el precio ya acordado</p>
+                <ol className="cf-pasos-cita">
+                  {PASOS_CITA.map((p, i) => (
+                    <li key={p}><b>{i + 1}</b>{p}</li>
+                  ))}
+                </ol>
                 <div className="cf-cita">
-                  <ol className="cf-pasos-cita">
-                    {PASOS_CITA.map((p, i) => (
-                      <li key={p}><b>{i + 1}</b>{p}</li>
+                  {/* El mapa se acerca a la provincia, aparece dónde estás y
+                      salen los talleres que hay cerca. Es lo que hace la
+                      pantalla: busca por código postal y ofrece proveedores. */}
+                  <div className="cf-mapa">
+                    <svg className="cf-mapa-svg" viewBox="0 0 168 126" aria-hidden="true">
+                      <g className="cf-mapa-zoom">
+                        <path className="cf-mapa-tierra" d={ESPANA} />
+                        {ISLAS.map((d) => <path className="cf-mapa-tierra" d={d} key={d} />)}
+                      </g>
+                    </svg>
+                    <span className="cf-ubicacion" aria-hidden="true" />
+                    {TALLERES.map((t, i) => (
+                      <span
+                        className={`cf-taller${t.elegido ? " es-elegido" : ""}`}
+                        style={{ left: `${t.x}%`, top: `${t.y}%` }}
+                        key={`${t.nombre}-${i}`}
+                      >
+                        {t.nombre}
+                      </span>
                     ))}
-                  </ol>
+                  </div>
+
                   <article className="cf-presupuesto">
-                    <p className="cf-presupuesto-etq">{CITA.servicio} · {CITA.taller}</p>
+                    <p className="cf-presupuesto-taller">Taller · {CITA.taller}</p>
+                    <p className="cf-presupuesto-etq">{CITA.servicio}</p>
                     <dl className="cf-precios">
                       <div className="cf-precio">
                         <dt>PVP particular</dt>
@@ -991,6 +1089,10 @@ export default function ComoFuncionaPage({ onGoHome }) {
                     {/* Lo dice la pantalla de la cita y aquí también: el importe
                         final depende del modelo y de las piezas. */}
                     <p className="cf-limite">Precios orientativos, sobre rangos históricos.</p>
+                    {/* Es el botón de la pantalla real, dibujado. Aquí no lleva
+                        a ningún sitio a propósito: esto cuenta la aplicación, no
+                        la sustituye. */}
+                    <span className="cf-boton-pintado">Comprobar disponibilidad</span>
                   </article>
                 </div>
                 <p className="cf-acto-pie">Talleres verificados y cerca de tu código postal.</p>

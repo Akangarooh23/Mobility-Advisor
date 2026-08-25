@@ -240,6 +240,49 @@ test("los avisos llevan los intervalos que usa la aplicación", () => {
   ]);
 });
 
+test("el calendario es octubre de verdad, con sus días en su sitio", () => {
+  /* Octubre de 2026 empieza en jueves: tres huecos, 31 días y un hueco final
+     para cerrar las cinco semanas. Si alguien cambia el mes hay que recalcular
+     los huecos, y esta prueba es la que avisa. */
+  const { container } = montar();
+  const celdas = [...container.querySelectorAll("#gestionar .cf-calendario li")];
+  expect(celdas).toHaveLength(35);
+  expect(celdas.filter((c) => c.classList.contains("es-vacio"))).toHaveLength(4);
+  const dias = celdas.map((c) => c.textContent).filter(Boolean);
+  expect(dias[0]).toBe("1");
+  expect(dias).toHaveLength(31);
+  expect(dias[30]).toBe("31");
+  // El aviso y la cita caen en un día concreto, no en un cuadro cualquiera.
+  expect(container.querySelector("#gestionar .cf-calendario li.es-aviso").textContent).toBe("7");
+  expect(container.querySelector("#gestionar .cf-calendario li.es-cita").textContent).toBe("20");
+  // Y la semana empieza en lunes, como aquí.
+  const semana = [...container.querySelectorAll("#gestionar .cf-semana li")].map((n) => n.textContent);
+  expect(semana).toEqual(["L", "M", "X", "J", "V", "S", "D"]);
+});
+
+test("la cita se elige sobre un mapa, con los talleres de alrededor", () => {
+  const { container } = montar();
+  const mapa = container.querySelector("#gestionar .cf-mapa");
+  expect(mapa.querySelector(".cf-mapa-zoom")).toBeInTheDocument();
+  expect(mapa.querySelector(".cf-ubicacion")).toBeInTheDocument();
+  const talleres = [...mapa.querySelectorAll(".cf-taller")];
+  expect(talleres).toHaveLength(4);
+  // Uno queda elegido, y es del que sale el precio de la ficha.
+  const elegidos = talleres.filter((t) => t.classList.contains("es-elegido"));
+  expect(elegidos).toHaveLength(1);
+  expect(elegidos[0].textContent).toBe("Norauto");
+});
+
+test("la ficha de la cita nombra el taller y ofrece comprobar disponibilidad", () => {
+  const { container } = montar();
+  const ficha = container.querySelector("#gestionar .cf-presupuesto");
+  expect(within(ficha).getByText("Taller · Norauto")).toBeInTheDocument();
+  expect(within(ficha).getByText("Comprobar disponibilidad")).toBeInTheDocument();
+  /* El botón va dibujado, no es un `button`: no lleva a ningún sitio y anunciar
+     lo contrario a quien navega con teclado o lector sería mentirle. */
+  expect(ficha.querySelector("button")).toBeNull();
+});
+
 test("la cita compara el precio de particular con el acordado", () => {
   /* 110 y 75 no son cifras bonitas: son el alto y el medio del rango que la
      aplicación tiene para el cambio de aceite y filtro en Norauto. */

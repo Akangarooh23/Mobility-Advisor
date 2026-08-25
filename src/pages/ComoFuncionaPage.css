@@ -777,19 +777,35 @@
   text-transform: uppercase;
   color: var(--gris-500);
 }
-.cf-calendario {
+.cf-semana, .cf-calendario {
   margin: 0; padding: 0; list-style: none;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 4px;
 }
+.cf-semana {
+  margin-bottom: 5px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--gris-400);
+  text-align: center;
+}
 .cf-calendario li {
   aspect-ratio: 1;
   border-radius: 4px;
   background: var(--gris-100);
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--gris-600);
+  font-variant-numeric: tabular-nums;
 }
-.cf-calendario li.es-aviso { background: var(--acento); }
-.cf-calendario li.es-cita { background: var(--gris-900); }
+/* Octubre empieza en jueves: los tres primeros huecos no son días. */
+.cf-calendario li.es-vacio { background: transparent; }
+.cf-calendario li.es-aviso { background: var(--acento); color: var(--acento-texto); }
+.cf-calendario li.es-cita { background: var(--gris-900); color: var(--blanco); }
 .cf-leyenda {
   margin: 11px 0 0;
   display: grid;
@@ -831,30 +847,94 @@
 .cf-aviso > b.es-aviso { color: var(--acento-texto); background: var(--acento-tenue); }
 .cf-aviso > b.es-cita { color: var(--blanco); background: var(--gris-900); }
 
-/* La cita: los cuatro pasos y la diferencia de precio. */
+/* La cita: los cuatro pasos arriba, el mapa y el precio debajo. */
 .cf-cita {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   gap: 22px;
   align-items: center;
 }
-.cf-pasos-cita { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+/* Los pasos van en fila y encima: son el recorrido, no una de las dos mitades
+   de la escena. */
+.cf-pasos-cita {
+  margin: 0; padding: 0; list-style: none;
+  display: flex; flex-wrap: wrap; gap: 8px 16px;
+}
 .cf-pasos-cita li {
   display: flex;
   align-items: center;
-  gap: 11px;
-  font-size: 13px;
+  gap: 8px;
+  font-size: 12px;
   font-weight: 700;
+  color: var(--gris-700);
 }
 .cf-pasos-cita b {
-  width: 22px; height: 22px;
+  width: 20px; height: 20px;
   flex: none;
   display: grid; place-items: center;
   border-radius: 999px;
   background: var(--acento);
   color: var(--acento-texto);
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 800;
+}
+
+/* El mapa. La silueta se acerca a la provincia; los marcadores son HTML encima
+   y entran ya acercado, así no hay que deshacerles la escala. */
+.cf-mapa {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  max-width: 330px;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid var(--gris-200);
+  background: var(--blanco);
+}
+.cf-mapa-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.cf-mapa-tierra { fill: var(--gris-100); stroke: var(--gris-300); stroke-width: 0.7; stroke-linejoin: round; }
+
+/* Dónde estás: el punto azul de siempre, con su halo. */
+.cf-ubicacion {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 13px; height: 13px;
+  margin: -6.5px 0 0 -6.5px;
+  border-radius: 50%;
+  background: #1a73e8;
+  border: 2px solid var(--blanco);
+  box-shadow: 0 0 0 6px rgba(26, 115, 232, 0.18);
+}
+
+/* Los talleres de alrededor. Rojo porque es lo que se lee como «aquí hay uno»
+   en cualquier mapa, y el elegido se separa del resto. */
+.cf-taller {
+  --elegido: 0;
+  position: absolute;
+  /* Va en `translate` y no en `transform` a propósito: GSAP anima el transform
+     de estos marcadores y se llevaría por delante el centrado. Y el origen es
+     la punta, para que al agrandarse el elegido no se despegue del sitio. */
+  translate: -50% -100%;
+  transform-origin: 50% 100%;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  color: var(--blanco);
+  background: #d93025;
+  box-shadow: 0 6px 14px -6px rgba(217, 48, 37, calc(0.5 + var(--elegido) * 0.4));
+  border: 2px solid color-mix(in srgb, var(--acento) calc(var(--elegido) * 100%), transparent);
+}
+/* La punta del marcador, que es lo que lo clava en el sitio. */
+.cf-taller::after {
+  content: "";
+  position: absolute;
+  left: 50%; top: 100%;
+  margin-left: -3px;
+  border: 3px solid transparent;
+  border-top-color: #d93025;
 }
 .cf-presupuesto {
   width: 100%;
@@ -866,8 +946,16 @@
   padding: 15px 16px 16px;
   box-shadow: 0 26px 62px -34px rgba(0, 0, 0, 0.3);
 }
+.cf-presupuesto-taller {
+  margin: 0 0 3px;
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
 .cf-presupuesto-etq {
   margin: 0 0 12px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--gris-200);
   font-size: 10.5px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -892,6 +980,19 @@
   letter-spacing: -0.035em;
   color: var(--gris-900);
   text-decoration: none;
+}
+/* El botón de la pantalla real, dibujado. No es un `button` porque no hace
+   nada: la página cuenta la aplicación, no la sustituye. */
+.cf-boton-pintado {
+  display: block;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--gris-900);
+  color: var(--blanco);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
 }
 .cf-ahorro {
   margin: 12px 0 0;
@@ -1024,6 +1125,7 @@
   .cf-caminos { position: relative; inset: auto; margin-bottom: 14px; }
   .cf-camino { padding: 14px 16px; }
   .cf-recordatorio, .cf-cita, .cf-poliza { grid-template-columns: 1fr; gap: 12px; }
+  .cf-mapa { max-width: none; }
   .cf-ficha-idcar, .cf-presupuesto { max-width: none; justify-self: stretch; }
   .cf-cobertura { grid-template-columns: 84px minmax(0, 1fr) 38px; }
 }
@@ -1041,4 +1143,12 @@
   .cf-acto { position: relative; inset: auto; opacity: 1; }
   .cf-acto-embudo .em-root { position: relative; inset: auto; min-height: clamp(300px, 48svh, 440px); }
   .cf-requisito { --hecho: 1; }
+  /* Sin movimiento no hay quien acerque el mapa, así que ya sale sobre la
+     provincia y con el taller elegido marcado. */
+  .cf-mapa-zoom {
+    transform-box: view-box;
+    transform-origin: 67.8px 53.5px;
+    transform: translate(16.2px, 9.5px) scale(4.6);
+  }
+  .cf-taller.es-elegido { --elegido: 1; }
 }

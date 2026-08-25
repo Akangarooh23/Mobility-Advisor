@@ -38,6 +38,7 @@ import SeoStaticPage from "./pages/SeoStaticPage";
 import AboutCarswisePage from "./pages/AboutCarswisePage";
 import ContactCarswisePage from "./pages/ContactCarswisePage";
 import EmpresasPage from "./pages/EmpresasPage";
+import ComparadorPage from "./pages/ComparadorPage";
 import BlogIndexPage from "./pages/BlogIndexPage";
 import BlogArticlePage from "./pages/BlogArticlePage";
 import PricingPlansPage from "./pages/PricingPlansPage";
@@ -1211,6 +1212,7 @@ const PUBLIC_ROUTE_BY_ENTRY_MODE = {
   viewingPropose: "/cita/proponer",
   viewingConfirm: "/cita/confirmar",
   empresas: "/empresas",
+  comparador: "/comparador",
   contact: "/contacto",
   legalNotice: "/aviso-legal",
   privacyPolicy: "/politica-privacidad",
@@ -6244,6 +6246,7 @@ export default function App() {
       {step === -1 && entryMode === "buyOptions" && (
         <BuyOptionsPage
           styles={s}
+          onSelectComparador={() => openPublicPage("comparador")}
           onSelectAdvisor={() => {
             setAdvisorContext("buy");
             setAnswers({ perfil: "particular" });
@@ -6651,6 +6654,10 @@ export default function App() {
             setStep(-1);
           }}
         />
+      )}
+
+      {step === -1 && entryMode === "comparador" && (
+        <ComparadorPage onGoHome={restart} uiLanguage={uiLanguage} />
       )}
 
       {step === -1 && entryMode === "empresas" && (

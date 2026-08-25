@@ -749,7 +749,11 @@
     "accessButton": "Access",
     "minimizeButton": "Minimize",
     "optionBTag": "Smart test based on your needs",
-    "optionATag": "Market offer comparison"
+    "optionATag": "Market offer comparison",
+    "optionCTag": "Up to 5 cars",
+    "optionCTitle": "Compare several options",
+    "optionCDesc": "Add the cars you are considering and we tell you which one suits you best and why, with a score for each.",
+    "optionCButton": "Compare"
   },
   "sell": {
     "goBack": "← Back",

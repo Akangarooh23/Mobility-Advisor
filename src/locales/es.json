@@ -749,7 +749,11 @@
     "accessButton": "Acceder",
     "minimizeButton": "Minimizar",
     "optionBTag": "Test inteligente según tus necesidades",
-    "optionATag": "Comparador de ofertas del mercado"
+    "optionATag": "Comparador de ofertas del mercado",
+    "optionCTag": "Hasta 5 coches",
+    "optionCTitle": "Compara entre varias opciones",
+    "optionCDesc": "Añade los coches que estás valorando y te decimos cuál conviene más y por qué, con una puntuación para cada uno.",
+    "optionCButton": "Comparar"
   },
   "sell": {
     "goBack": "← Volver",

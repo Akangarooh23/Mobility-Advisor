@@ -37,7 +37,7 @@ const FLOW_B_EN = [
   { title: "We find you the best financing" },
 ];
 
-export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownModel, onOpenMarketplace, onGoBack }) {
+export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownModel, onSelectComparador, onOpenMarketplace, onGoBack }) {
   const { t, i18n } = useTranslation();
   const uiLanguage = i18n.language === "en" ? "en" : "es";
   const FLOW_A = uiLanguage === "en" ? FLOW_A_EN : FLOW_A_ES;
@@ -96,7 +96,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
         className="buy-options-grid"
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(2, 1fr)",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
           gap: 14,
           alignItems: "stretch",
         }}
@@ -285,6 +285,112 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             {openFlow === "a" ? t("buyOptions.hideButton") : t("buyOptions.showMore")}
           </button>
         </article>
+
+        {/* ── Compara entre varias opciones ── */}
+        <article
+          className="ma-card-interactive ma-fade-stagger"
+          style={{
+            position: "relative",
+            border: cardBorder,
+            borderRadius: 12,
+            background: cardBackground,
+            boxShadow: isDark ? "none" : "0 8px 22px rgba(17,17,17,0.05)",
+            padding: "58px 22px 20px",
+            textAlign: "left",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            justifyContent: "flex-start",
+            gap: 10,
+            minHeight: "clamp(148px, 20vw, 178px)",
+            animationDelay: "105ms",
+            cursor: "pointer",
+          }}
+          role="button"
+          tabIndex={0}
+          onClick={onSelectComparador}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              onSelectComparador();
+            }
+          }}
+        >
+          <span
+            style={{
+              position: "absolute",
+              top: 22,
+              right: 20,
+              width: 24,
+              height: 24,
+              borderRadius: "50%",
+              border: "1px solid rgba(150,150,143,0.35)",
+              color: "var(--gris-500)",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 15,
+            }}
+          >
+            &gt;
+          </span>
+          {/* Distintivo: dice cuantos coches caben, que es el limite que la
+              gente pregunta antes de entrar. */}
+          <span
+            style={{
+              position: "absolute",
+              top: 19,
+              left: 22,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              background: "var(--acento-tenue)",
+              color: "var(--acento-texto)",
+              border: "1px solid rgba(255,196,0,0.45)",
+              borderRadius: 999,
+              padding: "5px 11px 5px 8px",
+              fontSize: 11.5,
+              fontWeight: 700,
+              lineHeight: 1,
+            }}
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 3.5v17" />
+              <path d="M4.5 8.5h15" />
+              <path d="M7.6 8.5 4.5 15h6.2z" /><path d="M16.4 8.5 13.3 15h6.2z" />
+            </svg>
+            {t("buyOptions.optionCTag")}
+          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
+            <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="var(--acento-texto)"
+                 strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flex: "none" }}>
+              <path d="M4.5 19.5V10" /><path d="M10.2 19.5V4.5" /><path d="M15.8 19.5v-6.4" /><path d="M21.5 19.5V7.6" />
+            </svg>
+            {t("buyOptions.optionCTitle")}
+          </div>
+          <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
+            {t("buyOptions.optionCDesc")}
+          </div>
+          <button
+            type="button"
+            onClick={(event) => { event.stopPropagation(); onSelectComparador(); }}
+            style={{
+              marginTop: 2,
+              border: "1px solid rgba(255,196,0,0.28)",
+              background: "rgba(255,196,0,0.08)",
+              color: "var(--gris-900)",
+              borderRadius: 10,
+              padding: "8px 12px",
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            {t("buyOptions.optionCButton")}
+          </button>
+        </article>
+
 
         {/* ── Ayúdame a encontrar ── */}
         <article

@@ -1524,11 +1524,14 @@ module.exports = async function handler(req, res) {
     // ninguno existe ya: la lista entera quedaba vacía y solo salvaba la
     // llamada el descubrimiento de más abajo. Los "-latest" siguen al modelo
     // vigente y no caducan.
+    // gemini-flash-latest sale de la cabeza de la lista: hoy no responde —la
+    // peticion se queda colgada en vez de dar error— y por ir el primero se
+    // comia el tiempo de cada analisis. Queda al final por si vuelve a servir.
     const preferredModels = [
-      "models/gemini-flash-latest",
       "models/gemini-2.5-flash",
       "models/gemini-flash-lite-latest",
       "models/gemini-2.5-flash-lite",
+      "models/gemini-flash-latest",
     ];
 
     const orderedModels = [
@@ -1560,17 +1563,30 @@ module.exports = async function handler(req, res) {
       let lastErrorData = { error: "No se pudo completar la solicitud" };
 
       for (const modelName of orderedModels) {
-        response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/${modelName}:generateContent?key=${apiKey}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          }
-        );
+        // Sin corte, un modelo que no contesta no cae al siguiente: se queda
+        // colgado y se lleva por delante toda la funcion. Hoy pasa con
+        // gemini-flash-latest, que es el primero de la lista.
+        const corte = new AbortController();
+        const reloj = setTimeout(() => corte.abort(), 20000);
+        try {
+          response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/${modelName}:generateContent?key=${apiKey}`,
+            {
+              method: "POST",
+              signal: corte.signal,
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            }
+          );
+        } catch (abortErr) {
+          clearTimeout(reloj);
+          lastErrorStatus = 504;
+          lastErrorData = { error: `El modelo ${modelName} no respondio a tiempo.` };
+          continue;
+        }
+        clearTimeout(reloj);
 
         data = await response.json();
-
         if (response.ok) {
           return { ok: true, data, modelName };
         }

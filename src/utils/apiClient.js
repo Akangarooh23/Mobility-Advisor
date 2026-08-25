@@ -19,6 +19,7 @@ export const USER_ERP_APPOINTMENTS_API_ENDPOINT = `${API_BASE}/api/user-erp-appo
 export const MARKET_PRICE_API_ENDPOINT = `${API_BASE}/api/market-price`;
 export const MARKETPLACE_VO_API_ENDPOINT = `${API_BASE}/api/marketplace-vo`;
 export const IMPORT_OFFERS_API_ENDPOINT = `${API_BASE}/api/import-offers`;
+export const COMPARE_CARS_API_ENDPOINT = `${API_BASE}/api/compare-cars`;
 
 export function getImportOffersJson(params = {}, options = {}) {
   const { limit = 60, offset = 0, brand = "", query = "", model = "", minPrice = "", maxPrice = "", minYear = "", maxYear = "", minMileage = "", maxMileage = "", fuel = "", color = "", transmission = "", displacement = "" } = params;

@@ -5537,22 +5537,22 @@ export default function App() {
       {/* ── Consent review modal for existing users ── */}
       {showConsentReview && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ background: "var(--gris-900)", borderRadius: 20, padding: "32px 28px", maxWidth: 480, width: "100%", border: "1px solid rgba(150,150,143,0.15)" }}>
-            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--gris-300)", marginBottom: 10 }}>Actualización de políticas</p>
-            <h3 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 800, color: "var(--gris-50)", lineHeight: 1.2 }}>Revisa y acepta nuestras políticas</h3>
-            <p style={{ margin: "0 0 20px", color: "var(--gris-400)", fontSize: 13, lineHeight: 1.6 }}>Hemos actualizado nuestras condiciones. Puedes aceptar o continuar sin aceptar — tu decisión quedará guardada.</p>
+          <div style={{ background: "var(--blanco)", borderRadius: 20, padding: "32px 28px", maxWidth: 480, width: "100%", border: "1px solid var(--gris-200)" }}>
+            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--gris-600)", marginBottom: 10 }}>Actualización de políticas</p>
+            <h3 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 800, color: "var(--gris-900)", lineHeight: 1.2 }}>Revisa y acepta nuestras políticas</h3>
+            <p style={{ margin: "0 0 20px", color: "var(--gris-500)", fontSize: 13, lineHeight: 1.6 }}>Hemos actualizado nuestras condiciones. Puedes aceptar o continuar sin aceptar — tu decisión quedará guardada.</p>
 
             <div style={{ display: "grid", gap: 10, marginBottom: 24 }}>
               {/* Checkbox 1 — T&C obligatorio */}
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                 <input type="checkbox" checked={consentReviewLegal} onChange={(e) => setConsentReviewLegal(e.target.checked)}
                   style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "var(--gris-300)", lineHeight: 1.6 }}>
+                <span style={{ fontSize: 12, color: "var(--gris-600)", lineHeight: 1.6 }}>
                   He leído y acepto{" "}
-                  <a href="/terminos-condiciones" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-300)", textDecoration: "underline" }}>Condiciones Generales</a>
+                  <a href="/terminos-condiciones" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-600)", textDecoration: "underline" }}>Condiciones Generales</a>
                   {" "}y la{" "}
-                  <a href="/politica-privacidad" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-300)", textDecoration: "underline" }}>Política de Privacidad</a>.{" "}
-                  <span style={{ color: "#f87171", fontSize: 11 }}>(obligatorio)</span>
+                  <a href="/politica-privacidad" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-600)", textDecoration: "underline" }}>Política de Privacidad</a>.{" "}
+                  <span style={{ color: "#A32D2D", fontSize: 11 }}>(obligatorio)</span>
                 </span>
               </label>
 
@@ -5560,9 +5560,9 @@ export default function App() {
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                 <input type="checkbox" checked={consentReviewMarketingEmail} onChange={(e) => setConsentReviewMarketingEmail(e.target.checked)}
                   style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
-                  Acepto comunicaciones comerciales por <strong style={{ color: "var(--gris-300)" }}>email</strong> conforme a la{" "}
-                  <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-300)", textDecoration: "underline" }}>Política de Comunicaciones</a>.
+                <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
+                  Acepto comunicaciones comerciales por <strong style={{ color: "var(--gris-600)" }}>email</strong> conforme a la{" "}
+                  <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-600)", textDecoration: "underline" }}>Política de Comunicaciones</a>.
                 </span>
               </label>
 
@@ -5570,9 +5570,9 @@ export default function App() {
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                 <input type="checkbox" checked={consentReviewMarketingSms} onChange={(e) => setConsentReviewMarketingSms(e.target.checked)}
                   style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
-                  Acepto comunicaciones comerciales por <strong style={{ color: "var(--gris-300)" }}>SMS</strong> conforme a la{" "}
-                  <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-300)", textDecoration: "underline" }}>Política de Comunicaciones</a>.
+                <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
+                  Acepto comunicaciones comerciales por <strong style={{ color: "var(--gris-600)" }}>SMS</strong> conforme a la{" "}
+                  <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-600)", textDecoration: "underline" }}>Política de Comunicaciones</a>.
                 </span>
               </label>
 
@@ -5580,11 +5580,11 @@ export default function App() {
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                 <input type="checkbox" checked={consentReviewThirdPartyEmail} onChange={(e) => setConsentReviewThirdPartyEmail(e.target.checked)}
                   style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
-                  Acepto comunicaciones por <strong style={{ color: "var(--gris-300)" }}>email</strong> de terceros conforme a las{" "}
-                  <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-300)", textDecoration: "underline" }}>Condiciones Experian</a>
+                <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
+                  Acepto comunicaciones por <strong style={{ color: "var(--gris-600)" }}>email</strong> de terceros conforme a las{" "}
+                  <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-600)", textDecoration: "underline" }}>Condiciones Experian</a>
                   {" "}y la{" "}
-                  <a href="/politica-experian" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-300)", textDecoration: "underline" }}>Política de Solvencia</a>.
+                  <a href="/politica-experian" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-600)", textDecoration: "underline" }}>Política de Solvencia</a>.
                 </span>
               </label>
 
@@ -5592,11 +5592,11 @@ export default function App() {
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                 <input type="checkbox" checked={consentReviewThirdPartySms} onChange={(e) => setConsentReviewThirdPartySms(e.target.checked)}
                   style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "var(--gris-400)", lineHeight: 1.6 }}>
-                  Acepto comunicaciones por <strong style={{ color: "var(--gris-300)" }}>SMS</strong> de terceros conforme a las{" "}
-                  <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-300)", textDecoration: "underline" }}>Condiciones Experian</a>
+                <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
+                  Acepto comunicaciones por <strong style={{ color: "var(--gris-600)" }}>SMS</strong> de terceros conforme a las{" "}
+                  <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-600)", textDecoration: "underline" }}>Condiciones Experian</a>
                   {" "}y la{" "}
-                  <a href="/politica-experian" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-300)", textDecoration: "underline" }}>Política de Solvencia</a>.
+                  <a href="/politica-experian" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-600)", textDecoration: "underline" }}>Política de Solvencia</a>.
                 </span>
               </label>
             </div>
@@ -5661,7 +5661,7 @@ export default function App() {
                   setShowConsentReview(false);
                   setConsentReviewLoading(false);
                 }}
-                style={{ width: "100%", padding: "10px", borderRadius: 10, background: "transparent", color: "var(--gris-500)", fontWeight: 500, fontSize: 13, border: "1px solid rgba(150,150,143,0.2)", cursor: "pointer" }}
+                style={{ width: "100%", padding: "10px", borderRadius: 10, background: "transparent", color: "var(--gris-500)", fontWeight: 500, fontSize: 13, border: "1px solid var(--gris-300)", cursor: "pointer" }}
               >
                 Continuar sin aceptar
               </button>
@@ -5690,8 +5690,8 @@ export default function App() {
             style={{
               width: "min(680px, 100%)",
               maxHeight: "min(92vh, 820px)",
-              background: "rgba(17,17,17,0.98)",
-              border: "1px solid rgba(207,207,200,0.28)",
+              background: "var(--blanco)",
+              border: "1px solid var(--gris-200)",
               borderRadius: 18,
               boxShadow: "0 24px 60px rgba(5,5,5,0.45)",
               padding: 18,
@@ -5699,16 +5699,16 @@ export default function App() {
               overflowY: "auto",
             }}
           >
-            <div style={{ fontSize: 11, color: "var(--gris-300)", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 8 }}>
+            <div style={{ fontSize: 11, color: "var(--gris-600)", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 8 }}>
               {t("cookies.badge")}
             </div>
-            <h3 style={{ margin: "0 0 8px", fontSize: "clamp(22px,4vw,28px)", color: "var(--gris-50)" }}>
+            <h3 style={{ margin: "0 0 8px", fontSize: "clamp(22px,4vw,28px)", color: "var(--gris-900)" }}>
               {t("cookies.title")}
             </h3>
-            <p style={{ margin: "0 0 8px", color: "var(--gris-300)", fontSize: 13, lineHeight: 1.65 }}>
+            <p style={{ margin: "0 0 8px", color: "var(--gris-600)", fontSize: 13, lineHeight: 1.65 }}>
               {t("cookies.description")}
             </p>
-            <p style={{ margin: "0 0 14px", color: "var(--gris-400)", fontSize: 12, lineHeight: 1.6 }}>
+            <p style={{ margin: "0 0 14px", color: "var(--gris-500)", fontSize: 12, lineHeight: 1.6 }}>
               {t("cookies.note")}
             </p>
 
@@ -5741,9 +5741,9 @@ export default function App() {
                   <div
                     key={item.key}
                     style={{
-                      border: "1px solid rgba(150,150,143,0.24)",
+                      border: "1px solid var(--gris-200)",
                       borderRadius: 12,
-                      background: "rgba(17,17,17,0.5)",
+                      background: "var(--gris-50)",
                       padding: "10px 12px",
                       display: "flex",
                       gap: 10,
@@ -5752,8 +5752,8 @@ export default function App() {
                     }}
                   >
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 13, color: "var(--gris-50)", fontWeight: 700 }}>{item.title}</div>
-                      <div style={{ fontSize: 12, color: "var(--gris-400)", marginTop: 2, lineHeight: 1.5 }}>
+                      <div style={{ fontSize: 13, color: "var(--gris-900)", fontWeight: 700 }}>{item.title}</div>
+                      <div style={{ fontSize: 12, color: "var(--gris-500)", marginTop: 2, lineHeight: 1.5 }}>
                         {item.description}
                       </div>
                     </div>
@@ -5765,9 +5765,9 @@ export default function App() {
                           padding: "5px 9px",
                           fontSize: 11,
                           fontWeight: 700,
-                          color: "#86efac",
-                          border: "1px solid rgba(110,231,183,0.35)",
-                          background: "rgba(16,185,129,0.14)",
+                          color: "var(--acento-texto)",
+                          border: "1px solid rgba(255,196,0,0.45)",
+                          background: "rgba(255,196,0,0.14)",
                           whiteSpace: "nowrap",
                         }}
                       >
@@ -5786,12 +5786,12 @@ export default function App() {
                         style={{
                           borderRadius: 999,
                           border: enabled
-                            ? "1px solid rgba(110,231,183,0.35)"
-                            : "1px solid rgba(150,150,143,0.3)",
+                            ? "1px solid rgba(255,196,0,0.45)"
+                            : "1px solid var(--gris-300)",
                           background: enabled
-                            ? "rgba(16,185,129,0.14)"
-                            : "rgba(17,17,17,0.7)",
-                          color: enabled ? "#86efac" : "var(--gris-300)",
+                            ? "rgba(255,196,0,0.14)"
+                            : "var(--blanco)",
+                          color: enabled ? "var(--acento-texto)" : "var(--gris-500)",
                           padding: "6px 10px",
                           fontSize: 11,
                           fontWeight: 700,
@@ -5811,12 +5811,12 @@ export default function App() {
               <div
                 style={{
                   marginBottom: 12,
-                  border: "1px solid rgba(207,207,200,0.24)",
+                  border: "1px solid var(--gris-200)",
                   background: "rgba(230,176,0,0.1)",
                   borderRadius: 10,
                   padding: "9px 11px",
                   fontSize: 12,
-                  color: "var(--gris-200)",
+                  color: "var(--gris-700)",
                 }}
               >
                 {t("cookies.advancedMessage")}
@@ -5845,11 +5845,11 @@ export default function App() {
                 type="button"
                 onClick={() => saveCookieConsent("necessary")}
                 style={{
-                  border: "1px solid rgba(150,150,143,0.34)",
+                  border: "1px solid var(--gris-300)",
                   borderRadius: 10,
                   padding: "10px 14px",
-                  background: "rgba(17,17,17,0.72)",
-                  color: "var(--gris-200)",
+                  background: "var(--blanco)",
+                  color: "var(--gris-700)",
                   fontSize: 12,
                   fontWeight: 700,
                   cursor: "pointer",
@@ -5865,11 +5865,11 @@ export default function App() {
                   saveCookieConsent("custom");
                 }}
                 style={{
-                  border: "1px solid rgba(110,231,183,0.34)",
+                  border: "1px solid var(--acento)",
                   borderRadius: 10,
                   padding: "10px 14px",
-                  background: "rgba(16,185,129,0.12)",
-                  color: "#bbf7d0",
+                  background: "var(--acento)",
+                  color: "var(--gris-900)",
                   fontSize: 12,
                   fontWeight: 700,
                   cursor: "pointer",
@@ -5886,7 +5886,7 @@ export default function App() {
                   borderRadius: 10,
                   padding: "10px 14px",
                   background: "transparent",
-                  color: "var(--gris-300)",
+                  color: "var(--gris-600)",
                   fontSize: 12,
                   fontWeight: 700,
                   cursor: "pointer",
@@ -5897,7 +5897,7 @@ export default function App() {
               </button>
             </div>
 
-            <div style={{ marginTop: 10, fontSize: 12, color: "var(--gris-400)" }}>
+            <div style={{ marginTop: 10, fontSize: 12, color: "var(--gris-500)" }}>
               Puedes revisar los detalles en la política de cookies desde el footer.
             </div>
           </div>

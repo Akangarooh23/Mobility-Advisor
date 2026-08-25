@@ -17,7 +17,7 @@ export default function SellProfessionalAssistPage({ onGoBack, onGoHome, onStart
       <div className="hero-card">
         <div className="hero-band" />
         <div className="hero-inner">
-          <div className="badge">{`${t("sell.optionBBadge")} · ${t("sell.professionalFlowHeader")}`}</div>
+          <div className="badge">{t("sell.professionalFlowHeader")}</div>
           <h1 className="hero-title">{t("sell.professionalHeroTitle")}</h1>
           <p className="hero-desc">
             {t("sell.professionalHeroDesc")}

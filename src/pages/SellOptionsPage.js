@@ -82,24 +82,6 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
         >
           <span
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              padding: "3px 10px",
-              borderRadius: 20,
-              border: "1px solid rgba(255,196,0,0.24)",
-              background: "rgba(255,196,0,0.1)",
-              color: "var(--marca)",
-              fontSize: 9,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              fontWeight: 700,
-              marginBottom: 4,
-            }}
-          >
-            {t("sell.optionABadge")}
-          </span>
-          <span
-            style={{
               position: "absolute",
               top: 22,
               right: 20,
@@ -173,24 +155,6 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
             }
           }}
         >
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              padding: "3px 10px",
-              borderRadius: 20,
-              border: "1px solid rgba(255,196,0,0.24)",
-              background: "rgba(255,196,0,0.1)",
-              color: "var(--marca)",
-              fontSize: 9,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              fontWeight: 700,
-              marginBottom: 4,
-            }}
-          >
-            {t("sell.optionBBadge")}
-          </span>
           <span
             style={{
               position: "absolute",

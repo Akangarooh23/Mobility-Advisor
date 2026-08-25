@@ -624,7 +624,7 @@ export default function SellReportMarketPage({
       <div className="hero-card">
         <div className="hero-band" />
         <div className="hero-inner">
-          <div className="badge">{`${t("sell.optionABadge")} · ${t("sell.optionATitle")}`}</div>
+          <div className="badge">{t("sell.optionATitle")}</div>
           <h1 className="sell-market-title">{t("sell.optionATitle")}</h1>
           <p className="sell-market-desc">
             {t("sell.reportHeroDesc")}

@@ -5,7 +5,6 @@ export default function ServiceOptionsPage({
   onSelectInsurance,
   onSelectMaintenance,
   onSelectAppointment,
-  onSelectMonthlyPlan,
   onSelectAutogestor,
   onGoBack,
 }) {
@@ -51,19 +50,6 @@ export default function ServiceOptionsPage({
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
           <rect x="3" y="4" width="18" height="18" rx="2" />
           <path d="M16 2v4M8 2v4M3 10h18" />
-        </svg>
-      ),
-    },
-    {
-      id: "cuota",
-      badge: t("service.monthlyPlanBadge"),
-      title: t("service.monthlyPlanTitle"),
-      description: t("service.monthlyPlanDescription"),
-      onClick: onSelectMonthlyPlan,
-      icon: (
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 7v5l3 3" />
         </svg>
       ),
     },

@@ -6,7 +6,7 @@
   "service": {
     "title": "Genera tu IDCar y gestiona tu vehículo",
     "subtitle": "Selecciona el servicio que quieras activar para tu vehículo.",
-    "autogestorTitle": "ID digital de tu vehiculo",
+    "autogestorTitle": "Crea tu garaje",
     "autogestorDescription": "Toda la información de tu coche desde una única plataforma. Historial, documentos, KMs y mucho más.",
     "maintenanceTitle": "Recordatorio inteligente",
     "maintenanceDescription": "Cruzamos los datos de tu vehículo con los intervalos recomendados y te avisamos antes de que se te pase.",
@@ -327,7 +327,8 @@
     "monthlySavingsWithAmount": "~{{amount}}€/año",
     "monthlyCtaTitle": "Contratar plan {{name}} · {{price}}€/mes",
     "monthlyCtaDesc": "El primer mes es gratuito. Sin permanencia. Cancela en cualquier momento.",
-    "monthlyCtaButton": "Contratar cuota →"
+    "monthlyCtaButton": "Contratar cuota →",
+    "autogestorTag": "IDCar · Digitaliza tu vehículo"
   },
   "advice": {
     "beforeStart": "Antes de empezar",
@@ -692,7 +693,7 @@
     "sellFlowBStep6": "Gestionamos la transacción y entrega",
     "sellFlowBStep7": "Nos encargamos de la documentación post-venta",
     "serviceAutogestorLabel": "A - Autogestor",
-    "serviceAutogestorTitle": "ID digital de tu vehículo",
+    "serviceAutogestorTitle": "Crea tu garaje",
     "serviceAutogestorDesc": "Toda la información de tu coche en una única plataforma: documentación, póliza, recibos de mantenimiento y garantías. Nunca pierdas un documento.",
     "serviceMaintenanceLabel": "B - Mantenimiento",
     "serviceMaintenanceTitle": "Recordatorio inteligente",
@@ -1287,10 +1288,10 @@
     "greeting": "Buenos días, {{name}}"
   },
   "autogestor": {
-    "badge": "A · AUTOGESTOR",
+    "badge": "IDCar · Digitaliza tu vehículo",
     "breadcrumbServices": "Servicios",
     "breadcrumbAutogestor": "Autogestor",
-    "title": "ID digital de tu vehiculo",
+    "title": "Crea tu garaje",
     "subtitle": "Toda la información de tu coche en un único panel: documentación, póliza de seguro, facturas de mantenimiento y garantías. No vuelvas a buscar un papel nunca más.",
     "features": [
       "Acceso seguro",

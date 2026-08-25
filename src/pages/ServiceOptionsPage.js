@@ -136,6 +136,31 @@ export default function ServiceOptionsPage({
           </svg>
         </div>
         <div style={{ flex: 1, minWidth: 200 }}>
+          {/* Mismo distintivo que en Comprar: dice de que servicio es la
+              tarjeta antes de que el titulo diga que se hace. */}
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              background: "var(--acento-tenue)",
+              color: "var(--acento-texto)",
+              border: "1px solid rgba(255,196,0,0.45)",
+              borderRadius: 999,
+              padding: "5px 12px 5px 9px",
+              fontSize: 11.5,
+              fontWeight: 700,
+              lineHeight: 1,
+              marginBottom: 10,
+            }}
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="3" y="4.5" width="18" height="15" rx="2.4" />
+              <path d="M3 9.5h18" /><path d="M7 14h4" />
+            </svg>
+            {t("service.autogestorTag")}
+          </span>
           <div style={{ fontWeight: 800, fontSize: "clamp(22px,3vw,30px)", lineHeight: 1.15, color: titleColor, marginBottom: 6 }}>
             {serviceCards[0].title}
           </div>

@@ -6,7 +6,7 @@
   "service": {
     "title": "I want to get a Service",
     "subtitle": "Select the service you want to activate for your vehicle.",
-    "autogestorTitle": "Your vehicle's digital ID",
+    "autogestorTitle": "Create your garage",
     "autogestorDescription": "All your car's information from a single platform. History, documents, KMs and much more.",
     "maintenanceTitle": "Smart reminder",
     "maintenanceDescription": "We cross your vehicle's data with recommended intervals and notify you before you miss it.",
@@ -327,7 +327,8 @@
     "monthlySavingsWithAmount": "~€{{amount}}/year",
     "monthlyCtaTitle": "Subscribe to {{name}} plan · {{price}}€/month",
     "monthlyCtaDesc": "First month is free. No commitment. Cancel anytime.",
-    "monthlyCtaButton": "Subscribe →"
+    "monthlyCtaButton": "Subscribe →",
+    "autogestorTag": "IDCar · Digitise your vehicle"
   },
   "advice": {
     "beforeStart": "Before you start",
@@ -621,7 +622,7 @@
     "sellFlowBStep6": "We manage the transaction and handover",
     "sellFlowBStep7": "We handle post-sale documentation",
     "serviceAutogestorLabel": "A - Self-manager",
-    "serviceAutogestorTitle": "Digital ID of your vehicle",
+    "serviceAutogestorTitle": "Create your garage",
     "serviceAutogestorDesc": "All your car information from a single platform: documentation, policy, maintenance receipts and warranties. Never lose a document again.",
     "serviceMaintenanceLabel": "B - Maintenance",
     "serviceMaintenanceTitle": "Smart reminder",
@@ -1286,10 +1287,10 @@
     "greeting": "Good morning, {{name}}"
   },
   "autogestor": {
-    "badge": "A · AUTOGESTOR",
+    "badge": "IDCar · Digitise your vehicle",
     "breadcrumbServices": "Services",
     "breadcrumbAutogestor": "Autogestor",
-    "title": "Digital ID of your vehicle",
+    "title": "Create your garage",
     "subtitle": "All your car information in a single panel: documentation, insurance policy, maintenance invoices and warranties. Never lose a document again.",
     "features": [
       "Secure access",

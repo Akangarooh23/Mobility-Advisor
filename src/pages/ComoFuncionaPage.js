@@ -46,10 +46,19 @@ const CAMINOS = {
   ],
   vender: [
     { id: "precio", titulo: "Saber lo que vale hoy", destino: "Informe de mercado" },
-    { id: "yo", titulo: "Venderlo por mi cuenta", destino: "Documentarlo con IdCar" },
+    { id: "yo", titulo: "Venderlo por mi cuenta", destino: "Marketplace para particulares" },
     { id: "vosotros", titulo: "Que lo vendáis vosotros", destino: "Venta gestionada" },
   ],
 };
+
+/**
+ * Los cinco ejes con los que puntúa el comparador y los seis bloques del test.
+ * Los nombres son los de la aplicación. Las barras van sin cifra a propósito:
+ * la puntuación la calcula el análisis para cada caso, y poner aquí un número
+ * concreto sería inventarse un resultado.
+ */
+const EJES_COMPARADOR = ["Fiabilidad", "Coste de uso", "Equipamiento", "Prestaciones", "Valor de reventa"];
+const BLOQUES_TEST = ["Perfil", "Energía", "Uso real", "Capacidad", "Preferencias", "Prioridades"];
 
 /** Los seis datos que pide el formulario de venta, en su orden. */
 const DATOS_VENTA = [
@@ -132,7 +141,15 @@ export default function ComoFuncionaPage({ onGoHome }) {
            El scroll del bloque mueve el embudo: medio millón de ofertas,
            siete filtros y las que quedan, con sus fichas reales. La
            transformación la hace la escena; aquí solo se le dice por dónde va. */
-        const ARRANQUE = 0.3;   // lo que ocupan las tres puertas antes del embudo
+        /* Tres actos, uno por opción, cada uno con su tramo. Las tarjetas se
+           quedan arriba y se marca la que toca; abajo solo hay una escena a la
+           vista y opaca. El relevo entre actos es corto —la escena que sale se
+           va antes de que entre la siguiente— porque solaparlas es exactamente
+           lo que hacía que no se leyera ninguna. */
+        // Sobre nueve pantallas: el embudo se lleva casi cuatro, que es lo que
+        // pide contar siete filtros, y los otros dos algo menos de dos cada uno.
+        const ACTOS = [0.08, 0.56, 0.80];
+        const RELEVO = 0.05;
 
         const comprar = gsap.timeline({
           scrollTrigger: {
@@ -141,24 +158,58 @@ export default function ComoFuncionaPage({ onGoHome }) {
             end: "bottom bottom",
             scrub: 0.5,
             onUpdate: (self) => {
-              // El embudo no arranca hasta que las tres puertas han salido: son
-              // dos ideas distintas y pisarlas a la vez no deja leer ninguna.
+              // El embudo solo corre durante su acto; fuera se queda quieto.
               const p = self.progress;
-              embudo.current?.(p <= ARRANQUE ? 0 : (p - ARRANQUE) / (1 - ARRANQUE));
+              const fin = ACTOS[1] - RELEVO;
+              const dentro = (p - ACTOS[0]) / (fin - ACTOS[0]);
+              embudo.current?.(dentro < 0 ? 0 : dentro > 1 ? 1 : dentro);
             },
           },
         });
-        gsap.utils.toArray("#comprar .cf-camino").forEach((c, i) => {
-          comprar.fromTo(c,
-            { autoAlpha: 0, y: 24 },
-            { autoAlpha: 1, y: 0, ease: "none", duration: 0.06 },
-            0.02 + i * 0.06);
+
+        const tarjetas = gsap.utils.toArray("#comprar .cf-camino");
+        tarjetas.forEach((c, i) => {
+          comprar.fromTo(c, { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, ease: "none", duration: 0.03 }, 0.01 + i * 0.025);
+          // Cada tarjeta se enciende cuando le llega su turno y se apaga al
+          // pasar: siempre se sabe de cuál de las tres se está hablando.
+          comprar.to(c, { "--activa": 1, scale: 1.02, ease: "none", duration: 0.02 }, ACTOS[i]);
+          if (i < 2) comprar.to(c, { "--activa": 0, scale: 1, ease: "none", duration: 0.02 }, ACTOS[i + 1] - RELEVO);
         });
-        comprar
-          // Las puertas se retiran arriba y el embudo ocupa su sitio: se entra
-          // por una de las tres, pero detrás pasa lo mismo en las tres.
-          .to("#comprar .cf-caminos", { autoAlpha: 0, y: -26, ease: "none", duration: 0.08 }, ARRANQUE - 0.04)
-          .fromTo(".cf-embudo", { autoAlpha: 0 }, { autoAlpha: 1, ease: "none", duration: 0.08 }, ARRANQUE - 0.02);
+
+        const actos = gsap.utils.toArray("#comprar .cf-acto");
+        actos.forEach((acto, i) => {
+          const entra = ACTOS[i];
+          const sale = i < 2 ? ACTOS[i + 1] - RELEVO : 1;
+          comprar.fromTo(acto, { autoAlpha: 0 }, { autoAlpha: 1, ease: "none", duration: RELEVO * 0.6 }, entra - RELEVO * 0.4);
+          if (i < 2) comprar.to(acto, { autoAlpha: 0, ease: "none", duration: RELEVO * 0.6 }, sale);
+        });
+
+        /* Cada acto se recorre por dentro, no solo aparece. El primero lo lleva
+           el embudo; estos dos necesitan lo suyo o serían una lámina quieta
+           durante dos pantallas de scroll. */
+        const inicioComp = ACTOS[1];
+        const largoComp = (ACTOS[2] - RELEVO) - inicioComp;
+        gsap.utils.toArray("#comprar .cf-eje").forEach((eje, i) => {
+          const barras = eje.querySelectorAll("em");
+          comprar.fromTo(barras,
+            { scaleX: 0 },
+            { scaleX: 1, ease: "none", duration: largoComp * 0.16, stagger: largoComp * 0.02 },
+            inicioComp + largoComp * (0.08 + i * 0.15));
+        });
+        // Al final del acto se apaga lo que no gana: se ve quién queda primero
+        // sin que nadie lo diga.
+        comprar.to("#comprar .cf-eje i:not(:first-of-type) em",
+          { autoAlpha: 0.35, ease: "none", duration: largoComp * 0.12 },
+          inicioComp + largoComp * 0.82);
+
+        const inicioTest = ACTOS[2];
+        const largoTest = 1 - inicioTest;
+        gsap.utils.toArray("#comprar .cf-bloques-test li").forEach((b, i) => {
+          comprar.fromTo(b,
+            { autoAlpha: 0.25, y: 12 },
+            { autoAlpha: 1, y: 0, ease: "none", duration: largoTest * 0.1 },
+            inicioTest + largoTest * (0.08 + i * 0.11));
+        });
 
         /* ── 02 Vender ────────────────────────────────────────────────────
            Los seis datos entran uno a uno, la ficha se retira y en su sitio se
@@ -253,10 +304,10 @@ export default function ComoFuncionaPage({ onGoHome }) {
             <h2>Encuentra<br /><span>el tuyo.</span></h2>
             <p className="cf-apoyo">Todo el mercado, hasta los que encajan contigo.</p>
           </div>
-          <div className="cf-escena">
-            {/* Las tres puertas primero: se entra por donde uno está, no por
-                donde le digan. Después el embudo, que es lo que pasa detrás de
-                cualquiera de las tres. */}
+          <div className="cf-escena cf-escena-comprar">
+            {/* Las tres puertas se quedan arriba todo el bloque y se va marcando
+                la que toca. Antes compartían sitio con la escena y las dos se
+                veían a medias: no se leía ninguna. */}
             <ul className="cf-caminos">
               {CAMINOS.comprar.map((c) => (
                 <li className={`cf-camino cf-camino-${c.id}`} key={c.id}>
@@ -265,8 +316,35 @@ export default function ComoFuncionaPage({ onGoHome }) {
                 </li>
               ))}
             </ul>
-            <div className="cf-embudo">
-              <EscenaMercado registrar={registrarEmbudo} indice={0} />
+
+            {/* Un escenario, tres escenas. Solo una a la vista, y opaca. */}
+            <div className="cf-tablero">
+              <div className="cf-acto cf-acto-embudo">
+                <EscenaMercado registrar={registrarEmbudo} indice={0} />
+              </div>
+
+              <div className="cf-acto cf-acto-comparador">
+                <p className="cf-acto-etq">Cinco criterios, un ganador</p>
+                <div className="cf-ejes">
+                  {EJES_COMPARADOR.map((eje, i) => (
+                    <div className="cf-eje" key={eje}>
+                      <span>{eje}</span>
+                      <i><em style={{ width: `${[86, 62, 74, 58, 80][i]}%` }} /></i>
+                      <i><em style={{ width: `${[64, 78, 52, 71, 55][i]}%` }} /></i>
+                      <i><em style={{ width: `${[71, 55, 68, 83, 62][i]}%` }} /></i>
+                    </div>
+                  ))}
+                </div>
+                <p className="cf-acto-pie">Hasta cinco coches, con lo que se gana y lo que se pierde.</p>
+              </div>
+
+              <div className="cf-acto cf-acto-test">
+                <p className="cf-acto-etq">Veintiuna preguntas sobre cómo vives</p>
+                <ul className="cf-bloques-test">
+                  {BLOQUES_TEST.map((b) => <li key={b}>{b}</li>)}
+                </ul>
+                <p className="cf-acto-pie">Y salen modelos con su puntuación de 0 a 100.</p>
+              </div>
             </div>
           </div>
         </div>

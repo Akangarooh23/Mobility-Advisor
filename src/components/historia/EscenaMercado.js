@@ -287,11 +287,14 @@ export default function EscenaMercado({ registrar, indice }) {
       if (bloqueMercado.current) {
         // La cifra y los filtros se retiran; el campo de puntos no, que es quien
         // hace el viaje hasta las fichas.
-        bloqueMercado.current.style.opacity = String(1 - suave(remate));
+        // Se retira pronto y del todo. Antes se apagaba a la vez que entraban
+        // las fichas y habia un tramo largo con las dos capas traslucidas: no se
+        // leia ni una.
+        bloqueMercado.current.style.opacity = String(1 - suave(Math.min(1, remate / 0.4)));
       }
       if (bloqueResultados.current) {
         // Las fichas entran cuando los puntos ya han llegado a su sitio.
-        const entrada = remate < 0.55 ? 0 : (remate - 0.55) / 0.45;
+        const entrada = remate < 0.5 ? 0 : suave((remate - 0.5) / 0.5);
         bloqueResultados.current.style.opacity = String(entrada);
         // Las fotos entran algo mas grandes y se asientan. Aqui la expansion no
         // es un efecto: es el instante en que los puntos que sobrevivieron al

@@ -125,13 +125,13 @@ test("cada bloque abre con sus tres puertas de entrada", () => {
   ]);
 });
 
-test("no promete publicar el coche en un marketplace", () => {
-  /* La tercera tarjeta de la web de vender dice «publica tu coche en nuestro
-     Marketplace para particulares», pero ese flujo no existe: su botón lleva a
-     crear el IdCar. Aquí se cuenta lo que pasa de verdad. */
+test("vender ofrece el marketplace para particulares", () => {
+  /* Aviso para quien lea esto: hoy ese flujo NO existe en la aplicacion. La
+     frase solo aparece en la tarjeta de SellOptionsPage y su boton lleva a
+     crear el IdCar. Se enseña porque es decision de producto; el dia que se
+     implemente, esta prueba ya lo cubre. */
   const { container } = montar();
-  expect(container.textContent).not.toMatch(/marketplace/i);
-  expect(screen.getByText("Documentarlo con IdCar")).toBeInTheDocument();
+  expect(screen.getByText("Marketplace para particulares")).toBeInTheDocument();
 });
 
 test("gestionar enseña primero el IdCar y después lo que se hace con él", () => {
@@ -142,4 +142,37 @@ test("gestionar enseña primero el IdCar y después lo que se hace con él", () 
   const orden = [...gestionar.querySelectorAll(".cf-idcar-lleno, .cf-servicio")];
   expect(orden[0]).toHaveClass("cf-idcar-lleno");
   expect(orden).toHaveLength(5);
+});
+
+test("comprar explica las tres opciones, no solo una", () => {
+  // El fallo anterior era enseñar el embudo y dar por explicadas las otras dos.
+  const { container } = montar();
+  const actos = container.querySelectorAll("#comprar .cf-acto");
+  expect(actos).toHaveLength(3);
+  expect(container.querySelectorAll("#comprar .cf-eje")).toHaveLength(5);
+  expect(container.querySelectorAll("#comprar .cf-bloques-test li")).toHaveLength(6);
+});
+
+test("los cinco ejes y los seis bloques son los de la aplicación", () => {
+  const { container } = montar();
+  const ejes = [...container.querySelectorAll("#comprar .cf-eje > span")].map((n) => n.textContent);
+  expect(ejes).toEqual([
+    "Fiabilidad", "Coste de uso", "Equipamiento", "Prestaciones", "Valor de reventa",
+  ]);
+  const bloques = [...container.querySelectorAll("#comprar .cf-bloques-test li")].map((n) => n.textContent);
+  expect(bloques).toEqual([
+    "Perfil", "Energía", "Uso real", "Capacidad", "Preferencias", "Prioridades",
+  ]);
+});
+
+test("las tarjetas de comprar no comparten sitio con las escenas", () => {
+  /* Era el fallo que se veía en pantalla: tarjetas y embudo en la misma caja,
+     los dos a media opacidad y ninguno legible. Ahora las tarjetas van en el
+     flujo y las escenas en su propio tablero. */
+  const { container } = montar();
+  const caminos = container.querySelector("#comprar .cf-caminos");
+  const tablero = container.querySelector("#comprar .cf-tablero");
+  expect(tablero).toBeInTheDocument();
+  expect(caminos.contains(tablero)).toBe(false);
+  expect(tablero.contains(caminos)).toBe(false);
 });

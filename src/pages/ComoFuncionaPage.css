@@ -111,6 +111,9 @@
 /* Cuatro pantallas y no tres: cada bloque enseña primero por dónde se entra y
    después qué pasa detrás, y las dos cosas necesitan su aire. */
 .cf-bloque { position: relative; min-height: 400svh; }
+/* Comprar necesita mas: son tres opciones y cada una se recorre entera. El
+   embudo solo ya pide cuatro pantallas para sus siete filtros. */
+#comprar { min-height: 900svh; }
 .cf-bloque-claro { background: var(--gris-50); }
 
 .cf-fijo {
@@ -155,32 +158,84 @@
 
 .cf-escena { position: relative; width: 100%; }
 
-/* ── Las tres puertas de cada bloque ──────────────────────────────────── */
-/* Ocupan el mismo sitio que la escena y se retiran cuando esta entra: son el
-   «por dónde empiezo», y una vez elegido estorban. */
-.cf-caminos {
+/* ── 01 Comprar ───────────────────────────────────────────────────────── */
+/* Las tarjetas arriba y la escena debajo, cada una en su sitio. Compartir
+   espacio era el error: las dos se veían a medias y no se leía ninguna. */
+.cf-escena-comprar { display: grid; gap: 22px; align-content: center; }
+.cf-tablero { position: relative; min-height: clamp(300px, 46svh, 420px); }
+.cf-acto {
   position: absolute;
   inset: 0;
-  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  opacity: 0;
+}
+.cf-acto-etq {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--acento-texto);
+}
+.cf-acto-pie { margin: 0; font-size: 13px; color: var(--gris-500); }
+
+/* Comparador: cinco ejes, tres barras cada uno. Sin cifras: la puntuación la
+   calcula el análisis para cada caso y poner un número aquí sería inventarlo. */
+.cf-ejes { display: grid; gap: 12px; }
+.cf-eje { display: grid; grid-template-columns: 132px 1fr; gap: 4px 14px; align-items: center; }
+.cf-eje > span { grid-row: span 3; font-size: 12.5px; font-weight: 700; color: var(--gris-700); }
+.cf-eje i { display: block; height: 6px; border-radius: 999px; background: var(--gris-200); overflow: hidden; }
+.cf-eje em { display: block; height: 100%; border-radius: 999px; background: var(--gris-300); transform-origin: left center; }
+.cf-eje i:first-of-type em { background: var(--acento); }
+
+/* Test: los seis bloques reales. */
+.cf-bloques-test {
+  margin: 0; padding: 0; list-style: none;
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.cf-bloques-test li {
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 999px;
+  padding: 9px 16px;
+}
+
+/* ── Las tres puertas de cada bloque ──────────────────────────────────── */
+.cf-caminos {
   margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
   gap: 10px;
-  align-content: center;
 }
+/* En vender siguen ocupando la escena entera: allí solo hay una escena y el
+   relevo es limpio. */
+#vender .cf-caminos { position: absolute; inset: 0; z-index: 4; align-content: center; }
 @media (min-width: 760px) {
-  .cf-caminos { grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: center; }
+  .cf-caminos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #vender .cf-caminos { align-content: center; }
 }
+#comprar .cf-camino { padding: 14px 16px; }
 .cf-camino {
+  --activa: 0;
   background: var(--blanco);
-  border: 1px solid var(--gris-200);
+  /* El borde y la sombra siguen a --activa, que mueve la linea de tiempo. Asi
+     siempre se sabe de cual de las tres opciones se esta hablando. */
+  border: 1px solid color-mix(in srgb, var(--acento) calc(var(--activa) * 100%), var(--gris-200));
   border-radius: 16px;
   padding: 20px 20px 18px;
   display: grid;
   gap: 6px;
   align-content: start;
-  box-shadow: 0 22px 56px -30px rgba(0, 0, 0, 0.26);
+  box-shadow: 0 22px 56px -30px rgba(0, 0, 0, calc(0.10 + var(--activa) * 0.20));
+  /* La escala NO va aqui: GSAP anima `y` y `autoAlpha` de estas tarjetas con
+     `transform`, y cualquier transform del CSS se pisaria sin avisar. Va en la
+     linea de tiempo, junto a --activa. */
 }
 .cf-camino strong {
   font-size: clamp(15px, 1.5vw, 18px);
@@ -199,7 +254,7 @@
   justify-self: start;
 }
 
-.cf-embudo { opacity: 0; }
+
 
 /* ── 02 Vender ────────────────────────────────────────────────────────── */
 .cf-escena-venta { min-height: clamp(360px, 56svh, 500px); }

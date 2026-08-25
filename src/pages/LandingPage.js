@@ -22,7 +22,7 @@ import "./LandingPage.css";
 
 const TEXTOS = {
   es: {
-    nav: { comprar: "Comprar", vender: "Vender", gestionar: "Gestionar", idcar: "IdCar", como: "Cómo funciona", empresas: "Empresas" },
+    nav: { comprar: "Comprar", vender: "Vender", gestionar: "Gestionar", idcar: "IdCar", como: "Cómo funciona", empresas: "Empresas", productos: "Productos" },
     entrar: "Iniciar sesión",
     registro: "Regístrate",
     panel: "Mi panel",
@@ -94,7 +94,7 @@ const TEXTOS = {
     legal: "Aviso legal · Privacidad · Cookies",
   },
   en: {
-    nav: { comprar: "Buy", vender: "Sell", gestionar: "Manage", idcar: "IdCar", como: "How it works", empresas: "Business" },
+    nav: { comprar: "Buy", vender: "Sell", gestionar: "Manage", idcar: "IdCar", como: "How it works", empresas: "Business", productos: "Products" },
     entrar: "Log in",
     registro: "Sign up",
     panel: "My dashboard",
@@ -275,6 +275,7 @@ export default function LandingPage({
     [t.nav.gestionar, irGestionar],
     [t.nav.idcar, irGestionar],
     [t.nav.empresas, irContacto],
+    [t.nav.productos, irPlanes],
   ];
 
   const iconosRasgo = [IcoLupa, IcoEtiq, IcoCheck];

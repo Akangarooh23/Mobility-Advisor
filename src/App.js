@@ -1944,7 +1944,15 @@ export default function App() {
       label: uiLanguage === "en" ? "Business" : "Empresas",
       onClick: () => openPublicPage("empresas"),
     },
-  ], [goToHomeHeaderPage, openInternalLandingFlow, openPublicPage, uiLanguage]);
+    {
+      // La clave es «plans» porque es la pagina que abre, y asi el resaltado de
+      // la pestana activa funciona sin tocar nada: ya devuelve «plans» cuando
+      // estas en /planes.
+      key: "plans",
+      label: uiLanguage === "en" ? "Products" : "Productos",
+      onClick: () => openPlansSection("planes"),
+    },
+  ], [goToHomeHeaderPage, openInternalLandingFlow, openPublicPage, openPlansSection, uiLanguage]);
 
   const headerPlansNavItems = useMemo(() => [
     {

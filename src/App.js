@@ -38,6 +38,7 @@ import SeoStaticPage from "./pages/SeoStaticPage";
 import AboutCarswisePage from "./pages/AboutCarswisePage";
 import ContactCarswisePage from "./pages/ContactCarswisePage";
 import EmpresasPage from "./pages/EmpresasPage";
+import ComoFuncionaPage from "./pages/ComoFuncionaPage";
 import ComparadorPage from "./pages/ComparadorPage";
 import BuscarCochePage from "./pages/BuscarCochePage";
 import BlogIndexPage from "./pages/BlogIndexPage";
@@ -1213,6 +1214,7 @@ const PUBLIC_ROUTE_BY_ENTRY_MODE = {
   viewingPropose: "/cita/proponer",
   viewingConfirm: "/cita/confirmar",
   empresas: "/empresas",
+  comoFunciona: "/como-funciona",
   comparador: "/comparador",
   buscarCoche: "/buscar-coche",
   contact: "/contacto",
@@ -1884,6 +1886,10 @@ export default function App() {
       return "business";
     }
 
+    if (entryMode === "comoFunciona") {
+      return "comoFunciona";
+    }
+
     if (entryMode === "sellOptions" || entryMode === "sell") {
       return "sell";
     }
@@ -1951,6 +1957,11 @@ export default function App() {
       key: "plans",
       label: uiLanguage === "en" ? "Products" : "Productos",
       onClick: () => openPlansSection("planes"),
+    },
+    {
+      key: "comoFunciona",
+      label: uiLanguage === "en" ? "How it works" : "Cómo funciona",
+      onClick: () => openPublicPage("comoFunciona"),
     },
   ], [goToHomeHeaderPage, openInternalLandingFlow, openPublicPage, openPlansSection, uiLanguage]);
 
@@ -6086,6 +6097,7 @@ export default function App() {
           // dialogo, que se pinta fuera de la cabecera y por eso si se ve aqui;
           // el menu desplegable de la cabecera no serviria. Sin destino: entrar
           // desde el home devuelve al home, no a un flujo.
+          onComoFunciona={() => openPublicPage("comoFunciona")}
           onEntrar={() => openAuthDialog("login")}
           onRegistro={() => openAuthDialog("register")}
           styles={s}
@@ -6699,6 +6711,10 @@ export default function App() {
 
       {step === -1 && entryMode === "empresas" && (
         <EmpresasPage onGoHome={restart} uiLanguage={uiLanguage} />
+      )}
+
+      {step === -1 && entryMode === "comoFunciona" && (
+        <ComoFuncionaPage onGoHome={restart} />
       )}
 
       {step === -1 && entryMode === "contact" && (

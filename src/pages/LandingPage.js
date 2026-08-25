@@ -198,6 +198,7 @@ export default function LandingPage({
   onSelectAbout,
   onSelectContact,
   onOpenPlans,
+  onComoFunciona,
   onEntrar,
   onRegistro,
   // Props que sigue pasando App.js y esta vista no usa
@@ -251,6 +252,7 @@ export default function LandingPage({
      ese nombre acabo puesto en el logotipo y en los dos botones de sesion, que
      es como pulsar «Iniciar sesion» terminaba en el cuestionario de comprar. */
   const irAsesor    = go(onSelectAdvice || onSelectBuyStart);
+  const irComoFunciona = go(onComoFunciona);
   const irEntrar    = go(onEntrar);
   const irRegistro  = go(onRegistro);
   // Estando ya en el inicio, el logotipo sube arriba del todo.
@@ -276,6 +278,7 @@ export default function LandingPage({
     [t.nav.idcar, irGestionar],
     [t.nav.empresas, irContacto],
     [t.nav.productos, irPlanes],
+    [t.nav.como, irComoFunciona],
   ];
 
   const iconosRasgo = [IcoLupa, IcoEtiq, IcoCheck];

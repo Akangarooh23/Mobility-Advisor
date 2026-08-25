@@ -74,12 +74,12 @@ test("dice que no es una tasación, y eso no es negociable", () => {
 });
 
 test("gestionar enseña los cuatro servicios con su nombre real", () => {
-  // Se busca dentro del bloque: «Seguro» también es uno de los apartados que se
-  // rellenan al crear el IdCar, en vender.
+  // Se buscan en la cabecera: «Seguro» también es uno de los apartados que se
+  // rellenan al crear el IdCar, que ahora se cuenta en este mismo bloque.
   const { container } = montar();
-  const gestionar = container.querySelector("#gestionar");
+  const servicios = container.querySelector("#gestionar .cf-servicios");
   ["Crea tu garaje", "Recordatorio inteligente", "Cita de mantenimiento", "Seguro"]
-    .forEach((nombre) => expect(within(gestionar).getByText(nombre)).toBeInTheDocument());
+    .forEach((nombre) => expect(within(servicios).getByText(nombre)).toBeInTheDocument());
 });
 
 test("los iconos van en SVG, no en emoji", () => {
@@ -136,34 +136,18 @@ test("vender ofrece el marketplace para particulares", () => {
   expect(screen.getByText("Marketplace para particulares")).toBeInTheDocument();
 });
 
-test("vender empieza por el IdCar, antes de las tres puertas", () => {
-  /* Las tres opciones pasan por la ficha: el informe la puede leer, el anuncio
-     sale de ella y la venta gestionada empieza mirándola. Si el prólogo
-     desaparece, el bloque cuenta el final antes que el principio. */
+test("vender son tres puertas y tres actos", () => {
   const { container } = montar();
   const vender = container.querySelector("#vender");
-  expect(within(vender).getByText("Todo empieza por el IdCar")).toBeInTheDocument();
   const actos = vender.querySelectorAll(".cf-acto");
-  expect(actos).toHaveLength(4);
-  expect(actos[0]).toHaveClass("cf-acto-idcar");
+  expect(actos).toHaveLength(3);
+  expect(actos[0]).toHaveClass("cf-acto-informe");
+  // El IdCar se cuenta en gestionar, que es donde vive la ficha. Aqui solo se
+  // ofrece leerlo en vez de teclear los datos otra vez.
+  expect(vender.querySelector(".cf-paso-idcar")).toBeNull();
+  expect(within(vender).getByText("O usar un IdCar guardado")).toBeInTheDocument();
 });
 
-test("el IdCar se explica por sus seis apartados reales", () => {
-  // Son los de la ficha, con su nombre y en su orden. Si alguien inventa un
-  // paso que no existe, la página promete algo que la aplicación no pide.
-  const { container } = montar();
-  const pasos = [...container.querySelectorAll("#vender .cf-paso-idcar strong")].map((n) => n.textContent);
-  expect(pasos).toEqual([
-    "Características del vehículo",
-    "Documentos del vehículo",
-    "Informe de estado",
-    "Seguros",
-    "Mantenimientos",
-    "Notas internas",
-  ]);
-  // Y la ficha se sella con lo que se acaba de rellenar, uno por apartado.
-  expect(container.querySelectorAll("#vender .cf-sello")).toHaveLength(pasos.length);
-});
 
 test("publicar pide las tres cosas que pide la aplicación", () => {
   /* No son consejos: sin precio, sin informe terminado o sin una franja
@@ -213,17 +197,34 @@ test("la venta gestionada enseña sus cuatro pasos y los portales", () => {
   expect(pasos[2].querySelector(".cf-portales")).toBeInTheDocument();
 });
 
-test("gestionar enseña primero el garaje y después lo que se hace con él", () => {
+test("gestionar empieza por el IdCar y después lo que se hace con él", () => {
   // Sin ficha no hay avisos, ni cita, ni póliza que leer. Enseñarlos antes
-  // sería contarlo al revés, así que el primer acto es el garaje.
+  // sería contarlo al revés, así que el primer acto es crear el IdCar.
   const { container } = montar();
   const gestionar = container.querySelector("#gestionar");
   const actos = gestionar.querySelectorAll(".cf-acto");
   expect(actos).toHaveLength(4);
   expect(actos[0]).toHaveClass("cf-acto-garaje");
-  expect(actos[0].querySelector(".cf-idcar-lleno")).toBeInTheDocument();
+  expect(within(actos[0]).getByText("Todo empieza por el IdCar")).toBeInTheDocument();
   // Y hay una puerta por acto: cuatro servicios, cuatro escenas.
   expect(gestionar.querySelectorAll(".cf-servicio")).toHaveLength(4);
+});
+
+test("el IdCar se explica por sus seis apartados reales", () => {
+  // Son los de la ficha, con su nombre y en su orden. Si alguien inventa un
+  // paso que no existe, la página promete algo que la aplicación no pide.
+  const { container } = montar();
+  const pasos = [...container.querySelectorAll("#gestionar .cf-paso-idcar strong")].map((n) => n.textContent);
+  expect(pasos).toEqual([
+    "Características del vehículo",
+    "Documentos del vehículo",
+    "Informe de estado",
+    "Seguros",
+    "Mantenimientos",
+    "Notas internas",
+  ]);
+  // Y la ficha se sella con lo que se acaba de rellenar, uno por apartado.
+  expect(container.querySelectorAll("#gestionar .cf-sello")).toHaveLength(pasos.length);
 });
 
 test("los avisos llevan los intervalos que usa la aplicación", () => {

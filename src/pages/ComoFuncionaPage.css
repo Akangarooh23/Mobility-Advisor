@@ -114,7 +114,9 @@
 /* Comprar necesita mas: son tres opciones y cada una se recorre entera. El
    embudo solo ya pide cuatro pantallas para sus siete filtros, y las otras dos
    tienen ahora su propio recorrido —comparar y analizar— en vez de una lamina. */
-#comprar, #vender, #gestionar { min-height: 1150svh; }
+#comprar, #gestionar { min-height: 1150svh; }
+/* Vender son tres actos y ninguno pide tanto como el embudo. */
+#vender { min-height: 900svh; }
 .cf-bloque-claro { background: var(--gris-50); }
 
 .cf-fijo {
@@ -410,24 +412,6 @@
 
 
 /* ── 02 Vender ────────────────────────────────────────────────────────── */
-/* La cabecera guarda dos cosas en el mismo hueco: el prólogo del IdCar y, al
-   acabar, las tres puertas. Van apiladas en la misma celda para que el relevo
-   no mueva de sitio lo que hay debajo. */
-.cf-cabecera { display: grid; align-items: center; min-height: 96px; }
-.cf-cabecera > * { grid-area: 1 / 1; }
-.cf-preludio {
-  margin: 0;
-  display: grid;
-  gap: 6px;
-  justify-items: start;
-  padding: 18px 22px;
-  background: var(--blanco);
-  border: 1px solid var(--acento);
-  border-radius: 16px;
-  box-shadow: 0 24px 58px -32px rgba(0, 0, 0, 0.26);
-}
-.cf-preludio strong { font-size: clamp(17px, 1.8vw, 21px); font-weight: 800; letter-spacing: -0.03em; }
-.cf-preludio small { font-size: 12.5px; color: var(--gris-500); }
 
 /* El IdCar, apartado por apartado, y la ficha sellándose al lado. */
 .cf-creacion {
@@ -770,50 +754,6 @@
 .cf-servicio strong { font-size: 13.5px; font-weight: 800; letter-spacing: -0.01em; }
 .cf-servicio small { font-size: 11px; color: var(--gris-500); }
 
-/* El garaje: los coches a la izquierda, la ficha llena a la derecha. */
-.cf-garaje {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: 20px;
-  align-items: center;
-}
-.cf-coches { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
-.cf-coche {
-  background: var(--blanco);
-  border: 1px solid var(--gris-200);
-  border-radius: 14px;
-  padding: 13px 15px;
-  display: grid;
-  gap: 3px;
-  box-shadow: 0 20px 44px -34px rgba(0, 0, 0, 0.28);
-}
-.cf-coche strong { font-size: 14px; font-weight: 800; letter-spacing: -0.02em; }
-.cf-coche small { font-size: 11px; color: var(--gris-500); }
-
-.cf-idcar-lleno {
-  width: 100%;
-  max-width: 320px;
-  justify-self: end;
-  background: var(--blanco);
-  border: 1px solid var(--acento);
-  border-radius: 18px;
-  padding: 20px 22px;
-  box-shadow: 0 34px 80px -34px rgba(0, 0, 0, 0.32);
-  z-index: 2;
-}
-.cf-idcar-resumen { margin: 0 0 14px; font-size: 15px; font-weight: 800; letter-spacing: -0.02em; }
-.cf-idcar-adjuntos {
-  margin: 0;
-  padding: 14px 0 0;
-  border-top: 1px solid var(--gris-200);
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
-  font-size: 11.5px;
-  color: var(--gris-600);
-}
-.cf-idcar-adjuntos b { color: var(--gris-900); font-variant-numeric: tabular-nums; }
 
 /* Los avisos: el mes por un lado y las revisiones que tocan por otro. */
 .cf-recordatorio {
@@ -1055,13 +995,13 @@
   /* Menos recorrido por bloque: la narración es la misma, lo que baja es el
      kilometraje del dedo. */
   .cf-bloque { min-height: 240svh; }
-  #comprar, #vender, #gestionar { min-height: 700svh; }
+  #comprar, #gestionar { min-height: 700svh; }
+  #vender { min-height: 560svh; }
   /* Los cuatro pasos de la venta gestionada en fila no caben; en dos columnas
      sí, y siguen leyéndose en orden. */
   .cf-gestionada { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .cf-creacion, .cf-publicar { grid-template-columns: 1fr; gap: 12px; }
   .cf-paso-idcar small { display: none; }
-  .cf-cabecera { min-height: 0; }
   /* Tres fichas no se leen en un móvil: se enseñan dos y el rótulo sigue
      diciendo cuántas caben a la vez. */
   .cf-comparados { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1083,8 +1023,8 @@
   .cf-comparables { display: none; }
   .cf-caminos { position: relative; inset: auto; margin-bottom: 14px; }
   .cf-camino { padding: 14px 16px; }
-  .cf-garaje, .cf-recordatorio, .cf-cita, .cf-poliza { grid-template-columns: 1fr; gap: 12px; }
-  .cf-idcar-lleno, .cf-presupuesto { max-width: none; justify-self: stretch; }
+  .cf-recordatorio, .cf-cita, .cf-poliza { grid-template-columns: 1fr; gap: 12px; }
+  .cf-ficha-idcar, .cf-presupuesto { max-width: none; justify-self: stretch; }
   .cf-cobertura { grid-template-columns: 84px minmax(0, 1fr) 38px; }
 }
 
@@ -1100,8 +1040,5 @@
   .cf-tablero { min-height: 0; display: grid; gap: 44px; }
   .cf-acto { position: relative; inset: auto; opacity: 1; }
   .cf-acto-embudo .em-root { position: relative; inset: auto; min-height: clamp(300px, 48svh, 440px); }
-  /* El prólogo y las tres puertas ya no se relevan: se leen uno debajo del otro. */
-  .cf-cabecera { grid-template-rows: auto auto; gap: 16px; }
-  .cf-cabecera > * { grid-area: auto; }
   .cf-requisito { --hecho: 1; }
 }

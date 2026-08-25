@@ -23,11 +23,11 @@ gsap.registerPlugin(ScrollTrigger);
  *  - Comprar reutiliza la escena del mercado, que llama al mismo endpoint que el
  *    buscador y pinta ofertas de verdad; después, los cinco ejes del comparador
  *    y el desglose con el que puntúa el test.
- *  - Vender empieza por el IdCar —los seis apartados de la ficha real— y sigue
- *    con el informe de mercado medido en la base, los tres requisitos que exige
- *    publicar y los cuatro pasos de la venta gestionada.
- *  - Gestionar enseña los cuatro servicios que existen, con sus nombres, sus
- *    intervalos de mantenimiento y los precios de su catálogo.
+ *  - Vender enseña el informe de mercado medido en la base, los tres requisitos
+ *    que exige publicar y los cuatro pasos de la venta gestionada.
+ *  - Gestionar empieza por el IdCar —los seis apartados de la ficha real— y
+ *    sigue con los otros tres servicios, con sus intervalos de mantenimiento y
+ *    los precios de su catálogo.
  *
  * Se anima con GSAP y ScrollTrigger, siempre con `scrub`: el usuario mueve la
  * animación, no se le reproduce. Sin 3D. Si algún día una funcionalidad gana
@@ -185,16 +185,6 @@ const DATOS_VENTA = [
   { etiqueta: "Versión", valor: "1.5 TSI Life" },
   { etiqueta: "Año", valor: "2021" },
   { etiqueta: "Kilómetros", valor: "48.300" },
-];
-
-/** El garaje: los IdCars que tienes, y lo que guarda cada ficha. */
-const GARAJE = [
-  { coche: "Volkswagen Golf", matricula: "1234 KLM", datos: "2021 · 48.300 km · Gasolina" },
-  { coche: "Seat Ibiza", matricula: "5678 BCD", datos: "2018 · 96.100 km · Diésel" },
-];
-const ADJUNTOS = [
-  { n: 12, q: "fotos" }, { n: 4, q: "documentos" }, { n: 2, q: "ITV" },
-  { n: 1, q: "seguro" }, { n: 6, q: "facturas" },
 ];
 
 /**
@@ -432,11 +422,10 @@ export default function ComoFuncionaPage({ onGoHome }) {
         });
 
         /* ── 02 Vender ────────────────────────────────────────────────────
-           Igual que comprar, pero con un prólogo: primero se crea el IdCar y
-           solo después aparecen las tres puertas. Es el orden de verdad —las
-           tres pasan por la ficha— y además es lo que hay que entender antes de
-           elegir nada. */
-        const ACTOS_V = [0.03, 0.36, 0.58, 0.79];
+           Tres puertas y tres actos, igual que comprar. Cómo se crea el IdCar
+           se cuenta en gestionar, que es donde vive la ficha; aquí se da por
+           hecho y el informe ya ofrece leerlo. */
+        const ACTOS_V = [0.05, 0.40, 0.72];
         const tramo = (i) => {
           const ini = ACTOS_V[i];
           const fin = i < ACTOS_V.length - 1 ? ACTOS_V[i + 1] - RELEVO : 1;
@@ -447,52 +436,24 @@ export default function ComoFuncionaPage({ onGoHome }) {
           scrollTrigger: { trigger: "#vender", start: "top top", end: "bottom bottom", scrub: 0.5 },
         });
 
-        // El prólogo ocupa la cabecera hasta que le toca ceder el sitio.
-        vender
-          .fromTo("#vender .cf-preludio",
-            { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, ease: "none", duration: 0.02 }, 0.005)
-          .to("#vender .cf-preludio",
-            { autoAlpha: 0, y: -16, ease: "none", duration: 0.02 }, ACTOS_V[1] - RELEVO - 0.01);
-
         gsap.utils.toArray("#vender .cf-camino").forEach((c, i) => {
           vender.fromTo(c,
             { autoAlpha: 0, y: 18 },
             { autoAlpha: 1, y: 0, ease: "none", duration: 0.02 },
-            ACTOS_V[1] - RELEVO + 0.005 + i * 0.012);
-          vender.to(c, { "--activa": 1, scale: 1.02, ease: "none", duration: 0.02 }, ACTOS_V[i + 1]);
-          if (i < 2) vender.to(c, { "--activa": 0, scale: 1, ease: "none", duration: 0.02 }, ACTOS_V[i + 2] - RELEVO);
+            0.005 + i * 0.012);
+          vender.to(c, { "--activa": 1, scale: 1.02, ease: "none", duration: 0.02 }, ACTOS_V[i]);
+          if (i < 2) vender.to(c, { "--activa": 0, scale: 1, ease: "none", duration: 0.02 }, ACTOS_V[i + 1] - RELEVO);
         });
 
         gsap.utils.toArray("#vender .cf-acto").forEach((acto, i) => {
           const { ini } = tramo(i);
           vender.fromTo(acto, { autoAlpha: 0 }, { autoAlpha: 1, ease: "none", duration: RELEVO * 0.6 }, ini - RELEVO * 0.4);
-          if (i < 3) vender.to(acto, { autoAlpha: 0, ease: "none", duration: RELEVO * 0.6 }, ACTOS_V[i + 1] - RELEVO);
+          if (i < 2) vender.to(acto, { autoAlpha: 0, ease: "none", duration: RELEVO * 0.6 }, ACTOS_V[i + 1] - RELEVO);
         });
 
-        /* Acto 0 · el IdCar. Se abre un apartado, se rellena y se sella en la
-           ficha. El sello llega después del paso, no a la vez: primero se hace
-           el trabajo y luego se ve el resultado. */
-        const idcar = tramo(0);
-        gsap.utils.toArray("#vender .cf-paso-idcar").forEach((paso, i) => {
-          vender.fromTo(paso,
-            { autoAlpha: 0.25, x: -18 },
-            { autoAlpha: 1, x: 0, ease: "none", duration: idcar.largo * 0.07 },
-            idcar.en(0.05 + i * 0.13));
-        });
-        gsap.utils.toArray("#vender .cf-sello").forEach((sello, i) => {
-          vender.fromTo(sello,
-            { autoAlpha: 0, scale: 0.8 },
-            { autoAlpha: 1, scale: 1, ease: "none", duration: idcar.largo * 0.05 },
-            idcar.en(0.12 + i * 0.13));
-        });
-        vender.fromTo("#vender .cf-idcar-listo",
-          { autoAlpha: 0, y: 10 },
-          { autoAlpha: 1, y: 0, ease: "none", duration: idcar.largo * 0.08 },
-          idcar.en(0.9));
-
-        /* Acto 1 · el informe. Los seis datos entran uno a uno, la ficha se
+        /* Acto 0 · el informe. Los seis datos entran uno a uno, la ficha se
            aparta y en su sitio se abre el informe con los comparables. */
-        const informe = tramo(1);
+        const informe = tramo(0);
         gsap.utils.toArray("#vender .cf-dato").forEach((dato, i) => {
           vender.fromTo(dato,
             { autoAlpha: 0, y: 22 },
@@ -516,9 +477,9 @@ export default function ComoFuncionaPage({ onGoHome }) {
             informe.en(0.6 + i * 0.07));
         });
 
-        /* Acto 2 · publicar. Los tres requisitos se van cumpliendo y solo
+        /* Acto 1 · publicar. Los tres requisitos se van cumpliendo y solo
            entonces aparece el anuncio: sin ellos, la aplicación tampoco deja. */
-        const anuncio = tramo(2);
+        const anuncio = tramo(1);
         gsap.utils.toArray("#vender .cf-requisito").forEach((r, i) => {
           vender.fromTo(r,
             { autoAlpha: 0.25, x: -16 },
@@ -535,9 +496,9 @@ export default function ComoFuncionaPage({ onGoHome }) {
           { autoAlpha: 1, scale: 1, ease: "none", duration: anuncio.largo * 0.08 },
           anuncio.en(0.82));
 
-        /* Acto 3 · la venta gestionada, paso a paso, y los portales cuando toca
+        /* Acto 2 · la venta gestionada, paso a paso, y los portales cuando toca
            publicar. */
-        const gest = tramo(3);
+        const gest = tramo(2);
         gsap.utils.toArray("#vender .cf-paso-venta").forEach((p, i) => {
           vender.fromTo(p,
             { autoAlpha: 0.22, y: 20 },
@@ -579,24 +540,26 @@ export default function ComoFuncionaPage({ onGoHome }) {
           if (i < 3) gestionar.to(acto, { autoAlpha: 0, ease: "none", duration: RELEVO * 0.6 }, ACTOS_G[i + 1] - RELEVO);
         });
 
-        /* Acto 0 · el garaje: entran los coches y después la ficha se llena. */
+        /* Acto 0 · el IdCar. Se abre un apartado, se rellena y se sella en la
+           ficha. El sello llega después del paso, no a la vez: primero se hace
+           el trabajo y luego se ve el resultado. */
         const garaje = tramoG(0);
-        gsap.utils.toArray("#gestionar .cf-coche").forEach((c, i) => {
-          gestionar.fromTo(c,
-            { autoAlpha: 0, x: -20 },
-            { autoAlpha: 1, x: 0, ease: "none", duration: garaje.largo * 0.1 },
-            garaje.en(0.06 + i * 0.14));
+        gsap.utils.toArray("#gestionar .cf-paso-idcar").forEach((paso, i) => {
+          gestionar.fromTo(paso,
+            { autoAlpha: 0.25, x: -18 },
+            { autoAlpha: 1, x: 0, ease: "none", duration: garaje.largo * 0.07 },
+            garaje.en(0.05 + i * 0.13));
         });
-        gestionar.fromTo("#gestionar .cf-idcar-lleno",
-          { autoAlpha: 0, y: 26, scale: 0.94 },
-          { autoAlpha: 1, y: 0, scale: 1, ease: "none", duration: garaje.largo * 0.14 },
-          garaje.en(0.34));
-        gsap.utils.toArray("#gestionar .cf-idcar-adjuntos li").forEach((a, i) => {
-          gestionar.fromTo(a,
-            { autoAlpha: 0, y: 10 },
-            { autoAlpha: 1, y: 0, ease: "none", duration: garaje.largo * 0.07 },
-            garaje.en(0.52 + i * 0.08));
+        gsap.utils.toArray("#gestionar .cf-sello").forEach((sello, i) => {
+          gestionar.fromTo(sello,
+            { autoAlpha: 0, scale: 0.8 },
+            { autoAlpha: 1, scale: 1, ease: "none", duration: garaje.largo * 0.05 },
+            garaje.en(0.12 + i * 0.13));
         });
+        gestionar.fromTo("#gestionar .cf-idcar-listo",
+          { autoAlpha: 0, y: 10 },
+          { autoAlpha: 1, y: 0, ease: "none", duration: garaje.largo * 0.08 },
+          garaje.en(0.9));
 
         /* Acto 1 · los avisos: se marca el mes y van cayendo las revisiones. */
         const avisos = tramoG(1);
@@ -803,56 +766,17 @@ export default function ComoFuncionaPage({ onGoHome }) {
           </div>
 
           <div className="cf-escena cf-escena-actos">
-            {/* Antes de las tres puertas va el IdCar, porque las tres pasan por
-                él: el informe lo puede leer de ahí, el anuncio sale de ahí y la
-                venta gestionada empieza mirándolo. El prólogo y las tarjetas
-                comparten sitio, y el relevo lo hace el scroll. */}
-            <div className="cf-cabecera">
-              <p className="cf-preludio">
-                <strong>Todo empieza por el IdCar</strong>
-                <small>La ficha de tu coche: datos, papeles y estado</small>
-              </p>
-              <ul className="cf-caminos">
-                {CAMINOS.vender.map((c) => (
-                  <li className={`cf-camino cf-camino-${c.id}`} key={c.id}>
-                    <strong>{c.titulo}</strong>
-                    <small>{c.destino}</small>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <ul className="cf-caminos">
+              {CAMINOS.vender.map((c) => (
+                <li className={`cf-camino cf-camino-${c.id}`} key={c.id}>
+                  <strong>{c.titulo}</strong>
+                  <small>{c.destino}</small>
+                </li>
+              ))}
+            </ul>
 
             <div className="cf-tablero">
-              {/* Acto 0 · cómo se crea el IdCar. A la izquierda los seis
-                  apartados que hay que completar; a la derecha la ficha, que se
-                  va sellando con lo que acaba de rellenarse. */}
-              <div className="cf-acto cf-acto-idcar">
-                <p className="cf-acto-etq">Se crea una vez y sirve para todo</p>
-                <div className="cf-creacion">
-                  <ol className="cf-pasos-idcar">
-                    {PASOS_IDCAR.map((p, i) => (
-                      <li className="cf-paso-idcar" key={p.titulo}>
-                        <b>{i + 1}</b>
-                        <span>
-                          <strong>{p.titulo}</strong>
-                          <small>{p.pie}</small>
-                        </span>
-                      </li>
-                    ))}
-                  </ol>
-                  <article className="cf-ficha-idcar">
-                    <p className="cf-ficha-titulo">IdCar</p>
-                    <p className="cf-idcar-resumen">Volkswagen Golf · 1234 KLM</p>
-                    <ul className="cf-sellos">
-                      {PASOS_IDCAR.map((p) => <li className="cf-sello" key={p.sello}>{p.sello}</li>)}
-                    </ul>
-                    <p className="cf-idcar-listo">Hecho. Ya no se vuelve a pedir.</p>
-                  </article>
-                </div>
-                <p className="cf-acto-pie">Es tuyo y se queda contigo, vendas ahora o dentro de tres años.</p>
-              </div>
-
-              {/* Acto 1 · el informe de mercado. */}
+              {/* Acto 0 · el informe de mercado. */}
               <div className="cf-acto cf-acto-informe">
                 <p className="cf-acto-etq">Lo que pide hoy el mercado por uno como el tuyo</p>
                 <div className="cf-escena-venta">
@@ -897,7 +821,7 @@ export default function ComoFuncionaPage({ onGoHome }) {
                 </div>
               </div>
 
-              {/* Acto 2 · publicar por tu cuenta. Los tres requisitos no son
+              {/* Acto 1 · publicar por tu cuenta. Los tres requisitos no son
                   consejos: sin ellos el botón devuelve un error. */}
               <div className="cf-acto cf-acto-anuncio">
                 <p className="cf-acto-etq">Tres cosas y tu coche está publicado</p>
@@ -926,7 +850,7 @@ export default function ComoFuncionaPage({ onGoHome }) {
                 <p className="cf-acto-pie">En el Marketplace de PopCar, y los compradores escriben a tu anuncio.</p>
               </div>
 
-              {/* Acto 3 · la venta gestionada, con sus cuatro pasos reales. */}
+              {/* Acto 2 · la venta gestionada, con sus cuatro pasos reales. */}
               <div className="cf-acto cf-acto-gestionada">
                 <p className="cf-acto-etq">O lo llevamos nosotros de principio a fin</p>
                 <ol className="cf-gestionada">
@@ -963,43 +887,47 @@ export default function ComoFuncionaPage({ onGoHome }) {
           <div className="cf-escena cf-escena-actos">
             {/* Aquí las puertas son cuatro, una por servicio, y hay un acto por
                 cada una: el mismo patrón que en comprar y en vender. */}
-            <div className="cf-cabecera">
-              <ul className="cf-servicios">
-                {SERVICIOS.map((s) => (
-                  <li className={`cf-servicio cf-servicio-${s.id}`} key={s.id}>
-                    <span className="cf-servicio-icono"><Icono nombre={s.icono} /></span>
-                    <span className="cf-servicio-texto">
-                      <strong>{s.titulo}</strong>
-                      <small>{s.pie}</small>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <ul className="cf-servicios">
+              {SERVICIOS.map((s) => (
+                <li className={`cf-servicio cf-servicio-${s.id}`} key={s.id}>
+                  <span className="cf-servicio-icono"><Icono nombre={s.icono} /></span>
+                  <span className="cf-servicio-texto">
+                    <strong>{s.titulo}</strong>
+                    <small>{s.pie}</small>
+                  </span>
+                </li>
+              ))}
+            </ul>
 
             <div className="cf-tablero">
-              {/* Acto 0 · el garaje. Los coches que tienes y todo lo que guarda
-                  cada ficha, que es de donde sale el resto del bloque. */}
+              {/* Acto 0 · cómo se crea el IdCar. A la izquierda los seis
+                  apartados que hay que completar; a la derecha la ficha, que se
+                  va sellando con lo que acaba de rellenarse. Va el primero
+                  porque sin ficha no hay avisos, ni cita, ni póliza que leer. */}
               <div className="cf-acto cf-acto-garaje">
-                <p className="cf-acto-etq">Tus coches, con todo dentro</p>
-                <div className="cf-garaje">
-                  <ul className="cf-coches">
-                    {GARAJE.map((c) => (
-                      <li className="cf-coche" key={c.matricula}>
-                        <strong>{c.coche}</strong>
-                        <small>{c.matricula} · {c.datos}</small>
+                <p className="cf-acto-etq">Todo empieza por el IdCar</p>
+                <div className="cf-creacion">
+                  <ol className="cf-pasos-idcar">
+                    {PASOS_IDCAR.map((p, i) => (
+                      <li className="cf-paso-idcar" key={p.titulo}>
+                        <b>{i + 1}</b>
+                        <span>
+                          <strong>{p.titulo}</strong>
+                          <small>{p.pie}</small>
+                        </span>
                       </li>
                     ))}
-                  </ul>
-                  <div className="cf-idcar-lleno">
+                  </ol>
+                  <article className="cf-ficha-idcar">
                     <p className="cf-ficha-titulo">IdCar</p>
                     <p className="cf-idcar-resumen">Volkswagen Golf · 1234 KLM</p>
-                    <ul className="cf-idcar-adjuntos">
-                      {ADJUNTOS.map((a) => <li key={a.q}><b>{a.n}</b> {a.q}</li>)}
+                    <ul className="cf-sellos">
+                      {PASOS_IDCAR.map((p) => <li className="cf-sello" key={p.sello}>{p.sello}</li>)}
                     </ul>
-                  </div>
+                    <p className="cf-idcar-listo">Hecho. Ya no se vuelve a pedir.</p>
+                  </article>
                 </div>
-                <p className="cf-acto-pie">Y desde la ficha se lanza todo lo demás.</p>
+                <p className="cf-acto-pie">La ficha de tu coche: datos, papeles y estado. Se crea una vez y sirve para todo.</p>
               </div>
 
               {/* Acto 1 · los avisos. Los intervalos son los que usa la

@@ -47,6 +47,64 @@
 }
 .bc-campo select:disabled { background: var(--gris-100); color: var(--gris-400); cursor: not-allowed; }
 
+/* ── Desplegable propio de marca y modelo ────────────────────────────────
+ *
+ * La lista se ancla al campo y crece hacia abajo, siempre. Es justo lo que el
+ * <select> nativo no dejaba decidir: con cientos de opciones el navegador la
+ * abria hacia arriba y tapaba el filtro recien pulsado.
+ *
+ * El panel de filtros es sticky, y eso ya crea un contexto de apilado propio;
+ * sin z-index aqui la lista se dibujaria por debajo de las tarjetas de oferta,
+ * que van despues en el documento.
+ */
+.bc-filtros { z-index: 5; }
+.bc-combo { position: relative; }
+.bc-combo-caja { position: relative; display: flex; align-items: center; }
+.bc-combo-caja input { padding-right: 52px; text-overflow: ellipsis; cursor: pointer; }
+.bc-combo-caja input:focus { cursor: text; }
+.bc-combo-caja input:disabled { background: var(--gris-100); color: var(--gris-400); cursor: not-allowed; }
+.bc-combo-caja input::placeholder { color: var(--gris-500); }
+
+.bc-combo-flecha {
+  position: absolute; right: 11px; color: var(--gris-500);
+  pointer-events: none; transition: transform .2s;
+}
+.bc-combo-x {
+  position: absolute; right: 30px;
+  background: none; border: 0; padding: 0; width: 18px; height: 18px;
+  display: grid; place-items: center; border-radius: 50%;
+  font-size: 15px; line-height: 1; color: var(--gris-500); cursor: pointer;
+}
+.bc-combo-x:hover { background: var(--gris-200); color: var(--gris-900); }
+
+.bc-combo-lista {
+  position: absolute; top: calc(100% + 5px); left: 0; right: 0; z-index: 40;
+  margin: 0; padding: 5px; list-style: none;
+  max-height: 320px; overflow-y: auto; overscroll-behavior: contain;
+  background: var(--blanco); border: 1px solid var(--gris-300); border-radius: 12px;
+  box-shadow: 0 18px 38px -14px rgba(0, 0, 0, .3);
+}
+.bc-combo-op {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  padding: 8px 10px; border-radius: 8px; cursor: pointer;
+  font-size: 13.5px; color: var(--gris-800);
+}
+.bc-combo-op > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bc-combo-op > b { font-size: 11.5px; font-weight: 600; color: var(--gris-400); flex: none; }
+/* Amarillo de fondo con el texto en negro: el amarillo de marca sobre blanco
+   no llega a contraste para texto pequeno, pero de fondo si. */
+.bc-combo-op.es-activa { background: var(--acento-tenue); color: var(--gris-900); }
+.bc-combo-op.es-activa > b { color: var(--acento-texto); }
+.bc-combo-op.es-elegida { font-weight: 700; }
+.bc-combo-op.es-elegida::after { content: "✓"; color: var(--acento-texto); font-size: 12px; }
+
+.bc-combo-sep {
+  padding: 10px 10px 5px; margin-top: 4px; border-top: 1px solid var(--gris-200);
+  font-size: 11px; font-weight: 700; letter-spacing: .04em; color: var(--gris-400);
+  text-align: center;
+}
+.bc-combo-nada { padding: 14px 10px; text-align: center; font-size: 13px; color: var(--gris-500); }
+
 .bc-rango { display: grid; gap: 6px; margin-bottom: 14px; }
 .bc-rango > span { font-size: 12px; font-weight: 600; color: var(--gris-700); }
 .bc-rango > div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }

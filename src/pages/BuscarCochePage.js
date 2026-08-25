@@ -39,6 +39,7 @@ const TEXTOS = {
     todasMarcas: "Todas las marcas", todosModelos: "Todos los modelos",
     masMarcas: "──── Más marcas ────", masModelos: "──── Más modelos ────",
     eligeMarca: "Elige antes una marca",
+    filtrarPh: "Escribe para filtrar…", nadaCoincide: "Nada coincide",
     mas: "Más filtros", menos: "Menos filtros",
     buscar: "Buscar por texto", buscarPh: "Golf GTI, familiar, automático…",
     precio: "Precio (€)", anio: "Año", desde: "Desde", hasta: "Hasta",
@@ -66,6 +67,7 @@ const TEXTOS = {
     todasMarcas: "All makes", todosModelos: "All models",
     masMarcas: "──── More makes ────", masModelos: "──── More models ────",
     eligeMarca: "Pick a make first",
+    filtrarPh: "Type to filter…", nadaCoincide: "No matches",
     mas: "More filters", menos: "Fewer filters",
     buscar: "Search by text", buscarPh: "Golf GTI, estate, automatic…",
     precio: "Price (€)", anio: "Year", desde: "From", hasta: "To",
@@ -95,26 +97,179 @@ function num(n) {
   return out;
 }
 
-/** Un desplegable de filtro. Vive fuera del componente a proposito. */
-function Desplegable({ etiqueta, valor, conOfertas, sinOfertas, separador, vacio, deshabilitado, onChange }) {
-  const resto = sinOfertas || [];
+/**
+ * Un desplegable de filtro. Vive fuera del componente a proposito.
+ *
+ * No es un <select>. Con un desplegable nativo el navegador decide donde pone
+ * la lista, y con 472 marcas la abria ocupando la pantalla entera hacia arriba,
+ * tapando el filtro que acababas de pulsar. Eso no se corrige desde CSS: la
+ * lista nativa no la dibuja la pagina. Asi que la dibujamos nosotros, anclada
+ * debajo del campo y con su propio alto.
+ *
+ * Cambiar el nativo por uno propio obliga a devolver lo que el nativo ya traia,
+ * o el remedio empeora la enfermedad: escribir para buscar, recorrer con las
+ * flechas, Intro para elegir, Escape para cerrar y los papeles de accesibilidad
+ * que lee un lector de pantalla. Con cientos de opciones, escribir para filtrar
+ * no es un anadido: sin eso una lista de 472 nombres no hay quien la use.
+ */
+export function Desplegable({
+  etiqueta, valor, conOfertas, sinOfertas, separador, vacio,
+  deshabilitado, onChange, filtrarPh, nadaCoincide,
+}) {
+  const [abierto, setAbierto] = useState(false);
+  const [filtro, setFiltro] = useState("");
+  const [activo, setActivo] = useState(0);
+  const caja = useRef(null);
+  const entrada = useRef(null);
+  const lista = useRef(null);
+
+  // Las dos mitades —con ofertas y sin ellas— viajan juntas en una sola lista
+  // para que las flechas recorran exactamente lo que se ve, separador incluido.
+  const opciones = useMemo(() => {
+    const q = filtro.trim().toLowerCase();
+    const pasa = (o) => !q || String(o.nombre).toLowerCase().includes(q);
+    const con = (conOfertas || []).filter(pasa);
+    const sin = (sinOfertas || []).filter(pasa);
+
+    const salida = [];
+    if (!q) salida.push({ valor: "", texto: vacio, n: null });
+    con.forEach((o) => salida.push({ valor: o.nombre, texto: o.nombre, n: o.n }));
+    sin.forEach((o, i) => salida.push({ valor: o.nombre, texto: o.nombre, n: 0, separa: i === 0 }));
+    return salida;
+  }, [conOfertas, sinOfertas, filtro, vacio]);
+
+  const cerrar = useCallback(() => {
+    setAbierto(false);
+    setFiltro("");
+    setActivo(0);
+  }, []);
+
+  const elegir = useCallback((v) => {
+    onChange(v);
+    cerrar();
+  }, [onChange, cerrar]);
+
+  // Quitar la marca deshabilita el modelo. Si su lista estaba abierta se queda
+  // abierta, y desde ahi se puede elegir un modelo sin marca: un filtro que la
+  // pantalla no sabe representar. Se cierra sola.
+  useEffect(() => {
+    if (deshabilitado) cerrar();
+  }, [deshabilitado, cerrar]);
+
+  // Pulsar fuera cierra. Sin esto la lista se queda abierta mientras miras el
+  // listado de coches, tapandolo.
+  useEffect(() => {
+    if (!abierto) return undefined;
+    const fuera = (e) => { if (caja.current && !caja.current.contains(e.target)) cerrar(); };
+    document.addEventListener("mousedown", fuera);
+    return () => document.removeEventListener("mousedown", fuera);
+  }, [abierto, cerrar]);
+
+  // La opcion marcada tiene que verse aunque se llegue a ella con el teclado.
+  useEffect(() => {
+    if (!abierto || !lista.current) return;
+    const el = lista.current.querySelector('[data-activo="si"]');
+    if (el && el.scrollIntoView) el.scrollIntoView({ block: "nearest" });
+  }, [activo, abierto]);
+
+  const teclas = (e) => {
+    if (deshabilitado) return;
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!abierto) { setAbierto(true); return; }
+      const paso = e.key === "ArrowDown" ? 1 : -1;
+      setActivo((i) => {
+        if (!opciones.length) return 0;
+        return (i + paso + opciones.length) % opciones.length;
+      });
+      return;
+    }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (abierto && opciones[activo]) elegir(opciones[activo].valor);
+      else setAbierto(true);
+      return;
+    }
+    if (e.key === "Escape") { e.preventDefault(); cerrar(); }
+    if (e.key === "Home" && abierto) { e.preventDefault(); setActivo(0); }
+    if (e.key === "End" && abierto) { e.preventDefault(); setActivo(Math.max(0, opciones.length - 1)); }
+  };
+
   return (
-    <label className="bc-campo">
-      <span>{etiqueta}</span>
-      <select value={valor} disabled={deshabilitado} onChange={(e) => onChange(e.target.value)}>
-        <option value="">{vacio}</option>
-        {(conOfertas || []).map((o) => (
-          <option key={"c-" + o.nombre} value={o.nombre}>{o.nombre} ({num(o.n)})</option>
-        ))}
-        {resto.length > 0 ? (
-          <optgroup label={separador}>
-            {resto.map((o) => (
-              <option key={"s-" + o.nombre} value={o.nombre}>{o.nombre} (0)</option>
-            ))}
-          </optgroup>
+    <div className="bc-campo bc-combo" ref={caja}>
+      <span id={"lbl-" + etiqueta}>{etiqueta}</span>
+
+      <div className="bc-combo-caja">
+        <input
+          ref={entrada}
+          type="text"
+          role="combobox"
+          aria-expanded={abierto}
+          aria-controls={"lista-" + etiqueta}
+          aria-labelledby={"lbl-" + etiqueta}
+          aria-autocomplete="list"
+          autoComplete="off"
+          disabled={deshabilitado}
+          placeholder={abierto ? filtrarPh : vacio}
+          value={abierto ? filtro : (valor || "")}
+          onFocus={() => { if (!deshabilitado) setAbierto(true); }}
+          onClick={() => { if (!deshabilitado) setAbierto(true); }}
+          onChange={(e) => {
+            if (deshabilitado) return;
+            setFiltro(e.target.value); setActivo(0); setAbierto(true);
+          }}
+          onKeyDown={teclas}
+        />
+        {valor && !deshabilitado ? (
+          <button
+            type="button"
+            className="bc-combo-x"
+            aria-label={vacio}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => elegir("")}
+          >
+            ×
+          </button>
         ) : null}
-      </select>
-    </label>
+        <svg className="bc-combo-flecha" viewBox="0 0 24 24" width="14" height="14" fill="none"
+             stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+             style={{ transform: abierto ? "rotate(180deg)" : "none" }}>
+          <path d="m6 9.5 6 6 6-6" />
+        </svg>
+      </div>
+
+      {abierto ? (
+        <ul className="bc-combo-lista" id={"lista-" + etiqueta} role="listbox" ref={lista}>
+          {opciones.length === 0 ? (
+            <li className="bc-combo-nada">{nadaCoincide}</li>
+          ) : (
+            opciones.map((o, i) => (
+              <React.Fragment key={(o.separa ? "s-" : "c-") + o.valor + "-" + i}>
+                {/* El corte es un rotulo, no una opcion: ni se pulsa ni lo
+                    recorren las flechas ni lo anuncia un lector. */}
+                {o.separa ? <li className="bc-combo-sep" role="presentation">{separador}</li> : null}
+                <li
+                  role="option"
+                  aria-selected={o.valor === valor}
+                  data-activo={i === activo ? "si" : "no"}
+                  className={
+                    "bc-combo-op" +
+                    (i === activo ? " es-activa" : "") +
+                    (o.valor === valor ? " es-elegida" : "")
+                  }
+                  onMouseEnter={() => setActivo(i)}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => elegir(o.valor)}
+                >
+                  <span>{o.texto}</span>
+                  {o.n !== null ? <b>{num(o.n)}</b> : null}
+                </li>
+              </React.Fragment>
+            ))
+          )}
+        </ul>
+      ) : null}
+    </div>
   );
 }
 
@@ -230,6 +385,7 @@ export default function BuscarCochePage({ onGoBack, onOpenOffer, uiLanguage = "e
               etiqueta={t.marca} valor={filtros.brand}
               conOfertas={marcas.conOfertas} sinOfertas={marcas.sinOfertas}
               separador={t.masMarcas} vacio={t.todasMarcas}
+              filtrarPh={t.filtrarPh} nadaCoincide={t.nadaCoincide}
               onChange={(v) => cambiar("brand", v)}
             />
             <Desplegable
@@ -238,6 +394,7 @@ export default function BuscarCochePage({ onGoBack, onOpenOffer, uiLanguage = "e
               separador={t.masModelos}
               vacio={filtros.brand ? t.todosModelos : t.eligeMarca}
               deshabilitado={!filtros.brand}
+              filtrarPh={t.filtrarPh} nadaCoincide={t.nadaCoincide}
               onChange={(v) => cambiar("model", v)}
             />
 

@@ -34,15 +34,22 @@ test("monta los ocho capítulos, en orden", () => {
   expect(botones.map((b) => b.textContent.replace(/^\d+/, ""))).toEqual(CAPITULOS);
 });
 
-test("cada capítulo reserva scroll en proporción a sus escenas", () => {
-  // Es lo que hace que el ritmo sea parejo entre capítulos. Si se pierde, unos
-  // pasan volando y otros se eternizan.
+test("cada capítulo reserva scroll en proporción al que piden sus escenas", () => {
+  // Es lo que hace que el ritmo sea parejo. Una escena vale una pantalla salvo
+  // que pida más: la del mercado pide cinco, porque su embudo no se lee en una.
   const { container } = render(<ComoFuncionaPage onGoHome={() => {}} />);
-  container.querySelectorAll(".cf-capitulo").forEach((seccion) => {
+  const secciones = container.querySelectorAll(".cf-capitulo");
+
+  secciones.forEach((seccion) => {
     const escenas = seccion.querySelectorAll(".cf-escena").length;
+    const pantallas = Number(seccion.style.getPropertyValue("--escenas"));
     expect(escenas).toBeGreaterThan(0);
-    expect(seccion.style.getPropertyValue("--escenas")).toBe(String(escenas));
+    // Nunca menos de una pantalla por escena.
+    expect(pantallas).toBeGreaterThanOrEqual(escenas);
   });
+
+  // El capítulo de Busca son 3 escenas, pero la primera pide 5: 5 + 1 + 1.
+  expect(Number(secciones[0].style.getPropertyValue("--escenas"))).toBe(7);
 });
 
 test("el IdCar empieza vacío y con todos sus campos a la vista", () => {

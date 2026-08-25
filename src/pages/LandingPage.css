@@ -123,6 +123,40 @@
    mismo tamano que con la foto anterior, que traia mas margen blanco. */
 .pc-hero-visual img { width: 100%; max-width: 640px; height: auto; }
 
+/* ── La entrada del coche ────────────────────────────────────────────────── */
+/* Corre una vez, al cargar la página, y solo cuando el aviso de cookies ha
+   dejado la pantalla libre. Va en CSS y no con una librería de animación: es
+   una entrada, no un recorrido con scroll, y el home es la página que más
+   conviene que arranque ligera.
+
+   Se anima solo `transform` y `opacity`. El hueco lo reserva el maquetado desde
+   el primer momento, así que el texto de al lado no se mueve ni un pixel. */
+.pc-hero-visual { --pc-entrada-x: 55%; }
+
+/* Mientras no se puede arrancar, el coche y la tarjeta esperan fuera. */
+.pc-entrada-espera img,
+.pc-entrada-espera .pc-tarjeta-ia { opacity: 0; }
+.pc-entrada-espera img { transform: translateX(var(--pc-entrada-x)); }
+
+.pc-entrada-entra img {
+  /* La curva frena al final: el coche llega y se posa, no se estampa. */
+  animation: pc-coche-entra 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+/* La tarjeta espera a que el coche esté casi parado. */
+.pc-entrada-entra .pc-tarjeta-ia {
+  animation: pc-tarjeta-entra 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) 0.7s both;
+}
+
+@keyframes pc-coche-entra {
+  from { transform: translateX(var(--pc-entrada-x)); opacity: 0; }
+  35%  { opacity: 1; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes pc-tarjeta-entra {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to   { opacity: 1; transform: none; }
+}
+
 .pc-tarjeta-ia {
   position: absolute; right: -80px; top: 40px; z-index: 3;
   background: var(--blanco); border: 1px solid var(--gris-200);
@@ -294,7 +328,7 @@
 }
 @media (max-width: 1000px) {
   .pc-hero { grid-template-columns: 1fr; padding-top: 44px; }
-  .pc-hero-visual { order: -1; }
+  .pc-hero-visual { order: -1; --pc-entrada-x: 30%; }
   .pc-formas-rejilla { grid-template-columns: 1fr 1fr; }
   .pc-idcar { grid-column: auto; }
   .pc-pasos { grid-template-columns: 1fr 1fr; }
@@ -309,7 +343,7 @@
   .pc-hero-acciones { flex-direction: column; }
   .pc-hero-acciones .pc-btn { width: 100%; }
   .pc-tarjeta-ia { position: static; width: auto; margin-top: 16px; }
-  .pc-hero-visual { padding-right: 0; flex-direction: column; }
+  .pc-hero-visual { padding-right: 0; flex-direction: column; --pc-entrada-x: 20%; }
   .pc-confianza { grid-template-columns: 1fr; gap: 16px; }
   .pc-confianza > div { border-right: 0; border-bottom: 1px solid var(--gris-200); padding-bottom: 16px; }
   .pc-confianza > div:last-child { border-bottom: 0; padding-bottom: 0; }
@@ -322,4 +356,15 @@
   .pc-boletin { display: block; }
   .pc-boletin form { margin-top: 18px; }
   .pc-boletin input { width: 100%; }
+}
+/* Quien pide no moverse ve el coche y la tarjeta ya en su sitio. */
+@media (prefers-reduced-motion: reduce) {
+  .pc-entrada-espera img,
+  .pc-entrada-espera .pc-tarjeta-ia,
+  .pc-entrada-entra img,
+  .pc-entrada-entra .pc-tarjeta-ia {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }

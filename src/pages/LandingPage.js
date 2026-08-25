@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import LogoPopCar from "../ui/LogoPopCar";
 import PiePopCar from "../ui/PiePopCar";
@@ -186,6 +186,18 @@ const IcoLista  = (p) => <Ico {...p} d={<><path d="M9 6.5h11M9 12h11M9 17.5h11" 
 const IcoSobre  = (p) => <Ico {...p} d={<><path d="M2.8 5.8h18.4v12.4H2.8z" /><path d="m2.8 6.4 9.2 6.4 9.2-6.4" /></>} />;
 const IcoFlecha = (p) => <Ico {...p} d={<><path d="M4.5 12h14" /><path d="m13 6.5 5.5 5.5L13 17.5" /></>} />;
 
+/**
+ * El coche entra una sola vez por carga de página.
+ *
+ * La marca vive fuera del componente a propósito: volver al home desde dentro de
+ * la aplicación lo vuelve a montar, y sin esto la animación se repetiría cada
+ * vez. Y vive en `window` y no en una variable del módulo porque lo que se
+ * quiere es exactamente esa vida —la de la página—: al recargar desaparece, que
+ * es justo cuando sí tiene que verse otra vez.
+ */
+const MARCA_ENTRADA = "popcarEntradaHecha";
+const yaEntro = () => typeof window !== "undefined" && Boolean(window[MARCA_ENTRADA]);
+
 export default function LandingPage({
   isUserLoggedIn,
   onSelectAdvice,
@@ -219,6 +231,7 @@ export default function LandingPage({
   onOpenPlansSection,
   onOpenDashboard,
   onToggleLanguage,
+  avisoCookiesAbierto = false,
 }) {
   const { i18n } = useTranslation();
   const isEN = (uiLanguage || i18n.language) === "en";
@@ -229,6 +242,43 @@ export default function LandingPage({
   );
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [suscrito, setSuscrito] = useState(false);
+
+  /**
+   * La entrada del coche: «espera» mientras no se puede, «entra» durante el
+   * recorrido y «hecha» cuando ya pasó —o si se llega al home desde dentro, que
+   * entonces sale directamente en su sitio—.
+   */
+  const [entrada, setEntrada] = useState(() => (yaEntro() ? "hecha" : "espera"));
+  const foto = useRef(null);
+
+  const arrancarEntrada = useCallback(() => {
+    if (yaEntro()) return;
+    window[MARCA_ENTRADA] = true;
+    setEntrada("entra");
+  }, []);
+
+  /**
+   * Arranca cuando se cierra el aviso de cookies y la foto ya está cargada.
+   *
+   * El aviso tapa la pantalla entera, así que animar debajo sería animar para
+   * nadie. Y sin la foto lista lo que entraría es un hueco: se ve una sola vez y
+   * no hay segunda oportunidad. La animación en sí no necesita consentimiento
+   * —no rastrea nada—, solo espera a tener sitio donde verse.
+   */
+  useEffect(() => {
+    if (yaEntro() || avisoCookiesAbierto) return undefined;
+    const img = foto.current;
+    if (!img) return undefined;
+    // `complete` cubre la imagen que ya estaba en caché, donde `load` no salta.
+    if (img.complete) { arrancarEntrada(); return undefined; }
+    // Si la foto falla tampoco se deja la escena a medias: entra la tarjeta.
+    img.addEventListener("load", arrancarEntrada);
+    img.addEventListener("error", arrancarEntrada);
+    return () => {
+      img.removeEventListener("load", arrancarEntrada);
+      img.removeEventListener("error", arrancarEntrada);
+    };
+  }, [avisoCookiesAbierto, arrancarEntrada]);
 
   useEffect(() => {
     const fn = () => {
@@ -368,8 +418,9 @@ export default function LandingPage({
             </div>
           </div>
 
-          <div className="pc-hero-visual">
+          <div className={`pc-hero-visual pc-entrada-${entrada}`}>
             <img
+              ref={foto}
               src="/popcar-beetle.png"
               alt={isEN ? "White Volkswagen Beetle, front three-quarter view" : "Volkswagen Beetle blanco visto de tres cuartos delantero"}
             />

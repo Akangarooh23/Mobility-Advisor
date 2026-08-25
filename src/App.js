@@ -2041,6 +2041,18 @@ export default function App() {
     setShowCookieSettings,
   });
 
+  /**
+   * ¿Está el aviso de cookies tapando la pantalla?
+   *
+   * Se calcula aquí y se usa en los dos sitios —al pintarlo y al avisar al
+   * home— para que no puedan decir cosas distintas. El home lo necesita porque
+   * su animación de entrada espera a que la pantalla quede libre: el aviso es
+   * una capa a pantalla completa y animar debajo sería animar para nadie.
+   */
+  const avisoCookiesAbierto =
+    showCookieGate && !isUserLoggedIn && !authRequired && !showConsentReview
+    && !["legalNotice", "privacyPolicy", "cookiePolicy", "termsConditions", "marketingPolicy", "experianPolicy", "experianTerms"].includes(entryMode);
+
   const activeSteps = useMemo(() => {
     const steps = getQuestionnaireSteps(advancedMode).filter((s) => s.id !== "perfil");
     if (advisorContext === "renting") {
@@ -5689,7 +5701,7 @@ export default function App() {
         </div>
       )}
 
-      {showCookieGate && !isUserLoggedIn && !authRequired && !showConsentReview && !["legalNotice", "privacyPolicy", "cookiePolicy", "termsConditions", "marketingPolicy", "experianPolicy", "experianTerms"].includes(entryMode) && (
+      {avisoCookiesAbierto && (
         <div
           role="dialog"
           aria-modal="true"
@@ -6089,6 +6101,8 @@ export default function App() {
       {/* LANDING */}
       {step === -1 && !entryMode && (
         <LandingPage
+          // Su animación de entrada espera a que el aviso deje la pantalla libre.
+          avisoCookiesAbierto={avisoCookiesAbierto}
           onSelectEmpresas={() => openPublicPage("empresas")}
           onSelectAbout={goToAboutHeaderPage}
           onSelectContact={() => openPublicPage("contact")}

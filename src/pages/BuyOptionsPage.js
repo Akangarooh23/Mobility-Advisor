@@ -230,6 +230,32 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           >
             &gt;
           </span>
+          {/* Distintivo de la otra opcion: dice que aqui no se rellena un
+              cuestionario, se miran las ofertas que hay ahora mismo. */}
+          <span
+            style={{
+              position: "absolute",
+              top: 19,
+              left: 22,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              background: "var(--acento-tenue)",
+              color: "var(--acento-texto)",
+              border: "1px solid rgba(255,196,0,0.45)",
+              borderRadius: 999,
+              padding: "5px 11px 5px 8px",
+              fontSize: 11.5,
+              fontWeight: 700,
+              lineHeight: 1,
+            }}
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M3.5 20.5V13" /><path d="M9.2 20.5V6.5" /><path d="M14.8 20.5v-9" /><path d="M20.5 20.5V3.5" />
+            </svg>
+            {t("buyOptions.optionATag")}
+          </span>
           <div style={{ display: "flex", alignItems: "center", gap: 9, fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
             <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="var(--acento-texto)"
                  strokeWidth="2.1" strokeLinecap="round" aria-hidden="true" style={{ flex: "none" }}>

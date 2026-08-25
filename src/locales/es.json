@@ -752,7 +752,8 @@
     "flowBHeader": "Flujo B - Test PopCar - selección personalizada",
     "accessButton": "Acceder",
     "minimizeButton": "Minimizar",
-    "optionBTag": "Test inteligente según tus necesidades"
+    "optionBTag": "Test inteligente según tus necesidades",
+    "optionATag": "Comprador de ofertas del mercado"
   },
   "sell": {
     "goBack": "← Volver",

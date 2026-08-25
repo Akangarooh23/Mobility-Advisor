@@ -752,7 +752,8 @@
     "flowBHeader": "Flow B - PopCar Test - personalized selection",
     "accessButton": "Access",
     "minimizeButton": "Minimize",
-    "optionBTag": "Smart test based on your needs"
+    "optionBTag": "Smart test based on your needs",
+    "optionATag": "Market offer buyer"
   },
   "sell": {
     "goBack": "← Back",

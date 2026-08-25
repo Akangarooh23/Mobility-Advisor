@@ -36,6 +36,7 @@ loadEnvFile(".env.local");
 loadEnvFile(".env");
 
 const analyzeHandler = require("./api/analyze");
+const compareCarsHandler = require("./api/compare-cars");
 const findListingHandler = require("./api/find-listing");
 const offerImageHandler = require("./api/offer-image");
 const sendAlertEmailHandler = require("./api/send-alert-email");
@@ -54,6 +55,7 @@ const API_PORT = Number(process.env.API_PORT || process.env.PORT || 3001);
 
 const handlers = {
   "/api/analyze": analyzeHandler,
+  "/api/compare-cars": compareCarsHandler,
   "/api/find-listing": findListingHandler,
   "/api/offer-image": offerImageHandler,
   "/api/send-alert-email": sendAlertEmailHandler,

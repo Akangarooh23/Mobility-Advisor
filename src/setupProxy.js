@@ -1,4 +1,5 @@
 const analyzeHandler = require("../api/analyze");
+const compareCarsHandler = require("../api/compare-cars");
 const findListingHandler = require("../api/find-listing");
 const sendAlertEmailHandler = require("../api/send-alert-email");
 const authHandler = require("../api/auth");
@@ -29,6 +30,7 @@ function readRequestBody(req) {
 module.exports = function setupProxy(app) {
   [
     ["/api/analyze", analyzeHandler],
+    ["/api/compare-cars", compareCarsHandler],
     ["/api/find-listing", findListingHandler],
     ["/api/market-price", marketHandler],
     ["/api/send-alert-email", sendAlertEmailHandler],

@@ -114,7 +114,7 @@
 /* Comprar necesita mas: son tres opciones y cada una se recorre entera. El
    embudo solo ya pide cuatro pantallas para sus siete filtros, y las otras dos
    tienen ahora su propio recorrido —comparar y analizar— en vez de una lamina. */
-#comprar, #vender { min-height: 1150svh; }
+#comprar, #vender, #gestionar { min-height: 1150svh; }
 .cf-bloque-claro { background: var(--gris-50); }
 
 .cf-fijo {
@@ -732,19 +732,28 @@
 }
 
 /* ── 03 Gestionar ─────────────────────────────────────────────────────── */
-.cf-escena-servicios { min-height: clamp(340px, 54svh, 480px); }
-
+/* Las cuatro puertas de este bloque son los cuatro servicios, y van arriba como
+   las tarjetas de los otros dos. Se marca la que se está contando. */
+.cf-servicios {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+@media (min-width: 760px) {
+  .cf-servicios { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
 .cf-servicio {
-  position: absolute;
+  --activa: 0;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 11px;
   background: var(--blanco);
-  border: 1px solid var(--gris-200);
-  border-radius: 999px;
-  padding: 12px 20px 12px 14px;
-  box-shadow: 0 20px 50px -26px rgba(0, 0, 0, 0.28);
-  white-space: nowrap;
+  border: 1px solid color-mix(in srgb, var(--acento) calc(var(--activa) * 100%), var(--gris-200));
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 22px 56px -30px rgba(0, 0, 0, calc(0.10 + var(--activa) * 0.20));
 }
 .cf-servicio-icono {
   display: grid;
@@ -761,17 +770,30 @@
 .cf-servicio strong { font-size: 13.5px; font-weight: 800; letter-spacing: -0.01em; }
 .cf-servicio small { font-size: 11px; color: var(--gris-500); }
 
-.cf-servicio-garaje { top: 2%; left: 0; }
-.cf-servicio-aviso { top: 16%; right: 2%; }
-.cf-servicio-taller { bottom: 20%; left: 2%; }
-.cf-servicio-seguro { bottom: 4%; right: 12%; }
+/* El garaje: los coches a la izquierda, la ficha llena a la derecha. */
+.cf-garaje {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: center;
+}
+.cf-coches { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.cf-coche {
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 14px;
+  padding: 13px 15px;
+  display: grid;
+  gap: 3px;
+  box-shadow: 0 20px 44px -34px rgba(0, 0, 0, 0.28);
+}
+.cf-coche strong { font-size: 14px; font-weight: 800; letter-spacing: -0.02em; }
+.cf-coche small { font-size: 11px; color: var(--gris-500); }
 
 .cf-idcar-lleno {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: min(320px, 88%);
+  width: 100%;
+  max-width: 320px;
+  justify-self: end;
   background: var(--blanco);
   border: 1px solid var(--acento);
   border-radius: 18px;
@@ -792,6 +814,199 @@
   color: var(--gris-600);
 }
 .cf-idcar-adjuntos b { color: var(--gris-900); font-variant-numeric: tabular-nums; }
+
+/* Los avisos: el mes por un lado y las revisiones que tocan por otro. */
+.cf-recordatorio {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.3fr);
+  gap: 20px;
+  align-items: center;
+}
+.cf-mes {
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 14px;
+  padding: 13px 14px 14px;
+  box-shadow: 0 20px 44px -34px rgba(0, 0, 0, 0.28);
+}
+.cf-mes-etq {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gris-500);
+}
+.cf-calendario {
+  margin: 0; padding: 0; list-style: none;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.cf-calendario li {
+  aspect-ratio: 1;
+  border-radius: 4px;
+  background: var(--gris-100);
+}
+.cf-calendario li.es-aviso { background: var(--acento); }
+.cf-calendario li.es-cita { background: var(--gris-900); }
+.cf-leyenda {
+  margin: 11px 0 0;
+  display: grid;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--gris-500);
+}
+.cf-leyenda span { display: flex; align-items: center; gap: 6px; }
+.cf-leyenda span::before {
+  content: "";
+  width: 8px; height: 8px;
+  border-radius: 2px;
+  background: var(--acento);
+}
+.cf-leyenda .cf-leyenda-cita::before { background: var(--gris-900); }
+
+.cf-avisos { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.cf-aviso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 12px;
+  padding: 10px 13px;
+}
+.cf-aviso strong { display: block; font-size: 12.5px; font-weight: 800; letter-spacing: -0.015em; }
+.cf-aviso small { display: block; font-size: 10.5px; color: var(--gris-500); }
+.cf-aviso > b {
+  flex: none;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 4px 9px;
+}
+.cf-aviso > b.es-aviso { color: var(--acento-texto); background: var(--acento-tenue); }
+.cf-aviso > b.es-cita { color: var(--blanco); background: var(--gris-900); }
+
+/* La cita: los cuatro pasos y la diferencia de precio. */
+.cf-cita {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+}
+.cf-pasos-cita { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.cf-pasos-cita li {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.cf-pasos-cita b {
+  width: 22px; height: 22px;
+  flex: none;
+  display: grid; place-items: center;
+  border-radius: 999px;
+  background: var(--acento);
+  color: var(--acento-texto);
+  font-size: 10.5px;
+  font-weight: 800;
+}
+.cf-presupuesto {
+  width: 100%;
+  max-width: 300px;
+  justify-self: end;
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 16px;
+  padding: 15px 16px 16px;
+  box-shadow: 0 26px 62px -34px rgba(0, 0, 0, 0.3);
+}
+.cf-presupuesto-etq {
+  margin: 0 0 12px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gris-500);
+}
+.cf-precios { margin: 0; display: grid; gap: 8px; }
+.cf-precio { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.cf-precio dt { font-size: 12px; color: var(--gris-500); }
+.cf-precio dd {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gris-500);
+  text-decoration: line-through;
+  font-variant-numeric: tabular-nums;
+}
+.cf-precio.es-popcar dt { color: var(--gris-900); font-weight: 700; }
+.cf-precio.es-popcar dd {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  color: var(--gris-900);
+  text-decoration: none;
+}
+.cf-ahorro {
+  margin: 12px 0 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--acento-texto);
+  background: var(--acento-tenue);
+  border-radius: 999px;
+  padding: 6px 12px;
+  display: inline-block;
+}
+
+/* El seguro: se suelta la póliza y salen las coberturas medidas. */
+.cf-poliza {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr);
+  gap: 20px;
+  align-items: center;
+}
+.cf-soltar {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  text-align: center;
+  border: 1px dashed var(--acento);
+  border-radius: 16px;
+  padding: 20px 16px;
+  background: var(--blanco);
+}
+.cf-soltar-icono {
+  width: 30px; height: 30px;
+  margin-bottom: 6px;
+  border-radius: 6px;
+  border: 2px solid var(--acento-texto);
+  border-top-width: 8px;
+  opacity: 0.85;
+}
+.cf-soltar strong { font-size: 13.5px; font-weight: 800; letter-spacing: -0.02em; }
+.cf-soltar small { font-size: 10.5px; color: var(--gris-500); }
+.cf-soltar-tiempo { color: var(--acento-texto); font-weight: 700; }
+
+.cf-coberturas ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.cf-coberturas-etq {
+  margin: 0 0 10px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gris-500);
+}
+.cf-cobertura { display: grid; grid-template-columns: 96px minmax(0, 1fr) 42px; gap: 10px; align-items: center; }
+.cf-cobertura > span { font-size: 11px; font-weight: 700; color: var(--gris-700); }
+.cf-cobertura i { display: block; height: 5px; border-radius: 999px; background: var(--gris-200); overflow: hidden; }
+.cf-cobertura em { display: block; height: 100%; border-radius: 999px; background: var(--acento); transform-origin: left center; }
+.cf-cobertura > b { font-size: 10.5px; font-weight: 800; color: var(--gris-500); text-align: right; }
 
 /* ── Cierre ───────────────────────────────────────────────────────────── */
 .cf-final {
@@ -840,7 +1055,7 @@
   /* Menos recorrido por bloque: la narración es la misma, lo que baja es el
      kilometraje del dedo. */
   .cf-bloque { min-height: 240svh; }
-  #comprar, #vender { min-height: 700svh; }
+  #comprar, #vender, #gestionar { min-height: 700svh; }
   /* Los cuatro pasos de la venta gestionada en fila no caben; en dos columnas
      sí, y siguen leyéndose en orden. */
   .cf-gestionada { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -868,9 +1083,9 @@
   .cf-comparables { display: none; }
   .cf-caminos { position: relative; inset: auto; margin-bottom: 14px; }
   .cf-camino { padding: 14px 16px; }
-  .cf-servicio { position: relative; inset: auto; margin-bottom: 8px; }
-  .cf-escena-servicios { min-height: 0; display: grid; gap: 8px; }
-  .cf-idcar-lleno { position: relative; left: auto; top: auto; transform: none; width: 100%; margin-top: 8px; }
+  .cf-garaje, .cf-recordatorio, .cf-cita, .cf-poliza { grid-template-columns: 1fr; gap: 12px; }
+  .cf-idcar-lleno, .cf-presupuesto { max-width: none; justify-self: stretch; }
+  .cf-cobertura { grid-template-columns: 84px minmax(0, 1fr) 38px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -878,10 +1093,10 @@
   /* Sin animación no hay quien encienda los actos, así que se enseñan los tres
      seguidos y ya resueltos. Antes se quedaban en opacidad cero: quien pide no
      moverse veía el bloque de comprar en blanco. */
-  #comprar, #vender { min-height: 0; }
+  #comprar, #vender, #gestionar { min-height: 0; }
   /* Y el panel deja de pegarse y de recortar, o los actos apilados se irían
      por debajo del corte. */
-  #comprar .cf-fijo, #vender .cf-fijo { position: static; min-height: 0; overflow: visible; padding: 60px clamp(20px, 6vw, 76px); }
+  #comprar .cf-fijo, #vender .cf-fijo, #gestionar .cf-fijo { position: static; min-height: 0; overflow: visible; padding: 60px clamp(20px, 6vw, 76px); }
   .cf-tablero { min-height: 0; display: grid; gap: 44px; }
   .cf-acto { position: relative; inset: auto; opacity: 1; }
   .cf-acto-embudo .em-root { position: relative; inset: auto; min-height: clamp(300px, 48svh, 440px); }

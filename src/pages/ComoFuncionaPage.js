@@ -14,13 +14,20 @@ gsap.registerPlugin(ScrollTrigger);
  * se transforma con el scroll. La idea es que en minuto y medio se entienda qué
  * hace PopCar sin apenas leer: manda lo que se ve y el texto solo pone nombre.
  *
+ * Los tres se cuentan igual: arriba las puertas de entrada, siempre a la vista y
+ * marcando la que toca, y debajo un acto por puerta que se recorre entero antes
+ * de dar paso al siguiente. Solo hay un acto visible cada vez.
+ *
  * Todo lo que aparece es interfaz o dato de la aplicación, no maqueta:
  *
  *  - Comprar reutiliza la escena del mercado, que llama al mismo endpoint que el
- *    buscador y pinta ofertas de verdad.
- *  - Vender enseña los seis campos que pide el formulario y las cifras del
- *    informe de mercado, medidas en la base.
- *  - Gestionar enseña los cuatro servicios que existen, con sus nombres.
+ *    buscador y pinta ofertas de verdad; después, los cinco ejes del comparador
+ *    y el desglose con el que puntúa el test.
+ *  - Vender empieza por el IdCar —los seis apartados de la ficha real— y sigue
+ *    con el informe de mercado medido en la base, los tres requisitos que exige
+ *    publicar y los cuatro pasos de la venta gestionada.
+ *  - Gestionar enseña los cuatro servicios que existen, con sus nombres, sus
+ *    intervalos de mantenimiento y los precios de su catálogo.
  *
  * Se anima con GSAP y ScrollTrigger, siempre con `scrub`: el usuario mueve la
  * animación, no se le reproduce. Sin 3D. Si algún día una funcionalidad gana
@@ -178,6 +185,51 @@ const DATOS_VENTA = [
   { etiqueta: "Versión", valor: "1.5 TSI Life" },
   { etiqueta: "Año", valor: "2021" },
   { etiqueta: "Kilómetros", valor: "48.300" },
+];
+
+/** El garaje: los IdCars que tienes, y lo que guarda cada ficha. */
+const GARAJE = [
+  { coche: "Volkswagen Golf", matricula: "1234 KLM", datos: "2021 · 48.300 km · Gasolina" },
+  { coche: "Seat Ibiza", matricula: "5678 BCD", datos: "2018 · 96.100 km · Diésel" },
+];
+const ADJUNTOS = [
+  { n: 12, q: "fotos" }, { n: 4, q: "documentos" }, { n: 2, q: "ITV" },
+  { n: 1, q: "seguro" }, { n: 6, q: "facturas" },
+];
+
+/**
+ * El plan de mantenimiento por defecto, con los intervalos exactos que usa la
+ * aplicación para calcular cuándo avisar. No son cifras de ejemplo: salen de
+ * `DEFAULT_MAINTENANCE_PLAN`.
+ */
+const AVISOS = [
+  { tarea: "Cambio de aceite y filtro", cada: "Cada 15.000 km o 12 meses", estado: "Aviso" },
+  { tarea: "Filtro de aire", cada: "Cada 20.000 km o 18 meses", estado: "Aviso" },
+  { tarea: "Revisión de frenos", cada: "Cada 30.000 km o 18 meses", estado: "Cita agendada" },
+  { tarea: "Líquido de frenos", cada: "Cada 45.000 km o 24 meses", estado: "" },
+];
+
+/**
+ * La cita, con los precios del catálogo de la aplicación: cambio de aceite y
+ * filtro en Norauto va de 60 a 110 €, y el precio acordado es el medio. La web
+ * enseña el alto como PVP particular y el medio como precio PopCar, que es
+ * exactamente esta resta.
+ */
+const CITA = { servicio: "Cambio de aceite + filtro", taller: "Norauto", particular: 110, popcar: 75 };
+const PASOS_CITA = ["IdCar", "Provincia y código postal", "Tipo de revisión", "Taller cercano"];
+
+/**
+ * Las seis coberturas que lee el análisis de la póliza, con el nivel que da a
+ * cada una. Los nombres y los niveles son los de la aplicación; el largo de la
+ * barra solo traduce ese nivel a algo que se pueda ver de un vistazo.
+ */
+const COBERTURAS = [
+  { nombre: "Responsabilidad", nivel: "Alta", valor: 100 },
+  { nombre: "Daños propios", nivel: "Media", valor: 58 },
+  { nombre: "Robo", nivel: "Buena", valor: 84 },
+  { nombre: "Asistencia", nivel: "Baja", valor: 30 },
+  { nombre: "Defensa legal", nivel: "Baja", valor: 30 },
+  { nombre: "Lunas", nivel: "Media", valor: 58 },
 ];
 
 /** Los cuatro servicios de Gestionar, con el nombre que tienen en la web. */
@@ -498,25 +550,101 @@ export default function ComoFuncionaPage({ onGoHome }) {
           gest.en(0.52));
 
         /* ── 03 Gestionar ─────────────────────────────────────────────────
-           Los cuatro servicios se acercan y al final se apagan mientras sube
-           la ficha: es el argumento del bloque, todo acaba dentro del IdCar. */
+           Cuatro servicios y un acto para cada uno. El primero es el garaje,
+           porque sin ficha no hay avisos, ni cita, ni póliza que leer: es el
+           orden en que ocurre de verdad. */
+        const ACTOS_G = [0.04, 0.30, 0.53, 0.77];
+        const tramoG = (i) => {
+          const ini = ACTOS_G[i];
+          const fin = i < ACTOS_G.length - 1 ? ACTOS_G[i + 1] - RELEVO : 1;
+          return { ini, largo: fin - ini, en: (t) => ini + (fin - ini) * t };
+        };
+
         const gestionar = gsap.timeline({
-          scrollTrigger: { trigger: "#gestionar", start: "top top", end: "bottom bottom", scrub: 0.6 },
+          scrollTrigger: { trigger: "#gestionar", start: "top top", end: "bottom bottom", scrub: 0.5 },
         });
-        /* Primero el IdCar y después lo que se puede hacer con él: es el orden
-           en que ocurre de verdad. Sin ficha no hay avisos, ni cita, ni
-           historial, y enseñarlos antes sería contarlo al revés. */
-        gestionar
-          .fromTo(".cf-idcar-lleno", { autoAlpha: 0, y: 30, scale: 0.94 }, { autoAlpha: 1, y: 0, scale: 1, ease: "none", duration: 0.1 }, 0.02);
-        gsap.utils.toArray("#gestionar .cf-idcar-adjuntos li").forEach((a, i) => {
-          gestionar.fromTo(a, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, ease: "none", duration: 0.04 }, 0.14 + i * 0.035);
-        });
+
         gsap.utils.toArray("#gestionar .cf-servicio").forEach((s, i) => {
           gestionar.fromTo(s,
-            { autoAlpha: 0, scale: 0.86, x: i % 2 ? 70 : -70 },
-            { autoAlpha: 1, scale: 1, x: 0, ease: "none", duration: 0.11 },
-            0.4 + i * 0.13);
+            { autoAlpha: 0, y: 18 },
+            { autoAlpha: 1, y: 0, ease: "none", duration: 0.02 },
+            0.005 + i * 0.012);
+          gestionar.to(s, { "--activa": 1, scale: 1.02, ease: "none", duration: 0.02 }, ACTOS_G[i]);
+          if (i < 3) gestionar.to(s, { "--activa": 0, scale: 1, ease: "none", duration: 0.02 }, ACTOS_G[i + 1] - RELEVO);
         });
+
+        gsap.utils.toArray("#gestionar .cf-acto").forEach((acto, i) => {
+          const { ini } = tramoG(i);
+          gestionar.fromTo(acto, { autoAlpha: 0 }, { autoAlpha: 1, ease: "none", duration: RELEVO * 0.6 }, ini - RELEVO * 0.4);
+          if (i < 3) gestionar.to(acto, { autoAlpha: 0, ease: "none", duration: RELEVO * 0.6 }, ACTOS_G[i + 1] - RELEVO);
+        });
+
+        /* Acto 0 · el garaje: entran los coches y después la ficha se llena. */
+        const garaje = tramoG(0);
+        gsap.utils.toArray("#gestionar .cf-coche").forEach((c, i) => {
+          gestionar.fromTo(c,
+            { autoAlpha: 0, x: -20 },
+            { autoAlpha: 1, x: 0, ease: "none", duration: garaje.largo * 0.1 },
+            garaje.en(0.06 + i * 0.14));
+        });
+        gestionar.fromTo("#gestionar .cf-idcar-lleno",
+          { autoAlpha: 0, y: 26, scale: 0.94 },
+          { autoAlpha: 1, y: 0, scale: 1, ease: "none", duration: garaje.largo * 0.14 },
+          garaje.en(0.34));
+        gsap.utils.toArray("#gestionar .cf-idcar-adjuntos li").forEach((a, i) => {
+          gestionar.fromTo(a,
+            { autoAlpha: 0, y: 10 },
+            { autoAlpha: 1, y: 0, ease: "none", duration: garaje.largo * 0.07 },
+            garaje.en(0.52 + i * 0.08));
+        });
+
+        /* Acto 1 · los avisos: se marca el mes y van cayendo las revisiones. */
+        const avisos = tramoG(1);
+        gestionar
+          .fromTo("#gestionar .cf-calendario li",
+            { autoAlpha: 0 },
+            { autoAlpha: 1, ease: "none", duration: avisos.largo * 0.02, stagger: avisos.largo * 0.006 },
+            avisos.en(0.05))
+          .fromTo("#gestionar .cf-leyenda span",
+            { autoAlpha: 0 },
+            { autoAlpha: 1, ease: "none", duration: avisos.largo * 0.06 }, avisos.en(0.5));
+        gsap.utils.toArray("#gestionar .cf-aviso").forEach((a, i) => {
+          gestionar.fromTo(a,
+            { autoAlpha: 0, x: 22 },
+            { autoAlpha: 1, x: 0, ease: "none", duration: avisos.largo * 0.1 },
+            avisos.en(0.3 + i * 0.14));
+        });
+
+        /* Acto 2 · la cita: los cuatro pasos y, al final, la diferencia. */
+        const cita = tramoG(2);
+        gsap.utils.toArray("#gestionar .cf-pasos-cita li").forEach((p, i) => {
+          gestionar.fromTo(p,
+            { autoAlpha: 0.22, x: -16 },
+            { autoAlpha: 1, x: 0, ease: "none", duration: cita.largo * 0.09 },
+            cita.en(0.05 + i * 0.13));
+        });
+        gestionar
+          .fromTo("#gestionar .cf-presupuesto",
+            { autoAlpha: 0, y: 26 },
+            { autoAlpha: 1, y: 0, ease: "none", duration: cita.largo * 0.12 }, cita.en(0.55))
+          .fromTo("#gestionar .cf-ahorro",
+            { autoAlpha: 0, scale: 0.86 },
+            { autoAlpha: 1, scale: 1, ease: "none", duration: cita.largo * 0.1 }, cita.en(0.78));
+
+        /* Acto 3 · el seguro: cae la póliza y se van midiendo las coberturas. */
+        const seguro = tramoG(3);
+        gestionar
+          .fromTo("#gestionar .cf-soltar",
+            { autoAlpha: 0, scale: 0.92 },
+            { autoAlpha: 1, scale: 1, ease: "none", duration: seguro.largo * 0.12 }, seguro.en(0.05))
+          .fromTo("#gestionar .cf-cobertura",
+            { autoAlpha: 0, x: 18 },
+            { autoAlpha: 1, x: 0, ease: "none", duration: seguro.largo * 0.08, stagger: seguro.largo * 0.06 },
+            seguro.en(0.32))
+          .fromTo("#gestionar .cf-cobertura em",
+            { scaleX: 0 },
+            { scaleX: 1, ease: "none", duration: seguro.largo * 0.1, stagger: seguro.largo * 0.06 },
+            seguro.en(0.36));
 
         /* ── Profundidad ──────────────────────────────────────────────────
            El rótulo sube más que la escena. Deja claro quién manda: la escena
@@ -832,28 +960,141 @@ export default function ComoFuncionaPage({ onGoHome }) {
             <p className="cf-apoyo">Papeles, avisos y taller, en un solo sitio.</p>
           </div>
 
-          <div className="cf-escena cf-escena-servicios">
-            <div className="cf-idcar-lleno">
-              <p className="cf-ficha-titulo">IdCar</p>
-              <p className="cf-idcar-resumen">Volkswagen Golf · 1234 KLM</p>
-              <ul className="cf-idcar-adjuntos">
-                <li><b>12</b> fotos</li>
-                <li><b>4</b> documentos</li>
-                <li><b>2</b> ITV</li>
-                <li><b>1</b> seguro</li>
-                <li><b>6</b> facturas</li>
+          <div className="cf-escena cf-escena-actos">
+            {/* Aquí las puertas son cuatro, una por servicio, y hay un acto por
+                cada una: el mismo patrón que en comprar y en vender. */}
+            <div className="cf-cabecera">
+              <ul className="cf-servicios">
+                {SERVICIOS.map((s) => (
+                  <li className={`cf-servicio cf-servicio-${s.id}`} key={s.id}>
+                    <span className="cf-servicio-icono"><Icono nombre={s.icono} /></span>
+                    <span className="cf-servicio-texto">
+                      <strong>{s.titulo}</strong>
+                      <small>{s.pie}</small>
+                    </span>
+                  </li>
+                ))}
               </ul>
             </div>
 
-            {SERVICIOS.map((s) => (
-              <article className={`cf-servicio cf-servicio-${s.id}`} key={s.id}>
-                <span className="cf-servicio-icono"><Icono nombre={s.icono} /></span>
-                <span className="cf-servicio-texto">
-                  <strong>{s.titulo}</strong>
-                  <small>{s.pie}</small>
-                </span>
-              </article>
-            ))}
+            <div className="cf-tablero">
+              {/* Acto 0 · el garaje. Los coches que tienes y todo lo que guarda
+                  cada ficha, que es de donde sale el resto del bloque. */}
+              <div className="cf-acto cf-acto-garaje">
+                <p className="cf-acto-etq">Tus coches, con todo dentro</p>
+                <div className="cf-garaje">
+                  <ul className="cf-coches">
+                    {GARAJE.map((c) => (
+                      <li className="cf-coche" key={c.matricula}>
+                        <strong>{c.coche}</strong>
+                        <small>{c.matricula} · {c.datos}</small>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="cf-idcar-lleno">
+                    <p className="cf-ficha-titulo">IdCar</p>
+                    <p className="cf-idcar-resumen">Volkswagen Golf · 1234 KLM</p>
+                    <ul className="cf-idcar-adjuntos">
+                      {ADJUNTOS.map((a) => <li key={a.q}><b>{a.n}</b> {a.q}</li>)}
+                    </ul>
+                  </div>
+                </div>
+                <p className="cf-acto-pie">Y desde la ficha se lanza todo lo demás.</p>
+              </div>
+
+              {/* Acto 1 · los avisos. Los intervalos son los que usa la
+                  aplicación para calcular la fecha, no unos de ejemplo. */}
+              <div className="cf-acto cf-acto-avisos">
+                <p className="cf-acto-etq">Te avisa antes de que se te pase</p>
+                <div className="cf-recordatorio">
+                  <div className="cf-mes">
+                    <p className="cf-mes-etq">Octubre</p>
+                    <ul className="cf-calendario" aria-hidden="true">
+                      {Array.from({ length: 35 }, (_, i) => (
+                        <li
+                          className={i === 9 ? "es-aviso" : i === 22 ? "es-cita" : ""}
+                          key={i}
+                        />
+                      ))}
+                    </ul>
+                    <p className="cf-leyenda">
+                      <span className="cf-leyenda-aviso">Aviso para pedir cita</span>
+                      <span className="cf-leyenda-cita">Cita agendada</span>
+                    </p>
+                  </div>
+                  <ul className="cf-avisos">
+                    {AVISOS.map((a) => (
+                      <li className="cf-aviso" key={a.tarea}>
+                        <span>
+                          <strong>{a.tarea}</strong>
+                          <small>{a.cada}</small>
+                        </span>
+                        {a.estado ? <b className={a.estado === "Aviso" ? "es-aviso" : "es-cita"}>{a.estado}</b> : null}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <p className="cf-acto-pie">Cruza los kilómetros y la fecha de tu coche con los intervalos de su plan.</p>
+              </div>
+
+              {/* Acto 2 · la cita. El precio sale del catálogo de la aplicación:
+                  el alto es el de particular y el medio, el acordado. */}
+              <div className="cf-acto cf-acto-cita">
+                <p className="cf-acto-etq">Con el precio ya acordado</p>
+                <div className="cf-cita">
+                  <ol className="cf-pasos-cita">
+                    {PASOS_CITA.map((p, i) => (
+                      <li key={p}><b>{i + 1}</b>{p}</li>
+                    ))}
+                  </ol>
+                  <article className="cf-presupuesto">
+                    <p className="cf-presupuesto-etq">{CITA.servicio} · {CITA.taller}</p>
+                    <dl className="cf-precios">
+                      <div className="cf-precio">
+                        <dt>PVP particular</dt>
+                        <dd>{num(CITA.particular)} €</dd>
+                      </div>
+                      <div className="cf-precio es-popcar">
+                        <dt>Con PopCar</dt>
+                        <dd>{num(CITA.popcar)} €</dd>
+                      </div>
+                    </dl>
+                    <p className="cf-ahorro">Ahorras {num(CITA.particular - CITA.popcar)} €</p>
+                    {/* Lo dice la pantalla de la cita y aquí también: el importe
+                        final depende del modelo y de las piezas. */}
+                    <p className="cf-limite">Precios orientativos, sobre rangos históricos.</p>
+                  </article>
+                </div>
+                <p className="cf-acto-pie">Talleres verificados y cerca de tu código postal.</p>
+              </div>
+
+              {/* Acto 3 · el seguro. Las seis coberturas y el nivel que les da el
+                  análisis son los de la aplicación. */}
+              <div className="cf-acto cf-acto-seguro">
+                <p className="cf-acto-etq">Subes la póliza y te la explica</p>
+                <div className="cf-poliza">
+                  <div className="cf-soltar">
+                    <span className="cf-soltar-icono" aria-hidden="true" />
+                    <strong>Arrastra tu póliza aquí</strong>
+                    <small>PDF · JPG · PNG</small>
+                    <small className="cf-soltar-tiempo">Menos de 30 segundos</small>
+                  </div>
+                  <div className="cf-coberturas">
+                    <p className="cf-coberturas-etq">Análisis de cobertura actual</p>
+                    <ul>
+                      {COBERTURAS.map((c) => (
+                        <li className="cf-cobertura" key={c.nombre}>
+                          <span>{c.nombre}</span>
+                          <i><em style={{ width: `${c.valor}%` }} /></i>
+                          <b>{c.nivel}</b>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                <p className="cf-acto-pie">Qué cubre bien, qué se queda corto y qué mirar en la renovación.</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>

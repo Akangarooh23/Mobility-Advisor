@@ -213,14 +213,50 @@ test("la venta gestionada enseña sus cuatro pasos y los portales", () => {
   expect(pasos[2].querySelector(".cf-portales")).toBeInTheDocument();
 });
 
-test("gestionar enseña primero el IdCar y después lo que se hace con él", () => {
-  // Sin ficha no hay avisos, ni cita, ni historial. Enseñarlos antes sería
-  // contarlo al revés.
+test("gestionar enseña primero el garaje y después lo que se hace con él", () => {
+  // Sin ficha no hay avisos, ni cita, ni póliza que leer. Enseñarlos antes
+  // sería contarlo al revés, así que el primer acto es el garaje.
   const { container } = montar();
   const gestionar = container.querySelector("#gestionar");
-  const orden = [...gestionar.querySelectorAll(".cf-idcar-lleno, .cf-servicio")];
-  expect(orden[0]).toHaveClass("cf-idcar-lleno");
-  expect(orden).toHaveLength(5);
+  const actos = gestionar.querySelectorAll(".cf-acto");
+  expect(actos).toHaveLength(4);
+  expect(actos[0]).toHaveClass("cf-acto-garaje");
+  expect(actos[0].querySelector(".cf-idcar-lleno")).toBeInTheDocument();
+  // Y hay una puerta por acto: cuatro servicios, cuatro escenas.
+  expect(gestionar.querySelectorAll(".cf-servicio")).toHaveLength(4);
+});
+
+test("los avisos llevan los intervalos que usa la aplicación", () => {
+  /* Salen del plan de mantenimiento por defecto. Si alguien los redondea, la
+     página promete un calendario que no es el que se calcula. */
+  const { container } = montar();
+  const intervalos = [...container.querySelectorAll("#gestionar .cf-aviso small")].map((n) => n.textContent);
+  expect(intervalos).toEqual([
+    "Cada 15.000 km o 12 meses",
+    "Cada 20.000 km o 18 meses",
+    "Cada 30.000 km o 18 meses",
+    "Cada 45.000 km o 24 meses",
+  ]);
+});
+
+test("la cita compara el precio de particular con el acordado", () => {
+  /* 110 y 75 no son cifras bonitas: son el alto y el medio del rango que la
+     aplicación tiene para el cambio de aceite y filtro en Norauto. */
+  const { container } = montar();
+  const cita = container.querySelector("#gestionar .cf-presupuesto");
+  expect(within(cita).getByText("110 €")).toBeInTheDocument();
+  expect(within(cita).getByText("75 €")).toBeInTheDocument();
+  expect(within(cita).getByText("Ahorras 35 €")).toBeInTheDocument();
+  // Y el aviso de que son orientativos, que también lo dice la pantalla real.
+  expect(cita.textContent).toMatch(/orientativos/i);
+});
+
+test("el seguro enseña las seis coberturas que analiza", () => {
+  const { container } = montar();
+  const coberturas = [...container.querySelectorAll("#gestionar .cf-cobertura > span")].map((n) => n.textContent);
+  expect(coberturas).toEqual([
+    "Responsabilidad", "Daños propios", "Robo", "Asistencia", "Defensa legal", "Lunas",
+  ]);
 });
 
 test("comprar explica las tres opciones, no solo una", () => {

@@ -54,7 +54,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
   };
 
   return (
-    <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
+    <div style={{ ...styles.center, maxWidth: 1240, textAlign: "left" }}>
       <style>{`
         @media (max-width: 580px) {
           .buy-options-grid { grid-template-columns: 1fr !important; }

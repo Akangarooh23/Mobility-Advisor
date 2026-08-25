@@ -10,7 +10,7 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
   const cardBorder = isDark ? "1px solid rgba(150,150,143,0.26)" : "1px solid rgba(17,17,17,0.12)";
 
   return (
-    <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
+    <div style={{ ...styles.center, maxWidth: 1240, textAlign: "left" }}>
       <button
         type="button"
         onClick={onGoBack}

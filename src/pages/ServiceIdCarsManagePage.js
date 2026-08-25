@@ -1797,18 +1797,49 @@ export default function ServiceIdCarsManagePage({
       {/* ── LIST & DETAIL VIEWS ── */}
       {!isCreateView ? (
         <>
-      <section style={{ ...SECTION_CARD_STYLE, padding: "18px 20px", marginBottom: 12 }}>
-        <h2 style={{ margin: "0 0 5px", fontSize: 22, fontWeight: 700, color: "#111", letterSpacing: "-0.02em" }}>{txt("Gestionar mis IDCars", "Manage my IDCars")}</h2>
-        <p style={{ margin: "0 0 10px", fontSize: 13.5, color: "#888", lineHeight: 1.6, fontWeight: 300 }}>
-          {txt("Tus vehículos se sincronizan con el Panel de usuario. Puedes editarlos o quitarlos desde aquí.", "Your vehicles sync with the user panel. You can edit or remove them from here.")}
-        </p>
-        {!isDetailView && !editingVehicleId && !isCreating ? (
-          <button type="button" onClick={startCreate}
-            style={{ border: "none", borderRadius: 12, background: "linear-gradient(135deg,var(--marca),var(--marca-claro))", color: "#fff", padding: "10px 16px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-            {txt("Crear nuevo IDCar", "Create new IDCar")}
-          </button>
-        ) : null}
-      </section>
+      <h1 style={{ margin: "0 0 6px", fontSize: 30, fontWeight: 800, color: "#111", letterSpacing: "-0.03em" }}>
+        {txt("Gestiona tu garaje", "Manage your garage")}
+      </h1>
+      <p style={{ margin: "0 0 20px", fontSize: 14.5, color: "#888", lineHeight: 1.6, fontWeight: 300, maxWidth: "62ch" }}>
+        {txt(
+          "Cada coche que añades queda con sus datos, sus fotos y sus documentos en un solo sitio.",
+          "Every car you add keeps its details, photos and documents in one place."
+        )}
+      </p>
+
+      {/* Las dos cajas se reparten el ancho, y bajan una debajo de otra cuando
+          no caben: con `auto-fit` no hace falta medir la ventana. */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12, marginBottom: 12 }}>
+        <section style={{ ...SECTION_CARD_STYLE, padding: "20px 22px", marginBottom: 0, display: "flex", flexDirection: "column" }}>
+          <h2 style={{ margin: "0 0 5px", fontSize: 19, fontWeight: 700, color: "#111", letterSpacing: "-0.02em" }}>{txt("Crear nuevo IDCar", "Create new IDCar")}</h2>
+          <p style={{ margin: "0 0 14px", fontSize: 13.5, color: "#888", lineHeight: 1.6, fontWeight: 300 }}>
+            {txt("Añade un vehículo al garaje con su marca, su modelo y su matrícula.", "Add a vehicle to the garage with its make, model and plate.")}
+          </p>
+          {/* `margin-top: auto` deja los dos botones a la misma altura aunque
+              los textos de arriba no midan lo mismo. */}
+          {!isDetailView && !editingVehicleId && !isCreating ? (
+            <button type="button" onClick={startCreate}
+              style={{ marginTop: "auto", alignSelf: "flex-start", border: "none", borderRadius: 12, background: "linear-gradient(135deg,var(--marca),var(--marca-claro))", color: "#fff", padding: "10px 16px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+              {txt("Crear nuevo IDCar", "Create new IDCar")}
+            </button>
+          ) : null}
+        </section>
+
+        <section style={{ ...SECTION_CARD_STYLE, padding: "20px 22px", marginBottom: 0, display: "flex", flexDirection: "column" }}>
+          <h2 style={{ margin: "0 0 5px", fontSize: 19, fontWeight: 700, color: "#111", letterSpacing: "-0.02em" }}>{txt("Gestionar mis IDCars", "Manage my IDCars")}</h2>
+          <p style={{ margin: "0 0 14px", fontSize: 13.5, color: "#888", lineHeight: 1.6, fontWeight: 300 }}>
+            {txt("Tus vehículos se sincronizan con el Panel de usuario. Puedes editarlos o quitarlos desde aquí.", "Your vehicles sync with the user panel. You can edit or remove them from here.")}
+          </p>
+          <div style={{ marginTop: "auto", fontSize: 13, fontWeight: 700, color: visibleVehicles.length ? "var(--gris-700)" : "var(--gris-400)" }}>
+            {visibleVehicles.length
+              ? txt(
+                  `${visibleVehicles.length} ${visibleVehicles.length === 1 ? "IDCar creado" : "IDCars creados"}`,
+                  `${visibleVehicles.length} ${visibleVehicles.length === 1 ? "IDCar" : "IDCars"} created`
+                )
+              : txt("Todavía no hay ninguno", "None yet")}
+          </div>
+        </section>
+      </div>
 
       {feedback ? <div style={{ marginBottom: 10, fontSize: 13, color: feedbackColor, fontWeight: 600 }}>{feedback}</div> : null}
 
@@ -2108,13 +2139,11 @@ export default function ServiceIdCarsManagePage({
 
       {!isDetailView && (isCreating || editingVehicleId) ? renderVehicleEditor() : null}
 
+      {/* Solo el aviso: el boton de crear ya esta en su caja, ahi arriba, y dos
+          botones identicos en la misma pantalla se estorban. */}
       {!visibleVehicles.length && !isCreating && !isDetailView ? (
         <section style={{ ...SECTION_CARD_STYLE, padding: "20px 16px" }}>
-          <div style={{ fontSize: 14, color: "var(--gris-500)", marginBottom: 10 }}>{txt("Aún no tienes IDCars creados.", "You do not have any IDCars yet.")}</div>
-          <button type="button" onClick={startCreate}
-            style={{ border: "none", borderRadius: 10, background: "linear-gradient(135deg,var(--marca),var(--marca-claro))", color: "#fff", padding: "10px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-            {txt("Crear mi primer IDCar", "Create my first IDCar")}
-          </button>
+          <div style={{ fontSize: 14, color: "var(--gris-500)" }}>{txt("Aún no tienes IDCars creados.", "You do not have any IDCars yet.")}</div>
         </section>
       ) : null}
 

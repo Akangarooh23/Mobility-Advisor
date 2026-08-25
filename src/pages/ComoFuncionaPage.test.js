@@ -149,20 +149,69 @@ test("comprar explica las tres opciones, no solo una", () => {
   const { container } = montar();
   const actos = container.querySelectorAll("#comprar .cf-acto");
   expect(actos).toHaveLength(3);
-  expect(container.querySelectorAll("#comprar .cf-eje")).toHaveLength(5);
+  expect(container.querySelectorAll("#comprar .cf-comparado")).toHaveLength(3);
   expect(container.querySelectorAll("#comprar .cf-bloques-test li")).toHaveLength(6);
 });
 
-test("los cinco ejes y los seis bloques son los de la aplicación", () => {
+test("el comparador enseña coches distintos, cada uno con su nota", () => {
+  /* Tres barras anónimas no explicaban nada. Lo que hace el comparador es poner
+     coches que compiten entre sí uno al lado del otro y puntuarlos, así que
+     tienen que ser marcas y modelos distintos. */
   const { container } = montar();
-  const ejes = [...container.querySelectorAll("#comprar .cf-eje > span")].map((n) => n.textContent);
+  const coches = [...container.querySelectorAll("#comprar .cf-comparado-cab strong")].map((n) => n.textContent);
+  expect(coches).toEqual(["Toyota Corolla", "Volkswagen Golf", "Seat León"]);
+  expect(new Set(coches).size).toBe(3);
+  const notas = [...container.querySelectorAll("#comprar .cf-comparado-nota b")].map((n) => Number(n.textContent));
+  expect(notas).toEqual([87, 81, 78]);
+  // El primero es el que gana, y se marca.
+  expect(container.querySelectorAll("#comprar .cf-comparado")[0]).toHaveClass("es-gana");
+});
+
+test("dice que se comparan hasta cinco a la vez", () => {
+  // Es el límite real del comparador y no se ve en ningún otro sitio de la
+  // página: si se pierde, parece que solo se pueden comparar tres.
+  const { container } = montar();
+  expect(container.querySelector("#comprar .cf-hueco").textContent).toMatch(/hasta cinco a la vez/i);
+  expect(screen.getByText(/Se comparan hasta cinco coches a la vez/i)).toBeInTheDocument();
+});
+
+test("cada coche comparado lleva los cinco ejes de la aplicación", () => {
+  const { container } = montar();
+  const primero = container.querySelector("#comprar .cf-comparado");
+  const ejes = [...primero.querySelectorAll(".cf-eje > span")].map((n) => n.textContent);
   expect(ejes).toEqual([
     "Fiabilidad", "Coste de uso", "Equipamiento", "Prestaciones", "Valor de reventa",
   ]);
+  expect(container.querySelectorAll("#comprar .cf-eje")).toHaveLength(15);
   const bloques = [...container.querySelectorAll("#comprar .cf-bloques-test li")].map((n) => n.textContent);
   expect(bloques).toEqual([
     "Perfil", "Energía", "Uso real", "Capacidad", "Preferencias", "Prioridades",
   ]);
+});
+
+test("el test se dibuja como un análisis: preguntas, cerebro y resultado", () => {
+  const { container } = montar();
+  const acto = container.querySelector("#comprar .cf-acto-test");
+  expect(acto.querySelector(".cf-cerebro-svg")).toBeInTheDocument();
+  // El contorno y las vías se trazan con el scroll, y eso solo funciona si
+  // llevan pathLength="1": es lo que hace que el recorrido vaya de 1 a 0.
+  acto.querySelectorAll(".cf-cerebro-borde, .cf-cerebro-via").forEach((p) => {
+    expect(p.getAttribute("pathLength")).toBe("1");
+  });
+  expect(acto.querySelectorAll(".cf-cerebro-nodo").length).toBeGreaterThan(0);
+  expect(acto.querySelectorAll(".cf-mejor")).toHaveLength(2);
+});
+
+test("el desglose del test lleva los pesos reales y suman cien", () => {
+  /* Son los del análisis: encaje 25, coste 20, flexibilidad 20, viabilidad 20 y
+     ajuste 15. Y lo logrado suma la coincidencia que enseña la tarjeta, que por
+     eso no es un número puesto a ojo. */
+  const { container } = montar();
+  const pesos = [...container.querySelectorAll("#comprar .cf-peso > span")].map((n) => n.textContent);
+  expect(pesos).toEqual([
+    "Encaje con tu uso", "Coste total", "Flexibilidad", "Viabilidad real", "Ajuste contigo",
+  ]);
+  expect(container.querySelector("#comprar .cf-veredicto-etq").textContent).toMatch(/92% de coincidencia/);
 });
 
 test("las tarjetas de comprar no comparten sitio con las escenas", () => {

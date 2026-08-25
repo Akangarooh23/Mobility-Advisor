@@ -60,6 +60,76 @@ const CAMINOS = {
 const EJES_COMPARADOR = ["Fiabilidad", "Coste de uso", "Equipamiento", "Prestaciones", "Valor de reventa"];
 const BLOQUES_TEST = ["Perfil", "Energía", "Uso real", "Capacidad", "Preferencias", "Prioridades"];
 
+/**
+ * Ejemplo de comparación: tres compactos parecidos de marcas distintas, que es
+ * el caso de verdad —se comparan coches que compiten entre sí, no un utilitario
+ * con una furgoneta—. La ficha es la del comparador: puesto, nota sobre cien y
+ * los cinco ejes con su valor.
+ *
+ * Las puntuaciones son de muestra, y el pie lo dice: en la aplicación las
+ * calcula el análisis para los coches que añada cada uno.
+ */
+const COMPARADOS = [
+  { marca: "Toyota", modelo: "Corolla", version: "1.8 Hybrid 140 CV", puntos: 87, detalle: [92, 88, 74, 70, 86] },
+  { marca: "Volkswagen", modelo: "Golf", version: "1.5 TSI 130 CV", puntos: 81, detalle: [82, 72, 86, 84, 80] },
+  { marca: "Seat", modelo: "León", version: "1.5 TSI 130 CV", puntos: 78, detalle: [79, 76, 82, 80, 72] },
+];
+
+/**
+ * El desglose con el que puntúa el análisis del test, con los pesos que usa de
+ * verdad (25 + 20 + 20 + 20 + 15 = 100). Lo logrado suma 92, que es la
+ * coincidencia que enseña la tarjeta: la cifra no está puesta a ojo.
+ */
+const PESOS_TEST = [
+  { nombre: "Encaje con tu uso", peso: 25, logrado: 23 },
+  { nombre: "Coste total", peso: 20, logrado: 17 },
+  { nombre: "Flexibilidad", peso: 20, logrado: 19 },
+  { nombre: "Viabilidad real", peso: 20, logrado: 18 },
+  { nombre: "Ajuste contigo", peso: 15, logrado: 15 },
+];
+const COINCIDENCIA = PESOS_TEST.reduce((a, b) => a + b.logrado, 0);
+
+/** Y el test termina en ofertas, cada una con su porcentaje de encaje. */
+const MEJORES = [
+  { coche: "Toyota Corolla 1.8 Hybrid", datos: "2021 · 19.900 €", encaje: 94 },
+  { coche: "Kia Ceed 1.6 GDi HEV", datos: "2022 · 21.400 €", encaje: 89 },
+];
+
+/** Los nodos del cerebro, donde acaba cada rama. */
+const NODOS = [[38, 40], [34, 62], [40, 82], [82, 40], [86, 62], [80, 82], [60, 52]];
+/** Las ramas que salen de la línea central hacia cada nodo. */
+const RAMAS = [
+  "M60 34C50 34 46 40 38 40", "M60 52C48 52 44 60 34 62", "M60 72C50 72 46 78 40 82",
+  "M60 34C70 34 74 40 82 40", "M60 52C72 52 76 60 86 62", "M60 72C70 72 74 78 80 82",
+];
+
+/**
+ * El análisis del test, dibujado.
+ *
+ * No es un icono de archivo: es un cerebro con su línea central y las seis
+ * ramas por las que entran las respuestas, y se traza con el scroll —primero el
+ * contorno, luego las conexiones y al final se encienden los nodos— para que se
+ * lea como algo que está pensando, no como una estampa.
+ *
+ * El trazado usa `pathLength="1"`: así el recorrido de cada línea va de 1 a 0
+ * sin medir nada, y sale igual de bien en un contorno largo que en una rama
+ * corta.
+ */
+function Cerebro() {
+  return (
+    <svg className="cf-cerebro-svg" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+      <path
+        className="cf-cerebro-borde"
+        pathLength="1"
+        d="M60 18C52 10 38 12 34 22C24 22 18 32 22 41C14 47 14 61 22 67C18 78 26 90 38 90C42 100 56 103 60 95C64 103 78 100 82 90C94 90 102 78 98 67C106 61 106 47 98 41C102 32 96 22 86 22C82 12 68 10 60 18Z"
+      />
+      <path className="cf-cerebro-via" pathLength="1" d="M60 18V95" />
+      {RAMAS.map((d) => <path className="cf-cerebro-via" pathLength="1" d={d} key={d} />)}
+      {NODOS.map(([cx, cy]) => <circle className="cf-cerebro-nodo" cx={cx} cy={cy} r="3.4" key={`${cx}-${cy}`} />)}
+    </svg>
+  );
+}
+
 /** Los seis datos que pide el formulario de venta, en su orden. */
 const DATOS_VENTA = [
   { etiqueta: "Matrícula", valor: "1234 KLM" },
@@ -146,9 +216,10 @@ export default function ComoFuncionaPage({ onGoHome }) {
            vista y opaca. El relevo entre actos es corto —la escena que sale se
            va antes de que entre la siguiente— porque solaparlas es exactamente
            lo que hacía que no se leyera ninguna. */
-        // Sobre nueve pantallas: el embudo se lleva casi cuatro, que es lo que
-        // pide contar siete filtros, y los otros dos algo menos de dos cada uno.
-        const ACTOS = [0.08, 0.56, 0.80];
+        // Sobre once pantallas y media: casi cuatro para el embudo, que es lo
+        // que pide contar siete filtros, y unas tres para cada una de las otras
+        // dos, que ahora también se recorren enteras.
+        const ACTOS = [0.06, 0.45, 0.75];
         const RELEVO = 0.05;
 
         const comprar = gsap.timeline({
@@ -187,28 +258,64 @@ export default function ComoFuncionaPage({ onGoHome }) {
         /* Cada acto se recorre por dentro, no solo aparece. El primero lo lleva
            el embudo; estos dos necesitan lo suyo o serían una lámina quieta
            durante dos pantallas de scroll. */
+        /* Acto 2 · el comparador. Entra un coche, se puntúa, entra el siguiente.
+           Al final se apagan los que no ganan: se ve quién queda primero sin que
+           nadie lo diga. */
         const inicioComp = ACTOS[1];
         const largoComp = (ACTOS[2] - RELEVO) - inicioComp;
-        gsap.utils.toArray("#comprar .cf-eje").forEach((eje, i) => {
-          const barras = eje.querySelectorAll("em");
-          comprar.fromTo(barras,
+        const enComp = (t) => inicioComp + largoComp * t;
+        gsap.utils.toArray("#comprar .cf-comparado").forEach((coche, i) => {
+          comprar.fromTo(coche,
+            { autoAlpha: 0, y: 26 },
+            { autoAlpha: 1, y: 0, ease: "none", duration: largoComp * 0.08 },
+            enComp(0.04 + i * 0.14));
+          comprar.fromTo(coche.querySelectorAll(".cf-eje em"),
             { scaleX: 0 },
-            { scaleX: 1, ease: "none", duration: largoComp * 0.16, stagger: largoComp * 0.02 },
-            inicioComp + largoComp * (0.08 + i * 0.15));
+            { scaleX: 1, ease: "none", duration: largoComp * 0.1, stagger: largoComp * 0.012 },
+            enComp(0.1 + i * 0.14));
         });
-        // Al final del acto se apaga lo que no gana: se ve quién queda primero
-        // sin que nadie lo diga.
-        comprar.to("#comprar .cf-eje i:not(:first-of-type) em",
-          { autoAlpha: 0.35, ease: "none", duration: largoComp * 0.12 },
-          inicioComp + largoComp * 0.82);
+        comprar.fromTo("#comprar .cf-hueco",
+          { autoAlpha: 0 }, { autoAlpha: 1, ease: "none", duration: largoComp * 0.08 }, enComp(0.5));
+        comprar.to("#comprar .cf-comparado:not(.es-gana)",
+          { autoAlpha: 0.42, ease: "none", duration: largoComp * 0.1 }, enComp(0.72));
 
+        /* Acto 3 · el test. Entran las respuestas, se traza el cerebro, se
+           encienden sus nodos y por el otro lado sale la recomendación con las
+           ofertas. El orden importa: primero se pregunta, después se piensa y
+           solo al final se recomienda. */
         const inicioTest = ACTOS[2];
         const largoTest = 1 - inicioTest;
+        const enTest = (t) => inicioTest + largoTest * t;
         gsap.utils.toArray("#comprar .cf-bloques-test li").forEach((b, i) => {
           comprar.fromTo(b,
-            { autoAlpha: 0.25, y: 12 },
-            { autoAlpha: 1, y: 0, ease: "none", duration: largoTest * 0.1 },
-            inicioTest + largoTest * (0.08 + i * 0.11));
+            { autoAlpha: 0.2, x: -16 },
+            { autoAlpha: 1, x: 0, ease: "none", duration: largoTest * 0.06 },
+            enTest(0.03 + i * 0.035));
+        });
+        comprar
+          .fromTo("#comprar .cf-cerebro-borde",
+            { strokeDashoffset: 1 },
+            { strokeDashoffset: 0, ease: "none", duration: largoTest * 0.16 }, enTest(0.2))
+          .fromTo("#comprar .cf-cerebro-via",
+            { strokeDashoffset: 1 },
+            { strokeDashoffset: 0, ease: "none", duration: largoTest * 0.12, stagger: largoTest * 0.012 }, enTest(0.3))
+          .fromTo("#comprar .cf-cerebro-nodo",
+            { scale: 0 },
+            { scale: 1, ease: "none", duration: largoTest * 0.05, stagger: largoTest * 0.012 }, enTest(0.42))
+          .fromTo("#comprar .cf-flujo i",
+            { xPercent: -140 },
+            { xPercent: 140, ease: "none", duration: largoTest * 0.24 }, enTest(0.3))
+          .fromTo("#comprar .cf-veredicto",
+            { autoAlpha: 0, y: 26 },
+            { autoAlpha: 1, y: 0, ease: "none", duration: largoTest * 0.1 }, enTest(0.52))
+          .fromTo("#comprar .cf-peso em",
+            { scaleX: 0 },
+            { scaleX: 1, ease: "none", duration: largoTest * 0.12, stagger: largoTest * 0.02 }, enTest(0.6));
+        gsap.utils.toArray("#comprar .cf-mejor").forEach((m, i) => {
+          comprar.fromTo(m,
+            { autoAlpha: 0, y: 14 },
+            { autoAlpha: 1, y: 0, ease: "none", duration: largoTest * 0.08 },
+            enTest(0.78 + i * 0.08));
         });
 
         /* ── 02 Vender ────────────────────────────────────────────────────
@@ -323,27 +430,76 @@ export default function ComoFuncionaPage({ onGoHome }) {
                 <EscenaMercado registrar={registrarEmbudo} indice={0} />
               </div>
 
+              {/* Coches distintos, uno al lado del otro y con su nota: es lo que
+                  devuelve el comparador. Los dos huecos del final no son adorno,
+                  son las plazas que quedan libres de las cinco. */}
               <div className="cf-acto cf-acto-comparador">
-                <p className="cf-acto-etq">Cinco criterios, un ganador</p>
-                <div className="cf-ejes">
-                  {EJES_COMPARADOR.map((eje, i) => (
-                    <div className="cf-eje" key={eje}>
-                      <span>{eje}</span>
-                      <i><em style={{ width: `${[86, 62, 74, 58, 80][i]}%` }} /></i>
-                      <i><em style={{ width: `${[64, 78, 52, 71, 55][i]}%` }} /></i>
-                      <i><em style={{ width: `${[71, 55, 68, 83, 62][i]}%` }} /></i>
-                    </div>
+                <p className="cf-acto-etq">Uno al lado del otro, con su nota</p>
+                <div className="cf-comparados">
+                  {COMPARADOS.map((c, i) => (
+                    <article className={`cf-comparado${i === 0 ? " es-gana" : ""}`} key={c.modelo}>
+                      <p className="cf-comparado-cab">
+                        <b className="cf-comparado-puesto">{i + 1}º</b>
+                        <span>
+                          <strong>{c.marca} {c.modelo}</strong>
+                          <small>{c.version}</small>
+                        </span>
+                      </p>
+                      <p className="cf-comparado-nota"><b>{c.puntos}</b><small>puntos</small></p>
+                      <div className="cf-ejes">
+                        {EJES_COMPARADOR.map((eje, k) => (
+                          <div className="cf-eje" key={eje}>
+                            <span>{eje}</span>
+                            <i><em style={{ width: `${c.detalle[k]}%` }} /></i>
+                            <b>{c.detalle[k]}</b>
+                          </div>
+                        ))}
+                      </div>
+                    </article>
                   ))}
+                  <p className="cf-hueco"><span>+2</span>Hasta cinco a la vez</p>
                 </div>
-                <p className="cf-acto-pie">Hasta cinco coches, con lo que se gana y lo que se pierde.</p>
+                <p className="cf-acto-pie">
+                  Se comparan hasta cinco coches a la vez. La puntuación la calcula el análisis en cada comparación.
+                </p>
               </div>
 
+              {/* Las respuestas entran por la izquierda, el análisis las pesa y
+                  por la derecha sale la recomendación con las ofertas que
+                  encajan. Es el recorrido del test, de principio a fin. */}
               <div className="cf-acto cf-acto-test">
                 <p className="cf-acto-etq">Veintiuna preguntas sobre cómo vives</p>
-                <ul className="cf-bloques-test">
-                  {BLOQUES_TEST.map((b) => <li key={b}>{b}</li>)}
-                </ul>
-                <p className="cf-acto-pie">Y salen modelos con su puntuación de 0 a 100.</p>
+                <div className="cf-analisis">
+                  <ul className="cf-bloques-test">
+                    {BLOQUES_TEST.map((b) => <li key={b}>{b}</li>)}
+                  </ul>
+
+                  <div className="cf-flujo" aria-hidden="true"><i /></div>
+                  <div className="cf-cerebro"><Cerebro /></div>
+                  <div className="cf-flujo" aria-hidden="true"><i /></div>
+
+                  <article className="cf-veredicto">
+                    <p className="cf-veredicto-etq">Recomendación · <b>{COINCIDENCIA}%</b> de coincidencia</p>
+                    <h4>Compacto híbrido de ocasión</h4>
+                    <ul className="cf-pesos">
+                      {PESOS_TEST.map((peso) => (
+                        <li className="cf-peso" key={peso.nombre}>
+                          <span>{peso.nombre}</span>
+                          <i><em style={{ width: `${(peso.logrado / peso.peso) * 100}%` }} /></i>
+                        </li>
+                      ))}
+                    </ul>
+                    <ul className="cf-mejores">
+                      {MEJORES.map((m) => (
+                        <li className="cf-mejor" key={m.coche}>
+                          <span><strong>{m.coche}</strong><small>{m.datos}</small></span>
+                          <b>{m.encaje}%</b>
+                        </li>
+                      ))}
+                    </ul>
+                  </article>
+                </div>
+                <p className="cf-acto-pie">Y termina en ofertas de verdad, ordenadas por lo que encajan contigo.</p>
               </div>
             </div>
           </div>

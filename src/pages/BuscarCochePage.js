@@ -82,10 +82,31 @@ const TEXTOS = {
   },
 };
 
-const num = (n) =>
-  n === null || n === undefined || n === ""
-    ? ""
-    : String(Math.round(Number(n))).replace(/B(?=(d{3})+(?!d))/g, ".");
+function num(n) {
+  if (n === null || n === undefined || n === "") return "";
+  const s = String(Math.round(Number(n)));
+  let out = "";
+  for (let i = 0; i < s.length; i += 1) {
+    if (i > 0 && (s.length - i) % 3 === 0) out += ".";
+    out += s[i];
+  }
+  return out;
+}
+
+/** Un desplegable de filtro. Vive fuera del componente a proposito. */
+function Desplegable({ etiqueta, valor, opciones, vacio, deshabilitado, onChange }) {
+  return (
+    <label className="bc-campo">
+      <span>{etiqueta}</span>
+      <select value={valor} disabled={deshabilitado} onChange={(e) => onChange(e.target.value)}>
+        <option value="">{vacio}</option>
+        {opciones.map((o) => (
+          <option key={o.nombre} value={o.nombre}>{o.nombre} ({num(o.n)})</option>
+        ))}
+      </select>
+    </label>
+  );
+}
 
 export default function BuscarCochePage({ onGoBack, onOpenOffer, uiLanguage = "es" }) {
   const t = uiLanguage === "en" ? TEXTOS.en : TEXTOS.es;
@@ -174,21 +195,6 @@ export default function BuscarCochePage({ onGoBack, onOpenOffer, uiLanguage = "e
     [filtros]
   );
 
-  const Desplegable = ({ etiqueta, campo, opciones, vacio, deshabilitado }) => (
-    <label className="bc-campo">
-      <span>{etiqueta}</span>
-      <select
-        value={filtros[campo]}
-        disabled={deshabilitado}
-        onChange={(e) => cambiar(campo, e.target.value)}
-      >
-        <option value="">{vacio}</option>
-        {opciones.map((o) => (
-          <option key={o.nombre} value={o.nombre}>{o.nombre} ({num(o.n)})</option>
-        ))}
-      </select>
-    </label>
-  );
 
   return (
     <div className="bc-root">
@@ -210,11 +216,13 @@ export default function BuscarCochePage({ onGoBack, onOpenOffer, uiLanguage = "e
               )}
             </div>
 
-            <Desplegable etiqueta={t.marca} campo="brand" opciones={marcas} vacio={t.todasMarcas} />
+            <Desplegable etiqueta={t.marca} valor={filtros.brand} opciones={marcas}
+                         vacio={t.todasMarcas} onChange={(v) => cambiar("brand", v)} />
             <Desplegable
-              etiqueta={t.modelo} campo="model" opciones={modelos}
+              etiqueta={t.modelo} valor={filtros.model} opciones={modelos}
               vacio={filtros.brand ? t.todosModelos : t.eligeMarca}
               deshabilitado={!filtros.brand}
+              onChange={(v) => cambiar("model", v)}
             />
 
             <button type="button" className="bc-mas" onClick={() => setAbierto((v) => !v)} aria-expanded={abierto}>
@@ -266,10 +274,10 @@ export default function BuscarCochePage({ onGoBack, onOpenOffer, uiLanguage = "e
                          onChange={(e) => cambiar("minPower", e.target.value.replace(/[^0-9]/g, ""))} />
                 </label>
 
-                <Desplegable etiqueta={t.combustible} campo="fuel" opciones={extra.combustible} vacio={t.cualquiera} />
-                <Desplegable etiqueta={t.cambio} campo="transmission" opciones={extra.cambio} vacio={t.cualquiera} />
-                <Desplegable etiqueta={t.carroceria} campo="bodyType" opciones={extra.carroceria} vacio={t.cualquiera} />
-                <Desplegable etiqueta={t.provincia} campo="province" opciones={extra.provincia} vacio={t.cualquiera} />
+                <Desplegable etiqueta={t.combustible} valor={filtros.fuel} opciones={extra.combustible} vacio={t.cualquiera} onChange={(v) => cambiar("fuel", v)} />
+                <Desplegable etiqueta={t.cambio} valor={filtros.transmission} opciones={extra.cambio} vacio={t.cualquiera} onChange={(v) => cambiar("transmission", v)} />
+                <Desplegable etiqueta={t.carroceria} valor={filtros.bodyType} opciones={extra.carroceria} vacio={t.cualquiera} onChange={(v) => cambiar("bodyType", v)} />
+                <Desplegable etiqueta={t.provincia} valor={filtros.province} opciones={extra.provincia} vacio={t.cualquiera} onChange={(v) => cambiar("province", v)} />
               </div>
             )}
           </aside>

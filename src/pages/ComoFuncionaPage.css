@@ -28,7 +28,7 @@
   font-weight: 800;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--gris-500);
+  color: var(--acento-texto);
 }
 
 /* ── Portada ──────────────────────────────────────────────────────────── */
@@ -63,12 +63,12 @@
   letter-spacing: -0.05em;
   text-wrap: balance;
 }
-.cf-hero h1 span { color: var(--gris-400); }
+.cf-hero h1 span { color: var(--acento-texto); }
 .cf-hero-pie {
   margin: 30px 0 0;
   font-size: clamp(16px, 1.6vw, 19px);
   font-weight: 600;
-  color: var(--gris-600);
+  color: var(--acento-texto);
 }
 .cf-baja {
   margin: 64px 0 0;
@@ -76,7 +76,7 @@
   font-weight: 800;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--gris-400);
+  color: var(--acento-texto);
 }
 .cf-baja-linea {
   display: block;
@@ -85,27 +85,6 @@
   margin: 14px auto 0;
   background: var(--gris-300);
 }
-
-/* ── Entradilla ───────────────────────────────────────────────────────── */
-.cf-intro {
-  min-height: 72svh;
-  display: grid;
-  place-items: center;
-  background: var(--gris-900);
-  color: var(--blanco);
-  text-align: center;
-  padding: 0 24px;
-}
-.cf-intro .cf-eyebrow { color: var(--gris-400); }
-.cf-intro h2 {
-  margin: 0;
-  font-size: clamp(40px, 7vw, 92px);
-  font-weight: 800;
-  line-height: 0.94;
-  letter-spacing: -0.05em;
-  text-wrap: balance;
-}
-.cf-intro h2 span { color: var(--acento); }
 
 /* ── Bloques ──────────────────────────────────────────────────────────── */
 /* Cuatro pantallas y no tres: cada bloque enseña primero por dónde se entra y
@@ -139,7 +118,7 @@
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.1em;
-  color: var(--gris-300);
+  color: var(--acento-texto);
   font-variant-numeric: tabular-nums;
 }
 .cf-rotulo h2 {
@@ -150,13 +129,13 @@
   letter-spacing: -0.05em;
   text-wrap: balance;
 }
-.cf-rotulo h2 span { color: var(--gris-400); }
+.cf-rotulo h2 span { color: var(--acento-texto); }
 .cf-apoyo {
   margin: 26px 0 0;
   max-width: 34ch;
   font-size: 16px;
   line-height: 1.6;
-  color: var(--gris-600);
+  color: var(--acento-texto);
 }
 
 .cf-escena { position: relative; width: 100%; }

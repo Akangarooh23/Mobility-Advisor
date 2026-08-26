@@ -795,12 +795,6 @@ export default function ComoFuncionaPage({ onGoHome }) {
         </div>
       </section>
 
-      <section className="cf-intro">
-        <div>
-          <p className="cf-eyebrow">Una forma distinta</p>
-          <h2>Tu coche no es<br /><span>solo un coche.</span></h2>
-        </div>
-      </section>
 
       {/* ── 01 Comprar ─────────────────────────────────────────────────── */}
       <section className="cf-bloque" id="comprar">

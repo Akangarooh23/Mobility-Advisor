@@ -1,8 +1,11 @@
 .cw-pricing-page {
   --cw-navy: var(--gris-800);
-  --cw-teal: #0b6e5a;
-  --cw-teal-l: #0f8f73;
-  --cw-teal-xl: #e0f4ee;
+  /* El marrón del home (--acento-texto): es el amarillo de la marca llevado a
+     una luminosidad que sí se lee sobre blanco. Antes esto iba en un verde que
+     no aparecía en ninguna otra pantalla. */
+  --cw-marron: #6B5200;
+  --cw-marron-claro: #8A6A00;
+  --cw-marron-tenue: #FFF6D9;
   --cw-amber: #c97b2a;
   --cw-amber-l: #fdf3e3;
   --cw-slate: var(--gris-600);
@@ -28,7 +31,11 @@
 
 .cw-pricing-subnav-wrap {
   position: sticky;
-  top: 0;
+  /* Debajo de la cabecera de la aplicación, que también se pega arriba. Con las
+     dos en `top: 0` esta se metía por debajo de la otra y desaparecía al bajar.
+     La altura la mide la página al montarse, porque la cabecera cambia de alto
+     según el ancho. */
+  top: var(--cw-cabecera, 0px);
   z-index: 100;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
@@ -38,6 +45,13 @@
   align-items: center;
   justify-content: center;
   height: 52px;
+}
+
+/* Al saltar a una sección hay que dejar sitio para las dos barras pegadas
+   arriba; si no, el título de la sección aterriza debajo de ellas y parece que
+   el enlace no ha ido a ninguna parte. */
+.cw-pricing-page section[id] {
+  scroll-margin-top: calc(var(--cw-cabecera, 0px) + 64px);
 }
 
 .cw-pricing-subnav {
@@ -64,8 +78,8 @@
 }
 
 .cw-pricing-subnav a.active {
-  color: var(--cw-teal);
-  background: var(--cw-teal-xl);
+  color: var(--cw-marron);
+  background: var(--cw-marron-tenue);
   font-weight: 600;
 }
 
@@ -79,8 +93,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--cw-teal-xl);
-  color: var(--cw-teal);
+  background: var(--cw-marron-tenue);
+  color: var(--cw-marron);
   border-radius: 999px;
   padding: 6px 16px;
   font-size: 0.8rem;
@@ -92,7 +106,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--cw-teal);
+  background: var(--cw-marron);
 }
 
 .cw-pricing-hero h1 {
@@ -105,7 +119,7 @@
 }
 
 .cw-pricing-hero h1 em {
-  color: var(--cw-teal);
+  color: var(--cw-marron);
 }
 
 .cw-pricing-hero p {
@@ -143,8 +157,8 @@
 .cw-save-badge {
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--cw-teal);
-  background: var(--cw-teal-xl);
+  color: var(--cw-marron);
+  background: var(--cw-marron-tenue);
   border-radius: 999px;
   padding: 2px 8px;
 }
@@ -178,7 +192,7 @@
 }
 
 .cw-plan-card.featured {
-  border-color: var(--cw-teal);
+  border-color: var(--cw-marron);
   border-width: 2px;
   background: var(--blanco);
 }
@@ -189,7 +203,7 @@
   top: -14px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--cw-teal);
+  background: var(--cw-marron);
   color: #fff;
   font-size: 0.72rem;
   font-weight: 700;
@@ -243,7 +257,7 @@
 }
 
 .cw-price-annual {
-  color: var(--cw-teal);
+  color: var(--cw-marron);
   font-size: 0.8rem;
   font-weight: 500;
   min-height: 20px;
@@ -271,8 +285,8 @@
 }
 
 .cw-plan-cta.primary {
-  background: var(--cw-teal);
-  border-color: var(--cw-teal);
+  background: var(--cw-marron);
+  border-color: var(--cw-marron);
   color: #fff;
 }
 
@@ -285,8 +299,8 @@
 .cw-services-cta:hover,
 .cw-service-cta:hover,
 .cw-cta-btn-primary:hover {
-  background: var(--cw-teal-l);
-  border-color: var(--cw-teal-l);
+  background: var(--cw-marron-claro);
+  border-color: var(--cw-marron-claro);
 }
 
 .cw-features-label {
@@ -327,8 +341,8 @@
 }
 
 .cw-feature-check.yes {
-  background: var(--cw-teal-xl);
-  color: var(--cw-teal);
+  background: var(--cw-marron-tenue);
+  color: var(--cw-marron);
 }
 
 .cw-feature-check.no {
@@ -371,7 +385,7 @@
 
 .cw-service-row-price {
   font-size: 0.78rem;
-  color: var(--cw-teal);
+  color: var(--cw-marron);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -379,10 +393,10 @@
 .cw-services-cta {
   width: 100%;
   padding: 12px;
-  border: 2px solid var(--cw-teal);
+  border: 2px solid var(--cw-marron);
   border-radius: 14px;
   background: transparent;
-  color: var(--cw-teal);
+  color: var(--cw-marron);
   font-weight: 600;
 }
 
@@ -390,9 +404,9 @@
   text-align: center;
   margin-top: 1.5rem;
   padding: 1rem;
-  background: var(--cw-teal-xl);
+  background: var(--cw-marron-tenue);
   border-radius: 14px;
-  color: var(--cw-teal);
+  color: var(--cw-marron);
   font-size: 0.9rem;
   font-weight: 500;
 }
@@ -412,7 +426,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--cw-teal);
+  color: var(--cw-marron);
   margin-bottom: 0.7rem;
 }
 
@@ -452,7 +466,7 @@
 
 .cw-premium-card.wide {
   grid-column: 1 / -1;
-  border-left: 4px solid var(--cw-teal);
+  border-left: 4px solid var(--cw-marron);
 }
 
 .cw-p-header {
@@ -474,8 +488,8 @@
 }
 
 .cw-p-tag.res {
-  background: var(--cw-teal-xl);
-  color: var(--cw-teal);
+  background: var(--cw-marron-tenue);
+  color: var(--cw-marron);
 }
 
 .cw-p-tag.vis {
@@ -554,8 +568,8 @@
   border: 0;
   border-radius: 8px;
   padding: 8px 18px;
-  background: var(--cw-teal-xl);
-  color: var(--cw-teal);
+  background: var(--cw-marron-tenue);
+  color: var(--cw-marron);
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -585,7 +599,7 @@
 }
 
 .cw-compare-table .plus-col {
-  background: rgba(11, 110, 90, 0.04);
+  background: rgba(107, 82, 0, 0.05);
 }
 
 .cw-row-section td {
@@ -609,7 +623,7 @@
 }
 
 .cw-faq-section .cw-section-eyebrow {
-  color: var(--cw-teal-l);
+  color: var(--cw-marron-claro);
 }
 
 .cw-faq-section .cw-section-title {
@@ -641,7 +655,7 @@
 }
 
 .cw-faq-icon {
-  color: var(--cw-teal-l);
+  color: var(--cw-marron-claro);
   font-size: 1.2rem;
   transition: transform 0.25s ease;
 }
@@ -695,7 +709,7 @@
 }
 
 .cw-cta-btn-primary {
-  background: var(--cw-teal);
+  background: var(--cw-marron);
   color: #fff;
   border: 0;
 }

@@ -93,7 +93,7 @@ test("el texto se mantiene corto", () => {
   // La regla de la pagina es que se entienda sin leer. Si esto empieza a
   // crecer, es que hemos vuelto a explicar con parrafos.
   const { container } = montar();
-  const palabras = [...container.querySelectorAll(".cf-rotulo, .cf-hero-texto, .cf-intro, .cf-final")]
+  const palabras = [...container.querySelectorAll(".cf-rotulo, .cf-hero-texto, .cf-final")]
     .map((n) => n.textContent.trim().split(/\s+/).length)
     .reduce((a, b) => a + b, 0);
   expect(palabras).toBeLessThan(90);

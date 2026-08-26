@@ -27,16 +27,14 @@ const montar = (props = {}) =>
     />
   );
 
-test("la barra ofrece aceptar y configurar", () => {
-  /* Sin botón de «solo necesarias»: decisión de producto. Rechazar se hace
-     desde «configurar cookies», apagando las categorías y guardando.
-
-     Queda dicho aquí también: la guía de la AEPD pide poder rechazar con la
-     misma facilidad con la que se acepta, en el mismo nivel del aviso. */
+test("aceptar y rechazar están los dos a la vista", () => {
+  /* La guía de cookies de la AEPD pide poder rechazar con la misma facilidad
+     con la que se acepta, en el mismo nivel del aviso. Si alguien esconde el
+     rechazo detrás de «configurar», deja de cumplirse. */
   montar();
   expect(screen.getByRole("button", { name: "cookies.acceptAll" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "cookies.rejectAll" })).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "cookies.showSettings" })).toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: "cookies.necessaryOnly" })).toBeNull();
 });
 
 test("no bloquea la página: es una región, no un diálogo", () => {
@@ -74,6 +72,7 @@ test("cada botón guarda lo que dice que guarda", () => {
   const guardado = [];
   const { rerender } = montar({ onGuardar: (modo) => guardado.push(modo) });
   fireEvent.click(screen.getByRole("button", { name: "cookies.acceptAll" }));
+  fireEvent.click(screen.getByRole("button", { name: "cookies.rejectAll" }));
 
   rerender(
     <AvisoCookies
@@ -85,7 +84,7 @@ test("cada botón guarda lo que dice que guarda", () => {
     />
   );
   fireEvent.click(screen.getByRole("button", { name: "cookies.saveSelection" }));
-  expect(guardado).toEqual(["all", "custom"]);
+  expect(guardado).toEqual(["all", "necessary", "custom"]);
 });
 
 test("el velo oscurece pero no intercepta los clics", () => {

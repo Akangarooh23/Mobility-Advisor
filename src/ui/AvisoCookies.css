@@ -91,6 +91,14 @@
   color: var(--gris-900);
 }
 .ac-btn-principal:hover { background: var(--acento-oscuro); border-color: var(--acento-oscuro); }
+/* Rechazar: gris, pero del mismo tamaño y con el mismo peso de letra que
+   aceptar. Lo que no puede pasar es que cueste más encontrarlo. */
+.ac-btn-gris {
+  background: var(--gris-100);
+  border-color: var(--gris-200);
+  color: var(--gris-800);
+}
+.ac-btn-gris:hover { background: var(--gris-200); border-color: var(--gris-300); }
 .ac-btn-plano {
   border-color: transparent;
   background: transparent;

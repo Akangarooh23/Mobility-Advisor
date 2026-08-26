@@ -1926,10 +1926,10 @@
     "enabled": "Enabled",
     "disabled": "Disabled",
     "acceptAll": "Accept all",
-    "necessaryOnly": "Necessary only",
     "saveSelection": "Save selection",
     "showSettings": "Configure cookies",
     "hideSettings": "Hide settings",
-    "footerHint": "The details are in the cookie policy, in the footer."
+    "footerHint": "The details are in the cookie policy, in the footer.",
+    "rejectAll": "Reject all"
   }
 }

@@ -57,15 +57,13 @@ export default function AvisoCookies({
             <button type="button" className="ac-btn ac-btn-principal" onClick={() => onGuardar("all")}>
               {t("cookies.acceptAll")}
             </button>
-            {/* Sin botón de «solo necesarias»: es decisión de producto. Rechazar
-                sigue siendo posible desde «configurar cookies», apagando las
-                categorías y guardando.
-
-                Aviso para quien lo lea: la guía de cookies de la AEPD pide poder
-                rechazar con la misma facilidad con la que se acepta, en el mismo
-                nivel del aviso. Con el rechazo a un clic de distancia esto no lo
-                cumple, y lo mismo vale para las de marketing activadas de
-                entrada. Devolver el botón es una línea. */}
+            {/* Rechazar va al lado de aceptar, del mismo tamaño y en el mismo
+                nivel del aviso: es lo que pide la guía de cookies de la AEPD, y
+                es la diferencia entre preguntar y empujar. Que uno sea gris y
+                el otro amarillo es marca, no jerarquía. */}
+            <button type="button" className="ac-btn ac-btn-gris" onClick={() => onGuardar("necessary")}>
+              {t("cookies.rejectAll")}
+            </button>
             <button
               type="button"
               className="ac-btn ac-btn-plano"

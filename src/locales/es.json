@@ -1927,10 +1927,10 @@
     "enabled": "Activadas",
     "disabled": "Desactivadas",
     "acceptAll": "Aceptar todas",
-    "necessaryOnly": "Solo necesarias",
     "saveSelection": "Guardar selección",
     "showSettings": "Configurar cookies",
     "hideSettings": "Ocultar configuración",
-    "footerHint": "El detalle está en la política de cookies, en el pie de página."
+    "footerHint": "El detalle está en la política de cookies, en el pie de página.",
+    "rejectAll": "Rechazar todas"
   }
 }

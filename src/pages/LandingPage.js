@@ -35,8 +35,6 @@ const TEXTOS = {
       ["Vende al mejor precio", "Informe de daños y gestión de la venta."],
       ["Gestiona tu coche", "Documentación, avisos y talleres en un sitio."],
     ],
-    empezar: "Empieza ahora",
-    descubrir: "Descubre IdCar",
     valoracion: "Valoración inteligente con IA",
     nota: ["* Estimación orientativa.", " Sale de comparar operaciones recientes de coches parecidos. No es una oferta de compra ni una tasación: el precio real depende del estado del coche, y eso lo fija el informe."],
     confianza: [
@@ -107,8 +105,6 @@ const TEXTOS = {
       ["Sell at the right price", "Damage report and full sale management."],
       ["Manage your car", "Paperwork, reminders and garages in one place."],
     ],
-    empezar: "Start now",
-    descubrir: "Discover IdCar",
     valoracion: "AI-assisted valuation",
     nota: ["* Indicative estimate.", " Based on recent sales of similar cars. It is not an offer nor a formal appraisal: the real price depends on the car's condition, and that is what the report establishes."],
     confianza: [
@@ -409,14 +405,6 @@ export default function LandingPage({
               })}
             </div>
 
-            <div className="pc-hero-acciones">
-              <button className="pc-btn pc-btn-amarillo pc-btn-grande" onClick={irComprar}>
-                {t.empezar} <IcoFlecha width={17} height={17} />
-              </button>
-              <button className="pc-btn pc-btn-linea pc-btn-grande" onClick={irGestionar}>
-                {t.descubrir} <IcoFlecha width={17} height={17} />
-              </button>
-            </div>
           </div>
 
           <div className={`pc-hero-visual pc-entrada-${entrada}`}>
@@ -437,19 +425,6 @@ export default function LandingPage({
           </div>
 
           <p className="pc-nota"><b>{t.nota[0]}</b>{t.nota[1]}</p>
-        </section>
-
-        {/* ─────────── Franja de confianza ─────────── */}
-        <section className="pc-confianza">
-          {t.confianza.map((texto, i) => {
-            const Icono = [IcoEscudo, IcoOjo, IcoLlave][i];
-            return (
-              <div key={texto}>
-                <span className="pc-confianza-ico"><Icono width={18} height={18} /></span>
-                <span>{texto}</span>
-              </div>
-            );
-          })}
         </section>
 
         {/* ─────────── Tres formas ─────────── */}
@@ -536,6 +511,19 @@ export default function LandingPage({
               <span className="pc-aviso">ITV · 04/2026</span>
             </div>
           </div>
+        </section>
+
+        {/* ─────────── Franja de confianza ─────────── */}
+        <section className="pc-confianza">
+          {t.confianza.map((texto, i) => {
+            const Icono = [IcoEscudo, IcoOjo, IcoLlave][i];
+            return (
+              <div key={texto}>
+                <span className="pc-confianza-ico"><Icono width={18} height={18} /></span>
+                <span>{texto}</span>
+              </div>
+            );
+          })}
         </section>
 
         {/* ─────────── Banda amarilla ─────────── */}

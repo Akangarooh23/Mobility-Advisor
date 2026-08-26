@@ -8,6 +8,7 @@ import UserDashboardPreferences from "./UserDashboardPreferences";
 import UserDashboardSaved from "./UserDashboardSaved";
 import UserDashboardValuations from "./UserDashboardValuations";
 import UserDashboardVehicles from "./UserDashboardVehicles";
+import UserDashboardServices from "./UserDashboardServices";
 import UserDashboardSolicitudes from "./UserDashboardSolicitudes";
 import { getGarageVehiclesJson } from "../../utils/apiClient";
 import { readUserBillingState, readCachedGarageVehicleCount } from "../../utils/storage";
@@ -71,6 +72,13 @@ function buildSections(counts, t, newAlertMatchesCount = 0) {
       count: counts.appointments,
       title: t("dashboardPage.appointmentsTitle"),
       description: t("dashboardPage.appointmentsDescription"),
+    },
+    {
+      key: "servicios",
+      label: "Servicios",
+      icon: "🔧",
+      title: "Pide un servicio para tu coche",
+      description: "ITV, aceite, revisión, frenos, neumáticos, cristales, diagnosis o carrocería.",
     },
     {
       key: "valuations",
@@ -288,7 +296,7 @@ export default function UserDashboardPage({
     solicitudes: userSolicitudes.length,
   };
   const sections = buildSections(counts, t, newAlertMatchesCount);
-  const navMain = ["home", "saved", "alerts", "vehicles", "valuations", "appointments", "solicitudes"];
+  const navMain = ["home", "saved", "alerts", "vehicles", "valuations", "appointments", "servicios", "solicitudes"];
   const navAccount = ["billing", "preferences"];
   const navSectionsMain = sections.filter((section) => navMain.includes(section.key));
   const navSectionsAccount = sections.filter((section) => navAccount.includes(section.key));
@@ -623,6 +631,16 @@ export default function UserDashboardPage({
           onVehicleStatesUpdated={onVehicleStatesUpdated}
         />
       )}
+
+            {/* Estaba escrita entera y sin enganchar: el backend guardaba, mandaba
+                los correos y tenia su cola en el ERP, pero no habia por donde pedirlo. */}
+            {userDashboardPage === "servicios" && (
+              <UserDashboardServices
+                themeMode={themeMode}
+                panelStyle={panelStyle}
+                currentUser={currentUser}
+              />
+            )}
 
             {userDashboardPage === "solicitudes" && (
         <UserDashboardSolicitudes

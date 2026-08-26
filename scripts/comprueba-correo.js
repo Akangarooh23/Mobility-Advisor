@@ -78,9 +78,35 @@ for (const rel of ENVIAN) {
   }
 }
 
-// 3. Que la funcion exista y de algo.
-const { respuestaA, remitente, MARCA } = require(path.join(RAIZ, "lib", "marca"));
-for (const [nombre, fn] of [["remitente", remitente], ["respuestaA", respuestaA]]) {
+// 3. Ningun correo personal escrito a mano.
+//
+//    Este repositorio es publico. Habia cinco direcciones de gmail puestas
+//    como valor de reserva, y no eran decorativas: se usaban de verdad cuando
+//    faltaba la variable. Se busca solo en proveedores de correo gratuito, que
+//    es donde estan los personales; las direcciones del dominio propio son
+//    legitimas y no se tocan.
+const GRATUITOS = /[\w.+-]+@(gmail|hotmail|outlook|yahoo|icloud|live|protonmail)\.[a-z.]+/gi;
+for (const carpeta of ["lib", "api"]) {
+  const raiz = path.join(RAIZ, carpeta);
+  const pila = [raiz];
+  while (pila.length) {
+    const dir = pila.pop();
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) { if (e.name !== "node_modules") pila.push(p); continue; }
+      if (!e.name.endsWith(".js")) continue;
+      const texto = fs.readFileSync(p, "utf8");
+      texto.split(/\r?\n/).forEach((linea, i) => {
+        const m = linea.match(GRATUITOS);
+        if (m) fallos.push(`${path.relative(RAIZ, p).replace(/\\/g, "/")}:${i + 1}  correo personal en un repositorio publico: ${m[0]}`);
+      });
+    }
+  }
+}
+
+// 4. Que la funcion exista y de algo.
+const { respuestaA, remitente, correoInterno, MARCA } = require(path.join(RAIZ, "lib", "marca"));
+for (const [nombre, fn] of [["remitente", remitente], ["respuestaA", respuestaA], ["correoInterno", correoInterno]]) {
   if (typeof fn !== "function") { fallos.push(`lib/marca.js no exporta ${nombre}()`); continue; }
   if (!String(fn() || "").includes("@")) fallos.push(`${nombre}() no devuelve una direccion: ${fn()}`);
 }

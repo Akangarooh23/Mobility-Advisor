@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { FICHA_VO_ABIERTA } from "./utils/aperturaTemporal";
 import i18next from "i18next";
-import { useTranslation } from "react-i18next";
 import "./App.css";
 import AdviceIntroPage from "./pages/AdviceIntroPage";
 import AdviceResultsPage from "./pages/AdviceResultsPage";
@@ -160,6 +159,7 @@ import { BLOCK_COLORS, BRAND_LOGOS } from "./ui/branding";
 import { createAppStyles } from "./ui/appStyles";
 import LogoPopCar from "./ui/LogoPopCar";
 import PiePopCar from "./ui/PiePopCar";
+import AvisoCookies from "./ui/AvisoCookies";
 
 function hasAnsweredValue(value) {
   if (Array.isArray(value)) {
@@ -1575,7 +1575,8 @@ function clearLegacyTranslateCookies() {
 }
 
 export default function App() {
-  const { t } = useTranslation();
+  // El único uso que le quedaba a `t` aquí era el aviso de cookies, que ahora
+  // traduce por su cuenta en src/ui/AvisoCookies.js.
   const [entryMode, setEntryMode] = useState(null);
   const [selectedIdCarVehicleId, setSelectedIdCarVehicleId] = useState("");
   const [selectedIdCarOpenEditor, setSelectedIdCarOpenEditor] = useState(false);
@@ -1718,11 +1719,16 @@ export default function App() {
     return normalizeUiLanguage();
   });
   const activeLegalDocs = uiLanguage === "en" ? LEGAL_DOCUMENTS_EN : LEGAL_DOCUMENTS;
+  /* Las cuatro categorías salen marcadas de entrada, marketing incluida: es
+     decisión de producto. Conste que la guía de cookies de la AEPD —y la
+     sentencia Planet49— piden que las opcionales vengan sin marcar y que
+     rechazar cueste lo mismo que aceptar; dejarlo así es asumir ese riesgo, y
+     volver a `marketing: false` es cambiar esta línea. */
   const [cookiePreferences, setCookiePreferences] = useState({
     necessary: true,
     analytics: true,
     personalization: true,
-    marketing: false,
+    marketing: true,
   });
   const quickValidationRef = useRef({});
   const resultRef = useRef(null);
@@ -2041,14 +2047,7 @@ export default function App() {
     setShowCookieSettings,
   });
 
-  /**
-   * ¿Está el aviso de cookies tapando la pantalla?
-   *
-   * Se calcula aquí y se usa en los dos sitios —al pintarlo y al avisar al
-   * home— para que no puedan decir cosas distintas. El home lo necesita porque
-   * su animación de entrada espera a que la pantalla quede libre: el aviso es
-   * una capa a pantalla completa y animar debajo sería animar para nadie.
-   */
+  /** ¿Hay que pedir el consentimiento de cookies? */
   const avisoCookiesAbierto =
     showCookieGate && !isUserLoggedIn && !authRequired && !showConsentReview
     && !["legalNotice", "privacyPolicy", "cookiePolicy", "termsConditions", "marketingPolicy", "experianPolicy", "experianTerms"].includes(entryMode);
@@ -5702,237 +5701,15 @@ export default function App() {
       )}
 
       {avisoCookiesAbierto && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Consentimiento de cookies"
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(5,5,5,0.8)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 16,
-            zIndex: 170,
-          }}
-        >
-          <div
-            style={{
-              width: "min(680px, 100%)",
-              maxHeight: "min(92vh, 820px)",
-              background: "var(--blanco)",
-              border: "1px solid var(--gris-200)",
-              borderRadius: 18,
-              boxShadow: "0 24px 60px rgba(5,5,5,0.45)",
-              padding: 18,
-              textAlign: "left",
-              overflowY: "auto",
-            }}
-          >
-            <div style={{ fontSize: 11, color: "var(--gris-600)", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 8 }}>
-              {t("cookies.badge")}
-            </div>
-            <h3 style={{ margin: "0 0 8px", fontSize: "clamp(22px,4vw,28px)", color: "var(--gris-900)" }}>
-              {t("cookies.title")}
-            </h3>
-            <p style={{ margin: "0 0 8px", color: "var(--gris-600)", fontSize: 13, lineHeight: 1.65 }}>
-              {t("cookies.description")}
-            </p>
-            <p style={{ margin: "0 0 14px", color: "var(--gris-500)", fontSize: 12, lineHeight: 1.6 }}>
-              {t("cookies.note")}
-            </p>
-
-            <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>
-              {[
-                {
-                  key: "necessary",
-                  title: t("cookies.necessary.title"),
-                  description: t("cookies.necessary.description"),
-                  locked: true,
-                },
-                {
-                  key: "analytics",
-                  title: t("cookies.analytics.title"),
-                  description: t("cookies.analytics.description"),
-                },
-                {
-                  key: "personalization",
-                  title: t("cookies.personalization.title"),
-                  description: t("cookies.personalization.description"),
-                },
-                {
-                  key: "marketing",
-                  title: t("cookies.marketing.title"),
-                  description: t("cookies.marketing.description"),
-                },
-              ].map((item) => {
-                const enabled = cookiePreferences[item.key];
-                return (
-                  <div
-                    key={item.key}
-                    style={{
-                      border: "1px solid var(--gris-200)",
-                      borderRadius: 12,
-                      background: "var(--gris-50)",
-                      padding: "10px 12px",
-                      display: "flex",
-                      gap: 10,
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 13, color: "var(--gris-900)", fontWeight: 700 }}>{item.title}</div>
-                      <div style={{ fontSize: 12, color: "var(--gris-500)", marginTop: 2, lineHeight: 1.5 }}>
-                        {item.description}
-                      </div>
-                    </div>
-
-                    {item.locked ? (
-                      <span
-                        style={{
-                          borderRadius: 999,
-                          padding: "5px 9px",
-                          fontSize: 11,
-                          fontWeight: 700,
-                          color: "var(--acento-texto)",
-                          border: "1px solid rgba(255,196,0,0.45)",
-                          background: "rgba(255,196,0,0.14)",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {t("cookies.alwaysActive")}
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        aria-pressed={Boolean(enabled)}
-                        onClick={() =>
-                          setCookiePreferences((prev) => ({
-                            ...prev,
-                            [item.key]: !prev[item.key],
-                          }))
-                        }
-                        style={{
-                          borderRadius: 999,
-                          border: enabled
-                            ? "1px solid rgba(255,196,0,0.45)"
-                            : "1px solid var(--gris-300)",
-                          background: enabled
-                            ? "rgba(255,196,0,0.14)"
-                            : "var(--blanco)",
-                          color: enabled ? "var(--acento-texto)" : "var(--gris-500)",
-                          padding: "6px 10px",
-                          fontSize: 11,
-                          fontWeight: 700,
-                          cursor: "pointer",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {enabled ? t("cookies.enabled") : t("cookies.disabled")}
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {showCookieSettings && (
-              <div
-                style={{
-                  marginBottom: 12,
-                  border: "1px solid var(--gris-200)",
-                  background: "rgba(230,176,0,0.1)",
-                  borderRadius: 10,
-                  padding: "9px 11px",
-                  fontSize: 12,
-                  color: "var(--gris-700)",
-                }}
-              >
-                {t("cookies.advancedMessage")}
-              </div>
-            )}
-
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <button
-                type="button"
-                onClick={() => saveCookieConsent("all")}
-                style={{
-                  border: "none",
-                  borderRadius: 10,
-                  padding: "10px 14px",
-                  background: "linear-gradient(135deg,var(--marca),var(--gris-700))",
-                  color: "var(--blanco)",
-                  fontSize: 12,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                }}
-              >
-                {t("cookies.acceptAll")}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => saveCookieConsent("necessary")}
-                style={{
-                  border: "1px solid var(--gris-300)",
-                  borderRadius: 10,
-                  padding: "10px 14px",
-                  background: "var(--blanco)",
-                  color: "var(--gris-700)",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                {t("cookies.necessaryOnly")}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setShowCookieSettings(true);
-                  saveCookieConsent("custom");
-                }}
-                style={{
-                  border: "1px solid var(--acento)",
-                  borderRadius: 10,
-                  padding: "10px 14px",
-                  background: "var(--acento)",
-                  color: "var(--gris-900)",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                {t("cookies.saveSelection")}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowCookieSettings((prev) => !prev)}
-                style={{
-                  border: "none",
-                  borderRadius: 10,
-                  padding: "10px 14px",
-                  background: "transparent",
-                  color: "var(--gris-600)",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  textDecoration: "underline",
-                }}
-              >
-                {showCookieSettings ? t("cookies.hideSettings") : t("cookies.showSettings")}
-              </button>
-            </div>
-
-            <div style={{ marginTop: 10, fontSize: 12, color: "var(--gris-500)" }}>
-              Puedes revisar los detalles en la política de cookies desde el footer.
-            </div>
-          </div>
-        </div>
+        <AvisoCookies
+          preferencias={cookiePreferences}
+          onCambiarPreferencia={(clave) =>
+            setCookiePreferences((prev) => ({ ...prev, [clave]: !prev[clave] }))
+          }
+          mostrarAjustes={showCookieSettings}
+          onAlternarAjustes={() => setShowCookieSettings((prev) => !prev)}
+          onGuardar={saveCookieConsent}
+        />
       )}
 
       <style>
@@ -6101,8 +5878,6 @@ export default function App() {
       {/* LANDING */}
       {step === -1 && !entryMode && (
         <LandingPage
-          // Su animación de entrada espera a que el aviso deje la pantalla libre.
-          avisoCookiesAbierto={avisoCookiesAbierto}
           onSelectEmpresas={() => openPublicPage("empresas")}
           onSelectAbout={goToAboutHeaderPage}
           onSelectContact={() => openPublicPage("contact")}

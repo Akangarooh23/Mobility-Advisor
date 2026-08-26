@@ -231,7 +231,6 @@ export default function LandingPage({
   onOpenPlansSection,
   onOpenDashboard,
   onToggleLanguage,
-  avisoCookiesAbierto = false,
 }) {
   const { i18n } = useTranslation();
   const isEN = (uiLanguage || i18n.language) === "en";
@@ -258,15 +257,17 @@ export default function LandingPage({
   }, []);
 
   /**
-   * Arranca cuando se cierra el aviso de cookies y la foto ya está cargada.
+   * Arranca en cuanto la foto está cargada.
    *
-   * El aviso tapa la pantalla entera, así que animar debajo sería animar para
-   * nadie. Y sin la foto lista lo que entraría es un hueco: se ve una sola vez y
-   * no hay segunda oportunidad. La animación en sí no necesita consentimiento
-   * —no rastrea nada—, solo espera a tener sitio donde verse.
+   * Sin la foto lista lo que entraría es un hueco, y esto se ve una sola vez: no
+   * hay segunda oportunidad.
+   *
+   * Ya no espera al aviso de cookies. Cuando era una capa a pantalla completa
+   * había que esperarlo —la animación pasaba entera detrás del velo—, pero ahora
+   * es una barra al pie y no tapa nada de aquí arriba.
    */
   useEffect(() => {
-    if (yaEntro() || avisoCookiesAbierto) return undefined;
+    if (yaEntro()) return undefined;
     const img = foto.current;
     if (!img) return undefined;
     // `complete` cubre la imagen que ya estaba en caché, donde `load` no salta.
@@ -278,7 +279,7 @@ export default function LandingPage({
       img.removeEventListener("load", arrancarEntrada);
       img.removeEventListener("error", arrancarEntrada);
     };
-  }, [avisoCookiesAbierto, arrancarEntrada]);
+  }, [arrancarEntrada]);
 
   useEffect(() => {
     const fn = () => {

@@ -1903,11 +1903,9 @@
     "lastUpdated": "Last updated: {{date}}"
   },
   "cookies": {
-    "badge": "INITIAL SETUP",
-    "title": "Before entering, accept our cookie policy",
-    "description": "We use necessary cookies for functionality and, if you wish, analytical, personalisation and marketing cookies to improve your experience.",
-    "note": "You can accept all, reject optional ones or configure your preferences by category.",
-    "advancedMessage": "Advanced settings active. When done, click Save selection.",
+    "title": "Cookies",
+    "description": "We use the necessary ones so the site works. Analytics, personalisation and marketing, only if you want them.",
+    "note": "You can accept all, keep only the necessary ones, or choose by category.",
     "necessary": {
       "title": "Necessary cookies",
       "description": "Essential for access, session maintenance and correct navigation."
@@ -1931,6 +1929,7 @@
     "necessaryOnly": "Necessary only",
     "saveSelection": "Save selection",
     "showSettings": "Configure cookies",
-    "hideSettings": "Hide settings"
+    "hideSettings": "Hide settings",
+    "footerHint": "The details are in the cookie policy, in the footer."
   }
 }

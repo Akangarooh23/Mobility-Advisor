@@ -1,5 +1,43 @@
 import { useTranslation } from "react-i18next";
 
+/**
+ * La caja del icono, igual que la de comprar y la de gestionar: cuadrado
+ * redondeado, borde y fondo del acento. Aquí faltaba y las dos tarjetas
+ * arrancaban directamente con el título.
+ */
+const CAJA_ICONO = {
+  width: 34,
+  height: 34,
+  borderRadius: 8,
+  border: "1px solid rgba(255,196,0,0.3)",
+  background: "rgba(255,196,0,0.08)",
+  color: "var(--marca)",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+/** Un gráfico de barras: el informe es información de mercado, no una tasación. */
+const ICONO_INFORME = (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+    <path d="M4 19.5V4" />
+    <path d="M4 19.5h16" />
+    <path d="M8.5 16.5v-5" />
+    <path d="M13 16.5V7.5" />
+    <path d="M17.5 16.5v-7" />
+  </svg>
+);
+
+/** Un apretón de manos, simplificado: la venta la lleva alguien por ti. */
+const ICONO_GESTIONADA = (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 9.5h3l3.2 3.2a1.6 1.6 0 0 0 2.3 0l.5-.5" />
+    <path d="M21 9.5h-3l-2.6-2.6a2 2 0 0 0-1.4-.6h-2.6a2 2 0 0 0-1.4.6L7.5 8.4" />
+    <path d="M12 12.2l2.6 2.6M10.4 14.4l2 2M8.8 16.6l1.4 1.4" />
+    <path d="M18 9.5v6.2M6 9.5v6.2" />
+  </svg>
+);
+
 export default function SellOptionsPage({ styles, onSelectCertificate, onSelectReport, onSelectIDCar, onGoBack }) {
   const { t, i18n } = useTranslation();
   const uiLanguage = i18n.language === "en" ? "en" : "es";
@@ -98,6 +136,7 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
           >
             &gt;
           </span>
+          <span style={CAJA_ICONO}>{ICONO_INFORME}</span>
           <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
             {t("sell.optionATitle")}
           </div>
@@ -173,6 +212,7 @@ export default function SellOptionsPage({ styles, onSelectCertificate, onSelectR
           >
             &gt;
           </span>
+          <span style={CAJA_ICONO}>{ICONO_GESTIONADA}</span>
           <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
             {t("sell.optionBTitle")}
           </div>

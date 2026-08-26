@@ -1904,11 +1904,9 @@
     "lastUpdated": "Última actualización: {{date}}"
   },
   "cookies": {
-    "badge": "CONFIGURACION INICIAL",
-    "title": "Antes de entrar, acepta nuestra política de cookies",
-    "description": "Utilizamos cookies necesarias para el funcionamiento y, si tú quieres, cookies analíticas, de personalización y marketing para mejorar tu experiencia.",
-    "note": "Puedes aceptar todas, rechazar las opcionales o configurar tus preferencias por categoría.",
-    "advancedMessage": "Configuración avanzada activa. Cuando termines, pulsa Guardar selección.",
+    "title": "Cookies",
+    "description": "Usamos las necesarias para que la web funcione. Las de analítica, personalización y marketing, solo si tú quieres.",
+    "note": "Puedes aceptar todas, quedarte solo con las necesarias o elegir por categoría.",
     "necessary": {
       "title": "Cookies necesarias",
       "description": "Imprescindibles para acceder, mantener sesión y navegar correctamente."
@@ -1932,6 +1930,7 @@
     "necessaryOnly": "Solo necesarias",
     "saveSelection": "Guardar selección",
     "showSettings": "Configurar cookies",
-    "hideSettings": "Ocultar configuración"
+    "hideSettings": "Ocultar configuración",
+    "footerHint": "El detalle está en la política de cookies, en el pie de página."
   }
 }

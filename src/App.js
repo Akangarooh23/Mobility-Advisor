@@ -2524,6 +2524,81 @@ export default function App() {
     setAuthLoading,
   });
 
+  /**
+   * Abre uno de los dos flujos de venta: el informe de mercado o la venta
+   * gestionada. Es el mismo camino que usan las tarjetas del home, con su
+   * puerta de acceso incluida —los dos flujos guardan cosas en tu portal—.
+   */
+  const abrirVenta = useCallback((tipo) => {
+    const particular = tipo === "report";
+    if (!isUserLoggedIn) {
+      setPlanCheckoutFeedback("Inicia sesión o regístrate para sincronizar este flujo con tu portal.");
+      openAuthDialog("login", { entryMode: "sell", routePage: "home", sellFlowType: tipo });
+      return;
+    }
+    setSellFlowType(tipo);
+    setSelectedValuationVehicleSummary(null);
+    setSellAnswers((prev) => ({ ...prev, sellerType: particular ? "particular" : "profesional" }));
+    setEntryMode("sell");
+    setStep(-1);
+  }, [isUserLoggedIn, openAuthDialog]);
+
+  /**
+   * Las columnas del pie.
+   *
+   * Cada enlace lleva a un sitio distinto, que no es como estaba: había seis
+   * que iban a tres —«buscar coches» y «asesor de vehículo» al mismo, «vender
+   * mi coche» e «informe de daños» al mismo, «servicios» y «mi coche» al
+   * mismo—, y encima «buscar coches» no llevaba al buscador.
+   *
+   * Los nombres son los de la aplicación de hoy: el informe es de estado y no
+   * de daños, y aquí no aparece la palabra «tasación», que es justo lo que no
+   * hacemos.
+   */
+  const piePopCarColumnas = useMemo(() => {
+    const en = uiLanguage === "en";
+    return [
+      {
+        titulo: en ? "Buy" : "Comprar",
+        enlaces: [
+          { texto: en ? "Search cars" : "Buscar coche", onClick: () => openPublicPage("buscarCoche") },
+          { texto: en ? "Comparator" : "Comparador", onClick: () => openPublicPage("comparador") },
+          { texto: en ? "PopCar test" : "Test PopCar", onClick: () => openInternalLandingFlow("consejo") },
+          { texto: "Marketplace VO", onClick: () => { if (!isUserLoggedIn) { openAuthDialog("register", { entryMode: "portalVo" }); return; } openPublicPage("portalVo"); } },
+        ],
+      },
+      {
+        titulo: en ? "Sell" : "Vender",
+        /* Las dos salidas de vender no son pantallas distintas sino el mismo
+           flujo con otro tipo, así que van por `abrirVenta` en vez de por un
+           `entryMode` propio. */
+        enlaces: [
+          { texto: en ? "Market report" : "Informe de mercado", onClick: () => abrirVenta("report") },
+          { texto: en ? "Managed sale" : "Venta gestionada", onClick: () => abrirVenta("certificate") },
+        ],
+      },
+      {
+        titulo: en ? "Manage" : "Gestionar",
+        enlaces: [
+          { texto: en ? "Create your garage" : "Crea tu garaje", onClick: () => openInternalLandingFlow("serviceAutogestor") },
+          { texto: en ? "Reminders" : "Recordatorios", onClick: () => openInternalLandingFlow("serviceMaintenance") },
+          { texto: en ? "Workshop appointment" : "Cita de taller", onClick: () => openInternalLandingFlow("serviceAppointment") },
+          { texto: en ? "Insurance" : "Seguro", onClick: () => openInternalLandingFlow("serviceInsurance") },
+        ],
+      },
+      {
+        titulo: "PopCar",
+        enlaces: [
+          { texto: en ? "How it works" : "Cómo funciona", onClick: () => openPublicPage("comoFunciona") },
+          { texto: en ? "Products" : "Productos", onClick: () => openPlansSection("planes") },
+          { texto: en ? "Business" : "Empresas", onClick: () => openPublicPage("empresas") },
+          { texto: en ? "About us" : "Quiénes somos", onClick: goToAboutHeaderPage },
+          { texto: en ? "Contact" : "Contacto", onClick: () => openPublicPage("contact") },
+        ],
+      },
+    ];
+  }, [abrirVenta, goToAboutHeaderPage, isUserLoggedIn, openAuthDialog, openInternalLandingFlow, openPlansSection, openPublicPage, uiLanguage]);
+
   const { startSubscriptionCheckout } = usePlanCheckout({
     currentUserEmail,
     isUserLoggedIn,
@@ -6070,6 +6145,7 @@ export default function App() {
             setStep(-1);
           }}
           onOpenPlansSection={openPlansSection}
+          onOpenLegal={openLegalDocument}
           onOpenDashboard={() => {
             if (!isUserLoggedIn) {
               openAuthDialog("login", { entryMode: "userDashboard", routePage: "home" });
@@ -7065,40 +7141,7 @@ export default function App() {
           lema={uiLanguage === "en" ? "Your car. All of it, easier." : "Tu coche. Todo, más fácil."}
           derechos={uiLanguage === "en" ? "All rights reserved." : "Todos los derechos reservados."}
           onLogo={restart}
-          columnas={[
-            {
-              titulo: uiLanguage === "en" ? "Buy" : "Comprar",
-              enlaces: [
-                { texto: uiLanguage === "en" ? "Search cars" : "Buscar coches", onClick: () => openPublicPage("vehicleOptions") },
-                { texto: "Marketplace VO", onClick: () => { if (!isUserLoggedIn) { openAuthDialog("register", { entryMode: "portalVo" }); return; } openPublicPage("portalVo"); } },
-                { texto: uiLanguage === "en" ? "Vehicle advisor" : "Asesor de vehículo", onClick: () => openPublicPage("vehicleOptions") },
-              ],
-            },
-            {
-              titulo: uiLanguage === "en" ? "Sell" : "Vender",
-              enlaces: [
-                { texto: uiLanguage === "en" ? "Sell my car" : "Vender mi coche", onClick: () => openPublicPage("sellOptions") },
-                { texto: uiLanguage === "en" ? "Damage report" : "Informe de daños", onClick: () => openPublicPage("sellOptions") },
-              ],
-            },
-            {
-              titulo: uiLanguage === "en" ? "Manage" : "Gestionar",
-              enlaces: [
-                { texto: uiLanguage === "en" ? "Services" : "Servicios", onClick: () => openPublicPage("serviceOptions") },
-                { texto: uiLanguage === "en" ? "My car" : "Mi coche", onClick: () => openPublicPage("serviceOptions") },
-              ],
-            },
-            {
-              titulo: uiLanguage === "en" ? "About" : "Nosotros",
-              enlaces: [
-                { texto: uiLanguage === "en" ? "About PopCar" : "Sobre PopCar", onClick: goToAboutHeaderPage },
-                { texto: uiLanguage === "en" ? "Home" : "Inicio", onClick: restart },
-                { texto: "Blog", onClick: () => openPublicPage("blog") },
-                { texto: uiLanguage === "en" ? "Contact" : "Contacto", onClick: () => openPublicPage("contact") },
-                { texto: uiLanguage === "en" ? "Plans" : "Planes", onClick: () => openPlansSection("planes") },
-              ],
-            },
-          ]}
+          columnas={piePopCarColumnas}
           legales={[
             [uiLanguage === "en" ? "Legal Notice" : "Aviso legal", "legalNotice"],
             [uiLanguage === "en" ? "Privacy" : "Privacidad", "privacyPolicy"],

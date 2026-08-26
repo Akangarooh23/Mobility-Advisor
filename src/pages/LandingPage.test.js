@@ -70,6 +70,56 @@ test("IdCar deja su hueco en la cabecera, pero no un enlace", () => {
   expect(hueco).toHaveAttribute("aria-hidden", "true");
 });
 
+test("cada enlace del pie lleva a un sitio distinto", () => {
+  /* Antes eran quince enlaces para seis destinos: «buscar coches» y «asesor de
+     vehículo» al mismo, los tres de vender al mismo, y los seis de gestionar e
+     IdCar también. Un pie donde todo lleva al mismo sitio no es un pie. */
+  const visitados = [];
+  const espia = (nombre) => () => visitados.push(nombre);
+  const { container } = montar({
+    onSelectBuyStart: espia("buscar"),
+    onSelectDecision: espia("comparar"),
+    onSelectAdvice: espia("test"),
+    onSelectPortalVo: espia("marketplace"),
+    onSelectSellInfo: espia("informe"),
+    onSelectSellManaged: espia("gestionada"),
+    onSelectServiceAutogestor: espia("garaje"),
+    onSelectServiceMaintenance: espia("recordatorios"),
+    onSelectServiceAppointment: espia("cita"),
+    onSelectServiceInsurance: espia("seguro"),
+    onComoFunciona: espia("como"),
+    onOpenPlans: espia("productos"),
+    onSelectEmpresas: espia("empresas"),
+    onSelectAbout: espia("sobre"),
+    onSelectContact: espia("contacto"),
+  });
+
+  const enlaces = [...container.querySelectorAll(".pc-pie-rejilla div h4 ~ button")];
+  expect(enlaces).toHaveLength(15);
+  enlaces.forEach((boton) => boton.click());
+  expect(visitados).toHaveLength(15);
+  expect(new Set(visitados).size).toBe(15);
+});
+
+test("el pie no promete una tasación, que es lo que no hacemos", () => {
+  // Estaba en la columna de vender y contradecía todo lo demás.
+  const { container } = montar();
+  expect(container.querySelector(".pc-pie").textContent).not.toMatch(/tasaci[óo]n/i);
+});
+
+test("los enlaces legales del pie abren su documento", () => {
+  /* Se pintaban como texto plano, sin nada detrás. El aviso legal, la
+     privacidad y las cookies tienen que poder leerse: no es una preferencia. */
+  const abiertos = [];
+  const { container } = montar({ onOpenLegal: (clave) => abiertos.push(clave) });
+  const legales = [...container.querySelectorAll(".pc-pie-legal button")];
+  expect(legales.length).toBeGreaterThanOrEqual(3);
+  legales.forEach((boton) => boton.click());
+  expect(abiertos).toEqual(
+    expect.arrayContaining(["legalNotice", "privacyPolicy", "cookiePolicy"])
+  );
+});
+
 test("la foto del coche sigue teniendo texto alternativo", () => {
   // La animación no puede llevarse por delante lo que ya estaba bien.
   const { container } = montar();

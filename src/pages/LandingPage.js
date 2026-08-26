@@ -81,15 +81,26 @@ const TEXTOS = {
     boletinBoton: "Suscribirme",
     boletinHecho: "Hecho",
     lemaPie: "Tu coche. Todo, más fácil.",
-    pie: {
-      comprar: ["Comprar", ["Buscar coches", "Ofertas destacadas", "Cómo funciona"]],
-      vender: ["Vender", ["Tasación", "Informe de daños", "Cómo vendemos tu coche"]],
-      gestionar: ["Gestionar", ["Documentación", "Mantenimientos", "Talleres"]],
-      idcar: ["IdCar", ["Qué es IdCar", "Subir mi coche", "Preguntas frecuentes"]],
-      nosotros: ["Nosotros", ["Sobre PopCar", "Contacto", "Planes"]],
-    },
+    pie: [
+      ["Comprar", [
+        ["Buscar coche", "buscar"], ["Comparador", "comparar"],
+        ["Test PopCar", "test"], ["Marketplace VO", "marketplace"],
+      ]],
+      ["Vender", [["Informe de mercado", "informe"], ["Venta gestionada", "gestionada"]]],
+      ["Gestionar", [
+        ["Crea tu garaje", "garaje"], ["Recordatorios", "recordatorios"],
+        ["Cita de taller", "cita"], ["Seguro", "seguro"],
+      ]],
+      ["PopCar", [
+        ["Cómo funciona", "como"], ["Productos", "productos"], ["Empresas", "empresas"],
+        ["Quiénes somos", "sobre"], ["Contacto", "contacto"],
+      ]],
+    ],
+    legales: [
+      ["Aviso legal", "legalNotice"], ["Privacidad", "privacyPolicy"],
+      ["Cookies", "cookiePolicy"], ["Términos", "termsConditions"],
+    ],
     derechos: "Todos los derechos reservados.",
-    legal: "Aviso legal · Privacidad · Cookies",
   },
   en: {
     nav: { comprar: "Buy", vender: "Sell", gestionar: "Manage", idcar: "IdCar", como: "How it works", empresas: "Business", productos: "Products" },
@@ -151,15 +162,26 @@ const TEXTOS = {
     boletinBoton: "Subscribe",
     boletinHecho: "Done",
     lemaPie: "Your car. All of it, easier.",
-    pie: {
-      comprar: ["Buy", ["Search cars", "Featured listings", "How it works"]],
-      vender: ["Sell", ["Valuation", "Damage report", "How we sell your car"]],
-      gestionar: ["Manage", ["Paperwork", "Servicing", "Garages"]],
-      idcar: ["IdCar", ["What is IdCar", "Upload my car", "FAQ"]],
-      nosotros: ["About", ["About PopCar", "Contact", "Plans"]],
-    },
+    pie: [
+      ["Buy", [
+        ["Search cars", "buscar"], ["Comparator", "comparar"],
+        ["PopCar test", "test"], ["Marketplace VO", "marketplace"],
+      ]],
+      ["Sell", [["Market report", "informe"], ["Managed sale", "gestionada"]]],
+      ["Manage", [
+        ["Create your garage", "garaje"], ["Reminders", "recordatorios"],
+        ["Workshop appointment", "cita"], ["Insurance", "seguro"],
+      ]],
+      ["PopCar", [
+        ["How it works", "como"], ["Products", "productos"], ["Business", "empresas"],
+        ["About us", "sobre"], ["Contact", "contacto"],
+      ]],
+    ],
+    legales: [
+      ["Legal notice", "legalNotice"], ["Privacy", "privacyPolicy"],
+      ["Cookies", "cookiePolicy"], ["Terms", "termsConditions"],
+    ],
     derechos: "All rights reserved.",
-    legal: "Legal notice · Privacy · Cookies",
   },
 };
 
@@ -227,6 +249,8 @@ export default function LandingPage({
   onOpenPlansSection,
   onOpenDashboard,
   onToggleLanguage,
+  // Abre uno de los documentos legales, por su clave.
+  onOpenLegal,
 }) {
   const { i18n } = useTranslation();
   const isEN = (uiLanguage || i18n.language) === "en";
@@ -295,10 +319,6 @@ export default function LandingPage({
   const irVender    = go(onSelectSell);
   const irGestionar = go(onSelectService);
   const irPlanes    = go(onOpenPlans);
-  /* Se llamaba `irInicio` y no lleva al inicio: abre el asesor de compra. Con
-     ese nombre acabo puesto en el logotipo y en los dos botones de sesion, que
-     es como pulsar «Iniciar sesion» terminaba en el cuestionario de comprar. */
-  const irAsesor    = go(onSelectAdvice || onSelectBuyStart);
   const irComoFunciona = go(onComoFunciona);
   const irEntrar    = go(onEntrar);
   const irRegistro  = go(onRegistro);
@@ -331,6 +351,30 @@ export default function LandingPage({
     [t.nav.productos, irPlanes],
     [t.nav.como, irComoFunciona],
   ];
+
+  /**
+   * A dónde va cada enlace del pie. Uno por destino, sin repetir: antes eran
+   * quince enlaces para seis sitios, y varios prometían cosas que no eran —
+   * «tasación», que es justo lo que no hacemos, o «preguntas frecuentes», que
+   * no existe—.
+   */
+  const acciones = {
+    buscar: go(onSelectBuyStart),
+    comparar: go(onSelectDecision),
+    test: go(onSelectAdvice),
+    marketplace: irOfertas,
+    informe: go(onSelectSellInfo),
+    gestionada: go(onSelectSellManaged),
+    garaje: go(onSelectServiceAutogestor),
+    recordatorios: go(onSelectServiceMaintenance),
+    cita: go(onSelectServiceAppointment),
+    seguro: go(onSelectServiceInsurance),
+    como: irComoFunciona,
+    productos: irPlanes,
+    empresas: irContacto,
+    sobre: irSobre,
+    contacto: irContactar,
+  };
 
   const iconosRasgo = [IcoLupa, IcoEtiq, IcoCheck];
   const iconosPaso = [IcoChat, IcoCamara, IcoLista, IcoCheck];
@@ -592,14 +636,18 @@ export default function LandingPage({
         lema={t.lemaPie}
         derechos={t.derechos}
         onLogo={irArriba}
-        columnas={[
-          { titulo: t.pie.comprar[0],   enlaces: t.pie.comprar[1].map((x, i)   => ({ texto: x, onClick: [irComprar, irOfertas, irAsesor][i] })) },
-          { titulo: t.pie.vender[0],    enlaces: t.pie.vender[1].map((x)       => ({ texto: x, onClick: irVender })) },
-          { titulo: t.pie.gestionar[0], enlaces: t.pie.gestionar[1].map((x)    => ({ texto: x, onClick: irGestionar })) },
-          { titulo: t.pie.idcar[0],     enlaces: t.pie.idcar[1].map((x)        => ({ texto: x, onClick: irGestionar })) },
-          { titulo: t.pie.nosotros[0],  enlaces: t.pie.nosotros[1].map((x, i)  => ({ texto: x, onClick: [irSobre, irContactar, irPlanes][i] })) },
-        ]}
-        legales={t.legal.split(" · ").map((x) => ({ texto: x }))}
+        /* Las mismas columnas que el pie del resto de la aplicación, y por el
+           mismo motivo: cada enlace lleva a un sitio distinto. Antes eran quince
+           enlaces para seis destinos, con «tasación» entre ellos —justo lo que
+           no hacemos— y «preguntas frecuentes», que no existe. */
+        columnas={t.pie.map(([titulo, enlaces]) => ({
+          titulo,
+          enlaces: enlaces.map(([texto, ir]) => ({ texto, onClick: acciones[ir] })),
+        }))}
+        /* Y los legales abren el documento. Aquí se pintaban como texto plano,
+           sin nada detrás: el aviso legal, la privacidad y las cookies tienen
+           que poder leerse, y eso no es una preferencia. */
+        legales={t.legales.map(([texto, clave]) => ({ texto, onClick: () => onOpenLegal?.(clave) }))}
       />
     </div>
   );

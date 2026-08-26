@@ -1,0 +1,146 @@
+/**
+ * De donde sale el correo y a donde vuelve, comprobado en frio.
+ *
+ * Dos cosas que no se ven en ninguna pantalla y que solo se notan cuando ya es
+ * tarde: que un envio se haya quedado resolviendo el remitente por su cuenta
+ * —y salga con una direccion distinta al resto— y que un correo a un cliente
+ * no lleve reply_to.
+ *
+ * Lo segundo importa porque el remitente es un buzon que no existe: popcar.tech
+ * no tiene MX. Un cliente que responde a su factura escribe a la nada. No
+ * rebota a nadie del equipo, no aparece en ninguna bandeja: se pierde.
+ *
+ * Los envios internos se quedan fuera a proposito. Ahi el reply_to util seria
+ * el del lead, no el de soporte, y eso es otra conversacion.
+ */
+"use strict";
+
+const fs = require("fs");
+const path = require("path");
+
+const RAIZ = path.join(__dirname, "..");
+
+/** Ficheros que mandan correo. */
+const ENVIAN = [
+  "lib/viewingStore.js",
+  "lib/api/viewing-handler.js",
+  "lib/api/leads-handler.js",
+  "lib/api/import-lead-handler.js",
+  "lib/api/cron-alert-check-handler.js",
+  "lib/api/cron-appointment-reminders-handler.js",
+  "lib/api/cron-condition-report-ready-handler.js",
+  "lib/api/service-requests-handler.js",
+  "lib/api/billing-webhook-handler.js",
+  "api/auth.js",
+  "api/send-alert-email.js",
+];
+
+/** Un envio es interno si va a una de estas. No lleva reply_to. */
+const INTERNOS = /INTERNAL_LEADS_EMAIL|internalEmail|INTERNAL_ALERT_EMAIL|OPS_EMAIL/;
+
+const fallos = [];
+
+for (const rel of ENVIAN) {
+  const abs = path.join(RAIZ, rel);
+  if (!fs.existsSync(abs)) { fallos.push(`${rel}: ya no esta donde dice esta comprobacion`); continue; }
+
+  const fuente = fs.readFileSync(abs, "utf8");
+  const lineas = fuente.split(/\r?\n/);
+
+  // 1. Nadie resuelve el remitente por su cuenta.
+  lineas.forEach((linea, i) => {
+    const sinComentario = linea.replace(/^\s*\/\/.*/, "");
+    if (/process\.env\.(RESEND_FROM_EMAIL|ALERT_EMAIL_FROM)/.test(sinComentario)) {
+      // El destinatario de los avisos internos si puede mirar la variable.
+      if (/INTERNAL_ALERT_EMAIL/.test(sinComentario)) return;
+      fallos.push(`${rel}:${i + 1}  resuelve el remitente a mano en vez de llamar a remitente()\n      ${linea.trim().slice(0, 100)}`);
+    }
+  });
+
+  // 2. Todo envio a un cliente lleva reply_to.
+  //
+  //    Se ancla en el `from`, no en el `JSON.stringify`: hay envios que arman
+  //    el objeto antes y lo mandan despues —`const payload = {...}` y luego
+  //    `JSON.stringify(payload)`—, y mirando la llamada no se ve nada.
+  const RE = /\bfrom\s*[,:][\s\S]{0,320}/g;
+  let m;
+  let envio = 0;
+  while ((m = RE.exec(fuente)) !== null) {
+    const trozo = m[0];
+    if (!/\bto\s*:/.test(trozo)) continue;       // no es el payload de un correo
+    envio++;
+    // Se recorta en el `to:` para no arrastrar el payload siguiente.
+    const hastaTo = trozo.slice(0, trozo.search(/\bto\s*:/) + 60);
+    if (INTERNOS.test(hastaTo)) continue;        // interno: no aplica
+    if (/reply_to/.test(hastaTo)) continue;      // ya lo lleva
+    const prim = hastaTo.split(/\r?\n/).slice(0, 3).join(" ").replace(/\s+/g, " ").trim().slice(0, 95);
+    fallos.push(`${rel}  envio ${envio} a un cliente sin reply_to: la respuesta se perderia\n      ${prim}`);
+  }
+}
+
+// 3. Ningun correo personal escrito a mano.
+//
+//    Este repositorio es publico. Habia cinco direcciones de gmail puestas
+//    como valor de reserva, y no eran decorativas: se usaban de verdad cuando
+//    faltaba la variable. Se busca solo en proveedores de correo gratuito, que
+//    es donde estan los personales; las direcciones del dominio propio son
+//    legitimas y no se tocan.
+const GRATUITOS = /[\w.+-]+@(gmail|hotmail|outlook|yahoo|icloud|live|protonmail)\.[a-z.]+/gi;
+for (const carpeta of ["lib", "api"]) {
+  const raiz = path.join(RAIZ, carpeta);
+  const pila = [raiz];
+  while (pila.length) {
+    const dir = pila.pop();
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) { if (e.name !== "node_modules") pila.push(p); continue; }
+      if (!e.name.endsWith(".js")) continue;
+      const texto = fs.readFileSync(p, "utf8");
+      texto.split(/\r?\n/).forEach((linea, i) => {
+        const m = linea.match(GRATUITOS);
+        if (m) fallos.push(`${path.relative(RAIZ, p).replace(/\\/g, "/")}:${i + 1}  correo personal en un repositorio publico: ${m[0]}`);
+      });
+    }
+  }
+}
+
+// 4. Las funciones existen, y ninguna manda nada a un buzon que no recibe.
+const marca = require(path.join(RAIZ, "lib", "marca"));
+for (const nombre of ["remitente", "respuestaA", "correoInterno", "correoSoporte"]) {
+  if (typeof marca[nombre] !== "function") fallos.push(`lib/marca.js no exporta ${nombre}()`);
+}
+
+// remitente() siempre tiene que dar una direccion: sin ella no sale el correo.
+if (typeof marca.remitente === "function" && !String(marca.remitente() || "").includes("@")) {
+  fallos.push(`remitente() no devuelve una direccion: ${marca.remitente()}`);
+}
+
+// Las otras tres pueden venir vacias —eso significa "no hay contacto
+// configurado" y cada sitio lo resuelve— pero nunca pueden apuntar a un buzon
+// muerto. hola@carswiseai.com estaba escrito en el codigo y no existe: salia
+// en el pie de las facturas en PDF.
+const MUERTOS = ["hola@carswiseai.com"];
+for (const nombre of ["respuestaA", "correoInterno", "correoSoporte"]) {
+  if (typeof marca[nombre] !== "function") continue;
+  const v = String(marca[nombre]() || "").toLowerCase();
+  if (v && MUERTOS.some((d) => v.includes(d))) {
+    fallos.push(`${nombre}() apunta a un buzon que no recibe: ${v}`);
+  }
+}
+for (const rel of ["lib/marca.js", "lib/api/billing-webhook-handler.js", "lib/api/invoice-pdf-handler.js"]) {
+  const t = fs.readFileSync(path.join(RAIZ, rel), "utf8");
+  t.split(/\r?\n/).forEach((linea, i) => {
+    if (/^\s*(\/\/|\*)/.test(linea)) return;
+    for (const d of MUERTOS) {
+      if (linea.includes(d)) fallos.push(`${rel}:${i + 1}  buzon que no recibe escrito a mano: ${d}`);
+    }
+  });
+}
+
+if (fallos.length) {
+  console.error("[correo] FALLA:\n");
+  fallos.forEach((f) => console.error("  · " + f + "\n"));
+  process.exit(1);
+}
+
+console.log(`[correo] OK: ${ENVIAN.length} ficheros, un solo remitente y ningun correo a cliente sin reply_to.`);

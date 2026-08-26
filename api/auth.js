@@ -2,7 +2,7 @@
 const path = require("path");
 const crypto = require("crypto");
 const { execFileSync } = require("child_process");
-const { MARCA } = require("../lib/marca");
+const { MARCA, remitente, respuestaA } = require("../lib/marca");
 
 // mssql is only needed when AUTH_PROVIDER=mssql; lazy-load to avoid crashing on Vercel
 function getMssqlModule() {
@@ -1328,17 +1328,15 @@ async function sendPasswordResetEmail({ email, code }) {
   const localFallbackEnabled = String(process.env.AUTH_LOCAL_RESET_FALLBACK || "true").toLowerCase() !== "false";
   const isProductionLike = String(process.env.NODE_ENV || "").toLowerCase() === "production" || String(process.env.VERCEL || "") === "1";
   const from =
-    normalizeText(process.env.ALERT_EMAIL_FROM) ||
-    normalizeText(process.env.RESEND_FROM_EMAIL) ||
-    "onboarding@resend.dev";
+    remitente();
 
-  // onboarding@resend.dev only delivers to the Resend account owner.
-  // Set ALERT_EMAIL_FROM to a verified domain in production.
+  // onboarding@resend.dev solo entrega al dueno de la cuenta de Resend.
+  // En produccion, RESEND_FROM_EMAIL tiene que apuntar a un dominio verificado.
   if (isProductionLike && from.includes("onboarding@resend.dev")) {
-    console.error("[auth] ALERT_EMAIL_FROM uses onboarding@resend.dev - emails only reach the Resend account owner. Set a verified domain.");
+    console.error("[auth] el remitente es onboarding@resend.dev: el correo solo llega al dueno de la cuenta de Resend. Pon RESEND_FROM_EMAIL con un dominio verificado.");
   }
 
-  const subject = "Carswise · Código para recuperar tu contraseña";
+  const subject = `${MARCA.nombre} · Código para recuperar tu contraseña`;
   const text = [
     "Hola,",
     "",
@@ -1348,7 +1346,7 @@ async function sendPasswordResetEmail({ email, code }) {
     "",
     "Si no has solicitado este cambio, ignora este mensaje.",
     "",
-    "— El equipo de Carswise",
+    `— El equipo de ${MARCA.nombre}`,
   ].join("\n");
 
   const html = `<!DOCTYPE html>
@@ -1356,7 +1354,7 @@ async function sendPasswordResetEmail({ email, code }) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Recupera tu contraseña · Carswise</title>
+  <title>Recupera tu contraseña · ${MARCA.nombre}</title>
   <style>
     @keyframes cwBorderShift {
       0%   { border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(96,165,250,0.18), 0 4px 24px rgba(96,165,250,0.12); }
@@ -1500,6 +1498,7 @@ async function sendPasswordResetEmail({ email, code }) {
         },
         body: JSON.stringify({
           from,
+          reply_to: respuestaA(),
           to: [email],
           subject,
           text,

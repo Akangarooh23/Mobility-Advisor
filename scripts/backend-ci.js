@@ -25,6 +25,7 @@ try {
   // roto en los correos se ve antes de montar nada.
   runScript("test:marca");
   runScript("test:og");
+  runScript("test:correo");
   runScript("test:auth-local");
 
   // El test estricto comprueba que, con la entrega de correo exigida, el

@@ -1,4 +1,4 @@
-const { MARCA } = require("../lib/marca");
+const { MARCA, remitente, respuestaA } = require("../lib/marca");
 function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -146,9 +146,7 @@ function buildDigestPayload(body = {}) {
     notifications,
     from:
       normalizeText(body.from) ||
-      normalizeText(process.env.ALERT_EMAIL_FROM) ||
-      normalizeText(process.env.RESEND_FROM_EMAIL) ||
-      MARCA.remitentePorDefecto,
+      remitente(),
   };
 }
 
@@ -161,6 +159,7 @@ async function sendViaResend(payload) {
     },
     body: JSON.stringify({
       from: payload.from,
+      reply_to: respuestaA(),
       to: payload.to,
       subject: payload.subject,
       html: payload.html,

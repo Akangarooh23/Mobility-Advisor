@@ -1947,9 +1947,13 @@ export default function App() {
       onClick: () => openInternalLandingFlow("serviceOptions"),
     },
     {
-      key: "idcar",
+      /* IdCar sale de la cabecera pero deja su hueco: separa los tres apartados
+         de lo que haces con el coche —comprar, vender, gestionar— de los tres
+         de la casa. Se pinta con su propio rótulo puesto invisible, así que el
+         hueco mide exactamente lo que medía el enlace. */
+      key: "hueco",
       label: "IdCar",
-      onClick: () => openInternalLandingFlow("idCarsManage"),
+      hueco: true,
     },
     {
       key: "business",
@@ -2008,7 +2012,9 @@ export default function App() {
   ], [goToAboutHeaderPage, goToPublicHeaderPage, uiLanguage]);
 
   const mobileHeaderNavItems = useMemo(() => [
-    ...headerNavItems.filter((item) => item.key !== "more" && item.key !== "plans"),
+    // El hueco fuera: en el menú desplegado no separa nada y sería una línea en
+    // blanco que no lleva a ningún sitio.
+    ...headerNavItems.filter((item) => !item.hueco && item.key !== "more" && item.key !== "plans"),
     {
       key: "plans",
       label: uiLanguage === "en" ? "Plans" : "Planes",
@@ -4478,6 +4484,23 @@ export default function App() {
           >
             {centerHeaderNavItems.map((item) => {
               const isActive = item.key === currentHeaderNavKey;
+
+              /* El hueco de IdCar. Va con el rótulo dentro para que mida lo
+                 mismo que medía el enlace, pero invisible y fuera del alcance
+                 del ratón, del teclado y del lector de pantalla: es aire, no un
+                 sitio al que se pueda ir. */
+              if (item.hueco) {
+                return (
+                  <span
+                    key={item.key}
+                    className="cw-header-nav-link"
+                    aria-hidden="true"
+                    style={{ visibility: "hidden", pointerEvents: "none" }}
+                  >
+                    {item.label}
+                  </span>
+                );
+              }
 
               if (item.key === "plans") {
                 return (

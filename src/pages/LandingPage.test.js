@@ -57,6 +57,19 @@ test("mientras la foto no está, el coche espera fuera", () => {
   expect(visual(container)).toHaveClass("pc-entrada-espera");
 });
 
+test("IdCar deja su hueco en la cabecera, pero no un enlace", () => {
+  /* El hueco separa los tres apartados de lo que haces con el coche de los tres
+     de la casa. Tiene que seguir siendo aire: si vuelve a ser pulsable, lleva a
+     una pantalla que ya no se ofrece desde aquí. */
+  const { container } = montar();
+  const nav = container.querySelector(".pc-nav");
+  const botones = [...nav.querySelectorAll("button")].map((n) => n.textContent);
+  expect(botones).not.toContain("IdCar");
+  const hueco = [...nav.children].find((n) => n.textContent === "IdCar");
+  expect(hueco.tagName).toBe("SPAN");
+  expect(hueco).toHaveAttribute("aria-hidden", "true");
+});
+
 test("la foto del coche sigue teniendo texto alternativo", () => {
   // La animación no puede llevarse por delante lo que ya estaba bien.
   const { container } = montar();

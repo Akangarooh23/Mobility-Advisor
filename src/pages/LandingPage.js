@@ -318,11 +318,15 @@ export default function LandingPage({
     </button>
   );
 
+  /* IdCar sale de la cabecera y deja su hueco: separa los tres apartados de lo
+     que haces con el coche —comprar, vender, gestionar— de los tres de la casa.
+     El hueco lleva dentro el rótulo que había, puesto invisible, así que mide
+     exactamente lo que medía el enlace. */
   const enlacesNav = [
     [t.nav.comprar, irComprar],
     [t.nav.vender, irVender],
     [t.nav.gestionar, irGestionar],
-    [t.nav.idcar, irGestionar],
+    [t.nav.idcar, null],
     [t.nav.empresas, irContacto],
     [t.nav.productos, irPlanes],
     [t.nav.como, irComoFunciona],
@@ -341,9 +345,15 @@ export default function LandingPage({
 
         {!isMobile && (
           <nav className="pc-nav" aria-label={isEN ? "Main navigation" : "Navegación principal"}>
-            {enlacesNav.map(([texto, accion]) => (
+            {enlacesNav.map(([texto, accion]) => (accion ? (
               <button key={texto} type="button" onClick={accion}>{texto}</button>
-            ))}
+            ) : (
+              /* El hueco: invisible y fuera del alcance del ratón, del teclado
+                 y del lector de pantalla. Es aire, no un sitio al que ir. */
+              <span key={texto} aria-hidden="true" style={{ visibility: "hidden", pointerEvents: "none" }}>
+                {texto}
+              </span>
+            )))}
           </nav>
         )}
 
@@ -374,7 +384,9 @@ export default function LandingPage({
 
       {isMobile && menuAbierto && (
         <div className="pc-menu-desplegado">
-          {enlacesNav.map(([texto, accion]) => (
+          {/* En el menú desplegado el hueco no separa nada: sería una línea en
+              blanco que no lleva a ningún sitio. */}
+          {enlacesNav.filter(([, accion]) => accion).map(([texto, accion]) => (
             <button key={texto} type="button" onClick={accion}>{texto}</button>
           ))}
           <div className="pc-menu-acciones">

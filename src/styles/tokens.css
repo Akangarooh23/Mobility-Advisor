@@ -65,4 +65,21 @@
      Los sustitutos no son de adorno: mientras el navegador baja el fichero, y
      en el caso raro de que falle, la página se pinta con la del sistema. */
   --fuente: "Nunito Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+
+  /**
+   * La de los titulares grandes, y solo esos: el titular del home y los rótulos
+   * de los bloques de «cómo funciona». Es donde habla la marca.
+   *
+   * NO se usa en ninguna cifra. Ni precios, ni kilómetros, ni notas, ni tablas,
+   * ni el panel, ni nada del producto. El motivo no es de gusto: los diez
+   * dígitos de Bricolage no miden lo mismo —varían casi un tercio de eme entre
+   * el más estrecho y el más ancho—, así que una columna de precios con esta
+   * letra sale desalineada salvo que alguien se acuerde de pedir
+   * `tabular-nums`. Nunito Sans los alinea sola, y por eso lleva el producto.
+   *
+   * Si algún día hay que ponerla en un sitio nuevo, que sea un titular sin
+   * números. En cuanto se extienda a la interfaz, esto deja de tener sentido y
+   * empiezan los desajustes silenciosos.
+   */
+  --fuente-titulos: "Bricolage Grotesque", var(--fuente);
 }

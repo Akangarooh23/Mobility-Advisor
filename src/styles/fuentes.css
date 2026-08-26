@@ -11,8 +11,11 @@
  * ficheros cubren desde la fina hasta la negra sin descargar uno por peso. La
  * aplicación usa de 300 a 900.
  *
- * Dos cortes y no seis: latin y latin-ext. El segundo hace falta para la eñe y
- * los acentos; cirílico y vietnamita son otros doscientos kilobytes para nada.
+ * Dos cortes y no seis: latin y latin-ext; cirílico y vietnamita son otros
+ * doscientos kilobytes para nada. El español entero cabe en latin —la eñe es
+ * U+00F1 y los acentos van del U+00C0 al U+00FF—, así que latin-ext solo entra
+ * cuando aparece algo como «Škoda». Y entra solo entonces: el navegador mira el
+ * `unicode-range` y no descarga el corte que no necesita.
  *
  * Sobre las cifras: Nunito Sans no declara `tnum`, pero sus diez dígitos miden
  * lo mismo —600 de 1000 unidades cada uno—, así que ya es tabular por defecto.
@@ -41,4 +44,37 @@
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
     U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
     U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+
+/**
+ * Y la de los titulares: Bricolage Grotesque.
+ *
+ * Solo para el titular grande del home y los rótulos de los bloques de «cómo
+ * funciona». Ni un precio, ni una tabla, ni el panel: para eso está Nunito
+ * Sans, cuyas cifras se alinean solas. Ver la nota de `--fuente-titulos` en
+ * tokens.css, que es donde se dice dónde puede usarse.
+ *
+ * Trae un eje óptico de 12 a 96 además del de peso, y por eso pesa más que la
+ * otra: 77 KB el corte latino. Es lo que la hace valer para esto —el navegador
+ * ajusta el dibujo al tamaño por su cuenta, así que a 112 píxeles no es la misma
+ * letra estirada que a 40— y lo paga solo quien entra al home o a cómo funciona:
+ * un `@font-face` no descarga nada hasta que algo en la página lo usa.
+ */
+@font-face {
+  font-family: "Bricolage Grotesque";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("../fonts/bricolage-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Bricolage Grotesque";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("../fonts/bricolage-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }

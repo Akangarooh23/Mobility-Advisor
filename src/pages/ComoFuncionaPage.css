@@ -11,8 +11,13 @@
  * entrar y salir de cada uno.
  *
  * Colores y tipografía son los de la aplicación: el amarillo es #FFC400 y la
- * letra, Inter. Aquí no se estrena paleta ni familia; lo que cambia es la escala
- * y el aire.
+ * letra, Nunito Sans. Aquí no se estrena paleta ni familia; lo que cambia es la
+ * escala y el aire.
+ *
+ * La excepción son los tres titulares grandes —el de la portada, el de cada
+ * bloque y el del cierre—, que van en Bricolage Grotesque. Es donde habla la
+ * marca. No se extiende a nada más de esta página, y menos a las cifras: ver la
+ * nota de `--fuente-titulos` en styles/tokens.css.
  */
 
 .cf-root {
@@ -55,6 +60,7 @@
 
 .cf-hero-texto { position: relative; z-index: 1; max-width: 900px; }
 .cf-hero h1 {
+  font-family: var(--fuente-titulos);
   margin: 0;
   font-size: clamp(46px, 8.4vw, 112px);
   font-weight: 800;
@@ -124,6 +130,7 @@
   font-variant-numeric: tabular-nums;
 }
 .cf-rotulo h2 {
+  font-family: var(--fuente-titulos);
   margin: 0;
   font-size: clamp(42px, 5.6vw, 84px);
   font-weight: 800;
@@ -1109,11 +1116,14 @@
 }
 .cf-final .cf-eyebrow { color: var(--acento-texto); }
 .cf-final h2 {
+  font-family: var(--fuente-titulos);
   margin: 0;
   font-size: clamp(46px, 8.6vw, 116px);
   font-weight: 800;
   line-height: 0.9;
-  letter-spacing: -0.055em;
+  /* Se me quedó en -0.055em cuando aflojé los otros dos. Mismo motivo: ese
+     apriete era para una letra estrecha y cuadrada. */
+  letter-spacing: -0.025em;
   text-wrap: balance;
 }
 /* Sobre el amarillo, el blanco de la segunda línea funciona porque es un

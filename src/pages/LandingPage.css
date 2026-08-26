@@ -107,7 +107,8 @@
   font-size: 12px; font-weight: 700; letter-spacing: 0.16em;
   color: var(--gris-400); margin-bottom: 18px;
 }
-.pc-hero h1 { font-size: clamp(40px, 5.4vw, 70px); line-height: .98; font-weight: 800; margin-bottom: 22px; }
+/* El titular del home: aquí es donde habla la marca. */
+.pc-hero h1 { font-family: var(--fuente-titulos); font-size: clamp(40px, 5.4vw, 70px); line-height: .98; font-weight: 800; margin-bottom: 22px; }
 .pc-hero h1 span { color: var(--acento-texto); }
 .pc-hero-lead { font-size: 18px; line-height: 1.55; color: var(--gris-600); max-width: 560px; }
 

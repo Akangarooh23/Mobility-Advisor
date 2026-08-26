@@ -41,6 +41,7 @@ const REDACTAN = [
   "lib/inventoryStore.js",
   "api/auth.js",
   "api/send-alert-email.js",
+  "lib/api/whatsapp-handler.js",
 ];
 
 /**

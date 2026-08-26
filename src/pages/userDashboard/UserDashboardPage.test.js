@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import i18next from "i18next";
 import UserDashboardPage from "./UserDashboardPage";
 
 test("shows a bell shortcut in the header when there are new alert matches", () => {
@@ -34,7 +35,14 @@ test("shows a bell shortcut in the header when there are new alert matches", () 
     />
   );
 
-  fireEvent.click(screen.getByRole("button", { name: /2 novedades en alertas/i }));
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: i18next.t("dashboardPage.alertsAriaLabel", { count: 2 }),
+    })
+  );
 
-  expect(onNavigate).toHaveBeenCalledWith("saved");
+  // Antes llevaba a "saved": las alertas vivian dentro de Guardados. Ahora son
+  // una seccion propia del panel, con su entrada en el menu y su vista, asi que
+  // la campana lleva ahi. La prueba se escribio antes de esa separacion.
+  expect(onNavigate).toHaveBeenCalledWith("alerts");
 });

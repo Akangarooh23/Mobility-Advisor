@@ -6,7 +6,7 @@ test("renders the PopCar landing page", () => {
 
   expect(
     screen.getByRole("button", {
-      name: /quiero un vehículo/i,
+      name: /buscamos por ti/i,
     })
   ).toBeInTheDocument();
 });
@@ -52,8 +52,8 @@ test.each([
 test("opens a real registration form from the user access menu", () => {
   render(<App />);
 
-  fireEvent.click(screen.getByRole("button", { name: /acceder/i }));
-  fireEvent.click(screen.getByRole("button", { name: /registrarse/i }));
+  fireEvent.click(screen.getByRole("button", { name: /iniciar sesión/i }));
+  fireEvent.click(screen.getByRole("button", { name: /regístrate/i }));
 
   expect(screen.getByText(/crear tu cuenta/i)).toBeInTheDocument();
   expect(screen.getByLabelText(/correo electrónico/i)).toBeInTheDocument();

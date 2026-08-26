@@ -1,5 +1,21 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import i18next from "i18next";
 import UserDashboardHome from "./UserDashboardHome";
+
+/**
+ * Se busca por la clave de traduccion, no por el texto.
+ *
+ * Estas pruebas llevaban meses en rojo porque comprobaban frases sueltas
+ * —"bandeja de avisos", "abrir alertas"— y el panel se tradujo a i18n. La
+ * funcionalidad no se habia movido: solo habia cambiado como se llama en
+ * pantalla, y aun asi la prueba decia que estaba rota.
+ *
+ * Preguntando por la clave, un cambio de redaccion en es.json no rompe nada
+ * —que es lo correcto: cambiar una palabra no es una regresion— pero si
+ * desaparece el boton o la seccion, la prueba sigue fallando, que es para lo
+ * que esta.
+ */
+const t = (clave, opciones) => i18next.t(clave, opciones);
 
 test("shows an alerts inbox summary on the dashboard home", () => {
   const onNavigate = jest.fn();
@@ -24,13 +40,18 @@ test("shows an alerts inbox summary on the dashboard home", () => {
     />
   );
 
-  expect(screen.getByText(/bandeja de avisos/i)).toBeInTheDocument();
-  expect(screen.getByText(/2 coincidencias nuevas detectadas en el marketplace/i)).toBeInTheDocument();
+  expect(screen.getByText(t("dashboard.homeNewsTitle"))).toBeInTheDocument();
 
-  fireEvent.click(screen.getByRole("button", { name: /abrir alertas/i }));
+  // El titulo y el resumen del aviso salen tal cual se le pasan al componente:
+  // son datos, no copy, y por eso si se comprueban literales.
+  // Sale dos veces: en la lista de avisos y otra vez en la actividad reciente.
+  expect(screen.getAllByText("Alerta Compra · BYD · Dolphin").length).toBeGreaterThan(0);
+  expect(screen.getAllByText("2 coincidencias nuevas detectadas en el marketplace").length).toBeGreaterThan(0);
+
+  fireEvent.click(screen.getByRole("button", { name: t("dashboard.homeOpenAlerts") }));
   expect(onNavigate).toHaveBeenCalledWith("saved");
 
-  fireEvent.click(screen.getByRole("button", { name: /marcar todo como revisado/i }));
+  fireEvent.click(screen.getByRole("button", { name: t("dashboard.homeMarkReviewed") }));
   expect(onMarkAllAlertsSeen).toHaveBeenCalled();
 });
 
@@ -60,6 +81,6 @@ test("shows an email summary action when notifications have an email recipient",
   );
 
   expect(screen.getAllByText(/cliente@carswise.es/i).length).toBeGreaterThan(0);
-  fireEvent.click(screen.getByRole("button", { name: /enviar resumen por email/i }));
+  fireEvent.click(screen.getByRole("button", { name: t("dashboard.homeSendEmail") }));
   expect(onSendAlertEmailDigest).toHaveBeenCalled();
 });

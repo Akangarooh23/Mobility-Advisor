@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import i18next from "i18next";
 import UserDashboardBilling from "./UserDashboardBilling";
 
 jest.mock("../../utils/apiClient", () => ({
@@ -59,9 +60,11 @@ test("renders billing section with account actions", async () => {
     />
   );
 
-  expect(screen.getByText(/Perfil, suscripcion y facturas/i)).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: /Guardar datos/i })).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: /Iniciar checkout/i })).toBeInTheDocument();
+  // El titulo paso de "Perfil, suscripcion y facturas" a lo que diga la clave.
+  // Se pregunta por la clave para que un cambio de redaccion no rompa nada.
+  expect(screen.getByText(i18next.t("dashboard.billingTitle"))).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: i18next.t("dashboard.billingSaveData") })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: i18next.t("dashboard.billingStartCheckout") })).toBeInTheDocument();
 
   await waitFor(() => {
     expect(screen.getByDisplayValue("Usuario Demo")).toBeInTheDocument();

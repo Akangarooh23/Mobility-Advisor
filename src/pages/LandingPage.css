@@ -380,22 +380,55 @@
     transform: none;
   }
 }
+/* Retomar un cuestionario a medias.
 
-/* Retomar un cuestionario a medias. Solo lo ve quien tiene uno guardado,
-   asi que puede permitirse llamar la atencion sin competir con el hero. */
+   Solo lo ve quien tiene uno guardado, asi que puede permitirse gritar: va
+   sobre el amarillo oficial con texto negro, que es el maximo contraste de
+   la paleta, y un destello lo recorre cada pocos segundos.
+
+   El destello desaparece con prefers-reduced-motion. Quien pide menos
+   movimiento no deberia tener un brillo pasando en bucle a un palmo del
+   texto que esta leyendo. */
 .pc-borrador {
+  position: relative; overflow: hidden;
   display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-  margin-top: 22px; padding: 13px 16px;
-  background: var(--acento-tenue); border-radius: var(--pc-radio);
-  border: 1px solid var(--acento);
+  margin: 26px 0 34px; padding: 15px 18px;
+  background: var(--acento); border-radius: var(--pc-radio);
+  box-shadow: 0 6px 18px rgba(255, 196, 0, 0.42);
 }
-.pc-borrador p { margin: 0; font-size: 13.5px; color: var(--acento-texto); font-weight: 600; }
+.pc-borrador p {
+  margin: 0; position: relative; z-index: 1;
+  font-size: 14px; font-weight: 800; color: var(--gris-900);
+}
 .pc-borrador button {
-  margin-left: auto; padding: 9px 16px; border: 0; cursor: pointer;
-  border-radius: 999px; background: var(--acento-texto); color: var(--blanco);
-  font-family: inherit; font-size: 13px; font-weight: 700;
+  position: relative; z-index: 1; margin-left: auto;
+  padding: 10px 18px; border: 0; cursor: pointer;
+  border-radius: 999px; background: var(--gris-900); color: var(--acento);
+  font-family: inherit; font-size: 13.5px; font-weight: 800;
+  transition: transform 0.15s ease;
 }
-.pc-borrador button:hover { background: #4d3b00; }
+.pc-borrador button:hover { transform: scale(1.04); }
+
+/* El destello. Cruza en 1,1s y descansa el resto del ciclo: un brillo
+   continuo cansa y deja de leerse como novedad. */
+.pc-borrador::after {
+  content: "";
+  position: absolute; top: 0; bottom: 0; left: -60%; width: 45%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.85), transparent);
+  transform: skewX(-18deg);
+  animation: pc-borrador-destello 4.2s ease-in-out infinite;
+}
+@keyframes pc-borrador-destello {
+  0%   { left: -60%; }
+  26%  { left: 130%; }
+  100% { left: 130%; }
+}
+
 @media (max-width: 720px) {
   .pc-borrador button { margin-left: 0; width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pc-borrador::after { animation: none; display: none; }
+  .pc-borrador button:hover { transform: none; }
 }

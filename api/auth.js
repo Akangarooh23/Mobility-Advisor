@@ -2,6 +2,7 @@
 const path = require("path");
 const crypto = require("crypto");
 const { execFileSync } = require("child_process");
+const { MARCA } = require("../lib/marca");
 
 // mssql is only needed when AUTH_PROVIDER=mssql; lazy-load to avoid crashing on Vercel
 function getMssqlModule() {
@@ -1414,7 +1415,7 @@ async function sendPasswordResetEmail({ email, code }) {
         <!-- Header with logo -->
         <tr>
           <td align="center" style="background:linear-gradient(135deg,#3b82f6 0%,#60a5fa 50%,#38bdf8 100%);padding:36px 40px 30px;">
-            <img src="https://carswiseai.com/carswise-logo.png" alt="CarsWise AI" width="164" style="display:block;max-width:164px;filter:brightness(0) invert(1);">
+            <img src="${MARCA.sitioUrl}/popcar-logo.png" alt="${MARCA.nombre}" width="164" style="display:block;max-width:164px;filter:brightness(0) invert(1);">
           </td>
         </tr>
 
@@ -1476,7 +1477,7 @@ async function sendPasswordResetEmail({ email, code }) {
               <a href="mailto:support@carswiseai.com" style="color:#60a5fa;text-decoration:none;">support@carswiseai.com</a>
             </p>
             <p style="margin:0;font-size:11px;color:#cbd5e1;text-align:center;">
-              © ${new Date().getFullYear()} CarsWise AI &nbsp;·&nbsp; Todos los derechos reservados
+              © ${new Date().getFullYear()} ${MARCA.nombre} &nbsp;·&nbsp; Todos los derechos reservados
             </p>
           </td>
         </tr>

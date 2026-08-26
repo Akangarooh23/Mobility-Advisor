@@ -36,6 +36,11 @@ const REDACTAN = [
   "lib/api/visit-availability-handler.js",
   "lib/api/billing-webhook-handler.js",
   "lib/api/marketplace-og-handler.js",
+  "lib/api/import-offers-handler.js",
+  "lib/api/billing-checkout-handler.js",
+  "lib/inventoryStore.js",
+  "api/auth.js",
+  "api/send-alert-email.js",
 ];
 
 /**
@@ -130,9 +135,13 @@ for (const rel of REDACTAN) {
       apunta(rel, n, linea, "nombre antiguo escrito a mano");
     }
 
-    // El dominio viejo como texto visible. Como destino de un enlace o como
-    // buzon sigue valiendo: el dominio es suyo y los correos llegan.
-    if (/>[^<]*carswiseai\.com/.test(sinComentario)) {
+    // El dominio viejo como texto visible. Un mailto que ensena su propia
+    // direccion no cuenta: el dominio sigue siendo suyo y ese buzon recibe.
+    // Se quitan las direcciones antes de mirar lo que queda.
+    const sinBuzones = sinComentario
+      .replace(/mailto:[^"'\s>]+/g, "")
+      .replace(/[\w.+-]+@[\w.-]+/g, "");
+    if (/>[^<]*carswiseai\.com/.test(sinBuzones)) {
       apunta(rel, n, linea, "dominio antiguo visible en el texto del enlace");
     }
   });

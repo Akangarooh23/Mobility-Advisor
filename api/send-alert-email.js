@@ -1,3 +1,4 @@
+const { MARCA } = require("../lib/marca");
 function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -147,7 +148,7 @@ function buildDigestPayload(body = {}) {
       normalizeText(body.from) ||
       normalizeText(process.env.ALERT_EMAIL_FROM) ||
       normalizeText(process.env.RESEND_FROM_EMAIL) ||
-      "MoveAdvisor <onboarding@resend.dev>",
+      MARCA.remitentePorDefecto,
   };
 }
 

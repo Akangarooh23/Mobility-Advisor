@@ -1205,48 +1205,105 @@
 }
 
 /* ── En un móvil ──────────────────────────────────────────────────────── */
-/* El bloque tiene que caber en una pantalla, y con las reglas de tableta no
-   cabía: se pasaba ciento veinte píxeles y `.cf-fijo` recortaba lo que sobraba,
-   que era justo el final de la escena. Casi todo el exceso lo ponían las tres
-   tarjetas apiladas, así que pasan a fila y el rótulo cede algo de aire. */
+/**
+ * El bloque tiene que caber en una pantalla. Con las reglas de escritorio no
+ * cabía —sumaba unos 990 px contra los 870 de un móvil— y pasaban dos cosas a
+ * la vez: `.cf-fijo` recortaba el final de la escena, y los actos, que van en
+ * `inset: 0` y centrados, se desbordaban por arriba y por abajo. Eso último es
+ * lo que se veía como cosas solapadas: medio acto subiéndose a las tarjetas.
+ *
+ * Se arregla por tres lados, porque con uno solo no llegaba:
+ *
+ *  1. La cabecera del bloque adelgaza: las tres puertas pasan de apiladas a una
+ *     fila, y el rótulo cede tamaño y márgenes. De 372 px a 172.
+ *  2. Todo lo ahorrado se lo queda el tablero.
+ *  3. Y dentro de cada acto se recorta lo que sobra en una pantalla pequeña:
+ *     rellenos, el calendario y el mapa —que son cuadrados y a todo el ancho se
+ *     comían la escena—, y el cuarto aviso.
+ *
+ * Como red, el acto arranca desde arriba en vez de centrado y el tablero
+ * recorta: si algún día un acto vuelve a crecer, se perderá su parte de abajo,
+ * que es el pie, en vez de subirse encima de las tarjetas.
+ */
 @media (max-width: 760px) {
+  /* ── 1. La cabecera del bloque ─────────────────────────────────────── */
   .cf-caminos { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 0; }
   #comprar .cf-camino, #vender .cf-camino, .cf-camino { padding: 9px 10px; gap: 5px; border-radius: 12px; }
   .cf-camino strong { font-size: 11.5px; line-height: 1.2; }
-  /* El destino se queda: es la mitad de la información de la tarjeta. Lo que se
-     va es el globo, que a este tamaño solo aprieta. */
+  /* El destino se queda —es la mitad de lo que dice la tarjeta—, pero sin el
+     globo, que a este tamaño solo aprieta. */
   .cf-camino small { font-size: 9px; padding: 0; background: none; }
 
   .cf-servicios { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-  .cf-servicio { padding: 9px 10px; gap: 8px; border-radius: 12px; }
-  .cf-servicio-icono { width: 26px; height: 26px; }
-  .cf-servicio-icono svg { width: 15px; height: 15px; }
-  .cf-servicio strong { font-size: 11.5px; line-height: 1.2; }
-  .cf-servicio small { font-size: 9.5px; }
+  .cf-servicio { padding: 8px 10px; gap: 8px; border-radius: 12px; }
+  .cf-servicio-icono { width: 24px; height: 24px; }
+  .cf-servicio-icono svg { width: 14px; height: 14px; }
+  .cf-servicio strong { font-size: 11px; line-height: 1.2; }
+  .cf-servicio small { font-size: 9px; }
 
-  .cf-fijo { padding-top: 68px; padding-bottom: 24px; gap: 14px; }
-  .cf-paso { margin-bottom: 10px; }
-  .cf-eyebrow { margin-bottom: 8px; }
-  .cf-rotulo h2 { font-size: clamp(28px, 7.4vw, 42px); }
-  .cf-escena-actos { gap: 18px; }
-  /* Y todo lo que se ahorra arriba se lo queda la escena. */
-  .cf-tablero { min-height: clamp(300px, 58svh, 500px); }
+  .cf-fijo { padding-top: 68px; padding-bottom: 20px; gap: 12px; }
+  .cf-paso { margin-bottom: 8px; }
+  .cf-eyebrow { margin: 0 0 8px; font-size: 10px; }
+  .cf-rotulo h2 { font-size: clamp(26px, 7vw, 40px); }
+  .cf-escena-actos { gap: 16px; }
+
+  /* ── 2. El tablero se queda lo que sobra ───────────────────────────── */
+  .cf-tablero {
+    min-height: clamp(320px, 60svh, 540px);
+    overflow: hidden;
+  }
+  .cf-acto { justify-content: flex-start; gap: 10px; }
   .cf-acto-etq { font-size: 10.5px; letter-spacing: 0.08em; }
   .cf-acto-pie { font-size: 11.5px; }
 
-  /* El calendario y el mapa son cuadrados: a todo el ancho se comen la escena
-     entera, así que se les pone techo. */
-  .cf-mes { max-width: 250px; }
-  .cf-mapa { max-width: 250px; }
-  .cf-cerebro-svg { max-width: 70px; }
+  /* ── 3. Y dentro de cada acto ──────────────────────────────────────── */
+  /* Comprar · el test: la tarjeta del análisis, más apretada. */
+  .cf-veredicto { padding: 12px 13px 13px; gap: 8px; }
+  .cf-veredicto h4 { font-size: 15px; }
+  .cf-mejor { padding: 6px 9px; }
+  .cf-cerebro-svg { max-width: 68px; }
 
-  /* Publicar son tres cosas y en columna no caben: los requisitos arriba, y
-     debajo el informe y el anuncio uno al lado del otro. */
+  /* Vender · el informe de mercado: dos fichas en columna, sin tanto relleno. */
+  .cf-ficha-venta { padding: 14px 15px; }
+  .cf-informe { padding: 14px 15px; }
+  .cf-datos { gap: 10px 14px; }
+  .cf-limite { margin-top: 10px; padding-top: 9px; font-size: 10px; }
+
+  /* Vender · publicar: los requisitos arriba y, debajo, el informe de estado y
+     el anuncio uno al lado del otro. En columna eran tres pisos y no cabían. */
   .cf-publicar { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .cf-requisitos { grid-column: 1 / -1; gap: 8px; }
   .cf-requisito strong { font-size: 12px; }
-  /* Sin la lista de hallazgos al lado, el esquema se centra. */
+  .cf-requisito small { font-size: 10px; }
+  .cf-informe-estado, .cf-anuncio { padding: 11px 12px 12px; }
+  /* Sin la lista de hallazgos al lado, el esquema se centra y se encoge: el
+     dibujo es alto y a 88 px de ancho medía 174 de alto. */
   .cf-estado-cuerpo { grid-template-columns: 1fr; justify-items: center; }
-  .cf-coche-esquema { max-width: 88px; }
-  .cf-grados { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 10px; }
+  .cf-coche-esquema { max-width: 62px; }
+  .cf-grados { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px 10px; margin-top: 10px; padding-top: 9px; }
+  .cf-anuncio-estado { top: 16px; right: 17px; }
+
+  /* Gestionar · los avisos: el calendario con techo y tres revisiones. La
+     cuarta cabe en la pantalla grande; aquí se lleva la escena por delante. */
+  .cf-recordatorio { gap: 10px; }
+  .cf-mes { max-width: 210px; padding: 11px 12px 12px; }
+  .cf-leyenda { grid-auto-flow: column; justify-content: start; gap: 12px; font-size: 9px; }
+  .cf-avisos { gap: 6px; }
+  .cf-aviso { padding: 8px 11px; }
+  .cf-aviso:nth-child(4) { display: none; }
+
+  /* Gestionar · la cita: el mapa también es cuadrado. */
+  .cf-mapa { max-width: 200px; }
+  .cf-pasos-cita { gap: 6px 12px; }
+  .cf-pasos-cita li { font-size: 11.5px; }
+  .cf-presupuesto { padding: 12px 13px 13px; }
+  .cf-presupuesto-etq { margin-bottom: 10px; padding-bottom: 9px; }
+
+  /* Gestionar · el seguro y el IdCar. */
+  .cf-soltar { padding: 14px 12px; }
+  .cf-soltar-icono { width: 24px; height: 24px; margin-bottom: 4px; }
+  .cf-poliza { gap: 10px; }
+  .cf-creacion { gap: 10px; }
+  .cf-pasos-idcar { gap: 5px; }
+  .cf-ficha-idcar { padding: 12px 13px 13px; }
 }

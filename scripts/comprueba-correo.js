@@ -104,14 +104,37 @@ for (const carpeta of ["lib", "api"]) {
   }
 }
 
-// 4. Que la funcion exista y de algo.
-const { respuestaA, remitente, correoInterno, MARCA } = require(path.join(RAIZ, "lib", "marca"));
-for (const [nombre, fn] of [["remitente", remitente], ["respuestaA", respuestaA], ["correoInterno", correoInterno]]) {
-  if (typeof fn !== "function") { fallos.push(`lib/marca.js no exporta ${nombre}()`); continue; }
-  if (!String(fn() || "").includes("@")) fallos.push(`${nombre}() no devuelve una direccion: ${fn()}`);
+// 4. Las funciones existen, y ninguna manda nada a un buzon que no recibe.
+const marca = require(path.join(RAIZ, "lib", "marca"));
+for (const nombre of ["remitente", "respuestaA", "correoInterno", "correoSoporte"]) {
+  if (typeof marca[nombre] !== "function") fallos.push(`lib/marca.js no exporta ${nombre}()`);
 }
-if (!MARCA.correoSoporte || !MARCA.correoSoporte.includes("@")) {
-  fallos.push("MARCA.correoSoporte no es una direccion; respuestaA() se quedaria sin valor de reserva");
+
+// remitente() siempre tiene que dar una direccion: sin ella no sale el correo.
+if (typeof marca.remitente === "function" && !String(marca.remitente() || "").includes("@")) {
+  fallos.push(`remitente() no devuelve una direccion: ${marca.remitente()}`);
+}
+
+// Las otras tres pueden venir vacias —eso significa "no hay contacto
+// configurado" y cada sitio lo resuelve— pero nunca pueden apuntar a un buzon
+// muerto. hola@carswiseai.com estaba escrito en el codigo y no existe: salia
+// en el pie de las facturas en PDF.
+const MUERTOS = ["hola@carswiseai.com"];
+for (const nombre of ["respuestaA", "correoInterno", "correoSoporte"]) {
+  if (typeof marca[nombre] !== "function") continue;
+  const v = String(marca[nombre]() || "").toLowerCase();
+  if (v && MUERTOS.some((d) => v.includes(d))) {
+    fallos.push(`${nombre}() apunta a un buzon que no recibe: ${v}`);
+  }
+}
+for (const rel of ["lib/marca.js", "lib/api/billing-webhook-handler.js", "lib/api/invoice-pdf-handler.js"]) {
+  const t = fs.readFileSync(path.join(RAIZ, rel), "utf8");
+  t.split(/\r?\n/).forEach((linea, i) => {
+    if (/^\s*(\/\/|\*)/.test(linea)) return;
+    for (const d of MUERTOS) {
+      if (linea.includes(d)) fallos.push(`${rel}:${i + 1}  buzon que no recibe escrito a mano: ${d}`);
+    }
+  });
 }
 
 if (fallos.length) {

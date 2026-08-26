@@ -24,6 +24,7 @@ try {
   // Primero la marca: no toca base de datos ni red, asi que si algo se ha
   // roto en los correos se ve antes de montar nada.
   runScript("test:marca");
+  runScript("test:og");
   runScript("test:correo");
   runScript("test:auth-local");
 

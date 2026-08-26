@@ -4,7 +4,6 @@ import ResultsAnalysisView from "./adviceResults/ResultsAnalysisView";
 import ResultsHeader from "./adviceResults/ResultsHeader";
 import ResultsOffersView from "./adviceResults/ResultsOffersView";
 import { buildAdviceResultsViewModel, getOfferActionMeta } from "./adviceResults/adviceResults.helpers";
-import { exportAdviceLogicDoc } from "../utils/exportLogicDoc";
 
 function AnalysisAccordion({ themeMode, children }) {
   const [open, setOpen] = useState(false);
@@ -176,6 +175,10 @@ export default function AdviceResultsPage({
     setLogicExportFeedback("");
 
     try {
+      // Se pide aqui y no arriba: `docx` son 3,5 MB que solo hacen falta
+      // si alguien exporta. Cargarla con la aplicacion se la cobraba
+      // tambien a quien nunca pulsa este boton.
+      const { exportAdviceLogicDoc } = await import("../utils/exportLogicDoc");
       const fileName = await exportAdviceLogicDoc({
         answers,
         result,

@@ -5115,20 +5115,23 @@ export default function App() {
             </div>
           )}
           </div>
+          {/* El botón del menú va dentro de la fila, al lado de los accesos.
+              Fuera de ella caía en el renglón siguiente —la cabecera es una
+              columna— y en el móvil aparecía suelto debajo del logotipo. */}
+          <button
+            type="button"
+            className="cw-header-mobile-toggle"
+            onClick={() => {
+              setShowHeaderMoreNav(false);
+              setShowHeaderMobileNav((prev) => !prev);
+            }}
+            aria-expanded={showHeaderMobileNav}
+            aria-controls="cw-header-mobile-nav"
+            aria-label="Abrir menu de navegacion"
+          >
+            ☰
+          </button>
         </div>
-        <button
-          type="button"
-          className="cw-header-mobile-toggle"
-          onClick={() => {
-            setShowHeaderMoreNav(false);
-            setShowHeaderMobileNav((prev) => !prev);
-          }}
-          aria-expanded={showHeaderMobileNav}
-          aria-controls="cw-header-mobile-nav"
-          aria-label="Abrir menu de navegacion"
-        >
-          ☰
-        </button>
         {showHeaderMobileNav && (
           <div id="cw-header-mobile-nav" className="cw-header-mobile-nav" role="menu" aria-label="Navegacion movil principal">
             {mobileHeaderNavItems.map((item) => {

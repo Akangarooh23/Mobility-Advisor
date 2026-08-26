@@ -55,8 +55,38 @@ jobs:
           cat backend-core-api.log || true
           exit 1
 
+      - name: Start strict-mode API for the delivery check
+        env:
+          API_PORT: 3004
+          PORT: 3004
+          AUTH_PROVIDER: local
+          AUTH_EXPOSE_RESET_CODE: "true"
+          # Al reves que la otra API a proposito: el test estricto existe para
+          # comprobar que con la entrega exigida no hay codigo local de reserva.
+          AUTH_REQUIRE_EMAIL_DELIVERY: "true"
+          AUTH_SECURITY_STATUS_ENABLED: "true"
+        run: |
+          nohup node local-api-server.js > backend-strict-api.log 2>&1 &
+
+      - name: Wait for strict API health
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3004/api/health > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Strict API did not become healthy in time"
+          cat backend-strict-api.log || true
+          exit 1
+
       - name: Run backend CI checks
         env:
+          STRICT_API_BASE_URL: http://127.0.0.1:3004
+          # El test estricto mira su propio entorno para saber como esta
+          # configurada la API que va a probar.
+          AUTH_EXPOSE_RESET_CODE: "true"
+          AUTH_REQUIRE_EMAIL_DELIVERY: "true"
           API_BASE_URL: http://127.0.0.1:3003
           RUN_MOBILITY_BACKEND_TESTS: "false"
         run: npm run test:backend-ci

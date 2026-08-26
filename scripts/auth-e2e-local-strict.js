@@ -8,7 +8,24 @@ function randomEmail(prefix = "strict") {
   return `${prefix}.${Date.now()}.${Math.floor(Math.random() * 10000)}@example.com`;
 }
 
+/**
+ * Como esta configurada la API que se esta probando.
+ *
+ * En una maquina de desarrollo lo dice `.env.local`, que es el fichero que el
+ * servidor local carga de verdad. En CI no hay tal fichero —esta en el
+ * .gitignore— y la configuracion llega por el entorno del job. Antes esto solo
+ * miraba el fichero y devolvia `{}` cuando no estaba, asi que en CI la prueba
+ * abortaba siempre por falta de AUTH_EXPOSE_RESET_CODE. No es que fallara: es
+ * que no llegaba a ejecutarse, que es peor — el check llevaba en rojo desde el
+ * principio y ya nadie miraba por que.
+ *
+ * El fichero manda cuando existe, para no cambiar lo que pasa en local.
+ */
 function readEnvLocal() {
+  return { ...process.env, ...leerFichero() };
+}
+
+function leerFichero() {
   if (!fs.existsSync(ENV_LOCAL_PATH)) {
     return {};
   }

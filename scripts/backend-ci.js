@@ -24,7 +24,17 @@ try {
   // Primero la marca: no toca base de datos ni red, asi que si algo se ha
   // roto en los correos se ve antes de montar nada.
   runScript("test:marca");
-  runScript("test:auth-all-local");
+  runScript("test:auth-local");
+
+  // El test estricto comprueba que, con la entrega de correo exigida, el
+  // reseteo de contrasena no cae en el codigo local de reserva. Eso pide una
+  // API configurada justo al reves que la de los demas tests, asi que en CI
+  // corre contra una segunda instancia. Sin STRICT_API_BASE_URL usa la misma
+  // de siempre, que es lo que pasa en una maquina de desarrollo.
+  runScript("test:auth-local:strict", {
+    ...process.env,
+    API_BASE_URL: process.env.STRICT_API_BASE_URL || process.env.API_BASE_URL,
+  });
   runScript("test:auth-security-local");
 
   if (isEnabled(process.env.RUN_MOBILITY_BACKEND_TESTS)) {

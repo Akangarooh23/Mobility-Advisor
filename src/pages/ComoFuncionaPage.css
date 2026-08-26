@@ -1249,7 +1249,7 @@
 
   /* ── 2. El tablero se queda lo que sobra ───────────────────────────── */
   .cf-tablero {
-    min-height: clamp(320px, 60svh, 540px);
+    min-height: clamp(320px, 63svh, 560px);
     overflow: hidden;
   }
   .cf-acto { justify-content: flex-start; gap: 10px; }
@@ -1292,12 +1292,23 @@
   .cf-aviso { padding: 8px 11px; }
   .cf-aviso:nth-child(4) { display: none; }
 
-  /* Gestionar · la cita: el mapa también es cuadrado. */
-  .cf-mapa { max-width: 200px; }
-  .cf-pasos-cita { gap: 6px 12px; }
-  .cf-pasos-cita li { font-size: 11.5px; }
-  .cf-presupuesto { padding: 12px 13px 13px; }
-  .cf-presupuesto-etq { margin-bottom: 10px; padding-bottom: 9px; }
+  /* Gestionar · la cita. En columna no cabia: mapa y ficha sumaban mas que el
+     tablero y lo que se perdia por abajo era justo el boton de comprobar
+     disponibilidad, que es el final del recorrido. Van uno al lado del otro. */
+  .cf-cita { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 12px; align-items: start; }
+  .cf-mapa { max-width: none; }
+  .cf-taller { font-size: 8.5px; padding: 3px 6px; }
+  .cf-ubicacion { width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; }
+  .cf-pasos-cita { gap: 5px 10px; }
+  .cf-pasos-cita li { font-size: 11px; gap: 6px; }
+  .cf-pasos-cita b { width: 18px; height: 18px; font-size: 9px; }
+  .cf-presupuesto { max-width: none; padding: 11px 12px 12px; }
+  .cf-presupuesto-taller { font-size: 12.5px; }
+  .cf-presupuesto-etq { margin-bottom: 9px; padding-bottom: 8px; font-size: 9.5px; }
+  .cf-precio dt { font-size: 11px; }
+  .cf-precio.es-popcar dd { font-size: 22px; }
+  .cf-ahorro { margin-top: 9px; padding: 5px 10px; font-size: 11px; }
+  .cf-boton-pintado { margin-top: 9px; padding: 9px 12px; font-size: 11.5px; }
 
   /* Gestionar · el seguro y el IdCar. */
   .cf-soltar { padding: 14px 12px; }

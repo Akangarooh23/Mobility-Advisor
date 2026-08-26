@@ -111,15 +111,34 @@ test("el filtro aparece primero y después cae el número", () => {
 });
 
 test("las fichas no asoman hasta el aterrizaje", () => {
-  // Si aparecieran antes, el viaje de los puntos hasta ellas no se entendería.
+  /* Mientras se filtra el mercado no hay fichas: si asomaran antes, el viaje de
+     los puntos hasta ellas no se entendería. Dentro del aterrizaje sí entran, y
+     empiezan a media cuesta —no al final— porque el tramo es corto y en un
+     móvil pasaba tan deprisa que las fotos no llegaban a verse. */
   const t = montar();
   const bloque = document.querySelector(".em-resultados");
   t.mover(0.5);
   expect(Number(bloque.style.opacity)).toBe(0);
-  t.mover(0.9);
+  t.mover(0.8);
   expect(Number(bloque.style.opacity)).toBe(0);
+  t.mover(0.9);
+  expect(Number(bloque.style.opacity)).toBeGreaterThan(0);
   t.mover(1);
   expect(Number(bloque.style.opacity)).toBeCloseTo(1, 1);
+});
+
+test("el lienzo se retira mientras entran las fichas", () => {
+  /* Los puntos cuajan en unos rectángulos amarillos con la forma de las fichas:
+     son el andamio del salto. Si se quedan a plena opacidad debajo de unas
+     fichas a medias, lo que se ve es un mosaico amarillo en vez de coches. */
+  const t = montar();
+  const lienzo = document.querySelector(".em-lienzo");
+  const fichas = document.querySelector(".em-resultados");
+  t.mover(0.8);
+  expect(Number(lienzo.style.opacity || 1)).toBeCloseTo(1, 1);
+  t.mover(1);
+  expect(Number(lienzo.style.opacity)).toBeCloseTo(0, 1);
+  expect(Number(fichas.style.opacity)).toBeCloseTo(1, 1);
 });
 
 test("al final el texto cambia de mercado a resultados", () => {

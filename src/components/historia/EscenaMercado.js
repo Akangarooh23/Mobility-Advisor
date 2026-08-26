@@ -293,9 +293,22 @@ export default function EscenaMercado({ registrar, indice }) {
         bloqueMercado.current.style.opacity = String(1 - suave(Math.min(1, remate / 0.4)));
       }
       if (bloqueResultados.current) {
-        // Las fichas entran cuando los puntos ya han llegado a su sitio.
-        const entrada = remate < 0.5 ? 0 : suave((remate - 0.5) / 0.5);
+        /* Las fichas entran cuando los puntos ya han llegado a su sitio.
+           Empiezan antes que en la primera versión —a mitad del aterrizaje y no
+           al final— porque el tramo es corto y en un móvil, donde el bloque
+           mide menos, pasaba tan deprisa que las fotos no llegaban a verse. */
+        /* El `Math.min` no es adorno: `suave` es una curva que solo vale entre
+           cero y uno, y pasada de ahí vuelve a bajar. Como este tramo termina
+           antes del final del aterrizaje, sin acotar la opacidad se desplomaba
+           justo al llegar abajo. */
+        const entrada = remate < 0.35 ? 0 : suave(Math.min(1, (remate - 0.35) / 0.45));
         bloqueResultados.current.style.opacity = String(entrada);
+        /* Y el lienzo se retira a la vez. Sin esto quedaban los rectángulos
+           amarillos —la silueta que cuajan los puntos— a plena opacidad debajo
+           de unas fichas todavía a medias: el resultado era un mosaico amarillo
+           en vez de coches. El amarillo es el andamio; cuando llega la ficha de
+           verdad, sobra. */
+        if (cv) cv.style.opacity = String(1 - entrada);
         // Las fotos entran algo mas grandes y se asientan. Aqui la expansion no
         // es un efecto: es el instante en que los puntos que sobrevivieron al
         // filtrado se convierten en coches con cara, y conviene que se note.

@@ -565,8 +565,12 @@ export default function ComoFuncionaPage({ onGoHome }) {
             { autoAlpha: 1, y: 0, ease: "none", duration: informe.largo * 0.14 }, informe.en(0.55))
           .fromTo("#vender .cf-barra i",
             { scaleX: 0 }, { scaleX: 1, ease: "none", duration: informe.largo * 0.24 }, informe.en(0.62))
+          /* La ficha se aparta encogiéndose, y solo eso. Antes también subía
+             veintidós píxeles, que en escritorio no molestaba —estaba a un lado
+             del informe— pero en un móvil, con las dos en columna y el acto
+             pegado arriba, se metía encima del rótulo del acto. */
           .to("#vender .cf-ficha-venta",
-            { y: -22, scale: 0.94, ease: "none", duration: informe.largo * 0.3 }, informe.en(0.6));
+            { scale: 0.94, ease: "none", duration: informe.largo * 0.3 }, informe.en(0.6));
         gsap.utils.toArray("#vender .cf-comparable").forEach((b, i) => {
           vender.fromTo(b,
             { autoAlpha: 0, scale: 0.8 },

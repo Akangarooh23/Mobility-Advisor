@@ -50,6 +50,7 @@
     "test:mobility-backend-local": "node scripts/mobility-backend-e2e-local.js",
     "test:backend-all-local": "powershell -NoProfile -Command \"npm run test:auth-all-local; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; npm run test:auth-security-local; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; npm run test:mobility-backend-local\"",
     "test:marca": "node scripts/comprueba-marca.js",
+    "test:correo": "node scripts/comprueba-correo.js",
     "test:backend-ci": "node scripts/backend-ci.js",
     "inventory:sync:sqlserver": "node scripts/sync-inventory-sqlserver.js",
     "inventory:scrape:cochesnet:playwright": "node scripts/scrape-cochesnet-playwright.js --persist-sqlserver",

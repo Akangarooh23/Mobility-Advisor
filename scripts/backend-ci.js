@@ -24,6 +24,7 @@ try {
   // Primero la marca: no toca base de datos ni red, asi que si algo se ha
   // roto en los correos se ve antes de montar nada.
   runScript("test:marca");
+  runScript("test:correo");
   runScript("test:auth-local");
 
   // El test estricto comprueba que, con la entrega de correo exigida, el

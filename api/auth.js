@@ -2,7 +2,7 @@
 const path = require("path");
 const crypto = require("crypto");
 const { execFileSync } = require("child_process");
-const { MARCA, remitente } = require("../lib/marca");
+const { MARCA, remitente, respuestaA } = require("../lib/marca");
 
 // mssql is only needed when AUTH_PROVIDER=mssql; lazy-load to avoid crashing on Vercel
 function getMssqlModule() {
@@ -1498,6 +1498,7 @@ async function sendPasswordResetEmail({ email, code }) {
         },
         body: JSON.stringify({
           from,
+          reply_to: respuestaA(),
           to: [email],
           subject,
           text,

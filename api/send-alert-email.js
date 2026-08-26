@@ -1,4 +1,4 @@
-const { MARCA, remitente } = require("../lib/marca");
+const { MARCA, remitente, respuestaA } = require("../lib/marca");
 function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -159,6 +159,7 @@ async function sendViaResend(payload) {
     },
     body: JSON.stringify({
       from: payload.from,
+      reply_to: respuestaA(),
       to: payload.to,
       subject: payload.subject,
       html: payload.html,

@@ -1,48 +1,12 @@
-import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef, lazy, Suspense } from "react";
 import { FICHA_VO_ABIERTA } from "./utils/aperturaTemporal";
 import i18next from "i18next";
 import "./App.css";
-import AdviceIntroPage from "./pages/AdviceIntroPage";
-import AdviceResultsPage from "./pages/AdviceResultsPage";
-import DecisionPage from "./pages/DecisionPage";
 import LandingPage from "./pages/LandingPage";
-import PortalVoDetailPage from "./pages/PortalVoDetailPage";
-import PortalVoMarketplacePage from "./pages/PortalVoMarketplacePage";
-import PortalVoAuthGatePage from "./pages/PortalVoAuthGatePage";
 
-import SellPage from "./pages/SellPage";
 import ApiKeyMissingPage from "./pages/ApiKeyMissingPage";
 import ErrorStatePage from "./pages/ErrorStatePage";
 import LoadingAnalysisPage from "./pages/LoadingAnalysisPage";
-import QuestionnairePage from "./pages/QuestionnairePage";
-import UserDashboardPage from "./pages/userDashboard/UserDashboardPage";
-import VehicleDetailPage from "./pages/VehicleDetailPage";
-import VehicleOptionsPage from "./pages/VehicleOptionsPage";
-import BuyOptionsPage from "./pages/BuyOptionsPage";
-import RentingOptionsPage from "./pages/RentingOptionsPage";
-import SellOptionsPage from "./pages/SellOptionsPage";
-import ServiceOptionsPage from "./pages/ServiceOptionsPage";
-import ServiceInsurancePage from "./pages/ServiceInsurancePage";
-import ServiceMaintenancePage from "./pages/ServiceMaintenancePage";
-import ServiceAutogestorPage from "./pages/ServiceAutogestorPage";
-import ServiceAppointmentPage from "./pages/ServiceAppointmentPage";
-import ServiceAppointmentCalendarPage from "./pages/ServiceAppointmentCalendarPage";
-import ServiceMonthlyPlanPage from "./pages/ServiceMonthlyPlanPage";
-import ServiceIdCarsManagePage from "./pages/ServiceIdCarsManagePage";
-import ViewingProposePage from "./pages/ViewingProposePage";
-import ViewingConfirmPage from "./pages/ViewingConfirmPage";
-import LegalPolicyPage from "./pages/LegalPolicyPage";
-import MiCitaPage from "./pages/MiCitaPage";
-import SeoStaticPage from "./pages/SeoStaticPage";
-import AboutCarswisePage from "./pages/AboutCarswisePage";
-import ContactCarswisePage from "./pages/ContactCarswisePage";
-import EmpresasPage from "./pages/EmpresasPage";
-import ComoFuncionaPage from "./pages/ComoFuncionaPage";
-import ComparadorPage from "./pages/ComparadorPage";
-import BuscarCochePage from "./pages/BuscarCochePage";
-import BlogIndexPage from "./pages/BlogIndexPage";
-import BlogArticlePage from "./pages/BlogArticlePage";
-import PricingPlansPage from "./pages/PricingPlansPage";
 import ResolvedOfferImage from "./components/offers/ResolvedOfferImage";
 import {
   createInitialDecisionAnswers,
@@ -160,6 +124,55 @@ import { createAppStyles } from "./ui/appStyles";
 import LogoPopCar from "./ui/LogoPopCar";
 import PiePopCar from "./ui/PiePopCar";
 import AvisoCookies from "./ui/AvisoCookies";
+
+/**
+ * Las paginas se piden cuando hacen falta, no al arrancar.
+ *
+ * Aqui se importaban cuarenta de golpe y luego se renderizaba una segun el
+ * paso, asi que quien entraba a ver la portada se descargaba tambien el
+ * gestor de IdCars, el detalle de vehiculo y la pagina de citas.
+ *
+ * Se quedan arriba, cargandose por adelantado, la portada —es lo primero que
+ * se pinta— y las pantallas de error y de carga, que tienen que poder
+ * aparecer justo cuando algo ha fallado y no es momento de pedirle otro
+ * fichero a un servidor que quiza es el que falla.
+ */
+const AdviceIntroPage = lazy(() => import("./pages/AdviceIntroPage"));
+const AdviceResultsPage = lazy(() => import("./pages/AdviceResultsPage"));
+const DecisionPage = lazy(() => import("./pages/DecisionPage"));
+const PortalVoDetailPage = lazy(() => import("./pages/PortalVoDetailPage"));
+const PortalVoMarketplacePage = lazy(() => import("./pages/PortalVoMarketplacePage"));
+const PortalVoAuthGatePage = lazy(() => import("./pages/PortalVoAuthGatePage"));
+const SellPage = lazy(() => import("./pages/SellPage"));
+const QuestionnairePage = lazy(() => import("./pages/QuestionnairePage"));
+const UserDashboardPage = lazy(() => import("./pages/userDashboard/UserDashboardPage"));
+const VehicleDetailPage = lazy(() => import("./pages/VehicleDetailPage"));
+const VehicleOptionsPage = lazy(() => import("./pages/VehicleOptionsPage"));
+const BuyOptionsPage = lazy(() => import("./pages/BuyOptionsPage"));
+const RentingOptionsPage = lazy(() => import("./pages/RentingOptionsPage"));
+const SellOptionsPage = lazy(() => import("./pages/SellOptionsPage"));
+const ServiceOptionsPage = lazy(() => import("./pages/ServiceOptionsPage"));
+const ServiceInsurancePage = lazy(() => import("./pages/ServiceInsurancePage"));
+const ServiceMaintenancePage = lazy(() => import("./pages/ServiceMaintenancePage"));
+const ServiceAutogestorPage = lazy(() => import("./pages/ServiceAutogestorPage"));
+const ServiceAppointmentPage = lazy(() => import("./pages/ServiceAppointmentPage"));
+const ServiceAppointmentCalendarPage = lazy(() => import("./pages/ServiceAppointmentCalendarPage"));
+const ServiceMonthlyPlanPage = lazy(() => import("./pages/ServiceMonthlyPlanPage"));
+const ServiceIdCarsManagePage = lazy(() => import("./pages/ServiceIdCarsManagePage"));
+const ViewingProposePage = lazy(() => import("./pages/ViewingProposePage"));
+const ViewingConfirmPage = lazy(() => import("./pages/ViewingConfirmPage"));
+const LegalPolicyPage = lazy(() => import("./pages/LegalPolicyPage"));
+const MiCitaPage = lazy(() => import("./pages/MiCitaPage"));
+const SeoStaticPage = lazy(() => import("./pages/SeoStaticPage"));
+const AboutCarswisePage = lazy(() => import("./pages/AboutCarswisePage"));
+const ContactCarswisePage = lazy(() => import("./pages/ContactCarswisePage"));
+const EmpresasPage = lazy(() => import("./pages/EmpresasPage"));
+const ComoFuncionaPage = lazy(() => import("./pages/ComoFuncionaPage"));
+const ComparadorPage = lazy(() => import("./pages/ComparadorPage"));
+const BuscarCochePage = lazy(() => import("./pages/BuscarCochePage"));
+const BlogIndexPage = lazy(() => import("./pages/BlogIndexPage"));
+const BlogArticlePage = lazy(() => import("./pages/BlogArticlePage"));
+const PricingPlansPage = lazy(() => import("./pages/PricingPlansPage"));
 
 function hasAnsweredValue(value) {
   if (Array.isArray(value)) {
@@ -4520,6 +4533,10 @@ export default function App() {
 
   // -------------------- RENDER --------------------
   return (
+    // Mientras llega el trozo de la pagina se deja el fondo puesto: un blanco
+    // de medio segundo entre pantalla y pantalla se lee como un parpadeo y
+    // parece que algo ha fallado.
+    <Suspense fallback={<div style={{ minHeight: "100vh", background: "var(--fondo, #fff)" }} />}>
     <div
       style={{
         ...s.page,
@@ -7193,6 +7210,7 @@ export default function App() {
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
       `}</style>
     </div>
+    </Suspense>
   );
 }
 

@@ -389,10 +389,18 @@ export default function LandingPage({
           {enlacesNav.filter(([, accion]) => accion).map(([texto, accion]) => (
             <button key={texto} type="button" onClick={accion}>{texto}</button>
           ))}
+          {/* Los dos accesos, no solo el de registro: en el móvil la cabecera
+              no los enseña y este menú es el único sitio donde están. Quien ya
+              tiene cuenta se quedaba sin puerta. */}
           <div className="pc-menu-acciones">
-            {isUserLoggedIn
-              ? <button className="pc-btn pc-btn-amarillo" onClick={irPanel}>{t.panel}</button>
-              : <button className="pc-btn pc-btn-amarillo" onClick={irRegistro}>{t.registro}</button>}
+            {isUserLoggedIn ? (
+              <button className="pc-btn pc-btn-amarillo" onClick={irPanel}>{t.panel}</button>
+            ) : (
+              <>
+                <button className="pc-btn pc-btn-linea" onClick={irEntrar}>{t.entrar}</button>
+                <button className="pc-btn pc-btn-amarillo" onClick={irRegistro}>{t.registro}</button>
+              </>
+            )}
           </div>
         </div>
       )}

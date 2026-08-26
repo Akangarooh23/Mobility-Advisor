@@ -88,7 +88,15 @@
   font-size: 16px; color: var(--gris-800); cursor: pointer;
   border-bottom: 1px solid var(--gris-100);
 }
-.pc-menu-acciones { margin-top: 14px; }
+/* Sin sesión son dos: entrar y registrarse, uno debajo del otro y del mismo
+   ancho. Separados de las secciones, que no son un sitio de la web. */
+.pc-menu-acciones {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--gris-200);
+  display: grid;
+  gap: 8px;
+}
 .pc-menu-acciones .pc-btn { width: 100%; }
 
 /* ── Hero ────────────────────────────────────────────────────────────────── */

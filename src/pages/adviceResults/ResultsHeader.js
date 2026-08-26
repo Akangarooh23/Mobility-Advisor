@@ -41,7 +41,7 @@ export default function ResultsHeader({
             fontWeight: 800,
             letterSpacing: "-1px",
             margin: 0,
-            color: isDark ? "#f8fafc" : "#0f172a",
+            color: isDark ? "var(--gris-50)" : "var(--gris-900)",
           }}
         >
           {isEn ? "Your optimal mobility solution" : "Tu solución de movilidad óptima"}
@@ -61,14 +61,14 @@ export default function ResultsHeader({
             gap: 12,
             flexWrap: "wrap",
             alignItems: "center",
-            boxShadow: isDark ? "0 12px 26px rgba(2,6,23,0.3)" : "0 12px 26px rgba(217,119,6,0.1)",
+            boxShadow: isDark ? "0 12px 26px rgba(5,5,5,0.3)" : "0 12px 26px rgba(217,119,6,0.1)",
           }}
         >
           <div style={{ flex: 1, minWidth: 240 }}>
             <div style={{ fontSize: 10, color: isDark ? "#fcd34d" : "#92400e", marginBottom: 6, fontWeight: 800, letterSpacing: "0.6px" }}>
               {isEn ? "💶 RECOMMENDED VALUATION" : "💶 TASACIÓN RECOMENDADA"}
             </div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 4 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? "var(--gris-50)" : "var(--gris-900)", marginBottom: 4 }}>
               {valuationPromptTitle}
             </div>
             <div style={{ fontSize: 12, color: isDark ? "#fde68a" : "#92400e", lineHeight: 1.6 }}>

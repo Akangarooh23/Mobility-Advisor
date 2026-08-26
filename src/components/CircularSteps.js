@@ -97,7 +97,7 @@ export default function CircularSteps({ onSelectBuy, onSelectService, onSelectSe
 
       <div className="cw-process-visual" onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}>
         <div className="cw-process-ring-stage">
-          <svg className="cw-process-ring" viewBox={`0 0 ${CIRCLE_SIZE} ${CIRCLE_SIZE}`} role="img" aria-label="Ciclo de servicios CarsWise">
+          <svg className="cw-process-ring" viewBox={`0 0 ${CIRCLE_SIZE} ${CIRCLE_SIZE}`} role="img" aria-label="Ciclo de servicios PopCar">
             <circle cx={CENTER} cy={CENTER} r={RADIUS} className="cw-process-ring-base" />
 
             {steps.map((step, index) => {
@@ -125,7 +125,7 @@ export default function CircularSteps({ onSelectBuy, onSelectService, onSelectSe
             const iconStyle = {
               left: `${step.iconPoint.x}px`,
               top: `${step.iconPoint.y}px`,
-              borderColor: isActive ? step.color : "rgba(148,163,184,0.28)",
+              borderColor: isActive ? step.color : "rgba(150,150,143,0.28)",
               color: step.color,
             };
 

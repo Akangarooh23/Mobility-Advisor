@@ -18,18 +18,18 @@ function AnalysisAccordion({ themeMode, children }) {
         onClick={() => setOpen(o => !o)}
         style={{
           width: "100%",
-          background: isDark ? "rgba(15,23,42,0.86)" : "rgba(255,255,255,0.95)",
-          border: isDark ? "1px solid rgba(96,165,250,0.26)" : "1px solid rgba(37,99,235,0.2)",
+          background: isDark ? "rgba(17,17,17,0.86)" : "rgba(255,255,255,0.95)",
+          border: isDark ? "1px solid rgba(255,196,0,0.26)" : "1px solid rgba(255,196,0,0.2)",
           borderRadius: open ? "16px 16px 0 0" : 16,
           padding: "14px 20px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           cursor: "pointer",
-          color: isDark ? "#e2e8f0" : "#0f172a",
+          color: isDark ? "var(--gris-200)" : "var(--gris-900)",
           fontSize: 14,
           fontWeight: 700,
-          boxShadow: isDark ? "0 12px 26px rgba(2,6,23,0.3)" : "0 12px 26px rgba(37,99,235,0.08)",
+          boxShadow: isDark ? "0 12px 26px rgba(5,5,5,0.3)" : "0 12px 26px rgba(255,196,0,0.08)",
         }}
       >
         <span>{isEn ? "📊 View full analysis" : "📊 Ver el análisis completo"}</span>
@@ -40,8 +40,8 @@ function AnalysisAccordion({ themeMode, children }) {
       {open && (
         <div
           style={{
-            background: isDark ? "rgba(15,23,42,0.7)" : "rgba(255,255,255,0.9)",
-            border: isDark ? "1px solid rgba(96,165,250,0.26)" : "1px solid rgba(37,99,235,0.2)",
+            background: isDark ? "rgba(17,17,17,0.7)" : "rgba(255,255,255,0.9)",
+            border: isDark ? "1px solid rgba(255,196,0,0.26)" : "1px solid rgba(255,196,0,0.2)",
             borderTop: "none",
             borderRadius: "0 0 16px 16px",
             padding: "8px 0 8px",

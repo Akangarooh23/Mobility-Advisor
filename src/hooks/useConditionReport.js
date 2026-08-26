@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
- * Informe de estado (CarsWise Check) para el flujo de publicación.
+ * Informe de estado (PopCar Check) para el flujo de publicación.
  *
  * Lo usan los dos sitios desde los que se publica —el IDCar y el panel de
  * vehículos— y por eso vive aquí: el requisito para publicar tiene que ser el
@@ -9,7 +9,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
  * divergiendo.
  *
  * Aquí solo se maneja la referencia al expediente. El informe vive en la base
- * de CarsWise Check, cuyo esquema impide afirmar mecánica sin verificación
+ * de PopCar Check, cuyo esquema impide afirmar mecánica sin verificación
  * física y ata cada daño a una pieza de lista cerrada.
  */
 
@@ -74,7 +74,7 @@ export function informeUtilizable(status) {
 /**
  * Dirección de descarga de un expediente concreto.
  *
- * Apunta a nuestra API y no a CarsWise Check: el navegador no tiene el token de
+ * Apunta a nuestra API y no a PopCar Check: el navegador no tiene el token de
  * la sesión de captura. Este backend comprueba que el coche es del usuario y
  * que el expediente es de ese coche antes de pedir el documento.
  */
@@ -215,7 +215,7 @@ export function useConditionReport(alTerminar, origen = "idcar") {
           '<!doctype html><meta charset="utf-8">' +
             '<title>Abriendo la captura</title>' +
             '<body style="margin:0;display:grid;place-items:center;height:100vh;' +
-            'font:16px system-ui,sans-serif;color:#334155">Abriendo la captura…</body>'
+            'font:16px system-ui,sans-serif;color:var(--gris-700)">Abriendo la captura…</body>'
         );
         ventana.document.close();
       } catch {
@@ -271,7 +271,7 @@ export function useConditionReport(alTerminar, origen = "idcar") {
   useEffect(() => {
     const alRecibirMensaje = (evento) => {
       if (!origenRef.current || evento.origin !== origenRef.current) return;
-      if (evento.data?.tipo !== "carswise-check:fin") return;
+      if (evento.data?.tipo !== "popcar-check:fin") return;
       refrescarConocidos();
       if (typeof alTerminarRef.current === "function") alTerminarRef.current(evento.data);
     };
@@ -313,7 +313,7 @@ export function useConditionReport(alTerminar, origen = "idcar") {
       /**
        * Descarga del informe terminado, servida por este backend.
        *
-       * No apunta a CarsWise Check: el navegador no tiene el token de la
+       * No apunta a PopCar Check: el navegador no tiene el token de la
        * sesión de captura. Nuestra API comprueba que el coche es del usuario y
        * pide el documento con la clave de servicio.
        */

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import App from "./App";
 
-test("renders the CarsWise landing page", () => {
+test("renders the PopCar landing page", () => {
   render(<App />);
 
   expect(

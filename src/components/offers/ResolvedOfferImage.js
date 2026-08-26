@@ -24,7 +24,7 @@ function OfferGuaranteeSeal({ months = 12, size = 54 }) {
         height: size,
         zIndex: 2,
         pointerEvents: "none",
-        filter: "drop-shadow(0 6px 10px rgba(15,23,42,0.22))",
+        filter: "drop-shadow(0 6px 10px rgba(17,17,17,0.22))",
       }}
     >
       <div
@@ -50,7 +50,7 @@ function OfferGuaranteeSeal({ months = 12, size = 54 }) {
           <path
             d="M20 6.5 9.5 17 4 11.5"
             fill="none"
-            stroke="#050505"
+            stroke="#111111"
             strokeWidth="3.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -160,19 +160,19 @@ export default function ResolvedOfferImage({ offer = {}, alt, loading = "lazy", 
             alignItems: "flex-start",
             justifyContent: "flex-end",
             padding: "14px 16px",
-            background: "linear-gradient(135deg,#0f172a 0%,#0ea5e9 100%)",
-            color: "#f8fafc",
+            background: "linear-gradient(135deg,var(--gris-900) 0%,var(--gris-700) 100%)",
+            color: "var(--gris-50)",
             lineHeight: 1.3,
             fontFamily: "DM Sans, sans-serif",
           }}
         >
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#7dd3fc", marginBottom: 6 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--gris-300)", marginBottom: 6 }}>
             Imagen orientativa no disponible
           </div>
           <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 2 }}>
             {offer?.title || "Oferta recomendada"}
           </div>
-          <div style={{ fontSize: 11, color: "#cbd5e1" }}>
+          <div style={{ fontSize: 11, color: "var(--gris-300)" }}>
             {offer?.source || "Proveedor"}
           </div>
         </div>

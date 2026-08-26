@@ -300,22 +300,22 @@ export default function UserDashboardVehicles({
   const { t } = useTranslation();
   const isDark = themeMode === "dark";
   const cardBg = isDark
-    ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
-    : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))";
-  const titleColor = isDark ? "#f8fafc" : "#0f172a";
-  const bodyColor = isDark ? "#cbd5e1" : "#475569";
-  const panelBorder = isDark ? "1px solid rgba(148,163,184,0.26)" : "1px solid rgba(59,130,246,0.34)";
-  const cardBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(37,99,235,0.3)";
-  const elevatedShadow = isDark ? "0 18px 30px rgba(2,6,23,0.4)" : "0 14px 28px rgba(15,23,42,0.08)";
-  const subtleShadow = isDark ? "0 8px 16px rgba(2,6,23,0.28)" : "0 8px 18px rgba(15,23,42,0.06)";
-  const inputBg = isDark ? "#0f1b2d" : "#ffffff";
+    ? "linear-gradient(160deg, rgba(17,17,17,0.9), rgba(31,31,29,0.82))"
+    : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(242,242,237,0.92))";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
+  const panelBorder = isDark ? "1px solid rgba(150,150,143,0.26)" : "1px solid rgba(255,196,0,0.34)";
+  const cardBorder = isDark ? "1px solid rgba(150,150,143,0.24)" : "1px solid rgba(255,196,0,0.3)";
+  const elevatedShadow = isDark ? "0 18px 30px rgba(5,5,5,0.4)" : "0 14px 28px rgba(17,17,17,0.08)";
+  const subtleShadow = isDark ? "0 8px 16px rgba(5,5,5,0.28)" : "0 8px 18px rgba(17,17,17,0.06)";
+  const inputBg = isDark ? "var(--gris-900)" : "var(--blanco)";
   const sectionFrame = {
-    background: isDark ? "rgba(2,6,23,0.34)" : "rgba(248,250,252,0.86)",
-    border: isDark ? "1px solid rgba(148,163,184,0.22)" : "1px solid rgba(148,163,184,0.24)",
+    background: isDark ? "rgba(5,5,5,0.34)" : "rgba(250,250,248,0.86)",
+    border: isDark ? "1px solid rgba(150,150,143,0.22)" : "1px solid rgba(150,150,143,0.24)",
     borderRadius: 14,
     boxShadow: isDark
-      ? "0 14px 26px rgba(2,6,23,0.28)"
-      : "0 10px 20px rgba(15,23,42,0.06)",
+      ? "0 14px 26px rgba(5,5,5,0.28)"
+      : "0 10px 20px rgba(17,17,17,0.06)",
   };
 
   function mapErpTransmission(rawTx = "") {
@@ -383,7 +383,7 @@ export default function UserDashboardVehicles({
   const [vehicleBookings, setVehicleBookings] = useState({});
   const [slotsDialog, setSlotsDialog] = useState({ open: false, vehicleId: null });
 
-  // Informe de estado (CarsWise Check). Mismo hook que el IDCar: publicar tiene
+  // Informe de estado (PopCar Check). Mismo hook que el IDCar: publicar tiene
   // que exigir lo mismo se entre por donde se entre.
   const {
     cargar: cargarInforme,
@@ -721,7 +721,7 @@ export default function UserDashboardVehicles({
     }
 
     return (
-      <div style={{ border: cardBorder, borderRadius: 10, background: isDark ? "rgba(15,23,42,0.36)" : "#ffffff", padding: "8px 10px" }}>
+      <div style={{ border: cardBorder, borderRadius: 10, background: isDark ? "rgba(17,17,17,0.36)" : "var(--blanco)", padding: "8px 10px" }}>
         <div style={{ fontSize: 10.5, color: bodyColor, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
           {t("dashboard.vehSavedInFile")}
         </div>
@@ -732,7 +732,7 @@ export default function UserDashboardVehicles({
             return (
               <div key={`${name}-${index}`} style={{ fontSize: 11.5, color: bodyColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 • {link
-                  ? <a href={link} target="_blank" rel="noreferrer" style={{ color: "#1d4ed8", textDecoration: "none", fontWeight: 600 }}>{name}</a>
+                  ? <a href={link} target="_blank" rel="noreferrer" style={{ color: "var(--marca-oscuro)", textDecoration: "none", fontWeight: 600 }}>{name}</a>
                   : name}
               </div>
             );
@@ -767,7 +767,7 @@ export default function UserDashboardVehicles({
           gap: 10,
           border: cardBorder,
           borderRadius: 12,
-          background: isDark ? "rgba(15,23,42,0.4)" : "rgba(255,255,255,0.7)",
+          background: isDark ? "rgba(17,17,17,0.4)" : "rgba(255,255,255,0.7)",
           padding: 12,
           marginTop: 10,
         }}
@@ -791,7 +791,7 @@ export default function UserDashboardVehicles({
             <div style={{ fontSize: 12, fontWeight: 800, color: titleColor }}>{title}</div>
             {meta ? <div style={{ fontSize: 11, color: bodyColor, marginTop: 3 }}>{meta}</div> : null}
           </div>
-          <span style={{ fontSize: 11, fontWeight: 700, color: "#1d4ed8", background: "rgba(37,99,235,0.1)", border: cardBorder, borderRadius: 999, padding: "4px 8px" }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: "var(--marca-oscuro)", background: "rgba(255,196,0,0.1)", border: cardBorder, borderRadius: 999, padding: "4px 8px" }}>
             {isOpen ? t("dashboard.vehSectionHide") : t("dashboard.vehSectionOpen")}
           </span>
         </button>
@@ -1303,7 +1303,7 @@ export default function UserDashboardVehicles({
           flexWrap: "wrap",
           marginBottom: 12,
           paddingBottom: 12,
-          borderBottom: "1px solid rgba(148,163,184,0.2)",
+          borderBottom: "1px solid rgba(150,150,143,0.2)",
         }}
       >
         {vehicleTabs.map((tab) => {
@@ -1322,10 +1322,10 @@ export default function UserDashboardVehicles({
                 background: isActive
                   ? "linear-gradient(135deg,#10b981,#059669)"
                   : isDark
-                  ? "rgba(15,23,42,0.88)"
+                  ? "rgba(17,17,17,0.88)"
                   : "rgba(255,255,255,0.95)",
                 border: isActive ? "none" : cardBorder,
-                color: isActive ? "#ecfdf5" : isDark ? "#e2e8f0" : "#334155",
+                color: isActive ? "var(--gris-50)" : isDark ? "var(--gris-200)" : "var(--gris-700)",
                 borderRadius: 999,
                 padding: "8px 12px",
                 fontSize: 12,
@@ -1334,7 +1334,7 @@ export default function UserDashboardVehicles({
               }}
             >
               <span>{tab.title}</span>
-              <span style={{ background: isActive ? "rgba(255,255,255,0.16)" : "rgba(148,163,184,0.14)", borderRadius: 999, padding: "2px 7px", fontSize: 11 }}>
+              <span style={{ background: isActive ? "rgba(255,255,255,0.16)" : "rgba(150,150,143,0.14)", borderRadius: 999, padding: "2px 7px", fontSize: 11 }}>
                 {count}
               </span>
             </button>
@@ -1346,8 +1346,8 @@ export default function UserDashboardVehicles({
         <div style={{ display: "grid", gap: 12 }}>
           {activeVehicleTab === "my-garage" && <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,minmax(0,1fr))" : "repeat(auto-fit,minmax(180px,1fr))", gap: 12 }}>
             {[
-              [t("dashboard.vehSectionLabel"), myVehicles.length, "#2563eb"],
-              [t("dashboard.vehStatBought"), lifecycleTotals.owned, "#60a5fa"],
+              [t("dashboard.vehSectionLabel"), myVehicles.length, "var(--marca)"],
+              [t("dashboard.vehStatBought"), lifecycleTotals.owned, "var(--gris-400)"],
               [t("dashboard.vehStatActive"), lifecycleTotals.activeSale, "#f59e0b"],
               [t("dashboard.vehStatSold"), lifecycleTotals.sold, "#34d399"],
             ].map(([label, value, color]) => (
@@ -1355,8 +1355,8 @@ export default function UserDashboardVehicles({
                 key={String(label)}
                 style={{
                   background: isDark
-                    ? "linear-gradient(155deg, rgba(15,23,42,0.94), rgba(30,41,59,0.9))"
-                    : "linear-gradient(155deg, rgba(255,255,255,0.98), rgba(241,245,249,0.95))",
+                    ? "linear-gradient(155deg, rgba(17,17,17,0.94), rgba(31,31,29,0.9))"
+                    : "linear-gradient(155deg, rgba(255,255,255,0.98), rgba(242,242,237,0.95))",
                   border: panelBorder,
                   boxShadow: subtleShadow,
                   borderRadius: 14,
@@ -1383,7 +1383,7 @@ export default function UserDashboardVehicles({
           {activeVehicleTab === "my-garage" && vehicleWorkspaceMode === "list" ? (
             <div
               style={{
-                background: isDark ? "rgba(15,23,42,0.7)" : "rgba(255,255,255,0.9)",
+                background: isDark ? "rgba(17,17,17,0.7)" : "rgba(255,255,255,0.9)",
                 border: panelBorder,
                 borderRadius: 12,
                 padding: 12,
@@ -1401,11 +1401,11 @@ export default function UserDashboardVehicles({
                 type="button"
                 onClick={startCreatingVehicle}
                 style={{
-                  background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
-                  color: "#ffffff",
+                  background: "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
+                  color: "var(--blanco)",
                   border: "none",
                   borderRadius: 999,
-                  boxShadow: "0 10px 18px rgba(37,99,235,0.24)",
+                  boxShadow: "0 10px 18px rgba(255,196,0,0.24)",
                   padding: "8px 12px",
                   fontSize: 11,
                   fontWeight: 800,
@@ -1422,7 +1422,7 @@ export default function UserDashboardVehicles({
           <div
             style={{
               background: isDark
-                ? "linear-gradient(150deg, rgba(15,23,42,0.96), rgba(13,27,49,0.9))"
+                ? "linear-gradient(150deg, rgba(17,17,17,0.96), rgba(31,31,29,0.9))"
                 : "linear-gradient(150deg, rgba(255,255,255,0.98), rgba(239,246,255,0.88))",
               border: panelBorder,
               boxShadow: elevatedShadow,
@@ -1444,8 +1444,8 @@ export default function UserDashboardVehicles({
                     setEditingVehicleId("");
                   }}
                   style={{
-                    background: "rgba(37,99,235,0.12)",
-                    color: "#1d4ed8",
+                    background: "rgba(255,196,0,0.12)",
+                    color: "var(--marca-oscuro)",
                     border: cardBorder,
                     borderRadius: 999,
                     boxShadow: "none",
@@ -1458,7 +1458,7 @@ export default function UserDashboardVehicles({
                 >
                   {t("dashboard.vehBackToList")}
                 </button>
-                <div style={{ fontSize: 11, color: "#1d4ed8", fontWeight: 700, background: "rgba(37,99,235,0.1)", border: cardBorder, borderRadius: 999, padding: "5px 9px" }}>
+                <div style={{ fontSize: 11, color: "var(--marca-oscuro)", fontWeight: 700, background: "rgba(255,196,0,0.1)", border: cardBorder, borderRadius: 999, padding: "5px 9px" }}>
                   {t("dashboard.vehMaxVehicles")}
                 </div>
               </div>
@@ -1482,8 +1482,8 @@ export default function UserDashboardVehicles({
                   type="button"
                   onClick={() => setVehicleCatalogMode("erp")}
                   style={{
-                    background: vehicleCatalogMode === "erp" ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "rgba(37,99,235,0.08)",
-                    color: vehicleCatalogMode === "erp" ? "#fff" : "#1d4ed8",
+                    background: vehicleCatalogMode === "erp" ? "linear-gradient(135deg,var(--marca),var(--marca-oscuro))" : "rgba(255,196,0,0.08)",
+                    color: vehicleCatalogMode === "erp" ? "#fff" : "var(--marca-oscuro)",
                     border: vehicleCatalogMode === "erp" ? "none" : cardBorder,
                     borderRadius: 999,
                     padding: "6px 10px",
@@ -1830,8 +1830,8 @@ export default function UserDashboardVehicles({
                       type="button"
                       onClick={() => updateVehicleForm("marketplacePricingMode", "manual")}
                       style={{
-                        background: vehicleForm.marketplacePricingMode === "manual" ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "rgba(37,99,235,0.08)",
-                        color: vehicleForm.marketplacePricingMode === "manual" ? "#ffffff" : "#1d4ed8",
+                        background: vehicleForm.marketplacePricingMode === "manual" ? "linear-gradient(135deg,var(--marca),var(--marca-oscuro))" : "rgba(255,196,0,0.08)",
+                        color: vehicleForm.marketplacePricingMode === "manual" ? "var(--blanco)" : "var(--marca-oscuro)",
                         border: vehicleForm.marketplacePricingMode === "manual" ? "none" : cardBorder,
                         borderRadius: 999,
                         padding: "7px 11px",
@@ -1861,8 +1861,8 @@ export default function UserDashboardVehicles({
                         }
                       }}
                       style={{
-                        background: vehicleForm.marketplacePricingMode === "valuation" ? "linear-gradient(135deg,#0ea5e9,#0284c7)" : "rgba(14,165,233,0.08)",
-                        color: vehicleForm.marketplacePricingMode === "valuation" ? "#ffffff" : "#0c4a6e",
+                        background: vehicleForm.marketplacePricingMode === "valuation" ? "linear-gradient(135deg,var(--gris-700),var(--gris-900))" : "rgba(255,196,0,0.08)",
+                        color: vehicleForm.marketplacePricingMode === "valuation" ? "var(--blanco)" : "var(--gris-600)",
                         border: vehicleForm.marketplacePricingMode === "valuation" ? "none" : cardBorder,
                         borderRadius: 999,
                         padding: "7px 11px",
@@ -1886,7 +1886,7 @@ export default function UserDashboardVehicles({
                     />
                   </label>
                 ) : (
-                  <div style={{ fontSize: 11, color: bodyColor, background: isDark ? "rgba(15,23,42,0.3)" : "rgba(239,246,255,0.9)", border: cardBorder, borderRadius: 10, padding: "9px 10px" }}>
+                  <div style={{ fontSize: 11, color: bodyColor, background: isDark ? "rgba(17,17,17,0.3)" : "rgba(239,246,255,0.9)", border: cardBorder, borderRadius: 10, padding: "9px 10px" }}>
                     Al publicar en marketplace te pediremos tasación antes de fijar el precio final.
                   </div>
                 )}
@@ -1917,21 +1917,21 @@ export default function UserDashboardVehicles({
                     justifyContent: "space-between",
                     gap: 10,
                     width: "100%",
-                    background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
-                    color: "#ffffff",
+                    background: "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
+                    color: "var(--blanco)",
                     border: "none",
                     borderRadius: 10,
                     padding: "9px 12px",
                     fontSize: 12,
                     fontWeight: 800,
                     cursor: "pointer",
-                    boxShadow: "0 10px 16px rgba(37,99,235,0.22)",
+                    boxShadow: "0 10px 16px rgba(255,196,0,0.22)",
                   }}
                 >
                   <span>{t("dashboard.vehUploadPhotos")}</span>
                   <span style={{ fontSize: 11, opacity: 0.95 }}>{t("dashboard.vehPhotosSelected", { count: pendingPhotos.length })}</span>
                 </button>
-                <span style={{ fontSize: 11, color: "#1d4ed8", fontWeight: 700 }}>{t("dashboard.vehPhotosHint")}</span>
+                <span style={{ fontSize: 11, color: "var(--marca-oscuro)", fontWeight: 700 }}>{t("dashboard.vehPhotosHint")}</span>
                 {storedPhotos.length > 0 && (
                   <div style={{ marginTop: 4 }}>
                     <div style={{ fontSize: 10, color: bodyColor, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
@@ -2010,7 +2010,7 @@ export default function UserDashboardVehicles({
                     justifyContent: "space-between",
                     gap: 10,
                     width: "100%",
-                    background: "linear-gradient(135deg,#0f766e,#0e7490)",
+                    background: "linear-gradient(135deg,#0f766e,var(--gris-500))",
                     color: "#ecfeff",
                     border: "none",
                     borderRadius: 10,
@@ -2018,7 +2018,7 @@ export default function UserDashboardVehicles({
                     fontSize: 12,
                     fontWeight: 800,
                     cursor: "pointer",
-                    boxShadow: "0 10px 16px rgba(14,116,144,0.2)",
+                    boxShadow: "0 10px 16px rgba(94,94,89,0.2)",
                   }}
                 >
                   <span>{t("dashboard.vehUploadDocs")}</span>
@@ -2135,7 +2135,7 @@ export default function UserDashboardVehicles({
                 <button
                   type="button"
                   onClick={() => insuranceDocumentsInputRef.current?.click()}
-                  style={{ display: "inline-flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", background: "rgba(37,99,235,0.12)", color: "#1d4ed8", border: cardBorder, borderRadius: 10, padding: "9px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+                  style={{ display: "inline-flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", background: "rgba(255,196,0,0.12)", color: "var(--marca-oscuro)", border: cardBorder, borderRadius: 10, padding: "9px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
                 >
                   <span>{t("dashboard.vehAttachInsurance")}</span>
                   <span style={{ fontSize: 11 }}>{pendingInsuranceDocuments.length}</span>
@@ -2223,11 +2223,11 @@ export default function UserDashboardVehicles({
                 onClick={addVehicleToGarage}
                 disabled={isSaving}
                 style={{
-                  background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
-                  color: "#ffffff",
+                  background: "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
+                  color: "var(--blanco)",
                   border: "none",
                   borderRadius: 10,
-                  boxShadow: "0 10px 18px rgba(37,99,235,0.24)",
+                  boxShadow: "0 10px 18px rgba(255,196,0,0.24)",
                   padding: "10px 13px",
                   fontSize: 12,
                   fontWeight: 800,
@@ -2243,7 +2243,7 @@ export default function UserDashboardVehicles({
                   type="button"
                   onClick={cancelEditingVehicle}
                   style={{
-                    background: "rgba(148,163,184,0.16)",
+                    background: "rgba(150,150,143,0.16)",
                     color: bodyColor,
                     border: cardBorder,
                     borderRadius: 10,
@@ -2262,8 +2262,8 @@ export default function UserDashboardVehicles({
                 type="button"
                 onClick={() => setActiveVehicleTab("owned")}
                 style={{
-                  background: "rgba(37,99,235,0.1)",
-                  color: "#1d4ed8",
+                  background: "rgba(255,196,0,0.1)",
+                  color: "var(--marca-oscuro)",
                   border: cardBorder,
                   borderRadius: 10,
                   boxShadow: subtleShadow,
@@ -2291,7 +2291,7 @@ export default function UserDashboardVehicles({
                   <span>{vehicleFeedback.replace(/^⚠️\s*/, "")}</span>
                 </div>
               ) : (
-                <div style={{ marginTop: 10, fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>{vehicleFeedback}</div>
+                <div style={{ marginTop: 10, fontSize: 12, color: "var(--marca-oscuro)", fontWeight: 700 }}>{vehicleFeedback}</div>
               )
             )}
           </div>
@@ -2313,12 +2313,12 @@ export default function UserDashboardVehicles({
                   key={vehicle.id}
                   style={{
                     background: isDark
-                      ? "linear-gradient(135deg, rgba(15,23,42,0.97) 0%, rgba(30,41,59,0.92) 100%)"
-                      : "linear-gradient(135deg, #ffffff 0%, #f0f6ff 100%)",
-                    border: isDark ? "1px solid rgba(99,102,241,0.18)" : "1px solid rgba(99,102,241,0.14)",
+                      ? "linear-gradient(135deg, rgba(17,17,17,0.97) 0%, rgba(31,31,29,0.92) 100%)"
+                      : "linear-gradient(135deg, var(--blanco) 0%, var(--gris-100) 100%)",
+                    border: isDark ? "1px solid rgba(255,196,0,0.18)" : "1px solid rgba(255,196,0,0.14)",
                     boxShadow: isDark
                       ? "0 2px 16px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.3)"
-                      : "0 2px 12px rgba(99,102,241,0.08), 0 1px 4px rgba(0,0,0,0.05)",
+                      : "0 2px 12px rgba(255,196,0,0.08), 0 1px 4px rgba(0,0,0,0.05)",
                     borderRadius: 16,
                     padding: "12px 14px",
                     transition: "box-shadow 0.15s",
@@ -2342,16 +2342,16 @@ export default function UserDashboardVehicles({
                             if (!vehicleId) return;
                             setFailedPhotoVehicleIds((prev) => ({ ...prev, [vehicleId]: true }));
                           }}
-                          style={{ width: 96, height: 96, objectFit: "cover", borderRadius: 12, border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(99,102,241,0.15)", display: "block", boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}
+                          style={{ width: 96, height: 96, objectFit: "cover", borderRadius: 12, border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(255,196,0,0.15)", display: "block", boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}
                         />
                       ) : (
-                        <div style={{ width: 96, height: 96, borderRadius: 12, border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(99,102,241,0.12)", background: isDark ? "rgba(30,41,59,0.6)" : "rgba(241,245,249,0.9)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 4 }}>
+                        <div style={{ width: 96, height: 96, borderRadius: 12, border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(255,196,0,0.12)", background: isDark ? "rgba(31,31,29,0.6)" : "rgba(242,242,237,0.9)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 4 }}>
                           <span style={{ fontSize: 22, opacity: 0.3 }}>🚗</span>
                           <span style={{ fontSize: 9, color: bodyColor, textAlign: "center" }}>{t("dashboard.vehNoPhoto")}</span>
                         </div>
                       )}
                       <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                        <span style={{ background: "rgba(37,99,235,0.1)", border: "1px solid rgba(37,99,235,0.18)", borderRadius: 999, padding: "2px 7px", fontSize: 9, fontWeight: 600, color: "#3b82f6", letterSpacing: 0.2 }}>
+                        <span style={{ background: "rgba(255,196,0,0.1)", border: "1px solid rgba(255,196,0,0.18)", borderRadius: 999, padding: "2px 7px", fontSize: 9, fontWeight: 600, color: "var(--marca-claro)", letterSpacing: 0.2 }}>
                           📷 {Array.isArray(vehicle.photos) ? vehicle.photos.length : 0}
                         </span>
                         <span style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.18)", borderRadius: 999, padding: "2px 7px", fontSize: 9, fontWeight: 600, color: "#10b981", letterSpacing: 0.2 }}>
@@ -2365,7 +2365,7 @@ export default function UserDashboardVehicles({
                       <div>
                         <div style={{ fontSize: 13, fontWeight: 800, color: titleColor, letterSpacing: -0.2, lineHeight: 1.3 }}>
                           {normalizeText(vehicle?.plate) ? (
-                            <><span style={{ background: isDark ? "rgba(99,102,241,0.2)" : "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.22)", borderRadius: 6, padding: "1px 7px", fontSize: 11, fontWeight: 800, color: isDark ? "#a5b4fc" : "#4f46e5", marginRight: 6, letterSpacing: 1 }}>{normalizeText(vehicle.plate)}</span></>
+                            <><span style={{ background: isDark ? "rgba(255,196,0,0.2)" : "rgba(255,196,0,0.1)", border: "1px solid rgba(255,196,0,0.22)", borderRadius: 6, padding: "1px 7px", fontSize: 11, fontWeight: 800, color: isDark ? "var(--gris-300)" : "var(--gris-500)", marginRight: 6, letterSpacing: 1 }}>{normalizeText(vehicle.plate)}</span></>
                           ) : null}
                           {identityLabel || normalizeText(vehicle?.title) || "Vehículo"}
                         </div>
@@ -2387,13 +2387,13 @@ export default function UserDashboardVehicles({
                           .map(([icon, label, val]) => (
                             <div key={label} style={{ fontSize: 11, color: bodyColor, lineHeight: 1.5, display: "flex", gap: 4, alignItems: "baseline" }}>
                               <span style={{ fontSize: 10, opacity: 0.7 }}>{icon}</span>
-                              <span style={{ fontWeight: 600, color: isDark ? "rgba(226,232,240,0.65)" : "rgba(51,65,85,0.6)", fontSize: 10 }}>{label}</span>
+                              <span style={{ fontWeight: 600, color: isDark ? "rgba(228,228,223,0.65)" : "rgba(51,51,48,0.6)", fontSize: 10 }}>{label}</span>
                               <span style={{ fontWeight: 700, color: titleColor }}>{val}</span>
                             </div>
                           ))}
                       </div>
                       {vehicle.notes ? (
-                        <div style={{ fontSize: 10, color: bodyColor, fontStyle: "italic", borderTop: isDark ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(99,102,241,0.1)", paddingTop: 5, marginTop: 2 }}>{vehicle.notes}</div>
+                        <div style={{ fontSize: 10, color: bodyColor, fontStyle: "italic", borderTop: isDark ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(255,196,0,0.1)", paddingTop: 5, marginTop: 2 }}>{vehicle.notes}</div>
                       ) : null}
                     </div>
 
@@ -2408,20 +2408,20 @@ export default function UserDashboardVehicles({
                       <button
                         type="button"
                         onClick={() => startEditingVehicle(vehicle)}
-                        style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.25)", color: isDark ? "#a5b4fc" : "#4f46e5", borderRadius: 10, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%", letterSpacing: 0.2 }}
+                        style={{ background: "rgba(255,196,0,0.1)", border: "1px solid rgba(255,196,0,0.25)", color: isDark ? "var(--gris-300)" : "var(--gris-500)", borderRadius: 10, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%", letterSpacing: 0.2 }}
                       >
                         {t("dashboard.vehEditBtn")}
                       </button>
                       <button
                         type="button"
                         onClick={() => setManagementVehicleId((prev) => (prev === vehicleId ? "" : vehicleId))}
-                        style={{ background: "rgba(14,116,144,0.1)", border: "1px solid rgba(14,116,144,0.22)", color: isDark ? "#67e8f9" : "#0e7490", borderRadius: 10, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%", letterSpacing: 0.2 }}
+                        style={{ background: "rgba(94,94,89,0.1)", border: "1px solid rgba(94,94,89,0.22)", color: isDark ? "var(--gris-300)" : "var(--gris-500)", borderRadius: 10, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%", letterSpacing: 0.2 }}
                       >
                         {isManagementOpen ? t("dashboard.vehHideManage") : t("dashboard.vehManageBtn")}
                       </button>
 
                       {isManagementOpen ? (
-                        <div style={{ display: "grid", gap: 6, border: isDark ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(99,102,241,0.1)", borderRadius: 10, background: isDark ? "rgba(15,23,42,0.5)" : "rgba(248,250,252,0.85)", padding: 8 }}>
+                        <div style={{ display: "grid", gap: 6, border: isDark ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(255,196,0,0.1)", borderRadius: 10, background: isDark ? "rgba(17,17,17,0.5)" : "rgba(250,250,248,0.85)", padding: 8 }}>
                           {(() => {
                             // Fotografiar el coche no es editar su ficha: la
                             // acción va aquí, no dentro del formulario.
@@ -2461,14 +2461,14 @@ export default function UserDashboardVehicles({
                           <button
                             type="button"
                             onClick={() => handleVehicleAction("valuation", vehicle)}
-                            style={{ background: "rgba(37,99,235,0.1)", border: "1px solid rgba(37,99,235,0.22)", color: isDark ? "#93c5fd" : "#1d4ed8", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%" }}
+                            style={{ background: "rgba(255,196,0,0.1)", border: "1px solid rgba(255,196,0,0.22)", color: isDark ? "var(--gris-300)" : "var(--marca-oscuro)", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%" }}
                           >
                             {t("dashboard.vehRequestValuation")}
                           </button>
                           <button
                             type="button"
                             onClick={() => handleVehicleAction("insurance", vehicle)}
-                            style={{ background: "rgba(14,116,144,0.1)", border: "1px solid rgba(14,116,144,0.22)", color: isDark ? "#67e8f9" : "#0e7490", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%" }}
+                            style={{ background: "rgba(94,94,89,0.1)", border: "1px solid rgba(94,94,89,0.22)", color: isDark ? "var(--gris-300)" : "var(--gris-500)", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%" }}
                           >
                             {t("dashboard.vehManageInsurance")}
                           </button>
@@ -2502,25 +2502,25 @@ export default function UserDashboardVehicles({
                             <button
                               type="button"
                               onClick={() => setSlotsDialog({ open: true, vehicleId: vehicle.id })}
-                              style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.22)", color: isDark ? "#a5b4fc" : "#4338ca", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%", marginTop: 4 }}
+                              style={{ background: "rgba(255,196,0,0.08)", border: "1px solid rgba(255,196,0,0.22)", color: isDark ? "var(--gris-300)" : "var(--gris-600)", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%", marginTop: 4 }}
                             >
                               🗓 Gestionar franjas horarias
                             </button>
                           )}
                           {vehicle.marketplaceState === "active_sale" && vehicleBookings[vehicle.id] && vehicleBookings[vehicle.id].length > 0 && (
-                            <div style={{ marginTop: 8, background: "#f0f9ff", border: "1.5px solid #bae6fd", borderRadius: 10, overflow: "hidden" }}>
-                              <div style={{ padding: "8px 12px", borderBottom: "1px solid #e0f2fe", fontSize: 11, fontWeight: 700, color: "#0369a1", textTransform: "uppercase", letterSpacing: ".4px" }}>
+                            <div style={{ marginTop: 8, background: "var(--gris-50)", border: "1.5px solid var(--gris-200)", borderRadius: 10, overflow: "hidden" }}>
+                              <div style={{ padding: "8px 12px", borderBottom: "1px solid var(--gris-100)", fontSize: 11, fontWeight: 700, color: "var(--gris-800)", textTransform: "uppercase", letterSpacing: ".4px" }}>
                                 📅 Citas confirmadas ({vehicleBookings[vehicle.id].length})
                               </div>
                               {vehicleBookings[vehicle.id].map((b) => (
-                                <div key={b.id} style={{ padding: "8px 12px", borderBottom: "1px solid #e0f2fe", display: "flex", alignItems: "center", gap: 6 }}>
+                                <div key={b.id} style={{ padding: "8px 12px", borderBottom: "1px solid var(--gris-100)", display: "flex", alignItems: "center", gap: 6 }}>
                                   <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{ fontSize: 11, fontWeight: 700, color: "#0c4a6e" }}>
+                                    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--gris-600)" }}>
                                       {new Date(b.starts_at).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" })}
                                       {" · "}
                                       {new Date(b.starts_at).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
                                     </div>
-                                    <div style={{ fontSize: 10, color: "#0369a1", marginTop: 1 }}>
+                                    <div style={{ fontSize: 10, color: "var(--gris-800)", marginTop: 1 }}>
                                       {b.buyer_name || "—"}
                                       {b.buyer_phone ? ` · ${b.buyer_phone}` : ""}
                                     </div>
@@ -2552,21 +2552,21 @@ export default function UserDashboardVehicles({
               {slotsDialog.open && createPortal(
                 <div
                   onClick={() => setSlotsDialog({ open: false, vehicleId: null })}
-                  style={{ position: "fixed", inset: 0, zIndex: 1300, background: isDark ? "rgba(2,6,23,0.75)" : "rgba(15,23,42,0.4)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, overflowY: "auto", overscrollBehavior: "contain" }}
+                  style={{ position: "fixed", inset: 0, zIndex: 1300, background: isDark ? "rgba(5,5,5,0.75)" : "rgba(17,17,17,0.4)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, overflowY: "auto", overscrollBehavior: "contain" }}
                 >
                   <div
                     onClick={(e) => e.stopPropagation()}
-                    style={{ background: isDark ? "#0f172a" : "#fff", borderRadius: 14, padding: 24, width: "min(560px, 100%)", margin: "auto", boxShadow: "0 8px 40px rgba(0,0,0,.18)" }}
+                    style={{ background: isDark ? "var(--gris-900)" : "#fff", borderRadius: 14, padding: 24, width: "min(560px, 100%)", margin: "auto", boxShadow: "0 8px 40px rgba(0,0,0,.18)" }}
                   >
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                      <div style={{ fontSize: 16, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>🗓 Gestionar franjas horarias</div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>🗓 Gestionar franjas horarias</div>
                       <button
                         type="button"
                         onClick={() => setSlotsDialog({ open: false, vehicleId: null })}
-                        style={{ background: "none", border: "none", fontSize: 20, color: isDark ? "#94a3b8" : "#64748b", cursor: "pointer" }}
+                        style={{ background: "none", border: "none", fontSize: 20, color: isDark ? "var(--gris-400)" : "var(--gris-500)", cursor: "pointer" }}
                       >×</button>
                     </div>
-                    <p style={{ fontSize: 13, color: isDark ? "#94a3b8" : "#64748b", marginBottom: 16, marginTop: 0 }}>
+                    <p style={{ fontSize: 13, color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginBottom: 16, marginTop: 0 }}>
                       Añade o elimina franjas horarias en las que los compradores pueden solicitar visitar tu vehículo.
                     </p>
                     <AvailabilityEditor
@@ -2584,7 +2584,7 @@ export default function UserDashboardVehicles({
                     position: "fixed",
                     inset: 0,
                     zIndex: 1200,
-                    background: isDark ? "rgba(2,6,23,0.7)" : "rgba(15,23,42,0.35)",
+                    background: isDark ? "rgba(5,5,5,0.7)" : "rgba(17,17,17,0.35)",
                     display: "flex",
                     // Centrado con `margin: auto` en el diálogo, no con
                     // `alignItems: center`: así el que no cabe se desplaza en
@@ -2613,7 +2613,7 @@ export default function UserDashboardVehicles({
                       border: panelBorder,
                       borderRadius: 14,
                       background: isDark
-                        ? "linear-gradient(160deg, rgba(15,23,42,0.99), rgba(30,41,59,0.96))"
+                        ? "linear-gradient(160deg, rgba(17,17,17,0.99), rgba(31,31,29,0.96))"
                         : "linear-gradient(160deg, rgba(255,255,255,1), rgba(239,246,255,0.98))",
                       boxShadow: elevatedShadow,
                       padding: 14,
@@ -2725,8 +2725,8 @@ export default function UserDashboardVehicles({
                             onClick={confirmMarketplacePublish}
                             disabled={!canPublish}
                             style={{
-                              background: canPublish ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "#d1d5db",
-                              color: "#ffffff",
+                              background: canPublish ? "linear-gradient(135deg,var(--marca),var(--marca-oscuro))" : "var(--gris-300)",
+                              color: "var(--blanco)",
                               border: "none",
                               borderRadius: 8,
                               padding: "8px 12px",
@@ -2741,7 +2741,7 @@ export default function UserDashboardVehicles({
                             type="button"
                             onClick={closeMarketplacePublishDialog}
                             style={{
-                              background: "rgba(148,163,184,0.14)",
+                              background: "rgba(150,150,143,0.14)",
                               color: titleColor,
                               border: cardBorder,
                               borderRadius: 8,
@@ -2762,7 +2762,7 @@ export default function UserDashboardVehicles({
               ) : null}
             </div>
             ) : (
-            <div style={{ fontSize: 12, color: "#94a3b8" }}>
+            <div style={{ fontSize: 12, color: "var(--gris-400)" }}>
               {t("dashboard.vehEmpty")}
             </div>
             )
@@ -2781,7 +2781,7 @@ export default function UserDashboardVehicles({
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, gap: 10, flexWrap: "wrap" }}>
             <div style={{ fontSize: 16, fontWeight: 800, color: titleColor }}>{selectedSection.title}</div>
-            <span style={{ fontSize: 11, color: "#1d4ed8", fontWeight: 700 }}>
+            <span style={{ fontSize: 11, color: "var(--marca-oscuro)", fontWeight: 700 }}>
               {Array.isArray(selectedSection.items) ? selectedSection.items.length : 0} elementos
             </span>
           </div>
@@ -2792,7 +2792,7 @@ export default function UserDashboardVehicles({
                 <div
                   key={`${selectedSection.key}-${index}`}
                   style={{
-                    background: isDark ? "rgba(15,23,42,0.86)" : "rgba(255,255,255,0.92)",
+                    background: isDark ? "rgba(17,17,17,0.86)" : "rgba(255,255,255,0.92)",
                     border: cardBorder,
                     borderRadius: 10,
                     padding: 10,
@@ -2807,7 +2807,7 @@ export default function UserDashboardVehicles({
               ))}
             </div>
           ) : (
-            <div style={{ fontSize: 12, color: "#94a3b8" }}>{selectedSection.empty}</div>
+            <div style={{ fontSize: 12, color: "var(--gris-400)" }}>{selectedSection.empty}</div>
           )}
         </div>
       )}

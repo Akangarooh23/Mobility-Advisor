@@ -53,9 +53,9 @@ function ActivityLog({ isDark, isMobile, panelStyle, cardBg, cardBorder, titleTe
   if (entries.length === 0) return null;
 
   const typeColor = {
-    alert: "#2563eb",
+    alert: "var(--marca)",
     garage: "#0f766e",
-    valuation: "#7c3aed",
+    valuation: "var(--gris-500)",
     saved: "#d97706",
   };
 
@@ -70,7 +70,7 @@ function ActivityLog({ isDark, isMobile, panelStyle, cardBg, cardBorder, titleTe
         marginTop: 8,
       }}
     >
-      <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "#e2e8f0" : "#334155", marginBottom: 10, letterSpacing: "0.02em" }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "var(--gris-200)" : "var(--gris-700)", marginBottom: 10, letterSpacing: "0.02em" }}>
         {t("dashboard.homeActivityTitle")}
       </div>
       <div style={{ display: "grid", gap: 6 }}>
@@ -84,8 +84,8 @@ function ActivityLog({ isDark, isMobile, panelStyle, cardBg, cardBorder, titleTe
               gridTemplateColumns: "30px minmax(0,1fr)",
               gap: 10,
               alignItems: "center",
-              background: isDark ? "rgba(15,23,42,0.55)" : "rgba(255,255,255,0.80)",
-              border: "1px solid rgba(148,163,184,0.16)",
+              background: isDark ? "rgba(17,17,17,0.55)" : "rgba(255,255,255,0.80)",
+              border: "1px solid rgba(150,150,143,0.16)",
               borderRadius: 10,
               padding: "9px 10px",
               cursor: "pointer",
@@ -101,7 +101,7 @@ function ActivityLog({ isDark, isMobile, panelStyle, cardBg, cardBorder, titleTe
                 borderRadius: 8,
                 display: "grid",
                 placeItems: "center",
-                background: `${typeColor[entry.type] || "#64748b"}18`,
+                background: `${typeColor[entry.type] || "var(--gris-500)"}18`,
               }}
             >
               {entry.icon}
@@ -136,15 +136,15 @@ export default function UserDashboardHome({
   const { t } = useTranslation();
   const isDark = themeMode === "dark";
   const cardBg = isDark
-    ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
-    : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))";
-  const cardBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(37,99,235,0.3)";
-  const titleText = isDark ? "#f8fafc" : "#0f172a";
-  const mutedText = isDark ? "#cbd5e1" : "#475569";
+    ? "linear-gradient(160deg, rgba(17,17,17,0.9), rgba(31,31,29,0.82))"
+    : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(242,242,237,0.92))";
+  const cardBorder = isDark ? "1px solid rgba(150,150,143,0.24)" : "1px solid rgba(255,196,0,0.3)";
+  const titleText = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const mutedText = isDark ? "var(--gris-300)" : "var(--gris-600)";
 
   const stats = [
-    { label: t("dashboard.homeStatAlerts"), value: counts.alerts, color: "#2563eb", key: "alerts" },
-    { label: t("dashboard.homeStatValuations"), value: counts.valuations, color: "#7c3aed", key: "valuations" },
+    { label: t("dashboard.homeStatAlerts"), value: counts.alerts, color: "var(--marca)", key: "alerts" },
+    { label: t("dashboard.homeStatValuations"), value: counts.valuations, color: "var(--gris-500)", key: "valuations" },
     { label: t("dashboard.homeStatVehicles"), value: counts.vehicles, color: "#0f766e", key: "vehicles" },
   ];
   const emailTargets = Array.from(
@@ -164,19 +164,19 @@ export default function UserDashboardHome({
           <div
             key={item.key}
             style={{
-              background: isDark ? "rgba(15,23,42,0.88)" : "rgba(241,245,249,0.8)",
+              background: isDark ? "rgba(17,17,17,0.88)" : "rgba(242,242,237,0.8)",
               border: cardBorder,
               borderRadius: 12,
               padding: isMobile ? 12 : 16,
               boxShadow: isDark
-                ? "0 12px 20px rgba(2,6,23,0.3)"
-                : "0 8px 16px rgba(15,23,42,0.07)",
+                ? "0 12px 20px rgba(5,5,5,0.3)"
+                : "0 8px 16px rgba(17,17,17,0.07)",
             }}
           >
-            <div style={{ fontSize: isMobile ? 30 : 34, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", letterSpacing: "-0.04em", lineHeight: 1 }}>
+            <div style={{ fontSize: isMobile ? 30 : 34, fontWeight: 800, color: isDark ? "var(--gris-50)" : "var(--gris-900)", letterSpacing: "-0.04em", lineHeight: 1 }}>
               {item.value}
             </div>
-            <div style={{ fontSize: 12, color: isDark ? "#cbd5e1" : "#475569", marginTop: 8 }}>{item.label}</div>
+            <div style={{ fontSize: 12, color: isDark ? "var(--gris-300)" : "var(--gris-600)", marginTop: 8 }}>{item.label}</div>
             {item.key === "alerts" && newAlertMatchesCount > 0 && (
               <div style={{ fontSize: 11, color: "#047857", marginTop: 6, fontWeight: 700 }}>
                 {t("dashboard.homeNewMatches", { count: newAlertMatchesCount })}
@@ -194,18 +194,18 @@ export default function UserDashboardHome({
           border: cardBorder,
           borderRadius: 14,
           boxShadow: isDark
-            ? "0 16px 24px rgba(2,6,23,0.3)"
-            : "0 10px 20px rgba(15,23,42,0.08)",
+            ? "0 16px 24px rgba(5,5,5,0.3)"
+            : "0 10px 20px rgba(17,17,17,0.08)",
         }}
       >
-        <div style={{ fontSize: 13, color: isDark ? "#e2e8f0" : "#334155", letterSpacing: "0.02em", marginBottom: 10, fontWeight: 700 }}>
+        <div style={{ fontSize: 13, color: isDark ? "var(--gris-200)" : "var(--gris-700)", letterSpacing: "0.02em", marginBottom: 10, fontWeight: 700 }}>
           {t("dashboard.homeNewsTitle")}
         </div>
         <div style={{ display: "grid", gap: 10 }}>
           {latestNotices.length === 0 && (
             <div
               style={{
-                background: isDark ? "rgba(15,23,42,0.84)" : "rgba(255,255,255,0.95)",
+                background: isDark ? "rgba(17,17,17,0.84)" : "rgba(255,255,255,0.95)",
                 border: cardBorder,
                 borderRadius: 12,
                 padding: 12,
@@ -225,7 +225,7 @@ export default function UserDashboardHome({
               <div
                 key={notice.id}
                 style={{
-                  background: isDark ? "rgba(15,23,42,0.90)" : "rgba(255,255,255,0.96)",
+                  background: isDark ? "rgba(17,17,17,0.90)" : "rgba(255,255,255,0.96)",
                   border: cardBorder,
                   borderRadius: 12,
                   padding: 12,
@@ -243,7 +243,7 @@ export default function UserDashboardHome({
                     display: "grid",
                     placeItems: "center",
                     fontSize: 14,
-                    background: isDark ? "rgba(59,130,246,0.18)" : "rgba(219,234,254,0.92)",
+                    background: isDark ? "rgba(255,196,0,0.18)" : "rgba(255,246,217,0.92)",
                   }}
                 >
                   {icon}
@@ -252,7 +252,7 @@ export default function UserDashboardHome({
                   <div style={{ fontSize: 14, fontWeight: 700, color: titleText }}>{notice.title}</div>
                   <div style={{ fontSize: 12, color: mutedText, marginTop: 2 }}>{notice.summary}</div>
                   {notice.notifyByEmail && notice.email && (
-                    <div style={{ fontSize: 11, color: "#1d4ed8", marginTop: 4 }}>📧 {notice.email}</div>
+                    <div style={{ fontSize: 11, color: "var(--marca-oscuro)", marginTop: 4 }}>📧 {notice.email}</div>
                   )}
                 </div>
                 <button
@@ -261,7 +261,7 @@ export default function UserDashboardHome({
                   style={{
                     border: "none",
                     background: "transparent",
-                    color: "#1d4ed8",
+                    color: "var(--marca-oscuro)",
                     fontSize: 12,
                     fontWeight: 700,
                     cursor: "pointer",
@@ -277,7 +277,7 @@ export default function UserDashboardHome({
         </div>
 
         {emailDigestFeedback && (
-          <div style={{ marginTop: 12, fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>
+          <div style={{ marginTop: 12, fontSize: 12, color: "var(--marca-oscuro)", fontWeight: 700 }}>
             {emailDigestFeedback}
           </div>
         )}
@@ -287,9 +287,9 @@ export default function UserDashboardHome({
             type="button"
             onClick={() => onNavigate("saved")}
             style={{
-              background: "rgba(37,99,235,0.10)",
-              border: "1px solid rgba(96,165,250,0.28)",
-              color: "#1e3a8a",
+              background: "rgba(255,196,0,0.10)",
+              border: "1px solid rgba(255,196,0,0.28)",
+              color: "var(--gris-900)",
               padding: "9px 12px",
               borderRadius: 10,
               fontSize: 12,
@@ -305,9 +305,9 @@ export default function UserDashboardHome({
               onClick={onSendAlertEmailDigest}
               disabled={emailDigestLoading}
               style={{
-                background: "rgba(99,102,241,0.16)",
-                border: "1px solid rgba(165,180,252,0.24)",
-                color: "#3730a3",
+                background: "rgba(255,196,0,0.16)",
+                border: "1px solid rgba(207,207,200,0.24)",
+                color: "var(--gris-600)",
                 padding: "9px 12px",
                 borderRadius: 10,
                 fontSize: 12,

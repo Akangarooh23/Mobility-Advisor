@@ -44,10 +44,10 @@ const STATUS_LABELS = {
 };
 const STATUS_COLORS = {
   pending:    { bg: "rgba(245,158,11,0.12)", color: "#92400e" },
-  in_review:  { bg: "rgba(139,92,246,0.12)", color: "#5b21b6" },
-  contacted:  { bg: "rgba(59,130,246,0.12)", color: "#1d4ed8" },
+  in_review:  { bg: "rgba(94,94,89,0.12)", color: "var(--gris-600)" },
+  contacted:  { bg: "rgba(255,196,0,0.12)", color: "var(--marca-oscuro)" },
   scheduled:  { bg: "rgba(16,185,129,0.15)", color: "#065f46" },
-  closed:     { bg: "rgba(100,116,139,0.12)", color: "#475569" },
+  closed:     { bg: "rgba(94,94,89,0.12)", color: "var(--gris-600)" },
 };
 
 function formatDate(iso) {
@@ -58,10 +58,10 @@ function formatDate(iso) {
 
 export default function UserDashboardServices({ themeMode, panelStyle, currentUser }) {
   const isDark = themeMode === "dark";
-  const titleColor = isDark ? "#f8fafc" : "#0f172a";
-  const bodyColor = isDark ? "#cbd5e1" : "#475569";
-  const cardBg = isDark ? "rgba(15,23,42,0.70)" : "rgba(255,255,255,0.96)";
-  const cardBorder = isDark ? "1px solid rgba(148,163,184,0.18)" : "1px solid rgba(148,163,184,0.26)";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
+  const cardBg = isDark ? "rgba(17,17,17,0.70)" : "rgba(255,255,255,0.96)";
+  const cardBorder = isDark ? "1px solid rgba(150,150,143,0.18)" : "1px solid rgba(150,150,143,0.26)";
 
   const [tab, setTab] = useState("new");
   const [vehicles, setVehicles] = useState([]);
@@ -142,9 +142,9 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
     boxSizing: "border-box",
     padding: "9px 12px",
     borderRadius: 8,
-    border: isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid #cbd5e1",
-    background: isDark ? "rgba(15,23,42,0.60)" : "#fff",
-    color: isDark ? "#e2e8f0" : "#0f172a",
+    border: isDark ? "1px solid rgba(150,150,143,0.28)" : "1px solid var(--gris-300)",
+    background: isDark ? "rgba(17,17,17,0.60)" : "#fff",
+    color: isDark ? "var(--gris-200)" : "var(--gris-900)",
     fontSize: 14,
     outline: "none",
   };
@@ -157,21 +157,21 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
       <div
         style={{
           background: isDark
-            ? "linear-gradient(135deg,rgba(30,64,175,0.36),rgba(79,70,229,0.28))"
-            : "linear-gradient(135deg,rgba(219,234,254,0.9),rgba(224,231,255,0.7))",
-          border: isDark ? "1px solid rgba(99,102,241,0.30)" : "1px solid rgba(99,102,241,0.22)",
+            ? "linear-gradient(135deg,rgba(17,17,17,0.36),rgba(94,94,89,0.28))"
+            : "linear-gradient(135deg,rgba(255,246,217,0.9),rgba(228,228,223,0.7))",
+          border: isDark ? "1px solid rgba(255,196,0,0.30)" : "1px solid rgba(255,196,0,0.22)",
           borderRadius: 14,
           padding: "20px 22px",
           marginBottom: 18,
         }}
       >
-        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.09em", color: "#6366f1", marginBottom: 6 }}>
-          TARIFA PROFESIONAL CARSWISE
+        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.09em", color: "var(--gris-500)", marginBottom: 6 }}>
+          TARIFA PROFESIONAL POPCAR
         </div>
-        <div style={{ fontSize: 17, fontWeight: 800, color: isDark ? "#e0e7ff" : "#1e1b4b", marginBottom: 6 }}>
+        <div style={{ fontSize: 17, fontWeight: 800, color: isDark ? "var(--gris-200)" : "var(--gris-800)", marginBottom: 6 }}>
           Precios de taller para profesionales y flotas
         </div>
-        <div style={{ fontSize: 13, color: isDark ? "#a5b4fc" : "#4338ca", lineHeight: 1.5 }}>
+        <div style={{ fontSize: 13, color: isDark ? "var(--gris-300)" : "var(--gris-600)", lineHeight: 1.5 }}>
           Accede a tarifas negociadas para flotas y gestores de flota — normalmente un{" "}
           <strong>15–30% por debajo del precio de mostrador</strong>. Nuestro equipo gestiona
           la cita y el precio directamente con el taller.
@@ -192,12 +192,12 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
               padding: "7px 14px",
               borderRadius: 8,
               border: tab === t.key
-                ? "1px solid rgba(99,102,241,0.40)"
-                : (isDark ? "1px solid rgba(148,163,184,0.18)" : "1px solid #e2e8f0"),
+                ? "1px solid rgba(255,196,0,0.40)"
+                : (isDark ? "1px solid rgba(150,150,143,0.18)" : "1px solid var(--gris-200)"),
               background: tab === t.key
-                ? (isDark ? "rgba(99,102,241,0.22)" : "rgba(224,231,255,0.9)")
-                : (isDark ? "rgba(15,23,42,0.60)" : "#fff"),
-              color: tab === t.key ? "#4338ca" : bodyColor,
+                ? (isDark ? "rgba(255,196,0,0.22)" : "rgba(228,228,223,0.9)")
+                : (isDark ? "rgba(17,17,17,0.60)" : "#fff"),
+              color: tab === t.key ? "var(--gris-600)" : bodyColor,
               fontSize: 13,
               fontWeight: 700,
               cursor: "pointer",
@@ -228,7 +228,7 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
                 Recibirás confirmación por email en <strong>24–48h hábiles</strong>.
                 Nuestro equipo gestionará precio y disponibilidad con el taller.
               </div>
-              <div style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b", marginBottom: 20 }}>
+              <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginBottom: 20 }}>
                 Ref: {submitted.id}
               </div>
               <button
@@ -237,9 +237,9 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
                 style={{
                   padding: "9px 20px",
                   borderRadius: 8,
-                  border: "1px solid rgba(99,102,241,0.40)",
-                  background: isDark ? "rgba(99,102,241,0.18)" : "rgba(224,231,255,0.9)",
-                  color: "#4338ca",
+                  border: "1px solid rgba(255,196,0,0.40)",
+                  background: isDark ? "rgba(255,196,0,0.18)" : "rgba(228,228,223,0.9)",
+                  color: "var(--gris-600)",
                   fontSize: 13,
                   fontWeight: 700,
                   cursor: "pointer",
@@ -263,12 +263,12 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
                         padding: "10px 8px",
                         borderRadius: 10,
                         border: serviceType === s.key
-                          ? "2px solid #6366f1"
-                          : (isDark ? "1px solid rgba(148,163,184,0.22)" : "1px solid #e2e8f0"),
+                          ? "2px solid var(--gris-500)"
+                          : (isDark ? "1px solid rgba(150,150,143,0.22)" : "1px solid var(--gris-200)"),
                         background: serviceType === s.key
-                          ? (isDark ? "rgba(99,102,241,0.28)" : "rgba(224,231,255,0.95)")
-                          : (isDark ? "rgba(15,23,42,0.50)" : "#f8fafc"),
-                        color: serviceType === s.key ? "#4338ca" : bodyColor,
+                          ? (isDark ? "rgba(255,196,0,0.28)" : "rgba(228,228,223,0.95)")
+                          : (isDark ? "rgba(17,17,17,0.50)" : "var(--gris-50)"),
+                        color: serviceType === s.key ? "var(--gris-600)" : bodyColor,
                         fontSize: 12,
                         fontWeight: serviceType === s.key ? 800 : 600,
                         cursor: "pointer",
@@ -354,8 +354,8 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
                   borderRadius: 10,
                   border: "none",
                   background: submitting || !serviceType
-                    ? (isDark ? "rgba(99,102,241,0.30)" : "rgba(99,102,241,0.35)")
-                    : "linear-gradient(135deg,#4f46e5,#7c3aed)",
+                    ? (isDark ? "rgba(255,196,0,0.30)" : "rgba(255,196,0,0.35)")
+                    : "linear-gradient(135deg,var(--gris-500),var(--gris-500))",
                   color: "#fff",
                   fontSize: 14,
                   fontWeight: 800,
@@ -418,7 +418,7 @@ export default function UserDashboardServices({ themeMode, panelStyle, currentUs
                           {r.vehicle_title}
                         </div>
                       )}
-                      <div style={{ fontSize: 12, color: isDark ? "#64748b" : "#94a3b8" }}>
+                      <div style={{ fontSize: 12, color: isDark ? "var(--gris-500)" : "var(--gris-400)" }}>
                         {[r.preferred_partner, r.preferred_province].filter(Boolean).join(" · ")}{" "}
                         · {formatDate(r.created_at)}
                       </div>

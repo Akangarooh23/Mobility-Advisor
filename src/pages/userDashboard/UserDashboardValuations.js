@@ -33,7 +33,7 @@ function TrendIndicator({ estimateValue, isDark }) {
       >
         {isUp ? "↑" : "↓"} {Math.abs(trend).toFixed(1)}%
       </span>
-      <span style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#64748b" }}>{t("dashboard.valLastDays")}</span>
+      <span style={{ fontSize: 11, color: isDark ? "var(--gris-400)" : "var(--gris-500)" }}>{t("dashboard.valLastDays")}</span>
     </div>
   );
 }
@@ -41,13 +41,13 @@ function TrendIndicator({ estimateValue, isDark }) {
 function ValuationCard({ item, isDark, cardBg, onRequestValuation, onNavigate }) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
-  const titleColor = isDark ? "#f8fafc" : "#0f172a";
-  const bodyColor = isDark ? "#cbd5e1" : "#475569";
-  const mutedColor = isDark ? "#94a3b8" : "#64748b";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
+  const mutedColor = isDark ? "var(--gris-400)" : "var(--gris-500)";
   const btnSecondary = {
-    background: isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)",
-    border: "1px solid rgba(148,163,184,0.4)",
-    color: isDark ? "#e2e8f0" : "#334155",
+    background: isDark ? "rgba(17,17,17,0.88)" : "rgba(255,255,255,0.95)",
+    border: "1px solid rgba(150,150,143,0.4)",
+    color: isDark ? "var(--gris-200)" : "var(--gris-700)",
     borderRadius: 8,
     fontSize: 11,
     fontWeight: 700,
@@ -64,7 +64,7 @@ function ValuationCard({ item, isDark, cardBg, onRequestValuation, onNavigate })
     <div
       style={{
         background: cardBg,
-        border: "1px solid rgba(148,163,184,0.26)",
+        border: "1px solid rgba(150,150,143,0.26)",
         borderRadius: 12,
         padding: "14px 16px",
       }}
@@ -85,9 +85,9 @@ function ValuationCard({ item, isDark, cardBg, onRequestValuation, onNavigate })
             fontSize: 10,
             fontWeight: 700,
             letterSpacing: "0.5px",
-            background: "rgba(124,58,237,0.12)",
-            border: "1px solid rgba(167,139,250,0.25)",
-            color: "#7c3aed",
+            background: "rgba(94,94,89,0.12)",
+            border: "1px solid rgba(150,150,143,0.25)",
+            color: "var(--gris-500)",
             borderRadius: 999,
             padding: "4px 10px",
             whiteSpace: "nowrap",
@@ -107,14 +107,14 @@ function ValuationCard({ item, isDark, cardBg, onRequestValuation, onNavigate })
             alignItems: "flex-end",
             marginTop: 12,
             padding: "10px 12px",
-            background: isDark ? "rgba(124,58,237,0.08)" : "rgba(124,58,237,0.05)",
-            border: "1px solid rgba(167,139,250,0.2)",
+            background: isDark ? "rgba(94,94,89,0.08)" : "rgba(94,94,89,0.05)",
+            border: "1px solid rgba(150,150,143,0.2)",
             borderRadius: 10,
           }}
         >
           <div>
             <div style={{ fontSize: 10, color: mutedColor, marginBottom: 2, letterSpacing: "0.4px" }}>{t("dashboard.valEstimatedPrice")}</div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a", letterSpacing: "-0.04em" }}>
+            <div style={{ fontSize: 22, fontWeight: 800, color: isDark ? "var(--gris-50)" : "var(--gris-900)", letterSpacing: "-0.04em" }}>
               {fmt(item.estimateValue)}€
             </div>
             <div style={{ fontSize: 11, color: mutedColor, marginTop: 2 }}>
@@ -153,8 +153,8 @@ function ValuationCard({ item, isDark, cardBg, onRequestValuation, onNavigate })
           style={{
             marginTop: 12,
             padding: "10px 12px",
-            background: isDark ? "rgba(15,23,42,0.5)" : "rgba(241,245,249,0.8)",
-            border: "1px solid rgba(148,163,184,0.2)",
+            background: isDark ? "rgba(17,17,17,0.5)" : "rgba(242,242,237,0.8)",
+            border: "1px solid rgba(150,150,143,0.2)",
             borderRadius: 10,
           }}
         >
@@ -172,8 +172,8 @@ function ValuationCard({ item, isDark, cardBg, onRequestValuation, onNavigate })
           style={{
             marginTop: 12,
             padding: "10px 12px",
-            background: isDark ? "rgba(15,23,42,0.5)" : "rgba(241,245,249,0.8)",
-            border: "1px solid rgba(148,163,184,0.2)",
+            background: isDark ? "rgba(17,17,17,0.5)" : "rgba(242,242,237,0.8)",
+            border: "1px solid rgba(150,150,143,0.2)",
             borderRadius: 10,
           }}
         >
@@ -195,16 +195,16 @@ export default function UserDashboardValuations({
 }) {
   const { t } = useTranslation();
   const isDark = themeMode === "dark";
-  const titleColor = isDark ? "#f8fafc" : "#0f172a";
-  const bodyColor = isDark ? "#cbd5e1" : "#475569";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
   const cardBg = isDark
-    ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
-    : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(241,245,249,0.92))";
+    ? "linear-gradient(160deg, rgba(17,17,17,0.9), rgba(31,31,29,0.82))"
+    : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(242,242,237,0.92))";
   const sectionFrame = {
-    background: isDark ? "rgba(2,6,23,0.34)" : "rgba(248,250,252,0.86)",
-    border: isDark ? "1px solid rgba(148,163,184,0.22)" : "1px solid rgba(148,163,184,0.24)",
+    background: isDark ? "rgba(5,5,5,0.34)" : "rgba(250,250,248,0.86)",
+    border: isDark ? "1px solid rgba(150,150,143,0.22)" : "1px solid rgba(150,150,143,0.24)",
     borderRadius: 14,
-    boxShadow: isDark ? "0 14px 26px rgba(2,6,23,0.28)" : "0 10px 20px rgba(15,23,42,0.06)",
+    boxShadow: isDark ? "0 14px 26px rgba(5,5,5,0.28)" : "0 10px 20px rgba(17,17,17,0.06)",
   };
 
   return (
@@ -212,7 +212,7 @@ export default function UserDashboardValuations({
       {/* Section header */}
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 14 }}>
         <div>
-          <div style={{ fontSize: 11, color: "#c084fc", letterSpacing: "0.6px" }}>{t("dashboard.valSectionLabel")}</div>
+          <div style={{ fontSize: 11, color: "var(--gris-400)", letterSpacing: "0.6px" }}>{t("dashboard.valSectionLabel")}</div>
           <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: titleColor }}>
             {t("dashboard.valTitle")}
           </div>
@@ -228,9 +228,9 @@ export default function UserDashboardValuations({
             type="button"
             onClick={() => onNavigate("operations")}
             style={{
-              background: "rgba(124,58,237,0.12)",
-              border: "1px solid rgba(167,139,250,0.3)",
-              color: "#7c3aed",
+              background: "rgba(94,94,89,0.12)",
+              border: "1px solid rgba(150,150,143,0.3)",
+              color: "var(--gris-500)",
               borderRadius: 8,
               fontSize: 11,
               fontWeight: 700,
@@ -262,7 +262,7 @@ export default function UserDashboardValuations({
           style={{
             textAlign: "center",
             padding: "28px 16px",
-            color: isDark ? "#94a3b8" : "#64748b",
+            color: isDark ? "var(--gris-400)" : "var(--gris-500)",
             fontSize: 13,
           }}
         >
@@ -275,9 +275,9 @@ export default function UserDashboardValuations({
             type="button"
             onClick={() => onNavigate("operations")}
             style={{
-              background: "rgba(124,58,237,0.12)",
-              border: "1px solid rgba(167,139,250,0.3)",
-              color: "#7c3aed",
+              background: "rgba(94,94,89,0.12)",
+              border: "1px solid rgba(150,150,143,0.3)",
+              color: "var(--gris-500)",
               borderRadius: 8,
               fontSize: 12,
               fontWeight: 700,

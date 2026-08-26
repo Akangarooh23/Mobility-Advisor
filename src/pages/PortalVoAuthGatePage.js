@@ -11,11 +11,11 @@ export default function PortalVoAuthGatePage({
   const isDark = themeMode === "dark";
   const { t } = useTranslation();
 
-  const cardBg = isDark ? "rgba(15,23,42,0.6)" : "rgba(255,255,255,0.95)";
-  const titleColor = isDark ? "#f8fafc" : "#0f172a";
-  const bodyColor = isDark ? "#cbd5e1" : "#475569";
-  const accentColor = isDark ? "#38bdf8" : "#0284c7";
-  const mutedColor = isDark ? "#94a3b8" : "#64748b";
+  const cardBg = isDark ? "rgba(17,17,17,0.6)" : "rgba(255,255,255,0.95)";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
+  const accentColor = isDark ? "var(--gris-500)" : "var(--gris-900)";
+  const mutedColor = isDark ? "var(--gris-400)" : "var(--gris-500)";
 
   const features = [
     { icon: "🚗", text: t("marketplaceGate.feature1", "Cientos de vehículos de ocasión verificados") },
@@ -43,8 +43,8 @@ export default function PortalVoAuthGatePage({
             margin: "0 auto 16px",
             borderRadius: 16,
             overflow: "hidden",
-            border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(14,165,233,0.18)",
-            boxShadow: isDark ? "none" : "0 4px 20px rgba(14,165,233,0.08)",
+            border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(255,196,0,0.18)",
+            boxShadow: isDark ? "none" : "0 4px 20px rgba(255,196,0,0.08)",
             position: "relative",
           }}
         >
@@ -75,7 +75,7 @@ export default function PortalVoAuthGatePage({
             </div>
           )}
           <div style={{
-            background: isDark ? "rgba(15,23,42,0.85)" : "rgba(239,246,255,0.95)",
+            background: isDark ? "rgba(17,17,17,0.85)" : "rgba(239,246,255,0.95)",
             padding: "12px 18px",
             display: "flex", alignItems: "center", gap: 10,
           }}>
@@ -97,8 +97,8 @@ export default function PortalVoAuthGatePage({
           padding: "36px 32px",
           boxShadow: isDark
             ? "0 8px 40px rgba(0,0,0,0.5)"
-            : "0 8px 40px rgba(14,165,233,0.10)",
-          border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(14,165,233,0.15)",
+            : "0 8px 40px rgba(255,196,0,0.10)",
+          border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(255,196,0,0.15)",
         }}
       >
         <div style={{ textAlign: "center", marginBottom: 28 }}>
@@ -132,7 +132,7 @@ export default function PortalVoAuthGatePage({
                 display: "flex",
                 alignItems: "center",
                 gap: 12,
-                background: isDark ? "rgba(255,255,255,0.04)" : "rgba(14,165,233,0.05)",
+                background: isDark ? "rgba(255,255,255,0.04)" : "rgba(255,196,0,0.05)",
                 borderRadius: 10,
                 padding: "10px 14px",
               }}
@@ -148,7 +148,7 @@ export default function PortalVoAuthGatePage({
             type="button"
             onClick={onRegister}
             style={{
-              background: "linear-gradient(135deg, #0ea5e9, #2563eb)",
+              background: "linear-gradient(135deg, var(--gris-700), var(--marca))",
               color: "#fff",
               border: "none",
               borderRadius: 12,
@@ -167,7 +167,7 @@ export default function PortalVoAuthGatePage({
             style={{
               background: "transparent",
               color: accentColor,
-              border: `1.5px solid ${isDark ? "rgba(56,189,248,0.35)" : "rgba(2,132,199,0.3)"}`,
+              border: `1.5px solid ${isDark ? "rgba(150,150,143,0.35)" : "rgba(230,176,0,0.3)"}`,
               borderRadius: 12,
               padding: "13px 24px",
               fontSize: 14,
@@ -184,7 +184,7 @@ export default function PortalVoAuthGatePage({
             style={{
               background: "transparent",
               border: "none",
-              color: isDark ? "#64748b" : "#94a3b8",
+              color: isDark ? "var(--gris-500)" : "var(--gris-400)",
               fontSize: 12,
               cursor: "pointer",
               marginTop: 4,

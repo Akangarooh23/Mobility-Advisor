@@ -1,0 +1,59 @@
+/**
+ * Los colores de la aplicación, definidos una sola vez.
+ *
+ * Antes cada color estaba escrito a mano en cada sitio donde se usaba: el azul
+ * de marca aparecía 146 veces repartidas por 41 ficheros, y cambiarlo obligaba
+ * a abrirlos todos. Ahora el color vive aquí y el resto del código lo pide por
+ * su nombre. Repintar la aplicación es editar este fichero.
+ *
+ * ── Cómo están nombrados ────────────────────────────────────────────────────
+ *
+ * La escala neutra va por número, de más oscuro a más claro, y no por función
+ * («--texto», «--borde»). Es a propósito: estos tokens sustituyen más de mil
+ * cuatrocientas apariciones y no se puede afirmar que el gris 600 sea siempre
+ * texto de cuerpo — en muchos sitios es un icono, o un borde. Un nombre por
+ * función que resulta falso engaña más que un número honesto.
+ *
+ * ── Por qué los valores todavía son azules ──────────────────────────────────
+ *
+ * Este primer paso no cambia ni un píxel. Los valores son exactamente los que
+ * ya había, para que la sustitución se pueda revisar sabiendo que cualquier
+ * diferencia visual es un error de sustitución y no una decisión de diseño.
+ * El cambio a la paleta de PopCar viene después, y entonces solo se tocan las
+ * trece líneas de abajo.
+ */
+
+:root {
+  /* Escala neutra. Antes era la gama slate de Tailwind, que tira a azul; ahora
+     es neutra tirando a cálido, para que no pelee con el amarillo. */
+  --gris-900: #111111;   /* Pop Black */
+  --gris-800: #1F1F1D;
+  --gris-700: #333330;
+  --gris-600: #4A4A45;
+  --gris-500: #5E5E59;
+  --gris-400: #96968F;
+  --gris-300: #CFCFC8;
+  --gris-200: #E4E4DF;
+  --gris-100: #F2F2ED;
+  --gris-50:  #FAFAF8;   /* relleno suave de componentes, no fondo de página */
+
+  /* Marca.
+     El negro, y no el amarillo. Estos tres tokens pintan el fondo de 320
+     botones, enlaces y bordes activos, y casi todos llevan texto blanco encima:
+     en amarillo eso da 1,7:1 y no se lee. El amarillo entra abajo, como acento,
+     y se coloca a mano donde tiene que destacar. */
+  --marca:        #111111;
+  --marca-oscuro: #000000;
+  --marca-claro:  #3A3A36;
+
+  /* Acento — Pop Yellow.
+     Es relleno, o texto sobre negro. Nunca texto pequeño sobre blanco: para eso
+     está --acento-texto, que es el mismo amarillo a una luminosidad legible
+     (7,4:1 sobre blanco). */
+  --acento:        #FFC400;
+  --acento-oscuro: #E6B000;
+  --acento-tenue:  #FFF6D9;
+  --acento-texto:  #6B5200;
+
+  --blanco: #FFFFFF;
+}

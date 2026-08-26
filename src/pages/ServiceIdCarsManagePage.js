@@ -376,25 +376,25 @@ function mapErpBodyType(c = "") {
 const SECTION_CARD_STYLE = {
   background: "#fff",
   borderRadius: 16,
-  border: "1px solid #ece8df",
+  border: "1px solid var(--gris-200)",
   marginBottom: 10,
   overflow: "hidden",
   boxShadow: "0 1px 3px rgba(0,0,0,0.05),0 2px 10px rgba(0,0,0,0.03)",
 };
 
 const INPUT_STYLE = {
-  border: "1px solid #e5e7eb",
+  border: "1px solid var(--gris-200)",
   borderRadius: 10,
   padding: "9px 10px",
   fontSize: 13,
-  color: "#374151",
+  color: "var(--gris-700)",
   background: "#fff",
   outline: "none",
   width: "100%",
   boxSizing: "border-box",
 };
 
-const LABEL_STYLE = { display: "grid", gap: 5, fontSize: 12, color: "#6b7280" };
+const LABEL_STYLE = { display: "grid", gap: 5, fontSize: 12, color: "var(--gris-500)" };
 
 function SectionBlock({ title, subtitle, open, onToggle, children, openLabel = "Open", closeLabel = "Hide" }) {
   return (
@@ -409,18 +409,18 @@ function SectionBlock({ title, subtitle, open, onToggle, children, openLabel = "
         }}
       >
         <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#1f2937" }}>{title}</div>
-          {subtitle ? <div style={{ fontSize: 11.5, color: "#9ca3af", marginTop: 2, fontWeight: 400 }}>{subtitle}</div> : null}
+          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--gris-800)" }}>{title}</div>
+          {subtitle ? <div style={{ fontSize: 11.5, color: "var(--gris-400)", marginTop: 2, fontWeight: 400 }}>{subtitle}</div> : null}
         </div>
         <span style={{
-          fontSize: 11, fontWeight: 700, color: "#2563eb",
-          background: "rgba(37,99,235,0.07)", borderRadius: 8, padding: "4px 10px",
-          border: "1px solid rgba(37,99,235,0.14)", whiteSpace: "nowrap",
+          fontSize: 11, fontWeight: 700, color: "var(--marca)",
+          background: "rgba(255,196,0,0.07)", borderRadius: 8, padding: "4px 10px",
+          border: "1px solid rgba(255,196,0,0.14)", whiteSpace: "nowrap",
         }}>
           {open ? closeLabel : openLabel}
         </span>
       </button>
-      {open ? <div style={{ borderTop: "1px solid #f1ede6", padding: "14px 16px" }}>{children}</div> : null}
+      {open ? <div style={{ borderTop: "1px solid var(--gris-100)", padding: "14px 16px" }}>{children}</div> : null}
     </div>
   );
 }
@@ -462,7 +462,7 @@ export default function ServiceIdCarsManagePage({
   const [marketplaceOverrides, setMarketplaceOverrides] = useState({});
   const [marketplacePublishDialog, setMarketplacePublishDialog] = useState({ open: false, vehicle: null });
 
-  // Informe de estado (CarsWise Check). La lógica vive en el hook porque el
+  // Informe de estado (PopCar Check). La lógica vive en el hook porque el
   // panel de vehículos publica también y el requisito tiene que ser el mismo.
   const {
     cargar: cargarInforme,
@@ -651,7 +651,7 @@ export default function ServiceIdCarsManagePage({
     setFeedback(message);
     setFeedbackTone(tone);
   };
-  const feedbackColor = feedbackTone === "error" ? "#b91c1c" : feedbackTone === "success" ? "#047857" : "#1d4ed8";
+  const feedbackColor = feedbackTone === "error" ? "#b91c1c" : feedbackTone === "success" ? "#047857" : "var(--marca-oscuro)";
 
   // Photo reorder helpers
   const updateActiveVehiclePhotos = (newPhotos) => {
@@ -1023,7 +1023,7 @@ export default function ServiceIdCarsManagePage({
     }
   };
 
-  // ─── informe de estado (CarsWise Check) ─────────────────────────────
+  // ─── informe de estado (PopCar Check) ─────────────────────────────
   // La ficha de un coche necesita el informe aunque la sección esté plegada:
   // lo consultan también las acciones rápidas. En el listado solo se pide si
   // el usuario abre la sección, para no lanzar una petición por cada coche.
@@ -1146,8 +1146,8 @@ export default function ServiceIdCarsManagePage({
   };
 
   const renderFileUpload = (label, pendingFiles, setPending, inputRef, accept, colorHex, storedFiles = [], storedGroupKey = "") => (
-    <div style={{ display: "grid", gap: 6, fontSize: 12, color: "#6b7280" }}>
-      <div style={{ fontWeight: 700, color: "#374151" }}>{label}</div>
+    <div style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-500)" }}>
+      <div style={{ fontWeight: 700, color: "var(--gris-700)" }}>{label}</div>
       <input ref={inputRef} type="file" multiple accept={accept} onChange={(e) => setPending(Array.from(e.target.files || []))} style={{ display: "none" }} />
       <button
         type="button"
@@ -1170,8 +1170,8 @@ export default function ServiceIdCarsManagePage({
       {storedFiles.filter((file) => !isStoredAttachmentRemoved(storedGroupKey, file)).length ? (
         storedGroupKey === "photos" ? (
           /* Photo grid with drag-reorder and primary star */
-          <div style={{ border: "1px solid #e5e7eb", borderRadius: 10, background: "#fcfcfc", padding: "8px 10px" }}>
-            <div style={{ fontSize: 10, color: "#6b7280", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
+          <div style={{ border: "1px solid var(--gris-200)", borderRadius: 10, background: "var(--gris-50)", padding: "8px 10px" }}>
+            <div style={{ fontSize: 10, color: "var(--gris-500)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
               {txt("Guardadas · arrastra para reordenar", "Saved · drag to reorder")}
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(72px,1fr))", gap: 6 }}>
@@ -1215,8 +1215,8 @@ export default function ServiceIdCarsManagePage({
             </div>
           </div>
         ) : (
-        <div style={{ border: "1px solid #e5e7eb", borderRadius: 10, background: "#fcfcfc", padding: "8px 10px" }}>
-          <div style={{ fontSize: 10.5, color: "#6b7280", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
+        <div style={{ border: "1px solid var(--gris-200)", borderRadius: 10, background: "var(--gris-50)", padding: "8px 10px" }}>
+          <div style={{ fontSize: 10.5, color: "var(--gris-500)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
             {txt("Guardados en ficha", "Saved in profile")}
           </div>
           <div style={{ display: "grid", gap: 6, maxHeight: 180, overflowY: "auto", paddingRight: 2 }}>
@@ -1227,21 +1227,21 @@ export default function ServiceIdCarsManagePage({
                 const hasDataLink = Boolean(getAttachmentDataUrl(file));
                 const fileName = normalizeText(file?.name) || `${txt("Archivo", "File")} ${index + 1}`;
                 return (
-                  <div key={`${getAttachmentIdentityKey(file)}-${index}`} style={{ border: "1px solid #eef2f7", borderRadius: 8, padding: "6px 8px", background: "#fff" }}>
-                    <div style={{ fontSize: 11.5, color: "#374151", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: 600, marginBottom: 5 }}>
+                  <div key={`${getAttachmentIdentityKey(file)}-${index}`} style={{ border: "1px solid var(--gris-100)", borderRadius: 8, padding: "6px 8px", background: "#fff" }}>
+                    <div style={{ fontSize: 11.5, color: "var(--gris-700)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: 600, marginBottom: 5 }}>
                       {fileName}
                     </div>
                     <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
                     {(hasExternalLink || hasDataLink) ? (
                       <button type="button" onClick={() => openAttachmentPreview(file)} title={txt("Abrir", "Open")}
-                        style={{ border: "1px solid #c7d2fe", background: "#eef2ff", color: "#3730a3", borderRadius: 6, fontSize: 13, lineHeight: 1, padding: "3px 7px", cursor: "pointer" }}>↗</button>
+                        style={{ border: "1px solid var(--gris-300)", background: "var(--gris-100)", color: "var(--gris-600)", borderRadius: 6, fontSize: 13, lineHeight: 1, padding: "3px 7px", cursor: "pointer" }}>↗</button>
                     ) : null}
                     {(hasExternalLink || hasDataLink) ? (
                       <button type="button" onClick={() => triggerAttachmentDownload(file)} title={txt("Descargar", "Download")}
-                        style={{ border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", borderRadius: 6, fontSize: 13, lineHeight: 1, padding: "3px 7px", cursor: "pointer" }}>↓</button>
+                        style={{ border: "1px solid var(--gris-200)", background: "var(--acento-tenue)", color: "var(--marca-oscuro)", borderRadius: 6, fontSize: 13, lineHeight: 1, padding: "3px 7px", cursor: "pointer" }}>↓</button>
                     ) : null}
                     <button type="button" onClick={() => markStoredAttachmentForRemoval(storedGroupKey, file)} title={txt("Eliminar", "Delete")}
-                      style={{ border: "1px solid #fecaca", background: "#fff1f2", color: "#b91c1c", borderRadius: 6, fontSize: 12, lineHeight: 1, padding: "3px 7px", cursor: "pointer", marginLeft: "auto" }}>✕</button>
+                      style={{ border: "1px solid #fecaca", background: "var(--gris-100)", color: "#b91c1c", borderRadius: 6, fontSize: 12, lineHeight: 1, padding: "3px 7px", cursor: "pointer", marginLeft: "auto" }}>✕</button>
                     </div>
                   </div>
                 );
@@ -1331,7 +1331,7 @@ export default function ServiceIdCarsManagePage({
         </button>
         <button type="button"
           onClick={() => typeof onRequestValuation === "function" && onRequestValuation(vehicle)}
-          style={{ background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.22)", color: "#1d4ed8", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+          style={{ background: "rgba(255,196,0,0.08)", border: "1px solid rgba(255,196,0,0.22)", color: "var(--marca-oscuro)", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
           {txt("Solicitar tasación", "Request valuation")}
         </button>
         <button type="button"
@@ -1343,7 +1343,7 @@ export default function ServiceIdCarsManagePage({
             }
             setOpenSections((prev) => ({ ...prev, insurance: true }));
           }}
-          style={{ background: "rgba(14,116,144,0.08)", border: "1px solid rgba(14,116,144,0.22)", color: "#0e7490", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+          style={{ background: "rgba(94,94,89,0.08)", border: "1px solid rgba(94,94,89,0.22)", color: "var(--gris-500)", borderRadius: 8, padding: "9px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
           {txt("Gestionar seguro", "Manage insurance")}
         </button>
         {isPublished ? (
@@ -1381,10 +1381,10 @@ export default function ServiceIdCarsManagePage({
 
     return (
     <div style={{ marginBottom: 12 }}>
-      <div style={{ fontSize: 16, fontWeight: 800, color: "#1f2937", marginBottom: 4, padding: "0 2px" }}>
+      <div style={{ fontSize: 16, fontWeight: 800, color: "var(--gris-800)", marginBottom: 4, padding: "0 2px" }}>
         {isCreating ? txt("Añadir vehículo propio", "Add your own vehicle") : txt("Editar vehículo", "Edit vehicle")}
       </div>
-      <p style={{ fontSize: 12.5, color: "#9ca3af", marginBottom: 12, padding: "0 2px", fontWeight: 300 }}>
+      <p style={{ fontSize: 12.5, color: "var(--gris-400)", marginBottom: 12, padding: "0 2px", fontWeight: 300 }}>
         {txt("Crea tu garage personal con fotos, documentación y acciones rápidas.", "Create your personal garage with photos, documents, and quick actions.")}
       </p>
 
@@ -1400,20 +1400,20 @@ export default function ServiceIdCarsManagePage({
           <button type="button"
             onClick={() => setVehicleCatalogMode("erp")}
             style={{ fontSize: 11, fontWeight: 700, borderRadius: 8, padding: "5px 12px", border: "1px solid", cursor: "pointer",
-              background: vehicleCatalogMode === "erp" ? "#2563eb" : "transparent",
-              color: vehicleCatalogMode === "erp" ? "#fff" : "#6b7280",
-              borderColor: vehicleCatalogMode === "erp" ? "#2563eb" : "#d1d5db" }}>
+              background: vehicleCatalogMode === "erp" ? "var(--marca)" : "transparent",
+              color: vehicleCatalogMode === "erp" ? "#fff" : "var(--gris-500)",
+              borderColor: vehicleCatalogMode === "erp" ? "var(--marca)" : "var(--gris-300)" }}>
             {txt("Catálogo", "Catalog")}
           </button>
           <button type="button"
             onClick={() => setVehicleCatalogMode("manual")}
             style={{ fontSize: 11, fontWeight: 700, borderRadius: 8, padding: "5px 12px", border: "1px solid", cursor: "pointer",
-              background: vehicleCatalogMode === "manual" ? "#2563eb" : "transparent",
-              color: vehicleCatalogMode === "manual" ? "#fff" : "#6b7280",
-              borderColor: vehicleCatalogMode === "manual" ? "#2563eb" : "#d1d5db" }}>
+              background: vehicleCatalogMode === "manual" ? "var(--marca)" : "transparent",
+              color: vehicleCatalogMode === "manual" ? "#fff" : "var(--gris-500)",
+              borderColor: vehicleCatalogMode === "manual" ? "var(--marca)" : "var(--gris-300)" }}>
             {txt("Manual", "Manual")}
           </button>
-          <span style={{ fontSize: 11, color: "#9ca3af" }}>
+          <span style={{ fontSize: 11, color: "var(--gris-400)" }}>
             {vehicleCatalogMode === "erp"
               ? txt("Selecciona desde catálogo para autocompletar datos", "Select from catalog to auto-fill data")
               : txt("Introduce los datos manualmente", "Enter data manually")}
@@ -1423,7 +1423,7 @@ export default function ServiceIdCarsManagePage({
         <div style={{ display: "grid", rowGap: 10, columnGap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>
           {vehicleCatalogMode === "erp" ? (
             <>
-              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#6b7280" }}>
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-500)" }}>
                 {txt("Marca", "Brand")}
                 <select value={erpSelectedBrandId} disabled={erpBrandsLoading}
                   onChange={(e) => {
@@ -1444,12 +1444,12 @@ export default function ServiceIdCarsManagePage({
                         .finally(() => setErpModelsLoading(false));
                     } else { setErpModels([]); }
                   }}
-                  style={{ background: "#fff", border: "1px solid #d1d5db", borderRadius: 10, padding: "9px 10px", color: erpSelectedBrandId ? "#111827" : "#9ca3af", width: "100%", boxSizing: "border-box" }}>
+                  style={{ background: "#fff", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "9px 10px", color: erpSelectedBrandId ? "var(--gris-900)" : "var(--gris-400)", width: "100%", boxSizing: "border-box" }}>
                   <option value="">{erpBrandsLoading ? txt("Cargando…", "Loading…") : txt("Selecciona marca", "Select brand")}</option>
                   {erpBrands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
                 </select>
               </label>
-              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#6b7280" }}>
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-500)" }}>
                 {txt("Modelo", "Model")}
                 <select value={erpSelectedModelId} disabled={!erpSelectedBrandId || erpModelsLoading}
                   onChange={(e) => {
@@ -1468,12 +1468,12 @@ export default function ServiceIdCarsManagePage({
                         .finally(() => setErpVersionsLoading(false));
                     } else { setErpVersions([]); }
                   }}
-                  style={{ background: "#fff", border: "1px solid #d1d5db", borderRadius: 10, padding: "9px 10px", color: erpSelectedModelId ? "#111827" : "#9ca3af", width: "100%", boxSizing: "border-box" }}>
+                  style={{ background: "#fff", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "9px 10px", color: erpSelectedModelId ? "var(--gris-900)" : "var(--gris-400)", width: "100%", boxSizing: "border-box" }}>
                   <option value="">{erpModelsLoading ? txt("Cargando…", "Loading…") : !erpSelectedBrandId ? txt("Selecciona la marca antes", "Select brand first") : txt("Selecciona modelo", "Select model")}</option>
                   {erpModels.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
                 </select>
               </label>
-              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#6b7280" }}>
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-500)" }}>
                 {txt("Versión", "Version")}
                 <select value={form.version} disabled={!erpSelectedModelId || erpVersionsLoading || erpVersions.length === 0}
                   onChange={(e) => {
@@ -1502,7 +1502,7 @@ export default function ServiceIdCarsManagePage({
                         .catch(() => {});
                     }
                   }}
-                  style={{ background: "#fff", border: "1px solid #d1d5db", borderRadius: 10, padding: "9px 10px", color: form.version ? "#111827" : "#9ca3af", width: "100%", boxSizing: "border-box" }}>
+                  style={{ background: "#fff", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "9px 10px", color: form.version ? "var(--gris-900)" : "var(--gris-400)", width: "100%", boxSizing: "border-box" }}>
                   <option value="">{erpVersionsLoading ? txt("Cargando…", "Loading…") : !erpSelectedModelId ? txt("Selecciona el modelo antes", "Select model first") : erpVersions.length === 0 ? txt("Sin versiones en catálogo", "No versions in catalog") : txt("Selecciona versión", "Select version")}</option>
                   {erpVersions.map((v) => <option key={v.codversion} value={v.codversion}>{v.label}</option>)}
                 </select>
@@ -1549,15 +1549,15 @@ export default function ServiceIdCarsManagePage({
           const hasError = ps.status === "error";
           return (
             <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 8 }}>
-              <p style={{ fontSize: 12, color: "#6b7280", margin: 0 }}>
-                {txt("Publica tu vehículo en el Marketplace de CarsWise para que otros usuarios puedan comprarlo.", "Publish your vehicle in the CarsWise Marketplace so other users can buy it.")}
+              <p style={{ fontSize: 12, color: "var(--gris-500)", margin: 0 }}>
+                {txt("Publica tu vehículo en el Marketplace de PopCar para que otros usuarios puedan comprarlo.", "Publish your vehicle in the PopCar Marketplace so other users can buy it.")}
               </p>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
                 {!isPublished && !isUnpublished && (
                   <button type="button"
                     disabled={isPublishing || !normalizeText(form.price)}
                     onClick={() => handlePublish(vid, form.price, "publish")}
-                    style={{ border: "none", borderRadius: 9, background: isPublishing ? "#93c5fd" : "linear-gradient(135deg,#2563eb,#3b82f6)", color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: isPublishing || !normalizeText(form.price) ? "not-allowed" : "pointer", opacity: !normalizeText(form.price) ? 0.5 : 1 }}>
+                    style={{ border: "none", borderRadius: 9, background: isPublishing ? "var(--gris-300)" : "linear-gradient(135deg,var(--marca),var(--marca-claro))", color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: isPublishing || !normalizeText(form.price) ? "not-allowed" : "pointer", opacity: !normalizeText(form.price) ? 0.5 : 1 }}>
                     {isPublishing ? txt("Publicando…", "Publishing…") : txt("🚀 Publicar en Marketplace", "🚀 Publish to Marketplace")}
                   </button>
                 )}
@@ -1576,12 +1576,12 @@ export default function ServiceIdCarsManagePage({
                 {isUnpublished && (
                   <button type="button"
                     onClick={() => handlePublish(vid, form.price, "publish")}
-                    style={{ border: "none", borderRadius: 9, background: "linear-gradient(135deg,#2563eb,#3b82f6)", color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                    style={{ border: "none", borderRadius: 9, background: "linear-gradient(135deg,var(--marca),var(--marca-claro))", color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
                     {txt("🚀 Volver a publicar", "🚀 Republish")}
                   </button>
                 )}
                 {!normalizeText(form.price) && !isPublished && (
-                  <span style={{ fontSize: 11, color: "#9ca3af" }}>{txt("Introduce un precio para poder publicar", "Enter a price to publish")}</span>
+                  <span style={{ fontSize: 11, color: "var(--gris-400)" }}>{txt("Introduce un precio para poder publicar", "Enter a price to publish")}</span>
                 )}
               </div>
               {hasError && (
@@ -1597,10 +1597,10 @@ export default function ServiceIdCarsManagePage({
         open={openSections.vehicleDocuments} onToggle={() => toggleSection("vehicleDocuments")}
         openLabel={txt("Abrir", "Open")} closeLabel={txt("Ocultar", "Hide")}>
         <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))" }}>
-          {renderFileUpload(txt("Fotos del vehículo", "Vehicle photos"), pendingPhotos, setPendingPhotos, photoInputRef, "image/*", "#2563eb", storedPhotos, "photos")}
+          {renderFileUpload(txt("Fotos del vehículo", "Vehicle photos"), pendingPhotos, setPendingPhotos, photoInputRef, "image/*", "var(--marca)", storedPhotos, "photos")}
           {renderFileUpload(txt("Ficha técnica", "Technical sheet"), pendingTechnicalSheetDocuments, setPendingTechnicalSheetDocuments, technicalSheetInputRef, ".pdf,image/*", "#0f766e", storedTechnicalSheetDocuments, "technicalSheetDocuments")}
           {renderFileUpload(txt("Permiso de circulación", "Circulation permit"), pendingCirculationPermitDocuments, setPendingCirculationPermitDocuments, circulationPermitInputRef, ".pdf,image/*", "#0f766e", storedCirculationPermitDocuments, "circulationPermitDocuments")}
-          {renderFileUpload(txt("Otros documentos", "Other documents"), pendingOtherDocuments, setPendingOtherDocuments, otherDocInputRef, ".pdf,image/*,.doc,.docx", "#7c3aed", storedOtherDocuments, "documents")}
+          {renderFileUpload(txt("Otros documentos", "Other documents"), pendingOtherDocuments, setPendingOtherDocuments, otherDocInputRef, ".pdf,image/*,.doc,.docx", "var(--gris-500)", storedOtherDocuments, "documents")}
           {renderFileUpload(txt("Documentación ITV", "MOT documentation"), pendingItvDocuments, setPendingItvDocuments, itvInputRef, ".pdf,image/*", "#0f766e", storedItvDocuments, "itvDocuments")}
         </div>
       </SectionBlock>
@@ -1613,7 +1613,7 @@ export default function ServiceIdCarsManagePage({
           const vehicleId = normalizeText(activeVehicle?.id);
           if (!vehicleId) {
             return (
-              <p style={{ fontSize: 12.5, color: "#9ca3af", margin: 0 }}>
+              <p style={{ fontSize: 12.5, color: "var(--gris-400)", margin: 0 }}>
                 {txt("Guarda el vehículo antes de empezar la captura.", "Save the vehicle before starting the capture.")}
               </p>
             );
@@ -1624,7 +1624,7 @@ export default function ServiceIdCarsManagePage({
 
           return (
             <div style={{ display: "grid", gap: 12 }}>
-              <p style={{ fontSize: 12.5, color: "#6b7280", margin: 0, lineHeight: 1.5 }}>
+              <p style={{ fontSize: 12.5, color: "var(--gris-500)", margin: 0, lineHeight: 1.5 }}>
                 {txt(
                   "Se abre una pestaña que te guía para hacer 16 fotos del coche. Al terminar tendrás un informe de estado aparente con los daños situados sobre un esquema del vehículo.",
                   "A new tab guides you through 16 photos of the car. When you finish you get an apparent-condition report with the damage placed on a diagram of the vehicle."
@@ -1649,7 +1649,7 @@ export default function ServiceIdCarsManagePage({
                 </button>
                 {informe.lista.length > 0 && (
                   <button type="button" onClick={() => { void cargarInforme(vehicleId); }}
-                    style={{ border: "1px solid #e5e7eb", borderRadius: 10, background: "#fff", color: "#6b7280", padding: "10px 14px", fontSize: 12.5, fontWeight: 700, cursor: "pointer" }}>
+                    style={{ border: "1px solid var(--gris-200)", borderRadius: 10, background: "#fff", color: "var(--gris-500)", padding: "10px 14px", fontSize: 12.5, fontWeight: 700, cursor: "pointer" }}>
                     {txt("Actualizar estado", "Refresh status")}
                   </button>
                 )}
@@ -1660,7 +1660,7 @@ export default function ServiceIdCarsManagePage({
               )}
 
               {informe.lista.length === 0 && informe.carga.status === "ready" && (
-                <p style={{ fontSize: 12, color: "#9ca3af", margin: 0 }}>
+                <p style={{ fontSize: 12, color: "var(--gris-400)", margin: 0 }}>
                   {txt("Todavía no hay ninguna captura para este coche.", "No capture yet for this car.")}
                 </p>
               )}
@@ -1669,8 +1669,8 @@ export default function ServiceIdCarsManagePage({
                 <div style={{ display: "grid", gap: 6 }}>
                   {informe.lista.map((expediente) => (
                     <div key={expediente.session_id}
-                      style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", border: "1px solid #f1ede6", borderRadius: 10, padding: "9px 12px" }}>
-                      <span style={{ fontSize: 12.5, color: "#1f2937", fontWeight: 600 }}>
+                      style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", border: "1px solid var(--gris-100)", borderRadius: 10, padding: "9px 12px" }}>
+                      <span style={{ fontSize: 12.5, color: "var(--gris-800)", fontWeight: 600 }}>
                         {etiquetaEstado(expediente.status, isEn)}
                       </span>
                       <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -1682,7 +1682,7 @@ export default function ServiceIdCarsManagePage({
                             <ConditionReportAr base={baseDelModelo3d(vehicleId, expediente.session_id)} />
                           </>
                         )}
-                        <span style={{ fontSize: 11.5, color: "#9ca3af" }}>
+                        <span style={{ fontSize: 11.5, color: "var(--gris-400)" }}>
                           {expediente.created_at
                             ? new Date(expediente.created_at).toLocaleDateString(isEn ? "en-GB" : "es-ES")
                             : ""}
@@ -1693,7 +1693,7 @@ export default function ServiceIdCarsManagePage({
                 </div>
               )}
 
-              <p style={{ fontSize: 11.5, color: "#9ca3af", margin: 0, lineHeight: 1.5 }}>
+              <p style={{ fontSize: 11.5, color: "var(--gris-400)", margin: 0, lineHeight: 1.5 }}>
                 {txt(
                   "Es una estimación visual sobre fotografías: no sustituye una revisión mecánica ni pone precio al coche. Las matrículas y las caras se difuminan antes de que nada sea visible en público.",
                   "This is a visual estimate from photographs: it does not replace a mechanical inspection and does not price the car. Number plates and faces are blurred before anything becomes publicly visible."
@@ -1746,11 +1746,11 @@ export default function ServiceIdCarsManagePage({
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 4, padding: "10px 0" }}>
         <button type="button" onClick={handleSave} disabled={isSaving}
-          style={{ border: "none", borderRadius: 10, background: "linear-gradient(135deg,#2563eb,#3b82f6)", color: "#fff", padding: "11px 18px", fontSize: 13.5, fontWeight: 700, cursor: isSaving ? "not-allowed" : "pointer", opacity: isSaving ? 0.78 : 1 }}>
+          style={{ border: "none", borderRadius: 10, background: "linear-gradient(135deg,var(--marca),var(--marca-claro))", color: "#fff", padding: "11px 18px", fontSize: 13.5, fontWeight: 700, cursor: isSaving ? "not-allowed" : "pointer", opacity: isSaving ? 0.78 : 1 }}>
           {isSaving ? txt("Guardando...", "Saving...") : txt("Guardar cambios", "Save changes")}
         </button>
         <button type="button" onClick={cancelEdit}
-          style={{ border: "1px solid #e5e7eb", borderRadius: 10, background: "#fff", color: "#6b7280", padding: "11px 18px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+          style={{ border: "1px solid var(--gris-200)", borderRadius: 10, background: "#fff", color: "var(--gris-500)", padding: "11px 18px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
           {isDetailView ? txt("Volver al listado", "Back to list") : txt("Cancelar edición", "Cancel edit")}
         </button>
       </div>
@@ -1761,15 +1761,17 @@ export default function ServiceIdCarsManagePage({
   // ─── render ──────────────────────────────────────────────────────────
   return (
     <>
-    <div style={{ width: "100%", maxWidth: 980, margin: "0 auto", color: "#1a1a1a", padding: "0 8px 18px" }}>
+    {/* El aire de arriba separa del header, que antes quedaba pegado; el de
+        abajo evita que el ultimo boton muera contra el pie. */}
+    <div style={{ width: "100%", maxWidth: 980, margin: "0 auto", color: "var(--gris-800)", padding: "32px 8px 72px" }}>
 
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
         <button type="button" onClick={isCreateView ? onGoBack : onGoBack}
-          style={{ border: "1px solid #ece8df", background: "#fff", borderRadius: 8, padding: "7px 12px", fontSize: 12, color: "#888", cursor: "pointer", fontWeight: 600 }}>
+          style={{ border: "1px solid var(--gris-200)", background: "#fff", borderRadius: 8, padding: "7px 12px", fontSize: 12, color: "#888", cursor: "pointer", fontWeight: 600 }}>
           {txt("← Volver", "← Back")}
         </button>
-        <div style={{ fontSize: 12, color: "#b8b8b8" }}>
-          {txt("Servicios", "Services")} › <span style={{ color: "#2563eb", fontWeight: 700 }}>
+        <div style={{ fontSize: 12, color: "var(--gris-300)" }}>
+          {txt("Servicios", "Services")} › <span style={{ color: "var(--marca)", fontWeight: 700 }}>
             {isCreateView ? txt("Crear IDCar", "Create IDCar") : isDetailView ? buildVehicleTitle(selectedVehicle || {}) : txt("Mis IDCars", "My IDCars")}
           </span>
         </div>
@@ -1779,7 +1781,7 @@ export default function ServiceIdCarsManagePage({
       {isCreateView ? (
         <>
           <section style={{ ...SECTION_CARD_STYLE, padding: "18px 20px", marginBottom: 12 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#2563eb", background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 20, padding: "4px 12px", marginBottom: 10 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--marca)", background: "rgba(255,196,0,0.08)", border: "1px solid rgba(255,196,0,0.2)", borderRadius: 20, padding: "4px 12px", marginBottom: 10 }}>
               {txt("🚗 Nuevo IDCar", "🚗 New IDCar")}
             </div>
             <h2 style={{ margin: "0 0 5px", fontSize: 22, fontWeight: 700, color: "#111", letterSpacing: "-0.02em" }}>{txt("Crear mi IDCar", "Create my IDCar")}</h2>
@@ -1795,27 +1797,58 @@ export default function ServiceIdCarsManagePage({
       {/* ── LIST & DETAIL VIEWS ── */}
       {!isCreateView ? (
         <>
-      <section style={{ ...SECTION_CARD_STYLE, padding: "18px 20px", marginBottom: 12 }}>
-        <h2 style={{ margin: "0 0 5px", fontSize: 22, fontWeight: 700, color: "#111", letterSpacing: "-0.02em" }}>{txt("Gestionar mis IDCars", "Manage my IDCars")}</h2>
-        <p style={{ margin: "0 0 10px", fontSize: 13.5, color: "#888", lineHeight: 1.6, fontWeight: 300 }}>
-          {txt("Tus vehículos se sincronizan con el Panel de usuario. Puedes editarlos o quitarlos desde aquí.", "Your vehicles sync with the user panel. You can edit or remove them from here.")}
-        </p>
-        {!isDetailView && !editingVehicleId && !isCreating ? (
-          <button type="button" onClick={startCreate}
-            style={{ border: "none", borderRadius: 12, background: "linear-gradient(135deg,#2563eb,#3b82f6)", color: "#fff", padding: "10px 16px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-            {txt("Crear nuevo IDCar", "Create new IDCar")}
-          </button>
-        ) : null}
-      </section>
+      <h1 style={{ margin: "0 0 6px", fontSize: 30, fontWeight: 800, color: "#111", letterSpacing: "-0.03em" }}>
+        {txt("Gestiona tu garaje", "Manage your garage")}
+      </h1>
+      <p style={{ margin: "0 0 20px", fontSize: 14.5, color: "#888", lineHeight: 1.6, fontWeight: 300, maxWidth: "62ch" }}>
+        {txt(
+          "Cada coche que añades queda con sus datos, sus fotos y sus documentos en un solo sitio.",
+          "Every car you add keeps its details, photos and documents in one place."
+        )}
+      </p>
+
+      {/* Las dos cajas se reparten el ancho, y bajan una debajo de otra cuando
+          no caben: con `auto-fit` no hace falta medir la ventana. */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12, marginBottom: 12 }}>
+        <section style={{ ...SECTION_CARD_STYLE, padding: "20px 22px", marginBottom: 0, display: "flex", flexDirection: "column" }}>
+          <h2 style={{ margin: "0 0 5px", fontSize: 19, fontWeight: 700, color: "#111", letterSpacing: "-0.02em" }}>{txt("Crear nuevo IDCar", "Create new IDCar")}</h2>
+          <p style={{ margin: "0 0 14px", fontSize: 13.5, color: "#888", lineHeight: 1.6, fontWeight: 300 }}>
+            {txt("Añade un vehículo al garaje con su marca, su modelo y su matrícula.", "Add a vehicle to the garage with its make, model and plate.")}
+          </p>
+          {/* `margin-top: auto` deja los dos botones a la misma altura aunque
+              los textos de arriba no midan lo mismo. */}
+          {!isDetailView && !editingVehicleId && !isCreating ? (
+            <button type="button" onClick={startCreate}
+              style={{ marginTop: "auto", alignSelf: "flex-start", border: "none", borderRadius: 12, background: "linear-gradient(135deg,var(--marca),var(--marca-claro))", color: "#fff", padding: "10px 16px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+              {txt("Crear nuevo IDCar", "Create new IDCar")}
+            </button>
+          ) : null}
+        </section>
+
+        <section style={{ ...SECTION_CARD_STYLE, padding: "20px 22px", marginBottom: 0, display: "flex", flexDirection: "column" }}>
+          <h2 style={{ margin: "0 0 5px", fontSize: 19, fontWeight: 700, color: "#111", letterSpacing: "-0.02em" }}>{txt("Gestionar mis IDCars", "Manage my IDCars")}</h2>
+          <p style={{ margin: "0 0 14px", fontSize: 13.5, color: "#888", lineHeight: 1.6, fontWeight: 300 }}>
+            {txt("Tus vehículos se sincronizan con el Panel de usuario. Puedes editarlos o quitarlos desde aquí.", "Your vehicles sync with the user panel. You can edit or remove them from here.")}
+          </p>
+          <div style={{ marginTop: "auto", fontSize: 13, fontWeight: 700, color: visibleVehicles.length ? "var(--gris-700)" : "var(--gris-400)" }}>
+            {visibleVehicles.length
+              ? txt(
+                  `${visibleVehicles.length} ${visibleVehicles.length === 1 ? "IDCar creado" : "IDCars creados"}`,
+                  `${visibleVehicles.length} ${visibleVehicles.length === 1 ? "IDCar" : "IDCars"} created`
+                )
+              : txt("Todavía no hay ninguno", "None yet")}
+          </div>
+        </section>
+      </div>
 
       {feedback ? <div style={{ marginBottom: 10, fontSize: 13, color: feedbackColor, fontWeight: 600 }}>{feedback}</div> : null}
 
       {isDetailView && !selectedVehicle ? (
         <section style={{ ...SECTION_CARD_STYLE, padding: "18px 20px", marginBottom: 12 }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: "#111", marginBottom: 6 }}>{txt("No se ha encontrado este IDCar", "This IDCar was not found")}</div>
-          <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 12 }}>{txt("Vuelve al listado y selecciona un vehículo válido.", "Go back to the list and select a valid vehicle.")}</div>
+          <div style={{ fontSize: 13, color: "var(--gris-500)", marginBottom: 12 }}>{txt("Vuelve al listado y selecciona un vehículo válido.", "Go back to the list and select a valid vehicle.")}</div>
           <button type="button" onClick={onGoBack}
-            style={{ border: "1px solid #e5e7eb", borderRadius: 10, background: "#fff", color: "#6b7280", padding: "10px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+            style={{ border: "1px solid var(--gris-200)", borderRadius: 10, background: "#fff", color: "var(--gris-500)", padding: "10px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
             {txt("Volver al listado", "Back to list")}
           </button>
         </section>
@@ -1842,7 +1875,7 @@ export default function ServiceIdCarsManagePage({
           { label: txt("Carrocería", "Body type"), value: normalizeText(vehicle.bodyType) },
         ].filter((s) => s.value);
         const envLabel = normalizeText(vehicle.environmentalLabel);
-        const envColor = envLabel === "0" ? "#22c55e" : envLabel === "eco" ? "#0ea5e9" : envLabel === "c" ? "#f59e0b" : envLabel === "b" ? "#ef4444" : "";
+        const envColor = envLabel === "0" ? "#22c55e" : envLabel === "eco" ? "var(--gris-700)" : envLabel === "c" ? "#f59e0b" : envLabel === "b" ? "#ef4444" : "";
 
         return (
           <section key={vehicle.id} className="idcar-card-animated" style={{ ...SECTION_CARD_STYLE, marginBottom: 8, padding: 0, overflow: "hidden" }}>
@@ -1850,7 +1883,7 @@ export default function ServiceIdCarsManagePage({
             <div style={{ display: "flex", flexWrap: isCompactCard ? "wrap" : "nowrap", minHeight: isCompactCard ? 0 : 148 }}>
               {/* QR column — full square */}
               {!isCompactCard ? (
-                <div style={{ flex: "0 0 120px", width: 120, height: 148, background: "#ffffff", borderRight: "1px solid #f1ede6", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ flex: "0 0 120px", width: 120, height: 148, background: "var(--blanco)", borderRight: "1px solid var(--gris-100)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <QRCodeSVG
                     value={`https://movilidad-advisor.vercel.app/idcar/${vehicle.id}`}
                     size={104}
@@ -1861,11 +1894,11 @@ export default function ServiceIdCarsManagePage({
               ) : null}
 
               {/* Photo column — wider */}
-              <div style={{ position: "relative", flex: isCompactCard ? "1 1 0%" : "0 0 220px", width: isCompactCard ? "auto" : 220, minWidth: 0, height: isCompactCard ? 124 : 148, background: "#f1ede6", overflow: "hidden", borderRight: isCompactCard ? "none" : "1px solid #f1ede6" }}>
+              <div style={{ position: "relative", flex: isCompactCard ? "1 1 0%" : "0 0 220px", width: isCompactCard ? "auto" : 220, minWidth: 0, height: isCompactCard ? 124 : 148, background: "var(--gris-100)", overflow: "hidden", borderRight: isCompactCard ? "none" : "1px solid var(--gris-100)" }}>
                 {firstPhoto ? (
                   <img src={firstPhoto} alt={buildVehicleTitle(vehicle)} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block" }} />
                 ) : (
-                  <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, color: "#d0cbc5" }}>🚗</div>
+                  <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, color: "var(--gris-300)" }}>🚗</div>
                 )}
                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.52) 0%, transparent 50%)" }} />
                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "4px 6px" }}>
@@ -1881,19 +1914,19 @@ export default function ServiceIdCarsManagePage({
               </div>
 
               {/* Specs column — rectangular */}
-              <div style={{ flex: isCompactCard ? "1 1 100%" : "1 1 0%", background: "#fff", padding: isCompactCard ? "10px 10px 11px" : "9px 10px", display: "flex", flexDirection: "column", justifyContent: "space-between", overflow: "hidden", borderTop: isCompactCard ? "1px solid #f1ede6" : "none" }}>
+              <div style={{ flex: isCompactCard ? "1 1 100%" : "1 1 0%", background: "#fff", padding: isCompactCard ? "10px 10px 11px" : "9px 10px", display: "flex", flexDirection: "column", justifyContent: "space-between", overflow: "hidden", borderTop: isCompactCard ? "1px solid var(--gris-100)" : "none" }}>
                 <div style={{ display: "grid", gridTemplateColumns: isCompactCard ? "repeat(2,minmax(0,1fr))" : "repeat(3,minmax(0,1fr))", gap: isCompactCard ? "7px 9px" : "6px 10px" }}>
                   {specGrid.slice(0, 9).map(({ label, value }) => (
                     <div key={label} style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.06em", color: "#b8b1aa", fontWeight: 700 }}>{label}</div>
-                      <div style={{ fontSize: 12.5, color: "#374151", fontWeight: 700, lineHeight: 1.25, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{value}</div>
+                      <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--gris-400)", fontWeight: 700 }}>{label}</div>
+                      <div style={{ fontSize: 12.5, color: "var(--gris-700)", fontWeight: 700, lineHeight: 1.25, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{value}</div>
                     </div>
                   ))}
                 </div>
                 {/* Doc badges + actions row */}
                 <div style={{ display: "flex", flexDirection: isCompactCard ? "column" : "row", alignItems: isCompactCard ? "stretch" : "center", justifyContent: "space-between", gap: 8, marginTop: 8 }}>
                   <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                    {docsCount > 0 && <span style={{ background: "rgba(37,99,235,0.07)", color: "#1d4ed8", border: "1px solid rgba(37,99,235,0.18)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>📄 {docsCount}</span>}
+                    {docsCount > 0 && <span style={{ background: "rgba(255,196,0,0.07)", color: "var(--marca-oscuro)", border: "1px solid rgba(255,196,0,0.18)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>📄 {docsCount}</span>}
                     {insuranceDocs > 0 && <span style={{ background: "rgba(16,185,129,0.07)", color: "#047857", border: "1px solid rgba(16,185,129,0.18)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>🛡️ {insuranceDocs}</span>}
                     {maintenanceDocs > 0 && <span style={{ background: "rgba(251,146,60,0.08)", color: "#c2410c", border: "1px solid rgba(251,146,60,0.22)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 600 }}>🔧 {maintenanceDocs}</span>}
                     {getIsPublished(vehicle) && <span style={{ background: "rgba(16,185,129,0.1)", color: "#047857", border: "1px solid rgba(16,185,129,0.3)", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 700 }}>🟢 Marketplace</span>}
@@ -1910,12 +1943,12 @@ export default function ServiceIdCarsManagePage({
                       {txt("Ver ficha", "View profile")}
                     </button>
                     <button type="button" onClick={() => openVehicleDetail(vehicle, true)}
-                      style={{ border: "1px solid rgba(59,130,246,0.3)", background: "rgba(59,130,246,0.08)", color: "#2563eb", borderRadius: 7, padding: isCompactCard ? "8px 8px" : "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", minHeight: isCompactCard ? 36 : "auto" }}>
+                      style={{ border: "1px solid rgba(255,196,0,0.3)", background: "rgba(255,196,0,0.08)", color: "var(--marca)", borderRadius: 7, padding: isCompactCard ? "8px 8px" : "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", minHeight: isCompactCard ? 36 : "auto" }}>
                       {txt("Editar", "Edit")}
                     </button>
                     <button type="button"
                       onClick={() => setOpenManagePanelId((prev) => (prev === vehicle.id ? "" : vehicle.id))}
-                      style={{ border: "1px solid rgba(14,116,144,0.3)", background: openManagePanelId === vehicle.id ? "rgba(14,116,144,0.15)" : "rgba(14,116,144,0.07)", color: "#0e7490", borderRadius: 7, padding: isCompactCard ? "8px 8px" : "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", minHeight: isCompactCard ? 36 : "auto" }}>
+                      style={{ border: "1px solid rgba(94,94,89,0.3)", background: openManagePanelId === vehicle.id ? "rgba(94,94,89,0.15)" : "rgba(94,94,89,0.07)", color: "var(--gris-500)", borderRadius: 7, padding: isCompactCard ? "8px 8px" : "4px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", minHeight: isCompactCard ? 36 : "auto" }}>
                       {openManagePanelId === vehicle.id ? txt("✕ Cerrar", "✕ Close") : txt("Gestionar", "Manage")}
                     </button>
                   </div>
@@ -1923,7 +1956,7 @@ export default function ServiceIdCarsManagePage({
               </div>
             </div>
             {openManagePanelId === vehicle.id && (
-              <div style={{ borderTop: "1px solid #f1ede6", padding: "12px 16px", background: "#fafaf9" }}>
+              <div style={{ borderTop: "1px solid var(--gris-100)", padding: "12px 16px", background: "var(--gris-50)" }}>
                 {renderManagePanel(vehicle)}
               </div>
             )}
@@ -1935,16 +1968,16 @@ export default function ServiceIdCarsManagePage({
         <>
           {/* Portal-style hero */}
           <section style={{ ...SECTION_CARD_STYLE, marginBottom: 14, overflow: "hidden" }}>
-            <div style={{ position: "relative", height: 320, background: "#f1ede6", overflow: "hidden" }}>
+            <div style={{ position: "relative", height: 320, background: "var(--gris-100)", overflow: "hidden" }}>
               {getFirstPhotoSrc(selectedVehicle) ? (
                 <img src={getFirstPhotoSrc(selectedVehicle)} alt={buildVehicleTitle(selectedVehicle)} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
               ) : (
-                <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 96, color: "#d0cbc5" }}>🚗</div>
+                <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 96, color: "var(--gris-300)" }}>🚗</div>
               )}
               <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0) 20%, rgba(0,0,0,0.85) 100%)" }} />
               {normalizeText(selectedVehicle.environmentalLabel) ? (() => {
                 const envLabel = normalizeText(selectedVehicle.environmentalLabel);
-                const envColor = envLabel === "0" ? "#22c55e" : envLabel === "eco" ? "#0ea5e9" : envLabel === "c" ? "#f59e0b" : "#ef4444";
+                const envColor = envLabel === "0" ? "#22c55e" : envLabel === "eco" ? "var(--gris-700)" : envLabel === "c" ? "#f59e0b" : "#ef4444";
                 return (
                   <div style={{ position: "absolute", top: 14, right: 14, background: envColor, color: "#fff", fontSize: 10, fontWeight: 800, borderRadius: 8, padding: "4px 12px", letterSpacing: "0.07em", textTransform: "uppercase", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
                     {envLabel === "0" ? "0 emisiones" : envLabel.toUpperCase()}
@@ -1972,7 +2005,7 @@ export default function ServiceIdCarsManagePage({
                 <div style={{ display: "flex", gap: 8 }}>
                   {!isEditMode ? (
                     <button type="button" onClick={() => setIsEditMode(true)}
-                      style={{ border: "none", borderRadius: 10, background: "linear-gradient(135deg,#2563eb,#3b82f6)", color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 2px 12px rgba(37,99,235,0.4)" }}>
+                      style={{ border: "none", borderRadius: 10, background: "linear-gradient(135deg,var(--marca),var(--marca-claro))", color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 2px 12px rgba(255,196,0,0.4)" }}>
                       {txt("✏️ Editar ficha", "✏️ Edit profile")}
                     </button>
                   ) : (
@@ -2004,9 +2037,9 @@ export default function ServiceIdCarsManagePage({
                 [txt("Seguro", "Insurance"), selectedVehicle.policyCompany],
                 [txt("Cobertura", "Coverage"), selectedVehicle.coverageType],
               ].filter(([, value]) => normalizeText(value)).map(([label, value]) => (
-                <div key={label} style={{ border: "1px solid #ece8df", borderRadius: 10, background: "#fafaf9", padding: "8px 10px" }}>
-                  <div style={{ fontSize: 9.5, textTransform: "uppercase", letterSpacing: "0.09em", color: "#b3b3b3", fontWeight: 700, marginBottom: 3 }}>{label}</div>
-                  <div style={{ fontSize: 12.5, color: "#374151", fontWeight: 600 }}>{value}</div>
+                <div key={label} style={{ border: "1px solid var(--gris-200)", borderRadius: 10, background: "var(--gris-50)", padding: "8px 10px" }}>
+                  <div style={{ fontSize: 9.5, textTransform: "uppercase", letterSpacing: "0.09em", color: "var(--gris-400)", fontWeight: 700, marginBottom: 3 }}>{label}</div>
+                  <div style={{ fontSize: 12.5, color: "var(--gris-700)", fontWeight: 600 }}>{value}</div>
                 </div>
               ))}
             </div>
@@ -2022,18 +2055,18 @@ export default function ServiceIdCarsManagePage({
               if (!docCount && !insCount && !mntCount && !photoCount) return null;
               return (
                 <div style={{ padding: "0 20px 16px", display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {photoCount > 0 && <span style={{ background: "rgba(37,99,235,0.08)", color: "#1d4ed8", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📷 {photoCount} {txt(`foto${photoCount !== 1 ? "s" : ""}`, `photo${photoCount !== 1 ? "s" : ""}`)}</span>}
-                  {docCount > 0 && <span style={{ background: "rgba(37,99,235,0.08)", color: "#1d4ed8", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📄 {docCount} {txt(`doc${docCount !== 1 ? "s" : ""}`, `doc${docCount !== 1 ? "s" : ""}`)}</span>}
+                  {photoCount > 0 && <span style={{ background: "rgba(255,196,0,0.08)", color: "var(--marca-oscuro)", border: "1px solid rgba(255,196,0,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📷 {photoCount} {txt(`foto${photoCount !== 1 ? "s" : ""}`, `photo${photoCount !== 1 ? "s" : ""}`)}</span>}
+                  {docCount > 0 && <span style={{ background: "rgba(255,196,0,0.08)", color: "var(--marca-oscuro)", border: "1px solid rgba(255,196,0,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📄 {docCount} {txt(`doc${docCount !== 1 ? "s" : ""}`, `doc${docCount !== 1 ? "s" : ""}`)}</span>}
                   {insCount > 0 && <span style={{ background: "rgba(16,185,129,0.08)", color: "#047857", border: "1px solid rgba(16,185,129,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>🛡️ {insCount} {txt(`seguro${insCount !== 1 ? "s" : ""}`, `insurance${insCount !== 1 ? "s" : ""}`)}</span>}
                   {mntCount > 0 && <span style={{ background: "rgba(251,146,60,0.1)", color: "#c2410c", border: "1px solid rgba(251,146,60,0.25)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>🔧 {mntCount} mant.</span>}
-                  {normalizeText(selectedVehicle.notes) ? <span style={{ background: "rgba(107,114,128,0.08)", color: "#6b7280", border: "1px solid rgba(107,114,128,0.18)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📝 {txt("Notas", "Notes")}</span> : null}
+                  {normalizeText(selectedVehicle.notes) ? <span style={{ background: "rgba(94,94,89,0.08)", color: "var(--gris-500)", border: "1px solid rgba(94,94,89,0.18)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>📝 {txt("Notas", "Notes")}</span> : null}
                 </div>
               );
             })()}
 
             {(() => {
               const sections = [
-                { key: "photos", title: txt("Fotos del vehículo", "Vehicle photos"), items: Array.isArray(selectedVehicle.photos) ? selectedVehicle.photos : [], color: "#1d4ed8" },
+                { key: "photos", title: txt("Fotos del vehículo", "Vehicle photos"), items: Array.isArray(selectedVehicle.photos) ? selectedVehicle.photos : [], color: "var(--marca-oscuro)" },
                 {
                   key: "technical-sheet",
                   title: txt("Ficha técnica", "Technical sheet"),
@@ -2042,7 +2075,7 @@ export default function ServiceIdCarsManagePage({
                 },
                 { key: "circulation-permit", title: txt("Permiso de circulación", "Circulation permit"), items: Array.isArray(selectedVehicle.circulationPermitDocuments) ? selectedVehicle.circulationPermitDocuments : [], color: "#0f766e" },
                 { key: "itv", title: txt("Documentación ITV", "MOT documentation"), items: Array.isArray(selectedVehicle.itvDocuments) ? selectedVehicle.itvDocuments : [], color: "#0f766e" },
-                { key: "other-documents", title: txt("Otros documentos", "Other documents"), items: Array.isArray(selectedVehicle.documents) ? selectedVehicle.documents : [], color: "#7c3aed" },
+                { key: "other-documents", title: txt("Otros documentos", "Other documents"), items: Array.isArray(selectedVehicle.documents) ? selectedVehicle.documents : [], color: "var(--gris-500)" },
                 { key: "insurance", title: txt("Documentos de seguro", "Insurance documents"), items: Array.isArray(selectedVehicle.insuranceDocuments) ? selectedVehicle.insuranceDocuments : [], color: "#047857" },
                 { key: "maintenance", title: txt("Facturas de mantenimiento", "Maintenance invoices"), items: Array.isArray(selectedVehicle.maintenanceInvoices) ? selectedVehicle.maintenanceInvoices : [], color: "#c2410c" },
               ];
@@ -2050,8 +2083,8 @@ export default function ServiceIdCarsManagePage({
               return (
                 <div style={{ padding: "0 20px 18px", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10 }}>
                   {sections.map((section) => (
-                    <div key={section.key} style={{ border: "1px solid #ece8df", borderRadius: 10, background: "#fff", padding: "10px 11px" }}>
-                      <div style={{ fontSize: 11.5, fontWeight: 700, color: "#374151", marginBottom: 6 }}>{section.title}</div>
+                    <div key={section.key} style={{ border: "1px solid var(--gris-200)", borderRadius: 10, background: "#fff", padding: "10px 11px" }}>
+                      <div style={{ fontSize: 11.5, fontWeight: 700, color: "var(--gris-700)", marginBottom: 6 }}>{section.title}</div>
                       {section.items.length ? (
                         <div style={{ display: "grid", gap: 4 }}>
                           {section.items.slice(0, 5).map((file, index) => (
@@ -2064,7 +2097,7 @@ export default function ServiceIdCarsManagePage({
                                   type="button"
                                   onClick={() => openAttachmentPreview(file)}
                                   title={txt("Abrir", "Open")}
-                                  style={{ border: "1px solid #d1d5db", background: "#fff", color: "#374151", borderRadius: 6, padding: "2px 6px", fontSize: 13, lineHeight: 1, cursor: "pointer", flexShrink: 0 }}
+                                  style={{ border: "1px solid var(--gris-300)", background: "#fff", color: "var(--gris-700)", borderRadius: 6, padding: "2px 6px", fontSize: 13, lineHeight: 1, cursor: "pointer", flexShrink: 0 }}
                                 >
                                   ↗
                                 </button>
@@ -2074,17 +2107,17 @@ export default function ServiceIdCarsManagePage({
                                   type="button"
                                   onClick={() => triggerAttachmentDownload(file)}
                                   title={txt("Descargar", "Download")}
-                                  style={{ border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", borderRadius: 6, padding: "2px 6px", fontSize: 13, lineHeight: 1, cursor: "pointer", flexShrink: 0 }}
+                                  style={{ border: "1px solid var(--gris-200)", background: "var(--acento-tenue)", color: "var(--marca-oscuro)", borderRadius: 6, padding: "2px 6px", fontSize: 13, lineHeight: 1, cursor: "pointer", flexShrink: 0 }}
                                 >
                                   ↓
                                 </button>
                               ) : null}
                             </div>
                           ))}
-                          {section.items.length > 5 ? <div style={{ fontSize: 11, color: "#9ca3af" }}>+{section.items.length - 5} {txt("archivo(s) más", "more file(s)")}</div> : null}
+                          {section.items.length > 5 ? <div style={{ fontSize: 11, color: "var(--gris-400)" }}>+{section.items.length - 5} {txt("archivo(s) más", "more file(s)")}</div> : null}
                         </div>
                       ) : (
-                        <div style={{ fontSize: 11.5, color: "#9ca3af" }}>{txt("Sin adjuntos", "No attachments")}</div>
+                        <div style={{ fontSize: 11.5, color: "var(--gris-400)" }}>{txt("Sin adjuntos", "No attachments")}</div>
                       )}
                     </div>
                   ))}
@@ -2094,7 +2127,7 @@ export default function ServiceIdCarsManagePage({
           </section>
 
           <section style={{ ...SECTION_CARD_STYLE, padding: "14px 18px", marginBottom: 14 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#374151", marginBottom: 10 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gris-700)", marginBottom: 10 }}>
               {txt("Acciones rápidas", "Quick actions")}
             </div>
             {renderManagePanel(selectedVehicle)}
@@ -2106,19 +2139,17 @@ export default function ServiceIdCarsManagePage({
 
       {!isDetailView && (isCreating || editingVehicleId) ? renderVehicleEditor() : null}
 
+      {/* Solo el aviso: el boton de crear ya esta en su caja, ahi arriba, y dos
+          botones identicos en la misma pantalla se estorban. */}
       {!visibleVehicles.length && !isCreating && !isDetailView ? (
         <section style={{ ...SECTION_CARD_STYLE, padding: "20px 16px" }}>
-          <div style={{ fontSize: 14, color: "#6b7280", marginBottom: 10 }}>{txt("Aún no tienes IDCars creados.", "You do not have any IDCars yet.")}</div>
-          <button type="button" onClick={startCreate}
-            style={{ border: "none", borderRadius: 10, background: "linear-gradient(135deg,#2563eb,#3b82f6)", color: "#fff", padding: "10px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-            {txt("Crear mi primer IDCar", "Create my first IDCar")}
-          </button>
+          <div style={{ fontSize: 14, color: "var(--gris-500)" }}>{txt("Aún no tienes IDCars creados.", "You do not have any IDCars yet.")}</div>
         </section>
       ) : null}
 
       <div style={{ marginTop: 14 }}>
         <button type="button" onClick={onGoHome}
-          style={{ border: "1px solid #e5e7eb", borderRadius: 10, background: "#fff", color: "#6b7280", padding: "9px 12px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+          style={{ border: "1px solid var(--gris-200)", borderRadius: 10, background: "#fff", color: "var(--gris-500)", padding: "9px 12px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
           {txt("Ir al inicio", "Go to home")}
         </button>
       </div>
@@ -2138,21 +2169,21 @@ export default function ServiceIdCarsManagePage({
         cuando cabe y deja desplazar cuando no. */}
     {marketplacePublishDialog.open && marketplacePublishDialog.vehicle ? createPortal(
       <div onClick={closeMarketplacePublishDialog}
-        style={{ position: "fixed", inset: 0, zIndex: 1200, background: "rgba(15,23,42,0.35)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, overflowY: "auto", overscrollBehavior: "contain" }}>
+        style={{ position: "fixed", inset: 0, zIndex: 1200, background: "rgba(17,17,17,0.35)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, overflowY: "auto", overscrollBehavior: "contain" }}>
         <div onClick={(e) => e.stopPropagation()}
           role="dialog" aria-modal="true" aria-label={txt("Confirmar publicación en marketplace", "Confirm marketplace listing")}
           ref={marketplacePublishDialogRef} tabIndex={-1}
-          style={{ width: "min(480px,100%)", margin: "auto", border: "1px solid #e5e7eb", borderRadius: 14, background: "#fff", boxShadow: "0 20px 50px rgba(0,0,0,0.18)", padding: 20, display: "grid", gap: 12 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: "#111827" }}>
+          style={{ width: "min(480px,100%)", margin: "auto", border: "1px solid var(--gris-200)", borderRadius: 14, background: "#fff", boxShadow: "0 20px 50px rgba(0,0,0,0.18)", padding: 20, display: "grid", gap: 12 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "var(--gris-900)" }}>
             {txt("Confirmar publicación en Marketplace", "Confirm Marketplace listing")}
           </div>
-          <div style={{ fontSize: 12, color: "#6b7280", display: "grid", gap: 8 }}>
-            <div><strong style={{ color: "#374151" }}>{txt("Vehículo:", "Vehicle:")} </strong>{marketplacePublishDialog.vehicle.title}</div>
+          <div style={{ fontSize: 12, color: "var(--gris-500)", display: "grid", gap: 8 }}>
+            <div><strong style={{ color: "var(--gris-700)" }}>{txt("Vehículo:", "Vehicle:")} </strong>{marketplacePublishDialog.vehicle.title}</div>
             {marketplacePublishDialog.vehicle.price ? (
-              <div><strong style={{ color: "#374151" }}>{txt("Precio:", "Price:")} </strong>{marketplacePublishDialog.vehicle.price} EUR</div>
+              <div><strong style={{ color: "var(--gris-700)" }}>{txt("Precio:", "Price:")} </strong>{marketplacePublishDialog.vehicle.price} EUR</div>
             ) : (
               <label style={{ display: "grid", gap: 5 }}>
-                <span style={{ fontWeight: 700, color: "#374151" }}>{txt("Precio de venta (€)", "Sale price (€)")}</span>
+                <span style={{ fontWeight: 700, color: "var(--gris-700)" }}>{txt("Precio de venta (€)", "Sale price (€)")}</span>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <input
                     type="number"
@@ -2161,12 +2192,12 @@ export default function ServiceIdCarsManagePage({
                     placeholder="p.ej. 12500"
                     value={marketplacePublishDialog.modalPrice || ""}
                     onChange={(e) => setMarketplacePublishDialog((prev) => ({ ...prev, modalPrice: e.target.value }))}
-                    style={{ flex: 1, border: "1px solid #d1d5db", borderRadius: 8, padding: "8px 10px", fontSize: 13, color: "#111827", outline: "none" }}
+                    style={{ flex: 1, border: "1px solid var(--gris-300)", borderRadius: 8, padding: "8px 10px", fontSize: 13, color: "var(--gris-900)", outline: "none" }}
                     autoFocus
                   />
-                  <span style={{ color: "#6b7280", fontSize: 12 }}>EUR</span>
+                  <span style={{ color: "var(--gris-500)", fontSize: 12 }}>EUR</span>
                 </div>
-                <span style={{ fontSize: 11, color: "#6b7280" }}>
+                <span style={{ fontSize: 11, color: "var(--gris-500)" }}>
                   {txt("Se guardará en la ficha del vehículo.", "Will be saved to the vehicle profile.")}
                 </span>
               </label>
@@ -2176,9 +2207,9 @@ export default function ServiceIdCarsManagePage({
               const informe = resumenInforme(marketplacePublishDialog.vehicle.id);
               const abriendo = informe.carga.status === "opening";
               return (
-                <div style={{ display: "grid", gap: 6, borderTop: "1px solid #f1ede6", paddingTop: 10 }}>
+                <div style={{ display: "grid", gap: 6, borderTop: "1px solid var(--gris-100)", paddingTop: 10 }}>
                   <div>
-                    <strong style={{ color: "#374151" }}>{txt("Informe de estado:", "Condition report:")} </strong>
+                    <strong style={{ color: "var(--gris-700)" }}>{txt("Informe de estado:", "Condition report:")} </strong>
                     {informe.carga.status === "loading" ? (
                       <span>{txt("comprobando...", "checking...")}</span>
                     ) : informe.hecho ? (
@@ -2197,7 +2228,7 @@ export default function ServiceIdCarsManagePage({
                           {txt("El informe de estado no está terminado", "The condition report is not finished")}
                         </div>
                       )}
-                      <span style={{ fontSize: 11, color: "#6b7280", lineHeight: 1.5 }}>
+                      <span style={{ fontSize: 11, color: "var(--gris-500)", lineHeight: 1.5 }}>
                         {INFORME_OBLIGATORIO
                           ? txt(
                               "Termínalo para poder publicar. Son 16 fotos guiadas desde el móvil, unos 10 minutos.",
@@ -2256,13 +2287,13 @@ export default function ServiceIdCarsManagePage({
                 <button ref={marketplacePublishPrimaryBtnRef} type="button"
                   onClick={confirmMarketplacePublish}
                   disabled={!puedePublicar}
-                  style={{ background: puedePublicar ? "linear-gradient(135deg,#2563eb,#1d4ed8)" : "#d1d5db", color: "#fff", border: "none", borderRadius: 8, padding: "9px 16px", fontSize: 12, fontWeight: 700, cursor: puedePublicar ? "pointer" : "not-allowed" }}>
+                  style={{ background: puedePublicar ? "linear-gradient(135deg,var(--marca),var(--marca-oscuro))" : "var(--gris-300)", color: "#fff", border: "none", borderRadius: 8, padding: "9px 16px", fontSize: 12, fontWeight: 700, cursor: puedePublicar ? "pointer" : "not-allowed" }}>
                   {txt("🚀 Publicar", "🚀 Publish")}
                 </button>
               );
             })()}
             <button type="button" onClick={closeMarketplacePublishDialog}
-              style={{ background: "rgba(148,163,184,0.14)", color: "#374151", border: "1px solid #e5e7eb", borderRadius: 8, padding: "9px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+              style={{ background: "rgba(150,150,143,0.14)", color: "var(--gris-700)", border: "1px solid var(--gris-200)", borderRadius: 8, padding: "9px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
               {txt("Cancelar", "Cancel")}
             </button>
           </div>

@@ -5,45 +5,45 @@ export default function ServiceOptionsPage({
   onSelectInsurance,
   onSelectMaintenance,
   onSelectAppointment,
-  onSelectMonthlyPlan,
   onSelectAutogestor,
   onGoBack,
 }) {
   const { t, i18n } = useTranslation();
   const uiLanguage = i18n.language === "en" ? "en" : "es";
-  const isDark = styles?.page?.color === "#e2e8f0";
-  const titleColor = isDark ? "#f8fafc" : "#000000";
-  const mutedColor = isDark ? "#cbd5e1" : "#94a3b8";
+  const isDark = styles?.page?.color === "var(--gris-200)";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const mutedColor = isDark ? "var(--gris-300)" : "var(--gris-400)";
 
   const serviceCards = [
     {
       id: "autogestor",
-      badge: t("service.autogestorBadge"),
       title: t("service.autogestorTitle"),
       description: t("service.autogestorDescription"),
       onClick: onSelectAutogestor,
       icon: (
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <rect x="3" y="3" width="18" height="18" rx="2" />
-          <path d="M3 9h18M9 21V9" />
+          <path d="M4.2 13.4 6 8.9a2 2 0 0 1 1.86-1.25h8.28A2 2 0 0 1 18 8.9l1.8 4.5" />
+          <path d="M2.8 13.4h18.4v3.2a1 1 0 0 1-1 1h-1.3a1 1 0 0 1-1-1v-.7H6.1v.7a1 1 0 0 1-1 1H3.8a1 1 0 0 1-1-1z" />
+          <circle cx="7.4" cy="15.4" r="1" />
+          <circle cx="16.6" cy="15.4" r="1" />
         </svg>
       ),
     },
     {
       id: "mantenimientos",
-      badge: t("service.maintenanceBadge"),
       title: t("service.maintenanceTitle"),
       description: t("service.maintenanceDescription"),
       onClick: onSelectMaintenance,
       icon: (
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          <circle cx="12" cy="12.8" r="8.2" />
+          <path d="M12 8.2v4.6l3 2" strokeLinecap="round" />
+          <path d="M9.2 2.4h5.6" strokeLinecap="round" />
         </svg>
       ),
     },
     {
       id: "cita",
-      badge: t("service.appointmentBadge"),
       title: t("service.appointmentTitle"),
       description: t("service.appointmentDescription"),
       onClick: onSelectAppointment,
@@ -55,21 +55,7 @@ export default function ServiceOptionsPage({
       ),
     },
     {
-      id: "cuota",
-      badge: t("service.monthlyPlanBadge"),
-      title: t("service.monthlyPlanTitle"),
-      description: t("service.monthlyPlanDescription"),
-      onClick: onSelectMonthlyPlan,
-      icon: (
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 7v5l3 3" />
-        </svg>
-      ),
-    },
-    {
       id: "insurance",
-      badge: t("service.insuranceBadge"),
       title: t("service.insuranceTitle"),
       description: t("service.insuranceDescription"),
       onClick: onSelectInsurance,
@@ -88,9 +74,9 @@ export default function ServiceOptionsPage({
         type="button"
         onClick={onGoBack}
         style={{
-          border: "1px solid rgba(148,163,184,0.35)",
-          background: "rgba(15,23,42,0.5)",
-          color: "#cbd5e1",
+          border: "1px solid rgba(150,150,143,0.35)",
+          background: "rgba(17,17,17,0.5)",
+          color: "var(--gris-300)",
           borderRadius: 10,
           padding: "8px 12px",
           fontSize: 12,
@@ -116,12 +102,12 @@ export default function ServiceOptionsPage({
         className="ma-card-interactive ma-fade-stagger"
         style={{
           width: "100%",
-          border: "1.5px solid rgba(37,99,235,0.35)",
+          border: "1.5px solid rgba(255,196,0,0.35)",
           background: isDark
-            ? "linear-gradient(135deg, rgba(37,99,235,0.18), rgba(99,102,241,0.12))"
-            : "linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%)",
+            ? "linear-gradient(135deg, rgba(255,196,0,0.18), rgba(255,196,0,0.12))"
+            : "linear-gradient(135deg, var(--acento-tenue) 0%, var(--gris-100) 100%)",
           borderRadius: 16,
-          boxShadow: isDark ? "none" : "0 12px 32px rgba(37,99,235,0.10)",
+          boxShadow: isDark ? "none" : "0 12px 32px rgba(255,196,0,0.10)",
           padding: "28px 32px",
           textAlign: "left",
           display: "flex",
@@ -139,9 +125,9 @@ export default function ServiceOptionsPage({
             width: 56,
             height: 56,
             borderRadius: 14,
-            border: "1.5px solid rgba(37,99,235,0.35)",
-            background: "rgba(37,99,235,0.12)",
-            color: "#2563eb",
+            border: "1.5px solid rgba(255,196,0,0.35)",
+            background: "rgba(255,196,0,0.12)",
+            color: "var(--marca)",
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
@@ -149,28 +135,38 @@ export default function ServiceOptionsPage({
           }}
         >
           <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <path d="M3 9h18M9 21V9" />
+            <path d="M4.2 13.4 6 8.9a2 2 0 0 1 1.86-1.25h8.28A2 2 0 0 1 18 8.9l1.8 4.5" />
+            <path d="M2.8 13.4h18.4v3.2a1 1 0 0 1-1 1h-1.3a1 1 0 0 1-1-1v-.7H6.1v.7a1 1 0 0 1-1 1H3.8a1 1 0 0 1-1-1z" />
+            <circle cx="7.4" cy="15.4" r="1" />
+            <circle cx="16.6" cy="15.4" r="1" />
           </svg>
         </div>
         <div style={{ flex: 1, minWidth: 200 }}>
-          <div
+          {/* Mismo distintivo que en Comprar: dice de que servicio es la
+              tarjeta antes de que el titulo diga que se hace. */}
+          <span
             style={{
               display: "inline-flex",
               alignItems: "center",
-              padding: "2px 10px",
+              gap: 7,
+              background: "var(--acento-tenue)",
+              color: "var(--acento-texto)",
+              border: "1px solid rgba(255,196,0,0.45)",
               borderRadius: 999,
-              background: "rgba(37,99,235,0.12)",
-              color: "#1d4ed8",
-              fontSize: 10,
-              fontWeight: 800,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              marginBottom: 8,
+              padding: "5px 12px 5px 9px",
+              fontSize: 11.5,
+              fontWeight: 700,
+              lineHeight: 1,
+              marginBottom: 10,
             }}
           >
-            {serviceCards[0].badge}
-          </div>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="3" y="4.5" width="18" height="15" rx="2.4" />
+              <path d="M3 9.5h18" /><path d="M7 14h4" />
+            </svg>
+            {t("service.autogestorTag")}
+          </span>
           <div style={{ fontWeight: 800, fontSize: "clamp(22px,3vw,30px)", lineHeight: 1.15, color: titleColor, marginBottom: 6 }}>
             {serviceCards[0].title}
           </div>
@@ -180,7 +176,7 @@ export default function ServiceOptionsPage({
         </div>
         <div
           style={{
-            background: "linear-gradient(135deg, #2563eb, #3b82f6)",
+            background: "linear-gradient(135deg, var(--marca), var(--marca-claro))",
             color: "#fff",
             borderRadius: 12,
             padding: "12px 22px",
@@ -198,7 +194,7 @@ export default function ServiceOptionsPage({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(2, 1fr)",
+          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
           gap: 14,
           alignItems: "stretch",
         }}
@@ -210,10 +206,10 @@ export default function ServiceOptionsPage({
             onClick={card.onClick}
             className="ma-card-interactive ma-fade-stagger"
             style={{
-              border: isDark ? "1px solid rgba(148,163,184,0.28)" : "1px solid rgba(148,163,184,0.3)",
-              background: isDark ? "rgba(15,23,42,0.52)" : "#ffffff",
+              border: isDark ? "1px solid rgba(150,150,143,0.28)" : "1px solid rgba(150,150,143,0.3)",
+              background: isDark ? "rgba(17,17,17,0.52)" : "var(--blanco)",
               borderRadius: 14,
-              boxShadow: isDark ? "none" : "0 8px 24px rgba(15,23,42,0.06)",
+              boxShadow: isDark ? "none" : "0 8px 24px rgba(17,17,17,0.06)",
               padding: "18px 18px 16px",
               textAlign: "left",
               display: "flex",
@@ -232,31 +228,15 @@ export default function ServiceOptionsPage({
                 width: 34,
                 height: 34,
                 borderRadius: 8,
-                border: "1px solid rgba(37,99,235,0.3)",
-                background: "rgba(37,99,235,0.08)",
-                color: "#2563eb",
+                border: "1px solid rgba(255,196,0,0.3)",
+                background: "rgba(255,196,0,0.08)",
+                color: "var(--marca)",
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
               {card.icon}
-            </div>
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                padding: "2px 10px",
-                borderRadius: 999,
-                background: "rgba(37,99,235,0.1)",
-                color: "#1d4ed8",
-                fontSize: 10,
-                fontWeight: 800,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-              }}
-            >
-              {card.badge}
             </div>
             <div style={{ fontWeight: 800, fontSize: "clamp(16px,2vw,22px)", lineHeight: 1.2, color: titleColor }}>
               {card.title}

@@ -1,14 +1,14 @@
 export default function SeoStaticPage({ styles, badge = "Informacion", title, description, sections = [], onGoHome }) {
-  const isDark = styles?.page?.color === "#e2e8f0";
-  const titleColor = isDark ? "#f8fafc" : "#0f172a";
-  const descriptionColor = isDark ? "#cbd5e1" : "#475569";
+  const isDark = styles?.page?.color === "var(--gris-200)";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const descriptionColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
   const panelBg = isDark
-    ? "linear-gradient(180deg, rgba(15,23,42,0.72), rgba(8,15,30,0.72))"
-    : "linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.94))";
-  const panelBorder = isDark ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(148,163,184,0.26)";
-  const panelShadow = isDark ? "0 12px 30px rgba(2,6,23,0.28)" : "0 10px 28px rgba(15,23,42,0.08)";
-  const sectionTitleColor = isDark ? "#e2e8f0" : "#0f172a";
-  const bodyColor = isDark ? "#cbd5e1" : "#334155";
+    ? "linear-gradient(180deg, rgba(17,17,17,0.72), rgba(17,17,17,0.72))"
+    : "linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,248,0.94))";
+  const panelBorder = isDark ? "1px solid rgba(150,150,143,0.24)" : "1px solid rgba(150,150,143,0.26)";
+  const panelShadow = isDark ? "0 12px 30px rgba(5,5,5,0.28)" : "0 10px 28px rgba(17,17,17,0.08)";
+  const sectionTitleColor = isDark ? "var(--gris-200)" : "var(--gris-900)";
+  const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-700)";
 
   return (
     <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
@@ -22,16 +22,16 @@ export default function SeoStaticPage({ styles, badge = "Informacion", title, de
           type="button"
           onClick={onGoHome}
           style={{
-            border: isDark ? "1px solid rgba(148,163,184,0.34)" : "1px solid rgba(148,163,184,0.28)",
-            background: isDark ? "rgba(15,23,42,0.52)" : "rgba(255,255,255,0.9)",
-            color: isDark ? "#cbd5e1" : "#334155",
+            border: isDark ? "1px solid rgba(150,150,143,0.34)" : "1px solid rgba(150,150,143,0.28)",
+            background: isDark ? "rgba(17,17,17,0.52)" : "rgba(255,255,255,0.9)",
+            color: isDark ? "var(--gris-300)" : "var(--gris-700)",
             borderRadius: 12,
             padding: "10px 12px",
             fontSize: 12,
             fontWeight: 700,
             cursor: "pointer",
             alignSelf: "flex-start",
-            boxShadow: isDark ? "none" : "0 6px 18px rgba(15,23,42,0.08)",
+            boxShadow: isDark ? "none" : "0 6px 18px rgba(17,17,17,0.08)",
           }}
         >
           Volver al inicio
@@ -83,20 +83,20 @@ export default function SeoStaticPage({ styles, badge = "Informacion", title, de
                   <div
                     key={`${section.heading}-${card.title}`}
                     style={{
-                      border: isDark ? "1px solid rgba(125,211,252,0.24)" : "1px solid rgba(59,130,246,0.22)",
+                      border: isDark ? "1px solid rgba(207,207,200,0.24)" : "1px solid rgba(255,196,0,0.22)",
                       background: isDark
-                        ? "linear-gradient(180deg, rgba(15,23,42,0.72), rgba(8,15,30,0.72))"
-                        : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.96))",
+                        ? "linear-gradient(180deg, rgba(17,17,17,0.72), rgba(17,17,17,0.72))"
+                        : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,250,248,0.96))",
                       borderRadius: 12,
                       padding: "12px 11px",
-                      boxShadow: isDark ? "none" : "0 8px 20px rgba(15,23,42,0.08)",
+                      boxShadow: isDark ? "none" : "0 8px 20px rgba(17,17,17,0.08)",
                     }}
                   >
                     <div style={{ color: sectionTitleColor, fontSize: 14, fontWeight: 800, marginBottom: 4 }}>
                       {card.title}
                     </div>
                     {card.subtitle ? (
-                      <div style={{ color: isDark ? "#7dd3fc" : "#2563eb", fontSize: 12, fontWeight: 700, marginBottom: 8 }}>
+                      <div style={{ color: isDark ? "var(--gris-300)" : "var(--marca)", fontSize: 12, fontWeight: 700, marginBottom: 8 }}>
                         {card.subtitle}
                       </div>
                     ) : null}

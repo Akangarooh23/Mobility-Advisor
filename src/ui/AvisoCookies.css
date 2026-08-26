@@ -1,0 +1,192 @@
+/**
+ * El aviso de cookies, en barra al pie.
+ *
+ * Del ancho de la página y pegado abajo, como el pie. Deja ver el sitio
+ * mientras se decide, que es lo que se pierde con una capa que tapa la
+ * pantalla entera.
+ */
+
+/* El velo: oscurece mientras no se ha contestado, pero no tapa ni bloquea.
+   `pointer-events: none` es lo que lo mantiene en su sitio —se sigue pudiendo
+   usar la página por debajo— y por eso la animación del home se ve igual. */
+.ac-velo {
+  position: fixed;
+  inset: 0;
+  z-index: 169;
+  pointer-events: none;
+  background: rgba(5, 5, 5, 0.32);
+  animation: ac-aparece 0.32s ease-out both;
+}
+@keyframes ac-aparece {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ac-aviso {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 170;
+  background: var(--blanco);
+  border-top: 1px solid var(--gris-200);
+  box-shadow: 0 -18px 46px rgba(5, 5, 5, 0.14);
+  /* Si se abre el detalle, la barra crece hasta donde puede y luego rueda por
+     dentro: nunca se come la pantalla entera. */
+  max-height: min(82svh, 720px);
+  overflow-y: auto;
+  font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  animation: ac-sube 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+@keyframes ac-sube {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.ac-caja {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 16px clamp(20px, 5%, 70px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px 28px;
+  flex-wrap: wrap;
+}
+.ac-texto { min-width: 0; flex: 1 1 420px; }
+.ac-texto h2 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--gris-900);
+}
+.ac-texto p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--gris-600);
+  max-width: 74ch;
+}
+
+.ac-botones { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ac-btn {
+  border: 1px solid var(--gris-300);
+  border-radius: 999px;
+  background: var(--blanco);
+  color: var(--gris-800);
+  padding: 11px 20px;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s, border-color 0.18s;
+}
+.ac-btn:hover { border-color: var(--gris-900); background: var(--gris-50); }
+.ac-btn:focus-visible { outline: 3px solid var(--acento); outline-offset: 2px; }
+.ac-btn-principal {
+  background: var(--acento);
+  border-color: var(--acento);
+  color: var(--gris-900);
+}
+.ac-btn-principal:hover { background: var(--acento-oscuro); border-color: var(--acento-oscuro); }
+/* Rechazar: gris, pero del mismo tamaño y con el mismo peso de letra que
+   aceptar. Lo que no puede pasar es que cueste más encontrarlo. */
+.ac-btn-gris {
+  background: var(--gris-100);
+  border-color: var(--gris-200);
+  color: var(--gris-800);
+}
+.ac-btn-gris:hover { background: var(--gris-200); border-color: var(--gris-300); }
+.ac-btn-plano {
+  border-color: transparent;
+  background: transparent;
+  color: var(--gris-600);
+  text-decoration: underline;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+.ac-btn-plano:hover { background: transparent; border-color: transparent; color: var(--gris-900); }
+.ac-btn-acento { background: var(--gris-900); border-color: var(--gris-900); color: var(--blanco); }
+.ac-btn-acento:hover { background: #000; border-color: #000; }
+
+/* ── El detalle por categorías ────────────────────────────────────────────── */
+.ac-detalle {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 5%, 70px) 20px;
+  border-top: 1px solid var(--gris-100);
+  padding-top: 16px;
+}
+.ac-nota { margin: 0 0 12px; font-size: 12.5px; color: var(--gris-500); }
+.ac-tipos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+}
+.ac-tipo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--gris-200);
+  border-radius: 12px;
+  background: var(--gris-50);
+  padding: 11px 13px;
+}
+.ac-tipo strong { display: block; font-size: 13px; font-weight: 700; color: var(--gris-900); }
+.ac-tipo small { display: block; margin-top: 2px; font-size: 12px; line-height: 1.5; color: var(--gris-500); }
+.ac-fija {
+  flex: none;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--acento-texto);
+  background: var(--acento-tenue);
+  border: 1px solid var(--acento);
+  white-space: nowrap;
+}
+.ac-interruptor {
+  flex: none;
+  border: 1px solid var(--gris-300);
+  border-radius: 999px;
+  background: var(--blanco);
+  color: var(--gris-500);
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ac-interruptor.es-activa {
+  border-color: var(--acento);
+  background: var(--acento-tenue);
+  color: var(--acento-texto);
+}
+.ac-interruptor:focus-visible { outline: 3px solid var(--acento); outline-offset: 2px; }
+
+.ac-guardar {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.ac-guardar p { margin: 0; font-size: 12px; color: var(--gris-500); }
+
+@media (max-width: 760px) {
+  .ac-caja { padding: 14px 20px; gap: 12px; }
+  .ac-botones { width: 100%; }
+  /* Aceptar y rechazar, uno al lado del otro y del mismo ancho. */
+  .ac-btn-principal, .ac-botones .ac-btn:not(.ac-btn-plano) { flex: 1 1 0; }
+  .ac-btn-plano { flex: 1 1 100%; }
+  .ac-detalle { padding-left: 20px; padding-right: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ac-aviso, .ac-velo { animation: none; }
+  .ac-btn { transition: none; }
+}

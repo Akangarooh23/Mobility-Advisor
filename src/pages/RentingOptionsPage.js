@@ -2,9 +2,9 @@ import { useTranslation } from "react-i18next";
 
 export default function RentingOptionsPage({ styles, onSelectAdvisor, onSelectKnownModel, onGoBack }) {
   const { t } = useTranslation();
-  const isDark = styles?.page?.color === "#e2e8f0";
-  const titleColor = isDark ? "#f8fafc" : "#000000";
-  const mutedColor = isDark ? "#cbd5e1" : "#94a3b8";
+  const isDark = styles?.page?.color === "var(--gris-200)";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const mutedColor = isDark ? "var(--gris-300)" : "var(--gris-400)";
 
   const timelineSteps = [
     t("renting.step1"),
@@ -27,7 +27,7 @@ export default function RentingOptionsPage({ styles, onSelectAdvisor, onSelectKn
             content: "";
             position: absolute;
             inset: 0;
-            background: radial-gradient(circle at 85% 10%, rgba(59,130,246,0.18), transparent 50%);
+            background: radial-gradient(circle at 85% 10%, rgba(255,196,0,0.18), transparent 50%);
             pointer-events: none;
           }
 
@@ -37,16 +37,16 @@ export default function RentingOptionsPage({ styles, onSelectAdvisor, onSelectKn
             top: 16px;
             bottom: 16px;
             width: 2px;
-            background: linear-gradient(180deg, rgba(59,130,246,0.25), rgba(56,189,248,0.65), rgba(20,184,166,0.35));
+            background: linear-gradient(180deg, rgba(255,196,0,0.25), rgba(150,150,143,0.65), rgba(20,184,166,0.35));
           }
 
           .renting-flow-item {
             position: relative;
             padding: 10px 12px 10px 42px;
             border-radius: 12px;
-            border: 1px solid rgba(71,85,105,0.55);
-            background: rgba(15,23,42,0.72);
-            color: #dbeafe;
+            border: 1px solid rgba(74,74,69,0.55);
+            background: rgba(17,17,17,0.72);
+            color: var(--acento-tenue);
             opacity: 0;
             transform: translateY(12px);
             animation: rentingFlowIn 0.45s ease forwards;
@@ -55,9 +55,9 @@ export default function RentingOptionsPage({ styles, onSelectAdvisor, onSelectKn
 
           .renting-flow-item:hover {
             transform: translateY(-2px);
-            border-color: rgba(56,189,248,0.72);
-            background: rgba(15,23,42,0.88);
-            box-shadow: 0 10px 24px rgba(2,6,23,0.35);
+            border-color: rgba(150,150,143,0.72);
+            background: rgba(17,17,17,0.88);
+            box-shadow: 0 10px 24px rgba(5,5,5,0.35);
           }
 
           .renting-flow-dot {
@@ -68,9 +68,9 @@ export default function RentingOptionsPage({ styles, onSelectAdvisor, onSelectKn
             width: 14px;
             height: 14px;
             border-radius: 999px;
-            border: 2px solid rgba(125,211,252,0.95);
-            background: #0f172a;
-            box-shadow: 0 0 0 0 rgba(14,165,233,0.45);
+            border: 2px solid rgba(207,207,200,0.95);
+            background: var(--gris-900);
+            box-shadow: 0 0 0 0 rgba(255,196,0,0.45);
             animation: rentingFlowPulse 1.8s ease-in-out infinite;
           }
 
@@ -87,13 +87,13 @@ export default function RentingOptionsPage({ styles, onSelectAdvisor, onSelectKn
 
           @keyframes rentingFlowPulse {
             0% {
-              box-shadow: 0 0 0 0 rgba(14,165,233,0.5);
+              box-shadow: 0 0 0 0 rgba(255,196,0,0.5);
             }
             70% {
-              box-shadow: 0 0 0 10px rgba(14,165,233,0);
+              box-shadow: 0 0 0 10px rgba(255,196,0,0);
             }
             100% {
-              box-shadow: 0 0 0 0 rgba(14,165,233,0);
+              box-shadow: 0 0 0 0 rgba(255,196,0,0);
             }
           }
 
@@ -109,9 +109,9 @@ export default function RentingOptionsPage({ styles, onSelectAdvisor, onSelectKn
         type="button"
         onClick={onGoBack}
         style={{
-          border: "1px solid rgba(148,163,184,0.35)",
-          background: "rgba(15,23,42,0.5)",
-          color: "#cbd5e1",
+          border: "1px solid rgba(150,150,143,0.35)",
+          background: "rgba(17,17,17,0.5)",
+          color: "var(--gris-300)",
           borderRadius: 10,
           padding: "8px 12px",
           fontSize: 12,
@@ -145,9 +145,9 @@ export default function RentingOptionsPage({ styles, onSelectAdvisor, onSelectKn
           style={{
             ...styles.card(false),
             padding: 18,
-            border: "1px solid rgba(37,99,235,0.32)",
-            background: "rgba(37,99,235,0.12)",
-            color: "#f1f5f9",
+            border: "1px solid rgba(255,196,0,0.32)",
+            background: "rgba(255,196,0,0.12)",
+            color: "var(--gris-100)",
             textAlign: "left",
             display: "flex",
             flexDirection: "column",
@@ -173,9 +173,9 @@ export default function RentingOptionsPage({ styles, onSelectAdvisor, onSelectKn
           style={{
             ...styles.card(false),
             padding: 18,
-            border: "1px solid rgba(14,165,233,0.34)",
-            background: "rgba(14,165,233,0.12)",
-            color: "#f1f5f9",
+            border: "1px solid rgba(255,196,0,0.34)",
+            background: "rgba(255,196,0,0.12)",
+            color: "var(--gris-100)",
             textAlign: "left",
             display: "flex",
             flexDirection: "column",
@@ -200,13 +200,13 @@ export default function RentingOptionsPage({ styles, onSelectAdvisor, onSelectKn
           margin: "22px 0 0",
           padding: "14px 14px 14px",
           borderRadius: 14,
-          border: "1px solid rgba(148,163,184,0.24)",
-          background: "linear-gradient(145deg, rgba(15,23,42,0.82), rgba(30,41,59,0.62))",
+          border: "1px solid rgba(150,150,143,0.24)",
+          background: "linear-gradient(145deg, rgba(17,17,17,0.82), rgba(31,31,29,0.62))",
           animationDelay: "260ms",
         }}
         className="renting-flow-card ma-card-soft ma-fade-stagger"
       >
-        <div style={{ fontSize: 12, color: "#93c5fd", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 10 }}>
+        <div style={{ fontSize: 12, color: "var(--gris-300)", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 10 }}>
           {t("renting.howItWorks")}
         </div>
         <div style={{ position: "relative", display: "grid", gap: 9 }}>
@@ -218,8 +218,8 @@ export default function RentingOptionsPage({ styles, onSelectAdvisor, onSelectKn
               style={{ animationDelay: `${index * 90}ms` }}
             >
               <div className="renting-flow-dot" />
-              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, marginBottom: 3 }}>{t("renting.stepLabel")} {index + 1}</div>
-              <div style={{ fontSize: 13, color: "#cbd5e1", lineHeight: 1.45 }}>{label}</div>
+              <div style={{ fontSize: 11, color: "var(--gris-300)", fontWeight: 800, marginBottom: 3 }}>{t("renting.stepLabel")} {index + 1}</div>
+              <div style={{ fontSize: 13, color: "var(--gris-300)", lineHeight: 1.45 }}>{label}</div>
             </div>
           ))}
         </div>

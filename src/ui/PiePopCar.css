@@ -1,0 +1,53 @@
+/**
+ * Estilos del pie compartido. Viven aqui y no en la hoja del home porque el
+ * componente se usa en todas las pantallas, no solo alli.
+ */
+/* El color y la tipografia del logotipo viven en el componente LogoPopCar;
+   aqui solo se le quita el aspecto de boton. */
+.pc-logo { background: none; border: 0; padding: 0; cursor: pointer; line-height: 1; display: inline-flex; }
+
+/* ── Pie ─────────────────────────────────────────────────────────────────── */
+/* `margin-top: auto` es lo que manda el pie al fondo cuando la pantalla tiene
+   poco contenido: la aplicacion es una columna flexible de 100vh de alto, y sin
+   esto el pie se queda pegado a lo ultimo que haya y deja un claro blanco
+   debajo. Donde el contenedor no es flexible el valor vale cero, asi que no
+   estorba en ningun sitio. */
+.pc-pie {
+  background: var(--gris-900); color: var(--blanco);
+  width: 100%; margin: auto 0 0; border-radius: 0; padding: 56px 42px 22px;
+}
+/* El contenido si se queda centrado y con el mismo ancho que el resto de la
+   pagina; lo que llega de borde a borde es solo el fondo. */
+.pc-pie-rejilla, .pc-pie-abajo { max-width: 1300px; margin-left: auto; margin-right: auto; }
+.pc-pie-rejilla { display: grid; grid-template-columns: 1.5fr repeat(5, 1fr); gap: 26px; }
+.pc-pie > .pc-pie-rejilla p { color: var(--gris-400); font-size: 12px; margin-top: 10px; }
+.pc-pie h4 { font-size: 12px; margin-bottom: 16px; }
+.pc-pie-rejilla button {
+  display: block; background: none; border: 0; padding: 0; cursor: pointer;
+  color: var(--gris-400); font-size: 11.5px; margin: 9px 0; text-align: left;
+  transition: color .18s;
+}
+.pc-pie-rejilla button:hover { color: var(--acento); }
+.pc-pie-abajo {
+  border-top: 1px solid var(--gris-700); margin-top: 34px; padding-top: 18px;
+  display: flex; justify-content: space-between; color: var(--gris-400); font-size: 10.5px; gap: 12px; flex-wrap: wrap;
+}
+
+/* La linea legal: enlaces separados por puntos, del mismo tono que el pie. */
+.pc-pie-legal { display: inline-flex; flex-wrap: wrap; align-items: center; }
+.pc-pie-legal button {
+  background: none; border: 0; padding: 0; margin: 0; cursor: pointer;
+  color: var(--gris-400); font-size: 10.5px; transition: color .18s;
+}
+.pc-pie-legal button:hover { color: var(--acento); }
+.pc-pie-legal i { font-style: normal; color: var(--gris-500); }
+.pc-pie .pc-logo:disabled { cursor: default; }
+
+@media (max-width: 1000px) { .pc-pie-rejilla { grid-template-columns: 1fr 1fr 1fr; } }
+@media (max-width: 650px) {
+  .pc-pie { padding: 34px 24px 18px; }
+  .pc-pie-rejilla { grid-template-columns: 1fr 1fr; }
+  .pc-pie-rejilla > div:first-child { grid-column: 1 / -1; }
+  .pc-pie-abajo { display: block; }
+  .pc-pie-abajo > span { display: block; margin: 8px 0; }
+}

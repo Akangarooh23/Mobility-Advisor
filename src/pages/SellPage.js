@@ -154,20 +154,20 @@ export default function SellPage({
           fontWeight: 800,
           letterSpacing: "-1px",
           margin: "0 0 10px",
-          color: "#000000",
+          color: "var(--gris-900)",
         }}
       >
         {pageTitle}
       </h2>
-      <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.7, margin: "0 0 24px" }}>
+      <p style={{ color: "var(--gris-400)", fontSize: 14, lineHeight: 1.7, margin: "0 0 24px" }}>
         {pageDescription}
       </p>
 
       {selectedValuationVehicleSummary ? (
         <div
           style={{
-            background: "rgba(37,99,235,0.08)",
-            border: "1px solid rgba(37,99,235,0.2)",
+            background: "rgba(255,196,0,0.08)",
+            border: "1px solid rgba(255,196,0,0.2)",
             borderRadius: 12,
             padding: 12,
             marginBottom: 16,
@@ -175,14 +175,14 @@ export default function SellPage({
             gap: 4,
           }}
         >
-          <div style={{ fontSize: 11, color: "#1d4ed8", fontWeight: 800, letterSpacing: "0.3px" }}>
+          <div style={{ fontSize: 11, color: "var(--marca-oscuro)", fontWeight: 800, letterSpacing: "0.3px" }}>
             {text.selectedFromPlate}
           </div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gris-900)" }}>
             {selectedValuationVehicleSummary.plate || text.noPlate}
             {selectedValuationVehicleSummary.title ? ` · ${selectedValuationVehicleSummary.title}` : ""}
           </div>
-          <div style={{ fontSize: 12, color: "#475569" }}>
+          <div style={{ fontSize: 12, color: "var(--gris-600)" }}>
             {`${selectedValuationVehicleSummary.brand || ""} ${selectedValuationVehicleSummary.model || ""}`.trim()}
             {selectedValuationVehicleSummary.year ? ` · ${selectedValuationVehicleSummary.year}` : ""}
           </div>
@@ -191,7 +191,7 @@ export default function SellPage({
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 12, marginBottom: 24 }}>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.brand}</div>
+          <div style={{ fontSize: 11, color: "var(--gris-500)", marginBottom: 8 }}>{text.brand}</div>
           <select
             value={sellAnswers.brand}
             onChange={(event) => {
@@ -217,7 +217,7 @@ export default function SellPage({
           </select>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.model}</div>
+          <div style={{ fontSize: 11, color: "var(--gris-500)", marginBottom: 8 }}>{text.model}</div>
           <select
             value={sellAnswers.model}
             onChange={(event) => setSellAnswers((prev) => ({ ...prev, model: event.target.value }))}
@@ -233,7 +233,7 @@ export default function SellPage({
           </select>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.year}</div>
+          <div style={{ fontSize: 11, color: "var(--gris-500)", marginBottom: 8 }}>{text.year}</div>
           <select
             value={sellAnswers.year}
             onChange={(event) => setSellAnswers((prev) => ({ ...prev, year: event.target.value }))}
@@ -248,7 +248,7 @@ export default function SellPage({
           </select>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.mileage}</div>
+          <div style={{ fontSize: 11, color: "var(--gris-500)", marginBottom: 8 }}>{text.mileage}</div>
           <select
             value={sellAnswers.mileage}
             onChange={(event) => setSellAnswers((prev) => ({ ...prev, mileage: event.target.value }))}
@@ -263,7 +263,7 @@ export default function SellPage({
           </select>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.fuel}</div>
+          <div style={{ fontSize: 11, color: "var(--gris-500)", marginBottom: 8 }}>{text.fuel}</div>
           <select
             value={sellAnswers.fuel}
             onChange={(event) => setSellAnswers((prev) => ({ ...prev, fuel: event.target.value }))}
@@ -277,7 +277,7 @@ export default function SellPage({
           </select>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>{text.salesChannel}</div>
+          <div style={{ fontSize: 11, color: "var(--gris-500)", marginBottom: 8 }}>{text.salesChannel}</div>
           <select
             value={sellAnswers.sellerType}
             onChange={(event) => setSellAnswers((prev) => ({ ...prev, sellerType: event.target.value }))}
@@ -293,14 +293,14 @@ export default function SellPage({
       {sellAnswers.brand && sellAnswers.model && sellAnswers.year && sellAnswers.mileage && (
         <div
           style={{
-            background: "rgba(37,99,235,0.08)",
-            border: "1px solid rgba(37,99,235,0.18)",
+            background: "rgba(255,196,0,0.08)",
+            border: "1px solid rgba(255,196,0,0.18)",
             borderRadius: 14,
             padding: 16,
             marginBottom: 18,
           }}
         >
-          <div style={{ fontSize: 11, color: "#60a5fa", letterSpacing: "0.6px", marginBottom: 8 }}>
+          <div style={{ fontSize: 11, color: "var(--gris-400)", letterSpacing: "0.6px", marginBottom: 8 }}>
             {text.aiValuation}
           </div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -316,7 +316,7 @@ export default function SellPage({
             >
               {sellLoading ? text.valuing : text.valueWithAi}
             </button>
-            <span style={{ fontSize: 12, color: "#bfdbfe", alignSelf: "center" }}>
+            <span style={{ fontSize: 12, color: "var(--gris-200)", alignSelf: "center" }}>
               {text.aiHint}
             </span>
           </div>
@@ -345,26 +345,26 @@ export default function SellPage({
             <div style={{ fontSize: 11, color: "#f59e0b", marginBottom: 6, letterSpacing: "0.6px" }}>
               {text.aiTargetPrice}
             </div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: "#000000", marginBottom: 8 }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: "var(--gris-900)", marginBottom: 8 }}>
               {sellAiResult.precio_objetivo}
             </div>
-            <p style={{ margin: 0, fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--gris-400)", lineHeight: 1.6 }}>
               {text.reasonableRange} {sellAiResult.rango_publicacion.min} y {sellAiResult.rango_publicacion.max}.
             </p>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 12 }}>
             <div style={styles.panel}>
-              <div style={{ fontSize: 11, color: "#60a5fa", marginBottom: 6, letterSpacing: "0.6px" }}>
+              <div style={{ fontSize: 11, color: "var(--gris-400)", marginBottom: 6, letterSpacing: "0.6px" }}>
                 {text.estimatedDemand}
               </div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#000000" }}>{sellAiResult.nivel_demanda || text.average}</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "var(--gris-900)" }}>{sellAiResult.nivel_demanda || text.average}</div>
             </div>
             <div style={styles.panel}>
-              <div style={{ fontSize: 11, color: "#60a5fa", marginBottom: 6, letterSpacing: "0.6px" }}>
+              <div style={{ fontSize: 11, color: "var(--gris-400)", marginBottom: 6, letterSpacing: "0.6px" }}>
                 {text.estimatedSaleTime}
               </div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#000000" }}>{sellAiResult.tiempo_estimado_venta || text.saleTimeFallback}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--gris-900)" }}>{sellAiResult.tiempo_estimado_venta || text.saleTimeFallback}</div>
             </div>
           </div>
 
@@ -372,13 +372,13 @@ export default function SellPage({
             <div style={{ fontSize: 11, color: "#34d399", marginBottom: 6, letterSpacing: "0.6px" }}>
               {text.aiSummary}
             </div>
-            <p style={{ margin: "0 0 10px", fontSize: 13, color: "#94a3b8", lineHeight: 1.7 }}>
+            <p style={{ margin: "0 0 10px", fontSize: 13, color: "var(--gris-400)", lineHeight: 1.7 }}>
               {sellAiResult.resumen}
             </p>
             {sellAiResult.argumentos_clave.length > 0 && (
               <div style={{ display: "grid", gap: 5, marginBottom: 10 }}>
                 {sellAiResult.argumentos_clave.map((item) => (
-                  <div key={item} style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.5 }}>• {item}</div>
+                  <div key={item} style={{ fontSize: 12, color: "var(--gris-300)", lineHeight: 1.5 }}>• {item}</div>
                 ))}
               </div>
             )}
@@ -389,7 +389,7 @@ export default function SellPage({
                 ))}
               </div>
             )}
-            <p style={{ margin: "0 0 12px", fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
+            <p style={{ margin: "0 0 12px", fontSize: 12, color: "var(--gris-300)", lineHeight: 1.6 }}>
               <strong>{text.strategy}:</strong> {sellAiResult.estrategia_publicacion}
             </p>
 
@@ -407,7 +407,7 @@ export default function SellPage({
               >
                 {sellListingLoading ? text.searchingComparable : text.viewComparable}
               </button>
-              <span style={{ fontSize: 12, color: "#bfdbfe", alignSelf: "center" }}>
+              <span style={{ fontSize: 12, color: "var(--gris-200)", alignSelf: "center" }}>
                 {text.comparableHint}
               </span>
             </div>
@@ -431,21 +431,21 @@ export default function SellPage({
             {sellListingResult && (
               <div
                 style={{
-                  background: "rgba(2,6,23,0.42)",
-                  border: "1px solid rgba(96,165,250,0.22)",
+                  background: "rgba(5,5,5,0.42)",
+                  border: "1px solid rgba(255,196,0,0.22)",
                   borderRadius: 14,
                   padding: 14,
                 }}
               >
-                <div style={{ fontSize: 10, color: "#67e8f9", marginBottom: 6, fontWeight: 700, letterSpacing: "0.6px" }}>
+                <div style={{ fontSize: 10, color: "var(--gris-300)", marginBottom: 6, fontWeight: 700, letterSpacing: "0.6px" }}>
                   {text.marketComparable}
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 8 }}>
                   <div style={{ flex: 1, minWidth: 220 }}>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: "#000000", marginBottom: 6 }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "var(--gris-900)", marginBottom: 6 }}>
                       {sellListingResult.title}
                     </div>
-                    <p style={{ margin: 0, fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
+                    <p style={{ margin: 0, fontSize: 12, color: "var(--gris-300)", lineHeight: 1.6 }}>
                       {sellListingResult.description || text.comparableDescriptionFallback}
                     </p>
                   </div>
@@ -485,10 +485,10 @@ export default function SellPage({
             <div style={{ fontSize: 11, color: "#f59e0b", marginBottom: 6, letterSpacing: "0.6px" }}>
               {text.localPricePreview}
             </div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: "#000000", marginBottom: 8 }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: "var(--gris-900)", marginBottom: 8 }}>
               {formatCurrency(sellEstimate.targetPrice)}
             </div>
-            <p style={{ margin: 0, fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--gris-400)", lineHeight: 1.6 }}>
               {text.indicativeRange} {formatCurrency(sellEstimate.lowPrice)} y {formatCurrency(sellEstimate.highPrice)} {text.whileAiRuns}
             </p>
           </div>

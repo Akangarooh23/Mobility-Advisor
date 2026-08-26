@@ -4,9 +4,9 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
   const { t } = useTranslation();
   
   const cardStyle = {
-    background: "#ffffff",
+    background: "var(--blanco)",
     borderRadius: 16,
-    border: "1px solid #ece8df",
+    border: "1px solid var(--gris-200)",
     boxShadow: "0 1px 3px rgba(0,0,0,0.05),0 4px 20px rgba(0,0,0,0.04)",
   };
 
@@ -27,14 +27,14 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
   ];
 
   return (
-    <div style={{ width: "100%", maxWidth: 1040, margin: "0 auto", color: "#1a1a1a", padding: "0 8px 16px" }}>
+    <div style={{ width: "100%", maxWidth: 1040, margin: "0 auto", color: "var(--gris-800)", padding: "0 8px 16px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
         <button
           type="button"
           onClick={onGoBack}
           style={{
-            border: "1px solid #ece8df",
-            background: "#ffffff",
+            border: "1px solid var(--gris-200)",
+            background: "var(--blanco)",
             borderRadius: 8,
             padding: "7px 12px",
             fontSize: 12,
@@ -45,20 +45,20 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
         >
           {t("autogestor.back")}
         </button>
-        <div style={{ fontSize: 12, color: "#b8b8b8" }}>
-          {t("autogestor.breadcrumbServices")} › <span style={{ color: "#2563eb", fontWeight: 700 }}>{t("autogestor.breadcrumbAutogestor")}</span>
+        <div style={{ fontSize: 12, color: "var(--gris-300)" }}>
+          {t("autogestor.breadcrumbServices")} › <span style={{ color: "var(--marca)", fontWeight: 700 }}>{t("autogestor.breadcrumbAutogestor")}</span>
         </div>
       </div>
 
       <section style={{ ...cardStyle, overflow: "hidden", marginBottom: 12 }}>
-        <div style={{ height: 4, background: "#3b82f6" }} />
+        <div style={{ height: 4, background: "var(--marca-claro)" }} />
         <div style={{ padding: "26px 28px" }}>
           <div
             style={{
               display: "inline-flex",
-              border: "1px solid rgba(59,130,246,0.3)",
-              color: "#2563eb",
-              background: "rgba(59,130,246,0.08)",
+              border: "1px solid rgba(255,196,0,0.3)",
+              color: "var(--marca)",
+              background: "rgba(255,196,0,0.08)",
               borderRadius: 20,
               padding: "4px 11px",
               fontSize: 10,
@@ -73,7 +73,7 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
           <h2 style={{ margin: "0 0 8px", fontSize: "clamp(30px,3.1vw,40px)", letterSpacing: "-0.03em", lineHeight: 1.15, color: "#111" }}>
             {t("autogestor.title")}
           </h2>
-          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: "#868686", maxWidth: 760 }}>
+          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: "var(--gris-400)", maxWidth: 760 }}>
             {t("autogestor.subtitle")}
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 18 }}>
@@ -83,9 +83,9 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
                 style={{
                   fontSize: 11,
                   fontWeight: 600,
-                  color: "#a0a0a0",
-                  border: "1px solid #efebe4",
-                  background: "#fafaf9",
+                  color: "var(--gris-400)",
+                  border: "1px solid var(--gris-100)",
+                  background: "var(--gris-50)",
                   padding: "5px 12px",
                   borderRadius: 30,
                 }}
@@ -99,7 +99,7 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
 
       <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 12, marginBottom: 12 }}>
         <div style={{ ...cardStyle, padding: 22 }}>
-          <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
+          <div style={{ fontSize: 10, color: "var(--gris-300)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 12 }}>
             {t("autogestor.documentsLabel")}
           </div>
           <div style={{ display: "grid", gap: 8 }}>
@@ -110,9 +110,9 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
                   display: "flex",
                   alignItems: "center",
                   gap: 10,
-                  border: "1px solid #ece8df",
+                  border: "1px solid var(--gris-200)",
                   borderRadius: 10,
-                  background: "#fafaf9",
+                  background: "var(--gris-50)",
                   padding: "10px 12px",
                 }}
               >
@@ -123,9 +123,9 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
                     fontSize: 10,
                     borderRadius: 20,
                     padding: "3px 9px",
-                    color: doc.active ? "#2563eb" : "#aaa",
-                    border: doc.active ? "1px solid rgba(59,130,246,0.35)" : "1px solid #eee",
-                    background: doc.active ? "rgba(59,130,246,0.1)" : "#f7f7f7",
+                    color: doc.active ? "var(--marca)" : "#aaa",
+                    border: doc.active ? "1px solid rgba(255,196,0,0.35)" : "1px solid #eee",
+                    background: doc.active ? "rgba(255,196,0,0.1)" : "var(--gris-50)",
                     fontWeight: 700,
                   }}
                 >
@@ -136,9 +136,9 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
             <button
               type="button"
               style={{
-                border: "1px dashed #e0dcd4",
+                border: "1px dashed var(--gris-200)",
                 borderRadius: 10,
-                background: "#fdfcfa",
+                background: "var(--gris-50)",
                 padding: "10px 12px",
                 textAlign: "left",
                 color: "#888",
@@ -154,30 +154,30 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
 
         <div style={{ display: "grid", gap: 12 }}>
           <div style={{ ...cardStyle, padding: 18 }}>
-            <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 10 }}>
+            <div style={{ fontSize: 10, color: "var(--gris-300)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 10 }}>
               {t("autogestor.idCarProfileLabel")}
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: "#666", marginBottom: 6, fontWeight: 600 }}>
               <span>{t("autogestor.completeness")}</span>
-              <span style={{ color: "#3b82f6" }}>45%</span>
+              <span style={{ color: "var(--marca-claro)" }}>45%</span>
             </div>
-            <div style={{ height: 6, background: "#ece8df", borderRadius: 3, overflow: "hidden", marginBottom: 12 }}>
-              <div style={{ width: "45%", height: 6, background: "#3b82f6" }} />
+            <div style={{ height: 6, background: "var(--gris-200)", borderRadius: 3, overflow: "hidden", marginBottom: 12 }}>
+              <div style={{ width: "45%", height: 6, background: "var(--marca-claro)" }} />
             </div>
             <div style={{ display: "grid", gap: 7, marginBottom: 10 }}>
               {profileChecks.map((item) => (
-                <div key={item.label} style={{ fontSize: 14, color: item.ok ? "#5f5f5f" : "#b9b9b9", fontWeight: 500 }}>
+                <div key={item.label} style={{ fontSize: 14, color: item.ok ? "var(--gris-500)" : "var(--gris-300)", fontWeight: 500 }}>
                   {item.ok ? "✓" : "○"} {item.label}
                 </div>
               ))}
             </div>
             <div
               style={{
-                border: "1px solid rgba(59,130,246,0.3)",
-                background: "rgba(59,130,246,0.08)",
+                border: "1px solid rgba(255,196,0,0.3)",
+                background: "rgba(255,196,0,0.08)",
                 borderRadius: 12,
                 padding: "12px 13px",
-                color: "#3b82f6",
+                color: "var(--marca-claro)",
                 fontSize: 13,
                 lineHeight: 1.5,
                 fontWeight: 600,
@@ -188,7 +188,7 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
           </div>
 
           <div style={{ ...cardStyle, padding: 18 }}>
-            <div style={{ fontSize: 10, color: "#c0c0c0", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 10 }}>
+            <div style={{ fontSize: 10, color: "var(--gris-300)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: 10 }}>
               {t("autogestor.upcomingExpirations")}
             </div>
             <div style={{ display: "grid", gap: 10 }}>
@@ -199,7 +199,7 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
               ].map(([label, value]) => (
                 <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
                   <span style={{ color: "#666", fontWeight: 600 }}>{label}</span>
-                  <span style={{ color: value === t("autogestor.notRegistered") ? "#b9b9b9" : "#3b82f6", fontWeight: 700 }}>{value}</span>
+                  <span style={{ color: value === t("autogestor.notRegistered") ? "var(--gris-300)" : "var(--marca-claro)", fontWeight: 700 }}>{value}</span>
                 </div>
               ))}
             </div>
@@ -218,8 +218,8 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
         }}
       >
         <div>
-          <div style={{ fontSize: 18, color: "#303030", fontWeight: 700, marginBottom: 3 }}>{t("autogestor.activateSection")}</div>
-          <div style={{ fontSize: 13, color: "#a2a2a2", lineHeight: 1.45 }}>
+          <div style={{ fontSize: 18, color: "var(--gris-700)", fontWeight: 700, marginBottom: 3 }}>{t("autogestor.activateSection")}</div>
+          <div style={{ fontSize: 13, color: "var(--gris-400)", lineHeight: 1.45 }}>
             {t("autogestor.activateDescription")}
           </div>
         </div>
@@ -241,10 +241,10 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
               onGoHome();
             }}
             style={{
-              border: "1px solid rgba(59,130,246,0.35)",
+              border: "1px solid rgba(255,196,0,0.35)",
               borderRadius: 12,
-              background: "rgba(59,130,246,0.08)",
-              color: "#2563eb",
+              background: "rgba(255,196,0,0.08)",
+              color: "var(--marca)",
               padding: "11px 16px",
               fontSize: 14,
               fontWeight: 700,
@@ -265,13 +265,13 @@ export default function ServiceAutogestorPage({ onGoBack, onGoHome, onCreateIdCa
             style={{
               border: "none",
               borderRadius: 14,
-              background: "linear-gradient(135deg,#2563eb,#3b82f6)",
+              background: "linear-gradient(135deg,var(--marca),var(--marca-claro))",
               color: "#fff",
               padding: "12px 20px",
               fontSize: 16,
               fontWeight: 700,
               cursor: "pointer",
-              boxShadow: "0 8px 20px rgba(37,99,235,0.32)",
+              boxShadow: "0 8px 20px rgba(255,196,0,0.32)",
             }}
           >
             {t("autogestor.createIdCar")}

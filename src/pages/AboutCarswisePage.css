@@ -1,6 +1,6 @@
 .cw-about-page {
-  background: #ffffff;
-  color: #0f172a;
+  background: var(--blanco);
+  color: var(--gris-900);
   min-height: 100%;
   position: relative;
   overflow: hidden;
@@ -18,7 +18,7 @@
 .cw-about-bg-orb-1 {
   width: 380px;
   height: 380px;
-  background: radial-gradient(circle at 30% 30%, rgba(59,130,246,0.26), rgba(59,130,246,0));
+  background: radial-gradient(circle at 30% 30%, rgba(255,196,0,0.26), rgba(255,196,0,0));
   top: -120px;
   left: -90px;
 }
@@ -36,8 +36,8 @@
   inset: 0;
   z-index: 0;
   background-image:
-    linear-gradient(rgba(148,163,184,0.09) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148,163,184,0.09) 1px, transparent 1px);
+    linear-gradient(rgba(150,150,143,0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(150,150,143,0.09) 1px, transparent 1px);
   background-size: 34px 34px;
   mask-image: radial-gradient(circle at 35% 12%, rgba(0,0,0,0.32), rgba(0,0,0,0.06) 58%, transparent 82%);
   pointer-events: none;
@@ -61,7 +61,7 @@
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #0ea5e9;
+  color: var(--gris-700);
   font-weight: 700;
   margin-bottom: 18px;
 }
@@ -70,7 +70,7 @@
   content: "";
   width: 24px;
   height: 1px;
-  background: #0ea5e9;
+  background: var(--gris-700);
 }
 
 .cw-about-title {
@@ -79,11 +79,11 @@
   line-height: 0.94;
   letter-spacing: -0.04em;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--gris-900);
 }
 
 .cw-about-title-accent {
-  background: linear-gradient(120deg, #3b82f6, #06b6d4);
+  background: linear-gradient(120deg, var(--marca-claro), var(--gris-400));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -94,26 +94,26 @@
   max-width: 720px;
   font-size: 18px;
   line-height: 1.7;
-  color: #475569;
+  color: var(--gris-600);
 }
 
 .cw-about-hero-cta {
   margin-top: 26px;
-  border: 1px solid #93c5fd;
-  background: linear-gradient(180deg, #eff6ff, #dbeafe);
-  color: #1d4ed8;
+  border: 1px solid var(--gris-300);
+  background: linear-gradient(180deg, var(--acento-tenue), var(--acento-tenue));
+  color: var(--marca-oscuro);
   border-radius: 12px;
   padding: 10px 14px;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.03em;
   cursor: pointer;
-  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.14);
+  box-shadow: 0 10px 20px rgba(255, 196, 0, 0.14);
 }
 
 .cw-about-stats {
-  border-top: 1px solid #e2e8f0;
-  border-bottom: 1px solid #e2e8f0;
+  border-top: 1px solid var(--gris-200);
+  border-bottom: 1px solid var(--gris-200);
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
@@ -130,7 +130,7 @@
   line-height: 1;
   letter-spacing: -0.04em;
   font-weight: 800;
-  background: linear-gradient(120deg, #3b82f6, #14b8a6);
+  background: linear-gradient(120deg, var(--marca-claro), #14b8a6);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -139,13 +139,13 @@
 .cw-about-stat-label {
   margin-top: 6px;
   font-size: 12px;
-  color: #64748b;
+  color: var(--gris-500);
   letter-spacing: 0.04em;
 }
 
 .cw-about-divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, #cbd5e1, transparent);
+  background: linear-gradient(90deg, transparent, var(--gris-300), transparent);
 }
 
 .cw-about-section {
@@ -156,7 +156,7 @@
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  color: #0ea5e9;
+  color: var(--gris-700);
   font-size: 11px;
   letter-spacing: 0.17em;
   text-transform: uppercase;
@@ -168,7 +168,7 @@
   content: "";
   width: 18px;
   height: 1px;
-  background: #0ea5e9;
+  background: var(--gris-700);
 }
 
 .cw-about-section-title {
@@ -179,17 +179,17 @@
 }
 
 .cw-about-mission {
-  border: 1px solid #dbeafe;
+  border: 1px solid var(--acento-tenue);
   border-radius: 22px;
-  background: linear-gradient(180deg, #ffffff, #f8fbff);
+  background: linear-gradient(180deg, var(--blanco), var(--gris-50));
   padding: 32px;
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 14px 30px rgba(17, 17, 17, 0.06);
 }
 
 .cw-about-mission-text {
   margin: 0;
   font-size: 22px;
-  color: #0f172a;
+  color: var(--gris-900);
   line-height: 1.58;
 }
 
@@ -202,11 +202,11 @@
 .cw-about-feature-card,
 .cw-about-team-card,
 .cw-about-value-card {
-  border: 1px solid #dbeafe;
+  border: 1px solid var(--acento-tenue);
   border-radius: 16px;
-  background: #ffffff;
+  background: var(--blanco);
   padding: 22px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+  box-shadow: 0 12px 28px rgba(17, 17, 17, 0.05);
 }
 
 .cw-about-feature-icon {
@@ -221,7 +221,7 @@
 }
 
 .cw-about-feature-icon.is-buy {
-  background: #dbeafe;
+  background: var(--acento-tenue);
 }
 
 .cw-about-feature-icon.is-manage {
@@ -241,7 +241,7 @@
 }
 
 .cw-about-feature-tag.is-buy {
-  color: #2563eb;
+  color: var(--marca);
 }
 
 .cw-about-feature-tag.is-manage {
@@ -255,14 +255,14 @@
 .cw-about-feature-title {
   margin: 0 0 8px;
   font-size: 18px;
-  color: #0f172a;
+  color: var(--gris-900);
 }
 
 .cw-about-feature-text {
   margin: 0;
   font-size: 14px;
   line-height: 1.65;
-  color: #475569;
+  color: var(--gris-600);
 }
 
 .cw-about-team-avatar {
@@ -295,8 +295,8 @@
 }
 
 .cw-about-team-avatar.is-1 {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: var(--acento-tenue);
+  color: var(--marca-oscuro);
 }
 
 .cw-about-team-avatar.is-2 {
@@ -312,7 +312,7 @@
 .cw-about-team-name {
   margin: 0;
   font-size: 20px;
-  color: #0f172a;
+  color: var(--gris-900);
 }
 
 .cw-about-team-role {
@@ -320,19 +320,19 @@
   font-size: 12px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #2563eb;
+  color: var(--marca);
   font-weight: 700;
 }
 
 .cw-about-team-divider {
   height: 1px;
-  background: #e2e8f0;
+  background: var(--gris-200);
   margin: 14px 0;
 }
 
 .cw-about-team-bio {
   margin: 0;
-  color: #475569;
+  color: var(--gris-600);
   font-size: 14px;
   line-height: 1.65;
 }
@@ -346,9 +346,9 @@
   text-transform: uppercase;
   font-weight: 700;
   border-radius: 999px;
-  border: 1px solid #bfdbfe;
-  color: #1d4ed8;
-  background: #eff6ff;
+  border: 1px solid var(--gris-200);
+  color: var(--marca-oscuro);
+  background: var(--acento-tenue);
   padding: 5px 10px;
 }
 
@@ -357,19 +357,19 @@
   font-size: 48px;
   line-height: 0.9;
   letter-spacing: -0.06em;
-  color: #dbeafe;
+  color: var(--acento-tenue);
   font-weight: 800;
 }
 
 .cw-about-value-title {
   margin: 10px 0 8px;
   font-size: 18px;
-  color: #0f172a;
+  color: var(--gris-900);
 }
 
 .cw-about-value-text {
   margin: 0;
-  color: #475569;
+  color: var(--gris-600);
   font-size: 14px;
   line-height: 1.65;
 }
@@ -399,4 +399,16 @@
   .cw-about-mission-text {
     font-size: 19px;
   }
+}
+
+/* El equipo pasa a dos personas: la rejilla se ajusta para que las tarjetas no
+   se queden anchas y descolgadas a un lado. */
+.cw-about-grid-dos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  max-width: 760px;
+}
+@media (max-width: 780px) {
+  .cw-about-grid-dos { grid-template-columns: 1fr; }
 }

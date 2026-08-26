@@ -1,0 +1,1205 @@
+/**
+ * Cómo funciona.
+ *
+ * Tres bloques altos con el contenido quieto dentro: la sección mide tres
+ * pantallas y lo de dentro se queda pegado arriba, así el scroll avanza la
+ * escena sin que nada se mueva de sitio.
+ *
+ * El pin lo hace `position: sticky` y no ScrollTrigger. El navegador lo resuelve
+ * sin insertar espaciadores ni recalcular el documento, y con tres bloques
+ * encadenados esa es la diferencia entre un recorrido liso y uno que salta al
+ * entrar y salir de cada uno.
+ *
+ * Colores y tipografía son los de la aplicación: el amarillo es #FFC400 y la
+ * letra, Inter. Aquí no se estrena paleta ni familia; lo que cambia es la escala
+ * y el aire.
+ */
+
+.cf-root {
+  background: var(--blanco);
+  color: var(--gris-900);
+  font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  overflow-x: clip;
+}
+
+.cf-eyebrow {
+  margin: 0 0 16px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--acento-texto);
+}
+
+/* ── Portada ──────────────────────────────────────────────────────────── */
+.cf-hero {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  text-align: center;
+  padding: 0 24px;
+}
+.cf-manchas { position: absolute; inset: 0; pointer-events: none; }
+.cf-mancha {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--acento);
+  /* Muy tenues: son fondo, no ilustración. Con la opacidad alta el titular deja
+     de leerse y la portada se convierte en un cartel de otra cosa. */
+  opacity: 0.28;
+}
+.cf-mancha-1 { width: 340px; height: 340px; top: 12%; left: 8%; }
+.cf-mancha-2 { width: 180px; height: 180px; top: 24%; right: 13%; }
+.cf-mancha-3 { width: 110px; height: 110px; bottom: 18%; left: 28%; }
+
+.cf-hero-texto { position: relative; z-index: 1; max-width: 900px; }
+.cf-hero h1 {
+  margin: 0;
+  font-size: clamp(46px, 8.4vw, 112px);
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.05em;
+  text-wrap: balance;
+}
+.cf-hero h1 span { color: var(--acento-texto); }
+.cf-hero-pie {
+  margin: 30px 0 0;
+  font-size: clamp(16px, 1.6vw, 19px);
+  font-weight: 600;
+  color: var(--acento-texto);
+}
+.cf-baja {
+  margin: 64px 0 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--acento-texto);
+}
+.cf-baja-linea {
+  display: block;
+  width: 1px;
+  height: 52px;
+  margin: 14px auto 0;
+  background: var(--gris-300);
+}
+
+/* ── Bloques ──────────────────────────────────────────────────────────── */
+/* Cuatro pantallas y no tres: cada bloque enseña primero por dónde se entra y
+   después qué pasa detrás, y las dos cosas necesitan su aire. */
+.cf-bloque { position: relative; min-height: 400svh; }
+/* Comprar necesita mas: son tres opciones y cada una se recorre entera. El
+   embudo solo ya pide cuatro pantallas para sus siete filtros, y las otras dos
+   tienen ahora su propio recorrido —comparar y analizar— en vez de una lamina. */
+#comprar, #gestionar { min-height: 1150svh; }
+/* Vender son tres actos y ninguno pide tanto como el embudo. */
+#vender { min-height: 900svh; }
+.cf-bloque-claro { background: var(--gris-50); }
+
+.cf-fijo {
+  position: sticky;
+  top: 0;
+  min-height: 100svh;
+  display: grid;
+  align-items: center;
+  gap: clamp(26px, 4vw, 60px);
+  padding: 0 clamp(20px, 6vw, 76px);
+  overflow: hidden;
+}
+@media (min-width: 1000px) {
+  .cf-fijo { grid-template-columns: minmax(0, 34%) minmax(0, 66%); }
+}
+
+.cf-rotulo { max-width: 420px; }
+.cf-paso {
+  margin: 0 0 22px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--acento-texto);
+  font-variant-numeric: tabular-nums;
+}
+.cf-rotulo h2 {
+  margin: 0;
+  font-size: clamp(42px, 5.6vw, 84px);
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.05em;
+  text-wrap: balance;
+}
+.cf-rotulo h2 span { color: var(--acento-texto); }
+.cf-apoyo {
+  margin: 26px 0 0;
+  max-width: 34ch;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--acento-texto);
+}
+
+.cf-escena { position: relative; width: 100%; }
+
+/* ── 01 Comprar ───────────────────────────────────────────────────────── */
+/* Las tarjetas arriba y la escena debajo, cada una en su sitio. Compartir
+   espacio era el error: las dos se veían a medias y no se leía ninguna. */
+.cf-escena-actos { display: grid; gap: 30px; align-content: center; }
+.cf-tablero { position: relative; min-height: clamp(320px, 52svh, 470px); }
+.cf-acto {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  opacity: 0;
+}
+/* El embudo se ciñe al tablero. Sin esto su caja propia era mas alta que la del
+   acto, y al centrarse se salia por arriba: eso es lo que pisaba las tarjetas. */
+.cf-acto-embudo .em-root { position: absolute; inset: 0; min-height: 0; }
+.cf-acto-etq {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--acento-texto);
+}
+.cf-acto-pie { margin: 0; font-size: 13px; color: var(--gris-500); }
+
+/* Comparador: una ficha por coche, con su puesto, su nota y los cinco ejes. Es
+   la misma ficha que devuelve el comparador, encogida. Los dos huecos del final
+   son las plazas libres de las cinco. */
+.cf-comparados {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) 0.5fr;
+  gap: 12px;
+  align-items: start;
+}
+.cf-comparado {
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 14px;
+  padding: 13px 13px 15px;
+  display: grid;
+  gap: 10px;
+  box-shadow: 0 20px 44px -34px rgba(0, 0, 0, 0.3);
+}
+.cf-comparado.es-gana { border-color: var(--acento); }
+.cf-comparado-cab { margin: 0; display: flex; align-items: center; gap: 8px; }
+.cf-comparado-puesto {
+  flex: 0 0 auto;
+  width: 22px; height: 22px;
+  display: grid; place-items: center;
+  border-radius: 999px;
+  background: var(--gris-100);
+  color: var(--gris-600);
+  font-size: 10.5px;
+  font-weight: 800;
+}
+.es-gana .cf-comparado-puesto { background: var(--acento); color: var(--acento-texto); }
+.cf-comparado-cab strong { display: block; font-size: 13.5px; font-weight: 800; letter-spacing: -0.02em; }
+.cf-comparado-cab small { display: block; font-size: 10.5px; color: var(--gris-500); }
+.cf-comparado-nota { margin: 0; display: flex; align-items: baseline; gap: 5px; }
+.cf-comparado-nota b {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.cf-comparado-nota small { font-size: 10.5px; color: var(--gris-500); }
+
+.cf-ejes { display: grid; gap: 7px; }
+.cf-eje { display: grid; grid-template-columns: 68px minmax(0, 1fr) 20px; gap: 8px; align-items: center; }
+.cf-eje > span { font-size: 10px; font-weight: 700; line-height: 1.15; color: var(--gris-600); }
+.cf-eje i { display: block; height: 5px; border-radius: 999px; background: var(--gris-200); overflow: hidden; }
+.cf-eje em { display: block; height: 100%; border-radius: 999px; background: var(--gris-300); transform-origin: left center; }
+.es-gana .cf-eje em { background: var(--acento); }
+.cf-eje > b {
+  font-size: 10.5px;
+  font-weight: 800;
+  text-align: right;
+  color: var(--gris-700);
+  font-variant-numeric: tabular-nums;
+}
+
+.cf-hueco {
+  margin: 0;
+  align-self: stretch;
+  border: 1px dashed var(--gris-300);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 8px;
+  text-align: center;
+  font-size: 10.5px;
+  line-height: 1.3;
+  color: var(--gris-400);
+}
+.cf-hueco span { font-size: 19px; font-weight: 800; letter-spacing: -0.03em; color: var(--gris-300); }
+
+/* Test: las respuestas entran, el análisis las pesa y sale la recomendación. */
+.cf-analisis {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.85fr) 34px minmax(0, 140px) 34px minmax(0, 2fr);
+  gap: 14px;
+  align-items: center;
+}
+.cf-bloques-test {
+  margin: 0; padding: 0; list-style: none;
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.cf-acto-test .cf-bloques-test { flex-direction: column; align-items: stretch; gap: 6px; }
+.cf-bloques-test li {
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 999px;
+  padding: 9px 16px;
+}
+.cf-acto-test .cf-bloques-test li { font-size: 11.5px; padding: 7px 13px; text-align: center; }
+
+/* El carril por el que viaja la respuesta hacia el análisis, y de ahí al
+   resultado. El punto lo mueve el scroll, como todo lo demás. */
+.cf-flujo {
+  position: relative;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: repeating-linear-gradient(90deg, var(--gris-200) 0 4px, transparent 4px 9px);
+}
+.cf-flujo i {
+  position: absolute;
+  top: 0; left: 0;
+  width: 60%; height: 100%;
+  border-radius: 999px;
+  background: var(--acento);
+}
+
+.cf-cerebro { display: grid; place-items: center; }
+.cf-cerebro-svg { width: 100%; max-width: 140px; height: auto; display: block; }
+.cf-cerebro-borde {
+  fill: none;
+  stroke: var(--gris-900);
+  stroke-width: 2.2;
+  stroke-linejoin: round;
+  /* Con `pathLength="1"` el trazo entero mide 1: la raya vale 1 y el hueco
+     también, así que el recorrido va de 1 (nada dibujado) a 0 (todo). */
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.cf-cerebro-via {
+  fill: none;
+  stroke: var(--acento-texto);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.cf-cerebro-nodo { fill: var(--acento); transform-box: fill-box; transform-origin: center; }
+
+.cf-veredicto {
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 16px;
+  padding: 14px 15px 16px;
+  display: grid;
+  gap: 10px;
+  box-shadow: 0 24px 52px -36px rgba(0, 0, 0, 0.34);
+}
+.cf-veredicto-etq { margin: 0; font-size: 10.5px; font-weight: 700; color: var(--gris-500); }
+.cf-veredicto-etq b {
+  color: var(--acento-texto);
+  background: var(--acento-tenue);
+  border-radius: 999px;
+  padding: 2px 7px;
+  font-variant-numeric: tabular-nums;
+}
+.cf-veredicto h4 { margin: 0; font-size: 17px; font-weight: 800; letter-spacing: -0.03em; }
+.cf-pesos, .cf-mejores { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.cf-peso { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 8px; align-items: center; }
+.cf-peso > span { font-size: 10px; font-weight: 700; color: var(--gris-600); }
+.cf-peso i { display: block; height: 5px; border-radius: 999px; background: var(--gris-200); overflow: hidden; }
+.cf-peso em { display: block; height: 100%; border-radius: 999px; background: var(--acento); transform-origin: left center; }
+.cf-mejor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--gris-200);
+  border-radius: 10px;
+  padding: 7px 10px;
+}
+.cf-mejor strong { display: block; font-size: 11.5px; font-weight: 800; }
+.cf-mejor small { display: block; font-size: 10.5px; color: var(--gris-500); }
+.cf-mejor > b {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--acento-texto);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Las tres puertas de cada bloque ──────────────────────────────────── */
+.cf-caminos {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+@media (min-width: 760px) {
+  .cf-caminos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+#comprar .cf-camino, #vender .cf-camino { padding: 14px 16px; }
+.cf-camino {
+  --activa: 0;
+  background: var(--blanco);
+  /* El borde y la sombra siguen a --activa, que mueve la linea de tiempo. Asi
+     siempre se sabe de cual de las tres opciones se esta hablando. */
+  border: 1px solid color-mix(in srgb, var(--acento) calc(var(--activa) * 100%), var(--gris-200));
+  border-radius: 16px;
+  padding: 20px 20px 18px;
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  box-shadow: 0 22px 56px -30px rgba(0, 0, 0, calc(0.10 + var(--activa) * 0.20));
+  /* La escala NO va aqui: GSAP anima `y` y `autoAlpha` de estas tarjetas con
+     `transform`, y cualquier transform del CSS se pisaria sin avisar. Va en la
+     linea de tiempo, junto a --activa. */
+}
+.cf-camino strong {
+  font-size: clamp(15px, 1.5vw, 18px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+.cf-camino small {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--acento-texto);
+  background: var(--acento-tenue);
+  border-radius: 999px;
+  padding: 4px 10px;
+  justify-self: start;
+}
+
+
+
+/* ── 02 Vender ────────────────────────────────────────────────────────── */
+
+/* El IdCar, apartado por apartado, y la ficha sellándose al lado. */
+.cf-creacion {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+}
+.cf-pasos-idcar { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.cf-paso-idcar { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; align-items: start; }
+.cf-paso-idcar > b {
+  width: 20px; height: 20px;
+  display: grid; place-items: center;
+  border-radius: 999px;
+  background: var(--acento);
+  color: var(--acento-texto);
+  font-size: 10px;
+  font-weight: 800;
+}
+.cf-paso-idcar strong { display: block; font-size: 12.5px; font-weight: 800; letter-spacing: -0.015em; }
+.cf-paso-idcar small { display: block; font-size: 10.5px; line-height: 1.35; color: var(--gris-500); }
+
+.cf-ficha-idcar {
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 16px;
+  padding: 15px 16px 16px;
+  box-shadow: 0 26px 62px -34px rgba(0, 0, 0, 0.3);
+}
+.cf-ficha-idcar .cf-ficha-titulo { margin-bottom: 4px; }
+.cf-sellos {
+  margin: 12px 0 0; padding: 0; list-style: none;
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.cf-sello {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--acento-texto);
+  background: var(--acento-tenue);
+  border-radius: 999px;
+  padding: 5px 10px;
+}
+.cf-idcar-listo {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--gris-200);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--gris-600);
+}
+
+/* Publicar por tu cuenta: los requisitos, el informe de estado y el anuncio. El
+   informe va en medio porque es lo que une las dos cosas: es el requisito que
+   más pesa y es lo que acompaña al anuncio publicado. */
+.cf-publicar {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.15fr) minmax(0, 0.95fr);
+  gap: 18px;
+  align-items: center;
+}
+.cf-requisitos { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.cf-requisito {
+  --hecho: 0;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 11px;
+  align-items: center;
+}
+/* La marca de cumplido la enciende la línea de tiempo, no una clase: así sube y
+   baja con el scroll sin que haya que acordarse de quitarla. */
+.cf-requisito > i {
+  width: 22px; height: 22px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--acento) calc(var(--hecho) * 100%), var(--gris-300));
+  background: color-mix(in srgb, var(--acento) calc(var(--hecho) * 100%), transparent);
+  position: relative;
+}
+.cf-requisito > i::after {
+  content: "";
+  position: absolute;
+  left: 6px; top: 5px;
+  width: 6px; height: 10px;
+  border: solid var(--acento-texto);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  opacity: var(--hecho);
+}
+.cf-requisito strong { display: block; font-size: 13.5px; font-weight: 800; letter-spacing: -0.02em; }
+.cf-requisito small { display: block; font-size: 11px; color: var(--gris-500); }
+
+/* El informe de estado: el coche en planta con los daños encontrados y los
+   grados por parte. */
+.cf-informe-estado {
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 16px;
+  padding: 14px 15px 15px;
+  box-shadow: 0 26px 62px -34px rgba(0, 0, 0, 0.3);
+}
+.cf-estado-etq {
+  margin: 0 0 12px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--acento-texto);
+}
+.cf-estado-cuerpo { display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 14px; align-items: center; }
+.cf-coche-esquema { width: 100%; height: auto; display: block; }
+.cf-coche-cuerpo {
+  fill: none;
+  stroke: var(--gris-400);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.cf-coche-cuerpo > rect:first-child { fill: var(--gris-100); }
+/* El aspa marca la pieza, nunca un punto suelto del dibujo: el análisis sabe
+   qué pieza es, no en qué milímetro. */
+.cf-marca circle { fill: var(--acento); stroke: var(--blanco); stroke-width: 2; }
+.cf-marca text {
+  fill: var(--acento-texto);
+  font-size: 9px;
+  font-weight: 800;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.cf-hallazgos { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.cf-hallazgo { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 8px; align-items: center; }
+.cf-hallazgo > b {
+  width: 16px; height: 16px;
+  display: grid; place-items: center;
+  border-radius: 999px;
+  background: var(--acento);
+  color: var(--acento-texto);
+  font-size: 9px;
+  font-weight: 800;
+}
+.cf-hallazgo strong { display: block; font-size: 11.5px; font-weight: 800; }
+.cf-hallazgo small { display: block; font-size: 10px; color: var(--gris-500); }
+
+.cf-grados {
+  margin: 13px 0 0; padding: 12px 0 0;
+  border-top: 1px solid var(--gris-200);
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px 14px;
+}
+.cf-grado { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.cf-grado > span { font-size: 10.5px; color: var(--gris-600); }
+.cf-grado > b { font-size: 12px; font-weight: 800; letter-spacing: -0.01em; }
+/* La mecánica se queda en gris y sin letra: no hay grado que dar. */
+.cf-grado.es-sin-datos > b { font-size: 10px; font-weight: 700; color: var(--gris-400); }
+
+.cf-anuncio {
+  position: relative;
+  width: 100%;
+  max-width: 290px;
+  justify-self: end;
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 16px;
+  padding: 12px 13px 14px;
+  box-shadow: 0 26px 62px -34px rgba(0, 0, 0, 0.3);
+}
+.cf-anuncio-estado {
+  position: absolute;
+  top: 20px; right: 21px;
+  margin: 0;
+  z-index: 1;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--acento-texto);
+  background: var(--acento);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+.cf-anuncio-foto {
+  aspect-ratio: 4 / 3;
+  border-radius: 10px;
+  overflow: hidden;
+  background: linear-gradient(140deg, var(--gris-100), var(--gris-200));
+  margin-bottom: 10px;
+}
+.cf-anuncio-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cf-anuncio-titulo { margin: 0; font-size: 14px; font-weight: 800; letter-spacing: -0.02em; }
+.cf-anuncio-datos { margin: 2px 0 0; font-size: 11px; color: var(--gris-500); }
+.cf-anuncio-precio {
+  margin: 6px 0 0;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* La venta gestionada, con sus cuatro pasos y los portales del tercero. */
+.cf-gestionada {
+  margin: 0; padding: 0; list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.cf-paso-venta {
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 14px;
+  padding: 14px 14px 16px;
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  box-shadow: 0 20px 44px -34px rgba(0, 0, 0, 0.28);
+}
+.cf-paso-venta > b {
+  width: 22px; height: 22px;
+  display: grid; place-items: center;
+  border-radius: 999px;
+  background: var(--acento);
+  color: var(--acento-texto);
+  font-size: 10.5px;
+  font-weight: 800;
+}
+.cf-paso-venta strong { font-size: 13px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.25; }
+.cf-paso-venta > small {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--gris-500);
+}
+.cf-portales { margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px; }
+.cf-portales li {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--gris-600);
+  background: var(--gris-100);
+  border-radius: 999px;
+  padding: 3px 7px;
+}
+
+/* La ficha y el informe, uno al lado del otro. Antes el informe iba suelto en
+   coordenadas y con el acto más alto se quedaba descolgado a media escena. */
+.cf-escena-venta {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+}
+.cf-ficha-fuente {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--gris-200);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--acento-texto);
+}
+
+.cf-ficha-titulo {
+  margin: 0 0 12px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gris-500);
+}
+.cf-ficha-venta {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 360px;
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 18px;
+  padding: 20px 22px;
+  box-shadow: 0 28px 70px -34px rgba(0, 0, 0, 0.28);
+}
+.cf-datos { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; }
+.cf-dato dt {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gris-400);
+}
+.cf-dato dd { margin: 2px 0 0; font-size: 14px; font-weight: 700; }
+
+.cf-informe {
+  position: relative;
+  z-index: 3;
+  justify-self: end;
+  width: 100%;
+  max-width: 340px;
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 18px;
+  padding: 22px 24px;
+  box-shadow: 0 34px 80px -34px rgba(0, 0, 0, 0.32);
+}
+.cf-informe-etq {
+  margin: 0;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--acento-texto);
+}
+.cf-informe-cifra {
+  margin: 8px 0 2px;
+  font-size: clamp(30px, 3.4vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+}
+.cf-informe-pie { margin: 0; font-size: 12.5px; color: var(--gris-500); }
+.cf-barra {
+  margin: 18px 0 8px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--gris-200);
+  overflow: hidden;
+}
+.cf-barra i {
+  display: block;
+  height: 100%;
+  background: var(--acento);
+  border-radius: 999px;
+  transform-origin: left center;
+}
+.cf-informe-rango {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: var(--gris-500);
+  font-variant-numeric: tabular-nums;
+}
+.cf-limite {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--gris-200);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--gris-500);
+}
+
+/* Los anuncios con los que se compara, juntos y con su rótulo. Sueltos por la
+   escena parecían cuatro números a los que les faltaba algo. */
+.cf-comparables { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.cf-comparables ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+.cf-comparables-etq {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gris-400);
+}
+.cf-comparable {
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 999px;
+  padding: 7px 13px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gris-600);
+  box-shadow: 0 14px 34px -22px rgba(0, 0, 0, 0.24);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 03 Gestionar ─────────────────────────────────────────────────────── */
+/* Las cuatro puertas de este bloque son los cuatro servicios, y van arriba como
+   las tarjetas de los otros dos. Se marca la que se está contando. */
+.cf-servicios {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+@media (min-width: 760px) {
+  .cf-servicios { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.cf-servicio {
+  --activa: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  background: var(--blanco);
+  border: 1px solid color-mix(in srgb, var(--acento) calc(var(--activa) * 100%), var(--gris-200));
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 22px 56px -30px rgba(0, 0, 0, calc(0.10 + var(--activa) * 0.20));
+}
+.cf-servicio-icono {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--acento-tenue);
+  color: var(--acento-texto);
+}
+.cf-servicio-icono svg { width: 18px; height: 18px; }
+.cf-servicio-texto { display: grid; gap: 1px; }
+.cf-servicio strong { font-size: 13.5px; font-weight: 800; letter-spacing: -0.01em; }
+.cf-servicio small { font-size: 11px; color: var(--gris-500); }
+
+
+/* Los avisos: el mes por un lado y las revisiones que tocan por otro. */
+.cf-recordatorio {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.3fr);
+  gap: 20px;
+  align-items: center;
+}
+.cf-mes {
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 14px;
+  padding: 13px 14px 14px;
+  box-shadow: 0 20px 44px -34px rgba(0, 0, 0, 0.28);
+}
+.cf-mes-etq {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gris-500);
+}
+.cf-semana, .cf-calendario {
+  margin: 0; padding: 0; list-style: none;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.cf-semana {
+  margin-bottom: 5px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--gris-400);
+  text-align: center;
+}
+.cf-calendario li {
+  aspect-ratio: 1;
+  border-radius: 4px;
+  background: var(--gris-100);
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--gris-600);
+  font-variant-numeric: tabular-nums;
+}
+/* Octubre empieza en jueves: los tres primeros huecos no son días. */
+.cf-calendario li.es-vacio { background: transparent; }
+.cf-calendario li.es-aviso { background: var(--acento); color: var(--acento-texto); }
+.cf-calendario li.es-cita { background: var(--gris-900); color: var(--blanco); }
+.cf-leyenda {
+  margin: 11px 0 0;
+  display: grid;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--gris-500);
+}
+.cf-leyenda span { display: flex; align-items: center; gap: 6px; }
+.cf-leyenda span::before {
+  content: "";
+  width: 8px; height: 8px;
+  border-radius: 2px;
+  background: var(--acento);
+}
+.cf-leyenda .cf-leyenda-cita::before { background: var(--gris-900); }
+
+.cf-avisos { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.cf-aviso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 12px;
+  padding: 10px 13px;
+}
+.cf-aviso strong { display: block; font-size: 12.5px; font-weight: 800; letter-spacing: -0.015em; }
+.cf-aviso small { display: block; font-size: 10.5px; color: var(--gris-500); }
+.cf-aviso > b {
+  flex: none;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 4px 9px;
+}
+.cf-aviso > b.es-aviso { color: var(--acento-texto); background: var(--acento-tenue); }
+.cf-aviso > b.es-cita { color: var(--blanco); background: var(--gris-900); }
+
+/* La cita: los cuatro pasos arriba, el mapa y el precio debajo. */
+.cf-cita {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+}
+/* Los pasos van en fila y encima: son el recorrido, no una de las dos mitades
+   de la escena. */
+.cf-pasos-cita {
+  margin: 0; padding: 0; list-style: none;
+  display: flex; flex-wrap: wrap; gap: 8px 16px;
+}
+.cf-pasos-cita li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gris-700);
+}
+.cf-pasos-cita b {
+  width: 20px; height: 20px;
+  flex: none;
+  display: grid; place-items: center;
+  border-radius: 999px;
+  background: var(--acento);
+  color: var(--acento-texto);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+/* El mapa. La silueta se acerca a la provincia; los marcadores son HTML encima
+   y entran ya acercado, así no hay que deshacerles la escala. */
+.cf-mapa {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  max-width: 330px;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid var(--gris-200);
+  background: var(--blanco);
+}
+.cf-mapa-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.cf-mapa-tierra { fill: var(--gris-100); stroke: var(--gris-300); stroke-width: 0.7; stroke-linejoin: round; }
+
+/* Dónde estás: el punto azul de siempre, con su halo. */
+.cf-ubicacion {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 13px; height: 13px;
+  margin: -6.5px 0 0 -6.5px;
+  border-radius: 50%;
+  background: #1a73e8;
+  border: 2px solid var(--blanco);
+  box-shadow: 0 0 0 6px rgba(26, 115, 232, 0.18);
+}
+
+/* Los talleres de alrededor. Rojo porque es lo que se lee como «aquí hay uno»
+   en cualquier mapa, y el elegido se separa del resto. */
+.cf-taller {
+  --elegido: 0;
+  position: absolute;
+  /* Va en `translate` y no en `transform` a propósito: GSAP anima el transform
+     de estos marcadores y se llevaría por delante el centrado. Y el origen es
+     la punta, para que al agrandarse el elegido no se despegue del sitio. */
+  translate: -50% -100%;
+  transform-origin: 50% 100%;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  color: var(--blanco);
+  background: #d93025;
+  box-shadow: 0 6px 14px -6px rgba(217, 48, 37, calc(0.5 + var(--elegido) * 0.4));
+  border: 2px solid color-mix(in srgb, var(--acento) calc(var(--elegido) * 100%), transparent);
+}
+/* La punta del marcador, que es lo que lo clava en el sitio. */
+.cf-taller::after {
+  content: "";
+  position: absolute;
+  left: 50%; top: 100%;
+  margin-left: -3px;
+  border: 3px solid transparent;
+  border-top-color: #d93025;
+}
+.cf-presupuesto {
+  width: 100%;
+  max-width: 300px;
+  justify-self: end;
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 16px;
+  padding: 15px 16px 16px;
+  box-shadow: 0 26px 62px -34px rgba(0, 0, 0, 0.3);
+}
+.cf-presupuesto-taller {
+  margin: 0 0 3px;
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.cf-presupuesto-etq {
+  margin: 0 0 12px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--gris-200);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gris-500);
+}
+.cf-precios { margin: 0; display: grid; gap: 8px; }
+.cf-precio { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.cf-precio dt { font-size: 12px; color: var(--gris-500); }
+.cf-precio dd {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gris-500);
+  text-decoration: line-through;
+  font-variant-numeric: tabular-nums;
+}
+.cf-precio.es-popcar dt { color: var(--gris-900); font-weight: 700; }
+.cf-precio.es-popcar dd {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  color: var(--gris-900);
+  text-decoration: none;
+}
+/* El botón de la pantalla real, dibujado. No es un `button` porque no hace
+   nada: la página cuenta la aplicación, no la sustituye. */
+.cf-boton-pintado {
+  display: block;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--gris-900);
+  color: var(--blanco);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+.cf-ahorro {
+  margin: 12px 0 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--acento-texto);
+  background: var(--acento-tenue);
+  border-radius: 999px;
+  padding: 6px 12px;
+  display: inline-block;
+}
+
+/* El seguro: se suelta la póliza y salen las coberturas medidas. */
+.cf-poliza {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr);
+  gap: 20px;
+  align-items: center;
+}
+.cf-soltar {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  text-align: center;
+  border: 1px dashed var(--acento);
+  border-radius: 16px;
+  padding: 20px 16px;
+  background: var(--blanco);
+}
+.cf-soltar-icono {
+  width: 30px; height: 30px;
+  margin-bottom: 6px;
+  border-radius: 6px;
+  border: 2px solid var(--acento-texto);
+  border-top-width: 8px;
+  opacity: 0.85;
+}
+.cf-soltar strong { font-size: 13.5px; font-weight: 800; letter-spacing: -0.02em; }
+.cf-soltar small { font-size: 10.5px; color: var(--gris-500); }
+.cf-soltar-tiempo { color: var(--acento-texto); font-weight: 700; }
+
+.cf-coberturas ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.cf-coberturas-etq {
+  margin: 0 0 10px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gris-500);
+}
+.cf-cobertura { display: grid; grid-template-columns: 96px minmax(0, 1fr) 42px; gap: 10px; align-items: center; }
+.cf-cobertura > span { font-size: 11px; font-weight: 700; color: var(--gris-700); }
+.cf-cobertura i { display: block; height: 5px; border-radius: 999px; background: var(--gris-200); overflow: hidden; }
+.cf-cobertura em { display: block; height: 100%; border-radius: 999px; background: var(--acento); transform-origin: left center; }
+.cf-cobertura > b { font-size: 10.5px; font-weight: 800; color: var(--gris-500); text-align: right; }
+
+/* ── Cierre ───────────────────────────────────────────────────────────── */
+.cf-final {
+  min-height: 92svh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  background: var(--acento);
+  padding: 0 24px;
+}
+.cf-final .cf-eyebrow { color: var(--acento-texto); }
+.cf-final h2 {
+  margin: 0;
+  font-size: clamp(46px, 8.6vw, 116px);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.055em;
+  text-wrap: balance;
+}
+/* Sobre el amarillo, el blanco de la segunda línea funciona porque es un
+   titular enorme; en texto pequeño no llegaría a contraste. */
+.cf-final h2 span { color: var(--blanco); }
+.cf-final-pie {
+  margin: 30px 0 0;
+  font-size: clamp(15px, 1.5vw, 18px);
+  font-weight: 600;
+  color: var(--acento-texto);
+}
+.cf-final-boton {
+  margin-top: 30px;
+  background: var(--gris-900);
+  color: var(--blanco);
+  border: 1px solid var(--gris-900);
+  border-radius: 999px;
+  padding: 15px 36px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.cf-final-boton:hover { background: #000; }
+.cf-final-boton:focus-visible { outline: 3px solid var(--gris-900); outline-offset: 3px; }
+
+/* ── Pantallas pequeñas ───────────────────────────────────────────────── */
+@media (max-width: 999px) {
+  /* Menos recorrido por bloque: la narración es la misma, lo que baja es el
+     kilometraje del dedo. */
+  .cf-bloque { min-height: 240svh; }
+  #comprar, #gestionar { min-height: 700svh; }
+  #vender { min-height: 560svh; }
+  /* Los cuatro pasos de la venta gestionada en fila no caben; en dos columnas
+     sí, y siguen leyéndose en orden. */
+  .cf-gestionada { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cf-creacion, .cf-publicar { grid-template-columns: 1fr; gap: 12px; }
+  /* En movil el informe se lee de un vistazo: el esquema y los grados bastan,
+     el detalle de cada hallazgo se queda para la pantalla grande. */
+  .cf-hallazgos { display: none; }
+  .cf-estado-cuerpo { grid-template-columns: 70px minmax(0, 1fr); }
+  .cf-paso-idcar small { display: none; }
+  /* Tres fichas no se leen en un móvil: se enseñan dos y el rótulo sigue
+     diciendo cuántas caben a la vez. */
+  .cf-comparados { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cf-comparado:nth-child(3) { display: none; }
+  .cf-hueco { grid-column: 1 / -1; flex-direction: row; gap: 8px; padding: 9px; }
+  .cf-hueco span { display: none; }
+  .cf-analisis { grid-template-columns: 1fr; gap: 10px; }
+  .cf-flujo { display: none; }
+  .cf-acto-test .cf-bloques-test { flex-direction: row; flex-wrap: wrap; }
+  .cf-cerebro-svg { max-width: 84px; }
+  .cf-fijo { align-content: center; gap: 20px; padding-top: 76px; padding-bottom: 40px; }
+  .cf-rotulo h2 { font-size: clamp(34px, 8vw, 52px); }
+  .cf-apoyo { display: none; }
+  .cf-informe { max-width: none; justify-self: stretch; margin-top: 4px; }
+  .cf-escena-venta { grid-template-columns: 1fr; gap: 12px; }
+  .cf-ficha-venta { max-width: none; }
+  .cf-anuncio { max-width: none; justify-self: stretch; }
+  /* La fila de comparables se cae: en un movil ya hay bastante con la cifra. */
+  .cf-comparables { display: none; }
+  .cf-caminos { position: relative; inset: auto; margin-bottom: 14px; }
+  .cf-camino { padding: 14px 16px; }
+  .cf-recordatorio, .cf-cita, .cf-poliza { grid-template-columns: 1fr; gap: 12px; }
+  .cf-mapa { max-width: none; }
+  .cf-ficha-idcar, .cf-presupuesto { max-width: none; justify-self: stretch; }
+  .cf-cobertura { grid-template-columns: 84px minmax(0, 1fr) 38px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-final-boton { transition: none; }
+  /* Sin animación no hay quien encienda los actos, así que se enseñan los tres
+     seguidos y ya resueltos. Antes se quedaban en opacidad cero: quien pide no
+     moverse veía el bloque de comprar en blanco. */
+  #comprar, #vender, #gestionar { min-height: 0; }
+  /* Y el panel deja de pegarse y de recortar, o los actos apilados se irían
+     por debajo del corte. */
+  #comprar .cf-fijo, #vender .cf-fijo, #gestionar .cf-fijo { position: static; min-height: 0; overflow: visible; padding: 60px clamp(20px, 6vw, 76px); }
+  .cf-tablero { min-height: 0; display: grid; gap: 44px; }
+  .cf-acto { position: relative; inset: auto; opacity: 1; }
+  .cf-acto-embudo .em-root { position: relative; inset: auto; min-height: clamp(300px, 48svh, 440px); }
+  .cf-requisito { --hecho: 1; }
+  /* Sin movimiento no hay quien acerque el mapa, así que ya sale sobre la
+     provincia y con el taller elegido marcado. */
+  .cf-mapa-zoom {
+    transform-box: view-box;
+    transform-origin: 67.8px 53.5px;
+    transform: translate(16.2px, 9.5px) scale(4.6);
+  }
+  .cf-taller.es-elegido { --elegido: 1; }
+}

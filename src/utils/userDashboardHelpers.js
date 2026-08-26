@@ -21,7 +21,7 @@ export function buildUserDashboardModel({
         {
           id: "advisor-follow-up",
           source: "suggestion",
-          title: "Revisión personalizada CarsWise",
+          title: "Revisión personalizada PopCar",
           meta: `${normalizeText(result?.solucion_principal?.titulo) || "Tu plan de movilidad"} · pendiente de reservar`,
           status: "Pendiente",
         },

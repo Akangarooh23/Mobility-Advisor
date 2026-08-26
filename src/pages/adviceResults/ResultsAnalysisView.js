@@ -95,10 +95,10 @@ export default function ResultsAnalysisView({
   };
   const [hoveredCard, setHoveredCard] = useState(null);
   const isDark = themeMode === "dark";
-  const cardBg = isDark ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.95)";
-  const cardBorder = isDark ? "rgba(148,163,184,0.32)" : "rgba(31,41,55,0.1)";
-  const titleColor = isDark ? "#f8fafc" : "#0f172a";
-  const bodyColor = isDark ? "#cbd5e1" : "#475569";
+  const cardBg = isDark ? "rgba(17,17,17,0.88)" : "rgba(255,255,255,0.95)";
+  const cardBorder = isDark ? "rgba(150,150,143,0.32)" : "rgba(31,31,29,0.1)";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
 
   return (
     <div style={{ display: "grid", gap: 12 }}>
@@ -109,7 +109,7 @@ export default function ResultsAnalysisView({
           borderRadius: 18,
           padding: 24,
           marginBottom: 14,
-          boxShadow: "0 14px 30px rgba(15,23,42,0.1)",
+          boxShadow: "0 14px 30px rgba(17,17,17,0.1)",
         }}
       >
         <div style={{ display: "flex", gap: 14, marginBottom: 16 }}>
@@ -143,7 +143,7 @@ export default function ResultsAnalysisView({
             <h3 style={{ margin: "0 0 6px", fontSize: 18, fontWeight: 700, color: titleColor }}>
               {displayResult.solucion_principal?.titulo}
             </h3>
-            <p style={{ margin: 0, color: isDark ? "#cbd5e1" : "#64748b", fontSize: 13, lineHeight: 1.6 }}>
+            <p style={{ margin: 0, color: isDark ? "var(--gris-300)" : "var(--gris-500)", fontSize: 13, lineHeight: 1.6 }}>
               {displayResult.solucion_principal?.resumen}
             </p>
           </div>
@@ -158,16 +158,16 @@ export default function ResultsAnalysisView({
             onClick={onExportLogicDocument}
             disabled={logicExportLoading}
             style={{
-              background: logicExportLoading ? "rgba(14,165,233,0.12)" : "linear-gradient(135deg,#0ea5e9,#0284c7)",
-              border: "1px solid rgba(125,211,252,0.28)",
-              color: "#f0f9ff",
+              background: logicExportLoading ? "rgba(255,196,0,0.12)" : "linear-gradient(135deg,var(--gris-700),var(--gris-900))",
+              border: "1px solid rgba(207,207,200,0.28)",
+              color: "var(--gris-50)",
               padding: "10px 14px",
               borderRadius: 10,
               fontSize: 12,
               fontWeight: 800,
               cursor: logicExportLoading ? "progress" : "pointer",
               opacity: logicExportLoading ? 0.82 : 1,
-              boxShadow: logicExportLoading ? "none" : "0 10px 24px rgba(14,165,233,0.16)",
+              boxShadow: logicExportLoading ? "none" : "0 10px 24px rgba(255,196,0,0.16)",
             }}
           >
             {logicExportLoading ? text.exporting : text.exportWord}
@@ -175,7 +175,7 @@ export default function ResultsAnalysisView({
         </div>
 
         {logicExportFeedback && (
-          <div style={{ marginBottom: 12, fontSize: 12, color: "#0369a1" }}>
+          <div style={{ marginBottom: 12, fontSize: 12, color: "var(--gris-800)" }}>
             {logicExportFeedback}
           </div>
         )}
@@ -183,7 +183,7 @@ export default function ResultsAnalysisView({
         <div
           style={{
             height: 5,
-            background: isDark ? "rgba(148,163,184,0.26)" : "rgba(255,255,255,0.07)",
+            background: isDark ? "rgba(150,150,143,0.26)" : "rgba(255,255,255,0.07)",
             borderRadius: 3,
             overflow: "hidden",
             marginBottom: 18,
@@ -210,13 +210,13 @@ export default function ResultsAnalysisView({
           <div
             style={{
               background: cardBg,
-              border: isDark ? "1px solid rgba(125,211,252,0.22)" : "1px solid rgba(3,105,161,0.1)",
+              border: isDark ? "1px solid rgba(207,207,200,0.22)" : "1px solid rgba(94,94,89,0.1)",
               borderRadius: 12,
               padding: 12,
-              boxShadow: "0 8px 20px rgba(3,105,161,0.08)",
+              boxShadow: "0 8px 20px rgba(94,94,89,0.08)",
             }}
           >
-            <div style={{ fontSize: 10, color: "#0369a1", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
+            <div style={{ fontSize: 10, color: "var(--gris-800)", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
               {text.scoreBreakdown}
             </div>
             <div style={{ display: "grid", gap: 8 }}>
@@ -228,7 +228,7 @@ export default function ResultsAnalysisView({
                       <span>{item.label}</span>
                       <span style={{ color: item.color, fontWeight: 700 }}>{value}/{item.max}</span>
                     </div>
-                    <div style={{ height: 5, background: "rgba(31,41,55,0.08)", borderRadius: 999, overflow: "hidden" }}>
+                    <div style={{ height: 5, background: "rgba(31,31,29,0.08)", borderRadius: 999, overflow: "hidden" }}>
                       <div
                         style={{
                           height: "100%",
@@ -359,7 +359,7 @@ export default function ResultsAnalysisView({
           <div style={{ fontSize: 10, color: "#b91c1c", marginBottom: 6, fontWeight: 600, letterSpacing: "0.6px" }}>
             {text.profileTension}
           </div>
-          <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
+          <p style={{ margin: 0, fontSize: 12, color: "var(--gris-600)", lineHeight: 1.6 }}>
             {displayResult.solucion_principal.tension_principal}
           </p>
         </div>
@@ -406,7 +406,7 @@ export default function ResultsAnalysisView({
                 ≈ {formatCurrency(Number(tcoDetail.total_anual || 0))} / {text.annual}
               </div>
               {Number(tcoDetail.entrada_inicial || 0) > 0 && (
-                <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.5 }}>
+                <div style={{ fontSize: 12, color: "var(--gris-600)", lineHeight: 1.5 }}>
                   {text.downPayment}: <strong>{formatCurrency(Number(tcoDetail.entrada_inicial || 0))}</strong>
                 </div>
               )}
@@ -430,11 +430,11 @@ export default function ResultsAnalysisView({
                   const total = Math.max(1, Number(tcoDetail.total_mensual || 0));
                   return (
                     <div key={item.key}>
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 11, color: "#475569", marginBottom: 4 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 11, color: "var(--gris-600)", marginBottom: 4 }}>
                         <span>{item.label}</span>
                         <span style={{ color: item.color, fontWeight: 700 }}>{formatCurrency(value)}</span>
                       </div>
-                      <div style={{ height: 5, background: "rgba(31,41,55,0.08)", borderRadius: 999, overflow: "hidden" }}>
+                      <div style={{ height: 5, background: "rgba(31,31,29,0.08)", borderRadius: 999, overflow: "hidden" }}>
                         <div
                           style={{
                             height: "100%",
@@ -452,7 +452,7 @@ export default function ResultsAnalysisView({
           </div>
 
           {displayResult.tco_aviso && (
-            <p style={{ margin: "0 0 6px", fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
+            <p style={{ margin: "0 0 6px", fontSize: 12, color: "var(--gris-600)", lineHeight: 1.6 }}>
               {displayResult.tco_aviso}
             </p>
           )}
@@ -476,7 +476,7 @@ export default function ResultsAnalysisView({
           const mt2 = MOBILITY_TYPES[alt.tipo] || {
             label: alt.tipo,
             icon: "🚗",
-            color: "#64748b",
+            color: "var(--gris-500)",
           };
           return (
             <div
@@ -486,13 +486,13 @@ export default function ResultsAnalysisView({
               style={{
                 background: cardBg,
                 border: hoveredCard === `alt-${i}`
-                  ? "1px solid rgba(59,130,246,0.32)"
-                  : "1px solid rgba(31,41,55,0.1)",
+                  ? "1px solid rgba(255,196,0,0.32)"
+                  : "1px solid rgba(31,31,29,0.1)",
                 borderRadius: 12,
                 padding: 14,
                 boxShadow: hoveredCard === `alt-${i}`
-                  ? "0 14px 30px rgba(59,130,246,0.14)"
-                  : "0 8px 18px rgba(15,23,42,0.06)",
+                  ? "0 14px 30px rgba(255,196,0,0.14)"
+                  : "0 8px 18px rgba(17,17,17,0.06)",
                 transform: hoveredCard === `alt-${i}` ? "translateY(-2px)" : "translateY(0)",
                 transition: "all 0.2s ease",
               }}
@@ -504,7 +504,7 @@ export default function ResultsAnalysisView({
                   <div style={{ fontSize: 11, color: mt2.color }}>{alt.score}% coincidencia</div>
                 </div>
               </div>
-              <p style={{ margin: 0, fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>{alt.razon}</p>
+              <p style={{ margin: 0, fontSize: 12, color: "var(--gris-500)", lineHeight: 1.5 }}>{alt.razon}</p>
             </div>
           );
         })}
@@ -522,13 +522,13 @@ export default function ResultsAnalysisView({
           {comparatorRows.length > 0 && (
             <div
               style={{
-                background: "rgba(37,99,235,0.07)",
-                border: "1px solid rgba(96,165,250,0.18)",
+                background: "rgba(255,196,0,0.07)",
+                border: "1px solid rgba(255,196,0,0.18)",
                 borderRadius: 12,
                 padding: 16,
               }}
             >
-              <div style={{ fontSize: 10, color: "#1d4ed8", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
+              <div style={{ fontSize: 10, color: "var(--marca-oscuro)", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
                 {text.finalComparator}
               </div>
               <div style={{ display: "grid", gap: 10 }}>
@@ -537,7 +537,7 @@ export default function ResultsAnalysisView({
                     key={`compare-${row.criterio || index}`}
                     style={{
                       background: cardBg,
-                      border: "1px solid rgba(148,163,184,0.12)",
+                      border: "1px solid rgba(150,150,143,0.12)",
                       borderRadius: 10,
                       padding: 10,
                     }}
@@ -559,12 +559,12 @@ export default function ResultsAnalysisView({
                       </span>
                     </div>
                     <div style={{ display: "grid", gap: 5 }}>
-                      <div style={{ fontSize: 11, color: "#1e3a8a", lineHeight: 1.5 }}><strong>{text.selectedOption}:</strong> {row.opcion_principal}</div>
+                      <div style={{ fontSize: 11, color: "var(--gris-900)", lineHeight: 1.5 }}><strong>{text.selectedOption}:</strong> {row.opcion_principal}</div>
                       {row.alternativa_1 && (
-                        <div style={{ fontSize: 11, color: "#475569", lineHeight: 1.5 }}><strong>{text.alternative1}:</strong> {row.alternativa_1}</div>
+                        <div style={{ fontSize: 11, color: "var(--gris-600)", lineHeight: 1.5 }}><strong>{text.alternative1}:</strong> {row.alternativa_1}</div>
                       )}
                       {row.alternativa_2 && (
-                        <div style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.5 }}><strong>{text.alternative2}:</strong> {row.alternativa_2}</div>
+                        <div style={{ fontSize: 11, color: "var(--gris-400)", lineHeight: 1.5 }}><strong>{text.alternative2}:</strong> {row.alternativa_2}</div>
                       )}
                     </div>
                   </div>
@@ -682,24 +682,24 @@ export default function ResultsAnalysisView({
 
       <div
         style={{
-          background: "rgba(14,165,233,0.07)",
-          border: "1px solid rgba(125,211,252,0.18)",
+          background: "rgba(255,196,0,0.07)",
+          border: "1px solid rgba(207,207,200,0.18)",
           borderRadius: 12,
           padding: 16,
           marginBottom: 14,
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
-          <div style={{ fontSize: 10, color: "#0369a1", fontWeight: 700, letterSpacing: "0.6px" }}>
+          <div style={{ fontSize: 10, color: "var(--gris-800)", fontWeight: 700, letterSpacing: "0.6px" }}>
             {text.marketRadar}
           </div>
           <button
             type="button"
             onClick={saveCurrentComparison}
             style={{
-              background: "rgba(14,165,233,0.18)",
-              border: "1px solid rgba(125,211,252,0.28)",
-              color: "#0c4a6e",
+              background: "rgba(255,196,0,0.18)",
+              border: "1px solid rgba(207,207,200,0.28)",
+              color: "var(--gris-600)",
               padding: "6px 10px",
               borderRadius: 10,
               fontSize: 11,
@@ -711,7 +711,7 @@ export default function ResultsAnalysisView({
           </button>
         </div>
 
-        <p style={{ margin: "0 0 10px", fontSize: 12, color: "#1e3a8a", lineHeight: 1.6 }}>{marketRadar.objetivo}</p>
+        <p style={{ margin: "0 0 10px", fontSize: 12, color: "var(--gris-900)", lineHeight: 1.6 }}>{marketRadar.objetivo}</p>
 
         <div
           style={{
@@ -722,10 +722,10 @@ export default function ResultsAnalysisView({
           }}
         >
           <div>
-            <div style={{ fontSize: 10, color: "#075985", marginBottom: 6, letterSpacing: "0.5px" }}>{text.enterSignals}</div>
+            <div style={{ fontSize: 10, color: "var(--gris-800)", marginBottom: 6, letterSpacing: "0.5px" }}>{text.enterSignals}</div>
             <div style={{ display: "grid", gap: 5 }}>
               {marketRadar.senales_verdes.map((item, index) => (
-                <div key={`radar-green-${index}`} style={{ fontSize: 11, color: "#0c4a6e", lineHeight: 1.5 }}>
+                <div key={`radar-green-${index}`} style={{ fontSize: 11, color: "var(--gris-600)", lineHeight: 1.5 }}>
                   • {item}
                 </div>
               ))}
@@ -743,11 +743,11 @@ export default function ResultsAnalysisView({
           </div>
         </div>
 
-        {saveFeedback && <div style={{ fontSize: 11, color: "#0c4a6e", marginBottom: 10 }}>{saveFeedback}</div>}
+        {saveFeedback && <div style={{ fontSize: 11, color: "var(--gris-600)", marginBottom: 10 }}>{saveFeedback}</div>}
 
         {savedComparisonItems.length > 0 && (
           <div>
-            <div style={{ fontSize: 10, color: "#075985", marginBottom: 8, letterSpacing: "0.5px" }}>{text.latestComparisons}</div>
+            <div style={{ fontSize: 10, color: "var(--gris-800)", marginBottom: 8, letterSpacing: "0.5px" }}>{text.latestComparisons}</div>
             <div style={{ display: "grid", gap: 8 }}>
               {savedComparisonItems.map((item) => {
                 const savedOfferHref =
@@ -771,14 +771,14 @@ export default function ResultsAnalysisView({
                     style={{
                       background: cardBg,
                       border: hoveredCard === `saved-${item.id}`
-                        ? "1px solid rgba(59,130,246,0.3)"
-                        : "1px solid rgba(148,163,184,0.14)",
+                        ? "1px solid rgba(255,196,0,0.3)"
+                        : "1px solid rgba(150,150,143,0.14)",
                       borderRadius: 10,
                       padding: 10,
                       cursor: savedOfferHref ? "pointer" : "default",
                       boxShadow: hoveredCard === `saved-${item.id}`
-                        ? "0 14px 30px rgba(59,130,246,0.14)"
-                        : "0 8px 18px rgba(15,23,42,0.06)",
+                        ? "0 14px 30px rgba(255,196,0,0.14)"
+                        : "0 8px 18px rgba(17,17,17,0.06)",
                       transform: hoveredCard === `saved-${item.id}` ? "translateY(-2px)" : "translateY(0)",
                       transition: "all 0.2s ease",
                     }}
@@ -799,7 +799,7 @@ export default function ResultsAnalysisView({
                         {text.remove}
                       </button>
                     </div>
-                    <div style={{ fontSize: 11, color: "#1d4ed8", marginBottom: 4 }}>
+                    <div style={{ fontSize: 11, color: "var(--marca-oscuro)", marginBottom: 4 }}>
                       {item.typeLabel} · {item.score}% · {text.confidence} {String(item.confidence || "media").toUpperCase()} · {item.savedAt}
                     </div>
                     <div style={{ fontSize: 11, color: bodyColor, lineHeight: 1.5 }}>
@@ -807,7 +807,7 @@ export default function ResultsAnalysisView({
                       {item.listingTitle ? ` · ${text.reference}: ${item.listingTitle}` : ""}
                       {item.listingPrice ? ` · ${item.listingPrice}` : ""}
                     </div>
-                    {savedOfferHref && <div style={{ fontSize: 11, color: "#0369a1", marginTop: 5, fontWeight: 700 }}>{text.openOffer}</div>}
+                    {savedOfferHref && <div style={{ fontSize: 11, color: "var(--gris-800)", marginTop: 5, fontWeight: 700 }}>{text.openOffer}</div>}
                   </div>
                 );
               })}
@@ -836,7 +836,7 @@ export default function ResultsAnalysisView({
           <div style={{ fontSize: 10, color: "#eab308", marginBottom: 7, fontWeight: 600, letterSpacing: "0.6px" }}>
             {text.expertTip}
           </div>
-          <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.6 }}>{displayResult.consejo_experto}</p>
+          <p style={{ margin: 0, fontSize: 12, color: "var(--gris-600)", lineHeight: 1.6 }}>{displayResult.consejo_experto}</p>
         </div>
         <div
           style={{
@@ -850,7 +850,7 @@ export default function ResultsAnalysisView({
           <div style={{ fontSize: 10, color: "#047857", marginBottom: 7, fontWeight: 600, letterSpacing: "0.6px" }}>
             {listingResult ? text.realOfferReady : text.realOfferSearch}
           </div>
-          <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
+          <p style={{ margin: 0, fontSize: 12, color: "var(--gris-600)", lineHeight: 1.6 }}>
             {listingResult
               ? `${listingResult.title}${listingResult.price ? ` · ${listingResult.price}` : ""}`
               : text.realOfferHelp}

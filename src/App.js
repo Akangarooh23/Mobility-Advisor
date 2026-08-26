@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { FICHA_VO_ABIERTA } from "./utils/aperturaTemporal";
 import i18next from "i18next";
-import { useTranslation } from "react-i18next";
 import "./App.css";
 import AdviceIntroPage from "./pages/AdviceIntroPage";
 import AdviceResultsPage from "./pages/AdviceResultsPage";
@@ -37,6 +36,10 @@ import MiCitaPage from "./pages/MiCitaPage";
 import SeoStaticPage from "./pages/SeoStaticPage";
 import AboutCarswisePage from "./pages/AboutCarswisePage";
 import ContactCarswisePage from "./pages/ContactCarswisePage";
+import EmpresasPage from "./pages/EmpresasPage";
+import ComoFuncionaPage from "./pages/ComoFuncionaPage";
+import ComparadorPage from "./pages/ComparadorPage";
+import BuscarCochePage from "./pages/BuscarCochePage";
 import BlogIndexPage from "./pages/BlogIndexPage";
 import BlogArticlePage from "./pages/BlogArticlePage";
 import PricingPlansPage from "./pages/PricingPlansPage";
@@ -154,6 +157,9 @@ import { BLOG_POSTS, getBlogPostBySlug } from "./data/blogPosts";
 import { STEPS, getQuestionnaireSteps } from "./data/questionnaireSteps";
 import { BLOCK_COLORS, BRAND_LOGOS } from "./ui/branding";
 import { createAppStyles } from "./ui/appStyles";
+import LogoPopCar from "./ui/LogoPopCar";
+import PiePopCar from "./ui/PiePopCar";
+import AvisoCookies from "./ui/AvisoCookies";
 
 function hasAnsweredValue(value) {
   if (Array.isArray(value)) {
@@ -265,26 +271,26 @@ const LEGAL_DOCUMENTS = {
   legalNotice: {
     title: "Aviso legal",
     summary:
-      "Información general de titularidad, condiciones de acceso, propiedad intelectual y responsabilidades del uso de la plataforma carswiseai.com.",
+      "Información general de titularidad, condiciones de acceso, propiedad intelectual y responsabilidades del uso de la plataforma popcar.tech.",
     updatedAt: "17/06/2026",
     sections: [
       {
         heading: "1. Datos identificativos del titular",
         paragraphs: [
           "En cumplimiento del artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y del Comercio Electrónico (LSSICE), se facilitan los datos del titular del sitio web:",
-          "Denominación social: Carswiseai [PENDIENTE: forma jurídica, S.L. / S.A. / autónomo]",
+          "Denominación social: PopCar [PENDIENTE: forma jurídica, S.L. / S.A. / autónomo]",
           "NIF/CIF: [PENDIENTE]",
           "Domicilio social: [PENDIENTE: dirección completa, código postal, ciudad, provincia]",
           "Correo electrónico de contacto: soporte@carswiseai.com",
-          "Sitio web: https://www.carswiseai.com",
+          "Sitio web: https://www.popcar.tech",
         ],
       },
       {
         heading: "2. Objeto y ámbito del sitio web",
         paragraphs: [
-          "Carswiseai opera una plataforma digital de intermediación y marketplace de vehículos de ocasión, renting y servicios de movilidad en España, accesible a través del dominio carswiseai.com.",
+          "PopCar opera una plataforma digital de intermediación y marketplace de vehículos de ocasión, renting y servicios de movilidad en España, accesible a través del dominio popcar.tech.",
           "La plataforma permite a los usuarios explorar ofertas de vehículos, solicitar información, agendar visitas y gestionar solicitudes de renting, conectándoles con los proveedores correspondientes.",
-          "La información y los contenidos publicados tienen carácter informativo y de apoyo a la decisión del usuario. Carswiseai actúa como intermediario y no es parte contratante en las operaciones de compraventa o renting que se formalicen entre el usuario y el proveedor del vehículo.",
+          "La información y los contenidos publicados tienen carácter informativo y de apoyo a la decisión del usuario. PopCar actúa como intermediario y no es parte contratante en las operaciones de compraventa o renting que se formalicen entre el usuario y el proveedor del vehículo.",
         ],
       },
       {
@@ -294,26 +300,26 @@ const LEGAL_DOCUMENTS = {
           "El usuario se compromete a hacer un uso diligente, lícito y correcto del sitio, de conformidad con la legislación vigente, la buena fe y el orden público.",
         ],
         bullets: [
-          "Queda prohibida la reproducción, distribución o comunicación pública de los contenidos del sitio sin autorización previa y por escrito de Carswiseai.",
+          "Queda prohibida la reproducción, distribución o comunicación pública de los contenidos del sitio sin autorización previa y por escrito de PopCar.",
           "Queda prohibido el uso de técnicas de scraping, crawling u otras formas de extracción automatizada de datos sin consentimiento expreso.",
           "Queda prohibido introducir, almacenar o difundir mediante el sitio contenidos que sean ilícitos, dañinos, difamatorios o que vulneren derechos de terceros.",
-          "Carswiseai se reserva el derecho a denegar, restringir o cancelar el acceso a usuarios que incumplan estas condiciones.",
+          "PopCar se reserva el derecho a denegar, restringir o cancelar el acceso a usuarios que incumplan estas condiciones.",
         ],
       },
       {
         heading: "4. Propiedad intelectual e industrial",
         paragraphs: [
-          "La marca, logotipos, denominación comercial Carswiseai, así como el diseño, estructura, código fuente, textos, imágenes, gráficos y demás elementos de la plataforma son titularidad de Carswiseai o de sus licenciantes, y están protegidos por la normativa española e internacional en materia de propiedad intelectual e industrial.",
+          "La marca, logotipos, denominación comercial PopCar, así como el diseño, estructura, código fuente, textos, imágenes, gráficos y demás elementos de la plataforma son titularidad de PopCar o de sus licenciantes, y están protegidos por la normativa española e internacional en materia de propiedad intelectual e industrial.",
           "El usuario únicamente está autorizado a visualizar y hacer uso privado de los contenidos. Cualquier otro uso requiere autorización expresa y por escrito del titular.",
         ],
       },
       {
         heading: "5. Exclusión de responsabilidad",
         paragraphs: [
-          "Carswiseai no garantiza la disponibilidad permanente e ininterrumpida del sitio, aunque aplica medidas razonables para asegurar su continuidad. Se excluye la responsabilidad por daños derivados de interrupciones, errores técnicos o causas de fuerza mayor.",
-          "Los precios, disponibilidad y características de los vehículos publicados en el marketplace son proporcionados por los proveedores. Carswiseai no se responsabiliza de inexactitudes en dicha información.",
+          "PopCar no garantiza la disponibilidad permanente e ininterrumpida del sitio, aunque aplica medidas razonables para asegurar su continuidad. Se excluye la responsabilidad por daños derivados de interrupciones, errores técnicos o causas de fuerza mayor.",
+          "Los precios, disponibilidad y características de los vehículos publicados en el marketplace son proporcionados por los proveedores. PopCar no se responsabiliza de inexactitudes en dicha información.",
           "Las decisiones de compra, contratación de renting o cualquier operación comercial son responsabilidad exclusiva del usuario y del proveedor con quien suscriba el acuerdo.",
-          "Carswiseai no asume responsabilidad por los contenidos de sitios web de terceros enlazados desde esta plataforma.",
+          "PopCar no asume responsabilidad por los contenidos de sitios web de terceros enlazados desde esta plataforma.",
         ],
       },
       {
@@ -328,13 +334,13 @@ const LEGAL_DOCUMENTS = {
   privacyPolicy: {
     title: "Política de privacidad",
     summary:
-      "Información sobre el tratamiento de sus datos personales por parte de Carswiseai, conforme al Reglamento (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018 (LOPDGDD).",
+      "Información sobre el tratamiento de sus datos personales por parte de PopCar, conforme al Reglamento (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018 (LOPDGDD).",
     updatedAt: "17/06/2026",
     sections: [
       {
         heading: "1. Responsable del tratamiento",
         paragraphs: [
-          "Denominación: Carswiseai [PENDIENTE: forma jurídica, p. ej. S.L.]",
+          "Denominación: PopCar [PENDIENTE: forma jurídica, p. ej. S.L.]",
           "NIF/CIF: [PENDIENTE]",
           "Domicilio social: [PENDIENTE: dirección completa, código postal, ciudad]",
           "Correo electrónico de privacidad: soporte@carswiseai.com",
@@ -348,8 +354,8 @@ const LEGAL_DOCUMENTS = {
           "Datos de solicitudes: información aportada en formularios de solicitud de información, visita, renting o consulta (nombre, email, teléfono, mensaje, fecha y hora de cita preferida).",
           "Datos de navegación y uso: eventos de sesión, páginas y ofertas consultadas, fuente de la visita (UTM), identificador anónimo de sesión (cw_anon_id) y dirección IP.",
           "Datos de preferencias: alertas guardadas, filtros de búsqueda y configuración de la cuenta.",
-          "Datos de facturación: en caso de contratación de planes de servicio, los datos necesarios para el procesamiento del pago a través de Stripe. Carswiseai no almacena datos de tarjetas.",
-          "Datos de solvencia: cuando el usuario consiente expresamente, Carswiseai puede solicitar a Experian Bureau de Crédito S.A. la consulta de información de solvencia patrimonial ante organismos públicos, con la única finalidad de valorar la viabilidad de una operación de renting o financiación.",
+          "Datos de facturación: en caso de contratación de planes de servicio, los datos necesarios para el procesamiento del pago a través de Stripe. PopCar no almacena datos de tarjetas.",
+          "Datos de solvencia: cuando el usuario consiente expresamente, PopCar puede solicitar a Experian Bureau de Crédito S.A. la consulta de información de solvencia patrimonial ante organismos públicos, con la única finalidad de valorar la viabilidad de una operación de renting o financiación.",
         ],
       },
       {
@@ -359,8 +365,8 @@ const LEGAL_DOCUMENTS = {
           "Tramitación de solicitudes de información, visita o renting — base: medidas precontractuales (art. 6.1.b RGPD).",
           "Comunicaciones operativas sobre el estado de solicitudes (confirmaciones, recordatorios, actualizaciones de estado) — base: ejecución del contrato (art. 6.1.b RGPD).",
           "Análisis de uso de la plataforma para mejora del servicio — base: interés legítimo (art. 6.1.f RGPD).",
-          "Envío de comunicaciones comerciales propias de Carswiseai (novedades, ofertas, campañas de marketing) — base: consentimiento expreso (art. 6.1.a RGPD), revocable en cualquier momento sin coste.",
-          "Cesión de datos a terceros colaboradores (empresas del sector de movilidad, renting, financiación o seguros) para que realicen campañas de marketing propias dirigidas al usuario — base: consentimiento expreso (art. 6.1.a RGPD), revocable en cualquier momento. El usuario consiente expresamente que Carswiseai transmita su nombre, correo electrónico y perfil de interés a dichos terceros, quienes pasarán a ser responsables independientes del tratamiento para sus propias finalidades comerciales.",
+          "Envío de comunicaciones comerciales propias de PopCar (novedades, ofertas, campañas de marketing) — base: consentimiento expreso (art. 6.1.a RGPD), revocable en cualquier momento sin coste.",
+          "Cesión de datos a terceros colaboradores (empresas del sector de movilidad, renting, financiación o seguros) para que realicen campañas de marketing propias dirigidas al usuario — base: consentimiento expreso (art. 6.1.a RGPD), revocable en cualquier momento. El usuario consiente expresamente que PopCar transmita su nombre, correo electrónico y perfil de interés a dichos terceros, quienes pasarán a ser responsables independientes del tratamiento para sus propias finalidades comerciales.",
           "Consulta de solvencia ante organismos públicos a través de Experian, para operaciones de renting o financiación — base: consentimiento expreso (art. 6.1.a RGPD). Este consentimiento es voluntario; su denegación no impide el uso general de la plataforma.",
           "Cumplimiento de obligaciones legales (fiscales, contables, de seguridad informática) — base: obligación legal (art. 6.1.c RGPD).",
         ],
@@ -368,8 +374,8 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "4. Comunicaciones comerciales y marketing",
         paragraphs: [
-          "Si el usuario presta consentimiento expreso, Carswiseai podrá enviarle comunicaciones comerciales por correo electrónico u otros canales digitales sobre nuevas ofertas de vehículos, campañas de renting, servicios de movilidad y contenidos de interés relacionados con el sector del automóvil.",
-          "Con consentimiento expreso, sus datos (nombre, correo electrónico y perfil de interés en vehículos) podrán cederse a terceros colaboradores del sector de la movilidad, financiación o seguros para que realicen campañas de marketing propias. En ese caso, dichos terceros actúan como responsables independientes del tratamiento y se rigen por sus propias políticas de privacidad. Carswiseai facilitará al usuario la identidad de dichos terceros cuando los datos vayan a ser cedidos.",
+          "Si el usuario presta consentimiento expreso, PopCar podrá enviarle comunicaciones comerciales por correo electrónico u otros canales digitales sobre nuevas ofertas de vehículos, campañas de renting, servicios de movilidad y contenidos de interés relacionados con el sector del automóvil.",
+          "Con consentimiento expreso, sus datos (nombre, correo electrónico y perfil de interés en vehículos) podrán cederse a terceros colaboradores del sector de la movilidad, financiación o seguros para que realicen campañas de marketing propias. En ese caso, dichos terceros actúan como responsables independientes del tratamiento y se rigen por sus propias políticas de privacidad. PopCar facilitará al usuario la identidad de dichos terceros cuando los datos vayan a ser cedidos.",
           "El usuario puede revocar este consentimiento en cualquier momento haciendo clic en el enlace de baja incluido en cualquier comunicación, o escribiendo a soporte@carswiseai.com. La revocación no afecta a la licitud del tratamiento previo.",
           "Actualmente los envíos de campañas se realizan mediante el servicio Resend. [PENDIENTE: actualizar si se integra una plataforma de email marketing específica como Mailchimp, Brevo, etc.]",
         ],
@@ -377,7 +383,7 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "5. Experian y consulta de solvencia",
         paragraphs: [
-          "Para determinadas operaciones de renting o financiación, y siempre con consentimiento previo y expreso del usuario, Carswiseai puede transmitir sus datos a Experian Bureau de Crédito S.A. (NIF [PENDIENTE], domiciliada en [PENDIENTE]) para consultar información de solvencia patrimonial en ficheros de información crediticia y ante organismos públicos.",
+          "Para determinadas operaciones de renting o financiación, y siempre con consentimiento previo y expreso del usuario, PopCar puede transmitir sus datos a Experian Bureau de Crédito S.A. (NIF [PENDIENTE], domiciliada en [PENDIENTE]) para consultar información de solvencia patrimonial en ficheros de información crediticia y ante organismos públicos.",
           "La finalidad exclusiva de esta consulta es valorar la viabilidad económica de la operación solicitada. El usuario tiene derecho a conocer el resultado de la consulta y a ejercer sus derechos de acceso, rectificación y cancelación directamente ante Experian (www.experian.es).",
           "Este consentimiento es independiente y revocable en cualquier momento. Su denegación únicamente puede afectar a la tramitación de la operación de renting o financiación concreta.",
         ],
@@ -386,7 +392,7 @@ const LEGAL_DOCUMENTS = {
         heading: "6. Destinatarios y encargados del tratamiento",
         paragraphs: [
           "Sus datos podrán comunicarse a los proveedores de vehículos (concesionarios, empresas de renting como Leasys o Astara) con los que el usuario haya iniciado una solicitud, exclusivamente para su gestión.",
-          "Carswiseai cuenta con los siguientes encargados del tratamiento que actúan bajo contrato de encargo conforme al art. 28 RGPD: Vercel Inc. (alojamiento web y serverless), Supabase Inc. (almacenamiento de archivos), Neon Inc. (base de datos PostgreSQL), Resend Inc. (envío de correo electrónico transaccional y comercial), Stripe Inc. (procesamiento de pagos).",
+          "PopCar cuenta con los siguientes encargados del tratamiento que actúan bajo contrato de encargo conforme al art. 28 RGPD: Vercel Inc. (alojamiento web y serverless), Supabase Inc. (almacenamiento de archivos), Neon Inc. (base de datos PostgreSQL), Resend Inc. (envío de correo electrónico transaccional y comercial), Stripe Inc. (procesamiento de pagos).",
           "Algunos de estos proveedores están establecidos fuera del Espacio Económico Europeo (EE. UU.). Las transferencias se amparan en las Cláusulas Contractuales Tipo aprobadas por la Comisión Europea o en decisiones de adecuación vigentes.",
           "No se ceden datos a terceros con fines publicitarios propios salvo consentimiento expreso.",
         ],
@@ -414,20 +420,20 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "9. Seguridad",
         paragraphs: [
-          "Carswiseai aplica medidas técnicas y organizativas adecuadas al riesgo: cifrado de comunicaciones (TLS/HTTPS), control de accesos por roles, autenticación segura, copias de seguridad periódicas y procedimientos documentados de gestión de incidencias.",
-          "En caso de brecha de seguridad que pueda suponer un riesgo para los derechos y libertades de los interesados, Carswiseai notificará a la AEPD en un plazo máximo de 72 horas y, cuando el riesgo sea alto, comunicará el incidente a los afectados sin dilación indebida.",
+          "PopCar aplica medidas técnicas y organizativas adecuadas al riesgo: cifrado de comunicaciones (TLS/HTTPS), control de accesos por roles, autenticación segura, copias de seguridad periódicas y procedimientos documentados de gestión de incidencias.",
+          "En caso de brecha de seguridad que pueda suponer un riesgo para los derechos y libertades de los interesados, PopCar notificará a la AEPD en un plazo máximo de 72 horas y, cuando el riesgo sea alto, comunicará el incidente a los afectados sin dilación indebida.",
         ],
       },
       {
         heading: "10. Menores de edad",
         paragraphs: [
-          "Los servicios de Carswiseai están dirigidos exclusivamente a mayores de 18 años. No recabamos conscientemente datos de menores. Si detectáramos que hemos recibido datos de un menor sin consentimiento verificable de sus tutores legales, procederemos a su supresión inmediata.",
+          "Los servicios de PopCar están dirigidos exclusivamente a mayores de 18 años. No recabamos conscientemente datos de menores. Si detectáramos que hemos recibido datos de un menor sin consentimiento verificable de sus tutores legales, procederemos a su supresión inmediata.",
         ],
       },
       {
         heading: "11. Actualizaciones de esta política",
         paragraphs: [
-          "Esta Política de Privacidad puede actualizarse para adaptarse a cambios normativos, jurisprudenciales o del propio servicio. La versión vigente, con su fecha de actualización, estará siempre disponible en carswiseai.com/politica-privacidad. Para cambios sustanciales, notificaremos a los usuarios registrados por correo electrónico.",
+          "Esta Política de Privacidad puede actualizarse para adaptarse a cambios normativos, jurisprudenciales o del propio servicio. La versión vigente, con su fecha de actualización, estará siempre disponible en popcar.tech/politica-privacidad. Para cambios sustanciales, notificaremos a los usuarios registrados por correo electrónico.",
         ],
       },
     ],
@@ -435,7 +441,7 @@ const LEGAL_DOCUMENTS = {
   cookiePolicy: {
     title: "Política de cookies",
     summary:
-      "Información sobre las cookies y tecnologías similares utilizadas en carswiseai.com, su finalidad y cómo puede gestionar o revocar su consentimiento.",
+      "Información sobre las cookies y tecnologías similares utilizadas en popcar.tech, su finalidad y cómo puede gestionar o revocar su consentimiento.",
     updatedAt: "17/06/2026",
     sections: [
       {
@@ -446,7 +452,7 @@ const LEGAL_DOCUMENTS = {
         ],
       },
       {
-        heading: "2. Cookies utilizadas en carswiseai.com",
+        heading: "2. Cookies utilizadas en popcar.tech",
         bullets: [
           "Cookies técnicas / necesarias: imprescindibles para el funcionamiento del sitio. Incluyen la gestión de sesión de usuario autenticado, el almacenamiento del consentimiento de cookies y las preferencias de idioma o tema. No requieren consentimiento previo.",
           "Cookies de personalización: almacenan preferencias del usuario (filtros guardados, alertas, configuración de la cuenta) para personalizar la experiencia en sucesivas visitas. Se activan con el consentimiento del usuario.",
@@ -457,7 +463,7 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "3. Identificadores de sesión propios",
         paragraphs: [
-          "Carswiseai utiliza un identificador anónimo de sesión (cw_anon_id) almacenado en localStorage para reconocer una misma sesión de navegación y mejorar la coherencia del servicio. Este identificador no contiene datos personales identificables por sí mismo y se asocia a un correo electrónico únicamente cuando el usuario se registra o inicia sesión.",
+          "PopCar utiliza un identificador anónimo de sesión (cw_anon_id) almacenado en localStorage para reconocer una misma sesión de navegación y mejorar la coherencia del servicio. Este identificador no contiene datos personales identificables por sí mismo y se asocia a un correo electrónico únicamente cuando el usuario se registra o inicia sesión.",
           "Los parámetros de campaña (UTM) se almacenan en sessionStorage (cw_utm) durante la sesión activa para medir la eficacia de las acciones de marketing.",
         ],
       },
@@ -465,14 +471,14 @@ const LEGAL_DOCUMENTS = {
         heading: "4. Base legal y gestión del consentimiento",
         paragraphs: [
           "Las cookies técnicas se instalan sin necesidad de consentimiento previo al amparo del interés legítimo y la necesidad para la prestación del servicio. El resto de cookies requieren consentimiento previo, libre, específico, informado e inequívoco del usuario.",
-          "Al acceder por primera vez a carswiseai.com, se solicita el consentimiento mediante el panel de preferencias integrado en el formulario de acceso. El usuario puede aceptar todas las cookies, solo las necesarias, o configurar sus preferencias de forma granular.",
+          "Al acceder por primera vez a popcar.tech, se solicita el consentimiento mediante el panel de preferencias integrado en el formulario de acceso. El usuario puede aceptar todas las cookies, solo las necesarias, o configurar sus preferencias de forma granular.",
           "El consentimiento otorgado queda registrado con fecha y versión de política. Puede revocarlo o modificarlo en cualquier momento desde el pie de página de la web.",
         ],
       },
       {
         heading: "5. Cookies de terceros",
         paragraphs: [
-          "Carswiseai puede integrar servicios de terceros que instalan sus propias cookies. Estos terceros disponen de sus propias políticas de cookies a las que el usuario puede acceder en sus respectivos sitios web.",
+          "PopCar puede integrar servicios de terceros que instalan sus propias cookies. Estos terceros disponen de sus propias políticas de cookies a las que el usuario puede acceder en sus respectivos sitios web.",
           "Los principales terceros cuyas tecnologías pueden estar presentes son: Stripe (procesamiento de pagos), Resend (envío de emails), Vercel (hosting y analítica de rendimiento). [PENDIENTE: revisar y completar la lista según integraciones activas].",
         ],
       },
@@ -494,15 +500,15 @@ const LEGAL_DOCUMENTS = {
   termsConditions: {
     title: "Condiciones generales de uso",
     summary:
-      "Condiciones que regulan el acceso, registro y uso de los servicios del marketplace y plataforma de movilidad de Carswiseai.",
+      "Condiciones que regulan el acceso, registro y uso de los servicios del marketplace y plataforma de movilidad de PopCar.",
     updatedAt: "17/06/2026",
     sections: [
       {
         heading: "1. Objeto y aceptación",
         paragraphs: [
-          "Las presentes Condiciones Generales de Uso regulan el acceso y uso de la plataforma Carswiseai (carswiseai.com), incluyendo el marketplace de vehículos de ocasión, el servicio de renting, las herramientas de asesoramiento y todas las funcionalidades disponibles para usuarios registrados.",
-          "El acceso, registro o uso de cualquier servicio de Carswiseai implica la aceptación expresa e íntegra de estas Condiciones, así como de la Política de Privacidad y la Política de Cookies. Si no está de acuerdo, debe abstenerse de usar la plataforma.",
-          "Carswiseai se reserva el derecho a modificar estas Condiciones. Los cambios se publicarán con indicación de la fecha de actualización. El uso continuado de la plataforma tras la publicación de cambios implicará su aceptación.",
+          "Las presentes Condiciones Generales de Uso regulan el acceso y uso de la plataforma PopCar (popcar.tech), incluyendo el marketplace de vehículos de ocasión, el servicio de renting, las herramientas de asesoramiento y todas las funcionalidades disponibles para usuarios registrados.",
+          "El acceso, registro o uso de cualquier servicio de PopCar implica la aceptación expresa e íntegra de estas Condiciones, así como de la Política de Privacidad y la Política de Cookies. Si no está de acuerdo, debe abstenerse de usar la plataforma.",
+          "PopCar se reserva el derecho a modificar estas Condiciones. Los cambios se publicarán con indicación de la fecha de actualización. El uso continuado de la plataforma tras la publicación de cambios implicará su aceptación.",
         ],
       },
       {
@@ -511,29 +517,29 @@ const LEGAL_DOCUMENTS = {
           "El acceso a las funcionalidades del marketplace requiere registro previo. El usuario debe ser mayor de 18 años y proporcionar información veraz, completa y actualizada.",
           "El usuario es el único responsable de mantener la confidencialidad de sus credenciales de acceso y de toda la actividad realizada desde su cuenta.",
           "Ante cualquier uso no autorizado de la cuenta o incidencia de seguridad, el usuario debe notificarlo inmediatamente a soporte@carswiseai.com.",
-          "Carswiseai puede suspender o cancelar cuentas que incumplan estas Condiciones o que realicen un uso fraudulento o abusivo del servicio.",
+          "PopCar puede suspender o cancelar cuentas que incumplan estas Condiciones o que realicen un uso fraudulento o abusivo del servicio.",
         ],
       },
       {
         heading: "3. Naturaleza del servicio de marketplace",
         paragraphs: [
-          "Carswiseai actúa como plataforma de intermediación que conecta a usuarios interesados en vehículos con proveedores (concesionarios, empresas de renting u otros). Carswiseai no es parte en los contratos de compraventa o arrendamiento que se formalicen entre el usuario y el proveedor.",
-          "La información sobre vehículos (precio, características, disponibilidad, fotografías) es proporcionada por los proveedores. Carswiseai no garantiza la exactitud, completitud o vigencia de dicha información y no asume responsabilidad por errores u omisiones en los listados.",
-          "El envío de una solicitud de información, visita o renting a través de la plataforma no genera ningún compromiso contractual entre el usuario y Carswiseai ni entre el usuario y el proveedor hasta que ambas partes formalicen el contrato correspondiente.",
+          "PopCar actúa como plataforma de intermediación que conecta a usuarios interesados en vehículos con proveedores (concesionarios, empresas de renting u otros). PopCar no es parte en los contratos de compraventa o arrendamiento que se formalicen entre el usuario y el proveedor.",
+          "La información sobre vehículos (precio, características, disponibilidad, fotografías) es proporcionada por los proveedores. PopCar no garantiza la exactitud, completitud o vigencia de dicha información y no asume responsabilidad por errores u omisiones en los listados.",
+          "El envío de una solicitud de información, visita o renting a través de la plataforma no genera ningún compromiso contractual entre el usuario y PopCar ni entre el usuario y el proveedor hasta que ambas partes formalicen el contrato correspondiente.",
         ],
       },
       {
         heading: "4. Solicitudes de renting",
         paragraphs: [
-          "Las solicitudes de renting tramitadas a través de Carswiseai son gestionadas por las empresas proveedoras de renting (Leasys, Astara u otras). La aprobación, condiciones y contrato definitivo dependen exclusivamente del proveedor y de los requisitos de solvencia del solicitante.",
-          "Carswiseai facilita el proceso de solicitud pero no garantiza la concesión del renting ni las condiciones ofertadas, que pueden variar según la política comercial y de riesgo del proveedor.",
+          "Las solicitudes de renting tramitadas a través de PopCar son gestionadas por las empresas proveedoras de renting (Leasys, Astara u otras). La aprobación, condiciones y contrato definitivo dependen exclusivamente del proveedor y de los requisitos de solvencia del solicitante.",
+          "PopCar facilita el proceso de solicitud pero no garantiza la concesión del renting ni las condiciones ofertadas, que pueden variar según la política comercial y de riesgo del proveedor.",
         ],
       },
       {
         heading: "5. Planes de servicio, pagos y cancelación",
         paragraphs: [
-          "Carswiseai puede ofrecer planes de suscripción o servicios de valor añadido con coste. Los precios, condiciones y períodos de facturación se indicarán claramente antes de la contratación.",
-          "El procesamiento de pagos se realiza a través de Stripe Inc. Carswiseai no almacena datos de tarjetas de crédito o débito en sus sistemas.",
+          "PopCar puede ofrecer planes de suscripción o servicios de valor añadido con coste. Los precios, condiciones y períodos de facturación se indicarán claramente antes de la contratación.",
+          "El procesamiento de pagos se realiza a través de Stripe Inc. PopCar no almacena datos de tarjetas de crédito o débito en sus sistemas.",
           "Cancelación de suscripción: el usuario puede cancelar su plan en cualquier momento desde su área de cuenta. La cancelación tendrá efecto al finalizar el período de facturación en curso, sin derecho a reembolso proporcional del período restante, salvo que la ley de consumidores aplicable establezca lo contrario.",
           "Derecho de desistimiento: los consumidores que contraten un plan de forma online disponen de un plazo de 14 días naturales desde la contratación para ejercer el derecho de desistimiento sin necesidad de justificación, conforme al art. 102 del Real Decreto Legislativo 1/2007 (TRLGDCU), salvo que el servicio haya comenzado a ejecutarse con consentimiento expreso del usuario antes de que expire dicho plazo.",
           "Para ejercer el derecho de desistimiento o solicitar un reembolso, envíe un escrito a soporte@carswiseai.com indicando su nombre, número de cuenta/pedido y el motivo.",
@@ -543,10 +549,10 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "6. Intermediación en renting y financiación",
         paragraphs: [
-          "Carswiseai actúa como plataforma de intermediación que facilita el contacto entre el usuario y empresas proveedoras de renting (entre otras, Leasys Mobility S.L. y Astara). Carswiseai no es entidad financiera ni prestamista, y no concede financiación propia.",
+          "PopCar actúa como plataforma de intermediación que facilita el contacto entre el usuario y empresas proveedoras de renting (entre otras, Leasys Mobility S.L. y Astara). PopCar no es entidad financiera ni prestamista, y no concede financiación propia.",
           "Las operaciones de renting se formalizan directamente entre el usuario y el proveedor de renting, que es quien evalúa la solvencia, establece las condiciones del contrato y asume los derechos y obligaciones derivados del mismo.",
           "En caso de que la tramitación de una solicitud requiera la consulta de información de solvencia del usuario (con su consentimiento expreso), dicha consulta se realizará a través de Experian Bureau de Crédito S.A. conforme a lo establecido en la Política de Privacidad.",
-          "[PENDIENTE: indicar si Carswiseai está registrada como intermediario de crédito inmobiliario o de crédito al consumo ante el Banco de España, o si opera exclusivamente como generador de leads para las empresas de renting]",
+          "[PENDIENTE: indicar si PopCar está registrada como intermediario de crédito inmobiliario o de crédito al consumo ante el Banco de España, o si opera exclusivamente como generador de leads para las empresas de renting]",
         ],
       },
       {
@@ -563,22 +569,22 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "8. Limitación de responsabilidad",
         paragraphs: [
-          "Carswiseai no garantiza la disponibilidad ininterrumpida del servicio. En la medida en que lo permita la ley, Carswiseai queda exonerada de responsabilidad por daños derivados de interrupciones técnicas, errores en la plataforma o ataques informáticos.",
-          "Carswiseai no asume responsabilidad por el incumplimiento de las obligaciones contraídas entre el usuario y el proveedor del vehículo o servicio de renting.",
-          "La responsabilidad máxima de Carswiseai frente al usuario, en cualquier caso, no podrá superar el importe abonado por este en los 12 meses anteriores al hecho causante del daño.",
+          "PopCar no garantiza la disponibilidad ininterrumpida del servicio. En la medida en que lo permita la ley, PopCar queda exonerada de responsabilidad por daños derivados de interrupciones técnicas, errores en la plataforma o ataques informáticos.",
+          "PopCar no asume responsabilidad por el incumplimiento de las obligaciones contraídas entre el usuario y el proveedor del vehículo o servicio de renting.",
+          "La responsabilidad máxima de PopCar frente al usuario, en cualquier caso, no podrá superar el importe abonado por este en los 12 meses anteriores al hecho causante del daño.",
         ],
       },
       {
         heading: "9. Propiedad intelectual",
         paragraphs: [
-          "Todos los derechos de propiedad intelectual e industrial sobre la plataforma, su código, diseño, contenidos y marca pertenecen a Carswiseai o a sus licenciantes. El usuario no adquiere ningún derecho sobre ellos por el mero uso del servicio.",
-          "Queda prohibida la reproducción, copia, distribución, transformación o comunicación pública de los contenidos de la plataforma sin autorización expresa y por escrito de Carswiseai.",
+          "Todos los derechos de propiedad intelectual e industrial sobre la plataforma, su código, diseño, contenidos y marca pertenecen a PopCar o a sus licenciantes. El usuario no adquiere ningún derecho sobre ellos por el mero uso del servicio.",
+          "Queda prohibida la reproducción, copia, distribución, transformación o comunicación pública de los contenidos de la plataforma sin autorización expresa y por escrito de PopCar.",
         ],
       },
       {
         heading: "10. Protección de datos",
         paragraphs: [
-          "El tratamiento de los datos personales del usuario se rige por la Política de Privacidad de Carswiseai, disponible en carswiseai.com/politica-privacidad, que forma parte integrante de estas Condiciones.",
+          "El tratamiento de los datos personales del usuario se rige por la Política de Privacidad de PopCar, disponible en popcar.tech/politica-privacidad, que forma parte integrante de estas Condiciones.",
         ],
       },
       {
@@ -594,19 +600,19 @@ const LEGAL_DOCUMENTS = {
   marketingPolicy: {
     title: "Política de Comunicaciones Comerciales",
     summary:
-      "Información sobre cómo utilizamos sus datos para enviarle comunicaciones comerciales de Carswiseai y socios seleccionados, y cómo puede cancelarlas en cualquier momento.",
+      "Información sobre cómo utilizamos sus datos para enviarle comunicaciones comerciales de PopCar y socios seleccionados, y cómo puede cancelarlas en cualquier momento.",
     updatedAt: "17/06/2026",
     sections: [
       {
         heading: "1. ¿Qué son las comunicaciones comerciales?",
         paragraphs: [
-          "Las comunicaciones comerciales son mensajes enviados por correo electrónico, SMS u otros canales digitales con el fin de informarle sobre novedades de Carswiseai, ofertas de vehículos, promociones de renting y servicios de socios comerciales relevantes para su experiencia de movilidad.",
+          "Las comunicaciones comerciales son mensajes enviados por correo electrónico, SMS u otros canales digitales con el fin de informarle sobre novedades de PopCar, ofertas de vehículos, promociones de renting y servicios de socios comerciales relevantes para su experiencia de movilidad.",
         ],
       },
       {
         heading: "2. Base jurídica del tratamiento",
         paragraphs: [
-          "El envío de comunicaciones comerciales propias de Carswiseai a usuarios registrados se basa en el interés legítimo de mantener informados a sus clientes sobre servicios similares a los contratados (art. 21.2 LSSI-CE).",
+          "El envío de comunicaciones comerciales propias de PopCar a usuarios registrados se basa en el interés legítimo de mantener informados a sus clientes sobre servicios similares a los contratados (art. 21.2 LSSI-CE).",
           "El envío de comunicaciones de terceros socios requiere su consentimiento expreso, que puede otorgar a través del checkbox de comunicaciones en el formulario de registro.",
         ],
       },
@@ -637,14 +643,14 @@ const LEGAL_DOCUMENTS = {
         ],
         bullets: [
           "Haciendo clic en el enlace 'Darme de baja' incluido en cualquier comunicación comercial.",
-          "Desde el área de cuenta de Carswiseai, sección 'Notificaciones y privacidad'.",
+          "Desde el área de cuenta de PopCar, sección 'Notificaciones y privacidad'.",
           "Enviando un correo a privacidad@carswiseai.com indicando su nombre y dirección de email.",
         ],
       },
       {
         heading: "6. Conservación de los datos",
         paragraphs: [
-          "Sus datos se utilizarán con esta finalidad mientras mantenga una cuenta activa en Carswiseai o hasta que revoque su consentimiento. En todo caso, se suprimirán cuando cese la finalidad para la que fueron recabados.",
+          "Sus datos se utilizarán con esta finalidad mientras mantenga una cuenta activa en PopCar o hasta que revoque su consentimiento. En todo caso, se suprimirán cuando cese la finalidad para la que fueron recabados.",
         ],
       },
       {
@@ -664,7 +670,7 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "1. ¿Qué es Experian y para qué se usa?",
         paragraphs: [
-          "Experian Bureau de Crédito S.A. es una entidad de información crediticia registrada en España. Carswiseai puede consultar datos de solvencia del solicitante ante Experian cuando lo requiera la empresa de renting o financiación, y siempre con el consentimiento expreso del interesado.",
+          "Experian Bureau de Crédito S.A. es una entidad de información crediticia registrada en España. PopCar puede consultar datos de solvencia del solicitante ante Experian cuando lo requiera la empresa de renting o financiación, y siempre con el consentimiento expreso del interesado.",
           "Esta consulta permite a las empresas de renting (Leasys Mobility, Astara u otras) evaluar la viabilidad de la solicitud antes de emitir una oferta vinculante.",
         ],
       },
@@ -680,14 +686,14 @@ const LEGAL_DOCUMENTS = {
         heading: "3. Base jurídica",
         paragraphs: [
           "La consulta se basa en el consentimiento expreso del interesado (art. 6.1.a RGPD), otorgado de forma específica y separada a través del checkbox habilitado en el formulario de solicitud.",
-          "Sin dicho consentimiento, Carswiseai no realizará la consulta, lo que puede afectar a la aprobación por parte del proveedor de renting.",
+          "Sin dicho consentimiento, PopCar no realizará la consulta, lo que puede afectar a la aprobación por parte del proveedor de renting.",
         ],
       },
       {
         heading: "4. Responsabilidad de Experian",
         paragraphs: [
           "Experian Bureau de Crédito S.A. actúa como responsable independiente del tratamiento de los datos contenidos en sus ficheros. Para más información sobre cómo Experian trata sus datos, consulte la Política de Privacidad de Experian en www.experian.es.",
-          "Carswiseai actúa como remitente de la consulta, sin almacenar el contenido del informe de solvencia salvo en los términos acordados con el proveedor de renting.",
+          "PopCar actúa como remitente de la consulta, sin almacenar el contenido del informe de solvencia salvo en los términos acordados con el proveedor de renting.",
         ],
       },
       {
@@ -700,7 +706,7 @@ const LEGAL_DOCUMENTS = {
         heading: "6. Sus derechos ante Experian",
         paragraphs: [
           "Puede ejercer sus derechos de acceso, rectificación y cancelación de los datos incluidos en los ficheros de Experian directamente ante Experian Bureau de Crédito S.A. en www.experian.es/derechos-arco.",
-          "Ante Carswiseai, puede ejercer sus derechos enviando un escrito a privacidad@carswiseai.com con copia de su documento identificativo.",
+          "Ante PopCar, puede ejercer sus derechos enviando un escrito a privacidad@carswiseai.com con copia de su documento identificativo.",
         ],
       },
       {
@@ -714,25 +720,25 @@ const LEGAL_DOCUMENTS = {
   experianTerms: {
     title: "Condiciones del Servicio de Consulta de Solvencia",
     summary:
-      "Condiciones que regulan el uso del servicio de consulta de solvencia ante Experian Bureau de Crédito S.A. tramitado a través de la plataforma Carswiseai en el contexto de solicitudes de renting.",
+      "Condiciones que regulan el uso del servicio de consulta de solvencia ante Experian Bureau de Crédito S.A. tramitado a través de la plataforma PopCar en el contexto de solicitudes de renting.",
     updatedAt: "17/06/2026",
     sections: [
       {
         heading: "1. Objeto del servicio",
         paragraphs: [
-          "El presente servicio consiste en la tramitación, por parte de Carswiseai, de una consulta de solvencia del usuario ante Experian Bureau de Crédito S.A., a solicitud del proveedor de renting o financiación elegido por el usuario y con el consentimiento expreso de este.",
-          "La consulta tiene como única finalidad facilitar al proveedor de renting la evaluación de la viabilidad financiera de la solicitud. Carswiseai actúa exclusivamente como intermediario en la tramitación, sin tomar decisiones sobre la concesión ni las condiciones del renting.",
+          "El presente servicio consiste en la tramitación, por parte de PopCar, de una consulta de solvencia del usuario ante Experian Bureau de Crédito S.A., a solicitud del proveedor de renting o financiación elegido por el usuario y con el consentimiento expreso de este.",
+          "La consulta tiene como única finalidad facilitar al proveedor de renting la evaluación de la viabilidad financiera de la solicitud. PopCar actúa exclusivamente como intermediario en la tramitación, sin tomar decisiones sobre la concesión ni las condiciones del renting.",
         ],
       },
       {
         heading: "2. Activación del servicio",
         paragraphs: [
-          "El servicio se activa única y exclusivamente cuando el usuario otorga su consentimiento expreso a través del checkbox habilitado a tal efecto en el formulario de solicitud. Sin dicho consentimiento, Carswiseai no tramitará ninguna consulta ante Experian.",
+          "El servicio se activa única y exclusivamente cuando el usuario otorga su consentimiento expreso a través del checkbox habilitado a tal efecto en el formulario de solicitud. Sin dicho consentimiento, PopCar no tramitará ninguna consulta ante Experian.",
           "El usuario puede optar por no activar este servicio. En ese caso, el proveedor de renting podrá requerir que el usuario aporte directamente la documentación de solvencia que considere necesaria para evaluar la solicitud.",
         ],
       },
       {
-        heading: "3. Obligaciones de Carswiseai",
+        heading: "3. Obligaciones de PopCar",
         bullets: [
           "Tramitar la consulta únicamente con el consentimiento previo y expreso del usuario.",
           "No utilizar el resultado de la consulta para ninguna finalidad distinta de la evaluación de la solicitud de renting concreta.",
@@ -751,7 +757,7 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "5. Resultado de la consulta",
         paragraphs: [
-          "El resultado de la consulta de solvencia es gestionado directamente por el proveedor de renting para la evaluación interna de la solicitud. Carswiseai no tiene acceso al detalle del informe ni toma decisiones basadas en su contenido.",
+          "El resultado de la consulta de solvencia es gestionado directamente por el proveedor de renting para la evaluación interna de la solicitud. PopCar no tiene acceso al detalle del informe ni toma decisiones basadas en su contenido.",
           "Una consulta con resultado negativo no implica necesariamente la denegación de la solicitud; el proveedor de renting puede solicitar documentación adicional o proponer condiciones alternativas.",
         ],
       },
@@ -759,14 +765,14 @@ const LEGAL_DOCUMENTS = {
         heading: "6. Duración y revocación",
         paragraphs: [
           "El consentimiento para la consulta es válido exclusivamente para la solicitud de renting concreta en la que se otorga. No implica consentimiento para consultas futuras, que requerirán una nueva aceptación expresa.",
-          "El usuario puede revocar su consentimiento antes de que la consulta se realice efectivamente, contactando con Carswiseai en privacidad@carswiseai.com. Una vez ejecutada la consulta, la revocación no podrá retrotraer sus efectos.",
+          "El usuario puede revocar su consentimiento antes de que la consulta se realice efectivamente, contactando con PopCar en privacidad@carswiseai.com. Una vez ejecutada la consulta, la revocación no podrá retrotraer sus efectos.",
         ],
       },
       {
         heading: "7. Limitación de responsabilidad",
         paragraphs: [
-          "Carswiseai no garantiza un resultado favorable de la consulta de solvencia ni la aprobación de la solicitud de renting por parte del proveedor.",
-          "Carswiseai no será responsable de los daños o perjuicios que pudieran derivarse de una resolución negativa del proveedor de renting basada en el resultado de la consulta.",
+          "PopCar no garantiza un resultado favorable de la consulta de solvencia ni la aprobación de la solicitud de renting por parte del proveedor.",
+          "PopCar no será responsable de los daños o perjuicios que pudieran derivarse de una resolución negativa del proveedor de renting basada en el resultado de la consulta.",
         ],
       },
       {
@@ -789,7 +795,7 @@ const LEGAL_DOCUMENTS_EN = {
       {
         heading: "Identifying information",
         paragraphs: [
-          "CarsWise is a digital platform focused on mobility advisory and operations in Spain.",
+          "PopCar is a digital platform focused on mobility advisory and operations in Spain.",
           "For general contact, support and incident management you can reach us at soporte@carswise.es.",
         ],
       },
@@ -805,20 +811,20 @@ const LEGAL_DOCUMENTS_EN = {
         bullets: [
           "The user agrees to use the platform in accordance with the law, good faith and public order.",
           "Fraudulent use, unauthorised automated data extraction and any attempt to alter the functioning of the service are prohibited.",
-          "CarsWise may update, improve or withdraw features to maintain security, performance and quality of service.",
+          "PopCar may update, improve or withdraw features to maintain security, performance and quality of service.",
         ],
       },
       {
         heading: "Intellectual property",
         paragraphs: [
-          "The CarsWise brand, the platform design, its functional architecture, content, code and graphic elements are owned by their owners or licensors.",
+          "The PopCar brand, the platform design, its functional architecture, content, code and graphic elements are owned by their owners or licensors.",
           "Their reproduction, distribution or transformation without express authorisation is not permitted except where legally allowed.",
         ],
       },
       {
         heading: "Liability",
         paragraphs: [
-          "CarsWise does not guarantee permanent and uninterrupted availability of the service, although it applies reasonable measures to maintain continuity.",
+          "PopCar does not guarantee permanent and uninterrupted availability of the service, although it applies reasonable measures to maintain continuity.",
           "Final contracting or buying/selling decisions rest with the user and, where applicable, the third-party provider with whom they formalise the transaction.",
         ],
       },
@@ -924,14 +930,14 @@ const LEGAL_DOCUMENTS_EN = {
       {
         heading: "Acceptance of terms",
         paragraphs: [
-          "Access to and use of CarsWise implies acceptance of these terms and conditions.",
+          "Access to and use of PopCar implies acceptance of these terms and conditions.",
           "If you do not agree with the terms, you must refrain from using the platform.",
         ],
       },
       {
         heading: "Scope and nature of the service",
         paragraphs: [
-          "CarsWise provides recommendations and support tools for mobility, buying, selling and associated service decisions.",
+          "PopCar provides recommendations and support tools for mobility, buying, selling and associated service decisions.",
           "The platform does not replace the contractual or technical review that the user must carry out before closing transactions with third parties.",
         ],
       },
@@ -953,14 +959,14 @@ const LEGAL_DOCUMENTS_EN = {
       {
         heading: "Limitation of liability",
         paragraphs: [
-          "CarsWise does not guarantee specific financial results and accepts no liability for final decisions made by the user.",
+          "PopCar does not guarantee specific financial results and accepts no liability for final decisions made by the user.",
           "Contractual relationships with third-party providers are the direct responsibility of the parties involved.",
         ],
       },
       {
         heading: "Amendments and validity",
         paragraphs: [
-          "CarsWise may update these terms to adapt them to regulatory, technical or service changes.",
+          "PopCar may update these terms to adapt them to regulatory, technical or service changes.",
           "The current version will always be available in the legal section of the platform.",
         ],
       },
@@ -968,26 +974,26 @@ const LEGAL_DOCUMENTS_EN = {
   },
   marketingPolicy: {
     title: "Commercial Communications Policy",
-    summary: "Information on how we use your data to send you commercial communications from Carswiseai and selected partners, and how you can opt out at any time.",
+    summary: "Information on how we use your data to send you commercial communications from PopCar and selected partners, and how you can opt out at any time.",
     updatedAt: "17/06/2026",
     sections: [
       {
         heading: "What are commercial communications?",
         paragraphs: [
-          "Commercial communications are messages sent by email, SMS or other digital channels to inform you about Carswiseai news, vehicle offers, renting promotions and services of commercial partners relevant to your mobility experience.",
+          "Commercial communications are messages sent by email, SMS or other digital channels to inform you about PopCar news, vehicle offers, renting promotions and services of commercial partners relevant to your mobility experience.",
         ],
       },
       {
         heading: "Legal basis",
         paragraphs: [
-          "Sending of Carswiseai's own commercial communications to registered users is based on legitimate interest in keeping clients informed about similar contracted services (art. 21.2 LSSI-CE). Sending communications from third-party partners requires your express consent.",
+          "Sending of PopCar's own commercial communications to registered users is based on legitimate interest in keeping clients informed about similar contracted services (art. 21.2 LSSI-CE). Sending communications from third-party partners requires your express consent.",
         ],
       },
       {
         heading: "How to unsubscribe",
         bullets: [
           "Click the 'Unsubscribe' link in any commercial communication.",
-          "From your Carswiseai account area, under 'Notifications and privacy'.",
+          "From your PopCar account area, under 'Notifications and privacy'.",
           "Send an email to privacidad@carswiseai.com with your name and email address.",
         ],
       },
@@ -1007,7 +1013,7 @@ const LEGAL_DOCUMENTS_EN = {
       {
         heading: "What is Experian and why is it used?",
         paragraphs: [
-          "Experian Bureau de Crédito S.A. is a credit information entity registered in Spain. Carswiseai may check the applicant's creditworthiness with Experian when required by the renting or financing company, and always with the data subject's express consent.",
+          "Experian Bureau de Crédito S.A. is a credit information entity registered in Spain. PopCar may check the applicant's creditworthiness with Experian when required by the renting or financing company, and always with the data subject's express consent.",
         ],
       },
       {
@@ -1021,26 +1027,26 @@ const LEGAL_DOCUMENTS_EN = {
       {
         heading: "Legal basis",
         paragraphs: [
-          "The check is based on the data subject's express consent (art. 6.1.a GDPR), given specifically and separately through the checkbox in the application form. Without this consent, Carswiseai will not carry out the check.",
+          "The check is based on the data subject's express consent (art. 6.1.a GDPR), given specifically and separately through the checkbox in the application form. Without this consent, PopCar will not carry out the check.",
         ],
       },
       {
         heading: "How to revoke consent",
         paragraphs: [
-          "You may revoke your consent before the check is carried out by contacting us at privacidad@carswiseai.com. You may exercise your rights directly with Experian at www.experian.es/derechos-arco, and with Carswiseai at privacidad@carswiseai.com.",
+          "You may revoke your consent before the check is carried out by contacting us at privacidad@carswiseai.com. You may exercise your rights directly with Experian at www.experian.es/derechos-arco, and with PopCar at privacidad@carswiseai.com.",
         ],
       },
     ],
   },
   experianTerms: {
     title: "Creditworthiness Check Service Terms",
-    summary: "Terms governing the use of the creditworthiness check service with Experian Bureau de Crédito S.A. processed through the Carswiseai platform in the context of renting applications.",
+    summary: "Terms governing the use of the creditworthiness check service with Experian Bureau de Crédito S.A. processed through the PopCar platform in the context of renting applications.",
     updatedAt: "17/06/2026",
     sections: [
       {
         heading: "Purpose of the service",
         paragraphs: [
-          "This service consists of Carswiseai processing a creditworthiness check on behalf of the user with Experian Bureau de Crédito S.A., at the request of the chosen renting or financing provider and with the user's express consent. Carswiseai acts solely as an intermediary and does not make decisions on the granting or terms of the renting.",
+          "This service consists of PopCar processing a creditworthiness check on behalf of the user with Experian Bureau de Crédito S.A., at the request of the chosen renting or financing provider and with the user's express consent. PopCar acts solely as an intermediary and does not make decisions on the granting or terms of the renting.",
         ],
       },
       {
@@ -1050,7 +1056,7 @@ const LEGAL_DOCUMENTS_EN = {
         ],
       },
       {
-        heading: "Carswiseai obligations",
+        heading: "PopCar obligations",
         bullets: [
           "Process the check only with prior express consent from the user.",
           "Not use the result for any purpose other than evaluation of the specific renting application.",
@@ -1069,7 +1075,7 @@ const LEGAL_DOCUMENTS_EN = {
       {
         heading: "Check result",
         paragraphs: [
-          "The creditworthiness check result is managed directly by the renting provider for internal evaluation. Carswiseai does not have access to the detail of the report and makes no decisions based on its content. A negative result does not necessarily mean the application is refused.",
+          "The creditworthiness check result is managed directly by the renting provider for internal evaluation. PopCar does not have access to the detail of the report and makes no decisions based on its content. A negative result does not necessarily mean the application is refused.",
         ],
       },
       {
@@ -1081,7 +1087,7 @@ const LEGAL_DOCUMENTS_EN = {
       {
         heading: "Limitation of liability",
         paragraphs: [
-          "Carswiseai does not guarantee a favourable check result or approval of the renting application. Carswiseai is not liable for any negative decision made by the renting provider based on the check result.",
+          "PopCar does not guarantee a favourable check result or approval of the renting application. PopCar is not liable for any negative decision made by the renting provider based on the check result.",
         ],
       },
     ],
@@ -1090,10 +1096,10 @@ const LEGAL_DOCUMENTS_EN = {
 
 const SEO_STATIC_PAGES = {
   aboutCarswise: {
-    badge: "Sobre CarsWise",
-    title: "Quienes somos en CarsWise",
+    badge: "Sobre PopCar",
+    title: "Quienes somos en PopCar",
     description:
-      "CarsWise nace para que cualquier persona compre, gestione y venda su coche con informacion neutral y criterio financiero real.",
+      "PopCar nace para que cualquier persona compre, gestione y venda su coche con informacion neutral y criterio financiero real.",
     sections: [
       {
         heading: "Mision",
@@ -1121,19 +1127,11 @@ const SEO_STATIC_PAGES = {
             ],
           },
           {
-            title: "Javier Linares",
-            subtitle: "Cofundador · Operaciones y Finanzas",
-            lines: [
-              "Experiencia en VO, gestion de flotas y operaciones estructuradas.",
-              "Lidera pricing, unit economics y control financiero de la plataforma.",
-            ],
-          },
-          {
             title: "Ana Picazo",
             subtitle: "Cofundadora · Tecnologia y Producto",
             lines: [
               "Especialista en software, datos y arquitectura de producto digital.",
-              "Dirige la hoja de ruta tecnica y la calidad de la experiencia CarsWise.",
+              "Dirige la hoja de ruta tecnica y la calidad de la experiencia PopCar.",
             ],
           },
         ],
@@ -1178,7 +1176,7 @@ const SEO_STATIC_PAGES = {
   },
   contact: {
     badge: "Contacto",
-    title: "Contacto CarsWise",
+    title: "Contacto PopCar",
     description:
       "Si necesitas ayuda para compra, renting, venta o servicios de movilidad, te atendemos por email y telefono.",
     sections: [
@@ -1203,7 +1201,7 @@ const SEO_STATIC_PAGES = {
 };
 
 const PUBLIC_ROUTE_BY_ENTRY_MODE = {
-  aboutCarswise: "/sobre-carswise",
+  aboutCarswise: "/sobre-popcar",
   plans: "/planes",
   portalVo: "/marketplace-vo",
   // (la apertura temporal de la ficha VO está justo debajo de este mapa)
@@ -1215,6 +1213,10 @@ const PUBLIC_ROUTE_BY_ENTRY_MODE = {
   blogRentingCompra: "/blog/renting-vs-compra-2026-que-conviene-segun-tu-uso",
   viewingPropose: "/cita/proponer",
   viewingConfirm: "/cita/confirmar",
+  empresas: "/empresas",
+  comoFunciona: "/como-funciona",
+  comparador: "/comparador",
+  buscarCoche: "/buscar-coche",
   contact: "/contacto",
   legalNotice: "/aviso-legal",
   privacyPolicy: "/politica-privacidad",
@@ -1234,81 +1236,81 @@ const ENTRY_MODE_BY_PUBLIC_ROUTE = Object.entries(PUBLIC_ROUTE_BY_ENTRY_MODE).re
 
 const SEO_META_BY_ENTRY_MODE = {
   home: {
-    title: "CarsWise AI | Asesor de movilidad para comprar, renting y vender mejor",
+    title: "PopCar | Asesor de movilidad para comprar, renting y vender mejor",
     description:
-      "CarsWise te ayuda a decidir mejor en compra, renting, venta y servicios del coche con analisis de coste total.",
+      "PopCar te ayuda a decidir mejor en compra, renting, venta y servicios del coche con analisis de coste total.",
   },
   aboutCarswise: {
-    title: "Sobre CarsWise | Quienes somos y que construimos",
+    title: "Sobre PopCar | Quienes somos y que construimos",
     description:
-      "Conoce al equipo fundador de CarsWise y nuestra vision para comprar, gestionar y vender coche con mejor informacion.",
+      "Conoce al equipo fundador de PopCar y nuestra vision para comprar, gestionar y vender coche con mejor informacion.",
   },
   plans: {
-    title: "Planes y precios | CarsWise",
+    title: "Planes y precios | PopCar",
     description:
       "Consulta planes de suscripcion y servicios premium bajo demanda para gestionar mejor tu coche.",
   },
   portalVo: {
-    title: "Marketplace VO | Coches de ocasion con enfoque de coste total | CarsWise",
+    title: "Marketplace VO | Coches de ocasion con enfoque de coste total | PopCar",
     description:
       "Explora ofertas de vehiculo de ocasion y compara opciones con enfoque de coste total y decision informada.",
   },
   vehicleDetail: {
-    title: "Ficha de vehiculo | CarsWise",
+    title: "Ficha de vehiculo | PopCar",
     description:
       "Consulta la ficha de una oferta concreta con sus datos clave, analisis y contexto de mercado.",
   },
   vehicleOptions: {
-    title: "Asesor de vehiculo | Descubre la mejor operacion para tu caso | CarsWise",
+    title: "Asesor de vehiculo | Descubre la mejor operacion para tu caso | PopCar",
     description:
       "Compara escenarios de compra y renting segun presupuesto, kilometros, uso y objetivos de movilidad.",
   },
   servicesSeo: {
-    title: "Servicios de movilidad | Seguro, mantenimiento y gestion | CarsWise",
+    title: "Servicios de movilidad | Seguro, mantenimiento y gestion | PopCar",
     description:
       "Centraliza servicios de movilidad para reducir imprevistos y optimizar el coste total de tu vehiculo.",
   },
   blog: {
-    title: "Blog de movilidad | Guias utiles de compra, renting y ahorro | CarsWise",
+    title: "Blog de movilidad | Guias utiles de compra, renting y ahorro | PopCar",
     description:
       "Consejos practicos y comparativas para tomar mejores decisiones de movilidad en Espana.",
   },
   blogCompraUsado: {
-    title: "Guia 2026: comprar coche usado en Espana | CarsWise",
+    title: "Guia 2026: comprar coche usado en Espana | PopCar",
     description:
       "Checklist practico para comprar coche de segunda mano con menos riesgo tecnico, legal y financiero.",
   },
   blogRentingCompra: {
-    title: "Renting vs compra 2026: que conviene segun tu uso | CarsWise",
+    title: "Renting vs compra 2026: que conviene segun tu uso | PopCar",
     description:
       "Analisis claro para elegir entre renting y compra segun kilometraje, liquidez y horizonte de uso.",
   },
   contact: {
-    title: "Contacto | CarsWise",
+    title: "Contacto | PopCar",
     description:
-      "Contacta con CarsWise para ayuda en compra, renting, venta y servicios de movilidad.",
+      "Contacta con PopCar para ayuda en compra, renting, venta y servicios de movilidad.",
   },
   legalNotice: {
-    title: "Aviso legal | CarsWise",
+    title: "Aviso legal | PopCar",
     description: "Informacion legal sobre titularidad, uso del servicio y responsabilidades.",
   },
   privacyPolicy: {
-    title: "Politica de privacidad | CarsWise",
-    description: "Como tratamos y protegemos tus datos personales en CarsWise.",
+    title: "Politica de privacidad | PopCar",
+    description: "Como tratamos y protegemos tus datos personales en PopCar.",
   },
   cookiePolicy: {
-    title: "Politica de cookies | CarsWise",
+    title: "Politica de cookies | PopCar",
     description: "Informacion sobre cookies, consentimiento y configuracion de preferencias.",
   },
   termsConditions: {
-    title: "Terminos y condiciones | CarsWise",
-    description: "Condiciones generales de uso de la plataforma CarsWise.",
+    title: "Terminos y condiciones | PopCar",
+    description: "Condiciones generales de uso de la plataforma PopCar.",
   },
 };
 
-const SITE_URL = "https://www.carswiseai.com";
-const SITE_NAME = "CarsWise AI";
-const SITE_LOGO_URL = `${SITE_URL}/carswise-logo.png`;
+const SITE_URL = "https://www.popcar.tech";
+const SITE_NAME = "PopCar";
+const SITE_LOGO_URL = `${SITE_URL}/popcar-logo.png`;
 const SITE_IMAGE_URL = `${SITE_URL}/CarWise_app.jpg?v=20260418b`;
 
 function buildBreadcrumbSchema(items = []) {
@@ -1573,7 +1575,8 @@ function clearLegacyTranslateCookies() {
 }
 
 export default function App() {
-  const { t } = useTranslation();
+  // El único uso que le quedaba a `t` aquí era el aviso de cookies, que ahora
+  // traduce por su cuenta en src/ui/AvisoCookies.js.
   const [entryMode, setEntryMode] = useState(null);
   const [selectedIdCarVehicleId, setSelectedIdCarVehicleId] = useState("");
   const [selectedIdCarOpenEditor, setSelectedIdCarOpenEditor] = useState(false);
@@ -1716,11 +1719,16 @@ export default function App() {
     return normalizeUiLanguage();
   });
   const activeLegalDocs = uiLanguage === "en" ? LEGAL_DOCUMENTS_EN : LEGAL_DOCUMENTS;
+  /* Las cuatro categorías salen marcadas de entrada, marketing incluida: es
+     decisión de producto. Conste que la guía de cookies de la AEPD —y la
+     sentencia Planet49— piden que las opcionales vengan sin marcar y que
+     rechazar cueste lo mismo que aceptar; dejarlo así es asumir ese riesgo, y
+     volver a `marketing: false` es cambiar esta línea. */
   const [cookiePreferences, setCookiePreferences] = useState({
     necessary: true,
     analytics: true,
     personalization: true,
-    marketing: false,
+    marketing: true,
   });
   const quickValidationRef = useRef({});
   const resultRef = useRef(null);
@@ -1870,15 +1878,22 @@ export default function App() {
       entryMode === "serviceInsurance" ||
       entryMode === "serviceMaintenance" ||
       entryMode === "serviceAutogestor" ||
-      entryMode === "idCarsManage" ||
-      entryMode === "idCarDetail" ||
-      entryMode === "idCarCreate" ||
       entryMode === "serviceAppointment" ||
       entryMode === "serviceAppointmentCalendar" ||
       entryMode === "serviceMonthlyPlan" ||
       entryMode === "servicesSeo"
     ) {
       return "services";
+    }
+    if (entryMode === "idCarsManage" || entryMode === "idCarDetail" || entryMode === "idCarCreate") {
+      return "idcar";
+    }
+    if (entryMode === "empresas") {
+      return "business";
+    }
+
+    if (entryMode === "comoFunciona") {
+      return "comoFunciona";
     }
 
     if (entryMode === "sellOptions" || entryMode === "sell") {
@@ -1928,28 +1943,37 @@ export default function App() {
     },
     {
       key: "services",
-      label: uiLanguage === "en" ? "My Car" : "Mi coche",
+      label: uiLanguage === "en" ? "Manage" : "Gestionar",
       onClick: () => openInternalLandingFlow("serviceOptions"),
     },
     {
-      key: "plans",
-      label: uiLanguage === "en" ? "Plans ▾" : "Planes ▾",
-      onClick: () => {
-        setShowHeaderMobileNav(false);
-        setShowHeaderMoreNav(false);
-        setShowHeaderPlansNav((prev) => !prev);
-      },
+      /* IdCar sale de la cabecera pero deja su hueco: separa los tres apartados
+         de lo que haces con el coche —comprar, vender, gestionar— de los tres
+         de la casa. Se pinta con su propio rótulo puesto invisible, así que el
+         hueco mide exactamente lo que medía el enlace. */
+      key: "hueco",
+      label: "IdCar",
+      hueco: true,
     },
     {
-      key: "more",
-      label: uiLanguage === "en" ? "More ▾" : "Más ▾",
-      onClick: () => {
-        setShowHeaderMobileNav(false);
-        setShowHeaderPlansNav(false);
-        setShowHeaderMoreNav((prev) => !prev);
-      },
+      key: "business",
+      label: uiLanguage === "en" ? "Business" : "Empresas",
+      onClick: () => openPublicPage("empresas"),
     },
-  ], [goToHomeHeaderPage, openInternalLandingFlow, uiLanguage]);
+    {
+      // La clave es «plans» porque es la pagina que abre, y asi el resaltado de
+      // la pestana activa funciona sin tocar nada: ya devuelve «plans» cuando
+      // estas en /planes.
+      key: "plans",
+      label: uiLanguage === "en" ? "Products" : "Productos",
+      onClick: () => openPlansSection("planes"),
+    },
+    {
+      key: "comoFunciona",
+      label: uiLanguage === "en" ? "How it works" : "Cómo funciona",
+      onClick: () => openPublicPage("comoFunciona"),
+    },
+  ], [goToHomeHeaderPage, openInternalLandingFlow, openPublicPage, openPlansSection, uiLanguage]);
 
   const headerPlansNavItems = useMemo(() => [
     {
@@ -1988,7 +2012,9 @@ export default function App() {
   ], [goToAboutHeaderPage, goToPublicHeaderPage, uiLanguage]);
 
   const mobileHeaderNavItems = useMemo(() => [
-    ...headerNavItems.filter((item) => item.key !== "more" && item.key !== "plans"),
+    // El hueco fuera: en el menú desplegado no separa nada y sería una línea en
+    // blanco que no lleva a ningún sitio.
+    ...headerNavItems.filter((item) => !item.hueco && item.key !== "more" && item.key !== "plans"),
     {
       key: "plans",
       label: uiLanguage === "en" ? "Plans" : "Planes",
@@ -2026,6 +2052,11 @@ export default function App() {
     setShowCookieGate,
     setShowCookieSettings,
   });
+
+  /** ¿Hay que pedir el consentimiento de cookies? */
+  const avisoCookiesAbierto =
+    showCookieGate && !isUserLoggedIn && !authRequired && !showConsentReview
+    && !["legalNotice", "privacyPolicy", "cookiePolicy", "termsConditions", "marketingPolicy", "experianPolicy", "experianTerms"].includes(entryMode);
 
   const activeSteps = useMemo(() => {
     const steps = getQuestionnaireSteps(advancedMode).filter((s) => s.id !== "perfil");
@@ -2078,7 +2109,7 @@ export default function App() {
 
     const applyRouteFromPath = () => {
       /**
-       * Vuelta desde la captura de CarsWise Check.
+       * Vuelta desde la captura de PopCar Check.
        *
        * La captura vive en otro dominio y al terminar devuelve aquí al usuario.
        * Sin esto aterrizaría en la portada y tendría que volver a buscar su
@@ -2212,7 +2243,7 @@ export default function App() {
     const effectiveEntryMode = entryMode || "home";
     const meta = SEO_META_BY_ENTRY_MODE[effectiveEntryMode] || SEO_META_BY_ENTRY_MODE.home;
     const canonicalPath = effectiveEntryMode === "home" ? "/" : getPublicPathForEntryMode(effectiveEntryMode);
-    const canonicalUrl = `https://www.carswiseai.com${canonicalPath}`;
+    const canonicalUrl = `https://www.popcar.tech${canonicalPath}`;
 
     document.title = meta.title;
 
@@ -3069,8 +3100,8 @@ export default function App() {
         to: emailTargets,
         subject:
           emailTargets.length === 1
-            ? "CarsWise · Tu resumen de alertas"
-            : `CarsWise · ${emailTargets.length} resúmenes de alertas`,
+            ? "PopCar · Tu resumen de alertas"
+            : `PopCar · ${emailTargets.length} resúmenes de alertas`,
         notifications: notificationsToSend,
       });
 
@@ -3290,7 +3321,7 @@ export default function App() {
         ? `Zona: ${normalizeText(context.province)} ${normalizeText(context.postalCode)}`.trim()
         : "",
       context?.quotedPrice !== undefined && context?.quotedPrice !== null && context?.quotedPrice !== ""
-        ? `Precio CarsWise: ${typeof context.quotedPrice === "number" ? `${context.quotedPrice}€` : String(context.quotedPrice)}`
+        ? `Precio PopCar: ${typeof context.quotedPrice === "number" ? `${context.quotedPrice}€` : String(context.quotedPrice)}`
         : "",
       vehicleMeta,
     ].filter(Boolean);
@@ -3340,7 +3371,7 @@ export default function App() {
     writeUserAppointments(next);
     setUserAppointments(next);
 
-    // Crear cita en ERP CarsWise (Citas Mantenimiento) si es de tipo maintenance
+    // Crear cita en ERP PopCar (Citas Mantenimiento) si es de tipo maintenance
     if (type === "maintenance" && !context?.skipErpSave && currentUserEmail && normalizeText(context?.selectedDateKey) && normalizeText(context?.selectedTime)) {
       const dateKey  = normalizeText(context.selectedDateKey);  // YYYY-MM-DD
       const timeStr  = normalizeText(context.selectedTime);     // HH:MM
@@ -3349,7 +3380,7 @@ export default function App() {
         normalizeText(context?.vehicleTitle) ? `Vehículo: ${normalizeText(context.vehicleTitle)}` : "",
         normalizeText(context?.vehiclePlate) ? `Matrícula: ${normalizeText(context.vehiclePlate)}` : "",
         normalizeText(context?.workshopAddress) ? `Dirección taller: ${normalizeText(context.workshopAddress)}` : "",
-        context?.quotedPrice != null ? `Precio CarsWise: ${context.quotedPrice}€` : "",
+        context?.quotedPrice != null ? `Precio PopCar: ${context.quotedPrice}€` : "",
       ].filter(Boolean).join(" · ");
       postErpAppointmentJson({
         userId:          currentUserEmail,
@@ -4269,7 +4300,7 @@ export default function App() {
           sameAs: [
             "https://www.linkedin.com",
             "https://x.com",
-            "https://www.instagram.com/carswiseai/",
+            "https://www.instagram.com/popcar/",
             "https://www.youtube.com",
           ],
         },
@@ -4288,7 +4319,7 @@ export default function App() {
         {
           "@context": "https://schema.org",
           "@type": "Blog",
-          name: "Blog CarsWise",
+          name: "Blog PopCar",
           url: `${SITE_URL}/blog`,
           inLanguage: "es-ES",
           publisher: {
@@ -4349,27 +4380,38 @@ export default function App() {
   if (LEGAL_ENTRY_MODES.includes(entryMode) && activeLegalDocs[entryMode]) {
     const doc = activeLegalDocs[entryMode];
     const isDark = themeMode === "dark";
-    const legalBg = isDark ? "#0f172a" : "#f8fafc";
-    const legalText = isDark ? "#e2e8f0" : "#0f172a";
-    const legalBorder = isDark ? "rgba(148,163,184,0.15)" : "rgba(148,163,184,0.22)";
+    const legalBg = isDark ? "var(--gris-900)" : "var(--gris-50)";
+    const legalText = isDark ? "var(--gris-200)" : "var(--gris-900)";
+    const legalBorder = isDark ? "rgba(150,150,143,0.15)" : "rgba(150,150,143,0.22)";
     return (
       <div style={{ minHeight: "100vh", background: legalBg, color: legalText, fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" }}>
         <div style={{
           position: "sticky", top: 0, zIndex: 100,
-          background: isDark ? "rgba(15,23,42,0.96)" : "rgba(255,255,255,0.96)",
+          background: isDark ? "rgba(17,17,17,0.96)" : "rgba(255,255,255,0.96)",
           borderBottom: `1px solid ${legalBorder}`,
           backdropFilter: "blur(10px)",
           padding: "0 24px",
           display: "flex", alignItems: "center", justifyContent: "space-between", height: 56,
         }}>
-          <img src="/carswise-logo.png" alt="CarsWise AI" style={{ height: 34, width: "auto", objectFit: "contain" }} />
+          {/* En los documentos legales el logotipo era solo el dibujo, sin
+              pulsar: la unica salida era el boton de cerrar. Aqui tambien lleva
+              al inicio, como en el resto de la aplicacion. */}
+          <button
+            type="button"
+            onClick={restart}
+            style={{ background: "transparent", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center" }}
+            title="Ir al inicio"
+            aria-label="Ir al inicio"
+          >
+            <LogoPopCar size={26} />
+          </button>
           <button
             type="button"
             onClick={() => { if (window.history.length > 1) { window.history.back(); } else { window.close(); } }}
             style={{
               background: "transparent",
               border: `1px solid ${legalBorder}`,
-              color: isDark ? "#94a3b8" : "#64748b",
+              color: isDark ? "var(--gris-400)" : "var(--gris-500)",
               borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer",
             }}
           >
@@ -4399,8 +4441,8 @@ export default function App() {
         minHeight: "100vh",
         ...((themeMode === "light" && step === -1) || isAdviceFlowLightBackground
           ? {
-              background: "#ffffff",
-              color: "#0f172a",
+              background: "var(--blanco)",
+              color: "var(--gris-900)",
             }
           : null),
       }}
@@ -4423,17 +4465,18 @@ export default function App() {
             title="Ir al home"
             aria-label="Ir al home"
           >
-            <img src="/carswise-logo.png" alt="CarsWise" style={{ height: 52, width: "auto", objectFit: "contain", display: "block" }} />
-            <span style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", whiteSpace: "nowrap", letterSpacing: "-0.2px" }}>CarsWise AI</span>
+            {/* El logotipo ya dice el nombre: el rótulo de al lado sobra y antes
+                repetía la marca dos veces. */}
+            <LogoPopCar size={30} />
           </button>
           <nav
             className="cw-header-nav"
-            aria-label="Navegacion principal CarsWise"
+            aria-label="Navegacion principal PopCar"
             style={{
-              "--cw-nav-color": themeMode === "dark" ? "#cbd5e1" : "#5b6b82",
-              "--cw-nav-hover-color": themeMode === "dark" ? "#dbeafe" : "#334155",
-              "--cw-nav-active-color": themeMode === "dark" ? "#7dd3fc" : "#3b82f6",
-              "--cw-nav-active-bg": themeMode === "dark" ? "rgba(125,211,252,0.18)" : "rgba(59,130,246,0.12)",
+              "--cw-nav-color": themeMode === "dark" ? "var(--gris-300)" : "var(--gris-500)",
+              "--cw-nav-hover-color": themeMode === "dark" ? "var(--acento-tenue)" : "var(--gris-700)",
+              "--cw-nav-active-color": themeMode === "dark" ? "var(--gris-300)" : "var(--marca-claro)",
+              "--cw-nav-active-bg": themeMode === "dark" ? "rgba(207,207,200,0.18)" : "rgba(255,196,0,0.12)",
                 justifyContent: "center",
                 marginLeft: 18,
                 marginRight: 18,
@@ -4441,6 +4484,23 @@ export default function App() {
           >
             {centerHeaderNavItems.map((item) => {
               const isActive = item.key === currentHeaderNavKey;
+
+              /* El hueco de IdCar. Va con el rótulo dentro para que mida lo
+                 mismo que medía el enlace, pero invisible y fuera del alcance
+                 del ratón, del teclado y del lector de pantalla: es aire, no un
+                 sitio al que se pueda ir. */
+              if (item.hueco) {
+                return (
+                  <span
+                    key={item.key}
+                    className="cw-header-nav-link"
+                    aria-hidden="true"
+                    style={{ visibility: "hidden", pointerEvents: "none" }}
+                  >
+                    {item.label}
+                  </span>
+                );
+              }
 
               if (item.key === "plans") {
                 return (
@@ -4465,9 +4525,9 @@ export default function App() {
                           right: 0,
                           minWidth: 210,
                           background: "rgba(255,255,255,0.98)",
-                          border: "1px solid rgba(148,163,184,0.34)",
+                          border: "1px solid rgba(150,150,143,0.34)",
                           borderRadius: 12,
-                          boxShadow: "0 12px 30px rgba(15,23,42,0.16)",
+                          boxShadow: "0 12px 30px rgba(17,17,17,0.16)",
                           padding: 8,
                           zIndex: 140,
                           display: "grid",
@@ -4483,10 +4543,10 @@ export default function App() {
                             style={{
                               width: "100%",
                               textAlign: "left",
-                              border: "1px solid rgba(148,163,184,0.28)",
+                              border: "1px solid rgba(150,150,143,0.28)",
                               borderRadius: 10,
-                              background: "#ffffff",
-                              color: "#0f172a",
+                              background: "var(--blanco)",
+                              color: "var(--gris-900)",
                               fontSize: 12,
                               fontWeight: 700,
                               padding: "8px 10px",
@@ -4525,9 +4585,9 @@ export default function App() {
                           right: 0,
                           minWidth: 190,
                           background: "rgba(255,255,255,0.98)",
-                          border: "1px solid rgba(148,163,184,0.34)",
+                          border: "1px solid rgba(150,150,143,0.34)",
                           borderRadius: 12,
-                          boxShadow: "0 12px 30px rgba(15,23,42,0.16)",
+                          boxShadow: "0 12px 30px rgba(17,17,17,0.16)",
                           padding: 8,
                           zIndex: 140,
                           display: "grid",
@@ -4543,10 +4603,10 @@ export default function App() {
                             style={{
                               width: "100%",
                               textAlign: "left",
-                              border: "1px solid rgba(148,163,184,0.28)",
+                              border: "1px solid rgba(150,150,143,0.28)",
                               borderRadius: 10,
-                              background: "#ffffff",
-                              color: "#0f172a",
+                              background: "var(--blanco)",
+                              color: "var(--gris-900)",
                               fontSize: 12,
                               fontWeight: 700,
                               padding: "8px 10px",
@@ -4576,7 +4636,7 @@ export default function App() {
           </nav>
           <div style={{ display: "flex", alignItems: "center", gap: 6, position: "relative", flexShrink: 0, marginLeft: "auto" }}>
           {step >= 0 && step < totalSteps && (
-            <div style={{ fontSize: 12, color: "#475569" }}>
+            <div style={{ fontSize: 12, color: "var(--gris-600)" }}>
               {step + 1} / {totalSteps}
             </div>
           )}
@@ -4584,9 +4644,9 @@ export default function App() {
             <button
               onClick={restart}
               style={{
-                background: themeMode === "dark" ? "rgba(255,255,255,0.04)" : "rgba(241,245,249,0.92)",
-                border: themeMode === "dark" ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(148,163,184,0.32)",
-                color: themeMode === "dark" ? "#94a3b8" : "#334155",
+                background: themeMode === "dark" ? "rgba(255,255,255,0.04)" : "rgba(242,242,237,0.92)",
+                border: themeMode === "dark" ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(150,150,143,0.32)",
+                color: themeMode === "dark" ? "var(--gris-400)" : "var(--gris-700)",
                 padding: "5px 13px",
                 borderRadius: 7,
                 cursor: "pointer",
@@ -4597,35 +4657,33 @@ export default function App() {
             </button>
           )}
 
-          <button
-            type="button"
-            onClick={() => setUiLanguage((prev) => (prev === "es" ? "en" : "es"))}
-            title={uiLanguage === "es" ? "Cambiar a inglés" : "Cambiar a español"}
-            style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "none", border: "1px solid #e2e8f0", color: "#374151", padding: "6px 12px", borderRadius: 20, cursor: "pointer", fontSize: 12, fontWeight: 500, whiteSpace: "nowrap" }}
-          >
-            <span>🌐</span>
-            <span>{uiLanguage === "es" ? "ES" : "EN"}</span>
-          </button>
-
-<button
-            type="button"
-            onClick={handleUserAccessClick}
-            title={isUserLoggedIn ? (uiLanguage === "en" ? "Open my panel" : "Abrir mi panel") : (uiLanguage === "en" ? "Sign in or register" : "Acceder o registrarse")}
-            style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "#0f172a", border: "none", color: "white", padding: "7px 16px", borderRadius: 20, cursor: "pointer", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}
-          >
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 13,
-                color: "white",
-              }}
+          {isUserLoggedIn ? (
+            <button
+              type="button"
+              onClick={handleUserAccessClick}
+              title={uiLanguage === "en" ? "Open my panel" : "Abrir mi panel"}
+              className="cw-btn-acento"
             >
-              {"\uD83D\uDC64"}
-            </span>
-            <span className="cw-theme-label">{isUserLoggedIn ? (uiLanguage === "en" ? "My panel" : "Mi panel") : (uiLanguage === "en" ? "Sign in" : "Acceder")}</span>
-          </button>
+              {uiLanguage === "en" ? "My dashboard" : "Mi panel"}
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={handleUserAccessClick}
+                className="cw-btn-contorno"
+              >
+                {uiLanguage === "en" ? "Log in" : "Iniciar sesión"}
+              </button>
+              <button
+                type="button"
+                onClick={handleUserAccessClick}
+                className="cw-btn-acento"
+              >
+                {uiLanguage === "en" ? "Sign up" : "Regístrate"}
+              </button>
+            </>
+          )}
 
           {showAuthMenu && !isUserLoggedIn && (
             <div
@@ -4634,15 +4692,15 @@ export default function App() {
                 top: "calc(100% + 10px)",
                 right: 0,
                 minWidth: 220,
-                background: "rgba(8,15,30,0.96)",
-                border: "1px solid rgba(125,211,252,0.18)",
+                background: "rgba(17,17,17,0.96)",
+                border: "1px solid rgba(207,207,200,0.18)",
                 borderRadius: 14,
-                boxShadow: "0 18px 40px rgba(2,6,23,0.42)",
+                boxShadow: "0 18px 40px rgba(5,5,5,0.42)",
                 padding: 12,
                 zIndex: 120,
               }}
             >
-              <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 8 }}>
+              <div style={{ fontSize: 11, color: "var(--gris-400)", marginBottom: 8 }}>
                 Área de usuario
               </div>
               <button
@@ -4650,9 +4708,9 @@ export default function App() {
                 onClick={() => handleAuthAction("login")}
                 style={{
                   width: "100%",
-                  background: "rgba(37,99,235,0.14)",
-                  border: "1px solid rgba(96,165,250,0.24)",
-                  color: "#dbeafe",
+                  background: "rgba(255,196,0,0.14)",
+                  border: "1px solid rgba(255,196,0,0.24)",
+                  color: "var(--acento-tenue)",
                   padding: "9px 10px",
                   borderRadius: 10,
                   cursor: "pointer",
@@ -4668,9 +4726,10 @@ export default function App() {
                 onClick={() => handleAuthAction("register")}
                 style={{
                   width: "100%",
-                  background: "linear-gradient(135deg,#10b981,#059669)",
+                  // Sobre el amarillo el texto va en negro: en blanco no se lee.
+                  background: "linear-gradient(135deg,var(--acento),var(--acento-oscuro))",
                   border: "none",
-                  color: "white",
+                  color: "var(--gris-900)",
                   padding: "9px 10px",
                   borderRadius: 10,
                   cursor: "pointer",
@@ -4690,24 +4749,24 @@ export default function App() {
                 top: "calc(100% + 10px)",
                 right: 0,
                 width: "min(380px, calc(100vw - 36px))",
-                background: "rgba(8,15,30,0.98)",
+                background: "rgba(17,17,17,0.98)",
                 border: "1px solid rgba(110,231,183,0.18)",
                 borderRadius: 16,
-                boxShadow: "0 18px 40px rgba(2,6,23,0.42)",
+                boxShadow: "0 18px 40px rgba(5,5,5,0.42)",
                 padding: 14,
                 zIndex: 120,
               }}
             >
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 12 }}>
                 <div>
-                  <div style={{ fontSize: 11, color: "#6ee7b7", letterSpacing: "0.4px" }}>
+                  <div style={{ fontSize: 11, color: "var(--acento)", letterSpacing: "0.4px" }}>
                     PANEL DE USUARIO
                   </div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: "#f8fafc" }}>
-                    Mi espacio CarsWise
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "var(--gris-50)" }}>
+                    Mi espacio PopCar
                   </div>
                   {currentUser?.email && (
-                    <div style={{ fontSize: 11, color: "#bfdbfe", marginTop: 4 }}>
+                    <div style={{ fontSize: 11, color: "var(--gris-200)", marginTop: 4 }}>
                       {currentUser.name || "Usuario"} · {currentUser.email}
                     </div>
                   )}
@@ -4717,9 +4776,9 @@ export default function App() {
                     type="button"
                     onClick={openUserDashboard}
                     style={{
-                      background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
+                      background: "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
                       border: "none",
-                      color: "#ffffff",
+                      color: "var(--blanco)",
                       borderRadius: 9,
                       padding: "6px 10px",
                       cursor: "pointer",
@@ -4735,7 +4794,7 @@ export default function App() {
                     style={{
                       background: "rgba(255,255,255,0.05)",
                       border: "1px solid rgba(255,255,255,0.08)",
-                      color: "#cbd5e1",
+                      color: "var(--gris-300)",
                       borderRadius: 9,
                       padding: "6px 9px",
                       cursor: "pointer",
@@ -4750,7 +4809,7 @@ export default function App() {
               <div style={{ display: "grid", gap: 10 }}>
                 <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, gap: 8 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#f8fafc" }}>Seguridad de cuenta</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gris-50)" }}>Seguridad de cuenta</div>
                     <button
                       type="button"
                       onClick={() => {
@@ -4759,9 +4818,9 @@ export default function App() {
                         setChangePasswordSuccess("");
                       }}
                       style={{
-                        background: "rgba(14,165,233,0.1)",
-                        border: "1px solid rgba(125,211,252,0.18)",
-                        color: "#bae6fd",
+                        background: "rgba(255,196,0,0.1)",
+                        border: "1px solid rgba(207,207,200,0.18)",
+                        color: "var(--gris-200)",
                         borderRadius: 999,
                         padding: "5px 10px",
                         fontSize: 11,
@@ -4786,21 +4845,21 @@ export default function App() {
                         value={changePasswordForm.currentPassword}
                         onChange={(event) => setChangePasswordForm((prev) => ({ ...prev, currentPassword: event.target.value }))}
                         placeholder="Contraseña actual"
-                        style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
+                        style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
                       />
                       <input
                         type="password"
                         value={changePasswordForm.newPassword}
                         onChange={(event) => setChangePasswordForm((prev) => ({ ...prev, newPassword: event.target.value }))}
                         placeholder="Nueva contraseña (mínimo 6 caracteres)"
-                        style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
+                        style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
                       />
                       <input
                         type="password"
                         value={changePasswordForm.confirmPassword}
                         onChange={(event) => setChangePasswordForm((prev) => ({ ...prev, confirmPassword: event.target.value }))}
                         placeholder="Confirmar nueva contraseña"
-                        style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
+                        style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
                       />
 
                       {changePasswordError && (
@@ -4814,9 +4873,9 @@ export default function App() {
                         disabled={changePasswordLoading}
                         style={{
                           justifySelf: "start",
-                          background: "linear-gradient(135deg,#0ea5e9,#0284c7)",
+                          background: "linear-gradient(135deg,var(--gris-700),var(--gris-900))",
                           border: "none",
-                          color: "#ffffff",
+                          color: "var(--blanco)",
                           borderRadius: 9,
                           padding: "8px 12px",
                           fontSize: 12,
@@ -4829,7 +4888,7 @@ export default function App() {
                       </button>
                     </form>
                   ) : (
-                    <div style={{ fontSize: 11, color: "#94a3b8" }}>
+                    <div style={{ fontSize: 11, color: "var(--gris-400)" }}>
                       Puedes actualizar tu contraseña sin cerrar sesión.
                     </div>
                   )}
@@ -4837,8 +4896,8 @@ export default function App() {
 
                 <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#f8fafc" }}>Mis recomendaciones guardadas</div>
-                    <span style={{ fontSize: 11, color: "#93c5fd" }}>{dashboardSavedComparisons.length}</span>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gris-50)" }}>Mis recomendaciones guardadas</div>
+                    <span style={{ fontSize: 11, color: "var(--gris-300)" }}>{dashboardSavedComparisons.length}</span>
                   </div>
                   {dashboardSavedComparisons.length > 0 ? (
                     dashboardSavedComparisons.map((item) => {
@@ -4865,7 +4924,7 @@ export default function App() {
                         }}
                       >
                         <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{item.title}</div>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--gris-200)" }}>{item.title}</div>
                           <button
                             type="button"
                             onClick={(event) => {
@@ -4885,27 +4944,27 @@ export default function App() {
                             Quitar
                           </button>
                         </div>
-                        <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>
+                        <div style={{ fontSize: 11, color: "var(--gris-400)", marginTop: 2 }}>
                           {item.typeLabel} {"\u00B7"} {item.savedAt}
                         </div>
-                        <div style={{ fontSize: 11, color: "#cbd5e1", marginTop: 2 }}>
+                        <div style={{ fontSize: 11, color: "var(--gris-300)", marginTop: 2 }}>
                           {item.monthlyTotal > 0 ? `${formatCurrency(item.monthlyTotal)}/mes` : item.budgetLabel || "Sin cuota definida"}
                         </div>
                         {(item.sourceLabel || item.listingPrice) && (
-                          <div style={{ fontSize: 11, color: "#bfdbfe", marginTop: 2 }}>
+                          <div style={{ fontSize: 11, color: "var(--gris-200)", marginTop: 2 }}>
                             {item.sourceLabel || "Oferta guardada"}
                             {item.listingPrice ? ` ${"\u00B7"} ${item.listingPrice}` : ""}
                           </div>
                         )}
                         {savedOfferHref && (
-                          <div style={{ fontSize: 11, color: "#7dd3fc", marginTop: 4, fontWeight: 700 }}>
+                          <div style={{ fontSize: 11, color: "var(--gris-300)", marginTop: 4, fontWeight: 700 }}>
                             Abrir oferta {"\u2197"}
                           </div>
                         )}
                       </div>
                     );})
                   ) : (
-                    <div style={{ fontSize: 11, color: "#94a3b8" }}>
+                    <div style={{ fontSize: 11, color: "var(--gris-400)" }}>
                       Cuando guardes una comparativa aparecerá aquí automáticamente.
                     </div>
                   )}
@@ -4913,7 +4972,7 @@ export default function App() {
 
                 <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#f8fafc" }}>Citas</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gris-50)" }}>Citas</div>
                     <span style={{ fontSize: 11, color: "#fbbf24" }}>{dashboardAppointments.length}</span>
                   </div>
 
@@ -4960,15 +5019,15 @@ export default function App() {
 
                       return (
                         <div key={item.id} style={{ paddingTop: 6 }}>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{item.title}</div>
-                          <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{summaryLine}</div>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--gris-200)" }}>{item.title}</div>
+                          <div style={{ fontSize: 11, color: "var(--gris-400)", marginTop: 2 }}>{summaryLine}</div>
                           {detailLine ? (
-                            <div style={{ fontSize: 11, color: "#7dd3fc", marginTop: 2, fontWeight: 700 }}>
+                            <div style={{ fontSize: 11, color: "var(--gris-300)", marginTop: 2, fontWeight: 700 }}>
                               Taller {"\u00B7"} {detailLine}
                             </div>
                           ) : null}
                           {addressPart ? (
-                            <div style={{ fontSize: 11, color: "#cbd5e1", marginTop: 2 }}>
+                            <div style={{ fontSize: 11, color: "var(--gris-300)", marginTop: 2 }}>
                               Dirección {"\u00B7"} {addressPart.replace(/^Direccion:\s*/, "")}
                             </div>
                           ) : null}
@@ -4980,7 +5039,7 @@ export default function App() {
                       );
                     })
                   ) : (
-                    <div style={{ fontSize: 11, color: "#94a3b8" }}>
+                    <div style={{ fontSize: 11, color: "var(--gris-400)" }}>
                       Aún no tienes citas programadas. Cuando reserves una, se verá aquí.
                     </div>
                   )}
@@ -4988,26 +5047,26 @@ export default function App() {
 
                 <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#f8fafc" }}>Mis tasaciones</div>
-                    <span style={{ fontSize: 11, color: "#c084fc" }}>{dashboardValuations.length}</span>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gris-50)" }}>Mis tasaciones</div>
+                    <span style={{ fontSize: 11, color: "var(--gris-400)" }}>{dashboardValuations.length}</span>
                   </div>
                   {dashboardValuations.length > 0 ? (
                     dashboardValuations.map((item) => (
                       <div key={item.id} style={{ paddingTop: 6 }}>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{item.title}</div>
-                        <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{item.meta}</div>
-                        <div style={{ fontSize: 11, color: "#c084fc", marginTop: 2 }}>{item.status}</div>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--gris-200)" }}>{item.title}</div>
+                        <div style={{ fontSize: 11, color: "var(--gris-400)", marginTop: 2 }}>{item.meta}</div>
+                        <div style={{ fontSize: 11, color: "var(--gris-400)", marginTop: 2 }}>{item.status}</div>
                       </div>
                     ))
                   ) : (
-                    <div style={{ fontSize: 11, color: "#94a3b8" }}>
+                    <div style={{ fontSize: 11, color: "var(--gris-400)" }}>
                       Cuando hagas una tasación de tu coche, la verás aquí guardada.
                     </div>
                   )}
                 </div>
 
                 <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 12 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#f8fafc", marginBottom: 8 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gris-50)", marginBottom: 8 }}>
                     Mis vehículos
                   </div>
                   <div style={{ display: "grid", gap: 8 }}>
@@ -5015,26 +5074,26 @@ export default function App() {
                       <div
                         key={section.key}
                         style={{
-                          background: "rgba(15,23,42,0.7)",
+                          background: "rgba(17,17,17,0.7)",
                           border: "1px solid rgba(255,255,255,0.05)",
                           borderRadius: 10,
                           padding: 10,
                         }}
                       >
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: "#dbeafe" }}>{section.title}</span>
-                          <span style={{ fontSize: 11, color: "#94a3b8" }}>{section.items.length}</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: "var(--acento-tenue)" }}>{section.title}</span>
+                          <span style={{ fontSize: 11, color: "var(--gris-400)" }}>{section.items.length}</span>
                         </div>
                         {section.items.length > 0 ? (
                           section.items.map((vehicle, index) => (
-                            <div key={`${section.key}-${index}`} style={{ fontSize: 11, color: "#cbd5e1", marginTop: 6 }}>
-                              <div style={{ fontWeight: 600, color: "#e2e8f0" }}>{vehicle.title}</div>
+                            <div key={`${section.key}-${index}`} style={{ fontSize: 11, color: "var(--gris-300)", marginTop: 6 }}>
+                              <div style={{ fontWeight: 600, color: "var(--gris-200)" }}>{vehicle.title}</div>
                               <div style={{ marginTop: 2 }}>{vehicle.meta}</div>
                               <div style={{ marginTop: 2, color: "#6ee7b7" }}>{vehicle.status}</div>
                             </div>
                           ))
                         ) : (
-                          <div style={{ fontSize: 11, color: "#94a3b8" }}>{section.empty}</div>
+                          <div style={{ fontSize: 11, color: "var(--gris-400)" }}>{section.empty}</div>
                         )}
                       </div>
                     ))}
@@ -5076,7 +5135,6 @@ export default function App() {
             })}
           </div>
         )}
-        <div style={{ height: 3, background: "linear-gradient(to right, #1d4ed8 50%, #16a34a 50%)" }} />
       </header>}
 
       {authDialogMode && (
@@ -5087,7 +5145,7 @@ export default function App() {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(2,6,23,0.7)",
+            background: "rgba(5,5,5,0.7)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -5100,16 +5158,16 @@ export default function App() {
               width: "min(460px, 100%)",
               maxHeight: "92vh",
               overflowY: "auto",
-              background: "rgba(8,15,30,0.98)",
-              border: "1px solid rgba(96,165,250,0.18)",
+              background: "var(--blanco)",
+              border: "1px solid var(--gris-200)",
               borderRadius: 18,
-              boxShadow: "0 24px 60px rgba(2,6,23,0.42)",
+              boxShadow: "0 24px 60px rgba(5,5,5,0.42)",
               padding: 18,
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start", marginBottom: 12 }}>
               <div>
-                <div style={{ fontSize: 11, color: authDialogMode === "register" ? "#6ee7b7" : "#93c5fd", letterSpacing: "0.6px" }}>
+                <div style={{ fontSize: 11, color: authDialogMode === "register" ? "var(--acento-texto)" : "var(--gris-600)", letterSpacing: "0.6px" }}>
                   {authRecoveryMode === "request"
                     ? "RECUPERACION"
                     : authRecoveryMode === "confirm"
@@ -5118,7 +5176,7 @@ export default function App() {
                     ? "REGISTRO"
                     : "ACCESO"}
                 </div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: "#f8fafc" }}>
+                <div style={{ fontSize: 22, fontWeight: 800, color: "var(--gris-900)" }}>
                   {authRecoveryMode === "request"
                     ? "Recuperar contraseña"
                     : authRecoveryMode === "confirm"
@@ -5127,13 +5185,13 @@ export default function App() {
                     ? "Crear tu cuenta"
                     : "Iniciar sesión"}
                 </div>
-                <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>
+                <div style={{ fontSize: 12, color: "var(--gris-500)", marginTop: 4 }}>
                   {authRecoveryMode === "none"
                     ? "Tu email de acceso será el destinatario por defecto de los avisos y resúmenes."
                     : "Te enviaremos un código temporal para actualizar la contraseña de forma segura."}
                 </div>
                 {authRequired && authRecoveryMode === "none" && (
-                  <div style={{ fontSize: 12, color: "#fbbf24", fontWeight: 600, marginTop: 6, padding: "6px 10px", background: "rgba(251,191,36,0.08)", borderRadius: 8, border: "1px solid rgba(251,191,36,0.2)" }}>
+                  <div style={{ fontSize: 12, color: "var(--acento-texto)", fontWeight: 600, marginTop: 6, padding: "6px 10px", background: "rgba(255,196,0,0.08)", borderRadius: 8, border: "1px solid rgba(255,196,0,0.2)" }}>
                     Necesitas iniciar sesión para acceder al marketplace.
                   </div>
                 )}
@@ -5145,7 +5203,7 @@ export default function App() {
                   style={{
                     background: "transparent",
                     border: "none",
-                    color: "#cbd5e1",
+                    color: "var(--gris-600)",
                     fontSize: 20,
                     cursor: "pointer",
                   }}
@@ -5165,9 +5223,9 @@ export default function App() {
                       onClick={() => { setClientType("individual"); setAuthForm((p) => ({ ...p, company_name: "" })); }}
                       style={{
                         padding: "9px 10px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer",
-                        border: clientType === "individual" ? "1.5px solid #3b82f6" : "1px solid rgba(255,255,255,0.12)",
-                        background: clientType === "individual" ? "rgba(59,130,246,0.12)" : "#0f1b2d",
-                        color: clientType === "individual" ? "#93c5fd" : "#64748b",
+                        border: clientType === "individual" ? "1.5px solid var(--acento)" : "1px solid var(--gris-300)",
+                        background: clientType === "individual" ? "rgba(255,196,0,0.12)" : "var(--blanco)",
+                        color: clientType === "individual" ? "var(--acento-texto)" : "var(--gris-500)",
                       }}
                     >
                       👤 Particular
@@ -5177,9 +5235,9 @@ export default function App() {
                       onClick={() => { setClientType("business"); setAuthForm((p) => ({ ...p, name: "", apellidos: "" })); }}
                       style={{
                         padding: "9px 10px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer",
-                        border: clientType === "business" ? "1.5px solid #f59e0b" : "1px solid rgba(255,255,255,0.12)",
-                        background: clientType === "business" ? "rgba(245,158,11,0.10)" : "#0f1b2d",
-                        color: clientType === "business" ? "#fbbf24" : "#64748b",
+                        border: clientType === "business" ? "1.5px solid var(--acento)" : "1px solid var(--gris-300)",
+                        background: clientType === "business" ? "rgba(255,196,0,0.12)" : "var(--blanco)",
+                        color: clientType === "business" ? "var(--acento-texto)" : "var(--gris-500)",
                       }}
                     >
                       🏢 Empresa
@@ -5189,7 +5247,7 @@ export default function App() {
                   {/* Campos según tipo */}
                   {clientType === "individual" ? (
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                      <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
+                      <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                         Nombre
                         <input
                           type="text"
@@ -5197,10 +5255,10 @@ export default function App() {
                           value={authForm.name}
                           onChange={(event) => setAuthForm((prev) => ({ ...prev, name: event.target.value }))}
                           placeholder="Tu nombre"
-                          style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                          style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                         />
                       </label>
-                      <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
+                      <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                         Apellidos
                         <input
                           type="text"
@@ -5208,12 +5266,12 @@ export default function App() {
                           value={authForm.apellidos}
                           onChange={(event) => setAuthForm((prev) => ({ ...prev, apellidos: event.target.value }))}
                           placeholder="Tus apellidos"
-                          style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                          style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                         />
                       </label>
                     </div>
                   ) : (
-                    <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#fde68a" }}>
+                    <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                       Razón social
                       <input
                         type="text"
@@ -5221,12 +5279,12 @@ export default function App() {
                         value={authForm.company_name}
                         onChange={(event) => setAuthForm((prev) => ({ ...prev, company_name: event.target.value }))}
                         placeholder="Nombre de tu empresa"
-                        style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(245,158,11,0.35)", borderRadius: 10, padding: "11px 12px" }}
+                        style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                       />
                     </label>
                   )}
 
-                  <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
+                  <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                     Teléfono
                     <input
                       type="tel"
@@ -5234,13 +5292,13 @@ export default function App() {
                       value={authForm.phone}
                       onChange={(event) => setAuthForm((prev) => ({ ...prev, phone: event.target.value }))}
                       placeholder="Ej: 612 345 678"
-                      style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                      style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                     />
                   </label>
                 </>
               )}
 
-              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                 Correo electrónico
                 <input
                   type="email"
@@ -5248,11 +5306,11 @@ export default function App() {
                   value={authForm.email}
                   onChange={(event) => setAuthForm((prev) => ({ ...prev, email: event.target.value }))}
                   placeholder="nombre@correo.com"
-                  style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                  style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                 />
               </label>
 
-              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
+              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                 {authRecoveryMode === "confirm" ? "Nueva contraseña" : "Contraseña"}
                 <input
                   type="password"
@@ -5260,37 +5318,37 @@ export default function App() {
                   value={authForm.password}
                   onChange={(event) => setAuthForm((prev) => ({ ...prev, password: event.target.value }))}
                   placeholder={authRecoveryMode === "confirm" ? "Nueva contraseña (mínimo 6 caracteres)" : "Mínimo 6 caracteres"}
-                  style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                  style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                 />
               </label>
 
               {authRecoveryMode === "confirm" && (
-                <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#dbeafe" }}>
+                <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-700)" }}>
                   Código de recuperación
                   <input
                     type="text"
                     value={authRecoveryCode}
                     onChange={(event) => setAuthRecoveryCode(event.target.value)}
                     placeholder="Ejemplo: A1B2C3D4"
-                    style={{ background: "#0f1b2d", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 12px" }}
+                    style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                   />
                 </label>
               )}
 
               {authRecoveryFeedback && (
-                <div style={{ fontSize: 12, color: "#93c5fd", fontWeight: 700 }}>
+                <div style={{ fontSize: 12, color: "var(--gris-600)", fontWeight: 700 }}>
                   {authRecoveryFeedback}
                 </div>
               )}
 
               {authError && (
-                <div style={{ fontSize: 12, color: "#fca5a5", fontWeight: 700 }}>
+                <div style={{ fontSize: 12, color: "#A32D2D", fontWeight: 700 }}>
                   {authError}
                 </div>
               )}
 
               {showCookieGate && authDialogMode === "register" && authRecoveryMode === "none" && (
-                <div style={{ borderTop: "1px solid rgba(148,163,184,0.15)", paddingTop: 14, display: "grid", gap: 10 }}>
+                <div style={{ borderTop: "1px solid rgba(150,150,143,0.15)", paddingTop: 14, display: "grid", gap: 10 }}>
 
                   {/* Master toggle */}
                   <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
@@ -5305,7 +5363,7 @@ export default function App() {
                       }}
                       style={{
                         width: 36, height: 20, borderRadius: 999, flexShrink: 0, cursor: "pointer",
-                        background: consentLegal && consentMarketingEmail && consentMarketingSms && consentThirdPartyEmail && consentThirdPartySms ? "#2563eb" : "rgba(148,163,184,0.3)",
+                        background: consentLegal && consentMarketingEmail && consentMarketingSms && consentThirdPartyEmail && consentThirdPartySms ? "var(--marca)" : "var(--gris-300)",
                         position: "relative", transition: "background 0.2s",
                       }}
                     >
@@ -5316,7 +5374,7 @@ export default function App() {
                         transition: "left 0.2s",
                       }} />
                     </div>
-                    <span style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.5 }}>
+                    <span style={{ fontSize: 12, color: "var(--gris-600)", lineHeight: 1.5 }}>
                       Acepto todos los consentimientos siguientes:
                     </span>
                   </label>
@@ -5333,21 +5391,21 @@ export default function App() {
                           setConsentThirdPartyEmail(false); setConsentThirdPartySms(false);
                         }
                       }}
-                      style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
+                      style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
-                    <span style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
+                    <span style={{ fontSize: 12, color: "var(--gris-600)", lineHeight: 1.6 }}>
                       He leído y acepto{" "}
                       <a href="/terminos-condiciones" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "#93c5fd", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-600)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Condiciones Generales
                       </a>
                       {" "}y la{" "}
                       <a href="/politica-privacidad" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "#93c5fd", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-600)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Política de Privacidad
                       </a>
                       .{" "}
-                      <span style={{ color: "#f87171", fontSize: 11 }}>(obligatorio)</span>
+                      <span style={{ color: "#A32D2D", fontSize: 11 }}>(obligatorio)</span>
                     </span>
                   </label>
 
@@ -5357,12 +5415,12 @@ export default function App() {
                       type="checkbox"
                       checked={consentMarketingEmail}
                       onChange={(e) => setConsentMarketingEmail(e.target.checked)}
-                      style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
+                      style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
-                    <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                      Acepto recibir comunicaciones comerciales por <strong style={{ color: "#cbd5e1" }}>email</strong> de Carswiseai y socios conforme a la{" "}
+                    <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
+                      Acepto recibir comunicaciones comerciales por <strong style={{ color: "var(--gris-600)" }}>email</strong> de PopCar y socios conforme a la{" "}
                       <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-600)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Política de Comunicaciones
                       </a>
                       .
@@ -5375,12 +5433,12 @@ export default function App() {
                       type="checkbox"
                       checked={consentMarketingSms}
                       onChange={(e) => setConsentMarketingSms(e.target.checked)}
-                      style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
+                      style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
-                    <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                      Acepto recibir comunicaciones comerciales por <strong style={{ color: "#cbd5e1" }}>SMS</strong> de Carswiseai y socios conforme a la{" "}
+                    <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
+                      Acepto recibir comunicaciones comerciales por <strong style={{ color: "var(--gris-600)" }}>SMS</strong> de PopCar y socios conforme a la{" "}
                       <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-600)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Política de Comunicaciones
                       </a>
                       .
@@ -5393,17 +5451,17 @@ export default function App() {
                       type="checkbox"
                       checked={consentThirdPartyEmail}
                       onChange={(e) => setConsentThirdPartyEmail(e.target.checked)}
-                      style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
+                      style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
-                    <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                      Acepto comunicaciones por <strong style={{ color: "#cbd5e1" }}>email</strong> de terceros conforme a las{" "}
+                    <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
+                      Acepto comunicaciones por <strong style={{ color: "var(--gris-600)" }}>email</strong> de terceros conforme a las{" "}
                       <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-600)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Condiciones Experian
                       </a>
                       {" "}y la{" "}
                       <a href="/politica-experian" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-600)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Política de Solvencia
                       </a>
                       .
@@ -5416,17 +5474,17 @@ export default function App() {
                       type="checkbox"
                       checked={consentThirdPartySms}
                       onChange={(e) => setConsentThirdPartySms(e.target.checked)}
-                      style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }}
+                      style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
-                    <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                      Acepto comunicaciones por <strong style={{ color: "#cbd5e1" }}>SMS</strong> de terceros conforme a las{" "}
+                    <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
+                      Acepto comunicaciones por <strong style={{ color: "var(--gris-600)" }}>SMS</strong> de terceros conforme a las{" "}
                       <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-600)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Condiciones Experian
                       </a>
                       {" "}y la{" "}
                       <a href="/politica-experian" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "#7dd3fc", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
+                        style={{ color: "var(--gris-600)", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>
                         Política de Solvencia
                       </a>
                       .
@@ -5450,9 +5508,9 @@ export default function App() {
                     setAuthDialogMode((prev) => (prev === "register" ? "login" : "register"));
                   }}
                   style={{
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    color: "#cbd5e1",
+                    background: "var(--gris-50)",
+                    border: "1px solid var(--gris-200)",
+                    color: "var(--gris-600)",
                     borderRadius: 10,
                     padding: "10px 12px",
                     cursor: "pointer",
@@ -5476,9 +5534,9 @@ export default function App() {
                       setAuthError("");
                     }}
                     style={{
-                      background: "rgba(14,165,233,0.08)",
-                      border: "1px solid rgba(125,211,252,0.18)",
-                      color: "#bae6fd",
+                      background: "rgba(255,196,0,0.08)",
+                      border: "1px solid var(--gris-200)",
+                      color: "var(--gris-600)",
                       borderRadius: 10,
                       padding: "10px 12px",
                       cursor: "pointer",
@@ -5495,12 +5553,16 @@ export default function App() {
                   style={{
                     background:
                       authRecoveryMode !== "none"
-                        ? "linear-gradient(135deg,#0ea5e9,#0284c7)"
+                        ? "linear-gradient(135deg,var(--gris-700),var(--gris-900))"
                         : authDialogMode === "register"
-                        ? "linear-gradient(135deg,#10b981,#059669)"
-                        : "linear-gradient(135deg,#2563eb,#1d4ed8)",
+                        ? "linear-gradient(135deg,var(--acento),var(--acento-oscuro))"
+                        : "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
                     border: "none",
-                    color: "#ffffff",
+                    // Crear cuenta va sobre amarillo, y ahi el texto tiene que
+                    // ser negro; los otros dos fondos son oscuros y piden blanco.
+                    color: authRecoveryMode === "none" && authDialogMode === "register"
+                      ? "var(--gris-900)"
+                      : "var(--blanco)",
                     borderRadius: 10,
                     padding: "10px 14px",
                     cursor: authLoading ? "progress" : "pointer",
@@ -5528,66 +5590,66 @@ export default function App() {
       {/* ── Consent review modal for existing users ── */}
       {showConsentReview && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ background: "#0f172a", borderRadius: 20, padding: "32px 28px", maxWidth: 480, width: "100%", border: "1px solid rgba(148,163,184,0.15)" }}>
-            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color: "#67e8f9", marginBottom: 10 }}>Actualización de políticas</p>
-            <h3 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 800, color: "#f8fafc", lineHeight: 1.2 }}>Revisa y acepta nuestras políticas</h3>
-            <p style={{ margin: "0 0 20px", color: "#94a3b8", fontSize: 13, lineHeight: 1.6 }}>Hemos actualizado nuestras condiciones. Puedes aceptar o continuar sin aceptar — tu decisión quedará guardada.</p>
+          <div style={{ background: "var(--blanco)", borderRadius: 20, padding: "32px 28px", maxWidth: 480, width: "100%", border: "1px solid var(--gris-200)" }}>
+            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--gris-600)", marginBottom: 10 }}>Actualización de políticas</p>
+            <h3 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 800, color: "var(--gris-900)", lineHeight: 1.2 }}>Revisa y acepta nuestras políticas</h3>
+            <p style={{ margin: "0 0 20px", color: "var(--gris-500)", fontSize: 13, lineHeight: 1.6 }}>Hemos actualizado nuestras condiciones. Puedes aceptar o continuar sin aceptar — tu decisión quedará guardada.</p>
 
             <div style={{ display: "grid", gap: 10, marginBottom: 24 }}>
               {/* Checkbox 1 — T&C obligatorio */}
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                 <input type="checkbox" checked={consentReviewLegal} onChange={(e) => setConsentReviewLegal(e.target.checked)}
-                  style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.6 }}>
+                  style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "var(--gris-600)", lineHeight: 1.6 }}>
                   He leído y acepto{" "}
-                  <a href="/terminos-condiciones" target="_blank" rel="noopener noreferrer" style={{ color: "#93c5fd", textDecoration: "underline" }}>Condiciones Generales</a>
+                  <a href="/terminos-condiciones" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-600)", textDecoration: "underline" }}>Condiciones Generales</a>
                   {" "}y la{" "}
-                  <a href="/politica-privacidad" target="_blank" rel="noopener noreferrer" style={{ color: "#93c5fd", textDecoration: "underline" }}>Política de Privacidad</a>.{" "}
-                  <span style={{ color: "#f87171", fontSize: 11 }}>(obligatorio)</span>
+                  <a href="/politica-privacidad" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-600)", textDecoration: "underline" }}>Política de Privacidad</a>.{" "}
+                  <span style={{ color: "#A32D2D", fontSize: 11 }}>(obligatorio)</span>
                 </span>
               </label>
 
               {/* Checkbox 2a — marketing email */}
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                 <input type="checkbox" checked={consentReviewMarketingEmail} onChange={(e) => setConsentReviewMarketingEmail(e.target.checked)}
-                  style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                  Acepto comunicaciones comerciales por <strong style={{ color: "#cbd5e1" }}>email</strong> conforme a la{" "}
-                  <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Política de Comunicaciones</a>.
+                  style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
+                  Acepto comunicaciones comerciales por <strong style={{ color: "var(--gris-600)" }}>email</strong> conforme a la{" "}
+                  <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-600)", textDecoration: "underline" }}>Política de Comunicaciones</a>.
                 </span>
               </label>
 
               {/* Checkbox 2b — marketing SMS */}
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                 <input type="checkbox" checked={consentReviewMarketingSms} onChange={(e) => setConsentReviewMarketingSms(e.target.checked)}
-                  style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                  Acepto comunicaciones comerciales por <strong style={{ color: "#cbd5e1" }}>SMS</strong> conforme a la{" "}
-                  <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Política de Comunicaciones</a>.
+                  style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
+                  Acepto comunicaciones comerciales por <strong style={{ color: "var(--gris-600)" }}>SMS</strong> conforme a la{" "}
+                  <a href="/politica-comunicaciones" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-600)", textDecoration: "underline" }}>Política de Comunicaciones</a>.
                 </span>
               </label>
 
               {/* Checkbox 3a — Experian email */}
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                 <input type="checkbox" checked={consentReviewThirdPartyEmail} onChange={(e) => setConsentReviewThirdPartyEmail(e.target.checked)}
-                  style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                  Acepto comunicaciones por <strong style={{ color: "#cbd5e1" }}>email</strong> de terceros conforme a las{" "}
-                  <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Condiciones Experian</a>
+                  style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
+                  Acepto comunicaciones por <strong style={{ color: "var(--gris-600)" }}>email</strong> de terceros conforme a las{" "}
+                  <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-600)", textDecoration: "underline" }}>Condiciones Experian</a>
                   {" "}y la{" "}
-                  <a href="/politica-experian" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Política de Solvencia</a>.
+                  <a href="/politica-experian" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-600)", textDecoration: "underline" }}>Política de Solvencia</a>.
                 </span>
               </label>
 
               {/* Checkbox 3b — Experian SMS */}
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                 <input type="checkbox" checked={consentReviewThirdPartySms} onChange={(e) => setConsentReviewThirdPartySms(e.target.checked)}
-                  style={{ marginTop: 3, accentColor: "#2563eb", width: 14, height: 14, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                  Acepto comunicaciones por <strong style={{ color: "#cbd5e1" }}>SMS</strong> de terceros conforme a las{" "}
-                  <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Condiciones Experian</a>
+                  style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
+                  Acepto comunicaciones por <strong style={{ color: "var(--gris-600)" }}>SMS</strong> de terceros conforme a las{" "}
+                  <a href="/condiciones-experian" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-600)", textDecoration: "underline" }}>Condiciones Experian</a>
                   {" "}y la{" "}
-                  <a href="/politica-experian" target="_blank" rel="noopener noreferrer" style={{ color: "#7dd3fc", textDecoration: "underline" }}>Política de Solvencia</a>.
+                  <a href="/politica-experian" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gris-600)", textDecoration: "underline" }}>Política de Solvencia</a>.
                 </span>
               </label>
             </div>
@@ -5621,7 +5683,7 @@ export default function App() {
                   setShowConsentReview(false);
                   setConsentReviewLoading(false);
                 }}
-                style={{ width: "100%", padding: "12px", borderRadius: 10, background: "#2563eb", color: "#fff", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", opacity: consentReviewLoading ? 0.6 : 1 }}
+                style={{ width: "100%", padding: "12px", borderRadius: 10, background: "var(--marca)", color: "#fff", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", opacity: consentReviewLoading ? 0.6 : 1 }}
               >
                 {consentReviewLoading ? "Guardando…" : "Guardar selección y continuar"}
               </button>
@@ -5652,7 +5714,7 @@ export default function App() {
                   setShowConsentReview(false);
                   setConsentReviewLoading(false);
                 }}
-                style={{ width: "100%", padding: "10px", borderRadius: 10, background: "transparent", color: "#64748b", fontWeight: 500, fontSize: 13, border: "1px solid rgba(148,163,184,0.2)", cursor: "pointer" }}
+                style={{ width: "100%", padding: "10px", borderRadius: 10, background: "transparent", color: "var(--gris-500)", fontWeight: 500, fontSize: 13, border: "1px solid var(--gris-300)", cursor: "pointer" }}
               >
                 Continuar sin aceptar
               </button>
@@ -5661,238 +5723,16 @@ export default function App() {
         </div>
       )}
 
-      {showCookieGate && !isUserLoggedIn && !authRequired && !showConsentReview && !["legalNotice", "privacyPolicy", "cookiePolicy", "termsConditions", "marketingPolicy", "experianPolicy", "experianTerms"].includes(entryMode) && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Consentimiento de cookies"
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(2,6,23,0.8)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 16,
-            zIndex: 170,
-          }}
-        >
-          <div
-            style={{
-              width: "min(680px, 100%)",
-              maxHeight: "min(92vh, 820px)",
-              background: "rgba(8,15,30,0.98)",
-              border: "1px solid rgba(103,232,249,0.28)",
-              borderRadius: 18,
-              boxShadow: "0 24px 60px rgba(2,6,23,0.45)",
-              padding: 18,
-              textAlign: "left",
-              overflowY: "auto",
-            }}
-          >
-            <div style={{ fontSize: 11, color: "#67e8f9", fontWeight: 800, letterSpacing: "0.6px", marginBottom: 8 }}>
-              {t("cookies.badge")}
-            </div>
-            <h3 style={{ margin: "0 0 8px", fontSize: "clamp(22px,4vw,28px)", color: "#f8fafc" }}>
-              {t("cookies.title")}
-            </h3>
-            <p style={{ margin: "0 0 8px", color: "#cbd5e1", fontSize: 13, lineHeight: 1.65 }}>
-              {t("cookies.description")}
-            </p>
-            <p style={{ margin: "0 0 14px", color: "#94a3b8", fontSize: 12, lineHeight: 1.6 }}>
-              {t("cookies.note")}
-            </p>
-
-            <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>
-              {[
-                {
-                  key: "necessary",
-                  title: t("cookies.necessary.title"),
-                  description: t("cookies.necessary.description"),
-                  locked: true,
-                },
-                {
-                  key: "analytics",
-                  title: t("cookies.analytics.title"),
-                  description: t("cookies.analytics.description"),
-                },
-                {
-                  key: "personalization",
-                  title: t("cookies.personalization.title"),
-                  description: t("cookies.personalization.description"),
-                },
-                {
-                  key: "marketing",
-                  title: t("cookies.marketing.title"),
-                  description: t("cookies.marketing.description"),
-                },
-              ].map((item) => {
-                const enabled = cookiePreferences[item.key];
-                return (
-                  <div
-                    key={item.key}
-                    style={{
-                      border: "1px solid rgba(148,163,184,0.24)",
-                      borderRadius: 12,
-                      background: "rgba(15,23,42,0.5)",
-                      padding: "10px 12px",
-                      display: "flex",
-                      gap: 10,
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 13, color: "#f8fafc", fontWeight: 700 }}>{item.title}</div>
-                      <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2, lineHeight: 1.5 }}>
-                        {item.description}
-                      </div>
-                    </div>
-
-                    {item.locked ? (
-                      <span
-                        style={{
-                          borderRadius: 999,
-                          padding: "5px 9px",
-                          fontSize: 11,
-                          fontWeight: 700,
-                          color: "#86efac",
-                          border: "1px solid rgba(110,231,183,0.35)",
-                          background: "rgba(16,185,129,0.14)",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {t("cookies.alwaysActive")}
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        aria-pressed={Boolean(enabled)}
-                        onClick={() =>
-                          setCookiePreferences((prev) => ({
-                            ...prev,
-                            [item.key]: !prev[item.key],
-                          }))
-                        }
-                        style={{
-                          borderRadius: 999,
-                          border: enabled
-                            ? "1px solid rgba(110,231,183,0.35)"
-                            : "1px solid rgba(148,163,184,0.3)",
-                          background: enabled
-                            ? "rgba(16,185,129,0.14)"
-                            : "rgba(15,23,42,0.7)",
-                          color: enabled ? "#86efac" : "#cbd5e1",
-                          padding: "6px 10px",
-                          fontSize: 11,
-                          fontWeight: 700,
-                          cursor: "pointer",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {enabled ? t("cookies.enabled") : t("cookies.disabled")}
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {showCookieSettings && (
-              <div
-                style={{
-                  marginBottom: 12,
-                  border: "1px solid rgba(125,211,252,0.24)",
-                  background: "rgba(2,132,199,0.1)",
-                  borderRadius: 10,
-                  padding: "9px 11px",
-                  fontSize: 12,
-                  color: "#bae6fd",
-                }}
-              >
-                {t("cookies.advancedMessage")}
-              </div>
-            )}
-
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <button
-                type="button"
-                onClick={() => saveCookieConsent("all")}
-                style={{
-                  border: "none",
-                  borderRadius: 10,
-                  padding: "10px 14px",
-                  background: "linear-gradient(135deg,#2563eb,#0ea5e9)",
-                  color: "#ffffff",
-                  fontSize: 12,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                }}
-              >
-                {t("cookies.acceptAll")}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => saveCookieConsent("necessary")}
-                style={{
-                  border: "1px solid rgba(148,163,184,0.34)",
-                  borderRadius: 10,
-                  padding: "10px 14px",
-                  background: "rgba(15,23,42,0.72)",
-                  color: "#e2e8f0",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                {t("cookies.necessaryOnly")}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setShowCookieSettings(true);
-                  saveCookieConsent("custom");
-                }}
-                style={{
-                  border: "1px solid rgba(110,231,183,0.34)",
-                  borderRadius: 10,
-                  padding: "10px 14px",
-                  background: "rgba(16,185,129,0.12)",
-                  color: "#bbf7d0",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                {t("cookies.saveSelection")}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowCookieSettings((prev) => !prev)}
-                style={{
-                  border: "none",
-                  borderRadius: 10,
-                  padding: "10px 14px",
-                  background: "transparent",
-                  color: "#93c5fd",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  textDecoration: "underline",
-                }}
-              >
-                {showCookieSettings ? t("cookies.hideSettings") : t("cookies.showSettings")}
-              </button>
-            </div>
-
-            <div style={{ marginTop: 10, fontSize: 12, color: "#94a3b8" }}>
-              Puedes revisar los detalles en la política de cookies desde el footer.
-            </div>
-          </div>
-        </div>
+      {avisoCookiesAbierto && (
+        <AvisoCookies
+          preferencias={cookiePreferences}
+          onCambiarPreferencia={(clave) =>
+            setCookiePreferences((prev) => ({ ...prev, [clave]: !prev[clave] }))
+          }
+          mostrarAjustes={showCookieSettings}
+          onAlternarAjustes={() => setShowCookieSettings((prev) => !prev)}
+          onGuardar={saveCookieConsent}
+        />
       )}
 
       <style>
@@ -5901,7 +5741,7 @@ export default function App() {
             position: relative;
             overflow: hidden;
             isolation: isolate;
-            box-shadow: 0 14px 30px rgba(2,6,23,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
+            box-shadow: 0 14px 30px rgba(5,5,5,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
             transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 240ms ease, border-color 240ms ease, background 240ms ease, filter 240ms ease;
             will-change: transform;
           }
@@ -5915,8 +5755,8 @@ export default function App() {
             content: "";
             position: absolute;
             inset: -1px;
-            background: radial-gradient(120% 90% at 8% 10%, rgba(59,130,246,0.26), rgba(59,130,246,0) 55%),
-              radial-gradient(90% 75% at 92% 12%, rgba(16,185,129,0.2), rgba(16,185,129,0) 55%);
+            background: radial-gradient(120% 90% at 8% 10%, rgba(255,196,0,0.26), rgba(255,196,0,0) 55%),
+              radial-gradient(90% 75% at 92% 12%, rgba(107,82,0,0.16), rgba(107,82,0,0) 55%);
             opacity: 0;
             transition: opacity 220ms ease;
             pointer-events: none;
@@ -5938,15 +5778,15 @@ export default function App() {
           }
 
           .ma-card-interactive:focus-visible {
-            outline: 2px solid rgba(125,211,252,0.7);
+            outline: 2px solid rgba(207,207,200,0.7);
             outline-offset: 2px;
           }
 
           .ma-card-interactive:hover,
           .ma-card-interactive:focus-visible {
             transform: translateY(-6px) scale(1.01);
-            box-shadow: 0 24px 46px rgba(2,6,23,0.34), 0 0 0 1px rgba(125,211,252,0.18), 0 0 24px rgba(56,189,248,0.14);
-            border-color: rgba(125,211,252,0.64) !important;
+            box-shadow: 0 24px 46px rgba(5,5,5,0.34), 0 0 0 1px rgba(207,207,200,0.18), 0 0 24px rgba(150,150,143,0.14);
+            border-color: rgba(207,207,200,0.64) !important;
             filter: saturate(1.08) brightness(1.03);
           }
 
@@ -5971,13 +5811,13 @@ export default function App() {
           .ma-card-soft:hover,
           .ma-card-soft:focus-visible {
             transform: translateY(-3px);
-            box-shadow: 0 16px 34px rgba(2,6,23,0.26), 0 0 18px rgba(56,189,248,0.1);
-            border-color: rgba(125,211,252,0.5);
+            box-shadow: 0 16px 34px rgba(5,5,5,0.26), 0 0 18px rgba(150,150,143,0.1);
+            border-color: rgba(207,207,200,0.5);
             filter: saturate(1.04);
           }
 
           .ma-card-soft:focus-visible {
-            outline: 2px solid rgba(125,211,252,0.65);
+            outline: 2px solid rgba(207,207,200,0.65);
             outline-offset: 2px;
           }
 
@@ -5988,10 +5828,10 @@ export default function App() {
           }
 
           .ma-header-progress {
-            background: linear-gradient(90deg, #2563eb 0%, #22c55e 100%);
+            background: linear-gradient(90deg, var(--acento) 0%, var(--acento-texto) 100%);
             background-size: 180% 100%;
             animation: maHeaderLineShift 4.8s linear infinite;
-            box-shadow: 0 1px 8px rgba(37, 99, 235, 0.2);
+            box-shadow: 0 1px 8px rgba(255, 196, 0, 0.2);
           }
 
           .ma-header-progress-fill {
@@ -6051,14 +5891,27 @@ export default function App() {
         `}
       </style>
 
-      {/* PROGRESS */}
-      <div className="ma-header-progress" style={s.progressBar}>
-        <div className="ma-header-progress-fill" style={s.progressFill} />
-      </div>
+      {/* PROGRESO — solo durante el cuestionario */}
+      {step >= 0 && (
+        <div className="ma-header-progress" style={s.progressBar}>
+          <div className="ma-header-progress-fill" style={s.progressFill} />
+        </div>
+      )}
 
       {/* LANDING */}
       {step === -1 && !entryMode && (
         <LandingPage
+          onSelectEmpresas={() => openPublicPage("empresas")}
+          onSelectAbout={goToAboutHeaderPage}
+          onSelectContact={() => openPublicPage("contact")}
+          // El home esconde la cabecera de la aplicacion y pinta la suya, asi que
+          // sus botones de sesion necesitan su propio manejador. Se abre el
+          // dialogo, que se pinta fuera de la cabecera y por eso si se ve aqui;
+          // el menu desplegable de la cabecera no serviria. Sin destino: entrar
+          // desde el home devuelve al home, no a un flujo.
+          onComoFunciona={() => openPublicPage("comoFunciona")}
+          onEntrar={() => openAuthDialog("login")}
+          onRegistro={() => openAuthDialog("register")}
           styles={s}
           totalSteps={totalSteps}
           blockColors={BLOCK_COLORS}
@@ -6250,26 +6103,14 @@ export default function App() {
       {step === -1 && entryMode === "buyOptions" && (
         <BuyOptionsPage
           styles={s}
+          onSelectComparador={() => openPublicPage("comparador")}
           onSelectAdvisor={() => {
             setAdvisorContext("buy");
             setAnswers({ perfil: "particular" });
             setEntryMode("consejo");
             setStep(-1);
           }}
-          onSelectKnownModel={() => {
-            setAdvisorContext("buy");
-            setDecisionAnswers({
-              ...createInitialDecisionAnswers(),
-              operation: "comprar",
-              acquisition: "contado",
-              hasBrand: "si",
-              cashBudget: "mas_150000",
-              ageFilter: "all",
-              mileageFilter: "all",
-            });
-            setEntryMode("decision");
-            setStep(-1);
-          }}
+          onSelectKnownModel={() => openPublicPage("buscarCoche")}
           onOpenMarketplace={() => {
             setAdvisorContext("buy");
             setSelectedPortalVoOfferId(null);
@@ -6659,6 +6500,35 @@ export default function App() {
         />
       )}
 
+      {step === -1 && entryMode === "buscarCoche" && (
+        <BuscarCochePage
+          uiLanguage={uiLanguage}
+          onGoBack={() => openPublicPage("buyOptions")}
+          onOpenOffer={(offer) => {
+            setVehicleDetailOffer(offer);
+            setVehicleDetailBackTarget("buscarCoche");
+            setEntryMode("vehicleDetail");
+            syncBrowserPath(buildVehicleDetailSharePath(offer), "push");
+            setStep(-1);
+            if (typeof window !== "undefined") {
+              window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
+            }
+          }}
+        />
+      )}
+
+      {step === -1 && entryMode === "comparador" && (
+        <ComparadorPage onGoHome={restart} uiLanguage={uiLanguage} />
+      )}
+
+      {step === -1 && entryMode === "empresas" && (
+        <EmpresasPage onGoHome={restart} uiLanguage={uiLanguage} />
+      )}
+
+      {step === -1 && entryMode === "comoFunciona" && (
+        <ComoFuncionaPage onGoHome={restart} />
+      )}
+
       {step === -1 && entryMode === "contact" && (
         <ContactCarswisePage onGoHome={restart} />
       )}
@@ -6701,14 +6571,14 @@ export default function App() {
           panelStyle={{
             ...s.panel,
             background: themeMode === "dark"
-              ? "linear-gradient(160deg, rgba(15,23,42,0.9), rgba(30,41,59,0.82))"
-              : "linear-gradient(160deg, rgba(255,255,255,0.97), rgba(241,245,249,0.94))",
+              ? "linear-gradient(160deg, rgba(17,17,17,0.9), rgba(31,31,29,0.82))"
+              : "linear-gradient(160deg, rgba(255,255,255,0.97), rgba(242,242,237,0.94))",
             border: themeMode === "dark"
-              ? "1px solid rgba(148,163,184,0.34)"
-              : "1px solid rgba(148,163,184,0.24)",
+              ? "1px solid rgba(150,150,143,0.34)"
+              : "1px solid rgba(150,150,143,0.24)",
             boxShadow: themeMode === "dark"
-              ? "0 10px 28px rgba(2,6,23,0.34)"
-              : "0 10px 28px rgba(15,23,42,0.08)",
+              ? "0 10px 28px rgba(5,5,5,0.34)"
+              : "0 10px 28px rgba(17,17,17,0.08)",
           }}
           userDashboardPage={userDashboardPage}
           savedComparisons={savedComparisons}
@@ -6858,6 +6728,10 @@ export default function App() {
           isUserLoggedIn={isUserLoggedIn}
           onRequireLogin={() => openAuthDialog("login")}
           onBack={() => {
+            if (vehicleDetailBackTarget === "buscarCoche") {
+              openPublicPage("buscarCoche", "replace");
+              return;
+            }
             setEntryMode(vehicleDetailBackTarget === "advice" ? null : "decision");
             syncBrowserPath("/", "replace");
             if (typeof window !== "undefined") {
@@ -7151,169 +7025,54 @@ export default function App() {
       {/* ERROR */}
       {error && <ErrorStatePage error={error} onRetry={() => analyzeWithAI(answers)} />}
 
-      {!(step === -1 && !entryMode) && <footer
-        style={{
-          marginTop: "auto",
-          position: "relative",
-          zIndex: 5,
-          borderTop: "1px solid rgba(148,163,184,0.22)",
-          background:
-            "radial-gradient(120% 100% at 8% 0%, rgba(56,189,248,0.1), rgba(56,189,248,0) 45%), linear-gradient(180deg, rgba(2,6,23,0.9), rgba(2,6,23,0.98))",
-        }}
-      >
-        <div
-          style={{
-            ...s.center,
-            paddingTop: 30,
-            paddingBottom: 30,
-            display: "grid",
-            gap: 18,
-          }}
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))",
-              gap: 14,
-              textAlign: "left",
-            }}
-          >
-            <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <div
-                  style={{
-                    width: 98,
-                    height: 40,
-                    borderRadius: 6,
-                    flexShrink: 0,
-                  }}
-                >
-                  <img
-                    src="/carswise-logo.png"
-                    alt="CarsWise"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "contain",
-                      objectPosition: "center center",
-                      display: "block",
-                    }}
-                  />
-                </div>
-                <div style={{ fontWeight: 800, fontSize: 14, color: "#f8fafc" }}>CarsWise</div>
-              </div>
-              <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>
-                {uiLanguage === "en" ? "Mobility platform to buy better, sell better and reduce your vehicle's total cost." : "Plataforma de movilidad para comprar mejor, vender mejor y reducir el coste total de tu vehículo."}
-              </div>
-            </div>
-
-            <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
-              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "CONTACT" : "CONTACTO"}</div>
-              <div style={{ display: "grid", gap: 6, fontSize: 12 }}>
-                <a href="mailto:soporte@carswise.es" style={{ color: "#e2e8f0", textDecoration: "none" }}>soporte@carswise.es</a>
-                <a href="tel:+34910000000" style={{ color: "#e2e8f0", textDecoration: "none" }}>+34 910 000 000</a>
-                <div style={{ color: "#94a3b8" }}>{uiLanguage === "en" ? "M-F 09:00 to 18:00 (Spain)" : "L-V 09:00 a 18:00 (España)"}</div>
-              </div>
-            </div>
-
-            <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
-              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "USEFUL LINKS" : "ENLACES UTILES"}</div>
-              <div style={{ display: "grid", gap: 7, fontSize: 12 }}>
-                <button type="button" onClick={restart} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>{uiLanguage === "en" ? "Home" : "Inicio"}</button>
-                <button type="button" onClick={() => { if (!isUserLoggedIn) { openAuthDialog("register", { entryMode: "portalVo" }); return; } openPublicPage("portalVo"); }} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Marketplace VO</button>
-                <button type="button" onClick={() => openPublicPage("vehicleOptions")} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>{uiLanguage === "en" ? "Vehicle Advisor" : "Asesor de vehículo"}</button>
-                <button type="button" onClick={() => openPublicPage("blog")} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>Blog</button>
-                <button type="button" onClick={() => openPublicPage("contact")} style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}>{uiLanguage === "en" ? "Contact" : "Contacto"}</button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    openPublicPage("servicesSeo");
-                  }}
-                  style={{ background: "transparent", border: "none", color: "#e2e8f0", textAlign: "left", padding: 0, cursor: "pointer" }}
-                >
-                  {uiLanguage === "en" ? "Services" : "Servicios"}
-                </button>
-              </div>
-            </div>
-
-            <div className="ma-card-soft" style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: 14, padding: "14px 12px", background: "rgba(15,23,42,0.45)" }}>
-              <div style={{ fontSize: 11, color: "#7dd3fc", fontWeight: 800, letterSpacing: "0.5px", marginBottom: 8 }}>{uiLanguage === "en" ? "SOCIAL MEDIA" : "REDES SOCIALES"}</div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {[
-                  ["LinkedIn", "https://www.linkedin.com"],
-                  ["Instagram", "https://www.instagram.com/carswiseai/"],
-                  ["X", "https://x.com"],
-                  ["YouTube", "https://www.youtube.com"],
-                ].map(([label, href]) => (
-                  <a
-                    key={label}
-                    href={href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="ma-card-soft"
-                    style={{
-                      border: "1px solid rgba(148,163,184,0.24)",
-                      borderRadius: 999,
-                      padding: "6px 10px",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      color: "#e2e8f0",
-                      textDecoration: "none",
-                      background: "rgba(15,23,42,0.55)",
-                    }}
-                  >
-                    {label}
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "space-between",
-              gap: 10,
-              borderTop: "1px solid rgba(148,163,184,0.2)",
-              paddingTop: 12,
-              fontSize: 11,
-              color: "#94a3b8",
-              textAlign: "left",
-            }}
-          >
-            <div>© {new Date().getFullYear()} CarsWise. {uiLanguage === "en" ? "All rights reserved." : "Todos los derechos reservados."}</div>
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              {[
-                [uiLanguage === "en" ? "Legal Notice" : "Aviso legal", "legalNotice"],
-                [uiLanguage === "en" ? "Privacy" : "Privacidad", "privacyPolicy"],
-                ["Cookies", "cookiePolicy"],
-                [uiLanguage === "en" ? "Terms" : "Términos", "termsConditions"],
-                [uiLanguage === "en" ? "Marketing Policy" : "Comunicaciones", "marketingPolicy"],
-                [uiLanguage === "en" ? "Experian Policy" : "Política Experian", "experianPolicy"],
-                [uiLanguage === "en" ? "Experian Terms" : "Condiciones Experian", "experianTerms"],
-              ].map(([label, key]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => openLegalDocument(key)}
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    color: "#cbd5e1",
-                    textDecoration: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                    fontSize: 11,
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </footer>}
+      {!(step === -1 && !entryMode) && (
+        <PiePopCar
+          lema={uiLanguage === "en" ? "Your car. All of it, easier." : "Tu coche. Todo, más fácil."}
+          derechos={uiLanguage === "en" ? "All rights reserved." : "Todos los derechos reservados."}
+          onLogo={restart}
+          columnas={[
+            {
+              titulo: uiLanguage === "en" ? "Buy" : "Comprar",
+              enlaces: [
+                { texto: uiLanguage === "en" ? "Search cars" : "Buscar coches", onClick: () => openPublicPage("vehicleOptions") },
+                { texto: "Marketplace VO", onClick: () => { if (!isUserLoggedIn) { openAuthDialog("register", { entryMode: "portalVo" }); return; } openPublicPage("portalVo"); } },
+                { texto: uiLanguage === "en" ? "Vehicle advisor" : "Asesor de vehículo", onClick: () => openPublicPage("vehicleOptions") },
+              ],
+            },
+            {
+              titulo: uiLanguage === "en" ? "Sell" : "Vender",
+              enlaces: [
+                { texto: uiLanguage === "en" ? "Sell my car" : "Vender mi coche", onClick: () => openPublicPage("sellOptions") },
+                { texto: uiLanguage === "en" ? "Damage report" : "Informe de daños", onClick: () => openPublicPage("sellOptions") },
+              ],
+            },
+            {
+              titulo: uiLanguage === "en" ? "Manage" : "Gestionar",
+              enlaces: [
+                { texto: uiLanguage === "en" ? "Services" : "Servicios", onClick: () => openPublicPage("serviceOptions") },
+                { texto: uiLanguage === "en" ? "My car" : "Mi coche", onClick: () => openPublicPage("serviceOptions") },
+              ],
+            },
+            {
+              titulo: uiLanguage === "en" ? "About" : "Nosotros",
+              enlaces: [
+                { texto: uiLanguage === "en" ? "About PopCar" : "Sobre PopCar", onClick: goToAboutHeaderPage },
+                { texto: uiLanguage === "en" ? "Home" : "Inicio", onClick: restart },
+                { texto: "Blog", onClick: () => openPublicPage("blog") },
+                { texto: uiLanguage === "en" ? "Contact" : "Contacto", onClick: () => openPublicPage("contact") },
+                { texto: uiLanguage === "en" ? "Plans" : "Planes", onClick: () => openPlansSection("planes") },
+              ],
+            },
+          ]}
+          legales={[
+            [uiLanguage === "en" ? "Legal Notice" : "Aviso legal", "legalNotice"],
+            [uiLanguage === "en" ? "Privacy" : "Privacidad", "privacyPolicy"],
+            ["Cookies", "cookiePolicy"],
+            [uiLanguage === "en" ? "Terms" : "Términos", "termsConditions"],
+            [uiLanguage === "en" ? "Marketing Policy" : "Comunicaciones", "marketingPolicy"],
+          ].map(([texto, clave]) => ({ texto, onClick: () => openLegalDocument(clave) }))}
+        />
+      )}
 
       {/* GLOBAL STYLES */}
       <style>{`
@@ -7322,8 +7081,8 @@ export default function App() {
           40% { transform: translateY(-8px); }
         }
         @keyframes pulse {
-          0%, 100% { box-shadow: 0 0 40px rgba(37,99,235,0.3); }
-          50% { box-shadow: 0 0 60px rgba(37,99,235,0.55); }
+          0%, 100% { box-shadow: 0 0 40px rgba(255,196,0,0.3); }
+          50% { box-shadow: 0 0 60px rgba(255,196,0,0.55); }
         }
         @keyframes portalGlowGreen {
           0%, 100% {
@@ -7348,8 +7107,8 @@ export default function App() {
           color-scheme: ${themeMode === "dark" ? "dark" : "light"};
         }
         select option {
-          background: ${themeMode === "dark" ? "#0f1b2d" : "#ffffff"};
-          color: ${themeMode === "dark" ? "#f8fafc" : "#0f172a"};
+          background: ${themeMode === "dark" ? "var(--gris-900)" : "var(--blanco)"};
+          color: ${themeMode === "dark" ? "var(--gris-50)" : "var(--gris-900)"};
         }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }

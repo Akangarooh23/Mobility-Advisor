@@ -82,9 +82,9 @@ export default function ServiceAppointmentCalendarPage({
   const { t } = useTranslation();
 
   const cardStyle = {
-    background: "#ffffff",
+    background: "var(--blanco)",
     borderRadius: 16,
-    border: "1px solid #ece8df",
+    border: "1px solid var(--gris-200)",
     boxShadow: "0 1px 3px rgba(0,0,0,0.05),0 4px 20px rgba(0,0,0,0.04)",
   };
 
@@ -263,13 +263,13 @@ export default function ServiceAppointmentCalendarPage({
             width: 64, height: 64, borderRadius: "50%",
             background: isError
               ? "linear-gradient(135deg,#dc2626,#ef4444)"
-              : "linear-gradient(135deg,#7c3aed,#8b5cf6)",
+              : "linear-gradient(135deg,var(--gris-500),var(--gris-500))",
             display: "flex", alignItems: "center", justifyContent: "center",
             margin: "0 auto 16px",
           }}>
             <span style={{ fontSize: 30, color: "#fff" }}>{isError ? "✕" : "✓"}</span>
           </div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: "#1e293b", marginBottom: 8 }}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: "var(--gris-800)", marginBottom: 8 }}>
             {isError ? "Error al enviar" : "¡Solicitud enviada!"}
           </div>
           {isError ? (
@@ -278,15 +278,15 @@ export default function ServiceAppointmentCalendarPage({
             </div>
           ) : (
             <>
-              <div style={{ fontSize: 14, color: "#64748b", marginBottom: 6, lineHeight: 1.5 }}>
-                <strong style={{ color: "#1e293b" }}>{appointmentType}</strong> en <strong style={{ color: "#1e293b" }}>{workshopName}</strong>
+              <div style={{ fontSize: 14, color: "var(--gris-500)", marginBottom: 6, lineHeight: 1.5 }}>
+                <strong style={{ color: "var(--gris-800)" }}>{appointmentType}</strong> en <strong style={{ color: "var(--gris-800)" }}>{workshopName}</strong>
               </div>
               {confirmedDetail && (
-                <div style={{ fontSize: 13, color: "#7c3aed", fontWeight: 700, marginBottom: 4 }}>
+                <div style={{ fontSize: 13, color: "var(--gris-500)", fontWeight: 700, marginBottom: 4 }}>
                   {confirmedDetail}
                 </div>
               )}
-              <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 24 }}>
+              <div style={{ fontSize: 12, color: "var(--gris-400)", marginBottom: 24 }}>
                 El taller verificará disponibilidad y te confirmará en 24 h.
               </div>
             </>
@@ -298,12 +298,12 @@ export default function ServiceAppointmentCalendarPage({
               width: "100%", padding: "13px 0",
               background: isError
                 ? "linear-gradient(135deg,#dc2626,#ef4444)"
-                : "linear-gradient(135deg,#7c3aed,#8b5cf6)",
+                : "linear-gradient(135deg,var(--gris-500),var(--gris-500))",
               color: "#fff", border: "none", borderRadius: 12,
               fontSize: 15, fontWeight: 700, cursor: "pointer",
               boxShadow: isError
                 ? "0 8px 20px rgba(220,38,38,0.3)"
-                : "0 8px 20px rgba(124,58,237,0.3)",
+                : "0 8px 20px rgba(94,94,89,0.3)",
             }}
           >
             {isError ? "Volver e intentarlo" : "Ver mi solicitud en el panel →"}
@@ -314,14 +314,14 @@ export default function ServiceAppointmentCalendarPage({
   }
 
   return (
-    <div style={{ width: "100%", maxWidth: 1040, margin: "0 auto", color: "#1a1a1a", padding: "0 8px 16px" }}>
+    <div style={{ width: "100%", maxWidth: 1040, margin: "0 auto", color: "var(--gris-800)", padding: "0 8px 16px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
         <button
           type="button"
           onClick={onBack}
           style={{
-            border: "1px solid #ece8df",
-            background: "#ffffff",
+            border: "1px solid var(--gris-200)",
+            background: "var(--blanco)",
             borderRadius: 8,
             padding: "7px 12px",
             fontSize: 12,
@@ -332,21 +332,21 @@ export default function ServiceAppointmentCalendarPage({
         >
           {t("common.backArrow")}
         </button>
-        <div style={{ fontSize: 12, color: "#b8b8b8" }}>
-          {t("common.breadcrumbServices")} › {t("service.appointmentBreadcrumb")} › <span style={{ color: "#7c3aed", fontWeight: 700 }}>{t("service.appointmentCalBreadcrumb")}</span>
+        <div style={{ fontSize: 12, color: "var(--gris-300)" }}>
+          {t("common.breadcrumbServices")} › {t("service.appointmentBreadcrumb")} › <span style={{ color: "var(--gris-500)", fontWeight: 700 }}>{t("service.appointmentCalBreadcrumb")}</span>
         </div>
       </div>
 
       <section style={{ ...cardStyle, overflow: "hidden", marginBottom: 12 }}>
-        <div style={{ height: 4, background: "#8b5cf6" }} />
+        <div style={{ height: 4, background: "var(--gris-500)" }} />
         <div style={{ padding: "22px 24px" }}>
-          <div style={{ fontSize: 10, color: "#7c3aed", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 800, marginBottom: 10 }}>
+          <div style={{ fontSize: 10, color: "var(--gris-500)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 800, marginBottom: 10 }}>
             {t("service.appointmentCalSectionBadge")}
           </div>
           <div style={{ fontSize: 24, lineHeight: 1.2, color: "#111", fontWeight: 800 }}>
             {t("service.appointmentCalTitle")}
           </div>
-          <div style={{ marginTop: 8, fontSize: 13, color: "#6b7280", lineHeight: 1.55 }}>
+          <div style={{ marginTop: 8, fontSize: 13, color: "var(--gris-500)", lineHeight: 1.55 }}>
             {appointmentType} · {workshopName}
             {normalizeText(safeDraft?.workshopDistanceKm) ? ` · ${safeDraft.workshopDistanceKm} km` : ""}
           </div>
@@ -355,7 +355,7 @@ export default function ServiceAppointmentCalendarPage({
 
       <section style={{ ...cardStyle, padding: "12px 16px", marginBottom: 12, display: "flex", alignItems: "flex-start", gap: 10 }}>
         <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>ℹ️</span>
-        <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.55 }}>
+        <div style={{ fontSize: 13, color: "var(--gris-700)", lineHeight: 1.55 }}>
           <strong>Horario orientativo del taller.</strong> Selecciona el día y la franja que mejor te venga.
           Una vez enviada tu solicitud, el taller verificará disponibilidad y te confirmará la cita en 24 h.
         </div>
@@ -363,7 +363,7 @@ export default function ServiceAppointmentCalendarPage({
 
       <section style={{ ...cardStyle, padding: 16, marginBottom: 12 }}>
         {isLoadingAvailability ? (
-          <div style={{ fontSize: 12, color: "#64748b", marginBottom: 8 }}>
+          <div style={{ fontSize: 12, color: "var(--gris-500)", marginBottom: 8 }}>
             {t("service.appointmentCalLoadingAvailability")}
           </div>
         ) : null}
@@ -372,17 +372,17 @@ export default function ServiceAppointmentCalendarPage({
           <button
             type="button"
             onClick={() => setMonthCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
-            style={{ border: "1px solid #e5e7eb", background: "#fff", borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontWeight: 700, color: "#64748b" }}
+            style={{ border: "1px solid var(--gris-200)", background: "#fff", borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontWeight: 700, color: "var(--gris-500)" }}
           >
             {t("service.appointmentCalPrevMonth")}
           </button>
-          <div style={{ fontSize: 14, fontWeight: 800, color: "#334155", textTransform: "capitalize" }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "var(--gris-700)", textTransform: "capitalize" }}>
             {new Intl.DateTimeFormat("es-ES", { month: "long", year: "numeric" }).format(monthCursor)}
           </div>
           <button
             type="button"
             onClick={() => setMonthCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
-            style={{ border: "1px solid #e5e7eb", background: "#fff", borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontWeight: 700, color: "#64748b" }}
+            style={{ border: "1px solid var(--gris-200)", background: "#fff", borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontWeight: 700, color: "var(--gris-500)" }}
           >
             {t("service.appointmentCalNextMonth")}
           </button>
@@ -390,7 +390,7 @@ export default function ServiceAppointmentCalendarPage({
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4, marginBottom: 4 }}>
           {(t("service.appointmentCalWeekDays", { returnObjects: true }) || ["L","M","X","J","V","S","D"]).map((label) => (
-            <div key={label} style={{ textAlign: "center", fontSize: 10, color: "#94a3b8", fontWeight: 700 }}>{label}</div>
+            <div key={label} style={{ textAlign: "center", fontSize: 10, color: "var(--gris-400)", fontWeight: 700 }}>{label}</div>
           ))}
         </div>
 
@@ -403,14 +403,14 @@ export default function ServiceAppointmentCalendarPage({
             const hasSlots = (data?.slots || []).length > 0;
 
             const background = isSelected
-              ? "rgba(139,92,246,0.18)"
+              ? "rgba(94,94,89,0.18)"
               : isClosed
-                ? "#f1f5f9"
+                ? "var(--gris-100)"
                 : data?.inPast
-                  ? "#fafaf9"
+                  ? "var(--gris-50)"
                   : hasSlots
                     ? "rgba(34,197,94,0.10)"
-                    : "#fafaf9";
+                    : "var(--gris-50)";
 
             return (
               <button
@@ -425,9 +425,9 @@ export default function ServiceAppointmentCalendarPage({
                 style={{
                   height: 44,
                   borderRadius: 8,
-                  border: isSelected ? "1px solid rgba(124,58,237,0.55)" : "1px solid rgba(148,163,184,0.2)",
+                  border: isSelected ? "1px solid rgba(94,94,89,0.55)" : "1px solid rgba(150,150,143,0.2)",
                   background,
-                  color: data?.inPast ? "#cbd5e1" : isClosed ? "#94a3b8" : hasSlots ? "#166534" : "#64748b",
+                  color: data?.inPast ? "var(--gris-300)" : isClosed ? "var(--gris-400)" : hasSlots ? "#166534" : "var(--gris-500)",
                   fontSize: 12,
                   fontWeight: 700,
                   cursor: isDisabled ? "not-allowed" : "pointer",
@@ -437,7 +437,7 @@ export default function ServiceAppointmentCalendarPage({
               >
                 {cell.day}
                 {isClosed ? (
-                  <span style={{ position: "absolute", right: 3, top: 3, fontSize: 8, color: "#94a3b8", fontWeight: 700 }}>CERR</span>
+                  <span style={{ position: "absolute", right: 3, top: 3, fontSize: 8, color: "var(--gris-400)", fontWeight: 700 }}>CERR</span>
                 ) : null}
               </button>
             );
@@ -445,29 +445,29 @@ export default function ServiceAppointmentCalendarPage({
         </div>
 
         <div style={{ display: "flex", gap: 16, marginTop: 12, flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#64748b" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "var(--gris-500)" }}>
             <span style={{ width: 12, height: 12, borderRadius: 3, background: "rgba(34,197,94,0.20)", border: "1px solid rgba(34,197,94,0.3)", display: "inline-block" }} />
             Disponible
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#64748b" }}>
-            <span style={{ width: 12, height: 12, borderRadius: 3, background: "#f1f5f9", border: "1px solid rgba(148,163,184,0.2)", display: "inline-block" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "var(--gris-500)" }}>
+            <span style={{ width: 12, height: 12, borderRadius: 3, background: "var(--gris-100)", border: "1px solid rgba(150,150,143,0.2)", display: "inline-block" }} />
             Cerrado
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#64748b" }}>
-            <span style={{ width: 12, height: 12, borderRadius: 3, background: "rgba(139,92,246,0.18)", border: "1px solid rgba(124,58,237,0.4)", display: "inline-block" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "var(--gris-500)" }}>
+            <span style={{ width: 12, height: 12, borderRadius: 3, background: "rgba(94,94,89,0.18)", border: "1px solid rgba(94,94,89,0.4)", display: "inline-block" }} />
             Seleccionado
           </div>
         </div>
       </section>
 
       <section style={{ ...cardStyle, padding: 16, marginBottom: 12 }}>
-        <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700, marginBottom: 8 }}>
+        <div style={{ fontSize: 12, color: "var(--gris-500)", fontWeight: 700, marginBottom: 8 }}>
           {selectedDay ? t("service.appointmentCalScheduleFor", { date: toDateLabel(selectedDay.date) }) : t("service.appointmentCalSelectDay")}
         </div>
 
         {selectedDay ? (
           selectedDayData?.closed ? (
-            <div style={{ fontSize: 13, color: "#64748b" }}>
+            <div style={{ fontSize: 13, color: "var(--gris-500)" }}>
               El taller está cerrado los domingos. Elige otro día.
             </div>
           ) : (
@@ -482,19 +482,19 @@ export default function ServiceAppointmentCalendarPage({
                     onClick={() => !isUnavailable && setSelectedTime(slot.time)}
                     disabled={isUnavailable}
                     style={{
-                      border: active ? "1px solid rgba(124,58,237,0.55)" : "1px solid rgba(148,163,184,0.25)",
+                      border: active ? "1px solid rgba(94,94,89,0.55)" : "1px solid rgba(150,150,143,0.25)",
                       borderRadius: 10,
                       padding: "10px 8px",
                       fontSize: 14,
                       fontWeight: 700,
-                      background: isUnavailable ? "#f8fafc" : active ? "rgba(139,92,246,0.14)" : "#fff",
-                      color: isUnavailable ? "#94a3b8" : active ? "#6d28d9" : "#334155",
+                      background: isUnavailable ? "var(--gris-50)" : active ? "rgba(94,94,89,0.14)" : "#fff",
+                      color: isUnavailable ? "var(--gris-400)" : active ? "var(--gris-500)" : "var(--gris-700)",
                       cursor: isUnavailable ? "not-allowed" : "pointer",
                     }}
                   >
                     {slot.time}
                     {isUnavailable ? (
-                      <div style={{ fontSize: 9, fontWeight: 600, color: "#94a3b8", marginTop: 2 }}>Ocupado</div>
+                      <div style={{ fontSize: 9, fontWeight: 600, color: "var(--gris-400)", marginTop: 2 }}>Ocupado</div>
                     ) : null}
                   </button>
                 );
@@ -515,10 +515,10 @@ export default function ServiceAppointmentCalendarPage({
         }}
       >
         <div>
-          <div style={{ fontSize: 18, color: "#303030", fontWeight: 700, marginBottom: 3 }}>
+          <div style={{ fontSize: 18, color: "var(--gris-700)", fontWeight: 700, marginBottom: 3 }}>
             {t("service.appointmentCalConfirmTitle")}
           </div>
-          <div style={{ fontSize: 13, color: "#6b7280", lineHeight: 1.45 }}>
+          <div style={{ fontSize: 13, color: "var(--gris-500)", lineHeight: 1.45 }}>
             {selectedDay && selectedTime
               ? t("service.appointmentCalConfirmDetail", { type: appointmentType, datetime: toDateTimeLabel(selectedDay.date, selectedTime), workshop: workshopName })
               : t("service.appointmentCalConfirmHint")}
@@ -528,7 +528,7 @@ export default function ServiceAppointmentCalendarPage({
           <button
             type="button"
             onClick={onBack}
-            style={{ border: "none", background: "transparent", color: "#94a3b8", fontSize: 14, cursor: "pointer" }}
+            style={{ border: "none", background: "transparent", color: "var(--gris-400)", fontSize: 14, cursor: "pointer" }}
           >
             {t("common.backArrow")}
           </button>
@@ -539,14 +539,14 @@ export default function ServiceAppointmentCalendarPage({
             style={{
               border: "none",
               borderRadius: 14,
-              background: "linear-gradient(135deg,#7c3aed,#8b5cf6)",
+              background: "linear-gradient(135deg,var(--gris-500),var(--gris-500))",
               color: "#fff",
               padding: "12px 20px",
               fontSize: 16,
               fontWeight: 700,
               cursor: !canConfirm ? "not-allowed" : "pointer",
               opacity: !canConfirm ? 0.65 : 1,
-              boxShadow: "0 8px 20px rgba(124,58,237,0.3)",
+              boxShadow: "0 8px 20px rgba(94,94,89,0.3)",
             }}
           >
             {isSaving ? t("service.appointmentCalConfirming") : t("service.appointmentCalConfirm")}

@@ -14,7 +14,7 @@
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: var(--gris-700);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -25,7 +25,7 @@
 }
 
 .App-link {
-  color: #61dafb;
+  color: var(--gris-300);
 }
 
 .cw-header-nav {
@@ -42,50 +42,65 @@
   scrollbar-width: none !important;
 }
 
+/* Mismo aspecto que la navegacion del home: sin pastilla de fondo, el mismo
+   tamano de letra y un subrayado amarillo que crece al pasar el cursor. */
 .cw-header-nav-link {
+  position: relative;
   background: transparent;
   border: none;
-  color: var(--cw-nav-color, #374151);
-  border-radius: 20px;
-  padding: 6px 11px;
-  font-size: 13px;
+  color: var(--cw-nav-color, var(--gris-700));
+  border-radius: 0;
+  padding: 6px 2px;
+  margin: 0 9px;
+  font-size: 14.5px;
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.15s, color 0.15s;
+  transition: color 0.18s;
+}
+
+.cw-header-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 100%; bottom: 0;
+  height: 2px;
+  background: var(--acento);
+  transition: right 0.22s;
 }
 
 .cw-header-nav-link:hover {
-  background: #f1f5f9;
-  color: var(--cw-nav-hover-color, #0f172a);
+  background: transparent;
+  color: var(--cw-nav-hover-color, var(--gris-900));
 }
+.cw-header-nav-link:hover::after { right: 0; }
 
 .cw-header-nav-link.is-active {
-  color: var(--cw-nav-active-color, #1d4ed8);
-  background: var(--cw-nav-active-bg, #dbeafe);
+  color: var(--cw-nav-active-color, var(--gris-900));
+  background: transparent;
   font-weight: 600;
 }
+.cw-header-nav-link.is-active::after { right: 0; }
 
 .cw-header-mobile-toggle {
   display: none;
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  border: 1px solid rgba(96, 165, 250, 0.42);
-  background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(241,245,249,0.95));
-  color: #1d4ed8;
+  border: 1px solid rgba(255, 196, 0, 0.42);
+  background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(242,242,237,0.95));
+  color: var(--marca-oscuro);
   font-size: 19px;
   font-weight: 800;
   line-height: 1;
   cursor: pointer;
-  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 8px 18px rgba(255, 196, 0, 0.15);
   transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
 }
 
 .cw-header-mobile-toggle:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.22);
-  background: linear-gradient(180deg, rgba(239,246,255,0.96), rgba(224,242,254,0.95));
+  box-shadow: 0 10px 24px rgba(255, 196, 0, 0.22);
+  background: linear-gradient(180deg, rgba(239,246,255,0.96), rgba(242,242,237,0.95));
 }
 
 .cw-header-mobile-nav {
@@ -94,9 +109,9 @@
 
 .cw-header-mobile-nav-link {
   width: 100%;
-  border: 1px solid rgba(148, 163, 184, 0.24);
+  border: 1px solid rgba(150, 150, 143, 0.24);
   background: transparent;
-  color: #1f2937;
+  color: var(--gris-800);
   border-radius: 10px;
   padding: 9px 10px;
   text-align: left;
@@ -106,9 +121,9 @@
 }
 
 .cw-header-mobile-nav-link.is-active {
-  color: #2563eb;
-  border-color: rgba(37, 99, 235, 0.35);
-  background: rgba(59, 130, 246, 0.12);
+  color: var(--marca);
+  border-color: rgba(255, 196, 0, 0.35);
+  background: rgba(255, 196, 0, 0.12);
 }
 
 .cw-header-desktop-only {
@@ -160,9 +175,9 @@ body {
     right: 16px;
     gap: 8px;
     background: rgba(255, 255, 255, 0.98);
-    border: 1px solid rgba(148, 163, 184, 0.26);
+    border: 1px solid rgba(150, 150, 143, 0.26);
     border-radius: 14px;
-    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.16);
+    box-shadow: 0 14px 34px rgba(17, 17, 17, 0.16);
     padding: 10px;
     z-index: 180;
   }
@@ -176,3 +191,20 @@ body {
     transform: rotate(360deg);
   }
 }
+
+/* Los dos botones de la derecha de la cabecera, iguales que en el home. */
+.cw-btn-contorno, .cw-btn-acento {
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s, border-color 0.18s, transform 0.18s;
+}
+.cw-btn-contorno { background: transparent; color: var(--gris-900); border: 1px solid var(--gris-300); }
+.cw-btn-contorno:hover { border-color: var(--gris-900); background: var(--gris-50); }
+/* Texto negro sobre el amarillo: en blanco no se lee. */
+.cw-btn-acento { background: var(--acento); color: var(--gris-900); border: 1px solid var(--acento); }
+.cw-btn-acento:hover { background: var(--acento-oscuro); border-color: var(--acento-oscuro); }
+.cw-btn-contorno:active, .cw-btn-acento:active { transform: translateY(1px); }

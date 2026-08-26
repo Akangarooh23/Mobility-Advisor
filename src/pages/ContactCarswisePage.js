@@ -135,9 +135,9 @@ export default function ContactCarswisePage() {
     try {
       const { response, data } = await postAlertEmailDigestJson({
         to: ["hola@carswise.es"],
-        subject: `CarsWise · Nuevo contacto web · ${topicLabel}`,
+        subject: `PopCar · Nuevo contacto web · ${topicLabel}`,
         text: [
-          "Nuevo mensaje recibido desde la página de contacto de CarsWise.",
+          "Nuevo mensaje recibido desde la página de contacto de PopCar.",
           `Tema: ${topicLabel}`,
           `Nombre: ${fullName || "No indicado"}`,
           `Email: ${formData.email}`,
@@ -147,8 +147,8 @@ export default function ContactCarswisePage() {
           formData.message,
         ].join("\n"),
         html: `
-          <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a;max-width:680px;margin:0 auto;">
-            <h2>Nuevo contacto web de CarsWise</h2>
+          <div style="font-family:Arial,sans-serif;line-height:1.6;color:var(--gris-900);max-width:680px;margin:0 auto;">
+            <h2>Nuevo contacto web de PopCar</h2>
             <p><strong>Tema:</strong> ${topicLabel}</p>
             <p><strong>Nombre:</strong> ${fullName || "No indicado"}<br />
             <strong>Email:</strong> ${formData.email}<br />
@@ -185,7 +185,7 @@ export default function ContactCarswisePage() {
     try {
       const { response, data } = await postAlertEmailDigestJson({
         to: ["hola@carswise.es"],
-        subject: "CarsWise · Consulta desde chat web",
+        subject: "PopCar · Consulta desde chat web",
         text: [
           "Nueva consulta enviada desde el chat de la página de contacto.",
           "",
@@ -193,8 +193,8 @@ export default function ContactCarswisePage() {
           value,
         ].join("\n"),
         html: `
-          <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a;max-width:680px;margin:0 auto;">
-            <h2>Nueva consulta desde el chat web de CarsWise</h2>
+          <div style="font-family:Arial,sans-serif;line-height:1.6;color:var(--gris-900);max-width:680px;margin:0 auto;">
+            <h2>Nueva consulta desde el chat web de PopCar</h2>
             <p><strong>Consulta:</strong></p>
             <p>${String(value).replace(/\n/g, "<br />")}</p>
           </div>
@@ -209,7 +209,7 @@ export default function ContactCarswisePage() {
         ...prev,
         {
           role: "bot",
-          text: `${buildBotReply(value)}\n\nHe enviado tu consulta al equipo de CarsWise para que puedan responderte por un canal humano si hace falta.`,
+          text: `${buildBotReply(value)}\n\nHe enviado tu consulta al equipo de PopCar para que puedan responderte por un canal humano si hace falta.`,
         },
       ]);
     } catch (error) {

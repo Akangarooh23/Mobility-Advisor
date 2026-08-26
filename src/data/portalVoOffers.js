@@ -336,7 +336,7 @@ export const PORTAL_VO_OFFERS = [
     displacement: 1498,
     fuel: "Gasolina",
     power: "150 CV",
-    seller: "CarsWise Store",
+    seller: "PopCar Store",
     hasGuaranteeSeal: true,
     portalScore: 96,
     warrantyMonths: 24,

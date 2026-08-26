@@ -1,7 +1,13 @@
 {
-  "short_name": "CarsWise",
-  "name": "CarsWise AI",
+  "short_name": "PopCar",
+  "name": "PopCar - Tu coche. Todo, mas facil.",
   "icons": [
+    {
+      "src": "popcar-icono.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
     {
       "src": "carswise-mark-192.png",
       "type": "image/png",
@@ -15,6 +21,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#0f172a",
+  "theme_color": "#111111",
   "background_color": "#ffffff"
 }

@@ -7,10 +7,10 @@ export function createAppStyles(progress = 0, themeMode = "light") {
     page: {
       minHeight: "100vh",
       background: isDark
-        ? "linear-gradient(160deg,#060d1a 0%,#0a1628 50%,#050e1c 100%)"
-        : "linear-gradient(180deg,#ffffff 0%,#f8fafc 100%)",
+        ? "var(--gris-900)"
+        : "var(--blanco)",   // el fondo de la web es blanco, sin degradado
       fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
-      color: isDark ? "#e2e8f0" : "#0f172a",
+      color: isDark ? "var(--gris-200)" : "var(--gris-900)",
     },
     header: {
       display: "flex",
@@ -19,15 +19,15 @@ export function createAppStyles(progress = 0, themeMode = "light") {
       borderBottom: "none",
       position: "sticky",
       top: 0,
-      background: isDark ? "rgba(6,13,26,0.95)" : "#ffffff",
+      background: isDark ? "rgba(17,17,17,0.95)" : "var(--blanco)",
       backdropFilter: "blur(12px)",
       zIndex: 100,
       boxShadow: isDark ? "0 1px 0 rgba(255,255,255,0.06)" : "0 1px 6px rgba(0,0,0,0.06)",
     },
     progressBar: {
       height: 4,
-      background: "linear-gradient(90deg, #2563eb 0%, #22c55e 100%)",
-      boxShadow: "0 1px 8px rgba(37,99,235,0.2)",
+      background: "linear-gradient(90deg, var(--acento) 0%, var(--acento-texto) 100%)",
+      boxShadow: "0 1px 8px rgba(255,196,0,0.2)",
       overflow: "hidden",
     },
     progressFill: {
@@ -44,7 +44,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
       padding: "clamp(22px,5vw,40px) 10px clamp(48px,10vw,72px)",
     },
     btn: {
-      background: "linear-gradient(135deg,#2563EB,#1d4ed8)",
+      background: "linear-gradient(135deg,var(--marca),var(--marca-oscuro))",
       border: "none",
       color: "white",
       padding: "14px 36px",
@@ -56,15 +56,15 @@ export function createAppStyles(progress = 0, themeMode = "light") {
     },
     card: (selected) => ({
       background: selected
-        ? "rgba(37,99,235,0.12)"
+        ? "rgba(255,196,0,0.12)"
         : isDark
           ? "rgba(255,255,255,0.025)"
           : "rgba(255,255,255,0.92)",
       border: selected
-        ? "1px solid rgba(37,99,235,0.45)"
+        ? "1px solid rgba(255,196,0,0.45)"
         : isDark
           ? "1px solid rgba(255,255,255,0.07)"
-          : "1px solid rgba(148,163,184,0.24)",
+          : "1px solid rgba(150,150,143,0.24)",
       borderRadius: 13,
       padding: "14px 18px",
       cursor: "pointer",
@@ -81,9 +81,9 @@ export function createAppStyles(progress = 0, themeMode = "light") {
       display: "inline-flex",
       alignItems: "center",
       gap: 6,
-      background: `${BLOCK_COLORS[block] || "#2563EB"}18`,
-      border: `1px solid ${BLOCK_COLORS[block] || "#2563EB"}30`,
-      color: BLOCK_COLORS[block] || "#2563EB",
+      background: `${BLOCK_COLORS[block] || "var(--marca)"}18`,
+      border: `1px solid ${BLOCK_COLORS[block] || "var(--marca)"}30`,
+      color: BLOCK_COLORS[block] || "var(--marca)",
       padding: "4px 12px",
       borderRadius: 100,
       fontSize: 11,
@@ -93,9 +93,9 @@ export function createAppStyles(progress = 0, themeMode = "light") {
     }),
     select: {
       width: "100%",
-      background: isDark ? "#0f1b2d" : "#ffffff",
-      color: isDark ? "#f8fafc" : "#0f172a",
-      border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(148,163,184,0.3)",
+      background: isDark ? "var(--gris-900)" : "var(--blanco)",
+      color: isDark ? "var(--gris-50)" : "var(--gris-900)",
+      border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(150,150,143,0.3)",
       borderRadius: 10,
       padding: "12px 14px",
       outline: "none",
@@ -103,9 +103,9 @@ export function createAppStyles(progress = 0, themeMode = "light") {
     },
     input: {
       width: "100%",
-      background: isDark ? "#0f1b2d" : "#ffffff",
-      color: isDark ? "#f8fafc" : "#0f172a",
-      border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(148,163,184,0.3)",
+      background: isDark ? "var(--gris-900)" : "var(--blanco)",
+      color: isDark ? "var(--gris-50)" : "var(--gris-900)",
+      border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(150,150,143,0.3)",
       borderRadius: 10,
       padding: "12px 14px",
       outline: "none",
@@ -113,7 +113,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
     },
     panel: {
       background: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.92)",
-      border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(148,163,184,0.24)",
+      border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(150,150,143,0.24)",
       borderRadius: 16,
       padding: 18,
     },

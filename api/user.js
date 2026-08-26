@@ -37,8 +37,29 @@ function resolveRoute(req) {
   return "";
 }
 
+// Las tres tareas programadas están declaradas en vercel.json, y ese fichero
+// viaja con el repositorio: cualquier despliegue que lo lleve las ejecuta. Hoy
+// hay un solo proyecto, así que corren por omisión. El interruptor existe para
+// el día que haya un segundo despliegue contra la misma base — dos recordatorios
+// por cita y dos correos con el mismo informe—: allí se pone CRON_ACTIVO=0 y se
+// calla.
+//
+// Apagado por omisión sería peor: al fusionar esta rama, producción se quedaría
+// sin la variable y los avisos dejarían de enviarse sin dar ningún error.
+const RUTAS_CRON = new Set([
+  "cron-appointment-reminders",
+  "cron-alert-check",
+  "cron-condition-report-ready",
+]);
+
 module.exports = async function userRouter(req, res) {
-  switch (resolveRoute(req)) {
+  const ruta = resolveRoute(req);
+
+  if (RUTAS_CRON.has(ruta) && process.env.CRON_ACTIVO === "0") {
+    return res.status(204).end();
+  }
+
+  switch (ruta) {
     case "saved":
       return userSavedHandler(req, res);
     case "alerts":

@@ -49,7 +49,7 @@ export function buildPortalVoHighlights(offer = {}) {
   const items = [];
 
   if (offer?.hasGuaranteeSeal) {
-    items.push(`Sello CarsWise con ${offer.warrantyMonths || 12} meses de garantía.`);
+    items.push(`Sello PopCar con ${offer.warrantyMonths || 12} meses de garantía.`);
   }
 
   if (Number(offer?.mileage || 0) <= 20000) {

@@ -20,7 +20,7 @@ const FLOW_A_EN = [
 ];
 
 const FLOW_B_ES = [
-  { title: "Test CarsWise", sub: "Estilo de vida, desplazamientos, entorno legal" },
+  { title: "Test PopCar", sub: "Estilo de vida, desplazamientos, entorno legal" },
   { title: "Establece tus límites geográficos y de precio" },
   { title: "Analizamos anuncios en tiempo real" },
   { title: "Te ofrecemos las 5 mejores opciones" },
@@ -29,7 +29,7 @@ const FLOW_B_ES = [
 ];
 
 const FLOW_B_EN = [
-  { title: "CarsWise Test", sub: "Lifestyle, commuting, legal environment" },
+  { title: "PopCar Test", sub: "Lifestyle, commuting, legal environment" },
   { title: "Set your geographic and price limits" },
   { title: "We analyze listings in real time" },
   { title: "We offer you the 5 best options" },
@@ -37,16 +37,16 @@ const FLOW_B_EN = [
   { title: "We find you the best financing" },
 ];
 
-export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownModel, onOpenMarketplace, onGoBack }) {
+export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownModel, onSelectComparador, onOpenMarketplace, onGoBack }) {
   const { t, i18n } = useTranslation();
   const uiLanguage = i18n.language === "en" ? "en" : "es";
   const FLOW_A = uiLanguage === "en" ? FLOW_A_EN : FLOW_A_ES;
   const FLOW_B = uiLanguage === "en" ? FLOW_B_EN : FLOW_B_ES;
-  const isDark = styles?.page?.color === "#e2e8f0";
-  const titleColor = isDark ? "#f8fafc" : "#0f172a";
-  const mutedColor = isDark ? "#cbd5e1" : "#475569";
-  const cardBackground = isDark ? "rgba(15,23,42,0.55)" : "#ffffff";
-  const cardBorder = isDark ? "1px solid rgba(148,163,184,0.26)" : "1px solid rgba(15,23,42,0.12)";
+  const isDark = styles?.page?.color === "var(--gris-200)";
+  const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
+  const mutedColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
+  const cardBackground = isDark ? "rgba(17,17,17,0.55)" : "var(--blanco)";
+  const cardBorder = isDark ? "1px solid rgba(150,150,143,0.26)" : "1px solid rgba(17,17,17,0.12)";
   const [openFlow, setOpenFlow] = useState(null);
 
   const toggleFlow = (flowKey) => {
@@ -54,7 +54,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
   };
 
   return (
-    <div style={{ ...styles.center, maxWidth: 980, textAlign: "left" }}>
+    <div style={{ ...styles.center, maxWidth: 1240, textAlign: "left" }}>
       <style>{`
         @media (max-width: 580px) {
           .buy-options-grid { grid-template-columns: 1fr !important; }
@@ -64,9 +64,9 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
         type="button"
         onClick={onGoBack}
         style={{
-          border: "1px solid rgba(148,163,184,0.35)",
-          background: isDark ? "rgba(15,23,42,0.5)" : "rgba(148,163,184,0.16)",
-          color: isDark ? "#cbd5e1" : "#475569",
+          border: "1px solid rgba(150,150,143,0.35)",
+          background: isDark ? "rgba(17,17,17,0.5)" : "rgba(150,150,143,0.16)",
+          color: isDark ? "var(--gris-300)" : "var(--gris-600)",
           borderRadius: 10,
           padding: "8px 12px",
           fontSize: 12,
@@ -79,10 +79,10 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
       </button>
 
       <div style={{ marginBottom: 10, marginTop: 4, display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ fontSize: 10, letterSpacing: "0.18em", fontWeight: 800, color: "#2563eb", textTransform: "uppercase" }}>
+        <span style={{ fontSize: 10, letterSpacing: "0.18em", fontWeight: 800, color: "var(--marca)", textTransform: "uppercase" }}>
           {t("buyOptions.badgeLabel")}
         </span>
-        <span style={{ width: 34, height: 1, background: "rgba(37,99,235,0.5)" }} />
+        <span style={{ width: 34, height: 1, background: "rgba(255,196,0,0.5)" }} />
       </div>
 
       <h2 style={{ margin: "0 0 8px", fontSize: "clamp(28px,4vw,38px)", color: titleColor, letterSpacing: "-0.9px" }}>
@@ -96,7 +96,7 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
         className="buy-options-grid"
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(2, 1fr)",
+          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
           gap: 14,
           alignItems: "stretch",
         }}
@@ -107,11 +107,11 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           style={{
             position: "relative",
             borderRadius: 16,
-            border: isDark ? "1.5px solid rgba(37,99,235,0.35)" : "1.5px solid rgba(37,99,235,0.35)",
+            border: isDark ? "1.5px solid rgba(255,196,0,0.35)" : "1.5px solid rgba(255,196,0,0.35)",
             background: isDark
-              ? "linear-gradient(135deg, rgba(37,99,235,0.18), rgba(99,102,241,0.12))"
-              : "linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%)",
-            boxShadow: isDark ? "none" : "0 12px 32px rgba(37,99,235,0.10)",
+              ? "linear-gradient(135deg, rgba(255,196,0,0.18), rgba(255,196,0,0.12))"
+              : "linear-gradient(135deg, var(--acento-tenue) 0%, var(--gris-100) 100%)",
+            boxShadow: isDark ? "none" : "0 12px 32px rgba(255,196,0,0.10)",
             padding: "28px 32px",
             textAlign: "left",
             display: "flex",
@@ -137,9 +137,9 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               width: 56,
               height: 56,
               borderRadius: 14,
-              border: "1.5px solid rgba(37,99,235,0.35)",
-              background: "rgba(37,99,235,0.12)",
-              color: "#2563eb",
+              border: "1.5px solid rgba(255,196,0,0.35)",
+              background: "rgba(255,196,0,0.12)",
+              color: "var(--marca)",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
@@ -158,17 +158,17 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             </div>
             <div style={{ fontSize: 14, color: mutedColor, lineHeight: 1.55 }}>
               {uiLanguage === "en"
-                ? "Unique cars on our portal. Find offers from dealerships, rentals, imported vehicles and cars sold by CarsWise users."
-                : "Coches únicos de nuestro portal. Encuentra ofertas de concesionarios, rentings, vehículos de importación y coches vendidos por usuarios de CarsWise."}
+                ? "Unique cars on our portal. Find offers from dealerships, rentals, imported vehicles and cars sold by PopCar users."
+                : "Coches únicos de nuestro portal. Encuentra ofertas de concesionarios, rentings, vehículos de importación y coches vendidos por usuarios de PopCar."}
             </div>
           </div>
           <button
             type="button"
             onClick={(event) => { event.stopPropagation(); if (onOpenMarketplace) onOpenMarketplace(); }}
             style={{
-              background: "linear-gradient(135deg, #2563eb, #3b82f6)",
+              background: "linear-gradient(135deg, var(--marca), var(--marca-claro))",
               color: "#fff",
-              border: "1px solid rgba(37,99,235,0.3)",
+              border: "1px solid rgba(255,196,0,0.3)",
               borderRadius: 12,
               padding: "12px 22px",
               fontSize: 14,
@@ -190,8 +190,8 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             border: cardBorder,
             borderRadius: 12,
             background: cardBackground,
-            boxShadow: isDark ? "none" : "0 8px 22px rgba(15,23,42,0.05)",
-            padding: "24px 22px 20px",
+            boxShadow: isDark ? "none" : "0 8px 22px rgba(17,17,17,0.05)",
+            padding: "58px 22px 20px",
             textAlign: "left",
             display: "flex",
             flexDirection: "column",
@@ -220,8 +220,8 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               width: 24,
               height: 24,
               borderRadius: "50%",
-              border: "1px solid rgba(148,163,184,0.35)",
-              color: "#64748b",
+              border: "1px solid rgba(150,150,143,0.35)",
+              color: "var(--gris-500)",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
@@ -230,7 +230,38 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           >
             &gt;
           </span>
-          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
+          {/* Distintivo de la otra opcion: dice que aqui no se rellena un
+              cuestionario, se miran las ofertas que hay ahora mismo. */}
+          <span
+            style={{
+              position: "absolute",
+              top: 19,
+              left: 22,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              background: "var(--acento-tenue)",
+              color: "var(--acento-texto)",
+              border: "1px solid rgba(255,196,0,0.45)",
+              borderRadius: 999,
+              padding: "5px 11px 5px 8px",
+              fontSize: 11.5,
+              fontWeight: 700,
+              lineHeight: 1,
+            }}
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M3.5 20.5V13" /><path d="M9.2 20.5V6.5" /><path d="M14.8 20.5v-9" /><path d="M20.5 20.5V3.5" />
+            </svg>
+            {t("buyOptions.optionATag")}
+          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
+            <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="var(--acento-texto)"
+                 strokeWidth="2.1" strokeLinecap="round" aria-hidden="true" style={{ flex: "none" }}>
+              <circle cx="10.8" cy="10.8" r="6.4" />
+              <path d="M15.6 15.6 20.4 20.4" />
+            </svg>
             {t("buyOptions.optionATitle")}
           </div>
           <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
@@ -241,9 +272,9 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             onClick={(event) => { event.stopPropagation(); toggleFlow("a"); }}
             style={{
               marginTop: 2,
-              border: "1px solid rgba(37,99,235,0.28)",
-              background: "rgba(37,99,235,0.08)",
-              color: "#1d4ed8",
+              border: "1px solid rgba(255,196,0,0.28)",
+              background: "rgba(255,196,0,0.08)",
+              color: "var(--marca-oscuro)",
               borderRadius: 10,
               padding: "8px 12px",
               fontSize: 12,
@@ -255,6 +286,112 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           </button>
         </article>
 
+        {/* ── Compara entre varias opciones ── */}
+        <article
+          className="ma-card-interactive ma-fade-stagger"
+          style={{
+            position: "relative",
+            border: cardBorder,
+            borderRadius: 12,
+            background: cardBackground,
+            boxShadow: isDark ? "none" : "0 8px 22px rgba(17,17,17,0.05)",
+            padding: "58px 22px 20px",
+            textAlign: "left",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            justifyContent: "flex-start",
+            gap: 10,
+            minHeight: "clamp(148px, 20vw, 178px)",
+            animationDelay: "105ms",
+            cursor: "pointer",
+          }}
+          role="button"
+          tabIndex={0}
+          onClick={onSelectComparador}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              onSelectComparador();
+            }
+          }}
+        >
+          <span
+            style={{
+              position: "absolute",
+              top: 22,
+              right: 20,
+              width: 24,
+              height: 24,
+              borderRadius: "50%",
+              border: "1px solid rgba(150,150,143,0.35)",
+              color: "var(--gris-500)",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 15,
+            }}
+          >
+            &gt;
+          </span>
+          {/* Distintivo: dice cuantos coches caben, que es el limite que la
+              gente pregunta antes de entrar. */}
+          <span
+            style={{
+              position: "absolute",
+              top: 19,
+              left: 22,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              background: "var(--acento-tenue)",
+              color: "var(--acento-texto)",
+              border: "1px solid rgba(255,196,0,0.45)",
+              borderRadius: 999,
+              padding: "5px 11px 5px 8px",
+              fontSize: 11.5,
+              fontWeight: 700,
+              lineHeight: 1,
+            }}
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 3.5v17" />
+              <path d="M4.5 8.5h15" />
+              <path d="M7.6 8.5 4.5 15h6.2z" /><path d="M16.4 8.5 13.3 15h6.2z" />
+            </svg>
+            {t("buyOptions.optionCTag")}
+          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
+            <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="var(--acento-texto)"
+                 strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flex: "none" }}>
+              <path d="M4.5 19.5V10" /><path d="M10.2 19.5V4.5" /><path d="M15.8 19.5v-6.4" /><path d="M21.5 19.5V7.6" />
+            </svg>
+            {t("buyOptions.optionCTitle")}
+          </div>
+          <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
+            {t("buyOptions.optionCDesc")}
+          </div>
+          <button
+            type="button"
+            onClick={(event) => { event.stopPropagation(); onSelectComparador(); }}
+            style={{
+              marginTop: 2,
+              border: "1px solid rgba(255,196,0,0.28)",
+              background: "rgba(255,196,0,0.08)",
+              color: "var(--gris-900)",
+              borderRadius: 10,
+              padding: "8px 12px",
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            {t("buyOptions.optionCButton")}
+          </button>
+        </article>
+
+
         {/* ── Ayúdame a encontrar ── */}
         <article
           className="ma-card-interactive ma-fade-stagger"
@@ -263,8 +400,8 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             border: cardBorder,
             borderRadius: 12,
             background: cardBackground,
-            boxShadow: isDark ? "none" : "0 8px 22px rgba(15,23,42,0.05)",
-            padding: "24px 22px 20px",
+            boxShadow: isDark ? "none" : "0 8px 22px rgba(17,17,17,0.05)",
+            padding: "58px 22px 20px",
             textAlign: "left",
             display: "flex",
             flexDirection: "column",
@@ -293,8 +430,8 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               width: 24,
               height: 24,
               borderRadius: "50%",
-              border: "1px solid rgba(148,163,184,0.35)",
-              color: "#64748b",
+              border: "1px solid rgba(150,150,143,0.35)",
+              color: "var(--gris-500)",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
@@ -303,7 +440,39 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           >
             &gt;
           </span>
-          <div style={{ fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
+          {/* Distintivo del test: dice de un vistazo que esta opcion no es
+              un buscador, es un cuestionario que recomienda. */}
+          <span
+            style={{
+              position: "absolute",
+              top: 19,
+              left: 22,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              background: "var(--acento-tenue)",
+              color: "var(--acento-texto)",
+              border: "1px solid rgba(255,196,0,0.45)",
+              borderRadius: 999,
+              padding: "5px 11px 5px 8px",
+              fontSize: 11.5,
+              fontWeight: 700,
+              lineHeight: 1,
+            }}
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M9.5 2.5h5" />
+              <path d="M10.5 2.5v6.2L5.6 17.4a2.4 2.4 0 0 0 2.1 3.6h8.6a2.4 2.4 0 0 0 2.1-3.6L13.5 8.7V2.5" />
+              <path d="M7.6 14.5h8.8" />
+            </svg>
+            {t("buyOptions.optionBTag")}
+          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, fontWeight: 800, fontSize: "clamp(17px,5.2vw,20px)", lineHeight: 1.2, color: titleColor }}>
+            <svg viewBox="0 0 24 24" width="21" height="21" fill="var(--acento-texto)" aria-hidden="true" style={{ flex: "none" }}>
+              <path d="M13.2 2.4a.5.5 0 0 0-.95 0l-1.2 4.1a4 4 0 0 1-2.75 2.75l-4.1 1.2a.5.5 0 0 0 0 .95l4.1 1.2a4 4 0 0 1 2.75 2.75l1.2 4.1a.5.5 0 0 0 .95 0l1.2-4.1a4 4 0 0 1 2.75-2.75l4.1-1.2a.5.5 0 0 0 0-.95l-4.1-1.2a4 4 0 0 1-2.75-2.75z" />
+              <path d="M5.6 15.9a.3.3 0 0 0-.57 0l-.42 1.45a1.6 1.6 0 0 1-1.1 1.1l-1.45.42a.3.3 0 0 0 0 .57l1.45.42a1.6 1.6 0 0 1 1.1 1.1l.42 1.45a.3.3 0 0 0 .57 0l.42-1.45a1.6 1.6 0 0 1 1.1-1.1l1.45-.42a.3.3 0 0 0 0-.57l-1.45-.42a1.6 1.6 0 0 1-1.1-1.1z" opacity=".55" />
+            </svg>
             {t("buyOptions.optionBTitle")}
           </div>
           <div style={{ fontSize: 12, color: mutedColor, lineHeight: 1.45 }}>
@@ -314,9 +483,9 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
             onClick={(event) => { event.stopPropagation(); toggleFlow("b"); }}
             style={{
               marginTop: 2,
-              border: "1px solid rgba(37,99,235,0.28)",
-              background: "rgba(37,99,235,0.08)",
-              color: "#1d4ed8",
+              border: "1px solid rgba(255,196,0,0.28)",
+              background: "rgba(255,196,0,0.08)",
+              color: "var(--marca-oscuro)",
               borderRadius: 10,
               padding: "8px 12px",
               fontSize: 12,
@@ -334,18 +503,18 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           style={{
             marginTop: 14,
             border: cardBorder,
-            background: isDark ? "rgba(15,23,42,0.7)" : "#f8fafc",
+            background: isDark ? "rgba(17,17,17,0.7)" : "var(--gris-50)",
             borderRadius: 12,
             padding: "14px 14px 12px",
           }}
         >
-          <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700, color: "#64748b", marginBottom: 10 }}>
+          <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700, color: "var(--gris-500)", marginBottom: 10 }}>
             {t("buyOptions.flowAHeader")}
           </div>
           <div style={{ display: "grid", gap: 8 }}>
             {FLOW_A.map((item, index) => (
               <div key={`a-${item.title}`} style={{ border: cardBorder, borderRadius: 10, background: cardBackground, padding: "9px 10px" }}>
-                <div style={{ fontSize: 11, color: "#2563eb", fontWeight: 700, marginBottom: 2 }}>{t("buyOptions.step")} {index + 1}</div>
+                <div style={{ fontSize: 11, color: "var(--marca)", fontWeight: 700, marginBottom: 2 }}>{t("buyOptions.step")} {index + 1}</div>
                 <div style={{ fontSize: 13, color: titleColor, fontWeight: 700, lineHeight: 1.35 }}>{item.title}</div>
                 {item.sub ? <div style={{ fontSize: 12, color: mutedColor, marginTop: 2 }}>{item.sub}</div> : null}
               </div>
@@ -356,9 +525,9 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               type="button"
               onClick={onSelectKnownModel}
               style={{
-                border: "1px solid rgba(37,99,235,0.25)",
-                background: "linear-gradient(135deg,#2563eb,#3b82f6)",
-                color: "#ffffff",
+                border: "1px solid rgba(255,196,0,0.25)",
+                background: "linear-gradient(135deg,var(--marca),var(--marca-claro))",
+                color: "var(--blanco)",
                 borderRadius: 10,
                 padding: "9px 14px",
                 fontSize: 12,
@@ -372,9 +541,9 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               type="button"
               onClick={() => setOpenFlow(null)}
               style={{
-                border: "1px solid rgba(37,99,235,0.25)",
-                background: "rgba(37,99,235,0.08)",
-                color: "#1d4ed8",
+                border: "1px solid rgba(255,196,0,0.25)",
+                background: "rgba(255,196,0,0.08)",
+                color: "var(--marca-oscuro)",
                 borderRadius: 10,
                 padding: "9px 14px",
                 fontSize: 12,
@@ -393,18 +562,18 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
           style={{
             marginTop: 14,
             border: cardBorder,
-            background: isDark ? "rgba(15,23,42,0.7)" : "#f8fafc",
+            background: isDark ? "rgba(17,17,17,0.7)" : "var(--gris-50)",
             borderRadius: 12,
             padding: "14px 14px 12px",
           }}
         >
-          <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700, color: "#64748b", marginBottom: 10 }}>
+          <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700, color: "var(--gris-500)", marginBottom: 10 }}>
             {t("buyOptions.flowBHeader")}
           </div>
           <div style={{ display: "grid", gap: 8 }}>
             {FLOW_B.map((item, index) => (
               <div key={`b-${item.title}`} style={{ border: cardBorder, borderRadius: 10, background: cardBackground, padding: "9px 10px" }}>
-                <div style={{ fontSize: 11, color: "#2563eb", fontWeight: 700, marginBottom: 2 }}>{t("buyOptions.step")} {index + 1}</div>
+                <div style={{ fontSize: 11, color: "var(--marca)", fontWeight: 700, marginBottom: 2 }}>{t("buyOptions.step")} {index + 1}</div>
                 <div style={{ fontSize: 13, color: titleColor, fontWeight: 700, lineHeight: 1.35 }}>{item.title}</div>
                 {item.sub ? <div style={{ fontSize: 12, color: mutedColor, marginTop: 2 }}>{item.sub}</div> : null}
               </div>
@@ -415,9 +584,9 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               type="button"
               onClick={onSelectAdvisor}
               style={{
-                border: "1px solid rgba(37,99,235,0.25)",
-                background: "linear-gradient(135deg,#2563eb,#3b82f6)",
-                color: "#ffffff",
+                border: "1px solid rgba(255,196,0,0.25)",
+                background: "linear-gradient(135deg,var(--marca),var(--marca-claro))",
+                color: "var(--blanco)",
                 borderRadius: 10,
                 padding: "9px 14px",
                 fontSize: 12,
@@ -431,9 +600,9 @@ export default function BuyOptionsPage({ styles, onSelectAdvisor, onSelectKnownM
               type="button"
               onClick={() => setOpenFlow(null)}
               style={{
-                border: "1px solid rgba(37,99,235,0.25)",
-                background: "rgba(37,99,235,0.08)",
-                color: "#1d4ed8",
+                border: "1px solid rgba(255,196,0,0.25)",
+                background: "rgba(255,196,0,0.08)",
+                color: "var(--marca-oscuro)",
                 borderRadius: 10,
                 padding: "9px 14px",
                 fontSize: 12,

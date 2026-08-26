@@ -732,7 +732,7 @@ export async function exportAdviceLogicDoc({
   });
 
   const blob = await Packer.toBlob(document);
-  const fileName = `carswise-logica-${sanitizeFileName(displayResult?.solucion_principal?.titulo)}.docx`;
+  const fileName = `popcar-logica-${sanitizeFileName(displayResult?.solucion_principal?.titulo)}.docx`;
   triggerDownload(blob, fileName);
 
   return fileName;

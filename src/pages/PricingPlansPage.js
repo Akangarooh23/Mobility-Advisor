@@ -1,7 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import "./PricingPlansPage.css";
 
 const PENDING_PLANS_SCROLL_KEY = "movilidad-advisor.plans.scroll-target";
+
+/** Las cuatro secciones de la página, en el orden en que aparecen. */
+const SECCIONES = ["planes", "premium", "comparar", "faq"];
 
 export default function PricingPlansPage({
   uiLanguage = "es",
@@ -21,6 +24,44 @@ export default function PricingPlansPage({
   const [billingMode, setBillingMode] = useState("monthly");
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
   const [activeSection, setActiveSection] = useState("planes");
+  const raiz = useRef(null);
+
+  /**
+   * Mide la cabecera de la aplicación y la guarda en `--cw-cabecera`.
+   *
+   * Esta página se pinta dentro del armazón, cuya cabecera se pega arriba igual
+   * que la barra de secciones. Con las dos en `top: 0` la de secciones se metía
+   * debajo y desaparecía al bajar, y los saltos aterrizaban tapados. La altura
+   * se mide en vez de escribirse a mano porque cambia con el ancho.
+   */
+  useLayoutEffect(() => {
+    const medir = () => {
+      const cabecera = document.querySelector("header");
+      const alto = cabecera ? Math.round(cabecera.getBoundingClientRect().height) : 0;
+      raiz.current?.style.setProperty("--cw-cabecera", `${alto}px`);
+    };
+    medir();
+    window.addEventListener("resize", medir);
+    return () => window.removeEventListener("resize", medir);
+  }, []);
+
+  /**
+   * El salto lo hace la página, no el navegador.
+   *
+   * Con `href` a secas el destino queda debajo de las dos barras pegadas
+   * arriba, y además la pestaña marcada tarda en moverse hasta que el
+   * observador se entera. Aquí se marca en el acto y se salta con el hueco ya
+   * descontado. El `href` se queda: sirve para abrir la página directamente en
+   * una sección y para el menú contextual del navegador.
+   */
+  const irASeccion = useCallback((evento, id) => {
+    if (typeof document === "undefined") return;
+    const destino = document.getElementById(id);
+    if (!destino) return;
+    evento.preventDefault();
+    setActiveSection(id);
+    destino.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
 
   const handleStartFree = onStartFree || (() => {});
   const handleStartPlus = onStartPlus || (() => {});
@@ -53,7 +94,7 @@ export default function PricingPlansPage({
         heroTitleA: "Your car,",
         heroTitleB: "always under control",
         heroTitleC: ". No surprises.",
-        heroSub: "Start free. Control, save and sell better with CarsWise AI.",
+        heroSub: "Start free. Control, save and sell better with PopCar.",
         monthly: "Monthly",
         annual: "Yearly",
         startFree: "Start free",
@@ -89,7 +130,7 @@ export default function PricingPlansPage({
         servicesList: [
           ["Boost listing", "9-19 EUR"],
           ["Advanced market report", "10 EUR"],
-          ["CarsWise guarantee seal", "29-49 EUR"],
+          ["PopCar guarantee seal", "29-49 EUR"],
           ["Insurance review", "Free"],
           ["Managed sale", "from 149 EUR"],
         ],
@@ -120,7 +161,7 @@ export default function PricingPlansPage({
           sell: {
             tag: "Resolution - High ticket",
             title: "Full sale management",
-            desc: "CarsWise handles valuation, listing, buyers and closing.",
+            desc: "PopCar handles valuation, listing, buyers and closing.",
             price: "149-249 EUR",
             sub: "fixed fee or 2-3%",
             cta: "Request managed sale",
@@ -155,12 +196,12 @@ export default function PricingPlansPage({
           },
           seal: {
             tag: "Trust",
-            title: "CarsWise guarantee seal",
+            title: "PopCar guarantee seal",
             desc: "Workshop inspection and verified badge in your ad.",
             price: "29-49 EUR",
             sub: "per vehicle",
             cta: "Certify my car",
-            note: "Coordinated with CarsWise workshop network.",
+            note: "Coordinated with PopCar workshop network.",
           },
           publish: {
             tag: "Enhanced profile",
@@ -177,7 +218,7 @@ export default function PricingPlansPage({
         faqItems: [
           {
             q: "What is an IDCar?",
-            a: "Your digital vehicle profile in CarsWise with key dates, documents and alerts.",
+            a: "Your digital vehicle profile in PopCar with key dates, documents and alerts.",
           },
           {
             q: "Can I cancel Plus anytime?",
@@ -208,7 +249,7 @@ export default function PricingPlansPage({
       heroTitleA: "Tu coche,",
       heroTitleB: "siempre bajo control",
       heroTitleC: ". Sin sorpresas.",
-      heroSub: "Empieza gratis. Controla, ahorra y vende mejor con CarsWise AI.",
+      heroSub: "Empieza gratis. Controla, ahorra y vende mejor con PopCar.",
       monthly: "Mensual",
       annual: "Anual",
       startFree: "Empezar gratis",
@@ -275,7 +316,7 @@ export default function PricingPlansPage({
         sell: {
           tag: "Resolucion · Mayor ticket",
           title: "Gestion integral de venta",
-          desc: "CarsWise gestiona valoracion, anuncio, compradores y cierre.",
+          desc: "PopCar gestiona valoracion, anuncio, compradores y cierre.",
           price: "149-249 EUR",
           sub: "fee fijo o 2-3%",
           cta: "Solicitar gestion",
@@ -310,12 +351,12 @@ export default function PricingPlansPage({
         },
         seal: {
           tag: "Confianza",
-          title: "Sello de Garantia CarsWise",
+          title: "Sello de Garantia PopCar",
           desc: "Inspeccion en taller y badge verificado en tu anuncio.",
           price: "29-49 EUR",
           sub: "por vehiculo",
           cta: "Certificar mi coche",
-          note: "Coordinacion con red de talleres CarsWise.",
+          note: "Coordinacion con red de talleres PopCar.",
         },
         publish: {
           tag: "Ficha ampliada",
@@ -332,7 +373,7 @@ export default function PricingPlansPage({
       faqItems: [
         {
           q: "Que es una IDCar?",
-          a: "La IDCar es la ficha digital de tu vehiculo en CarsWise con alertas, documentos e hitos clave.",
+          a: "La IDCar es la ficha digital de tu vehiculo en PopCar con alertas, documentos e hitos clave.",
         },
         {
           q: "Puedo cancelar Plus cuando quiera?",
@@ -355,7 +396,6 @@ export default function PricingPlansPage({
   }, [uiLanguage]);
 
   useEffect(() => {
-    const sections = ["planes", "premium", "comparar", "faq"];
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -367,7 +407,7 @@ export default function PricingPlansPage({
       { rootMargin: "-30% 0px -60% 0px" }
     );
 
-    sections.forEach((id) => {
+    SECCIONES.forEach((id) => {
       const el = document.getElementById(id);
       if (el) {
         observer.observe(el);
@@ -405,13 +445,26 @@ export default function PricingPlansPage({
     : (uiLanguage === "en" ? "or 55.99 EUR/year - 2 months free" : "o 55,99 EUR/ano - 2 meses gratis");
 
   return (
-    <div className="cw-pricing-page">
+    <div className="cw-pricing-page" ref={raiz}>
       <nav className="cw-pricing-subnav-wrap" aria-label="Secciones de precios">
         <ul className="cw-pricing-subnav">
-          <li><a href="#planes" className={activeSection === "planes" ? "active" : ""}>{copy.navPlans}</a></li>
-          <li><a href="#premium" className={activeSection === "premium" ? "active" : ""}>{copy.navServices}</a></li>
-          <li><a href="#comparar" className={activeSection === "comparar" ? "active" : ""}>{copy.navCompare}</a></li>
-          <li><a href="#faq" className={activeSection === "faq" ? "active" : ""}>{copy.navFaq}</a></li>
+          {[
+            ["planes", copy.navPlans],
+            ["premium", copy.navServices],
+            ["comparar", copy.navCompare],
+            ["faq", copy.navFaq],
+          ].map(([id, texto]) => (
+            <li key={id}>
+              <a
+                href={`#${id}`}
+                className={activeSection === id ? "active" : ""}
+                aria-current={activeSection === id ? "true" : undefined}
+                onClick={(evento) => irASeccion(evento, id)}
+              >
+                {texto}
+              </a>
+            </li>
+          ))}
         </ul>
       </nav>
 

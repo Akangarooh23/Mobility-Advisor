@@ -4,20 +4,20 @@
 }
 
 .sell-pro-assist-root {
-  --c1: #1a1a2e;
-  --c2: #2e3f7f;
+  --c1: var(--gris-800);
+  --c2: var(--gris-600);
   --acc: #ba7517;
   --acc-light: rgba(186, 117, 23, 0.08);
   --acc-border: rgba(186, 117, 23, 0.22);
   --acc-glow: rgba(186, 117, 23, 0.35);
-  --grad: linear-gradient(135deg, #1a1a2e, #2e3f7f);
-  --grad-btn: linear-gradient(135deg, #1a1a2e, #3b4a7a);
+  --grad: linear-gradient(135deg, var(--gris-800), var(--gris-600));
+  --grad-btn: linear-gradient(135deg, var(--gris-800), var(--gris-600));
   max-width: 860px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  color: #1a1a1a;
+  color: var(--gris-800);
 }
 
 .sell-pro-assist-root .back-row {
@@ -62,7 +62,7 @@
 }
 
 .sell-pro-assist-root .breadcrumb b {
-  color: #3b4a7a;
+  color: var(--gris-600);
   font-weight: 500;
 }
 
@@ -98,9 +98,9 @@
   padding: 0.28rem 0.85rem;
   border-radius: 20px;
   margin-bottom: 1rem;
-  background: #f0f0f7;
-  color: #3b4a7a;
-  border: 1px solid #d0d0e8;
+  background: var(--gris-100);
+  color: var(--gris-600);
+  border: 1px solid var(--gris-300);
 }
 
 .sell-pro-assist-root .hero-title {
@@ -134,7 +134,7 @@
   font-size: 11px;
   font-weight: 500;
   color: #999;
-  background: #fafaf9;
+  background: var(--gris-50);
   border: 1px solid #eee;
   padding: 0.28rem 0.75rem;
   border-radius: 20px;
@@ -166,7 +166,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #3b4a7a;
+  background: var(--gris-600);
   flex-shrink: 0;
 }
 
@@ -182,15 +182,15 @@
   gap: 1rem;
   align-items: start;
   padding: 1.1rem 1.25rem;
-  background: #fafaf9;
-  border: 1px solid #f0ece4;
+  background: var(--gris-50);
+  border: 1px solid var(--gris-100);
   border-radius: 14px;
   transition: all 0.2s;
 }
 
 .sell-pro-assist-root .step-block:hover {
-  border-color: rgba(59, 74, 122, 0.2);
-  background: #f7f7fc;
+  border-color: rgba(74, 74, 69, 0.2);
+  background: var(--gris-50);
 }
 
 .sell-pro-assist-root .step-left {
@@ -212,7 +212,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(26, 26, 46, 0.25);
+  box-shadow: 0 2px 8px rgba(31,31,29, 0.25);
   flex-shrink: 0;
 }
 
@@ -221,14 +221,14 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #3b4a7a;
+  color: var(--gris-600);
   margin-bottom: 0.3rem;
 }
 
 .sell-pro-assist-root .step-title {
   font-size: 14px;
   font-weight: 600;
-  color: #1a1a2e;
+  color: var(--gris-800);
   margin-bottom: 0.3rem;
   line-height: 1.3;
 }
@@ -253,12 +253,12 @@
 }
 
 .sell-pro-assist-root .tag-inc {
-  background: #f0f0f7;
-  color: #3b4a7a;
+  background: var(--gris-100);
+  color: var(--gris-600);
 }
 
 .sell-pro-assist-root .tag-opt {
-  background: #f5f5f5;
+  background: var(--gris-100);
   color: #bbb;
 }
 
@@ -272,7 +272,7 @@
   margin-top: 0.85rem;
   padding: 0.85rem 1rem;
   background: #fff;
-  border: 1px solid rgba(59, 74, 122, 0.12);
+  border: 1px solid rgba(74, 74, 69, 0.12);
   border-radius: 11px;
 }
 
@@ -294,7 +294,7 @@
   content: "·";
   font-size: 16px;
   font-weight: 700;
-  color: #3b4a7a;
+  color: var(--gris-600);
   flex-shrink: 0;
   line-height: 1;
   margin-top: -1px;
@@ -313,7 +313,7 @@
   padding: 0.25rem 0.65rem;
   border-radius: 20px;
   border: 1px solid #eee;
-  background: #fafaf9;
+  background: var(--gris-50);
   color: #888;
 }
 
@@ -329,7 +329,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  box-shadow: 0 4px 24px rgba(26, 26, 46, 0.22);
+  box-shadow: 0 4px 24px rgba(31,31,29, 0.22);
   margin-bottom: 2rem;
 }
 

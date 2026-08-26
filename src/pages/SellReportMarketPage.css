@@ -4,19 +4,19 @@
 }
 
 .sell-market-root {
-  --c1: #1d6fa4;
+  --c1: var(--gris-500);
   --c2: #1a9c6b;
-  --grad: linear-gradient(90deg, #1d6fa4, #1a9c6b);
-  --grad-btn: linear-gradient(135deg, #1d6fa4, #22a88a);
-  --c1-light: rgba(29, 111, 164, 0.07);
-  --c1-border: rgba(29, 111, 164, 0.2);
-  --c1-glow: rgba(29, 111, 164, 0.3);
+  --grad: linear-gradient(90deg, var(--gris-500), #1a9c6b);
+  --grad-btn: linear-gradient(135deg, var(--gris-500), #22a88a);
+  --c1-light: rgba(74, 74, 69, 0.07);
+  --c1-border: rgba(74, 74, 69, 0.2);
+  --c1-glow: rgba(74, 74, 69, 0.3);
   max-width: 860px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  color: #1a1a1a;
+  color: var(--gris-800);
 }
 
 .sell-market-root .back-row {
@@ -129,7 +129,7 @@
   font-size: 11px;
   font-weight: 500;
   color: #999;
-  background: #fafaf9;
+  background: var(--gris-50);
   border: 1px solid #eee;
   padding: 0.28rem 0.75rem;
   border-radius: 20px;
@@ -182,15 +182,15 @@
   gap: 1rem;
   align-items: start;
   padding: 1.1rem 1.25rem;
-  background: #fafaf9;
-  border: 1px solid #f0ece4;
+  background: var(--gris-50);
+  border: 1px solid var(--gris-100);
   border-radius: 14px;
   transition: all 0.2s;
 }
 
 .sell-market-root .step-block:hover {
-  border-color: rgba(29, 111, 164, 0.2);
-  background: #f6fbff;
+  border-color: rgba(74, 74, 69, 0.2);
+  background: var(--gris-50);
 }
 
 .sell-market-root .step-left {
@@ -219,7 +219,7 @@
 .sell-market-root .step-connector {
   width: 1.5px;
   height: 24px;
-  background: linear-gradient(180deg, rgba(29, 111, 164, 0.2), transparent);
+  background: linear-gradient(180deg, rgba(74, 74, 69, 0.2), transparent);
 }
 
 .sell-market-root .step-label {
@@ -252,7 +252,7 @@
   margin-top: 1rem;
   padding: 1rem 1.25rem;
   background: #fff;
-  border: 1px solid rgba(29, 111, 164, 0.12);
+  border: 1px solid rgba(74, 74, 69, 0.12);
   border-radius: 12px;
 }
 
@@ -284,7 +284,7 @@
 .sell-market-root .sell-market-idcar-hint {
   margin-top: 0.45rem;
   font-size: 11px;
-  color: #1d6fa4;
+  color: var(--gris-500);
 }
 
 .sell-market-root .field label {
@@ -297,7 +297,7 @@
 
 .sell-market-root .field input,
 .sell-market-root .field select {
-  background: #fafaf9;
+  background: var(--gris-50);
   border: 1px solid #eee;
   border-radius: 9px;
   padding: 0.55rem 0.85rem;
@@ -342,7 +342,7 @@
   width: 100%;
   display: flex;
   align-items: center;
-  background: #fafaf9;
+  background: var(--gris-50);
   border: 1px solid #eee;
   border-radius: 9px;
   padding: 0.55rem 1.75rem 0.55rem 0.85rem;
@@ -374,7 +374,7 @@
   right: 0;
   z-index: 9999;
   background: #fff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--gris-200);
   border-radius: 9px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
   max-height: 220px;
@@ -391,7 +391,7 @@
 
 .sell-market-root .sel-down-item:hover,
 .sell-market-root .sel-down-item.selected {
-  background: rgba(14, 165, 233, 0.08);
+  background: rgba(255, 196, 0, 0.08);
 }
 
 .sell-market-root .sel-manual-toggle {
@@ -399,7 +399,7 @@
   border: none;
   padding: 0;
   font-size: 10px;
-  color: #1d6fa4;
+  color: var(--gris-500);
   cursor: pointer;
   text-align: left;
   text-decoration: underline;
@@ -408,7 +408,7 @@
 }
 
 .sell-market-root .sel-manual-toggle:hover {
-  color: #155a8a;
+  color: var(--gris-500);
 }
 
 .sell-market-root .damage-opts {
@@ -422,7 +422,7 @@
   padding: 0.3rem 0.75rem;
   border-radius: 20px;
   border: 1px solid #eee;
-  background: #fafaf9;
+  background: var(--gris-50);
   color: #999;
   cursor: pointer;
   transition: all 0.15s;
@@ -450,7 +450,7 @@
 
 .sell-market-root .divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, #f0ece4, transparent);
+  background: linear-gradient(90deg, transparent, var(--gris-100), transparent);
   margin: 0.5rem 0;
 }
 
@@ -464,8 +464,8 @@
 .sell-market-root .rstat {
   text-align: center;
   padding: 0.85rem 0.5rem;
-  background: #fafaf9;
-  border: 1px solid #f0ece4;
+  background: var(--gris-50);
+  border: 1px solid var(--gris-100);
   border-radius: 10px;
 }
 
@@ -508,8 +508,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.5rem 0.75rem;
-  background: #fafaf9;
-  border: 1px solid #f0ece4;
+  background: var(--gris-50);
+  border: 1px solid var(--gris-100);
   border-radius: 9px;
 }
 
@@ -557,8 +557,8 @@
   gap: 0.65rem;
   margin-top: 0.75rem;
   padding: 0.75rem 1rem;
-  background: linear-gradient(135deg, rgba(29, 111, 164, 0.05), rgba(26, 156, 107, 0.05));
-  border: 1px solid rgba(29, 111, 164, 0.1);
+  background: linear-gradient(135deg, rgba(74, 74, 69, 0.05), rgba(26, 156, 107, 0.05));
+  border: 1px solid rgba(74, 74, 69, 0.1);
   border-radius: 10px;
 }
 
@@ -586,13 +586,13 @@
 }
 
 .sell-market-root .ref-box {
-  background: linear-gradient(135deg, rgba(29, 111, 164, 0.05), rgba(26, 156, 107, 0.05));
+  background: linear-gradient(135deg, rgba(74, 74, 69, 0.05), rgba(26, 156, 107, 0.05));
 }
 
 .sell-market-root .ref-title {
   font-size: 13px;
   font-weight: 600;
-  color: #1a1a2e;
+  color: var(--gris-800);
   margin-bottom: 0.4rem;
   display: flex;
   align-items: center;
@@ -673,7 +673,7 @@
 }
 
 .sell-market-root .btn-secondary {
-  background: #fafaf9;
+  background: var(--gris-50);
   border: 1px solid #eee;
   border-radius: 12px;
   padding: 0.65rem 1.25rem;
@@ -709,7 +709,7 @@
 
 .sell-market-root .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 22px rgba(29, 111, 164, 0.45);
+  box-shadow: 0 6px 22px rgba(74, 74, 69, 0.45);
 }
 
 .sell-market-root .btn-primary svg {
@@ -733,7 +733,7 @@
 
 .sell-market-root .sell-market-summary {
   font-size: 11px;
-  color: #8b96a4;
+  color: var(--gris-400);
   text-align: center;
   margin-top: -0.2rem;
 }

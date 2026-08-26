@@ -624,7 +624,7 @@ export default function SellReportMarketPage({
       <div className="hero-card">
         <div className="hero-band" />
         <div className="hero-inner">
-          <div className="badge">{`${t("sell.optionABadge")} · ${t("sell.optionATitle")}`}</div>
+          <div className="badge">{t("sell.optionATitle")}</div>
           <h1 className="sell-market-title">{t("sell.optionATitle")}</h1>
           <p className="sell-market-desc">
             {t("sell.reportHeroDesc")}
@@ -667,14 +667,14 @@ export default function SellReportMarketPage({
                       <button
                         type="button"
                         onClick={() => { setFleetMode(false); setFleetPage(0); }}
-                        style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: `1.5px solid ${!fleetMode ? "#0d9488" : "#e5e7eb"}`, background: !fleetMode ? "#f0fafa" : "#fafafa", color: !fleetMode ? "#0d9488" : "#6B7780", fontWeight: !fleetMode ? 700 : 400, cursor: "pointer", fontSize: 13 }}
+                        style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: `1.5px solid ${!fleetMode ? "#0d9488" : "var(--gris-200)"}`, background: !fleetMode ? "var(--gris-50)" : "var(--gris-50)", color: !fleetMode ? "#0d9488" : "var(--gris-500)", fontWeight: !fleetMode ? 700 : 400, cursor: "pointer", fontSize: 13 }}
                       >
                         Un vehículo
                       </button>
                       <button
                         type="button"
                         onClick={() => { setFleetMode(true); setFleetPage(0); }}
-                        style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: `1.5px solid ${fleetMode ? "#0d9488" : "#e5e7eb"}`, background: fleetMode ? "#f0fafa" : "#fafafa", color: fleetMode ? "#0d9488" : "#6B7780", fontWeight: fleetMode ? 700 : 400, cursor: "pointer", fontSize: 13 }}
+                        style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: `1.5px solid ${fleetMode ? "#0d9488" : "var(--gris-200)"}`, background: fleetMode ? "var(--gris-50)" : "var(--gris-50)", color: fleetMode ? "#0d9488" : "var(--gris-500)", fontWeight: fleetMode ? 700 : 400, cursor: "pointer", fontSize: 13 }}
                       >
                         Varios vehículos 🚗
                       </button>
@@ -703,17 +703,17 @@ export default function SellReportMarketPage({
                           <div style={{ width: "100%", display: "flex", gap: 10, marginBottom: 4 }}>
                             <button type="button" onClick={() => { const all = {}; garageVehicles.forEach((v) => { all[v.id] = true; }); setFleetSelected(all); setFleetPage(0); }} style={{ fontSize: 12, color: "#0d9488", background: "none", border: "none", cursor: "pointer", padding: 0, fontWeight: 600 }}>Seleccionar todos</button>
                             <span style={{ color: "#ddd" }}>·</span>
-                            <button type="button" onClick={() => { setFleetSelected({}); setFleetPage(0); }} style={{ fontSize: 12, color: "#9AA3AB", background: "none", border: "none", cursor: "pointer", padding: 0 }}>Limpiar</button>
+                            <button type="button" onClick={() => { setFleetSelected({}); setFleetPage(0); }} style={{ fontSize: 12, color: "var(--gris-400)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>Limpiar</button>
                           </div>
                           {garageVehicles.map((v) => {
                             const checked = !!fleetSelected[v.id];
                             const lbl = [v.brand, v.model, v.year].filter(Boolean).join(" ");
                             return (
-                              <label key={v.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 8, border: `1.5px solid ${checked ? "#0d9488" : "#e5e7eb"}`, background: checked ? "#f0fafa" : "#fafafa", cursor: "pointer", minWidth: 160, flex: "1 1 160px" }}>
+                              <label key={v.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 8, border: `1.5px solid ${checked ? "#0d9488" : "var(--gris-200)"}`, background: checked ? "var(--gris-50)" : "var(--gris-50)", cursor: "pointer", minWidth: 160, flex: "1 1 160px" }}>
                                 <input type="checkbox" checked={checked} onChange={(e) => { setFleetSelected((prev) => ({ ...prev, [v.id]: e.target.checked })); if (e.target.checked) setFleetPage(Object.keys({ ...fleetSelected, [v.id]: true }).filter((id) => ({ ...fleetSelected, [v.id]: true })[id]).length - 1); }} style={{ accentColor: "#0d9488", width: 15, height: 15 }} />
                                 <div>
-                                  <div style={{ fontSize: 12, fontWeight: checked ? 700 : 400, color: "#1C2B33" }}>{lbl || "Vehículo"}</div>
-                                  {v.plate && <div style={{ fontSize: 11, color: "#9AA3AB" }}>{v.plate}</div>}
+                                  <div style={{ fontSize: 12, fontWeight: checked ? 700 : 400, color: "var(--gris-900)" }}>{lbl || "Vehículo"}</div>
+                                  {v.plate && <div style={{ fontSize: 11, color: "var(--gris-400)" }}>{v.plate}</div>}
                                 </div>
                               </label>
                             );
@@ -722,17 +722,17 @@ export default function SellReportMarketPage({
 
                         {/* Pageable detail view */}
                         {count > 0 && currentVeh && (
-                          <div style={{ border: "1.5px solid #e5e7eb", borderRadius: 12, overflow: "hidden", marginBottom: 14 }}>
+                          <div style={{ border: "1.5px solid var(--gris-200)", borderRadius: 12, overflow: "hidden", marginBottom: 14 }}>
                             {/* Pager header */}
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", background: "#f8f9fa", borderBottom: "1px solid #e5e7eb" }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", background: "var(--gris-50)", borderBottom: "1px solid var(--gris-200)" }}>
                               <button type="button" disabled={safePage === 0} onClick={() => setFleetPage((p) => Math.max(0, p - 1))} style={{ background: "none", border: "none", cursor: safePage === 0 ? "default" : "pointer", color: safePage === 0 ? "#ccc" : "#0d9488", fontSize: 18, fontWeight: 700, padding: "0 4px" }}>‹</button>
-                              <span style={{ fontSize: 13, fontWeight: 600, color: "#1C2B33" }}>Vehículo {safePage + 1} de {count}</span>
+                              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--gris-900)" }}>Vehículo {safePage + 1} de {count}</span>
                               <button type="button" disabled={safePage === count - 1} onClick={() => setFleetPage((p) => Math.min(count - 1, p + 1))} style={{ background: "none", border: "none", cursor: safePage === count - 1 ? "default" : "pointer", color: safePage === count - 1 ? "#ccc" : "#0d9488", fontSize: 18, fontWeight: 700, padding: "0 4px" }}>›</button>
                             </div>
                             {/* Vehicle details */}
                             <div style={{ padding: "16px 16px 12px" }}>
-                              <div style={{ fontSize: 15, fontWeight: 700, color: "#1C2B33", marginBottom: 2 }}>{[currentVeh.brand, currentVeh.model].filter(Boolean).join(" ") || "Vehículo"}</div>
-                              {currentVeh.plate && <div style={{ fontSize: 12, color: "#9AA3AB", marginBottom: 10 }}>{currentVeh.plate}</div>}
+                              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--gris-900)", marginBottom: 2 }}>{[currentVeh.brand, currentVeh.model].filter(Boolean).join(" ") || "Vehículo"}</div>
+                              {currentVeh.plate && <div style={{ fontSize: 12, color: "var(--gris-400)", marginBottom: 10 }}>{currentVeh.plate}</div>}
                               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px 16px", marginBottom: 14 }}>
                                 {[
                                   ["Año", "year", currentVeh.year, "number"],
@@ -746,13 +746,13 @@ export default function SellReportMarketPage({
                                   const isEmpty = !displayVal;
                                   return (
                                   <div key={k}>
-                                    <div style={{ fontSize: 10, color: isEmpty ? "#BA7517" : "#9AA3AB", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 2, fontWeight: isEmpty ? 700 : 400 }}>{k}{isEmpty ? " *" : ""}</div>
+                                    <div style={{ fontSize: 10, color: isEmpty ? "#BA7517" : "var(--gris-400)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 2, fontWeight: isEmpty ? 700 : 400 }}>{k}{isEmpty ? " *" : ""}</div>
                                     {isEmpty ? (
                                       <input
                                         type={inputType}
                                         placeholder={`Añadir ${k.toLowerCase()}`}
                                         defaultValue=""
-                                        style={{ width: "100%", border: "1.5px solid #BA7517", borderRadius: 6, padding: "4px 6px", fontSize: 12, color: "#1C2B33", background: "#FFFBF5", boxSizing: "border-box" }}
+                                        style={{ width: "100%", border: "1.5px solid #BA7517", borderRadius: 6, padding: "4px 6px", fontSize: 12, color: "var(--gris-900)", background: "var(--gris-50)", boxSizing: "border-box" }}
                                         onBlur={async (e) => {
                                           const val = e.target.value.trim();
                                           if (!val) return;
@@ -763,9 +763,9 @@ export default function SellReportMarketPage({
                                         }}
                                       />
                                     ) : (
-                                      <div style={{ fontSize: 13, fontWeight: 600, color: "#1C2B33", display: "flex", alignItems: "center", gap: 4 }}>
+                                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--gris-900)", display: "flex", alignItems: "center", gap: 4 }}>
                                         {field === "mileage" ? new Intl.NumberFormat("es-ES").format(Number(displayVal)) + " km" : displayVal}
-                                        <button type="button" onClick={() => setFleetEdits((prev) => ({ ...prev, [currentVeh.id]: { ...(prev[currentVeh.id] || {}), [field]: "" } }))} style={{ fontSize: 10, color: "#9AA3AB", background: "none", border: "none", cursor: "pointer", padding: 0, lineHeight: 1 }} title="Editar">✎</button>
+                                        <button type="button" onClick={() => setFleetEdits((prev) => ({ ...prev, [currentVeh.id]: { ...(prev[currentVeh.id] || {}), [field]: "" } }))} style={{ fontSize: 10, color: "var(--gris-400)", background: "none", border: "none", cursor: "pointer", padding: 0, lineHeight: 1 }} title="Editar">✎</button>
                                       </div>
                                     )}
                                   </div>
@@ -774,12 +774,12 @@ export default function SellReportMarketPage({
                               </div>
                               {/* Damage selector per vehicle */}
                               <div>
-                                <div style={{ fontSize: 11, color: "#9AA3AB", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>Estado del vehículo</div>
+                                <div style={{ fontSize: 11, color: "var(--gris-400)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>Estado del vehículo</div>
                                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                                   {["Sin daños", "Daños leves", "Daños moderados", "Daños graves"].map((lvl) => {
                                     const active = (fleetDamages[currentVeh.id] || "Sin daños") === lvl;
                                     return (
-                                      <button key={lvl} type="button" onClick={() => setFleetDamages((prev) => ({ ...prev, [currentVeh.id]: lvl }))} style={{ padding: "6px 12px", borderRadius: 20, border: `1.5px solid ${active ? "#0d9488" : "#e5e7eb"}`, background: active ? "#0d9488" : "#fafafa", color: active ? "#fff" : "#46535C", fontSize: 12, fontWeight: active ? 700 : 400, cursor: "pointer" }}>
+                                      <button key={lvl} type="button" onClick={() => setFleetDamages((prev) => ({ ...prev, [currentVeh.id]: lvl }))} style={{ padding: "6px 12px", borderRadius: 20, border: `1.5px solid ${active ? "#0d9488" : "var(--gris-200)"}`, background: active ? "#0d9488" : "var(--gris-50)", color: active ? "#fff" : "var(--gris-600)", fontSize: 12, fontWeight: active ? 700 : 400, cursor: "pointer" }}>
                                         {lvl}
                                       </button>
                                     );
@@ -792,16 +792,16 @@ export default function SellReportMarketPage({
 
                         {/* Fleet price summary */}
                         {count > 0 && (
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", background: "#f8fffe", border: "1.5px solid #0d9488", borderRadius: 10, gap: 8, flexWrap: "wrap" }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", background: "var(--blanco)", border: "1.5px solid #0d9488", borderRadius: 10, gap: 8, flexWrap: "wrap" }}>
                             <div>
-                              <div style={{ fontSize: 12, color: "#46535C" }}>{count} vehículo{count !== 1 ? "s" : ""} seleccionado{count !== 1 ? "s" : ""} · {up} €/unidad</div>
-                              {total != null && <div style={{ fontSize: 18, fontWeight: 800, color: "#1C2B33" }}>Total: {total} €</div>}
+                              <div style={{ fontSize: 12, color: "var(--gris-600)" }}>{count} vehículo{count !== 1 ? "s" : ""} seleccionado{count !== 1 ? "s" : ""} · {up} €/unidad</div>
+                              {total != null && <div style={{ fontSize: 18, fontWeight: 800, color: "var(--gris-900)" }}>Total: {total} €</div>}
                             </div>
                             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                               {TIERS.map((tier, i) => {
                                 const label = i === 0 ? "1" : `${TIERS[i-1].max + 1}–${tier.max}`;
                                 const active = up === tier.price;
-                                return <span key={tier.price} style={{ fontSize: 11, padding: "3px 8px", borderRadius: 6, background: active ? "#0d9488" : "#f0f0f0", color: active ? "#fff" : "#9AA3AB", fontWeight: active ? 700 : 400 }}>{label}: {tier.price}€</span>;
+                                return <span key={tier.price} style={{ fontSize: 11, padding: "3px 8px", borderRadius: 6, background: active ? "#0d9488" : "var(--gris-100)", color: active ? "#fff" : "var(--gris-400)", fontWeight: active ? 700 : 400 }}>{label}: {tier.price}€</span>;
                               })}
                             </div>
                           </div>
@@ -1194,7 +1194,7 @@ export default function SellReportMarketPage({
 
                   <div className="field-grid-2" style={{ marginTop: "0.75rem" }}>
                     <div className="field">
-                      <label>Propietarios anteriores <span style={{ color: "#9ca3af", fontWeight: 400 }}>(opcional)</span></label>
+                      <label>Propietarios anteriores <span style={{ color: "var(--gris-400)", fontWeight: 400 }}>(opcional)</span></label>
                       <div className="sel-wrap">
                         <select
                           value={sellAnswers?.owners || ""}
@@ -1209,7 +1209,7 @@ export default function SellReportMarketPage({
                       </div>
                     </div>
                     <div className="field">
-                      <label>Historial de revisiones <span style={{ color: "#9ca3af", fontWeight: 400 }}>(opcional)</span></label>
+                      <label>Historial de revisiones <span style={{ color: "var(--gris-400)", fontWeight: 400 }}>(opcional)</span></label>
                       <div className="sel-wrap">
                         <select
                           value={sellAnswers?.serviceHistory || ""}
@@ -1227,7 +1227,7 @@ export default function SellReportMarketPage({
 
                   <div className="field-grid-2" style={{ marginTop: "0.75rem" }}>
                     <div className="field">
-                      <label>Transmisión <span style={{ color: "#9ca3af", fontWeight: 400 }}>(opcional)</span></label>
+                      <label>Transmisión <span style={{ color: "var(--gris-400)", fontWeight: 400 }}>(opcional)</span></label>
                       <div className="sel-wrap">
                         <select
                           value={sellAnswers?.transmission || ""}
@@ -1241,7 +1241,7 @@ export default function SellReportMarketPage({
                       </div>
                     </div>
                     <div className="field">
-                      <label>Color <span style={{ color: "#9ca3af", fontWeight: 400 }}>(opcional)</span></label>
+                      <label>Color <span style={{ color: "var(--gris-400)", fontWeight: 400 }}>(opcional)</span></label>
                       {colorManual ? (
                         <>
                           <input
@@ -1301,7 +1301,7 @@ export default function SellReportMarketPage({
 
                   <div className="field-grid-2" style={{ marginTop: "0.75rem" }}>
                     <div className="field">
-                      <label>Potencia <span style={{ color: "#9ca3af", fontWeight: 400 }}>(CV, opcional)</span></label>
+                      <label>Potencia <span style={{ color: "var(--gris-400)", fontWeight: 400 }}>(CV, opcional)</span></label>
                       <input
                         type="number"
                         min="30"
@@ -1312,7 +1312,7 @@ export default function SellReportMarketPage({
                       />
                     </div>
                     <div className="field">
-                      <label>Estado ITV <span style={{ color: "#9ca3af", fontWeight: 400 }}>(opcional)</span></label>
+                      <label>Estado ITV <span style={{ color: "var(--gris-400)", fontWeight: 400 }}>(opcional)</span></label>
                       <div className="sel-wrap">
                         <select
                           value={sellAnswers?.itvStatus || ""}
@@ -1347,18 +1347,18 @@ export default function SellReportMarketPage({
                     </div>
                     {(sellAnswers?.damageLevel && sellAnswers.damageLevel !== DAMAGE_OPTIONS[0]) && (
                       <div style={{ marginTop: "0.6rem" }}>
-                        <label style={{ fontSize: 12, color: "#6b7280", display: "block", marginBottom: 4 }}>
-                          Describe los daños con detalle <span style={{ color: "#9ca3af" }}>(opcional, mejora la tasación)</span>
+                        <label style={{ fontSize: 12, color: "var(--gris-500)", display: "block", marginBottom: 4 }}>
+                          Describe los daños con detalle <span style={{ color: "var(--gris-400)" }}>(opcional, mejora la tasación)</span>
                         </label>
                         <textarea
                           rows={3}
                           placeholder="Ej: Arañazo en puerta trasera derecha, pequeño golpe en parachoques delantero..."
                           value={sellAnswers?.damageDescription || ""}
                           onChange={(event) => setSellAnswers((prev) => ({ ...prev, damageDescription: event.target.value }))}
-                          style={{ width: "100%", boxSizing: "border-box", border: "1px solid #d1d5db", borderRadius: 8, padding: "8px 10px", fontSize: 13, color: "#374151", resize: "vertical", fontFamily: "inherit" }}
+                          style={{ width: "100%", boxSizing: "border-box", border: "1px solid var(--gris-300)", borderRadius: 8, padding: "8px 10px", fontSize: 13, color: "var(--gris-700)", resize: "vertical", fontFamily: "inherit" }}
                         />
                         <div style={{ marginTop: "0.5rem" }}>
-                          <div style={{ fontSize: 10, color: "#9ca3af", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: "0.35rem" }}>
+                          <div style={{ fontSize: 10, color: "var(--gris-400)", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: "0.35rem" }}>
                             Añadir al texto — elige zona y luego tipo de daño
                           </div>
                           {DAMAGE_KEYWORDS.map((group) => {
@@ -1375,9 +1375,9 @@ export default function SellReportMarketPage({
                             return (
                               <div key={group.label} style={{ marginBottom: "0.5rem" }}>
                                 {isType && pendingDamageZone && (
-                                  <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11, color: "#0d9488", background: "#f0fafa", border: "1px solid #99e6de", borderRadius: 6, padding: "3px 8px", marginBottom: "0.35rem" }}>
+                                  <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11, color: "#0d9488", background: "var(--gris-50)", border: "1px solid #99e6de", borderRadius: 6, padding: "3px 8px", marginBottom: "0.35rem" }}>
                                     <span>📍 <strong>{pendingDamageZone}</strong> — ahora elige el tipo de daño</span>
-                                    <button type="button" onClick={() => setPendingDamageZone(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", fontSize: 13, padding: 0, lineHeight: 1 }}>✕</button>
+                                    <button type="button" onClick={() => setPendingDamageZone(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--gris-400)", fontSize: 13, padding: 0, lineHeight: 1 }}>✕</button>
                                   </div>
                                 )}
                                 <div style={{ fontSize: 10, color: "#bbb", marginBottom: "0.2rem", fontWeight: 600, letterSpacing: "0.04em" }}>{group.label}</div>
@@ -1392,9 +1392,9 @@ export default function SellReportMarketPage({
                                           onClick={() => setPendingDamageZone(isPending ? null : tag)}
                                           style={{
                                             padding: "3px 9px", borderRadius: 20, fontSize: 11, fontFamily: "inherit", cursor: "pointer", transition: "all 0.12s",
-                                            border: `1px solid ${isPending ? "#0d9488" : "#e5e7eb"}`,
-                                            background: isPending ? "#0d9488" : "#fafaf9",
-                                            color: isPending ? "#fff" : "#6b7280",
+                                            border: `1px solid ${isPending ? "#0d9488" : "var(--gris-200)"}`,
+                                            background: isPending ? "#0d9488" : "var(--gris-50)",
+                                            color: isPending ? "#fff" : "var(--gris-500)",
                                             fontWeight: isPending ? 700 : 400,
                                           }}
                                         >
@@ -1419,9 +1419,9 @@ export default function SellReportMarketPage({
                                           style={{
                                             padding: "3px 9px", borderRadius: 20, fontSize: 11, fontFamily: "inherit", transition: "all 0.12s",
                                             cursor: active ? "default" : "pointer",
-                                            border: `1px solid ${active ? "#0d9488" : pendingDamageZone ? "#6366f1" : "#e5e7eb"}`,
-                                            background: active ? "#f0fafa" : pendingDamageZone ? "#f5f5ff" : "#fafaf9",
-                                            color: active ? "#0d9488" : pendingDamageZone ? "#6366f1" : "#6b7280",
+                                            border: `1px solid ${active ? "#0d9488" : pendingDamageZone ? "var(--gris-500)" : "var(--gris-200)"}`,
+                                            background: active ? "var(--gris-50)" : pendingDamageZone ? "var(--gris-100)" : "var(--gris-50)",
+                                            color: active ? "#0d9488" : pendingDamageZone ? "var(--gris-500)" : "var(--gris-500)",
                                             fontWeight: pendingDamageZone && !active ? 600 : 400,
                                             opacity: active ? 0.8 : 1,
                                           }}
@@ -1443,9 +1443,9 @@ export default function SellReportMarketPage({
                                         style={{
                                           padding: "3px 9px", borderRadius: 20, fontSize: 11, fontFamily: "inherit", transition: "all 0.12s",
                                           cursor: active ? "default" : "pointer",
-                                          border: `1px solid ${active ? "#0d9488" : "#e5e7eb"}`,
-                                          background: active ? "#f0fafa" : "#fafaf9",
-                                          color: active ? "#0d9488" : "#6b7280",
+                                          border: `1px solid ${active ? "#0d9488" : "var(--gris-200)"}`,
+                                          background: active ? "var(--gris-50)" : "var(--gris-50)",
+                                          color: active ? "#0d9488" : "var(--gris-500)",
                                           opacity: active ? 0.8 : 1,
                                         }}
                                       >
@@ -1489,30 +1489,30 @@ export default function SellReportMarketPage({
 
                 {/* Blurred report preview */}
                 <div style={{ position: "relative", marginBottom: 16 }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>Vista previa del informe</div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: "var(--gris-500)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>Vista previa del informe</div>
 
                   {/* ── blurred content ── */}
-                  <div style={{ filter: "blur(5px)", pointerEvents: "none", userSelect: "none", borderRadius: 12, overflow: "hidden", border: "1px solid #e5e7eb", background: "#fff" }}>
+                  <div style={{ filter: "blur(5px)", pointerEvents: "none", userSelect: "none", borderRadius: 12, overflow: "hidden", border: "1px solid var(--gris-200)", background: "#fff" }}>
 
                     {/* Veredicto de valor */}
-                    <div style={{ background: "linear-gradient(180deg,#FFFDFA 0%,#FBF4E9 100%)", border: "1.5px solid #BA7517", borderRadius: "10px 10px 0 0", padding: "16px 18px 14px" }}>
+                    <div style={{ background: "linear-gradient(180deg,var(--blanco) 0%,#FBF4E9 100%)", border: "1.5px solid #BA7517", borderRadius: "10px 10px 0 0", padding: "16px 18px 14px" }}>
                       <div style={{ fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "#BA7517", fontWeight: 700, marginBottom: 6 }}>Precio óptimo de venta</div>
                       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
                         <div>
-                          <div style={{ fontSize: 38, fontWeight: 800, color: "#1C2B33", letterSpacing: "-0.02em", lineHeight: 1 }}>17.400 <span style={{ fontSize: 20 }}>€</span></div>
-                          <div style={{ fontSize: 9, color: "#6B7780", marginTop: 4 }}>Basado en 248 comparables activos en portales</div>
+                          <div style={{ fontSize: 38, fontWeight: 800, color: "var(--gris-900)", letterSpacing: "-0.02em", lineHeight: 1 }}>17.400 <span style={{ fontSize: 20 }}>€</span></div>
+                          <div style={{ fontSize: 9, color: "var(--gris-500)", marginTop: 4 }}>Basado en 248 comparables activos en portales</div>
                         </div>
                         <div style={{ textAlign: "center", borderLeft: "1px solid #EAD9BF", paddingLeft: 16 }}>
                           <div style={{ fontSize: 28, fontWeight: 800, color: "#137370", lineHeight: 1 }}>83%</div>
-                          <div style={{ fontSize: 8, color: "#6B7780", marginTop: 3, textTransform: "uppercase", letterSpacing: "0.06em" }}>Confianza</div>
+                          <div style={{ fontSize: 8, color: "var(--gris-500)", marginTop: 3, textTransform: "uppercase", letterSpacing: "0.06em" }}>Confianza</div>
                         </div>
                       </div>
                       {/* Range bar */}
                       <div style={{ marginTop: 12 }}>
-                        <div style={{ position: "relative", height: 10, borderRadius: 6, background: "linear-gradient(90deg,#E7EFEF 0%,#BBD9D6 40%,#BA7517 50%,#BBD9D6 60%,#E7EFEF 100%)" }}>
-                          <div style={{ position: "absolute", top: -3, left: "50%", transform: "translateX(-50%)", width: 3, height: 16, background: "#1C2B33", borderRadius: 2 }} />
+                        <div style={{ position: "relative", height: 10, borderRadius: 6, background: "linear-gradient(90deg,var(--gris-100) 0%,#BBD9D6 40%,#BA7517 50%,#BBD9D6 60%,var(--gris-100) 100%)" }}>
+                          <div style={{ position: "absolute", top: -3, left: "50%", transform: "translateX(-50%)", width: 3, height: 16, background: "var(--gris-900)", borderRadius: 2 }} />
                         </div>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 9, color: "#6B7780" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 9, color: "var(--gris-500)" }}>
                           <span>15.200 €</span>
                           <span style={{ color: "#BA7517", fontWeight: 700 }}>17.400 € óptimo</span>
                           <span>19.800 €</span>
@@ -1527,32 +1527,32 @@ export default function SellReportMarketPage({
                         { n: "34 d.", l: "Tiempo medio\nde venta", color: "#137370" },
                         { n: "ALTO", l: "Nivel de\ndemanda", color: "#BA7517" },
                       ].map(({ n, l, color }) => (
-                        <div key={l} style={{ border: "1px solid #ECEEF0", borderRadius: 10, padding: "10px 8px", textAlign: "center", background: "#fff" }}>
+                        <div key={l} style={{ border: "1px solid var(--gris-100)", borderRadius: 10, padding: "10px 8px", textAlign: "center", background: "#fff" }}>
                           <div style={{ fontSize: 20, fontWeight: 800, color, lineHeight: 1 }}>{n}</div>
-                          <div style={{ fontSize: 8, color: "#6B7780", marginTop: 5, whiteSpace: "pre-line", lineHeight: 1.35 }}>{l}</div>
+                          <div style={{ fontSize: 8, color: "var(--gris-500)", marginTop: 5, whiteSpace: "pre-line", lineHeight: 1.35 }}>{l}</div>
                         </div>
                       ))}
                     </div>
 
                     {/* Portal table */}
-                    <div style={{ margin: "12px 14px 0", borderRadius: 10, border: "1px solid #ECEEF0", overflow: "hidden" }}>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", background: "#FAF7F2", borderBottom: "1px solid #ECE6DB", padding: "6px 12px" }}>
+                    <div style={{ margin: "12px 14px 0", borderRadius: 10, border: "1px solid var(--gris-100)", overflow: "hidden" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", background: "var(--gris-50)", borderBottom: "1px solid var(--gris-200)", padding: "6px 12px" }}>
                         {["Portal", "Uds.", "Precio medio"].map((h) => (
-                          <div key={h} style={{ fontSize: 8, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9AA3AB", fontWeight: 700, textAlign: h === "Portal" ? "left" : "right" }}>{h}</div>
+                          <div key={h} style={{ fontSize: 8, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--gris-400)", fontWeight: 700, textAlign: h === "Portal" ? "left" : "right" }}>{h}</div>
                         ))}
                       </div>
                       {[
                         { letter: "F", bg: "#16a34a", name: "Flexicar", units: 89, price: "17.200 €" },
-                        { letter: "A", bg: "#2563eb", name: "Autohero", units: 74, price: "17.650 €" },
+                        { letter: "A", bg: "var(--marca)", name: "Autohero", units: 74, price: "17.650 €" },
                         { letter: "C", bg: "#ea580c", name: "Coches.net", units: 51, price: "16.900 €" },
                         { letter: "W", bg: "#ca8a04", name: "Wallapop", units: 34, price: "15.800 €" },
                       ].map(({ letter, bg, name, units, price }, i, arr) => (
-                        <div key={name} style={{ display: "grid", gridTemplateColumns: "1fr auto auto", alignItems: "center", padding: "8px 12px", borderBottom: i < arr.length - 1 ? "1px solid #F0F0F0" : "none" }}>
+                        <div key={name} style={{ display: "grid", gridTemplateColumns: "1fr auto auto", alignItems: "center", padding: "8px 12px", borderBottom: i < arr.length - 1 ? "1px solid var(--gris-100)" : "none" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 700, fontSize: 10.5 }}>
                             <div style={{ width: 18, height: 18, borderRadius: 4, background: bg, color: "#fff", fontWeight: 800, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center" }}>{letter}</div>
                             {name}
                           </div>
-                          <div style={{ fontSize: 9, color: "#9AA3AB", fontWeight: 600, textAlign: "right", paddingRight: 16 }}>{units} uds.</div>
+                          <div style={{ fontSize: 9, color: "var(--gris-400)", fontWeight: 600, textAlign: "right", paddingRight: 16 }}>{units} uds.</div>
                           <div style={{ fontSize: 10.5, fontWeight: 700, textAlign: "right" }}>{price}</div>
                         </div>
                       ))}
@@ -1560,7 +1560,7 @@ export default function SellReportMarketPage({
 
                     {/* Histogram */}
                     <div style={{ margin: "12px 14px 0" }}>
-                      <div style={{ fontSize: 9, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9AA3AB", fontWeight: 700, marginBottom: 6 }}>Distribución de precios</div>
+                      <div style={{ fontSize: 9, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--gris-400)", fontWeight: 700, marginBottom: 6 }}>Distribución de precios</div>
                       {[
                         { label: "14–15k", pct: 14, peak: false },
                         { label: "15–16k", pct: 38, peak: false },
@@ -1570,8 +1570,8 @@ export default function SellReportMarketPage({
                         { label: "19–20k", pct: 22, peak: false },
                       ].map(({ label, pct, peak }) => (
                         <div key={label} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                          <div style={{ width: 44, fontSize: 8, color: "#46535C", fontWeight: 600, flexShrink: 0 }}>{label}</div>
-                          <div style={{ flex: 1, height: 12, background: "#F4F4F5", borderRadius: 3, overflow: "hidden" }}>
+                          <div style={{ width: 44, fontSize: 8, color: "var(--gris-600)", fontWeight: 600, flexShrink: 0 }}>{label}</div>
+                          <div style={{ flex: 1, height: 12, background: "var(--gris-100)", borderRadius: 3, overflow: "hidden" }}>
                             <div style={{ height: "100%", width: `${pct}%`, background: peak ? "#BA7517" : "#137370", borderRadius: 3 }} />
                           </div>
                         </div>
@@ -1581,16 +1581,16 @@ export default function SellReportMarketPage({
                     {/* 3 strategy cards */}
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, padding: "12px 14px 14px" }}>
                       {[
-                        { tag: "Venta rápida", price: "15.200 €", days: "15–20 días", bg: "#F2F7F7", tc: "#137370", border: "#ECEEF0" },
+                        { tag: "Venta rápida", price: "15.200 €", days: "15–20 días", bg: "var(--gris-50)", tc: "#137370", border: "var(--gris-100)" },
                         { tag: "Equilibrado ★", price: "17.400 €", days: "30–40 días", bg: "#FBF4E9", tc: "#BA7517", border: "#BA7517" },
-                        { tag: "Máximo valor", price: "19.800 €", days: "50–70 días", bg: "#F4F2F7", tc: "#5B4B8A", border: "#ECEEF0" },
+                        { tag: "Máximo valor", price: "19.800 €", days: "50–70 días", bg: "var(--gris-100)", tc: "var(--gris-500)", border: "var(--gris-100)" },
                       ].map(({ tag, price, days, bg, tc, border }) => (
                         <div key={tag} style={{ border: `1.5px solid ${border}`, borderRadius: 10, overflow: "hidden" }}>
                           <div style={{ background: bg, padding: "8px 10px 6px" }}>
                             <div style={{ fontSize: 8, letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 700, color: tc }}>{tag}</div>
                             <div style={{ fontSize: 18, fontWeight: 800, color: tc, marginTop: 2, letterSpacing: "-0.01em" }}>{price}</div>
                           </div>
-                          <div style={{ padding: "6px 10px 8px", borderTop: "1px solid #F0ECE3", fontSize: 8, color: "#46535C" }}>{days} estimados</div>
+                          <div style={{ padding: "6px 10px 8px", borderTop: "1px solid var(--gris-100)", fontSize: 8, color: "var(--gris-600)" }}>{days} estimados</div>
                         </div>
                       ))}
                     </div>
@@ -1601,8 +1601,8 @@ export default function SellReportMarketPage({
                   <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                     <div style={{ background: "rgba(255,255,255,0.95)", borderRadius: 12, padding: "14px 20px", textAlign: "center", boxShadow: "0 4px 24px rgba(0,0,0,0.13)", maxWidth: 240 }}>
                       <div style={{ fontSize: 20 }}>🔒</div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#1C2B33", marginTop: 4 }}>Datos reales de tu vehículo</div>
-                      <div style={{ fontSize: 11, color: "#6b7280", marginTop: 4 }}>Solicita el informe para ver tu precio exacto, portales y estrategia personalizada</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gris-900)", marginTop: 4 }}>Datos reales de tu vehículo</div>
+                      <div style={{ fontSize: 11, color: "var(--gris-500)", marginTop: 4 }}>Solicita el informe para ver tu precio exacto, portales y estrategia personalizada</div>
                     </div>
                   </div>
                 </div>
@@ -1619,7 +1619,7 @@ export default function SellReportMarketPage({
                     const tier = TIERS.find((t) => count <= t.max);
                     const up = tier ? tier.price : null;
                     const total = up != null ? count * up : null;
-                    if (!count) return <span style={{ fontSize: 13, color: "#9AA3AB" }}>Selecciona al menos un vehículo en el Paso 1 para continuar.</span>;
+                    if (!count) return <span style={{ fontSize: 13, color: "var(--gris-400)" }}>Selecciona al menos un vehículo en el Paso 1 para continuar.</span>;
                     return (
                       <>
                         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
@@ -1663,9 +1663,9 @@ export default function SellReportMarketPage({
                           >
                             {fleetLoading ? "Redirigiendo…" : `Tasar ${count} vehículo${count !== 1 ? "s" : ""} — ${total} €`}
                           </button>
-                          <a href="/ejemplo-informe-tasacion.pdf" download="Ejemplo_Informe_Tasacion_CarsWise.pdf" style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1.5px solid #0d9488", color: "#0d9488", background: "#fff", borderRadius: 10, padding: "11px 18px", fontSize: 14, fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>Ver ejemplo</a>
+                          <a href="/ejemplo-informe-tasacion.pdf" download="Ejemplo_Informe_Tasacion_PopCar.pdf" style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1.5px solid #0d9488", color: "#0d9488", background: "#fff", borderRadius: 10, padding: "11px 18px", fontSize: 14, fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>Ver ejemplo</a>
                         </div>
-                        <span style={{ fontSize: 12, color: "#64748b" }}>{count} vehículo{count !== 1 ? "s" : ""} · {up} €/unidad · Entrega automática en menos de 5 minutos</span>
+                        <span style={{ fontSize: 12, color: "var(--gris-500)" }}>{count} vehículo{count !== 1 ? "s" : ""} · {up} €/unidad · Entrega automática en menos de 5 minutos</span>
                         {fleetError && (
                           fleetError.startsWith("PROFILE_INCOMPLETE:") ? (
                             <div style={{ display: "flex", alignItems: "flex-start", gap: 8, background: "#fef3c7", border: "1px solid #f59e0b", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#92400e", maxWidth: 460 }}>
@@ -1720,9 +1720,9 @@ export default function SellReportMarketPage({
                         >
                           {checkoutLoading ? "Redirigiendo…" : "Solicitar tasación — 10 €"}
                         </button>
-                        <a href="/ejemplo-informe-tasacion.pdf" download="Ejemplo_Informe_Tasacion_CarsWise.pdf" style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1.5px solid #0d9488", color: "#0d9488", background: "#fff", borderRadius: 10, padding: "11px 18px", fontSize: 14, fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>Ver ejemplo</a>
+                        <a href="/ejemplo-informe-tasacion.pdf" download="Ejemplo_Informe_Tasacion_PopCar.pdf" style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1.5px solid #0d9488", color: "#0d9488", background: "#fff", borderRadius: 10, padding: "11px 18px", fontSize: 14, fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>Ver ejemplo</a>
                       </div>
-                      <span style={{ fontSize: 12, color: "#64748b" }}>Pago único · Entrega automática en menos de 5 minutos</span>
+                      <span style={{ fontSize: 12, color: "var(--gris-500)" }}>Pago único · Entrega automática en menos de 5 minutos</span>
                       {checkoutError && (
                         checkoutError.startsWith("PROFILE_INCOMPLETE:") ? (
                           <div style={{ display: "flex", alignItems: "flex-start", gap: 8, background: "#fef3c7", border: "1px solid #f59e0b", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#92400e", maxWidth: 460 }}>
@@ -1765,7 +1765,7 @@ export default function SellReportMarketPage({
         const total = up != null ? count * up : null;
 
         return (
-          <div style={{ margin: "16px 0", border: "1.5px solid #e5e7eb", borderRadius: 14, overflow: "hidden", background: "#fff" }}>
+          <div style={{ margin: "16px 0", border: "1.5px solid var(--gris-200)", borderRadius: 14, overflow: "hidden", background: "#fff" }}>
             <button
               type="button"
               onClick={() => setFleetOpen((o) => !o)}
@@ -1774,27 +1774,27 @@ export default function SellReportMarketPage({
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{ fontSize: 18 }}>🚗</span>
                 <div style={{ textAlign: "left" }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#1C2B33" }}>Tasar toda tu flota</div>
-                  <div style={{ fontSize: 12, color: "#6B7780" }}>Descuentos desde 2 vehículos · desde 9 €/unidad</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--gris-900)" }}>Tasar toda tu flota</div>
+                  <div style={{ fontSize: 12, color: "var(--gris-500)" }}>Descuentos desde 2 vehículos · desde 9 €/unidad</div>
                 </div>
               </div>
-              <span style={{ fontSize: 18, color: "#6B7780", transform: fleetOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>▾</span>
+              <span style={{ fontSize: 18, color: "var(--gris-500)", transform: fleetOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>▾</span>
             </button>
 
             {fleetOpen && (
-              <div style={{ borderTop: "1px solid #f0f0f0", padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
+              <div style={{ borderTop: "1px solid var(--gris-100)", padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
                 {/* Pricing table */}
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   {TIERS.map((t, i) => {
                     const label = i === 0 ? "1 veh." : i === TIERS.length - 1 ? `${TIERS[i-1].max + 1}–99` : `${TIERS[i-1].max + 1}–${t.max}`;
                     const active = count > 0 && unitPrice(count) === t.price;
                     return (
-                      <div key={t.price} style={{ background: active ? "#0d9488" : "#f8f9fa", color: active ? "#fff" : "#46535C", borderRadius: 8, padding: "5px 10px", fontSize: 12, fontWeight: active ? 700 : 400, border: `1px solid ${active ? "#0d9488" : "#e5e7eb"}` }}>
+                      <div key={t.price} style={{ background: active ? "#0d9488" : "var(--gris-50)", color: active ? "#fff" : "var(--gris-600)", borderRadius: 8, padding: "5px 10px", fontSize: 12, fontWeight: active ? 700 : 400, border: `1px solid ${active ? "#0d9488" : "var(--gris-200)"}` }}>
                         {label}: <strong>{t.price} €</strong>
                       </div>
                     );
                   })}
-                  <div style={{ background: "#f8f9fa", color: "#46535C", borderRadius: 8, padding: "5px 10px", fontSize: 12, border: "1px solid #e5e7eb" }}>100+: <strong>comercial</strong></div>
+                  <div style={{ background: "var(--gris-50)", color: "var(--gris-600)", borderRadius: 8, padding: "5px 10px", fontSize: 12, border: "1px solid var(--gris-200)" }}>100+: <strong>comercial</strong></div>
                 </div>
 
                 {/* Vehicle list */}
@@ -1805,22 +1805,22 @@ export default function SellReportMarketPage({
                       garageVehicles.forEach((v) => { all[v.id] = true; });
                       setFleetSelected(all);
                     }} style={{ fontSize: 12, color: "#0d9488", background: "none", border: "none", cursor: "pointer", padding: 0, fontWeight: 600 }}>Seleccionar todos</button>
-                    <span style={{ color: "#e5e7eb" }}>·</span>
-                    <button type="button" onClick={() => setFleetSelected({})} style={{ fontSize: 12, color: "#6B7780", background: "none", border: "none", cursor: "pointer", padding: 0 }}>Limpiar</button>
+                    <span style={{ color: "var(--gris-200)" }}>·</span>
+                    <button type="button" onClick={() => setFleetSelected({})} style={{ fontSize: 12, color: "var(--gris-500)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>Limpiar</button>
                   </div>
                   {garageVehicles.map((v) => {
                     const checked = !!fleetSelected[v.id];
                     const label = [v.brand, v.model, v.year, v.plate ? `· ${v.plate}` : ""].filter(Boolean).join(" ");
                     return (
-                      <label key={v.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", borderRadius: 8, border: `1.5px solid ${checked ? "#0d9488" : "#e5e7eb"}`, background: checked ? "#f0fafa" : "#fafafa", cursor: "pointer" }}>
+                      <label key={v.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", borderRadius: 8, border: `1.5px solid ${checked ? "#0d9488" : "var(--gris-200)"}`, background: checked ? "var(--gris-50)" : "var(--gris-50)", cursor: "pointer" }}>
                         <input
                           type="checkbox"
                           checked={checked}
                           onChange={(e) => setFleetSelected((prev) => ({ ...prev, [v.id]: e.target.checked }))}
                           style={{ accentColor: "#0d9488", width: 16, height: 16 }}
                         />
-                        <span style={{ fontSize: 13, fontWeight: checked ? 600 : 400, color: "#1C2B33", flex: 1 }}>{label || v.id}</span>
-                        {v.mileage && <span style={{ fontSize: 11, color: "#9AA3AB" }}>{new Intl.NumberFormat("es-ES").format(v.mileage)} km</span>}
+                        <span style={{ fontSize: 13, fontWeight: checked ? 600 : 400, color: "var(--gris-900)", flex: 1 }}>{label || v.id}</span>
+                        {v.mileage && <span style={{ fontSize: 11, color: "var(--gris-400)" }}>{new Intl.NumberFormat("es-ES").format(v.mileage)} km</span>}
                       </label>
                     );
                   })}
@@ -1828,10 +1828,10 @@ export default function SellReportMarketPage({
 
                 {/* Summary + CTA */}
                 {count > 0 && (
-                  <div style={{ background: "#f8fffe", border: "1.5px solid #0d9488", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                  <div style={{ background: "var(--blanco)", border: "1.5px solid #0d9488", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                     <div>
-                      <div style={{ fontSize: 13, color: "#46535C" }}>{count} vehículo{count !== 1 ? "s" : ""} · {up} €/unidad</div>
-                      {total != null && <div style={{ fontSize: 22, fontWeight: 800, color: "#1C2B33" }}>{total} €</div>}
+                      <div style={{ fontSize: 13, color: "var(--gris-600)" }}>{count} vehículo{count !== 1 ? "s" : ""} · {up} €/unidad</div>
+                      {total != null && <div style={{ fontSize: 22, fontWeight: 800, color: "var(--gris-900)" }}>{total} €</div>}
                     </div>
                     <button
                       type="button"
@@ -1886,7 +1886,7 @@ export default function SellReportMarketPage({
                     </div>
                   ) : <span style={{ fontSize: 12, color: "#dc2626" }}>{fleetError}</span>
                 )}
-                <span style={{ fontSize: 11, color: "#9AA3AB" }}>Pago único · Recibirás un informe PDF por cada vehículo en menos de 5 minutos</span>
+                <span style={{ fontSize: 11, color: "var(--gris-400)" }}>Pago único · Recibirás un informe PDF por cada vehículo en menos de 5 minutos</span>
               </div>
             )}
           </div>

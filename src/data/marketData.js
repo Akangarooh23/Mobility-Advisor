@@ -17,14 +17,14 @@ export const MONTHLY_BUDGET_OPTIONS = [
 ];
 
 export const MOBILITY_TYPES = {
-  compra_contado: { label: "Compra al Contado", icon: "🔑", color: "#2563EB" },
-  compra_financiada: { label: "Compra Financiada", icon: "📝", color: "#7C3AED" },
+  compra_contado: { label: "Compra al Contado", icon: "🔑", color: "var(--marca)" },
+  compra_financiada: { label: "Compra Financiada", icon: "📝", color: "var(--gris-500)" },
   renting_largo: { label: "Renting a Largo Plazo", icon: "📅", color: "#059669" },
   renting_corto: { label: "Renting a Corto Plazo", icon: "🗓️", color: "#D97706" },
   rent_a_car: { label: "Rent a Car", icon: "🏢", color: "#DC2626" },
-  carsharing: { label: "Carsharing", icon: "🔄", color: "#0891B2" },
+  carsharing: { label: "Carsharing", icon: "🔄", color: "var(--gris-400)" },
   carpooling: { label: "Carpooling", icon: "🤝", color: "#65A30D" },
-  transporte_publico: { label: "Transporte Público", icon: "🚇", color: "#9333EA" },
+  transporte_publico: { label: "Transporte Público", icon: "🚇", color: "var(--gris-500)" },
   micromovilidad: { label: "Micromovilidad", icon: "🛴", color: "#E11D48" },
 };
 

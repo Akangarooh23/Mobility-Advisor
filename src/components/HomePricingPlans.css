@@ -13,14 +13,14 @@
   align-items: center;
   gap: 0.45rem;
   background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(99, 179, 237, 0.4);
+  border: 1px solid rgba(255, 196, 0, 0.4);
   border-radius: 30px;
   padding: 0.35rem 1rem;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #3182ce;
+  color: var(--gris-400);
   margin-bottom: 1.5rem;
   backdrop-filter: blur(8px);
 }
@@ -38,13 +38,13 @@
   font-size: clamp(32px, 5vw, 52px);
   font-weight: 900;
   line-height: 1.1;
-  color: #1a1a2e;
+  color: var(--gris-800);
   margin-bottom: 0.75rem;
   letter-spacing: -0.02em;
 }
 
 .cw-plans-hero h2 span {
-  background: linear-gradient(135deg, #3182ce, #38b2ac);
+  background: linear-gradient(135deg, var(--gris-400), #38b2ac);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -52,7 +52,7 @@
 
 .cw-plans-hero p {
   font-size: 15px;
-  color: #718096;
+  color: var(--gris-400);
   max-width: 520px;
   margin: 0 auto 2rem;
   line-height: 1.7;
@@ -70,18 +70,18 @@
 .cw-plans-toggle-label {
   font-size: 13px;
   font-weight: 600;
-  color: #718096;
+  color: var(--gris-400);
 }
 
 .cw-plans-toggle-label.active {
-  color: #1a1a2e;
+  color: var(--gris-800);
 }
 
 .cw-plans-toggle {
   width: 44px;
   height: 24px;
   border: none;
-  background: #3182ce;
+  background: var(--gris-400);
   border-radius: 12px;
   position: relative;
   cursor: pointer;
@@ -95,7 +95,7 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--blanco);
   transition: transform 0.2s;
 }
 
@@ -104,7 +104,7 @@
 }
 
 .cw-plans-save {
-  background: #ebfaf7;
+  background: var(--gris-50);
   color: #2c7a7b;
   font-size: 11px;
   font-weight: 700;
@@ -123,7 +123,7 @@
 }
 
 .cw-plan-card {
-  background: #ffffff;
+  background: var(--blanco);
   border-radius: 20px;
   padding: 1.75rem 1.2rem;
   border: 1.5px solid rgba(0, 0, 0, 0.06);
@@ -140,7 +140,7 @@
   padding-top: 2.25rem;
   padding-bottom: 2.25rem;
   border-color: transparent;
-  box-shadow: 0 8px 40px rgba(49, 130, 206, 0.18);
+  box-shadow: 0 8px 40px rgba(150,150,143, 0.18);
   transform: translateY(-10px);
   z-index: 2;
 }
@@ -158,7 +158,7 @@
 }
 
 .cw-plan-card.featured {
-  background: linear-gradient(160deg, #1a365d 0%, #2a4a7f 100%);
+  background: linear-gradient(160deg, var(--gris-700) 0%, var(--gris-600) 100%);
 }
 
 .cw-plan-card.oro {
@@ -166,7 +166,7 @@
 }
 
 .cw-plan-card.platino {
-  border-top: 3px solid #805ad5;
+  border-top: 3px solid var(--gris-500);
 }
 
 .cw-plan-featured-badge {
@@ -174,8 +174,8 @@
   top: -14px;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, #3182ce, #38b2ac);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--gris-400), #38b2ac);
+  color: var(--blanco);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -212,24 +212,24 @@
 }
 
 .oro .cw-plan-tag {
-  background: #fffff0;
+  background: var(--blanco);
   color: #975a16;
 }
 
 .platino .cw-plan-tag {
-  background: #faf5ff;
-  color: #6b46c1;
+  background: var(--gris-50);
+  color: var(--gris-500);
 }
 
 .cw-plan-name {
   font-size: 18px;
   font-weight: 800;
   margin-bottom: 0.75rem;
-  color: #1a1a2e;
+  color: var(--gris-800);
 }
 
 .featured .cw-plan-name {
-  color: #ffffff;
+  color: var(--blanco);
 }
 
 .cw-plan-price {
@@ -243,17 +243,17 @@
   font-size: 38px;
   font-weight: 900;
   letter-spacing: -0.02em;
-  color: #1a1a2e;
+  color: var(--gris-800);
 }
 
 .featured .cw-plan-price .amount {
-  color: #ffffff;
+  color: var(--blanco);
 }
 
 .cw-plan-price .currency {
   font-size: 15px;
   font-weight: 700;
-  color: #4a5568;
+  color: var(--gris-500);
 }
 
 .featured .cw-plan-price .currency {
@@ -262,7 +262,7 @@
 
 .cw-plan-price .period {
   font-size: 13px;
-  color: #a0aec0;
+  color: var(--gris-400);
   font-weight: 500;
 }
 
@@ -283,7 +283,7 @@
   align-items: flex-start;
   gap: 0.55rem;
   font-size: 12.5px;
-  color: #4a5568;
+  color: var(--gris-500);
   line-height: 1.45;
 }
 
@@ -334,8 +334,8 @@
 }
 
 .featured .cw-plan-cta {
-  background: #ffffff;
-  color: #2a4a7f;
+  background: var(--blanco);
+  color: var(--gris-600);
 }
 
 .featured .cw-plan-cta:hover {
@@ -343,7 +343,7 @@
 }
 
 .oro .cw-plan-cta {
-  background: #fffff0;
+  background: var(--blanco);
   color: #975a16;
 }
 
@@ -352,8 +352,8 @@
 }
 
 .platino .cw-plan-cta {
-  background: linear-gradient(135deg, #6b46c1, #805ad5);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--gris-500), var(--gris-500));
+  color: var(--blanco);
 }
 
 .platino .cw-plan-cta:hover {
@@ -367,7 +367,7 @@
 
 .cw-plan-secure {
   font-size: 10px;
-  color: #a0aec0;
+  color: var(--gris-400);
   font-weight: 500;
   margin-top: 0.5rem;
   text-align: center;
@@ -396,9 +396,9 @@
 .cw-plans-feedback {
   margin: 0 auto 1.5rem;
   max-width: 1240px;
-  border: 1px solid rgba(49, 130, 206, 0.28);
+  border: 1px solid rgba(150,150,143, 0.28);
   background: rgba(235, 248, 255, 0.95);
-  color: #2b6cb0;
+  color: var(--gris-500);
   border-radius: 12px;
   padding: 10px 12px;
   font-size: 12px;
@@ -415,7 +415,7 @@
 .cw-plans-table-title {
   font-size: 18px;
   font-weight: 800;
-  color: #1a1a2e;
+  color: var(--gris-800);
   margin-bottom: 1.25rem;
   text-align: center;
 }
@@ -424,7 +424,7 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  background: #ffffff;
+  background: var(--blanco);
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid rgba(0, 0, 0, 0.07);
@@ -442,19 +442,19 @@
 
 .cw-plans-comp-table thead th:first-child {
   text-align: left;
-  color: #718096;
-  background: #f7fafc;
+  color: var(--gris-400);
+  background: var(--gris-50);
 }
 
 .cw-plans-comp-table thead th:not(:first-child) {
   text-align: center;
-  color: #4a5568;
-  background: #f7fafc;
+  color: var(--gris-500);
+  background: var(--gris-50);
 }
 
 .cw-plans-comp-table thead th.col-featured {
-  background: linear-gradient(160deg, #1a365d, #2a4a7f);
-  color: #ffffff;
+  background: linear-gradient(160deg, var(--gris-700), var(--gris-600));
+  color: var(--blanco);
 }
 
 .cw-plans-comp-table tbody td {
@@ -465,18 +465,18 @@
 
 .cw-plans-comp-table tbody td:first-child {
   font-weight: 600;
-  color: #4a5568;
-  background: #fafbfc;
+  color: var(--gris-500);
+  background: var(--gris-50);
 }
 
 .cw-plans-comp-table tbody td:not(:first-child) {
   text-align: center;
-  color: #718096;
+  color: var(--gris-400);
 }
 
 .cw-plans-comp-table tbody td.col-featured {
-  background: #f0f7ff;
-  color: #2b6cb0;
+  background: var(--gris-50);
+  color: var(--gris-500);
   font-weight: 600;
 }
 
@@ -592,7 +592,7 @@
   line-height: 1.18;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: #0f172a;
+  color: var(--gris-900);
   margin: 0 auto 22px;
   max-width: 980px;
 }
@@ -603,8 +603,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #eef2f7;
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: var(--gris-100);
+  border: 1px solid rgba(150, 150, 143, 0.35);
   border-radius: 999px;
   padding: 5px;
 }
@@ -612,7 +612,7 @@
 .cw-home-plans-toggle-btn {
   border: 0;
   background: transparent;
-  color: #64748b;
+  color: var(--gris-500);
   font-size: 13px;
   font-weight: 700;
   padding: 7px 14px;
@@ -621,9 +621,9 @@
 }
 
 .cw-home-plans-toggle-btn.active {
-  background: #ffffff;
-  color: #0f172a;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.14);
+  background: var(--blanco);
+  color: var(--gris-900);
+  box-shadow: 0 2px 8px rgba(17, 17, 17, 0.14);
 }
 
 .cw-home-plans-save {
@@ -642,8 +642,8 @@
 }
 
 .cw-home-plan-card {
-  background: #ffffff;
-  border: 1px solid #dbe3ed;
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
   border-radius: 22px;
   padding: 24px;
   text-align: left;
@@ -656,7 +656,7 @@
 }
 
 .cw-home-plan-card.services {
-  background: #f8fafc;
+  background: var(--gris-50);
   border-style: dashed;
 }
 
@@ -666,7 +666,7 @@
   top: -12px;
   transform: translateX(-50%);
   background: #0f8f73;
-  color: #ffffff;
+  color: var(--blanco);
   font-size: 11px;
   font-weight: 800;
   padding: 4px 12px;
@@ -674,7 +674,7 @@
 }
 
 .cw-home-plan-tag {
-  color: #64748b;
+  color: var(--gris-500);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.11em;
@@ -686,7 +686,7 @@
 }
 
 .cw-home-plan-name {
-  color: #0f172a;
+  color: var(--gris-900);
   font-size: 42px;
   line-height: 1;
   margin: 16px 0 8px;
@@ -694,7 +694,7 @@
 }
 
 .cw-home-plan-description {
-  color: #475569;
+  color: var(--gris-600);
   font-size: 15px;
   line-height: 1.5;
   margin: 0 0 12px;
@@ -707,14 +707,14 @@
 }
 
 .cw-home-plan-price {
-  color: #0f172a;
+  color: var(--gris-900);
   font-size: 54px;
   line-height: 1.04;
   font-family: "DM Serif Display", serif;
 }
 
 .cw-home-plan-period {
-  color: #64748b;
+  color: var(--gris-500);
   font-size: 13px;
   font-weight: 700;
 }
@@ -728,9 +728,9 @@
 
 .cw-home-plan-cta {
   width: 100%;
-  border: 2px solid #0f172a;
-  background: #ffffff;
-  color: #0f172a;
+  border: 2px solid var(--gris-900);
+  background: var(--blanco);
+  color: var(--gris-900);
   border-radius: 14px;
   padding: 11px 12px;
   font-size: 15px;
@@ -743,11 +743,11 @@
 .cw-home-plan-cta.services {
   border-color: #0f8f73;
   background: #0f8f73;
-  color: #ffffff;
+  color: var(--blanco);
 }
 
 .cw-home-plan-includes {
-  color: #64748b;
+  color: var(--gris-500);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.1em;
@@ -764,7 +764,7 @@
 }
 
 .cw-home-plan-list li {
-  color: #0f172a;
+  color: var(--gris-900);
   font-size: 15px;
   display: flex;
   align-items: flex-start;
@@ -780,7 +780,7 @@
 
 .cw-home-plan-divider {
   border: 0;
-  border-top: 1px solid #dbe3ed;
+  border-top: 1px solid var(--gris-200);
   margin: 14px 0;
 }
 
@@ -802,8 +802,8 @@
 }
 
 .cw-home-service-row {
-  border: 1px solid #dbe3ed;
-  background: #ffffff;
+  border: 1px solid var(--gris-200);
+  background: var(--blanco);
   border-radius: 11px;
   padding: 10px 11px;
   display: flex;
@@ -825,9 +825,9 @@
 }
 
 .cw-home-plans-footer-cta {
-  border: 2px solid #0f172a;
-  color: #0f172a;
-  background: #ffffff;
+  border: 2px solid var(--gris-900);
+  color: var(--gris-900);
+  background: var(--blanco);
   border-radius: 14px;
   padding: 12px 18px;
   font-size: 15px;

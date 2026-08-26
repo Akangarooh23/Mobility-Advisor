@@ -9,7 +9,7 @@ import React from "react";
  * perder el formulario por consultar el informe sería un mal cambio.
  *
  * El documento lo sirve nuestra API, que comprueba que el coche es del usuario
- * y lo pide a CarsWise Check con la clave de servicio. Aquí no hay ningún token
+ * y lo pide a PopCar Check con la clave de servicio. Aquí no hay ningún token
  * de captura, ni debe haberlo.
  */
 export default function ConditionReportDownload({ url, compacto = false }) {

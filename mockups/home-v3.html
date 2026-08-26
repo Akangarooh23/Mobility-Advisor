@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PopCar — el coche de un particular, con la confianza de un profesional</title>
+<meta name="description" content="Compra y vende coches entre particulares con el estado del vehículo documentado: los daños señalados sobre el esquema del coche, y lo que no se puede saber, dicho con esas palabras.">
+
+<style>
+@font-face{font-family:'Inter';font-style:normal;font-weight:400 700;font-display:swap;
+  src:url('/fonts/inter-latin.woff2') format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Inter';font-style:normal;font-weight:400 700;font-display:swap;
+  src:url('/fonts/inter-latin-ext.woff2') format('woff2');
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+
+:root{
+  /* PopCar: negro, amarillo y blanco. Regla del amarillo: es relleno (botones,
+     marcas, subrayados) o texto sobre negro, nunca texto pequeño sobre blanco
+     — ahí no llega al contraste mínimo. Cuando hace falta un acento legible en
+     claro, el acento es negro y el amarillo se queda en la barrita de al lado. */
+  --black:#111111; --black-soft:#242424; --black-deep:#050505;
+  --yellow:#FFC400; --yellow-deep:#E6B000; --yellow-tint:#FFF6D9; --yellow-ink:#6B5200;
+  --ink:#111111; --ink-muted:#5E5E59; --ink-faint:#96968F;
+  --line:#E4E4DF; --line-soft:#F0F0EB;
+  --surface:#FFFFFF; --surface-alt:#F7F7F3;
+  --r:10px; --rc:14px; --rl:22px;
+  --s1:8px; --s2:16px; --s3:24px; --s4:40px; --s5:64px; --s6:104px;
+  --shadow-1:0 1px 2px rgba(0,0,0,.05), 0 2px 8px rgba(0,0,0,.04);
+  --shadow-2:0 2px 4px rgba(0,0,0,.05), 0 12px 28px -12px rgba(0,0,0,.20);
+  --shadow-3:0 30px 70px -34px rgba(0,0,0,.55), 0 4px 12px rgba(0,0,0,.07);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:var(--ink);
+     background:var(--surface);line-height:1.6;-webkit-font-smoothing:antialiased;
+     text-rendering:optimizeLegibility;overflow-x:hidden}
+h1,h2,h3,h4{font-weight:500;line-height:1.1;letter-spacing:-0.028em;color:var(--black)}
+a{color:inherit;text-decoration:none}
+img,svg{display:block;max-width:100%}
+.wrap{max-width:1160px;margin:0 auto;padding:0 28px}
+.muted{color:var(--ink-muted)}
+
+/* grano sutil, sin peticiones externas */
+.grain::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E")}
+
+/* ---------- navegación ---------- */
+nav{position:sticky;top:0;z-index:80;transition:background .3s,box-shadow .3s,border-color .3s;
+    border-bottom:1px solid transparent}
+nav.solid{background:rgba(8,8,8,.9);backdrop-filter:saturate(140%) blur(14px);
+          border-bottom-color:rgba(255,255,255,.13)}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:72px}
+.logo{font-weight:700;font-size:20px;letter-spacing:-0.03em;color:#fff;transition:color .3s}
+.logo span{color:var(--yellow)}
+.nav-links{display:flex;gap:30px;font-size:15px}
+.nav-links a{color:rgba(255,255,255,.72);position:relative;padding:4px 0;transition:color .2s}
+.nav-links a::after{content:"";position:absolute;left:0;right:100%;bottom:0;height:1px;background:var(--yellow);transition:right .25s}
+.nav-links a:hover{color:#fff}
+.nav-links a:hover::after{right:0}
+.nav-cta{display:flex;gap:10px;align-items:center}
+
+.btn{font:inherit;font-weight:500;font-size:15px;padding:12px 22px;border-radius:var(--r);cursor:pointer;
+     border:1px solid transparent;display:inline-flex;align-items:center;gap:9px;
+     transition:transform .18s cubic-bezier(.2,.7,.3,1),background .18s,border-color .18s,box-shadow .18s}
+.btn:active{transform:translateY(1px)}
+/* Texto negro sobre el amarillo: en blanco no se lee. El amarillo es el color
+   de acción de la marca, así que este botón manda en cada pantalla. */
+.btn-yellow{background:var(--yellow);color:var(--black-deep);box-shadow:0 6px 18px -8px rgba(255,196,0,.55)}
+.btn-yellow:hover{background:var(--yellow-deep);box-shadow:0 10px 26px -10px rgba(255,196,0,.65)}
+.btn-black{background:var(--black);color:#fff}
+.btn-black:hover{background:var(--black-soft)}
+.btn-line{background:transparent;color:var(--black);border-color:var(--line)}
+.btn-line:hover{border-color:var(--black);background:var(--surface-alt)}
+.btn-glass{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.22)}
+.btn-glass:hover{background:rgba(255,255,255,.18)}
+.btn-white{background:#fff;color:var(--black)}
+.btn-white:hover{background:#EDEDE7}
+.btn-block{width:100%;justify-content:center}
+.btn .ar{transition:transform .2s}
+.btn:hover .ar{transform:translateX(3px)}
+
+/* ---------- hero ---------- */
+.hero{position:relative;margin-top:-72px;padding:152px 0 96px;overflow:hidden;color:#fff;
+      background:
+        radial-gradient(1100px 620px at 78% 6%, rgba(255,196,0,.15), transparent 60%),
+        radial-gradient(760px 520px at 8% 96%, rgba(255,196,0,.06), transparent 58%),
+        linear-gradient(168deg, #1C1C1A 0%, var(--black-deep) 100%)}
+.hero .wrap{position:relative;z-index:2}
+.hero-grid{display:grid;grid-template-columns:1.02fr .98fr;gap:64px;align-items:center}
+.kicker{display:inline-flex;align-items:center;gap:9px;font-size:13.5px;color:#D6D2C2;
+        background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+        padding:6px 14px 6px 10px;border-radius:99px;margin-bottom:26px}
+.kicker i{width:6px;height:6px;border-radius:50%;background:var(--yellow);
+          box-shadow:0 0 0 3px rgba(255,196,0,.26);font-style:normal}
+.hero h1{font-size:clamp(38px,5.2vw,64px);color:#fff;letter-spacing:-0.04em;line-height:1.02;margin-bottom:24px;max-width:12ch}
+.hero h1 .thin{color:var(--yellow)}
+.hero .lead{font-size:19px;color:#B8B8B1;max-width:47ch;margin-bottom:34px}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:44px}
+.hero-cta .btn{padding:14px 26px;font-size:15.5px}
+
+.figures{display:flex;gap:44px;flex-wrap:wrap;padding-top:26px;border-top:1px solid rgba(255,255,255,.12)}
+.fig .n{font-size:26px;font-weight:500;letter-spacing:-0.03em;color:#fff;line-height:1.1}
+.fig .l{font-size:13px;color:#9A9A93;margin-top:3px}
+
+/* ---------- la escena del coche ---------- */
+/* La foto viene con fondo blanco de estudio, así que no hay recorte posible:
+   en vez de pelearlo, vive dentro de un panel blanco y el amarillo se asoma por
+   detrás. Queda como una ficha de producto, que es lo que es. */
+.escena{position:relative;padding:18px 0 0}
+.marco{position:relative}
+.disco{position:absolute;width:74%;aspect-ratio:1;right:-8%;top:-16%;border-radius:50%;
+       background:radial-gradient(circle at 34% 26%, #FFDC4A, var(--yellow) 58%, #E4B400);
+       box-shadow:0 50px 110px -50px rgba(255,196,0,.55)}
+.foto{position:relative;background:#fff;border-radius:24px;overflow:hidden;box-shadow:var(--shadow-3)}
+.foto img{width:100%;height:auto}
+.foto .sello-foto{position:absolute;top:14px;right:14px;display:inline-flex;align-items:center;gap:7px;
+                  background:var(--black-deep);color:#fff;font-size:12.5px;padding:7px 13px;border-radius:99px}
+.foto .sello-foto svg{width:13px;height:13px;color:var(--yellow)}
+.foto figcaption{position:absolute;left:16px;bottom:14px;font-size:12.5px;color:var(--ink-muted)}
+
+/* la tarjeta de valoración */
+.tasa{position:absolute;left:-22px;bottom:-30px;width:255px;background:var(--black-deep);color:#fff;
+      border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:16px 18px;
+      box-shadow:0 30px 60px -26px rgba(0,0,0,.8)}
+.tasa .t{font-size:12.5px;color:#B0B0A9;margin-bottom:7px;line-height:1.35}
+.tasa .t sup{color:var(--yellow);font-weight:700;font-size:13px}
+.tasa .n{font-size:27px;font-weight:600;letter-spacing:-0.035em;color:var(--yellow);line-height:1}
+.tasa .h{display:flex;justify-content:space-between;font-size:11.5px;color:#8E8E88;margin-top:12px}
+.barra{position:relative;height:5px;border-radius:99px;margin-top:5px;
+       background:linear-gradient(90deg,rgba(255,196,0,.22),rgba(255,196,0,.55),rgba(255,196,0,.22))}
+.barra i{position:absolute;top:50%;left:52%;width:11px;height:11px;border-radius:50%;background:var(--yellow);
+         border:2px solid var(--black-deep);transform:translate(-50%,-50%)}
+/* La llamada del asterisco, fuera de la tarjeta y a la vista. Si la nota
+   estuviera escondida en el pie, la cifra afirmaría sola algo que no sostiene. */
+.nota{margin-top:58px;font-size:12.5px;line-height:1.55;color:#9A9A93;max-width:44ch;
+      border-left:2px solid var(--yellow);padding-left:12px}
+.nota b{color:#D6D2C2;font-weight:500}
+
+/* franja de confianza */
+.confianza .wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;padding-top:52px;padding-bottom:8px}
+.cf{display:flex;align-items:flex-start;gap:13px;font-size:14.5px;color:var(--ink-muted)}
+.cf .ic{flex:none;width:34px;height:34px;border-radius:10px;background:var(--yellow-tint);
+        display:flex;align-items:center;justify-content:center}
+.cf svg{width:17px;height:17px;color:var(--black)}
+.cf b{color:var(--ink);font-weight:500;display:block}
+
+/* tarjeta de producto */
+.card-stack{position:relative}
+/* El color se reinicia aquí: la tarjeta vive dentro del hero, que pinta en
+   blanco, y sin esto las etiquetas de los grados salían blancas sobre blanco.
+   Solo se veía lo que llevaba color propio. */
+.report{position:relative;background:var(--surface);color:var(--ink);border-radius:var(--rl);padding:22px;box-shadow:var(--shadow-3)}
+.report-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:16px}
+.report-head h4{font-size:19px;letter-spacing:-0.02em}
+.report-head .sub{font-size:13px;color:var(--ink-muted);margin-top:3px}
+.verified{display:inline-flex;align-items:center;gap:6px;background:var(--ink);color:#fff;
+          font-size:12.5px;padding:6px 12px;border-radius:99px;white-space:nowrap}
+.verified svg{width:13px;height:13px}
+.canvas{position:relative;background:linear-gradient(180deg,#FAFAF6,#F2F2ED);border:1px solid var(--line-soft);
+        border-radius:var(--rc);padding:6px 6px 2px;margin-bottom:18px}
+.rows{display:grid;grid-template-columns:1fr auto;font-size:15px}
+.rows > div{padding:9px 2px;border-bottom:1px solid var(--line-soft)}
+.rows > div:nth-child(2n){text-align:right;font-weight:500}
+.rows .nd{color:var(--ink-faint);font-style:italic;font-weight:400}
+.pill{display:inline-block;min-width:30px;text-align:center;font-size:13px;padding:2px 9px;border-radius:7px;
+      background:var(--surface-alt);color:var(--ink)}
+.pill.warn{background:var(--yellow-tint);color:var(--yellow-ink)}
+.disc{margin-top:16px;font-size:12.5px;color:var(--ink-muted);line-height:1.55;
+      border-left:3px solid var(--yellow);padding-left:13px}
+
+/* ---------- buscador ---------- */
+/* Cruza el borde del hero: mitad sobre el negro, mitad sobre el blanco. Es la
+   primera acción de la página y así no compite con la foto por el mismo hueco. */
+.buscador-wrap{position:relative;z-index:5;margin-top:-58px}
+.buscador{position:relative;background:var(--surface);color:var(--ink);
+          border-radius:var(--rl);padding:26px 28px;box-shadow:var(--shadow-3)}
+.buscador-top{display:flex;align-items:center;justify-content:space-between;gap:26px;
+              flex-wrap:wrap;margin-bottom:18px}
+.buscador h4{font-size:19.5px;letter-spacing:-0.025em;margin-bottom:5px}
+.buscador .sub{font-size:14px;color:var(--ink-muted);line-height:1.5;max-width:44ch}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;background:var(--surface-alt);
+      border:1px solid var(--line-soft);border-radius:12px;padding:4px;min-width:290px}
+.tabs button{font:inherit;font-size:15px;font-weight:500;color:var(--ink-muted);background:transparent;
+             border:0;border-radius:9px;padding:11px 0;cursor:pointer;
+             transition:background .2s,color .2s,box-shadow .2s}
+.tabs button:hover{color:var(--black)}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--black);box-shadow:var(--shadow-1)}
+.campos{display:grid;grid-template-columns:repeat(3,1fr) auto;gap:10px;align-items:stretch}
+.campos .btn{padding:14px 28px}
+.campo{position:relative}
+/* El chevrón se dibuja aquí y el nativo se apaga: si no, en Windows sale la
+   flecha gris del sistema y rompe el conjunto. */
+.campo::after{content:"";position:absolute;right:16px;top:50%;width:7px;height:7px;pointer-events:none;
+              border-right:1.6px solid var(--ink-faint);border-bottom:1.6px solid var(--ink-faint);
+              transform:translateY(-70%) rotate(45deg)}
+.campo select{appearance:none;-webkit-appearance:none;width:100%;font:inherit;font-size:15px;color:var(--ink);
+              background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+              padding:14px 40px 14px 15px;cursor:pointer;transition:border-color .2s,box-shadow .2s}
+.campo select:hover{border-color:#C9C9C2}
+.campo select:focus-visible{outline:0;border-color:var(--yellow);box-shadow:0 0 0 3px rgba(255,196,0,.35)}
+.campo select:invalid{color:var(--ink-faint)}
+.sello-chip{display:flex;align-items:center;gap:7px;margin-top:14px;
+            font-size:13px;color:var(--ink-muted)}
+.sello-chip svg{width:13px;height:13px;flex:none}
+.sello-chip input{accent-color:var(--ink);width:15px;height:15px;cursor:pointer}
+.sello-chip label{cursor:pointer;display:flex;align-items:center;gap:7px}
+
+/* ---------- secciones ---------- */
+section{padding:var(--s6) 0}
+.band{background:var(--surface-alt);border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft)}
+.label{font-size:13.5px;color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:9px}
+.label::before{content:"";width:22px;height:1px;background:var(--yellow)}
+.head{max-width:660px;margin-bottom:var(--s5)}
+.head h2{font-size:clamp(27px,3.3vw,40px);margin-bottom:16px}
+.head p{font-size:18px;color:var(--ink-muted)}
+
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.trio .tile{padding:32px 28px}
+.tile.oscura{background:var(--black-deep);border-color:#26261F}
+.tile.oscura::before{background:linear-gradient(90deg,var(--yellow),transparent 70%)}
+.tile.oscura h3{color:#fff}
+.tile.oscura h3 span{color:var(--yellow)}
+.tile.oscura > p{color:#B0B0A9}
+.tile.oscura li{color:#D0D0C9;border-bottom-color:rgba(255,255,255,.09)}
+.tile.oscura li::before{background:transparent;border-color:var(--yellow)}
+.tile.oscura:hover{border-color:#3A3A31}
+.tile{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--rl);
+      padding:38px;overflow:hidden;transition:transform .25s cubic-bezier(.2,.7,.3,1),box-shadow .25s,border-color .25s}
+.tile:hover{transform:translateY(-4px);box-shadow:var(--shadow-2);border-color:#D2D2CB}
+.tile::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
+              background:linear-gradient(90deg,var(--yellow),transparent 70%);opacity:.9}
+.tile.b::before{background:linear-gradient(90deg,var(--ink),transparent 70%)}
+.tile h3{font-size:23px;margin-bottom:11px}
+.tile > p{color:var(--ink-muted);font-size:15.5px;margin-bottom:22px;max-width:42ch}
+.tile ul{list-style:none;margin-bottom:28px}
+.tile li{font-size:15px;padding:8px 0 8px 26px;position:relative;border-bottom:1px solid var(--line-soft)}
+.tile li:last-child{border-bottom:0}
+.tile li::before{content:"";position:absolute;left:2px;top:16px;width:7px;height:7px;border-radius:50%;
+                 background:var(--yellow-tint);border:1.5px solid var(--yellow)}
+.tile.b li::before{background:#EDEDE7;border-color:var(--ink)}
+
+/* proceso */
+.process{position:relative;background:linear-gradient(165deg,var(--black) 0%,var(--black-deep) 100%);
+         color:#fff;border-radius:var(--rl);padding:58px 54px;overflow:hidden}
+.process .label{color:var(--yellow)}
+.process .label::before{background:var(--yellow)}
+.process h2{color:#fff;font-size:clamp(25px,2.9vw,34px);max-width:19ch;margin-bottom:14px}
+.process .intro{color:#B0B0A9;font-size:17px;max-width:60ch;margin-bottom:52px}
+.rail{display:grid;grid-template-columns:repeat(5,1fr);gap:20px;position:relative}
+.rail::before{content:"";position:absolute;top:17px;left:8%;right:8%;height:1px;
+              background:linear-gradient(90deg,rgba(255,196,0,.12),rgba(255,196,0,.45),rgba(255,196,0,.12))}
+.node{position:relative}
+.node .n{position:relative;z-index:2;width:35px;height:35px;border-radius:50%;background:var(--black-deep);
+         border:1px solid rgba(255,196,0,.5);color:var(--yellow);display:flex;align-items:center;
+         justify-content:center;font-size:14px;margin-bottom:16px}
+.node.key .n{background:var(--yellow);border-color:var(--yellow);color:var(--black-deep);box-shadow:0 0 0 5px rgba(255,196,0,.18)}
+.node h4{font-size:15.5px;color:#fff;margin-bottom:6px;letter-spacing:-0.01em}
+.node p{font-size:13.5px;color:#9A9A93;line-height:1.55}
+.caveat{margin-top:52px;padding:22px 24px;border-radius:var(--rc);background:rgba(255,255,255,.05);
+        border-left:3px solid var(--yellow);font-size:16px;color:#D0D0C9;max-width:78ch}
+.caveat b{color:#fff;font-weight:500}
+
+/* posicionamiento */
+.pos{display:grid;grid-template-columns:.92fr 1.08fr;gap:56px;align-items:center}
+.plot{position:relative;aspect-ratio:1.28;background:var(--surface);border:1px solid var(--line);
+      border-radius:var(--rl);padding:30px;box-shadow:var(--shadow-1)}
+.plot .in{position:relative;height:100%;border-left:1px solid var(--line);border-bottom:1px solid var(--line)}
+.plot .gx,.plot .gy{position:absolute;background:var(--line-soft)}
+.plot .gx{height:1px;width:100%;top:50%}
+.plot .gy{width:1px;height:100%;left:50%}
+.pt{position:absolute;font-size:13px;color:var(--ink-muted);width:42%;line-height:1.4}
+.pt.a{top:6%;right:2%;text-align:right}
+.pt.b{bottom:8%;left:2%}
+.pt.c{bottom:8%;right:2%;text-align:right}
+.us{position:absolute;top:5%;left:2%;background:var(--black);color:#fff;border-radius:var(--r);
+    padding:12px 16px;font-size:14.5px;font-weight:500;box-shadow:0 14px 30px -14px rgba(0,0,0,.55)}
+.us small{display:block;font-size:12px;color:var(--yellow);font-weight:400;margin-top:2px}
+.ax{position:absolute;font-size:12px;color:var(--ink-faint)}
+.ax.h{bottom:-8px;left:0;right:0;text-align:center}
+.ax.v{left:-14px;top:50%;transform:translateY(-50%) rotate(-90deg);white-space:nowrap}
+
+/* estado del producto */
+.status{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.st{background:var(--surface);border:1px solid var(--line);border-radius:var(--rc);padding:26px;
+    transition:border-color .2s,transform .2s}
+.st:hover{border-color:#D2D2CB;transform:translateY(-2px)}
+.st .tag{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;padding:4px 11px;border-radius:99px;margin-bottom:16px}
+.st .tag i{width:6px;height:6px;border-radius:50%;font-style:normal}
+.tag.on{background:var(--ink);color:#fff} .tag.on i{background:var(--yellow)}
+.tag.soon{background:var(--yellow-tint);color:var(--yellow-ink)} .tag.soon i{background:var(--yellow-deep)}
+.st h4{font-size:17.5px;margin-bottom:8px}
+.st p{font-size:15px;color:var(--ink-muted)}
+
+/* buscador */
+.finder{display:grid;grid-template-columns:1fr auto;gap:36px;align-items:center;
+        background:linear-gradient(120deg,var(--yellow-tint),#FFFCEF);border:1px solid #F0E3AE;
+        border-radius:var(--rl);padding:38px 42px}
+.finder h3{font-size:23px;margin-bottom:9px}
+.finder p{font-size:16px;color:var(--ink-muted);max-width:62ch}
+
+/* precio */
+.price{display:grid;grid-template-columns:1fr auto;gap:36px;align-items:center;
+       border:1px solid var(--line);border-radius:var(--rl);padding:34px 38px;background:var(--surface)}
+.price h3{font-size:21px;margin-bottom:8px}
+.price p{font-size:15.5px;color:var(--ink-muted);max-width:64ch}
+
+/* b2b */
+.b2b{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.b2b h2{font-size:clamp(25px,2.9vw,34px);margin-bottom:16px}
+.b2b > div > p{color:var(--ink-muted);font-size:17px;margin-bottom:26px;max-width:46ch}
+.stack{display:grid;gap:12px}
+.row{display:flex;gap:16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--rc);padding:20px 22px;
+     transition:border-color .2s,transform .2s}
+.row:hover{border-color:#D2D2CB;transform:translateX(3px)}
+.row .k{font-size:13px;color:var(--ink-muted);min-width:96px;padding-top:2px}
+.row h4{font-size:16px;margin-bottom:3px}
+.row p{font-size:14.5px;color:var(--ink-muted)}
+
+/* banda del móvil */
+.movil{display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:center;
+       background:linear-gradient(135deg,var(--yellow) 0%,#FFD84A 100%);
+       border-radius:var(--rl);padding:52px 54px;overflow:hidden}
+.movil h2{font-size:clamp(25px,2.9vw,34px);margin-bottom:14px;color:var(--black-deep)}
+.movil p{font-size:17px;color:#4A3D08;max-width:46ch;margin-bottom:28px}
+.movil-art{display:flex;justify-content:center}
+.tel{width:210px;background:var(--black-deep);border-radius:30px;padding:10px;
+     box-shadow:0 40px 70px -30px rgba(0,0,0,.55)}
+.tel-b{background:#141412;border-radius:22px;padding:20px 18px 26px;color:#fff}
+.tel-t{font-size:12px;color:var(--yellow);margin-bottom:10px}
+.tel-p{height:4px;border-radius:99px;background:rgba(255,255,255,.16);margin-bottom:22px}
+.tel-p i{display:block;width:39%;height:100%;border-radius:99px;background:var(--yellow)}
+.tel-g{height:98px;border:2px dashed rgba(255,196,0,.5);border-radius:12px;margin-bottom:16px;
+       display:flex;align-items:flex-end;padding:9px;font-size:12px;color:#D6D2C2}
+.tel-m{font-size:12.5px;color:#9A9A93;line-height:1.5}
+
+/* cierre */
+.close{text-align:center;padding:var(--s6) 0}
+.close h2{font-size:clamp(28px,3.6vw,44px);max-width:18ch;margin:0 auto 18px}
+.close p{font-size:18px;color:var(--ink-muted);max-width:52ch;margin:0 auto 34px}
+
+footer{background:var(--black-deep);color:#fff;padding:64px 0 30px}
+.fgrid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:44px;margin-bottom:48px}
+.fgrid .logo{color:#fff}
+.fgrid > div > p{font-size:14.5px;color:#9A9A93;margin-top:14px;max-width:28ch}
+.fcol h5{font-size:13px;color:var(--yellow);margin-bottom:16px;font-weight:500}
+.fcol a{display:block;font-size:14.5px;color:#C2C2BB;margin-bottom:11px;transition:color .18s}
+.fcol a:hover{color:#fff}
+.fbot{border-top:1px solid rgba(255,255,255,.1);padding-top:22px;font-size:13px;color:#86867F;
+      display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+
+/* aparición al hacer scroll */
+.rv{opacity:0;transform:translateY(18px);transition:opacity .7s cubic-bezier(.2,.7,.3,1),transform .7s cubic-bezier(.2,.7,.3,1)}
+.rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}
+
+@media(max-width:980px){
+  .hero-grid,.pos,.b2b{grid-template-columns:1fr;gap:44px}
+  .rail{grid-template-columns:1fr 1fr;gap:28px}.rail::before{display:none}
+  .duo,.trio,.status{grid-template-columns:1fr}
+  .movil{grid-template-columns:1fr;padding:36px 28px}
+  .campos{grid-template-columns:1fr}
+  .buscador-wrap{margin-top:-32px}
+  .tasa{position:static;width:auto;margin-top:18px}
+  .disco{display:none}
+  .nav-links{display:none}
+  .finder,.price{grid-template-columns:1fr}
+  .process{padding:40px 28px}
+  .fgrid{grid-template-columns:1fr 1fr}
+  section{padding:72px 0}
+  .hero{padding:128px 0 76px}
+}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div class="wrap nav-in">
+    <a class="logo" href="#"><span>Pop</span>Car</a>
+    <div class="nav-links">
+      <a href="#vender">Vender</a>
+      <a href="#comprar">Comprar</a>
+      <a href="#idcar">IdCar</a>
+      <a href="#sello">El sello</a>
+      <a href="#empresas">Empresas</a>
+    </div>
+    <div class="nav-cta">
+      <a class="btn btn-glass" href="#" id="entrar">Entrar</a>
+      <a class="btn btn-black" href="#vender">Vender mi coche</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero grain">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="kicker"><i></i> Compraventa entre particulares, sin el riesgo</span>
+      <h1>El coche de un particular, con la <span class="thin">confianza</span> de un profesional.</h1>
+      <p class="lead">Cada coche llega con su estado documentado: los daños señalados sobre el esquema del vehículo y, lo que no se puede saber desde una foto, dicho con esas palabras.</p>
+      <div class="hero-cta">
+        <a class="btn btn-white" href="#vender">Quiero vender mi coche <span class="ar">→</span></a>
+        <a class="btn btn-glass" href="#comprar">Busco coche</a>
+      </div>
+      <div class="figures">
+        <div class="fig"><div class="n">18</div><div class="l">tomas guiadas desde el móvil</div></div>
+        <div class="fig"><div class="n">10 min</div><div class="l">y el coche queda documentado</div></div>
+        <div class="fig"><div class="n">0</div><div class="l">matrículas y caras visibles</div></div>
+      </div>
+    </div>
+
+    <div class="escena">
+      <div class="disco"></div>
+      <div class="marco">
+      <figure class="foto">
+        <img src="/assets/beetle.png"
+             alt="Volkswagen Beetle blanco rotulado, visto de tres cuartos delantero" width="1536" height="1024">
+        <span class="sello-foto">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"/></svg>
+          Con informe de estado
+        </span>
+        <figcaption>Volkswagen Beetle 1.2 TSI · 2019 · 62.480 km</figcaption>
+      </figure>
+
+      <!-- La cifra la pidió el diseño de referencia; el asterisco es lo que la
+           hace defendible. La horquilla va debajo porque un número exacto sin
+           margen afirma una precisión que ninguna estimación tiene. -->
+      <aside class="tasa">
+        <div class="t">Valoración inteligente con IA <sup>*</sup></div>
+        <div class="n">12.450 €</div>
+        <div class="barra"><i></i></div>
+        <div class="h"><span>11.900 €</span><span>13.100 €</span></div>
+      </aside>
+      </div>
+
+      <p class="nota"><b>* Estimación orientativa.</b> Sale de comparar operaciones
+        recientes de coches parecidos. No es una oferta de compra ni una tasación:
+        el precio real depende del estado del coche, y eso lo fija el informe.</p>
+    </div>
+  </div>
+</header>
+
+<div class="wrap buscador-wrap">
+  <form class="buscador" onsubmit="return false">
+    <div class="buscador-top">
+      <div>
+        <h4>Encuentra tu transporte ideal</h4>
+        <p class="sub">Dinos qué necesitas y te decimos qué te conviene: comprar, rentar o vender.</p>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Qué quieres hacer">
+        <button type="button" role="tab" aria-selected="true">Comprar</button>
+        <button type="button" role="tab" aria-selected="false">Rentar</button>
+        <button type="button" role="tab" aria-selected="false">Vender</button>
+      </div>
+    </div>
+
+        <div class="campos">
+          <div class="campo">
+            <select required aria-label="Presupuesto o cuota mensual">
+              <option value="" selected>Presupuesto o cuota mensual</option>
+              <option>Hasta 10.000 €</option>
+              <option>10.000 € – 20.000 €</option>
+              <option>20.000 € – 35.000 €</option>
+              <option>Más de 35.000 €</option>
+              <option>Prefiero pensarlo por cuota al mes</option>
+            </select>
+          </div>
+          <div class="campo">
+            <select required aria-label="Uso que le vas a dar">
+              <option value="" selected>Uso: ciudad · viajes · familia</option>
+              <option>Ciudad, trayectos cortos</option>
+              <option>Carretera y viajes largos</option>
+              <option>Familia, cinco plazas o más</option>
+              <option>Trabajo y carga</option>
+            </select>
+          </div>
+          <div class="campo">
+            <select required aria-label="Ubicación">
+              <option value="" selected>Ubicación</option>
+              <option>Madrid</option>
+              <option>Barcelona</option>
+              <option>Valencia</option>
+              <option>Sevilla</option>
+              <option>Toda España</option>
+            </select>
+          </div>
+      <button class="btn btn-yellow" type="submit">Ver coches para mí</button>
+    </div>
+
+    <div class="sello-chip">
+      <label>
+        <input type="checkbox" checked>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"/></svg>
+        Solo coches con sello PopCar
+      </label>
+    </div>
+  </form>
+</div>
+
+<div class="confianza">
+  <div class="wrap">
+    <div class="cf"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5l5.5 2.2v4c0 3.4-2.3 6.1-5.5 6.8C4.8 13.8 2.5 11.1 2.5 7.7v-4z"/><path d="M5.6 8.1l1.7 1.7 3.2-3.4"/></svg></span><div><b>Informe de estado en cada coche.</b> Los daños, señalados sobre la pieza.</div></div>
+    <div class="cf"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8S3.9 3.6 8 3.6 14.5 8 14.5 8 12.1 12.4 8 12.4 1.5 8 1.5 8z"/><path d="M2 2l12 12"/></svg></span><div><b>Ni matrículas ni caras.</b> Se tapan antes de que nada sea público.</div></div>
+    <div class="cf"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h10M4.5 13V7.5a3.5 3.5 0 017 0V13"/><path d="M8 4V1.8"/></svg></span><div><b>La mecánica solo la firma un taller.</b> De una foto no se deduce.</div></div>
+  </div>
+</div>
+
+<section id="vender">
+  <div class="wrap">
+    <div class="head rv">
+      <div class="label">Para quién es</div>
+      <h2>Tres formas de usarlo, un mismo expediente</h2>
+      <p>El que vende deja de perder margen. El que compra deja de hacerlo a ciegas. En medio está el informe, que es lo que sostiene las dos cosas.</p>
+    </div>
+    <div class="trio">
+      <article class="tile rv">
+        <h3>Vendo mi coche</h3>
+        <p>Diez minutos con el móvil y tu coche queda documentado. Solo cobramos si se vende.</p>
+        <ul>
+          <li>Fotografías el coche siguiendo las instrucciones en pantalla</li>
+          <li>Recibes el informe con los daños situados en su pieza</li>
+          <li>Se publica con su expediente visual y su código QR</li>
+          <li>Nos ocupamos de la transferencia y del cobro</li>
+        </ul>
+        <a class="btn btn-black" href="#">Empezar <span class="ar">→</span></a>
+      </article>
+      <article class="tile b rv" id="comprar">
+        <h3>Compro un coche</h3>
+        <p>Precio de particular, con el estado del coche por delante y antes de moverte de casa.</p>
+        <ul>
+          <li>Informe descargable de cada coche publicado</li>
+          <li>Los daños, señalados sobre el esquema del vehículo</li>
+          <li>Puedes verlo a tamaño real en tu propia plaza</li>
+          <li>Financiación a medida cuando hace falta</li>
+        </ul>
+        <a class="btn btn-line" href="#">Ver coches con informe <span class="ar">→</span></a>
+      </article>
+      <article class="tile oscura rv" id="idcar">
+        <h3>Id<span>Car</span></h3>
+        <p>La identidad digital del coche. Se queda contigo aunque no vendas.</p>
+        <ul>
+          <li>Todo el papeleo del coche en un sitio</li>
+          <li>Avisos de ITV, seguro y revisión</li>
+          <li>El expediente visual, guardado</li>
+          <li>Publicar es un botón cuando decidas</li>
+        </ul>
+        <a class="btn btn-yellow" href="#">Quiero subir mi coche <span class="ar">→</span></a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="sello" class="band">
+  <div class="wrap">
+    <div class="process rv">
+      <div class="label">Cómo funciona</div>
+      <h2>Cinco pasos, y uno es admitir lo que no sabemos</h2>
+      <p class="intro">El sello no dice que el coche esté bien. Dice qué se ha mirado, cómo se ha mirado y qué queda sin mirar.</p>
+      <div class="rail">
+        <div class="node"><div class="n">1</div><h4>Captura guiada</h4><p>Dieciocho tomas y una vuelta en vídeo, con instrucciones en pantalla.</p></div>
+        <div class="node"><div class="n">2</div><h4>Anonimizado</h4><p>Matrículas y caras se tapan antes de que nada llegue a ser público.</p></div>
+        <div class="node"><div class="n">3</div><h4>Informe</h4><p>Los daños, situados sobre el esquema y graduados del uno al cinco.</p></div>
+        <div class="node key"><div class="n">4</div><h4>Taller</h4><p>Lo único que puede hablar de mecánica. Sin esto, no se afirma nada.</p></div>
+        <div class="node"><div class="n">5</div><h4>Venta</h4><p>Cobro seguro y traspaso, con el expediente adjunto.</p></div>
+      </div>
+      <p class="caveat"><b>Lo que el sello no hace.</b> Motor, embrague, DPF, bimasa y estructura no se deducen de una fotografía. Mientras no haya revisión física, el informe dice «sin datos» — y eso no es una laguna, es la parte honesta.</p>
+    </div>
+  </div>
+</section>
+
+<section id="informe">
+  <div class="wrap pos">
+    <div class="rv">
+      <div class="label">Qué recibe quien compra</div>
+      <h2 style="font-size:clamp(25px,2.9vw,34px);margin-bottom:16px">El informe va por delante del coche</h2>
+      <p class="muted" style="font-size:17px;margin-bottom:16px;max-width:44ch">Antes de escribir al vendedor ya sabes qué tiene el coche: los daños situados sobre su pieza, graduados, y con las fotos que los sostienen.</p>
+      <p style="font-size:17px;max-width:44ch">Y lo que no se puede saber desde una foto aparece como «sin datos», no como un aprobado.</p>
+    </div>
+    <div class="rv">
+      <article class="report">
+        <div class="report-head">
+          <div>
+            <h4>Informe de estado</h4>
+            <div class="sub">Volkswagen Beetle 1.2 TSI · 2019 · 62.480 km</div>
+          </div>
+          <span class="verified">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"/></svg>
+            Verificado
+          </span>
+        </div>
+
+        <div class="canvas">
+          <svg viewBox="0 0 440 168" width="100%" role="img" aria-label="Esquema lateral del vehículo con dos daños señalados">
+            <defs>
+              <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E7E7E1"/>
+              </linearGradient>
+              <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#16161A"/><stop offset="1" stop-color="#3C3C3A"/>
+              </linearGradient>
+            </defs>
+            <ellipse cx="222" cy="146" rx="176" ry="9" fill="#000000" opacity=".07"/>
+            <path d="M44 120 C36 118 30 110 32 98 L38 74 C40 66 47 61 56 59 L112 50 L162 26 C170 22 180 20 190 20 L252 21 C264 21 275 25 284 32 L318 56 L378 68 C392 71 402 80 404 92 L406 106 C407 114 401 120 392 121 Z"
+                  fill="url(#body)" stroke="#CDCDC6" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M168 32 C174 28 182 27 190 27 L246 28 C254 28 261 31 267 36 L290 54 L166 58 Z" fill="url(#glass)" opacity=".92"/>
+            <path d="M214 29 L214 57" stroke="#B5B5AE" stroke-width="1.4" opacity=".55"/>
+            <path d="M112 62 L110 118" stroke="#D8D8D1" stroke-width="1.3"/>
+            <path d="M232 60 L230 118" stroke="#D8D8D1" stroke-width="1.3"/>
+            <rect x="34" y="86" width="12" height="14" rx="4" fill="#F4F4EF" stroke="#CDCDC6"/>
+            <rect x="392" y="82" width="13" height="15" rx="4" fill="#FFE896" stroke="#E0BE45"/>
+            <g>
+              <circle cx="132" cy="120" r="27" fill="#141414"/><circle cx="132" cy="120" r="12" fill="#B0B0A9"/>
+              <circle cx="132" cy="120" r="4" fill="#6E6E68"/>
+            </g>
+            <g>
+              <circle cx="316" cy="120" r="27" fill="#141414"/><circle cx="316" cy="120" r="12" fill="#B0B0A9"/>
+              <circle cx="316" cy="120" r="4" fill="#6E6E68"/>
+            </g>
+            <g>
+              <line x1="46" y1="96" x2="46" y2="150" stroke="#E6B000" stroke-width="1.2" stroke-dasharray="3 3"/>
+              <circle cx="46" cy="96" r="12" fill="#FFC400"/>
+              <text x="46" y="100.5" text-anchor="middle" font-size="12" font-weight="600" fill="#111111" font-family="Inter">2</text>
+              <text x="46" y="163" text-anchor="middle" font-size="10.5" fill="#6E6E68" font-family="Inter">paragolpes del.</text>
+            </g>
+            <g>
+              <line x1="316" y1="120" x2="316" y2="12" stroke="#111111" stroke-width="1.2" stroke-dasharray="3 3"/>
+              <circle cx="316" cy="140" r="12" fill="#111111"/>
+              <text x="316" y="144.5" text-anchor="middle" font-size="12" font-weight="500" fill="#fff" font-family="Inter">4</text>
+              <text x="316" y="10" text-anchor="middle" font-size="10.5" fill="#6E6E68" font-family="Inter">neumático tras. dcho.</text>
+            </g>
+          </svg>
+        </div>
+
+        <div class="rows">
+          <div>Carrocería</div><div><span class="pill">B+</span></div>
+          <div>Llantas</div><div><span class="pill">B+</span></div>
+          <div>Neumáticos</div><div><span class="pill warn">C</span></div>
+          <div>Interior</div><div><span class="pill">A</span></div>
+          <div>Cristales</div><div><span class="pill">A</span></div>
+          <div>Mecánica</div><div class="nd">sin datos</div>
+        </div>
+
+        <p class="disc">La mecánica figura como «sin datos» porque el coche no ha pasado todavía por un taller. No se deduce de una fotografía, y no vamos a fingir que sí.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap pos">
+    <div class="rv">
+      <div class="label">Una categoría nueva</div>
+      <h2 style="font-size:clamp(25px,2.9vw,34px);margin-bottom:16px">El particular certificado</h2>
+      <p class="muted" style="font-size:17px;margin-bottom:16px;max-width:44ch">Hasta ahora había que elegir: el precio de un particular comprando a ciegas, o la tranquilidad de un concesionario pagando de más.</p>
+      <p style="font-size:17px;max-width:44ch">PopCar quita esa elección. El precio sigue siendo el de un particular; lo que cambia es que sabes lo que compras.</p>
+    </div>
+    <div class="plot rv">
+      <div class="in">
+        <div class="gx"></div><div class="gy"></div>
+        <div class="us">PopCar<small>precio de particular, estado documentado</small></div>
+        <div class="pt a">Concesionario<br>caro, pero responde</div>
+        <div class="pt b">Anuncios entre particulares<br>barato, sin saber qué compras</div>
+        <div class="pt c">Plataformas mixtas<br>ni una cosa ni la otra</div>
+        <div class="ax h">precio de particular → precio de concesionario</div>
+        <div class="ax v">sin respaldo → con respaldo</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="head rv">
+      <div class="label">En qué punto estamos</div>
+      <h2>Lo que ya funciona y lo que estamos montando</h2>
+      <p>Lo contamos así en lugar de enseñar logotipos de acuerdos que todavía no existen.</p>
+    </div>
+    <div class="status">
+      <div class="st rv"><span class="tag on"><i></i> Funcionando</span><h4>Informe de estado</h4><p>Captura guiada, anonimizado, daños sobre el esquema y documento descargable. Probado con coches reales.</p></div>
+      <div class="st rv"><span class="tag on"><i></i> Funcionando</span><h4>Expediente público</h4><p>Ficha con su código QR y el coche a tamaño real en tu garaje, desde el móvil y sin instalar nada.</p></div>
+      <div class="st rv"><span class="tag soon"><i></i> En marcha</span><h4>Red de talleres</h4><p>La verificación física que asienta la mecánica y abre la puerta a garantía y financiación.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap" style="display:grid;gap:22px">
+    <div class="finder rv">
+      <div>
+        <h3>¿Todavía no sabes qué coche quieres?</h3>
+        <p>El buscador del transporte ideal te ayuda a decidir entre comprar y rentar, y compara todo el mercado. Gratis y sin registro. Ahí verás coches de todas partes, no solo los que llevan nuestro informe.</p>
+      </div>
+      <a class="btn btn-black" href="#" style="white-space:nowrap">Abrir el buscador <span class="ar">→</span></a>
+    </div>
+    <div class="price rv" id="precio">
+      <div>
+        <h3>¿Y cuánto vale tu coche?</h3>
+        <p>Eso se calcula aparte, con datos de mercado. No sale del informe ni de las fotos: son dos cosas distintas, y mezclarlas haría que ninguna fuera creíble.</p>
+      </div>
+      <a class="btn btn-line" href="#" style="white-space:nowrap">Calcular precio de salida</a>
+    </div>
+  </div>
+</section>
+
+<section id="empresas" class="band">
+  <div class="wrap b2b">
+    <div class="rv">
+      <div class="label">Para empresas</div>
+      <h2>La capa de certificación del coche usado</h2>
+      <p>Bancos, aseguradoras y profesionales se apoyan en el expediente para conocer el estado real de un vehículo y decidir con datos en vez de con medias.</p>
+      <a class="btn btn-black" href="#">Hablar con nosotros <span class="ar">→</span></a>
+    </div>
+    <div class="stack rv">
+      <div class="row"><div class="k">Bancos</div><div><h4>Garantía verificable</h4><p>El coche como colateral con su estado documentado, sin concesionario de por medio.</p></div></div>
+      <div class="row"><div class="k">Aseguradoras</div><div><h4>Riesgo real</h4><p>Tarificar sobre el estado del vehículo concreto y no sobre la media de su segmento.</p></div></div>
+      <div class="row"><div class="k">Talleres</div><div><h4>Trabajo recurrente</h4><p>La verificación física de la red, con volumen constante y sin captación.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="movil rv">
+      <div>
+        <h2>PopCar en tu móvil</h2>
+        <p>La captura se hace con la cámara del teléfono, en el navegador. Sin descargar
+          nada, sin crear cuenta para mirar y sin ocupar sitio: se abre y ya está.</p>
+        <a class="btn btn-black" href="#">Empezar desde el móvil <span class="ar">→</span></a>
+      </div>
+      <div class="movil-art" aria-hidden="true">
+        <div class="tel">
+          <div class="tel-b">
+            <div class="tel-t">Paso 7 de 18</div>
+            <div class="tel-p"><i></i></div>
+            <div class="tel-g">Aleta trasera izquierda</div>
+            <div class="tel-m">Colócate a un paso y medio y encuadra la rueda entera</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="close">
+  <div class="wrap rv">
+    <h2>Tu coche vale más contado entero</h2>
+    <p>Diez minutos con el móvil bastan para documentarlo. A partir de ahí, quien lo mire sabrá lo que está mirando.</p>
+    <a class="btn btn-yellow" href="#vender" style="padding:15px 30px;font-size:16px">Documentar mi coche <span class="ar">→</span></a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <div>
+        <div class="logo"><span>Pop</span>Car</div>
+        <p>La capa de confianza del coche usado. Precio de particular, estado documentado.</p>
+      </div>
+      <div class="fcol"><h5>Producto</h5><a href="#">Vender</a><a href="#">Comprar</a><a href="#">El sello</a><a href="#">Precio de salida</a></div>
+      <div class="fcol"><h5>Empresas</h5><a href="#">Bancos</a><a href="#">Aseguradoras</a><a href="#">Profesionales</a><a href="#">Talleres</a></div>
+      <div class="fcol"><h5>PopCar</h5><a href="#">Sobre nosotros</a><a href="#">Blog</a><a href="#">Contacto</a></div>
+    </div>
+    <div class="fbot">
+      <span>© 2026 PopCar · nombre provisional</span>
+      <span>Aviso legal · Privacidad · Cookies</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// La barra se vuelve sólida al separarse del hero.
+const nav = document.getElementById('nav');
+const alScroll = () => nav.classList.toggle('solid', window.scrollY > 56);
+alScroll();
+addEventListener('scroll', alScroll, { passive: true });
+
+// Aparición progresiva. Si el visitante pide menos movimiento, no se aplica.
+const suave = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (suave && 'IntersectionObserver' in window) {
+  const obs = new IntersectionObserver((entradas) => {
+    for (const e of entradas) {
+      if (!e.isIntersecting) continue;
+      e.target.classList.add('in');
+      obs.unobserve(e.target);
+    }
+  }, { rootMargin: '0px 0px -12% 0px', threshold: 0.05 });
+  document.querySelectorAll('.rv').forEach((el, i) => {
+    el.style.transitionDelay = `${Math.min(i % 3, 2) * 70}ms`;
+    obs.observe(el);
+  });
+} else {
+  document.querySelectorAll('.rv').forEach((el) => el.classList.add('in'));
+}
+
+// Comprar / rentar / vender. En el maquetado solo cambia la pestaña activa y el
+// texto del botón; el filtrado real vendrá cuando esto se lleve a React.
+const pestanas = [...document.querySelectorAll('.tabs button')];
+const accion = document.querySelector('.buscador .btn-yellow');
+const TEXTO = { Comprar: 'Ver coches para mí', Rentar: 'Ver coches en renting', Vender: 'Empezar a vender' };
+for (const p of pestanas) {
+  p.addEventListener('click', () => {
+    for (const otra of pestanas) otra.setAttribute('aria-selected', String(otra === p));
+    accion.textContent = TEXTO[p.textContent.trim()] ?? TEXTO.Comprar;
+  });
+}
+</script>
+</body>
+</html>

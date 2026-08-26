@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { getMarketplaceVoJson, getImportOffersJson, getVehicleCatalogJson } from "../utils/apiClient";
 import { getBrandOptionSegments } from "../utils/brandCatalog";
-import { getMinRentingPrice } from "../utils/portalVoHelpers";
+import { getRentingDesde, describeRentingDesde } from "../utils/portalVoHelpers";
 
 function FilterSelect({ value, onChange, style = {}, disabled, children }) {
   const [open, setOpen] = useState(false);
@@ -904,9 +904,19 @@ export default function PortalVoMarketplacePage({
                   </div>
                   <div style={{ fontSize: 22, fontWeight: 800, color: isDark ? "var(--gris-50)" : "var(--gris-900)", marginBottom: 6 }}>
                     {isRenting
-                      ? (() => { const p = getMinRentingPrice(offer); return p ? `Desde ${formatCurrency(p)}/mes` : "—"; })()
+                      ? (() => { const d = getRentingDesde(offer); return d ? `Desde ${formatCurrency(d.precio)}/mes` : "—"; })()
                       : formatCurrency(offer.salePrice ?? offer.price)}
                   </div>
+                  {/* Un «desde» sin sus condiciones no dice nada: el precio
+                      más bajo lo es para un plazo y unos kilómetros concretos. */}
+                  {isRenting && (() => {
+                    const d = getRentingDesde(offer);
+                    return d ? (
+                      <div style={{ fontSize: 11, fontWeight: 600, color: isDark ? "var(--gris-300)" : "var(--gris-700)", marginBottom: 6 }}>
+                        {describeRentingDesde(d)}
+                      </div>
+                    ) : null;
+                  })()}
                   <div style={{ fontSize: 11, color: isDark ? "var(--gris-300)" : "var(--gris-700)", lineHeight: 1.6 }}>
                     {offer.year} · {Number(offer.mileage).toLocaleString("es-ES")} km · {offer.location}
                   </div>
@@ -991,7 +1001,7 @@ export default function PortalVoMarketplacePage({
                     ) : (
                       <div style={{ fontSize: 12, fontWeight: 800, color: isDark ? "#34d399" : "#059669" }}>
                         {isRenting
-                          ? (() => { const p = getMinRentingPrice(offer); return p ? `${formatCurrency(p)}/mes` : "—"; })()
+                          ? (() => { const d = getRentingDesde(offer); return d ? `Desde ${formatCurrency(d.precio)}/mes` : "—"; })()
                           : formatCurrency(offer.salePrice ?? offer.price)}
                       </div>
                     )}

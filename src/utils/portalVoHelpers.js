@@ -261,10 +261,64 @@ export const PORTAL_VO_PROVINCES = [
   "Zaragoza",
 ];
 
+/** Los plazos de renting, del más corto al más largo. */
+export const PLAZOS_RENTING = ["12m", "24m", "36m", "48m", "60m"];
+
+/**
+ * El precio más bajo que se puede contratar de verdad, y en qué condiciones.
+ *
+ * Un renting no tiene un precio: tiene una rejilla de plazos por tramos de
+ * kilómetros al año. Las cinco columnas sueltas —renting12m, renting24m…— son
+ * solo la fila de 15.000 km de esa rejilla, así que buscar el mínimo ahí
+ * devuelve el suelo de un tramo, no el suelo.
+ *
+ * Devuelve el precio junto al plazo y los kilómetros que lo hacen posible: un
+ * «desde» sin sus condiciones no se puede anunciar, y además permite abrir la
+ * ficha ya puesta en esa combinación, para que el número que el cliente pulsa
+ * sea el que ve.
+ *
+ * Devuelve null si no hay ningún precio.
+ */
+export function getRentingDesde(offer) {
+  if (!offer) return null;
+  const rejilla = offer.rentingPricesJson;
+  let mejor = null;
+
+  const considerar = (precio, plazo, km) => {
+    if (!(precio > 0)) return;
+    if (!mejor || precio < mejor.precio) mejor = { precio, plazo, km };
+  };
+
+  if (Array.isArray(rejilla?.km_options)) {
+    for (const plazo of PLAZOS_RENTING) {
+      const tramos = rejilla[plazo];
+      if (!Array.isArray(tramos)) continue;
+      tramos.forEach((precio, i) => considerar(precio, plazo, rejilla.km_options[i]));
+    }
+  }
+
+  // Sin rejilla —o con una rejilla sin precios— quedan las columnas, que la web
+  // solo sabe cotizar a 15.000 km al año.
+  if (!mejor) {
+    const km = Number(offer.rentingKmYear) || 15000;
+    for (const plazo of PLAZOS_RENTING) {
+      considerar(offer["renting" + plazo], plazo, km);
+    }
+  }
+
+  return mejor;
+}
+
+/** Solo la cifra. Para ordenar, donde las condiciones no pintan nada. */
 export function getMinRentingPrice(offer) {
-  const prices = [offer.renting12m, offer.renting24m, offer.renting36m, offer.renting48m, offer.renting60m]
-    .filter((p) => p > 0);
-  return prices.length ? Math.min(...prices) : null;
+  return getRentingDesde(offer)?.precio ?? null;
+}
+
+/** «36 meses · 10.000 km/año», para poner debajo del precio. */
+export function describeRentingDesde(desde) {
+  if (!desde) return "";
+  const meses = String(desde.plazo).replace("m", "");
+  return meses + " meses · " + Number(desde.km).toLocaleString("es-ES") + " km/año";
 }
 
 // Búsqueda "Híbrido" incluye "Híbrido enchufable"; gas/gnc/glp son intercambiables.

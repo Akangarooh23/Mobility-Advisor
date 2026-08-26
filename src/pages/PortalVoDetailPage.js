@@ -9,18 +9,19 @@ import SlotPicker from "../components/SlotPicker";
 import SimuladorFinanciacion, { TIPOS_FINANCIACION_IMPORTACION } from "../components/SimuladorFinanciacion";
 import ConditionReportAr from "../components/ConditionReportAr";
 import ConditionReportDownload from "../components/ConditionReportDownload";
+import { getRentingDesde } from "../utils/portalVoHelpers";
 
 // Número de WhatsApp de PopCar (formato internacional sin +).
 const CARSWISE_WHATSAPP = "34684717736";
 
 function getAvailableDurations(offer) {
   if (offer.rentingPricesJson?.km_options) {
-    return ['24m','36m','48m','60m'].filter(d => {
+    return ['12m','24m','36m','48m','60m'].filter(d => {
       const prices = offer.rentingPricesJson[d];
       return Array.isArray(prices) && prices.some(p => p != null && p > 0);
     });
   }
-  return ['24m','36m','48m','60m'].filter(d => (offer[`renting${d}`] || 0) > 0);
+  return ['12m','24m','36m','48m','60m'].filter(d => (offer[`renting${d}`] || 0) > 0);
 }
 
 function getRentingPriceForSelection(offer, duration, km) {
@@ -106,13 +107,15 @@ export default function PortalVoDetailPage({
   };
   const isRentingOffer = !!(selectedPortalVoOffer.rentingAvailable && !selectedPortalVoOffer.availableForPurchase);
   const isRentingReserved = isReserved && selectedPortalVoOffer.rentingAvailable && selectedPortalVoOffer.unitsAvailable <= 1 && !selectedPortalVoOffer.availableForPurchase;
-  const [rentingDuration, setRentingDuration] = useState(() => {
-    const durations = getAvailableDurations(selectedPortalVoOffer);
-    return durations[0] || "36m";
-  });
-  const [rentingKm, setRentingKm] = useState(() => {
-    return selectedPortalVoOffer.rentingPricesJson?.km_options?.[1] || 15000;
-  });
+  // Se abre en la combinación que anuncia el listado, para que el número que
+  // el cliente ha pulsado sea el que ve al entrar.
+  const desde = getRentingDesde(selectedPortalVoOffer);
+  const [rentingDuration, setRentingDuration] = useState(
+    () => desde?.plazo || getAvailableDurations(selectedPortalVoOffer)[0] || "36m"
+  );
+  const [rentingKm, setRentingKm] = useState(
+    () => desde?.km || selectedPortalVoOffer.rentingPricesJson?.km_options?.[1] || 15000
+  );
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedQuantity, setSelectedQuantity] = useState(1);
 
@@ -234,9 +237,8 @@ export default function PortalVoDetailPage({
     const defaultType = isRentingOffer ? "renting" : "info";
     setReqForm({ ...getPrefilledForm(currentUser), when: "", type: defaultType, message: "" });
     if (isRentingOffer) {
-      const durations = getAvailableDurations(selectedPortalVoOffer);
-      setRentingDuration(durations[0] || "36m");
-      setRentingKm(selectedPortalVoOffer.rentingPricesJson?.km_options?.[1] || 15000);
+      setRentingDuration(desde?.plazo || getAvailableDurations(selectedPortalVoOffer)[0] || "36m");
+      setRentingKm(desde?.km || selectedPortalVoOffer.rentingPricesJson?.km_options?.[1] || 15000);
     }
     setReqState("idle");
     setReqError("");

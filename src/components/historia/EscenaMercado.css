@@ -36,7 +36,7 @@
   font-size: clamp(46px, 8.4vw, 104px);
   font-weight: 800;
   line-height: 0.92;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.025em;
   /* Sin esto la cifra baila de ancho al cambiar de dígitos, y con un número que
      no para de moverse eso se nota muchísimo. */
   font-variant-numeric: tabular-nums;

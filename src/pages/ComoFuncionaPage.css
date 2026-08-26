@@ -59,7 +59,10 @@
   font-size: clamp(46px, 8.4vw, 112px);
   font-weight: 800;
   line-height: 0.92;
-  letter-spacing: -0.05em;
+  /* Estaba en -0.05em, calculado para Segoe UI, que es estrecha y de formas
+     cuadradas. Nunito Sans es redonda: a ese apriete sus «o» y sus «e» se
+     tocaban a 112 píxeles. */
+  letter-spacing: -0.025em;
   text-wrap: balance;
 }
 .cf-hero h1 span { color: var(--acento-texto); }
@@ -125,7 +128,7 @@
   font-size: clamp(42px, 5.6vw, 84px);
   font-weight: 800;
   line-height: 0.92;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.025em;
   text-wrap: balance;
 }
 .cf-rotulo h2 span { color: var(--acento-texto); }

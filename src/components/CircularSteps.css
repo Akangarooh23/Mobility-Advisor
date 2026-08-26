@@ -11,7 +11,6 @@
 
 .cw-process-header h2 {
   margin: 0;
-  font-family: "Sora", sans-serif;
   font-size: 1.2rem;
   font-weight: 700;
   color: var(--gris-800);
@@ -108,7 +107,6 @@
 
 .cw-process-copy h3 {
   margin: 5px 0 7px;
-  font-family: "Sora", sans-serif;
   font-size: 1.45rem;
   font-weight: 700;
   line-height: 1.1;

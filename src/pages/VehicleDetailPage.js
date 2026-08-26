@@ -12,7 +12,7 @@ const VEHICLE_DETAIL_CSS = `
   --c-bg:#fff8e7;--c-txt:#7a5c00;
   --ev-bg:var(--gris-100);--ev-txt:var(--gris-500);
   --r:12px;--rs:8px;
-  font-family:'DM Sans',sans-serif;
+  font-family:var(--fuente);
   font-weight:300;
   line-height:1.6;
   color:var(--txt);
@@ -22,7 +22,7 @@ const VEHICLE_DETAIL_CSS = `
 .vd-root *,.vd-root *::before,.vd-root *::after{box-sizing:border-box;margin:0;padding:0}
 /* BACK BAR */
 .vd-back-bar{padding:1.25rem 2.5rem 0;max-width:1240px;margin:0 auto}
-.vd-btn-back{display:inline-flex;align-items:center;gap:.45rem;background:#fff;border:1px solid var(--border);border-radius:30px;padding:.4rem 1rem;font-size:12px;font-weight:400;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;text-decoration:none;font-weight:300}
+.vd-btn-back{display:inline-flex;align-items:center;gap:.45rem;background:#fff;border:1px solid var(--border);border-radius:30px;padding:.4rem 1rem;font-size:12px;font-weight:400;color:var(--muted);cursor:pointer;font-family:var(--fuente);transition:all .15s;text-decoration:none;font-weight:300}
 .vd-btn-back:hover{border-color:var(--acc-border);color:var(--txt)}
 .vd-btn-back svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 /* MAIN LAYOUT */
@@ -44,7 +44,7 @@ const VEHICLE_DETAIL_CSS = `
 .vd-thumb.active,.vd-thumb:hover{border-color:var(--acc);opacity:1}
 /* TITLE */
 .vd-car-brand{font-size:11px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--acc);margin-bottom:.4rem}
-.vd-car-name{font-family:'Playfair Display',serif;font-size:30px;font-weight:500;color:var(--txt);line-height:1.15;margin-bottom:.35rem}
+.vd-car-name{font-family:var(--fuente);font-size:30px;font-weight:500;color:var(--txt);line-height:1.15;margin-bottom:.35rem}
 .vd-car-version{font-size:14px;color:var(--muted);font-weight:300;margin-bottom:.9rem}
 .vd-car-metas{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1.5rem}
 .vd-label-badge{display:inline-flex;align-items:center;gap:.3rem;font-size:11px;font-weight:600;padding:.25rem .65rem;border-radius:20px}
@@ -76,7 +76,7 @@ const VEHICLE_DETAIL_CSS = `
 .vd-co2-val{font-size:12px;font-weight:600;color:var(--txt);white-space:nowrap}
 /* ANALYSIS BOX */
 .vd-analysis-box{background:linear-gradient(135deg,var(--txt) 0%,var(--gris-800) 100%);border-radius:var(--r);padding:1.5rem;margin-bottom:1rem;color:#fff}
-.vd-ab-title{font-family:'Playfair Display',serif;font-size:16px;color:#fff;margin-bottom:1rem}
+.vd-ab-title{font-family:var(--fuente);font-size:16px;color:#fff;margin-bottom:1rem}
 .vd-ab-rows{display:flex;flex-direction:column;gap:.5rem}
 .vd-ab-row{display:flex;align-items:center;gap:.75rem;font-size:12.5px;padding:.5rem .75rem;background:rgba(255,255,255,.07);border-radius:8px}
 .vd-ab-ico{font-size:15px;flex-shrink:0}
@@ -90,8 +90,8 @@ const VEHICLE_DETAIL_CSS = `
 .vd-price-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:1.5rem;overflow:hidden;position:relative}
 .vd-price-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--acc),#d4881e)}
 .vd-price-main-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--subtle);margin-bottom:.35rem}
-.vd-price-main{font-family:'Playfair Display',serif;font-size:36px;font-weight:500;color:var(--txt);line-height:1;margin-bottom:.2rem}
-.vd-price-main sup{font-size:20px;vertical-align:super;font-family:'DM Sans',sans-serif;font-weight:400}
+.vd-price-main{font-family:var(--fuente);font-size:36px;font-weight:500;color:var(--txt);line-height:1;margin-bottom:.2rem}
+.vd-price-main sup{font-size:20px;vertical-align:super;font-family:var(--fuente);font-weight:400}
 .vd-price-saving{font-size:12px;color:var(--eco-txt);font-weight:500;margin-bottom:1.1rem;display:flex;align-items:center;gap:.35rem}
 .vd-finance-block{background:var(--acc-bg);border:1px solid var(--acc-border);border-radius:10px;padding:1rem;margin-bottom:1.1rem}
 .vd-finance-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem}
@@ -101,11 +101,11 @@ const VEHICLE_DETAIL_CSS = `
 .vd-finance-monthly{font-size:18px;font-weight:600;color:var(--acc);line-height:1}
 .vd-finance-monthly span{font-size:12px;font-weight:400;color:var(--muted)}
 /* BUTTONS */
-.vd-btn-primary{display:block;background:var(--acc);color:#fff;border:none;border-radius:10px;padding:.8rem;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;text-align:center;margin-bottom:.5rem;transition:background .2s;letter-spacing:.02em;width:100%}
+.vd-btn-primary{display:block;background:var(--acc);color:#fff;border:none;border-radius:10px;padding:.8rem;font-size:14px;font-weight:500;font-family:var(--fuente);cursor:pointer;text-align:center;margin-bottom:.5rem;transition:background .2s;letter-spacing:.02em;width:100%}
 .vd-btn-primary:hover{background:var(--acc2)}
-.vd-btn-secondary{display:block;background:#fff;color:var(--txt);border:1.5px solid var(--border);border-radius:10px;padding:.75rem;font-size:13px;font-weight:400;font-family:'DM Sans',sans-serif;cursor:pointer;text-align:center;margin-bottom:.5rem;transition:all .15s;width:100%}
+.vd-btn-secondary{display:block;background:#fff;color:var(--txt);border:1.5px solid var(--border);border-radius:10px;padding:.75rem;font-size:13px;font-weight:400;font-family:var(--fuente);cursor:pointer;text-align:center;margin-bottom:.5rem;transition:all .15s;width:100%}
 .vd-btn-secondary:hover{border-color:var(--acc-border);color:var(--acc)}
-.vd-btn-ghost{display:block;background:none;border:none;color:var(--muted);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;text-align:center;padding:.4rem;transition:color .15s;width:100%}
+.vd-btn-ghost{display:block;background:none;border:none;color:var(--muted);font-size:12px;font-family:var(--fuente);cursor:pointer;text-align:center;padding:.4rem;transition:color .15s;width:100%}
 .vd-btn-ghost:hover{color:var(--txt)}
 /* TRUST ROW */
 .vd-trust-row{display:flex;justify-content:center;gap:1.25rem;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border)}
@@ -127,13 +127,13 @@ const VEHICLE_DETAIL_CSS = `
 .vd-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center}
 .vd-modal-overlay.open{display:flex}
 .vd-modal{background:#fff;border-radius:20px;padding:2rem;max-width:440px;width:90%;position:relative}
-.vd-modal h3{font-family:'Playfair Display',serif;font-size:20px;margin-bottom:.5rem}
+.vd-modal h3{font-family:var(--fuente);font-size:20px;margin-bottom:.5rem}
 .vd-modal p{font-size:13px;color:var(--muted);margin-bottom:1.25rem;line-height:1.65}
 .vd-modal-fields{display:flex;flex-direction:column;gap:.6rem;margin-bottom:1.25rem}
-.vd-modal-input{border:1px solid var(--border);border-radius:8px;padding:.65rem .9rem;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s;width:100%}
+.vd-modal-input{border:1px solid var(--border);border-radius:8px;padding:.65rem .9rem;font-size:13px;font-family:var(--fuente);outline:none;transition:border-color .15s;width:100%}
 .vd-modal-input:focus{border-color:var(--acc-border)}
 .vd-modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)}
-.vd-modal-submit{background:var(--acc);color:#fff;border:none;border-radius:8px;padding:.75rem;font-size:14px;font-weight:500;width:100%;cursor:pointer;font-family:'DM Sans',sans-serif}
+.vd-modal-submit{background:var(--acc);color:#fff;border:none;border-radius:8px;padding:.75rem;font-size:14px;font-weight:500;width:100%;cursor:pointer;font-family:var(--fuente);}
 .vd-modal-note{font-size:11px;color:var(--subtle);text-align:center;margin-top:.65rem}
 /* RESPONSIVE */
 @media(max-width:900px){

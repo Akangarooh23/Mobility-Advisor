@@ -4471,7 +4471,7 @@ export default function App() {
     const legalText = isDark ? "var(--gris-200)" : "var(--gris-900)";
     const legalBorder = isDark ? "rgba(150,150,143,0.15)" : "rgba(150,150,143,0.22)";
     return (
-      <div style={{ minHeight: "100vh", background: legalBg, color: legalText, fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" }}>
+      <div style={{ minHeight: "100vh", background: legalBg, color: legalText, }}>
         <div style={{
           position: "sticky", top: 0, zIndex: 100,
           background: isDark ? "rgba(17,17,17,0.96)" : "rgba(255,255,255,0.96)",

@@ -1,8 +1,9 @@
+/* La tipografía se declara aquí y en ningún otro sitio: el resto hereda. Antes
+   convivían tres pilas distintas —esta, la de appStyles y la de las páginas
+   nuevas— y en un Mac cada una daba una letra diferente. */
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: var(--fuente);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

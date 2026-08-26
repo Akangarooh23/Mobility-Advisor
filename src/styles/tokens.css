@@ -56,4 +56,13 @@
   --acento-texto:  #6B5200;
 
   --blanco: #FFFFFF;
+
+  /* La tipografía, también una sola vez. Antes había cuatro familias declaradas
+     —Inter, DM Sans, DM Serif Display y Sora— en veintidós sitios, y ninguna se
+     cargaba: cada visitante veía la que tuviera instalada. La carga la hace
+     styles/fuentes.css; aquí solo vive el nombre.
+
+     Los sustitutos no son de adorno: mientras el navegador baja el fichero, y
+     en el caso raro de que falle, la página se pinta con la del sistema. */
+  --fuente: "Nunito Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
 }

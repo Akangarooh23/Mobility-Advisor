@@ -910,14 +910,14 @@ export default function DecisionPage({
           .cw-active-bar.show { display: flex; }
           .cw-ab-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--marca-claro); margin-right: 0.25rem; white-space: nowrap; }
           .cw-a-chip { background: rgba(255,196,0,0.1); border: 1px solid rgba(255,196,0,0.2); color: var(--gris-900); font-size: 11px; font-weight: 500; padding: 0.2rem 0.65rem; border-radius: 20px; display: inline-flex; align-items: center; gap: 0.3rem; }
-          .cw-ab-clear { margin-left: auto; font-size: 11px; color: #aaa; background: none; border: none; cursor: pointer; font-family: Inter, sans-serif; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+          .cw-ab-clear { margin-left: auto; font-size: 11px; color: #aaa; background: none; border: none; cursor: pointer; font-family: var(--fuente); text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
           .cw-ab-clear:hover { color: #666; }
           .cw-filters { padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
           .cw-f-block { }
           .cw-f-lbl { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #ccc; margin-bottom: 0.7rem; display: flex; align-items: center; gap: 0.5rem; }
           .cw-f-lbl-n { width: 17px; height: 17px; border-radius: 50%; background: linear-gradient(135deg, rgba(255,196,0,0.15), rgba(255,196,0,0.08)); color: var(--marca-claro); font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
           .cw-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
-          .cw-chip { font-size: 12px; font-weight: 400; padding: 0.4rem 0.9rem; border-radius: 30px; border: 1px solid var(--gris-100); background: var(--gris-50); color: #999; cursor: pointer; font-family: Inter, sans-serif; transition: all 0.15s; white-space: nowrap; }
+          .cw-chip { font-size: 12px; font-weight: 400; padding: 0.4rem 0.9rem; border-radius: 30px; border: 1px solid var(--gris-100); background: var(--gris-50); color: #999; cursor: pointer; font-family: var(--fuente); transition: all 0.15s; white-space: nowrap; }
           .cw-chip:hover { border-color: #ddd; color: #555; background: #fff; }
           .cw-chip.sel { background: linear-gradient(135deg, var(--marca-claro), var(--marca)); border-color: transparent; color: #fff; font-weight: 500; box-shadow: 0 2px 10px rgba(255,196,0,0.35); }
           .cw-range-box { background: var(--gris-50); border: 1px solid #eee; border-radius: 12px; padding: 0.8rem 0.9rem; }
@@ -946,7 +946,7 @@ export default function DecisionPage({
           .cw-advanced-toggle:hover { background: var(--gris-100); border-color: var(--gris-300); }
           .cw-advanced-wrap { display: flex; flex-direction: column; gap: 1.5rem; }
           .cw-sel-wrap { position: relative; }
-          .cw-sel-wrap select { appearance: none; width: 100%; background: var(--gris-50); border: 1px solid #eee; border-radius: 12px; padding: 0.62rem 2.2rem 0.62rem 1rem; font-size: 13px; color: #666; font-family: Inter, sans-serif; cursor: pointer; outline: none; }
+          .cw-sel-wrap select { appearance: none; width: 100%; background: var(--gris-50); border: 1px solid #eee; border-radius: 12px; padding: 0.62rem 2.2rem 0.62rem 1rem; font-size: 13px; color: #666; font-family: var(--fuente); cursor: pointer; outline: none; }
           .cw-sel-wrap select:focus { border-color: rgba(255,196,0,0.4); background: #fff; box-shadow: 0 0 0 3px rgba(255,196,0,0.07); }
           .cw-sel-arrow { position: absolute; right: 0.8rem; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 10px; color: #bbb; }
           .cw-loc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
@@ -957,9 +957,9 @@ export default function DecisionPage({
           .cw-count-lbl { font-size: 13px; color: var(--gris-500); font-weight: 500; }
           .cw-cta-hint { font-size: 11.5px; color: var(--gris-400); font-weight: 500; }
           .cw-cta-right { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
-          .cw-btn-back { background: none; border: none; font-size: 12.5px; color: var(--gris-500); cursor: pointer; font-family: Inter, sans-serif; display: flex; align-items: center; gap: 0.35rem; padding: 0.6rem 0; white-space: nowrap; }
+          .cw-btn-back { background: none; border: none; font-size: 12.5px; color: var(--gris-500); cursor: pointer; font-family: var(--fuente); display: flex; align-items: center; gap: 0.35rem; padding: 0.6rem 0; white-space: nowrap; }
           .cw-btn-back:hover { color: var(--gris-700); }
-          .cw-btn-main { background: linear-gradient(135deg, var(--marca) 0%, var(--marca-oscuro) 100%); border: none; border-radius: 12px; padding: 0.7rem 1.6rem; font-size: 13.5px; font-weight: 700; color: #fff; cursor: pointer; font-family: Inter, sans-serif; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 16px rgba(255,196,0,0.35); transition: all 0.2s; white-space: nowrap; }
+          .cw-btn-main { background: linear-gradient(135deg, var(--marca) 0%, var(--marca-oscuro) 100%); border: none; border-radius: 12px; padding: 0.7rem 1.6rem; font-size: 13.5px; font-weight: 700; color: #fff; cursor: pointer; font-family: var(--fuente); display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 16px rgba(255,196,0,0.35); transition: all 0.2s; white-space: nowrap; }
           .cw-btn-main:hover { box-shadow: 0 6px 24px rgba(255,196,0,0.55); transform: translateY(-2px); }
           .cw-btn-main:active { transform: translateY(0); }
           @media (max-width: 700px) {

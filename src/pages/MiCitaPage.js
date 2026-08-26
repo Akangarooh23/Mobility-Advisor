@@ -365,7 +365,7 @@ function RescheduleSlotBtn({ slot, selected, onSelect }) {
 }
 
 const styles = {
-  page:           { minHeight: "100vh", background: "linear-gradient(135deg, var(--gris-50) 0%, var(--gris-50) 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" },
+  page:           { minHeight: "100vh", background: "linear-gradient(135deg, var(--gris-50) 0%, var(--gris-50) 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, },
   card:           { background: "#fff", borderRadius: 20, boxShadow: "0 8px 48px rgba(0,0,0,.1)", padding: "32px 28px", maxWidth: 440, width: "100%" },
   title:          { fontSize: 22, fontWeight: 800, color: "var(--gris-900)", marginBottom: 6, textAlign: "center" },
   sub:            { fontSize: 14, color: "var(--gris-500)", marginBottom: 20, lineHeight: 1.6, textAlign: "center" },

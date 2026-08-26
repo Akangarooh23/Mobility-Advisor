@@ -175,7 +175,7 @@ export default function WorkshopMapModal({
             : `<span style="background:${color}22;color:${color};font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700">${providerName}</span>`;
 
           const popup = L.popup({ maxWidth: 260 }).setContent(`
-            <div style="font-family:system-ui,sans-serif;min-width:200px">
+            <div style="font-family:var(--fuente);min-width:200px">
               <div style="margin-bottom:6px">${badge}</div>
               <div style="font-weight:700;font-size:14px;color:var(--gris-900);margin-bottom:4px">${workshop.name || providerName}</div>
               ${workshop.address ? `<div style="font-size:12px;color:var(--gris-500);margin-bottom:4px">📍 ${workshop.address}</div>` : ""}

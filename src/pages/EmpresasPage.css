@@ -6,7 +6,6 @@
 .emp-root {
   background: var(--blanco);
   color: var(--gris-900);
-  font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   padding: 34px 20px 90px;
 }
 .emp-ancho { max-width: 1100px; margin: 0 auto; }

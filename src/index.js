@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './styles/tokens.css';   // antes que nada: define los colores que usa el resto
+import './styles/tokens.css';   // antes que nada: define los colores y la fuente que usa el resto
+import './styles/fuentes.css';  // y aquí se carga esa fuente
 import './index.css';
 import './i18n';
 import App from './App';

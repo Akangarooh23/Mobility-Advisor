@@ -14,7 +14,6 @@
   --pc-radio: 22px;
   background: var(--blanco);
   color: var(--gris-900);
-  font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   overflow-x: hidden;
 }
 .pc-root * { box-sizing: border-box; }

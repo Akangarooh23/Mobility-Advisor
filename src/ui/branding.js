@@ -28,7 +28,7 @@ export function BydLogo({ size = 14 }) {
   return (
     <svg viewBox="0 0 36 24" width={size} height={size} fill="none" aria-hidden="true">
       <rect x="2.5" y="3.5" width="31" height="17" rx="8.5" stroke="currentColor" strokeWidth="2" />
-      <text x="18" y="15.2" textAnchor="middle" fontSize="9.2" fontWeight="700" fontFamily="Segoe UI, Arial, sans-serif" fill="currentColor">
+      <text x="18" y="15.2" textAnchor="middle" fontSize="9.2" fontWeight="700" fill="currentColor">
         BYD
       </text>
     </svg>

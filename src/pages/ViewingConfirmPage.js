@@ -59,7 +59,7 @@ export default function ViewingConfirmPage() {
 
   const containerStyle = {
     minHeight: "100vh", background: "var(--gris-50)", display: "flex", alignItems: "center",
-    justifyContent: "center", padding: "20px", fontFamily: "Arial, sans-serif",
+    justifyContent: "center", padding: "20px",
   };
   const cardStyle = {
     background: "white", borderRadius: 16, padding: "32px 36px", maxWidth: 520,

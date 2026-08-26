@@ -290,7 +290,7 @@ const S = {
   loading:       { display: "flex", alignItems: "center", gap: 10, color: "var(--gris-500)", fontSize: 14, padding: "24px 0" },
   spinner:       { width: 16, height: 16, border: "2px solid var(--gris-200)", borderTopColor: "var(--gris-700)", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block", flexShrink: 0 },
 
-  wrap:          { fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" },
+  wrap:          { },
   pickerTitle:   { fontSize: 15, fontWeight: 700, color: "var(--gris-900)", marginBottom: 14 },
   noSlots:       { color: "var(--gris-400)", fontSize: 13, textAlign: "center", padding: "20px 0", lineHeight: 1.6 },
 
@@ -309,7 +309,7 @@ const S = {
   slotBtnActive: { background: "var(--gris-700)", borderColor: "var(--gris-700)", color: "#fff", transform: "scale(1.04)" },
 
   // Confirm step
-  confirmWrap:   { fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" },
+  confirmWrap:   { },
   backLink:      { background: "none", border: "none", color: "var(--gris-700)", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 16, display: "flex", alignItems: "center", gap: 4 },
   selectedBadge: { display: "flex", alignItems: "center", gap: 12, background: "var(--gris-50)", border: "1.5px solid #86efac", borderRadius: 12, padding: "14px 16px", marginBottom: 20 },
   selectedIcon:  { fontSize: 22, flexShrink: 0 },
@@ -322,7 +322,7 @@ const S = {
   errMsg:        { background: "var(--gris-100)", border: "1px solid #fecaca", color: "#dc2626", borderRadius: 8, padding: "10px 14px", fontSize: 13, marginBottom: 14 },
 
   // Done step
-  doneWrap:      { textAlign: "center", padding: "12px 0", fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" },
+  doneWrap:      { textAlign: "center", padding: "12px 0", },
   doneIcon:      { fontSize: 44, marginBottom: 10 },
   doneTitle:     { fontSize: 20, fontWeight: 800, color: "var(--gris-900)", marginBottom: 12 },
   doneCard:      { background: "var(--gris-50)", border: "1.5px solid #86efac", borderRadius: 12, padding: "16px 20px", marginBottom: 14, display: "inline-block", minWidth: 220 },

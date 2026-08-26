@@ -35,7 +35,6 @@
      dentro: nunca se come la pantalla entera. */
   max-height: min(82svh, 720px);
   overflow-y: auto;
-  font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   animation: ac-sube 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 @keyframes ac-sube {

@@ -18,7 +18,6 @@
 .cf-root {
   background: var(--blanco);
   color: var(--gris-900);
-  font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   overflow-x: clip;
 }
 

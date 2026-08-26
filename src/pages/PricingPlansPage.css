@@ -25,7 +25,6 @@
 .cw-pricing-page {
   background: var(--cw-white);
   color: var(--cw-ink);
-  font-family: "DM Sans", sans-serif;
   line-height: 1.6;
 }
 
@@ -110,7 +109,6 @@
 }
 
 .cw-pricing-hero h1 {
-  font-family: "DM Serif Display", serif;
   font-size: clamp(2.2rem, 5vw, 3.5rem);
   line-height: 1.15;
   color: var(--cw-navy);
@@ -226,7 +224,6 @@
 }
 
 .cw-plan-name {
-  font-family: "DM Serif Display", serif;
   font-size: 1.7rem;
   color: var(--cw-navy);
   margin-bottom: 0.25rem;
@@ -245,7 +242,6 @@
 }
 
 .cw-price-amount {
-  font-family: "DM Serif Display", serif;
   font-size: 2.6rem;
   color: var(--cw-navy);
   line-height: 1;
@@ -269,7 +265,6 @@
 .cw-service-cta,
 .cw-cta-btn-primary,
 .cw-cta-btn-outline {
-  font-family: "DM Sans", sans-serif;
   cursor: pointer;
 }
 
@@ -431,7 +426,6 @@
 }
 
 .cw-section-title {
-  font-family: "DM Serif Display", serif;
   font-size: clamp(1.8rem, 3vw, 2.5rem);
   color: var(--cw-navy);
   line-height: 1.2;
@@ -498,7 +492,6 @@
 }
 
 .cw-p-name {
-  font-family: "DM Serif Display", serif;
   font-size: 1.25rem;
   color: var(--cw-navy);
 }
@@ -515,7 +508,6 @@
 
 .cw-p-price-main {
   display: block;
-  font-family: "DM Serif Display", serif;
   font-size: 1.6rem;
   color: var(--cw-navy);
 }
@@ -682,7 +674,6 @@
 }
 
 .cw-cta-section h2 {
-  font-family: "DM Serif Display", serif;
   font-size: clamp(1.8rem, 3vw, 2.7rem);
   color: var(--cw-navy);
   margin-bottom: 0.8rem;

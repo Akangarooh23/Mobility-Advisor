@@ -9,7 +9,7 @@ export function createAppStyles(progress = 0, themeMode = "light") {
       background: isDark
         ? "var(--gris-900)"
         : "var(--blanco)",   // el fondo de la web es blanco, sin degradado
-      fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+
       color: isDark ? "var(--gris-200)" : "var(--gris-900)",
     },
     header: {

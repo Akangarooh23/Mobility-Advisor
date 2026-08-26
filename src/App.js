@@ -4680,10 +4680,14 @@ export default function App() {
             </button>
           ) : (
             <>
+              {/* Sin sesión son dos botones, y en un móvil los dos no caben
+                  junto al logotipo y al menú: piden 470 px y la pantalla más
+                  ancha tiene 430. Así que ahí este se recoge en el menú y en la
+                  cabecera se queda el de registro. */}
               <button
                 type="button"
                 onClick={handleUserAccessClick}
-                className="cw-btn-contorno"
+                className="cw-btn-contorno cw-header-desktop-only"
               >
                 {uiLanguage === "en" ? "Log in" : "Iniciar sesión"}
               </button>
@@ -5148,6 +5152,22 @@ export default function App() {
                 </button>
               );
             })}
+            {/* Y aquí es donde reaparece el acceso que la cabecera no puede
+                enseñar en un móvil. Separado del resto: no es una sección, es
+                entrar. */}
+            {!isUserLoggedIn && (
+              <button
+                type="button"
+                role="menuitem"
+                className="cw-header-mobile-nav-link cw-header-mobile-acceso"
+                onClick={() => {
+                  setShowHeaderMobileNav(false);
+                  handleUserAccessClick();
+                }}
+              >
+                {uiLanguage === "en" ? "Log in" : "Iniciar sesión"}
+              </button>
+            )}
           </div>
         )}
       </header>}

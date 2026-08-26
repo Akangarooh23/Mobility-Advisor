@@ -171,6 +171,23 @@ body {
     flex-shrink: 0;
   }
 
+  /* El botón que queda en la cabecera se aprieta un poco: con el logotipo y el
+     menú al lado, el ancho de un móvil no da para el tamaño de escritorio. */
+  .cw-btn-contorno, .cw-btn-acento {
+    padding: 9px 15px;
+    font-size: 13px;
+  }
+
+  /* «Iniciar sesión», dentro del menú, separado de las secciones: no es un
+     sitio de la web, es entrar. */
+  .cw-header-mobile-acceso {
+    margin-top: 4px;
+    border-top: 1px solid rgba(150, 150, 143, 0.24);
+    border-radius: 0 0 10px 10px;
+    padding-top: 12px;
+    font-weight: 700;
+  }
+
   .cw-header-mobile-nav {
     display: grid;
     position: absolute;

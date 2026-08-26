@@ -35,6 +35,8 @@ const TEXTOS = {
       ["Vende al mejor precio", "Informe de daños y gestión de la venta."],
       ["Gestiona tu coche", "Documentación, avisos y talleres en un sitio."],
     ],
+    borradorTitulo: "Dejaste un cuestionario a medias.",
+    borradorBoton: "Continuar cuestionario",
     valoracion: "Valoración inteligente con IA",
     nota: ["* Estimación orientativa.", " Sale de comparar operaciones recientes de coches parecidos. No es una oferta de compra ni una tasación: el precio real depende del estado del coche, y eso lo fija el informe."],
     confianza: [
@@ -116,6 +118,8 @@ const TEXTOS = {
       ["Sell at the right price", "Damage report and full sale management."],
       ["Manage your car", "Paperwork, reminders and garages in one place."],
     ],
+    borradorTitulo: "You left a questionnaire unfinished.",
+    borradorBoton: "Resume questionnaire",
     valoracion: "AI-assisted valuation",
     nota: ["* Indicative estimate.", " Based on recent sales of similar cars. It is not an offer nor a formal appraisal: the real price depends on the car's condition, and that is what the report establishes."],
     confianza: [
@@ -468,6 +472,17 @@ export default function LandingPage({
                 );
               })}
             </div>
+
+            {/* Solo para quien vuelve: el borrador se guardaba y se leia,
+                pero no habia por donde retomarlo. */}
+            {questionnaireDraft && (
+              <div className="pc-borrador">
+                <p>{t.borradorTitulo}</p>
+                <button type="button" onClick={onResumeAdvice}>
+                  {t.borradorBoton}
+                </button>
+              </div>
+            )}
 
           </div>
 

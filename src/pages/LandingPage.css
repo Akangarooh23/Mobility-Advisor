@@ -380,3 +380,22 @@
     transform: none;
   }
 }
+
+/* Retomar un cuestionario a medias. Solo lo ve quien tiene uno guardado,
+   asi que puede permitirse llamar la atencion sin competir con el hero. */
+.pc-borrador {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  margin-top: 22px; padding: 13px 16px;
+  background: var(--acento-tenue); border-radius: var(--pc-radio);
+  border: 1px solid var(--acento);
+}
+.pc-borrador p { margin: 0; font-size: 13.5px; color: var(--acento-texto); font-weight: 600; }
+.pc-borrador button {
+  margin-left: auto; padding: 9px 16px; border: 0; cursor: pointer;
+  border-radius: 999px; background: var(--acento-texto); color: var(--blanco);
+  font-family: inherit; font-size: 13px; font-weight: 700;
+}
+.pc-borrador button:hover { background: #4d3b00; }
+@media (max-width: 720px) {
+  .pc-borrador button { margin-left: 0; width: 100%; }
+}

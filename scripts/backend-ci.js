@@ -21,14 +21,17 @@ function isEnabled(value) {
 }
 
 try {
+  // Primero la marca: no toca base de datos ni red, asi que si algo se ha
+  // roto en los correos se ve antes de montar nada.
+  runScript("test:marca");
   runScript("test:auth-all-local");
   runScript("test:auth-security-local");
 
   if (isEnabled(process.env.RUN_MOBILITY_BACKEND_TESTS)) {
     runScript("test:mobility-backend-local");
-    console.log("[backend-ci] OK: auth, security y movilidad verificados.");
+    console.log("[backend-ci] OK: marca, auth, seguridad y movilidad verificados.");
   } else {
-    console.log("[backend-ci] OK: auth y seguridad verificados. Movilidad SQL omitida por RUN_MOBILITY_BACKEND_TESTS!=true.");
+    console.log("[backend-ci] OK: marca, auth y seguridad verificados. Movilidad SQL omitida por RUN_MOBILITY_BACKEND_TESTS!=true.");
   }
 } catch (error) {
   console.error("[backend-ci] FAIL:", error?.message || error);

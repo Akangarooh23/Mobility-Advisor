@@ -5,6 +5,16 @@
 import '@testing-library/jest-dom';
 
 /**
+ * i18next se inicializa en src/index.js, que es el arranque de la aplicacion.
+ * Las pruebas montan <App /> directamente y no pasan por ahi, asi que i18next
+ * se quedaba sin instancia y cualquier cosa que llamara a changeLanguage() o a
+ * t() reventaba con un error que no menciona i18n por ninguna parte.
+ *
+ * Eran dieciocho pruebas en rojo por un import que faltaba, no por codigo roto.
+ */
+import './i18n';
+
+/**
  * jsdom no implementa `window.matchMedia`, y lo usan tanto GSAP —para su
  * `matchMedia`, que es como se separan escritorio, movil y `prefers-reduced-
  * motion`— como el propio codigo de la aplicacion. Sin esto, cualquier prueba

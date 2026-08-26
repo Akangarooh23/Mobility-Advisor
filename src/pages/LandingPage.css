@@ -327,7 +327,11 @@
   .pc-tarjeta-ia { right: 0; }
 }
 @media (max-width: 1000px) {
-  .pc-hero { grid-template-columns: 1fr; padding-top: 44px; }
+  /* El hueco entre el coche y el titular. Sin él, la sombra de la tarjeta de
+     valoración caía encima del «movilidad inteligente» y parecía que se
+     solapaban: en una sola columna hay que separarlos a mano, porque ya no lo
+     hace la rejilla de dos. */
+  .pc-hero { grid-template-columns: 1fr; padding-top: 44px; gap: 30px; }
   .pc-hero-visual { order: -1; --pc-entrada-x: 30%; }
   .pc-formas-rejilla { grid-template-columns: 1fr 1fr; }
   .pc-idcar { grid-column: auto; }

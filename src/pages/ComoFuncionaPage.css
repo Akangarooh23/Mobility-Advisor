@@ -1203,3 +1203,50 @@
   }
   .cf-taller.es-elegido { --elegido: 1; }
 }
+
+/* ── En un móvil ──────────────────────────────────────────────────────── */
+/* El bloque tiene que caber en una pantalla, y con las reglas de tableta no
+   cabía: se pasaba ciento veinte píxeles y `.cf-fijo` recortaba lo que sobraba,
+   que era justo el final de la escena. Casi todo el exceso lo ponían las tres
+   tarjetas apiladas, así que pasan a fila y el rótulo cede algo de aire. */
+@media (max-width: 760px) {
+  .cf-caminos { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 0; }
+  #comprar .cf-camino, #vender .cf-camino, .cf-camino { padding: 9px 10px; gap: 5px; border-radius: 12px; }
+  .cf-camino strong { font-size: 11.5px; line-height: 1.2; }
+  /* El destino se queda: es la mitad de la información de la tarjeta. Lo que se
+     va es el globo, que a este tamaño solo aprieta. */
+  .cf-camino small { font-size: 9px; padding: 0; background: none; }
+
+  .cf-servicios { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .cf-servicio { padding: 9px 10px; gap: 8px; border-radius: 12px; }
+  .cf-servicio-icono { width: 26px; height: 26px; }
+  .cf-servicio-icono svg { width: 15px; height: 15px; }
+  .cf-servicio strong { font-size: 11.5px; line-height: 1.2; }
+  .cf-servicio small { font-size: 9.5px; }
+
+  .cf-fijo { padding-top: 68px; padding-bottom: 24px; gap: 14px; }
+  .cf-paso { margin-bottom: 10px; }
+  .cf-eyebrow { margin-bottom: 8px; }
+  .cf-rotulo h2 { font-size: clamp(28px, 7.4vw, 42px); }
+  .cf-escena-actos { gap: 18px; }
+  /* Y todo lo que se ahorra arriba se lo queda la escena. */
+  .cf-tablero { min-height: clamp(300px, 58svh, 500px); }
+  .cf-acto-etq { font-size: 10.5px; letter-spacing: 0.08em; }
+  .cf-acto-pie { font-size: 11.5px; }
+
+  /* El calendario y el mapa son cuadrados: a todo el ancho se comen la escena
+     entera, así que se les pone techo. */
+  .cf-mes { max-width: 250px; }
+  .cf-mapa { max-width: 250px; }
+  .cf-cerebro-svg { max-width: 70px; }
+
+  /* Publicar son tres cosas y en columna no caben: los requisitos arriba, y
+     debajo el informe y el anuncio uno al lado del otro. */
+  .cf-publicar { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .cf-requisitos { grid-column: 1 / -1; gap: 8px; }
+  .cf-requisito strong { font-size: 12px; }
+  /* Sin la lista de hallazgos al lado, el esquema se centra. */
+  .cf-estado-cuerpo { grid-template-columns: 1fr; justify-items: center; }
+  .cf-coche-esquema { max-width: 88px; }
+  .cf-grados { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 10px; }
+}

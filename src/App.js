@@ -2053,10 +2053,22 @@ export default function App() {
     setShowCookieSettings,
   });
 
-  /** ¿Hay que pedir el consentimiento de cookies? */
-  const avisoCookiesAbierto =
-    showCookieGate && !isUserLoggedIn && !authRequired && !showConsentReview
-    && !["legalNotice", "privacyPolicy", "cookiePolicy", "termsConditions", "marketingPolicy", "experianPolicy", "experianTerms"].includes(entryMode);
+  /**
+   * ¿Hay que pedir el consentimiento de cookies?
+   *
+   * Una sola condición, y no es por pereza: el aviso se queda hasta que se
+   * conteste, se acepte o se rechace. `showCookieGate` sale de si hay
+   * consentimiento guardado y solo lo apaga `saveCookieConsent`, así que esa
+   * pregunta ya está respondida aquí.
+   *
+   * Antes llevaba cuatro condiciones más —sesión iniciada, diálogo de acceso,
+   * revisión de consentimientos y páginas legales— y el aviso se esfumaba solo:
+   * al arrancar se pinta, y cuando la comprobación de sesión vuelve diciendo
+   * que estás dentro, desaparecía sin que nadie hubiera contestado nada. Tenían
+   * sentido cuando esto era una capa que tapaba la pantalla; siendo una barra
+   * al pie, no tapa ni la política de cookies.
+   */
+  const avisoCookiesAbierto = showCookieGate;
 
   const activeSteps = useMemo(() => {
     const steps = getQuestionnaireSteps(advancedMode).filter((s) => s.id !== "perfil");

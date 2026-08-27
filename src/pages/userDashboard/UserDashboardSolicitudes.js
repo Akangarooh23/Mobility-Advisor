@@ -50,6 +50,7 @@ export default function UserDashboardSolicitudes({
     question:        { bg: "rgba(94,94,89,0.12)",  color: "var(--gris-600)", border: "rgba(94,94,89,0.25)" },
     renting:         { bg: "rgba(5,150,105,0.12)",   color: "#065f46", border: "rgba(5,150,105,0.3)" },
     viewing_seller:  { bg: "rgba(234,88,12,0.12)",   color: "#c2410c", border: "rgba(234,88,12,0.25)" },
+    visita_marketplace: { bg: "rgba(37,99,235,0.12)", color: "#1d4ed8", border: "rgba(37,99,235,0.25)" },
   };
   const STATUS_COLOR = {
     Pendiente:                  { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
@@ -66,6 +67,7 @@ export default function UserDashboardSolicitudes({
     Descartado:                 { bg: "rgba(94,94,89,0.10)", color: "var(--gris-600)" },
     "Reagendar solicitado":     { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
     Cancelado:                  { bg: "rgba(239,68,68,0.10)",   color: "#b91c1c" },
+    "Pendiente de confirmar":   { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
     pending_seller:             { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
     pending_buyer:              { bg: "rgba(255,196,0,0.12)",  color: "var(--marca-oscuro)" },
     confirmed:                  { bg: "rgba(16,185,129,0.15)",  color: "#065f46" },
@@ -87,6 +89,16 @@ export default function UserDashboardSolicitudes({
     try {
       return new Date(iso).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
     } catch { return iso; }
+  }
+
+  function fmtHoraCita(iso) {
+    try { return new Date(iso).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }); }
+    catch { return ""; }
+  }
+
+  function fmtDiaCita(iso) {
+    try { return new Date(iso).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" }); }
+    catch { return ""; }
   }
 
   function formatAppointmentDate(dateStr) {
@@ -240,13 +252,21 @@ export default function UserDashboardSolicitudes({
     } catch { return false; }
   }
 
+  // Cuándo es la cita, venga de donde venga. Las visitas del marketplace
+  // guardan `starts_at`; los leads, `appointment_date`; las del vendedor,
+  // `confirmed_slot`. Sin esto, una visita del marketplace se quedaba en «en
+  // curso» para siempre, porque se agrupaba por un campo que no tiene.
+  function cuandoEs(meta) {
+    return meta.starts_at || meta.appointment_date || meta.confirmed_slot || "";
+  }
+
   const grouped = {
     pendiente: localSolicitudes.filter((s) =>
-      ["Pendiente", "Contactado", "En proceso", "Reagendar solicitado", "pending_seller", "pending_buyer"].includes(s.status)
+      ["Pendiente", "Contactado", "En proceso", "Reagendar solicitado", "pending_seller", "pending_buyer", "Pendiente de confirmar"].includes(s.status)
     ),
     en_curso: localSolicitudes.filter((s) => {
       const meta = parseMeta(s.meta);
-      if (s.status === "Cita confirmada") return !isDatePast(meta.appointment_date);
+      if (s.status === "Cita confirmada") return !isDatePast(cuandoEs(meta));
       if (s.status === "confirmed")       return !isDatePast(meta.confirmed_slot);
       return false;
     }),
@@ -256,7 +276,7 @@ export default function UserDashboardSolicitudes({
       if (s.status === "Cerrado")          return true;
       if (s.status === "Visita realizada") return true;
       if (s.status === "Interesado")       return true;
-      if (s.status === "Cita confirmada")  return isDatePast(meta.appointment_date);
+      if (s.status === "Cita confirmada")  return isDatePast(cuandoEs(meta));
       if (s.status === "confirmed")        return isDatePast(meta.confirmed_slot);
       return false;
     }),
@@ -274,6 +294,30 @@ export default function UserDashboardSolicitudes({
 
   const visibleSolicitudes = grouped[activeTab] || [];
 
+  /**
+   * Las visitas del marketplace que aún no han pasado.
+   *
+   * Solo las que vienen: una cita de la semana pasada ya no es un aviso, es
+   * historial, y sigue en la lista de abajo como todo lo demás. Las canceladas
+   * tampoco, que no hay nada a lo que ir.
+   */
+  const proximasVisitas = localSolicitudes
+    .filter((s) => s.type === "visita_marketplace" && s.status !== "Cancelado")
+    .map((s) => {
+      const meta = parseMeta(s.meta);
+      return {
+        id: s.id,
+        titulo: s.title || "Vehículo",
+        cuando: meta.starts_at,
+        pendiente: s.status === "Pendiente de confirmar",
+        enlace: meta.booking_id && meta.token_buyer
+          ? `/mi-cita?id=${encodeURIComponent(meta.booking_id)}&token=${encodeURIComponent(meta.token_buyer)}`
+          : "",
+      };
+    })
+    .filter((v) => v.cuando && new Date(v.cuando) > new Date())
+    .sort((a, b) => new Date(a.cuando) - new Date(b.cuando));
+
   return (
     <section style={{ ...panelStyle, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
@@ -284,6 +328,50 @@ export default function UserDashboardSolicitudes({
         </div>
         <span style={{ ...getOfferBadgeStyle("blue"), fontSize: 11 }}>{localSolicitudes.length} solicitud{localSolicitudes.length !== 1 ? "es" : ""}</span>
       </div>
+
+      {/* Las visitas que vienen, arriba y aparte.
+          Una cita no es una solicitud cualquiera: tiene dia y hora. Dentro de la
+          lista se pierde entre peticiones que pueden esperar, y quien se la
+          pierde se planta en un sitio el dia que no era. */}
+      {proximasVisitas.length > 0 && (
+        <div style={{
+          border: "1.5px solid rgba(37,99,235,0.25)", background: "rgba(37,99,235,0.06)",
+          borderRadius: 14, padding: "14px 16px", marginBottom: 16,
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".5px", textTransform: "uppercase", color: "#1d4ed8", marginBottom: 10 }}>
+            {proximasVisitas.length === 1 ? "Tu próxima visita" : "Tus próximas visitas"}
+          </div>
+          {proximasVisitas.map((v) => (
+            <div key={v.id} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12, padding: "8px 0" }}>
+              <div style={{ minWidth: 86 }}>
+                <div style={{ fontSize: 17, fontWeight: 800, color: isDark ? "var(--gris-50)" : "var(--gris-900)", lineHeight: 1.1 }}>
+                  {fmtHoraCita(v.cuando)}
+                </div>
+                <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "var(--gris-500)" }}>{fmtDiaCita(v.cuando)}</div>
+              </div>
+              <div style={{ flex: 1, minWidth: 180 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>{v.titulo}</div>
+                <div style={{ fontSize: 12, color: v.pendiente ? "#92400e" : "#065f46", fontWeight: 700, marginTop: 2 }}>
+                  {v.pendiente ? "Pendiente de confirmar" : "✓ Confirmada"}
+                </div>
+              </div>
+              {v.enlace && (
+                <a href={v.enlace} style={{
+                  fontSize: 13, fontWeight: 700, color: "#1d4ed8", textDecoration: "none",
+                  border: "1.5px solid rgba(37,99,235,0.35)", borderRadius: 8, padding: "7px 14px",
+                }}>
+                  Ver o cambiar
+                </a>
+              )}
+            </div>
+          ))}
+          {proximasVisitas.some((v) => v.pendiente) && (
+            <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginTop: 6 }}>
+              Las pendientes están a la espera de que confirmemos el horario. Te escribimos en cuanto lo tengamos.
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Tabs */}
       <div style={{

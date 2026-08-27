@@ -50,6 +50,17 @@ const cita = (id) => ({
   appointment_contact: "Taller Ejemplo · 910 000 000",
 });
 
+// Una visita reservada con el calendario del marketplace. Vive en otra tabla
+// que la cita de un lead, y hasta ahora el cron no la miraba.
+const reserva = (id) => ({
+  id,
+  buyer_email: CORREO,
+  buyer_name: "Ana Picazo",
+  vehicle_title: "Renault Clio 1.0 TCe 90 Techno",
+  starts_at: new Date(Date.now() + 86400000).toISOString(),
+  token_buyer: "testigo-de-mentira",
+});
+
 // Una alerta sin filtros: asi encaja con el inventario real y el correo se
 // arma con ofertas de verdad, no con relleno.
 const alerta = {
@@ -88,6 +99,12 @@ Pool.prototype.query = function (sql, params, cb) {
     if (/appointment_date = CURRENT_DATE\b/.test(texto)) return responde([cita("ensayo-2")], "cita de hoy");
     if (/appointment_date < CURRENT_DATE/.test(texto)) return responde([cita("ensayo-3")], "visita ya pasada");
     if (/FROM market_alerts WHERE notify_by_email/.test(texto)) return responde([alerta], "alerta activa");
+    // Las tres consultas de reservas se distinguen por la columna que miran.
+    if (/FROM vehicle_visit_bookings/.test(texto)) {
+      if (/reminder_sent_at IS NULL/.test(texto))        return responde([reserva("reserva-1")], "reserva de manana");
+      if (/reminder_day_of_sent_at IS NULL/.test(texto)) return responde([reserva("reserva-2")], "reserva de hoy");
+      if (/followup_sent_at IS NULL/.test(texto))        return responde([reserva("reserva-3")], "reserva ya pasada");
+    }
   }
 
   return queryOriginal.call(this, sql, params, cb);

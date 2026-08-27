@@ -70,7 +70,8 @@
     "eject": "react-scripts eject",
     "build:android": "powershell -NoProfile -Command \"$env:REACT_APP_API_BASE_URL='https://www.carswiseai.com'; npm run build; npx cap sync android\"",
     "cap:sync": "npx cap sync",
-    "cap:open:android": "npx cap open android"
+    "cap:open:android": "npx cap open android",
+    "test:lib": "node --test lib/**/*.test.js"
   },
   "proxy": "http://localhost:3001",
   "eslintConfig": {

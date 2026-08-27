@@ -48,7 +48,7 @@ function groupByDay(slots) {
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export default function SlotPicker({ offerId, vehicleTitle, sellerEmail, userEmail, userName, userPhone, source, onBooked }) {
+export default function SlotPicker({ offerId, vehicleTitle, userEmail, userName, userPhone, source, onBooked }) {
   const [slots,      setSlots]      = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState("");
@@ -83,7 +83,9 @@ export default function SlotPicker({ offerId, vehicleTitle, sellerEmail, userEma
         body: JSON.stringify({
           route: "book", slotId: selected.id, offerId, vehicleTitle,
           buyerEmail: userEmail, buyerName: form.name, buyerPhone: form.phone,
-          sellerEmail: sellerEmail || null, notes: form.notes,
+          // El correo del vendedor lo pone el servidor: es a dónde va el aviso,
+          // y no puede depender de lo que mande el navegador.
+          notes: form.notes,
           source: source || "marketplace",
         }),
       });

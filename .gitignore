@@ -47,3 +47,6 @@ carswise-erp-backoffice-review/
 
 # Vercel: el enlace local con el proyecto, que crea `vercel link`.
 .vercel
+
+# Correos del ensayo de los cron: se regeneran solos.
+scripts/ensayo-correos/

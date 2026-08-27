@@ -72,7 +72,8 @@
     "cap:sync": "npx cap sync",
     "cap:open:android": "npx cap open android",
     "test:lib": "node --test lib/**/*.test.js",
-    "test:regresion": "node scripts/comprueba-regresion.js"
+    "test:regresion": "node scripts/comprueba-regresion.js",
+    "test:cron": "node scripts/ensaya-cron.js --con-datos"
   },
   "proxy": "http://localhost:3001",
   "eslintConfig": {

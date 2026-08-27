@@ -127,20 +127,32 @@ export default function SlotPicker({ offerId, vehicleTitle, userEmail, userName,
   );
 
   // ── Done ──────────────────────────────────────────────────────────────────
-  if (step === "done" && booking) return (
-    <div style={S.doneWrap}>
-      <div style={S.doneIcon}>✅</div>
-      <div style={S.doneTitle}>¡Visita confirmada!</div>
-      <div style={S.doneCard}>
-        <div style={S.doneDate}>{fmtDayLong(booking.starts_at.slice(0, 10))}</div>
-        <div style={S.doneTime}>{fmtTime(booking.starts_at)} – {fmtTime(booking.ends_at)}</div>
+  // Si el horario lo generó el sistema en vez de publicarlo el vendedor, la
+  // reserva nace pendiente: decir aquí «¡confirmada!» y ofrecer el calendario
+  // sería prometer algo que nadie ha dicho todavía.
+  if (step === "done" && booking) {
+    const pendiente = booking.status === "pending";
+    return (
+      <div style={S.doneWrap}>
+        <div style={S.doneIcon}>{pendiente ? "🕐" : "✅"}</div>
+        <div style={S.doneTitle}>{pendiente ? "Solicitud enviada" : "¡Visita confirmada!"}</div>
+        <div style={S.doneCard}>
+          <div style={S.doneDate}>{fmtDayLong(booking.starts_at.slice(0, 10))}</div>
+          <div style={S.doneTime}>{fmtTime(booking.starts_at)} – {fmtTime(booking.ends_at)}</div>
+        </div>
+        <p style={S.doneHint}>
+          {pendiente
+            ? "Nos falta confirmar ese horario con quien tiene el coche. Te escribimos en cuanto lo tengamos, y si no puede ser te proponemos otro. No tienes que hacer nada."
+            : "Recibirás un email de confirmación con todos los detalles y un archivo para tu calendario."}
+        </p>
+        {!pendiente && (
+          <button onClick={downloadIcs} style={S.icsBtn}>
+            ⬇ Añadir al calendario (.ics)
+          </button>
+        )}
       </div>
-      <p style={S.doneHint}>Recibirás un email de confirmación con todos los detalles y un archivo para tu calendario.</p>
-      <button onClick={downloadIcs} style={S.icsBtn}>
-        ⬇ Añadir al calendario (.ics)
-      </button>
-    </div>
-  );
+    );
+  }
 
   // ── Confirm ───────────────────────────────────────────────────────────────
   if (step === "confirm" && selected) return (

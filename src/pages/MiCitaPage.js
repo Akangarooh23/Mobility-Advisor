@@ -160,6 +160,7 @@ export default function MiCitaPage() {
   );
 
   const isCancelled = booking?.status === "cancelled";
+  const isPending   = booking?.status === "pending";
 
   // ── Reschedule success ──────────────────────────────────────────────────────
   if (view === "rescheduled") return (
@@ -289,13 +290,25 @@ export default function MiCitaPage() {
         <Logo />
 
         {/* Status badge */}
+        {/* Hasta que alguien la confirma no esta confirmada: si el horario lo
+            genero el sistema, la reserva nace pendiente. Decir aqui
+            «✓ Confirmada» contradecia al correo que el cliente acaba de leer. */}
         <div style={{ textAlign: "center", marginBottom: 20 }}>
           {isCancelled ? (
             <span style={F.badgeCancelled}>Cancelada</span>
+          ) : isPending ? (
+            <span style={F.badgePending}>Pendiente de confirmar</span>
           ) : (
             <span style={F.badgeConfirmed}>✓ Confirmada</span>
           )}
         </div>
+
+        {isPending && (
+          <div style={{ ...F.sub, marginBottom: 16 }}>
+            Nos falta confirmar ese horario con quien tiene el coche. Te escribimos en cuanto
+            lo tengamos, y si no puede ser te proponemos otro. No tienes que hacer nada.
+          </div>
+        )}
 
         {/* Vehicle */}
         <div style={F.vehicleTitle}>{booking.vehicle_title || "Vehículo"}</div>
@@ -373,6 +386,7 @@ const styles = {
 
   badgeConfirmed: { display: "inline-block", background: "var(--gris-50)", color: "#16a34a", fontSize: 13, fontWeight: 700, borderRadius: 20, padding: "5px 14px", border: "1.5px solid #86efac" },
   badgeCancelled: { display: "inline-block", background: "var(--gris-100)", color: "#dc2626", fontSize: 13, fontWeight: 700, borderRadius: 20, padding: "5px 14px", border: "1.5px solid #fecaca" },
+  badgePending:   { display: "inline-block", background: "#fffbeb", color: "#b45309", fontSize: 13, fontWeight: 700, borderRadius: 20, padding: "5px 14px", border: "1.5px solid #fde68a" },
 
   dateCard:       { background: "linear-gradient(135deg, var(--acento-tenue), var(--gris-50))", border: "1.5px solid var(--gris-200)", borderRadius: 14, padding: "20px", marginBottom: 14, textAlign: "center" },
   dateCardLabel:  { fontSize: 11, fontWeight: 700, color: "var(--gris-300)", textTransform: "uppercase", letterSpacing: ".5px", marginBottom: 6 },

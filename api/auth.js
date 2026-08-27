@@ -3,6 +3,7 @@ const path = require("path");
 const crypto = require("crypto");
 const { execFileSync } = require("child_process");
 const { MARCA, remitente, respuestaA } = require("../lib/marca");
+const { plantilla, parrafo, aviso, codigo } = require("../lib/correo");
 
 // mssql is only needed when AUTH_PROVIDER=mssql; lazy-load to avoid crashing on Vercel
 function getMssqlModule() {
@@ -1349,144 +1350,13 @@ async function sendPasswordResetEmail({ email, code }) {
     `— El equipo de ${MARCA.nombre}`,
   ].join("\n");
 
-  const html = `<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Recupera tu contraseña · ${MARCA.nombre}</title>
-  <style>
-    @keyframes cwBorderShift {
-      0%   { border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(96,165,250,0.18), 0 4px 24px rgba(96,165,250,0.12); }
-      30%  { border-color: #38bdf8; box-shadow: 0 0 0 3px rgba(56,189,248,0.18), 0 4px 24px rgba(56,189,248,0.12); }
-      60%  { border-color: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,0.18), 0 4px 24px rgba(74,222,128,0.12); }
-      100% { border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(96,165,250,0.18), 0 4px 24px rgba(96,165,250,0.12); }
-    }
-    @keyframes cwLabelShift {
-      0%   { color: #60a5fa; }
-      30%  { color: #38bdf8; }
-      60%  { color: #4ade80; }
-      100% { color: #60a5fa; }
-    }
-    @keyframes cwCodeShift {
-      0%   { color: #60a5fa; }
-      30%  { color: #38bdf8; }
-      60%  { color: #4ade80; }
-      100% { color: #60a5fa; }
-    }
-    .cw-code-box {
-      border: 2px solid #60a5fa;
-      border-radius: 14px;
-      padding: 28px 20px;
-      text-align: center;
-      background: #f0f7ff;
-      animation: cwBorderShift 3s ease-in-out infinite;
-    }
-    .cw-code-label {
-      margin: 0 0 8px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 2px;
-      color: #60a5fa;
-      text-transform: uppercase;
-      animation: cwLabelShift 3s ease-in-out infinite;
-    }
-    .cw-code-value {
-      margin: 0;
-      font-size: 42px;
-      font-weight: 800;
-      letter-spacing: 12px;
-      color: #60a5fa;
-      font-variant-numeric: tabular-nums;
-      line-height: 1.1;
-      animation: cwCodeShift 3s ease-in-out infinite;
-    }
-  </style>
-</head>
-<body style="margin:0;padding:0;background:#eef2f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#eef2f7;min-height:100vh;">
-    <tr><td align="center" style="padding:48px 16px;">
-
-      <!-- Card -->
-      <table cellpadding="0" cellspacing="0" role="presentation" style="max-width:520px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(59,130,246,0.10);">
-
-        <!-- Header with logo -->
-        <tr>
-          <td align="center" style="background:linear-gradient(135deg,#3b82f6 0%,#60a5fa 50%,#38bdf8 100%);padding:36px 40px 30px;">
-            <img src="${MARCA.sitioUrl}/popcar-logo.png" alt="${MARCA.nombre}" width="164" style="display:block;max-width:164px;filter:brightness(0) invert(1);">
-          </td>
-        </tr>
-
-        <!-- Animated accent bar — static gradient fallback, Apple Mail renders the animation -->
-        <tr><td style="height:4px;background:linear-gradient(90deg,#60a5fa,#38bdf8,#4ade80,#38bdf8,#60a5fa);"></td></tr>
-
-        <!-- Body -->
-        <tr>
-          <td style="padding:44px 48px 36px;">
-
-            <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#0f172a;letter-spacing:-0.4px;">Recupera tu contraseña</h1>
-            <p style="margin:0 0 32px;font-size:15px;color:#64748b;line-height:1.7;">
-              Hemos recibido una solicitud para restablecer la contraseña de tu cuenta.<br>
-              Introduce el siguiente código en la aplicación:
-            </p>
-
-            <!-- Animated code block -->
-            <table cellpadding="0" cellspacing="0" role="presentation" width="100%" style="margin-bottom:32px;">
-              <tr>
-                <td>
-                  <div class="cw-code-box" style="border:2px solid #60a5fa;border-radius:14px;padding:28px 20px;text-align:center;background:#f0f7ff;">
-                    <p class="cw-code-label" style="margin:0 0 8px;font-size:11px;font-weight:600;letter-spacing:2px;color:#60a5fa;text-transform:uppercase;">Tu código</p>
-                    <p class="cw-code-value" style="margin:0;font-size:42px;font-weight:800;letter-spacing:12px;color:#60a5fa;font-variant-numeric:tabular-nums;line-height:1.1;">${code}</p>
-                  </div>
-                </td>
-              </tr>
-            </table>
-
-            <!-- Info boxes -->
-            <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
-              <tr>
-                <td style="background:#fffbeb;border-left:3px solid #f59e0b;border-radius:0 6px 6px 0;padding:12px 16px;">
-                  <p style="margin:0;font-size:13px;color:#92400e;line-height:1.5;">
-                    ⏱ Este código caduca en <strong>15 minutos</strong>.
-                  </p>
-                </td>
-              </tr>
-              <tr><td style="height:10px;"></td></tr>
-              <tr>
-                <td style="background:#f8fafc;border-left:3px solid #cbd5e1;border-radius:0 6px 6px 0;padding:12px 16px;">
-                  <p style="margin:0;font-size:13px;color:#64748b;line-height:1.5;">
-                    Si no has solicitado este cambio, puedes ignorar este mensaje. Tu contraseña no se modificará.
-                  </p>
-                </td>
-              </tr>
-            </table>
-
-          </td>
-        </tr>
-
-        <!-- Divider -->
-        <tr><td style="height:1px;background:#e2e8f0;"></td></tr>
-
-        <!-- Footer -->
-        <tr>
-          <td style="padding:24px 48px 32px;">
-            <p style="margin:0 0 4px;font-size:12px;color:#94a3b8;text-align:center;">
-              ¿Necesitas ayuda? Escríbenos a
-              <a href="mailto:support@carswiseai.com" style="color:#60a5fa;text-decoration:none;">support@carswiseai.com</a>
-            </p>
-            <p style="margin:0;font-size:11px;color:#cbd5e1;text-align:center;">
-              © ${new Date().getFullYear()} ${MARCA.nombre} &nbsp;·&nbsp; Todos los derechos reservados
-            </p>
-          </td>
-        </tr>
-
-      </table>
-      <!-- End card -->
-
-    </td></tr>
-  </table>
-</body>
-</html>`;
+  const html = plantilla({
+    titulo: "Recupera tu contraseña",
+    cuerpo:
+      parrafo("Hemos recibido una solicitud para restablecer la contraseña de tu cuenta. Introduce este código en la aplicación:") +
+      codigo(code) +
+      aviso("El código caduca en 15 minutos", "Si no has pedido el cambio, ignora este correo: tu contraseña no se toca."),
+  });
 
   if (provider === "resend" && process.env.RESEND_API_KEY) {
     try {

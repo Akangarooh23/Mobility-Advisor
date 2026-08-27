@@ -1,4 +1,5 @@
 const { MARCA, remitente, respuestaA } = require("../lib/marca");
+const { plantilla, parrafo, datos, enlace } = require("../lib/correo");
 function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -78,12 +79,12 @@ function buildDigestPayload(body = {}) {
     .filter(Boolean);
   const subject =
     normalizeText(body.subject) ||
-    `MoveAdvisor · ${notifications.length || to.length || 1} alerta${notifications.length === 1 ? "" : "s"} con novedades`;
+    `${MARCA.nombre} · ${notifications.length || to.length || 1} alerta${notifications.length === 1 ? "" : "s"} con novedades`;
 
   const textLines = [
     "Hola,",
     "",
-    "Este es tu resumen de novedades detectadas por MoveAdvisor:",
+    `Este es tu resumen de novedades detectadas por ${MARCA.nombre}:`,
     "",
     ...notifications.flatMap((item) => {
       const lines = [
@@ -100,43 +101,32 @@ function buildDigestPayload(body = {}) {
       lines.push("");
       return lines;
     }),
-    "Puedes revisar tus alertas desde tu panel privado de MoveAdvisor.",
+    `Puedes revisar tus alertas desde tu panel de ${MARCA.nombre}.`,
   ].join("\n");
 
-  const html = `
-    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a;max-width:680px;margin:0 auto;">
-      <h2 style="color:#0f172a;">🔔 Novedades en tus alertas de MoveAdvisor</h2>
-      <p>Hemos detectado nuevas coincidencias en el marketplace según tus filtros guardados.</p>
-      <div style="display:grid;gap:12px;">
-        ${notifications
-          .map(
-            (item) => `
-              <div style="border:1px solid #dbeafe;border-radius:12px;padding:12px;background:#f8fbff;">
-                <div style="font-weight:700;font-size:15px;margin-bottom:4px;">${escapeHtml(item.title)}</div>
-                <div style="font-size:13px;color:#334155;margin-bottom:6px;">${escapeHtml(
-                  item.summary || `${item.newMatchesCount} novedades detectadas`
-                )}</div>
-                ${
-                  item.matches.length > 0
-                    ? `<ul style="padding-left:18px;margin:8px 0 0;">
-                        ${item.matches
-                          .map(
-                            (match) => `<li>${escapeHtml(match.title)}${
-                              match.location ? ` · ${escapeHtml(match.location)}` : ""
-                            }${formatMatchBudget(match) ? ` · ${escapeHtml(formatMatchBudget(match))}` : ""}</li>`
-                          )
-                          .join("")}
-                      </ul>`
-                    : ""
-                }
-              </div>
-            `
-          )
-          .join("")}
-      </div>
-      <p style="margin-top:16px;">Puedes entrar en tu panel privado para revisar o ajustar tus alertas.</p>
-    </div>
-  `;
+  // El nombre que salía aquí era «MoveAdvisor», dos marcas por detrás, y el
+  // listado usaba `display:grid`, que ningún cliente de correo entiende: las
+  // tarjetas se veían apiladas sin separación.
+  const html = plantilla({
+    titulo: "Novedades en tus alertas",
+    cuerpo:
+      parrafo("Hemos encontrado coincidencias nuevas con lo que tienes guardado.") +
+      notifications
+        .map((item) =>
+          datos([
+            [escapeHtml(item.title), escapeHtml(item.summary || `${item.newMatchesCount} novedades`)],
+            ...item.matches.map((match) => [
+              "",
+              escapeHtml(
+                [match.title, match.location, formatMatchBudget(match)].filter(Boolean).join(" · ")
+              ),
+            ]),
+          ])
+        )
+        .join("") +
+      enlace("Revisar mis alertas", `${MARCA.sitioUrl}/panel`),
+    pie: "Recibes este correo porque tienes alertas guardadas. Puedes ajustarlas desde tu panel.",
+  });
 
   return {
     to,
@@ -220,7 +210,7 @@ module.exports = async function sendAlertEmailHandler(req, res) {
     }
   }
 
-  console.log("📧 [MoveAdvisor] Resumen por email en modo local/simulado");
+  console.log(`[${MARCA.nombre}] Resumen por email en modo local/simulado`);
   console.log(JSON.stringify({ to: payload.to, subject: payload.subject, notifications: payload.notifications }, null, 2));
 
   return res.status(200).json({

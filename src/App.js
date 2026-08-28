@@ -6900,6 +6900,8 @@ export default function App() {
           themeMode={themeMode}
           styles={s}
           currentUser={currentUser}
+          haySesion={isUserLoggedIn}
+          onEntrar={handleUserAccessClick}
           selectedPortalVoOffer={selectedPortalVoOffer}
           ResolvedOfferImage={ResolvedOfferImage}
           getOfferBadgeStyle={getOfferBadgeStyle}

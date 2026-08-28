@@ -48,7 +48,7 @@ function groupByDay(slots) {
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export default function SlotPicker({ offerId, vehicleTitle, userEmail, userName, userPhone, source, onBooked }) {
+export default function SlotPicker({ offerId, vehicleTitle, userEmail, userName, userPhone, source, onBooked, haySesion = true, onEntrar }) {
   const [slots,      setSlots]      = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState("");
@@ -117,6 +117,29 @@ export default function SlotPicker({ offerId, vehicleTitle, userEmail, userName,
   const daySlots = activeDay ? (byDay[activeDay] || []) : [];
   const morning  = daySlots.filter((s) => isMorning(s.starts_at));
   const afternoon = daySlots.filter((s) => !isMorning(s.starts_at));
+
+  // ── Sin sesión ─────────────────────────────────────────────────────────────
+  //
+  // Pedir visita compromete a alguien a estar en un sitio a una hora, así que
+  // hay que saber quién lo pide. El servidor lo exige igualmente; esto es para
+  // no enseñarle un calendario que va a fallar al final, que es la peor forma
+  // de contarlo.
+  if (!haySesion) return (
+    <div style={{ textAlign: "center", padding: "18px 0" }}>
+      <div style={{ fontSize: 34, marginBottom: 10 }}>🔒</div>
+      <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 6, color: "var(--gris-900)" }}>
+        Entra para pedir la visita
+      </div>
+      <p style={{ fontSize: 13, color: "var(--gris-500)", lineHeight: 1.5, margin: "0 0 16px" }}>
+        Así podemos confirmártela, avisarte si cambia la hora y que la tengas en tu panel.
+      </p>
+      {onEntrar && (
+        <button onClick={onEntrar} className="cw-btn-acento" style={{ cursor: "pointer" }}>
+          Iniciar sesión
+        </button>
+      )}
+    </div>
+  );
 
   // ── Loading ────────────────────────────────────────────────────────────────
   if (loading) return (

@@ -55,6 +55,8 @@ export default function PortalVoDetailPage({
   themeMode,
   styles,
   currentUser,
+  haySesion = true,
+  onEntrar,
   selectedPortalVoOffer,
   ResolvedOfferImage,
   getOfferBadgeStyle,
@@ -833,6 +835,8 @@ export default function PortalVoDetailPage({
                   userName={reqForm.name || currentUser?.name || ""}
                   userPhone={reqForm.phone || currentUser?.phone || ""}
                   source="marketplace"
+                  haySesion={haySesion}
+                  onEntrar={onEntrar}
                   onBooked={(booking) => {
                     trackLead({ content_name: selectedPortalVoOffer.title, content_ids: [selectedPortalVoOffer.id], currency: "EUR", value: selectedPortalVoOffer.price || 0 });
                     trackFunnelEvent("booking_confirmed", { offer_id: selectedPortalVoOffer.id, offer_title: selectedPortalVoOffer.title });

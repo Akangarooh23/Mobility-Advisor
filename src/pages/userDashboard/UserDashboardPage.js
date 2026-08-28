@@ -531,6 +531,7 @@ export default function UserDashboardPage({
           onMarkAllAlertsSeen={onMarkAllAlertsSeen}
           onSendAlertEmailDigest={onSendAlertEmailDigest}
           currentUser={currentUser}
+          userSolicitudes={userSolicitudes}
         />
       )}
 

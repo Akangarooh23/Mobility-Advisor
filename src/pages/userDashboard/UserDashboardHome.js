@@ -1,7 +1,29 @@
 import { useTranslation } from "react-i18next";
+import { avisosProximos } from "../../utils/avisosProximos";
 
-function buildActivityLog(pendingAlertNotifications, counts, t) {
+function buildActivityLog(pendingAlertNotifications, counts, t, avisos = []) {
   const log = [];
+
+  // La cita que viene, la primera de todo. Es lo único de esta lista que tiene
+  // día y hora: lo demás puede esperar, y una cita el martes a las diez no.
+  if (avisos.length) {
+    const v = avisos[0];
+    const cuando = v.cuando.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+    const hora = v.cuando.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+    log.push({
+      id: `cita-${v.id}`,
+      icon: "📅",
+      label: avisos.length > 1
+        ? `Tienes ${avisos.length} visitas próximas`
+        : `Visita el ${cuando} a las ${hora}`,
+      detail: avisos.length > 1
+        ? `La primera, ${v.titulo}, el ${cuando} a las ${hora}`
+        : `${v.titulo}${v.pendiente ? " · pendiente de confirmar" : ""}`,
+      section: "solicitudes",
+      type: "cita",
+    });
+  }
+
   pendingAlertNotifications.forEach((n) => {
     log.push({
       id: `alert-${n.id}`,
@@ -47,9 +69,9 @@ function buildActivityLog(pendingAlertNotifications, counts, t) {
   return log.slice(0, 6);
 }
 
-function ActivityLog({ isDark, isMobile, panelStyle, cardBg, cardBorder, titleText, mutedText, pendingAlertNotifications, counts, onNavigate }) {
+function ActivityLog({ isDark, isMobile, panelStyle, cardBg, cardBorder, titleText, mutedText, pendingAlertNotifications, counts, onNavigate, avisos = [] }) {
   const { t } = useTranslation();
-  const entries = buildActivityLog(pendingAlertNotifications, counts, t);
+  const entries = buildActivityLog(pendingAlertNotifications, counts, t, avisos);
   if (entries.length === 0) return null;
 
   const typeColor = {
@@ -132,6 +154,7 @@ export default function UserDashboardHome({
   onNavigate,
   onMarkAllAlertsSeen = () => {},
   onSendAlertEmailDigest = () => {},
+  userSolicitudes = [],
 }) {
   const { t } = useTranslation();
   const isDark = themeMode === "dark";
@@ -352,6 +375,7 @@ export default function UserDashboardHome({
         pendingAlertNotifications={pendingAlertNotifications}
         counts={counts}
         onNavigate={onNavigate}
+        avisos={avisosProximos(userSolicitudes)}
       />
     </>
   );

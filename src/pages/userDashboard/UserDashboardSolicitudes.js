@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getUserMobilityDataJson } from "../../utils/apiClient";
+import { proximas } from "../../utils/citas";
 
 export default function UserDashboardSolicitudes({
   themeMode,
@@ -256,6 +257,9 @@ export default function UserDashboardSolicitudes({
   // guardan `starts_at`; los leads, `appointment_date`; las del vendedor,
   // `confirmed_slot`. Sin esto, una visita del marketplace se quedaba en «en
   // curso» para siempre, porque se agrupaba por un campo que no tiene.
+  //
+  // La regla vive en `citas.js`; aquí solo hace falta la fecha suelta para
+  // decidir si la cita ya pasó.
   function cuandoEs(meta) {
     return meta.starts_at || meta.appointment_date || meta.confirmed_slot || "";
   }
@@ -301,22 +305,11 @@ export default function UserDashboardSolicitudes({
    * historial, y sigue en la lista de abajo como todo lo demás. Las canceladas
    * tampoco, que no hay nada a lo que ir.
    */
-  const proximasVisitas = localSolicitudes
-    .filter((s) => s.type === "visita_marketplace" && s.status !== "Cancelado")
-    .map((s) => {
-      const meta = parseMeta(s.meta);
-      return {
-        id: s.id,
-        titulo: s.title || "Vehículo",
-        cuando: meta.starts_at,
-        pendiente: s.status === "Pendiente de aprobación",
-        enlace: meta.booking_id && meta.token_buyer
-          ? `/mi-cita?id=${encodeURIComponent(meta.booking_id)}&token=${encodeURIComponent(meta.token_buyer)}`
-          : "",
-      };
-    })
-    .filter((v) => v.cuando && new Date(v.cuando) > new Date())
-    .sort((a, b) => new Date(a.cuando) - new Date(b.cuando));
+  // Antes esto filtraba solo las del marketplace y volvía a traducirlas a mano.
+  // Ahora sale de `citas.js`, así que el bloque de arriba enseña también las
+  // citas que puso un trabajador sobre una solicitud: para quien las tiene son
+  // lo mismo, un sitio donde hay que estar un día a una hora.
+  const proximasVisitas = proximas(localSolicitudes);
 
   return (
     <section style={{ ...panelStyle, marginBottom: 16 }}>

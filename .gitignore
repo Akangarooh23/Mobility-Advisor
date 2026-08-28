@@ -50,3 +50,7 @@ carswise-erp-backoffice-review/
 
 # Correos del ensayo de los cron: se regeneran solos.
 scripts/ensayo-correos/
+
+# La copia suelta en la raiz: ya vive en public/ y en mockups/assets/.
+# Se quito una vez a proposito y un `git add -A` la devolvio.
+/Beetle PopCar.png

@@ -323,6 +323,14 @@ export default function MiCitaPage() {
         {booking.buyer_name && (
           <div style={F.detail}><span style={F.detailLabel}>Reserva a nombre de</span> {booking.buyer_name}</div>
         )}
+        {/* Donde es y por quien preguntar. Van en el correo de confirmacion,
+            pero el correo se pierde y esta pagina es la que se guarda. */}
+        {booking.meeting_place && (
+          <div style={F.detail}><span style={F.detailLabel}>Dónde es</span> {booking.meeting_place}</div>
+        )}
+        {booking.meeting_contact && (
+          <div style={F.detail}><span style={F.detailLabel}>Pregunta por</span> {booking.meeting_contact}</div>
+        )}
         {booking.notes && (
           <div style={{ ...F.detail, fontStyle: "italic", color: "var(--gris-500)" }}><span style={F.detailLabel}>Notas</span> {booking.notes}</div>
         )}

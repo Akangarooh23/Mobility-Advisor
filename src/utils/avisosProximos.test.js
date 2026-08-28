@@ -44,7 +44,7 @@ describe("qué cuenta la campana", () => {
   });
 
   test("una pendiente sí avisa, y se marca como pendiente", () => {
-    const r = avisosProximos([visitaMarketplace({ status: "Pendiente de confirmar" })], AHORA);
+    const r = avisosProximos([visitaMarketplace({ status: "Pendiente de aprobación" })], AHORA);
     expect(r).toHaveLength(1);
     expect(r[0].pendiente).toBe(true);
   });

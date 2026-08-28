@@ -297,7 +297,7 @@ export default function MiCitaPage() {
           {isCancelled ? (
             <span style={F.badgeCancelled}>Cancelada</span>
           ) : isPending ? (
-            <span style={F.badgePending}>Pendiente de confirmar</span>
+            <span style={F.badgePending}>Pendiente de aprobación</span>
           ) : (
             <span style={F.badgeConfirmed}>✓ Confirmada</span>
           )}

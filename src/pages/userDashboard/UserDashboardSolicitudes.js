@@ -67,7 +67,7 @@ export default function UserDashboardSolicitudes({
     Descartado:                 { bg: "rgba(94,94,89,0.10)", color: "var(--gris-600)" },
     "Reagendar solicitado":     { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
     Cancelado:                  { bg: "rgba(239,68,68,0.10)",   color: "#b91c1c" },
-    "Pendiente de confirmar":   { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
+    "Pendiente de aprobación":   { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
     pending_seller:             { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
     pending_buyer:              { bg: "rgba(255,196,0,0.12)",  color: "var(--marca-oscuro)" },
     confirmed:                  { bg: "rgba(16,185,129,0.15)",  color: "#065f46" },
@@ -262,7 +262,7 @@ export default function UserDashboardSolicitudes({
 
   const grouped = {
     pendiente: localSolicitudes.filter((s) =>
-      ["Pendiente", "Contactado", "En proceso", "Reagendar solicitado", "pending_seller", "pending_buyer", "Pendiente de confirmar"].includes(s.status)
+      ["Pendiente", "Contactado", "En proceso", "Reagendar solicitado", "pending_seller", "pending_buyer", "Pendiente de aprobación"].includes(s.status)
     ),
     en_curso: localSolicitudes.filter((s) => {
       const meta = parseMeta(s.meta);
@@ -309,7 +309,7 @@ export default function UserDashboardSolicitudes({
         id: s.id,
         titulo: s.title || "Vehículo",
         cuando: meta.starts_at,
-        pendiente: s.status === "Pendiente de confirmar",
+        pendiente: s.status === "Pendiente de aprobación",
         enlace: meta.booking_id && meta.token_buyer
           ? `/mi-cita?id=${encodeURIComponent(meta.booking_id)}&token=${encodeURIComponent(meta.token_buyer)}`
           : "",
@@ -352,7 +352,7 @@ export default function UserDashboardSolicitudes({
               <div style={{ flex: 1, minWidth: 180 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>{v.titulo}</div>
                 <div style={{ fontSize: 12, color: v.pendiente ? "#92400e" : "#065f46", fontWeight: 700, marginTop: 2 }}>
-                  {v.pendiente ? "Pendiente de confirmar" : "✓ Confirmada"}
+                  {v.pendiente ? "Pendiente de aprobación" : "✓ Confirmada"}
                 </div>
               </div>
               {v.enlace && (

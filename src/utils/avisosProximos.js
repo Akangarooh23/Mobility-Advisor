@@ -58,7 +58,7 @@ export function avisosProximos(solicitudes = [], ahora = new Date()) {
         id: s.id,
         titulo: s.title || "Vehículo",
         cuando,
-        pendiente: s.status === "Pendiente de confirmar",
+        pendiente: s.status === "Pendiente de aprobación",
         // Las del marketplace se abren con su testigo, sin contraseña.
         enlace: meta.booking_id && meta.token_buyer
           ? `/mi-cita?id=${encodeURIComponent(meta.booking_id)}&token=${encodeURIComponent(meta.token_buyer)}`

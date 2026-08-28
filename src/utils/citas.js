@@ -90,10 +90,29 @@ export function comoCita(item) {
   };
 }
 
-/** Las que aún no han pasado, de la más próxima a la más lejana. */
+/**
+ * Las que aún no han pasado, de la más próxima a la más lejana.
+ *
+ * Incluye las pendientes de aprobación. Vale para enseñar el estado de lo que
+ * alguien ha pedido —la lista de sus solicitudes—, no para avisarle de algo.
+ */
 export function proximas(items = [], ahora = new Date()) {
   return (Array.isArray(items) ? items : [])
     .map(comoCita)
     .filter((c) => c && c.cuando > ahora)
     .sort((a, b) => a.cuando - b.cuando);
+}
+
+/**
+ * Solo las que están confirmadas.
+ *
+ * Es lo que se avisa: la campana y el resumen de Inicio dicen «esto es lo que
+ * viene», y una visita pendiente de aprobación no lo es todavía. Es una
+ * precita: la ha pedido, pero nadie ha dicho aún que sí, y ponerle un número en
+ * la campana es prometerle una cita que quizá no exista.
+ *
+ * Sigue viéndola en Solicitudes, con su estado, que es donde toca.
+ */
+export function citasEnFirme(items = [], ahora = new Date()) {
+  return proximas(items, ahora).filter((c) => !c.pendiente);
 }

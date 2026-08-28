@@ -43,10 +43,16 @@ describe("qué cuenta la campana", () => {
     expect(cuantosAvisos([visitaMarketplace({ status: "Cancelado" })], AHORA)).toBe(0);
   });
 
-  test("una pendiente sí avisa, y se marca como pendiente", () => {
+  test("una pendiente de aprobación NO avisa: todavía no es una cita", () => {
+    // Es una precita: la ha pedido, pero nadie ha dicho que sí. Ponerle un
+    // número en la campana es prometerle algo que quizá no llegue a existir.
     const r = avisosProximos([visitaMarketplace({ status: "Pendiente de aprobación" })], AHORA);
+    expect(r).toHaveLength(0);
+  });
+
+  test("y en cuanto se aprueba, sí", () => {
+    const r = avisosProximos([visitaMarketplace({ status: "Cita confirmada" })], AHORA);
     expect(r).toHaveLength(1);
-    expect(r[0].pendiente).toBe(true);
   });
 
   test("lo que no tiene fecha se queda fuera", () => {

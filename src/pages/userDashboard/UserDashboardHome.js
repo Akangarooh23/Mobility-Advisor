@@ -18,7 +18,9 @@ function buildActivityLog(pendingAlertNotifications, counts, t, avisos = []) {
         : `Visita el ${cuando} a las ${hora}`,
       detail: avisos.length > 1
         ? `La primera, ${v.titulo}, el ${cuando} a las ${hora}`
-        : `${v.titulo}${v.pendiente ? " · pendiente de confirmar" : ""}`,
+        // Sin coletilla de pendiente: aqui solo llegan las confirmadas. Una
+        // pendiente de aprobacion es una precita y se ve en Solicitudes.
+        : v.titulo,
       section: "solicitudes",
       type: "cita",
     });

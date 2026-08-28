@@ -5,7 +5,7 @@
  * pruebas propias. Lo que se fija aquí es que los tres orígenes acaben en la
  * misma forma, porque de eso depende que una pantalla nueva se escriba una vez.
  */
-import { comoCita, cuandoEs, proximas, enPie, ESTADO } from "./citas";
+import { comoCita, cuandoEs, proximas, citasEnFirme, enPie, ESTADO } from "./citas";
 
 const AHORA = new Date("2026-08-28T10:00:00");
 
@@ -89,5 +89,26 @@ describe("el enlace y el estado", () => {
 
   test("sin título no deja el hueco", () => {
     expect(comoCita(delMarketplace({ title: "" })).titulo).toBe("Vehículo");
+  });
+});
+
+describe("lo que se avisa y lo que solo se enseña", () => {
+  const pendiente = delMarketplace({ status: ESTADO.pending });
+  const confirmada = delMarketplace({ id: "cita-2", status: "Cita confirmada" });
+
+  test("Solicitudes las enseña todas, con su estado", () => {
+    expect(proximas([pendiente, confirmada], AHORA)).toHaveLength(2);
+  });
+
+  test("la campana solo avisa de las confirmadas", () => {
+    // Una pendiente de aprobación es una precita: la ha pedido, pero nadie ha
+    // dicho que sí. Avisar de ella es prometer una cita que quizá no exista.
+    const enFirme = citasEnFirme([pendiente, confirmada], AHORA);
+    expect(enFirme).toHaveLength(1);
+    expect(enFirme[0].id).toBe("cita-2");
+  });
+
+  test("si todas están pendientes, la campana no dice nada", () => {
+    expect(citasEnFirme([pendiente], AHORA)).toHaveLength(0);
   });
 });

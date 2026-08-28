@@ -8,6 +8,7 @@ import ApiKeyMissingPage from "./pages/ApiKeyMissingPage";
 import ErrorStatePage from "./pages/ErrorStatePage";
 import LoadingAnalysisPage from "./pages/LoadingAnalysisPage";
 import ResolvedOfferImage from "./components/offers/ResolvedOfferImage";
+import CampanaAvisos from "./components/CampanaAvisos";
 import {
   createInitialDecisionAnswers,
   createInitialSellAnswers,
@@ -4759,6 +4760,20 @@ export default function App() {
             >
               {"\u2190"} Volver al home
             </button>
+          )}
+
+          {/* La campana va en la cabecera y no dentro del panel a propósito: su
+              valor es que la ves mientras miras coches. Dentro de la cuenta ya
+              has entrado a mirar, y ahí el bloque de Solicitudes ya lo dice. */}
+          {isUserLoggedIn && (
+            <CampanaAvisos
+              solicitudes={userSolicitudes}
+              themeMode={themeMode}
+              onAbrir={() => {
+                setUserDashboardPage("solicitudes");
+                handleUserAccessClick();
+              }}
+            />
           )}
 
           {isUserLoggedIn ? (

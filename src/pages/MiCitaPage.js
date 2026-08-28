@@ -349,11 +349,13 @@ export default function MiCitaPage() {
   );
 }
 
+// La marca, escrita como en el resto: «Pop» en amarillo y «Car» en negro. Decia
+// CarsWise, y esta es una pagina que ve un cliente desde el enlace de su correo.
 function Logo() {
   return (
     <div style={{ marginBottom: 24, display: "flex", alignItems: "center", gap: 8 }}>
       <span style={{ fontSize: 20, fontWeight: 800, color: "var(--gris-900)", letterSpacing: "-.3px" }}>
-        Cars<span style={{ color: "var(--gris-700)" }}>Wise</span>
+        <span style={{ color: "var(--marca, #FFC400)" }}>Pop</span>Car
       </span>
     </div>
   );

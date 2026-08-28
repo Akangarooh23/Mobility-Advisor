@@ -44,6 +44,7 @@ export default function UserDashboardSolicitudes({
     question:        "Preguntar",
     renting:         "🔑 Oferta de renting",
     viewing_seller:  "Solicitud de visita",
+    visita_marketplace: "Visita",
   };
   const TYPE_COLOR = {
     info:            { bg: "rgba(255,196,0,0.12)",  color: "var(--marca-oscuro)", border: "rgba(255,196,0,0.25)" },
@@ -495,11 +496,10 @@ export default function UserDashboardSolicitudes({
                       <span style={{ display: "inline-block", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 999, background: statusStyle.bg, color: statusStyle.color }}>
                         {item.status || "Pendiente"}
                       </span>
-                      {isReserved && (
-                        <span style={{ display: "inline-block", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: "rgba(16,185,129,0.15)", color: "#065f46", border: "1px solid rgba(16,185,129,0.3)" }}>
-                          ✅ Cita confirmada
-                        </span>
-                      )}
+                      {/* Aquí había una etiqueta verde de «✅ Cita confirmada»,
+                          justo al lado de la de estado, que ya dice «Cita
+                          confirmada»: el mismo texto dos veces seguidas. Se
+                          queda la de estado, que cubre todos los casos. */}
                     </div>
                     <div style={{ fontSize: 14, fontWeight: 600, color: isDark ? "var(--gris-100)" : "var(--gris-900)", marginBottom: 3 }}>
                       {item.title || "Vehículo"}
@@ -508,6 +508,25 @@ export default function UserDashboardSolicitudes({
                       <div style={{ fontSize: 12, color: "#059669", fontWeight: 600, marginBottom: 4 }}>
                         🔑 {meta.when}
                       </div>
+                    )}
+                    {/* La ficha del coche.
+                        Una visita del marketplace no trae `vehicle_url` —no viene
+                        de un portal— pero sí el identificador de la oferta, y con
+                        eso se abre su ficha. Sin esto, quien mira su solicitud no
+                        puede volver a ver el coche que pidió sin buscarlo otra
+                        vez. */}
+                    {item.type === "visita_marketplace" && item.vehicle_id && (
+                      <a
+                        href={`/marketplace-vo/${encodeURIComponent(item.vehicle_id)}`}
+                        style={{
+                          display: "inline-block", fontSize: 12, fontWeight: 700,
+                          color: "#1d4ed8", textDecoration: "none",
+                          borderBottom: "1px solid rgba(37,99,235,0.35)",
+                          marginBottom: 6,
+                        }}
+                      >
+                        Ver el coche →
+                      </a>
                     )}
                     {meta.vehicle_url && onOpenVehicleDetail && (
                       <button

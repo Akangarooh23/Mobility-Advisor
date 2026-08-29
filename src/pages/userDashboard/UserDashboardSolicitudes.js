@@ -45,12 +45,15 @@ export default function UserDashboardSolicitudes({
     renting:         "🔑 Oferta de renting",
     viewing_seller:  "Solicitud de visita",
     visita_marketplace: "Visita",
+    // Una solicitud de importación. Sin esto salía la palabra «import» a secas.
+    import:          "🌍 Importar un coche",
   };
   const TYPE_COLOR = {
     info:            { bg: "rgba(255,196,0,0.12)",  color: "var(--marca-oscuro)", border: "rgba(255,196,0,0.25)" },
     visit:           { bg: "rgba(16,185,129,0.12)",  color: "#065f46", border: "rgba(16,185,129,0.25)" },
     question:        { bg: "rgba(94,94,89,0.12)",  color: "var(--gris-600)", border: "rgba(94,94,89,0.25)" },
     renting:         { bg: "rgba(5,150,105,0.12)",   color: "#065f46", border: "rgba(5,150,105,0.3)" },
+    import:          { bg: "rgba(37,99,235,0.10)",   color: "#1d4ed8", border: "rgba(37,99,235,0.25)" },
     viewing_seller:  { bg: "rgba(234,88,12,0.12)",   color: "#c2410c", border: "rgba(234,88,12,0.25)" },
     visita_marketplace: { bg: "rgba(37,99,235,0.12)", color: "#1d4ed8", border: "rgba(37,99,235,0.25)" },
   };

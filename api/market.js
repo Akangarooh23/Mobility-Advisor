@@ -3,6 +3,7 @@ const marketplaceVoHandler        = require("../lib/api/marketplace-vo-handler")
 const importOffersHandler         = require("../lib/api/import-offers-handler");
 const importLeadHandler           = require("../lib/api/import-lead-handler");
 const fianzaDevolucionHandler     = require("../lib/api/fianza-devolucion-handler");
+const fianzaConfirmarHandler      = require("../lib/api/fianza-confirmar-handler");
 const marketplaceOgHandler        = require("../lib/api/marketplace-og-handler");
 const workshopsNearbyHandler      = require("../lib/api/workshops-nearby-handler");
 const workshopAvailabilityHandler = require("../lib/api/workshop-availability-handler");
@@ -23,6 +24,7 @@ function resolveRoute(req) {
   if (url.includes("import-lead")) return "import-lead";
   // La pide el ERP con el secreto compartido: la clave de Stripe vive aqui.
   if (url.includes("fianza-devolucion")) return "fianza-devolucion";
+  if (url.includes("fianza-confirmar")) return "fianza-confirmar";
   if (url.includes("import-offers")) return "import";
   if (url.includes("marketplace-vo")) return "vo";
   if (url.includes("workshops-nearby")) return "nearby";
@@ -40,6 +42,7 @@ module.exports = async function marketRouter(req, res) {
     case "import":      return importOffersHandler(req, res);
     case "import-lead": return importLeadHandler(req, res);
     case "fianza-devolucion": return fianzaDevolucionHandler(req, res);
+    case "fianza-confirmar":  return fianzaConfirmarHandler(req, res);
     case "og":          return marketplaceOgHandler(req, res);
     case "nearby":      return workshopsNearbyHandler(req, res);
     case "availability":return workshopAvailabilityHandler(req, res);

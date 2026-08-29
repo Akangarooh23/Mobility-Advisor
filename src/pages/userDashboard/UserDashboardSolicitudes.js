@@ -24,6 +24,48 @@ export default function UserDashboardSolicitudes({
   const [outcomeId, setOutcomeId]       = useState(null);
   const [outcomeLoading, setOutcomeLoading] = useState(false);
 
+  /**
+   * Al volver de pagar la fianza, se confirma sin esperar al webhook.
+   *
+   * Stripe devuelve al panel con el identificador de la sesión. Se le pregunta
+   * al servidor si está pagada de verdad y, si lo está, queda anotada. Antes
+   * esto dependía solo de que Stripe consiguiera avisarnos: si el aviso no
+   * llegaba, el cliente había pagado y su panel le seguía enseñando el botón
+   * de pagar.
+   *
+   * Lo que llegue primero gana. Anotar dos veces no rompe nada.
+   */
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("session_id");
+    if (params.get("fianza") !== "ok" || !sessionId) return;
+
+    let cancelado = false;
+    (async () => {
+      try {
+        await fetch("/api/fianza-confirmar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ sessionId }),
+        });
+        if (cancelado || !userEmail) return;
+        const { response, data } = await getUserMobilityDataJson(userEmail);
+        if (!cancelado && response.ok && Array.isArray(data?.solicitudes)) {
+          setLocalSolicitudes(data.solicitudes);
+        }
+      } catch {
+        // Si falla, queda el webhook y el repaso de los 30 segundos.
+      } finally {
+        // La dirección se limpia: recargar no tiene que repetir la consulta.
+        params.delete("session_id");
+        const limpio = params.toString();
+        window.history.replaceState({}, "", window.location.pathname + (limpio ? `?${limpio}` : ""));
+      }
+    })();
+    return () => { cancelado = true; };
+  }, [userEmail]);
+
   // Poll every 30s so the client sees status changes made by the operator in the ERP
   useEffect(() => {
     if (!userEmail) return;

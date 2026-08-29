@@ -44,6 +44,10 @@
       "destination": "/api/market?route=fianza-devolucion"
     },
     {
+      "source": "/api/fianza-confirmar",
+      "destination": "/api/market?route=fianza-confirmar"
+    },
+    {
       "source": "/api/workshops-nearby",
       "destination": "/api/market?route=nearby"
     },

@@ -53,10 +53,13 @@ export default function ElegirHoraPage() {
         const d = await r.json();
         if (!d.ok) { setError(d.error || "No hemos encontrado tu cita."); return; }
         setBooking(d.booking);
-        setHoras(d.horas || []);
+        // Las que ya han pasado no se enseñan: el correo puede abrirse una
+        // semana después, y ofrecer una hora de ayer es hacerle perder el viaje.
+        const vivas = (d.horas || []).filter((h) => new Date(h).getTime() > Date.now());
+        setHoras(vivas);
         // Si la que traia el correo ya no esta entre las propuestas, no se deja
         // marcada: enseñar marcada una hora que no vale es prometer de mas.
-        const vale = (d.horas || []).some((h) => new Date(h).getTime() === new Date(sugerida).getTime());
+        const vale = vivas.some((h) => new Date(h).getTime() === new Date(sugerida).getTime());
         if (!vale) setElegida("");
       } catch (e) {
         setError("No hemos podido cargar tu cita.");
@@ -154,7 +157,7 @@ export default function ElegirHoraPage() {
     <div style={F.page}><div style={F.card}><Logo />
       <div style={{ textAlign: "center", padding: "24px 0" }}>
         <div style={F.title}>No hay horas que elegir</div>
-        <div style={F.sub}>Puede que ya hayas elegido una, o que te escribamos con otras. Tu solicitud sigue en pie.</div>
+        <div style={F.sub}>Puede que ya hayas elegido una, que hayan pasado de fecha, o que te escribamos con otras. Tu solicitud sigue en pie.</div>
         <a href={`/mi-cita?id=${bookingId}&token=${encodeURIComponent(token)}`} style={F.btnPrimary}>Ver mi cita →</a>
       </div>
     </div></div>

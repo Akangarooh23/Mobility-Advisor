@@ -157,6 +157,36 @@ export default function PortalVoDetailPage({
       .catch(() => {});
   }, []);
 
+  const [solicitudHecha, setSolicitudHecha] = useState(null);
+  const [pagandoFianza, setPagandoFianza] = useState(false);
+  const [errorFianza, setErrorFianza] = useState("");
+
+  /**
+   * Lleva a pagar la fianza, desde la pantalla de «solicitud recibida».
+   *
+   * No se le manda solo: se le ofrece. Son miles de euros y acaba de rellenar un
+   * formulario; empujarle a una pasarela sin avisar se parece más a una trampa
+   * que a una compra. Y para emitirle la factura hacen falta su NIF y su
+   * dirección, que puede no tener puestos: si faltan, esto lo dice en vez de
+   * soltarle en una pantalla de error.
+   */
+  async function pagaFianzaAhora() {
+    if (!solicitudHecha?.id) return;
+    setErrorFianza("");
+    setPagandoFianza(true);
+    try {
+      const { postBillingCheckoutJson } = await import("../utils/apiClient");
+      const { data } = await postBillingCheckoutJson({
+        planId: "fianza", leadId: solicitudHecha.id, origin: window.location.origin,
+      });
+      if (data?.url) { window.location.href = data.url; return; }
+      setErrorFianza(data?.message || data?.error || "No hemos podido abrir el pago. Te llamamos y lo vemos.");
+    } catch {
+      setErrorFianza("No hemos podido abrir el pago. Te llamamos y lo vemos.");
+    }
+    setPagandoFianza(false);
+  }
+
   async function handleReqSubmit(e) {
     e.preventDefault();
     setReqState("submitting");
@@ -215,6 +245,9 @@ export default function PortalVoDetailPage({
       }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error al enviar");
+      // De una importación vuelven su identificador y su fianza: con eso se le
+      // puede ofrecer pagarla ahí mismo, sin esperar a que le llamen.
+      if (isImport) setSolicitudHecha({ id: data.id || "", fianza: Number(data.deposit || 0) });
       trackLead({
         vehicleTitle: selectedPortalVoOffer.title,
         vehicleId: selectedPortalVoOffer.id,
@@ -862,10 +895,39 @@ export default function PortalVoDetailPage({
                   {isRentingOffer ? "¡Solicitud de renting recibida!" : "¡Solicitud recibida!"}
                 </div>
                 <div style={{ fontSize: 13, color: isDark ? "var(--gris-400)" : "var(--gris-600)", lineHeight: 1.6 }}>
-                  {isRentingOffer
+                  {isImport
+                    ? "Te hemos mandado un correo con los datos. El siguiente paso es la fianza: hasta que no está, no podemos pedir el coche a Alemania."
+                    : isRentingOffer
                     ? "Te enviaremos un email de confirmación y nos pondremos en contacto contigo para gestionar tu contrato de renting."
-                    : "Te contactaremos en menos de 2 horas en el horario indicado."}
+                    : "Te contactaremos en menos de 2 horas."}
                 </div>
+
+                {/* Pagar ahora, si quiere. No se le lleva solo: son miles de euros
+                    y acaba de rellenar un formulario. */}
+                {isImport && solicitudHecha?.fianza > 0 && (
+                  <div style={{ marginTop: 18 }}>
+                    <button
+                      type="button"
+                      onClick={pagaFianzaAhora}
+                      disabled={pagandoFianza}
+                      style={{
+                        width: "100%", padding: "13px 20px", background: "var(--marca)",
+                        color: "var(--gris-900)", border: "none", borderRadius: 10,
+                        fontWeight: 800, fontSize: 14, cursor: "pointer",
+                      }}
+                    >
+                      {pagandoFianza ? "Abriendo el pago…" : `Pagar la fianza ahora · ${solicitudHecha.fianza.toLocaleString("es-ES")} €`}
+                    </button>
+                    <div style={{ fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginTop: 8, lineHeight: 1.6 }}>
+                      Con tarjeta, y te emitimos factura. Si al final no se hace el pedido, se
+                      te devuelve. También puedes esperar a que te llamemos y pagarla luego
+                      desde tu panel.
+                    </div>
+                    {errorFianza && (
+                      <div style={{ fontSize: 12, color: "#b91c1c", marginTop: 8, lineHeight: 1.5 }}>{errorFianza}</div>
+                    )}
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={() => setReqModal(false)}

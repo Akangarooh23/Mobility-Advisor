@@ -1666,6 +1666,11 @@ export default function App() {
   const [userValuations, setUserValuations] = useState([]);
   const [userVehicleStates, setUserVehicleStates] = useState([]);
   const [userSolicitudes, setUserSolicitudes] = useState([]);
+  // Cuántas veces hay que volver a pedir los datos del usuario. Se sube al
+  // reservar una visita y al abrir el panel: lo que acaba de hacer tiene que
+  // estar ahí sin recargar la página.
+  const [refrescosMovilidad, setRefrescosMovilidad] = useState(0);
+  const recargaMovilidad = useCallback(() => setRefrescosMovilidad((n) => n + 1), []);
   const [marketAlerts, setMarketAlerts] = useState([]);
   const [marketAlertStatus, setMarketAlertStatus] = useState({});
   // Infinite scroll state for marketplace offers
@@ -2388,8 +2393,16 @@ export default function App() {
     resolveAlertRecipientEmail,
   });
 
+  // Al abrir el panel, los datos se piden otra vez. Es la red que cubre todo lo
+  // demás: una cita movida desde el enlace del correo, algo hecho en otra
+  // pestaña. Antes se pedían una sola vez, al entrar la sesión.
+  useEffect(() => {
+    if (entryMode === "userDashboard") recargaMovilidad();
+  }, [entryMode, recargaMovilidad]);
+
   useUserMobilitySync({
     currentUserEmail,
+    refrescos: refrescosMovilidad,
     setSavedComparisons,
     setUserAppointments,
     setUserMaintenances,
@@ -6907,6 +6920,9 @@ export default function App() {
           themeMode={themeMode}
           styles={s}
           currentUser={currentUser}
+          // Al reservar una visita, sus solicitudes se vuelven a pedir en el
+          // acto: si no, la acaba de pedir y en su panel no está.
+          onSolicitudCreada={recargaMovilidad}
           haySesion={isUserLoggedIn}
           onEntrar={handleUserAccessClick}
           selectedPortalVoOffer={selectedPortalVoOffer}

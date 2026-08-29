@@ -57,6 +57,8 @@ export default function PortalVoDetailPage({
   currentUser,
   haySesion = true,
   onEntrar,
+  // Para volver a pedir sus solicitudes en cuanto reserve una visita.
+  onSolicitudCreada,
   selectedPortalVoOffer,
   ResolvedOfferImage,
   getOfferBadgeStyle,
@@ -839,7 +841,10 @@ export default function PortalVoDetailPage({
                   onEntrar={onEntrar}
                   onBooked={(booking) => {
                     trackLead({ content_name: selectedPortalVoOffer.title, content_ids: [selectedPortalVoOffer.id], currency: "EUR", value: selectedPortalVoOffer.price || 0 });
-                    trackFunnelEvent("booking_confirmed", { offer_id: selectedPortalVoOffer.id, offer_title: selectedPortalVoOffer.title });
+                    trackFunnelEvent("booking_requested", { offer_id: selectedPortalVoOffer.id, offer_title: selectedPortalVoOffer.title, estado: booking?.status || "pending" });
+                    // Sus solicitudes, otra vez, ya: acaba de pedir una visita y
+                    // tiene que estar en su panel sin recargar la pagina.
+                    if (onSolicitudCreada) onSolicitudCreada();
                   }}
                 />
                 <button

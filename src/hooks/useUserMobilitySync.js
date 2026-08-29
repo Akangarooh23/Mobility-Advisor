@@ -24,6 +24,11 @@ export function useUserMobilitySync({
   setUserSolicitudes,
   setGarageVehicleCount,
   setCurrentPlanId,
+  // Sube de uno en uno cuando algo ha cambiado y hay que volver a pedirlo:
+  // al reservar una visita, al entrar en el panel. Sin esto los datos se
+  // pedían una sola vez, al entrar la sesión, y quien reservaba una visita
+  // tenía que recargar la página entera para verla en sus solicitudes.
+  refrescos = 0,
 }) {
   useEffect(() => {
     let disposed = false;
@@ -100,5 +105,6 @@ export function useUserMobilitySync({
     setUserSolicitudes,
     setGarageVehicleCount,
     setCurrentPlanId,
+    refrescos,
   ]);
 }

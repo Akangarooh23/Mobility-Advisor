@@ -40,6 +40,10 @@
       "destination": "/api/market?route=import-lead"
     },
     {
+      "source": "/api/fianza-devolucion",
+      "destination": "/api/market?route=fianza-devolucion"
+    },
+    {
       "source": "/api/workshops-nearby",
       "destination": "/api/market?route=nearby"
     },

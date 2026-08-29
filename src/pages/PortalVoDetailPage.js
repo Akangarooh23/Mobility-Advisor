@@ -160,6 +160,8 @@ export default function PortalVoDetailPage({
 
   const [solicitudHecha, setSolicitudHecha] = useState(null);
   const [pagandoFianza, setPagandoFianza] = useState(false);
+  const [pidiendoLlamada, setPidiendoLlamada] = useState(false);
+  const [llamadaPedida, setLlamadaPedida] = useState(false);
   const [errorFianza, setErrorFianza] = useState("");
 
   /**
@@ -186,6 +188,34 @@ export default function PortalVoDetailPage({
       setErrorFianza("No hemos podido abrir el pago. Te llamamos y lo vemos.");
     }
     setPagandoFianza(false);
+  }
+
+  /**
+   * «Prefiero que me llaméis.»
+   *
+   * Al lado del botón de pagar, porque es la otra respuesta razonable a que te
+   * pidan mil euros: la pantalla ya decía que se puede esperar a la llamada,
+   * pero no había manera de decirlo y había que quedarse quieto y confiar.
+   *
+   * Queda anotado en su solicitud, que es donde lo ve quien la atiende.
+   */
+  async function pideQueLeLlamen() {
+    if (!solicitudHecha?.id) return;
+    setPidiendoLlamada(true);
+    try {
+      const res = await fetch("/api/import-lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ accion: "llamada", lead_id: solicitudHecha.id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data?.ok) setLlamadaPedida(true);
+      else setErrorFianza("No hemos podido anotarlo. Te llamamos igualmente.");
+    } catch {
+      setErrorFianza("No hemos podido anotarlo. Te llamamos igualmente.");
+    }
+    setPidiendoLlamada(false);
   }
 
   async function handleReqSubmit(e) {
@@ -932,10 +962,32 @@ export default function PortalVoDetailPage({
                     >
                       {pagandoFianza ? "Abriendo el pago…" : `Pagar la fianza ahora · ${solicitudHecha.fianza.toLocaleString("es-ES")} €`}
                     </button>
+                    {/* La otra respuesta razonable a que te pidan mil euros. Va
+                        debajo y sin relleno: es una alternativa, no la acción. */}
+                    {llamadaPedida ? (
+                      <div style={{ fontSize: 12, color: "#047857", fontWeight: 700, marginTop: 10, textAlign: "center" }}>
+                        Anotado: te llamamos antes de nada.
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={pideQueLeLlamen}
+                        disabled={pidiendoLlamada}
+                        style={{
+                          width: "100%", padding: "11px 20px", marginTop: 8,
+                          background: "none",
+                          border: isDark ? "1.5px solid rgba(255,255,255,0.18)" : "1.5px solid var(--gris-200)",
+                          color: isDark ? "var(--gris-300)" : "var(--gris-600)",
+                          borderRadius: 10, fontWeight: 700, fontSize: 13,
+                          cursor: pidiendoLlamada ? "default" : "pointer",
+                        }}
+                      >
+                        {pidiendoLlamada ? "Anotando…" : "Prefiero que me llaméis antes"}
+                      </button>
+                    )}
                     <div style={{ fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginTop: 8, lineHeight: 1.6 }}>
                       Con tarjeta, y te emitimos factura. Si al final no se hace el pedido, se
-                      te devuelve. También puedes esperar a que te llamemos y pagarla luego
-                      desde tu panel.
+                      te devuelve. La fianza no caduca: puedes pagarla luego desde tu panel.
                     </div>
                     {errorFianza && (
                       <div style={{ fontSize: 12, color: "#b91c1c", marginTop: 8, lineHeight: 1.5 }}>{errorFianza}</div>

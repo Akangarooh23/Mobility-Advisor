@@ -142,6 +142,8 @@ export default function UserDashboardPage({
   dashboardValuations,
   userVehicleSections,
   userSolicitudes = [],
+  /** Para releer las solicitudes cuando una fianza acaba de quedar pagada. */
+  onSolicitudesRefrescadas,
   onOpenVehicleDetail,
   onNavigate,
   onRestart,
@@ -178,6 +180,50 @@ export default function UserDashboardPage({
     platino: "Plus",
   };
   const [currentPlanId, setCurrentPlanId] = useState(() => readUserBillingState()?.planId || "free");
+
+  /**
+   * Al volver de pagar la fianza, se confirma sin esperar al webhook.
+   *
+   * Stripe devuelve a `/panel` con el identificador de la sesión, y el panel
+   * abre por el resumen. Esto vivía dentro de la pestaña de Solicitudes, que
+   * en ese momento no está montada: el aviso no se pedía nunca y quien había
+   * pagado seguía viendo «pendiente de fianza». Va aquí, que es donde se
+   * aterriza mires la pestaña que mires.
+   *
+   * Anotar dos veces no rompe nada: gana quien llegue primero.
+   */
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("session_id");
+    if (params.get("fianza") !== "ok" || !sessionId) return undefined;
+
+    let cancelado = false;
+    (async () => {
+      try {
+        const r = await fetch("/api/fianza-confirmar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ sessionId }),
+        });
+        const dato = await r.json().catch(() => ({}));
+        // Si Stripe dice que esa sesión no está pagada, la pantalla no monta un
+        // drama —seguirá poniendo pendiente, que es la verdad— pero queda dicho
+        // por qué, que es lo que hace falta para averiguarlo.
+        if (!dato?.pagada) console.warn("[fianza] no consta pagada:", dato?.error || dato);
+        else if (!cancelado && typeof onSolicitudesRefrescadas === "function") onSolicitudesRefrescadas();
+      } catch {
+        // Queda el aviso de Stripe y el repaso de los 30 segundos.
+      } finally {
+        // La dirección se limpia: recargar no repite la consulta.
+        params.delete("session_id");
+        const limpio = params.toString();
+        window.history.replaceState({}, "", window.location.pathname + (limpio ? `?${limpio}` : ""));
+      }
+    })();
+    return () => { cancelado = true; };
+  }, [onSolicitudesRefrescadas]);
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === "undefined") {
       return false;

@@ -6757,6 +6757,13 @@ export default function App() {
           dashboardValuations={dashboardValuations}
           userVehicleSections={userVehicleSections}
           userSolicitudes={userSolicitudes}
+          onSolicitudesRefrescadas={async () => {
+            if (!currentUserEmail) return;
+            try {
+              const { response, data } = await (await import("./utils/apiClient")).getUserMobilityDataJson(currentUserEmail);
+              if (response.ok && Array.isArray(data?.solicitudes)) setUserSolicitudes(data.solicitudes);
+            } catch {}
+          }}
           onOpenVehicleDetail={async (sparseOffer) => {
             const targetUrl = sparseOffer.url || sparseOffer.searchUrl || "";
             let fullOffer = targetUrl

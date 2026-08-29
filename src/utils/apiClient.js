@@ -23,7 +23,7 @@ export const COMPARE_CARS_API_ENDPOINT = `${API_BASE}/api/compare-cars`;
 export const SEARCH_OFFERS_API_ENDPOINT = `${API_BASE}/api/search-offers`;
 
 export function getImportOffersJson(params = {}, options = {}) {
-  const { limit = 60, offset = 0, brand = "", query = "", model = "", minPrice = "", maxPrice = "", minYear = "", maxYear = "", minMileage = "", maxMileage = "", fuel = "", color = "", transmission = "", displacement = "" } = params;
+  const { limit = 60, offset = 0, brand = "", query = "", model = "", minPrice = "", maxPrice = "", minYear = "", maxYear = "", minMileage = "", maxMileage = "", fuel = "", color = "", transmission = "", displacement = "", sort = "" } = params;
   const qs = new URLSearchParams({ limit: String(limit || 60), offset: String(offset || 0) });
   if (brand)        qs.set("brand",        String(brand));
   if (query)        qs.set("query",        String(query));
@@ -38,6 +38,9 @@ export function getImportOffersJson(params = {}, options = {}) {
   if (color)        qs.set("color",        String(color));
   if (transmission) qs.set("transmission", String(transmission));
   if (displacement) qs.set("displacement", String(displacement));
+  // El orden. Se quedaba fuera aquí, así que «precio más bajo primero» no salía
+  // ni de la pantalla.
+  if (sort)         qs.set("sort",         String(sort));
   return getJson(`${IMPORT_OFFERS_API_ENDPOINT}?${qs.toString()}`, {
     endpointLabel: "import-offers",
     ...options,

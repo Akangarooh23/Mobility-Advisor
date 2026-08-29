@@ -5,6 +5,30 @@ import { getMarketplaceVoJson, getImportOffersJson, getVehicleCatalogJson } from
 import { getBrandOptionSegments } from "../utils/brandCatalog";
 import { getRentingDesde, describeRentingDesde } from "../utils/portalVoHelpers";
 
+const IMPORT_POR_PAGINA = 60;
+
+/** Los filtros de importación tal y como los espera el endpoint. */
+function filtrosDeImportacion(f) {
+  return {
+    query:        f.query,
+    brand:        f.brand,
+    model:        f.model,
+    minPrice:     f.minPrice,
+    maxPrice:     f.maxPrice,
+    minYear:      f.minYear,
+    maxYear:      f.maxYear,
+    minMileage:   f.minMileage,
+    maxMileage:   f.maxMileage,
+    fuel:         f.fuel,
+    color:        f.color,
+    transmission: f.transmission,
+    displacement: f.displacement,
+    // Sin esto, «precio más bajo primero» no hacía nada en esta pestaña: el
+    // orden ni se mandaba ni se leía.
+    sort:         f.sort,
+  };
+}
+
 function FilterSelect({ value, onChange, style = {}, disabled, children }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -175,30 +199,51 @@ export default function PortalVoMarketplacePage({
   const [importOffers, setImportOffers] = useState([]);
   const [importTotal, setImportTotal] = useState(0);
   const [importLoading, setImportLoading] = useState(false);
+  const [marcasImportacion, setMarcasImportacion] = useState([]);
+  const [importMasCargando, setImportMasCargando] = useState(false);
+  const peticionImport = useRef(0);
+
+  /**
+   * Traer las siguientes.
+   *
+   * La cabecera dice cuántas oportunidades hay —más de mil— y solo se pintaban
+   * las 60 primeras, sin manera de llegar al resto. Se piden al servidor, como
+   * el orden y los filtros: aquí no se recorta nada en el navegador.
+   */
+  async function verMasImportacion() {
+    const mia = peticionImport.current;
+    setImportMasCargando(true);
+    try {
+      const { data } = await getImportOffersJson({
+        limit: IMPORT_POR_PAGINA,
+        offset: importOffers.length,
+        ...filtrosDeImportacion(portalVoFilters),
+      });
+      if (mia !== peticionImport.current) return;
+      const nuevas = Array.isArray(data?.offers) ? data.offers : [];
+      setImportOffers((previas) => previas.concat(nuevas));
+    } catch {
+      // Si falla, se queda lo que ya había: el botón sigue ahí para reintentar.
+    } finally {
+      setImportMasCargando(false);
+    }
+  }
   useEffect(() => {
     if (compraTab !== "importacion") return;
     let cancelled = false;
     setImportLoading(true);
-    getImportOffersJson({
-      limit: 60,
-      query:        portalVoFilters.query,
-      brand:        portalVoFilters.brand,
-      model:        portalVoFilters.model,
-      minPrice:     portalVoFilters.minPrice,
-      maxPrice:     portalVoFilters.maxPrice,
-      minYear:      portalVoFilters.minYear,
-      maxYear:      portalVoFilters.maxYear,
-      minMileage:   portalVoFilters.minMileage,
-      maxMileage:   portalVoFilters.maxMileage,
-      fuel:         portalVoFilters.fuel,
-      color:        portalVoFilters.color,
-      transmission: portalVoFilters.transmission,
-      displacement: portalVoFilters.displacement,
-    })
+    // Cada búsqueda lleva su número. El botón de «ver más» solo añade a la
+    // lista si sigue siendo la suya: si entre medias han cambiado los filtros,
+    // lo que llegue tarde es de otra búsqueda y no se pega.
+    const mia = ++peticionImport.current;
+    getImportOffersJson({ limit: IMPORT_POR_PAGINA, ...filtrosDeImportacion(portalVoFilters) })
       .then(({ data }) => {
-        if (cancelled) return;
+        if (cancelled || mia !== peticionImport.current) return;
         setImportOffers(Array.isArray(data?.offers) ? data.offers : []);
         setImportTotal(Number(data?.total || 0));
+        // Las marcas que se pueden importar hoy. Son las que el motor haya
+        // seleccionado, y no tienen por qué ser las del marketplace.
+        setMarcasImportacion(Array.isArray(data?.brands) ? data.brands : []);
       })
       .catch(() => { if (!cancelled) { setImportOffers([]); setImportTotal(0); } })
       .finally(() => { if (!cancelled) setImportLoading(false); });
@@ -280,9 +325,23 @@ export default function PortalVoMarketplacePage({
     }
     return [...porClave.values()];
   })();
+  /**
+   * Qué marcas van arriba del desplegable, las que tienen coches ahora mismo.
+   *
+   * En Importación no son las mismas que en el resto del marketplace: ahí solo
+   * hay lo que el motor haya seleccionado —hoy tres marcas—, y el desplegable
+   * enseñaba el catálogo entero. Elegir una marca de la que no hay nada devuelve
+   * cero, y eso se lee como que el filtro está roto.
+   *
+   * Las demás siguen abajo y se pueden elegir: pedir un Audi de importación que
+   * hoy no está es una petición legítima, y para eso está la alerta.
+   */
+  const cobertura = compraTab === "importacion" && marcasImportacion.length
+    ? Object.fromEntries(marcasImportacion.map((m) => [m.name, true]))
+    : marcasConAnuncios;
   const { knownBrands: voKnownBrands, otherBrands: voOtherBrands } = getBrandOptionSegments(
     Object.fromEntries(brandOptionsUnicas.map((b) => [b, true])),
-    marcasConAnuncios
+    cobertura
   );
   /**
    * Los modelos de la marca elegida, en dos bloques como las marcas: primero
@@ -843,6 +902,25 @@ export default function PortalVoMarketplacePage({
                 </div>
               ))}
             </div>
+            {importOffers.length < importTotal && (
+              <div style={{ display: "flex", justifyContent: "center", marginTop: 20 }}>
+                <button
+                  type="button"
+                  onClick={verMasImportacion}
+                  disabled={importMasCargando}
+                  style={{
+                    padding: "10px 18px", borderRadius: 8, fontSize: 13, fontWeight: 600,
+                    border: "none", color: "#fff", cursor: importMasCargando ? "default" : "pointer",
+                    background: isDark ? "rgba(255,196,0,0.18)" : "var(--marca)",
+                    opacity: importMasCargando ? 0.6 : 1,
+                  }}
+                >
+                  {importMasCargando
+                    ? "Cargando…"
+                    : `Ver más (${(importTotal - importOffers.length).toLocaleString("es-ES")} restantes)`}
+                </button>
+              </div>
+            )}
           </>
         )
       )}

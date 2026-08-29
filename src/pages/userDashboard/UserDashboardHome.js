@@ -1,8 +1,46 @@
 import { useTranslation } from "react-i18next";
 import { avisosProximos } from "../../utils/avisosProximos";
 
-function buildActivityLog(pendingAlertNotifications, counts, t, avisos = []) {
+/**
+ * Una importación en marcha, si la hay.
+ *
+ * Es lo más caro y lo más largo que alguien tiene abierto con nosotros, y en
+ * el resumen no salía: había pedido un coche a Alemania y esta pantalla solo
+ * hablaba de su garaje. Va con el paso en el que está, y si la fianza sigue
+ * sin pagarse eso es lo que hay que decir, porque hasta entonces no se pide
+ * el coche.
+ */
+function importacionEnMarcha(solicitudes = []) {
+  const abiertas = solicitudes.filter((x) =>
+    x?.type === "import" && !["Entregado", "Cancelado", "Cancelada"].includes(x?.status));
+  if (!abiertas.length) return null;
+
+  const s = abiertas[0];
+  let meta = s.meta;
+  if (typeof meta === "string") { try { meta = JSON.parse(meta); } catch { meta = {}; } }
+  const fianza = Number(meta?.deposit_quoted || 0);
+  const pagada = Boolean(meta?.deposit_paid_at);
+
+  return {
+    id: `imp-${s.id}`,
+    icon: "🌍",
+    label: (!pagada && fianza > 0)
+      ? `Importación pendiente de fianza · ${fianza.toLocaleString("es-ES")} €`
+      : `Importación en curso: ${s.status}`,
+    detail: abiertas.length > 1
+      ? `${s.vehicle_title || "Un coche"} y ${abiertas.length - 1} más`
+      : (s.vehicle_title || "Coche de importación"),
+    section: "solicitudes",
+    type: "import",
+  };
+}
+
+function buildActivityLog(pendingAlertNotifications, counts, t, avisos = [], solicitudes = []) {
   const log = [];
+
+  // Delante del garaje y de los informes: es lo que está esperando.
+  const importacion = importacionEnMarcha(solicitudes);
+  if (importacion) log.push(importacion);
 
   // La cita que viene, la primera de todo. Es lo único de esta lista que tiene
   // día y hora: lo demás puede esperar, y una cita el martes a las diez no.
@@ -71,12 +109,13 @@ function buildActivityLog(pendingAlertNotifications, counts, t, avisos = []) {
   return log.slice(0, 6);
 }
 
-function ActivityLog({ isDark, isMobile, panelStyle, cardBg, cardBorder, titleText, mutedText, pendingAlertNotifications, counts, onNavigate, avisos = [] }) {
+function ActivityLog({ isDark, isMobile, panelStyle, cardBg, cardBorder, titleText, mutedText, pendingAlertNotifications, counts, onNavigate, avisos = [], solicitudes = [] }) {
   const { t } = useTranslation();
-  const entries = buildActivityLog(pendingAlertNotifications, counts, t, avisos);
+  const entries = buildActivityLog(pendingAlertNotifications, counts, t, avisos, solicitudes);
   if (entries.length === 0) return null;
 
   const typeColor = {
+    import: "#1d4ed8",
     alert: "var(--marca)",
     garage: "#0f766e",
     valuation: "var(--gris-500)",
@@ -378,6 +417,7 @@ export default function UserDashboardHome({
         counts={counts}
         onNavigate={onNavigate}
         avisos={avisosProximos(userSolicitudes)}
+        solicitudes={userSolicitudes}
       />
     </>
   );

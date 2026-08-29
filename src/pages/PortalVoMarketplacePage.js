@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { ofertasDeLaPestana } from "../utils/pestanasMarketplace";
 import { useTranslation } from "react-i18next";
 import { getMarketplaceVoJson, getImportOffersJson, getVehicleCatalogJson } from "../utils/apiClient";
 import { getBrandOptionSegments } from "../utils/brandCatalog";
@@ -312,14 +313,12 @@ export default function PortalVoMarketplacePage({
     isRenting ? o.rentingAvailable : o.availableForPurchase !== false
   );
 
-  // Per-tab filtering by sourceType
-  const modeOffers = !isRenting && compraTab === "particulares"
-    ? baseOffers.filter((o) => o.sourceType === "particulares")
-    : !isRenting && compraTab === "concesionarios"
-      ? concesionariosOffers
-      : !isRenting && compraTab === "renting_empresa"
-        ? baseOffers.filter((o) => o.sourceType !== "particulares")
-        : baseOffers;
+  // Cada pestaña, por lo que sí es. La regla está en utils/pestanasMarketplace.
+  const modeOffers = !isRenting && compraTab === "concesionarios"
+    ? concesionariosOffers
+    : !isRenting
+      ? ofertasDeLaPestana(compraTab, baseOffers)
+      : baseOffers;
 
   // In "particulares" mode all user vehicles are loaded client-side — use modeOffers.length as truth
   const isParticulares = !isRenting && compraTab === "particulares";
@@ -328,12 +327,10 @@ export default function PortalVoMarketplacePage({
   const PAGE_SIZE = 15;
   const effectiveTotalPages = isParticulares ? Math.max(1, Math.ceil(modeOffers.length / PAGE_SIZE)) : isConcesionarios ? Math.max(1, Math.ceil(concesionariosTotal / PAGE_SIZE)) : totalPages;
 
-  const modefeatured = !isRenting && compraTab === "particulares"
+  const modefeatured = !isRenting && (compraTab === "particulares" || compraTab === "concesionarios")
     ? []
-    : !isRenting && compraTab === "concesionarios"
-      ? []
-    : !isRenting && compraTab === "renting_empresa"
-      ? baseFeatured.filter((o) => o.sourceType !== "particulares")
+    : !isRenting
+      ? ofertasDeLaPestana(compraTab, baseFeatured)
       : baseFeatured;
 
   const effectiveLoadingOffers = isConcesionarios ? concesionariosLoading : loadingOffers;

@@ -43,12 +43,17 @@ export default function UserDashboardSolicitudes({
     let cancelado = false;
     (async () => {
       try {
-        await fetch("/api/fianza-confirmar", {
+        const r = await fetch("/api/fianza-confirmar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({ sessionId }),
         });
+        const dato = await r.json().catch(() => ({}));
+        // Si Stripe dice que esa sesión no está pagada, la pantalla no monta un
+        // drama —seguirá poniendo pendiente, que es la verdad— pero queda dicho
+        // por qué, que es lo que hace falta para averiguarlo.
+        if (!dato?.pagada) console.warn("[fianza] no consta pagada:", dato?.error || dato);
         if (cancelado || !userEmail) return;
         const { response, data } = await getUserMobilityDataJson(userEmail);
         if (!cancelado && response.ok && Array.isArray(data?.solicitudes)) {

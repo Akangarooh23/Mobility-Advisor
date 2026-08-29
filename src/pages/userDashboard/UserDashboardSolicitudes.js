@@ -583,9 +583,18 @@ export default function UserDashboardSolicitudes({
                         <div style={{ fontSize: 12.5, color: isDark ? "var(--gris-300)" : "#1e3a8a", lineHeight: 1.5 }}>
                           <strong>{item.status}.</strong> {IMPORTACION_EXPLICA[item.status] || ""}
                         </div>
+                        {meta.delivery_estimate && (
+                          <div style={{ fontSize: 12.5, color: isDark ? "var(--gris-300)" : "#1e3a8a", marginTop: 6, fontWeight: 700 }}>
+                            Lo esperamos para el{" "}
+                            {new Date(meta.delivery_estimate).toLocaleDateString("es-ES", { day: "numeric", month: "long" })}
+                            <span style={{ fontWeight: 400 }}> — es una estimación, te avisamos si cambia</span>
+                          </div>
+                        )}
                         {meta.deposit_quoted && (
                           <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "#1e40af", marginTop: 4 }}>
-                            Fianza para reservarlo: <strong>{Number(meta.deposit_quoted).toLocaleString("es-ES")} €</strong>
+                            {meta.deposit_paid_at
+                              ? <>Fianza pagada el <strong>{new Date(meta.deposit_paid_at).toLocaleDateString("es-ES")}</strong></>
+                              : <>Fianza para reservarlo: <strong>{Number(meta.deposit_quoted).toLocaleString("es-ES")} €</strong></>}
                           </div>
                         )}
                       </div>

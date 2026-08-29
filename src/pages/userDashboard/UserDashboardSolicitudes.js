@@ -57,6 +57,27 @@ export default function UserDashboardSolicitudes({
     viewing_seller:  { bg: "rgba(234,88,12,0.12)",   color: "#c2410c", border: "rgba(234,88,12,0.25)" },
     visita_marketplace: { bg: "rgba(37,99,235,0.12)", color: "#1d4ed8", border: "rgba(37,99,235,0.25)" },
   };
+  /**
+   * Por dónde va una importación, contado para quien la espera.
+   *
+   * Un coche de importación tarda semanas y pasa por sitios que el cliente no
+   * ve. Si su panel solo dice «En proceso», llama para preguntar; si dice dónde
+   * está y qué falta, no hace falta que llame.
+   */
+  const IMPORTACION_PASOS = [
+    "Pendiente", "Contactado", "Fianza pagada", "Comprado en Alemania",
+    "En transporte", "En trámites", "Entregado",
+  ];
+  const IMPORTACION_EXPLICA = {
+    Pendiente:              "Hemos recibido tu solicitud. Te llamamos para contarte el proceso.",
+    Contactado:             "Ya hemos hablado contigo. El siguiente paso es la fianza.",
+    "Fianza pagada":        "Con la fianza puesta, vamos a por el coche.",
+    "Comprado en Alemania": "El coche ya es tuyo. Ahora toca traerlo.",
+    "En transporte":        "Está de camino a España.",
+    "En trámites":          "Ya está aquí: aduana, ITV y matriculación.",
+    Entregado:              "Es tuyo y lo tienes contigo.",
+  };
+
   const STATUS_COLOR = {
     Pendiente:                  { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
     Contactado:                 { bg: "rgba(255,196,0,0.12)",  color: "var(--marca-oscuro)" },
@@ -70,6 +91,12 @@ export default function UserDashboardSolicitudes({
     Contratado:                 { bg: "rgba(16,185,129,0.18)",  color: "#065f46" },
     "Renting confirmado":       { bg: "rgba(5,150,105,0.18)",   color: "#065f46" },
     Descartado:                 { bg: "rgba(94,94,89,0.10)", color: "var(--gris-600)" },
+    // Los pasos de una importación. Se van oscureciendo según avanza.
+    "Fianza pagada":            { bg: "rgba(37,99,235,0.08)",  color: "#1d4ed8" },
+    "Comprado en Alemania":     { bg: "rgba(37,99,235,0.12)",  color: "#1d4ed8" },
+    "En transporte":            { bg: "rgba(37,99,235,0.16)",  color: "#1e40af" },
+    "En trámites":              { bg: "rgba(99,102,241,0.14)", color: "#4338ca" },
+    Entregado:                  { bg: "rgba(16,185,129,0.18)", color: "#065f46" },
     "Reagendar solicitado":     { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
     Cancelado:                  { bg: "rgba(239,68,68,0.10)",   color: "#b91c1c" },
     "Pendiente de aprobación":   { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
@@ -531,6 +558,38 @@ export default function UserDashboardSolicitudes({
                         eso se abre su ficha. Sin esto, quien mira su solicitud no
                         puede volver a ver el coche que pidió sin buscarlo otra
                         vez. */}
+                    {/* Por dónde va su importación.
+
+                        Tarda semanas y pasa por sitios que no ve: si aquí solo
+                        pone «En proceso», llama para preguntar. Con el paso y lo
+                        que significa, no hace falta que llame. */}
+                    {item.type === "import" && IMPORTACION_PASOS.includes(item.status) && (
+                      <div style={{
+                        background: isDark ? "rgba(37,99,235,0.10)" : "rgba(37,99,235,0.06)",
+                        border: "1px solid rgba(37,99,235,0.22)", borderRadius: 10,
+                        padding: "10px 12px", marginBottom: 8,
+                      }}>
+                        <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
+                          {IMPORTACION_PASOS.map((paso, i) => {
+                            const donde = IMPORTACION_PASOS.indexOf(item.status);
+                            return (
+                              <div key={paso} title={paso} style={{
+                                flex: 1, height: 4, borderRadius: 2,
+                                background: i <= donde ? "#1d4ed8" : "rgba(37,99,235,0.18)",
+                              }} />
+                            );
+                          })}
+                        </div>
+                        <div style={{ fontSize: 12.5, color: isDark ? "var(--gris-300)" : "#1e3a8a", lineHeight: 1.5 }}>
+                          <strong>{item.status}.</strong> {IMPORTACION_EXPLICA[item.status] || ""}
+                        </div>
+                        {meta.deposit_quoted && (
+                          <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "#1e40af", marginTop: 4 }}>
+                            Fianza para reservarlo: <strong>{Number(meta.deposit_quoted).toLocaleString("es-ES")} €</strong>
+                          </div>
+                        )}
+                      </div>
+                    )}
                     {/* Y si le hemos propuesto otras horas, elegir una es lo que
                         hay que hacer. Aquí también, y no solo en el recuadro de
                         arriba: ese solo enseña las que no han pasado de fecha, y

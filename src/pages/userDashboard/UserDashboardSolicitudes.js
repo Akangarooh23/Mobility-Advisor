@@ -65,16 +65,16 @@ export default function UserDashboardSolicitudes({
    * está y qué falta, no hace falta que llame.
    */
   const IMPORTACION_PASOS = [
-    "Pendiente", "Contactado", "Fianza pagada", "Comprado en Alemania",
+    "Pendiente", "Contactado", "Fianza pagada", "Pedido a Alemania",
     "En transporte", "En trámites", "Entregado",
   ];
   const IMPORTACION_EXPLICA = {
     Pendiente:              "Hemos recibido tu solicitud. Te llamamos para contarte el proceso.",
-    Contactado:             "Ya hemos hablado contigo. El siguiente paso es la fianza.",
-    "Fianza pagada":        "Con la fianza puesta, vamos a por el coche.",
-    "Comprado en Alemania": "El coche ya es tuyo. Ahora toca traerlo.",
+    Contactado:             "Ya hemos hablado contigo. El siguiente paso es pagar la fianza.",
+    "Fianza pagada":        "Fianza recibida y factura emitida. Vamos a pedir tu coche.",
+    "Pedido a Alemania":    "Pedido hecho. En cuanto nos confirmen fechas, te las decimos.",
     "En transporte":        "Está de camino a España.",
-    "En trámites":          "Ya está aquí: aduana, ITV y matriculación.",
+    "En trámites":          "Ya está aquí: aduana, ITV y matriculación para que puedas usarlo.",
     Entregado:              "Es tuyo y lo tienes contigo.",
   };
 
@@ -93,7 +93,7 @@ export default function UserDashboardSolicitudes({
     Descartado:                 { bg: "rgba(94,94,89,0.10)", color: "var(--gris-600)" },
     // Los pasos de una importación. Se van oscureciendo según avanza.
     "Fianza pagada":            { bg: "rgba(37,99,235,0.08)",  color: "#1d4ed8" },
-    "Comprado en Alemania":     { bg: "rgba(37,99,235,0.12)",  color: "#1d4ed8" },
+    "Pedido a Alemania":        { bg: "rgba(37,99,235,0.12)",  color: "#1d4ed8" },
     "En transporte":            { bg: "rgba(37,99,235,0.16)",  color: "#1e40af" },
     "En trámites":              { bg: "rgba(99,102,241,0.14)", color: "#4338ca" },
     Entregado:                  { bg: "rgba(16,185,129,0.18)", color: "#065f46" },

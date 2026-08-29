@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { getUserMobilityDataJson } from "../../utils/apiClient";
 import { proximas, ESTADO as ESTADO_CITA } from "../../utils/citas";
+import ComoFuncionaImportacion from "../../components/ComoFuncionaImportacion";
 
 export default function UserDashboardSolicitudes({
   themeMode,
@@ -629,6 +630,9 @@ export default function UserDashboardSolicitudes({
                             verdad y va donde se lee la cifra. */}
                         {meta.deposit_quoted && !meta.deposit_paid_at && (
                           <div style={{ marginTop: 8 }}>
+                            <div style={{ marginBottom: 10 }}>
+                              <ComoFuncionaImportacion isDark={isDark} compacto />
+                            </div>
                             <button
                               type="button"
                               onClick={() => pagaFianza(item.id)}

@@ -9,6 +9,7 @@ import SlotPicker from "../components/SlotPicker";
 import SimuladorFinanciacion, { TIPOS_FINANCIACION_IMPORTACION } from "../components/SimuladorFinanciacion";
 import ConditionReportAr from "../components/ConditionReportAr";
 import ConditionReportDownload from "../components/ConditionReportDownload";
+import ComoFuncionaImportacion from "../components/ComoFuncionaImportacion";
 import { getRentingDesde } from "../utils/portalVoHelpers";
 
 // Número de WhatsApp de PopCar (formato internacional sin +).
@@ -910,6 +911,11 @@ export default function PortalVoDetailPage({
                     y acaba de rellenar un formulario. */}
                 {isImport && solicitudHecha?.fianza > 0 && (
                   <div style={{ marginTop: 18 }}>
+                    {/* Explicado antes del botón: nadie paga mil euros sin
+                        saber qué pasa después. */}
+                    <div style={{ marginBottom: 12 }}>
+                      <ComoFuncionaImportacion isDark={isDark} />
+                    </div>
                     <button
                       type="button"
                       onClick={pagaFianzaAhora}

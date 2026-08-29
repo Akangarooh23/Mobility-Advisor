@@ -53,8 +53,9 @@ export default function CampanaAvisos({ solicitudes = [], onAbrir, themeMode = "
           height: 16,
           padding: "0 4px",
           borderRadius: 8,
-          background: "var(--marca, #FFC400)",
-          color: "#111111",
+          // La marca es #111111: el número tiene que ir en blanco.
+          background: "var(--marca)",
+          color: "#fff",
           fontSize: 10,
           fontWeight: 800,
           lineHeight: "16px",

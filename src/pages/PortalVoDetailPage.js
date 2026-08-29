@@ -247,7 +247,9 @@ export default function PortalVoDetailPage({
       if (!res.ok) throw new Error(data.error || "Error al enviar");
       // De una importación vuelven su identificador y su fianza: con eso se le
       // puede ofrecer pagarla ahí mismo, sin esperar a que le llamen.
-      if (isImport) setSolicitudHecha({ id: data.id || "", fianza: Number(data.deposit || 0) });
+      // `correoEnviado` viene del servidor: si el envío no ha salido, no se le
+      // dice que le hemos escrito.
+      if (isImport) setSolicitudHecha({ id: data.id || "", fianza: Number(data.deposit || 0), correoEnviado: data.correoEnviado !== false });
       trackLead({
         vehicleTitle: selectedPortalVoOffer.title,
         vehicleId: selectedPortalVoOffer.id,
@@ -896,7 +898,9 @@ export default function PortalVoDetailPage({
                 </div>
                 <div style={{ fontSize: 13, color: isDark ? "var(--gris-400)" : "var(--gris-600)", lineHeight: 1.6 }}>
                   {isImport
-                    ? "Te hemos mandado un correo con los datos. El siguiente paso es la fianza: hasta que no está, no podemos pedir el coche a Alemania."
+                    ? (solicitudHecha?.correoEnviado === false
+                        ? "La tenemos guardada, aunque el correo con los datos no ha salido. El siguiente paso es la fianza: hasta que no está, no podemos pedir el coche a Alemania."
+                        : "Te hemos mandado un correo con los datos. El siguiente paso es la fianza: hasta que no está, no podemos pedir el coche a Alemania.")
                     : isRentingOffer
                     ? "Te enviaremos un email de confirmación y nos pondremos en contacto contigo para gestionar tu contrato de renting."
                     : "Te contactaremos en menos de 2 horas."}
@@ -911,9 +915,13 @@ export default function PortalVoDetailPage({
                       onClick={pagaFianzaAhora}
                       disabled={pagandoFianza}
                       style={{
+                        // `--marca` y `--gris-900` son los dos #111111: el botón
+                        // salía negro con el texto negro, o sea sin texto.
                         width: "100%", padding: "13px 20px", background: "var(--marca)",
-                        color: "var(--gris-900)", border: "none", borderRadius: 10,
-                        fontWeight: 800, fontSize: 14, cursor: "pointer",
+                        color: "#fff", border: "none", borderRadius: 10,
+                        fontWeight: 800, fontSize: 14,
+                        cursor: pagandoFianza ? "default" : "pointer",
+                        opacity: pagandoFianza ? 0.6 : 1,
                       }}
                     >
                       {pagandoFianza ? "Abriendo el pago…" : `Pagar la fianza ahora · ${solicitudHecha.fianza.toLocaleString("es-ES")} €`}
@@ -931,7 +939,7 @@ export default function PortalVoDetailPage({
                 <button
                   type="button"
                   onClick={() => setReqModal(false)}
-                  style={{ marginTop: 20, padding: "10px 28px", background: "var(--marca)", color: "#fff", border: "none", borderRadius: 10, fontWeight: 700, cursor: "pointer", fontSize: 13 }}
+                  style={{ marginTop: 20, padding: "10px 28px", background: "none", border: "1.5px solid var(--gris-200)", color: isDark ? "var(--gris-400)" : "var(--gris-500)", borderRadius: 10, fontWeight: 700, cursor: "pointer", fontSize: 13 }}
                 >
                   Cerrar
                 </button>

@@ -410,8 +410,8 @@ export default function UserDashboardSolicitudes({
                   sobre «ver o cambiar», que aquí no sirve de nada. */}
               {v.eligeHora ? (
                 <a href={v.enlaceElegir} style={{
-                  fontSize: 13, fontWeight: 800, color: "var(--gris-900)", textDecoration: "none",
-                  background: "var(--marca, #FFC400)", borderRadius: 8, padding: "8px 15px",
+                  fontSize: 13, fontWeight: 800, color: "#fff", textDecoration: "none",
+                  background: "var(--marca)", borderRadius: 8, padding: "8px 15px",
                 }}>
                   Elegir hora →
                 </a>
@@ -634,9 +634,15 @@ export default function UserDashboardSolicitudes({
                               onClick={() => pagaFianza(item.id)}
                               disabled={pagandoFianza === item.id}
                               style={{
-                                background: "var(--marca, #FFC400)", color: "var(--gris-900)",
+                                // El texto en blanco: `--marca` y `--gris-900`
+                                // son los dos #111111, y el botón salía negro
+                                // sobre negro. El respaldo amarillo es de cuando
+                                // la marca era otra.
+                                background: "var(--marca)", color: "#fff",
                                 border: "none", borderRadius: 8, padding: "9px 16px",
-                                fontSize: 13, fontWeight: 800, cursor: "pointer",
+                                fontSize: 13, fontWeight: 800,
+                                cursor: pagandoFianza === item.id ? "default" : "pointer",
+                                opacity: pagandoFianza === item.id ? 0.6 : 1,
                               }}
                             >
                               {pagandoFianza === item.id
@@ -664,8 +670,8 @@ export default function UserDashboardSolicitudes({
                         href={`/elegir-hora?id=${encodeURIComponent(meta.booking_id)}&token=${encodeURIComponent(meta.token_buyer)}`}
                         style={{
                           display: "inline-block", fontSize: 12, fontWeight: 800,
-                          color: "var(--gris-900)", textDecoration: "none",
-                          background: "var(--marca, #FFC400)", borderRadius: 8,
+                          color: "#fff", textDecoration: "none",
+                          background: "var(--marca)", borderRadius: 8,
                           padding: "6px 12px", marginBottom: 6, marginRight: 8,
                         }}
                       >

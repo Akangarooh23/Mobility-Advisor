@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getUserMobilityDataJson } from "../../utils/apiClient";
-import { proximas } from "../../utils/citas";
+import { proximas, ESTADO as ESTADO_CITA } from "../../utils/citas";
 
 export default function UserDashboardSolicitudes({
   themeMode,
@@ -346,24 +346,37 @@ export default function UserDashboardSolicitudes({
               <div style={{ flex: 1, minWidth: 180 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>{v.titulo}</div>
                 <div style={{ fontSize: 12, color: v.pendiente ? "#92400e" : "#065f46", fontWeight: 700, marginTop: 2 }}>
-                  {v.pendiente ? "Pendiente de aprobación" : "✓ Confirmada"}
+                  {v.eligeHora ? "Te esperamos: elige una hora" : v.pendiente ? "Pendiente de aprobación" : "✓ Confirmada"}
                 </div>
               </div>
-              {v.enlace && (
+              {/* Cuando hay horas que elegir, eso es lo que hay que hacer: manda
+                  sobre «ver o cambiar», que aquí no sirve de nada. */}
+              {v.eligeHora ? (
+                <a href={v.enlaceElegir} style={{
+                  fontSize: 13, fontWeight: 800, color: "var(--gris-900)", textDecoration: "none",
+                  background: "var(--marca, #FFC400)", borderRadius: 8, padding: "8px 15px",
+                }}>
+                  Elegir hora →
+                </a>
+              ) : v.enlace ? (
                 <a href={v.enlace} style={{
                   fontSize: 13, fontWeight: 700, color: "#1d4ed8", textDecoration: "none",
                   border: "1.5px solid rgba(37,99,235,0.35)", borderRadius: 8, padding: "7px 14px",
                 }}>
                   Ver o cambiar
                 </a>
-              )}
+              ) : null}
             </div>
           ))}
-          {proximasVisitas.some((v) => v.pendiente) && (
+          {proximasVisitas.some((v) => v.eligeHora) ? (
+            <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginTop: 6 }}>
+              A la hora que pediste no podía ser. Elige una de las que nos ha dado quien tiene el coche y tu visita queda confirmada.
+            </div>
+          ) : proximasVisitas.some((v) => v.pendiente) ? (
             <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginTop: 6 }}>
               Las pendientes están a la espera de que confirmemos el horario. Te escribimos en cuanto lo tengamos.
             </div>
-          )}
+          ) : null}
         </div>
       )}
 
@@ -515,6 +528,24 @@ export default function UserDashboardSolicitudes({
                         eso se abre su ficha. Sin esto, quien mira su solicitud no
                         puede volver a ver el coche que pidió sin buscarlo otra
                         vez. */}
+                    {/* Y si le hemos propuesto otras horas, elegir una es lo que
+                        hay que hacer. Aquí también, y no solo en el recuadro de
+                        arriba: ese solo enseña las que no han pasado de fecha, y
+                        la hora que pidió puede haber pasado esperando respuesta. */}
+                    {item.type === "visita_marketplace" && meta.propuesta &&
+                      item.status === ESTADO_CITA.pending && meta.booking_id && meta.token_buyer && (
+                      <a
+                        href={`/elegir-hora?id=${encodeURIComponent(meta.booking_id)}&token=${encodeURIComponent(meta.token_buyer)}`}
+                        style={{
+                          display: "inline-block", fontSize: 12, fontWeight: 800,
+                          color: "var(--gris-900)", textDecoration: "none",
+                          background: "var(--marca, #FFC400)", borderRadius: 8,
+                          padding: "6px 12px", marginBottom: 6, marginRight: 8,
+                        }}
+                      >
+                        Elegir hora →
+                      </a>
+                    )}
                     {item.type === "visita_marketplace" && item.vehicle_id && (
                       <a
                         href={`/marketplace-vo/${encodeURIComponent(item.vehicle_id)}`}

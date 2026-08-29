@@ -112,3 +112,36 @@ describe("lo que se avisa y lo que solo se enseña", () => {
     expect(citasEnFirme([pendiente], AHORA)).toHaveLength(0);
   });
 });
+
+describe("cuando le hemos propuesto otras horas", () => {
+  // Se arma aquí y no con : ese ayudante escribe el meta y luego
+  // lo pisa con lo que se le pase, así que no sirve para cambiarlo por dentro.
+  const cita = (status, meta) => comoCita({
+    id: "cita-1", title: "Kia XCeed", status,
+    meta: JSON.stringify({ starts_at: "2026-09-01T13:00:00.000Z", booking_id: "b1", token_buyer: "t1", ...meta }),
+  });
+
+  test("le toca elegir, y hay a dónde ir", () => {
+    const c = cita(ESTADO.pending, { propuesta: true });
+    expect(c.eligeHora).toBe(true);
+    expect(c.enlaceElegir).toBe("/elegir-hora?id=b1&token=t1");
+  });
+
+  test("si ya está confirmada no le toca elegir nada", () => {
+    const c = cita(ESTADO.confirmed, { propuesta: true });
+    expect(c.eligeHora).toBe(false);
+  });
+
+  test("una pendiente sin propuesta solo espera", () => {
+    const c = cita(ESTADO.pending, {});
+    expect(c.eligeHora).toBe(false);
+  });
+
+  test("sin testigo no se puede abrir su cita, así que no se ofrece", () => {
+    const c = comoCita({
+      id: "cita-2", title: "Kia XCeed", status: ESTADO.pending,
+      meta: JSON.stringify({ starts_at: "2026-09-01T13:00:00.000Z", propuesta: true }),
+    });
+    expect(c.eligeHora).toBe(false);
+  });
+});

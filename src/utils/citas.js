@@ -87,6 +87,14 @@ export function comoCita(item) {
     enlace: m.booking_id && m.token_buyer
       ? `/mi-cita?id=${encodeURIComponent(m.booking_id)}&token=${encodeURIComponent(m.token_buyer)}`
       : "",
+    // Le hemos propuesto otras horas y todavía no ha elegido: en cuanto elija,
+    // la cita queda confirmada y deja de estar pendiente.
+    eligeHora: Boolean(
+      item.status === ESTADO.pending && m.propuesta && m.booking_id && m.token_buyer
+    ),
+    enlaceElegir: m.booking_id && m.token_buyer
+      ? `/elegir-hora?id=${encodeURIComponent(m.booking_id)}&token=${encodeURIComponent(m.token_buyer)}`
+      : "",
   };
 }
 

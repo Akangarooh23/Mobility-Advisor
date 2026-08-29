@@ -92,7 +92,15 @@ export default function MiCitaPage() {
       });
       const d = await r.json();
       if (d.ok) {
-        setBooking((prev) => ({ ...prev, starts_at: selectedSlot.starts_at, ends_at: selectedSlot.ends_at }));
+        // Con el estado que contesta la API. Mover una visita la devuelve a
+        // pendiente —la hora nueva tampoco la ha acordado nadie— y sin esto la
+        // pagina seguia enseñandola como confirmada.
+        setBooking((prev) => ({
+          ...prev,
+          starts_at: selectedSlot.starts_at,
+          ends_at: selectedSlot.ends_at,
+          status: d.booking?.status || "pending",
+        }));
         setView("rescheduled");
       } else {
         setRescheduleErr(d.error || "Error al cambiar la cita");
@@ -169,15 +177,21 @@ export default function MiCitaPage() {
         <Logo />
         <div style={{ textAlign: "center", padding: "16px 0 8px" }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>🗓</div>
-          <div style={F.title}>¡Cita actualizada!</div>
-          <div style={F.sub}>Tu visita ha sido reprogramada correctamente.</div>
+          <div style={F.title}>Hemos cambiado la hora</div>
+          <div style={F.sub}>
+            Nos falta confirmarla con quien tiene el coche. Te escribimos en cuanto lo tengamos.
+          </div>
         </div>
         <div style={F.dateCard}>
           <div style={F.dateCardLabel}>Nueva fecha</div>
           <div style={F.dateCardDate}>{fmtDateLong(booking.starts_at)}</div>
           <div style={F.dateCardTime}>{fmtTime(booking.starts_at)} – {fmtTime(booking.ends_at)}</div>
         </div>
-        <div style={F.sub}>Recibirás un email de confirmación con los nuevos detalles.</div>
+        {/* Ni «reprogramada» ni «confirmada»: la hora nueva la ha elegido el,
+            sobre huecos que tampoco ha acordado quien tiene el coche. Toda visita
+            se aprueba, tambien esta. Decirle que ya esta es prometerle algo que
+            todavia no ha dicho nadie. */}
+        <div style={F.sub}>Es la hora que has pedido, todavía sin confirmar.</div>
         <button onClick={() => setView("detail")} style={F.btnPrimary}>Ver mi cita →</button>
       </div>
     </div>

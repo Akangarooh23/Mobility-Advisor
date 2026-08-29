@@ -357,43 +357,9 @@
         }
       ],
       "updatedAt": "2026-05-06T15:53:04.280Z"
-    },
-    "cliente@example.com": {
-      "email": "cliente@example.com",
-      "profile": {
-        "fullName": "",
-        "email": "cliente@example.com",
-        "phone": "",
-        "companyName": "",
-        "taxId": "",
-        "billingAddress": "",
-        "iban": "",
-        "updatedAt": ""
-      },
-      "billingState": {
-        "planId": "free",
-        "planLabel": "Free",
-        "status": "inactivo",
-        "nextBillingDate": "",
-        "stripeCustomerId": "",
-        "stripeSubscriptionId": "",
-        "cancelAtPeriodEnd": false,
-        "invoices": [
-          {
-            "id": "fia-imp-1756-abc",
-            "number": "FIA-2026-0001",
-            "date": "2026-08-29T18:44:41.328Z",
-            "amount": 4200,
-            "status": "Pagada",
-            "pdfUrl": ""
-          }
-        ]
-      },
-      "garageVehicles": [],
-      "updatedAt": "2026-08-29T18:44:41.334Z"
     }
   },
   "stripeCustomerToEmail": {},
   "stripeSubscriptionToEmail": {},
-  "updatedAt": "2026-08-29T18:44:41.334Z"
+  "updatedAt": "2026-05-06T15:53:04.281Z"
 }

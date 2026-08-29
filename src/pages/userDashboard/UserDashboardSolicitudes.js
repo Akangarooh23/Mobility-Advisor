@@ -64,6 +64,33 @@ export default function UserDashboardSolicitudes({
    * ve. Si su panel solo dice «En proceso», llama para preguntar; si dice dónde
    * está y qué falta, no hace falta que llame.
    */
+  const [pagandoFianza, setPagandoFianza] = useState("");
+  const [errorFianza, setErrorFianza] = useState("");
+
+  /**
+   * Lleva al cliente a pagar su fianza.
+   *
+   * Se cobra por Stripe, con la cifra que se le dijo al pedir la importación, y
+   * al cobrarse se le emite su factura y el expediente avanza solo. Aquí solo se
+   * pide la puerta de pago y se le manda a ella.
+   */
+  async function pagaFianza(leadId) {
+    setErrorFianza("");
+    setPagandoFianza(leadId);
+    try {
+      const { postBillingCheckoutJson } = await import("../../utils/apiClient");
+      const { response, data } = await postBillingCheckoutJson({
+        planId: "fianza", leadId, origin: window.location.origin,
+      });
+      if (data?.url) { window.location.href = data.url; return; }
+      // El perfil incompleto no es un fallo: es algo que puede arreglar él.
+      setErrorFianza(data?.message || data?.error || (response.ok ? "El pago no está disponible ahora mismo." : "No hemos podido abrir el pago."));
+    } catch (e) {
+      setErrorFianza("No hemos podido abrir el pago.");
+    }
+    setPagandoFianza("");
+  }
+
   const IMPORTACION_PASOS = [
     "Pendiente", "Contactado", "Fianza pagada", "Pedido a Alemania",
     "En transporte", "En trámites", "Entregado",
@@ -593,8 +620,36 @@ export default function UserDashboardSolicitudes({
                         {meta.deposit_quoted && (
                           <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "#1e40af", marginTop: 4 }}>
                             {meta.deposit_paid_at
-                              ? <>Fianza pagada el <strong>{new Date(meta.deposit_paid_at).toLocaleDateString("es-ES")}</strong></>
+                              ? <>Fianza pagada el <strong>{new Date(meta.deposit_paid_at).toLocaleDateString("es-ES")}</strong>. Tienes su factura en Facturación.</>
                               : <>Fianza para reservarlo: <strong>{Number(meta.deposit_quoted).toLocaleString("es-ES")} €</strong></>}
+                          </div>
+                        )}
+                        {/* Hasta que no está pagada no se puede pedir el coche a
+                            Alemania, así que el botón es el siguiente paso de
+                            verdad y va donde se lee la cifra. */}
+                        {meta.deposit_quoted && !meta.deposit_paid_at && (
+                          <div style={{ marginTop: 8 }}>
+                            <button
+                              type="button"
+                              onClick={() => pagaFianza(item.id)}
+                              disabled={pagandoFianza === item.id}
+                              style={{
+                                background: "var(--marca, #FFC400)", color: "var(--gris-900)",
+                                border: "none", borderRadius: 8, padding: "9px 16px",
+                                fontSize: 13, fontWeight: 800, cursor: "pointer",
+                              }}
+                            >
+                              {pagandoFianza === item.id
+                                ? "Abriendo el pago…"
+                                : `Pagar la fianza · ${Number(meta.deposit_quoted).toLocaleString("es-ES")} €`}
+                            </button>
+                            <div style={{ fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginTop: 5, lineHeight: 1.5 }}>
+                              Se paga con tarjeta y te emitimos factura. Si al final no se hace el
+                              pedido, se te devuelve.
+                            </div>
+                            {errorFianza && (
+                              <div style={{ fontSize: 12, color: "#b91c1c", marginTop: 6 }}>{errorFianza}</div>
+                            )}
                           </div>
                         )}
                       </div>

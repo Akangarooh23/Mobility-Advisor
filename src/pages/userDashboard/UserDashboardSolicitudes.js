@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { getUserMobilityDataJson } from "../../utils/apiClient";
 import { proximas, ESTADO as ESTADO_CITA } from "../../utils/citas";
 import ComoFuncionaImportacion from "../../components/ComoFuncionaImportacion";
+import { grupoDeImportacion } from "../../utils/gruposSolicitudes";
 
 export default function UserDashboardSolicitudes({
   themeMode,
@@ -323,11 +324,20 @@ export default function UserDashboardSolicitudes({
     return meta.starts_at || meta.appointment_date || meta.confirmed_slot || "";
   }
 
+  // Una importación va por sus propias etapas, y cada una tiene su pestaña.
+  // Sin esto, «Fianza pagada» no caía en ningún grupo y la solicitud desaparecía
+  // del panel justo después de pagar.
+  const esImportacion = (s) => s.type === "import";
+  const grupoImport = (s) => (esImportacion(s) ? grupoDeImportacion(s.status) : null);
+
   const grouped = {
     pendiente: localSolicitudes.filter((s) =>
-      ["Pendiente", "Contactado", "En proceso", "Reagendar solicitado", "pending_seller", "pending_buyer", "Pendiente de aprobación"].includes(s.status)
+      grupoImport(s) === "pendiente" ||
+      (!esImportacion(s) &&
+        ["Pendiente", "Contactado", "En proceso", "Reagendar solicitado", "pending_seller", "pending_buyer", "Pendiente de aprobación"].includes(s.status))
     ),
     en_curso: localSolicitudes.filter((s) => {
+      if (esImportacion(s)) return grupoImport(s) === "en_curso";
       const meta = parseMeta(s.meta);
       if (s.status === "Cita confirmada") return !isDatePast(cuandoEs(meta));
       if (s.status === "confirmed")       return !isDatePast(meta.confirmed_slot);
@@ -335,6 +345,7 @@ export default function UserDashboardSolicitudes({
     }),
     finalizadas: localSolicitudes.filter((s) => {
       if (CONTRACTED_STATUSES.includes(s.status)) return false;
+      if (esImportacion(s)) return grupoImport(s) === "finalizadas";
       const meta = parseMeta(s.meta);
       if (s.status === "Cerrado")          return true;
       if (s.status === "Visita realizada") return true;

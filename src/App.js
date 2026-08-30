@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, useRef, lazy, Suspense } from "react";
 import { FICHA_VO_ABIERTA } from "./utils/aperturaTemporal";
+import { idDeAnuncioPropio, ofertaDelMarketplacePorId } from "./utils/anuncioPropio";
 import i18next from "i18next";
 import "./App.css";
 import LandingPage from "./pages/LandingPage";
@@ -6768,6 +6769,26 @@ export default function App() {
           }}
           onOpenVehicleDetail={async (sparseOffer) => {
             const targetUrl = sparseOffer.url || sparseOffer.searchUrl || "";
+
+            /**
+             * «Ver anuncio» desde una solicitud.
+             *
+             * Lo guardado no es el anuncio del vendedor: es nuestra propia ficha,
+             * `/marketplace-vo/<id>`. Buscarla por dirección en el marketplace de
+             * ocasión no encuentra nada —esa tabla guarda la del vendedor— y se
+             * abría una ficha vacía. Con un coche de importación, además, ni
+             * siquiera es esa la tabla donde está.
+             */
+            const idPropio = idDeAnuncioPropio(targetUrl);
+            if (idPropio) {
+              const propia = await ofertaDelMarketplacePorId(idPropio);
+              if (propia) {
+                openPortalVoOfferDetail(propia);
+                setStep(-1);
+                return;
+              }
+            }
+
             let fullOffer = targetUrl
               ? ([...decisionMarketListings, ...portalVoOffersLive].find(
                   (o) => (o.url || o.searchUrl) === targetUrl

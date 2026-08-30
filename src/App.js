@@ -4789,10 +4789,12 @@ export default function App() {
             <CampanaAvisos
               solicitudes={userSolicitudes}
               themeMode={themeMode}
-              onAbrir={() => {
-                setUserDashboardPage("solicitudes");
-                handleUserAccessClick();
-              }}
+              // A Solicitudes, que es donde está la cita.
+              //
+              // Antes ponía la página y acto seguido llamaba a `handleUserAccessClick`,
+              // que la vuelve a poner: la deja en la del camino actual, o en el
+              // resumen. Estando ya en el panel, pulsar la campana no hacía nada.
+              onAbrir={() => navigateToUserDashboardPage("solicitudes")}
             />
           )}
 

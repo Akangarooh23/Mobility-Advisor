@@ -512,6 +512,37 @@ export default function PortalVoDetailPage({
                       Ahorras ~{Number(selectedPortalVoOffer.importSavings).toLocaleString("es-ES")} €{selectedPortalVoOffer.importSavingsPct ? ` (${selectedPortalVoOffer.importSavingsPct}%)` : ""}
                     </div>
                   )}
+                  {/*
+                    * De qué se compone el precio.
+                    *
+                    * Un coche de importación cuesta más que su anuncio alemán, y sin
+                    * decir por qué parece un recargo. Tres líneas: el coche, traerlo
+                    * y matricularlo. El margen va dentro del precio del coche, como
+                    * en cualquier compraventa.
+                    *
+                    * Y debajo, lo que NO está incluido. Enterarse de eso después de
+                    * pagar la fianza es lo que hace desconfiar de un importador.
+                    */}
+                  {Array.isArray(selectedPortalVoOffer.importDesglose) && selectedPortalVoOffer.importDesglose.length > 0 && (
+                    <div style={{ background: isDark ? "rgba(255,255,255,0.04)" : "var(--gris-50)", border: "1px solid var(--gris-200)", borderRadius: 12, padding: "12px 14px", marginTop: 12 }}>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "var(--gris-200)" : "var(--gris-700)", marginBottom: 8 }}>De qué se compone este precio</div>
+                      {selectedPortalVoOffer.importDesglose.map((linea) => (
+                        <div key={linea.concepto} style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 12.5, color: isDark ? "var(--gris-300)" : "var(--gris-700)", marginBottom: 4 }}>
+                          <span>{linea.concepto}</span>
+                          <strong style={{ whiteSpace: "nowrap" }}>{formatCurrency(linea.importe)}</strong>
+                        </div>
+                      ))}
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 13.5, fontWeight: 800, borderTop: "1px solid var(--gris-200)", marginTop: 8, paddingTop: 8, color: isDark ? "#fff" : "var(--gris-900)" }}>
+                        <span>Puesto en tu casa</span>
+                        <span style={{ whiteSpace: "nowrap" }}>{formatCurrency(selectedPortalVoOffer.price)}</span>
+                      </div>
+                      {Array.isArray(selectedPortalVoOffer.importAparte) && selectedPortalVoOffer.importAparte.length > 0 && (
+                        <p style={{ margin: "8px 0 0", fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", lineHeight: 1.6 }}>
+                          Se factura aparte, y siempre presupuestado antes: {selectedPortalVoOffer.importAparte.join(", ").toLowerCase()}.
+                        </p>
+                      )}
+                    </div>
+                  )}
                   <div style={{ background: isDark ? "rgba(5,150,105,0.12)" : "rgba(5,150,105,0.06)", border: "1px solid rgba(5,150,105,0.25)", borderRadius: 12, padding: "12px 14px", marginTop: 12 }}>
                     <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#34d399" : "#047857", marginBottom: 6 }}>Por qué es una buena oferta</div>
                     <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: isDark ? "var(--gris-300)" : "var(--gris-700)", lineHeight: 1.8 }}>
@@ -522,7 +553,8 @@ export default function PortalVoDetailPage({
                         <li>Contrastado con <strong>{selectedPortalVoOffer.importComparables} vehículos comparables</strong> del mercado español.</li>
                       )}
                       <li>Lo <strong>compramos, importamos y matriculamos</strong> nosotros por ti.</li>
-                      <li><strong>Garantía incluida</strong> y <strong>entrega a domicilio</strong>.</li>
+                      {/* La garantía se factura aparte: prometerla incluida sería mentir. */}
+                      <li><strong>Entrega a domicilio</strong>, y garantía disponible aparte.</li>
                     </ul>
                   </div>
                   {selectedPortalVoOffer.importDeposit != null && (

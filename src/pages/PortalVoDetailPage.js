@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
+import { etiquetaDeGarantia, importeDeGarantia } from "../utils/etiquetaGarantia";
 import { buildImageProxyUrl, buildOfferLocalImageCandidates, slugifyOfferFolderName } from "../utils/offerHelpers";
 import { getUtmPayload } from "../utils/utmTracker";
 import { trackLead } from "../utils/metaPixel";
@@ -113,8 +114,9 @@ export default function PortalVoDetailPage({
   const diferenciaGarantia = opcionesGarantia
     .find((o) => (o.id ?? null) === garantiaElegida)?.diferencia ?? 0;
   const precioConGarantia = (Number(selectedPortalVoOffer.price) || 0) + diferenciaGarantia;
-  const coberturasDeLaElegida = opcionesGarantia
-    .find((o) => (o.id ?? null) === garantiaElegida)?.coberturas ?? [];
+  const garantiaDelCoche = opcionesGarantia
+    .find((o) => (o.id ?? null) === garantiaElegida) ?? null;
+  const coberturasDeLaElegida = garantiaDelCoche?.coberturas ?? [];
 
   /**
    * El precio de este coche **con la garantía que ha elegido**.
@@ -586,10 +588,20 @@ export default function PortalVoDetailPage({
                           <strong style={{ whiteSpace: "nowrap" }}>{formatCurrency(linea.importe)}</strong>
                         </div>
                       ))}
-                      {garantiaBase && (
+                      {/*
+                        * La garantía **que ha elegido**, no la base.
+                        *
+                        * Esta línea enseñaba siempre la de doce meses aunque hubiera
+                        * elegido una ampliación: el desglose decía una cosa y el total
+                        * de debajo otra, sin nada entre medias que explicara la
+                        * diferencia.
+                        */}
+                      {garantiaDelCoche && (
                         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 12.5, color: isDark ? "var(--gris-300)" : "var(--gris-700)", marginBottom: 4 }}>
-                          <span>{garantiaBase.nombre}{garantiaBase.meses ? ` · ${garantiaBase.meses} meses` : ""}</span>
-                          <strong style={{ whiteSpace: "nowrap" }}>incluida</strong>
+                          <span>{etiquetaDeGarantia(garantiaDelCoche)}</span>
+                          <strong style={{ whiteSpace: "nowrap" }}>
+                            {importeDeGarantia(garantiaDelCoche.diferencia, formatCurrency)}
+                          </strong>
                         </div>
                       )}
                       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 13.5, fontWeight: 800, borderTop: "1px solid var(--gris-200)", marginTop: 8, paddingTop: 8, color: isDark ? "#fff" : "var(--gris-900)" }}>
@@ -625,13 +637,11 @@ export default function PortalVoDetailPage({
                                 }}
                               >
                                 <span>
-                                  <strong>{o.nombre}</strong>
-                                  {o.meses ? ` · ${o.meses} meses` : ""}
+                                  <strong>{etiquetaDeGarantia(o)}</strong>
                                   {o.kmCubiertos ? ` · hasta ${o.kmCubiertos.toLocaleString("es-ES")} km` : ""}
                                 </span>
                                 <span style={{ whiteSpace: "nowrap", fontWeight: 700 }}>
-                                  {o.diferencia === 0 ? "incluida"
-                                    : `${o.diferencia > 0 ? "+" : "−"}${formatCurrency(Math.abs(o.diferencia))}`}
+                                  {importeDeGarantia(o.diferencia, formatCurrency)}
                                 </span>
                               </button>
                             );

@@ -92,3 +92,19 @@ describe("el precio con la garantía elegida", () => {
     expect(FICHA).toContain("isImport\n    ? precioConGarantia");
   });
 });
+
+describe("la línea de garantía del desglose", () => {
+  const FICHA2 = fs.readFileSync(
+    path.join(__dirname, "PortalVoDetailPage.js"),
+    "utf8"
+  );
+
+  test("enseña la elegida, no la base", () => {
+    expect(FICHA2).toContain("etiquetaDeGarantia(garantiaDelCoche)");
+    expect(FICHA2).not.toContain("etiquetaDeGarantia(garantiaBase)");
+  });
+
+  test("y lo que suma al total, no «incluida» siempre", () => {
+    expect(FICHA2).toContain("importeDeGarantia(garantiaDelCoche.diferencia, formatCurrency)");
+  });
+});

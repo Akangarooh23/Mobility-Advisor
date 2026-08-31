@@ -122,23 +122,50 @@ describe("la entrega en la ficha del coche", () => {
     "utf8"
   );
 
-  test("dice que se le lleva a casa y que el precio es el mismo en toda la península", () => {
-    expect(FICHA3).toContain("Te lo llevamos a tu casa");
+  test("dice que se le lleva y que el precio es el mismo en toda la península", () => {
+    expect(FICHA3).toContain("Te lo llevamos");
     expect(FICHA3).toContain("cualquier punto de la península");
   });
 
   test("avisa del recargo de fuera, sin ponerle cifra", () => {
-    expect(FICHA3).toContain("Baleares, Canarias, Ceuta y Melilla");
+    expect(FICHA3).toContain("Fuera de la península la entrega puede llevar un recargo");
     // Un número inventado en un precio público es peor que decir que se confirma.
-    const parrafo = FICHA3.slice(
-      FICHA3.indexOf("Te lo llevamos a tu casa"),
-      FICHA3.indexOf("Te lo llevamos a tu casa") + 700
+    const aviso = FICHA3.slice(
+      FICHA3.indexOf("Fuera de la península la entrega"),
+      FICHA3.indexOf("Fuera de la península la entrega") + 300
     );
-    expect(parrafo).not.toMatch(/\d+\s*€/);
+    expect(aviso).not.toMatch(/\d+\s*€/);
   });
 
-  test("y que la dirección se pone después y se puede cambiar", () => {
-    expect(FICHA3).toContain("la puedes");
+  test("y que la dirección exacta se pone después y se puede cambiar", () => {
+    expect(FICHA3).toContain("La dirección exacta nos la dices después de pedirlo");
     expect(FICHA3).toContain("cambiar hasta que salga");
+  });
+});
+
+describe("cambiar la dirección desde la propia ficha", () => {
+  const FICHA4 = fs.readFileSync(
+    path.join(__dirname, "PortalVoDetailPage.js"),
+    "utf8"
+  );
+
+  test("hay un botón para decir dónde se lo llevamos", () => {
+    expect(FICHA4).toContain("¿Dónde te lo llevamos?");
+    expect(FICHA4).toContain("Cambiar dirección");
+  });
+
+  test("se recuerda entre coches: quien compara cinco no lo escribe cinco veces", () => {
+    expect(FICHA4).toContain("popcar_entrega");
+    expect(FICHA4).toContain("leeEntregaGuardada");
+  });
+
+  test("el aviso del recargo sale aquí, antes de pagar la fianza", () => {
+    expect(FICHA4).toContain("llevaRecargo(entrega.provincia)");
+    expect(FICHA4).toContain("antes de que pagues nada");
+  });
+
+  test("y lo que ha dicho viaja con la solicitud", () => {
+    expect(FICHA4).toContain("entrega_ciudad: entrega.ciudad");
+    expect(FICHA4).toContain("entrega_provincia: entrega.provincia");
   });
 });

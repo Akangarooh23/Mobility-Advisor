@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import { etiquetaDeGarantia, importeDeGarantia } from "../utils/etiquetaGarantia";
+import { llevaRecargo } from "../utils/entregaPeninsula";
 import { buildImageProxyUrl, buildOfferLocalImageCandidates, slugifyOfferFolderName } from "../utils/offerHelpers";
 import { getUtmPayload } from "../utils/utmTracker";
 import { trackLead } from "../utils/metaPixel";
@@ -50,6 +51,26 @@ function getPrefilledForm(currentUser) {
     };
   } catch {
     return { name: "", phone: "", email: "", when: "", type: "info", message: "" };
+  }
+}
+
+const ENTREGA_GUARDADA = "popcar_entrega";
+
+/**
+ * Dónde dijo la última vez que quería recibirlo.
+ *
+ * Se guarda entre coches: quien está comparando cinco no tiene por qué escribir
+ * su ciudad cinco veces.
+ */
+function leeEntregaGuardada() {
+  try {
+    const guardado = JSON.parse(localStorage.getItem(ENTREGA_GUARDADA) || "{}");
+    return {
+      ciudad: String(guardado.ciudad || ""),
+      provincia: String(guardado.provincia || ""),
+    };
+  } catch {
+    return { ciudad: "", provincia: "" };
   }
 }
 
@@ -114,6 +135,27 @@ export default function PortalVoDetailPage({
   const diferenciaGarantia = opcionesGarantia
     .find((o) => (o.id ?? null) === garantiaElegida)?.diferencia ?? 0;
   const precioConGarantia = (Number(selectedPortalVoOffer.price) || 0) + diferenciaGarantia;
+  /**
+   * Dónde quiere que se lo llevemos.
+   *
+   * Se guarda en el navegador, no en la solicitud: aquí todavía no hay
+   * solicitud ninguna. Sirve para dos cosas — que el aviso del recargo salga
+   * **antes** de pagar la fianza, y para no volver a preguntarlo en cada coche
+   * que mire.
+   *
+   * Si el navegador no deja guardar, se queda vacío y no pasa nada: la
+   * dirección de verdad se pone luego en su panel.
+   */
+  const [entrega, setEntrega] = useState(() => leeEntregaGuardada());
+  const [cambiandoEntrega, setCambiandoEntrega] = useState(false);
+  const recargoDeEntrega = llevaRecargo(entrega.provincia);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(ENTREGA_GUARDADA, JSON.stringify(entrega));
+    } catch { /* sin sitio donde guardarlo, da igual */ }
+  }, [entrega]);
+
   const garantiaDelCoche = opcionesGarantia
     .find((o) => (o.id ?? null) === garantiaElegida) ?? null;
   const coberturasDeLaElegida = garantiaDelCoche?.coberturas ?? [];
@@ -290,6 +332,10 @@ export default function PortalVoDetailPage({
             // La que ha elegido. El precio lo vuelve a calcular el servidor:
             // esto dice cuál quiere, no cuánto cuesta.
             garantia_id: garantiaElegida,
+            // Y dónde quiere recibirlo, si lo ha dicho aquí. La calle se pone
+            // luego en su panel; esto es para no volver a preguntarle la ciudad.
+            entrega_ciudad: entrega.ciudad,
+            entrega_provincia: entrega.provincia,
           }),
         });
       } else if (isParticular) {
@@ -668,12 +714,76 @@ export default function PortalVoDetailPage({
                         * un barco, y un número inventado en un precio público es
                         * peor que decir que se confirma.
                         */}
-                      <p style={{ margin: "8px 0 0", fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", lineHeight: 1.6 }}>
-                        <strong>Te lo llevamos a tu casa</strong>, a cualquier punto de la península,
-                        por este precio. Nos dices la dirección después de pedirlo, y la puedes
-                        cambiar hasta que salga. A Baleares, Canarias, Ceuta y Melilla puede haber
-                        un recargo que te confirmamos antes de nada.
-                      </p>
+                      <div style={{ margin: "8px 0 0", fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", lineHeight: 1.6 }}>
+                        {!cambiandoEntrega && (
+                          <>
+                            <strong>Te lo llevamos</strong>{" "}
+                            {entrega.ciudad
+                              ? <>a <strong>{entrega.ciudad}</strong>{entrega.provincia ? ` (${entrega.provincia})` : ""}</>
+                              : <>a cualquier punto de la península</>}
+                            {" "}por este precio.{" "}
+                            <button
+                              type="button"
+                              onClick={() => setCambiandoEntrega(true)}
+                              style={{
+                                background: "none", border: "none", padding: 0, fontSize: 11.5,
+                                fontWeight: 700, color: "var(--marca-claro)", cursor: "pointer",
+                                textDecoration: "underline",
+                              }}
+                            >
+                              {entrega.ciudad ? "Cambiar dirección" : "¿Dónde te lo llevamos?"}
+                            </button>
+                          </>
+                        )}
+
+                        {cambiandoEntrega && (
+                          <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginTop: 2 }}>
+                            <input
+                              value={entrega.ciudad}
+                              onChange={(e) => setEntrega((d) => ({ ...d, ciudad: e.target.value }))}
+                              placeholder="Ciudad"
+                              style={{ flex: "1 1 120px", padding: "6px 8px", fontSize: 12, borderRadius: 8, border: "1px solid var(--gris-200)" }}
+                            />
+                            <input
+                              value={entrega.provincia}
+                              onChange={(e) => setEntrega((d) => ({ ...d, provincia: e.target.value }))}
+                              placeholder="Provincia"
+                              style={{ flex: "1 1 120px", padding: "6px 8px", fontSize: 12, borderRadius: 8, border: "1px solid var(--gris-200)" }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setCambiandoEntrega(false)}
+                              style={{
+                                padding: "6px 12px", fontSize: 12, fontWeight: 800, borderRadius: 8,
+                                border: "none", background: "var(--marca)", color: "#fff", cursor: "pointer",
+                              }}
+                            >
+                              Listo
+                            </button>
+                          </div>
+                        )}
+
+                        {/*
+                          * El aviso del recargo, aquí y no después.
+                          *
+                          * Alguien en Palma tiene que saberlo mientras mira el precio,
+                          * no cuando ya ha puesto el 30 % de fianza. Sin cifra: no hay
+                          * tarifa de nadie para meter un coche en un barco.
+                          */}
+                        {recargoDeEntrega && (
+                          <div style={{ marginTop: 6, padding: "6px 10px", borderRadius: 8, background: "#fffbeb", border: "1px solid #fbbf24", color: "#92400e", fontSize: 11.5 }}>
+                            Fuera de la península la entrega puede llevar un recargo. Te lo
+                            confirmamos antes de que pagues nada.
+                          </div>
+                        )}
+
+                        {!recargoDeEntrega && (
+                          <div style={{ marginTop: 2 }}>
+                            La dirección exacta nos la dices después de pedirlo, y la puedes
+                            cambiar hasta que salga.
+                          </div>
+                        )}
+                      </div>
                       {Array.isArray(selectedPortalVoOffer.importAparte) && selectedPortalVoOffer.importAparte.length > 0 && (
                         <p style={{ margin: "6px 0 0", fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", lineHeight: 1.6 }}>
                           Se factura aparte, y siempre presupuestado antes: {selectedPortalVoOffer.importAparte.join(", ").toLowerCase()}.

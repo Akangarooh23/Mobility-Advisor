@@ -553,8 +553,8 @@ export default function PortalVoDetailPage({
                         <li>Contrastado con <strong>{selectedPortalVoOffer.importComparables} vehículos comparables</strong> del mercado español.</li>
                       )}
                       <li>Lo <strong>compramos, importamos y matriculamos</strong> nosotros por ti.</li>
-                      {/* La garantía se factura aparte: prometerla incluida sería mentir. */}
-                      <li><strong>Entrega a domicilio</strong>, y garantía disponible aparte.</li>
+                      {/* Obligatoria vendiendo como empresa a un particular: no es un extra. */}
+                      <li><strong>Garantía incluida</strong> y <strong>entrega a domicilio</strong>.</li>
                     </ul>
                   </div>
                   {selectedPortalVoOffer.importDeposit != null && (

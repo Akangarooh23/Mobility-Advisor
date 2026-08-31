@@ -1072,6 +1072,14 @@ function DireccionDeEntrega({ item, meta, isDark, onGuardada }) {
     cp: meta.entrega_cp || "",
   };
   const tieneDireccion = Boolean(puesta.direccion && puesta.ciudad);
+  /**
+   * Con la fianza pagada, la dirección queda fijada.
+   *
+   * Lo que se le cobró incluye llevárselo a donde dijo. El botón desaparece y se
+   * le dice qué hacer si de verdad necesita cambiarla, en vez de dejarle pulsar
+   * algo que el servidor va a rechazar.
+   */
+  const fijada = Boolean(meta.deposit_paid_at);
   const [abierto, setAbierto] = useState(false);
   const [datos, setDatos] = useState(puesta);
   const [guardando, setGuardando] = useState(false);
@@ -1124,17 +1132,23 @@ function DireccionDeEntrega({ item, meta, isDark, onGuardada }) {
           ) : (
             <>Entrega a domicilio incluida en el precio. Dinos dónde te lo llevamos.</>
           )}
-          <button
-            type="button"
-            onClick={() => { setDatos(puesta); setAbierto(true); }}
-            style={{
-              marginLeft: 6, background: "none", border: "none", padding: 0,
-              fontSize: 12, fontWeight: 700, color: "var(--marca-claro)", cursor: "pointer",
-              textDecoration: "underline",
-            }}
-          >
-            {tieneDireccion ? "Cambiar dirección" : "Poner dirección"}
-          </button>
+          {fijada ? (
+            <span style={{ marginLeft: 6, fontSize: 11.5 }}>
+              Ya no se puede cambiar: escríbenos y la cambiamos nosotros.
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => { setDatos(puesta); setAbierto(true); }}
+              style={{
+                marginLeft: 6, background: "none", border: "none", padding: 0,
+                fontSize: 12, fontWeight: 700, color: "var(--marca-claro)", cursor: "pointer",
+                textDecoration: "underline",
+              }}
+            >
+              {tieneDireccion ? "Cambiar dirección" : "Poner dirección"}
+            </button>
+          )}
         </div>
       )}
 

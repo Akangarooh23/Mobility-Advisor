@@ -122,9 +122,20 @@ describe("la entrega en la ficha del coche", () => {
     "utf8"
   );
 
-  test("dice que se le lleva y que el precio es el mismo en toda la península", () => {
-    expect(FICHA3).toContain("Te lo llevamos");
+  test("hay una sección de transporte con sus dos puntas", () => {
+    // «Transporte desde Alemania» dice de dónde y no dice a dónde.
+    expect(FICHA3).toContain("El viaje del coche, con sus dos puntas");
+    expect(FICHA3).toContain(">Desde</span>");
+    expect(FICHA3).toContain(">Hasta</span>");
+  });
+
+  test("el origen sale de la oferta, no de un texto fijo", () => {
+    expect(FICHA3).toContain("selectedPortalVoOffer.location");
+  });
+
+  test("y el destino, de lo que ha dicho el cliente", () => {
     expect(FICHA3).toContain("cualquier punto de la península");
+    expect(FICHA3).toContain("Cambiar dirección de envío");
   });
 
   test("avisa del recargo de fuera, sin ponerle cifra", () => {
@@ -137,9 +148,10 @@ describe("la entrega en la ficha del coche", () => {
     expect(aviso).not.toMatch(/\d+\s*€/);
   });
 
-  test("y que la dirección exacta se pone después y se puede cambiar", () => {
-    expect(FICHA3).toContain("La dirección exacta nos la dices después de pedirlo");
-    expect(FICHA3).toContain("cambiar hasta que salga");
+  test("y que se puede cambiar hasta pagar la fianza, no hasta que salga", () => {
+    // Con la fianza pagada queda fijada: lo que se le cobró incluye llevárselo
+    // a donde dijo.
+    expect(FICHA3).toContain("cambiar hasta que pagues la fianza");
   });
 });
 
@@ -150,8 +162,7 @@ describe("cambiar la dirección desde la propia ficha", () => {
   );
 
   test("hay un botón para decir dónde se lo llevamos", () => {
-    expect(FICHA4).toContain("¿Dónde te lo llevamos?");
-    expect(FICHA4).toContain("Cambiar dirección");
+    expect(FICHA4).toContain("Cambiar dirección de envío");
   });
 
   test("se recuerda entre coches: quien compara cinco no lo escribe cinco veces", () => {

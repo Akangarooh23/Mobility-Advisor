@@ -714,14 +714,40 @@ export default function PortalVoDetailPage({
                         * un barco, y un número inventado en un precio público es
                         * peor que decir que se confirma.
                         */}
-                      <div style={{ margin: "8px 0 0", fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", lineHeight: 1.6 }}>
-                        {!cambiandoEntrega && (
-                          <>
-                            <strong>Te lo llevamos</strong>{" "}
-                            {entrega.ciudad
-                              ? <>a <strong>{entrega.ciudad}</strong>{entrega.provincia ? ` (${entrega.provincia})` : ""}</>
-                              : <>a cualquier punto de la península</>}
-                            {" "}por este precio.{" "}
+                      {/*
+                        * El viaje del coche, con sus dos puntas.
+                        *
+                        * «Transporte desde Alemania» dice de dónde y no dice a dónde.
+                        * Aquí se ven los dos: la ciudad alemana donde está el coche,
+                        * que sale de la propia oferta, y dónde quiere recibirlo.
+                        *
+                        * El precio es el mismo para toda la península, así que esto no
+                        * cambia lo que paga. Cambia lo que entiende: un coche que está
+                        * en Múnich y llega a su puerta.
+                        */}
+                      <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--gris-200)" }}>
+                        <div style={{ fontSize: 11.5, fontWeight: 800, color: isDark ? "var(--gris-300)" : "var(--gris-600)", marginBottom: 6 }}>
+                          Transporte
+                        </div>
+
+                        <div style={{ display: "flex", gap: 10, fontSize: 12.5, color: isDark ? "var(--gris-300)" : "var(--gris-700)", marginBottom: 3 }}>
+                          <span style={{ width: 46, color: isDark ? "var(--gris-500)" : "var(--gris-400)" }}>Desde</span>
+                          <strong>{selectedPortalVoOffer.location || "Alemania"}</strong>
+                          {selectedPortalVoOffer.location && <span style={{ color: isDark ? "var(--gris-500)" : "var(--gris-400)" }}>(Alemania)</span>}
+                        </div>
+
+                        <div style={{ display: "flex", gap: 10, fontSize: 12.5, color: isDark ? "var(--gris-300)" : "var(--gris-700)", alignItems: "baseline", flexWrap: "wrap" }}>
+                          <span style={{ width: 46, color: isDark ? "var(--gris-500)" : "var(--gris-400)" }}>Hasta</span>
+                          {entrega.ciudad ? (
+                            <strong>
+                              {entrega.ciudad}{entrega.provincia ? ` (${entrega.provincia})` : ""}
+                            </strong>
+                          ) : (
+                            <span style={{ color: isDark ? "var(--gris-500)" : "var(--gris-400)" }}>
+                              tu casa, en cualquier punto de la península
+                            </span>
+                          )}
+                          {!cambiandoEntrega && (
                             <button
                               type="button"
                               onClick={() => setCambiandoEntrega(true)}
@@ -731,13 +757,13 @@ export default function PortalVoDetailPage({
                                 textDecoration: "underline",
                               }}
                             >
-                              {entrega.ciudad ? "Cambiar dirección" : "¿Dónde te lo llevamos?"}
+                              Cambiar dirección de envío
                             </button>
-                          </>
-                        )}
+                          )}
+                        </div>
 
                         {cambiandoEntrega && (
-                          <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginTop: 2 }}>
+                          <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginTop: 6 }}>
                             <input
                               value={entrega.ciudad}
                               onChange={(e) => setEntrega((d) => ({ ...d, ciudad: e.target.value }))}
@@ -763,25 +789,16 @@ export default function PortalVoDetailPage({
                           </div>
                         )}
 
-                        {/*
-                          * El aviso del recargo, aquí y no después.
-                          *
-                          * Alguien en Palma tiene que saberlo mientras mira el precio,
-                          * no cuando ya ha puesto el 30 % de fianza. Sin cifra: no hay
-                          * tarifa de nadie para meter un coche en un barco.
-                          */}
-                        {recargoDeEntrega && (
+                        {recargoDeEntrega ? (
                           <div style={{ marginTop: 6, padding: "6px 10px", borderRadius: 8, background: "#fffbeb", border: "1px solid #fbbf24", color: "#92400e", fontSize: 11.5 }}>
                             Fuera de la península la entrega puede llevar un recargo. Te lo
                             confirmamos antes de que pagues nada.
                           </div>
-                        )}
-
-                        {!recargoDeEntrega && (
-                          <div style={{ marginTop: 2 }}>
-                            La dirección exacta nos la dices después de pedirlo, y la puedes
-                            cambiar hasta que salga.
-                          </div>
+                        ) : (
+                          <p style={{ margin: "6px 0 0", fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", lineHeight: 1.6 }}>
+                            Incluido en el precio. La calle nos la dices al pedirlo, y la puedes
+                            cambiar hasta que pagues la fianza.
+                          </p>
                         )}
                       </div>
                       {Array.isArray(selectedPortalVoOffer.importAparte) && selectedPortalVoOffer.importAparte.length > 0 && (

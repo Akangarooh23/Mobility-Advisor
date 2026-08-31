@@ -800,6 +800,11 @@ export default function PortalVoMarketplacePage({
               <option value="">Relevancia</option>
               <option value="price_asc">Precio: más bajo primero</option>
               <option value="price_desc">Precio: más alto primero</option>
+              {/* Solo en Importación: en el resto del marketplace no hay con
+                  qué comparar, porque no se calcula el ahorro frente a España. */}
+              {compraTab === "importacion" && (
+                <option value="ahorro_desc">Ahorro: mayor % primero</option>
+              )}
             </FilterSelect>
             <button
               type="button"

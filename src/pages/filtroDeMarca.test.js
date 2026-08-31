@@ -44,3 +44,51 @@ describe("el desplegable de los filtros", () => {
     expect(FUENTE).toContain('optgroup label="Resto del catálogo"');
   });
 });
+
+/**
+ * El precio cuando se cambia de garantía.
+ *
+ * Elegir una ampliación cambiaba **solo** el total del desglose. El precio
+ * grande de arriba, la cuota del mes, la fianza y el ahorro se quedaban con lo
+ * de antes: cinco números para el mismo coche, y cuatro de ellos mintiendo.
+ */
+const FICHA = fs.readFileSync(
+  path.join(__dirname, "PortalVoDetailPage.js"),
+  "utf8"
+);
+
+describe("el precio con la garantía elegida", () => {
+  test("el precio grande sale de la garantía elegida, no de la oferta", () => {
+    expect(FICHA).toContain("{formatCurrency(precioFinanciable)}");
+    expect(FICHA).not.toContain(
+      "{formatCurrency(selectedPortalVoOffer.salePrice ?? selectedPortalVoOffer.price)}"
+    );
+  });
+
+  test("lo que se financia también", () => {
+    expect(FICHA).toContain("const precioFinanciable = isImport");
+    expect(FICHA).toContain("? precioConGarantia");
+  });
+
+  test("y la fianza: el 30 % de lo que va a pagar", () => {
+    expect(FICHA).toContain("Math.round(precioConGarantia * 0.30)");
+    expect(FICHA).not.toContain(
+      "{formatCurrency(selectedPortalVoOffer.importDeposit)}"
+    );
+  });
+
+  test("el ahorro se recalcula, o la resta no cuadraría", () => {
+    expect(FICHA).toContain("const ahorroConGarantia");
+    expect(FICHA).not.toContain("Number(selectedPortalVoOffer.importSavings).toLocaleString");
+  });
+
+  test("la garantía elegida viaja con la solicitud", () => {
+    // Sin esto, el cliente elige la ampliada y se le guarda la básica.
+    expect(FICHA).toContain("garantia_id: garantiaElegida");
+  });
+
+  test("solo afecta a los coches de importación", () => {
+    // Un coche de concesionario no tiene este catálogo y sigue con su precio.
+    expect(FICHA).toContain("isImport\n    ? precioConGarantia");
+  });
+});

@@ -94,11 +94,6 @@ export default function PortalVoDetailPage({
   const isImport = !!selectedPortalVoOffer.isImport;
   // Financiación: concesionarios, renting y particulares usan la config estándar.
   // Importación usa su variante (entrada mínima = fianza 30%, plazos 36-72, copys propios).
-  const precioFinanciable = Number(selectedPortalVoOffer.salePrice ?? selectedPortalVoOffer.price) || 0;
-  const fianzaImport = Number(selectedPortalVoOffer.importDeposit) || 0;
-  const mostrarFinanciacion = precioFinanciable > 0;
-  const [cuotaMensual, setCuotaMensual] = useState(null);
-
   /**
    * La garantía que ha elegido, y lo que le cambia el total.
    *
@@ -120,6 +115,40 @@ export default function PortalVoDetailPage({
   const precioConGarantia = (Number(selectedPortalVoOffer.price) || 0) + diferenciaGarantia;
   const coberturasDeLaElegida = opcionesGarantia
     .find((o) => (o.id ?? null) === garantiaElegida)?.coberturas ?? [];
+
+  /**
+   * El precio de este coche **con la garantía que ha elegido**.
+   *
+   * De aquí salen todos los números que ve: el grande de arriba, la cuota del
+   * mes, la fianza y el ahorro. Antes solo cambiaba el total del desglose, así
+   * que elegir una ampliación subía una línea y dejaba las otras cuatro
+   * diciendo lo de antes. Cuatro números distintos para el mismo coche.
+   */
+  const precioFinanciable = isImport
+    ? precioConGarantia
+    : Number(selectedPortalVoOffer.salePrice ?? selectedPortalVoOffer.price) || 0;
+
+  // La fianza es el 30 % de lo que va a pagar, no del precio sin la ampliación.
+  const fianzaImport = isImport && precioConGarantia > 0
+    ? Math.round(precioConGarantia * 0.30)
+    : Number(selectedPortalVoOffer.importDeposit) || 0;
+
+  /**
+   * El ahorro, recalculado.
+   *
+   * Si el precio sube y el ahorro se queda como estaba, la resta deja de
+   * cuadrar delante del cliente: 29.899 − 22.400 no son 7.789.
+   */
+  const precioEspanolMedio = Number(selectedPortalVoOffer.marketPriceEs) || 0;
+  const ahorroConGarantia = precioEspanolMedio > 0 && precioConGarantia > 0
+    ? Math.round(precioEspanolMedio - precioConGarantia)
+    : 0;
+  const ahorroPct = ahorroConGarantia > 0 && precioEspanolMedio > 0
+    ? Math.round((ahorroConGarantia / precioEspanolMedio) * 100)
+    : null;
+  const mostrarFinanciacion = precioFinanciable > 0;
+  const [cuotaMensual, setCuotaMensual] = useState(null);
+
   const [savedAlert, setSavedAlert] = useState(false);
   const whatsappHref = `https://wa.me/${CARSWISE_WHATSAPP}?text=${encodeURIComponent(`Hola, me interesa el ${selectedPortalVoOffer.title} por ${formatCurrency(precioFinanciable)}. ¿Sigue disponible?`)}`;
   const handleGuardarAlerta = () => {
@@ -256,6 +285,9 @@ export default function PortalVoDetailPage({
             email: reqForm.email,
             phone: reqForm.phone,
             message: reqForm.message,
+            // La que ha elegido. El precio lo vuelve a calcular el servidor:
+            // esto dice cuál quiere, no cuánto cuesta.
+            garantia_id: garantiaElegida,
           }),
         });
       } else if (isParticular) {
@@ -513,7 +545,7 @@ export default function PortalVoDetailPage({
               {selectedPortalVoOffer.availableForPurchase !== false && (
                 <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: selectedPortalVoOffer.rentingAvailable ? 6 : 0 }}>
                   <span style={{ fontSize: 28, fontWeight: 800, color: titleColor }}>
-                    {formatCurrency(selectedPortalVoOffer.salePrice ?? selectedPortalVoOffer.price)}
+                    {formatCurrency(precioFinanciable)}
                   </span>
                   <span style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "var(--gris-500)" }}>{isImport ? "Importado estimado" : t("marketplace.modalityPurchase", "Compra")}</span>
                 </div>
@@ -529,9 +561,9 @@ export default function PortalVoDetailPage({
               )}
               {isImport && (
                 <div style={{ marginTop: 6 }}>
-                  {selectedPortalVoOffer.importSavings > 0 && (
+                  {ahorroConGarantia > 0 && (
                     <div style={{ display: "inline-block", fontSize: 13, fontWeight: 800, padding: "5px 12px", borderRadius: 999, background: "#059669", color: "#fff" }}>
-                      Ahorras ~{Number(selectedPortalVoOffer.importSavings).toLocaleString("es-ES")} €{selectedPortalVoOffer.importSavingsPct ? ` (${selectedPortalVoOffer.importSavingsPct}%)` : ""}
+                      Ahorras ~{ahorroConGarantia.toLocaleString("es-ES")} €{ahorroPct ? ` (${ahorroPct}%)` : ""}
                     </div>
                   )}
                   {/*
@@ -624,7 +656,7 @@ export default function PortalVoDetailPage({
                     <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#34d399" : "#047857", marginBottom: 6 }}>Por qué es una buena oferta</div>
                     <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: isDark ? "var(--gris-300)" : "var(--gris-700)", lineHeight: 1.8 }}>
                       {selectedPortalVoOffer.marketPriceEs != null && (
-                        <li>Precio medio en España: <strong>{Number(selectedPortalVoOffer.marketPriceEs).toLocaleString("es-ES")} €</strong>{selectedPortalVoOffer.importSavings > 0 ? ` — ahorras ~${Number(selectedPortalVoOffer.importSavings).toLocaleString("es-ES")} €` : ""}.</li>
+                        <li>Precio medio en España: <strong>{precioEspanolMedio.toLocaleString("es-ES")} €</strong>{ahorroConGarantia > 0 ? ` — ahorras ~${ahorroConGarantia.toLocaleString("es-ES")} €` : ""}.</li>
                       )}
                       {selectedPortalVoOffer.importComparables != null && (
                         <li>Contrastado con <strong>{selectedPortalVoOffer.importComparables} vehículos comparables</strong> del mercado español.</li>
@@ -638,7 +670,7 @@ export default function PortalVoDetailPage({
                     <div style={{ background: "#fffbeb", border: "1.5px solid #fbbf24", borderRadius: 12, padding: "12px 14px", marginTop: 10 }}>
                       <div style={{ fontSize: 13, fontWeight: 800, color: "#92400e", marginBottom: 4 }}>⚠️ Fianza del 30%</div>
                       <div style={{ fontSize: 12.5, color: "#78350f", lineHeight: 1.6 }}>
-                        Para solicitar un coche de importación se debe dejar una <strong>fianza del 30% del valor del vehículo</strong>: <strong style={{ fontSize: 15 }}>{formatCurrency(selectedPortalVoOffer.importDeposit)}</strong>.
+                        Para solicitar un coche de importación se debe dejar una <strong>fianza del 30% del valor del vehículo</strong>: <strong style={{ fontSize: 15 }}>{formatCurrency(fianzaImport)}</strong>.
                       </div>
                     </div>
                   )}
@@ -1121,7 +1153,7 @@ export default function PortalVoDetailPage({
                 </div>
                 {isImport && selectedPortalVoOffer.importDeposit != null && (
                   <div style={{ background: "#fffbeb", border: "1.5px solid #fbbf24", borderRadius: 10, padding: "10px 12px", marginBottom: 16, fontSize: 12.5, color: "#78350f", lineHeight: 1.6 }}>
-                    ⚠️ Para reservar este coche de importación se requiere una <strong>fianza del 30%</strong>: <strong>{formatCurrency(selectedPortalVoOffer.importDeposit)}</strong>. Te explicaremos el proceso al contactarte.
+                    ⚠️ Para reservar este coche de importación se requiere una <strong>fianza del 30%</strong>: <strong>{formatCurrency(fianzaImport)}</strong>. Te explicaremos el proceso al contactarte.
                   </div>
                 )}
 

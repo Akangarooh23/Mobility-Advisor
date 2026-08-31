@@ -33,13 +33,41 @@ function FilterSelect({ value, onChange, style = {}, disabled, children }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
-  const options = React.Children.toArray(children)
-    .filter((c) => c && c.type === "option")
-    .map((c) => ({ value: c.props.value ?? "", label: String(c.props.children ?? "") }));
+  /**
+   * Las opciones, entren sueltas o dentro de un grupo.
+   *
+   * Esto no es un `<select>` del navegador: es una lista propia, y solo miraba
+   * los hijos que fueran `<option>`. El día que el desplegable de marca pasó a
+   * tener dos bloques —«con coches disponibles» y «resto del catálogo»— sus 443
+   * marcas quedaron dentro de `<optgroup>` y **desaparecieron todas**: se
+   * quedaba solo el «Marca» de arriba, que sí era hijo directo.
+   *
+   * Se lee un nivel de grupos y su título se pinta como cabecera, que no se
+   * puede pulsar. Más niveles no hacen falta y complicarían esto sin motivo.
+   */
+  const options = [];
+  for (const hijo of React.Children.toArray(children)) {
+    if (!hijo) continue;
+    if (hijo.type === "option") {
+      options.push({ value: hijo.props.value ?? "", label: String(hijo.props.children ?? "") });
+      continue;
+    }
+    if (hijo.type === "optgroup") {
+      const dentro = React.Children.toArray(hijo.props.children)
+        .filter((c) => c && c.type === "option");
+      // Un grupo vacío no pinta su cabecera: sería un título sin nada debajo.
+      if (!dentro.length) continue;
+      options.push({ cabecera: String(hijo.props.label ?? "") });
+      for (const c of dentro) {
+        options.push({ value: c.props.value ?? "", label: String(c.props.children ?? "") });
+      }
+    }
+  }
 
+  const elegibles = options.filter((o) => o.cabecera === undefined);
   const displayLabel =
-    options.find((o) => String(o.value) === String(value ?? ""))?.label ??
-    options[0]?.label ??
+    elegibles.find((o) => String(o.value) === String(value ?? ""))?.label ??
+    elegibles[0]?.label ??
     "";
 
   const isDarkBg = String(style.background ?? "").includes("0f1b2d");
@@ -104,21 +132,38 @@ function FilterSelect({ value, onChange, style = {}, disabled, children }) {
           }}
         >
           {options.map((opt, i) => (
-            <div
-              key={i}
-              onMouseDown={() => { onChange({ target: { value: opt.value } }); setOpen(false); }}
-              onMouseEnter={(e) => { if (String(opt.value) !== String(value ?? "")) e.currentTarget.style.background = hoverBg; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = String(opt.value) === String(value ?? "") ? selectedBg : "transparent"; }}
-              style={{
-                padding: "9px 14px",
-                cursor: "pointer",
-                color: style.color ?? "var(--gris-900)",
-                fontSize: 14,
-                background: String(opt.value) === String(value ?? "") ? selectedBg : "transparent",
-              }}
-            >
-              {opt.label}
-            </div>
+            opt.cabecera !== undefined ? (
+              <div
+                key={i}
+                style={{
+                  padding: "8px 14px 4px",
+                  fontSize: 11,
+                  fontWeight: 800,
+                  letterSpacing: 0.3,
+                  textTransform: "uppercase",
+                  color: style.color ?? "var(--gris-500)",
+                  opacity: 0.6,
+                }}
+              >
+                {opt.cabecera}
+              </div>
+            ) : (
+              <div
+                key={i}
+                onMouseDown={() => { onChange({ target: { value: opt.value } }); setOpen(false); }}
+                onMouseEnter={(e) => { if (String(opt.value) !== String(value ?? "")) e.currentTarget.style.background = hoverBg; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = String(opt.value) === String(value ?? "") ? selectedBg : "transparent"; }}
+                style={{
+                  padding: "9px 14px",
+                  cursor: "pointer",
+                  color: style.color ?? "var(--gris-900)",
+                  fontSize: 14,
+                  background: String(opt.value) === String(value ?? "") ? selectedBg : "transparent",
+                }}
+              >
+                {opt.label}
+              </div>
+            )
           ))}
         </div>
       )}

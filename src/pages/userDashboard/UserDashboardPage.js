@@ -697,6 +697,7 @@ export default function UserDashboardPage({
           getOfferBadgeStyle={getOfferBadgeStyle}
           userEmail={currentUser?.email || ""}
           onOpenVehicleDetail={onOpenVehicleDetail}
+          onSolicitudesRefrescadas={onSolicitudesRefrescadas}
         />
       )}
 

@@ -48,6 +48,10 @@
       "destination": "/api/market?route=fianza-confirmar"
     },
     {
+      "source": "/api/entrega-direccion",
+      "destination": "/api/market?route=entrega-direccion"
+    },
+    {
       "source": "/api/workshops-nearby",
       "destination": "/api/market?route=nearby"
     },

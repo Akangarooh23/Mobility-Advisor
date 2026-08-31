@@ -11,6 +11,8 @@ export default function UserDashboardSolicitudes({
   getOfferBadgeStyle,
   userEmail = "",
   onOpenVehicleDetail,
+  // Para volver a leer las solicitudes cuando el cliente cambia algo suyo.
+  onSolicitudesRefrescadas,
 }) {
   const isDark = themeMode === "dark";
 
@@ -636,6 +638,22 @@ export default function UserDashboardSolicitudes({
                               : <>Fianza para reservarlo: <strong>{Number(meta.deposit_quoted).toLocaleString("es-ES")} €</strong></>}
                           </div>
                         )}
+                        {/*
+                          * Dónde se lo llevamos.
+                          *
+                          * No se pide al pedir el coche: la entrega en península va
+                          * incluida en el precio, así que preguntar la dirección antes
+                          * de dejarle pedirlo es un campo más a cambio de nada. Aquí
+                          * sí, y se puede cambiar mientras el coche no haya salido.
+                          */}
+                        {esImportacion(item) && (
+                          <DireccionDeEntrega
+                            item={item}
+                            meta={meta}
+                            isDark={isDark}
+                            onGuardada={onSolicitudesRefrescadas}
+                          />
+                        )}
                         {/* Hasta que no está pagada no se puede pedir el coche a
                             Alemania, así que el botón es el siguiente paso de
                             verdad y va donde se lee la cifra. */}
@@ -1032,5 +1050,134 @@ export default function UserDashboardSolicitudes({
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * La dirección de entrega, y el botón de cambiarla.
+ *
+ * Mientras no la haya, se pide. Cuando la hay, se enseña y se puede cambiar:
+ * un coche tarda semanas en llegar y en ese tiempo la gente se muda, o prefiere
+ * recibirlo en el trabajo.
+ *
+ * Fuera de la península se avisa de que puede haber recargo, **sin cifra**: hoy
+ * no hay tarifa de nadie para meter un coche en un barco, y poner un número
+ * sería adivinar.
+ */
+function DireccionDeEntrega({ item, meta, isDark, onGuardada }) {
+  const puesta = {
+    direccion: meta.entrega_direccion || "",
+    ciudad: meta.entrega_ciudad || "",
+    provincia: meta.entrega_provincia || "",
+    cp: meta.entrega_cp || "",
+  };
+  const tieneDireccion = Boolean(puesta.direccion && puesta.ciudad);
+  const [abierto, setAbierto] = useState(false);
+  const [datos, setDatos] = useState(puesta);
+  const [guardando, setGuardando] = useState(false);
+  const [aviso, setAviso] = useState("");
+  const [fallo, setFallo] = useState("");
+
+  async function guarda() {
+    setFallo("");
+    setGuardando(true);
+    try {
+      const res = await fetch("/api/entrega-direccion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ lead_id: item.id, ...datos }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.ok) {
+        setFallo(data?.detail || "No hemos podido guardarla. Inténtalo otra vez.");
+      } else {
+        setAviso(data.recargo || "");
+        setAbierto(false);
+        if (onGuardada) onGuardada();
+      }
+    } catch {
+      setFallo("No hemos podido guardarla. Inténtalo otra vez.");
+    }
+    setGuardando(false);
+  }
+
+  const campo = {
+    width: "100%",
+    padding: "8px 10px",
+    fontSize: 13,
+    borderRadius: 8,
+    border: "1px solid var(--gris-200)",
+    marginBottom: 6,
+  };
+
+  return (
+    <div style={{ marginTop: 8 }}>
+      {!abierto && (
+        <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "var(--gris-600)" }}>
+          {tieneDireccion ? (
+            <>
+              Te lo llevamos a <strong>{puesta.direccion}</strong>
+              {puesta.cp ? `, ${puesta.cp}` : ""} {puesta.ciudad}
+              {puesta.provincia ? ` (${puesta.provincia})` : ""}.
+            </>
+          ) : (
+            <>Entrega a domicilio incluida en el precio. Dinos dónde te lo llevamos.</>
+          )}
+          <button
+            type="button"
+            onClick={() => { setDatos(puesta); setAbierto(true); }}
+            style={{
+              marginLeft: 6, background: "none", border: "none", padding: 0,
+              fontSize: 12, fontWeight: 700, color: "var(--marca-claro)", cursor: "pointer",
+              textDecoration: "underline",
+            }}
+          >
+            {tieneDireccion ? "Cambiar dirección" : "Poner dirección"}
+          </button>
+        </div>
+      )}
+
+      {aviso && !abierto && (
+        <div style={{ fontSize: 11.5, color: "#92400e", background: "#fffbeb", border: "1px solid #fbbf24", borderRadius: 8, padding: "6px 10px", marginTop: 6 }}>
+          {aviso}
+        </div>
+      )}
+
+      {abierto && (
+        <div style={{ marginTop: 6, padding: 10, borderRadius: 10, border: "1px solid var(--gris-200)", background: isDark ? "rgba(255,255,255,0.04)" : "var(--gris-50)" }}>
+          <input style={campo} placeholder="Calle y número" value={datos.direccion}
+                 onChange={(e) => setDatos((d) => ({ ...d, direccion: e.target.value }))} />
+          <div style={{ display: "flex", gap: 6 }}>
+            <input style={{ ...campo, width: "35%" }} placeholder="C. P." value={datos.cp}
+                   onChange={(e) => setDatos((d) => ({ ...d, cp: e.target.value }))} />
+            <input style={campo} placeholder="Ciudad" value={datos.ciudad}
+                   onChange={(e) => setDatos((d) => ({ ...d, ciudad: e.target.value }))} />
+          </div>
+          <input style={campo} placeholder="Provincia" value={datos.provincia}
+                 onChange={(e) => setDatos((d) => ({ ...d, provincia: e.target.value }))} />
+          {fallo && <div style={{ fontSize: 11.5, color: "#b91c1c", marginBottom: 6 }}>{fallo}</div>}
+          <div style={{ display: "flex", gap: 6 }}>
+            <button type="button" onClick={guarda}
+                    disabled={guardando || !datos.direccion.trim() || !datos.ciudad.trim()}
+                    style={{
+                      flex: 1, padding: "8px 12px", fontSize: 12, fontWeight: 800,
+                      borderRadius: 8, border: "none", cursor: "pointer",
+                      background: "var(--marca)", color: "#fff", opacity: guardando ? 0.6 : 1,
+                    }}>
+              {guardando ? "Guardando…" : "Guardar"}
+            </button>
+            <button type="button" onClick={() => setAbierto(false)}
+                    style={{
+                      padding: "8px 12px", fontSize: 12, fontWeight: 700, borderRadius: 8,
+                      border: "1px solid var(--gris-200)", background: "transparent",
+                      color: isDark ? "var(--gris-300)" : "var(--gris-600)", cursor: "pointer",
+                    }}>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

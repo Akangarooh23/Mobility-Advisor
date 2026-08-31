@@ -98,6 +98,28 @@ export default function PortalVoDetailPage({
   const fianzaImport = Number(selectedPortalVoOffer.importDeposit) || 0;
   const mostrarFinanciacion = precioFinanciable > 0;
   const [cuotaMensual, setCuotaMensual] = useState(null);
+
+  /**
+   * La garantía que ha elegido, y lo que le cambia el total.
+   *
+   * Empieza en la base, que es la que ya está dentro del precio. Si el catálogo
+   * está vacío no hay nada de esto y la ficha se ve como siempre.
+   */
+  const garantiaBase = selectedPortalVoOffer.garantias?.base ?? null;
+  const opcionesGarantia = selectedPortalVoOffer.garantias?.opciones ?? [];
+  const [garantiaElegida, setGarantiaElegida] = useState(garantiaBase?.id ?? null);
+
+  // Si se cambia de coche, la elección vuelve a la base del coche nuevo: una
+  // garantía elegida en otro anuncio puede no poder dársele a éste.
+  useEffect(() => {
+    setGarantiaElegida(garantiaBase?.id ?? null);
+  }, [garantiaBase?.id]);
+
+  const diferenciaGarantia = opcionesGarantia
+    .find((o) => (o.id ?? null) === garantiaElegida)?.diferencia ?? 0;
+  const precioConGarantia = (Number(selectedPortalVoOffer.price) || 0) + diferenciaGarantia;
+  const coberturasDeLaElegida = opcionesGarantia
+    .find((o) => (o.id ?? null) === garantiaElegida)?.coberturas ?? [];
   const [savedAlert, setSavedAlert] = useState(false);
   const whatsappHref = `https://wa.me/${CARSWISE_WHATSAPP}?text=${encodeURIComponent(`Hola, me interesa el ${selectedPortalVoOffer.title} por ${formatCurrency(precioFinanciable)}. ¿Sigue disponible?`)}`;
   const handleGuardarAlerta = () => {
@@ -532,10 +554,65 @@ export default function PortalVoDetailPage({
                           <strong style={{ whiteSpace: "nowrap" }}>{formatCurrency(linea.importe)}</strong>
                         </div>
                       ))}
+                      {garantiaBase && (
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 12.5, color: isDark ? "var(--gris-300)" : "var(--gris-700)", marginBottom: 4 }}>
+                          <span>{garantiaBase.nombre}{garantiaBase.meses ? ` · ${garantiaBase.meses} meses` : ""}</span>
+                          <strong style={{ whiteSpace: "nowrap" }}>incluida</strong>
+                        </div>
+                      )}
                       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 13.5, fontWeight: 800, borderTop: "1px solid var(--gris-200)", marginTop: 8, paddingTop: 8, color: isDark ? "#fff" : "var(--gris-900)" }}>
                         <span>Puesto en tu casa</span>
-                        <span style={{ whiteSpace: "nowrap" }}>{formatCurrency(selectedPortalVoOffer.price)}</span>
+                        <span style={{ whiteSpace: "nowrap" }}>{formatCurrency(precioConGarantia)}</span>
                       </div>
+
+                      {/*
+                        * Las otras garantías, como diferencia sobre la base.
+                        *
+                        * Sumar o restar sobre un total que ya has visto se entiende;
+                        * recalcularlo entero delante del cliente, no. La opción de
+                        * quedarse sin ninguna solo sale si la base es renunciable:
+                        * el mínimo legal no se puede quitar aunque quiera.
+                        */}
+                      {opcionesGarantia.length > 1 && (
+                        <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--gris-200)" }}>
+                          <div style={{ fontSize: 11.5, fontWeight: 700, color: isDark ? "var(--gris-300)" : "var(--gris-600)", marginBottom: 6 }}>Garantía</div>
+                          {opcionesGarantia.map((o) => {
+                            const elegida = (o.id ?? null) === garantiaElegida;
+                            return (
+                              <button
+                                key={o.id ?? "sin"}
+                                type="button"
+                                onClick={() => setGarantiaElegida(o.id ?? null)}
+                                style={{
+                                  display: "flex", width: "100%", justifyContent: "space-between", gap: 12,
+                                  alignItems: "center", textAlign: "left", cursor: "pointer",
+                                  background: elegida ? (isDark ? "rgba(255,255,255,0.06)" : "#fff") : "transparent",
+                                  border: `1px solid ${elegida ? "var(--marca)" : "var(--gris-200)"}`,
+                                  borderRadius: 10, padding: "8px 10px", marginBottom: 6,
+                                  fontSize: 12.5, color: isDark ? "var(--gris-200)" : "var(--gris-700)",
+                                }}
+                              >
+                                <span>
+                                  <strong>{o.nombre}</strong>
+                                  {o.meses ? ` · ${o.meses} meses` : ""}
+                                  {o.kmCubiertos ? ` · hasta ${o.kmCubiertos.toLocaleString("es-ES")} km` : ""}
+                                </span>
+                                <span style={{ whiteSpace: "nowrap", fontWeight: 700 }}>
+                                  {o.diferencia === 0 ? "incluida"
+                                    : `${o.diferencia > 0 ? "+" : "−"}${formatCurrency(Math.abs(o.diferencia))}`}
+                                </span>
+                              </button>
+                            );
+                          })}
+                          {coberturasDeLaElegida.length > 0 && (
+                            <ul style={{ margin: "2px 0 0", paddingLeft: 18, fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-600)", lineHeight: 1.7 }}>
+                              {coberturasDeLaElegida.map((c) => (
+                                <li key={c.texto} style={{ textDecoration: c.incluida === false ? "line-through" : "none" }}>{c.texto}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      )}
                       {Array.isArray(selectedPortalVoOffer.importAparte) && selectedPortalVoOffer.importAparte.length > 0 && (
                         <p style={{ margin: "8px 0 0", fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", lineHeight: 1.6 }}>
                           Se factura aparte, y siempre presupuestado antes: {selectedPortalVoOffer.importAparte.join(", ").toLowerCase()}.

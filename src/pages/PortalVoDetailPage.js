@@ -655,8 +655,27 @@ export default function PortalVoDetailPage({
                           )}
                         </div>
                       )}
+                      {/*
+                        * Qué cubre el transporte que va en el precio.
+                        *
+                        * La línea de arriba dice «Transporte desde Alemania» y se
+                        * queda a medias: no aclara hasta dónde. Es un precio único
+                        * para toda la península, viva donde viva, y eso hay que
+                        * decirlo aquí y no cuando ya haya pagado la fianza.
+                        *
+                        * Fuera de la península puede haber recargo, y va sin cifra
+                        * a propósito: no hay tarifa de nadie para meter un coche en
+                        * un barco, y un número inventado en un precio público es
+                        * peor que decir que se confirma.
+                        */}
+                      <p style={{ margin: "8px 0 0", fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", lineHeight: 1.6 }}>
+                        <strong>Te lo llevamos a tu casa</strong>, a cualquier punto de la península,
+                        por este precio. Nos dices la dirección después de pedirlo, y la puedes
+                        cambiar hasta que salga. A Baleares, Canarias, Ceuta y Melilla puede haber
+                        un recargo que te confirmamos antes de nada.
+                      </p>
                       {Array.isArray(selectedPortalVoOffer.importAparte) && selectedPortalVoOffer.importAparte.length > 0 && (
-                        <p style={{ margin: "8px 0 0", fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", lineHeight: 1.6 }}>
+                        <p style={{ margin: "6px 0 0", fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", lineHeight: 1.6 }}>
                           Se factura aparte, y siempre presupuestado antes: {selectedPortalVoOffer.importAparte.join(", ").toLowerCase()}.
                         </p>
                       )}
@@ -673,7 +692,7 @@ export default function PortalVoDetailPage({
                       )}
                       <li>Lo <strong>compramos, importamos y matriculamos</strong> nosotros por ti.</li>
                       {/* Obligatoria vendiendo como empresa a un particular: no es un extra. */}
-                      <li><strong>Garantía incluida</strong> y <strong>entrega a domicilio</strong>.</li>
+                      <li><strong>Garantía incluida</strong> y <strong>entrega en tu casa</strong> en toda la península.</li>
                     </ul>
                   </div>
                   {selectedPortalVoOffer.importDeposit != null && (

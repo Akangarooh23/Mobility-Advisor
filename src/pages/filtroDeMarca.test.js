@@ -108,3 +108,37 @@ describe("la línea de garantía del desglose", () => {
     expect(FICHA2).toContain("importeDeGarantia(garantiaDelCoche.diferencia, formatCurrency)");
   });
 });
+
+/**
+ * Lo que cubre el transporte, dicho en la ficha.
+ *
+ * La línea del desglose dice «Transporte desde Alemania» y se queda a medias:
+ * no aclara hasta dónde. Es un precio único para toda la península, y eso hay
+ * que decirlo antes de que pague la fianza, no después.
+ */
+describe("la entrega en la ficha del coche", () => {
+  const FICHA3 = fs.readFileSync(
+    path.join(__dirname, "PortalVoDetailPage.js"),
+    "utf8"
+  );
+
+  test("dice que se le lleva a casa y que el precio es el mismo en toda la península", () => {
+    expect(FICHA3).toContain("Te lo llevamos a tu casa");
+    expect(FICHA3).toContain("cualquier punto de la península");
+  });
+
+  test("avisa del recargo de fuera, sin ponerle cifra", () => {
+    expect(FICHA3).toContain("Baleares, Canarias, Ceuta y Melilla");
+    // Un número inventado en un precio público es peor que decir que se confirma.
+    const parrafo = FICHA3.slice(
+      FICHA3.indexOf("Te lo llevamos a tu casa"),
+      FICHA3.indexOf("Te lo llevamos a tu casa") + 700
+    );
+    expect(parrafo).not.toMatch(/\d+\s*€/);
+  });
+
+  test("y que la dirección se pone después y se puede cambiar", () => {
+    expect(FICHA3).toContain("la puedes");
+    expect(FICHA3).toContain("cambiar hasta que salga");
+  });
+});

@@ -180,3 +180,36 @@ describe("cambiar la dirección desde la propia ficha", () => {
     expect(FICHA4).toContain("entrega_provincia: entrega.provincia");
   });
 });
+
+describe("la dirección de envío, entera", () => {
+  const FICHA5 = fs.readFileSync(
+    path.join(__dirname, "PortalVoDetailPage.js"),
+    "utf8"
+  );
+
+  test("se piden calle y código postal, no solo ciudad y provincia", () => {
+    expect(FICHA5).toContain('placeholder="Calle, número y piso"');
+    expect(FICHA5).toContain('placeholder="C. P."');
+  });
+
+  test("el «hasta» enseña su dirección entre comillas", () => {
+    expect(FICHA5).toContain("tu casa, <strong>«{entregaEscrita}»</strong>");
+  });
+
+  test("si no ha dicho nada, se coge la que ya tiene en sus datos", () => {
+    // Volver a pedírsela sería preguntarle algo que ya nos dijo.
+    expect(FICHA5).toContain("perfil.billingStreet");
+    expect(FICHA5).toContain("perfil.billingPostalCode");
+    expect(FICHA5).toContain("perfil.billingProvince");
+  });
+
+  test("pero si la cambia aquí, manda la suya", () => {
+    expect(FICHA5).toContain("const yaDijo = entrega.calle || entrega.ciudad;");
+    expect(FICHA5).toContain("if (yaDijo || !currentUser?.email) return;");
+  });
+
+  test("y viaja entera con la solicitud", () => {
+    expect(FICHA5).toContain("entrega_direccion: entrega.calle");
+    expect(FICHA5).toContain("entrega_cp: entrega.cp");
+  });
+});

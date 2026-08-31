@@ -56,6 +56,8 @@ function getPrefilledForm(currentUser) {
 
 const ENTREGA_GUARDADA = "popcar_entrega";
 
+const ENTREGA_VACIA = { calle: "", cp: "", ciudad: "", provincia: "" };
+
 /**
  * Dónde dijo la última vez que quería recibirlo.
  *
@@ -66,11 +68,13 @@ function leeEntregaGuardada() {
   try {
     const guardado = JSON.parse(localStorage.getItem(ENTREGA_GUARDADA) || "{}");
     return {
+      calle: String(guardado.calle || ""),
+      cp: String(guardado.cp || ""),
       ciudad: String(guardado.ciudad || ""),
       provincia: String(guardado.provincia || ""),
     };
   } catch {
-    return { ciudad: "", provincia: "" };
+    return { ...ENTREGA_VACIA };
   }
 }
 
@@ -148,6 +152,48 @@ export default function PortalVoDetailPage({
    */
   const [entrega, setEntrega] = useState(() => leeEntregaGuardada());
   const [cambiandoEntrega, setCambiandoEntrega] = useState(false);
+
+  /**
+   * Si no ha dicho dónde, la dirección que ya tiene puesta en sus datos.
+   *
+   * Es la de facturación, la que rellenó una vez en su panel. Volver a
+   * pedírsela sería preguntarle algo que ya nos dijo, y es de las cosas que más
+   * cansan de un formulario.
+   *
+   * Solo se usa como punto de partida: en cuanto la cambia aquí, manda la suya.
+   */
+  useEffect(() => {
+    const yaDijo = entrega.calle || entrega.ciudad;
+    if (yaDijo || !currentUser?.email) return;
+    let vigente = true;
+    void (async () => {
+      try {
+        const { getBillingAccountJson } = await import("../utils/apiClient");
+        const { data } = await getBillingAccountJson(currentUser.email);
+        const perfil = data?.account?.profile || {};
+        if (!vigente) return;
+        const calle = String(perfil.billingStreet || "").trim();
+        const ciudad = String(perfil.billingAddress || "").trim();
+        if (!calle && !ciudad) return;
+        setEntrega({
+          calle,
+          cp: String(perfil.billingPostalCode || "").trim(),
+          ciudad,
+          provincia: String(perfil.billingProvince || "").trim(),
+        });
+      } catch { /* sin datos suyos, se le pregunta */ }
+    })();
+    return () => { vigente = false; };
+    // Solo al abrir la ficha: si se relanzara al escribir, pisaría lo que teclea.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.email]);
+
+  /** «Calle Mauricio Legendre 45 G2B, 28046 MADRID (Madrid)» */
+  const entregaEscrita = [
+    entrega.calle,
+    [entrega.cp, entrega.ciudad].filter(Boolean).join(" "),
+    entrega.provincia ? `(${entrega.provincia})` : "",
+  ].map((x) => String(x || "").trim()).filter(Boolean).join(", ");
   const recargoDeEntrega = llevaRecargo(entrega.provincia);
 
   useEffect(() => {
@@ -334,6 +380,8 @@ export default function PortalVoDetailPage({
             garantia_id: garantiaElegida,
             // Y dónde quiere recibirlo, si lo ha dicho aquí. La calle se pone
             // luego en su panel; esto es para no volver a preguntarle la ciudad.
+            entrega_direccion: entrega.calle,
+            entrega_cp: entrega.cp,
             entrega_ciudad: entrega.ciudad,
             entrega_provincia: entrega.provincia,
           }),
@@ -738,10 +786,10 @@ export default function PortalVoDetailPage({
 
                         <div style={{ display: "flex", gap: 10, fontSize: 12.5, color: isDark ? "var(--gris-300)" : "var(--gris-700)", alignItems: "baseline", flexWrap: "wrap" }}>
                           <span style={{ width: 46, color: isDark ? "var(--gris-500)" : "var(--gris-400)" }}>Hasta</span>
-                          {entrega.ciudad ? (
-                            <strong>
-                              {entrega.ciudad}{entrega.provincia ? ` (${entrega.provincia})` : ""}
-                            </strong>
+                          {entregaEscrita ? (
+                            <span>
+                              tu casa, <strong>«{entregaEscrita}»</strong>
+                            </span>
                           ) : (
                             <span style={{ color: isDark ? "var(--gris-500)" : "var(--gris-400)" }}>
                               tu casa, en cualquier punto de la península
@@ -763,29 +811,43 @@ export default function PortalVoDetailPage({
                         </div>
 
                         {cambiandoEntrega && (
-                          <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginTop: 6 }}>
+                          <div style={{ marginTop: 6 }}>
                             <input
-                              value={entrega.ciudad}
-                              onChange={(e) => setEntrega((d) => ({ ...d, ciudad: e.target.value }))}
-                              placeholder="Ciudad"
-                              style={{ flex: "1 1 120px", padding: "6px 8px", fontSize: 12, borderRadius: 8, border: "1px solid var(--gris-200)" }}
+                              value={entrega.calle}
+                              onChange={(e) => setEntrega((d) => ({ ...d, calle: e.target.value }))}
+                              placeholder="Calle, número y piso"
+                              style={{ width: "100%", padding: "6px 8px", fontSize: 12, borderRadius: 8, border: "1px solid var(--gris-200)", marginBottom: 6, boxSizing: "border-box" }}
                             />
-                            <input
-                              value={entrega.provincia}
-                              onChange={(e) => setEntrega((d) => ({ ...d, provincia: e.target.value }))}
-                              placeholder="Provincia"
-                              style={{ flex: "1 1 120px", padding: "6px 8px", fontSize: 12, borderRadius: 8, border: "1px solid var(--gris-200)" }}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setCambiandoEntrega(false)}
-                              style={{
-                                padding: "6px 12px", fontSize: 12, fontWeight: 800, borderRadius: 8,
-                                border: "none", background: "var(--marca)", color: "#fff", cursor: "pointer",
-                              }}
-                            >
-                              Listo
-                            </button>
+                            <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                              <input
+                                value={entrega.cp}
+                                onChange={(e) => setEntrega((d) => ({ ...d, cp: e.target.value }))}
+                                placeholder="C. P."
+                                style={{ flex: "0 1 90px", padding: "6px 8px", fontSize: 12, borderRadius: 8, border: "1px solid var(--gris-200)" }}
+                              />
+                              <input
+                                value={entrega.ciudad}
+                                onChange={(e) => setEntrega((d) => ({ ...d, ciudad: e.target.value }))}
+                                placeholder="Ciudad"
+                                style={{ flex: "1 1 110px", padding: "6px 8px", fontSize: 12, borderRadius: 8, border: "1px solid var(--gris-200)" }}
+                              />
+                              <input
+                                value={entrega.provincia}
+                                onChange={(e) => setEntrega((d) => ({ ...d, provincia: e.target.value }))}
+                                placeholder="Provincia"
+                                style={{ flex: "1 1 110px", padding: "6px 8px", fontSize: 12, borderRadius: 8, border: "1px solid var(--gris-200)" }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setCambiandoEntrega(false)}
+                                style={{
+                                  padding: "6px 12px", fontSize: 12, fontWeight: 800, borderRadius: 8,
+                                  border: "none", background: "var(--marca)", color: "#fff", cursor: "pointer",
+                                }}
+                              >
+                                Listo
+                              </button>
+                            </div>
                           </div>
                         )}
 

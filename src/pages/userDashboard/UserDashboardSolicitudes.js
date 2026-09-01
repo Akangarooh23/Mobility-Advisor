@@ -642,7 +642,7 @@ export default function UserDashboardSolicitudes({
                           <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "#1e40af", marginTop: 4 }}>
                             {meta.deposit_paid_at
                               ? <>Depósito retenido el <strong>{new Date(meta.deposit_paid_at).toLocaleDateString("es-ES")}</strong>. Tienes su factura en Facturación.</>
-                              : <>Fianza para reservarlo: <strong>{Number(meta.deposit_quoted).toLocaleString("es-ES")} €</strong></>}
+                              : <>A depositar para pedirlo: <strong>{Number(meta.deposit_quoted).toLocaleString("es-ES")} €</strong></>}
                           </div>
                         )}
                         {/*

@@ -18,14 +18,14 @@ function importacionEnMarcha(solicitudes = []) {
   const s = abiertas[0];
   let meta = s.meta;
   if (typeof meta === "string") { try { meta = JSON.parse(meta); } catch { meta = {}; } }
-  const fianza = Number(meta?.deposit_quoted || 0);
+  const deposito = Number(meta?.deposit_quoted || 0);
   const pagada = Boolean(meta?.deposit_paid_at);
 
   return {
     id: `imp-${s.id}`,
     icon: "🌍",
-    label: (!pagada && fianza > 0)
-      ? `Importación pendiente de fianza · ${fianza.toLocaleString("es-ES")} €`
+    label: (!pagada && deposito > 0)
+      ? `Importación pendiente de depósito · ${deposito.toLocaleString("es-ES")} €`
       : `Importación en curso: ${s.status}`,
     detail: abiertas.length > 1
       ? `${s.vehicle_title || "Un coche"} y ${abiertas.length - 1} más`

@@ -32,9 +32,11 @@ function pinta(solicitudes) {
   );
 }
 
-test("sale, con la fianza que falta por pagar", () => {
+test("sale, con el depósito que falta por pagar", () => {
   pinta([SOLICITUD]);
-  expect(screen.getByText(/Importación pendiente de fianza/i)).toBeInTheDocument();
+  // «Depósito» y no «fianza»: no hay ninguna fianza. Lo que falta por pagar es
+  // el coche entero más nuestro servicio.
+  expect(screen.getByText(/Importación pendiente de depósito/i)).toBeInTheDocument();
   expect(screen.getByText(/1019 €|1\.019 €/)).toBeInTheDocument();
   expect(screen.getByText(/Volkswagen Golf VI Trendline/)).toBeInTheDocument();
 });
@@ -42,7 +44,7 @@ test("sale, con la fianza que falta por pagar", () => {
 test("una vez pagada, se enseña el paso en el que está", () => {
   pinta([{ ...SOLICITUD, status: "En transporte", meta: JSON.stringify({ deposit_quoted: 1019, deposit_paid_at: "2026-08-29T19:30:00Z" }) }]);
   expect(screen.getByText(/Importación en curso: En transporte/i)).toBeInTheDocument();
-  expect(screen.queryByText(/pendiente de fianza/i)).not.toBeInTheDocument();
+  expect(screen.queryByText(/pendiente de depósito/i)).not.toBeInTheDocument();
 });
 
 test("una entregada ya no ocupa sitio en el resumen", () => {

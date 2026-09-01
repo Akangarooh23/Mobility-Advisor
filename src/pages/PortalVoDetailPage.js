@@ -184,15 +184,24 @@ export default function PortalVoDetailPage({
         const { data } = await getBillingAccountJson(currentUser.email);
         const perfil = data?.account?.profile || {};
         if (!vigente) return;
+        /**
+         * `billingAddress` **no es la ciudad**.
+         *
+         * Es la direccion entera en una linea, que la monta el propio backend
+         * como calle + codigo postal + provincia. Metida en el campo de ciudad,
+         * la direccion salia escrita dos veces: «Calle Mauricio Legendre 45 G2B,
+         * 28046 Calle Mauricio Legendre 45 G2B, 28046, MADRID, (MADRID)». Y asi
+         * viajaba a la solicitud y al documento de entrega.
+         *
+         * En los datos de facturacion no hay ciudad, solo calle, codigo postal y
+         * provincia. Asi que se queda vacia y la escribe el: un campo en blanco
+         * se rellena, uno mal relleno hay que darse cuenta de que esta mal.
+         */
         const calle = String(perfil.billingStreet || "").trim();
-        const ciudad = String(perfil.billingAddress || "").trim();
-        if (!calle && !ciudad) return;
-        setEntrega({
-          calle,
-          cp: String(perfil.billingPostalCode || "").trim(),
-          ciudad,
-          provincia: String(perfil.billingProvince || "").trim(),
-        });
+        const cp = String(perfil.billingPostalCode || "").trim();
+        const provincia = String(perfil.billingProvince || "").trim();
+        if (!calle && !cp && !provincia) return;
+        setEntrega({ calle, cp, ciudad: "", provincia });
       } catch { /* sin datos suyos, se le pregunta */ }
     })();
     return () => { vigente = false; };
@@ -215,9 +224,9 @@ export default function PortalVoDetailPage({
    * Lo que queda fuera es lo que no todo el mundo quiere: asegurarlo y dejarlo
    * a punto. Se marcan uno a uno.
    *
-   * Ninguno entra en la fianza, y eso se dice en pantalla: la fianza es el 30 %
-   * del coche, que es lo que nos comprometemos a pagar en Alemania. Cobrarle por
-   * adelantado un seguro que todavía no tiene sería otra cosa.
+   * Ninguno entra en el depósito, y eso se dice en pantalla: el depósito es el
+   * coche y nuestro servicio, que es lo que hay que tener en Alemania. Cobrarle
+   * por adelantado un seguro que todavía no tiene sería otra cosa.
    */
   const servicios = Array.isArray(selectedPortalVoOffer.servicios)
     ? selectedPortalVoOffer.servicios
@@ -941,7 +950,7 @@ export default function PortalVoDetailPage({
                         ) : (
                           <p style={{ margin: "6px 0 0", fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", lineHeight: 1.6 }}>
                             Los dos tramos van en el precio. La calle la puedes cambiar hasta
-                            que pagues la fianza.
+                            que pagues el depósito.
                           </p>
                         )}
                       </div>
@@ -1006,7 +1015,7 @@ export default function PortalVoDetailPage({
                           )}
 
                           <p style={{ margin: "6px 0 0", fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", lineHeight: 1.6 }}>
-                            Ninguno entra en la fianza: se factura aparte, y siempre
+                            Ninguno entra en el depósito: se factura aparte, y siempre
                             presupuestado antes.
                           </p>
                         </div>
@@ -1476,8 +1485,8 @@ export default function PortalVoDetailPage({
                 <div style={{ fontSize: 13, color: isDark ? "var(--gris-400)" : "var(--gris-600)", lineHeight: 1.6 }}>
                   {isImport
                     ? (solicitudHecha?.correoEnviado === false
-                        ? "La tenemos guardada, aunque el correo con los datos no ha salido. El siguiente paso es la fianza: hasta que no está, no podemos pedir el coche a Alemania."
-                        : "Te hemos mandado un correo con los datos. El siguiente paso es la fianza: hasta que no está, no podemos pedir el coche a Alemania.")
+                        ? "La tenemos guardada, aunque el correo con los datos no ha salido. El siguiente paso es el depósito: hasta que no está, no vamos a ver el coche a Alemania."
+                        : "Te hemos mandado un correo con los datos. El siguiente paso es el depósito: hasta que no está, no vamos a ver el coche a Alemania.")
                     : isRentingOffer
                     ? "Te enviaremos un email de confirmación y nos pondremos en contacto contigo para gestionar tu contrato de renting."
                     : "Te contactaremos en menos de 2 horas."}
@@ -1543,8 +1552,9 @@ export default function PortalVoDetailPage({
                       </button>
                     )}
                     <div style={{ fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginTop: 8, lineHeight: 1.6 }}>
-                      Con tarjeta, y te emitimos factura. Si al final no se hace el pedido, se
-                      te devuelve. La fianza no caduca: puedes pagarla luego desde tu panel.
+                      Se paga desde tu panel y te emitimos factura del servicio. Si al final
+                      no se hace el pedido, se te devuelve. No caduca: puedes dejarlo para
+                      luego y pagarlo desde ahí.
                     </div>
                     {errorFianza && (
                       <div style={{ fontSize: 12, color: "#b91c1c", marginTop: 8, lineHeight: 1.5 }}>{errorFianza}</div>

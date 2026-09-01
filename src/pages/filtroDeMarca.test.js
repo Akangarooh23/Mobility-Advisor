@@ -249,8 +249,11 @@ describe("los servicios de la ficha", () => {
     expect(FICHA4).toContain("const sumaDeServicios");
   });
 
-  test("se dice que ninguno entra en la fianza", () => {
-    expect(FICHA4).toContain("Ninguno entra en la fianza");
+  test("se dice que ninguno entra en el depósito", () => {
+    // Y se dice «depósito», no «fianza»: no hay ninguna fianza. Lo que se
+    // deposita es el coche entero y nuestro servicio.
+    expect(FICHA4).toContain("Ninguno entra en el depósito");
+    expect(FICHA4).not.toContain("Ninguno entra en la fianza");
   });
 
   test("y viajan con la solicitud", () => {
@@ -299,14 +302,29 @@ describe("la dirección de entrega", () => {
     expect(FICHA5).toContain("leeEntregaGuardada");
   });
 
-  test("el aviso del recargo sale antes de pagar la fianza, y sin cifra", () => {
+  test("el aviso del recargo sale antes de pagar nada, y sin cifra", () => {
     expect(FICHA5).toContain("recargoDeEntrega");
     expect(FICHA5).toContain("antes de que pagues nada");
   });
 
-  test("y se puede cambiar hasta pagar la fianza, no hasta que salga", () => {
+  test("la ciudad no se rellena con la dirección entera", () => {
+    // `billingAddress` es la dirección en una línea —calle, CP y provincia— que
+    // monta el propio backend. Metida en el campo de ciudad, la dirección salía
+    // escrita dos veces y así viajaba a la solicitud y al documento de entrega.
+    expect(FICHA5).not.toContain('const ciudad = String(perfil.billingAddress');
+    expect(FICHA5).toContain('setEntrega({ calle, cp, ciudad: "", provincia })');
+  });
+
+  test("y con solo el código postal ya se aprovecha lo que hay", () => {
+    // Antes solo se copiaba si había calle o «ciudad». Un perfil con CP y
+    // provincia pero sin calle se descartaba entero.
+    expect(FICHA5).toContain('if (!calle && !cp && !provincia) return;');
+  });
+  test("y se puede cambiar hasta pagar el depósito, no hasta que salga", () => {
+    // Una vez depositado, la dirección queda fijada: es sobre la que se cierra
+    // el transporte hasta su casa.
     expect(FICHA5).toContain("cambiar hasta");
-    expect(FICHA5).toContain("que pagues la fianza");
+    expect(FICHA5).toContain("que pagues el depósito");
   });
 });
 

@@ -123,24 +123,34 @@ export default function PortalVoDetailPage({
   /**
    * La garantía que ha elegido, y lo que le suma.
    *
-   * Empieza **sin ninguna**, que es lo que pasa si no hace nada. No la damos
+   * Empieza con **la que lleva el precio publicado**, no sin ninguna. No la damos
    * nosotros: PopCar no le vende el coche, se lo vende el concesionario alemán,
-   * así que la garantía es un producto de un tercero que él añade si quiere.
+   * así que es un producto de un tercero. Pero va puesta de salida porque el
+   * precio que ha visto en la lista la lleva dentro, y quitarla lo **baja**. Al
+   * revés —anunciar sin garantía y ofrecerla después— es el mismo dinero leído
+   * como una subida al final.
    *
    * Si el catálogo está vacío no hay nada de esto y la ficha se ve como siempre.
    */
   const opcionesGarantia = selectedPortalVoOffer.garantias?.opciones ?? [];
-  const [garantiaElegida, setGarantiaElegida] = useState(null);
+  const garantiaPorDefecto = selectedPortalVoOffer.garantias?.porDefecto?.id ?? null;
+  const [garantiaElegida, setGarantiaElegida] = useState(garantiaPorDefecto);
 
-  // Si se cambia de coche, se vuelve a empezar sin garantía: una elegida en
-  // otro anuncio puede no poder dársele a éste.
+  // Si se cambia de coche, se vuelve a la suya: la elegida en otro anuncio puede
+  // no poder dársele a éste, y su precio ya no sería el que lleva este precio.
   useEffect(() => {
-    setGarantiaElegida(null);
-  }, [selectedPortalVoOffer.id]);
+    setGarantiaElegida(garantiaPorDefecto);
+  }, [selectedPortalVoOffer.id, garantiaPorDefecto]);
 
-  const precioGarantia = opcionesGarantia
-    .find((o) => (o.id ?? null) === garantiaElegida)?.precio ?? 0;
-  const precioConGarantia = (Number(selectedPortalVoOffer.price) || 0) + precioGarantia;
+  /**
+   * Lo que le mueve al precio la garantía que ha elegido.
+   *
+   * Es la **diferencia** y no el precio, porque el precio que llega ya lleva la
+   * de por defecto dentro. Sumarle el precio entero la contaría dos veces.
+   */
+  const diferenciaGarantia = opcionesGarantia
+    .find((o) => (o.id ?? null) === garantiaElegida)?.diferencia ?? 0;
+  const precioConGarantia = (Number(selectedPortalVoOffer.price) || 0) + diferenciaGarantia;
   /**
    * Dónde quiere que se lo llevemos.
    *
@@ -251,8 +261,10 @@ export default function PortalVoDetailPage({
    * ya se sabe cuánto es.
    */
   const depositoOferta = selectedPortalVoOffer.importDeposito || null;
+  // Con la **diferencia** y no con el precio: el depósito que llega ya cuenta la
+  // garantía de por defecto, igual que el precio de arriba.
   const depositoImport = isImport && depositoOferta
-    ? depositoOferta.total + precioGarantia
+    ? depositoOferta.total + diferenciaGarantia
     : 0;
 
   /**
@@ -711,25 +723,32 @@ export default function PortalVoDetailPage({
                   {Array.isArray(selectedPortalVoOffer.importDesglose) && selectedPortalVoOffer.importDesglose.length > 0 && (
                     <div style={{ background: isDark ? "rgba(255,255,255,0.04)" : "var(--gris-50)", border: "1px solid var(--gris-200)", borderRadius: 12, padding: "12px 14px", marginTop: 12 }}>
                       <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "var(--gris-200)" : "var(--gris-700)", marginBottom: 8 }}>De qué se compone este precio</div>
-                      {selectedPortalVoOffer.importDesglose.map((linea) => (
+                      {/*
+                        * Todas menos la de la garantía, que se pinta aparte.
+                        *
+                        * La API manda la de por defecto porque es la que hace su
+                        * total. Aquí él puede haber elegido otra, así que esa línea
+                        * la pone el bloque de abajo con la suya.
+                        */}
+                      {selectedPortalVoOffer.importDesglose.filter((l) => !l.esGarantia).map((linea) => (
                         <div key={linea.concepto} style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 12.5, color: isDark ? "var(--gris-300)" : "var(--gris-700)", marginBottom: 4 }}>
                           <span>{linea.concepto}</span>
                           <strong style={{ whiteSpace: "nowrap" }}>{formatCurrency(linea.importe)}</strong>
                         </div>
                       ))}
                       {/*
-                        * La garantía **que ha elegido**, no la base.
+                        * La garantía **que ha elegido**, no la que trae el precio.
                         *
-                        * Esta línea enseñaba siempre la de doce meses aunque hubiera
-                        * elegido una ampliación: el desglose decía una cosa y el total
-                        * de debajo otra, sin nada entre medias que explicara la
-                        * diferencia.
+                        * La API manda su línea marcada y arriba se quita, porque es la
+                        * de por defecto y él puede haber cambiado. Aquí se pinta la
+                        * suya, con su precio entero: las otras líneas ya no la llevan,
+                        * así que la suma vuelve a dar el total de debajo.
                         */}
                       {garantiaDelCoche && (
                         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 12.5, color: isDark ? "var(--gris-300)" : "var(--gris-700)", marginBottom: 4 }}>
                           <span>{etiquetaDeGarantia(garantiaDelCoche)}</span>
                           <strong style={{ whiteSpace: "nowrap" }}>
-                            {importeDeGarantia(garantiaDelCoche.precio, formatCurrency)}
+                            {formatCurrency(garantiaDelCoche.precio)}
                           </strong>
                         </div>
                       )}
@@ -790,7 +809,7 @@ export default function PortalVoDetailPage({
                                   {o.kmCubiertos ? ` · hasta ${o.kmCubiertos.toLocaleString("es-ES")} km` : ""}
                                 </span>
                                 <span style={{ whiteSpace: "nowrap", fontWeight: 700 }}>
-                                  {importeDeGarantia(o.precio, formatCurrency)}
+                                  {importeDeGarantia(o.diferencia, formatCurrency)}
                                 </span>
                               </button>
                             );

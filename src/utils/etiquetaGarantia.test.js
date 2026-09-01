@@ -33,25 +33,33 @@ describe("el nombre de una garantía", () => {
   });
 });
 
-describe("lo que suma al total", () => {
+describe("lo que le mueve al total", () => {
   const eur = (n) => `${n} €`;
 
-  test("no coger ninguna no cuesta nada", () => {
-    // Y se dice así, no con un «0 €»: cero euros al lado de una lista de
-    // precios se lee como un producto gratis, y esto es no coger producto.
-    expect(importeDeGarantia(0, eur)).toBe("sin coste");
+  test("la que ya lleva el precio no lo mueve, y se dice con palabras", () => {
+    // No con un «+0 €», que no significa nada, ni con «sin coste», que diría
+    // que es gratis. Cuesta 190 €: lo que pasa es que ya están contados.
+    expect(importeDeGarantia(0, eur)).toBe("va en el precio");
   });
 
-  test("y la que elija, lo que sube el total", () => {
-    // Con el signo delante aunque el precio sea positivo: no dice cuánto vale
-    // el producto, dice cuánto le sube el número que está mirando.
-    expect(importeDeGarantia(590, eur)).toBe("+590 €");
+  test("una más cara, lo que le sube", () => {
+    // Con el signo delante: no dice cuánto vale el producto, dice cuánto le
+    // mueve el número que está mirando.
+    expect(importeDeGarantia(300, eur)).toBe("+300 €");
   });
 
-  test("un precio negativo no se pinta: es un dato malo", () => {
-    // Antes se podía «quitar» la garantía incluida y el total bajaba, así que
-    // había diferencias negativas. Ahora se empieza sin ninguna y un número por
-    // debajo de cero no significa nada: «+−180 €» sería peor que no decir nada.
-    expect(importeDeGarantia(-180, eur)).toBe("sin coste");
+  test("y quitarla lo baja, en negativo", () => {
+    // Esto es lo que hace que el modelo se lea bien. Anunciar sin garantía y
+    // ofrecerla después es el mismo dinero, pero se lee como una subida al
+    // final; anunciarla puesta y poder quitarla se lee como una rebaja.
+    //
+    // Con un signo menos de verdad (−, U+2212): un guion al lado de una cifra
+    // se lee como un separador.
+    expect(importeDeGarantia(-190, eur)).toBe("−190 €");
+  });
+
+  test("lo que no es un número no mueve nada", () => {
+    expect(importeDeGarantia(undefined, eur)).toBe("va en el precio");
+    expect(importeDeGarantia("hola", eur)).toBe("va en el precio");
   });
 });

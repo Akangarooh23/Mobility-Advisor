@@ -86,7 +86,11 @@ describe("el precio con la garantía elegida", () => {
     // Ya no es una fianza del 30 %. El coche se lo compra él al concesionario
     // alemán, así que ese dinero tiene que estar depositado entero.
     expect(FICHA).toContain("const depositoImport");
-    expect(FICHA).toContain("depositoOferta.total + precioGarantia");
+    // Con la **diferencia**. El depósito que manda la API ya cuenta la garantía
+    // de por defecto, igual que el precio: sumarle el precio entero de la que
+    // haya elegido la contaría dos veces.
+    expect(FICHA).toContain("depositoOferta.total + diferenciaGarantia");
+    expect(FICHA).not.toContain("depositoOferta.total + precioGarantia");
     expect(FICHA).not.toContain("* 0.30");
   });
 
@@ -104,9 +108,24 @@ describe("el precio con la garantía elegida", () => {
 
   test("la garantía ya no se anuncia como incluida", () => {
     // No le vendemos el coche, así que no se la debemos. Decir «incluida» sería
-    // prometer algo que no está en el precio ni es nuestro.
+    // prometer algo que no es nuestro. Que vaya dentro del precio publicado es
+    // otra cosa: es un producto de un tercero ya contado, y se puede quitar.
     expect(FICHA).not.toContain("<strong>Garantía incluida</strong>");
     expect(FICHA).toContain("Garantía mecánica, si la quieres");
+  });
+
+  test("y el precio sale con una puesta, no sin ninguna", () => {
+    // Es lo que hace que quitarla **baje** el precio. Empezando sin ninguna, el
+    // mismo dinero se lee como una subida al final.
+    expect(FICHA).toContain("selectedPortalVoOffer.garantias?.porDefecto?.id");
+    expect(FICHA).toContain("useState(garantiaPorDefecto)");
+    expect(FICHA).not.toContain("const [garantiaElegida, setGarantiaElegida] = useState(null)");
+  });
+
+  test("y al cambiar de coche vuelve a la suya, no a ninguna", () => {
+    // La elegida en otro anuncio puede no poder dársele a éste, y su precio ya
+    // no sería el que lleva este precio.
+    expect(FICHA).toContain("setGarantiaElegida(garantiaPorDefecto)");
   });
 
   test("y se dice lo que de verdad se compra: que reclamamos nosotros", () => {
@@ -140,8 +159,23 @@ describe("la línea de garantía del desglose", () => {
     expect(FICHA2).not.toContain("etiquetaDeGarantia(garantiaBase)");
   });
 
-  test("y lo que suma al total, con su precio entero", () => {
-    expect(FICHA2).toContain("importeDeGarantia(garantiaDelCoche.precio, formatCurrency)");
+  test("con su precio entero, porque las otras líneas ya no la llevan", () => {
+    // La línea del desglose es una partida más y va como las otras: su importe
+    // a secas. El «+300 €» es de los botones de elegir, donde lo que importa es
+    // lo que le mueve al total.
+    expect(FICHA2).toContain("{formatCurrency(garantiaDelCoche.precio)}");
+  });
+
+  test("y la que trae la API se quita, o saldría dos veces", () => {
+    // La API manda la de por defecto porque es la que hace su total. Si no se
+    // filtrara, un cliente que elige la de 24 meses vería las dos y un total
+    // que no suma.
+    expect(FICHA2).toContain("importDesglose.filter((l) => !l.esGarantia)");
+  });
+
+  test("los botones dicen lo que le mueve al total, no lo que valen", () => {
+    expect(FICHA2).toContain("importeDeGarantia(o.diferencia, formatCurrency)");
+    expect(FICHA2).not.toContain("importeDeGarantia(o.precio, formatCurrency)");
   });
 });
 

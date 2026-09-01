@@ -23,6 +23,7 @@ const {
   AHORRO_MINIMO, AHORRO_MAXIMO, COMPARABLES_MINIMOS,
   FEE_POPCAR, PRECIO_MINIMO_COCHE,
 } = require("../lib/coste-importacion.js");
+const { catalogoDeGarantias, opcionesParaElCoche } = require("../lib/garantias.js");
 
 const APLICA = process.argv.includes("--aplica");
 
@@ -36,8 +37,19 @@ const APLICA = process.argv.includes("--aplica");
     `ahorro mínimo ${(AHORRO_MINIMO * 100).toFixed(0)} % · máximo ${(AHORRO_MAXIMO * 100).toFixed(0)} % · ` +
     `mínimo ${COMPARABLES_MINIMOS} comparables\n`);
 
+  /**
+   * El catálogo, porque el precio publicado lleva una garantía dentro.
+   *
+   * Y por tanto el ahorro que se anuncia también sale de ese precio. Decidir
+   * aquí sobre uno sin garantía publicaría coches cuyo ahorro real, el que el
+   * cliente ve en la ficha, está por debajo del listón.
+   */
+  const garantias = await catalogoDeGarantias(pool);
+  console.log(`garantías en catálogo: ${garantias.length}
+`);
+
   const { rows } = await pool.query(
-    `SELECT id, price::numeric AS al, market_price_es::numeric AS es,
+    `SELECT id, price::numeric AS al, market_price_es::numeric AS es, year, mileage,
             import_comps AS comps, import_published AS publicada, import_locked AS fijada,
             COALESCE(is_active, TRUE) AS viva
        FROM moveadvisor_market_offers
@@ -47,13 +59,17 @@ const APLICA = process.argv.includes("--aplica");
   const decididas = rows.map((f) => {
     const al = Number(f.al) || 0;
     const es = Number(f.es) || 0;
-    const publica = sePublica({ precioAleman: al, precioEspanol: es, comparables: f.comps, viva: f.viva !== false });
-    const { euros, pct } = ahorroDelCliente(al, es);
+    // La que lleva su precio: la más barata que se le pueda dar a **este**
+    // coche. A uno de quince años no se le puede dar ninguna y no sube nada.
+    const gar = opcionesParaElCoche(garantias, f).porDefecto?.precio || 0;
+    const publica = sePublica({ precioAleman: al, precioEspanol: es, comparables: f.comps, viva: f.viva !== false, garantia: gar });
+    const { euros, pct } = ahorroDelCliente(al, es, gar);
     return {
       id: f.id, al, es, comps: Number(f.comps) || 0,
       fijada: Boolean(f.fijada), antes: Boolean(f.publicada),
       publica, euros, pct,
-      puesto: Math.round(precioPuestoAqui(al, es)),
+      gar,
+      puesto: Math.round(precioPuestoAqui(al, es, gar)),
     };
   });
 

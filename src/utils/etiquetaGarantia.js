@@ -7,10 +7,12 @@
  * —«Ampliada a 24 meses»— y añadirle «· 24 meses» detrás queda como un
  * tartamudeo. Se añade solo cuando el nombre no lo dice.
  *
- * **Decir lo que cuesta.** Antes se escribía con la diferencia respecto a una
- * garantía base que ya iba dentro del precio: «incluida», «+290 €». Ya no hay
- * base —no vendemos el coche, así que no debemos la garantía— y cada producto
- * cuesta lo que cuesta. Se empieza sin ninguna, y la que elija suma su precio.
+ * **Decir lo que le cambia el total, no lo que vale.** El precio publicado ya
+ * lleva una garantía dentro: la más barata que se le pueda dar a ese coche. Así
+ * que lo que necesita saber al mirar las otras no es cuánto cuestan, sino cuánto
+ * le mueven el número que tiene delante. Quitarla lo **baja**, y eso hay que
+ * poder leerlo: un coche que se anuncia sin garantía y luego ofrece una por
+ * 190 € parece que sube de precio al final. Es el mismo dinero.
  */
 
 /** El nombre, con los meses solo si no los lleva ya. */
@@ -28,16 +30,18 @@ function etiquetaDeGarantia(opcion) {
 }
 
 /**
- * Lo que cuesta: «+590 €», o «sin coste» cuando no coge ninguna.
+ * Lo que le mueve al total: «+300 €», «−190 €» o «va en el precio».
  *
- * El signo va delante aunque el precio ya sea positivo, porque lo que dice no
- * es cuánto vale el producto: es cuánto le sube el total que está mirando.
+ * Recibe la **diferencia**, no el precio. La que ya está puesta sale a cero y se
+ * dice con palabras y no con «+0 €», que no significa nada.
+ *
+ * El menos es un signo menos de verdad (−, U+2212) y no un guion: al lado de una
+ * cifra, un guion se lee como un separador.
  */
-function importeDeGarantia(precio, formatea) {
-  const d = Number(precio) || 0;
-  // Menor o igual que cero, no solo cero: un precio negativo es un dato malo, y
-  // pintarlo como «+−180 €» es peor que decir que no cuesta nada.
-  if (d <= 0) return "sin coste";
+function importeDeGarantia(diferencia, formatea) {
+  const d = Number(diferencia) || 0;
+  if (d === 0) return "va en el precio";
+  if (d < 0) return `−${formatea(-d)}`;
   return `+${formatea(d)}`;
 }
 

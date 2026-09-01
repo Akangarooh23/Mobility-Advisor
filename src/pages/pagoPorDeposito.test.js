@@ -10,9 +10,18 @@
  * de 20.000 € lleva unos 300 € de comisión, y choca con el límite de cualquier
  * tarjeta particular.
  *
- * Va por transferencia a una cuenta de depósito. Los datos de esa cuenta **no se
- * publican en la web**: un número de cuenta en una pantalla pública es la forma
- * más fácil de que alguien haga una captura, cambie un dígito y la reenvíe.
+ * Va por transferencia. Stripe le da un número de cuenta suyo y nos avisa cuando
+ * el dinero llega: eso es lo que aporta, enterarnos solos en vez de mirar el
+ * banco a mano.
+ *
+ * Y el número de cuenta **no se escribe en el código de la web**. Lo enseña
+ * Stripe en su pantalla, contra la sesión de ese cliente. Un IBAN escrito en una
+ * página es la forma más fácil de que alguien haga una captura, cambie un dígito
+ * y la reenvíe.
+ *
+ * Mientras no haya escrow de verdad —MangoPay o PayComet— ese dinero entra en la
+ * cuenta de PopCar, así que **no se le dice al cliente que está retenido**: se le
+ * dice lo que es verdad, que no se le paga al vendedor hasta que vemos el coche.
  */
 import fs from "fs";
 import path from "path";
@@ -28,9 +37,10 @@ describe("ya no se cobra con tarjeta", () => {
     expect(FICHA).not.toContain("postBillingCheckoutJson");
   });
 
-  test("ni el panel del cliente", () => {
+  test("el panel pide una transferencia, no un cobro", () => {
     expect(PANEL).not.toContain('planId: "fianza"');
-    expect(PANEL).not.toContain("postBillingCheckoutJson");
+    expect(PANEL).toContain('planId: "deposito"');
+    expect(PANEL).toContain("Ver los datos para transferir");
   });
 
   test("y no queda el botón de pagar la fianza", () => {
@@ -52,8 +62,15 @@ describe("lo que se le dice en su lugar", () => {
     expect(PANEL).toContain("ve el coche en Alemania");
   });
 
-  test("si el coche no es el que se anunció, vuelve entero", () => {
-    expect(PANEL).toContain("vuelve entero");
+  test("si el coche no es el que se anunció, se devuelve entero", () => {
+    expect(PANEL).toContain("devolvemos entero");
+  });
+
+  test("y no se promete que esté retenido, que hoy no lo está", () => {
+    // Hasta que haya escrow de verdad, ese dinero entra en la cuenta de PopCar.
+    // Decir «retenido» sería prometer una garantía que el mecanismo no da.
+    expect(PANEL).not.toContain("El dinero queda retenido");
+    expect(PANEL).toContain("No se lo pagamos al vendedor");
   });
 });
 
@@ -66,9 +83,10 @@ describe("el número de cuenta no se publica", () => {
     expect(PANEL).not.toMatch(iban);
   });
 
-  test("y se dice que se dan al llamar, no que falten", () => {
-    expect(PANEL).toContain("no los");
-    expect(PANEL).toContain("publicamos aquí");
+  test("el botón lleva a Stripe, que es quien lo enseña", () => {
+    // El IBAN lo pinta Stripe contra la sesión de ese cliente, no nosotros.
+    expect(PANEL).toContain("postBillingCheckoutJson");
+    expect(PANEL).toContain("pideDatosDeTransferencia");
   });
 });
 

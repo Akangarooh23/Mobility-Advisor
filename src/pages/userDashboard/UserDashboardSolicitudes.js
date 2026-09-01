@@ -68,17 +68,36 @@ export default function UserDashboardSolicitudes({
    * ve. Si su panel solo dice «En proceso», llama para preguntar; si dice dónde
    * está y qué falta, no hace falta que llame.
    */
-  /*
-   * Aquí había un botón que abría Stripe y cobraba la fianza del 30 %.
+  const [pidiendoDatos, setPidiendoDatos] = useState("");
+  const [errorDeposito, setErrorDeposito] = useState("");
+
+  /**
+   * Le pide a Stripe los datos de la cuenta para su transferencia.
    *
-   * Ya no hay fianza: lo que se deposita es el coche entero más nuestro
-   * servicio, y eso no se cobra con tarjeta. Un coche de 20.000 € llevaría unos
-   * 300 € de comisión y choca con el límite de cualquier tarjeta particular.
+   * No es un cobro con tarjeta: aquí se deposita el coche entero más nuestro
+   * servicio, veinte mil euros o más. Con tarjeta eso no pasa —ni por límite ni
+   * por comisión, unos 300 €— y además una tarjeta se puede disputar meses
+   * después, cuando el dinero ya está en Alemania.
    *
-   * Va por transferencia a una cuenta de depósito, y esos datos se los damos
-   * hablando con él: un número de cuenta en una pantalla es la forma más fácil
-   * de que alguien haga una captura, cambie un dígito y la reenvíe.
+   * Stripe le da un número de cuenta suyo y nos avisa cuando el dinero llega.
+   * Eso es lo que aporta: enterarnos solos, en vez de mirar el banco a mano.
    */
+  async function pideDatosDeTransferencia(leadId) {
+    setErrorDeposito("");
+    setPidiendoDatos(leadId);
+    try {
+      const { postBillingCheckoutJson } = await import("../../utils/apiClient");
+      const { response, data } = await postBillingCheckoutJson({
+        planId: "deposito", leadId, origin: window.location.origin,
+      });
+      if (data?.url) { window.location.href = data.url; return; }
+      // El perfil incompleto no es un fallo: es algo que puede arreglar él.
+      setErrorDeposito(data?.message || data?.error || (response.ok ? "No está disponible ahora mismo." : "No hemos podido abrirlo."));
+    } catch {
+      setErrorDeposito("No hemos podido abrirlo.");
+    }
+    setPidiendoDatos("");
+  }
 
   // Los nombres de los pasos siguen siendo los del ERP: cambiarlos aquí y no
   // allí dejaría al cliente y a quien le atiende hablando de cosas distintas.
@@ -659,11 +678,27 @@ export default function UserDashboardSolicitudes({
                                 {Number(meta.deposit_quoted).toLocaleString("es-ES")} € a la cuenta de depósito
                               </div>
                               <div style={{ fontSize: 11.5, color: isDark ? "var(--gris-300)" : "#065f46", lineHeight: 1.55 }}>
-                                Por transferencia. Te damos los datos de la cuenta al llamarte, no los
-                                publicamos aquí. El dinero queda retenido y <strong>no lo cobra nadie</strong> hasta
-                                que uno de los nuestros ve el coche en Alemania. Si no es el que se
-                                anunció, vuelve entero.
+                                Por transferencia. <strong>No se lo pagamos al vendedor</strong> hasta que uno de
+                                los nuestros ve el coche en Alemania. Si no es el que se anunció, te lo
+                                devolvemos entero.
                               </div>
+                              <button
+                                type="button"
+                                onClick={() => pideDatosDeTransferencia(item.id)}
+                                disabled={pidiendoDatos === item.id}
+                                style={{
+                                  marginTop: 8, background: "var(--marca)", color: "#fff",
+                                  border: "none", borderRadius: 8, padding: "9px 16px",
+                                  fontSize: 13, fontWeight: 800,
+                                  cursor: pidiendoDatos === item.id ? "default" : "pointer",
+                                  opacity: pidiendoDatos === item.id ? 0.6 : 1,
+                                }}
+                              >
+                                {pidiendoDatos === item.id ? "Un momento…" : "Ver los datos para transferir"}
+                              </button>
+                              {errorDeposito && (
+                                <div style={{ fontSize: 12, color: "#b91c1c", marginTop: 6 }}>{errorDeposito}</div>
+                              )}
                             </div>
                           </div>
                         )}

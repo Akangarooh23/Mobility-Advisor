@@ -1478,9 +1478,9 @@ export default function PortalVoDetailPage({
                         {solicitudHecha.fianza.toLocaleString("es-ES")} € a la cuenta de depósito
                       </div>
                       <div style={{ fontSize: 12.5, color: isDark ? "var(--gris-300)" : "#065f46", lineHeight: 1.6 }}>
-                        Te llamamos y te damos los datos de la cuenta. Ese dinero queda
-                        retenido: <strong>no lo cobra nadie</strong> hasta que uno de los
-                        nuestros ve el coche en Alemania y confirma que es el que se anunció.
+                        Por transferencia, desde tu panel. <strong>No se lo pagamos al
+                        vendedor</strong> hasta que uno de los nuestros ve el coche en Alemania y
+                        confirma que es el que se anunció. Si no lo es, vuelve entero.
                       </div>
                     </div>
                     {/* La otra respuesta razonable a que te pidan mil euros. Va

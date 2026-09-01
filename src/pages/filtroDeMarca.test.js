@@ -12,7 +12,19 @@
 import fs from "fs";
 import path from "path";
 
-const FUENTE = fs.readFileSync(
+/**
+ * Leer un fichero de código para compararlo con texto.
+ *
+ * Se le quitan los retornos de carro. Estas pruebas buscan trozos escritos con
+ * saltos de línea, y en Windows el mismo fichero baila entre LF y CRLF según
+ * quién lo haya tocado: sin esto fallan por el final de línea y no por lo que
+ * de verdad comprueban, que es lo que dice el código.
+ */
+function lee(...args) {
+  return fs.readFileSync(...args).replace(/\r\n/g, "\n");
+}
+
+const FUENTE = lee(
   path.join(__dirname, "PortalVoMarketplacePage.js"),
   "utf8"
 );
@@ -52,7 +64,7 @@ describe("el desplegable de los filtros", () => {
  * grande de arriba, la cuota del mes, la fianza y el ahorro se quedaban con lo
  * de antes: cinco números para el mismo coche, y cuatro de ellos mintiendo.
  */
-const FICHA = fs.readFileSync(
+const FICHA = lee(
   path.join(__dirname, "PortalVoDetailPage.js"),
   "utf8"
 );
@@ -94,7 +106,7 @@ describe("el precio con la garantía elegida", () => {
 });
 
 describe("la línea de garantía del desglose", () => {
-  const FICHA2 = fs.readFileSync(
+  const FICHA2 = lee(
     path.join(__dirname, "PortalVoDetailPage.js"),
     "utf8"
   );
@@ -121,7 +133,7 @@ describe("la línea de garantía del desglose", () => {
  * mismo conductor— es cosa nuestra: lo que él compra es un viaje.
  */
 describe("el viaje en la ficha del coche", () => {
-  const FICHA3 = fs.readFileSync(
+  const FICHA3 = lee(
     path.join(__dirname, "PortalVoDetailPage.js"),
     "utf8"
   );
@@ -158,7 +170,7 @@ describe("el viaje en la ficha del coche", () => {
  * La entrega en su casa **no** está aquí: va dentro del precio.
  */
 describe("los servicios de la ficha", () => {
-  const FICHA4 = fs.readFileSync(
+  const FICHA4 = lee(
     path.join(__dirname, "PortalVoDetailPage.js"),
     "utf8"
   );
@@ -195,7 +207,7 @@ describe("los servicios de la ficha", () => {
  * contrate. Lo que sí se le rellena es lo que ya nos dijo en sus datos.
  */
 describe("la dirección de entrega", () => {
-  const FICHA5 = fs.readFileSync(
+  const FICHA5 = lee(
     path.join(__dirname, "PortalVoDetailPage.js"),
     "utf8"
   );
@@ -248,7 +260,7 @@ describe("la dirección de entrega", () => {
  * Golf diésel de 2005 incluido—, en la pantalla donde el cliente decide.
  */
 describe("la cilindrada en la ficha", () => {
-  const FICHA6 = fs.readFileSync(
+  const FICHA6 = lee(
     path.join(__dirname, "PortalVoDetailPage.js"),
     "utf8"
   );

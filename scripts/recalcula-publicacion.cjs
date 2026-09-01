@@ -21,7 +21,7 @@ const { Pool } = require("pg");
 const {
   precioPuestoAqui, ahorroDelCliente, sePublica,
   AHORRO_MINIMO, AHORRO_MAXIMO, COMPARABLES_MINIMOS,
-  TRANSPORTE, PAPELEO_ESTIMADO,
+  FEE_POPCAR, PRECIO_MINIMO_COCHE,
 } = require("../lib/coste-importacion.js");
 
 const APLICA = process.argv.includes("--aplica");
@@ -32,7 +32,7 @@ const APLICA = process.argv.includes("--aplica");
     ssl: { rejectUnauthorized: false },
   });
 
-  console.log(`transporte ${TRANSPORTE} € · papeleo ${PAPELEO_ESTIMADO} € · ` +
+  console.log(`fee ${FEE_POPCAR} € · coche desde ${PRECIO_MINIMO_COCHE} € · ` +
     `ahorro mínimo ${(AHORRO_MINIMO * 100).toFixed(0)} % · máximo ${(AHORRO_MAXIMO * 100).toFixed(0)} % · ` +
     `mínimo ${COMPARABLES_MINIMOS} comparables\n`);
 

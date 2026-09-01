@@ -121,24 +121,26 @@ export default function PortalVoDetailPage({
   // Financiación: concesionarios, renting y particulares usan la config estándar.
   // Importación usa su variante (entrada mínima = fianza 30%, plazos 36-72, copys propios).
   /**
-   * La garantía que ha elegido, y lo que le cambia el total.
+   * La garantía que ha elegido, y lo que le suma.
    *
-   * Empieza en la base, que es la que ya está dentro del precio. Si el catálogo
-   * está vacío no hay nada de esto y la ficha se ve como siempre.
+   * Empieza **sin ninguna**, que es lo que pasa si no hace nada. No la damos
+   * nosotros: PopCar no le vende el coche, se lo vende el concesionario alemán,
+   * así que la garantía es un producto de un tercero que él añade si quiere.
+   *
+   * Si el catálogo está vacío no hay nada de esto y la ficha se ve como siempre.
    */
-  const garantiaBase = selectedPortalVoOffer.garantias?.base ?? null;
   const opcionesGarantia = selectedPortalVoOffer.garantias?.opciones ?? [];
-  const [garantiaElegida, setGarantiaElegida] = useState(garantiaBase?.id ?? null);
+  const [garantiaElegida, setGarantiaElegida] = useState(null);
 
-  // Si se cambia de coche, la elección vuelve a la base del coche nuevo: una
-  // garantía elegida en otro anuncio puede no poder dársele a éste.
+  // Si se cambia de coche, se vuelve a empezar sin garantía: una elegida en
+  // otro anuncio puede no poder dársele a éste.
   useEffect(() => {
-    setGarantiaElegida(garantiaBase?.id ?? null);
-  }, [garantiaBase?.id]);
+    setGarantiaElegida(null);
+  }, [selectedPortalVoOffer.id]);
 
-  const diferenciaGarantia = opcionesGarantia
-    .find((o) => (o.id ?? null) === garantiaElegida)?.diferencia ?? 0;
-  const precioConGarantia = (Number(selectedPortalVoOffer.price) || 0) + diferenciaGarantia;
+  const precioGarantia = opcionesGarantia
+    .find((o) => (o.id ?? null) === garantiaElegida)?.precio ?? 0;
+  const precioConGarantia = (Number(selectedPortalVoOffer.price) || 0) + precioGarantia;
   /**
    * Dónde quiere que se lo llevemos.
    *
@@ -237,10 +239,21 @@ export default function PortalVoDetailPage({
     ? precioConGarantia
     : Number(selectedPortalVoOffer.salePrice ?? selectedPortalVoOffer.price) || 0;
 
-  // La fianza es el 30 % de lo que va a pagar, no del precio sin la ampliación.
-  const fianzaImport = isImport && precioConGarantia > 0
-    ? Math.round(precioConGarantia * 0.30)
-    : Number(selectedPortalVoOffer.importDeposit) || 0;
+  /**
+   * Lo que deposita ahora: el coche y nuestro servicio.
+   *
+   * No es una fianza. La fianza del 30 % era de cuando comprábamos el coche y
+   * se lo vendíamos; ahora se lo compra él al concesionario alemán, así que el
+   * dinero del coche tiene que estar entero. Se queda retenido hasta que uno de
+   * los nuestros lo ve allí.
+   *
+   * El impuesto de matriculación no va aquí: se liquida al matricular, cuando
+   * ya se sabe cuánto es.
+   */
+  const depositoOferta = selectedPortalVoOffer.importDeposito || null;
+  const depositoImport = isImport && depositoOferta
+    ? depositoOferta.total + precioGarantia
+    : 0;
 
   /**
    * El ahorro, recalculado.
@@ -729,7 +742,7 @@ export default function PortalVoDetailPage({
                         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 12.5, color: isDark ? "var(--gris-300)" : "var(--gris-700)", marginBottom: 4 }}>
                           <span>{etiquetaDeGarantia(garantiaDelCoche)}</span>
                           <strong style={{ whiteSpace: "nowrap" }}>
-                            {importeDeGarantia(garantiaDelCoche.diferencia, formatCurrency)}
+                            {importeDeGarantia(garantiaDelCoche.precio, formatCurrency)}
                           </strong>
                         </div>
                       )}
@@ -748,7 +761,27 @@ export default function PortalVoDetailPage({
                         */}
                       {opcionesGarantia.length > 1 && (
                         <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--gris-200)" }}>
-                          <div style={{ fontSize: 11.5, fontWeight: 700, color: isDark ? "var(--gris-300)" : "var(--gris-600)", marginBottom: 6 }}>Garantía</div>
+                          <div style={{ fontSize: 11.5, fontWeight: 700, color: isDark ? "var(--gris-300)" : "var(--gris-600)", marginBottom: 6 }}>
+                            Garantía mecánica, si la quieres
+                          </div>
+                          {/*
+                            * Lo que de verdad se vende aquí no es la póliza.
+                            *
+                            * El vendedor alemán le debe la garantía legal europea de
+                            * dos años. El problema no es tenerla: es usarla. Un
+                            * particular que compra una vez en Alemania no tiene forma
+                            * de presionar a un concesionario de otro país, en otro
+                            * idioma y con otro derecho de consumo.
+                            *
+                            * Nosotros traemos coches todas las semanas y hablamos con
+                            * esa gente todas las semanas. Eso no cabe en el precio de
+                            * un producto, así que se dice aquí.
+                            */}
+                          <p style={{ margin: "0 0 8px", fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", lineHeight: 1.6 }}>
+                            La pone una aseguradora, no nosotros. Lo que ponemos nosotros es
+                            que <strong>si hay que reclamar, reclamamos nosotros</strong>: ni te
+                            escribes con un concesionario alemán ni discutes en otro idioma.
+                          </p>
                           {opcionesGarantia.map((o) => {
                             const elegida = (o.id ?? null) === garantiaElegida;
                             return (
@@ -770,7 +803,7 @@ export default function PortalVoDetailPage({
                                   {o.kmCubiertos ? ` · hasta ${o.kmCubiertos.toLocaleString("es-ES")} km` : ""}
                                 </span>
                                 <span style={{ whiteSpace: "nowrap", fontWeight: 700 }}>
-                                  {importeDeGarantia(o.diferencia, formatCurrency)}
+                                  {importeDeGarantia(o.precio, formatCurrency)}
                                 </span>
                               </button>
                             );
@@ -989,15 +1022,37 @@ export default function PortalVoDetailPage({
                         <li>Contrastado con <strong>{selectedPortalVoOffer.importComparables} vehículos comparables</strong> del mercado español.</li>
                       )}
                       <li>Lo <strong>compramos, importamos y matriculamos</strong> nosotros por ti.</li>
-                      {/* Obligatoria vendiendo como empresa a un particular: no es un extra. */}
-                      <li><strong>Garantía incluida</strong> y <strong>entrega en tu casa</strong> en toda la península.</li>
+                      {/*
+                        * La garantía ya no va incluida: no le vendemos el coche, así
+                        * que no se la debemos. Lo que sí va incluido, y es lo que de
+                        * verdad se compra, es que reclamamos nosotros.
+                        */}
+                      <li><strong>Entrega en tu casa</strong> en toda la península.</li>
+                      <li>Si hay que reclamarle algo al vendedor alemán, <strong>lo hacemos nosotros</strong>.</li>
                     </ul>
                   </div>
-                  {selectedPortalVoOffer.importDeposit != null && (
-                    <div style={{ background: "#fffbeb", border: "1.5px solid #fbbf24", borderRadius: 12, padding: "12px 14px", marginTop: 10 }}>
-                      <div style={{ fontSize: 13, fontWeight: 800, color: "#92400e", marginBottom: 4 }}>⚠️ Fianza del 30%</div>
-                      <div style={{ fontSize: 12.5, color: "#78350f", lineHeight: 1.6 }}>
-                        Para solicitar un coche de importación se debe dejar una <strong>fianza del 30% del valor del vehículo</strong>: <strong style={{ fontSize: 15 }}>{formatCurrency(fianzaImport)}</strong>.
+                  {/*
+                    * El depósito, y sobre todo cuándo se suelta.
+                    *
+                    * Antes esto era un aviso amarillo de «fianza del 30 %», que es
+                    * el tono de una condición que hay que tragarse. Y ahora la
+                    * cifra es mucho mayor —el coche entero—, así que un aviso en
+                    * amarillo asustaría por la razón equivocada.
+                    *
+                    * Lo que tranquiliza no es el número: es que el dinero no se
+                    * mueve hasta que uno de los nuestros ve el coche. Eso va en
+                    * verde y va primero.
+                    */}
+                  {depositoImport > 0 && (
+                    <div style={{ background: isDark ? "rgba(5,150,105,0.12)" : "rgba(5,150,105,0.06)", border: "1.5px solid rgba(5,150,105,0.35)", borderRadius: 12, padding: "12px 14px", marginTop: 10 }}>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#34d399" : "#047857", marginBottom: 4 }}>
+                        Tu dinero, retenido hasta que veamos el coche
+                      </div>
+                      <div style={{ fontSize: 12.5, color: isDark ? "var(--gris-300)" : "#065f46", lineHeight: 1.6 }}>
+                        Depositas <strong style={{ fontSize: 15 }}>{formatCurrency(depositoImport)}</strong> en una cuenta
+                        de depósito: el coche y nuestro servicio. Ese dinero <strong>no se libera</strong> hasta
+                        que uno de los nuestros está delante del coche en Alemania y confirma que es el
+                        que se anunció. Si no lo es, vuelve entero.
                       </div>
                     </div>
                   )}
@@ -1273,7 +1328,7 @@ export default function PortalVoDetailPage({
                     comisionAperturaPct: TIPOS_FINANCIACION_IMPORTACION.comisionAperturaPct,
                     entradaMaxPct: TIPOS_FINANCIACION_IMPORTACION.entradaMaxPct,
                     plazoPorDefecto: TIPOS_FINANCIACION_IMPORTACION.plazoPorDefecto,
-                    entradaMinima: fianzaImport,
+                    entradaMinima: depositoImport,
                     entradaPorDefectoPct: 0.3,
                     mostrarVfg: false,
                     subtitulo: "Sobre el precio final matriculado. Tu reserva cuenta como entrada.",
@@ -1478,9 +1533,11 @@ export default function PortalVoDetailPage({
                 <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginBottom: 18 }}>
                   {selectedPortalVoOffer.title}
                 </div>
-                {isImport && selectedPortalVoOffer.importDeposit != null && (
-                  <div style={{ background: "#fffbeb", border: "1.5px solid #fbbf24", borderRadius: 10, padding: "10px 12px", marginBottom: 16, fontSize: 12.5, color: "#78350f", lineHeight: 1.6 }}>
-                    ⚠️ Para reservar este coche de importación se requiere una <strong>fianza del 30%</strong>: <strong>{formatCurrency(fianzaImport)}</strong>. Te explicaremos el proceso al contactarte.
+                {isImport && depositoImport > 0 && (
+                  <div style={{ background: isDark ? "rgba(5,150,105,0.12)" : "rgba(5,150,105,0.06)", border: "1.5px solid rgba(5,150,105,0.35)", borderRadius: 10, padding: "10px 12px", marginBottom: 16, fontSize: 12.5, color: isDark ? "var(--gris-300)" : "#065f46", lineHeight: 1.6 }}>
+                    Para pedirlo se deposita <strong>{formatCurrency(depositoImport)}</strong> —el coche y nuestro
+                    servicio— en una cuenta de depósito. No se libera hasta que vemos el coche en Alemania.
+                    Te llamamos para explicarte el proceso.
                   </div>
                 )}
 

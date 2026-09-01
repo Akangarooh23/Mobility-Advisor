@@ -35,7 +35,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id,\n  portal,\n  COALESCE(url, '') AS url,\n  COALESCE(color, '') AS color\nFROM moveadvisor_market_offers\nWHERE (COALESCE(color, '') = '')\n  AND last_seen_at > NOW() - INTERVAL '60 days'\n  AND (enrich_tried_at IS NULL OR enrich_tried_at < NOW() - INTERVAL '7 days')\n  AND COALESCE(url, '') <> ''\nORDER BY enrich_tried_at ASC NULLS FIRST\nLIMIT 400",
+        "query": "SELECT id,\n  portal,\n  COALESCE(url, '') AS url,\n  COALESCE(color, '') AS color\nFROM moveadvisor_market_offers\nWHERE (COALESCE(color, '') = '')\n  -- Wallapop fuera: aqui se le pedia el HTML de la ficha y acertaba el 0,7%\n  -- (2.883 intentos, 2.862 sin color). No es bloqueo, es que es una SPA de\n  -- Next.js y el color no esta en el markup. Su color, el poco que hay, lo\n  -- saca ahora wallapop-enrich-offers de la descripcion de la API.\n  AND portal <> 'wallapop'\n  AND last_seen_at > NOW() - INTERVAL '60 days'\n  AND (enrich_tried_at IS NULL OR enrich_tried_at < NOW() - INTERVAL '7 days')\n  AND COALESCE(url, '') <> ''\nORDER BY enrich_tried_at ASC NULLS FIRST\nLIMIT 400",
         "options": {}
       },
       "id": "uc-pg-select",

@@ -36,16 +36,22 @@ describe("el nombre de una garantía", () => {
 describe("lo que suma al total", () => {
   const eur = (n) => `${n} €`;
 
-  test("la que ya está dentro del precio dice «incluida»", () => {
-    expect(importeDeGarantia(0, eur)).toBe("incluida");
+  test("no coger ninguna no cuesta nada", () => {
+    // Y se dice así, no con un «0 €»: cero euros al lado de una lista de
+    // precios se lee como un producto gratis, y esto es no coger producto.
+    expect(importeDeGarantia(0, eur)).toBe("sin coste");
   });
 
-  test("una ampliación, lo que sube", () => {
-    // No 420 €, que es lo que cuesta: 290 €, que es lo que cambia el total.
-    expect(importeDeGarantia(290, eur)).toBe("+290 €");
+  test("y la que elija, lo que sube el total", () => {
+    // Con el signo delante aunque el precio sea positivo: no dice cuánto vale
+    // el producto, dice cuánto le sube el número que está mirando.
+    expect(importeDeGarantia(590, eur)).toBe("+590 €");
   });
 
-  test("y quitarla, lo que baja, con el menos de verdad", () => {
-    expect(importeDeGarantia(-180, eur)).toBe("−180 €");
+  test("un precio negativo no se pinta: es un dato malo", () => {
+    // Antes se podía «quitar» la garantía incluida y el total bajaba, así que
+    // había diferencias negativas. Ahora se empieza sin ninguna y un número por
+    // debajo de cero no significa nada: «+−180 €» sería peor que no decir nada.
+    expect(importeDeGarantia(-180, eur)).toBe("sin coste");
   });
 });

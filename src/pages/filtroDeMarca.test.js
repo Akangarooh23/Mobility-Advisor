@@ -82,11 +82,28 @@ describe("el precio con la garantía elegida", () => {
     expect(FICHA).toContain("? precioConGarantia");
   });
 
-  test("y la fianza: el 30 % de lo que va a pagar", () => {
-    expect(FICHA).toContain("Math.round(precioConGarantia * 0.30)");
-    expect(FICHA).not.toContain(
-      "{formatCurrency(selectedPortalVoOffer.importDeposit)}"
-    );
+  test("y el depósito: el coche entero y nuestro servicio", () => {
+    // Ya no es una fianza del 30 %. El coche se lo compra él al concesionario
+    // alemán, así que ese dinero tiene que estar depositado entero.
+    expect(FICHA).toContain("const depositoImport");
+    expect(FICHA).toContain("depositoOferta.total + precioGarantia");
+    expect(FICHA).not.toContain("* 0.30");
+  });
+
+  test("y el depósito lo dice con lo que de verdad importa: cuándo se suelta", () => {
+    expect(FICHA).toContain("Tu dinero, retenido hasta que veamos el coche");
+    expect(FICHA).toContain("vuelve entero");
+  });
+
+  test("la garantía ya no se anuncia como incluida", () => {
+    // No le vendemos el coche, así que no se la debemos. Decir «incluida» sería
+    // prometer algo que no está en el precio ni es nuestro.
+    expect(FICHA).not.toContain("<strong>Garantía incluida</strong>");
+    expect(FICHA).toContain("Garantía mecánica, si la quieres");
+  });
+
+  test("y se dice lo que de verdad se compra: que reclamamos nosotros", () => {
+    expect(FICHA).toContain("si hay que reclamar, reclamamos nosotros");
   });
 
   test("el ahorro se recalcula, o la resta no cuadraría", () => {
@@ -116,8 +133,8 @@ describe("la línea de garantía del desglose", () => {
     expect(FICHA2).not.toContain("etiquetaDeGarantia(garantiaBase)");
   });
 
-  test("y lo que suma al total, no «incluida» siempre", () => {
-    expect(FICHA2).toContain("importeDeGarantia(garantiaDelCoche.diferencia, formatCurrency)");
+  test("y lo que suma al total, con su precio entero", () => {
+    expect(FICHA2).toContain("importeDeGarantia(garantiaDelCoche.precio, formatCurrency)");
   });
 });
 

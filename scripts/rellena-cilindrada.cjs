@@ -64,18 +64,32 @@ const APLICA = process.argv.includes("--aplica");
     return;
   }
 
+  /**
+   * De quinientas en quinientas, no de una en una.
+   *
+   * Son dieciocho mil filas y la base está al otro lado de internet: una
+   * consulta por fila son dieciocho mil idas y vueltas, y eso es un cuarto de
+   * hora mirando una pantalla parada.
+   *
+   * La condición de vacío va también en el UPDATE, no solo en el SELECT: entre
+   * leer y escribir cabe una pasada del scraper, y lo suyo manda sobre esto.
+   */
+  const LOTE = 500;
   let escritas = 0;
-  for (const x of conDato) {
-    // La condición de vacío va también en el UPDATE, no solo en el SELECT:
-    // entre leer y escribir cabe una pasada del scraper.
+  for (let i = 0; i < conDato.length; i += LOTE) {
+    const lote = conDato.slice(i, i + LOTE);
+    const valores = lote.map((_, j) => `($${j * 2 + 1}, $${j * 2 + 2})`).join(", ");
+    const params = lote.flatMap((x) => [x.id, String(x.cc)]);
     const r = await pool.query(
-      `UPDATE moveadvisor_market_offers
-          SET displacement = $2
-        WHERE id = $1
-          AND COALESCE(NULLIF(trim(displacement), ''), '') = ''`,
-      [x.id, String(x.cc)]
+      `UPDATE moveadvisor_market_offers AS o
+          SET displacement = v.cc
+         FROM (VALUES ${valores}) AS v(id, cc)
+        WHERE o.id = v.id
+          AND COALESCE(NULLIF(trim(o.displacement), ''), '') = ''`,
+      params
     );
     escritas += r.rowCount;
+    console.log(`  ${escritas} escritas...`);
   }
   console.log(`\nescritas ${escritas} de ${conDato.length}`);
   await pool.end();

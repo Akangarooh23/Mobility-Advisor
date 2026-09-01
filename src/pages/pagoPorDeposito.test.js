@@ -31,21 +31,42 @@ const lee = (...p) => fs.readFileSync(path.join(__dirname, ...p), "utf8").replac
 const FICHA = lee("PortalVoDetailPage.js");
 const PANEL = lee("userDashboard", "UserDashboardSolicitudes.js");
 
-describe("ya no se cobra con tarjeta", () => {
-  test("la ficha no abre la pasarela", () => {
+describe("ya no se cobra ninguna fianza", () => {
+  test("ni en la ficha ni en el panel queda el plan viejo", () => {
     expect(FICHA).not.toContain('planId: "fianza"');
-    expect(FICHA).not.toContain("postBillingCheckoutJson");
+    expect(PANEL).not.toContain('planId: "fianza"');
+    expect(FICHA).not.toContain("Pagar la fianza ahora");
+    expect(PANEL).not.toContain("Pagar la fianza ·");
   });
 
-  test("el panel pide una transferencia, no un cobro", () => {
-    expect(PANEL).not.toContain('planId: "fianza"');
+  test("el panel abre la pasarela del depósito", () => {
     expect(PANEL).toContain('planId: "deposito"');
     expect(PANEL).toContain("Ver los datos para transferir");
   });
+});
 
-  test("y no queda el botón de pagar la fianza", () => {
-    expect(FICHA).not.toContain("Pagar la fianza ahora");
-    expect(PANEL).not.toContain("Pagar la fianza ·");
+/**
+ * Y se puede pagar sin salir de la ficha.
+ *
+ * Estaba solo en el panel: cerrar el modal, entrar en «Mi panel», encontrar la
+ * solicitud y pulsar allí. Cuatro pasos entre alguien que acaba de decidirse y
+ * el momento de pagar, que es donde se pierde la gente.
+ */
+describe("pagar el depósito desde la propia ficha", () => {
+  test("hay botón, y dice lo que hace", () => {
+    expect(FICHA).toContain("Pagar el depósito ahora");
+  });
+
+  test("abre la misma pasarela que el panel, no otra", () => {
+    // Dos formas de pagar que abrieran sesiones distintas acabarían cobrando
+    // dos veces. Mismo `planId` y mismo identificador de solicitud.
+    expect(FICHA).toContain("postBillingCheckoutJson");
+    expect(FICHA).toContain('planId: "deposito", leadId: solicitudHecha.id');
+  });
+
+  test("y el panel sigue estando, para quien lo deje para luego", () => {
+    expect(FICHA).toContain("lo tienes en");
+    expect(FICHA).not.toContain("Se paga desde tu panel");
   });
 });
 

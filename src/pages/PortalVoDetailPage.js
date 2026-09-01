@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import { etiquetaDeGarantia, importeDeGarantia } from "../utils/etiquetaGarantia";
+import { ciudadDeVerdad } from "../utils/ciudadDeVerdad";
 import { llevaRecargo } from "../utils/entregaPeninsula";
 import { buildImageProxyUrl, buildOfferLocalImageCandidates, slugifyOfferFolderName } from "../utils/offerHelpers";
 import { getUtmPayload } from "../utils/utmTracker";
@@ -67,10 +68,12 @@ const ENTREGA_VACIA = { calle: "", cp: "", ciudad: "", provincia: "" };
 function leeEntregaGuardada() {
   try {
     const guardado = JSON.parse(localStorage.getItem(ENTREGA_GUARDADA) || "{}");
+    const calle = String(guardado.calle || "");
+    const cp = String(guardado.cp || "");
     return {
-      calle: String(guardado.calle || ""),
-      cp: String(guardado.cp || ""),
-      ciudad: String(guardado.ciudad || ""),
+      calle,
+      cp,
+      ciudad: ciudadDeVerdad(guardado.ciudad, calle, cp),
       provincia: String(guardado.provincia || ""),
     };
   } catch {
@@ -357,19 +360,41 @@ export default function PortalVoDetailPage({
   const [pidiendoLlamada, setPidiendoLlamada] = useState(false);
   const [llamadaPedida, setLlamadaPedida] = useState(false);
   const [errorFianza, setErrorFianza] = useState("");
+  const [abriendoPago, setAbriendoPago] = useState(false);
 
-  /*
-   * Aquí había una función que abría Stripe y cobraba la fianza del 30 %.
+  /**
+   * Pagar el depósito sin salir de aquí.
    *
-   * Ya no: lo que se deposita es el coche entero más nuestro servicio, y eso no
-   * se cobra con tarjeta. Un coche de 20.000 € llevaría unos 300 € de comisión
-   * y además choca con el límite de cualquier tarjeta particular.
+   * Estaba solo en el panel, y para llegar había que cerrar el modal, ir a «Mi
+   * panel», encontrar la solicitud y pulsar allí. Cuatro pasos entre alguien que
+   * acaba de decidirse y el momento de pagar es donde se pierde la gente.
    *
-   * Va por transferencia a una cuenta de depósito, y los datos de la cuenta se
-   * dan hablando con el cliente. Cuando haya proveedor —PayComet o MangoPay—
-   * volverá a haber un botón, pero será otro botón: uno que retiene el dinero
-   * en vez de cobrarlo.
+   * Es **la misma pasarela** que el panel, no otra: la misma llamada con el mismo
+   * `planId` y el mismo identificador de solicitud. Dos formas de pagar que
+   * abrieran sesiones distintas acabarían cobrando dos veces.
+   *
+   * Y el número de cuenta lo enseña Stripe, no nosotros. Un IBAN escrito en una
+   * página pública es la forma más fácil que hay de que alguien haga una captura,
+   * cambie un dígito y la reenvíe.
    */
+  async function abreElPagoDelDeposito() {
+    if (!solicitudHecha?.id) return;
+    setErrorFianza("");
+    setAbriendoPago(true);
+    try {
+      const { postBillingCheckoutJson } = await import("../utils/apiClient");
+      const { response, data } = await postBillingCheckoutJson({
+        planId: "deposito", leadId: solicitudHecha.id, origin: window.location.origin,
+      });
+      if (data?.url) { window.location.href = data.url; return; }
+      // Un perfil de facturación a medias no es un fallo: es algo que puede
+      // arreglar él, y por eso se le enseña lo que diga el servidor.
+      setErrorFianza(data?.message || data?.error || (response.ok ? "No está disponible ahora mismo." : "No hemos podido abrirlo."));
+    } catch {
+      setErrorFianza("No hemos podido abrirlo.");
+    }
+    setAbriendoPago(false);
+  }
 
   /**
    * «Prefiero que me llaméis.»
@@ -1523,11 +1548,32 @@ export default function PortalVoDetailPage({
                         {solicitudHecha.fianza.toLocaleString("es-ES")} € a la cuenta de depósito
                       </div>
                       <div style={{ fontSize: 12.5, color: isDark ? "var(--gris-300)" : "#065f46", lineHeight: 1.6 }}>
-                        Por transferencia, desde tu panel. <strong>No se lo pagamos al
-                        vendedor</strong> hasta que uno de los nuestros ve el coche en Alemania y
-                        confirma que es el que se anunció. Si no lo es, vuelve entero.
+                        <strong>No se lo pagamos al vendedor</strong> hasta que uno de los
+                        nuestros ve el coche en Alemania y confirma que es el que se anunció.
+                        Si no lo es, vuelve entero.
                       </div>
                     </div>
+                    {/*
+                      * Pagar aquí mismo, que es donde está decidido.
+                      *
+                      * Antes solo se podía desde el panel: cerrar esto, entrar en «Mi
+                      * panel», buscar la solicitud y pulsar allí. Abre la misma
+                      * pasarela que el panel, no otra.
+                      */}
+                    <button
+                      type="button"
+                      onClick={abreElPagoDelDeposito}
+                      disabled={abriendoPago}
+                      style={{
+                        width: "100%", padding: "13px 20px",
+                        background: "var(--marca)", color: "#fff", border: "none",
+                        borderRadius: 10, fontWeight: 800, fontSize: 14,
+                        cursor: abriendoPago ? "default" : "pointer",
+                        opacity: abriendoPago ? 0.6 : 1,
+                      }}
+                    >
+                      {abriendoPago ? "Abriendo…" : "Pagar el depósito ahora"}
+                    </button>
                     {/* La otra respuesta razonable a que te pidan mil euros. Va
                         debajo y sin relleno: es una alternativa, no la acción. */}
                     {llamadaPedida ? (
@@ -1552,9 +1598,9 @@ export default function PortalVoDetailPage({
                       </button>
                     )}
                     <div style={{ fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginTop: 8, lineHeight: 1.6 }}>
-                      Se paga desde tu panel y te emitimos factura del servicio. Si al final
-                      no se hace el pedido, se te devuelve. No caduca: puedes dejarlo para
-                      luego y pagarlo desde ahí.
+                      Te emitimos factura del servicio. Si al final no se hace el pedido, se
+                      te devuelve. No caduca: si prefieres dejarlo para luego, lo tienes en
+                      tu panel.
                     </div>
                     {errorFianza && (
                       <div style={{ fontSize: 12, color: "#b91c1c", marginTop: 8, lineHeight: 1.5 }}>{errorFianza}</div>

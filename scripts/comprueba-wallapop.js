@@ -1,16 +1,20 @@
 /**
  * El contrato con la API de Wallapop, comprobado en frio.
  *
- * Los dos workflows de Wallapop -el scraper y el enriquecedor- no leen HTML:
- * leen JSON de api.wallapop.com. Eso los hace rapidos y fiables, y tambien los
- * hace callados cuando el JSON cambia de forma. Un campo que pasa de booleano a
- * objeto no da error: da falso siempre, y el catalogo se llena de huecos sin
- * que nadie se entere.
+ * Los tres workflows de Wallapop -el scraper, el enriquecedor y el verificador-
+ * no leen HTML: leen JSON de api.wallapop.com. Eso los hace rapidos y fiables,
+ * y tambien los hace callados cuando el JSON cambia de forma. Un campo que pasa
+ * de booleano a objeto no da error: da falso siempre, y el catalogo se llena de
+ * huecos sin que nadie se entere.
  *
  * Ya paso una vez, en pequeno: `reserved` no es `true`, es `{ flag: true }`.
  * Leerlo como booleano no rompia nada, solo devolvia que nunca hay reservados.
  * Y las fechas van en milisegundos en el buscador y en segundos en la ficha,
  * asi que confundirlas manda una publicacion al ano 58633 sin quejarse.
+ *
+ * El 404 que se comprueba abajo es ademas el unico veredicto con el que el
+ * verificador da una oferta de baja: si dejara de darse, dejariamos de retirar
+ * los coches vendidos.
  *
  * Esto comprueba lo que los workflows dan por hecho. No toca la base: solo pide
  * a la API y mira si sigue contestando lo que decia.
@@ -148,6 +152,21 @@ async function pide(url) {
         notas.push("la ficha ya no manda modified_date");
       } else if (md > HACE_VEINTE_ANOS) {
         fallos.push(`modified_date llega como ${md}, que son milisegundos y no segundos: el enriquecedor guardaria una fecha del ano 58000`);
+      }
+
+      // La descripcion, de donde sale el poco color que se puede sacar.
+      //
+      // En el buscador es un texto y en la ficha es un objeto { original }. Ya
+      // se colo una vez: el codigo le hacia String() y parseaba literalmente la
+      // cadena "[object Object]", asi que no encontraba un color jamas y no se
+      // quejaba. Si vuelve a cambiar de forma, que salte aqui.
+      const desc = ficha.json.description;
+      if (desc === undefined || desc === null) {
+        notas.push("la ficha ya no manda description: se acabo el color que se sacaba de ahi");
+      } else if (typeof desc === "string") {
+        notas.push("description ahora es un texto y no un objeto { original }: el enriquecedor lo aguanta, pero conviene simplificarlo");
+      } else if (typeof desc !== "object" || typeof desc.original !== "string") {
+        fallos.push(`description ya no es { original: "..." }: llega ${JSON.stringify(desc).slice(0, 80)}, y de ahi sale el color`);
       }
 
       // Valores nuevos que el workflow no sabria traducir.

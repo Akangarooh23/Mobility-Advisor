@@ -1,0 +1,267 @@
+{
+  "name": "Wallapop – Verificar ofertas activas",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "wpv-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 9,14,19 * * *"
+            }
+          ]
+        }
+      },
+      "id": "wpv-cron",
+      "name": "3 veces/día (9,14,19h)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Todas las ofertas de Wallapop, una por una, todos los dias.\n--\n-- La condicion de las 20 horas es la que hace el trabajo: se lleva lo que\n-- toca y nada mas. Con las pasadas a las 9, las 14 y las 19, una oferta\n-- comprobada a las 9 no vuelve a estar pendiente hasta las 5 de la manana\n-- siguiente, asi que la coge la pasada de las 9 del dia siguiente. Cada una\n-- se mira una vez al dia y el catalogo se reparte solo en tres grupos.\n--\n-- El LIMIT NO es la medida de lo que se hace: es un techo de seguridad. Antes\n-- estaba en 1.600 por pasada -4.800 al dia- para un catalogo de 4.722, o sea\n-- 78 de margen, y entran 163 ofertas nuevas al dia. Se habria quedado corto en\n-- la primera semana y el ciclo habria pasado de un dia a dos sin avisar. Con\n-- 6.000 hay sitio para que el catalogo se triplique.\n--\n-- Entran tambien las que ya constan inactivas. Cuesta reconfirmar lo que ya\n-- sabemos, pero es la unica forma de que una oferta dada de baja por error\n-- vuelva sola. Si algun dia sobra, se anade AND COALESCE(is_active, TRUE).\nSELECT id, is_active\nFROM moveadvisor_market_offers\nWHERE portal = 'wallapop'\n  AND (last_checked_at IS NULL OR last_checked_at < NOW() - INTERVAL '20 hours')\nORDER BY last_checked_at ASC NULLS FIRST\nLIMIT 6000",
+        "additionalFields": {}
+      },
+      "id": "wpv-cola",
+      "name": "PG: Cola a verificar",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -20,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "wpv-loop",
+      "name": "Loop: oferta por oferta",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        200,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://api.wallapop.com/api/v3/items/' + $json.id.replace('wp_', '') }}",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "headers": {
+            "values": [
+              {
+                "name": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+              },
+              {
+                "name": "Accept",
+                "value": "application/json"
+              },
+              {
+                "name": "X-DeviceOS",
+                "value": "0"
+              }
+            ]
+          }
+        }
+      },
+      "id": "wpv-http",
+      "name": "HTTP: ¿sigue la ficha?",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        420,
+        400
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Wallapop - verificar si el anuncio sigue en pie.\n//\n// Mismo endpoint que el enriquecedor, pero aqui solo interesa una cosa: si\n// existe. Un 404 es una respuesta limpia y barata -unos 60 ms-, sin HTML que\n// interpretar ni heuristicas de redireccion a la home.\n\nconst out = $input.item.json;\nconst oferta = $('Loop: oferta por oferta').item.json;\nconst id = oferta.id;\n// Como consta ahora. Sirve para distinguir un cambio de estado de una simple\n// reconfirmacion, y no mover updated_at cuando no ha pasado nada.\nconst eraActiva = oferta.is_active !== false;\n\nconst status = Number(out.statusCode || 0);\n\nfunction esc(v) { if (v === null || v === undefined || v === '') return null; return \"'\" + String(v).replace(/'/g, \"''\") + \"'\"; }\n\n// Vendida o retirada. Es el unico veredicto que da de baja.\n//\n// Si ya constaba inactiva no se toca updated_at: se limita a rotar la fecha de\n// comprobacion. Antes se reescribia cada dia, y eso borraba el unico rastro que\n// queda de CUANDO se cayo el anuncio -no hay columna para esa fecha- porque lo\n// dejaba pareciendo que se habia caido hoy.\nif (status === 404 || status === 410) {\n  const sets = eraActiva\n    ? 'is_active=FALSE, last_checked_at=NOW(), updated_at=NOW()'\n    : 'last_checked_at=NOW()';\n  return [{ json: { sql: 'UPDATE moveadvisor_market_offers SET ' + sets + ' WHERE id=' + esc(id), count: 1, veredicto: 'vendida' } }];\n}\n\n// Sigue publicada. Si constaba inactiva se resucita -asi se corrige sola una\n// que se diera por muerta por error-; si ya constaba activa, solo se rotan las\n// fechas.\n//\n// Se toca last_seen_at, y no es un detalle: es lo que convierte esa columna en\n// la fecha de baja. El scraper solo lee las 40 paginas de mas recientes, asi\n// que no vuelve a ver casi ninguna oferta y last_seen_at se quedaba diciendo\n// cuando nos la cruzamos, no cuando dejo de estar publicada -en Wallapop las\n// activas y las inactivas tenian el mismo rango de fechas, indistinguibles.\n// Refrescandola aqui pasa a significar 'la ultima vez que comprobamos que\n// seguia en pie', y en una oferta caida se congela sola en su ultimo dia bueno.\n// Como se pasa tres veces al dia, la fecha de baja sale con unas ocho horas de\n// margen. No hace falta columna nueva.\n//\n// Con un matiz que conviene no olvidar: la ficha no dice si esta reservada -ese\n// campo solo sale en el buscador, y ni ahi aparece-, asi que un coche reservado\n// pero con el anuncio en pie cuenta aqui como vivo. Es lo que se puede saber.\nif (status === 200) {\n  const sets = eraActiva\n    ? 'last_checked_at=NOW(), last_seen_at=NOW()'\n    : 'is_active=TRUE, last_checked_at=NOW(), last_seen_at=NOW(), updated_at=NOW()';\n  return [{ json: { sql: 'UPDATE moveadvisor_market_offers SET ' + sets + ' WHERE id=' + esc(id), count: 1, veredicto: 'viva' } }];\n}\n\n// 429, 5xx, timeout: no sabemos nada, asi que no se toca is_active. Solo se\n// mueve last_checked_at para que la cola siga girando y no se atasque en esta\n// oferta -es lo mismo que hace scripts/verify-liveness.js con las transitorias.\nreturn [{ json: { sql: 'UPDATE moveadvisor_market_offers SET last_checked_at=NOW() WHERE id=' + esc(id), count: 1, veredicto: 'transitoria' } }];"
+      },
+      "id": "wpv-code",
+      "name": "Code: Veredicto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "additionalFields": {}
+      },
+      "id": "wpv-pg",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        860,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "amount": 500,
+        "unit": "ms"
+      },
+      "id": "wpv-wait",
+      "name": "Esperar 0,5s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1080,
+        400
+      ],
+      "webhookId": "wait-wallapop-verify"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a verificar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3 veces/día (9,14,19h)": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a verificar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Cola a verificar": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: oferta por oferta": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP: ¿sigue la ficha?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: ¿sigue la ficha?": {
+      "main": [
+        [
+          {
+            "node": "Code: Veredicto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Veredicto": {
+      "main": [
+        [
+          {
+            "node": "PG: Actualizar oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Actualizar oferta": {
+      "main": [
+        [
+          {
+            "node": "Esperar 0,5s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 0,5s": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "staticData": null,
+  "triggerCount": 0,
+  "tags": []
+}

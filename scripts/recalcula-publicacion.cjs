@@ -38,7 +38,8 @@ const APLICA = process.argv.includes("--aplica");
 
   const { rows } = await pool.query(
     `SELECT id, price::numeric AS al, market_price_es::numeric AS es,
-            import_comps AS comps, import_published AS publicada, import_locked AS fijada
+            import_comps AS comps, import_published AS publicada, import_locked AS fijada,
+            COALESCE(is_active, TRUE) AS viva
        FROM moveadvisor_market_offers
       WHERE country = 'DE'`
   );
@@ -46,7 +47,7 @@ const APLICA = process.argv.includes("--aplica");
   const decididas = rows.map((f) => {
     const al = Number(f.al) || 0;
     const es = Number(f.es) || 0;
-    const publica = sePublica({ precioAleman: al, precioEspanol: es, comparables: f.comps });
+    const publica = sePublica({ precioAleman: al, precioEspanol: es, comparables: f.comps, viva: f.viva !== false });
     const { euros, pct } = ahorroDelCliente(al, es);
     return {
       id: f.id, al, es, comps: Number(f.comps) || 0,

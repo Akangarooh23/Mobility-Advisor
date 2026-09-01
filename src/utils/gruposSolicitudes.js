@@ -17,8 +17,8 @@
 export const ETAPAS_IMPORTACION = [
   "Pendiente",
   "Contactado",
-  "Fianza pagada",
-  "Pedido a Alemania",
+  "Depósito retenido",
+  "Verificado y pagado",
   "En transporte",
   "En trámites",
   "Entregado",

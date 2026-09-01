@@ -162,8 +162,14 @@ async function pide(url) {
       }
 
       // El idioma, que decide si las carrocerias cuadran con las de la base.
-      if (ta.body_type && /^(Family|Small|Sedan|Van|Coupe)$/i.test(String(ta.body_type.text))) {
-        fallos.push(`la ficha contesta en ingles ("${ta.body_type.text}") pese a pedirla en espanol: los valores no cuadraran con los de la base`);
+      //
+      // Se mira el titulo del campo y no su valor: "Año" en espanol y "Year" en
+      // ingles, siempre, en cualquier coche. Mirar el valor no vale, porque hay
+      // carrocerias que se escriben igual en los dos idiomas -"SUV/4X4"- y la
+      // comprobacion pasaria segun que coche tocara.
+      const titulo = ta.year && ta.year.title ? String(ta.year.title) : "";
+      if (titulo && titulo.toLowerCase() !== "año") {
+        fallos.push(`la ficha contesta en otro idioma (el campo del ano se llama "${titulo}", no "Año") pese a pedirla en espanol: las carrocerias y las etiquetas no cuadraran con las de la base`);
       }
     }
   }

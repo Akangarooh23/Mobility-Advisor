@@ -84,14 +84,14 @@ export default function UserDashboardSolicitudes({
   // allí dejaría al cliente y a quien le atiende hablando de cosas distintas.
   // Lo que sí cambia es lo que significan.
   const IMPORTACION_PASOS = [
-    "Pendiente", "Contactado", "Fianza pagada", "Pedido a Alemania",
+    "Pendiente", "Contactado", "Depósito retenido", "Verificado y pagado",
     "En transporte", "En trámites", "Entregado",
   ];
   const IMPORTACION_EXPLICA = {
     Pendiente:              "Hemos recibido tu solicitud. Te llamamos para contarte el proceso.",
     Contactado:             "Ya hemos hablado contigo. El siguiente paso es hacer la transferencia a la cuenta de depósito.",
-    "Fianza pagada":        "Tu dinero está en la cuenta de depósito, retenido. Vamos a ver el coche en Alemania.",
-    "Pedido a Alemania":    "Hemos visto el coche y lo hemos comprado en tu nombre. En cuanto nos confirmen fechas, te las decimos.",
+    "Depósito retenido":        "Tu dinero está en la cuenta de depósito, retenido. Vamos a ver el coche en Alemania.",
+    "Verificado y pagado":    "Hemos visto el coche y lo hemos comprado en tu nombre. En cuanto nos confirmen fechas, te las decimos.",
     "En transporte":        "Está de camino a España.",
     "En trámites":          "Ya está aquí: ITV de homologación y matriculación para que puedas usarlo.",
     Entregado:              "Es tuyo y lo tienes contigo.",
@@ -111,8 +111,8 @@ export default function UserDashboardSolicitudes({
     "Renting confirmado":       { bg: "rgba(5,150,105,0.18)",   color: "#065f46" },
     Descartado:                 { bg: "rgba(94,94,89,0.10)", color: "var(--gris-600)" },
     // Los pasos de una importación. Se van oscureciendo según avanza.
-    "Fianza pagada":            { bg: "rgba(37,99,235,0.08)",  color: "#1d4ed8" },
-    "Pedido a Alemania":        { bg: "rgba(37,99,235,0.12)",  color: "#1d4ed8" },
+    "Depósito retenido":            { bg: "rgba(37,99,235,0.08)",  color: "#1d4ed8" },
+    "Verificado y pagado":        { bg: "rgba(37,99,235,0.12)",  color: "#1d4ed8" },
     "En transporte":            { bg: "rgba(37,99,235,0.16)",  color: "#1e40af" },
     "En trámites":              { bg: "rgba(99,102,241,0.14)", color: "#4338ca" },
     Entregado:                  { bg: "rgba(16,185,129,0.18)", color: "#065f46" },
@@ -315,7 +315,7 @@ export default function UserDashboardSolicitudes({
   }
 
   // Una importación va por sus propias etapas, y cada una tiene su pestaña.
-  // Sin esto, «Fianza pagada» no caía en ningún grupo y la solicitud desaparecía
+  // Sin esto, «Depósito retenido» no caía en ningún grupo y la solicitud desaparecía
   // del panel justo después de pagar.
   const esImportacion = (s) => s.type === "import";
   const grupoImport = (s) => (esImportacion(s) ? grupoDeImportacion(s.status) : null);
@@ -622,7 +622,7 @@ export default function UserDashboardSolicitudes({
                         {meta.deposit_quoted && (
                           <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "#1e40af", marginTop: 4 }}>
                             {meta.deposit_paid_at
-                              ? <>Fianza pagada el <strong>{new Date(meta.deposit_paid_at).toLocaleDateString("es-ES")}</strong>. Tienes su factura en Facturación.</>
+                              ? <>Depósito retenido el <strong>{new Date(meta.deposit_paid_at).toLocaleDateString("es-ES")}</strong>. Tienes su factura en Facturación.</>
                               : <>Fianza para reservarlo: <strong>{Number(meta.deposit_quoted).toLocaleString("es-ES")} €</strong></>}
                           </div>
                         )}

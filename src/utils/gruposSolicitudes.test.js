@@ -19,8 +19,8 @@ test("antes de pagar, está pendiente de que le llamen", () => {
 });
 
 test("desde que paga hasta que lo tiene, está en curso", () => {
-  expect(grupoDeImportacion("Fianza pagada")).toBe("en_curso");
-  expect(grupoDeImportacion("Pedido a Alemania")).toBe("en_curso");
+  expect(grupoDeImportacion("Depósito retenido")).toBe("en_curso");
+  expect(grupoDeImportacion("Verificado y pagado")).toBe("en_curso");
   expect(grupoDeImportacion("En transporte")).toBe("en_curso");
   expect(grupoDeImportacion("En trámites")).toBe("en_curso");
 });

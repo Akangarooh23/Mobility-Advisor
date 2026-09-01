@@ -73,7 +73,7 @@ describe("el número de cuenta no se publica", () => {
 });
 
 describe("los pasos que ve el cliente", () => {
-  test("«Fianza pagada» deja de significar que le hemos cobrado", () => {
+  test("«Depósito retenido» deja de significar que le hemos cobrado", () => {
     // El nombre del paso sigue siendo el del ERP —cambiarlo aquí y no allí
     // dejaría al cliente y a quien le atiende hablando de cosas distintas—
     // pero lo que significa ya no es lo mismo.
@@ -81,7 +81,7 @@ describe("los pasos que ve el cliente", () => {
     expect(PANEL).not.toContain("Fianza recibida y factura emitida");
   });
 
-  test("y «Pedido a Alemania» dice que se compró en su nombre", () => {
+  test("y «Verificado y pagado» dice que se compró en su nombre", () => {
     // No lo compramos nosotros para revendérselo: lo compra él.
     expect(PANEL).toContain("en tu nombre");
   });

@@ -110,23 +110,25 @@ describe("la línea de garantía del desglose", () => {
 });
 
 /**
- * Hasta dónde llega lo que ha pagado.
+ * El viaje del coche, con sus tres puntos.
  *
- * Durante unos días la ficha prometió lo que no se había cobrado: la línea decía
- * «Transporte desde Alemania» —de dónde, no hasta dónde— y debajo salía «Hasta:
- * tu casa». Lo incluido trae el coche hasta nuestras instalaciones de Madrid,
- * que es donde pasa la ITV de homologación y donde se matricula. Llevárselo
- * desde ahí se contrata aparte, como el seguro o el reacondicionado.
+ * «Transporte desde Alemania» decía de dónde y no decía hasta dónde. Y el viaje
+ * no es directo: **todos los coches pasan por Zaragoza**, que es donde se
+ * homologan y donde se preparan, y está ahí y no en Madrid porque queda a media
+ * distancia de Madrid, Barcelona, Valencia y Bilbao.
+ *
+ * Los dos tramos van dentro del precio. Que por dentro sean dos camiones —o el
+ * mismo conductor— es cosa nuestra: lo que él compra es un viaje.
  */
-describe("el transporte incluido, en la ficha", () => {
+describe("el viaje en la ficha del coche", () => {
   const FICHA3 = fs.readFileSync(
     path.join(__dirname, "PortalVoDetailPage.js"),
     "utf8"
   );
 
-  test("hay una sección con las dos puntas del viaje", () => {
-    expect(FICHA3).toContain("Transporte incluido");
+  test("se ven los tres puntos, no solo el de salida", () => {
     expect(FICHA3).toContain(">Desde</span>");
+    expect(FICHA3).toContain(">Pasa por</span>");
     expect(FICHA3).toContain(">Hasta</span>");
   });
 
@@ -134,20 +136,26 @@ describe("el transporte incluido, en la ficha", () => {
     expect(FICHA3).toContain("selectedPortalVoOffer.location");
   });
 
-  test("y el viaje acaba en Madrid, no en casa del cliente", () => {
-    // Es el fondo del cambio: prometer la puerta de su casa era prometer un
-    // viaje que no ha pagado.
-    expect(FICHA3).toContain("nuestras instalaciones de Madrid");
-    expect(FICHA3).not.toContain("tu casa, en cualquier punto de la península");
+  test("la parada de Zaragoza se dice, y se dice para qué", () => {
+    // Sin esto, tres semanas de espera no se entienden.
+    expect(FICHA3).toContain("Zaragoza");
+    expect(FICHA3).toContain("donde se homologa y se prepara");
   });
 
-  test("se le dice que puede recogerlo él", () => {
-    expect(FICHA3).toContain("Puedes recogerlo tú");
+  test("y el viaje acaba en su casa, que es lo que ha pagado", () => {
+    expect(FICHA3).toContain("tu casa, <strong>«{entregaEscrita}»</strong>");
+    expect(FICHA3).toContain("Los dos tramos van en el precio");
+  });
+
+  test("se dice que va incluido, no que se contrata", () => {
+    expect(FICHA3).toContain("El viaje, incluido en el precio");
   });
 });
 
 /**
  * Lo que se contrata aparte, y lo que no cambia por contratarlo.
+ *
+ * La entrega en su casa **no** está aquí: va dentro del precio.
  */
 describe("los servicios de la ficha", () => {
   const FICHA4 = fs.readFileSync(
@@ -181,11 +189,10 @@ describe("los servicios de la ficha", () => {
 });
 
 /**
- * La dirección, solo si ha pedido que se la llevemos.
+ * La dirección de envío.
  *
- * Antes se preguntaba siempre, cuando la entrega iba incluida. Ya no lo va:
- * pedirle la calle a quien va a recogerlo él es un campo de más a cambio de
- * nada.
+ * Se pide siempre, porque llevárselo va en el precio: no es algo que se
+ * contrate. Lo que sí se le rellena es lo que ya nos dijo en sus datos.
  */
 describe("la dirección de entrega", () => {
   const FICHA5 = fs.readFileSync(
@@ -193,18 +200,13 @@ describe("la dirección de entrega", () => {
     "utf8"
   );
 
-  test("el formulario solo sale si ha marcado la entrega", () => {
-    expect(FICHA5).toContain("const quiereEntrega");
-    expect(FICHA5).toContain("{quiereEntrega && (");
+  test("hay un botón para decir dónde se lo llevamos", () => {
+    expect(FICHA5).toContain("Cambiar dirección de envío");
   });
 
   test("se piden calle y código postal, no solo ciudad y provincia", () => {
     expect(FICHA5).toContain('placeholder="Calle, número y piso"');
     expect(FICHA5).toContain('placeholder="C. P."');
-  });
-
-  test("se le repite a dónde se lo llevamos, entre comillas", () => {
-    expect(FICHA5).toContain("Te lo llevamos a <strong>«{entregaEscrita}»</strong>");
   });
 
   test("si no ha dicho nada, se coge la que ya tiene en sus datos", () => {
@@ -214,15 +216,26 @@ describe("la dirección de entrega", () => {
     expect(FICHA5).toContain("perfil.billingProvince");
   });
 
-  test("y solo viaja con la solicitud si la ha pedido", () => {
-    // Guardar la dirección de quien va a recogerlo él abriría en el ERP un
-    // viaje de entrega que nadie ha contratado.
-    expect(FICHA5).toContain("entrega_direccion: quiereEntrega ? entrega.calle");
-    expect(FICHA5).toContain("entrega_cp: quiereEntrega ? entrega.cp");
+  test("y viaja entera con la solicitud, siempre", () => {
+    // Siempre, no solo si contrata algo: el segundo tramo, de Zaragoza a su
+    // puerta, va en el precio y hay que abrirlo con una dirección.
+    expect(FICHA5).toContain("entrega_direccion: entrega.calle");
+    expect(FICHA5).toContain("entrega_cp: entrega.cp");
+    expect(FICHA5).not.toContain("quiereEntrega ? entrega.calle");
   });
 
-  test("el aviso del recargo sale antes de pagar la fianza", () => {
+  test("se recuerda entre coches: quien compara cinco no lo escribe cinco veces", () => {
+    expect(FICHA5).toContain("popcar_entrega");
+    expect(FICHA5).toContain("leeEntregaGuardada");
+  });
+
+  test("el aviso del recargo sale antes de pagar la fianza, y sin cifra", () => {
     expect(FICHA5).toContain("recargoDeEntrega");
     expect(FICHA5).toContain("antes de que pagues nada");
+  });
+
+  test("y se puede cambiar hasta pagar la fianza, no hasta que salga", () => {
+    expect(FICHA5).toContain("cambiar hasta");
+    expect(FICHA5).toContain("que pagues la fianza");
   });
 });

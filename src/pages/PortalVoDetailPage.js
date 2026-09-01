@@ -151,6 +151,7 @@ export default function PortalVoDetailPage({
    * dirección de verdad se pone luego en su panel.
    */
   const [entrega, setEntrega] = useState(() => leeEntregaGuardada());
+  const [cambiandoEntrega, setCambiandoEntrega] = useState(false);
 
   /**
    * Si no ha dicho dónde, la dirección que ya tiene puesta en sus datos.
@@ -198,9 +199,9 @@ export default function PortalVoDetailPage({
   /**
    * Lo que se puede contratar aparte del coche.
    *
-   * El precio trae el coche hasta nuestras instalaciones de Madrid, lo
-   * matricula y le da su garantía. Ahí acaba lo incluido. Llevárselo a su casa,
-   * asegurarlo o dejarlo a punto son servicios, y se marcan uno a uno.
+   * El precio trae el coche hasta su casa, lo matricula y le da su garantía.
+   * Lo que queda fuera es lo que no todo el mundo quiere: asegurarlo y dejarlo
+   * a punto. Se marcan uno a uno.
    *
    * Ninguno entra en la fianza, y eso se dice en pantalla: la fianza es el 30 %
    * del coche, que es lo que nos comprometemos a pagar en Alemania. Cobrarle por
@@ -210,7 +211,6 @@ export default function PortalVoDetailPage({
     ? selectedPortalVoOffer.servicios
     : [];
   const [serviciosElegidos, setServiciosElegidos] = useState([]);
-  const quiereEntrega = serviciosElegidos.includes("entrega");
   const sumaDeServicios = servicios
     .filter((s) => serviciosElegidos.includes(s.id) && s.precio != null)
     .reduce((t, s) => t + Number(s.precio || 0), 0);
@@ -403,12 +403,12 @@ export default function PortalVoDetailPage({
             // suman nada a la fianza. Lo que hacen es llegar al expediente para
             // que quien le llame sepa de qué hablarle.
             servicios: serviciosElegidos,
-            // Y dónde se lo llevamos, solo si ha pedido que se lo llevemos.
-            // Quien va a recogerlo él no tiene por qué dar su calle.
-            entrega_direccion: quiereEntrega ? entrega.calle : "",
-            entrega_cp: quiereEntrega ? entrega.cp : "",
-            entrega_ciudad: quiereEntrega ? entrega.ciudad : "",
-            entrega_provincia: quiereEntrega ? entrega.provincia : "",
+            // Y dónde se lo llevamos. El viaje va en el precio, así que esto
+            // no es opcional: es el segundo tramo, de Zaragoza a su puerta.
+            entrega_direccion: entrega.calle,
+            entrega_cp: entrega.cp,
+            entrega_ciudad: entrega.ciudad,
+            entrega_provincia: entrega.provincia,
           }),
         });
       } else if (isParticular) {
@@ -788,19 +788,22 @@ export default function PortalVoDetailPage({
                         * peor que decir que se confirma.
                         */}
                       {/*
-                        * Hasta dónde llega lo que ha pagado.
+                        * El viaje del coche, con sus tres puntos.
                         *
                         * «Transporte desde Alemania» decía de dónde y no decía hasta
-                        * dónde, y quien lo leía entendía que el coche le llegaba a
-                        * casa. No: lo incluido lo trae hasta nuestras instalaciones de
-                        * Madrid, que es donde tiene que estar para la ITV de
-                        * homologación y para matricularlo.
+                        * dónde. Y el viaje no es directo: todos los coches pasan por
+                        * Zaragoza, que es donde se homologa y donde se preparan.
                         *
-                        * Llevárselo desde ahí se contrata, y sale justo debajo.
+                        * Zaragoza y no Madrid porque queda a media distancia de Madrid,
+                        * Barcelona, Valencia y Bilbao.
+                        *
+                        * Los dos tramos van dentro del precio. Que por dentro sean dos
+                        * camiones —o el mismo conductor— es cosa nuestra, y aquí no se
+                        * cuenta: lo que él compra es un viaje.
                         */}
                       <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--gris-200)" }}>
                         <div style={{ fontSize: 11.5, fontWeight: 800, color: isDark ? "var(--gris-300)" : "var(--gris-600)", marginBottom: 6 }}>
-                          Transporte incluido
+                          El viaje, incluido en el precio
                         </div>
 
                         <div style={{ display: "flex", gap: 10, fontSize: 12.5, color: isDark ? "var(--gris-300)" : "var(--gris-700)", marginBottom: 3 }}>
@@ -809,25 +812,99 @@ export default function PortalVoDetailPage({
                           {selectedPortalVoOffer.location && <span style={{ color: isDark ? "var(--gris-500)" : "var(--gris-400)" }}>(Alemania)</span>}
                         </div>
 
-                        <div style={{ display: "flex", gap: 10, fontSize: 12.5, color: isDark ? "var(--gris-300)" : "var(--gris-700)" }}>
-                          <span style={{ width: 46, color: isDark ? "var(--gris-500)" : "var(--gris-400)" }}>Hasta</span>
-                          <strong>nuestras instalaciones de Madrid</strong>
+                        <div style={{ display: "flex", gap: 10, fontSize: 12.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginBottom: 3 }}>
+                          <span style={{ width: 46, color: isDark ? "var(--gris-500)" : "var(--gris-400)" }}>Pasa por</span>
+                          <span><strong>Zaragoza</strong>, donde se homologa y se prepara</span>
                         </div>
 
-                        <p style={{ margin: "6px 0 0", fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", lineHeight: 1.6 }}>
-                          Aquí es donde pasa la ITV de homologación y donde se matricula.
-                          Puedes recogerlo tú, o pedir que te lo llevemos.
-                        </p>
+                        <div style={{ display: "flex", gap: 10, fontSize: 12.5, color: isDark ? "var(--gris-300)" : "var(--gris-700)", alignItems: "baseline", flexWrap: "wrap" }}>
+                          <span style={{ width: 46, color: isDark ? "var(--gris-500)" : "var(--gris-400)" }}>Hasta</span>
+                          {entregaEscrita ? (
+                            <span>
+                              tu casa, <strong>«{entregaEscrita}»</strong>
+                            </span>
+                          ) : (
+                            <span style={{ color: isDark ? "var(--gris-500)" : "var(--gris-400)" }}>
+                              tu casa, en cualquier punto de la península
+                            </span>
+                          )}
+                          {!cambiandoEntrega && (
+                            <button
+                              type="button"
+                              onClick={() => setCambiandoEntrega(true)}
+                              style={{
+                                background: "none", border: "none", padding: 0, fontSize: 11.5,
+                                fontWeight: 700, color: "var(--marca-claro)", cursor: "pointer",
+                                textDecoration: "underline",
+                              }}
+                            >
+                              Cambiar dirección de envío
+                            </button>
+                          )}
+                        </div>
+
+                        {cambiandoEntrega && (
+                          <div style={{ marginTop: 6 }}>
+                            <input
+                              value={entrega.calle}
+                              onChange={(e) => setEntrega((d) => ({ ...d, calle: e.target.value }))}
+                              placeholder="Calle, número y piso"
+                              style={{ width: "100%", padding: "6px 8px", fontSize: 12, borderRadius: 8, border: "1px solid var(--gris-200)", marginBottom: 6, boxSizing: "border-box" }}
+                            />
+                            <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                              <input
+                                value={entrega.cp}
+                                onChange={(e) => setEntrega((d) => ({ ...d, cp: e.target.value }))}
+                                placeholder="C. P."
+                                style={{ flex: "0 1 90px", padding: "6px 8px", fontSize: 12, borderRadius: 8, border: "1px solid var(--gris-200)" }}
+                              />
+                              <input
+                                value={entrega.ciudad}
+                                onChange={(e) => setEntrega((d) => ({ ...d, ciudad: e.target.value }))}
+                                placeholder="Ciudad"
+                                style={{ flex: "1 1 110px", padding: "6px 8px", fontSize: 12, borderRadius: 8, border: "1px solid var(--gris-200)" }}
+                              />
+                              <input
+                                value={entrega.provincia}
+                                onChange={(e) => setEntrega((d) => ({ ...d, provincia: e.target.value }))}
+                                placeholder="Provincia"
+                                style={{ flex: "1 1 110px", padding: "6px 8px", fontSize: 12, borderRadius: 8, border: "1px solid var(--gris-200)" }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setCambiandoEntrega(false)}
+                                style={{
+                                  padding: "6px 12px", fontSize: 12, fontWeight: 800, borderRadius: 8,
+                                  border: "none", background: "var(--marca)", color: "#fff", cursor: "pointer",
+                                }}
+                              >
+                                Listo
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {recargoDeEntrega ? (
+                          <div style={{ marginTop: 6, padding: "6px 10px", borderRadius: 8, background: "#fffbeb", border: "1px solid #fbbf24", color: "#92400e", fontSize: 11.5 }}>
+                            Fuera de la península la entrega puede llevar un recargo. Te lo
+                            confirmamos antes de que pagues nada.
+                          </div>
+                        ) : (
+                          <p style={{ margin: "6px 0 0", fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", lineHeight: 1.6 }}>
+                            Los dos tramos van en el precio. La calle la puedes cambiar hasta
+                            que pagues la fianza.
+                          </p>
+                        )}
                       </div>
 
                       {/*
                         * Lo que se contrata aparte.
                         *
-                        * Ninguno tiene precio todavía: la entrega lo tendrá cuando haya
-                        * tabla de zonas, el seguro cuando haya correduría, y el
-                        * reacondicionado no lo puede tener nunca antes de que el coche
-                        * llegue y se mire. Los tres salen como «a consultar» y no suman
-                        * nada: no se puede sumar lo que no se sabe.
+                        * Solo dos, y ninguno con precio: el seguro no lo tendrá hasta que
+                        * haya correduría, y el reacondicionado no lo puede tener hasta
+                        * que el coche llegue a la campa y se mire. Los dos salen como
+                        * «a consultar» y no suman nada: no se puede sumar lo que no se
+                        * sabe.
                         *
                         * Y ninguno entra en la fianza, que se dice aquí abajo.
                         */}
@@ -871,59 +948,6 @@ export default function PortalVoDetailPage({
                               </label>
                             );
                           })}
-
-                          {/*
-                            * La dirección solo si ha pedido que se lo llevemos.
-                            *
-                            * Antes se preguntaba siempre, cuando la entrega iba incluida.
-                            * Ya no lo va: pedirle la calle a quien va a recogerlo él es un
-                            * campo de más a cambio de nada.
-                            */}
-                          {quiereEntrega && (
-                            <div style={{ marginTop: 8, padding: "8px 10px", borderRadius: 8, background: isDark ? "rgba(255,255,255,0.03)" : "var(--gris-50)" }}>
-                              <div style={{ fontSize: 11.5, fontWeight: 700, color: isDark ? "var(--gris-300)" : "var(--gris-600)", marginBottom: 6 }}>
-                                ¿A dónde te lo llevamos?
-                              </div>
-                              <input
-                                value={entrega.calle}
-                                onChange={(e) => setEntrega((d) => ({ ...d, calle: e.target.value }))}
-                                placeholder="Calle, número y piso"
-                                style={{ width: "100%", padding: "6px 8px", fontSize: 12, borderRadius: 8, border: "1px solid var(--gris-200)", marginBottom: 6, boxSizing: "border-box" }}
-                              />
-                              <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
-                                <input
-                                  value={entrega.cp}
-                                  onChange={(e) => setEntrega((d) => ({ ...d, cp: e.target.value }))}
-                                  placeholder="C. P."
-                                  style={{ flex: "0 1 90px", padding: "6px 8px", fontSize: 12, borderRadius: 8, border: "1px solid var(--gris-200)" }}
-                                />
-                                <input
-                                  value={entrega.ciudad}
-                                  onChange={(e) => setEntrega((d) => ({ ...d, ciudad: e.target.value }))}
-                                  placeholder="Ciudad"
-                                  style={{ flex: "1 1 110px", padding: "6px 8px", fontSize: 12, borderRadius: 8, border: "1px solid var(--gris-200)" }}
-                                />
-                                <input
-                                  value={entrega.provincia}
-                                  onChange={(e) => setEntrega((d) => ({ ...d, provincia: e.target.value }))}
-                                  placeholder="Provincia"
-                                  style={{ flex: "1 1 110px", padding: "6px 8px", fontSize: 12, borderRadius: 8, border: "1px solid var(--gris-200)" }}
-                                />
-                              </div>
-                              {entregaEscrita && (
-                                <p style={{ margin: "6px 0 0", fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", lineHeight: 1.6 }}>
-                                  Te lo llevamos a <strong>«{entregaEscrita}»</strong>. Lo puedes
-                                  cambiar hasta que pagues la fianza.
-                                </p>
-                              )}
-                              {recargoDeEntrega && (
-                                <div style={{ marginTop: 6, padding: "6px 10px", borderRadius: 8, background: "#fffbeb", border: "1px solid #fbbf24", color: "#92400e", fontSize: 11.5 }}>
-                                  Fuera de la península la entrega puede llevar un recargo. Te lo
-                                  confirmamos antes de que pagues nada.
-                                </div>
-                              )}
-                            </div>
-                          )}
 
                           {sumaDeServicios > 0 && (
                             <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginTop: 8, paddingTop: 8, borderTop: "1px solid var(--gris-200)", fontSize: 13, fontWeight: 800, color: isDark ? "var(--gris-200)" : "var(--gris-800)" }}>

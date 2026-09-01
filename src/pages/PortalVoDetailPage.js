@@ -519,7 +519,17 @@ export default function PortalVoDetailPage({
         [t("marketplace.specFuel"), selectedPortalVoOffer.fuel],
         [t("marketplace.specPower"), selectedPortalVoOffer.power],
         [t("marketplace.specTransmission"), getPortalVoTransmission(selectedPortalVoOffer)],
-        [t("marketplace.specDisplacement"), selectedPortalVoOffer.displacement > 0 ? `${selectedPortalVoOffer.displacement.toLocaleString("es-ES")} cc` : "EV"],
+        /*
+         * Sin cilindrada no se dice «EV».
+         *
+         * Estaba puesto así, y como ninguna oferta de importación trae la
+         * cilindrada, los 1.568 coches decían ser eléctricos: un Golf diésel de
+         * 2005 incluido. No es un fallo de estilo, es afirmar del coche algo que
+         * no es, en la ficha donde el cliente decide.
+         *
+         * Cuando no se sabe, se dice que no se sabe.
+         */
+        [t("marketplace.specDisplacement"), selectedPortalVoOffer.displacement > 0 ? `${selectedPortalVoOffer.displacement.toLocaleString("es-ES")} cc` : "—"],
         [t("marketplace.specLocation"), selectedPortalVoOffer.location],
       ].map(([label, value]) => (
         <div

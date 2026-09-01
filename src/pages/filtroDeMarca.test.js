@@ -239,3 +239,25 @@ describe("la dirección de entrega", () => {
     expect(FICHA5).toContain("que pagues la fianza");
   });
 });
+
+/**
+ * La cilindrada que no se sabe.
+ *
+ * La ficha ponía «Cilindrada: EV» cuando no había dato. Y como ninguna oferta
+ * de importación trae la cilindrada, los 1.568 coches decían ser eléctricos —un
+ * Golf diésel de 2005 incluido—, en la pantalla donde el cliente decide.
+ */
+describe("la cilindrada en la ficha", () => {
+  const FICHA6 = fs.readFileSync(
+    path.join(__dirname, "PortalVoDetailPage.js"),
+    "utf8"
+  );
+
+  test("sin dato no se dice que sea eléctrico", () => {
+    expect(FICHA6).not.toContain('} cc` : "EV"');
+  });
+
+  test("se dice que no se sabe", () => {
+    expect(FICHA6).toContain('} cc` : "—"');
+  });
+});

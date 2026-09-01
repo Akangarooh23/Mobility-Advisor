@@ -661,6 +661,50 @@ export default function UserDashboardSolicitudes({
                             onGuardada={onSolicitudesRefrescadas}
                           />
                         )}
+                        {/*
+                          * La liquidación del impuesto, en su tarjeta.
+                          *
+                          * Pagó una estimación, porque el impuesto no se sabe hasta
+                          * que se matricula. Si le vamos a pedir otros seiscientos
+                          * euros, tiene que verlo escrito **antes** de que se lo
+                          * pidan por teléfono: una cifra que aparece en una llamada
+                          * suena a que se les ha olvidado algo.
+                          *
+                          * Y si le devolvemos, es la mejor noticia de todo el
+                          * proceso y conviene que se note.
+                          */}
+                        {(() => {
+                          if (meta.impuesto_real == null) return null;
+                          const puso = Number(meta.escrow_impuesto) || 0;
+                          const salio = Number(meta.impuesto_real) || 0;
+                          const dif = salio - puso;
+                          const hecha = Boolean(meta.liquidacion_at);
+                          const devuelve = dif < 0;
+                          return (
+                            <div style={{
+                              marginTop: 8, padding: "10px 12px", borderRadius: 8,
+                              background: devuelve
+                                ? (isDark ? "rgba(5,150,105,0.12)" : "rgba(5,150,105,0.06)")
+                                : (isDark ? "rgba(255,255,255,0.04)" : "var(--gris-50)"),
+                              border: `1px solid ${devuelve ? "rgba(5,150,105,0.35)" : "var(--gris-200)"}`,
+                            }}>
+                              <div style={{ fontSize: 12.5, fontWeight: 800, color: isDark ? "var(--gris-200)" : "var(--gris-800)", marginBottom: 4 }}>
+                                El impuesto de matriculación, ya ajustado
+                              </div>
+                              <div style={{ fontSize: 11.5, color: isDark ? "var(--gris-300)" : "var(--gris-600)", lineHeight: 1.6 }}>
+                                Pusiste <strong>{puso.toLocaleString("es-ES")} €</strong> a cuenta y ha salido{" "}
+                                <strong>{salio.toLocaleString("es-ES")} €</strong>.{" "}
+                                {dif === 0
+                                  ? "Cuadra: no hay nada que ajustar."
+                                  : devuelve
+                                    ? <>Te devolvemos <strong>{Math.abs(dif).toLocaleString("es-ES")} €</strong>.</>
+                                    : <>Quedan <strong>{dif.toLocaleString("es-ES")} €</strong> por pagar.</>}
+                                {hecha && " Ya está hecho."}
+                              </div>
+                            </div>
+                          );
+                        })()}
+
                         {/* Hasta que el dinero no está depositado no se va a ver el
                             coche, así que esto es el siguiente paso de verdad y va
                             donde se lee la cifra. */}

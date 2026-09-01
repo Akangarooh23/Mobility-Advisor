@@ -104,3 +104,31 @@ describe("los pasos que ve el cliente", () => {
     expect(PANEL).toContain("en tu nombre");
   });
 });
+
+/**
+ * La liquidación del impuesto, en el panel del cliente.
+ *
+ * Pagó una estimación, porque el impuesto no se sabe hasta que se matricula. Si
+ * le vamos a pedir otros seiscientos euros, tiene que verlo escrito **antes** de
+ * que se lo pidan por teléfono: una cifra que aparece en una llamada suena a que
+ * se les ha olvidado algo.
+ */
+describe("el ajuste del impuesto, en su panel", () => {
+  test("sale lo que puso y lo que ha salido", () => {
+    expect(PANEL).toContain("El impuesto de matriculación, ya ajustado");
+    expect(PANEL).toContain("meta.escrow_impuesto");
+    expect(PANEL).toContain("meta.impuesto_real");
+  });
+
+  test("y qué pasa con la diferencia, en los dos sentidos", () => {
+    expect(PANEL).toContain("Te devolvemos");
+    expect(PANEL).toContain("por pagar");
+    expect(PANEL).toContain("Cuadra: no hay nada que ajustar");
+  });
+
+  test("no sale hasta que se sabe el importe real", () => {
+    // Un bloque diciendo «pendiente» durante seis semanas es ruido, y el dato no
+    // depende de nosotros: llega cuando la gestoría matricula.
+    expect(PANEL).toContain("if (meta.impuesto_real == null) return null;");
+  });
+});

@@ -91,8 +91,15 @@ describe("el precio con la garantía elegida", () => {
   });
 
   test("y el depósito lo dice con lo que de verdad importa: cuándo se suelta", () => {
-    expect(FICHA).toContain("Tu dinero, retenido hasta que veamos el coche");
-    expect(FICHA).toContain("vuelve entero");
+    expect(FICHA).toContain("No se paga a Alemania hasta que veamos el coche");
+    expect(FICHA).toContain("te lo devolvemos entero");
+  });
+
+  test("el impuesto se dice que va a cuenta, no como precio cerrado", () => {
+    // Si fuera cerrado y el real saliera por encima, esa diferencia la pondría
+    // PopCar. Decirlo antes de que pague es lo que permite ajustarlo después.
+    expect(FICHA).toContain("va <strong>a cuenta</strong>");
+    expect(FICHA).toContain("se te cobra la diferencia");
   });
 
   test("la garantía ya no se anuncia como incluida", () => {

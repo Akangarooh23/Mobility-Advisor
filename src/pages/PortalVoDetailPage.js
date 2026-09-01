@@ -1033,13 +1033,30 @@ export default function PortalVoDetailPage({
                   {depositoImport > 0 && (
                     <div style={{ background: isDark ? "rgba(5,150,105,0.12)" : "rgba(5,150,105,0.06)", border: "1.5px solid rgba(5,150,105,0.35)", borderRadius: 12, padding: "12px 14px", marginTop: 10 }}>
                       <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#34d399" : "#047857", marginBottom: 4 }}>
-                        Tu dinero, retenido hasta que veamos el coche
+                        No se paga a Alemania hasta que veamos el coche
                       </div>
                       <div style={{ fontSize: 12.5, color: isDark ? "var(--gris-300)" : "#065f46", lineHeight: 1.6 }}>
-                        Depositas <strong style={{ fontSize: 15 }}>{formatCurrency(depositoImport)}</strong> en una cuenta
-                        de depósito: el coche y nuestro servicio. Ese dinero <strong>no se libera</strong> hasta
+                        Pagas <strong style={{ fontSize: 15 }}>{formatCurrency(depositoImport)}</strong>: el coche,
+                        nuestro servicio y el impuesto. <strong>No se lo pagamos al vendedor</strong> hasta
                         que uno de los nuestros está delante del coche en Alemania y confirma que es el
-                        que se anunció. Si no lo es, vuelve entero.
+                        que se anunció. Si no lo es, te lo devolvemos entero.
+                      </div>
+                      {/*
+                        * El impuesto va a cuenta, y hay que decirlo aquí.
+                        *
+                        * Es una estimación mientras no tengamos el CO₂ de cada coche.
+                        * Si fuera un precio cerrado y el real saliera por encima —pasa
+                        * en los coches de más de 160 g/km, que pagan el doble del tramo
+                        * que estimamos— esa diferencia saldría de nuestro margen.
+                        *
+                        * Decirlo antes de que pague es lo que permite ajustarlo después
+                        * sin que sea una sorpresa. Y como la estimación se equivoca
+                        * hacia arriba a propósito, casi siempre es una devolución.
+                        */}
+                      <div style={{ fontSize: 11.5, color: isDark ? "var(--gris-400)" : "#047857", lineHeight: 1.6, marginTop: 6, opacity: 0.9 }}>
+                        El impuesto de matriculación va <strong>a cuenta</strong>: al matricularlo se
+                        sabe el importe exacto y se ajusta. Si sale menos, te lo devolvemos;
+                        si sale más, se te cobra la diferencia.
                       </div>
                     </div>
                   )}

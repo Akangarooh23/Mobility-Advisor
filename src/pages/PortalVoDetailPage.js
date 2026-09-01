@@ -332,36 +332,23 @@ export default function PortalVoDetailPage({
   }, []);
 
   const [solicitudHecha, setSolicitudHecha] = useState(null);
-  const [pagandoFianza, setPagandoFianza] = useState(false);
+
   const [pidiendoLlamada, setPidiendoLlamada] = useState(false);
   const [llamadaPedida, setLlamadaPedida] = useState(false);
   const [errorFianza, setErrorFianza] = useState("");
 
-  /**
-   * Lleva a pagar la fianza, desde la pantalla de «solicitud recibida».
+  /*
+   * Aquí había una función que abría Stripe y cobraba la fianza del 30 %.
    *
-   * No se le manda solo: se le ofrece. Son miles de euros y acaba de rellenar un
-   * formulario; empujarle a una pasarela sin avisar se parece más a una trampa
-   * que a una compra. Y para emitirle la factura hacen falta su NIF y su
-   * dirección, que puede no tener puestos: si faltan, esto lo dice en vez de
-   * soltarle en una pantalla de error.
+   * Ya no: lo que se deposita es el coche entero más nuestro servicio, y eso no
+   * se cobra con tarjeta. Un coche de 20.000 € llevaría unos 300 € de comisión
+   * y además choca con el límite de cualquier tarjeta particular.
+   *
+   * Va por transferencia a una cuenta de depósito, y los datos de la cuenta se
+   * dan hablando con el cliente. Cuando haya proveedor —PayComet o MangoPay—
+   * volverá a haber un botón, pero será otro botón: uno que retiene el dinero
+   * en vez de cobrarlo.
    */
-  async function pagaFianzaAhora() {
-    if (!solicitudHecha?.id) return;
-    setErrorFianza("");
-    setPagandoFianza(true);
-    try {
-      const { postBillingCheckoutJson } = await import("../utils/apiClient");
-      const { data } = await postBillingCheckoutJson({
-        planId: "fianza", leadId: solicitudHecha.id, origin: window.location.origin,
-      });
-      if (data?.url) { window.location.href = data.url; return; }
-      setErrorFianza(data?.message || data?.error || "No hemos podido abrir el pago. Te llamamos y lo vemos.");
-    } catch {
-      setErrorFianza("No hemos podido abrir el pago. Te llamamos y lo vemos.");
-    }
-    setPagandoFianza(false);
-  }
 
   /**
    * «Prefiero que me llaméis.»
@@ -1460,31 +1447,42 @@ export default function PortalVoDetailPage({
                     : "Te contactaremos en menos de 2 horas."}
                 </div>
 
-                {/* Pagar ahora, si quiere. No se le lleva solo: son miles de euros
-                    y acaba de rellenar un formulario. */}
+                {/*
+                  * Aquí ya no se paga con tarjeta.
+                  *
+                  * Antes había un botón que abría Stripe y cobraba la fianza del
+                  * 30 %. Ahora lo que se deposita es el coche entero más nuestro
+                  * servicio, y eso no se cobra con tarjeta: ni por límite ni por
+                  * comisión —serían unos 300 € de coste en un coche de 20.000—.
+                  *
+                  * Va a una cuenta de depósito por transferencia, y los datos de
+                  * esa cuenta **no se publican en esta página**. Un número de
+                  * cuenta en una pantalla pública es la forma más fácil de que
+                  * alguien haga una captura, cambie un dígito y la reenvíe. Se los
+                  * damos hablando con él, que además es cuando se resuelven las
+                  * dudas que tiene delante de una cifra así.
+                  */}
                 {isImport && solicitudHecha?.fianza > 0 && (
                   <div style={{ marginTop: 18 }}>
-                    {/* Explicado antes del botón: nadie paga mil euros sin
+                    {/* Explicado antes: nadie transfiere veinte mil euros sin
                         saber qué pasa después. */}
                     <div style={{ marginBottom: 12 }}>
                       <ComoFuncionaImportacion isDark={isDark} />
                     </div>
-                    <button
-                      type="button"
-                      onClick={pagaFianzaAhora}
-                      disabled={pagandoFianza}
-                      style={{
-                        // `--marca` y `--gris-900` son los dos #111111: el botón
-                        // salía negro con el texto negro, o sea sin texto.
-                        width: "100%", padding: "13px 20px", background: "var(--marca)",
-                        color: "#fff", border: "none", borderRadius: 10,
-                        fontWeight: 800, fontSize: 14,
-                        cursor: pagandoFianza ? "default" : "pointer",
-                        opacity: pagandoFianza ? 0.6 : 1,
-                      }}
-                    >
-                      {pagandoFianza ? "Abriendo el pago…" : `Pagar la fianza ahora · ${solicitudHecha.fianza.toLocaleString("es-ES")} €`}
-                    </button>
+                    <div style={{
+                      background: isDark ? "rgba(5,150,105,0.12)" : "rgba(5,150,105,0.06)",
+                      border: "1.5px solid rgba(5,150,105,0.35)", borderRadius: 10,
+                      padding: "12px 14px", marginBottom: 10,
+                    }}>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#34d399" : "#047857", marginBottom: 4 }}>
+                        {solicitudHecha.fianza.toLocaleString("es-ES")} € a la cuenta de depósito
+                      </div>
+                      <div style={{ fontSize: 12.5, color: isDark ? "var(--gris-300)" : "#065f46", lineHeight: 1.6 }}>
+                        Te llamamos y te damos los datos de la cuenta. Ese dinero queda
+                        retenido: <strong>no lo cobra nadie</strong> hasta que uno de los
+                        nuestros ve el coche en Alemania y confirma que es el que se anunció.
+                      </div>
+                    </div>
                     {/* La otra respuesta razonable a que te pidan mil euros. Va
                         debajo y sin relleno: es una alternativa, no la acción. */}
                     {llamadaPedida ? (

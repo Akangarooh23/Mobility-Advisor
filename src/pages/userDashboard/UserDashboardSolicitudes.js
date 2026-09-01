@@ -68,44 +68,32 @@ export default function UserDashboardSolicitudes({
    * ve. Si su panel solo dice «En proceso», llama para preguntar; si dice dónde
    * está y qué falta, no hace falta que llame.
    */
-  const [pagandoFianza, setPagandoFianza] = useState("");
-  const [errorFianza, setErrorFianza] = useState("");
-
-  /**
-   * Lleva al cliente a pagar su fianza.
+  /*
+   * Aquí había un botón que abría Stripe y cobraba la fianza del 30 %.
    *
-   * Se cobra por Stripe, con la cifra que se le dijo al pedir la importación, y
-   * al cobrarse se le emite su factura y el expediente avanza solo. Aquí solo se
-   * pide la puerta de pago y se le manda a ella.
+   * Ya no hay fianza: lo que se deposita es el coche entero más nuestro
+   * servicio, y eso no se cobra con tarjeta. Un coche de 20.000 € llevaría unos
+   * 300 € de comisión y choca con el límite de cualquier tarjeta particular.
+   *
+   * Va por transferencia a una cuenta de depósito, y esos datos se los damos
+   * hablando con él: un número de cuenta en una pantalla es la forma más fácil
+   * de que alguien haga una captura, cambie un dígito y la reenvíe.
    */
-  async function pagaFianza(leadId) {
-    setErrorFianza("");
-    setPagandoFianza(leadId);
-    try {
-      const { postBillingCheckoutJson } = await import("../../utils/apiClient");
-      const { response, data } = await postBillingCheckoutJson({
-        planId: "fianza", leadId, origin: window.location.origin,
-      });
-      if (data?.url) { window.location.href = data.url; return; }
-      // El perfil incompleto no es un fallo: es algo que puede arreglar él.
-      setErrorFianza(data?.message || data?.error || (response.ok ? "El pago no está disponible ahora mismo." : "No hemos podido abrir el pago."));
-    } catch (e) {
-      setErrorFianza("No hemos podido abrir el pago.");
-    }
-    setPagandoFianza("");
-  }
 
+  // Los nombres de los pasos siguen siendo los del ERP: cambiarlos aquí y no
+  // allí dejaría al cliente y a quien le atiende hablando de cosas distintas.
+  // Lo que sí cambia es lo que significan.
   const IMPORTACION_PASOS = [
     "Pendiente", "Contactado", "Fianza pagada", "Pedido a Alemania",
     "En transporte", "En trámites", "Entregado",
   ];
   const IMPORTACION_EXPLICA = {
     Pendiente:              "Hemos recibido tu solicitud. Te llamamos para contarte el proceso.",
-    Contactado:             "Ya hemos hablado contigo. El siguiente paso es pagar la fianza.",
-    "Fianza pagada":        "Fianza recibida y factura emitida. Vamos a pedir tu coche.",
-    "Pedido a Alemania":    "Pedido hecho. En cuanto nos confirmen fechas, te las decimos.",
+    Contactado:             "Ya hemos hablado contigo. El siguiente paso es hacer la transferencia a la cuenta de depósito.",
+    "Fianza pagada":        "Tu dinero está en la cuenta de depósito, retenido. Vamos a ver el coche en Alemania.",
+    "Pedido a Alemania":    "Hemos visto el coche y lo hemos comprado en tu nombre. En cuanto nos confirmen fechas, te las decimos.",
     "En transporte":        "Está de camino a España.",
-    "En trámites":          "Ya está aquí: aduana, ITV y matriculación para que puedas usarlo.",
+    "En trámites":          "Ya está aquí: ITV de homologación y matriculación para que puedas usarlo.",
     Entregado:              "Es tuyo y lo tienes contigo.",
   };
 
@@ -654,41 +642,29 @@ export default function UserDashboardSolicitudes({
                             onGuardada={onSolicitudesRefrescadas}
                           />
                         )}
-                        {/* Hasta que no está pagada no se puede pedir el coche a
-                            Alemania, así que el botón es el siguiente paso de
-                            verdad y va donde se lee la cifra. */}
+                        {/* Hasta que el dinero no está depositado no se va a ver el
+                            coche, así que esto es el siguiente paso de verdad y va
+                            donde se lee la cifra. */}
                         {meta.deposit_quoted && !meta.deposit_paid_at && (
                           <div style={{ marginTop: 8 }}>
                             <div style={{ marginBottom: 10 }}>
                               <ComoFuncionaImportacion isDark={isDark} compacto />
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => pagaFianza(item.id)}
-                              disabled={pagandoFianza === item.id}
-                              style={{
-                                // El texto en blanco: `--marca` y `--gris-900`
-                                // son los dos #111111, y el botón salía negro
-                                // sobre negro. El respaldo amarillo es de cuando
-                                // la marca era otra.
-                                background: "var(--marca)", color: "#fff",
-                                border: "none", borderRadius: 8, padding: "9px 16px",
-                                fontSize: 13, fontWeight: 800,
-                                cursor: pagandoFianza === item.id ? "default" : "pointer",
-                                opacity: pagandoFianza === item.id ? 0.6 : 1,
-                              }}
-                            >
-                              {pagandoFianza === item.id
-                                ? "Abriendo el pago…"
-                                : `Pagar la fianza · ${Number(meta.deposit_quoted).toLocaleString("es-ES")} €`}
-                            </button>
-                            <div style={{ fontSize: 11.5, color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginTop: 5, lineHeight: 1.5 }}>
-                              Se paga con tarjeta y te emitimos factura. Si al final no se hace el
-                              pedido, se te devuelve.
+                            <div style={{
+                              background: isDark ? "rgba(5,150,105,0.12)" : "rgba(5,150,105,0.06)",
+                              border: "1.5px solid rgba(5,150,105,0.35)", borderRadius: 8,
+                              padding: "10px 12px",
+                            }}>
+                              <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#34d399" : "#047857", marginBottom: 4 }}>
+                                {Number(meta.deposit_quoted).toLocaleString("es-ES")} € a la cuenta de depósito
+                              </div>
+                              <div style={{ fontSize: 11.5, color: isDark ? "var(--gris-300)" : "#065f46", lineHeight: 1.55 }}>
+                                Por transferencia. Te damos los datos de la cuenta al llamarte, no los
+                                publicamos aquí. El dinero queda retenido y <strong>no lo cobra nadie</strong> hasta
+                                que uno de los nuestros ve el coche en Alemania. Si no es el que se
+                                anunció, vuelve entero.
+                              </div>
                             </div>
-                            {errorFianza && (
-                              <div style={{ fontSize: 12, color: "#b91c1c", marginTop: 6 }}>{errorFianza}</div>
-                            )}
                           </div>
                         )}
                       </div>

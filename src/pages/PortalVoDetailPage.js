@@ -989,7 +989,7 @@ export default function PortalVoDetailPage({
                         * «a consultar» y no suman nada: no se puede sumar lo que no se
                         * sabe.
                         *
-                        * Y ninguno entra en la fianza, que se dice aquí abajo.
+                        * Y ninguno entra en el depósito, que se dice aquí abajo.
                         */}
                       {servicios.length > 0 && (
                         <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--gris-200)" }}>

@@ -139,11 +139,44 @@ async function pide(url) {
       fallos.push(`la ficha de un coche que acaba de salir en el buscador responde ${ficha.status}; el enriquecedor no rellenaria nada`);
     } else {
       const ta = ficha.json.type_attributes || {};
-      // Lo que el enriquecedor va a buscar ahi y no encuentra en ningun otro sitio.
-      for (const campo of ["doors", "seats", "gear_box", "body_type"]) {
-        if (!ta[campo] || ta[campo].value === undefined) {
-          fallos.push(`la ficha ya no trae "${campo}": es justo el hueco que venia a tapar el enriquecedor`);
+
+      // Se recorren varias fichas, no una.
+      //
+      // Con una sola no vale por dos razones. La primera es que las
+      // carrocerias raras salen en el 2% de los anuncios, asi que mirando un
+      // coche se pasan siempre; y la que no esta en la tabla no da error, se
+      // guarda con el texto sin traducir y ensucia el vocabulario de la base.
+      //
+      // La segunda la descubrio una falsa alarma: la categoria 100 de Wallapop
+      // no son solo coches. Los ocho anuncios mas recientes eran autocaravanas
+      // -McLouis, Adria, Burstner- que no traen cambio ni carroceria porque no
+      // son coches. Exigirselas a la primera ficha hacia fallar la comprobacion
+      // por algo que no esta roto.
+      const revisados = { gear_box: new Map(), body_type: new Map(), eco_label: new Map() };
+      const cuantas = { doors: 0, seats: 0, gear_box: 0, body_type: 0 };
+      let mirados = 0;
+      for (const coche of coches.slice(0, 12)) {
+        const f = coche.id === coches[0].id ? ficha : await pide(FICHA + coche.id);
+        if (f.status !== 200) continue;
+        mirados++;
+        const t = f.json.type_attributes || {};
+        for (const campo of Object.keys(cuantas)) {
+          if (t[campo] && t[campo].value !== undefined) cuantas[campo]++;
         }
+        for (const campo of Object.keys(revisados)) {
+          if (t[campo] && t[campo].value != null) revisados[campo].set(String(t[campo].value), String(t[campo].text));
+        }
+      }
+
+      // Que cada campo aparezca en ALGUNA. Si no aparece en ninguna de doce, la
+      // API ha dejado de darlo y el enriquecedor no tiene nada que rellenar.
+      for (const campo of Object.keys(cuantas)) {
+        if (mirados && cuantas[campo] === 0) {
+          fallos.push('la ficha ya no trae "' + campo + '" en ninguna de las ' + mirados + ' miradas: es justo el hueco que venia a tapar el enriquecedor');
+        }
+      }
+      if (mirados && cuantas.body_type * 2 < mirados) {
+        notas.push('solo ' + cuantas.body_type + ' de ' + mirados + ' fichas traen carroceria; suele ser mas de la mitad. O hay muchas autocaravanas en el listado, o la API esta dando menos datos');
       }
 
       // Fecha de la ficha: segundos, al reves que el buscador.
@@ -151,7 +184,7 @@ async function pide(url) {
       if (!md) {
         notas.push("la ficha ya no manda modified_date");
       } else if (md > HACE_VEINTE_ANOS) {
-        fallos.push(`modified_date llega como ${md}, que son milisegundos y no segundos: el enriquecedor guardaria una fecha del ano 58000`);
+        fallos.push('modified_date llega como ' + md + ', que son milisegundos y no segundos: el enriquecedor guardaria una fecha del ano 58000');
       }
 
       // La descripcion, de donde sale el poco color que se puede sacar.
@@ -166,19 +199,21 @@ async function pide(url) {
       } else if (typeof desc === "string") {
         notas.push("description ahora es un texto y no un objeto { original }: el enriquecedor lo aguanta, pero conviene simplificarlo");
       } else if (typeof desc !== "object" || typeof desc.original !== "string") {
-        fallos.push(`description ya no es { original: "..." }: llega ${JSON.stringify(desc).slice(0, 80)}, y de ahi sale el color`);
+        fallos.push('description ya no es { original: "..." }: llega ' + JSON.stringify(desc).slice(0, 80) + ', y de ahi sale el color');
       }
 
-      // Valores nuevos que el workflow no sabria traducir.
-      if (mapas.gear && ta.gear_box && !mapas.gear.includes(String(ta.gear_box.value))) {
-        notas.push(`cambio "${ta.gear_box.value}" no esta en gearMap: esa oferta se quedara sin transmision`);
-      }
-      if (mapas.body && ta.body_type && !mapas.body.includes(String(ta.body_type.value))) {
-        notas.push(`carroceria "${ta.body_type.value}" no esta en bodyMap: se guardara el texto tal cual ("${ta.body_type.text}")`);
-      }
-      if (mapas.eco && ta.eco_label && !mapas.eco.includes(String(ta.eco_label.value))) {
-        notas.push(`etiqueta "${ta.eco_label.value}" no esta en ecoMap: esa oferta se quedara sin etiqueta`);
-      }
+      // Valores que el workflow no sabria traducir.
+      const avisa = (campo, conocidos, queda) => {
+        if (!conocidos) return;
+        for (const [valor, texto] of revisados[campo]) {
+          if (!conocidos.includes(valor)) {
+            notas.push(campo + ' "' + valor + '" (' + texto + ') no esta en la tabla del workflow: ' + queda);
+          }
+        }
+      };
+      avisa("gear_box", mapas.gear, "esa oferta se quedara sin transmision");
+      avisa("body_type", mapas.body, "se guardara el texto tal cual, ensuciando el vocabulario de la base");
+      avisa("eco_label", mapas.eco, "esa oferta se quedara sin etiqueta");
 
       // El idioma, que decide si las carrocerias cuadran con las de la base.
       //

@@ -71,6 +71,23 @@
       "parameters": {
         "method": "GET",
         "url": "={{ 'https://api.wallapop.com/api/v3/items/' + $json.id.replace('wp_', '') }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "X-DeviceOS",
+              "value": "0"
+            }
+          ]
+        },
         "options": {
           "timeout": 15000,
           "response": {
@@ -79,22 +96,6 @@
               "neverError": true,
               "responseFormat": "text"
             }
-          },
-          "headers": {
-            "values": [
-              {
-                "name": "User-Agent",
-                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-              },
-              {
-                "name": "Accept",
-                "value": "application/json"
-              },
-              {
-                "name": "X-DeviceOS",
-                "value": "0"
-              }
-            ]
           }
         }
       },
@@ -149,8 +150,8 @@
     },
     {
       "parameters": {
-        "amount": 500,
-        "unit": "ms"
+        "amount": 0.5,
+        "unit": "seconds"
       },
       "id": "wpv-wait",
       "name": "Esperar 0,5s",

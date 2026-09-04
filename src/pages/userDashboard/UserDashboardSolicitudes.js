@@ -116,6 +116,42 @@ export default function UserDashboardSolicitudes({
     Entregado:              "Es tuyo y lo tienes contigo.",
   };
 
+  /**
+   * «En transporte» quiere decir dos cosas, y son casi opuestas.
+   *
+   * Una importación hace **dos viajes**: de Alemania a Zaragoza, donde se
+   * matricula, y de Zaragoza a su casa. El estado es el mismo las dos veces, y
+   * el panel le decía «está de camino a España» con el coche ya matriculado y
+   * entrando en su calle. Justo cuando le acaba de llegar el correo diciéndole
+   * lo contrario.
+   *
+   * El estado no lo distingue: lo distingue si el segundo camión ya ha cargado,
+   * que es lo que dice `viaje_a_casa`.
+   */
+  function explicaImportacion(estado, meta = {}) {
+    if (estado !== "En transporte" || !meta.viaje_a_casa) {
+      return IMPORTACION_EXPLICA[estado] || "";
+    }
+    const matricula = meta.matricula ? ` con la matrícula ${meta.matricula}` : "";
+    const cuando = meta.llegada_a_casa ? formatDate(meta.llegada_a_casa) : "";
+    return `Ya está matriculado en España${matricula} y va de camino a tu dirección.`
+      + (cuando ? ` Llega el ${cuando}.` : "")
+      + " El transportista llama antes de llegar: tienes que estar para recibirlo y firmar.";
+  }
+
+  /**
+   * Y por dónde va la barra, que tampoco lo dice el estado.
+   *
+   * En el segundo viaje el estado vuelve a «En transporte», que está **antes**
+   * de «En trámites» en la lista. La barra retrocedía un paso: quien ayer vio
+   * seis de siete hoy ve cinco, y eso se lee como que algo ha ido mal.
+   */
+  function pasoDeImportacion(estado, meta = {}) {
+    const donde = IMPORTACION_PASOS.indexOf(estado);
+    if (estado !== "En transporte" || !meta.viaje_a_casa) return donde;
+    return Math.max(donde, IMPORTACION_PASOS.indexOf("En trámites"));
+  }
+
   const STATUS_COLOR = {
     Pendiente:                  { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
     Contactado:                 { bg: "rgba(255,196,0,0.12)",  color: "var(--marca-oscuro)" },
@@ -619,7 +655,7 @@ export default function UserDashboardSolicitudes({
                       }}>
                         <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
                           {IMPORTACION_PASOS.map((paso, i) => {
-                            const donde = IMPORTACION_PASOS.indexOf(item.status);
+                            const donde = pasoDeImportacion(item.status, meta);
                             return (
                               <div key={paso} title={paso} style={{
                                 flex: 1, height: 4, borderRadius: 2,
@@ -629,9 +665,16 @@ export default function UserDashboardSolicitudes({
                           })}
                         </div>
                         <div style={{ fontSize: 12.5, color: isDark ? "var(--gris-300)" : "#1e3a8a", lineHeight: 1.5 }}>
-                          <strong>{item.status}.</strong> {IMPORTACION_EXPLICA[item.status] || ""}
+                          <strong>{item.status}.</strong> {explicaImportacion(item.status, meta)}
                         </div>
-                        {meta.delivery_estimate && (
+                        {/*
+                          * La estimación del principio se calla cuando ya hay un día.
+                          *
+                          * Es la que se dio antes de comprar el coche, y una vez que el
+                          * transportista ha dicho «llega el 23», dos fechas distintas en
+                          * la misma tarjeta no informan: hacen dudar de las dos.
+                          */}
+                        {meta.delivery_estimate && !(item.status === "En transporte" && meta.viaje_a_casa && meta.llegada_a_casa) && (
                           <div style={{ fontSize: 12.5, color: isDark ? "var(--gris-300)" : "#1e3a8a", marginTop: 6, fontWeight: 700 }}>
                             Lo esperamos para el{" "}
                             {new Date(meta.delivery_estimate).toLocaleDateString("es-ES", { day: "numeric", month: "long" })}
@@ -1126,7 +1169,21 @@ function DireccionDeEntrega({ item, meta, isDark, onGuardada }) {
     provincia: meta.entrega_provincia || "",
     cp: meta.entrega_cp || "",
   };
-  const tieneDireccion = Boolean(puesta.direccion && puesta.ciudad);
+  /**
+   * Si hay dirección, mirando lo que hay y no lo que debería haber.
+   *
+   * Pedía calle **y ciudad**, que es lo que exige el formulario de este panel.
+   * Pero la dirección puede llegar por otro camino —la puso al pedir el coche,
+   * y ahí no se validaba— con la calle, el código postal y la provincia y sin
+   * ciudad. Entonces esto decía que no había ninguna, y la tarjeta le pedía una
+   * dirección y le decía que ya no podía cambiarla, las dos cosas a la vez.
+   *
+   * Basta con la calle y algo que la sitúe. Lo que falte se dice, que es
+   * distinto de hacer como si no hubiera nada.
+   */
+  const tieneDireccion = Boolean(
+    puesta.direccion && (puesta.ciudad || puesta.provincia || puesta.cp)
+  );
   /**
    * Con la fianza pagada, la dirección queda fijada.
    *
@@ -1181,7 +1238,8 @@ function DireccionDeEntrega({ item, meta, isDark, onGuardada }) {
           {tieneDireccion ? (
             <>
               Te lo llevamos a <strong>{puesta.direccion}</strong>
-              {puesta.cp ? `, ${puesta.cp}` : ""} {puesta.ciudad}
+              {puesta.cp ? `, ${puesta.cp}` : ""}
+              {puesta.ciudad ? ` ${puesta.ciudad}` : ""}
               {puesta.provincia ? ` (${puesta.provincia})` : ""}.
             </>
           ) : (

@@ -49,7 +49,12 @@ const APLICA = process.argv.includes("--aplica");
 `);
 
   const { rows } = await pool.query(
+    // El combustible, la potencia, la cilindrada, el CO₂ y el título no son
+    // decoración: de ellos sale la banda del impuesto, y el impuesto entra en
+    // el precio que se publica. Sin ellos, aquí se decidiría con un 4,75 %
+    // para todos y el listado enseñaría otra cosa.
     `SELECT id, price::numeric AS al, market_price_es::numeric AS es, year, mileage,
+            title, fuel, power_cv, co2, displacement,
             import_comps AS comps, import_published AS publicada, import_locked AS fijada,
             COALESCE(is_active, TRUE) AS viva
        FROM moveadvisor_market_offers
@@ -62,14 +67,14 @@ const APLICA = process.argv.includes("--aplica");
     // La que lleva su precio: la más barata que se le pueda dar a **este**
     // coche. A uno de quince años no se le puede dar ninguna y no sube nada.
     const gar = opcionesParaElCoche(garantias, f).porDefecto?.precio || 0;
-    const publica = sePublica({ precioAleman: al, precioEspanol: es, comparables: f.comps, viva: f.viva !== false, garantia: gar });
-    const { euros, pct } = ahorroDelCliente(al, es, gar);
+    const publica = sePublica({ precioAleman: al, precioEspanol: es, comparables: f.comps, viva: f.viva !== false, garantia: gar, coche: f });
+    const { euros, pct } = ahorroDelCliente(al, es, gar, f);
     return {
       id: f.id, al, es, comps: Number(f.comps) || 0,
       fijada: Boolean(f.fijada), antes: Boolean(f.publicada),
       publica, euros, pct,
       gar,
-      puesto: Math.round(precioPuestoAqui(al, es, gar)),
+      puesto: Math.round(precioPuestoAqui(al, es, gar, f)),
     };
   });
 

@@ -99,57 +99,64 @@ export default function UserDashboardSolicitudes({
     setPidiendoDatos("");
   }
 
-  // Los nombres de los pasos siguen siendo los del ERP: cambiarlos aquí y no
-  // allí dejaría al cliente y a quien le atiende hablando de cosas distintas.
-  // Lo que sí cambia es lo que significan.
+  /*
+   * Los pasos que ve el cliente. El transporte son **dos**, no uno.
+   *
+   * Su coche viaja dos veces: de Alemania a Zaragoza, donde se matricula, y de
+   * Zaragoza a su casa. En el ERP los dos viajes se llaman igual —«En
+   * transporte»— porque es el mismo tipo de cosa; para quien lo espera son dos
+   * momentos distintos y con semanas de trámites en medio, y llamarlos igual
+   * hacía que la línea de tiempo pareciera ir hacia atrás.
+   *
+   * Los demás nombres siguen siendo los del ERP: cambiarlos aquí y no allí
+   * dejaría al cliente y a quien le atiende hablando de cosas distintas. Aquí
+   * no se cambia nada, se **desdobla** lo que ya estaba doblado, y quien le
+   * atiende ve la misma distinción en Transportes: «1 de 2» y «2 de 2».
+   */
+  const A_ESPANA = "En transporte a España";
+  const A_DOMICILIO = "En transporte a domicilio";
   const IMPORTACION_PASOS = [
     "Pendiente", "Contactado", "Depósito retenido", "Verificado y pagado",
-    "En transporte", "En trámites", "Entregado",
+    A_ESPANA, "En trámites", A_DOMICILIO, "Entregado",
   ];
+
+  /**
+   * Cuál de los dos viajes es, que el estado por sí solo no lo dice.
+   *
+   * Lo distingue si el segundo camión ya ha cargado. Antes de eso, «En
+   * transporte» es el de Alemania aunque el segundo tramo ya esté organizado:
+   * un camión contratado no es un coche en la carretera.
+   */
+  function etapaVisible(estado, meta = {}) {
+    if (estado !== "En transporte") return estado;
+    return meta.viaje_a_casa ? A_DOMICILIO : A_ESPANA;
+  }
   const IMPORTACION_EXPLICA = {
     Pendiente:              "Hemos recibido tu solicitud. Te llamamos para contarte el proceso.",
     Contactado:             "Ya hemos hablado contigo. El siguiente paso es hacer la transferencia a la cuenta de depósito.",
     "Depósito retenido":        "Tu dinero está en la cuenta de depósito, retenido. Vamos a ver el coche en Alemania.",
     "Verificado y pagado":    "Hemos visto el coche y lo hemos comprado en tu nombre. En cuanto nos confirmen fechas, te las decimos.",
-    "En transporte":        "Está de camino a España.",
+    [A_ESPANA]:             "Ha salido de Alemania y viene a nuestras instalaciones de Zaragoza. Todavía no va a tu casa: aquí tiene que matricularse antes de poder circular a tu nombre.",
     "En trámites":          "Ya está aquí: ITV de homologación y matriculación para que puedas usarlo.",
+    [A_DOMICILIO]:          "Ya está matriculado y sale hacia tu dirección.",
     Entregado:              "Es tuyo y lo tienes contigo.",
   };
 
   /**
-   * «En transporte» quiere decir dos cosas, y son casi opuestas.
+   * Y lo que se sabe de este viaje en concreto.
    *
-   * Una importación hace **dos viajes**: de Alemania a Zaragoza, donde se
-   * matricula, y de Zaragoza a su casa. El estado es el mismo las dos veces, y
-   * el panel le decía «está de camino a España» con el coche ya matriculado y
-   * entrando en su calle. Justo cuando le acaba de llegar el correo diciéndole
-   * lo contrario.
-   *
-   * El estado no lo distingue: lo distingue si el segundo camión ya ha cargado,
-   * que es lo que dice `viaje_a_casa`.
+   * El paso ya dice a dónde va. Esto añade lo que el cliente quiere leer
+   * después: con qué matrícula ha salido —la noticia, porque es lo que llevaba
+   * semanas bloqueado—, qué día llega y lo único que se le pide.
    */
   function explicaImportacion(estado, meta = {}) {
-    if (estado !== "En transporte" || !meta.viaje_a_casa) {
-      return IMPORTACION_EXPLICA[estado] || "";
-    }
-    const matricula = meta.matricula ? ` con la matrícula ${meta.matricula}` : "";
-    const cuando = meta.llegada_a_casa ? formatDate(meta.llegada_a_casa) : "";
-    return `Ya está matriculado en España${matricula} y va de camino a tu dirección.`
-      + (cuando ? ` Llega el ${cuando}.` : "")
+    const etapa = etapaVisible(estado, meta);
+    const base = IMPORTACION_EXPLICA[etapa] || "";
+    if (etapa !== A_DOMICILIO) return base;
+    const matricula = meta.matricula ? ` Su matrícula es la ${meta.matricula}.` : "";
+    const cuando = meta.llegada_a_casa ? ` Llega el ${formatDate(meta.llegada_a_casa)}.` : "";
+    return base + matricula + cuando
       + " El transportista llama antes de llegar: tienes que estar para recibirlo y firmar.";
-  }
-
-  /**
-   * Y por dónde va la barra, que tampoco lo dice el estado.
-   *
-   * En el segundo viaje el estado vuelve a «En transporte», que está **antes**
-   * de «En trámites» en la lista. La barra retrocedía un paso: quien ayer vio
-   * seis de siete hoy ve cinco, y eso se lee como que algo ha ido mal.
-   */
-  function pasoDeImportacion(estado, meta = {}) {
-    const donde = IMPORTACION_PASOS.indexOf(estado);
-    if (estado !== "En transporte" || !meta.viaje_a_casa) return donde;
-    return Math.max(donde, IMPORTACION_PASOS.indexOf("En trámites"));
   }
 
   const STATUS_COLOR = {
@@ -169,7 +176,10 @@ export default function UserDashboardSolicitudes({
     "Depósito retenido":            { bg: "rgba(37,99,235,0.08)",  color: "#1d4ed8" },
     "Verificado y pagado":        { bg: "rgba(37,99,235,0.12)",  color: "#1d4ed8" },
     "En transporte":            { bg: "rgba(37,99,235,0.16)",  color: "#1e40af" },
+    "En transporte a España":   { bg: "rgba(37,99,235,0.16)",  color: "#1e40af" },
     "En trámites":              { bg: "rgba(99,102,241,0.14)", color: "#4338ca" },
+    // El último tramo va con el verde de lo que ya casi está.
+    "En transporte a domicilio": { bg: "rgba(16,185,129,0.14)", color: "#065f46" },
     Entregado:                  { bg: "rgba(16,185,129,0.18)", color: "#065f46" },
     "Reagendar solicitado":     { bg: "rgba(245,158,11,0.12)",  color: "#92400e" },
     Cancelado:                  { bg: "rgba(239,68,68,0.10)",   color: "#b91c1c" },
@@ -554,7 +564,11 @@ export default function UserDashboardSolicitudes({
           {visibleSolicitudes.map((item) => {
             const meta = parseMeta(item.meta);
             const typeStyle = TYPE_COLOR[item.type] || TYPE_COLOR.info;
-            const statusStyle = STATUS_COLOR[item.status] || { bg: "rgba(94,94,89,0.10)", color: "var(--gris-600)" };
+            // El paso que se le enseña. En una importación desdobla el
+            // transporte en sus dos viajes; en lo demás es el estado tal cual.
+            const etapa = etapaVisible(item.status, meta);
+            const statusStyle = STATUS_COLOR[etapa] || STATUS_COLOR[item.status]
+              || { bg: "rgba(94,94,89,0.10)", color: "var(--gris-600)" };
             const isVisit = item.type === "visit";
             const isRenting = item.type === "renting" || meta.portal === "marketplace-vo-renting";
             const isViewingSeller = item.type === "viewing_seller";
@@ -621,7 +635,7 @@ export default function UserDashboardSolicitudes({
                         {TYPE_LABEL[item.type] || item.type}
                       </span>
                       <span style={{ display: "inline-block", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 999, background: statusStyle.bg, color: statusStyle.color }}>
-                        {item.status || "Pendiente"}
+                        {etapa || "Pendiente"}
                       </span>
                       {/* Aquí había una etiqueta verde de «✅ Cita confirmada»,
                           justo al lado de la de estado, que ya dice «Cita
@@ -647,7 +661,7 @@ export default function UserDashboardSolicitudes({
                         Tarda semanas y pasa por sitios que no ve: si aquí solo
                         pone «En proceso», llama para preguntar. Con el paso y lo
                         que significa, no hace falta que llame. */}
-                    {item.type === "import" && IMPORTACION_PASOS.includes(item.status) && (
+                    {item.type === "import" && IMPORTACION_PASOS.includes(etapa) && (
                       <div style={{
                         background: isDark ? "rgba(37,99,235,0.10)" : "rgba(37,99,235,0.06)",
                         border: "1px solid rgba(37,99,235,0.22)", borderRadius: 10,
@@ -655,7 +669,7 @@ export default function UserDashboardSolicitudes({
                       }}>
                         <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
                           {IMPORTACION_PASOS.map((paso, i) => {
-                            const donde = pasoDeImportacion(item.status, meta);
+                            const donde = IMPORTACION_PASOS.indexOf(etapa);
                             return (
                               <div key={paso} title={paso} style={{
                                 flex: 1, height: 4, borderRadius: 2,
@@ -665,7 +679,7 @@ export default function UserDashboardSolicitudes({
                           })}
                         </div>
                         <div style={{ fontSize: 12.5, color: isDark ? "var(--gris-300)" : "#1e3a8a", lineHeight: 1.5 }}>
-                          <strong>{item.status}.</strong> {explicaImportacion(item.status, meta)}
+                          <strong>{etapa}.</strong> {explicaImportacion(item.status, meta)}
                         </div>
                         {/*
                           * La estimación del principio se calla cuando ya hay un día.
@@ -674,7 +688,7 @@ export default function UserDashboardSolicitudes({
                           * transportista ha dicho «llega el 23», dos fechas distintas en
                           * la misma tarjeta no informan: hacen dudar de las dos.
                           */}
-                        {meta.delivery_estimate && !(item.status === "En transporte" && meta.viaje_a_casa && meta.llegada_a_casa) && (
+                        {meta.delivery_estimate && !(etapa === A_DOMICILIO && meta.llegada_a_casa) && (
                           <div style={{ fontSize: 12.5, color: isDark ? "var(--gris-300)" : "#1e3a8a", marginTop: 6, fontWeight: 700 }}>
                             Lo esperamos para el{" "}
                             {new Date(meta.delivery_estimate).toLocaleDateString("es-ES", { day: "numeric", month: "long" })}

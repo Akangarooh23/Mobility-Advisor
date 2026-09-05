@@ -54,7 +54,7 @@ const APLICA = process.argv.includes("--aplica");
     // el precio que se publica. Sin ellos, aquí se decidiría con un 4,75 %
     // para todos y el listado enseñaría otra cosa.
     `SELECT id, price::numeric AS al, market_price_es::numeric AS es, year, mileage,
-            title, fuel, power_cv, co2, displacement,
+            title, fuel, power_cv, co2, displacement, body_type,
             import_comps AS comps, import_published AS publicada, import_locked AS fijada,
             COALESCE(is_active, TRUE) AS viva
        FROM moveadvisor_market_offers

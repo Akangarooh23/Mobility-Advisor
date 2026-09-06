@@ -1,0 +1,192 @@
+{
+  "name": "Milanuncios – Enriquecer (potencia, cambio, puertas, carrocería, color)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "mie-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 30 5 * * *"
+            }
+          ]
+        }
+      },
+      "id": "mie-cron",
+      "name": "Cada día a las 05:30",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Las ofertas a las que les falta algo que se pueda sacar del texto.\n--\n-- La descripcion se trae de moveadvisor_offer_texts, que es donde la deja el\n-- scraper. Con LEFT JOIN a proposito: las 5.484 ofertas anteriores a que el\n-- scraper empezara a guardarla no tienen texto, y aun asi se les puede sacar\n-- potencia y cambio del titulo.\n--\n-- Sin marca de 'ya intentado'. En los otros portales esa marca evita repetir\n-- una peticion cara; aqui no hay peticion, solo texto ya guardado, y volver a\n-- mirarlo cuesta una lectura. Marcarlo seria peor: al mejorar una expresion\n-- habria que acordarse de limpiar las marcas, que es justo el enredo que dejo\n-- 2.063 ofertas de Wallapop bloqueadas un mes.\nSELECT o.id, o.title, o.version, x.descripcion\nFROM moveadvisor_market_offers o\nLEFT JOIN moveadvisor_offer_texts x ON x.offer_id = o.id\nWHERE o.portal = 'milanuncios'\n  AND COALESCE(o.title,'') <> ''\n  AND (o.power_cv IS NULL\n       OR COALESCE(o.transmission,'') = ''\n       OR o.doors IS NULL\n       OR COALESCE(o.body_type,'') = ''\n       OR COALESCE(o.color,'') = '')\nORDER BY o.last_seen_at DESC NULLS LAST\nLIMIT 6000",
+        "additionalFields": {}
+      },
+      "id": "mie-cola",
+      "name": "PG: Cola a enriquecer",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -20,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Milanuncios - enriquecer SIN pedirle nada al portal.\n//\n// Los otros enriquecedores piden la ficha de cada oferta. Aqui no se puede: las\n// fichas de Milanuncios estan detras de Imperva y devuelven 'Pardon Our\n// Interruption' con un HTTP 200, no con un error. Se comprobo pidiendo seis con\n// quince segundos entre ellas: seis bloqueadas.\n//\n// Asi que este no tiene nodo HTTP. Lee el texto que ya esta guardado -el titulo,\n// la version y la descripcion que el scraper dejo en moveadvisor_offer_texts- y\n// deduce de ahi. Eso permite repetirlo cuantas veces haga falta cuando mejoren\n// las expresiones, sin esperar a que el scraper vuelva a pasar, que en este\n// portal son 68 dias.\n//\n// Lo que NO hace, porque es de universal-derivar y no tiene sentido tenerlo por\n// duplicado: la etiqueta de la DGT, la cilindrada y la traccion. Esas reglas\n// valen igual en los once portales.\n\nconst filas = $input.all().map(function (x) { return x.json; });\nif (!filas.length) return [{ json: { sql: null, count: 0 } }];\n\nfunction esc(v) {\n  if (v === null || v === undefined || v === '') return 'NULL';\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\n\nconst vals = [];\nfor (const f of filas) {\n  // El titulo y la version primero, la descripcion despues: en el titulo el dato\n  // esta puesto por el portal a partir de su ficha, y en la descripcion lo\n  // escribe el vendedor a mano. Cuando los dos dicen algo, gana el primero.\n  const corto = [f.title, f.version].filter(Boolean).join(' ');\n  const texto = [corto, f.descripcion].filter(Boolean).join(' ');\n  if (!texto) continue;\n\n  // --- Potencia -----------------------------------------------------------\n  // '330cv', '275 HP' y '110kW 150CV'. Se prefiere el CV explicito; si solo hay\n  // kW se convierte. El rango descarta que un '2.0' o un año se cuelen.\n  let cv = null, kw = null;\n  { const m = texto.match(/(\\d{2,4})\\s*(?:cv|hp)\\b/i); if (m) cv = parseInt(m[1], 10); }\n  { const m = texto.match(/(\\d{2,3})\\s*kw\\b/i); if (m) kw = parseInt(m[1], 10); }\n  if (cv == null && kw != null) cv = Math.round(kw * 1.35962);\n  if (kw == null && cv != null) kw = Math.round(cv / 1.35962);\n  if (cv != null && (cv < 20 || cv > 1500)) { cv = null; kw = null; }\n\n  // --- Cambio -------------------------------------------------------------\n  // Del titulo sale en el 11%; con la descripcion sube al 48%, porque el\n  // vendedor lo escribe aunque el portal no lo publique como dato.\n  let cambio = '';\n  { const m = texto.match(/\\b(autom[aá]tic\\w*|manual|dsg|s.?tronic|tiptronic|cvt|edc|dct|pdk|steptronic|multitronic)\\b/i);\n    if (m) cambio = /manual/i.test(m[1]) ? 'Manual' : 'Automatica'; }\n\n  // --- Puertas ------------------------------------------------------------\n  let puertas = null;\n  { const m = texto.match(/\\b([2-5])\\s*(?:p|puertas)\\b/i); if (m) puertas = parseInt(m[1], 10); }\n\n  // --- Carroceria ---------------------------------------------------------\n  // Al vocabulario de la base, no al literal del anuncio: un 'Avant', un\n  // 'Variant' o un 'Tourer' son familiares, y guardarlos tal cual crearia\n  // carrocerias nuevas que ningun filtro mira.\n  //\n  // 'Sportback' esta fuera a proposito, y era el termino MAS frecuente: 69\n  // apariciones, todas A1 y A3, que son cinco puertas y no coupes. Mapearlo\n  // habria sido la principal fuente de carroceria de este portal, y toda mal.\n  // Depende del modelo -un A5 Sportback si es otra cosa- y desde el texto no se\n  // puede distinguir, asi que se deja vacio. Vacio no engaña a nadie.\n  let carroceria = '';\n  { const m = texto.match(/\\b(berlina|monovolumen|familiar|coup[eé]|cabrio|descapotable|todoterreno|suv|furgoneta|pick.?up|variant|tourer|avant|estate|touring)\\b/i);\n    if (m) { const v = m[1].toLowerCase().replace(/é/g, 'e');\n      if (v === 'berlina') carroceria = 'Berlina';\n      else if (v === 'monovolumen') carroceria = 'Monovolumen';\n      else if (v === 'familiar' || v === 'variant' || v === 'tourer' || v === 'avant' || v === 'estate' || v === 'touring') carroceria = 'Familiar';\n      else if (v === 'coupe') carroceria = 'Coupé';\n      else if (v === 'cabrio' || v === 'descapotable') carroceria = 'Descapotable o convertible';\n      else if (v === 'suv' || v === 'todoterreno') carroceria = 'SUV';\n      else carroceria = 'Furgoneta'; } }\n\n  // --- Color --------------------------------------------------------------\n  // Solo de la descripcion, y solo despues de una palabra que anuncie color:\n  // 'color', 'pintura' o 'exterior'. Sin eso delante no se coge, porque\n  // 'tapiceria negra' y 'llantas negras' no son el color del coche.\n  //\n  // Se busca el primer color conocido en los 40 caracteres siguientes, y no la\n  // palabra pegada a la etiqueta. El formato mas comun es 'Pintura: Pintura\n  // metalizada Gris Delfin', donde el color va tercero: mirando solo la palabra\n  // siguiente se leia 'Pintura' y se perdia el dato.\n  //\n  // Al vocabulario de la base, en singular y con mayuscula inicial.\n  let color = '';\n  {\n    const d = String(f.descripcion || '');\n    const m = d.match(/\\b(?:color|pintura|exterior)\\b/i);\n    if (m) {\n      const ventana = d.slice(m.index + m[0].length, m.index + m[0].length + 40)\n        .toLowerCase()\n        .replace(/[áàä]/g, 'a').replace(/[éèë]/g, 'e').replace(/[íìï]/g, 'i')\n        .replace(/[óòö]/g, 'o').replace(/[úùü]/g, 'u');\n      const conocidos = ['blanco','negro','gris','plata','plateado','azul','rojo','verde','amarillo','naranja','marron','beige','dorado','granate','burdeos','violeta','morado'];\n      let mejor = null, pos = 1e9;\n      for (const k of conocidos) {\n        const i = ventana.search(new RegExp('\\\\b' + k));\n        if (i >= 0 && i < pos) { pos = i; mejor = k; }\n      }\n      if (mejor) color = mejor.charAt(0).toUpperCase() + mejor.slice(1);\n    }\n  }\n\n  if (cv == null && !cambio && puertas == null && !carroceria && !color) continue;\n\n  vals.push('(' + esc(f.id) + ', ' +\n    (cv != null ? cv : 'NULL') + '::int, ' + (kw != null ? kw : 'NULL') + '::int, ' +\n    esc(cambio) + '::varchar, ' + (puertas != null ? puertas : 'NULL') + '::int, ' +\n    esc(carroceria) + '::varchar, ' + esc(color) + '::varchar)');\n}\n\nif (!vals.length) return [{ json: { sql: null, count: 0 } }];\n\n// Un solo UPDATE para todo el lote. Sin nodo HTTP no hay motivo para ir oferta\n// por oferta: lo que en los otros enriquecedores son 800 peticiones aqui es una\n// consulta.\n//\n// COALESCE en todos: esto solo rellena huecos. Un valor que ya este puede\n// haberlo escrito el scraper, una persona, o una version mejor de estas mismas\n// expresiones, y ninguna de las tres se pisa.\n//\n// Y el '' del final en transmission, body_type y color no es adorno: esas tres\n// columnas son NOT NULL con defecto vacio. Sin el, una oferta de la que no se\n// saque nada hace reventar el UPDATE entero, con el lote completo dentro.\nconst sql =\n  'UPDATE moveadvisor_market_offers t SET ' +\n    'power_cv = COALESCE(t.power_cv, d.cv), ' +\n    'power_kw = COALESCE(t.power_kw, d.kw), ' +\n    \"transmission = COALESCE(NULLIF(t.transmission,''), NULLIF(d.cambio,''), ''), \" +\n    'doors = COALESCE(t.doors, d.puertas), ' +\n    \"body_type = COALESCE(NULLIF(t.body_type,''), NULLIF(d.carroceria,''), ''), \" +\n    \"color = COALESCE(NULLIF(t.color,''), NULLIF(d.color,''), ''), \" +\n    'updated_at = NOW() ' +\n  'FROM (VALUES ' + vals.join(', ') + ') AS d(id, cv, kw, cambio, puertas, carroceria, color) ' +\n  'WHERE t.id = d.id';\n\nreturn [{ json: { sql: sql, count: vals.length } }];"
+      },
+      "id": "mie-code",
+      "name": "Code: Sacar del texto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.count }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "mie-if",
+      "name": "IF: ¿hay algo que escribir?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        420,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "additionalFields": {}
+      },
+      "id": "mie-pg",
+      "name": "PG: Actualizar ofertas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        640,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada día a las 05:30": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Cola a enriquecer": {
+      "main": [
+        [
+          {
+            "node": "Code: Sacar del texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Sacar del texto": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay algo que escribir?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay algo que escribir?": {
+      "main": [
+        [
+          {
+            "node": "PG: Actualizar ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "staticData": null,
+  "triggerCount": 0,
+  "tags": []
+}

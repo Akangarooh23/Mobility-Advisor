@@ -35,10 +35,10 @@
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "// Gamboa: crawl del listado maestro /coches-ocasion-madrid?pagina=N (24/pág, server-rendered).\n// ~463 coches = ~20 páginas. Ponemos 22 con margen; las de más devuelven vacío (skip).\nconst MAX_PAGES = 22;\nconst out = [];\nfor (let p = 1; p <= MAX_PAGES; p++) {\n  out.push({ json: { url: 'https://www.gamboaocasion.com/coches-ocasion-madrid?pagina=' + p } });\n}\nreturn out;"
+        "jsCode": "// Gamboa: cuantas paginas hay que pedir hoy.\n//\n// No se pone un numero fijo porque ya se quedo obsoleto una vez. El codigo\n// decia \"~463 coches = ~20 paginas\" y ponia 22; el listado publica hoy 683, o\n// sea 29 paginas. El scraper llevaba tiempo viendo poco mas de la mitad del\n// concesionario sin que nada lo dijera.\nconst res = $input.first().json;\nconst html = String((res && (res.body || res.data)) || (typeof res === 'string' ? res : ''));\nconst estado = Number((res && res.statusCode) || 200);\nif (estado !== 200 || !html) {\n  throw new Error('Gamboa devolvio HTTP ' + estado + ' al contar el catalogo — run detenido');\n}\n\nconst POR_PAGINA = 24;\nconst m = html.match(/(\\d[\\d.]{1,6})\\s*(?:coches|veh[ií]culos|resultados)/i);\nconst total = m ? Number(String(m[1]).replace(/\\./g, '')) : 0;\n\n// Tres paginas de margen, y no por capricho: el listado NO viene en un orden\n// estable -la pagina 2 repite 13 de los 24 de la pagina 1- asi que una sola\n// pasada nunca ve el catalogo entero por muchas paginas que se pidan. Las que\n// sobran devuelven vacio y el IF las descarta.\n//\n// Que una pasada no lo vea todo no es grave: lo que se pierda hoy lo recoge la\n// de mañana, y quien decide de verdad si un coche sigue publicado es el\n// verificador, que va a la ficha de cada uno. El scraper esta para descubrir\n// coches nuevos, no para dar de baja.\nconst paginas = total > 0 ? Math.ceil(total / POR_PAGINA) + 3 : 32;\n\nconsole.log('[gamboa] el listado publica ' + (total || '?') + ' coches -> ' + paginas + ' paginas');\n\nconst out = [];\nfor (let p = 1; p <= paginas; p++) {\n  out.push({ json: {\n    url: 'https://www.gamboaocasion.com/coches-ocasion-madrid' + (p > 1 ? '?pagina=' + p : ''),\n    pagina: p,\n  } });\n}\nreturn out;\n"
       },
       "id": "gb-gen",
-      "name": "Code: Generar URLs (marca x página)",
+      "name": "Code: Generar URLs",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -68,21 +68,28 @@
           "timeout": 25000,
           "response": {
             "response": {
+              "fullResponse": true,
+              "neverError": true,
               "responseFormat": "text"
             }
-          },
-          "headers": {
-            "values": [
-              {
-                "name": "User-Agent",
-                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-              },
-              {
-                "name": "Accept-Language",
-                "value": "es-ES,es;q=0.9"
-              }
-            ]
           }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
         }
       },
       "id": "gb-http",
@@ -101,7 +108,7 @@
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "// Gamboa – transform: HTML de listado (?pagina=N) → tarjetas → UPSERT en moveadvisor_marketplace_vo_offers\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\nconst BASE = 'https://www.gamboaocasion.com';\n\nfunction esc(v) {\n  if (v === null || v === undefined) return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\nfunction normFuel(s) {\n  s = String(s || '').toLowerCase();\n  if (s.indexOf('eléctric') !== -1 || s.indexOf('electric') !== -1) return 'Eléctrico';\n  const ench = s.indexOf('enchufable') !== -1 && s.indexOf('no enchufable') === -1;\n  if (s.indexOf('híbrido') !== -1 || s.indexOf('hibrido') !== -1) return ench ? 'Híbrido enchufable' : 'Híbrido';\n  if (s.indexOf('diésel') !== -1 || s.indexOf('diesel') !== -1) return 'Diesel';\n  if (s.indexOf('gasolina') !== -1) return 'Gasolina';\n  if (s.indexOf('glp') !== -1 || s.indexOf('gnc') !== -1 || s.indexOf('gas ') !== -1) return 'Gas';\n  return '';\n}\nfunction normGear(s) {\n  s = String(s || '').toLowerCase();\n  if (s.indexOf('autom') !== -1) return 'Automatica';\n  if (s.indexOf('manual') !== -1) return 'Manual';\n  return '';\n}\n\n// localizar cada tarjeta por su <a title=\"Coche ...\" href=\"...-ID\">\nconst anchorRe = /<a title=\"Coche ([^\"]*?)\"\\s+href=\"(\\/[a-z0-9-]+-ocasion-madrid\\/[a-z0-9-]+-(\\d+))\"/gi;\nconst anchors = [];\nlet m;\nwhile ((m = anchorRe.exec(html)) !== null) anchors.push({ name: m[1].trim(), href: m[2], id: m[3], index: m.index });\n\nconst seen = {};\nconst rows = [];\nfor (let i = 0; i < anchors.length; i++) {\n  const a = anchors[i];\n  if (seen[a.id]) continue;\n  seen[a.id] = 1;\n  const block = html.slice(a.index, anchors[i + 1] ? anchors[i + 1].index : a.index + 2600);\n\n  const ctitle = (block.match(/<h3 class=\"card-title\">([^<]*)<\\/h3>/i) || [])[1] || '';\n  const brandModel = ctitle.replace(/\\s+/g, ' ').trim();\n  const sp = brandModel.indexOf(' ');\n  const brand = sp === -1 ? brandModel : brandModel.slice(0, sp);\n  const model = sp === -1 ? '' : brandModel.slice(sp + 1);\n  const version = ((block.match(/<p class=\"card-text\">([^<]*)<\\/p>/i) || [])[1] || '').replace(/\\s+/g, ' ').trim();\n  const title = (a.name || (brandModel + ' ' + version)).replace(/\\s+/g, ' ').trim();\n\n  const img = (block.match(/src=\"(\\/img\\/coches\\/\\d+\\/[^\"]+)\"/i) || [])[1] || '';\n  const imageUrl = img ? (BASE + img) : '';\n\n  const priceM = block.match(/€\\s*(\\d{1,3}(?:\\.\\d{3})+)/);\n  const price = priceM ? priceM[1].replace(/\\./g, '') : null;\n\n  const text = block.replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ');\n  const powerM = text.match(/(\\d{2,4})\\s*cv/i);\n  const power = powerM ? (powerM[1] + ' CV') : null;\n  const yearM = text.match(/\\b(20\\d{2}|19\\d{2})\\b/);\n  const year = yearM ? yearM[1] : null;\n  const kmM = text.match(/(\\d{1,3}(?:\\.\\d{3})*)\\s*km/i);\n  const mileage = kmM ? kmM[1].replace(/\\./g, '') : null;\n  const fuel = normFuel(text);\n  const transmission = normGear(text);\n\n  if (!price) continue; // sin precio no insertamos (obligatorio)\n\n  const id = 'gamboa_' + a.id;\n  const row = '(' +\n    esc(id) + ', ' + esc(title) + ', ' + esc(brand) + ', ' + esc(model) + ', ' + esc(version) + ', ' +\n    price + ', ' + (year || 'NULL') + ', ' + (mileage || 'NULL') + ', ' +\n    esc(fuel) + ', ' + esc(power) + ', ' + esc(transmission) + ', ' +\n    esc(imageUrl) + ', ' + esc(BASE + a.href) + ', ' +\n    \"'usado', 'concesionario', 'gamboa', 'Gamboa Ocasión', 'Madrid', 'Madrid', true, true, NOW(), NOW()\" +\n  ')';\n  rows.push(row);\n}\n\nif (!rows.length) return [{ json: { sql: null, count: 0 } }];\n\nconst cols = 'id, title, brand, model, version, price, year, mileage, fuel, power, transmission, ' +\n  'image_url, source_url, vehicle_condition, seller_type, portal, seller, location, provincia, ' +\n  'available_for_purchase, is_active, created_at, updated_at';\n\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +\n  'title = EXCLUDED.title, price = EXCLUDED.price, mileage = EXCLUDED.mileage, ' +\n  'year = COALESCE(EXCLUDED.year, moveadvisor_marketplace_vo_offers.year), ' +\n  'version = EXCLUDED.version, fuel = EXCLUDED.fuel, power = EXCLUDED.power, ' +\n  'transmission = EXCLUDED.transmission, ' +\n  \"image_url = COALESCE(NULLIF(moveadvisor_marketplace_vo_offers.image_url,''), EXCLUDED.image_url), \" +\n  'source_url = EXCLUDED.source_url, is_active = TRUE, updated_at = NOW()';\n\nconst sql = 'INSERT INTO moveadvisor_marketplace_vo_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;\nreturn [{ json: { sql: sql, count: rows.length } }];\n"
+        "jsCode": "// Gamboa – transform: HTML de listado (?pagina=N) → tarjetas → UPSERT en moveadvisor_marketplace_vo_offers\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\n\n// fullResponse deja ver el codigo de estado y neverError impide que un error\n// detenga el run. Sin mirarlo aqui, una pagina de error se parsearia como un\n// HTML sin coches y el scraper se quedaria en silencio guardando cero ofertas.\n// Se lanza el error a proposito para que salte el Error Handler.\nconst estado = (httpOut && typeof httpOut === 'object') ? Number(httpOut.statusCode || 0) : 200;\nif (estado && estado !== 200) {\n  throw new Error('Gamboa devolvio HTTP ' + estado + ' — run detenido');\n}\nconst BASE = 'https://www.gamboaocasion.com';\n\nfunction esc(v) {\n  if (v === null || v === undefined) return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\nfunction normFuel(s) {\n  s = String(s || '').toLowerCase();\n  if (s.indexOf('eléctric') !== -1 || s.indexOf('electric') !== -1) return 'Eléctrico';\n  const ench = s.indexOf('enchufable') !== -1 && s.indexOf('no enchufable') === -1;\n  if (s.indexOf('híbrido') !== -1 || s.indexOf('hibrido') !== -1) return ench ? 'Híbrido enchufable' : 'Híbrido';\n  if (s.indexOf('diésel') !== -1 || s.indexOf('diesel') !== -1) return 'Diesel';\n  if (s.indexOf('gasolina') !== -1) return 'Gasolina';\n  if (s.indexOf('glp') !== -1 || s.indexOf('gnc') !== -1 || s.indexOf('gas ') !== -1) return 'Gas';\n  return '';\n}\nfunction normGear(s) {\n  s = String(s || '').toLowerCase();\n  if (s.indexOf('autom') !== -1) return 'Automatica';\n  if (s.indexOf('manual') !== -1) return 'Manual';\n  return '';\n}\n\n// localizar cada tarjeta por su <a title=\"Coche ...\" href=\"...-ID\">\nconst anchorRe = /<a title=\"Coche ([^\"]*?)\"\\s+href=\"(\\/[a-z0-9-]+-ocasion-madrid\\/[a-z0-9-]+-(\\d+))\"/gi;\nconst anchors = [];\nlet m;\nwhile ((m = anchorRe.exec(html)) !== null) anchors.push({ name: m[1].trim(), href: m[2], id: m[3], index: m.index });\n\nconst seen = {};\nconst rows = [];\nfor (let i = 0; i < anchors.length; i++) {\n  const a = anchors[i];\n  if (seen[a.id]) continue;\n  seen[a.id] = 1;\n  const block = html.slice(a.index, anchors[i + 1] ? anchors[i + 1].index : a.index + 2600);\n\n  const ctitle = (block.match(/<h3 class=\"card-title\">([^<]*)<\\/h3>/i) || [])[1] || '';\n  const brandModel = ctitle.replace(/\\s+/g, ' ').trim();\n  const sp = brandModel.indexOf(' ');\n  const brand = sp === -1 ? brandModel : brandModel.slice(0, sp);\n  const model = sp === -1 ? '' : brandModel.slice(sp + 1);\n  const version = ((block.match(/<p class=\"card-text\">([^<]*)<\\/p>/i) || [])[1] || '').replace(/\\s+/g, ' ').trim();\n  const title = (a.name || (brandModel + ' ' + version)).replace(/\\s+/g, ' ').trim();\n\n  const img = (block.match(/src=\"(\\/img\\/coches\\/\\d+\\/[^\"]+)\"/i) || [])[1] || '';\n  const imageUrl = img ? (BASE + img) : '';\n\n  const priceM = block.match(/€\\s*(\\d{1,3}(?:\\.\\d{3})+)/);\n  const price = priceM ? priceM[1].replace(/\\./g, '') : null;\n\n  const text = block.replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ');\n  const powerM = text.match(/(\\d{2,4})\\s*cv/i);\n  const power = powerM ? (powerM[1] + ' CV') : null;\n  const yearM = text.match(/\\b(20\\d{2}|19\\d{2})\\b/);\n  const year = yearM ? yearM[1] : null;\n  const kmM = text.match(/(\\d{1,3}(?:\\.\\d{3})*)\\s*km/i);\n  const mileage = kmM ? kmM[1].replace(/\\./g, '') : null;\n  const fuel = normFuel(text);\n  const transmission = normGear(text);\n\n  if (!price) continue; // sin precio no insertamos (obligatorio)\n\n  const id = 'gamboa_' + a.id;\n  const row = '(' +\n    esc(id) + ', ' + esc(title) + ', ' + esc(brand) + ', ' + esc(model) + ', ' + esc(version) + ', ' +\n    price + ', ' + (year || 'NULL') + ', ' + (mileage || 'NULL') + ', ' +\n    esc(fuel) + ', ' + esc(power) + ', ' + esc(transmission) + ', ' +\n    esc(imageUrl) + ', ' + esc(BASE + a.href) + ', ' +\n    \"'usado', 'concesionario', 'gamboa', 'Gamboa Ocasión', 'Madrid', 'Madrid', true, true, NOW(), NOW()\" +\n  ')';\n  rows.push(row);\n}\n\nif (!rows.length) return [{ json: { sql: null, count: 0 } }];\n\nconst cols = 'id, title, brand, model, version, price, year, mileage, fuel, power, transmission, ' +\n  'image_url, source_url, vehicle_condition, seller_type, portal, seller, location, provincia, ' +\n  'available_for_purchase, is_active, created_at, updated_at';\n\n// Los campos cuyo cambio SI es un cambio del anuncio. Si ninguno se mueve, lo\n// unico que ha pasado es que hemos vuelto a pasar por delante.\nconst CAMPOS_QUE_CAMBIAN = ['title', 'price', 'mileage', 'version', 'fuel',\n  'power', 'transmission', 'source_url'];\nconst HA_CAMBIADO = CAMPOS_QUE_CAMBIAN\n  .map(function (f) {\n    return 'moveadvisor_marketplace_vo_offers.' + f + ' IS DISTINCT FROM EXCLUDED.' + f;\n  })\n  // Volver a publicarse tambien es un cambio de estado que merece fecha nueva.\n  .concat(['moveadvisor_marketplace_vo_offers.is_active IS DISTINCT FROM TRUE'])\n  .join(' OR ');\n\n// updated_at NO se toca si el anuncio no ha cambiado.\n//\n// Ponerlo a NOW() en cada pasada parecia inofensivo y no lo era. El escaparate\n// ordena por portal_score y, como todos los concesionarios valen 80, el\n// desempate real es updated_at DESC. Cada pasada del scraper colocaba las 609\n// filas de Gamboa por delante de VIAN y de Modrive: el 2026-09-06 las primeras\n// 300 filas del listado eran todas de Gamboa, y el filtro de vendedor del ERP\n// -que se construye con lo que la tabla llega a cargar- ya solo ofrecia Gamboa.\n// VIAN y Modrive no habian desaparecido: estaban detras de 609 coches.\n//\n// Y habria ido a peor segun montaramos scraper y verificador para cada\n// concesionario: el orden de la tienda acabaria dependiendo de nuestro\n// calendario de mantenimiento en vez de cuando cambio el anuncio.\n//\n// last_seen_at y last_checked_at si se mueven siempre: esos SI son \"cuando\n// pasamos por delante\", que es justo lo que significan.\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +\n  'title = EXCLUDED.title, price = EXCLUDED.price, mileage = EXCLUDED.mileage, ' +\n  'year = COALESCE(EXCLUDED.year, moveadvisor_marketplace_vo_offers.year), ' +\n  'version = EXCLUDED.version, fuel = EXCLUDED.fuel, power = EXCLUDED.power, ' +\n  'transmission = EXCLUDED.transmission, ' +\n  \"image_url = COALESCE(NULLIF(moveadvisor_marketplace_vo_offers.image_url,''), EXCLUDED.image_url), \" +\n  'source_url = EXCLUDED.source_url, is_active = TRUE, ' +\n  'updated_at = CASE WHEN ' + HA_CAMBIADO +\n    ' THEN NOW() ELSE moveadvisor_marketplace_vo_offers.updated_at END, ' +\n  'last_seen_at = NOW(), last_checked_at = NOW()';\n\nconst sql = 'INSERT INTO moveadvisor_marketplace_vo_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;\nreturn [{ json: { sql: sql, count: rows.length } }];\n"
       },
       "id": "gb-transform",
       "name": "Code: Transformar ofertas",
@@ -179,6 +186,51 @@
         390
       ],
       "webhookId": "wait-gamboa"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.gamboaocasion.com/coches-ocasion-madrid",
+        "options": {
+          "timeout": 25000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        }
+      },
+      "id": "gam-contar",
+      "name": "HTTP: Contar el catálogo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        0,
+        390
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "continueOnFail": true
     }
   ],
   "connections": {
@@ -186,7 +238,7 @@
       "main": [
         [
           {
-            "node": "Code: Generar URLs (marca x página)",
+            "node": "HTTP: Contar el catálogo",
             "type": "main",
             "index": 0
           }
@@ -197,18 +249,7 @@
       "main": [
         [
           {
-            "node": "Code: Generar URLs (marca x página)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code: Generar URLs (marca x página)": {
-      "main": [
-        [
-          {
-            "node": "Loop: página por página",
+            "node": "HTTP: Contar el catálogo",
             "type": "main",
             "index": 0
           }
@@ -288,6 +329,28 @@
           }
         ]
       ]
+    },
+    "HTTP: Contar el catálogo": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Generar URLs": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "pinData": {},
@@ -296,7 +359,7 @@
     "saveManualExecutions": false,
     "saveDataSuccessExecution": "none",
     "callerPolicy": "workflowsFromSameOwner",
-    "errorWorkflow": ""
+    "errorWorkflow": "9BwKOPMIzjj3owho"
   },
   "staticData": null,
   "triggerCount": 1,

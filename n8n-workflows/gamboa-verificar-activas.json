@@ -1,0 +1,445 @@
+{
+  "name": "Gamboa – Verificar ofertas activas",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "gv-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 */6 * * *"
+            }
+          ]
+        }
+      },
+      "id": "gv-cron",
+      "name": "4 veces/día (cada 6 h)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Las ofertas de Gamboa que toca comprobar hoy.\n--\n-- Entran tambien las que ya constan inactivas: cuesta poco reconfirmarlas y es\n-- la unica forma de que una que se diera por muerta por error vuelva sola.\n--\n-- Con 1200 de tope, el catalogo entero cabe en UNA pasada. Las otras tres del\n-- dia se encuentran la cola vacia -el filtro de 20 horas ya las ha descartado-\n-- y terminan en segundos; estan para recoger lo que entre a media tarde.\nSELECT id, source_url, is_active\nFROM moveadvisor_marketplace_vo_offers\nWHERE portal = 'gamboa'\n  AND COALESCE(source_url, '') <> ''\n  AND (last_checked_at IS NULL OR last_checked_at < NOW() - INTERVAL '20 hours')\n-- Al azar, y no por antiguedad. Parece raro, pero es lo que hace que el\n-- cortacircuitos signifique algo.\n--\n-- Ordenando por last_checked_at, las primeras de la cola son las que el scraper\n-- dejo de ver en el listado, o sea justo las vendidas. El frente de la cola era\n-- 100% mortandad POR CONSTRUCCION, el cortacircuitos saltaba a las 25 fichas en\n-- todas las pasadas y el catalogo no se terminaba de verificar nunca. Paso de\n-- verdad el 2026-09-06: 25 miradas, 25 bajas, 308 sin mirar.\n--\n-- Al azar, la mortandad de cualquier tramo se parece a la del catalogo entero,\n-- que es lo que el cortacircuitos necesita medir. Y no se pierde cobertura: con\n-- LOTE por encima del tamaño de la cola se recorre entera igual, y el filtro de\n-- 20 horas garantiza que cada oferta entra una vez por ciclo, venga en el orden\n-- que venga.\nORDER BY random()\nLIMIT 1200",
+        "options": {}
+      },
+      "id": "gv-cola",
+      "name": "PG: Cola a verificar",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "gv-loop",
+      "name": "Loop: oferta por oferta",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        60,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// El parte de la ejecucion, a moveadvisor_verify_runs.\nconst s = $getWorkflowStaticData('global');\nconst vistas = s.gam_vistas || 0;\n\nconsole.log('[gamboa-verificar] ── resumen ──');\nconsole.log('  fichas miradas   : ' + vistas);\nconsole.log('  siguen publicadas: ' + (s.gam_vivas || 0));\nconsole.log('  dadas de baja    : ' + (s.gam_bajas || 0));\nconsole.log('  sin clasificar   : ' + (s.gam_raras || 0));\nconsole.log('  fallos pasajeros : ' + (s.gam_fallos || 0));\nif (s.gam_parado) console.log('  PARADO POR EL CORTACIRCUITOS: ' + s.gam_motivo);\nif ((s.gam_raras || 0) > vistas * 0.1) {\n  console.log('  OJO: mas del 10% sin clasificar. Mirar esas URLs: o Gamboa ha');\n  console.log('  cambiado el maquetado, o hay un tercer estado que no conocemos.');\n}\n\nconst n = v => String(Number(v) || 0);\nconst sql = 'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" VALUES ('gamboa', NOW(), \" + n(vistas) + ', ' + n(s.gam_vivas) + ', '\n  + n(s.gam_bajas) + ', ' + n(s.gam_raras) + ', ' + n(s.gam_fallos) + ', '\n  + (s.gam_parado ? 'TRUE' : 'FALSE') + ', 1)';\n\nreturn [{ json: { sql: sql, vistas: vistas, vivas: s.gam_vivas || 0, bajas: s.gam_bajas || 0,\n  raras: s.gam_raras || 0, fallos: s.gam_fallos || 0, parado: !!s.gam_parado } }];"
+      },
+      "id": "gv-resumen",
+      "name": "Code: Resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "gv-pg-parte",
+      "name": "PG: Apuntar el parte",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        520,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Arranque de ejecucion y cortacircuitos.\nconst s = $getWorkflowStaticData('global');\nconst item = $input.first().json;\n\nif (!s.gam_run || s.gam_run !== $execution.id) {\n  s.gam_run = $execution.id;\n  s.gam_parado = false;\n  s.gam_vistas = 0;\n  s.gam_vivas = 0;\n  s.gam_bajas = 0;\n  s.gam_raras = 0;\n  s.gam_fallos = 0;\n  s.gam_motivo = '';\n}\n\nreturn [{ json: Object.assign({}, item, { saltar: !!s.gam_parado }) }];"
+      },
+      "id": "gv-toca",
+      "name": "Code: ¿toca pedirla?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "gv-c-saltar",
+              "leftValue": "={{ $json.saltar }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "gv-if-toca",
+      "name": "IF: ¿nos hemos parado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        520,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.source_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 25000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          }
+        },
+        "method": "HEAD"
+      },
+      "id": "gv-http",
+      "name": "HTTP: ¿sigue la ficha?",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        740,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// El veredicto sobre UNA ficha de Gamboa.\n//\n// El nodo HTTP va SIN seguir redirects a proposito, porque ahi esta la señal:\n//\n//   viva    ->  HTTP 200\n//   vendida ->  HTTP 301  Location: /la-categoria-de-ese-coche\n//\n// Mirar el HTML en vez del codigo de estado seria un error: la pagina a la que\n// redirige contiene la marca class=\"resultado\" 48 veces, o sea los mismos\n// marcadores que una ficha viva. Un verificador que se fiara del contenido\n// daria por vivas todas las muertas y no lo diria nunca.\nconst oferta = $('Code: ¿toca pedirla?').item.json;\nconst res = $input.first().json;\nconst cuerpo = String(res.body || res.data || '');\nconst codigo = Number(res.statusCode || 0);\nconst cabeceras = res.headers || {};\nconst destino = String(cabeceras.location || cabeceras.Location || '');\n\nconst s = $getWorkflowStaticData('global');\nconst id = String(oferta.id || '');\nconst eraActiva = oferta.is_active !== false;\nif (!id) return [{ json: { sql: null } }];\n\nconst esc = v => \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\nconst soloFecha = (veredicto) => [{ json: {\n  sql: 'UPDATE moveadvisor_marketplace_vo_offers SET last_checked_at = NOW() WHERE id = ' + esc(id),\n  veredicto: veredicto,\n} }];\n\n// ── fallo pasajero ─────────────────────────────────────────────────────────\n// Un 500 o un timeout no dicen nada del coche. Se rota la fecha para que la\n// cola siga girando, y no se toca is_active ni last_seen_at: no lo hemos visto.\nif (codigo === 0 || codigo >= 500) {\n  s.gam_fallos = (s.gam_fallos || 0) + 1;\n  return soloFecha('pasajero');\n}\n\ns.gam_vistas = (s.gam_vistas || 0) + 1;\n\n// ── sigue publicado ────────────────────────────────────────────────────────\n// Se pide con HEAD, asi que no hay cuerpo que mirar: la señal es el codigo.\n// Sin redirects de por medio, un 200 en la URL de la ficha significa que la\n// ficha sigue ahi.\n//\n// Como cordura se mira el content-type: si algun dia deja de contestar HTML,\n// mejor enterarse por una cola de 'raras' que darlo todo por bueno.\nconst tipo = String(cabeceras['content-type'] || cabeceras['Content-Type'] || '');\nconst tieneFicha = codigo === 200 && (!tipo || /html/i.test(tipo));\n\nif (tieneFicha) {\n  s.gam_vivas = (s.gam_vivas || 0) + 1;\n  // Si constaba inactiva y ha reaparecido, se resucita: asi una baja por error\n  // se corrige sola sin que nadie tenga que mirarlo.\n  const sets = eraActiva\n    ? 'last_checked_at = NOW(), last_seen_at = NOW()'\n    : 'is_active = TRUE, last_checked_at = NOW(), last_seen_at = NOW(), updated_at = NOW()';\n  return [{ json: { sql: 'UPDATE moveadvisor_marketplace_vo_offers SET ' + sets\n    + ' WHERE id = ' + esc(id), veredicto: eraActiva ? 'viva' : 'resucitada' } }];\n}\n\n// ── ya no esta ─────────────────────────────────────────────────────────────\n// Un redirect a otra pagina: el coche se ha vendido y Gamboa manda al visitante\n// a su categoria.\n//\n// Con una salvedad. Si el destino sigue llevando el numero de la oferta, no es\n// una venta, es el sitio normalizando su propia URL -de mayusculas a\n// minusculas, o cambiando el slug del modelo-. Eso no da de baja a nadie.\nconst esRedirect = codigo === 301 || codigo === 302 || codigo === 307 || codigo === 308;\nconst numeroOferta = (String(oferta.source_url || '').match(/(\\d{4,})\\s*$/) || [])[1] || '';\nconst seLoLleva = esRedirect && !(numeroOferta && destino.indexOf(numeroOferta) >= 0);\nconst esBaja = codigo === 404 || codigo === 410 || seLoLleva;\n\nif (esRedirect && !seLoLleva) {\n  console.log('[gamboa-verificar] ' + id + ': redirect que conserva el numero ('\n    + destino + '). Es la web normalizando su URL, no una venta.');\n  return soloFecha('redirect propio');\n}\n\nif (esBaja) {\n  s.gam_bajas = (s.gam_bajas || 0) + 1;\n\n  // Cortacircuitos. Si de golpe casi todo sale muerto es que ha cambiado la web\n  // del concesionario, no que haya vendido el concesionario entero.\n  const vistas = s.gam_vistas || 0;\n  if (vistas >= 50 && (s.gam_bajas / vistas) > 0.85) {\n    s.gam_parado = true;\n    s.gam_motivo = 'mortandad del ' + Math.round(100 * s.gam_bajas / vistas) + '% en ' + vistas + ' fichas';\n    console.log('[gamboa-verificar] PARADO: ' + s.gam_motivo\n      + '. Eso no es que Gamboa haya vendido el concesionario: es que ha cambiado la web.');\n    return soloFecha('parado');\n  }\n\n  // Si ya constaba inactiva no se toca updated_at: reescribirlo cada dia borra\n  // el unico rastro que queda de cuando se cayo el anuncio.\n  const sets = eraActiva\n    ? 'is_active = FALSE, last_checked_at = NOW(), updated_at = NOW()'\n    : 'last_checked_at = NOW()';\n  console.log('[gamboa-verificar] BAJA ' + id + (eraActiva ? '' : ' (ya constaba)'));\n  return [{ json: { sql: 'UPDATE moveadvisor_marketplace_vo_offers SET ' + sets\n    + ' WHERE id = ' + esc(id), veredicto: 'baja' } }];\n}\n\n// ── ni una cosa ni la otra ─────────────────────────────────────────────────\n// Un 200 que no trae la ficha pero tampoco parece un listado. No se toca\n// is_active: se apunta y se mira el registro. Equivocarse por no dar de baja se\n// arregla manana; vaciar el escaparate por una corazonada, no.\ns.gam_raras = (s.gam_raras || 0) + 1;\nconsole.log('[gamboa-verificar] RARA ' + id + ' (HTTP ' + codigo + ', ' + cuerpo.length\n  + ' bytes) ' + oferta.source_url);\nreturn soloFecha('rara');"
+      },
+      "id": "gv-veredicto",
+      "name": "Code: Veredicto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "gv-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "gv-if-sql",
+      "name": "IF: ¿hay veredicto?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "gv-pg",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        460
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "gv-wait",
+      "name": "Esperar 1s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1620,
+        540
+      ],
+      "webhookId": "e5b3c281-gamboa-verificar"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a verificar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4 veces/día (cada 6 h)": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a verificar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Cola a verificar": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: oferta por oferta": {
+      "main": [
+        [
+          {
+            "node": "Code: Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: ¿toca pedirla?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Resumen": {
+      "main": [
+        [
+          {
+            "node": "PG: Apuntar el parte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: ¿toca pedirla?": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿nos hemos parado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿nos hemos parado?": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: ¿sigue la ficha?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: ¿sigue la ficha?": {
+      "main": [
+        [
+          {
+            "node": "Code: Veredicto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Veredicto": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay veredicto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay veredicto?": {
+      "main": [
+        [
+          {
+            "node": "PG: Actualizar oferta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Actualizar oferta": {
+      "main": [
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 1s": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

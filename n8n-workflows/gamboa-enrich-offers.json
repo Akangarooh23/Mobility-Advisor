@@ -1,0 +1,316 @@
+{
+  "name": "Gamboa – Enriquecer (color, garantía, fotos, equipamiento)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "ge-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -380,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 30 1,5,9,13,17,21 * * *"
+            }
+          ]
+        }
+      },
+      "id": "ge-cron",
+      "name": "6 veces/día (cada 4 h)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -380,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Las ofertas de Gamboa que menos recientemente se han enriquecido.\n--\n-- El filtro de 20 horas reparte las 1200 comprobaciones diarias entre las seis\n-- pasadas en vez de que la primera se lleve siempre las mismas.\nSELECT id, source_url\nFROM moveadvisor_marketplace_vo_offers\nWHERE portal = 'gamboa'\n  AND is_active\n  AND COALESCE(source_url, '') <> ''\n  AND (enrich_tried_at IS NULL OR enrich_tried_at < NOW() - INTERVAL '20 hours')\nORDER BY enrich_tried_at ASC NULLS FIRST\nLIMIT 200",
+        "options": {}
+      },
+      "id": "ge-cola",
+      "name": "PG: Cola a enriquecer",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -140,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "ge-loop",
+      "name": "Loop: oferta por oferta",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        80,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.source_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 25000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          }
+        }
+      },
+      "id": "ge-http",
+      "name": "HTTP: Ficha de Gamboa",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        320,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Gamboa - de la ficha a las columnas.\nconst oferta = $('Loop: oferta por oferta').item.json;\nconst res = $input.first().json;\nconst cuerpo = String(res.body || res.data || '');\nconst codigo = Number(res.statusCode || 0);\nconst id = String(oferta.id || '');\nconst BASE = 'https://www.gamboaocasion.com';\n\nconst esc = v => (v === null || v === undefined || v === '') ? 'NULL'\n  : (typeof v === 'number' ? String(v) : \"'\" + String(v).replace(/'/g, \"''\") + \"'\");\n\n// enrich_tried_at se mueve pase lo que pase: sin eso, una ficha que falla se\n// reintenta en cada pasada y atasca la cola para siempre.\nconst soloIntento = () => [{ json: {\n  sql: 'UPDATE moveadvisor_marketplace_vo_offers SET enrich_tried_at = NOW() WHERE id = ' + esc(id),\n  veredicto: 'sin datos',\n} }];\n\nif (!id) return [{ json: { sql: null } }];\n\n// Un coche vendido no da 404: Gamboa redirige su ficha al listado de la\n// categoria. Por eso este nodo pide SIN seguir redirects, igual que el\n// verificador, y un 3xx se trata como \"ya no esta\".\n//\n// Siguiendo el redirect pasaba algo peor que perder el dato: la pagina de\n// categoria contiene class=\"resultado\" 48 veces -los mismos marcadores que una\n// ficha viva-, asi que el filtro de abajo la daba por buena, no sacaba ningun\n// campo... y aun asi sellaba last_seen_at. O sea que el enriquecedor certificaba\n// como vivos coches vendidos, peleandose con el verificador: uno los daba de\n// baja y el otro los resucitaba.\n//\n// Aqui no se da de baja a nadie -de eso se encarga el verificador, que es quien\n// mira eso a proposito-. Solo se apunta que se intento.\nconst esRedirect = codigo >= 300 && codigo < 400;\nif (esRedirect || codigo !== 200 || !cuerpo || !/class=\"resultado/.test(cuerpo)) {\n  console.log('[gamboa-enrich] ' + id + ': sin ficha util (HTTP ' + codigo + ')');\n  return soloIntento();\n}\n\n// ── los pares etiqueta/valor de la ficha tecnica ───────────────────────────\nconst limpia = s => String(s)\n  .replace(/&aacute;/g, 'á').replace(/&eacute;/g, 'é').replace(/&iacute;/g, 'í')\n  .replace(/&oacute;/g, 'ó').replace(/&uacute;/g, 'ú').replace(/&ntilde;/g, 'ñ')\n  .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&euro;/g, '€')\n  .replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n\nconst ficha = {};\nfor (const m of cuerpo.matchAll(/<span class=\"label[^\"]*\">([\\s\\S]*?)<\\/span>\\s*<span class=\"resultado[^\"]*\">([\\s\\S]*?)<\\/span>/g)) {\n  const k = limpia(m[1]).toLowerCase().replace(/[áàä]/g,'a').replace(/[éèë]/g,'e')\n    .replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/ñ/g,'n');\n  ficha[k] = limpia(m[2]);\n}\n\nconst numero = v => { const m = String(v || '').replace(/\\./g, '').match(/(\\d+)/); return m ? Number(m[1]) : null; };\nconst siNo = v => { const s = String(v || '').toLowerCase(); return s === 'si' || s === 'sí' ? true : (s === 'no' ? false : null); };\n\nconst color   = ficha['color'] || '';\nconst anio    = numero(ficha['ano'] || ficha['año']);\nconst kms     = numero(ficha['kilometros']);\nconst carroc  = ficha['carroceria'] || '';\nconst plazas  = numero(ficha['plazas']);\nconst puertas = numero(ficha['puertas']);\nconst dueños  = numero(ficha['n dueños anteriores'] || ficha['n duenos anteriores'] || ficha['no dueños anteriores']);\nconst libro   = siNo(ficha['libro de servicio']);\nconst nacion  = siNo(ficha['nacional']);\n\n// La garantia de la ficha tecnica es la de la MARCA.\nconst garantiaMarca = numero(ficha['garantia']);\n\n// ── la garantia del concesionario, que es la que vale para el cliente ──────\n// Vive en el bloque comercial pegado al precio: \"12 meses de garantia,\n// 100% cubierto con la garantia Gamboa\".\nlet garantiaGamboa = null;\nfor (const m of cuerpo.matchAll(/<div class=\"descripcion\">([\\s\\S]*?)<\\/div>/g)) {\n  const txt = limpia(m[1]);\n  const g = txt.match(/(\\d{1,3})\\s*meses?\\s+de\\s+garant/i);\n  if (g) { garantiaGamboa = Number(g[1]); break; }\n}\n\n// ── las fotos ──────────────────────────────────────────────────────────────\n// El listado solo daba una. La ficha trae la galeria entera, pero repartida\n// entre data-src, srcset y src segun si la imagen entra en el carrusel o carga\n// despues. Mirar solo data-src devolvia 3 de las 19 que tiene un coche normal.\n// Por eso se busca la ruta directamente, venga en el atributo que venga.\n//\n// Y se filtra por el numero de ESTE coche: la ficha incluye tambien fotos de\n// los \"coches similares\" del final -/img/coches/32256/, /img/coches/32253/...-\n// y sin filtrar se colarian en la galeria del que estamos mirando.\nconst numeroCoche = (String(oferta.source_url || '').match(/(\\d{4,})\\s*$/) || [])[1] || '';\nconst fotos = numeroCoche\n  ? [...new Set(\n      [...cuerpo.matchAll(new RegExp('/img/coches/' + numeroCoche + '/[A-Za-z0-9_]+_l\\\\.(?:jpg|jpeg|png|webp)', 'gi'))]\n        .map(m => BASE + m[0])\n    )].slice(0, 30)\n  : [];\n\n// ── el equipamiento ────────────────────────────────────────────────────────\n// Dos pestañas, serie y opcional, cada una con categorias plegables. La\n// separacion vale dinero: un extra opcional montado es lo que diferencia dos\n// coches del mismo precio, y por eso no se mezclan en una sola lista.\n//\n// Los contenedores se llaman 'equipamiento-serie' y 'equipamiento-extra'. Ojo\n// con el segundo: la pestaña se titula \"Opcional\" pero el id dice \"extra\", y\n// buscar 'equipamiento-opcional' devuelve vacio sin dar ningun error.\nfunction pestaña(idPanel, idSiguiente) {\n  const i = cuerpo.indexOf('id=\"' + idPanel + '\"');\n  if (i < 0) return null;\n  // Se corta donde empieza la otra pestaña -o donde acaba la seccion- para que\n  // una no se lleve los paneles de la otra.\n  let fin = Math.min(cuerpo.length, i + 80000);\n  const j = idSiguiente ? cuerpo.indexOf('id=\"' + idSiguiente + '\"', i + 1) : -1;\n  if (j > i) fin = Math.min(fin, j);\n  const k = cuerpo.indexOf('</section>', i + 1);\n  if (k > i) fin = Math.min(fin, k);\n  const trozo = cuerpo.slice(i, fin);\n  const cats = {};\n  const paneles = [...trozo.matchAll(/<h4 class=\"panel-title\">[\\s\\S]*?<a[^>]*>([\\s\\S]*?)<\\/a>[\\s\\S]*?<ul>([\\s\\S]*?)<\\/ul>/g)];\n  for (const p of paneles) {\n    const nombre = limpia(p[1]);\n    const items = [...p[2].matchAll(/<li>([\\s\\S]*?)<\\/li>/g)].map(x => limpia(x[1])).filter(Boolean);\n    if (nombre && items.length) cats[nombre] = items;\n  }\n  return Object.keys(cats).length ? cats : null;\n}\nconst serie = pestaña('equipamiento-serie', 'equipamiento-extra');\nconst opcional = pestaña('equipamiento-extra', null);\nconst equipo = (serie || opcional) ? JSON.stringify({ serie: serie || {}, opcional: opcional || {} }) : '';\n\n// ── el UPDATE ──────────────────────────────────────────────────────────────\n// Cada campo va con COALESCE sobre lo que ya hay: el enriquecedor rellena\n// huecos, no pisa lo que el scraper trajo del listado. La excepcion son las\n// fotos y el equipamiento, que el listado no puede dar y aqui son mejores por\n// definicion.\nconst sets = ['enrich_tried_at = NOW()'];\n\n// COALESCE solo sustituye NULL, y esta tabla tiene columnas que llegan a CERO\n// o a cadena vacia en vez de a NULL. warranty_months es el caso claro: tiene\n// DEFAULT 0, asi que las 960 filas valen 0 y un COALESCE a secas no entra\n// jamas. La primera version de esto se paso una ejecucion entera sin guardar\n// una sola garantia, y sin dar ningun error.\n//\n// De ahi las tres formas:\nconst pon = (col, val) => { if (val !== null && val !== undefined && val !== '')\n  sets.push(col + \" = COALESCE(NULLIF(\" + col + \", ''), \" + esc(val) + ')'); };\nconst ponNum = (col, val) => { if (val !== null && val !== undefined && val !== '')\n  sets.push(col + ' = COALESCE(NULLIF(' + col + ', 0), ' + esc(val) + ')'); };\n// Para lo que un cero SI significa algo. Un coche con cero dueños anteriores es\n// un coche nuevo, no un dato que falte.\nconst ponCeroValido = (col, val) => { if (val !== null && val !== undefined && val !== '')\n  sets.push(col + ' = COALESCE(' + col + ', ' + esc(val) + ')'); };\nconst pisa = (col, val) => { if (val !== null && val !== undefined && val !== '')\n  sets.push(col + ' = ' + esc(val)); };\n\npon('color', color);\nponNum('year', anio);\nponNum('mileage', kms);\npon('body_type', carroc);\nponNum('seats', plazas);\nponNum('doors', puertas);\nponCeroValido('previous_owners', dueños);\nif (libro !== null) sets.push('has_service_book = COALESCE(has_service_book, ' + (libro ? 'TRUE' : 'FALSE') + ')');\nif (nacion !== null) sets.push('is_national = COALESCE(is_national, ' + (nacion ? 'TRUE' : 'FALSE') + ')');\n\n// Las dos garantias, cada una a la suya. La de Gamboa es la que ve el cliente.\n// Van con ponNum a proposito: warranty_months tiene DEFAULT 0 y sin NULLIF no\n// se escribiria nunca.\nponNum('warranty_months', garantiaGamboa);\nponNum('brand_warranty_months', garantiaMarca);\n\nif (fotos.length) pisa('image_urls', JSON.stringify(fotos));\nif (equipo) pisa('equipment', equipo);\n\n// last_seen_at solo se toca si de verdad se ha leido la ficha del coche.\n//\n// Sellarlo por el mero hecho de haber recibido una pagina fue el fallo de la\n// primera version: a un coche vendido le ponia \"visto vivo hoy\" y dejaba al\n// verificador peleandose con el. Si de aqui no ha salido ni un campo, lo unico\n// honesto es apuntar que se intento.\nconst hayDato = sets.length > 1;\nif (hayDato) {\n  sets.push('last_seen_at = NOW()', 'last_checked_at = NOW()');\n  // updated_at tambien: ese campo ordena el escaparate, y tocarlo cada dia sin\n  // motivo reordenaria la tienda entera por nada.\n  sets.push('updated_at = NOW()');\n}\n\nconsole.log('[gamboa-enrich] ' + id + ': color=' + (color || '-')\n  + ' garantia=' + (garantiaGamboa || '-') + '/' + (garantiaMarca || '-') + 'm'\n  + ' fotos=' + fotos.length\n  + ' equipamiento=' + (serie ? Object.keys(serie).length : 0) + '+' + (opcional ? Object.keys(opcional).length : 0));\n\nreturn [{ json: {\n  sql: 'UPDATE moveadvisor_marketplace_vo_offers SET ' + sets.join(', ') + ' WHERE id = ' + esc(id),\n  veredicto: hayDato ? 'enriquecida' : 'sin datos',\n  fotos: fotos.length,\n} }];"
+      },
+      "id": "ge-code",
+      "name": "Code: Extraer de la ficha",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ge-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "ge-if",
+      "name": "IF: ¿hay algo que guardar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        760,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "ge-pg",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        980,
+        340
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "seconds"
+      },
+      "id": "ge-wait",
+      "name": "Esperar 2s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        420
+      ],
+      "webhookId": "d4a2b190-gamboa-enrich"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6 veces/día (cada 4 h)": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Cola a enriquecer": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: oferta por oferta": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP: Ficha de Gamboa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Ficha de Gamboa": {
+      "main": [
+        [
+          {
+            "node": "Code: Extraer de la ficha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Extraer de la ficha": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay algo que guardar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay algo que guardar?": {
+      "main": [
+        [
+          {
+            "node": "PG: Actualizar oferta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Actualizar oferta": {
+      "main": [
+        [
+          {
+            "node": "Esperar 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 2s": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

@@ -121,7 +121,7 @@
       "alwaysOutputData": true,
       "credentials": {
         "postgres": {
-          "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL",
+          "id": "zoxD0jV8hxZqH0uY",
           "name": "Postgres account"
         }
       }
@@ -254,7 +254,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL",
+          "id": "zoxD0jV8hxZqH0uY",
           "name": "Postgres account"
         }
       }

@@ -166,6 +166,7 @@ const ViewingConfirmPage = lazy(() => import("./pages/ViewingConfirmPage"));
 const LegalPolicyPage = lazy(() => import("./pages/LegalPolicyPage"));
 const MiCitaPage = lazy(() => import("./pages/MiCitaPage"));
 const ElegirHoraPage = lazy(() => import("./pages/ElegirHoraPage"));
+const ComoFuePage = lazy(() => import("./pages/ComoFuePage"));
 const SeoStaticPage = lazy(() => import("./pages/SeoStaticPage"));
 const AboutCarswisePage = lazy(() => import("./pages/AboutCarswisePage"));
 const ContactCarswisePage = lazy(() => import("./pages/ContactCarswisePage"));
@@ -4495,6 +4496,13 @@ export default function App() {
   // La abre el cliente desde el correo de «esa hora no puede ser».
   if (typeof window !== "undefined" && window.location.pathname === "/elegir-hora") {
     return <ElegirHoraPage />;
+  }
+
+  // -------------------- COMO FUE STANDALONE PAGE --------------------
+  // La abre el cliente desde el correo de seguimiento, para decir como acabo
+  // su visita. Sin sesion: la llave es el testigo de su cita.
+  if (typeof window !== "undefined" && window.location.pathname === "/como-fue") {
+    return <ComoFuePage />;
   }
 
   // -------------------- LEGAL STANDALONE PAGE --------------------

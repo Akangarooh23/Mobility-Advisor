@@ -1,0 +1,472 @@
+{
+  "name": "Milanuncios – Verificar ofertas activas",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "mv-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 13 * * *"
+            }
+          ]
+        }
+      },
+      "id": "mv-cron",
+      "name": "Cada día a las 13:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Las marcas candidatas de esta noche, en el orden en que interesan. No se\n-- elige una: se devuelven todas y el planificador mete las que quepan en el\n-- cupo de ~9 peticiones.\n--\n-- El orden NO puede salir de \"la oferta mas antigua sin comprobar\". Una marca\n-- de 200 paginas no cabe en el cupo, asi que nunca llega a verificarse entera,\n-- sus ofertas siguen siendo las mas viejas y se llevaria el turno todas las\n-- noches para siempre sin dar de baja a nadie. Por eso manda la libreta de\n-- barridos, que sabe el tamaño de cada marca:\n--\n--   0. las medidas que caben enteras: son las unicas donde verificar es real\n--   1. las demas, por si toca sondearlas\n--\n-- 'sondear' marca las que hay que ir a medir: las que no se han visto nunca y\n-- las que se midieron grandes hace mas de 30 dias, por si han encogido. Una\n-- sonda cuesta una sola peticion, la de la pagina 1.\n--\n-- El 9 de aqui es el PRESUPUESTO del planificador. Si se cambia uno hay que\n-- cambiar el otro.\nSELECT lower(o.brand)                  AS marca,\n       count(*)                        AS activas,\n       s.total_pages                   AS paginas,\n       s.swept_at                      AS ultimo_barrido,\n       (s.swept_at IS NULL\n        OR (COALESCE(s.total_pages, 0) > 9\n            AND s.swept_at < NOW() - INTERVAL '30 days')) AS sondear\nFROM moveadvisor_market_offers o\nLEFT JOIN moveadvisor_brand_sweeps s\n       ON s.portal = 'milanuncios'\n      AND s.brand  = lower(o.brand)\nWHERE o.portal = 'milanuncios'\n  AND o.is_active\n  -- 'otros coches' no es una marca y no tiene listado propio.\n  AND lower(o.brand) <> 'otros coches'\n  -- Ya barrida hoy: no se repite. Misma idea que en el verificador de Wallapop.\n  AND (s.swept_at IS NULL OR s.swept_at < NOW() - INTERVAL '20 hours')\nGROUP BY 1, s.total_pages, s.swept_at\nORDER BY\n  CASE WHEN s.total_pages IS NOT NULL AND s.total_pages <= 9 THEN 0 ELSE 1 END,\n  s.swept_at ASC NULLS FIRST\nLIMIT 40",
+        "options": {}
+      },
+      "id": "mv-cola",
+      "name": "PG: Marcas candidatas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Reparte el cupo de la noche entre varias marcas.\n//\n// Dos pasadas, en este orden:\n//\n//   1. Marcas ya medidas que caben ENTERAS en lo que queda de cupo. Se barren\n//      de la pagina 1 a la ultima. Solo aqui se puede dar de baja por ausencia.\n//   2. Con lo que sobre, una sonda -pagina 1 y nada mas- de las marcas sin\n//      medir. No verifica nada: sirve para aprender su tamaño y que la noche\n//      siguiente el reparto sea bueno.\n//\n// Media marca no se empieza nunca: sin el listado entero no se puede deducir\n// ninguna baja, asi que serian peticiones tiradas.\nconst PRESUPUESTO = 9;\n\nconst candidatas = $input.all().map(i => i.json);\nconst s = $getWorkflowStaticData('global');\ns.mil_inicio = new Date().toISOString();\ns.mil_bloqueo = false;\ns.mil_marcas = {};\n\nconst slugDe = m => String(m).toLowerCase().replace(/\\s+/g, '-');\nconst urlDe = (slug, n) => 'https://www.milanuncios.com/' + slug + '-de-segunda-mano/'\n  + (n > 1 ? '?pagina=' + n : '');\n\nlet queda = PRESUPUESTO;\nconst peticiones = [];\n\nfunction abre(marca, esperadas, sonda) {\n  s.mil_marcas[marca] = {\n    esperadas: esperadas, leidas: 0, vistos: 0,\n    totalPaginas: 0, bloqueo: false, sonda: !!sonda,\n  };\n}\n\n// --- pasada 1: las que caben enteras -----------------------------------------\nfor (const c of candidatas) {\n  const paginas = Number(c.paginas || 0);\n  if (!paginas || paginas > queda) continue;\n  abre(c.marca, paginas, false);\n  const slug = slugDe(c.marca);\n  for (let n = 1; n <= paginas; n++) {\n    peticiones.push({ marca: c.marca, pagina: n, url: urlDe(slug, n), sonda: false });\n  }\n  queda -= paginas;\n}\n\n// --- pasada 2: sondas de las que no sabemos cuanto miden ----------------------\nfor (const c of candidatas) {\n  if (queda <= 0) break;\n  if (!c.sondear) continue;\n  if (s.mil_marcas[c.marca]) continue;   // ya entera en la pasada 1\n  abre(c.marca, 1, true);\n  peticiones.push({ marca: c.marca, pagina: 1, url: urlDe(slugDe(c.marca), 1), sonda: true });\n  queda -= 1;\n}\n\nconst enteras = Object.keys(s.mil_marcas).filter(m => !s.mil_marcas[m].sonda);\nconst sondas = Object.keys(s.mil_marcas).filter(m => s.mil_marcas[m].sonda);\nconsole.log('[mil-verificar] ' + candidatas.length + ' candidatas. '\n  + peticiones.length + ' peticiones de ' + PRESUPUESTO + ': '\n  + enteras.length + ' marcas enteras (' + (enteras.join(', ') || '-') + ')'\n  + ' y ' + sondas.length + ' sondas (' + (sondas.join(', ') || '-') + ')');\n\nreturn peticiones.map(p => ({ json: p }));"
+      },
+      "id": "mv-plan",
+      "name": "Code: Repartir la noche",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        60,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "mv-loop",
+      "name": "Loop: pagina por pagina",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        280,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Fin de la noche. Se cierra marca por marca, y de cada una salen dos cosas:\n//\n//   1. El apunte en la libreta, que pasa SIEMPRE. Aunque no se haya podido\n//      verificar nada, ese apunte es lo que hace rotar el turno y lo que deja\n//      escrito hasta donde llega lo que sabemos de esa marca.\n//   2. Las bajas, solo si se vio el listado ENTERO y ninguna pagina vino\n//      bloqueada.\n//\n// No hace falta la lista de ausentes: las ofertas que se han visto llevan\n// last_checked_at sellado durante este barrido y las que no conservan el valor\n// viejo. La propia fecha las separa.\nconst s = $getWorkflowStaticData('global');\nconst inicio = String(s.mil_inicio || '');\nconst marcas = s.mil_marcas || {};\nif (!inicio) return [];\n\nconst esc = v => \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\nconst num = v => (Number.isFinite(Number(v)) ? String(Number(v)) : 'NULL');\n\nconst salida = [];\nfor (const marca of Object.keys(marcas)) {\n  const m = marcas[marca];\n\n  // Ni una sola pagina leida: no se apunta nada, para que la marca siga en\n  // cabeza del turno manana en vez de figurar como mirada.\n  if (!m.leidas) continue;\n\n  const completo = !m.bloqueo && m.totalPaginas > 0 && m.leidas >= m.totalPaginas;\n\n  const apunte = (bajas) =>\n    'INSERT INTO moveadvisor_brand_sweeps'\n    + ' (portal, brand, swept_at, total_pages, pages_read, complete, seen_count, deactivated, blocked)'\n    + \" SELECT 'milanuncios', \" + esc(marca) + ', NOW(), '\n    + num(m.totalPaginas) + ', ' + num(m.leidas) + ', '\n    + (completo ? 'TRUE' : 'FALSE') + ', ' + num(m.vistos) + ', '\n    + bajas + ', ' + (m.bloqueo ? 'TRUE' : 'FALSE')\n    + ' ON CONFLICT (portal, brand) DO UPDATE SET'\n    + ' swept_at = EXCLUDED.swept_at, total_pages = EXCLUDED.total_pages,'\n    + ' pages_read = EXCLUDED.pages_read, complete = EXCLUDED.complete,'\n    + ' seen_count = EXCLUDED.seen_count, deactivated = EXCLUDED.deactivated,'\n    + ' blocked = EXCLUDED.blocked';\n\n  if (!completo) {\n    const motivo = m.bloqueo ? 'bloqueo a mitad'\n      : (m.sonda ? 'era solo una sonda: ' + m.totalPaginas + ' paginas'\n                 : 'leidas ' + m.leidas + ' de ' + m.totalPaginas + ' paginas');\n    console.log('[mil-verificar] ' + marca + ': ' + m.vistos + ' anuncios refrescados, '\n      + motivo + '. No se da de baja a nadie.');\n    salida.push({ json: { sql: apunte('0'), marca: marca, bajas: false } });\n    continue;\n  }\n\n  // El UPDATE va dentro de un CTE de la MISMA sentencia que el apunte: asi el\n  // numero de bajas que queda escrito es el de verdad, no una estimacion, y si\n  // algo falla no queda ni el apunte ni las bajas a medias.\n  const sql = 'WITH bajas AS ('\n    + ' UPDATE moveadvisor_market_offers'\n    + ' SET is_active = false, updated_at = NOW()'\n    + \" WHERE portal = 'milanuncios'\"\n    + ' AND lower(brand) = ' + esc(marca)\n    + ' AND is_active'\n    + ' AND (last_checked_at IS NULL OR last_checked_at < ' + esc(inicio) + ')'\n    + ' RETURNING 1'\n    + ') ' + apunte('(SELECT count(*) FROM bajas)');\n\n  console.log('[mil-verificar] ' + marca + ': barrido completo de ' + m.totalPaginas\n    + ' paginas, ' + m.vistos + ' anuncios vistos. Se dan de baja las activas'\n    + ' que no han aparecido.');\n  salida.push({ json: { sql: sql, marca: marca, bajas: true } });\n}\n\nreturn salida;"
+      },
+      "id": "mv-veredicto",
+      "name": "Code: Veredicto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "mv-pg-apunte",
+      "name": "PG: Apuntar barrido y dar de baja",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        740,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Si ya nos han bloqueado, las peticiones que quedan no se piden. Insistir\n// alarga el bloqueo, y de una pagina bloqueada no se saca nada.\nconst s = $getWorkflowStaticData('global');\nconst item = $input.first().json;\nreturn [{ json: Object.assign({}, item, { saltar: !!s.mil_bloqueo }) }];"
+      },
+      "id": "mv-toca",
+      "name": "Code: ¿toca pedirla?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "mv-c-saltar",
+              "leftValue": "={{ $json.saltar }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "mv-if-toca",
+      "name": "IF: ¿nos han bloqueado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        740,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            },
+            {
+              "name": "Referer",
+              "value": "https://www.milanuncios.com/"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "mv-http",
+      "name": "HTTP: Página del listado",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        960,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cada pagina sella como publicado lo que trae. La base hace de acumulador, asi\n// no hay que arrastrar listas entre vueltas del bucle.\nconst item = $('Code: ¿toca pedirla?').item.json;\nconst res = $input.first().json;\nconst cuerpo = String(res.body || '');\nconst codigo = Number(res.statusCode || 0);\n\nconst s = $getWorkflowStaticData('global');\nconst m = s.mil_marcas[item.marca];\n\n// Imperva sirve la pantalla de bloqueo con HTTP 200: hay que mirar el cuerpo.\nif (codigo !== 200 || /Pardon Our Interruption/i.test(cuerpo)) {\n  console.log('[mil-verificar] BLOQUEADO en ' + item.marca + ' pagina ' + item.pagina\n    + ' (HTTP ' + codigo + '). Se deja de pedir por esta noche.');\n  s.mil_bloqueo = true;\n  if (m) m.bloqueo = true;\n  return [{ json: { sql: null } }];\n}\n\nfunction props(html) {\n  let i = html.indexOf('window.__INITIAL_PROPS__');\n  if (i < 0) return null;\n  i = html.indexOf('\"', i);\n  let out = '', escapando = false;\n  for (let j = i + 1; j < html.length; j++) {\n    const c = html[j];\n    if (escapando) { out += c; escapando = false; }\n    else if (c === '\\\\') { out += c; escapando = true; }\n    else if (c === '\"') break;\n    else out += c;\n  }\n  try { return JSON.parse(JSON.parse('\"' + out + '\"')); } catch (e) { return null; }\n}\n\nconst p = props(cuerpo);\nconst lista = (p && p.adListPagination) || {};\nconst anuncios = (lista.adList && lista.adList.ads) || [];\nconst totalPaginas = Number((lista.pagination && lista.pagination.totalPages) || 0);\n\nif (m) {\n  m.leidas += 1;\n  // El tamaño se relee de cada respuesta, no se fia del que habia apuntado: si\n  // la marca ha crecido desde el ultimo barrido, leidas se quedara por debajo\n  // de totalPaginas y el barrido no contara como completo. Se corrige solo.\n  if (totalPaginas > 0) m.totalPaginas = totalPaginas;\n}\n\nconst ids = anuncios.filter(a => a && a.id).map(a => 'mil_' + a.id);\nif (!ids.length) {\n  console.log('[mil-verificar] ' + item.marca + ' pagina ' + item.pagina + ': sin anuncios.');\n  return [{ json: { sql: null } }];\n}\nif (m) m.vistos += ids.length;\n\nconst esc = v => \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n\n// updated_at no se toca: volver a ver un anuncio no es un cambio del anuncio.\n// Lo que cambia es cuando lo vimos, y para eso estan last_seen_at y\n// last_checked_at.\n//\n// Tampoco se reactiva nada. Un anuncio reservado sigue apareciendo en el\n// listado, asi que verlo aqui prueba que sigue publicado, no que este\n// disponible. Quien decide is_active = true es el scraper, que si lee isReserved.\nconst sql = 'UPDATE moveadvisor_market_offers'\n  + ' SET last_checked_at = NOW(), last_seen_at = NOW()'\n  + \" WHERE portal = 'milanuncios' AND id IN (\" + ids.map(esc).join(', ') + ')';\n\nconsole.log('[mil-verificar] ' + item.marca + ' pagina ' + item.pagina + '/' + totalPaginas\n  + ': ' + ids.length + ' anuncios publicados');\nreturn [{ json: { sql: sql, marca: item.marca, pagina: item.pagina, vistos: ids.length } }];"
+      },
+      "id": "mv-procesar",
+      "name": "Code: Procesar página",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "mv-c-sellar",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "mv-if-sellar",
+      "name": "IF: ¿hay que sellar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "mv-pg-sellar",
+      "name": "PG: Sellar página",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1620,
+        460
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 15,
+        "unit": "seconds"
+      },
+      "id": "mv-wait",
+      "name": "Esperar 15s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1840,
+        540
+      ],
+      "webhookId": "b7c1e0a4-mil-verificar"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Marcas candidatas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada día a las 13:00": {
+      "main": [
+        [
+          {
+            "node": "PG: Marcas candidatas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Marcas candidatas": {
+      "main": [
+        [
+          {
+            "node": "Code: Repartir la noche",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Repartir la noche": {
+      "main": [
+        [
+          {
+            "node": "Loop: pagina por pagina",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: pagina por pagina": {
+      "main": [
+        [
+          {
+            "node": "Code: Veredicto",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: ¿toca pedirla?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Veredicto": {
+      "main": [
+        [
+          {
+            "node": "PG: Apuntar barrido y dar de baja",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: ¿toca pedirla?": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿nos han bloqueado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿nos han bloqueado?": {
+      "main": [
+        [
+          {
+            "node": "Loop: pagina por pagina",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Página del listado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Página del listado": {
+      "main": [
+        [
+          {
+            "node": "Code: Procesar página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Procesar página": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay que sellar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay que sellar?": {
+      "main": [
+        [
+          {
+            "node": "PG: Sellar página",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 15s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Sellar página": {
+      "main": [
+        [
+          {
+            "node": "Esperar 15s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 15s": {
+      "main": [
+        [
+          {
+            "node": "Loop: pagina por pagina",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

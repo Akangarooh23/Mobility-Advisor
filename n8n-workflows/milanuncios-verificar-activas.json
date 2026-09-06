@@ -1,0 +1,450 @@
+{
+  "name": "Milanuncios – Verificar ofertas activas",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "mvf-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 0,4,8,12,16,20 * * *"
+            }
+          ]
+        }
+      },
+      "id": "mvf-cron",
+      "name": "6 veces/día (cada 4 h)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Las ofertas activas que llevan mas tiempo sin comprobar. Con 560 por\n-- ejecucion y 6 ejecuciones al dia se repasan las 3.348 activas cada dia.\n--\n-- El filtro de 20 horas evita que una ejecucion repita lo que acaba de mirar\n-- otra: reparte el catalogo entre las 6 pasadas del dia en vez de machacar\n-- siempre las mismas. Misma idea que en el verificador de Wallapop.\nSELECT id,\n       url,\n       lower(brand) AS marca\nFROM moveadvisor_market_offers\nWHERE portal = 'milanuncios'\n  AND is_active\n  AND COALESCE(url, '') <> ''\n  AND (last_checked_at IS NULL OR last_checked_at < NOW() - INTERVAL '20 hours')\nORDER BY last_checked_at ASC NULLS FIRST\nLIMIT 560",
+        "options": {}
+      },
+      "id": "mvf-cola",
+      "name": "PG: Cola a verificar",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "id": "mvf-loop",
+      "name": "Loop: oferta por oferta",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        60,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// El parte de la ejecucion. Es lo que hay que leer para saber si el ritmo\n// aguanta y si la deteccion de bajas funciona.\n//\n// Va a moveadvisor_verify_runs y no al registro de n8n a proposito: guardar las\n// ejecuciones enteras obligaria a poner saveDataSuccessExecution a \"all\", y eso\n// son 560 respuestas de 96 KB, unos 54 MB por ejecucion. Esto es una fila.\nconst s = $getWorkflowStaticData('global');\nconst vistas = s.mil_vistas || 0;\n\nconsole.log('[mil-verificar] ── resumen ──');\nconsole.log('  fichas miradas   : ' + vistas);\nconsole.log('  siguen publicadas: ' + (s.mil_vivas || 0));\nconsole.log('  dadas de baja    : ' + (s.mil_bajas || 0));\nconsole.log('  sin clasificar   : ' + (s.mil_raras || 0));\nconsole.log('  fallos pasajeros : ' + (s.mil_fallos || 0));\n\nif (s.mil_bloqueo) {\n  console.log('  BLOQUEADO por el portal tras ' + vistas + ' fichas con espera de 20s.');\n  console.log('  -> subir ESPERA_SEGUNDOS en scripts/genera-verificador-milanuncios.js');\n} else {\n  console.log('  sin bloqueos: el ritmo de 20s aguanta ' + vistas + ' fichas seguidas.');\n}\nif ((s.mil_raras || 0) > vistas * 0.1) {\n  console.log('  OJO: mas del 10% sin clasificar. Ahi esta la firma del anuncio');\n  console.log('  caducado; mirar esas URLs y añadir su deteccion al veredicto.');\n}\n\nconst n = v => String(Number(v) || 0);\nconst sql = 'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" VALUES ('milanuncios', NOW(), \" + n(vistas) + ', ' + n(s.mil_vivas) + ', '\n  + n(s.mil_bajas) + ', ' + n(s.mil_raras) + ', ' + n(s.mil_fallos) + ', '\n  + (s.mil_bloqueo ? 'TRUE' : 'FALSE') + ', 20)';\n\nreturn [{ json: {\n  sql: sql,\n  vistas: vistas, vivas: s.mil_vivas || 0, bajas: s.mil_bajas || 0,\n  raras: s.mil_raras || 0, fallos: s.mil_fallos || 0, bloqueado: !!s.mil_bloqueo,\n} }];"
+      },
+      "id": "mvf-resumen",
+      "name": "Code: Resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "mvf-pg-parte",
+      "name": "PG: Apuntar el parte",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        520,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Si ya nos han bloqueado, las ofertas que quedan no se piden. Insistir alarga\n// el bloqueo, y de una pagina bloqueada no se saca ningun veredicto.\nconst s = $getWorkflowStaticData('global');\nconst item = $input.first().json;\n\nif (!s.mil_run || s.mil_run !== $execution.id) {\n  // Arranque de ejecucion. El contador vive en la memoria del workflow, asi que\n  // hay que distinguir esta ejecucion de la anterior para no heredar su estado.\n  s.mil_run = $execution.id;\n  s.mil_bloqueo = false;\n  s.mil_vistas = 0;\n  s.mil_vivas = 0;\n  s.mil_bajas = 0;\n  s.mil_raras = 0;\n  s.mil_fallos = 0;\n}\n\nreturn [{ json: Object.assign({}, item, { saltar: !!s.mil_bloqueo }) }];"
+      },
+      "id": "mvf-toca",
+      "name": "Code: ¿toca pedirla?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "mvf-c-saltar",
+              "leftValue": "={{ $json.saltar }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "mvf-if-toca",
+      "name": "IF: ¿nos han bloqueado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        520,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            },
+            {
+              "name": "Referer",
+              "value": "https://www.milanuncios.com/"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 25000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "mvf-http",
+      "name": "HTTP: ¿sigue la ficha?",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        740,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// El veredicto sobre UNA ficha. Aqui es donde este workflow puede hacer daño de\n// verdad, asi que la regla es: solo se da de baja con una prueba clara, y\n// cualquier otra cosa se deja como esta.\n//\n// El error que hay que no repetir: la pantalla de bloqueo de Imperva llega con\n// un HTTP 200 y 96 KB de HTML. Un verificador que mire solo el codigo de estado\n// la cuenta como \"anuncio vivo\" -o peor, si mirase el contenido al reves, daria\n// de baja el catalogo entero-. Se mira el cuerpo SIEMPRE, y antes que nada.\nconst oferta = $('Code: ¿toca pedirla?').item.json;\nconst res = $input.first().json;\nconst cuerpo = String(res.body || '');\nconst codigo = Number(res.statusCode || 0);\n\nconst s = $getWorkflowStaticData('global');\nconst esc = v => \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\nconst id = String(oferta.id || '');\nif (!id) return [{ json: { sql: null } }];\n\n// ── 1. ¿Nos han bloqueado? ──────────────────────────────────────────────────\n// No es un veredicto sobre la oferta: es que no hemos podido mirar. Se para la\n// ejecucion entera y no se toca ni esta oferta ni ninguna.\nif (/Pardon Our Interruption/i.test(cuerpo) || codigo === 403 || codigo === 429) {\n  s.mil_bloqueo = true;\n  console.log('[mil-verificar] BLOQUEADO tras ' + (s.mil_vistas || 0) + ' fichas'\n    + ' (HTTP ' + codigo + '). Se para la ejecucion.');\n  console.log('[mil-verificar] APUNTA ESTE NUMERO: es el limite real del portal'\n    + ' con una espera de 20s.');\n  return [{ json: { sql: null, veredicto: 'bloqueado' } }];\n}\n\ns.mil_vistas = (s.mil_vistas || 0) + 1;\n\n// ── 2. Ya no existe ─────────────────────────────────────────────────────────\nif (codigo === 404 || codigo === 410) {\n  s.mil_bajas = (s.mil_bajas || 0) + 1;\n  console.log('[mil-verificar] BAJA ' + id + ' (HTTP ' + codigo + ')');\n  return [{ json: {\n    sql: 'UPDATE moveadvisor_market_offers SET is_active = false,'\n       + ' last_checked_at = NOW(), updated_at = NOW() WHERE id = ' + esc(id),\n    veredicto: 'baja',\n  } }];\n}\n\n// ── 3. Fallo pasajero ───────────────────────────────────────────────────────\n// Un 500 o un timeout no dicen nada de la oferta. Se mueve last_checked_at para\n// que la cola siga girando y no se atasque en esta, pero no se toca is_active\n// ni last_seen_at: no la hemos visto.\nif (codigo === 0 || codigo >= 500) {\n  s.mil_fallos = (s.mil_fallos || 0) + 1;\n  console.log('[mil-verificar] fallo pasajero en ' + id + ' (HTTP ' + codigo + ')');\n  return [{ json: {\n    sql: 'UPDATE moveadvisor_market_offers SET last_checked_at = NOW() WHERE id = ' + esc(id),\n    veredicto: 'pasajero',\n  } }];\n}\n\n// ── 4. Sigue publicada ──────────────────────────────────────────────────────\n// La ficha de un anuncio vivo trae __INITIAL_PROPS__, igual que el listado. Es\n// una señal mucho mas solida que buscar frases sueltas en el HTML.\nif (codigo === 200 && /__INITIAL_PROPS__/.test(cuerpo)) {\n  s.mil_vivas = (s.mil_vivas || 0) + 1;\n  // is_active no se toca: un anuncio reservado sigue teniendo ficha, asi que\n  // verla prueba que sigue publicado, no que este disponible. Y si estaba dada\n  // de baja, reactivarla desde aqui seria adivinar.\n  return [{ json: {\n    sql: 'UPDATE moveadvisor_market_offers SET last_checked_at = NOW(),'\n       + ' last_seen_at = NOW() WHERE id = ' + esc(id),\n    veredicto: 'viva',\n  } }];\n}\n\n// ── 5. Cualquier otra cosa ──────────────────────────────────────────────────\n// Un 200 sin datos de anuncio puede ser la pagina de \"ya no disponible\", un\n// redirect al listado, o algo que no hemos visto nunca. NO se da de baja por\n// una corazonada: se apunta y se mira el registro.\n//\n// Si en las primeras ejecuciones salen muchas 'raras', ahi esta la firma del\n// anuncio caducado, y entonces se añade su deteccion arriba con una prueba\n// delante. Mientras tanto, equivocarse por no dar de baja se arregla; dar de\n// baja medio catalogo por una corazonada, no.\ns.mil_raras = (s.mil_raras || 0) + 1;\nconsole.log('[mil-verificar] RARA ' + id + ' (HTTP ' + codigo + ', ' + cuerpo.length\n  + ' bytes) ' + oferta.url);\nreturn [{ json: {\n  sql: 'UPDATE moveadvisor_market_offers SET last_checked_at = NOW() WHERE id = ' + esc(id),\n  veredicto: 'rara',\n} }];"
+      },
+      "id": "mvf-veredicto",
+      "name": "Code: Veredicto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "mvf-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "mvf-if-sql",
+      "name": "IF: ¿hay veredicto?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "mvf-pg",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        460
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 20,
+        "unit": "seconds"
+      },
+      "id": "mvf-wait",
+      "name": "Esperar 20s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1620,
+        540
+      ],
+      "webhookId": "c3f9a712-mil-verificar-fichas"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a verificar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6 veces/día (cada 4 h)": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a verificar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Cola a verificar": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: oferta por oferta": {
+      "main": [
+        [
+          {
+            "node": "Code: Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: ¿toca pedirla?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Resumen": {
+      "main": [
+        [
+          {
+            "node": "PG: Apuntar el parte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: ¿toca pedirla?": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿nos han bloqueado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿nos han bloqueado?": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: ¿sigue la ficha?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: ¿sigue la ficha?": {
+      "main": [
+        [
+          {
+            "node": "Code: Veredicto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Veredicto": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay veredicto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay veredicto?": {
+      "main": [
+        [
+          {
+            "node": "PG: Actualizar oferta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 20s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Actualizar oferta": {
+      "main": [
+        [
+          {
+            "node": "Esperar 20s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 20s": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

@@ -1,0 +1,192 @@
+{
+  "name": "Universal – Derivar (etiqueta DGT, potencia, cilindrada, tracción)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "der-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 7 * * *"
+            }
+          ]
+        }
+      },
+      "id": "der-cron",
+      "name": "Cada día a las 07:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Ofertas de CUALQUIER portal a las que les falta algo derivable.\n--\n-- Se une con los textos guardados cuando los hay: hoy solo Milanuncios los\n-- guarda, pero el dia que otro portal empiece a hacerlo esta consulta ya los\n-- aprovecha sin tocar nada.\n--\n-- Sin marca de 'ya intentado', igual que el enriquecedor de Milanuncios: aqui\n-- no hay peticion que ahorrar, solo una lectura. Y marcarlo obligaria a\n-- acordarse de limpiar las marcas al mejorar una regla, que es justo el enredo\n-- que dejo 2.063 ofertas de Wallapop bloqueadas un mes.\nSELECT o.id, o.portal, o.title, o.version, o.fuel, o.year,\n       o.power_cv, o.power_kw, o.displacement, o.traction,\n       x.descripcion\nFROM moveadvisor_market_offers o\nLEFT JOIN moveadvisor_offer_texts x ON x.offer_id = o.id\nWHERE COALESCE(o.is_active, TRUE)\n  AND (COALESCE(o.environmental_label,'') = ''\n       OR (o.power_cv IS NULL) <> (o.power_kw IS NULL)\n       OR COALESCE(o.displacement,'') = ''\n       OR COALESCE(o.traction,'') = '')\nORDER BY o.last_seen_at DESC NULLS LAST\nLIMIT 20000",
+        "additionalFields": {}
+      },
+      "id": "der-cola",
+      "name": "PG: Cola a derivar",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -20,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Derivador universal: lo que se puede saber SIN preguntarle a ningun portal.\n//\n// Cada portal tiene su scraper y su enriquecedor, y esta bien: cada uno habla\n// un idioma distinto. Pero hay reglas que no dependen del portal -la etiqueta\n// de la DGT sale del combustible y el año, y los kW son los CV divididos entre\n// 1,35962- y ponerlas en once sitios garantiza once versiones distintas.\n//\n// Aqui van una sola vez, para los once.\n\nconst filas = $input.all().map(function (x) { return x.json; });\nif (!filas.length) return [{ json: { sql: null, count: 0 } }];\n\nfunction esc(v) {\n  if (v === null || v === undefined || v === '') return 'NULL';\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\n\n// Un hibrido de verdad deja rastro en el nombre comercial. Se exige ese rastro\n// antes de dar ECO por el campo `fuel`, y no por desconfianza teorica: Autohero\n// declara 'Híbrido' un Opel Crossland 1.2 Turbo y un Seat Ateca 1.0 TSI, que\n// son gasolina pura. Con esta comprobacion su coincidencia con la etiqueta que\n// el propio portal publica sube del 51% al 93%.\nconst MARCA_HIBRIDO = /\\b(h[ií]brid\\w*|hybrid\\w*|hev|mhev|mild.?hybrid|48\\s*v|e-?tech|e-?skyactiv|blue.?hybrid)\\b/i;\n\n// El mild hybrid lleva ECO aunque el combustible diga Diesel o Gasolina: el\n// '48V' o el 'MHEV' viven en el titulo, no en el campo. Sin esto, 2.300 Kia\n// Sportage y Hyundai Tucson se quedaban en C cuando el portal les da ECO.\nconst MARCA_MHEV = /\\b(mhev|mild.?hybrid|48\\s*v)\\b/i;\n\n// La etiqueta ambiental es una REGLA de la DGT, no un dato del anuncio:\n//\n//   Cero  electrico puro.\n//   ECO   hibrido no enchufable, mild hybrid, GLP y GNC.\n//   C     gasolina desde 2006, diesel desde 2016.\n//   B     gasolina 2001-2005, diesel 2006-2014.\n//   NONE  gasolina anterior a 2001, diesel anterior a 2006.\n//\n// Contrastada contra las 302.055 ofertas en las que algun portal ya publico la\n// etiqueta: coincide en el 96%. Y donde no coincide suele fallar el portal -\n// coches.com da 'B' a diesel de 2016, que ya son Euro 6, en 799 ofertas.\n//\n// Los casos de frontera se dejan VACIOS a proposito. Vacio significa 'no lo\n// sabemos', que es la verdad, y es lo unico que no engaña a nadie:\n//   - Hibrido enchufable: Cero o ECO segun la autonomia electrica (>=40 km), y\n//     esa autonomia no la tenemos en ningun portal.\n//   - Diesel de 2015: el Euro 6 entro en septiembre, y con el año solo no se\n//     sabe de que lado cae la matriculacion.\nfunction etiquetaDGT(fuel, year, texto) {\n  const f = String(fuel || '').toLowerCase();\n  const y = Number(year);\n  const t = String(texto || '');\n  if (!f) return '';\n  if (f.indexOf('eléctric') !== -1 || f.indexOf('electric') !== -1) return '0 Emisiones';\n  if (f.indexOf('enchufable') !== -1) return '';\n  if (f.indexOf('híbrido') !== -1 || f.indexOf('hibrido') !== -1) return MARCA_HIBRIDO.test(t) ? 'ECO' : '';\n  if (f.indexOf('gas') !== -1 && f.indexOf('gasolina') === -1) return 'ECO';\n  if (!y || y < 1950 || y > 2027) return '';\n  if (MARCA_MHEV.test(t)) return 'ECO';\n  if (f.indexOf('gasolina') !== -1) {\n    if (y >= 2006) return 'C';\n    if (y >= 2001) return 'B';\n    return 'NONE';\n  }\n  if (f.indexOf('diesel') !== -1 || f.indexOf('diésel') !== -1) {\n    if (y >= 2016) return 'C';\n    if (y === 2015) return '';\n    if (y >= 2006) return 'B';\n    return 'NONE';\n  }\n  return '';\n}\n\nconst vals = [];\nfor (const o of filas) {\n  // El texto que se mira: lo que el portal escribio del coche, mas la\n  // descripcion si la tenemos guardada.\n  const texto = [o.title, o.version, o.descripcion].filter(Boolean).join(' ');\n\n  const etiqueta = etiquetaDGT(o.fuel, o.year, texto);\n\n  // Potencia: si hay una unidad y falta la otra, se convierte. No se inventa\n  // ninguna de las dos: solo se completa el par.\n  let cv = null, kw = null;\n  if (o.power_cv != null && o.power_kw == null) kw = Math.round(Number(o.power_cv) / 1.35962);\n  if (o.power_kw != null && o.power_cv == null) cv = Math.round(Number(o.power_kw) * 1.35962);\n\n  // Cilindrada y traccion salen del nombre comercial igual en todos los\n  // portales: un 'quattro' es un quattro lo publique quien lo publique.\n  let cc = null;\n  if (!o.displacement) {\n    const m = texto.match(/\\b(\\d)[.,](\\d)\\b/);\n    if (m) { const v = Number(m[1] + '.' + m[2]); if (v >= 0.6 && v <= 8.0) cc = m[1] + '.' + m[2]; }\n  }\n\n  let traccion = '';\n  if (!o.traction) {\n    const m = texto.match(/\\b(4x4|awd|quattro|4motion|xdrive|4matic|4wd|allrad|4drive|rwd|fwd)\\b/i);\n    if (m) { const v = m[1].toLowerCase();\n      traccion = v === 'rwd' ? 'Trasera' : v === 'fwd' ? 'Delantera' : 'Total'; }\n  }\n\n  if (!etiqueta && cv == null && kw == null && !cc && !traccion) continue;\n\n  vals.push('(' + esc(o.id) + ', ' + esc(etiqueta) + '::varchar, ' +\n    (cv != null ? cv : 'NULL') + '::int, ' + (kw != null ? kw : 'NULL') + '::int, ' +\n    esc(cc) + '::varchar, ' + esc(traccion) + '::varchar)');\n}\n\nif (!vals.length) return [{ json: { sql: null, count: 0 } }];\n\n// COALESCE en todos: esto SOLO rellena huecos. Lo que dijo el portal manda\n// siempre, aunque la regla opine otra cosa -y a veces la regla tiene razon, pero\n// no es este el sitio para discutirselo al portal.\n//\n// El '' final en environmental_label no es adorno: la columna es NOT NULL con\n// defecto vacio, y sin el una fila sin etiqueta calculada revienta el UPDATE\n// entero, con el lote completo dentro.\nconst sql =\n  'UPDATE moveadvisor_market_offers t SET ' +\n    \"environmental_label = COALESCE(NULLIF(t.environmental_label,''), NULLIF(d.etiqueta,''), ''), \" +\n    'power_cv = COALESCE(t.power_cv, d.cv), ' +\n    'power_kw = COALESCE(t.power_kw, d.kw), ' +\n    \"displacement = COALESCE(NULLIF(t.displacement,''), NULLIF(d.cc,'')), \" +\n    \"traction = COALESCE(NULLIF(t.traction,''), NULLIF(d.traccion,'')), \" +\n    'updated_at = NOW() ' +\n  'FROM (VALUES ' + vals.join(', ') + ') AS d(id, etiqueta, cv, kw, cc, traccion) ' +\n  'WHERE t.id = d.id';\n\nreturn [{ json: { sql: sql, count: vals.length } }];"
+      },
+      "id": "der-code",
+      "name": "Code: Aplicar reglas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.count }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "der-if",
+      "name": "IF: ¿hay algo que escribir?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        420,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "additionalFields": {}
+      },
+      "id": "der-pg",
+      "name": "PG: Actualizar ofertas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        640,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REEMPLAZA_CON_TU_ID_CREDENCIAL",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a derivar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada día a las 07:00": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a derivar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Cola a derivar": {
+      "main": [
+        [
+          {
+            "node": "Code: Aplicar reglas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Aplicar reglas": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay algo que escribir?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay algo que escribir?": {
+      "main": [
+        [
+          {
+            "node": "PG: Actualizar ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "staticData": null,
+  "triggerCount": 0,
+  "tags": []
+}

@@ -20,13 +20,30 @@
  *
  * ── La aritmetica ──────────────────────────────────────────────────────────
  *
- * 3.348 ofertas activas. Con LOTE=560 y 6 ejecuciones al dia salen 3.360
- * comprobaciones diarias: todas, cada dia.
+ * 3.594 ofertas activas. Con LOTE=620 y 6 ejecuciones al dia salen 3.720
+ * comprobaciones diarias: todas, cada dia, con 126 de margen.
  *
- * Cada ejecucion tarda 560 x 20s = 3h07m, y las ejecuciones van cada 4 horas.
- * Quedan ~50 minutos de holgura. Si se sube el LOTE o se baja la espera hay que
- * rehacer esta cuenta: dos ejecuciones solapadas doblan el ritmo contra el
- * portal, que es justo lo que hay que evitar.
+ * El lote empezo en 560 para las 3.348 que habia al dimensionarlo. El scraper
+ * metio 246 en una noche y el ciclo paso de un dia a 1,07 sin dar ningun error:
+ * simplemente dejo de ser verdad que se repasaba todo cada dia. Es la tercera
+ * vez que pasa lo mismo -Wallapop dos veces-, asi que conviene decirlo claro:
+ * este numero caduca solo, y hay que rehacerlo cada vez que el catalogo crezca.
+ *
+ * Cada ejecucion tarda 620 x 20,8s = 3h35m medidos, y las ejecuciones van cada
+ * 4 horas: quedan 25 minutos de holgura. Ese margen es lo que NO se puede tocar
+ * sin pensar, porque dos ejecuciones solapadas doblan el ritmo contra el portal.
+ * Si hace falta mas capacidad, lo que se baja es la espera, no lo que se sube es
+ * el lote.
+ *
+ * ── El limite de fondo ─────────────────────────────────────────────────────
+ *
+ * A 20 segundos por ficha, repasar las 3.594 activas ocupa 20,8 de las 24 horas
+ * del dia pidiendo sin parar. O sea que esto esta al borde de lo posible, no
+ * comodo: cualquier crecimiento del catalogo lo rompe otra vez.
+ *
+ * La unica salida de verdad es bajar la espera -a 10 segundos serian 10,8 horas
+ * y sitio para que el catalogo doble-, y para eso hace falta saber cuanto
+ * aguanta el portal. Eso es lo que mide el parte.
  *
  * ── Sobre el ritmo, que es lo unico que no esta medido ─────────────────────
  *
@@ -48,11 +65,11 @@ const RAIZ = path.join(__dirname, "..");
 
 const PG_CRED = { postgres: { id: "zoxD0jV8hxZqH0uY", name: "Postgres account" } };
 
-const LOTE = 560;              // ofertas por ejecucion
+const LOTE = 620;              // ofertas por ejecucion
 const ESPERA_SEGUNDOS = 20;    // entre ficha y ficha
 
 const COLA = `-- Las ofertas activas que llevan mas tiempo sin comprobar. Con ${LOTE} por
--- ejecucion y 6 ejecuciones al dia se repasan las 3.348 activas cada dia.
+-- ejecucion y 6 ejecuciones al dia se repasan las 3.594 activas cada dia.
 --
 -- El filtro de 20 horas evita que una ejecucion repita lo que acaba de mirar
 -- otra: reparte el catalogo entre las 6 pasadas del dia en vez de machacar

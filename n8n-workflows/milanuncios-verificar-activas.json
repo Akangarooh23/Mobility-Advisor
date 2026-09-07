@@ -35,7 +35,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "-- Las ofertas activas que llevan mas tiempo sin comprobar. Con 560 por\n-- ejecucion y 6 ejecuciones al dia se repasan las 3.348 activas cada dia.\n--\n-- El filtro de 20 horas evita que una ejecucion repita lo que acaba de mirar\n-- otra: reparte el catalogo entre las 6 pasadas del dia en vez de machacar\n-- siempre las mismas. Misma idea que en el verificador de Wallapop.\nSELECT id,\n       url,\n       lower(brand) AS marca\nFROM moveadvisor_market_offers\nWHERE portal = 'milanuncios'\n  AND is_active\n  AND COALESCE(url, '') <> ''\n  AND (last_checked_at IS NULL OR last_checked_at < NOW() - INTERVAL '20 hours')\nORDER BY last_checked_at ASC NULLS FIRST\nLIMIT 560",
+        "query": "-- Las ofertas activas que llevan mas tiempo sin comprobar. Con 620 por\n-- ejecucion y 6 ejecuciones al dia se repasan las 3.594 activas cada dia.\n--\n-- El filtro de 20 horas evita que una ejecucion repita lo que acaba de mirar\n-- otra: reparte el catalogo entre las 6 pasadas del dia en vez de machacar\n-- siempre las mismas. Misma idea que en el verificador de Wallapop.\nSELECT id,\n       url,\n       lower(brand) AS marca\nFROM moveadvisor_market_offers\nWHERE portal = 'milanuncios'\n  AND is_active\n  AND COALESCE(url, '') <> ''\n  AND (last_checked_at IS NULL OR last_checked_at < NOW() - INTERVAL '20 hours')\nORDER BY last_checked_at ASC NULLS FIRST\nLIMIT 620",
         "options": {}
       },
       "id": "mvf-cola",

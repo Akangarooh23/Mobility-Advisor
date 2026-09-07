@@ -255,6 +255,43 @@ if (sitioUrlVigente) {
  * Las pruebas quedan fuera: sus direcciones son de mentira a proposito y no
  * las ve nadie.
  */
+/**
+ * Todas las rutas del sitemap tienen que existir de verdad.
+ *
+ * No se puede comprobar pidiendolas por HTTP: el vercel.json reenvia todo a
+ * index.html, asi que `/esto-no-existe` responde 200 con el mismo HTML que la
+ * portada. Un 404 no ocurre nunca y el 200 no dice nada. La unica fuente fiable
+ * es la tabla de rutas de la aplicacion.
+ *
+ * Una ruta muerta en el sitemap no rompe la web: la ensena vacia a quien llegue
+ * desde Google, que es peor, porque nadie la ve desde dentro.
+ */
+const rutasDeLaApp = () => {
+  const app = fs.readFileSync(path.join(RAIZ, "src/App.js"), "utf8");
+  const bloque = /const PUBLIC_ROUTE_BY_ENTRY_MODE = \{([\s\S]*?)\n\};/.exec(app);
+  if (!bloque) return null;
+  const rutas = new Set(["/"]);
+  for (const m of bloque[1].matchAll(/:\s*"([^"]+)"/g)) rutas.add(m[1]);
+  return rutas;
+};
+
+const rutas = rutasDeLaApp();
+if (!rutas) {
+  apunta("src/App.js", 0, "", "no encuentro PUBLIC_ROUTE_BY_ENTRY_MODE: esta comprobacion ya no mira nada");
+} else {
+  const sitemap = fs.readFileSync(path.join(RAIZ, "public/sitemap.xml"), "utf8");
+  sitemap.split(/\r?\n/).forEach((linea, i) => {
+    const loc = /<loc>\s*([^<\s]+)\s*<\/loc>/.exec(linea);
+    if (!loc) return;
+    let camino;
+    try { camino = new URL(loc[1]).pathname; } catch { return; }
+    const limpio = camino.length > 1 ? camino.replace(/\/$/, "") : camino;
+    if (!rutas.has(limpio)) {
+      apunta("public/sitemap.xml", i + 1, linea, "ruta que la aplicacion no sirve: Google la indexaria vacia");
+    }
+  });
+}
+
 const DOMINIOS_MUERTOS = /[\w.+-]+@(?:carswiseai\.com|carswise\.es)/;
 
 function recorre(dir, visita) {

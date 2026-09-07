@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { postAlertEmailDigestJson } from "../utils/apiClient";
+import { CORREO_CONTACTO } from "../marca";
 import "./ContactCarswisePage.css";
 
 export default function ContactCarswisePage() {
@@ -134,7 +135,7 @@ export default function ContactCarswisePage() {
 
     try {
       const { response, data } = await postAlertEmailDigestJson({
-        to: ["hola@carswise.es"],
+        to: [CORREO_CONTACTO],
         subject: `PopCar · Nuevo contacto web · ${topicLabel}`,
         text: [
           "Nuevo mensaje recibido desde la página de contacto de PopCar.",
@@ -184,7 +185,7 @@ export default function ContactCarswisePage() {
 
     try {
       const { response, data } = await postAlertEmailDigestJson({
-        to: ["hola@carswise.es"],
+        to: [CORREO_CONTACTO],
         subject: "PopCar · Consulta desde chat web",
         text: [
           "Nueva consulta enviada desde el chat de la página de contacto.",
@@ -245,11 +246,11 @@ export default function ContactCarswisePage() {
             </p>
 
             <div className="cw-contact-info">
-              <a href="mailto:hola@carswise.es" className="cw-contact-info-card">
+              <a href={`mailto:${CORREO_CONTACTO}`} className="cw-contact-info-card">
                 <div className="cw-contact-info-icon is-blue">✉️</div>
                 <div>
                   <div className="cw-contact-info-label">Email</div>
-                  <div className="cw-contact-info-value">hola@carswise.es</div>
+                  <div className="cw-contact-info-value">{CORREO_CONTACTO}</div>
                 </div>
               </a>
               <a href="https://wa.me/34600000000" target="_blank" rel="noreferrer" className="cw-contact-info-card">

@@ -199,6 +199,7 @@ for (const [servidor, cliente] of [
   ["sitioUrl", "SITIO_URL"],
   ["dominio", "DOMINIO"],
   ["dominioAnterior", "DOMINIO_ANTERIOR"],
+  ["correoContacto", "CORREO_CONTACTO"],
 ]) {
   const a = literal(marcaServidor, servidor);
   const b = literal(marcaCliente, cliente);
@@ -220,6 +221,47 @@ if (sitioUrlVigente) {
     }
   });
 }
+
+/**
+ * Ninguna pantalla puede ofrecer una direccion que no recibe.
+ *
+ * Habia veintiocho repartidas por los textos legales y por el pie de las
+ * pantallas de cita: soporte@ y privacidad@carswiseai.com, y hola@carswise.es
+ * —esta ultima recogia ademas el formulario de contacto—. Ninguno de los dos
+ * dominios tiene registro MX y carswise.es ni siquiera resuelve, asi que todo
+ * lo que un cliente escribiera ahi se perdia sin rebotar a ningun sitio
+ * visible.
+ *
+ * El servidor ya estaba limpio; lo que se quedo atras fue el navegador, que no
+ * puede leer lib/marca.js. Por eso se comprueba aparte y desde fuera: se mira
+ * el texto de src/, no lo que diga la marca.
+ *
+ * Las pruebas quedan fuera: sus direcciones son de mentira a proposito y no
+ * las ve nadie.
+ */
+const DOMINIOS_MUERTOS = /[\w.+-]+@(?:carswiseai\.com|carswise\.es)/;
+
+function recorre(dir, visita) {
+  for (const entrada of fs.readdirSync(dir, { withFileTypes: true })) {
+    const camino = path.join(dir, entrada.name);
+    if (entrada.isDirectory()) recorre(camino, visita);
+    // Los .json son las traducciones: ahi tambien se escriben direcciones, y
+    // el bundle se las lleva igual. `inquiries@carswise.es` estaba en el pie
+    // de es.json y en.json y no lo vio nadie porque solo se miraban los .js.
+    else if (/\.(jsx?|json)$/.test(entrada.name) && !/\.test\.jsx?$/.test(entrada.name)) visita(camino);
+  }
+}
+
+recorre(path.join(RAIZ, "src"), (abs) => {
+  const rel = path.relative(RAIZ, abs).replace(/\\/g, "/");
+  fs.readFileSync(abs, "utf8").split(/\r?\n/).forEach((linea, i) => {
+    // El comentario de src/marca.js las nombra para explicar por que no estan.
+    if (/^\s*(\/\/|\*|\/\*)/.test(linea)) return;
+    if (DOMINIOS_MUERTOS.test(linea)) {
+      apunta(rel, i + 1, linea, "direccion de un dominio sin MX: lo que se mande ahi no llega");
+    }
+  });
+});
 
 if (fallos.length) {
   console.error("[marca] FALLA — el servidor no habla siempre por lib/marca.js:\n");

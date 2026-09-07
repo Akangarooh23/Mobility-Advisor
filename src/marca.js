@@ -28,3 +28,19 @@ export const DOMINIO = "popcar.com.es";
  * esas fichas dejan de enseñar foto.
  */
 export const DOMINIO_ANTERIOR = "popcar.tech";
+
+/**
+ * La direccion a la que se le dice al cliente que escriba.
+ *
+ * Es la unica de la casa que recibe de verdad. Aqui habia tres repartidas por
+ * las pantallas y los textos legales —soporte@ y privacidad@carswiseai.com, y
+ * hola@carswise.es—, y ninguna de las dos zonas tiene registro MX: carswise.es
+ * ni siquiera resuelve. Comprobado contra el DNS. Un correo enviado a
+ * cualquiera de ellas no llegaba a ningun sitio, y estaban debajo de "¿Dudas?
+ * Contacta con PopCar" y en el apartado de ejercer derechos del RGPD.
+ *
+ * No lleva el dominio de la web a proposito: el buzon vive en el Microsoft 365
+ * de popcarmobility.com, que es donde esta dado de alta. Que no coincida con
+ * popcar.com.es se ve raro pero funciona; al reves se veia bien y no llegaba.
+ */
+export const CORREO_CONTACTO = "hola@popcarmobility.com";

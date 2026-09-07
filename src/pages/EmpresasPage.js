@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { CORREO_CONTACTO } from "../marca";
 import "./EmpresasPage.css";
 
 /**
@@ -54,7 +55,7 @@ const TEXTOS = {
     enviado: "Recibido. Te contestamos en un día laborable.",
     aviso:
       "Este formulario todavía no está conectado: el envío no llega a ningún sitio. " +
-      "Mientras tanto, escríbenos a hola@carswiseai.com y lo vemos.",
+      `Mientras tanto, escríbenos a ${CORREO_CONTACTO} y lo vemos.`,
   },
   en: {
     volver: "← Back",
@@ -95,7 +96,7 @@ const TEXTOS = {
     enviado: "Received. We'll reply within one working day.",
     aviso:
       "This form is not connected yet: submissions do not reach anyone. " +
-      "In the meantime, write to hola@carswiseai.com and we'll take it from there.",
+      `In the meantime, write to ${CORREO_CONTACTO} and we'll take it from there.`,
   },
 };
 

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, useRef, lazy, Suspense } from "react";
 import { FICHA_VO_ABIERTA } from "./utils/aperturaTemporal";
 import { idDeAnuncioPropio, ofertaDelMarketplacePorId } from "./utils/anuncioPropio";
-import { NOMBRE, SITIO_URL, DOMINIO } from "./marca";
+import { NOMBRE, SITIO_URL, DOMINIO, CORREO_CONTACTO } from "./marca";
 import i18next from "i18next";
 import "./App.css";
 import LandingPage from "./pages/LandingPage";
@@ -299,7 +299,7 @@ const LEGAL_DOCUMENTS = {
           "Denominación social: PopCar [PENDIENTE: forma jurídica, S.L. / S.A. / autónomo]",
           "NIF/CIF: [PENDIENTE]",
           "Domicilio social: [PENDIENTE: dirección completa, código postal, ciudad, provincia]",
-          "Correo electrónico de contacto: soporte@carswiseai.com",
+          `Correo electrónico de contacto: ${CORREO_CONTACTO}`,
           `Sitio web: ${SITIO_URL}`,
         ],
       },
@@ -361,7 +361,7 @@ const LEGAL_DOCUMENTS = {
           "Denominación: PopCar [PENDIENTE: forma jurídica, p. ej. S.L.]",
           "NIF/CIF: [PENDIENTE]",
           "Domicilio social: [PENDIENTE: dirección completa, código postal, ciudad]",
-          "Correo electrónico de privacidad: soporte@carswiseai.com",
+          `Correo electrónico de privacidad: ${CORREO_CONTACTO}`,
           "Delegado de Protección de Datos (DPO): [PENDIENTE: nombre y contacto, o indicar 'no preceptivo conforme al art. 37 RGPD']",
         ],
       },
@@ -394,7 +394,7 @@ const LEGAL_DOCUMENTS = {
         paragraphs: [
           "Si el usuario presta consentimiento expreso, PopCar podrá enviarle comunicaciones comerciales por correo electrónico u otros canales digitales sobre nuevas ofertas de vehículos, campañas de renting, servicios de movilidad y contenidos de interés relacionados con el sector del automóvil.",
           "Con consentimiento expreso, sus datos (nombre, correo electrónico y perfil de interés en vehículos) podrán cederse a terceros colaboradores del sector de la movilidad, financiación o seguros para que realicen campañas de marketing propias. En ese caso, dichos terceros actúan como responsables independientes del tratamiento y se rigen por sus propias políticas de privacidad. PopCar facilitará al usuario la identidad de dichos terceros cuando los datos vayan a ser cedidos.",
-          "El usuario puede revocar este consentimiento en cualquier momento haciendo clic en el enlace de baja incluido en cualquier comunicación, o escribiendo a soporte@carswiseai.com. La revocación no afecta a la licitud del tratamiento previo.",
+          `El usuario puede revocar este consentimiento en cualquier momento haciendo clic en el enlace de baja incluido en cualquier comunicación, o escribiendo a ${CORREO_CONTACTO}. La revocación no afecta a la licitud del tratamiento previo.`,
           "Actualmente los envíos de campañas se realizan mediante el servicio Resend. [PENDIENTE: actualizar si se integra una plataforma de email marketing específica como Mailchimp, Brevo, etc.]",
         ],
       },
@@ -431,7 +431,7 @@ const LEGAL_DOCUMENTS = {
         heading: "8. Derechos de los interesados",
         paragraphs: [
           "Puede ejercer en cualquier momento los siguientes derechos: acceso (conocer qué datos tratamos), rectificación (corregir datos inexactos), supresión (solicitar el borrado cuando proceda), oposición, limitación del tratamiento, portabilidad (recibir sus datos en formato estructurado) y derecho a no ser objeto de decisiones automatizadas con efectos significativos.",
-          "Para ejercer cualquiera de estos derechos, envíe un escrito a soporte@carswiseai.com indicando nombre, apellidos y copia de su DNI o documento equivalente. Responderemos en el plazo máximo de un mes, prorrogable a tres en casos complejos.",
+          `Para ejercer cualquiera de estos derechos, envíe un escrito a ${CORREO_CONTACTO} indicando nombre, apellidos y copia de su DNI o documento equivalente. Responderemos en el plazo máximo de un mes, prorrogable a tres en casos complejos.`,
           "Si considera que sus derechos no han sido atendidos o que el tratamiento vulnera la normativa, puede presentar reclamación ante la Agencia Española de Protección de Datos (AEPD), www.aepd.es, C/ Jorge Juan 6, 28001 Madrid.",
         ],
       },
@@ -534,7 +534,7 @@ const LEGAL_DOCUMENTS = {
         bullets: [
           "El acceso a las funcionalidades del marketplace requiere registro previo. El usuario debe ser mayor de 18 años y proporcionar información veraz, completa y actualizada.",
           "El usuario es el único responsable de mantener la confidencialidad de sus credenciales de acceso y de toda la actividad realizada desde su cuenta.",
-          "Ante cualquier uso no autorizado de la cuenta o incidencia de seguridad, el usuario debe notificarlo inmediatamente a soporte@carswiseai.com.",
+          `Ante cualquier uso no autorizado de la cuenta o incidencia de seguridad, el usuario debe notificarlo inmediatamente a ${CORREO_CONTACTO}.`,
           "PopCar puede suspender o cancelar cuentas que incumplan estas Condiciones o que realicen un uso fraudulento o abusivo del servicio.",
         ],
       },
@@ -560,7 +560,7 @@ const LEGAL_DOCUMENTS = {
           "El procesamiento de pagos se realiza a través de Stripe Inc. PopCar no almacena datos de tarjetas de crédito o débito en sus sistemas.",
           "Cancelación de suscripción: el usuario puede cancelar su plan en cualquier momento desde su área de cuenta. La cancelación tendrá efecto al finalizar el período de facturación en curso, sin derecho a reembolso proporcional del período restante, salvo que la ley de consumidores aplicable establezca lo contrario.",
           "Derecho de desistimiento: los consumidores que contraten un plan de forma online disponen de un plazo de 14 días naturales desde la contratación para ejercer el derecho de desistimiento sin necesidad de justificación, conforme al art. 102 del Real Decreto Legislativo 1/2007 (TRLGDCU), salvo que el servicio haya comenzado a ejecutarse con consentimiento expreso del usuario antes de que expire dicho plazo.",
-          "Para ejercer el derecho de desistimiento o solicitar un reembolso, envíe un escrito a soporte@carswiseai.com indicando su nombre, número de cuenta/pedido y el motivo.",
+          `Para ejercer el derecho de desistimiento o solicitar un reembolso, envíe un escrito a ${CORREO_CONTACTO} indicando su nombre, número de cuenta/pedido y el motivo.`,
           "[PENDIENTE: especificar precios y planes concretos cuando estén definidos]",
         ],
       },
@@ -662,7 +662,7 @@ const LEGAL_DOCUMENTS = {
         bullets: [
           "Haciendo clic en el enlace 'Darme de baja' incluido en cualquier comunicación comercial.",
           "Desde el área de cuenta de PopCar, sección 'Notificaciones y privacidad'.",
-          "Enviando un correo a privacidad@carswiseai.com indicando su nombre y dirección de email.",
+          `Enviando un correo a ${CORREO_CONTACTO} indicando su nombre y dirección de email.`,
         ],
       },
       {
@@ -674,7 +674,7 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "7. Sus derechos",
         paragraphs: [
-          "Puede ejercer los derechos de acceso, rectificación, supresión, oposición, limitación y portabilidad de sus datos enviando un escrito a privacidad@carswiseai.com con copia de su documento identificativo. Tiene derecho a presentar una reclamación ante la Agencia Española de Protección de Datos (www.aepd.es).",
+          `Puede ejercer los derechos de acceso, rectificación, supresión, oposición, limitación y portabilidad de sus datos enviando un escrito a ${CORREO_CONTACTO} con copia de su documento identificativo. Tiene derecho a presentar una reclamación ante la Agencia Española de Protección de Datos (www.aepd.es).`,
         ],
       },
     ],
@@ -717,14 +717,14 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "5. Cómo revocar el consentimiento",
         paragraphs: [
-          "Puede revocar su consentimiento antes de que la consulta se realice contactando con nosotros en privacidad@carswiseai.com. La revocación no afectará a consultas ya realizadas. Si revoca el consentimiento después de iniciada la tramitación, es posible que el proveedor no pueda continuar con la evaluación.",
+          `Puede revocar su consentimiento antes de que la consulta se realice contactando con nosotros en ${CORREO_CONTACTO}. La revocación no afectará a consultas ya realizadas. Si revoca el consentimiento después de iniciada la tramitación, es posible que el proveedor no pueda continuar con la evaluación.`,
         ],
       },
       {
         heading: "6. Sus derechos ante Experian",
         paragraphs: [
           "Puede ejercer sus derechos de acceso, rectificación y cancelación de los datos incluidos en los ficheros de Experian directamente ante Experian Bureau de Crédito S.A. en www.experian.es/derechos-arco.",
-          "Ante PopCar, puede ejercer sus derechos enviando un escrito a privacidad@carswiseai.com con copia de su documento identificativo.",
+          `Ante PopCar, puede ejercer sus derechos enviando un escrito a ${CORREO_CONTACTO} con copia de su documento identificativo.`,
         ],
       },
       {
@@ -783,7 +783,7 @@ const LEGAL_DOCUMENTS = {
         heading: "6. Duración y revocación",
         paragraphs: [
           "El consentimiento para la consulta es válido exclusivamente para la solicitud de renting concreta en la que se otorga. No implica consentimiento para consultas futuras, que requerirán una nueva aceptación expresa.",
-          "El usuario puede revocar su consentimiento antes de que la consulta se realice efectivamente, contactando con PopCar en privacidad@carswiseai.com. Una vez ejecutada la consulta, la revocación no podrá retrotraer sus efectos.",
+          `El usuario puede revocar su consentimiento antes de que la consulta se realice efectivamente, contactando con PopCar en ${CORREO_CONTACTO}. Una vez ejecutada la consulta, la revocación no podrá retrotraer sus efectos.`,
         ],
       },
       {
@@ -814,7 +814,7 @@ const LEGAL_DOCUMENTS_EN = {
         heading: "Identifying information",
         paragraphs: [
           "PopCar is a digital platform focused on mobility advisory and operations in Spain.",
-          "For general contact, support and incident management you can reach us at soporte@carswise.es.",
+          `For general contact, support and incident management you can reach us at ${CORREO_CONTACTO}.`,
         ],
       },
       {
@@ -897,7 +897,7 @@ const LEGAL_DOCUMENTS_EN = {
       {
         heading: "User rights",
         paragraphs: [
-          "You can exercise your rights of access, rectification, erasure, objection, restriction of processing and portability by writing to soporte@carswise.es.",
+          `You can exercise your rights of access, rectification, erasure, objection, restriction of processing and portability by writing to ${CORREO_CONTACTO}.`,
           "If you consider that your rights have not been properly addressed, you can lodge a complaint with the Spanish Data Protection Agency (AEPD).",
         ],
       },
@@ -1012,13 +1012,13 @@ const LEGAL_DOCUMENTS_EN = {
         bullets: [
           "Click the 'Unsubscribe' link in any commercial communication.",
           "From your PopCar account area, under 'Notifications and privacy'.",
-          "Send an email to privacidad@carswiseai.com with your name and email address.",
+          `Send an email to ${CORREO_CONTACTO} with your name and email address.`,
         ],
       },
       {
         heading: "Your rights",
         paragraphs: [
-          "You may exercise rights of access, rectification, erasure, objection, restriction and portability by writing to privacidad@carswiseai.com with a copy of your identity document. You have the right to lodge a complaint with the Spanish Data Protection Agency (www.aepd.es).",
+          `You may exercise rights of access, rectification, erasure, objection, restriction and portability by writing to ${CORREO_CONTACTO} with a copy of your identity document. You have the right to lodge a complaint with the Spanish Data Protection Agency (www.aepd.es).`,
         ],
       },
     ],
@@ -1051,7 +1051,7 @@ const LEGAL_DOCUMENTS_EN = {
       {
         heading: "How to revoke consent",
         paragraphs: [
-          "You may revoke your consent before the check is carried out by contacting us at privacidad@carswiseai.com. You may exercise your rights directly with Experian at www.experian.es/derechos-arco, and with PopCar at privacidad@carswiseai.com.",
+          `You may revoke your consent before the check is carried out by contacting us at ${CORREO_CONTACTO}. You may exercise your rights directly with Experian at www.experian.es/derechos-arco, and with PopCar at ${CORREO_CONTACTO}.`,
         ],
       },
     ],
@@ -1099,7 +1099,7 @@ const LEGAL_DOCUMENTS_EN = {
       {
         heading: "Duration and revocation",
         paragraphs: [
-          "Consent is valid solely for the specific renting application in which it is given. Future applications require a new express acceptance. Consent may be revoked before the check is executed by contacting privacidad@carswiseai.com. Once the check has been carried out, revocation cannot be retroactive.",
+          `Consent is valid solely for the specific renting application in which it is given. Future applications require a new express acceptance. Consent may be revoked before the check is executed by contacting ${CORREO_CONTACTO}. Once the check has been carried out, revocation cannot be retroactive.`,
         ],
       },
       {
@@ -1201,7 +1201,7 @@ const SEO_STATIC_PAGES = {
       {
         heading: "Canales de atencion",
         bullets: [
-          "Email: soporte@carswise.es",
+          `Email: ${CORREO_CONTACTO}`,
           "Telefono: +34 910 000 000",
           "Horario: L-V de 09:00 a 18:00 (Espana)",
         ],
@@ -4413,7 +4413,7 @@ export default function App() {
             {
               "@type": "ContactPoint",
               contactType: "customer support",
-              email: "soporte@carswise.es",
+              email: CORREO_CONTACTO,
               telephone: "+34910000000",
               availableLanguage: ["es"],
             },

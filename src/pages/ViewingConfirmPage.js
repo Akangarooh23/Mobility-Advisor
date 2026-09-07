@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { CORREO_CONTACTO } from "../marca";
 
 function formatSlot(iso) {
   try {
@@ -93,7 +94,7 @@ export default function ViewingConfirmPage() {
           <div style={{ fontWeight: 700, color: "#166534", fontSize: 16 }}>📅 {formatSlot(confirmed)}</div>
         </div>
         <p style={{ fontSize: 12, color: "var(--gris-400)", marginTop: 20, textAlign: "center" }}>
-          ¿Necesitas cambiar la cita? Contacta con PopCar · <a href="mailto:hola@carswiseai.com" style={{ color: "var(--marca)" }}>hola@carswiseai.com</a>
+          ¿Necesitas cambiar la cita? Contacta con PopCar · <a href={`mailto:${CORREO_CONTACTO}`} style={{ color: "var(--marca)" }}>{CORREO_CONTACTO}</a>
         </p>
       </div>
     </div>
@@ -155,7 +156,7 @@ export default function ViewingConfirmPage() {
         )}
 
         <p style={{ fontSize: 12, color: "var(--gris-400)", marginTop: 20, textAlign: "center" }}>
-          ¿Dudas? Contacta con PopCar · <a href="mailto:hola@carswiseai.com" style={{ color: "var(--marca)" }}>hola@carswiseai.com</a>
+          ¿Dudas? Contacta con PopCar · <a href={`mailto:${CORREO_CONTACTO}`} style={{ color: "var(--marca)" }}>{CORREO_CONTACTO}</a>
         </p>
       </div>
     </div>

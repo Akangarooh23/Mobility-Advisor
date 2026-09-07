@@ -296,7 +296,7 @@ const doc = new Document({
           ]
         ),
         spacer(),
-        body("Los emails de visita incluyen links con tokens de un solo uso que abren páginas públicas sin necesidad de login. El remitente es support@carswiseai.com gestionado a través de Resend."),
+        body("Los emails de visita incluyen links con tokens de un solo uso que abren páginas públicas sin necesidad de login. El remitente es notifications@popcar.com.es, gestionado a través de Resend, y las respuestas van a hola@popcarmobility.com."),
 
         divider(),
 

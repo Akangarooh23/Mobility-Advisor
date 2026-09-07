@@ -292,6 +292,34 @@ if (!rutas) {
   });
 }
 
+/**
+ * Ningun correo personal escrito a mano, en ninguna parte.
+ *
+ * Habia uno: el Gmail de quien escribio los scripts de Norauto, metido en la
+ * cabecera User-Agent de tres peticiones a nominatim.openstreetmap.org. Se lo
+ * estaba mandando a un tercero en cada llamada, y este repositorio es publico.
+ *
+ * La regla mira el proveedor y no una direccion concreta a proposito: escribir
+ * aqui la que se quiere evitar es volver a publicarla. Un buzon de gmail o de
+ * hotmail es de una persona por definicion; el de una empresa lleva su dominio.
+ *
+ * Se recorre todo lo que se ejecuta, no solo src/: el que habia vivia en
+ * scripts/, que es donde nadie mira.
+ */
+const CORREO_PERSONAL = /[\w.+-]+@(?:gmail|hotmail|outlook|yahoo|icloud|live|protonmail)\.[a-z.]+/i;
+
+for (const carpeta of ["src", "lib", "api", "scripts"]) {
+  const raizCarpeta = path.join(RAIZ, carpeta);
+  if (!fs.existsSync(raizCarpeta)) continue;
+  recorre(raizCarpeta, (abs) => {
+    const rel = path.relative(RAIZ, abs).replace(/\\/g, "/");
+    fs.readFileSync(abs, "utf8").split(/\r?\n/).forEach((linea, i) => {
+      const m = CORREO_PERSONAL.exec(linea);
+      if (m) apunta(rel, i + 1, linea, `correo personal escrito a mano (${m[0].split("@")[1]})`);
+    });
+  });
+}
+
 const DOMINIOS_MUERTOS = /[\w.+-]+@(?:carswiseai\.com|carswise\.es)/;
 
 function recorre(dir, visita) {
@@ -325,5 +353,6 @@ if (fallos.length) {
 console.log(
   `[marca] OK: ${REDACTAN.length} ficheros redactan con lib/marca.js, ninguna interpolacion muerta, ` +
   `ningun atributo sin comillas, las dos marcas dicen lo mismo, los tres estaticos ` +
-  `(index.html, robots.txt, sitemap.xml) nombran el dominio vigente, y src/ no ofrece ninguna direccion sin MX.`,
+  `(index.html, robots.txt, sitemap.xml) nombran el dominio vigente, el sitemap solo lista rutas que existen, ` +
+  `src/ no ofrece ninguna direccion sin MX y no hay ningun correo personal escrito a mano.`,
 );

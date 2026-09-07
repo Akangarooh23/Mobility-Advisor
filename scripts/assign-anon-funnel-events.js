@@ -1,15 +1,29 @@
 /**
  * Asigna user_email a todos los eventos de funnel anónimos (sin user_email).
  * Uso:
- *   node scripts/assign-anon-funnel-events.js             → preview (no modifica)
- *   node scripts/assign-anon-funnel-events.js --apply     → aplica la actualización
+ *   node scripts/assign-anon-funnel-events.js --email=quien@ejemplo.com
+ *       → preview (no modifica)
+ *   node scripts/assign-anon-funnel-events.js --email=quien@ejemplo.com --apply
+ *       → aplica la actualización
+ *
+ * La cuenta destino se pasa por argumento y no tiene valor por defecto. Estaba
+ * escrita aquí, y era el correo personal de alguien en un repositorio público.
+ * Tampoco valía cambiarla por la de la casa: no es una direccion de contacto,
+ * es a quién se le atribuyen los eventos, y poner otra habría alterado en
+ * silencio lo que hace el script.
  */
 
 require("dotenv").config({ path: require("path").join(__dirname, "..", ".env.local") });
 
 const { Pool } = require("pg");
 
-const TARGET_EMAIL = "anapicazoh@gmail.com";
+const argumentoEmail = process.argv.find((a) => a.startsWith("--email="));
+const TARGET_EMAIL = argumentoEmail ? argumentoEmail.slice("--email=".length).trim() : "";
+if (!TARGET_EMAIL) {
+  console.error("Falta la cuenta destino. Uso: node scripts/assign-anon-funnel-events.js --email=quien@ejemplo.com [--apply]");
+  process.exit(1);
+}
+
 const DRY_RUN = !process.argv.includes("--apply");
 
 async function main() {

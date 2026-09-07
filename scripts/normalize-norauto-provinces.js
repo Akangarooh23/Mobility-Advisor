@@ -69,7 +69,7 @@ function nominatimReverse(lat, lon) {
       hostname: "nominatim.openstreetmap.org",
       path,
       method: "GET",
-      headers: { "User-Agent": "CarsWise/1.0 (movilidad-advisor; anapicazokangaroo@gmail.com)" },
+      headers: { "User-Agent": "PopCar/1.0 (movilidad-advisor; hola@popcarmobility.com)" },
     };
     https.get(options, (res) => {
       let data = "";

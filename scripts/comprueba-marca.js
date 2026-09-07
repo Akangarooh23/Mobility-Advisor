@@ -166,10 +166,65 @@ for (const rel of REDACTAN) {
   });
 }
 
+/**
+ * Los tres sitios donde vive el dominio tienen que decir lo mismo.
+ *
+ * Deberia haber uno solo y hay tres, por dos motivos que no se pueden quitar:
+ * create-react-app monta un ModuleScopePlugin que prohibe importar nada de
+ * fuera de `src/`, asi que el navegador no puede leer `lib/marca.js` y tiene su
+ * gemelo en `src/marca.js`; y `public/index.html` es HTML estatico, donde no se
+ * importa nada y el dominio va escrito a mano.
+ *
+ * Esto es justo lo que esta comprobacion existe para pillar. Un cambio de
+ * dominio a medias no rompe nada visible —la web carga igual—: lo que queda mal
+ * es el canonical y las tarjetas de compartir, que siguen nombrando el sitio
+ * viejo, y de eso no se entera nadie hasta que alguien mira por que Google
+ * indexa la direccion que no es.
+ */
+const marcaServidor = fs.readFileSync(path.join(RAIZ, "lib/marca.js"), "utf8");
+const marcaCliente = fs.readFileSync(path.join(RAIZ, "src/marca.js"), "utf8");
+const indexHtml = fs.readFileSync(path.join(RAIZ, "public/index.html"), "utf8");
+
+// Sin \b delante: no hace falta. Ninguna clave es prefijo de otra seguida de
+// dos puntos —tras `sitio` en `sitioUrl` viene una U, no un `:`—, asi que la
+// propia forma de la busqueda ya las distingue.
+const literal = (fuente, clave) => {
+  const m = new RegExp(clave + '\\s*[:=]\\s*"([^"]*)"').exec(fuente);
+  return m ? m[1] : null;
+};
+
+for (const [servidor, cliente] of [
+  ["nombre", "NOMBRE"],
+  ["sitio", "SITIO"],
+  ["sitioUrl", "SITIO_URL"],
+  ["dominio", "DOMINIO"],
+  ["dominioAnterior", "DOMINIO_ANTERIOR"],
+]) {
+  const a = literal(marcaServidor, servidor);
+  const b = literal(marcaCliente, cliente);
+  if (a === null) apunta("lib/marca.js", 0, "", `falta ${servidor}`);
+  else if (b === null) apunta("src/marca.js", 0, "", `falta ${cliente}`);
+  else if (a !== b) apunta("src/marca.js", 0, `${cliente} = "${b}"`, `no dice lo mismo que lib/marca.js ${servidor} = "${a}"`);
+}
+
+// El HTML estatico solo puede nombrar el dominio vigente. Se miran unicamente
+// las direcciones propias: las de schema.org o las de una fuente son de otros.
+const sitioUrlVigente = literal(marcaServidor, "sitioUrl");
+if (sitioUrlVigente) {
+  indexHtml.split(/\r?\n/).forEach((linea, i) => {
+    for (const url of linea.match(/https:\/\/[^"'\s]+/g) || []) {
+      if (!/popcar/i.test(url)) continue;
+      if (!url.startsWith(sitioUrlVigente)) {
+        apunta("public/index.html", i + 1, linea, `apunta a un dominio propio que ya no es ${sitioUrlVigente}`);
+      }
+    }
+  });
+}
+
 if (fallos.length) {
   console.error("[marca] FALLA — el servidor no habla siempre por lib/marca.js:\n");
   fallos.forEach((f) => console.error("  " + f + "\n"));
   process.exit(1);
 }
 
-console.log(`[marca] OK: ${REDACTAN.length} ficheros redactan con lib/marca.js, ninguna interpolacion muerta y ningun atributo sin comillas.`);
+console.log(`[marca] OK: ${REDACTAN.length} ficheros redactan con lib/marca.js, ninguna interpolacion muerta, ningun atributo sin comillas, y lib/marca.js, src/marca.js y public/index.html dicen el mismo dominio.`);

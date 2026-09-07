@@ -61,6 +61,7 @@
     "test:gamboa-enrich": "node scripts/comprueba-gamboa-enrich.js",
     "test:gamboa-verificar": "node scripts/comprueba-gamboa-verificar.js",
     "test:vian": "node scripts/comprueba-vian.js",
+    "test:vian-enrich": "node scripts/comprueba-vian-enrich.js",
     "test:backend-ci": "node scripts/backend-ci.js",
     "inventory:sync:sqlserver": "node scripts/sync-inventory-sqlserver.js",
     "inventory:scrape:cochesnet:playwright": "node scripts/scrape-cochesnet-playwright.js --persist-sqlserver",

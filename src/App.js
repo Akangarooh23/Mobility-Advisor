@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, useRef, lazy, Suspense } from "react";
 import { FICHA_VO_ABIERTA } from "./utils/aperturaTemporal";
 import { idDeAnuncioPropio, ofertaDelMarketplacePorId } from "./utils/anuncioPropio";
+import { NOMBRE, SITIO_URL, DOMINIO } from "./marca";
 import i18next from "i18next";
 import "./App.css";
 import LandingPage from "./pages/LandingPage";
@@ -288,7 +289,7 @@ const LEGAL_DOCUMENTS = {
   legalNotice: {
     title: "Aviso legal",
     summary:
-      "Información general de titularidad, condiciones de acceso, propiedad intelectual y responsabilidades del uso de la plataforma popcar.tech.",
+      `Información general de titularidad, condiciones de acceso, propiedad intelectual y responsabilidades del uso de la plataforma ${DOMINIO}.`,
     updatedAt: "17/06/2026",
     sections: [
       {
@@ -299,13 +300,13 @@ const LEGAL_DOCUMENTS = {
           "NIF/CIF: [PENDIENTE]",
           "Domicilio social: [PENDIENTE: dirección completa, código postal, ciudad, provincia]",
           "Correo electrónico de contacto: soporte@carswiseai.com",
-          "Sitio web: https://www.popcar.tech",
+          `Sitio web: ${SITIO_URL}`,
         ],
       },
       {
         heading: "2. Objeto y ámbito del sitio web",
         paragraphs: [
-          "PopCar opera una plataforma digital de intermediación y marketplace de vehículos de ocasión, renting y servicios de movilidad en España, accesible a través del dominio popcar.tech.",
+          `${NOMBRE} opera una plataforma digital de intermediación y marketplace de vehículos de ocasión, renting y servicios de movilidad en España, accesible a través del dominio ${DOMINIO}.`,
           "La plataforma permite a los usuarios explorar ofertas de vehículos, solicitar información, agendar visitas y gestionar solicitudes de renting, conectándoles con los proveedores correspondientes.",
           "La información y los contenidos publicados tienen carácter informativo y de apoyo a la decisión del usuario. PopCar actúa como intermediario y no es parte contratante en las operaciones de compraventa o renting que se formalicen entre el usuario y el proveedor del vehículo.",
         ],
@@ -450,7 +451,7 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "11. Actualizaciones de esta política",
         paragraphs: [
-          "Esta Política de Privacidad puede actualizarse para adaptarse a cambios normativos, jurisprudenciales o del propio servicio. La versión vigente, con su fecha de actualización, estará siempre disponible en popcar.tech/politica-privacidad. Para cambios sustanciales, notificaremos a los usuarios registrados por correo electrónico.",
+          `Esta Política de Privacidad puede actualizarse para adaptarse a cambios normativos, jurisprudenciales o del propio servicio. La versión vigente, con su fecha de actualización, estará siempre disponible en ${DOMINIO}/politica-privacidad. Para cambios sustanciales, notificaremos a los usuarios registrados por correo electrónico.`,
         ],
       },
     ],
@@ -458,7 +459,7 @@ const LEGAL_DOCUMENTS = {
   cookiePolicy: {
     title: "Política de cookies",
     summary:
-      "Información sobre las cookies y tecnologías similares utilizadas en popcar.tech, su finalidad y cómo puede gestionar o revocar su consentimiento.",
+      `Información sobre las cookies y tecnologías similares utilizadas en ${DOMINIO}, su finalidad y cómo puede gestionar o revocar su consentimiento.`,
     updatedAt: "17/06/2026",
     sections: [
       {
@@ -469,7 +470,7 @@ const LEGAL_DOCUMENTS = {
         ],
       },
       {
-        heading: "2. Cookies utilizadas en popcar.tech",
+        heading: `2. Cookies utilizadas en ${DOMINIO}`,
         bullets: [
           "Cookies técnicas / necesarias: imprescindibles para el funcionamiento del sitio. Incluyen la gestión de sesión de usuario autenticado, el almacenamiento del consentimiento de cookies y las preferencias de idioma o tema. No requieren consentimiento previo.",
           "Cookies de personalización: almacenan preferencias del usuario (filtros guardados, alertas, configuración de la cuenta) para personalizar la experiencia en sucesivas visitas. Se activan con el consentimiento del usuario.",
@@ -488,7 +489,7 @@ const LEGAL_DOCUMENTS = {
         heading: "4. Base legal y gestión del consentimiento",
         paragraphs: [
           "Las cookies técnicas se instalan sin necesidad de consentimiento previo al amparo del interés legítimo y la necesidad para la prestación del servicio. El resto de cookies requieren consentimiento previo, libre, específico, informado e inequívoco del usuario.",
-          "Al acceder por primera vez a popcar.tech, se solicita el consentimiento mediante el panel de preferencias integrado en el formulario de acceso. El usuario puede aceptar todas las cookies, solo las necesarias, o configurar sus preferencias de forma granular.",
+          `Al acceder por primera vez a ${DOMINIO}, se solicita el consentimiento mediante el panel de preferencias integrado en el formulario de acceso. El usuario puede aceptar todas las cookies, solo las necesarias, o configurar sus preferencias de forma granular.`,
           "El consentimiento otorgado queda registrado con fecha y versión de política. Puede revocarlo o modificarlo en cualquier momento desde el pie de página de la web.",
         ],
       },
@@ -523,7 +524,7 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "1. Objeto y aceptación",
         paragraphs: [
-          "Las presentes Condiciones Generales de Uso regulan el acceso y uso de la plataforma PopCar (popcar.tech), incluyendo el marketplace de vehículos de ocasión, el servicio de renting, las herramientas de asesoramiento y todas las funcionalidades disponibles para usuarios registrados.",
+          `Las presentes Condiciones Generales de Uso regulan el acceso y uso de la plataforma ${NOMBRE} (${DOMINIO}), incluyendo el marketplace de vehículos de ocasión, el servicio de renting, las herramientas de asesoramiento y todas las funcionalidades disponibles para usuarios registrados.`,
           "El acceso, registro o uso de cualquier servicio de PopCar implica la aceptación expresa e íntegra de estas Condiciones, así como de la Política de Privacidad y la Política de Cookies. Si no está de acuerdo, debe abstenerse de usar la plataforma.",
           "PopCar se reserva el derecho a modificar estas Condiciones. Los cambios se publicarán con indicación de la fecha de actualización. El uso continuado de la plataforma tras la publicación de cambios implicará su aceptación.",
         ],
@@ -601,7 +602,7 @@ const LEGAL_DOCUMENTS = {
       {
         heading: "10. Protección de datos",
         paragraphs: [
-          "El tratamiento de los datos personales del usuario se rige por la Política de Privacidad de PopCar, disponible en popcar.tech/politica-privacidad, que forma parte integrante de estas Condiciones.",
+          `El tratamiento de los datos personales del usuario se rige por la Política de Privacidad de ${NOMBRE}, disponible en ${DOMINIO}/politica-privacidad, que forma parte integrante de estas Condiciones.`,
         ],
       },
       {
@@ -1325,8 +1326,11 @@ const SEO_META_BY_ENTRY_MODE = {
   },
 };
 
-const SITE_URL = "https://www.popcar.tech";
-const SITE_NAME = "PopCar";
+// El valor sale de src/marca.js. Los dos nombres de aqui se conservan porque
+// los leen trece sitios de este fichero y lo que hacia falta mover era el dato,
+// no renombrar los usos.
+const SITE_URL = SITIO_URL;
+const SITE_NAME = NOMBRE;
 const SITE_LOGO_URL = `${SITE_URL}/popcar-logo.png`;
 const SITE_IMAGE_URL = `${SITE_URL}/CarWise_app.jpg?v=20260418b`;
 
@@ -2277,7 +2281,7 @@ export default function App() {
     const effectiveEntryMode = entryMode || "home";
     const meta = SEO_META_BY_ENTRY_MODE[effectiveEntryMode] || SEO_META_BY_ENTRY_MODE.home;
     const canonicalPath = effectiveEntryMode === "home" ? "/" : getPublicPathForEntryMode(effectiveEntryMode);
-    const canonicalUrl = `https://www.popcar.tech${canonicalPath}`;
+    const canonicalUrl = `${SITE_URL}${canonicalPath}`;
 
     document.title = meta.title;
 

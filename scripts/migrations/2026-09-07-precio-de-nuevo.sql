@@ -1,0 +1,53 @@
+-- ============================================================================
+--  Lo que costaba el coche a estrenar
+--  2026-09-07
+-- ============================================================================
+--
+--  La ficha de VIAN publica el PVP del coche cuando era nuevo, con el año:
+--
+--    PVP nuevo en España (año 2022)
+--    Jeep Compass 1.6 Multijet Longitude 4x2 96 kW (130 CV)     37.150 €
+--
+--  Comprobado en seis fichas al azar: sale en las seis. Y dicho al lado del
+--  precio de venta es el dato que explica la compra de un vistazo:
+--
+--    se vende a 22.990 €   ->   costaba 55.300 €
+--    se vende a 19.490 €   ->   costaba 48.400 €
+--    se vende a 28.990 €   ->   costaba 39.295 €
+--
+--  Sin esa referencia, un precio es solo un numero: nadie sabe si 22.990 por un
+--  coche de 2022 es caro o barato sin buscarlo por su cuenta.
+--
+--  ── Por que una columna y no calcularlo ────────────────────────────────────
+--
+--  Porque no se puede calcular. El PVP de nuevo depende del acabado y de los
+--  extras que llevara ESE coche -en la misma ficha, la pintura metalizada son
+--  726 € y el Pack Winter otros 665,50-, y eso no sale de la marca y el modelo.
+--  Lo publica el concesionario porque lo sabe; nosotros solo podemos copiarlo.
+--
+--  Se guarda tal cual, sin deducir ningun porcentaje de descuento: ese calculo
+--  es de quien pinta la pantalla, y ahi puede decidir si lo ensena o no. Meter
+--  aqui un "45% menos" seria congelar una cuenta que depende de un precio de
+--  venta que cambia.
+--
+--  ── Que NO se ha podido sacar de VIAN ──────────────────────────────────────
+--
+--  La garantia, y conviene que quede escrito para que nadie la busque otra vez:
+--  en las seis fichas miradas lo unico que hay es un enlace a /garantia, un
+--  icono, y la frase comercial "totalmente revisados y con total garantia" que
+--  es igual en todas. VIAN no declara meses de garantia por coche.
+-- ============================================================================
+
+ALTER TABLE moveadvisor_marketplace_vo_offers
+  -- El PVP del vehiculo a estrenar, en euros. NULL cuando el portal no lo diga:
+  -- no todos lo publican, y un cero ahi se leeria como "costaba cero".
+  ADD COLUMN IF NOT EXISTS price_new       NUMERIC(12,2),
+  -- El año al que corresponde ese PVP. La ficha lo dice -"(año 2022)"- y sin el
+  -- la cifra pierde sentido: 37.150 € de 2022 no son los de 2018.
+  ADD COLUMN IF NOT EXISTS price_new_year  SMALLINT;
+
+-- ============================================================================
+--  Para deshacerla:
+--    ALTER TABLE moveadvisor_marketplace_vo_offers
+--      DROP COLUMN price_new, DROP COLUMN price_new_year;
+-- ============================================================================

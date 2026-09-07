@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { DOMINIO } from "../marca";
 
 const API = "/api/visit-availability";
 
@@ -31,7 +32,7 @@ function buildIcsBlob(booking) {
     `DTSTART:${dt(booking.starts_at)}`, `DTEND:${dt(booking.ends_at)}`,
     `SUMMARY:Visita: ${booking.vehicle_title || "Vehículo"}`,
     `DESCRIPTION:Cita confirmada.\\nID: ${booking.id}`,
-    `UID:${booking.id}@popcar.tech`, "STATUS:CONFIRMED",
+    `UID:${booking.id}@${DOMINIO}`, "STATUS:CONFIRMED",
     "END:VEVENT", "END:VCALENDAR",
   ];
   return new Blob([lines.join("\r\n")], { type: "text/calendar" });

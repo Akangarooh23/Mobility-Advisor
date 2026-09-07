@@ -1,0 +1,369 @@
+{
+  "name": "VIAN – Enriquecer (carrocería, plazas, cilindrada, equipamiento, PVP nuevo)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "ve-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -380,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 45 2,8,14,20 * * *"
+            }
+          ]
+        }
+      },
+      "id": "ve-cron",
+      "name": "4 veces/día (cada 6 h)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -380,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Las ofertas de VIAN a las que les falta pasar por la ficha.\n--\n-- No es un ciclo diario a proposito: color, carroceria, puertas, plazas,\n-- cilindrada y equipamiento no cambian nunca. Quien SI tiene que pasar cada dia\n-- es el verificador.\nSELECT id, source_url, brand, model\nFROM moveadvisor_marketplace_vo_offers\nWHERE portal = 'vian'\n  AND is_active\n  AND COALESCE(source_url, '') <> ''\n  AND (enrich_tried_at IS NULL\n       OR enrich_tried_at < NOW() - INTERVAL '30 days')\nORDER BY enrich_tried_at ASC NULLS FIRST\nLIMIT 200",
+        "options": {}
+      },
+      "id": "ve-cola",
+      "name": "PG: Cola a enriquecer",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -140,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "ve-loop",
+      "name": "Loop: oferta por oferta",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        80,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ve-c-url",
+              "leftValue": "={{ $json.source_url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "ve-if-url",
+      "name": "IF: ¿hay ficha que pedir?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        300,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.source_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 25000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "ve-http",
+      "name": "HTTP: Ficha de VIAN",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        520,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// VIAN - de la ficha a las columnas.\nconst oferta = $('Loop: oferta por oferta').item.json;\nconst res = $input.first().json;\nconst cuerpo = String(res.body || res.data || '');\nconst codigo = Number(res.statusCode || 0);\nconst id = String(oferta.id || '');\n\nconst esc = v => (v === null || v === undefined || v === '') ? 'NULL'\n  : (typeof v === 'number' ? String(v) : \"'\" + String(v).replace(/'/g, \"''\") + \"'\");\n\n// enrich_tried_at se mueve pase lo que pase: sin eso, una ficha que falla se\n// reintenta en cada pasada y atasca la cola para siempre.\nconst soloIntento = () => [{ json: {\n  sql: 'UPDATE moveadvisor_marketplace_vo_offers SET enrich_tried_at = NOW() WHERE id = ' + esc(id),\n  veredicto: 'sin datos',\n} }];\n\nif (!id) return [{ json: { sql: null } }];\nif (codigo !== 200 || !cuerpo) {\n  console.log('[vian-enrich] ' + id + ': sin ficha (HTTP ' + codigo + ')');\n  return soloIntento();\n}\n\nconst limpia = s => String(s)\n  .replace(/&aacute;/g, 'á').replace(/&eacute;/g, 'é').replace(/&iacute;/g, 'í')\n  .replace(/&oacute;/g, 'ó').replace(/&uacute;/g, 'ú').replace(/&ntilde;/g, 'ñ')\n  .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&euro;/g, '€')\n  .replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n\n// ── el JSON-LD, que es de donde sale casi todo ─────────────────────────────\nlet v = null;\nfor (const m of cuerpo.matchAll(/<script[^>]*application\\/ld\\+json[^>]*>([\\s\\S]*?)<\\/script>/gi)) {\n  try {\n    const j = JSON.parse(m[1].trim());\n    const arr = Array.isArray(j) ? j : (j['@graph'] || [j]);\n    for (const o of arr) if (o && (o['@type'] === 'Vehicle' || o['@type'] === 'Car')) { v = o; break; }\n  } catch (e) { /* un bloque que no parsea no es motivo para tirar la ficha */ }\n  if (v) break;\n}\nif (!v) {\n  console.log('[vian-enrich] ' + id + ': la ficha no trae JSON-LD de vehiculo');\n  return soloIntento();\n}\n\nconst num = x => { const n = Number(x); return Number.isFinite(n) && n > 0 ? Math.round(n) : null; };\n\nconst carroc  = String(v.bodyType || '').trim();\nconst puertas = num(v.numberOfDoors);\nconst plazas  = num(v.vehicleSeatingCapacity);\nconst color   = String(v.color || '').trim();\nconst cilin   = num(((v.vehicleEngine || {}).engineDisplacement || {}).value);\n\n// La version es el nombre menos la marca y el modelo: \"Jeep Compass 1.6\n// Multijet Longitude 4x2 96 kW (130 CV)\" -> \"1.6 Multijet Longitude 4x2 96 kW\n// (130 CV)\". Se usan la marca y el modelo del propio JSON-LD, no los nuestros,\n// porque tienen que casar letra por letra con el principio del nombre.\nconst marca  = String((v.brand || {}).name || v.brand || '').trim();\nconst modelo = String(v.model || '').trim();\nlet version = String(v.name || '').trim();\nfor (const p of [marca, modelo]) {\n  if (p) version = version.replace(new RegExp('^\\\\s*' + p.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&') + '\\\\s*', 'i'), '');\n}\nversion = version.trim();\n\n// La provincia vive dentro de la descripcion generada, al final: \"... Cambio\n// manual. En Madrid.\" No hay campo de ubicacion en la ficha.\nlet provincia = '';\nconst mp = String(v.description || '').match(/\\bEn\\s+([A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ .'-]{2,30})\\s*\\.?\\s*$/);\n// El punto final se cuela en la captura porque la clase admite puntos -y tiene\n// que admitirlos, por sitios como \"S. Sebastian de los Reyes\"-. Se quita aparte\n// en vez de sacarlo de la clase: si no, \"Madrid.\" acaba guardado tal cual y el\n// filtro por provincia del escaparate no casa con \"Madrid\".\nif (mp) provincia = mp[1].trim().replace(/[.,;\\s]+$/, '');\n\n// ── el PVP de nuevo, que el JSON-LD no lleva ───────────────────────────────\n// \"PVP nuevo en España (año 2022) ... <b>37.150 €</b>\"\nlet pvp = null, pvpAnio = null;\nconst mpvp = cuerpo.match(/PVP nuevo en Espa(?:ñ|&ntilde;)a[^<]*\\(a(?:ñ|&ntilde;)o\\s*(\\d{4})\\)([\\s\\S]{0,600}?)<\\/div>/i);\nif (mpvp) {\n  pvpAnio = num(mpvp[1]);\n  const me = mpvp[2].match(/([\\d.]+,\\d{2}|[\\d.]+)\\s*(?:€|&euro;)/);\n  if (me) {\n    const n = Number(String(me[1]).replace(/\\./g, '').replace(',', '.'));\n    if (Number.isFinite(n) && n > 1000) pvp = n;\n  }\n}\n\n// ── el equipamiento ────────────────────────────────────────────────────────\n// De serie: <ul class=\"grid-1\"><li class=\"col\"><span>...</span></li>\nconst serie = [];\nconst mSerie = cuerpo.match(/<ul class=\"grid-1\"[^>]*>([\\s\\S]*?)<\\/ul>/);\nif (mSerie) {\n  for (const li of mSerie[1].matchAll(/<li[^>]*>([\\s\\S]*?)<\\/li>/g)) {\n    const txt = limpia(li[1]);\n    if (txt && txt.length < 400) serie.push(txt);\n  }\n}\n// Extras: <p>GRUPO</p><dl><dt>[cod]</dt><dd><span>nombre</span><span>precio</span></dd></dl>\nconst extra = [];\nconst iEx = cuerpo.indexOf('class=\"ex-content\"');\nif (iEx >= 0) {\n  const trozo = cuerpo.slice(iEx, iEx + 40000);\n  let grupo = '';\n  for (const m of trozo.matchAll(/<p>([^<]{2,60})<\\/p>|<dd[^>]*>([\\s\\S]*?)<\\/dd>/g)) {\n    if (m[1] !== undefined) { grupo = limpia(m[1]); continue; }\n    const spans = [...m[2].matchAll(/<span[^>]*>([\\s\\S]*?)<\\/span>/g)].map(x => limpia(x[1])).filter(Boolean);\n    if (!spans.length) continue;\n    const it = { grupo: grupo, nombre: spans[0] };\n    if (spans[1] && /€/.test(spans[1])) it.precio = spans[1];\n    extra.push(it);\n  }\n}\nconst equipo = (serie.length || extra.length) ? JSON.stringify({ serie: serie, extra: extra }) : '';\n\n// ── el UPDATE ──────────────────────────────────────────────────────────────\n// COALESCE con NULLIF, no COALESCE a secas: en esta tabla hay columnas que\n// llegan a CERO o a cadena vacia en vez de a NULL, y un COALESCE normal no\n// entra nunca sobre un 0. Le paso al enriquecedor de Gamboa con\n// warranty_months, que tiene DEFAULT 0: una ejecucion entera sin guardar una\n// sola garantia y sin dar ningun error.\nconst sets = ['enrich_tried_at = NOW()'];\nconst pon = (col, val) => { if (val !== null && val !== undefined && val !== '')\n  sets.push(col + \" = COALESCE(NULLIF(\" + col + \", ''), \" + esc(val) + ')'); };\nconst ponNum = (col, val) => { if (val !== null && val !== undefined && val !== '')\n  sets.push(col + ' = COALESCE(NULLIF(' + col + ', 0), ' + esc(val) + ')'); };\nconst pisa = (col, val) => { if (val !== null && val !== undefined && val !== '')\n  sets.push(col + ' = ' + esc(val)); };\n\npon('body_type', carroc);\nponNum('doors', puertas);\nponNum('seats', plazas);\nponNum('displacement', cilin);\npon('color', color);\npon('version', version);\npon('provincia', provincia);\npon('location', provincia);\n// El equipamiento se pisa: el listado no puede darlo, asi que lo de aqui es\n// siempre mejor que lo que hubiera.\nif (equipo) pisa('equipment', equipo);\n// El PVP de nuevo tampoco cambia nunca, pero si algun dia el portal corrige la\n// cifra queremos la buena.\nif (pvp) { pisa('price_new', pvp); if (pvpAnio) pisa('price_new_year', pvpAnio); }\n\n// La ficha esta delante: verla es prueba de que el coche sigue publicado. Pero\n// solo se sella si de verdad ha salido algo, para no certificar como vivo lo\n// que no hemos sabido leer.\nconst hayDato = sets.length > 1;\nif (hayDato) sets.push('last_seen_at = NOW()', 'last_checked_at = NOW()', 'updated_at = NOW()');\n\nconsole.log('[vian-enrich] ' + id + ': carroceria=' + (carroc || '-')\n  + ' puertas=' + (puertas || '-') + ' plazas=' + (plazas || '-')\n  + ' cc=' + (cilin || '-') + ' prov=' + (provincia || '-')\n  + ' pvp=' + (pvp || '-') + ' equipamiento=' + serie.length + '+' + extra.length);\n\nreturn [{ json: {\n  sql: 'UPDATE moveadvisor_marketplace_vo_offers SET ' + sets.join(', ') + ' WHERE id = ' + esc(id),\n  veredicto: hayDato ? 'enriquecida' : 'sin datos',\n  serie: serie.length, extra: extra.length, pvp: pvp,\n} }];"
+      },
+      "id": "ve-code",
+      "name": "Code: Extraer de la ficha",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ve-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "ve-if-sql",
+      "name": "IF: ¿hay algo que guardar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        960,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "ve-pg",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        340
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "seconds"
+      },
+      "id": "ve-wait",
+      "name": "Esperar 2s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1400,
+        420
+      ],
+      "webhookId": "f6c4d3a2-vian-enrich"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4 veces/día (cada 6 h)": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Cola a enriquecer": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: oferta por oferta": {
+      "main": [
+        [],
+        [
+          {
+            "node": "IF: ¿hay ficha que pedir?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ficha que pedir?": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Ficha de VIAN",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Ficha de VIAN": {
+      "main": [
+        [
+          {
+            "node": "Code: Extraer de la ficha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Extraer de la ficha": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay algo que guardar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay algo que guardar?": {
+      "main": [
+        [
+          {
+            "node": "PG: Actualizar oferta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Actualizar oferta": {
+      "main": [
+        [
+          {
+            "node": "Esperar 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 2s": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

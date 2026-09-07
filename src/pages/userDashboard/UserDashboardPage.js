@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { DOMINIO } from "../../marca";
 import { useTranslation } from "react-i18next";
 import UserDashboardBilling from "./UserDashboardBilling";
 import UserDashboardAlerts from "./UserDashboardAlerts";
@@ -484,7 +485,7 @@ export default function UserDashboardPage({
               }}
             >
               <div style={{ fontSize: 12, color: bodyColor }}>
-                popcar.tech/panel
+                {`${DOMINIO}/panel`}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span

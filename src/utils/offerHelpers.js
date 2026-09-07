@@ -1,3 +1,5 @@
+import { DOMINIO, DOMINIO_ANTERIOR } from "../marca";
+
 export const USER_DASHBOARD_ROUTE_MAP = {
   home: "/panel",
   saved: "/panel/guardadas",
@@ -413,7 +415,12 @@ function shouldBypassImageProxy(url) {
         || host.endsWith(".wallapop.com")
         || host.endsWith(".milanuncios.com")
         || host.endsWith(".supabase.co")
-        || host.endsWith(".popcar.tech")
+        || host === DOMINIO
+        || host.endsWith(`.${DOMINIO}`)
+        // El dominio anterior sigue aqui a proposito: las fichas guardadas
+        // antes del cambio tienen la imagen alojada en el, y quitarlo las deja
+        // sin foto sin que nadie relacione una cosa con la otra.
+        || host.endsWith(`.${DOMINIO_ANTERIOR}`)
         || host.endsWith(".flexicar.es")
         || host === "flexicar.es"
       );

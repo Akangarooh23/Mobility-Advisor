@@ -183,7 +183,6 @@ for (const rel of REDACTAN) {
  */
 const marcaServidor = fs.readFileSync(path.join(RAIZ, "lib/marca.js"), "utf8");
 const marcaCliente = fs.readFileSync(path.join(RAIZ, "src/marca.js"), "utf8");
-const indexHtml = fs.readFileSync(path.join(RAIZ, "public/index.html"), "utf8");
 
 // Sin \b delante: no hace falta. Ninguna clave es prefijo de otra seguida de
 // dos puntos —tras `sitio` en `sitioUrl` viene una U, no un `:`—, asi que la
@@ -208,18 +207,35 @@ for (const [servidor, cliente] of [
   else if (a !== b) apunta("src/marca.js", 0, `${cliente} = "${b}"`, `no dice lo mismo que lib/marca.js ${servidor} = "${a}"`);
 }
 
-// El HTML estatico solo puede nombrar el dominio vigente. Se miran unicamente
-// las direcciones propias: las de schema.org o las de una fuente son de otros.
+/**
+ * Los estaticos solo pueden nombrar el dominio vigente.
+ *
+ * Son tres y ninguno puede importar nada: index.html lleva el canonical y las
+ * etiquetas de compartir, robots.txt dice donde esta el sitemap, y sitemap.xml
+ * lista las doce URLs. Si nombran otro dominio no falla nada visible, y por eso
+ * el sitemap llevaba desde el paso de CarsWise a PopCar apuntando entero a
+ * carswiseai.com sin que se notara: Google descarta un sitemap cuyas URLs estan
+ * en un dominio distinto del que lo sirve, asi que simplemente no hacia nada.
+ *
+ * Se miran solo las direcciones nuestras. Las de schema.org o las de una fuente
+ * son de otros y no se tocan. Y se reconocen por las dos marcas, no solo por
+ * "popcar": buscando la marca nueva, un carswiseai.com se colaba entero.
+ */
+const NUESTRO = /^https:\/\/[^/]*(popcar|carswise)/i;
 const sitioUrlVigente = literal(marcaServidor, "sitioUrl");
 if (sitioUrlVigente) {
-  indexHtml.split(/\r?\n/).forEach((linea, i) => {
-    for (const url of linea.match(/https:\/\/[^"'\s]+/g) || []) {
-      if (!/popcar/i.test(url)) continue;
-      if (!url.startsWith(sitioUrlVigente)) {
-        apunta("public/index.html", i + 1, linea, `apunta a un dominio propio que ya no es ${sitioUrlVigente}`);
+  for (const rel of ["public/index.html", "public/robots.txt", "public/sitemap.xml"]) {
+    const abs = path.join(RAIZ, rel);
+    if (!fs.existsSync(abs)) { apunta(rel, 0, "", "el fichero ya no esta donde dice esta comprobacion"); continue; }
+    fs.readFileSync(abs, "utf8").split(/\r?\n/).forEach((linea, i) => {
+      for (const url of linea.match(/https:\/\/[^"'<>\s]+/g) || []) {
+        if (!NUESTRO.test(url)) continue;
+        if (!url.startsWith(sitioUrlVigente)) {
+          apunta(rel, i + 1, linea, `apunta a un dominio propio que ya no es ${sitioUrlVigente}`);
+        }
       }
-    }
-  });
+    });
+  }
 }
 
 /**
@@ -269,4 +285,8 @@ if (fallos.length) {
   process.exit(1);
 }
 
-console.log(`[marca] OK: ${REDACTAN.length} ficheros redactan con lib/marca.js, ninguna interpolacion muerta, ningun atributo sin comillas, y lib/marca.js, src/marca.js y public/index.html dicen el mismo dominio.`);
+console.log(
+  `[marca] OK: ${REDACTAN.length} ficheros redactan con lib/marca.js, ninguna interpolacion muerta, ` +
+  `ningun atributo sin comillas, las dos marcas dicen lo mismo, los tres estaticos ` +
+  `(index.html, robots.txt, sitemap.xml) nombran el dominio vigente, y src/ no ofrece ninguna direccion sin MX.`,
+);

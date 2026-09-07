@@ -30,6 +30,17 @@ export const DOMINIO = "popcar.com.es";
 export const DOMINIO_ANTERIOR = "popcar.tech";
 
 /**
+ * El espacio de nombres de los UID de calendario. NO sigue a la marca.
+ *
+ * Un UID no es una direccion, es un identificador estable: es lo que hace que
+ * reenviar una cita actualice la del calendario del cliente en vez de crear una
+ * segunda. Las citas confirmadas antes del cambio de dominio llevan este valor,
+ * asi que moverlo les daria un UID distinto al reenviarse y al cliente le
+ * apareceria la cita duplicada. Nadie lo ve.
+ */
+export const DOMINIO_UID = "popcar.tech";
+
+/**
  * La direccion a la que se le dice al cliente que escriba.
  *
  * Es la unica de la casa que recibe de verdad. Aqui habia tres repartidas por

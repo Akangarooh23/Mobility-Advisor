@@ -199,6 +199,7 @@ for (const [servidor, cliente] of [
   ["dominio", "DOMINIO"],
   ["dominioAnterior", "DOMINIO_ANTERIOR"],
   ["correoContacto", "CORREO_CONTACTO"],
+  ["dominioUid", "DOMINIO_UID"],
 ]) {
   const a = literal(marcaServidor, servidor);
   const b = literal(marcaCliente, cliente);

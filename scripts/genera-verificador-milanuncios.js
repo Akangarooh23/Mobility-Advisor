@@ -20,30 +20,40 @@
  *
  * ── La aritmetica ──────────────────────────────────────────────────────────
  *
- * 3.594 ofertas activas. Con LOTE=620 y 6 ejecuciones al dia salen 3.720
- * comprobaciones diarias: todas, cada dia, con 126 de margen.
+ * 3.594 ofertas activas, y NO se repasan todas cada dia. Con LOTE=120 y seis
+ * pasadas salen 720 comprobaciones diarias: un ciclo de CINCO dias.
  *
- * El lote empezo en 560 para las 3.348 que habia al dimensionarlo. El scraper
- * metio 246 en una noche y el ciclo paso de un dia a 1,07 sin dar ningun error:
- * simplemente dejo de ser verdad que se repasaba todo cada dia. Es la tercera
- * vez que pasa lo mismo -Wallapop dos veces-, asi que conviene decirlo claro:
- * este numero caduca solo, y hay que rehacerlo cada vez que el catalogo crezca.
+ * Conviene decirlo claro, porque el requisito era diario y aqui no se cumple.
  *
- * Cada ejecucion tarda 620 x 20,8s = 3h35m medidos, y las ejecuciones van cada
- * 4 horas: quedan 25 minutos de holgura. Ese margen es lo que NO se puede tocar
- * sin pensar, porque dos ejecuciones solapadas doblan el ritmo contra el portal.
- * Si hace falta mas capacidad, lo que se baja es la espera, no lo que se sube es
- * el lote.
+ * ── Por que no se cumple ───────────────────────────────────────────────────
  *
- * ── El limite de fondo ─────────────────────────────────────────────────────
+ * No por el ritmo. Veinte segundos por ficha aguantan tres horas seguidas sin un
+ * solo bloqueo: 138 fichas medidas el 2026-09-07.
  *
- * A 20 segundos por ficha, repasar las 3.594 activas ocupa 20,8 de las 24 horas
- * del dia pidiendo sin parar. O sea que esto esta al borde de lo posible, no
- * comodo: cualquier crecimiento del catalogo lo rompe otra vez.
+ * Es la MEMORIA. Una ficha de Milanuncios pesa 978 KB y n8n guarda la salida de
+ * cada vuelta del bucle. Con 620 por pasada serian ~600 MB en un solo run; el
+ * verificador de Wallapop ya se colgo con 20 MB, y la pasada que se intento
+ * murio en la ficha 139 con ~135 MB encima. De ahi 120, que son ~120 MB.
  *
- * La unica salida de verdad es bajar la espera -a 10 segundos serian 10,8 horas
- * y sitio para que el catalogo doble-, y para eso hace falta saber cuanto
- * aguanta el portal. Eso es lo que mide el parte.
+ * El lote habia pasado de 560 a 620 el dia anterior por otro motivo -el scraper
+ * metio 246 ofertas en una noche y el ciclo dejo de ser diario sin dar ningun
+ * error-. Aquella cuenta era correcta y la memoria la invalida: no vale de nada
+ * dimensionar por cobertura si el run no llega vivo al final.
+ *
+ * ── La salida ──────────────────────────────────────────────────────────────
+ *
+ * HEAD, que no descarga cuerpo. Sin cuerpo no hay problema de memoria y el lote
+ * puede subir a lo que haga falta.
+ *
+ * Pero eso hay que MEDIRLO en cada portal y no darlo por bueno. En Gamboa se
+ * comprobo que HEAD y GET dicen lo mismo sobre ocho ofertas, cuatro vivas y
+ * cuatro vendidas. En Wallapop se comprobo lo contrario: HEAD devuelve 404 sobre
+ * ofertas VIVAS, y fiarse de el alli habria dado de baja el catalogo entero.
+ *
+ * En Milanuncios sigue sin medir. El intento del 2026-09-07 salio invalido
+ * porque las propias peticiones de prueba -doce seguidas cada cuatro segundos-
+ * dispararon el bloqueo del portal, y a partir de ahi el GET devolvia la
+ * pantalla de Imperva en vez de la verdad.
  *
  * ── Sobre el ritmo, que es lo unico que no esta medido ─────────────────────
  *
@@ -65,7 +75,24 @@ const RAIZ = path.join(__dirname, "..");
 
 const PG_CRED = { postgres: { id: "zoxD0jV8hxZqH0uY", name: "Postgres account" } };
 
-const LOTE = 620;              // ofertas por ejecucion
+// El lote lo manda la MEMORIA, no el ritmo, y eso se midio el 2026-09-07: una
+// ficha de Milanuncios pesa 978 KB. Con 620 por pasada n8n acumularia ~600 MB
+// en un solo run -guarda la salida de cada vuelta del bucle-, y el verificador
+// de Wallapop ya se colgo con 20 MB. La pasada que se intento murio en la ficha
+// 139, con ~135 MB encima.
+//
+// Asi que 120, que son ~120 MB. Y hay que decir lo que eso cuesta: 120 x 6 son
+// 720 comprobaciones al dia para 3.594 ofertas, o sea un ciclo de CINCO dias.
+// El requisito de verificarlo todo cada dia NO se cumple en Milanuncios, y no
+// por el ritmo -20 segundos aguantan- sino porque no caben en memoria los
+// cuerpos de 1 MB.
+//
+// La salida es HEAD: sin cuerpo, el problema desaparece y el lote puede subir a
+// lo que haga falta. En Gamboa se comprobo que HEAD y GET dicen lo mismo; en
+// Wallapop se comprobo que HEAD MIENTE sobre ofertas vivas. Aqui esta sin medir
+// -el intento del 2026-09-07 salio invalido porque las peticiones de prueba
+// dispararon el bloqueo del portal-, y hasta medirlo no se sube.
+const LOTE = 120;              // ofertas por ejecucion
 const ESPERA_SEGUNDOS = 20;    // entre ficha y ficha
 
 const COLA = `-- Las ofertas activas que llevan mas tiempo sin comprobar. Con ${LOTE} por
@@ -148,9 +175,28 @@ if (/Pardon Our Interruption/i.test(cuerpo) || codigo === 403 || codigo === 429)
   return [{ json: { sql: null, veredicto: 'bloqueado' } }];
 }
 
+// ── 2. Fallo pasajero ───────────────────────────────────────────────────────
+// Un 500, un timeout o un corte de conexion no dicen nada de la oferta. Se mira
+// ANTES de contar la ficha como mirada: si no, un run que se pasa media hora
+// dando timeouts diria en el parte que ha revisado 60 ofertas.
+//
+// El corte de conexion llega aqui con codigo 0 porque el nodo HTTP va con
+// onError: continueRegularOutput. Sin eso, un fallo de red suelto tumba la
+// ejecucion entera: el 2026-09-07 se perdieron tres horas y 138 fichas ya
+// verificadas por un unico error en la 139. neverError no basta -solo silencia
+// los codigos de estado, no los fallos de red-.
+if (codigo === 0 || codigo >= 500) {
+  s.mil_fallos = (s.mil_fallos || 0) + 1;
+  console.log('[mil-verificar] fallo pasajero en ' + id + ' (HTTP ' + codigo + ')');
+  return [{ json: {
+    sql: 'UPDATE moveadvisor_market_offers SET last_checked_at = NOW() WHERE id = ' + esc(id),
+    veredicto: 'pasajero',
+  } }];
+}
+
 s.mil_vistas = (s.mil_vistas || 0) + 1;
 
-// ── 2. Ya no existe ─────────────────────────────────────────────────────────
+// ── 3. Ya no existe ─────────────────────────────────────────────────────────
 if (codigo === 404 || codigo === 410) {
   s.mil_bajas = (s.mil_bajas || 0) + 1;
   console.log('[mil-verificar] BAJA ' + id + ' (HTTP ' + codigo + ')');
@@ -158,19 +204,6 @@ if (codigo === 404 || codigo === 410) {
     sql: 'UPDATE moveadvisor_market_offers SET is_active = false,'
        + ' last_checked_at = NOW(), updated_at = NOW() WHERE id = ' + esc(id),
     veredicto: 'baja',
-  } }];
-}
-
-// ── 3. Fallo pasajero ───────────────────────────────────────────────────────
-// Un 500 o un timeout no dicen nada de la oferta. Se mueve last_checked_at para
-// que la cola siga girando y no se atasque en esta, pero no se toca is_active
-// ni last_seen_at: no la hemos visto.
-if (codigo === 0 || codigo >= 500) {
-  s.mil_fallos = (s.mil_fallos || 0) + 1;
-  console.log('[mil-verificar] fallo pasajero en ' + id + ' (HTTP ' + codigo + ')');
-  return [{ json: {
-    sql: 'UPDATE moveadvisor_market_offers SET last_checked_at = NOW() WHERE id = ' + esc(id),
-    veredicto: 'pasajero',
   } }];
 }
 
@@ -305,6 +338,12 @@ const nodos = [
         redirect: { redirect: { followRedirects: true } },
       },
     }), id: "mvf-http", name: "HTTP: ¿sigue la ficha?",
+    // Un fallo de RED no puede tumbar el run. `neverError` solo silencia los
+    // codigos de estado; un corte de conexion revienta el nodo igual. El
+    // 2026-09-07 se perdieron tres horas y 138 fichas ya verificadas por un
+    // unico error en la 139. Con esto, ese fallo llega al Code como codigo 0 y
+    // se clasifica como pasajero, que es lo que es.
+    onError: "continueRegularOutput",
     type: "n8n-nodes-base.httpRequest", typeVersion: 4, position: [740, 540] },
   { parameters: { jsCode: CODE_VEREDICTO }, id: "mvf-veredicto", name: "Code: Veredicto",
     type: "n8n-nodes-base.code", typeVersion: 2, position: [960, 540] },

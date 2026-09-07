@@ -35,7 +35,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "-- Las ofertas de Gamboa que menos recientemente se han enriquecido.\n--\n-- El filtro de 20 horas reparte las 1200 comprobaciones diarias entre las seis\n-- pasadas en vez de que la primera se lleve siempre las mismas.\nSELECT id, source_url\nFROM moveadvisor_marketplace_vo_offers\nWHERE portal = 'gamboa'\n  AND is_active\n  AND COALESCE(source_url, '') <> ''\n  AND (enrich_tried_at IS NULL OR enrich_tried_at < NOW() - INTERVAL '20 hours')\nORDER BY enrich_tried_at ASC NULLS FIRST\nLIMIT 200",
+        "query": "-- Las ofertas de Gamboa a las que les falta pasar por la ficha.\n--\n-- Esto NO es un ciclo diario, y es a proposito. Lo que saca este workflow\n-- -color, carroceria, puertas, plazas, equipamiento, garantia- no cambia nunca\n-- en la vida de un anuncio. Lo unico que cambia es el precio, y de eso ya se\n-- encarga el scraper todas las mañanas.\n--\n-- Releerlas todas cada dia serian 1.200 peticiones diarias a un concesionario\n-- pequeño para volver a copiar lo mismo. Asi son unas 60: las que entran nuevas\n-- -unas 28 al dia- y la treintava parte del catalogo que toca refrescar.\n--\n-- Quien SI tiene que pasar cada dia por todas es el verificador, porque lo que\n-- el mira -si el coche sigue existiendo- cambia constantemente.\nSELECT id, source_url\nFROM moveadvisor_marketplace_vo_offers\nWHERE portal = 'gamboa'\n  AND is_active\n  AND COALESCE(source_url, '') <> ''\n  AND (enrich_tried_at IS NULL\n       OR enrich_tried_at < NOW() - INTERVAL '30 days')\nORDER BY enrich_tried_at ASC NULLS FIRST\nLIMIT 200",
         "options": {}
       },
       "id": "ge-cola",
@@ -63,6 +63,41 @@
       "typeVersion": 3,
       "position": [
         80,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ge-c-url",
+              "leftValue": "={{ $json.source_url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "ge-if-url",
+      "name": "IF: ¿hay ficha que pedir?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        320,
         300
       ]
     },
@@ -235,7 +270,25 @@
         [],
         [
           {
+            "node": "IF: ¿hay ficha que pedir?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ficha que pedir?": {
+      "main": [
+        [
+          {
             "node": "HTTP: Ficha de Gamboa",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: oferta por oferta",
             "type": "main",
             "index": 0
           }

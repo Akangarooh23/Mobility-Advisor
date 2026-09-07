@@ -162,6 +162,41 @@
         400
       ],
       "webhookId": "wait-wallapop-verify"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "wv-c-id",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "wv-if-id",
+      "name": "IF: ¿hay oferta?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        200,
+        520
+      ]
     }
   ],
   "connections": {
@@ -192,7 +227,7 @@
         [],
         [
           {
-            "node": "HTTP: ¿sigue la ficha?",
+            "node": "IF: ¿hay oferta?",
             "type": "main",
             "index": 0
           }
@@ -248,6 +283,24 @@
         [
           {
             "node": "PG: Cola a verificar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay oferta?": {
+      "main": [
+        [
+          {
+            "node": "HTTP: ¿sigue la ficha?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: oferta por oferta",
             "type": "main",
             "index": 0
           }

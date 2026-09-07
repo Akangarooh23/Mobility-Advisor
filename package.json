@@ -54,6 +54,7 @@
     "test:correo": "node scripts/comprueba-correo.js",
     "test:wallapop": "node scripts/comprueba-wallapop.js",
     "test:wallapop-verificar": "node scripts/comprueba-wallapop-verificar.js",
+    "test:colas-vacias": "node scripts/comprueba-colas-vacias.js",
     "test:milanuncios": "node scripts/comprueba-milanuncios.js",
     "test:milanuncios-listado": "node scripts/comprueba-milanuncios-listado.js",
     "test:gamboa": "node scripts/comprueba-gamboa.js",

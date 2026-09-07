@@ -268,16 +268,17 @@ return [{ json: {
   fotos: fotos.length,
 } }];`;
 
-const condicionSql = (id) => ({
+const condicionNoVacia = (id, campo) => ({
   conditions: {
     options: { caseSensitive: true, leftValue: "", typeValidation: "loose", version: 2 },
-    conditions: [{ id: id, leftValue: "={{ $json.sql }}", rightValue: "",
+    conditions: [{ id: id, leftValue: "={{ $json." + campo + " }}", rightValue: "",
       operator: { type: "string", operation: "notEmpty", singleValue: true } }],
     combinator: "and",
   },
   looseTypeValidation: true,
   options: {},
 });
+const condicionSql = (id) => condicionNoVacia(id, "sql");
 
 const nodos = [
   { parameters: {}, id: "ge-manual", name: "Ejecutar manualmente",
@@ -290,6 +291,15 @@ const nodos = [
     type: "n8n-nodes-base.postgres", typeVersion: 2, position: [-140, 300], credentials: PG_CRED },
   { parameters: { options: {} }, id: "ge-loop", name: "Loop: oferta por oferta",
     type: "n8n-nodes-base.splitInBatches", typeVersion: 3, position: [80, 300] },
+  // Una cola vacia no llega como "nada": cuando la consulta no devuelve filas,
+  // n8n manda UN ITEM VACIO, que recorre el bucle y llega al HTTP sin url. Eso
+  // tumbo las ejecuciones de la 01:30 y las 05:30 del 2026-09-07 con "URL
+  // parameter must be a string, got undefined", y era el caso NORMAL: el
+  // catalogo estaba al dia y con el ciclo de 30 dias no habia nada que
+  // enriquecer. Sin oferta no se pide nada y se vuelve al bucle.
+  { parameters: condicionNoVacia("ge-c-url", "source_url"), id: "ge-if-url",
+    name: "IF: ¿hay ficha que pedir?",
+    type: "n8n-nodes-base.if", typeVersion: 2, position: [320, 300] },
   { parameters: {
       url: "={{ $json.source_url }}",
       sendHeaders: true,
@@ -328,7 +338,10 @@ const conexiones = {
   "6 veces/día (cada 4 h)":   { main: [[L("PG: Cola a enriquecer")]] },
   "PG: Cola a enriquecer":    { main: [[L("Loop: oferta por oferta")]] },
   // salida 0 = terminado (no hay nada mas que hacer), salida 1 = siguiente oferta
-  "Loop: oferta por oferta":  { main: [[], [L("HTTP: Ficha de Gamboa")]] },
+  "Loop: oferta por oferta":  { main: [[], [L("IF: ¿hay ficha que pedir?")]] },
+  // true = tiene url y se pide; false = item vacio de una cola sin filas, se
+  // devuelve al bucle sin pedir nada.
+  "IF: ¿hay ficha que pedir?": { main: [[L("HTTP: Ficha de Gamboa")], [L("Loop: oferta por oferta")]] },
   "HTTP: Ficha de Gamboa":    { main: [[L("Code: Extraer de la ficha")]] },
   "Code: Extraer de la ficha":{ main: [[L("IF: ¿hay algo que guardar?")]] },
   "IF: ¿hay algo que guardar?": { main: [[L("PG: Actualizar oferta")], [L("Esperar " + ESPERA_SEGUNDOS + "s")]] },

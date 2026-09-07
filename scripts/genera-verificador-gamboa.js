@@ -119,7 +119,7 @@ WHERE portal = 'gamboa'
 ORDER BY random()
 LIMIT ${LOTE}`;
 
-const CODE_TOCA = `// Arranque de ejecucion y cortacircuitos.
+const CODE_TOCA = `// Arranque de ejecucion, cortacircuitos y guarda de cola vacia.
 const s = $getWorkflowStaticData('global');
 const item = $input.first().json;
 
@@ -132,6 +132,20 @@ if (!s.gam_run || s.gam_run !== $execution.id) {
   s.gam_raras = 0;
   s.gam_fallos = 0;
   s.gam_motivo = '';
+}
+
+// Una cola vacia no llega como "nada". Cuando la consulta no devuelve filas,
+// n8n manda UN ITEM VACIO: recorre el bucle igual que una oferta, llega al nodo
+// HTTP sin url y lo revienta con "URL parameter must be a string, got
+// undefined". Asi cayeron las cuatro ejecuciones programadas de la madrugada del
+// 2026-09-07, y era el caso normal: el dia anterior se habia verificado todo el
+// catalogo y con el filtro de 20 horas no habia nada elegible hasta la tarde.
+//
+// Un item sin oferta se trata como si nos hubieran parado: no se pide nada, no
+// cuenta para el parte y el run termina limpio.
+if (!item || !item.id || !String(item.source_url || '').trim()) {
+  console.log('[gamboa-verificar] no hay nada que verificar ahora mismo.');
+  return [{ json: Object.assign({}, item || {}, { saltar: true }) }];
 }
 
 return [{ json: Object.assign({}, item, { saltar: !!s.gam_parado }) }];`;

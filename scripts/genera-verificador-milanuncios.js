@@ -85,6 +85,20 @@ if (!s.mil_run || s.mil_run !== $execution.id) {
   s.mil_fallos = 0;
 }
 
+// Una cola vacia no llega como "nada". Cuando la consulta no devuelve filas,
+// n8n manda UN ITEM VACIO: recorre el bucle igual que una oferta, llega al nodo
+// HTTP sin url y lo revienta con "URL parameter must be a string, got
+// undefined". Le paso al verificador de Gamboa en sus cuatro ejecuciones
+// programadas del 2026-09-07, y era el caso normal: con el filtro de 20 horas,
+// en cuanto el catalogo esta al dia no queda nada elegible.
+//
+// Un item sin oferta se trata como si nos hubieran bloqueado: no se pide nada y
+// el run termina limpio.
+if (!item || !item.id || !String(item.url || '').trim()) {
+  console.log('[mil-verificar] no hay nada que verificar ahora mismo.');
+  return [{ json: Object.assign({}, item || {}, { saltar: true }) }];
+}
+
 return [{ json: Object.assign({}, item, { saltar: !!s.mil_bloqueo }) }];`;
 
 const CODE_VEREDICTO = `// El veredicto sobre UNA ficha. Aqui es donde este workflow puede hacer daño de

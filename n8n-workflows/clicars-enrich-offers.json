@@ -191,6 +191,41 @@
         400
       ],
       "webhookId": "wait-clicars-enrich"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "guarda-cola-vacia",
+              "leftValue": "={{ $json.url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "if-cola-vacia",
+      "name": "IF: ¿hay oferta?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        220,
+        540
+      ]
     }
   ],
   "connections": {
@@ -232,7 +267,7 @@
         [],
         [
           {
-            "node": "HTTP: Ficha Clicars",
+            "node": "IF: ¿hay oferta?",
             "type": "main",
             "index": 0
           }
@@ -292,6 +327,24 @@
     },
     "Esperar 1s": {
       "main": [
+        [
+          {
+            "node": "Loop: coche por coche",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay oferta?": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Ficha Clicars",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Loop: coche por coche",

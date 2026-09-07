@@ -273,6 +273,41 @@
         390
       ],
       "webhookId": "wait-vian"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "guarda-cola-vacia",
+              "leftValue": "={{ $json.url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "if-cola-vacia",
+      "name": "IF: ¿hay oferta?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        880,
+        530
+      ]
     }
   ],
   "connections": {
@@ -358,7 +393,7 @@
         [],
         [
           {
-            "node": "HTTP: Ficha VIAN",
+            "node": "IF: ¿hay oferta?",
             "type": "main",
             "index": 0
           }
@@ -418,6 +453,24 @@
     },
     "Esperar 1s": {
       "main": [
+        [
+          {
+            "node": "Loop: ficha por ficha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay oferta?": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Ficha VIAN",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Loop: ficha por ficha",

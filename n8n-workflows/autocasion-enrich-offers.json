@@ -7,7 +7,10 @@
       "name": "Ejecutar manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [-6448, 560]
+      "position": [
+        -6448,
+        560
+      ]
     },
     {
       "parameters": {
@@ -24,7 +27,10 @@
       "name": "Cada día a las 6:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
-      "position": [-6432, 352]
+      "position": [
+        -6432,
+        352
+      ]
     },
     {
       "parameters": {
@@ -36,7 +42,10 @@
       "name": "PG: Ofertas a enriquecer",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
-      "position": [-6144, 256],
+      "position": [
+        -6144,
+        256
+      ],
       "credentials": {
         "postgres": {
           "id": "zoxD0jV8hxZqH0uY",
@@ -52,7 +61,10 @@
       "name": "Loop: oferta por oferta",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
-      "position": [-5904, 256]
+      "position": [
+        -5904,
+        256
+      ]
     },
     {
       "parameters": {
@@ -60,9 +72,18 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "User-Agent", "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36" },
-            { "name": "Accept", "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" },
-            { "name": "Accept-Language", "value": "es-ES,es;q=0.9" }
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
           ]
         },
         "options": {
@@ -78,7 +99,10 @@
       "name": "HTTP: Ficha HTML Autocasión",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [-5664, 256],
+      "position": [
+        -5664,
+        256
+      ],
       "continueOnFail": true
     },
     {
@@ -89,7 +113,10 @@
       "name": "Code: Extraer campos y generar SQL",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-5424, 256],
+      "position": [
+        -5424,
+        256
+      ],
       "continueOnFail": true
     },
     {
@@ -120,7 +147,10 @@
       "name": "IF: ¿hay datos nuevos?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [-5184, 256]
+      "position": [
+        -5184,
+        256
+      ]
     },
     {
       "parameters": {
@@ -132,45 +162,173 @@
       "name": "PG: Actualizar oferta",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
-      "position": [-4944, 128],
+      "position": [
+        -4944,
+        128
+      ],
       "credentials": {
         "postgres": {
           "id": "zoxD0jV8hxZqH0uY",
           "name": "Postgres account"
         }
       }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "guarda-cola-vacia",
+              "leftValue": "={{ $json.url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "if-cola-vacia",
+      "name": "IF: ¿hay oferta?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -5864,
+        396
+      ]
     }
   ],
   "connections": {
     "Ejecutar manualmente": {
-      "main": [[{ "node": "PG: Ofertas a enriquecer", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "PG: Ofertas a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Cada día a las 6:00": {
-      "main": [[{ "node": "PG: Ofertas a enriquecer", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "PG: Ofertas a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "PG: Ofertas a enriquecer": {
-      "main": [[{ "node": "Loop: oferta por oferta", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Loop: oferta por oferta": {
       "main": [
-        [{ "node": "HTTP: Ficha HTML Autocasión", "type": "main", "index": 0 }],
-        [{ "node": "HTTP: Ficha HTML Autocasión", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "HTTP: Ficha HTML Autocasión",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IF: ¿hay oferta?",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "HTTP: Ficha HTML Autocasión": {
-      "main": [[{ "node": "Code: Extraer campos y generar SQL", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Code: Extraer campos y generar SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Code: Extraer campos y generar SQL": {
-      "main": [[{ "node": "IF: ¿hay datos nuevos?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay datos nuevos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "IF: ¿hay datos nuevos?": {
       "main": [
-        [{ "node": "PG: Actualizar oferta", "type": "main", "index": 0 }],
-        [{ "node": "Loop: oferta por oferta", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "PG: Actualizar oferta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "PG: Actualizar oferta": {
-      "main": [[{ "node": "Loop: oferta por oferta", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay oferta?": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Ficha HTML Autocasión",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {

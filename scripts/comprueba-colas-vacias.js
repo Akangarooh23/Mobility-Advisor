@@ -65,12 +65,6 @@ const CON_GUARDA = [
   { wf: "milanuncios-verificar-activas", nodo: "Code: ¿toca pedirla?", campo: "url" },
 ];
 
-// ── Los que van del bucle directos al HTTP y necesitan un IF por medio ─────
-const CON_IF = [
-  { wf: "gamboa-enrich-offers",      si: "IF: ¿hay ficha que pedir?" },
-  { wf: "wallapop-verificar-activas", si: "IF: ¿hay oferta?" },
-];
-
 console.log("CON LA COLA VACÍA, n8n manda un item vacío\n");
 for (const { wf, nodo, campo } of CON_GUARDA) {
   const js = leer(wf).nodes.find((n) => n.name === nodo).parameters.jsCode;
@@ -80,17 +74,49 @@ for (const { wf, nodo, campo } of CON_GUARDA) {
   comprueba(wf + ": una oferta de verdad NO se salta", corre(js, bueno).saltar === false);
 }
 
-console.log("\nDEL BUCLE AL HTTP TIENE QUE HABER UN IF POR MEDIO\n");
-for (const { wf, si } of CON_IF) {
-  const w = leer(wf);
-  const bucle = Object.entries(w.connections).find(([k]) => /^Loop/.test(k));
-  const destino = bucle ? bucle[1].main[1].map((l) => l.node).join("+") : "";
-  comprueba(wf + ": el bucle no va directo al HTTP", destino === si, "(-> " + destino + ")");
-  const salidas = ((w.connections[si] || {}).main || []).map((s) => s.map((l) => l.node).join("+"));
-  comprueba(wf + ": sin oferta vuelve al bucle sin pedir", /^Loop/.test(salidas[1] || ""),
-    "(false -> " + salidas[1] + ")");
-  comprueba(wf + ": con oferta, pide", /^HTTP/.test(salidas[0] || ""), "(true -> " + salidas[0] + ")");
+// ── El barrido: NINGÚN workflow puede ir del bucle al HTTP sin filtro ──────
+//
+// Se escanean todos, no una lista escrita a mano, para que el día que se añada
+// un workflow nuevo con el mismo patrón esta prueba lo cace sola. Cuando se
+// buscó, había DIEZ además de los dos que ya habían fallado.
+console.log("\nNINGÚN WORKFLOW VA DEL BUCLE AL HTTP SIN FILTRO POR MEDIO\n");
+const dir = path.join(RAIZ, "n8n-workflows");
+const enRiesgo = [];
+let revisados = 0;
+for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".json"))) {
+  const w = JSON.parse(fs.readFileSync(path.join(dir, f), "utf8"));
+  const porNombre = {}; (w.nodes || []).forEach((n) => { porNombre[n.name] = n; });
+  const conex = w.connections || {};
+
+  // Solo interesan los que sacan su trabajo de una consulta: son los únicos
+  // que pueden encontrarse la cola vacía.
+  const deConsulta = (w.nodes || []).some((n) => n.type.endsWith("postgres")
+    && /select/i.test(String((n.parameters || {}).query || "")));
+  if (!deConsulta) continue;
+
+  for (const bucle of (w.nodes || []).filter((n) => n.type.endsWith("splitInBatches"))) {
+    for (const l of (((conex[bucle.name] || {}).main || [])[1] || [])) {
+      let actual = l.node, pasos = 0, filtrado = false, http = null;
+      while (actual && pasos++ < 6) {
+        const n = porNombre[actual];
+        if (!n) break;
+        // Un IF o un Code por medio pueden descartar el item vacío.
+        if (n.type.endsWith(".if") || n.type.endsWith("code")) filtrado = true;
+        if (n.type.endsWith("httpRequest")) { http = n; break; }
+        const sig = ((conex[actual] || {}).main || [])[0] || [];
+        actual = sig.length ? sig[0].node : null;
+      }
+      if (!http) continue;
+      revisados++;
+      if (/\$json/.test(String(http.parameters.url || "")) && !filtrado) {
+        enRiesgo.push(f.replace(".json", "") + " (" + bucle.name + " -> " + http.name + ")");
+      }
+    }
+  }
 }
+console.log("      " + revisados + " caminos bucle->HTTP revisados en los workflows del repo");
+comprueba("ninguno pide con una url que puede venir vacía", enRiesgo.length === 0,
+  enRiesgo.length ? "\n         " + enRiesgo.join("\n         ") : "");
 
 console.log(fallos === 0 ? "\nTodo correcto." : "\n" + fallos + " comprobaciones han fallado.");
 process.exit(fallos === 0 ? 0 : 1);

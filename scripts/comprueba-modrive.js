@@ -115,6 +115,31 @@ const comprueba = (nombre, cond, detalle) => {
     sql.includes("'" + urls[0].url + "'"));
   comprueba("y no la ruta vieja", !/coches-segunda-mano/.test(sql));
 
+  // ── el precio ─────────────────────────────────────────────────────────────
+  //
+  // El JSON-LD publica como `price` el de FINANCIAR SIN ENTRADA. La ficha los
+  // enseña separados: «Precio al contado 17.500 €» frente a «Financia sin
+  // entrada 16.000 €». En 12 fichas al azar el guardado era el financiado en
+  // las 12, entre 1.000 y 2.862 € por debajo del de contado.
+  console.log("\nEL PRECIO");
+  const mContado = ficha.match(/Precio al contado[\s\S]{0,200}?<span[^>]*>\s*([\d.]+)\s*(?:€|&euro;)/);
+  const contado = mContado ? Number(mContado[1].replace(/\./g, "")) : null;
+  const jsonLd = Number(((JSON.parse(
+    (ficha.match(/<script[^>]*application\/ld\+json[^>]*>([\s\S]*?)<\/script>/i) || [])[1] || "{}"
+  )["@graph"] || []).find((o) => o && o["@type"] === "Vehicle") || { offers: {} }).offers.price || 0);
+  console.log("      al contado : " + (contado || "-") + "      financiando : " + (jsonLd || "-"));
+  comprueba("la ficha trae el precio al contado", contado > 0);
+  comprueba("guarda el precio al contado, no el de financiar",
+    new RegExp("(^|[(,]\\s*)" + contado + "\\s*,").test(sql));
+  if (contado && jsonLd && contado !== jsonLd) {
+    comprueba("y no guarda el financiado como precio",
+      !new RegExp("(^|[(,]\\s*)" + jsonLd + "\\s*,\\s*" + jsonLd).test(sql));
+  }
+  comprueba("el financiado no se pierde, va a price_financed",
+    /price_financed/.test(sql) && (!jsonLd || sql.includes(String(jsonLd))));
+  comprueba("un cambio de precio financiado cuenta como cambio del anuncio",
+    /price_financed IS DISTINCT FROM EXCLUDED\.price_financed/.test(sql));
+
   // ── contra la base ────────────────────────────────────────────────────────
   console.log("\nCONTRA LA BASE (con ROLLBACK)");
   const c = new Client({ connectionString: DB_URL });

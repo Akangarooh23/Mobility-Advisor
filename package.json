@@ -86,7 +86,8 @@
     "cap:open:android": "npx cap open android",
     "test:lib": "node --test lib/**/*.test.js",
     "test:regresion": "node scripts/comprueba-regresion.js",
-    "test:cron": "node scripts/ensaya-cron.js --con-datos"
+    "test:cron": "node scripts/ensaya-cron.js --con-datos",
+    "test:modrive-enrich": "node scripts/comprueba-modrive-enrich.js"
   },
   "proxy": "http://localhost:3001",
   "eslintConfig": {

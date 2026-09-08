@@ -1,0 +1,370 @@
+{
+  "name": "Modrive – Enriquecer (carrocería, plazas, cilindrada, matrícula, descripción, equipamiento)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "me-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -380,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 50 1,5,9,13,17,21 * * *"
+            }
+          ]
+        }
+      },
+      "id": "me-cron",
+      "name": "6 veces/día (cada 4 h)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -380,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Las ofertas de Modrive a las que les falta pasar por la ficha.\n--\n-- No es un ciclo diario a proposito: carroceria, puertas, plazas, cilindrada,\n-- matricula y equipamiento no cambian nunca. Quien SI tiene que pasar cada dia\n-- es el verificador; y el precio lo refresca el scraper cada manana.\nSELECT id, source_url, brand, model\nFROM moveadvisor_marketplace_vo_offers\nWHERE portal = 'modrive'\n  AND is_active\n  AND COALESCE(source_url, '') <> ''\n  AND (enrich_tried_at IS NULL\n       OR enrich_tried_at < NOW() - INTERVAL '30 days')\nORDER BY enrich_tried_at ASC NULLS FIRST\nLIMIT 300",
+        "options": {}
+      },
+      "id": "me-cola",
+      "name": "PG: Cola a enriquecer",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -140,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "me-loop",
+      "name": "Loop: oferta por oferta",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        80,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "me-c-url",
+              "leftValue": "={{ $json.source_url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "me-if-url",
+      "name": "IF: ¿hay ficha que pedir?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        300,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.source_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 25000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "me-http",
+      "name": "HTTP: Ficha de Modrive",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        520,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Modrive - de la ficha a las columnas.\nconst oferta = $('Loop: oferta por oferta').item.json;\nconst res = $input.first().json;\nconst cuerpo = String(res.body || res.data || '');\nconst codigo = Number(res.statusCode || 0);\nconst id = String(oferta.id || '');\n\nconst esc = v => (v === null || v === undefined || v === '') ? 'NULL'\n  : (typeof v === 'number' ? String(v) : \"'\" + String(v).replace(/'/g, \"''\") + \"'\");\n\n// enrich_tried_at se mueve pase lo que pase: sin eso, una ficha que falla se\n// reintenta en cada pasada y atasca la cola para siempre.\nconst soloIntento = () => [{ json: {\n  sql: 'UPDATE moveadvisor_marketplace_vo_offers SET enrich_tried_at = NOW() WHERE id = ' + esc(id),\n  veredicto: 'sin datos',\n} }];\n\nif (!id) return [{ json: { sql: null } }];\nif (codigo !== 200 || !cuerpo) {\n  console.log('[modrive-enrich] ' + id + ': sin ficha (HTTP ' + codigo + ')');\n  return soloIntento();\n}\n\nconst limpia = s => String(s)\n  .replace(/&aacute;/g, 'á').replace(/&eacute;/g, 'é').replace(/&iacute;/g, 'í')\n  .replace(/&oacute;/g, 'ó').replace(/&uacute;/g, 'ú').replace(/&ntilde;/g, 'ñ')\n  .replace(/&Aacute;/g, 'Á').replace(/&Eacute;/g, 'É').replace(/&Iacute;/g, 'Í')\n  .replace(/&Oacute;/g, 'Ó').replace(/&Uacute;/g, 'Ú').replace(/&Ntilde;/g, 'Ñ')\n  .replace(/&nbsp;/g, ' ').replace(/&quot;/g, '\"').replace(/&euro;/g, '€')\n  .replace(/&amp;/g, '&').replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n\n// ── el JSON-LD ─────────────────────────────────────────────────────────────\nlet v = null;\nfor (const m of cuerpo.matchAll(/<script[^>]*application\\/ld\\+json[^>]*>([\\s\\S]*?)<\\/script>/gi)) {\n  try {\n    const j = JSON.parse(m[1].trim());\n    const arr = Array.isArray(j) ? j : (j['@graph'] || [j]);\n    for (const o of arr) if (o && (o['@type'] === 'Vehicle' || o['@type'] === 'Car')) { v = o; break; }\n  } catch (e) { /* un bloque que no parsea no es motivo para tirar la ficha */ }\n  if (v) break;\n}\nif (!v) {\n  console.log('[modrive-enrich] ' + id + ': la ficha no trae JSON-LD de vehiculo');\n  return soloIntento();\n}\n\nconst num = x => {\n  const n = Number(String(x === null || x === undefined ? '' : x).replace(/\\./g, '').replace(',', '.'));\n  return Number.isFinite(n) && n > 0 ? Math.round(n) : null;\n};\n\nconst carroc  = String(v.bodyType || '').trim();\nconst puertas = num(v.numberOfDoors);\n\n// La matricula es lo que Modrive publica en 'identifier' y en la tabla de\n// caracteristicas de la ficha. Formato espanol: 4 cifras y 3 letras.\nlet matricula = String(v.identifier || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');\nif (!/^\\d{4}[A-Z]{3}$/.test(matricula)) matricula = '';\n\n// La descripcion es el texto que escribe el concesionario que vende. Lleva\n// propaganda suya, pero la primera linea describe ESTE coche -\"KIA STONIC 1.0\n// T-GDI MHEV IMT 74KW DRIVE 5P - Mat. 2022\"- y la referencia del final es la\n// suya. No es como VIAN, donde el parrafo era palabra por palabra el mismo en\n// las 609 fichas.\nconst descripcion = String(v.description || '')\n  .replace(/\\r/g, '').replace(/\\n{3,}/g, '\\n\\n').trim();\n\n// ── el texto plano de la ficha, sin los <script> ───────────────────────────\n// El payload de Nuxt lleva dentro palabras como \"plazas\" y \"cilindrada\", pero\n// son los nombres de los filtros del buscador, no los valores de este coche.\nconst texto = limpia(cuerpo.replace(/<script[\\s\\S]*?<\\/script>/gi, ' '));\n\n// Plazas: \"Cinco plazas ( 2+3 )\". El parentesis es obligatorio, ver la cabecera.\nconst PALABRA = { una: 1, uno: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6,\n  siete: 7, ocho: 8, nueve: 9 };\nlet plazas = null;\nconst mp = texto.match(/\\b(Una|Dos|Tres|Cuatro|Cinco|Seis|Siete|Ocho|Nueve)\\s+plazas\\s*\\(/i);\nif (mp) plazas = PALABRA[mp[1].toLowerCase()] || null;\n\n// Cilindrada: \"Motor de 1,0 litros ( 998 cc )\" -> 998. Y \"( 1.598 cc )\" -> 1598.\nlet cilin = null;\nconst mc = texto.match(/Motor de [\\d,.]+ litros?\\s*\\(\\s*([\\d.]+)\\s*cc\\s*\\)/i);\nif (mc) { const n = num(mc[1]); if (n && n >= 500 && n <= 8000) cilin = n; }\n\n// ── el equipamiento ────────────────────────────────────────────────────────\n// Un acordeon: <header role=\"tab\">...<h4>GRUPO</h4></header>\n//              <div class=\"card-body\"><div class=\"info-item__body-text\"><p>...</p>\n// En las fichas miradas salen cuatro grupos -Ficha tecnica, Acabado interior,\n// Multimedia y sonido, Confort- y unas 60 lineas.\nconst grupos = {};\nlet nItems = 0;\nconst iEq = cuerpo.indexOf('Equipamiento de este coche');\nif (iEq >= 0) {\n  const trozo = cuerpo.slice(iEq, iEq + 120000);\n  const partes = trozo.split(/<header[^>]*role=\"tab\"/);\n  for (const p of partes.slice(1)) {\n    const g = limpia((p.match(/<h4[^>]*>([\\s\\S]*?)<\\/h4>/) || [])[1] || '');\n    const cg = (p.match(/info-item__body-text[^>]*>([\\s\\S]*?)<\\/div>/) || [])[1] || '';\n    const ps = [];\n    for (const li of cg.matchAll(/<p[^>]*>([\\s\\S]*?)<\\/p>/g)) {\n      const t = limpia(li[1]);\n      if (t && t.length < 800) ps.push(t);\n    }\n    if (g && ps.length) { grupos[g] = ps; nItems += ps.length; }\n  }\n}\n// Mismo formato que Gamboa -grupos con nombre-, no el de VIAN, que es una lista\n// plana. Modrive no publica opcionales, asi que solo hay 'serie'.\nconst equipo = nItems ? JSON.stringify({ serie: grupos }) : '';\n\n// ── el UPDATE ──────────────────────────────────────────────────────────────\n// COALESCE con NULLIF, no COALESCE a secas: en esta tabla hay columnas que\n// llegan a CERO o a cadena vacia en vez de a NULL, y un COALESCE normal no entra\n// nunca sobre un 0.\n//\n// Y por cada campo se guarda TAMBIEN la condicion de si ese campo va a cambiar\n// de verdad, para no mover updated_at cuando la pasada no aporta nada. El\n// escaparate ordena por updated_at cuando el portal_score empata -y los tres\n// concesionarios valen 80-, asi que sellarlo sin motivo entierra a los otros\n// dos: paso con Gamboa, con VIAN y con el propio scraper de Modrive. Aqui\n// importa especialmente por el repaso de los 30 dias, en el que lo normal es\n// que no cambie ni un campo de las 1.988.\nconst sets = ['enrich_tried_at = NOW()'];\nconst cambia = [];\nconst pon = (col, val) => { if (val !== null && val !== undefined && val !== '') {\n  sets.push(col + \" = COALESCE(NULLIF(\" + col + \", ''), \" + esc(val) + ')');\n  cambia.push(\"NULLIF(\" + col + \", '') IS NULL\");\n} };\nconst ponNum = (col, val) => { if (val !== null && val !== undefined && val !== '') {\n  sets.push(col + ' = COALESCE(NULLIF(' + col + ', 0), ' + esc(val) + ')');\n  cambia.push('NULLIF(' + col + ', 0) IS NULL');\n} };\nconst pisa = (col, val) => { if (val !== null && val !== undefined && val !== '') {\n  sets.push(col + ' = ' + esc(val));\n  cambia.push(col + ' IS DISTINCT FROM ' + esc(val));\n} };\n\npon('body_type', carroc);\nponNum('doors', puertas);\nponNum('seats', plazas);\nponNum('displacement', cilin);\npon('matricula', matricula);\n// La descripcion y el equipamiento los escribe el concesionario y los puede\n// cambiar. El listado no puede darlos, asi que lo de aqui es siempre mejor que\n// lo que hubiera.\nif (descripcion) pisa('description', descripcion);\nif (equipo) pisa('equipment', equipo);\n\n// La ficha esta delante: verla es prueba de que el coche sigue publicado. Pero\n// solo se sella si de verdad ha salido algo, para no certificar como vivo lo\n// que no hemos sabido leer.\nconst hayDato = sets.length > 1;\nif (hayDato) {\n  sets.push('last_seen_at = NOW()', 'last_checked_at = NOW()');\n  sets.push('updated_at = CASE WHEN ' + cambia.join(' OR ')\n    + ' THEN NOW() ELSE updated_at END');\n}\n\nconsole.log('[modrive-enrich] ' + id + ': carroceria=' + (carroc || '-')\n  + ' puertas=' + (puertas || '-') + ' plazas=' + (plazas || '-')\n  + ' cc=' + (cilin || '-') + ' matricula=' + (matricula || '-')\n  + ' descripcion=' + descripcion.length + ' equipamiento=' + nItems);\n\nreturn [{ json: {\n  sql: 'UPDATE moveadvisor_marketplace_vo_offers SET ' + sets.join(', ') + ' WHERE id = ' + esc(id),\n  veredicto: hayDato ? 'enriquecida' : 'sin datos',\n  plazas: plazas, cilindrada: cilin, matricula: matricula, equipamiento: nItems,\n} }];"
+      },
+      "id": "me-code",
+      "name": "Code: Extraer de la ficha",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "me-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "me-if-sql",
+      "name": "IF: ¿hay algo que guardar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        960,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "me-pg",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        340
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "seconds"
+      },
+      "id": "me-wait",
+      "name": "Esperar 2s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1400,
+        420
+      ],
+      "webhookId": "b2e9c7d1-modrive-enrich"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6 veces/día (cada 4 h)": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Cola a enriquecer": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: oferta por oferta": {
+      "main": [
+        [],
+        [
+          {
+            "node": "IF: ¿hay ficha que pedir?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ficha que pedir?": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Ficha de Modrive",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Ficha de Modrive": {
+      "main": [
+        [
+          {
+            "node": "Code: Extraer de la ficha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Extraer de la ficha": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay algo que guardar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay algo que guardar?": {
+      "main": [
+        [
+          {
+            "node": "PG: Actualizar oferta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Actualizar oferta": {
+      "main": [
+        [
+          {
+            "node": "Esperar 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 2s": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

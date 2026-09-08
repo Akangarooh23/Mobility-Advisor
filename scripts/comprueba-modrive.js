@@ -40,7 +40,7 @@ const H = {};
 function corre(js, entrada) {
   const log = [];
   const f = new Function("$", "$input", "console", js);
-  const r = f(() => ({ first: () => ({ json: {} }) }),
+  const r = f(() => ({ item: { json: { url: (entrada || {}).urlPedida || "" } }, first: () => ({ json: {} }) }),
     { item: { json: entrada }, first: () => ({ json: entrada }), all: () => [{ json: entrada }] },
     { log: (m) => log.push(String(m)) });
   return { salida: r, log };
@@ -84,7 +84,7 @@ const comprueba = (nombre, cond, detalle) => {
   const rf = await fetch(urls[0].url, { headers: H, signal: AbortSignal.timeout(30000) });
   const ficha = await rf.text();
   console.log("      " + urls[0].url.slice(-58) + "  ->  HTTP " + rf.status);
-  const tr = corre(codigo("Code: Transformar oferta"), { statusCode: rf.status, body: ficha });
+  const tr = corre(codigo("Code: Transformar oferta"), { statusCode: rf.status, body: ficha, urlPedida: urls[0].url });
   const sql = tr.salida[0].json.sql;
   comprueba("genera SQL de la ficha",
     !!sql && /INSERT INTO moveadvisor_marketplace_vo_offers/.test(sql));
@@ -101,6 +101,19 @@ const comprueba = (nombre, cond, detalle) => {
     && /title IS DISTINCT FROM EXCLUDED\.title/.test(sql)
     && /mileage IS DISTINCT FROM EXCLUDED\.mileage/.test(sql));
   comprueba("sella last_seen_at al reencontrarlas", /last_seen_at = NOW\(\)/.test(sql));
+
+  // ── la URL que se guarda ──────────────────────────────────────────────────
+  //
+  // Tiene que ser la del SITEMAP, no la que anuncia el JSON-LD de la ficha.
+  // Modrive cambió sus rutas de /coches-segunda-mano/ a /coches-ocasion/: el
+  // sitemap ya publica las nuevas, pero el JSON-LD de dentro de la ficha sigue
+  // diciendo la vieja. Fiándose de él, el scraper metió 210 ofertas con la ruta
+  // rota el mismo día en que se repararon a mano las otras 1.788.
+  console.log("\nLA URL QUE SE GUARDA");
+  console.log("      la del sitemap : " + urls[0].url.slice(-56));
+  comprueba("guarda la URL del sitemap, no la del JSON-LD",
+    sql.includes("'" + urls[0].url + "'"));
+  comprueba("y no la ruta vieja", !/coches-segunda-mano/.test(sql));
 
   // ── contra la base ────────────────────────────────────────────────────────
   console.log("\nCONTRA LA BASE (con ROLLBACK)");

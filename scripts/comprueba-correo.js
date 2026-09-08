@@ -31,6 +31,11 @@ const ENVIAN = [
   "lib/api/cron-condition-report-ready-handler.js",
   "lib/api/service-requests-handler.js",
   "lib/api/billing-webhook-handler.js",
+  // Los dos correos de la tasacion. Salieron del webhook cuando la primera paso
+  // a ser gratuita: hay un camino que no pasa por Stripe y los dos tienen que
+  // mandar el mismo correo. Al mudarse se salieron de esta lista sin que nadie
+  // lo notara, que es como se pierde la vigilancia de un fichero.
+  "lib/tasacion-correo.js",
   "api/auth.js",
   "api/send-alert-email.js",
 ];

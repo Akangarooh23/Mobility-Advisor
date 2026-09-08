@@ -361,6 +361,17 @@ export default function SellReportMarketPage({
   const [garageVehiclesLoading, setGarageVehiclesLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
+  /**
+   * Si a este usuario le queda su tasacion gratuita.
+   *
+   * Arranca en null y no en false a proposito: hasta que la cuenta conteste no
+   * se sabe, y pintar "1,99 €" mientras tanto para cambiarlo a "gratis" un
+   * segundo despues es peor que esperar. El boton dice solo "Solicitar
+   * tasacion" hasta que hay respuesta.
+   */
+  const [tasacionGratuita, setTasacionGratuita] = useState(null);
+  /** El aviso de que la gratuita ya va de camino: no hay pasarela a la que ir. */
+  const [tasacionEnviada, setTasacionEnviada] = useState("");
 
   const translateFuelOption = (fuel) => {
     const raw = normalizeText(fuel);
@@ -420,6 +431,28 @@ export default function SellReportMarketPage({
 
 
 
+
+  /**
+   * Si a este usuario le queda la tasacion gratuita.
+   *
+   * Sale de la misma llamada que ya trae la cuenta, asi que no anade una espera
+   * propia. Ante un fallo se queda en null y el boton no promete precio: es
+   * mejor no decir nada que decir "gratis" y luego cobrar.
+   */
+  useEffect(() => {
+    const email = normalizeText(currentUserEmail);
+    if (!email) { setTasacionGratuita(null); return; }
+    let cancelado = false;
+    (async () => {
+      try {
+        const { data } = await getBillingAccountJson(email);
+        if (!cancelado && typeof data?.tasacionGratuita === "boolean") {
+          setTasacionGratuita(data.tasacionGratuita);
+        }
+      } catch { /* sin dato, el boton no promete precio */ }
+    })();
+    return () => { cancelado = true; };
+  }, [currentUserEmail]);
 
   useEffect(() => {
     if (!normalizeText(currentUserEmail)) {
@@ -1711,18 +1744,34 @@ export default function SellReportMarketPage({
                                 damageDescription: sellAnswers?.damageDescription || "",
                                 province: selectedVehicle?.province || selectedVehicle?.location || "",
                               });
-                              if (data?.url) window.location.href = data.url;
+                              if (data?.gratis) {
+                                // No hay pasarela: el informe ya se ha mandado.
+                                setTasacionEnviada(data.message || "Tu primera tasación es gratuita. Te llega por correo en unos minutos.");
+                                setTasacionGratuita(false);
+                              } else if (data?.url) window.location.href = data.url;
                               else setCheckoutError(data?.error || "No se pudo iniciar el pago. Inténtalo de nuevo.");
                             } catch { setCheckoutError("Error al conectar con el sistema de pago."); }
                             finally { setCheckoutLoading(false); }
                           }}
                           style={{ background: "linear-gradient(135deg, #0d9488, #0f766e)", color: "#fff", border: "none", borderRadius: 10, padding: "12px 24px", fontSize: 15, fontWeight: 700, cursor: checkoutLoading ? "not-allowed" : "pointer", opacity: checkoutLoading ? 0.7 : 1 }}
                         >
-                          {checkoutLoading ? "Redirigiendo…" : "Solicitar tasación — 10 €"}
+                          {checkoutLoading
+                            ? (tasacionGratuita ? "Preparando…" : "Redirigiendo…")
+                            : tasacionGratuita === true
+                              ? "Solicitar tasación — gratis"
+                              : tasacionGratuita === false
+                                ? "Solicitar tasación — 1,99 €"
+                                : "Solicitar tasación"}
                         </button>
                         <a href="/ejemplo-informe-tasacion.pdf" download="Ejemplo_Informe_Tasacion_PopCar.pdf" style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1.5px solid #0d9488", color: "#0d9488", background: "#fff", borderRadius: 10, padding: "11px 18px", fontSize: 14, fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>Ver ejemplo</a>
                       </div>
                       <span style={{ fontSize: 12, color: "var(--gris-500)" }}>Pago único · Entrega automática en menos de 5 minutos</span>
+                      {tasacionEnviada && (
+                        <div style={{ display: "flex", alignItems: "flex-start", gap: 8, background: "#d1fae5", border: "1px solid #0d9488", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#065f46", maxWidth: 460 }}>
+                          <span style={{ fontSize: 16, flexShrink: 0 }}>✓</span>
+                          <span>{tasacionEnviada}</span>
+                        </div>
+                      )}
                       {checkoutError && (
                         checkoutError.startsWith("PROFILE_INCOMPLETE:") ? (
                           <div style={{ display: "flex", alignItems: "flex-start", gap: 8, background: "#fef3c7", border: "1px solid #f59e0b", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#92400e", maxWidth: 460 }}>

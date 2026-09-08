@@ -409,7 +409,14 @@ export default function UserDashboardSolicitudes({
       if (s.status === "confirmed")        return isDatePast(meta.confirmed_slot);
       return false;
     }),
-    contratadas: localSolicitudes.filter((s) => CONTRACTED_STATUSES.includes(s.status)),
+    // Una importación entregada también es un coche comprado, asi que entra
+    // aquí por su propia regla. Sin esta línea, mover «Entregado» a contratadas
+    // en gruposSolicitudes.js la dejaría fuera de las cinco pestañas y la
+    // solicitud desapareceria del panel — que es justo lo que aquel fichero
+    // existe para evitar.
+    contratadas: localSolicitudes.filter(
+      (s) => grupoImport(s) === "contratadas" || (!esImportacion(s) && CONTRACTED_STATUSES.includes(s.status))
+    ),
     canceladas: localSolicitudes.filter((s) => ["Cancelado", "Descartado"].includes(s.status)),
   };
 

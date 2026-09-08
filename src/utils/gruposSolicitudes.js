@@ -24,16 +24,28 @@ export const ETAPAS_IMPORTACION = [
   "Entregado",
 ];
 
+/** Las pestañas que existen en el panel. Un grupo tiene que ser una de estas. */
+export const PESTANAS = ["pendiente", "en_curso", "finalizadas", "contratadas", "canceladas"];
+
 /**
  * El grupo de una etapa de importación, o null si no es una de ellas.
  *
  * Antes de la fianza, es algo que está esperando respuesta: pendiente. Desde que
- * la paga hasta que lo tiene, el coche está en marcha: en curso. Entregado se
- * acabó.
+ * la paga hasta que lo tiene, el coche está en marcha: en curso.
+ *
+ * Y entregado va a **contratadas**, no a finalizadas. Estuvo en finalizadas y
+ * era el sitio equivocado: esa pestaña recoge visitas que ya pasaron —fui a ver
+ * un coche y se acabó—, y una importación entregada es lo contrario, un coche
+ * comprado, pagado y con su factura. La propia pestaña lo dice: «aquí
+ * aparecerán los vehículos que hayas comprado o contratado en renting».
+ *
+ * El corte se pone en la entrega y no en la fianza a propósito: mientras el
+ * coche está de camino, lo que el cliente quiere ver es por dónde va, y eso es
+ * «en curso». Contratadas es para lo que ya es suyo.
  */
 export function grupoDeImportacion(status) {
   if (status === "Pendiente" || status === "Contactado") return "pendiente";
-  if (status === "Entregado") return "finalizadas";
+  if (status === "Entregado") return "contratadas";
   if (ETAPAS_IMPORTACION.includes(status)) return "en_curso";
   return null;
 }

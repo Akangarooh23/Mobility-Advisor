@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+// El precio vive en src/tasacion.js, gemelo de lib/tasacion.js. Estaba escrito
+// tres veces en este fichero y una cuarta en el servidor, y al bajarlo a 1,99
+// solo cambio el del servidor: la pantalla ensenaba un total y se cobraba otro.
+import {
+  TRAMOS,
+  precioPorUnidad as precioPorUnidadTasacion,
+  importe as importeTasacion,
+  enEuros,
+} from "../tasacion";
 import {
   getBillingAccountJson,
   getErpBrandsJson,
@@ -716,15 +725,15 @@ export default function SellReportMarketPage({
 
                   {/* ── FLEET MODE ── */}
                   {fleetMode && garageVehicles.length >= 2 && (() => {
-                    const TIERS = [
-                      { max: 1,  price: 10 }, { max: 4,  price: 9 }, { max: 9,  price: 8 },
-                      { max: 19, price: 7  }, { max: 49, price: 6 }, { max: 99, price: 5 },
-                    ];
-                    function unitPrice(n) { const t = TIERS.find((x) => n <= x.max); return t ? t.price : null; }
+                    // Los precios van en centimos, como en el servidor: asi la
+                    // comparacion del tramo activo es exacta y no depende de
+                    // como se haya redondeado al pintar.
+                    const TIERS = TRAMOS.map((t) => ({ max: t.hasta, price: t.centimos }));
                     const selectedIds = Object.keys(fleetSelected).filter((id) => fleetSelected[id]);
                     const count = selectedIds.length;
-                    const up = unitPrice(count);
-                    const total = up != null ? count * up : null;
+                    const cuenta = importeTasacion({ cuantos: count, conGratuita: tasacionGratuita === true });
+                    const up = cuenta ? cuenta.unidadCentimos : null;
+                    const total = cuenta ? cuenta.totalCentimos : null;
                     const safePage = Math.min(fleetPage, Math.max(0, count - 1));
                     const currentVehId = selectedIds[safePage];
                     const currentVeh = garageVehicles.find((v) => v.id === currentVehId);
@@ -827,14 +836,14 @@ export default function SellReportMarketPage({
                         {count > 0 && (
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", background: "var(--blanco)", border: "1.5px solid #0d9488", borderRadius: 10, gap: 8, flexWrap: "wrap" }}>
                             <div>
-                              <div style={{ fontSize: 12, color: "var(--gris-600)" }}>{count} vehículo{count !== 1 ? "s" : ""} seleccionado{count !== 1 ? "s" : ""} · {up} €/unidad</div>
-                              {total != null && <div style={{ fontSize: 18, fontWeight: 800, color: "var(--gris-900)" }}>Total: {total} €</div>}
+                              <div style={{ fontSize: 12, color: "var(--gris-600)" }}>{count} vehículo{count !== 1 ? "s" : ""} seleccionado{count !== 1 ? "s" : ""} · {enEuros(up)} €/unidad{cuenta && cuenta.gratis ? " · " + cuenta.gratis + " gratuita" : ""}</div>
+                              {total != null && <div style={{ fontSize: 18, fontWeight: 800, color: "var(--gris-900)" }}>Total: {enEuros(total)} €</div>}
                             </div>
                             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                               {TIERS.map((tier, i) => {
                                 const label = i === 0 ? "1" : `${TIERS[i-1].max + 1}–${tier.max}`;
                                 const active = up === tier.price;
-                                return <span key={tier.price} style={{ fontSize: 11, padding: "3px 8px", borderRadius: 6, background: active ? "#0d9488" : "var(--gris-100)", color: active ? "#fff" : "var(--gris-400)", fontWeight: active ? 700 : 400 }}>{label}: {tier.price}€</span>;
+                                return <span key={tier.price} style={{ fontSize: 11, padding: "3px 8px", borderRadius: 6, background: active ? "#0d9488" : "var(--gris-100)", color: active ? "#fff" : "var(--gris-400)", fontWeight: active ? 700 : 400 }}>{label}: {enEuros(tier.price)}€</span>;
                               })}
                             </div>
                           </div>
@@ -1643,15 +1652,11 @@ export default function SellReportMarketPage({
                 {/* CTA */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
                   {fleetMode ? (() => {
-                    const TIERS = [
-                      { max: 1, price: 10 }, { max: 4, price: 9 }, { max: 9, price: 8 },
-                      { max: 19, price: 7 }, { max: 49, price: 6 }, { max: 99, price: 5 },
-                    ];
                     const selectedIds = Object.keys(fleetSelected).filter((id) => fleetSelected[id]);
                     const count = selectedIds.length;
-                    const tier = TIERS.find((t) => count <= t.max);
-                    const up = tier ? tier.price : null;
-                    const total = up != null ? count * up : null;
+                    const cuenta = importeTasacion({ cuantos: count, conGratuita: tasacionGratuita === true });
+                    const up = cuenta ? cuenta.unidadCentimos : null;
+                    const total = cuenta ? cuenta.totalCentimos : null;
                     if (!count) return <span style={{ fontSize: 13, color: "var(--gris-400)" }}>Selecciona al menos un vehículo en el Paso 1 para continuar.</span>;
                     return (
                       <>
@@ -1694,11 +1699,11 @@ export default function SellReportMarketPage({
                             }}
                             style={{ background: "linear-gradient(135deg, #0d9488, #0f766e)", color: "#fff", border: "none", borderRadius: 10, padding: "12px 24px", fontSize: 15, fontWeight: 700, cursor: fleetLoading ? "not-allowed" : "pointer", opacity: fleetLoading ? 0.7 : 1 }}
                           >
-                            {fleetLoading ? "Redirigiendo…" : `Tasar ${count} vehículo${count !== 1 ? "s" : ""} — ${total} €`}
+                            {fleetLoading ? "Redirigiendo…" : `Tasar ${count} vehículo${count !== 1 ? "s" : ""} — ${enEuros(total)} €`}
                           </button>
                           <a href="/ejemplo-informe-tasacion.pdf" download="Ejemplo_Informe_Tasacion_PopCar.pdf" style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1.5px solid #0d9488", color: "#0d9488", background: "#fff", borderRadius: 10, padding: "11px 18px", fontSize: 14, fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>Ver ejemplo</a>
                         </div>
-                        <span style={{ fontSize: 12, color: "var(--gris-500)" }}>{count} vehículo{count !== 1 ? "s" : ""} · {up} €/unidad · Entrega automática en menos de 5 minutos</span>
+                        <span style={{ fontSize: 12, color: "var(--gris-500)" }}>{count} vehículo{count !== 1 ? "s" : ""} · {enEuros(up)} €/unidad · Entrega automática en menos de 5 minutos</span>
                         {fleetError && (
                           fleetError.startsWith("PROFILE_INCOMPLETE:") ? (
                             <div style={{ display: "flex", alignItems: "flex-start", gap: 8, background: "#fef3c7", border: "1px solid #f59e0b", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#92400e", maxWidth: 460 }}>
@@ -1796,22 +1801,13 @@ export default function SellReportMarketPage({
 
       {/* Fleet section — removed, now integrated in Step 1 */}
       {false && (() => {
-        const TIERS = [
-          { max: 1,  price: 10 },
-          { max: 4,  price: 9  },
-          { max: 9,  price: 8  },
-          { max: 19, price: 7  },
-          { max: 49, price: 6  },
-          { max: 99, price: 5  },
-        ];
-        function unitPrice(count) {
-          const tier = TIERS.find((t) => count <= t.max);
-          return tier ? tier.price : null;
-        }
+        const TIERS = TRAMOS.map((t) => ({ max: t.hasta, price: t.centimos }));
+        const unitPrice = precioPorUnidadTasacion;
         const selectedIds = Object.keys(fleetSelected).filter((id) => fleetSelected[id]);
         const count = selectedIds.length;
-        const up = unitPrice(count);
-        const total = up != null ? count * up : null;
+        const cuenta = importeTasacion({ cuantos: count, conGratuita: tasacionGratuita === true });
+        const up = cuenta ? cuenta.unidadCentimos : null;
+        const total = cuenta ? cuenta.totalCentimos : null;
 
         return (
           <div style={{ margin: "16px 0", border: "1.5px solid var(--gris-200)", borderRadius: 14, overflow: "hidden", background: "#fff" }}>
@@ -1824,7 +1820,7 @@ export default function SellReportMarketPage({
                 <span style={{ fontSize: 18 }}>🚗</span>
                 <div style={{ textAlign: "left" }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: "var(--gris-900)" }}>Tasar toda tu flota</div>
-                  <div style={{ fontSize: 12, color: "var(--gris-500)" }}>Descuentos desde 2 vehículos · desde 9 €/unidad</div>
+                  <div style={{ fontSize: 12, color: "var(--gris-500)" }}>Descuentos desde 2 vehículos · desde {enEuros(TRAMOS[TRAMOS.length - 1].centimos)} €/unidad</div>
                 </div>
               </div>
               <span style={{ fontSize: 18, color: "var(--gris-500)", transform: fleetOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>▾</span>
@@ -1839,7 +1835,7 @@ export default function SellReportMarketPage({
                     const active = count > 0 && unitPrice(count) === t.price;
                     return (
                       <div key={t.price} style={{ background: active ? "#0d9488" : "var(--gris-50)", color: active ? "#fff" : "var(--gris-600)", borderRadius: 8, padding: "5px 10px", fontSize: 12, fontWeight: active ? 700 : 400, border: `1px solid ${active ? "#0d9488" : "var(--gris-200)"}` }}>
-                        {label}: <strong>{t.price} €</strong>
+                        {label}: <strong>{enEuros(t.price)} €</strong>
                       </div>
                     );
                   })}
@@ -1879,8 +1875,8 @@ export default function SellReportMarketPage({
                 {count > 0 && (
                   <div style={{ background: "var(--blanco)", border: "1.5px solid #0d9488", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                     <div>
-                      <div style={{ fontSize: 13, color: "var(--gris-600)" }}>{count} vehículo{count !== 1 ? "s" : ""} · {up} €/unidad</div>
-                      {total != null && <div style={{ fontSize: 22, fontWeight: 800, color: "var(--gris-900)" }}>{total} €</div>}
+                      <div style={{ fontSize: 13, color: "var(--gris-600)" }}>{count} vehículo{count !== 1 ? "s" : ""} · {enEuros(up)} €/unidad{cuenta && cuenta.gratis ? " · " + cuenta.gratis + " gratuita" : ""}</div>
+                      {total != null && <div style={{ fontSize: 22, fontWeight: 800, color: "var(--gris-900)" }}>{enEuros(total)} €</div>}
                     </div>
                     <button
                       type="button"
@@ -1923,7 +1919,7 @@ export default function SellReportMarketPage({
                       }}
                       style={{ background: "linear-gradient(135deg, #0d9488, #0f766e)", color: "#fff", border: "none", borderRadius: 10, padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: fleetLoading ? "not-allowed" : "pointer", opacity: fleetLoading ? 0.7 : 1, whiteSpace: "nowrap" }}
                     >
-                      {fleetLoading ? "Redirigiendo…" : `Tasar ${count} vehículo${count !== 1 ? "s" : ""} — ${total} €`}
+                      {fleetLoading ? "Redirigiendo…" : `Tasar ${count} vehículo${count !== 1 ? "s" : ""} — ${enEuros(total)} €`}
                     </button>
                   </div>
                 )}

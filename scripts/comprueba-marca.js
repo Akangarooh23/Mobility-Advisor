@@ -365,6 +365,36 @@ for (const carpeta of ["src", "lib", "api", "scripts"]) {
   });
 }
 
+/**
+ * Los dos precios de la tasacion tienen que decir lo mismo.
+ *
+ * Por lo mismo que la marca: el navegador no puede importar de fuera de `src/`,
+ * asi que la tabla de tramos vive dos veces, en lib/tasacion.js y en
+ * src/tasacion.js.
+ *
+ * Esta comprobacion existe porque ya fallo. La tabla estaba escrita tres veces
+ * en SellReportMarketPage.js y una cuarta en el checkout; al bajar el precio a
+ * 1,99 solo se cambio la del servidor, y la pantalla siguio ensenando
+ * «3 vehiculos · 9 €/unidad · Total 27 €» mientras el cobro habria sido otro.
+ * Un descuadre de precio no da error: solo miente, y lo ve el cliente.
+ */
+{
+  const numeros = (fuente, clave) => {
+    const bloque = new RegExp(`${clave}\\s*=\\s*\\[([\\s\\S]*?)\\]`).exec(fuente);
+    if (!bloque) return null;
+    return (bloque[1].match(/\d+/g) || []).join(",");
+  };
+  const servidor = fs.readFileSync(path.join(RAIZ, "lib/tasacion.js"), "utf8");
+  const cliente = fs.readFileSync(path.join(RAIZ, "src/tasacion.js"), "utf8");
+  const a = numeros(servidor, "TRAMOS");
+  const b = numeros(cliente, "TRAMOS");
+  if (a === null) apunta("lib/tasacion.js", 0, "", "no encuentro TRAMOS");
+  else if (b === null) apunta("src/tasacion.js", 0, "", "no encuentro TRAMOS");
+  else if (a !== b) {
+    apunta("src/tasacion.js", 0, b, `la tabla de precios no coincide con la del servidor (${a})`);
+  }
+}
+
 const DOMINIOS_MUERTOS = /[\w.+-]+@(?:carswiseai\.com|carswise\.es)/;
 
 function recorre(dir, visita) {

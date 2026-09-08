@@ -129,25 +129,23 @@ for (const rel of REDACTAN) {
       apunta(rel, n, linea, "atributo HTML sin comillas ni interpolacion");
     }
 
-    // Se permite nombrar a CarsWise Check: ese producto se llama asi de verdad
-    // y es otro sitio. Lo que no vale es firmar un correo con el nombre viejo.
     const sinComentario = linea.replace(/^\s*(\/\/|\*|\/\*).*/, "");
     // Sin distinguir mayusculas: el asunto del correo de recuperar contrasena
     // ponia "Carswise", con minuscula, y por eso paso por delante de esta
     // comprobacion sin que saltara nada durante toda la migracion.
-    // Se permite nombrar a CarsWise Check en cualquiera de sus formas —el
-    // producto se llama asi—: el titulo, el modulo carswise-check-client y la
-    // variable carswiseCheck.
-    // Antes de mirar el nombre se quitan dos cosas que no son el nombre: el
-    // producto CarsWise Check —se llama asi de verdad, en sus tres formas: el
-    // titulo, el modulo carswise-check-client y la variable carswiseCheck— y
-    // el dominio carswiseai, que tiene su propia regla mas abajo porque como
-    // buzon sigue valiendo.
-    // Y tampoco los nombres de variables de entorno: viven en Vercel tanto
-    // como aqui, renombrarlas es coordinar dos sitios y no las lee ningun
-    // cliente. El codigo admite ya el nombre nuevo y el viejo.
+    //
+    // Aqui habia una excepcion para "CarsWise Check": era un producto que se
+    // llamaba asi de verdad, asi que nombrarlo no era un descuido. Desde que
+    // paso a ser PopCar Check, submarca de la casa, esa excepcion dejo de
+    // proteger nada y solo servia para que el nombre viejo entrara sin que
+    // saltara la comprobacion. Se ha quitado, y con ella el modulo cambio de
+    // nombre a popcar-check-client.
+    //
+    // Lo que sigue exento: el dominio carswiseai, que tiene su propia regla mas
+    // abajo porque como buzon sigue valiendo, y los nombres de variables de
+    // entorno, que viven en Vercel tanto como aqui —renombrarlas es coordinar
+    // dos proyectos a la vez y no las lee ningun cliente.
     const sinLoPermitido = sinComentario
-      .replace(/carswise[-\s]?check/gi, "")
       .replace(/carswiseai/gi, "")
       .replace(/process\.env\.[A-Z0-9_]+/g, "");
     if (/carswise/i.test(sinLoPermitido)) {

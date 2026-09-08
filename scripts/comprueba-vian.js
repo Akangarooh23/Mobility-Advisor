@@ -103,6 +103,21 @@ function corre(js, entrada, todos) {
   const sql = tr.salida[0].json.sql;
   console.log("      " + urls[0].url.slice(-60) + "  ->  HTTP " + rf.status);
   comprueba("genera SQL de la ficha", !!sql && /INSERT INTO moveadvisor_marketplace_vo_offers/.test(sql));
+
+  // updated_at NO puede moverse en cada pasada. El escaparate ordena por
+  // portal_score y, como todos los concesionarios valen 80, el desempate real es
+  // updated_at DESC: una sola pasada colocó las 400 filas de VIAN por delante de
+  // Gamboa —que empezaba en la 401— y de Modrive —en la 746—, sin que ningún
+  // coche hubiera cambiado. Mismo fallo que ya se arregló en Gamboa.
+  comprueba("updated_at solo se mueve si el anuncio ha cambiado",
+    /updated_at = CASE WHEN/.test(sql) && !/updated_at = NOW()/.test(sql.split('ON CONFLICT')[1] || ''));
+  comprueba("y lo decide comparando precio, título y kilómetros",
+    /price IS DISTINCT FROM EXCLUDED.price/.test(sql)
+    && /title IS DISTINCT FROM EXCLUDED.title/.test(sql)
+    && /mileage IS DISTINCT FROM EXCLUDED.mileage/.test(sql));
+  // Verlo en el listado ES prueba de que sigue publicado. Hasta hoy no se
+  // sellaba, así que last_seen_at de VIAN se quedó congelado.
+  comprueba("sella last_seen_at al reencontrarlas", /last_seen_at = NOW()/.test(sql));
   const mala = corre(codigo("Code: Transformar oferta"), { statusCode: 500, body: "" });
   comprueba("una ficha mala se salta sin tumbar la pasada", mala.salida[0].json.sql === null);
 

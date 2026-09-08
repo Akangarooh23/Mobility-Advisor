@@ -1,0 +1,488 @@
+{
+  "name": "VIAN – Verificar ofertas activas",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "vv-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 20 4,16 * * *"
+            }
+          ]
+        }
+      },
+      "id": "vv-cron",
+      "name": "2 veces/día (4:20 y 16:20)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.comprayconduce.es/coches-ocasion/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "vv-http1",
+      "name": "HTTP: Contar el catálogo",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -160,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// De la página 1 salen los primeros coches y el tamaño del catálogo.\nconst res = $input.first().json;\nconst cuerpo = String(res.body || res.data || '');\nconst codigo = Number(res.statusCode || 0);\n\nconst s = $getWorkflowStaticData('global');\ns.vian_inicio = new Date().toISOString();\ns.vian_fallo = false;\ns.vian_completo = false;\ns.vian_vistos = 0;\ns.vian_paginas = 0;\ns.vian_ids = {};\n\nif (codigo !== 200 || !cuerpo) {\n  console.log('[vian-verificar] la página 1 devolvió HTTP ' + codigo + '. No se toca nada.');\n  s.vian_fallo = true;\n  return [];\n}\n\nconst m = cuerpo.match(/([\\d.]{2,7})\\s*(?:veh[ií]culos|coches|resultados)/i);\nconst total = m ? Number(String(m[1]).replace(/\\./g, '')) : 0;\n// Dos páginas de margen sobre lo que dice el listado. El tope de 80 es solo\n// una red: el barrido se para solo cuando una página no aporta coches nuevos.\nconst paginas = Math.min(80, total > 0 ? Math.ceil(total / 12) + 2 : 80);\ns.vian_total = total;\n\nconsole.log('[vian-verificar] el listado publica ' + (total || '?') + ' coches -> hasta ' + paginas + ' páginas');\n\nconst out = [];\nfor (let p = 1; p <= paginas; p++) {\n  out.push({ json: { pagina: p, url: 'https://www.comprayconduce.es/coches-ocasion/' + (p > 1 ? '?pagina=' + p : ''), planificadas: paginas } });\n}\nreturn out;"
+      },
+      "id": "vv-plan",
+      "name": "Code: Planificar barrido",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        60,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "vv-loop",
+      "name": "Loop: página por página",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        280,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Fin del barrido. Aquí pasan dos cosas, y la primera pasa siempre:\n//\n//   1. Se apunta el parte, aunque no se haya podido verificar nada.\n//   2. Si el listado se leyó ENTERO y ninguna página falló, se da de baja lo\n//      que no apareció y se resucita lo que reapareció.\n//\n// No hace falta la lista de ausentes: las ofertas vistas llevan last_checked_at\n// sellado durante este barrido y las que no conservan el valor viejo. La propia\n// fecha las separa.\nconst s = $getWorkflowStaticData('global');\nconst inicio = String(s.vian_inicio || '');\nif (!inicio) return [];\n\nconst vistos = s.vian_vistos || 0;\nconst paginas = s.vian_paginas || 0;\nconst completo = !!s.vian_completo && !s.vian_fallo;\n\nconst n = v => String(Number(v) || 0);\nconst apunte = (bajas, vivas) =>\n  'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" SELECT 'vian', NOW(), \" + n(vistos) + ', ' + vivas + ', ' + bajas\n  + ', 0, 0, ' + (s.vian_fallo ? 'TRUE' : 'FALSE') + ', 2';\n\nif (!completo) {\n  const motivo = s.vian_fallo ? 'una página falló' : 'no se llegó al final del listado';\n  console.log('[vian-verificar] ' + vistos + ' coches vistos en ' + paginas + ' páginas, pero '\n    + motivo + '. No se da de baja a nadie.');\n  return [{ json: { sql: apunte('0', '0'), bajas: false } }];\n}\n\n// El UPDATE va dentro de un CTE de la MISMA sentencia que el apunte: así el\n// número de bajas que queda escrito es el de verdad, y si algo falla no queda ni\n// el apunte ni las bajas a medias.\nconst esc = v => \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\nconst sql = 'WITH bajas AS ('\n  + ' UPDATE moveadvisor_marketplace_vo_offers'\n  + ' SET is_active = FALSE, last_checked_at = NOW(), updated_at = NOW()'\n  + \" WHERE portal = 'vian' AND is_active\"\n  + ' AND (last_checked_at IS NULL OR last_checked_at < ' + esc(inicio) + ')'\n  + ' RETURNING 1'\n  + '), vivas AS ('\n  + ' UPDATE moveadvisor_marketplace_vo_offers'\n  + ' SET is_active = TRUE, updated_at = NOW()'\n  + \" WHERE portal = 'vian' AND is_active IS FALSE\"\n  + ' AND last_checked_at >= ' + esc(inicio)\n  + ' RETURNING 1'\n  + ') ' + apunte('(SELECT count(*) FROM bajas)', n(vistos));\n\nconsole.log('[vian-verificar] barrido completo: ' + paginas + ' páginas, ' + vistos\n  + ' coches. Se dan de baja las activas que no han aparecido.');\nreturn [{ json: { sql: sql, bajas: true } }];"
+      },
+      "id": "vv-veredicto",
+      "name": "Code: Veredicto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// El cortacircuitos, antes de aplicar nada.\n//\n// Este workflow retira coches del escaparate. Si el barrido dice que ha\n// desaparecido más de la mitad del catálogo, eso no es que el concesionario haya\n// vendido 300 coches en un día: es que el listado ha cambiado de forma y ya no\n// lo sabemos leer. Mejor quedarse corto y que lo miremos.\nconst s = $getWorkflowStaticData('global');\nconst item = $input.first().json;\nconst vistos = s.vian_vistos || 0;\nconst total = Number(s.vian_total || 0);\n\nif (item.bajas && total > 0 && vistos < total * 0.5) {\n  console.log('[vian-verificar] PARADO: el listado dice tener ' + total + ' coches y solo se han'\n    + ' visto ' + vistos + '. Eso no es una liquidación, es que el listado ha cambiado.');\n  return [{ json: { sql: null, parado: true } }];\n}\nreturn [{ json: item }];"
+      },
+      "id": "vv-freno",
+      "name": "Code: Cortacircuitos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "vv-c-baja",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "vv-if-baja",
+      "name": "IF: ¿hay algo que aplicar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        960,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "vv-pg-fin",
+      "name": "PG: Apuntar y dar de baja",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "vv-httpn",
+      "name": "HTTP: Página del listado",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        520,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cada página sella como publicado lo que trae. La base hace de acumulador:\n// no hay que arrastrar listas entre vueltas del bucle.\nconst item = $('Loop: página por página').item.json;\nconst res = $input.first().json;\nconst cuerpo = String(res.body || res.data || '');\nconst codigo = Number(res.statusCode || 0);\n\nconst s = $getWorkflowStaticData('global');\n\n// Ya se acabó el listado: no se pide más. Fuera de rango VIAN NO devuelve una\n// página vacía, repite la última, así que la señal de final es que una página no\n// aporte ningún coche NUEVO. Esperando páginas vacías se pedían 80 en vez de 54.\nif (s.vian_completo || s.vian_fallo) return [{ json: { sql: null } }];\n\n// Un fallo de red llega aquí con código 0 gracias a onError. Deja el barrido\n// incompleto: a partir de aquí no se puede deducir nada de una ausencia.\nif (codigo !== 200 || !cuerpo) {\n  console.log('[vian-verificar] la página ' + item.pagina + ' devolvió HTTP ' + codigo\n    + '. Barrido incompleto: no se dará de baja a nadie.');\n  s.vian_fallo = true;\n  return [{ json: { sql: null } }];\n}\n\nconst ids = [...new Set(\n  [...cuerpo.matchAll(/\\/ficha-vehiculo-ocasion\\/[^\"'\\s]*?\\/(\\d{6,})/g)].map(x => x[1])\n)];\n\ns.vian_ids = s.vian_ids || {};\nconst nuevos = ids.filter(i => !s.vian_ids[i]);\nids.forEach(i => { s.vian_ids[i] = 1; });\ns.vian_paginas = (s.vian_paginas || 0) + 1;\ns.vian_vistos = Object.keys(s.vian_ids).length;\n\nif (!nuevos.length) {\n  // Se llegó al final del listado por las buenas: eso es lo que autoriza a dar\n  // de baja lo que no ha aparecido.\n  s.vian_completo = true;\n  console.log('[vian-verificar] final del listado en la página ' + item.pagina\n    + ': ' + s.vian_vistos + ' coches distintos.');\n  return [{ json: { sql: null } }];\n}\n\n// Se casa por la clave primaria, no por la URL: nuestro id es literalmente\n// 'vian_' + el numero que trae el listado. Una expresion regular sobre\n// source_url fallaria justo el dia que el concesionario cambie la ruta de sus\n// fichas, que es lo que han hecho Gamboa y Modrive esta misma semana.\nconst esc = v => \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n// updated_at no se toca: volver a ver un anuncio no es un cambio del anuncio.\n// Y no se reactiva nada aquí: de resucitar se encarga el veredicto, que es quien\n// sabe si el barrido fue completo.\nconst sql = 'UPDATE moveadvisor_marketplace_vo_offers'\n  + ' SET last_seen_at = NOW(), last_checked_at = NOW()'\n  + ' WHERE id IN (' + nuevos.map(function (x) { return esc('vian_' + x); }).join(', ') + ')';\n\nconsole.log('[vian-verificar] página ' + item.pagina + ': ' + ids.length + ' coches ('\n  + nuevos.length + ' nuevos, ' + s.vian_vistos + ' acumulados)');\nreturn [{ json: { sql: sql, pagina: item.pagina, nuevos: nuevos.length } }];"
+      },
+      "id": "vv-pagina",
+      "name": "Code: Sellar los vistos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "vv-c-sellar",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "vv-if-sellar",
+      "name": "IF: ¿hay que sellar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        960,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "vv-pg-sellar",
+      "name": "PG: Sellar página",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        360
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "seconds"
+      },
+      "id": "vv-wait",
+      "name": "Esperar 2s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1400,
+        440
+      ],
+      "webhookId": "a1d7e4c9-vian-verificar"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Contar el catálogo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2 veces/día (4:20 y 16:20)": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Contar el catálogo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Contar el catálogo": {
+      "main": [
+        [
+          {
+            "node": "Code: Planificar barrido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Planificar barrido": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: página por página": {
+      "main": [
+        [
+          {
+            "node": "Code: Veredicto",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Página del listado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Veredicto": {
+      "main": [
+        [
+          {
+            "node": "Code: Cortacircuitos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Cortacircuitos": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay algo que aplicar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay algo que aplicar?": {
+      "main": [
+        [
+          {
+            "node": "PG: Apuntar y dar de baja",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "HTTP: Página del listado": {
+      "main": [
+        [
+          {
+            "node": "Code: Sellar los vistos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Sellar los vistos": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay que sellar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay que sellar?": {
+      "main": [
+        [
+          {
+            "node": "PG: Sellar página",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Sellar página": {
+      "main": [
+        [
+          {
+            "node": "Esperar 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 2s": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

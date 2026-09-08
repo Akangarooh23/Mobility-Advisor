@@ -55,3 +55,34 @@ test("un estado que no es de importación no se toca aquí", () => {
   expect(grupoDeImportacion("Cita confirmada")).toBeNull();
   expect(grupoDeImportacion("Cancelado")).toBeNull();
 });
+
+/**
+ * Y devolver null es una respuesta, no un hueco.
+ *
+ * El ERP deja poner cualquiera de estos estados en cualquier solicitud, tambien
+ * en una importacion: no distingue por tipo. Aqui se devuelve null a proposito
+ * —no son etapas de importacion— y el panel tiene que dejarlos caer por sus
+ * reglas genericas, no excluirlos por ser de tipo importacion.
+ *
+ * Si alguien vuelve a filtrar por tipo en vez de por grupo, una importacion con
+ * uno de estos estados no cae en ninguna pestaña y desaparece del panel. Ya
+ * paso el 30 de agosto con las etapas; esta es la otra puerta.
+ */
+const ESTADOS_DEL_ERP_QUE_NO_SON_ETAPAS = [
+  "En proceso",
+  "Cerrado",
+  "Interesado",
+  "Vendido",
+  "Reagendar solicitado",
+  "Cita confirmada",
+  "Visita realizada",
+  "Cancelado",
+  "Descartado",
+];
+
+test("los estados sueltos del ERP no son etapas, y por eso los reparte el panel", () => {
+  for (const estado of ESTADOS_DEL_ERP_QUE_NO_SON_ETAPAS) {
+    expect(grupoDeImportacion(estado)).toBeNull();
+    expect(ETAPAS_IMPORTACION).not.toContain(estado);
+  }
+});

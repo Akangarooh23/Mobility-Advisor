@@ -384,15 +384,29 @@ export default function UserDashboardSolicitudes({
   // del panel justo después de pagar.
   const esImportacion = (s) => s.type === "import";
   const grupoImport = (s) => (esImportacion(s) ? grupoDeImportacion(s.status) : null);
+  /**
+   * Una importación con un estado que no es de importación.
+   *
+   * El ERP deja poner en cualquier solicitud estados que no son etapas de
+   * importación —«En proceso», «Cerrado», «Interesado»— y no distingue por
+   * tipo. Con `esImportacion` a secas, esa solicitud se excluía de las reglas
+   * normales y su etapa no existía, así que no caía en ninguna pestaña y
+   * desaparecía del panel. El mismo fallo del 30 de agosto por otra puerta.
+   *
+   * Preguntando por el grupo en vez de por el tipo, una importación con etapa
+   * conocida va por su regla y una con estado suelto cae por las genéricas,
+   * que es donde ese estado significa algo.
+   */
+  const porReglaDeImportacion = (s) => grupoImport(s) !== null;
 
   const grouped = {
     pendiente: localSolicitudes.filter((s) =>
       grupoImport(s) === "pendiente" ||
-      (!esImportacion(s) &&
+      (!porReglaDeImportacion(s) &&
         ["Pendiente", "Contactado", "En proceso", "Reagendar solicitado", "pending_seller", "pending_buyer", "Pendiente de aprobación"].includes(s.status))
     ),
     en_curso: localSolicitudes.filter((s) => {
-      if (esImportacion(s)) return grupoImport(s) === "en_curso";
+      if (porReglaDeImportacion(s)) return grupoImport(s) === "en_curso";
       const meta = parseMeta(s.meta);
       if (s.status === "Cita confirmada") return !isDatePast(cuandoEs(meta));
       if (s.status === "confirmed")       return !isDatePast(meta.confirmed_slot);
@@ -400,7 +414,7 @@ export default function UserDashboardSolicitudes({
     }),
     finalizadas: localSolicitudes.filter((s) => {
       if (CONTRACTED_STATUSES.includes(s.status)) return false;
-      if (esImportacion(s)) return grupoImport(s) === "finalizadas";
+      if (porReglaDeImportacion(s)) return grupoImport(s) === "finalizadas";
       const meta = parseMeta(s.meta);
       if (s.status === "Cerrado")          return true;
       if (s.status === "Visita realizada") return true;
@@ -415,7 +429,7 @@ export default function UserDashboardSolicitudes({
     // solicitud desapareceria del panel — que es justo lo que aquel fichero
     // existe para evitar.
     contratadas: localSolicitudes.filter(
-      (s) => grupoImport(s) === "contratadas" || (!esImportacion(s) && CONTRACTED_STATUSES.includes(s.status))
+      (s) => grupoImport(s) === "contratadas" || (!porReglaDeImportacion(s) && CONTRACTED_STATUSES.includes(s.status))
     ),
     canceladas: localSolicitudes.filter((s) => ["Cancelado", "Descartado"].includes(s.status)),
   };

@@ -64,6 +64,7 @@
     "test:vian": "node scripts/comprueba-vian.js",
     "test:vian-enrich": "node scripts/comprueba-vian-enrich.js",
     "test:vian-verificar": "node scripts/comprueba-vian-verificar.js",
+    "test:modrive": "node scripts/comprueba-modrive.js",
     "test:backend-ci": "node scripts/backend-ci.js",
     "inventory:sync:sqlserver": "node scripts/sync-inventory-sqlserver.js",
     "inventory:scrape:cochesnet:playwright": "node scripts/scrape-cochesnet-playwright.js --persist-sqlserver",

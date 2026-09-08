@@ -5,6 +5,7 @@
 require("dotenv").config({ path: require("path").resolve(__dirname, "../.env.local") });
 
 const { Pool } = require("pg");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
 const CONN_STRING = process.env.POSTGRES_URL || process.env.DATABASE_URL || "";
@@ -23,7 +24,7 @@ if (!TARGET_EMAIL) {
   process.exit(1);
 }
 
-const pool = new Pool({ connectionString: CONN_STRING, ssl: { rejectUnauthorized: false } });
+const pool = new Pool({ connectionString: CONN_STRING, ssl: SSL_POSTGRES });
 
 async function stripeGet(path) {
   const res = await fetch(`https://api.stripe.com/v1${path}`, {

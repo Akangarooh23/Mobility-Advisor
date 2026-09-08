@@ -23,6 +23,7 @@
 const fs = require("fs");
 const https = require("https");
 const path = require("path");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
 // ── cargar .env.local ──────────────────────────────────────────────────────
 const envPath = path.join(__dirname, "..", ".env.local");
@@ -352,7 +353,7 @@ async function getPostgresClient() {
   }
   const client = new pg.Client({
     connectionString: DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
+    ssl: SSL_POSTGRES,
   });
   await client.connect();
   return client;

@@ -16,6 +16,7 @@
 require("dotenv").config({ path: require("path").join(__dirname, "..", ".env.local") });
 
 const { Pool } = require("pg");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
 const argumentoEmail = process.argv.find((a) => a.startsWith("--email="));
 const TARGET_EMAIL = argumentoEmail ? argumentoEmail.slice("--email=".length).trim() : "";
@@ -33,7 +34,7 @@ async function main() {
     process.exit(1);
   }
 
-  const pool = new Pool({ connectionString: connString, ssl: { rejectUnauthorized: false } });
+  const pool = new Pool({ connectionString: connString, ssl: SSL_POSTGRES });
 
   try {
     const preview = await pool.query(

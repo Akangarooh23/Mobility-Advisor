@@ -4,6 +4,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { execFileSync } = require("child_process");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
 const envPath = path.join(__dirname, "..", ".env.local");
 if (fs.existsSync(envPath)) {
@@ -1806,7 +1807,7 @@ async function syncPostgres(rows) {
 
   const client = new pg.Client({
     connectionString: DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
+    ssl: SSL_POSTGRES,
   });
 
   await client.connect();
@@ -1918,7 +1919,7 @@ SELECT Url FROM dbo.MoveAdvisorMarketOffers ORDER BY Id FOR JSON PATH;
 
   const pgClient = new pg.Client({
     connectionString: DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
+    ssl: SSL_POSTGRES,
   });
   await pgClient.connect();
   const { rows: pgRows } = await pgClient.query("SELECT url FROM moveadvisor_market_offers ORDER BY id");

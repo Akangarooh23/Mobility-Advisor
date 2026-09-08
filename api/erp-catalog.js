@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
 function getMssqlModule() {
   return require("mssql");
@@ -97,7 +98,7 @@ function getPgPool() {
     }
     pgPool = new Pool({
       connectionString,
-      ssl: { rejectUnauthorized: false },
+      ssl: SSL_POSTGRES,
     });
   }
   return pgPool;

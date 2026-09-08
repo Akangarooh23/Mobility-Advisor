@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const { execFileSync } = require("child_process");
 const { MARCA, remitente, respuestaA } = require("../lib/marca");
 const { plantilla, parrafo, aviso, codigo } = require("../lib/correo");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
 // mssql is only needed when AUTH_PROVIDER=mssql; lazy-load to avoid crashing on Vercel
 function getMssqlModule() {
@@ -534,7 +535,7 @@ function getPgPool() {
     if (!connString) {
       throw new Error("No DATABASE_URL or POSTGRES_URL env var found for PostgreSQL connection");
     }
-    _pgPool = new Pool({ connectionString: connString, ssl: { rejectUnauthorized: false } });
+    _pgPool = new Pool({ connectionString: connString, ssl: SSL_POSTGRES });
   }
   return _pgPool;
 }

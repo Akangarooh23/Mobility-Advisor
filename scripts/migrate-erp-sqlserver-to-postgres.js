@@ -29,6 +29,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { execFileSync } = require("child_process");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
 const envPath = path.join(__dirname, "..", ".env.local");
 if (fs.existsSync(envPath)) {
@@ -100,7 +101,7 @@ async function getPgClient() {
   const { Client } = require("pg");
   const client = new Client({
     connectionString: DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
+    ssl: SSL_POSTGRES,
   });
   await client.connect();
   return client;

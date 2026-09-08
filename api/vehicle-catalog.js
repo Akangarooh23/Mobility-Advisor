@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
 // mssql is only needed when VEHICLE_CATALOG_PROVIDER=mssql; lazy-load to avoid crashing on Vercel
 function getMssqlModule() {
@@ -218,7 +219,7 @@ function getPgPool() {
     if (!connString) {
       throw new Error("No DATABASE_URL o POSTGRES_URL configurados para conexión PostgreSQL");
     }
-    _pgPool = new Pool({ connectionString: connString, ssl: { rejectUnauthorized: false } });
+    _pgPool = new Pool({ connectionString: connString, ssl: SSL_POSTGRES });
   }
   return _pgPool;
 }

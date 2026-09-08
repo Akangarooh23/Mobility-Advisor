@@ -19,13 +19,14 @@
 require("dotenv").config({ path: ".env.local" });
 const { Pool } = require("pg");
 const { cilindradaDelTitular, cilindradaCreible } = require("../lib/cruce-eurotax.js");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
 const APLICA = process.argv.includes("--aplica");
 
 (async () => {
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
+    ssl: SSL_POSTGRES,
   });
 
   const { rows } = await pool.query(

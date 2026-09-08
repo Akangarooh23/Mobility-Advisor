@@ -6,6 +6,7 @@
 require("dotenv").config({ path: ".env.local" });
 
 const { Pool } = require("pg");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
 async function main() {
   const connString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
@@ -14,7 +15,7 @@ async function main() {
     process.exit(1);
   }
 
-  const pool = new Pool({ connectionString: connString, ssl: { rejectUnauthorized: false } });
+  const pool = new Pool({ connectionString: connString, ssl: SSL_POSTGRES });
 
   try {
     const countRes = await pool.query(

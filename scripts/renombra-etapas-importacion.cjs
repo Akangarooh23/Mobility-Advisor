@@ -21,6 +21,7 @@
  */
 require("dotenv").config({ path: ".env.local" });
 const { Pool } = require("pg");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
 const APLICA = process.argv.includes("--aplica");
 
@@ -32,7 +33,7 @@ const CAMBIOS = [
 (async () => {
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
+    ssl: SSL_POSTGRES,
   });
 
   const { rows } = await pool.query(

@@ -4,8 +4,9 @@ const https = require("https");
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: SSL_POSTGRES });
 const OUT_DIR = "C:/Users/Anapi/AppData/Local/Temp/leasys_audit";
 fs.mkdirSync(OUT_DIR, { recursive: true });
 

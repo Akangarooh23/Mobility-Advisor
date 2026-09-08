@@ -1,6 +1,7 @@
 "use strict";
 const { Pool } = require("pg");
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
+const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: SSL_POSTGRES });
 async function main() {
   const r = await pool.query(
     "SELECT id, image_url, image_urls FROM moveadvisor_marketplace_vo_offers WHERE id = $1",

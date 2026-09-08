@@ -9,6 +9,7 @@
 require("dotenv").config({ path: require("path").join(__dirname, "..", ".env.local") });
 
 const { Pool } = require("pg");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
 const DRY_RUN = !process.argv.includes("--delete");
 
@@ -19,7 +20,7 @@ async function main() {
     process.exit(1);
   }
 
-  const pool = new Pool({ connectionString: connString, ssl: { rejectUnauthorized: false } });
+  const pool = new Pool({ connectionString: connString, ssl: SSL_POSTGRES });
 
   try {
     // Listar las ofertas de prueba

@@ -9,11 +9,12 @@
 
 require("dotenv").config({ path: require("path").join(__dirname, "..", ".env.local") });
 const { Pool } = require("pg");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URL,
   max: 3,
-  ssl: { rejectUnauthorized: false },
+  ssl: SSL_POSTGRES,
 });
 
 // km_options: [10000, 15000, 20000, 25000, 30000]

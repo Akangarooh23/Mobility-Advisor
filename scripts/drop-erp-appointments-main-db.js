@@ -5,12 +5,13 @@
  */
 require("dotenv").config();
 const { Pool } = require("pg");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
 async function main() {
   const cs = process.env.POSTGRES_URL || process.env.DATABASE_URL;
   if (!cs) throw new Error("No POSTGRES_URL / DATABASE_URL set");
 
-  const pool = new Pool({ connectionString: cs, ssl: { rejectUnauthorized: false } });
+  const pool = new Pool({ connectionString: cs, ssl: SSL_POSTGRES });
 
   const { rows } = await pool.query(
     `SELECT EXISTS (

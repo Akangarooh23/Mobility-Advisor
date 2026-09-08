@@ -7,6 +7,7 @@ require("dotenv").config({ path: require("path").resolve(__dirname, "../.env.loc
 
 const { createClient } = require("@supabase/supabase-js");
 const { Pool } = require("pg");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || "";
@@ -24,7 +25,7 @@ if (!CONN_STRING) {
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-const pool = new Pool({ connectionString: CONN_STRING, ssl: { rejectUnauthorized: false } });
+const pool = new Pool({ connectionString: CONN_STRING, ssl: SSL_POSTGRES });
 
 async function listFolder(prefix) {
   const { data, error } = await supabase.storage.from(BUCKET).list(prefix, { limit: 1000 });

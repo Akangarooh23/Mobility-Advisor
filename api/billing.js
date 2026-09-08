@@ -3,6 +3,7 @@ const billingCheckoutHandler = require("../lib/api/billing-checkout-handler");
 const billingPortalHandler = require("../lib/api/billing-portal-handler");
 const invoicePdfHandler = require("../lib/api/invoice-pdf-handler");
 const { Pool } = require("pg");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
 let _pingPool = null;
 async function pingHandler(req, res) {
@@ -15,7 +16,7 @@ async function pingHandler(req, res) {
       if (!cs) return res.status(200).json({ ok: true, db: false });
       _pingPool = new Pool({
         connectionString: cs,
-        ssl: { rejectUnauthorized: false },
+        ssl: SSL_POSTGRES,
         max: 1,
         connectionTimeoutMillis: 7000,
         idleTimeoutMillis: 10000,

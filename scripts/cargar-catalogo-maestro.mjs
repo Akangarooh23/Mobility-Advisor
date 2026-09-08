@@ -20,6 +20,7 @@
 
 import { readFileSync } from 'node:fs'
 import pg from 'pg'
+import { SSL_POSTGRES } from '../lib/postgres-ssl.js'
 
 const APLICAR = process.argv.includes('--aplicar')
 
@@ -126,7 +127,7 @@ const env = Object.fromEntries(
 
 const cliente = new pg.Client({
   connectionString: process.env.DATABASE_URL || env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
+  ssl: SSL_POSTGRES,
 })
 await cliente.connect()
 

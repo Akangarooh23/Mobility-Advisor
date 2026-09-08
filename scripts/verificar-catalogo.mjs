@@ -1,12 +1,13 @@
 /** ¿El catálogo maestro está completo y sin repetidos? */
 import { readFileSync } from 'node:fs'
 import pg from 'pg'
+import { SSL_POSTGRES } from '../lib/postgres-ssl.js'
 
 const url = readFileSync('c:/Users/Anapi/Projects/Mobility-Advisor/.env.local', 'utf8')
   .split('\n').find((l) => l.startsWith('DATABASE_URL='))
   .slice(13).trim().replace(/^["']|["']$/g, '')
 
-const c = new pg.Client({ connectionString: url, ssl: { rejectUnauthorized: false } })
+const c = new pg.Client({ connectionString: url, ssl: SSL_POSTGRES })
 await c.connect()
 
 const clave = (v) => String(v ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase()

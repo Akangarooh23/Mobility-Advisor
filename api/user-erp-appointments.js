@@ -1,4 +1,5 @@
 const { Pool } = require("pg");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
 let pool;
 function getPool() {
@@ -7,7 +8,7 @@ function getPool() {
     if (!cs) throw new Error("No DATABASE_URL configured");
     pool = new Pool({
       connectionString: cs,
-      ssl: { rejectUnauthorized: false },
+      ssl: SSL_POSTGRES,
       max: 2,
       connectionTimeoutMillis: 8000,
     });

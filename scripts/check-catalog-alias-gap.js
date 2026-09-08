@@ -14,6 +14,7 @@ require("dotenv").config({ path: ".env.local" });
 
 const fs   = require("fs");
 const path = require("path");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
 const CATALOG_PATH = path.join(__dirname, "../src/data/vehicle-catalog.json");
 
@@ -46,7 +47,7 @@ async function main() {
   let aliasKeys = new Set();
   try {
     const { Pool } = require("pg");
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: SSL_POSTGRES });
     const res = await pool.query("SELECT alias_key FROM moveadvisor_brand_aliases WHERE is_active = TRUE");
     aliasKeys = new Set(res.rows.map((r) => r.alias_key));
     await pool.end();

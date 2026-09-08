@@ -24,13 +24,14 @@ const {
   FEE_POPCAR, PRECIO_MINIMO_COCHE,
 } = require("../lib/coste-importacion.js");
 const { catalogoDeGarantias, opcionesParaElCoche } = require("../lib/garantias.js");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
 const APLICA = process.argv.includes("--aplica");
 
 (async () => {
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
+    ssl: SSL_POSTGRES,
   });
 
   console.log(`fee ${FEE_POPCAR} € · coche desde ${PRECIO_MINIMO_COCHE} € · ` +

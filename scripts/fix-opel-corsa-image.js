@@ -1,9 +1,10 @@
 "use strict";
 const { Pool } = require("pg");
+const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
+  ssl: SSL_POSTGRES,
 });
 
 async function main() {

@@ -547,19 +547,6 @@
     "mobilityOptions": "Opciones de movilidad",
     "aiAnalysis": "Análisis personalizado con IA"
   },
-  "footer": {
-    "platformDesc": "Plataforma de asesoría de movilidad para comprar mejor, vender mejor y gestionar tu coche eficientemente.",
-    "contactTitle": "CONTACTO",
-    "email": "hola@popcarmobility.com",
-    "usefulLinks": "ENLACES ÚTILES",
-    "marketplace": "Marketplace VO",
-    "mobilityAdvisor": "Asesor de Movilidad",
-    "blog": "Blog",
-    "contact": "Contacto",
-    "services": "Servicios",
-    "socialNetworks": "REDES SOCIALES",
-    "copyright": "© 2024 PopCar. Todos los derechos reservados."
-  },
   "landing": {
     "heroTitle": "Te ayudamos a tomar la mejor decisión a la hora de comprar, vender o gestionar tu coche, ahorrándote dinero y ganando en tranquilidad.",
     "phase1Stage": "FASE 1",

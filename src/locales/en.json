@@ -664,19 +664,6 @@
     "mobilityOptions": "Mobility options",
     "aiAnalysis": "Personalized AI Analysis"
   },
-  "footer": {
-    "platformDesc": "Mobility advisory platform to buy better, sell better and manage your car efficiently.",
-    "contactTitle": "CONTACT",
-    "email": "hola@popcarmobility.com",
-    "usefulLinks": "USEFUL LINKS",
-    "marketplace": "Marketplace VO",
-    "mobilityAdvisor": "Mobility Advisor",
-    "blog": "Blog",
-    "contact": "Contact",
-    "services": "Services",
-    "socialNetworks": "SOCIAL NETWORKS",
-    "copyright": "© 2024 PopCar. All rights reserved."
-  },
   "header": {
     "home": "Home",
     "buyOptions": "Buy a Car",

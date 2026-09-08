@@ -1,0 +1,432 @@
+{
+  "name": "Modrive – Verificar ofertas activas (por el sitemap)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "mv-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 30 7,19 * * *"
+            }
+          ]
+        }
+      },
+      "id": "mv-cron",
+      "name": "2 veces/día (7:30 y 19:30)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Cuantas tenemos por activas ahora mismo. Es la referencia del\n-- cortacircuitos: si el sitemap trae mucho menos que esto, algo se ha roto.\nSELECT count(*)::int AS activas\nFROM moveadvisor_marketplace_vo_offers\nWHERE portal = 'modrive' AND is_active",
+        "options": {}
+      },
+      "id": "mv-contar",
+      "name": "PG: Cuántas tenemos activas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://www.modrive.com/sitemap-vehicles.xml",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "application/xml,text/xml,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "id": "mv-http",
+      "name": "HTTP: Sitemap de Modrive",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Del sitemap salen todos los coches publicados, de una vez.\nconst res = $input.first().json;\nconst cuerpo = String(res.body || res.data || '');\nconst codigo = Number(res.statusCode || 0);\n\nconst s = $getWorkflowStaticData('global');\ns.modrive_inicio = new Date().toISOString();\ns.modrive_fallo = false;\ns.modrive_vistos = 0;\ns.modrive_activas = Number(($('PG: Cuántas tenemos activas').first().json || {}).activas || 0);\n\n// Si el sitemap no viene, se sigue adelante con la lista vacia PERO marcando el\n// fallo: el bucle tiene que correr igual para que el veredicto llegue a\n// escribirse, y el veredicto vera el fallo y no dara de baja a nadie.\n//\n// Devolver [] aqui seria peor: un splitInBatches sin items no dispara su salida\n// de 'terminado', asi que el veredicto no correria y la pasada desapareceria sin\n// dejar ni el parte.\nif (codigo !== 200 || !cuerpo) {\n  s.modrive_fallo = true;\n  console.log('[modrive-verificar] el sitemap no vino (HTTP ' + codigo + '). No se da de baja a nadie.');\n  return [{ json: { ids: [], bloque: 0 } }];\n}\n\nconst ids = [];\nconst vistos = {};\nfor (const m of cuerpo.matchAll(/<loc>\\s*([^<\\s]+)\\s*<\\/loc>/gi)) {\n  const u = String(m[1]);\n  const im = u.match(/-(\\d+)\\/?$/);\n  if (!im) continue;\n  const id = 'modrive_' + im[1];\n  if (vistos[id]) continue;\n  vistos[id] = true;\n  ids.push(id);\n}\n\nif (!ids.length) {\n  s.modrive_fallo = true;\n  console.log('[modrive-verificar] el sitemap vino con 0 coches. Eso no es un catalogo vacio,'\n    + ' es que ha cambiado de forma. No se da de baja a nadie.');\n  return [{ json: { ids: [], bloque: 0 } }];\n}\n\ns.modrive_total = ids.length;\nconst bloques = [];\nfor (let i = 0; i < ids.length; i += 500) {\n  bloques.push({ json: { ids: ids.slice(i, i + 500), bloque: bloques.length + 1 } });\n}\nconsole.log('[modrive-verificar] el sitemap publica ' + ids.length + ' coches; tenemos '\n  + s.modrive_activas + ' por activos. Se sellan en ' + bloques.length + ' bloques.');\nreturn bloques;"
+      },
+      "id": "mv-plan",
+      "name": "Code: Leer el sitemap",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "mv-loop",
+      "name": "Loop: bloque por bloque",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Sellar los que sí están en el sitemap.\nconst bloque = $('Loop: bloque por bloque').item.json;\nconst ids = bloque.ids || [];\nif (!ids.length) return [{ json: { sql: null } }];\n\nconst s = $getWorkflowStaticData('global');\ns.modrive_vistos = (s.modrive_vistos || 0) + ids.length;\n\n// Se sella por la CLAVE PRIMARIA, no por una expresion sobre la URL. Modrive ya\n// nos cambio las rutas una vez -de /coches-segunda-mano/ a /coches-ocasion/- y\n// un sellado que dependiera de la ruta habria dejado de casar ese dia, dando de\n// baja el catalogo entero.\nconst esc = v => \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\nconst sql = 'UPDATE moveadvisor_marketplace_vo_offers'\n  + ' SET last_seen_at = NOW(), last_checked_at = NOW()'\n  + ' WHERE id IN (' + ids.map(esc).join(', ') + ')';\n\nconsole.log('[modrive-verificar] bloque ' + bloque.bloque + ': ' + ids.length + ' sellados');\nreturn [{ json: { sql: sql, n: ids.length } }];"
+      },
+      "id": "mv-sellar",
+      "name": "Code: Sellar los vistos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "mv-c-sellar",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "mv-if-sellar",
+      "name": "IF: ¿hay bloque que sellar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        780,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "mv-pg-sellar",
+      "name": "PG: Sellar el bloque",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        420
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Las que no han aparecido en el sitemap se dan de baja.\nconst s = $getWorkflowStaticData('global');\nconst inicio = String(s.modrive_inicio || '');\nif (!inicio) return [];\n\nconst vistos = s.modrive_vistos || 0;\nconst activas = Number(s.modrive_activas || 0);\nconst fallo = !!s.modrive_fallo;\n\nconst n = v => String(Number(v) || 0);\nconst apunte = (bajas, vivas) =>\n  'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" SELECT 'modrive', NOW(), \" + n(vistos) + ', ' + vivas + ', ' + bajas\n  + ', 0, 0, ' + (fallo ? 'TRUE' : 'FALSE') + ', 0';\n\nif (fallo || !vistos) {\n  console.log('[modrive-verificar] el sitemap no se pudo leer. No se da de baja a nadie.');\n  return [{ json: { sql: apunte('0', '0'), bajas: false } }];\n}\n\n// El UPDATE va dentro de un CTE de la MISMA sentencia que el apunte: asi el\n// numero de bajas que queda escrito es el de verdad, y si algo falla no queda ni\n// el apunte ni las bajas a medias.\nconst esc = v => \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\nconst sql = 'WITH bajas AS ('\n  + ' UPDATE moveadvisor_marketplace_vo_offers'\n  + ' SET is_active = FALSE, last_checked_at = NOW(), updated_at = NOW()'\n  + \" WHERE portal = 'modrive' AND is_active\"\n  + ' AND (last_checked_at IS NULL OR last_checked_at < ' + esc(inicio) + ')'\n  + ' RETURNING 1'\n  + '), vivas AS ('\n  + ' UPDATE moveadvisor_marketplace_vo_offers'\n  + ' SET is_active = TRUE, updated_at = NOW()'\n  + \" WHERE portal = 'modrive' AND is_active IS FALSE\"\n  + ' AND last_checked_at >= ' + esc(inicio)\n  + ' RETURNING 1'\n  + ') ' + apunte('(SELECT count(*) FROM bajas)', n(vistos));\n\nconsole.log('[modrive-verificar] ' + vistos + ' coches en el sitemap de ' + activas\n  + ' que teniamos activos. Se dan de baja los que no han aparecido.');\nreturn [{ json: { sql: sql, bajas: true } }];"
+      },
+      "id": "mv-veredicto",
+      "name": "Code: Veredicto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// El cortacircuitos, antes de aplicar nada.\n//\n// Este workflow retira coches del escaparate. Si el sitemap trae menos de la\n// mitad de lo que tenemos activo, eso no es que Modrive haya vendido mil coches\n// en un dia: es que el sitemap ha cambiado de sitio o de forma. Mejor quedarse\n// corto y que lo miremos.\nconst s = $getWorkflowStaticData('global');\nconst item = $input.first().json;\nconst vistos = s.modrive_vistos || 0;\nconst activas = Number(s.modrive_activas || 0);\n\nif (item.bajas && activas > 0 && vistos < activas * 0.5) {\n  console.log('[modrive-verificar] PARADO: tenemos ' + activas + ' por activas y el sitemap'\n    + ' solo trae ' + vistos + '. Eso no es una liquidacion, es que el sitemap ha cambiado.');\n  return [{ json: { sql: null, parado: true } }];\n}\nreturn [{ json: item }];"
+      },
+      "id": "mv-freno",
+      "name": "Code: Cortacircuitos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "mv-c-aplicar",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "mv-if-aplicar",
+      "name": "IF: ¿se aplica?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "mv-pg-aplicar",
+      "name": "PG: Bajas y parte",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        180
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Cuántas tenemos activas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2 veces/día (7:30 y 19:30)": {
+      "main": [
+        [
+          {
+            "node": "PG: Cuántas tenemos activas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Cuántas tenemos activas": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Sitemap de Modrive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Sitemap de Modrive": {
+      "main": [
+        [
+          {
+            "node": "Code: Leer el sitemap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Leer el sitemap": {
+      "main": [
+        [
+          {
+            "node": "Loop: bloque por bloque",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: bloque por bloque": {
+      "main": [
+        [
+          {
+            "node": "Code: Veredicto",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Sellar los vistos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Sellar los vistos": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay bloque que sellar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay bloque que sellar?": {
+      "main": [
+        [
+          {
+            "node": "PG: Sellar el bloque",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: bloque por bloque",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Sellar el bloque": {
+      "main": [
+        [
+          {
+            "node": "Loop: bloque por bloque",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Veredicto": {
+      "main": [
+        [
+          {
+            "node": "Code: Cortacircuitos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Cortacircuitos": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿se aplica?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿se aplica?": {
+      "main": [
+        [
+          {
+            "node": "PG: Bajas y parte",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

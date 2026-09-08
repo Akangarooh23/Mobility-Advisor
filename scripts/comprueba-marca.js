@@ -105,6 +105,52 @@ const fallos = [];
 const apunta = (fichero, n, texto, motivo) =>
   fallos.push(`${fichero}:${n}  ${motivo}\n      ${String(texto).trim().slice(0, 110)}`);
 
+/**
+ * Que todo lo del servidor al menos parsee.
+ *
+ * Parece de perogrullo y no lo es: `npm run build` solo compila el React de
+ * `src/`, y las pruebas de `lib/` cargan lo que tocan, no todo. Un fichero de
+ * `lib/api/` con un error de sintaxis pasa por delante de las dos cosas y solo
+ * aparece en produccion, cuando Vercel intenta cargar la funcion y devuelve un
+ * 500 —y no en un endpoint, sino en todos los que compartan bundle—.
+ *
+ * Paso justo eso: una barra invertida comida al reescribir una expresion
+ * regular dejo `replace(//+$/, "")`, que abre un comentario de linea y se come
+ * la llave siguiente. Tumbo /api/market, /api/funnel-event, /api/user-alerts,
+ * /api/user-saved y /api/user-preferences a la vez.
+ *
+ * `node --check` es un analisis sintactico sin ejecutar nada: no importa el
+ * modulo, asi que no toca la base ni lee variables de entorno.
+ */
+{
+  const { execFileSync } = require("child_process");
+  const paraRevisar = [];
+  const recogeJs = (dir) => {
+    if (!fs.existsSync(dir)) return;
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const camino = path.join(dir, e.name);
+      if (e.isDirectory()) recogeJs(camino);
+      else if (/\.js$/.test(e.name) && !/\.test\.js$/.test(e.name)) paraRevisar.push(camino);
+    }
+  };
+  recogeJs(path.join(RAIZ, "lib"));
+  recogeJs(path.join(RAIZ, "api"));
+  for (const abs of paraRevisar) {
+    try {
+      execFileSync(process.execPath, ["--check", abs], { stdio: "pipe" });
+    } catch (e) {
+      const salida = String(e.stderr || e.stdout || e.message);
+      const linea = /:(\d+)\n/.exec(salida);
+      apunta(
+        path.relative(RAIZ, abs).replace(/\\/g, "/"),
+        linea ? Number(linea[1]) : 0,
+        (salida.match(/SyntaxError.*/) || [""])[0],
+        "no parsea: Vercel devolvera 500 en todos los endpoints de su bundle",
+      );
+    }
+  }
+}
+
 for (const rel of REDACTAN) {
   const abs = path.join(RAIZ, rel);
   if (!fs.existsSync(abs)) { apunta(rel, 0, "", "el fichero ya no esta donde dice esta comprobacion"); continue; }

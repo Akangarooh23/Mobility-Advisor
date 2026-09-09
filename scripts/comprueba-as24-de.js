@@ -131,6 +131,16 @@ function corre(js, entrada, contexto) {
     https.every((n) => !(n.parameters.options || {}).headers));
   comprueba("un corte de red no tumba la pasada",
     https.every((n) => n.onError === "continueRegularOutput"));
+  // Un segmento que falle no puede llevarse por delante los otros 41. Paso el
+  // 2026-09-09: Neon corto la conexion en el segmento 13 de 42 y se perdio el
+  // resto de la pasada.
+  const ew = orq.nodes.filter((n) => n.type.endsWith("executeWorkflow"));
+  comprueba("un segmento fallido no tumba la pasada entera",
+    ew.every((n) => n.onError === "continueRegularOutput"));
+  const pgSeg = seg.nodes.filter((n) => n.type.endsWith(".postgres"));
+  comprueba("el nodo de Postgres reintenta si la conexión se cae",
+    pgSeg.every((n) => n.retryOnFail === true && n.maxTries >= 2));
+
   comprueba("piden coches de Alemania (cy=D)",
     https.every((n) => /[?&]cy=D\b/.test(String(n.parameters.url))));
 

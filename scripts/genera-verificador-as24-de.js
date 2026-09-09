@@ -56,6 +56,12 @@ const RAIZ = path.join(__dirname, "..");
 
 const PG_CRED = { postgres: { id: "zoxD0jV8hxZqH0uY", name: "Postgres account" } };
 
+// Los nodos de Postgres reintentan. Un corte de conexion es pasajero por
+// definicion, y esta base los da: el 2026-09-09 tres verificadores dispararon a
+// la vez y los tres murieron con "Connection timed out", y el scraper aleman se
+// paro en el segmento 13 de 42 con "Connection terminated unexpectedly".
+const REINTENTA = { retryOnFail: true, maxTries: 3, waitBetweenTries: 5000 };
+
 // 8.692 activas hoy, y subirán cuando se rescaten las que se dieron de baja mal.
 // A 3.000 por pasada y 5 pasadas al día son 15.000 comprobaciones diarias, que
 // cubren el catálogo activo entero todos los días con margen para que crezca.
@@ -304,7 +310,7 @@ const nodos = [
     type: "n8n-nodes-base.scheduleTrigger", typeVersion: 1, position: [-560, 400] },
   { parameters: { operation: "executeQuery", query: COLA, options: {} },
     id: "dv-cola", name: "PG: Cola a verificar",
-    type: "n8n-nodes-base.postgres", typeVersion: 2, position: [-320, 300], credentials: PG_CRED },
+    type: "n8n-nodes-base.postgres", typeVersion: 2, position: [-320, 300], credentials: PG_CRED, ...REINTENTA },
   { parameters: { options: {} }, id: "dv-loop", name: "Loop: oferta por oferta",
     type: "n8n-nodes-base.splitInBatches", typeVersion: 3, position: [-100, 300] },
   { parameters: { jsCode: CODE_TOCA }, id: "dv-toca", name: "Code: ¿toca pedirla?",
@@ -339,7 +345,7 @@ const nodos = [
     type: "n8n-nodes-base.if", typeVersion: 2, position: [1000, 540] },
   { parameters: { operation: "executeQuery", query: "={{ $json.sql }}", options: {} },
     id: "dv-pg", name: "PG: Actualizar oferta",
-    type: "n8n-nodes-base.postgres", typeVersion: 2, position: [1220, 460], credentials: PG_CRED },
+    type: "n8n-nodes-base.postgres", typeVersion: 2, position: [1220, 460], credentials: PG_CRED, ...REINTENTA },
   { parameters: { amount: ESPERA_SEGUNDOS, unit: "seconds" }, id: "dv-wait",
     name: "Esperar " + ESPERA_SEGUNDOS + "s",
     type: "n8n-nodes-base.wait", typeVersion: 1, position: [1440, 540],
@@ -348,7 +354,7 @@ const nodos = [
     type: "n8n-nodes-base.code", typeVersion: 2, position: [120, 160] },
   { parameters: { operation: "executeQuery", query: "={{ $json.sql }}", options: {} },
     id: "dv-pg-parte", name: "PG: Apuntar el parte",
-    type: "n8n-nodes-base.postgres", typeVersion: 2, position: [340, 160], credentials: PG_CRED },
+    type: "n8n-nodes-base.postgres", typeVersion: 2, position: [340, 160], credentials: PG_CRED, ...REINTENTA },
 ];
 
 const L = (n) => ({ node: n, type: "main", index: 0 });

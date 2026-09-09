@@ -87,6 +87,16 @@ const comprueba = (nombre, cond, detalle) => {
   comprueba("un corte de red no tumba la pasada", http.onError === "continueRegularOutput");
   comprueba("el workflow avisa si falla", wf.settings.errorWorkflow === "9BwKOPMIzjj3owho");
 
+  // La base es Neon, un Postgres serverless: suspende el motor cuando esta
+  // ocioso y despertarlo tarda. El 2026-09-09 eso tumbo tres verificadores con
+  // "Connection timed out" y corto el scraper aleman en el segmento 13 de 42 con
+  // "Connection terminated unexpectedly". Una consulta que tarda 41 s no es una
+  // consulta lenta -medida, tarda 0,9 s- : es el arranque en frio.
+  const pg = wf.nodes.filter((n) => n.type.endsWith(".postgres"));
+  comprueba("los " + pg.length + " nodos de Postgres reintentan si la conexión se cae",
+    pg.every((n) => n.retryOnFail === true && n.maxTries >= 2),
+    pg.map((n) => n.maxTries).join(", ") + " intentos");
+
   // ══ lo que NO puede hacer ════════════════════════════════════════════════
   //
   // La comprobación más importante del fichero.

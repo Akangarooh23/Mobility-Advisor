@@ -51,7 +51,10 @@
           "id": "zoxD0jV8hxZqH0uY",
           "name": "Postgres account"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
@@ -224,7 +227,10 @@
           "id": "zoxD0jV8hxZqH0uY",
           "name": "Postgres account"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
@@ -273,7 +279,10 @@
           "id": "zoxD0jV8hxZqH0uY",
           "name": "Postgres account"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     }
   ],
   "connections": {

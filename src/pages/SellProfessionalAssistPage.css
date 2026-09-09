@@ -322,16 +322,34 @@
   margin-top: 0.5rem;
 }
 
+/*
+ * La banda del final: mensaje arriba, formulario debajo.
+ *
+ * Estaba en fila —mensaje a la izquierda, botones a la derecha— y funcionaba
+ * mientras a la derecha hubiera dos botones. Con un formulario de cinco campos
+ * ahí, el mensaje se quedaba en una tira de 140 px y la tarjeta se salía de la
+ * banda por la derecha.
+ *
+ * En columna se lee el mensaje antes que el formulario, que es el orden que
+ * queremos, y no hay ancho en el que se pueda desbordar.
+ */
 .sell-pro-assist-root .dark-cta {
   background: var(--grad);
   border-radius: 20px;
-  padding: 2rem;
+  padding: 2.25rem 2rem;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
+  text-align: center;
+  gap: 1.35rem;
   box-shadow: 0 4px 24px rgba(31,31,29, 0.22);
   margin-bottom: 2rem;
+}
+
+/* La frase entera, a un ancho que se lee de una pasada. */
+.sell-pro-assist-root .dc-left {
+  min-width: 0;
+  max-width: 46ch;
 }
 
 .sell-pro-assist-root .dc-eyebrow {
@@ -353,18 +371,25 @@
 
 .sell-pro-assist-root .dc-sub {
   font-size: 12.5px;
-  color: rgba(255, 255, 255, 0.5);
+  /* Era 0.5 de opacidad sobre el gradiente: se leia a duras penas. */
+  color: rgba(255, 255, 255, 0.68);
   font-weight: 300;
   line-height: 1.55;
-  max-width: 360px;
 }
 
+/*
+ * El formulario, centrado y con tope.
+ *
+ * Sin el tope, en pantalla ancha saldrian campos de 800 px para escribir una
+ * matricula. Y sin `width: 100%` no llenaria el ancho en el movil.
+ */
 .sell-pro-assist-root .dc-right {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 0.6rem;
-  flex-shrink: 0;
+  align-items: stretch;
+  gap: 0.7rem;
+  width: 100%;
+  max-width: 420px;
 }
 
 .sell-pro-assist-root .btn-gold {
@@ -401,6 +426,7 @@
 }
 
 .sell-pro-assist-root .btn-outline {
+  align-self: center;
   background: none;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
@@ -425,14 +451,10 @@
     padding: 1.25rem;
   }
 
+  /* La banda ya va en columna a cualquier ancho; aqui solo se aprieta. */
   .sell-pro-assist-root .dark-cta {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .sell-pro-assist-root .dc-right {
-    width: 100%;
-    align-items: stretch;
+    padding: 1.5rem 1.1rem;
+    gap: 1.1rem;
   }
 }
 /* ── El formulario de encargo ──────────────────────────────────────────────
@@ -444,11 +466,15 @@
 .sell-pro-assist-root .fev-caja {
   background: #fff;
   border-radius: 14px;
-  padding: 1.1rem 1.1rem 0.9rem;
+  padding: 1.25rem 1.25rem 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
-  min-width: 300px;
+  /*
+   * Nada de `min-width`: era lo que hacia que la tarjeta se saliera de la banda
+   * cuando no cabia. Que se encoja con su sitio, que es lo que hace una caja.
+   */
+  text-align: left;
 }
 
 .sell-pro-assist-root .fev-campo {
@@ -508,6 +534,8 @@
   line-height: 1.5;
   color: var(--gris-600);
   margin: 0;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--gris-200);
 }
 
 .sell-pro-assist-root .fev-hecho {
@@ -515,7 +543,6 @@
   border-radius: 14px;
   padding: 1.6rem 1.2rem;
   text-align: center;
-  min-width: 300px;
 }
 
 .sell-pro-assist-root .fev-hecho-icono { font-size: 30px; }
@@ -535,7 +562,5 @@
 }
 
 @media (max-width: 640px) {
-  .sell-pro-assist-root .fev-caja,
-  .sell-pro-assist-root .fev-hecho { min-width: 0; }
   .sell-pro-assist-root .fev-dos { grid-template-columns: 1fr; }
 }

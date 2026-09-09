@@ -1599,6 +1599,14 @@ export default function App() {
   // El único uso que le quedaba a `t` aquí era el aviso de cookies, que ahora
   // traduce por su cuenta en src/ui/AvisoCookies.js.
   const [entryMode, setEntryMode] = useState(null);
+  /**
+   * Con qué asunto se abre el formulario de contacto.
+   *
+   * A esa página no se llega solo desde «Contacto»: se llega desde botones que
+   * ya han dicho a qué vienen, y el formulario tiene que abrirse por donde
+   * corresponde. Por defecto, compra, que es de donde viene la mayoría.
+   */
+  const [temaDeContacto, setTemaDeContacto] = useState("compra");
   const [selectedIdCarVehicleId, setSelectedIdCarVehicleId] = useState("");
   const [selectedIdCarOpenEditor, setSelectedIdCarOpenEditor] = useState(false);
   const [serviceAppointmentVehicleId, setServiceAppointmentVehicleId] = useState("");
@@ -6708,7 +6716,7 @@ export default function App() {
       )}
 
       {step === -1 && entryMode === "contact" && (
-        <ContactCarswisePage onGoHome={restart} />
+        <ContactCarswisePage onGoHome={restart} tema={temaDeContacto} />
       )}
 
       {step === -1 && entryMode === "blog" && (
@@ -7087,6 +7095,10 @@ export default function App() {
           formatCurrency={formatCurrency}
           onRestart={restart}
           onOpenContact={() => {
+            // Viene de «Nosotros lo vendemos por ti»: a qué viene ya lo ha
+            // dicho al pulsar. Sin esto el formulario se abría marcado en
+            // «Compra de coche», que es justo lo contrario.
+            setTemaDeContacto("venta");
             setEntryMode("contact");
             setStep(-1);
           }}

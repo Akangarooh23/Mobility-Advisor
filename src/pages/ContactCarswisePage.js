@@ -4,7 +4,30 @@ import { postAlertEmailDigestJson } from "../utils/apiClient";
 import { CORREO_CONTACTO } from "../marca";
 import "./ContactCarswisePage.css";
 
-export default function ContactCarswisePage() {
+/**
+ * Los asuntos que existen, tal como se guardan.
+ *
+ * Escritos aquí y no sueltos porque quien abra la página con un asunto que no
+ * está en la lista se quedaría **sin ninguno marcado**, y entonces el correo
+ * que nos llega no dice a qué venía: peor que equivocarse de asunto.
+ */
+export const TEMAS = ["compra", "gestion", "venta", "otro"];
+
+export function temaValido(tema) {
+  return TEMAS.includes(String(tema ?? "").trim());
+}
+
+/**
+ * El formulario de contacto.
+ *
+ * `tema` es el asunto con el que se abre. Importa porque a esta página no se
+ * llega solo desde «Contacto»: se llega desde botones que ya han dicho a qué
+ * vienen. Quien pulsa «Quiero vender mi coche» y se encuentra el formulario
+ * marcado en **Compra de coche** entiende, con razón, que no le hemos leído.
+ *
+ * Por defecto sigue siendo compra, que es de donde viene la mayoría.
+ */
+export default function ContactCarswisePage({ tema } = {}) {
   const { t } = useTranslation();
   const content = useMemo(
     () => ({
@@ -52,7 +75,7 @@ export default function ContactCarswisePage() {
     [t]
   );
   const [mode, setMode] = useState("form");
-  const [topic, setTopic] = useState("compra");
+  const [topic, setTopic] = useState(temaValido(tema) ? tema : "compra");
   const [submitted, setSubmitted] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState(-1);
   const [chatInput, setChatInput] = useState("");

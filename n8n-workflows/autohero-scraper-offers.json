@@ -701,7 +701,10 @@
     "timeSavedMode": "fixed",
     "errorWorkflow": "9BwKOPMIzjj3owho",
     "callerPolicy": "workflowsFromSameOwner",
-    "availableInMCP": false
+    "availableInMCP": false,
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all"
   },
   "pinData": {},
   "staticData": null,

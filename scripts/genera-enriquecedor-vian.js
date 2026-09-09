@@ -305,8 +305,9 @@ const wf = {
   connections: conexiones,
   settings: {
     executionOrder: "v1",
-    saveManualExecutions: false,
-    saveDataSuccessExecution: "none",
+    saveManualExecutions: true,
+    saveDataSuccessExecution: "all",
+    saveDataErrorExecution: "all",
     callerPolicy: "workflowsFromSameOwner",
     errorWorkflow: "9BwKOPMIzjj3owho",
   },

@@ -296,10 +296,11 @@
   },
   "settings": {
     "executionOrder": "v1",
-    "saveManualExecutions": false,
-    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "all",
     "callerPolicy": "workflowsFromSameOwner",
-    "errorWorkflow": ""
+    "errorWorkflow": "",
+    "saveDataErrorExecution": "all"
   },
   "staticData": null,
   "triggerCount": 0,

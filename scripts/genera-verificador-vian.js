@@ -303,6 +303,7 @@ const wf = {
     executionOrder: "v1",
     saveManualExecutions: true,
     saveDataSuccessExecution: "none",
+    saveDataErrorExecution: "all",
     callerPolicy: "workflowsFromSameOwner",
     errorWorkflow: "9BwKOPMIzjj3owho",
   },

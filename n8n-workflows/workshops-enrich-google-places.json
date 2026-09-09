@@ -7,7 +7,10 @@
       "name": "Ejecutar manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [-1400, 100]
+      "position": [
+        -1400,
+        100
+      ]
     },
     {
       "parameters": {
@@ -24,7 +27,10 @@
       "name": "Cada día a las 3:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
-      "position": [-1400, 300]
+      "position": [
+        -1400,
+        300
+      ]
     },
     {
       "parameters": {
@@ -36,7 +42,10 @@
       "name": "PG: Talleres a enriquecer",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
-      "position": [-1100, 200],
+      "position": [
+        -1100,
+        200
+      ],
       "credentials": {
         "postgres": {
           "id": "zoxD0jV8hxZqH0uY",
@@ -52,7 +61,10 @@
       "name": "Loop: taller por taller",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
-      "position": [-800, 200]
+      "position": [
+        -800,
+        200
+      ]
     },
     {
       "parameters": {
@@ -61,10 +73,22 @@
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
-            { "name": "place_id", "value": "={{ $json.external_id }}" },
-            { "name": "fields", "value": "formatted_phone_number,opening_hours,rating,user_ratings_total,website,photos" },
-            { "name": "language", "value": "es" },
-            { "name": "key", "value": "PEGAR_AQUI_GOOGLE_PLACES_KEY" }
+            {
+              "name": "place_id",
+              "value": "={{ $json.external_id }}"
+            },
+            {
+              "name": "fields",
+              "value": "formatted_phone_number,opening_hours,rating,user_ratings_total,website,photos"
+            },
+            {
+              "name": "language",
+              "value": "es"
+            },
+            {
+              "name": "key",
+              "value": "PEGAR_AQUI_GOOGLE_PLACES_KEY"
+            }
           ]
         },
         "options": {
@@ -80,7 +104,10 @@
       "name": "HTTP: Google Places Details",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [-500, 200],
+      "position": [
+        -500,
+        200
+      ],
       "continueOnFail": true
     },
     {
@@ -91,7 +118,10 @@
       "name": "Code: Parsear respuesta y generar SQL",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-200, 200],
+      "position": [
+        -200,
+        200
+      ],
       "continueOnFail": true
     },
     {
@@ -104,7 +134,10 @@
       "name": "PG: Actualizar taller",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
-      "position": [100, 200],
+      "position": [
+        100,
+        200
+      ],
       "credentials": {
         "postgres": {
           "id": "zoxD0jV8hxZqH0uY",
@@ -122,40 +155,108 @@
       "name": "Esperar 300ms (rate limit)",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1,
-      "position": [400, 200],
+      "position": [
+        400,
+        200
+      ],
       "webhookId": "wait-workshops-enrich-places"
     }
   ],
   "connections": {
     "Ejecutar manualmente": {
-      "main": [[{ "node": "PG: Talleres a enriquecer", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "PG: Talleres a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Cada día a las 3:00": {
-      "main": [[{ "node": "PG: Talleres a enriquecer", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "PG: Talleres a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "PG: Talleres a enriquecer": {
-      "main": [[{ "node": "Loop: taller por taller", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Loop: taller por taller",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Loop: taller por taller": {
       "main": [
         [],
-        [{ "node": "HTTP: Google Places Details", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "HTTP: Google Places Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "HTTP: Google Places Details": {
-      "main": [[{ "node": "Code: Parsear respuesta y generar SQL", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Code: Parsear respuesta y generar SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Code: Parsear respuesta y generar SQL": {
-      "main": [[{ "node": "PG: Actualizar taller", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "PG: Actualizar taller",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "PG: Actualizar taller": {
-      "main": [[{ "node": "Esperar 300ms (rate limit)", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Esperar 300ms (rate limit)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Esperar 300ms (rate limit)": {
-      "main": [[{ "node": "Loop: taller por taller", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Loop: taller por taller",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all"
   }
 }

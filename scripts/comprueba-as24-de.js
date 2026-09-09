@@ -48,7 +48,13 @@ const comprueba = (nombre, cond, detalle) => {
 function corre(js, entrada, contexto) {
   const log = [];
   const f = new Function("$", "$input", "$getWorkflowStaticData", "console", js);
-  const r = f((n) => ({ item: { json: (contexto || {})[n] || {} } }),
+  // $('Nombre') tiene que ofrecer .item y .first(), como en n8n: los nodos usan
+  // una u otra segun si trabajan por item o sobre la primera fila.
+  const nodo = (n) => {
+    const j = (contexto || {})[n] || {};
+    return { item: { json: j }, first: () => ({ json: j }), all: () => [{ json: j }] };
+  };
+  const r = f(nodo,
     { item: { json: entrada }, first: () => ({ json: entrada }), all: () => [{ json: entrada }] },
     () => ((contexto || {}).estatico || {}),
     { log: (m) => log.push(String(m)) });
@@ -85,6 +91,42 @@ function corre(js, entrada, contexto) {
   comprueba("corre entre las 8:00 y las 00:00",
     listaHoras.length > 0 && listaHoras.every((h) => h >= 8 && h <= 23),
     expr + "   (horas: " + listaHoras.join(", ") + ")");
+
+  // ══ el cursor de marcas ══════════════════════════════════════════════════
+  //
+  // Vivía en $getWorkflowStaticData, que se reinicia al reimportar el workflow.
+  // El 2026-09-09 se reimportó tres veces en una tarde y las tres pasadas
+  // empezaron por la misma marca: dos horas releyendo Audi, que ya estaba
+  // entero -6 ofertas nuevas cada cinco minutos en vez de mil-.
+  console.log("\nEL CURSOR DE MARCAS");
+  const gen = codigo(orq, "Code: Generar segmentos (marca x precio)");
+  comprueba("no vive en la memoria del workflow",
+    !/getWorkflowStaticData/.test(gen));
+  comprueba("lo lee de Postgres", /\$\('PG: Por dónde íbamos'\)/.test(gen));
+  comprueba("y hay un nodo que lo apunta una sola vez",
+    orq.nodes.some((n) => n.name === "PG: Apuntar dónde nos quedamos" && n.executeOnce === true));
+
+  // Se ejecuta el generador como lo haría n8n, con el cursor que le daría la
+  // base, y se comprueba que reparte y avanza bien.
+  const gen42 = corre(gen, {}, { "PG: Por dónde íbamos": { cursor: 3 } });
+  const marcas = [...new Set(gen42.salida.map((x) => x.json.mk))];
+  comprueba("con el cursor en 3 saca 3 marcas × 14 tramos",
+    gen42.salida.length === 42 && marcas.length === 3, "(" + gen42.salida.length + " segmentos)");
+  comprueba("y no repite las que ya están hechas",
+    !marcas.includes(9) && !marcas.includes(13) && !marcas.includes(47),
+    "marcas " + marcas.join(", "));
+  comprueba("deja apuntado por dónde sigue la próxima",
+    /UPDATE moveadvisor_cursores SET valor = 6\b/.test(gen42.salida[0].json.sqlCursor || ""));
+  gen42.log.forEach((l) => console.log("      " + l));
+
+  // Y que da la vuelta al llegar al final de la lista.
+  const genFin = corre(gen, {}, { "PG: Por dónde íbamos": { cursor: 44 } });
+  comprueba("al llegar al final vuelve a empezar",
+    /valor = 2\b/.test(genFin.salida[0].json.sqlCursor || ""),
+    "cursor 44 de 45 -> la próxima empieza en la 2");
+  const sinCursor = corre(gen, {}, { "PG: Por dónde íbamos": {} });
+  comprueba("y si la base no le da cursor, empieza por el principio",
+    sinCursor.salida.length === 42 && sinCursor.salida[0].json.mk === 9);
 
   // ══ la llamada al sub-workflow ═══════════════════════════════════════════
   console.log("\nLA LLAMADA AL SUB-WORKFLOW");

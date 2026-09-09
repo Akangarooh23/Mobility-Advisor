@@ -35,15 +35,15 @@
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "// Alimentacion GRADUAL: procesa 1 marca por noche (sus 14 tramos de precio),\n// avanzando un cursor persistente. Cubre las 45 marcas en ~45 noches y luego\n// vuelve a empezar (refresco continuo). Sube MAKES_PER_NIGHT para ir mas rapido.\nconst makes = [9,13,47,74,64,60,55,21,54,29,70,39,33,52,28,16360,65,73,46,31,16338,51802,38,15641,43,68,50,6,16415,37,57,51520,15525,67,66,48,19,20,16396,45,27,42,16355,35,14882];\nconst buckets = [[0,3000],[3000,5000],[5000,7000],[7000,9000],[9000,11000],[11000,13000],[13000,15000],[15000,18000],[18000,22000],[22000,27000],[27000,35000],[35000,50000],[50000,80000],[80000,99999999]];\n// Marcas por pasada. Cada una son sus 14 tramos de precio y unos 38 minutos.\n//\n// A 1 por pasada y 2 pasadas al dia, las 45 marcas tardaban 22 dias en entrar.\n// A 3 son 7 dias, y cada pasada ocupa unas 2 horas de la franja de 8:00 a 00:00.\n// El ritmo de peticiones NO cambia: sigue siendo una pagina por segundo. Lo que\n// cambia es cuanto dura la pasada, no lo fuerte que pegamos al portal.\nconst MAKES_PER_NIGHT = 3;\nconst store = $getWorkflowStaticData('global');\nlet cursor = Number(store.deMakeCursor || 0);\nif (!(cursor >= 0) || cursor >= makes.length) cursor = 0;\nconst out = [];\nfor (let m = 0; m < MAKES_PER_NIGHT; m++) {\n  const mk = makes[(cursor + m) % makes.length];\n  for (const b of buckets) out.push({ json: { mk: mk, pf: b[0], pt: b[1] } });\n}\nstore.deMakeCursor = (cursor + MAKES_PER_NIGHT) % makes.length;\nreturn out;"
+        "jsCode": "// Alimentacion GRADUAL: unas pocas marcas por pasada, avanzando un cursor que\n// vive en Postgres. Cubre las 45 marcas y vuelve a empezar, o sea refresco\n// continuo.\nconst makes = [9,13,47,74,64,60,55,21,54,29,70,39,33,52,28,16360,65,73,46,31,16338,51802,38,15641,43,68,50,6,16415,37,57,51520,15525,67,66,48,19,20,16396,45,27,42,16355,35,14882];\nconst buckets = [[0,3000],[3000,5000],[5000,7000],[7000,9000],[9000,11000],[11000,13000],[13000,15000],[15000,18000],[18000,22000],[22000,27000],[27000,35000],[35000,50000],[50000,80000],[80000,99999999]];\n\n// Marcas por pasada. Cada una son sus 14 tramos de precio y unos 40 minutos.\n// A 3 por pasada y 2 pasadas al dia, las 45 marcas entran en una semana. El\n// ritmo de peticiones NO cambia -sigue siendo una pagina por segundo-: lo que\n// cambia es cuanto dura la pasada, no lo fuerte que pegamos al portal.\nconst MAKES_PER_NIGHT = 3;\n\n// El cursor viene de la base, no de la memoria del workflow. Ver el comentario\n// del nodo \"PG: Por donde ibamos\".\nconst fila = $('PG: Por dónde íbamos').first().json || {};\nlet cursor = Number(fila.cursor);\nif (!Number.isFinite(cursor) || cursor < 0 || cursor >= makes.length) cursor = 0;\n\nconst siguiente = (cursor + MAKES_PER_NIGHT) % makes.length;\nconst sqlCursor = \"UPDATE moveadvisor_cursores SET valor = \" + siguiente\n  + \", actualizado = NOW() WHERE clave = 'as24_de_marca'\";\n\nconst out = [];\nfor (let m = 0; m < MAKES_PER_NIGHT; m++) {\n  const mk = makes[(cursor + m) % makes.length];\n  for (const b of buckets) out.push({ json: { mk: mk, pf: b[0], pt: b[1], sqlCursor: sqlCursor } });\n}\nconsole.log('[as24-de] marcas ' + cursor + '..' + (cursor + MAKES_PER_NIGHT - 1)\n  + ' de ' + makes.length + ' -> ' + out.length + ' segmentos. La proxima empieza en la ' + siguiente + '.');\nreturn out;"
       },
       "id": "as-a-gen",
       "name": "Code: Generar segmentos (marca x precio)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        240,
-        400
+        120,
+        300
       ]
     },
     {
@@ -89,10 +89,81 @@
         400
       ],
       "webhookId": "wait-as24-orquestador-de"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Por donde iba la ultima pasada.\n--\n-- Vivia en $getWorkflowStaticData, que se reinicia al reimportar el workflow.\n-- El 2026-09-09 se reimporto tres veces y las tres pasadas empezaron por la\n-- misma marca: dos horas releyendo Audi, que ya estaba entero.\nSELECT valor::int AS cursor FROM moveadvisor_cursores WHERE clave = 'as24_de_marca'",
+        "options": {}
+      },
+      "id": "de-leer-cursor",
+      "name": "PG: Por dónde íbamos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sqlCursor }}",
+        "options": {}
+      },
+      "id": "de-guardar-cursor",
+      "name": "PG: Apuntar dónde nos quedamos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        400,
+        140
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "executeOnce": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     }
   ],
   "connections": {
     "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Por dónde íbamos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2 veces/día (8:15 y 20:15)": {
+      "main": [
+        [
+          {
+            "node": "PG: Por dónde íbamos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Por dónde íbamos": {
       "main": [
         [
           {
@@ -108,6 +179,11 @@
         [
           {
             "node": "Loop: segmento por segmento",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "PG: Apuntar dónde nos quedamos",
             "type": "main",
             "index": 0
           }
@@ -142,17 +218,6 @@
         [
           {
             "node": "Loop: segmento por segmento",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "2 veces/día (8:15 y 20:15)": {
-      "main": [
-        [
-          {
-            "node": "Code: Generar segmentos (marca x precio)",
             "type": "main",
             "index": 0
           }

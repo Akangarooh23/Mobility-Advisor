@@ -89,7 +89,8 @@
     "test:cron": "node scripts/ensaya-cron.js --con-datos",
     "test:modrive-enrich": "node scripts/comprueba-modrive-enrich.js",
     "test:modrive-verificar": "node scripts/comprueba-modrive-verificar.js",
-    "test:as24-de": "node scripts/comprueba-as24-de.js"
+    "test:as24-de": "node scripts/comprueba-as24-de.js",
+    "test:as24-de-verificar": "node scripts/comprueba-as24-de-verificar.js"
   },
   "proxy": "http://localhost:3001",
   "eslintConfig": {

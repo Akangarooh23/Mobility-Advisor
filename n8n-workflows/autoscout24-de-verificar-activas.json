@@ -1,0 +1,443 @@
+{
+  "name": "AutoScout24 DE – Verificar ofertas activas",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "dv-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 40 8,11,14,17,20 * * *"
+            }
+          ]
+        }
+      },
+      "id": "dv-cron",
+      "name": "5 veces/día (8:40 a 20:40)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Las ofertas alemanas que toca comprobar.\n--\n-- Las ACTIVAS cada dia: son las que sostienen las valoraciones. Las que ya\n-- constan de baja, una vez por semana, solo para que una que se diera por\n-- muerta por error pueda volver sola.\n--\n-- Los dos ritmos separados no son un capricho. En Gamboa iban con el mismo\n-- filtro y la cola acababa llena de muertas: el cortacircuitos leia 100% de\n-- mortandad y cortaba la pasada antes de mirar una sola oferta viva.\nSELECT id, url, is_active\nFROM moveadvisor_market_offers\nWHERE portal = 'autoscout24'\n  AND country = 'DE'\n  AND COALESCE(url, '') <> ''\n  AND (\n    (is_active AND (last_checked_at IS NULL\n                    OR last_checked_at < NOW() - INTERVAL '20 hours'))\n    OR\n    (NOT is_active AND (last_checked_at IS NULL\n                        OR last_checked_at < NOW() - INTERVAL '7 days'))\n  )\n-- Las activas primero, y al azar dentro de cada grupo.\n--\n-- Primero las activas porque si una pasada se corta -por un fallo de red o por\n-- el propio cortacircuitos- lo que tiene que estar comprobado es lo que damos\n-- por bueno, no el cementerio.\n--\n-- Y al azar porque el orden por antiguedad pone delante justo las que el\n-- scraper dejo de ver, o sea las vendidas: el frente de la cola seria 100% de\n-- mortandad por construccion y el cortacircuitos no mediria nada.\nORDER BY is_active DESC, random()\nLIMIT 3000",
+        "options": {}
+      },
+      "id": "dv-cola",
+      "name": "PG: Cola a verificar",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "dv-loop",
+      "name": "Loop: oferta por oferta",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Arranque de la pasada, cortacircuitos y guarda de cola vacia.\nconst s = $getWorkflowStaticData('global');\nconst item = $input.first().json;\n\nif (!s.de_run || s.de_run !== $execution.id) {\n  s.de_run = $execution.id;\n  s.de_parado = false;\n  s.de_vistas = 0;\n  s.de_vivas = 0;\n  s.de_bajas = 0;\n  s.de_raras = 0;\n  s.de_fallos = 0;\n  s.de_urls = 0;\n  s.de_motivo = '';\n  // Las dos que miden la mortandad de verdad.\n  s.de_activas_vistas = 0;\n  s.de_bajas_nuevas = 0;\n}\n\n// Una cola vacia NO llega como \"nada\": n8n manda UN ITEM VACIO, que recorre el\n// bucle igual que una oferta y revienta el nodo HTTP con \"URL parameter must be\n// a string, got undefined\". Asi cayeron cuatro ejecuciones programadas de\n// Gamboa la madrugada del 2026-09-07, y era el caso normal: no habia nada que\n// hacer.\nif (!item || !item.id || !String(item.url || '').trim()) {\n  console.log('[as24-de] no hay nada que verificar ahora mismo.');\n  return [{ json: Object.assign({}, item || {}, { saltar: true }) }];\n}\n\nreturn [{ json: Object.assign({}, item, { saltar: !!s.de_parado }) }];"
+      },
+      "id": "dv-toca",
+      "name": "Code: ¿toca pedirla?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "dv-c-saltar",
+              "leftValue": "={{ $json.saltar }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "dv-if-saltar",
+      "name": "IF: ¿nos hemos parado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        340,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "method": "HEAD",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          },
+          "timeout": 20000
+        }
+      },
+      "id": "dv-http",
+      "name": "HTTP: ¿sigue la ficha?",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        560,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// El veredicto sobre UNA ficha alemana.\n//\n// La señal es el codigo de estado, nunca el HTML. Ver la cabecera del generador:\n// buscar \"ya no esta disponible\" en el cuerpo dio de baja 24.746 ofertas de las\n// que el 45% seguia publicada, porque esa frase viaja en el diccionario de\n// traducciones de todas las paginas.\nconst oferta = $('Code: ¿toca pedirla?').item.json;\nconst res = $input.first().json;\nconst codigo = Number(res.statusCode || 0);\nconst cabeceras = res.headers || {};\nconst destino = String(cabeceras.location || cabeceras.Location || '');\n\nconst s = $getWorkflowStaticData('global');\nconst id = String(oferta.id || '');\nconst eraActiva = oferta.is_active !== false;\nif (!id) return [{ json: { sql: null } }];\n\nconst esc = v => \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\nconst soloFecha = (veredicto) => [{ json: {\n  sql: 'UPDATE moveadvisor_market_offers SET last_checked_at = NOW() WHERE id = ' + esc(id),\n  veredicto: veredicto,\n} }];\n\n// ── fallo pasajero ─────────────────────────────────────────────────────────\n// Un 429 o un 503 no dicen nada del coche, dicen algo de nosotros. Se rota la\n// fecha para que la cola siga girando y no se toca is_active.\nif (codigo === 0 || codigo === 403 || codigo === 429 || codigo >= 500) {\n  s.de_fallos = (s.de_fallos || 0) + 1;\n  return soloFecha('pasajero');\n}\n\ns.de_vistas = (s.de_vistas || 0) + 1;\nif (eraActiva) s.de_activas_vistas = (s.de_activas_vistas || 0) + 1;\n\n// ── sigue publicada ────────────────────────────────────────────────────────\nif (codigo === 200) {\n  s.de_vivas = (s.de_vivas || 0) + 1;\n  const sets = eraActiva\n    ? 'last_checked_at = NOW(), last_seen_at = NOW()'\n    : 'is_active = TRUE, last_checked_at = NOW(), last_seen_at = NOW(), updated_at = NOW()';\n  return [{ json: { sql: 'UPDATE moveadvisor_market_offers SET ' + sets\n    + ' WHERE id = ' + esc(id), veredicto: eraActiva ? 'viva' : 'resucitada' } }];\n}\n\n// ── la web normaliza su propia URL ─────────────────────────────────────────\n// Un 3xx cuyo destino conserva el uuid del coche no es una venta: es\n// AutoScout24 arreglando su enlace. Se guarda la URL nueva y no se toca nada\n// mas. En Gamboa esto mismo dejaba muertas para siempre a 90 ofertas vivas.\nconst uuidDe = (String(oferta.url || '').match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i) || [])[0] || '';\nconst esRedirect = codigo >= 300 && codigo < 400;\nif (esRedirect && uuidDe && destino.toLowerCase().indexOf(uuidDe.toLowerCase()) !== -1) {\n  s.de_urls = (s.de_urls || 0) + 1;\n  const abs = destino.indexOf('http') === 0 ? destino : ('https://www.autoscout24.es' + destino);\n  console.log('[as24-de] ' + id + ': URL normalizada -> ' + abs);\n  return [{ json: {\n    sql: 'UPDATE moveadvisor_market_offers SET url = ' + esc(abs)\n      + ', last_checked_at = NOW() WHERE id = ' + esc(id),\n    veredicto: 'url nueva',\n  } }];\n}\n\n// ── vendida ────────────────────────────────────────────────────────────────\n// 410 y 404 son explicitos. Y un 301 al listado del modelo -/lst/seat/leon- es\n// la forma que tiene AutoScout24 de decir \"ese coche ya no esta, mira estos\".\nconst alListado = esRedirect && (/\\/lst/.test(destino) || destino === '/'\n  || /autoscout24\\.[a-z]+\\/?$/i.test(destino));\nconst esBaja = codigo === 404 || codigo === 410 || codigo === 451 || alListado;\n\nif (esBaja) {\n  s.de_bajas = (s.de_bajas || 0) + 1;\n  if (eraActiva) s.de_bajas_nuevas = (s.de_bajas_nuevas || 0) + 1;\n\n  // Cortacircuitos, sobre ACTIVAS miradas y muertes NUEVAS.\n  const activas = s.de_activas_vistas || 0;\n  const nuevas = s.de_bajas_nuevas || 0;\n  if (activas >= 100 && (nuevas / activas) > 0.6) {\n    s.de_parado = true;\n    s.de_motivo = 'mortandad del ' + Math.round(100 * nuevas / activas) + '% en ' + activas + ' activas';\n    console.log('[as24-de] PARADO: ' + s.de_motivo + '. Eso no es que Alemania haya'\n      + ' vendido su parque movil: es que ha cambiado algo en el portal.');\n    return soloFecha('parado');\n  }\n\n  // Si ya constaba de baja no se toca updated_at: reescribirlo cada semana\n  // borra el unico rastro de cuando cayo el anuncio.\n  const sets = eraActiva\n    ? 'is_active = FALSE, last_checked_at = NOW(), updated_at = NOW()'\n    : 'last_checked_at = NOW()';\n  return [{ json: { sql: 'UPDATE moveadvisor_market_offers SET ' + sets\n    + ' WHERE id = ' + esc(id), veredicto: 'baja' } }];\n}\n\n// ── ni una cosa ni la otra ─────────────────────────────────────────────────\n// Un 3xx que no va al listado y no conserva el uuid, o un codigo que no\n// esperabamos. No se toca is_active: se apunta y se mira el parte. Equivocarse\n// por no dar de baja se arregla manana; vaciar el mercado por una corazonada,\n// no.\ns.de_raras = (s.de_raras || 0) + 1;\nconsole.log('[as24-de] RARA ' + id + ' (HTTP ' + codigo + (destino ? ' -> ' + destino : '') + ')');\nreturn soloFecha('rara');"
+      },
+      "id": "dv-veredicto",
+      "name": "Code: Veredicto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "dv-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "dv-if-sql",
+      "name": "IF: ¿hay veredicto?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "dv-pg",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        460
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "dv-wait",
+      "name": "Esperar 1s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        540
+      ],
+      "webhookId": "a7c3e910-as24-de-verificar"
+    },
+    {
+      "parameters": {
+        "jsCode": "// El parte de la pasada, a moveadvisor_verify_runs.\nconst s = $getWorkflowStaticData('global');\nconst vistas = s.de_vistas || 0;\nconst activas = s.de_activas_vistas || 0;\n\nconsole.log('[as24-de] ── resumen ──');\nconsole.log('  fichas miradas   : ' + vistas + ' (' + activas + ' estaban activas)');\nconsole.log('  siguen publicadas: ' + (s.de_vivas || 0));\nconsole.log('  BAJAS NUEVAS     : ' + (s.de_bajas_nuevas || 0));\nconsole.log('  bajas ya sabidas : ' + ((s.de_bajas || 0) - (s.de_bajas_nuevas || 0)));\nconsole.log('  URLs corregidas  : ' + (s.de_urls || 0));\nconsole.log('  sin clasificar   : ' + (s.de_raras || 0));\nconsole.log('  fallos pasajeros : ' + (s.de_fallos || 0));\nif (s.de_parado) console.log('  PARADO POR EL CORTACIRCUITOS: ' + s.de_motivo);\n// Una pasada que no mira ni una activa deja el mercado sin verificar ese dia\n// aunque el parte salga limpio. Es lo que pasaba en Gamboa y no lo dijo nadie.\nif (!s.de_parado && activas === 0 && vistas > 0) {\n  console.log('  OJO: no se ha mirado NI UNA oferta activa.');\n}\nif ((s.de_raras || 0) > vistas * 0.1) {\n  console.log('  OJO: mas del 10% sin clasificar. O AutoScout24 ha cambiado algo,');\n  console.log('  o hay un estado que no conocemos. Mirar esas URLs.');\n}\n\nconst n = v => String(Number(v) || 0);\n// En 'deactivated' van las bajas NUEVAS. Contar ahi las reconfirmaciones hacia\n// que una pasada sin novedades pareciera una matanza.\nconst sql = 'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" VALUES ('autoscout24-de', NOW(), \" + n(vistas) + ', ' + n(s.de_vivas) + ', '\n  + n(s.de_bajas_nuevas) + ', ' + n(s.de_raras) + ', ' + n(s.de_fallos) + ', '\n  + (s.de_parado ? 'TRUE' : 'FALSE') + ', 1)';\n\nreturn [{ json: { sql: sql, vistas: vistas, activas: activas, vivas: s.de_vivas || 0,\n  bajas: s.de_bajas_nuevas || 0, urls: s.de_urls || 0,\n  raras: s.de_raras || 0, fallos: s.de_fallos || 0, parado: !!s.de_parado } }];"
+      },
+      "id": "dv-resumen",
+      "name": "Code: Resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "dv-pg-parte",
+      "name": "PG: Apuntar el parte",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        340,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a verificar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5 veces/día (8:40 a 20:40)": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a verificar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Cola a verificar": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: oferta por oferta": {
+      "main": [
+        [
+          {
+            "node": "Code: Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: ¿toca pedirla?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: ¿toca pedirla?": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿nos hemos parado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿nos hemos parado?": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: ¿sigue la ficha?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: ¿sigue la ficha?": {
+      "main": [
+        [
+          {
+            "node": "Code: Veredicto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Veredicto": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay veredicto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay veredicto?": {
+      "main": [
+        [
+          {
+            "node": "PG: Actualizar oferta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Actualizar oferta": {
+      "main": [
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 1s": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Resumen": {
+      "main": [
+        [
+          {
+            "node": "PG: Apuntar el parte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

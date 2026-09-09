@@ -1,5 +1,45 @@
 import { normalizeText } from "./offerHelpers";
 
+/**
+ * En la lista de citas del panel viven dos cosas distintas.
+ *
+ *   · **Citas de verdad** (`booking`): alguien pidió hora en un taller y hay
+ *     alguien esperándole. Se confirman, se cambian, se cancelan.
+ *   · **Recordatorios** (`calendar`, `suggestion`): la revisión que toca por
+ *     kilómetros, la renovación del seguro, la sugerencia del asesor. No hay
+ *     cita con nadie: son avisos de que convendría pedirla.
+ *
+ * Van en la misma lista porque en Operaciones se enseñan juntos, y eso está
+ * bien. Lo que no vale es contarlos juntos: el número del lateral decía **9**
+ * con una cita y ocho recordatorios, así que quien lo mira busca ocho citas que
+ * no existen.
+ *
+ * La regla vive aquí, al lado de donde se pone el `source`, para que quien
+ * añada un origen nuevo tenga delante las dos cosas.
+ */
+export const ORIGENES_DE_RECORDATORIO = ["calendar", "suggestion"];
+
+/**
+ * Si es una cita con alguien.
+ *
+ * Sin `source` también cuenta: es lo que traían las citas antes de que hubiera
+ * recordatorios en esta lista, y las viejas no pueden dejar de contarse por
+ * eso.
+ */
+export function esCitaDeVerdad(item) {
+  const origen = item?.source;
+  return !origen || origen === "booking";
+}
+
+export function esRecordatorio(item) {
+  return ORIGENES_DE_RECORDATORIO.includes(item?.source);
+}
+
+/** Cuántas citas hay de verdad. Es lo que va en el número del lateral. */
+export function cuantasCitas(items = []) {
+  return (Array.isArray(items) ? items : []).filter(esCitaDeVerdad).length;
+}
+
 export function buildUserDashboardModel({
   savedComparisons = [],
   userAppointments = [],

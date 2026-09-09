@@ -10,6 +10,7 @@ import UserDashboardSaved from "./UserDashboardSaved";
 import UserDashboardValuations from "./UserDashboardValuations";
 import UserDashboardVehicles from "./UserDashboardVehicles";
 import UserDashboardServices from "./UserDashboardServices";
+import { cuantasCitas } from "../../utils/userDashboardHelpers";
 import UserDashboardSolicitudes from "./UserDashboardSolicitudes";
 import { getGarageVehiclesJson } from "../../utils/apiClient";
 import { readUserBillingState, readCachedGarageVehicleCount } from "../../utils/storage";
@@ -337,7 +338,9 @@ export default function UserDashboardPage({
   const counts = {
     saved: savedComparisons.length + (Array.isArray(marketAlerts) ? marketAlerts.length : 0),
     alerts: Array.isArray(marketAlerts) ? marketAlerts.length : 0,
-    appointments: dashboardAppointments.length,
+    // Solo las citas de verdad. Con los recordatorios dentro, el lateral
+    // decia 9 con una cita y ocho avisos.
+    appointments: cuantasCitas(dashboardAppointments),
     valuations: dashboardValuations.length,
     vehicles: garageVehicleCount || userVehicleSections.reduce((acc, s) => acc + s.items.length, 0),
     solicitudes: userSolicitudes.length,

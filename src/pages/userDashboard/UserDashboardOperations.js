@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getGarageVehiclesJson, getUserErpAppointmentsJson } from "../../utils/apiClient";
 import { readUserBillingState, writeUserBillingCheckoutIntent } from "../../utils/storage";
+import { esCitaDeVerdad, esRecordatorio } from "../../utils/userDashboardHelpers";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
 
@@ -300,7 +301,7 @@ export default function UserDashboardOperations({
 
   const operationRows = useMemo(() => {
     const appointmentRows = (dashboardAppointments || [])
-      .filter((item) => item.source === "booking" || !item.source)
+      .filter(esCitaDeVerdad)
       .map((item) => ({
         ...item,
         itemType: "appointment",
@@ -324,7 +325,7 @@ export default function UserDashboardOperations({
   }, [dashboardAppointments, dashboardValuations, text.appointment, text.insurance, text.maintenance, text.valuation]);
 
   const calendarReminders = useMemo(
-    () => (dashboardAppointments || []).filter((item) => item.source === "calendar" || item.source === "suggestion"),
+    () => (dashboardAppointments || []).filter(esRecordatorio),
     [dashboardAppointments]
   );
 

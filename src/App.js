@@ -168,6 +168,7 @@ const LegalPolicyPage = lazy(() => import("./pages/LegalPolicyPage"));
 const MiCitaPage = lazy(() => import("./pages/MiCitaPage"));
 const ElegirHoraPage = lazy(() => import("./pages/ElegirHoraPage"));
 const ComoFuePage = lazy(() => import("./pages/ComoFuePage"));
+const ConfirmarVisitaPage = lazy(() => import("./pages/ConfirmarVisitaPage"));
 const SeoStaticPage = lazy(() => import("./pages/SeoStaticPage"));
 const AboutCarswisePage = lazy(() => import("./pages/AboutCarswisePage"));
 const ContactCarswisePage = lazy(() => import("./pages/ContactCarswisePage"));
@@ -4515,6 +4516,18 @@ export default function App() {
   // su visita. Sin sesion: la llave es el testigo de su cita.
   if (typeof window !== "undefined" && window.location.pathname === "/como-fue") {
     return <ComoFuePage />;
+  }
+
+  // -------------------- CONFIRMAR VISITA STANDALONE PAGE --------------------
+  // La abre el comprador desde el correo, cuando pidio la visita sin tener
+  // cuenta. Sin sesion, a proposito: ese clic es lo que prueba que el correo es
+  // suyo, que es justo lo que probaba la sesion.
+  if (typeof window !== "undefined" && window.location.pathname === "/confirmar-visita") {
+    return (
+      <ConfirmarVisitaPage
+        onIrAlCoche={(id) => { window.location.href = `/marketplace-vo/${encodeURIComponent(id)}`; }}
+      />
+    );
   }
 
   // -------------------- LEGAL STANDALONE PAGE --------------------

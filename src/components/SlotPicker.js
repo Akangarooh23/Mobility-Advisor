@@ -56,7 +56,17 @@ export default function SlotPicker({ offerId, vehicleTitle, userEmail, userName,
   const [activeDay,  setActiveDay]  = useState(null);
   const [selected,   setSelected]   = useState(null);
   const [step,       setStep]       = useState("pick"); // pick | confirm | done
-  const [form,       setForm]       = useState({ name: userName || "", phone: userPhone || "", notes: "" });
+  /*
+   * `email` y `quiereFinanciar` solo se usan sin sesión.
+   *
+   * Con sesión el correo lo pone el servidor y preguntarlo sería pedir un dato
+   * que ya tenemos. Sin ella es la pieza entera: es a donde va el enlace que
+   * prueba que quien pide la visita es quien dice.
+   */
+  const [form,       setForm]       = useState({
+    name: userName || "", phone: userPhone || "", notes: "",
+    email: "", quiereFinanciar: false,
+  });
   const [booking,    setBooking]    = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -74,19 +84,30 @@ export default function SlotPicker({ offerId, vehicleTitle, userEmail, userName,
   }, [offerId]);
 
   async function confirmBooking() {
-    if (!selected || !userEmail) return;
+    if (!selected) return;
+    if (haySesion && !userEmail) return;
     setSubmitting(true);
     setError("");
     try {
+      /*
+       * Dos caminos, y el que se toma depende de si sabemos quién es.
+       *
+       * Con sesión se reserva directamente: el correo lo pone el servidor desde
+       * la sesión. Sin ella se **pide**, y lo que llega es un enlace al correo:
+       * hasta que lo pulsa no hay reserva y el hueco sigue libre para otro.
+       */
       const r = await fetch(API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          route: "book", slotId: selected.id, offerId, vehicleTitle,
-          buyerEmail: userEmail, buyerName: form.name, buyerPhone: form.phone,
+          route: haySesion ? "book" : "solicitar",
+          slotId: selected.id, offerId, vehicleTitle,
+          buyerEmail: haySesion ? userEmail : form.email,
+          buyerName: form.name, buyerPhone: form.phone,
           // El correo del vendedor lo pone el servidor: es a dónde va el aviso,
           // y no puede depender de lo que mande el navegador.
           notes: form.notes,
+          quiereFinanciar: form.quiereFinanciar,
           source: source || "marketplace",
         }),
       });
@@ -97,6 +118,8 @@ export default function SlotPicker({ offerId, vehicleTitle, userEmail, userName,
           setSlots((prev) => prev.filter((s) => s.id !== selected.id));
           setSelected(null); setStep("pick");
         }
+      } else if (d.pendienteDeConfirmar) {
+        setStep("correo");
       } else {
         setBooking(d.booking); setStep("done");
         if (onBooked) onBooked(d.booking);
@@ -119,26 +142,31 @@ export default function SlotPicker({ offerId, vehicleTitle, userEmail, userName,
   const morning  = daySlots.filter((s) => isMorning(s.starts_at));
   const afternoon = daySlots.filter((s) => !isMorning(s.starts_at));
 
-  // ── Sin sesión ─────────────────────────────────────────────────────────────
-  //
-  // Pedir visita compromete a alguien a estar en un sitio a una hora, así que
-  // hay que saber quién lo pide. El servidor lo exige igualmente; esto es para
-  // no enseñarle un calendario que va a fallar al final, que es la peor forma
-  // de contarlo.
-  if (!haySesion) return (
+  /*
+   * Sin sesión ya no se bloquea: se pide el correo.
+   *
+   * Antes aquí había un candado y un botón de entrar. Quien llega de un portal
+   * a ver un coche no se hace una cuenta para mirar tres huecos, así que ese
+   * candado era el final del camino para casi todos.
+   *
+   * Lo que la sesión probaba —que el correo es tuyo— lo prueba ahora el enlace
+   * que se manda: hasta que se pulsa no hay reserva. El servidor lo exige
+   * igual, así que esto no es un permiso que se dé la pantalla.
+   */
+
+  // ── El enlace está en su correo ────────────────────────────────────────────
+  if (step === "correo") return (
     <div style={{ textAlign: "center", padding: "18px 0" }}>
-      <div style={{ fontSize: 34, marginBottom: 10 }}>🔒</div>
+      <div style={{ fontSize: 34, marginBottom: 10 }}>✉️</div>
       <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 6, color: "var(--gris-900)" }}>
-        Entra para pedir la visita
+        Mira tu correo
       </div>
-      <p style={{ fontSize: 13, color: "var(--gris-500)", lineHeight: 1.5, margin: "0 0 16px" }}>
-        Así podemos confirmártela, avisarte si cambia la hora y que la tengas en tu panel.
+      <p style={{ fontSize: 13, color: "var(--gris-500)", lineHeight: 1.5, margin: "0 0 6px" }}>
+        Te hemos escrito a <strong>{form.email}</strong> con un enlace para confirmar la visita.
       </p>
-      {onEntrar && (
-        <button onClick={onEntrar} className="cw-btn-acento" style={{ cursor: "pointer" }}>
-          Iniciar sesión
-        </button>
-      )}
+      <p style={{ fontSize: 12.5, color: "var(--gris-500)", lineHeight: 1.5, margin: 0 }}>
+        Todavía no está reservada: la hora se guarda cuando pulses el enlace.
+      </p>
     </div>
   );
 
@@ -215,6 +243,54 @@ export default function SlotPicker({ offerId, vehicleTitle, userEmail, userName,
           type="tel"
         />
       </div>
+      {/*
+        * El correo solo se pregunta a quien no ha entrado.
+        *
+        * Con sesión ya lo sabemos, y volver a pedirlo abre la puerta a que
+        * escriba otro distinto: eso es justo lo que no puede pasar, porque el
+        * correo es a donde van los avisos de la cita.
+        */}
+      {!haySesion && (
+        <>
+          <div style={S.field}>
+            <label style={S.label}>Tu correo <span style={{ color: "#ef4444" }}>*</span></label>
+            <input
+              style={S.input}
+              value={form.email}
+              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+              placeholder="tu@correo.com"
+              type="email"
+              autoComplete="email"
+            />
+            <div style={{ fontSize: 11.5, color: "var(--gris-500)", marginTop: 5, lineHeight: 1.45 }}>
+              Te mandamos ahí un enlace para confirmar. Sin pulsarlo no se reserva la hora.
+            </div>
+          </div>
+
+          {/*
+            * Una sola pregunta, sí o no.
+            *
+            * Nada de datos económicos para ver un coche: eso espanta a la mitad
+            * de la gente y este formulario es la boca del embudo. Al que diga
+            * que sí se le llama.
+            */}
+          <label style={{ ...S.field, display: "flex", gap: 9, alignItems: "flex-start", cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={form.quiereFinanciar}
+              onChange={(e) => setForm((f) => ({ ...f, quiereFinanciar: e.target.checked }))}
+              style={{ marginTop: 2, width: 16, height: 16, accentColor: "var(--marca)" }}
+            />
+            <span style={{ fontSize: 13, color: "var(--gris-700)", lineHeight: 1.45 }}>
+              ¿Te interesaría financiarlo?
+              <span style={{ display: "block", fontSize: 11.5, color: "var(--gris-500)" }}>
+                Sin compromiso. Solo para saber si te llamamos con opciones.
+              </span>
+            </span>
+          </label>
+        </>
+      )}
+
       <div style={S.field}>
         <label style={S.label}>Notas para el vendedor (opcional)</label>
         <textarea
@@ -225,13 +301,24 @@ export default function SlotPicker({ offerId, vehicleTitle, userEmail, userName,
         />
       </div>
 
-      <button
-        style={{ ...S.confirmBtn, opacity: submitting || !form.name.trim() ? 0.55 : 1 }}
-        disabled={submitting || !form.name.trim()}
-        onClick={confirmBooking}
-      >
-        {submitting ? "Reservando…" : "Confirmar visita →"}
-      </button>
+      {(() => {
+        // Sin sesión hacen falta correo y teléfono: el correo porque es donde va
+        // el enlace, y el teléfono porque al vendedor le prometemos compradores
+        // con los que se pueda hablar.
+        const listo = form.name.trim()
+          && (haySesion || (form.email.trim() && form.phone.trim()));
+        return (
+          <button
+            style={{ ...S.confirmBtn, opacity: submitting || !listo ? 0.55 : 1 }}
+            disabled={submitting || !listo}
+            onClick={confirmBooking}
+          >
+            {submitting
+              ? (haySesion ? "Reservando…" : "Enviando…")
+              : (haySesion ? "Confirmar visita →" : "Pedir la visita →")}
+          </button>
+        );
+      })()}
     </div>
   );
 

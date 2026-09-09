@@ -123,11 +123,7 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 
   // ── lo que ordena el escaparate ───────────────────────────────────────────
   console.log("\nEL ORDEN DEL ESCAPARATE");
-  comprueba("updated_at solo se mueve si algún campo cambia de verdad",
-    /updated_at = CASE WHEN /.test(ultimoSql) && !/updated_at = NOW\(\)/.test(ultimoSql));
-  comprueba("y lo decide mirando los campos que escribe",
-    /NULLIF\(body_type, ''\) IS NULL/.test(ultimoSql)
-    && /equipment IS DISTINCT FROM /.test(ultimoSql));
+  comprueba("el enriquecedor NO toca updated_at, nunca", !/updated_at/.test(ultimoSql));
   comprueba("sella last_seen_at, que es lo que fecha la baja",
     /last_seen_at = NOW\(\)/.test(ultimoSql));
 
@@ -151,22 +147,32 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
   console.log("\nCONTRA LA BASE (con ROLLBACK)");
   await c.query("BEGIN");
   try {
+    const id = casos[casos.length - 1].fila.id;
+    const lee = async () => (await c.query(
+      "SELECT updated_at FROM moveadvisor_marketplace_vo_offers WHERE id = $1", [id])).rows[0].updated_at;
+
+    // La fecha ANTES de tocar nada. La comprobación tiene que cubrir la PRIMERA
+    // pasada, no solo la repetición: cuando esto llevaba un CASE que movía
+    // updated_at «solo si algún campo cambia», la primera pasada lo cumplía por
+    // definición -los campos están todos vacíos- y sellaba las 1.988 igual. Con
+    // 952 enriquecidas, Modrive ya ocupaba de la posición 1 a la 696.
+    const antes = await lee();
     const res = await c.query(ultimoSql);
     comprueba("el SQL se ejecuta y casa con una oferta nuestra", res.rowCount === 1,
       "(" + res.rowCount + " filas)");
+    comprueba("enriquecer por primera vez NO mueve updated_at",
+      String(await lee()) === String(antes), String(antes).slice(0, 19));
 
-    // Y ahora la prueba de verdad: repetirlo NO debe mover updated_at.
-    const antes = await c.query(
-      "SELECT updated_at FROM moveadvisor_marketplace_vo_offers WHERE id = $1",
-      [casos[casos.length - 1].fila.id]);
     await c.query("SELECT pg_sleep(0.05)");
     await c.query(ultimoSql);
-    const despues = await c.query(
-      "SELECT updated_at FROM moveadvisor_marketplace_vo_offers WHERE id = $1",
-      [casos[casos.length - 1].fila.id]);
-    comprueba("repetir la misma pasada NO mueve updated_at",
-      String(antes.rows[0].updated_at) === String(despues.rows[0].updated_at),
-      String(antes.rows[0].updated_at).slice(0, 19));
+    comprueba("y repetir la pasada tampoco", String(await lee()) === String(antes));
+
+    // Pero lo que sí tiene que haber pasado es que los datos entren.
+    const f = (await c.query("SELECT body_type, doors, enrich_tried_at, last_seen_at"
+      + " FROM moveadvisor_marketplace_vo_offers WHERE id = $1", [id])).rows[0];
+    comprueba("los datos sí se guardan", !!f.body_type && f.doors > 0,
+      f.body_type + ", " + f.doors + " puertas");
+    comprueba("y queda sellada como vista", !!f.last_seen_at && !!f.enrich_tried_at);
   } finally { await c.query("ROLLBACK"); await c.end(); }
 
   console.log(fallos === 0 ? "\nTodo correcto." : "\n" + fallos + " comprobaciones han fallado.");

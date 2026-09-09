@@ -190,27 +190,38 @@ const equipo = nItems ? JSON.stringify({ serie: grupos }) : '';
 // llegan a CERO o a cadena vacia en vez de a NULL, y un COALESCE normal no entra
 // nunca sobre un 0.
 //
-// Y por cada campo se guarda TAMBIEN la condicion de si ese campo va a cambiar
-// de verdad, para no mover updated_at cuando la pasada no aporta nada. El
-// escaparate ordena por updated_at cuando el portal_score empata -y los tres
-// concesionarios valen 80-, asi que sellarlo sin motivo entierra a los otros
-// dos: paso con Gamboa, con VIAN y con el propio scraper de Modrive. Aqui
-// importa especialmente por el repaso de los 30 dias, en el que lo normal es
-// que no cambie ni un campo de las 1.988.
+// ── updated_at no se toca aqui, y esto es lo importante del nodo ───────────
+//
+// El escaparate ordena por portal_score y, como los tres concesionarios valen
+// 80, el desempate real es updated_at DESC
+// (carswise-erp-backoffice apps/api/src/routes/marketplace.ts:570).
+//
+// Enriquecer NO es que el anuncio haya cambiado: es que nosotros nos hemos
+// puesto al dia. El cliente no nota nada porque le rellenemos la carroceria, y
+// sin embargo eso bastaba para poner a Modrive por delante de Gamboa y de VIAN.
+// El 2026-09-09, con solo 952 de las 1.988 enriquecidas, Modrive ya ocupaba de
+// la posicion 1 a la 696; al terminar las habria ocupado todas y los otros dos
+// habrian empezado en la 1.989.
+//
+// Al principio esto llevaba un CASE que movia updated_at solo si algun campo
+// cambiaba de verdad. Era mejor que sellarlo siempre, pero seguia estando mal:
+// la PRIMERA pasada cambia campos por definicion -estan todos vacios-, asi que
+// el CASE se cumplia en las 1.988 igual. La unica respuesta correcta es no
+// tocarlo nunca.
+//
+// Quien mueve updated_at es el scraper, y solo cuando cambia precio,
+// kilometros, titulo o version, que es lo que un cliente nota.
+//
+// COALESCE con NULLIF, y no COALESCE a secas: en esta tabla hay columnas que
+// llegan a CERO o a cadena vacia en vez de a NULL, y un COALESCE normal no
+// entra nunca sobre un 0.
 const sets = ['enrich_tried_at = NOW()'];
-const cambia = [];
-const pon = (col, val) => { if (val !== null && val !== undefined && val !== '') {
-  sets.push(col + " = COALESCE(NULLIF(" + col + ", ''), " + esc(val) + ')');
-  cambia.push("NULLIF(" + col + ", '') IS NULL");
-} };
-const ponNum = (col, val) => { if (val !== null && val !== undefined && val !== '') {
-  sets.push(col + ' = COALESCE(NULLIF(' + col + ', 0), ' + esc(val) + ')');
-  cambia.push('NULLIF(' + col + ', 0) IS NULL');
-} };
-const pisa = (col, val) => { if (val !== null && val !== undefined && val !== '') {
-  sets.push(col + ' = ' + esc(val));
-  cambia.push(col + ' IS DISTINCT FROM ' + esc(val));
-} };
+const pon = (col, val) => { if (val !== null && val !== undefined && val !== '')
+  sets.push(col + " = COALESCE(NULLIF(" + col + ", ''), " + esc(val) + ')'); };
+const ponNum = (col, val) => { if (val !== null && val !== undefined && val !== '')
+  sets.push(col + ' = COALESCE(NULLIF(' + col + ', 0), ' + esc(val) + ')'); };
+const pisa = (col, val) => { if (val !== null && val !== undefined && val !== '')
+  sets.push(col + ' = ' + esc(val)); };
 
 pon('body_type', carroc);
 ponNum('doors', puertas);
@@ -227,11 +238,8 @@ if (equipo) pisa('equipment', equipo);
 // solo se sella si de verdad ha salido algo, para no certificar como vivo lo
 // que no hemos sabido leer.
 const hayDato = sets.length > 1;
-if (hayDato) {
-  sets.push('last_seen_at = NOW()', 'last_checked_at = NOW()');
-  sets.push('updated_at = CASE WHEN ' + cambia.join(' OR ')
-    + ' THEN NOW() ELSE updated_at END');
-}
+// updated_at NO se toca NUNCA aqui. Ver la nota de arriba.
+if (hayDato) sets.push('last_seen_at = NOW()', 'last_checked_at = NOW()');
 
 console.log('[modrive-enrich] ' + id + ': carroceria=' + (carroc || '-')
   + ' puertas=' + (puertas || '-') + ' plazas=' + (plazas || '-')

@@ -125,6 +125,20 @@ const valor = (sql, col) => {
   comprueba("no escribe description", sqls.every((s) => !/[\s,]description = /.test(s)));
   comprueba("no escribe warranty_months", sqls.every((s) => !/warranty_months = /.test(s)));
 
+  // ── el orden del escaparate ───────────────────────────────────────────────
+  //
+  // Enriquecer no es que el anuncio haya cambiado: es que nosotros nos hemos
+  // puesto al día, y el cliente no nota que le rellenemos la carrocería. Pero el
+  // escaparate desempata por updated_at DESC cuando el portal_score empata -y
+  // los tres concesionarios valen 80-, así que sellarlo aquí pone a VIAN
+  // por delante de los otros dos sin que ningún coche se haya movido.
+  //
+  // Con Modrive se vio en números: con 952 de 1.988 enriquecidas ya ocupaba de
+  // la posición 1 a la 696.
+  console.log("\nEL ORDEN DEL ESCAPARATE");
+  comprueba("el enriquecedor NO toca updated_at", sqls.every((s) => !/updated_at/.test(s)));
+  comprueba("pero sí sella last_seen_at", sqls.some((s) => /last_seen_at = NOW\(\)/.test(s)));
+
   // ── el COALESCE sobre columnas que llegan a cero ──────────────────────────
   console.log("\nCOLUMNAS QUE LLEGAN A CERO");
   comprueba("doors, seats y displacement usan NULLIF",

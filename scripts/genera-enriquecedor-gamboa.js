@@ -252,9 +252,15 @@ if (equipo) pisa('equipment', equipo);
 const hayDato = sets.length > 1;
 if (hayDato) {
   sets.push('last_seen_at = NOW()', 'last_checked_at = NOW()');
-  // updated_at tambien: ese campo ordena el escaparate, y tocarlo cada dia sin
-  // motivo reordenaria la tienda entera por nada.
-  sets.push('updated_at = NOW()');
+  // updated_at NO se toca, y el comentario que habia aqui decia justo lo
+  // contrario de lo que hacia el codigo: avisaba de que ese campo ordena el
+  // escaparate y acto seguido lo sellaba en cada pasada.
+  //
+  // Enriquecer no es que el anuncio haya cambiado: es que nosotros nos hemos
+  // puesto al dia. Como los tres concesionarios valen 80 de portal_score, el
+  // desempate real es updated_at DESC, asi que sellarlo aqui pone a Gamboa
+  // delante de VIAN y de Modrive sin que ningun coche se haya movido. Y en el
+  // repaso de los 30 dias volveria a pasar con las 548 de golpe.
 }
 
 console.log('[gamboa-enrich] ' + id + ': color=' + (color || '-')

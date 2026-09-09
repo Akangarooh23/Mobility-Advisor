@@ -139,6 +139,19 @@ const comprueba = (nombre, cond, detalle) => {
   const conCero = (await c.query(`SELECT count(*) n FROM moveadvisor_marketplace_vo_offers
     WHERE portal='gamboa' AND is_active AND warranty_months = 0`)).rows[0].n;
   console.log("      warranty_months a cero en la base: " + conCero);
+  // ── el orden del escaparate ───────────────────────────────────────────────
+  //
+  // Aquí había un comentario que avisaba de que updated_at ordena el escaparate
+  // y, dos líneas más abajo, el código lo sellaba en cada pasada.
+  //
+  // Enriquecer no es que el anuncio haya cambiado: es que nosotros nos hemos
+  // puesto al día. Como los tres concesionarios valen 80 de portal_score, el
+  // desempate real es updated_at DESC, así que sellarlo aquí pone a Gamboa por
+  // delante de VIAN y de Modrive sin que ningún coche se haya movido.
+  console.log("\nEL ORDEN DEL ESCAPARATE");
+  comprueba("el enriquecedor NO toca updated_at", !/updated_at/.test(uno));
+  comprueba("pero sí sella last_seen_at", /last_seen_at = NOW\(\)/.test(uno));
+
   comprueba("warranty_months usa NULLIF, no COALESCE a secas",
     /warranty_months = COALESCE\(NULLIF\(warranty_months, 0\)/.test(uno));
   comprueba("year, mileage, doors y seats tambien",

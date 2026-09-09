@@ -209,7 +209,13 @@ if (pvp) { pisa('price_new', pvp); if (pvpAnio) pisa('price_new_year', pvpAnio);
 // solo se sella si de verdad ha salido algo, para no certificar como vivo lo
 // que no hemos sabido leer.
 const hayDato = sets.length > 1;
-if (hayDato) sets.push('last_seen_at = NOW()', 'last_checked_at = NOW()', 'updated_at = NOW()');
+// updated_at NO se toca. Enriquecer no es que el anuncio haya cambiado: es que
+// nosotros nos hemos puesto al dia, y el cliente no nota que le rellenemos la
+// carroceria. Pero el escaparate desempata por updated_at DESC cuando el
+// portal_score empata -y los tres concesionarios valen 80-, asi que sellarlo
+// aqui pone a VIAN por delante de Gamboa y Modrive sin motivo. En el repaso de
+// los 30 dias volveria a pasar con las 609 de golpe.
+if (hayDato) sets.push('last_seen_at = NOW()', 'last_checked_at = NOW()');
 
 console.log('[vian-enrich] ' + id + ': carroceria=' + (carroc || '-')
   + ' puertas=' + (puertas || '-') + ' plazas=' + (plazas || '-')

@@ -18,13 +18,13 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 0 3 * * *"
+              "expression": "0 15 8,20 * * *"
             }
           ]
         }
       },
       "id": "as-a-cron",
-      "name": "Cada día a las 03:00",
+      "name": "2 veces/día (8:15 y 20:15)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
@@ -64,8 +64,9 @@
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "2h0kGQXmyLto6YzO",
-          "mode": "id"
+          "value": "OxBJqwvGAdaqAI7z",
+          "mode": "id",
+          "cachedResultName": "AutoScout24 – Segmento DE (Importación)"
         },
         "options": {}
       },
@@ -151,7 +152,7 @@
         ]
       ]
     },
-    "Cada día a las 21:00": {
+    "2 veces/día (8:15 y 20:15)": {
       "main": [
         [
           {
@@ -169,7 +170,7 @@
     "saveManualExecutions": true,
     "saveDataSuccessExecution": "all",
     "callerPolicy": "workflowsFromSameOwner",
-    "errorWorkflow": "",
+    "errorWorkflow": "9BwKOPMIzjj3owho",
     "saveDataErrorExecution": "all"
   },
   "staticData": null,

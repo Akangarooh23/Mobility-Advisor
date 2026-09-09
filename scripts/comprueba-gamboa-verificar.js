@@ -105,6 +105,10 @@ const comprueba = (nombre, cond, detalle) => {
     source_url: "https://www.gamboaocasion.com/nissan-qashqai-ocasion-madrid/nissan-qashqai-x-37016" },
     SLUG_NUEVO, e0);
   slug.log.forEach((l) => console.log("      " + l));
+  comprueba("un redirect que conserva el numero guarda la URL nueva",
+    /source_url = 'https:\/\/[^']*37016'/.test(slug.sql || ""), slug.veredicto);
+  comprueba("  y no toca updated_at: cambiar de URL no es cambiar el anuncio",
+    !/updated_at/.test(slug.sql || ""));
   comprueba("un redirect que conserva el numero NO da de baja", !/is_active/.test(slug.sql),
     "(" + slug.veredicto + ")");
 
@@ -117,19 +121,60 @@ const comprueba = (nombre, cond, detalle) => {
     if (r.saltada) break;
     if (/is_active = FALSE/.test(r.sql || "")) bajas++;
   }
-  comprueba("para cuando casi todo sale de baja", e1.gam_parado === true);
+  comprueba("para cuando casi todo lo VIVO sale de baja", e1.gam_parado === true);
   // Y con la cola AL AZAR, que es lo que hace que ese porcentaje signifique
   // algo. Ordenada por antiguedad medía el frente de la cola -las vendidas- en
   // vez del catalogo, y el cortacircuitos saltaba en todas las pasadas.
   const cola = wf.nodes.find((n) => n.name === "PG: Cola a verificar").parameters.query;
-  comprueba("la cola va al azar, si no el cortacircuitos no mide nada",
-    /ORDER BY random\(\)/.test(cola));
+  comprueba("la cola va al azar dentro de cada grupo",
+    /ORDER BY is_active DESC, random\(\)/.test(cola));
   comprueba("y el catalogo entero cabe en una pasada",
     Number((cola.match(/LIMIT (\d+)/) || [])[1]) >= 1000);
   comprueba("y lo hace pronto: el daño queda acotado", bajas <= 60, "(" + bajas + " bajas antes de parar)");
   console.log("      motivo: " + e1.gam_motivo);
   const tras = pasa(act[1], VENDIDA, e1);
   comprueba("despues de parar ya no pide nada mas", tras.saltada === true);
+
+  // ══ una cola llena de bajas que YA sabíamos ══════════════════════════════
+  //
+  // Esto tumbó el verificador tres días seguidos sin que nadie se enterara.
+  //
+  // La cola metía las inactivas con el mismo filtro de 20 horas que las
+  // activas. Las 548 vivas se habían comprobado a mano el 8-sep a las 17:09, o
+  // sea que el filtro las dejaba fuera, y la cola quedaba con las 444 bajas y
+  // nada más. Cada reconfirmación sumaba como «baja», el cortacircuitos leía
+  // «mortandad del 100%» y cortaba la pasada antes de mirar UNA sola oferta
+  // viva. Cuatro pasadas al día tirándose así:
+  //
+  //     09/09 04:01   activas 0   ya de baja 50   BLOQUEADA
+  //     08/09 16:01   activas 0   ya de baja 42   BLOQUEADA
+  //
+  // Reconfirmar un coche que ya sabíamos vendido no es mortandad.
+  console.log("\nUNA COLA LLENA DE BAJAS QUE YA SABÍAMOS");
+  const e1b = {};
+  const yaMuerta = Object.assign({}, act[0], { is_active: false });
+  let reconfirmadas = 0;
+  for (let i = 0; i < 200; i++) {
+    const r = pasa(yaMuerta, VENDIDA, e1b);
+    if (r.saltada) break;
+    reconfirmadas++;
+  }
+  comprueba("NO salta el cortacircuitos", e1b.gam_parado !== true,
+    e1b.gam_motivo ? "(dijo: " + e1b.gam_motivo + ")" : "");
+  comprueba("las mira todas, no corta la pasada", reconfirmadas === 200,
+    "(" + reconfirmadas + " de 200)");
+  comprueba("no cuentan como bajas nuevas", (e1b.gam_bajas_nuevas || 0) === 0);
+  comprueba("ni como activas miradas", (e1b.gam_activas_vistas || 0) === 0);
+  comprueba("y no reescriben updated_at, que es la fecha real de la baja",
+    !/updated_at/.test(pasa(yaMuerta, VENDIDA, {}).sql || ""));
+
+  // Y la cola ya no las trae cada día: las vivas cada 20 horas, las muertas una
+  // vez por semana. Reconfirmar 444 muertas a diario son 444 peticiones para
+  // enterarse de algo que ya sabemos.
+  comprueba("la cola pide las activas cada día",
+    /is_active AND \(last_checked_at IS NULL[\s\S]{0,80}INTERVAL '20 hours'/.test(cola));
+  comprueba("y las que ya constan de baja, una vez por semana",
+    /NOT is_active AND \(last_checked_at IS NULL[\s\S]{0,90}INTERVAL '7 days'/.test(cola));
 
   // ══ los veredictos, contra la base ═══════════════════════════════════════
   console.log("\nVEREDICTOS (con ROLLBACK)");
@@ -208,19 +253,35 @@ const comprueba = (nombre, cond, detalle) => {
   const yaMuertas = (await c.query(`SELECT id, source_url, is_active
     FROM moveadvisor_marketplace_vo_offers WHERE portal='gamboa' AND is_active IS FALSE
       AND COALESCE(source_url,'')<>'' ORDER BY random() LIMIT 4`)).rows;
-  let confirmadas = 0;
+  let confirmadas = 0, conSlugNuevo = 0, resucitables = 0;
   for (const o of yaMuertas) {
     const r = await fetch(o.source_url, { method: "HEAD", headers: H, redirect: "manual", signal: AbortSignal.timeout(25000) });
     const cab = {}; r.headers.forEach((v, k) => { cab[k.toLowerCase()] = v; });
     const v = pasa(o, { statusCode: r.status, headers: cab, body: "" }, e4);
     if (v.veredicto === "baja") confirmadas++;
+    if (v.veredicto === "slug nuevo") conSlugNuevo++;
     console.log("      " + o.id.padEnd(14) + "HTTP " + String(r.status).padEnd(4)
       + "(ya de baja)".padEnd(38) + " ->  " + v.veredicto);
+    // Si le hemos guardado una URL nueva, esa URL tiene que existir de verdad:
+    // es lo que va a resucitar la oferta en la pasada siguiente.
+    if (v.veredicto === "slug nuevo") {
+      const nueva = (v.sql.match(/source_url = '([^']+)'/) || [])[1];
+      await new Promise((s) => setTimeout(s, 900));
+      const r2 = await fetch(nueva, { method: "HEAD", headers: H, redirect: "manual", signal: AbortSignal.timeout(25000) });
+      console.log("         la URL nueva da HTTP " + r2.status + "   " + nueva.slice(-46));
+      if (r2.status === 200) resucitables++;
+    }
     await new Promise((s) => setTimeout(s, 1500));
   }
-  comprueba("sigue reconociendo como vendidas las que ya dio de baja",
-    yaMuertas.length === 0 || confirmadas === yaMuertas.length,
-    "(" + confirmadas + " de " + yaMuertas.length + ")");
+  // Cada una de las que ya constaban de baja tiene que salir clasificada: o
+  // vendida de verdad, o con slug nuevo. Lo que no puede quedar es ninguna sin
+  // veredicto.
+  comprueba("clasifica todas las que ya constaban de baja",
+    yaMuertas.length === 0 || confirmadas + conSlugNuevo === yaMuertas.length,
+    "(" + confirmadas + " vendidas, " + conSlugNuevo + " con slug nuevo, de " + yaMuertas.length + ")");
+  comprueba("y las URLs nuevas que guarda existen de verdad",
+    conSlugNuevo === resucitables,
+    conSlugNuevo ? "(" + resucitables + " de " + conSlugNuevo + " dan 200)" : "(no ha salido ninguna)");
 
   // ══ el parte ═════════════════════════════════════════════════════════════
   console.log("\nEL PARTE");
@@ -233,6 +294,19 @@ const comprueba = (nombre, cond, detalle) => {
       WHERE portal='gamboa' ORDER BY id DESC LIMIT 1`)).rows[0];
     comprueba("queda escrito en moveadvisor_verify_runs", !!p);
     comprueba("con el reparto de veredictos", p && p.checked > 0);
+
+    // Y el parte de una pasada que solo ha reconfirmado muertas tiene que decir
+    // CERO bajas. Antes decía «50 bajas» los días en que no se dio de baja a
+    // nadie, y eso es lo que hacía que la avería pareciera una matanza.
+    const soloRecon = ejecuta(codigo("Code: Resumen"),
+      { estatico: e1b, $: () => uno({}), $input: uno({}) });
+    await c.query(soloRecon.items[0].json.sql);
+    const p2 = (await c.query(`SELECT * FROM moveadvisor_verify_runs
+      WHERE portal='gamboa' ORDER BY id DESC LIMIT 1`)).rows[0];
+    console.log("      pasada de solo reconfirmaciones -> revisadas " + p2.checked
+      + ", bajas " + p2.deactivated + ", bloqueada " + p2.blocked);
+    comprueba("una pasada de solo reconfirmaciones apunta 0 bajas", p2.deactivated === 0);
+    comprueba("y no queda marcada como avería", p2.blocked === false);
   } finally { await c.query("ROLLBACK"); await c.end(); }
 
   console.log(fallos === 0 ? "\nTodo correcto." : "\n" + fallos + " comprobaciones han fallado.");

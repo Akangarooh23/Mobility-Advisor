@@ -81,42 +81,62 @@ const ESPERA_SEGUNDOS = 1;
 // El cortacircuitos: a partir de estas comprobaciones, si el porcentaje de
 // bajas pasa del limite, se para.
 //
-// Solo tiene sentido con la cola en orden aleatorio. Con la cola ordenada por
-// antiguedad medía el frente -las vendidas- en vez del catalogo, y saltaba
-// siempre. La mortandad real medida en una pasada completa fue del 63%; el 85%
-// solo se alcanza si ha pasado algo de verdad, como que el concesionario
-// rehaga su web y empiece a redirigirlo todo.
+// Cuenta SOLO muertes nuevas -ofertas que constaban activas y ya no estan-
+// sobre el numero de ACTIVAS miradas. Reconfirmar un coche que ya sabiamos
+// vendido no es mortandad: es la comprobacion semanal haciendo su trabajo.
+//
+// Contarlas rompio el verificador tres dias seguidos. Ver el comentario de la
+// consulta de la cola.
+//
+// Y solo tiene sentido con la cola en orden aleatorio dentro de cada grupo. Con
+// la cola ordenada por antiguedad medía el frente -las vendidas- en vez del
+// catalogo, y saltaba siempre. La mortandad real medida en una pasada completa
+// fue del 63%; el 85% solo se alcanza si ha pasado algo de verdad, como que el
+// concesionario rehaga su web y empiece a redirigirlo todo.
 const MINIMO_PARA_JUZGAR = 50;
 const TOPE_MORTANDAD = 0.85;
 
 const COLA = `-- Las ofertas de Gamboa que toca comprobar hoy.
 --
--- Entran tambien las que ya constan inactivas: cuesta poco reconfirmarlas y es
--- la unica forma de que una que se diera por muerta por error vuelva sola.
+-- Las ACTIVAS van cada dia: son las que estan en el escaparate y las que un
+-- cliente puede intentar comprar. Las que YA CONSTAN DE BAJA van una vez por
+-- semana, solo para que una que se diera por muerta por error pueda resucitar.
 --
--- Con ${LOTE} de tope, el catalogo entero cabe en UNA pasada. Las otras tres del
--- dia se encuentran la cola vacia -el filtro de 20 horas ya las ha descartado-
--- y terminan en segundos; estan para recoger lo que entre a media tarde.
+-- Antes entraban las dos con el mismo filtro de 20 horas, y eso rompio el
+-- verificador entero durante tres dias. Las 548 activas se habian comprobado a
+-- mano el 2026-09-08 a las 17:09, asi que el filtro de 20 horas las dejaba
+-- fuera; la cola quedaba con las 444 bajas y NADA MAS. Cada reconfirmacion de
+-- una muerta contaba como baja para el cortacircuitos, que saltaba a las 50
+-- fichas con "mortandad del 100%" y cortaba la pasada antes de llegar a
+-- ninguna viva. Las cuatro pasadas del dia se gastaban en eso:
+--
+--     09/09 04:01   activas 0   ya de baja 50   BLOQUEADA
+--     08/09 16:01   activas 0   ya de baja 42   BLOQUEADA
+--
+-- Ademas, reconfirmar 444 muertas cada dia son 444 peticiones para enterarse de
+-- algo que ya sabemos. Una vez por semana sobra.
 SELECT id, source_url, is_active
 FROM moveadvisor_marketplace_vo_offers
 WHERE portal = 'gamboa'
   AND COALESCE(source_url, '') <> ''
-  AND (last_checked_at IS NULL OR last_checked_at < NOW() - INTERVAL '20 hours')
--- Al azar, y no por antiguedad. Parece raro, pero es lo que hace que el
--- cortacircuitos signifique algo.
+  AND (
+    (is_active AND (last_checked_at IS NULL
+                    OR last_checked_at < NOW() - INTERVAL '20 hours'))
+    OR
+    (NOT is_active AND (last_checked_at IS NULL
+                        OR last_checked_at < NOW() - INTERVAL '7 days'))
+  )
+-- Las activas primero, y dentro de cada grupo al azar.
 --
--- Ordenando por last_checked_at, las primeras de la cola son las que el scraper
--- dejo de ver en el listado, o sea justo las vendidas. El frente de la cola era
--- 100% mortandad POR CONSTRUCCION, el cortacircuitos saltaba a las 25 fichas en
--- todas las pasadas y el catalogo no se terminaba de verificar nunca. Paso de
--- verdad el 2026-09-06: 25 miradas, 25 bajas, 308 sin mirar.
+-- Primero las activas porque son las que importan: si una pasada se queda a
+-- medias -por un corte de red o por el propio cortacircuitos-, lo que tiene que
+-- haberse comprobado ya es el escaparate, no el cementerio.
 --
--- Al azar, la mortandad de cualquier tramo se parece a la del catalogo entero,
--- que es lo que el cortacircuitos necesita medir. Y no se pierde cobertura: con
--- LOTE por encima del tamaño de la cola se recorre entera igual, y el filtro de
--- 20 horas garantiza que cada oferta entra una vez por ciclo, venga en el orden
--- que venga.
-ORDER BY random()
+-- Y al azar dentro del grupo porque el orden por antiguedad ponia delante justo
+-- las que el scraper habia dejado de ver, o sea las vendidas: el frente de la
+-- cola era 100% mortandad POR CONSTRUCCION. Paso el 2026-09-06: 25 miradas, 25
+-- bajas, 308 sin mirar.
+ORDER BY is_active DESC, random()
 LIMIT ${LOTE}`;
 
 const CODE_TOCA = `// Arranque de ejecucion, cortacircuitos y guarda de cola vacia.
@@ -132,6 +152,10 @@ if (!s.gam_run || s.gam_run !== $execution.id) {
   s.gam_raras = 0;
   s.gam_fallos = 0;
   s.gam_motivo = '';
+  // Las dos que miden de verdad la mortandad: activas miradas y muertes
+  // nuevas. Las reconfirmaciones de bajas ya sabidas no entran en ninguna.
+  s.gam_activas_vistas = 0;
+  s.gam_bajas_nuevas = 0;
 }
 
 // Una cola vacia no llega como "nada". Cuando la consulta no devuelve filas,
@@ -188,6 +212,7 @@ if (codigo === 0 || codigo >= 500) {
 }
 
 s.gam_vistas = (s.gam_vistas || 0) + 1;
+if (eraActiva) s.gam_activas_vistas = (s.gam_activas_vistas || 0) + 1;
 
 // ── sigue publicado ────────────────────────────────────────────────────────
 // Se pide con HEAD, asi que no hay cuerpo que mirar: la señal es el codigo.
@@ -223,20 +248,51 @@ const seLoLleva = esRedirect && !(numeroOferta && destino.indexOf(numeroOferta) 
 const esBaja = codigo === 404 || codigo === 410 || seLoLleva;
 
 if (esRedirect && !seLoLleva) {
-  console.log('[gamboa-verificar] ' + id + ': redirect que conserva el numero ('
-    + destino + '). Es la web normalizando su URL, no una venta.');
-  return soloFecha('redirect propio');
+  // El destino lleva el numero de la oferta, asi que no es una venta: Gamboa ha
+  // cambiado el slug. Se guarda la URL NUEVA.
+  //
+  // Antes solo se rotaba la fecha, y eso dejaba muertas para siempre a las que
+  // ya constaban de baja: su URL vieja no volveria a dar 200 nunca. Medido el
+  // 2026-09-09 sobre 25 bajas al azar, CUATRO estaban vivas en su URL nueva
+  // -16%-. Sobre las 444 bajas de Gamboa son unos 70 coches fuera del
+  // escaparate que se pueden vender.
+  //
+  // No se resucita aqui: eso seria adivinar que el destino esta vivo, y
+  // comprobarlo costaria una segunda peticion por ficha. Con la URL corregida,
+  // la proxima pasada la pide directamente y, si contesta 200, la resucita ella
+  // sola por el camino normal.
+  //
+  // updated_at no se toca: cambiar de URL no es que el anuncio haya cambiado.
+  const base = (String(oferta.source_url || '').match(/^https?:\\/\\/[^/]+/) || [''])[0];
+  const abs = /^https?:\\/\\//.test(destino) ? destino : (base + destino);
+  console.log('[gamboa-verificar] ' + id + ': slug nuevo -> ' + abs);
+  if (!base || !destino) return soloFecha('redirect propio');
+  return [{ json: {
+    sql: 'UPDATE moveadvisor_marketplace_vo_offers SET source_url = ' + esc(abs)
+      + ', last_checked_at = NOW() WHERE id = ' + esc(id),
+    veredicto: 'slug nuevo',
+  } }];
 }
 
 if (esBaja) {
   s.gam_bajas = (s.gam_bajas || 0) + 1;
+  // Solo es una MUERTE NUEVA si constaba activa. Reconfirmar una baja ya sabida
+  // no dice nada de la salud del catalogo.
+  if (eraActiva) s.gam_bajas_nuevas = (s.gam_bajas_nuevas || 0) + 1;
 
-  // Cortacircuitos. Si de golpe casi todo sale muerto es que ha cambiado la web
-  // del concesionario, no que haya vendido el concesionario entero.
-  const vistas = s.gam_vistas || 0;
-  if (vistas >= ${MINIMO_PARA_JUZGAR} && (s.gam_bajas / vistas) > ${TOPE_MORTANDAD}) {
+  // Cortacircuitos. Si de golpe casi todo lo que estaba vivo sale muerto es que
+  // ha cambiado la web del concesionario, no que haya vendido el concesionario
+  // entero.
+  //
+  // Se mide sobre las ACTIVAS miradas, no sobre todo lo mirado. Con el total,
+  // una cola llena de bajas ya sabidas daba 100% de mortandad y cortaba la
+  // pasada antes de comprobar una sola oferta viva. Paso tres dias seguidos,
+  // del 2026-09-07 al 09.
+  const activas = s.gam_activas_vistas || 0;
+  const nuevas = s.gam_bajas_nuevas || 0;
+  if (activas >= ${MINIMO_PARA_JUZGAR} && (nuevas / activas) > ${TOPE_MORTANDAD}) {
     s.gam_parado = true;
-    s.gam_motivo = 'mortandad del ' + Math.round(100 * s.gam_bajas / vistas) + '% en ' + vistas + ' fichas';
+    s.gam_motivo = 'mortandad del ' + Math.round(100 * nuevas / activas) + '% en ' + activas + ' activas';
     console.log('[gamboa-verificar] PARADO: ' + s.gam_motivo
       + '. Eso no es que Gamboa haya vendido el concesionario: es que ha cambiado la web.');
     return soloFecha('parado');
@@ -266,9 +322,10 @@ const s = $getWorkflowStaticData('global');
 const vistas = s.gam_vistas || 0;
 
 console.log('[gamboa-verificar] ── resumen ──');
-console.log('  fichas miradas   : ' + vistas);
+console.log('  fichas miradas   : ' + vistas + ' (' + (s.gam_activas_vistas || 0) + ' estaban activas)');
 console.log('  siguen publicadas: ' + (s.gam_vivas || 0));
-console.log('  dadas de baja    : ' + (s.gam_bajas || 0));
+console.log('  BAJAS NUEVAS     : ' + (s.gam_bajas_nuevas || 0));
+console.log('  bajas ya sabidas : ' + ((s.gam_bajas || 0) - (s.gam_bajas_nuevas || 0)));
 console.log('  sin clasificar   : ' + (s.gam_raras || 0));
 console.log('  fallos pasajeros : ' + (s.gam_fallos || 0));
 if (s.gam_parado) console.log('  PARADO POR EL CORTACIRCUITOS: ' + s.gam_motivo);
@@ -276,15 +333,25 @@ if ((s.gam_raras || 0) > vistas * 0.1) {
   console.log('  OJO: mas del 10% sin clasificar. Mirar esas URLs: o Gamboa ha');
   console.log('  cambiado el maquetado, o hay un tercer estado que no conocemos.');
 }
+// Si una pasada no llega a mirar ninguna activa, el escaparate se ha quedado
+// sin verificar ese dia aunque el parte salga limpio. Es exactamente lo que
+// pasaba del 2026-09-07 al 09 y no lo dijo nadie.
+if (!s.gam_parado && (s.gam_activas_vistas || 0) === 0 && vistas > 0) {
+  console.log('  OJO: no se ha mirado NI UNA oferta activa. Solo bajas ya sabidas.');
+}
 
 const n = v => String(Number(v) || 0);
+// 'deactivated' son las bajas NUEVAS. Contar ahi las reconfirmaciones hacia que
+// el parte dijera "50 bajas" los dias en que no se habia dado de baja a nadie.
 const sql = 'INSERT INTO moveadvisor_verify_runs'
   + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'
   + " VALUES ('gamboa', NOW(), " + n(vistas) + ', ' + n(s.gam_vivas) + ', '
-  + n(s.gam_bajas) + ', ' + n(s.gam_raras) + ', ' + n(s.gam_fallos) + ', '
+  + n(s.gam_bajas_nuevas) + ', ' + n(s.gam_raras) + ', ' + n(s.gam_fallos) + ', '
   + (s.gam_parado ? 'TRUE' : 'FALSE') + ', ${ESPERA_SEGUNDOS})';
 
-return [{ json: { sql: sql, vistas: vistas, vivas: s.gam_vivas || 0, bajas: s.gam_bajas || 0,
+return [{ json: { sql: sql, vistas: vistas, vivas: s.gam_vivas || 0,
+  bajas: s.gam_bajas_nuevas || 0, reconfirmadas: (s.gam_bajas || 0) - (s.gam_bajas_nuevas || 0),
+  activas_vistas: s.gam_activas_vistas || 0,
   raras: s.gam_raras || 0, fallos: s.gam_fallos || 0, parado: !!s.gam_parado } }];`;
 
 const condicionBooleana = (id, campo) => ({

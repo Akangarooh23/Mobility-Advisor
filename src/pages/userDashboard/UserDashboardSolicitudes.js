@@ -42,6 +42,19 @@ export default function UserDashboardSolicitudes({
     return () => clearInterval(id);
   }, [userEmail]);
 
+/**
+ * En qué solicitudes hay de verdad una cita con alguien.
+ *
+ * Solo en esas se puede «anular la cita»: en las demás —renting, pedir
+ * información, que le vendamos el coche— no hay ninguna hora acordada, y
+ * ofrecerle anular una cita que no existe le hace pensar que quedó con nosotros
+ * y no se acuerda.
+ *
+ * Estaba escrito como «si es renting, solicitud; si no, cita», que dejaba fuera
+ * a «Solicitar info» y a «Preguntar», que tampoco tienen cita.
+ */
+const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
+
   const TYPE_LABEL = {
     info:            "Solicitar info",
     visit:           "Agendar visita",
@@ -51,6 +64,9 @@ export default function UserDashboardSolicitudes({
     visita_marketplace: "Visita",
     // Una solicitud de importación. Sin esto salía la palabra «import» a secas.
     import:          "🌍 Importar un coche",
+    // Que le vendamos su coche. Sin esto salia «venta_gestionada» en crudo, y
+    // aqui lo lee el cliente, no nosotros.
+    venta_gestionada: "🤝 Lo vendemos por ti",
   };
   const TYPE_COLOR = {
     info:            { bg: "rgba(255,196,0,0.12)",  color: "var(--marca-oscuro)", border: "rgba(255,196,0,0.25)" },
@@ -60,6 +76,7 @@ export default function UserDashboardSolicitudes({
     import:          { bg: "rgba(37,99,235,0.10)",   color: "#1d4ed8", border: "rgba(37,99,235,0.25)" },
     viewing_seller:  { bg: "rgba(234,88,12,0.12)",   color: "#c2410c", border: "rgba(234,88,12,0.25)" },
     visita_marketplace: { bg: "rgba(37,99,235,0.12)", color: "#1d4ed8", border: "rgba(37,99,235,0.25)" },
+    venta_gestionada: { bg: "rgba(139,92,246,0.12)", color: "#6d28d9", border: "rgba(139,92,246,0.25)" },
   };
   /**
    * Por dónde va una importación, contado para quien la espera.
@@ -592,6 +609,8 @@ export default function UserDashboardSolicitudes({
               || { bg: "rgba(94,94,89,0.10)", color: "var(--gris-600)" };
             const isVisit = item.type === "visit";
             const isRenting = item.type === "renting" || meta.portal === "marketplace-vo-renting";
+            // Si hay una hora acordada con alguien, o solo una solicitud.
+            const esUnaCita = CON_CITA.includes(item.type) || !!meta.appointment_date;
             const isViewingSeller = item.type === "viewing_seller";
             const hasAppt = isVisit && !!meta.appointment_date;
             const isReserved = item.status === "Cita confirmada";
@@ -1016,7 +1035,7 @@ export default function UserDashboardSolicitudes({
                 {/* Cancelled */}
                 {item.status === "Cancelado" && (
                   <div style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, padding: "8px 12px", fontSize: 13, color: "#b91c1c" }}>
-                    {isRenting ? "❌ Solicitud de renting anulada" : "❌ Cita anulada"}
+                    {isRenting ? "❌ Solicitud de renting anulada" : esUnaCita ? "❌ Cita anulada" : "❌ Solicitud anulada"}
                   </div>
                 )}
 
@@ -1057,7 +1076,7 @@ export default function UserDashboardSolicitudes({
                       onClick={() => openCancel(item.id)}
                       style={{ ...btnBase, background: isDark ? "rgba(239,68,68,0.08)" : "var(--gris-100)", color: "#dc2626", borderColor: "rgba(239,68,68,0.25)" }}
                     >
-                      {isRenting ? "Anular solicitud" : "Anular cita"}
+                      {esUnaCita ? "Anular cita" : "Anular solicitud"}
                     </button>
                   </div>
                 )}
@@ -1092,8 +1111,8 @@ export default function UserDashboardSolicitudes({
                 {isCancelConfirm && (
                   <div style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, padding: "12px 14px" }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "#b91c1c", marginBottom: 8 }}>
-                      {isRenting ? "¿Seguro que quieres anular esta solicitud de renting?" : "¿Seguro que quieres anular esta cita?"}
-                      {isReserved && !isRenting && <span style={{ display: "block", fontSize: 12, fontWeight: 400, marginTop: 4 }}>La reserva del vehículo también se cancelará.</span>}
+                      {isRenting ? "¿Seguro que quieres anular esta solicitud de renting?" : esUnaCita ? "¿Seguro que quieres anular esta cita?" : "¿Seguro que quieres anular esta solicitud?"}
+                      {isReserved && esUnaCita && <span style={{ display: "block", fontSize: 12, fontWeight: 400, marginTop: 4 }}>La reserva del vehículo también se cancelará.</span>}
                     </div>
                     {actionError && <div style={{ fontSize: 12, color: "#dc2626", marginBottom: 8 }}>{actionError}</div>}
                     <div style={{ display: "flex", gap: 8 }}>

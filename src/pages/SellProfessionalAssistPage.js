@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
 import "./SellProfessionalAssistPage.css";
+import FormularioEncargoVenta from "../components/FormularioEncargoVenta";
 
-export default function SellProfessionalAssistPage({ onGoBack, onGoHome, onStartRequest }) {
+export default function SellProfessionalAssistPage({ onGoBack, onGoHome }) {
   const { t } = useTranslation();
 
   return (
@@ -50,7 +51,7 @@ export default function SellProfessionalAssistPage({ onGoBack, onGoHome, onStart
                 <div className="step-label">{t("sell.professionalStep1Label")}</div>
                 <div className="step-title">{t("sell.professionalStep1Title")}</div>
                 <div className="step-desc">{t("sell.professionalStep1Desc")}</div>
-                <div className="step-tag tag-opt">{t("sell.professionalStep1Tag")}</div>
+                <div className="step-tag tag-inc">{t("sell.professionalStep1Tag")}</div>
                 <div className="detail-box">
                   <div className="detail-feat">{t("sell.professionalStep1Feat1")}</div>
                   <div className="detail-feat">{t("sell.professionalStep1Feat2")}</div>
@@ -120,11 +121,16 @@ export default function SellProfessionalAssistPage({ onGoBack, onGoHome, onStart
           <div className="dc-title">{t("sell.professionalCtaTitle")}</div>
           <div className="dc-sub">{t("sell.professionalCtaSubtitle")}</div>
         </div>
+        {/*
+          * El formulario va aquí, no detrás del botón.
+          *
+          * Antes esto llevaba al formulario de contacto general, que no
+          * preguntaba ni qué coche ni en cuánto tiempo — que es exactamente lo
+          * que el texto de al lado promete preguntar. Y no creaba ningún lead:
+          * mandaba un correo a una bandeja.
+          */}
         <div className="dc-right">
-          <button className="btn-gold" type="button" onClick={onStartRequest}>
-            {t("sell.professionalCtaButton")}
-            <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-          </button>
+          <FormularioEncargoVenta />
           <button className="btn-outline" type="button" onClick={onGoHome}>{t("sell.professionalCtaBackButton")}</button>
         </div>
       </div>

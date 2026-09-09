@@ -169,6 +169,25 @@ const MiCitaPage = lazy(() => import("./pages/MiCitaPage"));
 const ElegirHoraPage = lazy(() => import("./pages/ElegirHoraPage"));
 const ComoFuePage = lazy(() => import("./pages/ComoFuePage"));
 const ConfirmarVisitaPage = lazy(() => import("./pages/ConfirmarVisitaPage"));
+const CochePorMatriculaPage = lazy(() => import("./pages/CochePorMatriculaPage"));
+
+/**
+ * La matricula de `/v/8888LXR`, o cadena vacia si el camino no es ese.
+ *
+ * Escrita aqui y no importada de `lib/`: eso es CommonJS del lado del servidor y
+ * este paquete no lo empaqueta. La regla es la misma y hay prueba de que las dos
+ * dicen lo mismo.
+ */
+function matriculaDeLaRuta(camino) {
+  const limpio = String(camino ?? "").split("?")[0].split("#")[0].replace(/\/+$/, "");
+  const trozos = limpio.split("/").filter(Boolean);
+  if (trozos.length !== 2 || trozos[0].toLowerCase() !== "v") return "";
+  try {
+    return decodeURIComponent(trozos[1]);
+  } catch {
+    return trozos[1];
+  }
+}
 const SeoStaticPage = lazy(() => import("./pages/SeoStaticPage"));
 const AboutCarswisePage = lazy(() => import("./pages/AboutCarswisePage"));
 const ContactCarswisePage = lazy(() => import("./pages/ContactCarswisePage"));
@@ -4516,6 +4535,19 @@ export default function App() {
   // su visita. Sin sesion: la llave es el testigo de su cita.
   if (typeof window !== "undefined" && window.location.pathname === "/como-fue") {
     return <ComoFuePage />;
+  }
+
+  // -------------------- COCHE POR MATRICULA STANDALONE PAGE --------------------
+  // `/v/8888LXR` es la direccion que va escrita en los anuncios de coches.net,
+  // Milanuncios y demas: alli no se puede enlazar, solo poner texto que alguien
+  // teclea. Busca el coche por su matricula y lleva a su ficha.
+  if (typeof window !== "undefined" && matriculaDeLaRuta(window.location.pathname)) {
+    return (
+      <CochePorMatriculaPage
+        matricula={matriculaDeLaRuta(window.location.pathname)}
+        onVerOtros={() => { window.location.href = "/marketplace-vo"; }}
+      />
+    );
   }
 
   // -------------------- CONFIRMAR VISITA STANDALONE PAGE --------------------

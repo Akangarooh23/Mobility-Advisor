@@ -89,8 +89,25 @@ function corre(js, entrada, contexto) {
   // ══ la llamada al sub-workflow ═══════════════════════════════════════════
   console.log("\nLA LLAMADA AL SUB-WORKFLOW");
   const llamada = orq.nodes.find((n) => n.type.endsWith("executeWorkflow"));
-  const id = ((llamada.parameters || {}).workflowId || {}).value;
-  comprueba("el orquestador llama a un sub-workflow por id", !!id, id);
+  const wid = (llamada.parameters || {}).workflowId;
+
+  // La forma del parámetro depende de la versión del nodo, y equivocarse no da
+  // un error claro: n8n pinta «[object Object]» en el campo y responde
+  // «Workflow does not exist».
+  //
+  //     @version 1        workflowId: type 'string'            -> cadena pelada
+  //     @version >= 1.1   workflowId: type 'workflowSelector'  -> { __rl, value }
+  //
+  // Este nodo estaba en la versión 1 con el objeto de la 1.1, o sea mal desde
+  // que se escribió. Y encima con un id que tampoco existía.
+  const v = Number(llamada.typeVersion || 1);
+  const esObjeto = wid !== null && typeof wid === "object";
+  comprueba("el id del sub-workflow tiene la forma que pide la versión del nodo",
+    v >= 1.1 ? esObjeto : !esObjeto,
+    "typeVersion " + v + ", " + (esObjeto ? "objeto" : "cadena"));
+
+  const id = esObjeto ? wid.value : wid;
+  comprueba("el orquestador llama a un sub-workflow por id", !!id, String(id));
   if (fs.existsSync(N8N_DB)) {
     const db = new DatabaseSync(N8N_DB, { readOnly: true });
     const dest = db.prepare("SELECT name FROM workflow_entity WHERE id = ?").get(String(id));

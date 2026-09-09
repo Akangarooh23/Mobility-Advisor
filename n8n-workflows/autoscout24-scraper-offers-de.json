@@ -62,12 +62,7 @@
     },
     {
       "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "value": "OxBJqwvGAdaqAI7z",
-          "mode": "id",
-          "cachedResultName": "AutoScout24 – Segmento DE (Importación)"
-        },
+        "workflowId": "OxBJqwvGAdaqAI7z",
         "options": {}
       },
       "id": "as-a-exec",

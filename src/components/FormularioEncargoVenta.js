@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { PLAZOS, faltaParaMandarlo, loQueSeManda } from "../utils/encargoDeVentaWeb";
+import { PLAZOS, faltaParaMandarlo, loQueSeManda, loQueLeQueda, GUIA } from "../utils/encargoDeVentaWeb";
 import { getGarageVehiclesJson } from "../utils/apiClient";
 
 /**
@@ -97,15 +97,26 @@ export default function FormularioEncargoVenta({ userEmail = "" }) {
   }
 
   if (hecho) {
+    /*
+     * Lo que le queda por hacer depende de si sabemos que su coche existe.
+     *
+     * Aquí había un solo texto y decía «no tienes que hacer nada más». Para
+     * quien no ha entrado eso no lo podemos sostener: no sabemos si tiene la
+     * ficha creada, y si no la tiene, lo que le espera es justo lo contrario.
+     * Prometérselo y pedírselo en la llamada es empezar la llamada mal.
+     */
+    const queda = loQueLeQueda({ haySesion, eligioUnCoche: Boolean(datos.vehicleId) });
     return (
       <div className="fev-hecho">
         <div className="fev-hecho-icono">✅</div>
         <div className="fev-hecho-titulo">Hecho. Te llamamos nosotros.</div>
         <p className="fev-hecho-texto">
           Te llamamos al {datos.telefono} en menos de 24 horas laborables para contarte
-          a qué precio se está vendiendo tu coche y cómo lo haríamos. No tienes que
-          hacer nada más, y no hay ningún compromiso.
+          a qué precio se está vendiendo tu coche y cómo lo haríamos. {queda.texto}
         </p>
+        {queda.guia && (
+          <a className="fev-hecho-guia" href={GUIA}>Ver cómo se da de alta un coche</a>
+        )}
       </div>
     );
   }
@@ -124,7 +135,7 @@ export default function FormularioEncargoVenta({ userEmail = "" }) {
             Se crea en un momento desde tu panel y luego vuelves aquí.
           </p>
           <a className="fev-aviso-boton" href="/panel/vehiculos">Dar de alta mi coche</a>
-          <a className="fev-aviso-guia" href="/como-subir-tu-coche">O mira antes cómo se hace</a>
+          <a className="fev-aviso-guia" href={GUIA}>O mira antes cómo se hace</a>
         </div>
       ) : (
         <div className="fev-campo">
@@ -137,10 +148,26 @@ export default function FormularioEncargoVenta({ userEmail = "" }) {
               ))}
             </select>
           ) : (
-            <input
-              id="fev-coche" value={datos.coche} onChange={pon("coche")}
-              placeholder="Seat Ibiza 2019, o su matrícula"
-            />
+            <>
+              <input
+                id="fev-coche" value={datos.coche} onChange={pon("coche")}
+                placeholder="Seat Ibiza 2019, o su matrícula"
+              />
+              {/*
+                * Y la guía, también aquí.
+                *
+                * Vivía solo dentro del aviso de «no tienes coches», que únicamente
+                * ve quien ha entrado. Desde fuera no se llegaba a ella por ningún
+                * lado — y de fuera es de donde viene el que llega de coches.net.
+                *
+                * Va como una nota y no como un aviso: pedirle la ficha antes de
+                * dejarle preguntar es poner una puerta donde había una pregunta.
+                */}
+              <p className="fev-nota">
+                Para venderlo necesitaremos su ficha —matrícula, fotos y papeles—.
+                Si aún no la tienes, <a href={GUIA}>aquí se explica cómo se crea</a>.
+              </p>
+            </>
           )}
         </div>
       )}

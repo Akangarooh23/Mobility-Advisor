@@ -89,3 +89,48 @@ export function loQueSeManda({ coche, plazo, nombre, telefono, email }) {
   };
 }
 
+
+/**
+ * La ruta de la guía de cómo dar de alta el coche.
+ *
+ * Escrita una vez: estaba en un solo sitio del formulario —dentro del aviso que
+ * solo ve quien ha entrado y no tiene coches— y desde fuera no se llegaba a
+ * ella por ningún lado.
+ */
+export const GUIA = "/como-subir-tu-coche";
+
+/**
+ * Qué se le dice después de mandarlo.
+ *
+ * Había un solo texto para todos y decía **«no tienes que hacer nada más»**.
+ * Para quien ha entrado y ha elegido uno de sus coches es verdad. Para quien no
+ * ha entrado no lo sabemos, y si resulta que no tiene la ficha creada, lo que
+ * le espera es justo lo contrario: matrícula, seis fotos, permiso de
+ * circulación, ficha técnica e ITV.
+ *
+ * Prometerle que no hay nada más y pedirle todo eso en la llamada es la manera
+ * de que la llamada empiece mal. Se le dice antes, sin asustarle: no es un
+ * requisito nuevo, es lo mismo que iba a tener que hacer igualmente.
+ */
+export function loQueLeQueda({ haySesion, eligioUnCoche } = {}) {
+  /*
+   * Solo cuando sabemos que el coche existe se promete que no queda nada. Y eso
+   * solo se sabe si lo ha elegido de su lista: tener sesión no basta —puede
+   * haber entrado y escrito el coche a mano— y en ese caso estamos igual de a
+   * oscuras que sin sesión.
+   */
+  if (haySesion && eligioUnCoche) {
+    return {
+      texto:
+        "No tienes que hacer nada más, y no hay ningún compromiso.",
+      guia: false,
+    };
+  }
+  return {
+    texto:
+      "Si todavía no tienes la ficha de tu coche creada, es lo único que te " +
+      "pediremos: matrícula, unas fotos y los papeles. Te lo explicamos en la " +
+      "llamada, y no hay ningún compromiso.",
+    guia: true,
+  };
+}

@@ -493,3 +493,35 @@
   text-underline-offset: 3px;
 }
 .vpt-root .fev-aviso-guia:hover { color: var(--gris-900); }
+
+/*
+ * La nota de la ficha del coche, bajo el campo de texto libre.
+ *
+ * Gris y pequeña a proposito: es un aviso de lo que va a hacer falta, no un
+ * requisito para poder preguntar. En el tono del error se leeria como una
+ * puerta, y ahi es donde se pierde a la gente.
+ */
+.vpt-root .fev-nota {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--gris-500);
+}
+.vpt-root .fev-nota a {
+  color: var(--gris-600);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.vpt-root .fev-nota a:hover { color: var(--gris-900); }
+
+/* Y el mismo enlace en la pantalla de «hecho», cuando no sabemos si lo tiene. */
+.vpt-root .fev-hecho-guia {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gris-900);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.vpt-root .fev-hecho-guia:hover { opacity: 0.7; }

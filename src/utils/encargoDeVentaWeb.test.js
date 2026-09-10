@@ -5,7 +5,7 @@
  * verdad, y que lo que el cliente cuenta llegue al ERP en vez de a una bandeja
  * de correo.
  */
-import { PLAZOS, elPlazo, faltaParaMandarlo, loQueSeManda } from "./encargoDeVentaWeb";
+import { PLAZOS, elPlazo, faltaParaMandarlo, loQueSeManda, loQueLeQueda, GUIA } from "./encargoDeVentaWeb";
 
 const bien = {
   coche: "Seat Ibiza 2019", plazo: "1mes",
@@ -109,5 +109,99 @@ describe("lo que llega al ERP", () => {
 
   test("un plazo raro no inventa una etiqueta", () => {
     expect(loQueSeManda({ ...bien, plazo: "cuando sea" }).when).toMatch(/sin decir/);
+  });
+});
+
+
+describe("qué se le dice después de mandarlo", () => {
+  /*
+   * Había un solo texto y decía «no tienes que hacer nada más». Para quien no
+   * ha entrado eso es una promesa que no podemos sostener: no sabemos si tiene
+   * el coche dado de alta, y si no lo tiene, lo que le espera es matrícula,
+   * fotos y papeles.
+   */
+  test("a quien eligió uno de sus coches no le queda nada", () => {
+    const r = loQueLeQueda({ haySesion: true, eligioUnCoche: true });
+    expect(r.texto).toMatch(/no tienes que hacer nada más/i);
+    // No hace falta enseñarle la guía: su coche ya está dado de alta.
+    expect(r.guia).toBe(false);
+  });
+
+  test("a quien no ha entrado NO se le promete eso", () => {
+    const r = loQueLeQueda({ haySesion: false, eligioUnCoche: false });
+    expect(r.texto).not.toMatch(/no tienes que hacer nada más/i);
+    expect(r.texto).toMatch(/matrícula/i);
+    expect(r.guia).toBe(true);
+  });
+
+  test("y tener sesión no basta: hay que haber elegido el coche", () => {
+    /*
+     * Se puede haber entrado y escribir el coche a mano. Ahí estamos igual de
+     * a oscuras que sin sesión, y dar por hecho que el coche existe porque hay
+     * una cuenta es exactamente el atajo que hace falsa la promesa.
+     */
+    const r = loQueLeQueda({ haySesion: true, eligioUnCoche: false });
+    expect(r.guia).toBe(true);
+    expect(r.texto).not.toMatch(/no tienes que hacer nada más/i);
+  });
+
+  test("sin saber nada, se elige la versión prudente", () => {
+    // De las dos maneras de equivocarse, prometer de menos se corrige en la
+    // llamada; prometer de más ya se ha prometido.
+    expect(loQueLeQueda().guia).toBe(true);
+    expect(loQueLeQueda({}).guia).toBe(true);
+  });
+
+  test("ninguna de las dos suena a requisito nuevo", () => {
+    // No es algo que le pidamos por no haberse registrado: es lo mismo que iba
+    // a tener que hacer de todas formas.
+    for (const r of [
+      loQueLeQueda({ haySesion: true, eligioUnCoche: true }),
+      loQueLeQueda({ haySesion: false, eligioUnCoche: false }),
+    ]) {
+      expect(r.texto).toMatch(/no hay ningún compromiso/i);
+    }
+  });
+});
+
+describe("la guía se puede encontrar", () => {
+  const FUENTE = require("fs")
+    .readFileSync(require("path").join(__dirname, "../components/FormularioEncargoVenta.js"), "utf8")
+    .replace(/\r\n/g, "\n");
+
+  test("tiene una ruta, y es la página que existe", () => {
+    expect(GUIA).toBe("/como-subir-tu-coche");
+  });
+
+  test("el formulario la ofrece también a quien no ha entrado", () => {
+    /*
+     * El enlace vivía en un solo sitio: dentro del aviso que solo ve quien ha
+     * entrado y no tiene coches. Desde fuera no se llegaba a la guía por
+     * ningún lado, que es justo el caso de quien llega de coches.net.
+     *
+     * Se mira **la rama del texto libre**, no el fichero entero: buscando
+     * «GUIA» a secas bastaba con el import para dar la prueba por buena, y con
+     * eso el enlace podía desaparecer de aquí sin que nadie se enterara.
+     */
+    const desde = FUENTE.indexOf('placeholder="Seat Ibiza 2019');
+    const hasta = FUENTE.indexOf("{!sinCoches &&", desde);
+    expect(desde).toBeGreaterThan(0);
+    expect(hasta).toBeGreaterThan(desde);
+    expect(FUENTE.slice(desde, hasta)).toMatch(/GUIA/);
+  });
+
+  test("y en la pantalla de después, cuando no sabemos si tiene coche", () => {
+    // La otra mitad: a quien acaba de mandarlo sin haber entrado hay que
+    // poder enseñarle cómo se hace, no solo decirle que hará falta.
+    const desde = FUENTE.indexOf("if (hecho) {");
+    const hasta = FUENTE.indexOf("const sinCoches", desde);
+    expect(desde).toBeGreaterThan(0);
+    expect(FUENTE.slice(desde, hasta)).toMatch(/queda\.guia &&[\s\S]{0,200}GUIA/);
+  });
+
+  test("y el texto de después sale de la regla, no escrito a mano", () => {
+    // Escrito en el JSX vuelve a poder decir «no tienes que hacer nada más» a
+    // alguien que sí tiene que hacer algo.
+    expect(FUENTE).toMatch(/loQueLeQueda\(/);
   });
 });

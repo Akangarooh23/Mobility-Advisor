@@ -124,6 +124,7 @@ export default function FormularioEncargoVenta({ userEmail = "" }) {
             Se crea en un momento desde tu panel y luego vuelves aquí.
           </p>
           <a className="fev-aviso-boton" href="/panel/vehiculos">Dar de alta mi coche</a>
+          <a className="fev-aviso-guia" href="/como-subir-tu-coche">O mira antes cómo se hace</a>
         </div>
       ) : (
         <div className="fev-campo">

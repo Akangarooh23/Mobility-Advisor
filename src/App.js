@@ -170,6 +170,7 @@ const ElegirHoraPage = lazy(() => import("./pages/ElegirHoraPage"));
 const ComoFuePage = lazy(() => import("./pages/ComoFuePage"));
 const ConfirmarVisitaPage = lazy(() => import("./pages/ConfirmarVisitaPage"));
 const CochePorMatriculaPage = lazy(() => import("./pages/CochePorMatriculaPage"));
+const ComoSubirTuCochePage = lazy(() => import("./pages/ComoSubirTuCochePage"));
 
 /**
  * La matricula de `/v/8888LXR`, o cadena vacia si el camino no es ese.
@@ -4559,6 +4560,19 @@ export default function App() {
   // su visita. Sin sesion: la llave es el testigo de su cita.
   if (typeof window !== "undefined" && window.location.pathname === "/como-fue") {
     return <ComoFuePage />;
+  }
+
+  // -------------------- COMO SUBIR TU COCHE STANDALONE PAGE --------------------
+  // La guia que se le manda al cliente que ha dicho que si. Se lee aqui y se
+  // descarga, y las dos cosas dicen lo mismo porque salen del mismo sitio.
+  // Sin sesion: se llega desde un correo, y pedirle que entre para leer una
+  // guia de como entrar no tendria ninguna gracia.
+  if (typeof window !== "undefined" && window.location.pathname === "/como-subir-tu-coche") {
+    return (
+      <ComoSubirTuCochePage
+        onIrAlPanel={() => { window.location.href = "/panel/vehiculos"; }}
+      />
+    );
   }
 
   // -------------------- COCHE POR MATRICULA STANDALONE PAGE --------------------

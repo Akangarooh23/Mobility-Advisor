@@ -1,0 +1,209 @@
+/**
+ * «Cómo subir tu coche».
+ *
+ * Se lee y se sigue, así que está montada como una hoja: una columna, ancho de
+ * lectura, y los pasos numerados como un camino. No es una página de venta —eso
+ * ya pasó, el cliente ha dicho que sí— sino una lista de tareas.
+ *
+ * Colores y letra, los de la aplicación. Nada escrito a mano.
+ */
+
+.csc-root {
+  background: var(--gris-50);
+  color: var(--gris-900);
+  min-height: 100svh;
+  padding: clamp(24px, 5vw, 56px) clamp(16px, 5vw, 32px) clamp(48px, 8vw, 88px);
+  overflow-x: clip;
+}
+
+/* La hoja: un ancho de lectura y nada más. */
+.csc-hoja {
+  max-width: 720px;
+  margin: 0 auto;
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 20px;
+  padding: clamp(24px, 4vw, 46px);
+}
+
+.csc-eyebrow {
+  margin: 0 0 12px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--acento-texto);
+}
+
+.csc-cab h1 {
+  font-family: var(--fuente-titulos);
+  font-size: clamp(28px, 5vw, 40px);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  margin: 0 0 12px;
+  text-wrap: balance;
+}
+
+.csc-entradilla {
+  margin: 0 0 22px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--gris-600);
+}
+
+.csc-acciones { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.csc-descargar,
+.csc-panel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.csc-descargar {
+  border: none;
+  background: var(--gris-900);
+  color: var(--blanco);
+}
+.csc-descargar svg {
+  width: 15px; height: 15px;
+  stroke: currentColor; fill: none; stroke-width: 2.2;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.csc-panel {
+  border: 1px solid var(--gris-200);
+  background: var(--blanco);
+  color: var(--gris-700);
+}
+.csc-panel:hover { border-color: var(--gris-400); }
+
+/* ── Los pasos ────────────────────────────────────────────────────────── */
+.csc-pasos {
+  list-style: none;
+  margin: clamp(30px, 5vw, 46px) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+/* El número y su línea: cinco tarjetas sueltas no son un camino. */
+.csc-paso {
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.csc-paso::before {
+  content: "";
+  position: absolute;
+  left: 19px;
+  top: 40px;
+  bottom: -26px;
+  width: 2px;
+  background: linear-gradient(var(--acento), transparent);
+}
+.csc-paso:last-child::before { display: none; }
+
+.csc-num {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--acento);
+  color: var(--gris-900);
+  font-family: var(--fuente-titulos);
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}
+
+.csc-cuerpo h2 {
+  font-size: clamp(17px, 2.4vw, 20px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 6px 0 4px;
+  line-height: 1.25;
+}
+
+/* Dónde se hace, que es lo primero que busca quien tiene el panel abierto. */
+.csc-donde {
+  margin: 0 0 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--acento-texto);
+  background: var(--acento-tenue);
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.csc-que {
+  margin: 0 0 12px;
+  padding-left: 18px;
+}
+.csc-que li {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--gris-800);
+  margin-bottom: 4px;
+}
+
+.csc-porque,
+.csc-consejo {
+  margin: 0 0 7px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--gris-600);
+}
+.csc-porque strong { color: var(--gris-800); }
+.csc-consejo { color: var(--gris-500); }
+
+/* ── Lo de después ────────────────────────────────────────────────────── */
+.csc-bloque {
+  margin-top: clamp(30px, 5vw, 44px);
+  padding-top: clamp(22px, 3vw, 30px);
+  border-top: 1px solid var(--gris-100);
+}
+.csc-bloque h2 {
+  font-family: var(--fuente-titulos);
+  font-size: clamp(19px, 2.8vw, 24px);
+  letter-spacing: -0.025em;
+  margin: 0 0 12px;
+}
+.csc-bloque ul { margin: 0; padding-left: 18px; }
+.csc-bloque li {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--gris-600);
+  margin-bottom: 7px;
+}
+
+.csc-trato {
+  background: var(--acento-tenue);
+  border: 1px solid var(--acento);
+  border-radius: 16px;
+  padding: 22px;
+  border-top: 1px solid var(--acento);
+}
+.csc-trato li { color: var(--gris-800); }
+
+.csc-dudas {
+  margin: 26px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--gris-500);
+}
+
+@media (max-width: 560px) {
+  .csc-paso { grid-template-columns: 32px minmax(0, 1fr); gap: 12px; }
+  .csc-paso::before { left: 15px; top: 32px; }
+  .csc-num { width: 32px; height: 32px; font-size: 14px; }
+  .csc-acciones button { width: 100%; justify-content: center; }
+}

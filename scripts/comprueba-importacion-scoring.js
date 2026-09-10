@@ -67,6 +67,28 @@ const comprueba = (nombre, cond, detalle) => {
   comprueba("y un ahorro de entre el 15% y el 50%",
     />= 0\.15/.test(SQL) && /<= 0\.5/.test(SQL));
 
+  // ── la horquilla de precio del negocio ────────────────────────────────────
+  //
+  // Por debajo de 4.000 € no sale a cuenta: solo el fee y el impuesto base son
+  // 3.630 €, casi el precio del coche, antes de contar el transporte. Por
+  // encima de 150.000 € es otro negocio — en el ensayo salían Ferrari
+  // Purosangue de 432.850 €, con números buenos y 37 comparables, pero no es el
+  // coche que importamos.
+  console.log("\nLA HORQUILLA DE PRECIO");
+  comprueba("solo puntúa coches de 4.000 a 150.000 €",
+    /AND price BETWEEN 4000 AND 150000/.test(SQL));
+  comprueba("y limpia lo que se queda fuera",
+    /price < 4000 OR price > 150000/.test(SQL)
+    && /import_published = CASE WHEN import_locked THEN import_published ELSE FALSE END/.test(SQL));
+  // Si no se limpiara, un coche publicado ayer que hoy queda fuera de la
+  // horquilla no entraría en el cálculo y conservaría su import_published de
+  // ayer: seguiría ofreciéndose para siempre sin que nada volviera a mirarlo.
+  comprueba("  (si no, lo publicado ayer se quedaría publicado para siempre)", true);
+  // Los comparables españoles NO se capan: hacerlo dejaría a un coche alemán de
+  // 140.000 € sin sus comparables caros y le bajaría la mediana artificialmente.
+  comprueba("pero NO capa los comparables españoles",
+    !/es\.price BETWEEN 4000/.test(SQL) && !/es\.price > 150000/.test(SQL));
+
   // ══ la pasada de verdad ══════════════════════════════════════════════════
   console.log("\nLA PASADA (contra la base, con ROLLBACK)");
   const c = new Client({ connectionString: DB_URL, statement_timeout: 1200000 });
@@ -129,6 +151,19 @@ const comprueba = (nombre, cond, detalle) => {
 
     comprueba("se publica un número razonable de ofertas",
       r.publicadas > 100 && r.publicadas < 5000, r.publicadas + " de 190.374 activas");
+
+    // Y que la horquilla se cumple de verdad en los datos, no solo en el texto
+    // del SQL.
+    const fuera = (await c.query(`SELECT
+        count(*) FILTER (WHERE import_published AND price < 4000)::int baratas,
+        count(*) FILTER (WHERE import_published AND price > 150000)::int caras,
+        count(*) FILTER (WHERE market_price_es IS NOT NULL
+                           AND (price < 4000 OR price > 150000))::int valoradas_fuera
+      FROM moveadvisor_market_offers WHERE country='DE'`)).rows[0];
+    comprueba("ninguna publicada por debajo de 4.000 €", fuera.baratas === 0);
+    comprueba("ninguna publicada por encima de 150.000 €", fuera.caras === 0);
+    comprueba("ninguna valorada fuera de la horquilla", fuera.valoradas_fuera === 0,
+      "(" + fuera.valoradas_fuera + ")");
   } finally {
     await c.query("ROLLBACK");
     console.log("      (deshecho: no se ha escrito nada)");

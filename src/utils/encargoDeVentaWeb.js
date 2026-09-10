@@ -213,6 +213,24 @@ export function laMatriculaRecordada() {
 }
 
 /**
+ * Cómo se le llama al coche cuando se le repite lo que dijo.
+ *
+ * Es el único sitio donde ve lo que escribió. Si se equivocó al teclear la
+ * matrícula, esta es la última oportunidad de que lo vea antes de que alguien
+ * llame preguntando por un coche que no es el suyo.
+ *
+ * Manda el nombre sobre la matrícula: cuando eligió uno de sus coches, «Seat
+ * Ibiza 2019 · 8888LXR» es lo que él reconoce; la matrícula sola solo la
+ * reconoce quien la acaba de teclear.
+ *
+ * Cadena vacía si no hay nada que repetir, para que la pantalla no acabe
+ * diciendo «por el ».
+ */
+export function elCocheQueDijo({ coche, matricula } = {}) {
+  return nt(coche) || comoSeCompara(matricula);
+}
+
+/**
  * Qué se le dice después de mandarlo.
  *
  * Había un solo texto para todos y decía **«no tienes que hacer nada más»**.

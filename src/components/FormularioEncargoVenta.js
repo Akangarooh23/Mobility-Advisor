@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { PLAZOS, faltaParaMandarlo, loQueSeManda, loQueLeQueda, GUIA, elAlta } from "../utils/encargoDeVentaWeb";
+import { PLAZOS, faltaParaMandarlo, loQueSeManda, loQueLeQueda, GUIA, elAlta, elCocheQueDijo } from "../utils/encargoDeVentaWeb";
 import { getGarageVehiclesJson } from "../utils/apiClient";
 
 /**
@@ -121,9 +121,22 @@ export default function FormularioEncargoVenta({ userEmail = "" }) {
       <div className="fev-hecho">
         <div className="fev-hecho-icono">✅</div>
         <div className="fev-hecho-titulo">Hecho. Te llamamos nosotros.</div>
+        {/*
+          * Se le repite qué coche dijo.
+          *
+          * Es el único sitio donde ve lo que escribió: si se equivocó al
+          * teclear la matrícula, esta es la última oportunidad de que lo vea
+          * antes de que alguien llame preguntando por un coche que no es suyo.
+          *
+          * Sin botón de corregir a propósito: el lead ya está mandado, y
+          * rehacer el formulario después de enviarlo complica la pantalla para
+          * algo que la llamada resuelve en diez segundos.
+          */}
         <p className="fev-hecho-texto">
-          Te llamamos al {datos.telefono} en menos de 24 horas laborables para contarte
-          a qué precio se está vendiendo tu coche y cómo lo haríamos. {queda.texto}
+          Te llamamos al {datos.telefono}
+          {elCocheQueDijo(datos) && <> por el <strong>{elCocheQueDijo(datos)}</strong></>}
+          {' '}en menos de 24 horas laborables para contarte a qué precio se está
+          vendiendo tu coche y cómo lo haríamos. {queda.texto}
         </p>
         {queda.guia && (
           <div className="fev-hecho-acciones">

@@ -1,6 +1,6 @@
 import "./ComoSubirTuCochePage.css";
 import {
-  TITULO, ENTRADILLA, PASOS, DESPUES, EL_TRATO, DUDAS,
+  TITULO, ENTRADILLA, PASOS, DESPUES, LO_TUYO, EL_TRATO, DUDAS,
 } from "../utils/comoSubirTuCoche";
 import { descargaLaGuia } from "../utils/guiaDescargable";
 
@@ -72,6 +72,11 @@ export default function ComoSubirTuCochePage({ onIrAlPanel }) {
         <section className="csc-bloque">
           <h2>Y a partir de ahí, nos encargamos nosotros</h2>
           <ul>{DESPUES.map((d) => <li key={d}>{d}</li>)}</ul>
+        </section>
+
+        <section className="csc-bloque">
+          <h2>Y lo que sigue siendo tuyo</h2>
+          <ul>{LO_TUYO.map((t) => <li key={t}>{t}</li>)}</ul>
         </section>
 
         <section className="csc-bloque csc-trato">

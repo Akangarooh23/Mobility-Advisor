@@ -5,7 +5,7 @@
  * verdad, y que lo que el cliente cuenta llegue al ERP en vez de a una bandeja
  * de correo.
  */
-import { PLAZOS, elPlazo, faltaParaMandarlo, loQueSeManda, loQueLeQueda, GUIA, ALTA, elAlta, pareceUnaMatricula, comoSeCompara, recuerdaLaMatricula, laMatriculaRecordada } from "./encargoDeVentaWeb";
+import { PLAZOS, elPlazo, faltaParaMandarlo, loQueSeManda, loQueLeQueda, GUIA, ALTA, elAlta, pareceUnaMatricula, comoSeCompara, recuerdaLaMatricula, laMatriculaRecordada, elCocheQueDijo } from "./encargoDeVentaWeb";
 
 const bien = {
   matricula: "8888LXR", plazo: "1mes",
@@ -429,5 +429,42 @@ describe("la matrícula sobrevive al login", () => {
     const { laMatriculaDeLaUrl } = require("../pages/ServiceIdCarsManagePage");
     recuerdaLaMatricula("?matricula=1111AAA");
     expect(laMatriculaDeLaUrl("?matricula=2222BBB")).toBe("2222BBB");
+  });
+});
+
+describe("se le repite qué coche dijo", () => {
+  /*
+   * Es el único sitio donde ve lo que escribió. Si se equivocó al teclear la
+   * matrícula, esta es la última oportunidad de que lo vea antes de que alguien
+   * llame preguntando por un coche que no es el suyo.
+   */
+  test("el nombre manda sobre la matrícula", () => {
+    // Cuando eligio uno de sus coches, «Seat Ibiza 2019 · 8888LXR» es lo que el
+    // reconoce; la matricula sola solo la reconoce quien la acaba de teclear.
+    expect(elCocheQueDijo({ coche: "Seat Ibiza 2019 · 8888LXR", matricula: "8888LXR" }))
+      .toBe("Seat Ibiza 2019 · 8888LXR");
+  });
+
+  test("y si solo hay matrícula, la matrícula normalizada", () => {
+    expect(elCocheQueDijo({ matricula: "8888 lxr" })).toBe("8888LXR");
+  });
+
+  test("sin nada, cadena vacía", () => {
+    // Para que la pantalla no acabe diciendo «por el ».
+    expect(elCocheQueDijo({})).toBe("");
+    expect(elCocheQueDijo()).toBe("");
+    expect(elCocheQueDijo({ coche: "   ", matricula: "" })).toBe("");
+  });
+
+  test("y la pantalla lo enseña de verdad", () => {
+    /*
+     * Escribir la regla y no usarla deja la pantalla como estaba: diciendo el
+     * telefono y no el coche, que es lo unico que se puede haber tecleado mal.
+     */
+    const FUENTE = require("fs")
+      .readFileSync(require("path").join(__dirname, "../components/FormularioEncargoVenta.js"), "utf8");
+    const desde = FUENTE.indexOf("if (hecho) {");
+    const hasta = FUENTE.indexOf("const tieneCoches", desde);
+    expect(FUENTE.slice(desde, hasta)).toMatch(/elCocheQueDijo\(datos\)/);
   });
 });

@@ -125,6 +125,35 @@ export const DESPUES = [
   "Cuando se vende, hacemos el contrato y la transferencia en la DGT.",
 ];
 
+/**
+ * Y lo que sigue haciendo él.
+ *
+ * Va en lista aparte y no dentro de `DESPUES` porque esa sección se titula «nos
+ * encargamos nosotros»: meter ahí lo suyo la dejaría mintiendo.
+ *
+ * Existe porque sin ella la guía se leía como «a partir de aquí ya no haces
+ * nada», y hace dos cosas — y las dos importan.
+ *
+ * **Enseñar el coche es el modelo entero.** Él lo conserva y él lo enseña; eso
+ * es lo que hace que no le cobremos nada por delante. No aparecía en ningún
+ * sitio de la lista.
+ *
+ * **Y las franjas se gastan.** Según se reservan visitas quedan menos, y si se
+ * acaban el anuncio sigue puesto pero ya nadie puede pedir cita. Es lo único
+ * que puede romper el anuncio sin que se entere, y no se arregla solo.
+ *
+ * No va en el paso de las franjas a propósito: ahí todavía no hay anuncio ni
+ * visitas, y avisar de un problema que aún no existe es ruido. Aquí ya está
+ * hablando de lo que pasa después.
+ */
+export const LO_TUYO = [
+  "Enseñar el coche cuando alguien venga a verlo. Es tuyo y sigue contigo: por " +
+    "eso no adelantas nada.",
+  `Ir dejando huecos libres. Según se reservan visitas quedan menos, y si se ` +
+    `acaban el anuncio sigue puesto pero ya nadie puede pedir cita. Se añaden ` +
+    `desde tu panel cuando quieras.`,
+];
+
 export const EL_TRATO = [
   "No adelantas nada: ni la tasación, ni el informe, ni el taller, ni el anuncio.",
   `Se cobran ${FEE_DE_GESTION} € solo si vendemos tu coche, y con el IVA incluido.`,

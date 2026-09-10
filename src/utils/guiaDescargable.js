@@ -1,5 +1,5 @@
 import {
-  TITULO, ENTRADILLA, PASOS, DESPUES, EL_TRATO, DUDAS,
+  TITULO, ENTRADILLA, PASOS, DESPUES, LO_TUYO, EL_TRATO, DUDAS,
 } from "./comoSubirTuCoche";
 
 /**
@@ -57,6 +57,7 @@ export function elDocumento() {
     + `<hr style="border:none;border-top:0.5pt solid #e7e5e4;margin:16pt 0">`
     + pasos
     + lista("Y a partir de ahí, nos encargamos nosotros", DESPUES)
+    + lista("Y lo que sigue siendo tuyo", LO_TUYO)
     + lista("El trato", EL_TRATO)
     + `<hr style="border:none;border-top:0.5pt solid #e7e5e4;margin:16pt 0">`
     + P(escapa(DUDAS), "10.5pt", "#57534e")

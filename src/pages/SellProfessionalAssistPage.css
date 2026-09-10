@@ -444,3 +444,41 @@
   .vpt-cta, .vpt-root .fev-boton { transition: none; }
   .vpt-cta:hover, .vpt-root .fev-boton:hover { transform: none; }
 }
+
+/*
+ * Ha entrado y no tiene ningun coche dado de alta.
+ *
+ * No es un error, es el paso que le falta: sin la ficha del coche no hay nada
+ * que gestionar, y el coche lo sube el porque es quien tiene las fotos y los
+ * papeles. Asi que en vez de un formulario que no puede rellenar, se le dice
+ * que hay que hacer y se le lleva.
+ */
+.vpt-root .fev-aviso {
+  text-align: center;
+  padding: 8px 4px 4px;
+}
+.vpt-root .fev-aviso strong {
+  display: block;
+  font-family: var(--fuente-titulos);
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  color: var(--gris-900);
+  margin-bottom: 8px;
+}
+.vpt-root .fev-aviso p {
+  margin: 0 0 18px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--gris-600);
+}
+.vpt-root .fev-aviso-boton {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 22px;
+  border-radius: 999px;
+  background: var(--gris-900);
+  color: var(--blanco);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}

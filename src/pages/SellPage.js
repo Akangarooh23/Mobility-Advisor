@@ -138,6 +138,7 @@ export default function SellPage({
   if (isCertificateFlow) {
     return (
       <SellProfessionalAssistPage
+        userEmail={currentUserEmail}
         onGoBack={onGoBack}
         onGoHome={onRestart}
         onStartRequest={onOpenContact}

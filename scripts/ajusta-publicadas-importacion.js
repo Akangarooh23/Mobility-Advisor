@@ -43,16 +43,33 @@ const TRAMOS = [
   [25000, 45000, 0.25],
   [45000, 100000, 0.30],
 ];
+// Un suelo de ahorro EN EUROS, no solo en tanto por ciento. Al cliente le da
+// igual el porcentaje: le importa cuanto se ahorra. Un 28% sobre un coche de
+// 12.000 son 3.400 EUR, y por eso nadie se mete en una importacion.
+const AHORRO_MINIMO = Number(process.env.AHORRO || 6000);
 const COMPS_MINIMO = 15;
 const AHORRO_MAXIMO = 0.5;
 
-/** La condición SQL de «esta oferta merece publicarse». */
+/**
+ * La condición SQL de «esta oferta merece publicarse».
+ *
+ * Tiene que decir lo MISMO que la regla del workflow
+ * (n8n-workflows/importacion-scoring.json). Si las dos se separan, este script
+ * y la pasada de las 8:05 se pisan y gana la última que corra.
+ */
 const MERECE = "(" + TRAMOS.map(([a, b, m]) =>
   `(price >= ${a} AND price < ${b} AND import_margin_pct >= ${m})`).join("\n     OR ") + ")"
+  + `\n    AND import_margin >= ${AHORRO_MINIMO}`
   + `\n    AND import_comps >= ${COMPS_MINIMO}`
   + `\n    AND import_margin_pct <= ${AHORRO_MAXIMO}`
   + "\n    AND COALESCE(is_active, TRUE)"
-  + "\n    AND import_margin_pct IS NOT NULL";
+  + "\n    AND import_margin_pct IS NOT NULL"
+  // Ni dañado, ni sin comprobar, ni con precio neto sin IVA. NULL en is_damaged
+  // significa «no lo hemos mirado», y publicar sin mirar es lo que puso un Range
+  // Rover con el frontal destrozado delante de un cliente el 2026-09-10.
+  + "\n    AND is_damaged IS NOT NULL"
+  + "\n    AND is_damaged = FALSE"
+  + "\n    AND COALESCE(price_is_net, FALSE) = FALSE";
 
 const DE = "country = 'DE'";
 const eur = (n) => (n === null || n === undefined ? "-" : Number(n).toLocaleString("es") + " €");

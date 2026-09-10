@@ -78,6 +78,20 @@ const comprueba = (nombre, cond, detalle) => {
   comprueba("45.000-100.000 exige 30%",
     /de_price >= 45000 AND comp\.de_price < 100000[\s\S]{0,140}>= 0\.30/.test(SQL));
 
+  // ── el suelo de ahorro en euros ───────────────────────────────────────────
+  //
+  // Al cliente le da igual el porcentaje: le importa cuánto se ahorra. Un 28%
+  // sobre un coche de 12.000 € son 3.400 €, y por eso nadie se mete en una
+  // importación.
+  //
+  // Y este suelo conserva la gama alta, que es lo que subir los porcentajes se
+  // cargaba. Medido el 2026-09-10:
+  //
+  //   20/25/30            1.001 ofertas   5.625 €   12 por encima de 25.000
+  //   30/35/40              296           7.903      1 por encima de 25.000
+  //   20/25/30 + 6.000      336           8.853     12 por encima de 25.000
+  comprueba("y al menos 6.000 € de ahorro en euros", /comp\.margin >= 6000/.test(SQL));
+
   // ── lo que nunca se publica ───────────────────────────────────────────────
   //
   // De 1.954 fichas alemanas miradas el 2026-09-10, 339 estaban dañadas -el
@@ -183,6 +197,14 @@ const comprueba = (nombre, cond, detalle) => {
     comprueba("ninguna publicada por debajo del ahorro de su tramo",
       pub.t1 === 0 && pub.t2 === 0 && pub.t3 === 0,
       pub.t1 + " / " + pub.t2 + " / " + pub.t3);
+    comprueba("ninguna publicada con menos de 6.000 € de ahorro",
+      pub.peor >= 6000, "el peor ahorro publicado: "
+      + Number(pub.peor || 0).toLocaleString("es") + " €");
+    // Y que el recorte no se haya llevado por delante la gama alta, que es lo
+    // que pasaba subiendo los porcentajes.
+    const gama = (await c.query(`SELECT count(*)::int n FROM moveadvisor_market_offers
+      WHERE country='DE' AND import_published AND price >= 25000`)).rows[0].n;
+    comprueba("sigue habiendo coches por encima de 25.000 €", gama > 0, "(" + gama + ")");
     comprueba("ninguna publicada fuera de la horquilla de ahorro", pub.fuera === 0);
     comprueba("el peor ahorro publicado sigue siendo un ahorro", pub.peor > 0, pub.peor + " €");
     console.log("      ahorro medio de las publicadas: " + r.ahorro_medio

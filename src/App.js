@@ -3650,6 +3650,18 @@ export default function App() {
     setSelectedValuationVehicleSummary(
       hasVehiclePrefill
         ? {
+            /*
+             * El identificador del coche, que se perdía aquí.
+             *
+             * Quien pide la tasación desde su IDCar manda el vehículo entero,
+             * pero al resumen solo pasaban la matrícula y el título — así que
+             * la tasación acababa guardada sin saber de qué coche era. Y hace
+             * falta saberlo: de ahí sale el precio del que se habla en su
+             * encargo de venta.
+             *
+             * Quien la pide sin elegir coche no manda nada, y aquí queda vacío.
+             */
+            id: normalizeText(context?.id),
             plate: normalizeText(context?.vehiclePlate),
             title: normalizeText(context?.vehicleTitle),
             brand: prefillBrand,
@@ -4081,6 +4093,18 @@ export default function App() {
             normalizeText(selectedValuationVehicleSummary?.title) ||
             `${normalizeText(sellAnswers.brand)} ${normalizeText(sellAnswers.model)} ${normalizeText(sellAnswers.year)}`.trim();
           await postValuationAddJson(currentUserEmail, {
+            /*
+             * De qué coche es la tasación.
+             *
+             * No se mandaba, así que la tasación quedaba suelta: se guardaba
+             * con el nombre del coche escrito, pero sin atarla a ningún IDCar.
+             * Y hace falta atada, porque es de donde sale el precio del que se
+             * habla con el cliente en su encargo de venta.
+             *
+             * Si la tasación se hizo sin elegir un coche del garaje, no hay
+             * nada que atar y se manda vacío — que es lo que pasaba siempre.
+             */
+            vehicleId: normalizeText(selectedValuationVehicleSummary?.id) || "",
             title: vehicleLabel || "Tasacion vehiculo",
             meta: [
               normalizeText(sellAnswers.mileage) ? `${normalizeText(sellAnswers.mileage)} km` : "",

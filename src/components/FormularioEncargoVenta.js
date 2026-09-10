@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { PLAZOS, faltaParaMandarlo, loQueSeManda, loQueLeQueda, GUIA } from "../utils/encargoDeVentaWeb";
+import { PLAZOS, faltaParaMandarlo, loQueSeManda, loQueLeQueda, GUIA, elAlta } from "../utils/encargoDeVentaWeb";
 import { getGarageVehiclesJson } from "../utils/apiClient";
 
 /**
@@ -12,23 +12,34 @@ import { getGarageVehiclesJson } from "../utils/apiClient";
  *
  * ## Qué coche es, dicho por quien lo sabe
  *
- * Si ha entrado, elige el coche de una lista: los suyos, los que ya tiene dados
- * de alta. Escrito a mano —«Volkswagen T-Roc R line 2022»— no identifica nada:
- * con un coche se adivina y con tres no, y quien lo tiene que adivinar es el
- * que coge el teléfono, que es justo quien menos lo sabe.
+ * Si ha entrado y tiene coches, elige el suyo de una lista: ahí el coche está
+ * identificado por su ficha, que es lo mejor que puede pasar.
  *
- * Si ha entrado y no tiene ninguno, se le dice que lo dé de alta y se le lleva
- * ahí. No se le puede pedir después: el coche lo sube él, con sus fotos y sus
- * papeles.
+ * Si no, escribe **la matrícula**. Antes era texto libre, y «Volkswagen T-Roc R
+ * line 2022» no identifica ningún coche: hay miles, y el que tiene que adivinar
+ * cuál es es el que coge el teléfono — justo el que menos lo sabe. Con la
+ * matrícula se sabe antes de marcar si ese coche ya tiene ficha.
  *
- * Y si **no ha entrado**, texto libre, como hasta ahora. Obligarle a registrarse
- * para pedir presupuesto es el mismo error que el candado de las visitas: se
- * pierde a la mayoría en la puerta. De esos, cuál es el coche se averigua en la
- * llamada, que es lo que pasaba siempre.
+ * ## Por qué no se le obliga a nada
+ *
+ * Aquí no hay muro, ni de registro ni de ficha. Lo hubo para quien había
+ * entrado sin coches —«primero da de alta tu coche»— y era peor de lo que
+ * parecía: sin cuenta sí se podía preguntar, así que registrarse te lo ponía
+ * más difícil.
+ *
+ * Y no conseguía lo que buscaba. La ficha —seis fotos, permiso, ficha técnica e
+ * ITV— la hace él con el coche delante, y eso no lo hace nadie **antes** de que
+ * le digan por cuánto se está vendiendo su coche. Lo hace cuando ya le interesa.
+ * Poner esa puerta al principio no adelanta la ficha: quita la llamada, que es
+ * lo único que convierte.
+ *
+ * La ficha sigue siendo obligatoria **para publicar**. Esas puertas están en el
+ * ERP, son seis, y no se han tocado: sin ellas el servidor no deja sacar el
+ * anuncio, ni aquí ni en coches.net.
  */
 export default function FormularioEncargoVenta({ userEmail = "" }) {
   const [datos, setDatos] = useState({
-    coche: "", plazo: "", nombre: "", telefono: "", email: "",
+    coche: "", matricula: "", plazo: "", nombre: "", telefono: "", email: "",
     vehicleId: "",
   });
   const [misCoches, setMisCoches] = useState(null);
@@ -115,114 +126,126 @@ export default function FormularioEncargoVenta({ userEmail = "" }) {
           a qué precio se está vendiendo tu coche y cómo lo haríamos. {queda.texto}
         </p>
         {queda.guia && (
-          <a className="fev-hecho-guia" href={GUIA}>Ver cómo se da de alta un coche</a>
+          <div className="fev-hecho-acciones">
+            <a className="fev-hecho-boton" href={elAlta(datos.matricula)}>
+              Crear la ficha de mi coche
+            </a>
+            <a className="fev-hecho-guia" href={GUIA}>O mira antes cómo se hace</a>
+          </div>
         )}
       </div>
     );
   }
 
-  // Ha entrado y no tiene ningún coche dado de alta: eso hay que resolverlo
-  // antes, y no en la llamada — el coche lo sube él.
-  const sinCoches = haySesion && Array.isArray(misCoches) && misCoches.length === 0;
+  /*
+   * Aquí ya no hay bloqueo.
+   *
+   * Quien había entrado y no tenía ningún coche dado de alta se encontraba un
+   * muro —«primero da de alta tu coche»— y no podía ni preguntar. Sin cuenta sí
+   * podía: o sea que registrarse te lo ponía **más difícil**, que es lo
+   * contrario de lo que se pretendía.
+   *
+   * Y lo que el muro buscaba no lo conseguía: la ficha la hace él, con el coche
+   * delante, y eso no lo hace nadie antes de que le digan por cuánto se está
+   * vendiendo su coche. Lo hace cuando ya le interesa. La ficha sigue siendo
+   * obligatoria para publicar —esas puertas están en el ERP y no se han
+   * tocado—, pero no para preguntar.
+   */
+  const tieneCoches = haySesion && Array.isArray(misCoches) && misCoches.length > 0;
 
   return (
     <div className="fev-caja">
-      {sinCoches ? (
-        <div className="fev-aviso">
-          <strong>Primero da de alta tu coche</strong>
-          <p>
-            Para que lo vendamos por ti necesitamos su ficha: matrícula, fotos y papeles.
-            Se crea en un momento desde tu panel y luego vuelves aquí.
-          </p>
-          <a className="fev-aviso-boton" href="/panel/vehiculos">Dar de alta mi coche</a>
-          <a className="fev-aviso-guia" href={GUIA}>O mira antes cómo se hace</a>
-        </div>
-      ) : (
+      <div className="fev-campo">
+        <label htmlFor="fev-coche">¿Qué coche quieres vender?</label>
+        {tieneCoches ? (
+          <select id="fev-coche" value={datos.vehicleId} onChange={eligeCoche}>
+            <option value="">Elige tu coche…</option>
+            {misCoches.map((v) => (
+              <option key={v.id} value={v.id}>{comoSeLlama(v)}</option>
+            ))}
+          </select>
+        ) : (
+          <>
+            {/*
+              * La matrícula, no texto libre.
+              *
+              * «Volkswagen T-Roc R line 2022» no identifica ningún coche: hay
+              * miles, y el que tiene que adivinar cuál es es el que coge el
+              * teléfono. Con la matrícula se sabe antes de marcar si ese coche
+              * ya tiene ficha o hay que pedirla.
+              */}
+            <input
+              id="fev-coche"
+              value={datos.matricula}
+              onChange={pon("matricula")}
+              placeholder="8888 LXR"
+              autoCapitalize="characters"
+              autoComplete="off"
+            />
+            {/*
+              * Y la guía, también aquí.
+              *
+              * Vivía solo dentro del aviso de «no tienes coches», que únicamente
+              * veía quien había entrado. Desde fuera no se llegaba a ella por
+              * ningún lado — y de fuera es de donde viene el que llega de
+              * coches.net.
+              */}
+            <p className="fev-nota">
+              La de tu coche, para saber cuál es. Para venderlo necesitaremos
+              también su ficha —fotos y papeles—;{" "}
+              <a href={GUIA}>aquí se explica cómo se crea</a>.
+            </p>
+          </>
+        )}
+      </div>
+
         <div className="fev-campo">
-          <label htmlFor="fev-coche">¿Qué coche quieres vender?</label>
-          {haySesion && misCoches && misCoches.length > 0 ? (
-            <select id="fev-coche" value={datos.vehicleId} onChange={eligeCoche}>
-              <option value="">Elige tu coche…</option>
-              {misCoches.map((v) => (
-                <option key={v.id} value={v.id}>{comoSeLlama(v)}</option>
-              ))}
-            </select>
-          ) : (
-            <>
-              <input
-                id="fev-coche" value={datos.coche} onChange={pon("coche")}
-                placeholder="Seat Ibiza 2019, o su matrícula"
-              />
-              {/*
-                * Y la guía, también aquí.
-                *
-                * Vivía solo dentro del aviso de «no tienes coches», que únicamente
-                * ve quien ha entrado. Desde fuera no se llegaba a ella por ningún
-                * lado — y de fuera es de donde viene el que llega de coches.net.
-                *
-                * Va como una nota y no como un aviso: pedirle la ficha antes de
-                * dejarle preguntar es poner una puerta donde había una pregunta.
-                */}
-              <p className="fev-nota">
-                Para venderlo necesitaremos su ficha —matrícula, fotos y papeles—.
-                Si aún no la tienes, <a href={GUIA}>aquí se explica cómo se crea</a>.
-              </p>
-            </>
-          )}
+          <label htmlFor="fev-plazo">¿En cuánto tiempo?</label>
+          <select id="fev-plazo" value={datos.plazo} onChange={pon("plazo")}>
+            <option value="">Elige…</option>
+            {PLAZOS.map((p) => (
+              <option key={p.clave} value={p.clave}>{p.etiqueta}</option>
+            ))}
+          </select>
         </div>
-      )}
 
-      {!sinCoches && (
-        <>
+        <div className="fev-dos">
           <div className="fev-campo">
-            <label htmlFor="fev-plazo">¿En cuánto tiempo?</label>
-            <select id="fev-plazo" value={datos.plazo} onChange={pon("plazo")}>
-              <option value="">Elige…</option>
-              {PLAZOS.map((p) => (
-                <option key={p.clave} value={p.clave}>{p.etiqueta}</option>
-              ))}
-            </select>
+            <label htmlFor="fev-nombre">Tu nombre</label>
+            <input id="fev-nombre" value={datos.nombre} onChange={pon("nombre")} placeholder="Ana García" />
           </div>
-
-          <div className="fev-dos">
-            <div className="fev-campo">
-              <label htmlFor="fev-nombre">Tu nombre</label>
-              <input id="fev-nombre" value={datos.nombre} onChange={pon("nombre")} placeholder="Ana García" />
-            </div>
-            <div className="fev-campo">
-              <label htmlFor="fev-tel">Teléfono</label>
-              <input id="fev-tel" type="tel" value={datos.telefono} onChange={pon("telefono")}
-                     placeholder="600 000 000" />
-            </div>
-          </div>
-
           <div className="fev-campo">
-            <label htmlFor="fev-email">Correo</label>
-            <input id="fev-email" type="email" value={datos.email} onChange={pon("email")}
-                   placeholder="tu@correo.com" />
+            <label htmlFor="fev-tel">Teléfono</label>
+            <input id="fev-tel" type="tel" value={datos.telefono} onChange={pon("telefono")}
+                   placeholder="600 000 000" />
           </div>
+        </div>
 
-          {fallo && <div className="fev-fallo">{fallo}</div>}
+        <div className="fev-campo">
+          <label htmlFor="fev-email">Correo</label>
+          <input id="fev-email" type="email" value={datos.email} onChange={pon("email")}
+                 placeholder="tu@correo.com" />
+        </div>
 
-          <button className="fev-boton" type="button" onClick={manda} disabled={enviando}>
-            {enviando ? "Enviando…" : "Quiero vender mi coche"}
-            <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-          </button>
+        {fallo && <div className="fev-fallo">{fallo}</div>}
 
-          {/*
-            * Los tres números del trato, aquí y no en la llamada.
-            *
-            * «No adelantas un euro» es lo mejor que hay que contar y estaba
-            * escondido hasta que alguien cogía el teléfono. Enseñarlo aquí hace
-            * que la llamada empiece con un argumento en vez de con una sorpresa.
-            */}
-          <p className="fev-letra">
-            Cero euros por delante. Se cobran <strong>299 €</strong> solo si vendemos tu coche.
-            Nos damos <strong>30 días</strong>: si aceptas nuestro precio y pasan sin venderlo,
-            lo dejas sin pagar nada. Si te sales antes, son <strong>150 €</strong>.
-          </p>
-        </>
-      )}
+        <button className="fev-boton" type="button" onClick={manda} disabled={enviando}>
+          {enviando ? "Enviando…" : "Quiero vender mi coche"}
+          <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+        </button>
+
+        {/*
+          * Los tres números del trato, aquí y no en la llamada.
+          *
+          * «No adelantas un euro» es lo mejor que hay que contar y estaba
+          * escondido hasta que alguien cogía el teléfono. Enseñarlo aquí hace
+          * que la llamada empiece con un argumento en vez de con una sorpresa.
+          */}
+        <p className="fev-letra">
+          Cero euros por delante. Se cobran <strong>299 €</strong> solo si vendemos tu coche.
+          Nos damos <strong>30 días</strong>: si aceptas nuestro precio y pasan sin venderlo,
+          lo dejas sin pagar nada. Si te sales antes, son <strong>150 €</strong>.
+        </p>
     </div>
   );
 }

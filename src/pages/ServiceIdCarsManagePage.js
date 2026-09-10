@@ -4,6 +4,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
 import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemoveJson, postVehicleStateUpsertJson, postVehiclePublishJson, getErpBrandsJson, getErpModelsJson, getErpVersionsJson, getErpVersionDetailJson } from "../utils/apiClient";
 import { uploadFileDirect } from "../utils/supabaseUpload";
+import { comoSeCompara } from "../utils/encargoDeVentaWeb";
 import AvailabilityEditor from "../components/AvailabilityEditor";
 import { useConditionReport, INFORME_OBLIGATORIO, etiquetaEstado, informeUtilizable, urlDeDescarga, baseDelModelo3d } from "../hooks/useConditionReport";
 import ConditionReportError from "../components/ConditionReportError";
@@ -306,13 +307,34 @@ async function filesToAttachmentPayload(files = [], label = "archivo", vehicleId
   return result;
 }
 
-function createEmptyForm() {
+/**
+ * La matrícula que viene en la dirección, si la hay.
+ *
+ * Se llega aquí desde «Nosotros lo vendemos por ti»: el cliente acaba de
+ * escribirla ahí y volver a pedírsela en la pantalla siguiente es el tipo de
+ * detalle por el que se abandona a mitad.
+ *
+ * Se normaliza con la misma función que la escribió, para que «8888 lxr» acabe
+ * en el campo igual que si la hubiera tecleado aquí.
+ */
+export function laMatriculaDeLaUrl(busqueda) {
+  const s = typeof busqueda === "string"
+    ? busqueda
+    : (typeof window !== "undefined" ? window.location.search : "");
+  try {
+    return comoSeCompara(new URLSearchParams(s).get("matricula"));
+  } catch {
+    return "";
+  }
+}
+
+function createEmptyForm(matricula = "") {
   return {
     nickname: "", brand: "", model: "", version: "",
     transmissionType: "", bodyType: "", cv: "", horsepower: "",
     color: "", seats: "", doors: "", location: "",
     environmentalLabel: "", lastIvt: "", nextIvt: "", co2: "",
-    year: "", plate: "", mileage: "", fuel: "", price: "",
+    year: "", plate: comoSeCompara(matricula), mileage: "", fuel: "", price: "",
     policyCompany: "", policyNumber: "", coverageType: "",
     maintenanceType: "", maintenanceTitle: "", maintenanceNotes: "", notes: "",
   };
@@ -570,9 +592,27 @@ export default function ServiceIdCarsManagePage({
     if (!isCreateView) return;
     setIsCreating(true);
     setEditingVehicleId("");
-    setForm(createEmptyForm());
+    // Con la matrícula de la dirección, si viene de «lo vendemos por ti».
+    setForm(createEmptyForm(laMatriculaDeLaUrl()));
     showFeedback(txt("Completa la ficha y guarda tu nuevo IDCar.", "Complete the form and save your new IDCar."), "info");
   }, [isCreateView, txt]);
+
+  /*
+   * Y el caso de llegar a la lista con una matrícula puesta.
+   *
+   * `/panel/vehiculos?matricula=8888LXR` es la dirección que sale del
+   * formulario de venta: no es la vista de crear, es la lista. Sin esto, el
+   * cliente llega, ve sus coches y tiene que buscar el botón de crear y volver
+   * a escribir la matrícula que acaba de escribir.
+   */
+  useEffect(() => {
+    if (typeof window === "undefined" || isDetailView || isCreateView) return;
+    const placa = laMatriculaDeLaUrl();
+    if (!placa) return;
+    setIsCreating(true);
+    setEditingVehicleId("");
+    setForm(createEmptyForm(placa));
+  }, [isDetailView, isCreateView]);
 
   useEffect(() => {
     if (typeof window === "undefined" || isDetailView || isCreateView) return;

@@ -53,15 +53,51 @@ export function elPlazo(clave) {
 }
 
 /**
+ * La matrícula, como se compara: sin espacios ni guiones y en mayúsculas.
+ *
+ * «8888LXR», «8888 LXR» y «8888-lxr» son el mismo coche, y quien la copia de un
+ * papel se trae los espacios.
+ */
+export function comoSeCompara(matricula) {
+  return String(matricula ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
+/**
+ * Si eso parece una matrícula.
+ *
+ * Gemela de `pareceUnaMatricula` en `lib/coche-por-matricula.js`, y por la misma
+ * razón que las dos `marca.js`: `src/` no puede importar de `lib/`. Que no se
+ * separen lo vigila una prueba que pasa la misma lista de casos por las dos.
+ *
+ * Se acepta ancha a propósito —de seis a diez, con letras y números— porque
+ * también hay coches con matrícula antigua. Rechazar la de alguien que quiere
+ * vendernos su coche cuesta mucho más que dejar pasar una rara: lo segundo se
+ * arregla en la llamada y lo primero le echa.
+ */
+export function pareceUnaMatricula(matricula) {
+  const m = comoSeCompara(matricula);
+  return m.length >= 6 && m.length <= 10 && /[0-9]/.test(m) && /[A-Z]/.test(m);
+}
+
+/**
  * Qué falta para poder mandarlo, en la frase que se le enseña.
  *
- * El coche se pide como texto libre —«Seat Ibiza 2019», o la matrícula, o «un
- * Golf del 15»— y no en tres desplegables de marca, modelo y año. Quien está
- * decidiendo si nos deja su coche no va a rellenar tres desplegables; ya se lo
- * preguntaremos por teléfono, que es lo que va a pasar de todas formas.
+ * El coche se pide por **matrícula** y no como texto libre. «Volkswagen T-Roc R
+ * line 2022» no identifica ningún coche: hay miles, y quien tiene que adivinar
+ * cuál es es el que coge el teléfono — justo el que menos lo sabe.
+ *
+ * Con la matrícula, antes de marcar ya se sabe si ese coche tiene ficha o hay
+ * que pedirla. Es lo que se pretendía sacar de obligar a registrarse, pero sin
+ * la puerta: una matrícula te la sabes de memoria y está a la vista de todos en
+ * el propio coche.
+ *
+ * Quien ha entrado y elige uno de los suyos no la escribe: ahí el coche ya está
+ * identificado por su ficha, que es mejor todavía.
  */
-export function faltaParaMandarlo({ coche, plazo, nombre, telefono, email } = {}) {
-  if (!nt(coche)) return "Dinos qué coche quieres vender.";
+export function faltaParaMandarlo({ vehicleId, matricula, plazo, nombre, telefono, email } = {}) {
+  if (!nt(vehicleId) && !pareceUnaMatricula(matricula)) {
+    return "Escribe la matrícula de tu coche.";
+  }
   if (!elPlazo(plazo)) return "Dinos en cuánto tiempo quieres venderlo.";
   if (!nt(nombre)) return "Escribe tu nombre.";
   if (nt(telefono).replace(/\D/g, "").length < 9) return "Escribe un teléfono: te llamamos nosotros.";
@@ -76,15 +112,27 @@ export function faltaParaMandarlo({ coche, plazo, nombre, telefono, email } = {}
  * renting lleva «Plazo: 36m · 15.000 km/año»—, con la misma forma de
  * «Etiqueta: valor» para que se lea igual en la ficha del lead.
  */
-export function loQueSeManda({ coche, plazo, nombre, telefono, email }) {
+export function loQueSeManda({ coche, matricula, plazo, nombre, telefono, email }) {
   const p = elPlazo(plazo);
+  const placa = comoSeCompara(matricula);
   return {
     type: TIPO,
     portal: ORIGEN,
     email: nt(email).toLowerCase(),
     name: nt(nombre),
     phone: nt(telefono),
-    vehicle_title: nt(coche),
+    /*
+     * El título es lo que se lee en la lista de leads. Cuando eligió uno de sus
+     * coches, ahí va su nombre; cuando escribió la matrícula, va la matrícula,
+     * que es lo único que sabemos y es más de lo que teníamos antes.
+     */
+    vehicle_title: nt(coche) || placa,
+    /*
+     * Y la matrícula aparte, normalizada, para que el ERP pueda mirar si ese
+     * coche ya tiene ficha. Dentro del título no se puede buscar: ahí llega
+     * como la escribió él, con sus espacios y sus guiones.
+     */
+    plate: placa || undefined,
     when: `Quiere vender: ${p ? p.etiqueta.toLowerCase() : "sin decir"}`,
   };
 }
@@ -98,6 +146,21 @@ export function loQueSeManda({ coche, plazo, nombre, telefono, email }) {
  * ella por ningún lado.
  */
 export const GUIA = "/como-subir-tu-coche";
+
+/** Donde el cliente da de alta su coche. */
+export const ALTA = "/panel/vehiculos";
+
+/**
+ * Y con la matrícula ya puesta, para que llegue con el campo relleno.
+ *
+ * Acaba de escribirla en el formulario: volver a pedírsela en la pantalla
+ * siguiente es el tipo de detalle por el que la gente abandona a mitad. Sin
+ * matrícula devuelve la ruta a secas, no una con un parámetro vacío.
+ */
+export function elAlta(matricula) {
+  const m = comoSeCompara(matricula);
+  return m ? `${ALTA}?matricula=${encodeURIComponent(m)}` : ALTA;
+}
 
 /**
  * Qué se le dice después de mandarlo.
@@ -126,11 +189,22 @@ export function loQueLeQueda({ haySesion, eligioUnCoche } = {}) {
       guia: false,
     };
   }
+  /*
+   * Y aquí no se acaba: aquí empieza.
+   *
+   * Esta pantalla era un acuse de recibo —«te llamamos, no hagas nada»— y es el
+   * momento de más intención de todo el flujo: acaba de pulsar el botón. Lo que
+   * hace falta para vender su coche —la ficha con fotos y papeles— la hace él,
+   * y la hará mejor ahora que dentro de tres días cuando le llamemos.
+   *
+   * No es una condición para nada: si no la crea, se la pedimos en la llamada
+   * como siempre. Es quitarle la espera a quien ya ha decidido.
+   */
   return {
     texto:
-      "Si todavía no tienes la ficha de tu coche creada, es lo único que te " +
-      "pediremos: matrícula, unas fotos y los papeles. Te lo explicamos en la " +
-      "llamada, y no hay ningún compromiso.",
+      "Para venderlo necesitaremos la ficha de tu coche: unas fotos y los " +
+      "papeles. Puedes irla creando ahora y así vamos con medio camino hecho — " +
+      "y si lo prefieres, te lo explicamos en la llamada. No hay ningún compromiso.",
     guia: true,
   };
 }

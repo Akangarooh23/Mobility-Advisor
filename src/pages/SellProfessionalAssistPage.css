@@ -445,54 +445,6 @@
   .vpt-cta:hover, .vpt-root .fev-boton:hover { transform: none; }
 }
 
-/*
- * Ha entrado y no tiene ningun coche dado de alta.
- *
- * No es un error, es el paso que le falta: sin la ficha del coche no hay nada
- * que gestionar, y el coche lo sube el porque es quien tiene las fotos y los
- * papeles. Asi que en vez de un formulario que no puede rellenar, se le dice
- * que hay que hacer y se le lleva.
- */
-.vpt-root .fev-aviso {
-  text-align: center;
-  padding: 8px 4px 4px;
-}
-.vpt-root .fev-aviso strong {
-  display: block;
-  font-family: var(--fuente-titulos);
-  font-size: 18px;
-  letter-spacing: -0.02em;
-  color: var(--gris-900);
-  margin-bottom: 8px;
-}
-.vpt-root .fev-aviso p {
-  margin: 0 0 18px;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--gris-600);
-}
-.vpt-root .fev-aviso-boton {
-  display: inline-flex;
-  align-items: center;
-  padding: 12px 22px;
-  border-radius: 999px;
-  background: var(--gris-900);
-  color: var(--blanco);
-  font-size: 14px;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-/* El enlace a la guia, debajo del boton de dar de alta. */
-.vpt-root .fev-aviso-guia {
-  display: block;
-  margin-top: 12px;
-  font-size: 12.5px;
-  color: var(--gris-500);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.vpt-root .fev-aviso-guia:hover { color: var(--gris-900); }
 
 /*
  * La nota de la ficha del coche, bajo el campo de texto libre.
@@ -514,10 +466,36 @@
 }
 .vpt-root .fev-nota a:hover { color: var(--gris-900); }
 
-/* Y el mismo enlace en la pantalla de «hecho», cuando no sabemos si lo tiene. */
+/*
+ * Lo que puede hacer ahora, en la pantalla de «hecho».
+ *
+ * Esa pantalla era un acuse de recibo —«te llamamos, no hagas nada»— y es el
+ * momento de mas intencion de todo el flujo: acaba de pulsar el boton. La ficha
+ * la hace el, y la hara mejor ahora que dentro de tres dias cuando le llamemos.
+ * Por eso aqui va un boton de verdad y no solo un enlace a un texto.
+ */
+.vpt-root .fev-hecho-acciones {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+.vpt-root .fev-hecho-boton {
+  display: inline-block;
+  padding: 11px 22px;
+  border-radius: 999px;
+  background: var(--gris-900);
+  color: var(--blanco);
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.vpt-root .fev-hecho-boton:hover { opacity: 0.85; }
+
+/* Y la guia debajo, en segundo plano: es para quien no se fia de un formulario. */
 .vpt-root .fev-hecho-guia {
   display: inline-block;
-  margin-top: 14px;
   font-size: 13px;
   font-weight: 600;
   color: var(--gris-900);

@@ -4,7 +4,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
 import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemoveJson, postVehicleStateUpsertJson, postVehiclePublishJson, getErpBrandsJson, getErpModelsJson, getErpVersionsJson, getErpVersionDetailJson } from "../utils/apiClient";
 import { uploadFileDirect } from "../utils/supabaseUpload";
-import { comoSeCompara } from "../utils/encargoDeVentaWeb";
+import { comoSeCompara, laMatriculaRecordada } from "../utils/encargoDeVentaWeb";
 import AvailabilityEditor from "../components/AvailabilityEditor";
 import { useConditionReport, INFORME_OBLIGATORIO, etiquetaEstado, informeUtilizable, urlDeDescarga, baseDelModelo3d } from "../hooks/useConditionReport";
 import ConditionReportError from "../components/ConditionReportError";
@@ -322,10 +322,24 @@ export function laMatriculaDeLaUrl(busqueda) {
     ? busqueda
     : (typeof window !== "undefined" ? window.location.search : "");
   try {
-    return comoSeCompara(new URLSearchParams(s).get("matricula"));
+    const enLaUrl = comoSeCompara(new URLSearchParams(s).get("matricula"));
+    if (enLaUrl) return enLaUrl;
   } catch {
-    return "";
+    // Una direccion rara no puede impedir que se abra el panel.
   }
+  /*
+   * Y si no está en la dirección, la que se guardó al entrar.
+   *
+   * Quien pulsa «crear la ficha de mi coche» casi nunca tiene sesión: hay un
+   * login por medio, y después del login la aplicación reescribe la ruta a su
+   * forma canónica —que ya no lleva el parámetro—. Sin esto, el cliente llega
+   * a la pantalla correcta con el campo vacío y vuelve a escribir la matrícula
+   * que acaba de escribir. Nadie reporta eso; simplemente cansa.
+   *
+   * Se pide solo cuando el parámetro no está: si está, manda la dirección, que
+   * es más reciente.
+   */
+  return laMatriculaRecordada();
 }
 
 function createEmptyForm(matricula = "") {

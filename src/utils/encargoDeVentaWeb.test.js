@@ -5,7 +5,7 @@
  * verdad, y que lo que el cliente cuenta llegue al ERP en vez de a una bandeja
  * de correo.
  */
-import { PLAZOS, elPlazo, faltaParaMandarlo, loQueSeManda, loQueLeQueda, GUIA, ALTA, elAlta, pareceUnaMatricula, comoSeCompara } from "./encargoDeVentaWeb";
+import { PLAZOS, elPlazo, faltaParaMandarlo, loQueSeManda, loQueLeQueda, GUIA, ALTA, elAlta, pareceUnaMatricula, comoSeCompara, recuerdaLaMatricula, laMatriculaRecordada } from "./encargoDeVentaWeb";
 
 const bien = {
   matricula: "8888LXR", plazo: "1mes",
@@ -372,5 +372,62 @@ describe("y al llegar al panel, el campo viene relleno", () => {
       .readFileSync(require("path").join(__dirname, "../pages/ServiceIdCarsManagePage.js"), "utf8");
     expect(FUENTE).toMatch(/plate: comoSeCompara\(matricula\)/);
     expect(FUENTE).toMatch(/createEmptyForm\(laMatriculaDeLaUrl\(\)\)/);
+  });
+});
+
+describe("la matrícula sobrevive al login", () => {
+  /*
+   * Quien pulsa «crear la ficha de mi coche» casi nunca tiene sesión: es el que
+   * llega de coches.net y el que acaba de mandar el formulario sin
+   * registrarse. Entre el enlace y la pantalla hay un login, y después del
+   * login la aplicación reescribe la ruta a su forma canónica — que ya no
+   * lleva el parámetro.
+   *
+   * El fallo no se ve: el cliente llega a la pantalla correcta con el campo
+   * vacío y vuelve a escribir la matrícula que acaba de escribir.
+   */
+  beforeEach(() => { window.sessionStorage.clear(); });
+
+  test("se guarda en cuanto se ve en la dirección", () => {
+    expect(recuerdaLaMatricula("?matricula=8888LXR")).toBe("8888LXR");
+    expect(laMatriculaRecordada()).toBe("8888LXR");
+  });
+
+  test("y se normaliza al guardarla", () => {
+    recuerdaLaMatricula("?matricula=8888%20lxr");
+    expect(laMatriculaRecordada()).toBe("8888LXR");
+  });
+
+  test("se borra al leerla: es para rellenar el campo una vez", () => {
+    /*
+     * Si se quedara, el siguiente coche que diera de alta naceria con la
+     * matricula del anterior. Un campo vacio se rellena; uno mal puesto se
+     * guarda.
+     */
+    recuerdaLaMatricula("?matricula=8888LXR");
+    expect(laMatriculaRecordada()).toBe("8888LXR");
+    expect(laMatriculaRecordada()).toBe("");
+  });
+
+  test("sin parámetro no guarda nada", () => {
+    for (const s of ["", "?", "?otra=cosa", "?matricula="]) {
+      expect(recuerdaLaMatricula(s)).toBe("");
+    }
+    expect(laMatriculaRecordada()).toBe("");
+  });
+
+  test("la pantalla la usa cuando la dirección ya no la lleva", () => {
+    const { laMatriculaDeLaUrl } = require("../pages/ServiceIdCarsManagePage");
+    recuerdaLaMatricula("?matricula=8888LXR");
+    // La direccion de despues del login: la ruta canonica, sin parametro.
+    expect(laMatriculaDeLaUrl("")).toBe("8888LXR");
+  });
+
+  test("pero si la dirección la lleva, manda la dirección", () => {
+    // Es mas reciente: si el cliente abre otro enlace, ese es el coche que
+    // quiere dar de alta ahora.
+    const { laMatriculaDeLaUrl } = require("../pages/ServiceIdCarsManagePage");
+    recuerdaLaMatricula("?matricula=1111AAA");
+    expect(laMatriculaDeLaUrl("?matricula=2222BBB")).toBe("2222BBB");
   });
 });

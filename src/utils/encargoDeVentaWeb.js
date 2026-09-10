@@ -163,6 +163,56 @@ export function elAlta(matricula) {
 }
 
 /**
+ * Dónde se guarda la matrícula mientras el cliente entra o se registra.
+ *
+ * El que pulsa «crear la ficha de mi coche» casi nunca tiene sesión —es el que
+ * llega de coches.net, y el que acaba de mandar el formulario sin registrarse—,
+ * así que entre el enlace y la pantalla hay un login por medio.
+ *
+ * Y después del login la aplicación reescribe la dirección a su ruta canónica.
+ * A veces coincide y la matrícula sobrevive; en otras ramas no. Depender de eso
+ * es depender de por dónde entró, y el fallo no se ve: el cliente llega a la
+ * pantalla correcta con el campo vacío y vuelve a escribir la matrícula que
+ * acaba de escribir. Nadie reporta eso, simplemente cansa.
+ *
+ * `sessionStorage` y no `localStorage`: es de este viaje. Si mañana entra a dar
+ * de alta otro coche, la matrícula de hoy no tiene que aparecerle.
+ */
+const DONDE = "popcar.matricula.alta";
+
+/** Se guarda en cuanto se ve en la dirección, antes de que nadie la reescriba. */
+export function recuerdaLaMatricula(busqueda) {
+  if (typeof window === "undefined") return "";
+  try {
+    const s = typeof busqueda === "string" ? busqueda : window.location.search;
+    const m = comoSeCompara(new URLSearchParams(s).get("matricula"));
+    if (m) window.sessionStorage.setItem(DONDE, m);
+    return m;
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Y se recupera al llegar.
+ *
+ * Se borra al leerla: es para rellenar el campo una vez. Si se quedara, el
+ * siguiente coche que diera de alta nacería con la matrícula del anterior, que
+ * es peor que el campo vacío — un campo vacío se rellena y uno mal puesto se
+ * guarda.
+ */
+export function laMatriculaRecordada() {
+  if (typeof window === "undefined") return "";
+  try {
+    const m = window.sessionStorage.getItem(DONDE) || "";
+    if (m) window.sessionStorage.removeItem(DONDE);
+    return comoSeCompara(m);
+  } catch {
+    return "";
+  }
+}
+
+/**
  * Qué se le dice después de mandarlo.
  *
  * Había un solo texto para todos y decía **«no tienes que hacer nada más»**.

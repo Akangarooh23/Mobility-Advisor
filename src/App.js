@@ -119,6 +119,7 @@ import {
 } from "./data/marketData";
 import { PORTAL_VO_OFFERS } from "./data/portalVoOffers";
 import { captureUtmFromUrl } from "./utils/utmTracker";
+import { recuerdaLaMatricula } from "./utils/encargoDeVentaWeb";
 import { trackFunnelEvent } from "./utils/funnelTracker";
 import { BLOG_POSTS, getBlogPostBySlug } from "./data/blogPosts";
 import { STEPS, getQuestionnaireSteps } from "./data/questionnaireSteps";
@@ -1818,6 +1819,14 @@ export default function App() {
 
   useEffect(() => {
     captureUtmFromUrl();
+    /*
+     * Y la matricula que venga en la direccion, si viene.
+     *
+     * Se guarda aqui, en el primer render y antes de que el login reescriba la
+     * ruta: quien pulsa «crear la ficha de mi coche» casi nunca tiene sesion,
+     * y despues de entrar la direccion canonica ya no lleva el parametro.
+     */
+    recuerdaLaMatricula();
     trackFunnelEvent({ event_type: "landing" });
   }, []);
 

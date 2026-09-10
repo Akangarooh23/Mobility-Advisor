@@ -1,566 +1,446 @@
-.sell-pro-assist-root,
-.sell-pro-assist-root * {
-  box-sizing: border-box;
+/**
+ * «Nosotros lo vendemos por ti».
+ *
+ * Es una página que tiene que convencer y luego recoger datos, así que no lleva
+ * el recorrido con pin de «Cómo funciona»: allí el scroll es el contenido y aquí
+ * el contenido es un formulario que hay que poder alcanzar. Lo que sí se toma
+ * prestado es su idioma —portada con manchas, pasos numerados, el titular a dos
+ * líneas con la segunda en amarillo— porque es el de la casa.
+ *
+ * Colores y letra son los de la aplicación. El amarillo es #FFC400 y solo los
+ * titulares grandes van en Bricolage Grotesque, igual que allí: es donde habla
+ * la marca y no se extiende a nada más.
+ *
+ * La versión anterior tenía paleta propia —un ámbar #ba7517 que no era de
+ * ningún sitio— y veinticuatro colores escritos a mano. Aquí no hay ninguno:
+ * todo sale de los tokens, así que el día que cambie la paleta esta página se
+ * entera.
+ */
+
+.vpt-root {
+  background: var(--blanco);
+  color: var(--gris-900);
+  overflow-x: clip;
 }
 
-.sell-pro-assist-root {
-  --c1: var(--gris-800);
-  --c2: var(--gris-600);
-  --acc: #ba7517;
-  --acc-light: rgba(186, 117, 23, 0.08);
-  --acc-border: rgba(186, 117, 23, 0.22);
-  --acc-glow: rgba(186, 117, 23, 0.35);
-  --grad: linear-gradient(135deg, var(--gris-800), var(--gris-600));
-  --grad-btn: linear-gradient(135deg, var(--gris-800), var(--gris-600));
-  max-width: 860px;
+.vpt-eyebrow {
+  margin: 0 0 14px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--acento-texto);
+}
+
+/* ── Volver ───────────────────────────────────────────────────────────── */
+.vpt-volver {
+  position: absolute;
+  top: 20px;
+  left: clamp(16px, 5vw, 40px);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--gris-200);
+  border-radius: 999px;
+  background: var(--blanco);
+  color: var(--gris-600);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.vpt-volver:hover { border-color: var(--gris-400); color: var(--gris-900); }
+.vpt-volver svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ── Portada ──────────────────────────────────────────────────────────── */
+.vpt-hero {
+  position: relative;
+  min-height: 88svh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 96px clamp(20px, 6vw, 40px) 64px;
+  overflow: hidden;
+}
+
+/* Manchas de fondo, muy tenues: son fondo y no ilustración. */
+.vpt-manchas { position: absolute; inset: 0; pointer-events: none; }
+.vpt-mancha {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--acento);
+  opacity: 0.26;
+  filter: blur(2px);
+}
+.vpt-mancha-1 { width: 320px; height: 320px; top: 6%;  left: 6%; }
+.vpt-mancha-2 { width: 170px; height: 170px; top: 22%; right: 11%; }
+.vpt-mancha-3 { width: 110px; height: 110px; bottom: 14%; left: 26%; }
+
+.vpt-hero-texto { position: relative; max-width: 860px; }
+
+.vpt-hero h1 {
+  font-family: var(--fuente-titulos);
+  font-size: clamp(38px, 7.4vw, 78px);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  margin: 0 0 20px;
+  text-wrap: balance;
+}
+.vpt-hero h1 span { color: var(--acento-texto); }
+
+.vpt-hero-apoyo {
+  margin: 0 auto 30px;
+  max-width: 56ch;
+  font-size: clamp(14.5px, 1.9vw, 17px);
+  line-height: 1.65;
+  color: var(--gris-600);
+}
+
+/* Los tres números del trato, en la portada y no escondidos hasta la llamada. */
+.vpt-cifras {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 34px;
+}
+.vpt-cifra {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--acento);
+  background: var(--acento-tenue);
+}
+.vpt-cifra b {
+  font-family: var(--fuente-titulos);
+  font-size: 17px;
+  letter-spacing: -0.02em;
+  color: var(--gris-900);
+}
+.vpt-cifra span { font-size: 12px; font-weight: 600; color: var(--acento-texto); }
+
+.vpt-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 14px 26px;
+  border: none;
+  border-radius: 999px;
+  background: var(--gris-900);
+  color: var(--blanco);
+  font-size: 14.5px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 6px 20px rgba(17, 17, 17, 0.16);
+}
+.vpt-cta:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(17, 17, 17, 0.22); }
+.vpt-cta svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ── Los pasos ────────────────────────────────────────────────────────── */
+.vpt-pasos {
+  padding: clamp(56px, 9vw, 110px) clamp(20px, 6vw, 40px);
+  background: var(--gris-50);
+}
+.vpt-pasos-cab {
+  max-width: 720px;
+  margin: 0 auto clamp(40px, 6vw, 72px);
+  text-align: center;
+}
+.vpt-pasos-cab h2 {
+  font-family: var(--fuente-titulos);
+  font-size: clamp(28px, 4.4vw, 44px);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin: 0;
+  text-wrap: balance;
+}
+.vpt-pasos-cab h2 span { color: var(--acento-texto); }
+
+.vpt-lista {
+  max-width: 900px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  color: var(--gris-800);
+  gap: clamp(18px, 3vw, 30px);
 }
 
-.sell-pro-assist-root .back-row {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 0.25rem;
-}
-
-.sell-pro-assist-root .back-btn {
-  background: #fff;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  padding: 0.35rem 0.85rem;
-  font-size: 12px;
-  color: #888;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  transition: all 0.15s;
-}
-
-.sell-pro-assist-root .back-btn:hover {
-  border-color: #ddd;
-  color: #555;
-}
-
-.sell-pro-assist-root .back-btn svg {
-  width: 11px;
-  height: 11px;
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.sell-pro-assist-root .breadcrumb {
-  font-size: 11.5px;
-  /* Era #ccc sobre blanco: alrededor de 1,6:1 de contraste. No se leia. */
-  color: var(--gris-500);
-}
-
-.sell-pro-assist-root .breadcrumb b {
-  color: var(--gris-600);
-  font-weight: 500;
-}
-
-.sell-pro-assist-root .hero-card,
-.sell-pro-assist-root .flow-card {
-  background: #fff;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 20px rgba(0, 0, 0, 0.04);
-}
-
-.sell-pro-assist-root .hero-band {
-  height: 4px;
-  background: var(--grad);
-}
-
-.sell-pro-assist-root .flow-band {
-  height: 3px;
-  background: var(--grad);
-}
-
-.sell-pro-assist-root .hero-inner,
-.sell-pro-assist-root .flow-inner {
-  padding: 1.75rem 2rem;
-}
-
-.sell-pro-assist-root .badge {
-  display: inline-flex;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  padding: 0.28rem 0.85rem;
-  border-radius: 20px;
-  margin-bottom: 1rem;
-  background: var(--gris-100);
-  color: var(--gris-600);
-  border: 1px solid var(--gris-300);
-}
-
-.sell-pro-assist-root .hero-title {
-  font-size: 22px;
-  font-weight: 600;
-  color: #111;
-  letter-spacing: -0.025em;
-  margin-bottom: 0.5rem;
-  line-height: 1.2;
-}
-
-.sell-pro-assist-root .hero-desc {
-  font-size: 13.5px;
-  color: #888;
-  line-height: 1.7;
-  max-width: 540px;
-  font-weight: 300;
-}
-
-.sell-pro-assist-root .hero-meta {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-top: 1.1rem;
-}
-
-.sell-pro-assist-root .mpill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 11px;
-  font-weight: 500;
-  color: #999;
-  background: var(--gris-50);
-  border: 1px solid #eee;
-  padding: 0.28rem 0.75rem;
-  border-radius: 20px;
-}
-
-.sell-pro-assist-root .mpill svg {
-  width: 11px;
-  height: 11px;
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.sell-pro-assist-root .blabel {
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #ccc;
-  margin-bottom: 1.25rem;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.sell-pro-assist-root .blabel-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--gris-600);
-  flex-shrink: 0;
-}
-
-.sell-pro-assist-root .steps-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-}
-
-.sell-pro-assist-root .step-block {
+/*
+ * Cada paso: el número a la izquierda, unido al siguiente por una línea.
+ * La línea es lo que convierte cinco tarjetas sueltas en un camino.
+ */
+.vpt-paso {
+  position: relative;
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 1rem;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: clamp(16px, 2.6vw, 28px);
   align-items: start;
-  padding: 1.1rem 1.25rem;
-  background: var(--gris-50);
-  border: 1px solid var(--gris-100);
-  border-radius: 14px;
-  transition: all 0.2s;
 }
-
-.sell-pro-assist-root .step-block:hover {
-  border-color: rgba(74, 74, 69, 0.2);
-  background: var(--gris-50);
+.vpt-paso::before {
+  content: "";
+  position: absolute;
+  left: 27px;
+  top: 56px;
+  bottom: calc(-1 * clamp(18px, 3vw, 30px));
+  width: 2px;
+  background: linear-gradient(var(--acento), transparent);
 }
+.vpt-paso:last-child::before { display: none; }
 
-.sell-pro-assist-root .step-left {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.3rem;
-  padding-top: 2px;
-}
-
-.sell-pro-assist-root .step-circle {
-  width: 32px;
-  height: 32px;
+.vpt-num {
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  background: var(--grad-btn);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(31,31,29, 0.25);
-  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  background: var(--acento);
+  color: var(--gris-900);
+  font-family: var(--fuente-titulos);
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 4px 14px rgba(255, 196, 0, 0.4);
 }
 
-.sell-pro-assist-root .step-label {
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--gris-600);
-  margin-bottom: 0.3rem;
+.vpt-paso-cuerpo {
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 18px;
+  padding: clamp(18px, 2.6vw, 26px);
 }
-
-.sell-pro-assist-root .step-title {
+.vpt-paso-cuerpo h3 {
+  font-size: clamp(17px, 2.2vw, 21px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+  line-height: 1.25;
+}
+.vpt-paso-cuerpo > p {
+  margin: 0;
   font-size: 14px;
-  font-weight: 600;
-  color: var(--gris-800);
-  margin-bottom: 0.3rem;
-  line-height: 1.3;
-}
-
-.sell-pro-assist-root .step-desc {
-  font-size: 12.5px;
-  color: #888;
   line-height: 1.65;
-  font-weight: 300;
+  color: var(--gris-600);
 }
 
-.sell-pro-assist-root .step-tag {
-  display: inline-flex;
-  align-items: center;
-  font-size: 10px;
-  font-weight: 600;
+/* Quién hace cada paso: la mitad del argumento es que casi todo lo hacemos nosotros. */
+.vpt-quien {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 0.22rem 0.65rem;
-  border-radius: 20px;
-  margin-top: 0.6rem;
 }
+.vpt-quien-tu { background: var(--gris-100); color: var(--gris-600); }
+.vpt-quien-nosotros { background: var(--acento-tenue); color: var(--acento-texto); }
 
-.sell-pro-assist-root .tag-inc {
-  background: var(--gris-100);
-  color: var(--gris-600);
+.vpt-detalles {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
 }
-
-.sell-pro-assist-root .tag-opt {
-  background: var(--gris-100);
-  color: #bbb;
-}
-
-.sell-pro-assist-root .tag-acc {
-  background: var(--acc-light);
-  color: var(--acc);
-  border: 1px solid var(--acc-border);
-}
-
-.sell-pro-assist-root .detail-box {
-  margin-top: 0.85rem;
-  padding: 0.85rem 1rem;
-  background: #fff;
-  border: 1px solid rgba(74, 74, 69, 0.12);
-  border-radius: 11px;
-}
-
-.sell-pro-assist-root .detail-feat {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.55rem;
-  font-size: 12px;
-  color: #666;
-  margin-bottom: 0.4rem;
-  line-height: 1.45;
-}
-
-.sell-pro-assist-root .detail-feat:last-child {
-  margin-bottom: 0;
-}
-
-.sell-pro-assist-root .detail-feat::before {
-  content: "·";
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--gris-600);
-  flex-shrink: 0;
-  line-height: 1;
-  margin-top: -1px;
-}
-
-.sell-pro-assist-root .portal-badges {
-  display: flex;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-  margin-top: 0.5rem;
-}
-
-.sell-pro-assist-root .pb {
-  font-size: 10.5px;
-  font-weight: 500;
-  padding: 0.25rem 0.65rem;
-  border-radius: 20px;
-  border: 1px solid #eee;
-  background: var(--gris-50);
-  color: #888;
-}
-
-.sell-pro-assist-root .portal-top-gap {
-  margin-top: 0.5rem;
-}
-
-/*
- * La banda del final: mensaje arriba, formulario debajo.
- *
- * Estaba en fila —mensaje a la izquierda, botones a la derecha— y funcionaba
- * mientras a la derecha hubiera dos botones. Con un formulario de cinco campos
- * ahí, el mensaje se quedaba en una tira de 140 px y la tarjeta se salía de la
- * banda por la derecha.
- *
- * En columna se lee el mensaje antes que el formulario, que es el orden que
- * queremos, y no hay ancho en el que se pueda desbordar.
- */
-.sell-pro-assist-root .dark-cta {
-  background: var(--grad);
-  border-radius: 20px;
-  padding: 2.25rem 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 1.35rem;
-  box-shadow: 0 4px 24px rgba(31,31,29, 0.22);
-  margin-bottom: 2rem;
-}
-
-/* La frase entera, a un ancho que se lee de una pasada. */
-.sell-pro-assist-root .dc-left {
-  min-width: 0;
-  max-width: 46ch;
-}
-
-.sell-pro-assist-root .dc-eyebrow {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.45);
-  margin-bottom: 0.5rem;
-}
-
-.sell-pro-assist-root .dc-title {
-  font-size: 17px;
-  font-weight: 600;
-  color: #fff;
-  line-height: 1.3;
-  margin-bottom: 0.4rem;
-}
-
-.sell-pro-assist-root .dc-sub {
-  font-size: 12.5px;
-  /* Era 0.5 de opacidad sobre el gradiente: se leia a duras penas. */
-  color: rgba(255, 255, 255, 0.68);
-  font-weight: 300;
-  line-height: 1.55;
-}
-
-/*
- * El formulario, centrado y con tope.
- *
- * Sin el tope, en pantalla ancha saldrian campos de 800 px para escribir una
- * matricula. Y sin `width: 100%` no llenaria el ancho en el movil.
- */
-.sell-pro-assist-root .dc-right {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.7rem;
-  width: 100%;
-  max-width: 420px;
-}
-
-.sell-pro-assist-root .btn-gold {
-  /* El mismo negro que el boton principal de la pantalla anterior: son
-     dos pantallas seguidas y la accion principal no puede cambiar de color. */
-  background: linear-gradient(135deg, var(--marca), var(--marca-claro));
-  border: none;
-  border-radius: 12px;
-  padding: 0.75rem 1.5rem;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: #fff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  box-shadow: 0 4px 14px var(--acc-glow);
-  white-space: nowrap;
-  transition: all 0.18s;
-}
-
-.sell-pro-assist-root .btn-gold:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 22px rgba(186, 117, 23, 0.52);
-}
-
-.sell-pro-assist-root .btn-gold svg {
-  width: 13px;
-  height: 13px;
-  stroke: #fff;
-  fill: none;
-  stroke-width: 2.2;
-  stroke-linecap: round;
-}
-
-.sell-pro-assist-root .btn-outline {
-  align-self: center;
-  background: none;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  padding: 0.65rem 1.25rem;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.65);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s;
-}
-
-.sell-pro-assist-root .btn-outline:hover {
-  border-color: rgba(255, 255, 255, 0.4);
-  color: #fff;
-}
-
-@media (max-width: 900px) {
-  .sell-pro-assist-root .hero-inner,
-  .sell-pro-assist-root .flow-inner,
-  .sell-pro-assist-root .dark-cta {
-    padding: 1.25rem;
-  }
-
-  /* La banda ya va en columna a cualquier ancho; aqui solo se aprieta. */
-  .sell-pro-assist-root .dark-cta {
-    padding: 1.5rem 1.1rem;
-    gap: 1.1rem;
-  }
-}
-/* ── El formulario de encargo ──────────────────────────────────────────────
- *
- * Vive dentro de la banda oscura del final, así que sus campos van sobre fondo
- * claro propio: escribir sobre el gradiente oscuro se lee mal y el corrector
- * del móvil tapa la mitad.
- */
-.sell-pro-assist-root .fev-caja {
-  background: #fff;
-  border-radius: 14px;
-  padding: 1.25rem 1.25rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-  /*
-   * Nada de `min-width`: era lo que hacia que la tarjeta se saliera de la banda
-   * cuando no cabia. Que se encoja con su sitio, que es lo que hace una caja.
-   */
-  text-align: left;
-}
-
-.sell-pro-assist-root .fev-campo {
-  display: flex;
-  flex-direction: column;
-  gap: 0.28rem;
-}
-
-.sell-pro-assist-root .fev-campo label {
-  font-size: 12px;
-  font-weight: 600;
+.vpt-detalles li {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 9px;
+  font-size: 13px;
+  line-height: 1.5;
   color: var(--gris-700);
 }
-
-.sell-pro-assist-root .fev-campo input,
-.sell-pro-assist-root .fev-campo select {
-  border: 1px solid var(--gris-300);
-  border-radius: 9px;
-  padding: 0.55rem 0.7rem;
-  font-size: 13.5px;
-  color: var(--gris-900);
-  background: #fff;
-  font-family: inherit;
+.vpt-detalles svg {
+  width: 14px; height: 14px; margin-top: 3px;
+  stroke: var(--acento-texto); fill: none; stroke-width: 2.4;
+  stroke-linecap: round; stroke-linejoin: round;
 }
 
-.sell-pro-assist-root .fev-campo input:focus,
-.sell-pro-assist-root .fev-campo select:focus {
+/* ── El trato ─────────────────────────────────────────────────────────── */
+.vpt-trato {
+  padding: clamp(56px, 9vw, 100px) clamp(20px, 6vw, 40px);
+  background: var(--gris-900);
+  color: var(--blanco);
+}
+.vpt-trato-inner { max-width: 900px; margin: 0 auto; text-align: center; }
+.vpt-trato h2 {
+  font-family: var(--fuente-titulos);
+  font-size: clamp(26px, 4vw, 40px);
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  margin: 0 0 12px;
+  text-wrap: balance;
+}
+.vpt-trato h2 span { color: var(--acento); }
+.vpt-trato-apoyo {
+  margin: 0 auto clamp(30px, 4vw, 46px);
+  max-width: 56ch;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.vpt-tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 14px;
+  text-align: left;
+}
+.vpt-tarjeta {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  padding: 22px 20px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.vpt-tarjeta b {
+  display: block;
+  font-family: var(--fuente-titulos);
+  font-size: clamp(26px, 3.4vw, 34px);
+  letter-spacing: -0.03em;
+  color: var(--acento);
+  margin-bottom: 6px;
+}
+.vpt-tarjeta strong { display: block; font-size: 14px; font-weight: 700; margin-bottom: 5px; }
+.vpt-tarjeta small { display: block; font-size: 12.5px; line-height: 1.55; color: rgba(255, 255, 255, 0.55); }
+
+/* ── El formulario ────────────────────────────────────────────────────── */
+.vpt-form {
+  padding: clamp(56px, 9vw, 100px) clamp(20px, 6vw, 40px);
+  background: var(--blanco);
+  scroll-margin-top: 20px;
+}
+.vpt-form-inner {
+  max-width: 460px;
+  margin: 0 auto;
+  text-align: center;
+}
+.vpt-form h2 {
+  font-family: var(--fuente-titulos);
+  font-size: clamp(26px, 4vw, 38px);
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  margin: 0 0 10px;
+  text-wrap: balance;
+}
+.vpt-form-apoyo {
+  margin: 0 0 28px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--gris-600);
+}
+.vpt-volver-inicio {
+  margin-top: 18px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 12.5px;
+  color: var(--gris-500);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.vpt-volver-inicio:hover { color: var(--gris-900); }
+
+/* ── El formulario en sí ──────────────────────────────────────────────── */
+.vpt-root .fev-caja {
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 18px;
+  padding: 22px 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  text-align: left;
+  box-shadow: 0 10px 34px rgba(17, 17, 17, 0.06);
+}
+.vpt-root .fev-campo { display: flex; flex-direction: column; gap: 5px; }
+.vpt-root .fev-campo label { font-size: 12px; font-weight: 700; color: var(--gris-700); }
+.vpt-root .fev-campo input,
+.vpt-root .fev-campo select {
+  border: 1px solid var(--gris-200);
+  border-radius: 10px;
+  padding: 11px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--gris-900);
+  background: var(--blanco);
+}
+.vpt-root .fev-campo input:focus,
+.vpt-root .fev-campo select:focus {
   outline: 2px solid var(--acento);
   outline-offset: 1px;
   border-color: transparent;
 }
-
-/* Nombre y teléfono caben en una línea; en el móvil se apilan solos. */
-.sell-pro-assist-root .fev-dos {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.6rem;
-}
-
-.sell-pro-assist-root .fev-fallo {
+.vpt-root .fev-dos { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+.vpt-root .fev-fallo {
   font-size: 12.5px;
   color: #b91c1c;
   background: #fef2f2;
-  border-radius: 8px;
-  padding: 0.45rem 0.6rem;
+  border-radius: 9px;
+  padding: 8px 10px;
 }
-
-.sell-pro-assist-root .fev-boton {
+.vpt-root .fev-boton {
   justify-content: center;
   width: 100%;
-  margin-top: 0.15rem;
-}
-
-/* Los tres números del trato. Pequeños, pero visibles antes de enviar nada. */
-.sell-pro-assist-root .fev-letra {
-  font-size: 11.5px;
-  line-height: 1.5;
-  color: var(--gris-600);
-  margin: 0;
-  padding-top: 0.7rem;
-  border-top: 1px solid var(--gris-200);
-}
-
-.sell-pro-assist-root .fev-hecho {
-  background: #fff;
-  border-radius: 14px;
-  padding: 1.6rem 1.2rem;
-  text-align: center;
-}
-
-.sell-pro-assist-root .fev-hecho-icono { font-size: 30px; }
-
-.sell-pro-assist-root .fev-hecho-titulo {
-  font-size: 16px;
+  margin-top: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 22px;
+  border: none;
+  border-radius: 999px;
+  background: var(--gris-900);
+  color: var(--blanco);
+  font-size: 14px;
   font-weight: 700;
-  color: var(--gris-900);
-  margin: 0.4rem 0 0.35rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.15s;
 }
-
-.sell-pro-assist-root .fev-hecho-texto {
-  font-size: 12.5px;
+.vpt-root .fev-boton:hover { transform: translateY(-1px); }
+.vpt-root .fev-boton:disabled { opacity: 0.55; transform: none; cursor: default; }
+.vpt-root .fev-boton svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; }
+.vpt-root .fev-letra {
+  font-size: 11.5px;
   line-height: 1.55;
-  color: var(--gris-600);
+  color: var(--gris-500);
   margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--gris-100);
 }
+.vpt-root .fev-hecho {
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: 18px;
+  padding: 34px 24px;
+  text-align: center;
+  box-shadow: 0 10px 34px rgba(17, 17, 17, 0.06);
+}
+.vpt-root .fev-hecho-icono { font-size: 34px; }
+.vpt-root .fev-hecho-titulo {
+  font-family: var(--fuente-titulos);
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  color: var(--gris-900);
+  margin: 10px 0 8px;
+}
+.vpt-root .fev-hecho-texto { font-size: 13px; line-height: 1.6; color: var(--gris-600); margin: 0; }
 
 @media (max-width: 640px) {
-  .sell-pro-assist-root .fev-dos { grid-template-columns: 1fr; }
+  .vpt-paso { grid-template-columns: 44px minmax(0, 1fr); }
+  .vpt-paso::before { left: 21px; top: 44px; }
+  .vpt-num { width: 44px; height: 44px; font-size: 16px; }
+  .vpt-root .fev-dos { grid-template-columns: 1fr; }
+}
+
+/* Las manchas no se mueven, pero el botón sí: quien lo pide, sin efectos. */
+@media (prefers-reduced-motion: reduce) {
+  .vpt-cta, .vpt-root .fev-boton { transition: none; }
+  .vpt-cta:hover, .vpt-root .fev-boton:hover { transform: none; }
 }

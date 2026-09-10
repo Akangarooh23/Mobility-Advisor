@@ -1,139 +1,269 @@
-import { useTranslation } from "react-i18next";
+import { useRef } from "react";
 import "./SellProfessionalAssistPage.css";
 import FormularioEncargoVenta from "../components/FormularioEncargoVenta";
 
+/**
+ * «Nosotros lo vendemos por ti».
+ *
+ * Es la página que tiene que convencer a un particular de dejarnos su coche. Se
+ * lee de arriba abajo y acaba en un formulario, así que no lleva el recorrido
+ * con pin de «Cómo funciona»: allí el scroll **es** el contenido, y aquí el
+ * contenido es algo que hay que poder alcanzar. Lo que sí se toma prestado es
+ * su idioma: portada con manchas, pasos numerados unidos por una línea, el
+ * titular a dos líneas con la segunda en amarillo.
+ *
+ * ## Lo que esta página dice y antes no
+ *
+ * **Los tres números del trato, en la portada.** Cero por delante, 299 € solo
+ * si vendemos y 30 días para poder irse. Estaban escondidos hasta que alguien
+ * cogía el teléfono, y son lo mejor que hay que contar: quien duda de dejarnos
+ * su coche duda por lo que le va a costar.
+ *
+ * **Y quién hace cada paso.** La mitad del argumento es que de seis pasos, él
+ * solo toca dos — y eso no se ve si todos los pasos se pintan igual.
+ *
+ * ## Lo que ya no dice
+ *
+ * No nombra cuatro portales. Se publica en uno, y prometer cuatro por su
+ * nombre era un compromiso que no se iba a cumplir.
+ *
+ * No dice que el informe de estado sea opcional: es obligatorio, y es lo que
+ * separa este anuncio de uno de Milanuncios.
+ *
+ * Y no promete garantía mecánica dentro del trato: es un producto aparte que el
+ * cliente contrata o no, y no es lo que hace que el coche esté verificado.
+ */
+
+const Tic = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+);
+
+const Flecha = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+);
+
+/**
+ * Los pasos, contados desde su lado.
+ *
+ * `quien` no es decoración: es el argumento. De los seis, el cliente toca dos
+ * —tasar y subir el coche— y enseñarlo cuando llegue el comprador. Lo demás lo
+ * llevamos nosotros, y eso es exactamente lo que está pagando.
+ */
+const PASOS = [
+  {
+    quien: "tú",
+    titulo: "Tasamos tu coche gratis",
+    texto:
+      "Contestas cuatro preguntas y te decimos a cuánto se está vendiendo un coche como el tuyo. Sin coste y sin compromiso: de aquí sale el precio del que hablamos después.",
+    detalles: [
+      "Precio de mercado, no una cifra inventada para captarte",
+      "Si no te encaja, ahí se acaba y no debes nada",
+    ],
+  },
+  {
+    quien: "tú",
+    titulo: "Subes el coche a tu cuenta",
+    texto:
+      "Fotos, permiso de circulación, ficha técnica e ITV. Y el informe de estado, que se hace con el móvil siguiendo lo que te va pidiendo la pantalla.",
+    detalles: [
+      "El informe acompaña al anuncio: es lo que hace que un comprador se fíe",
+      "También eliges en qué horas puedes enseñarlo, para que nadie te llame a deshora",
+    ],
+  },
+  {
+    quien: "nosotros",
+    titulo: "Lo revisamos en un taller",
+    texto:
+      "Llevamos el coche a un taller de la red y lo revisan. Con esa revisión el anuncio deja de ser una foto bonita y pasa a ser un coche comprobado.",
+    detalles: [
+      "Lo pagamos nosotros, esté como esté el coche",
+      "Si aparece algo, te lo contamos antes de publicar nada",
+    ],
+  },
+  {
+    quien: "nosotros",
+    titulo: "Lo publicamos y damos la cara",
+    texto:
+      "Escribimos el anuncio, lo publicamos y el teléfono que sale es el nuestro. Las llamadas, los mensajes y los que solo quieren regatear los cogemos nosotros.",
+    detalles: [
+      "En nuestro marketplace y en el portal donde está tu comprador",
+      "Tú no recibes ni una llamada de un desconocido",
+    ],
+  },
+  {
+    quien: "nosotros",
+    titulo: "Te llevamos compradores de verdad",
+    texto:
+      "Filtramos quién va en serio y le damos cita en las horas que tú marcaste. Llega a verlo alguien que ya sabe el precio, ha visto el informe y viene a comprar.",
+    detalles: [
+      "Las citas caen en tu horario, no en el nuestro",
+      "Sabes quién viene y a qué hora antes de que aparezca",
+    ],
+  },
+  {
+    quien: "nosotros",
+    titulo: "Cerramos y hacemos el papeleo",
+    texto:
+      "Contrato de compraventa, notificación a la DGT y transferencia de titularidad. Te acompañamos hasta que el dinero está en tu cuenta.",
+    detalles: [
+      "El contrato lo redactamos y lo revisamos nosotros",
+      "Los 299 € se cobran aquí, cuando el coche ya está vendido",
+    ],
+  },
+];
+
+const CIFRAS = [
+  { valor: "0 €", texto: "por adelantado" },
+  { valor: "299 €", texto: "solo si lo vendemos" },
+  { valor: "30 días", texto: "y puedes irte" },
+];
+
+const TRATO = [
+  {
+    valor: "0 €",
+    titulo: "No adelantas nada",
+    texto:
+      "Ni por tasarlo, ni por el informe, ni por la revisión del taller, ni por los anuncios. Todo eso lo ponemos nosotros antes de cobrar un euro.",
+  },
+  {
+    valor: "299 €",
+    titulo: "Solo si se vende",
+    texto:
+      "Es lo único que se te factura, y se factura cuando el coche ya está vendido y el dinero es tuyo. Si no lo vendemos, no pagas.",
+  },
+  {
+    valor: "30 días",
+    titulo: "Y eres libre",
+    texto:
+      "Si aceptas nuestro precio y pasado un mes no lo hemos vendido, puedes venderlo por tu cuenta sin pagarnos nada. Nadie te retiene.",
+  },
+];
+
 export default function SellProfessionalAssistPage({ onGoBack, onGoHome }) {
-  const { t } = useTranslation();
+  const formulario = useRef(null);
+
+  const alFormulario = () => {
+    formulario.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
-    <div className="sell-pro-assist-root">
-      <div className="back-row">
-        <button className="back-btn" type="button" onClick={onGoBack}>
-          <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
-          {t("sell.goBack")}
-        </button>
-        <span className="breadcrumb">{t("sell.breadcrumbProfessionalAssist")} <b>{t("sell.professionalFlowHeader")}</b></span>
-      </div>
+    <div className="vpt-root">
+      <button className="vpt-volver" type="button" onClick={onGoBack}>
+        <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+        Volver
+      </button>
 
-      <div className="hero-card">
-        <div className="hero-band" />
-        <div className="hero-inner">
-          <div className="badge">{t("sell.professionalFlowHeader")}</div>
-          <h1 className="hero-title">{t("sell.professionalHeroTitle")}</h1>
-          <p className="hero-desc">
-            {t("sell.professionalHeroDesc")}
+      {/* ── Portada ────────────────────────────────────────────────────── */}
+      <section className="vpt-hero">
+        <div className="vpt-manchas" aria-hidden="true">
+          <span className="vpt-mancha vpt-mancha-1" />
+          <span className="vpt-mancha vpt-mancha-2" />
+          <span className="vpt-mancha vpt-mancha-3" />
+        </div>
+
+        <div className="vpt-hero-texto">
+          <p className="vpt-eyebrow">Vender</p>
+          <h1>
+            Nosotros lo<br /><span>vendemos por ti.</span>
+          </h1>
+          <p className="vpt-hero-apoyo">
+            Tú conservas el coche y solo tienes que enseñarlo cuando venga el comprador.
+            Del precio, el anuncio, las llamadas, las citas y el papeleo nos encargamos
+            nosotros.
           </p>
-          <div className="hero-meta">
-            <div className="mpill">
-              <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-              {t("sell.professionalMetaPersonalManager")}
-            </div>
-            <div className="mpill">
-              <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
-              {t("sell.professionalMetaFullService")}
-            </div>
-            <div className="mpill">
-              <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.81A16 16 0 0 0 16 16.9l.86-.86a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
-              {t("sell.professionalMetaNoSpam")}
-            </div>
+
+          {/*
+            * Los tres números, aquí y no en la llamada. Quien duda de dejarnos
+            * su coche duda por lo que le va a costar, y esconderlo hasta el
+            * teléfono convierte la conversación en una sorpresa.
+            */}
+          <div className="vpt-cifras">
+            {CIFRAS.map((c) => (
+              <span className="vpt-cifra" key={c.valor}>
+                <b>{c.valor}</b>
+                <span>{c.texto}</span>
+              </span>
+            ))}
+          </div>
+
+          <button className="vpt-cta" type="button" onClick={alFormulario}>
+            Quiero vender mi coche
+            <Flecha />
+          </button>
+        </div>
+      </section>
+
+      {/* ── Los pasos ──────────────────────────────────────────────────── */}
+      <section className="vpt-pasos">
+        <div className="vpt-pasos-cab">
+          <p className="vpt-eyebrow">Cómo va</p>
+          <h2>
+            Seis pasos. <span>Tú haces dos.</span>
+          </h2>
+        </div>
+
+        <div className="vpt-lista">
+          {PASOS.map((p, i) => (
+            <article className="vpt-paso" key={p.titulo}>
+              <div className="vpt-num">{String(i + 1).padStart(2, "0")}</div>
+              <div className="vpt-paso-cuerpo">
+                <span className={`vpt-quien ${p.quien === "tú" ? "vpt-quien-tu" : "vpt-quien-nosotros"}`}>
+                  {p.quien === "tú" ? "Lo haces tú" : "Lo hacemos nosotros"}
+                </span>
+                <h3>{p.titulo}</h3>
+                <p>{p.texto}</p>
+                <ul className="vpt-detalles">
+                  {p.detalles.map((d) => (
+                    <li key={d}><Tic />{d}</li>
+                  ))}
+                </ul>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* ── El trato ───────────────────────────────────────────────────── */}
+      <section className="vpt-trato">
+        <div className="vpt-trato-inner">
+          <p className="vpt-eyebrow">El trato</p>
+          <h2>
+            Cobramos <span>solo si vendemos.</span>
+          </h2>
+          <p className="vpt-trato-apoyo">
+            El informe, la revisión del taller y los anuncios los pagamos nosotros por
+            delante. Si el coche no se vende, ese gasto es nuestro.
+          </p>
+
+          <div className="vpt-tarjetas">
+            {TRATO.map((t) => (
+              <div className="vpt-tarjeta" key={t.valor}>
+                <b>{t.valor}</b>
+                <strong>{t.titulo}</strong>
+                <small>{t.texto}</small>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="flow-card">
-        <div className="flow-band" />
-        <div className="flow-inner">
-          <div className="blabel"><div className="blabel-dot" />{t("sell.professionalFlowHeader")}</div>
-          <div className="steps-grid">
-            <div className="step-block">
-              <div className="step-left"><div className="step-circle">1</div></div>
-              <div className="step-right">
-                <div className="step-label">{t("sell.professionalStep1Label")}</div>
-                <div className="step-title">{t("sell.professionalStep1Title")}</div>
-                <div className="step-desc">{t("sell.professionalStep1Desc")}</div>
-                <div className="step-tag tag-inc">{t("sell.professionalStep1Tag")}</div>
-                <div className="detail-box">
-                  <div className="detail-feat">{t("sell.professionalStep1Feat1")}</div>
-                  <div className="detail-feat">{t("sell.professionalStep1Feat2")}</div>
-                  <div className="detail-feat">{t("sell.professionalStep1Feat3")}</div>
-                </div>
-              </div>
-            </div>
+      {/* ── El formulario ──────────────────────────────────────────────── */}
+      <section className="vpt-form" ref={formulario}>
+        <div className="vpt-form-inner">
+          <p className="vpt-eyebrow">Empieza hoy</p>
+          <h2>Cuéntanos qué coche tienes</h2>
+          <p className="vpt-form-apoyo">
+            Dos preguntas y tus datos. Te llamamos en menos de 24 horas laborables para
+            decirte a qué precio se está vendiendo y cómo lo haríamos.
+          </p>
 
-            <div className="step-block">
-              <div className="step-left"><div className="step-circle">2</div></div>
-              <div className="step-right">
-                <div className="step-label">{t("sell.professionalStep2Label")}</div>
-                <div className="step-title">{t("sell.professionalStep2Title")}</div>
-                <div className="step-desc">{t("sell.professionalStep2Desc")}</div>
-                <div className="step-tag tag-inc">{t("sell.professionalStep2Tag")}</div>
-                <div className="detail-box">
-                  <div className="detail-feat">{t("sell.professionalStep2Feat1")}</div>
-                  <div className="detail-feat">{t("sell.professionalStep2Feat2")}</div>
-                  <div className="detail-feat">{t("sell.professionalStep2Feat3")}</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="step-block">
-              <div className="step-left"><div className="step-circle">3</div></div>
-              <div className="step-right">
-                <div className="step-label">{t("sell.professionalStep3Label")}</div>
-                <div className="step-title">{t("sell.professionalStep3Title")}</div>
-                <div className="step-desc">{t("sell.professionalStep3Desc")}</div>
-                <div className="step-tag tag-acc">{t("sell.professionalStep3Tag")}</div>
-                <div className="detail-box">
-                  <div className="detail-feat">{t("sell.professionalStep3Feat1")}</div>
-                  <div className="portal-badges">
-                    <span className="pb">{t("sell.professionalPortalCoches")}</span>
-                    <span className="pb">{t("sell.professionalPortalAutoscout")}</span>
-                    <span className="pb">{t("sell.professionalPortalMilanuncios")}</span>
-                    <span className="pb">{t("sell.professionalPortalWallapop")}</span>
-                  </div>
-                  <div className="detail-feat portal-top-gap">{t("sell.professionalStep3Feat2")}</div>
-                  <div className="detail-feat">{t("sell.professionalStep3Feat3")}</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="step-block">
-              <div className="step-left"><div className="step-circle">4</div></div>
-              <div className="step-right">
-                <div className="step-label">{t("sell.professionalStep4Label")}</div>
-                <div className="step-title">{t("sell.professionalStep4Title")}</div>
-                <div className="step-desc">{t("sell.professionalStep4Desc")}</div>
-                <div className="step-tag tag-inc">{t("sell.professionalStep4Tag")}</div>
-                <div className="detail-box">
-                  <div className="detail-feat">{t("sell.professionalStep4Feat1")}</div>
-                  <div className="detail-feat">{t("sell.professionalStep4Feat2")}</div>
-                  <div className="detail-feat">{t("sell.professionalStep4Feat3")}</div>
-                  <div className="detail-feat">{t("sell.professionalStep4Feat4")}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="dark-cta">
-        <div className="dc-left">
-          <div className="dc-eyebrow">{t("sell.professionalCtaEyebrow")}</div>
-          <div className="dc-title">{t("sell.professionalCtaTitle")}</div>
-          <div className="dc-sub">{t("sell.professionalCtaSubtitle")}</div>
-        </div>
-        {/*
-          * El formulario va aquí, no detrás del botón.
-          *
-          * Antes esto llevaba al formulario de contacto general, que no
-          * preguntaba ni qué coche ni en cuánto tiempo — que es exactamente lo
-          * que el texto de al lado promete preguntar. Y no creaba ningún lead:
-          * mandaba un correo a una bandeja.
-          */}
-        <div className="dc-right">
           <FormularioEncargoVenta />
-          <button className="btn-outline" type="button" onClick={onGoHome}>{t("sell.professionalCtaBackButton")}</button>
+
+          <button className="vpt-volver-inicio" type="button" onClick={onGoHome}>
+            Volver al inicio
+          </button>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

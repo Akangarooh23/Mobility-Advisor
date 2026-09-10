@@ -55,3 +55,26 @@ export const DOMINIO_UID = "popcar.tech";
  * popcar.com.es se ve raro pero funciona; al reves se veia bien y no llegaba.
  */
 export const CORREO_CONTACTO = "hola@popcarmobility.com";
+
+/**
+ * El telefono al que se nos llama.
+ *
+ * Estaba escrito a mano en tres pantallas y con **dos valores distintos**: la
+ * ficha del portal llevaba el bueno y la pagina de Contacto seguia enseñando un
+ * `600 000 000` de relleno —en produccion, con su enlace de WhatsApp a un
+ * numero que no es de nadie—. Quien entraba por Contacto no tenia forma de
+ * llamarnos.
+ */
+export const TELEFONO = "+34 684 717 736";
+
+/**
+ * Y como lo quiere `wa.me`: pegado, con prefijo y sin signos.
+ *
+ * No se deriva del de arriba quitando caracteres. El dia que el numero lleve
+ * una extension, derivarlo daria un enlace roto que nadie prueba porque abre
+ * igual: WhatsApp no falla, simplemente no encuentra a nadie.
+ */
+export const TELEFONO_WHATSAPP = "34684717736";
+
+/** El enlace de WhatsApp, ya montado. */
+export const ENLACE_WHATSAPP = `https://wa.me/${TELEFONO_WHATSAPP}`;

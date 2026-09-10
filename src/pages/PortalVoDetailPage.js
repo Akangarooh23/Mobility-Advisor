@@ -6,6 +6,7 @@ import { llevaRecargo } from "../utils/entregaPeninsula";
 import { buildImageProxyUrl, buildOfferLocalImageCandidates, slugifyOfferFolderName } from "../utils/offerHelpers";
 import { getUtmPayload } from "../utils/utmTracker";
 import { trackLead } from "../utils/metaPixel";
+import { TELEFONO_WHATSAPP } from "../marca";
 import { trackFunnelEvent } from "../utils/funnelTracker";
 import { readUserBillingProfile } from "../utils/storage";
 import SlotPicker from "../components/SlotPicker";
@@ -16,7 +17,9 @@ import ComoFuncionaImportacion from "../components/ComoFuncionaImportacion";
 import { getRentingDesde } from "../utils/portalVoHelpers";
 
 // Número de WhatsApp de PopCar (formato internacional sin +).
-const CARSWISE_WHATSAPP = "34684717736";
+// El numero vive en la marca: escrito a mano aqui es como se separo del de
+// la pagina de Contacto, que se quedo con uno de relleno.
+const CARSWISE_WHATSAPP = TELEFONO_WHATSAPP;
 
 function getAvailableDurations(offer) {
   if (offer.rentingPricesJson?.km_options) {

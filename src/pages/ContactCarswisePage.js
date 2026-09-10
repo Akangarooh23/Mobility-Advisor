@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { postAlertEmailDigestJson } from "../utils/apiClient";
-import { CORREO_CONTACTO } from "../marca";
+import { CORREO_CONTACTO, TELEFONO, ENLACE_WHATSAPP } from "../marca";
 import "./ContactCarswisePage.css";
 
 /**
@@ -276,11 +276,11 @@ export default function ContactCarswisePage({ tema } = {}) {
                   <div className="cw-contact-info-value">{CORREO_CONTACTO}</div>
                 </div>
               </a>
-              <a href="https://wa.me/34600000000" target="_blank" rel="noreferrer" className="cw-contact-info-card">
+              <a href={ENLACE_WHATSAPP} target="_blank" rel="noreferrer" className="cw-contact-info-card">
                 <div className="cw-contact-info-icon is-teal">💬</div>
                 <div>
                   <div className="cw-contact-info-label">WhatsApp</div>
-                  <div className="cw-contact-info-value">+34 600 000 000</div>
+                  <div className="cw-contact-info-value">{TELEFONO}</div>
                 </div>
               </a>
               <div className="cw-contact-info-card">

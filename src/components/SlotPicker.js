@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { DOMINIO_UID } from "../marca";
+import { getUtmPayload } from "../utils/utmTracker";
 
 const API = "/api/visit-availability";
 
@@ -109,6 +110,16 @@ export default function SlotPicker({ offerId, vehicleTitle, userEmail, userName,
           notes: form.notes,
           quiereFinanciar: form.quiereFinanciar,
           source: source || "marketplace",
+          /*
+           * De dónde vino, igual que en los leads.
+           *
+           * Sin esto, el comprador que llega de coches.net, pide cita y no deja
+           * lead entra como si hubiera aparecido de la nada — y ese es justo el
+           * camino del que viene del portal: pulsa el enlace corto, ve el coche
+           * y pide hora. Y es la única forma de contestar si el portal trae
+           * gente o solo cuesta dinero.
+           */
+          ...getUtmPayload(),
         }),
       });
       const d = await r.json();

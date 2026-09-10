@@ -1,0 +1,377 @@
+{
+  "name": "AutoScout24 DE – Enriquecer (carrocería, plazas, cilindrada, CO₂, consumo)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "de-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -380,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 25 9,12,15,18,21 * * *"
+            }
+          ]
+        }
+      },
+      "id": "de-cron",
+      "name": "5 veces/día (9:25 a 21:25)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -380,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Las ofertas alemanas a las que les falta pasar por la ficha.\n--\n-- Por orden de UTILIDAD, no de antiguedad. Con 138.577 pendientes y 2.000 al\n-- dia, el orden decide que se rellena esta semana y que dentro de dos meses:\n--\n--   1. las que el scoring ya ha marcado como candidatas a importar, que son\n--      las unicas sobre las que alguien va a tomar una decision\n--   2. despues las mas recientes, que son las que siguen a la venta\n--\n-- Lo que saca este workflow -puertas, plazas, carroceria, cilindrada, CO2- no\n-- cambia nunca en la vida de un anuncio. Cada oferta pasa UNA vez y no vuelve:\n-- por eso no hay ventana de refresco como en los otros enriquecedores.\nSELECT id, url\nFROM moveadvisor_market_offers\nWHERE portal = 'autoscout24'\n  AND country = 'DE'\n  AND is_active\n  AND COALESCE(url, '') <> ''\n  AND enrich_tried_at IS NULL\nORDER BY import_score DESC NULLS LAST, scraped_at DESC\nLIMIT 400",
+        "options": {}
+      },
+      "id": "de-cola",
+      "name": "PG: Cola a enriquecer",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -140,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "de-loop",
+      "name": "Loop: oferta por oferta",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        80,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "de-c-url",
+              "leftValue": "={{ $json.url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "de-if-url",
+      "name": "IF: ¿hay ficha que pedir?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        300,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 25000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "de-http",
+      "name": "HTTP: Ficha de AutoScout24",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        520,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// AutoScout24 DE - de la ficha a las columnas.\nconst oferta = $('Loop: oferta por oferta').item.json;\nconst res = $input.first().json;\nconst cuerpo = String(res.body || res.data || '');\nconst codigo = Number(res.statusCode || 0);\nconst id = String(oferta.id || '');\n\nconst esc = v => (v === null || v === undefined || v === '') ? 'NULL'\n  : (typeof v === 'number' ? String(v) : \"'\" + String(v).replace(/'/g, \"''\") + \"'\");\n\n// enrich_tried_at se mueve pase lo que pase: sin eso, una ficha que falla se\n// reintenta en cada pasada y atasca la cola para siempre.\nconst soloIntento = () => [{ json: {\n  sql: 'UPDATE moveadvisor_market_offers SET enrich_tried_at = NOW() WHERE id = ' + esc(id),\n  veredicto: 'sin datos',\n} }];\n\nif (!id) return [{ json: { sql: null } }];\nif (codigo !== 200 || !cuerpo) {\n  console.log('[as24-de-enrich] ' + id + ': sin ficha (HTTP ' + codigo + ')');\n  return soloIntento();\n}\n\n// ── el JSON de la pagina ───────────────────────────────────────────────────\nlet v = null;\ntry {\n  const m = cuerpo.match(/<script id=\"__NEXT_DATA__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/);\n  if (m) v = ((JSON.parse(m[1]).props || {}).pageProps || {}).listingDetails;\n} catch (e) { v = null; }\nv = (v && v.vehicle) ? v.vehicle : null;\n\nif (!v) {\n  console.log('[as24-de-enrich] ' + id + ': la ficha no trae datos de vehiculo');\n  return soloIntento();\n}\n\nconst entero = x => {\n  const n = Number(x);\n  return Number.isFinite(n) && n > 0 ? Math.round(n) : null;\n};\nconst decimal = x => {\n  const n = Number(x);\n  return Number.isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : null;\n};\n\nconst carroc  = String(v.bodyType || '').trim();\nconst puertas = entero(v.numberOfDoors);\nconst plazas  = entero(v.numberOfSeats);\nconst cilin   = entero(v.rawDisplacementInCCM);\n\n// ── el CO2, que es el dato que decide el impuesto ──────────────────────────\n//\n// Vive en varios sitios segun la ficha y hay que probarlos por orden. Medido\n// sobre 10 fichas vivas el 2026-09-10:\n//\n//     wltp.co2EmissionsCombinedWithFallback        10 de 10\n//     co2emissionInGramPerKmWithFallback            1 de 6   <- la que use al principio\n//\n// Empezar por la de primer nivel dejaba sin CO2 a cinco de cada seis ofertas, o\n// sea sin poder calcular el impuesto de matriculacion de casi todo el catalogo.\n//\n// El envoltorio es {raw, formatted, isFallback}. isFallback avisa de que\n// AutoScout24 lo ha estimado en vez de declararlo; se guarda igual -para el\n// impuesto es lo unico que hay- pero se apunta en el log.\nconst primero = (...candidatos) => {\n  for (const x of candidatos) {\n    if (x && typeof x === 'object' && x.raw !== null && x.raw !== undefined) return x;\n  }\n  return {};\n};\nconst wltp = v.wltp || {};\nconst extra = (Array.isArray(v.additionalFuel) ? v.additionalFuel[0] : null) || {};\n\nconst co2obj = primero(\n  wltp.co2EmissionsCombinedWithFallback,\n  v.co2emissionInGramPerKmWithFallback,\n  extra.co2emissionInGramPerKmWithFallback);\n// CERO ES UN VALOR VALIDO: un electrico emite 0 g/km, y ese 0 es justo lo que\n// lo mete en el tramo del 0% del impuesto. Descartarlo por \"vacio\" seria\n// tratarlos como si no tuvieramos el dato.\nconst co2raw = Number(co2obj.raw);\nconst co2 = Number.isFinite(co2raw) && co2raw >= 0 ? Math.round(co2raw) : null;\n\nconst consObj = primero(\n  wltp.consumptionCombinedWithFallback,\n  v.fuelConsumptionCombined,\n  extra.consumptionCombined);\nconst consumo = decimal(consObj.raw);\n\n// La traccion hay que traducirla al vocabulario de la tabla. AutoScout24 dice\n// \"Traccion delantera\"; nosotros guardamos \"Delantera\", \"Trasera\", \"Total\" y\n// \"4x4\", que es lo que entienden los filtros.\nlet traccion = '';\nconst dt = String(v.driveTrain || '').toLowerCase();\nif (dt.indexOf('delanter') !== -1) traccion = 'Delantera';\nelse if (dt.indexOf('traser') !== -1) traccion = 'Trasera';\nelse if (dt.indexOf('total') !== -1 || dt.indexOf('4x4') !== -1 || dt.indexOf('integral') !== -1) traccion = 'Total';\n\n// ── el UPDATE ──────────────────────────────────────────────────────────────\n// COALESCE con NULLIF, no COALESCE a secas: hay columnas que llegan a CERO o a\n// cadena vacia en vez de a NULL, y un COALESCE normal no entra nunca sobre un 0.\n//\n// updated_at NO se toca. Este workflow no cambia el anuncio, solo lo que\n// nosotros sabemos de el.\nconst sets = ['enrich_tried_at = NOW()'];\nconst pon = (col, val) => { if (val !== null && val !== undefined && val !== '')\n  sets.push(col + \" = COALESCE(NULLIF(\" + col + \", ''), \" + esc(val) + ')'); };\nconst ponNum = (col, val) => { if (val !== null && val !== undefined && val !== '')\n  sets.push(col + ' = COALESCE(NULLIF(' + col + ', 0), ' + esc(val) + ')'); };\n\n// OJO CON LOS TIPOS. No todas estas columnas son numericas, aunque lo parezcan:\n//\n//     doors          integer\n//     seats          integer\n//     consumption    numeric\n//     co2            character varying   <- guarda \"126\", como texto\n//     displacement   character varying   <- guarda \"1984\", como texto\n//     body_type      character varying\n//     traction       character varying\n//\n// Usar NULLIF(col, 0) sobre una varchar da \"operator does not exist: character\n// varying = integer\" y tumba el UPDATE entero. Sobre 138.577 ofertas eso es una\n// pasada que no guarda nada y falla en cada ficha.\npon('body_type', carroc);\nponNum('doors', puertas);\nponNum('seats', plazas);\nponNum('consumption', consumo);\npon('displacement', cilin === null ? '' : String(cilin));\n// Ojo: co2 puede ser 0 y hay que escribirlo. String(0) es '0', que no es\n// cadena vacia, asi que pon() lo acepta. Si fuera un ponNum sobre columna\n// numerica, el 0 se perderia por el NULLIF.\npon('co2', co2 === null ? '' : String(co2));\npon('traction', traccion);\n\n// environmental_label NO se toca aqui: ver la cabecera del generador. La ficha\n// da \"Euro 6\", que es la norma europea, y esa columna guarda la etiqueta de la\n// DGT -C, ECO, B, 0 Emisiones-. Son cosas distintas.\n\nconst hayDato = sets.length > 1;\n\nconsole.log('[as24-de-enrich] ' + id + ': carroceria=' + (carroc || '-')\n  + ' puertas=' + (puertas || '-') + ' plazas=' + (plazas || '-')\n  + ' cc=' + (cilin || '-') + ' co2=' + (co2 || '-')\n  + (co2 && co2obj.isFallback ? '(estimado)' : '')\n  + ' consumo=' + (consumo || '-') + ' traccion=' + (traccion || '-'));\n\nreturn [{ json: {\n  sql: 'UPDATE moveadvisor_market_offers SET ' + sets.join(', ') + ' WHERE id = ' + esc(id),\n  veredicto: hayDato ? 'enriquecida' : 'sin datos',\n  co2: co2, co2Estimado: !!co2obj.isFallback, carroceria: carroc,\n  puertas: puertas, plazas: plazas, cilindrada: cilin, traccion: traccion,\n} }];"
+      },
+      "id": "de-code",
+      "name": "Code: Extraer de la ficha",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "de-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "de-if-sql",
+      "name": "IF: ¿hay algo que guardar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        960,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "de-pg",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        340
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "de-wait",
+      "name": "Esperar 1s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1400,
+        420
+      ],
+      "webhookId": "c4f81a35-as24-de-enrich"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5 veces/día (9:25 a 21:25)": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Cola a enriquecer": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: oferta por oferta": {
+      "main": [
+        [],
+        [
+          {
+            "node": "IF: ¿hay ficha que pedir?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ficha que pedir?": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Ficha de AutoScout24",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Ficha de AutoScout24": {
+      "main": [
+        [
+          {
+            "node": "Code: Extraer de la ficha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Extraer de la ficha": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay algo que guardar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay algo que guardar?": {
+      "main": [
+        [
+          {
+            "node": "PG: Actualizar oferta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Actualizar oferta": {
+      "main": [
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 1s": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

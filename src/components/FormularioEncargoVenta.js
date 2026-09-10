@@ -115,10 +115,21 @@ export default function FormularioEncargoVenta({ onHecho }) {
         * escondido hasta que alguien cogía el teléfono. Enseñarlo aquí hace que
         * la llamada empiece con un argumento en vez de con una sorpresa.
         */}
+      {/*
+        * Decía «el encargo dura 30 días en exclusiva y puedes cancelarlo cuando
+        * quieras». Dos cosas mal.
+        *
+        * Era falso: el encargo no caduca, se extiende hasta que el cliente lo
+        * deja o hasta que vendemos. Los 30 días son hasta cuándo se le puede
+        * cobrar la cancelación.
+        *
+        * Y sonaba a cárcel. «Exclusiva» y «puedes cancelarlo» contestan una
+        * objeción que nadie ha hecho, y al contestarla la plantan.
+        */}
       <p className="fev-letra">
         Cero euros por delante. Se cobran <strong>299 €</strong> solo si vendemos tu coche.
-        El encargo dura <strong>30 días</strong> en exclusiva y puedes cancelarlo cuando
-        quieras: si vendes por tu cuenta antes de que se cumplan, son 150 €.
+        Nos damos <strong>30 días</strong>: si aceptas nuestro precio y pasan sin venderlo,
+        lo dejas sin pagar nada. Si te sales antes, son <strong>150 €</strong>.
       </p>
     </div>
   );

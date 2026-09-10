@@ -15,9 +15,14 @@ import FormularioEncargoVenta from "../components/FormularioEncargoVenta";
  * ## Lo que esta página dice y antes no
  *
  * **Los tres números del trato, en la portada.** Cero por delante, 299 € solo
- * si vendemos y 30 días para poder irse. Estaban escondidos hasta que alguien
+ * si vendemos y los 30 días que nos damos. Estaban escondidos hasta que alguien
  * cogía el teléfono, y son lo mejor que hay que contar: quien duda de dejarnos
  * su coche duda por lo que le va a costar.
+ *
+ * **Y contados desde nuestro lado.** El plazo decía «y puedes irte», «nadie te
+ * retiene». El fallo no era la palabra: era contestar una objeción que nadie
+ * había hecho, y al contestarla se planta. Ese mes es lo que nos ponemos
+ * nosotros para venderlo, pagando el informe, el taller y el anuncio.
  *
  * **Y quién hace cada paso.** La mitad del argumento es que de seis pasos, él
  * solo toca dos — y eso no se ve si todos los pasos se pintan igual.
@@ -115,7 +120,7 @@ const PASOS = [
 const CIFRAS = [
   { valor: "0 €", texto: "por adelantado" },
   { valor: "299 €", texto: "solo si lo vendemos" },
-  { valor: "30 días", texto: "y puedes irte" },
+  { valor: "30 días", texto: "es lo que nos damos" },
 ];
 
 const TRATO = [
@@ -131,11 +136,21 @@ const TRATO = [
     texto:
       "Es lo único que se te factura, y se factura cuando el coche ya está vendido y el dinero es tuyo. Si no lo vendemos, no pagas.",
   },
+  /*
+   * Esta tarjeta decía «Y eres libre… nadie te retiene», y sonaba a cárcel.
+   *
+   * El fallo no era la palabra: era contestar una objeción que nadie había
+   * hecho. Al negar que le retengamos, se planta la idea de que podríamos —y
+   * quien lo lee deduce que durante ese mes está atrapado.
+   *
+   * Y es justo al revés: ese plazo nos lo ponemos nosotros. Es lo que nos damos
+   * para vender su coche pagando nosotros el informe, el taller y el anuncio.
+   */
   {
     valor: "30 días",
-    titulo: "Y eres libre",
+    titulo: "Nos damos un mes",
     texto:
-      "Si aceptas nuestro precio y pasado un mes no lo hemos vendido, puedes venderlo por tu cuenta sin pagarnos nada. Nadie te retiene.",
+      "Es el tiempo que nos ponemos para vender tu coche. Si aceptas nuestro precio y pasa el mes sin venderlo, decides tú: seguimos o lo dejas sin pagar nada.",
   },
 ];
 

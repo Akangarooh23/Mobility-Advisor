@@ -20,7 +20,7 @@
  *     guardaba igual y en el ERP se veía un Audi A3 del 98 «valorado» en
  *     999.999 €. Un dato que no se sostiene es peor que no tener dato.
  *   - Que las protecciones de la publicación sigan en pie: 15 comparables,
- *     12.000 € de precio mínimo y un ahorro de entre el 30% y el 50%.
+ *     un ahorro que sube por tramos -20%, 25% y 30%- y un techo del 50%.
  *   - Que el ahorro que se le enseña al cliente sea creíble.
  */
 "use strict";
@@ -63,9 +63,35 @@ const comprueba = (nombre, cond, detalle) => {
   comprueba("import_comps se guarda siempre, para saber por qué falta lo demás",
     /import_comps\s*=\s*comp\.comps,/.test(SQL));
   comprueba("la publicación exige 15 comparables", /comp\.comps>=15/.test(SQL));
-  comprueba("y un precio mínimo de 12.000 €", /comp\.de_price >= 12000/.test(SQL));
-  comprueba("y un ahorro de entre el 15% y el 50%",
-    />= 0\.15/.test(SQL) && /<= 0\.5/.test(SQL));
+  comprueba("el techo del ahorro sigue en el 50%", /<= 0\.5/.test(SQL));
+
+  // ── los tramos ────────────────────────────────────────────────────────────
+  //
+  // Cuanto más caro el coche, más ahorro se le exige: un 20% sobre 15.000 € son
+  // 3.000, que compensan el viaje; un 20% sobre 90.000 son 18.000, y ahí el
+  // cliente espera más para meterse en una importación.
+  console.log("\nLOS TRAMOS");
+  comprueba("4.000-25.000 exige 20%",
+    /de_price >= 4000\s+AND comp\.de_price < 25000[\s\S]{0,140}>= 0\.20/.test(SQL));
+  comprueba("25.000-45.000 exige 25%",
+    /de_price >= 25000 AND comp\.de_price < 45000[\s\S]{0,140}>= 0\.25/.test(SQL));
+  comprueba("45.000-100.000 exige 30%",
+    /de_price >= 45000 AND comp\.de_price < 100000[\s\S]{0,140}>= 0\.30/.test(SQL));
+
+  // ── lo que nunca se publica ───────────────────────────────────────────────
+  //
+  // De 1.954 fichas alemanas miradas el 2026-09-10, 339 estaban dañadas -el
+  // 17%- y 130 de ellas decían «No apto para circular». Una llegó a estar
+  // publicada en la web con el frontal destrozado y un 38% de ahorro.
+  console.log("\nLO QUE NUNCA SE PUBLICA");
+  comprueba("nada dañado", /m\.is_damaged = FALSE/.test(SQL));
+  // NULL es «no lo hemos mirado», y publicar sin mirar es lo que puso ese coche
+  // delante de un cliente.
+  comprueba("ni nada sin comprobar", /m\.is_damaged IS NOT NULL/.test(SQL));
+  // Un precio alemán sin IVA comparado contra precios españoles con IVA se
+  // inventa un 19% de ahorro que no existe. Son las furgonetas comerciales.
+  comprueba("ni ningún precio neto sin IVA",
+    /COALESCE\(m\.price_is_net, FALSE\) = FALSE/.test(SQL));
 
   // ── la horquilla de precio del negocio ────────────────────────────────────
   //
@@ -138,12 +164,25 @@ const comprueba = (nombre, cond, detalle) => {
     // ── lo que se publica sigue teniendo sentido ─────────────────────────
     const pub = (await c.query(`SELECT
         count(*) FILTER (WHERE import_comps < 15)::int pocos,
-        count(*) FILTER (WHERE price < 12000)::int baratas,
-        count(*) FILTER (WHERE import_margin_pct < 0.15 OR import_margin_pct > 0.5)::int fuera,
+        count(*) FILTER (WHERE price < 4000)::int baratas,
+        count(*) FILTER (WHERE import_margin_pct > 0.5)::int fuera,
+        count(*) FILTER (WHERE is_damaged)::int danadas,
+        count(*) FILTER (WHERE is_damaged IS NULL)::int sin_mirar,
+        count(*) FILTER (WHERE price_is_net)::int netas,
+        count(*) FILTER (WHERE price >= 4000 AND price < 25000 AND import_margin_pct < 0.20)::int t1,
+        count(*) FILTER (WHERE price >= 25000 AND price < 45000 AND import_margin_pct < 0.25)::int t2,
+        count(*) FILTER (WHERE price >= 45000 AND price < 100000 AND import_margin_pct < 0.30)::int t3,
         min(import_margin)::int peor
       FROM moveadvisor_market_offers WHERE country='DE' AND import_published`)).rows[0];
     comprueba("ninguna publicada con menos de 15 comparables", pub.pocos === 0);
-    comprueba("ninguna publicada por debajo de 12.000 €", pub.baratas === 0);
+    comprueba("ninguna publicada por debajo de 4.000 €", pub.baratas === 0);
+    comprueba("ninguna publicada dañada", pub.danadas === 0, "(" + pub.danadas + ")");
+    comprueba("ninguna publicada sin comprobar si está dañada", pub.sin_mirar === 0,
+      "(" + pub.sin_mirar + ")");
+    comprueba("ninguna publicada con precio neto sin IVA", pub.netas === 0);
+    comprueba("ninguna publicada por debajo del ahorro de su tramo",
+      pub.t1 === 0 && pub.t2 === 0 && pub.t3 === 0,
+      pub.t1 + " / " + pub.t2 + " / " + pub.t3);
     comprueba("ninguna publicada fuera de la horquilla de ahorro", pub.fuera === 0);
     comprueba("el peor ahorro publicado sigue siendo un ahorro", pub.peor > 0, pub.peor + " €");
     console.log("      ahorro medio de las publicadas: " + r.ahorro_medio

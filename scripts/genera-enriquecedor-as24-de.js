@@ -130,12 +130,15 @@ if (codigo !== 200 || !cuerpo) {
 }
 
 // ── el JSON de la pagina ───────────────────────────────────────────────────
-let v = null;
+// Se guardan los dos niveles: 'raiz' es listingDetails, donde vive el bloque de
+// precios, y 'v' es el vehiculo. El precio hace falta para saber si el anunciado
+// lleva IVA o es neto.
+let raiz = null;
 try {
   const m = cuerpo.match(/<script id="__NEXT_DATA__" type="application\\/json">([\\s\\S]*?)<\\/script>/);
-  if (m) v = ((JSON.parse(m[1]).props || {}).pageProps || {}).listingDetails;
-} catch (e) { v = null; }
-v = (v && v.vehicle) ? v.vehicle : null;
+  if (m) raiz = ((JSON.parse(m[1]).props || {}).pageProps || {}).listingDetails;
+} catch (e) { raiz = null; }
+const v = (raiz && raiz.vehicle) ? raiz.vehicle : null;
 
 if (!v) {
   console.log('[as24-de-enrich] ' + id + ': la ficha no trae datos de vehiculo');
@@ -204,6 +207,34 @@ if (dt.indexOf('delanter') !== -1) traccion = 'Delantera';
 else if (dt.indexOf('traser') !== -1) traccion = 'Trasera';
 else if (dt.indexOf('total') !== -1 || dt.indexOf('4x4') !== -1 || dt.indexOf('integral') !== -1) traccion = 'Total';
 
+// ── si el coche esta danado, y si el precio lleva IVA ──────────────────────
+//
+// Esto es lo que decide si una oferta se puede ensenar a un cliente, y no se
+// puede sacar del titulo. El 2026-09-10, al abrir el escaparate por debajo de
+// 12.000 EUR, entraban 1.003 ofertas alemanas. Por el titulo se detectaba un 5%
+// de siniestrados y un 4% de "motor roto", pero el primero de la lista -un
+// Mercedes E 300 de 2024 a 11.900- no decia nada en el titulo y su ficha si:
+//
+//     damageConditions : ["Danado"]
+//     isFinalPrice     : false
+//     netPrice         : 10.000    (el anunciado lleva 19% de IVA deducible)
+//
+// Lo del IVA importa tanto como el dano: un precio neto comparado contra
+// precios espanoles con IVA se inventa un 19% de ahorro que no existe. Es tipico
+// de furgonetas y vehiculos comerciales, que es justo lo que llenaba esa franja.
+const danos = Array.isArray(v.damageConditions) ? v.damageConditions.filter(Boolean) : [];
+const notaDano = danos.join(', ').slice(0, 200);
+// Un coche sin danos declarados trae la lista vacia; uno que no hemos sabido
+// leer no trae la clave. Se distingue: null es "no lo se", false es "no".
+const danado = ('damageConditions' in v) ? (danos.length > 0) : null;
+const accidente = (typeof v.hadAccident === 'boolean') ? v.hadAccident : null;
+
+const precios = (raiz && raiz.prices) || (raiz && raiz.price) || {};
+const publico = precios.public || precios;
+const esNeto = (typeof publico.isFinalPrice === 'boolean')
+  ? (publico.isFinalPrice === false && Number(publico.netPriceRaw) > 0)
+  : null;
+
 // ── el UPDATE ──────────────────────────────────────────────────────────────
 // COALESCE con NULLIF, no COALESCE a secas: hay columnas que llegan a CERO o a
 // cadena vacia en vez de a NULL, y un COALESCE normal no entra nunca sobre un 0.
@@ -240,6 +271,14 @@ pon('displacement', cilin === null ? '' : String(cilin));
 pon('co2', co2 === null ? '' : String(co2));
 pon('traction', traccion);
 
+// Los danos y el IVA se ESCRIBEN SIEMPRE que la ficha los declare, sin COALESCE:
+// son el estado del coche hoy, no un hueco que rellenar. Si un anuncio pasa de
+// sano a danado -o al reves, porque lo hayan reparado-, queremos el valor nuevo.
+if (danado !== null) sets.push('is_damaged = ' + (danado ? 'TRUE' : 'FALSE'));
+if (accidente !== null) sets.push('had_accident = ' + (accidente ? 'TRUE' : 'FALSE'));
+if (esNeto !== null) sets.push('price_is_net = ' + (esNeto ? 'TRUE' : 'FALSE'));
+if (notaDano) pon('damage_note', notaDano);
+
 // environmental_label NO se toca aqui: ver la cabecera del generador. La ficha
 // da "Euro 6", que es la norma europea, y esa columna guarda la etiqueta de la
 // DGT -C, ECO, B, 0 Emisiones-. Son cosas distintas.
@@ -250,13 +289,16 @@ console.log('[as24-de-enrich] ' + id + ': carroceria=' + (carroc || '-')
   + ' puertas=' + (puertas || '-') + ' plazas=' + (plazas || '-')
   + ' cc=' + (cilin || '-') + ' co2=' + (co2 || '-')
   + (co2 && co2obj.isFallback ? '(estimado)' : '')
-  + ' consumo=' + (consumo || '-') + ' traccion=' + (traccion || '-'));
+  + ' consumo=' + (consumo || '-') + ' traccion=' + (traccion || '-')
+  + (danado ? ' DANADO(' + notaDano + ')' : '')
+  + (esNeto ? ' PRECIO-NETO' : ''));
 
 return [{ json: {
   sql: 'UPDATE moveadvisor_market_offers SET ' + sets.join(', ') + ' WHERE id = ' + esc(id),
   veredicto: hayDato ? 'enriquecida' : 'sin datos',
   co2: co2, co2Estimado: !!co2obj.isFallback, carroceria: carroc,
   puertas: puertas, plazas: plazas, cilindrada: cilin, traccion: traccion,
+  danado: danado, accidente: accidente, precioNeto: esNeto, notaDano: notaDano,
 } }];`;
 
 const condicionNoVacia = (id, campo) => ({

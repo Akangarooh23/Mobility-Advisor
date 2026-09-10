@@ -92,7 +92,8 @@
     "test:as24-de": "node scripts/comprueba-as24-de.js",
     "test:as24-de-verificar": "node scripts/comprueba-as24-de-verificar.js",
     "test:as24-de-enrich": "node scripts/comprueba-as24-de-enrich.js",
-    "test:importacion-scoring": "node scripts/comprueba-importacion-scoring.js"
+    "test:importacion-scoring": "node scripts/comprueba-importacion-scoring.js",
+    "despublica-horquilla": "node scripts/despublica-fuera-de-horquilla.js"
   },
   "proxy": "http://localhost:3001",
   "eslintConfig": {

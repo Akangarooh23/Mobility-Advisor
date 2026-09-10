@@ -20,7 +20,7 @@
  *     guardaba igual y en el ERP se veía un Audi A3 del 98 «valorado» en
  *     999.999 €. Un dato que no se sostiene es peor que no tener dato.
  *   - Que las protecciones de la publicación sigan en pie: 15 comparables,
- *     12.000 € de precio mínimo y un ahorro de entre el 15% y el 50%.
+ *     12.000 € de precio mínimo y un ahorro de entre el 30% y el 50%.
  *   - Que el ahorro que se le enseña al cliente sea creíble.
  */
 "use strict";
@@ -71,14 +71,14 @@ const comprueba = (nombre, cond, detalle) => {
   //
   // Por debajo de 4.000 € no sale a cuenta: solo el fee y el impuesto base son
   // 3.630 €, casi el precio del coche, antes de contar el transporte. Por
-  // encima de 150.000 € es otro negocio — en el ensayo salían Ferrari
+  // encima de 100.000 € es otro negocio — en el ensayo salían Ferrari
   // Purosangue de 432.850 €, con números buenos y 37 comparables, pero no es el
   // coche que importamos.
   console.log("\nLA HORQUILLA DE PRECIO");
-  comprueba("solo puntúa coches de 4.000 a 150.000 €",
-    /AND price BETWEEN 4000 AND 150000/.test(SQL));
+  comprueba("solo puntúa coches de 4.000 a 100.000 €",
+    /AND price BETWEEN 4000 AND 100000/.test(SQL));
   comprueba("y limpia lo que se queda fuera",
-    /price < 4000 OR price > 150000/.test(SQL)
+    /price < 4000 OR price > 100000/.test(SQL)
     && /import_published = CASE WHEN import_locked THEN import_published ELSE FALSE END/.test(SQL));
   // Si no se limpiara, un coche publicado ayer que hoy queda fuera de la
   // horquilla no entraría en el cálculo y conservaría su import_published de
@@ -156,12 +156,12 @@ const comprueba = (nombre, cond, detalle) => {
     // del SQL.
     const fuera = (await c.query(`SELECT
         count(*) FILTER (WHERE import_published AND price < 4000)::int baratas,
-        count(*) FILTER (WHERE import_published AND price > 150000)::int caras,
+        count(*) FILTER (WHERE import_published AND price > 100000)::int caras,
         count(*) FILTER (WHERE market_price_es IS NOT NULL
-                           AND (price < 4000 OR price > 150000))::int valoradas_fuera
+                           AND (price < 4000 OR price > 100000))::int valoradas_fuera
       FROM moveadvisor_market_offers WHERE country='DE'`)).rows[0];
     comprueba("ninguna publicada por debajo de 4.000 €", fuera.baratas === 0);
-    comprueba("ninguna publicada por encima de 150.000 €", fuera.caras === 0);
+    comprueba("ninguna publicada por encima de 100.000 €", fuera.caras === 0);
     comprueba("ninguna valorada fuera de la horquilla", fuera.valoradas_fuera === 0,
       "(" + fuera.valoradas_fuera + ")");
   } finally {

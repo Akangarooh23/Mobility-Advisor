@@ -192,7 +192,15 @@ const CODE_PROCESAR = `// Cada pagina sella como publicado lo que trae. La base 
 // no hay que arrastrar listas entre vueltas del bucle.
 const item = $('Code: ¿toca pedirla?').item.json;
 const res = $input.first().json;
-const cuerpo = String(res.body || '');
+// OJO: el cuerpo llega en la propiedad data, no en body.
+//
+// Con responseFormat 'text' y fullResponse, n8n mete el cuerpo en la propiedad
+// que diga outputPropertyName, y por defecto es 'data'. Mirar solo res.body da
+// undefined, y entonces se decide con el cuerpo vacio: no casa ningun marcador
+// y todo cae en 'rara'. Eso hizo el verificador de Milanuncios cinco pasadas
+// seguidas -120 miradas, 0 vivas, 0 bajas, 120 sin clasificar- y Wallapop
+// sello last_checked_at en sus 4.484 ofertas sin clasificar ninguna.
+const cuerpo = String(res.body || res.data || '');
 const codigo = Number(res.statusCode || 0);
 
 const s = $getWorkflowStaticData('global');

@@ -118,5 +118,47 @@ console.log("      " + revisados + " caminos bucle->HTTP revisados en los workfl
 comprueba("ninguno pide con una url que puede venir vacía", enRiesgo.length === 0,
   enRiesgo.length ? "\n         " + enRiesgo.join("\n         ") : "");
 
+// ══ y que nadie lea el cuerpo por la propiedad equivocada ══════════════════
+//
+// Con responseFormat 'text' y fullResponse, n8n NO deja el cuerpo en `body`:
+// lo deja en la propiedad que diga outputPropertyName, y por defecto es `data`.
+// Está en su propio código, HttpRequestV3.node.js:
+//
+//     if (property === 'body') {
+//       returnItem[outputPropertyName] = toText(response[property]);
+//       continue;
+//     }
+//
+// Un nodo que solo mire res.body recibe undefined y decide con el cuerpo vacío.
+// No falla, no avisa: simplemente no reconoce nada. El verificador de
+// Milanuncios estuvo cinco pasadas seguidas dando 120 miradas, 0 vivas, 0 bajas
+// y 120 «sin clasificar», y el de Wallapop selló last_checked_at en sus 4.484
+// ofertas sin clasificar una sola.
+//
+// Y los tests con respuestas de mentira no lo cazan, porque el que las escribe
+// se las pasa en `body`. Por eso esto se comprueba sobre el JSON, no ejecutando.
+console.log("\nEL CUERPO DE LA RESPUESTA");
+const malLeidos = [];
+let conCuerpo = 0;
+for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".json"))) {
+  const wf = JSON.parse(fs.readFileSync(path.join(dir, f), "utf8"));
+  const enTexto = wf.nodes.some((n) => {
+    const rr = ((((n.parameters || {}).options || {}).response || {}).response) || {};
+    return rr.responseFormat === "text" && rr.fullResponse === true;
+  });
+  if (!enTexto) continue;
+  for (const n of wf.nodes) {
+    const js = (n.parameters || {}).jsCode;
+    if (!js) continue;
+    const codigo = js.split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n");
+    if (!/\.body\b/.test(codigo)) continue;
+    conCuerpo++;
+    if (!/\.data\b/.test(codigo)) malLeidos.push(f.replace(".json", "") + " -> " + n.name);
+  }
+}
+console.log("      " + conCuerpo + " nodos que leen el cuerpo de una respuesta en texto");
+comprueba("todos miran también la propiedad data", malLeidos.length === 0,
+  malLeidos.length ? "\n         " + malLeidos.join("\n         ") : "");
+
 console.log(fallos === 0 ? "\nTodo correcto." : "\n" + fallos + " comprobaciones han fallado.");
 process.exit(fallos === 0 ? 0 : 1);

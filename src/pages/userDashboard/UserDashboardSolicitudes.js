@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { getUserMobilityDataJson } from "../../utils/apiClient";
 import { proximas, ESTADO as ESTADO_CITA } from "../../utils/citas";
 import ComoFuncionaImportacion from "../../components/ComoFuncionaImportacion";
+import LoQueTeFaltaDelEncargo from "../../components/LoQueTeFaltaDelEncargo";
 import { grupoDeImportacion } from "../../utils/gruposSolicitudes";
 
 export default function UserDashboardSolicitudes({
@@ -696,6 +697,16 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
                         eso se abre su ficha. Sin esto, quien mira su solicitud no
                         puede volver a ver el coche que pidió sin buscarlo otra
                         vez. */}
+                    {/* Lo que le falta para que podamos vender su coche.
+
+                        Esto lo sabía el ERP y él no: se enteraba cuando le
+                        llamábamos, y la llamada se gastaba en leerle una lista
+                        que podía haber leído él. Cada fila que falta lleva a
+                        donde se hace. */}
+                    {Array.isArray(meta.puertas) && meta.puertas.length > 0 && (
+                      <LoQueTeFaltaDelEncargo puertas={meta.puertas} isDark={isDark} />
+                    )}
+
                     {/* Por dónde va su importación.
 
                         Tarda semanas y pasa por sitios que no ve: si aquí solo

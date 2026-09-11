@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { writeCachedGarageVehicleCount } from "../../utils/storage";
+import { comoSeCompara, loQueLaUrlPide, elCocheDeLaUrl, elAnclaDe } from "../../utils/aterrizajeDelEncargo";
 import {
   getGarageVehiclesJson,
   postGarageVehicleAddJson,
@@ -296,9 +297,22 @@ export default function UserDashboardVehicles({
   onBrowseMarketplace = () => {},
   currentUserEmail = "",
   onVehicleStatesUpdated = () => {},
+  matriculasConEncargo = new Set(),
 }) {
   const { t } = useTranslation();
   const isDark = themeMode === "dark";
+
+  /**
+   * Si de este coche nos han encargado la venta.
+   *
+   * Normalizando las dos matrículas: la del encargo la escribió él y la del
+   * garaje la guardó el sistema, y no tienen por qué estar escritas igual.
+   */
+  const tieneEncargo = (vehicle) => {
+    const suya = comoSeCompara(vehicle?.plate);
+    return !!suya && matriculasConEncargo.has(suya);
+  };
+
   const cardBg = isDark
     ? "linear-gradient(160deg, rgba(17,17,17,0.9), rgba(31,31,29,0.82))"
     : "linear-gradient(160deg, rgba(255,255,255,0.96), rgba(242,242,237,0.92))";
@@ -358,6 +372,52 @@ export default function UserDashboardVehicles({
   const [overriddenMarketplaceStates, setOverriddenMarketplaceStates] = useState({});
   const [failedPhotoVehicleIds, setFailedPhotoVehicleIds] = useState({});
   const [myVehicles, setMyVehicles] = useState(() => readGarageVehicles(currentUserEmail));
+
+  /**
+   * Aterrizar donde pedía el enlace del encargo.
+   *
+   * Se llega desde «lo que te falta» con la matrícula y la sección en la
+   * dirección. Sin esto, el enlace abre la lista de coches y ya: quien tiene
+   * tres tiene que adivinar cuál y luego buscar la sección, que es lo mismo que
+   * no haberle dicho dónde.
+   *
+   * Se hace una vez. Repetirlo cada vez que cambie la lista devolvería la
+   * pantalla al mismo sitio cada vez que él sube una foto, que es justo cuando
+   * está intentando moverse por ella.
+   */
+  const yaAterrizo = useRef(false);
+  useEffect(() => {
+    if (yaAterrizo.current || typeof window === "undefined") return;
+    const { matricula, seccion } = loQueLaUrlPide(window.location.search, window.location.hash);
+    if (!matricula) return;
+    // Hasta que su garaje no ha cargado no se puede buscar el coche: salir sin
+    // marcar nada deja que lo intente otra vez cuando lleguen.
+    if (!Array.isArray(myVehicles) || myVehicles.length === 0) return;
+
+    const suyo = elCocheDeLaUrl(myVehicles, matricula);
+    if (!suyo) {
+      // La matrícula no es de ninguno de sus coches: probablemente todavía no
+      // lo ha dado de alta. Se le deja en la lista, que es donde se crea.
+      yaAterrizo.current = true;
+      return;
+    }
+    yaAterrizo.current = true;
+    setManagementVehicleId(suyo.id);
+    setVehicleWorkspaceMode("list");
+
+    const ancla = elAnclaDe(seccion);
+    if (!ancla) return;
+    /*
+     * El desplazamiento va detrás de un frame: la sección todavía no está en el
+     * DOM cuando se abre el coche, y buscarla ahora no encontraría nada.
+     */
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const el = document.getElementById(ancla);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    });
+  }, [myVehicles]);
   const [vehicleFeedback, setVehicleFeedback] = useState("");
   const [pendingPhotos, setPendingPhotos] = useState([]);
   const [pendingDocuments, setPendingDocuments] = useState([]);
@@ -2422,6 +2482,9 @@ export default function UserDashboardVehicles({
 
                       {isManagementOpen ? (
                         <div style={{ display: "grid", gap: 6, border: isDark ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(255,196,0,0.1)", borderRadius: 10, background: isDark ? "rgba(17,17,17,0.5)" : "rgba(250,250,248,0.85)", padding: 8 }}>
+                          {/* El ancla del informe, para quien llega desde su
+                              encargo pinchando «Hacer el informe de estado». */}
+                          <span id={tieneEncargo(vehicle) ? "encargo-informe" : undefined} />
                           {(() => {
                             // Fotografiar el coche no es editar su ficha: la
                             // acción va aquí, no dentro del formulario.
@@ -2498,9 +2561,22 @@ export default function UserDashboardVehicles({
                               {t("dashboard.vehPublish")}
                             </button>
                           )}
-                          {(overriddenMarketplaceStates[vehicle.id] ?? vehicle.marketplaceState) === "active_sale" && (
+                          {/*
+                            * Las franjas también antes de publicar, si nos han
+                            * encargado la venta.
+                            *
+                            * Este botón salía solo con el coche ya publicado, y
+                            * al del encargo le pedimos seis **antes** de
+                            * publicarlo: el ERP decía «tiene 0 de 6» y él no
+                            * tenía por dónde ponerlas. Un callejón sin salida
+                            * del que además no se enteraba nadie, porque por
+                            * separado las dos pantallas eran correctas.
+                            */}
+                          {((overriddenMarketplaceStates[vehicle.id] ?? vehicle.marketplaceState) === "active_sale"
+                            || tieneEncargo(vehicle)) && (
                             <button
                               type="button"
+                              id={tieneEncargo(vehicle) ? "encargo-franjas" : undefined}
                               onClick={() => setSlotsDialog({ open: true, vehicleId: vehicle.id })}
                               style={{ background: "rgba(255,196,0,0.08)", border: "1px solid rgba(255,196,0,0.22)", color: isDark ? "var(--gris-300)" : "var(--gris-600)", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%", marginTop: 4 }}
                             >

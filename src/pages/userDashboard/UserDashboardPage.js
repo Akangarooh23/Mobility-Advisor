@@ -345,6 +345,26 @@ export default function UserDashboardPage({
     vehicles: garageVehicleCount || userVehicleSections.reduce((acc, s) => acc + s.items.length, 0),
     solicitudes: userSolicitudes.length,
   };
+  /*
+   * Las matrículas de los coches que nos ha encargado vender.
+   *
+   * Sale de sus propias solicitudes, que ya están cargadas: no hay que pedir
+   * nada más. Normalizadas —sin espacios ni guiones y en mayúsculas— porque la
+   * de la solicitud la escribió él y la del garaje la guardó el sistema, y no
+   * tienen por qué estar escritas igual.
+   */
+  const matriculasConEncargo = new Set(
+    userSolicitudes
+      .filter((s) => s?.type === "venta_gestionada")
+      .map((s) => {
+        // `title` trae el coche entero; la matrícula viaja suelta en el meta.
+        try { return JSON.parse(s?.meta || "{}").matricula_encargo || ""; }
+        catch { return ""; }
+      })
+      .map((m) => String(m).toUpperCase().replace(/[^A-Z0-9]/g, ""))
+      .filter(Boolean)
+  );
+
   const sections = buildSections(counts, t, newAlertMatchesCount);
   const navMain = ["home", "saved", "alerts", "vehicles", "valuations", "appointments", "servicios", "solicitudes"];
   const navAccount = ["billing", "preferences"];
@@ -680,6 +700,15 @@ export default function UserDashboardPage({
           onBrowseMarketplace={onBrowseMarketplace}
           currentUserEmail={currentUser?.email || ""}
           onVehicleStatesUpdated={onVehicleStatesUpdated}
+          /*
+           * De qué coches nos han encargado la venta.
+           *
+           * Hace falta para las franjas: el botón de ponerlas solo salía con el
+           * coche ya publicado, y a estos les pedimos seis **antes** de
+           * publicar. Era un callejón sin salida — el ERP decía «tiene 0 de 6»
+           * y él no tenía dónde ponerlas.
+           */
+          matriculasConEncargo={matriculasConEncargo}
         />
       )}
 

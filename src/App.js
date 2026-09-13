@@ -1265,6 +1265,15 @@ const PUBLIC_ROUTE_BY_ENTRY_MODE = {
   marketingPolicy: "/politica-comunicaciones",
   experianPolicy: "/politica-experian",
   experianTerms: "/condiciones-experian",
+  /*
+   * La pantalla del IDCar, que no tenía dirección.
+   *
+   * Se llegaba a ella solo por estado interno, así que no se podía enlazar: ni
+   * desde «lo que te falta» de su encargo, ni desde un correo. Y es donde se
+   * suben el permiso, la ficha técnica y la ITV, que es justo lo que más veces
+   * hay que pedirle.
+   */
+  idCarsManage: "/mis-coches",
 };
 
 
@@ -2595,6 +2604,19 @@ export default function App() {
     setPendingPlanCheckoutId,
     setAuthLoading,
   });
+
+  /**
+   * Sus coches son suyos: a `/mis-coches` sin sesión se le pide entrar.
+   *
+   * Es el caso del correo y el del enlace de su encargo. Se le dice «sube aquí
+   * los papeles» y puede abrirlo en un móvil donde no ha entrado nunca: sin
+   * esto vería un garaje vacío y pensaría que ha perdido el coche. Se le pide
+   * entrar, y al terminar se queda aquí mismo.
+   */
+  useEffect(() => {
+    if (entryMode !== "idCarsManage" || isUserLoggedIn) return;
+    openAuthDialog("login", { entryMode: "idCarsManage", routePage: "home" });
+  }, [entryMode, isUserLoggedIn, openAuthDialog]);
 
   /**
    * Abre uno de los dos flujos de venta: el informe de mercado o la venta

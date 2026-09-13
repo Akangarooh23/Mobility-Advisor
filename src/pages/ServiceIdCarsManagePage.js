@@ -623,10 +623,54 @@ export default function ServiceIdCarsManagePage({
     if (typeof window === "undefined" || isDetailView || isCreateView) return;
     const placa = laMatriculaDeLaUrl();
     if (!placa) return;
+
+    /*
+     * La misma dirección significa dos cosas según lo que ya tenga.
+     *
+     * `?matricula=8888LXR` nace del alta —«créate la ficha»— pero también es
+     * como llega desde «lo que te falta» de su encargo, donde el coche ya
+     * existe y lo que viene a hacer es subir los papeles. Abrirle un formulario
+     * de crear para una matrícula que ya tiene dada de alta le diría que ha
+     * perdido el coche, y acabaría con dos fichas del mismo.
+     *
+     * Así que se mira primero: si es uno suyo, se abre; si no, se crea.
+     */
+    const comoSeCompara = (m) => String(m || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+    const suyo = (vehicles || []).find((v) => comoSeCompara(v?.plate) === comoSeCompara(placa));
+    if (suyo) {
+      setIsCreating(false);
+      setEditingVehicleId(suyo.id);
+      return;
+    }
+
     setIsCreating(true);
     setEditingVehicleId("");
     setForm(createEmptyForm(placa));
-  }, [isDetailView, isCreateView]);
+  }, [isDetailView, isCreateView, vehicles]);
+
+  /**
+   * Y si venía a por los papeles, se le abre esa sección y se baja hasta ella.
+   *
+   * Las secciones nacen plegadas. Abrir su coche y dejarle delante de una lista
+   * de bloques cerrados es lo mismo que no haberle traído: tiene que adivinar
+   * cuál de ellos son «los papeles» que le pedimos.
+   */
+  const yaAbrioLaSeccion = useRef(false);
+  useEffect(() => {
+    if (yaAbrioLaSeccion.current || typeof window === "undefined") return;
+    if (window.location.hash.replace(/^#/, "") !== "documentos") return;
+    if (!editingVehicleId) return;
+    yaAbrioLaSeccion.current = true;
+    setOpenSections((prev) => ({ ...prev, vehicleDocuments: true }));
+    // Detrás de dos frames: la sección todavía no está en el DOM cuando se
+    // abre el coche, y buscarla ahora no encontraría nada.
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const el = document.getElementById("encargo-documentos");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  }, [editingVehicleId]);
 
   useEffect(() => {
     if (typeof window === "undefined" || isDetailView || isCreateView) return;
@@ -1646,6 +1690,9 @@ export default function ServiceIdCarsManagePage({
         })()}
       </SectionBlock>
 
+      {/* El ancla de los papeles: aquí aterriza quien llega desde su encargo
+          pinchando «Subir los documentos». */}
+      <div id="encargo-documentos" />
       <SectionBlock title={txt("Documentos del vehículo", "Vehicle documents")}
         subtitle={`${storedVehicleDocuments} ${txt("guardados", "saved")} · ${preparedVehicleDocuments} ${txt("adjuntos preparados", "attachments prepared")}`}
         open={openSections.vehicleDocuments} onToggle={() => toggleSection("vehicleDocuments")}

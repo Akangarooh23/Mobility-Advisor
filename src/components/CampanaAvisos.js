@@ -12,13 +12,30 @@
  * en una cabecera que ya tiene bastante.
  */
 import { cuantosAvisos } from "../utils/avisosProximos";
+import { cuantasLeFaltanDelEncargo } from "../utils/avisosDelEncargo";
+
+/** Cómo se dice lo que hay, sin sumar peras con manzanas. */
+function elTexto(citas, encargo) {
+  const trozos = [];
+  if (citas) trozos.push(citas === 1 ? "una cita próxima" : `${citas} citas próximas`);
+  if (encargo) trozos.push(encargo === 1 ? "una cosa que traernos" : `${encargo} cosas que traernos`);
+  return `Tienes ${trozos.join(" y ")}`;
+}
 
 export default function CampanaAvisos({ solicitudes = [], onAbrir, themeMode = "light" }) {
-  const cuantos = cuantosAvisos(solicitudes);
+  const citas = cuantosAvisos(solicitudes);
+  /*
+   * Lo que le falta de su encargo cuenta aquí, y es la excepción a la regla de
+   * arriba: sí se acaba. Son cosas concretas que él hace y que desaparecen
+   * según las hace, no un estado permanente — y mientras no las traiga, su
+   * coche no se puede publicar, que es lo que vino a pedirnos.
+   */
+  const encargo = cuantasLeFaltanDelEncargo(solicitudes);
+  const cuantos = citas + encargo;
   if (!cuantos) return null;
 
   const isDark = themeMode === "dark";
-  const texto = cuantos === 1 ? "Tienes una cita próxima" : `Tienes ${cuantos} citas próximas`;
+  const texto = elTexto(citas, encargo);
 
   return (
     <button

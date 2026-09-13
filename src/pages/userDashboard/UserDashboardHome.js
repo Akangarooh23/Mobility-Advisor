@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { avisosProximos } from "../../utils/avisosProximos";
+import { laLineaDelEncargo } from "../../utils/avisosDelEncargo";
 
 /**
  * Una importación en marcha, si la hay.
@@ -37,6 +38,16 @@ function importacionEnMarcha(solicitudes = []) {
 
 function buildActivityLog(pendingAlertNotifications, counts, t, avisos = [], solicitudes = []) {
   const log = [];
+
+  /*
+   * Lo primero de todo: lo que nos tiene que traer para poder vender su coche.
+   *
+   * Va por delante de la importación y de la cita porque es lo único de esta
+   * lista que **bloquea** algo suyo. Una cita del martes no se puede adelantar;
+   * subir la ITV, sí, y hasta que no lo haga su coche no sale a la venta.
+   */
+  const encargo = laLineaDelEncargo(solicitudes);
+  if (encargo) log.push(encargo);
 
   // Delante del garaje y de los informes: es lo que está esperando.
   const importacion = importacionEnMarcha(solicitudes);
@@ -120,6 +131,8 @@ function ActivityLog({ isDark, isMobile, panelStyle, cardBg, cardBorder, titleTe
     garage: "#0f766e",
     valuation: "var(--gris-500)",
     saved: "#d97706",
+    // El del encargo, que es lo que le bloquea la venta.
+    encargo: "#6d28d9",
   };
 
   return (

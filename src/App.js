@@ -4599,9 +4599,11 @@ export default function App() {
   // Sin sesion: se llega desde un correo, y pedirle que entre para leer una
   // guia de como entrar no tendria ninguna gracia.
   if (typeof window !== "undefined" && window.location.pathname === "/como-subir-tu-coche") {
+    // El boton lleva a donde se crea la ficha, no a la lista del garaje: quien
+    // acaba de leer «como subir tu coche» viene a subirlo.
     return (
       <ComoSubirTuCochePage
-        onIrAlPanel={() => { window.location.href = "/panel/vehiculos"; }}
+        onIrAlPanel={() => { window.location.href = "/mis-coches"; }}
       />
     );
   }

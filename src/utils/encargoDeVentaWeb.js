@@ -147,8 +147,19 @@ export function loQueSeManda({ coche, matricula, plazo, nombre, telefono, email 
  */
 export const GUIA = "/como-subir-tu-coche";
 
-/** Donde el cliente da de alta su coche. */
-export const ALTA = "/panel/vehiculos";
+/**
+ * Donde el cliente da de alta su coche.
+ *
+ * Apuntaba a `/panel/vehiculos`, que es la lista de su garaje: esa pantalla
+ * **no lee la matrícula de la dirección**, así que llegaba, no se le abría
+ * ningún formulario y tenía que buscar el botón de crear y volver a escribir la
+ * matrícula que acababa de escribir. Justo lo que el comentario de abajo decía
+ * que se estaba evitando.
+ *
+ * `/mis-coches` sí la lee: abre el formulario con la matrícula puesta, y si ese
+ * coche ya lo tiene dado de alta lo abre en vez de crear otro.
+ */
+export const ALTA = "/mis-coches";
 
 /**
  * Y con la matrícula ya puesta, para que llegue con el campo relleno.

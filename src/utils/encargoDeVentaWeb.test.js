@@ -280,8 +280,13 @@ describe("la guía se puede encontrar", () => {
 });
 
 describe("el alta del coche, con la matrícula ya puesta", () => {
-  test("lleva a donde se crea la ficha", () => {
-    expect(ALTA).toBe("/panel/vehiculos");
+  test("lleva a donde se crea la ficha, no a la lista del garaje", () => {
+    /*
+     * Apuntaba a `/panel/vehiculos`, que es la lista: esa pantalla no lee la
+     * matrícula, así que el enlace le dejaba ahí sin formulario y sin nada
+     * puesto. `/mis-coches` sí la lee.
+     */
+    expect(ALTA).toBe("/mis-coches");
   });
 
   test("y la matrícula viaja en la dirección, normalizada", () => {
@@ -289,20 +294,20 @@ describe("el alta del coche, con la matrícula ya puesta", () => {
      * Acaba de escribirla en el formulario. Volver a pedírsela en la pantalla
      * siguiente es el tipo de detalle por el que la gente abandona a mitad.
      */
-    expect(elAlta("8888 lxr")).toBe("/panel/vehiculos?matricula=8888LXR");
+    expect(elAlta("8888 lxr")).toBe("/mis-coches?matricula=8888LXR");
   });
 
   test("sin matrícula, la ruta a secas", () => {
     // No una con un parámetro vacío, que llegaría a la pantalla y pondría el
     // campo en blanco de una forma rara.
-    expect(elAlta("")).toBe("/panel/vehiculos");
-    expect(elAlta()).toBe("/panel/vehiculos");
+    expect(elAlta("")).toBe("/mis-coches");
+    expect(elAlta()).toBe("/mis-coches");
   });
 
   test("y no se cuela nada raro en la dirección", () => {
     // `comoSeCompara` ya quita todo lo que no sea letra o número, así que no
     // hay manera de meter un `&` ni un `?` — pero se comprueba, que es gratis.
-    expect(elAlta("8888LXR&foo=1")).toBe("/panel/vehiculos?matricula=8888LXRFOO1");
+    expect(elAlta("8888LXR&foo=1")).toBe("/mis-coches?matricula=8888LXRFOO1");
   });
 
   test("la pantalla de después lleva ahí, no solo a la guía", () => {

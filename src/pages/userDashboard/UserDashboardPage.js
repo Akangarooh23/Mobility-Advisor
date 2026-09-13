@@ -663,6 +663,14 @@ export default function UserDashboardPage({
           getOfferBadgeStyle={getOfferBadgeStyle}
           onRequestValuation={onRequestValuation}
           onNavigate={onNavigate}
+          /*
+           * Sus coches, para poder empezar la tasación del que venía a tasar.
+           *
+           * Se llega aquí desde su encargo con `?matricula=`, y sin la lista no
+           * hay forma de saber de qué coche habla: la tasación saldría en blanco
+           * y tendría que escribir a mano lo que ya tenemos.
+           */
+          misCoches={userVehicleSections.flatMap((s) => s.items || [])}
         />
       )}
 

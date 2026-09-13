@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { elCocheDeLaUrl, loQueLaUrlPide } from "../../utils/aterrizajeDelEncargo";
 
 function fmt(n) {
   return Number(n).toLocaleString("es-ES");
@@ -192,8 +193,37 @@ export default function UserDashboardValuations({
   getOfferBadgeStyle,
   onRequestValuation = () => {},
   onNavigate = () => {},
+  misCoches = [],
 }) {
   const { t } = useTranslation();
+
+  /**
+   * Empezar una tasación, con el coche puesto si sabemos cuál.
+   *
+   * Estos dos botones llamaban a `onNavigate("operations")`, y «operations» no
+   * es ninguna sección: el mapa de rutas no la conoce, así que caía al inicio
+   * del panel. Le decíamos «hazte la tasación, sale de tu panel», pulsaba el
+   * único botón que hay y acababa en la portada sin que pasara nada.
+   *
+   * Si viene desde su encargo trae la matrícula en la dirección, así que se
+   * busca entre sus coches y se empieza con sus datos ya dentro.
+   */
+  const empiezaLaTasacion = () => {
+    const { matricula } = typeof window === "undefined"
+      ? { matricula: "" }
+      : loQueLaUrlPide(window.location.search, window.location.hash);
+    const suyo = elCocheDeLaUrl(misCoches, matricula);
+    onRequestValuation(suyo ? {
+      vehicleId: suyo.id,
+      vehicleTitle: suyo.title || `${suyo.brand || ""} ${suyo.model || ""}`.trim(),
+      vehiclePlate: suyo.plate,
+      brand: suyo.brand,
+      model: suyo.model,
+      year: suyo.year,
+      mileage: suyo.mileage,
+      fuel: suyo.fuel,
+    } : {});
+  };
   const isDark = themeMode === "dark";
   const titleColor = isDark ? "var(--gris-50)" : "var(--gris-900)";
   const bodyColor = isDark ? "var(--gris-300)" : "var(--gris-600)";
@@ -226,7 +256,7 @@ export default function UserDashboardValuations({
           </span>
           <button
             type="button"
-            onClick={() => onNavigate("operations")}
+            onClick={empiezaLaTasacion}
             style={{
               background: "rgba(94,94,89,0.12)",
               border: "1px solid rgba(150,150,143,0.3)",
@@ -273,7 +303,7 @@ export default function UserDashboardValuations({
           </div>
           <button
             type="button"
-            onClick={() => onNavigate("operations")}
+            onClick={empiezaLaTasacion}
             style={{
               background: "rgba(94,94,89,0.12)",
               border: "1px solid rgba(150,150,143,0.3)",

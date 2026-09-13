@@ -1,0 +1,456 @@
+{
+  "name": "Importación – Comprobar daños (DE)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "dd-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 5 11,18 * * *"
+            }
+          ]
+        }
+      },
+      "id": "dd-cron",
+      "name": "2 veces/día (11:05 y 18:05)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Solo lo que decide algo hoy: lo publicado y lo publicable.\n--\n-- Orden:\n--   1. lo que YA está en el escaparate. Un anuncio se puede editar para\n--      declarar el daño después; ahí es donde más duele no enterarse.\n--   2. las candidatas, por ahorro. Si la pasada no llega a todas, que se\n--      queden fuera las que menos se echan de menos.\n--\n-- El umbral de aquí (comparables, horquilla de precio y 6.000 € de ahorro) es\n-- a propósito más ancho que la regla de publicación del scoring: comprobar de\n-- más cuesta una ficha; comprobar de menos deja una oferta buena sin publicar.\nSELECT id, url, import_published\nFROM moveadvisor_market_offers\nWHERE portal = 'autoscout24'\n  AND country = 'DE'\n  AND is_active\n  AND COALESCE(url, '') <> ''\n  -- Se reintenta a los 3 días: recupera las caídas pasajeras sin repetir en\n  -- cada pasada las fichas que de verdad no traen el dato.\n  AND (damage_checked_at IS NULL OR damage_checked_at < NOW() - INTERVAL '3 days')\n  AND (\n    import_published\n    OR (\n      is_damaged IS NULL\n      AND price BETWEEN 4000 AND 100000\n      AND import_comps >= 15\n      AND market_price_es IS NOT NULL\n      AND market_price_es - price >= 6000\n    )\n  )\nORDER BY import_published DESC, (market_price_es - price) DESC NULLS LAST\nLIMIT 500",
+        "options": {}
+      },
+      "id": "dd-cola",
+      "name": "PG: Cola a comprobar",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "dd-loop",
+      "name": "Loop: oferta por oferta",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// El cortacircuitos, antes de gastar la ficha.\nconst s = $getWorkflowStaticData('global');\nconst oferta = $input.first().json;\n\nif (s.dd_parado) return [{ json: { saltar: true, url: '', id: oferta.id } }];\n\nconst pedidas = s.dd_pedidas || 0;\nconst sinDato = s.dd_sin_dato || 0;\nif (pedidas >= 30 && sinDato / pedidas > 0.5) {\n  s.dd_parado = true;\n  s.dd_motivo = sinDato + ' de ' + pedidas + ' fichas sin dato: parece bloqueo';\n  console.log('[danos-de] PARADO: ' + s.dd_motivo);\n  return [{ json: { saltar: true, url: '', id: oferta.id } }];\n}\nreturn [{ json: { saltar: false, url: oferta.url, id: oferta.id,\n  publicada: !!oferta.import_published } }];"
+      },
+      "id": "dd-toca",
+      "name": "Code: ¿toca pedirla?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "dd-c-url",
+              "leftValue": "={{ $json.url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "dd-if-url",
+      "name": "IF: ¿hay ficha que pedir?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        340,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 25000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "dd-http",
+      "name": "HTTP: Ficha de AutoScout24",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        560,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// AutoScout24 DE - solo el bloque de daños y el de precio.\n//\n// Es la misma lectura que hace el enriquecedor, a propósito: si un día cambia\n// el JSON de AutoScout24, los dos se rompen igual y el test lo dice.\nconst oferta = $('Code: ¿toca pedirla?').item.json;\nconst res = $input.first().json;\n// Con responseFormat 'text' + fullResponse, n8n deja el cuerpo en 'data', no\n// en 'body'. Mirar solo 'body' fue lo que dejó 4.484 ofertas sin clasificar.\nconst cuerpo = String(res.body || res.data || '');\nconst codigo = Number(res.statusCode || 0);\nconst id = String(oferta.id || '');\nconst s = $getWorkflowStaticData('global');\ns.dd_pedidas = (s.dd_pedidas || 0) + 1;\n\nconst esc = v => (v === null || v === undefined || v === '') ? 'NULL'\n  : (typeof v === 'number' ? String(v) : \"'\" + String(v).replace(/'/g, \"''\") + \"'\");\n\n// La marca se mueve pase lo que pase. Sin eso, una ficha que no da el dato\n// vuelve en cada pasada y la cola no avanza nunca.\nconst soloMarca = motivo => {\n  s.dd_sin_dato = (s.dd_sin_dato || 0) + 1;\n  return [{ json: {\n    sql: 'UPDATE moveadvisor_market_offers SET damage_checked_at = NOW() WHERE id = ' + esc(id),\n    veredicto: motivo,\n  } }];\n};\n\nif (!id) return [{ json: { sql: null, veredicto: 'sin id' } }];\nif (codigo !== 200 || !cuerpo) {\n  s.dd_fallos = (s.dd_fallos || 0) + 1;\n  console.log('[danos-de] ' + id + ': sin ficha (HTTP ' + codigo + ')');\n  return soloMarca('sin ficha');\n}\n\nlet raiz = null;\ntry {\n  const m = cuerpo.match(/<script id=\"__NEXT_DATA__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/);\n  if (m) raiz = ((JSON.parse(m[1]).props || {}).pageProps || {}).listingDetails;\n} catch (e) { raiz = null; }\nconst v = (raiz && raiz.vehicle) ? raiz.vehicle : null;\nif (!v) return soloMarca('ficha sin vehiculo');\n\n// Un coche sin daños declarados trae la lista vacía; uno que no hemos sabido\n// leer no trae la clave. NULL es \"no lo sé\", FALSE es \"no\".\nconst danos = Array.isArray(v.damageConditions) ? v.damageConditions.filter(Boolean) : [];\nconst notaDano = danos.join(', ').slice(0, 200);\nconst danado = ('damageConditions' in v) ? (danos.length > 0) : null;\nconst accidente = (typeof v.hadAccident === 'boolean') ? v.hadAccident : null;\n\n// El IVA importa tanto como el daño: un precio neto alemán comparado contra\n// precios españoles con IVA se inventa un 19% de ahorro que no existe.\nconst precios = (raiz && raiz.prices) || (raiz && raiz.price) || {};\nconst publico = precios.public || precios;\nconst esNeto = (typeof publico.isFinalPrice === 'boolean')\n  ? (publico.isFinalPrice === false && Number(publico.netPriceRaw) > 0)\n  : null;\n\nif (danado === null && accidente === null && esNeto === null) {\n  return soloMarca('ficha sin el dato');\n}\n\nconst sets = ['damage_checked_at = NOW()'];\nif (danado !== null) sets.push('is_damaged = ' + (danado ? 'TRUE' : 'FALSE'));\nif (accidente !== null) sets.push('had_accident = ' + (accidente ? 'TRUE' : 'FALSE'));\nif (notaDano) sets.push('damage_note = ' + esc(notaDano));\nif (esNeto !== null) sets.push('price_is_net = ' + (esNeto ? 'TRUE' : 'FALSE'));\n\n// Si está publicado y resulta que está dañado o su precio es neto, se retira\n// AQUÍ, sin esperar al scoring de mañana. Un día de más en el escaparate es un\n// día en que alguien puede llamar por un coche que no le vamos a vender.\n// Respeta import_locked porque el scoring también lo respeta: si una persona ha\n// decidido a mano que esa oferta va, no se la quitamos por la espalda.\nconst retirar = (danado === true) || (esNeto === true);\nif (retirar && oferta.publicada) {\n  sets.push('import_published = CASE WHEN import_locked THEN import_published ELSE FALSE END');\n}\n\n// updated_at NO se toca: es lo que ordena el escaparate, y moverlo subiría a\n// los primeros puestos justo a los coches que acabamos de mirar.\nif (danado === true) s.dd_danados = (s.dd_danados || 0) + 1;\nelse if (danado === false) s.dd_sanos = (s.dd_sanos || 0) + 1;\nif (esNeto === true) s.dd_netos = (s.dd_netos || 0) + 1;\nif (retirar && oferta.publicada) s.dd_retiradas = (s.dd_retiradas || 0) + 1;\n\nconsole.log('[danos-de] ' + id + ': '\n  + (danado === null ? 'dano desconocido' : (danado ? 'DANADO (' + notaDano + ')' : 'sano'))\n  + (accidente ? ' accidentado' : '')\n  + (esNeto ? ' PRECIO-NETO' : '')\n  + (retirar && oferta.publicada ? ' -> RETIRADA DEL ESCAPARATE' : ''));\n\nreturn [{ json: {\n  sql: 'UPDATE moveadvisor_market_offers SET ' + sets.join(', ') + ' WHERE id = ' + esc(id),\n  veredicto: danado === null ? 'sin dato de dano' : (danado ? 'danado' : 'sano'),\n  danado: danado, accidente: accidente, precioNeto: esNeto, notaDano: notaDano,\n  retirada: retirar && oferta.publicada,\n} }];"
+      },
+      "id": "dd-code",
+      "name": "Code: ¿está dañado?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "dd-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "dd-if-sql",
+      "name": "IF: ¿hay algo que guardar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "dd-pg",
+      "name": "PG: Guardar el veredicto",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        460
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 15000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "dd-wait",
+      "name": "Esperar 1s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        540
+      ],
+      "webhookId": "b2e47d61-danos-de"
+    },
+    {
+      "parameters": {
+        "jsCode": "// El parte de la pasada, a moveadvisor_verify_runs.\n//\n// Se reaprovecha la tabla de los verificadores con portal='danos-de'. Las\n// columnas no significan aquí lo mismo, y conviene saberlo:\n//     checked      fichas miradas\n//     alive        salieron sanas\n//     deactivated  salieron DANADAS\n//     unclassified la ficha no traía el dato\n//     transient    la ficha ni siquiera respondió\nconst s = $getWorkflowStaticData('global');\nconst pedidas = s.dd_pedidas || 0;\n\nconsole.log('[danos-de] ── resumen ──');\nconsole.log('  fichas miradas   : ' + pedidas);\nconsole.log('  sanas            : ' + (s.dd_sanos || 0));\nconsole.log('  DANADAS          : ' + (s.dd_danados || 0));\nconsole.log('  precio neto (IVA): ' + (s.dd_netos || 0));\nconsole.log('  retiradas del escaparate: ' + (s.dd_retiradas || 0));\nconsole.log('  sin el dato      : ' + (s.dd_sin_dato || 0));\nconsole.log('  fichas caidas    : ' + (s.dd_fallos || 0));\nif (s.dd_parado) console.log('  PARADO POR EL CORTACIRCUITOS: ' + s.dd_motivo);\n// Una pasada que no mira ni una ficha no es un éxito, es una cola vacía o una\n// consulta rota. En Gamboa eso pasó tres días seguidos sin que lo dijera nadie.\nif (!s.dd_parado && pedidas === 0) {\n  console.log('  OJO: no se ha mirado NI UNA ficha. O no hay cola, o algo falla.');\n}\n\nconst n = v => String(Number(v) || 0);\nconst sql = 'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" VALUES ('danos-de', NOW(), \" + n(pedidas) + ', ' + n(s.dd_sanos) + ', '\n  + n(s.dd_danados) + ', ' + n(s.dd_sin_dato) + ', ' + n(s.dd_fallos) + ', '\n  + (s.dd_parado ? 'TRUE' : 'FALSE') + ', 1)';\n\n// La memoria es del workflow, no de la pasada: sin limpiarla, el cortacircuitos\n// de hoy seguiría parado mañana.\nconst parte = { sql: sql, miradas: pedidas, sanos: s.dd_sanos || 0,\n  danados: s.dd_danados || 0, netos: s.dd_netos || 0,\n  retiradas: s.dd_retiradas || 0, sinDato: s.dd_sin_dato || 0,\n  fallos: s.dd_fallos || 0, parado: !!s.dd_parado };\nfor (const k of Object.keys(s)) { if (k.indexOf('dd_') === 0) delete s[k]; }\nreturn [{ json: parte }];"
+      },
+      "id": "dd-resumen",
+      "name": "Code: Resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "dd-pg-parte",
+      "name": "PG: Apuntar el parte",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        340,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a comprobar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2 veces/día (11:05 y 18:05)": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a comprobar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Cola a comprobar": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: oferta por oferta": {
+      "main": [
+        [
+          {
+            "node": "Code: Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: ¿toca pedirla?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: ¿toca pedirla?": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay ficha que pedir?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ficha que pedir?": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Ficha de AutoScout24",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Ficha de AutoScout24": {
+      "main": [
+        [
+          {
+            "node": "Code: ¿está dañado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: ¿está dañado?": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay algo que guardar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay algo que guardar?": {
+      "main": [
+        [
+          {
+            "node": "PG: Guardar el veredicto",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Guardar el veredicto": {
+      "main": [
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 1s": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Resumen": {
+      "main": [
+        [
+          {
+            "node": "PG: Apuntar el parte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

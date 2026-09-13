@@ -18,13 +18,13 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 5 8 * * *"
+              "expression": "0 10 13 * * *"
             }
           ]
         }
       },
       "id": "sc-cron",
-      "name": "Cada día a las 8:05",
+      "name": "Cada día a las 13:10",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
@@ -69,7 +69,7 @@
         ]
       ]
     },
-    "Cada día a las 8:05": {
+    "Cada día a las 13:10": {
       "main": [
         [
           {

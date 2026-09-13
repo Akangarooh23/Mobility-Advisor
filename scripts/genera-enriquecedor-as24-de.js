@@ -80,6 +80,9 @@ const PG_CRED = { postgres: { id: "zoxD0jV8hxZqH0uY", name: "Postgres account" }
 // Los nodos de Postgres reintentan: esta base corta conexiones y un corte no
 // puede tirar una pasada de 400 fichas.
 const REINTENTA = { retryOnFail: true, maxTries: 3, waitBetweenTries: 5000 };
+// Escribir oferta a oferta aguanta mas: cortes de Postgres mas largos que 15 s.
+const REINTENTA_ESCRITURA = { retryOnFail: true, maxTries: 5, waitBetweenTries: 15000,
+  onError: "continueRegularOutput" };
 
 const LOTE = 400;
 const ESPERA_SEGUNDOS = 1;
@@ -360,7 +363,7 @@ const nodos = [
   { parameters: { operation: "executeQuery", query: "={{ $json.sql }}", options: {} },
     id: "de-pg", name: "PG: Actualizar oferta",
     type: "n8n-nodes-base.postgres", typeVersion: 2, position: [1180, 340],
-    credentials: PG_CRED, ...REINTENTA },
+    credentials: PG_CRED, ...REINTENTA_ESCRITURA },
   { parameters: { amount: ESPERA_SEGUNDOS, unit: "seconds" }, id: "de-wait",
     name: "Esperar " + ESPERA_SEGUNDOS + "s",
     type: "n8n-nodes-base.wait", typeVersion: 1, position: [1400, 420],

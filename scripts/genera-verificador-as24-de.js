@@ -61,6 +61,9 @@ const PG_CRED = { postgres: { id: "zoxD0jV8hxZqH0uY", name: "Postgres account" }
 // la vez y los tres murieron con "Connection timed out", y el scraper aleman se
 // paro en el segmento 13 de 42 con "Connection terminated unexpectedly".
 const REINTENTA = { retryOnFail: true, maxTries: 3, waitBetweenTries: 5000 };
+// Escribir oferta a oferta aguanta mas: ver la nota del 2026-09-13 arriba.
+const REINTENTA_ESCRITURA = { retryOnFail: true, maxTries: 5, waitBetweenTries: 15000,
+  onError: "continueRegularOutput" };
 
 // 8.692 activas hoy, y subirán cuando se rescaten las que se dieron de baja mal.
 // A 3.000 por pasada y 5 pasadas al día son 15.000 comprobaciones diarias, que
@@ -345,7 +348,8 @@ const nodos = [
     type: "n8n-nodes-base.if", typeVersion: 2, position: [1000, 540] },
   { parameters: { operation: "executeQuery", query: "={{ $json.sql }}", options: {} },
     id: "dv-pg", name: "PG: Actualizar oferta",
-    type: "n8n-nodes-base.postgres", typeVersion: 2, position: [1220, 460], credentials: PG_CRED, ...REINTENTA },
+    type: "n8n-nodes-base.postgres", typeVersion: 2, position: [1220, 460], credentials: PG_CRED,
+    ...REINTENTA_ESCRITURA },
   { parameters: { amount: ESPERA_SEGUNDOS, unit: "seconds" }, id: "dv-wait",
     name: "Esperar " + ESPERA_SEGUNDOS + "s",
     type: "n8n-nodes-base.wait", typeVersion: 1, position: [1440, 540],

@@ -99,7 +99,7 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
   // todos los campos a una ficha cualquiera es pedirle al test que falle por
   // motivos que no son fallos.
   console.log("\nSIETE FICHAS REALES");
-  let ultimoSql = null, ultimoId = null;
+  let ultimoSql = null, ultimoId = null, ultimoJson = null;
   const vivas = [];
   let muertas = 0;
   for (const fila of q.rows.slice(0, 7)) {
@@ -120,8 +120,13 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
     }
 
     vivas.push(j);
-    ultimoSql = j.sql;
-    ultimoId = fila.id;
+    // Para la prueba contra la base preferimos una ficha con cilindrada: un
+    // electrico no tiene, y entonces no probaria la escritura numerica.
+    if (ultimoSql === null || (j.cilindrada > 0 && !(ultimoJson && ultimoJson.cilindrada > 0))) {
+      ultimoSql = j.sql;
+      ultimoId = fila.id;
+      ultimoJson = j;
+    }
     console.log("      HTTP 200  " + String(j.carroceria || "-").padEnd(20)
       + (j.puertas || "-") + "p  " + (j.plazas || "-") + " plazas  "
       + (j.cilindrada || "-") + " cc  " + (j.co2 || "-") + " g/km  " + (j.traccion || "-"));
@@ -170,7 +175,9 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
     comprueba("el SQL casa con una oferta nuestra", res.rowCount === 1, "(" + res.rowCount + " filas)");
     const desp = await lee();
     comprueba("los datos entran",
-      !!desp.body_type && desp.doors > 0 && desp.seats > 0 && desp.displacement > 0,
+      !!desp.body_type && desp.doors > 0 && desp.seats > 0
+      && (ultimoJson.cilindrada > 0 ? Number(desp.displacement) === ultimoJson.cilindrada
+        : true),
       desp.body_type + ", " + desp.doors + "p, " + desp.seats + " plazas, " + desp.displacement + " cc"
       + (desp.co2 ? ", " + desp.co2 + " g/km" : ""));
     comprueba("y updated_at se queda donde estaba",

@@ -360,8 +360,8 @@ const condicionSql = (id) => ({
 const nodos = [
   { parameters: {}, id: "mv-manual", name: "Ejecutar manualmente",
     type: "n8n-nodes-base.manualTrigger", typeVersion: 1, position: [-400, 200] },
-  { parameters: { rule: { interval: [{ field: "cronExpression", expression: "0 0 13 * * *" }] } },
-    id: "mv-cron", name: "Cada día a las 13:00",
+  { parameters: { rule: { interval: [{ field: "cronExpression", expression: "0 45 12,16,18 * * *" }] } },
+    id: "mv-cron", name: "3 veces/día (12:45, 16:45 y 18:45)",
     type: "n8n-nodes-base.scheduleTrigger", typeVersion: 1, position: [-400, 400] },
   { parameters: { operation: "executeQuery", query: COLA, options: {} },
     id: "mv-cola", name: "PG: Marcas candidatas",
@@ -400,7 +400,7 @@ const nodos = [
 const L = (n) => ({ node: n, type: "main", index: 0 });
 const conexiones = {
   "Ejecutar manualmente":     { main: [[L("PG: Marcas candidatas")]] },
-  "Cada día a las 13:00":     { main: [[L("PG: Marcas candidatas")]] },
+  "3 veces/día (12:45, 16:45 y 18:45)":     { main: [[L("PG: Marcas candidatas")]] },
   "PG: Marcas candidatas":    { main: [[L("Code: Repartir la noche")]] },
   "Code: Repartir la noche":  { main: [[L("Loop: pagina por pagina")]] },
   // salida 0 del bucle = terminado, salida 1 = siguiente pagina
@@ -417,7 +417,7 @@ const conexiones = {
 };
 
 const wf = {
-  name: "Milanuncios – Verificar ofertas activas",
+  name: "Milanuncios – Verificar por listado",
   nodes: nodos,
   connections: conexiones,
   settings: {

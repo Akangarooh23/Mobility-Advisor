@@ -1,5 +1,5 @@
 {
-  "name": "Milanuncios – Verificar ofertas activas",
+  "name": "Milanuncios – Verificar por listado",
   "nodes": [
     {
       "parameters": {},
@@ -18,13 +18,13 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 0 13 * * *"
+              "expression": "0 45 12,16,18 * * *"
             }
           ]
         }
       },
       "id": "mv-cron",
-      "name": "Cada día a las 13:00",
+      "name": "3 veces/día (12:45, 16:45 y 18:45)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
@@ -307,7 +307,7 @@
         ]
       ]
     },
-    "Cada día a las 13:00": {
+    "3 veces/día (12:45, 16:45 y 18:45)": {
       "main": [
         [
           {

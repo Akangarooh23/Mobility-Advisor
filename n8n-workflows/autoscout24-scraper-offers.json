@@ -3,12 +3,12 @@
   "nodes": [
     {
       "parameters": {},
-      "id": "as-a-manual",
+      "id": "as-o-manual",
       "name": "Ejecutar manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        0,
+        -560,
         300
       ]
     },
@@ -18,64 +18,107 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 0 21 * * *"
+              "expression": "0 30 13,16 * * *"
             }
           ]
         }
       },
-      "id": "as-a-cron",
-      "name": "Cada día a las 21:00",
+      "id": "as-o-cron",
+      "name": "2 veces/día (13:30 y 16:30)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
-        0,
+        -560,
         500
       ]
     },
     {
       "parameters": {
-        "language": "javaScript",
-        "jsCode": "// Repartir las 45 marcas en 7 grupos (uno por dia de la semana) para no saturar disco/tiempo.\n// Cada dia procesa ~6-7 marcas x 14 tramos de precio. En 1 semana se cubre todo el catalogo.\nconst makes = [9,13,47,74,64,60,55,21,54,29,70,39,33,52,28,16360,65,73,46,31,16338,51802,38,15641,43,68,50,6,16415,37,57,51520,15525,67,66,48,19,20,16396,45,27,42,16355,35,14882];\nconst buckets = [[0,3000],[3000,5000],[5000,7000],[7000,9000],[9000,11000],[11000,13000],[13000,15000],[15000,18000],[18000,22000],[22000,27000],[27000,35000],[35000,50000],[50000,80000],[80000,99999999]];\nconst day = new Date().getDay(); // 0=domingo .. 6=sabado\nconst mine = makes.filter((mk, i) => i % 7 === day);\nconst out = [];\nfor (const mk of mine) { for (const b of buckets) { out.push({ json: { mk: mk, pf: b[0], pt: b[1] } }); } }\nreturn out;"
+        "operation": "executeQuery",
+        "query": "-- Por dónde iba la última pasada.\n--\n-- En Alemania esto vivía en $getWorkflowStaticData y se reiniciaba al\n-- reimportar: el 2026-09-09 se reimportó tres veces y las tres pasadas\n-- empezaron por Audi, que ya estaba entero. Aquí sobrevive a reimportar, a\n-- reiniciar n8n y a que se caiga una pasada a medias.\nSELECT valor::int AS cursor FROM moveadvisor_cursores WHERE clave = 'as24_es_marca'",
+        "options": {}
       },
-      "id": "as-a-gen",
+      "id": "as-o-cursor",
+      "name": "PG: Por dónde íbamos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Alimentación GRADUAL: unas pocas marcas por pasada, avanzando un cursor que\n// vive en Postgres. Cubre las 45 marcas y vuelve a empezar, o sea refresco\n// continuo del mercado español.\nconst makes = [9,13,47,74,64,60,55,21,54,29,70,39,33,52,28,16360,65,73,46,31,16338,51802,38,15641,43,68,50,6,16415,37,57,51520,15525,67,66,48,19,20,16396,45,27,42,16355,35,14882];\nconst buckets = [[0,3000],[3000,5000],[5000,7000],[7000,9000],[9000,11000],[11000,13000],[13000,15000],[15000,18000],[18000,22000],[22000,27000],[27000,35000],[35000,50000],[50000,80000],[80000,99999999]];\n\nconst MARCAS_POR_PASADA = 3;\n\n// El cursor se lee de la base, no de la memoria del workflow.\nconst fila = $('PG: Por dónde íbamos').first().json || {};\nlet cursor = Number(fila.cursor);\nif (!Number.isFinite(cursor) || cursor < 0 || cursor >= makes.length) cursor = 0;\n\nconst siguiente = (cursor + MARCAS_POR_PASADA) % makes.length;\n// Se apunta ANTES de scrapear, a propósito: si la pasada se cae a la mitad, la\n// siguiente sigue avanzando en vez de repetir dos horas de lo mismo.\nconst sqlCursor = \"UPDATE moveadvisor_cursores SET valor = \" + siguiente\n  + \", actualizado = NOW() WHERE clave = 'as24_es_marca'\";\n\nconst out = [];\nfor (let m = 0; m < MARCAS_POR_PASADA; m++) {\n  const mk = makes[(cursor + m) % makes.length];\n  for (const b of buckets) out.push({ json: { mk: mk, pf: b[0], pt: b[1], sqlCursor: sqlCursor } });\n}\nconsole.log('[as24-es] marcas ' + cursor + '..' + (cursor + MARCAS_POR_PASADA - 1)\n  + ' de ' + makes.length + ' -> ' + out.length + ' segmentos. La próxima empieza en la ' + siguiente + '.');\nreturn out;"
+      },
+      "id": "as-o-gen",
       "name": "Code: Generar segmentos (marca x precio)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        240,
+        -80,
         400
       ]
     },
     {
       "parameters": {
-        "batchSize": 1,
+        "operation": "executeQuery",
+        "query": "={{ $json.sqlCursor }}",
         "options": {}
       },
-      "id": "as-a-loop",
+      "id": "as-o-guardar",
+      "name": "PG: Apuntar dónde nos quedamos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        160,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "as-o-loop",
       "name": "Loop: segmento por segmento",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        480,
+        160,
         400
       ]
     },
     {
       "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "value": "REEMPLAZA_CON_ID_DEL_WORKFLOW_SEGMENTO",
-          "mode": "id"
-        },
+        "workflowId": "PENDIENTE_DE_ENLAZAR",
         "options": {}
       },
-      "id": "as-a-exec",
+      "id": "as-o-sub",
       "name": "Scrapear segmento (AutoScout24 – Segmento)",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
       "position": [
-        720,
-        400
+        400,
+        500
       ]
     },
     {
@@ -83,19 +126,41 @@
         "amount": 1,
         "unit": "seconds"
       },
-      "id": "as-a-wait",
+      "id": "as-o-wait",
       "name": "Esperar 1s",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1,
       "position": [
-        960,
-        400
+        640,
+        500
       ],
-      "webhookId": "wait-as24-orquestador"
+      "webhookId": "d51c8a02-as24-es-orq"
     }
   ],
   "connections": {
     "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Por dónde íbamos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2 veces/día (13:30 y 16:30)": {
+      "main": [
+        [
+          {
+            "node": "PG: Por dónde íbamos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Por dónde íbamos": {
       "main": [
         [
           {
@@ -111,6 +176,11 @@
         [
           {
             "node": "Loop: segmento por segmento",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "PG: Apuntar dónde nos quedamos",
             "type": "main",
             "index": 0
           }
@@ -150,29 +220,15 @@
           }
         ]
       ]
-    },
-    "Cada día a las 21:00": {
-      "main": [
-        [
-          {
-            "node": "Code: Generar segmentos (marca x precio)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
     }
   },
-  "pinData": {},
   "settings": {
     "executionOrder": "v1",
     "saveManualExecutions": true,
-    "saveDataSuccessExecution": "all",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
     "callerPolicy": "workflowsFromSameOwner",
-    "errorWorkflow": "",
-    "saveDataErrorExecution": "all"
+    "errorWorkflow": "9BwKOPMIzjj3owho"
   },
-  "staticData": null,
-  "triggerCount": 1,
-  "tags": []
+  "pinData": {}
 }

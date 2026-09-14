@@ -151,8 +151,11 @@ const comprueba = (nombre, cond, detalle) => {
   const nueva = pasa(OFERTA, URL_NUEVA, e);
   comprueba("308 a la misma ficha = URL normalizada, NO es una venta",
     nueva.veredicto === "url nueva" && !/is_active/.test(nueva.sql || ""));
-  comprueba("  y se guarda la URL nueva, absoluta",
-    /url = 'https:\/\/www\.autoscout24\.es\/[^']+'/.test(nueva.sql || ""),
+  // .de, no .es: esto verifica ofertas ALEMANAS. La prueba exigía el dominio
+  // español hasta el 2026-09-14 -o sea que daba por buena la equivocación del
+  // workflow en vez de cazarla-.
+  comprueba("  y se guarda la URL nueva, absoluta y ALEMANA",
+    /url = 'https:\/\/www\.autoscout24\.de\/[^']+'/.test(nueva.sql || ""),
     (nueva.sql || "").slice(0, 74));
 
   // ══ los fallos pasajeros ═════════════════════════════════════════════════

@@ -85,19 +85,30 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
     $: (n) => (n === "PG: Por dónde íbamos" ? { first: () => ({ json: { cursor } }) } : uno({})),
     $input: uno({}),
   }).items.map((x) => x.json);
+  // Los números salen del propio workflow, no escritos a mano aquí: el tamaño
+  // de la pasada se ha cambiado ya una vez -de 3 marcas a 2- y una prueba con
+  // el 42 metido a pelo falla por el cambio, no por un fallo.
+  const porPasada = Number((genSeg.match(/MARCAS_POR_PASADA = (\d+)/) || [])[1]);
+  const marcas = (genSeg.match(/const makes = \[([^\]]+)\]/) || [])[1].split(",").length;
+  const tramos = (genSeg.match(/const buckets = \[(.+)\];/) || [])[1].split("],[").length;
+  const esperados = porPasada * tramos;
   const a = pasada(0);
-  const b = pasada(3);
-  comprueba("una pasada da marcas x tramos", a.length === 42, a.length + " segmentos");
+  const b = pasada(porPasada);
+  comprueba("una pasada da marcas x tramos", a.length === esperados,
+    a.length + " segmentos = " + porPasada + " marcas x " + tramos + " tramos");
   const marcasA = [...new Set(a.map((x) => x.mk))];
   const marcasB = [...new Set(b.map((x) => x.mk))];
   comprueba("la segunda pasada NO repite marca de la primera",
     !marcasA.some((m) => marcasB.includes(m)), marcasA.join(",") + "  vs  " + marcasB.join(","));
   comprueba("y deja apuntado por dónde seguir",
-    /UPDATE moveadvisor_cursores SET valor = 3/.test(a[0].sqlCursor), a[0].sqlCursor.slice(0, 58));
-  const vuelta = pasada(44);
+    a[0].sqlCursor.indexOf("valor = " + porPasada + ",") >= 0, a[0].sqlCursor.slice(0, 58));
+  // Desde la penúltima marca: tiene que dar la vuelta sin dejar huecos.
+  const vuelta = pasada(marcas - 1);
   comprueba("al llegar al final vuelve a empezar",
-    vuelta.length === 42 && /valor = 2/.test(vuelta[0].sqlCursor));
-  comprueba("un cursor corrupto no revienta la pasada", pasada(999).length === 42);
+    vuelta.length === esperados
+    && vuelta[0].sqlCursor.indexOf("valor = " + ((marcas - 1 + porPasada) % marcas) + ",") >= 0,
+    "cursor " + (marcas - 1) + " de " + marcas + " -> " + vuelta[0].sqlCursor.slice(39, 52));
+  comprueba("un cursor corrupto no revienta la pasada", pasada(999).length === esperados);
 
   // ══ el segmento ══════════════════════════════════════════════════════════
   console.log("\nEL SEGMENTO");

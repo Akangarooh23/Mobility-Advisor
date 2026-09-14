@@ -49,10 +49,18 @@ const ERROR_WF = "9BwKOPMIzjj3owho";
 // que lo busca por nombre en la base de n8n y vuelve a generar.
 const ID_SEGMENTO = "43PLVCbPvTFnZPRt";
 
-// 3 marcas por pasada x 14 tramos = 42 segmentos, unas 2h45. Dos pasadas al día
-// son 6 marcas: las 45 entran en semana y media. El ritmo de peticiones no
-// cambia -una página por segundo-, cambia cuánto dura la pasada.
-const MARCAS_POR_PASADA = 3;
+// DOS marcas por pasada, no tres.
+//
+// Medido el 14-sep-2026 con la primera pasada de verdad: cubrir Audi entero son
+// 839 páginas -sus 14 tramos suman 16.606 ofertas-, y el ritmo real es de unos
+// 6 segundos por página contando la escritura en Postgres. O sea 1h25 por
+// marca. Con tres marcas la pasada se iba a más de cuatro horas, y como las
+// pasadas están a tres horas de distancia, la de las 16:30 arrancaba encima de
+// la de las 13:30: dos workflows pidiéndole a autoscout24.es a la vez.
+//
+// Con dos marcas la pasada son unas 2h50 y cabe. Cuatro marcas al día: las 45
+// dan la vuelta en once días.
+const MARCAS_POR_PASADA = 2;
 
 const CABECERAS = {
   sendHeaders: true,

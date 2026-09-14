@@ -42,7 +42,17 @@ const REINTENTA = { retryOnFail: true, maxTries: 3, waitBetweenTries: 5000 };
 const REINTENTA_ESCRITURA = { retryOnFail: true, maxTries: 5, waitBetweenTries: 15000,
   onError: "continueRegularOutput" };
 
-const LOTE = 3000;
+// 5.000 por pasada, no 3.000.
+//
+// El 14-sep-2026, con la primera pasada del scraper hecha, quedó a la vista el
+// tamaño del problema: damos por activos 27.580 Audi y el portal tiene 16.424.
+// Son ~11.000 coches vendidos contando como comparables SOLO en una marca. A
+// 12.000 al día, la primera vuelta eran 27 días; a 20.000 son 16.
+//
+// Se puede ir a este ritmo porque HEAD es barato y porque está medido que el
+// portal no nos está frenando: cuatro páginas seguidas el mismo día
+// respondieron en 0,7 a 4,3 segundos, todas 200.
+const LOTE = 5000;
 const ESPERA_SEGUNDOS = 1;
 // El cortacircuitos. Con 100 activas miradas ya se puede juzgar, y por encima
 // del 60% de mortandad lo que ha pasado no es que España haya vendido su parque

@@ -194,7 +194,9 @@ const uuidDe = (String(oferta.url || '').match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]
 const esRedirect = codigo >= 300 && codigo < 400;
 if (esRedirect && uuidDe && destino.toLowerCase().indexOf(uuidDe.toLowerCase()) !== -1) {
   s.de_urls = (s.de_urls || 0) + 1;
-  const abs = destino.indexOf('http') === 0 ? destino : ('https://www.autoscout24.es' + destino);
+  // .de, no .es: esto verifica ofertas ALEMANAS. Estuvo apuntando al dominio
+  // español hasta el 2026-09-14, copiado del fichero espanol sin mirar.
+  const abs = destino.indexOf('http') === 0 ? destino : ('https://www.autoscout24.de' + destino);
   console.log('[as24-de] ' + id + ': URL normalizada -> ' + abs);
   return [{ json: {
     sql: 'UPDATE moveadvisor_market_offers SET url = ' + esc(abs)

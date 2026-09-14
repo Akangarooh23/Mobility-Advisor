@@ -47,7 +47,7 @@ const ERROR_WF = "9BwKOPMIzjj3owho";
 // el placeholder, el orquestador no puede llamar a nadie. Se rellena solo con:
 //     npm run enlaza-segmento-es
 // que lo busca por nombre en la base de n8n y vuelve a generar.
-const ID_SEGMENTO = "PENDIENTE_DE_ENLAZAR";
+const ID_SEGMENTO = "43PLVCbPvTFnZPRt";
 
 // 3 marcas por pasada x 14 tramos = 42 segmentos, unas 2h45. Dos pasadas al día
 // son 6 marcas: las 45 entran en semana y media. El ritmo de peticiones no

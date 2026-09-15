@@ -1,5 +1,6 @@
 const { Pool } = require("pg");
 const { SSL_POSTGRES } = require("../lib/postgres-ssl");
+const { aplicaCors } = require("../lib/cors");
 
 let pool;
 function getPool() {
@@ -37,7 +38,11 @@ const STATUS_LABEL = {
 module.exports = async function userErpAppointmentsApi(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-PopCar-Client");
+  // Ver la nota de `api/erp-appointment.js`: el comodín no sirve en cuanto la
+  // petición lleva credenciales, y `aplicaCors` lo sustituye por el origen
+  // concreto cuando está en la lista.
+  if (aplicaCors(req, res)) return undefined;
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "GET") return res.status(405).json({ ok: false, error: "method_not_allowed" });
 

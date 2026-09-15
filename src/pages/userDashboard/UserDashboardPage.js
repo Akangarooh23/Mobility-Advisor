@@ -12,7 +12,7 @@ import UserDashboardVehicles from "./UserDashboardVehicles";
 import UserDashboardServices from "./UserDashboardServices";
 import { cuantasCitas } from "../../utils/userDashboardHelpers";
 import UserDashboardSolicitudes from "./UserDashboardSolicitudes";
-import { getGarageVehiclesJson } from "../../utils/apiClient";
+import { getGarageVehiclesJson, rutaApi } from "../../utils/apiClient";
 import { readUserBillingState, readCachedGarageVehicleCount } from "../../utils/storage";
 
 const GARAGE_STORAGE_PREFIX = "movilidad-advisor.userGarage.v1";
@@ -203,7 +203,7 @@ export default function UserDashboardPage({
     let cancelado = false;
     (async () => {
       try {
-        const r = await fetch("/api/fianza-confirmar", {
+        const r = await fetch(rutaApi("/api/fianza-confirmar"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",

@@ -1,5 +1,24 @@
 const API_BASE = process.env.REACT_APP_API_BASE_URL || '';
 
+/**
+ * La ruta de una llamada a la API, con la base delante.
+ *
+ * En el navegador `API_BASE` es cadena vacía, así que `rutaApi("/api/leads")`
+ * devuelve `/api/leads` — exactamente el mismo string que había escrito a mano
+ * antes de que esto existiera. No cambia nada de la web.
+ *
+ * Existe para cuando el código no se sirve desde el mismo sitio que la API:
+ * dentro de un APK, `/api/leads` resuelve contra `https://localhost` y no hay
+ * nada ahí. Entonces `REACT_APP_API_BASE_URL` apunta al dominio real y todas
+ * las llamadas lo siguen sin tocar ni una pantalla.
+ *
+ * Que nadie vuelva a escribir la ruta a pelo lo vigila
+ * `npm run test:rutas-api`.
+ */
+export function rutaApi(ruta = '') {
+  return `${API_BASE}${ruta}`;
+}
+
 export const ANALYZE_API_ENDPOINT = `${API_BASE}/api/analyze`;
 export const LISTING_API_ENDPOINT = `${API_BASE}/api/find-listing`;
 export const ALERT_EMAIL_API_ENDPOINT = `${API_BASE}/api/send-alert-email`;
@@ -470,7 +489,7 @@ export function postSavedOfferRemoveJson(email, offerId, options = {}) {
 // User saved comparisons  /api/user-saved
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const USER_SAVED_API_ENDPOINT = "/api/user-saved";
+export const USER_SAVED_API_ENDPOINT = `${API_BASE}/api/user-saved`;
 
 export function getUserSavedComparisonsJson(options = {}) {
   return getJson(USER_SAVED_API_ENDPOINT, { endpointLabel: "user-saved", ...options });
@@ -496,7 +515,7 @@ export function deleteUserSavedComparisonJson(id, options = {}) {
 // Market alerts  /api/user-alerts
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const USER_ALERTS_API_ENDPOINT = "/api/user-alerts";
+export const USER_ALERTS_API_ENDPOINT = `${API_BASE}/api/user-alerts`;
 
 export function getUserAlertsJson(options = {}) {
   return getJson(USER_ALERTS_API_ENDPOINT, { endpointLabel: "user-alerts", ...options });
@@ -527,7 +546,7 @@ export function postUserAlertStatusJson(alertId, seenCount, options = {}) {
 // User preferences  /api/user-preferences
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const USER_PREFERENCES_API_ENDPOINT = "/api/user-preferences";
+export const USER_PREFERENCES_API_ENDPOINT = `${API_BASE}/api/user-preferences`;
 
 export function getUserPreferencesJson(options = {}) {
   return getJson(USER_PREFERENCES_API_ENDPOINT, { endpointLabel: "user-preferences", ...options });

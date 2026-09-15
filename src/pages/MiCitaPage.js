@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { rutaApi } from "../utils/apiClient";
 
-const API = "/api/visit-availability";
+const API = rutaApi("/api/visit-availability");
 
 function fmtDateLong(iso) {
   return new Date(iso).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", year: "numeric" });

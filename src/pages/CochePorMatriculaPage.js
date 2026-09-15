@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { rutaApi } from "../utils/apiClient";
 
 /**
  * `/v/8888LXR` — la dirección que va en los anuncios de los portales.
@@ -19,7 +20,7 @@ export default function CochePorMatriculaPage({ matricula, onVerOtros }) {
   useEffect(() => {
     if (!matricula) { setEstado("noVale"); return; }
 
-    fetch(`/api/marketplace-vo?plate=${encodeURIComponent(matricula)}`)
+    fetch(rutaApi(`/api/marketplace-vo?plate=${encodeURIComponent(matricula)}`))
       .then(async (r) => ({ codigo: r.status, cuerpo: await r.json().catch(() => ({})) }))
       .then(({ codigo, cuerpo }) => {
         if (cuerpo.ok && cuerpo.offer?.id) {

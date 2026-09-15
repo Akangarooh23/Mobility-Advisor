@@ -70,6 +70,7 @@ import {
   postUserAlertJson,
   postUserAlertStatusJson,
   postValuationAddJson,
+  rutaApi,
 } from "./utils/apiClient";
 import {
   buildAdviceAnalysisPrompt,
@@ -2248,7 +2249,7 @@ export default function App() {
             setStep(-1);
           } else {
             // No está en VO: puede ser una oferta de importación (otra tabla)
-            fetch(`/api/import-offers?id=${encodeURIComponent(offerId)}`)
+            fetch(rutaApi(`/api/import-offers?id=${encodeURIComponent(offerId)}`))
               .then((r) => r.json())
               .then((d) => {
                 const imp = d?.offer;
@@ -2406,7 +2407,7 @@ export default function App() {
   // Fetch reserved marketplace VO URLs when entering the marketplace or a detail page
   useEffect(() => {
     if (entryMode !== "portalVo" && entryMode !== "portalVoDetail") return;
-    fetch("/api/leads?reserved=1")
+    fetch(rutaApi("/api/leads?reserved=1"))
       .then((r) => r.json())
       .then((d) => {
         if (d.ok) {

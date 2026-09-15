@@ -5,6 +5,7 @@ const { execFileSync } = require("child_process");
 const { MARCA, remitente, respuestaA } = require("../lib/marca");
 const { plantilla, parrafo, aviso, codigo } = require("../lib/correo");
 const { SSL_POSTGRES } = require("../lib/postgres-ssl");
+const { aplicaCors } = require("../lib/cors");
 
 // mssql is only needed when AUTH_PROVIDER=mssql; lazy-load to avoid crashing on Vercel
 function getMssqlModule() {
@@ -214,15 +215,21 @@ function clearSessionCookie(res) {
   setSessionCookie(res, "", { maxAgeSeconds: 0 });
 }
 
-function parseSessionCookieFromRequest(req) {
-  const cookies = parseCookies(req?.headers?.cookie || "");
-  const rawValue = normalizeText(cookies[SESSION_COOKIE_NAME]);
+/**
+ * El valor de sesión, venga por donde venga: `<sessionId>.<token>`.
+ *
+ * Es el mismo string que va en la cookie y el mismo registro de la tabla de
+ * sesiones. No hay un segundo mecanismo de autenticación, solo un segundo
+ * sobre para el mismo papel.
+ */
+function parseSessionValue(rawValue) {
+  const value = normalizeText(rawValue);
 
-  if (!rawValue || !rawValue.includes(".")) {
+  if (!value || !value.includes(".")) {
     return null;
   }
 
-  const [sessionId, token] = rawValue.split(".");
+  const [sessionId, token] = value.split(".");
   if (!sessionId || !token) {
     return null;
   }
@@ -231,6 +238,37 @@ function parseSessionCookieFromRequest(req) {
     sessionId: normalizeText(sessionId),
     token: normalizeText(token),
   };
+}
+
+/**
+ * La sesión de la cabecera `Authorization: Bearer <sessionId>.<token>`.
+ *
+ * Existe para los clientes que no son un navegador. Una app nativa habla con
+ * un cliente HTTP que no guarda cookies entre arranques: con solo la cookie,
+ * el usuario se desloguea cada vez que cierra la app.
+ */
+function parseSessionBearerFromRequest(req) {
+  const header = normalizeText(req?.headers?.authorization || req?.headers?.Authorization || "");
+
+  if (!/^bearer\s+/i.test(header)) {
+    return null;
+  }
+
+  return parseSessionValue(header.replace(/^bearer\s+/i, ""));
+}
+
+/**
+ * De dónde se lee la sesión, y en qué orden.
+ *
+ * La cookie primero, para que el navegador se comporte exactamente igual que
+ * antes de que esto existiera. La cabecera es el respaldo, no el camino
+ * principal: quien la manda es porque no tiene cookies que mandar.
+ */
+function parseSessionCookieFromRequest(req) {
+  const cookies = parseCookies(req?.headers?.cookie || "");
+  const desdeLaCookie = parseSessionValue(cookies[SESSION_COOKIE_NAME]);
+
+  return desdeLaCookie || parseSessionBearerFromRequest(req);
 }
 
 function shouldRunSessionCleanup() {
@@ -1556,7 +1594,32 @@ async function createSessionForUser({ req, res, user, useMssql, useSqlcmdWindows
     maxAgeSeconds: SESSION_TTL_HOURS * 60 * 60,
   });
 
-  return { sessionId, expiresAt };
+  // El token sale de aquí en claro porque quien llama decide si se lo enseña
+  // al cliente. Al navegador no: ver `laSesionQueSeDevuelve`.
+  return { sessionId, expiresAt, token: `${sessionId}.${token}` };
+}
+
+/**
+ * La sesión tal y como se le cuenta al cliente que acaba de entrar.
+ *
+ * Al navegador se le devuelve lo de siempre —el id y la caducidad— y el token
+ * viaja solo en la cookie `HttpOnly`. Devolvérselo en el cuerpo además sería
+ * regalarle a cualquier script de la página lo que la cookie le esconde, y no
+ * le hace ninguna falta: el navegador ya manda la cookie solo.
+ *
+ * Al que se identifica como app se le da el token, porque es lo único que va a
+ * poder guardar. Y se le da **porque lo ha pedido**: así la respuesta de la web
+ * no cambia ni un byte.
+ */
+function laSesionQueSeDevuelve(req, session) {
+  const cliente = normalizeText(req?.headers?.["x-popcar-client"]).toLowerCase();
+  const esApp = cliente === "app";
+
+  return {
+    sessionId: session.sessionId,
+    expiresAt: session.expiresAt,
+    ...(esApp ? { token: session.token } : {}),
+  };
 }
 
 async function resolveSessionUser({ req, useMssql, useSqlcmdWindows, usePostgres }) {
@@ -1659,6 +1722,10 @@ async function cleanupExpiredSessions({ useMssql, useSqlcmdWindows, usePostgres 
 }
 
 async function authHandler(req, res) {
+  if (aplicaCors(req, res)) {
+    return undefined;
+  }
+
   try {
     return await _authHandlerInner(req, res);
   } catch (err) {
@@ -1914,7 +1981,7 @@ async function _authHandlerInner(req, res) {
       ok: true,
       user: sanitizeUser(normalizedUser),
       message: "ContraseÃ±a actualizada correctamente.",
-      session: createdSession,
+      session: laSesionQueSeDevuelve(req, createdSession),
     });
   }
 
@@ -2173,7 +2240,7 @@ async function _authHandlerInner(req, res) {
       ok: true,
       user: sanitizeUser(normalizedUser),
       message: "ContraseÃ±a actualizada correctamente.",
-      session: createdSession,
+      session: laSesionQueSeDevuelve(req, createdSession),
     });
   }
 
@@ -2262,7 +2329,7 @@ async function _authHandlerInner(req, res) {
       ok: true,
       user: sanitizeUser(normalizedSavedUser),
       message: `Cuenta creada para ${email}.`,
-      session: createdSession,
+      session: laSesionQueSeDevuelve(req, createdSession),
     });
   }
 
@@ -2329,7 +2396,7 @@ async function _authHandlerInner(req, res) {
       ok: true,
       user: sanitizeUser(loggedUser),
       message: `SesiÃ³n iniciada para ${email}.`,
-      session: createdSession,
+      session: laSesionQueSeDevuelve(req, createdSession),
     });
   }
 

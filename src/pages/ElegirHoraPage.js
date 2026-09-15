@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { rutaApi } from "../utils/apiClient";
 
 /**
  * La pagina que abre el cliente desde el correo de «no puede ser a esa hora».
@@ -12,7 +13,7 @@ import React, { useEffect, useState } from "react";
  * mirado el mensaje. Por eso se enseña, se pincha, y entonces se manda.
  */
 
-const API = "/api/visit-availability";
+const API = rutaApi("/api/visit-availability");
 
 const ZONA = "Europe/Madrid";
 const fmtDia = (iso) =>

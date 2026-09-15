@@ -1,4 +1,5 @@
 import { DOMINIO, DOMINIO_ANTERIOR } from "../marca";
+import { rutaApi } from "./apiClient";
 
 export const USER_DASHBOARD_ROUTE_MAP = {
   home: "/panel",
@@ -37,7 +38,7 @@ const OFFER_BRAND_HINTS = {
   nueva_china: ["BYD Dolphin", "BYD Seal U DM-i", "MG4 Electric", "MG ZS Hybrid+", "Omoda 5", "Jaecoo 7", "XPeng G6"],
 };
 
-const OFFER_IMAGE_PROXY_ENDPOINT = "/api/offer-image";
+const OFFER_IMAGE_PROXY_ENDPOINT = rutaApi("/api/offer-image");
 
 const OFFER_KNOWN_BRANDS = [
   "alfa romeo", "audi", "bmw", "byd", "citroen", "cupra", "dacia", "ds", "fiat", "ford", "honda", "hyundai", "jaecoo", "jaguar", "jeep",

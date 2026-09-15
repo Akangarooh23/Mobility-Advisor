@@ -15,6 +15,7 @@ import {
   getErpModelsJson,
   getErpVersionsJson,
   getErpVersionDetailJson,
+  rutaApi,
 } from "../../utils/apiClient";
 import { uploadFileDirect } from "../../utils/supabaseUpload";
 import AvailabilityEditor from "../../components/AvailabilityEditor";
@@ -1187,7 +1188,7 @@ export default function UserDashboardVehicles({
   async function loadVehicleBookings(vehicleId) {
     try {
       const offerId = `idcar-${vehicleId}`;
-      const r = await fetch(`/api/visit-availability?route=bookings&offerId=${encodeURIComponent(offerId)}`);
+      const r = await fetch(rutaApi(`/api/visit-availability?route=bookings&offerId=${encodeURIComponent(offerId)}`));
       const d = await r.json();
       setVehicleBookings((prev) => ({ ...prev, [vehicleId]: d.bookings || [] }));
     } catch {
@@ -1198,7 +1199,7 @@ export default function UserDashboardVehicles({
   async function cancelSellerBooking(vehicleId, bookingId, token) {
     if (!window.confirm("¿Cancelar esta visita? Se notificará al comprador.")) return;
     try {
-      const r = await fetch("/api/visit-availability", {
+      const r = await fetch(rutaApi("/api/visit-availability"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ route: "cancel", bookingId, token }),

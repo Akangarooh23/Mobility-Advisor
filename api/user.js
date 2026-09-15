@@ -11,6 +11,7 @@ const cronVigilaScrapersHandler = require("../lib/api/cron-vigila-scrapers-handl
 const cronConditionReportReadyHandler = require("../lib/api/cron-condition-report-ready-handler");
 const cronAlertCheckHandler = require("../lib/api/cron-alert-check-handler");
 const storagePresignHandler = require("../lib/api/storage-presign-handler");
+const { aplicaCors } = require("../lib/cors");
 
 module.exports.config = { api: { bodyParser: { sizeLimit: "20mb" } } };
 
@@ -56,6 +57,8 @@ const RUTAS_CRON = new Set([
 ]);
 
 module.exports = async function userRouter(req, res) {
+  if (aplicaCors(req, res)) return undefined;
+
   const ruta = resolveRoute(req);
 
   if (RUTAS_CRON.has(ruta) && process.env.CRON_ACTIVO === "0") {

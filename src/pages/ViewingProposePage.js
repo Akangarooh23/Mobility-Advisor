@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { CORREO_CONTACTO } from "../marca";
+import { rutaApi } from "../utils/apiClient";
 
 function StatusBanner({ status }) {
   if (status === "pending_buyer") {
@@ -33,7 +34,7 @@ export default function ViewingProposePage() {
 
   useEffect(() => {
     if (!token) { setError("Token inválido o caducado."); setLoading(false); return; }
-    fetch(`/api/viewing-get?token=${encodeURIComponent(token)}`)
+    fetch(rutaApi(`/api/viewing-get?token=${encodeURIComponent(token)}`))
       .then(r => r.json())
       .then(data => {
         if (!data.ok || data.role !== "seller") {
@@ -52,7 +53,7 @@ export default function ViewingProposePage() {
     if (validSlots.length === 0) return;
     setSubmitting(true);
     try {
-      const res = await fetch("/api/viewing-propose", {
+      const res = await fetch(rutaApi("/api/viewing-propose"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, slots: validSlots }),

@@ -4,6 +4,7 @@ const billingPortalHandler = require("../lib/api/billing-portal-handler");
 const invoicePdfHandler = require("../lib/api/invoice-pdf-handler");
 const { Pool } = require("pg");
 const { SSL_POSTGRES } = require("../lib/postgres-ssl");
+const { aplicaCors } = require("../lib/cors");
 
 let _pingPool = null;
 async function pingHandler(req, res) {
@@ -48,6 +49,8 @@ function resolveRoute(req) {
 }
 
 module.exports = async function billingRouter(req, res) {
+  if (aplicaCors(req, res)) return undefined;
+
   switch (resolveRoute(req)) {
     case "ping":
       return pingHandler(req, res);

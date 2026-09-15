@@ -1,5 +1,6 @@
 const { Pool } = require("pg");
 const { SSL_POSTGRES } = require("../lib/postgres-ssl");
+const { aplicaCors } = require("../lib/cors");
 
 let pool;
 function getPool() {
@@ -37,7 +38,12 @@ function mapAppointmentType(raw = "") {
 module.exports = async function erpAppointmentApi(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-PopCar-Client");
+  // El comodín de arriba sigue valiendo para quien llama sin credenciales. Un
+  // origen de la lista necesita el origen concreto y el permiso de
+  // credenciales, y eso lo pone `aplicaCors` pisando la cabecera anterior: con
+  // comodín, el navegador tira la respuesta en cuanto va la sesión dentro.
+  if (aplicaCors(req, res)) return undefined;
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ ok: false, error: "method_not_allowed" });
 

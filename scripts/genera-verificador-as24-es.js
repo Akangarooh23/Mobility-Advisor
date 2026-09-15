@@ -42,23 +42,53 @@ const REINTENTA = { retryOnFail: true, maxTries: 3, waitBetweenTries: 5000 };
 const REINTENTA_ESCRITURA = { retryOnFail: true, maxTries: 5, waitBetweenTries: 15000,
   onError: "continueRegularOutput" };
 
-// 5.000 por pasada, no 3.000.
+// 2.000 por pasada, y sin espera entre ofertas.
 //
-// El 14-sep-2026, con la primera pasada del scraper hecha, quedó a la vista el
-// tamaño del problema: damos por activos 27.580 Audi y el portal tiene 16.424.
-// Son ~11.000 coches vendidos contando como comparables SOLO en una marca. A
-// 12.000 al día, la primera vuelta eran 27 días; a 20.000 son 16.
+// El tamaño del problema es enorme: damos por activos 27.580 Audi y el portal
+// tiene 16.424. Son ~11.000 coches vendidos contando como comparables SOLO en
+// una marca. La tentación era subir el lote, y con 5.000 no cabía.
 //
-// Se puede ir a este ritmo porque HEAD es barato y porque está medido que el
-// portal no nos está frenando: cuatro páginas seguidas el mismo día
-// respondieron en 0,7 a 4,3 segundos, todas 200.
-const LOTE = 5000;
-const ESPERA_SEGUNDOS = 1;
+// LO QUE TARDA DE VERDAD, medido sobre las tres pasadas alemanas del 14-sep:
+//
+//     2.995 miradas   8:40 -> 11:00   2 h 20
+//     2.999 miradas  11:40 -> 15:32   3 h 50
+//     2.995 miradas  14:40 -> 19:00   4 h 20
+//
+// O sea 4 segundos por oferta, no 1. Los otros 3 son n8n: por cada oferta hace
+// petición, Code, IF, escritura y Wait, y cada paso se apunta en su base. Con
+// 5.000 la pasada duraba 5 h 30 y la de las 11:25 arrancaba encima de la de
+// las 9:25.
+//
+// Se quita la espera -no el lote solo-: HEAD es barato y está medido que el
+// portal no nos frena (cuatro páginas seguidas en 0,7 a 4,3 s, todas 200). Aun
+// sin espera salen 21 peticiones por minuto, que es un ritmo educado. Quedan
+// ~3 s por oferta: 2.000 son 1 h 40, y entran de sobra entre pasada y pasada.
+//
+// 8.000 al día contra 314.322 activas es una vuelta completa cada 39 días. No
+// es «todas cada día». Eso no se arregla con un número más grande sino
+// cambiando de método: verificar POR LISTADO, como en Milanuncios, donde una
+// página habla de 20 ofertas a la vez en vez de una por petición.
+const LOTE = 2000;
+// Solo para el parte: ya no hay nodo Wait.
+const ESPERA_SEGUNDOS = 0;
 // El cortacircuitos. Con 100 activas miradas ya se puede juzgar, y por encima
 // del 60% de mortandad lo que ha pasado no es que España haya vendido su parque
 // móvil: es que el portal ha cambiado algo y lo estamos leyendo mal.
 const MINIMO_PARA_JUZGAR = 100;
-const TOPE_MORTANDAD = 0.6;
+// 0,8 aquí, no 0,6 como en Alemania, y por una razón concreta: en Alemania el
+// mercado lleva semanas verificándose y una pasada normal encuentra un 10% de
+// bajas. Aquí no se ha verificado NUNCA y el dato lleva 28 días parado, así que
+// la mortandad de verdad es enorme. Medido el 14 y el 15-sep sobre ofertas
+// viejas al azar:
+//
+//     5 de 12 muertas   (42%)
+//     6 de 10 muertas   (60%)
+//
+// Con el tope en 0,6 el verificador se pararía solo a los 100 coches creyendo
+// que el portal ha cambiado, cuando lo que pasa es que la basura es real. A 0,8
+// sigue cazando el caso que importa -leer mal el portal da 100%- sin cortar la
+// limpieza. Cuando la primera vuelta esté hecha, esto vuelve a 0,6.
+const TOPE_MORTANDAD = 0.8;
 
 const COLA = `-- Las ofertas españolas que toca comprobar.
 --
@@ -331,10 +361,8 @@ const nodos = [
     id: "ev-pg", name: "PG: Actualizar oferta",
     type: "n8n-nodes-base.postgres", typeVersion: 2, position: [1220, 460],
     credentials: PG_CRED, ...REINTENTA_ESCRITURA },
-  { parameters: { amount: ESPERA_SEGUNDOS, unit: "seconds" }, id: "ev-wait",
-    name: "Esperar " + ESPERA_SEGUNDOS + "s",
-    type: "n8n-nodes-base.wait", typeVersion: 1, position: [1440, 540],
-    webhookId: "f6b2d418-as24-es-verificar" },
+  // Sin nodo Wait: ver la nota del lote. Cada oferta vuelve al bucle en cuanto
+  // se ha guardado su veredicto.
   { parameters: { jsCode: CODE_RESUMEN }, id: "ev-resumen", name: "Code: Resumen",
     type: "n8n-nodes-base.code", typeVersion: 2, position: [120, 160] },
   { parameters: { operation: "executeQuery", query: "={{ $json.sql }}", options: {} },
@@ -354,9 +382,8 @@ const conexiones = {
   "IF: ¿nos hemos parado?":  { main: [[L("Loop: oferta por oferta")], [L("HTTP: ¿sigue la ficha?")]] },
   "HTTP: ¿sigue la ficha?":  { main: [[L("Code: Veredicto")]] },
   "Code: Veredicto":         { main: [[L("IF: ¿hay veredicto?")]] },
-  "IF: ¿hay veredicto?":     { main: [[L("PG: Actualizar oferta")], [L("Esperar " + ESPERA_SEGUNDOS + "s")]] },
-  "PG: Actualizar oferta":   { main: [[L("Esperar " + ESPERA_SEGUNDOS + "s")]] },
-  ["Esperar " + ESPERA_SEGUNDOS + "s"]: { main: [[L("Loop: oferta por oferta")]] },
+  "IF: ¿hay veredicto?":     { main: [[L("PG: Actualizar oferta")], [L("Loop: oferta por oferta")]] },
+  "PG: Actualizar oferta":   { main: [[L("Loop: oferta por oferta")]] },
   "Code: Resumen":           { main: [[L("PG: Apuntar el parte")]] },
 };
 
@@ -380,6 +407,9 @@ fs.writeFileSync(destino, JSON.stringify(wf, null, 2) + "\n");
 console.log("escrito  " + destino);
 console.log("  " + nodos.length + " nodos, HEAD, " + LOTE + " por pasada, 4 pasadas/día = "
   + (LOTE * 4).toLocaleString("es") + " al día");
+// A 3 segundos por oferta, que es lo medido sin espera.
+console.log("  cada pasada tarda unos " + Math.round(LOTE * 3 / 60) + " min, y entre una"
+  + " y la siguiente hay 120");
 console.log("  cortacircuitos: para si más del " + (TOPE_MORTANDAD * 100)
   + "% de las ACTIVAS miradas sale de baja, tras " + MINIMO_PARA_JUZGAR);
 

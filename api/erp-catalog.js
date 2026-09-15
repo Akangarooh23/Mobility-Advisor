@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
 const { SSL_POSTGRES } = require("../lib/postgres-ssl");
+const { aplicaCors } = require("../lib/cors");
 
 function getMssqlModule() {
   return require("mssql");
@@ -392,6 +393,8 @@ function parseSqlcmdJson(raw) {
 }
 
 module.exports = async function erpCatalogHandler(req, res) {
+  if (aplicaCors(req, res)) return undefined;
+
   res.setHeader("Content-Type", "application/json");
   const scope = normalizeText(req.query?.scope).toLowerCase();
   const isVercelRuntime = Boolean(normalizeText(process.env.VERCEL) || normalizeText(process.env.VERCEL_ENV));

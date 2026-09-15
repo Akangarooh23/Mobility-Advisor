@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { CORREO_CONTACTO } from "../marca";
+import { rutaApi } from "../utils/apiClient";
 
 function formatSlot(iso) {
   try {
@@ -22,7 +23,7 @@ export default function ViewingConfirmPage() {
 
   useEffect(() => {
     if (!token) { setError("Token inválido o caducado."); setLoading(false); return; }
-    fetch(`/api/viewing-get?token=${encodeURIComponent(token)}`)
+    fetch(rutaApi(`/api/viewing-get?token=${encodeURIComponent(token)}`))
       .then(r => r.json())
       .then(data => {
         if (!data.ok || data.role !== "buyer") {
@@ -42,7 +43,7 @@ export default function ViewingConfirmPage() {
     if (!selected) return;
     setSubmitting(true);
     try {
-      const res = await fetch("/api/viewing-confirm", {
+      const res = await fetch(rutaApi("/api/viewing-confirm"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, slot: selected }),

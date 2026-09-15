@@ -15,6 +15,7 @@ import ConditionReportAr from "../components/ConditionReportAr";
 import ConditionReportDownload from "../components/ConditionReportDownload";
 import ComoFuncionaImportacion from "../components/ComoFuncionaImportacion";
 import { getRentingDesde } from "../utils/portalVoHelpers";
+import { rutaApi } from "../utils/apiClient";
 
 // Número de WhatsApp de PopCar (formato internacional sin +).
 // El numero vive en la marca: escrito a mano aqui es como se separo del de
@@ -326,7 +327,7 @@ export default function PortalVoDetailPage({
 
   useEffect(() => {
     if (!selectedPortalVoOffer.id) return;
-    fetch(`/api/marketplace-vo?stats=1&vehicleId=${encodeURIComponent(selectedPortalVoOffer.id)}`)
+    fetch(rutaApi(`/api/marketplace-vo?stats=1&vehicleId=${encodeURIComponent(selectedPortalVoOffer.id)}`))
       .then((r) => r.json())
       .then((d) => { if (d.ok) setOfferStats(d.stats); })
       .catch(() => {});
@@ -343,7 +344,7 @@ export default function PortalVoDetailPage({
   useEffect(() => {
     if (!selectedPortalVoOffer.id) return;
     let vivo = true;
-    fetch(`/api/modelo-3d/${encodeURIComponent(selectedPortalVoOffer.id)}/info`)
+    fetch(rutaApi(`/api/modelo-3d/${encodeURIComponent(selectedPortalVoOffer.id)}/info`))
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => { if (vivo) setTieneInforme(Boolean(d?.informe)); })
       .catch(() => {});
@@ -352,7 +353,7 @@ export default function PortalVoDetailPage({
 
   const [sectionShowcase, setSectionShowcase] = useState([]);
   useEffect(() => {
-    fetch("/api/marketplace-vo?showcase=1")
+    fetch(rutaApi("/api/marketplace-vo?showcase=1"))
       .then((r) => r.json())
       .then((d) => { if (d.ok && Array.isArray(d.sections)) setSectionShowcase(d.sections); })
       .catch(() => {});
@@ -412,7 +413,7 @@ export default function PortalVoDetailPage({
     if (!solicitudHecha?.id) return;
     setPidiendoLlamada(true);
     try {
-      const res = await fetch("/api/import-lead", {
+      const res = await fetch(rutaApi("/api/import-lead"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -434,7 +435,7 @@ export default function PortalVoDetailPage({
     try {
       let res;
       if (isImport) {
-        res = await fetch("/api/import-lead", {
+        res = await fetch(rutaApi("/api/import-lead"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -461,7 +462,7 @@ export default function PortalVoDetailPage({
           }),
         });
       } else if (isParticular) {
-        res = await fetch("/api/viewing-request", {
+        res = await fetch(rutaApi("/api/viewing-request"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -481,7 +482,7 @@ export default function PortalVoDetailPage({
           const kmLabel = Number(rentingKm) >= 1000 ? `${(Number(rentingKm)/1000).toFixed(0)}.000` : String(rentingKm);
           finalWhen = `Plazo: ${rentingDuration} · ${kmLabel} km/año${price ? ` · ${price} €/mes` : ""}${selectedColor ? ` · ${selectedQuantity}x ${selectedColor}` : ""}`;
         }
-        res = await fetch("/api/leads", {
+        res = await fetch(rutaApi("/api/leads"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

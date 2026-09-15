@@ -1,4 +1,5 @@
 import { getStoredUtm } from "./utmTracker";
+import { rutaApi } from "./apiClient";
 
 const ANON_ID_KEY = "cw_anon_id";
 
@@ -34,7 +35,7 @@ export async function trackFunnelEvent({ event_type, user_id, user_email, offer_
       modality:     modality    || null,
       section:      section     || null,
     };
-    await fetch("/api/funnel-event", {
+    await fetch(rutaApi("/api/funnel-event"), {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
       body:    JSON.stringify(body),

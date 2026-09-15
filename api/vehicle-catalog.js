@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
 const { SSL_POSTGRES } = require("../lib/postgres-ssl");
+const { aplicaCors } = require("../lib/cors");
 
 // mssql is only needed when VEHICLE_CATALOG_PROVIDER=mssql; lazy-load to avoid crashing on Vercel
 function getMssqlModule() {
@@ -625,6 +626,8 @@ function applyLocalAction(action, brand, model) {
 // ── Unified handler (GET = read, POST = admin write) ───────────────────────
 
 module.exports = async function vehicleCatalogHandler(req, res) {
+  if (aplicaCors(req, res)) return undefined;
+
   // POST → admin actions
   if (req.method === "POST") {
     const action = normalizeText(req?.body?.action).toLowerCase();

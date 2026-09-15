@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { rutaApi } from "../utils/apiClient";
 
 /**
  * Informe de estado (PopCar Check) para el flujo de publicación.
@@ -132,7 +133,7 @@ export function useConditionReport(alTerminar, origen = "idcar") {
     conocidosRef.current.add(vid);
     setCarga((prev) => ({ ...prev, [vid]: { status: "loading", message: "" } }));
     try {
-      const res = await fetch(`/api/market?route=condition-report&vehicleId=${encodeURIComponent(vid)}`, {
+      const res = await fetch(rutaApi(`/api/market?route=condition-report&vehicleId=${encodeURIComponent(vid)}`), {
         credentials: "include",
       });
       const data = await res.json().catch(() => ({}));
@@ -225,7 +226,7 @@ export function useConditionReport(alTerminar, origen = "idcar") {
 
     marcar({ status: "opening", message: "" });
     try {
-      const res = await fetch("/api/market?route=condition-report", {
+      const res = await fetch(rutaApi("/api/market?route=condition-report"), {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

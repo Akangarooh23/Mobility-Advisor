@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { rutaApi } from "../utils/apiClient";
 
 /**
  * El enlace del correo, para quien pidió una visita sin tener cuenta.
@@ -25,7 +26,7 @@ export default function ConfirmarVisitaPage({ onIrAlCoche }) {
     const token = new URLSearchParams(window.location.search).get("t") || "";
     if (!token) { setEstado("caducada"); return; }
 
-    fetch("/api/visit-availability?route=confirmar", {
+    fetch(rutaApi("/api/visit-availability?route=confirmar"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ route: "confirmar", token }),

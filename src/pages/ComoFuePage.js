@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { rutaApi } from "../utils/apiClient";
 
 /**
  * La pagina que abre el cliente desde el correo de «¿que tal fue la visita?».
@@ -17,7 +18,7 @@ import React, { useEffect, useState } from "react";
  * manda.
  */
 
-const API = "/api/visit-availability";
+const API = rutaApi("/api/visit-availability");
 
 const ZONA = "Europe/Madrid";
 const fmtDia = (iso) =>

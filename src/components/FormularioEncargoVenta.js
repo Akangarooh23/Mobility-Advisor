@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { PLAZOS, faltaParaMandarlo, loQueSeManda, loQueLeQueda, GUIA, elAlta, elCocheQueDijo } from "../utils/encargoDeVentaWeb";
-import { getGarageVehiclesJson } from "../utils/apiClient";
+import { getGarageVehiclesJson, rutaApi } from "../utils/apiClient";
 
 /**
  * El formulario de «Nosotros lo vendemos por ti».
@@ -85,7 +85,7 @@ export default function FormularioEncargoVenta({ userEmail = "" }) {
     setEnviando(true);
     setFallo("");
     try {
-      const r = await fetch("/api/leads", {
+      const r = await fetch(rutaApi("/api/leads"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

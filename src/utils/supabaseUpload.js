@@ -1,8 +1,10 @@
+import { rutaApi } from "./apiClient";
+
 export async function uploadFileDirect(file, vehicleId = "", fileType = "documents") {
   if (!file || !file.name || !file.size) return null;
 
   try {
-    const presignRes = await fetch("/api/user?route=storage-presign", {
+    const presignRes = await fetch(rutaApi("/api/user?route=storage-presign"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",

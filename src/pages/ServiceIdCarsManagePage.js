@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
-import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemoveJson, postVehicleStateUpsertJson, postVehiclePublishJson, getErpBrandsJson, getErpModelsJson, getErpVersionsJson, getErpVersionDetailJson } from "../utils/apiClient";
+import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemoveJson, postVehicleStateUpsertJson, postVehiclePublishJson, getErpBrandsJson, getErpModelsJson, getErpVersionsJson, getErpVersionDetailJson, rutaApi } from "../utils/apiClient";
 import { uploadFileDirect } from "../utils/supabaseUpload";
 import { comoSeCompara, laMatriculaRecordada } from "../utils/encargoDeVentaWeb";
 import AvailabilityEditor from "../components/AvailabilityEditor";
@@ -1099,7 +1099,7 @@ export default function ServiceIdCarsManagePage({
     if (!vehicleId) return;
     setPublishStates((prev) => ({ ...prev, [vehicleId]: { status: "loading" } }));
     try {
-      const res = await fetch("/api/vehicle-publish", {
+      const res = await fetch(rutaApi("/api/vehicle-publish"), {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

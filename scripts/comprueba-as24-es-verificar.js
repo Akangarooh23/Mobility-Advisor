@@ -239,11 +239,24 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
         OR last_checked_at < NOW() - INTERVAL '20 hours'))::int pendientes
     FROM moveadvisor_market_offers
     WHERE portal='autoscout24' AND COALESCE(country,'ES')='ES'`)).rows[0];
-  const porDia = 3000 * 4;
+  // Se lee del workflow, no se escribe a mano: si mañana cambia el lote o el
+  // número de pasadas, esta cuenta cambia sola en vez de mentir.
+  const lote = Number((COLA.match(/LIMIT\s+(\d+)/) || [])[1] || 0);
+  const porDia = lote * horas.length;
   console.log("      activas: " + t.activas.toLocaleString("es")
     + "   pendientes de mirar: " + t.pendientes.toLocaleString("es"));
-  console.log("      a " + porDia.toLocaleString("es") + " al día son "
-    + Math.ceil(t.pendientes / porDia) + " días para la primera vuelta");
+  console.log("      a " + porDia.toLocaleString("es") + " al día (" + lote + " x "
+    + horas.length + " pasadas) son " + Math.ceil(t.pendientes / porDia)
+    + " días para la primera vuelta");
+
+  // Y lo que de verdad hay que vigilar: que una pasada quepa antes de la
+  // siguiente. Con 5.000 por pasada duraba 5 h 30 y la segunda arrancaba encima
+  // de la primera. Medido en Alemania: 3 s por oferta sin espera.
+  const minutos = Math.round(lote * 3 / 60);
+  const saltos = horas.slice(1).map((h, i) => (h - horas[i]) * 60);
+  const hueco = saltos.length ? Math.min(...saltos) : 24 * 60;
+  comprueba("una pasada termina antes de que arranque la siguiente",
+    minutos < hueco, minutos + " min de pasada, " + hueco + " min de hueco");
   await c.end();
 
   console.log(fallos === 0 ? "\nTodo correcto." : "\n" + fallos + " comprobaciones han fallado.");

@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { rutaApi } from "../utils/apiClient";
 
 const VEHICLE_DETAIL_CSS = `
 /* ══ TOKENS ══ */
@@ -353,7 +354,7 @@ export default function VehicleDetailPage({ offer, onBack, isUserLoggedIn, onReq
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-    fetch("/api/leads?reserved=1")
+    fetch(rutaApi("/api/leads?reserved=1"))
       .then((r) => r.json())
       .then((d) => {
         const offerUrl = offer?.url || offer?.searchUrl || "";
@@ -389,7 +390,7 @@ export default function VehicleDetailPage({ offer, onBack, isUserLoggedIn, onReq
     if (!alertEmail) return;
     setAlertSubmitting(true);
     try {
-      await fetch("/api/leads", {
+      await fetch(rutaApi("/api/leads"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -410,7 +411,7 @@ export default function VehicleDetailPage({ offer, onBack, isUserLoggedIn, onReq
     setSubmitError("");
     setSubmitting(true);
     try {
-      const res = await fetch("/api/leads", {
+      const res = await fetch(rutaApi("/api/leads"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

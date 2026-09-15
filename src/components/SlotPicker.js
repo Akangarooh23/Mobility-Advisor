@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { DOMINIO_UID } from "../marca";
 import { getUtmPayload } from "../utils/utmTracker";
+import { rutaApi } from "../utils/apiClient";
 
-const API = "/api/visit-availability";
+const API = rutaApi("/api/visit-availability");
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function fmtDayShort(dateStr) {

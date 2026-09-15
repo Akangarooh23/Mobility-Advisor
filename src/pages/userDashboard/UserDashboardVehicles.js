@@ -2416,11 +2416,20 @@ export default function UserDashboardVehicles({
                       {laTasacion.meta || "Tasación de mercado"}
                       {elDia(laTasacion.createdAt) ? ` · ${elDia(laTasacion.createdAt)}` : ""}
                     </div>
-                    {/* El PDF entero está en su correo: aquí solo el número, que
-                        es lo que se viene a mirar. */}
-                    <div style={{ fontSize: 11, color: bodyColor }}>
-                      El informe completo te lo enviamos por correo.
-                    </div>
+                    {/*
+                      * Y el informe entero, desde aquí.
+                      *
+                      * Es la misma ruta que en «Tasaciones»: comprueba en la
+                      * base que es suya y firma una dirección que caduca. Las
+                      * de antes de archivar los PDF se rehacen la primera vez
+                      * que se piden, con el precio que se le dijo.
+                      */}
+                    <a
+                      href={rutaApi(`/api/market?route=tasacion-pdf&id=${encodeURIComponent(laTasacion.id)}`)}
+                      style={{ background: "rgba(255,196,0,0.12)", border: cardBorder, color: "var(--marca-oscuro)", borderRadius: 10, padding: "8px 12px", fontSize: 11, fontWeight: 800, textDecoration: "none", display: "inline-flex", alignItems: "center", justifySelf: "start", marginTop: 2 }}
+                    >
+                      Descargar el informe
+                    </a>
                   </div>
                 ) : (
                   <div style={{ display: "grid", gap: 8, justifyItems: "start" }}>

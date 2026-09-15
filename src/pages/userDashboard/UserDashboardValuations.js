@@ -150,24 +150,23 @@ function ValuationCard({ item, isDark, cardBg, onRequestValuation, onNavigate })
           * Es un enlace y no una llamada: la ruta contesta con una redirección
           * a una dirección firmada que caduca, y de eso se encarga el navegador.
           */}
-        {item.pdfPath ? (
-          <a
-            href={rutaApi(`/api/market?route=tasacion-pdf&id=${encodeURIComponent(item.id)}`)}
-            style={{ ...btnSecondary, textDecoration: "none", display: "inline-flex", alignItems: "center" }}
-          >
-            Descargar el informe
-          </a>
-        ) : (
-          /*
-           * Y si no lo hay, se dice. No enseñar nada deja al cliente buscando un
-           * botón que no existe —pasó, y la pregunta llegó por otro lado—, y un
-           * hueco mudo parece un fallo nuestro en vez de lo que es: de esta
-           * tasación no guardamos el PDF porque se entregó antes de guardarlos.
-           */
-          <span style={{ fontSize: 11, color: mutedColor, alignSelf: "center" }}>
-            El informe de esta tasación está en tu correo
-          </span>
-        )}
+        {/*
+          * El informe, para bajarlo.
+          *
+          * Sale siempre, tenga PDF guardado o no: las tasaciones de antes de
+          * archivarlos no tienen fichero y la ruta lo rehace la primera vez que
+          * se pide, con el precio que se le dijo en su dia. Esconder el boton
+          * dejaba al cliente buscandolo — paso, y la pregunta llego por otro lado.
+          *
+          * Es un enlace y no una llamada: la ruta contesta con una redireccion a
+          * una direccion firmada que caduca, y de eso se encarga el navegador.
+          */}
+        <a
+          href={rutaApi(`/api/market?route=tasacion-pdf&id=${encodeURIComponent(item.id)}`)}
+          style={{ ...btnSecondary, textDecoration: "none", display: "inline-flex", alignItems: "center" }}
+        >
+          Descargar el informe
+        </a>
         <button
           type="button"
           style={{ ...btnSecondary, marginLeft: "auto" }}

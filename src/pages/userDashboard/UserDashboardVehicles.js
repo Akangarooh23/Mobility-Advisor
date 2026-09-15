@@ -165,7 +165,17 @@ async function addGarageVehicleFromApi(currentUserEmail = "", vehicle = {}) {
   const { response, data } = await postGarageVehicleAddJson(normalizeText(currentUserEmail).toLowerCase(), vehicle);
 
   if (!response.ok) {
-    throw new Error("No se pudo guardar el vehículo en la API");
+    /*
+     * El porqué va dentro del error, no se pierde.
+     *
+     * Decía «No se pudo guardar» a secas, y arriba se recogía con un `catch`
+     * vacío: el guardado caía a localStorage, la pantalla enseñaba los papeles
+     * como guardados y en la base no había nada. Un 413 por un adjunto grande y
+     * un 401 por sesión caducada se arreglan de formas distintas, y así no se
+     * distinguían.
+     */
+    const detalle = normalizeText(data?.error) || normalizeText(data?.detail);
+    throw new Error(`${response.status}${detalle ? ` · ${detalle}` : ""}`);
   }
 
   return Array.isArray(data?.vehicles) ? data.vehicles.map((item) => normalizeVehicleAttachmentCollections(item)).filter(Boolean) : [];
@@ -940,12 +950,50 @@ export default function UserDashboardVehicles({
       : [vehicle, ...myVehicles].slice(0, 20);
     let apiSaveOk = false;
     let sideCallWarning = "";
+    /** Por qué no se guardó en el servidor, para poder decírselo. */
+    let porQueNoSeGuardo = "";
 
     try {
       nextVehicles = await addGarageVehicleFromApi(currentUserEmail, vehicle);
       apiSaveOk = true;
-    } catch {
-      // Fallback to local state/localStorage when API is unavailable.
+    } catch (e) {
+      /*
+       * Se sigue guardando en local —es a propósito, para no perderle el
+       * trabajo— pero el motivo no se tira.
+       *
+       * Con el `catch` vacío, un guardado que fallaba se contaba como hecho: la
+       * pantalla enseñaba los papeles y en la base no estaban. Y sin el motivo
+       * no había forma de averiguar por qué, porque el único sitio donde
+       * constaba era ese error que se tiraba.
+       */
+      porQueNoSeGuardo = normalizeText(e?.message);
+      console.error("[garage] no se ha guardado en el servidor:", porQueNoSeGuardo, {
+        vehicleId: vehicle.id,
+        adjuntos: {
+          fotos: vehicle.photos?.length ?? 0,
+          fichaTecnica: vehicle.technicalSheetDocuments?.length ?? 0,
+          permiso: vehicle.circulationPermitDocuments?.length ?? 0,
+          itv: vehicle.itvDocuments?.length ?? 0,
+        },
+      });
+    }
+
+    /*
+     * Si no se guardó en el servidor, se para aquí y se le dice.
+     *
+     * Va antes de vaciar el formulario a propósito: los ficheros que eligió
+     * siguen seleccionados, así que puede volver a darle a guardar sin tener
+     * que buscarlos otra vez. Vaciando primero, un fallo le borraba la
+     * selección y encima le decía «guardado».
+     */
+    if (!apiSaveOk) {
+      setVehicleFeedback(
+        `⚠️ No se ha podido guardar en el servidor${porQueNoSeGuardo ? ` (${porQueNoSeGuardo})` : ''}. `
+        + 'Tus cambios están solo en este navegador y los archivos siguen seleccionados: '
+        + 'vuelve a darle a «Guardar cambios» y, si sigue fallando, dínoslo.'
+      );
+      setIsSaving(false);
+      return;
     }
 
     if (currentUserEmail && apiSaveOk) {
@@ -1030,8 +1078,7 @@ export default function UserDashboardVehicles({
     setPendingInsuranceDocuments([]);
     setPendingMaintenanceInvoices([]);
     const baseMsg = existingVehicle ? t("dashboard.vehSavedUpdated", { title }) : t("dashboard.vehSavedNew", { title });
-    const localFallbackSuffix = !apiSaveOk ? " (guardado localmente, sin conexión con servidor)" : "";
-    setVehicleFeedback(baseMsg + localFallbackSuffix + sideCallWarning);
+    setVehicleFeedback(baseMsg + sideCallWarning);
   };
 
   const startEditingVehicle = (vehicle = {}) => {

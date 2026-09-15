@@ -106,7 +106,9 @@
     "test:as24-es-enrich": "node scripts/comprueba-as24-es-enrich.js",
     "arregla-cilindrada": "node scripts/arregla-cilindrada-es.js",
     "enlaza-segmento-autocasion": "node scripts/enlaza-segmento-autocasion.js",
-    "test:autocasion": "node scripts/comprueba-autocasion.js"
+    "test:autocasion": "node scripts/comprueba-autocasion.js",
+    "test:autocasion-enrich": "node scripts/comprueba-autocasion-enrich.js",
+    "limpia-autocasion": "node scripts/limpia-enrich-autocasion.js"
   },
   "proxy": "http://localhost:3001",
   "eslintConfig": {

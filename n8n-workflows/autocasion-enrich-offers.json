@@ -3,13 +3,13 @@
   "nodes": [
     {
       "parameters": {},
-      "id": "ace-manual",
+      "id": "ae-manual",
       "name": "Ejecutar manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -6448,
-        560
+        -560,
+        200
       ]
     },
     {
@@ -18,160 +18,69 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 6 * * *"
+              "expression": "0 50 9,12,17,22 * * *"
             }
           ]
         }
       },
-      "id": "ace-cron",
-      "name": "Cada día a las 6:00",
+      "id": "ae-cron",
+      "name": "4 veces/día (9:50, 12:50, 17:50 y 22:50)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
-        -6432,
-        352
+        -560,
+        400
       ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id,\n  COALESCE(url, '') AS url,\n  COALESCE(color, '') AS color,\n  COALESCE(doors, 0)::int AS doors,\n  COALESCE(seats, 0)::int AS seats,\n  COALESCE(power_cv, 0)::int AS power_cv,\n  COALESCE(body_type, '') AS body_type,\n  COALESCE(traction, '') AS traction,\n  COALESCE(co2, '') AS co2\nFROM moveadvisor_market_offers\nWHERE portal = 'autocasion'\n  AND (enrich_tried_at IS NULL OR enrich_tried_at < NOW() - INTERVAL '7 days')\n  AND last_seen_at > NOW() - INTERVAL '60 days'\n  AND (\n    COALESCE(color, '') = ''\n    OR COALESCE(doors, 0) = 0\n    OR COALESCE(seats, 0) = 0\n    OR COALESCE(body_type, '') = ''\n  )\nORDER BY enrich_tried_at ASC NULLS FIRST\nLIMIT 300",
+        "query": "-- Las ofertas de Autocasión a las que les falta algo de la ficha.\n--\n-- SOLO URLs DE FICHA. Las que acaban en refNNNNNN identifican un coche; las\n-- 35.518 que apuntan a «/marca-modelo-ocasion/madrid» son un listado de\n-- provincia, y pedirlas hacía que se escribieran los datos del primer coche de\n-- esa lista sobre esta oferta. 542 ya habían pasado por ahí.\n--\n-- Y solo lo visto vivo hace poco: gastar una ficha en un coche vendido es\n-- tirar la petición, y además su ficha redirige al listado del modelo.\nSELECT id,\n  COALESCE(url, '') AS url,\n  COALESCE(color, '') AS color,\n  COALESCE(doors, 0)::int AS doors,\n  COALESCE(seats, 0)::int AS seats,\n  COALESCE(power_cv, 0)::int AS power_cv,\n  COALESCE(body_type, '') AS body_type,\n  COALESCE(traction, '') AS traction,\n  COALESCE(co2, '') AS co2\nFROM moveadvisor_market_offers\nWHERE portal = 'autocasion'\n  AND is_active\n  AND url ~ 'ref[0-9]{6,}$'\n  AND enrich_tried_at IS NULL\n  AND (\n    COALESCE(color, '') = ''\n    OR COALESCE(doors, 0) = 0\n    OR COALESCE(seats, 0) = 0\n    OR COALESCE(body_type, '') = ''\n  )\n-- Primero lo que el scraper acaba de ver: es lo que sigue a la venta y lo que\n-- de verdad se usa como comparable.\nORDER BY (last_seen_at > NOW() - INTERVAL '3 days') DESC, scraped_at DESC\nLIMIT 400",
         "options": {}
       },
-      "id": "ace-pg-select",
+      "id": "ae-cola",
       "name": "PG: Ofertas a enriquecer",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
-        -6144,
-        256
+        -320,
+        300
       ],
       "credentials": {
         "postgres": {
           "id": "zoxD0jV8hxZqH0uY",
           "name": "Postgres account"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
         "options": {}
       },
-      "id": "ace-loop",
+      "id": "ae-loop",
       "name": "Loop: oferta por oferta",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -5904,
-        256
+        -100,
+        300
       ]
     },
     {
       "parameters": {
-        "url": "={{ $json.url }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "User-Agent",
-              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
-            },
-            {
-              "name": "Accept",
-              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-            },
-            {
-              "name": "Accept-Language",
-              "value": "es-ES,es;q=0.9"
-            }
-          ]
-        },
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "text"
-            }
-          },
-          "timeout": 20000
-        }
+        "jsCode": "// Cortacircuitos y guarda de cola vacía, antes de gastar la ficha.\nconst s = $getWorkflowStaticData('global');\nconst item = $input.first().json;\n\nif (!s.ac_run || s.ac_run !== $execution.id) {\n  s.ac_run = $execution.id;\n  s.ac_parado = false;\n  s.ac_intentos = 0;\n  s.ac_fallos = 0;\n  s.ac_leidas = 0;\n  s.ac_escritas = 0;\n  s.ac_listado = 0;\n  s.ac_vendidas = 0;\n  s.ac_motivo = '';\n}\n\n// Una cola vacía NO llega como \"nada\": n8n manda UN ITEM VACÍO, que recorre el\n// bucle y revienta el HTTP con \"URL parameter must be a string, got undefined\".\nif (!item || !item.id || !String(item.url || '').trim()) {\n  console.log('[ac-enrich] no hay nada que enriquecer ahora mismo.');\n  return [{ json: Object.assign({}, item || {}, { url: '' }) }];\n}\nif (s.ac_parado) return [{ json: Object.assign({}, item, { url: '' }) }];\n\nreturn [{ json: item }];"
       },
-      "id": "ace-http",
-      "name": "HTTP: Ficha HTML Autocasión",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [
-        -5664,
-        256
-      ],
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "jsCode": "const dbRecord = $('Loop: oferta por oferta').item.json;\nconst dbId = String(dbRecord.id || '');\nconst dbUrl = String(dbRecord.url || '');\n\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut\n  : (httpOut.data || httpOut.body || httpOut.html || '');\n\nconsole.log('[ac-enrich] id=' + dbId + ' url=' + dbUrl + ' html_len=' + String(html).length);\n\nif (!dbId) {\n  await new Promise(r => setTimeout(r, 800));\n  return [{ json: { id: null, hasUpdates: false, updateSql: null } }];\n}\n\nfunction esc(v) {\n  if (v === null || v === undefined) return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\n\nfunction normalizeBody(raw) {\n  const s = String(raw || '').toLowerCase();\n  if (!s) return '';\n  if (s.indexOf('suv') !== -1 || s.indexOf('4x4') !== -1 || s.indexOf('todo') !== -1 || s.indexOf('todoterreno') !== -1 || s.indexOf('terreno') !== -1) return 'SUV';\n  if (s.indexOf('pick') !== -1) return 'Pick Up';\n  if (s.indexOf('furgon') !== -1 || s.indexOf('van') !== -1 || s.indexOf('comercial') !== -1) return 'Furgoneta';\n  if (s.indexOf('familiar') !== -1 || s.indexOf('estate') !== -1 || s.indexOf('combi') !== -1) return 'Familiar';\n  if (s.indexOf('monovolumen') !== -1 || s.indexOf('mpv') !== -1) return 'Monovolumen';\n  if (s.indexOf('coupe') !== -1 || s.indexOf('coupé') !== -1) return 'Coupé';\n  if (s.indexOf('cabrio') !== -1 || s.indexOf('convert') !== -1 || s.indexOf('descapotable') !== -1) return 'Cabrio';\n  if (s.indexOf('compact') !== -1 || s.indexOf('peque') !== -1 || s.indexOf('utilitario') !== -1) return 'Compacto';\n  if (s.indexOf('berlina') !== -1 || s.indexOf('sedan') !== -1 || s.indexOf('turismo') !== -1 || s.indexOf('hatchback') !== -1) return 'Berlina';\n  return raw || '';\n}\n\n// ── Extraer JSON-LD de la ficha ────────────────────────────────────────────\nlet vehicle = null;\nconst htmlStr = String(html);\n\ntry {\n  const blocks = [...htmlStr.matchAll(/<script[^>]*application\\/ld\\+json[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m => m[1].trim());\n  for (const b of blocks) {\n    try {\n      const j = JSON.parse(b);\n      const arr = Array.isArray(j) ? j : (j['@graph'] || [j]);\n      for (const o of arr) {\n        if (o && (o['@type'] === 'Car' || o['@type'] === 'Product')) {\n          // La ficha suele tener más datos que el listado\n          const candidate = o.offers ? (o.offers.itemOffered || o) : o;\n          if (candidate.color || candidate.numberOfDoors || candidate.vehicleSeatingCapacity) {\n            vehicle = o;\n            break;\n          }\n          // Guardar como candidato aunque no tenga color aún\n          if (!vehicle) vehicle = o;\n        }\n      }\n      if (vehicle) break;\n    } catch (e) {}\n  }\n} catch(e) {\n  console.log('[ac-enrich] parse error: ' + e.message);\n}\n\nif (vehicle) {\n  const off = vehicle.offers || {};\n  const car = off.itemOffered || vehicle;\n  console.log('[ac-enrich] vehicle type=' + vehicle['@type'] + ' car keys=' + Object.keys(car).join(','));\n} else {\n  console.log('[ac-enrich] no JSON-LD vehicle found in html (len=' + htmlStr.length + ')');\n}\n\n// ── Extraer campos ─────────────────────────────────────────────────────────\nlet colorVal = '', doorsVal = 0, seatsVal = 0, hpVal = 0;\nlet bodyVal = '', tractionVal = '', co2Val = '';\n\nif (vehicle) {\n  const off = vehicle.offers || {};\n  const car = off.itemOffered || vehicle;\n\n  colorVal = car.color || vehicle.color || car.colour || vehicle.colour || '';\n\n  const rawDoors = car.numberOfDoors || vehicle.numberOfDoors || car.doors || vehicle.doors || 0;\n  doorsVal = parseInt(String(rawDoors).replace(/[^0-9]/g, ''), 10) || 0;\n\n  const rawSeats = car.vehicleSeatingCapacity || vehicle.vehicleSeatingCapacity || car.seats || vehicle.seats || 0;\n  seatsVal = parseInt(String(rawSeats).replace(/[^0-9]/g, ''), 10) || 0;\n\n  try {\n    const ep = car.vehicleEngine && car.vehicleEngine.enginePower;\n    if (ep && ep.value != null) hpVal = parseInt(String(ep.value).replace(/[^0-9]/g, ''), 10) || 0;\n  } catch(e) {}\n\n  bodyVal = car.bodyType || vehicle.bodyType || car.carBodyType || vehicle.carBodyType || '';\n  tractionVal = car.driveWheelConfiguration || vehicle.driveWheelConfiguration || car.traction || vehicle.traction || '';\n\n  const co2Raw = car.emissionsCO2 || vehicle.emissionsCO2 || car.co2Emissions || vehicle.co2Emissions || '';\n  co2Val = String(co2Raw).replace(/[^0-9]/g, '');\n\n  console.log('[ac-enrich] extracted color=' + colorVal + ' doors=' + doorsVal + ' seats=' + seatsVal + ' body=' + bodyVal);\n} else {\n  // Fallback: regex sobre el HTML\n  const mColor = htmlStr.match(/\"color\"\\s*:\\s*\"([^\"]+)\"/i);\n  if (mColor) colorVal = mColor[1];\n  const mDoors = htmlStr.match(/\"numberOfDoors\"\\s*:\\s*(\\d+)/);\n  if (mDoors) doorsVal = parseInt(mDoors[1], 10);\n  const mSeats = htmlStr.match(/\"vehicleSeatingCapacity\"\\s*:\\s*\"?(\\d+)\"?/);\n  if (mSeats) seatsVal = parseInt(mSeats[1], 10);\n  const mBody = htmlStr.match(/\"bodyType\"\\s*:\\s*\"([^\"]+)\"/i);\n  if (mBody) bodyVal = mBody[1];\n  console.log('[ac-enrich] regex fallback: color=' + colorVal + ' doors=' + doorsVal);\n}\n\n// ── Construir SQL ──────────────────────────────────────────────────────────\nconst sets = [];\n\nif (colorVal)              sets.push('color = COALESCE(NULLIF(color,\\'\\'), ' + esc(colorVal) + ')');\nif (Number(doorsVal) > 0)  sets.push('doors = COALESCE(NULLIF(doors,0), ' + Number(doorsVal) + ')');\nif (Number(seatsVal) > 0)  sets.push('seats = COALESCE(NULLIF(seats,0), ' + Number(seatsVal) + ')');\nif (Number(hpVal) > 0)     sets.push('power_cv = COALESCE(NULLIF(power_cv,0), ' + Number(hpVal) + ')');\nif (bodyVal)               sets.push('body_type = COALESCE(NULLIF(body_type,\\'\\'), ' + esc(normalizeBody(bodyVal)) + ')');\nif (co2Val && /^\\d+$/.test(co2Val)) sets.push('co2 = COALESCE(NULLIF(co2,\\'\\'), ' + esc(co2Val) + ')');\n\nsets.push('enrich_tried_at = NOW()');\n\nconst hasUpdates = sets.length > 1;\nconst updateSql = 'UPDATE moveadvisor_market_offers SET ' + sets.join(', ') + ', updated_at = NOW() WHERE id = ' + esc(dbId);\n\nconsole.log('[ac-enrich] sets=' + sets.length + ' hasUpdates=' + hasUpdates);\n\nawait new Promise(r => setTimeout(r, 600));\n\nreturn [{ json: { id: dbId, hasUpdates: hasUpdates, updateSql: updateSql } }];\n"
-      },
-      "id": "ace-code",
-      "name": "Code: Extraer campos y generar SQL",
+      "id": "ae-toca",
+      "name": "Code: ¿toca pedirla?",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -5424,
-        256
-      ],
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 1
-          },
-          "conditions": [
-            {
-              "id": "cond-has-updates",
-              "leftValue": "={{ $json.hasUpdates }}",
-              "rightValue": true,
-              "operator": {
-                "type": "boolean",
-                "operation": "true"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "ace-if",
-      "name": "IF: ¿hay datos nuevos?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [
-        -5184,
-        256
+        120,
+        420
       ]
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "={{ $json.updateSql }}",
-        "options": {}
-      },
-      "id": "ace-pg-update",
-      "name": "PG: Actualizar oferta",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2,
-      "position": [
-        -4944,
-        128
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "zoxD0jV8hxZqH0uY",
-          "name": "Postgres account"
-        }
-      }
     },
     {
       "parameters": {
@@ -184,7 +93,7 @@
           },
           "conditions": [
             {
-              "id": "guarda-cola-vacia",
+              "id": "ae-c-url",
               "leftValue": "={{ $json.url }}",
               "rightValue": "",
               "operator": {
@@ -199,14 +108,183 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "if-cola-vacia",
-      "name": "IF: ¿hay oferta?",
+      "id": "ae-if-url",
+      "name": "IF: ¿hay ficha que pedir?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        -5864,
-        396
+        340,
+        420
       ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 25000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          }
+        }
+      },
+      "id": "ae-http",
+      "name": "HTTP: Ficha de Autocasión",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        560,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const dbRecord = $('Loop: oferta por oferta').item.json;\nconst dbId = String(dbRecord.id || '');\nconst dbUrl = String(dbRecord.url || '');\n\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut\n  : (httpOut.data || httpOut.body || httpOut.html || '');\n\nconsole.log('[ac-enrich] id=' + dbId + ' url=' + dbUrl + ' html_len=' + String(html).length);\n\nif (!dbId) {\n  await new Promise(r => setTimeout(r, 800));\n  return [{ json: { id: null, hasUpdates: false, updateSql: null } }];\n}\n\nfunction esc(v) {\n  if (v === null || v === undefined) return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\n\nfunction normalizeBody(raw) {\n  const s = String(raw || '').toLowerCase();\n  if (!s) return '';\n  if (s.indexOf('suv') !== -1 || s.indexOf('4x4') !== -1 || s.indexOf('todo') !== -1 || s.indexOf('todoterreno') !== -1 || s.indexOf('terreno') !== -1) return 'SUV';\n  if (s.indexOf('pick') !== -1) return 'Pick Up';\n  if (s.indexOf('furgon') !== -1 || s.indexOf('van') !== -1 || s.indexOf('comercial') !== -1) return 'Furgoneta';\n  if (s.indexOf('familiar') !== -1 || s.indexOf('estate') !== -1 || s.indexOf('combi') !== -1) return 'Familiar';\n  if (s.indexOf('monovolumen') !== -1 || s.indexOf('mpv') !== -1) return 'Monovolumen';\n  if (s.indexOf('coupe') !== -1 || s.indexOf('coupé') !== -1) return 'Coupé';\n  if (s.indexOf('cabrio') !== -1 || s.indexOf('convert') !== -1 || s.indexOf('descapotable') !== -1) return 'Cabrio';\n  if (s.indexOf('compact') !== -1 || s.indexOf('peque') !== -1 || s.indexOf('utilitario') !== -1) return 'Compacto';\n  if (s.indexOf('berlina') !== -1 || s.indexOf('sedan') !== -1 || s.indexOf('turismo') !== -1 || s.indexOf('hatchback') !== -1) return 'Berlina';\n  return raw || '';\n}\n\n// ── ¿Estamos leyendo la ficha que pedimos? ─────────────────────────────────\n//\n// Esto no estaba, y era grave. Con una URL de listado de provincia -las 35.518\n// de julio y agosto- el lector de abajo coge el PRIMER coche del listado y le\n// escribe sus datos a otra oferta. Probado el 15-sep-2026 contra\n// /coches-segunda-mano/peugeot-2008-ocasion/madrid:\n//\n//     color = 'Naranja', doors = 6, power_cv = 100, body_type = 'SUV'\n//\n// Seis puertas. De las 34 ofertas de Autocasion con puertas guardadas, 32\n// tenian mas de cinco: ese era el rastro.\n//\n// Pasa por dos caminos y hay que tapar los dos: una URL que no es de ficha, y\n// una ficha VENDIDA, que redirige al listado del modelo.\n// [0-9] y no \\d a propósito: este código viaja dentro de cadenas de JavaScript\n// -del generador al JSON, del JSON a n8n- y en una cadena \"\\d\" es \"d\". Aquí\n// mismo quedó una vez como /refd{6,}$/, que no casa con ninguna URL real.\nconst esFicha = /ref[0-9]{6,}$/.test(dbUrl);\nconst codigoHttp = Number((httpOut || {}).statusCode || 200);\nif (!esFicha) {\n  console.log('[ac-enrich] ' + dbId + ': la URL no es una ficha, no se lee nada.');\n  return [{ json: { id: dbId, hasUpdates: true, veredicto: 'url de listado',\n    updateSql: 'UPDATE moveadvisor_market_offers SET enrich_tried_at = NOW() WHERE id = ' + esc(dbId) } }];\n}\nif (codigoHttp >= 300 && codigoHttp < 400) {\n  console.log('[ac-enrich] ' + dbId + ': redirige (HTTP ' + codigoHttp + '), o sea vendida.');\n  return [{ json: { id: dbId, hasUpdates: true, veredicto: 'redirige',\n    updateSql: 'UPDATE moveadvisor_market_offers SET enrich_tried_at = NOW() WHERE id = ' + esc(dbId) } }];\n}\n\n// ── Extraer JSON-LD de la ficha ────────────────────────────────────────────\nlet vehicle = null;\nconst htmlStr = String(html);\n\ntry {\n  const blocks = [...htmlStr.matchAll(/<script[^>]*application\\/ld\\+json[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m => m[1].trim());\n  for (const b of blocks) {\n    try {\n      const j = JSON.parse(b);\n      const arr = Array.isArray(j) ? j : (j['@graph'] || [j]);\n      for (const o of arr) {\n        if (o && (o['@type'] === 'Car' || o['@type'] === 'Product')) {\n          // La ficha suele tener más datos que el listado\n          const candidate = o.offers ? (o.offers.itemOffered || o) : o;\n          if (candidate.color || candidate.numberOfDoors || candidate.vehicleSeatingCapacity) {\n            vehicle = o;\n            break;\n          }\n          // Guardar como candidato aunque no tenga color aún\n          if (!vehicle) vehicle = o;\n        }\n      }\n      if (vehicle) break;\n    } catch (e) {}\n  }\n} catch(e) {\n  console.log('[ac-enrich] parse error: ' + e.message);\n}\n\nif (vehicle) {\n  const off = vehicle.offers || {};\n  const car = off.itemOffered || vehicle;\n  console.log('[ac-enrich] vehicle type=' + vehicle['@type'] + ' car keys=' + Object.keys(car).join(','));\n} else {\n  console.log('[ac-enrich] no JSON-LD vehicle found in html (len=' + htmlStr.length + ')');\n}\n\n// ── Extraer campos ─────────────────────────────────────────────────────────\nlet colorVal = '', doorsVal = 0, seatsVal = 0, hpVal = 0;\nlet bodyVal = '', tractionVal = '', co2Val = '';\n\nif (vehicle) {\n  const off = vehicle.offers || {};\n  const car = off.itemOffered || vehicle;\n\n  colorVal = car.color || vehicle.color || car.colour || vehicle.colour || '';\n\n  const rawDoors = car.numberOfDoors || vehicle.numberOfDoors || car.doors || vehicle.doors || 0;\n  doorsVal = parseInt(String(rawDoors).replace(/[^0-9]/g, ''), 10) || 0;\n\n  const rawSeats = car.vehicleSeatingCapacity || vehicle.vehicleSeatingCapacity || car.seats || vehicle.seats || 0;\n  seatsVal = parseInt(String(rawSeats).replace(/[^0-9]/g, ''), 10) || 0;\n\n  try {\n    const ep = car.vehicleEngine && car.vehicleEngine.enginePower;\n    if (ep && ep.value != null) hpVal = parseInt(String(ep.value).replace(/[^0-9]/g, ''), 10) || 0;\n  } catch(e) {}\n\n  bodyVal = car.bodyType || vehicle.bodyType || car.carBodyType || vehicle.carBodyType || '';\n  tractionVal = car.driveWheelConfiguration || vehicle.driveWheelConfiguration || car.traction || vehicle.traction || '';\n\n  const co2Raw = car.emissionsCO2 || vehicle.emissionsCO2 || car.co2Emissions || vehicle.co2Emissions || '';\n  co2Val = String(co2Raw).replace(/[^0-9]/g, '');\n\n  console.log('[ac-enrich] extracted color=' + colorVal + ' doors=' + doorsVal + ' seats=' + seatsVal + ' body=' + bodyVal);\n} else {\n  // Fallback: regex sobre el HTML\n  const mColor = htmlStr.match(/\"color\"\\s*:\\s*\"([^\"]+)\"/i);\n  if (mColor) colorVal = mColor[1];\n  const mDoors = htmlStr.match(/\"numberOfDoors\"\\s*:\\s*(\\d+)/);\n  if (mDoors) doorsVal = parseInt(mDoors[1], 10);\n  const mSeats = htmlStr.match(/\"vehicleSeatingCapacity\"\\s*:\\s*\"?(\\d+)\"?/);\n  if (mSeats) seatsVal = parseInt(mSeats[1], 10);\n  const mBody = htmlStr.match(/\"bodyType\"\\s*:\\s*\"([^\"]+)\"/i);\n  if (mBody) bodyVal = mBody[1];\n  console.log('[ac-enrich] regex fallback: color=' + colorVal + ' doors=' + doorsVal);\n}\n\n// ── Filtro de cordura ──────────────────────────────────────────────────────\n// Un coche de calle no tiene mas de 5 puertas ni mas de 9 plazas. Si sale algo\n// asi es que hemos leido otra cosa, y es mejor no escribir nada que escribir\n// una mentira: la segunda red por si la guarda de arriba se queda corta.\nif (Number(doorsVal) > 5 || Number(doorsVal) < 2) {\n  if (Number(doorsVal) !== 0) console.log('[ac-enrich] ' + dbId + ': ' + doorsVal + ' puertas es imposible, se descarta.');\n  doorsVal = 0;\n}\nif (Number(seatsVal) > 9 || Number(seatsVal) < 2) {\n  if (Number(seatsVal) !== 0) console.log('[ac-enrich] ' + dbId + ': ' + seatsVal + ' plazas es imposible, se descarta.');\n  seatsVal = 0;\n}\n\n// ── Construir SQL ──────────────────────────────────────────────────────────\nconst sets = [];\n\nif (colorVal)              sets.push('color = COALESCE(NULLIF(color,\\'\\'), ' + esc(colorVal) + ')');\nif (Number(doorsVal) > 0)  sets.push('doors = COALESCE(NULLIF(doors,0), ' + Number(doorsVal) + ')');\nif (Number(seatsVal) > 0)  sets.push('seats = COALESCE(NULLIF(seats,0), ' + Number(seatsVal) + ')');\nif (Number(hpVal) > 0)     sets.push('power_cv = COALESCE(NULLIF(power_cv,0), ' + Number(hpVal) + ')');\nif (bodyVal)               sets.push('body_type = COALESCE(NULLIF(body_type,\\'\\'), ' + esc(normalizeBody(bodyVal)) + ')');\nif (co2Val && /^\\d+$/.test(co2Val)) sets.push('co2 = COALESCE(NULLIF(co2,\\'\\'), ' + esc(co2Val) + ')');\n\nsets.push('enrich_tried_at = NOW()');\n\nconst hasUpdates = sets.length > 1;\n// updated_at NO se toca: enriquecer no es que el anuncio haya cambiado, es que\n// nosotros nos hemos puesto al día. Moverlo hace parecer recién publicado un\n// coche que lleva dos meses colgado.\nconst updateSql = 'UPDATE moveadvisor_market_offers SET ' + sets.join(', ') + ' WHERE id = ' + esc(dbId);\n\nconsole.log('[ac-enrich] sets=' + sets.length + ' hasUpdates=' + hasUpdates);\n\nawait new Promise(r => setTimeout(r, 600));\n\nreturn [{ json: { id: dbId, hasUpdates: hasUpdates, updateSql: updateSql } }];\n"
+      },
+      "id": "ae-leer",
+      "name": "Code: Extraer campos y generar SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cuenta lo que ha pasado y decide si nos han bloqueado.\nconst s = $getWorkflowStaticData('global');\nconst j = $input.first().json || {};\ns.ac_intentos = (s.ac_intentos || 0) + 1;\n\nif (j.veredicto === 'url de listado') s.ac_listado = (s.ac_listado || 0) + 1;\nelse if (j.veredicto === 'redirige') s.ac_vendidas = (s.ac_vendidas || 0) + 1;\nelse if (j.hasUpdates) { s.ac_leidas = (s.ac_leidas || 0) + 1; s.ac_escritas = (s.ac_escritas || 0) + 1; }\nelse s.ac_fallos = (s.ac_fallos || 0) + 1;\n\n// Un 403 o un timeout no dicen nada del coche; mil seguidos dicen que nos han\n// cerrado la puerta. Sin este freno, una pasada bloqueada se gasta las 400\n// ofertas poniendo fechas sin leer ninguna.\nconst intentos = s.ac_intentos || 0;\nif (intentos >= 50 && (s.ac_fallos / intentos) > 0.3) {\n  s.ac_parado = true;\n  s.ac_motivo = Math.round(100 * s.ac_fallos / intentos) + '% sin poder leer en '\n    + intentos + ' intentos: o nos han bloqueado, o el portal ha cambiado';\n  console.log('[ac-enrich] PARADO: ' + s.ac_motivo);\n}\nreturn [{ json: j }];"
+      },
+      "id": "ae-contar",
+      "name": "Code: Contar y vigilar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ae-c-sql",
+              "leftValue": "={{ $json.updateSql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "ae-if-sql",
+      "name": "IF: ¿hay algo que guardar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.updateSql }}",
+        "options": {}
+      },
+      "id": "ae-pg",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        460
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 15000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// El parte de la pasada.\nconst s = $getWorkflowStaticData('global');\nconsole.log('[ac-enrich] ── resumen ──');\nconsole.log('  fichas pedidas : ' + (s.ac_intentos || 0));\nconsole.log('  con datos      : ' + (s.ac_leidas || 0));\nconsole.log('  ya vendidas    : ' + (s.ac_vendidas || 0));\nconsole.log('  URL de listado : ' + (s.ac_listado || 0) + '  (no deberían llegar: la cola las filtra)');\nconsole.log('  sin poder leer : ' + (s.ac_fallos || 0));\nif (s.ac_parado) console.log('  PARADO POR EL CORTACIRCUITOS: ' + s.ac_motivo);\nif (!s.ac_parado && (s.ac_intentos || 0) > 0 && (s.ac_leidas || 0) === 0) {\n  console.log('  OJO: ni una ficha leída. Algo ha cambiado en el portal.');\n}\n\nconst n = v => String(Number(v) || 0);\n// Se reaprovecha la tabla de los verificadores con portal='autocasion-enrich':\n//     checked  fichas pedidas    alive  con datos\n//     deactivated  ya vendidas   unclassified  URL de listado\n//     transient  sin poder leer\nconst sql = 'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" VALUES ('autocasion-enrich', NOW(), \" + n(s.ac_intentos) + ', ' + n(s.ac_leidas) + ', '\n  + n(s.ac_vendidas) + ', ' + n(s.ac_listado) + ', ' + n(s.ac_fallos) + ', '\n  + (s.ac_parado ? 'TRUE' : 'FALSE') + ', 0)';\n\nconst parte = { sql: sql, pedidas: s.ac_intentos || 0, leidas: s.ac_leidas || 0,\n  vendidas: s.ac_vendidas || 0, listado: s.ac_listado || 0,\n  fallos: s.ac_fallos || 0, parado: !!s.ac_parado };\n// La memoria es del workflow, no de la pasada: sin limpiarla el freno de hoy\n// seguiría puesto mañana.\nfor (const k of Object.keys(s)) { if (k.indexOf('ac_') === 0) delete s[k]; }\nreturn [{ json: parte }];"
+      },
+      "id": "ae-resumen",
+      "name": "Code: Resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "ae-pg-parte",
+      "name": "PG: Apuntar el parte",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        340,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     }
   ],
   "connections": {
@@ -221,7 +299,7 @@
         ]
       ]
     },
-    "Cada día a las 6:00": {
+    "4 veces/día (9:50, 12:50, 17:50 y 22:50)": {
       "main": [
         [
           {
@@ -247,21 +325,50 @@
       "main": [
         [
           {
-            "node": "HTTP: Ficha HTML Autocasión",
+            "node": "Code: Resumen",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "IF: ¿hay oferta?",
+            "node": "Code: ¿toca pedirla?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP: Ficha HTML Autocasión": {
+    "Code: ¿toca pedirla?": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay ficha que pedir?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ficha que pedir?": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Ficha de Autocasión",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Ficha de Autocasión": {
       "main": [
         [
           {
@@ -276,14 +383,25 @@
       "main": [
         [
           {
-            "node": "IF: ¿hay datos nuevos?",
+            "node": "Code: Contar y vigilar",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "IF: ¿hay datos nuevos?": {
+    "Code: Contar y vigilar": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay algo que guardar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay algo que guardar?": {
       "main": [
         [
           {
@@ -312,18 +430,11 @@
         ]
       ]
     },
-    "IF: ¿hay oferta?": {
+    "Code: Resumen": {
       "main": [
         [
           {
-            "node": "HTTP: Ficha HTML Autocasión",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Loop: oferta por oferta",
+            "node": "PG: Apuntar el parte",
             "type": "main",
             "index": 0
           }
@@ -333,15 +444,11 @@
   },
   "settings": {
     "executionOrder": "v1",
-    "binaryMode": "separate",
-    "callerPolicy": "workflowsFromSameOwner",
-    "availableInMCP": false,
     "saveManualExecutions": true,
-    "saveDataSuccessExecution": "all",
-    "saveDataErrorExecution": "all"
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
   },
-  "pinData": {},
-  "staticData": null,
-  "triggerCount": 0,
-  "tags": []
+  "pinData": {}
 }

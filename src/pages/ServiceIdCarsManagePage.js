@@ -6,6 +6,7 @@ import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemov
 import { uploadFileDirect } from "../utils/supabaseUpload";
 import { comoSeCompara, laMatriculaRecordada } from "../utils/encargoDeVentaWeb";
 import { cualEsDelCatalogo } from "../utils/catalogoDelCoche";
+import { respuestasParaElDesplegable } from "../utils/preguntasDelMantenimiento";
 import AvailabilityEditor from "../components/AvailabilityEditor";
 import { useConditionReport, INFORME_OBLIGATORIO, etiquetaEstado, informeUtilizable, urlDeDescarga, baseDelModelo3d } from "../hooks/useConditionReport";
 import ConditionReportError from "../components/ConditionReportError";
@@ -351,6 +352,7 @@ function createEmptyForm(matricula = "") {
     environmentalLabel: "", lastIvt: "", nextIvt: "", co2: "",
     year: "", plate: comoSeCompara(matricula), mileage: "", fuel: "", price: "",
     policyCompany: "", policyNumber: "", coverageType: "",
+    libroMantenimiento: "", revisionesOficiales: "", ultimaRevisionFecha: "", ultimaRevisionKm: "",
     maintenanceType: "", maintenanceTitle: "", maintenanceNotes: "", notes: "",
   };
 }
@@ -381,6 +383,10 @@ function vehicleToForm(vehicle = {}) {
     policyCompany: normalizeText(vehicle.policyCompany),
     policyNumber: normalizeText(vehicle.policyNumber),
     coverageType: normalizeText(vehicle.coverageType),
+    libroMantenimiento: normalizeText(vehicle.libroMantenimiento),
+    revisionesOficiales: normalizeText(vehicle.revisionesOficiales),
+    ultimaRevisionFecha: normalizeText(vehicle.ultimaRevisionFecha),
+    ultimaRevisionKm: normalizeText(vehicle.ultimaRevisionKm),
     maintenanceType: normalizeText(vehicle.maintenanceType) || normalizeText(vehicle.initialMaintenance?.type),
     maintenanceTitle: normalizeText(vehicle.maintenanceTitle) || normalizeText(vehicle.initialMaintenance?.title),
     maintenanceNotes: normalizeText(vehicle.maintenanceNotes) || normalizeText(vehicle.initialMaintenance?.notes),
@@ -478,6 +484,8 @@ export default function ServiceIdCarsManagePage({
   const { i18n } = useTranslation();
   const isEn = i18n.resolvedLanguage === "en";
   const txt = useCallback((es, en) => (isEn ? en : es), [isEn]);
+  /* Sí / No / No lo sé, traducidas. El original y su validación viven en lib. */
+  const RESPUESTAS_MANTENIMIENTO = useMemo(() => respuestasParaElDesplegable(txt), [txt]);
 
   const isDetailView = viewMode === "detail";
   const isCreateView = viewMode === "create";
@@ -1064,7 +1072,12 @@ export default function ServiceIdCarsManagePage({
         plate: normalizeText(form.plate).toUpperCase(), mileage: normalizeText(form.mileage),
         fuel: normalizeText(form.fuel), price: normalizeText(form.price),
         policyCompany: normalizeText(form.policyCompany), policyNumber: normalizeText(form.policyNumber),
-        coverageType: normalizeText(form.coverageType), maintenanceType: normalizeText(form.maintenanceType),
+        coverageType: normalizeText(form.coverageType),
+        libroMantenimiento: normalizeText(form.libroMantenimiento),
+        revisionesOficiales: normalizeText(form.revisionesOficiales),
+        ultimaRevisionFecha: normalizeText(form.ultimaRevisionFecha),
+        ultimaRevisionKm: normalizeText(form.ultimaRevisionKm),
+        maintenanceType: normalizeText(form.maintenanceType),
         maintenanceTitle: normalizeText(form.maintenanceTitle), maintenanceNotes: normalizeText(form.maintenanceNotes),
         notes: normalizeText(form.notes),
         photos: [...persistedPhotos, ...photosPayload],
@@ -1922,7 +1935,42 @@ export default function ServiceIdCarsManagePage({
       <SectionBlock title={txt("Mantenimientos", "Maintenance")} subtitle={`${storedMaintenanceInvoices.length} ${txt("guardadas", "saved")} · ${pendingMaintenanceInvoices.length} ${txt("facturas de mantenimiento preparadas", "maintenance invoices prepared")}`}
         open={openSections.maintenance} onToggle={() => toggleSection("maintenance")}
         openLabel={txt("Abrir", "Open")} closeLabel={txt("Ocultar", "Hide")}>
-        <div style={{ display: "grid", rowGap: 10, columnGap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))" }}>
+        {/*
+          * Tres preguntas cerradas, antes que la caja de texto.
+          *
+          * De un texto libre —«qué se le ha hecho al coche»— no sale nada que se
+          * pueda poner en el anuncio, ni filtrar, ni comparar entre dos coches.
+          * El historial de revisiones es de lo poco que mueve el precio y es lo
+          * primero que pregunta quien compra, así que se pregunta como se va a
+          * usar.
+          *
+          * Ninguna es obligatoria. Una puerta significa «sin esto no podemos
+          * publicar», y aquí eso no es cierto: se publica igual. Cada puerta
+          * nueva se la cobras a los que sí iban a vender.
+          */}
+        <div style={{ display: "grid", rowGap: 10, columnGap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))" }}>
+          {renderField(txt("¿Tienes el libro de mantenimiento o las facturas?", "Do you have the service book or invoices?"),
+            "libroMantenimiento", { type: "select", options: RESPUESTAS_MANTENIMIENTO })}
+          {renderField(txt("¿Revisiones en taller oficial de la marca?", "Serviced at an official brand workshop?"),
+            "revisionesOficiales", { type: "select", options: RESPUESTAS_MANTENIMIENTO })}
+        </div>
+        {/*
+          * Y el porqué debajo, no en un tooltip.
+          *
+          * Pedir un dato sin decir para qué es pedirle un favor; diciéndolo, es
+          * un argumento a su favor y por eso lo contesta.
+          */}
+        <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--gris-500)", lineHeight: 1.5 }}>
+          {txt(
+            "No es obligatorio, pero es lo primero que pregunta quien compra: con libro de revisiones y sello de la marca el coche vale más y se vende antes.",
+            "Not required, but it is the first thing a buyer asks: a full service book and official stamps make the car worth more and sell faster."
+          )}
+        </p>
+        <div style={{ display: "grid", rowGap: 10, columnGap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", marginTop: 10 }}>
+          {renderField(txt("Última revisión", "Last service"), "ultimaRevisionFecha", { type: "date" })}
+          {renderField(txt("Kilómetros en la última revisión", "Mileage at last service"), "ultimaRevisionKm", { placeholder: "90000" })}
+        </div>
+        <div style={{ display: "grid", rowGap: 10, columnGap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", marginTop: 10 }}>
           {renderField(txt("Tipo mantenimiento", "Maintenance type"), "maintenanceType", { placeholder: txt("Revisión, aceite, frenos...", "Service, oil, brakes...") })}
           {renderField(txt("Descripción", "Description"), "maintenanceTitle", { placeholder: txt("Qué se le ha hecho al coche", "What has been done to the car") })}
         </div>

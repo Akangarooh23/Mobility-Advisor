@@ -907,14 +907,43 @@ export default function UserDashboardVehicles({
   };
 
   const addVehicleToGarage = async () => {
-    if (isSaving) return;
+    /*
+     * Una traza al entrar, para poder ver por dónde sale.
+     *
+     * Este guardado ha tenido tres sitios distintos donde se iba en silencio, y
+     * desde fuera los tres se ven igual: le das al botón y no pasa nada. Con
+     * esto, cada clic deja escrito en la consola que llegó y con qué, así que
+     * la próxima vez se sabe si el problema está antes o después.
+     */
+    console.info('[garage] guardar:', {
+      isSaving,
+      marca: vehicleForm.brand, modelo: vehicleForm.model, version: vehicleForm.version,
+      seleccionados: {
+        fotos: pendingPhotos.length,
+        otros: pendingDocuments.length,
+        fichaTecnica: pendingTechnicalSheetDocuments.length,
+        permiso: pendingCirculationPermitDocuments.length,
+        itv: pendingIvtDocuments.length,
+      },
+    });
+
+    if (isSaving) {
+      // Ya no deberia pasar —el try/finally lo devuelve siempre— pero si pasa,
+      // que se vea en vez de no hacer nada.
+      console.warn('[garage] se ignora el clic: hay un guardado en curso');
+      setVehicleFeedback('Hay un guardado en curso. Espera un momento y vuelve a intentarlo.');
+      return;
+    }
 
     const brand = normalizeText(vehicleForm.brand);
     const model = normalizeText(vehicleForm.model);
     const version = normalizeText(vehicleForm.version);
 
     if (!brand || !model || !version) {
-      setVehicleFeedback(t("dashboard.vehRequiredFields"));
+      const faltan = [!brand && 'la marca', !model && 'el modelo', !version && 'la versión']
+        .filter(Boolean).join(', ');
+      console.warn('[garage] faltan campos obligatorios:', faltan);
+      setVehicleFeedback(`⚠️ Falta ${faltan}. Sin eso no se puede guardar, y tus archivos siguen seleccionados.`);
       return;
     }
 

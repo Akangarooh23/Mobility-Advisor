@@ -77,6 +77,13 @@ const ESPERA_SEGUNDOS = 1;
 // antes de comprobar una sola oferta viva. Pasó en Gamboa tres días seguidos.
 const MINIMO_PARA_JUZGAR = 100;
 const TOPE_MORTANDAD = 0.6;
+// El segundo cortacircuitos, el de bloqueo. Va sobre INTENTOS, no sobre ofertas
+// miradas: un 403 no llega a mirarse. El de mortandad no ve esto, porque un 403
+// no es una venta; sin este freno una pasada bloqueada se gasta las 3.000
+// ofertas poniendo fechas sin mirar nada y solo se sabe después, en el parte.
+// El listón está alto a propósito: el 14-sep los pasajeros fueron 5 de 2.995.
+const MINIMO_PARA_BLOQUEO = 50;
+const TOPE_BLOQUEO = 0.3;
 
 const COLA = `-- Las ofertas alemanas que toca comprobar.
 --
@@ -123,6 +130,7 @@ if (!s.de_run || s.de_run !== $execution.id) {
   s.de_bajas = 0;
   s.de_raras = 0;
   s.de_fallos = 0;
+  s.de_intentos = 0;
   s.de_urls = 0;
   s.de_motivo = '';
   // Las dos que miden la mortandad de verdad.
@@ -168,8 +176,16 @@ const soloFecha = (veredicto) => [{ json: {
 // ── fallo pasajero ─────────────────────────────────────────────────────────
 // Un 429 o un 503 no dicen nada del coche, dicen algo de nosotros. Se rota la
 // fecha para que la cola siga girando y no se toca is_active.
+s.de_intentos = (s.de_intentos || 0) + 1;
 if (codigo === 0 || codigo === 403 || codigo === 429 || codigo >= 500) {
   s.de_fallos = (s.de_fallos || 0) + 1;
+  const intentos = s.de_intentos || 0;
+  if (intentos >= ${MINIMO_PARA_BLOQUEO} && (s.de_fallos / intentos) > ${TOPE_BLOQUEO}) {
+    s.de_parado = true;
+    s.de_motivo = Math.round(100 * s.de_fallos / intentos) + '% de respuestas cerradas en '
+      + intentos + ' intentos: nos han bloqueado';
+    console.log('[as24-de] PARADO: ' + s.de_motivo + '. Bajar el ritmo antes de volver.');
+  }
   return soloFecha('pasajero');
 }
 
@@ -257,7 +273,8 @@ console.log('  BAJAS NUEVAS     : ' + (s.de_bajas_nuevas || 0));
 console.log('  bajas ya sabidas : ' + ((s.de_bajas || 0) - (s.de_bajas_nuevas || 0)));
 console.log('  URLs corregidas  : ' + (s.de_urls || 0));
 console.log('  sin clasificar   : ' + (s.de_raras || 0));
-console.log('  fallos pasajeros : ' + (s.de_fallos || 0));
+console.log('  fallos pasajeros : ' + (s.de_fallos || 0)
+  + ' de ' + (s.de_intentos || 0) + ' intentos');
 if (s.de_parado) console.log('  PARADO POR EL CORTACIRCUITOS: ' + s.de_motivo);
 // Una pasada que no mira ni una activa deja el mercado sin verificar ese dia
 // aunque el parte salga limpio. Es lo que pasaba en Gamboa y no lo dijo nadie.

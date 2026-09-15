@@ -174,6 +174,34 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
   comprueba("pero reconfirmar bajas viejas NO lo dispara", paradas2 === 0,
     "300 reconfirmaciones sin parar");
 
+  // ── el segundo freno: que nos hayan bloqueado ─────────────────────────────
+  // El de mortandad no ve esto: un 403 no es una venta. Sin este, una pasada
+  // bloqueada se gastaría las 2.000 ofertas poniendo fechas sin mirar nada.
+  for (const codigoMalo of [403, 429, 503]) {
+    const puerta = {};
+    let vistas = 0;
+    for (let i = 0; i < 200; i++) {
+      const t = pasa({ id: "b" + i, url: URL, is_active: true }, r(codigoMalo), puerta, "run-" + codigoMalo);
+      if (!t.saltada && t.json.veredicto !== "parado") vistas++;
+    }
+    comprueba("un muro de " + codigoMalo + " para la pasada", vistas < 100,
+      vistas + " intentos antes de parar");
+    comprueba("  y lo deja escrito como bloqueo",
+      /bloqueado/.test(puerta.es_motivo || ""), puerta.es_motivo);
+  }
+
+  // Y lo contrario: un goteo normal de fallos NO puede parar nada. En las
+  // pasadas alemanas del 14-sep los pasajeros fueron 5 de 2.995.
+  const goteo = {};
+  let paradas3 = 0;
+  for (let i = 0; i < 300; i++) {
+    const respuesta = (i % 20 === 0) ? r(503) : r(200);
+    const t = pasa({ id: "g" + i, url: URL, is_active: true }, respuesta, goteo, "run-g");
+    if (t.saltada || t.json.veredicto === "parado") paradas3++;
+  }
+  comprueba("un 5% de fallos sueltos NO para la pasada", paradas3 === 0,
+    "300 ofertas con 15 fallos, sin parar");
+
   // Una pasada nueva limpia el freno de la anterior.
   const sigue = pasa({ id: "z", url: URL, is_active: true }, r(200), masacre, "run-c");
   comprueba("una pasada nueva empieza con el freno suelto",

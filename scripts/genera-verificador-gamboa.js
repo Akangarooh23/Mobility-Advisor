@@ -95,6 +95,12 @@ const ESPERA_SEGUNDOS = 1;
 // concesionario rehaga su web y empiece a redirigirlo todo.
 const MINIMO_PARA_JUZGAR = 50;
 const TOPE_MORTANDAD = 0.85;
+// El segundo cortacircuitos, el de bloqueo. Va sobre INTENTOS, no sobre ofertas
+// miradas: un 403 no llega a mirarse. Sin el, una pasada bloqueada se gasta la
+// cola entera poniendo fechas sin mirar nada y solo se sabe despues, en el
+// parte. Gamboa es un concesionario pequeno: 50 intentos ya son muchos.
+const MINIMO_PARA_BLOQUEO = 50;
+const TOPE_BLOQUEO = 0.3;
 
 const COLA = `-- Las ofertas de Gamboa que toca comprobar hoy.
 --
@@ -151,6 +157,7 @@ if (!s.gam_run || s.gam_run !== $execution.id) {
   s.gam_bajas = 0;
   s.gam_raras = 0;
   s.gam_fallos = 0;
+  s.gam_intentos = 0;
   s.gam_motivo = '';
   // Las dos que miden de verdad la mortandad: activas miradas y muertes
   // nuevas. Las reconfirmaciones de bajas ya sabidas no entran en ninguna.
@@ -206,8 +213,20 @@ const soloFecha = (veredicto) => [{ json: {
 // ── fallo pasajero ─────────────────────────────────────────────────────────
 // Un 500 o un timeout no dicen nada del coche. Se rota la fecha para que la
 // cola siga girando, y no se toca is_active ni last_seen_at: no lo hemos visto.
-if (codigo === 0 || codigo >= 500) {
+// El 403 y el 429 entran aqui tambien. Antes no: caian mas abajo y acababan
+// contados como "rara", o sea como algo del coche, cuando son algo nuestro.
+s.gam_intentos = (s.gam_intentos || 0) + 1;
+if (codigo === 0 || codigo === 403 || codigo === 429 || codigo >= 500) {
   s.gam_fallos = (s.gam_fallos || 0) + 1;
+  // El segundo cortacircuitos, el de bloqueo: uno es un fallo, mil son una
+  // puerta cerrada. El de mortandad no lo ve, porque un 403 no es una venta.
+  const intentos = s.gam_intentos || 0;
+  if (intentos >= ${MINIMO_PARA_BLOQUEO} && (s.gam_fallos / intentos) > ${TOPE_BLOQUEO}) {
+    s.gam_parado = true;
+    s.gam_motivo = Math.round(100 * s.gam_fallos / intentos) + '% de respuestas cerradas en '
+      + intentos + ' intentos: nos han bloqueado';
+    console.log('[gamboa] PARADO: ' + s.gam_motivo + '. Bajar el ritmo antes de volver.');
+  }
   return soloFecha('pasajero');
 }
 
@@ -327,7 +346,8 @@ console.log('  siguen publicadas: ' + (s.gam_vivas || 0));
 console.log('  BAJAS NUEVAS     : ' + (s.gam_bajas_nuevas || 0));
 console.log('  bajas ya sabidas : ' + ((s.gam_bajas || 0) - (s.gam_bajas_nuevas || 0)));
 console.log('  sin clasificar   : ' + (s.gam_raras || 0));
-console.log('  fallos pasajeros : ' + (s.gam_fallos || 0));
+console.log('  fallos pasajeros : ' + (s.gam_fallos || 0)
+  + ' de ' + (s.gam_intentos || 0) + ' intentos');
 if (s.gam_parado) console.log('  PARADO POR EL CORTACIRCUITOS: ' + s.gam_motivo);
 if ((s.gam_raras || 0) > vistas * 0.1) {
   console.log('  OJO: mas del 10% sin clasificar. Mirar esas URLs: o Gamboa ha');

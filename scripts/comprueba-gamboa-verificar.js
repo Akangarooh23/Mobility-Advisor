@@ -122,6 +122,20 @@ const comprueba = (nombre, cond, detalle) => {
     if (/is_active = FALSE/.test(r.sql || "")) bajas++;
   }
   comprueba("para cuando casi todo lo VIVO sale de baja", e1.gam_parado === true);
+
+  // El segundo freno: que nos hayan bloqueado. Antes un 403 ni se contaba como
+  // fallo, caia mas abajo y acababa de "rara", o sea como algo del coche.
+  for (const malo of [403, 429, 503]) {
+    const puerta = {};
+    let vistas = 0;
+    for (let i = 0; i < 200; i++) {
+      const r = pasa(act[0], { statusCode: malo, headers: {} }, puerta, "run-" + malo);
+      if (r.saltada) break;
+      vistas++;
+    }
+    comprueba("un muro de " + malo + " para la pasada", puerta.gam_parado === true,
+      vistas + " intentos antes de parar");
+  }
   // Y con la cola AL AZAR, que es lo que hace que ese porcentaje signifique
   // algo. Ordenada por antiguedad medía el frente de la cola -las vendidas- en
   // vez del catalogo, y el cortacircuitos saltaba en todas las pasadas.

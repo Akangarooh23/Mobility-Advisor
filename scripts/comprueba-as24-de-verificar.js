@@ -189,6 +189,33 @@ const comprueba = (nombre, cond, detalle) => {
   comprueba("y pronto: el daño queda acotado", n1 <= 130, "(" + n1 + " miradas antes de parar)");
   console.log("      motivo: " + e1.de_motivo);
 
+  // ── el segundo freno: que nos hayan bloqueado ─────────────────────────────
+  // El de mortandad no ve un 403: no es una venta, es una puerta cerrada. Sin
+  // este, una pasada bloqueada se gasta las 3.000 poniendo fechas sin mirar.
+  for (const malo of [403, 429, 503]) {
+    const puerta = {};
+    let vistas = 0;
+    for (let i = 0; i < 200; i++) {
+      const r = pasa(OFERTA, { statusCode: malo, headers: {} }, puerta, "run-" + malo);
+      if (r.saltada) break;
+      vistas++;
+    }
+    comprueba("un muro de " + malo + " para la pasada", puerta.de_parado === true,
+      vistas + " intentos antes de parar");
+    comprueba("  y lo deja escrito como bloqueo",
+      /bloqueado/.test(puerta.de_motivo || ""), puerta.de_motivo);
+  }
+
+  // Y al reves: el goteo normal de fallos no puede parar nada. El 14-sep los
+  // pasajeros fueron 5 de 2.995.
+  const goteo = {};
+  for (let i = 0; i < 300; i++) {
+    pasa(OFERTA, i % 20 === 0 ? { statusCode: 503, headers: {} } : { statusCode: 200, headers: {} },
+      goteo, "run-goteo");
+  }
+  comprueba("un 5% de fallos sueltos NO para la pasada", !goteo.de_parado,
+    "300 ofertas con 15 fallos");
+
   // Y lo contrario: 400 reconfirmaciones de bajas ya sabidas no pueden pararlo.
   const e2 = {};
   let n2 = 0;

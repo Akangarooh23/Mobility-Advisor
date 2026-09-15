@@ -75,6 +75,11 @@ const ESPERA_SEGUNDOS = 0;
 // del 60% de mortandad lo que ha pasado no es que España haya vendido su parque
 // móvil: es que el portal ha cambiado algo y lo estamos leyendo mal.
 const MINIMO_PARA_JUZGAR = 100;
+// El segundo cortacircuitos, el de bloqueo. Va sobre INTENTOS, no sobre ofertas
+// miradas: un 403 no llega a mirarse. 50 intentos son 23 segundos al ritmo
+// actual, así que se entera enseguida sin dispararse por tres timeouts seguidos.
+const MINIMO_PARA_BLOQUEO = 50;
+const TOPE_BLOQUEO = 0.3;
 // 0,8 aquí, no 0,6 como en Alemania, y por una razón concreta: en Alemania el
 // mercado lleva semanas verificándose y una pasada normal encuentra un 10% de
 // bajas. Aquí no se ha verificado NUNCA y el dato lleva 28 días parado, así que
@@ -135,6 +140,7 @@ if (!s.es_run || s.es_run !== $execution.id) {
   s.es_bajas = 0;
   s.es_raras = 0;
   s.es_fallos = 0;
+  s.es_intentos = 0;
   s.es_urls = 0;
   s.es_motivo = '';
   // Las dos que miden la mortandad de verdad.
@@ -173,11 +179,27 @@ const soloFecha = (veredicto) => [{ json: {
   veredicto: veredicto,
 } }];
 
-// ── fallo pasajero ─────────────────────────────────────────────────────────
+// ── fallo pasajero, y el freno por bloqueo ─────────────────────────────────
 // Un 429 o un 503 no dicen nada del coche, dicen algo de nosotros. Se rota la
 // fecha para que la cola siga girando y no se toca is_active.
+//
+// Pero UNO es un fallo y MIL son una puerta cerrada. El cortacircuitos de
+// mortandad no ve esto -un 403 no es una venta-, así que sin este segundo
+// freno una pasada bloqueada se gastaría las ${LOTE} ofertas poniendo fechas sin
+// mirar nada, y solo se sabría después leyendo el parte.
+//
+// El listón está alto a propósito: en las pasadas alemanas del 14-sep los
+// pasajeros fueron 5 de 2.995 (0,2%). Un bloqueo de verdad da el 100%.
+s.es_intentos = (s.es_intentos || 0) + 1;
 if (codigo === 0 || codigo === 403 || codigo === 429 || codigo >= 500) {
   s.es_fallos = (s.es_fallos || 0) + 1;
+  const intentos = s.es_intentos || 0;
+  if (intentos >= ${MINIMO_PARA_BLOQUEO} && (s.es_fallos / intentos) > ${TOPE_BLOQUEO}) {
+    s.es_parado = true;
+    s.es_motivo = Math.round(100 * s.es_fallos / intentos) + '% de respuestas cerradas en '
+      + intentos + ' intentos: nos han bloqueado';
+    console.log('[as24-es] PARADO: ' + s.es_motivo + '. Bajar el ritmo antes de volver.');
+  }
   return soloFecha('pasajero');
 }
 
@@ -263,7 +285,8 @@ console.log('  BAJAS NUEVAS     : ' + (s.es_bajas_nuevas || 0));
 console.log('  bajas ya sabidas : ' + ((s.es_bajas || 0) - (s.es_bajas_nuevas || 0)));
 console.log('  URLs corregidas  : ' + (s.es_urls || 0));
 console.log('  sin clasificar   : ' + (s.es_raras || 0));
-console.log('  fallos pasajeros : ' + (s.es_fallos || 0));
+console.log('  fallos pasajeros : ' + (s.es_fallos || 0)
+  + ' de ' + (s.es_intentos || 0) + ' intentos');
 if (s.es_parado) console.log('  PARADO POR EL CORTACIRCUITOS: ' + s.es_motivo);
 // Una pasada que no mira ni una activa deja el mercado sin verificar ese día
 // aunque el parte salga limpio. Es lo que pasaba en Gamboa y no lo dijo nadie.

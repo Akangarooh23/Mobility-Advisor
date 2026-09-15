@@ -102,7 +102,8 @@
     "retira-danadas": "node scripts/retira-danadas-importacion.js",
     "test:as24-es": "node scripts/comprueba-as24-es.js",
     "enlaza-segmento-es": "node scripts/enlaza-segmento-as24-es.js",
-    "test:as24-es-verificar": "node scripts/comprueba-as24-es-verificar.js"
+    "test:as24-es-verificar": "node scripts/comprueba-as24-es-verificar.js",
+    "test:as24-es-enrich": "node scripts/comprueba-as24-es-enrich.js"
   },
   "proxy": "http://localhost:3001",
   "eslintConfig": {

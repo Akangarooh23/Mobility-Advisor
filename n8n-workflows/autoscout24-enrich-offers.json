@@ -1,0 +1,430 @@
+{
+  "name": "AutoScout24 ES – Enriquecer (puertas, plazas, cilindrada, tracción)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "ee-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 55 10,12,20,22 * * *"
+            }
+          ]
+        }
+      },
+      "id": "ee-cron",
+      "name": "4 veces/día (10:55, 12:55, 20:55 y 22:55)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Las ofertas españolas a las que les falta pasar por la ficha.\n--\n-- Por orden de UTILIDAD, no de antigüedad. Con 368.000 activas y 2.000 al día,\n-- el orden decide qué se arregla este mes y qué dentro de medio año:\n--\n--   1. las que se han VISTO VIVAS hace poco: last_seen_at, no last_checked_at.\n--      Esto lo puso el test. La primera versión ordenaba solo por la cilindrada\n--      mal y de seis fichas reales TRES vinieron muertas; al cambiarlo a\n--      «comprobadas hace poco» salieron SEIS de seis, y encima disfrazadas de\n--      HTTP 200 porque eran listados de 640 KB.\n--\n--      La diferencia entre las dos fechas es justo eso: last_checked_at dice\n--      «lo intentamos» -y se mueve también cuando la petición se cae-, mientras\n--      que last_seen_at dice «lo vimos vivo». Para gastar una ficha hace falta\n--      lo segundo.\n--   2. dentro de esas, las que tienen la cilindrada en LITROS -«1.0»-, que no\n--      es que les falte el dato: es que el que tienen está mal y engaña a\n--      cualquier filtro. Eran 102.937 el 15-sep.\n--   3. y después las más recientes, que son las que siguen a la venta y las\n--      que de verdad se usan como comparables.\n--\n-- Cada oferta pasa UNA vez y no vuelve: puertas, plazas y cilindrada no cambian\n-- en la vida de un anuncio. Por eso no hay ventana de refresco.\nSELECT id, url\nFROM moveadvisor_market_offers\nWHERE portal = 'autoscout24'\n  AND COALESCE(country, 'ES') = 'ES'\n  AND is_active\n  AND COALESCE(url, '') <> ''\n  AND enrich_tried_at IS NULL\n-- LIKE '%.%' en vez de una expresión regular a propósito: el regex tendría que\n-- llevar barras invertidas, y estas consultas viven dentro de una cadena de\n-- JavaScript donde \"\\.\" se convierte en \".\". Ya nos costó un regex roto.\nORDER BY (last_seen_at > NOW() - INTERVAL '3 days') DESC,\n         (COALESCE(displacement, '') LIKE '%.%') DESC,\n         scraped_at DESC\nLIMIT 500",
+        "options": {}
+      },
+      "id": "ee-cola",
+      "name": "PG: Cola a enriquecer",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "ee-loop",
+      "name": "Loop: oferta por oferta",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cortacircuitos y guarda de cola vacía, antes de gastar la ficha.\nconst s = $getWorkflowStaticData('global');\nconst item = $input.first().json;\n\nif (!s.ee_run || s.ee_run !== $execution.id) {\n  s.ee_run = $execution.id;\n  s.ee_parado = false;\n  s.ee_intentos = 0;\n  s.ee_fallos = 0;\n  s.ee_leidas = 0;\n  s.ee_puertas = 0;\n  s.ee_plazas = 0;\n  s.ee_cilindrada = 0;\n  s.ee_traccion = 0;\n  s.ee_danadas = 0;\n  s.ee_motivo = '';\n}\n\n// Una cola vacía NO llega como \"nada\": n8n manda UN ITEM VACÍO, que recorre el\n// bucle igual que una oferta y revienta el nodo HTTP con \"URL parameter must be\n// a string, got undefined\". Así cayeron cuatro ejecuciones de Gamboa el\n// 2026-09-07, y era el caso normal: no había nada que hacer.\nif (!item || !item.id || !String(item.url || '').trim()) {\n  console.log('[as24-es-enrich] no hay nada que enriquecer ahora mismo.');\n  return [{ json: { url: '', id: (item || {}).id || '' } }];\n}\nif (s.ee_parado) return [{ json: { url: '', id: item.id } }];\n\nreturn [{ json: { url: item.url, id: item.id } }];"
+      },
+      "id": "ee-toca",
+      "name": "Code: ¿toca pedirla?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ee-c-url",
+              "leftValue": "={{ $json.url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "ee-if-url",
+      "name": "IF: ¿hay ficha que pedir?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        340,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 25000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          }
+        }
+      },
+      "id": "ee-http",
+      "name": "HTTP: Ficha de AutoScout24",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        560,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// AutoScout24 ES - de la ficha a las columnas.\nconst oferta = $('Code: ¿toca pedirla?').item.json;\nconst res = $input.first().json;\n// Con responseFormat 'text' + fullResponse, n8n deja el cuerpo en 'data', no en\n// 'body'. Mirar solo 'body' dejó 4.484 ofertas sin clasificar en Wallapop.\nconst cuerpo = String(res.body || res.data || '');\nconst codigo = Number(res.statusCode || 0);\nconst id = String(oferta.id || '');\nconst s = $getWorkflowStaticData('global');\n\nconst esc = v => (v === null || v === undefined || v === '') ? 'NULL'\n  : (typeof v === 'number' ? String(v) : \"'\" + String(v).replace(/'/g, \"''\") + \"'\");\n\n// enrich_tried_at se mueve pase lo que pase: sin eso, una ficha que falla se\n// reintenta en cada pasada y atasca la cola para siempre.\nconst soloIntento = (motivo) => [{ json: {\n  sql: 'UPDATE moveadvisor_market_offers SET enrich_tried_at = NOW() WHERE id = ' + esc(id),\n  veredicto: motivo,\n} }];\n\nif (!id) return [{ json: { sql: null, veredicto: 'sin id' } }];\n\ns.ee_intentos = (s.ee_intentos || 0) + 1;\nif (codigo === 0 || codigo === 403 || codigo === 429 || codigo >= 500) {\n  s.ee_fallos = (s.ee_fallos || 0) + 1;\n  const intentos = s.ee_intentos || 0;\n  if (intentos >= 50 && (s.ee_fallos / intentos) > 0.3) {\n    s.ee_parado = true;\n    s.ee_motivo = Math.round(100 * s.ee_fallos / intentos) + '% de respuestas cerradas en '\n      + intentos + ' intentos: nos han bloqueado';\n    console.log('[as24-es-enrich] PARADO: ' + s.ee_motivo + '. Bajar el ritmo antes de volver.');\n  }\n  // Un 403 no dice nada de la oferta: NO se gasta su intento, para que vuelva\n  // a la cola cuando se pueda. Un 404 o un 410 sí, que esa ficha ya no existe.\n  return [{ json: { sql: null, veredicto: 'pasajero' } }];\n}\nif (codigo !== 200 || !cuerpo) {\n  console.log('[as24-es-enrich] ' + id + ': sin ficha (HTTP ' + codigo + ')');\n  return soloIntento('sin ficha');\n}\n\nlet raiz = null;\ntry {\n  const m = cuerpo.match(/<script id=\"__NEXT_DATA__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/);\n  if (m) raiz = ((JSON.parse(m[1]).props || {}).pageProps || {}).listingDetails;\n} catch (e) { raiz = null; }\nconst v = (raiz && raiz.vehicle) ? raiz.vehicle : null;\nif (!v) return soloIntento('ficha sin vehiculo');\n\ns.ee_leidas = (s.ee_leidas || 0) + 1;\n\nconst entero = x => {\n  const n = Number(x);\n  return Number.isFinite(n) && n > 0 ? Math.round(n) : null;\n};\nconst decimal = x => {\n  const n = Number(x);\n  return Number.isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : null;\n};\n\nconst carroc  = String(v.bodyType || '').trim();\nconst puertas = entero(v.numberOfDoors);\nconst plazas  = entero(v.numberOfSeats);\nconst cilin   = entero(v.rawDisplacementInCCM);\n\n// El consumo viene 0 en muchas fichas españolas, y 0 no es un consumo: es «no\n// lo declaro». decimal() ya lo descarta por exigir > 0.\nconst extra = (Array.isArray(v.additionalFuel) ? v.additionalFuel[0] : null) || {};\nconst sacaRaw = x => (x && typeof x === 'object' && 'raw' in x) ? x.raw : x;\nconst consumo = decimal(sacaRaw(v.fuelConsumptionCombined)) ||\n  decimal(sacaRaw(extra.consumptionCombined));\n\n// La tracción hay que traducirla al vocabulario de la tabla. El portal dice\n// «Tracción delantera»; nosotros guardamos «Delantera», «Trasera», «Total».\nlet traccion = '';\nconst dt = String(v.driveTrain || '').toLowerCase();\nif (dt.indexOf('delanter') !== -1) traccion = 'Delantera';\nelse if (dt.indexOf('traser') !== -1) traccion = 'Trasera';\nelse if (dt.indexOf('total') !== -1 || dt.indexOf('4x4') !== -1 || dt.indexOf('integral') !== -1) traccion = 'Total';\n\n// Un coche sin daños declarados trae la lista vacía; uno que no hemos sabido\n// leer no trae la clave. NULL es «no lo sé», FALSE es «no».\nconst danos = Array.isArray(v.damageConditions) ? v.damageConditions.filter(Boolean) : [];\nconst notaDano = danos.join(', ').slice(0, 200);\nconst danado = ('damageConditions' in v) ? (danos.length > 0) : null;\nconst accidente = (typeof v.hadAccident === 'boolean') ? v.hadAccident : null;\n\nconst sets = ['enrich_tried_at = NOW()'];\n// OJO CON LOS TIPOS: doors y seats son integer; displacement, body_type y\n// traction son varchar. NULLIF(col, 0) sobre una varchar da \"operator does not\n// exist: character varying = integer\" y tumba el UPDATE entero.\nconst pon = (col, val) => { if (val !== null && val !== undefined && val !== '')\n  sets.push(col + \" = COALESCE(NULLIF(\" + col + \", ''), \" + esc(val) + ')'); };\nconst ponNum = (col, val) => { if (val !== null && val !== undefined && val !== '')\n  sets.push(col + ' = COALESCE(NULLIF(' + col + ', 0), ' + esc(val) + ')'); };\n\npon('body_type', carroc);\nponNum('doors', puertas);\nponNum('seats', plazas);\nponNum('consumption', consumo);\npon('traction', traccion);\n\n// La cilindrada NO va con COALESCE: 102.937 ofertas la tienen en litros -«1.0»-\n// y ese valor hay que PISARLO. Se respeta solo lo que ya parece cc: tres a cinco\n// dígitos sin coma.\nif (cilin !== null) {\n  sets.push(\"displacement = CASE WHEN COALESCE(displacement,'') ~ '^[0-9]{3,5}$'\"\n    + ' THEN displacement ELSE ' + esc(String(cilin)) + ' END');\n}\n\n// co2 NO se escribe: la ficha española no lo trae nunca. Ver la cabecera.\n// environmental_label tampoco: la ficha da la norma europea -«Euro 6»- y esa\n// columna guarda la etiqueta de la DGT, que es otra cosa.\n\n// Los daños se escriben SIEMPRE que la ficha los declare, sin COALESCE: son el\n// estado del coche hoy, no un hueco que rellenar.\nif (danado !== null) sets.push('is_damaged = ' + (danado ? 'TRUE' : 'FALSE'));\nif (accidente !== null) sets.push('had_accident = ' + (accidente ? 'TRUE' : 'FALSE'));\nif (notaDano) pon('damage_note', notaDano);\n\nif (puertas) s.ee_puertas = (s.ee_puertas || 0) + 1;\nif (plazas) s.ee_plazas = (s.ee_plazas || 0) + 1;\nif (cilin) s.ee_cilindrada = (s.ee_cilindrada || 0) + 1;\nif (traccion) s.ee_traccion = (s.ee_traccion || 0) + 1;\nif (danado === true) s.ee_danadas = (s.ee_danadas || 0) + 1;\n\n// updated_at NO se toca: enriquecer no es que el anuncio haya cambiado, es que\n// nosotros nos hemos puesto al día.\nconsole.log('[as24-es-enrich] ' + id + ': ' + (carroc || '-')\n  + ' ' + (puertas || '-') + 'p ' + (plazas || '-') + ' plazas '\n  + (cilin || '-') + ' cc ' + (traccion || '-')\n  + (danado ? ' DANADO(' + notaDano + ')' : ''));\n\nreturn [{ json: {\n  sql: 'UPDATE moveadvisor_market_offers SET ' + sets.join(', ') + ' WHERE id = ' + esc(id),\n  veredicto: 'enriquecida',\n  carroceria: carroc, puertas: puertas, plazas: plazas, cilindrada: cilin,\n  consumo: consumo, traccion: traccion, danado: danado, notaDano: notaDano,\n} }];"
+      },
+      "id": "ee-code",
+      "name": "Code: Extraer de la ficha",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ee-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "ee-if-sql",
+      "name": "IF: ¿hay algo que guardar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "ee-pg",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        460
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 15000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// El parte de la pasada.\nconst s = $getWorkflowStaticData('global');\nconst leidas = s.ee_leidas || 0;\n\nconsole.log('[as24-es-enrich] ── resumen ──');\nconsole.log('  fichas leídas : ' + leidas + ' de ' + (s.ee_intentos || 0) + ' intentos');\nconsole.log('  con puertas   : ' + (s.ee_puertas || 0));\nconsole.log('  con plazas    : ' + (s.ee_plazas || 0));\nconsole.log('  con cilindrada: ' + (s.ee_cilindrada || 0));\nconsole.log('  con tracción  : ' + (s.ee_traccion || 0));\nconsole.log('  DAÑADAS       : ' + (s.ee_danadas || 0));\nconsole.log('  fichas caídas : ' + (s.ee_fallos || 0));\nif (s.ee_parado) console.log('  PARADO POR EL CORTACIRCUITOS: ' + s.ee_motivo);\nif (!s.ee_parado && leidas === 0 && (s.ee_intentos || 0) > 0) {\n  console.log('  OJO: ni una ficha leída de ' + s.ee_intentos + '. Algo ha cambiado.');\n}\n\nconst n = v => String(Number(v) || 0);\n// Se reaprovecha la tabla de los verificadores con portal='as24-es-enrich':\n//     checked      fichas leídas          alive       con puertas\n//     deactivated  dañadas encontradas    unclassified sin poder leer\n//     transient    fichas caídas\nconst sql = 'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" VALUES ('as24-es-enrich', NOW(), \" + n(leidas) + ', ' + n(s.ee_puertas) + ', '\n  + n(s.ee_danadas) + ', ' + n((s.ee_intentos || 0) - leidas) + ', ' + n(s.ee_fallos) + ', '\n  + (s.ee_parado ? 'TRUE' : 'FALSE') + ', 0)';\n\nconst parte = { sql: sql, leidas: leidas, intentos: s.ee_intentos || 0,\n  puertas: s.ee_puertas || 0, plazas: s.ee_plazas || 0,\n  cilindrada: s.ee_cilindrada || 0, traccion: s.ee_traccion || 0,\n  danadas: s.ee_danadas || 0, fallos: s.ee_fallos || 0, parado: !!s.ee_parado };\n// La memoria es del workflow, no de la pasada: sin limpiarla, el freno de hoy\n// seguiría puesto mañana.\nfor (const k of Object.keys(s)) { if (k.indexOf('ee_') === 0) delete s[k]; }\nreturn [{ json: parte }];"
+      },
+      "id": "ee-resumen",
+      "name": "Code: Resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "ee-pg-parte",
+      "name": "PG: Apuntar el parte",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        340,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4 veces/día (10:55, 12:55, 20:55 y 22:55)": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Cola a enriquecer": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: oferta por oferta": {
+      "main": [
+        [
+          {
+            "node": "Code: Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: ¿toca pedirla?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: ¿toca pedirla?": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay ficha que pedir?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ficha que pedir?": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Ficha de AutoScout24",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Ficha de AutoScout24": {
+      "main": [
+        [
+          {
+            "node": "Code: Extraer de la ficha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Extraer de la ficha": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay algo que guardar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay algo que guardar?": {
+      "main": [
+        [
+          {
+            "node": "PG: Actualizar oferta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Actualizar oferta": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Resumen": {
+      "main": [
+        [
+          {
+            "node": "PG: Apuntar el parte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

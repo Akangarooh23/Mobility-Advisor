@@ -43,7 +43,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
-        -320,
+        -400,
         300
       ],
       "credentials": {
@@ -58,7 +58,66 @@
     },
     {
       "parameters": {
-        "jsCode": "// Reparte (marca × ventana de 25 páginas) para esta pasada.\nconst marcas = [\"audi\",\"bmw\",\"mercedes-benz\",\"volkswagen\",\"peugeot\",\"renault\",\"seat\",\"citroen\",\"ford\",\"opel\",\"toyota\",\"kia\",\"hyundai\",\"nissan\",\"fiat\",\"dacia\",\"skoda\",\"volvo\",\"mazda\",\"mini\",\"land-rover\",\"jeep\",\"honda\",\"suzuki\",\"mitsubishi\",\"lexus\",\"porsche\",\"alfa-romeo\",\"jaguar\",\"cupra\",\"ds\",\"smart\",\"subaru\",\"ssangyong\",\"tesla\",\"abarth\",\"lancia\",\"chevrolet\",\"chrysler\",\"dodge\",\"infiniti\",\"isuzu\",\"maserati\",\"bentley\",\"ferrari\",\"lamborghini\",\"aston-martin\",\"lotus\",\"alpine\",\"polestar\",\"mg\",\"byd\",\"omoda\",\"ebro\",\"gwm\",\"leapmotor\",\"xpeng\",\"zeekr\",\"seres\",\"maxus\",\"genesis\"];\n\nconst PAGINAS = 25;\nconst SEGMENTOS = 20;\n// 625 es donde Autocasión corta la paginación. Ninguna marca pasa de ahí.\nconst TOPE_PAGINA = 625;\n\nconst fila = $('PG: Por dónde íbamos').first().json || {};\nlet idx = Number(fila.marca);\nlet pag = Number(fila.pagina);\nif (!Number.isFinite(idx) || idx < 0 || idx >= marcas.length) idx = 0;\nif (!Number.isFinite(pag) || pag < 1) pag = 1;\n\nconst out = [];\nfor (let i = 0; i < SEGMENTOS; i++) {\n  out.push({ json: { brand: marcas[idx], desde: pag, hasta: pag + PAGINAS - 1 } });\n  pag += PAGINAS;\n  // Se pasa a la marca siguiente al llegar al tope. El segmento se planta solo\n  // si la marca tiene menos páginas -Lamborghini tiene 7-, y eso cuesta UNA\n  // petición por ventana vacía. Es el precio de no preguntar antes cuántas\n  // páginas tiene cada marca: un 12% de peticiones de más por vuelta completa.\n  if (pag > TOPE_PAGINA) { pag = 1; idx = (idx + 1) % marcas.length; }\n}\n\n// Se apunta ANTES de scrapear, a propósito: si la pasada se cae a la mitad, la\n// siguiente sigue avanzando en vez de repetir media hora de lo mismo.\n// UPSERT: si las filas no existen todavía, las crea. Así no hace falta una\n// migración solo para dos números.\nconst sqlCursor = \"INSERT INTO moveadvisor_cursores (clave, valor, actualizado) VALUES\"\n  + \" ('autocasion_marca', \" + idx + \", NOW()),\"\n  + \" ('autocasion_pagina', \" + pag + \", NOW())\"\n  + \" ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, actualizado = NOW()\";\nfor (const o of out) o.json.sqlCursor = sqlCursor;\n\nconsole.log('[autocasion] ' + out.length + ' segmentos: ' + out[0].json.brand\n  + ' p' + out[0].json.desde + ' .. ' + out[out.length-1].json.brand\n  + ' p' + out[out.length-1].json.hasta + '. La próxima empieza en ' + idx + ':' + pag + '.');\nreturn out;"
+        "jsCode": "// Qué marca toca, para poder preguntarle cuántas páginas tiene.\nconst marcas = [\"audi\",\"bmw\",\"mercedes-benz\",\"volkswagen\",\"peugeot\",\"renault\",\"seat\",\"citroen\",\"ford\",\"opel\",\"toyota\",\"kia\",\"hyundai\",\"nissan\",\"fiat\",\"dacia\",\"skoda\",\"volvo\",\"mazda\",\"mini\",\"land-rover\",\"jeep\",\"honda\",\"suzuki\",\"mitsubishi\",\"lexus\",\"porsche\",\"alfa-romeo\",\"jaguar\",\"cupra\",\"ds\",\"smart\",\"subaru\",\"ssangyong\",\"tesla\",\"abarth\",\"lancia\",\"chevrolet\",\"chrysler\",\"dodge\",\"infiniti\",\"isuzu\",\"maserati\",\"bentley\",\"ferrari\",\"lamborghini\",\"aston-martin\",\"lotus\",\"alpine\",\"polestar\",\"mg\",\"byd\",\"omoda\",\"ebro\",\"gwm\",\"leapmotor\",\"xpeng\",\"zeekr\",\"seres\",\"maxus\",\"genesis\"];\nconst fila = $input.first().json || {};\nlet idx = Number(fila.marca);\nif (!Number.isFinite(idx) || idx < 0 || idx >= marcas.length) idx = 0;\nreturn [{ json: Object.assign({}, fila, { marcaDeTurno: marcas[idx] }) }];"
+      },
+      "id": "ac-o-marca",
+      "name": "Code: Qué marca toca",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -280,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://www.autocasion.com/coches-segunda-mano/{{ $json.marcaDeTurno }}-ocasion",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "ac-o-contar",
+      "name": "HTTP: Contar la marca de turno",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -160,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Reparte ventanas de 25 páginas de UNA marca para esta pasada.\nconst marcas = [\"audi\",\"bmw\",\"mercedes-benz\",\"volkswagen\",\"peugeot\",\"renault\",\"seat\",\"citroen\",\"ford\",\"opel\",\"toyota\",\"kia\",\"hyundai\",\"nissan\",\"fiat\",\"dacia\",\"skoda\",\"volvo\",\"mazda\",\"mini\",\"land-rover\",\"jeep\",\"honda\",\"suzuki\",\"mitsubishi\",\"lexus\",\"porsche\",\"alfa-romeo\",\"jaguar\",\"cupra\",\"ds\",\"smart\",\"subaru\",\"ssangyong\",\"tesla\",\"abarth\",\"lancia\",\"chevrolet\",\"chrysler\",\"dodge\",\"infiniti\",\"isuzu\",\"maserati\",\"bentley\",\"ferrari\",\"lamborghini\",\"aston-martin\",\"lotus\",\"alpine\",\"polestar\",\"mg\",\"byd\",\"omoda\",\"ebro\",\"gwm\",\"leapmotor\",\"xpeng\",\"zeekr\",\"seres\",\"maxus\",\"genesis\"];\n\nconst PAGINAS = 25;\nconst SEGMENTOS = 20;\n// 625 es donde Autocasión corta la paginación. Ninguna marca pasa de ahí.\nconst TOPE_PAGINA = 625;\n\nconst fila = $('PG: Por dónde íbamos').first().json || {};\nlet idx = Number(fila.marca);\nlet pag = Number(fila.pagina);\nif (!Number.isFinite(idx) || idx < 0 || idx >= marcas.length) idx = 0;\nif (!Number.isFinite(pag) || pag < 1) pag = 1;\n\n// Cuántas páginas tiene DE VERDAD esta marca. Se pregunta una vez por pasada,\n// y con eso se acaba el desperdicio: la primera versión repartía ventanas hasta\n// la 625 para todas, y Audi tiene 338. De los 20 segmentos de la pasada del\n// 15-sep, doce apuntaban al vacío y cada uno gastaba igual su petición.\nconst conteo = $('HTTP: Contar la marca de turno').first().json || {};\nconst htmlConteo = String(conteo.data || conteo.body || '');\nlet maxPagina = 1;\ntry {\n  const nums = [...htmlConteo.matchAll(/[?&]page=([0-9]+)/g)].map(m => parseInt(m[1], 10)).filter(n => !isNaN(n));\n  if (nums.length) maxPagina = Math.min(Math.max(...nums), TOPE_PAGINA);\n} catch (e) { maxPagina = 1; }\n\n// UNA marca por pasada. Cuando se le acaban las páginas, se pasa a la siguiente\n// y la pasada termina ahí: mejor una pasada corta que veinte llamadas al vacío.\nconst out = [];\nfor (let i = 0; i < SEGMENTOS && pag <= maxPagina; i++) {\n  out.push({ json: { brand: marcas[idx], desde: pag, hasta: Math.min(pag + PAGINAS - 1, maxPagina) } });\n  pag += PAGINAS;\n}\nif (pag > maxPagina) { pag = 1; idx = (idx + 1) % marcas.length; }\n\n// Se apunta ANTES de scrapear, a propósito: si la pasada se cae a la mitad, la\n// siguiente sigue avanzando en vez de repetir media hora de lo mismo.\n// UPSERT: si las filas no existen todavía, las crea. Así no hace falta una\n// migración solo para dos números.\nconst sqlCursor = \"INSERT INTO moveadvisor_cursores (clave, valor, actualizado) VALUES\"\n  + \" ('autocasion_marca', \" + idx + \", NOW()),\"\n  + \" ('autocasion_pagina', \" + pag + \", NOW())\"\n  + \" ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, actualizado = NOW()\";\nfor (const o of out) o.json.sqlCursor = sqlCursor;\n\n// Una pasada sin nada que hacer tiene que apuntar el cursor igual, o se queda\n// clavada en la misma marca para siempre. Va con brand vacío: el segmento no\n// llega a pedir nada porque el IF de la cola vacía lo para antes.\nif (!out.length) {\n  console.log('[autocasion] nada que repartir. La próxima empieza en ' + idx + ':' + pag + '.');\n  return [{ json: { brand: '', desde: 0, hasta: 0, sqlCursor: sqlCursor } }];\n}\n\nconsole.log('[autocasion] ' + out.length + ' segmentos de ' + out[0].json.brand\n  + ' (tiene ' + maxPagina + ' páginas): p' + out[0].json.desde\n  + ' a p' + out[out.length-1].json.hasta + '. La próxima empieza en ' + idx + ':' + pag + '.');\nreturn out;"
       },
       "id": "ac-o-gen",
       "name": "Code: Generar segmentos (marca x páginas)",
@@ -109,7 +168,7 @@
     },
     {
       "parameters": {
-        "workflowId": "PENDIENTE_DE_ENLAZAR",
+        "workflowId": "qrYv93PTSa5xuR5s",
         "options": {}
       },
       "id": "ac-o-sub",
@@ -120,21 +179,6 @@
         400,
         440
       ]
-    },
-    {
-      "parameters": {
-        "amount": 1,
-        "unit": "seconds"
-      },
-      "id": "ac-o-wait",
-      "name": "Esperar 1s",
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1,
-      "position": [
-        640,
-        440
-      ],
-      "webhookId": "d81f2a06-autocasion-orq"
     }
   ],
   "connections": {
@@ -161,6 +205,28 @@
       ]
     },
     "PG: Por dónde íbamos": {
+      "main": [
+        [
+          {
+            "node": "Code: Qué marca toca",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Qué marca toca": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Contar la marca de turno",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Contar la marca de turno": {
       "main": [
         [
           {
@@ -200,17 +266,6 @@
       ]
     },
     "Scrapear segmento (Autocasión – Segmento)": {
-      "main": [
-        [
-          {
-            "node": "Esperar 1s",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Esperar 1s": {
       "main": [
         [
           {

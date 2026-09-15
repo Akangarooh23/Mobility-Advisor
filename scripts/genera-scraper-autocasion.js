@@ -61,14 +61,27 @@ const ERROR_WF = "9BwKOPMIzjj3owho";
 // El id del workflow «Autocasión – Segmento (marca)» YA IMPORTADO en n8n.
 // Mientras sea el placeholder, el orquestador no puede llamar a nadie. Se
 // rellena solo con:  npm run enlaza-segmento-autocasion
-const ID_SEGMENTO = "PENDIENTE_DE_ENLAZAR";
+const ID_SEGMENTO = "qrYv93PTSa5xuR5s";
 
 // 25 páginas por segmento: 22 MB de memoria por ejecución.
 const PAGINAS_POR_SEGMENTO = 25;
 // 20 segmentos por pasada = 500 páginas ≈ 17 min a 2 s por página. Con dos
 // pasadas al día, las ~4.800 páginas del portal se barren en unos 5 días.
 const SEGMENTOS_POR_PASADA = 20;
-const ESPERA_SEGUNDOS = 1;
+// SIN nodos Wait, ni entre páginas ni entre segmentos.
+//
+// La primera pasada real, el 15-sep, se quedó colgada: escribió 2.925 ofertas
+// -117 páginas de las 338 que tiene Audi- y luego pasó media hora en «running»
+// sin tocar la base. No era memoria: n8n estaba en 537 MB con 3,9 GB libres.
+//
+// El Wait es el sospechoso, y con motivo: ese mismo día se midió que cuesta
+// casi 4 segundos por uso -no el 1 que declara, porque n8n guarda el estado de
+// la ejecución para poder reanudarla- y quitarlo hizo los verificadores ocho
+// veces más rápidos.
+//
+// Sin él, el ritmo lo marca la propia página: ~1 s cada una, que es el mismo
+// ritmo al que se midió el portal a mano sin que nos frenara.
+const ESPERA_SEGUNDOS = 0;
 
 const CABECERAS = {
   sendHeaders: true,
@@ -100,8 +113,19 @@ SELECT
 FROM moveadvisor_cursores
 WHERE clave IN ('autocasion_marca', 'autocasion_pagina')`;
 
-const CODE_SEGMENTOS = `// Reparte (marca × ventana de 25 páginas) para esta pasada.
-const marcas = ["audi","bmw","mercedes-benz","volkswagen","peugeot","renault","seat","citroen","ford","opel","toyota","kia","hyundai","nissan","fiat","dacia","skoda","volvo","mazda","mini","land-rover","jeep","honda","suzuki","mitsubishi","lexus","porsche","alfa-romeo","jaguar","cupra","ds","smart","subaru","ssangyong","tesla","abarth","lancia","chevrolet","chrysler","dodge","infiniti","isuzu","maserati","bentley","ferrari","lamborghini","aston-martin","lotus","alpine","polestar","mg","byd","omoda","ebro","gwm","leapmotor","xpeng","zeekr","seres","maxus","genesis"];
+// Las marcas, en un solo sitio: las usan el nodo que decide cuál toca y el que
+// reparte las ventanas, y si se separan el reparto pide una y cuenta otra.
+const MARCAS = ["audi","bmw","mercedes-benz","volkswagen","peugeot","renault","seat","citroen","ford","opel","toyota","kia","hyundai","nissan","fiat","dacia","skoda","volvo","mazda","mini","land-rover","jeep","honda","suzuki","mitsubishi","lexus","porsche","alfa-romeo","jaguar","cupra","ds","smart","subaru","ssangyong","tesla","abarth","lancia","chevrolet","chrysler","dodge","infiniti","isuzu","maserati","bentley","ferrari","lamborghini","aston-martin","lotus","alpine","polestar","mg","byd","omoda","ebro","gwm","leapmotor","xpeng","zeekr","seres","maxus","genesis"];
+
+const CODE_MARCA_DE_TURNO = `// Qué marca toca, para poder preguntarle cuántas páginas tiene.
+const marcas = ${JSON.stringify(MARCAS)};
+const fila = $input.first().json || {};
+let idx = Number(fila.marca);
+if (!Number.isFinite(idx) || idx < 0 || idx >= marcas.length) idx = 0;
+return [{ json: Object.assign({}, fila, { marcaDeTurno: marcas[idx] }) }];`;
+
+const CODE_SEGMENTOS = `// Reparte ventanas de 25 páginas de UNA marca para esta pasada.
+const marcas = ${JSON.stringify(MARCAS)};
 
 const PAGINAS = ${PAGINAS_POR_SEGMENTO};
 const SEGMENTOS = ${SEGMENTOS_POR_PASADA};
@@ -114,16 +138,26 @@ let pag = Number(fila.pagina);
 if (!Number.isFinite(idx) || idx < 0 || idx >= marcas.length) idx = 0;
 if (!Number.isFinite(pag) || pag < 1) pag = 1;
 
+// Cuántas páginas tiene DE VERDAD esta marca. Se pregunta una vez por pasada,
+// y con eso se acaba el desperdicio: la primera versión repartía ventanas hasta
+// la 625 para todas, y Audi tiene 338. De los 20 segmentos de la pasada del
+// 15-sep, doce apuntaban al vacío y cada uno gastaba igual su petición.
+const conteo = $('HTTP: Contar la marca de turno').first().json || {};
+const htmlConteo = String(conteo.data || conteo.body || '');
+let maxPagina = 1;
+try {
+  const nums = [...htmlConteo.matchAll(/[?&]page=([0-9]+)/g)].map(m => parseInt(m[1], 10)).filter(n => !isNaN(n));
+  if (nums.length) maxPagina = Math.min(Math.max(...nums), TOPE_PAGINA);
+} catch (e) { maxPagina = 1; }
+
+// UNA marca por pasada. Cuando se le acaban las páginas, se pasa a la siguiente
+// y la pasada termina ahí: mejor una pasada corta que veinte llamadas al vacío.
 const out = [];
-for (let i = 0; i < SEGMENTOS; i++) {
-  out.push({ json: { brand: marcas[idx], desde: pag, hasta: pag + PAGINAS - 1 } });
+for (let i = 0; i < SEGMENTOS && pag <= maxPagina; i++) {
+  out.push({ json: { brand: marcas[idx], desde: pag, hasta: Math.min(pag + PAGINAS - 1, maxPagina) } });
   pag += PAGINAS;
-  // Se pasa a la marca siguiente al llegar al tope. El segmento se planta solo
-  // si la marca tiene menos páginas -Lamborghini tiene 7-, y eso cuesta UNA
-  // petición por ventana vacía. Es el precio de no preguntar antes cuántas
-  // páginas tiene cada marca: un 12% de peticiones de más por vuelta completa.
-  if (pag > TOPE_PAGINA) { pag = 1; idx = (idx + 1) % marcas.length; }
 }
+if (pag > maxPagina) { pag = 1; idx = (idx + 1) % marcas.length; }
 
 // Se apunta ANTES de scrapear, a propósito: si la pasada se cae a la mitad, la
 // siguiente sigue avanzando en vez de repetir media hora de lo mismo.
@@ -135,9 +169,17 @@ const sqlCursor = "INSERT INTO moveadvisor_cursores (clave, valor, actualizado) 
   + " ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, actualizado = NOW()";
 for (const o of out) o.json.sqlCursor = sqlCursor;
 
-console.log('[autocasion] ' + out.length + ' segmentos: ' + out[0].json.brand
-  + ' p' + out[0].json.desde + ' .. ' + out[out.length-1].json.brand
-  + ' p' + out[out.length-1].json.hasta + '. La próxima empieza en ' + idx + ':' + pag + '.');
+// Una pasada sin nada que hacer tiene que apuntar el cursor igual, o se queda
+// clavada en la misma marca para siempre. Va con brand vacío: el segmento no
+// llega a pedir nada porque el IF de la cola vacía lo para antes.
+if (!out.length) {
+  console.log('[autocasion] nada que repartir. La próxima empieza en ' + idx + ':' + pag + '.');
+  return [{ json: { brand: '', desde: 0, hasta: 0, sqlCursor: sqlCursor } }];
+}
+
+console.log('[autocasion] ' + out.length + ' segmentos de ' + out[0].json.brand
+  + ' (tiene ' + maxPagina + ' páginas): p' + out[0].json.desde
+  + ' a p' + out[out.length-1].json.hasta + '. La próxima empieza en ' + idx + ':' + pag + '.');
 return out;`;
 
 // ══ EL SEGMENTO ════════════════════════════════════════════════════════════
@@ -200,8 +242,17 @@ const nodosOrq = [
     type: "n8n-nodes-base.scheduleTrigger", typeVersion: 1, position: [-560, 400] },
   { parameters: { operation: "executeQuery", query: CURSOR_SQL, options: {} },
     id: "ac-o-cursor", name: "PG: Por dónde íbamos",
-    type: "n8n-nodes-base.postgres", typeVersion: 2, position: [-320, 300],
+    type: "n8n-nodes-base.postgres", typeVersion: 2, position: [-400, 300],
     credentials: PG_CRED, ...REINTENTA },
+  { parameters: { jsCode: CODE_MARCA_DE_TURNO }, id: "ac-o-marca",
+    name: "Code: Qué marca toca",
+    type: "n8n-nodes-base.code", typeVersion: 2, position: [-280, 300] },
+  { parameters: {
+      url: "=https://www.autocasion.com/coches-segunda-mano/{{ $json.marcaDeTurno }}-ocasion",
+      ...CABECERAS, options: OPCIONES_HTTP,
+    }, id: "ac-o-contar", name: "HTTP: Contar la marca de turno",
+    onError: "continueRegularOutput",
+    type: "n8n-nodes-base.httpRequest", typeVersion: 4, position: [-160, 300] },
   { parameters: { jsCode: CODE_SEGMENTOS }, id: "ac-o-gen",
     name: "Code: Generar segmentos (marca x páginas)",
     type: "n8n-nodes-base.code", typeVersion: 2, position: [-80, 300] },
@@ -217,22 +268,20 @@ const nodosOrq = [
   { parameters: { workflowId: ID_SEGMENTO, options: {} },
     id: "ac-o-sub", name: "Scrapear segmento (Autocasión – Segmento)",
     type: "n8n-nodes-base.executeWorkflow", typeVersion: 1, position: [400, 440] },
-  { parameters: { amount: ESPERA_SEGUNDOS, unit: "seconds" }, id: "ac-o-wait",
-    name: "Esperar " + ESPERA_SEGUNDOS + "s",
-    type: "n8n-nodes-base.wait", typeVersion: 1, position: [640, 440],
-    webhookId: "d81f2a06-autocasion-orq" },
+  // Sin nodo Wait entre segmentos: ver la nota de ESPERA_SEGUNDOS.
 ];
 
 const L = (n) => ({ node: n, type: "main", index: 0 });
 const conexionesOrq = {
   "Ejecutar manualmente": { main: [[L("PG: Por dónde íbamos")]] },
   [CRON_ORQ]:             { main: [[L("PG: Por dónde íbamos")]] },
-  "PG: Por dónde íbamos": { main: [[L("Code: Generar segmentos (marca x páginas)")]] },
+  "PG: Por dónde íbamos": { main: [[L("Code: Qué marca toca")]] },
+  "Code: Qué marca toca": { main: [[L("HTTP: Contar la marca de turno")]] },
+  "HTTP: Contar la marca de turno": { main: [[L("Code: Generar segmentos (marca x páginas)")]] },
   "Code: Generar segmentos (marca x páginas)": {
     main: [[L("PG: Apuntar dónde nos quedamos"), L("Loop: segmento por segmento")]] },
   "Loop: segmento por segmento": { main: [[], [L("Scrapear segmento (Autocasión – Segmento)")]] },
-  "Scrapear segmento (Autocasión – Segmento)": { main: [[L("Esperar " + ESPERA_SEGUNDOS + "s")]] },
-  ["Esperar " + ESPERA_SEGUNDOS + "s"]: { main: [[L("Loop: segmento por segmento")]] },
+  "Scrapear segmento (Autocasión – Segmento)": { main: [[L("Loop: segmento por segmento")]] },
 };
 
 // ── nodos del segmento ─────────────────────────────────────────────────────
@@ -270,10 +319,7 @@ const nodosSeg = [
     id: "ac-s-pg", name: "PG: Upsert ofertas",
     type: "n8n-nodes-base.postgres", typeVersion: 2, position: [1360, 340],
     credentials: PG_CRED, ...REINTENTA },
-  { parameters: { amount: ESPERA_SEGUNDOS, unit: "seconds" }, id: "ac-s-wait",
-    name: "Esperar " + ESPERA_SEGUNDOS + "s (rate limit)",
-    type: "n8n-nodes-base.wait", typeVersion: 1, position: [1600, 420],
-    webhookId: "e93c7b52-autocasion-seg" },
+  // Sin nodo Wait entre páginas: ver la nota de ESPERA_SEGUNDOS.
 ];
 
 const conexionesSeg = {
@@ -285,9 +331,8 @@ const conexionesSeg = {
   "Loop: página por página":  { main: [[], [L("HTTP: Listado Autocasión")]] },
   "HTTP: Listado Autocasión": { main: [[L("Code: Transformar ofertas")]] },
   "Code: Transformar ofertas": { main: [[L("IF: ¿hay ofertas?")]] },
-  "IF: ¿hay ofertas?":        { main: [[L("PG: Upsert ofertas")], [L("Esperar " + ESPERA_SEGUNDOS + "s (rate limit)")]] },
-  "PG: Upsert ofertas":       { main: [[L("Esperar " + ESPERA_SEGUNDOS + "s (rate limit)")]] },
-  ["Esperar " + ESPERA_SEGUNDOS + "s (rate limit)"]: { main: [[L("Loop: página por página")]] },
+  "IF: ¿hay ofertas?":        { main: [[L("PG: Upsert ofertas")], [L("Loop: página por página")]] },
+  "PG: Upsert ofertas":       { main: [[L("Loop: página por página")]] },
 };
 
 const ajustes = {

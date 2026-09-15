@@ -225,21 +225,6 @@
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 5000
-    },
-    {
-      "parameters": {
-        "amount": 1,
-        "unit": "seconds"
-      },
-      "id": "ac-s-wait",
-      "name": "Esperar 1s (rate limit)",
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1,
-      "position": [
-        1600,
-        420
-      ],
-      "webhookId": "e93c7b52-autocasion-seg"
     }
   ],
   "connections": {
@@ -343,7 +328,7 @@
         ],
         [
           {
-            "node": "Esperar 1s (rate limit)",
+            "node": "Loop: página por página",
             "type": "main",
             "index": 0
           }
@@ -351,17 +336,6 @@
       ]
     },
     "PG: Upsert ofertas": {
-      "main": [
-        [
-          {
-            "node": "Esperar 1s (rate limit)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Esperar 1s (rate limit)": {
       "main": [
         [
           {

@@ -101,12 +101,43 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
     fila && Number.isFinite(Number(fila.marca)) && Number.isFinite(Number(fila.pagina)),
     fila ? fila.marca + ":" + fila.pagina : "sin fila");
 
+  // El reparto necesita saber cuántas páginas tiene la marca de turno, y eso
+  // sale de una petición real: por eso se le da la página 1 de verdad.
+  const marcaTurno = ejecuta(codigo(orq, "Code: Qué marca toca"),
+    { $: () => uno(fila), $input: uno(fila) }).items[0].json;
+  comprueba("sabe qué marca le toca", !!marcaTurno.marcaDeTurno, marcaTurno.marcaDeTurno);
+  const H1 = {};
+  ((orq.nodes.find((n) => n.name === "HTTP: Contar la marca de turno")
+    .parameters.headerParameters || {}).parameters || []).forEach((c) => { H1[c.name] = c.value; });
+  const conteo = await fetch(
+    "https://www.autocasion.com/coches-segunda-mano/" + marcaTurno.marcaDeTurno + "-ocasion",
+    { headers: H1, signal: AbortSignal.timeout(40000) });
+  const htmlConteo = { statusCode: conteo.status, data: await conteo.text() };
+
+  // Se fuerza el cursor al principio de la marca. Con el cursor real esto podía
+  // pasar EN VACÍO: si va por la página 501 y la marca tiene 338, el reparto
+  // devuelve cero ventanas y todas las comprobaciones se cumplen sin probar
+  // nada. Pasó en la primera versión de este test.
+  const desdeElPrincipio = { marca: Number(fila.marca) || 0, pagina: 1 };
   const gen = ejecuta(codigo(orq, "Code: Generar segmentos (marca x páginas)"),
-    { $: () => uno(fila), $input: uno({}) });
+    { $: (n) => (n === "HTTP: Contar la marca de turno" ? uno(htmlConteo) : uno(desdeElPrincipio)),
+      $input: uno(desdeElPrincipio) });
   const segs = gen.items.map((x) => x.json);
+  comprueba("con el cursor al principio reparte varias ventanas de verdad",
+    segs.length > 1 && segs[0].desde === 1, segs.length + " ventanas desde la página " + segs[0].desde);
   comprueba("una pasada reparte segmentos", segs.length > 0, segs.length + " segmentos");
   comprueba("cada uno es una ventana de páginas, no una marca entera",
-    segs.every((s) => s.hasta - s.desde === 24), (segs[0].hasta - segs[0].desde + 1) + " páginas");
+    segs.every((s) => s.hasta - s.desde <= 24), "hasta " + (segs[0].hasta - segs[0].desde + 1) + " páginas");
+  // Lo que costó media hora colgado: repartir ventanas más allá del final.
+  const maxReal = Math.max(...[...htmlConteo.data.matchAll(/[?&]page=([0-9]+)/g)].map((m) => Number(m[1])));
+  comprueba("NINGUNA ventana se pasa de la última página de la marca",
+    segs.every((s) => s.desde <= maxReal),
+    marcaTurno.marcaDeTurno + " tiene " + maxReal + ", la última ventana empieza en "
+      + segs[segs.length - 1].desde);
+  comprueba("todas las ventanas son de la misma marca",
+    new Set(segs.map((s) => s.brand)).size === 1);
+  comprueba("no queda ningún nodo Wait, que es lo que colgó la primera pasada",
+    ![...orq.nodes, ...seg.nodes].some((n) => String(n.type).endsWith("wait")));
   comprueba("apunta el cursor ANTES de scrapear, y crea las filas si faltan",
     /INSERT INTO moveadvisor_cursores/.test(segs[0].sqlCursor)
     && /ON CONFLICT \(clave\) DO UPDATE/.test(segs[0].sqlCursor));

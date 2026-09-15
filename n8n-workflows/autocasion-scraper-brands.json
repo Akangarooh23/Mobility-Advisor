@@ -3,13 +3,13 @@
   "nodes": [
     {
       "parameters": {},
-      "id": "aco-manual",
+      "id": "ac-o-manual",
       "name": "Ejecutar manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        0,
-        300
+        -560,
+        200
       ]
     },
     {
@@ -18,64 +18,107 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 0 22 * * *"
+              "expression": "0 20 8,21 * * *"
             }
           ]
         }
       },
-      "id": "aco-cron",
-      "name": "Cada día a las 22:00",
+      "id": "ac-o-cron",
+      "name": "2 veces/día (8:20 y 21:20)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
-        0,
-        500
+        -560,
+        400
       ]
     },
     {
       "parameters": {
-        "language": "javaScript",
-        "jsCode": "// Alimentacion GRADUAL: procesa BRANDS_PER_NIGHT marcas por noche, cursor persistente.\n// Cada marca scrapea TODAS sus paginas. Cubre las 61 marcas en ~21 noches y refresca en bucle.\nconst brands = [\"audi\",\"aston-martin\",\"bmw\",\"cupra\",\"dacia\",\"honda\",\"hyundai\",\"kia\",\"lamborghini\",\"mercedes-benz\",\"mg\",\"peugeot\",\"porsche\",\"renault\",\"seat\",\"tesla\",\"toyota\",\"volkswagen\",\"abarth\",\"alfa-romeo\",\"alpine\",\"baic\",\"bentley\",\"byd\",\"changan\",\"citroen\",\"ds\",\"ebro\",\"ferrari\",\"fiat\",\"ford\",\"geely\",\"genesis\",\"gwm\",\"ineos\",\"isuzu\",\"jaguar\",\"jeep\",\"ssangyong\",\"lancia\",\"land-rover\",\"leapmotor\",\"lexus\",\"lotus\",\"maserati\",\"maxus\",\"mazda\",\"mini\",\"mitsubishi\",\"nissan\",\"omoda\",\"opel\",\"polestar\",\"seres\",\"skoda\",\"smart\",\"subaru\",\"suzuki\",\"volvo\",\"xpeng\",\"zeekr\"];\nconst BRANDS_PER_NIGHT = 3;\nconst store = $getWorkflowStaticData('global');\nlet cursor = Number(store.acBrandCursor || 0);\nif (!(cursor >= 0) || cursor >= brands.length) cursor = 0;\nconst out = [];\nfor (let i = 0; i < BRANDS_PER_NIGHT; i++) out.push({ json: { brand: brands[(cursor + i) % brands.length] } });\nstore.acBrandCursor = (cursor + BRANDS_PER_NIGHT) % brands.length;\nreturn out;"
+        "operation": "executeQuery",
+        "query": "-- Por dónde iba la última pasada: índice de marca y página.\n--\n-- En Postgres y no en $getWorkflowStaticData, que se reinicia al reimportar: el\n-- 2026-09-09 se reimportó el alemán tres veces y las tres pasadas volvieron a\n-- empezar por Audi, que ya estaba entero.\n--\n-- Van en DOS filas porque moveadvisor_cursores.valor es un integer y aquí hacen\n-- falta dos números. Con COALESCE la primera pasada arranca en 0:1 sin que nadie\n-- tenga que crear las filas a mano.\nSELECT\n  COALESCE(max(valor) FILTER (WHERE clave = 'autocasion_marca'), 0)   AS marca,\n  COALESCE(max(valor) FILTER (WHERE clave = 'autocasion_pagina'), 1)  AS pagina\nFROM moveadvisor_cursores\nWHERE clave IN ('autocasion_marca', 'autocasion_pagina')",
+        "options": {}
       },
-      "id": "aco-gen",
-      "name": "Code: Generar marcas (gradual)",
+      "id": "ac-o-cursor",
+      "name": "PG: Por dónde íbamos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Reparte (marca × ventana de 25 páginas) para esta pasada.\nconst marcas = [\"audi\",\"bmw\",\"mercedes-benz\",\"volkswagen\",\"peugeot\",\"renault\",\"seat\",\"citroen\",\"ford\",\"opel\",\"toyota\",\"kia\",\"hyundai\",\"nissan\",\"fiat\",\"dacia\",\"skoda\",\"volvo\",\"mazda\",\"mini\",\"land-rover\",\"jeep\",\"honda\",\"suzuki\",\"mitsubishi\",\"lexus\",\"porsche\",\"alfa-romeo\",\"jaguar\",\"cupra\",\"ds\",\"smart\",\"subaru\",\"ssangyong\",\"tesla\",\"abarth\",\"lancia\",\"chevrolet\",\"chrysler\",\"dodge\",\"infiniti\",\"isuzu\",\"maserati\",\"bentley\",\"ferrari\",\"lamborghini\",\"aston-martin\",\"lotus\",\"alpine\",\"polestar\",\"mg\",\"byd\",\"omoda\",\"ebro\",\"gwm\",\"leapmotor\",\"xpeng\",\"zeekr\",\"seres\",\"maxus\",\"genesis\"];\n\nconst PAGINAS = 25;\nconst SEGMENTOS = 20;\n// 625 es donde Autocasión corta la paginación. Ninguna marca pasa de ahí.\nconst TOPE_PAGINA = 625;\n\nconst fila = $('PG: Por dónde íbamos').first().json || {};\nlet idx = Number(fila.marca);\nlet pag = Number(fila.pagina);\nif (!Number.isFinite(idx) || idx < 0 || idx >= marcas.length) idx = 0;\nif (!Number.isFinite(pag) || pag < 1) pag = 1;\n\nconst out = [];\nfor (let i = 0; i < SEGMENTOS; i++) {\n  out.push({ json: { brand: marcas[idx], desde: pag, hasta: pag + PAGINAS - 1 } });\n  pag += PAGINAS;\n  // Se pasa a la marca siguiente al llegar al tope. El segmento se planta solo\n  // si la marca tiene menos páginas -Lamborghini tiene 7-, y eso cuesta UNA\n  // petición por ventana vacía. Es el precio de no preguntar antes cuántas\n  // páginas tiene cada marca: un 12% de peticiones de más por vuelta completa.\n  if (pag > TOPE_PAGINA) { pag = 1; idx = (idx + 1) % marcas.length; }\n}\n\n// Se apunta ANTES de scrapear, a propósito: si la pasada se cae a la mitad, la\n// siguiente sigue avanzando en vez de repetir media hora de lo mismo.\n// UPSERT: si las filas no existen todavía, las crea. Así no hace falta una\n// migración solo para dos números.\nconst sqlCursor = \"INSERT INTO moveadvisor_cursores (clave, valor, actualizado) VALUES\"\n  + \" ('autocasion_marca', \" + idx + \", NOW()),\"\n  + \" ('autocasion_pagina', \" + pag + \", NOW())\"\n  + \" ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, actualizado = NOW()\";\nfor (const o of out) o.json.sqlCursor = sqlCursor;\n\nconsole.log('[autocasion] ' + out.length + ' segmentos: ' + out[0].json.brand\n  + ' p' + out[0].json.desde + ' .. ' + out[out.length-1].json.brand\n  + ' p' + out[out.length-1].json.hasta + '. La próxima empieza en ' + idx + ':' + pag + '.');\nreturn out;"
+      },
+      "id": "ac-o-gen",
+      "name": "Code: Generar segmentos (marca x páginas)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        240,
-        400
+        -80,
+        300
       ]
     },
     {
       "parameters": {
-        "batchSize": 1,
+        "operation": "executeQuery",
+        "query": "={{ $json.sqlCursor }}",
         "options": {}
       },
-      "id": "aco-loop",
-      "name": "Loop: marca por marca",
+      "id": "ac-o-guardar",
+      "name": "PG: Apuntar dónde nos quedamos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        160,
+        140
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "ac-o-loop",
+      "name": "Loop: segmento por segmento",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        480,
-        400
+        160,
+        340
       ]
     },
     {
       "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "value": "REEMPLAZA_CON_ID_DEL_SEGMENTO_AC",
-          "mode": "id"
-        },
+        "workflowId": "PENDIENTE_DE_ENLAZAR",
         "options": {}
       },
-      "id": "aco-exec",
-      "name": "Scrapear marca (Autocasión – Segmento)",
+      "id": "ac-o-sub",
+      "name": "Scrapear segmento (Autocasión – Segmento)",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
       "position": [
-        720,
-        400
+        400,
+        440
       ]
     },
     {
@@ -83,15 +126,15 @@
         "amount": 1,
         "unit": "seconds"
       },
-      "id": "aco-wait",
+      "id": "ac-o-wait",
       "name": "Esperar 1s",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1,
       "position": [
-        960,
-        400
+        640,
+        440
       ],
-      "webhookId": "wait-autocasion-orquestador"
+      "webhookId": "d81f2a06-autocasion-orq"
     }
   ],
   "connections": {
@@ -99,48 +142,64 @@
       "main": [
         [
           {
-            "node": "Code: Generar marcas (gradual)",
+            "node": "PG: Por dónde íbamos",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cada día a las 22:00": {
+    "2 veces/día (8:20 y 21:20)": {
       "main": [
         [
           {
-            "node": "Code: Generar marcas (gradual)",
+            "node": "PG: Por dónde íbamos",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code: Generar marcas (gradual)": {
+    "PG: Por dónde íbamos": {
       "main": [
         [
           {
-            "node": "Loop: marca por marca",
+            "node": "Code: Generar segmentos (marca x páginas)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Loop: marca por marca": {
+    "Code: Generar segmentos (marca x páginas)": {
+      "main": [
+        [
+          {
+            "node": "PG: Apuntar dónde nos quedamos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Loop: segmento por segmento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: segmento por segmento": {
       "main": [
         [],
         [
           {
-            "node": "Scrapear marca (Autocasión – Segmento)",
+            "node": "Scrapear segmento (Autocasión – Segmento)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Scrapear marca (Autocasión – Segmento)": {
+    "Scrapear segmento (Autocasión – Segmento)": {
       "main": [
         [
           {
@@ -155,7 +214,7 @@
       "main": [
         [
           {
-            "node": "Loop: marca por marca",
+            "node": "Loop: segmento por segmento",
             "type": "main",
             "index": 0
           }
@@ -166,12 +225,10 @@
   "settings": {
     "executionOrder": "v1",
     "saveManualExecutions": true,
-    "saveDataSuccessExecution": "all",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
     "callerPolicy": "workflowsFromSameOwner",
-    "errorWorkflow": "",
-    "saveDataErrorExecution": "all"
+    "errorWorkflow": "9BwKOPMIzjj3owho"
   },
-  "staticData": null,
-  "triggerCount": 1,
-  "tags": []
+  "pinData": {}
 }

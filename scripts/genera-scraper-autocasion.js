@@ -1,0 +1,331 @@
+/**
+ * Autocasión – scraper de mercado (orquestador + segmento)
+ *
+ * Genera LOS DOS ficheros, porque van juntos: el orquestador reparte ventanas de
+ * páginas y llama al segmento una vez por (marca × ventana).
+ *
+ *   node scripts/genera-scraper-autocasion.js
+ *   npm run enlaza-segmento-autocasion     (tras importar el segmento)
+ *   npm run test:autocasion
+ *
+ * ── Por qué se rehace ──────────────────────────────────────────────────────
+ *
+ * Autocasión son 133.848 ofertas activas y el 9% de los comparables que ponen
+ * precio al escaparate de importación. El 15-sep-2026 llevaban 28 días sin
+ * tocarse, y sus dos scrapers arrastraban lo mismo que arrastraba el español de
+ * AutoScout24 antes de arreglarlo:
+ *
+ *   - El orquestador llamaba al segmento con el id en forma de objeto y
+ *     typeVersion 1 -la combinación que da «Workflow does not exist»- y encima
+ *     el id era el literal REEMPLAZA_CON_ID_DEL_SEGMENTO_AC.
+ *   - Las cabeceras iban en options.headers, que typeVersion 4 IGNORA en
+ *     silencio: se pedía sin User-Agent.
+ *   - Sin onError en los HTTP: un corte de red tumbaba la pasada entera.
+ *   - Sin reintentos en Postgres y sin aviso por correo: fallaba a oscuras.
+ *   - El cursor de marcas vivía en $getWorkflowStaticData, que se reinicia al
+ *     reimportar. En Alemania eso costó tres re-scrapeos seguidos de Audi.
+ *
+ * ── El tamaño manda el diseño ──────────────────────────────────────────────
+ *
+ * Medido el 15-sep: el portal declara 119.890 coches, una página trae 25 y pesa
+ * ~900 KB, y tarda ~1 s. O sea unas 4.800 páginas para barrerlo entero.
+ *
+ * Eso NO cabe en un segmento por marca, que es como estaba: BMW tiene 340
+ * páginas y n8n guarda en memoria la salida de cada vuelta del bucle. 340 × 900
+ * KB son 306 MB en una sola ejecución. Por eso aquí el segmento recibe una
+ * VENTANA de páginas -25- y no una marca entera: 22 MB por ejecución.
+ *
+ * El listado genérico no vale como atajo: se corta en la página 625, o sea
+ * 15.625 coches de 119.890. Hay que ir marca por marca.
+ *
+ * ── Lo que NO arregla esto ─────────────────────────────────────────────────
+ *
+ * 35.518 ofertas guardadas en julio y agosto tienen como URL un listado de
+ * provincia -«/coches-segunda-mano/peugeot-2008-ocasion/madrid»- en vez de la
+ * ficha del coche. 301 ofertas distintas comparten esa misma dirección.
+ *
+ * No es culpa del scraper de hoy: se comprobó el 15-sep pidiendo el listado
+ * genérico y el de marca, y los dos devolvieron 25 de 25 URLs buenas. Son
+ * herencia. Sirven como comparables -todas tienen precio, año y kilómetros-
+ * pero NO se pueden verificar una a una, y por eso el verificador las salta.
+ */
+"use strict";
+const fs = require("fs");
+const path = require("path");
+const RAIZ = path.join(__dirname, "..");
+
+const PG_CRED = { postgres: { id: "zoxD0jV8hxZqH0uY", name: "Postgres account" } };
+const REINTENTA = { retryOnFail: true, maxTries: 3, waitBetweenTries: 5000 };
+const ERROR_WF = "9BwKOPMIzjj3owho";
+
+// El id del workflow «Autocasión – Segmento (marca)» YA IMPORTADO en n8n.
+// Mientras sea el placeholder, el orquestador no puede llamar a nadie. Se
+// rellena solo con:  npm run enlaza-segmento-autocasion
+const ID_SEGMENTO = "PENDIENTE_DE_ENLAZAR";
+
+// 25 páginas por segmento: 22 MB de memoria por ejecución.
+const PAGINAS_POR_SEGMENTO = 25;
+// 20 segmentos por pasada = 500 páginas ≈ 17 min a 2 s por página. Con dos
+// pasadas al día, las ~4.800 páginas del portal se barren en unos 5 días.
+const SEGMENTOS_POR_PASADA = 20;
+const ESPERA_SEGUNDOS = 1;
+
+const CABECERAS = {
+  sendHeaders: true,
+  headerParameters: { parameters: [
+    { name: "User-Agent", value: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36" },
+    { name: "Accept", value: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" },
+    { name: "Accept-Language", value: "es-ES,es;q=0.9" },
+  ] },
+};
+const OPCIONES_HTTP = {
+  response: { response: { fullResponse: true, neverError: true, responseFormat: "text" } },
+  timeout: 30000,
+  redirect: { redirect: { followRedirects: true } },
+};
+
+// ══ EL ORQUESTADOR ═════════════════════════════════════════════════════════
+const CURSOR_SQL = `-- Por dónde iba la última pasada: índice de marca y página.
+--
+-- En Postgres y no en $getWorkflowStaticData, que se reinicia al reimportar: el
+-- 2026-09-09 se reimportó el alemán tres veces y las tres pasadas volvieron a
+-- empezar por Audi, que ya estaba entero.
+--
+-- Van en DOS filas porque moveadvisor_cursores.valor es un integer y aquí hacen
+-- falta dos números. Con COALESCE la primera pasada arranca en 0:1 sin que nadie
+-- tenga que crear las filas a mano.
+SELECT
+  COALESCE(max(valor) FILTER (WHERE clave = 'autocasion_marca'), 0)   AS marca,
+  COALESCE(max(valor) FILTER (WHERE clave = 'autocasion_pagina'), 1)  AS pagina
+FROM moveadvisor_cursores
+WHERE clave IN ('autocasion_marca', 'autocasion_pagina')`;
+
+const CODE_SEGMENTOS = `// Reparte (marca × ventana de 25 páginas) para esta pasada.
+const marcas = ["audi","bmw","mercedes-benz","volkswagen","peugeot","renault","seat","citroen","ford","opel","toyota","kia","hyundai","nissan","fiat","dacia","skoda","volvo","mazda","mini","land-rover","jeep","honda","suzuki","mitsubishi","lexus","porsche","alfa-romeo","jaguar","cupra","ds","smart","subaru","ssangyong","tesla","abarth","lancia","chevrolet","chrysler","dodge","infiniti","isuzu","maserati","bentley","ferrari","lamborghini","aston-martin","lotus","alpine","polestar","mg","byd","omoda","ebro","gwm","leapmotor","xpeng","zeekr","seres","maxus","genesis"];
+
+const PAGINAS = ${PAGINAS_POR_SEGMENTO};
+const SEGMENTOS = ${SEGMENTOS_POR_PASADA};
+// 625 es donde Autocasión corta la paginación. Ninguna marca pasa de ahí.
+const TOPE_PAGINA = 625;
+
+const fila = $('PG: Por dónde íbamos').first().json || {};
+let idx = Number(fila.marca);
+let pag = Number(fila.pagina);
+if (!Number.isFinite(idx) || idx < 0 || idx >= marcas.length) idx = 0;
+if (!Number.isFinite(pag) || pag < 1) pag = 1;
+
+const out = [];
+for (let i = 0; i < SEGMENTOS; i++) {
+  out.push({ json: { brand: marcas[idx], desde: pag, hasta: pag + PAGINAS - 1 } });
+  pag += PAGINAS;
+  // Se pasa a la marca siguiente al llegar al tope. El segmento se planta solo
+  // si la marca tiene menos páginas -Lamborghini tiene 7-, y eso cuesta UNA
+  // petición por ventana vacía. Es el precio de no preguntar antes cuántas
+  // páginas tiene cada marca: un 12% de peticiones de más por vuelta completa.
+  if (pag > TOPE_PAGINA) { pag = 1; idx = (idx + 1) % marcas.length; }
+}
+
+// Se apunta ANTES de scrapear, a propósito: si la pasada se cae a la mitad, la
+// siguiente sigue avanzando en vez de repetir media hora de lo mismo.
+// UPSERT: si las filas no existen todavía, las crea. Así no hace falta una
+// migración solo para dos números.
+const sqlCursor = "INSERT INTO moveadvisor_cursores (clave, valor, actualizado) VALUES"
+  + " ('autocasion_marca', " + idx + ", NOW()),"
+  + " ('autocasion_pagina', " + pag + ", NOW())"
+  + " ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, actualizado = NOW()";
+for (const o of out) o.json.sqlCursor = sqlCursor;
+
+console.log('[autocasion] ' + out.length + ' segmentos: ' + out[0].json.brand
+  + ' p' + out[0].json.desde + ' .. ' + out[out.length-1].json.brand
+  + ' p' + out[out.length-1].json.hasta + '. La próxima empieza en ' + idx + ':' + pag + '.');
+return out;`;
+
+// ══ EL SEGMENTO ════════════════════════════════════════════════════════════
+const CODE_PARAMS = `const inp = $input.item.json || {};
+return [{ json: {
+  brand: inp.brand ? String(inp.brand) : 'peugeot',
+  desde: Number(inp.desde) > 0 ? Number(inp.desde) : 1,
+  hasta: Number(inp.hasta) > 0 ? Number(inp.hasta) : 25,
+} }];`;
+
+const CODE_PAGINAS = `// Cuántas páginas tiene esta marca, y cuáles tocan en esta ventana.
+const seg = $('Params').item.json;
+const res = $input.first().json;
+// Con responseFormat 'text' + fullResponse, n8n deja el cuerpo en 'data', no en
+// 'body'. Mirar solo 'body' dejó 4.484 ofertas sin clasificar en Wallapop.
+const html = String(res.data || res.body || '');
+
+let maxPage = 1;
+try {
+  const nums = [...html.matchAll(/[?&]page=(\\d+)/g)].map(m => parseInt(m[1], 10)).filter(n => !isNaN(n));
+  if (nums.length) maxPage = Math.min(Math.max(...nums), 625);
+} catch (e) { maxPage = 1; }
+
+const hasta = Math.min(seg.hasta, maxPage);
+const out = [];
+for (let p = seg.desde; p <= hasta; p++) out.push({ json: { brand: seg.brand, page: p } });
+
+if (!out.length) {
+  console.log('[autocasion] ' + seg.brand + ': la ventana ' + seg.desde + '-' + seg.hasta
+    + ' está más allá de su última página (' + maxPage + '). Nada que hacer.');
+}
+return out;`;
+
+// El lector del listado se mantiene TAL CUAL estaba: lee el JSON-LD de la
+// página y ya miraba 'data' antes que 'body'. Si funciona, no se toca.
+const CODE_TRANSFORMAR = fs.readFileSync(
+  path.join(RAIZ, "scripts", "lib", "autocasion-transformar.js"), "utf8");
+
+const condicion = (id, campo) => ({
+  conditions: {
+    options: { caseSensitive: true, leftValue: "", typeValidation: "loose", version: 2 },
+    conditions: [{ id: id, leftValue: "={{ $json." + campo + " }}", rightValue: "",
+      operator: { type: "string", operation: "notEmpty", singleValue: true } }],
+    combinator: "and",
+  },
+  looseTypeValidation: true,
+  options: {},
+});
+
+// ── nodos del orquestador ──────────────────────────────────────────────────
+const CRON_ORQ = "2 veces/día (8:20 y 21:20)";
+const nodosOrq = [
+  { parameters: {}, id: "ac-o-manual", name: "Ejecutar manualmente",
+    type: "n8n-nodes-base.manualTrigger", typeVersion: 1, position: [-560, 200] },
+  // 8:20 y 21:20. No a las 22:00 como antes: a esa hora arranca el scraper
+  // alemán de importación, y las dos pasadas se peleaban por la misma máquina.
+  // Cada pasada son ~17 min, así que no pisa a nadie.
+  { parameters: { rule: { interval: [{ field: "cronExpression", expression: "0 20 8,21 * * *" }] } },
+    id: "ac-o-cron", name: CRON_ORQ,
+    type: "n8n-nodes-base.scheduleTrigger", typeVersion: 1, position: [-560, 400] },
+  { parameters: { operation: "executeQuery", query: CURSOR_SQL, options: {} },
+    id: "ac-o-cursor", name: "PG: Por dónde íbamos",
+    type: "n8n-nodes-base.postgres", typeVersion: 2, position: [-320, 300],
+    credentials: PG_CRED, ...REINTENTA },
+  { parameters: { jsCode: CODE_SEGMENTOS }, id: "ac-o-gen",
+    name: "Code: Generar segmentos (marca x páginas)",
+    type: "n8n-nodes-base.code", typeVersion: 2, position: [-80, 300] },
+  { parameters: { operation: "executeQuery", query: "={{ $json.sqlCursor }}", options: {} },
+    id: "ac-o-guardar", name: "PG: Apuntar dónde nos quedamos",
+    type: "n8n-nodes-base.postgres", typeVersion: 2, position: [160, 140],
+    credentials: PG_CRED, ...REINTENTA, executeOnce: true },
+  { parameters: { options: {} }, id: "ac-o-loop", name: "Loop: segmento por segmento",
+    type: "n8n-nodes-base.splitInBatches", typeVersion: 3, position: [160, 340] },
+  // typeVersion 1 quiere el id COMO TEXTO. Con la forma de objeto -{__rl,value,
+  // mode}- n8n lo interpola como "[object Object]" y dice «Workflow does not
+  // exist». Pasó con el alemán el 2026-09-09.
+  { parameters: { workflowId: ID_SEGMENTO, options: {} },
+    id: "ac-o-sub", name: "Scrapear segmento (Autocasión – Segmento)",
+    type: "n8n-nodes-base.executeWorkflow", typeVersion: 1, position: [400, 440] },
+  { parameters: { amount: ESPERA_SEGUNDOS, unit: "seconds" }, id: "ac-o-wait",
+    name: "Esperar " + ESPERA_SEGUNDOS + "s",
+    type: "n8n-nodes-base.wait", typeVersion: 1, position: [640, 440],
+    webhookId: "d81f2a06-autocasion-orq" },
+];
+
+const L = (n) => ({ node: n, type: "main", index: 0 });
+const conexionesOrq = {
+  "Ejecutar manualmente": { main: [[L("PG: Por dónde íbamos")]] },
+  [CRON_ORQ]:             { main: [[L("PG: Por dónde íbamos")]] },
+  "PG: Por dónde íbamos": { main: [[L("Code: Generar segmentos (marca x páginas)")]] },
+  "Code: Generar segmentos (marca x páginas)": {
+    main: [[L("PG: Apuntar dónde nos quedamos"), L("Loop: segmento por segmento")]] },
+  "Loop: segmento por segmento": { main: [[], [L("Scrapear segmento (Autocasión – Segmento)")]] },
+  "Scrapear segmento (Autocasión – Segmento)": { main: [[L("Esperar " + ESPERA_SEGUNDOS + "s")]] },
+  ["Esperar " + ESPERA_SEGUNDOS + "s"]: { main: [[L("Loop: segmento por segmento")]] },
+};
+
+// ── nodos del segmento ─────────────────────────────────────────────────────
+const nodosSeg = [
+  { parameters: {}, id: "ac-s-manual", name: "Ejecutar manualmente",
+    type: "n8n-nodes-base.manualTrigger", typeVersion: 1, position: [-560, 200] },
+  { parameters: {}, id: "ac-s-trigger", name: "Llamada desde orquestador",
+    type: "n8n-nodes-base.executeWorkflowTrigger", typeVersion: 1, position: [-560, 400] },
+  { parameters: { jsCode: CODE_PARAMS }, id: "ac-s-params", name: "Params",
+    type: "n8n-nodes-base.code", typeVersion: 2, position: [-320, 300] },
+  { parameters: {
+      url: "=https://www.autocasion.com/coches-segunda-mano/{{ $json.brand }}-ocasion",
+      ...CABECERAS, options: OPCIONES_HTTP,
+    }, id: "ac-s-contar", name: "HTTP: Contar (pág 1)",
+    onError: "continueRegularOutput",
+    type: "n8n-nodes-base.httpRequest", typeVersion: 4, position: [-80, 300] },
+  { parameters: { jsCode: CODE_PAGINAS }, id: "ac-s-paginas", name: "Code: Generar páginas",
+    type: "n8n-nodes-base.code", typeVersion: 2, position: [160, 300] },
+  { parameters: { options: {} }, id: "ac-s-loop", name: "Loop: página por página",
+    type: "n8n-nodes-base.splitInBatches", typeVersion: 3, position: [400, 300] },
+  { parameters: {
+      url: "=https://www.autocasion.com/coches-segunda-mano/{{ $json.brand }}-ocasion?page={{ $json.page }}",
+      ...CABECERAS, options: OPCIONES_HTTP,
+    }, id: "ac-s-http", name: "HTTP: Listado Autocasión",
+    // neverError solo calla los códigos HTTP; un corte de red seguiría matando
+    // el nodo y con él la ventana entera.
+    onError: "continueRegularOutput",
+    type: "n8n-nodes-base.httpRequest", typeVersion: 4, position: [640, 420] },
+  { parameters: { jsCode: CODE_TRANSFORMAR }, id: "ac-s-transf",
+    name: "Code: Transformar ofertas",
+    type: "n8n-nodes-base.code", typeVersion: 2, position: [880, 420] },
+  { parameters: condicion("ac-s-c-sql", "sql"), id: "ac-s-if", name: "IF: ¿hay ofertas?",
+    type: "n8n-nodes-base.if", typeVersion: 2, position: [1120, 420] },
+  { parameters: { operation: "executeQuery", query: "={{ $json.sql }}", options: {} },
+    id: "ac-s-pg", name: "PG: Upsert ofertas",
+    type: "n8n-nodes-base.postgres", typeVersion: 2, position: [1360, 340],
+    credentials: PG_CRED, ...REINTENTA },
+  { parameters: { amount: ESPERA_SEGUNDOS, unit: "seconds" }, id: "ac-s-wait",
+    name: "Esperar " + ESPERA_SEGUNDOS + "s (rate limit)",
+    type: "n8n-nodes-base.wait", typeVersion: 1, position: [1600, 420],
+    webhookId: "e93c7b52-autocasion-seg" },
+];
+
+const conexionesSeg = {
+  "Ejecutar manualmente":     { main: [[L("Params")]] },
+  "Llamada desde orquestador": { main: [[L("Params")]] },
+  "Params":                   { main: [[L("HTTP: Contar (pág 1)")]] },
+  "HTTP: Contar (pág 1)":     { main: [[L("Code: Generar páginas")]] },
+  "Code: Generar páginas":    { main: [[L("Loop: página por página")]] },
+  "Loop: página por página":  { main: [[], [L("HTTP: Listado Autocasión")]] },
+  "HTTP: Listado Autocasión": { main: [[L("Code: Transformar ofertas")]] },
+  "Code: Transformar ofertas": { main: [[L("IF: ¿hay ofertas?")]] },
+  "IF: ¿hay ofertas?":        { main: [[L("PG: Upsert ofertas")], [L("Esperar " + ESPERA_SEGUNDOS + "s (rate limit)")]] },
+  "PG: Upsert ofertas":       { main: [[L("Esperar " + ESPERA_SEGUNDOS + "s (rate limit)")]] },
+  ["Esperar " + ESPERA_SEGUNDOS + "s (rate limit)"]: { main: [[L("Loop: página por página")]] },
+};
+
+const ajustes = {
+  executionOrder: "v1",
+  saveManualExecutions: true,
+  saveDataSuccessExecution: "none",
+  saveDataErrorExecution: "all",
+  callerPolicy: "workflowsFromSameOwner",
+  errorWorkflow: ERROR_WF,
+};
+
+const escribe = (fichero, wf) => {
+  const destino = path.join(RAIZ, "n8n-workflows", fichero);
+  fs.writeFileSync(destino, JSON.stringify(wf, null, 2) + "\n");
+  console.log("escrito  " + destino + "   (" + wf.nodes.length + " nodos)");
+};
+
+escribe("autocasion-scraper-brands.json", {
+  name: "Autocasión – Scraper por marcas (orquestador)",
+  nodes: nodosOrq, connections: conexionesOrq, settings: ajustes, pinData: {},
+});
+escribe("autocasion-segmento.json", {
+  name: "Autocasión – Segmento (marca)",
+  nodes: nodosSeg, connections: conexionesSeg, settings: ajustes, pinData: {},
+});
+
+console.log("  " + SEGMENTOS_POR_PASADA + " segmentos x " + PAGINAS_POR_SEGMENTO
+  + " páginas = " + (SEGMENTOS_POR_PASADA * PAGINAS_POR_SEGMENTO) + " páginas por pasada");
+console.log("  2 pasadas/día contra ~4.800 páginas = vuelta completa en "
+  + Math.ceil(4800 / (SEGMENTOS_POR_PASADA * PAGINAS_POR_SEGMENTO * 2)) + " días");
+if (ID_SEGMENTO === "PENDIENTE_DE_ENLAZAR") {
+  console.log("  OJO: el orquestador todavía no sabe a quién llamar.");
+  console.log("       Importa el segmento y lanza: npm run enlaza-segmento-autocasion");
+}
+
+// Que las barras hayan sobrevivido a vivir dentro de una cadena: "\d" es "d".
+const gen = JSON.parse(fs.readFileSync(path.join(RAIZ, "n8n-workflows", "autocasion-segmento.json"), "utf8"));
+const js = gen.nodes.find((n) => n.name === "Code: Generar páginas").parameters.jsCode;
+const bien = js.indexOf("page=(\\d+)") >= 0;
+console.log("  " + (bien ? "ok   " : "MAL  ") + "el regex de la paginación conserva su barra");
+if (!bien) process.exit(1);

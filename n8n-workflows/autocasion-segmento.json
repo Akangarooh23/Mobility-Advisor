@@ -3,164 +3,168 @@
   "nodes": [
     {
       "parameters": {},
-      "id": "acs-manual",
+      "id": "ac-s-manual",
       "name": "Ejecutar manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -280,
-        300
+        -560,
+        200
       ]
     },
     {
       "parameters": {},
-      "id": "acs-parent",
+      "id": "ac-s-trigger",
       "name": "Llamada desde orquestador",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
       "position": [
-        -280,
-        500
+        -560,
+        400
       ]
     },
     {
       "parameters": {
-        "language": "javaScript",
-        "jsCode": "const inp = $input.item.json || {};\nreturn [{ json: { brand: inp.brand ? String(inp.brand) : 'peugeot' } }];"
+        "jsCode": "const inp = $input.item.json || {};\nreturn [{ json: {\n  brand: inp.brand ? String(inp.brand) : 'peugeot',\n  desde: Number(inp.desde) > 0 ? Number(inp.desde) : 1,\n  hasta: Number(inp.hasta) > 0 ? Number(inp.hasta) : 25,\n} }];"
       },
-      "id": "acs-params",
+      "id": "ac-s-params",
       "name": "Params",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -40,
-        400
+        -320,
+        300
       ]
     },
     {
       "parameters": {
-        "method": "GET",
         "url": "=https://www.autocasion.com/coches-segunda-mano/{{ $json.brand }}-ocasion",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
         "options": {
-          "timeout": 25000,
           "response": {
             "response": {
+              "fullResponse": true,
+              "neverError": true,
               "responseFormat": "text"
             }
           },
-          "headers": {
-            "values": [
-              {
-                "name": "User-Agent",
-                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-              },
-              {
-                "name": "Accept",
-                "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-              },
-              {
-                "name": "Accept-Language",
-                "value": "es-ES,es;q=0.9,en;q=0.8"
-              }
-            ]
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
           }
         }
       },
-      "id": "acs-count",
+      "id": "ac-s-contar",
       "name": "HTTP: Contar (pág 1)",
+      "onError": "continueRegularOutput",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        180,
-        400
-      ],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 2000,
-      "continueOnFail": true
+        -80,
+        300
+      ]
     },
     {
       "parameters": {
-        "language": "javaScript",
-        "jsCode": "// Leer el nº máximo de página de la marca (de los links ?page=N), tope 625.\nconst seg = $('Params').item.json;\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\nlet maxPage = 1;\ntry { const nums = [...html.matchAll(/[?&]page=(\\d+)/g)].map(m => parseInt(m[1],10)).filter(n => !isNaN(n)); if (nums.length) maxPage = Math.min(Math.max(...nums), 625); } catch (e) { maxPage = 1; }\nconst out = [];\nfor (let i = 1; i <= maxPage; i++) out.push({ json: { brand: seg.brand, page: i } });\nreturn out;"
+        "jsCode": "// Cuántas páginas tiene esta marca, y cuáles tocan en esta ventana.\nconst seg = $('Params').item.json;\nconst res = $input.first().json;\n// Con responseFormat 'text' + fullResponse, n8n deja el cuerpo en 'data', no en\n// 'body'. Mirar solo 'body' dejó 4.484 ofertas sin clasificar en Wallapop.\nconst html = String(res.data || res.body || '');\n\nlet maxPage = 1;\ntry {\n  const nums = [...html.matchAll(/[?&]page=(\\d+)/g)].map(m => parseInt(m[1], 10)).filter(n => !isNaN(n));\n  if (nums.length) maxPage = Math.min(Math.max(...nums), 625);\n} catch (e) { maxPage = 1; }\n\nconst hasta = Math.min(seg.hasta, maxPage);\nconst out = [];\nfor (let p = seg.desde; p <= hasta; p++) out.push({ json: { brand: seg.brand, page: p } });\n\nif (!out.length) {\n  console.log('[autocasion] ' + seg.brand + ': la ventana ' + seg.desde + '-' + seg.hasta\n    + ' está más allá de su última página (' + maxPage + '). Nada que hacer.');\n}\nreturn out;"
       },
-      "id": "acs-gen",
+      "id": "ac-s-paginas",
       "name": "Code: Generar páginas",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        400,
-        400
+        160,
+        300
       ]
     },
     {
       "parameters": {
-        "batchSize": 1,
         "options": {}
       },
-      "id": "acs-loop",
+      "id": "ac-s-loop",
       "name": "Loop: página por página",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        620,
-        400
+        400,
+        300
       ]
     },
     {
       "parameters": {
-        "method": "GET",
         "url": "=https://www.autocasion.com/coches-segunda-mano/{{ $json.brand }}-ocasion?page={{ $json.page }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
         "options": {
-          "timeout": 25000,
           "response": {
             "response": {
+              "fullResponse": true,
+              "neverError": true,
               "responseFormat": "text"
             }
           },
-          "headers": {
-            "values": [
-              {
-                "name": "User-Agent",
-                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-              },
-              {
-                "name": "Accept",
-                "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-              },
-              {
-                "name": "Accept-Language",
-                "value": "es-ES,es;q=0.9,en;q=0.8"
-              }
-            ]
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
           }
         }
       },
-      "id": "acs-http",
-      "name": "HTTP: Listado marca",
+      "id": "ac-s-http",
+      "name": "HTTP: Listado Autocasión",
+      "onError": "continueRegularOutput",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        840,
-        400
-      ],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 2000,
-      "continueOnFail": true
+        640,
+        420
+      ]
     },
     {
       "parameters": {
-        "language": "javaScript",
         "jsCode": "// Autocasion - transform: HTML pagina -> JSON-LD (Product/Car) -> UPSERT\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\nlet items = [];\nconst blocks = [...html.matchAll(/<script[^>]*application\\/ld\\+json[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m => m[1].trim());\nfor (const b of blocks) {\n  try {\n    const j = JSON.parse(b);\n    const arr = Array.isArray(j) ? j : (j['@graph'] || [j]);\n    for (const o of arr) {\n      if (o && (o['@type'] === 'Product' || o['@type'] === 'Car')) items.push(o);\n      else if (o && o['@type'] === 'ItemList' && Array.isArray(o.itemListElement)) { for (const el of o.itemListElement) { const it = el.item || el; if (it) items.push(it); } }\n    }\n  } catch (e) {}\n}\nif (!items.length) return [{ json: { sql: null, count: 0 } }];\nfunction esc(v){ if(v===null||v===undefined) return 'NULL'; if(typeof v==='number') return isNaN(v)?'NULL':String(v); return \"'\"+String(v).replace(/'/g,\"''\")+\"'\"; }\nfunction num(s){ const n=parseInt(String(s).replace(/[^0-9]/g,''),10); return isNaN(n)?null:n; }\nfunction normGear(r){ const s=String(r||'').toLowerCase(); if(s.indexOf('autom')!==-1) return 'Automatica'; if(s.indexOf('manual')!==-1) return 'Manual'; return ''; }\nfunction reEsc(s){ return s.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&'); }\nfunction inferFuel(t){ const s=String(t||'').toLowerCase();\n  if(/eléctric|electric|\\be-tech electric\\b/.test(s)) return 'Eléctrico';\n  if(/híbrid|hibrid|phev|hev|hybrid|e-tech/.test(s)) return 'Híbrido';\n  if(/diésel|diesel|bluehdi|\\bhdi\\b|\\btdi\\b|\\bcdi\\b|\\bdci\\b|\\btdci\\b|bluetec|crdi|\\bjtd\\b|\\bcrdi\\b/.test(s)) return 'Diesel';\n  if(/gasolina|puretech|\\btsi\\b|\\btfsi\\b|\\btce\\b|\\bthp\\b|\\bvti\\b|\\bmpi\\b|t-gdi|\\bgdi\\b|\\bmhev\\b|firefly/.test(s)) return 'Gasolina';\n  return ''; }\nconst rows = [];\nfor (const it of items) {\n  const off = it.offers || {}, car = off.itemOffered || {};\n  const idf = car.identifier || (off.url ? (String(off.url).match(/ref(\\d+)/) || [])[1] : null);\n  if (!idf) continue;\n  const id = 'ac_' + String(idf);\n  const url = off.url || '';\n  const brand = (it.brand && it.brand.name) || car.manufacturer || '';\n  const model = car.model || '';\n  const title = it.name || car.name || (brand + ' ' + model).trim();\n  let version = title;\n  if (brand) version = version.replace(new RegExp(reEsc(brand), 'i'), '');\n  if (model) version = version.replace(new RegExp(reEsc(model), 'i'), '');\n  version = version.replace(/\\s+/g, ' ').trim();\n  const year = car.productionDate ? parseInt(car.productionDate, 10) : null;\n  const mileage = (car.mileageFromOdometer && car.mileageFromOdometer.value != null) ? num(car.mileageFromOdometer.value) : null;\n  const price = off.price != null ? num(off.price) : null;\n  const transmission = normGear(car.vehicleTransmission);\n  const fuel = inferFuel(title);\n  const color = car.color || it.color || '';\n  const bodyType = car.bodyType || '';\n  let cv = null; try { const ep = car.vehicleEngine && car.vehicleEngine.enginePower; if (ep && ep.value != null) cv = num(ep.value); } catch (e) {}\n  const imgs = Array.isArray(it.image) ? it.image : (Array.isArray(car.image) ? car.image : (it.image ? [it.image] : []));\n  const imageUrl = imgs[0] || '';\n  const imagesJson = JSON.stringify(imgs.slice(0, 15)).replace(/'/g, \"''\");\n  const rawPayload = JSON.stringify(it).replace(/'/g, \"''\");\n  const row = '(' +\n    esc(id) + \", 'autocasion', \" + esc(url) + ', ' + esc(title) + ', ' + esc(brand) + ', ' + esc(model) + ', ' + esc(version) + ', ' +\n    (year!=null?String(year):'NULL') + ', ' + (mileage!=null?String(mileage):'NULL') + ', ' + (price!=null?String(price):'NULL') + ', ' +\n    esc(fuel) + ', ' + esc(transmission) + ', ' + esc(imageUrl) + \", '\" + imagesJson + \"', \" +\n    esc(bodyType) + ', ' + (cv!=null?String(cv):'NULL') + ', ' + esc(color) + \", 'profesional', 'compra', '\" + rawPayload + \"', NOW(), NOW(), NOW()\" +\n  ')';\n  rows.push(row);\n}\nif (!rows.length) return [{ json: { sql: null, count: 0 } }];\nconst cols = 'id, portal, url, title, brand, model, version, year, mileage, price, fuel, transmission, image_url, images, body_type, power_cv, color, seller_type, listing_type, raw_payload, first_seen_at, scraped_at, last_seen_at';\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET url=EXCLUDED.url, title=EXCLUDED.title, price=EXCLUDED.price, mileage=EXCLUDED.mileage, ' +\n  \"image_url=COALESCE(NULLIF(moveadvisor_market_offers.image_url,''), EXCLUDED.image_url), \" +\n  \"images=COALESCE(NULLIF(moveadvisor_market_offers.images,''), EXCLUDED.images), \" +\n  'power_cv=COALESCE(EXCLUDED.power_cv, moveadvisor_market_offers.power_cv), ' +\n  \"color=COALESCE(NULLIF(moveadvisor_market_offers.color,''), EXCLUDED.color), \" +\n  'raw_payload=EXCLUDED.raw_payload, last_seen_at=NOW(), updated_at=NOW()';\nconst sql = 'INSERT INTO moveadvisor_market_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;\nreturn [{ json: { sql: sql, count: rows.length } }];"
       },
-      "id": "acs-transform",
+      "id": "ac-s-transf",
       "name": "Code: Transformar ofertas",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1060,
-        400
+        880,
+        420
       ]
     },
     {
@@ -169,67 +173,73 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict"
+            "typeValidation": "loose",
+            "version": 2
           },
           "conditions": [
             {
-              "id": "c1",
-              "leftValue": "={{ $json.count }}",
-              "rightValue": 0,
+              "id": "ac-s-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
               "operator": {
-                "type": "number",
-                "operation": "gt"
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
               }
             }
           ],
           "combinator": "and"
         },
+        "looseTypeValidation": true,
         "options": {}
       },
-      "id": "acs-if",
+      "id": "ac-s-if",
       "name": "IF: ¿hay ofertas?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        1280,
-        400
+        1120,
+        420
       ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
         "query": "={{ $json.sql }}",
-        "additionalFields": {}
+        "options": {}
       },
-      "id": "acs-pg",
+      "id": "ac-s-pg",
       "name": "PG: Upsert ofertas",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
-        1520,
-        280
+        1360,
+        340
       ],
       "credentials": {
         "postgres": {
           "id": "zoxD0jV8hxZqH0uY",
           "name": "Postgres account"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
         "amount": 1,
         "unit": "seconds"
       },
-      "id": "acs-wait",
+      "id": "ac-s-wait",
       "name": "Esperar 1s (rate limit)",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1,
       "position": [
-        1760,
-        400
+        1600,
+        420
       ],
-      "webhookId": "wait-autocasion-segmento"
+      "webhookId": "e93c7b52-autocasion-seg"
     }
   ],
   "connections": {
@@ -293,14 +303,14 @@
         [],
         [
           {
-            "node": "HTTP: Listado marca",
+            "node": "HTTP: Listado Autocasión",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP: Listado marca": {
+    "HTTP: Listado Autocasión": {
       "main": [
         [
           {
@@ -366,12 +376,10 @@
   "settings": {
     "executionOrder": "v1",
     "saveManualExecutions": true,
-    "saveDataSuccessExecution": "all",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
     "callerPolicy": "workflowsFromSameOwner",
-    "errorWorkflow": "",
-    "saveDataErrorExecution": "all"
+    "errorWorkflow": "9BwKOPMIzjj3owho"
   },
-  "staticData": null,
-  "triggerCount": 0,
-  "tags": []
+  "pinData": {}
 }

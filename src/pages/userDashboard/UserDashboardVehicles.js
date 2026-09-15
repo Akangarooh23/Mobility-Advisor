@@ -920,6 +920,22 @@ export default function UserDashboardVehicles({
 
     setIsSaving(true);
 
+    /*
+     * Todo el guardado va en try/finally, y ésta es la corrección de verdad.
+     *
+     * `isSaving` se ponía a true aquí y solo volvía a false al final. Cualquier
+     * cosa que reventara por el medio —leer un fichero, por ejemplo— lo dejaba
+     * en true **para siempre**: a partir de ese momento cada clic en «Guardar
+     * cambios» salía por el `if (isSaving) return` de arriba y no hacía
+     * absolutamente nada.
+     *
+     * Ni petición, ni mensaje, ni error en la consola. El botón quedaba muerto
+     * hasta recargar la página, y desde fuera se ve igual que «no guarda» —
+     * incluido el aviso que se añadió para que se viera el fallo, que tampoco
+     * llegaba a ejecutarse.
+     */
+    try {
+
     const nickname = normalizeText(vehicleForm.nickname);
     const title = nickname || `${brand} ${model} ${version}`.trim();
 
@@ -1114,6 +1130,23 @@ export default function UserDashboardVehicles({
     setPendingMaintenanceInvoices([]);
     const baseMsg = existingVehicle ? t("dashboard.vehSavedUpdated", { title }) : t("dashboard.vehSavedNew", { title });
     setVehicleFeedback(baseMsg + sideCallWarning);
+    } catch (e) {
+      /*
+       * Lo que reviente aquí se dice, no se traga.
+       *
+       * Antes no había `catch` ninguno: la excepción subía, React la perdía y
+       * lo único que quedaba era el botón bloqueado. Quien lo miraba desde
+       * fuera veía un guardado que no guarda y ni un mensaje.
+       */
+      console.error('[garage] el guardado ha reventado:', e);
+      setVehicleFeedback(
+        `⚠️ Algo ha fallado al guardar (${normalizeText(e?.message) || 'error desconocido'}). `
+        + 'Tus archivos siguen seleccionados: vuelve a darle a «Guardar cambios».'
+      );
+    } finally {
+      // Pase lo que pase, el botón vuelve a funcionar.
+      setIsSaving(false);
+    }
   };
 
   const startEditingVehicle = (vehicle = {}) => {

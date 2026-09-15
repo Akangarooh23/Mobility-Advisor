@@ -178,6 +178,41 @@ async function addGarageVehicleFromApi(currentUserEmail = "", vehicle = {}) {
     throw new Error(`${response.status}${detalle ? ` · ${detalle}` : ""}`);
   }
 
+  /*
+   * Y que lo que se mandó esté guardado de verdad.
+   *
+   * El servidor contesta 200 y **se salta en silencio** los adjuntos que no
+   * puede guardar: si uno llega sin URL y sin contenido, hace `continue` y
+   * sigue. La respuesta dice «Vehiculo guardado» igual, así que la pantalla
+   * daba por buenos tres documentos que no se habían escrito en ningún sitio.
+   *
+   * Por eso devuelve `persistedDocumentSummary`, que es el recuento de lo que
+   * quedó. Esta comprobación ya existía en la pantalla de «Mis coches» y aquí
+   * no — la misma API, la misma respuesta, y una de las dos se lo creía.
+   */
+  const guardado = data?.persistedDocumentSummary;
+  if (guardado) {
+    const COLECCIONES = [
+      ['technicalSheetDocuments', 'la ficha técnica'],
+      ['circulationPermitDocuments', 'el permiso de circulación'],
+      ['itvDocuments', 'la documentación ITV'],
+      ['documents', 'otros documentos'],
+      ['photos', 'las fotos'],
+      ['insuranceDocuments', 'los documentos del seguro'],
+      ['maintenanceInvoices', 'las facturas de mantenimiento'],
+    ];
+    const perdidas = COLECCIONES
+      .filter(([clave]) => {
+        const mandadas = Array.isArray(vehicle?.[clave]) ? vehicle[clave].length : 0;
+        return mandadas > 0 && Number(guardado?.[clave] || 0) < mandadas;
+      })
+      .map(([, comoSeLlama]) => comoSeLlama);
+
+    if (perdidas.length > 0) {
+      throw new Error(`el servidor no ha guardado ${perdidas.join(', ')}`);
+    }
+  }
+
   return Array.isArray(data?.vehicles) ? data.vehicles.map((item) => normalizeVehicleAttachmentCollections(item)).filter(Boolean) : [];
 }
 

@@ -1,8 +1,19 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { QRCodeSVG } from "qrcode.react";
 import LogoPopCar from "../ui/LogoPopCar";
 import PiePopCar from "../ui/PiePopCar";
 import "./LandingPage.css";
+
+/**
+ * La app, que vive en su propio subdominio.
+ *
+ * Es la misma cuenta y la misma base que esta web: no hay registro aparte ni
+ * nada que instalar. Escrita aquí y no en un `.env` porque es una dirección
+ * pública que se pinta en la página, no un secreto ni algo que cambie por
+ * entorno.
+ */
+const APP_URL = "https://app.popcar.com.es";
 
 /**
  * Home de PopCar.
@@ -55,6 +66,16 @@ const TEXTOS = {
     idcarTitulo: "Tu coche, tu identidad digital.",
     idcarTexto: "Sube tu coche a IdCar y gestiónalo o véndelo cuando quieras.",
     idcarBoton: "Quiero subir mi coche",
+    /*
+     * «Ábrela», no «descárgala».
+     *
+     * No hay nada que descargar: es la web de siempre en app.popcar.com.es, con
+     * la misma cuenta. Poner «descargar» y acabar en un navegador defrauda por
+     * una tontería, y además esta misma página promete «sin instalar nada» unas
+     * secciones más abajo: se contradiría sola en la misma pantalla.
+     */
+    idcarApp: "Ábrela en tu móvil",
+    idcarAppQr: "Escanea para abrirla en el móvil",
     facilA: "Así de ",
     facilB: "fácil",
     facilSub: "Cuatro pasos, y en ninguno tienes que moverte de casa.",
@@ -138,6 +159,8 @@ const TEXTOS = {
     idcarTitulo: "Your car, its digital identity.",
     idcarTexto: "Upload your car to IdCar and manage or sell it whenever you want.",
     idcarBoton: "Upload my car",
+    idcarApp: "Open it on your phone",
+    idcarAppQr: "Scan to open it on your phone",
     facilA: "That ",
     facilB: "simple",
     facilSub: "Four steps, and none of them means leaving home.",
@@ -531,6 +554,22 @@ export default function LandingPage({
                 <p>{t.idcarTitulo}</p>
                 <p className="pc-idcar-sub">{t.idcarTexto}</p>
                 <button className="pc-btn pc-btn-amarillo" onClick={irGestionar}>{t.idcarBoton}</button>
+
+                {/*
+                  Y la misma cuenta, en el móvil.
+
+                  El enlace se ve siempre: en un teléfono es lo único que sirve,
+                  porque el QR se lo estaría enseñando a sí mismo. El QR aparece
+                  solo en pantallas anchas, que es donde de verdad hace falta un
+                  puente para llegar al móvil.
+                */}
+                <div className="pc-idcar-app">
+                  <a className="pc-idcar-app-enlace" href={APP_URL}>{t.idcarApp}</a>
+                  <div className="pc-idcar-app-qr">
+                    <QRCodeSVG value={APP_URL} size={62} level="M" includeMargin={false} />
+                    <span>{t.idcarAppQr}</span>
+                  </div>
+                </div>
               </div>
               <div className="pc-movil" aria-hidden="true">
                 <div className="pc-movil-pantalla">

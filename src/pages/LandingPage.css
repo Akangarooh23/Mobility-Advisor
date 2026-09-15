@@ -245,6 +245,20 @@
 .pc-idcar-sub { color: var(--gris-400); line-height: 1.5; margin: 8px 0 24px; }
 .pc-idcar .pc-btn { margin-top: 4px; }
 
+/* La app, dentro de la tarjeta de IdCar.
+   El enlace es secundario: el botón amarillo sigue siendo subir el coche, que
+   es lo que hay que hacer antes de que la app sirva de algo. */
+.pc-idcar-app { margin-top: 18px; }
+.pc-idcar-app-enlace {
+  color: var(--blanco); font-size: 13px; font-weight: 600;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.pc-idcar-app-enlace:hover { color: var(--acento); }
+.pc-idcar-app-qr { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+/* Fondo blanco y no transparente: un QR sobre negro no lo lee ninguna cámara. */
+.pc-idcar-app-qr svg { background: var(--blanco); padding: 5px; border-radius: 6px; display: block; }
+.pc-idcar-app-qr span { color: var(--gris-400); font-size: 11px; line-height: 1.4; max-width: 110px; }
+
 .pc-movil {
   margin-left: auto; align-self: flex-end; width: 148px; height: 250px;
   border: 6px solid var(--gris-800); border-bottom: 0; border-radius: 28px 28px 0 0;
@@ -365,6 +379,10 @@
   .pc-checks { grid-template-columns: 1fr; }
   .pc-banda { padding: 26px; }
   .pc-banda-movil { display: none; }
+  /* El QR fuera: en un móvil sería enseñárselo a sí mismo. Ahí el enlace ya
+     abre la app directamente, que es lo que el QR viene a resolver desde un
+     escritorio. */
+  .pc-idcar-app-qr { display: none; }
   .pc-boletin { display: block; }
   .pc-boletin form { margin-top: 18px; }
   .pc-boletin input { width: 100%; }

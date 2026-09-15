@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemoveJson, postVehicleStateUpsertJson, postVehiclePublishJson, getErpBrandsJson, getErpModelsJson, getErpVersionsJson, getErpVersionDetailJson, rutaApi } from "../utils/apiClient";
 import { uploadFileDirect } from "../utils/supabaseUpload";
 import { comoSeCompara, laMatriculaRecordada } from "../utils/encargoDeVentaWeb";
+import { cualEsDelCatalogo } from "../utils/catalogoDelCoche";
 import AvailabilityEditor from "../components/AvailabilityEditor";
 import { useConditionReport, INFORME_OBLIGATORIO, etiquetaEstado, informeUtilizable, urlDeDescarga, baseDelModelo3d } from "../hooks/useConditionReport";
 import ConditionReportError from "../components/ConditionReportError";
@@ -724,6 +725,75 @@ export default function ServiceIdCarsManagePage({
       .finally(() => { if (!disposed) setErpBrandsLoading(false); });
     return () => { disposed = true; };
   }, []);
+
+  /*
+   * Al cambiar de coche, los desplegables vuelven a cero.
+   *
+   * Guardan el id del catálogo, no el nombre, y nadie los limpiaba: abrir el
+   * segundo coche del garaje enseñaba la marca del primero encima de la ficha
+   * del segundo. Se limpian aquí y los dos efectos de abajo los vuelven a poner
+   * con lo que tenga este.
+   */
+  useEffect(() => {
+    setErpSelectedBrandId("");
+    setErpSelectedModelId("");
+    setErpModels([]);
+    setErpVersions([]);
+  }, [editingVehicleId]);
+
+  /*
+   * Y se ponen en la marca que el coche ya tiene.
+   *
+   * El desplegable guarda el id («89») y la ficha guarda el nombre
+   * («Volkswagen»). Sin traducir lo uno a lo otro, abrir un coche que existe
+   * dejaba «Selecciona marca» encima de un Volkswagen T-Roc: quien venía desde
+   * «lo que te falta» a subir los papeles se encontraba la ficha en blanco y
+   * creía haber perdido el coche.
+   *
+   * Si la marca no está en el catálogo se pasa a mano, que es donde ese nombre
+   * sí se ve. Enseñar un desplegable vacío sobre un coche que tiene marca es
+   * esconder un dato que existe.
+   */
+  useEffect(() => {
+    if (vehicleCatalogMode !== "erp") return;
+    if (!form.brand || erpSelectedBrandId) return;
+    if (erpBrandsLoading || !erpBrands.length) return;
+
+    const marca = cualEsDelCatalogo(erpBrands, form.brand);
+    if (!marca) { setVehicleCatalogMode("manual"); return; }
+
+    setErpSelectedBrandId(String(marca.id));
+    setErpModelsLoading(true);
+    getErpModelsJson(marca.id)
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data?.models)) setErpModels(data.models); })
+      .catch(() => {})
+      .finally(() => setErpModelsLoading(false));
+  }, [vehicleCatalogMode, form.brand, erpSelectedBrandId, erpBrands, erpBrandsLoading]);
+
+  /*
+   * Lo mismo con el modelo, en cuanto llegan los de su marca.
+   *
+   * Y se piden también las versiones: el desplegable de «Versión» guarda el
+   * código que la ficha ya tiene, pero sin la lista cargada no tiene ninguna
+   * opción que enseñar y sale vacío aunque el valor esté puesto.
+   */
+  useEffect(() => {
+    if (vehicleCatalogMode !== "erp") return;
+    if (!form.model || erpSelectedModelId || !erpSelectedBrandId) return;
+    if (erpModelsLoading || !erpModels.length) return;
+
+    const modelo = cualEsDelCatalogo(erpModels, form.model);
+    if (!modelo) { setVehicleCatalogMode("manual"); return; }
+
+    setErpSelectedModelId(String(modelo.id));
+    setErpVersionsLoading(true);
+    getErpVersionsJson(modelo.id, erpSelectedBrandId)
+      .then((r) => r.json())
+      .then((data) => { setErpVersions(Array.isArray(data?.versions) ? data.versions : []); })
+      .catch(() => { setErpVersions([]); })
+      .finally(() => setErpVersionsLoading(false));
+  }, [vehicleCatalogMode, form.model, erpSelectedModelId, erpSelectedBrandId, erpModels, erpModelsLoading]);
 
   // Marketplace publish modal — keyboard trap & focus
   useEffect(() => {

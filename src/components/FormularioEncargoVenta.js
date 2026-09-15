@@ -169,9 +169,19 @@ export default function FormularioEncargoVenta({ userEmail = "" }) {
   return (
     <div className="fev-caja">
       <div className="fev-campo">
-        <label htmlFor="fev-coche">¿Qué coche quieres vender?</label>
+        {/*
+          * La etiqueta apunta al control que de verdad se pinta.
+          *
+          * El «select» y el «input» compartían el mismo identificador: son
+          * excluyentes, así que en el DOM no chocaban, pero cambiaba de dueño
+          * según el caso y la etiqueta apuntaba a lo que hubiera. Dos controles
+          * distintos, dos identificadores.
+          */}
+        <label htmlFor={tieneCoches ? "fev-coche-lista" : "fev-coche-matricula"}>
+          ¿Qué coche quieres vender?
+        </label>
         {tieneCoches ? (
-          <select id="fev-coche" value={datos.vehicleId} onChange={eligeCoche}>
+          <select id="fev-coche-lista" value={datos.vehicleId} onChange={eligeCoche}>
             <option value="">Elige tu coche…</option>
             {misCoches.map((v) => (
               <option key={v.id} value={v.id}>{comoSeLlama(v)}</option>
@@ -188,7 +198,7 @@ export default function FormularioEncargoVenta({ userEmail = "" }) {
               * ya tiene ficha o hay que pedirla.
               */}
             <input
-              id="fev-coche"
+              id="fev-coche-matricula"
               value={datos.matricula}
               onChange={pon("matricula")}
               placeholder="8888 LXR"

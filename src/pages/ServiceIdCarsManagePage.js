@@ -926,27 +926,6 @@ export default function ServiceIdCarsManagePage({
   };
 
   const handleSave = async () => {
-    /*
-     * Una traza al entrar, para saber si el clic llega.
-     *
-     * Este guardado no daba señales de vida: ni el «Guardando cambios…» que se
-     * pinta justo debajo del botón. Sin saber si el manejador se ejecuta, no se
-     * puede distinguir «sale por una puerta muda» de «el clic no llega», y las
-     * dos se ven igual desde fuera.
-     */
-    console.info('[idcar] guardar:', {
-      isSaving,
-      editando: editingVehicleId,
-      marca: form.brand, modelo: form.model,
-      seleccionados: {
-        fotos: pendingPhotos.length,
-        fichaTecnica: pendingTechnicalSheetDocuments.length,
-        otros: pendingOtherDocuments.length,
-        permiso: pendingCirculationPermitDocuments.length,
-        itv: pendingItvDocuments.length,
-      },
-    });
-
     if (isSaving) {
       // Si se ignora el clic, que se vea: antes no hacia nada y no lo decia.
       console.warn('[idcar] se ignora el clic: hay un guardado en curso');

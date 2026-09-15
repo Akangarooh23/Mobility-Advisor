@@ -157,7 +157,17 @@ function ValuationCard({ item, isDark, cardBg, onRequestValuation, onNavigate })
           >
             Descargar el informe
           </a>
-        ) : null}
+        ) : (
+          /*
+           * Y si no lo hay, se dice. No enseñar nada deja al cliente buscando un
+           * botón que no existe —pasó, y la pregunta llegó por otro lado—, y un
+           * hueco mudo parece un fallo nuestro en vez de lo que es: de esta
+           * tasación no guardamos el PDF porque se entregó antes de guardarlos.
+           */
+          <span style={{ fontSize: 11, color: mutedColor, alignSelf: "center" }}>
+            El informe de esta tasación está en tu correo
+          </span>
+        )}
         <button
           type="button"
           style={{ ...btnSecondary, marginLeft: "auto" }}

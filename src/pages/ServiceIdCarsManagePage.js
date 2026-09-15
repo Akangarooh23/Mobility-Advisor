@@ -912,7 +912,33 @@ export default function ServiceIdCarsManagePage({
   };
 
   const handleSave = async () => {
-    if (isSaving) return;
+    /*
+     * Una traza al entrar, para saber si el clic llega.
+     *
+     * Este guardado no daba señales de vida: ni el «Guardando cambios…» que se
+     * pinta justo debajo del botón. Sin saber si el manejador se ejecuta, no se
+     * puede distinguir «sale por una puerta muda» de «el clic no llega», y las
+     * dos se ven igual desde fuera.
+     */
+    console.info('[idcar] guardar:', {
+      isSaving,
+      editando: editingVehicleId,
+      marca: form.brand, modelo: form.model,
+      seleccionados: {
+        fotos: pendingPhotos.length,
+        fichaTecnica: pendingTechnicalSheetDocuments.length,
+        otros: pendingOtherDocuments.length,
+        permiso: pendingCirculationPermitDocuments.length,
+        itv: pendingItvDocuments.length,
+      },
+    });
+
+    if (isSaving) {
+      // Si se ignora el clic, que se vea: antes no hacia nada y no lo decia.
+      console.warn('[idcar] se ignora el clic: hay un guardado en curso');
+      showFeedback(txt('Hay un guardado en curso. Espera un momento.', 'A save is in progress. Please wait.'), 'info');
+      return;
+    }
 
     setIsSaving(true);
     showFeedback(txt("Guardando cambios...", "Saving changes..."), "info");
@@ -1846,6 +1872,24 @@ export default function ServiceIdCarsManagePage({
       </SectionBlock>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 4, padding: "10px 0" }}>
+        {/*
+          * El aviso, también aquí.
+          *
+          * Se pintaba solo arriba del editor, y el botón está al final de una
+          * pantalla larga: quien guarda está mirando el botón, no la cabecera.
+          * El mensaje salía —«Guardando cambios…», o el error— y no lo veía
+          * nadie, así que un guardado que fallaba se leía como un botón que no
+          * hace nada. Se dejan los dos: arriba para quien vuelve, y aquí para
+          * quien acaba de pulsar.
+          */}
+        {feedback ? (
+          <div style={{
+            width: "100%", marginBottom: 4, fontSize: 13,
+            color: feedbackColor, fontWeight: 600,
+          }}>
+            {feedback}
+          </div>
+        ) : null}
         <button type="button" onClick={handleSave} disabled={isSaving}
           style={{ border: "none", borderRadius: 10, background: "linear-gradient(135deg,var(--marca),var(--marca-claro))", color: "#fff", padding: "11px 18px", fontSize: 13.5, fontWeight: 700, cursor: isSaving ? "not-allowed" : "pointer", opacity: isSaving ? 0.78 : 1 }}>
           {isSaving ? txt("Guardando...", "Saving...") : txt("Guardar cambios", "Save changes")}

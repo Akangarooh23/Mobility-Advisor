@@ -1144,7 +1144,19 @@ export default function ServiceIdCarsManagePage({
           throw new Error(txt("El servidor no confirmó los datos de seguro (número de póliza).", "The server did not confirm insurance data (policy number)."));
         }
 
-        if (normalizeText(form.maintenanceTitle) && !normalizeText(persistedByServer?.maintenanceTitle)) {
+        /*
+         * El mantenimiento vuelve dentro de `initialMaintenance`, no suelto.
+         *
+         * Esto miraba `persistedByServer.maintenanceTitle`, un campo que el
+         * servidor **nunca** manda: su sanitizador lo agrupa ahí dentro. Asi
+         * que la comprobacion fallaba siempre que el formulario tuviera un
+         * titulo de mantenimiento —y lo tiene solo con abrir el coche, porque
+         * el propio servidor le pone «Mantenimiento» por defecto—, y le decia
+         * que no se habia guardado con todo guardado. Un aviso que grita con
+         * los datos a salvo enseña a no hacer caso de los avisos.
+         */
+        const mantenimientoGuardado = normalizeText(persistedByServer?.initialMaintenance?.title);
+        if (normalizeText(form.maintenanceTitle) && !mantenimientoGuardado) {
           throw new Error(txt("El servidor no confirmó los datos de mantenimiento (título).", "The server did not confirm maintenance data (title)."));
         }
       }

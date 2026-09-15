@@ -640,6 +640,20 @@ export default function ServiceIdCarsManagePage({
     if (suyo) {
       setIsCreating(false);
       setEditingVehicleId(suyo.id);
+      /*
+       * Y con sus datos dentro, que es lo que faltaba.
+       *
+       * Se ponía el identificador y no el formulario, así que el editor se
+       * abría **en blanco** sobre un coche que ya existe: marca, modelo y
+       * versión vacíos. Y como guardar exige marca y modelo, al darle a
+       * «Guardar cambios» le decía que faltaban — justo cuando venía a subir
+       * los papeles y no a tocar la ficha.
+       *
+       * Es lo mismo que hace `openVehicleDetail` al pulsar «Editar»; lo que no
+       * se copia de ahí es el reseteo de secciones ni el de ficheros: de eso se
+       * encarga el efecto de abajo, que le deja delante de «Documentos».
+       */
+      setForm(vehicleToForm(suyo));
       return;
     }
 

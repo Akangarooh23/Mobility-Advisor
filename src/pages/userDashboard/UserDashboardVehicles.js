@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { writeCachedGarageVehicleCount } from "../../utils/storage";
 import { comoSeCompara, loQueLaUrlPide, elCocheDeLaUrl, elAnclaDe } from "../../utils/aterrizajeDelEncargo";
+import { laTasacionDe, enEuros, elDia } from "../../utils/loQueSabemosDelCoche";
 import {
   getGarageVehiclesJson,
   postGarageVehicleAddJson,
@@ -344,6 +345,7 @@ export default function UserDashboardVehicles({
   currentUserEmail = "",
   onVehicleStatesUpdated = () => {},
   matriculasConEncargo = new Set(),
+  dashboardValuations = [],
 }) {
   const { t } = useTranslation();
   const isDark = themeMode === "dark";
@@ -2388,6 +2390,101 @@ export default function UserDashboardVehicles({
               </>,
               t("dashboard.vehMaintenanceSummary", { saved: storedMaintenanceInvoicesCount, pending: pendingMaintenanceInvoices.length })
             )}
+
+            {/*
+              * La tasación y el informe, en la ficha del coche.
+              *
+              * Los dos existían y no se veían desde aquí: la tasación vivía en
+              * una lista aparte y en un PDF del correo, y el informe solo salía
+              * detrás del botón «Gestionar» de la tarjeta. Quien abría su coche
+              * no tenía manera de saber si estaba tasado ni por cuánto.
+              *
+              * Van al final y no se editan: no son campos suyos, son cosas que
+              * le hemos hecho al coche.
+              */}
+            {editingVehicleId && (() => {
+              const laTasacion = laTasacionDe(dashboardValuations, editingVehicle || { id: editingVehicleId });
+              return renderVehicleSection(
+                "valuation",
+                "La tasación",
+                laTasacion ? (
+                  <div style={{ display: "grid", gap: 6 }}>
+                    <div style={{ fontSize: 26, fontWeight: 800, color: titleColor, letterSpacing: "-0.02em" }}>
+                      {enEuros(laTasacion.estimateValue)}
+                    </div>
+                    <div style={{ fontSize: 12, color: bodyColor }}>
+                      {laTasacion.meta || "Tasación de mercado"}
+                      {elDia(laTasacion.createdAt) ? ` · ${elDia(laTasacion.createdAt)}` : ""}
+                    </div>
+                    {/* El PDF entero está en su correo: aquí solo el número, que
+                        es lo que se viene a mirar. */}
+                    <div style={{ fontSize: 11, color: bodyColor }}>
+                      El informe completo te lo enviamos por correo.
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gap: 8, justifyItems: "start" }}>
+                    <div style={{ fontSize: 12, color: bodyColor }}>
+                      No le has hecho la tasación todavía. La primera es gratis.
+                    </div>
+                    <button
+                      type="button"
+                      /*
+                       * Por el mismo camino que el botón de la tarjeta.
+                       *
+                       * `onRequestValuation` no recibe el coche: recibe marca,
+                       * modelo, año y kilómetros sueltos. Pasarle el coche tal
+                       * cual habría abierto la tasación con el formulario
+                       * vacío, sin un solo error por ninguna parte.
+                       */
+                      onClick={() => requestValuationForVehicle(editingVehicle || {})}
+                      style={{ background: "rgba(255,196,0,0.12)", border: cardBorder, color: "var(--marca-oscuro)", borderRadius: 10, padding: "8px 12px", fontSize: 11, fontWeight: 800, cursor: "pointer" }}
+                    >
+                      Hacer la tasación gratuita
+                    </button>
+                  </div>
+                ),
+                laTasacion ? enEuros(laTasacion.estimateValue) : "sin hacer"
+              );
+            })()}
+
+            {editingVehicleId && (() => {
+              const informe = resumenInforme(editingVehicleId);
+              const abriendo = informe.carga.status === "opening";
+              return renderVehicleSection(
+                "conditionReport",
+                "El informe de estado",
+                <div style={{ display: "grid", gap: 8, justifyItems: "start" }}>
+                  <div style={{ fontSize: 12, color: bodyColor }}>
+                    {informe.hecho
+                      ? "Hecho. Puedes descargarlo o repetirlo."
+                      : informe.enCurso
+                        ? "Lo empezaste y quedó a medias."
+                        : "Sin hacer. Son fotos guiadas desde el móvil."}
+                  </div>
+                  <div style={{ display: "grid", gap: 6, width: "100%", maxWidth: 260 }}>
+                    <ConditionReportAction
+                      url={informe.url}
+                      disabled={abriendo}
+                      onClick={() => { void abrirCapturaInforme(editingVehicleId); }}
+                      style={{ background: "rgba(20,184,166,0.12)", border: "1px solid rgba(15,118,110,0.25)", color: isDark ? "#5eead4" : "#0f766e", borderRadius: 8, padding: "8px 10px", fontSize: 11, fontWeight: 700, cursor: abriendo ? "not-allowed" : "pointer", textAlign: "center", width: "100%", opacity: abriendo ? 0.7 : 1 }}
+                    >
+                      {abriendo
+                        ? "Abriendo..."
+                        : informe.hecho
+                          ? "Repetir el informe de estado"
+                          : informe.enCurso
+                            ? "Continuar el informe de estado"
+                            : "Hacer el informe de estado"}
+                    </ConditionReportAction>
+                    <ConditionReportDownload url={informe.descargaUrl} compacto />
+                    <ConditionReportAr base={informe.modelo3dBase} compacto />
+                    <ConditionReportError carga={informe.carga} />
+                  </div>
+                </div>,
+                informe.hecho ? "hecho" : informe.enCurso ? "a medias" : "sin hacer"
+              );
+            })()}
 
             {renderVehicleSection(
               "notes",

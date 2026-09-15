@@ -717,6 +717,9 @@ export default function UserDashboardPage({
            * y él no tenía dónde ponerlas.
            */
           matriculasConEncargo={matriculasConEncargo}
+          /* Para poder enseñar la tasación en la ficha del propio coche: hasta
+             ahora vivía solo en su lista aparte y en un PDF del correo. */
+          dashboardValuations={dashboardValuations}
         />
       )}
 

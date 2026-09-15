@@ -206,8 +206,17 @@ const ficha = (vehiculo) => ({
   await c.connect();
   const COLA = nodo("PG: Cola a enriquecer").parameters.query;
   comprueba("no toca ofertas alemanas", /COALESCE\(country, 'ES'\) = 'ES'/.test(COLA));
-  comprueba("pone delante las que tienen la cilindrada en litros",
-    /LIKE '%\.%'\) DESC/.test(COLA));
+  // Se mira SOLO el ORDER BY, no la consulta entera: la versión anterior de esta
+  // comprobación casaba con un comentario y pasaba en verde mientras el orden
+  // real decía otra cosa.
+  const orden = (COLA.match(/ORDER BY[\s\S]*?LIMIT/) || [""])[0];
+  comprueba("primero las que se han visto VIVAS, no las que solo se intentaron",
+    /last_seen_at > NOW\(\) - INTERVAL '3 days'\) DESC/.test(orden)
+    && !/last_checked_at[^\n]*DESC/.test(orden));
+  comprueba("y luego las que no tienen puertas, que es lo que sabe rellenar",
+    /\(doors IS NULL OR doors = 0\) DESC/.test(orden));
+  comprueba("NO prioriza la cilindrada en litros, que la ficha no arregla",
+    !/LIKE '%\.%'\) DESC/.test(orden));
   const q = await c.query(COLA.replace(/LIMIT \d+/, "LIMIT 12"));
   comprueba("la cola devuelve candidatas", q.rows.length > 0, q.rows.length + " ofertas");
   comprueba("todas traen URL", q.rows.every((r) => String(r.url || "").startsWith("http")));

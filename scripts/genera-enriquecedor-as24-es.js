@@ -36,15 +36,29 @@
  * y `wltpValues`, que en España viene siempre como lista vacía. Puertas, plazas,
  * cilindrada, tracción y daños solo están en la ficha, una petición por coche.
  *
- * ── La cilindrada guardada estaba mal, y mucho ─────────────────────────────
+ * ── Lo que este workflow NO arregla ────────────────────────────────────────
  *
  * El 15-sep, de 231.652 ofertas españolas con cilindrada, 102.937 la tenían en
- * LITROS -«1.0»- en vez de en centímetros cúbicos. El 44%. Cualquier filtro por
- * cilindrada estaba roto para ellas.
+ * LITROS -«1.5»- en vez de en centímetros cúbicos. El 44%. Empecé poniéndolas
+ * delante en la cola, dando por hecho que la ficha las arreglaría.
  *
- * Por eso aquí la cilindrada NO va con el COALESCE de los demás campos: se
- * sobrescribe cuando lo guardado no parece cc. Y la cola pone delante justo esas
- * ofertas, que son las que están mal ahora mismo.
+ * No las arregla. Medido sobre tres grupos de ocho:
+ *
+ *     guardada en LITROS   ficha: cilindrada 0/8   tracción 0/8   puertas 8/8
+ *     guardada en cc       ficha: cilindrada 8/8   tracción 7/8   puertas 8/8
+ *     SIN cilindrada       ficha: cilindrada 0/8   tracción 0/8   puertas 8/8
+ *
+ * El portal declara rawDisplacementInCCM exactamente en los coches que ya
+ * tenemos bien. Para los demás no existe el dato en ninguna parte.
+ *
+ * Aun así la cilindrada se escribe SIN el COALESCE de los otros campos, por si
+ * alguna viene: un «1.5» guardado hay que pisarlo, no respetarlo.
+ *
+ * Los 102.937 se arreglan multiplicando -1,5 l son ~1.500 cc-, no pidiendo
+ * fichas: scripts/arregla-cilindrada-es.js.
+ *
+ * LO QUE SÍ ARREGLA son las PUERTAS y las PLAZAS -la ficha las da en 8 de 8 de
+ * los tres grupos, y hoy solo las tiene el 24%- y el dato de daños.
  *
  * ── Los daños ──────────────────────────────────────────────────────────────
  *
@@ -78,8 +92,8 @@ const REINTENTA_ESCRITURA = { retryOnFail: true, maxTries: 5, waitBetweenTries: 
 // SEAMOS HONESTOS CON EL RITMO: 2.000 al día contra 368.000 activas son seis
 // meses para la primera vuelta. Eso es inherente a pedir una ficha por coche, y
 // no se arregla con un número más grande -la memoria no da-. Por eso la cola va
-// por utilidad y no por antigüedad: lo primero que se arregla son las 102.937
-// cilindradas que hoy están mal.
+// por utilidad y no por antigüedad: primero las que se han visto vivas y no
+// tienen puertas, que es lo que la ficha sí sabe contestar.
 const LOTE = 500;
 const SEGUNDOS_POR_OFERTA = 1.2;
 // El cortacircuitos de bloqueo, el mismo de los verificadores: si nos cierran la
@@ -102,11 +116,25 @@ const COLA = `-- Las ofertas españolas a las que les falta pasar por la ficha.
 --      «lo intentamos» -y se mueve también cuando la petición se cae-, mientras
 --      que last_seen_at dice «lo vimos vivo». Para gastar una ficha hace falta
 --      lo segundo.
---   2. dentro de esas, las que tienen la cilindrada en LITROS -«1.0»-, que no
---      es que les falte el dato: es que el que tienen está mal y engaña a
---      cualquier filtro. Eran 102.937 el 15-sep.
+--   2. dentro de esas, las que NO tienen puertas, que es lo que este workflow
+--      sabe rellenar de verdad.
 --   3. y después las más recientes, que son las que siguen a la venta y las
 --      que de verdad se usan como comparables.
+--
+-- AQUÍ HUBO UN ERROR MÍO QUE CONVIENE NO REPETIR. La primera versión ponía
+-- delante las que tienen la cilindrada en litros -«1.5»-, pensando que la ficha
+-- las arreglaría. No las arregla. Medido el 15-sep sobre tres grupos de 8:
+--
+--     guardada en LITROS   ficha: cilindrada 0/8   tracción 0/8   puertas 8/8
+--     guardada en cc       ficha: cilindrada 8/8   tracción 7/8   puertas 8/8
+--     SIN cilindrada       ficha: cilindrada 0/8   tracción 0/8   puertas 8/8
+--
+-- O sea que el portal declara rawDisplacementInCCM exactamente en los coches que
+-- YA tenemos bien, y en los demás no lo tiene nadie. La cola estaba gastando el
+-- presupuesto justo en las ofertas donde la respuesta no existe.
+--
+-- Los 102.937 en litros no se arreglan pidiendo fichas: se arreglan con una
+-- multiplicación -1,5 l son ~1.500 cc-, que es scripts/arregla-cilindrada-es.js.
 --
 -- Cada oferta pasa UNA vez y no vuelve: puertas, plazas y cilindrada no cambian
 -- en la vida de un anuncio. Por eso no hay ventana de refresco.
@@ -117,11 +145,8 @@ WHERE portal = 'autoscout24'
   AND is_active
   AND COALESCE(url, '') <> ''
   AND enrich_tried_at IS NULL
--- LIKE '%.%' en vez de una expresión regular a propósito: el regex tendría que
--- llevar barras invertidas, y estas consultas viven dentro de una cadena de
--- JavaScript donde "\\." se convierte en ".". Ya nos costó un regex roto.
 ORDER BY (last_seen_at > NOW() - INTERVAL '3 days') DESC,
-         (COALESCE(displacement, '') LIKE '%.%') DESC,
+         (doors IS NULL OR doors = 0) DESC,
          scraped_at DESC
 LIMIT ${LOTE}`;
 

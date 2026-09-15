@@ -85,6 +85,35 @@ export function cuantasLeFaltanDelEncargo(solicitudes = []) {
 }
 
 /**
+ * Las que le faltan, una a una, para el desplegable de la campana.
+ *
+ * La línea del resumen cuenta y nombra la primera; aquí hacen falta todas, cada
+ * una con a dónde lleva. Va en este fichero y no en la campana porque el
+ * criterio de qué falta —y de que el mandato entra— tiene que estar en un solo
+ * sitio: si se duplicara, la campana y la lista podrían decir cosas distintas.
+ *
+ * Lleva el coche en cada fila porque con dos encargos abiertos «Los papeles»
+ * sin más no dice de cuál.
+ */
+export function lasQueLeFaltanDelEncargo(solicitudes = []) {
+  return losEncargos(solicitudes).flatMap((e) =>
+    e.puertas
+      .filter((p) => !p.abierta)
+      .map((p) => ({
+        id: `${e.id}-${p.clave}`,
+        coche: e.titulo,
+        nombre: p.nombre,
+        falta: p.falta || "",
+        /*
+         * A dónde lleva. El mandato no tiene `donde` a propósito: se sube desde
+         * su solicitud, así que esa fila va allí.
+         */
+        url: p.donde?.url || "",
+      }))
+  );
+}
+
+/**
  * La línea del resumen del home.
  *
  * Con una sola cosa se la nombra —«Te falta la ITV»— porque nombrarla es lo

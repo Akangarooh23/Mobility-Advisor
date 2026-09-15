@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import CampanaAvisos from "./CampanaAvisos";
 
 /**
@@ -68,5 +68,85 @@ describe("la campana", () => {
     const etiqueta = screen.getByRole("button").getAttribute("aria-label");
     expect(etiqueta).toMatch(/cita/);
     expect(etiqueta).toMatch(/cosa que traernos/);
+  });
+});
+
+/**
+ * Y que al pulsarla se despliegue el resumen.
+ *
+ * Era un botón que llevaba a Solicitudes y nada más. Con un número encima eso
+ * se lee como una promesa de enseñar algo — y estando ya en Solicitudes,
+ * pulsarla no hacía nada. Un icono con un «5» que al pulsarlo no abre nada es
+ * peor que no tener campana.
+ */
+describe("el desplegable", () => {
+  const conMandato = [{
+    id: "lead-1",
+    type: "venta_gestionada",
+    title: "Volkswagen T-Roc · 8888LXR",
+    meta: JSON.stringify({
+      mandato: { encargo_id: "enc-1", mandato_id: "PC-MAND-2026-001", firmado: false },
+      puertas: [
+        { clave: "idcar", nombre: "El coche", abierta: true, falta: "" },
+        {
+          clave: "papeles", nombre: "Los papeles", abierta: false, falta: "Te falta la ITV",
+          donde: { texto: "Subir los documentos", url: "/mis-coches?matricula=8888LXR" },
+        },
+      ],
+    }),
+  }];
+
+  test("cerrada no enseña el resumen", () => {
+    render(<CampanaAvisos solicitudes={conMandato} />);
+    expect(screen.queryByText("Los papeles")).not.toBeInTheDocument();
+  });
+
+  test("y al pulsarla sale, con una fila por cosa", () => {
+    render(<CampanaAvisos solicitudes={conMandato} />);
+    fireEvent.click(screen.getByRole("button", { name: /Tienes/ }));
+    expect(screen.getByText("El mandato firmado")).toBeInTheDocument();
+    expect(screen.getByText("Los papeles")).toBeInTheDocument();
+  });
+
+  test("cada una lleva a donde se hace", () => {
+    /*
+     * Es el motivo de que exista: poder resolverlo desde donde estás, sin
+     * entrar al panel. Una lista que solo informa obliga a buscar el sitio.
+     */
+    render(<CampanaAvisos solicitudes={conMandato} />);
+    fireEvent.click(screen.getByRole("button", { name: /Tienes/ }));
+    const papeles = screen.getByText("Los papeles").closest("a");
+    expect(papeles).toHaveAttribute("href", "/mis-coches?matricula=8888LXR");
+  });
+
+  test("y el mandato, que se sube desde el panel, va al panel", () => {
+    // No tiene `donde` a propósito: se resuelve en su solicitud.
+    const alPanel = jest.fn();
+    render(<CampanaAvisos solicitudes={conMandato} onAbrir={alPanel} />);
+    fireEvent.click(screen.getByRole("button", { name: /Tienes/ }));
+    fireEvent.click(screen.getByText("El mandato firmado"));
+    expect(alPanel).toHaveBeenCalled();
+  });
+
+  test("el número cuenta el mandato", () => {
+    // Una puerta pendiente + el mandato = dos.
+    render(<CampanaAvisos solicitudes={conMandato} />);
+    expect(screen.getByText("2")).toBeInTheDocument();
+  });
+
+  test("se cierra con Escape", () => {
+    // Con el ratón se cierra pulsando fuera; con el teclado no habría forma de
+    // salir sin ir a buscar el botón otra vez.
+    render(<CampanaAvisos solicitudes={conMandato} />);
+    fireEvent.click(screen.getByRole("button", { name: /Tienes/ }));
+    expect(screen.getByText("Los papeles")).toBeInTheDocument();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByText("Los papeles")).not.toBeInTheDocument();
+  });
+
+  test("y siempre hay una salida a la lista entera", () => {
+    render(<CampanaAvisos solicitudes={conMandato} />);
+    fireEvent.click(screen.getByRole("button", { name: /Tienes/ }));
+    expect(screen.getByText("Ver todo en Mis solicitudes")).toBeInTheDocument();
   });
 });

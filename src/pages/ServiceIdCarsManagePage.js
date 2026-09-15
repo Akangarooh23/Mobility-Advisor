@@ -6,6 +6,7 @@ import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemov
 import { uploadFileDirect } from "../utils/supabaseUpload";
 import { comoSeCompara, laMatriculaRecordada } from "../utils/encargoDeVentaWeb";
 import { cualEsDelCatalogo } from "../utils/catalogoDelCoche";
+import { elAnclaDe } from "../utils/aterrizajeDelEncargo";
 import { respuestasParaElDesplegable } from "../utils/preguntasDelMantenimiento";
 import AvailabilityEditor from "../components/AvailabilityEditor";
 import { useConditionReport, INFORME_OBLIGATORIO, etiquetaEstado, informeUtilizable, urlDeDescarga, baseDelModelo3d } from "../hooks/useConditionReport";
@@ -416,6 +417,23 @@ function mapErpBodyType(c = "") {
   return "";
 }
 
+/**
+ * A qué sección lleva cada ancla de la dirección.
+ *
+ * Las secciones nacen plegadas. Traerle desde «lo que te falta» y dejarle
+ * delante de una lista de bloques cerrados es lo mismo que no haberle traído:
+ * tiene que adivinar cuál de ellos es el que le pedimos.
+ *
+ * Esto era un `if` para «documentos» y nada más, así que el seguro y el
+ * mantenimiento —que ahora también se le piden— habrían aterrizado arriba del
+ * todo con su sección cerrada.
+ */
+const QUE_BLOQUE_ABRE = {
+  documentos: "vehicleDocuments",
+  seguros: "insurance",
+  mantenimientos: "maintenance",
+};
+
 const SECTION_CARD_STYLE = {
   background: "#fff",
   borderRadius: 16,
@@ -681,15 +699,19 @@ export default function ServiceIdCarsManagePage({
   const yaAbrioLaSeccion = useRef(false);
   useEffect(() => {
     if (yaAbrioLaSeccion.current || typeof window === "undefined") return;
-    if (window.location.hash.replace(/^#/, "") !== "documentos") return;
+    const ancla = window.location.hash.replace(/^#/, "").trim().toLowerCase();
+    const bloque = QUE_BLOQUE_ABRE[ancla];
+    if (!bloque) return;
     if (!editingVehicleId) return;
     yaAbrioLaSeccion.current = true;
-    setOpenSections((prev) => ({ ...prev, vehicleDocuments: true }));
+    setOpenSections((prev) => ({ ...prev, [bloque]: true }));
     // Detrás de dos frames: la sección todavía no está en el DOM cuando se
     // abre el coche, y buscarla ahora no encontraría nada.
     window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => {
-        const el = document.getElementById("encargo-documentos");
+        // El identificador lo compone `elAnclaDe`, que es el mismo que usa el
+        // panel: dos maneras de escribirlo serían dos maneras de no encontrarlo.
+        const el = document.getElementById(elAnclaDe(ancla));
         if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     });
@@ -1919,6 +1941,8 @@ export default function ServiceIdCarsManagePage({
         })()}
       </SectionBlock>
 
+      {/* Aquí aterriza quien llega desde su encargo a subir el papel del seguro. */}
+      <div id="encargo-seguros" />
       <SectionBlock title={txt("Seguros", "Insurance")} subtitle={`${storedInsuranceDocuments.length} ${txt("guardados", "saved")} · ${pendingInsuranceDocuments.length} ${txt("documentos de seguro preparados", "insurance docs prepared")}`}
         open={openSections.insurance} onToggle={() => toggleSection("insurance")}
         openLabel={txt("Abrir", "Open")} closeLabel={txt("Ocultar", "Hide")}>
@@ -1932,6 +1956,8 @@ export default function ServiceIdCarsManagePage({
         </div>
       </SectionBlock>
 
+      {/* Y aquí, quien viene a subir una factura de revisión. */}
+      <div id="encargo-mantenimientos" />
       <SectionBlock title={txt("Mantenimientos", "Maintenance")} subtitle={`${storedMaintenanceInvoices.length} ${txt("guardadas", "saved")} · ${pendingMaintenanceInvoices.length} ${txt("facturas de mantenimiento preparadas", "maintenance invoices prepared")}`}
         open={openSections.maintenance} onToggle={() => toggleSection("maintenance")}
         openLabel={txt("Abrir", "Open")} closeLabel={txt("Ocultar", "Hide")}>

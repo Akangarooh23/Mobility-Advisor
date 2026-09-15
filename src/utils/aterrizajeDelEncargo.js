@@ -11,7 +11,7 @@
  */
 
 /** Las secciones a las que sabemos llevar. Cualquier otra cosa no es un sitio. */
-export const SECCIONES = ["datos", "documentos", "informe", "franjas"];
+export const SECCIONES = ["datos", "documentos", "informe", "franjas", "seguros", "mantenimientos"];
 
 /** Cómo se comparan dos matrículas: sin espacios, sin guiones y en mayúsculas. */
 export function comoSeCompara(matricula) {

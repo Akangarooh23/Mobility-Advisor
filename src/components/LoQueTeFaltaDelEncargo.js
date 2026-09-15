@@ -118,14 +118,14 @@ function SubirElMandato({ mandato, isDark }) {
         {subiendo ? "Subiendo…" : "Subir el mandato firmado"}
         <input
           type="file"
-          accept="application/pdf,image/*"
+          accept="application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
           disabled={subiendo}
           onChange={(e) => { void sube(e.target.files && e.target.files[0]); }}
           style={{ display: "none" }}
         />
       </label>
       <span style={{ display: "block", fontSize: 11.5, color: isDark ? "var(--gris-400)" : "#6b7280", marginTop: 4 }}>
-        En PDF o una foto del papel
+        En PDF, Word o una foto del papel
       </span>
       {fallo && (
         <span style={{ display: "block", fontSize: 12, color: "#dc2626", marginTop: 6 }}>{fallo}</span>

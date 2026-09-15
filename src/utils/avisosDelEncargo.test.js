@@ -86,3 +86,54 @@ describe("la línea del resumen", () => {
     expect(laLineaDelEncargo([conPuertas(CINCO), otro]).label).toMatch(/2 coches/);
   });
 });
+
+/**
+ * El mandato cuenta como una cosa más.
+ *
+ * Si no contara, la campana diría «4» mientras la lista del panel dice cinco —
+ * y la que faltaría de contar es la única que decide si podemos vender por él.
+ * Son tres sitios los que tienen que decir el mismo número: la campana, la
+ * línea del resumen y la lista.
+ */
+describe("el mandato cuenta en la campana", () => {
+  const conMandato = (firmado) => ([{
+    id: "lead-1",
+    type: "venta_gestionada",
+    title: "Volkswagen T-Roc",
+    meta: JSON.stringify({
+      mandato: { encargo_id: "enc-1", mandato_id: "PC-MAND-2026-001", firmado },
+      puertas: [
+        { clave: "idcar", nombre: "El coche", abierta: true, falta: "" },
+        { clave: "papeles", nombre: "Los papeles", abierta: false, falta: "Falta la ITV" },
+      ],
+    }),
+  }]);
+
+  test("sin firmar suma uno", () => {
+    // Una puerta pendiente + el mandato = dos.
+    expect(cuantasLeFaltanDelEncargo(conMandato(false))).toBe(2);
+  });
+
+  test("firmado no suma", () => {
+    expect(cuantasLeFaltanDelEncargo(conMandato(true))).toBe(1);
+  });
+
+  test("y va el primero, que es lo que se nombra en el resumen", () => {
+    /*
+     * La línea del home nombra la primera que falta. Si el mandato no fuera el
+     * primero, le diría «te faltan los papeles» a alguien que ni siquiera ha
+     * firmado todavía.
+     */
+    const linea = laLineaDelEncargo(conMandato(false));
+    expect(linea.detail).toMatch(/El mandato firmado/);
+  });
+
+  test("un encargo con mandato y sin puertas también cuenta", () => {
+    // Es quien acaba de recibirlo y todavía no ha dado de alta el coche.
+    const solo = [{
+      id: "lead-2", type: "venta_gestionada", title: "Seat Ibiza",
+      meta: JSON.stringify({ mandato: { encargo_id: "e", mandato_id: "M", firmado: false } }),
+    }];
+    expect(cuantasLeFaltanDelEncargo(solo)).toBe(1);
+  });
+});

@@ -16,7 +16,16 @@
  * se puede publicar, que es justo lo que vino a pedirnos.
  */
 
-/** Las solicitudes que son un encargo de venta con puertas calculadas. */
+/**
+ * Las solicitudes que son un encargo de venta, con todo lo que le falta.
+ *
+ * El mandato entra como una puerta más, igual que en la lista del panel. Si no
+ * entrara, la campana diría «4» mientras la pantalla dice cinco — y la que
+ * faltaría de contar sería justo la que decide si podemos vender por él.
+ *
+ * Se construye aquí y no en la pantalla porque son tres sitios los que tienen
+ * que decir el mismo número: la campana, la línea del resumen y la lista.
+ */
 function losEncargos(solicitudes = []) {
   return (solicitudes || [])
     .filter((s) => s?.type === "venta_gestionada")
@@ -24,7 +33,19 @@ function losEncargos(solicitudes = []) {
       let meta = {};
       try { meta = JSON.parse(s?.meta || "{}"); } catch { meta = {}; }
       const puertas = Array.isArray(meta.puertas) ? meta.puertas : null;
-      return puertas ? { id: s.id, titulo: s.title || "tu coche", puertas } : null;
+      const mandato = meta.mandato || null;
+      if (!puertas && !mandato) return null;
+
+      const todas = mandato
+        ? [{
+          clave: "mandato",
+          nombre: "El mandato firmado",
+          abierta: Boolean(mandato.firmado),
+          falta: "Fírmalo y súbelo desde tu panel",
+        }, ...(puertas || [])]
+        : puertas;
+
+      return { id: s.id, titulo: s.title || "tu coche", puertas: todas };
     })
     .filter(Boolean);
 }

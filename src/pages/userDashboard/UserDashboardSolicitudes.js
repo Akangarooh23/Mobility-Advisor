@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getUserMobilityDataJson } from "../../utils/apiClient";
+import { getUserMobilityDataJson, rutaApi } from "../../utils/apiClient";
 import { proximas, ESTADO as ESTADO_CITA } from "../../utils/citas";
 import ComoFuncionaImportacion from "../../components/ComoFuncionaImportacion";
 import LoQueTeFaltaDelEncargo from "../../components/LoQueTeFaltaDelEncargo";
@@ -247,7 +247,7 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
     setActionLoading(true);
     setActionError("");
     try {
-      const res = await fetch("/api/leads", {
+      const res = await fetch(rutaApi("/api/leads"), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, email: userEmail, action: "cancel" }),
@@ -284,7 +284,7 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
     setActionLoading(true);
     setActionError("");
     try {
-      const res = await fetch("/api/leads", {
+      const res = await fetch(rutaApi("/api/leads"), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, email: userEmail, action: "reschedule", proposals: valid }),
@@ -306,7 +306,7 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
     setActionLoading(true);
     setActionError("");
     try {
-      const res = await fetch("/api/leads", {
+      const res = await fetch(rutaApi("/api/leads"), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, email: userEmail, action: "confirm" }),
@@ -328,7 +328,7 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
   async function handleOutcome(id, outcome) {
     setOutcomeLoading(true);
     try {
-      const res = await fetch("/api/leads", {
+      const res = await fetch(rutaApi("/api/leads"), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, email: userEmail, action: "client_outcome", outcome }),
@@ -703,8 +703,12 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
                         llamábamos, y la llamada se gastaba en leerle una lista
                         que podía haber leído él. Cada fila que falta lleva a
                         donde se hace. */}
-                    {Array.isArray(meta.puertas) && meta.puertas.length > 0 && (
-                      <LoQueTeFaltaDelEncargo puertas={meta.puertas} isDark={isDark} />
+                    {((Array.isArray(meta.puertas) && meta.puertas.length > 0) || meta.mandato) && (
+                      <LoQueTeFaltaDelEncargo
+                        puertas={meta.puertas || []}
+                        mandato={meta.mandato || null}
+                        isDark={isDark}
+                      />
                     )}
 
                     {/* Por dónde va su importación.
@@ -1267,7 +1271,7 @@ function DireccionDeEntrega({ item, meta, isDark, onGuardada }) {
     setFallo("");
     setGuardando(true);
     try {
-      const res = await fetch("/api/entrega-direccion", {
+      const res = await fetch(rutaApi("/api/entrega-direccion"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

@@ -91,3 +91,72 @@ describe("lo que te falta del encargo", () => {
     expect(screen.queryAllByRole("link")).toHaveLength(0);
   });
 });
+
+/**
+ * Y el sitio donde sube el mandato firmado.
+ *
+ * Antes se le pedía que contestara al correo, y entonces el papel se quedaba en
+ * una bandeja de entrada mientras el encargo decía «sin firmar» — con el papel
+ * firmado ya en nuestro poder.
+ */
+describe("el mandato es una fila más de la lista", () => {
+  const SIN_FIRMAR = { encargo_id: "enc-1", mandato_id: "PC-MAND-2026-001", firmado: false };
+  const FIRMADO = { ...SIN_FIRMAR, firmado: true };
+
+  test("sale como una fila, con su botón de subirlo", () => {
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} mandato={SIN_FIRMAR} />);
+    expect(screen.getByText("El mandato firmado")).toBeInTheDocument();
+    expect(screen.getByText(/Subir el mandato firmado/)).toBeInTheDocument();
+  });
+
+  test("y va la primera: es lo primero del camino", () => {
+    /*
+     * Se le manda nada más hablar con él, antes de que traiga papeles ni fotos.
+     * Si fuera la última, la leería como el remate y no como el principio.
+     */
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} mandato={SIN_FIRMAR} />);
+    const filas = screen.getAllByText(/El mandato firmado|El coche|Los papeles/);
+    expect(filas[0]).toHaveTextContent("El mandato firmado");
+  });
+
+  test("CUENTA en el total, que es el motivo de moverlo aquí", () => {
+    /*
+     * En un recuadro aparte, el contador decía «te quedan 4 cosas» con cinco
+     * pendientes — y la que no contaba era la que decide si podemos vender.
+     */
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} mandato={SIN_FIRMAR} />);
+    expect(screen.getByText(/Te quedan 3 cosas/)).toBeInTheDocument();
+    expect(screen.getByText("1 de 4 hechas")).toBeInTheDocument();
+  });
+
+  test("dice cuál es, por su número", () => {
+    // Con dos coches en venta, «tu mandato» no dice cuál.
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} mandato={SIN_FIRMAR} />);
+    expect(screen.getByText(/PC-MAND-2026-001/)).toBeInTheDocument();
+  });
+
+  test("firmado sale como hecho y sin botón", () => {
+    // Un botón para algo ya hecho invita a volver a hacerlo.
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} mandato={FIRMADO} />);
+    expect(screen.getByText("El mandato firmado")).toBeInTheDocument();
+    expect(screen.queryByText(/Subir el mandato firmado/)).not.toBeInTheDocument();
+    expect(screen.getByText("2 de 4 hechas")).toBeInTheDocument();
+  });
+
+  test("sin mandato, la lista es la de siempre", () => {
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} mandato={null} />);
+    expect(screen.queryByText("El mandato firmado")).not.toBeInTheDocument();
+    expect(screen.getByText("1 de 3 hechas")).toBeInTheDocument();
+  });
+
+  test("con mandato y sin puertas, se pinta igual", () => {
+    // Es quien acaba de recibirlo y todavía no ha dado de alta el coche.
+    render(<LoQueTeFaltaDelEncargo puertas={[]} mandato={SIN_FIRMAR} />);
+    expect(screen.getByText("El mandato firmado")).toBeInTheDocument();
+  });
+
+  test("ni puertas ni mandato: no se pinta nada", () => {
+    const { container } = render(<LoQueTeFaltaDelEncargo puertas={[]} mandato={null} />);
+    expect(container).toBeEmptyDOMElement();
+  });
+});

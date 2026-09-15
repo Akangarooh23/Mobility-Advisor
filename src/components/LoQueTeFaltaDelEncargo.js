@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { rutaApi } from "../utils/apiClient";
 /**
  * Lo que le falta al cliente para que podamos vender su coche.
  *
@@ -39,11 +41,128 @@ function Pendiente({ color }) {
   );
 }
 
-export default function LoQueTeFaltaDelEncargo({ puertas = [], isDark = false }) {
-  if (!Array.isArray(puertas) || puertas.length === 0) return null;
+/**
+ * Y el sitio donde sube el mandato firmado.
+ *
+ * Antes se le pedía que contestara al correo con el papel. Entonces el papel se
+ * quedaba en una bandeja de entrada y alguien tenía que acordarse de marcarlo a
+ * mano en el ERP: mientras tanto el encargo decía «sin firmar» con el papel
+ * firmado ya en nuestro poder — y sin mandato firmado no se le puede facturar
+ * nada.
+ *
+ * Va como la primera fila de la lista y no en un recuadro aparte: en un recuadro,
+ * el contador de arriba decía «te quedan 4 cosas» cuando le quedaban cinco, y la
+ * que no contaba era la más importante — sin el mandato firmado no podemos
+ * vender por él ni cobrarle nada.
+ */
+function SubirElMandato({ mandato, isDark }) {
+  const [subiendo, setSubiendo] = useState(false);
+  const [hecho, setHecho] = useState(false);
+  const [fallo, setFallo] = useState("");
 
-  const faltan = puertas.filter((p) => !p.abierta).length;
-  const hechas = puertas.length - faltan;
+  async function sube(archivo) {
+    if (!archivo) return;
+    setFallo("");
+    setSubiendo(true);
+    try {
+      const contenido = await new Promise((ok, mal) => {
+        const lector = new FileReader();
+        lector.onload = () => ok(String(lector.result || "").split(",")[1] || "");
+        lector.onerror = () => mal(new Error("no se ha podido leer"));
+        lector.readAsDataURL(archivo);
+      });
+      const res = await fetch(rutaApi("/api/mandato-firmado"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          encargo_id: mandato.encargo_id,
+          nombre: archivo.name,
+          tipo: archivo.type,
+          contenido,
+        }),
+      });
+      const datos = await res.json().catch(() => ({}));
+      if (!res.ok || !datos.ok) {
+        setFallo(datos.detail || datos.error || "No se ha podido subir. Prueba otra vez.");
+        return;
+      }
+      setHecho(true);
+    } catch {
+      setFallo("No se ha podido leer el archivo. Prueba con otro.");
+    } finally {
+      setSubiendo(false);
+    }
+  }
+
+  if (hecho) {
+    /*
+     * Se dice aquí mismo y no se espera a recargar.
+     *
+     * Acaba de subirlo: si la fila siguiera diciendo «fírmalo y súbelo», lo
+     * subiría otra vez pensando que no ha entrado.
+     */
+    return (
+      <span style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#059669", marginTop: 4 }}>
+        ✓ Recibido. Ya nos consta firmado
+      </span>
+    );
+  }
+
+  return (
+    <span style={{ display: "block", marginTop: 4 }}>
+      <label style={{
+        display: "inline-block", padding: "5px 10px",
+        background: "var(--marca)", color: "#fff", borderRadius: 8,
+        fontSize: 12, fontWeight: 700, cursor: subiendo ? "wait" : "pointer",
+      }}>
+        {subiendo ? "Subiendo…" : "Subir el mandato firmado"}
+        <input
+          type="file"
+          accept="application/pdf,image/*"
+          disabled={subiendo}
+          onChange={(e) => { void sube(e.target.files && e.target.files[0]); }}
+          style={{ display: "none" }}
+        />
+      </label>
+      <span style={{ display: "block", fontSize: 11.5, color: isDark ? "var(--gris-400)" : "#6b7280", marginTop: 4 }}>
+        En PDF o una foto del papel
+      </span>
+      {fallo && (
+        <span style={{ display: "block", fontSize: 12, color: "#dc2626", marginTop: 6 }}>{fallo}</span>
+      )}
+    </span>
+  );
+}
+
+export default function LoQueTeFaltaDelEncargo({ puertas = [], mandato = null, isDark = false }) {
+  const suyas = Array.isArray(puertas) ? puertas : [];
+  if (suyas.length === 0 && !mandato) return null;
+
+  /*
+   * El mandato es una fila más, y la primera.
+   *
+   * Estaba en un recuadro aparte encima de la lista, y entonces el contador
+   * decía «te quedan 4 cosas» cuando le quedaban cinco — y la que no contaba
+   * era la más importante: sin el mandato firmado no podemos vender por él ni
+   * cobrarle nada.
+   *
+   * Va delante porque es lo primero del camino: se le manda nada más hablar
+   * con él, antes de que traiga papeles ni fotos.
+   */
+  const todas = mandato
+    ? [{
+      clave: 'mandato',
+      nombre: 'El mandato firmado',
+      abierta: Boolean(mandato.firmado),
+      falta: `Te lo mandamos por correo (${mandato.mandato_id}). Fírmalo y súbelo aquí.`,
+      donde: null,
+      mandato,
+    }, ...suyas]
+    : suyas;
+
+  const hayPuertas = todas.length > 0;
+  const faltan = todas.filter((p) => !p.abierta).length;
+  const hechas = todas.length - faltan;
 
   const textoFuerte = isDark ? "var(--gris-100)" : "#1f2937";
   const textoFlojo = isDark ? "var(--gris-400)" : "#6b7280";
@@ -51,6 +170,8 @@ export default function LoQueTeFaltaDelEncargo({ puertas = [], isDark = false })
   const ambar = isDark ? "#fbbf24" : "#b45309";
 
   return (
+    <>
+      {hayPuertas && (
     <div style={{
       background: isDark ? "rgba(139,92,246,0.08)" : "rgba(139,92,246,0.05)",
       border: "1px solid rgba(139,92,246,0.22)", borderRadius: 10,
@@ -64,7 +185,7 @@ export default function LoQueTeFaltaDelEncargo({ puertas = [], isDark = false })
             : `Te quedan ${faltan} cosas para que podamos publicarlo`}
       </div>
       <div style={{ fontSize: 12, color: textoFlojo, marginBottom: 10 }}>
-        {hechas} de {puertas.length} hechas
+        {hechas} de {todas.length} hechas
       </div>
 
       {/*
@@ -74,7 +195,7 @@ export default function LoQueTeFaltaDelEncargo({ puertas = [], isDark = false })
         * lo que dice que son un camino y que va por la mitad.
         */}
       <div style={{ display: "flex", gap: 4, marginBottom: 12 }}>
-        {puertas.map((p) => (
+        {todas.map((p) => (
           <div key={p.clave} title={p.nombre} style={{
             flex: 1, height: 4, borderRadius: 2,
             background: p.abierta ? verde : "rgba(139,92,246,0.20)",
@@ -83,7 +204,7 @@ export default function LoQueTeFaltaDelEncargo({ puertas = [], isDark = false })
       </div>
 
       <div style={{ display: "grid", gap: 2 }}>
-        {puertas.map((p) => {
+        {todas.map((p) => {
           const dentro = (
             <>
               <span style={{ display: "flex", flexShrink: 0, marginTop: 1 }}>
@@ -107,6 +228,13 @@ export default function LoQueTeFaltaDelEncargo({ puertas = [], isDark = false })
                     {p.donde.texto} →
                   </span>
                 )}
+                {/*
+                  * El mandato no lleva a otra pantalla: se resuelve aquí.
+                  *
+                  * Es la única de las filas que se hace sin salir del panel —
+                  * las demás mandan a subir papeles, a tasar o a poner horas.
+                  */}
+                {!p.abierta && p.mandato && <SubirElMandato mandato={p.mandato} isDark={isDark} />}
               </span>
             </>
           );
@@ -130,5 +258,7 @@ export default function LoQueTeFaltaDelEncargo({ puertas = [], isDark = false })
         })}
       </div>
     </div>
+      )}
+    </>
   );
 }

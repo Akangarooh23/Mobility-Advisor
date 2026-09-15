@@ -54,3 +54,7 @@ scripts/ensayo-correos/
 # La copia suelta en la raiz: ya vive en public/ y en mockups/assets/.
 # Se quito una vez a proposito y un `git add -A` la devolvio.
 /Beetle PopCar.png
+
+# Sesiones locales del servidor de desarrollo: lleva hashes de token y user
+# ids. Nunca se publica.
+data/local-sessions.json

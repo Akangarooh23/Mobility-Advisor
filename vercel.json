@@ -56,6 +56,10 @@
       "destination": "/api/market?route=entrega-direccion"
     },
     {
+      "source": "/api/mandato-firmado",
+      "destination": "/api/market?route=mandato-firmado"
+    },
+    {
       "source": "/api/workshops-nearby",
       "destination": "/api/market?route=nearby"
     },

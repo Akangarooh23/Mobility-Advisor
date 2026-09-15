@@ -42,33 +42,44 @@ const REINTENTA = { retryOnFail: true, maxTries: 3, waitBetweenTries: 5000 };
 const REINTENTA_ESCRITURA = { retryOnFail: true, maxTries: 5, waitBetweenTries: 15000,
   onError: "continueRegularOutput" };
 
-// 2.000 por pasada, y sin espera entre ofertas.
+// 10.000 por pasada, y sin espera entre ofertas.
 //
 // El tamaño del problema es enorme: damos por activos 27.580 Audi y el portal
 // tiene 16.424. Son ~11.000 coches vendidos contando como comparables SOLO en
-// una marca. La tentación era subir el lote, y con 5.000 no cabía.
+// una marca.
 //
-// LO QUE TARDA DE VERDAD, medido sobre las tres pasadas alemanas del 14-sep:
+// DE DÓNDE SALEN ESTOS NÚMEROS, que han cambiado dos veces en un día:
 //
-//     2.995 miradas   8:40 -> 11:00   2 h 20
-//     2.999 miradas  11:40 -> 15:32   3 h 50
-//     2.995 miradas  14:40 -> 19:00   4 h 20
+//   1. Primero puse 5.000 dando por hecho que mandaba la espera de 1 segundo.
+//      No manda. Las pasadas alemanas del 14-sep -3.000 ofertas con espera de
+//      1 s- tardaron 2 h 20, 3 h 50 y 4 h 20: CUATRO segundos por oferta. Los
+//      otros tres eran el propio nodo Wait, que hace que n8n guarde el estado
+//      de la ejecución para poder reanudarla. Con 5.000 la pasada duraba 5 h 30
+//      y la de las 11:25 habría arrancado encima de la de las 9:25.
 //
-// O sea 4 segundos por oferta, no 1. Los otros 3 son n8n: por cada oferta hace
-// petición, Code, IF, escritura y Wait, y cada paso se apunta en su base. Con
-// 5.000 la pasada duraba 5 h 30 y la de las 11:25 arrancaba encima de la de
-// las 9:25.
+//   2. Luego bajé a 2.000 y quité la espera, calculando 3 s por oferta. También
+//      me pasé: la pasada de verdad del 15-sep hizo 386 ofertas en 3 minutos.
+//      129 por minuto, 0,46 segundos cada una. El Wait no costaba 1 segundo de
+//      cuatro: costaba casi los cuatro.
 //
-// Se quita la espera -no el lote solo-: HEAD es barato y está medido que el
-// portal no nos frena (cuatro páginas seguidas en 0,7 a 4,3 s, todas 200). Aun
-// sin espera salen 21 peticiones por minuto, que es un ritmo educado. Quedan
-// ~3 s por oferta: 2.000 son 1 h 40, y entran de sobra entre pasada y pasada.
+// Así que 10.000, que a ese ritmo son unos 80 minutos y dejan 40 de margen en
+// el hueco de dos horas por si el portal va lento un día.
 //
-// 8.000 al día contra 314.322 activas es una vuelta completa cada 39 días. No
-// es «todas cada día». Eso no se arregla con un número más grande sino
+// Que correr así es seguro está medido, no supuesto: una ráfaga a ese ritmo dio
+// 28 doscientos, 8 trescientosuno y 4 cuatrocientosdiez, ni un 403, con la
+// latencia BAJANDO de 192 a 155 ms, y su robots.txt no declara Crawl-delay. Aun
+// así, lo que hace que correr sea seguro es el cortacircuitos de bloqueo: si un
+// día nos cierran la puerta, la pasada se para a los 50 intentos.
+//
+// 40.000 al día contra 322.554 pendientes es la primera vuelta en 8 días. Sigue
+// sin ser «todas cada día», y eso no se arregla con un número más grande sino
 // cambiando de método: verificar POR LISTADO, como en Milanuncios, donde una
 // página habla de 20 ofertas a la vez en vez de una por petición.
-const LOTE = 2000;
+const LOTE = 10000;
+// Lo medido el 15-sep sin nodo Wait, redondeado hacia arriba. Lo usan el
+// resumen de aquí abajo y el test, que comprueba que una pasada cabe en su
+// hueco: si un día esto se queda viejo otra vez, salta el test y no el workflow.
+const SEGUNDOS_POR_OFERTA = 0.5;
 // Solo para el parte: ya no hay nodo Wait.
 const ESPERA_SEGUNDOS = 0;
 // El cortacircuitos. Con 100 activas miradas ya se puede juzgar, y por encima
@@ -430,9 +441,8 @@ fs.writeFileSync(destino, JSON.stringify(wf, null, 2) + "\n");
 console.log("escrito  " + destino);
 console.log("  " + nodos.length + " nodos, HEAD, " + LOTE + " por pasada, 4 pasadas/día = "
   + (LOTE * 4).toLocaleString("es") + " al día");
-// A 3 segundos por oferta, que es lo medido sin espera.
-console.log("  cada pasada tarda unos " + Math.round(LOTE * 3 / 60) + " min, y entre una"
-  + " y la siguiente hay 120");
+console.log("  cada pasada tarda unos " + Math.round(LOTE * SEGUNDOS_POR_OFERTA / 60)
+  + " min, y entre una y la siguiente hay 120");
 console.log("  cortacircuitos: para si más del " + (TOPE_MORTANDAD * 100)
   + "% de las ACTIVAS miradas sale de baja, tras " + MINIMO_PARA_JUZGAR);
 

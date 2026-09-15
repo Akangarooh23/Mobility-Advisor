@@ -65,11 +65,35 @@ const REINTENTA = { retryOnFail: true, maxTries: 3, waitBetweenTries: 5000 };
 const REINTENTA_ESCRITURA = { retryOnFail: true, maxTries: 5, waitBetweenTries: 15000,
   onError: "continueRegularOutput" };
 
-// 8.692 activas hoy, y subirán cuando se rescaten las que se dieron de baja mal.
-// A 3.000 por pasada y 5 pasadas al día son 15.000 comprobaciones diarias, que
-// cubren el catálogo activo entero todos los días con margen para que crezca.
-const LOTE = 3000;
-const ESPERA_SEGUNDOS = 1;
+// 8.000 por pasada y sin espera entre ofertas.
+//
+// Lo de "8.692 activas, con 3.000 por pasada cubrimos el catálogo entero cada
+// día" que ponía aquí se quedó viejo el día que Alemania pasó de 8.692 a
+// 214.475 activas. A 15.000 al día eso no es verificar a diario: es una vuelta
+// cada catorce días, y las 208.921 pendientes de hoy lo dicen solas.
+//
+// LO QUE COSTABA DE VERDAD LA ESPERA. Medido el 14-sep:
+//
+//     2.995 miradas   8:40 -> 11:00   2 h 20
+//     2.999 miradas  11:40 -> 15:32   3 h 50
+//
+// Son 4 segundos por oferta con una espera configurada de 1. Los otros 3 eran
+// el propio nodo Wait: n8n guarda el estado de la ejecución para poder
+// reanudarla, y eso cuesta mucho más que esperar. Quitándolo, el verificador
+// español -mismo diseño, mismo portal- hace 129 por minuto: 0,46 s cada una.
+//
+// A ese ritmo, 8.000 son unos 62 minutos y caben de sobra en los 180 que hay
+// entre pasada y pasada. 40.000 al día dan la vuelta completa en 5 días.
+//
+// Que quitar la espera es seguro está medido, no supuesto: una ráfaga a ese
+// ritmo contra el portal dio 28 doscientos, 8 trescientosuno y 4
+// cuatrocientosdiez, ni un 403, con la latencia BAJANDO de 192 a 155 ms. Y su
+// robots.txt no declara Crawl-delay. Aun así, el cortacircuitos de bloqueo de
+// más abajo es lo que hace que correr sea seguro: si algún día nos cierran la
+// puerta, la pasada se para a los 50 intentos en vez de gastarse las 8.000.
+const LOTE = 8000;
+// Solo para el parte: ya no hay nodo Wait.
+const ESPERA_SEGUNDOS = 0;
 
 // El cortacircuitos. Cuenta MUERTES NUEVAS sobre ACTIVAS miradas, no sobre todo
 // lo mirado: reconfirmar un coche que ya sabíamos vendido no es mortandad. Con
@@ -369,10 +393,8 @@ const nodos = [
     id: "dv-pg", name: "PG: Actualizar oferta",
     type: "n8n-nodes-base.postgres", typeVersion: 2, position: [1220, 460], credentials: PG_CRED,
     ...REINTENTA_ESCRITURA },
-  { parameters: { amount: ESPERA_SEGUNDOS, unit: "seconds" }, id: "dv-wait",
-    name: "Esperar " + ESPERA_SEGUNDOS + "s",
-    type: "n8n-nodes-base.wait", typeVersion: 1, position: [1440, 540],
-    webhookId: "a7c3e910-as24-de-verificar" },
+  // Sin nodo Wait: ver la nota del lote. Cada oferta vuelve al bucle en cuanto
+  // se ha guardado su veredicto.
   { parameters: { jsCode: CODE_RESUMEN }, id: "dv-resumen", name: "Code: Resumen",
     type: "n8n-nodes-base.code", typeVersion: 2, position: [120, 160] },
   { parameters: { operation: "executeQuery", query: "={{ $json.sql }}", options: {} },
@@ -390,9 +412,8 @@ const conexiones = {
   "IF: ¿nos hemos parado?":      { main: [[L("Loop: oferta por oferta")], [L("HTTP: ¿sigue la ficha?")]] },
   "HTTP: ¿sigue la ficha?":      { main: [[L("Code: Veredicto")]] },
   "Code: Veredicto":             { main: [[L("IF: ¿hay veredicto?")]] },
-  "IF: ¿hay veredicto?":         { main: [[L("PG: Actualizar oferta")], [L("Esperar " + ESPERA_SEGUNDOS + "s")]] },
-  "PG: Actualizar oferta":       { main: [[L("Esperar " + ESPERA_SEGUNDOS + "s")]] },
-  ["Esperar " + ESPERA_SEGUNDOS + "s"]: { main: [[L("Loop: oferta por oferta")]] },
+  "IF: ¿hay veredicto?":         { main: [[L("PG: Actualizar oferta")], [L("Loop: oferta por oferta")]] },
+  "PG: Actualizar oferta":       { main: [[L("Loop: oferta por oferta")]] },
   "Code: Resumen":               { main: [[L("PG: Apuntar el parte")]] },
 };
 

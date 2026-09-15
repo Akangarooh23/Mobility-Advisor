@@ -35,7 +35,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "-- Las ofertas alemanas que toca comprobar.\n--\n-- Las ACTIVAS cada dia: son las que sostienen las valoraciones. Las que ya\n-- constan de baja, una vez por semana, solo para que una que se diera por\n-- muerta por error pueda volver sola.\n--\n-- Los dos ritmos separados no son un capricho. En Gamboa iban con el mismo\n-- filtro y la cola acababa llena de muertas: el cortacircuitos leia 100% de\n-- mortandad y cortaba la pasada antes de mirar una sola oferta viva.\nSELECT id, url, is_active\nFROM moveadvisor_market_offers\nWHERE portal = 'autoscout24'\n  AND country = 'DE'\n  AND COALESCE(url, '') <> ''\n  AND (\n    (is_active AND (last_checked_at IS NULL\n                    OR last_checked_at < NOW() - INTERVAL '20 hours'))\n    OR\n    (NOT is_active AND (last_checked_at IS NULL\n                        OR last_checked_at < NOW() - INTERVAL '7 days'))\n  )\n-- Las activas primero, y al azar dentro de cada grupo.\n--\n-- Primero las activas porque si una pasada se corta -por un fallo de red o por\n-- el propio cortacircuitos- lo que tiene que estar comprobado es lo que damos\n-- por bueno, no el cementerio.\n--\n-- Y al azar porque el orden por antiguedad pone delante justo las que el\n-- scraper dejo de ver, o sea las vendidas: el frente de la cola seria 100% de\n-- mortandad por construccion y el cortacircuitos no mediria nada.\nORDER BY is_active DESC, random()\nLIMIT 3000",
+        "query": "-- Las ofertas alemanas que toca comprobar.\n--\n-- Las ACTIVAS cada dia: son las que sostienen las valoraciones. Las que ya\n-- constan de baja, una vez por semana, solo para que una que se diera por\n-- muerta por error pueda volver sola.\n--\n-- Los dos ritmos separados no son un capricho. En Gamboa iban con el mismo\n-- filtro y la cola acababa llena de muertas: el cortacircuitos leia 100% de\n-- mortandad y cortaba la pasada antes de mirar una sola oferta viva.\nSELECT id, url, is_active\nFROM moveadvisor_market_offers\nWHERE portal = 'autoscout24'\n  AND country = 'DE'\n  AND COALESCE(url, '') <> ''\n  AND (\n    (is_active AND (last_checked_at IS NULL\n                    OR last_checked_at < NOW() - INTERVAL '20 hours'))\n    OR\n    (NOT is_active AND (last_checked_at IS NULL\n                        OR last_checked_at < NOW() - INTERVAL '7 days'))\n  )\n-- Las activas primero, y al azar dentro de cada grupo.\n--\n-- Primero las activas porque si una pasada se corta -por un fallo de red o por\n-- el propio cortacircuitos- lo que tiene que estar comprobado es lo que damos\n-- por bueno, no el cementerio.\n--\n-- Y al azar porque el orden por antiguedad pone delante justo las que el\n-- scraper dejo de ver, o sea las vendidas: el frente de la cola seria 100% de\n-- mortandad por construccion y el cortacircuitos no mediria nada.\nORDER BY is_active DESC, random()\nLIMIT 8000",
         "options": {}
       },
       "id": "dv-cola",
@@ -235,22 +235,7 @@
     },
     {
       "parameters": {
-        "amount": 1,
-        "unit": "seconds"
-      },
-      "id": "dv-wait",
-      "name": "Esperar 1s",
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1,
-      "position": [
-        1440,
-        540
-      ],
-      "webhookId": "a7c3e910-as24-de-verificar"
-    },
-    {
-      "parameters": {
-        "jsCode": "// El parte de la pasada, a moveadvisor_verify_runs.\nconst s = $getWorkflowStaticData('global');\nconst vistas = s.de_vistas || 0;\nconst activas = s.de_activas_vistas || 0;\n\nconsole.log('[as24-de] ── resumen ──');\nconsole.log('  fichas miradas   : ' + vistas + ' (' + activas + ' estaban activas)');\nconsole.log('  siguen publicadas: ' + (s.de_vivas || 0));\nconsole.log('  BAJAS NUEVAS     : ' + (s.de_bajas_nuevas || 0));\nconsole.log('  bajas ya sabidas : ' + ((s.de_bajas || 0) - (s.de_bajas_nuevas || 0)));\nconsole.log('  URLs corregidas  : ' + (s.de_urls || 0));\nconsole.log('  sin clasificar   : ' + (s.de_raras || 0));\nconsole.log('  fallos pasajeros : ' + (s.de_fallos || 0)\n  + ' de ' + (s.de_intentos || 0) + ' intentos');\nif (s.de_parado) console.log('  PARADO POR EL CORTACIRCUITOS: ' + s.de_motivo);\n// Una pasada que no mira ni una activa deja el mercado sin verificar ese dia\n// aunque el parte salga limpio. Es lo que pasaba en Gamboa y no lo dijo nadie.\nif (!s.de_parado && activas === 0 && vistas > 0) {\n  console.log('  OJO: no se ha mirado NI UNA oferta activa.');\n}\nif ((s.de_raras || 0) > vistas * 0.1) {\n  console.log('  OJO: mas del 10% sin clasificar. O AutoScout24 ha cambiado algo,');\n  console.log('  o hay un estado que no conocemos. Mirar esas URLs.');\n}\n\nconst n = v => String(Number(v) || 0);\n// En 'deactivated' van las bajas NUEVAS. Contar ahi las reconfirmaciones hacia\n// que una pasada sin novedades pareciera una matanza.\nconst sql = 'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" VALUES ('autoscout24-de', NOW(), \" + n(vistas) + ', ' + n(s.de_vivas) + ', '\n  + n(s.de_bajas_nuevas) + ', ' + n(s.de_raras) + ', ' + n(s.de_fallos) + ', '\n  + (s.de_parado ? 'TRUE' : 'FALSE') + ', 1)';\n\nreturn [{ json: { sql: sql, vistas: vistas, activas: activas, vivas: s.de_vivas || 0,\n  bajas: s.de_bajas_nuevas || 0, urls: s.de_urls || 0,\n  raras: s.de_raras || 0, fallos: s.de_fallos || 0, parado: !!s.de_parado } }];"
+        "jsCode": "// El parte de la pasada, a moveadvisor_verify_runs.\nconst s = $getWorkflowStaticData('global');\nconst vistas = s.de_vistas || 0;\nconst activas = s.de_activas_vistas || 0;\n\nconsole.log('[as24-de] ── resumen ──');\nconsole.log('  fichas miradas   : ' + vistas + ' (' + activas + ' estaban activas)');\nconsole.log('  siguen publicadas: ' + (s.de_vivas || 0));\nconsole.log('  BAJAS NUEVAS     : ' + (s.de_bajas_nuevas || 0));\nconsole.log('  bajas ya sabidas : ' + ((s.de_bajas || 0) - (s.de_bajas_nuevas || 0)));\nconsole.log('  URLs corregidas  : ' + (s.de_urls || 0));\nconsole.log('  sin clasificar   : ' + (s.de_raras || 0));\nconsole.log('  fallos pasajeros : ' + (s.de_fallos || 0)\n  + ' de ' + (s.de_intentos || 0) + ' intentos');\nif (s.de_parado) console.log('  PARADO POR EL CORTACIRCUITOS: ' + s.de_motivo);\n// Una pasada que no mira ni una activa deja el mercado sin verificar ese dia\n// aunque el parte salga limpio. Es lo que pasaba en Gamboa y no lo dijo nadie.\nif (!s.de_parado && activas === 0 && vistas > 0) {\n  console.log('  OJO: no se ha mirado NI UNA oferta activa.');\n}\nif ((s.de_raras || 0) > vistas * 0.1) {\n  console.log('  OJO: mas del 10% sin clasificar. O AutoScout24 ha cambiado algo,');\n  console.log('  o hay un estado que no conocemos. Mirar esas URLs.');\n}\n\nconst n = v => String(Number(v) || 0);\n// En 'deactivated' van las bajas NUEVAS. Contar ahi las reconfirmaciones hacia\n// que una pasada sin novedades pareciera una matanza.\nconst sql = 'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" VALUES ('autoscout24-de', NOW(), \" + n(vistas) + ', ' + n(s.de_vivas) + ', '\n  + n(s.de_bajas_nuevas) + ', ' + n(s.de_raras) + ', ' + n(s.de_fallos) + ', '\n  + (s.de_parado ? 'TRUE' : 'FALSE') + ', 0)';\n\nreturn [{ json: { sql: sql, vistas: vistas, activas: activas, vivas: s.de_vivas || 0,\n  bajas: s.de_bajas_nuevas || 0, urls: s.de_urls || 0,\n  raras: s.de_raras || 0, fallos: s.de_fallos || 0, parado: !!s.de_parado } }];"
       },
       "id": "dv-resumen",
       "name": "Code: Resumen",
@@ -400,7 +385,7 @@
         ],
         [
           {
-            "node": "Esperar 1s",
+            "node": "Loop: oferta por oferta",
             "type": "main",
             "index": 0
           }
@@ -408,17 +393,6 @@
       ]
     },
     "PG: Actualizar oferta": {
-      "main": [
-        [
-          {
-            "node": "Esperar 1s",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Esperar 1s": {
       "main": [
         [
           {

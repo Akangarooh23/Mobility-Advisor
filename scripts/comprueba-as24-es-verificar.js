@@ -279,8 +279,16 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 
   // Y lo que de verdad hay que vigilar: que una pasada quepa antes de la
   // siguiente. Con 5.000 por pasada duraba 5 h 30 y la segunda arrancaba encima
-  // de la primera. Medido en Alemania: 3 s por oferta sin espera.
-  const minutos = Math.round(lote * 3 / 60);
+  // de la primera.
+  //
+  // El ritmo se lee del generador, no se escribe aqui: son dos sitios que tienen
+  // que decir lo mismo y ya se desincronizaron una vez -el generador decia 3 s
+  // por oferta cuando lo medido eran 0,46-.
+  const gen = fs.readFileSync(path.join(RAIZ, "scripts", "genera-verificador-as24-es.js"), "utf8");
+  const seg = Number((gen.match(/SEGUNDOS_POR_OFERTA = ([0-9.]+)/) || [])[1]);
+  comprueba("el generador declara cuanto tarda cada oferta", Number.isFinite(seg) && seg > 0,
+    seg + " s");
+  const minutos = Math.round(lote * seg / 60);
   const saltos = horas.slice(1).map((h, i) => (h - horas[i]) * 60);
   const hueco = saltos.length ? Math.min(...saltos) : 24 * 60;
   comprueba("una pasada termina antes de que arranque la siguiente",

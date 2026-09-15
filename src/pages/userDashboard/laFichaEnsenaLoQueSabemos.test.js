@@ -47,6 +47,21 @@ describe("y el informe también", () => {
   test("y el botón abre la captura de ese coche", () => {
     expect(PANTALLA).toMatch(/abrirCapturaInforme\(editingVehicleId\)/);
   });
+
+  test("y antes se piden los datos de ese coche", () => {
+    /*
+     * El resumen de un vehículo que nadie ha cargado sale vacío, así que la
+     * ficha decía «sin hacer» con el informe hecho y a la vista en otra
+     * pantalla. El dato estaba bien en los dos lados —la sesión del Check en
+     * `informe_listo` y el espejo de PopCar también—; lo que faltaba era
+     * pedirlo.
+     *
+     * Y de paso vuelve la descarga: `ConditionReportDownload` no pinta nada
+     * cuando la URL viene vacía, que es lo que pasa sin cargar.
+     */
+    expect(PANTALLA).toMatch(/void cargarInforme\(editingVehicleId\)/);
+    expect(PANTALLA).toMatch(/\[editingVehicleId, cargarInforme\]/);
+  });
 });
 
 describe("los botones van por el camino bueno", () => {

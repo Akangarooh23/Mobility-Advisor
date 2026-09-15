@@ -745,6 +745,20 @@ export default function UserDashboardVehicles({
     void cargarInforme(managementVehicleId);
   }, [managementVehicleId, cargarInforme]);
 
+  /*
+   * Y también al abrir la ficha de un coche, que es donde se enseña ahora.
+   *
+   * El bloque «El informe de estado» de la ficha preguntaba por el resumen sin
+   * que nadie hubiera pedido los datos de ese coche: el resumen de un vehículo
+   * sin cargar sale vacío, así que decía «sin hacer» con el informe hecho y a
+   * la vista en otra pantalla. El dato estaba bien en los dos lados; lo que
+   * faltaba era pedirlo.
+   */
+  useEffect(() => {
+    if (!editingVehicleId) return;
+    void cargarInforme(editingVehicleId);
+  }, [editingVehicleId, cargarInforme]);
+
   useEffect(() => {
     const vid = normalizeText(marketplacePublishDialog.vehicle?.id);
     if (!marketplacePublishDialog.open || !vid) return;

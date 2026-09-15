@@ -1709,10 +1709,23 @@ export default function ServiceIdCarsManagePage({
               </label>
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--gris-500)" }}>
                 {txt("Versión", "Version")}
-                <select value={form.version} disabled={!erpSelectedModelId || erpVersionsLoading || erpVersions.length === 0}
+                {/* El desplegable va por código y el formulario guarda el nombre,
+                    así que para saber cuál está elegida hay que traducir de vuelta. */}
+                <select value={(erpVersions.find((v) => v.label === form.version) || {}).codversion || ""} disabled={!erpSelectedModelId || erpVersionsLoading || erpVersions.length === 0}
                   onChange={(e) => {
                     const codversion = e.target.value;
-                    updateForm("version", codversion);
+                    /*
+                     * Se guarda el nombre de la versión, no su código.
+                     *
+                     * Aquí se guardaba el `codversion` —«849958501»— en el campo
+                     * que luego se lee como texto. Ese número acababa en la
+                     * ficha del coche, en su título («Volkswagen T-Roc
+                     * 849958501») y, a través de él, en el lead que ve quien
+                     * coge el teléfono. El código solo hace falta un momento,
+                     * para pedir el detalle técnico de abajo.
+                     */
+                    const elegida = erpVersions.find((v) => String(v.codversion) === String(codversion));
+                    updateForm("version", elegida ? elegida.label : "");
                     if (codversion) {
                       getErpVersionDetailJson(codversion)
                         .then((r) => r.json())

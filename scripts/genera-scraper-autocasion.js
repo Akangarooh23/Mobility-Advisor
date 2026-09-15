@@ -65,8 +65,24 @@ const ID_SEGMENTO = "qrYv93PTSa5xuR5s";
 
 // 25 páginas por segmento: 22 MB de memoria por ejecución.
 const PAGINAS_POR_SEGMENTO = 25;
-// 20 segmentos por pasada = 500 páginas ≈ 17 min a 2 s por página. Con dos
-// pasadas al día, las ~4.800 páginas del portal se barren en unos 5 días.
+// 20 segmentos por pasada = 500 páginas.
+//
+// CUÁNTO TARDA DE VERDAD: unos 90 minutos, no los 17 que puse al principio.
+// Cronometrado el 15-sep, cada página cuesta:
+//
+//     pedirla al portal   1,3 s
+//     leer su JSON-LD     0,00 s
+//     guardar las 25      0,15 s
+//                         ──────
+//                          1,5 s   ->  40 páginas/min
+//
+// y n8n hace 5,5. O sea que el cuello de botella no es el portal ni la base:
+// son los ~10 segundos por vuelta que se lleva el propio n8n en mover los datos
+// de un nodo a otro. Quitar el nodo Wait ayudó, pero no era toda la causa: lo
+// di por resuelto antes de medirlo.
+//
+// El plan no cambia por eso: 500 páginas por pasada y dos pasadas al día siguen
+// siendo 1.000 al día, y las ~4.800 del portal se barren en 5 días.
 const SEGMENTOS_POR_PASADA = 20;
 // SIN nodos Wait, ni entre páginas ni entre segmentos.
 //
@@ -184,8 +200,21 @@ return out;`;
 
 // ══ EL SEGMENTO ════════════════════════════════════════════════════════════
 const CODE_PARAMS = `const inp = $input.item.json || {};
+
+// SIN marca no se hace nada, y este return vacío no es una formalidad.
+//
+// Antes había aquí un «: 'peugeot'» como valor por defecto. El 15-sep el
+// orquestador mandó un segmento vacío -el cursor iba por la página 501 de Audi,
+// que solo tiene 338- y el segmento, al no recibir marca, se puso a scrapear
+// PEUGEOT por su cuenta: 360 ofertas de una marca que no tocaba, saltándose el
+// cursor. Un valor por defecto escondió el error en vez de enseñarlo.
+if (!inp.brand || !String(inp.brand).trim()) {
+  console.log('[autocasion] segmento sin marca: no hay nada que hacer.');
+  return [];
+}
+
 return [{ json: {
-  brand: inp.brand ? String(inp.brand) : 'peugeot',
+  brand: String(inp.brand),
   desde: Number(inp.desde) > 0 ? Number(inp.desde) : 1,
   hasta: Number(inp.hasta) > 0 ? Number(inp.hasta) : 25,
 } }];`;
@@ -230,14 +259,17 @@ const condicion = (id, campo) => ({
 });
 
 // ── nodos del orquestador ──────────────────────────────────────────────────
-const CRON_ORQ = "2 veces/día (8:20 y 21:20)";
+const CRON_ORQ = "2 veces/día (8:20 y 19:20)";
 const nodosOrq = [
   { parameters: {}, id: "ac-o-manual", name: "Ejecutar manualmente",
     type: "n8n-nodes-base.manualTrigger", typeVersion: 1, position: [-560, 200] },
-  // 8:20 y 21:20. No a las 22:00 como antes: a esa hora arranca el scraper
-  // alemán de importación, y las dos pasadas se peleaban por la misma máquina.
-  // Cada pasada son ~17 min, así que no pisa a nadie.
-  { parameters: { rule: { interval: [{ field: "cronExpression", expression: "0 20 8,21 * * *" }] } },
+  // 8:20 -> 9:50 y 19:20 -> 20:50, que son 90 minutos cada una.
+  //
+  // No a las 22:00 como antes: a esa hora arranca el scraper alemán de
+  // importación. Y no a las 21:20 como puse ayer: con 90 minutos reales
+  // -no los 17 que calculé- la segunda pasada acababa a las 22:50, justo encima
+  // del enriquecedor de Autocasión.
+  { parameters: { rule: { interval: [{ field: "cronExpression", expression: "0 20 8,19 * * *" }] } },
     id: "ac-o-cron", name: CRON_ORQ,
     type: "n8n-nodes-base.scheduleTrigger", typeVersion: 1, position: [-560, 400] },
   { parameters: { operation: "executeQuery", query: CURSOR_SQL, options: {} },
@@ -265,6 +297,9 @@ const nodosOrq = [
   // typeVersion 1 quiere el id COMO TEXTO. Con la forma de objeto -{__rl,value,
   // mode}- n8n lo interpola como "[object Object]" y dice «Workflow does not
   // exist». Pasó con el alemán el 2026-09-09.
+  { parameters: condicion("ac-o-c-marca", "brand"), id: "ac-o-if-marca",
+    name: "IF: ¿hay marca que scrapear?",
+    type: "n8n-nodes-base.if", typeVersion: 2, position: [320, 440] },
   { parameters: { workflowId: ID_SEGMENTO, options: {} },
     id: "ac-o-sub", name: "Scrapear segmento (Autocasión – Segmento)",
     type: "n8n-nodes-base.executeWorkflow", typeVersion: 1, position: [400, 440] },
@@ -280,7 +315,11 @@ const conexionesOrq = {
   "HTTP: Contar la marca de turno": { main: [[L("Code: Generar segmentos (marca x páginas)")]] },
   "Code: Generar segmentos (marca x páginas)": {
     main: [[L("PG: Apuntar dónde nos quedamos"), L("Loop: segmento por segmento")]] },
-  "Loop: segmento por segmento": { main: [[], [L("Scrapear segmento (Autocasión – Segmento)")]] },
+  "Loop: segmento por segmento": { main: [[], [L("IF: ¿hay marca que scrapear?")]] },
+  // Dos redes para lo mismo: aquí no se llama al segmento sin marca, y el
+  // segmento tampoco se inventa una si llega sin ella.
+  "IF: ¿hay marca que scrapear?": {
+    main: [[L("Scrapear segmento (Autocasión – Segmento)")], [L("Loop: segmento por segmento")]] },
   "Scrapear segmento (Autocasión – Segmento)": { main: [[L("Loop: segmento por segmento")]] },
 };
 

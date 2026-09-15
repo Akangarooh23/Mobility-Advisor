@@ -25,7 +25,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const inp = $input.item.json || {};\nreturn [{ json: {\n  brand: inp.brand ? String(inp.brand) : 'peugeot',\n  desde: Number(inp.desde) > 0 ? Number(inp.desde) : 1,\n  hasta: Number(inp.hasta) > 0 ? Number(inp.hasta) : 25,\n} }];"
+        "jsCode": "const inp = $input.item.json || {};\n\n// SIN marca no se hace nada, y este return vacío no es una formalidad.\n//\n// Antes había aquí un «: 'peugeot'» como valor por defecto. El 15-sep el\n// orquestador mandó un segmento vacío -el cursor iba por la página 501 de Audi,\n// que solo tiene 338- y el segmento, al no recibir marca, se puso a scrapear\n// PEUGEOT por su cuenta: 360 ofertas de una marca que no tocaba, saltándose el\n// cursor. Un valor por defecto escondió el error en vez de enseñarlo.\nif (!inp.brand || !String(inp.brand).trim()) {\n  console.log('[autocasion] segmento sin marca: no hay nada que hacer.');\n  return [];\n}\n\nreturn [{ json: {\n  brand: String(inp.brand),\n  desde: Number(inp.desde) > 0 ? Number(inp.desde) : 1,\n  hasta: Number(inp.hasta) > 0 ? Number(inp.hasta) : 25,\n} }];"
       },
       "id": "ac-s-params",
       "name": "Params",

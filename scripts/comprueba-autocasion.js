@@ -136,6 +136,15 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
       + segs[segs.length - 1].desde);
   comprueba("todas las ventanas son de la misma marca",
     new Set(segs.map((s) => s.brand)).size === 1);
+  // Un segmento sin marca NO puede inventarse una. Habia un ": 'peugeot'" de
+  // valor por defecto y el 15-sep scrapeo 360 ofertas de Peugeot saltandose el
+  // cursor, porque el orquestador le mando un segmento vacio.
+  const sinMarca = ejecuta(codigo(seg, "Params"), { $input: uno({ brand: "", desde: 0, hasta: 0 }) });
+  comprueba("un segmento sin marca no se inventa ninguna", sinMarca.items.length === 0,
+    JSON.stringify(sinMarca.items));
+  comprueba("y el orquestador no lo llama siquiera",
+    orq.nodes.some((n) => n.name === "IF: ¿hay marca que scrapear?"));
+
   comprueba("no queda ningún nodo Wait, que es lo que colgó la primera pasada",
     ![...orq.nodes, ...seg.nodes].some((n) => String(n.type).endsWith("wait")));
   comprueba("apunta el cursor ANTES de scrapear, y crea las filas si faltan",

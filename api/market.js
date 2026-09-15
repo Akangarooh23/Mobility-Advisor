@@ -6,6 +6,7 @@ const fianzaDevolucionHandler     = require("../lib/api/fianza-devolucion-handle
 const fianzaConfirmarHandler      = require("../lib/api/fianza-confirmar-handler");
 const entregaDireccionHandler     = require("../lib/api/entrega-direccion-handler");
 const mandatoFirmadoHandler       = require("../lib/api/mandato-firmado-handler");
+const tasacionPdfHandler          = require("../lib/api/tasacion-pdf-handler");
 const marketplaceOgHandler        = require("../lib/api/marketplace-og-handler");
 const workshopsNearbyHandler      = require("../lib/api/workshops-nearby-handler");
 const workshopAvailabilityHandler = require("../lib/api/workshop-availability-handler");
@@ -52,6 +53,7 @@ module.exports = async function marketRouter(req, res) {
     case "fianza-confirmar":  return fianzaConfirmarHandler(req, res);
     case "entrega-direccion": return entregaDireccionHandler(req, res);
     case "mandato-firmado": return mandatoFirmadoHandler(req, res);
+    case "tasacion-pdf":   return tasacionPdfHandler(req, res);
     case "og":          return marketplaceOgHandler(req, res);
     case "nearby":      return workshopsNearbyHandler(req, res);
     case "availability":return workshopAvailabilityHandler(req, res);

@@ -127,6 +127,17 @@ export function buildUserDashboardModel({
           estimateValue: item?.estimateValue != null ? Number(item.estimateValue) : null,
           createdAt: normalizeText(item?.createdAt),
           vehicleTitle: normalizeText(item?.vehicleTitle),
+          /*
+           * De qué coche es.
+           *
+           * Se caía aquí. El servidor lo manda y la ficha del coche lo busca,
+           * pero este mapeador de en medio no lo copiaba, así que la ficha
+           * decía «la tasación, sin hacer» con la tasación hecha y el precio a
+           * la vista dos pantallas más allá.
+           */
+          vehicleId: normalizeText(item?.vehicleId),
+          // Donde quedo el PDF, para poder ofrecer la descarga.
+          pdfPath: normalizeText(item?.pdfPath),
         }))
         .filter((item) => item.id)
         .slice(0, 6)

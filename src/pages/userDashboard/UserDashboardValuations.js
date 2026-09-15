@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { elCocheDeLaUrl, loQueLaUrlPide } from "../../utils/aterrizajeDelEncargo";
+import { rutaApi } from "../../utils/apiClient";
 
 function fmt(n) {
   return Number(n).toLocaleString("es-ES");
@@ -139,6 +140,24 @@ function ValuationCard({ item, isDark, cardBg, onRequestValuation, onNavigate })
           {expanded ? t("dashboard.valHideDetail") : t("dashboard.valViewDetail")}
         </button>
         <button type="button" style={{ ...btnSecondary }} onClick={() => onNavigate && onNavigate("saved")}>{t("dashboard.valComparables")}</button>
+        {/*
+          * El informe, para volver a bajarlo.
+          *
+          * Solo sale cuando hay un PDF guardado. Las tasaciones de antes de
+          * archivarlos no tienen ninguno, y un botón que lleva a un error es
+          * peor que no tenerlo: el informe de esas está en su correo.
+          *
+          * Es un enlace y no una llamada: la ruta contesta con una redirección
+          * a una dirección firmada que caduca, y de eso se encarga el navegador.
+          */}
+        {item.pdfPath ? (
+          <a
+            href={rutaApi(`/api/market?route=tasacion-pdf&id=${encodeURIComponent(item.id)}`)}
+            style={{ ...btnSecondary, textDecoration: "none", display: "inline-flex", alignItems: "center" }}
+          >
+            Descargar el informe
+          </a>
+        ) : null}
         <button
           type="button"
           style={{ ...btnSecondary, marginLeft: "auto" }}

@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
 import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemoveJson, postVehicleStateUpsertJson, postVehiclePublishJson, getErpBrandsJson, getErpModelsJson, getErpVersionsJson, getErpVersionDetailJson, rutaApi } from "../utils/apiClient";
+import PapelesDeLaVenta, { usePapelesDeLaVenta } from "../components/PapelesDeLaVenta";
 import { uploadFileDirect } from "../utils/supabaseUpload";
 import { comoSeCompara, laMatriculaRecordada } from "../utils/encargoDeVentaWeb";
 import { cualEsDelCatalogo } from "../utils/catalogoDelCoche";
@@ -521,16 +522,7 @@ export default function ServiceIdCarsManagePage({
     insurance: false, maintenance: false, notes: false,
     papelesVenta: false,
   });
-  /**
-   * Los papeles que ha firmado de este coche, para volver a bajárselos.
-   *
-   * Firma el mandato y la aceptación del precio, los sube, y desaparecen: se
-   * guardan en el cajón privado y los enseña el ERP, que es nuestro. Del suyo no
-   * quedaba copia — y son los dos papeles que dicen qué ha aceptado y por cuánto
-   * sale su coche. El día que discuta una factura lo tendría todo nuestro y nada
-   * suyo.
-   */
-  const [papelesDeLaVenta, setPapelesDeLaVenta] = useState([]);
+
   const [feedback, setFeedback] = useState("");
   const [feedbackTone, setFeedbackTone] = useState("info");
   const [isSaving, setIsSaving] = useState(false);
@@ -1288,25 +1280,7 @@ export default function ServiceIdCarsManagePage({
    * sección que casi ninguno tiene. La lista viene ya filtrada por su correo, así
    * que lo que no sea suyo no llega.
    */
-  useEffect(() => {
-    if (!activeVehicleId || !isDetailView) { setPapelesDeLaVenta([]); return undefined; }
-    let vigente = true;
-    void (async () => {
-      try {
-        const res = await fetch(
-          rutaApi(`/api/papeles-venta?coche=${encodeURIComponent(activeVehicleId)}`),
-          { credentials: "include" },
-        );
-        const dato = await res.json().catch(() => ({}));
-        if (!vigente) return;
-        setPapelesDeLaVenta(res.ok && Array.isArray(dato?.data?.papeles) ? dato.data.papeles : []);
-      } catch {
-        // Que esto falle no puede dejarle sin la ficha del coche.
-        if (vigente) setPapelesDeLaVenta([]);
-      }
-    })();
-    return () => { vigente = false; };
-  }, [activeVehicleId, isDetailView]);
+  const papelesDeLaVenta = usePapelesDeLaVenta(activeVehicleId, isDetailView);
 
   useEffect(() => {
     const vid = normalizeText(marketplacePublishDialog.vehicle?.id);
@@ -2108,36 +2082,7 @@ export default function ServiceIdCarsManagePage({
             : txt(`${papelesDeLaVenta.length} documentos`, `${papelesDeLaVenta.length} documents`)}
           open={openSections.papelesVenta} onToggle={() => toggleSection("papelesVenta")}
           openLabel={txt("Abrir", "Open")} closeLabel={txt("Ocultar", "Hide")}>
-          <div style={{ display: "grid", gap: 8 }}>
-            {papelesDeLaVenta.map((p) => (
-              <div key={p.id} style={{
-                display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap",
-                border: "1px solid rgba(150,150,143,0.28)", borderRadius: 10, padding: "10px 12px",
-              }}>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700 }}>{p.que_es}</div>
-                  <div style={{ fontSize: 11.5, color: "var(--gris-500)" }}>
-                    {p.nombre}
-                    {p.cuando ? ` · ${new Date(p.cuando).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })}` : ""}
-                  </div>
-                </div>
-                {/*
-                  * Un enlace y no un botón: el servidor contesta con una
-                  * dirección que caduca a los cinco minutos, y dejar que el
-                  * navegador la siga es lo que hace que la descarga funcione
-                  * igual en el móvil que en el ordenador.
-                  */}
-                <a href={rutaApi(`/api/papeles-venta?id=${encodeURIComponent(p.id)}`)}
-                   style={{
-                     fontSize: 12.5, fontWeight: 700, textDecoration: "none",
-                     border: "1px solid rgba(150,150,143,0.35)", borderRadius: 8,
-                     padding: "6px 10px", color: "inherit",
-                   }}>
-                  {txt("Descargar", "Download")}
-                </a>
-              </div>
-            ))}
-          </div>
+          <PapelesDeLaVenta papeles={papelesDeLaVenta} />
         </SectionBlock>
       )}
 

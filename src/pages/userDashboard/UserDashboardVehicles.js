@@ -5,6 +5,7 @@ import { writeCachedGarageVehicleCount } from "../../utils/storage";
 import { comoSeCompara, loQueLaUrlPide, elCocheDeLaUrl, elAnclaDe } from "../../utils/aterrizajeDelEncargo";
 import { laTasacionDe, enEuros, elDia } from "../../utils/loQueSabemosDelCoche";
 import ElegirDeLista from "../../components/ElegirDeLista";
+import PapelesDeLaVenta, { usePapelesDeLaVenta } from "../../components/PapelesDeLaVenta";
 import { ASEGURADORAS } from "../../utils/aseguradoras";
 import { COBERTURAS } from "../../utils/coberturas";
 import {
@@ -415,6 +416,13 @@ export default function UserDashboardVehicles({
   const [erpSelectedModelId, setErpSelectedModelId] = useState("");
   const [vehicleCatalogMode, setVehicleCatalogMode] = useState("erp");
   const [editingVehicleId, setEditingVehicleId] = useState("");
+  /*
+   * Lo que ha firmado de este coche, si le vendemos alguno.
+   *
+   * Solo con la ficha abierta: en el listado sería una petición por coche para
+   * una sección que casi ninguno tiene.
+   */
+  const papelesDeLaVenta = usePapelesDeLaVenta(editingVehicleId);
 
   const [activeVehicleTab, setActiveVehicleTab] = useState("my-garage");
   const [showNewVehicleForm, setShowNewVehicleForm] = useState(false);
@@ -2488,6 +2496,25 @@ export default function UserDashboardVehicles({
                 laTasacion ? enEuros(laTasacion.estimateValue) : "sin hacer"
               );
             })()}
+
+            {/*
+              * Lo que ha firmado de este coche.
+              *
+              * Va con la tasación y el informe, al final y sin editar: no son
+              * campos suyos, son cosas que han pasado con el coche. Y el bloque
+              * es el mismo que el del garaje — esta ficha está escrita dos veces,
+              * y la primera versión de esto acabó solo en la otra.
+              */}
+            {editingVehicleId && papelesDeLaVenta.length > 0 && renderVehicleSection(
+              "papelesVenta",
+              "Lo que has firmado",
+              <PapelesDeLaVenta
+                papeles={papelesDeLaVenta}
+                borde={cardBorder}
+                colorFlojo={bodyColor}
+              />,
+              papelesDeLaVenta.length === 1 ? "1 documento" : `${papelesDeLaVenta.length} documentos`
+            )}
 
             {editingVehicleId && (() => {
               const informe = resumenInforme(editingVehicleId);

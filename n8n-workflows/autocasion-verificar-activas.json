@@ -18,13 +18,13 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 10 10,12,18,22 * * *"
+              "expression": "0 10 10,12,14,16,18,22 * * *"
             }
           ]
         }
       },
       "id": "av-cron",
-      "name": "4 veces/día (10:10, 12:10, 18:10 y 22:10)",
+      "name": "6 veces/día (10:10 a 22:10)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
@@ -35,7 +35,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "-- Las ofertas de Autocasión que toca comprobar.\n--\n-- SOLO las que tienen URL de ficha -acaban en refNNNNNN-. Las otras 35.518\n-- apuntan a un listado de provincia que responde 200 esté el coche o no:\n-- preguntarle por ellas no es que dé una respuesta mala, es que da SIEMPRE la\n-- misma. Ver la cabecera del generador.\n--\n-- Las ACTIVAS cada día; las que ya constan de baja, una vez por semana, para\n-- que una que se diera por muerta por error pueda volver sola.\nSELECT id, url, is_active\nFROM moveadvisor_market_offers\nWHERE portal = 'autocasion'\n  AND url ~ 'ref[0-9]{6,}$'\n  AND (\n    (is_active AND (last_checked_at IS NULL\n                    OR last_checked_at < NOW() - INTERVAL '20 hours'))\n    OR\n    (NOT is_active AND (last_checked_at IS NULL\n                        OR last_checked_at < NOW() - INTERVAL '7 days'))\n  )\n-- Las activas primero, y al azar dentro de cada grupo.\n--\n-- Primero las activas porque si una pasada se corta -por un fallo de red o por\n-- el propio cortacircuitos- lo que tiene que estar comprobado es lo que damos\n-- por bueno, no el cementerio.\n--\n-- Y al azar porque el orden por antigüedad pone delante justo las que el\n-- scraper dejó de ver, o sea las vendidas: el frente de la cola sería 100% de\n-- mortandad por construcción y el cortacircuitos no mediría nada. Pasó en\n-- Gamboa tres días seguidos.\nORDER BY is_active DESC, random()\nLIMIT 10000",
+        "query": "-- Las ofertas de Autocasión que toca comprobar.\n--\n-- SOLO las que tienen URL de ficha -acaban en refNNNNNN-. Las otras 35.518\n-- apuntan a un listado de provincia que responde 200 esté el coche o no:\n-- preguntarle por ellas no es que dé una respuesta mala, es que da SIEMPRE la\n-- misma. Ver la cabecera del generador.\n--\n-- Las ACTIVAS cada día; las que ya constan de baja, una vez por semana, para\n-- que una que se diera por muerta por error pueda volver sola.\nSELECT id, url, is_active\nFROM moveadvisor_market_offers\nWHERE portal = 'autocasion'\n  AND url ~ 'ref[0-9]{6,}$'\n  AND (\n    (is_active AND (last_checked_at IS NULL\n                    OR last_checked_at < NOW() - INTERVAL '20 hours'))\n    OR\n    (NOT is_active AND (last_checked_at IS NULL\n                        OR last_checked_at < NOW() - INTERVAL '7 days'))\n  )\n-- Las activas primero, y al azar dentro de cada grupo.\n--\n-- Primero las activas porque si una pasada se corta -por un fallo de red o por\n-- el propio cortacircuitos- lo que tiene que estar comprobado es lo que damos\n-- por bueno, no el cementerio.\n--\n-- Y al azar porque el orden por antigüedad pone delante justo las que el\n-- scraper dejó de ver, o sea las vendidas: el frente de la cola sería 100% de\n-- mortandad por construcción y el cortacircuitos no mediría nada. Pasó en\n-- Gamboa tres días seguidos.\nORDER BY is_active DESC, random()\nLIMIT 1500",
         "options": {}
       },
       "id": "av-cola",
@@ -283,7 +283,7 @@
         ]
       ]
     },
-    "4 veces/día (10:10, 12:10, 18:10 y 22:10)": {
+    "6 veces/día (10:10 a 22:10)": {
       "main": [
         [
           {

@@ -53,7 +53,21 @@ const ERROR_WF = "9BwKOPMIzjj3owho";
 
 // 10.000 por pasada y sin nodo Wait, como el español de AutoScout24: allí está
 // medido que así salen ~130 ofertas por minuto, o sea unos 77 minutos.
-const LOTE = 10000;
+// LOTE CORTO A PROPÓSITO.
+//
+// El 16-sep dos pasadas de 10.000 llevaban 5 y 4 horas con dieciocho
+// ejecuciones esperando detrás. Midiendo media hora a media hora, las dos daban
+// la misma curva:
+//
+//     50 → 50 → 40 → 33 → 29 → 26 → 23 → 22 → 20 → 19 ofertas/min
+//
+// n8n guarda en memoria la salida de cada vuelta del bucle, así que cuantas más
+// lleva, más cuesta la siguiente. Una pasada larga no tarda más: hace el trabajo
+// MÁS CARO. Los primeros 1.500 van a ~50/min y los últimos a 19.
+//
+// Con 1.500 la pasada dura ~30 min sin salir de la zona rápida, y seis pasadas
+// cortas rinden más que una larga y además no taponan la cola.
+const LOTE = 1500;
 const SEGUNDOS_POR_OFERTA = 0.5;
 const ESPERA_SEGUNDOS = 0;
 
@@ -292,13 +306,13 @@ const condicionBooleana = (id, campo) => ({
   options: {},
 });
 
-const CRON = "4 veces/día (10:10, 12:10, 18:10 y 22:10)";
+const CRON = "6 veces/día (10:10 a 22:10)";
 const nodos = [
   { parameters: {}, id: "av-manual", name: "Ejecutar manualmente",
     type: "n8n-nodes-base.manualTrigger", typeVersion: 1, position: [-560, 200] },
   // Fuera de las dos pasadas del scraper de Autocasión (8:20-9:50 y 19:20-20:50)
   // y del enriquecedor (9:50, 12:50, 17:50, 22:50). Cada pasada son ~77 min.
-  { parameters: { rule: { interval: [{ field: "cronExpression", expression: "0 10 10,12,18,22 * * *" }] } },
+  { parameters: { rule: { interval: [{ field: "cronExpression", expression: "0 10 10,12,14,16,18,22 * * *" }] } },
     id: "av-cron", name: CRON,
     type: "n8n-nodes-base.scheduleTrigger", typeVersion: 1, position: [-560, 400] },
   { parameters: { operation: "executeQuery", query: COLA, options: {} },
@@ -380,8 +394,12 @@ const wf = {
 const destino = path.join(RAIZ, "n8n-workflows", "autocasion-verificar-activas.json");
 fs.writeFileSync(destino, JSON.stringify(wf, null, 2) + "\n");
 console.log("escrito  " + destino);
-console.log("  " + nodos.length + " nodos, HEAD, " + LOTE + " por pasada, 4 pasadas/día = "
-  + (LOTE * 4).toLocaleString("es") + " al día");
+// Las pasadas se cuentan del propio cron: llevarlas a mano es como se quedan
+// viejas los números de los comentarios.
+const PASADAS = String(((nodos.find((n) => String(n.type).endsWith("scheduleTrigger"))
+  .parameters.rule.interval[0].expression).split(" ")[2])).split(",").length;
+console.log("  " + nodos.length + " nodos, HEAD, " + LOTE + " por pasada, " + PASADAS
+  + " pasadas/día = " + (LOTE * PASADAS).toLocaleString("es") + " al día");
 console.log("  cada pasada tarda unos " + Math.round(LOTE * SEGUNDOS_POR_OFERTA / 60) + " min");
 console.log("  cortacircuitos: mortandad > " + (TOPE_MORTANDAD * 100) + "% tras "
   + MINIMO_PARA_JUZGAR + " activas, o bloqueo > " + (TOPE_BLOQUEO * 100) + "% tras "

@@ -91,7 +91,21 @@ const REINTENTA_ESCRITURA = { retryOnFail: true, maxTries: 5, waitBetweenTries: 
 // robots.txt no declara Crawl-delay. Aun así, el cortacircuitos de bloqueo de
 // más abajo es lo que hace que correr sea seguro: si algún día nos cierran la
 // puerta, la pasada se para a los 50 intentos en vez de gastarse las 8.000.
-const LOTE = 8000;
+// LOTE CORTO A PROPÓSITO.
+//
+// El 16-sep dos pasadas de 10.000 llevaban 5 y 4 horas con dieciocho
+// ejecuciones esperando detrás. Midiendo media hora a media hora, las dos daban
+// la misma curva:
+//
+//     50 → 50 → 40 → 33 → 29 → 26 → 23 → 22 → 20 → 19 ofertas/min
+//
+// n8n guarda en memoria la salida de cada vuelta del bucle, así que cuantas más
+// lleva, más cuesta la siguiente. Una pasada larga no tarda más: hace el trabajo
+// MÁS CARO. Los primeros 1.500 van a ~50/min y los últimos a 19.
+//
+// Con 1.500 la pasada dura ~30 min sin salir de la zona rápida, y seis pasadas
+// cortas rinden más que una larga y además no taponan la cola.
+const LOTE = 1500;
 // Solo para el parte: ya no hay nodo Wait.
 const ESPERA_SEGUNDOS = 0;
 
@@ -351,8 +365,8 @@ const nodos = [
   // 5 pasadas dentro de la franja de 8:00 a 00:00, y en el minuto 40 para no
   // pisarse con nadie: tres verificadores dispararon a la vez el 2026-09-09 a
   // las 12:00 y los tres murieron con "Connection timed out" contra Postgres.
-  { parameters: { rule: { interval: [{ field: "cronExpression", expression: "0 40 8,11,14,17,20 * * *" }] } },
-    id: "dv-cron", name: "5 veces/día (8:40 a 20:40)",
+  { parameters: { rule: { interval: [{ field: "cronExpression", expression: "0 40 8,10,12,14,17,20,22 * * *" }] } },
+    id: "dv-cron", name: "7 veces/día (8:40 a 22:40)",
     type: "n8n-nodes-base.scheduleTrigger", typeVersion: 1, position: [-560, 400] },
   { parameters: { operation: "executeQuery", query: COLA, options: {} },
     id: "dv-cola", name: "PG: Cola a verificar",
@@ -405,7 +419,7 @@ const nodos = [
 const L = (n) => ({ node: n, type: "main", index: 0 });
 const conexiones = {
   "Ejecutar manualmente":        { main: [[L("PG: Cola a verificar")]] },
-  "5 veces/día (8:40 a 20:40)":  { main: [[L("PG: Cola a verificar")]] },
+  "7 veces/día (8:40 a 22:40)":  { main: [[L("PG: Cola a verificar")]] },
   "PG: Cola a verificar":        { main: [[L("Loop: oferta por oferta")]] },
   "Loop: oferta por oferta":     { main: [[L("Code: Resumen")], [L("Code: ¿toca pedirla?")]] },
   "Code: ¿toca pedirla?":        { main: [[L("IF: ¿nos hemos parado?")]] },
@@ -435,6 +449,11 @@ const wf = {
 const destino = path.join(RAIZ, "n8n-workflows", "autoscout24-de-verificar-activas.json");
 fs.writeFileSync(destino, JSON.stringify(wf, null, 2) + "\n");
 console.log("escrito  " + destino);
-console.log("  " + nodos.length + " nodos, HEAD, " + LOTE + " por pasada, 5 pasadas/día");
+// Las pasadas se cuentan del propio cron: llevarlas a mano es como se quedan
+// viejas los números de los comentarios.
+const PASADAS = String(((nodos.find((n) => String(n.type).endsWith("scheduleTrigger"))
+  .parameters.rule.interval[0].expression).split(" ")[2])).split(",").length;
+console.log("  " + nodos.length + " nodos, HEAD, " + LOTE + " por pasada, " + PASADAS
+  + " pasadas/día = " + (LOTE * PASADAS).toLocaleString("es") + " al día");
 console.log("  cortacircuitos: para si mas del " + (TOPE_MORTANDAD * 100)
   + "% de las ACTIVAS miradas sale de baja, tras " + MINIMO_PARA_JUZGAR);

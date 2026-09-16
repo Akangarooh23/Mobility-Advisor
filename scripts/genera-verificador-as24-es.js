@@ -42,40 +42,27 @@ const REINTENTA = { retryOnFail: true, maxTries: 3, waitBetweenTries: 5000 };
 const REINTENTA_ESCRITURA = { retryOnFail: true, maxTries: 5, waitBetweenTries: 15000,
   onError: "continueRegularOutput" };
 
-// 10.000 por pasada, y sin espera entre ofertas.
-//
-// El tamaño del problema es enorme: damos por activos 27.580 Audi y el portal
-// tiene 16.424. Son ~11.000 coches vendidos contando como comparables SOLO en
-// una marca.
-//
-// DE DÓNDE SALEN ESTOS NÚMEROS, que han cambiado dos veces en un día:
-//
-//   1. Primero puse 5.000 dando por hecho que mandaba la espera de 1 segundo.
-//      No manda. Las pasadas alemanas del 14-sep -3.000 ofertas con espera de
-//      1 s- tardaron 2 h 20, 3 h 50 y 4 h 20: CUATRO segundos por oferta. Los
-//      otros tres eran el propio nodo Wait, que hace que n8n guarde el estado
-//      de la ejecución para poder reanudarla. Con 5.000 la pasada duraba 5 h 30
-//      y la de las 11:25 habría arrancado encima de la de las 9:25.
-//
-//   2. Luego bajé a 2.000 y quité la espera, calculando 3 s por oferta. También
-//      me pasé: la pasada de verdad del 15-sep hizo 386 ofertas en 3 minutos.
-//      129 por minuto, 0,46 segundos cada una. El Wait no costaba 1 segundo de
-//      cuatro: costaba casi los cuatro.
-//
-// Así que 10.000, que a ese ritmo son unos 80 minutos y dejan 40 de margen en
-// el hueco de dos horas por si el portal va lento un día.
-//
-// Que correr así es seguro está medido, no supuesto: una ráfaga a ese ritmo dio
-// 28 doscientos, 8 trescientosuno y 4 cuatrocientosdiez, ni un 403, con la
+// Correr así es seguro y está medido: una ráfaga a este ritmo contra el portal
+// dio 28 doscientos, 8 trescientosuno y 4 cuatrocientosdiez, ni un 403, con la
 // latencia BAJANDO de 192 a 155 ms, y su robots.txt no declara Crawl-delay. Aun
-// así, lo que hace que correr sea seguro es el cortacircuitos de bloqueo: si un
+// así, lo que lo hace seguro de verdad es el cortacircuitos de bloqueo: si un
 // día nos cierran la puerta, la pasada se para a los 50 intentos.
 //
-// 40.000 al día contra 322.554 pendientes es la primera vuelta en 8 días. Sigue
-// sin ser «todas cada día», y eso no se arregla con un número más grande sino
-// cambiando de método: verificar POR LISTADO, como en Milanuncios, donde una
-// página habla de 20 ofertas a la vez en vez de una por petición.
-const LOTE = 10000;
+// LOTE CORTO A PROPÓSITO.
+//
+// El 16-sep dos pasadas de 10.000 llevaban 5 y 4 horas con dieciocho
+// ejecuciones esperando detrás. Midiendo media hora a media hora, las dos daban
+// la misma curva:
+//
+//     50 → 50 → 40 → 33 → 29 → 26 → 23 → 22 → 20 → 19 ofertas/min
+//
+// n8n guarda en memoria la salida de cada vuelta del bucle, así que cuantas más
+// lleva, más cuesta la siguiente. Una pasada larga no tarda más: hace el trabajo
+// MÁS CARO. Los primeros 1.500 van a ~50/min y los últimos a 19.
+//
+// Con 1.500 la pasada dura ~30 min sin salir de la zona rápida, y seis pasadas
+// cortas rinden más que una larga y además no taponan la cola.
+const LOTE = 1500;
 // Lo medido el 15-sep sin nodo Wait, redondeado hacia arriba. Lo usan el
 // resumen de aquí abajo y el test, que comprueba que una pasada cabe en su
 // hueco: si un día esto se queda viejo otra vez, salta el test y no el workflow.
@@ -352,8 +339,8 @@ const nodos = [
   // rápida de que nos corten. Minuto 25 para no coincidir con nadie en punto:
   // el 2026-09-09 tres verificadores dispararon a las 12:00 y los tres
   // murieron con "Connection timed out" contra Postgres.
-  { parameters: { rule: { interval: [{ field: "cronExpression", expression: "0 25 9,11,19,21 * * *" }] } },
-    id: "ev-cron", name: "4 veces/día (9:25, 11:25, 19:25 y 21:25)",
+  { parameters: { rule: { interval: [{ field: "cronExpression", expression: "0 25 8,10,12,20,22,23 * * *" }] } },
+    id: "ev-cron", name: "6 veces/día (8:25 a 23:25)",
     type: "n8n-nodes-base.scheduleTrigger", typeVersion: 1, position: [-560, 400] },
   { parameters: { operation: "executeQuery", query: COLA, options: {} },
     id: "ev-cola", name: "PG: Cola a verificar",
@@ -406,7 +393,7 @@ const nodos = [
 ];
 
 const L = (n) => ({ node: n, type: "main", index: 0 });
-const CRON = "4 veces/día (9:25, 11:25, 19:25 y 21:25)";
+const CRON = "6 veces/día (8:25 a 23:25)";
 const conexiones = {
   "Ejecutar manualmente":    { main: [[L("PG: Cola a verificar")]] },
   [CRON]:                    { main: [[L("PG: Cola a verificar")]] },
@@ -439,8 +426,12 @@ const wf = {
 const destino = path.join(RAIZ, "n8n-workflows", "autoscout24-verificar-activas.json");
 fs.writeFileSync(destino, JSON.stringify(wf, null, 2) + "\n");
 console.log("escrito  " + destino);
-console.log("  " + nodos.length + " nodos, HEAD, " + LOTE + " por pasada, 4 pasadas/día = "
-  + (LOTE * 4).toLocaleString("es") + " al día");
+// Las pasadas se cuentan del propio cron: llevarlas a mano es como se quedan
+// viejas los números de los comentarios.
+const PASADAS = String(((nodos.find((n) => String(n.type).endsWith("scheduleTrigger"))
+  .parameters.rule.interval[0].expression).split(" ")[2])).split(",").length;
+console.log("  " + nodos.length + " nodos, HEAD, " + LOTE + " por pasada, " + PASADAS
+  + " pasadas/día = " + (LOTE * PASADAS).toLocaleString("es") + " al día");
 console.log("  cada pasada tarda unos " + Math.round(LOTE * SEGUNDOS_POR_OFERTA / 60)
   + " min, y entre una y la siguiente hay 120");
 console.log("  cortacircuitos: para si más del " + (TOPE_MORTANDAD * 100)

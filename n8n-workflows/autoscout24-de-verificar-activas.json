@@ -18,13 +18,13 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 40 8,11,14,17,20 * * *"
+              "expression": "0 40 8,10,12,14,17,20,22 * * *"
             }
           ]
         }
       },
       "id": "dv-cron",
-      "name": "5 veces/día (8:40 a 20:40)",
+      "name": "7 veces/día (8:40 a 22:40)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
@@ -35,7 +35,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "-- Las ofertas alemanas que toca comprobar.\n--\n-- Las ACTIVAS cada dia: son las que sostienen las valoraciones. Las que ya\n-- constan de baja, una vez por semana, solo para que una que se diera por\n-- muerta por error pueda volver sola.\n--\n-- Los dos ritmos separados no son un capricho. En Gamboa iban con el mismo\n-- filtro y la cola acababa llena de muertas: el cortacircuitos leia 100% de\n-- mortandad y cortaba la pasada antes de mirar una sola oferta viva.\nSELECT id, url, is_active\nFROM moveadvisor_market_offers\nWHERE portal = 'autoscout24'\n  AND country = 'DE'\n  AND COALESCE(url, '') <> ''\n  AND (\n    (is_active AND (last_checked_at IS NULL\n                    OR last_checked_at < NOW() - INTERVAL '20 hours'))\n    OR\n    (NOT is_active AND (last_checked_at IS NULL\n                        OR last_checked_at < NOW() - INTERVAL '7 days'))\n  )\n-- Las activas primero, y al azar dentro de cada grupo.\n--\n-- Primero las activas porque si una pasada se corta -por un fallo de red o por\n-- el propio cortacircuitos- lo que tiene que estar comprobado es lo que damos\n-- por bueno, no el cementerio.\n--\n-- Y al azar porque el orden por antiguedad pone delante justo las que el\n-- scraper dejo de ver, o sea las vendidas: el frente de la cola seria 100% de\n-- mortandad por construccion y el cortacircuitos no mediria nada.\nORDER BY is_active DESC, random()\nLIMIT 8000",
+        "query": "-- Las ofertas alemanas que toca comprobar.\n--\n-- Las ACTIVAS cada dia: son las que sostienen las valoraciones. Las que ya\n-- constan de baja, una vez por semana, solo para que una que se diera por\n-- muerta por error pueda volver sola.\n--\n-- Los dos ritmos separados no son un capricho. En Gamboa iban con el mismo\n-- filtro y la cola acababa llena de muertas: el cortacircuitos leia 100% de\n-- mortandad y cortaba la pasada antes de mirar una sola oferta viva.\nSELECT id, url, is_active\nFROM moveadvisor_market_offers\nWHERE portal = 'autoscout24'\n  AND country = 'DE'\n  AND COALESCE(url, '') <> ''\n  AND (\n    (is_active AND (last_checked_at IS NULL\n                    OR last_checked_at < NOW() - INTERVAL '20 hours'))\n    OR\n    (NOT is_active AND (last_checked_at IS NULL\n                        OR last_checked_at < NOW() - INTERVAL '7 days'))\n  )\n-- Las activas primero, y al azar dentro de cada grupo.\n--\n-- Primero las activas porque si una pasada se corta -por un fallo de red o por\n-- el propio cortacircuitos- lo que tiene que estar comprobado es lo que damos\n-- por bueno, no el cementerio.\n--\n-- Y al azar porque el orden por antiguedad pone delante justo las que el\n-- scraper dejo de ver, o sea las vendidas: el frente de la cola seria 100% de\n-- mortandad por construccion y el cortacircuitos no mediria nada.\nORDER BY is_active DESC, random()\nLIMIT 1500",
         "options": {}
       },
       "id": "dv-cola",
@@ -283,7 +283,7 @@
         ]
       ]
     },
-    "5 veces/día (8:40 a 20:40)": {
+    "7 veces/día (8:40 a 22:40)": {
       "main": [
         [
           {

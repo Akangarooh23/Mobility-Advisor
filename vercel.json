@@ -60,6 +60,10 @@
       "destination": "/api/market?route=mandato-firmado"
     },
     {
+      "source": "/api/cita-taller",
+      "destination": "/api/market?route=cita-taller"
+    },
+    {
       "source": "/api/workshops-nearby",
       "destination": "/api/market?route=nearby"
     },

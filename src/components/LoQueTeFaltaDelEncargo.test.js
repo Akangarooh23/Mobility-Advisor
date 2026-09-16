@@ -160,3 +160,65 @@ describe("el mandato es una fila más de la lista", () => {
     expect(container).toBeEmptyDOMElement();
   });
 });
+
+describe("la cita del taller", () => {
+  /**
+   * La revisión mecánica es lo único de las seis puertas que ponemos nosotros, y
+   * el cliente no la veía en ninguna parte: le llegaba un correo con el día y
+   * ahí se acababa. Un correo se entierra en una bandeja; el panel es donde
+   * vuelve a mirar el que no se acuerda de si era el jueves o el viernes.
+   */
+  const CITA = {
+    taller: "Norauto Alcobendas",
+    direccion: "Calle de los Calabozos 13, Alcobendas",
+    // Las 16:30 de Madrid en septiembre.
+    cita_at: "2026-09-18T14:30:00.000Z",
+    cliente_pidio: "",
+  };
+
+  test("dice dónde, cuándo y a qué hora", () => {
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} taller={CITA} vehicleId="v1" />);
+    expect(screen.getByText(/Norauto Alcobendas/)).toBeInTheDocument();
+    expect(screen.getByText(/Calle de los Calabozos 13/)).toBeInTheDocument();
+    expect(screen.getByText(/16:30/)).toBeInTheDocument();
+  });
+
+  test("sin dirección no se inventa ninguna", () => {
+    // Hay talleres que todo el mundo ubica. Lo que no puede salir es un hueco.
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} taller={{ ...CITA, direccion: "" }} vehicleId="v1" />);
+    expect(screen.getByText(/Norauto Alcobendas/)).toBeInTheDocument();
+  });
+
+  test("sin cita no sale la caja", () => {
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} taller={null} vehicleId="v1" />);
+    expect(screen.queryByText(/cita en el taller/i)).not.toBeInTheDocument();
+  });
+
+  test("no suma una tarea a la lista de lo que él tiene que traer", () => {
+    /*
+     * La cita ya está hecha por nuestra parte. Si contara como una fila más, el
+     * contador diría «te quedan tres cosas» cuando le quedan dos, y una de ellas
+     * no sería suya.
+     */
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} taller={CITA} vehicleId="v1" />);
+    expect(screen.getByText(/2 de 3 hechas|1 de 3 hechas/)).toBeInTheDocument();
+  });
+
+  test("y puede decir que no puede ir", () => {
+    // Sin esto, el que no podía ir simplemente no iba: la cita seguía en pie en
+    // nuestra pantalla y el día señalado el coche no aparecía.
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} taller={CITA} vehicleId="v1" />);
+    expect(screen.getByRole("button", { name: /No puedo ese día/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Anular la cita/i })).toBeInTheDocument();
+  });
+
+  test("si ya lo pidió, no se le vuelve a preguntar", () => {
+    /*
+     * Viene del servidor. Sin esto, el que pide el cambio y vuelve mañana ve los
+     * botones como si no hubiera dicho nada y lo pide otra vez.
+     */
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} taller={{ ...CITA, cliente_pidio: "cambio" }} vehicleId="v1" />);
+    expect(screen.getByText(/Nos has pedido cambiarla/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /No puedo ese día/i })).not.toBeInTheDocument();
+  });
+});

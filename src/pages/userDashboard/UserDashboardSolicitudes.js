@@ -703,10 +703,14 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
                         llamábamos, y la llamada se gastaba en leerle una lista
                         que podía haber leído él. Cada fila que falta lleva a
                         donde se hace. */}
-                    {((Array.isArray(meta.puertas) && meta.puertas.length > 0) || meta.mandato) && (
+                    {((Array.isArray(meta.puertas) && meta.puertas.length > 0) || meta.mandato || meta.taller) && (
                       <LoQueTeFaltaDelEncargo
                         puertas={meta.puertas || []}
                         mandato={meta.mandato || null}
+                        /* La cita del taller, que es lo único de las seis que
+                           ponemos nosotros y que él no veía en ninguna parte. */
+                        taller={meta.taller || null}
+                        vehicleId={item.vehicle_id || ""}
                         isDark={isDark}
                       />
                     )}

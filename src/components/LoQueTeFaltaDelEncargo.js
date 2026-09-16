@@ -134,9 +134,191 @@ function SubirElMandato({ mandato, isDark }) {
   );
 }
 
-export default function LoQueTeFaltaDelEncargo({ puertas = [], mandato = null, isDark = false }) {
+/**
+ * La cita del taller, para el que tiene que llevar el coche.
+ *
+ * La revisión mecánica es lo único de las seis puertas que ponemos nosotros, y
+ * hasta ahora el cliente no la veía en ninguna parte: le llegaba un correo con
+ * el día y ahí se acababa. Un correo se entierra en una bandeja de entrada; el
+ * panel es donde vuelve a mirar el que no se acuerda de si era el jueves.
+ *
+ * Va **fuera de la lista de puertas** y debajo, a propósito. Esa lista es lo que
+ * tiene que traer él, y su contador dice «te quedan dos cosas»: meter aquí algo
+ * que ya está hecho por nuestra parte le sumaría una tarea que no es suya.
+ *
+ * La dirección puede no estar —hay talleres que todo el mundo ubica— y entonces
+ * no se inventa: se calla esa línea.
+ */
+function LaCitaDelTaller({ cita, vehicleId, isDark }) {
+  const [abierto, setAbierto] = useState("");
+  const [motivo, setMotivo] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const [pedido, setPedido] = useState("");
+  const [fallo, setFallo] = useState("");
+
+  /*
+   * Lo que ya pidió, si lo pidió antes de recargar la página.
+   *
+   * Viene del servidor: sin esto, el que pide el cambio y vuelve mañana ve los
+   * botones como si no hubiera dicho nada y lo pide otra vez.
+   */
+  const yaPidio = pedido || (cita && cita.cliente_pidio) || "";
+
+  async function pide(que) {
+    setEnviando(true);
+    setFallo("");
+    try {
+      const res = await fetch(rutaApi("/api/cita-taller"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ vehicle_id: vehicleId, pide: que, motivo }),
+      });
+      const dato = await res.json().catch(() => ({}));
+      if (!res.ok || !dato?.ok) {
+        setFallo(dato?.error || "No hemos podido apuntarlo. Prueba otra vez.");
+        return;
+      }
+      setPedido(que);
+      setAbierto("");
+    } catch {
+      setFallo("No hemos podido apuntarlo. Prueba otra vez.");
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  if (!cita || !cita.cita_at) return null;
+
+  const cuando = new Date(cita.cita_at);
+  if (Number.isNaN(cuando.getTime())) return null;
+
+  // En la hora de España, que es donde está el taller: quien lo mire desde
+  // fuera vería una hora a la que no le espera nadie.
+  const dia = cuando.toLocaleDateString("es-ES", {
+    weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Madrid",
+  });
+  const hora = cuando.toLocaleTimeString("es-ES", {
+    hour: "2-digit", minute: "2-digit", timeZone: "Europe/Madrid",
+  });
+
+  return (
+    <div style={{
+      background: isDark ? "rgba(5,150,105,0.10)" : "rgba(5,150,105,0.06)",
+      border: "1px solid rgba(5,150,105,0.25)", borderRadius: 10,
+      padding: "12px 14px", marginBottom: 8,
+    }}>
+      <div style={{ fontSize: 12.5, fontWeight: 700, color: isDark ? "var(--gris-100)" : "#1f2937", marginBottom: 4 }}>
+        Tu coche tiene cita en el taller
+      </div>
+      <div style={{ fontSize: 13, color: isDark ? "var(--gris-200)" : "#374151", lineHeight: 1.5 }}>
+        <strong>{cita.taller}</strong>
+        {cita.direccion ? <><br />{cita.direccion}</> : null}
+        <br />{dia} a las {hora}
+      </div>
+      <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "#6b7280", marginTop: 6, lineHeight: 1.45 }}>
+        Es la revisión mecánica que nos permite anunciarlo como comprobado. Solo hay
+        que acercarlo.
+      </div>
+
+      {/*
+        * Y qué hacer si ese día no puede.
+        *
+        * Sin esto, el que no podía ir simplemente no iba: la cita seguía en pie
+        * en nuestra pantalla, nadie la movía y el día señalado el coche no
+        * aparecía. Decírnoslo tenía que ser más fácil que no decirlo.
+        */}
+      {yaPidio ? (
+        <div style={{ fontSize: 12.5, fontWeight: 600, color: isDark ? "var(--gris-200)" : "#374151", marginTop: 10, lineHeight: 1.45 }}>
+          {yaPidio === "cancelar"
+            ? "Nos has pedido que la anulemos. Te llamamos para buscar otro momento."
+            : "Nos has pedido cambiarla. Te llamamos con otra fecha."}
+        </div>
+      ) : abierto ? (
+        <div style={{ marginTop: 10 }}>
+          <label style={{ display: "block", fontSize: 12, color: isDark ? "var(--gris-300)" : "#4b5563", marginBottom: 4 }}>
+            {abierto === "cancelar" ? "¿Por qué la anulamos?" : "¿Qué días te vendrían bien?"}
+            <span style={{ color: isDark ? "var(--gris-500)" : "#9ca3af" }}> (opcional)</span>
+          </label>
+          <textarea
+            value={motivo}
+            onChange={(e) => setMotivo(e.target.value)}
+            rows={2}
+            maxLength={500}
+            placeholder={abierto === "cancelar" ? "Cuéntanos lo que ha pasado" : "Por ejemplo: por las tardes, o a partir del día 20"}
+            style={{
+              width: "100%", fontSize: 13, padding: "7px 9px", borderRadius: 8,
+              border: "1px solid rgba(5,150,105,0.35)", resize: "vertical",
+              background: isDark ? "rgba(0,0,0,0.25)" : "#fff",
+              color: isDark ? "var(--gris-100)" : "#111827",
+            }}
+          />
+          <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+            <button
+              type="button"
+              disabled={enviando}
+              onClick={() => { void pide(abierto); }}
+              style={{
+                padding: "6px 12px", borderRadius: 8, border: "none",
+                background: "#059669", color: "#fff", fontSize: 12.5, fontWeight: 700,
+                cursor: enviando ? "wait" : "pointer",
+              }}
+            >
+              {enviando ? "Enviando…" : "Enviar"}
+            </button>
+            <button
+              type="button"
+              disabled={enviando}
+              onClick={() => { setAbierto(""); setFallo(""); }}
+              style={{
+                padding: "6px 12px", borderRadius: 8, fontSize: 12.5, fontWeight: 600,
+                border: "1px solid rgba(107,114,128,0.35)", background: "transparent",
+                color: isDark ? "var(--gris-300)" : "#4b5563", cursor: "pointer",
+              }}
+            >
+              Dejarlo
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+          <button
+            type="button"
+            onClick={() => setAbierto("cambio")}
+            style={{
+              padding: "6px 12px", borderRadius: 8, fontSize: 12.5, fontWeight: 700,
+              border: "1px solid rgba(5,150,105,0.45)", background: "transparent",
+              color: isDark ? "#34d399" : "#047857", cursor: "pointer",
+            }}
+          >
+            No puedo ese día
+          </button>
+          <button
+            type="button"
+            onClick={() => setAbierto("cancelar")}
+            style={{
+              padding: "6px 12px", borderRadius: 8, fontSize: 12.5, fontWeight: 600,
+              border: "1px solid rgba(107,114,128,0.35)", background: "transparent",
+              color: isDark ? "var(--gris-300)" : "#6b7280", cursor: "pointer",
+            }}
+          >
+            Anular la cita
+          </button>
+        </div>
+      )}
+
+      {fallo && (
+        <div style={{ fontSize: 12, color: "#dc2626", marginTop: 8 }}>{fallo}</div>
+      )}
+    </div>
+  );
+}
+
+export default function LoQueTeFaltaDelEncargo({
+  puertas = [], mandato = null, taller = null, vehicleId = "", isDark = false,
+}) {
   const suyas = Array.isArray(puertas) ? puertas : [];
-  if (suyas.length === 0 && !mandato) return null;
+  if (suyas.length === 0 && !mandato && !taller) return null;
 
   /*
    * El mandato es una fila más, y la primera.
@@ -259,6 +441,9 @@ export default function LoQueTeFaltaDelEncargo({ puertas = [], mandato = null, i
       </div>
     </div>
       )}
+
+      {/* Y lo que hacemos nosotros, debajo de lo suyo. */}
+      <LaCitaDelTaller cita={taller} vehicleId={vehicleId} isDark={isDark} />
     </>
   );
 }

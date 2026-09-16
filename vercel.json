@@ -64,6 +64,10 @@
       "destination": "/api/market?route=cita-taller"
     },
     {
+      "source": "/api/clausula-precio",
+      "destination": "/api/market?route=clausula-precio"
+    },
+    {
       "source": "/api/workshops-nearby",
       "destination": "/api/market?route=nearby"
     },

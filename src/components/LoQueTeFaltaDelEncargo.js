@@ -55,7 +55,7 @@ function Pendiente({ color }) {
  * que no contaba era la más importante — sin el mandato firmado no podemos
  * vender por él ni cobrarle nada.
  */
-function SubirElMandato({ mandato, isDark }) {
+function SubirElMandato({ mandato, isDark, ruta = "/api/mandato-firmado", texto = "Subir el mandato firmado" }) {
   const [subiendo, setSubiendo] = useState(false);
   const [hecho, setHecho] = useState(false);
   const [fallo, setFallo] = useState("");
@@ -71,9 +71,10 @@ function SubirElMandato({ mandato, isDark }) {
         lector.onerror = () => mal(new Error("no se ha podido leer"));
         lector.readAsDataURL(archivo);
       });
-      const res = await fetch(rutaApi("/api/mandato-firmado"), {
+      const res = await fetch(rutaApi(ruta), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           encargo_id: mandato.encargo_id,
           nombre: archivo.name,
@@ -115,7 +116,7 @@ function SubirElMandato({ mandato, isDark }) {
         background: "var(--marca)", color: "#fff", borderRadius: 8,
         fontSize: 12, fontWeight: 700, cursor: subiendo ? "wait" : "pointer",
       }}>
-        {subiendo ? "Subiendo…" : "Subir el mandato firmado"}
+        {subiendo ? "Subiendo…" : texto}
         <input
           type="file"
           accept="application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
@@ -387,10 +388,11 @@ function PorDondeVa({ estado, isDark }) {
 }
 
 export default function LoQueTeFaltaDelEncargo({
-  puertas = [], mandato = null, taller = null, estado = null, vehicleId = "", isDark = false,
+  puertas = [], mandato = null, taller = null, estado = null, precio = null,
+  vehicleId = "", isDark = false,
 }) {
   const suyas = Array.isArray(puertas) ? puertas : [];
-  if (suyas.length === 0 && !mandato && !taller && !estado) return null;
+  if (suyas.length === 0 && !mandato && !taller && !estado && !precio) return null;
 
   /*
    * El mandato es una fila más, y la primera.
@@ -403,7 +405,7 @@ export default function LoQueTeFaltaDelEncargo({
    * Va delante porque es lo primero del camino: se le manda nada más hablar
    * con él, antes de que traiga papeles ni fotos.
    */
-  const todas = mandato
+  const conMandato = mandato
     ? [{
       clave: 'mandato',
       nombre: 'El mandato firmado',
@@ -413,6 +415,38 @@ export default function LoQueTeFaltaDelEncargo({
       mandato,
     }, ...suyas]
     : suyas;
+
+  /*
+   * Y el precio de salida, la última.
+   *
+   * Va al final porque va de verdad al final: el precio se fija con lo que diga
+   * el taller —un coche «con reparos» no vale lo mismo que uno limpio—, así que
+   * hasta que el coche no ha pasado por allí no hay cifra que aceptar.
+   *
+   * Y por eso **solo aparece cuando toca**. Si estuviera desde el principio, la
+   * lista diría «8 de 9» durante semanas por una fila que él no puede tocar, y
+   * una lista con una casilla imposible deja de leerse como una lista de cosas
+   * que hacer.
+   *
+   * No es papeleo nuestro: firmarlo es lo único que le deja retirar el encargo
+   * sin pagar nada pasados los treinta días. Por eso el texto dice lo que gana,
+   * no lo que le pedimos.
+   */
+  const todas = precio
+    ? [...conMandato, {
+      clave: 'precio',
+      nombre: 'El precio de salida',
+      abierta: Boolean(precio.aceptada),
+      falta: precio.importe
+        ? `Te hemos mandado el documento (${precio.importe}). Fírmalo y súbelo aquí: así puedes retirar el encargo sin pagar nada pasados 30 días.`
+        : 'Te hemos mandado el documento por correo. Fírmalo y súbelo aquí.',
+      donde: null,
+      // Se sube igual que el mandato, con su ruta y su texto.
+      mandato: { encargo_id: precio.encargo_id, firmado: Boolean(precio.aceptada) },
+      ruta: '/api/clausula-precio',
+      textoDelBoton: 'Subir el precio firmado',
+    }]
+    : conMandato;
 
   const hayPuertas = todas.length > 0;
   const faltan = todas.filter((p) => !p.abierta).length;
@@ -488,7 +522,14 @@ export default function LoQueTeFaltaDelEncargo({
                   * Es la única de las filas que se hace sin salir del panel —
                   * las demás mandan a subir papeles, a tasar o a poner horas.
                   */}
-                {!p.abierta && p.mandato && <SubirElMandato mandato={p.mandato} isDark={isDark} />}
+                {!p.abierta && p.mandato && (
+                  <SubirElMandato
+                    mandato={p.mandato}
+                    isDark={isDark}
+                    ruta={p.ruta || "/api/mandato-firmado"}
+                    texto={p.textoDelBoton || "Subir el mandato firmado"}
+                  />
+                )}
               </span>
             </>
           );

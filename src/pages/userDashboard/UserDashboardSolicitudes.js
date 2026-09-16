@@ -703,7 +703,7 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
                         llamábamos, y la llamada se gastaba en leerle una lista
                         que podía haber leído él. Cada fila que falta lleva a
                         donde se hace. */}
-                    {((Array.isArray(meta.puertas) && meta.puertas.length > 0) || meta.mandato || meta.taller || meta.estado_encargo) && (
+                    {((Array.isArray(meta.puertas) && meta.puertas.length > 0) || meta.mandato || meta.taller || meta.estado_encargo || meta.precio_de_salida) && (
                       <LoQueTeFaltaDelEncargo
                         puertas={meta.puertas || []}
                         mandato={meta.mandato || null}
@@ -712,6 +712,9 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
                         taller={meta.taller || null}
                         /* Y por dónde va, para cuando ya lo ha traído todo. */
                         estado={meta.estado_encargo || null}
+                        /* El precio de salida, que es la última fila y solo
+                           aparece cuando el coche ya ha pasado por el taller. */
+                        precio={meta.precio_de_salida || null}
                         vehicleId={item.vehicle_id || ""}
                         isDark={isDark}
                       />

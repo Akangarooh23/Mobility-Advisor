@@ -278,3 +278,53 @@ describe("por dónde va el encargo", () => {
     expect(screen.queryByText(/Revisión del taller hecha/i)).not.toBeInTheDocument();
   });
 });
+
+describe("el precio de salida, como paso", () => {
+  /*
+   * Es el último papel y el único que le conviene a él: aceptarlo por escrito es
+   * lo que le deja retirar el encargo sin pagar nada pasados los treinta días.
+   * Va después del taller porque el precio se fija con lo que diga.
+   */
+  const PRECIO = { encargo_id: "enc-1", aceptada: false, importe: "13.500 €" };
+
+  test("sale como una fila más, con su importe", () => {
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} precio={PRECIO} />);
+    expect(screen.getByText("El precio de salida")).toBeInTheDocument();
+    expect(screen.getByText(/13\.500 €/)).toBeInTheDocument();
+  });
+
+  test("y cuenta en el total, que es el motivo de que sea una fila", () => {
+    // En un recuadro aparte, el contador diría «te quedan 2 cosas» cuando le
+    // quedan tres, y la que no contaría sería la última.
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} precio={PRECIO} />);
+    expect(screen.getByText(/de 4 hechas/)).toBeInTheDocument();
+  });
+
+  test("con su botón para subirlo firmado", () => {
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} precio={PRECIO} />);
+    expect(screen.getByText("Subir el precio firmado")).toBeInTheDocument();
+  });
+
+  test("le dice qué gana firmándolo", () => {
+    // Sin eso parece papeleo nuestro, y el papeleo del vendedor se queda sin
+    // firmar.
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} precio={PRECIO} />);
+    expect(screen.getByText(/sin pagar nada pasados 30 días/i)).toBeInTheDocument();
+  });
+
+  test("firmado sale como hecho y sin botón", () => {
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} precio={{ ...PRECIO, aceptada: true }} />);
+    expect(screen.getByText("El precio de salida")).toBeInTheDocument();
+    expect(screen.queryByText("Subir el precio firmado")).not.toBeInTheDocument();
+  });
+
+  test("y si todavía no se le ha mandado, no aparece", () => {
+    /*
+     * El servidor solo lo manda cuando se le ha enviado el papel. Si la fila
+     * estuviera desde el principio, la lista diría «8 de 9» durante semanas por
+     * una casilla que él no puede tocar.
+     */
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} precio={null} />);
+    expect(screen.queryByText("El precio de salida")).not.toBeInTheDocument();
+  });
+});

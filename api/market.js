@@ -8,6 +8,7 @@ const entregaDireccionHandler     = require("../lib/api/entrega-direccion-handle
 const mandatoFirmadoHandler       = require("../lib/api/mandato-firmado-handler");
 const citaDelTallerHandler        = require("../lib/api/cita-del-taller-handler");
 const clausulaPrecioHandler       = require("../lib/api/clausula-precio-handler");
+const papelesDeLaVentaHandler     = require("../lib/api/papeles-de-la-venta-handler");
 const tasacionPdfHandler          = require("../lib/api/tasacion-pdf-handler");
 const marketplaceOgHandler        = require("../lib/api/marketplace-og-handler");
 const workshopsNearbyHandler      = require("../lib/api/workshops-nearby-handler");
@@ -35,6 +36,7 @@ function resolveRoute(req) {
   if (url.includes("mandato-firmado")) return "mandato-firmado";
   if (url.includes("cita-taller")) return "cita-taller";
   if (url.includes("clausula-precio")) return "clausula-precio";
+  if (url.includes("papeles-venta")) return "papeles-venta";
   if (url.includes("import-offers")) return "import";
   if (url.includes("marketplace-vo")) return "vo";
   if (url.includes("workshops-nearby")) return "nearby";
@@ -59,6 +61,7 @@ module.exports = async function marketRouter(req, res) {
     case "mandato-firmado": return mandatoFirmadoHandler(req, res);
     case "cita-taller":    return citaDelTallerHandler(req, res);
     case "clausula-precio": return clausulaPrecioHandler(req, res);
+    case "papeles-venta":   return papelesDeLaVentaHandler(req, res);
     case "tasacion-pdf":   return tasacionPdfHandler(req, res);
     case "og":          return marketplaceOgHandler(req, res);
     case "nearby":      return workshopsNearbyHandler(req, res);

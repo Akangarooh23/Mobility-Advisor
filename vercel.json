@@ -68,6 +68,10 @@
       "destination": "/api/market?route=clausula-precio"
     },
     {
+      "source": "/api/papeles-venta",
+      "destination": "/api/market?route=papeles-venta"
+    },
+    {
       "source": "/api/workshops-nearby",
       "destination": "/api/market?route=nearby"
     },

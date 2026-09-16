@@ -123,22 +123,32 @@ const CURSOR_SQL = `-- Por dónde iba la última pasada: índice de marca y pág
 -- Van en DOS filas porque moveadvisor_cursores.valor es un integer y aquí hacen
 -- falta dos números. Con COALESCE la primera pasada arranca en 0:1 sin que nadie
 -- tenga que crear las filas a mano.
-SELECT
-  COALESCE(max(valor) FILTER (WHERE clave = 'autocasion_marca'), 0)   AS marca,
-  COALESCE(max(valor) FILTER (WHERE clave = 'autocasion_pagina'), 1)  AS pagina
-FROM moveadvisor_cursores
-WHERE clave IN ('autocasion_marca', 'autocasion_pagina')`;
+-- Devuelve el cursor Y cuántas páginas tiene cada marca, que es lo que permite
+-- encadenar marcas dentro de una misma pasada. Los números los siembra
+-- scripts/mide-paginas-autocasion.js y los refresca el propio workflow.
+SELECT clave, valor FROM moveadvisor_cursores
+WHERE clave IN ('autocasion_marca', 'autocasion_pagina')
+   OR clave LIKE 'autocasion_pag_%'`;
 
 // Las marcas, en un solo sitio: las usan el nodo que decide cuál toca y el que
 // reparte las ventanas, y si se separan el reparto pide una y cuenta otra.
 const MARCAS = ["audi","bmw","mercedes-benz","volkswagen","peugeot","renault","seat","citroen","ford","opel","toyota","kia","hyundai","nissan","fiat","dacia","skoda","volvo","mazda","mini","land-rover","jeep","honda","suzuki","mitsubishi","lexus","porsche","alfa-romeo","jaguar","cupra","ds","smart","subaru","ssangyong","tesla","abarth","lancia","chevrolet","chrysler","dodge","infiniti","isuzu","maserati","bentley","ferrari","lamborghini","aston-martin","lotus","alpine","polestar","mg","byd","omoda","ebro","gwm","leapmotor","xpeng","zeekr","seres","maxus","genesis"];
 
 const CODE_MARCA_DE_TURNO = `// Qué marca toca, para poder preguntarle cuántas páginas tiene.
+//
+// La consulta del cursor devuelve MUCHAS filas -el cursor y las páginas de cada
+// marca-, así que aquí se aplanan a un objeto.
 const marcas = ${JSON.stringify(MARCAS)};
-const fila = $input.first().json || {};
-let idx = Number(fila.marca);
+const filas = $input.all().map(x => x.json);
+const mapa = {};
+for (const f of filas) mapa[f.clave] = Number(f.valor);
+
+let idx = Number(mapa['autocasion_marca']);
+let pag = Number(mapa['autocasion_pagina']);
 if (!Number.isFinite(idx) || idx < 0 || idx >= marcas.length) idx = 0;
-return [{ json: Object.assign({}, fila, { marcaDeTurno: marcas[idx] }) }];`;
+if (!Number.isFinite(pag) || pag < 1) pag = 1;
+
+return [{ json: { marca: idx, pagina: pag, marcaDeTurno: marcas[idx], paginas: mapa } }];`;
 
 const CODE_SEGMENTOS = `// Reparte ventanas de 25 páginas de UNA marca para esta pasada.
 const marcas = ${JSON.stringify(MARCAS)};
@@ -148,40 +158,58 @@ const SEGMENTOS = ${SEGMENTOS_POR_PASADA};
 // 625 es donde Autocasión corta la paginación. Ninguna marca pasa de ahí.
 const TOPE_PAGINA = 625;
 
-const fila = $('PG: Por dónde íbamos').first().json || {};
-let idx = Number(fila.marca);
-let pag = Number(fila.pagina);
+const turno = $('Code: Qué marca toca').first().json || {};
+let idx = Number(turno.marca);
+let pag = Number(turno.pagina);
 if (!Number.isFinite(idx) || idx < 0 || idx >= marcas.length) idx = 0;
 if (!Number.isFinite(pag) || pag < 1) pag = 1;
 
-// Cuántas páginas tiene DE VERDAD esta marca. Se pregunta una vez por pasada,
-// y con eso se acaba el desperdicio: la primera versión repartía ventanas hasta
-// la 625 para todas, y Audi tiene 338. De los 20 segmentos de la pasada del
-// 15-sep, doce apuntaban al vacío y cada uno gastaba igual su petición.
+// Cuántas páginas tiene cada marca. Las de la base las sembró
+// scripts/mide-paginas-autocasion.js; la de turno se vuelve a medir aquí, en
+// vivo, para que el número no envejezca.
+const paginasDe = Object.assign({}, turno.paginas || {});
 const conteo = $('HTTP: Contar la marca de turno').first().json || {};
 const htmlConteo = String(conteo.data || conteo.body || '');
-let maxPagina = 1;
+let medida = 0;
 try {
   const nums = [...htmlConteo.matchAll(/[?&]page=([0-9]+)/g)].map(m => parseInt(m[1], 10)).filter(n => !isNaN(n));
-  if (nums.length) maxPagina = Math.min(Math.max(...nums), TOPE_PAGINA);
-} catch (e) { maxPagina = 1; }
+  if (nums.length) medida = Math.min(Math.max(...nums), TOPE_PAGINA);
+} catch (e) { medida = 0; }
+if (medida > 0) paginasDe['autocasion_pag_' + idx] = medida;
 
-// UNA marca por pasada. Cuando se le acaban las páginas, se pasa a la siguiente
-// y la pasada termina ahí: mejor una pasada corta que veinte llamadas al vacío.
+// Cuántas páginas creemos que tiene una marca. Si no lo sabemos todavía se
+// asume UNA ventana: se queda corto a propósito, porque pasarse cuesta una
+// petición tirada por ventana, y la medimos de verdad cuando le toque el turno.
+const cuantas = (i) => {
+  const v = Number(paginasDe['autocasion_pag_' + i]);
+  return Number.isFinite(v) && v > 0 ? v : ${PAGINAS_POR_SEGMENTO};
+};
+
+// ENCADENA MARCAS hasta gastar el presupuesto de la pasada.
+//
+// Antes se plantaba al acabar la marca de turno, y eso convertía las 61 marcas
+// en 30 días de vuelta completa en vez de 5: BMW usa 14 ventanas de las 20 y
+// Lamborghini gasta una pasada entera para una sola. Arreglé el desperdicio de
+// peticiones y me cargué el rendimiento sin darme cuenta.
 const out = [];
-for (let i = 0; i < SEGMENTOS && pag <= maxPagina; i++) {
-  out.push({ json: { brand: marcas[idx], desde: pag, hasta: Math.min(pag + PAGINAS - 1, maxPagina) } });
+let vueltas = 0;
+while (out.length < SEGMENTOS && vueltas <= marcas.length) {
+  const tope = cuantas(idx);
+  if (pag > tope) { pag = 1; idx = (idx + 1) % marcas.length; vueltas++; continue; }
+  out.push({ json: { brand: marcas[idx], desde: pag, hasta: Math.min(pag + PAGINAS - 1, tope) } });
   pag += PAGINAS;
 }
-if (pag > maxPagina) { pag = 1; idx = (idx + 1) % marcas.length; }
 
 // Se apunta ANTES de scrapear, a propósito: si la pasada se cae a la mitad, la
-// siguiente sigue avanzando en vez de repetir media hora de lo mismo.
-// UPSERT: si las filas no existen todavía, las crea. Así no hace falta una
-// migración solo para dos números.
-const sqlCursor = "INSERT INTO moveadvisor_cursores (clave, valor, actualizado) VALUES"
-  + " ('autocasion_marca', " + idx + ", NOW()),"
-  + " ('autocasion_pagina', " + pag + ", NOW())"
+// siguiente sigue avanzando en vez de repetir media hora de lo mismo. Y va con
+// UPSERT, así que crea las filas si no existen: ni migración ni mantenimiento.
+const guardar = [
+  "('autocasion_marca', " + idx + ", NOW())",
+  "('autocasion_pagina', " + pag + ", NOW())",
+];
+if (medida > 0) guardar.push("('autocasion_pag_" + Number(turno.marca) + "', " + medida + ", NOW())");
+const sqlCursor = "INSERT INTO moveadvisor_cursores (clave, valor, actualizado) VALUES "
+  + guardar.join(", ")
   + " ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, actualizado = NOW()";
 for (const o of out) o.json.sqlCursor = sqlCursor;
 
@@ -193,9 +221,10 @@ if (!out.length) {
   return [{ json: { brand: '', desde: 0, hasta: 0, sqlCursor: sqlCursor } }];
 }
 
-console.log('[autocasion] ' + out.length + ' segmentos de ' + out[0].json.brand
-  + ' (tiene ' + maxPagina + ' páginas): p' + out[0].json.desde
-  + ' a p' + out[out.length-1].json.hasta + '. La próxima empieza en ' + idx + ':' + pag + '.');
+const cuantasMarcas = new Set(out.map(o => o.json.brand));
+console.log('[autocasion] ' + out.length + ' ventanas de ' + cuantasMarcas.size + ' marca(s): '
+  + [...cuantasMarcas].join(', ') + '. Empieza en ' + out[0].json.brand + ' p' + out[0].json.desde
+  + ' y la próxima pasada en ' + marcas[idx] + ' p' + pag + '.');
 return out;`;
 
 // ══ EL SEGMENTO ════════════════════════════════════════════════════════════

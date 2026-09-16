@@ -96,10 +96,18 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 
   const c = new Client({ connectionString: DB_URL, statement_timeout: 300000 });
   await c.connect();
-  const fila = (await c.query(cursorSql)).rows[0];
+  // La consulta devuelve filas clave/valor: el cursor y las páginas de cada
+  // marca. Aquí se aplanan igual que hace el nodo «Qué marca toca».
+  const aMapa = (filas) => Object.fromEntries(filas.map((r) => [r.clave, Number(r.valor)]));
+  const cursorFilas = (await c.query(cursorSql)).rows;
+  const mapa = aMapa(cursorFilas);
+  const fila = { marca: mapa.autocasion_marca ?? 0, pagina: mapa.autocasion_pagina ?? 1 };
   comprueba("la consulta del cursor funciona aunque no existan sus filas",
-    fila && Number.isFinite(Number(fila.marca)) && Number.isFinite(Number(fila.pagina)),
-    fila ? fila.marca + ":" + fila.pagina : "sin fila");
+    Number.isFinite(fila.marca) && Number.isFinite(fila.pagina),
+    fila.marca + ":" + fila.pagina);
+  const sabidas = Object.keys(mapa).filter((k) => k.startsWith("autocasion_pag_")).length;
+  comprueba("y trae las páginas conocidas de cada marca, que es lo que encadena",
+    sabidas > 0, sabidas + " marcas medidas de 61");
 
   // El reparto necesita saber cuántas páginas tiene la marca de turno, y eso
   // sale de una petición real: por eso se le da la página 1 de verdad.
@@ -134,8 +142,31 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
     segs.every((s) => s.desde <= maxReal),
     marcaTurno.marcaDeTurno + " tiene " + maxReal + ", la última ventana empieza en "
       + segs[segs.length - 1].desde);
-  comprueba("todas las ventanas son de la misma marca",
-    new Set(segs.map((s) => s.brand)).size === 1);
+  // ENCADENAR MARCAS es lo que separa 5 dias de vuelta completa de 30. La
+  // version que se plantaba al acabar la marca dejaba 6 de las 20 ventanas sin
+  // usar en BMW, y gastaba una pasada entera en Lamborghini, que tiene 7
+  // paginas. Se prueba con una marca pequena y paginas conocidas.
+  const conPaginas = [
+    { clave: "autocasion_marca", valor: 45 }, { clave: "autocasion_pagina", valor: 1 },
+    { clave: "autocasion_pag_45", valor: 7 }, { clave: "autocasion_pag_46", valor: 12 },
+    { clave: "autocasion_pag_47", valor: 30 },
+  ];
+  const todas = (arr) => ({ all: () => arr.map((j) => ({ json: j })), first: () => ({ json: arr[0] }) });
+  const turno2 = ejecuta(codigo(orq, "Code: Qué marca toca"),
+    { $: () => todas(conPaginas), $input: todas(conPaginas) }).items[0].json;
+  const chico = ejecuta(codigo(orq, "Code: Generar segmentos (marca x páginas)"), {
+    $: (n) => (n === "Code: Qué marca toca" ? uno(turno2) : uno({ data: '<a href="?page=7">7</a>' })),
+    $input: uno(turno2),
+  }).items.map((x) => x.json);
+  comprueba("una marca pequeña no desperdicia la pasada: encadena con la siguiente",
+    new Set(chico.map((s) => s.brand)).size > 1,
+    chico.length + " ventanas en " + new Set(chico.map((s) => s.brand)).size + " marcas");
+  comprueba("y respeta el tamaño real de cada una",
+    chico[0].hasta === 7 && chico[1].brand !== chico[0].brand,
+    chico[0].brand + " p" + chico[0].desde + "-" + chico[0].hasta
+      + ", luego " + chico[1].brand);
+  comprueba("gasta el presupuesto entero de la pasada", chico.length === 20,
+    chico.length + " de 20");
   // Un segmento sin marca NO puede inventarse una. Habia un ": 'peugeot'" de
   // valor por defecto y el 15-sep scrapeo 360 ofertas de Peugeot saltandose el
   // cursor, porque el orquestador le mando un segmento vacio.
@@ -157,10 +188,10 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
   await c.query("BEGIN");
   try {
     await c.query(segs[0].sqlCursor);
-    const desp = (await c.query(cursorSql)).rows[0];
-    comprueba("tras una pasada el cursor ha avanzado",
-      String(desp.marca) + ":" + String(desp.pagina) !== String(fila.marca) + ":" + String(fila.pagina),
-      fila.marca + ":" + fila.pagina + "  ->  " + desp.marca + ":" + desp.pagina);
+    const m2 = aMapa((await c.query(cursorSql)).rows);
+    const antes = fila.marca + ":" + fila.pagina;
+    const ahora = (m2.autocasion_marca ?? 0) + ":" + (m2.autocasion_pagina ?? 1);
+    comprueba("tras una pasada el cursor ha avanzado", ahora !== antes, antes + "  ->  " + ahora);
   } finally { await c.query("ROLLBACK"); }
 
   // ══ el segmento ══════════════════════════════════════════════════════════

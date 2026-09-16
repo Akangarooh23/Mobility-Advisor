@@ -65,6 +65,13 @@ const onConflict = 'ON CONFLICT (id) DO UPDATE SET url=EXCLUDED.url, title=EXCLU
   "images=COALESCE(NULLIF(moveadvisor_market_offers.images,''), EXCLUDED.images), " +
   'power_cv=COALESCE(EXCLUDED.power_cv, moveadvisor_market_offers.power_cv), ' +
   "color=COALESCE(NULLIF(moveadvisor_market_offers.color,''), EXCLUDED.color), " +
-  'raw_payload=EXCLUDED.raw_payload, last_seen_at=NOW(), updated_at=NOW()';
+  'raw_payload=EXCLUDED.raw_payload, last_seen_at=NOW(), updated_at=NOW(), ' +
+  // Verla en el listado ES la prueba de vida, asi que resucita.
+  //
+  // Sin esto, una oferta que el verificador diera de baja por error se quedaba
+  // muerta para siempre aunque el scraper la volviera a ver cada cinco dias: el
+  // UPSERT le refrescaba precio y kilometros y la dejaba is_active = FALSE.
+  // Y era justo lo que hacia falta antes de poner a nadie a dar bajas.
+  'is_active=TRUE';
 const sql = 'INSERT INTO moveadvisor_market_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;
 return [{ json: { sql: sql, count: rows.length } }];

@@ -109,7 +109,8 @@
     "test:autocasion": "node scripts/comprueba-autocasion.js",
     "test:autocasion-enrich": "node scripts/comprueba-autocasion-enrich.js",
     "limpia-autocasion": "node scripts/limpia-enrich-autocasion.js",
-    "mide-autocasion": "node scripts/mide-paginas-autocasion.js"
+    "mide-autocasion": "node scripts/mide-paginas-autocasion.js",
+    "test:autocasion-verificar": "node scripts/comprueba-autocasion-verificar.js"
   },
   "proxy": "http://localhost:3001",
   "eslintConfig": {

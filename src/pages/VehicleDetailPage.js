@@ -725,10 +725,15 @@ export default function VehicleDetailPage({ offer, onBack, isUserLoggedIn, onReq
             <div className="vd-co2-wrap">
               <div className="vd-co2-val">{car.co2 || "N/D"}</div>
               <div className="vd-co2-bar-bg">
-                <div
-                  className="vd-co2-marker"
-                  style={{ left: `${car.co2 ? co2Pct(car.co2) : 50}%` }}
-                />
+                {/* Sin dato NO se pinta la aguja.
+                    Antes se colocaba en el 50%, o sea justo en mitad de la
+                    escala: el texto decía «N/D» y el dibujo decía «emisiones
+                    normalitas». Y no es un caso raro: de las 624.904 ofertas
+                    españolas activas, solo 16.451 declaran CO2 -un 3%-, así que
+                    la aguja mentía en 19 de cada 20 coches. */}
+                {car.co2 ? (
+                  <div className="vd-co2-marker" style={{ left: `${co2Pct(car.co2)}%` }} />
+                ) : null}
               </div>
               <div className="vd-co2-val" style={{ color: "var(--subtle)", fontWeight: 400 }}>
                 200 g/km

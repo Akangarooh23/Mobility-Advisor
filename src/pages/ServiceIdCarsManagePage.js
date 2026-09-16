@@ -6,6 +6,7 @@ import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemov
 import { uploadFileDirect } from "../utils/supabaseUpload";
 import { comoSeCompara, laMatriculaRecordada } from "../utils/encargoDeVentaWeb";
 import { cualEsDelCatalogo } from "../utils/catalogoDelCoche";
+import ElegirAseguradora from "../components/ElegirAseguradora";
 import { elAnclaDe } from "../utils/aterrizajeDelEncargo";
 import { respuestasParaElDesplegable } from "../utils/preguntasDelMantenimiento";
 import AvailabilityEditor from "../components/AvailabilityEditor";
@@ -1960,7 +1961,21 @@ export default function ServiceIdCarsManagePage({
         open={openSections.insurance} onToggle={() => toggleSection("insurance")}
         openLabel={txt("Abrir", "Open")} closeLabel={txt("Ocultar", "Hide")}>
         <div style={{ display: "grid", rowGap: 10, columnGap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>
-          {renderField(txt("Aseguradora", "Insurer"), "policyCompany", { placeholder: txt("Compañía de seguro", "Insurance company") })}
+          {/*
+            * La aseguradora, de una lista. La misma que en el panel: vive en
+            * `utils/aseguradoras.js` y no repetida aquí, porque una lista
+            * duplicada acaba siendo dos listas distintas.
+            */}
+          <ElegirAseguradora
+            valor={form.policyCompany}
+            onCambiar={(nombre) => updateForm("policyCompany", nombre)}
+            etiqueta={txt("Aseguradora", "Insurer")}
+            etiquetaOtra={txt("¿Cuál?", "Which one?")}
+            textoOtra={txt("Otra (escríbela)", "Other (type it)")}
+            textoElige={txt("Elige tu aseguradora", "Choose your insurer")}
+            estiloEtiqueta={LABEL_STYLE}
+            estiloCampo={INPUT_STYLE}
+          />
           {renderField(txt("Póliza", "Policy"), "policyNumber", { placeholder: txt("Número de póliza", "Policy number") })}
           {renderField(txt("Cobertura", "Coverage"), "coverageType", { placeholder: txt("Todo riesgo, terceros...", "Full coverage, third-party...") })}
         </div>

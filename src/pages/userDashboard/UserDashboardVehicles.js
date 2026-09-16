@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { writeCachedGarageVehicleCount } from "../../utils/storage";
 import { comoSeCompara, loQueLaUrlPide, elCocheDeLaUrl, elAnclaDe } from "../../utils/aterrizajeDelEncargo";
 import { laTasacionDe, enEuros, elDia } from "../../utils/loQueSabemosDelCoche";
+import ElegirAseguradora from "../../components/ElegirAseguradora";
 import {
   getGarageVehiclesJson,
   postGarageVehicleAddJson,
@@ -2296,15 +2297,21 @@ export default function UserDashboardVehicles({
               "insurance",
               t("dashboard.vehInsurance"),
               <div style={{ display: "grid", gap: 10, gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(220px,1fr))" }}>
-              <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                {t("dashboard.vehInsurer")}
-                <input
-                  value={vehicleForm.policyCompany}
-                  onChange={(event) => updateVehicleForm("policyCompany", event.target.value)}
-                  placeholder="Compañía de seguro"
-                  style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor }}
-                />
-              </label>
+              {/*
+                * La aseguradora, de una lista.
+                *
+                * A mano entraba de nueve maneras —«Mapfre», «MAPFRE», «mapfre
+                * seguros», «Mafre»— y así no se puede contar ni cruzar con nada.
+                * La lista vive en `utils/aseguradoras.js`, una sola, porque esta
+                * pantalla y la del IDCar piden lo mismo.
+                */}
+              <ElegirAseguradora
+                valor={vehicleForm.policyCompany}
+                onCambiar={(nombre) => updateVehicleForm("policyCompany", nombre)}
+                etiqueta={t("dashboard.vehInsurer")}
+                estiloEtiqueta={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}
+                estiloCampo={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor }}
+              />
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
                 {t("dashboard.vehCoverage")}
                 <input

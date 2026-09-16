@@ -314,11 +314,83 @@ function LaCitaDelTaller({ cita, vehicleId, isDark }) {
   );
 }
 
+/**
+ * Por dónde va su encargo cuando ya lo ha traído todo.
+ *
+ * Con las ocho puertas hechas, la pantalla decía «ya está todo, nos ponemos con
+ * la venta» y ahí se acababa. Por dentro el coche va al taller, se prepara el
+ * anuncio y se publica; para él no se movía nada en días, y el que no ve moverse
+ * nada llama a preguntar — y la llamada se gasta en leerle un estado.
+ *
+ * ## El resultado del taller no se cuenta aquí
+ *
+ * Si el taller dijo que así no se puede vender, eso se habla por teléfono: es la
+ * única de las seis puertas que se resuelve hablando, y enterarse por una línea
+ * del panel antes de esa llamada es la peor manera de enterarse. Lo que dice
+ * esta caja es que la revisión está hecha y que le llamamos.
+ */
+function PorDondeVa({ estado, isDark }) {
+  if (!estado) return null;
+
+  const textoFuerte = isDark ? "var(--gris-100)" : "#1f2937";
+  const textoFlojo = isDark ? "var(--gris-400)" : "#6b7280";
+
+  /*
+   * Los cuatro momentos, en orden y excluyentes.
+   *
+   * Uno solo cada vez: dos líneas de estado obligan a decidir cuál es la buena,
+   * y la que sobra siempre es la que está desactualizada.
+   */
+  let titulo = "";
+  let detalle = "";
+  let enlace = "";
+
+  if (estado.publicado) {
+    titulo = "Tu coche ya está anunciado";
+    detalle = "A partir de aquí las llamadas entran por nosotros: filtramos y solo te pasamos las visitas que valen la pena.";
+    enlace = estado.anuncio_url || "";
+  } else if (estado.taller_hecho && estado.taller_ok) {
+    titulo = "Revisión del taller hecha";
+    detalle = "Ya está todo comprobado. Estamos preparando tu anuncio y te avisamos en cuanto salga.";
+  } else if (estado.taller_hecho) {
+    // El taller cerró la puerta. Aquí no se dice más: se dice que llamamos.
+    titulo = "Revisión del taller hecha";
+    detalle = "Te llamamos para contarte el resultado.";
+  } else if (estado.tiene_cita) {
+    // La cita se enseña entera en su propia caja, justo encima de esta.
+    return null;
+  } else {
+    titulo = "Buscándole cita en el taller";
+    detalle = "Es la revisión mecánica que nos permite anunciarlo como comprobado. Te decimos el día en cuanto la tengamos.";
+  }
+
+  return (
+    <div style={{
+      background: isDark ? "rgba(5,150,105,0.10)" : "rgba(5,150,105,0.06)",
+      border: "1px solid rgba(5,150,105,0.25)", borderRadius: 10,
+      padding: "12px 14px", marginBottom: 8,
+    }}>
+      <div style={{ fontSize: 12.5, fontWeight: 700, color: textoFuerte, marginBottom: 4 }}>
+        {titulo}
+      </div>
+      <div style={{ fontSize: 12, color: textoFlojo, lineHeight: 1.45 }}>{detalle}</div>
+      {enlace && (
+        <a href={enlace} style={{
+          display: "inline-block", marginTop: 8, fontSize: 12.5, fontWeight: 700,
+          color: isDark ? "#34d399" : "#047857", textDecoration: "none",
+        }}>
+          Ver tu anuncio →
+        </a>
+      )}
+    </div>
+  );
+}
+
 export default function LoQueTeFaltaDelEncargo({
-  puertas = [], mandato = null, taller = null, vehicleId = "", isDark = false,
+  puertas = [], mandato = null, taller = null, estado = null, vehicleId = "", isDark = false,
 }) {
   const suyas = Array.isArray(puertas) ? puertas : [];
-  if (suyas.length === 0 && !mandato && !taller) return null;
+  if (suyas.length === 0 && !mandato && !taller && !estado) return null;
 
   /*
    * El mandato es una fila más, y la primera.
@@ -444,6 +516,15 @@ export default function LoQueTeFaltaDelEncargo({
 
       {/* Y lo que hacemos nosotros, debajo de lo suyo. */}
       <LaCitaDelTaller cita={taller} vehicleId={vehicleId} isDark={isDark} />
+
+      {/*
+        * Por dónde va, solo cuando ya no le falta nada por traer.
+        *
+        * Con cosas pendientes, lo que tiene que leer es qué le falta: una línea
+        * diciendo «estamos preparando tu anuncio» encima de «te faltan dos
+        * cosas» se contradice con ella y gana la que menos trabajo da.
+        */}
+      {faltan === 0 && <PorDondeVa estado={estado} isDark={isDark} />}
     </>
   );
 }

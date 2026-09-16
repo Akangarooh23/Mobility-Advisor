@@ -222,3 +222,59 @@ describe("la cita del taller", () => {
     expect(screen.queryByRole("button", { name: /No puedo ese día/i })).not.toBeInTheDocument();
   });
 });
+
+describe("por dónde va el encargo", () => {
+  /*
+   * Con las ocho puertas hechas la pantalla decía «ya está todo, nos ponemos con
+   * la venta» y ahí se acababa. Por dentro el coche va al taller, se prepara el
+   * anuncio y se publica; para él no se movía nada en días.
+   */
+  const HECHAS = PUERTAS.map((p) => ({ ...p, abierta: true }));
+  const pinta = (estado, puertas = HECHAS) =>
+    render(<LoQueTeFaltaDelEncargo puertas={puertas} estado={estado} />);
+
+  test("sin cita todavía, se dice que se le está buscando", () => {
+    // Es el hueco más largo y el que más llamadas trae: lo ha traído todo y no
+    // pasa nada visible.
+    pinta({ taller_hecho: false, taller_ok: false, tiene_cita: false, publicado: false });
+    expect(screen.getByText(/Buscándole cita en el taller/i)).toBeInTheDocument();
+  });
+
+  test("con la revisión hecha, que ya está comprobado", () => {
+    pinta({ taller_hecho: true, taller_ok: true, tiene_cita: false, publicado: false });
+    expect(screen.getByText(/Revisión del taller hecha/i)).toBeInTheDocument();
+    expect(screen.getByText(/preparando tu anuncio/i)).toBeInTheDocument();
+  });
+
+  test("si el taller cerró la puerta, no se le cuenta aquí: se le llama", () => {
+    /*
+     * Es la única de las seis puertas que se resuelve hablando, y enterarse por
+     * una línea del panel antes de esa llamada es la peor manera de enterarse.
+     */
+    pinta({ taller_hecho: true, taller_ok: false, tiene_cita: false, publicado: false });
+    expect(screen.getByText(/Te llamamos para contarte/i)).toBeInTheDocument();
+    expect(screen.queryByText(/preparando tu anuncio/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/no se puede vender/i)).not.toBeInTheDocument();
+  });
+
+  test("publicado, con su enlace", () => {
+    pinta({ taller_hecho: true, taller_ok: true, tiene_cita: false, publicado: true, anuncio_url: "/marketplace-vo/idcar-1" });
+    expect(screen.getByText(/ya está anunciado/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Ver tu anuncio/i })).toHaveAttribute("href", "/marketplace-vo/idcar-1");
+  });
+
+  test("con cita puesta no se repite: esa tiene su propia caja", () => {
+    pinta({ taller_hecho: false, taller_ok: false, tiene_cita: true, publicado: false });
+    expect(screen.queryByText(/Buscándole cita/i)).not.toBeInTheDocument();
+  });
+
+  test("y con cosas pendientes no se enseña nada de esto", () => {
+    /*
+     * Lo que tiene que leer es qué le falta. «Estamos preparando tu anuncio»
+     * encima de «te faltan dos cosas» se contradice con ella, y gana la que
+     * menos trabajo da.
+     */
+    pinta({ taller_hecho: true, taller_ok: true, tiene_cita: false, publicado: false }, PUERTAS);
+    expect(screen.queryByText(/Revisión del taller hecha/i)).not.toBeInTheDocument();
+  });
+});

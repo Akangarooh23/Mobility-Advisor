@@ -103,6 +103,7 @@ import {
 } from "./utils/businessHelpers";
 import { buildUserDashboardModel } from "./utils/userDashboardHelpers";
 import {
+  clearAuthUser,
   clearQuestionnaireDraft,
   writeAuthUser,
   writeUserAppointments,
@@ -2489,9 +2490,31 @@ export default function App() {
     recarga: recargaMovilidad,
   });
 
+  /**
+   * El servidor dice que ya no hay sesión: se le cree.
+   *
+   * Antes no se le creía. La respuesta era un 401, el 401 se tragaba con el
+   * resto de fallos de red y la pantalla seguía enseñando los números de la
+   * última visita, guardados en el navegador. Se veía «1 tasación, 1 solicitud»
+   * y parecía que todo estaba en su sitio; luego, al abrir cualquier cosa que
+   * sí necesita la sesión, pedía la contraseña de la nada. Eran lo mismo, y
+   * llevaba rato siendo verdad.
+   *
+   * Lo que no se hace es cerrar sesión contra el servidor: no hay ninguna que
+   * cerrar. Solo se borra lo que este navegador se creía.
+   */
+  const alCaducarLaSesion = useCallback(() => {
+    clearAuthUser();
+    setCurrentUser(null);
+    setIsUserLoggedIn(false);
+    setAuthRequired(true);
+    setAuthDialogMode("login");
+  }, []);
+
   useUserMobilitySync({
     currentUserEmail,
     refrescos: refrescosMovilidad,
+    alCaducarLaSesion,
     setSavedComparisons,
     setUserAppointments,
     setUserMaintenances,
@@ -5538,7 +5561,11 @@ export default function App() {
                 </div>
                 {authRequired && authRecoveryMode === "none" && (
                   <div style={{ fontSize: 12, color: "var(--acento-texto)", fontWeight: 600, marginTop: 6, padding: "6px 10px", background: "rgba(255,196,0,0.08)", borderRadius: 8, border: "1px solid rgba(255,196,0,0.2)" }}>
-                    Necesitas iniciar sesión para acceder al marketplace.
+                    {/* Decía «para acceder al marketplace» estuviera donde
+                        estuviera: en el garaje, en el panel o en la ficha de un
+                        coche. Quien lo leía en /mis-coches no entendía qué
+                        pintaba ahí el marketplace. */}
+                    Necesitas iniciar sesión para continuar.
                   </div>
                 )}
               </div>

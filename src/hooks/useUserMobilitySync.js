@@ -29,6 +29,8 @@ export function useUserMobilitySync({
   // pedían una sola vez, al entrar la sesión, y quien reservaba una visita
   // tenía que recargar la página entera para verla en sus solicitudes.
   refrescos = 0,
+  /** Se llama cuando el servidor contesta que ya no hay sesión. */
+  alCaducarLaSesion,
 }) {
   useEffect(() => {
     let disposed = false;
@@ -48,7 +50,27 @@ export function useUserMobilitySync({
       try {
         const { response, data } = await getUserMobilityDataJson(currentUserEmail);
 
-        if (!response.ok || disposed) {
+        if (disposed) return;
+
+        /*
+         * Un 401 es «ya no hay sesión», y eso no se puede tragar.
+         *
+         * Se tragaba: entraba por el `!response.ok` de aquí abajo, se dejaban
+         * los datos de la caché del navegador y la pantalla seguía enseñando
+         * «1 tasación, 1 solicitud» de la última vez. Parecía que la sesión
+         * estaba abierta —los números estaban ahí— y al abrir cualquier cosa
+         * que sí necesita la sesión pedía la contraseña otra vez, sin venir a
+         * cuento. El servidor llevaba rato diciendo que no había nadie.
+         *
+         * Este endpoint solo devuelve 401 por eso: la identidad sale de la
+         * sesión y nunca de la dirección.
+         */
+        if (response.status === 401) {
+          if (alCaducarLaSesion) alCaducarLaSesion();
+          return;
+        }
+
+        if (!response.ok) {
           return;
         }
 
@@ -106,5 +128,6 @@ export function useUserMobilitySync({
     setGarageVehicleCount,
     setCurrentPlanId,
     refrescos,
+    alCaducarLaSesion,
   ]);
 }

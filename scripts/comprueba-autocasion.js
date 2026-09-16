@@ -105,7 +105,7 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
   comprueba("la consulta del cursor funciona aunque no existan sus filas",
     Number.isFinite(fila.marca) && Number.isFinite(fila.pagina),
     fila.marca + ":" + fila.pagina);
-  const sabidas = Object.keys(mapa).filter((k) => k.startsWith("autocasion_pag_")).length;
+  const sabidas = Object.keys(mapa).filter((k) => /^autocasion_pag_[0-9]+$/.test(k)).length;
   comprueba("y trae las páginas conocidas de cada marca, que es lo que encadena",
     sabidas > 0, sabidas + " marcas medidas de 61");
 

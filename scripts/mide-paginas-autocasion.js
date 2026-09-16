@@ -104,7 +104,7 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
   const valores = medidas.map((m) => "('autocasion_pag_" + m.i + "', " + m.paginas + ", NOW())").join(", ");
   await c.query("INSERT INTO moveadvisor_cursores (clave, valor, actualizado) VALUES " + valores
     + " ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, actualizado = NOW()");
-  const n = (await c.query("SELECT count(*)::int n FROM moveadvisor_cursores WHERE clave LIKE 'autocasion_pag_%'")).rows[0].n;
+  const n = (await c.query("SELECT count(*)::int n FROM moveadvisor_cursores WHERE clave ~ '^autocasion_pag_[0-9]+$'")).rows[0].n;
   console.log("\n  GUARDADO: " + n + " marcas con su número de páginas");
   await c.end();
 })().catch((e) => { console.error("ERROR:", e.message); process.exit(1); });

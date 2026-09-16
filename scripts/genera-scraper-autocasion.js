@@ -126,9 +126,14 @@ const CURSOR_SQL = `-- Por dónde iba la última pasada: índice de marca y pág
 -- Devuelve el cursor Y cuántas páginas tiene cada marca, que es lo que permite
 -- encadenar marcas dentro de una misma pasada. Los números los siembra
 -- scripts/mide-paginas-autocasion.js y los refresca el propio workflow.
+--
+-- El filtro va con expresión regular y no con LIKE a propósito: en LIKE el «_»
+-- es un comodín de un carácter, así que 'autocasion_pag_%' casa también con
+-- 'autocasion_pagina' -el «_» hace de la «i»-. Inofensivo aquí, porque las
+-- claves se buscan exactas, pero contaba 62 marcas donde hay 61.
 SELECT clave, valor FROM moveadvisor_cursores
 WHERE clave IN ('autocasion_marca', 'autocasion_pagina')
-   OR clave LIKE 'autocasion_pag_%'`;
+   OR clave ~ '^autocasion_pag_[0-9]+$'`;
 
 // Las marcas, en un solo sitio: las usan el nodo que decide cuál toca y el que
 // reparte las ventanas, y si se separan el reparto pide una y cuenta otra.

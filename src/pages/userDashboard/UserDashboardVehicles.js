@@ -2298,7 +2298,7 @@ export default function UserDashboardVehicles({
             {renderVehicleSection(
               "insurance",
               t("dashboard.vehInsurance"),
-              <div style={{ display: "grid", gap: 10, gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(220px,1fr))" }}>
+              <div style={{ display: "grid", alignItems: "start", gap: 10, gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(220px,1fr))" }}>
               {/*
                 * La aseguradora, de una lista.
                 *

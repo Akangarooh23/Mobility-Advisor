@@ -1962,7 +1962,7 @@ export default function ServiceIdCarsManagePage({
       <SectionBlock title={txt("Seguros", "Insurance")} subtitle={`${storedInsuranceDocuments.length} ${txt("guardados", "saved")} · ${pendingInsuranceDocuments.length} ${txt("documentos de seguro preparados", "insurance docs prepared")}`}
         open={openSections.insurance} onToggle={() => toggleSection("insurance")}
         openLabel={txt("Abrir", "Open")} closeLabel={txt("Ocultar", "Hide")}>
-        <div style={{ display: "grid", rowGap: 10, columnGap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>
+        <div style={{ display: "grid", alignItems: "start", rowGap: 10, columnGap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>
           {/*
             * La aseguradora, de una lista. La misma que en el panel: vive en
             * `utils/aseguradoras.js` y no repetida aquí, porque una lista

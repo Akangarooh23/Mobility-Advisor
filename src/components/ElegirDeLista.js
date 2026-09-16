@@ -56,7 +56,17 @@ export default function ElegirDeLista({
   const explica = entradas.find((o) => o.valor === seleccion)?.explica ?? "";
 
   return (
-    <label style={estiloEtiqueta}>
+    /*
+     * `alignContent: start` y no solo lo que venga de fuera.
+     *
+     * Con la explicacion debajo, este campo tiene tres filas y los de al lado
+     * dos. La rejilla de la fila estira a todos al alto del mas alto, y una
+     * etiqueta estirada reparte su hueco entre sus filas: el desplegable del
+     * campo corto se iba hacia abajo y la fila se veia descuadrada.
+     *
+     * Va primero para que quien lo use pueda cambiarlo si algun dia hace falta.
+     */
+    <label style={{ alignContent: "start", ...estiloEtiqueta }}>
       {etiqueta}
       <select
         value={seleccion}

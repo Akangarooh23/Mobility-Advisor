@@ -157,3 +157,35 @@ describe("con opciones que llevan explicación", () => {
     expect(screen.queryByText(/Responsabilidad civil/)).not.toBeInTheDocument();
   });
 });
+
+describe("no descuadra la fila", () => {
+  test("la etiqueta no estira sus filas", () => {
+    /*
+     * Con la explicación debajo, este campo tiene tres filas y los de al lado
+     * dos. La rejilla estira a todos al alto del más alto, y una etiqueta
+     * estirada reparte ese hueco entre sus filas: el desplegable del campo
+     * corto se iba hacia abajo y la fila se veía torcida.
+     *
+     * Se comprueba el estilo y no el píxel: jsdom no mide, así que medir aquí
+     * sería inventarse una comprobación que no comprueba.
+     */
+    const { container } = render(
+      <ElegirDeLista valor="" onCambiar={() => {}} opciones={["A"]} etiqueta="X" />,
+    );
+    const etiqueta = container.querySelector("label");
+    expect(etiqueta).toHaveStyle({ alignContent: "start" });
+  });
+
+  test("y quien lo use puede cambiarlo", () => {
+    const { container } = render(
+      <ElegirDeLista
+        valor=""
+        onCambiar={() => {}}
+        opciones={["A"]}
+        etiqueta="X"
+        estiloEtiqueta={{ alignContent: "center" }}
+      />,
+    );
+    expect(container.querySelector("label")).toHaveStyle({ alignContent: "center" });
+  });
+});

@@ -1,3 +1,11 @@
+import {
+  OTRA,
+  comoSeCompara,
+  laDeLaLista as deLaLista,
+  comoSeAbre as abrirDeLista,
+  loQueSeGuarda,
+} from "./listaCerrada";
+
 /**
  * Las aseguradoras que se ofrecen al decir con quién está asegurado el coche.
  *
@@ -53,49 +61,14 @@ export const ASEGURADORAS = [
   "AMV",
 ];
 
-/** El valor que marca «no está en la lista». No es el nombre de nadie. */
-export const OTRA = "__otra__";
-
-/** El nombre reducido a lo que no cambia al escribirlo. */
-export function comoSeCompara(nombre) {
-  return String(nombre || "")
-    .trim()
-    .toUpperCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/\s+/g, " ");
-}
-
-/**
- * La de la lista que se llama así, o cadena vacía.
- *
- * Se compara sin acentos ni mayúsculas porque lo guardado viene de un campo
- * libre: «linea directa» y «Línea Directa» son la misma compañía, y tratarlas
- * como distintas es justo lo que esta lista viene a arreglar.
- */
+/** La de la lista que se llama así, o cadena vacía. */
 export function laDeLaLista(nombre) {
-  const busco = comoSeCompara(nombre);
-  if (!busco) return "";
-  return ASEGURADORAS.find((a) => comoSeCompara(a) === busco) || "";
+  return deLaLista(ASEGURADORAS, nombre);
 }
 
-/**
- * Cómo se abre el desplegable para un valor ya guardado.
- *
- * Devuelve qué hay que seleccionar y qué texto llevaba, para que una ficha
- * antigua con una compañía de fuera de la lista se abra en «Otra» con su
- * nombre, en vez de aparecer vacía y perderse al guardar.
- */
+/** Cómo se abre el desplegable para una aseguradora ya guardada. */
 export function comoSeAbre(guardado) {
-  const texto = String(guardado || "").trim();
-  if (!texto) return { seleccion: "", escrita: "" };
-  const enLista = laDeLaLista(texto);
-  if (enLista) return { seleccion: enLista, escrita: "" };
-  return { seleccion: OTRA, escrita: texto };
+  return abrirDeLista(ASEGURADORAS, guardado);
 }
 
-/** Lo que se guarda, según lo elegido y lo escrito. */
-export function loQueSeGuarda(seleccion, escrita) {
-  if (seleccion === OTRA) return String(escrita || "").trim();
-  return String(seleccion || "").trim();
-}
+export { OTRA, comoSeCompara, loQueSeGuarda };

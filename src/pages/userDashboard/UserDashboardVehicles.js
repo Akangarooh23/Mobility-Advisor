@@ -4,7 +4,9 @@ import { useTranslation } from "react-i18next";
 import { writeCachedGarageVehicleCount } from "../../utils/storage";
 import { comoSeCompara, loQueLaUrlPide, elCocheDeLaUrl, elAnclaDe } from "../../utils/aterrizajeDelEncargo";
 import { laTasacionDe, enEuros, elDia } from "../../utils/loQueSabemosDelCoche";
-import ElegirAseguradora from "../../components/ElegirAseguradora";
+import ElegirDeLista from "../../components/ElegirDeLista";
+import { ASEGURADORAS } from "../../utils/aseguradoras";
+import { COBERTURAS } from "../../utils/coberturas";
 import {
   getGarageVehiclesJson,
   postGarageVehicleAddJson,
@@ -2305,22 +2307,31 @@ export default function UserDashboardVehicles({
                 * La lista vive en `utils/aseguradoras.js`, una sola, porque esta
                 * pantalla y la del IDCar piden lo mismo.
                 */}
-              <ElegirAseguradora
+              <ElegirDeLista
+                opciones={ASEGURADORAS}
                 valor={vehicleForm.policyCompany}
                 onCambiar={(nombre) => updateVehicleForm("policyCompany", nombre)}
                 etiqueta={t("dashboard.vehInsurer")}
                 estiloEtiqueta={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}
                 estiloCampo={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor }}
               />
-              <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
-                {t("dashboard.vehCoverage")}
-                <input
-                  value={vehicleForm.coverageType}
-                  onChange={(event) => updateVehicleForm("coverageType", event.target.value)}
-                  placeholder={t("dashboard.vehCoveragePlaceholder")}
-                  style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor }}
-                />
-              </label>
+              {/*
+                * La cobertura, también de lista y con su explicación debajo.
+                *
+                * «Terceros ampliado» no dice nada a quien no ha contratado un
+                * seguro nunca, y el que no lo entiende elige a ojo o lo deja en
+                * blanco. Con la frase al lado se elige sabiendo qué se elige.
+                */}
+              <ElegirDeLista
+                opciones={COBERTURAS}
+                valor={vehicleForm.coverageType}
+                onCambiar={(tipo) => updateVehicleForm("coverageType", tipo)}
+                etiqueta={t("dashboard.vehCoverage")}
+                textoElige="Elige el tipo de cobertura"
+                estiloEtiqueta={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}
+                estiloCampo={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: titleColor }}
+                estiloExplicacion={{ fontSize: 11, color: bodyColor, lineHeight: 1.45 }}
+              />
               <label style={{ display: "grid", gap: 6, fontSize: 12, color: bodyColor }}>
                 {t("dashboard.vehPolicy")}
                 <input

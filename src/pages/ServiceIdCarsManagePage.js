@@ -6,7 +6,9 @@ import { getGarageVehiclesJson, postGarageVehicleAddJson, postGarageVehicleRemov
 import { uploadFileDirect } from "../utils/supabaseUpload";
 import { comoSeCompara, laMatriculaRecordada } from "../utils/encargoDeVentaWeb";
 import { cualEsDelCatalogo } from "../utils/catalogoDelCoche";
-import ElegirAseguradora from "../components/ElegirAseguradora";
+import ElegirDeLista from "../components/ElegirDeLista";
+import { ASEGURADORAS } from "../utils/aseguradoras";
+import { COBERTURAS } from "../utils/coberturas";
 import { elAnclaDe } from "../utils/aterrizajeDelEncargo";
 import { respuestasParaElDesplegable } from "../utils/preguntasDelMantenimiento";
 import AvailabilityEditor from "../components/AvailabilityEditor";
@@ -1966,7 +1968,8 @@ export default function ServiceIdCarsManagePage({
             * `utils/aseguradoras.js` y no repetida aquí, porque una lista
             * duplicada acaba siendo dos listas distintas.
             */}
-          <ElegirAseguradora
+          <ElegirDeLista
+            opciones={ASEGURADORAS}
             valor={form.policyCompany}
             onCambiar={(nombre) => updateForm("policyCompany", nombre)}
             etiqueta={txt("Aseguradora", "Insurer")}
@@ -1977,7 +1980,22 @@ export default function ServiceIdCarsManagePage({
             estiloCampo={INPUT_STYLE}
           />
           {renderField(txt("Póliza", "Policy"), "policyNumber", { placeholder: txt("Número de póliza", "Policy number") })}
-          {renderField(txt("Cobertura", "Coverage"), "coverageType", { placeholder: txt("Todo riesgo, terceros...", "Full coverage, third-party...") })}
+          {/*
+            * La cobertura, de lista y con su explicación debajo: «terceros
+            * ampliado» no dice nada a quien no ha contratado un seguro nunca.
+            */}
+          <ElegirDeLista
+            opciones={COBERTURAS}
+            valor={form.coverageType}
+            onCambiar={(tipo) => updateForm("coverageType", tipo)}
+            etiqueta={txt("Cobertura", "Coverage")}
+            etiquetaOtra={txt("¿Cuál?", "Which one?")}
+            textoOtra={txt("Otra (escríbela)", "Other (type it)")}
+            textoElige={txt("Elige el tipo de cobertura", "Choose the coverage")}
+            estiloEtiqueta={LABEL_STYLE}
+            estiloCampo={INPUT_STYLE}
+            estiloExplicacion={{ fontSize: 11, color: "var(--gris-500)", lineHeight: 1.45 }}
+          />
         </div>
         <div style={{ marginTop: 12 }}>
           {renderFileUpload(txt("Documentos del seguro", "Insurance documents"), pendingInsuranceDocuments, setPendingInsuranceDocuments, insuranceDocInputRef, ".pdf,image/*", "#0f766e", storedInsuranceDocuments, "insuranceDocuments")}

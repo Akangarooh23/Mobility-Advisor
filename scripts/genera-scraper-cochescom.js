@@ -43,7 +43,7 @@ const ERROR_WF = "9BwKOPMIzjj3owho";
 
 // El id del workflow «coches.com – Segmento (marca)» YA IMPORTADO en n8n.
 // Se rellena solo con:  npm run enlaza-segmento-cochescom
-const ID_SEGMENTO = "PENDIENTE_DE_ENLAZAR";
+const ID_SEGMENTO = "P8MP2HvH1haNFC8i";
 
 const PAGINAS_POR_SEGMENTO = 25;
 const SEGMENTOS_POR_PASADA = 20;

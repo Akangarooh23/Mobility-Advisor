@@ -1,0 +1,430 @@
+{
+  "name": "coches.com – Enriquecer (CO₂ y consumo)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "ce-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 35 10,14,16,22 * * *"
+            }
+          ]
+        }
+      },
+      "id": "ce-cron",
+      "name": "4 veces/día (10:35, 14:35, 16:35 y 22:35)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Las ofertas de coches.com a las que les falta CO₂ o consumo.\n--\n-- Solo lo VISTO VIVO hace poco: last_seen_at, no last_checked_at. La diferencia\n-- es que la primera dice «lo vimos vivo» y la segunda solo «lo intentamos», y\n-- gastar una ficha en un coche vendido es tirar la petición. Lo aprendimos en\n-- AutoScout24 España, donde la primera versión de la cola traía seis coches\n-- muertos de cada seis.\nSELECT id, url, COALESCE(fuel, '') AS fuel,\n  COALESCE(co2, '') AS co2, COALESCE(consumption, 0) AS consumption\nFROM moveadvisor_market_offers\nWHERE portal = 'cochescom'\n  AND is_active\n  AND COALESCE(url, '') <> ''\n  AND enrich_tried_at IS NULL\n  AND (COALESCE(co2, '') = '' OR COALESCE(consumption, 0) = 0)\nORDER BY (last_seen_at > NOW() - INTERVAL '3 days') DESC, scraped_at DESC\nLIMIT 500",
+        "options": {}
+      },
+      "id": "ce-cola",
+      "name": "PG: Cola a enriquecer",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "ce-loop",
+      "name": "Loop: oferta por oferta",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cortacircuitos y guarda de cola vacía, antes de gastar la ficha.\nconst s = $getWorkflowStaticData('global');\nconst item = $input.first().json;\n\nif (!s.ce_run || s.ce_run !== $execution.id) {\n  s.ce_run = $execution.id;\n  s.ce_parado = false;\n  s.ce_intentos = 0;\n  s.ce_fallos = 0;\n  s.ce_leidas = 0;\n  s.ce_co2 = 0;\n  s.ce_consumo = 0;\n  s.ce_vendidas = 0;\n  s.ce_motivo = '';\n}\n\n// Una cola vacía NO llega como \"nada\": n8n manda UN ITEM VACÍO, que recorre el\n// bucle y revienta el HTTP con \"URL parameter must be a string, got undefined\".\n// Así cayeron cuatro ejecuciones de Gamboa el 2026-09-07.\nif (!item || !item.id || !String(item.url || '').trim()) {\n  console.log('[cc-enrich] no hay nada que enriquecer ahora mismo.');\n  return [{ json: Object.assign({}, item || {}, { url: '' }) }];\n}\nif (s.ce_parado) return [{ json: Object.assign({}, item, { url: '' }) }];\n\nreturn [{ json: item }];"
+      },
+      "id": "ce-toca",
+      "name": "Code: ¿toca pedirla?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ce-c-url",
+              "leftValue": "={{ $json.url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "ce-if-url",
+      "name": "IF: ¿hay ficha que pedir?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        340,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          }
+        }
+      },
+      "id": "ce-http",
+      "name": "HTTP: Ficha de coches.com",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        560,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// coches.com - de la ficha a CO₂ y consumo.\nconst oferta = $('Code: ¿toca pedirla?').item.json;\nconst res = $input.first().json;\n// Con responseFormat 'text' + fullResponse, n8n deja el cuerpo en 'data', no en\n// 'body'. Mirar solo 'body' dejó 4.484 ofertas sin clasificar en Wallapop.\nconst cuerpo = String(res.body || res.data || '');\nconst codigo = Number(res.statusCode || 0);\nconst id = String(oferta.id || '');\nconst s = $getWorkflowStaticData('global');\n\nconst esc = v => (v === null || v === undefined || v === '') ? 'NULL'\n  : (typeof v === 'number' ? String(v) : \"'\" + String(v).replace(/'/g, \"''\") + \"'\");\n\n// enrich_tried_at se mueve pase lo que pase: sin eso, una ficha que falla vuelve\n// en cada pasada y la cola no avanza nunca.\nconst soloIntento = (motivo) => [{ json: {\n  sql: 'UPDATE moveadvisor_market_offers SET enrich_tried_at = NOW() WHERE id = ' + esc(id),\n  veredicto: motivo,\n} }];\n\nif (!id) return [{ json: { sql: null, veredicto: 'sin id' } }];\n\ns.ce_intentos = (s.ce_intentos || 0) + 1;\nif (codigo === 0 || codigo === 403 || codigo === 429 || codigo >= 500) {\n  s.ce_fallos = (s.ce_fallos || 0) + 1;\n  const intentos = s.ce_intentos || 0;\n  if (intentos >= 50 && (s.ce_fallos / intentos) > 0.3) {\n    s.ce_parado = true;\n    s.ce_motivo = Math.round(100 * s.ce_fallos / intentos) + '% de respuestas cerradas en '\n      + intentos + ' intentos: nos han bloqueado';\n    console.log('[cc-enrich] PARADO: ' + s.ce_motivo);\n  }\n  // Un 403 no dice nada de la oferta: NO gasta su intento, vuelve a la cola.\n  return [{ json: { sql: null, veredicto: 'pasajero' } }];\n}\n// Un 410 aquí significa vendida, y un 3xx tampoco trae ficha.\nif (codigo !== 200 || !cuerpo) {\n  s.ce_vendidas = (s.ce_vendidas || 0) + 1;\n  return soloIntento(codigo === 410 ? 'vendida' : 'sin ficha');\n}\n\nlet cl = null;\ntry {\n  const m = cuerpo.match(/<script id=\"__NEXT_DATA__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/);\n  if (m) cl = ((JSON.parse(m[1]).props || {}).pageProps || {}).data;\n  cl = cl ? cl.classified : null;\n} catch (e) { cl = null; }\nif (!cl) return soloIntento('ficha sin datos');\n\ns.ce_leidas = (s.ce_leidas || 0) + 1;\nconst cap = cl.capabilities || {};\nconst num = x => { const n = Number(x); return Number.isFinite(n) ? n : null; };\n\n// ── el CO₂, y la trampa del cero ───────────────────────────────────────────\n//\n// Un gasolina con co2Emissions = 0 no es un coche que no emite: es un anuncio\n// que no lo declara. Guardar ese 0 lo colocaria en el tramo mas limpio de\n// cualquier filtro. Pero un electrico SI emite 0 y ese 0 hay que guardarlo.\n// Sin tildes antes de comparar: \"eléctrico\".indexOf('lectric') es -1, porque la\n// é parte la palabra en \"léctric\". La primera versión dejaba SIN CO₂ justo a los\n// eléctricos, que son los únicos cuyo 0 es verdad. Lo cazó el test con tres\n// fichas reales seguidas.\nconst combustible = String(oferta.fuel || '')\n  .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();\nconst esElectrico = combustible.indexOf('electric') !== -1;\nconst co2raw = num(cap.co2Emissions);\nconst co2 = (co2raw === null) ? null\n  : (co2raw > 0 ? Math.round(co2raw) : (esElectrico ? 0 : null));\n\n// ── el consumo ─────────────────────────────────────────────────────────────\n// El combinado primero y el WLTP después: de 11 fichas, 6 traían el primero y 5\n// solo el segundo, así que entre los dos estaban las 11.\nconst consumo = num(cap.consumptionCombined) > 0 ? num(cap.consumptionCombined)\n  : (num(cap.wltpConsumptionCombined) > 0 ? num(cap.wltpConsumptionCombined) : null);\n\nconst sets = ['enrich_tried_at = NOW()'];\n// co2 es varchar y consumption numérica: NULLIF(varchar, 0) da \"operator does\n// not exist: character varying = integer\" y tumba el UPDATE entero.\nif (co2 !== null) sets.push(\"co2 = COALESCE(NULLIF(co2, ''), \" + esc(String(co2)) + ')');\nif (consumo !== null) sets.push('consumption = COALESCE(NULLIF(consumption, 0), '\n  + esc(Math.round(consumo * 100) / 100) + ')');\n\nif (co2 !== null) s.ce_co2 = (s.ce_co2 || 0) + 1;\nif (consumo !== null) s.ce_consumo = (s.ce_consumo || 0) + 1;\n\n// updated_at NO se toca: enriquecer no es que el anuncio haya cambiado, es que\n// nosotros nos hemos puesto al día.\nconsole.log('[cc-enrich] ' + id + ': co2=' + (co2 === null ? '-' : co2)\n  + ' consumo=' + (consumo === null ? '-' : consumo)\n  + (esElectrico ? ' (eléctrico)' : ''));\n\nreturn [{ json: {\n  sql: 'UPDATE moveadvisor_market_offers SET ' + sets.join(', ') + ' WHERE id = ' + esc(id),\n  veredicto: (co2 !== null || consumo !== null) ? 'enriquecida' : 'sin datos',\n  co2: co2, consumo: consumo, electrico: esElectrico,\n} }];"
+      },
+      "id": "ce-code",
+      "name": "Code: Extraer CO2 y consumo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ce-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "ce-if-sql",
+      "name": "IF: ¿hay algo que guardar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "ce-pg",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        460
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 15000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// El parte de la pasada.\nconst s = $getWorkflowStaticData('global');\nconst leidas = s.ce_leidas || 0;\n\nconsole.log('[cc-enrich] ── resumen ──');\nconsole.log('  fichas pedidas : ' + (s.ce_intentos || 0));\nconsole.log('  leídas         : ' + leidas);\nconsole.log('  con CO₂        : ' + (s.ce_co2 || 0));\nconsole.log('  con consumo    : ' + (s.ce_consumo || 0));\nconsole.log('  ya vendidas    : ' + (s.ce_vendidas || 0));\nconsole.log('  sin poder leer : ' + (s.ce_fallos || 0));\nif (s.ce_parado) console.log('  PARADO POR EL CORTACIRCUITOS: ' + s.ce_motivo);\nif (!s.ce_parado && (s.ce_intentos || 0) > 0 && leidas === 0) {\n  console.log('  OJO: ni una ficha leída. O el portal ha cambiado, o nos han cerrado.');\n}\n\nconst n = v => String(Number(v) || 0);\n// Se reaprovecha la tabla de los verificadores con portal='cochescom-enrich':\n//     checked  fichas pedidas   alive  con CO₂\n//     deactivated  ya vendidas  unclassified  leídas sin dato\n//     transient  sin poder leer\nconst sql = 'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" VALUES ('cochescom-enrich', NOW(), \" + n(s.ce_intentos) + ', ' + n(s.ce_co2) + ', '\n  + n(s.ce_vendidas) + ', ' + n(leidas - (s.ce_co2 || 0)) + ', ' + n(s.ce_fallos) + ', '\n  + (s.ce_parado ? 'TRUE' : 'FALSE') + ', 0)';\n\nconst parte = { sql: sql, pedidas: s.ce_intentos || 0, leidas: leidas,\n  co2: s.ce_co2 || 0, consumo: s.ce_consumo || 0, vendidas: s.ce_vendidas || 0,\n  fallos: s.ce_fallos || 0, parado: !!s.ce_parado };\n// La memoria es del workflow, no de la pasada: sin limpiarla, el freno de hoy\n// seguiría puesto mañana.\nfor (const k of Object.keys(s)) { if (k.indexOf('ce_') === 0) delete s[k]; }\nreturn [{ json: parte }];"
+      },
+      "id": "ce-resumen",
+      "name": "Code: Resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "ce-pg-parte",
+      "name": "PG: Apuntar el parte",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        340,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4 veces/día (10:35, 14:35, 16:35 y 22:35)": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a enriquecer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Cola a enriquecer": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: oferta por oferta": {
+      "main": [
+        [
+          {
+            "node": "Code: Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: ¿toca pedirla?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: ¿toca pedirla?": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay ficha que pedir?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ficha que pedir?": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Ficha de coches.com",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Ficha de coches.com": {
+      "main": [
+        [
+          {
+            "node": "Code: Extraer CO2 y consumo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Extraer CO2 y consumo": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay algo que guardar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay algo que guardar?": {
+      "main": [
+        [
+          {
+            "node": "PG: Actualizar oferta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Actualizar oferta": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Resumen": {
+      "main": [
+        [
+          {
+            "node": "PG: Apuntar el parte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

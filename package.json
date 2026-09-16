@@ -113,7 +113,8 @@
     "test:autocasion-verificar": "node scripts/comprueba-autocasion-verificar.js",
     "enlaza-segmento-cochescom": "node scripts/enlaza-segmento-cochescom.js",
     "test:cochescom": "node scripts/comprueba-cochescom.js",
-    "test:cochescom-verificar": "node scripts/comprueba-cochescom-verificar.js"
+    "test:cochescom-verificar": "node scripts/comprueba-cochescom-verificar.js",
+    "test:cochescom-enrich": "node scripts/comprueba-cochescom-enrich.js"
   },
   "proxy": "http://localhost:3001",
   "eslintConfig": {

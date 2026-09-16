@@ -24,6 +24,7 @@ import { useListingDiscoveryMemory } from "./hooks/useListingDiscoveryMemory";
 import { useListingQuickValidationRefresh } from "./hooks/useListingQuickValidationRefresh";
 import { useQuestionnaireDraftPersistence } from "./hooks/useQuestionnaireDraftPersistence";
 import { useQuestionnaireStepVisualSync } from "./hooks/useQuestionnaireStepVisualSync";
+import { useRepasoDelPanel } from "./hooks/useRepasoDelPanel";
 import { useResumeQuestionnaireDraft } from "./hooks/useResumeQuestionnaireDraft";
 import { useSavedRecommendations } from "./hooks/useSavedRecommendations";
 import { useAuthDialogControls } from "./hooks/useAuthDialogControls";
@@ -173,6 +174,7 @@ const ComoFuePage = lazy(() => import("./pages/ComoFuePage"));
 const ConfirmarVisitaPage = lazy(() => import("./pages/ConfirmarVisitaPage"));
 const CochePorMatriculaPage = lazy(() => import("./pages/CochePorMatriculaPage"));
 const ComoSubirTuCochePage = lazy(() => import("./pages/ComoSubirTuCochePage"));
+
 
 /**
  * La matricula de `/v/8888LXR`, o cadena vacia si el camino no es ese.
@@ -1740,6 +1742,14 @@ export default function App() {
   const [pendingPlanCheckoutId, setPendingPlanCheckoutId] = useState("");
   const [showAuthMenu, setShowAuthMenu] = useState(false);
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+  /**
+   * Si ya sabemos si hay sesión o todavía no se ha mirado.
+   *
+   * `isUserLoggedIn` arranca en falso, y falso significa dos cosas muy
+   * distintas: «no ha entrado» y «aún no lo hemos comprobado». Quien las
+   * confunda le pide la contraseña a alguien que ya está dentro.
+   */
+  const [sesionComprobada, setSesionComprobada] = useState(false);
   const [authRequired, setAuthRequired] = useState(false);
   const [showUserPanel, setShowUserPanel] = useState(false);
   const [showHeaderPlansNav, setShowHeaderPlansNav] = useState(false);
@@ -2167,6 +2177,7 @@ export default function App() {
   }, [advancedMode, advisorContext]);
 
   useAppBootstrap({
+    setSesionComprobada,
     themeStorageKey: THEME_STORAGE_KEY,
     setThemeMode,
     setSavedComparisons,
@@ -2447,12 +2458,15 @@ export default function App() {
     resolveAlertRecipientEmail,
   });
 
-  // Al abrir el panel, los datos se piden otra vez. Es la red que cubre todo lo
-  // demás: una cita movida desde el enlace del correo, algo hecho en otra
-  // pestaña. Antes se pedían una sola vez, al entrar la sesión.
-  useEffect(() => {
-    if (entryMode === "userDashboard") recargaMovilidad();
-  }, [entryMode, recargaMovilidad]);
+  // El panel se repasa solo mientras está abierto: al entrar, al cambiar de
+  // apartado, al volver a la pestaña y cada minuto. Lo de antes era pedirlo una
+  // vez al entrar y nunca más, y por eso había que recargar la página para ver
+  // la tasación recién hecha. El porqué de cada momento, en el propio hook.
+  useRepasoDelPanel({
+    activo: entryMode === "userDashboard",
+    apartado: userDashboardPage,
+    recarga: recargaMovilidad,
+  });
 
   useUserMobilitySync({
     currentUserEmail,
@@ -2615,9 +2629,18 @@ export default function App() {
    * entrar, y al terminar se queda aquí mismo.
    */
   useEffect(() => {
+    /*
+     * Se espera a saber si hay sesión.
+     *
+     * Sin esto, al abrir /mis-coches de cero este efecto corre en la misma
+     * pasada que el arranque y ve el valor inicial —falso— aunque la sesión
+     * esté guardada: al cliente que venía de «lo que te falta» de su encargo
+     * se le pedía la contraseña otra vez, con la sesión abierta.
+     */
+    if (!sesionComprobada) return;
     if (entryMode !== "idCarsManage" || isUserLoggedIn) return;
     openAuthDialog("login", { entryMode: "idCarsManage", routePage: "home" });
-  }, [entryMode, isUserLoggedIn, openAuthDialog]);
+  }, [entryMode, isUserLoggedIn, sesionComprobada, openAuthDialog]);
 
   /**
    * Abre uno de los dos flujos de venta: el informe de mercado o la venta

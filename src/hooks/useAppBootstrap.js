@@ -44,6 +44,8 @@ export function useAppBootstrap({
   setAuthRequired,
   setAuthDialogMode,
   setShowConsentReview,
+  /** Se avisa en cuanto se sabe si hay sesión, aunque la respuesta sea que no. */
+  setSesionComprobada,
 }) {
   useEffect(() => {
     const savedAuthUser = readAuthUser();
@@ -101,6 +103,16 @@ export function useAppBootstrap({
     const storedConsent = readCookieConsent();
     setCurrentUser(savedAuthUser);
     setIsUserLoggedIn(Boolean(savedAuthUser?.email));
+    /*
+     * Ya se sabe.
+     *
+     * A partir de aquí «no hay sesión» es una respuesta y no una pregunta sin
+     * contestar, y quien la mire puede fiarse. Antes, el guardia de
+     * `/mis-coches` corría en esta misma pasada y veía el valor inicial —falso—
+     * con la sesión guardada: le pedía la contraseña a alguien que ya estaba
+     * dentro, justo al llegar desde «lo que te falta» de su encargo.
+     */
+    if (setSesionComprobada) setSesionComprobada(true);
 
     // No cached user → require login immediately (sync, no flash)
     if (!savedAuthUser?.email && !isPublicRoute) {
@@ -186,6 +198,7 @@ export function useAppBootstrap({
     setCookiePreferences,
     setCurrentUser,
     setIsUserLoggedIn,
+    setSesionComprobada,
     setMarketAlertStatus,
     setMarketAlerts,
     setQuestionnaireDraft,

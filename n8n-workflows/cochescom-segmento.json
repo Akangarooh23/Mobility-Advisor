@@ -1,0 +1,359 @@
+{
+  "name": "coches.com – Segmento (marca)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "cc-s-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        200
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "cc-s-trigger",
+      "name": "Llamada desde orquestador",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const inp = $input.item.json || {};\n\n// SIN marca no se hace nada. En Autocasión había aquí un valor por defecto y el\n// 15-sep, al recibir un segmento vacío, se puso a scrapear otra marca por su\n// cuenta: 360 ofertas saltándose el cursor. Un defecto esconde el fallo.\nif (!inp.brand || !String(inp.brand).trim()) {\n  console.log('[cochescom] segmento sin marca: no hay nada que hacer.');\n  return [];\n}\n\nreturn [{ json: {\n  brand: String(inp.brand),\n  desde: Number(inp.desde) > 0 ? Number(inp.desde) : 1,\n  hasta: Number(inp.hasta) > 0 ? Number(inp.hasta) : 25,\n} }];"
+      },
+      "id": "cc-s-params",
+      "name": "Params",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://www.coches.com/coches-segunda-mano/{{ $json.brand }}.htm",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "cc-s-contar",
+      "name": "HTTP: Contar (pág 1)",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -80,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cuántas páginas tiene esta marca, y cuáles tocan en esta ventana.\nconst seg = $('Params').item.json;\nconst res = $input.first().json;\n// Con responseFormat 'text' + fullResponse, n8n deja el cuerpo en 'data', no en\n// 'body'. Mirar solo 'body' dejó 4.484 ofertas sin clasificar en Wallapop.\nconst html = String(res.data || res.body || '');\n\nlet maxPage = 1;\ntry {\n  const m = html.match(/<script id=\"__NEXT_DATA__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/);\n  if (m) {\n    const pp = JSON.parse(m[1]).props.pageProps;\n    const total = (pp.classifieds && pp.classifieds.total) || 0;\n    if (total > 0) maxPage = Math.min(Math.ceil(total / 20), 250);\n  }\n} catch (e) { maxPage = 1; }\n\nconst hasta = Math.min(seg.hasta, maxPage);\nconst out = [];\nfor (let p = seg.desde; p <= hasta; p++) {\n  out.push({ json: {\n    brand: seg.brand, page: p,\n    url: 'https://www.coches.com/coches-segunda-mano/' + seg.brand + '.htm?page=' + p,\n  } });\n}\nif (!out.length) {\n  console.log('[cochescom] ' + seg.brand + ': la ventana ' + seg.desde + '-' + seg.hasta\n    + ' está más allá de su última página (' + maxPage + ').');\n}\nreturn out;"
+      },
+      "id": "cc-s-paginas",
+      "name": "Code: Generar páginas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "cc-s-loop",
+      "name": "Loop: página por página",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        400,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "cc-s-http",
+      "name": "HTTP: Página coches.com",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        640,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// coches.com – transform: HTML .htm → __NEXT_DATA__ classifieds.classifiedList → UPSERT market_offers\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\n\nlet list = [];\ntry {\n  const m = html.match(/<script id=\"__NEXT_DATA__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/);\n  if (m) {\n    const pp = JSON.parse(m[1]).props.pageProps;\n    list = (pp.classifieds && pp.classifieds.classifiedList) || [];\n  }\n} catch (e) { list = []; }\nif (!list.length) return [{ json: { sql: null, count: 0 } }];\n\nfunction esc(v) {\n  if (v === null || v === undefined) return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\nfunction titleCase(s) { return String(s || '').toLowerCase().replace(/\\b\\w/g, c => c.toUpperCase()); }\nfunction normFuel(s) {\n  s = String(s || '').toLowerCase();\n  const ench = (s.indexOf('enchufable') !== -1 || s.indexOf('plug') !== -1) && s.indexOf('no enchufable') === -1;\n  if (s.indexOf('diesel') !== -1 || s.indexOf('diésel') !== -1) return 'Diesel';\n  if (s.indexOf('híbrido') !== -1 || s.indexOf('hibrido') !== -1 || s.indexOf('hybrid') !== -1) return ench ? 'Híbrido enchufable' : 'Híbrido';\n  if (s.indexOf('eléctric') !== -1 || s.indexOf('electric') !== -1) return 'Eléctrico';\n  if (s.indexOf('gasolina') !== -1) return 'Gasolina';\n  if (s.indexOf('glp') !== -1 || s.indexOf('gnc') !== -1 || s.indexOf('gas') !== -1) return 'Gas';\n  return '';\n}\nfunction normGear(s) { s = String(s || '').toLowerCase(); if (s.indexOf('autom') !== -1) return 'Automatica'; if (s.indexOf('manual') !== -1) return 'Manual'; return ''; }\nfunction normLabel(s) {\n  s = String(s || '').toUpperCase().trim();\n  if (s === '0' || s.indexOf('0 EMIS') !== -1 || s === 'ZERO' || s === 'CERO') return '0 Emisiones';\n  if (s === 'ECO') return 'ECO';\n  if (s === 'C') return 'C';\n  if (s === 'B') return 'B';\n  return s || '';\n}\n\nconst rows = [];\nfor (const it of list) {\n  const vid = it.visibleId || it.id;\n  if (!vid) continue;\n  const id = 'cc_' + vid;\n  const brand = titleCase(it.make && it.make.name);\n  const model = (it.model && it.model.name) || '';\n  const version = (it.version && it.version.name) || '';\n  const title = (brand + ' ' + model + ' ' + version).replace(/\\s+/g, ' ').trim();\n  const year = (it.registration && it.registration.year) ? String(it.registration.year) : null;\n  const mileage = (it.mileage && it.mileage.amount != null) ? it.mileage.amount : null;\n  const price = (it.price && it.price.amount != null) ? it.price.amount : null;\n  if (price === null) continue;\n  const fuel = normFuel(it.fuel && it.fuel.name);\n  const transmission = normGear(it.transmission && it.transmission.name);\n  const powerCv = (it.engine && it.engine.powerCv) ? it.engine.powerCv : null;\n  const powerKw = powerCv ? Math.round(powerCv / 1.35962) : null;\n  const bodyType = (it.body && it.body.name) || '';\n  const doors = (it.measures && it.measures.bodyDoors) ? it.measures.bodyDoors : null;\n  const seats = (it.measures && it.measures.bodySeats) ? it.measures.bodySeats : null;\n  const color = (it.color && it.color.name) || '';\n  const envLabel = normLabel(it.pollutionTag);\n  const province = (it.currentProvince && it.currentProvince.name) || '';\n  const imageUrl = it.image || '';\n  const imgs = Array.isArray(it.imageList) ? it.imageList.map(im => im && im.name ? ('https://images.coches.com/_ccom_/' + im.name) : null).filter(Boolean).slice(0, 15) : (imageUrl ? [imageUrl] : []);\n  const imagesJson = JSON.stringify(imgs).replace(/'/g, \"''\");\n  const dealerName = (it.dealer && it.dealer.name) || '';\n  const sellerType = (it.dealer && /priv|particular/i.test(it.dealer.type || '')) ? 'particular' : 'profesional';\n  // Use canonical URL from API if available (it.link = '/coches-segunda-mano/slug.htm')\n  // Fallback: construct with make slug + ?id= (stable even without full slug)\n  const rawLink = it.link || it.href || '';\n  const fallbackSlug = ('ocasion-' + brand + '-' + model).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'ocasion';\n  const url = rawLink\n    ? ('https://www.coches.com' + rawLink + (String(rawLink).includes('?') ? '' : ('?id=' + vid)))\n    : ('https://www.coches.com/coches-segunda-mano/' + fallbackSlug + '.htm?id=' + vid);\n\n  const row = '(' +\n    esc(id) + \", 'cochescom', \" + esc(url) + ', ' + esc(title) + ', ' + esc(brand) + ', ' + esc(model) + ', ' + esc(version) + ', ' +\n    (year || 'NULL') + ', ' + (mileage !== null ? mileage : 'NULL') + ', ' + price + ', ' +\n    esc(fuel) + ', ' + esc(transmission) + ', ' + esc(color) + ', ' +\n    esc(imageUrl) + \", '\" + imagesJson + \"', \" + esc(envLabel) + ', ' + esc(dealerName) + ', ' +\n    esc(province) + ', ' + esc(province) + ', ' + esc(province) + ', ' +\n    \"'\" + sellerType + \"', 'compra', \" +\n    (powerCv !== null ? powerCv : 'NULL') + ', ' + (powerKw !== null ? powerKw : 'NULL') + ', ' +\n    esc(bodyType) + ', ' + (doors !== null ? doors : 'NULL') + ', ' + (seats !== null ? seats : 'NULL') +\n    ', NOW(), NOW(), NOW()' +\n  ')';\n  rows.push(row);\n}\nif (!rows.length) return [{ json: { sql: null, count: 0 } }];\n\nconst cols = 'id, portal, url, title, brand, model, version, year, mileage, price, fuel, transmission, color, ' +\n  'image_url, images, environmental_label, dealer_name, city, province, location, seller_type, listing_type, ' +\n  'power_cv, power_kw, body_type, doors, seats, first_seen_at, scraped_at, last_seen_at';\n\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +\n  'url = EXCLUDED.url, title = EXCLUDED.title, price = EXCLUDED.price, mileage = EXCLUDED.mileage, ' +\n  'year = COALESCE(EXCLUDED.year, moveadvisor_market_offers.year), ' +\n  \"image_url = COALESCE(NULLIF(moveadvisor_market_offers.image_url,''), EXCLUDED.image_url), \" +\n  \"images = COALESCE(NULLIF(moveadvisor_market_offers.images,''), EXCLUDED.images), \" +\n  'power_cv = COALESCE(EXCLUDED.power_cv, moveadvisor_market_offers.power_cv), ' +\n  'power_kw = COALESCE(EXCLUDED.power_kw, moveadvisor_market_offers.power_kw), ' +\n  'environmental_label = COALESCE(NULLIF(moveadvisor_market_offers.environmental_label,\\'\\'), EXCLUDED.environmental_label), ' +\n  'last_seen_at = NOW(), updated_at = NOW(), ' +\n  // Verla en el listado ES la prueba de vida, asi que resucita.\n  //\n  // Sin esto, una oferta que el verificador diera de baja por error se queda\n  // muerta para siempre aunque el scraper la vuelva a ver cada pocos dias: el\n  // UPSERT le refresca precio y kilometros y la deja is_active = FALSE. Mismo\n  // agujero que tenia Autocasion, y hay que taparlo ANTES de poner a nadie a\n  // dar bajas.\n  'is_active = TRUE';\n\nconst sql = 'INSERT INTO moveadvisor_market_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;\nreturn [{ json: { sql: sql, count: rows.length } }];\n"
+      },
+      "id": "cc-s-transf",
+      "name": "Code: Transformar ofertas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cc-s-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "cc-s-if",
+      "name": "IF: ¿hay ofertas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "cc-s-pg",
+      "name": "PG: Upsert ofertas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        340
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Llamada desde orquestador": {
+      "main": [
+        [
+          {
+            "node": "Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Params": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Contar (pág 1)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Contar (pág 1)": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar páginas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Generar páginas": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: página por página": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP: Página coches.com",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Página coches.com": {
+      "main": [
+        [
+          {
+            "node": "Code: Transformar ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Transformar ofertas": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay ofertas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ofertas?": {
+      "main": [
+        [
+          {
+            "node": "PG: Upsert ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Upsert ofertas": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

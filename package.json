@@ -110,7 +110,9 @@
     "test:autocasion-enrich": "node scripts/comprueba-autocasion-enrich.js",
     "limpia-autocasion": "node scripts/limpia-enrich-autocasion.js",
     "mide-autocasion": "node scripts/mide-paginas-autocasion.js",
-    "test:autocasion-verificar": "node scripts/comprueba-autocasion-verificar.js"
+    "test:autocasion-verificar": "node scripts/comprueba-autocasion-verificar.js",
+    "enlaza-segmento-cochescom": "node scripts/enlaza-segmento-cochescom.js",
+    "test:cochescom": "node scripts/comprueba-cochescom.js"
   },
   "proxy": "http://localhost:3001",
   "eslintConfig": {

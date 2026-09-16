@@ -1,15 +1,15 @@
 {
-  "name": "coches.com – Scraper (mercado)",
+  "name": "coches.com – Scraper por marcas (orquestador)",
   "nodes": [
     {
       "parameters": {},
-      "id": "cc-manual",
+      "id": "cc-o-manual",
       "name": "Ejecutar manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -460,
-        300
+        -560,
+        200
       ]
     },
     {
@@ -18,156 +18,152 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 0 3 * * *"
+              "expression": "0 40 11,23 * * *"
             }
           ]
         }
       },
-      "id": "cc-cron",
-      "name": "Cada día a las 3:00",
+      "id": "cc-o-cron",
+      "name": "2 veces/día (11:40 y 23:40)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
-        -460,
-        480
+        -560,
+        400
       ]
     },
     {
       "parameters": {
-        "language": "javaScript",
-        "jsCode": "// Reparto de las 94 marcas en 7 grupos (uno por dia de semana). ~13 marcas/noche → catalogo semanal.\nconst brands = [\"peugeot\",\"mercedes\",\"kia\",\"citroen\",\"volkswagen\",\"ford\",\"opel\",\"renault\",\"audi\",\"seat\",\"bmw\",\"toyota\",\"nissan\",\"hyundai\",\"fiat\",\"mg\",\"skoda\",\"jeep\",\"volvo\",\"mazda\",\"ds\",\"cupra\",\"dacia\",\"mini\",\"mitsubishi\",\"lexus\",\"land-rover\",\"honda\",\"suzuki\",\"alfa-romeo\",\"ssangyong-kgm\",\"ebro\",\"omoda\",\"jaecoo\",\"lynk--co\",\"byd\",\"porsche\",\"jaguar\",\"subaru\",\"livan\",\"dr\",\"smart\",\"dfsk\",\"tesla\",\"iveco\",\"swm\",\"abarth\",\"leapmotor\",\"changan\",\"chevrolet\",\"maserati\",\"baic\",\"lancia\",\"maxus\",\"yudo\",\"infiniti\",\"evo\",\"bestune\",\"ferrari\",\"xpeng\",\"bentley\",\"foton\",\"geely\",\"chrysler\",\"polestar\",\"seres\",\"dodge\",\"alpine\",\"aston-martin\",\"sportequipe\",\"saab\",\"dongfeng\",\"ineos\",\"invicta\",\"mahindra\",\"rover\",\"aiways\",\"cadillac\",\"ich-x\",\"isuzu\",\"lamborghini\",\"man\",\"morgan\",\"austin\",\"daewoo\",\"lotus\",\"tiger\",\"corvette\",\"hummer\",\"levc\",\"maybach\",\"tata\",\"wartburg\",\"zhidou\"];\nconst day = new Date().getDay();\nconst mine = brands.filter(function (b, i) { return i % 7 === day; });\nconst out = [];\nfor (const b of mine) out.push({ json: { url: 'https://www.coches.com/coches-segunda-mano/' + b + '.htm' } });\nreturn out;"
+        "operation": "executeQuery",
+        "query": "-- Por dónde iba la última pasada, y cuántas páginas tiene cada marca.\n--\n-- En Postgres y no en $getWorkflowStaticData, que se reinicia al reimportar.\n-- Antes ni siquiera había cursor: repartía las marcas por día de la semana, así\n-- que una noche que fallara se saltaba trece marcas hasta la semana siguiente.\n--\n-- El filtro va con expresión regular y no con LIKE: en LIKE el «_» es un\n-- comodín de un carácter, y 'cochescom_pag_%' casaría también con\n-- 'cochescom_pagina'. Contaba una marca de más en Autocasión.\nSELECT clave, valor FROM moveadvisor_cursores\nWHERE clave IN ('cochescom_marca', 'cochescom_pagina')\n   OR clave ~ '^cochescom_pag_[0-9]+$'",
+        "options": {}
       },
-      "id": "cc-brands",
-      "name": "Code: Marcas del día",
+      "id": "cc-o-cursor",
+      "name": "PG: Por dónde íbamos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Qué marca toca, para poder preguntarle cuántas páginas tiene.\nconst marcas = [\"peugeot\",\"mercedes\",\"kia\",\"citroen\",\"volkswagen\",\"ford\",\"opel\",\"renault\",\"audi\",\"seat\",\"bmw\",\"toyota\",\"hyundai\",\"nissan\",\"fiat\",\"dacia\",\"skoda\",\"volvo\",\"mazda\",\"mini\",\"land-rover\",\"jeep\",\"honda\",\"suzuki\",\"mitsubishi\",\"lexus\",\"porsche\",\"alfa-romeo\",\"jaguar\",\"cupra\",\"ds\",\"smart\",\"subaru\",\"ssangyong\",\"tesla\",\"abarth\",\"lancia\",\"chevrolet\",\"chrysler\",\"dodge\",\"infiniti\",\"isuzu\",\"maserati\",\"bentley\",\"ferrari\",\"lamborghini\",\"aston-martin\",\"lotus\",\"alpine\",\"polestar\",\"mg\",\"byd\",\"omoda\",\"gwm\",\"leapmotor\",\"xpeng\",\"seres\",\"maxus\",\"genesis\",\"iveco\",\"man\",\"rolls-royce\",\"mclaren\",\"morgan\",\"caterham\",\"dfsk\",\"great-wall\",\"haval\",\"hummer\",\"ineos\",\"jaecoo\",\"lada\",\"lifan\",\"lotus-cars\",\"mahindra\",\"microcar\",\"nio\",\"opel-vivaro\",\"piaggio\",\"rover\",\"saab\",\"santana\",\"tata\",\"think\",\"triumph\",\"voyah\",\"wey\",\"lynk-co\",\"ora\",\"aiways\",\"dr\",\"ebro\",\"skywell\",\"sportequipe\"];\nconst filas = $input.all().map(x => x.json);\nconst mapa = {};\nfor (const f of filas) mapa[f.clave] = Number(f.valor);\n\nlet idx = Number(mapa['cochescom_marca']);\nlet pag = Number(mapa['cochescom_pagina']);\nif (!Number.isFinite(idx) || idx < 0 || idx >= marcas.length) idx = 0;\nif (!Number.isFinite(pag) || pag < 1) pag = 1;\n\nreturn [{ json: { marca: idx, pagina: pag, marcaDeTurno: marcas[idx], paginas: mapa } }];"
+      },
+      "id": "cc-o-marca",
+      "name": "Code: Qué marca toca",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -240,
-        390
+        -280,
+        300
       ]
     },
     {
       "parameters": {
-        "method": "GET",
-        "url": "={{ $json.url }}",
+        "url": "=https://www.coches.com/coches-segunda-mano/{{ $json.marcaDeTurno }}.htm",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
         "options": {
-          "timeout": 25000,
           "response": {
             "response": {
+              "fullResponse": true,
+              "neverError": true,
               "responseFormat": "text"
             }
           },
-          "headers": {
-            "values": [
-              {
-                "name": "User-Agent",
-                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-              },
-              {
-                "name": "Accept-Language",
-                "value": "es-ES,es;q=0.9"
-              }
-            ]
-          },
-          "batching": {
-            "batch": {
-              "batchSize": 1,
-              "batchInterval": 400
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
             }
           }
         }
       },
-      "id": "cc-p1",
-      "name": "HTTP: Página 1 marca",
+      "id": "cc-o-contar",
+      "name": "HTTP: Contar la marca de turno",
+      "onError": "continueRegularOutput",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        -20,
-        390
-      ],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 2000,
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "language": "javaScript",
-        "jsCode": "// De cada página 1 de marca: leer classifieds.total → generar todas sus páginas (?page=N).\nconst inputs = $input.all();\nconst out = [];\nfor (const inp of inputs) {\n  const html = typeof inp.json === 'string' ? inp.json : String(inp.json.data || inp.json.body || '');\n  const m = html.match(/<script id=\"__NEXT_DATA__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/);\n  if (!m) continue;\n  let pp;\n  try { pp = JSON.parse(m[1]).props.pageProps; } catch (e) { continue; }\n  const rawUrl = pp.rawUrl;\n  const total = (pp.classifieds && pp.classifieds.total) || 0;\n  if (!rawUrl || !total) continue;\n  const pages = Math.min(Math.ceil(total / 20), 250);\n  for (let p = 1; p <= pages; p++) out.push({ json: { url: 'https://www.coches.com' + rawUrl + '?page=' + p } });\n}\nreturn out;\n"
-      },
-      "id": "cc-genp",
-      "name": "Code: Generar páginas",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        200,
-        390
+        -160,
+        300
       ]
     },
     {
       "parameters": {
-        "batchSize": 1,
+        "jsCode": "// Reparte ventanas de 25 páginas, encadenando marcas hasta gastar la pasada.\nconst marcas = [\"peugeot\",\"mercedes\",\"kia\",\"citroen\",\"volkswagen\",\"ford\",\"opel\",\"renault\",\"audi\",\"seat\",\"bmw\",\"toyota\",\"hyundai\",\"nissan\",\"fiat\",\"dacia\",\"skoda\",\"volvo\",\"mazda\",\"mini\",\"land-rover\",\"jeep\",\"honda\",\"suzuki\",\"mitsubishi\",\"lexus\",\"porsche\",\"alfa-romeo\",\"jaguar\",\"cupra\",\"ds\",\"smart\",\"subaru\",\"ssangyong\",\"tesla\",\"abarth\",\"lancia\",\"chevrolet\",\"chrysler\",\"dodge\",\"infiniti\",\"isuzu\",\"maserati\",\"bentley\",\"ferrari\",\"lamborghini\",\"aston-martin\",\"lotus\",\"alpine\",\"polestar\",\"mg\",\"byd\",\"omoda\",\"gwm\",\"leapmotor\",\"xpeng\",\"seres\",\"maxus\",\"genesis\",\"iveco\",\"man\",\"rolls-royce\",\"mclaren\",\"morgan\",\"caterham\",\"dfsk\",\"great-wall\",\"haval\",\"hummer\",\"ineos\",\"jaecoo\",\"lada\",\"lifan\",\"lotus-cars\",\"mahindra\",\"microcar\",\"nio\",\"opel-vivaro\",\"piaggio\",\"rover\",\"saab\",\"santana\",\"tata\",\"think\",\"triumph\",\"voyah\",\"wey\",\"lynk-co\",\"ora\",\"aiways\",\"dr\",\"ebro\",\"skywell\",\"sportequipe\"];\nconst PAGINAS = 25;\nconst SEGMENTOS = 20;\n// coches.com corta la paginación en la 250.\nconst TOPE_PAGINA = 250;\n\nconst turno = $('Code: Qué marca toca').first().json || {};\nlet idx = Number(turno.marca);\nlet pag = Number(turno.pagina);\nif (!Number.isFinite(idx) || idx < 0 || idx >= marcas.length) idx = 0;\nif (!Number.isFinite(pag) || pag < 1) pag = 1;\n\n// Cuántas páginas tiene cada marca. La de turno se vuelve a medir aquí, en\n// vivo, leyendo classifieds.total del JSON de su página 1.\nconst paginasDe = Object.assign({}, turno.paginas || {});\nconst conteo = $('HTTP: Contar la marca de turno').first().json || {};\nconst htmlConteo = String(conteo.data || conteo.body || '');\nlet medida = 0;\ntry {\n  const m = htmlConteo.match(/<script id=\"__NEXT_DATA__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/);\n  if (m) {\n    const pp = JSON.parse(m[1]).props.pageProps;\n    const total = (pp.classifieds && pp.classifieds.total) || 0;\n    if (total > 0) medida = Math.min(Math.ceil(total / 20), TOPE_PAGINA);\n  }\n} catch (e) { medida = 0; }\nif (medida > 0) paginasDe['cochescom_pag_' + idx] = medida;\n\n// Si no sabemos cuántas tiene, se asume UNA ventana: quedarse corto cuesta\n// esperar al turno siguiente; pasarse cuesta peticiones tiradas.\nconst cuantas = (i) => {\n  const v = Number(paginasDe['cochescom_pag_' + i]);\n  return Number.isFinite(v) && v > 0 ? v : PAGINAS;\n};\n\nconst out = [];\nlet vueltas = 0;\nwhile (out.length < SEGMENTOS && vueltas <= marcas.length) {\n  const tope = cuantas(idx);\n  if (pag > tope) { pag = 1; idx = (idx + 1) % marcas.length; vueltas++; continue; }\n  out.push({ json: { brand: marcas[idx], desde: pag, hasta: Math.min(pag + PAGINAS - 1, tope) } });\n  pag += PAGINAS;\n}\n\n// Se apunta ANTES de scrapear: si la pasada se cae a la mitad, la siguiente\n// sigue avanzando en vez de repetir lo mismo. Con UPSERT, así que crea las\n// filas si no existen y no hace falta migración.\nconst guardar = [\n  \"('cochescom_marca', \" + idx + \", NOW())\",\n  \"('cochescom_pagina', \" + pag + \", NOW())\",\n];\nif (medida > 0) guardar.push(\"('cochescom_pag_\" + Number(turno.marca) + \"', \" + medida + \", NOW())\");\nconst sqlCursor = \"INSERT INTO moveadvisor_cursores (clave, valor, actualizado) VALUES \"\n  + guardar.join(\", \")\n  + \" ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, actualizado = NOW()\";\nfor (const o of out) o.json.sqlCursor = sqlCursor;\n\nif (!out.length) {\n  console.log('[cochescom] nada que repartir. La próxima empieza en ' + idx + ':' + pag + '.');\n  return [{ json: { brand: '', desde: 0, hasta: 0, sqlCursor: sqlCursor } }];\n}\n\nconst cuantasMarcas = new Set(out.map(o => o.json.brand));\nconsole.log('[cochescom] ' + out.length + ' ventanas de ' + cuantasMarcas.size + ' marca(s): '\n  + [...cuantasMarcas].join(', ') + '. Empieza en ' + out[0].json.brand + ' p' + out[0].json.desde\n  + ' y la próxima pasada en ' + marcas[idx] + ' p' + pag + '.');\nreturn out;"
+      },
+      "id": "cc-o-gen",
+      "name": "Code: Generar segmentos (marca x páginas)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -20,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sqlCursor }}",
         "options": {}
       },
-      "id": "cc-loop",
-      "name": "Loop: página por página",
+      "id": "cc-o-guardar",
+      "name": "PG: Apuntar dónde nos quedamos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        160,
+        140
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "cc-o-loop",
+      "name": "Loop: segmento por segmento",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        420,
-        390
-      ]
-    },
-    {
-      "parameters": {
-        "method": "GET",
-        "url": "={{ $json.url }}",
-        "options": {
-          "timeout": 25000,
-          "response": {
-            "response": {
-              "responseFormat": "text"
-            }
-          },
-          "headers": {
-            "values": [
-              {
-                "name": "User-Agent",
-                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-              },
-              {
-                "name": "Accept-Language",
-                "value": "es-ES,es;q=0.9"
-              }
-            ]
-          }
-        }
-      },
-      "id": "cc-http",
-      "name": "HTTP: Página coches.com",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [
-        640,
-        390
-      ],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 2000,
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "language": "javaScript",
-        "jsCode": "// coches.com – transform: HTML .htm → __NEXT_DATA__ classifieds.classifiedList → UPSERT market_offers\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\n\nlet list = [];\ntry {\n  const m = html.match(/<script id=\"__NEXT_DATA__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/);\n  if (m) {\n    const pp = JSON.parse(m[1]).props.pageProps;\n    list = (pp.classifieds && pp.classifieds.classifiedList) || [];\n  }\n} catch (e) { list = []; }\nif (!list.length) return [{ json: { sql: null, count: 0 } }];\n\nfunction esc(v) {\n  if (v === null || v === undefined) return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\nfunction titleCase(s) { return String(s || '').toLowerCase().replace(/\\b\\w/g, c => c.toUpperCase()); }\nfunction normFuel(s) {\n  s = String(s || '').toLowerCase();\n  const ench = (s.indexOf('enchufable') !== -1 || s.indexOf('plug') !== -1) && s.indexOf('no enchufable') === -1;\n  if (s.indexOf('diesel') !== -1 || s.indexOf('diésel') !== -1) return 'Diesel';\n  if (s.indexOf('híbrido') !== -1 || s.indexOf('hibrido') !== -1 || s.indexOf('hybrid') !== -1) return ench ? 'Híbrido enchufable' : 'Híbrido';\n  if (s.indexOf('eléctric') !== -1 || s.indexOf('electric') !== -1) return 'Eléctrico';\n  if (s.indexOf('gasolina') !== -1) return 'Gasolina';\n  if (s.indexOf('glp') !== -1 || s.indexOf('gnc') !== -1 || s.indexOf('gas') !== -1) return 'Gas';\n  return '';\n}\nfunction normGear(s) { s = String(s || '').toLowerCase(); if (s.indexOf('autom') !== -1) return 'Automatica'; if (s.indexOf('manual') !== -1) return 'Manual'; return ''; }\nfunction normLabel(s) {\n  s = String(s || '').toUpperCase().trim();\n  if (s === '0' || s.indexOf('0 EMIS') !== -1 || s === 'ZERO' || s === 'CERO') return '0 Emisiones';\n  if (s === 'ECO') return 'ECO';\n  if (s === 'C') return 'C';\n  if (s === 'B') return 'B';\n  return s || '';\n}\n\nconst rows = [];\nfor (const it of list) {\n  const vid = it.visibleId || it.id;\n  if (!vid) continue;\n  const id = 'cc_' + vid;\n  const brand = titleCase(it.make && it.make.name);\n  const model = (it.model && it.model.name) || '';\n  const version = (it.version && it.version.name) || '';\n  const title = (brand + ' ' + model + ' ' + version).replace(/\\s+/g, ' ').trim();\n  const year = (it.registration && it.registration.year) ? String(it.registration.year) : null;\n  const mileage = (it.mileage && it.mileage.amount != null) ? it.mileage.amount : null;\n  const price = (it.price && it.price.amount != null) ? it.price.amount : null;\n  if (price === null) continue;\n  const fuel = normFuel(it.fuel && it.fuel.name);\n  const transmission = normGear(it.transmission && it.transmission.name);\n  const powerCv = (it.engine && it.engine.powerCv) ? it.engine.powerCv : null;\n  const powerKw = powerCv ? Math.round(powerCv / 1.35962) : null;\n  const bodyType = (it.body && it.body.name) || '';\n  const doors = (it.measures && it.measures.bodyDoors) ? it.measures.bodyDoors : null;\n  const seats = (it.measures && it.measures.bodySeats) ? it.measures.bodySeats : null;\n  const color = (it.color && it.color.name) || '';\n  const envLabel = normLabel(it.pollutionTag);\n  const province = (it.currentProvince && it.currentProvince.name) || '';\n  const imageUrl = it.image || '';\n  const imgs = Array.isArray(it.imageList) ? it.imageList.map(im => im && im.name ? ('https://images.coches.com/_ccom_/' + im.name) : null).filter(Boolean).slice(0, 15) : (imageUrl ? [imageUrl] : []);\n  const imagesJson = JSON.stringify(imgs).replace(/'/g, \"''\");\n  const dealerName = (it.dealer && it.dealer.name) || '';\n  const sellerType = (it.dealer && /priv|particular/i.test(it.dealer.type || '')) ? 'particular' : 'profesional';\n  // Use canonical URL from API if available (it.link = '/coches-segunda-mano/slug.htm')\n  // Fallback: construct with make slug + ?id= (stable even without full slug)\n  const rawLink = it.link || it.href || '';\n  const fallbackSlug = ('ocasion-' + brand + '-' + model).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'ocasion';\n  const url = rawLink\n    ? ('https://www.coches.com' + rawLink + (String(rawLink).includes('?') ? '' : ('?id=' + vid)))\n    : ('https://www.coches.com/coches-segunda-mano/' + fallbackSlug + '.htm?id=' + vid);\n\n  const row = '(' +\n    esc(id) + \", 'cochescom', \" + esc(url) + ', ' + esc(title) + ', ' + esc(brand) + ', ' + esc(model) + ', ' + esc(version) + ', ' +\n    (year || 'NULL') + ', ' + (mileage !== null ? mileage : 'NULL') + ', ' + price + ', ' +\n    esc(fuel) + ', ' + esc(transmission) + ', ' + esc(color) + ', ' +\n    esc(imageUrl) + \", '\" + imagesJson + \"', \" + esc(envLabel) + ', ' + esc(dealerName) + ', ' +\n    esc(province) + ', ' + esc(province) + ', ' + esc(province) + ', ' +\n    \"'\" + sellerType + \"', 'compra', \" +\n    (powerCv !== null ? powerCv : 'NULL') + ', ' + (powerKw !== null ? powerKw : 'NULL') + ', ' +\n    esc(bodyType) + ', ' + (doors !== null ? doors : 'NULL') + ', ' + (seats !== null ? seats : 'NULL') +\n    ', NOW(), NOW(), NOW()' +\n  ')';\n  rows.push(row);\n}\nif (!rows.length) return [{ json: { sql: null, count: 0 } }];\n\nconst cols = 'id, portal, url, title, brand, model, version, year, mileage, price, fuel, transmission, color, ' +\n  'image_url, images, environmental_label, dealer_name, city, province, location, seller_type, listing_type, ' +\n  'power_cv, power_kw, body_type, doors, seats, first_seen_at, scraped_at, last_seen_at';\n\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +\n  'url = EXCLUDED.url, title = EXCLUDED.title, price = EXCLUDED.price, mileage = EXCLUDED.mileage, ' +\n  'year = COALESCE(EXCLUDED.year, moveadvisor_market_offers.year), ' +\n  \"image_url = COALESCE(NULLIF(moveadvisor_market_offers.image_url,''), EXCLUDED.image_url), \" +\n  \"images = COALESCE(NULLIF(moveadvisor_market_offers.images,''), EXCLUDED.images), \" +\n  'power_cv = COALESCE(EXCLUDED.power_cv, moveadvisor_market_offers.power_cv), ' +\n  'power_kw = COALESCE(EXCLUDED.power_kw, moveadvisor_market_offers.power_kw), ' +\n  'environmental_label = COALESCE(NULLIF(moveadvisor_market_offers.environmental_label,\\'\\'), EXCLUDED.environmental_label), ' +\n  'last_seen_at = NOW(), updated_at = NOW()';\n\nconst sql = 'INSERT INTO moveadvisor_market_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;\nreturn [{ json: { sql: sql, count: rows.length } }];\n"
-      },
-      "id": "cc-transform",
-      "name": "Code: Transformar ofertas",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        860,
-        390
+        160,
+        340
       ]
     },
     {
@@ -176,67 +172,50 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict"
+            "typeValidation": "loose",
+            "version": 2
           },
           "conditions": [
             {
-              "id": "c1",
-              "leftValue": "={{ $json.count }}",
-              "rightValue": 0,
+              "id": "cc-o-c-marca",
+              "leftValue": "={{ $json.brand }}",
+              "rightValue": "",
               "operator": {
-                "type": "number",
-                "operation": "gt"
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
               }
             }
           ],
           "combinator": "and"
         },
+        "looseTypeValidation": true,
         "options": {}
       },
-      "id": "cc-if",
-      "name": "IF: ¿hay ofertas?",
+      "id": "cc-o-if-marca",
+      "name": "IF: ¿hay marca que scrapear?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        1080,
-        390
+        320,
+        440
       ]
     },
     {
       "parameters": {
-        "operation": "executeQuery",
-        "query": "={{ $json.sql }}",
-        "additionalFields": {}
-      },
-      "id": "cc-pg",
-      "name": "PG: Upsert ofertas",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2,
-      "position": [
-        1320,
-        280
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "zoxD0jV8hxZqH0uY",
-          "name": "Postgres account"
+        "workflowId": "PENDIENTE_DE_ENLAZAR",
+        "options": {
+          "waitForSubWorkflow": true
         }
-      }
-    },
-    {
-      "parameters": {
-        "amount": 1,
-        "unit": "seconds"
       },
-      "id": "cc-wait",
-      "name": "Esperar 1s",
-      "type": "n8n-nodes-base.wait",
+      "id": "cc-o-sub",
+      "name": "Scrapear segmento (coches.com – Segmento)",
+      "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
       "position": [
-        1540,
-        390
-      ],
-      "webhookId": "wait-cochescom"
+        520,
+        440
+      ]
     }
   ],
   "connections": {
@@ -244,125 +223,108 @@
       "main": [
         [
           {
-            "node": "Code: Marcas del día",
+            "node": "PG: Por dónde íbamos",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cada día a las 3:00": {
+    "2 veces/día (11:40 y 23:40)": {
       "main": [
         [
           {
-            "node": "Code: Marcas del día",
+            "node": "PG: Por dónde íbamos",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code: Marcas del día": {
+    "PG: Por dónde íbamos": {
       "main": [
         [
           {
-            "node": "HTTP: Página 1 marca",
+            "node": "Code: Qué marca toca",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP: Página 1 marca": {
+    "Code: Qué marca toca": {
       "main": [
         [
           {
-            "node": "Code: Generar páginas",
+            "node": "HTTP: Contar la marca de turno",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code: Generar páginas": {
+    "HTTP: Contar la marca de turno": {
       "main": [
         [
           {
-            "node": "Loop: página por página",
+            "node": "Code: Generar segmentos (marca x páginas)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Loop: página por página": {
+    "Code: Generar segmentos (marca x páginas)": {
+      "main": [
+        [
+          {
+            "node": "PG: Apuntar dónde nos quedamos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Loop: segmento por segmento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: segmento por segmento": {
       "main": [
         [],
         [
           {
-            "node": "HTTP: Página coches.com",
+            "node": "IF: ¿hay marca que scrapear?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP: Página coches.com": {
+    "IF: ¿hay marca que scrapear?": {
       "main": [
         [
           {
-            "node": "Code: Transformar ofertas",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code: Transformar ofertas": {
-      "main": [
-        [
-          {
-            "node": "IF: ¿hay ofertas?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF: ¿hay ofertas?": {
-      "main": [
-        [
-          {
-            "node": "PG: Upsert ofertas",
+            "node": "Scrapear segmento (coches.com – Segmento)",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Esperar 1s",
+            "node": "Loop: segmento por segmento",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "PG: Upsert ofertas": {
+    "Scrapear segmento (coches.com – Segmento)": {
       "main": [
         [
           {
-            "node": "Esperar 1s",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Esperar 1s": {
-      "main": [
-        [
-          {
-            "node": "Loop: página por página",
+            "node": "Loop: segmento por segmento",
             "type": "main",
             "index": 0
           }
@@ -370,16 +332,13 @@
       ]
     }
   },
-  "pinData": {},
   "settings": {
     "executionOrder": "v1",
     "saveManualExecutions": true,
-    "saveDataSuccessExecution": "all",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
     "callerPolicy": "workflowsFromSameOwner",
-    "errorWorkflow": "",
-    "saveDataErrorExecution": "all"
+    "errorWorkflow": "9BwKOPMIzjj3owho"
   },
-  "staticData": null,
-  "triggerCount": 1,
-  "tags": []
+  "pinData": {}
 }

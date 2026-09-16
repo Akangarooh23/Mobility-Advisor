@@ -401,8 +401,29 @@ const LEGAL_DOCUMENTS = {
           "Datos de solvencia: cuando el usuario consiente expresamente, PopCar puede solicitar a Experian Bureau de Crédito S.A. la consulta de información de solvencia patrimonial ante organismos públicos, con la única finalidad de valorar la viabilidad de una operación de renting o financiación.",
         ],
       },
+      /*
+       * La app móvil, con sus permisos.
+       *
+       * Va aquí y no en un documento aparte porque es la misma cuenta y los
+       * mismos datos: la app es otra puerta a lo mismo. Y va con nombre y
+       * apellidos de cada permiso —cámara, ubicación, notificaciones— porque el
+       * formulario de seguridad de datos de Google Play tiene que decir lo mismo
+       * que esto, y una tienda que encuentra una diferencia retira la app.
+       */
       {
-        heading: "3. Finalidades y bases jurídicas",
+        heading: "3. La aplicación móvil de PopCar",
+        paragraphs: [
+          "La aplicación de PopCar (app.popcar.com.es y su versión instalable para móvil) usa la misma cuenta y trata los mismos datos que la web. Además, y solo cuando el usuario lo autoriza desde el propio móvil, utiliza:",
+        ],
+        bullets: [
+          "Cámara: únicamente cuando el usuario elige fotografiar un documento o su vehículo. Las imágenes se guardan como adjuntos de su IDCar, igual que si las subiera desde el ordenador. La app no accede a la cámara en ningún otro momento ni graba vídeo o audio.",
+          "Ubicación aproximada o precisa: únicamente al pulsar «Mi zona» en la pantalla de taller, para ordenar por distancia los talleres cercanos. Las coordenadas se envían a PopCar para esa búsqueda y no se guardan asociadas a la cuenta. La app no accede a la ubicación en segundo plano.",
+          "Notificaciones: los avisos de vencimiento de la ITV se programan en el propio dispositivo y no salen de él. Para los avisos que dependen del servidor (cita confirmada, informe de estado listo) se almacena un identificador de dispositivo proporcionado por Firebase Cloud Messaging (Google Ireland Limited), que permite enviar la notificación pero no identifica al usuario por sí mismo. Se elimina al cerrar sesión o al desinstalar la aplicación.",
+          "Almacenamiento del dispositivo: la sesión y las preferencias se guardan en el propio móvil para no tener que iniciar sesión en cada uso.",
+        ],
+      },
+      {
+        heading: "4. Finalidades y bases jurídicas",
         bullets: [
           "Gestión de cuenta (alta, autenticación, mantenimiento y baja) — base: ejecución del contrato (art. 6.1.b RGPD).",
           "Tramitación de solicitudes de información, visita o renting — base: medidas precontractuales (art. 6.1.b RGPD).",
@@ -415,7 +436,7 @@ const LEGAL_DOCUMENTS = {
         ],
       },
       {
-        heading: "4. Comunicaciones comerciales y marketing",
+        heading: "5. Comunicaciones comerciales y marketing",
         paragraphs: [
           "Si el usuario presta consentimiento expreso, PopCar podrá enviarle comunicaciones comerciales por correo electrónico u otros canales digitales sobre nuevas ofertas de vehículos, campañas de renting, servicios de movilidad y contenidos de interés relacionados con el sector del automóvil.",
           "Con consentimiento expreso, sus datos (nombre, correo electrónico y perfil de interés en vehículos) podrán cederse a terceros colaboradores del sector de la movilidad, financiación o seguros para que realicen campañas de marketing propias. En ese caso, dichos terceros actúan como responsables independientes del tratamiento y se rigen por sus propias políticas de privacidad. PopCar facilitará al usuario la identidad de dichos terceros cuando los datos vayan a ser cedidos.",
@@ -424,7 +445,7 @@ const LEGAL_DOCUMENTS = {
         ],
       },
       {
-        heading: "5. Experian y consulta de solvencia",
+        heading: "6. Experian y consulta de solvencia",
         paragraphs: [
           "Para determinadas operaciones de renting o financiación, y siempre con consentimiento previo y expreso del usuario, PopCar puede transmitir sus datos a Experian Bureau de Crédito S.A. (NIF [PENDIENTE], domiciliada en [PENDIENTE]) para consultar información de solvencia patrimonial en ficheros de información crediticia y ante organismos públicos.",
           "La finalidad exclusiva de esta consulta es valorar la viabilidad económica de la operación solicitada. El usuario tiene derecho a conocer el resultado de la consulta y a ejercer sus derechos de acceso, rectificación y cancelación directamente ante Experian (www.experian.es).",
@@ -432,7 +453,7 @@ const LEGAL_DOCUMENTS = {
         ],
       },
       {
-        heading: "6. Destinatarios y encargados del tratamiento",
+        heading: "7. Destinatarios y encargados del tratamiento",
         paragraphs: [
           "Sus datos podrán comunicarse a los proveedores de vehículos (concesionarios, empresas de renting como Leasys o Astara) con los que el usuario haya iniciado una solicitud, exclusivamente para su gestión.",
           "PopCar cuenta con los siguientes encargados del tratamiento que actúan bajo contrato de encargo conforme al art. 28 RGPD: Vercel Inc. (alojamiento web y serverless), Supabase Inc. (almacenamiento de archivos), Neon Inc. (base de datos PostgreSQL), Resend Inc. (envío de correo electrónico transaccional y comercial), Stripe Inc. (procesamiento de pagos).",
@@ -441,7 +462,7 @@ const LEGAL_DOCUMENTS = {
         ],
       },
       {
-        heading: "7. Plazos de conservación",
+        heading: "8. Plazos de conservación",
         bullets: [
           "Datos de cuenta activa: durante toda la relación contractual.",
           "Datos de cuenta tras baja: 5 años para atender posibles responsabilidades y reclamaciones.",
@@ -453,7 +474,7 @@ const LEGAL_DOCUMENTS = {
         ],
       },
       {
-        heading: "8. Derechos de los interesados",
+        heading: "9. Derechos de los interesados",
         paragraphs: [
           "Puede ejercer en cualquier momento los siguientes derechos: acceso (conocer qué datos tratamos), rectificación (corregir datos inexactos), supresión (solicitar el borrado cuando proceda), oposición, limitación del tratamiento, portabilidad (recibir sus datos en formato estructurado) y derecho a no ser objeto de decisiones automatizadas con efectos significativos.",
           `Para ejercer cualquiera de estos derechos, envíe un escrito a ${CORREO_CONTACTO} indicando nombre, apellidos y copia de su DNI o documento equivalente. Responderemos en el plazo máximo de un mes, prorrogable a tres en casos complejos.`,
@@ -461,20 +482,20 @@ const LEGAL_DOCUMENTS = {
         ],
       },
       {
-        heading: "9. Seguridad",
+        heading: "10. Seguridad",
         paragraphs: [
           "PopCar aplica medidas técnicas y organizativas adecuadas al riesgo: cifrado de comunicaciones (TLS/HTTPS), control de accesos por roles, autenticación segura, copias de seguridad periódicas y procedimientos documentados de gestión de incidencias.",
           "En caso de brecha de seguridad que pueda suponer un riesgo para los derechos y libertades de los interesados, PopCar notificará a la AEPD en un plazo máximo de 72 horas y, cuando el riesgo sea alto, comunicará el incidente a los afectados sin dilación indebida.",
         ],
       },
       {
-        heading: "10. Menores de edad",
+        heading: "11. Menores de edad",
         paragraphs: [
           "Los servicios de PopCar están dirigidos exclusivamente a mayores de 18 años. No recabamos conscientemente datos de menores. Si detectáramos que hemos recibido datos de un menor sin consentimiento verificable de sus tutores legales, procederemos a su supresión inmediata.",
         ],
       },
       {
-        heading: "11. Actualizaciones de esta política",
+        heading: "12. Actualizaciones de esta política",
         paragraphs: [
           `Esta Política de Privacidad puede actualizarse para adaptarse a cambios normativos, jurisprudenciales o del propio servicio. La versión vigente, con su fecha de actualización, estará siempre disponible en ${DOMINIO}/politica-privacidad. Para cambios sustanciales, notificaremos a los usuarios registrados por correo electrónico.`,
         ],

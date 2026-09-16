@@ -63,6 +63,24 @@ const SITIOS = [
     escribe: `UPDATE moveadvisor_user_vehicle_files SET file_name = $2 WHERE id = $1`,
   },
   {
+    que: "papeles del seguro",
+    lee: `SELECT d.id, d.file_name AS nombre, 'insurance' AS tipo, v.plate
+            FROM moveadvisor_user_insurance_documents d
+            JOIN moveadvisor_user_insurances i ON i.id = d.insurance_id
+            LEFT JOIN moveadvisor_user_vehicles v ON v.id = i.vehicle_id
+           ORDER BY d.created_at, d.id`,
+    escribe: `UPDATE moveadvisor_user_insurance_documents SET file_name = $2 WHERE id = $1`,
+  },
+  {
+    que: "facturas de mantenimiento",
+    lee: `SELECT f.id, f.file_name AS nombre, 'maintenance' AS tipo, v.plate
+            FROM moveadvisor_user_maintenance_invoices f
+            JOIN moveadvisor_user_maintenances m ON m.id = f.maintenance_id
+            LEFT JOIN moveadvisor_user_vehicles v ON v.id = m.vehicle_id
+           ORDER BY f.created_at, f.id`,
+    escribe: `UPDATE moveadvisor_user_maintenance_invoices SET file_name = $2 WHERE id = $1`,
+  },
+  {
     que: "mandatos firmados que suben los clientes",
     lee: `SELECT d.id, d.nombre, d.papel AS tipo, v.plate
             FROM erp_documentos d

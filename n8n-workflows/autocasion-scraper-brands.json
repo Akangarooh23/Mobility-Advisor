@@ -204,7 +204,9 @@
     {
       "parameters": {
         "workflowId": "qrYv93PTSa5xuR5s",
-        "options": {}
+        "options": {
+          "waitForSubWorkflow": true
+        }
       },
       "id": "ac-o-sub",
       "name": "Scrapear segmento (Autocasión – Segmento)",

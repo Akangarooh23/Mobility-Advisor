@@ -334,7 +334,17 @@ const nodosOrq = [
   { parameters: condicion("ac-o-c-marca", "brand"), id: "ac-o-if-marca",
     name: "IF: ¿hay marca que scrapear?",
     type: "n8n-nodes-base.if", typeVersion: 2, position: [320, 440] },
-  { parameters: { workflowId: ID_SEGMENTO, options: {} },
+  // ESPERA A CADA SEGMENTO antes de lanzar el siguiente.
+  //
+  // Sin esto el orquestador dispara sus 20 ventanas de golpe y sigue: se da por
+  // terminado en 13 minutos mientras veinte ejecuciones siguen martilleando el
+  // portal media hora más. El 16-sep eso dejó cinco ejecuciones simultáneas y el
+  // verificador de Autocasión bajó a 17 ofertas por minuto, cuando el mismo
+  // diseño en AutoScout24 hace 130.
+  //
+  // Sale más lento en el papel -las ventanas van de una en una- y más rápido en
+  // la práctica, porque deja de robarle la máquina a los otros seis workflows.
+  { parameters: { workflowId: ID_SEGMENTO, options: { waitForSubWorkflow: true } },
     id: "ac-o-sub", name: "Scrapear segmento (Autocasión – Segmento)",
     type: "n8n-nodes-base.executeWorkflow", typeVersion: 1, position: [400, 440] },
   // Sin nodo Wait entre segmentos: ver la nota de ESPERA_SEGUNDOS.

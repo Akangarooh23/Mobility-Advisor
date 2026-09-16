@@ -68,6 +68,12 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
     sub.parameters.workflowId !== "PENDIENTE_DE_ENLAZAR"
     && !/REEMPLAZA/.test(String(sub.parameters.workflowId)),
     String(sub.parameters.workflowId));
+  // Que ESPERE a cada segmento. Sin esto dispara las 20 ventanas de golpe y
+  // deja veinte ejecuciones en paralelo: el 16-sep hundio el verificador de
+  // Autocasion a 17 ofertas/min con el mismo diseno que en AutoScout24 hace 130.
+  comprueba("espera a cada segmento antes de lanzar el siguiente",
+    (sub.parameters.options || {}).waitForSubWorkflow === true);
+
   comprueba("la forma del id casa con la typeVersion",
     sub.typeVersion === 1 ? typeof sub.parameters.workflowId === "string" : true,
     "tv" + sub.typeVersion);

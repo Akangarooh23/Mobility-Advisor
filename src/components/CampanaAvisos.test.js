@@ -150,3 +150,57 @@ describe("el desplegable", () => {
     expect(screen.getByText("Ver todo en Mis solicitudes")).toBeInTheDocument();
   });
 });
+
+describe("la cita del taller en la campana", () => {
+  /*
+   * Tiene día y hora, que es justo lo que la campana deja entrar. Vivía solo
+   * dentro de su solicitud, y a Solicitudes se entra a mirar: a una cita hay
+   * que llegar antes del jueves.
+   */
+  const conTaller = (extra = {}) => ({
+    id: "lead-1",
+    type: "venta_gestionada",
+    title: "Volkswagen T-Roc · 8888LXR",
+    meta: JSON.stringify({
+      puertas: [],
+      taller: {
+        taller: "Norauto Alcobendas",
+        direccion: "Calle de los Calabozos 13",
+        // Un año por delante: la campana solo enseña las que no han pasado.
+        cita_at: new Date(Date.now() + 86400000 * 5).toISOString(),
+        cliente_pidio: "",
+        ...extra,
+      },
+    }),
+  });
+
+  test("sale, y cuenta", () => {
+    render(<CampanaAvisos solicitudes={[conTaller()]} />);
+    const boton = screen.getByRole("button", { name: /Tienes/ });
+    expect(boton).toHaveAccessibleName(/una revisión en el taller/);
+    fireEvent.click(boton);
+    expect(screen.getByText("Revisión en el taller")).toBeInTheDocument();
+    expect(screen.getByText(/Norauto Alcobendas/)).toBeInTheDocument();
+  });
+
+  test("no se llama «visita»", () => {
+    /*
+     * Una visita es alguien que viene a ver su coche; esto es él llevándolo a
+     * un sitio. Contarlas juntas le haría prepararse para lo que no es.
+     */
+    render(<CampanaAvisos solicitudes={[conTaller()]} />);
+    expect(screen.getByRole("button", { name: /Tienes/ })).not.toHaveAccessibleName(/cita próxima/);
+  });
+
+  test("si ya pidió cambiarla, no se le dice que la lleve", () => {
+    render(<CampanaAvisos solicitudes={[conTaller({ cliente_pidio: "cambio" })]} />);
+    fireEvent.click(screen.getByRole("button", { name: /Tienes/ }));
+    expect(screen.getByText(/Nos has pedido cambiar/)).toBeInTheDocument();
+  });
+
+  test("una cita pasada no enciende la campana", () => {
+    const pasada = conTaller({ cita_at: new Date(Date.now() - 86400000).toISOString() });
+    const { container } = render(<CampanaAvisos solicitudes={[pasada]} />);
+    expect(container).toBeEmptyDOMElement();
+  });
+});

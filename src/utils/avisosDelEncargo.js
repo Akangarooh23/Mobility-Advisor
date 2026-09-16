@@ -140,3 +140,71 @@ export function laLineaDelEncargo(solicitudes = []) {
     type: "encargo",
   };
 }
+
+/**
+ * Las citas del taller que todavía no han pasado.
+ *
+ * Es lo único de las seis puertas que ponemos nosotros, y tiene día y hora: por
+ * eso entra en la campana, que deja fuera a propósito todo lo que no la tiene.
+ * Que esté en su solicitud no basta — a Solicitudes se entra a mirar, y a esto
+ * hay que llegar antes del jueves.
+ *
+ * Solo las futuras. Una cita pasada no avisa de nada y, si el taller no ha
+ * contestado todavía, lo que hay que hacer es esperar, no volver a llevarlo.
+ *
+ * El servidor ya manda solo las que se le han contado al cliente y las que no
+ * están hechas; aquí se filtra por fecha, que es lo único que cambia solo.
+ */
+export function lasCitasDelTaller(solicitudes = [], ahora = new Date()) {
+  return (solicitudes || [])
+    .filter((s) => s?.type === "venta_gestionada")
+    .map((s) => {
+      let meta = {};
+      try { meta = JSON.parse(s?.meta || "{}"); } catch { meta = {}; }
+      const cita = meta.taller;
+      if (!cita || !cita.cita_at) return null;
+      const cuando = new Date(cita.cita_at);
+      if (Number.isNaN(cuando.getTime()) || cuando <= ahora) return null;
+      return {
+        id: `taller-${s.id}`,
+        cuando,
+        coche: s.title || "tu coche",
+        taller: cita.taller || "",
+        direccion: cita.direccion || "",
+        /* Lo que ya haya pedido sobre ella: con una petición en marcha, lo que
+           se le dice no es «llévalo el jueves» sino «te llamamos». */
+        pidio: cita.cliente_pidio || "",
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.cuando - b.cuando);
+}
+
+/**
+ * La cita del taller en una línea, para el resumen del home.
+ *
+ * Va aparte de las visitas y no mezclada con ellas: una visita es alguien que
+ * viene a ver su coche y esto es él llevándolo a un sitio. Llamarlas igual
+ * —«tienes 2 visitas»— haría que se preparara para lo que no es.
+ */
+export function laLineaDeLaCitaDelTaller(solicitudes = [], ahora = new Date()) {
+  const citas = lasCitasDelTaller(solicitudes, ahora);
+  if (citas.length === 0) return null;
+
+  const c = citas[0];
+  const dia = c.cuando.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+  const hora = c.cuando.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+
+  return {
+    id: "cita-taller",
+    icon: "🔧",
+    label: c.pidio
+      ? "Nos has pedido cambiar la cita del taller"
+      : `Revisión en el taller el ${dia} a las ${hora}`,
+    detail: c.pidio
+      ? "Te llamamos para darte otra fecha"
+      : [c.taller, c.direccion].filter(Boolean).join(" · ") || c.coche,
+    section: "solicitudes",
+    type: "cita-taller",
+  };
+}

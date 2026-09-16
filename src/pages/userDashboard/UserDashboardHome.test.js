@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import i18next from "i18next";
-import UserDashboardHome from "./UserDashboardHome";
+import UserDashboardHome, { buildActivityLog } from "./UserDashboardHome";
 
 /**
  * Se busca por la clave de traduccion, no por el texto.
@@ -83,4 +83,46 @@ test("shows an email summary action when notifications have an email recipient",
   expect(screen.getAllByText(/cliente@carswise.es/i).length).toBeGreaterThan(0);
   fireEvent.click(screen.getByRole("button", { name: t("dashboard.homeSendEmail") }));
   expect(onSendAlertEmailDigest).toHaveBeenCalled();
+});
+
+describe("la cita del taller en el resumen", () => {
+  /*
+   * Estaba solo dentro de su solicitud. El resumen es la primera pantalla del
+   * panel y es donde mira el que entra a ver cómo va lo suyo: una cita con día
+   * y hora que no sale ahí es una cita a la que se llega tarde.
+   */
+  const encargoConCita = (extra = {}) => ([{
+    id: "lead-1",
+    type: "venta_gestionada",
+    title: "Volkswagen T-Roc · 8888LXR",
+    meta: JSON.stringify({
+      puertas: [],
+      taller: {
+        taller: "Norauto Alcobendas",
+        direccion: "Calle de los Calabozos 13",
+        cita_at: new Date(Date.now() + 86400000 * 4).toISOString(),
+        cliente_pidio: "",
+        ...extra,
+      },
+    }),
+  }]);
+
+  const log = (solicitudes) => buildActivityLog([], {}, t, [], solicitudes);
+
+  test("sale en la actividad reciente", () => {
+    const fila = log(encargoConCita()).find((e) => e.type === "cita-taller");
+    expect(fila).toBeTruthy();
+    expect(fila.label).toMatch(/Revisión en el taller/);
+    expect(fila.detail).toMatch(/Norauto Alcobendas/);
+  });
+
+  test("y lleva a su solicitud, que es donde está entera", () => {
+    const fila = log(encargoConCita()).find((e) => e.type === "cita-taller");
+    expect(fila.section).toBe("solicitudes");
+  });
+
+  test("sin cita no se inventa la fila", () => {
+    const sinCita = [{ id: "lead-1", type: "venta_gestionada", title: "T-Roc", meta: JSON.stringify({ puertas: [] }) }];
+    expect(log(sinCita).find((e) => e.type === "cita-taller")).toBeUndefined();
+  });
 });

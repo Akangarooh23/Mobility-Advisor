@@ -26,12 +26,19 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { avisosProximos } from "../utils/avisosProximos";
-import { lasQueLeFaltanDelEncargo } from "../utils/avisosDelEncargo";
+import { lasQueLeFaltanDelEncargo, lasCitasDelTaller } from "../utils/avisosDelEncargo";
 
 /** Cómo se dice lo que hay, sin sumar peras con manzanas. */
-function elTexto(citas, encargo) {
+function elTexto(citas, encargo, taller) {
   const trozos = [];
   if (citas) trozos.push(citas === 1 ? "una cita próxima" : `${citas} citas próximas`);
+  /*
+   * La del taller se nombra aparte y no se suma a las citas.
+   *
+   * Una visita es alguien que viene a ver su coche; esto es él llevándolo a un
+   * sitio. Contarlas juntas le haría prepararse para lo que no es.
+   */
+  if (taller) trozos.push(taller === 1 ? "una revisión en el taller" : `${taller} revisiones en el taller`);
   if (encargo) trozos.push(encargo === 1 ? "una cosa que traernos" : `${encargo} cosas que traernos`);
   return `Tienes ${trozos.join(" y ")}`;
 }
@@ -61,7 +68,15 @@ export default function CampanaAvisos({ solicitudes = [], onAbrir, themeMode = "
    * coche no se puede publicar, que es lo que vino a pedirnos.
    */
   const pendientes = lasQueLeFaltanDelEncargo(solicitudes);
-  const cuantos = citas.length + pendientes.length;
+  /*
+   * Y la cita del taller, que también tiene día y hora.
+   *
+   * Es lo único de las seis puertas que ponemos nosotros. Estaba solo dentro de
+   * su solicitud, y a Solicitudes se entra a mirar: a una cita hay que llegar
+   * antes del jueves, no cuando se acuerde de entrar.
+   */
+  const revisiones = lasCitasDelTaller(solicitudes);
+  const cuantos = citas.length + revisiones.length + pendientes.length;
 
   /*
    * Se cierra al pulsar fuera y con Escape.
@@ -84,7 +99,7 @@ export default function CampanaAvisos({ solicitudes = [], onAbrir, themeMode = "
   if (!cuantos) return null;
 
   const isDark = themeMode === "dark";
-  const texto = elTexto(citas.length, pendientes.length);
+  const texto = elTexto(citas.length, pendientes.length, revisiones.length);
   const fondo = isDark ? "#1c1c1c" : "#ffffff";
   const borde = isDark ? "rgba(150,150,143,0.28)" : "rgba(150,150,143,0.30)";
   const textoFuerte = isDark ? "var(--gris-100)" : "var(--gris-900)";
@@ -189,6 +204,17 @@ export default function CampanaAvisos({ solicitudes = [], onAbrir, themeMode = "
             cuandoSeDice(c.cuando),
             // A su cita si tiene testigo; si no, al panel.
             c.enlace || "",
+          ))}
+
+          {revisiones.map((r) => fila(
+            r.id,
+            r.pidio ? "Nos has pedido cambiar la cita del taller" : "Revisión en el taller",
+            r.pidio
+              ? "Te llamamos para darte otra fecha"
+              : [cuandoSeDice(r.cuando), r.taller].filter(Boolean).join(" · "),
+            // A su solicitud, que es donde está la cita entera y donde puede
+            // decirnos que no puede ir.
+            "",
           ))}
 
           {pendientes.map((p) => fila(

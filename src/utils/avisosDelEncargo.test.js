@@ -1,4 +1,7 @@
-import { loQueLeFaltaDelEncargo, cuantasLeFaltanDelEncargo, laLineaDelEncargo } from "./avisosDelEncargo";
+import {
+  loQueLeFaltaDelEncargo, cuantasLeFaltanDelEncargo, laLineaDelEncargo,
+  lasCitasDelTaller, laLineaDeLaCitaDelTaller,
+} from "./avisosDelEncargo";
 
 /**
  * Lo que le falta del encargo, resumido para el home y la campana.
@@ -135,5 +138,75 @@ describe("el mandato cuenta en la campana", () => {
       meta: JSON.stringify({ mandato: { encargo_id: "e", mandato_id: "M", firmado: false } }),
     }];
     expect(cuantasLeFaltanDelEncargo(solo)).toBe(1);
+  });
+});
+
+describe("la cita del taller", () => {
+  /**
+   * Es lo único de las seis puertas que ponemos nosotros, y tiene día y hora.
+   * Vivía solo dentro de su solicitud, y a Solicitudes se entra a mirar: a una
+   * cita hay que llegar antes del jueves, no cuando uno se acuerde de entrar.
+   */
+  const AHORA = new Date("2026-09-15T10:00:00.000Z");
+  const conCita = (extra = {}) => ([{
+    id: "lead-1",
+    type: "venta_gestionada",
+    title: "Volkswagen T-Roc · 8888LXR",
+    meta: JSON.stringify({
+      puertas: [],
+      taller: {
+        taller: "Norauto Alcobendas",
+        direccion: "Calle de los Calabozos 13",
+        cita_at: "2026-09-18T14:30:00.000Z",
+        cliente_pidio: "",
+        ...extra,
+      },
+    }),
+  }]);
+
+  test("sale, con su taller y su fecha", () => {
+    const [c] = lasCitasDelTaller(conCita(), AHORA);
+    expect(c.taller).toBe("Norauto Alcobendas");
+    expect(c.cuando.toISOString()).toBe("2026-09-18T14:30:00.000Z");
+  });
+
+  test("una que ya pasó no avisa de nada", () => {
+    // Y si el taller aún no ha contestado, lo que toca es esperar, no volver a
+    // llevarlo: un aviso ahí solo puede confundir.
+    const pasada = new Date("2026-09-20T10:00:00.000Z");
+    expect(lasCitasDelTaller(conCita(), pasada)).toEqual([]);
+  });
+
+  test("sin cita, nada", () => {
+    const sin = [{ id: "lead-1", type: "venta_gestionada", title: "T-Roc", meta: JSON.stringify({ puertas: [] }) }];
+    expect(lasCitasDelTaller(sin, AHORA)).toEqual([]);
+  });
+
+  test("y lo que no es un encargo no se mira", () => {
+    const otra = [{ id: "x", type: "viewing_seller", title: "T-Roc", meta: JSON.stringify({ taller: { cita_at: "2026-09-18T14:30:00.000Z" } }) }];
+    expect(lasCitasDelTaller(otra, AHORA)).toEqual([]);
+  });
+
+  test("la línea del resumen dice cuándo y dónde", () => {
+    const l = laLineaDeLaCitaDelTaller(conCita(), AHORA);
+    expect(l.label).toMatch(/Revisión en el taller/);
+    expect(l.label).toMatch(/18 de septiembre/);
+    expect(l.detail).toMatch(/Norauto Alcobendas/);
+    expect(l.section).toBe("solicitudes");
+  });
+
+  test("y si ya pidió cambiarla, no le dice que la lleve", () => {
+    /*
+     * Con una petición en marcha, decirle «revisión el jueves a las 16:30» es
+     * contradecir lo que le acabamos de decir: que le llamamos.
+     */
+    const l = laLineaDeLaCitaDelTaller(conCita({ cliente_pidio: "cambio" }), AHORA);
+    expect(l.label).toMatch(/Nos has pedido cambiar/);
+    expect(l.label).not.toMatch(/16:30/);
+  });
+
+  test("sin nada que decir, null", () => {
+    // Un null es lo que deja que el resumen no pinte una fila vacía.
+    expect(laLineaDeLaCitaDelTaller([], AHORA)).toBeNull();
   });
 });

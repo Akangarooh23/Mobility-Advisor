@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { avisosProximos } from "../../utils/avisosProximos";
-import { laLineaDelEncargo } from "../../utils/avisosDelEncargo";
+import { laLineaDelEncargo, laLineaDeLaCitaDelTaller } from "../../utils/avisosDelEncargo";
 
 /**
  * Una importación en marcha, si la hay.
@@ -36,7 +36,14 @@ function importacionEnMarcha(solicitudes = []) {
   };
 }
 
-function buildActivityLog(pendingAlertNotifications, counts, t, avisos = [], solicitudes = []) {
+/**
+ * Lo que sale en «Actividad reciente», en orden.
+ *
+ * Se exporta para poder probarlo: montar el panel entero para comprobar que la
+ * cita del taller aparece obliga a fabricar veinte props que no pintan nada en
+ * eso, y entonces la prueba se escribe sobre otra cosa o no se escribe.
+ */
+export function buildActivityLog(pendingAlertNotifications, counts, t, avisos = [], solicitudes = []) {
   const log = [];
 
   /*
@@ -48,6 +55,19 @@ function buildActivityLog(pendingAlertNotifications, counts, t, avisos = [], sol
    */
   const encargo = laLineaDelEncargo(solicitudes);
   if (encargo) log.push(encargo);
+
+  /*
+   * Y la cita del taller, justo detrás.
+   *
+   * Tiene día y hora, así que va por delante de todo lo que no lo tiene. Detrás
+   * de lo que nos tiene que traer porque eso es lo que bloquea la publicación de
+   * su coche; la cita ya está puesta y lo único que hay que hacer es ir.
+   *
+   * Aparte de las visitas a propósito: una visita es alguien que viene a ver su
+   * coche y esto es él llevándolo a un sitio.
+   */
+  const citaTaller = laLineaDeLaCitaDelTaller(solicitudes);
+  if (citaTaller) log.push(citaTaller);
 
   // Delante del garaje y de los informes: es lo que está esperando.
   const importacion = importacionEnMarcha(solicitudes);
@@ -133,6 +153,8 @@ function ActivityLog({ isDark, isMobile, panelStyle, cardBg, cardBorder, titleTe
     saved: "#d97706",
     // El del encargo, que es lo que le bloquea la venta.
     encargo: "#6d28d9",
+    // Y la cita del taller, que es lo que ponemos nosotros.
+    "cita-taller": "#059669",
   };
 
   return (

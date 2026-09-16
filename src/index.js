@@ -7,16 +7,26 @@ import './i18n';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
-// Clean up old localStorage entries before rendering
-if (typeof window !== 'undefined') {
-  const keysToRemove = Object.keys(localStorage).filter(
-    key => key.startsWith('movilidad-advisor')
-  );
-  keysToRemove.forEach(key => {
-    localStorage.removeItem(key);
-  });
-  console.log(`Cleaned ${keysToRemove.length} localStorage entries`);
-}
+/*
+ * Aquí había un borrado de todo lo guardado en el navegador.
+ *
+ * Nueve líneas, puestas el 4 de mayo dentro de un commit de traducciones, con
+ * su `console.log` y el comentario «clean up old localStorage entries». En cada
+ * carga de página, antes de pintar nada, se borraba **toda** clave que
+ * empezara por `movilidad-advisor`. Entre ellas la que dice quién ha entrado.
+ *
+ * Lo que se veía por fuera: abres cualquier página de la cuenta y te pide la
+ * contraseña otra vez, aunque la sesión del servidor siguiera abierta y aunque
+ * acabaras de entrar hace diez minutos. La cookie estaba intacta —por eso, al
+ * volver a entrar, el servidor borraba la sesión anterior: el navegador se la
+ * seguía mandando—; lo que faltaba era la nota de este lado.
+ *
+ * De paso se llevaba por delante la copia de tasaciones, solicitudes y citas,
+ * que es lo que enseña el panel mientras llegan los datos de verdad.
+ *
+ * No se sustituye por nada. Si algún día hay que tirar claves viejas, se tiran
+ * por su nombre y una vez, no todas y en cada carga.
+ */
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

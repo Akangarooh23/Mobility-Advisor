@@ -115,7 +115,9 @@ export function useAppBootstrap({
     if (setSesionComprobada) setSesionComprobada(true);
 
     // No cached user → require login immediately (sync, no flash)
+    let loPedimosNosotros = false;
     if (!savedAuthUser?.email && !isPublicRoute) {
+      loPedimosNosotros = true;
       setAuthRequired(true);
       setAuthDialogMode("login");
     }
@@ -139,6 +141,25 @@ export function useAppBootstrap({
           writeAuthUser(sessionUser);
           setCurrentUser(sessionUser);
           setIsUserLoggedIn(true);
+
+          /*
+           * Si la contraseña la hemos pedido nosotros y el servidor dice que ya
+           * está dentro, se retira la petición.
+           *
+           * No se retiraba. Sin la nota de este lado —y había un borrado que se
+           * la llevaba en cada carga— se levantaba el diálogo, el servidor
+           * contestaba que la sesión estaba abierta, y el diálogo se quedaba ahí
+           * encima, sin aspa para cerrarlo, sobre una página en la que ya se
+           * había entrado. La única salida era escribir la contraseña.
+           *
+           * Solo se retira lo que hemos pedido nosotros: si el diálogo lo abrió
+           * ella, se queda.
+           */
+          if (loPedimosNosotros) {
+            loPedimosNosotros = false;
+            setAuthRequired(false);
+            setAuthDialogMode("");
+          }
 
           // Sync backend data into state; localStorage becomes fallback cache.
           void (async () => {

@@ -12,6 +12,7 @@
  * contraseña mucho antes de que contestara el servidor.
  */
 import { render } from "@testing-library/react";
+import { act } from "react-dom/test-utils";
 import { useAppBootstrap } from "./useAppBootstrap";
 import { getAuthSessionJson } from "../utils/apiClient";
 import { readAuthUser } from "../utils/storage";
@@ -47,10 +48,17 @@ jest.mock("../utils/storage", () => {
 
 const nada = () => {};
 
-function Sonda({ setSesionComprobada, setIsUserLoggedIn = nada }) {
+function Sonda({
+  setSesionComprobada,
+  setIsUserLoggedIn = nada,
+  setAuthRequired = nada,
+  setAuthDialogMode = nada,
+}) {
   useAppBootstrap({
     setSesionComprobada,
     setIsUserLoggedIn,
+    setAuthRequired,
+    setAuthDialogMode,
     themeStorageKey: "tema",
     setThemeMode: nada,
     setSavedComparisons: nada,
@@ -66,11 +74,17 @@ function Sonda({ setSesionComprobada, setIsUserLoggedIn = nada }) {
     setCurrentUser: nada,
     setCookiePreferences: nada,
     setShowCookieGate: nada,
-    setAuthRequired: nada,
-    setAuthDialogMode: nada,
     setShowConsentReview: nada,
   });
   return null;
+}
+
+/** Deja que la respuesta del servidor llegue y que React pinte lo que traiga. */
+async function actuaYEspera() {
+  await act(async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+  });
 }
 
 beforeEach(() => {
@@ -124,6 +138,65 @@ describe("el arranque dice cuándo ya se sabe si hay sesión", () => {
   });
 });
 
+
+describe("si el servidor confirma la sesión, se retira la petición de contraseña", () => {
+  /*
+   * Con el diálogo levantado y sin aspa para cerrarlo, la única salida era
+   * escribir la contraseña de una cuenta en la que ya se había entrado. Así se
+   * borraba la sesión anterior y se abría otra, cada vez.
+   */
+  test("se cierra el diálogo que habíamos levantado nosotros", async () => {
+    const exige = jest.fn();
+    const modo = jest.fn();
+    getAuthSessionJson.mockResolvedValue({
+      response: { ok: true },
+      data: { authenticated: true, user: { email: "cliente@example.com", id: "u1" } },
+    });
+
+    render(<Sonda setSesionComprobada={nada} setAuthRequired={exige} setAuthDialogMode={modo} />);
+    await actuaYEspera();
+
+    // Primero se pidió —no había nada guardado— y después se retiró.
+    expect(exige.mock.calls.map((c) => c[0])).toEqual([true, false]);
+    expect(modo.mock.calls.map((c) => c[0])).toEqual(["login", ""]);
+  });
+
+  test("pero no se toca lo que no habíamos pedido nosotros", async () => {
+    // Con la sesión guardada no se pide nada, y por tanto no hay nada que
+    // retirar: si hay un diálogo abierto es porque lo abrió ella.
+    readAuthUser.mockReturnValue({ email: "cliente@example.com" });
+    const exige = jest.fn();
+    const modo = jest.fn();
+    getAuthSessionJson.mockResolvedValue({
+      response: { ok: true },
+      data: { authenticated: true, user: { email: "cliente@example.com", id: "u1" } },
+    });
+
+    render(<Sonda setSesionComprobada={nada} setAuthRequired={exige} setAuthDialogMode={modo} />);
+    await actuaYEspera();
+
+    expect(exige).not.toHaveBeenCalled();
+    expect(modo).not.toHaveBeenCalled();
+  });
+});
+
+describe("y nadie borra lo guardado del navegador al arrancar", () => {
+  /*
+   * Estuvo cuatro meses: nueve líneas en `index.js` que borraban toda clave
+   * `movilidad-advisor*` en cada carga, la de la sesión incluida. Por eso pedía
+   * la contraseña una y otra vez con la sesión del servidor abierta.
+   */
+  const fs = require("fs");
+  const path = require("path");
+  const INDEX = fs.readFileSync(path.join(__dirname, "..", "index.js"), "utf8");
+
+  test("el arranque no borra claves en masa", () => {
+    const sospechosas = INDEX.split("\n").filter(
+      (l) => /localStorage\.(removeItem|clear)\s*\(/.test(l) && !l.trim().startsWith("*")
+    );
+    expect(sospechosas).toEqual([]);
+  });
+});
 describe("y el guardia de /mis-coches lo espera", () => {
   const fs = require("fs");
   const path = require("path");

@@ -1846,6 +1846,54 @@ async function _authHandlerInner(req, res) {
     return res.status(200).json({ ok: true, message: "SesiÃ³n cerrada." });
   }
 
+  /*
+   * Los consentimientos que se pueden ver y retirar.
+   *
+   * `save_consents` es la del alta y se queda como está: su COALESCE preserva
+   * la fecha en que se dio, que es la prueba. Esto es lo otro —lo que faltaba—
+   * y por eso es una acción aparte y no un parámetro más de aquella.
+   *
+   * Solo los cuatro de comunicaciones. El legal no lleva interruptor: no se
+   * pueden «des-aceptar» las condiciones y seguir teniendo cuenta, eso es
+   * darse de baja.
+   */
+  if (action === "get_consents" || action === "update_consents") {
+    if (!usePostgres) {
+      return res.status(503).json({ error: "Los consentimientos solo se guardan en Postgres." });
+    }
+
+    const sesion = await authHandler.getSessionUserFromRequest(req);
+    const correo = normalizeText(sesion?.user?.email).toLowerCase();
+    if (!correo) {
+      return res.status(401).json({ error: "Sesión no válida." });
+    }
+
+    const consentimientos = require("../lib/consentimientos");
+    const pool = getPgPool();
+
+    try {
+      if (action === "get_consents") {
+        return res.status(200).json({ ok: true, consents: await consentimientos.estadoDe(pool, correo) });
+      }
+
+      const deseado = {};
+      for (const tipo of consentimientos.TIPOS) {
+        if (body && Object.prototype.hasOwnProperty.call(body, tipo)) deseado[tipo] = body[tipo];
+      }
+
+      const { cambios, estado } = await consentimientos.aplica(pool, correo, deseado, {
+        origen: normalizeText(body.origen) || "web",
+        ip: clientIp,
+        userAgent: clientUa,
+      });
+
+      return res.status(200).json({ ok: true, consents: estado, cambios: cambios.length });
+    } catch (err) {
+      console.error("[consentimientos]", err?.message);
+      return res.status(500).json({ error: "No se han podido guardar los consentimientos." });
+    }
+  }
+
   if (action === "save_consents") {
     const parsedSession = parseSessionCookieFromRequest(req);
     if (!parsedSession?.sessionId) {

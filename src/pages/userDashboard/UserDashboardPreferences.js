@@ -1,6 +1,26 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { putUserPreferencesJson } from "../../utils/apiClient";
+import { postAuthJson, putUserPreferencesJson } from "../../utils/apiClient";
+
+/** Los cuatro que el usuario puede dar y quitar. El legal no: eso es darse de baja. */
+const BLOQUES_DE_CONSENTIMIENTO = [
+  {
+    grupo: "Novedades de PopCar",
+    explicacion: "Ofertas, novedades y campañas nuestras.",
+    opciones: [
+      { clave: "marketing_email", label: "Por correo" },
+      { clave: "marketing_sms", label: "Por SMS" },
+    ],
+  },
+  {
+    grupo: "Ofertas de colaboradores",
+    explicacion: "Empresas de renting, financiación o seguros con las que trabajamos.",
+    opciones: [
+      { clave: "thirdparty_email", label: "Por correo" },
+      { clave: "thirdparty_sms", label: "Por SMS" },
+    ],
+  },
+];
 
 const PREFERENCES_STORAGE_KEY = "movilidad-advisor.userDashboard.preferences.v1";
 
@@ -72,6 +92,39 @@ export default function UserDashboardPreferences({
 
   const [form, setForm] = useState(initialState);
   const [feedback, setFeedback] = useState("");
+
+  /* Los consentimientos: se leen al abrir y se guardan uno a uno. */
+  const [consentimientos, setConsentimientos] = useState(null);
+  const [guardandoConsentimiento, setGuardandoConsentimiento] = useState("");
+  const [falloConsentimiento, setFalloConsentimiento] = useState("");
+
+  useEffect(() => {
+    let vivo = true;
+    postAuthJson({ action: "get_consents" })
+      .then(({ data }) => {
+        if (vivo && data?.consents) setConsentimientos(data.consents);
+      })
+      .catch(() => {});
+    return () => { vivo = false; };
+  }, []);
+
+  const cambiaConsentimiento = async (clave, concedido) => {
+    setGuardandoConsentimiento(clave);
+    setFalloConsentimiento("");
+    // Se pinta antes de que conteste: una casilla que tarda medio segundo en
+    // moverse invita a volver a marcarla.
+    setConsentimientos((c) => ({ ...(c || {}), [clave]: concedido }));
+    try {
+      const { data } = await postAuthJson({ action: "update_consents", origen: "web", [clave]: concedido });
+      if (data?.consents) setConsentimientos(data.consents);
+      else throw new Error(data?.error || "No se ha podido guardar.");
+    } catch (e) {
+      setConsentimientos((c) => ({ ...(c || {}), [clave]: !concedido }));
+      setFalloConsentimiento(e?.message || "No se ha podido guardar.");
+    } finally {
+      setGuardandoConsentimiento("");
+    }
+  };
 
   useEffect(() => {
     const persisted = readPreferences();
@@ -186,6 +239,64 @@ export default function UserDashboardPreferences({
               {t("dashboard.prefWeeklyDigest", { status: form.weeklyDigest ? "ON" : "OFF" })}
             </button>
           </div>
+        </div>
+      </div>
+
+      {/*
+        Los consentimientos de verdad, que no son lo de arriba.
+
+        Lo de arriba son preferencias: qué avisos quiere ver, y viven en su
+        navegador. Esto es otra cosa —lo que ha autorizado por escrito— y vive
+        en la base con su fecha. La política promete que es «revocable en
+        cualquier momento sin coste» y hasta ahora no había dónde revocarlo.
+
+        Cada casilla se manda sola. Un botón de guardar aquí sería el sitio
+        donde se pierde la retirada de quien creía haberla hecho ya, y eso en
+        un consentimiento no es un fallo de interfaz: es seguir escribiéndole
+        a quien te dijo que pararas.
+      */}
+      <div style={{ ...sectionFrame, padding: 14, marginTop: 12 }}>
+        <div style={{ fontSize: 13, fontWeight: 800, color: titleColor, marginBottom: 2 }}>
+          Comunicaciones comerciales
+        </div>
+        <div style={{ fontSize: 11.5, color: bodyColor, marginBottom: 10 }}>
+          Lo que has autorizado a recibir. Puedes cambiarlo cuando quieras.
+        </div>
+
+        {consentimientos === null ? (
+          <div style={{ fontSize: 12, color: bodyColor }}>Cargando…</div>
+        ) : (
+          <div style={{ display: "grid", gap: 10 }}>
+            {BLOQUES_DE_CONSENTIMIENTO.map((bloque) => (
+              <div key={bloque.grupo}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: titleColor }}>{bloque.grupo}</div>
+                <div style={{ fontSize: 11.5, color: bodyColor, marginBottom: 6 }}>{bloque.explicacion}</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
+                  {bloque.opciones.map((o) => (
+                    <label key={o.clave} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, color: bodyColor, cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        checked={consentimientos[o.clave] === true}
+                        disabled={guardandoConsentimiento === o.clave}
+                        onChange={(e) => cambiaConsentimiento(o.clave, e.target.checked)}
+                        style={{ accentColor: "var(--marca)", width: 15, height: 15 }}
+                      />
+                      {o.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {falloConsentimiento ? (
+          <div style={{ marginTop: 8, fontSize: 11.5, color: "#b45309" }}>{falloConsentimiento}</div>
+        ) : null}
+
+        <div style={{ marginTop: 10, fontSize: 11, color: bodyColor, lineHeight: 1.5 }}>
+          Los correos sobre tus solicitudes, tus citas y tus coches no dependen de esto: esos te
+          llegan igual porque forman parte del servicio.
         </div>
       </div>
 

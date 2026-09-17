@@ -11,11 +11,12 @@ import { trackFunnelEvent } from "../utils/funnelTracker";
 import { readUserBillingProfile } from "../utils/storage";
 import SlotPicker from "../components/SlotPicker";
 import SimuladorFinanciacion, { TIPOS_FINANCIACION_IMPORTACION } from "../components/SimuladorFinanciacion";
-import ConditionReportAr from "../components/ConditionReportAr";
+
 import ConditionReportDownload from "../components/ConditionReportDownload";
 import ComoFuncionaImportacion from "../components/ComoFuncionaImportacion";
 import { getRentingDesde } from "../utils/portalVoHelpers";
 import { rutaApi } from "../utils/apiClient";
+import { FEE_DE_GESTION } from "../utils/comoSubirTuCoche";
 
 // Número de WhatsApp de PopCar (formato internacional sin +).
 // El numero vive en la marca: escrito a mano aqui es como se separo del de
@@ -105,6 +106,8 @@ export default function PortalVoDetailPage({
   onGoHome,
   onOpenSection,
   onTasar,
+  /** Abre «Lo vendemos por ti». Sin él, el botón cae en la tasación de antes. */
+  onVenderConNosotros,
   onCreateAlert,
   onLeadCreated,
   isReserved = false,
@@ -1322,20 +1325,18 @@ export default function PortalVoDetailPage({
                 <div style={{ marginTop: 8, textAlign: "center", fontSize: 11, color: isDark ? "var(--gris-500)" : "var(--gris-400)" }}>
                   Sin registro · Respuesta en menos de 24 h
                 </div>
-                {/* El informe y la vista en 3D van aquí, junto a la visita y el
-                    WhatsApp: forman parte de decidir si vale la pena moverse a
-                    verlo. Solo si el coche tiene informe — pintarlos siempre
-                    dejaba al visitante con una descarga rota y un visor vacío. */}
+                {/* El informe va aquí, junto a la visita y el WhatsApp: forma
+                    parte de decidir si vale la pena moverse a verlo. Solo si el
+                    coche tiene informe — pintarlo siempre dejaba al visitante con
+                    una descarga rota.
+
+                    La vista en realidad aumentada estaba aquí también y se quitó:
+                    en la ficha de venta no ayudaba a decidir y quitaba sitio a lo
+                    que sí. Sigue existiendo en el panel del dueño. */}
                 {tieneInforme && (
                   <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
                     <ConditionReportDownload
                       url={`/api/informe-publico/${encodeURIComponent(selectedPortalVoOffer.id)}/informe-de-estado.pdf`}
-                      compacto
-                    />
-                    <ConditionReportAr
-                      base={`/api/modelo-3d/${encodeURIComponent(selectedPortalVoOffer.id)}`}
-                      titulo={selectedPortalVoOffer.title || "Vehículo"}
-                      etiqueta="Ver Realidad Aumentada"
                       compacto
                     />
                   </div>
@@ -1406,16 +1407,28 @@ export default function PortalVoDetailPage({
             <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 14 }}>
               <div style={{ flex: "1 1 240px" }}>
                 <div style={{ fontSize: 14, fontWeight: 800, color: titleColor }}>¿Y el coche que tienes ahora?</div>
+                {/*
+                  * La venta gestionada, no la tasación.
+                  *
+                  * Quien está mirando un coche para comprar tiene casi siempre
+                  * otro que vender, y la tasación le decía cuánto vale y ahí lo
+                  * dejaba. Lo que de verdad le quita el problema es que se lo
+                  * vendamos nosotros — y es lo que ya está leyendo en esta misma
+                  * ficha, que es un coche que vendemos así.
+                  *
+                  * La cifra sale de la misma constante que usa la guía de subir
+                  * el coche: si cambia la tarifa, cambia aquí sin buscarla.
+                  */}
                 <div style={{ fontSize: 12.5, color: bodyColor, lineHeight: 1.6, marginTop: 4 }}>
-                  Si buscas venderlo, te ayudamos. Te decimos lo que vale hoy en el mercado real, gratis y en 30 segundos.
+                  Si buscas venderlo, te ayudamos. Nos encargamos del anuncio, las llamadas, las visitas y el papeleo, y solo pagas {FEE_DE_GESTION} € si lo vendemos.
                 </div>
               </div>
-              <button type="button" onClick={onTasar} style={{ flexShrink: 0, padding: "11px 22px", borderRadius: 10, border: "none", background: "#BA7517", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
-                Tasar mi coche
+              <button type="button" onClick={onVenderConNosotros || onTasar} style={{ flexShrink: 0, padding: "11px 22px", borderRadius: 10, border: "none", background: "#BA7517", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+                Véndelo con nosotros
               </button>
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 20px", borderTop: "1px solid rgba(150,150,143,0.2)", marginTop: 14, paddingTop: 12 }}>
-              {["Sin registro", "Precio de venta y de tasación", "Sin compromiso de venta"].map((txt) => (
+              {["Nada por adelantado", "Anuncio, llamadas y visitas", "Contrato y transferencia"].map((txt) => (
                 <span key={txt} style={{ fontSize: 11.5, color: bodyColor, display: "flex", alignItems: "center", gap: 5 }}>
                   <span style={{ color: "#BA7517", fontWeight: 800 }}>✓</span> {txt}
                 </span>

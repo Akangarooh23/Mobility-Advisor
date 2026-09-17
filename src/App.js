@@ -7197,6 +7197,9 @@ export default function App() {
               scrollTop();
             }
           }}
+          // «Lo vendemos por ti», por el mismo camino que el menú de Vender:
+          // con su puerta de acceso, que el encargo se guarda en su portal.
+          onVenderConNosotros={() => abrirVenta("certificate")}
           onTasar={() => {
             setEntryMode("sell");
             if (typeof window !== "undefined") {

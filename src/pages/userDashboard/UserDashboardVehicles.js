@@ -1339,7 +1339,8 @@ export default function UserDashboardVehicles({
   async function loadVehicleBookings(vehicleId) {
     try {
       const offerId = `idcar-${vehicleId}`;
-      const r = await fetch(rutaApi(`/api/visit-availability?route=bookings&offerId=${encodeURIComponent(offerId)}`));
+      // Con la sesión: la lista solo se le da al dueño del coche.
+      const r = await fetch(rutaApi(`/api/visit-availability?route=bookings&offerId=${encodeURIComponent(offerId)}`), { credentials: "include" });
       const d = await r.json();
       setVehicleBookings((prev) => ({ ...prev, [vehicleId]: d.bookings || [] }));
     } catch {
@@ -2876,7 +2877,7 @@ export default function UserDashboardVehicles({
                           {vehicle.marketplaceState === "active_sale" && vehicleBookings[vehicle.id] && vehicleBookings[vehicle.id].length > 0 && (
                             <div style={{ marginTop: 8, background: "var(--gris-50)", border: "1.5px solid var(--gris-200)", borderRadius: 10, overflow: "hidden" }}>
                               <div style={{ padding: "8px 12px", borderBottom: "1px solid var(--gris-100)", fontSize: 11, fontWeight: 700, color: "var(--gris-800)", textTransform: "uppercase", letterSpacing: ".4px" }}>
-                                📅 Citas confirmadas ({vehicleBookings[vehicle.id].length})
+                                📅 Visitas ({vehicleBookings[vehicle.id].length})
                               </div>
                               {vehicleBookings[vehicle.id].map((b) => (
                                 <div key={b.id} style={{ padding: "8px 12px", borderBottom: "1px solid var(--gris-100)", display: "flex", alignItems: "center", gap: 6 }}>
@@ -2885,12 +2886,30 @@ export default function UserDashboardVehicles({
                                       {new Date(b.starts_at).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" })}
                                       {" · "}
                                       {new Date(b.starts_at).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
+                                      {b.ends_at ? `–${new Date(b.ends_at).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}` : ""}
                                     </div>
                                     <div style={{ fontSize: 10, color: "var(--gris-800)", marginTop: 1 }}>
                                       {b.buyer_name || "—"}
-                                      {b.buyer_phone ? ` · ${b.buyer_phone}` : ""}
+                                      {" · "}
+                                      <span style={{ fontWeight: 700, color: b.status === "confirmed" ? "#059669" : "#b45309" }}>
+                                        {b.status === "confirmed" ? "Confirmada" : "Te toca contestar"}
+                                      </span>
                                     </div>
                                   </div>
+                                  {/*
+                                    * La confirma él: es el coche de un particular.
+                                    * El botón lleva a la misma página que el
+                                    * enlace de su correo.
+                                    */}
+                                  {b.status === "pending" && b.token_seller && (
+                                    <a
+                                      href={`/cita-vendedor?id=${encodeURIComponent(b.id)}&token=${encodeURIComponent(b.token_seller)}`}
+                                      style={{ flexShrink: 0, background: "rgba(255,196,0,0.14)", border: "1px solid rgba(255,196,0,0.4)", color: "var(--gris-900)", borderRadius: 6, padding: "3px 7px", fontSize: 10, fontWeight: 700, textDecoration: "none" }}
+                                    >
+                                      Contestar
+                                    </a>
+                                  )}
+                                  {b.status === "confirmed" && (
                                   <button
                                     type="button"
                                     onClick={() => cancelSellerBooking(vehicle.id, b.id, b.token_seller)}
@@ -2898,6 +2917,7 @@ export default function UserDashboardVehicles({
                                   >
                                     Cancelar
                                   </button>
+                                  )}
                                 </div>
                               ))}
                             </div>

@@ -466,7 +466,11 @@ export default function LoQueTeFaltaDelEncargo({
       padding: "12px 14px", marginBottom: 8,
     }}>
       <div style={{ fontSize: 12.5, fontWeight: 700, color: textoFuerte, marginBottom: 2 }}>
-        {faltan === 0
+        {/* Con el anuncio ya puesto, «nos ponemos» se lee como que aún no ha
+            empezado: lo que toca decir es que está a la venta. */}
+        {faltan === 0 && estado?.publicado
+          ? "Ya está todo. Tu coche está a la venta"
+          : faltan === 0
           ? "Ya está todo. Nos ponemos con la venta"
           : faltan === 1
             ? "Te queda una cosa para que podamos publicarlo"

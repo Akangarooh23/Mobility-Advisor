@@ -171,6 +171,7 @@ const ViewingConfirmPage = lazy(() => import("./pages/ViewingConfirmPage"));
 const LegalPolicyPage = lazy(() => import("./pages/LegalPolicyPage"));
 const MiCitaPage = lazy(() => import("./pages/MiCitaPage"));
 const ElegirHoraPage = lazy(() => import("./pages/ElegirHoraPage"));
+const CitaVendedorPage = lazy(() => import("./pages/CitaVendedorPage"));
 const ComoFuePage = lazy(() => import("./pages/ComoFuePage"));
 const ConfirmarVisitaPage = lazy(() => import("./pages/ConfirmarVisitaPage"));
 const CochePorMatriculaPage = lazy(() => import("./pages/CochePorMatriculaPage"));
@@ -4659,6 +4660,14 @@ export default function App() {
   // La abre el cliente desde el correo de «esa hora no puede ser».
   if (typeof window !== "undefined" && window.location.pathname === "/elegir-hora") {
     return <ElegirHoraPage />;
+  }
+
+  // -------------------- CITA DEL VENDEDOR STANDALONE PAGE --------------------
+  // La abre el dueño de un coche desde el correo de «alguien quiere ver tu
+  // coche»: la confirma, propone otra hora o la rechaza. Sin sesión: la llave es
+  // su testigo.
+  if (typeof window !== "undefined" && window.location.pathname === "/cita-vendedor") {
+    return <CitaVendedorPage />;
   }
 
   // -------------------- COMO FUE STANDALONE PAGE --------------------

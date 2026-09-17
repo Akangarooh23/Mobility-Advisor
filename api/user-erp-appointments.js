@@ -1,6 +1,7 @@
 const { Pool } = require("pg");
 const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 const { aplicaCors } = require("../lib/cors");
+const { identidadDeLaPeticion } = require("../lib/api/identidad");
 
 let pool;
 function getPool() {
@@ -46,8 +47,17 @@ module.exports = async function userErpAppointmentsApi(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "GET") return res.status(405).json({ ok: false, error: "method_not_allowed" });
 
-  const userId = String(req.query.userId || "").trim().toLowerCase();
-  if (!userId) return res.status(400).json({ ok: false, error: "missing_userId" });
+  /*
+   * De quién son las citas lo dice la sesión, no la dirección.
+   *
+   * Antes bastaba con poner `?userId=` y el correo de cualquiera para leer sus
+   * citas de taller: el taller, la fecha, el tipo y las notas, sin haber
+   * entrado. El único que lo llamaba era el panel, y siempre con el correo de
+   * quien tiene la sesión abierta, así que exigirla no cambia nada para él.
+   * Es la misma regla que la de las facturas (`lib/api/identidad.js`).
+   */
+  const { email: userId } = await identidadDeLaPeticion(req);
+  if (!userId) return res.status(401).json({ ok: false, error: "Sesión no válida." });
 
   try {
     const db = getPool();
@@ -88,6 +98,9 @@ module.exports = async function userErpAppointmentsApi(req, res) {
             })
           : null,
         createdAt: row.created_at,
+        // La fecha tal cual, para ordenar. La de arriba ya viene escrita en
+        // español y no se puede comparar con otra.
+        scheduledAtIso: row.scheduled_at ? new Date(row.scheduled_at).toISOString() : null,
       };
     });
 

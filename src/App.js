@@ -172,6 +172,7 @@ const LegalPolicyPage = lazy(() => import("./pages/LegalPolicyPage"));
 const MiCitaPage = lazy(() => import("./pages/MiCitaPage"));
 const ElegirHoraPage = lazy(() => import("./pages/ElegirHoraPage"));
 const CitaVendedorPage = lazy(() => import("./pages/CitaVendedorPage"));
+const QuieroComprarloPage = lazy(() => import("./pages/QuieroComprarloPage"));
 const ComoFuePage = lazy(() => import("./pages/ComoFuePage"));
 const ConfirmarVisitaPage = lazy(() => import("./pages/ConfirmarVisitaPage"));
 const CochePorMatriculaPage = lazy(() => import("./pages/CochePorMatriculaPage"));
@@ -4668,6 +4669,13 @@ export default function App() {
   // su testigo.
   if (typeof window !== "undefined" && window.location.pathname === "/cita-vendedor") {
     return <CitaVendedorPage />;
+  }
+
+  // -------------------- QUIERO COMPRARLO STANDALONE PAGE --------------------
+  // La abre el comprador desde el correo de «¿te lo quedas?». Sin sesión: la
+  // llave es el testigo de su cita.
+  if (typeof window !== "undefined" && window.location.pathname === "/quiero-comprarlo") {
+    return <QuieroComprarloPage />;
   }
 
   // -------------------- COMO FUE STANDALONE PAGE --------------------

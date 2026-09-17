@@ -26,7 +26,7 @@ const fmtDia = (iso) =>
 
 /** Las tres respuestas, en el orden en que se leen: de peor a mejor. */
 const RESPUESTAS = [
-  { valor: "no_fue", texto: "No pude ir",             pie: "No llegaste a ver el coche" },
+  { valor: "no_fue", texto: "No fui",                 pie: "No llegaste a ver el coche" },
   { valor: "fue",    texto: "Lo vi y no me lo quedé", pie: "Fuiste, lo viste y lo dejaste pasar" },
   { valor: "compro", texto: "Me lo quedé",            pie: "Te lo llevaste" },
 ];

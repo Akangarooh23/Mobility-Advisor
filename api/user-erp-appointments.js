@@ -71,7 +71,7 @@ module.exports = async function userErpAppointmentsApi(req, res) {
       )
     `);
     const result = await db.query(
-      `SELECT id, user_id, type, scheduled_at, status, notes, created_at
+      `SELECT id, user_id, type, scheduled_at, status, notes, created_at, workshop_name
        FROM erp_appointments
        WHERE lower(user_id) = $1
        ORDER BY created_at DESC
@@ -81,7 +81,9 @@ module.exports = async function userErpAppointmentsApi(req, res) {
 
     const appointments = result.rows.map((row) => {
       const workshopMatch = row.notes ? row.notes.match(/^Taller:\s*([^·]+)/) : null;
-      const workshopName = workshopMatch ? workshopMatch[1].trim() : null;
+      // Primero la columna, que es donde lo guarda la app al pedir hora; las notas
+      // con «Taller: …» son de las citas antiguas.
+      const workshopName = row.workshop_name || (workshopMatch ? workshopMatch[1].trim() : null);
       return {
         id:           row.id,
         user_id:      row.user_id,

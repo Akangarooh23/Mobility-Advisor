@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useRef, lazy, Suspense } from "react";
-import { FICHA_VO_ABIERTA } from "./utils/aperturaTemporal";
+import { FICHA_VO_PUBLICA } from "./utils/fichaPublica";
 import { idDeAnuncioPropio, ofertaDelMarketplacePorId } from "./utils/anuncioPropio";
 import { NOMBRE, SITIO_URL, DOMINIO, CORREO_CONTACTO } from "./marca";
 import i18next from "i18next";
@@ -7142,7 +7142,7 @@ export default function App() {
         />
       )}
 
-      {step === -1 && (entryMode === "portalVo" || (entryMode === "portalVoDetail" && !FICHA_VO_ABIERTA)) && !isUserLoggedIn && (
+      {step === -1 && (entryMode === "portalVo" || (entryMode === "portalVoDetail" && !FICHA_VO_PUBLICA)) && !isUserLoggedIn && (
         <PortalVoAuthGatePage
           themeMode={themeMode}
           styles={s}
@@ -7153,7 +7153,7 @@ export default function App() {
         />
       )}
 
-      {step === -1 && entryMode === "portalVoDetail" && selectedPortalVoOffer && (isUserLoggedIn || FICHA_VO_ABIERTA) && (
+      {step === -1 && entryMode === "portalVoDetail" && selectedPortalVoOffer && (isUserLoggedIn || FICHA_VO_PUBLICA) && (
         <PortalVoDetailPage
           themeMode={themeMode}
           styles={s}

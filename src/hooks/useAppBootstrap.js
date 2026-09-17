@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { esFichaVoAbierta } from "../utils/aperturaTemporal";
+import { esFichaDeUnCoche } from "../utils/fichaPublica";
 import {
   getAuthSessionJson,
   getUserAlertsJson,
@@ -80,10 +80,10 @@ export function useAppBootstrap({
     const isPublicRoute =
       typeof window !== "undefined" &&
       (PUBLIC_PATHS.some((p) => window.location.pathname === p || window.location.pathname.startsWith(p + "/")) ||
-        // Apertura temporal de la ficha de un vehículo: sin esto el arranque
-        // levanta el diálogo de sesión por encima de la página, y da igual que
-        // la página se haya abierto.
-        esFichaVoAbierta(window.location.pathname));
+        // La ficha de un coche, y la dirección corta de los portales que lleva
+        // a ella: sin esto el arranque levanta el diálogo de sesión por encima
+        // y el comprador que viene de coches.net no pasa de ahí.
+        esFichaDeUnCoche(window.location.pathname));
 
     if (persistedTheme === "dark" || persistedTheme === "light") {
       setThemeMode(persistedTheme);

@@ -2273,6 +2273,13 @@ export default function App() {
         ).then(({ response, data }) => {
           const offer = data?.offer;
           if (response.ok && offer?.id) {
+            // Un enlace viejo `user_<coche>` devuelve su anuncio `idcar-<coche>`:
+            // la dirección pasa a ser la de ese anuncio, que es la que se comparte.
+            if (normalizeText(String(offer.id)) !== normalizeText(offerId)) {
+              try {
+                window.history.replaceState(window.history.state, "", `/marketplace-vo/${encodeURIComponent(offer.id)}${window.location.search}`);
+              } catch {}
+            }
             setPortalVoOffersLive((prev) => {
               const exists = prev.some((o) => o.id === offer.id);
               return exists ? prev : [offer, ...prev];

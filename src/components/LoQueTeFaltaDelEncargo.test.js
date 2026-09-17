@@ -309,7 +309,7 @@ describe("el precio de salida, como paso", () => {
     // Sin eso parece papeleo nuestro, y el papeleo del vendedor se queda sin
     // firmar.
     render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} precio={PRECIO} />);
-    expect(screen.getByText(/sin pagar nada pasados 30 días/i)).toBeInTheDocument();
+    expect(screen.getByText(/sin pagar nada pasados 30 días desde que lo publiquemos/i)).toBeInTheDocument();
   });
 
   test("firmado sale como hecho y sin botón", () => {

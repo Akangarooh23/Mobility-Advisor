@@ -157,7 +157,7 @@ export const LO_TUYO = [
 export const EL_TRATO = [
   "No adelantas nada: ni la tasación, ni el informe, ni el taller, ni el anuncio.",
   `Se cobran ${FEE_DE_GESTION} € solo si vendemos tu coche, y con el IVA incluido.`,
-  `Nos damos ${DIAS_HASTA_SALIR_GRATIS} días: si aceptas nuestro precio y pasan sin ` +
+  `Nos damos ${DIAS_HASTA_SALIR_GRATIS} días desde que publicamos el anuncio: si aceptas nuestro precio y pasan sin ` +
     `venderlo, lo dejas sin pagar nada. Si te sales antes, son ${FEE_DE_CANCELACION} €.`,
 ];
 

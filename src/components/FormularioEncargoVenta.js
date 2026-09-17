@@ -266,7 +266,7 @@ export default function FormularioEncargoVenta({ userEmail = "" }) {
           */}
         <p className="fev-letra">
           Cero euros por delante. Se cobran <strong>299 €</strong> solo si vendemos tu coche.
-          Nos damos <strong>30 días</strong>: si aceptas nuestro precio y pasan sin venderlo,
+          Nos damos <strong>30 días</strong> desde que lo publicamos: si aceptas nuestro precio y pasan sin venderlo,
           lo dejas sin pagar nada. Si te sales antes, son <strong>150 €</strong>.
         </p>
     </div>

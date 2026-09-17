@@ -438,7 +438,7 @@ export default function LoQueTeFaltaDelEncargo({
       nombre: 'El precio de salida',
       abierta: Boolean(precio.aceptada),
       falta: precio.importe
-        ? `Te hemos mandado el documento (${precio.importe}). Fírmalo y súbelo aquí: así puedes retirar el encargo sin pagar nada pasados 30 días.`
+        ? `Te hemos mandado el documento (${precio.importe}). Fírmalo y súbelo aquí: el anuncio sale con este precio, y así puedes retirar el encargo sin pagar nada pasados 30 días desde que lo publiquemos.`
         : 'Te hemos mandado el documento por correo. Fírmalo y súbelo aquí.',
       donde: null,
       // Se sube igual que el mandato, con su ruta y su texto.

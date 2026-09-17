@@ -150,7 +150,7 @@ const TRATO = [
     valor: "30 días",
     titulo: "Nos damos un mes",
     texto:
-      "Es el tiempo que nos ponemos para vender tu coche. Si aceptas nuestro precio y pasa el mes sin venderlo, decides tú: seguimos o lo dejas sin pagar nada.",
+      "Es el tiempo que nos ponemos para vender tu coche, contado desde que lo publicamos. Si aceptas nuestro precio y pasa el mes sin venderlo, decides tú: seguimos o lo dejas sin pagar nada.",
   },
 ];
 

@@ -62,7 +62,9 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
     question:        "Preguntar",
     renting:         "🔑 Oferta de renting",
     viewing_seller:  "Solicitud de visita",
-    visita_marketplace: "Visita",
+    // «que has pedido»: en el mismo panel están las visitas a su propio coche,
+    // que contesta como vendedor, y con «Visita» a secas no se distinguían.
+    visita_marketplace: "Visita que has pedido",
     // Una solicitud de importación. Sin esto salía la palabra «import» a secas.
     import:          "🌍 Importar un coche",
     // Que le vendamos su coche. Sin esto salia «venta_gestionada» en crudo, y
@@ -475,6 +477,22 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
   // lo mismo, un sitio donde hay que estar un día a una hora.
   const proximasVisitas = proximas(localSolicitudes);
 
+  /**
+   * Las visitas a su coche, que contesta él como vendedor.
+   *
+   * Aparte y arriba de las que ha pedido él: son dos papeles distintos —en una
+   * va a ver un coche, en la otra le vienen a ver el suyo— y en la de vendedor
+   * hay algo que hacer que nadie más puede hacer por él.
+   */
+  const visitasATuCoche = localSolicitudes
+    .flatMap((item) => {
+      const m = parseMeta(item.meta);
+      return (Array.isArray(m.visitas_a_tu_coche) ? m.visitas_a_tu_coche : [])
+        .map((v) => ({ ...v, coche: item.title || "Tu coche" }));
+    })
+    .sort((a, b) => String(a.starts_at).localeCompare(String(b.starts_at)));
+  const porContestar = visitasATuCoche.filter((v) => v.status === "pending" && !v.esperando_al_comprador).length;
+
   return (
     <section style={{ ...panelStyle, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
@@ -486,6 +504,51 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
         <span style={{ ...getOfferBadgeStyle("blue"), fontSize: 11 }}>{localSolicitudes.length} solicitud{localSolicitudes.length !== 1 ? "es" : ""}</span>
       </div>
 
+      {visitasATuCoche.length > 0 && (
+        <div style={{
+          border: "1.5px solid rgba(217,119,6,0.35)", background: "rgba(245,158,11,0.08)",
+          borderRadius: 14, padding: "14px 16px", marginBottom: 16,
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".5px", textTransform: "uppercase", color: "#b45309", marginBottom: 2 }}>
+            Visitas a tu coche · como vendedor
+          </div>
+          <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "var(--gris-600)", marginBottom: 8 }}>
+            {porContestar > 0
+              ? (porContestar === 1 ? "Alguien quiere ver tu coche. Confírmala o propón otra hora." : `${porContestar} personas quieren ver tu coche. Confírmalas o propón otra hora.`)
+              : "Estas son las visitas a tu coche."}
+          </div>
+          {visitasATuCoche.map((v) => (
+            <div key={v.id} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12, padding: "8px 0" }}>
+              <div style={{ minWidth: 86 }}>
+                <div style={{ fontSize: 17, fontWeight: 800, color: isDark ? "var(--gris-50)" : "var(--gris-900)", lineHeight: 1.1 }}>
+                  {fmtHoraCita(v.starts_at)}{v.ends_at ? `–${fmtHoraCita(v.ends_at)}` : ""}
+                </div>
+                <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "var(--gris-500)" }}>{fmtDiaCita(v.starts_at)}</div>
+              </div>
+              <div style={{ flex: 1, minWidth: 180 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>
+                  {v.quien ? `${v.quien} quiere ver tu ${v.coche}` : `Quieren ver tu ${v.coche}`}
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 700, marginTop: 2, color: v.status === "confirmed" ? "#065f46" : "#b45309" }}>
+                  {v.status === "confirmed" ? "✓ Confirmada" : v.esperando_al_comprador ? "Le has propuesto otras horas: esperando a que elija" : "Te toca contestar"}
+                </div>
+              </div>
+              {v.enlace && (
+                <a href={v.enlace} style={v.status === "pending" && !v.esperando_al_comprador ? {
+                  fontSize: 13, fontWeight: 800, color: "var(--gris-900)", textDecoration: "none",
+                  background: "var(--marca)", borderRadius: 8, padding: "8px 15px",
+                } : {
+                  fontSize: 13, fontWeight: 700, color: "#b45309", textDecoration: "none",
+                  border: "1.5px solid rgba(217,119,6,0.35)", borderRadius: 8, padding: "7px 14px",
+                }}>
+                  {v.status === "pending" && !v.esperando_al_comprador ? "Confirmar o proponer hora →" : "Ver"}
+                </a>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Las visitas que vienen, arriba y aparte.
           Una cita no es una solicitud cualquiera: tiene dia y hora. Dentro de la
           lista se pierde entre peticiones que pueden esperar, y quien se la
@@ -496,7 +559,7 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
           borderRadius: 14, padding: "14px 16px", marginBottom: 16,
         }}>
           <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".5px", textTransform: "uppercase", color: "#1d4ed8", marginBottom: 10 }}>
-            {proximasVisitas.length === 1 ? "Tu próxima visita" : "Tus próximas visitas"}
+            {proximasVisitas.length === 1 ? "Visita que has pedido · como comprador" : "Visitas que has pedido · como comprador"}
           </div>
           {proximasVisitas.map((v) => (
             <div key={v.id} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12, padding: "8px 0" }}>
@@ -537,7 +600,7 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
             </div>
           ) : proximasVisitas.some((v) => v.pendiente) ? (
             <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginTop: 6 }}>
-              Las pendientes están a la espera de que confirmemos el horario. Te escribimos en cuanto lo tengamos.
+              Las pendientes están a la espera de que confirme el horario quien tiene el coche. Te escribimos en cuanto lo haga.
             </div>
           ) : null}
         </div>

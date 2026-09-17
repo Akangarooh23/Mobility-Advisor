@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { rutaApi } from "../utils/apiClient";
+import { horaDeLaVisita } from "../utils/horaDeLaVisita";
 
 /**
  * La página donde el dueño de un coche contesta una visita.
@@ -23,7 +24,7 @@ const fmtDia = (iso) =>
   new Date(iso).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", timeZone: ZONA });
 const fmtHora = (iso) =>
   new Date(iso).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", timeZone: ZONA });
-const fmtFranja = (a, b) => (b && fmtHora(a) !== fmtHora(b) ? `de ${fmtHora(a)} a ${fmtHora(b)}` : fmtHora(a));
+const fmtFranja = (a, b) => horaDeLaVisita(a, b, fmtHora);
 
 /** Una hora escrita en el formulario —día y hora de Madrid— como instante. */
 function aInstante(dia, hora) {

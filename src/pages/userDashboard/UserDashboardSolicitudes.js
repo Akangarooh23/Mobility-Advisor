@@ -4,6 +4,7 @@ import { proximas, ESTADO as ESTADO_CITA } from "../../utils/citas";
 import ComoFuncionaImportacion from "../../components/ComoFuncionaImportacion";
 import LoQueTeFaltaDelEncargo from "../../components/LoQueTeFaltaDelEncargo";
 import { grupoDeImportacion } from "../../utils/gruposSolicitudes";
+import { horaDeLaVisita } from "../../utils/horaDeLaVisita";
 
 export default function UserDashboardSolicitudes({
   themeMode,
@@ -521,7 +522,7 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
             <div key={v.id} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12, padding: "8px 0" }}>
               <div style={{ minWidth: 86 }}>
                 <div style={{ fontSize: 17, fontWeight: 800, color: isDark ? "var(--gris-50)" : "var(--gris-900)", lineHeight: 1.1 }}>
-                  {fmtHoraCita(v.starts_at)}{v.ends_at ? `–${fmtHoraCita(v.ends_at)}` : ""}
+                  {horaDeLaVisita(v.starts_at, v.ends_at, fmtHoraCita)}
                 </div>
                 <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "var(--gris-500)" }}>{fmtDiaCita(v.starts_at)}</div>
               </div>

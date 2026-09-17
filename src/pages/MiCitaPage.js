@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { rutaApi } from "../utils/apiClient";
+import { horaDeLaVisita } from "../utils/horaDeLaVisita";
 
 const API = rutaApi("/api/visit-availability");
 
@@ -186,7 +187,7 @@ export default function MiCitaPage() {
         <div style={F.dateCard}>
           <div style={F.dateCardLabel}>Nueva fecha</div>
           <div style={F.dateCardDate}>{fmtDateLong(booking.starts_at)}</div>
-          <div style={F.dateCardTime}>{fmtTime(booking.starts_at)} – {fmtTime(booking.ends_at)}</div>
+          <div style={F.dateCardTime}>{horaDeLaVisita(booking.starts_at, booking.ends_at, fmtTime)}</div>
         </div>
         {/* Ni «reprogramada» ni «confirmada»: la hora nueva la ha elegido el,
             sobre huecos que tampoco ha acordado quien tiene el coche. Toda visita
@@ -280,7 +281,7 @@ export default function MiCitaPage() {
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "var(--gris-800)", textTransform: "uppercase", marginBottom: 2 }}>Nueva hora seleccionada</div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: "var(--gris-600)" }}>{fmtDateLong(selectedSlot.starts_at)}</div>
-                  <div style={{ fontSize: 13, color: "var(--gris-800)" }}>{fmtTime(selectedSlot.starts_at)} – {fmtTime(selectedSlot.ends_at)}</div>
+                  <div style={{ fontSize: 13, color: "var(--gris-800)" }}>{horaDeLaVisita(selectedSlot.starts_at, selectedSlot.ends_at, fmtTime)}</div>
                 </div>
                 <button onClick={() => setSelectedSlot(null)} style={{ background: "none", border: "none", color: "var(--gris-400)", cursor: "pointer", fontSize: 20 }}>×</button>
               </div>
@@ -332,7 +333,7 @@ export default function MiCitaPage() {
         <div style={F.dateCard}>
           <div style={F.dateCardLabel}>Fecha y hora</div>
           <div style={F.dateCardDate}>{fmtDateLong(booking.starts_at)}</div>
-          <div style={F.dateCardTime}>{fmtTime(booking.starts_at)} – {fmtTime(booking.ends_at)}</div>
+          <div style={F.dateCardTime}>{horaDeLaVisita(booking.starts_at, booking.ends_at, fmtTime)}</div>
         </div>
 
         {booking.buyer_name && (

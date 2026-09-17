@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { DOMINIO_UID } from "../marca";
 import { getUtmPayload } from "../utils/utmTracker";
 import { rutaApi } from "../utils/apiClient";
+import { horaDeLaVisita } from "../utils/horaDeLaVisita";
 
 const API = rutaApi("/api/visit-availability");
 
@@ -202,7 +203,7 @@ export default function SlotPicker({ offerId, vehicleTitle, userEmail, userName,
         <div style={S.doneTitle}>{pendiente ? "Solicitud enviada" : "¡Visita confirmada!"}</div>
         <div style={S.doneCard}>
           <div style={S.doneDate}>{fmtDayLong(booking.starts_at.slice(0, 10))}</div>
-          <div style={S.doneTime}>{fmtTime(booking.starts_at)} – {fmtTime(booking.ends_at)}</div>
+          <div style={S.doneTime}>{horaDeLaVisita(booking.starts_at, booking.ends_at, fmtTime)}</div>
         </div>
         <p style={S.doneHint}>
           {pendiente
@@ -229,7 +230,7 @@ export default function SlotPicker({ offerId, vehicleTitle, userEmail, userName,
         <span style={S.selectedIcon}>📅</span>
         <div>
           <div style={S.selectedDate}>{fmtDayLong(selected.starts_at.slice(0, 10))}</div>
-          <div style={S.selectedTime}>{fmtTime(selected.starts_at)} – {fmtTime(selected.ends_at)}</div>
+          <div style={S.selectedTime}>{horaDeLaVisita(selected.starts_at, selected.ends_at, fmtTime)}</div>
         </div>
       </div>
 

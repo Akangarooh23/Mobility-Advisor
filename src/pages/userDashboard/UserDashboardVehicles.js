@@ -8,6 +8,7 @@ import ElegirDeLista from "../../components/ElegirDeLista";
 import PapelesDeLaVenta, { usePapelesDeLaVenta } from "../../components/PapelesDeLaVenta";
 import { ASEGURADORAS } from "../../utils/aseguradoras";
 import { COBERTURAS } from "../../utils/coberturas";
+import { horaDeLaVisita } from "../../utils/horaDeLaVisita";
 import {
   getGarageVehiclesJson,
   postGarageVehicleAddJson,
@@ -2885,8 +2886,7 @@ export default function UserDashboardVehicles({
                                     <div style={{ fontSize: 11, fontWeight: 700, color: "var(--gris-600)" }}>
                                       {new Date(b.starts_at).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" })}
                                       {" · "}
-                                      {new Date(b.starts_at).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
-                                      {b.ends_at ? `–${new Date(b.ends_at).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}` : ""}
+                                      {horaDeLaVisita(b.starts_at, b.ends_at, (d) => new Date(d).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }))}
                                     </div>
                                     <div style={{ fontSize: 10, color: "var(--gris-800)", marginTop: 1 }}>
                                       {b.buyer_name || "—"}

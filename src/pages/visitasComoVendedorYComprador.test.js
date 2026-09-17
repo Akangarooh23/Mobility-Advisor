@@ -36,6 +36,22 @@ describe("las visitas a tu coche, como vendedor", () => {
     expect(PANEL).toContain("Confirmar o proponer hora →");
   });
 
+  test("el botón de contestar se ve: amarillo con letra oscura", () => {
+    /*
+     * `--marca` es el negro de la marca, no el amarillo. Con la letra oscura
+     * encima, el botón salió como una barra negra sin texto que leer.
+     */
+    const boton = PANEL.slice(PANEL.indexOf("Visitas a tu coche · como vendedor"), PANEL.indexOf("Confirmar o proponer hora →"));
+    expect(boton).toContain('background: "var(--acento)"');
+    expect(boton).not.toContain('background: "var(--marca)"');
+  });
+
+  test("y en el logotipo, «Pop» va en amarillo", () => {
+    for (const pagina of ["CitaVendedorPage.js", "MiCitaPage.js", "ElegirHoraPage.js", "ComoFuePage.js"]) {
+      expect(lee(pagina)).not.toContain('color: "var(--marca, #FFC400)" }}>Pop<');
+    }
+  });
+
   test("y van antes que las que ha pedido él", () => {
     expect(PANEL.indexOf("Visitas a tu coche · como vendedor")).toBeLessThan(PANEL.indexOf("como comprador"));
   });

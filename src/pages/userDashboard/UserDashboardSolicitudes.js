@@ -535,8 +535,10 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
               </div>
               {v.enlace && (
                 <a href={v.enlace} style={v.status === "pending" && !v.esperando_al_comprador ? {
+                  // Amarillo con letra oscura, como «Mi panel». `--marca` es el negro:
+                  // con la letra oscura el botón salía como una barra negra muda.
                   fontSize: 13, fontWeight: 800, color: "var(--gris-900)", textDecoration: "none",
-                  background: "var(--marca)", borderRadius: 8, padding: "8px 15px",
+                  background: "var(--acento)", borderRadius: 8, padding: "8px 15px",
                 } : {
                   fontSize: 13, fontWeight: 700, color: "#b45309", textDecoration: "none",
                   border: "1.5px solid rgba(217,119,6,0.35)", borderRadius: 8, padding: "7px 14px",

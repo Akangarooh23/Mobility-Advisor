@@ -378,7 +378,7 @@ function Logo() {
   return (
     <div style={{ marginBottom: 24, display: "flex", alignItems: "center", gap: 8 }}>
       <span style={{ fontSize: 20, fontWeight: 800, color: "var(--gris-900)", letterSpacing: "-.3px" }}>
-        <span style={{ color: "var(--marca, #FFC400)" }}>Pop</span>Car
+        <span style={{ color: "var(--acento, #FFC400)" }}>Pop</span>Car
       </span>
     </div>
   );

@@ -59,7 +59,7 @@ export default function SlotPicker({ offerId, vehicleTitle, userEmail, userName,
   const [selected,   setSelected]   = useState(null);
   const [step,       setStep]       = useState("pick"); // pick | confirm | done
   /*
-   * `email` y `quiereFinanciar` solo se usan sin sesión.
+   * `email` solo se usa sin sesión; `quiereFinanciar`, siempre.
    *
    * Con sesión el correo lo pone el servidor y preguntarlo sería pedir un dato
    * que ya tenemos. Sin ella es la pieza entera: es a donde va el enlace que
@@ -278,30 +278,32 @@ export default function SlotPicker({ offerId, vehicleTitle, userEmail, userName,
               Te mandamos ahí un enlace para confirmar. Sin pulsarlo no se reserva la hora.
             </div>
           </div>
-
-          {/*
-            * Una sola pregunta, sí o no.
-            *
-            * Nada de datos económicos para ver un coche: eso espanta a la mitad
-            * de la gente y este formulario es la boca del embudo. Al que diga
-            * que sí se le llama.
-            */}
-          <label style={{ ...S.field, display: "flex", gap: 9, alignItems: "flex-start", cursor: "pointer" }}>
-            <input
-              type="checkbox"
-              checked={form.quiereFinanciar}
-              onChange={(e) => setForm((f) => ({ ...f, quiereFinanciar: e.target.checked }))}
-              style={{ marginTop: 2, width: 16, height: 16, accentColor: "var(--marca)" }}
-            />
-            <span style={{ fontSize: 13, color: "var(--gris-700)", lineHeight: 1.45 }}>
-              ¿Te interesaría financiarlo?
-              <span style={{ display: "block", fontSize: 11.5, color: "var(--gris-500)" }}>
-                Sin compromiso. Solo para saber si te llamamos con opciones.
-              </span>
-            </span>
-          </label>
         </>
       )}
+
+      {/*
+        * Una sola pregunta, sí o no, y a todos.
+        *
+        * Estaba dentro del bloque de «sin sesión», así que al que había entrado
+        * no se le preguntaba nunca: justo al cliente que ya conocemos, y el
+        * servidor la guardaba igual. Nada de datos económicos para ver un
+        * coche: eso espanta a la mitad de la gente. Al que diga que sí se le
+        * llama.
+        */}
+      <label style={{ ...S.field, display: "flex", gap: 9, alignItems: "flex-start", cursor: "pointer" }}>
+        <input
+          type="checkbox"
+          checked={form.quiereFinanciar}
+          onChange={(e) => setForm((f) => ({ ...f, quiereFinanciar: e.target.checked }))}
+          style={{ marginTop: 2, width: 16, height: 16, accentColor: "var(--marca)" }}
+        />
+        <span style={{ fontSize: 13, color: "var(--gris-700)", lineHeight: 1.45 }}>
+          ¿Te interesaría financiarlo?
+          <span style={{ display: "block", fontSize: 11.5, color: "var(--gris-500)" }}>
+            Sin compromiso. Solo para saber si te llamamos con opciones.
+          </span>
+        </span>
+      </label>
 
       <div style={S.field}>
         <label style={S.label}>Notas para el vendedor (opcional)</label>

@@ -1,15 +1,15 @@
 {
-  "name": "Flexicar – Scraper (Importar Ofertas)",
+  "name": "Flexicar – Scraper (orquestador)",
   "nodes": [
     {
       "parameters": {},
-      "id": "fb4a78b7-e0d3-4362-ac9e-fe3d51c422ca",
+      "id": "fx-o-manual",
       "name": "Ejecutar manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -2224,
-        32
+        -620,
+        200
       ]
     },
     {
@@ -18,246 +18,247 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 3 * * *"
+              "expression": "0 10 9,21 * * *"
             }
           ]
         }
       },
-      "id": "59f7f3cf-dca1-4f10-b4fd-0659c47b7277",
-      "name": "Cada día a las 3:00",
+      "id": "fx-o-cron",
+      "name": "2 veces/día (9:10 y 21:10)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
-        -2224,
-        224
-      ]
-    },
-    {
-      "parameters": {
-        "url": "=https://www.flexicar.es/coches-segunda-mano/",
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "text"
-            }
-          },
-          "timeout": 25000
-        }
-      },
-      "id": "02bfefad-30f1-4417-82ba-185fe353b4d8",
-      "name": "HTTP: Home (buildId)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [
-        -1984,
-        128
-      ],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 2000
-    },
-    {
-      "parameters": {
-        "jsCode": "// Extraer el buildId actual de Next.js (cambia en cada despliegue de Flexicar).\n// Se usará para la vía JSON /_next/data/{buildId}/...\nconst html = typeof $input.item.json === 'string' ? $input.item.json\n  : String($input.item.json.data || $input.item.json.body || '');\nconst m = html.match(/\"buildId\":\"([^\"]+)\"/);\nconst buildId = m ? m[1] : '';\nconsole.log('[flexicar-scraper] buildId=' + buildId);\nreturn [{ json: { buildId: buildId } }];"
-      },
-      "id": "592a7761-db4d-450c-a563-e29347dec264",
-      "name": "Code: Extraer buildId",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1760,
-        128
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Flexicar rompió la paginación (?page=N da 403 / la ignora). Faceteo por categoría:\n// cada /{slug}/segunda-mano.json (vía _next/data) devuelve 12 coches destacados de esa\n// porción. Usando ~92 slices (marcas + carrocería + combustible + plazas + transmisión)\n// se descubren ~1.100 URLs/vuelta (con solapamiento) → capta altas nuevas y refresca activos.\nconst buildId = $input.item.json.buildId || '';\nconst slugs = [\n  \"peugeot\",\"audi\",\"bmw\",\"mercedes-benz\",\"citroen\",\"volkswagen\",\"ford\",\"opel\",\"seat\",\"renault\",\n  \"toyota\",\"kia\",\"fiat\",\"nissan\",\"hyundai\",\"skoda\",\"cupra\",\"dacia\",\"mini\",\"volvo\",\"mazda\",\"mg\",\n  \"jeep\",\"ds\",\"land-rover\",\"lexus\",\"suzuki\",\"honda\",\"alfa-romeo\",\"mitsubishi\",\"porsche\",\"jaguar\",\n  \"smart\",\"tesla\",\"abarth\",\"subaru\",\"maserati\",\"ssangyong\",\"iveco\",\"chevrolet\",\"lancia\",\"infiniti\",\n  \"dfsk\",\"byd\",\"ferrari\",\"bentley\",\"dodge\",\"chrysler\",\"polestar\",\"saab\",\"cadillac\",\"isuzu\",\"hummer\",\n  \"maxus\",\"omoda\",\"jaecoo\",\"leapmotor\",\"ebro\",\"evo\",\"dr-automobiles\",\"mahindra\",\"tata\",\"aiways\",\n  \"seres\",\"skywell\",\"swm\",\"xev\",\"xiaomi\",\"zhidou\",\"aston-martin\",\n  \"carroceria-suv-4x4\",\"carroceria-turismo\",\"carroceria-compacto\",\"carroceria-familiar\",\n  \"carroceria-monovolumen\",\"carroceria-furgoneta\",\"carroceria-cabrio\",\"carroceria-deportivo\",\n  \"carroceria-pick-up\",\"combustible-diesel\",\"combustible-gasolina\",\"combustible-electrico\",\n  \"combustible-hibrido-no-enchufable\",\"combustible-hibrido-enchufable\",\"combustible-glp\",\n  \"transmision-automatica\",\"transmision-manual\",\"plazas-7\",\"plazas-9\",\"plazas-6\",\"plazas-8\",\"plazas-10\"\n];\nconst out = [];\nfor (const s of slugs) {\n  out.push({ json: { url: 'https://www.flexicar.es/_next/data/' + buildId + '/' + s + '/segunda-mano.json' } });\n}\nreturn out;\n"
-      },
-      "id": "8681893a-38bd-400a-83ed-e75799352874",
-      "name": "Code: Generar páginas",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1536,
-        128
-      ]
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "id": "84b68704-44cb-4521-a5f8-10ad0dff70a1",
-      "name": "Loop: página por página",
-      "type": "n8n-nodes-base.splitInBatches",
-      "typeVersion": 3,
-      "position": [
-        -1328,
-        128
-      ]
-    },
-    {
-      "parameters": {
-        "url": "={{ $json.url }}",
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "text"
-            }
-          },
-          "timeout": 25000
-        }
-      },
-      "id": "c7e4a07b-5282-4b7a-b910-e6ab597d8c39",
-      "name": "HTTP: JSON (rápido)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [
-        -1104,
-        128
-      ],
-      "retryOnFail": true,
-      "maxTries": 2,
-      "waitBetweenTries": 1500,
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 1
-          },
-          "conditions": [
-            {
-              "id": "cond-json-ok",
-              "leftValue": "={{ $json.data || '' }}",
-              "rightValue": "initialVehicles",
-              "operator": {
-                "type": "string",
-                "operation": "contains"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "01f8f587-3741-49df-9426-0f30afdb7f90",
-      "name": "IF: ¿JSON válido?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [
-        -880,
-        128
-      ]
-    },
-    {
-      "parameters": {
-        "url": "=https://www.flexicar.es/coches-segunda-mano/?page={{ $('Loop: página por página').item.json.page }}",
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "text"
-            }
-          },
-          "timeout": 25000
-        }
-      },
-      "id": "93b520e3-4118-47e6-ae26-504b47aa8f30",
-      "name": "HTTP: HTML (respaldo)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [
-        -656,
-        288
-      ],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 2000
-    },
-    {
-      "parameters": {
-        "jsCode": "// Digiere lo que venga: JSON del endpoint _next/data O HTML del listado.\nconst raw = $input.item.json;\nconst body = typeof raw === 'string' ? raw : String(raw.data || raw.body || '');\n\nlet pp = null;\n// 1) Intentar como JSON (vía rápida /_next/data)\ntry {\n  const j = JSON.parse(body);\n  pp = j.pageProps || (j.props && j.props.pageProps) || null;\n} catch (e) {\n  // 2) Es HTML (vía respaldo) → extraer __NEXT_DATA__\n  const m = body.match(/<script id=\"__NEXT_DATA__\"[^>]*>([\\s\\S]*?)<\\/script>/);\n  if (m) {\n    try { pp = JSON.parse(m[1]).props.pageProps; } catch (_) {}\n  }\n}\n\nconst vehicles = (pp && pp.initialVehicles) || [];\nif (!vehicles.length) {\n  return [{ json: { sql: null, count: 0 } }];\n}\n\nfunction normalizeFuel(raw) {\n  const s = String(raw || '').toLowerCase();\n  if (s.indexOf('diesel') !== -1 || s.indexOf('diésel') !== -1) return 'Diesel';\n  if (s.indexOf('electr') !== -1) return 'Eléctrico';\n  const enchufable = (s.indexOf('enchufable') !== -1 || s.indexOf('plug') !== -1) && s.indexOf('no enchufable') === -1;\n  if (s.indexOf('hibrido') !== -1 || s.indexOf('híbrido') !== -1 || s.indexOf('hybrid') !== -1 || s.indexOf('enchufable') !== -1) return enchufable ? 'Híbrido enchufable' : 'Híbrido';\n  if (s.indexOf('gasolina') !== -1 || s.indexOf('petrol') !== -1) return 'Gasolina';\n  if (s.indexOf('glp') !== -1 || s.indexOf('gnc') !== -1 || s.indexOf('gas') !== -1) return 'Gas';\n  return raw || '';\n}\n\nfunction normalizeGear(raw) {\n  const s = String(raw || '').toLowerCase();\n  if (s.indexOf('autom') !== -1) return 'Automatica';\n  if (s.indexOf('manual') !== -1) return 'Manual';\n  return raw || '';\n}\n\nfunction normalizeLabel(raw) {\n  var s = String(raw || '').toLowerCase().trim();\n  if (!s) return '';\n  if (s === 'zero' || s === 'cero' || s === '0' || s.indexOf('0 emis') !== -1) return '0 Emisiones';\n  if (s === 'eco' || s === 'e') return 'ECO';\n  if (s === 'c' || s === 'green') return 'C';\n  if (s === 'b' || s === 'yellow') return 'B';\n  return String(raw).toUpperCase();\n}\n\nfunction esc(v) {\n  if (v === null || v === undefined) return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\n\nconst rows = [];\nfor (const v of vehicles) {\n  const id = String(v.id);\n  const url = v.slug ? 'https://www.flexicar.es/coches-ocasion/' + v.slug + '/' : '';\n  const brand = v.brand || '';\n  const model = v.model || '';\n  const version = v.version || '';\n  const title = (brand + ' ' + model + ' ' + version).replace(/\\s+/g, ' ').trim();\n  const kwMatch = version.match(/(\\d+)\\s*kW/i);\n  const cvMatch = version.match(/\\((\\d+)\\s*CV\\)/i);\n  const powerKw = kwMatch ? parseInt(kwMatch[1], 10) : null;\n  const powerCv = cvMatch ? parseInt(cvMatch[1], 10) : (kwMatch ? Math.round(parseInt(kwMatch[1], 10) * 1.3596) : null);\n  const year = (v.year != null) ? String(v.year) : 'NULL';\n  const mileage = (v.km != null) ? String(v.km) : 'NULL';\n  const fuel = normalizeFuel(v.fuel);\n  const transmission = normalizeGear(v.transmission);\n  const contadoRaw = (v.cashPrice != null) ? v.cashPrice : v.price;\n  const price = (contadoRaw != null) ? String(contadoRaw) : 'NULL';\n  const financePrice = (v.price != null) ? String(v.price) : 'NULL';\n  const monthlyPrice = (v.quotaPrice != null) ? String(v.quotaPrice) : 'NULL';\n  const color = v.color || '';\n  const ecoSticker = normalizeLabel(v.ecoSticker);\n  const imageUrl = v.image || '';\n  const imagesArr = (Array.isArray(v.images) ? v.images : (imageUrl ? [imageUrl] : [])).filter(function(u){ return u && u.indexOf('/generic/') === -1 && u.indexOf('dealer_network') === -1; }).slice(0, 10);\n  const imagesJson = JSON.stringify(imagesArr).replace(/'/g, \"''\");\n  const dealerName = 'Flexicar';\n  const dealershipRaw = v.carDealership || '';\n  const city = dealershipRaw.split(' - ')[0].trim();\n  const location = city || 'Toda España';\n\n  const row = '(' +\n    esc(id) + ', ' + esc(url) + ', ' + esc(title) + ', ' + esc(brand) + ', ' + esc(model) + ', ' +\n    esc(version) + ', ' + year + ', ' + mileage + ', ' +\n    price + ', ' + financePrice + ', ' + monthlyPrice + ', ' +\n    esc(fuel) + ', ' + esc(transmission) + ', ' + esc(color) + ', ' +\n    esc(imageUrl) + \", '\" + imagesJson + \"', \" +\n    esc(ecoSticker) + ', ' +\n    esc(dealerName) + ', ' + esc(city) + ', ' + esc(location) + ', ' +\n    \"'flexicar', 'profesional', 'compra', 12, \" + (powerCv !== null ? String(powerCv) : 'NULL') + ', ' + (powerKw !== null ? String(powerKw) : 'NULL') + \", NOW(), NOW(), NOW()\" +\n  ')';\n  rows.push(row);\n}\n\nconst cols = 'id, url, title, brand, model, version, year, mileage, price, finance_price, monthly_price, fuel, transmission, color, image_url, images, environmental_label, dealer_name, city, location, portal, seller_type, listing_type, warranty_months, power_cv, power_kw, first_seen_at, scraped_at, last_seen_at';\n\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +\n  'url = EXCLUDED.url, ' +\n  'title = EXCLUDED.title, ' +\n  'price = EXCLUDED.price, ' +\n  'finance_price = EXCLUDED.finance_price, ' +\n  'monthly_price = EXCLUDED.monthly_price, ' +\n  'mileage = EXCLUDED.mileage, ' +\n  \"image_url = COALESCE(NULLIF(moveadvisor_market_offers.image_url, ''), EXCLUDED.image_url), \" +\n  \"images = COALESCE(NULLIF(moveadvisor_market_offers.images, ''), EXCLUDED.images), \" +\n  \"color = COALESCE(NULLIF(moveadvisor_market_offers.color, ''), EXCLUDED.color), \" +\n  \"environmental_label = COALESCE(NULLIF(moveadvisor_market_offers.environmental_label, ''), EXCLUDED.environmental_label), \" +\n  'power_cv = COALESCE(EXCLUDED.power_cv, moveadvisor_market_offers.power_cv), ' +\n  'power_kw = COALESCE(EXCLUDED.power_kw, moveadvisor_market_offers.power_kw), ' +\n  '' +\n  'last_seen_at = NOW(), ' +\n  'updated_at = NOW()';\n\nconst sql = 'INSERT INTO moveadvisor_market_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;\n\nreturn [{ json: { sql: sql, count: vehicles.length } }];\n"
-      },
-      "id": "7989e368-e886-4cd1-b620-f209211ef265",
-      "name": "Code: Transformar vehículos",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -448,
-        128
-      ],
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 1
-          },
-          "conditions": [
-            {
-              "id": "cond-has-vehicles",
-              "leftValue": "={{ $json.count }}",
-              "rightValue": 0,
-              "operator": {
-                "type": "number",
-                "operation": "gt"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "e16618f2-f825-452d-9ecc-7011350a91ba",
-      "name": "IF: ¿hay vehículos?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [
-        -224,
-        128
+        -620,
+        400
       ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "{{ $json.sql }}",
+        "query": "-- Por dónde iba la última pasada y cuántas páginas tenía el portal.\n--\n-- En Postgres y no en $getWorkflowStaticData, que se reinicia al reimportar.\n--\n-- El filtro va con '=' y no con LIKE: en LIKE el «_» es un comodín de un\n-- carácter, y 'flexicar_pag_%' casaría también con 'flexicar_pagina'. Eso\n-- contaba una marca de más en Autocasión.\nSELECT clave, valor FROM moveadvisor_cursores\nWHERE clave IN ('flexicar_pagina', 'flexicar_paginas')",
         "options": {}
       },
-      "id": "6d0f89ea-5ac4-4f44-8e3f-a47eab11d20f",
-      "name": "PG: Upsert ofertas",
+      "id": "fx-o-cursor",
+      "name": "PG: Por dónde íbamos",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
-        0,
-        0
+        -440,
+        300
       ],
       "credentials": {
         "postgres": {
           "id": "zoxD0jV8hxZqH0uY",
           "name": "Postgres account"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
-        "unit": "seconds"
+        "url": "https://www.flexicar.es/coches-segunda-mano/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
       },
-      "id": "270c46ad-7d0f-4ae8-86f7-e8686f16f6ca",
-      "name": "Esperar 1s (rate limit)",
-      "type": "n8n-nodes-base.wait",
+      "id": "fx-o-web",
+      "name": "HTTP: Listado (provincias)",
+      "onError": "continueRegularOutput",
+      "executeOnce": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://services.flexicar.es/api/v1/vehicles?page=1",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            },
+            {
+              "name": "Origin",
+              "value": "https://www.flexicar.es"
+            },
+            {
+              "name": "Referer",
+              "value": "https://www.flexicar.es/"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "fx-o-contar",
+      "name": "HTTP: Contar el catálogo",
+      "onError": "continueRegularOutput",
+      "executeOnce": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -80,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Reparte el catálogo en ventanas de páginas.\nconst PAGINAS = 100;\nconst SEGMENTOS = 20;\nconst TOPE = 4000;\n\nconst filas = $('PG: Por dónde íbamos').all().map(x => x.json);\nconst mapa = {};\nfor (const f of filas) mapa[f.clave] = Number(f.valor);\n\n// Cuántas páginas hay HOY, medido en vivo: la API lo dice en 'pages'.\nconst res = $input.first().json;\nconst cuerpo = String(res.data || res.body || '');\nlet paginas = 0;\nlet total = 0;\nlet provincias = {};\ntry {\n  const j = JSON.parse(cuerpo);\n  paginas = Number(j.pages) || 0;\n  total = Number(j.total) || 0;\n} catch (e) { paginas = 0; }\n\n// Si la API no contesta, se tira del último número conocido. Quedarse sin\n// medida no debe dejar la pasada sin hacer nada.\nif (!(paginas > 0)) paginas = Number(mapa['flexicar_paginas']) || 0;\npaginas = Math.min(paginas, TOPE);\n\nif (!(paginas > 0)) {\n  console.log('[flexicar] la API no dice cuántas páginas hay y no había número guardado. Nada que repartir.');\n  return [{ json: { desde: 0, hasta: 0, provincias: {}, sqlCursor: null } }];\n}\n\n// El mapa slug -> provincia, del propio listado. La API de vehículos no trae\n// provincia, solo el nombre del concesionario.\ntry {\n  const web = $('HTTP: Listado (provincias)').first().json;\n  const html = String(web.data || web.body || '');\n  const m = html.match(/<script id=\"__NEXT_DATA__\"[^>]*>([\\s\\S]*?)<\\/script>/);\n  if (m) {\n    const pp = JSON.parse(m[1]).props.pageProps;\n    for (const d of (pp.dealerships || [])) {\n      const clave = String(d.value || '');\n      if (clave && d.province) provincias[clave] = String(d.province);\n    }\n  }\n} catch (e) { provincias = {}; }\nconsole.log('[flexicar] ' + Object.keys(provincias).length + ' concesionarios con provincia');\n\n// Dónde empieza esta pasada. Normalmente en 1: el catálogo entero cabe en una.\nlet pag = Number(mapa['flexicar_pagina']);\nif (!Number.isFinite(pag) || pag < 1 || pag > paginas) pag = 1;\n\nconst out = [];\nwhile (out.length < SEGMENTOS && pag <= paginas) {\n  out.push({ json: {\n    desde: pag,\n    hasta: Math.min(pag + PAGINAS - 1, paginas),\n    provincias: provincias,\n  } });\n  pag += PAGINAS;\n}\n// Si se ha llegado al final, la próxima empieza otra vez por el principio.\nconst siguiente = pag > paginas ? 1 : pag;\n\n// Se apunta ANTES de scrapear: si la pasada se cae a la mitad, la siguiente\n// sigue avanzando en vez de repetir lo mismo.\nconst sqlCursor = \"INSERT INTO moveadvisor_cursores (clave, valor, actualizado) VALUES \"\n  + \"('flexicar_pagina', \" + siguiente + \", NOW()), \"\n  + \"('flexicar_paginas', \" + paginas + \", NOW())\"\n  + \" ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, actualizado = NOW()\";\nfor (const o of out) o.json.sqlCursor = sqlCursor;\n\nconsole.log('[flexicar] ' + total + ' coches en ' + paginas + ' páginas. '\n  + out.length + ' ventanas de ' + PAGINAS + ', de la ' + out[0].json.desde\n  + ' a la ' + out[out.length - 1].json.hasta\n  + '. La próxima pasada empieza en la ' + siguiente + '.');\nreturn out;"
+      },
+      "id": "fx-o-gen",
+      "name": "Code: Generar segmentos (ventanas de páginas)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sqlCursor }}",
+        "options": {}
+      },
+      "id": "fx-o-guardar",
+      "name": "PG: Apuntar dónde nos quedamos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        300,
+        140
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "fx-o-loop",
+      "name": "Loop: segmento por segmento",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        300,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fx-o-c-desde",
+              "leftValue": "={{ $json.desde }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "fx-o-if",
+      "name": "IF: ¿hay ventana que scrapear?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        480,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "PENDIENTE_DE_ENLAZAR",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "fx-o-sub",
+      "name": "Scrapear segmento (Flexicar – Segmento)",
+      "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
       "position": [
-        224,
-        128
-      ],
-      "webhookId": "wait-flexicar-scraper"
+        680,
+        440
+      ]
     }
   ],
   "connections": {
@@ -265,153 +266,108 @@
       "main": [
         [
           {
-            "node": "HTTP: Home (buildId)",
+            "node": "PG: Por dónde íbamos",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cada día a las 3:00": {
+    "2 veces/día (9:10 y 21:10)": {
       "main": [
         [
           {
-            "node": "HTTP: Home (buildId)",
+            "node": "PG: Por dónde íbamos",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP: Home (buildId)": {
+    "PG: Por dónde íbamos": {
       "main": [
         [
           {
-            "node": "Code: Extraer buildId",
+            "node": "HTTP: Listado (provincias)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code: Extraer buildId": {
+    "HTTP: Listado (provincias)": {
       "main": [
         [
           {
-            "node": "Code: Generar páginas",
+            "node": "HTTP: Contar el catálogo",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code: Generar páginas": {
+    "HTTP: Contar el catálogo": {
       "main": [
         [
           {
-            "node": "Loop: página por página",
+            "node": "Code: Generar segmentos (ventanas de páginas)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Loop: página por página": {
+    "Code: Generar segmentos (ventanas de páginas)": {
       "main": [
         [
           {
-            "node": "HTTP: JSON (rápido)",
+            "node": "PG: Apuntar dónde nos quedamos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Loop: segmento por segmento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: segmento por segmento": {
+      "main": [
+        [],
+        [
+          {
+            "node": "IF: ¿hay ventana que scrapear?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ventana que scrapear?": {
+      "main": [
+        [
+          {
+            "node": "Scrapear segmento (Flexicar – Segmento)",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "HTTP: JSON (rápido)",
+            "node": "Loop: segmento por segmento",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP: JSON (rápido)": {
+    "Scrapear segmento (Flexicar – Segmento)": {
       "main": [
         [
           {
-            "node": "IF: ¿JSON válido?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF: ¿JSON válido?": {
-      "main": [
-        [
-          {
-            "node": "Code: Transformar vehículos",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "HTTP: HTML (respaldo)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP: HTML (respaldo)": {
-      "main": [
-        [
-          {
-            "node": "Code: Transformar vehículos",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code: Transformar vehículos": {
-      "main": [
-        [
-          {
-            "node": "IF: ¿hay vehículos?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF: ¿hay vehículos?": {
-      "main": [
-        [
-          {
-            "node": "PG: Upsert ofertas",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "PG: Upsert ofertas": {
-      "main": [
-        [
-          {
-            "node": "Esperar 1s (rate limit)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Esperar 1s (rate limit)": {
-      "main": [
-        [
-          {
-            "node": "Loop: página por página",
+            "node": "Loop: segmento por segmento",
             "type": "main",
             "index": 0
           }
@@ -421,17 +377,11 @@
   },
   "settings": {
     "executionOrder": "v1",
-    "binaryMode": "separate",
-    "timeSavedMode": "fixed",
-    "errorWorkflow": "9BwKOPMIzjj3owho",
-    "callerPolicy": "workflowsFromSameOwner",
-    "availableInMCP": false,
     "saveManualExecutions": true,
-    "saveDataSuccessExecution": "all",
-    "saveDataErrorExecution": "all"
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
   },
-  "pinData": {},
-  "staticData": null,
-  "triggerCount": 0,
-  "tags": []
+  "pinData": {}
 }

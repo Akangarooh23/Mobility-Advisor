@@ -1,0 +1,310 @@
+{
+  "name": "Flexicar – Segmento (páginas)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "fx-s-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        200
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "fx-s-trigger",
+      "name": "Llamada desde orquestador",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const inp = $input.item.json || {};\n\n// SIN ventana no se hace nada. En Autocasión había aquí un valor por defecto y\n// el 15-sep, al recibir un segmento vacío, se puso a scrapear otra marca por su\n// cuenta: 360 ofertas saltándose el cursor. Un defecto esconde el fallo.\nconst desde = Number(inp.desde);\nconst hasta = Number(inp.hasta);\nif (!(desde > 0) || !(hasta >= desde)) {\n  console.log('[flexicar] segmento sin ventana de páginas: no hay nada que hacer.');\n  return [];\n}\n\nreturn [{ json: {\n  desde: desde,\n  hasta: hasta,\n  provincias: inp.provincias || {},\n} }];"
+      },
+      "id": "fx-s-params",
+      "name": "Params",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Las páginas de esta ventana, una por item.\nconst seg = $input.first().json;\nconst out = [];\nfor (let p = seg.desde; p <= seg.hasta; p++) {\n  out.push({ json: { page: p, url: 'https://services.flexicar.es/api/v1/vehicles?page=' + p } });\n}\nconsole.log('[flexicar] ventana ' + seg.desde + '-' + seg.hasta + ': ' + out.length + ' páginas');\nreturn out;"
+      },
+      "id": "fx-s-paginas",
+      "name": "Code: Generar páginas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "fx-s-loop",
+      "name": "Loop: página por página",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            },
+            {
+              "name": "Origin",
+              "value": "https://www.flexicar.es"
+            },
+            {
+              "name": "Referer",
+              "value": "https://www.flexicar.es/"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "fx-s-http",
+      "name": "HTTP: Página de la API",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        360,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Flexicar – transform: JSON de services.flexicar.es/api/v1/vehicles → UPSERT market_offers\n//\n// El id de la oferta es el id de Flexicar TAL CUAL, sin prefijo: así están las\n// 27.454 filas que ya hay en la base. Ponerle 'fx_' delante las duplicaría\n// todas y dejaría las viejas muertas para siempre.\nconst httpOut = $input.item.json;\nconst cuerpo = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\n\nlet list = [];\ntry {\n  const j = JSON.parse(cuerpo);\n  list = j.results || [];\n} catch (e) { list = []; }\nif (!list.length) return [{ json: { sql: null, count: 0 } }];\n\n// Slug del concesionario -> provincia. Lo trae el listado en pageProps y lo\n// pasa el orquestador: son 182 y aparecen nuevos, así que se lee en vivo en\n// vez de dejarlo escrito aquí.\nlet provinciaDe = {};\ntry {\n  const seg = $('Params').first().json || {};\n  provinciaDe = seg.provincias || {};\n} catch (e) { provinciaDe = {}; }\n\n// Dos escapadores, y la diferencia importa: casi todas las columnas de texto\n// de esta tabla son NOT NULL con '' por defecto -url, title, brand, color,\n// province, environmental_label...-, así que un vacío tiene que viajar como\n// cadena vacía y no como NULL, o la fila entera se rechaza.\nfunction txt(v) {\n  return \"'\" + String(v === null || v === undefined ? '' : v).replace(/'/g, \"''\") + \"'\";\n}\nfunction num(v) {\n  if (v === null || v === undefined || v === '') return 'NULL';\n  const n = Number(v);\n  return isNaN(n) ? 'NULL' : String(n);\n}\nfunction normFuel(s) {\n  s = String(s || '').toLowerCase();\n  const ench = s.indexOf('enchufable') !== -1 && s.indexOf('no enchufable') === -1;\n  if (s.indexOf('diesel') !== -1 || s.indexOf('diésel') !== -1) return 'Diesel';\n  if (s.indexOf('híbrido') !== -1 || s.indexOf('hibrido') !== -1) return ench ? 'Híbrido enchufable' : 'Híbrido';\n  // OJO con el acento: \"eléctrico\".indexOf(\"lectric\") da -1 porque la é no es\n  // una e. En coches.com esto habría dejado a todos los eléctricos sin CO₂.\n  if (s.indexOf('éctric') !== -1 || s.indexOf('ectric') !== -1) return 'Eléctrico';\n  if (s.indexOf('gasolina') !== -1) return 'Gasolina';\n  if (s.indexOf('glp') !== -1 || s.indexOf('gnc') !== -1 || s.indexOf('gas') !== -1) return 'Gas';\n  return '';\n}\nfunction normGear(s) {\n  s = String(s || '').toLowerCase();\n  if (s.indexOf('autom') !== -1) return 'Automatica';\n  if (s.indexOf('manual') !== -1) return 'Manual';\n  return '';\n}\nfunction normLabel(s) {\n  s = String(s || '').toUpperCase().trim();\n  if (s === '0' || s === 'ZERO' || s === 'CERO' || s.indexOf('0 EMIS') !== -1) return '0 Emisiones';\n  if (s === 'ECO' || s === 'C' || s === 'B') return s;\n  return '';\n}\n\nconst rows = [];\nfor (const it of list) {\n  const vid = it.id;\n  if (!vid) continue;\n  const id = String(vid);\n  const slug = String(it.slug || '');\n  // Sin slug no hay ficha que mirar después, y una URL inventada es peor que\n  // ninguna: el enriquecedor la seguiría y escribiría lo que encontrase.\n  if (!slug) continue;\n  const url = 'https://www.flexicar.es/coches-ocasion/' + slug + '/';\n\n  const brand = String(it.brand || '');\n  const model = String(it.model || '');\n  const version = String(it.version || '');\n  const title = (brand + ' ' + model + ' ' + version).replace(/\\s+/g, ' ').trim();\n  const price = (it.price !== null && it.price !== undefined) ? Number(it.price) : null;\n  if (price === null || !(price > 0)) continue;\n\n  const year = Number(it.year) > 0 ? Number(it.year) : null;\n  const km = (it.km !== null && it.km !== undefined) ? Number(it.km) : null;\n  const sede = String(it.carDealership || '');\n  const provincia = provinciaDe[String(it.carDealershipSlug || '')] || '';\n\n  // Las imágenes llegan de dos formas: cadenas en el listado y objetos\n  // {image, detail, label} en la ficha. Se aceptan las dos.\n  const fotos = Array.isArray(it.images)\n    ? it.images.map(x => (typeof x === 'string' ? x : (x && x.image) || null)).filter(Boolean).slice(0, 15)\n    : (it.image ? [it.image] : []);\n  const imagesJson = JSON.stringify(fotos).replace(/'/g, \"''\");\n\n  const row = '(' +\n    txt(id) + \", 'flexicar', \" + txt(url) + ', ' + txt(title) + ', ' +\n    txt(brand) + ', ' + txt(model) + ', ' + txt(version) + ', ' +\n    num(year) + ', ' + num(km) + ', ' + price + ', ' +\n    txt(normFuel(it.fuel)) + ', ' + txt(normGear(it.transmission)) + ', ' + txt(it.color) + ', ' +\n    txt(it.image) + \", '\" + imagesJson + \"', \" + txt(normLabel(it.ecoSticker)) + ', ' +\n    txt(sede) + ', ' + txt(sede) + ', ' + txt(provincia) + ', ' + txt(sede) + ', ' +\n    \"'profesional', 'compra', 'ES', \" + num(it.quotaPrice) +\n    ', NOW(), NOW(), NOW()' +\n  ')';\n  rows.push(row);\n}\nif (!rows.length) return [{ json: { sql: null, count: 0 } }];\n\nconst cols = 'id, portal, url, title, brand, model, version, year, mileage, price, fuel, transmission, color, ' +\n  'image_url, images, environmental_label, dealer_name, city, province, location, seller_type, listing_type, ' +\n  'country, finance_price, first_seen_at, scraped_at, last_seen_at';\n\n// Lo que el listado NO trae -puertas, plazas, carrocería, cilindrada, potencia-\n// se queda como está: lo rellena el enriquecedor mirando la ficha, y machacarlo\n// con NULL en cada pasada sería borrar su trabajo cada noche.\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +\n  'url = EXCLUDED.url, title = EXCLUDED.title, price = EXCLUDED.price, mileage = EXCLUDED.mileage, ' +\n  'year = COALESCE(EXCLUDED.year, moveadvisor_market_offers.year), ' +\n  'fuel = COALESCE(NULLIF(EXCLUDED.fuel, \\'\\'), moveadvisor_market_offers.fuel), ' +\n  'transmission = COALESCE(NULLIF(EXCLUDED.transmission, \\'\\'), moveadvisor_market_offers.transmission), ' +\n  'color = COALESCE(NULLIF(EXCLUDED.color, \\'\\'), moveadvisor_market_offers.color), ' +\n  'province = COALESCE(NULLIF(EXCLUDED.province, \\'\\'), moveadvisor_market_offers.province), ' +\n  \"image_url = COALESCE(NULLIF(EXCLUDED.image_url, ''), moveadvisor_market_offers.image_url), \" +\n  \"images = COALESCE(NULLIF(EXCLUDED.images, '[]'), moveadvisor_market_offers.images), \" +\n  'environmental_label = COALESCE(NULLIF(EXCLUDED.environmental_label, \\'\\'), moveadvisor_market_offers.environmental_label), ' +\n  'finance_price = COALESCE(EXCLUDED.finance_price, moveadvisor_market_offers.finance_price), ' +\n  'last_seen_at = NOW(), updated_at = NOW(), ' +\n  // Verla en el catálogo ES la prueba de vida, así que resucita.\n  //\n  // Sin esto, una oferta que el verificador diera de baja por error se queda\n  // muerta para siempre aunque el scraper la vuelva a ver: el UPSERT le\n  // refresca precio y kilómetros y la deja is_active = FALSE.\n  'is_active = TRUE';\n\nconst sql = 'INSERT INTO moveadvisor_market_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;\nreturn [{ json: { sql: sql, count: rows.length } }];\n"
+      },
+      "id": "fx-s-transf",
+      "name": "Code: Transformar ofertas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fx-s-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "fx-s-if",
+      "name": "IF: ¿hay ofertas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        840,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "fx-s-pg",
+      "name": "PG: Upsert ofertas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        340
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Llamada desde orquestador": {
+      "main": [
+        [
+          {
+            "node": "Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Params": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar páginas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Generar páginas": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: página por página": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP: Página de la API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Página de la API": {
+      "main": [
+        [
+          {
+            "node": "Code: Transformar ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Transformar ofertas": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay ofertas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ofertas?": {
+      "main": [
+        [
+          {
+            "node": "PG: Upsert ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Upsert ofertas": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

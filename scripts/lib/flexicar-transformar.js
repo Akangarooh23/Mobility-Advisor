@@ -1,0 +1,133 @@
+// Flexicar – transform: JSON de services.flexicar.es/api/v1/vehicles → UPSERT market_offers
+//
+// El id de la oferta es el id de Flexicar TAL CUAL, sin prefijo: así están las
+// 27.454 filas que ya hay en la base. Ponerle 'fx_' delante las duplicaría
+// todas y dejaría las viejas muertas para siempre.
+const httpOut = $input.item.json;
+const cuerpo = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');
+
+let list = [];
+try {
+  const j = JSON.parse(cuerpo);
+  list = j.results || [];
+} catch (e) { list = []; }
+if (!list.length) return [{ json: { sql: null, count: 0 } }];
+
+// Slug del concesionario -> provincia. Lo trae el listado en pageProps y lo
+// pasa el orquestador: son 182 y aparecen nuevos, así que se lee en vivo en
+// vez de dejarlo escrito aquí.
+let provinciaDe = {};
+try {
+  const seg = $('Params').first().json || {};
+  provinciaDe = seg.provincias || {};
+} catch (e) { provinciaDe = {}; }
+
+// Dos escapadores, y la diferencia importa: casi todas las columnas de texto
+// de esta tabla son NOT NULL con '' por defecto -url, title, brand, color,
+// province, environmental_label...-, así que un vacío tiene que viajar como
+// cadena vacía y no como NULL, o la fila entera se rechaza.
+function txt(v) {
+  return "'" + String(v === null || v === undefined ? '' : v).replace(/'/g, "''") + "'";
+}
+function num(v) {
+  if (v === null || v === undefined || v === '') return 'NULL';
+  const n = Number(v);
+  return isNaN(n) ? 'NULL' : String(n);
+}
+function normFuel(s) {
+  s = String(s || '').toLowerCase();
+  const ench = s.indexOf('enchufable') !== -1 && s.indexOf('no enchufable') === -1;
+  if (s.indexOf('diesel') !== -1 || s.indexOf('diésel') !== -1) return 'Diesel';
+  if (s.indexOf('híbrido') !== -1 || s.indexOf('hibrido') !== -1) return ench ? 'Híbrido enchufable' : 'Híbrido';
+  // OJO con el acento: "eléctrico".indexOf("lectric") da -1 porque la é no es
+  // una e. En coches.com esto habría dejado a todos los eléctricos sin CO₂.
+  if (s.indexOf('éctric') !== -1 || s.indexOf('ectric') !== -1) return 'Eléctrico';
+  if (s.indexOf('gasolina') !== -1) return 'Gasolina';
+  if (s.indexOf('glp') !== -1 || s.indexOf('gnc') !== -1 || s.indexOf('gas') !== -1) return 'Gas';
+  return '';
+}
+function normGear(s) {
+  s = String(s || '').toLowerCase();
+  if (s.indexOf('autom') !== -1) return 'Automatica';
+  if (s.indexOf('manual') !== -1) return 'Manual';
+  return '';
+}
+function normLabel(s) {
+  s = String(s || '').toUpperCase().trim();
+  if (s === '0' || s === 'ZERO' || s === 'CERO' || s.indexOf('0 EMIS') !== -1) return '0 Emisiones';
+  if (s === 'ECO' || s === 'C' || s === 'B') return s;
+  return '';
+}
+
+const rows = [];
+for (const it of list) {
+  const vid = it.id;
+  if (!vid) continue;
+  const id = String(vid);
+  const slug = String(it.slug || '');
+  // Sin slug no hay ficha que mirar después, y una URL inventada es peor que
+  // ninguna: el enriquecedor la seguiría y escribiría lo que encontrase.
+  if (!slug) continue;
+  const url = 'https://www.flexicar.es/coches-ocasion/' + slug + '/';
+
+  const brand = String(it.brand || '');
+  const model = String(it.model || '');
+  const version = String(it.version || '');
+  const title = (brand + ' ' + model + ' ' + version).replace(/\s+/g, ' ').trim();
+  const price = (it.price !== null && it.price !== undefined) ? Number(it.price) : null;
+  if (price === null || !(price > 0)) continue;
+
+  const year = Number(it.year) > 0 ? Number(it.year) : null;
+  const km = (it.km !== null && it.km !== undefined) ? Number(it.km) : null;
+  const sede = String(it.carDealership || '');
+  const provincia = provinciaDe[String(it.carDealershipSlug || '')] || '';
+
+  // Las imágenes llegan de dos formas: cadenas en el listado y objetos
+  // {image, detail, label} en la ficha. Se aceptan las dos.
+  const fotos = Array.isArray(it.images)
+    ? it.images.map(x => (typeof x === 'string' ? x : (x && x.image) || null)).filter(Boolean).slice(0, 15)
+    : (it.image ? [it.image] : []);
+  const imagesJson = JSON.stringify(fotos).replace(/'/g, "''");
+
+  const row = '(' +
+    txt(id) + ", 'flexicar', " + txt(url) + ', ' + txt(title) + ', ' +
+    txt(brand) + ', ' + txt(model) + ', ' + txt(version) + ', ' +
+    num(year) + ', ' + num(km) + ', ' + price + ', ' +
+    txt(normFuel(it.fuel)) + ', ' + txt(normGear(it.transmission)) + ', ' + txt(it.color) + ', ' +
+    txt(it.image) + ", '" + imagesJson + "', " + txt(normLabel(it.ecoSticker)) + ', ' +
+    txt(sede) + ', ' + txt(sede) + ', ' + txt(provincia) + ', ' + txt(sede) + ', ' +
+    "'profesional', 'compra', 'ES', " + num(it.quotaPrice) +
+    ', NOW(), NOW(), NOW()' +
+  ')';
+  rows.push(row);
+}
+if (!rows.length) return [{ json: { sql: null, count: 0 } }];
+
+const cols = 'id, portal, url, title, brand, model, version, year, mileage, price, fuel, transmission, color, ' +
+  'image_url, images, environmental_label, dealer_name, city, province, location, seller_type, listing_type, ' +
+  'country, finance_price, first_seen_at, scraped_at, last_seen_at';
+
+// Lo que el listado NO trae -puertas, plazas, carrocería, cilindrada, potencia-
+// se queda como está: lo rellena el enriquecedor mirando la ficha, y machacarlo
+// con NULL en cada pasada sería borrar su trabajo cada noche.
+const onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +
+  'url = EXCLUDED.url, title = EXCLUDED.title, price = EXCLUDED.price, mileage = EXCLUDED.mileage, ' +
+  'year = COALESCE(EXCLUDED.year, moveadvisor_market_offers.year), ' +
+  'fuel = COALESCE(NULLIF(EXCLUDED.fuel, \'\'), moveadvisor_market_offers.fuel), ' +
+  'transmission = COALESCE(NULLIF(EXCLUDED.transmission, \'\'), moveadvisor_market_offers.transmission), ' +
+  'color = COALESCE(NULLIF(EXCLUDED.color, \'\'), moveadvisor_market_offers.color), ' +
+  'province = COALESCE(NULLIF(EXCLUDED.province, \'\'), moveadvisor_market_offers.province), ' +
+  "image_url = COALESCE(NULLIF(EXCLUDED.image_url, ''), moveadvisor_market_offers.image_url), " +
+  "images = COALESCE(NULLIF(EXCLUDED.images, '[]'), moveadvisor_market_offers.images), " +
+  'environmental_label = COALESCE(NULLIF(EXCLUDED.environmental_label, \'\'), moveadvisor_market_offers.environmental_label), ' +
+  'finance_price = COALESCE(EXCLUDED.finance_price, moveadvisor_market_offers.finance_price), ' +
+  'last_seen_at = NOW(), updated_at = NOW(), ' +
+  // Verla en el catálogo ES la prueba de vida, así que resucita.
+  //
+  // Sin esto, una oferta que el verificador diera de baja por error se queda
+  // muerta para siempre aunque el scraper la vuelva a ver: el UPSERT le
+  // refresca precio y kilómetros y la deja is_active = FALSE.
+  'is_active = TRUE';
+
+const sql = 'INSERT INTO moveadvisor_market_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;
+return [{ json: { sql: sql, count: rows.length } }];

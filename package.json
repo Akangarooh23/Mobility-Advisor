@@ -95,6 +95,7 @@
     "test:as24-de-verificar": "node scripts/comprueba-as24-de-verificar.js",
     "test:as24-de-enrich": "node scripts/comprueba-as24-de-enrich.js",
     "test:danos-de": "node scripts/comprueba-danos-de.js",
+    "test:flexicar": "node scripts/comprueba-flexicar.js",
     "test:importacion-scoring": "node scripts/comprueba-importacion-scoring.js",
     "despublica-horquilla": "node scripts/despublica-fuera-de-horquilla.js",
     "ajusta-importacion": "node scripts/ajusta-publicadas-importacion.js",
@@ -112,6 +113,7 @@
     "mide-autocasion": "node scripts/mide-paginas-autocasion.js",
     "test:autocasion-verificar": "node scripts/comprueba-autocasion-verificar.js",
     "enlaza-segmento-cochescom": "node scripts/enlaza-segmento-cochescom.js",
+    "enlaza-segmento-flexicar": "node scripts/enlaza-segmento-flexicar.js",
     "test:cochescom": "node scripts/comprueba-cochescom.js",
     "test:cochescom-verificar": "node scripts/comprueba-cochescom-verificar.js",
     "test:cochescom-enrich": "node scripts/comprueba-cochescom-enrich.js"

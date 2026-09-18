@@ -57,7 +57,11 @@ const APLICA = process.argv.includes("--aplica");
     `SELECT id, price::numeric AS al, market_price_es::numeric AS es, year, mileage,
             title, fuel, power_cv, co2, displacement, body_type,
             import_comps AS comps, import_published AS publicada, import_locked AS fijada,
-            COALESCE(is_active, TRUE) AS viva
+            COALESCE(is_active, TRUE) AS viva,
+            -- Los daños mandan tanto como el precio: ver sePublica. Y hace
+            -- falta damage_checked_at además de is_damaged, porque un NULL en
+            -- is_damaged no distingue «mirado y limpio» de «sin mirar».
+            is_damaged AS danado, (damage_checked_at IS NOT NULL) AS danos_vistos
        FROM moveadvisor_market_offers
       WHERE country = 'DE'`
   );
@@ -68,12 +72,24 @@ const APLICA = process.argv.includes("--aplica");
     // La que lleva su precio: la más barata que se le pueda dar a **este**
     // coche. A uno de quince años no se le puede dar ninguna y no sube nada.
     const gar = opcionesParaElCoche(garantias, f).porDefecto?.precio || 0;
-    const publica = sePublica({ precioAleman: al, precioEspanol: es, comparables: f.comps, viva: f.viva !== false, garantia: gar, coche: f });
+    const publica = sePublica({
+      precioAleman: al, precioEspanol: es, comparables: f.comps,
+      viva: f.viva !== false,
+      danado: f.danado === true, danosComprobados: f.danos_vistos === true,
+      garantia: gar, coche: f,
+    });
     const { euros, pct } = ahorroDelCliente(al, es, gar, f);
     return {
       id: f.id, al, es, comps: Number(f.comps) || 0,
       fijada: Boolean(f.fijada), antes: Boolean(f.publicada),
       publica, euros, pct,
+      // Para el resumen: de las que se caen, cuáles no son cosa del precio.
+      // Un dañado o un vendido publicado es un problema distinto de un margen
+      // flojo, y en el recuento de «salen» se confundían.
+      motivo: f.viva === false ? "vendido"
+        : f.danado === true ? "dañado"
+        : f.danos_vistos !== true ? "sin comprobar daños"
+        : "las cuentas",
       gar,
       puesto: Math.round(precioPuestoAqui(al, es, gar, f)),
     };
@@ -90,6 +106,10 @@ const APLICA = process.argv.includes("--aplica");
   console.log(`publicadas ahora : ${publicar.length}`);
   console.log(`  entran         : ${entran.length}`);
   console.log(`  salen          : ${salen.length}`);
+  for (const motivo of ["vendido", "dañado", "sin comprobar daños", "las cuentas"]) {
+    const n = salen.filter((x) => x.motivo === motivo).length;
+    if (n) console.log(`    por ${motivo.padEnd(20)}: ${n}`);
+  }
 
   if (publicar.length) {
     const medio = Math.round(publicar.reduce((s, x) => s + x.euros, 0) / publicar.length);

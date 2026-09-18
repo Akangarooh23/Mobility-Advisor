@@ -232,6 +232,32 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
   }
   comprueba("y NO para cuando todo va bien", pedidasSanas === 60, pedidasSanas + " de 60");
 
+  /*
+   * Y sobre todo: un coche vendido NO es un bloqueo.
+   *
+   * El 17-sep la pasada paró a las 131 fichas con 66 «fallos» que eran ventas.
+   * Medido el 18-sep sobre 25 fichas de la cola real: 20 doscientos con dato y
+   * 5 cuatrocientosdiez, ni un 403. Ese 20% de ventas es normal en AutoScout24
+   * DE, donde el verificador retira el 40-60% por pasada, y contarlo como
+   * bloqueo paraba pasadas perfectamente sanas.
+   */
+  const vendidas = {};
+  let pedidasVendidas = 0;
+  for (let i = 0; i < 60; i++) {
+    const r = pasa({ id: "d" + i, url: "u" }, { statusCode: 410, body: "" }, vendidas);
+    if (!r.saltada) pedidasVendidas++;
+  }
+  comprueba("una pasada entera de vendidas NO dispara el freno",
+    pedidasVendidas === 60, pedidasVendidas + " de 60");
+  const unaVendida = pasa({ id: "d0", url: "u", import_published: true },
+    { statusCode: 410, body: "" }, {});
+  comprueba("y además se da por muerta, sin esperar al verificador",
+    /is_active = FALSE/.test(unaVendida.json.sql || ""), unaVendida.json.veredicto);
+  comprueba("si estaba publicada, sale del escaparate respetando import_locked",
+    /import_published = CASE WHEN import_locked/.test(unaVendida.json.sql || ""));
+  comprueba("pero no se inventa el dato de daño de un coche que ya no puede mirar",
+    !/is_damaged|price_is_net|had_accident/.test(unaVendida.json.sql || ""));
+
   // El parte tiene que limpiar la memoria: si no, el freno de hoy sigue puesto
   // mañana y el workflow no vuelve a mirar una ficha nunca más.
   const resumen = ejecuta(codigo("Code: Resumen"), { estatico: bloqueo, $: () => uno({}), $input: uno({}) });

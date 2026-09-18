@@ -132,6 +132,29 @@ const soloMarca = motivo => {
 };
 
 if (!id) return [{ json: { sql: null, veredicto: 'sin id' } }];
+
+// Un 410 no es un fallo: es un anuncio que ya no existe, o sea un coche
+// vendido. Y son el 20% de la cola -medido el 18-sep sobre 25 fichas: 20
+// doscientos con dato y 5 cuatrocientosdiez, ni un 403.
+//
+// Contarlos como «sin dato» hacia saltar el cortacircuitos en pasadas sanas:
+// el 17-sep paro a las 131 fichas con 66 «fallos» que eran ventas. El freno
+// esta para los bloqueos, y un bloqueo no devuelve 410 ficha a ficha.
+//
+// Ya que lo sabemos, se aprovecha: la oferta se da por muerta aqui mismo en
+// vez de esperar al verificador. Respeta import_locked, como todo lo demas.
+if (codigo === 410 || codigo === 404) {
+  s.dd_vendidas = (s.dd_vendidas || 0) + 1;
+  console.log('[danos-de] ' + id + ': vendida (HTTP ' + codigo + ')');
+  return [{ json: {
+    sql: 'UPDATE moveadvisor_market_offers SET damage_checked_at = NOW()'
+      + ', is_active = FALSE, last_checked_at = NOW()'
+      + ', import_published = CASE WHEN import_locked THEN import_published ELSE FALSE END'
+      + ' WHERE id = ' + esc(id),
+    veredicto: 'vendida',
+  } }];
+}
+
 if (codigo !== 200 || !cuerpo) {
   s.dd_fallos = (s.dd_fallos || 0) + 1;
   console.log('[danos-de] ' + id + ': sin ficha (HTTP ' + codigo + ')');
@@ -221,6 +244,9 @@ console.log('  DANADAS          : ' + (s.dd_danados || 0));
 console.log('  precio neto (IVA): ' + (s.dd_netos || 0));
 console.log('  retiradas del escaparate: ' + (s.dd_retiradas || 0));
 console.log('  sin el dato      : ' + (s.dd_sin_dato || 0));
+// Las vendidas van aparte a proposito: son la mayoria de lo que antes contaba
+// como fallo, y verlas mezcladas hacia parecer que el portal nos bloqueaba.
+console.log('  vendidas (410)   : ' + (s.dd_vendidas || 0));
 console.log('  fichas caidas    : ' + (s.dd_fallos || 0));
 if (s.dd_parado) console.log('  PARADO POR EL CORTACIRCUITOS: ' + s.dd_motivo);
 // Una pasada que no mira ni una ficha no es un éxito, es una cola vacía o una

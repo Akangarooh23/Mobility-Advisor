@@ -103,6 +103,7 @@
     "ajusta-importacion": "node scripts/ajusta-publicadas-importacion.js",
     "marca-danados-de": "node scripts/marca-danados-de.js",
     "retira-danadas": "node scripts/retira-danadas-importacion.js",
+    "recalcula-publicacion": "node scripts/recalcula-publicacion.cjs",
     "limpia-fantasmas": "node scripts/limpia-fantasmas-n8n.js",
     "test:as24-es": "node scripts/comprueba-as24-es.js",
     "enlaza-segmento-es": "node scripts/enlaza-segmento-as24-es.js",

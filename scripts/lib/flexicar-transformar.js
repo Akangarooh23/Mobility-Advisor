@@ -103,7 +103,15 @@ for (const it of list) {
   const cuota = Number(it.quotaPrice) > 0 ? Number(it.quotaPrice) : null;
 
   const year = Number(it.year) > 0 ? Number(it.year) : null;
-  const km = (it.km !== null && it.km !== undefined) ? Number(it.km) : null;
+  /*
+   * Los kilómetros, y «no lo sé» no son cero.
+   *
+   * `Number('')` es 0, así que un coche que llegara sin el dato entraba con
+   * 0 km: en el buscador sale como seminuevo y, peor, hace de comparable de
+   * coches casi nuevos. Un 0 de verdad —un km 0— sí se guarda.
+   */
+  const kmTexto = String(it.km ?? '').trim();
+  const km = (kmTexto !== '' && Number.isFinite(Number(kmTexto))) ? Number(kmTexto) : null;
   const sede = String(it.carDealership || '');
   const provincia = provinciaDe[String(it.carDealershipSlug || '')] || '';
 
@@ -136,7 +144,10 @@ const cols = 'id, portal, url, title, brand, model, version, year, mileage, pric
 // se queda como está: lo rellena el enriquecedor mirando la ficha, y machacarlo
 // con NULL en cada pasada sería borrar su trabajo cada noche.
 const onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +
-  'url = EXCLUDED.url, title = EXCLUDED.title, price = EXCLUDED.price, mileage = EXCLUDED.mileage, ' +
+  // Los kilómetros no se pisan con NULL: si una vuelta no trae el dato, los que
+  // había siguen siendo verdad y el enriquecedor no los rellena.
+  'url = EXCLUDED.url, title = EXCLUDED.title, price = EXCLUDED.price, ' +
+  'mileage = COALESCE(EXCLUDED.mileage, moveadvisor_market_offers.mileage), ' +
   'year = COALESCE(EXCLUDED.year, moveadvisor_market_offers.year), ' +
   'fuel = COALESCE(NULLIF(EXCLUDED.fuel, \'\'), moveadvisor_market_offers.fuel), ' +
   'transmission = COALESCE(NULLIF(EXCLUDED.transmission, \'\'), moveadvisor_market_offers.transmission), ' +

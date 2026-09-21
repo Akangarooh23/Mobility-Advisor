@@ -20,6 +20,9 @@ const whatsappHandler             = require("../lib/api/whatsapp-handler");
 const erpAppointmentHandler        = require("../lib/api/erp-appointment-handler");
 const userErpAppointmentsHandler   = require("../lib/api/user-erp-appointments-handler");
 const conditionReportHandler       = require("../lib/api/condition-report-handler");
+// El catálogo entero en una lista, solo para la app: la web sigue con sus tres
+// buscadores y sus tres pantallas.
+const appCatalogoHandler           = require("../lib/api/app-catalogo-handler");
 const { aplicaCors } = require("../lib/cors");
 
 function resolveRoute(req) {
@@ -54,6 +57,7 @@ module.exports = async function marketRouter(req, res) {
     case "vo":          return marketplaceVoHandler(req, res);
     case "modelo-3d":   return vehicleModelPublicHandler(req, res);
     case "import":      return importOffersHandler(req, res);
+    case "app-catalogo": return appCatalogoHandler(req, res);
     case "import-lead": return importLeadHandler(req, res);
     case "fianza-devolucion": return fianzaDevolucionHandler(req, res);
     case "fianza-confirmar":  return fianzaConfirmarHandler(req, res);
